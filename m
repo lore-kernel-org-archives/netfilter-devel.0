@@ -1,81 +1,80 @@
-From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: Re: [PATCH] netfilter: xtables: inclusion of xt_condition
-Date: Fri, 16 Jul 2010 15:16:01 +0300
-Message-ID: <1279282561.1603.73.camel@powerslave>
-References: <1279278635.1603.53.camel@powerslave>
-	 <alpine.LSU.2.01.1007161320310.14608@obet.zrqbmnf.qr>
-	 <1279279882.1603.56.camel@powerslave>
-	 <alpine.LSU.2.01.1007161353060.18961@obet.zrqbmnf.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] ipt_REJECT: can't work with bridges
+Date: Fri, 16 Jul 2010 14:16:32 +0200
+Message-ID: <4C404DA0.1000204@trash.net>
+References: <1279251163-2887-1-git-send-email-xiaosuo@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: "kaber@trash.net" <kaber@trash.net>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: ext Jan Engelhardt <jengelh@medozas.de>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:32428 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965245Ab0GPMQL (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:35792 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965244Ab0GPMQf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Jul 2010 08:16:11 -0400
-In-Reply-To: <alpine.LSU.2.01.1007161353060.18961@obet.zrqbmnf.qr>
+	Fri, 16 Jul 2010 08:16:35 -0400
+In-Reply-To: <1279251163-2887-1-git-send-email-xiaosuo@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 2010-07-16 at 13:54 +0200, ext Jan Engelhardt wrote:
-> On Friday 2010-07-16 13:31, Luciano Coelho wrote:
-> >
-> >> >As you may have seen in my earlier rfc email, I'm interested in
-> >> >something similar to the condition match.  I'm not sure whether the best
-> >> >approach is to create a CONDITION target where we can set the condition
-> >> >variable in the iptables itself or if it is better to create a new
-> >> >"variable match" and an accompanying "VARIABLE target" that keeps the
-> >> >variables in memory, instead of using procfs.
-> >> 
-> >> procfs is in memory :)
-> >
-> >Yes, of course, but I meant without exporting it to procfs. ;) That
-> >would probably make the code a lot simpler (actually I can't imagine a
-> >simpler match/target than a "variable" match/target ;)
+Am 16.07.2010 05:32, schrieb Changli Gao:
+> ipt_REJECT: can't work with bridges
 > 
-> Well, if not procfs, what should influence this anonymous variable?
-> The weather? (No really, that came up at last NFWS. Using a userspace 
-> program, you can write into the procfs file and thus firewall based upon 
-> storm and thunder....)
+> ip_route_me_harder can't create the route cache when the outdev is the same with
+> the indev for the skbs whichout a valid protocol set.
+> 
+> __mkroute_input functions has this check:
+> 1998         if (skb->protocol != htons(ETH_P_IP)) {
+> 1999                 /* Not IP (i.e. ARP). Do not create route, if it is
+> 2000                  * invalid for proxy arp. DNAT routes are always valid.
+> 2001                  *
+> 2002                  * Proxy arp feature have been extended to allow, ARP
+> 2003                  * replies back to the same interface, to support
+> 2004                  * Private VLAN switch technologies. See arp.c.
+> 2005                  */
+> 2006                 if (out_dev == in_dev &&
+> 2007                     IN_DEV_PROXY_ARP_PVLAN(in_dev) == 0) {
+> 2008                         err = -EINVAL;
+> 2009                         goto cleanup;
+> 2010                 }
+> 2011         }
+> 
+> This patch gives the new skb a valid protocol to bypass this check. In order to
+> make ipt_REJECT work with bridges, you also need to enable ip_forward.
 
-Heh! :)
+This actually also fixes a regression, back when we used skb_copy_expand
+of the old skb, the protocol was properly set, which not only affects
+bridges, but also TC classification and packet sockets.
 
-What I need is a state variable that is set and read by netfilter
-tables.  The idea is to have a state variable high_throughput that will
-be set to true (high) or false (low) depending on the rateest results.
-This would be used to prevent multiple NFLOG events for the same state
-(say, "HIGH") from being sent to userspace.
+> Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+> ----
+>  net/ipv4/netfilter/ipt_REJECT.c |    1 +
+>  1 file changed, 1 insertion(+)
+> diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
+> index bbbd273..e0bca39 100644
+> --- a/net/ipv4/netfilter/ipt_REJECT.c
+> +++ b/net/ipv4/netfilter/ipt_REJECT.c
+> @@ -111,6 +111,7 @@ static void send_reset(struct sk_buff *oldskb, int hook)
+>  	/* ip_route_me_harder expects skb->dst to be set */
+>  	skb_dst_set_noref(nskb, skb_dst(oldskb));
+>  
+> +	nskb->protocol = __constant_htons(ETH_P_IP);
 
-This is similar to what propose with the condition match:
+You don't need __constant_htons here however, the compiler is smart
+enough to this itself. Please resend and add a note to the changelog
+stating that this fixes a regression and I'll toss it into
+nf-2.6.git.
 
-> With xt_condition that should not be a problem
-> (-A INPUT -m condition --name ruleXYZ -j NFLOG..)
-> This is settable through procfs.
+Thanks!
 
-But without depending on the userspace to change the condition value.  I
-could have rules like this to change the condition:
-
--A INPUT -j throughput 
-
--A above -m condition --name hi_thru -j RETURN 
--A above -m rateest --rateest throughput --rateest-bps1 0bit --rateest-bps2 1000bit --rateest-gt -j NFLOG --nflog-prefix "HIGH" 
--A above -m rateest --rateest throughput --rateest-bps1 0bit --rateest-bps2 1000bit --rateest-gt -j CONDITION --name hi_thru --set 1 
-
--A below -m condition ! --name hi_thru -j RETURN 
--A below -m rateest --rateest throughput --rateest-bps1 0bit --rateest-bps2 1000bit --rateest-lt -j NFLOG --nflog-prefix "LOW" 
--A below -m rateest --rateest throughput --rateest-bps1 0bit --rateest-bps2 1000bit --rateest-lt -j CONDITION --name hi_thru --set 0
-
--A throughput -j RATEEST --rateest-name throughput --rateest-interval 250.0ms --rateest-ewmalog 500.0ms 
--A throughput -j above 
--A throughput -j below 
-
-
--- 
-Cheers,
-Luca.
+>  	if (ip_route_me_harder(nskb, addr_type))
+>  		goto free_nskb;
+>  
+> 
 
