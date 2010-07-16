@@ -1,80 +1,68 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ipt_REJECT: can't work with bridges
-Date: Fri, 16 Jul 2010 14:16:32 +0200
-Message-ID: <4C404DA0.1000204@trash.net>
-References: <1279251163-2887-1-git-send-email-xiaosuo@gmail.com>
+Subject: Re: [PATCH] ipt_REDIRECT: only change dest-ip if not local ip
+Date: Fri, 16 Jul 2010 14:21:00 +0200
+Message-ID: <4C404EAC.7050509@trash.net>
+References: <4C402DBD.3010007@quarantainenet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Bas van Sisseren <bas@quarantainenet.nl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35792 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:35861 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965244Ab0GPMQf (ORCPT
+	with ESMTP id S965310Ab0GPMVD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Jul 2010 08:16:35 -0400
-In-Reply-To: <1279251163-2887-1-git-send-email-xiaosuo@gmail.com>
+	Fri, 16 Jul 2010 08:21:03 -0400
+In-Reply-To: <4C402DBD.3010007@quarantainenet.nl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 16.07.2010 05:32, schrieb Changli Gao:
-> ipt_REJECT: can't work with bridges
+Am 16.07.2010 12:00, schrieb Bas van Sisseren:
+> Hello,
 > 
-> ip_route_me_harder can't create the route cache when the outdev is the same with
-> the indev for the skbs whichout a valid protocol set.
+> When redirecting, the destination address is replaced by the first
+> ip-address on the receiving interface.
 > 
-> __mkroute_input functions has this check:
-> 1998         if (skb->protocol != htons(ETH_P_IP)) {
-> 1999                 /* Not IP (i.e. ARP). Do not create route, if it is
-> 2000                  * invalid for proxy arp. DNAT routes are always valid.
-> 2001                  *
-> 2002                  * Proxy arp feature have been extended to allow, ARP
-> 2003                  * replies back to the same interface, to support
-> 2004                  * Private VLAN switch technologies. See arp.c.
-> 2005                  */
-> 2006                 if (out_dev == in_dev &&
-> 2007                     IN_DEV_PROXY_ARP_PVLAN(in_dev) == 0) {
-> 2008                         err = -EINVAL;
-> 2009                         goto cleanup;
-> 2010                 }
-> 2011         }
+> If the packet originally was sent to the second ip-address (or third,
+> fourth, etc..), this patch doesn't change the destination ip.
+
+So I guess you use statically configured address that are known
+in advance. So why don't you simply set up your ruleset to only
+redirect packets sent to the first address? That avoids iterating
+through the entire address list for each new connection, which
+can be quite large.
+
 > 
-> This patch gives the new skb a valid protocol to bypass this check. In order to
-> make ipt_REJECT work with bridges, you also need to enable ip_forward.
-
-This actually also fixes a regression, back when we used skb_copy_expand
-of the old skb, the protocol was properly set, which not only affects
-bridges, but also TC classification and packet sockets.
-
-> Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-> ----
->  net/ipv4/netfilter/ipt_REJECT.c |    1 +
->  1 file changed, 1 insertion(+)
-> diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
-> index bbbd273..e0bca39 100644
-> --- a/net/ipv4/netfilter/ipt_REJECT.c
-> +++ b/net/ipv4/netfilter/ipt_REJECT.c
-> @@ -111,6 +111,7 @@ static void send_reset(struct sk_buff *oldskb, int hook)
->  	/* ip_route_me_harder expects skb->dst to be set */
->  	skb_dst_set_noref(nskb, skb_dst(oldskb));
->  
-> +	nskb->protocol = __constant_htons(ETH_P_IP);
-
-You don't need __constant_htons here however, the compiler is smart
-enough to this itself. Please resend and add a note to the changelog
-stating that this fixes a regression and I'll toss it into
-nf-2.6.git.
-
-Thanks!
-
->  	if (ip_route_me_harder(nskb, addr_type))
->  		goto free_nskb;
->  
+> ============
+> --- linux.orig/net/ipv4/netfilter/ipt_REDIRECT.c
+> +++ linux/net/ipv4/netfilter/ipt_REDIRECT.c
+> @@ -78,7 +78,21 @@
+>         rcu_read_lock();
+>         indev = __in_dev_get_rcu((*pskb)->dev);
+>         if (indev && (ifa = indev->ifa_list))
+> +       {
+> +           struct in_ifaddr *ifa_cur; // interface ip-list cursor
+> +
+> +           // set current destination ip
+> +           newdst = ((struct iphdr*)skb_network_header(*pskb))->daddr;
+> +
+> +           // iterate through interface ip list
+> +           for (ifa_cur = ifa; ifa_cur; ifa_cur = ifa_cur->ifa_next)
+> +               if (newdst == ifa_cur->ifa_local)
+> +                   goto newdst_is_local;
+> +
+> +           // set new destination to first ip of this interface
+>             newdst = ifa->ifa_local;
+> +       }
+> +   newdst_is_local:
+>         rcu_read_unlock();
+> 
+>         if (!newdst)
+> ============
+> 
+> Kind regards,
+> 
+> Bas van Sisseren
 > 
 
