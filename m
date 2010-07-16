@@ -1,44 +1,45 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [ANNOUNCE] libnetfilter_log 1.0.0 release
-Date: Fri, 16 Jul 2010 12:50:22 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1007161249280.10833@obet.zrqbmnf.qr>
-References: <4C3EFC66.7050400@netfilter.org>
+From: Luciano Coelho <luciano.coelho@nokia.com>
+Subject: Re: [PATCH] netfilter: xtables: inclusion of xt_condition
+Date: Fri, 16 Jul 2010 14:10:35 +0300
+Message-ID: <1279278635.1603.53.camel@powerslave>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org, netfilter-announce@lists.netfilter.org,
-	netfilter-devel@vger.kernel.org, lwn@lwn.net
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
+To: jengelh@medozas.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:46195 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965050Ab0GPKuX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Jul 2010 06:50:23 -0400
-In-Reply-To: <4C3EFC66.7050400@netfilter.org>
+Received: from smtp.nokia.com ([192.100.105.134]:23212 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965122Ab0GPLK7 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Jul 2010 07:10:59 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2010-07-15 14:17, Pablo Neira Ayuso wrote:
+Hi Jan,
 
->Hi!
->
->The Netfilter proudly project presents:
->
->  * libnetfilter_log-1.0.0
->
->libnetfilter_log is a userspace library providing interface to packets
->that have been logged by the kernel packet filter. It is is part of a
->system that deprecates the old syslog/dmesg based packet logging.
->
->This releases contains a new function to print logs in XML format and
->the doxygen-based documentation. See Changelog for details.
->
->You can find the documentation in doxygen format at:
->http://www.netfilter.org/projects/libnetfilter_log/doxygen/
->
->You can download it from:
->http://www.netfilter.org/projects/libnetfilter_queue/downloads.html
->ftp://ftp.netfilter.org/pub/libnetfilter_queue/
+Jan Engelhardt <jengelh@medozas.de> writes:
+> On Thursday 2010-04-22 13:14, Patrick McHardy wrote:
+> 
+> > This looks better, thanks. A few remaining questions about things
+> > I missed previously:
+> 
+> Will deal with it shortly.
 
-More like 
-http://www.netfilter.org/projects/libnetfilter_log/downloads.html ;-)
+Are you planning to resend this patch with the changes Patrick
+suggested?
+
+As you may have seen in my earlier rfc email, I'm interested in
+something similar to the condition match.  I'm not sure whether the best
+approach is to create a CONDITION target where we can set the condition
+variable in the iptables itself or if it is better to create a new
+"variable match" and an accompanying "VARIABLE target" that keeps the
+variables in memory, instead of using procfs.
+
+Any suggestions?
+
+
+-- 
+Cheers,
+Luca.
 
