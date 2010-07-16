@@ -1,40 +1,35 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] netfilter: xtables: inclusion of xt_condition
-Date: Fri, 16 Jul 2010 21:14:40 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1007162114070.22666@obet.zrqbmnf.qr>
-References: <1279278635.1603.53.camel@powerslave>  <alpine.LSU.2.01.1007161320310.14608@obet.zrqbmnf.qr>  <1279279882.1603.56.camel@powerslave>  <alpine.LSU.2.01.1007161353060.18961@obet.zrqbmnf.qr> <1279282561.1603.73.camel@powerslave>
+Subject: Re: [PATCH] ipt_REDIRECT: only change dest-ip if not local ip
+Date: Fri, 16 Jul 2010 21:18:49 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1007162116020.22666@obet.zrqbmnf.qr>
+References: <4C402DBD.3010007@quarantainenet.nl> <4C404EAC.7050509@trash.net> <4C4053AB.8050300@quarantainenet.nl> <4C405572.7050106@trash.net> <alpine.LSU.2.01.1007161654030.32253@obet.zrqbmnf.qr> <4C40774D.7070004@quarantainenet.nl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "kaber@trash.net" <kaber@trash.net>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Luciano Coelho <luciano.coelho@nokia.com>
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Bas van Sisseren <bas@quarantainenet.nl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:45795 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:50782 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758946Ab0GPTOp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Jul 2010 15:14:45 -0400
-In-Reply-To: <1279282561.1603.73.camel@powerslave>
+	id S1759059Ab0GPTSu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Jul 2010 15:18:50 -0400
+In-Reply-To: <4C40774D.7070004@quarantainenet.nl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Friday 2010-07-16 14:16, Luciano Coelho wrote:
->> >
->> >Yes, of course, but I meant without exporting it to procfs. ;) That
->> >would probably make the code a lot simpler (actually I can't imagine a
->> >simpler match/target than a "variable" match/target ;)
+On Friday 2010-07-16 17:14, Bas van Sisseren wrote:
+>>>
+>>> OK, so basically you just want to rewrite the port number. An easier
+>>> way to do this without iterating through all addresses would be to
+>>> change userspace and the kernel so you can create REDIRECT rules
+>>> without the IP_NAT_RANGE_MAP_IPS flag. That won't work for forwarded
+>>> packets, but its the simplest solution for the case you describe.
 >> 
->> Well, if not procfs, what should influence this anonymous variable?
->> The weather? (No really, that came up at last NFWS. Using a userspace 
->> program, you can write into the procfs file and thus firewall based upon 
->> storm and thunder....)
+>> Isn't TPROXY the right thing here if all you want is changing the port 
+>> of delivery? :-)
 >
->Heh! :)
->
->What I need is a state variable that is set and read by netfilter
->tables.  The idea is to have a state variable high_throughput that will
->be set to true (high) or false (low) depending on the rateest results.
->This would be used to prevent multiple NFLOG events for the same state
->(say, "HIGH") from being sent to userspace.
+>I could use TPROXY.. But then I still need to patch the kernel. Even Debian
+>unstable kernels do not yet have the ipt_TPROXY module. Besides that,
+>TPROXY looks promising.
 
-We have exactlt that -- the nfmark, accessible via -j MARK.
+Squeeze should have xt_TPROXY.ko, which was added for 2.6.28.
+
