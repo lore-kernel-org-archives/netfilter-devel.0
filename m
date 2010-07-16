@@ -1,63 +1,75 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ipt_REDIRECT: only change dest-ip if not local ip
-Date: Fri, 16 Jul 2010 14:49:54 +0200
-Message-ID: <4C405572.7050106@trash.net>
-References: <4C402DBD.3010007@quarantainenet.nl> <4C404EAC.7050509@trash.net> <4C4053AB.8050300@quarantainenet.nl>
+Subject: Re: [RFC] setting up throughput threshold indications to userspace
+Date: Fri, 16 Jul 2010 15:01:51 +0200
+Message-ID: <4C40583F.40200@trash.net>
+References: <1279268431.1603.44.camel@powerslave>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Bas van Sisseren <bas@quarantainenet.nl>
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Changli Gao <xiaosuo@gmail.com>
+To: Luciano Coelho <luciano.coelho@nokia.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36304 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:36540 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965576Ab0GPMtz (ORCPT
+	with ESMTP id S965383Ab0GPNBy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Jul 2010 08:49:55 -0400
-In-Reply-To: <4C4053AB.8050300@quarantainenet.nl>
+	Fri, 16 Jul 2010 09:01:54 -0400
+In-Reply-To: <1279268431.1603.44.camel@powerslave>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 16.07.2010 14:42, schrieb Bas van Sisseren:
-> Hello Patrick,
+Am 16.07.2010 10:20, schrieb Luciano Coelho:
+> Hi all,
 > 
-> In most situations, all addresses are known in advance (although we have
-> some situations where we both have a static address and a dhcp'ed address on
-> the same interface).
+> I've been trying to set up some rules that will send indications to the
+> userspace about the current throughput of a certain interface.  The idea
+> is to let the userspace enable or disable WLAN PS mode accordingly (the
+> validity of this idea is another subject ;).
+> 
+> This is related to the discussion we had in the thread about the NFNOTIF
+> thread.
+> 
+> I'm thinking about having this kind of ruleset:
+> 
+> -A INPUT -j throughput 
+> -A above -m connmark --mark 0x1 -j RETURN 
+> -A above -m rateest --rateest throughput --rateest-bps1 0bit --rateest-bps2 1000bit --rateest-gt -j LOG --log-prefix "ABOVE" 
+> -A above -m rateest --rateest throughput --rateest-bps1 0bit --rateest-bps2 1000bit --rateest-gt -j CONNMARK --set-xmark 0x1/0xffffffff 
+> -A below -m connmark --mark 0x2 -j RETURN 
+> -A below -m rateest --rateest throughput --rateest-bps1 0bit --rateest-bps2 1000bit --rateest-lt -j LOG --log-prefix "BELOW" 
+> -A below -m rateest --rateest throughput --rateest-bps1 0bit --rateest-bps2 1000bit --rateest-lt -j CONNMARK --set-xmark 0x2/0xffffffff 
+> -A throughput -j RATEEST --rateest-name throughput --rateest-interval 250.0ms --rateest-ewmalog 500.0ms 
+> -A throughput -j above 
+> -A throughput -j below 
+> 
+> I'm using a normal LOG just for simplicity reasons, in real life I'd use
+> NFLOG instead.
+> 
+> The idea here is that all packets would be collected by RATEEST for rate
+> estimation and then I'd check whether the throughput is above the
+> threshold.  If it is, I mark it as such and print the log.  Same thing
+> for below the threshold.  The RETURN rules are there to prevent more LOG
+> messages from being printed (what I need is to know only when the
+> throughput "crosses" the threshold).
+> 
+> Do you think this works?
 
-At least in the cases where the addresses are known in advance, you can
-handle this through the ruleset.
+Looks reasonable, but you could probably simplify it a bit by adding
+RETURN rules to the above/below chains when the threshold is below/
+above the specified value. That way you only need a single rateest
+match.
 
-> The problem is that we can't tell the other end to use the first address on
-> the interface. Some systems use the first address, others use the second
-> address. When a connection is set up from the remote system to the second
-> address, the original REDIRECT redirects the connection to the configured
-> port-number on the first address.
-> 
-> It seems way more logical to me to keep the destination address the same and
-> only change the port number if the destination address is locally configured
-> on that interface.
-> 
-> 
-> Assume:
->   eth0 has these addresses:
->     10.1.0.1, netmask 255.255.255.0  (primary address)
->     10.2.0.1, netmask 255.255.255.0
->     10.3.0.1, netmask 255.255.255.0
->     10.4.0.1, netmask 255.255.255.0
-> 
->   and redirects from.. say.. port 80 to 8080
-> 
->   Connections to 10.1.0.1:80 will be redirected to 10.1.0.1:8080
->   But also all connections to 10.2.0.1:80, 10.3.0.1:80 and
->   10.4.0.1:80 will be redirected to 10.1.0.1:8080
-> 
-> 
-> With the patch, the connection to 10.2.0.1:80 will be redirected to
-> 10.2.0.1:8080, 10.3.0.1:80 to 10.3.0.1:8080, etc..
+> There is one problem with this solution, which is that it works in a
+> per-connection basis (due to CONNMARK).  This is not exactly what I
+> want.  I need to have this on a per-ruleset basis.  For that, I need to
+> have a MARK (variable?) which can be set independently of connections or
+> packets.  This is similar to the proposed condition match, but what is
+> missing there is a way to set the condition with iptables itself,
+> without requiring the userspace to change the procfs file.  This could
+> probably be achieved with a "CONDITION" target or something similar.
+> Any ideas?
 
-OK, so basically you just want to rewrite the port number. An easier
-way to do this without iterating through all addresses would be to
-change userspace and the kernel so you can create REDIRECT rules
-without the IP_NAT_RANGE_MAP_IPS flag. That won't work for forwarded
-packets, but its the simplest solution for the case you describe.
+Sounds useful.
