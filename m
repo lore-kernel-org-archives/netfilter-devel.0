@@ -1,104 +1,71 @@
-From: Aijaz Baig <aijazbaig1@gmail.com>
-Subject: Re: packet flow - ebtables broute DROP target
-Date: Fri, 16 Jul 2010 13:35:39 +0530
-Message-ID: <1279267539.4086.28.camel@aijazbaig1-desktop>
-References: <1DB91DF937A4544C81E636468B91C21C06F1EC28@CNSHGSMBS03.ad4.ad.alcatel.com>
-	 <1DB91DF937A4544C81E636468B91C21C06F1ECAF@CNSHGSMBS03.ad4.ad.alcatel.com>
-	 <AANLkTil_RodsXwi2y8-tOeLsZ8Cl3TN0WYfsAMrrx-VP@mail.gmail.com>
-	 <1279202558.5524.10.camel@aijazbaig1-desktop>
-	 <alpine.LSU.2.01.1007151616400.7169@obet.zrqbmnf.qr>
-	 <4C3F60E9.3090106@pandora.be>
-Reply-To: aijazbaig1@gmail.com
+From: Luciano Coelho <luciano.coelho@nokia.com>
+Subject: [RFC] setting up throughput threshold indications to userspace
+Date: Fri, 16 Jul 2010 11:20:31 +0300
+Message-ID: <1279268431.1603.44.camel@powerslave>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>, netfilter@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Bart De Schuymer <bdschuym@pandora.be>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <4C3F60E9.3090106@pandora.be>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Changli Gao <xiaosuo@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:30537 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935937Ab0GPIU7 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Jul 2010 04:20:59 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello Bart and Jan,
+Hi all,
 
-Sorry for the belated reply. Im in India so the time gaps makes it bad.
-Thank you for your great inputs. I would surely consider them now. Thank
-you Jan for letting us know you guys are writing a book on netfilter.
-Lord knows we need it. More and more companies across the globe are
-using linux more and more now. This would be of immense help to
-academicians and professionals alike.
+I've been trying to set up some rules that will send indications to the
+userspace about the current throughput of a certain interface.  The idea
+is to let the userspace enable or disable WLAN PS mode accordingly (the
+validity of this idea is another subject ;).
 
-Ive got 2 linux boxes, one virtual and one real. The real one has a eth0
-interface which connects to my LAN. It's vmnet8 interface is behind the
-virtual linux box's eth0 interface i.e. the latter is the former's
-gateway. The virtual box has 3 interfaces eth0, eth1 and eth2. Out of
-which eth0 and eth1 are bridged and enslaved to br0. eth2 connects to
-the same LAN as does my real box's eth0. I have added a static route for
-a PC in my outer LAN to force the traffic to go through vmnet8.
+This is related to the discussion we had in the thread about the NFNOTIF
+thread.
 
-Now when I DROP packets for the target PC in the broute table, the
-problem that I described above happens. I did what was told to be done
-as shown the basic brouter example. But still..zilch..nothing seemed to
-be working. 
+I'm thinking about having this kind of ruleset:
 
-To be specific, I added a rule:
-ebtables -t broute -A BROUTING -p 0x806 --d$MAC_OF_eth0 -j DROP 
-to allow the arp replies to arrive on eth0 and not on br0. But even
-after that it didn't work. Even the packet count for this new rule was
-zero all the time so I guess something was suspicious here.
+-A INPUT -j throughput 
+-A above -m connmark --mark 0x1 -j RETURN 
+-A above -m rateest --rateest throughput --rateest-bps1 0bit --rateest-bps2 1000bit --rateest-gt -j LOG --log-prefix "ABOVE" 
+-A above -m rateest --rateest throughput --rateest-bps1 0bit --rateest-bps2 1000bit --rateest-gt -j CONNMARK --set-xmark 0x1/0xffffffff 
+-A below -m connmark --mark 0x2 -j RETURN 
+-A below -m rateest --rateest throughput --rateest-bps1 0bit --rateest-bps2 1000bit --rateest-lt -j LOG --log-prefix "BELOW" 
+-A below -m rateest --rateest throughput --rateest-bps1 0bit --rateest-bps2 1000bit --rateest-lt -j CONNMARK --set-xmark 0x2/0xffffffff 
+-A throughput -j RATEEST --rateest-name throughput --rateest-interval 250.0ms --rateest-ewmalog 500.0ms 
+-A throughput -j above 
+-A throughput -j below 
 
-Could someone, bart maybe, let me know what it means by his quote: "Your
-traffic is probably dropped by the networking code because the 
-destination MAC address differs from that of the bridge port."
+I'm using a normal LOG just for simplicity reasons, in real life I'd use
+NFLOG instead.
 
-May be I don't really know ARP works to infer how such a rule would be
-helpful in the first place.
+The idea here is that all packets would be collected by RATEEST for rate
+estimation and then I'd check whether the throughput is above the
+threshold.  If it is, I mark it as such and print the log.  Same thing
+for below the threshold.  The RETURN rules are there to prevent more LOG
+messages from being printed (what I need is to know only when the
+throughput "crosses" the threshold).
 
-I am keen to hear frm you guys and once again, thank you for your input
-and such wonderful open source software that would put the big guys out
-there to shame.
+Do you think this works?
 
-Regards,
-Aijaz
-
-On Thu, 2010-07-15 at 21:26 +0200, Bart De Schuymer wrote: 
-> Jan Engelhardt schreef:
-> > On Thursday 2010-07-15 16:02, Aijaz Baig wrote:
-> >   
-> >> unfamiliar with it, here are the links to the same:
-> >> http://ebtables.sourceforge.net/br_fw_ia/br_fw_ia.html for the document
-> >> and http://ebtables.sourceforge.net/br_fw_ia/PacketFlow.png for the
-> >> picture.
-> >>     
-> >
-> > Use http://jengelh.medozas.de/images/nf-packet-flow.png
-> >
-> >   
-> >> Im trying to understand what happens to a packet which is DROPped in the
-> >> BROUTING chain of the broute table. If I have understood correctly from
-> >> the document above, it goes to L3 where the routing subsystem can decide
-> >> where to send the packet to depending on L3 information in it isn't it?
-> >>     
-> >
-> > In net/core/dev.c, the packet is passed to all "taps". Taps include 
-> > raw sockets (think tcpdump), but also bridge and the IPvX layers 
-> > themselves. Each of them basically gets a copy, thus it is important to 
-> > not have an address on the ethernet interface (so that the IPvX tap 
-> > ignores it). Only the bridge interface should have an address, because 
-> > the bridge code will pass it to IPvX on its own.
-> >
-> >   
-> When using a brouter, you actually assign IP addresses to the bridge 
-> ports (different subnets) instead of the virtual bridge interface 
-> itself. IP traffic is then DROPped in the BROUTE chain, so it's not 
-> bridged. See http://ebtables.sourceforge.net/examples/real.html#example1 
-> for an example usage.
-> 
-> cheers,
-> Bart
-> 
+There is one problem with this solution, which is that it works in a
+per-connection basis (due to CONNMARK).  This is not exactly what I
+want.  I need to have this on a per-ruleset basis.  For that, I need to
+have a MARK (variable?) which can be set independently of connections or
+packets.  This is similar to the proposed condition match, but what is
+missing there is a way to set the condition with iptables itself,
+without requiring the userspace to change the procfs file.  This could
+probably be achieved with a "CONDITION" target or something similar.
+Any ideas?
 
 
-
+-- 
+Cheers,
+Luca.
 
