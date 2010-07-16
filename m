@@ -1,64 +1,82 @@
 From: Bas van Sisseren <bas@quarantainenet.nl>
 Subject: Re: [PATCH] ipt_REDIRECT: only change dest-ip if not local ip
-Date: Fri, 16 Jul 2010 17:14:21 +0200
-Message-ID: <4C40774D.7070004@quarantainenet.nl>
-References: <4C402DBD.3010007@quarantainenet.nl> <4C404EAC.7050509@trash.net> <4C4053AB.8050300@quarantainenet.nl> <4C405572.7050106@trash.net> <alpine.LSU.2.01.1007161654030.32253@obet.zrqbmnf.qr>
+Date: Fri, 16 Jul 2010 17:21:54 +0200
+Message-ID: <4C407912.7050500@quarantainenet.nl>
+References: <4C402DBD.3010007@quarantainenet.nl> <4C40539A.6080607@plouf.fr.eu.org> <4C405D50.6020306@quarantainenet.nl> <4C4074FF.8080308@plouf.fr.eu.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.quarantaine.net ([217.114.102.88]:48720 "EHLO
+Received: from mail.quarantaine.net ([217.114.102.88]:56182 "EHLO
 	main.qone.quarantainenet.nl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965783Ab0GPPO0 (ORCPT
+	by vger.kernel.org with ESMTP id S965749Ab0GPPV7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Jul 2010 11:14:26 -0400
-In-Reply-To: <alpine.LSU.2.01.1007161654030.32253@obet.zrqbmnf.qr>
+	Fri, 16 Jul 2010 11:21:59 -0400
+In-Reply-To: <4C4074FF.8080308@plouf.fr.eu.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 16/07/10 16:56, Jan Engelhardt wrote:
-> On Friday 2010-07-16 14:49, Patrick McHardy wrote:
->>> Assume:
->>>   eth0 has these addresses:
->>>     10.1.0.1, netmask 255.255.255.0  (primary address)
->>>     10.2.0.1, netmask 255.255.255.0
->>>     10.3.0.1, netmask 255.255.255.0
->>>     10.4.0.1, netmask 255.255.255.0
->>>
->>>   and redirects from.. say.. port 80 to 8080
->>>
->>>   Connections to 10.1.0.1:80 will be redirected to 10.1.0.1:8080
->>>   But also all connections to 10.2.0.1:80, 10.3.0.1:80 and
->>>   10.4.0.1:80 will be redirected to 10.1.0.1:8080
->>>
->>>
->>> With the patch, the connection to 10.2.0.1:80 will be redirected to
->>> 10.2.0.1:8080, 10.3.0.1:80 to 10.3.0.1:8080, etc..
+On 16/07/10 17:04, Pascal Hambourg wrote:
+> Bas van Sisseren a =E9crit :
 >>
->> OK, so basically you just want to rewrite the port number. An easier
->> way to do this without iterating through all addresses would be to
->> change userspace and the kernel so you can create REDIRECT rules
->> without the IP_NAT_RANGE_MAP_IPS flag. That won't work for forwarded
->> packets, but its the simplest solution for the case you describe.
-> 
-> Isn't TPROXY the right thing here if all you want is changing the port 
-> of delivery? :-)
+>> On 16/07/10 14:42, Pascal Hambourg wrote:
+>>>
+>>> 2) I wonder whether it is really useful. The purpose of REDIRECT is=
+ to
+>>> make sure a packet is redirected to the local machine itself withou=
+t the
+>>> need to care about the machine's address (just as MASQUERADE). If y=
+ou
+>>> don't want to change the destination address or need finer control =
+over
+>>> it, I believe DNAT can be used instead. Can you provide a use case =
+?
+>>
+>> It's a honeypot system with advanced routing and a lot of ip-address=
+es. The
+>> honeypot is running as non-root, which complicates usage of ports < =
+1024.
+>> The REDIRECT rule helps us to redirect the connection to higher
+>> port-numbers. With REDIRECT, we can request the original dst ip:port=
+ with
+>> the SO_ORIG_DST sockopt. With DNAT the SO_ORIG_DST is not available.
+>=20
+> Do you mean SO_ORIGINAL_DST ? I'm surprised it does not work with DNA=
+T.
+> AFAICS, it uses data from the connection tracking, and it does not
+> matter how the NAT mapping was created.
 
-I could use TPROXY.. But then I still need to patch the kernel. Even Debian
-unstable kernels do not yet have the ipt_TPROXY module. Besides that,
-TPROXY looks promising.
+Yes, that's the one. I have to admit I did these experiments before the
+netfilter module shuffle (somewhere around the 2.6.18 kernel). I'll hav=
+e
+another look at it.
 
 
-On 16/07/10 16:58, Patrick McHardy wrote:
-> TPROXY does more than changing the port number. Being able to
-> specify port-only redirect rules sounds useful to me in any
-> case.
+>>> 3) Why restrict only to the addresses attached to the receiving
+>>> interface ? Why not extend to any address attached to a host's
+>>> interface, or even any local address (such as the whole 127.0.0.0/8
+>>> prefix) ?
+>>
+>> I don't see any use for that. :-)
+>=20
+> Well, I think it would be more consistent with the Linux "weak" host
+> model (all local addresses belong globally to the host instead of a
+> single interface) ; we want to redirect a packet to the local host, s=
+o
+> if the original destination address is already a local address, we do=
+n't
+> need to change it.
 
-A port-only redirect would be very nice and would solve the problems I'm having.
+Ah, you've got a point there.
 
--- 
+
+--=20
 Bas van Sisseren <bas@quarantainenet.nl>
 Quarantainenet
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
