@@ -1,65 +1,46 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH v2] ipt_REJECT: can't work with bridges
-Date: Mon,  5 Jul 2010 15:16:54 +0800
-Message-ID: <1278314214-18469-1-git-send-email-xiaosuo@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Changli Gao <xiaosuo@gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] ipt_REDIRECT: only change dest-ip if not local ip
+Date: Fri, 16 Jul 2010 16:56:19 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1007161654030.32253@obet.zrqbmnf.qr>
+References: <4C402DBD.3010007@quarantainenet.nl> <4C404EAC.7050509@trash.net> <4C4053AB.8050300@quarantainenet.nl> <4C405572.7050106@trash.net>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Bas van Sisseren <bas@quarantainenet.nl>,
+	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:60455 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965234Ab0GPN3j (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Jul 2010 09:29:39 -0400
+Received: from borg.medozas.de ([188.40.89.202]:56883 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965774Ab0GPO4W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Jul 2010 10:56:22 -0400
+In-Reply-To: <4C405572.7050106@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-ipt_REJECT: can't work with bridges
+On Friday 2010-07-16 14:49, Patrick McHardy wrote:
+>> Assume:
+>>   eth0 has these addresses:
+>>     10.1.0.1, netmask 255.255.255.0  (primary address)
+>>     10.2.0.1, netmask 255.255.255.0
+>>     10.3.0.1, netmask 255.255.255.0
+>>     10.4.0.1, netmask 255.255.255.0
+>> 
+>>   and redirects from.. say.. port 80 to 8080
+>> 
+>>   Connections to 10.1.0.1:80 will be redirected to 10.1.0.1:8080
+>>   But also all connections to 10.2.0.1:80, 10.3.0.1:80 and
+>>   10.4.0.1:80 will be redirected to 10.1.0.1:8080
+>> 
+>> 
+>> With the patch, the connection to 10.2.0.1:80 will be redirected to
+>> 10.2.0.1:8080, 10.3.0.1:80 to 10.3.0.1:8080, etc..
+>
+>OK, so basically you just want to rewrite the port number. An easier
+>way to do this without iterating through all addresses would be to
+>change userspace and the kernel so you can create REDIRECT rules
+>without the IP_NAT_RANGE_MAP_IPS flag. That won't work for forwarded
+>packets, but its the simplest solution for the case you describe.
 
-ip_route_me_harder can't create the route cache when the outdev is the same with
-the indev for the skbs whichout a valid protocol set.
+Isn't TPROXY the right thing here if all you want is changing the port 
+of delivery? :-)
 
-__mkroute_input functions has this check:
-1998         if (skb->protocol != htons(ETH_P_IP)) {
-1999                 /* Not IP (i.e. ARP). Do not create route, if it is
-2000                  * invalid for proxy arp. DNAT routes are always valid.
-2001                  *
-2002                  * Proxy arp feature have been extended to allow, ARP
-2003                  * replies back to the same interface, to support
-2004                  * Private VLAN switch technologies. See arp.c.
-2005                  */
-2006                 if (out_dev == in_dev &&
-2007                     IN_DEV_PROXY_ARP_PVLAN(in_dev) == 0) {
-2008                         err = -EINVAL;
-2009                         goto cleanup;
-2010                 }
-2011         }
-
-This patch gives the new skb a valid protocol to bypass this check. In order to
-make ipt_REJECT work with bridges, you also need to enable ip_forward.
-
-This patch also fixes a regression. When we used skb_copy_expand(), we didn't
-have this issue stated above, as the protocol was properly set. In fact, the
-regression also affects TC classification and packet sockets.
-
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-----
- net/ipv4/netfilter/ipt_REJECT.c |    1 +
- 1 file changed, 1 insertion(+)
-diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
-index bbbd273..60b8832 100644
---- a/net/ipv4/netfilter/ipt_REJECT.c
-+++ b/net/ipv4/netfilter/ipt_REJECT.c
-@@ -111,6 +111,7 @@ static void send_reset(struct sk_buff *oldskb, int hook)
- 	/* ip_route_me_harder expects skb->dst to be set */
- 	skb_dst_set_noref(nskb, skb_dst(oldskb));
- 
-+	nskb->protocol = htons(ETH_P_IP);
- 	if (ip_route_me_harder(nskb, addr_type))
- 		goto free_nskb;
- 
