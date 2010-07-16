@@ -1,61 +1,44 @@
-From: Bas van Sisseren <bas@quarantainenet.nl>
-Subject: [PATCH] ipt_REDIRECT: only change dest-ip if not local ip
-Date: Fri, 16 Jul 2010 12:00:29 +0200
-Message-ID: <4C402DBD.3010007@quarantainenet.nl>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [ANNOUNCE] libnetfilter_log 1.0.0 release
+Date: Fri, 16 Jul 2010 12:50:22 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1007161249280.10833@obet.zrqbmnf.qr>
+References: <4C3EFC66.7050400@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter@vger.kernel.org, netfilter-announce@lists.netfilter.org,
+	netfilter-devel@vger.kernel.org, lwn@lwn.net
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.quarantaine.net ([217.114.102.88]:56518 "EHLO
-	main.qone.quarantainenet.nl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964953Ab0GPKX5 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Jul 2010 06:23:57 -0400
+Received: from borg.medozas.de ([188.40.89.202]:46195 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965050Ab0GPKuX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Jul 2010 06:50:23 -0400
+In-Reply-To: <4C3EFC66.7050400@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+On Thursday 2010-07-15 14:17, Pablo Neira Ayuso wrote:
 
-When redirecting, the destination address is replaced by the first
-ip-address on the receiving interface.
+>Hi!
+>
+>The Netfilter proudly project presents:
+>
+>  * libnetfilter_log-1.0.0
+>
+>libnetfilter_log is a userspace library providing interface to packets
+>that have been logged by the kernel packet filter. It is is part of a
+>system that deprecates the old syslog/dmesg based packet logging.
+>
+>This releases contains a new function to print logs in XML format and
+>the doxygen-based documentation. See Changelog for details.
+>
+>You can find the documentation in doxygen format at:
+>http://www.netfilter.org/projects/libnetfilter_log/doxygen/
+>
+>You can download it from:
+>http://www.netfilter.org/projects/libnetfilter_queue/downloads.html
+>ftp://ftp.netfilter.org/pub/libnetfilter_queue/
 
-If the packet originally was sent to the second ip-address (or third,
-fourth, etc..), this patch doesn't change the destination ip.
-
-============
---- linux.orig/net/ipv4/netfilter/ipt_REDIRECT.c
-+++ linux/net/ipv4/netfilter/ipt_REDIRECT.c
-@@ -78,7 +78,21 @@
-        rcu_read_lock();
-        indev = __in_dev_get_rcu((*pskb)->dev);
-        if (indev && (ifa = indev->ifa_list))
-+       {
-+           struct in_ifaddr *ifa_cur; // interface ip-list cursor
-+
-+           // set current destination ip
-+           newdst = ((struct iphdr*)skb_network_header(*pskb))->daddr;
-+
-+           // iterate through interface ip list
-+           for (ifa_cur = ifa; ifa_cur; ifa_cur = ifa_cur->ifa_next)
-+               if (newdst == ifa_cur->ifa_local)
-+                   goto newdst_is_local;
-+
-+           // set new destination to first ip of this interface
-            newdst = ifa->ifa_local;
-+       }
-+   newdst_is_local:
-        rcu_read_unlock();
-
-        if (!newdst)
-============
-
-Kind regards,
-
-Bas van Sisseren
-
--- 
-Bas van Sisseren <bas@quarantainenet.nl>
-Quarantainenet
-
+More like 
+http://www.netfilter.org/projects/libnetfilter_log/downloads.html ;-)
 
