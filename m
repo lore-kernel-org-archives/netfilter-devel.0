@@ -1,109 +1,72 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] ulogd 2.0.0beta4
-Date: Fri, 16 Jul 2010 18:08:32 +0200
-Message-ID: <4C408400.2030005@netfilter.org>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: packet flow - ebtables broute DROP target
+Date: Fri, 16 Jul 2010 18:54:57 +0200
+Message-ID: <4C408EE1.8070105@pandora.be>
+References: <1DB91DF937A4544C81E636468B91C21C06F1EC28@CNSHGSMBS03.ad4.ad.alcatel.com>	 <1DB91DF937A4544C81E636468B91C21C06F1ECAF@CNSHGSMBS03.ad4.ad.alcatel.com>	 <AANLkTil_RodsXwi2y8-tOeLsZ8Cl3TN0WYfsAMrrx-VP@mail.gmail.com>	 <1279202558.5524.10.camel@aijazbaig1-desktop>	 <alpine.LSU.2.01.1007151616400.7169@obet.zrqbmnf.qr>	 <4C3F60E9.3090106@pandora.be> <1279267539.4086.28.camel@aijazbaig1-desktop>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------030102010007060101000809"
-Cc: netfilter-announce@lists.netfilter.org,
-	netfilter-devel@vger.kernel.org, lwn@lwn.net
-To: netfilter@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@medozas.de>, netfilter@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: aijazbaig1@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39783 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965891Ab0GPQIu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Jul 2010 12:08:50 -0400
+Received: from jacques.telenet-ops.be ([195.130.132.50]:46309 "EHLO
+	jacques.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752364Ab0GPQzI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Jul 2010 12:55:08 -0400
+In-Reply-To: <1279267539.4086.28.camel@aijazbaig1-desktop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------030102010007060101000809
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Aijaz Baig schreef:
+> Hello Bart and Jan,
+>
+> Sorry for the belated reply. Im in India so the time gaps makes it bad.
+> Thank you for your great inputs. I would surely consider them now. Thank
+> you Jan for letting us know you guys are writing a book on netfilter.
+> Lord knows we need it. More and more companies across the globe are
+> using linux more and more now. This would be of immense help to
+> academicians and professionals alike.
+>
+> Ive got 2 linux boxes, one virtual and one real. The real one has a eth0
+> interface which connects to my LAN. It's vmnet8 interface is behind the
+> virtual linux box's eth0 interface i.e. the latter is the former's
+> gateway. The virtual box has 3 interfaces eth0, eth1 and eth2. Out of
+> which eth0 and eth1 are bridged and enslaved to br0. eth2 connects to
+> the same LAN as does my real box's eth0. I have added a static route for
+> a PC in my outer LAN to force the traffic to go through vmnet8.
+>
+> Now when I DROP packets for the target PC in the broute table, the
+> problem that I described above happens. I did what was told to be done
+> as shown the basic brouter example. But still..zilch..nothing seemed to
+> be working. 
+>
+> To be specific, I added a rule:
+> ebtables -t broute -A BROUTING -p 0x806 --d$MAC_OF_eth0 -j DROP 
+> to allow the arp replies to arrive on eth0 and not on br0. But even
+> after that it didn't work. Even the packet count for this new rule was
+> zero all the time so I guess something was suspicious here.
+>
+> Could someone, bart maybe, let me know what it means by his quote: "Your
+> traffic is probably dropped by the networking code because the 
+> destination MAC address differs from that of the bridge port."
+>
+> May be I don't really know ARP works to infer how such a rule would be
+> helpful in the first place.
+>
+>   
+This is explained at the link I gave you. If something is unclear in my 
+description on the website, feel free to let me know.
+Try it out with the example rules I mention on that site and adapt to 
+your situation from there. In the future, please explicitly list your 
+complete test setup, including a dump of the firewall tables.
 
-Hi!
-
-The netfilter project presents:
-
-  * ulogd 2.0.0beta4
-
-ulogd is a userspace logging daemon for netfilter/iptables related
-logging. This includes per-packet logging of security violations,
-per-packet logging for accounting purpose as well as per-flow logging.
-
-ulogd comes in two flavours: ulogd-1.x has been around since 2000 and is
-the stable series. All production systems should use the stable series
-at this time. The 1.x series are frozen, do not expect new features into
-this line. ulogd-2.x is currently in beta stage.
-
-This release includes several fixes, improvements and the new XML output
-plugin for packet and log-based logging.
-
-You can download them from:
-
-http://www.netfilter.org/projects/ulogd/downloads.html
-ftp://ftp.netfilter.org/pub/ulogd/
-
-happy logging,
-Pablo (on behalf of the Netfilter project)
-
---------------030102010007060101000809
-Content-Type: text/plain;
- name="changes-ulogd-2.0.0beta4.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="changes-ulogd-2.0.0beta4.txt"
-
-Christophe Fish (1):
-      IP2BIN: fix missing protocol key
-
-Eric Leblond (12):
-      nflog: adjust unit which was inaccurate.
-      ifindex: avoid memory allocation
-      ip2str: suppress explicit allocation of some output key values
-      ip2bin: suppress explicit allocation of some output key values
-      hwhdr: suppress explicit allocation
-      ip2bin: add AF_BRIDGE family support.
-      db plugins: free memory at exit.
-      ulogd: include config.h in all files.
-      ulogd: permit compilation of plugin outside of tree
-      DB plugin: add capability to specify complete INSERT command
-      Documentation: information about procedure variable.
-      Revert "ulogd: permit compilation of plugin outside of tree"
-
-Pablo Neira Ayuso (24):
-      NFCT: fix NULL dereference when hashtable is full
-      NFCT: improve netlink overrun handling
-      NFCT: add configurable option to set the value of the resynchronization timer
-      NFCT: avoid spamming report about netlink overruns
-      build: remove -lpthread from Makefile
-      IPFIX: preliminary fixes, yet unusable
-      NFCT: cleanup constructor and destructor functions
-      NFCT: change `pollinterval' behaviour
-      NFCT: use new hashtable implementation for better performance
-      NFCT: split event handler if hashtable is used or not
-      NFCT: fix number of options (missing one)
-      NFCT: fix reset counters via SIGUSR2 signal
-      src: use ARRAY_SIZE to calculate the array size of keys
-      LOGEMU: fix crash if output file cannot be accessed
-      fix incorrect negative EINTR checking in main loop
-      output: add new plugin XML to output logs in XML
-      output: XML: support reopening file via SIGHUP
-      output: XML: add infix in output file
-      NFCT: fix plugin re-use in different stacks
-      fix wrong list addition in plugin re-use logic
-      NFCT: copy the conntrack object to the plugin once
-      IPFIX: remove plugin until it is usable
-      build: bump version to 2.0.0beta4 and update dependencies
-      build: remove obsolete reference to debian/ dir in Makefile
-
-Pierre Chifflier (3):
-      ulogd: configure all plugins before resolving keys.
-      Remove debian directory
-      Fix wrong definition of views in flat DB schema
-
-Romain Bignon (1):
-      DB plugins: fixed bug with INSERT* procedures
+cheers,
+Bart
 
 
---------------030102010007060101000809--
+-- 
+Bart De Schuymer
+www.artinalgorithms.be
+
