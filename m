@@ -1,41 +1,43 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [RFC] setting up throughput threshold indications to userspace
-Date: Fri, 16 Jul 2010 21:27:48 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1007162127090.22666@obet.zrqbmnf.qr>
-References: <1279268431.1603.44.camel@powerslave> <4C40583F.40200@trash.net> <1279285829.1603.77.camel@powerslave>
+From: <Luciano.Coelho@nokia.com>
+Subject: Re: [PATCH] netfilter: xtables: inclusion of xt_condition
+Date: Sat, 17 Jul 2010 08:32:18 +0200
+Message-ID: <1279348338.3931.2.camel@Nokia-N900>
+Reply-To: <Luciano.Coelho@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: ext Patrick McHardy <kaber@trash.net>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Changli Gao <xiaosuo@gmail.com>
-To: Luciano Coelho <luciano.coelho@nokia.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: <kaber@trash.net>, <netfilter-devel@vger.kernel.org>
+To: <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:36365 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966044Ab0GPT1u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Jul 2010 15:27:50 -0400
-In-Reply-To: <1279285829.1603.77.camel@powerslave>
+Received: from smtp.nokia.com ([192.100.105.134]:22442 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752949Ab0GQGeA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 17 Jul 2010 02:34:00 -0400
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Friday 2010-07-16 15:10, Luciano Coelho wrote:
->> > There is one problem with this solution, which is that it works in a
->> > per-connection basis (due to CONNMARK).  This is not exactly what I
->> > want.  I need to have this on a per-ruleset basis.  For that, I need to
->> > have a MARK (variable?) which can be set independently of connections or
->> > packets.  This is similar to the proposed condition match, but what is
->> > missing there is a way to set the condition with iptables itself,
->> > without requiring the userspace to change the procfs file.  This could
->> > probably be achieved with a "CONDITION" target or something similar.
->> > Any ideas?
->> 
->> Sounds useful.
->
->Okay, this was the kind of confirmation I wanted before jumping into the
->implementation. ;) I'll implement this target soon.
-
-My suggestion to have it combined with xt_condition.
-
+LS0tLS0gT3JpZ2luYWwgbWVzc2FnZSAtLS0tLQ0KPiANCj4gT24gRnJpZGF5IDIwMTAtMDctMTYg
+MTQ6MTYsIEx1Y2lhbm8gQ29lbGhvIHdyb3RlOg0KPiA+ID4gPiANCj4gPiA+ID4gWWVzLCBvZiBj
+b3Vyc2UsIGJ1dCBJIG1lYW50IHdpdGhvdXQgZXhwb3J0aW5nIGl0IHRvIHByb2Nmcy4gOykgVGhh
+dA0KPiA+ID4gPiB3b3VsZCBwcm9iYWJseSBtYWtlIHRoZSBjb2RlIGEgbG90IHNpbXBsZXIgKGFj
+dHVhbGx5IEkgY2FuJ3QNCj4gPiA+ID4gaW1hZ2luZQ0KPiBhDQo+ID4gPiA+IHNpbXBsZXIgbWF0
+Y2gvdGFyZ2V0IHRoYW4gYSAidmFyaWFibGUiIG1hdGNoL3RhcmdldCA7KQ0KPiA+ID4gDQo+ID4g
+PiBXZWxsLCBpZiBub3QgcHJvY2ZzLCB3aGF0IHNob3VsZCBpbmZsdWVuY2UgdGhpcyBhbm9ueW1v
+dXMgdmFyaWFibGU/DQo+ID4gPiBUaGUgd2VhdGhlcj8gKE5vIHJlYWxseSwgdGhhdCBjYW1lIHVw
+IGF0IGxhc3QgTkZXUy4gVXNpbmcgYQ0KPiB1c2Vyc3BhY2UgDQo+ID4gPiBwcm9ncmFtLCB5b3Ug
+Y2FuIHdyaXRlIGludG8gdGhlIHByb2NmcyBmaWxlIGFuZCB0aHVzIGZpcmV3YWxsIGJhc2VkDQo+
+IHVwb24gDQo+ID4gPiBzdG9ybSBhbmQgdGh1bmRlci4uLi4pDQo+ID4gDQo+ID4gSGVoISA6KQ0K
+PiA+IA0KPiA+IFdoYXQgSSBuZWVkIGlzIGEgc3RhdGUgdmFyaWFibGUgdGhhdCBpcyBzZXQgYW5k
+IHJlYWQgYnkgbmV0ZmlsdGVyDQo+ID4gdGFibGVzLsKgICBUaGUgaWRlYSBpcyB0byBoYXZlIGEg
+c3RhdGUgdmFyaWFibGUgaGlnaF90aHJvdWdocHV0IHRoYXQgd2lsbA0KPiA+IGJlIHNldCB0byB0
+cnVlIChoaWdoKSBvciBmYWxzZSAobG93KSBkZXBlbmRpbmcgb24gdGhlIHJhdGVlc3QgcmVzdWx0
+cy4NCj4gPiBUaGlzIHdvdWxkIGJlIHVzZWQgdG8gcHJldmVudCBtdWx0aXBsZSBORkxPRyBldmVu
+dHMgZm9yIHRoZSBzYW1lIHN0YXRlDQo+ID4gKHNheSwgIkhJR0giKSBmcm9tIGJlaW5nIHNlbnQg
+dG8gdXNlcnNwYWNlLg0KPiANCj4gV2UgaGF2ZSBleGFjdGx0IHRoYXQgLS0gdGhlIG5mbWFyaywg
+YWNjZXNzaWJsZSB2aWEgLWogTUFSSy4NCg0KWWVzLCBidXQgd2l0aCBuZm1hcmsgd2UgaGF2ZSB0
+byBtYW5nbGUgZXZlcnkgcGFja2V0LiBJIHdhcyB0aGlua2luZyBhYm91dCBhICJnbG9iYWwiIG1h
+cmssIHRoYXQgaXMgbm90IGFzc29jaWF0ZWQgd2l0aCBlaXRoZXIgcGFja2V0cyBub3IgY29ubmVj
+dGlvbnMuDQoNClRoYXQgd291bGQgYmUgdGhlIGNvbmRpdGlvbiBtYXRjaCBwbHVzIGEgd2F5IHRv
+IHNldCBpdCB3aXRoIG5ldGZpbHRlciBydWxlcy4NCg0KLS0NCkNoZWVycywNCkx1Y2E=
