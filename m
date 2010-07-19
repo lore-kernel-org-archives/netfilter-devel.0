@@ -1,67 +1,53 @@
-From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: Re: [RFC 0/2] netfilter: xtables: CONDITION target implementation
-Date: Mon, 19 Jul 2010 17:31:49 +0300
-Message-ID: <1279549909.7097.39.camel@powerslave>
-References: <1279548947-10470-1-git-send-email-luciano.coelho@nokia.com>
-	 <AANLkTilRtCiuAwox2sTsEu73fE89OLEUtIbVQ_njtkqz@mail.gmail.com>
+From: "Gerd v. Egidy" <lists@egidy.de>
+Subject: Are concurrent calls to tc action ipt safe?
+Date: Mon, 19 Jul 2010 16:23:40 +0200
+Message-ID: <201007191623.40423.lists@egidy.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"kaber@trash.net" <kaber@trash.net>,
-	"jengelh@medozas.de" <jengelh@medozas.de>,
-	"sameo@linux.intel.com" <sameo@linux.intel.com>
-To: ext Changli Gao <xiaosuo@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <AANLkTilRtCiuAwox2sTsEu73fE89OLEUtIbVQ_njtkqz@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from re01.intra2net.com ([82.165.28.202]:53333 "EHLO
+	re01.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934420Ab0GSOqb (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 19 Jul 2010 10:46:31 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 2010-07-19 at 16:27 +0200, ext Changli Gao wrote:
-> On Mon, Jul 19, 2010 at 10:15 PM, Luciano Coelho
-> <luciano.coelho@nokia.com> wrote:
-> > From: Luciano Coelho <coelho@testbed.(none)>
-> >
-> > Hi all,
-> >
-> > As discussed earlier, I've been looking for a way to enable and disable the
-> > condition match automatically, in the netfilter tables themselves (ie. without
-> > the need to use procfs).
-> >
-> > This is my initial implementation.  Please let me know how it looks.  The first
-> > patch is based on the xt_condition patch that Jan sent to the list (but which
-> > has not been finalized for inclusion yet).  Once the condition match gets
-> > applied, I'll forward port my patch and submit it again.
-> >
-> > Cheers,
-> > Luca.
-> >
-> > Luciano Coelho (2):
-> >  netfilter: xt_condition: export list management code
-> >  netfilter: xtables: implement CONDITION target
-> >
-> >  include/linux/netfilter/Kbuild         |    1 +
-> >  include/linux/netfilter/xt_CONDITION.h |   39 +++++++++++
-> >  include/linux/netfilter/xt_condition.h |   17 +++++-
-> >  net/netfilter/Kconfig                  |   12 ++++
-> >  net/netfilter/Makefile                 |    1 +
-> >  net/netfilter/xt_CONDITION.c           |  112 ++++++++++++++++++++++++++++++++
-> >  net/netfilter/xt_condition.c           |   82 ++++++++++++++----------
-> 
-> Why not combine xt_CONDITION.c and xt_condition.c into xt_condition.c,
-> like xt_mark.c?
+Hi,
 
-I just thought that someone may want to use the condition match without
-using the CONDITION target, that's why I've put it in a different
-module.
+AFAIK, current iptables has a short race condition when two rules within the 
+same table are changed at once.
 
-But I don't have a strong opinion about this.  If everybody agrees on
-that, I can merge the code into a single module.
+E.g. when two users simultaneously call something like this
+iptables -t filter -A INPUT -s 192.168.1.1 -j MARK --set-mark 1
+and
+iptables -t filter -A INPUT -s 192.168.1.2 -j MARK --set-mark 2
+one of these entries can get lost.
 
-Thanks for your comment.
+Jan Engelhard recently posted his xt2 patchset to overcome problems like this, 
+but it seems to still have performance issues.
+
+I have a set of simple rules which need to change often and are subject to 
+this problem. I now wonder if I can solve this by using tc and the ipt action:
+
+tc filter add dev eth0 parent ffff: protocol ip prio 1 u32  \
+match ip src 192.168.1.1 \
+action ipt -j MARK --set-mark 1
+
+Since this call uses the xtables targets I'm currently not sure if the same 
+problem regarding concurrent changes exists or not. Can anyone tell me if 
+concurrent calls like this are safe?
+
+Thank you very much.
+
+Kind regards,
+
+Gerd
 
 -- 
-Cheers,
-Luca.
-
+Address (better: trap) for people I really don't want to get mail from:
+jonas@cactusamerica.com
