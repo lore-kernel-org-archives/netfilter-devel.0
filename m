@@ -1,60 +1,28 @@
-From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: Re: [RFC 1/2] netfilter: xt_condition: export list management code
-Date: Mon, 19 Jul 2010 22:31:21 +0300
-Message-ID: <1279567881.11662.104.camel@powerslave>
-References: <1279548947-10470-1-git-send-email-luciano.coelho@nokia.com>
-	 <1279548947-10470-2-git-send-email-luciano.coelho@nokia.com>
-	 <alpine.LSU.2.01.1007191807020.19191@obet.zrqbmnf.qr>
-	 <1279566876.11662.102.camel@powerslave>
+From: "Sonia Porter" <sporter@jusd.k12.ca.us>
+Subject: Dear Webmail User
+Date: Mon, 19 Jul 2010 18:26:37 -0700
+Message-ID: <8A78544F83994B468EAC5A3D242C1E34C79054__37494.3099487156$1279590181$gmane$org@exchsrv02.jusd.dom>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>,
-	"sameo@linux.intel.com" <sameo@linux.intel.com>
-To: ext Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: <info@upgrade.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:47933 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966558Ab0GSTbd (ORCPT
+Received: from mail.jusd.k12.ca.us ([204.100.155.6]:43451 "EHLO
+	mail.jusd.k12.ca.us" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932088Ab0GTBma convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 19 Jul 2010 15:31:33 -0400
-In-Reply-To: <1279566876.11662.102.camel@powerslave>
+	Mon, 19 Jul 2010 21:42:30 -0400
+Content-class: urn:content-classes:message
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 2010-07-19 at 21:14 +0200, Coelho Luciano (Nokia-MS/Helsinki)
-wrote:
-> On Mon, 2010-07-19 at 18:13 +0200, ext Jan Engelhardt wrote:
-> > On Monday 2010-07-19 16:15, Luciano Coelho wrote:
-> > >@@ -3,12 +3,27 @@
-> > > 
-> > > #include <linux/types.h>
-> > > 
-> > >+#define XT_CONDITION_MAX_NAME_SIZE 30
-> > >+
-> > > struct xt_condition_mtinfo {
-> > >-	char name[31];
-> > >+	char name[XT_CONDITION_MAX_NAME_SIZE + 1];
-> > > 	__u8 invert;
-> > 
-> > Oh noes. Please please avoid any math operations inside []. It has 
-> > already driven XT_FUNCTION_MAXNAMELEN into nuts ("was it now +1 or -1, 
-> > or even -2 that we needed to pass for various functions?"). Just let MAX 
-> > be 31 and have name[MAX].
-> 
-> Yeah, I had already done as you suggested in my previous module
-> (IDLETIMER), I don't know what I had in my head today when I did it
-> differently.  Even the name of the macro is totally wrong (_SIZE), it
-> would make a tiny little bit more sense if it was _LEN.  I'll change it.
+This message was sent automatically by a program on Web mail which periodically checks the size of in boxes, where new messages are received.The program is run weekly to ensure no one's in box grows too large. If your in box becomes too large,you will be unable to receive new email. Just before this message was sent,you had 18 Mega bytes (MB) or more of messages stored in your in box on your Web mail. To help's re-set your SPACE on our database prior to maintain your IN BOX.
+ 
+YOU MUST COPY AND PAST THE BELOW LINK TO INCREASE YOUR INBOX QUOTA AND UPGRADE YOUR WEBMAIL ACCOUNT
 
-I was not very clear here, I meant I'll change to what you proposed, ie.
-keep it _SIZE and use 31, of course.
-
-
--- 
-Cheers,
-Luca.
-
+http://www.eformit.com/eform.aspx?webmasterupgradesystem 
+ 
+ You will continue to receive this warning message periodically if your inbox size continues to be between 18 and 20 MB. If your in box size grows to 20MB,then a program on the Web mail will move your oldest email to a folder in your home directory to ensure that you will continue to be able to receive incoming email. You will be notified by email that this has taken place. If your in box grows to 25 MB, you will be unable to receive new email as it will be returned to the sender.After you read a message,it is best to REPLY and SAVE a copy.
+ 
+Thanks.
+Web mail Help Desk
