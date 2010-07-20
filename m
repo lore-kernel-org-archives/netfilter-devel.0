@@ -1,58 +1,53 @@
-From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: Re: [RFC v2] netfilter: xt_condition: add condition target
-Date: Tue, 20 Jul 2010 14:53:34 +0300
-Message-ID: <1279626814.16431.25.camel@powerslave>
-References: <1279619434-11849-1-git-send-email-luciano.coelho@nokia.com>
-	 <alpine.LSU.2.01.1007201235250.20447@obet.zrqbmnf.qr>
-	 <1279623855.16431.4.camel@powerslave>
-	 <alpine.LSU.2.01.1007201308370.526@obet.zrqbmnf.qr>
-	 <1279625526.16431.22.camel@powerslave>
-	 <alpine.LSU.2.01.1007201343470.3843@obet.zrqbmnf.qr>
+From: Hannes Eder <heder@google.com>
+Subject: Re: [patch v2.2 1/4] [PATCH v2.1 1/4] netfilter: xt_ipvs (netfilter
+	matcher for IPVS)
+Date: Tue, 20 Jul 2010 14:44:11 +0200
+Message-ID: <AANLkTimUEJGAJ6tsPKGltUGBwrdotK5YyKBIkQWbA8qZ@mail.gmail.com>
+References: <20100501032014.406353538@vergenet.net>
+	<20100501032120.298829234@vergenet.net>
+	<4BDC543F.7060500@trash.net>
+	<AANLkTikIzHuzxo4z1_8_fEGLBC2-0Uz0X8SOc8n2msuX@mail.gmail.com>
+	<20100622071326.GB9928@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"kaber@trash.net" <kaber@trash.net>,
-	"sameo@linux.intel.com" <sameo@linux.intel.com>
-To: ext Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: Patrick McHardy <kaber@trash.net>, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netfilter@vger.kernel.org, Wensong Zhang <wensong@linux-vs.org>,
+	Julius Volz <julius.volz@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:58293 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932207Ab0GTLxv (ORCPT
+Received: from smtp-out.google.com ([216.239.44.51]:50336 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932155Ab0GTMoS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Jul 2010 07:53:51 -0400
-In-Reply-To: <alpine.LSU.2.01.1007201343470.3843@obet.zrqbmnf.qr>
+	Tue, 20 Jul 2010 08:44:18 -0400
+In-Reply-To: <20100622071326.GB9928@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2010-07-20 at 13:46 +0200, ext Jan Engelhardt wrote:
-> On Tuesday 2010-07-20 13:32, Luciano Coelho wrote:
-> >it in any archives).  Then a few days ago I asked you if you were going
-> >to resend and you answered:
-> >
-> >On Fri, 2010-07-16 at 13:20 +0200, ext Jan Engelhardt wrote:
-> >> On Friday 2010-07-16 13:10, Luciano Coelho wrote:
-> >> >Are you planning to resend this patch with the changes Patrick
-> >> >suggested?
-> >> 
-> >> I can try. 
-> >
-> >So I assumed you would resubmit it for upstream inclusion.  I probably
-> >misunderstood something in the way then ;)
-> 
-> It usually means "I'll do it .... unless someone else does first".
-> Since you proposed the condition target, you nicely took all of
-> xt_condition into your hands. Or as Linus once put it:
-> "they are doing all the work, and I get the credit". :-)
+Hi Simon,
 
-:D
+On Tue, Jun 22, 2010 at 09:13, Simon Horman <horms@verge.net.au> wrote:
+> On Mon, May 03, 2010 at 01:29:46PM +0200, Hannes Eder wrote:
+>> Thank you for picking this series of patches up again and thanks for
+>> the feedback.
+>>
+>> I'll send an updated version in the next days.
+>
+> Hi Hanes,
+>
+> more than a few days seems to have passed.
+> Do you have time to fix the patches up?
+> If not, I'll take a stab at it.
 
-I'm fine with that, I just didn't want to jump in and steal somebody
-else's work ;)
+/me working through the backlog of emails after vacation, however this
+email was buried in my inbox before my vacation, my bad.  I've been
+extremely busy lately and I did not have the time to work on the
+patches.  I saw your updated versions, I appreciate very much that you
+are taking it from there.
 
-
--- 
 Cheers,
-Luca.
-
+-Hannes
