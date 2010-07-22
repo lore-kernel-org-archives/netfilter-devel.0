@@ -1,83 +1,80 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: [PATCH nf-next-2.6] netfilter: add xt_cpu match
-Date: Thu, 22 Jul 2010 17:39:34 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1007221736150.12308@obet.zrqbmnf.qr>
-References: <1279807385.2467.67.camel@edumazet-laptop>  <alpine.LSU.2.01.1007221611510.1619@obet.zrqbmnf.qr> <1279811939.2467.79.camel@edumazet-laptop>
+Date: Thu, 22 Jul 2010 18:24:14 +0200
+Message-ID: <1279815854.2467.112.camel@edumazet-laptop>
+References: <1279807385.2467.67.camel@edumazet-laptop>
+	 <alpine.LSU.2.01.1007221611510.1619@obet.zrqbmnf.qr>
+	 <1279811939.2467.79.camel@edumazet-laptop>
+	 <alpine.LSU.2.01.1007221736150.12308@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Patrick McHardy <kaber@trash.net>,
 	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1279811939.2467.79.camel@edumazet-laptop>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:60331 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751448Ab0GVQYT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 Jul 2010 12:24:19 -0400
+In-Reply-To: <alpine.LSU.2.01.1007221736150.12308@obet.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2010-07-22 17:18, Eric Dumazet wrote:
+Le jeudi 22 juillet 2010 =C3=A0 17:39 +0200, Jan Engelhardt a =C3=A9cri=
+t :
 
->Le jeudi 22 juillet 2010 =C3=A0 16:19 +0200, Jan Engelhardt a =C3=A9cr=
-it :
->> On Thursday 2010-07-22 16:03, Eric Dumazet wrote:
->>=20
->> >This match is a bit strange, being packet content agnostic...
->> >+/*
->> >+ * Yes, packet content is not interesting for us, we only take car=
-e
->> >+ * of cpu handling this packet
->> >+ */
->>=20
->> That is not so strange after all, we have many packet agnostic match=
-es:=20
->> xt_time, xt_condition, xt_IDLETIMER, xt_iface.
->> So this little comment looks a bit redundant.
->>=20
->> Or it seems that academia can't come up with enough new protocols in=
- time that
->> we have to resort to do -m coffeemaker :)
->>=20
->> >@@ -0,0 +1,8 @@
->> >+#ifndef _XT_CPU_H
->> >+#define _XT_CPU_H
->> >+
->> >+struct xt_cpu_info {
->> >+	unsigned int	cpu;
->> >+	int		invert;
->> >+};
->> >+#endif /*_XT_MAC_H*/
->>=20
->> Please take a read in "Writing Netfilter Modules" e-book :-)
->> It will tell you that types other than fixed ones are a no-no.
->
->Ok, let's do that, but I doubt sizeof(int) can be different than 4 on =
+> Never say never. "long" already bit people in the past, and now we
+> have that CONFIG_COMPAT stuff.
+>=20
+
+I know pretty well the "long" problem, I received one of the first alph=
 a
->Linux 2.6 host right now.
+machine ever built in the world (DEC 3000 AXP, with a fast 133 MHz
+cpu ;) ), before I began to use Linux :)
 
-Never say never. "long" already bit people in the past, and now we
-have that CONFIG_COMPAT stuff.
 
-If invert is the only flag, perhaps it makes sense to use __u8=20
-for it.=20
+> If invert is the only flag, perhaps it makes sense to use __u8=20
+> for it.=20
+>=20
 
->I prefer not doing the !!info->invert, and do the check only once.
+Quite frankly it brings more problems than plain u32
 
->+static int cpu_mt_check(const struct xt_mtchk_param *par)
->+{
->+	const struct xt_cpu_info *info =3D par->matchinfo;
->+
->+	if (info->invert & ~1)
->+		return -EINVAL;
->+	return 0;
->+}
->+
->+static bool cpu_mt(const struct sk_buff *skb, struct xt_action_param =
-*par)
->+{
->+	const struct xt_cpu_info *info =3D par->matchinfo;
->+
->+	return (info->cpu =3D=3D smp_processor_id()) ^ info->invert;
->+}
+- Possible security problems (padding bytes). Not applicable to
+iptables.
 
-That works nicely indeed. Do you anticipate any future flags?
+- Some arches have slow byte/short accesses (21064 for example :) )
 
+"int" is the natural type, fast on all arches.
+
+- Given alignment requirements of iptables rules, using less than 32bit=
+s
+here saves no ram.
+
+But I dont care that much.
+
+I even see compiler doesnt want to use a XOR instruction :
+
+00000018 <cpu_mt>:
+  18:	55                   	push   %ebp
+  19:	8b 42 04             	mov    0x4(%edx),%eax
+  1c:	64 8b 15 00 00 00 00 	mov    %fs:0x0,%edx
+  23:	89 e5                	mov    %esp,%ebp
+  25:	5d                   	pop    %ebp
+  26:	39 10                	cmp    %edx,(%eax)
+  28:	0f 94 c2             	sete   %dl
+  2b:	0f b6 d2             	movzbl %dl,%edx
+  2e:	3b 50 04             	cmp    0x4(%eax),%edx
+  31:	0f 95 c0             	setne  %al
+  34:	c3                   	ret   =20
+
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
