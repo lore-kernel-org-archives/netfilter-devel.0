@@ -1,49 +1,40 @@
-From: Dan Carpenter <error27@gmail.com>
-Subject: re: netfilter: nfnetlink_log: send complete hardware header
-Date: Thu, 22 Jul 2010 13:50:53 +0200
-Message-ID: <20100722115053.GF17585@bicker>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: eric@inl.fr
+From: Eric Leblond <eric@inl.fr>
+Subject: [PATCH] netfilter: nfnetlink_log: Fix potential problem if skb->dev is null
+Date: Thu, 22 Jul 2010 14:09:33 +0200
+Message-ID: <1279800573-10679-1-git-send-email-eric@inl.fr>
+References: <20100722115053.GF17585@bicker>
+Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
+To: Dan Carpenter <error27@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:60722 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751412Ab0GVLvL (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Jul 2010 07:51:11 -0400
-Received: by fxm14 with SMTP id 14so4206917fxm.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Jul 2010 04:51:10 -0700 (PDT)
-Content-Disposition: inline
+Received: from smtp1-g21.free.fr ([212.27.42.1]:59090 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751260Ab0GVMJq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 Jul 2010 08:09:46 -0400
+In-Reply-To: <20100722115053.GF17585@bicker>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+This patch fixes a potentiel problem pointed out by Dan Carpenter
+using smatch: skb->dev is used but there is no test on nullity
+of pointer. It may not express as if mac header is filled we can
+think that the dev is also set.
+---
+ net/netfilter/nfnetlink_log.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Smatch complains abbout 72961ecf84d67d6 "netfilter: nfnetlink_log: send
-complete hardware header" which is net-next.
-    
-   462          if (indev && skb->dev) {
-                             ^^^^^^^^
-	skb->dev can be NULL here.
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 6a1572b..b5617c2 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -468,7 +468,7 @@ __build_packet_message(struct nfulnl_instance *inst,
+ 		}
+ 	}
+ 
+-	if (indev && skb_mac_header_was_set(skb)) {
++	if (indev && skb->dev && skb_mac_header_was_set(skb)) {
+ 		NLA_PUT_BE16(inst->skb, NFULA_HWTYPE, htons(skb->dev->type));
+ 		NLA_PUT_BE16(inst->skb, NFULA_HWLEN,
+ 			     htons(skb->dev->hard_header_len));
+-- 
+1.6.1
 
-   463                  struct nfulnl_msg_packet_hw phw;
-   464                  int len = dev_parse_header(skb, phw.hw_addr);
-   465                  if (len > 0) {
-   466                          phw.hw_addrlen = htons(len);
-   467                          NLA_PUT(inst->skb, NFULA_HWADDR, sizeof(phw), &phw);
-   468                  }
-   469          }
-   470  
-   471          if (indev && skb_mac_header_was_set(skb)) {
-   472                  NLA_PUT_BE16(inst->skb, NFULA_HWTYPE, htons(skb->dev->type));
-                                                                    ^^^^^^^^
-	It's dereferenced here.
-
-   473                  NLA_PUT_BE16(inst->skb, NFULA_HWLEN,
-   474                               htons(skb->dev->hard_header_len));
-
-I'm not sure how you want to deal with this.
-
-regards,
-dan carpenter
