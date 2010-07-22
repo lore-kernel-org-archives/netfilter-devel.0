@@ -1,80 +1,57 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH nf-next-2.6] netfilter: add xt_cpu match
-Date: Thu, 22 Jul 2010 18:24:14 +0200
-Message-ID: <1279815854.2467.112.camel@edumazet-laptop>
-References: <1279807385.2467.67.camel@edumazet-laptop>
-	 <alpine.LSU.2.01.1007221611510.1619@obet.zrqbmnf.qr>
-	 <1279811939.2467.79.camel@edumazet-laptop>
-	 <alpine.LSU.2.01.1007221736150.12308@obet.zrqbmnf.qr>
+From: Tino Keitel <tkeitel@innominate.com>
+Subject: How to filter connections using connmark with
+ libnetfilter_conntrack
+Date: Thu, 22 Jul 2010 18:35:40 +0200
+Message-ID: <20100722163540.GA14567@tkeitel002.bln.innominate.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:60331 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751448Ab0GVQYT (ORCPT
+Received: from host2.bln.innominate.com ([77.245.32.75]:51899 "EHLO
+	home.innominate.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751572Ab0GVQfq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Jul 2010 12:24:19 -0400
-In-Reply-To: <alpine.LSU.2.01.1007221736150.12308@obet.zrqbmnf.qr>
+	Thu, 22 Jul 2010 12:35:46 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by home.innominate.com (Postfix) with ESMTP id 0BF4D232BE
+	for <netfilter-devel@vger.kernel.org>; Thu, 22 Jul 2010 18:35:47 +0200 (CEST)
+Received: from home.innominate.com ([127.0.0.1])
+	by localhost (localhost.localdomain [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id flTIE9G+e23a for <netfilter-devel@vger.kernel.org>;
+	Thu, 22 Jul 2010 18:35:46 +0200 (CEST)
+Received: from tkeitel002.bln.innominate.local (unknown [10.1.0.104])
+	(using TLSv1 with cipher AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by home.innominate.com (Postfix) with ESMTPS id E3BF4231D7
+	for <netfilter-devel@vger.kernel.org>; Thu, 22 Jul 2010 18:35:46 +0200 (CEST)
+Received: from tkeitel by tkeitel002.bln.innominate.local with local (Exim 4.71)
+	(envelope-from <tkeitel@innominate.com>)
+	id 1ObykG-0003no-RS
+	for netfilter-devel@vger.kernel.org; Thu, 22 Jul 2010 18:35:40 +0200
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le jeudi 22 juillet 2010 =C3=A0 17:39 +0200, Jan Engelhardt a =C3=A9cri=
-t :
+Hi,
 
-> Never say never. "long" already bit people in the past, and now we
-> have that CONFIG_COMPAT stuff.
->=20
+I want to get conntrack update events for all connections that go
+through FORWARD, but not through INPUT or OUTPUT.  I tried to set a
+connmark bit and check for the mark.  But I saw no way to filter for a
+given mark value using a kernel filter.  Did I miss something?  I
+already filter in userspace, but I want to avoid this if possible.
 
-I know pretty well the "long" problem, I received one of the first alph=
-a
-machine ever built in the world (DEC 3000 AXP, with a fast 133 MHz
-cpu ;) ), before I began to use Linux :)
+Regards,
+-- 
+Tino Keitel
+Software Engineer
+ 
+Innominate Security Technologies AG
+/protecting industrial networks/
+Tel: +49.30.921028-206
+Fax: +49.30.921028-020
+Rudower Chaussee 13
+12489 Berlin / Germany
+http://www.innominate.com/
 
-
-> If invert is the only flag, perhaps it makes sense to use __u8=20
-> for it.=20
->=20
-
-Quite frankly it brings more problems than plain u32
-
-- Possible security problems (padding bytes). Not applicable to
-iptables.
-
-- Some arches have slow byte/short accesses (21064 for example :) )
-
-"int" is the natural type, fast on all arches.
-
-- Given alignment requirements of iptables rules, using less than 32bit=
-s
-here saves no ram.
-
-But I dont care that much.
-
-I even see compiler doesnt want to use a XOR instruction :
-
-00000018 <cpu_mt>:
-  18:	55                   	push   %ebp
-  19:	8b 42 04             	mov    0x4(%edx),%eax
-  1c:	64 8b 15 00 00 00 00 	mov    %fs:0x0,%edx
-  23:	89 e5                	mov    %esp,%ebp
-  25:	5d                   	pop    %ebp
-  26:	39 10                	cmp    %edx,(%eax)
-  28:	0f 94 c2             	sete   %dl
-  2b:	0f b6 d2             	movzbl %dl,%edx
-  2e:	3b 50 04             	cmp    0x4(%eax),%edx
-  31:	0f 95 c0             	setne  %al
-  34:	c3                   	ret   =20
-
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Register Court: AG Charlottenburg, HRB 81603 Management Board: Dirk
+Seewald, Chairman of the Supervisory Board: Volker Bibelhausen
