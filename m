@@ -1,44 +1,51 @@
-From: Franchoze Eric <franchoze@yandex.ru>
-Subject: Re: Re: Fwd: LVS on local node
-Date: Thu, 22 Jul 2010 22:45:33 +0400
-Message-ID: <125461279824333@web13.yandex.ru>
-References: <27901279770680@web67.yandex.ru> <1279781811.2405.15.camel@edumazet-laptop>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Re: [RFC 1/1] netfilter: xtables: inclusion of xt_condition
+Date: Thu, 22 Jul 2010 22:19:40 +0300
+Message-ID: <20100722191940.GA10029@x200>
+References: <1279807758-6876-1-git-send-email-luciano.coelho@nokia.com>
+ <1279807758-6876-2-git-send-email-luciano.coelho@nokia.com>
+ <alpine.LSU.2.01.1007221621270.1619@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: wensong@linux-vs.org, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Luciano Coelho <luciano.coelho@nokia.com>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, netdev@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>, sameo@linux.intel.com
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from forward11.mail.yandex.net ([95.108.130.93]:39153 "EHLO
-	forward11.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751003Ab0GVSwH (ORCPT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:57212 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755505Ab0GVTTr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Jul 2010 14:52:07 -0400
-In-Reply-To: <1279781811.2405.15.camel@edumazet-laptop>
+	Thu, 22 Jul 2010 15:19:47 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LSU.2.01.1007221621270.1619@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->  > I will be happy to hear any idea how to do connection in this environment.
->  > 
->  
->  lvs seems not very SMP friendly and a bit complex.
->  
->  I would use an iptables setup and a slighly modified REDIRECT target
->  (and/or a nf_nat_setup_info() change)
->  
->  Say you have 8 daemons listening on different ports (1000 to 1007)
->  
->  iptables -t nat -A PREROUTING -p tcp --dport 1234 -j REDIRECT --rxhash-dist --to-port 1000-1007
->  
->  rxhash would be provided by RPS on recent kernels or locally computed if
->  not already provided by core network (or old kernel)
->  
->  This rule would be triggered only at connection establishment.
->  conntracking take care of following packets and is SMP friendly.
->  
+On Thu, Jul 22, 2010 at 04:44:35PM +0200, Jan Engelhardt wrote:
+> 
+> On Thursday 2010-07-22 16:09, Luciano Coelho wrote:
+> >+static int condition_mt_check(const struct xt_mtchk_param *par)
+> >+{
+> >+	struct xt_condition_mtinfo *info = par->matchinfo;
+> >+	struct condition_variable *var;
+> >+	struct condition_net *cond_net =
+> >+		condition_pernet(current->nsproxy->net_ns);
+> 
+> Cc'ing Alexey who has done the netns support.
+> 
+> Alexey, you added par->net, but given Luciano just did it with 
+> current->nsproxy->net_ns, do we really need par->net?
 
-Thanks Eric,  your solution woks (I checked  with  -A PREROUTING  -j DNAT).  But there were 3 reasons why I wanted to do it with LVS:
-1. use more smart schedules than simple random (schedule according to number connections or try make equal network load to all ports).
-2. keepalive. LVS knows if service is dead or does not respond and skips route connections to it.
-3. connection tracking - statistic how many clients on each port and were they were switched.
+In ->check, maybe, we can get away with current->nsproxy->net_ns.
+
+But definitely not in ->destroy(), because destruction can happen
+when _no_ task is in netns, so current->nsproxy->net_ns is 100% bogus.
+
+Steps to reproduce:
+	iptables -A ...
+	exit
+
+->destroy hook gets netns from par->net, ->checkentry does the same
+for symmetry and less confusion.
