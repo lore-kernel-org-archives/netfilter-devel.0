@@ -1,57 +1,78 @@
-From: Tino Keitel <tkeitel@innominate.com>
-Subject: How to filter connections using connmark with
- libnetfilter_conntrack
-Date: Thu, 22 Jul 2010 18:35:40 +0200
-Message-ID: <20100722163540.GA14567@tkeitel002.bln.innominate.local>
+From: Franchoze Eric <franchoze@yandex.ru>
+Subject: Re: Re: Fwd: LVS on local node
+Date: Thu, 22 Jul 2010 20:59:44 +0400
+Message-ID: <111551279817984@web84.yandex.ru>
+References: <27901279770680@web67.yandex.ru> <20100722132502.GB28362@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from host2.bln.innominate.com ([77.245.32.75]:51899 "EHLO
-	home.innominate.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751572Ab0GVQfq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Jul 2010 12:35:46 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by home.innominate.com (Postfix) with ESMTP id 0BF4D232BE
-	for <netfilter-devel@vger.kernel.org>; Thu, 22 Jul 2010 18:35:47 +0200 (CEST)
-Received: from home.innominate.com ([127.0.0.1])
-	by localhost (localhost.localdomain [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id flTIE9G+e23a for <netfilter-devel@vger.kernel.org>;
-	Thu, 22 Jul 2010 18:35:46 +0200 (CEST)
-Received: from tkeitel002.bln.innominate.local (unknown [10.1.0.104])
-	(using TLSv1 with cipher AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by home.innominate.com (Postfix) with ESMTPS id E3BF4231D7
-	for <netfilter-devel@vger.kernel.org>; Thu, 22 Jul 2010 18:35:46 +0200 (CEST)
-Received: from tkeitel by tkeitel002.bln.innominate.local with local (Exim 4.71)
-	(envelope-from <tkeitel@innominate.com>)
-	id 1ObykG-0003no-RS
-	for netfilter-devel@vger.kernel.org; Thu, 22 Jul 2010 18:35:40 +0200
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: wensong@linux-vs.org, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Simon Horman <horms@verge.net.au>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20100722132502.GB28362@verge.net.au>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-I want to get conntrack update events for all connections that go
-through FORWARD, but not through INPUT or OUTPUT.  I tried to set a
-connmark bit and check for the mark.  But I saw no way to filter for a
-given mark value using a kernel filter.  Did I miss something?  I
-already filter in userspace, but I want to avoid this if possible.
 
-Regards,
--- 
-Tino Keitel
-Software Engineer
- 
-Innominate Security Technologies AG
-/protecting industrial networks/
-Tel: +49.30.921028-206
-Fax: +49.30.921028-020
-Rudower Chaussee 13
-12489 Berlin / Germany
-http://www.innominate.com/
+22.07.10, 17:25, "Simon Horman" <horms@verge.net.au>:
 
-Register Court: AG Charlottenburg, HRB 81603 Management Board: Dirk
-Seewald, Chairman of the Supervisory Board: Volker Bibelhausen
+> On Thu, Jul 22, 2010 at 07:51:20AM +0400, Franchoze Eric wrote:
+>  > Hello,
+>  > 
+>  > I'm trying to do load balancing of incoming traffic to my applications. This applications are not very  smp friendly, and I want try to run some instances according to number of cpus on single machine. And balance load of incoming traffic/connections to this applications.
+>  > Looks like is should be similar to http://www.austintek.com/LVS/LVS-HOWTO/HOWTO/LVS-HOWTO.localnode.html
+>  > 
+>  >  linux kernel 2.6.32 with  or without hide interface patches.  Tried different configurations but could not see packets on application layer.
+>  > 
+>  > 192.168.1.165 - eth0 - interface for external connections
+>  > 195.0.0.1 - dummy0 - virtual interface, real application is binded to that address.
+>  > 
+>  > Configuration is:
+>  > -A -t 192.168.1.165:1234 -s wlc
+>  > -a -t 192.168.1.165:1234 -r 195.0.0.1:1234 -g -w
+>  > 
+>  > #ipvsadm -L -n
+>  > IP Virtual Server version 1.2.1 (size=4096)
+>  > Prot LocalAddress:Port Scheduler Flags
+>  >   -> RemoteAddress:Port           Forward Weight ActiveConn InActConn
+>  > TCP  192.168.1.165:1234 wlc
+>  >   -> 195.0.0.1:1234               Local   1      0          0        
+>  > #
+>  > 
+>  > Log:
+>  > [ 2106.897409] IPVS: lookup/out TCP 192.168.1.165:44847->192.168.1.165:1234 not hit
+>  > [ 2106.897412] IPVS: lookup service: fwm 0 TCP 192.168.1.165:1234 hit
+>  > [ 2106.897414] IPVS: ip_vs_wlc_schedule(): Scheduling...
+>  > [ 2106.897416] IPVS: WLC: server 195.0.0.1:1234 activeconns 0 refcnt 2 weight 1 overhead 1
+>  > [ 2106.897418] IPVS: Enter: ip_vs_conn_new, net/netfilter/ipvs/ip_vs_conn.c line 693
+>  > [ 2106.897421] IPVS: Bind-dest TCP c:192.168.1.165:44847 v:192.168.1.165:1234 d:195.0.0.1:1234 fwd:L s:0 conn->flags:181 conn->refcnt:1 dest->refcnt:3
+>  > [ 2106.897425] IPVS: Schedule fwd:L c:192.168.1.165:44847 v:192.168.1.165:1234 d:195.0.0.1:1234 conn->flags:1C1 conn->refcnt:2
+>  > [ 2106.897429] IPVS: TCP input  [S...] 195.0.0.1:1234->192.168.1.165:44847 state: NONE->SYN_RECV conn->refcnt:2
+>  > [ 2106.897431] IPVS: Enter: ip_vs_null_xmit, net/netfilter/ipvs/ip_vs_xmit.c line 212
+>  > [ 2106.897439] IPVS: lookup/in TCP 192.168.1.165:1234->192.168.1.165:44847 not hit
+>  > [ 2106.897441] IPVS: lookup/out TCP 192.168.1.165:1234->192.168.1.165:44847 not hit
+>  > [ 2107.277535] IPVS: packet type=1 proto=17 daddr=255.255.255.255 ignored
+>  > [ 2108.542691] IPVS: packet type=1 proto=17 daddr=192.168.1.255 ignored
+>  > 
+>  > As the result, server application does receive anything on accept(). I tried to make dummy0 a hidden device and play with arp settings. But without result.
+>  > 
+>  > I will be happy to hear any idea how to do connection in this environment.
+>  
+>  Hi,
+>  
+>  while others have suggested not using LVS for this task for various reasons.
+>  I would just like to comment that this should work and this smells
+>  like a bug to me. I will try and confirm that. But it won't be today.
+>  
+>  
+>  
+
+With the latest kernel I see that: LVS accepts connections, selects right destination (if round robin is selected destination changes accoring it), then it detects that it is local node and do:
+net/netfilter/ipvs/ip_vs_xmit.c:
+   ip_vs_null_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ struct ip_vs_protocol *pp)
+
+Which does nothing with skb. (here I do not understand what happens with that packet then)
+I think if VLS could change destination for packets which go from local node to local node then connection can be established. Is it reasonable?
