@@ -1,64 +1,185 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: Fwd: LVS on local node
-Date: Thu, 22 Jul 2010 22:25:02 +0900
-Message-ID: <20100722132502.GB28362@verge.net.au>
-References: <27901279770680@web67.yandex.ru>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH nf-next-2.6] netfilter: add xt_cpu match
+Date: Thu, 22 Jul 2010 16:03:05 +0200
+Message-ID: <1279807385.2467.67.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: wensong@linux-vs.org, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Franchoze Eric <franchoze@yandex.ru>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <27901279770680@web67.yandex.ru>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Jul 22, 2010 at 07:51:20AM +0400, Franchoze Eric wrote:
-> Hello,
-> 
-> I'm trying to do load balancing of incoming traffic to my applications. This applications are not very  smp friendly, and I want try to run some instances according to number of cpus on single machine. And balance load of incoming traffic/connections to this applications.
-> Looks like is should be similar to http://www.austintek.com/LVS/LVS-HOWTO/HOWTO/LVS-HOWTO.localnode.html
-> 
->  linux kernel 2.6.32 with  or without hide interface patches.  Tried different configurations but could not see packets on application layer.
-> 
-> 192.168.1.165 - eth0 - interface for external connections
-> 195.0.0.1 - dummy0 - virtual interface, real application is binded to that address.
-> 
-> Configuration is:
-> -A -t 192.168.1.165:1234 -s wlc
-> -a -t 192.168.1.165:1234 -r 195.0.0.1:1234 -g -w
-> 
-> #ipvsadm -L -n
-> IP Virtual Server version 1.2.1 (size=4096)
-> Prot LocalAddress:Port Scheduler Flags
->   -> RemoteAddress:Port           Forward Weight ActiveConn InActConn
-> TCP  192.168.1.165:1234 wlc
->   -> 195.0.0.1:1234               Local   1      0          0        
-> #
-> 
-> Log:
-> [ 2106.897409] IPVS: lookup/out TCP 192.168.1.165:44847->192.168.1.165:1234 not hit
-> [ 2106.897412] IPVS: lookup service: fwm 0 TCP 192.168.1.165:1234 hit
-> [ 2106.897414] IPVS: ip_vs_wlc_schedule(): Scheduling...
-> [ 2106.897416] IPVS: WLC: server 195.0.0.1:1234 activeconns 0 refcnt 2 weight 1 overhead 1
-> [ 2106.897418] IPVS: Enter: ip_vs_conn_new, net/netfilter/ipvs/ip_vs_conn.c line 693
-> [ 2106.897421] IPVS: Bind-dest TCP c:192.168.1.165:44847 v:192.168.1.165:1234 d:195.0.0.1:1234 fwd:L s:0 conn->flags:181 conn->refcnt:1 dest->refcnt:3
-> [ 2106.897425] IPVS: Schedule fwd:L c:192.168.1.165:44847 v:192.168.1.165:1234 d:195.0.0.1:1234 conn->flags:1C1 conn->refcnt:2
-> [ 2106.897429] IPVS: TCP input  [S...] 195.0.0.1:1234->192.168.1.165:44847 state: NONE->SYN_RECV conn->refcnt:2
-> [ 2106.897431] IPVS: Enter: ip_vs_null_xmit, net/netfilter/ipvs/ip_vs_xmit.c line 212
-> [ 2106.897439] IPVS: lookup/in TCP 192.168.1.165:1234->192.168.1.165:44847 not hit
-> [ 2106.897441] IPVS: lookup/out TCP 192.168.1.165:1234->192.168.1.165:44847 not hit
-> [ 2107.277535] IPVS: packet type=1 proto=17 daddr=255.255.255.255 ignored
-> [ 2108.542691] IPVS: packet type=1 proto=17 daddr=192.168.1.255 ignored
-> 
-> As the result, server application does receive anything on accept(). I tried to make dummy0 a hidden device and play with arp settings. But without result.
-> 
-> I will be happy to hear any idea how to do connection in this environment.
+This match is a bit strange, being packet content agnostic...
 
-Hi,
+Still, in some situations a CPU match permits a better spreading of
+connections, or select targets only for a given cpu.
 
-while others have suggested not using LVS for this task for various reasons.
-I would just like to comment that this should work and this smells
-like a bug to me. I will try and confirm that. But it won't be today.
+With Remote Packet Steering or multiqueue NIC and appropriate IRQ
+affinities, we can distribute trafic on available cpus, per session.
+(all RX packets for a given flow is handled by a given cpu)
+
+Some legacy applications being not SMP friendly, one way to scale a
+server is to run multiple copies of them.
+
+Instead of randomly choosing an instance, we can use the cpu number as a
+key so that softirq handler for a whole instance is running on a single
+cpu, maximizing cache effects in TCP/UDP stacks.
+
+Using NAT for example, a four ways machine might run four copies of
+server application, using a separate listening port for each instance,
+but still presenting an unique external port :
+
+iptables -t nat -A PREROUTING -p tcp --dport 80 -m cpu --cpu 0 \
+	-j REDIRECT --to-port 8080
+
+iptables -t nat -A PREROUTING -p tcp --dport 80 -m cpu --cpu 1 \
+	-j REDIRECT --to-port 8081
+
+iptables -t nat -A PREROUTING -p tcp --dport 80 -m cpu --cpu 2 \
+	-j REDIRECT --to-port 8082
+
+iptables -t nat -A PREROUTING -p tcp --dport 80 -m cpu --cpu 3 \
+	-j REDIRECT --to-port 8083
+
+
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+---
+ include/linux/netfilter/Kbuild   |    1 
+ include/linux/netfilter/xt_cpu.h |    8 +++
+ net/netfilter/Kconfig            |    9 ++++
+ net/netfilter/Makefile           |    1 
+ net/netfilter/xt_cpu.c           |   65 +++++++++++++++++++++++++++++
+ 5 files changed, 84 insertions(+)
+
+diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/Kbuild
+index bb103f4..5c39a56 100644
+--- a/include/linux/netfilter/Kbuild
++++ b/include/linux/netfilter/Kbuild
+@@ -34,6 +34,7 @@ header-y += xt_helper.h
+ header-y += xt_length.h
+ header-y += xt_limit.h
+ header-y += xt_mac.h
++header-y += xt_cpu.h
+ header-y += xt_mark.h
+ header-y += xt_multiport.h
+ header-y += xt_osf.h
+diff --git a/include/linux/netfilter/xt_cpu.h b/include/linux/netfilter/xt_cpu.h
+index e69de29..fdf4202 100644
+--- a/include/linux/netfilter/xt_cpu.h
++++ b/include/linux/netfilter/xt_cpu.h
+@@ -0,0 +1,8 @@
++#ifndef _XT_CPU_H
++#define _XT_CPU_H
++
++struct xt_cpu_info {
++	unsigned int	cpu;
++	int		invert;
++};
++#endif /*_XT_MAC_H*/
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index aa2f106..85b07bd 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -754,6 +754,15 @@ config NETFILTER_XT_MATCH_MAC
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
++config NETFILTER_XT_MATCH_CPU
++	tristate '"cpu" match support'
++	depends on NETFILTER_ADVANCED
++	help
++	  CPU matching allows you to match packets based on the CPU
++	  currently handling the packet.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
+ config NETFILTER_XT_MATCH_MARK
+ 	tristate '"mark" match support'
+ 	depends on NETFILTER_ADVANCED
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index e28420a..0fe7efd 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -79,6 +79,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_IPRANGE) += xt_iprange.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_LENGTH) += xt_length.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_LIMIT) += xt_limit.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_MAC) += xt_mac.o
++obj-$(CONFIG_NETFILTER_XT_MATCH_CPU) += xt_cpu.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_MULTIPORT) += xt_multiport.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_OSF) += xt_osf.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_OWNER) += xt_owner.o
+diff --git a/net/netfilter/xt_cpu.c b/net/netfilter/xt_cpu.c
+index e69de29..23d5a76 100644
+--- a/net/netfilter/xt_cpu.c
++++ b/net/netfilter/xt_cpu.c
+@@ -0,0 +1,65 @@
++/* Kernel module to match running CPU */
++
++/*
++ * Might be used to distribute connections on several daemons, if
++ * RPS (Remote Packet Steering) is enabled or NIC is multiqueue capable,
++ * each RX queue IRQ affined to one CPU (1:1 mapping)
++ *
++ * iptables -t nat -A PREROUTING -p tcp --dport 80 -m cpu --cpu 0 -j REDIRECT --to-port 8080
++ * iptables -t nat -A PREROUTING -p tcp --dport 80 -m cpu --cpu 1 -j REDIRECT --to-port 8081
++ * iptables -t nat -A PREROUTING -p tcp --dport 80 -m cpu --cpu 2 -j REDIRECT --to-port 8082
++ * iptables -t nat -A PREROUTING -p tcp --dport 80 -m cpu --cpu 3 -j REDIRECT --to-port 8083
++ *
++ */
++
++/* (C) 2010 Eric Dumazet
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/netfilter/xt_cpu.h>
++#include <linux/netfilter/x_tables.h>
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Eric Dumazet <eric.dumazet@gmail.com>");
++MODULE_DESCRIPTION("Xtables: CPU match");
++
++/*
++ * Yes, packet content is not interesting for us, we only take care
++ * of cpu handling this packet
++ */
++static bool cpu_mt(const struct sk_buff *skb, struct xt_action_param *par)
++{
++	const struct xt_cpu_info *info = par->matchinfo;
++	bool ret;
++
++	ret = info->cpu == smp_processor_id();
++	ret ^= info->invert;
++	return ret;
++}
++
++static struct xt_match cpu_mt_reg __read_mostly = {
++	.name      = "cpu",
++	.revision  = 0,
++	.family    = NFPROTO_UNSPEC,
++	.match     = cpu_mt,
++	.matchsize = sizeof(struct xt_cpu_info),
++	.me        = THIS_MODULE,
++};
++
++static int __init cpu_mt_init(void)
++{
++	return xt_register_match(&cpu_mt_reg);
++}
++
++static void __exit cpu_mt_exit(void)
++{
++	xt_unregister_match(&cpu_mt_reg);
++}
++
++module_init(cpu_mt_init);
++module_exit(cpu_mt_exit);
+
 
