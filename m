@@ -1,51 +1,93 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
+From: Luciano Coelho <luciano.coelho@nokia.com>
 Subject: Re: [RFC 1/1] netfilter: xtables: inclusion of xt_condition
-Date: Thu, 22 Jul 2010 22:19:40 +0300
-Message-ID: <20100722191940.GA10029@x200>
+Date: Thu, 22 Jul 2010 22:26:51 +0300
+Message-ID: <1279826811.1630.11.camel@powerslave>
 References: <1279807758-6876-1-git-send-email-luciano.coelho@nokia.com>
- <1279807758-6876-2-git-send-email-luciano.coelho@nokia.com>
- <alpine.LSU.2.01.1007221621270.1619@obet.zrqbmnf.qr>
+	 <1279807758-6876-2-git-send-email-luciano.coelho@nokia.com>
+	 <alpine.LSU.2.01.1007221621270.1619@obet.zrqbmnf.qr>
+	 <1279811808.1630.8.camel@powerslave>
+	 <alpine.LSU.2.01.1007221733360.12308@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Luciano Coelho <luciano.coelho@nokia.com>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, netdev@vger.kernel.org,
-	Patrick McHardy <kaber@trash.net>, sameo@linux.intel.com
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>,
+	"sameo@linux.intel.com" <sameo@linux.intel.com>,
+	Alexey Dobriyan <adobriyan@gmail.com>
+To: ext Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:57212 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755505Ab0GVTTr (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:26019 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758560Ab0GVT1G (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Jul 2010 15:19:47 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.01.1007221621270.1619@obet.zrqbmnf.qr>
+	Thu, 22 Jul 2010 15:27:06 -0400
+In-Reply-To: <alpine.LSU.2.01.1007221733360.12308@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jul 22, 2010 at 04:44:35PM +0200, Jan Engelhardt wrote:
+On Thu, 2010-07-22 at 17:36 +0200, ext Jan Engelhardt wrote:
+> On Thursday 2010-07-22 17:16, Luciano Coelho wrote:
+> >> >+	ret = strict_strtoul(val, 0, &l);
+> >> >+	if (ret == -EINVAL || ((uint)l != l))
+> >> >+		return -EINVAL;
+> >> 
+> >> >+	*((u32 *) ((u8 *) cond_net + (size_t) kp->arg)) = l;
+> >> 
+> >> I don't think we need this level of granularity; let the options be 
+> >> global, similar to what xt_hashlimit does.
+> >
+> >I did this according to Patrick's comment:
+> >> > proc_net_condition is a global variable, so this won't work for
+> >> > namespaces. What the code does is reinitialize it when instantiating
+> >> > a new namespace, so it will always point to the last instantiated
+> >> > namespace.
+> >> > 
+> >> > The same problem exists for the condition_list, each namespace
+> >> > should only be able to access its own conditions.
+> >> 
+> >> This also applies to the permission variables. Basically, we shouldn't
+> >> be having any globals except perhaps the mutex. You probably need a
+> >> module_param_call function to set them for the correct namespace (you
+> >> can access that through current->nsproxy->net_ns).
+> >
+> >I found it a bit strange to be able to change the module params in a
+> >per-netns basis, but it is actually possible if you're changing the
+> >parameters via sysfs.  I tried it and it even seems to work. ;)
+> >
+> >I can't see any module parameters in the xt_hashlimit.c file.  Am I
+> >looking in the wrong place?
 > 
-> On Thursday 2010-07-22 16:09, Luciano Coelho wrote:
-> >+static int condition_mt_check(const struct xt_mtchk_param *par)
-> >+{
-> >+	struct xt_condition_mtinfo *info = par->matchinfo;
-> >+	struct condition_variable *var;
-> >+	struct condition_net *cond_net =
-> >+		condition_pernet(current->nsproxy->net_ns);
+> Oops, xt_recent.c.
 > 
-> Cc'ing Alexey who has done the netns support.
+> >I would be fine with making the module params global (as they were
+> >before), if that's fine with Patrick too.
 > 
-> Alexey, you added par->net, but given Luciano just did it with 
-> current->nsproxy->net_ns, do we really need par->net?
+> "When was the last time you needed to change the default ownership
+> when you _also_ have the possibility to chown each procfs file
+> individually?"
+> 
+> >> (I am not even sure if kp->arg can be non-multiples-of-4, in which case 
+> >> this would be an alignment violation even.)
+> >
+> >I'm passing size_t in kp->arg.  It looks quite ugly, because usually
+> >kp->arg is a pointer to some data.  But at least this way, using
+> >offsetof(), I could avoid lots of repeated code for the options...
+> 
+> if kp->arg is 1, ((u8*)cond_net + kp->arg) yields a pointer that's
+> usually not aligned for u32. (And C pedants would probably argue
+> that is should be char* not u8*, even if the one is a typedef
+> of another.)
 
-In ->check, maybe, we can get away with current->nsproxy->net_ns.
+Oh, I see.  In the current case it works because all the parameters are
+32-bit.
 
-But definitely not in ->destroy(), because destruction can happen
-when _no_ task is in netns, so current->nsproxy->net_ns is 100% bogus.
+In any case, I'll just remove the per-net module parameters code.  It is
+indeed over-fine-grained as you said earlier.
 
-Steps to reproduce:
-	iptables -A ...
-	exit
 
-->destroy hook gets netns from par->net, ->checkentry does the same
-for symmetry and less confusion.
+-- 
+Cheers,
+Luca.
+
