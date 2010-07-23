@@ -1,59 +1,48 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH] xt_quota: don't copy quota back to userspace
-Date: Fri, 23 Jul 2010 12:54:05 +0800
-Message-ID: <1279860845-7177-1-git-send-email-xiaosuo@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Changli Gao <xiaosuo@gmail.com>
-To: Patrick McHardy <kaber@trash.net>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH] xt_quota: don't copy quota back to userspace
+Date: Fri, 23 Jul 2010 07:27:23 +0200
+Message-ID: <1279862843.2482.16.camel@edumazet-laptop>
+References: <1279860845-7177-1-git-send-email-xiaosuo@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:61797 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751342Ab0GWEyP (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:33254 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752507Ab0GWF11 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Jul 2010 00:54:15 -0400
+	Fri, 23 Jul 2010 01:27:27 -0400
+In-Reply-To: <1279860845-7177-1-git-send-email-xiaosuo@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch should be applied after my another patch:
-http://patchwork.ozlabs.org/patch/59729/
+Le vendredi 23 juillet 2010 =C3=A0 12:54 +0800, Changli Gao a =C3=A9cri=
+t :
+> This patch should be applied after my another patch:
+> http://patchwork.ozlabs.org/patch/59729/
+>=20
+> xt_quota: don't copy quota back to userspace
+>=20
+> In nowadays, table entries are per-cpu variables, so it don't make an=
+y sense to
+> copy quota back to one of the variable instances. To keep things simp=
+le, this
+> patch undo the copy.
+>=20
+> Signed-off-by: Changli Gao <xiaosuo@gmail.com>
 
-xt_quota: don't copy quota back to userspace
+This looks the wrong way to fix this problem.
 
-In nowadays, table entries are per-cpu variables, so it don't make any sense to
-copy quota back to one of the variable instances. To keep things simple, this
-patch undo the copy.
+Also Changli, could you please _not_ include the title of your patches
+inside the Changelog ? This is useless.
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-----
- include/linux/netfilter/xt_quota.h |    2 +-
- net/netfilter/xt_quota.c           |    2 --
- 2 files changed, 1 insertion(+), 3 deletions(-)
-diff --git a/include/linux/netfilter/xt_quota.h b/include/linux/netfilter/xt_quota.h
-index 8dc89df..b0d28c6 100644
---- a/include/linux/netfilter/xt_quota.h
-+++ b/include/linux/netfilter/xt_quota.h
-@@ -11,9 +11,9 @@ struct xt_quota_priv;
- struct xt_quota_info {
- 	u_int32_t		flags;
- 	u_int32_t		pad;
-+	aligned_u64		quota;
- 
- 	/* Used internally by the kernel */
--	aligned_u64		quota;
- 	struct xt_quota_priv	*master;
- };
- 
-diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
-index 304b1fd..70eb2b4 100644
---- a/net/netfilter/xt_quota.c
-+++ b/net/netfilter/xt_quota.c
-@@ -36,8 +36,6 @@ quota_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 		/* we do not allow even small packets from now on */
- 		priv->quota = 0;
- 	}
--	/* Copy quota back to matchinfo so that iptables can display it */
--	q->quota = priv->quota;
- 	spin_unlock_bh(&priv->lock);
- 
- 	return ret;
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
