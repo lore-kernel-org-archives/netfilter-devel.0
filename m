@@ -1,58 +1,47 @@
 From: Changli Gao <xiaosuo@gmail.com>
 Subject: Re: [PATCH] xt_quota: don't copy quota back to userspace
-Date: Fri, 23 Jul 2010 13:43:25 +0800
-Message-ID: <AANLkTilvne1U-SaCp9SK7gA9Q_ZJCZRO47buCb_ziuqm@mail.gmail.com>
+Date: Fri, 23 Jul 2010 13:52:06 +0800
+Message-ID: <AANLkTimcC25cy-xH-QfaX8t5_2trM7UEiJnRS3zhu6T_@mail.gmail.com>
 References: <1279860845-7177-1-git-send-email-xiaosuo@gmail.com>
-	<1279862843.2482.16.camel@edumazet-laptop>
+	<1279862843.2482.16.camel@edumazet-laptop> <1279863633.2482.22.camel@edumazet-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Patrick McHardy <kaber@trash.net>,
 	"David S. Miller" <davem@davemloft.net>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:35409 "EHLO
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:42616 "EHLO
 	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752830Ab0GWFnq convert rfc822-to-8bit (ORCPT
+	with ESMTP id S1754000Ab0GWFw1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Jul 2010 01:43:46 -0400
-In-Reply-To: <1279862843.2482.16.camel@edumazet-laptop>
+	Fri, 23 Jul 2010 01:52:27 -0400
+In-Reply-To: <1279863633.2482.22.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jul 23, 2010 at 1:27 PM, Eric Dumazet <eric.dumazet@gmail.com> =
-wrote:
-> Le vendredi 23 juillet 2010 =E0 12:54 +0800, Changli Gao a =E9crit :
->> This patch should be applied after my another patch:
->> http://patchwork.ozlabs.org/patch/59729/
->>
->> xt_quota: don't copy quota back to userspace
->>
->> In nowadays, table entries are per-cpu variables, so it don't make a=
-ny sense to
->> copy quota back to one of the variable instances. To keep things sim=
-ple, this
->> patch undo the copy.
->>
->> Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+On Fri, Jul 23, 2010 at 1:40 PM, Eric Dumazet <eric.dumazet@gmail.com> wrote:
 >
-> This looks the wrong way to fix this problem.
+> Reading again your patch, I understand only the Changelog is wrong.
 >
-> Also Changli, could you please _not_ include the title of your patche=
-s
-> inside the Changelog ? This is useless.
+> We want to copy quota back to userspace, as specified when rule was
+> setup (so that iptables-save works)
+>
+> The real thing you are doing is that we dont change the initial quota
+> during packet processing, only the private quota, shared by all cpus.
+>
+> Before the patch , iptables -nvL could report an old and not accurate
+> quota value.
+>
+> After the patch, iptables -nvL reports the initial quota value, not the
+> actual value.
 >
 
-Thanks. I remembered  some document mentioned a summary line was
-needed. I'll follow your advice.
+Yes. This module was expected to report the current quota value, when
+iptables -nvL or iptables-save  was executed. It seems my patch
+changes its ABI. However, report the initial value is also meaningful,
+and it keeps the same behavior as the other modules do.
 
-
---=20
+-- 
 Regards,
 Changli Gao(xiaosuo@gmail.com)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
