@@ -1,47 +1,47 @@
 From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: RE: Re: Fwd: LVS on local node
-Date: Fri, 23 Jul 2010 07:24:10 +0800
-Message-ID: <AANLkTinJW6ARfmvawUbCEEHmAQ9EtYVqmCpTBOxr8AdM@mail.gmail.com>
-References: <20100723010102.121uPPJ1@mxfront8.mail.yandex.net>
-	<188211279834651@web111.yandex.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=KOI8-R
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Graeme Fowler <graeme@graemef.net>,
-	Eric Dumazet <eric.dumazet@gmail.com>, wensong@linux-vs.org,
-	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Franchoze Eric <franchoze@yandex.ru>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <188211279834651@web111.yandex.ru>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: [PATCH] arptables: use arp_hdr_len()
+Date: Fri, 23 Jul 2010 11:21:13 +0800
+Message-ID: <1279855273-8889-1-git-send-email-xiaosuo@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Changli Gao <xiaosuo@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:55777 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751005Ab0GWDVh (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 Jul 2010 23:21:37 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jul 23, 2010 at 5:37 AM, Franchoze Eric <franchoze@yandex.ru> w=
-rote:
->
->
-> 23.07.10, 01:01, "Graeme Fowler" <graeme@graemef.net>:
->
->> Hi
->>
->> =9ATechnically keepalived is not LVS. It's a monitoring/mgmt app whi=
-ch can manage an LVS according to health-check logic. LVS by itself can=
-not "detect" any form of service failure - it's a fancy router with spe=
-cial rules.
->>
->> =9AGraeme.
->>
->
-> Ah, ok. Then with iptables I can write keepalived app to insert/remov=
-e rules.
-> Is there interface to iptables for dynamically turn on/off rules with=
-out inserting and removing them from the table?
+arptables: use arp_hdr_len()
 
-xt_condition is on its way to mainline. http://patchwork.ozlabs.org/pat=
-ch/59578/
+use arp_hdr_len()
 
-
---=20
-Regards,
-Changli Gao(xiaosuo@gmail.com)
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+----
+ net/ipv4/netfilter/arp_tables.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 16c0ba0..c868dd5 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -283,16 +283,13 @@ unsigned int arpt_do_table(struct sk_buff *skb,
+ 	arp = arp_hdr(skb);
+ 	do {
+ 		const struct arpt_entry_target *t;
+-		int hdr_len;
+ 
+ 		if (!arp_packet_match(arp, skb->dev, indev, outdev, &e->arp)) {
+ 			e = arpt_next_entry(e);
+ 			continue;
+ 		}
+ 
+-		hdr_len = sizeof(*arp) + (2 * sizeof(struct in_addr)) +
+-			(2 * skb->dev->addr_len);
+-		ADD_COUNTER(e->counters, hdr_len, 1);
++		ADD_COUNTER(e->counters, arp_hdr_len(skb->dev), 1);
+ 
+ 		t = arpt_get_target_c(e);
+ 
