@@ -1,36 +1,47 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH v2] xt_helper: use ARRAY_SIZE()
-Date: Fri, 23 Jul 2010 17:24:49 +0800
-Message-ID: <1279877089-18307-1-git-send-email-xiaosuo@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Changli Gao <xiaosuo@gmail.com>
-To: Patrick McHardy <kaber@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [patch v2.8 1/4] netfilter: xt_ipvs (netfilter matcher for IPVS)
+Date: Fri, 23 Jul 2010 12:44:51 +0200
+Message-ID: <4C4972A3.7070508@trash.net>
+References: <20100722073547.504156161@vergenet.net> <20100722075012.385241097@vergenet.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netfilter@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Malcolm Turnbull <malcolm@loadbalancer.org>,
+	Mark Brooks <mark@loadbalancer.org>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julius Volz <julius.volz@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Hannes Eder <heder@google.com>,
+	Jan Engelhardt <jengelh@medozas.de>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:41918 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752738Ab0GWJZH (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:35110 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756143Ab0GWKoy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Jul 2010 05:25:07 -0400
+	Fri, 23 Jul 2010 06:44:54 -0400
+In-Reply-To: <20100722075012.385241097@vergenet.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-use ARRAY_SIZE() to improve the readability.
+Am 22.07.2010 09:35, schrieb Simon Horman:
+> From:	Hannes Eder <heder@google.com>
+> 
+> This implements the kernel-space side of the netfilter matcher xt_ipvs.
+> 
+> [ minor fixes by Simon Horman <horms@verge.net.au> ]
+> Signed-off-by: Hannes Eder <heder@google.com>
+> Signed-off-by: Simon Horman <horms@verge.net.au>
+> 
+> --- 
+> 
+>  include/linux/netfilter/xt_ipvs.h |   27 ++++
+>  net/netfilter/Kconfig             |   10 +
+>  net/netfilter/Makefile            |    1 
+>  net/netfilter/ipvs/ip_vs_proto.c  |    1 
+>  net/netfilter/xt_ipvs.c           |  189 +++++++++++++++++++++++++++++++++++++
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-----
- net/netfilter/xt_helper.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-diff --git a/net/netfilter/xt_helper.c b/net/netfilter/xt_helper.c
-index 9f4ab00..805c9f6 100644
---- a/net/netfilter/xt_helper.c
-+++ b/net/netfilter/xt_helper.c
-@@ -65,7 +65,7 @@ static int helper_mt_check(const struct xt_mtchk_param *par)
- 			par->family);
- 		return ret;
- 	}
--	info->name[29] = '\0';
-+	info->name[ARRAY_SIZE(info->name) - 1] = '\0';
- 	return 0;
- }
- 
+I added xt_ipvs.h to Kbuild and applied the patch, thanks.
