@@ -1,46 +1,77 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] ip6tables: use skb->len for accounting
-Date: Fri, 23 Jul 2010 18:40:08 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1007231838510.2880@obet.zrqbmnf.qr>
-References: <1279855877-8945-1-git-send-email-xiaosuo@gmail.com>  <alpine.LSU.2.01.1007230813300.815@obet.zrqbmnf.qr> <AANLkTik_2HMl3OaGvZiJPCO09Bu4lj6S0PNWFbw1BGXe@mail.gmail.com>  <4C498172.40404@trash.net>
- <AANLkTi=PAVfcX4ttUsSgm+A_WMYcfXt4FLvYunccgtjS@mail.gmail.com>
+Subject: Re: [PATCH iptables] extension: add xt_cpu match
+Date: Fri, 23 Jul 2010 18:46:41 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1007231841500.2880@obet.zrqbmnf.qr>
+References: <1279807385.2467.67.camel@edumazet-laptop>  <alpine.LSU.2.01.1007221611510.1619@obet.zrqbmnf.qr>  <1279811939.2467.79.camel@edumazet-laptop>  <4C497644.7050201@trash.net> <1279892621.2481.53.camel@edumazet-laptop>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:43443 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751125Ab0GWQkL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Jul 2010 12:40:11 -0400
-In-Reply-To: <AANLkTi=PAVfcX4ttUsSgm+A_WMYcfXt4FLvYunccgtjS@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1279892621.2481.53.camel@edumazet-laptop>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Friday 2010-07-23 15:05, Changli Gao wrote:
 
->On Fri, Jul 23, 2010 at 7:48 PM, Patrick McHardy <kaber@trash.net> wrote:
->> On 23.07.2010 08:38, Changli Gao wrote:
->>>
->>> For the packets received, ip_rcv, ipv6_rcv and bridge all call
->>> pskb_trim_rcsum before feeding them to netfilter. The raw packets are
->>> sent via dev_queue_xmit(), and they don't pass through the output path
->>> of netfilter.
->>
->> That's not true, raw packets also pass through netfilter. However
->> I agree that this patch makes sense to properly deal with jumbo
->> frames, but you should also update xt_length for consistency.
->>
->
->In order to support jumbo frames, we have to change the type of min
->and max in xt_length_info to u32. I'll change xt_match.revision to 1,
->do I need to support the current revision 0 at the same time?
+On Friday 2010-07-23 15:43, Eric Dumazet wrote:
+>+
+>+static const struct option cpu_opts[] = {
+>+	{ "cpu", 1, NULL, '1' },
+>+	{ .name = NULL }
+>+};
 
-This is all already handled by xt_length.2. But alas, merge has been 
-declined so far.
+I will never understand that sort of style mix logic. Why the
+C99 initializer only on the sentinel?
+
+{
+	{.name = "cpu", .has_arg = true, .val = '1'},
+	{NULL},
+};
+
+>+cpu_print(const void *ip, const struct xt_entry_match *match, int numeric)
+>+{
+>+	const struct xt_cpu_info *info = (void *)match->data;
+>+
+>+	printf("cpu %s%u ", info->invert ? "! ":"", info->cpu);
+>+}
+>+
+>+static void cpu_save(const void *ip, const struct xt_entry_match *match)
+>+{
+>+	const struct xt_cpu_info *info = (void *)match->data;
+>+
+>+	printf("%s--cpu %u ", info->invert ? "! ":"", info->cpu);
+>+}
+
+Using if (info->invert) would save the empty string.
+
+>diff --git a/extensions/libxt_cpu.man b/extensions/libxt_cpu.man
+>index e69de29..f42ac7a 100644
+>--- a/extensions/libxt_cpu.man
+>+++ b/extensions/libxt_cpu.man
+>@@ -0,0 +1,16 @@
+>+.TP
+>+[\fB!\fP] \fB\-\-cpu\fP \fInumber\fP
+>+
+>+Match cpu handling this packet. cpus are numbered from 0 to NR_CPUS-1
+
+Unwanted blank line.
+
+>+Can be used in combination with RPS (Remote Packet Steering) or
+>+multiqueue NICS to spread network traffic on different queues.
+>+.PP
+>+Example:
+>+.PP
+>+iptables \-t nat \-A PREROUTING \-p tcp \-\-dport 80 \-m cpu \-\-cpu 0 
+>+        \-j REDIRECT \-\-to\-port 8080
+
+Unwanted indent.
+
+>+.PP
+>+iptables \-t nat \-A PREROUTING \-p tcp \-\-dport 80 \-m cpu \-\-cpu 1 
+>+        \-j REDIRECT \-\-to\-port 8081
+>+.PP
+>+Available since linux 2.6.36
+
+Linux.
