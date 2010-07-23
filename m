@@ -1,46 +1,36 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] iptables: use skb->len for accounting
-Date: Fri, 23 Jul 2010 08:58:22 +0200
-Message-ID: <1279868302.2482.113.camel@edumazet-laptop>
-References: <1279856088-9004-1-git-send-email-xiaosuo@gmail.com>
-	 <1279866541.2482.79.camel@edumazet-laptop>
-	 <AANLkTikFp9tjtYz5c0GTOfcS1DD8v6fLvBUVVeBVbsns@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikFp9tjtYz5c0GTOfcS1DD8v6fLvBUVVeBVbsns@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: [PATCH] xt_helper: use sizeof()
+Date: Fri, 23 Jul 2010 16:22:03 +0800
+Message-ID: <1279873323-15544-1-git-send-email-xiaosuo@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Changli Gao <xiaosuo@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:54408 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750877Ab0GWIWR (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Jul 2010 04:22:17 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Le vendredi 23 juillet 2010 =C3=A0 14:47 +0800, Changli Gao a =C3=A9cri=
-t :
-> On Fri, Jul 23, 2010 at 2:29 PM, Eric Dumazet <eric.dumazet@gmail.com=
-> wrote:
-> > Le vendredi 23 juillet 2010 =C3=A0 11:34 +0800, Changli Gao a =C3=A9=
-crit :
-> >> iptables: use skb->len for accounting
-> >>
-> >> use skb->len for accounting as xt_quota does.
-> >>
-> >
-> > Why ?
-> >
-> > This is a gratuitous change, unless you have very strong arguments.
-> >
-> > xt_quota is an exception, dont change all others because of it !
->=20
-> exception ? Why ?
+use sizeof() to improve the readability.
 
-Because it handles all protocols...
-
-So skb->len is a shortcut, an approximation if you want.
-
-At IPV4 level, ip->tot_len is an exact value.
-
-
-
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+----
+ net/netfilter/xt_helper.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+diff --git a/net/netfilter/xt_helper.c b/net/netfilter/xt_helper.c
+index 9f4ab00..805c9f6 100644
+--- a/net/netfilter/xt_helper.c
++++ b/net/netfilter/xt_helper.c
+@@ -65,7 +65,7 @@ static int helper_mt_check(const struct xt_mtchk_param *par)
+ 			par->family);
+ 		return ret;
+ 	}
+-	info->name[29] = '\0';
++	info->name[sizeof(info->name) - 1] = '\0';
+ 	return 0;
+ }
+ 
