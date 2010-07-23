@@ -1,46 +1,38 @@
 From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH] ip6tables: use skb->len for accounting
-Date: Fri, 23 Jul 2010 11:31:17 +0800
-Message-ID: <1279855877-8945-1-git-send-email-xiaosuo@gmail.com>
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+Subject: [PATCH] iptables: use skb->len for accounting
+Date: Fri, 23 Jul 2010 11:34:48 +0800
+Message-ID: <1279856088-9004-1-git-send-email-xiaosuo@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	Changli Gao <xiaosuo@gmail.com>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:49113 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751005Ab0GWDbf (ORCPT
+Received: from mail-px0-f174.google.com ([209.85.212.174]:52916 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751005Ab0GWDfO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Jul 2010 23:31:35 -0400
+	Thu, 22 Jul 2010 23:35:14 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-ip6tables: use skb->len for accounting
+iptables: use skb->len for accounting
 
-ipv6_hdr(skb)->payload_len is ZERO and can't be used for accounting, if the
-payload is a Jumbo Payload specified in RFC2675.
+use skb->len for accounting as xt_quota does.
 
 Signed-off-by: Changli Gao <xiaosuo@gmail.com>
 ----
- net/ipv6/netfilter/ip6_tables.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index dc41d6d..33113c1 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -387,9 +387,7 @@ ip6t_do_table(struct sk_buff *skb,
+ net/ipv4/netfilter/ip_tables.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index b38c118..3c584a6 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -364,7 +364,7 @@ ipt_do_table(struct sk_buff *skb,
  				goto no_match;
  		}
  
--		ADD_COUNTER(e->counters,
--			    ntohs(ipv6_hdr(skb)->payload_len) +
--			    sizeof(struct ipv6hdr), 1);
+-		ADD_COUNTER(e->counters, ntohs(ip->tot_len), 1);
 +		ADD_COUNTER(e->counters, skb->len, 1);
  
- 		t = ip6t_get_target_c(e);
+ 		t = ipt_get_target(e);
  		IP_NF_ASSERT(t->u.kernel.target);
