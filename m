@@ -1,59 +1,51 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH iptables] extension: add xt_cpu match
-Date: Fri, 23 Jul 2010 16:13:08 +0200
-Message-ID: <4C49A374.10700@trash.net>
-References: <1279807385.2467.67.camel@edumazet-laptop>	 <alpine.LSU.2.01.1007221611510.1619@obet.zrqbmnf.qr>	 <1279811939.2467.79.camel@edumazet-laptop>  <4C497644.7050201@trash.net> <1279892621.2481.53.camel@edumazet-laptop>
+Subject: Re: [PATCH] ip6tables: use skb->len for accounting
+Date: Fri, 23 Jul 2010 16:21:11 +0200
+Message-ID: <4C49A557.1080502@trash.net>
+References: <1279855877-8945-1-git-send-email-xiaosuo@gmail.com> 	<alpine.LSU.2.01.1007230813300.815@obet.zrqbmnf.qr> <AANLkTik_2HMl3OaGvZiJPCO09Bu4lj6S0PNWFbw1BGXe@mail.gmail.com> 	<4C498172.40404@trash.net> <AANLkTi=PAVfcX4ttUsSgm+A_WMYcfXt4FLvYunccgtjS@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+	"David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38857 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:39034 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754249Ab0GWONE (ORCPT
+	with ESMTP id S1755328Ab0GWOVG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Jul 2010 10:13:04 -0400
-In-Reply-To: <1279892621.2481.53.camel@edumazet-laptop>
+	Fri, 23 Jul 2010 10:21:06 -0400
+In-Reply-To: <AANLkTi=PAVfcX4ttUsSgm+A_WMYcfXt4FLvYunccgtjS@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 23.07.2010 15:43, Eric Dumazet wrote:
-> extension: add xt_cpu match
+On 23.07.2010 15:05, Changli Gao wrote:
+> On Fri, Jul 23, 2010 at 7:48 PM, Patrick McHardy <kaber@trash.net> wrote:
+>> On 23.07.2010 08:38, Changli Gao wrote:
+>>>
+>>> For the packets received, ip_rcv, ipv6_rcv and bridge all call
+>>> pskb_trim_rcsum before feeding them to netfilter. The raw packets are
+>>> sent via dev_queue_xmit(), and they don't pass through the output path
+>>> of netfilter.
+>>
+>> That's not true, raw packets also pass through netfilter. However
+>> I agree that this patch makes sense to properly deal with jumbo
+>> frames, but you should also update xt_length for consistency.
+>>
 > 
-> Kernel 2.6.36 supports xt_cpu match
-> 
-> In some situations a CPU match permits a better spreading of
-> connections, or select targets only for a given cpu.
-> 
-> With Remote Packet Steering or multiqueue NIC and appropriate IRQ
-> affinities, we can distribute trafic on available cpus, per session.
-> (all RX packets for a given flow are handled by a given cpu)
-> 
-> Some legacy applications being not SMP friendly, one way to scale a
-> server is to run multiple copies of them.
-> 
-> Instead of randomly choosing an instance, we can use the cpu number as a
-> key so that softirq handler for a whole instance is running on a single
-> cpu, maximizing cache effects in TCP/UDP stacks.
-> 
-> Using NAT for example, a four ways machine might run four copies of
-> server application, using a separate listening port for each instance,
-> but still presenting an unique external port :
-> 
-> iptables -t nat -A PREROUTING -p tcp --dport 80 -m cpu --cpu 0 \
->         -j REDIRECT --to-port 8080
-> 
-> iptables -t nat -A PREROUTING -p tcp --dport 80 -m cpu --cpu 1 \
->         -j REDIRECT --to-port 8081
-> 
-> iptables -t nat -A PREROUTING -p tcp --dport 80 -m cpu --cpu 2 \
->         -j REDIRECT --to-port 8082
-> 
-> iptables -t nat -A PREROUTING -p tcp --dport 80 -m cpu --cpu 3 \
->         -j REDIRECT --to-port 8083
-> 
+> In order to support jumbo frames, we have to change the type of min
+> and max in xt_length_info to u32.
 
-Applied to the iptables-next branch, thanks Eric.
+I see. In that case I'll apply your skb->len patches as they are,
+so please make the xt_length change in a new patch.
+
+> I'll change xt_match.revision to 1,
+> do I need to support the current revision 0 at the same time?
+
+You should simply keep the revision 0 code as it is. Revision 1,
+using skb->len, can be used for both IPv4 and IPv6.
