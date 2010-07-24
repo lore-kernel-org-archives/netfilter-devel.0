@@ -1,92 +1,155 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] netfilter: xtables: introduce xt_length revision 2
-Date: Sat, 24 Jul 2010 13:42:56 +0200
-Message-ID: <1279971776.2451.66.camel@edumazet-laptop>
-References: <1279961719-20479-1-git-send-email-jengelh@medozas.de>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH iptables] libxt_length: update to revision 1
+Date: Sat, 24 Jul 2010 19:47:48 +0800
+Message-ID: <AANLkTi=NwJkK1sRb+mNjNO8nr3AA5dymyZ1pTc0dgt_q@mail.gmail.com>
+References: <1279945746-24034-1-git-send-email-xiaosuo@gmail.com>
+	<alpine.LSU.2.01.1007241055320.9867@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org, xiaosuo@gmail.com
+Content-Type: multipart/mixed; boundary=0016e64e9d20a26af4048c20b931
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:52999 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753309Ab0GXLnE (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:45482 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754276Ab0GXLsR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 24 Jul 2010 07:43:04 -0400
-Received: by wyf19 with SMTP id 19so997978wyf.19
-        for <netfilter-devel@vger.kernel.org>; Sat, 24 Jul 2010 04:43:01 -0700 (PDT)
-In-Reply-To: <1279961719-20479-1-git-send-email-jengelh@medozas.de>
+	Sat, 24 Jul 2010 07:48:17 -0400
+Received: by vws3 with SMTP id 3so1120125vws.19
+        for <netfilter-devel@vger.kernel.org>; Sat, 24 Jul 2010 04:48:16 -0700 (PDT)
+In-Reply-To: <alpine.LSU.2.01.1007241055320.9867@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le samedi 24 juillet 2010 =C3=A0 10:55 +0200, Jan Engelhardt a =C3=A9cr=
-it :
-> Introduce xt_length match revision 1. It adds support for layer-4,
-> layer-5 and layer-7 length matching. It is much easier than writing u=
-p
-> the according xt_u32 magic.
->=20
-> This can be used for packet scheduling; specific example are online
-> games where all data is transferred over the same port, but the regul=
-ar
-> gameplay has a characteristically lower packet size than bulk downloa=
-ds
-> of game maps. (Tested with Unreal Tournament 99.)
->=20
-> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
-> ---
+--0016e64e9d20a26af4048c20b931
+Content-Type: text/plain; charset=ISO-8859-1
 
-> +static bool
-> +length2_mt(const struct sk_buff *skb, struct xt_action_param *par)
-> +{
-> +	const struct xt_length_mtinfo2 *info =3D par->matchinfo;
-> +	const struct iphdr *iph =3D ip_hdr(skb);
-> +	unsigned int len =3D 0;
-> +	bool hit =3D true;
-> +
-> +	if (info->flags & XT_LENGTH_LAYER3)
-> +		len =3D ntohs(iph->tot_len);
-> +	else if (info->flags & XT_LENGTH_LAYER4)
-> +		len =3D ntohs(iph->tot_len) - par->thoff;
-> +	else if (info->flags & XT_LENGTH_LAYER5)
-> +		hit =3D xtlength_layer5(&len, skb, iph->protocol, par->thoff);
-> +	else if (info->flags & XT_LENGTH_LAYER7)
-> +		hit =3D xtlength_layer7(&len, skb, iph->protocol, par->thoff);
-> +	if (!hit)
-> +		return false;
-> +
-> +	return (len >=3D info->min && len <=3D info->max) ^
-> +	       !!(info->flags & XT_LENGTH_INVERT);
-> +}
+On Sat, Jul 24, 2010 at 4:55 PM, Jan Engelhardt <jengelh@medozas.de> wrote:
+> On Saturday 2010-07-24 06:29, Changli Gao wrote:
+>
+>>update libxt_length to revision 1 to support ipv6 jumbo frames.
+>
+> You can't just go and change these things, would break xt_length v0.
+>
 
+Hmm. I have updated the patch(attached), but the v0 handlers are not
+called. Is there anything I missed? Or Is there a bug in iptables?
 
-This serie of tests is expensive and useless.
+-- 
+Regards,
+Changli Gao(xiaosuo@gmail.com)
 
-A switch() would be faster, if you dont use a bit mask, but continuous
-values to get the layer.
+--0016e64e9d20a26af4048c20b931
+Content-Type: application/octet-stream; name="xt_len.diff"
+Content-Disposition: attachment; filename="xt_len.diff"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gc0eb6et0
 
-(Use 3 bits to encode the layer, one bit for the invert)
-
-Also, using a u16 is more expensive than a u32.
-
-On x86, compiler is forced to use prefixes or conversions instructions
-(movzwl), this makes code bigger. And much slower on some arches.
-
-Trying to make xt_length rules shorter is a not a win, considering the
-minimum size of an iptable rule (112 bytes) and 8 bytes alignement, and
-bigger code size.
-
-When v0 of xt_length was designed, the u16 choice for min/max was
-already a bad choice, since a v1 is now needed.=20
-
-BTW, you mention "revision 2" in your patch title, while it is revision
-1
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ZGlmZiAtLWdpdCBhL2V4dGVuc2lvbnMvbGlieHRfbGVuZ3RoLmMgYi9leHRlbnNpb25zL2xpYnh0
+X2xlbmd0aC5jCmluZGV4IDk2ZThiNmMuLjc3NGE4MGUgMTAwNjQ0Ci0tLSBhL2V4dGVuc2lvbnMv
+bGlieHRfbGVuZ3RoLmMKKysrIGIvZXh0ZW5zaW9ucy9saWJ4dF9sZW5ndGguYwpAQCAtOCw2ICs4
+LDExIEBACiAjaW5jbHVkZSA8eHRhYmxlcy5oPgogI2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlci94
+dF9sZW5ndGguaD4KIAorc3RydWN0IHh0X2xlbmd0aF9pbmZvX3YwIHsKKyAgICBfX3UzMgltaW4s
+IG1heDsKKyAgICBfX3U4CWludmVydDsKK307CisKIHN0YXRpYyB2b2lkIGxlbmd0aF9oZWxwKHZv
+aWQpCiB7CiAJcHJpbnRmKApAQCAtMjEsOCArMjYsNyBAQCBzdGF0aWMgY29uc3Qgc3RydWN0IG9w
+dGlvbiBsZW5ndGhfb3B0c1tdID0gewogCXsgLm5hbWUgPSBOVUxMIH0KIH07CiAKLXN0YXRpYyB1
+X2ludDE2X3QKLXBhcnNlX2xlbmd0aChjb25zdCBjaGFyICpzKQorc3RhdGljIHVfaW50MzJfdCBw
+YXJzZV9sZW5ndGgoY29uc3QgY2hhciAqcykKIHsKIAl1bnNpZ25lZCBpbnQgbGVuOwogCQpAQCAt
+MzMsOCArMzcsNyBAQCBwYXJzZV9sZW5ndGgoY29uc3QgY2hhciAqcykKIH0KIAogLyogSWYgYSBz
+aW5nbGUgdmFsdWUgaXMgcHJvdmlkZWQsIG1pbiBhbmQgbWF4IGFyZSBib3RoIHNldCB0byB0aGUg
+dmFsdWUgKi8KLXN0YXRpYyB2b2lkCi1wYXJzZV9sZW5ndGhzKGNvbnN0IGNoYXIgKnMsIHN0cnVj
+dCB4dF9sZW5ndGhfaW5mbyAqaW5mbykKK3N0YXRpYyB2b2lkIHBhcnNlX2xlbmd0aHMoY29uc3Qg
+Y2hhciAqcywgc3RydWN0IHh0X2xlbmd0aF9pbmZvICppbmZvKQogewogCWNoYXIgKmJ1ZmZlcjsK
+IAljaGFyICpjcDsKQEAgLTQ3LDcgKzUwLDcgQEAgcGFyc2VfbGVuZ3Rocyhjb25zdCBjaGFyICpz
+LCBzdHJ1Y3QgeHRfbGVuZ3RoX2luZm8gKmluZm8pCiAJCWNwKys7CiAKIAkJaW5mby0+bWluID0g
+YnVmZmVyWzBdID8gcGFyc2VfbGVuZ3RoKGJ1ZmZlcikgOiAwOwotCQlpbmZvLT5tYXggPSBjcFsw
+XSA/IHBhcnNlX2xlbmd0aChjcCkgOiAweEZGRkY7CisJCWluZm8tPm1heCA9IGNwWzBdID8gcGFy
+c2VfbGVuZ3RoKGNwKSA6IDB4RkZGRkZGRkY7CiAJfQogCWZyZWUoYnVmZmVyKTsKIAkKQEAgLTU4
+LDEyICs2MSw5IEBAIHBhcnNlX2xlbmd0aHMoY29uc3QgY2hhciAqcywgc3RydWN0IHh0X2xlbmd0
+aF9pbmZvICppbmZvKQogCQogfQogCi1zdGF0aWMgaW50Ci1sZW5ndGhfcGFyc2UoaW50IGMsIGNo
+YXIgKiphcmd2LCBpbnQgaW52ZXJ0LCB1bnNpZ25lZCBpbnQgKmZsYWdzLAotICAgICAgICAgICAg
+IGNvbnN0IHZvaWQgKmVudHJ5LCBzdHJ1Y3QgeHRfZW50cnlfbWF0Y2ggKiptYXRjaCkKK3N0YXRp
+YyBpbnQgX19sZW5ndGhfcGFyc2UoaW50IGMsIGNoYXIgKiphcmd2LCBpbnQgaW52ZXJ0LCB1bnNp
+Z25lZCBpbnQgKmZsYWdzLAorCQkJICBjb25zdCB2b2lkICplbnRyeSwgc3RydWN0IHh0X2xlbmd0
+aF9pbmZvICppbmZvKQogewotCXN0cnVjdCB4dF9sZW5ndGhfaW5mbyAqaW5mbyA9IChzdHJ1Y3Qg
+eHRfbGVuZ3RoX2luZm8gKikoKm1hdGNoKS0+ZGF0YTsKLQogCXN3aXRjaCAoYykgewogCQljYXNl
+ICcxJzoKIAkJCWlmICgqZmxhZ3MpCkBAIC04Myw2ICs4MywzMSBAQCBsZW5ndGhfcGFyc2UoaW50
+IGMsIGNoYXIgKiphcmd2LCBpbnQgaW52ZXJ0LCB1bnNpZ25lZCBpbnQgKmZsYWdzLAogCXJldHVy
+biAxOwogfQogCitzdGF0aWMgaW50IGxlbmd0aF9wYXJzZShpbnQgYywgY2hhciAqKmFyZ3YsIGlu
+dCBpbnZlcnQsIHVuc2lnbmVkIGludCAqZmxhZ3MsCisJCQljb25zdCB2b2lkICplbnRyeSwgc3Ry
+dWN0IHh0X2VudHJ5X21hdGNoICoqbWF0Y2gpCit7CisJcmV0dXJuIF9fbGVuZ3RoX3BhcnNlKGMs
+IGFyZ3YsIGludmVydCwgZmxhZ3MsIGVudHJ5LAorCQkJICAgICAgKHN0cnVjdCB4dF9sZW5ndGhf
+aW5mbyAqKSgqbWF0Y2gpLT5kYXRhKTsKK30KKworc3RhdGljIGludCBsZW5ndGhfcGFyc2VfdjAo
+aW50IGMsIGNoYXIgKiphcmd2LCBpbnQgaW52ZXJ0LCB1bnNpZ25lZCBpbnQgKmZsYWdzLAorCQkJ
+ICAgY29uc3Qgdm9pZCAqZW50cnksIHN0cnVjdCB4dF9lbnRyeV9tYXRjaCAqKm1hdGNoKQorewor
+CXN0cnVjdCB4dF9sZW5ndGhfaW5mbyBpbmZvOworCisJaWYgKF9fbGVuZ3RoX3BhcnNlKGMsIGFy
+Z3YsIGludmVydCwgZmxhZ3MsIGVudHJ5LCAmaW5mbykpIHsKKwkJc3RydWN0IHh0X2xlbmd0aF9p
+bmZvX3YwICppbmZvX3YwOworCisJCWluZm9fdjAgPSAodm9pZCAqKSgqbWF0Y2gpLT5kYXRhOwor
+CQlpbmZvX3YwLT5taW4gPSBpbmZvLm1pbjsKKwkJaW5mb192MC0+bWF4ID0gaW5mby5tYXg7CisJ
+CWluZm9fdjAtPmludmVydCA9IGluZm8uaW52ZXJ0OworCQlyZXR1cm4gMTsKKwl9CisKKwlyZXR1
+cm4gMDsKK30KKwogc3RhdGljIHZvaWQgbGVuZ3RoX2NoZWNrKHVuc2lnbmVkIGludCBmbGFncykK
+IHsKIAlpZiAoIWZsYWdzKQpAQCAtOTAsMTEgKzExNSw4IEBAIHN0YXRpYyB2b2lkIGxlbmd0aF9j
+aGVjayh1bnNpZ25lZCBpbnQgZmxhZ3MpCiAJCQkgICAibGVuZ3RoOiBZb3UgbXVzdCBzcGVjaWZ5
+IGAtLWxlbmd0aCciKTsKIH0KIAotc3RhdGljIHZvaWQKLWxlbmd0aF9wcmludChjb25zdCB2b2lk
+ICppcCwgY29uc3Qgc3RydWN0IHh0X2VudHJ5X21hdGNoICptYXRjaCwgaW50IG51bWVyaWMpCitz
+dGF0aWMgdm9pZCBfX2xlbmd0aF9wcmludChjb25zdCBzdHJ1Y3QgeHRfbGVuZ3RoX2luZm8gKmlu
+Zm8pCiB7Ci0JY29uc3Qgc3RydWN0IHh0X2xlbmd0aF9pbmZvICppbmZvID0gKHZvaWQgKiltYXRj
+aC0+ZGF0YTsKLQogCXByaW50ZigibGVuZ3RoICVzIiwgaW5mby0+aW52ZXJ0ID8gIiEiIDogIiIp
+OwogCWlmIChpbmZvLT5taW4gPT0gaW5mby0+bWF4KQogCQlwcmludGYoIiV1ICIsIGluZm8tPm1p
+bik7CkBAIC0xMDIsMTAgKzEyNCwyNiBAQCBsZW5ndGhfcHJpbnQoY29uc3Qgdm9pZCAqaXAsIGNv
+bnN0IHN0cnVjdCB4dF9lbnRyeV9tYXRjaCAqbWF0Y2gsIGludCBudW1lcmljKQogCQlwcmludGYo
+IiV1OiV1ICIsIGluZm8tPm1pbiwgaW5mby0+bWF4KTsKIH0KIAotc3RhdGljIHZvaWQgbGVuZ3Ro
+X3NhdmUoY29uc3Qgdm9pZCAqaXAsIGNvbnN0IHN0cnVjdCB4dF9lbnRyeV9tYXRjaCAqbWF0Y2gp
+CitzdGF0aWMgdm9pZCBsZW5ndGhfcHJpbnQoY29uc3Qgdm9pZCAqaXAsIGNvbnN0IHN0cnVjdCB4
+dF9lbnRyeV9tYXRjaCAqbWF0Y2gsCisJCQkgaW50IG51bWVyaWMpCiB7Ci0JY29uc3Qgc3RydWN0
+IHh0X2xlbmd0aF9pbmZvICppbmZvID0gKHZvaWQgKiltYXRjaC0+ZGF0YTsKKwlfX2xlbmd0aF9w
+cmludCgodm9pZCAqKW1hdGNoLT5kYXRhKTsKK30KKworc3RhdGljIHZvaWQgbGVuZ3RoX3ByaW50
+X3YwKGNvbnN0IHZvaWQgKmlwLCBjb25zdCBzdHJ1Y3QgeHRfZW50cnlfbWF0Y2ggKm1hdGNoLAor
+CQkJICAgIGludCBudW1lcmljKQoreworCWNvbnN0IHN0cnVjdCB4dF9sZW5ndGhfaW5mb192MCAq
+aW5mb192MCA9ICh2b2lkICopbWF0Y2gtPmRhdGE7CisJc3RydWN0IHh0X2xlbmd0aF9pbmZvIGlu
+Zm87CiAKKwlpbmZvLm1pbiA9IGluZm9fdjAtPm1pbjsKKwlpbmZvLm1heCA9IGluZm9fdjAtPm1h
+eDsKKwlpbmZvLmludmVydCA9IGluZm9fdjAtPmludmVydDsKKwlfX2xlbmd0aF9wcmludCgmaW5m
+byk7Cit9CisKK3N0YXRpYyB2b2lkIF9fbGVuZ3RoX3NhdmUoY29uc3Qgc3RydWN0IHh0X2xlbmd0
+aF9pbmZvICppbmZvKQorewogCXByaW50ZigiJXMtLWxlbmd0aCAiLCBpbmZvLT5pbnZlcnQgPyAi
+ISAiIDogIiIpOwogCWlmIChpbmZvLT5taW4gPT0gaW5mby0+bWF4KQogCQlwcmludGYoIiV1ICIs
+IGluZm8tPm1pbik7CkBAIC0xMTMsMjEgKzE1MSw1NCBAQCBzdGF0aWMgdm9pZCBsZW5ndGhfc2F2
+ZShjb25zdCB2b2lkICppcCwgY29uc3Qgc3RydWN0IHh0X2VudHJ5X21hdGNoICptYXRjaCkKIAkJ
+cHJpbnRmKCIldToldSAiLCBpbmZvLT5taW4sIGluZm8tPm1heCk7CiB9CiAKLXN0YXRpYyBzdHJ1
+Y3QgeHRhYmxlc19tYXRjaCBsZW5ndGhfbWF0Y2ggPSB7Ci0JLmZhbWlseQkJPSBORlBST1RPX1VO
+U1BFQywKLQkubmFtZQkJPSAibGVuZ3RoIiwKLQkudmVyc2lvbgk9IFhUQUJMRVNfVkVSU0lPTiwK
+LQkuc2l6ZQkJPSBYVF9BTElHTihzaXplb2Yoc3RydWN0IHh0X2xlbmd0aF9pbmZvKSksCi0JLnVz
+ZXJzcGFjZXNpemUJPSBYVF9BTElHTihzaXplb2Yoc3RydWN0IHh0X2xlbmd0aF9pbmZvKSksCi0J
+LmhlbHAJCT0gbGVuZ3RoX2hlbHAsCi0JLnBhcnNlCQk9IGxlbmd0aF9wYXJzZSwKLQkuZmluYWxf
+Y2hlY2sJPSBsZW5ndGhfY2hlY2ssCi0JLnByaW50CQk9IGxlbmd0aF9wcmludCwKLQkuc2F2ZQkJ
+PSBsZW5ndGhfc2F2ZSwKLQkuZXh0cmFfb3B0cwk9IGxlbmd0aF9vcHRzLAorc3RhdGljIHZvaWQg
+bGVuZ3RoX3NhdmUoY29uc3Qgdm9pZCAqaXAsIGNvbnN0IHN0cnVjdCB4dF9lbnRyeV9tYXRjaCAq
+bWF0Y2gpCit7CisJX19sZW5ndGhfc2F2ZSgodm9pZCAqKW1hdGNoLT5kYXRhKTsKK30KKworc3Rh
+dGljIHZvaWQgbGVuZ3RoX3NhdmVfdjAoY29uc3Qgdm9pZCAqaXAsIGNvbnN0IHN0cnVjdCB4dF9l
+bnRyeV9tYXRjaCAqbWF0Y2gpCit7CisJY29uc3Qgc3RydWN0IHh0X2xlbmd0aF9pbmZvX3YwICpp
+bmZvX3YwID0gKHZvaWQgKiltYXRjaC0+ZGF0YTsKKwlzdHJ1Y3QgeHRfbGVuZ3RoX2luZm8gaW5m
+bzsKKworCWluZm8ubWluID0gaW5mb192MC0+bWluOworCWluZm8ubWF4ID0gaW5mb192MC0+bWF4
+OworCWluZm8uaW52ZXJ0ID0gaW5mb192MC0+aW52ZXJ0OworCV9fbGVuZ3RoX3NhdmUoJmluZm8p
+OworfQorCitzdGF0aWMgc3RydWN0IHh0YWJsZXNfbWF0Y2ggbGVuZ3RoX210X3JlZ1tdID0gewor
+CXsKKwkJLmZhbWlseQkJPSBORlBST1RPX1VOU1BFQywKKwkJLm5hbWUJCT0gImxlbmd0aCIsCisJ
+CS52ZXJzaW9uCT0gWFRBQkxFU19WRVJTSU9OLAorCQkuc2l6ZQkJPSBYVF9BTElHTihzaXplb2Yo
+c3RydWN0IHh0X2xlbmd0aF9pbmZvX3YwKSksCisJCS51c2Vyc3BhY2VzaXplCT0gWFRfQUxJR04o
+c2l6ZW9mKHN0cnVjdCB4dF9sZW5ndGhfaW5mb192MCkpLAorCQkuaGVscAkJPSBsZW5ndGhfaGVs
+cCwKKwkJLnBhcnNlCQk9IGxlbmd0aF9wYXJzZV92MCwKKwkJLmZpbmFsX2NoZWNrCT0gbGVuZ3Ro
+X2NoZWNrLAorCQkucHJpbnQJCT0gbGVuZ3RoX3ByaW50X3YwLAorCQkuc2F2ZQkJPSBsZW5ndGhf
+c2F2ZV92MCwKKwkJLmV4dHJhX29wdHMJPSBsZW5ndGhfb3B0cywKKwkJLnJldmlzaW9uCT0gMCwK
+Kwl9LAorCXsKKwkJLmZhbWlseQkJPSBORlBST1RPX1VOU1BFQywKKwkJLm5hbWUJCT0gImxlbmd0
+aCIsCisJCS52ZXJzaW9uCT0gWFRBQkxFU19WRVJTSU9OLAorCQkuc2l6ZQkJPSBYVF9BTElHTihz
+aXplb2Yoc3RydWN0IHh0X2xlbmd0aF9pbmZvKSksCisJCS51c2Vyc3BhY2VzaXplCT0gWFRfQUxJ
+R04oc2l6ZW9mKHN0cnVjdCB4dF9sZW5ndGhfaW5mbykpLAorCQkuaGVscAkJPSBsZW5ndGhfaGVs
+cCwKKwkJLnBhcnNlCQk9IGxlbmd0aF9wYXJzZSwKKwkJLmZpbmFsX2NoZWNrCT0gbGVuZ3RoX2No
+ZWNrLAorCQkucHJpbnQJCT0gbGVuZ3RoX3ByaW50LAorCQkuc2F2ZQkJPSBsZW5ndGhfc2F2ZSwK
+KwkJLmV4dHJhX29wdHMJPSBsZW5ndGhfb3B0cywKKwkJLnJldmlzaW9uCT0gMSwKKwl9LAogfTsK
+IAogdm9pZCBfaW5pdCh2b2lkKQogewotCXh0YWJsZXNfcmVnaXN0ZXJfbWF0Y2goJmxlbmd0aF9t
+YXRjaCk7CisJeHRhYmxlc19yZWdpc3Rlcl9tYXRjaGVzKGxlbmd0aF9tdF9yZWcsIEFSUkFZX1NJ
+WkUobGVuZ3RoX210X3JlZykpOwogfQpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9uZXRmaWx0
+ZXIveHRfbGVuZ3RoLmggYi9pbmNsdWRlL2xpbnV4L25ldGZpbHRlci94dF9sZW5ndGguaAppbmRl
+eCBiODJlZDdjLi5hMTI3ODVjIDEwMDY0NAotLS0gYS9pbmNsdWRlL2xpbnV4L25ldGZpbHRlci94
+dF9sZW5ndGguaAorKysgYi9pbmNsdWRlL2xpbnV4L25ldGZpbHRlci94dF9sZW5ndGguaApAQCAt
+NCw3ICs0LDcgQEAKICNpbmNsdWRlIDxsaW51eC90eXBlcy5oPgogCiBzdHJ1Y3QgeHRfbGVuZ3Ro
+X2luZm8gewotICAgIF9fdTE2CW1pbiwgbWF4OworICAgIF9fdTMyCW1pbiwgbWF4OwogICAgIF9f
+dTgJaW52ZXJ0OwogfTsKIAo=
+--0016e64e9d20a26af4048c20b931--
