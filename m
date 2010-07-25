@@ -1,49 +1,158 @@
-From: John Haxby <john.haxby@oracle.com>
-Subject: Re: [PATCH 1/2] netfilter: xtables: inclusion of xt_SYSRQ
-Date: Sun, 25 Jul 2010 19:13:30 +0100
-Message-ID: <65479A87-7576-42EF-9E6B-7BD6F1A78099@oracle.com>
-References: <1271845618-28569-1-git-send-email-jengelh@medozas.de> <1271845618-28569-2-git-send-email-jengelh@medozas.de> <4BCEF6B4.8090105@trash.net> <alpine.LSU.2.01.1004211506280.10840@obet.zrqbmnf.qr> <4BCEFACC.7020804@trash.net> <alpine.LSU.2.01.1004211533410.21020@obet.zrqbmnf.qr> <4BD84992.5030909@oracle.com> <4BD84C23.2000301@oracle.com> <alpine.LSU.2.01.1004281701220.9518@obet.zrqbmnf.qr> <alpine.LSU.2.01.1007251848520.14790@obet.zrqbmnf.qr>
-Mime-Version: 1.0 (Apple Message framework v1081)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Linux Netdev List <netdev@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+From: Nepenthes Development Team <nepenthesdev@gmail.com>
+Subject: Re: socket match - add wildcard option [2/4]
+Date: Sun, 25 Jul 2010 21:10:48 +0200
+Message-ID: <AANLkTikOF2J9VR6ZwLdSxdeC7VhQZyRjbCa0V1Yqpyh6@mail.gmail.com>
+References: <AANLkTi=4J96JVoM46wjtXwe1hW62injH+=9FEbexhh3K@mail.gmail.com>
+	<alpine.LSU.2.01.1007251708460.3572@obet.zrqbmnf.qr>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary=0016e6d7e0129516ee048c3b0604
+Cc: netfilter-devel@vger.kernel.org
+To: jengelh@medozas.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:51411 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751206Ab0GYSPH convert rfc822-to-8bit (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:52045 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751293Ab0GYTKt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 25 Jul 2010 14:15:07 -0400
-In-Reply-To: <alpine.LSU.2.01.1007251848520.14790@obet.zrqbmnf.qr>
+	Sun, 25 Jul 2010 15:10:49 -0400
+Received: by wyf19 with SMTP id 19so1615715wyf.19
+        for <netfilter-devel@vger.kernel.org>; Sun, 25 Jul 2010 12:10:48 -0700 (PDT)
+In-Reply-To: <alpine.LSU.2.01.1007251708460.3572@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+--0016e6d7e0129516ee048c3b0604
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On 25 Jul 2010, at 17:49, Jan Engelhardt wrote:
+Hi,
 
-> 
-> On Wednesday 2010-04-28 17:03, Jan Engelhardt wrote:
->> On Wednesday 2010-04-28 16:54, John Haxby wrote:
->>> 
->>> use-case I see -- the one I see is where the sys admins used to have a "crash
->>> trolley" which was a console and PS/2 keyboard which they could plug into a
->>> machine to get some information, but as many rack machines no longer have
->>> anything PS/2 and USB hot plug is unlikely to work on a sick machine
->> 
-> 
-> I still think we should merge this. A hold-up like this would have never 
-> happened with staging drivers!
-> 
+thanks for your reply.
 
-Me too.   I've been caught up with other things, but Patrick's suggestion of a separate module only half worked out.
+>>+static const struct option socket_opts_v1[] =3D {
+>>+ =A0 =A0 =A0{ "transparent", 0, NULL, '1' },
+>>+ =A0 =A0 =A0{ }
+>>+};
+>
+> Try to use the C99 version.
 
-Using encapsulation sockets, to get the sysrq handled in BH context works well except that there are no encapsulation sockets for IPv6.  That, for me at least was a bit of a show stopper.
+Not sure what C99 shall mean in this context,
+> { .name =3D NULL }
+?
 
-In exploring this, though, I did correct one weakness in the protocol.  An opportunistic hacker could take a sysrq packet and replay it to other hosts in the LAN in the hope that they have the same password (this is a realistic weakness rather than a theoretical one).   To counter this I simply added the target IP address to the hash.
+> ' does not need to be escaped, to my knowledge.
 
-Would you like me to submit that to xt_SYSRQ anyway?   (In a couple of weeks I'm afraid, I'm out for a while.)
+I adopted the syntax from the original manpage, which escapes ', shall
+I remove it altogether?
 
-jch
+>>+struct xt_socket_mtinfo1 {
+>>+ =A0 =A0 =A0__u8 flags;
+>>+};
+>
+> I'm sure Eric Dumazet will remind us that u32 is a better idea.
+
+Adopted, as the kernel already uses __u8 for the socket match flags
+http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dblob=
+;f=3Dinclude/linux/netfilter/xt_socket.h;h=3D6f475b8ff34be81caa612bf1a947d3=
+ad627290ab;hb=3D962400e8fd29981a7b166e463dd143b6ac6a3e76#l8
+shall I change it to u32?
+
+Attached is current version for iptables, I remembered being able to
+invert a match would be great, therefore I added the invertible
+implicit --exists option.
+
+So now, this patch covers all changes, adding the options
+[!] --exists
+--transparent
+--wildcard
+to the socket match.
+
+
+Markus
+
+--0016e6d7e0129516ee048c3b0604
+Content-Type: text/x-diff; charset=US-ASCII;
+	name="iptables-socket-match-exists-wildcard-transparent-options.diff"
+Content-Disposition: attachment;
+	filename="iptables-socket-match-exists-wildcard-transparent-options.diff"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gc294sxw0
+
+ZGlmZiAtLWdpdCBhL2V4dGVuc2lvbnMvbGlieHRfc29ja2V0LmMgYi9leHRlbnNpb25zL2xpYnh0
+X3NvY2tldC5jCmluZGV4IDE0OTA0NzMuLjAzYTRmOGYgMTAwNjQ0Ci0tLSBhL2V4dGVuc2lvbnMv
+bGlieHRfc29ja2V0LmMKKysrIGIvZXh0ZW5zaW9ucy9saWJ4dF9zb2NrZXQuYwpAQCAtMywxNyAr
+MywxMDYgQEAKICAqCiAgKiBDb3B5cmlnaHQgKEMpIDIwMDcgQmFsYUJpdCBJVCBMdGQuCiAgKi8K
+KyNpbmNsdWRlIDxzdGRpby5oPgorI2luY2x1ZGUgPGdldG9wdC5oPgogI2luY2x1ZGUgPHh0YWJs
+ZXMuaD4KKyNpbmNsdWRlIDxsaW51eC9uZXRmaWx0ZXIveHRfc29ja2V0Lmg+CiAKLXN0YXRpYyBz
+dHJ1Y3QgeHRhYmxlc19tYXRjaCBzb2NrZXRfbXRfcmVnID0gewotCS5uYW1lCSAgICAgICA9ICJz
+b2NrZXQiLAotCS52ZXJzaW9uICAgICAgID0gWFRBQkxFU19WRVJTSU9OLAotCS5mYW1pbHkJICAg
+ICAgID0gTkZQUk9UT19JUFY0LAotCS5zaXplCSAgICAgICA9IFhUX0FMSUdOKDApLAotCS51c2Vy
+c3BhY2VzaXplID0gWFRfQUxJR04oMCksCitzdGF0aWMgdm9pZCBzb2NrZXRfbXRfaGVscF92MSh2
+b2lkKQoreworCXByaW50Zigic29ja2V0IG1hdGNoIG9wdGlvbnM6XG4iCisiLS10cmFuc3BhcmVu
+dCAgICAgIE1hdGNoZXMgb25seSBpZiB0aGUgc29ja2V0J3MgdHJhbnNwYXJlbnQgb3B0aW9uIGlz
+IHNldFxuIgorIi0td2lsZGNhcmQgICAgICAgICBNYXRjaCB3aWxkY2FyZCBzb2NrZXQncyB0b29c
+biIKKyJbIV0gLS1leGlzdHMgICAgICAgTWF0Y2ggaWYgc29ja2V0IGV4aXN0cyAob3B0aW9uYWwp
+LCBhbGxvd3MgaW52ZXJzaW9uXG4iCisJKTsKK30KKworc3RhdGljIGNvbnN0IHN0cnVjdCBvcHRp
+b24gc29ja2V0X29wdHNfdjFbXSA9IHsKKwl7ICJ0cmFuc3BhcmVudCIsIDAsIE5VTEwsICcxJyB9
+LAorCXsgIndpbGRjYXJkIiwgICAgMCwgTlVMTCwgJzInIH0sCisJeyAiZXhpc3RzIiwgICAgICAw
+LCBOVUxMLCAnMycgfSwKKwl7IC5uYW1lID0gTlVMTCB9Cit9OworCitzdGF0aWMgaW50IHNvY2tl
+dF9tdF9wYXJzZV92MShpbnQgYywgY2hhciAqKmFyZ3YsIGludCBpbnZlcnQsCisJCQkgICAgICB1
+bnNpZ25lZCBpbnQgKmZsYWdzLCBjb25zdCB2b2lkICplbnRyeSwKKwkJCSAgICAgIHN0cnVjdCB4
+dF9lbnRyeV9tYXRjaCAqKm1hdGNoKQoreworCXN0cnVjdCB4dF9zb2NrZXRfbXRpbmZvMSAqaW5m
+byA9ICh2b2lkICopICgqbWF0Y2gpLT5kYXRhOworCisJc3dpdGNoIChjKSB7CisJY2FzZSAnMSc6
+CisJCXh0YWJsZXNfcGFyYW1fYWN0KFhURl9PTkxZX09OQ0UsICJzb2NrZXQiLCAiLS10cmFuc3Bh
+cmVudCIsICpmbGFncyAmIFhUX1NPQ0tFVF9UUkFOU1BBUkVOVCk7CisJCWluZm8tPmZsYWdzIHw9
+IFhUX1NPQ0tFVF9UUkFOU1BBUkVOVDsKKwkJKmZsYWdzIHw9IFhUX1NPQ0tFVF9UUkFOU1BBUkVO
+VDsKKwkJYnJlYWs7CisJY2FzZSAnMic6CisJCXh0YWJsZXNfcGFyYW1fYWN0KFhURl9PTkxZX09O
+Q0UsICJzb2NrZXQiLCAiLS13aWxkY2FyZCIsICpmbGFncyAmIFhUX1NPQ0tFVF9XSUxEQ0FSRCk7
+CisJCWluZm8tPmZsYWdzIHw9IFhUX1NPQ0tFVF9XSUxEQ0FSRDsKKwkJKmZsYWdzIHw9IFhUX1NP
+Q0tFVF9XSUxEQ0FSRDsKKwkJYnJlYWs7CisJY2FzZSAnMyc6CisJCXh0YWJsZXNfcGFyYW1fYWN0
+KFhURl9PTkxZX09OQ0UsICJzb2NrZXQiLCAiLS1leGlzdHMiLCAqZmxhZ3MgJiBYVF9TT0NLRVRf
+SU5WRVJUKTsKKwkJaWYgKGludmVydCkKKwkJCWluZm8tPmZsYWdzIHw9IFhUX1NPQ0tFVF9JTlZF
+UlQ7CisJCSpmbGFncyB8PSBYVF9TT0NLRVRfSU5WRVJUOworCQlicmVhazsKKwlkZWZhdWx0Ogor
+CQlyZXR1cm4gMDsKKwl9CisJcmV0dXJuIDE7Cit9CisKK3N0YXRpYyB2b2lkIHNvY2tldF9tdF9w
+cmludF92MShjb25zdCB2b2lkICppcCwKKwkJCSAgICAgICBjb25zdCBzdHJ1Y3QgeHRfZW50cnlf
+bWF0Y2ggKm1hdGNoLAorCQkJICAgICAgIGludCBudW1lcmljKQoreworCWNvbnN0IHN0cnVjdCB4
+dF9zb2NrZXRfbXRpbmZvMSAqaW5mbyA9IChjb25zdCB2b2lkICopbWF0Y2gtPmRhdGE7CisJcHJp
+bnRmKCJzb2NrZXQgIik7CisJaWYgKGluZm8tPmZsYWdzICYgWFRfU09DS0VUX1RSQU5TUEFSRU5U
+KQorCQlwcmludGYoInRyYW5zcGFyZW50ICIpOworCWlmIChpbmZvLT5mbGFncyAmIFhUX1NPQ0tF
+VF9XSUxEQ0FSRCkKKwkJcHJpbnRmKCJ3aWxkY2FyZCAiKTsKKwlwcmludGYoIiVzZXhpc3RzICIs
+IChpbmZvLT5mbGFncyAmIFhUX1NPQ0tFVF9JTlZFUlQpID8gIiEgIiA6ICIiKTsKK30KKworc3Rh
+dGljIHZvaWQgc29ja2V0X210X3NhdmVfdjEoY29uc3Qgdm9pZCAqaXAsCisJCQkgICAgICBjb25z
+dCBzdHJ1Y3QgeHRfZW50cnlfbWF0Y2ggKm1hdGNoKQoreworCWNvbnN0IHN0cnVjdCB4dF9zb2Nr
+ZXRfbXRpbmZvMSAqaW5mbyA9IChjb25zdCB2b2lkICopbWF0Y2gtPmRhdGE7CisKKwlpZiAoaW5m
+by0+ZmxhZ3MgJiBYVF9TT0NLRVRfVFJBTlNQQVJFTlQpCisJCXByaW50ZigiLS10cmFuc3BhcmVu
+dCAiKTsKKworCWlmIChpbmZvLT5mbGFncyAmIFhUX1NPQ0tFVF9XSUxEQ0FSRCkKKwkJcHJpbnRm
+KCItLXdpbGRjYXJkICIpOworCisJcHJpbnRmKCIlcy0tZXhpc3RzICIsIGluZm8tPmZsYWdzICYg
+WFRfU09DS0VUX0lOVkVSVCA/ICIhICIgOiAiIik7Cit9CisKK3N0YXRpYyBzdHJ1Y3QgeHRhYmxl
+c19tYXRjaCBzb2NrZXRfbXRfcmVnW10gPSB7CisJeworCQkubmFtZQkJPSAic29ja2V0IiwKKwkJ
+LnJldmlzaW9uCT0gMCwKKwkJLnZlcnNpb24JPSBYVEFCTEVTX1ZFUlNJT04sCisJCS5mYW1pbHkJ
+CT0gTkZQUk9UT19VTlNQRUMsCisJfSwKKwl7CisJCS5uYW1lCQk9ICJzb2NrZXQiLAorCQkudmVy
+c2lvbgk9IFhUQUJMRVNfVkVSU0lPTiwKKwkJLnJldmlzaW9uCT0gMSwKKwkJLmZhbWlseQkJPSBO
+RlBST1RPX1VOU1BFQywKKwkJLnNpemUJCT0gWFRfQUxJR04oc2l6ZW9mKHN0cnVjdCB4dF9zb2Nr
+ZXRfbXRpbmZvMSkpLAorCQkudXNlcnNwYWNlc2l6ZQk9IFhUX0FMSUdOKHNpemVvZihzdHJ1Y3Qg
+eHRfc29ja2V0X210aW5mbzEpKSwKKwkJLnBhcnNlCQk9IHNvY2tldF9tdF9wYXJzZV92MSwKKwkJ
+LnByaW50CQk9IHNvY2tldF9tdF9wcmludF92MSwKKwkJLnNhdmUJCT0gc29ja2V0X210X3NhdmVf
+djEsCisJCS5oZWxwCQk9IHNvY2tldF9tdF9oZWxwX3YxLAorCQkuZXh0cmFfb3B0cwk9IHNvY2tl
+dF9vcHRzX3YxLAorCX0KIH07CiAKIHZvaWQgX2luaXQodm9pZCkKIHsKLQl4dGFibGVzX3JlZ2lz
+dGVyX21hdGNoKCZzb2NrZXRfbXRfcmVnKTsKKwl4dGFibGVzX3JlZ2lzdGVyX21hdGNoZXMoc29j
+a2V0X210X3JlZywgQVJSQVlfU0laRShzb2NrZXRfbXRfcmVnKSk7CiB9CmRpZmYgLS1naXQgYS9l
+eHRlbnNpb25zL2xpYnh0X3NvY2tldC5tYW4gYi9leHRlbnNpb25zL2xpYnh0X3NvY2tldC5tYW4K
+aW5kZXggNTBjODg1NC4uNGFjZDM4MCAxMDA2NDQKLS0tIGEvZXh0ZW5zaW9ucy9saWJ4dF9zb2Nr
+ZXQubWFuCisrKyBiL2V4dGVuc2lvbnMvbGlieHRfc29ja2V0Lm1hbgpAQCAtMSwyICsxLDEyIEBA
+CiBUaGlzIG1hdGNoZXMgaWYgYW4gb3BlbiBzb2NrZXQgY2FuIGJlIGZvdW5kIGJ5IGRvaW5nIGEg
+c29ja2V0IGxvb2t1cCBvbiB0aGUKLXBhY2tldC4KK3BhY2tldCB3aGljaCBkb2VzblwndCBsaXN0
+ZW4gb24gdGhlIFwnYW55XCcgSVAgYWRkcmVzcyAoMC4wLjAuMCkuCisuVFAKKy5CSSAiXC1cLXRy
+YW5zcGFyZW50IgorRW5hYmxlcyBhZGRpdGlvbmFsIGNoZWNrLCB0aGF0IHRoZSBhY3R1YWwgc29j
+a2V0J3MgdHJhbnNwYXJlbnQgc29ja2V0IG9wdGlvbgoraGFzIHRvIGJlIHNldC4KKy5CSSAiXC1c
+LXdpbGRjYXJkIgorTWF0Y2hlcyBzb2NrZXRzIGxpc3RlbmluZyBvbiB0aGUgXCdhbnlcJyBJUCBh
+ZGRyZXNzICgwLjAuMC4wKSB0b28uCisuQkkgIlshXSBcLVwtZXhpc3RzIgorT3B0aW9uYWwsIGFs
+bG93cyBpbnZlcnNpb24gb2YgdGhlIG1hdGNoLgorCisKZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGlu
+dXgvbmV0ZmlsdGVyL3h0X3NvY2tldC5oIGIvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXIveHRfc29j
+a2V0LmgKbmV3IGZpbGUgbW9kZSAxMDA2NDQKaW5kZXggMDAwMDAwMC4uNmY0OTJlZAotLS0gL2Rl
+di9udWxsCisrKyBiL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyL3h0X3NvY2tldC5oCkBAIC0wLDAg
+KzEsMTQgQEAKKyNpZm5kZWYgX1hUX1NPQ0tFVF9IX21hdGNoCisjZGVmaW5lIF9YVF9TT0NLRVRf
+SF9tYXRjaAorCitlbnVtIHsKKwlYVF9TT0NLRVRfVFJBTlNQQVJFTlQgPSAxIDw8IDAsCisJWFRf
+U09DS0VUX1dJTERDQVJEID0gMSA8PCAxLAorCVhUX1NPQ0tFVF9JTlZFUlQgPSAxIDw8IDIsCit9
+OworCitzdHJ1Y3QgeHRfc29ja2V0X210aW5mbzEgeworCV9fdTggZmxhZ3M7Cit9OworCisjZW5k
+aWYgLyogX1hUX1NPQ0tFVF9IX21hdGNoICovCg==
+--0016e6d7e0129516ee048c3b0604--
