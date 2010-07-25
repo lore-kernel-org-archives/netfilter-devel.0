@@ -1,115 +1,51 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH] nf_conntrack_extend: introduce __nf_ct_ext_exist()
-Date: Sun, 25 Jul 2010 22:38:54 +0800
-Message-ID: <1280068734-5332-1-git-send-email-xiaosuo@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Changli Gao <xiaosuo@gmail.com>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Nepenthes Development Team <nepenthesdev@gmail.com>
+Subject: socket match - add wildcard option [1/4]
+Date: Sun, 25 Jul 2010 16:49:18 +0200
+Message-ID: <AANLkTimmYB92z3J5cysm7-RcQ4oS+-=ZmTCc_9VYQoRf@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary=0016363ba63a66e9d9048c375ff9
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:47645 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751446Ab0GYOtT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 25 Jul 2010 10:49:19 -0400
+Received: by wyf19 with SMTP id 19so1516238wyf.19
+        for <netfilter-devel@vger.kernel.org>; Sun, 25 Jul 2010 07:49:18 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-some users of nf_ct_ext_exist() know ct->ext isn't NULL. For these users, the
-check for ct->ext isn't necessary, the function __nf_ct_ext_exist() can be
-used instead.
+--0016363ba63a66e9d9048c375ff9
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-the type of the return value of nf_ct_ext_exist() is changed to bool.
+iptables-socket-match-empty-options.diff
+ =A0- revert removing the empty options from extensions/xt_socket.c
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-----
- include/net/netfilter/nf_conntrack_extend.h |    9 +++++++--
- net/netfilter/nf_conntrack_extend.c         |   22 ++++++++++++----------
- 2 files changed, 19 insertions(+), 12 deletions(-)
-diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
-index 32d15bd..0772d29 100644
---- a/include/net/netfilter/nf_conntrack_extend.h
-+++ b/include/net/netfilter/nf_conntrack_extend.h
-@@ -28,9 +28,14 @@ struct nf_ct_ext {
- 	char data[0];
- };
- 
--static inline int nf_ct_ext_exist(const struct nf_conn *ct, u8 id)
-+static inline bool __nf_ct_ext_exist(const struct nf_ct_ext *ext, u8 id)
- {
--	return (ct->ext && ct->ext->offset[id]);
-+	return !!ext->offset[id];
-+}
-+
-+static inline bool nf_ct_ext_exist(const struct nf_conn *ct, u8 id)
-+{
-+	return (ct->ext && __nf_ct_ext_exist(ct->ext, id));
- }
- 
- static inline void *__nf_ct_ext_find(const struct nf_conn *ct, u8 id)
-diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
-index fdc8fb4..7dcf7a4 100644
---- a/net/netfilter/nf_conntrack_extend.c
-+++ b/net/netfilter/nf_conntrack_extend.c
-@@ -23,9 +23,10 @@ void __nf_ct_ext_destroy(struct nf_conn *ct)
- {
- 	unsigned int i;
- 	struct nf_ct_ext_type *t;
-+	struct nf_ct_ext *ext = ct->ext;
- 
- 	for (i = 0; i < NF_CT_EXT_NUM; i++) {
--		if (!nf_ct_ext_exist(ct, i))
-+		if (!__nf_ct_ext_exist(ext, i))
- 			continue;
- 
- 		rcu_read_lock();
-@@ -73,44 +74,45 @@ static void __nf_ct_ext_free_rcu(struct rcu_head *head)
- 
- void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
- {
--	struct nf_ct_ext *new;
-+	struct nf_ct_ext *old, *new;
- 	int i, newlen, newoff;
- 	struct nf_ct_ext_type *t;
- 
- 	/* Conntrack must not be confirmed to avoid races on reallocation. */
- 	NF_CT_ASSERT(!nf_ct_is_confirmed(ct));
- 
--	if (!ct->ext)
-+	old = ct->ext;
-+	if (!old)
- 		return nf_ct_ext_create(&ct->ext, id, gfp);
- 
--	if (nf_ct_ext_exist(ct, id))
-+	if (__nf_ct_ext_exist(old, id))
- 		return NULL;
- 
- 	rcu_read_lock();
- 	t = rcu_dereference(nf_ct_ext_types[id]);
- 	BUG_ON(t == NULL);
- 
--	newoff = ALIGN(ct->ext->len, t->align);
-+	newoff = ALIGN(old->len, t->align);
- 	newlen = newoff + t->len;
- 	rcu_read_unlock();
- 
--	new = __krealloc(ct->ext, newlen, gfp);
-+	new = __krealloc(old, newlen, gfp);
- 	if (!new)
- 		return NULL;
- 
--	if (new != ct->ext) {
-+	if (new != old) {
- 		for (i = 0; i < NF_CT_EXT_NUM; i++) {
--			if (!nf_ct_ext_exist(ct, i))
-+			if (!__nf_ct_ext_exist(old, i))
- 				continue;
- 
- 			rcu_read_lock();
- 			t = rcu_dereference(nf_ct_ext_types[i]);
- 			if (t && t->move)
- 				t->move((void *)new + new->offset[i],
--					(void *)ct->ext + ct->ext->offset[i]);
-+					(void *)old + old->offset[i]);
- 			rcu_read_unlock();
- 		}
--		call_rcu(&ct->ext->rcu, __nf_ct_ext_free_rcu);
-+		call_rcu(&old->rcu, __nf_ct_ext_free_rcu);
- 		ct->ext = new;
- 	}
- 
+--0016363ba63a66e9d9048c375ff9
+Content-Type: text/x-diff; charset=US-ASCII;
+	name="iptables-socket-match-empty-options.diff"
+Content-Disposition: attachment;
+	filename="iptables-socket-match-empty-options.diff"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gc208ajs0
+
+ZGlmZiAtLWdpdCBhL2V4dGVuc2lvbnMvbGlieHRfc29ja2V0LmMgYi9leHRlbnNpb25zL2xpYnh0
+X3NvY2tldC5jCmluZGV4IDE0OTA0NzMuLmVlYmM3YzUgMTAwNjQ0Ci0tLSBhL2V4dGVuc2lvbnMv
+bGlieHRfc29ja2V0LmMKKysrIGIvZXh0ZW5zaW9ucy9saWJ4dF9zb2NrZXQuYwpAQCAtMywxNCAr
+MywzNCBAQAogICoKICAqIENvcHlyaWdodCAoQykgMjAwNyBCYWxhQml0IElUIEx0ZC4KICAqLwor
+I2luY2x1ZGUgPHN0ZGlvLmg+CisjaW5jbHVkZSA8Z2V0b3B0Lmg+CiAjaW5jbHVkZSA8eHRhYmxl
+cy5oPgogCitzdGF0aWMgdm9pZCBzb2NrZXRfbXRfaGVscCh2b2lkKQoreworCXByaW50Zigic29j
+a2V0IHYlcyBoYXMgbm8gb3B0aW9uc1xuXG4iLCBYVEFCTEVTX1ZFUlNJT04pOworfQorCitzdGF0
+aWMgaW50IHNvY2tldF9tdF9wYXJzZShpbnQgYywgY2hhciAqKmFyZ3YsIGludCBpbnZlcnQsIHVu
+c2lnbmVkIGludCAqZmxhZ3MsCisJCQljb25zdCB2b2lkICplbnRyeSwgc3RydWN0IHh0X2VudHJ5
+X21hdGNoICoqbWF0Y2gpCit7CisJcmV0dXJuIDA7Cit9CisKK3N0YXRpYyB2b2lkIHNvY2tldF9t
+dF9jaGVjayh1bnNpZ25lZCBpbnQgZmxhZ3MpCit7Cit9CisKIHN0YXRpYyBzdHJ1Y3QgeHRhYmxl
+c19tYXRjaCBzb2NrZXRfbXRfcmVnID0gewogCS5uYW1lCSAgICAgICA9ICJzb2NrZXQiLAogCS52
+ZXJzaW9uICAgICAgID0gWFRBQkxFU19WRVJTSU9OLAogCS5mYW1pbHkJICAgICAgID0gTkZQUk9U
+T19JUFY0LAogCS5zaXplCSAgICAgICA9IFhUX0FMSUdOKDApLAogCS51c2Vyc3BhY2VzaXplID0g
+WFRfQUxJR04oMCksCisJLnBhcnNlCSAgICAgICA9IHNvY2tldF9tdF9wYXJzZSwKKwkuZmluYWxf
+Y2hlY2sgICA9IHNvY2tldF9tdF9jaGVjaywKKwkuaGVscAkgICAgICAgPSBzb2NrZXRfbXRfaGVs
+cCwKIH07CiAKIHZvaWQgX2luaXQodm9pZCkK
+--0016363ba63a66e9d9048c375ff9--
