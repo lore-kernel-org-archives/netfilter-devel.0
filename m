@@ -1,134 +1,50 @@
-From: Nepenthes Development Team <nepenthesdev@gmail.com>
-Subject: Re: socket match - add wildcard option [2/4]
-Date: Mon, 26 Jul 2010 09:57:09 +0200
-Message-ID: <AANLkTinm6uRj8oRyU609uedN2Z0EXQQOTeGgP_hdxpFv@mail.gmail.com>
-References: <AANLkTi=4J96JVoM46wjtXwe1hW62injH+=9FEbexhh3K@mail.gmail.com>
-	<alpine.LSU.2.01.1007251708460.3572@obet.zrqbmnf.qr>
-	<AANLkTikOF2J9VR6ZwLdSxdeC7VhQZyRjbCa0V1Yqpyh6@mail.gmail.com>
-	<alpine.LSU.2.01.1007252150110.8534@obet.zrqbmnf.qr>
-	<alpine.LSU.2.01.1007252200120.8534@obet.zrqbmnf.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFC 0/4] nfnetlink_queue bypass queue to userspace X bytes of
+ connection
+Date: Mon, 26 Jul 2010 19:35:24 +0200
+Message-ID: <4C4DC75C.2010703@netfilter.org>
+References: <1279986285-11665-1-git-send-email-karl@hiramoto.org> <4C4B305F.2070005@netfilter.org> <4C4BDFEC.4080600@hiramoto.org> <4C4C1524.8070805@netfilter.org> <4C4D2C33.6050901@hiramoto.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=0016364180a5479a6d048c45bbf1
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Eric Dumazet <eric.dumazet@gmail.com>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Karl Hiramoto <karl@hiramoto.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:59604 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753793Ab0GZH5L (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Jul 2010 03:57:11 -0400
-Received: by wwf26 with SMTP id 26so2529353wwf.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 26 Jul 2010 00:57:09 -0700 (PDT)
-In-Reply-To: <alpine.LSU.2.01.1007252200120.8534@obet.zrqbmnf.qr>
+Received: from mail.us.es ([193.147.175.20]:43996 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751201Ab0GZRfr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 26 Jul 2010 13:35:47 -0400
+In-Reply-To: <4C4D2C33.6050901@hiramoto.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---0016364180a5479a6d048c45bbf1
-Content-Type: text/plain; charset=ISO-8859-1
+On 26/07/10 08:33, Karl Hiramoto wrote:
+>  On 25/07/2010 12:42, Pablo Neira Ayuso wrote:
+>>
+>> You can limit the string matching for only a few bytes in the very
+>> beginning of the packet. 
+> That really doesn't help trying to find the "Host:" or path of or URL in
+> HTTP because you don't know variables like cookie length, or other
+> variables. String match also doesn't help me at all if the string is
+> split across multiple packets
 
-Hi,
+We can look for some string (in a limited range of bytes) that
+preliminarily identifies some sort of traffic in kernel-space. In case
+of matching, we pass the packet (or some short part of it) to user-space
+via NFQUEUE. The whole specific packet parsing (such as looking at the
+Host tokens of HTTP/1.1 that you refer) is done in user-space.
 
-current version attached,
-c99, \', info->invert, xtables_param_act(NO_INVERT) got incorporated/adjusted.
+>> This extension seems to me very specific for HTTP/1.1.
+> HTTP is the most popular protocol on the internet[1][2][3], optimizing
+> the most common case has merits.
+> 
+> Besides HTTP  I can imagine this extension helping implementing a POP3
+> or IMAP filter using NF_QUEUE.   For example many network UTM devices
+> that scan attachments for viruses or other blocked content, will skip a
+> compressed file that is over X bytes because there is not enough free
+> memory to decompress and scan it.   In this case you could bypass the
+> queue for X bytes, then continue scanning smaller files.
 
-for the u8, may I use it for info->invert, or just create 2 u32 for
-flags and invert, bump the revision number to 2?
-
-As invert changes the mtinfo1 struct, changing the revision is required anyway.
-
-
-Markus
-
---0016364180a5479a6d048c45bbf1
-Content-Type: text/x-diff; charset=US-ASCII;
-	name="iptables-socket-match-exists-wildcard-transparent-options-02.diff"
-Content-Disposition: attachment;
-	filename="iptables-socket-match-exists-wildcard-transparent-options-02.diff"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gc30vfix0
-
-ZGlmZiAtLWdpdCBhL2V4dGVuc2lvbnMvbGlieHRfc29ja2V0LmMgYi9leHRlbnNpb25zL2xpYnh0
-X3NvY2tldC5jCmluZGV4IDE0OTA0NzMuLmQ5MjE2NTUgMTAwNjQ0Ci0tLSBhL2V4dGVuc2lvbnMv
-bGlieHRfc29ja2V0LmMKKysrIGIvZXh0ZW5zaW9ucy9saWJ4dF9zb2NrZXQuYwpAQCAtMywxNyAr
-MywxMDggQEAKICAqCiAgKiBDb3B5cmlnaHQgKEMpIDIwMDcgQmFsYUJpdCBJVCBMdGQuCiAgKi8K
-KyNpbmNsdWRlIDxzdGRpby5oPgorI2luY2x1ZGUgPGdldG9wdC5oPgogI2luY2x1ZGUgPHh0YWJs
-ZXMuaD4KKyNpbmNsdWRlIDxsaW51eC9uZXRmaWx0ZXIveHRfc29ja2V0Lmg+CiAKLXN0YXRpYyBz
-dHJ1Y3QgeHRhYmxlc19tYXRjaCBzb2NrZXRfbXRfcmVnID0gewotCS5uYW1lCSAgICAgICA9ICJz
-b2NrZXQiLAotCS52ZXJzaW9uICAgICAgID0gWFRBQkxFU19WRVJTSU9OLAotCS5mYW1pbHkJICAg
-ICAgID0gTkZQUk9UT19JUFY0LAotCS5zaXplCSAgICAgICA9IFhUX0FMSUdOKDApLAotCS51c2Vy
-c3BhY2VzaXplID0gWFRfQUxJR04oMCksCitzdGF0aWMgdm9pZCBzb2NrZXRfbXRfaGVscF92MSh2
-b2lkKQoreworCXByaW50Zigic29ja2V0IG1hdGNoIG9wdGlvbnM6XG4iCisiLS10cmFuc3BhcmVu
-dCAgICAgIE1hdGNoZXMgb25seSBpZiB0aGUgc29ja2V0J3MgdHJhbnNwYXJlbnQgb3B0aW9uIGlz
-IHNldFxuIgorIi0td2lsZGNhcmQgICAgICAgICBNYXRjaCB3aWxkY2FyZCBzb2NrZXQncyB0b29c
-biIKKyJbIV0gLS1leGlzdHMgICAgICAgTWF0Y2ggaWYgc29ja2V0IGV4aXN0cyAob3B0aW9uYWwp
-LCBhbGxvd3MgaW52ZXJzaW9uXG4iCisJKTsKK30KKworc3RhdGljIGNvbnN0IHN0cnVjdCBvcHRp
-b24gc29ja2V0X29wdHNfdjFbXSA9IHsKKwl7IC5uYW1lID0gInRyYW5zcGFyZW50IiwgLmhhc19h
-cmcgPSBmYWxzZSwgLmZsYWcgPSBOVUxMLCAudmFsID0gJzEnIH0sCisJeyAubmFtZSA9ICJ3aWxk
-Y2FyZCIsICAgIC5oYXNfYXJnID0gZmFsc2UsIC5mbGFnID0gTlVMTCwgLnZhbCA9ICcyJyB9LAor
-CXsgLm5hbWUgPSAiZXhpc3RzIiwgICAgICAuaGFzX2FyZyA9IGZhbHNlLCAuZmxhZyA9IE5VTEws
-IC52YWwgPSAnMycgfSwKKwl7IH0KK307CisKK3N0YXRpYyBpbnQgc29ja2V0X210X3BhcnNlX3Yx
-KGludCBjLCBjaGFyICoqYXJndiwgaW50IGludmVydCwKKwkJCSAgICAgIHVuc2lnbmVkIGludCAq
-ZmxhZ3MsIGNvbnN0IHZvaWQgKmVudHJ5LAorCQkJICAgICAgc3RydWN0IHh0X2VudHJ5X21hdGNo
-ICoqbWF0Y2gpCit7CisJc3RydWN0IHh0X3NvY2tldF9tdGluZm8xICppbmZvID0gKHZvaWQgKikg
-KCptYXRjaCktPmRhdGE7CisKKwlzd2l0Y2ggKGMpIHsKKwljYXNlICcxJzoKKwkJeHRhYmxlc19w
-YXJhbV9hY3QoWFRGX09OTFlfT05DRSwgInNvY2tldCIsICItLXRyYW5zcGFyZW50IiwgKmZsYWdz
-ICYgWFRfU09DS0VUX1RSQU5TUEFSRU5UKTsKKwkJeHRhYmxlc19wYXJhbV9hY3QoWFRGX05PX0lO
-VkVSVCwgInNvY2tldCIsICItLXRyYW5zcGFyZW50IiwgaW52ZXJ0KTsKKwkJaW5mby0+ZmxhZ3Mg
-fD0gWFRfU09DS0VUX1RSQU5TUEFSRU5UOworCQkqZmxhZ3MgfD0gWFRfU09DS0VUX1RSQU5TUEFS
-RU5UOworCQlicmVhazsKKwljYXNlICcyJzoKKwkJeHRhYmxlc19wYXJhbV9hY3QoWFRGX09OTFlf
-T05DRSwgInNvY2tldCIsICItLXdpbGRjYXJkIiwgKmZsYWdzICYgWFRfU09DS0VUX1dJTERDQVJE
-KTsKKwkJeHRhYmxlc19wYXJhbV9hY3QoWFRGX05PX0lOVkVSVCwgInNvY2tldCIsICItLXdpbGRj
-YXJkIiwgaW52ZXJ0KTsKKwkJaW5mby0+ZmxhZ3MgfD0gWFRfU09DS0VUX1dJTERDQVJEOworCQkq
-ZmxhZ3MgfD0gWFRfU09DS0VUX1dJTERDQVJEOworCQlicmVhazsKKwljYXNlICczJzoKKwkJeHRh
-Ymxlc19wYXJhbV9hY3QoWFRGX09OTFlfT05DRSwgInNvY2tldCIsICItLWV4aXN0cyIsICpmbGFn
-cyAmIFhUX1NPQ0tFVF9FWElTVFMpOworCQlpZiAoaW52ZXJ0KQorCQkJaW5mby0+aW52ZXJ0ID0g
-dHJ1ZTsKKwkJKmZsYWdzIHw9IFhUX1NPQ0tFVF9FWElTVFM7CisJCWJyZWFrOworCWRlZmF1bHQ6
-CisJCXJldHVybiAwOworCX0KKwlyZXR1cm4gMTsKK30KKworc3RhdGljIHZvaWQgc29ja2V0X210
-X3ByaW50X3YxKGNvbnN0IHZvaWQgKmlwLAorCQkJICAgICAgIGNvbnN0IHN0cnVjdCB4dF9lbnRy
-eV9tYXRjaCAqbWF0Y2gsCisJCQkgICAgICAgaW50IG51bWVyaWMpCit7CisJY29uc3Qgc3RydWN0
-IHh0X3NvY2tldF9tdGluZm8xICppbmZvID0gKGNvbnN0IHZvaWQgKiltYXRjaC0+ZGF0YTsKKwlw
-cmludGYoInNvY2tldCAiKTsKKwlpZiAoaW5mby0+ZmxhZ3MgJiBYVF9TT0NLRVRfVFJBTlNQQVJF
-TlQpCisJCXByaW50ZigidHJhbnNwYXJlbnQgIik7CisJaWYgKGluZm8tPmZsYWdzICYgWFRfU09D
-S0VUX1dJTERDQVJEKQorCQlwcmludGYoIndpbGRjYXJkICIpOworCXByaW50ZigiJXNleGlzdHMg
-IiwgaW5mby0+aW52ZXJ0ID8gIiEgIiA6ICIiKTsKK30KKworc3RhdGljIHZvaWQgc29ja2V0X210
-X3NhdmVfdjEoY29uc3Qgdm9pZCAqaXAsCisJCQkgICAgICBjb25zdCBzdHJ1Y3QgeHRfZW50cnlf
-bWF0Y2ggKm1hdGNoKQoreworCWNvbnN0IHN0cnVjdCB4dF9zb2NrZXRfbXRpbmZvMSAqaW5mbyA9
-IChjb25zdCB2b2lkICopbWF0Y2gtPmRhdGE7CisKKwlpZiAoaW5mby0+ZmxhZ3MgJiBYVF9TT0NL
-RVRfVFJBTlNQQVJFTlQpCisJCXByaW50ZigiLS10cmFuc3BhcmVudCAiKTsKKworCWlmIChpbmZv
-LT5mbGFncyAmIFhUX1NPQ0tFVF9XSUxEQ0FSRCkKKwkJcHJpbnRmKCItLXdpbGRjYXJkICIpOwor
-CisJcHJpbnRmKCIlcy0tZXhpc3RzICIsIGluZm8tPmludmVydCA/ICIhICIgOiAiIik7Cit9CisK
-K3N0YXRpYyBzdHJ1Y3QgeHRhYmxlc19tYXRjaCBzb2NrZXRfbXRfcmVnW10gPSB7CisJeworCQku
-bmFtZQkJPSAic29ja2V0IiwKKwkJLnJldmlzaW9uCT0gMCwKKwkJLnZlcnNpb24JPSBYVEFCTEVT
-X1ZFUlNJT04sCisJCS5mYW1pbHkJCT0gTkZQUk9UT19VTlNQRUMsCisJfSwKKwl7CisJCS5uYW1l
-CQk9ICJzb2NrZXQiLAorCQkudmVyc2lvbgk9IFhUQUJMRVNfVkVSU0lPTiwKKwkJLnJldmlzaW9u
-CT0gMSwKKwkJLmZhbWlseQkJPSBORlBST1RPX1VOU1BFQywKKwkJLnNpemUJCT0gWFRfQUxJR04o
-c2l6ZW9mKHN0cnVjdCB4dF9zb2NrZXRfbXRpbmZvMSkpLAorCQkudXNlcnNwYWNlc2l6ZQk9IFhU
-X0FMSUdOKHNpemVvZihzdHJ1Y3QgeHRfc29ja2V0X210aW5mbzEpKSwKKwkJLnBhcnNlCQk9IHNv
-Y2tldF9tdF9wYXJzZV92MSwKKwkJLnByaW50CQk9IHNvY2tldF9tdF9wcmludF92MSwKKwkJLnNh
-dmUJCT0gc29ja2V0X210X3NhdmVfdjEsCisJCS5oZWxwCQk9IHNvY2tldF9tdF9oZWxwX3YxLAor
-CQkuZXh0cmFfb3B0cwk9IHNvY2tldF9vcHRzX3YxLAorCX0KIH07CiAKIHZvaWQgX2luaXQodm9p
-ZCkKIHsKLQl4dGFibGVzX3JlZ2lzdGVyX21hdGNoKCZzb2NrZXRfbXRfcmVnKTsKKwl4dGFibGVz
-X3JlZ2lzdGVyX21hdGNoZXMoc29ja2V0X210X3JlZywgQVJSQVlfU0laRShzb2NrZXRfbXRfcmVn
-KSk7CiB9CmRpZmYgLS1naXQgYS9leHRlbnNpb25zL2xpYnh0X3NvY2tldC5tYW4gYi9leHRlbnNp
-b25zL2xpYnh0X3NvY2tldC5tYW4KaW5kZXggNTBjODg1NC4uOTgyNDRmNSAxMDA2NDQKLS0tIGEv
-ZXh0ZW5zaW9ucy9saWJ4dF9zb2NrZXQubWFuCisrKyBiL2V4dGVuc2lvbnMvbGlieHRfc29ja2V0
-Lm1hbgpAQCAtMSwyICsxLDE0IEBACiBUaGlzIG1hdGNoZXMgaWYgYW4gb3BlbiBzb2NrZXQgY2Fu
-IGJlIGZvdW5kIGJ5IGRvaW5nIGEgc29ja2V0IGxvb2t1cCBvbiB0aGUKLXBhY2tldC4KK3BhY2tl
-dCB3aGljaCBkb2Vzbid0IGxpc3RlbiBvbiB0aGUgJ2FueScgSVAgYWRkcmVzcyAoMC4wLjAuMCku
-CisuVFAKKy5CSSAiXC1cLXRyYW5zcGFyZW50IgorRW5hYmxlcyBhZGRpdGlvbmFsIGNoZWNrLCB0
-aGF0IHRoZSBhY3R1YWwgc29ja2V0J3MgdHJhbnNwYXJlbnQgc29ja2V0IG9wdGlvbgoraGFzIHRv
-IGJlIHNldC4KKy5UUAorLkJJICJcLVwtd2lsZGNhcmQiCitNYXRjaGVzIHNvY2tldHMgbGlzdGVu
-aW5nIG9uIHRoZSAnYW55JyBJUCBhZGRyZXNzICgwLjAuMC4wKSB0b28uCisuVFAKKy5CSSAiWyFd
-IFwtXC1leGlzdHMiCitPcHRpb25hbCwgYWxsb3dzIGludmVyc2lvbiBvZiB0aGUgbWF0Y2guCisK
-KwpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXIveHRfc29ja2V0LmggYi9pbmNs
-dWRlL2xpbnV4L25ldGZpbHRlci94dF9zb2NrZXQuaApuZXcgZmlsZSBtb2RlIDEwMDY0NAppbmRl
-eCAwMDAwMDAwLi40ZWU2ZTdkCi0tLSAvZGV2L251bGwKKysrIGIvaW5jbHVkZS9saW51eC9uZXRm
-aWx0ZXIveHRfc29ja2V0LmgKQEAgLTAsMCArMSwxNSBAQAorI2lmbmRlZiBfWFRfU09DS0VUX0hf
-bWF0Y2gKKyNkZWZpbmUgX1hUX1NPQ0tFVF9IX21hdGNoCisKK2VudW0geworCVhUX1NPQ0tFVF9U
-UkFOU1BBUkVOVCA9IDEgPDwgMCwKKwlYVF9TT0NLRVRfV0lMRENBUkQgPSAxIDw8IDEsCisJWFRf
-U09DS0VUX0VYSVNUUyA9IDEgPDwgMiwKK307CisKK3N0cnVjdCB4dF9zb2NrZXRfbXRpbmZvMSB7
-CisJX191OCBpbnZlcnQ7CisJX191OCBmbGFnczsKK307CisKKyNlbmRpZiAvKiBfWFRfU09DS0VU
-X0hfbWF0Y2ggKi8K
---0016364180a5479a6d048c45bbf1--
+Making assumptions on the Content-Length and any other information in
+the packet seems wrong to me. Someone could forge a packet to by-pass
+filtering.
