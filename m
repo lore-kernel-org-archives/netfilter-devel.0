@@ -1,71 +1,80 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH iptables] libxt_length: update to revision 1
-Date: Mon, 26 Jul 2010 08:21:13 +0800
-Message-ID: <AANLkTikwWu28DuNMgngoSeaSgHL21-cU+zB2XgMJONp-@mail.gmail.com>
-References: <1279945746-24034-1-git-send-email-xiaosuo@gmail.com>
-	<alpine.LSU.2.01.1007241055320.9867@obet.zrqbmnf.qr> <AANLkTi=NwJkK1sRb+mNjNO8nr3AA5dymyZ1pTc0dgt_q@mail.gmail.com>
-	<alpine.LSU.2.01.1007251827200.14790@obet.zrqbmnf.qr> <AANLkTimH8Cd7NooRxNMLSH5aGWVMsCD6MdSrd4mB5A6d@mail.gmail.com>
+From: Pete Kay <petedao@gmail.com>
+Subject: using libiptc to append iptables rule but no effect
+Date: Mon, 26 Jul 2010 12:05:16 +0800
+Message-ID: <AANLkTim=SU3KrHWbQhEU9Y0hh7UazhX7SafJEcLikrL4@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:49963 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752625Ab0GZAVe (ORCPT
+Received: from mail-px0-f174.google.com ([209.85.212.174]:45774 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750698Ab0GZEFR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 25 Jul 2010 20:21:34 -0400
-Received: by vws3 with SMTP id 3so1892310vws.19
-        for <netfilter-devel@vger.kernel.org>; Sun, 25 Jul 2010 17:21:33 -0700 (PDT)
-In-Reply-To: <AANLkTimH8Cd7NooRxNMLSH5aGWVMsCD6MdSrd4mB5A6d@mail.gmail.com>
+	Mon, 26 Jul 2010 00:05:17 -0400
+Received: by pxi14 with SMTP id 14so4397021pxi.19
+        for <netfilter-devel@vger.kernel.org>; Sun, 25 Jul 2010 21:05:16 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jul 26, 2010 at 8:07 AM, Changli Gao <xiaosuo@gmail.com> wrote:
-> On Mon, Jul 26, 2010 at 12:28 AM, Jan Engelhardt <jengelh@medozas.de> wrote:
->> On Saturday 2010-07-24 13:47, Changli Gao wrote:
->>
->>>On Sat, Jul 24, 2010 at 4:55 PM, Jan Engelhardt <jengelh@medozas.de> wrote:
->>>> On Saturday 2010-07-24 06:29, Changli Gao wrote:
->>>>
->>>>>update libxt_length to revision 1 to support ipv6 jumbo frames.
->>>>
->>>> You can't just go and change these things, would break xt_length v0.
->>>>
->>>
->>>Hmm. I have updated the patch(attached), but the v0 handlers are not
->>>called. Is there anything I missed? Or Is there a bug in iptables?
->>
->> Probably because you are still breaking the compatibility by editing
->> struct xt_length_info.
->
-> I am sure it isn't the problem. The kernel module can work with the
-> old iptables binary. However after I committed the rules with the
-> revision 1, I can't get the correct output with the command
-> 'iptables-save' or 'iptables -nvL'.
+Hi,
 
-Sorry. I made a mistake. I committed the rules(revision 0) with the
-old iptables, but I could not get the correct output with the new
-iptables or iptables-save.
+I am able to use libiptc to append rules into iptables and I can
+verify those rules from using the iptables command.
 
-> I checked the code of iptables,
-> and found it doesn't check the revision when founding matches and
-> targets, and even the kernel seems doesn't transfer the revision info
-> to user space.
->
->> I'd say let's concentrate on rev 2 that I
->> submitted.
->>
->
-> I have seen it. Thanks.
->
-> --
-> Regards,
-> Changli Gao(xiaosuo@gmail.com)
->
+However, when I send traffic to the machine, it is not forwarding the
+packets as I requested it to.  However, if I use iptables -A to add
+the entry, it can work.  Can someone help me out?  What is the
+difference between using libiptc to append rules and using iptables
+-A?  I did use ipt_commit() at the end.
+
+Here are the rules I am appending.  Any suggestion will be greatly appreciated.
 
 
+iptc_first_rule: first rule(PREROUTING): 0x1e7aac0
+WARNING: handle->chain_index_sz == 0
+DNAT       udp  --  192.168.1.251        anywhere            udp
+spt:61002 to:192.168.1.252:60998
+iptc_next_rule: rule_iterator_cur=0x1e7aac0...next=0x1e7abe0,
+head=0x1e7aa90...returning rule 0x1e7abe0
+WARNING: handle->chain_index_sz == 0
+DNAT       udp  --  192.168.1.252        anywhere            udp
+spt:60998 to:192.168.1.251:61002
+iptc_next_rule: rule_iterator_cur=0x1e7abe0...next=0x1e7ad00,
+head=0x1e7aa90...returning rule 0x1e7ad00
+WARNING: handle->chain_index_sz == 0
+DNAT       udp  --  192.168.1.56         anywhere            udp
+spt:16385 to:192.168.1.20:10004
+iptc_next_rule: rule_iterator_cur=0x1e7ad00...next=0x1e7ae20,
+head=0x1e7aa90...returning rule 0x1e7ae20
+WARNING: handle->chain_index_sz == 0
+DNAT       udp  --  192.168.1.20         anywhere            udp
+spt:10004 to:192.168.1.56:16385
+iptc_next_rule: rule_iterator_cur=0x1e7ae20...next=0x1e7aa90,
+head=0x1e7aa90...finished, returning NULL
+iptc_next_chain: : returning `POSTROUTING'
 
--- 
-Regards,
-Changli Gao(xiaosuo@gmail.com)
+iptc_get_policy: called for chain POSTROUTING
+Chain POSTROUTING (policy ACCEPT)
+target     prot opt source               destination
+iptc_first_rule: first rule(POSTROUTING): 0x1e7b0b0
+WARNING: handle->chain_index_sz == 0
+SNAT       udp  --  192.168.1.251        anywhere            udp
+spt:61002 to:192.168.1.114:18352
+iptc_next_rule: rule_iterator_cur=0x1e7b0b0...next=0x1e7b1d0,
+head=0x1e7b080...returning rule 0x1e7b1d0
+WARNING: handle->chain_index_sz == 0
+SNAT       udp  --  192.168.1.252        anywhere            udp
+spt:60998 to:192.168.1.114:18354
+iptc_next_rule: rule_iterator_cur=0x1e7b1d0...next=0x1e7b2f0,
+head=0x1e7b080...returning rule 0x1e7b2f0
+WARNING: handle->chain_index_sz == 0
+SNAT       udp  --  192.168.1.56         anywhere            udp
+spt:16385 to:192.168.1.114:24608
+iptc_next_rule: rule_iterator_cur=0x1e7b2f0...next=0x1e7b410,
+head=0x1e7b080...returning rule 0x1e7b410
+WARNING: handle->chain_index_sz == 0
+SNAT       udp  --  192.168.1.20         anywhere            udp
+spt:10004 to:192.168.1.114:24610
+iptc_next_rule: rule_iterator_cur=0x1e7b410...next=0x1e7b080,
+head=0x1e7b080...finished, returning NULL
+iptc_next_chain: : returning `OUTPUT'
