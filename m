@@ -1,42 +1,71 @@
-From: Meik Piepmeyer <meik.piepmeyer.lists@online.de>
-Subject: [PATCH] netfilter : fix typo in Kconfig
-Date: Wed, 28 Jul 2010 14:46:19 +0200
-Message-ID: <4C50269B.2010908@online.de>
+From: Jackson Alberto <superj_2004@hotmail.com>
+Subject: Question about using "Expect" from Netfilter hook
+Date: Thu, 29 Jul 2010 13:58:03 -0400
+Message-ID: <BAY121-W19EB6FC57269CBEAC35B8B9DA90@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Jiri Kosina <trivial@kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:62927 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751772Ab0G1Mq3 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Jul 2010 08:46:29 -0400
+Received: from bay0-omc2-s15.bay0.hotmail.com ([65.54.190.90]:12762 "EHLO
+	bay0-omc2-s15.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756899Ab0G2SDU convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Jul 2010 14:03:20 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Meik Piepmeyer <meik.piepmeyer.lists@online.de>
 
-Fixes a typo of the description of the new netfilter config switch
-"NETFILTER_XT_TARGET_RATEEST" introduced in 2.6.35.
+Hello!,
 
-Signed-off-by: Meik Piepmeyer <meik.piepmeyer.lists@online.de>
+Is it possible to work with "expect" from a netfilter hook (not from a
+conntrack helper)?
 
----
- netfilter/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+When I run the code below, I get:
 
-diff -up net/netfilter/Kconfig{.orig,}:
---- net/netfilter/Kconfig.orig	2010-07-28 14:00:35.000000000 +0200
-+++ net/netfilter/Kconfig	2010-07-28 14:01:36.000000000 +0200
-@@ -503,7 +503,7 @@ config NETFILTER_XT_TARGET_RATEEST
- 	  To compile it as a module, choose M here.  If unsure, say N.
+BUG: unable to handle kernel NULL pointer dereference at (null)
+IP [] nf_ct_expect_related_report+0x63/0x427
+*pde =3D 3df8d067
+Oops: 000 [#1] SMP
 
- config NETFILTER_XT_TARGET_TEE
--	tristate '"TEE" - packet cloning to alternate destiantion'
-+	tristate '"TEE" - packet cloning to alternate destination'
- 	depends on NETFILTER_ADVANCED
- 	depends on (IPV6 || IPV6=n)
- 	depends on !NF_CONNTRACK || NF_CONNTRACK
+------
+
+int np_exp(struct nf_conn *ct){
+=A0 =A0 struct nf_conntrack_expect *exp;
+=A0 =A0 struct nf_conntrack_tuple *tuple;
+
+=A0 =A0 exp =3D nf_ct_expect_alloc(ct);
+=A0 =A0     if(exp =3D=3D NULL){
+=A0 =A0 =A0 =A0 printk("Couldn't allocate exp!\n");
+=A0 =A0 =A0 =A0 return -1;
+=A0 =A0     }
+
+=A0 =A0     tuple =3D &ct->tuplehash[IP_CT_DIR_REPLY].tuple;
+
+=A0 =A0     nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, nf_ct_l3=
+num(ct),
+                          &tuple->src.u3, &tuple->dst.u3, IPPROTO_TCP,
+                          NULL, &tuple->dst.u.tcp.port);
+
+        nf_ct_expect_put(exp);
+
+=A0 =A0     return 1;
+}
+
+hook_func(...){
+=A0 =A0     if(!(conntrack =3D nf_ct_get(sock_buff, &ctinfo)) ||
+           !(master_conntrack =3D nf_ct_get(skb, &master_ctinfo))){
+=A0 =A0 =A0 =A0         spin_unlock_bh(&np_lock);
+=A0 =A0 =A0 =A0         return NF_ACCEPT; /* Couldn't get conntrack */
+    }
+
+    =A0 =A0 np_exp(conntrack);
+}
+ 		 	   		 =20
+_________________________________________________________________
+Hotmail: Powerful Free email with security by Microsoft.
+https://signup.live.com/signup.aspx?id=3D60969--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
