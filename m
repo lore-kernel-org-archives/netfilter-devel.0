@@ -1,71 +1,57 @@
-From: Jackson Alberto <superj_2004@hotmail.com>
-Subject: Question about using "Expect" from Netfilter hook
-Date: Thu, 29 Jul 2010 13:58:03 -0400
-Message-ID: <BAY121-W19EB6FC57269CBEAC35B8B9DA90@phx.gbl>
+From: Daniel Gibson <metalcaedes@gmail.com>
+Subject: TCPMSS clamp-mss-to-pmtu breaks packets that have no MSS set (incl.
+ solution)
+Date: Fri, 30 Jul 2010 03:01:21 +0200
+Message-ID: <4C522461.4070000@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bay0-omc2-s15.bay0.hotmail.com ([65.54.190.90]:12762 "EHLO
-	bay0-omc2-s15.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756899Ab0G2SDU convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Jul 2010 14:03:20 -0400
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:55074 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756893Ab0G3BBV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Jul 2010 21:01:21 -0400
+Received: by fxm14 with SMTP id 14so626662fxm.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jul 2010 18:01:20 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
 
-Hello!,
+clamp-mss-to-pmtu (as used in "iptables -A FORWARD -p tcp --tcp-flags 
+SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu") sets a possibly much to high 
+MSS (the one it got from PMTU) in packets that had no MSS set before.
+RFC 879 says "HOSTS MUST NOT SEND DATAGRAMS LARGER THAN 576 OCTETS 
+UNLESS THEY HAVE SPECIFIC KNOWLEDGE THAT THE DESTINATION HOST IS 
+PREPARED TO ACCEPT LARGER DATAGRAMS."
+That means that if no MSS was set by a server, one must not send packets 
+with a MSS > 536 to that server.
+clamp-mss-to-pmtu however ignores this and, if no MSS was set in a 
+packet, sets the MSS determined by PMTU, often something like 1452, so 
+much to big packets are sent to the host that conforms to the RFC but, 
+braindead as it is, blocks "ICMP Fragmentation needed" packets.
+So the connection times out after some retries that are all dropped on 
+the remote firewall or whatever because the packets are to big.
+By the way, this bug seems to be present since kernel 2.4.3 (when TCPMSS 
+was introduced).
 
-Is it possible to work with "expect" from a netfilter hook (not from a
-conntrack helper)?
+The solution: If no MSS was set in the packet and "newmss", as 
+determined by PMTU, is > 536, set "newmss" to 536 before applying it to 
+the packet.
+I think this is the only sane fix:
+* Leaving it as it is now obviously breaks the RFC
+* I realized that not setting a MSS for a packet that had none set 
+before (or always setting 536) might cause trouble if the MSS determined 
+by PMTU is (for whatever reason) < 536.
 
-When I run the code below, I get:
+See http://bugzilla.netfilter.org/show_bug.cgi?id=662 for further 
+information and a (really simple) patch.
 
-BUG: unable to handle kernel NULL pointer dereference at (null)
-IP [] nf_ct_expect_related_report+0x63/0x427
-*pde =3D 3df8d067
-Oops: 000 [#1] SMP
+Cheers,
+- Daniel
 
-------
-
-int np_exp(struct nf_conn *ct){
-=A0 =A0 struct nf_conntrack_expect *exp;
-=A0 =A0 struct nf_conntrack_tuple *tuple;
-
-=A0 =A0 exp =3D nf_ct_expect_alloc(ct);
-=A0 =A0     if(exp =3D=3D NULL){
-=A0 =A0 =A0 =A0 printk("Couldn't allocate exp!\n");
-=A0 =A0 =A0 =A0 return -1;
-=A0 =A0     }
-
-=A0 =A0     tuple =3D &ct->tuplehash[IP_CT_DIR_REPLY].tuple;
-
-=A0 =A0     nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, nf_ct_l3=
-num(ct),
-                          &tuple->src.u3, &tuple->dst.u3, IPPROTO_TCP,
-                          NULL, &tuple->dst.u.tcp.port);
-
-        nf_ct_expect_put(exp);
-
-=A0 =A0     return 1;
-}
-
-hook_func(...){
-=A0 =A0     if(!(conntrack =3D nf_ct_get(sock_buff, &ctinfo)) ||
-           !(master_conntrack =3D nf_ct_get(skb, &master_ctinfo))){
-=A0 =A0 =A0 =A0         spin_unlock_bh(&np_lock);
-=A0 =A0 =A0 =A0         return NF_ACCEPT; /* Couldn't get conntrack */
-    }
-
-    =A0 =A0 np_exp(conntrack);
-}
- 		 	   		 =20
-_________________________________________________________________
-Hotmail: Powerful Free email with security by Microsoft.
-https://signup.live.com/signup.aspx?id=3D60969--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PS: The bugreport mentions that http://research.microsoft.com doesn't 
+work because of this bug - it seem like Microsoft has fixed this 
+recently. They still don't send a MSS, but they accept larger packets now.
