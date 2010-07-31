@@ -1,77 +1,30 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH 2/2] nf_nat: don't check if the tuple is unique when there isn't any other choice
-Date: Sat, 31 Jul 2010 10:22:19 +0800
-Message-ID: <1280542939-14606-1-git-send-email-xiaosuo@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Changli Gao <xiaosuo@gmail.com>
-To: Patrick McHardy <kaber@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 1/2] nf_nat: make unique_tuple return void
+Date: Sat, 31 Jul 2010 13:54:42 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1007311352490.17359@obet.zrqbmnf.qr>
+References: <1280542516-14567-1-git-send-email-xiaosuo@gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:65169 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751550Ab0GaJyd (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 31 Jul 2010 05:54:33 -0400
+Received: from borg.medozas.de ([188.40.89.202]:35251 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755597Ab0GaLyn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 31 Jul 2010 07:54:43 -0400
+In-Reply-To: <1280542516-14567-1-git-send-email-xiaosuo@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-the tuple got from unique_tuple() doesn't need to be really unique, so the
-check for the unique tuple isn't necessary, when there isn't any other
-choice. Eliminating the unnecessary nf_nat_used_tuple() can save some CPU
-cycles too.
+On Saturday 2010-07-31 04:15, Changli Gao wrote:
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-----
- net/ipv4/netfilter/nf_nat_proto_common.c |    4 ++--
- net/ipv4/netfilter/nf_nat_proto_gre.c    |    4 ++--
- net/ipv4/netfilter/nf_nat_proto_icmp.c   |    4 ++--
- 3 files changed, 6 insertions(+), 6 deletions(-)
-diff --git a/net/ipv4/netfilter/nf_nat_proto_common.c b/net/ipv4/netfilter/nf_nat_proto_common.c
-index 2844a03..95aa286 100644
---- a/net/ipv4/netfilter/nf_nat_proto_common.c
-+++ b/net/ipv4/netfilter/nf_nat_proto_common.c
-@@ -81,9 +81,9 @@ void nf_nat_proto_unique_tuple(struct nf_conntrack_tuple *tuple,
- 	else
- 		off = *rover;
- 
--	for (i = 0; i < range_size; i++, off++) {
-+	for (i = 0; 1; off++) {
- 		*portptr = htons(min + off % range_size);
--		if (nf_nat_used_tuple(tuple, ct))
-+		if (++i != range_size && nf_nat_used_tuple(tuple, ct))
- 			continue;
- 		if (!(range->flags & IP_NAT_RANGE_PROTO_RANDOM))
- 			*rover = off;
-diff --git a/net/ipv4/netfilter/nf_nat_proto_gre.c b/net/ipv4/netfilter/nf_nat_proto_gre.c
-index 89933ab..1669be6 100644
---- a/net/ipv4/netfilter/nf_nat_proto_gre.c
-+++ b/net/ipv4/netfilter/nf_nat_proto_gre.c
-@@ -68,9 +68,9 @@ gre_unique_tuple(struct nf_conntrack_tuple *tuple,
- 
- 	pr_debug("min = %u, range_size = %u\n", min, range_size);
- 
--	for (i = 0; i < range_size; i++, key++) {
-+	for (i = 0; 1; key++) {
- 		*keyptr = htons(min + key % range_size);
--		if (!nf_nat_used_tuple(tuple, ct))
-+		if (++i == range_size || !nf_nat_used_tuple(tuple, ct))
- 			return;
- 	}
- 
-diff --git a/net/ipv4/netfilter/nf_nat_proto_icmp.c b/net/ipv4/netfilter/nf_nat_proto_icmp.c
-index 97003fe..f6b07c9 100644
---- a/net/ipv4/netfilter/nf_nat_proto_icmp.c
-+++ b/net/ipv4/netfilter/nf_nat_proto_icmp.c
-@@ -42,10 +42,10 @@ icmp_unique_tuple(struct nf_conntrack_tuple *tuple,
- 	if (!(range->flags & IP_NAT_RANGE_PROTO_SPECIFIED))
- 		range_size = 0xFFFF;
- 
--	for (i = 0; i < range_size; i++, id++) {
-+	for (i = 0; 1; id++) {
- 		tuple->src.u.icmp.id = htons(ntohs(range->min.icmp.id) +
- 					     (id % range_size));
--		if (!nf_nat_used_tuple(tuple, ct))
-+		if (++i == range_size || !nf_nat_used_tuple(tuple, ct))
- 			return;
- 	}
- 	return;
+>the only user of unique_tuple() get_unique_tuple() doesn't care about the
+>return value of unique_tuple(), so make unique_tuple() return void (nothing).
+
+Shouldn't the callers (get_unique_tuple in nf_nat_core.c) ideally 
+return NF_DROP or something such that connections that cannot be 
+uniquely mangled be rejected rather than forwarded without mangling?
+
+
