@@ -1,61 +1,283 @@
 From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH] nf: make skb_make_writable() return bool
-Date: Sat, 31 Jul 2010 14:56:24 +0800
-Message-ID: <1280559384-25197-1-git-send-email-xiaosuo@gmail.com>
+Subject: [PATCH v2 1/2] nf_nat: make unique_tuple return void
+Date: Sat, 31 Jul 2010 15:08:37 +0800
+Message-ID: <1280560117-30747-1-git-send-email-xiaosuo@gmail.com>
 Cc: "David S. Miller" <davem@davemloft.net>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	Changli Gao <xiaosuo@gmail.com>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:53518 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755735Ab0GaO2i (ORCPT
+Received: from mail-px0-f174.google.com ([209.85.212.174]:55693 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755935Ab0GaOk4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 31 Jul 2010 10:28:38 -0400
+	Sat, 31 Jul 2010 10:40:56 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+the only user of unique_tuple() get_unique_tuple() doesn't care about the
+return value of unique_tuple(), so make unique_tuple() return void (nothing).
+
 Signed-off-by: Changli Gao <xiaosuo@gmail.com>
 ----
- include/linux/netfilter.h |    2 +-
- net/netfilter/core.c      |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 89341c3..9dc919b 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -243,7 +243,7 @@ int compat_nf_getsockopt(struct sock *sk, u_int8_t pf, int optval,
- /* Call this before modifying an existing packet: ensures it is
-    modifiable and linear to the point you care about (writable_len).
-    Returns true or false. */
--extern int skb_make_writable(struct sk_buff *skb, unsigned int writable_len);
-+extern bool skb_make_writable(struct sk_buff *skb, unsigned int writable_len);
+ include/net/netfilter/nf_nat_protocol.h   |    8 ++++----
+ net/ipv4/netfilter/nf_nat_proto_common.c  |    8 ++++----
+ net/ipv4/netfilter/nf_nat_proto_dccp.c    |    6 +++---
+ net/ipv4/netfilter/nf_nat_proto_gre.c     |    8 ++++----
+ net/ipv4/netfilter/nf_nat_proto_icmp.c    |    6 +++---
+ net/ipv4/netfilter/nf_nat_proto_sctp.c    |    6 +++---
+ net/ipv4/netfilter/nf_nat_proto_tcp.c     |    5 ++---
+ net/ipv4/netfilter/nf_nat_proto_udp.c     |    5 ++---
+ net/ipv4/netfilter/nf_nat_proto_udplite.c |    6 +++---
+ net/ipv4/netfilter/nf_nat_proto_unknown.c |    4 ++--
+ 10 files changed, 30 insertions(+), 32 deletions(-)
+diff --git a/include/net/netfilter/nf_nat_protocol.h b/include/net/netfilter/nf_nat_protocol.h
+index c398017..df17bac 100644
+--- a/include/net/netfilter/nf_nat_protocol.h
++++ b/include/net/netfilter/nf_nat_protocol.h
+@@ -27,9 +27,9 @@ struct nf_nat_protocol {
  
- struct flowi;
- struct nf_queue_entry;
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 78b505d..274ab8c 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -189,17 +189,17 @@ next_hook:
- EXPORT_SYMBOL(nf_hook_slow);
+ 	/* Alter the per-proto part of the tuple (depending on
+ 	   maniptype), to give a unique tuple in the given range if
+-	   possible; return false if not.  Per-protocol part of tuple
+-	   is initialized to the incoming packet. */
+-	bool (*unique_tuple)(struct nf_conntrack_tuple *tuple,
++	   possible.  Per-protocol part of tuple is initialized to the
++	   incoming packet. */
++	void (*unique_tuple)(struct nf_conntrack_tuple *tuple,
+ 			     const struct nf_nat_range *range,
+ 			     enum nf_nat_manip_type maniptype,
+ 			     const struct nf_conn *ct);
+@@ -63,7 +63,7 @@ extern bool nf_nat_proto_in_range(const struct nf_conntrack_tuple *tuple,
+ 				  const union nf_conntrack_man_proto *min,
+ 				  const union nf_conntrack_man_proto *max);
  
+-extern bool nf_nat_proto_unique_tuple(struct nf_conntrack_tuple *tuple,
++extern void nf_nat_proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 				      const struct nf_nat_range *range,
+ 				      enum nf_nat_manip_type maniptype,
+ 				      const struct nf_conn *ct,
+diff --git a/net/ipv4/netfilter/nf_nat_proto_common.c b/net/ipv4/netfilter/nf_nat_proto_common.c
+index 6c4f11f..2844a03 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_common.c
++++ b/net/ipv4/netfilter/nf_nat_proto_common.c
+@@ -34,7 +34,7 @@ bool nf_nat_proto_in_range(const struct nf_conntrack_tuple *tuple,
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_proto_in_range);
  
--int skb_make_writable(struct sk_buff *skb, unsigned int writable_len)
-+bool skb_make_writable(struct sk_buff *skb, unsigned int writable_len)
+-bool nf_nat_proto_unique_tuple(struct nf_conntrack_tuple *tuple,
++void nf_nat_proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 			       const struct nf_nat_range *range,
+ 			       enum nf_nat_manip_type maniptype,
+ 			       const struct nf_conn *ct,
+@@ -53,7 +53,7 @@ bool nf_nat_proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 	if (!(range->flags & IP_NAT_RANGE_PROTO_SPECIFIED)) {
+ 		/* If it's dst rewrite, can't change port */
+ 		if (maniptype == IP_NAT_MANIP_DST)
+-			return false;
++			return;
+ 
+ 		if (ntohs(*portptr) < 1024) {
+ 			/* Loose convention: >> 512 is credential passing */
+@@ -87,9 +87,9 @@ bool nf_nat_proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 			continue;
+ 		if (!(range->flags & IP_NAT_RANGE_PROTO_RANDOM))
+ 			*rover = off;
+-		return true;
++		return;
+ 	}
+-	return false;
++	return;
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_proto_unique_tuple);
+ 
+diff --git a/net/ipv4/netfilter/nf_nat_proto_dccp.c b/net/ipv4/netfilter/nf_nat_proto_dccp.c
+index 22485ce..570faf2 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_dccp.c
++++ b/net/ipv4/netfilter/nf_nat_proto_dccp.c
+@@ -22,14 +22,14 @@
+ 
+ static u_int16_t dccp_port_rover;
+ 
+-static bool
++static void
+ dccp_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 		  const struct nf_nat_range *range,
+ 		  enum nf_nat_manip_type maniptype,
+ 		  const struct nf_conn *ct)
  {
- 	if (writable_len > skb->len)
--		return 0;
-+		return false;
+-	return nf_nat_proto_unique_tuple(tuple, range, maniptype, ct,
+-					 &dccp_port_rover);
++	nf_nat_proto_unique_tuple(tuple, range, maniptype, ct,
++				  &dccp_port_rover);
+ }
  
- 	/* Not exclusive use of packet?  Must copy. */
- 	if (!skb_cloned(skb)) {
- 		if (writable_len <= skb_headlen(skb))
--			return 1;
-+			return true;
- 	} else if (skb_clone_writable(skb, writable_len))
--		return 1;
-+		return true;
+ static bool
+diff --git a/net/ipv4/netfilter/nf_nat_proto_gre.c b/net/ipv4/netfilter/nf_nat_proto_gre.c
+index d7e8920..89933ab 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_gre.c
++++ b/net/ipv4/netfilter/nf_nat_proto_gre.c
+@@ -37,7 +37,7 @@ MODULE_AUTHOR("Harald Welte <laforge@gnumonks.org>");
+ MODULE_DESCRIPTION("Netfilter NAT protocol helper module for GRE");
  
- 	if (writable_len <= skb_headlen(skb))
- 		writable_len = 0;
+ /* generate unique tuple ... */
+-static bool
++static void
+ gre_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 		 const struct nf_nat_range *range,
+ 		 enum nf_nat_manip_type maniptype,
+@@ -50,7 +50,7 @@ gre_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 	/* If there is no master conntrack we are not PPTP,
+ 	   do not change tuples */
+ 	if (!ct->master)
+-		return false;
++		return;
+ 
+ 	if (maniptype == IP_NAT_MANIP_SRC)
+ 		keyptr = &tuple->src.u.gre.key;
+@@ -71,11 +71,11 @@ gre_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 	for (i = 0; i < range_size; i++, key++) {
+ 		*keyptr = htons(min + key % range_size);
+ 		if (!nf_nat_used_tuple(tuple, ct))
+-			return true;
++			return;
+ 	}
+ 
+ 	pr_debug("%p: no NAT mapping\n", ct);
+-	return false;
++	return;
+ }
+ 
+ /* manipulate a GRE packet according to maniptype */
+diff --git a/net/ipv4/netfilter/nf_nat_proto_icmp.c b/net/ipv4/netfilter/nf_nat_proto_icmp.c
+index 19a8b0b..97003fe 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_icmp.c
++++ b/net/ipv4/netfilter/nf_nat_proto_icmp.c
+@@ -27,7 +27,7 @@ icmp_in_range(const struct nf_conntrack_tuple *tuple,
+ 	       ntohs(tuple->src.u.icmp.id) <= ntohs(max->icmp.id);
+ }
+ 
+-static bool
++static void
+ icmp_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 		  const struct nf_nat_range *range,
+ 		  enum nf_nat_manip_type maniptype,
+@@ -46,9 +46,9 @@ icmp_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 		tuple->src.u.icmp.id = htons(ntohs(range->min.icmp.id) +
+ 					     (id % range_size));
+ 		if (!nf_nat_used_tuple(tuple, ct))
+-			return true;
++			return;
+ 	}
+-	return false;
++	return;
+ }
+ 
+ static bool
+diff --git a/net/ipv4/netfilter/nf_nat_proto_sctp.c b/net/ipv4/netfilter/nf_nat_proto_sctp.c
+index 3fc598e..756331d 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_sctp.c
++++ b/net/ipv4/netfilter/nf_nat_proto_sctp.c
+@@ -16,14 +16,14 @@
+ 
+ static u_int16_t nf_sctp_port_rover;
+ 
+-static bool
++static void
+ sctp_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 		  const struct nf_nat_range *range,
+ 		  enum nf_nat_manip_type maniptype,
+ 		  const struct nf_conn *ct)
+ {
+-	return nf_nat_proto_unique_tuple(tuple, range, maniptype, ct,
+-					 &nf_sctp_port_rover);
++	nf_nat_proto_unique_tuple(tuple, range, maniptype, ct,
++				  &nf_sctp_port_rover);
+ }
+ 
+ static bool
+diff --git a/net/ipv4/netfilter/nf_nat_proto_tcp.c b/net/ipv4/netfilter/nf_nat_proto_tcp.c
+index 399e2cf..aa460a5 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_tcp.c
++++ b/net/ipv4/netfilter/nf_nat_proto_tcp.c
+@@ -20,14 +20,13 @@
+ 
+ static u_int16_t tcp_port_rover;
+ 
+-static bool
++static void
+ tcp_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 		 const struct nf_nat_range *range,
+ 		 enum nf_nat_manip_type maniptype,
+ 		 const struct nf_conn *ct)
+ {
+-	return nf_nat_proto_unique_tuple(tuple, range, maniptype, ct,
+-					 &tcp_port_rover);
++	nf_nat_proto_unique_tuple(tuple, range, maniptype, ct, &tcp_port_rover);
+ }
+ 
+ static bool
+diff --git a/net/ipv4/netfilter/nf_nat_proto_udp.c b/net/ipv4/netfilter/nf_nat_proto_udp.c
+index 9e61c79..dfe65c7 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_udp.c
++++ b/net/ipv4/netfilter/nf_nat_proto_udp.c
+@@ -19,14 +19,13 @@
+ 
+ static u_int16_t udp_port_rover;
+ 
+-static bool
++static void
+ udp_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 		 const struct nf_nat_range *range,
+ 		 enum nf_nat_manip_type maniptype,
+ 		 const struct nf_conn *ct)
+ {
+-	return nf_nat_proto_unique_tuple(tuple, range, maniptype, ct,
+-					 &udp_port_rover);
++	nf_nat_proto_unique_tuple(tuple, range, maniptype, ct, &udp_port_rover);
+ }
+ 
+ static bool
+diff --git a/net/ipv4/netfilter/nf_nat_proto_udplite.c b/net/ipv4/netfilter/nf_nat_proto_udplite.c
+index 440a229..3cc8c8a 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_udplite.c
++++ b/net/ipv4/netfilter/nf_nat_proto_udplite.c
+@@ -18,14 +18,14 @@
+ 
+ static u_int16_t udplite_port_rover;
+ 
+-static bool
++static void
+ udplite_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 		     const struct nf_nat_range *range,
+ 		     enum nf_nat_manip_type maniptype,
+ 		     const struct nf_conn *ct)
+ {
+-	return nf_nat_proto_unique_tuple(tuple, range, maniptype, ct,
+-					 &udplite_port_rover);
++	nf_nat_proto_unique_tuple(tuple, range, maniptype, ct,
++				  &udplite_port_rover);
+ }
+ 
+ static bool
+diff --git a/net/ipv4/netfilter/nf_nat_proto_unknown.c b/net/ipv4/netfilter/nf_nat_proto_unknown.c
+index 14381c6..a50f2bc 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_unknown.c
++++ b/net/ipv4/netfilter/nf_nat_proto_unknown.c
+@@ -26,14 +26,14 @@ static bool unknown_in_range(const struct nf_conntrack_tuple *tuple,
+ 	return true;
+ }
+ 
+-static bool unknown_unique_tuple(struct nf_conntrack_tuple *tuple,
++static void unknown_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 				 const struct nf_nat_range *range,
+ 				 enum nf_nat_manip_type maniptype,
+ 				 const struct nf_conn *ct)
+ {
+ 	/* Sorry: we can't help you; if it's not unique, we can't frob
+ 	   anything. */
+-	return false;
++	return;
+ }
+ 
+ static bool
