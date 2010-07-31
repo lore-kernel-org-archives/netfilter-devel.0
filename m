@@ -1,52 +1,34 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH 1/2] nf_nat: make unique_tuple return void
-Date: Sat, 31 Jul 2010 20:47:31 +0800
-Message-ID: <AANLkTimhzYNROE_5AsPJZdjBT+sQmiR5+cT-26BR3m1k@mail.gmail.com>
-References: <1280542516-14567-1-git-send-email-xiaosuo@gmail.com>
-	<alpine.LSU.2.01.1007311352490.17359@obet.zrqbmnf.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 2/2] nf_nat: don't check if the tuple is unique when
+ there isn't any other choice
+Date: Sat, 31 Jul 2010 16:03:45 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1007311603010.32289@obet.zrqbmnf.qr>
+References: <1280542939-14606-1-git-send-email-xiaosuo@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Patrick McHardy <kaber@trash.net>,
 	"David S. Miller" <davem@davemloft.net>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:54282 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751490Ab0GaMrx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 31 Jul 2010 08:47:53 -0400
-In-Reply-To: <alpine.LSU.2.01.1007311352490.17359@obet.zrqbmnf.qr>
+Received: from borg.medozas.de ([188.40.89.202]:39385 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752726Ab0GaODs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 31 Jul 2010 10:03:48 -0400
+In-Reply-To: <1280542939-14606-1-git-send-email-xiaosuo@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Jul 31, 2010 at 7:54 PM, Jan Engelhardt <jengelh@medozas.de> wrote:
-> On Saturday 2010-07-31 04:15, Changli Gao wrote:
->
->>the only user of unique_tuple() get_unique_tuple() doesn't care about the
->>return value of unique_tuple(), so make unique_tuple() return void (nothing).
->
-> Shouldn't the callers (get_unique_tuple in nf_nat_core.c) ideally
-> return NF_DROP or something such that connections that cannot be
-> uniquely mangled be rejected rather than forwarded without mangling?
->
 
- 220/* Manipulate the tuple into the range given.  For NF_INET_POST_ROUTING,
- 221 * we change the source to map into the range.  For NF_INET_PRE_ROUTING
- 222 * and NF_INET_LOCAL_OUT, we change the destination to map into the
- 223 * range.  It might not be possible to get a unique tuple, but we try.
- 224 * At worst (or if we race), we will end up with a final duplicate in
- 225 * __ip_conntrack_confirm and drop the packet. */
- 226static void
- 227get_unique_tuple(struct nf_conntrack_tuple *tuple,
- 228                 const struct nf_conntrack_tuple *orig_tuple,
- 229                 const struct nf_nat_range *range,
- 230                 struct nf_conn *ct,
- 231                 enum nf_nat_manip_type maniptype)
+On Saturday 2010-07-31 04:22, Changli Gao wrote:
+>+++ b/net/ipv4/netfilter/nf_nat_proto_common.c
+>@@ -81,9 +81,9 @@ void nf_nat_proto_unique_tuple(struct nf_conntrack_tuple *tuple,
+> 	else
+> 		off = *rover;
+> 
+>-	for (i = 0; i < range_size; i++, off++) {
+>+	for (i = 0; 1; off++) {
 
-the above is the comment for get_unique_tuple(). So no connection is
-forwarded without mangling.
+The 1 looks strange. It's more common to express this without
+a condition, as in (i = 0; ; ++off).
 
--- 
-Regards,
-Changli Gao(xiaosuo@gmail.com)
