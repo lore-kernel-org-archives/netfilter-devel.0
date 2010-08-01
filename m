@@ -1,32 +1,53 @@
-From: Nepenthes Development Team <nepenthesdev@gmail.com>
-Subject: Re: socket match - add wildcard option [2/4]
-Date: Sun, 1 Aug 2010 12:04:24 +0200
-Message-ID: <AANLkTimf5zb6KoizHK3fTDGrmUdMtXX-2=cUkza29Gp+@mail.gmail.com>
-References: <AANLkTi=4J96JVoM46wjtXwe1hW62injH+=9FEbexhh3K@mail.gmail.com>
-	<alpine.LSU.2.01.1007251708460.3572@obet.zrqbmnf.qr>
-	<AANLkTikOF2J9VR6ZwLdSxdeC7VhQZyRjbCa0V1Yqpyh6@mail.gmail.com>
-	<alpine.LSU.2.01.1007252150110.8534@obet.zrqbmnf.qr>
-	<alpine.LSU.2.01.1007252200120.8534@obet.zrqbmnf.qr>
-	<AANLkTinm6uRj8oRyU609uedN2Z0EXQQOTeGgP_hdxpFv@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: [PATCH v2] nf_nat: no IP_NAT_RANGE_MAP_IPS flags when alloc_null_binding()
+Date: Sun,  1 Aug 2010 22:45:07 +0800
+Message-ID: <1280673907-12619-1-git-send-email-xiaosuo@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Changli Gao <xiaosuo@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:57572 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753987Ab0HAKEZ (ORCPT
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:39019 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751816Ab0HAWRY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Aug 2010 06:04:25 -0400
-Received: by wwj40 with SMTP id 40so2917822wwj.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 01 Aug 2010 03:04:24 -0700 (PDT)
-In-Reply-To: <AANLkTinm6uRj8oRyU609uedN2Z0EXQQOTeGgP_hdxpFv@mail.gmail.com>
+	Sun, 1 Aug 2010 18:17:24 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+when alloc_null_binding(), no IP_NAT_RNAGE_MAP_IPS in flags means no IP address
+translation is needed. It isn't necessary to specify the address explicitly.
 
-how to proceed with the new options for the iptables socket match?
-
-
-Markus
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+----
+ net/ipv4/netfilter/nf_nat_rule.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
+diff --git a/net/ipv4/netfilter/nf_nat_rule.c b/net/ipv4/netfilter/nf_nat_rule.c
+index ebbd319..21c3042 100644
+--- a/net/ipv4/netfilter/nf_nat_rule.c
++++ b/net/ipv4/netfilter/nf_nat_rule.c
+@@ -106,16 +106,15 @@ alloc_null_binding(struct nf_conn *ct, unsigned int hooknum)
+ {
+ 	/* Force range to this IP; let proto decide mapping for
+ 	   per-proto parts (hence not IP_NAT_RANGE_PROTO_SPECIFIED).
+-	   Use reply in case it's already been mangled (eg local packet).
+ 	*/
+-	__be32 ip
+-		= (HOOK2MANIP(hooknum) == IP_NAT_MANIP_SRC
+-		   ? ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3.ip
+-		   : ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3.ip);
+-	struct nf_nat_range range
+-		= { IP_NAT_RANGE_MAP_IPS, ip, ip, { 0 }, { 0 } };
+-
+-	pr_debug("Allocating NULL binding for %p (%pI4)\n", ct, &ip);
++	struct nf_nat_range range;
++
++	range.flags = 0;
++	pr_debug("Allocating NULL binding for %p (%pI4)\n", ct,
++		 HOOK2MANIP(hooknum) == IP_NAT_MANIP_SRC ?
++		 &ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3.ip :
++		 &ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3.ip);
++
+ 	return nf_nat_setup_info(ct, &range, HOOK2MANIP(hooknum));
+ }
+ 
