@@ -1,51 +1,33 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH] nf_nat_core: don't check if the tuple is used if there is no other choice
-Date: Mon,  2 Aug 2010 03:38:24 +0800
-Message-ID: <1280691504-15790-1-git-send-email-xiaosuo@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Changli Gao <xiaosuo@gmail.com>
-To: Patrick McHardy <kaber@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nf-next-2.6] netfilter: {ip,ip6,arp}_tables: dont block
+ bottom half more than necessary
+Date: Mon, 02 Aug 2010 16:54:08 +0200
+Message-ID: <4C56DC10.9060301@trash.net>
+References: <1279898595.2481.69.camel@edumazet-laptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:44977 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751840Ab0HBDKl (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:61299 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750959Ab0HBOyK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Aug 2010 23:10:41 -0400
+	Mon, 2 Aug 2010 10:54:10 -0400
+In-Reply-To: <1279898595.2481.69.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eliminate nf_nat_used_tuple() to save some CPU cycles when there is no other
-choice.
+On 23.07.2010 17:23, Eric Dumazet wrote:
+> We currently disable BH for the whole duration of get_counters()
+> 
+> On machines with a lot of cpus and large tables, this might be too long.
+> 
+> We can disable preemption during the whole function, and disable BH only
+> while fetching counters for the current cpu.
+> 
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-----
- net/ipv4/netfilter/nf_nat_core.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
-diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
-index 037a3a6..c370b21 100644
---- a/net/ipv4/netfilter/nf_nat_core.c
-+++ b/net/ipv4/netfilter/nf_nat_core.c
-@@ -262,11 +262,17 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
- 	proto = __nf_nat_proto_find(orig_tuple->dst.protonum);
- 
- 	/* Only bother mapping if it's not already in range and unique */
--	if (!(range->flags & IP_NAT_RANGE_PROTO_RANDOM) &&
--	    (!(range->flags & IP_NAT_RANGE_PROTO_SPECIFIED) ||
--	     proto->in_range(tuple, maniptype, &range->min, &range->max)) &&
--	    !nf_nat_used_tuple(tuple, ct))
--		goto out;
-+	if (!(range->flags & IP_NAT_RANGE_PROTO_RANDOM)) {
-+		if (range->flags & IP_NAT_RANGE_PROTO_SPECIFIED) {
-+			if (proto->in_range(tuple, maniptype, &range->min,
-+					    &range->max) &&
-+			    (range->min.all == range->max.all ||
-+			     !nf_nat_used_tuple(tuple, ct)))
-+				goto out;
-+		} else if (!nf_nat_used_tuple(tuple, ct)) {
-+			goto out;
-+		}
-+	}
- 
- 	/* Last change: get protocol to try to obtain unique tuple. */
- 	proto->unique_tuple(tuple, range, maniptype, ct);
+Applied, thanks Eric.
+
