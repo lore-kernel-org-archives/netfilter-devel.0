@@ -1,31 +1,28 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH v2] nf_nat: no IP_NAT_RANGE_MAP_IPS flags when
-	alloc_null_binding()
-Date: Tue, 3 Aug 2010 06:01:33 +0800
-Message-ID: <AANLkTinddDNjZv7=4mYqaKu3KrS1UJ0yJLOm5=8bbMNe@mail.gmail.com>
-References: <1280673907-12619-1-git-send-email-xiaosuo@gmail.com>
-	<4C56E70F.7090708@trash.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/28] netfilter: netfilter update
+Date: Mon, 02 Aug 2010 15:24:47 -0700 (PDT)
+Message-ID: <20100802.152447.98877566.davem@davemloft.net>
+References: <1280779065-9333-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4C56E70F.7090708@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: kaber@trash.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:35387
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750957Ab0HBWYa (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 2 Aug 2010 18:24:30 -0400
+In-Reply-To: <1280779065-9333-1-git-send-email-kaber@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Aug 2, 2010 at 11:41 PM, Patrick McHardy <kaber@trash.net> wrote:
-> On 01.08.2010 16:45, Changli Gao wrote:
->> when alloc_null_binding(), no IP_NAT_RNAGE_MAP_IPS in flags means no IP address
->> translation is needed. It isn't necessary to specify the address explicitly.
->
-> When sending updated patches, you have to tell people what has changed.
->
+From: kaber@trash.net
+Date: Mon,  2 Aug 2010 21:57:17 +0200
 
-The previous one initializes the whole structure range to 0, and this
-one only initializes the field flags to 0.
+> Please pull from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
 
--- 
-Regards,
-Changli Gao(xiaosuo@gmail.com)
+Pulled, thanks Patrick.
