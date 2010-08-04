@@ -1,37 +1,40 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [patch] netfilter: default to NF_DROP in sip_help_tcp()
-Date: Wed, 04 Aug 2010 18:10:42 +0200
-Message-ID: <4C599102.9050500@trash.net>
-References: <20100710031604.GA26990@verge.net.au> <4C3DAC25.3050401@trash.net> <20100804080742.GC10740@verge.net.au>
+Subject: Re: [ANNOUNCE]: Release of iptables-1.4.9
+Date: Wed, 04 Aug 2010 18:16:53 +0200
+Message-ID: <4C599275.2080007@trash.net>
+References: <4C5832F9.50004@trash.net> <x6bp9jy7sj@gzp>	<4C584C63.8010607@trash.net> <x6vd7rwrah@gzp> <x6lj8nwqu4@gzp>	<alpine.LSU.2.01.1008032001430.1519@obet.zrqbmnf.qr> <x6sk2vo9eq@gzp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Simon Horman <horms@verge.net.au>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20100804080742.GC10740@verge.net.au>
-Sender: netdev-owner@vger.kernel.org
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	"'netfilter@vger.kernel.org'" <netfilter@vger.kernel.org>,
+	netfilter-announce@lists.netfilter.org
+To: "Gabor Z. Papp" <gzp@papp.hu>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <x6sk2vo9eq@gzp>
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Am 04.08.2010 10:07, schrieb Simon Horman:
-> On Wed, Jul 14, 2010 at 02:23:01PM +0200, Patrick McHardy wrote:
->> On 10.07.2010 05:16, Simon Horman wrote:
->>> I initially noticed this because of the compiler warning below, but it does
->>> seem to be a valid concern in the case where ct_sip_get_header() returns 0
->>> in the first iteration of the while loop.
->>>
->>> net/netfilter/nf_conntrack_sip.c: In function 'sip_help_tcp':
->>> net/netfilter/nf_conntrack_sip.c:1379: warning: 'ret' may be used uninitialized in this function
->>
->> Thanks Simon. I've applied the patch, but changed NF_DROP to
->> NF_ACCEPT since we should avoid dropping packets with unknown
->> contents (not SIP) if possible.
+Am 03.08.2010 20:09, schrieb Gabor Z. Papp:
+> * Jan Engelhardt <jengelh@medozas.de>:
 > 
-> Hi Patrick,
+> | (BTW, with --disable-shared you remove the possibility to use any .so
+> | files whatsoever. You can use --enable-static --enable-shared to get
+> | both "all in one binary" and ".so support".)
 > 
-> I'm not seeing this patch in nf-next-2.6.
-> Am I looking in the wrong place?
+> And how to force linking the binaries against the static libs?
+> 
+> | The following changes since commit 371cea299f0b2eb100b9fc9fb99089640d2d606f:
+> 
+> |   xtables: remove unnecessary cast (2010-08-03 19:56:11 +0200)
+> 
+> | are available in the git repository at:
+> |   git://dev.medozas.de/iptables master
+> 
+> Fixed, compiled fine.
 
-I was struggling with some file system corruption and didn't manage
-to send it out in time, sorry. I'll include it in the next batch of
-patches for .36 and will also push it to -stable.
+Thanks, I'll release a .1 with this patch tommorrow.
+
