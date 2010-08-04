@@ -1,50 +1,38 @@
-From: Li Yewang <lyw@cn.fujitsu.com>
-Subject: [iptables]fix a typo
-Date: Wed, 04 Aug 2010 13:22:21 +0800
-Message-ID: <4C58F90D.7080006@cn.fujitsu.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [patch] netfilter: default to NF_DROP in sip_help_tcp()
+Date: Wed, 4 Aug 2010 17:07:43 +0900
+Message-ID: <20100804080742.GC10740@verge.net.au>
+References: <20100710031604.GA26990@verge.net.au>
+ <4C3DAC25.3050401@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:65095 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1754082Ab0HDFWg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Aug 2010 01:22:36 -0400
-Received: from tang.cn.fujitsu.com (tang.cn.fujitsu.com [10.167.250.3])
-	by song.cn.fujitsu.com (Postfix) with ESMTP id F088C170178
-	for <netfilter-devel@vger.kernel.org>; Wed,  4 Aug 2010 13:22:33 +0800 (CST)
-Received: from fnst.cn.fujitsu.com (tang.cn.fujitsu.com [127.0.0.1])
-	by tang.cn.fujitsu.com (8.14.3/8.13.1) with ESMTP id o745JWrR011193
-	for <netfilter-devel@vger.kernel.org>; Wed, 4 Aug 2010 13:19:32 +0800
-Received: from [127.0.0.1] (unknown [10.167.141.89])
-	by fnst.cn.fujitsu.com (Postfix) with ESMTPA id 5ED3A29141A
-	for <netfilter-devel@vger.kernel.org>; Wed,  4 Aug 2010 13:23:20 +0800 (CST)
+Received: from kirsty.vergenet.net ([202.4.237.240]:59253 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752512Ab0HDIHu (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Aug 2010 04:07:50 -0400
+Content-Disposition: inline
+In-Reply-To: <4C3DAC25.3050401@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fix a typo.
+On Wed, Jul 14, 2010 at 02:23:01PM +0200, Patrick McHardy wrote:
+> On 10.07.2010 05:16, Simon Horman wrote:
+> > I initially noticed this because of the compiler warning below, but it does
+> > seem to be a valid concern in the case where ct_sip_get_header() returns 0
+> > in the first iteration of the while loop.
+> > 
+> > net/netfilter/nf_conntrack_sip.c: In function 'sip_help_tcp':
+> > net/netfilter/nf_conntrack_sip.c:1379: warning: 'ret' may be used uninitialized in this function
+> 
+> Thanks Simon. I've applied the patch, but changed NF_DROP to
+> NF_ACCEPT since we should avoid dropping packets with unknown
+> contents (not SIP) if possible.
 
+Hi Patrick,
 
-Signed-off-by: Li Yewang <lyw@cn.fujitsu.com>
-
----
-  xtables.c |    2 +-
-  1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/xtables.c b/xtables.c
-index ed082f3..31fd8f9 100644
---- a/xtables.c
-+++ b/xtables.c
-@@ -734,7 +734,7 @@ void xtables_register_match(struct xtables_match *me)
-  	}
-
-  	if (strlen(me->name) >= XT_EXTENSION_MAXNAMELEN) {
--		fprintf(stderr, "%s: target `%s' has invalid name\n",
-+		fprintf(stderr, "%s: match `%s' has invalid name\n",
-  			xt_params->program_name, me->name);
-  		exit(1);
-  	}
--- 
-1.5.5.1
-
+I'm not seeing this patch in nf-next-2.6.
+Am I looking in the wrong place?
