@@ -1,67 +1,47 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 2/2] netfilter: xt_condition: change the value from
- boolean to u32
-Date: Thu, 5 Aug 2010 17:12:49 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1008051705320.1104@obet.zrqbmnf.qr>
-References: <1281019269-30985-1-git-send-email-luciano.coelho@nokia.com> <1281019269-30985-3-git-send-email-luciano.coelho@nokia.com>
+From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: Re: [rfc 10/13] [RFC 10/13] IPVS: management of persistence engine
+ modules
+Date: Thu, 5 Aug 2010 09:29:20 -0700
+Message-ID: <20100805092920.7573c96b@nehalam>
+References: <20100805114755.118303531@vergenet.net>
+	<20100805115241.482096330@vergenet.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	kaber@trash.net, sameo@linux.intel.com
-To: luciano.coelho@nokia.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1281019269-30985-3-git-send-email-luciano.coelho@nokia.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>, Patrick McHardy <kaber@trash.net>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.vyatta.com ([76.74.103.46]:60037 "EHLO mail.vyatta.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760642Ab0HEQ3W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Aug 2010 12:29:22 -0400
+In-Reply-To: <20100805115241.482096330@vergenet.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2010-08-05 16:41, luciano.coelho@nokia.com wrote:
+On Thu, 05 Aug 2010 20:48:05 +0900
+Simon Horman <horms@verge.net.au> wrote:
 
-> struct xt_condition_mtinfo {
->-	char name[31];
->+	char name[27];
-> 	__u8 invert;
->+	__u32 value;
+> +/* lock for service table */
+> +static DEFINE_RWLOCK(__ip_vs_pe_lock);
 
-Please also bump the .revision field to 2 with this patch so that
-testing can always proceed without an ABI clash.
-(rev 2 would then remain over the course of the remaining patches 
-you submit.)
-(rev 0 = ipt_condition/pom-ng; rev 1 = xt_condition from Xt-a)
+It is already static so why the __?
+Reader/writer locks are slower than spinlocks.  Either use
+a spinlock, or RCU (if possible)
 
->+	char buf[14];
+> +/* Bind a service with a pe */
+> +void ip_vs_bind_pe(struct ip_vs_service *svc, struct ip_vs_pe *pe)
+> +{
+> +	svc->pe = pe;
+> +}
+> +
+> +/* Unbind a service from its pe */
+> +void ip_vs_unbind_pe(struct ip_vs_service *svc)
+> +{
+> +	svc->pe = NULL;
+> +}
 
-	char buf[sizeof("4294967296")];
-
-seems more intuitive :-)
-
->+	unsigned long long value;
->+
->+	if (length == 0)
->+		return 0;
->+
->+	if (length > sizeof(buf))
->+		return -EINVAL;
->+
->+	if (copy_from_user(buf, input, length) != 0)
->+		return -EFAULT;
->+
->+	buf[length - 1] = '\0';
->+
->+	if (strict_strtoull(buf, 0, &value) != 0)
->+		return -EINVAL;
->+
->+	if (value > (u32) value)
->+		return -EINVAL;
-
-Is it possible to use just strict_strtoul?
-
->-	return var->enabled ^ info->invert;
->+	return (var->value == info->value) ^ info->invert;
-
-Since the condition value (cdmark) was thought of an nfmark-style thing, 
-would it perhaps make sense to model it after it
-
-	return (var->value & ~info->mask) ^ info->value;
-
-Other opinions?
-
+What does having these wrappers buy?
