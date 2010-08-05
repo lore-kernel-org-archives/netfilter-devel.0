@@ -1,44 +1,51 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [rfc 13/13] [RFC 13/13] IPVS: sip persistence engine
-Date: Thu, 5 Aug 2010 14:50:11 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1008051447100.13201@obet.zrqbmnf.qr>
-References: <20100805114755.118303531@vergenet.net> <20100805115242.056724322@vergenet.net>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>, Patrick McHardy <kaber@trash.net>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:39451 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760178Ab0HEMuN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Aug 2010 08:50:13 -0400
-In-Reply-To: <20100805115242.056724322@vergenet.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: luciano.coelho@nokia.com
+Subject: [PATCH 0/2] netfilter: xtables: xt_condition inclusion and change to u32
+Date: Thu,  5 Aug 2010 17:41:07 +0300
+Message-ID: <1281019269-30985-1-git-send-email-luciano.coelho@nokia.com>
+Cc: netdev@vger.kernel.org, kaber@trash.net, jengelh@medozas.de,
+	sameo@linux.intel.com
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thursday 2010-08-05 13:48, Simon Horman wrote:
->+
->+static const char *ip_vs_dbg_callid(char *buf, size_t buf_len,
->+				    const char *callid, size_t callid_len,
->+				    int *idx)
->+{
->+	size_t len = min(min(callid_len, (size_t)64), buf_len - *idx - 1);
->+	memcpy(buf + *idx, callid, len);
->+	*(buf + *idx + len) = '\0';
+From: Luciano Coelho <luciano.coelho@nokia.com>
 
-Nothing particular wrong, though I just noticed that I would have 
-personally, instinctively written
+Hi again,
 
-	buf[*idx+len] = '\0';
+Here is the xt_condition patch, hopefully for inclusion this time.
 
-instead. Sure you have your reasons ;-)
+When these patches get accepted, I'll send the implementation of the condition
+target, as discussed before.
 
->+	/* RFC 2543 allows lines to be terminated with CR, LF or CRLF,
->+	 * RFC 3261 allows only CRLF, we support both. */
->+	if (*(dptr + *matchoff + *matchlen) != '\r' &&
->+	    *(dptr + *matchoff + *matchlen) != '\n')
->+		return -EINVAL;
+In RFC v2 I've made a few changes as discussed in the review:
+
+  * Removed per-netns module parameters
+  * Use par->net instead of current->nsproxy->net_ns
+  * Fix file-leak in procfs when exiting the netns
+
+I didn't get any more comments in RFC v2, so I assume it is okay to send it for
+inclusion.
+
+>From [RFC v2] to [PATCH], I've only rebased and added a new patch to support
+u32 instead of boolean as the value for the condition.
+
+Cheers,
+Luca.
+
+PS: I've been on vacation, that's why it took sometime to submit this patch again.
+
+
+Luciano Coelho (2):
+  netfilter: xtables: inclusion of xt_condition
+  netfilter: xt_condition: change the value from boolean to u32
+
+ include/linux/netfilter/Kbuild         |    1 +
+ include/linux/netfilter/xt_condition.h |   15 ++
+ net/netfilter/Kconfig                  |    8 +
+ net/netfilter/Makefile                 |    1 +
+ net/netfilter/xt_condition.c           |  268 ++++++++++++++++++++++++++++++++
+ 5 files changed, 293 insertions(+), 0 deletions(-)
+ create mode 100644 include/linux/netfilter/xt_condition.h
+ create mode 100644 net/netfilter/xt_condition.c
 
