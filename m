@@ -1,47 +1,67 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: Re: [rfc 10/13] [RFC 10/13] IPVS: management of persistence engine
- modules
-Date: Thu, 5 Aug 2010 09:29:20 -0700
-Message-ID: <20100805092920.7573c96b@nehalam>
-References: <20100805114755.118303531@vergenet.net>
-	<20100805115241.482096330@vergenet.net>
+From: Julia Lawall <julia@diku.dk>
+Subject: [PATCH 16/42] net/ipv6/netfilter: Adjust confusing if indentation
+Date: Thu, 5 Aug 2010 22:21:41 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1008052221240.31692__17799.6752238416$1281039773$gmane$org@ask.diku.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>, Patrick McHardy <kaber@trash.net>
-To: Simon Horman <horms@verge.net.au>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
+	James Morris <jmorris@
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:60037 "EHLO mail.vyatta.com"
+Received: from mgw2.diku.dk ([130.225.96.92]:55560 "EHLO mgw2.diku.dk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760642Ab0HEQ3W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Aug 2010 12:29:22 -0400
-In-Reply-To: <20100805115241.482096330@vergenet.net>
+	id S934129Ab0HEUVn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Aug 2010 16:21:43 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 05 Aug 2010 20:48:05 +0900
-Simon Horman <horms@verge.net.au> wrote:
+From: Julia Lawall <julia@diku.dk>
 
-> +/* lock for service table */
-> +static DEFINE_RWLOCK(__ip_vs_pe_lock);
+Indent the branch of an if.
 
-It is already static so why the __?
-Reader/writer locks are slower than spinlocks.  Either use
-a spinlock, or RCU (if possible)
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-> +/* Bind a service with a pe */
-> +void ip_vs_bind_pe(struct ip_vs_service *svc, struct ip_vs_pe *pe)
-> +{
-> +	svc->pe = pe;
-> +}
-> +
-> +/* Unbind a service from its pe */
-> +void ip_vs_unbind_pe(struct ip_vs_service *svc)
-> +{
-> +	svc->pe = NULL;
-> +}
+// <smpl>
+@r disable braces4@
+position p1,p2;
+statement S1,S2;
+@@
 
-What does having these wrappers buy?
+(
+if (...) { ... }
+|
+if (...) S1@p1 S2@p2
+)
+
+@script:python@
+p1 << r.p1;
+p2 << r.p2;
+@@
+
+if (p1[0].column == p2[0].column):
+  cocci.print_main("branch",p1)
+  cocci.print_secs("after",p2)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+index 1df3c8b..befccff 100644
+--- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -192,7 +192,7 @@ icmpv6_error(struct net *net, struct nf_conn *tmpl,
+ 	icmp6h = skb_header_pointer(skb, dataoff, sizeof(_ih), &_ih);
+ 	if (icmp6h == NULL) {
+ 		if (LOG_INVALID(net, IPPROTO_ICMPV6))
+-		nf_log_packet(PF_INET6, 0, skb, NULL, NULL, NULL,
++			nf_log_packet(PF_INET6, 0, skb, NULL, NULL, NULL,
+ 			      "nf_ct_icmpv6: short packet ");
+ 		return -NF_ACCEPT;
+ 	}
