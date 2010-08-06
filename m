@@ -1,38 +1,52 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [ANNOUNCE]: Release of iptables-1.4.9
-Date: Fri, 06 Aug 2010 15:15:15 +0200
-Message-ID: <4C5C0AE3.4090806@trash.net>
-References: <4C5832F9.50004@trash.net> <x6bp9jy7sj@gzp> <4C584C63.8010607@trash.net> <x6vd7rwrah@gzp> <x6lj8nwqu4@gzp> <alpine.LSU.2.01.1008032001430.1519@obet.zrqbmnf.qr>
+Subject: [ANNOUNCE]: Release of iptables-1.4.9.1
+Date: Fri, 06 Aug 2010 15:51:41 +0200
+Message-ID: <4C5C136D.3040108@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: "Gabor Z. Papp" <gzp@papp.hu>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	"'netfilter@vger.kernel.org'" <netfilter@vger.kernel.org>,
-	netfilter-announce@lists.netfilter.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: multipart/mixed;
+ boundary="------------080002020807020000060808"
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>, NetDev <netdev@vger.kernel.org>,
+	netfilter-announce@lists.netfilter.org,
+	"'netfilter@vger.kernel.org'" <netfilter
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LSU.2.01.1008032001430.1519@obet.zrqbmnf.qr>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Am 03.08.2010 20:04, schrieb Jan Engelhardt:
-> The following changes since commit 371cea299f0b2eb100b9fc9fb99089640d2d606f:
-> 
->   xtables: remove unnecessary cast (2010-08-03 19:56:11 +0200)
-> 
-> are available in the git repository at:
->   git://dev.medozas.de/iptables master
-> 
-> Jan Engelhardt (1):
->       build: fix static linking
-> 
->  extensions/libxt_IDLETIMER.c |    2 +-
->  extensions/libxt_TEE.c       |    2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> [Actually there's also the "remove unnecessary cast" patch that is not 
-> included in this listing, but merging that should be ok.]
+This is a multi-part message in MIME format.
+--------------080002020807020000060808
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-Pulled, thanks Jan.
+The netfilter coreteam presents:
+
+    iptables version 1.4.9.1
+
+the iptables release for the 2.6.35 kernel. This release fixes
+a compilation problem with static linking in the 1.4.9 release.
+
+Version 1.4.9.1 can be obtained from:
+
+http://www.netfilter.org/projects/iptables/downloads.html
+ftp://ftp.netfilter.org/pub/iptables/
+git://git.netfilter.org/iptables.git
+
+On behalf of the Netfilter Core Team.
+Happy firewalling!
+
+
+--------------080002020807020000060808
+Content-Type: text/plain;
+ name="changes-iptables-1.4.9.1.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="changes-iptables-1.4.9.1.txt"
+
+Jan Engelhardt (1):
+      build: fix static linking
+
+Patrick McHardy (1):
+      Bump version to 1.4.9.1
+
+
+--------------080002020807020000060808--
