@@ -1,67 +1,35 @@
-From: Julia Lawall <julia@diku.dk>
-Subject: [PATCH 16/42] net/ipv6/netfilter: Adjust confusing if indentation
-Date: Thu, 5 Aug 2010 22:21:41 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.1008052221240.31692__17799.6752238416$1281039773$gmane$org@ask.diku.dk>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [rfc 09/13] [RFC 09/13] IPVS: Add persistence engine data to
+ /proc/net/ip_vs_conn
+Date: Fri, 6 Aug 2010 10:45:03 +0900
+Message-ID: <20100806014503.GC12311@verge.net.au>
+References: <20100805114755.118303531@vergenet.net>
+ <20100805115241.289541021@vergenet.net>
+ <alpine.LSU.2.01.1008051446060.13201@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
-	James Morris <jmorris@
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:55560 "EHLO mgw2.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934129Ab0HEUVn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Aug 2010 16:21:43 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>, Patrick McHardy <kaber@trash.net>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LSU.2.01.1008051446060.13201@obet.zrqbmnf.qr>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Julia Lawall <julia@diku.dk>
+On Thu, Aug 05, 2010 at 02:46:22PM +0200, Jan Engelhardt wrote:
+> On Thursday 2010-08-05 13:48, Simon Horman wrote:
+> 
+> >This shouldn't break compatibility with userspace as the new data
+> >is at the end of the line.
+> >
+> >I have confirmed that this doesn't break ipvsadm, the main (only?)
+> >user-space user of this data.
+> 
+> Wouldn't it be best if this be done over Netlink?
 
-Indent the branch of an if.
+I'm happy to add code to do that over netlink,
+though it does seem to be overkill to me.
 
-The semantic match that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
-
-// <smpl>
-@r disable braces4@
-position p1,p2;
-statement S1,S2;
-@@
-
-(
-if (...) { ... }
-|
-if (...) S1@p1 S2@p2
-)
-
-@script:python@
-p1 << r.p1;
-p2 << r.p2;
-@@
-
-if (p1[0].column == p2[0].column):
-  cocci.print_main("branch",p1)
-  cocci.print_secs("after",p2)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-
----
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index 1df3c8b..befccff 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -192,7 +192,7 @@ icmpv6_error(struct net *net, struct nf_conn *tmpl,
- 	icmp6h = skb_header_pointer(skb, dataoff, sizeof(_ih), &_ih);
- 	if (icmp6h == NULL) {
- 		if (LOG_INVALID(net, IPPROTO_ICMPV6))
--		nf_log_packet(PF_INET6, 0, skb, NULL, NULL, NULL,
-+			nf_log_packet(PF_INET6, 0, skb, NULL, NULL, NULL,
- 			      "nf_ct_icmpv6: short packet ");
- 		return -NF_ACCEPT;
- 	}
