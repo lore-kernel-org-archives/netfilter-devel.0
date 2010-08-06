@@ -1,53 +1,118 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [rfc 10/13] [RFC 10/13] IPVS: management of persistence engine
- modules
-Date: Fri, 6 Aug 2010 10:48:44 +0900
-Message-ID: <20100806014843.GE12311@verge.net.au>
-References: <20100805114755.118303531@vergenet.net>
- <20100805115241.482096330@vergenet.net>
- <20100805092920.7573c96b@nehalam>
+From: Luciano Coelho <luciano.coelho@nokia.com>
+Subject: Re: [PATCH 2/2] netfilter: xt_condition: change the value from
+ boolean to u32
+Date: Fri, 06 Aug 2010 11:00:06 +0300
+Message-ID: <1281081606.1586.28.camel@powerslave>
+References: <1281019269-30985-1-git-send-email-luciano.coelho@nokia.com>
+	 <1281019269-30985-3-git-send-email-luciano.coelho@nokia.com>
+	 <alpine.LSU.2.01.1008051705320.1104@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>, Patrick McHardy <kaber@trash.net>
-To: Stephen Hemminger <shemminger@vyatta.com>
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100805092920.7573c96b@nehalam>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"kaber@trash.net" <kaber@trash.net>,
+	"sameo@linux.intel.com" <sameo@linux.intel.com>
+To: ext Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:31762 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933975Ab0HFIAg (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 6 Aug 2010 04:00:36 -0400
+In-Reply-To: <alpine.LSU.2.01.1008051705320.1104@obet.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Aug 05, 2010 at 09:29:20AM -0700, Stephen Hemminger wrote:
-> On Thu, 05 Aug 2010 20:48:05 +0900
-> Simon Horman <horms@verge.net.au> wrote:
+On Thu, 2010-08-05 at 17:12 +0200, ext Jan Engelhardt wrote:
+> On Thursday 2010-08-05 16:41, luciano.coelho@nokia.com wrote:
 > 
-> > +/* lock for service table */
-> > +static DEFINE_RWLOCK(__ip_vs_pe_lock);
+> > struct xt_condition_mtinfo {
+> >-	char name[31];
+> >+	char name[27];
+> > 	__u8 invert;
+> >+	__u32 value;
 > 
-> It is already static so why the __?
-> Reader/writer locks are slower than spinlocks.  Either use
-> a spinlock, or RCU (if possible)
+> Please also bump the .revision field to 2 with this patch so that
+> testing can always proceed without an ABI clash.
+> (rev 2 would then remain over the course of the remaining patches 
+> you submit.)
+> (rev 0 = ipt_condition/pom-ng; rev 1 = xt_condition from Xt-a)
 
-No good reason, other than I copied the code from elsewhere.
-I'll fix both this and the code that I copied.
+Oh, did I forget that? I thought I had bumped it up in my previous patch
+after your comment, but apparently I didn't.  I'll fix it.
 
-> > +/* Bind a service with a pe */
-> > +void ip_vs_bind_pe(struct ip_vs_service *svc, struct ip_vs_pe *pe)
-> > +{
-> > +	svc->pe = pe;
-> > +}
-> > +
-> > +/* Unbind a service from its pe */
-> > +void ip_vs_unbind_pe(struct ip_vs_service *svc)
-> > +{
-> > +	svc->pe = NULL;
-> > +}
+
+> >+	char buf[14];
 > 
-> What does having these wrappers buy?
+> 	char buf[sizeof("4294967296")];
+> 
+> seems more intuitive :-)
 
-Again, I copied the code from elsewhere, where the wrappers did more.  As
-it happens, I think that these do make some sense as they are called along
-side other bind and unbind calls. But if you have a strong aversion to them
-then I am happy to remove these wrappers.
+I'm using base 0 in the strtoull call, so I need at least 14 chars to
+accommodate octals.  In octal MAX_UINT takes 11 digits, plus the leading
+0 that marks it as an octal, plus the optional + sign (not sure if this
+one makes sense, though), plus the null-terminator (or actually the \n
+when writing to procfs) leads to 14.  But I'm not sure whether:
+
+char buf[sizeof("+037777777777")]; 
+
+Would be very intuitive? Surely I don't like the magic number, so I
+should probably change it anyway.
+
+> >+	unsigned long long value;
+> >+
+> >+	if (length == 0)
+> >+		return 0;
+> >+
+> >+	if (length > sizeof(buf))
+> >+		return -EINVAL;
+> >+
+> >+	if (copy_from_user(buf, input, length) != 0)
+> >+		return -EFAULT;
+> >+
+> >+	buf[length - 1] = '\0';
+> >+
+> >+	if (strict_strtoull(buf, 0, &value) != 0)
+> >+		return -EINVAL;
+> >+
+> >+	if (value > (u32) value)
+> >+		return -EINVAL;
+> 
+> Is it possible to use just strict_strtoul?
+
+Not easily.  I found that there is a bug in strtoul (and strtoull for
+that matter) that causes the long to overflow if there are valid digits
+after the maximum possible digits for the base.  For example if you try
+to strtoul 0xfffffffff (with 9 f's) the strtoul will overflow and come
+up with a bogus result.  I can't easily truncate the string to avoid
+this problem, because with decimal or octal, the same valid value would
+take more spaces.  I could do some magic here, checking whether it's a
+hex, dec or oct and truncate appropriately, but that would be very ugly.
+
+So the simplest way I came up with was to use strtoull and return
+-EINVAL if the value exceeds 32 bits. ;)
+
+
+> >-	return var->enabled ^ info->invert;
+> >+	return (var->value == info->value) ^ info->invert;
+> 
+> Since the condition value (cdmark) was thought of an nfmark-style thing, 
+> would it perhaps make sense to model it after it
+> 
+> 	return (var->value & ~info->mask) ^ info->value;
+> 
+> Other opinions?
+
+I think it's nicer to have it as a normal equals here for now and then
+extend the match with more operations.  We can later add, for example,
+an --and option to the condition match in order to do other kinds of
+binary operations.  It would be more flexible this way because we could
+use several different types of comparisons, wouldn't it? And in the
+target we could have several different types of operations.
+
+
+-- 
+Cheers,
+Luca.
+
