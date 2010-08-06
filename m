@@ -1,55 +1,29 @@
-From: luciano.coelho@nokia.com
-Subject: [PATCH v2 0/2] netfilter: xtables: xt_condition inclusion and change to u32
-Date: Fri,  6 Aug 2010 15:21:46 +0300
-Message-ID: <1281097308-1515-1-git-send-email-luciano.coelho@nokia.com>
-Cc: netdev@vger.kernel.org, kaber@trash.net, jengelh@medozas.de,
-	sameo@linux.intel.com
+From: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Subject: IPVS network namespace aware ?
+Date: Fri, 6 Aug 2010 14:57:30 +0200
+Message-ID: <1281099450.2518.21.camel@seasc0214.dyn.rnd.as.sw.ericsson.se>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mailgw9.se.ericsson.net ([193.180.251.57]:59697 "EHLO
+	mailgw9.se.ericsson.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760915Ab0HFNMd (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 6 Aug 2010 09:12:33 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Luciano Coelho <luciano.coelho@nokia.com>
+Hello
+Is there any one that have made ipvs network namespace aware ?
+There is an urgent need of it within Ericsson.
+I could not find any trace of it in any of the normal lists.
 
-Hello,
+I will start patching ipvs next week or give a helping hand to any
+existing work.
 
-Here v2 of the xt_condition patch, it contains some changes suggested by Jan.
-
-When these patches get accepted, I'll send the implementation of the condition
-target, as discussed before.
-
-In RFC v2 I've made a few changes as discussed in the review:
-
-  * Removed per-netns module parameters
-  * Use par->net instead of current->nsproxy->net_ns
-  * Fix file-leak in procfs when exiting the netns
-
-I didn't get any more comments in RFC v2, so I assume it is okay to send it for
-inclusion.
-
->From [RFC v2] to [PATCH], I've only rebased and added a new patch to support
-u32 instead of boolean as the value for the condition.
-
-In PATCH v2:
-
-  * Bumped up the revision to 2
-  * Changed the buffer declaration to have the size of the biggest possible u32 string
-  * Return -ERANGE instead of -EINVALID when the value passed is too big.
-
-Cheers,
-Luca.
-
-
-Luciano Coelho (2):
-  netfilter: xtables: inclusion of xt_condition
-  netfilter: xt_condition: change the value from boolean to u32
-
- include/linux/netfilter/Kbuild         |    1 +
- include/linux/netfilter/xt_condition.h |   15 ++
- net/netfilter/Kconfig                  |    8 +
- net/netfilter/Makefile                 |    1 +
- net/netfilter/xt_condition.c           |  269 ++++++++++++++++++++++++++++++++
- 5 files changed, 294 insertions(+), 0 deletions(-)
- create mode 100644 include/linux/netfilter/xt_condition.h
- create mode 100644 net/netfilter/xt_condition.c
+Regards
+Hans Schillstrom
 
