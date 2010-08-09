@@ -1,103 +1,41 @@
-From: Tapas Mishra <mightydreams@gmail.com>
-Subject: multiple streaming servers in a cloud
-Date: Mon, 9 Aug 2010 13:09:19 +0530
-Message-ID: <AANLkTin+tr25y=hLqfh4QqNLts=7mt14JAMotetRw1g9@mail.gmail.com>
-References: <d4d404a4-7310-49e5-b43a-8b40696e9b73@x18g2000pro.googlegroups.com>
-	<AANLkTinQmkWCj2uJtoKEztdeQz_D4rF7UY0un4t6UQi5@mail.gmail.com>
+From: Jon E <je_nfd@hotmail.com>
+Subject: Help! Stuck while porting table code from older to recent kernel
+Date: Mon, 9 Aug 2010 12:20:08 -0400
+Message-ID: <SNT135-w26664576B07E441CEE789BF3940@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org,
-	Open Source Flash Mailing List <osflash@osflash.org>,
-	red5@osflash.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:65533 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751484Ab0HIHjU convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Aug 2010 03:39:20 -0400
-Received: by pxi14 with SMTP id 14so3543660pxi.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 09 Aug 2010 00:39:19 -0700 (PDT)
-In-Reply-To: <AANLkTinQmkWCj2uJtoKEztdeQz_D4rF7UY0un4t6UQi5@mail.gmail.com>
+Received: from snt0-omc1-s33.snt0.hotmail.com ([65.55.90.44]:2788 "EHLO
+	snt0-omc1-s33.snt0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756379Ab0HIQ0T convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Aug 2010 12:26:19 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+
 Hi,
-
-=A0I need some help.
-If this is not the right forum to ask this question please give some
-idea or let me know where should I ask this question.
-
-I have multiple video streaming servers running on some machines
-internally on LAN. (Red5 on Ubuntu 10.04)
-
-=46or different subdomains.
-i.e.
-site1.mydomain.com
-site2.mydomain.com
-site3.mydomain.com
-site4.mydomain.com
-
-
-
-The front end to the world is apache2 on a Bastion Host.
-I do not have a DNS running over there.
-
-
-To be able to reach the streaming server I
-embed a javascript in HTML pages
-as follows
-Code:
-
-<embed .....
-var=3D"rtmp://site1.my_domain.com"
-
->
-
-
-the problem is the website are many
-
-site1.mydomain.com
-site2.mydomain.com
-site3.mydomain.com
-site4.mydomain.com
-
-each on a separate physical server.
-
-Each of these four have their own streaming servers the front end to
-each of these four is a common Bastion Host.
-
-
-If I run rtmp on each of the subdomains at a different port
-
-how will I make sure
-a request such as
-
-rtmp://site1.mydomain.com
-rtmp://site2.mydomain.com
-
-goes to their respective servers.
-from the front end server.
-
-What do I need to handle in this case ?
-
-IPTABLES came to mind instantly but from the client browser on
-internet when some one requests
-rtmp://site1.mydomain.com
-
-how will I make sure this rtmp request is mapped to a port different
-than
-1935 as there are three other streaming servers which are also to
-respond to their respective requests
-?
-
-=46or handling HTTP requests in this case I use Apache Reverse Proxy
-but for rtmp requests I am not clear as which direction to proceed.
-
-
---
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 
+I'm porting an app from the older version of netfilter from kernel 2.620 to the current Ubuntu LL kernel (2.6.32).  I noticed a lot of changes in the code and wondered if you could shed some light as to how to port (or point me to a porting guide).  
+ 
+For example, ipt_register_table now contains a struct net* as the first parameter.  We didn't require this before, our code simply read:
+ 
+static int __init init(void)
+{
+    int ret;
+    /* Register table */
+    ret = ipt_register_table(&packet_manipulator, &initial_table.repl);
+ 
+I downloaded the source fpr kernel 2.6.32 and examined the iptable_mangle.c code to try and see how things are now done.  I noticed that the net->ipv4 struct contains specific struct xt_table xx entries (from /usr/src/linux-headers-2.6.32-24-generic/include/net/netns/ipv4.h) for the listed tables and there doesn't appear to be a mechanism by which a new table can be added (ie: it looks like the tables one can use are now hard-coded into the ipv4 struct).  The netfilter hacking doc doesn't help since it doesn't contain any updated information on the struct net* requirement.
+ 
+So, my primary question is, how can I add a new table under the current framework?
+ 
+Related: why was the struct net* requirement added?  Ie: what problem did it solve?  Only asking 'cause I can't find any docs describing the requirements.
+ 
+As well, how can I use the xt_register_table function (and other xt_xx replacement functions) - the signatures are different (from the ipt_xx functions) and I'm not sure what to supply for the different parameters (or, should we be using these at all?).  I've tried searching for current iptables 'howto' docs but noone has updated anything since 2002 (that I can find, anyway).
+ 
+Any thoughts on how I can update the code would be appreciated!
+ 
+Cheers! 		 	   		  
