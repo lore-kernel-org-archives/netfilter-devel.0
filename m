@@ -1,31 +1,44 @@
-From: Jon E <je_nfd@hotmail.com>
-Subject: RE: Help! Stuck while porting table code from older to recent kernel
-Date: Mon, 9 Aug 2010 14:42:55 -0400
-Message-ID: <SNT135-w32147432DE5D4464E054BCF3940@phx.gbl>
-References: <SNT135-w26664576B07E441CEE789BF3940@phx.gbl>,<alpine.LSU.2.01.1008091955560.21619@obet.zrqbmnf.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: <netfilter-devel@vger.kernel.org>
+From: Mark Leander <mark.leander@topicbranch.net>
+Subject: [PATCH] Clear ulog message to prevent leaking uninitializied memory to user
+Date: Tue, 10 Aug 2010 20:22:31 +0000
+Message-ID: <1281471751-3397-1-git-send-email-mark.leander@topicbranch.net>
+Cc: netfilter-devel@vger.kernel.org,
+	Mark Leander <mark.leander@topicbranch.net>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from snt0-omc1-s35.snt0.hotmail.com ([65.55.90.46]:28206 "EHLO
-	snt0-omc1-s35.snt0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754199Ab0HISm4 convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Aug 2010 14:42:56 -0400
-In-Reply-To: <alpine.LSU.2.01.1008091955560.21619@obet.zrqbmnf.qr>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:33890 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757840Ab0HJUXJ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Aug 2010 16:23:09 -0400
+Received: by ewy23 with SMTP id 23so4072576ewy.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 10 Aug 2010 13:23:07 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+ipt_ulog_packet() did not properly blank the char[] members
+indev_name, outdev_name, prefix and mac of struct ulog_packet_msg.
+This leaks uninitialized kernel memory to user space in the form
+of netlink NFLOG broadcasts. This change clears the whole structure
+initially to avoid this.
 
+Signed-off-by: Mark Leander <mark.leander@topicbranch.net>
+---
+ net/ipv4/netfilter/ipt_ULOG.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-> >So, my primary question is, how can I add a new table under the current
-> >framework?
->
-> You will have to forfeit the netns integration and use &init_net.
+diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
+index 446e0f4..07b36b0 100644
+--- a/net/ipv4/netfilter/ipt_ULOG.c
++++ b/net/ipv4/netfilter/ipt_ULOG.c
+@@ -204,6 +204,7 @@ static void ipt_ulog_packet(unsigned int hooknum,
+ 	ub->qlen++;
+ 
+ 	pm = NLMSG_DATA(nlh);
++	memset(pm, 0, sizeof(*pm));
+ 
+ 	/* We might not have a timestamp, get one */
+ 	if (skb->tstamp.tv64 == 0)
+-- 
+1.7.0.4
 
-Is there a code example of table creation using this that you can direct me to?
-
-> xt_register_table is for exclusive internal use of {ip,ip6,etc}_register_table.
-
-Thank you, I will not use it.  I was just under the impression that, if one of the goals was/is to remove ip_xxx references, that one should favour the new functions over the old.  I gather I misunderstood the purpose of the consolidation efforts? 		 	   		  
