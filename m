@@ -1,43 +1,43 @@
-From: Nort Obor <obornort@googlemail.com>
-Subject: ipset-4.2 compilation fails with recent kernel
-Date: Thu, 12 Aug 2010 07:31:39 +0200
-Message-ID: <AANLkTi=cY4pJpVELPg9Pfjf=HB8kaWHDUuuWrtT1DJ8Y@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Luciano Coelho <luciano.coelho@nokia.com>
+Subject: [PATCH 0/1] netfilter: xt_condition: add condition target
+Date: Thu, 12 Aug 2010 09:37:00 +0300
+Message-ID: <1281595021-24310-1-git-send-email-luciano.coelho@nokia.com>
+Cc: netdev@vger.kernel.org, kaber@trash.net, jengelh@medozas.de,
+	sameo@linux.intel.com, janne.ylalehto@nokia.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:55894 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751604Ab0HLFbk (ORCPT
+Received: from smtp.nokia.com ([192.100.122.233]:46415 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758487Ab0HLGhY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Aug 2010 01:31:40 -0400
-Received: by yxg6 with SMTP id 6so276906yxg.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Aug 2010 22:31:39 -0700 (PDT)
+	Thu, 12 Aug 2010 02:37:24 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-hi,
+Hello,
 
-trying to compile ipset-4.2 / linux-2.6.35 with gcc-4.5.1, i get:
+So here's my patch to include the condition target in the existing condition
+module.  This patch is supposed to be applied on top of the previous
+xt_condition patches I submitted and is intended for 2.6.37 (I'll resend all
+the 3 patches when the next tree starts accepting patches again).
 
-...
-make[1]: Entering directory `/usr/src/linux-2.6.35'
-  CC [M]  /usr/src/ipset/kernel/ip_set.o
-  CC [M]  /usr/src/ipset/kernel/ipt_set.o
-/usr/src/ipset/kernel/ipt_set.c:89:20: warning: 'struct
-xt_match_param' declared inside parameter list
-/usr/src/ipset/kernel/ipt_set.c:89:20: warning: its scope is only this
-definition or declaration, which is probably not what you want
-/usr/src/ipset/kernel/ipt_set.c: In function 'match':
-/usr/src/ipset/kernel/ipt_set.c:95:45: error: dereferencing pointer to
-incomplete type
-/usr/src/ipset/kernel/ipt_set.c: At top level:
-/usr/src/ipset/kernel/ipt_set.c:215:2: warning: initialization from
-incompatible pointer type
-/usr/src/ipset/kernel/ipt_set.c:217:2: warning: initialization from
-incompatible pointer type
-make[2]: *** [/usr/src/ipset/kernel/ipt_set.o] Error 1
-...
+One thing that came to my mind was whether it would make sense to rename this
+match/target combo to "variable" instead of "condition".  To me it makes more
+sense to call it variable than condition, since I have changed the value from
+boolean to u32.  On the other hand, it could become very confusing because it
+used to be called condition in its xtables-addons days...
 
+Your comments are appreciated!
 
-tia!
+Cheers,
+Luca.
+
+Luciano Coelho (1):
+  netfilter: xt_condition: add condition target support
+
+ include/linux/netfilter/xt_condition.h |   13 ++-
+ net/netfilter/Kconfig                  |   19 ++--
+ net/netfilter/Makefile                 |    2 +-
+ net/netfilter/xt_condition.c           |  194 +++++++++++++++++++++++---------
+ 4 files changed, 165 insertions(+), 63 deletions(-)
+
