@@ -1,44 +1,43 @@
-From: Mark Leander <mark.leander@topicbranch.net>
-Subject: [PATCH] Clear ulog message to prevent leaking uninitializied memory to user
-Date: Tue, 10 Aug 2010 20:22:31 +0000
-Message-ID: <1281471751-3397-1-git-send-email-mark.leander@topicbranch.net>
-Cc: netfilter-devel@vger.kernel.org,
-	Mark Leander <mark.leander@topicbranch.net>
-To: Patrick McHardy <kaber@trash.net>
+From: Nort Obor <obornort@googlemail.com>
+Subject: ipset-4.2 compilation fails with recent kernel
+Date: Thu, 12 Aug 2010 07:31:39 +0200
+Message-ID: <AANLkTi=cY4pJpVELPg9Pfjf=HB8kaWHDUuuWrtT1DJ8Y@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:33890 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757840Ab0HJUXJ (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:55894 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751604Ab0HLFbk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Aug 2010 16:23:09 -0400
-Received: by ewy23 with SMTP id 23so4072576ewy.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 10 Aug 2010 13:23:07 -0700 (PDT)
+	Thu, 12 Aug 2010 01:31:40 -0400
+Received: by yxg6 with SMTP id 6so276906yxg.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Aug 2010 22:31:39 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-ipt_ulog_packet() did not properly blank the char[] members
-indev_name, outdev_name, prefix and mac of struct ulog_packet_msg.
-This leaks uninitialized kernel memory to user space in the form
-of netlink NFLOG broadcasts. This change clears the whole structure
-initially to avoid this.
+hi,
 
-Signed-off-by: Mark Leander <mark.leander@topicbranch.net>
----
- net/ipv4/netfilter/ipt_ULOG.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+trying to compile ipset-4.2 / linux-2.6.35 with gcc-4.5.1, i get:
 
-diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
-index 446e0f4..07b36b0 100644
---- a/net/ipv4/netfilter/ipt_ULOG.c
-+++ b/net/ipv4/netfilter/ipt_ULOG.c
-@@ -204,6 +204,7 @@ static void ipt_ulog_packet(unsigned int hooknum,
- 	ub->qlen++;
- 
- 	pm = NLMSG_DATA(nlh);
-+	memset(pm, 0, sizeof(*pm));
- 
- 	/* We might not have a timestamp, get one */
- 	if (skb->tstamp.tv64 == 0)
--- 
-1.7.0.4
+...
+make[1]: Entering directory `/usr/src/linux-2.6.35'
+  CC [M]  /usr/src/ipset/kernel/ip_set.o
+  CC [M]  /usr/src/ipset/kernel/ipt_set.o
+/usr/src/ipset/kernel/ipt_set.c:89:20: warning: 'struct
+xt_match_param' declared inside parameter list
+/usr/src/ipset/kernel/ipt_set.c:89:20: warning: its scope is only this
+definition or declaration, which is probably not what you want
+/usr/src/ipset/kernel/ipt_set.c: In function 'match':
+/usr/src/ipset/kernel/ipt_set.c:95:45: error: dereferencing pointer to
+incomplete type
+/usr/src/ipset/kernel/ipt_set.c: At top level:
+/usr/src/ipset/kernel/ipt_set.c:215:2: warning: initialization from
+incompatible pointer type
+/usr/src/ipset/kernel/ipt_set.c:217:2: warning: initialization from
+incompatible pointer type
+make[2]: *** [/usr/src/ipset/kernel/ipt_set.o] Error 1
+...
 
+
+tia!
