@@ -1,34 +1,40 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: tproxy related crash in inet_hashtables
-Date: Sat, 14 Aug 2010 22:16:11 -0700 (PDT)
-Message-ID: <20100814.221611.15248639.davem@davemloft.net>
-References: <4C65432F.4030809@exinda.com>
-	<1281707736.4470.53.camel@edumazet-laptop>
-	<4C661D09.8030709@exinda.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Subject: [PATCH] netfilter: fix userspace header warning
+Date: Sun, 15 Aug 2010 22:03:57 +0200
+Message-ID: <20100815200357.GA4571@merkur.ravnborg.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: eric.dumazet@gmail.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, kaber@trash.net, hidden@sch.bme.hu
-To: stephen.buck@exinda.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4C661D09.8030709@exinda.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+To: Patrick McHardy <kaber@trash.net>, netdev <netdev@vger.kernel.org>,
+	netfilter <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from pqueuea.post.tele.dk ([193.162.153.9]:35778 "EHLO
+	pqueuea.post.tele.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751217Ab0HOUER (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 15 Aug 2010 16:04:17 -0400
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Stephen Buck <stephen.buck@exinda.com>
-Date: Sat, 14 Aug 2010 14:35:21 +1000
+"make headers_check" issued the following warning:
 
-> +		}
-> +		if (!node)
-> +			tb = inet_bind_bucket_create(table->bind_bucket_cachep,
-> +						     sock_net(sk), head, port);
-> +	}
->  	sk_add_bind_node(child, &tb->owners);
+  CHECK   include/linux/netfilter (64 files)
+usr/include/linux/netfilter/xt_ipvs.h:19: found __[us]{8,16,32,64} type without #include <linux/types.h>
 
-inet_bind_bucket_create() can fail due to memory allocation failure,
-you're therefore going to have to find a way to handle that.
+Fix this by as suggested including linux/types.h.
 
-And in doing so you're going to find out that there is no easy
-way out of this code path in such an error, this code was
-absolutely not designed to be able to handle cases like this.
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+diff --git a/include/linux/netfilter/xt_ipvs.h b/include/linux/netfilter/xt_ipvs.h
+index 1167aeb..eff34ac 100644
+--- a/include/linux/netfilter/xt_ipvs.h
++++ b/include/linux/netfilter/xt_ipvs.h
+@@ -1,6 +1,8 @@
+ #ifndef _XT_IPVS_H
+ #define _XT_IPVS_H
+ 
++#include <linux/types.h>
++
+ enum {
+ 	XT_IPVS_IPVS_PROPERTY =	1 << 0, /* all other options imply this one */
+ 	XT_IPVS_PROTO =		1 << 1,
