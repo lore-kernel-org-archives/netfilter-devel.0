@@ -1,56 +1,38 @@
-From: Luciano Coelho <luciano.coelho@nokia.com>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: [RFC] setting up throughput threshold indications to userspace
-Date: Mon, 16 Aug 2010 17:32:42 +0300
-Message-ID: <1281969162.27200.45.camel@chilepepper>
-References: <1279268431.1603.44.camel@powerslave> <4C40583F.40200@trash.net>
-	 <1279285829.1603.77.camel@powerslave>
-	 <alpine.LSU.2.01.1007162127090.22666@obet.zrqbmnf.qr>
-	 <1279517423.7097.2.camel@powerslave>
-	 <1281966043.27200.30.camel@chilepepper>
-	 <AANLkTikxcG8GpTTE5h28QSjD2uXpPXdNwFrshn2UKQRY@mail.gmail.com>
+Date: Mon, 16 Aug 2010 17:19:15 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1008161714260.9026@obet.zrqbmnf.qr>
+References: <1279268431.1603.44.camel@powerslave> <4C40583F.40200@trash.net>  <1279285829.1603.77.camel@powerslave>  <alpine.LSU.2.01.1007162127090.22666@obet.zrqbmnf.qr>  <1279517423.7097.2.camel@powerslave>  <1281966043.27200.30.camel@chilepepper>
+ <AANLkTinrnA0H9RH533jQQman2NLFAywx8eA=80n1vv2e@mail.gmail.com> <1281967287.27200.37.camel@chilepepper>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: ext Changli Gao <xiaosuo@gmail.com>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
 	Patrick McHardy <kaber@trash.net>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Jan Engelhardt <jengelh@medozas.de>
-To: ext Changli Gao <xiaosuo@gmail.com>
+	Samuel Ortiz <sameo@linux.intel.com>
+To: Luciano Coelho <luciano.coelho@nokia.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:54025 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753262Ab0HPOdI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Aug 2010 10:33:08 -0400
-In-Reply-To: <AANLkTikxcG8GpTTE5h28QSjD2uXpPXdNwFrshn2UKQRY@mail.gmail.com>
+Received: from borg.medozas.de ([188.40.89.202]:41542 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750908Ab0HPPT0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Aug 2010 11:19:26 -0400
+In-Reply-To: <1281967287.27200.37.camel@chilepepper>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 2010-08-16 at 16:26 +0200, ext Changli Gao wrote:
-> On Mon, Aug 16, 2010 at 9:40 PM, Luciano Coelho
-> <luciano.coelho@nokia.com> wrote:
-> > Does anyone have an idea on how I could solve this problem?
-> >
-> > I have been considering using the IDLETIMER target and activate it when
-> > the throughput goes to HIGH.  Then if this timer expires, it would
-> > inform the userspace that now there's no data going through.  But this
-> > sounds very artificial to me and will add one more dependency on the
-> > userspace, since the IDLETIMER is using sysfs to inform userspace,
-> > instead of netlink.
-> >
-> 
-> Read the code of IDLETIMER again, and I notice that IDLETIMER will
-> wake up all the sleepers on the corresponding sysfs files. So no
-> polling is needed, what you need do is watching another files for
-> read. You can use select/poll/epoll. It should be no very difficult.
 
-Yes, I know.  I have reworked the IDLETIMER for upstream inclusion, so I
-should know this after all. ;) It was just the idea of having the daemon
-have one more interface with the kernel that seemed a bit ugly...
+On Monday 2010-08-16 16:01, Luciano Coelho wrote:
+>> You can implement a daemon: which samples the statistics data of NIC
+>> periodically, calculates the average bandwidth in a period, and change
+>> the condition variables accordingly.
+>
+>We don't want to use polling from userspace.  That's the reason why we
+>decided to use iptables instead.  The idea is that we will only notify
+>the userspace when the throughput crosses the threshold line.  And the
+>rules I defined above are working rather well, except for this "detail"
+>that the BELOW signal is not sent when there's no data flowing.
 
-
--- 
-Cheers,
-Luca.
-
+Without data, the turing machine won't finish, so you can't say for
+sure that you reached below. That is sort of a halting problem, which
+is known to be unsolvable.
