@@ -1,32 +1,38 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset-4.3
-Date: Mon, 16 Aug 2010 20:59:36 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1008162056240.23016@blackhole.kfki.hu>
+From: Mistick Levi <gmistick@gmail.com>
+Subject: iptables rule matching error
+Date: Mon, 16 Aug 2010 23:06:56 +0300
+Message-ID: <AANLkTin-QPu+vaZaRy62J80qwVbz1XiazCvi9iYZ1tR3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:52913 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751812Ab0HPS7i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Aug 2010 14:59:38 -0400
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:52179 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752064Ab0HPUG6 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Aug 2010 16:06:58 -0400
+Received: by vws3 with SMTP id 3so3741705vws.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Aug 2010 13:06:57 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi,
 
-I'm happy to announce ipset 4.3. The only change in this release:
+I'm experiencing a problem with iptables...
+I add a rule to a chain with a few matches, and afterwards when i want
+to delete it, i must give it the exact order of matches i gave it
+before, otherwise it says it cant find the rule.
 
-- the support of kernels 2.6.35 and above is added
+Anyone else know this error? And if it's not an error, but there for
+performance, should'nt it be fixed?
+I'd like that change to be my first patch to iptables... so if you
+guys think the change is appropriate i'll get on it.
 
-You can download the source from the usual places
-	http://ipset.netfilter.org
-	git://git.netfilter.org/ipset.git
+Example:
+iptables -A FORWARD -s 192.168.2.2 -d 192.168.3.3 -p udp ! --fragment
+-m udp --dport 555 -m physdev --physdev-out eth0
+iptables -D FORWARD -s 192.168.2.2 -d 192.168.3.3 -p udp ! --fragment
+-m physdev --physdev-out eth0 -m udp --dport 555
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Kind Regards
+Yechiel Levi
