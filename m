@@ -1,48 +1,47 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] netfilter: don't disable BH again in BH disabled
- context
-Date: Tue, 17 Aug 2010 08:55:27 +0200
-Message-ID: <1282028127.2487.754.camel@edumazet-laptop>
-References: <1282027297-9998-1-git-send-email-xiaosuo@gmail.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: [patch nf-next] IPVS: ICMPv6 checksum calculation
+Date: Tue, 17 Aug 2010 16:00:43 +0900
+Message-ID: <20100817070036.GB742@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:37168 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756037Ab0HQGzd (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Aug 2010 02:55:33 -0400
-In-Reply-To: <1282027297-9998-1-git-send-email-xiaosuo@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, Xiaoyu Du <tingsrain@gmail.com>
+To: linux-kernel@vger.kernel.org, lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Le mardi 17 ao=C3=BBt 2010 =C3=A0 14:41 +0800, Changli Gao a =C3=A9crit=
- :
-> All the matches and targets of iptables, ip6tables are in BH disabled
-> context, since xt_info_rdlock_bh() disables BH.
->=20
+From: Xiaoyu Du <tingsrain@gmail.com>
 
-Its a thing that might change in a future version. Not a hard fact.
+Correct the ICMPv6 checksum calculation when IPv6 is is used
 
-You can probably change iptables to allow softirqs while processing
-OUTPUT chains.
+Signed-off-by: Xiaoyu Du <tingsrain@gmail.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
 
-We had some attempts in the past to switch to RCU.
+---
+ net/netfilter/ipvs/ip_vs_core.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
-It failed at that time because of some RCU implementation details, but
-with recent RCU changes, we might try again, and have a clean
-implementation, allowing softirqs.
+I wonder if this is -stable or .35 material.
 
-So your patch would need to be reverted.
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 4f8ddba..124a1ae 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -638,8 +638,12 @@ void ip_vs_nat_icmp_v6(struct sk_buff *skb,
+struct ip_vs_protocol *pp,
 
+ 	/* And finally the ICMP checksum */
+ 	icmph->icmp6_cksum = 0;
+-	/* TODO IPv6: is this correct for ICMPv6? */
+ 	ip_vs_checksum_complete(skb, icmp_offset);
++	icmph->icmp6_cksum = csum_ipv6_magic(&iph->saddr,
++			&iph->daddr,
++			skb->len - icmp_offset, IPPROTO_ICMPV6,
++			skb->csum);
++
+ 	skb->ip_summed = CHECKSUM_UNNECESSARY;
 
+ 	if (inout)
 --
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
