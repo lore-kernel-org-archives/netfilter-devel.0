@@ -1,42 +1,61 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: iptables rule matching error
-Date: Mon, 16 Aug 2010 22:29:07 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1008162227430.5282@obet.zrqbmnf.qr>
-References: <AANLkTin-QPu+vaZaRy62J80qwVbz1XiazCvi9iYZ1tR3@mail.gmail.com>
+From: Luciano Coelho <luciano.coelho@nokia.com>
+Subject: Re: [RFC] setting up throughput threshold indications to userspace
+Date: Tue, 17 Aug 2010 08:27:59 +0300
+Message-ID: <1282022879.1773.7.camel@powerslave>
+References: <1279268431.1603.44.camel@powerslave> <4C40583F.40200@trash.net>
+	 <1279285829.1603.77.camel@powerslave>
+	 <alpine.LSU.2.01.1007162127090.22666@obet.zrqbmnf.qr>
+	 <1279517423.7097.2.camel@powerslave>
+	 <1281966043.27200.30.camel@chilepepper>
+	 <AANLkTinrnA0H9RH533jQQman2NLFAywx8eA=80n1vv2e@mail.gmail.com>
+	 <1281967287.27200.37.camel@chilepepper>
+	 <alpine.LSU.2.01.1008161714260.9026@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Mistick Levi <gmistick@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: ext Changli Gao <xiaosuo@gmail.com>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Samuel Ortiz <sameo@linux.intel.com>
+To: ext Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:40195 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756497Ab0HPU3I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Aug 2010 16:29:08 -0400
-In-Reply-To: <AANLkTin-QPu+vaZaRy62J80qwVbz1XiazCvi9iYZ1tR3@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:59879 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752442Ab0HQFdk (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 Aug 2010 01:33:40 -0400
+In-Reply-To: <alpine.LSU.2.01.1008161714260.9026@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Mon, 2010-08-16 at 17:19 +0200, ext Jan Engelhardt wrote:
+> On Monday 2010-08-16 16:01, Luciano Coelho wrote:
+> >> You can implement a daemon: which samples the statistics data of NIC
+> >> periodically, calculates the average bandwidth in a period, and change
+> >> the condition variables accordingly.
+> >
+> >We don't want to use polling from userspace.  That's the reason why we
+> >decided to use iptables instead.  The idea is that we will only notify
+> >the userspace when the throughput crosses the threshold line.  And the
+> >rules I defined above are working rather well, except for this "detail"
+> >that the BELOW signal is not sent when there's no data flowing.
+> 
+> Without data, the turing machine won't finish, so you can't say for
+> sure that you reached below. That is sort of a halting problem, which
+> is known to be unsolvable.
 
-On Monday 2010-08-16 22:06, Mistick Levi wrote:
->
->I'm experiencing a problem with iptables...
->I add a rule to a chain with a few matches, and afterwards when i want
->to delete it, i must give it the exact order of matches i gave it
->before, otherwise it says it cant find the rule.
->
->Anyone else know this error? And if it's not an error, but there for
->performance, should'nt it be fixed?
->I'd like that change to be my first patch to iptables... so if you
->guys think the change is appropriate i'll get on it.
->
->Example:
->iptables -A FORWARD -s 192.168.2.2 -d 192.168.3.3 -p udp ! --fragment
->-m udp --dport 555 -m physdev --physdev-out eth0
->iptables -D FORWARD -s 192.168.2.2 -d 192.168.3.3 -p udp ! --fragment
->-m physdev --physdev-out eth0 -m udp --dport 555
+Yes, that's the theoretical way to put it.  :) In practice I see that
+without data the rules won't be traversed and therefore we can't make
+any rate calculations.
 
-These are not the same two rules. One evaluates the UDP header first,
-the other evaluates the physdev interface first. Note that they are
-evaluated in short-circuit fashion much like C expressions. Order is
-important. This has implications for modules which update an internal
-state.
+But if I add an idletimer (which uses a timer to trigger execution,
+regardless of the availability of packets to process) with a timeout
+equal to the estimator's measurement averaging interval (ewmalog), I can
+be sure that the rate went to 0 bps if the timer expires.  Ie. no
+packets at all during the measurement interval means 0 bps, right?
+
+-- 
+Cheers,
+Luca.
+
