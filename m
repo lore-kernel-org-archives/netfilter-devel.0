@@ -1,76 +1,75 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] netfilter: save the hash of the tuple in the original
- direction for latter use
-Date: Tue, 17 Aug 2010 11:01:55 +0200
-Message-ID: <1282035715.2448.24.camel@edumazet-laptop>
-References: <1282029386-2952-1-git-send-email-xiaosuo@gmail.com>
-	 <1282033817.2448.18.camel@edumazet-laptop>
-	 <AANLkTinuUuZSqEzfQAF422x2gYsVLzFQtXZKNLhgw+9g@mail.gmail.com>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [patch nf-next] IPVS: ICMPv6 checksum calculation
+Date: Tue, 17 Aug 2010 12:25:56 +0300 (EEST)
+Message-ID: <Pine.LNX.4.58.1008171143500.2771@u.domain.uli>
+References: <20100817070036.GB742@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: linux-kernel@vger.kernel.org, lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	Xiaoyu Du <tingsrain@gmail.com>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTinuUuZSqEzfQAF422x2gYsVLzFQtXZKNLhgw+9g@mail.gmail.com>
+In-Reply-To: <20100817070036.GB742@verge.net.au>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Le mardi 17 ao=C3=BBt 2010 =C3=A0 16:46 +0800, Changli Gao a =C3=A9crit=
- :
-> On Tue, Aug 17, 2010 at 4:30 PM, Eric Dumazet <eric.dumazet@gmail.com=
-> wrote:
-> >
-> > Three variables ?
-> >
-> > static atomic_t rnd __read_mostly;
-> >
-> > if (unlikely(!atomic_read(&rnd))) {
-> >        unsigned int val;
-> >
-> >        get_random_bytes(&val, sizeof(val));
-> >        if (!val)
-> >                val =3D 1;
-> >        atomic_cmpxchg(&rnd, 0, val);
-> > }
-> >
->=20
->=20
-> Good idea. However, atomic_t is a volatile variable, and it prevent
-> ILP. I think maybe it hurts the likely case. cmpxchg() is an atomic
-> operations, so is the bellow code better?
->=20
 
-I am not sure what you mean by ILP.
+	Hello,
 
-On x86, reading twice same memory location is faster than
-reading it and store in temp variable (on stack)
-reading from stack
+On Tue, 17 Aug 2010, Simon Horman wrote:
 
->  static unsigned long rnd __read_mostly;
->=20
->  if (unlikely(!rnd)) {
->         unsigned long val;
->=20
->         get_random_bytes(&val, sizeof(val));
->         if (!val)
->                 val =3D 1;
->         cmpxchg(&rnd, 0, val);
->  }
->=20
-> Thanks.
->=20
+> From: Xiaoyu Du <tingsrain@gmail.com>
+> 
+> Correct the ICMPv6 checksum calculation when IPv6 is is used
+> 
+> Signed-off-by: Xiaoyu Du <tingsrain@gmail.com>
+> Signed-off-by: Simon Horman <horms@verge.net.au>
+> 
+> ---
+>  net/netfilter/ipvs/ip_vs_core.c |    6 +++++-
+>  1 files changed, 5 insertions(+), 1 deletions(-)
+> 
+> I wonder if this is -stable or .35 material.
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> index 4f8ddba..124a1ae 100644
+> --- a/net/netfilter/ipvs/ip_vs_core.c
+> +++ b/net/netfilter/ipvs/ip_vs_core.c
+> @@ -638,8 +638,12 @@ void ip_vs_nat_icmp_v6(struct sk_buff *skb,
+> struct ip_vs_protocol *pp,
+> 
+>  	/* And finally the ICMP checksum */
+>  	icmph->icmp6_cksum = 0;
+> -	/* TODO IPv6: is this correct for ICMPv6? */
 
-I am not sure we must use a long (we really need 4 bytes only), and las=
-t
-time I tried to use cmpxchg(), I was being told it was not available on
-all arches.
+	May be ip_vs_checksum_complete() is not needed here?
+Also, skb->csum is not valid for every ip_summed value.
+May be we need to apply CHECKSUM_PARTIAL kind of setup for the IPv6.
+Such example is net/ipv6/udp.c:udp6_ufo_send_check().
+Later dev_queue_xmit() and skb_checksum_help() should take care
+for the next steps. Something like this can be tested:
 
-But seeing it used in kernel/pid.c, maybe its not true anymore (that is=
-,
-__HAVE_ARCH_CMPXCHG is always defined to 1)
+	icmph->icmp6_cksum = csum_ipv6_magic(&iph->saddr,
+		&iph->daddr,
+		skb->len - icmp_offset, IPPROTO_ICMPV6,
+		0);
+	skb->csum_start = skb_network_header(skb) - skb->head +
+			  icmp_offset;
+	skb->csum_offset = offsetof(struct icmp6hdr, icmp6_cksum);
+	skb->ip_summed = CHECKSUM_PARTIAL;
 
-Since its a recent change (in kernel/pid.c), I would wait a bit and see
-if an arch maintainer complains ;)
+>  	ip_vs_checksum_complete(skb, icmp_offset);
+> +	icmph->icmp6_cksum = csum_ipv6_magic(&iph->saddr,
+> +			&iph->daddr,
+> +			skb->len - icmp_offset, IPPROTO_ICMPV6,
+> +			skb->csum);
+> +
+>  	skb->ip_summed = CHECKSUM_UNNECESSARY;
+> 
+>  	if (inout)
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
