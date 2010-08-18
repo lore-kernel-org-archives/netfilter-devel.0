@@ -1,57 +1,62 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH 7/8] netfilter: xt_hashlimit: use proto_ports_offset() to support AH message
-Date: Wed, 18 Aug 2010 13:06:39 +0800
-Message-ID: <1282107999-3663-1-git-send-email-xiaosuo@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Changli Gao <xiaosuo@gmail.com>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:38714 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750979Ab0HRFHH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Aug 2010 01:07:07 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [patch nf-next] IPVS: ICMPv6 checksum calculation
+Date: Wed, 18 Aug 2010 14:57:16 +0900
+Message-ID: <20100818055716.GA32429@verge.net.au>
+References: <20100817070036.GB742@verge.net.au>
+ <Pine.LNX.4.58.1008171143500.2771@u.domain.uli>
+ <20100818002149.GA18114@verge.net.au>
+ <20100817.172602.193696444.davem@davemloft.net>
+ <AANLkTimW6UszuFspN+S3m8WdS1dPcwTmy+m2kT4X+7MR@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>, ja@ssi.bg,
+	linux-kernel@vger.kernel.org, lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, kaber@trash.net
+To: xiaoyu Du <tingsrain@gmail.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTimW6UszuFspN+S3m8WdS1dPcwTmy+m2kT4X+7MR@mail.gmail.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
----
- net/netfilter/xt_hashlimit.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index b46a839..9228ee0 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -448,6 +448,7 @@ hashlimit_init_dst(const struct xt_hashlimit_htable *hinfo,
- {
- 	__be16 _ports[2], *ports;
- 	u8 nexthdr;
-+	int poff;
- 
- 	memset(dst, 0, sizeof(*dst));
- 
-@@ -492,19 +493,13 @@ hashlimit_init_dst(const struct xt_hashlimit_htable *hinfo,
- 		return 0;
- 	}
- 
--	switch (nexthdr) {
--	case IPPROTO_TCP:
--	case IPPROTO_UDP:
--	case IPPROTO_UDPLITE:
--	case IPPROTO_SCTP:
--	case IPPROTO_DCCP:
--		ports = skb_header_pointer(skb, protoff, sizeof(_ports),
-+	poff = proto_ports_offset(nexthdr);
-+	if (poff >= 0) {
-+		ports = skb_header_pointer(skb, protoff + poff, sizeof(_ports),
- 					   &_ports);
--		break;
--	default:
-+	} else {
- 		_ports[0] = _ports[1] = 0;
- 		ports = _ports;
--		break;
- 	}
- 	if (!ports)
- 		return -1;
+On Wed, Aug 18, 2010 at 12:20:14PM +0800, xiaoyu Du wrote:
+> 2010/8/18 David Miller <davem@davemloft.net>:
+> > From: Simon Horman <horms@verge.net.au>
+> > Date: Wed, 18 Aug 2010 09:21:49 +0900
+> >
+> >> [ CCing netdev for comment ]
+> >>
+> >> On Tue, Aug 17, 2010 at 12:25:56PM +0300, Julian Anastasov wrote:
+> > =C2=A0...
+> >>> =C2=A0 =C2=A0 =C2=A0May be ip_vs_checksum_complete() is not neede=
+d here?
+> >>> Also, skb->csum is not valid for every ip_summed value.
+> >>> May be we need to apply CHECKSUM_PARTIAL kind of setup for the IP=
+v6.
+> >>> Such example is net/ipv6/udp.c:udp6_ufo_send_check().
+> >>> Later dev_queue_xmit() and skb_checksum_help() should take care
+> >>> for the next steps. Something like this can be tested:
+> >>>
+> >>> =C2=A0 =C2=A0 =C2=A0icmph->icmp6_cksum =3D csum_ipv6_magic(&iph->=
+saddr,
+> >>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0&iph->daddr,
+> >>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0skb->len - icmp_o=
+ffset, IPPROTO_ICMPV6,
+> >>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A00);
+> >>> =C2=A0 =C2=A0 =C2=A0skb->csum_start =3D skb_network_header(skb) -=
+ skb->head +
+> >>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0icmp_offset;
+> >>> =C2=A0 =C2=A0 =C2=A0skb->csum_offset =3D offsetof(struct icmp6hdr=
+, icmp6_cksum);
+> >>> =C2=A0 =C2=A0 =C2=A0skb->ip_summed =3D CHECKSUM_PARTIAL;
+> >>>
+> >
+> > Yes, using CHECKSUM_PARTIAL unconditionally would work.
+> >
+> Thanks, I learned this. You gave me a big cake.
+
+[ please don't top-post ]
+
+Xiaoyu, are you in a position to test the code proposed by Julian?
