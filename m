@@ -1,62 +1,90 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [patch nf-next] IPVS: ICMPv6 checksum calculation
-Date: Wed, 18 Aug 2010 14:57:16 +0900
-Message-ID: <20100818055716.GA32429@verge.net.au>
-References: <20100817070036.GB742@verge.net.au>
- <Pine.LNX.4.58.1008171143500.2771@u.domain.uli>
- <20100818002149.GA18114@verge.net.au>
- <20100817.172602.193696444.davem@davemloft.net>
- <AANLkTimW6UszuFspN+S3m8WdS1dPcwTmy+m2kT4X+7MR@mail.gmail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH 6/8] netfilter: ipt_CLUSTERIP: use proto_ports_offset()
+ to support AH message
+Date: Wed, 18 Aug 2010 08:08:28 +0200
+Message-ID: <1282111708.2456.11.camel@edumazet-laptop>
+References: <1282107952-3624-1-git-send-email-xiaosuo@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, ja@ssi.bg,
-	linux-kernel@vger.kernel.org, lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, kaber@trash.net
-To: xiaoyu Du <tingsrain@gmail.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTimW6UszuFspN+S3m8WdS1dPcwTmy+m2kT4X+7MR@mail.gmail.com>
-Sender: lvs-devel-owner@vger.kernel.org
+Cc: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1282107952-3624-1-git-send-email-xiaosuo@gmail.com>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Aug 18, 2010 at 12:20:14PM +0800, xiaoyu Du wrote:
-> 2010/8/18 David Miller <davem@davemloft.net>:
-> > From: Simon Horman <horms@verge.net.au>
-> > Date: Wed, 18 Aug 2010 09:21:49 +0900
-> >
-> >> [ CCing netdev for comment ]
-> >>
-> >> On Tue, Aug 17, 2010 at 12:25:56PM +0300, Julian Anastasov wrote:
-> > =C2=A0...
-> >>> =C2=A0 =C2=A0 =C2=A0May be ip_vs_checksum_complete() is not neede=
-d here?
-> >>> Also, skb->csum is not valid for every ip_summed value.
-> >>> May be we need to apply CHECKSUM_PARTIAL kind of setup for the IP=
-v6.
-> >>> Such example is net/ipv6/udp.c:udp6_ufo_send_check().
-> >>> Later dev_queue_xmit() and skb_checksum_help() should take care
-> >>> for the next steps. Something like this can be tested:
-> >>>
-> >>> =C2=A0 =C2=A0 =C2=A0icmph->icmp6_cksum =3D csum_ipv6_magic(&iph->=
-saddr,
-> >>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0&iph->daddr,
-> >>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0skb->len - icmp_o=
-ffset, IPPROTO_ICMPV6,
-> >>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A00);
-> >>> =C2=A0 =C2=A0 =C2=A0skb->csum_start =3D skb_network_header(skb) -=
- skb->head +
-> >>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0icmp_offset;
-> >>> =C2=A0 =C2=A0 =C2=A0skb->csum_offset =3D offsetof(struct icmp6hdr=
-, icmp6_cksum);
-> >>> =C2=A0 =C2=A0 =C2=A0skb->ip_summed =3D CHECKSUM_PARTIAL;
-> >>>
-> >
-> > Yes, using CHECKSUM_PARTIAL unconditionally would work.
-> >
-> Thanks, I learned this. You gave me a big cake.
+Le mercredi 18 ao=C3=BBt 2010 =C3=A0 13:05 +0800, Changli Gao a =C3=A9c=
+rit :
+> Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+> ---
+>  net/ipv4/netfilter/ipt_CLUSTERIP.c |   34 ++++++++++++++++++--------=
+--------
+>  1 file changed, 18 insertions(+), 16 deletions(-)
+> diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/=
+ipt_CLUSTERIP.c
+> index 3a43cf3..11c3534 100644
+> --- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
+> +++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+> @@ -29,6 +29,7 @@
+>  #include <net/netfilter/nf_conntrack.h>
+>  #include <net/net_namespace.h>
+>  #include <net/checksum.h>
+> +#include <net/ip.h>
+> =20
+>  #define CLUSTERIP_VERSION "0.8"
+> =20
+> @@ -231,24 +232,25 @@ clusterip_hashfn(const struct sk_buff *skb,
+>  {
+>  	const struct iphdr *iph =3D ip_hdr(skb);
+>  	unsigned long hashval;
+> -	u_int16_t sport, dport;
+> +	u_int16_t sport =3D 0, dport =3D 0;
+>  	const u_int16_t *ports;
+> =20
+> -	switch (iph->protocol) {
+> -	case IPPROTO_TCP:
+> -	case IPPROTO_UDP:
+> -	case IPPROTO_UDPLITE:
+> -	case IPPROTO_SCTP:
+> -	case IPPROTO_DCCP:
+> -	case IPPROTO_ICMP:
+> -		ports =3D (const void *)iph+iph->ihl*4;
+> -		sport =3D ports[0];
+> -		dport =3D ports[1];
+> -		break;
+> -	default:
+> -		if (net_ratelimit())
+> -			pr_info("unknown protocol %u\n", iph->protocol);
+> -		sport =3D dport =3D 0;
+> +	if (!(iph->frag_off & htons(IP_MF|IP_OFFSET))) {
 
-[ please don't top-post ]
+This added test is not documented in your Changelog
 
-Xiaoyu, are you in a position to test the code proposed by Julian?
+Please dont add such things not telling why you do it.
+
+I am not sure it is needed here, I dont know ipt_CLUSTERIP, but dont
+defrag takes place before it ?
+
+> +		int poff;
+> +
+> +		poff =3D proto_ports_offset(iph->protocol);
+> +		if (poff >=3D 0) {
+> +			u16 _ports[2];
+> +			ports =3D skb_header_pointer(skb, iph->ihl * 4 + poff,
+> +						   4, _ports);
+> +			if (ports) {
+> +				sport =3D ports[0];
+> +				dport =3D ports[1];
+> +			}
+> +		} else {
+> +			if (net_ratelimit())
+> +				pr_info("unknown protocol %u\n", iph->protocol);
+> +		}
+>  	}
+> =20
+>  	switch (config->hash_mode) {
+
+
