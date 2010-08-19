@@ -1,45 +1,45 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: RE: iptables rule matching error
-Date: Thu, 19 Aug 2010 21:59:46 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1008192129010.7622@obet.zrqbmnf.qr>
-References: <AANLkTin-QPu+vaZaRy62J80qwVbz1XiazCvi9iYZ1tR3@mail.gmail.com> <alpine.LSU.2.01.1008162227430.5282@obet.zrqbmnf.qr> <AANLkTi=MwadVp=0Yx93QsMkz2f6=Fc6LsMCGnZ9CscFH@mail.gmail.com> <AANLkTimJVo1fY=qnzzm5vt6DLEnC9eY2MKedjLB9f4Jd@mail.gmail.com>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH v2] netfilter: save the hash of the tuple in the original
+ direction for latter use
+Date: Fri, 20 Aug 2010 07:10:40 +0800
+Message-ID: <AANLkTinA3-KMPKJa-66QCMUpbDFwey2mjE=VN=9=zg=6@mail.gmail.com>
+References: <1282228389-3029-1-git-send-email-xiaosuo@gmail.com>
+ <20100819152149.GA19744@Krystal> <AANLkTim5wn0Y-+081gvm7FkWx3NioRvtRMWy2uF4nji2@mail.gmail.com>
+ <1282232786.2549.60.camel@edumazet-laptop> <20100819161112.GA24357@Krystal>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Mistick Levi <gmistick@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:41279 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752041Ab0HST7s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Aug 2010 15:59:48 -0400
-In-Reply-To: <AANLkTimJVo1fY=qnzzm5vt6DLEnC9eY2MKedjLB9f4Jd@mail.gmail.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:64872 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751080Ab0HSXLB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 19 Aug 2010 19:11:01 -0400
+In-Reply-To: <20100819161112.GA24357@Krystal>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2010-08-19 21:21, Mistick Levi wrote:
->Hi,
->thanks for the quick reply.
+On Fri, Aug 20, 2010 at 12:11 AM, Mathieu Desnoyers
+<mathieu.desnoyers@polymtl.ca> wrote:
 >
->Could you point a few links with more information? for example what
->modules update internal state and why the evaluation order is
->important?
+> Ah, I see. But I think the static variable should stay declared outside
+> of the function scope, with a nice comment explaining why it's not
+> initialized at init-time.
+>
+> Hiding global state in function code is usually frowned upon.
+>
 
-xt_hashlimit.ko
-xt_limit.ko
-xt_quota.ko
-xt_recent.ko
-xt_statistic.ko
+I don't agree with you. We'd better not expose the variable which
+isn't expected to be used by others. If not, maybe someone will misuse
+it. The user should only reply on the interface, but not the internal
+implementation.
 
->and why does it matter which match evaluate first when the issue here
->is with deletion of a rule... could you give a few examples?
+Thanks.
 
- -m statistic --mode nth --every 10 -m limit --limit 1/s -j FOO
-vs
- -m limit --limit 1/s -m statistic --mode nth --every 10 -j FOO
-
-First one looks at every 10th packet and of those FOOs only 1 per 
-second.
-Second one looks at one packet every second and then FOOS every 10th of 
-them.
-
-Big difference.
+-- 
+Regards,
+Changli Gao(xiaosuo@gmail.com)
