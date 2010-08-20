@@ -1,55 +1,60 @@
 From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH v3] netfilter: save the hash of the tuple in the original
- direction for latter use
-Date: Fri, 20 Aug 2010 23:36:44 +0800
-Message-ID: <AANLkTinic7H0r7kAgsBiRAbn7MCeqxA0Gme7oOkmPUdJ@mail.gmail.com>
-References: <1282316003-2966-1-git-send-email-xiaosuo@gmail.com>
- <1282317016.2484.173.camel@edumazet-laptop> <AANLkTimj=6HBdZK0WiPBxhm9YPG_8zRXEZyP--E7Shj8@mail.gmail.com>
- <1282318163.2484.212.camel@edumazet-laptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
+Subject: [PATCH 1/2] netfilter: fix the hash random initializing race
+Date: Sat, 21 Aug 2010 00:06:44 +0800
+Message-ID: <1282320404-2948-1-git-send-email-xiaosuo@gmail.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
 	"David S. Miller" <davem@davemloft.net>,
-	Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>,
-	akpm@linux-foundation.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1282318163.2484.212.camel@edumazet-laptop>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Changli Gao <xiaosuo@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:43714 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751284Ab0HTQHB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Aug 2010 12:07:01 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Aug 20, 2010 at 11:29 PM, Eric Dumazet <eric.dumazet@gmail.com>=
- wrote:
-> Le vendredi 20 ao=FBt 2010 =E0 23:22 +0800, Changli Gao a =E9crit :
->
->> I should keep the old way, but fix a race.
->>
->> =A0 =A0 =A0 =A0 if (unlikely(!nf_conntrack_hash_rnd_initted)) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 get_random_bytes(&nf_conntrack_hash_=
-rnd,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 size=
-of(nf_conntrack_hash_rnd));
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 nf_conntrack_hash_rnd_initted =3D 1;
->> =A0 =A0 =A0 =A0 }
->>
->> nf_conntrack_alloc() isn't called with in the nf_conntrack_lock. So
->> the above code maybe executed more than once on different CPUs. It i=
-s
->> easy to fix with the cmpxchg() trick.
->
-> Sure, please fix the race first.
->
-> But as I said, its not critical, if one or two conntracks are hashed =
-on
-> wrong basis. They will eventually disappear after timeout.
->
+nf_conntrack_alloc() isn't called with nf_conntrack_lock locked, so hash
+random initializing code maybe executed more than once on different CPUs.
 
-Yes, and it isn't critical. I think this fix should be in a separate pa=
-tch.
-
-
---=20
-Regards,
-Changli Gao(xiaosuo@gmail.com)
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+---
+ net/netfilter/nf_conntrack_core.c |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index df3eedb..7ae7f71 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -65,8 +65,7 @@ EXPORT_SYMBOL_GPL(nf_conntrack_max);
+ DEFINE_PER_CPU(struct nf_conn, nf_conntrack_untracked);
+ EXPORT_PER_CPU_SYMBOL(nf_conntrack_untracked);
+ 
+-static int nf_conntrack_hash_rnd_initted;
+-static unsigned int nf_conntrack_hash_rnd;
++static unsigned int nf_conntrack_hash_rnd __read_mostly;
+ 
+ static u_int32_t __hash_conntrack(const struct nf_conntrack_tuple *tuple,
+ 				  u16 zone, unsigned int size, unsigned int rnd)
+@@ -574,10 +573,16 @@ struct nf_conn *nf_conntrack_alloc(struct net *net, u16 zone,
+ {
+ 	struct nf_conn *ct;
+ 
+-	if (unlikely(!nf_conntrack_hash_rnd_initted)) {
+-		get_random_bytes(&nf_conntrack_hash_rnd,
+-				sizeof(nf_conntrack_hash_rnd));
+-		nf_conntrack_hash_rnd_initted = 1;
++	if (unlikely(!nf_conntrack_hash_rnd)) {
++		unsigned int rand;
++
++		/* Why not initialize nf_conntrack_rnd in a "init()" function ?
++		 * Because there isn't enough entropy when system initializing,
++		 * and we initialize it as late as possible. */
++		do {
++			get_random_bytes(&rand, sizeof(rand));
++		} while (!rand);
++		cmpxchg(&nf_conntrack_hash_rnd, 0, rand);
+ 	}
+ 
+ 	/* We don't want any race condition at early drop stage */
