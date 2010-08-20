@@ -1,151 +1,64 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [rfc] IPVS: convert scheduler management to RCU
-Date: Fri, 20 Aug 2010 12:29:00 -0700
-Message-ID: <20100820192900.GD2447@linux.vnet.ibm.com>
-References: <20100820133320.GA29311@verge.net.au>
- <20100820135918.GB17980@verge.net.au>
-Reply-To: paulmck@linux.vnet.ibm.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100820135918.GB17980@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: [PATCH 1/2 v2] netfilter: fix the hash random initializing race
+Date: Sat, 21 Aug 2010 06:48:16 +0800
+Message-ID: <1282344496-5270-1-git-send-email-xiaosuo@gmail.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Jan Engelhardt <jengelh@medozas.de>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Changli Gao <xiaosuo@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:46379 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751583Ab0HTWsy (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Aug 2010 18:48:54 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Aug 20, 2010 at 10:59:19PM +0900, Simon Horman wrote:
-> On Fri, Aug 20, 2010 at 10:33:21PM +0900, Simon Horman wrote:
-> > Signed-off-by: Simon Horman <horms@verge.net.au>
-> > 
-> > --- 
-> > 
-> > I'm still getting my head around RCU, so review would be greatly appreciated.
-> > 
-> > It occurs to me that this code is not performance critical, so
-> > perhaps simply replacing the rwlock with a spinlock would be better?
-> > 
-> > Index: nf-next-2.6/net/netfilter/ipvs/ip_vs_sched.c
-> > ===================================================================
-> > --- nf-next-2.6.orig/net/netfilter/ipvs/ip_vs_sched.c	2010-08-20 22:21:01.000000000 +0900
-> > +++ nf-next-2.6/net/netfilter/ipvs/ip_vs_sched.c	2010-08-20 22:21:51.000000000 +0900
-> > @@ -35,7 +35,7 @@
-> >  static LIST_HEAD(ip_vs_schedulers);
-> >  
-> >  /* lock for service table */
-> > -static DEFINE_RWLOCK(__ip_vs_sched_lock);
-> > +static DEFINE_SPINLOCK(ip_vs_sched_mutex);
-> >  
-> >  
-> >  /*
-> > @@ -91,9 +91,9 @@ static struct ip_vs_scheduler *ip_vs_sch
-> >  
-> >  	IP_VS_DBG(2, "%s(): sched_name \"%s\"\n", __func__, sched_name);
-> >  
-> > -	read_lock_bh(&__ip_vs_sched_lock);
-> > +	rcu_read_lock_bh();
-> >  
-> > -	list_for_each_entry(sched, &ip_vs_schedulers, n_list) {
-> > +	list_for_each_entry_rcu(sched, &ip_vs_schedulers, n_list) {
-> >  		/*
-> >  		 * Test and get the modules atomically
-> >  		 */
-> > @@ -105,14 +105,14 @@ static struct ip_vs_scheduler *ip_vs_sch
-> >  		}
-> >  		if (strcmp(sched_name, sched->name)==0) {
-> >  			/* HIT */
-> > -			read_unlock_bh(&__ip_vs_sched_lock);
-> > +			rcu_read_unlock_bh();
-> >  			return sched;
-> >  		}
-> >  		if (sched->module)
-> >  			module_put(sched->module);
-> >  	}
-> >  
-> > -	read_unlock_bh(&__ip_vs_sched_lock);
-> > +	rcu_read_unlock_bh();
-> >  	return NULL;
-> >  }
-> >  
-> > @@ -167,10 +167,10 @@ int register_ip_vs_scheduler(struct ip_v
-> >  	/* increase the module use count */
-> >  	ip_vs_use_count_inc();
-> >  
-> > -	write_lock_bh(&__ip_vs_sched_lock);
-> > +	spin_lock_bh(&ip_vs_sched_mutex);
-> >  
-> >  	if (!list_empty(&scheduler->n_list)) {
-> > -		write_unlock_bh(&__ip_vs_sched_lock);
-> > +		spin_unlock_bh(&ip_vs_sched_mutex);
-> >  		ip_vs_use_count_dec();
-> >  		pr_err("%s(): [%s] scheduler already linked\n",
-> >  		       __func__, scheduler->name);
-> > @@ -181,9 +181,9 @@ int register_ip_vs_scheduler(struct ip_v
-> >  	 *  Make sure that the scheduler with this name doesn't exist
-> >  	 *  in the scheduler list.
-> >  	 */
-> > -	list_for_each_entry(sched, &ip_vs_schedulers, n_list) {
-> > +	list_for_each_entry_rcu(sched, &ip_vs_schedulers, n_list) {
-> >  		if (strcmp(scheduler->name, sched->name) == 0) {
-> > -			write_unlock_bh(&__ip_vs_sched_lock);
-> > +			spin_unlock_bh(&ip_vs_sched_mutex);
-> >  			ip_vs_use_count_dec();
-> >  			pr_err("%s(): [%s] scheduler already existed "
-> >  			       "in the system\n", __func__, scheduler->name);
-> > @@ -193,8 +193,8 @@ int register_ip_vs_scheduler(struct ip_v
-> >  	/*
-> >  	 *	Add it into the d-linked scheduler list
-> >  	 */
-> > -	list_add(&scheduler->n_list, &ip_vs_schedulers);
-> > -	write_unlock_bh(&__ip_vs_sched_lock);
-> > +	list_add_rcu(&scheduler->n_list, &ip_vs_schedulers);
-> > +	spin_unlock_bh(&ip_vs_sched_mutex);
-> >  
-> >  	pr_info("[%s] scheduler registered.\n", scheduler->name);
-> >  
-> > @@ -212,9 +212,9 @@ int unregister_ip_vs_scheduler(struct ip
-> >  		return -EINVAL;
-> >  	}
-> >  
-> > -	write_lock_bh(&__ip_vs_sched_lock);
-> > +	spin_lock_bh(&ip_vs_sched_mutex);
-> >  	if (list_empty(&scheduler->n_list)) {
-> > -		write_unlock_bh(&__ip_vs_sched_lock);
-> > +		spin_unlock_bh(&ip_vs_sched_mutex);
-> >  		pr_err("%s(): [%s] scheduler is not in the list. failed\n",
-> >  		       __func__, scheduler->name);
-> >  		return -EINVAL;
-> > @@ -223,8 +223,8 @@ int unregister_ip_vs_scheduler(struct ip
-> >  	/*
-> >  	 *	Remove it from the d-linked scheduler list
-> >  	 */
-> > -	list_del(&scheduler->n_list);
-> > -	write_unlock_bh(&__ip_vs_sched_lock);
-> > +	list_del_rcu(&scheduler->n_list);
-> > +	spin_unlock_bh(&ip_vs_sched_mutex);
-> 
-> On further reading, I believe that I need a synchronize_rcu(); here,
+nf_conntrack_alloc() isn't called with nf_conntrack_lock locked, so hash
+random initializing code maybe executed more than once on different CPUs.
 
-Good catch!
-
-However, you actually need synchronize_rcu_bh() to match your
-rcu_read_lock_bh() calls.  Also, given Julian's comment, you probably
-need something to show that this conversion is a real improvement.
-
-							Thanx, Paul
-
-> >  	/* decrease the module use count */
-> >  	ip_vs_use_count_dec();
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe lvs-devel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+---
+v2: fix the coding style for multi-line comment
+ net/netfilter/nf_conntrack_core.c |   19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index df3eedb..4c0ad9b 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -65,8 +65,7 @@ EXPORT_SYMBOL_GPL(nf_conntrack_max);
+ DEFINE_PER_CPU(struct nf_conn, nf_conntrack_untracked);
+ EXPORT_PER_CPU_SYMBOL(nf_conntrack_untracked);
+ 
+-static int nf_conntrack_hash_rnd_initted;
+-static unsigned int nf_conntrack_hash_rnd;
++static unsigned int nf_conntrack_hash_rnd __read_mostly;
+ 
+ static u_int32_t __hash_conntrack(const struct nf_conntrack_tuple *tuple,
+ 				  u16 zone, unsigned int size, unsigned int rnd)
+@@ -574,10 +573,18 @@ struct nf_conn *nf_conntrack_alloc(struct net *net, u16 zone,
+ {
+ 	struct nf_conn *ct;
+ 
+-	if (unlikely(!nf_conntrack_hash_rnd_initted)) {
+-		get_random_bytes(&nf_conntrack_hash_rnd,
+-				sizeof(nf_conntrack_hash_rnd));
+-		nf_conntrack_hash_rnd_initted = 1;
++	if (unlikely(!nf_conntrack_hash_rnd)) {
++		unsigned int rand;
++
++		/*
++		 * Why not initialize nf_conntrack_rnd in a "init()" function ?
++		 * Because there isn't enough entropy when system initializing,
++		 * and we initialize it as late as possible.
++		 */
++		do {
++			get_random_bytes(&rand, sizeof(rand));
++		} while (!rand);
++		cmpxchg(&nf_conntrack_hash_rnd, 0, rand);
+ 	}
+ 
+ 	/* We don't want any race condition at early drop stage */
