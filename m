@@ -1,23 +1,26 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 7/8] netfilter: xt_hashlimit: use proto_ports_offset()
- to support AH message
-Date: Thu, 19 Aug 2010 17:17:52 -0700 (PDT)
-Message-ID: <20100819.171752.241910405.davem@davemloft.net>
-References: <1282107999-3663-1-git-send-email-xiaosuo@gmail.com>
+From: krunal patel <krunal.raj@gmail.com>
+Subject: socket filter
+Date: Fri, 20 Aug 2010 09:57:33 +0530
+Message-ID: <AANLkTi=_YJTBy5pPfgBAi-cNt=ock0UGGcdD=X94YtUg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: xiaosuo@gmail.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1282107999-3663-1-git-send-email-xiaosuo@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:58334 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750787Ab0HTE1f (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Aug 2010 00:27:35 -0400
+Received: by bwz11 with SMTP id 11so1788096bwz.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Aug 2010 21:27:34 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Changli Gao <xiaosuo@gmail.com>
-Date: Wed, 18 Aug 2010 13:06:39 +0800
+Hi,
 
-> Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-
-Applied.
+There are ioctl's for attaching bpf like filters to socket. I found it
+in kernel documentation.
+    setsockopt(sockfd, SOL_SOCKET, SO_ATTACH_FILTER, &Filter, sizeof(Filter));
+I doubt is can we attach filters in case of netlink socket.
+I am logging all packets using ULOG target and using ulogd.
+Is it possible to use same ioctl for netlink socket we create in ulogd?
