@@ -1,38 +1,83 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [patch nf-next] IPVS: convert __ip_vs_sched_lock to a spinlock
-Date: Fri, 20 Aug 2010 16:56:28 +0200
-Message-ID: <1282316188.2484.147.camel@edumazet-laptop>
-References: <20100820145249.GB11781@verge.net.au>
+From: yao zhao <dragonlinux@gmail.com>
+Subject: Re: [rfc] IPVS: convert scheduler management to RCU
+Date: Fri, 20 Aug 2010 11:04:02 -0400
+Message-ID: <AANLkTikCd_xCWUN+dkb_BkOrkBGSPe4xkmAebtgEiufy@mail.gmail.com>
+References: <20100820133320.GA29311@verge.net.au>
+	<AANLkTimS7V3z1kEwmEFCCvPzJX=D9Oqw=BNEuN-YZ0tx@mail.gmail.com>
+	<1282313150.2484.65.camel@edumazet-laptop>
+	<AANLkTi=t7wDZO23Cim1LJ_Ot2FUe4bR+XG6H5uJfTuG+@mail.gmail.com>
+	<1282314765.2484.104.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+Cc: Changli Gao <xiaosuo@gmail.com>, Simon Horman <horms@verge.net.au>,
+	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org,
 	Stephen Hemminger <shemminger@vyatta.com>,
-	Changli Gao <xiaosuo@gmail.com>,
-	yao zhao <dragonlinux@gmail.com>,
 	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>, Patrick McHardy <kaber@trash.net>
-To: Simon Horman <horms@verge.net.au>
+	Julian Anastasov <ja@ssi.bg>,
+	Paul E McKenney <paulmck@linux.vnet.ibm.com>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:61842 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751904Ab0HTO4e (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:46526 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752200Ab0HTPEH convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Aug 2010 10:56:34 -0400
-In-Reply-To: <20100820145249.GB11781@verge.net.au>
+	Fri, 20 Aug 2010 11:04:07 -0400
+In-Reply-To: <1282314765.2484.104.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le vendredi 20 ao=C3=BBt 2010 =C3=A0 23:52 +0900, Simon Horman a =C3=A9=
-crit :
-> Also rename __ip_vs_sched_lock to ip_vs_sched_lock.
->=20
-> Signed-off-by: Simon Horman <horms@verge.net.au>
+On Fri, Aug 20, 2010 at 10:32 AM, Eric Dumazet <eric.dumazet@gmail.com>=
+ wrote:
+> Le vendredi 20 ao=FBt 2010 =E0 10:16 -0400, yao zhao a =E9crit :
+>
+>> if it is not performance critical, you should use =A0the
+>> read_lock/write_lock, it should make the readers happier than
+>> spinlock. the name "mutex" is a little bit confuse.
+>
+> Yes, I mentioned the 'mutex' name oddity.
+>
+> Point is :
+>
+> We want to remove read_write locks. They dont fit the bill.
+>
+> If performance critical, lot of readers -> RCU (a lot faster)
+> If not, or too much writers versus readers -> spinlock (a bit faster)
+>
+>
+for writers more than readers of course spin will be better, that is
+what read/write lock for and spin for.
+But the case here is whether these register_ip_vs_scheduler or
+unregister are more frequent than the readers.
+if not definitely read_lock will better than spin_lock. although worse =
+than rcu.
+>
+>> synchronize_rcu() is not necessary when you only need to delete from=
+ a
+>> list as it is atomic.
+>>
+>
+> Thats a rather strange and completely wrong claim. A big part of RCU =
+job
+> is to have appropriate work done on deletes. Inserts are more easy (o=
+nly
+> needs a smp_wmb())
+>
+> Take a look at Documentation/RCU/* before saying such things ;)
+>
+> Not only synchronize_rcu() is not enough to protect this kind of code=
+,
+> but you need something stronger.
+>
+>
+>
+The code here is deleting a global from the list, am I right? I didn't
+see any called case.
+what are you going to do more? free it? write_unlock_bh should make the=
+ mb.
 
-Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
-
-
+yao
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
