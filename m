@@ -1,123 +1,54 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [rfc] IPVS: convert scheduler management to RCU
-Date: Sat, 21 Aug 2010 12:30:25 +0900
-Message-ID: <20100821033024.GC8616@verge.net.au>
-References: <20100820133320.GA29311@verge.net.au>
- <Pine.LNX.4.58.1008202045070.5207@u.domain.uli>
+From: Aijaz Baig <aijazbaig1@gmail.com>
+Subject: help needed with EXPORT_SYMBOL
+Date: Sat, 21 Aug 2010 12:27:14 +0530
+Message-ID: <1282373834.4080.79.camel@aijazbaig1-desktop>
+Reply-To: aijazbaig1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	Wensong Zhang <wensong@linux-vs.org>
-To: Julian Anastasov <ja@ssi.bg>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: linux-kernel@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:52744 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751202Ab0HUDa3 (ORCPT
+Received: from mail-px0-f174.google.com ([209.85.212.174]:53174 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751211Ab0HUG5W (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Aug 2010 23:30:29 -0400
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.1008202045070.5207@u.domain.uli>
+	Sat, 21 Aug 2010 02:57:22 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Aug 20, 2010 at 09:03:03PM +0300, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Fri, 20 Aug 2010, Simon Horman wrote:
-> 
-> > Signed-off-by: Simon Horman <horms@verge.net.au>
-> > 
-> > --- 
-> > 
-> > I'm still getting my head around RCU, so review would be greatly appreciated.
-> > 
-> > It occurs to me that this code is not performance critical, so
-> > perhaps simply replacing the rwlock with a spinlock would be better?
-> 
-> 	This specific code does not need RCU conversion, see below
+Hello,
 
-Agreed.
+Ive been trying to EXPORT a SYMBOL from a netfilter module (actually a
+hook) to the KERNEL. Various modules seem to export various symbols to
+the kernel (or so it seems), an example being x_tables which exports a
+whole lot of functions like xt_register_target and so on and all other
+netfilter modules which use these functions dont seem to have any
+problems.
 
-> > Index: nf-next-2.6/net/netfilter/ipvs/ip_vs_sched.c
-> > ===================================================================
-> > --- nf-next-2.6.orig/net/netfilter/ipvs/ip_vs_sched.c	2010-08-20 22:21:01.000000000 +0900
-> > +++ nf-next-2.6/net/netfilter/ipvs/ip_vs_sched.c	2010-08-20 22:21:51.000000000 +0900
-> > @@ -35,7 +35,7 @@
-> >  static LIST_HEAD(ip_vs_schedulers);
-> >  
-> >  /* lock for service table */
-> > -static DEFINE_RWLOCK(__ip_vs_sched_lock);
-> > +static DEFINE_SPINLOCK(ip_vs_sched_mutex);
-> 
-> 	Here is what I got as list of locking points:
-> 
-> __ip_vs_conntbl_lock_array:
-> 	- can benefit from RCU, main benefits come from here
-> 
-> - ip_vs_conn_unhash() followed by ip_vs_conn_hash() is tricky with RCU,
-> 	needs more thinking, eg. when cport is changed
-> 
-> cp->lock, cp->refcnt:
-> 	- not a problem
-> 
-> tcp_app_lock, udp_app_lock, sctp_app_lock:
-> 	- can benefit from RCU (once per connection)
-> 
-> svc->sched_lock:
-> 	- only 1 read_lock, mostly writers that need exclusive access
-> 	- so, not suitable for RCU, can be switched to spin_lock for speed
-> 
-> __ip_vs_sched_lock:
-> 	- not called by packet handlers, no need for RCU
-> 	- used only by one ip_vs_ctl user (configuration) and the
-> 	scheduler modules
-> 	- can remain RWLOCK, no changes in locking are needed
-> 
-> __ip_vs_svc_lock:
-> 	- spin_lock, use RCU
-> 	- restrictions for schedulers with .update_service method
-> 	because svc->sched_lock is write locked, see below
-> 
-> __ip_vs_rs_lock:
-> 	- spin_lock, use RCU
-> 
-> Schedulers:
-> 	- every .schedule method has its own locking, two examples:
-> 		- write_lock: to protect the scheduler state (can be
-> 		changed to spin_lock), see WRR. Difficult for RCU.
-> 		- no lock: relies on IP_VS_WAIT_WHILE, no state
-> 		is protected explicitly, fast like RCU, see WLC
-> 
-> Scheduler state, eg. mark->cl:
-> 	- careful RCU assignment, may be all .update_service methods
-> 	should use copy-on-update (WRR). OTOH, ip_vs_wlc_schedule (WLC)
-> 	has no locks at all, thanks to the IP_VS_WAIT_WHILE, so
-> 	it is fast as RCU.
-> 
-> Statistics:
-> dest->stats.lock, svc->stats.lock, ip_vs_stats.lock:
-> 	- called for every packet, BAD for SMP, see ip_vs_in_stats(),
-> 	ip_vs_out_stats(), ip_vs_conn_stats()
-> 
-> curr_sb_lock:
-> 	- called for every packet depending on conn state
-> 	- No benefits from RCU, should be spin_lock
-> 
-> 	To summarize:
-> 
-> - the main problem remains stats:
-> 	dest->stats.lock, svc->stats.lock, ip_vs_stats.lock
-> 
-> - RCU benefits when connection processes many packets per connection, eg.
-> 	for TCP, SCTP, not much for UDP. No gains for the 1st
-> 	packet in connection.
-> 
-> - svc: no benefits from RCU, some schedulers protect state and
-> need exclusive access, others have no state (and they do not use
-> locks even now)
+So why is it that when my netfilter module is exporting something to the
+kernel and im tryin to use it from within a core kernel file, the
+compiler flags a 'undefined reference to' error?
 
-Thanks for the list. It looks like a good basis for some conversion work.
+I googled and came to the conclusion from the kernelnewbies mailing list
+that using kallsyms_lookup() seems to be the answer or is it?
+So, if I do intend to use kallsyms_lookup how do I use it? There aren't
+so many instances of it being used it seems.
+ 
+Ive seen it being used in dev/core.c like so:
+symname = kallsyms_lookup((unsigned long)sym, &symsize,&offset,&modname,
+namebuf);
+
+I am basically trying to call a function that MY module EXPORTs inside
+one of the core linux routines. This would also mean that my netfilter
+module must be compiled (and linked also maybe?..not so sound with link
+time stuff) before the address becomes visible so that kallsyms_lookup
+can find it. So do I really shd be using it and if so, how?
+
+Any input is appreciated.
+
+Regards,
+Aijaz Baig.
+
+
 
