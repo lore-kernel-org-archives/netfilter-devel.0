@@ -1,59 +1,85 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [BISECTED][2.6.35 regression] iptables busted on Mac G5
-Date: Mon, 23 Aug 2010 14:34:22 +0200
-Message-ID: <1282566862.2486.29.camel@edumazet-laptop>
-References: <19546.53659.970308.750410@pilspetsen.it.uu.se>
-	 <19570.25954.196694.563887@pilspetsen.it.uu.se>
-	 <20100823121644.GH1727@Chamillionaire.breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Mikael Pettersson <mikpe@it.uu.se>, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Jan Engelhardt <jengelh@medozas.de>,
-	netdev <netdev@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH][RESEND] netfilter: fix CONFIG_COMPAT support
+Date: Mon, 23 Aug 2010 14:56:26 +0200
+Message-ID: <1282568186-20475-1-git-send-email-fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Florian Westphal <fw@strlen.de>
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:41256 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752594Ab0HWMe2 (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:39144 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751273Ab0HWMzu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Aug 2010 08:34:28 -0400
-In-Reply-To: <20100823121644.GH1727@Chamillionaire.breakpoint.cc>
+	Mon, 23 Aug 2010 08:55:50 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le lundi 23 ao=C3=BBt 2010 =C3=A0 14:16 +0200, Florian Westphal a =C3=A9=
-crit :
-> Mikael Pettersson <mikpe@it.uu.se> wrote:
-> >  > I'll try to narrow it down further next week when I'm at the
-> >  > machine's location again.  Meanwhile I would be grateful if
-> >  > anyone has any ideas about what the issue might be.  I'll add
-> >  > that a Mac G4 (ppc32) with similar kernel configuration and
-> >  > user-space works fine with 2.6.35 and iptables.
-> >=20
-> > The bug is still present in 2.6.36-rc2.
->=20
-> sigh.
-> Do you run 64 bit kernel with 32bit userland?
-> If so, yes, thats broken since 2.6.35. I submitted a fix
-> (http://marc.info/?l=3Dnetfilter-devel&m=3D128116762801769&w=3D2),
-> but it was not yet applied.
->=20
-> Will resend it later today.
+commit f3c5c1bfd430858d3a05436f82c51e53104feb6b
+(netfilter: xtables: make ip_tables reentrant) forgot to
+also compute the jumpstack size in the compat handlers.
 
-CC netdev
+Result is that "iptables -I INPUT -j userchain" turns into -j DROP.
 
-Please send this patch to netdev@vger.kernel.org and David S. Miller,
-because it seems Patrick is on vacation or something.
+Reported by Sebastian Roesner on #netfilter, closes
+http://bugzilla.netfilter.org/show_bug.cgi?id=669.
 
+Note: arptables change is compile-tested only.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
+---
+ David, it would nice if you could take this patch as Patrick seems
+ to be on vacation.
 
-Thanks
+ Problem introduced during 2.6.35 development cycle.
 
+ net/ipv4/netfilter/arp_tables.c |    3 +++
+ net/ipv4/netfilter/ip_tables.c  |    3 +++
+ net/ipv6/netfilter/ip6_tables.c |    3 +++
+ 3 files changed, 9 insertions(+), 0 deletions(-)
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 51d6c31..e8f4f9a 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -1420,6 +1420,9 @@ static int translate_compat_table(const char *name,
+ 		if (ret != 0)
+ 			break;
+ 		++i;
++		if (strcmp(arpt_get_target(iter1)->u.user.name,
++		    XT_ERROR_TARGET) == 0)
++			++newinfo->stacksize;
+ 	}
+ 	if (ret) {
+ 		/*
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 97b64b2..d163f2e 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -1751,6 +1751,9 @@ translate_compat_table(struct net *net,
+ 		if (ret != 0)
+ 			break;
+ 		++i;
++		if (strcmp(ipt_get_target(iter1)->u.user.name,
++		    XT_ERROR_TARGET) == 0)
++			++newinfo->stacksize;
+ 	}
+ 	if (ret) {
+ 		/*
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 29a7bca..8e754be 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1766,6 +1766,9 @@ translate_compat_table(struct net *net,
+ 		if (ret != 0)
+ 			break;
+ 		++i;
++		if (strcmp(ip6t_get_target(iter1)->u.user.name,
++		    XT_ERROR_TARGET) == 0)
++			++newinfo->stacksize;
+ 	}
+ 	if (ret) {
+ 		/*
+-- 
+1.7.1
+
