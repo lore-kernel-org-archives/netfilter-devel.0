@@ -1,54 +1,104 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: help needed with EXPORT_SYMBOL
-Date: Mon, 23 Aug 2010 15:32:03 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1008231527390.21000@obet.zrqbmnf.qr>
-References: <1282373834.4080.79.camel@aijazbaig1-desktop>  <1282540448.4080.86.camel@aijazbaig1-desktop>  <AANLkTimtNOyJCbLxAW8Ebsftb58EWoNFW7Xkevqb6oGo@mail.gmail.com> <1282569477.2605.1798.camel@laptop>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH] netfilter: xt_condition: add security capability support
+Date: Mon, 23 Aug 2010 21:37:35 +0800
+Message-ID: <AANLkTi=2H+ytOQU9nC_dRp_GB5Sy1831VY14oW=YSOrG@mail.gmail.com>
+References: <1282567801-2673-1-git-send-email-luciano.coelho@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Brian Gerst <brgerst@gmail.com>, aijazbaig1@gmail.com,
-	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:39052 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751998Ab0HWNcF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Aug 2010 09:32:05 -0400
-In-Reply-To: <1282569477.2605.1798.camel@laptop>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, James Morris <jmorris@namei.org>,
+	linux-security-module@vger.kernel.org
+To: luciano.coelho@nokia.com
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <1282567801-2673-1-git-send-email-luciano.coelho@nokia.com>
+Sender: linux-security-module-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Monday 2010-08-23 15:17, Peter Zijlstra wrote:
-
->On Mon, 2010-08-23 at 07:48 -0400, Brian Gerst wrote:
->> 
->> Use an exported function pointer in the main kernel as a hook that the
->> module sets when it is loaded.  Note, you must use module_get and
->> module_put around the call to the module to prevent it from unloading
->> while in use. 
+On Mon, Aug 23, 2010 at 8:50 PM,  <luciano.coelho@nokia.com> wrote:
+> From: Luciano Coelho <luciano.coelho@nokia.com>
 >
->Please don't do any such thing, its impossible to use correctly.
+> Add a module parameter that allows the required security capability t=
+o
+> change the conditions from userspace to be specified. =A0By default t=
+he
+> module will require the CAP_NET_ADMIN capability.
 >
->Suppose there are two modular users, A and B.
-
-Though in case there is just a single user it can work out.
-Just like bridge.c, and the bunch of nf_nat_*.c. :-)
-Though yeah. Bad bad.
-
-This is starting to sound pretty much like an XY problem: XY problem: 
-You want to do X, but don't know how. You think you can solve it using 
-Y, but don't know how to do that, either. You ask about Y, which is a 
-strange thing to want to do. Just ask about X.
-
-(And then there is still the "good idea to do X in the first place" 
-thing.) Like what's so important to have as a module when you can build 
-it in, given that the caller is built-in (obj-y) itself.
-
->module_init()
->{
->	old_fptr = fptr;
->	fptr = A_func;
->}
+> Signed-off-by: Luciano Coelho <luciano.coelho@nokia.com>
+> ---
+> =A0net/netfilter/xt_condition.c | =A0 10 ++++++++++
+> =A01 files changed, 10 insertions(+), 0 deletions(-)
 >
->Then you load A, load B and unload A, then guess what happens?
+> diff --git a/net/netfilter/xt_condition.c b/net/netfilter/xt_conditio=
+n.c
+> index 06205aa..fd279e5 100644
+> --- a/net/netfilter/xt_condition.c
+> +++ b/net/netfilter/xt_condition.c
+> @@ -29,11 +29,13 @@
+> =A0#include <linux/netfilter/xt_condition.h>
+> =A0#include <net/netns/generic.h>
+> =A0#include <asm/uaccess.h>
+> +#include <linux/capability.h>
+>
+> =A0/* Defaults, these can be overridden on the module command-line. *=
+/
+> =A0static unsigned int condition_list_perms =3D S_IRUGO | S_IWUSR;
+> =A0static unsigned int condition_uid_perms =3D 0;
+> =A0static unsigned int condition_gid_perms =3D 0;
+> +static unsigned int condition_capabilities =3D CAP_NET_ADMIN;
+>
+> =A0MODULE_AUTHOR("Stephane Ouellette <ouellettes@videotron.ca>");
+> =A0MODULE_AUTHOR("Massimiliano Hofer <max@nucleus.it>");
+> @@ -47,6 +49,8 @@ module_param(condition_uid_perms, uint, S_IRUSR | S=
+_IWUSR);
+> =A0MODULE_PARM_DESC(condition_uid_perms, "default user owner of /proc=
+/net/nf_condition/* files");
+> =A0module_param(condition_gid_perms, uint, S_IRUSR | S_IWUSR);
+> =A0MODULE_PARM_DESC(condition_gid_perms, "default group owner of /pro=
+c/net/nf_condition/* files");
+> +module_param(condition_capabilities, uint, CAP_NET_ADMIN);
+> +MODULE_PARM_DESC(condition_capabilities, "default capabilities requi=
+red to change /proc/net/nf_condition/* files");
+
+It is strange that we set security policy in this way. Maybe the
+permission of the proc file is enough in this case.
+
+> =A0MODULE_ALIAS("ipt_condition");
+> =A0MODULE_ALIAS("ip6t_condition");
+>
+> @@ -88,6 +92,12 @@ static int condition_proc_write(struct file *file,=
+ const char __user *input,
+> =A0 =A0 =A0 =A0char buf[sizeof("+037777777777")];
+> =A0 =A0 =A0 =A0unsigned long long value;
+>
+> + =A0 =A0 =A0 if (!capable(condition_capabilities)) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("not enough capabilities (requ=
+ires %0X)\n",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 condition_capabilities)=
+;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EPERM;
+> + =A0 =A0 =A0 }
+> +
+> =A0 =A0 =A0 =A0if (length =3D=3D 0)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return 0;
+>
+> --
+> 1.7.0.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
+evel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
 >
 
+
+
+--=20
+Regards,
+Changli Gao(xiaosuo@gmail.com)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-securit=
+y-module" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
