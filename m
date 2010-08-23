@@ -1,85 +1,70 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH][RESEND] netfilter: fix CONFIG_COMPAT support
-Date: Mon, 23 Aug 2010 14:56:26 +0200
-Message-ID: <1282568186-20475-1-git-send-email-fw@strlen.de>
+From: luciano.coelho@nokia.com
+Subject: [PATCH] netfilter: xt_condition: add security capability support
+Date: Mon, 23 Aug 2010 15:50:01 +0300
+Message-ID: <1282567801-2673-1-git-send-email-luciano.coelho@nokia.com>
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Florian Westphal <fw@strlen.de>
-To: davem@davemloft.net
+	Luciano Coelho <luciano.coelho@nokia.com>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:39144 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751273Ab0HWMzu (ORCPT
+Received: from emh07.mail.saunalahti.fi ([62.142.5.117]:51147 "EHLO
+	emh07.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752816Ab0HWM5w (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Aug 2010 08:55:50 -0400
+	Mon, 23 Aug 2010 08:57:52 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit f3c5c1bfd430858d3a05436f82c51e53104feb6b
-(netfilter: xtables: make ip_tables reentrant) forgot to
-also compute the jumpstack size in the compat handlers.
+From: Luciano Coelho <luciano.coelho@nokia.com>
 
-Result is that "iptables -I INPUT -j userchain" turns into -j DROP.
+Add a module parameter that allows the required security capability to
+change the conditions from userspace to be specified.  By default the
+module will require the CAP_NET_ADMIN capability.
 
-Reported by Sebastian Roesner on #netfilter, closes
-http://bugzilla.netfilter.org/show_bug.cgi?id=669.
-
-Note: arptables change is compile-tested only.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: Luciano Coelho <luciano.coelho@nokia.com>
 ---
- David, it would nice if you could take this patch as Patrick seems
- to be on vacation.
+ net/netfilter/xt_condition.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
- Problem introduced during 2.6.35 development cycle.
-
- net/ipv4/netfilter/arp_tables.c |    3 +++
- net/ipv4/netfilter/ip_tables.c  |    3 +++
- net/ipv6/netfilter/ip6_tables.c |    3 +++
- 3 files changed, 9 insertions(+), 0 deletions(-)
-
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 51d6c31..e8f4f9a 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -1420,6 +1420,9 @@ static int translate_compat_table(const char *name,
- 		if (ret != 0)
- 			break;
- 		++i;
-+		if (strcmp(arpt_get_target(iter1)->u.user.name,
-+		    XT_ERROR_TARGET) == 0)
-+			++newinfo->stacksize;
- 	}
- 	if (ret) {
- 		/*
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 97b64b2..d163f2e 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -1751,6 +1751,9 @@ translate_compat_table(struct net *net,
- 		if (ret != 0)
- 			break;
- 		++i;
-+		if (strcmp(ipt_get_target(iter1)->u.user.name,
-+		    XT_ERROR_TARGET) == 0)
-+			++newinfo->stacksize;
- 	}
- 	if (ret) {
- 		/*
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 29a7bca..8e754be 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1766,6 +1766,9 @@ translate_compat_table(struct net *net,
- 		if (ret != 0)
- 			break;
- 		++i;
-+		if (strcmp(ip6t_get_target(iter1)->u.user.name,
-+		    XT_ERROR_TARGET) == 0)
-+			++newinfo->stacksize;
- 	}
- 	if (ret) {
- 		/*
+diff --git a/net/netfilter/xt_condition.c b/net/netfilter/xt_condition.c
+index 06205aa..fd279e5 100644
+--- a/net/netfilter/xt_condition.c
++++ b/net/netfilter/xt_condition.c
+@@ -29,11 +29,13 @@
+ #include <linux/netfilter/xt_condition.h>
+ #include <net/netns/generic.h>
+ #include <asm/uaccess.h>
++#include <linux/capability.h>
+ 
+ /* Defaults, these can be overridden on the module command-line. */
+ static unsigned int condition_list_perms = S_IRUGO | S_IWUSR;
+ static unsigned int condition_uid_perms = 0;
+ static unsigned int condition_gid_perms = 0;
++static unsigned int condition_capabilities = CAP_NET_ADMIN;
+ 
+ MODULE_AUTHOR("Stephane Ouellette <ouellettes@videotron.ca>");
+ MODULE_AUTHOR("Massimiliano Hofer <max@nucleus.it>");
+@@ -47,6 +49,8 @@ module_param(condition_uid_perms, uint, S_IRUSR | S_IWUSR);
+ MODULE_PARM_DESC(condition_uid_perms, "default user owner of /proc/net/nf_condition/* files");
+ module_param(condition_gid_perms, uint, S_IRUSR | S_IWUSR);
+ MODULE_PARM_DESC(condition_gid_perms, "default group owner of /proc/net/nf_condition/* files");
++module_param(condition_capabilities, uint, CAP_NET_ADMIN);
++MODULE_PARM_DESC(condition_capabilities, "default capabilities required to change /proc/net/nf_condition/* files");
+ MODULE_ALIAS("ipt_condition");
+ MODULE_ALIAS("ip6t_condition");
+ 
+@@ -88,6 +92,12 @@ static int condition_proc_write(struct file *file, const char __user *input,
+ 	char buf[sizeof("+037777777777")];
+ 	unsigned long long value;
+ 
++	if (!capable(condition_capabilities)) {
++		pr_debug("not enough capabilities (requires %0X)\n",
++			condition_capabilities);
++		return -EPERM;
++	}
++
+ 	if (length == 0)
+ 		return 0;
+ 
 -- 
-1.7.1
+1.7.0.4
 
