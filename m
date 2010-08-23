@@ -1,49 +1,54 @@
-From: Mikael Pettersson <mikpe@it.uu.se>
-Subject: Re: [BISECTED][2.6.35 regression] iptables busted on Mac G5
-Date: Mon, 23 Aug 2010 15:14:21 +0200
-Message-ID: <19570.29741.746144.453539@pilspetsen.it.uu.se>
-References: <19546.53659.970308.750410@pilspetsen.it.uu.se>
-	<19570.25954.196694.563887@pilspetsen.it.uu.se>
-	<20100823121644.GH1727@Chamillionaire.breakpoint.cc>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: help needed with EXPORT_SYMBOL
+Date: Mon, 23 Aug 2010 15:17:57 +0200
+Message-ID: <1282569477.2605.1798.camel@laptop>
+References: <1282373834.4080.79.camel@aijazbaig1-desktop>
+	 <1282540448.4080.86.camel@aijazbaig1-desktop>
+	 <AANLkTimtNOyJCbLxAW8Ebsftb58EWoNFW7Xkevqb6oGo@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Mikael Pettersson <mikpe@it.uu.se>, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Jan Engelhardt <jengelh@medozas.de>
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Cc: aijazbaig1@gmail.com, netfilter-devel@vger.kernel.org,
+	jengelh@medozas.de, linux-kernel@vger.kernel.org
+To: Brian Gerst <brgerst@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fanny.its.uu.se ([130.238.4.241]:45588 "EHLO fanny.its.uu.se"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751480Ab0HWNOY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Aug 2010 09:14:24 -0400
-In-Reply-To: <20100823121644.GH1727@Chamillionaire.breakpoint.cc>
+Received: from bombadil.infradead.org ([18.85.46.34]:33745 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752347Ab0HWNSC convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Aug 2010 09:18:02 -0400
+In-Reply-To: <AANLkTimtNOyJCbLxAW8Ebsftb58EWoNFW7Xkevqb6oGo@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Florian Westphal writes:
- > Mikael Pettersson <mikpe@it.uu.se> wrote:
- > >  > I'll try to narrow it down further next week when I'm at the
- > >  > machine's location again.  Meanwhile I would be grateful if
- > >  > anyone has any ideas about what the issue might be.  I'll add
- > >  > that a Mac G4 (ppc32) with similar kernel configuration and
- > >  > user-space works fine with 2.6.35 and iptables.
- > > 
- > > The bug is still present in 2.6.36-rc2.
- > 
- > sigh.
- > Do you run 64 bit kernel with 32bit userland?
+On Mon, 2010-08-23 at 07:48 -0400, Brian Gerst wrote:
+> 
+> Use an exported function pointer in the main kernel as a hook that the
+> module sets when it is loaded.  Note, you must use module_get and
+> module_put around the call to the module to prevent it from unloading
+> while in use. 
 
-Yes.
+Please don't do any such thing, its impossible to use correctly.
 
- > If so, yes, thats broken since 2.6.35. I submitted a fix
- > (http://marc.info/?l=netfilter-devel&m=128116762801769&w=2),
- > but it was not yet applied.
- > 
- > Will resend it later today.
+Suppose there are two modular users, A and B.
 
-That patch applied to 2.6.35 fixed the problem on my G5.  Thanks!
+Both have something like:
 
-Tested-by: Mikael Pettersson <mikpe@it.uu.se>
+extern void (*fptr)(void);
 
-/Mikael
+static void (*old_fptr)(void);
+
+static void func(void)
+{
+	/* foo */
+	if (old_fptr)
+		old_fptr();
+}
+
+module_init()
+{
+	old_fptr = fptr;
+	fptr = A_func;
+}
+
+Then you load A, load B and unload A, then guess what happens?
