@@ -1,31 +1,38 @@
-From: Daniel Lezcano <daniel.lezcano@free.fr>
-Subject: Re: IPVS network namespace aware ?
-Date: Mon, 23 Aug 2010 21:21:32 +0200
-Message-ID: <4C72CA3C.4080708@free.fr>
-References: <1281099450.2518.21.camel@seasc0214.dyn.rnd.as.sw.ericsson.se>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH][RESEND] netfilter: fix CONFIG_COMPAT support
+Date: Mon, 23 Aug 2010 14:41:46 -0700 (PDT)
+Message-ID: <20100823.144146.173873857.davem@davemloft.net>
+References: <1282568186-20475-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1281099450.2518.21.camel@seasc0214.dyn.rnd.as.sw.ericsson.se>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: fw@strlen.de
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:53181
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754733Ab0HWVl3 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Aug 2010 17:41:29 -0400
+In-Reply-To: <1282568186-20475-1-git-send-email-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 08/06/2010 02:57 PM, Hans Schillstrom wrote:
-> Hello
-> Is there any one that have made ipvs network namespace aware ?
-> There is an urgent need of it within Ericsson.
-> I could not find any trace of it in any of the normal lists.
->
-> I will start patching ipvs next week or give a helping hand to any
-> existing work.
+From: Florian Westphal <fw@strlen.de>
+Date: Mon, 23 Aug 2010 14:56:26 +0200
 
-Hi Hans,
+> commit f3c5c1bfd430858d3a05436f82c51e53104feb6b
+> (netfilter: xtables: make ip_tables reentrant) forgot to
+> also compute the jumpstack size in the compat handlers.
+> 
+> Result is that "iptables -I INPUT -j userchain" turns into -j DROP.
+> 
+> Reported by Sebastian Roesner on #netfilter, closes
+> http://bugzilla.netfilter.org/show_bug.cgi?id=669.
+> 
+> Note: arptables change is compile-tested only.
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
 
-do you have a patchset ready (or just a prototype) ? I will be glad to 
-help you ;)
-
-Thanks
-   -- Daniel
+Applied, thanks Florian.
