@@ -1,70 +1,49 @@
-From: luciano.coelho@nokia.com
-Subject: [PATCH] netfilter: xt_condition: add security capability support
-Date: Mon, 23 Aug 2010 15:50:01 +0300
-Message-ID: <1282567801-2673-1-git-send-email-luciano.coelho@nokia.com>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Luciano Coelho <luciano.coelho@nokia.com>
-To: kaber@trash.net
+From: Mikael Pettersson <mikpe@it.uu.se>
+Subject: Re: [BISECTED][2.6.35 regression] iptables busted on Mac G5
+Date: Mon, 23 Aug 2010 15:14:21 +0200
+Message-ID: <19570.29741.746144.453539@pilspetsen.it.uu.se>
+References: <19546.53659.970308.750410@pilspetsen.it.uu.se>
+	<19570.25954.196694.563887@pilspetsen.it.uu.se>
+	<20100823121644.GH1727@Chamillionaire.breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: Mikael Pettersson <mikpe@it.uu.se>, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Jan Engelhardt <jengelh@medozas.de>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from emh07.mail.saunalahti.fi ([62.142.5.117]:51147 "EHLO
-	emh07.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752816Ab0HWM5w (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Aug 2010 08:57:52 -0400
+Received: from fanny.its.uu.se ([130.238.4.241]:45588 "EHLO fanny.its.uu.se"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751480Ab0HWNOY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Aug 2010 09:14:24 -0400
+In-Reply-To: <20100823121644.GH1727@Chamillionaire.breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Luciano Coelho <luciano.coelho@nokia.com>
+Florian Westphal writes:
+ > Mikael Pettersson <mikpe@it.uu.se> wrote:
+ > >  > I'll try to narrow it down further next week when I'm at the
+ > >  > machine's location again.  Meanwhile I would be grateful if
+ > >  > anyone has any ideas about what the issue might be.  I'll add
+ > >  > that a Mac G4 (ppc32) with similar kernel configuration and
+ > >  > user-space works fine with 2.6.35 and iptables.
+ > > 
+ > > The bug is still present in 2.6.36-rc2.
+ > 
+ > sigh.
+ > Do you run 64 bit kernel with 32bit userland?
 
-Add a module parameter that allows the required security capability to
-change the conditions from userspace to be specified.  By default the
-module will require the CAP_NET_ADMIN capability.
+Yes.
 
-Signed-off-by: Luciano Coelho <luciano.coelho@nokia.com>
----
- net/netfilter/xt_condition.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+ > If so, yes, thats broken since 2.6.35. I submitted a fix
+ > (http://marc.info/?l=netfilter-devel&m=128116762801769&w=2),
+ > but it was not yet applied.
+ > 
+ > Will resend it later today.
 
-diff --git a/net/netfilter/xt_condition.c b/net/netfilter/xt_condition.c
-index 06205aa..fd279e5 100644
---- a/net/netfilter/xt_condition.c
-+++ b/net/netfilter/xt_condition.c
-@@ -29,11 +29,13 @@
- #include <linux/netfilter/xt_condition.h>
- #include <net/netns/generic.h>
- #include <asm/uaccess.h>
-+#include <linux/capability.h>
- 
- /* Defaults, these can be overridden on the module command-line. */
- static unsigned int condition_list_perms = S_IRUGO | S_IWUSR;
- static unsigned int condition_uid_perms = 0;
- static unsigned int condition_gid_perms = 0;
-+static unsigned int condition_capabilities = CAP_NET_ADMIN;
- 
- MODULE_AUTHOR("Stephane Ouellette <ouellettes@videotron.ca>");
- MODULE_AUTHOR("Massimiliano Hofer <max@nucleus.it>");
-@@ -47,6 +49,8 @@ module_param(condition_uid_perms, uint, S_IRUSR | S_IWUSR);
- MODULE_PARM_DESC(condition_uid_perms, "default user owner of /proc/net/nf_condition/* files");
- module_param(condition_gid_perms, uint, S_IRUSR | S_IWUSR);
- MODULE_PARM_DESC(condition_gid_perms, "default group owner of /proc/net/nf_condition/* files");
-+module_param(condition_capabilities, uint, CAP_NET_ADMIN);
-+MODULE_PARM_DESC(condition_capabilities, "default capabilities required to change /proc/net/nf_condition/* files");
- MODULE_ALIAS("ipt_condition");
- MODULE_ALIAS("ip6t_condition");
- 
-@@ -88,6 +92,12 @@ static int condition_proc_write(struct file *file, const char __user *input,
- 	char buf[sizeof("+037777777777")];
- 	unsigned long long value;
- 
-+	if (!capable(condition_capabilities)) {
-+		pr_debug("not enough capabilities (requires %0X)\n",
-+			condition_capabilities);
-+		return -EPERM;
-+	}
-+
- 	if (length == 0)
- 		return 0;
- 
--- 
-1.7.0.4
+That patch applied to 2.6.35 fixed the problem on my G5.  Thanks!
 
+Tested-by: Mikael Pettersson <mikpe@it.uu.se>
+
+/Mikael
