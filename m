@@ -1,38 +1,70 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH][RESEND] netfilter: fix CONFIG_COMPAT support
-Date: Mon, 23 Aug 2010 14:41:46 -0700 (PDT)
-Message-ID: <20100823.144146.173873857.davem@davemloft.net>
-References: <1282568186-20475-1-git-send-email-fw@strlen.de>
+From: Aijaz Baig <aijazbaig1@gmail.com>
+Subject: Re: help needed with EXPORT_SYMBOL
+Date: Tue, 24 Aug 2010 10:14:14 +0530
+Message-ID: <1282625054.4080.152.camel@aijazbaig1-desktop>
+References: <1282373834.4080.79.camel@aijazbaig1-desktop>
+	 <1282540448.4080.86.camel@aijazbaig1-desktop>
+	 <AANLkTimtNOyJCbLxAW8Ebsftb58EWoNFW7Xkevqb6oGo@mail.gmail.com>
+	 <1282569477.2605.1798.camel@laptop>
+	 <AANLkTinq5APN4CXWAGj9sTFiTf4Cn1_mDaJSrAOh=t+N@mail.gmail.com>
+	 <1282572346.2605.1856.camel@laptop>
+	 <AANLkTimQDV74kcM_84QySMKmdf-XxFOhqp48cQdQNN4s@mail.gmail.com>
+	 <AANLkTinRyoHcSmmHv9tZ36X4wxVVCKGLDwGiZUTPPn+z@mail.gmail.com>
+Reply-To: aijazbaig1@gmail.com
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: fw@strlen.de
+Cc: peterz@infradead.org, brgerst@gmail.com, jengelh@medozas.de,
+	linux-kernel@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:53181
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754733Ab0HWVl3 (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:38591 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751362Ab0HXEoX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Aug 2010 17:41:29 -0400
-In-Reply-To: <1282568186-20475-1-git-send-email-fw@strlen.de>
+	Tue, 24 Aug 2010 00:44:23 -0400
+In-Reply-To: <AANLkTinRyoHcSmmHv9tZ36X4wxVVCKGLDwGiZUTPPn+z@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
-Date: Mon, 23 Aug 2010 14:56:26 +0200
+Hello everyone, 
 
-> commit f3c5c1bfd430858d3a05436f82c51e53104feb6b
-> (netfilter: xtables: make ip_tables reentrant) forgot to
-> also compute the jumpstack size in the compat handlers.
-> 
-> Result is that "iptables -I INPUT -j userchain" turns into -j DROP.
-> 
-> Reported by Sebastian Roesner on #netfilter, closes
-> http://bugzilla.netfilter.org/show_bug.cgi?id=669.
-> 
-> Note: arptables change is compile-tested only.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
+thanks for sending in the replies with so many options. I am still a
+relative newbie so please do bear with me guys if I sound a bit naive at
+times.
 
-Applied, thanks Florian.
+I'll first start with brian's suggestion. He said:
+"Use an exported function pointer in the main kernel as a hook that the
+module sets when it is loaded.  Note, you must use module_get and
+module_put around the call to the module to prevent it from unloading
+while in use."
+
+I have never used such a technique and do not understand what you mean.
+Could you please elaborate a little. Do you mean I should NF_HOOK within
+the kernel code and then make the function that I would like to execute
+as the hookfn? Well..if this is what u meant then wouldn't it also cause
+all hooks at that particular position to be executed as well? 
+
+And then peter and finally jan came up with, perhaps better suggestions
+(i really cannot judge the quality of any of these suggestions..m too
+much of a noob to do that). I got confused in the XY explanation by jan
+since there both X and Y are modules it seems and I was talking about a
+module exporting a certain symbol to be used by the kernel. Peter did
+suggest notification chains. Is there a simple example that I can look
+at? Will it allow the kernel to see symbols defined within the module? 
+
+Lastly, will I be able to use kallsyms_lookup() to do what I can? I
+notice that it replaced EXPORT_SYMTAB sometime back. So if yes I can use
+it, does anyone know how to fill in the very first parameter of this
+function which says address (of what exactly and how am I supposed to
+know this address?)
+
+Keen to hear from you and once again, thank you for your inputs,
+
+Regards,
+Aijaz Baig.
+
+
+
+
+
