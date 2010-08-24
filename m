@@ -1,70 +1,53 @@
-From: Aijaz Baig <aijazbaig1@gmail.com>
-Subject: Re: help needed with EXPORT_SYMBOL
-Date: Tue, 24 Aug 2010 10:14:14 +0530
-Message-ID: <1282625054.4080.152.camel@aijazbaig1-desktop>
-References: <1282373834.4080.79.camel@aijazbaig1-desktop>
-	 <1282540448.4080.86.camel@aijazbaig1-desktop>
-	 <AANLkTimtNOyJCbLxAW8Ebsftb58EWoNFW7Xkevqb6oGo@mail.gmail.com>
-	 <1282569477.2605.1798.camel@laptop>
-	 <AANLkTinq5APN4CXWAGj9sTFiTf4Cn1_mDaJSrAOh=t+N@mail.gmail.com>
-	 <1282572346.2605.1856.camel@laptop>
-	 <AANLkTimQDV74kcM_84QySMKmdf-XxFOhqp48cQdQNN4s@mail.gmail.com>
-	 <AANLkTinRyoHcSmmHv9tZ36X4wxVVCKGLDwGiZUTPPn+z@mail.gmail.com>
-Reply-To: aijazbaig1@gmail.com
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH net-next-2.6] ipvs: switch to GFP_KERNEL allocations
+Date: Tue, 24 Aug 2010 07:51:38 +0200
+Message-ID: <1282629098.2378.1521.camel@edumazet-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: peterz@infradead.org, brgerst@gmail.com, jengelh@medozas.de,
-	linux-kernel@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Cc: netdev <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:38591 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751362Ab0HXEoX (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:60158 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751988Ab0HXFvo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Aug 2010 00:44:23 -0400
-In-Reply-To: <AANLkTinRyoHcSmmHv9tZ36X4wxVVCKGLDwGiZUTPPn+z@mail.gmail.com>
+	Tue, 24 Aug 2010 01:51:44 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello everyone, 
+Switch from GFP_ATOMIC allocations to GFP_KERNEL ones in
+ip_vs_add_service() and ip_vs_new_dest(), as we hold a mutex and are
+allowed to sleep in this context.
 
-thanks for sending in the replies with so many options. I am still a
-relative newbie so please do bear with me guys if I sound a bit naive at
-times.
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+---
+ net/netfilter/ipvs/ip_vs_ctl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-I'll first start with brian's suggestion. He said:
-"Use an exported function pointer in the main kernel as a hook that the
-module sets when it is loaded.  Note, you must use module_get and
-module_put around the call to the module to prevent it from unloading
-while in use."
-
-I have never used such a technique and do not understand what you mean.
-Could you please elaborate a little. Do you mean I should NF_HOOK within
-the kernel code and then make the function that I would like to execute
-as the hookfn? Well..if this is what u meant then wouldn't it also cause
-all hooks at that particular position to be executed as well? 
-
-And then peter and finally jan came up with, perhaps better suggestions
-(i really cannot judge the quality of any of these suggestions..m too
-much of a noob to do that). I got confused in the XY explanation by jan
-since there both X and Y are modules it seems and I was talking about a
-module exporting a certain symbol to be used by the kernel. Peter did
-suggest notification chains. Is there a simple example that I can look
-at? Will it allow the kernel to see symbols defined within the module? 
-
-Lastly, will I be able to use kallsyms_lookup() to do what I can? I
-notice that it replaced EXPORT_SYMTAB sometime back. So if yes I can use
-it, does anyone know how to fill in the very first parameter of this
-function which says address (of what exactly and how am I supposed to
-know this address?)
-
-Keen to hear from you and once again, thank you for your inputs,
-
-Regards,
-Aijaz Baig.
-
-
-
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 0f0c079..896f34b 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -843,7 +843,7 @@ ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest,
+ 			return -EINVAL;
+ 	}
+ 
+-	dest = kzalloc(sizeof(struct ip_vs_dest), GFP_ATOMIC);
++	dest = kzalloc(sizeof(struct ip_vs_dest), GFP_KERNEL);
+ 	if (dest == NULL) {
+ 		pr_err("%s(): no memory.\n", __func__);
+ 		return -ENOMEM;
+@@ -1177,7 +1177,7 @@ ip_vs_add_service(struct ip_vs_service_user_kern *u,
+ 	}
+ #endif
+ 
+-	svc = kzalloc(sizeof(struct ip_vs_service), GFP_ATOMIC);
++	svc = kzalloc(sizeof(struct ip_vs_service), GFP_KERNEL);
+ 	if (svc == NULL) {
+ 		IP_VS_DBG(1, "%s(): no memory\n", __func__);
+ 		ret = -ENOMEM;
 
 
