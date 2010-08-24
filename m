@@ -1,65 +1,61 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] netfilter: xt_condition: add security capability
- support
-Date: Tue, 24 Aug 2010 09:32:35 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1008240921230.24349@obet.zrqbmnf.qr>
-References: <1282567801-2673-1-git-send-email-luciano.coelho@nokia.com>  <AANLkTi=2H+ytOQU9nC_dRp_GB5Sy1831VY14oW=YSOrG@mail.gmail.com>  <1282570935.7198.5.camel@powerslave>  <alpine.LNX.2.01.1008231628010.21000@obet.zrqbmnf.qr>  <1282589101.7198.28.camel@powerslave>
-  <alpine.LNX.2.01.1008232052170.31619@obet.zrqbmnf.qr> <1282633220.7198.123.camel@powerslave>
+From: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Subject: Re: IPVS network namespace aware ?
+Date: Tue, 24 Aug 2010 10:53:58 +0200
+Message-ID: <1282640038.25529.38.camel@seasc0214.dyn.rnd.as.sw.ericsson.se>
+References: <1281099450.2518.21.camel@seasc0214.dyn.rnd.as.sw.ericsson.se>
+	 <4C72CA3C.4080708@free.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: ext Changli Gao <xiaosuo@gmail.com>,
-	"kaber@trash.net" <kaber@trash.net>,
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: lvs-devel@vger.kernel.org,
 	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	James Morris <jmorris@namei.org>,
-	"linux-security-module@vger.kernel.org"
-	<linux-security-module@vger.kernel.org>
-To: Luciano Coelho <luciano.coelho@nokia.com>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <1282633220.7198.123.camel@powerslave>
-Sender: linux-security-module-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Daniel Lezcano <daniel.lezcano@free.fr>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mailgw9.se.ericsson.net ([193.180.251.57]:42476 "EHLO
+	mailgw9.se.ericsson.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751207Ab0HXIyA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Aug 2010 04:54:00 -0400
+In-Reply-To: <4C72CA3C.4080708@free.fr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+Hi Daniel
+The progress is good, so far I think everything is ported except for
+Simon Hormans latest patch-set. 
+
+Right now I'm struggling with NULL pointers :-)
+i.e. seq_file doesn't carry any netns info.
+
+In the example below *net will be invalid because seq->private is NULL.
+
+static void *ip_vs_info_seq_next(struct seq_file *seq, ....) {
+struct net *net = seq_file_net(seq);
+
+single_open() seems to work, but seq_open() or seq_open_private().
+
+As you can see I'm not ready, so help will be nice.
+I'll remove some debugging stuff and send you a patch-set.
+
+/Hans
 
 
-On Tuesday 2010-08-24 09:00, Luciano Coelho wrote:
->>
->>It is strange that you check this capability from a module focused
->>on packet handling. For lack of a better example, it's as if you
->>tried to check the uid of the file, the latter of which is better
->>left to the routines in fs/.
->
->What I don't understand is that I see lots of components, which have
->nothing to do with security, making this kind of checks. Most of
->them (if not all) are checking for input from userspace where they
->provide their own interfaces (eg. ioctl calls, netlink messages).
->[..] Now, with the xt_condition, we're opening a new route from
->userspace to the kernel and I think it might be a good idea to
->protect that too.
+On Mon, 2010-08-23 at 21:21 +0200, Daniel Lezcano wrote:
+> On 08/06/2010 02:57 PM, Hans Schillstrom wrote:
+> > Hello
+> > Is there any one that have made ipvs network namespace aware ?
+> > There is an urgent need of it within Ericsson.
+> > I could not find any trace of it in any of the normal lists.
+> >
+> > I will start patching ipvs next week or give a helping hand to any
+> > existing work.
+> 
+> Hi Hans,
+> 
+> do you have a patchset ready (or just a prototype) ? I will be glad to 
+> help you ;)
+> 
+> Thanks
+>    -- Daniel
 
-Indeed so. But you did not invent any new interface. You are reusing
-files, which can be protected by DAC modes, or LSMs doing
-funky-stuff. xt_{condition,recent,..} already implement file modes,
-but does it check for it? Well no, because fs/namei.c does it for
-them. As for LSMs, well, I hope they do cater for testing for
-capability bits.
-
->It's kind of useless to protect someone without CAP_NET_ADMIN from
->creating a condition rule if it is possible to change the condition from
->userspace without any capability protection.
-
-Certainly not. An administrator may create a condition rule and thus
-procfs entry, but the rule may be sufficiently safe and/or integrated
-that a subordinate may be given permission to control things in a
-limited fashion on a per-need basis. One I use personally is
-
-	-A FORWARD -m condition --condition windows -s
-	192.168.100.0/25 -i eth1 -o eth0 -j ACCEPT
-	-P FORWARD DROP
-
-	chown jengelh /proc/net/nf_condition/windows;
-
-The presence of such rule would indicate that the administrator
-generally allows Windows machines out; but personal paranoia defaults
-to rejecting that unless explicitly enabled. (Gives the reassurance
-that they won't succeed talking home unless Internet connectivity is
-explicitly needed by the user.)
