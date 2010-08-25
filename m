@@ -1,24 +1,67 @@
-From: Hagen Paul Pfeifer <hagen@jauu.net>
-Subject: Re: block network access for certain users/groups
-Date: Wed, 25 Aug 2010 18:02:34 +0200
-Message-ID: <20100825160234.GA4486@nuttenaction>
-References: <AANLkTin8w74SAe67ZPqPE0Q=0fPpZOHnTCnjAT+AduCY@mail.gmail.com>
- <AANLkTikru-pmMAnS-dqjYT7xJC_X21rVNBpjg_2LDmWB@mail.gmail.com>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [patch nf-next v2] IPVS: ICMPv6 checksum calculation
+Date: Wed, 25 Aug 2010 22:55:29 +0300 (EEST)
+Message-ID: <Pine.LNX.4.58.1008252253180.2907@u.domain.uli>
+References: <20100825080832.GA24863@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Elmar Stellnberger <estellnb@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTikru-pmMAnS-dqjYT7xJC_X21rVNBpjg_2LDmWB@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>,
+	David Miller <davem@davemloft.net>,
+	Xiaoyu Du <tingsrain@gmail.com>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <20100825080832.GA24863@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-* Elmar Stellnberger | 2010-08-25 13:09:34 [+0200]:
 
->What will I have to do to implement network access restrictions on a
->per user/group basis?
+	Hello,
 
-AppArmor, SELinux, ... ?
+On Wed, 25 Aug 2010, Simon Horman wrote:
 
-Hagen
+> Cc: Xiaoyu Du <tingsrain@gmail.com>
+> Cc: Julian Anastasov <ja@ssi.bg>
+
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+
+should be enough
+
+> Signed-off-by: Simon Horman <horms@verge.net.au>
+> 
+> --
+> 
+> Xiaoyu, is this the change that you tested?
+> If so could you give me a Tested-by line?
+> 
+> Julian, could I get an ack from you?
+> Alternatively, if you want to take ownership of the patch,
+> can I get a signed-off-by from you? In that case I'll change
+> the From accordingly.
+> 
+> Index: nf-next-2.6/net/netfilter/ipvs/ip_vs_core.c
+> ===================================================================
+> --- nf-next-2.6.orig/net/netfilter/ipvs/ip_vs_core.c	2010-08-25 16:57:37.000000000 +0900
+> +++ nf-next-2.6/net/netfilter/ipvs/ip_vs_core.c	2010-08-25 17:02:35.000000000 +0900
+> @@ -637,9 +637,11 @@ void ip_vs_nat_icmp_v6(struct sk_buff *s
+>  	}
+>  
+>  	/* And finally the ICMP checksum */
+> -	icmph->icmp6_cksum = 0;
+> -	/* TODO IPv6: is this correct for ICMPv6? */
+> -	ip_vs_checksum_complete(skb, icmp_offset);
+> +	icmph->icmp6_cksum = ~csum_ipv6_magic(&iph->saddr, &iph->daddr,
+> +					      skb->len - icmp_offset,
+> +					      IPPROTO_ICMPV6, 0);
+> +	skb->csum_start = skb_network_header(skb) - skb->head + icmp_offset;
+> +	skb->csum_offset = offsetof(struct icmp6hdr, icmp6_cksum);
+>  	skb->ip_summed = CHECKSUM_UNNECESSARY;
+>  
+>  	if (inout)
+> 
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
