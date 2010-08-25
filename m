@@ -1,49 +1,41 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [patch nf-next v2] IPVS: ICMPv6 checksum calculation
-Date: Wed, 25 Aug 2010 17:08:33 +0900
-Message-ID: <20100825080832.GA24863@verge.net.au>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] netfilter: xt_condition: add security capability
+ support
+Date: Wed, 25 Aug 2010 11:04:09 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1008251103150.24022@obet.zrqbmnf.qr>
+References: <1282567801-2673-1-git-send-email-luciano.coelho@nokia.com>  <AANLkTi=2H+ytOQU9nC_dRp_GB5Sy1831VY14oW=YSOrG@mail.gmail.com>  <1282570935.7198.5.camel@powerslave>  <alpine.LNX.2.01.1008231628010.21000@obet.zrqbmnf.qr>  <1282589101.7198.28.camel@powerslave>
+  <alpine.LNX.2.01.1008232052170.31619@obet.zrqbmnf.qr>  <1282633220.7198.123.camel@powerslave>  <alpine.LNX.2.01.1008240921230.24349@obet.zrqbmnf.qr> <1282720198.18016.72.camel@powerslave>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>,
-	Xiaoyu Du <tingsrain@gmail.com>, Julian Anastasov <ja@ssi.bg>
-To: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: lvs-devel-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: ext Changli Gao <xiaosuo@gmail.com>,
+	"kaber@trash.net" <kaber@trash.net>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	James Morris <jmorris@namei.org>,
+	"linux-security-module@vger.kernel.org"
+	<linux-security-module@vger.kernel.org>
+To: Luciano Coelho <luciano.coelho@nokia.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1282720198.18016.72.camel@powerslave>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Cc: Xiaoyu Du <tingsrain@gmail.com>
-Cc: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
 
---
+On Wednesday 2010-08-25 09:09, Luciano Coelho wrote:
+>> 
+>> Indeed so. But you did not invent any new interface. You are reusing
+>> files, which can be protected by DAC modes, or LSMs doing
+>> funky-stuff. xt_{condition,recent,..} already implement file modes,
+>> but does it check for it? Well no, because fs/namei.c does it for
+>> them. As for LSMs, well, I hope they do cater for testing for
+>> capability bits.
+>
+>I dug deeper into the code and I can see that /sys/net has capability
+>checks (implemented in netdev_store() in net-sysfs.c) and nobody without
+>CAP_NET_ADMIN will be able to write to the files there.  But in procfs I
+>couldn't see anything similar and anyone with file write permissions can
+>modify the files in /proc/net/*.
 
-Xiaoyu, is this the change that you tested?
-If so could you give me a Tested-by line?
-
-Julian, could I get an ack from you?
-Alternatively, if you want to take ownership of the patch,
-can I get a signed-off-by from you? In that case I'll change
-the From accordingly.
-
-Index: nf-next-2.6/net/netfilter/ipvs/ip_vs_core.c
-===================================================================
---- nf-next-2.6.orig/net/netfilter/ipvs/ip_vs_core.c	2010-08-25 16:57:37.000000000 +0900
-+++ nf-next-2.6/net/netfilter/ipvs/ip_vs_core.c	2010-08-25 17:02:35.000000000 +0900
-@@ -637,9 +637,11 @@ void ip_vs_nat_icmp_v6(struct sk_buff *s
- 	}
- 
- 	/* And finally the ICMP checksum */
--	icmph->icmp6_cksum = 0;
--	/* TODO IPv6: is this correct for ICMPv6? */
--	ip_vs_checksum_complete(skb, icmp_offset);
-+	icmph->icmp6_cksum = ~csum_ipv6_magic(&iph->saddr, &iph->daddr,
-+					      skb->len - icmp_offset,
-+					      IPPROTO_ICMPV6, 0);
-+	skb->csum_start = skb_network_header(skb) - skb->head + icmp_offset;
-+	skb->csum_offset = offsetof(struct icmp6hdr, icmp6_cksum);
- 	skb->ip_summed = CHECKSUM_UNNECESSARY;
- 
- 	if (inout)
+I did not say there was. fs/ will handle the DAC part, and if you
+wanted MAC/capability checking/other sparkles, an LSM sounds like
+the right spot.
