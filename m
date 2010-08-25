@@ -1,78 +1,50 @@
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: Re: block network access for certain users/groups
-Date: Wed, 25 Aug 2010 20:58:14 +0900
-Message-ID: <201008252058.DDE12933.FOLOHQSJFFOMtV@I-love.SAKURA.ne.jp>
-References: <AANLkTin8w74SAe67ZPqPE0Q=0fPpZOHnTCnjAT+AduCY@mail.gmail.com>
-	<AANLkTikru-pmMAnS-dqjYT7xJC_X21rVNBpjg_2LDmWB@mail.gmail.com>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: Fwd: help needed with EXPORT_SYMBOL
+Date: Wed, 25 Aug 2010 08:37:05 -0700
+Message-ID: <20100825083705.35a6195f.randy.dunlap@oracle.com>
+References: <1282373834.4080.79.camel@aijazbaig1-desktop>
+	<1282540448.4080.86.camel@aijazbaig1-desktop>
+	<AANLkTimtNOyJCbLxAW8Ebsftb58EWoNFW7Xkevqb6oGo@mail.gmail.com>
+	<1282569477.2605.1798.camel@laptop>
+	<AANLkTinq5APN4CXWAGj9sTFiTf4Cn1_mDaJSrAOh=t+N@mail.gmail.com>
+	<1282572346.2605.1856.camel@laptop>
+	<AANLkTimQDV74kcM_84QySMKmdf-XxFOhqp48cQdQNN4s@mail.gmail.com>
+	<AANLkTinRyoHcSmmHv9tZ36X4wxVVCKGLDwGiZUTPPn+z@mail.gmail.com>
+	<1282625054.4080.152.camel@aijazbaig1-desktop>
+	<AANLkTi=cj+qCFxeT5hq0-x-XqSUCbcqQRAwmQ9h+cOxy@mail.gmail.com>
+	<AANLkTim9nvJR0K6xJc2kHGCeoMzFLzSxR8Avx59jsEbf@mail.gmail.com>
+	<1282728478.17044.22.camel@aijazbaig1-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: estellnb@gmail.com
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: brgerst@gmail.com, peterz@infradead.org, jengelh@medozas.de,
+	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: aijazbaig1@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from wine.ocn.ne.jp ([122.1.235.145]:65305 "EHLO smtp.wine.ocn.ne.jp"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751435Ab0HYL6Q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Aug 2010 07:58:16 -0400
-In-Reply-To: <AANLkTikru-pmMAnS-dqjYT7xJC_X21rVNBpjg_2LDmWB@mail.gmail.com>
+Received: from rcsinet10.oracle.com ([148.87.113.121]:37378 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752035Ab0HYPiC (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 Aug 2010 11:38:02 -0400
+In-Reply-To: <1282728478.17044.22.camel@aijazbaig1-desktop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Elmar Stellnberger wrote:
-> Please answer my question:
-> It has not been answered, yet.
-> Thanks for hints like whether to use DROP or REJECT but please answer
-> my question!
-> 
-> I wanna be pointed on how to implement a per user package selection.
+On Wed, 25 Aug 2010 14:57:58 +0530 Aijaz Baig wrote:
 
-A package sounds something like application. What you want to do is
-"packet selection" (like iptables) rather than "package selection"
-(like rpm/dpkg). Please "sed -e 's/package/packet/g'"...
+> By the way Jan I couldnt find bridge.c although there is an object file
+> called bridge.o within /net/bridge. Nonetheless, I did check
 
-> Something similar pretends to be already implemented if you view the
-> man page, but
-> it is only implemented for outgoing packages and it even does not work
-> correctly
-> (blocking outgoing ICMP-ping requests but with lynx you can happily
-> view localhost:631
-> though the rule is on top and applies to any kind of package (raw,
-> tcp, udp)). We have
-> already checked this thouroughly.
+See net/bridge/Makefile:
 
-Regarding incoming packets, it is impossible to perform packet filtering based
-on uid/gid because the uid/gid who picks up the packet is not known until a
-user issues accept()/recvmsg(). The socket's owner may change between the
-moment iptables inspected the packet and the moment a user picks up the packet
-because it is possible to send the socket's file descriptor via Unix domain
-socket or call setuid()/setgid().
+obj-$(CONFIG_BRIDGE) += bridge.o
 
-> I need to block network access for certain users/groups, fully:
-> 
-> iptables -A mychain -m owner --gid-owner blockedusergroup -j REJECT
-> 
-> ...drops ping packages in the output chain but lets my user happily
-> connect to localhost:631 or any other http address. In deed the rule
-> above is therefore pretty useless.
-> 
-> I need to block ALL incoming and outgoing packages for a certain user/group.
-> At the moment there is only insufficient blocking for outgoing
-> packages available.
-> 
-> Can you help me?
-> What will I have to do to implement network access restrictions on a
-> per user/group basis?
+bridge-y	:= br.o br_device.o br_fdb.o br_forward.o br_if.o br_input.o \
+			br_ioctl.o br_notify.o br_stp.o br_stp_bpdu.o \
+			br_stp_if.o br_stp_timer.o br_netlink.o
 
-The only way that makes possible to block access by blockedusergroup is to
-insert hooks like http://tomoyo.sourceforge.jp/cgi-bin/lxr/source/net/ipv4/udp.c#L1144
-and http://tomoyo.sourceforge.jp/cgi-bin/lxr/source/net/socket.c#L1504 .
-But such hooks are not acceptable for upstream kernel. Please see
-http://kerneltrap.org/mailarchive/linux-netdev/2010/7/21/6281491 for
-discussion on these hooks.
+and see Documentation/kbuild/makefiles.txt.
 
-> Logging such packages is already possible. Why is blocking them not?
-> 
-> ... and yes I have already checked the whole iptables -L -v.
-> The rule is there and would have been supposed to work.
-> 
-> Yours,
-> Elmar Stellnberger
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
