@@ -1,119 +1,57 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: Fwd: help needed with EXPORT_SYMBOL
-Date: Wed, 25 Aug 2010 12:23:35 +0200
-Message-ID: <1282731815.2605.3473.camel@laptop>
-References: <1282373834.4080.79.camel@aijazbaig1-desktop>
-	 <1282540448.4080.86.camel@aijazbaig1-desktop>
-	 <AANLkTimtNOyJCbLxAW8Ebsftb58EWoNFW7Xkevqb6oGo@mail.gmail.com>
-	 <1282569477.2605.1798.camel@laptop>
-	 <AANLkTinq5APN4CXWAGj9sTFiTf4Cn1_mDaJSrAOh=t+N@mail.gmail.com>
-	 <1282572346.2605.1856.camel@laptop>
-	 <AANLkTimQDV74kcM_84QySMKmdf-XxFOhqp48cQdQNN4s@mail.gmail.com>
-	 <AANLkTinRyoHcSmmHv9tZ36X4wxVVCKGLDwGiZUTPPn+z@mail.gmail.com>
-	 <1282625054.4080.152.camel@aijazbaig1-desktop>
-	 <AANLkTi=cj+qCFxeT5hq0-x-XqSUCbcqQRAwmQ9h+cOxy@mail.gmail.com>
-	 <AANLkTim9nvJR0K6xJc2kHGCeoMzFLzSxR8Avx59jsEbf@mail.gmail.com>
-	 <1282728478.17044.22.camel@aijazbaig1-desktop>
+From: Elmar Stellnberger <estellnb@gmail.com>
+Subject: block network access for certain users/groups
+Date: Wed, 25 Aug 2010 13:09:34 +0200
+Message-ID: <AANLkTikru-pmMAnS-dqjYT7xJC_X21rVNBpjg_2LDmWB@mail.gmail.com>
+References: <AANLkTin8w74SAe67ZPqPE0Q=0fPpZOHnTCnjAT+AduCY@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Cc: brgerst@gmail.com, jengelh@medozas.de,
-	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
-To: aijazbaig1@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
+To: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:44003 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752851Ab0HYKXi convert rfc822-to-8bit (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:46156 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751435Ab0HYLLK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Aug 2010 06:23:38 -0400
-In-Reply-To: <1282728478.17044.22.camel@aijazbaig1-desktop>
+	Wed, 25 Aug 2010 07:11:10 -0400
+In-Reply-To: <AANLkTin8w74SAe67ZPqPE0Q=0fPpZOHnTCnjAT+AduCY@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 2010-08-25 at 14:57 +0530, Aijaz Baig wrote:
+Please answer my question:
+It has not been answered, yet.
+Thanks for hints like whether to use DROP or REJECT but please answer
+my question!
 
-> I am trying to understand if its possible to add functions dynamically
-> to the kernel source based on the presence of certain modules in the
-> running kernel image.
-> 
-> I did try what brian suggested with the function pointer and yeah it
-> does work. But I could not understand what peter was trying to say about
-> modular users since I suppose he mentioned one module (B in this case)
-> using a function pointer defined in (or by) module A. In my case, since
-> it is the kernel that is gonna use the function, I need to make sure
-> that the module doesn't get unloaded while we are using the function.
-
-Right, so there's two problems there:
-
- - the exposed function pointer
- - unload serialization
-
-The problem with the exposed function pointer is that two competing
-modules can set the function pointer:
-
-extern void (*ptr)(void);
-
-static void (*old_ptr)(void);
-
-void func(void)
-{
-  /* do something */
-}
-
-module_init()
-{
-  old_ptr = ptr;
-  ptr = func;
-}
-
-module_exit()
-{
-  ptr = old_ptr;
-  synchronize_stuff();
-}
-
-Now suppose two modules A and B both have that template, then load
-module A, at that time ptr == A::func, A::old_ptr = NULL, right?
-
-Then load B, then ptr == B:func, B::old_ptr = A::func.
-
-then unload A, then ptr == NULL; /* hey where's B gone? */
-
-Suppose module_exit() had read:
-
-module_exit()
-{
-  if (ptr == func)
-    ptr = old_ptr;
-}
-
-Then after A got unloaded, you'd have: ptr = B::func, B::old_ptr ==
-A:func, and the world goes *bang* when you unload B.
-
-If you'd have exposed the thing like:
-
-static void (*callback)(void);
-
-int set_foo_callback(void (*func)(void))
-{
-  if (callback && func)
-    return -EBUSY;
-
-  callback = func;
-  synchronize_world();
-  return 0;
-}
-EXPORT_SYMBOL_GPL(set_foo_callback);
-
-Then there'd be no confusion, as loading B while A was already loaded
-would fail since set_foo_callback() would fail with -EBUSY.
+I wanna be pointed on how to implement a per user package selection.
+Something similar pretends to be already implemented if you view the
+man page, but
+it is only implemented for outgoing packages and it even does not work
+correctly
+(blocking outgoing ICMP-ping requests but with lynx you can happily
+view localhost:631
+though the rule is on top and applies to any kind of package (raw,
+tcp, udp)). We have
+already checked this thouroughly.
 
 
-Now the synchronization issue, above represented by synchronize_world();
-that will have to do something that ensures all current users of the ptr
-have gone, taking a reference on the module will likely result in an
-pinned module, since what will drop the ref again?
+I need to block network access for certain users/groups, fully:
 
-Module unload does a fairly heavy stop-machine thing, which might be
-sufficient for some, but a sensible solution really depends on the
-problem domain, RCU could be used in various ways.
+iptables -A mychain -m owner --gid-owner blockedusergroup -j REJECT
+
+...drops ping packages in the output chain but lets my user happily
+connect to localhost:631 or any other http address. In deed the rule
+above is therefore pretty useless.
+
+I need to block ALL incoming and outgoing packages for a certain user/group.
+At the moment there is only insufficient blocking for outgoing
+packages available.
+
+Can you help me?
+What will I have to do to implement network access restrictions on a
+per user/group basis?
+Logging such packages is already possible. Why is blocking them not?
+
+... and yes I have already checked the whole iptables -L -v.
+The rule is there and would have been supposed to work.
+
+Yours,
+Elmar Stellnberger
