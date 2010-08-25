@@ -1,41 +1,132 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] netfilter: xt_condition: add security capability
- support
-Date: Wed, 25 Aug 2010 11:04:09 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1008251103150.24022@obet.zrqbmnf.qr>
-References: <1282567801-2673-1-git-send-email-luciano.coelho@nokia.com>  <AANLkTi=2H+ytOQU9nC_dRp_GB5Sy1831VY14oW=YSOrG@mail.gmail.com>  <1282570935.7198.5.camel@powerslave>  <alpine.LNX.2.01.1008231628010.21000@obet.zrqbmnf.qr>  <1282589101.7198.28.camel@powerslave>
-  <alpine.LNX.2.01.1008232052170.31619@obet.zrqbmnf.qr>  <1282633220.7198.123.camel@powerslave>  <alpine.LNX.2.01.1008240921230.24349@obet.zrqbmnf.qr> <1282720198.18016.72.camel@powerslave>
+From: Aijaz Baig <aijazbaig1@gmail.com>
+Subject: Re: Fwd: help needed with EXPORT_SYMBOL
+Date: Wed, 25 Aug 2010 14:57:58 +0530
+Message-ID: <1282728478.17044.22.camel@aijazbaig1-desktop>
+References: <1282373834.4080.79.camel@aijazbaig1-desktop>
+	 <1282540448.4080.86.camel@aijazbaig1-desktop>
+	 <AANLkTimtNOyJCbLxAW8Ebsftb58EWoNFW7Xkevqb6oGo@mail.gmail.com>
+	 <1282569477.2605.1798.camel@laptop>
+	 <AANLkTinq5APN4CXWAGj9sTFiTf4Cn1_mDaJSrAOh=t+N@mail.gmail.com>
+	 <1282572346.2605.1856.camel@laptop>
+	 <AANLkTimQDV74kcM_84QySMKmdf-XxFOhqp48cQdQNN4s@mail.gmail.com>
+	 <AANLkTinRyoHcSmmHv9tZ36X4wxVVCKGLDwGiZUTPPn+z@mail.gmail.com>
+	 <1282625054.4080.152.camel@aijazbaig1-desktop>
+	 <AANLkTi=cj+qCFxeT5hq0-x-XqSUCbcqQRAwmQ9h+cOxy@mail.gmail.com>
+	 <AANLkTim9nvJR0K6xJc2kHGCeoMzFLzSxR8Avx59jsEbf@mail.gmail.com>
+Reply-To: aijazbaig1@gmail.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: ext Changli Gao <xiaosuo@gmail.com>,
-	"kaber@trash.net" <kaber@trash.net>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	James Morris <jmorris@namei.org>,
-	"linux-security-module@vger.kernel.org"
-	<linux-security-module@vger.kernel.org>
-To: Luciano Coelho <luciano.coelho@nokia.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1282720198.18016.72.camel@powerslave>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: linux-kernel@vger.kernel.org
+To: brgerst@gmail.com, peterz@infradead.org, jengelh@medozas.de,
+	netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:50979 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751825Ab0HYJ2N (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 Aug 2010 05:28:13 -0400
+In-Reply-To: <AANLkTim9nvJR0K6xJc2kHGCeoMzFLzSxR8Avx59jsEbf@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+Hi everyone
+
+I am trying to understand if its possible to add functions dynamically
+to the kernel source based on the presence of certain modules in the
+running kernel image.
+
+I did try what brian suggested with the function pointer and yeah it
+does work. But I could not understand what peter was trying to say about
+modular users since I suppose he mentioned one module (B in this case)
+using a function pointer defined in (or by) module A. In my case, since
+it is the kernel that is gonna use the function, I need to make sure
+that the module doesn't get unloaded while we are using the function.
+
+By the way Jan I couldnt find bridge.c although there is an object file
+called bridge.o within /net/bridge. Nonetheless, I did check
+nf_nat_ftp.c as an example to see if something similar is being done
+there too. What I did find out is that nf_nat_ftp_hook is rcu assigned
+in nf_nat_ftp.c however this function pointer is being used with
+nf_contrack_ftp.c (im talkin 2.6.27.45 here). In this case, it still is
+module1 <- module2 and not kernel <- module. Could you please elaborate
+a little how it affects the latter case. Or perhaps u were commenting on
+the former case since peter brought that to our notice.
+
+thanks again for your replies and keen to hear your input
+Regards,
+Aijaz Baig 
+
+> 
+> 
+> ---------- Forwarded message ----------
+> From: Brian Gerst <brgerst@gmail.com>
+> Date: Tue, Aug 24, 2010 at 4:46 PM
+> Subject: Re: help needed with EXPORT_SYMBOL
+> To: aijazbaig1@gmail.com
+> 
+> 
+> 
+> On Tue, Aug 24, 2010 at 12:44 AM, Aijaz Baig <aijazbaig1@gmail.com>
+> wrote:
+> > Hello everyone,
+> >
+> > thanks for sending in the replies with so many options. I am still a
+> > relative newbie so please do bear with me guys if I sound a bit
+> naive at
+> > times.
+> >
+> > I'll first start with brian's suggestion. He said:
+> > "Use an exported function pointer in the main kernel as a hook that
+> the
+> > module sets when it is loaded.  Note, you must use module_get and
+> > module_put around the call to the module to prevent it from
+> unloading
+> > while in use."
+> >
+> > I have never used such a technique and do not understand what you
+> mean.
+> > Could you please elaborate a little. Do you mean I should NF_HOOK
+> within
+> > the kernel code and then make the function that I would like to
+> execute
+> > as the hookfn? Well..if this is what u meant then wouldn't it also
+> cause
+> > all hooks at that particular position to be executed as well?
+> >
+> > And then peter and finally jan came up with, perhaps better
+> suggestions
+> > (i really cannot judge the quality of any of these suggestions..m
+> too
+> > much of a noob to do that). I got confused in the XY explanation by
+> jan
+> > since there both X and Y are modules it seems and I was talking
+> about a
+> > module exporting a certain symbol to be used by the kernel. Peter
+> did
+> > suggest notification chains. Is there a simple example that I can
+> look
+> > at? Will it allow the kernel to see symbols defined within the
+> module?
+> >
+> > Lastly, will I be able to use kallsyms_lookup() to do what I can? I
+> > notice that it replaced EXPORT_SYMTAB sometime back. So if yes I can
+> use
+> > it, does anyone know how to fill in the very first parameter of this
+> > function which says address (of what exactly and how am I supposed
+> to
+> > know this address?)
+> >
+> > Keen to hear from you and once again, thank you for your inputs,
+> 
+> 
+> You still haven't explained why you want to lookup a symbol in a
+> module from the main kernel.  There is probably a better way of doing
+> it.
+> 
+> --
+> Brian Gerst
+> 
+> 
 
 
-On Wednesday 2010-08-25 09:09, Luciano Coelho wrote:
->> 
->> Indeed so. But you did not invent any new interface. You are reusing
->> files, which can be protected by DAC modes, or LSMs doing
->> funky-stuff. xt_{condition,recent,..} already implement file modes,
->> but does it check for it? Well no, because fs/namei.c does it for
->> them. As for LSMs, well, I hope they do cater for testing for
->> capability bits.
->
->I dug deeper into the code and I can see that /sys/net has capability
->checks (implemented in netdev_store() in net-sysfs.c) and nobody without
->CAP_NET_ADMIN will be able to write to the files there.  But in procfs I
->couldn't see anything similar and anyone with file write permissions can
->modify the files in /proc/net/*.
-
-I did not say there was. fs/ will handle the DAC part, and if you
-wanted MAC/capability checking/other sparkles, an LSM sounds like
-the right spot.
