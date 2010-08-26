@@ -1,56 +1,59 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [patch net-next 4/4] [PATCH net-next-2.6] ipvs: switch to GFP_KERNEL allocations
-Date: Thu, 26 Aug 2010 21:54:31 +0900
-Message-ID: <20100826125727.437158980@vergenet.net>
-References: <20100826125427.056491061@vergenet.net>
-Cc: Wensong Zhang <wensong@linux-vs.org>, Julian Anastasov <ja@ssi.bg>,
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [patch net-next 1/4] [patch nf-next v2] IPVS: ICMPv6 checksum
+ calculation
+Date: Thu, 26 Aug 2010 22:36:24 +0300 (EEST)
+Message-ID: <Pine.LNX.4.58.1008262234270.3055@u.domain.uli>
+References: <20100826125427.056491061@vergenet.net> <20100826125726.621600393@vergenet.net>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
 	Patrick McHardy <kaber@trash.net>,
 	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <eric.dumazet@gmail.com>
-To: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
+	Xiaoyu Du <tingsrain@gmail.com>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:36720 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752768Ab0HZNdA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Aug 2010 09:33:00 -0400
-Content-Disposition: inline; filename=ipvs-switch-to-GFP_KERNEL-allocations.patch
+Received: from ja.ssi.bg ([178.16.129.10]:56808 "EHLO u.domain.uli"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753692Ab0HZTbe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 Aug 2010 15:31:34 -0400
+In-Reply-To: <20100826125726.621600393@vergenet.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Switch from GFP_ATOMIC allocations to GFP_KERNEL ones in
-ip_vs_add_service() and ip_vs_new_dest(), as we hold a mutex and are
-allowed to sleep in this context.
 
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+	Hello,
 
----
- net/netfilter/ipvs/ip_vs_ctl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+On Thu, 26 Aug 2010, Simon Horman wrote:
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 0f0c079..896f34b 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -843,7 +843,7 @@ ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest,
- 			return -EINVAL;
- 	}
- 
--	dest = kzalloc(sizeof(struct ip_vs_dest), GFP_ATOMIC);
-+	dest = kzalloc(sizeof(struct ip_vs_dest), GFP_KERNEL);
- 	if (dest == NULL) {
- 		pr_err("%s(): no memory.\n", __func__);
- 		return -ENOMEM;
-@@ -1177,7 +1177,7 @@ ip_vs_add_service(struct ip_vs_service_user_kern *u,
- 	}
- #endif
- 
--	svc = kzalloc(sizeof(struct ip_vs_service), GFP_ATOMIC);
-+	svc = kzalloc(sizeof(struct ip_vs_service), GFP_KERNEL);
- 	if (svc == NULL) {
- 		IP_VS_DBG(1, "%s(): no memory\n", __func__);
- 		ret = -ENOMEM;
+> Cc: Xiaoyu Du <tingsrain@gmail.com>
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> Signed-off-by: Simon Horman <horms@verge.net.au>
+> 
+> Index: nf-next-2.6/net/netfilter/ipvs/ip_vs_core.c
+> ===================================================================
+> --- nf-next-2.6.orig/net/netfilter/ipvs/ip_vs_core.c	2010-08-25 16:57:37.000000000 +0900
+> +++ nf-next-2.6/net/netfilter/ipvs/ip_vs_core.c	2010-08-25 17:02:35.000000000 +0900
+> @@ -637,9 +637,11 @@ void ip_vs_nat_icmp_v6(struct sk_buff *s
+>  	}
+>  
+>  	/* And finally the ICMP checksum */
+> -	icmph->icmp6_cksum = 0;
+> -	/* TODO IPv6: is this correct for ICMPv6? */
+> -	ip_vs_checksum_complete(skb, icmp_offset);
+> +	icmph->icmp6_cksum = ~csum_ipv6_magic(&iph->saddr, &iph->daddr,
+> +					      skb->len - icmp_offset,
+> +					      IPPROTO_ICMPV6, 0);
+> +	skb->csum_start = skb_network_header(skb) - skb->head + icmp_offset;
+> +	skb->csum_offset = offsetof(struct icmp6hdr, icmp6_cksum);
+>  	skb->ip_summed = CHECKSUM_UNNECESSARY;
 
+	Ops, this should be CHECKSUM_PARTIAL
 
+>  	if (inout)
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
