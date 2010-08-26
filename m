@@ -1,59 +1,34 @@
-From: Julian Anastasov <ja@ssi.bg>
+From: David Miller <davem@davemloft.net>
 Subject: Re: [patch net-next 1/4] [patch nf-next v2] IPVS: ICMPv6 checksum
  calculation
-Date: Thu, 26 Aug 2010 22:36:24 +0300 (EEST)
-Message-ID: <Pine.LNX.4.58.1008262234270.3055@u.domain.uli>
-References: <20100826125427.056491061@vergenet.net> <20100826125726.621600393@vergenet.net>
+Date: Thu, 26 Aug 2010 13:18:37 -0700 (PDT)
+Message-ID: <20100826.131837.28801802.davem@davemloft.net>
+References: <20100826125427.056491061@vergenet.net>
+	<20100826125726.621600393@vergenet.net>
+	<Pine.LNX.4.58.1008262234270.3055@u.domain.uli>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Xiaoyu Du <tingsrain@gmail.com>
-To: Simon Horman <horms@verge.net.au>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: horms@verge.net.au, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	wensong@linux-vs.org, kaber@trash.net, tingsrain@gmail.com
+To: ja@ssi.bg
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:56808 "EHLO u.domain.uli"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753692Ab0HZTbe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Aug 2010 15:31:34 -0400
-In-Reply-To: <20100826125726.621600393@vergenet.net>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:56899
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753960Ab0HZUSV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 Aug 2010 16:18:21 -0400
+In-Reply-To: <Pine.LNX.4.58.1008262234270.3055@u.domain.uli>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Julian Anastasov <ja@ssi.bg>
+Date: Thu, 26 Aug 2010 22:36:24 +0300 (EEST)
 
-	Hello,
-
-On Thu, 26 Aug 2010, Simon Horman wrote:
-
-> Cc: Xiaoyu Du <tingsrain@gmail.com>
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
-> Signed-off-by: Simon Horman <horms@verge.net.au>
+>> +	skb->csum_offset = offsetof(struct icmp6hdr, icmp6_cksum);
+>>  	skb->ip_summed = CHECKSUM_UNNECESSARY;
 > 
-> Index: nf-next-2.6/net/netfilter/ipvs/ip_vs_core.c
-> ===================================================================
-> --- nf-next-2.6.orig/net/netfilter/ipvs/ip_vs_core.c	2010-08-25 16:57:37.000000000 +0900
-> +++ nf-next-2.6/net/netfilter/ipvs/ip_vs_core.c	2010-08-25 17:02:35.000000000 +0900
-> @@ -637,9 +637,11 @@ void ip_vs_nat_icmp_v6(struct sk_buff *s
->  	}
->  
->  	/* And finally the ICMP checksum */
-> -	icmph->icmp6_cksum = 0;
-> -	/* TODO IPv6: is this correct for ICMPv6? */
-> -	ip_vs_checksum_complete(skb, icmp_offset);
-> +	icmph->icmp6_cksum = ~csum_ipv6_magic(&iph->saddr, &iph->daddr,
-> +					      skb->len - icmp_offset,
-> +					      IPPROTO_ICMPV6, 0);
-> +	skb->csum_start = skb_network_header(skb) - skb->head + icmp_offset;
-> +	skb->csum_offset = offsetof(struct icmp6hdr, icmp6_cksum);
->  	skb->ip_summed = CHECKSUM_UNNECESSARY;
+> 	Ops, this should be CHECKSUM_PARTIAL
 
-	Ops, this should be CHECKSUM_PARTIAL
-
->  	if (inout)
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+I'll fix this up when I apply the patch.
