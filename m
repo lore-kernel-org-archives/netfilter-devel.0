@@ -1,54 +1,42 @@
-From: Nicola Padovano <nicola.padovano@gmail.com>
-Subject: Re: write a new simple target for netfilter
-Date: Mon, 30 Aug 2010 23:47:36 +0200
-Message-ID: <AANLkTikqMSHJDDe7VsOVUc_yqCERNnHXsb7pVNXmZnGP@mail.gmail.com>
-References: <AANLkTikwLOzN8ycsVxtXy6f57=Y0MG=dMp04v4r8O3cp@mail.gmail.com>
-	<AANLkTinLYRcgf3rxWYMMFZ5BmVdQgTojKExtpNbY-Jo7@mail.gmail.com>
-	<4C7BB8DF.7040208@kaleco.net>
-	<AANLkTimwoCiP=XYaiNp4MMb4krHsF8QebJULfe5fv8Em@mail.gmail.com>
-	<alpine.LNX.2.01.1008301658580.24381@obet.zrqbmnf.qr>
-	<AANLkTi=tFWwOrjBKPf2NfT3CCE3zfjpDHnuZnFo4ugy=@mail.gmail.com>
-	<alpine.LNX.2.01.1008302045310.1164@obet.zrqbmnf.qr>
-	<AANLkTinD1+AmaB=n3zofaxSv4Q5h44zxzFrK8441-qUq@mail.gmail.com>
-	<alpine.LNX.2.01.1008302107030.2418@obet.zrqbmnf.qr>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH][RESEND] netfilter: fix CONFIG_COMPAT support
+Date: Mon, 30 Aug 2010 23:50:04 +0200
+Message-ID: <20100830215004.GD17484@Chamillionaire.breakpoint.cc>
+References: <1282568186-20475-1-git-send-email-fw@strlen.de>
+ <20100823.144146.173873857.davem@davemloft.net>
+ <20100830161037.517d6ea5@schatten.dmk.lab>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: David Miller <davem@davemloft.net>, fw@strlen.de,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Florian Mickler <florian@mickler.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:59412 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754528Ab0H3Vrh (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:43661 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754643Ab0H3VuG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Aug 2010 17:47:37 -0400
-Received: by wwi14 with SMTP id 14so329342wwi.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Aug 2010 14:47:36 -0700 (PDT)
-In-Reply-To: <alpine.LNX.2.01.1008302107030.2418@obet.zrqbmnf.qr>
+	Mon, 30 Aug 2010 17:50:06 -0400
+Content-Disposition: inline
+In-Reply-To: <20100830161037.517d6ea5@schatten.dmk.lab>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-i'm sorry...but i've restarted my computer and then i tried to insmod
-the module and now i have:
-insmod: error inserting './xt_TAR.ko': -1 Unknown symbol in module
-with this dmesg result:
-[  413.359837] xt_TAR: Unknown symbol xt_register_target (err 0)
-[  413.360019] xt_TAR: Unknown symbol xt_unregister_target (err 0)
+Florian Mickler <florian@mickler.org> wrote:
+> On Mon, 23 Aug 2010 14:41:46 -0700 (PDT)
+> David Miller <davem@davemloft.net> wrote:
+> 
+> > From: Florian Westphal <fw@strlen.de>
+> > Date: Mon, 23 Aug 2010 14:56:26 +0200
+> > 
+> > > commit f3c5c1bfd430858d3a05436f82c51e53104feb6b
+> > > (netfilter: xtables: make ip_tables reentrant) forgot to
+> > > also compute the jumpstack size in the compat handlers.
+> > > 
+> > > Result is that "iptables -I INPUT -j userchain" turns into -j DROP.
+[..]
+> 
+> Should this go to stable? 
+> It seems commit f3c5c1bdf was introduced in 2.6.35.
 
-wtf now? help me, please. i need to sleep. :P
-
-On Mon, Aug 30, 2010 at 9:07 PM, Jan Engelhardt <jengelh@medozas.de> wrote:
-> On Monday 2010-08-30 21:00, Nicola Padovano wrote:
->
->>oh sorry, i forget the dmesg output
->>
->>[ 4871.255884] x_tables: ip_tables: TAR target: only valid for protocol 6
->
-> So, you made your module enforce .proto = IPPROTO_TCP, now you also must
-> specify -p tcp on iptables.
->
-
-
-
--- 
-Nicola Padovano
-e-mail: nicola.padovano@gmail.com
-web: http://npadov.blogspot.com/
+My bad, I forgot to add a "Cc: stable" tag.
+I'll submit it now, thanks for the heads-up...
