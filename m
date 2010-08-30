@@ -1,46 +1,77 @@
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: Re: block network access for certain users/groups
-Date: Mon, 30 Aug 2010 20:55:43 +0900
-Message-ID: <201008302055.GEG52699.MJHtQLFOFOSFVO@I-love.SAKURA.ne.jp>
-References: <AANLkTin8w74SAe67ZPqPE0Q=0fPpZOHnTCnjAT+AduCY@mail.gmail.com>
-	<AANLkTikru-pmMAnS-dqjYT7xJC_X21rVNBpjg_2LDmWB@mail.gmail.com>
-	<201008252058.DDE12933.FOLOHQSJFFOMtV@I-love.SAKURA.ne.jp>
-	<201008262128.DCG04175.JFQFLFVOMHOtSO@I-love.SAKURA.ne.jp>
-	<AANLkTi=HpQNM_FeHDdejnh-q-RhLMFVK3-O5JgWKejA0@mail.gmail.com>
+From: Nicola Padovano <nicola.padovano@gmail.com>
+Subject: write a new simple target for netfilter
+Date: Mon, 30 Aug 2010 15:22:03 +0200
+Message-ID: <AANLkTikwLOzN8ycsVxtXy6f57=Y0MG=dMp04v4r8O3cp@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: estellnb@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from wine.ocn.ne.jp ([122.1.235.145]:58098 "EHLO smtp.wine.ocn.ne.jp"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754026Ab0H3Lzq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Aug 2010 07:55:46 -0400
-In-Reply-To: <AANLkTi=HpQNM_FeHDdejnh-q-RhLMFVK3-O5JgWKejA0@mail.gmail.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:45862 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751972Ab0H3NWF (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 Aug 2010 09:22:05 -0400
+Received: by wyb35 with SMTP id 35so6594519wyb.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Aug 2010 06:22:03 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Elmar Stellnberger wrote:
-> However if I compile the kernel module and try to load it that results
-> in a kernel hang that I can only escape by Alt-PrnScr-S-U-B, no matter
-> whether the module is loaded on boot time or in rl5. I have checked
-> all required kernel options and built it like the following (using
-> openSUSE 11.3):
+Hi all!
+I've write the following  (and dummy) module that drops all packet...
+but...now? after i write the module i can use it?
+for example: i want digit:
+iptables -A INPUT -s 127.0.0.1 -p icmp -j DROP
+but i don't know how create this new target...
+I've modified the netfilter makefile e Kbuild file (in net/netfilter),
+and then i've do 'make' 'make modules' 'make modules_install' but
+after i digit iptables i have this message
 
-This module is for 2.6.36 but openSUSE 11.3 uses 2.6.34 . Did you change
-below spin_lock() to write_lock() and spin_unlock() to write_unlock()?
+"iptables v1.4.2: Couldn't load target `TAR':/lib/xtables/libipt_TAR.
+so: cannot open shared object file: No such file or directory"
 
-> > 	{
-> > 		struct fs_struct *fs = current->fs;
-> > 		struct vfsmount *mnt = current->nsproxy->pid_ns->proc_mnt;
-> > 		struct path old_path;
-> > 		struct path new_path = { mnt, mnt->mnt_root };
-> > 		spin_lock(&fs->lock); /* was write_lock() till 2.6.35. */
-> > 		old_path = fs->pwd;
-> > 		fs->pwd = new_path;
-> > 		spin_unlock(&fs->lock);
-> > 		file = filp_open("kallsyms", O_RDONLY, 0);
-> > 		spin_lock(&fs->lock);
-> > 		fs->pwd = old_path;
-> > 		spin_unlock(&fs->lock);
-> > 	}
+what's my problem?
+
+
+code:
+#include <linux/module.h>
+#include <linux/skbuff.h>
+#include <linux/netfilter_ipv4/ip_tables.h>
+#include <linux/kernel.h>
+#include <linux/netfilter.h>
+#include <linux/netfilter_ipv4.h>
+#include <linux/netfilter/x_tables.h>
+
+static unsigned int xt_tar_target(unsigned int hook,
+                                                 struct sk_buff **skb,
+                                                 const struct net_device *in,
+                                                 const struct net_device *out,
+                                                 int (*okfn)(struct sk_buff*))
+{
+    printk(KERN_INFO "ciaociao");
+    return NF_DROP;
+}
+
+static struct xt_target xt_tar_reg = {
+    .name       = "TAR",
+    .family     = AF_INET,
+    .proto      = IPPROTO_TCP,
+    .target     = xt_tar_target,
+    .me         = THIS_MODULE,
+};
+
+static int __init xt_tar_init(void)
+{
+    return xt_register_target(&xt_tar_reg);
+}
+
+static void __exit xt_tar_exit(void)
+{
+    xt_unregister_target(&xt_tar_reg);
+}
+
+module_init(xt_tar_init);
+module_exit(xt_tar_exit);
+
+MODULE_DESCRIPTION("np des");
+MODULE_LICENSE("GPL");
+MODULE_ALIAS("xt_TAR");
