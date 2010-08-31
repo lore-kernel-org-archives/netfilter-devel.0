@@ -1,26 +1,56 @@
-From: Vlad Dogaru <ddvlad@rosedu.org>
-Subject: Re: [PATCH] netfilter: remove duplicate include line
-Date: Tue, 31 Aug 2010 17:10:52 +0300
-Message-ID: <20100831141052.GF2387@cormyr>
-References: <1283259030-7765-1-git-send-email-ddvlad@rosedu.org>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH] netfilter: fix a race in nf_ct_ext_create()
+Date: Tue, 31 Aug 2010 17:48:02 +0200
+Message-ID: <1283269682.2550.111.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>, netdev <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from swarm.cs.pub.ro ([141.85.37.41]:48219 "EHLO swarm.cs.pub.ro"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757403Ab0HaOKx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 31 Aug 2010 10:10:53 -0400
-Content-Disposition: inline
-In-Reply-To: <1283259030-7765-1-git-send-email-ddvlad@rosedu.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:62525 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757171Ab0HaPsH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 31 Aug 2010 11:48:07 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Aug 31, 2010 at 03:50:30PM +0300, Vlad Dogaru wrote:
-> net/netfilter/xt_ipvs.c contained a duplicate header inclusion.
+As soon as rcu_read_unlock() is called, there is no guarantee current
+thread can safely derefence t pointer, rcu protected.
 
-Apologies, I was browsing the wrong git tree. Please ignore this patch.
+Fix is to copy t->alloc_size in a temporary variable.
 
-Vlad
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+---
+ net/netfilter/nf_conntrack_extend.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+index 7dcf7a4..8d9e4c9 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -48,15 +48,17 @@ nf_ct_ext_create(struct nf_ct_ext **ext, enum nf_ct_ext_id id, gfp_t gfp)
+ {
+ 	unsigned int off, len;
+ 	struct nf_ct_ext_type *t;
++	size_t alloc_size;
+ 
+ 	rcu_read_lock();
+ 	t = rcu_dereference(nf_ct_ext_types[id]);
+ 	BUG_ON(t == NULL);
+ 	off = ALIGN(sizeof(struct nf_ct_ext), t->align);
+ 	len = off + t->len;
++	alloc_size = t->alloc_size;
+ 	rcu_read_unlock();
+ 
+-	*ext = kzalloc(t->alloc_size, gfp);
++	*ext = kzalloc(alloc_size, gfp);
+ 	if (!*ext)
+ 		return NULL;
+ 
+
+
