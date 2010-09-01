@@ -1,43 +1,39 @@
-From: Nicola Padovano <nicola.padovano@gmail.com>
-Subject: Re: get tcp header
-Date: Wed, 1 Sep 2010 15:20:49 +0200
-Message-ID: <AANLkTi=3Zyn=h-jOd_4zN9ADMNNsbkAbXxPCZikWwiBN@mail.gmail.com>
-References: <AANLkTikz7+MsnB4B0PPLX6ypGaLLnpcXgaXryctaT2LW@mail.gmail.com>
- <alpine.LNX.2.01.1008312034240.10509@obet.zrqbmnf.qr> <AANLkTikQoVP_c6JfoSjz46WrARzP1QEEeuoabSdRjk8A@mail.gmail.com>
- <AANLkTinQvTBiw7Gno42xdRdgF5_aCGb8BdEo82ocoY2e@mail.gmail.com>
- <alpine.LNX.2.01.1009011251590.20617@obet.zrqbmnf.qr> <AANLkTi=AzvtAJ23nmA7Y7=RfkgJ_NLExj2f-Lm54tGt_@mail.gmail.com>
- <AANLkTimhvuY7JouM-Ctv5oh+_Tgzskpvc+wfoc2JYH6m@mail.gmail.com> <alpine.LNX.2.01.1009011513090.26297@obet.zrqbmnf.qr>
+From: rui.sousa@mindspeed.com
+Subject: TCP proto info
+Date: Wed, 1 Sep 2010 15:45:52 +0200
+Message-ID: <OF9D26EAF2.D88996EC-ONC1257791.00499961-C1257791.004BB4FC@mindspeed.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset="US-ASCII"
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:55404 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752572Ab0IANVM (ORCPT
+Received: from mail172.messagelabs.com ([216.82.254.3]:35033 "HELO
+	mail172.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754255Ab0IANq6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Sep 2010 09:21:12 -0400
-Received: by wyb35 with SMTP id 35so9236516wyb.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 01 Sep 2010 06:21:11 -0700 (PDT)
-In-Reply-To: <alpine.LNX.2.01.1009011513090.26297@obet.zrqbmnf.qr>
+	Wed, 1 Sep 2010 09:46:58 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-discard that mail :)
+Hi,
 
-On Wed, Sep 1, 2010 at 3:13 PM, Jan Engelhardt <jengelh@medozas.de> wrote:
-> On Wednesday 2010-09-01 14:18, Nicola Padovano wrote:
->
->>maybe because the packet is sent firstly to the router and then the
->>router sends to my host a ip packet in which network_header is set? i
->>hope so...
->
-> NH is not stored in the packet.
->
+I have an application using libnetfilter_conntrack-0.100 that started 
+reporting errors after the commit: 
 
+1c450e1595afdc8d1bfabb4f640c9251808426eb.
 
+I've checked that the error happens because the kernel sees an empty 
+CTA_PROTOINFO attribute when parsing a conntrack update.
+In the case of my application I was just trying to update the timeout of a 
+TCP conntrack and so I didn't specify any of the TCP protoinfo attributes. 
+With the previous library version no CTA_PROTOINFO attribute was set in 
+the conntrack and no error was seen (this is valid from the point of view 
+of the kernel). Now, an error is reported and the netlink command ignored.
+What do you think would be the right fix? Should the commit be reverted? 
+Or is the application obliged to specify attributes which it doesn't want 
+to modify (and introduce possible race conditions since it's usually a 
+read/write/modify)?
 
--- 
-Nicola Padovano
-e-mail: nicola.padovano@gmail.com
-web: http://npadovano.altervista.org
+Br,
+Rui
+
