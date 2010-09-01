@@ -1,35 +1,76 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Nicola Padovano <nicola.padovano@gmail.com>
 Subject: Re: get tcp header
-Date: Wed, 1 Sep 2010 14:15:58 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1009011415180.23062@obet.zrqbmnf.qr>
-References: <AANLkTikz7+MsnB4B0PPLX6ypGaLLnpcXgaXryctaT2LW@mail.gmail.com> <alpine.LNX.2.01.1008312034240.10509@obet.zrqbmnf.qr> <AANLkTikQoVP_c6JfoSjz46WrARzP1QEEeuoabSdRjk8A@mail.gmail.com> <AANLkTinQvTBiw7Gno42xdRdgF5_aCGb8BdEo82ocoY2e@mail.gmail.com>
+Date: Wed, 1 Sep 2010 14:18:49 +0200
+Message-ID: <AANLkTimhvuY7JouM-Ctv5oh+_Tgzskpvc+wfoc2JYH6m@mail.gmail.com>
+References: <AANLkTikz7+MsnB4B0PPLX6ypGaLLnpcXgaXryctaT2LW@mail.gmail.com>
+ <alpine.LNX.2.01.1008312034240.10509@obet.zrqbmnf.qr> <AANLkTikQoVP_c6JfoSjz46WrARzP1QEEeuoabSdRjk8A@mail.gmail.com>
+ <AANLkTinQvTBiw7Gno42xdRdgF5_aCGb8BdEo82ocoY2e@mail.gmail.com>
  <alpine.LNX.2.01.1009011251590.20617@obet.zrqbmnf.qr> <AANLkTi=AzvtAJ23nmA7Y7=RfkgJ_NLExj2f-Lm54tGt_@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Nicola Padovano <nicola.padovano@gmail.com>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:42636 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753219Ab0IAMP7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Sep 2010 08:15:59 -0400
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:33371 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753041Ab0IAMTK (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 1 Sep 2010 08:19:10 -0400
+Received: by wwb17 with SMTP id 17so1385369wwb.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 Sep 2010 05:19:09 -0700 (PDT)
 In-Reply-To: <AANLkTi=AzvtAJ23nmA7Y7=RfkgJ_NLExj2f-Lm54tGt_@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 2010-09-01 13:48, Nicola Padovano wrote:
+maybe because the packet is sent firstly to the router and then the
+router sends to my host a ip packet in which network_header is set? i
+hope so...
 
->ok, Jan! Perfect.
+On Wed, Sep 1, 2010 at 1:48 PM, Nicola Padovano
+<nicola.padovano@gmail.com> wrote:
+> ok, Jan! Perfect.
 >
->But there is a last question: i've seen a source code that get a
->packet just received from the Net: so -if I understand correctly- it
->can't use skb_network_header (IP header) because when i get a packet
->just received from the net i should have only the mac_header set.
->isn't it?
->But, i've seen the usage of skb_network_header...
+> But there is a last question: i've seen a source code that get a
+> packet just received from the Net: so -if I understand correctly- it
+> can't use skb_network_header (IP header) because when i get a packet
+> just received from the net i should have only the mac_header set.
+> isn't it?
+> But, i've seen the usage of skb_network_header...
+>
+> On Wed, Sep 1, 2010 at 12:53 PM, Jan Engelhardt <jengelh@medozas.de> wrote:
+>> On Wednesday 2010-09-01 11:57, Nicola Padovano wrote:
+>>
+>>>"If a packet is handled by a bridge, that is, a component that does not
+>>>deal with layer 3 or 4, there is no point in spending time to find the
+>>>start of the layer 3/4 header."
+>>>
+>>>Ok, well: great. but in this case (bridge) also the skb_network_header
+>>>function is senseless because we don't have to find layer3 header.
+>>>isn't it?
+>>
+>> Correct.
+>>
+>>>in general: when i can use the skb_transport_header function?
+>>
+>> When a transport header pointer has been set. Which is when the
+>> appropriate layer-X function has processed it. (After ip_rcv for
+>> example)
+>> On the output path, since it goes in the reverse direction, it will
+>> always be set.
+>>
+>>
+>
+>
+>
+> --
+> Nicola Padovano
+> e-mail: nicola.padovano@gmail.com
+> web: http://npadovano.altervista.org
+>
 
-By the time ebtables is run, skb_mac_header is valid, by the time 
-ip/6tables runs, skb_network_header is valid, and once tcp_rcv gets its 
-turn to run (but then there is no more Xtables to do), 
-skb_transport_header becomes valid.
 
+
+-- 
+Nicola Padovano
+e-mail: nicola.padovano@gmail.com
+web: http://npadovano.altervista.org
