@@ -1,105 +1,90 @@
-From: Amir Herzberg <amir.herzberg@gmail.com>
-Subject: Re: Resolver behind NetFilter NAT service vulnerable to DNS poisoning attack
-Date: Thu, 2 Sep 2010 21:24:36 +0300
-Message-ID: <AANLkTi=sa1+3+=Je9myrrgPAnVtfpUYTbXT9TyOihKxy@mail.gmail.com>
-References: <AANLkTikjFnoh_=PX7YDv18O46JhLFnyXQ9-f2CEumqRd@mail.gmail.com>
- <AANLkTikVRqRjzzoRyDQzA0AiO1_kBNYiTwEZ2cLnsxhe@mail.gmail.com>
- <1283436292.2454.790.camel@edumazet-laptop> <AANLkTimoL4yDha_iMKtHRFSaLQcf=xeYp1cF=qySAz_D@mail.gmail.com>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [patch net] ipvs: avoid oops for passive FTP
+Date: Thu, 2 Sep 2010 23:52:16 +0300 (EEST)
+Message-ID: <Pine.LNX.4.58.1009022310030.2891@u.domain.uli>
+References: <20100902090709.GA15401@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Haya Shulman <haya.shulman@gmail.com>
-To: netfilter-devel <netfilter-devel@vger.kernel.org>,
-	Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>,
+	Wensong Zhang <wensong@linux-vs.org>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:62099 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753264Ab0IBSY5 convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Sep 2010 14:24:57 -0400
-Received: by qyk36 with SMTP id 36so2307555qyk.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 02 Sep 2010 11:24:56 -0700 (PDT)
-In-Reply-To: <AANLkTimoL4yDha_iMKtHRFSaLQcf=xeYp1cF=qySAz_D@mail.gmail.com>
+Received: from ja.ssi.bg ([178.16.129.10]:47048 "EHLO u.domain.uli"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752953Ab0IBUrL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 2 Sep 2010 16:47:11 -0400
+In-Reply-To: <20100902090709.GA15401@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric, thanks. I'm sorry for forgetting to mention this before, but the
-attack I referred to was against NAT _using_ port randomization, i.e.
---random option (Netfilter from 2.4).
 
-We did _not_ refer to the known attack against NAT using
-port-preserving option (i.e., without port randomization). This attack
-is trivial when the DNS is not using port randomization, and we also
-show how to do this when the DNS is using port randomization. But the
-more challenging attack is when the NAT is using port randomization
-(--random). Of course, we also explain how to prevent these attacks.
+	Hello,
 
-Cheers, Amir and Haya
+On Thu, 2 Sep 2010, Simon Horman wrote:
 
-On Thu, Sep 2, 2010 at 4:04 PM, Eric Dumazet <eric.dumazet@gmail.com> w=
-rote:
-> Le jeudi 02 septembre 2010 =E0 15:50 +0200, Amir Herzberg a =E9crit :
->> We investigate some issues related to DNS poisoning, and specificall=
-y,
->> an attack that poisons DNS cache, similar to Kaminski's attack, but
->> that works even if the resolver selects random ports, as long as
->> resolver is connected to the Internet via NAT. In particular, we
->> tested the attack for the NetFilter NAT.
->>
->> For obvious reasons, I prefer at this point to share details only wi=
-th
->> developers of NAT devices. If you are such developer, please contact
->> me and I can send you the details (paper).
->> Feel also welcome to forward the messages to individuals/forums whic=
-h
->> may be relevant (i.e., developers).
->>
->> I apologize for not being able to promise to respond to requests fro=
-m
->> people who are just curious (i.e., not NAT developers). Thanks for
->> your understanding.
->> --
->
-> Strange, this should be supported since 2007 (port randomization for
-> nat)
->
-> commit 41f4689a7c8cd76b77864461b3c58fde8f322b2c
-> Author: Eric Leblond <eric@inl.fr>
-> Date: =A0 Wed Feb 7 15:10:09 2007 -0800
->
-> =A0 =A0[NETFILTER]: NAT: optional source port randomization support
->
-> =A0 =A0This patch adds support to NAT to randomize source ports.
->
-> =A0 =A0Signed-off-by: Eric Leblond <eric@inl.fr>
-> =A0 =A0Signed-off-by: Patrick McHardy <kaber@trash.net>
-> =A0 =A0Signed-off-by: David S. Miller <davem@davemloft.net>
->
-> If using MASQUERADE, its a very easy setup :
->
-> iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE --random
->
->
->
->
+> From: Julian Anastasov <ja@ssi.bg>
+> 
+> Fix Passive FTP problem in ip_vs_ftp:
+> 
+> - Do not oops in nf_nat_set_seq_adjust (adjust_tcp_sequence) when
+>   iptable_nat module is not loaded
+> 
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> Signed-off-by: Simon Horman <horms@verge.net.au>
+> 
+> ---
+> 
+> Dave, this patch fixes a regression since 2.6.35 so please consider it for net.
+> Julian has also found another regression, but the fix is a bit
+> more complex so I have posted it to the netfilter list for review.
 
+	Just to clarify that both patches for ip_vs_ftp are
+only for code that come in 2.6.36-rc, 2.6.35 is ok and does
+not need them.
 
+	The other problem is that 2.6.36-rc comes with
+requirement IPVS to keep netfilter conntracks for all
+connections, eg. DirectRouting, not only for LVS-NAT (ip_vs_ftp).
+I have a bigger patch to make the IPVS conntracking support
+an option (enabled by default only for ip_vs_ftp) but
+may be it is not appropriate for -rc series. So, for now
+we are fixing just the fatal problems but the risk of
+IPVS setups with low nf_conntrack_max value to stop
+processing high loads remains without making the conntrack
+support an option. Before now all conntracks were created
+and destroyed for every packet and nf_conntrack_max,
+even if low, probably is never reached.
 
---
-Amir Herzberg
-Associate Professor, Dept. of Computer Science
-Bar Ilan University
-http://AmirHerzberg.com
+> 	http://marc.info/?l=netfilter-devel&m=128339248723532&w=2
+> 
+> This change (and the other one) is also applicable to net-next, although
+> there is some diff noise. Do you want me to resolve that and post a
+> net-next version separately?
+> 
+> --- v2.6.36-rc2/linux/net/netfilter/ipvs/ip_vs_ftp.c	2010-09-02 00:45:54.000000000 +0300
+> +++ linux/net/netfilter/ipvs/ip_vs_ftp.c	2010-09-02 02:12:52.000000000 +0300
+> @@ -45,6 +45,7 @@
+>  #include <linux/netfilter.h>
+>  #include <net/netfilter/nf_conntrack.h>
+>  #include <net/netfilter/nf_conntrack_expect.h>
+> +#include <net/netfilter/nf_nat.h>
+>  #include <net/netfilter/nf_nat_helper.h>
+>  #include <linux/gfp.h>
+>  #include <net/protocol.h>
+> @@ -359,7 +360,7 @@ static int ip_vs_ftp_out(struct ip_vs_ap
+>  		buf_len = strlen(buf);
+>  
+>  		ct = nf_ct_get(skb, &ctinfo);
+> -		if (ct && !nf_ct_is_untracked(ct)) {
+> +		if (ct && !nf_ct_is_untracked(ct) && nfct_nat(ct)) {
+>  			/* If mangling fails this function will return 0
+>  			 * which will cause the packet to be dropped.
+>  			 * Mangling can only fail under memory pressure,
 
-
+Regards
 
 --
-Amir Herzberg
-Associate Professor, Dept. of Computer Science
-Bar Ilan University
-http://AmirHerzberg.com
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Julian Anastasov <ja@ssi.bg>
