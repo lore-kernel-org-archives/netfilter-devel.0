@@ -1,33 +1,142 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: get tcp header
-Date: Wed, 1 Sep 2010 23:50:40 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1009012350050.17324@obet.zrqbmnf.qr>
-References: <AANLkTikz7+MsnB4B0PPLX6ypGaLLnpcXgaXryctaT2LW@mail.gmail.com> <alpine.LNX.2.01.1008312034240.10509@obet.zrqbmnf.qr> <AANLkTikQoVP_c6JfoSjz46WrARzP1QEEeuoabSdRjk8A@mail.gmail.com> <AANLkTinQvTBiw7Gno42xdRdgF5_aCGb8BdEo82ocoY2e@mail.gmail.com>
- <alpine.LNX.2.01.1009011251590.20617@obet.zrqbmnf.qr> <AANLkTi=AzvtAJ23nmA7Y7=RfkgJ_NLExj2f-Lm54tGt_@mail.gmail.com> <AANLkTimhvuY7JouM-Ctv5oh+_Tgzskpvc+wfoc2JYH6m@mail.gmail.com> <alpine.LNX.2.01.1009011513090.26297@obet.zrqbmnf.qr>
- <AANLkTi=3Zyn=h-jOd_4zN9ADMNNsbkAbXxPCZikWwiBN@mail.gmail.com> <AANLkTimqUswK9xF-zojqsTe0e_QH3wrM_Zw4tN9jrQfj@mail.gmail.com> <alpine.LNX.2.01.1009012125230.6374@obet.zrqbmnf.qr> <AANLkTikxhnBNV0CFJN2Y4HfLwJJoZYmBw+3Qh6X5ADiE@mail.gmail.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH] ipvs: fix problems with active FTP
+Date: Thu, 2 Sep 2010 10:54:42 +0900
+Message-ID: <20100902015441.GP8174@verge.net.au>
+References: <Pine.LNX.4.58.1009020235160.14271@u.domain.uli>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Nicola Padovano <nicola.padovano@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:46728 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755187Ab0IAVul (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Sep 2010 17:50:41 -0400
-In-Reply-To: <AANLkTikxhnBNV0CFJN2Y4HfLwJJoZYmBw+3Qh6X5ADiE@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: lvs-devel@vger.kernel.org,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Julian Anastasov <ja@ssi.bg>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.1009020235160.14271@u.domain.uli>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wednesday 2010-09-01 23:34, Nicola Padovano wrote:
+On Thu, Sep 02, 2010 at 02:41:35AM +0300, Julian Anastasov wrote:
+> 
+> 	Fix Active FTP:
+> 
+> - Do not create expectation when forwarding the PORT
+> command to avoid blocking the connection. The problem is that
+> nf_conntrack_ftp.c:help() tries to create the same expectation
+> later in POST_ROUTING and drops the packet with "dropping packet"
+> message after failure in nf_ct_expect_related.
+> 
+> - Change ip_vs_update_conntrack to alter the conntrack
+> for related connections from real server. If we do not alter
+> the reply in this direction the next packet from client
+> sent to vport 20 comes as NEW connection. We alter it
+> but may be some collision happens for both conntracks and
+> the second conntrack gets destroyed immediately. The connection
+> stucks too.
+> 
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> ---
 
->> It merely means that the function is only designed to be executed by
->> ip4tables.
->yes, but this also means that when i receive a packet (=the skb
->pointer of target function) its data pointer points to the beginning
->of ip header (remember that skb->data and skb->tail mark the beginning
->and the end of header+payload of the layer X).
->am i right?
+Thanks, this looks good to me. I have CCed the netfilter-devel
+list for review there.
 
-Yes, that happens to be the case. But that's why you use 
-skb_{mac,network,transport}_header anyway, because that is more 
-invariant than skb->data. (Provided restrictions on its use are obeyed.)
+> 
+> 	This patch is for 2.6.36
+> 
+> diff -urp v2.6.36-rc2/linux/include/net/ip_vs.h linux/include/net/ip_vs.h
+> --- v2.6.36-rc2/linux/include/net/ip_vs.h	2010-08-26 09:11:45.000000000 +0300
+> +++ linux/include/net/ip_vs.h	2010-09-02 01:10:31.000000000 +0300
+> @@ -955,6 +955,9 @@ static inline __wsum ip_vs_check_diff2(_
+>  	return csum_partial(diff, sizeof(diff), oldsum);
+>  }
+>  
+> +extern void ip_vs_update_conntrack(struct sk_buff *skb, struct ip_vs_conn *cp,
+> +				   int outin);
+> +
+>  #endif /* __KERNEL__ */
+>  
+>  #endif	/* _NET_IP_VS_H */
+> diff -urp v2.6.36-rc2/linux/net/netfilter/ipvs/ip_vs_core.c linux/net/netfilter/ipvs/ip_vs_core.c
+> --- v2.6.36-rc2/linux/net/netfilter/ipvs/ip_vs_core.c	2010-08-26 09:11:47.000000000 +0300
+> +++ linux/net/netfilter/ipvs/ip_vs_core.c	2010-09-02 01:08:36.000000000 +0300
+> @@ -924,6 +924,7 @@ handle_response(int af, struct sk_buff *
+>  
+>  	ip_vs_out_stats(cp, skb);
+>  	ip_vs_set_state(cp, IP_VS_DIR_OUTPUT, skb, pp);
+> +	ip_vs_update_conntrack(skb, cp, 0);
+>  	ip_vs_conn_put(cp);
+>  
+>  	skb->ipvs_property = 1;
+> diff -urp v2.6.36-rc2/linux/net/netfilter/ipvs/ip_vs_ftp.c linux/net/netfilter/ipvs/ip_vs_ftp.c
+> --- v2.6.36-rc2/linux/net/netfilter/ipvs/ip_vs_ftp.c	2010-08-26 09:11:47.000000000 +0300
+> +++ linux/net/netfilter/ipvs/ip_vs_ftp.c	2010-09-02 00:45:54.000000000 +0300
+> @@ -409,7 +409,6 @@ static int ip_vs_ftp_in(struct ip_vs_app
+>  	union nf_inet_addr to;
+>  	__be16 port;
+>  	struct ip_vs_conn *n_cp;
+> -	struct nf_conn *ct;
+>  
+>  #ifdef CONFIG_IP_VS_IPV6
+>  	/* This application helper doesn't work with IPv6 yet,
+> @@ -496,11 +495,6 @@ static int ip_vs_ftp_in(struct ip_vs_app
+>  		ip_vs_control_add(n_cp, cp);
+>  	}
+>  
+> -	ct = (struct nf_conn *)skb->nfct;
+> -	if (ct && ct != &nf_conntrack_untracked)
+> -		ip_vs_expect_related(skb, ct, n_cp,
+> -				     IPPROTO_TCP, &n_cp->dport, 1);
+> -
+>  	/*
+>  	 *	Move tunnel to listen state
+>  	 */
+> diff -urp v2.6.36-rc2/linux/net/netfilter/ipvs/ip_vs_xmit.c linux/net/netfilter/ipvs/ip_vs_xmit.c
+> --- v2.6.36-rc2/linux/net/netfilter/ipvs/ip_vs_xmit.c	2010-08-26 09:11:47.000000000 +0300
+> +++ linux/net/netfilter/ipvs/ip_vs_xmit.c	2010-09-02 01:04:16.000000000 +0300
+> @@ -349,8 +349,8 @@ ip_vs_bypass_xmit_v6(struct sk_buff *skb
+>  }
+>  #endif
+>  
+> -static void
+> -ip_vs_update_conntrack(struct sk_buff *skb, struct ip_vs_conn *cp)
+> +void
+> +ip_vs_update_conntrack(struct sk_buff *skb, struct ip_vs_conn *cp, int outin)
+>  {
+>  	struct nf_conn *ct = (struct nf_conn *)skb->nfct;
+>  	struct nf_conntrack_tuple new_tuple;
+> @@ -365,11 +365,17 @@ ip_vs_update_conntrack(struct sk_buff *s
+>  	 * real-server we will see RIP->DIP.
+>  	 */
+>  	new_tuple = ct->tuplehash[IP_CT_DIR_REPLY].tuple;
+> -	new_tuple.src.u3 = cp->daddr;
+> +	if (outin)
+> +		new_tuple.src.u3 = cp->daddr;
+> +	else
+> +		new_tuple.dst.u3 = cp->vaddr;
+>  	/*
+>  	 * This will also take care of UDP and other protocols.
+>  	 */
+> -	new_tuple.src.u.tcp.port = cp->dport;
+> +	if (outin)
+> +		new_tuple.src.u.tcp.port = cp->dport;
+> +	else
+> +		new_tuple.dst.u.tcp.port = cp->vport;
+>  	nf_conntrack_alter_reply(ct, &new_tuple);
+>  }
+>  
+> @@ -428,7 +434,7 @@ ip_vs_nat_xmit(struct sk_buff *skb, stru
+>  
+>  	IP_VS_DBG_PKT(10, pp, skb, 0, "After DNAT");
+>  
+> -	ip_vs_update_conntrack(skb, cp);
+> +	ip_vs_update_conntrack(skb, cp, 1);
+>  
+>  	/* FIXME: when application helper enlarges the packet and the length
+>  	   is larger than the MTU of outgoing device, there will be still
+> @@ -506,7 +512,7 @@ ip_vs_nat_xmit_v6(struct sk_buff *skb, s
+>  
+>  	IP_VS_DBG_PKT(10, pp, skb, 0, "After DNAT");
+>  
+> -	ip_vs_update_conntrack(skb, cp);
+> +	ip_vs_update_conntrack(skb, cp, 1);
+>  
+>  	/* FIXME: when application helper enlarges the packet and the length
+>  	   is larger than the MTU of outgoing device, there will be still
