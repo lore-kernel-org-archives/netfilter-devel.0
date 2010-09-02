@@ -1,71 +1,67 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: Resolver behind NetFilter NAT service vulnerable to DNS
- poisoning attack
-Date: Thu, 02 Sep 2010 16:04:52 +0200
-Message-ID: <1283436292.2454.790.camel@edumazet-laptop>
-References: <AANLkTikjFnoh_=PX7YDv18O46JhLFnyXQ9-f2CEumqRd@mail.gmail.com>
-	 <AANLkTikVRqRjzzoRyDQzA0AiO1_kBNYiTwEZ2cLnsxhe@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Amir Herzberg <amir.herzberg@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:35758 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752156Ab0IBOE7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Sep 2010 10:04:59 -0400
-Received: by eyb6 with SMTP id 6so256386eyb.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 02 Sep 2010 07:04:58 -0700 (PDT)
-In-Reply-To: <AANLkTikVRqRjzzoRyDQzA0AiO1_kBNYiTwEZ2cLnsxhe@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: [PATCH] netfilter: unregister nf hooks, matches and targets in the reverse order
+Date: Thu,  2 Sep 2010 22:15:08 +0800
+Message-ID: <1283436908-10744-1-git-send-email-xiaosuo@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Changli Gao <xiaosuo@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Le jeudi 02 septembre 2010 =C3=A0 15:50 +0200, Amir Herzberg a =C3=A9cr=
-it :
-> We investigate some issues related to DNS poisoning, and specifically=
-,
-> an attack that poisons DNS cache, similar to Kaminski's attack, but
-> that works even if the resolver selects random ports, as long as
-> resolver is connected to the Internet via NAT. In particular, we
-> tested the attack for the NetFilter NAT.
->=20
-> For obvious reasons, I prefer at this point to share details only wit=
-h
-> developers of NAT devices. If you are such developer, please contact
-> me and I can send you the details (paper).
-> Feel also welcome to forward the messages to individuals/forums which
-> may be relevant (i.e., developers).
->=20
-> I apologize for not being able to promise to respond to requests from
-> people who are just curious (i.e., not NAT developers). Thanks for
-> your understanding.
-> --
+Since we register nf hooks, matches and targets in order, we'd better
+unregister them in the reverse order.
 
-Strange, this should be supported since 2007 (port randomization for
-nat)
-
-commit 41f4689a7c8cd76b77864461b3c58fde8f322b2c
-Author: Eric Leblond <eric@inl.fr>
-Date:   Wed Feb 7 15:10:09 2007 -0800
-
-    [NETFILTER]: NAT: optional source port randomization support
-   =20
-    This patch adds support to NAT to randomize source ports.
-   =20
-    Signed-off-by: Eric Leblond <eric@inl.fr>
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
-    Signed-off-by: David S. Miller <davem@davemloft.net>
-
-If using MASQUERADE, its a very easy setup :
-
-iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE --random
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+---
+ net/netfilter/core.c     |    6 ++----
+ net/netfilter/x_tables.c |   12 ++++--------
+ 2 files changed, 6 insertions(+), 12 deletions(-)
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 78b505d..8f014f2 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -105,10 +105,8 @@ EXPORT_SYMBOL(nf_register_hooks);
+ 
+ void nf_unregister_hooks(struct nf_hook_ops *reg, unsigned int n)
+ {
+-	unsigned int i;
+-
+-	for (i = 0; i < n; i++)
+-		nf_unregister_hook(&reg[i]);
++	while (n-- > 0)
++		nf_unregister_hook(&reg[n]);
+ }
+ EXPORT_SYMBOL(nf_unregister_hooks);
+ 
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index e34622f..8046350 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -116,10 +116,8 @@ EXPORT_SYMBOL(xt_register_targets);
+ void
+ xt_unregister_targets(struct xt_target *target, unsigned int n)
+ {
+-	unsigned int i;
+-
+-	for (i = 0; i < n; i++)
+-		xt_unregister_target(&target[i]);
++	while (n-- > 0)
++		xt_unregister_target(&target[n]);
+ }
+ EXPORT_SYMBOL(xt_unregister_targets);
+ 
+@@ -174,10 +172,8 @@ EXPORT_SYMBOL(xt_register_matches);
+ void
+ xt_unregister_matches(struct xt_match *match, unsigned int n)
+ {
+-	unsigned int i;
+-
+-	for (i = 0; i < n; i++)
+-		xt_unregister_match(&match[i]);
++	while (n-- > 0)
++		xt_unregister_match(&match[n]);
+ }
+ EXPORT_SYMBOL(xt_unregister_matches);
+ 
