@@ -1,58 +1,52 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [patch net] ipvs: avoid oops for passive FTP
-Date: Thu, 2 Sep 2010 18:07:10 +0900
-Message-ID: <20100902090709.GA15401@verge.net.au>
+From: rui.sousa@mindspeed.com
+Subject: Re: TCP proto info
+Date: Thu, 2 Sep 2010 11:21:26 +0200
+Message-ID: <OF4265BCAA.61F095B7-ONC1257792.0032E48D-C1257792.00337F58@mindspeed.com>
+References: <4C7F6703.2080704@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="US-ASCII"
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail203.messagelabs.com ([216.82.254.243]:25671 "HELO
+	mail203.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751677Ab0IBJWa (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 2 Sep 2010 05:22:30 -0400
+In-Reply-To: <4C7F6703.2080704@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Julian Anastasov <ja@ssi.bg>
+Pablo Neira Ayuso <pablo@netfilter.org> wrote on 09/02/2010 10:57:39 AM:
 
-Fix Passive FTP problem in ip_vs_ftp:
+> Hi Rui,
 
-- Do not oops in nf_nat_set_seq_adjust (adjust_tcp_sequence) when
-  iptable_nat module is not loaded
+Hi Pablo,
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+> On 01/09/10 15:45, rui.sousa@mindspeed.com wrote:
+> > Hi,
+> > 
+> > I have an application using libnetfilter_conntrack-0.100 that started 
+> > reporting errors after the commit: 
+> > 
+> > 1c450e1595afdc8d1bfabb4f640c9251808426eb.
+> 
+> Looking at the source code, this seems to be already fixed in
+> libnetfilter_conntrack 0.0.102, please upgrade to latest.
 
----
+Hmm... looking at the git tree I see that the __build_conntrack() code is
+still calling __build_protoinfo() unconditionally and inside the function
+we always do:
 
-Dave, this patch fixes a regression since 2.6.35 so please consider it for net.
-Julian has also found another regression, but the fix is a bit
-more complex so I have posted it to the netfilter list for review.
+nest = nfnl_nest(&req->nlh, size, CTA_PROTOINFO);
+nest_proto = nfnl_nest(&req->nlh, size, CTA_PROTOINFO_TCP);
+...
+nfnl_nest_end(&req->nlh, nest_proto);
+nfnl_nest_end(&req->nlh, nest);
 
-	http://marc.info/?l=netfilter-devel&m=128339248723532&w=2
+even if none of the ATTR_TCP_xxx bits are set. This is what causes the 
+kernel to return -EINVAL
+and ignore the conntrack update. Or am I missing something?
 
-This change (and the other one) is also applicable to net-next, although
-there is some diff noise. Do you want me to resolve that and post a
-net-next version separately?
-
---- v2.6.36-rc2/linux/net/netfilter/ipvs/ip_vs_ftp.c	2010-09-02 00:45:54.000000000 +0300
-+++ linux/net/netfilter/ipvs/ip_vs_ftp.c	2010-09-02 02:12:52.000000000 +0300
-@@ -45,6 +45,7 @@
- #include <linux/netfilter.h>
- #include <net/netfilter/nf_conntrack.h>
- #include <net/netfilter/nf_conntrack_expect.h>
-+#include <net/netfilter/nf_nat.h>
- #include <net/netfilter/nf_nat_helper.h>
- #include <linux/gfp.h>
- #include <net/protocol.h>
-@@ -359,7 +360,7 @@ static int ip_vs_ftp_out(struct ip_vs_ap
- 		buf_len = strlen(buf);
- 
- 		ct = nf_ct_get(skb, &ctinfo);
--		if (ct && !nf_ct_is_untracked(ct)) {
-+		if (ct && !nf_ct_is_untracked(ct) && nfct_nat(ct)) {
- 			/* If mangling fails this function will return 0
- 			 * which will cause the packet to be dropped.
- 			 * Mangling can only fail under memory pressure,
+Br,
+Rui
