@@ -1,90 +1,131 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [patch net] ipvs: avoid oops for passive FTP
-Date: Thu, 2 Sep 2010 23:52:16 +0300 (EEST)
-Message-ID: <Pine.LNX.4.58.1009022310030.2891@u.domain.uli>
-References: <20100902090709.GA15401@verge.net.au>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: TCP proto info
+Date: Fri, 03 Sep 2010 13:33:52 +0200
+Message-ID: <4C80DD20.7010004@netfilter.org>
+References: <OF4265BCAA.61F095B7-ONC1257792.0032E48D-C1257792.00337F58@mindspeed.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>,
-	Wensong Zhang <wensong@linux-vs.org>
-To: Simon Horman <horms@verge.net.au>
+Content-Type: multipart/mixed;
+ boundary="------------020409060502040200090904"
+Cc: netfilter-devel@vger.kernel.org
+To: rui.sousa@mindspeed.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:47048 "EHLO u.domain.uli"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752953Ab0IBUrL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Sep 2010 16:47:11 -0400
-In-Reply-To: <20100902090709.GA15401@verge.net.au>
+Received: from mail.us.es ([193.147.175.20]:38169 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756522Ab0ICLeH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Sep 2010 07:34:07 -0400
+In-Reply-To: <OF4265BCAA.61F095B7-ONC1257792.0032E48D-C1257792.00337F58@mindspeed.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This is a multi-part message in MIME format.
+--------------020409060502040200090904
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-	Hello,
-
-On Thu, 2 Sep 2010, Simon Horman wrote:
-
-> From: Julian Anastasov <ja@ssi.bg>
+On 02/09/10 11:21, rui.sousa@mindspeed.com wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote on 09/02/2010 10:57:39 AM:
 > 
-> Fix Passive FTP problem in ip_vs_ftp:
+>> Hi Rui,
 > 
-> - Do not oops in nf_nat_set_seq_adjust (adjust_tcp_sequence) when
->   iptable_nat module is not loaded
+> Hi Pablo,
 > 
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
-> Signed-off-by: Simon Horman <horms@verge.net.au>
+>> On 01/09/10 15:45, rui.sousa@mindspeed.com wrote:
+>>> Hi,
+>>>
+>>> I have an application using libnetfilter_conntrack-0.100 that started 
+>>> reporting errors after the commit: 
+>>>
+>>> 1c450e1595afdc8d1bfabb4f640c9251808426eb.
+>>
+>> Looking at the source code, this seems to be already fixed in
+>> libnetfilter_conntrack 0.0.102, please upgrade to latest.
 > 
-> ---
+> Hmm... looking at the git tree I see that the __build_conntrack() code is
+> still calling __build_protoinfo() unconditionally and inside the function
+> we always do:
 > 
-> Dave, this patch fixes a regression since 2.6.35 so please consider it for net.
-> Julian has also found another regression, but the fix is a bit
-> more complex so I have posted it to the netfilter list for review.
+> nest = nfnl_nest(&req->nlh, size, CTA_PROTOINFO);
+> nest_proto = nfnl_nest(&req->nlh, size, CTA_PROTOINFO_TCP);
+> ...
+> nfnl_nest_end(&req->nlh, nest_proto);
+> nfnl_nest_end(&req->nlh, nest);
+> 
+> even if none of the ATTR_TCP_xxx bits are set. This is what causes the 
+> kernel to return -EINVAL
+> and ignore the conntrack update. Or am I missing something?
 
-	Just to clarify that both patches for ip_vs_ftp are
-only for code that come in 2.6.36-rc, 2.6.35 is ok and does
-not need them.
+I see, I guess that you're using a Linux kernel <= 2.6.25 since I
+couldn't reproduce it with recent kernels. Please, could you give a try
+to the following patch?
 
-	The other problem is that 2.6.36-rc comes with
-requirement IPVS to keep netfilter conntracks for all
-connections, eg. DirectRouting, not only for LVS-NAT (ip_vs_ftp).
-I have a bigger patch to make the IPVS conntracking support
-an option (enabled by default only for ip_vs_ftp) but
-may be it is not appropriate for -rc series. So, for now
-we are fixing just the fatal problems but the risk of
-IPVS setups with low nf_conntrack_max value to stop
-processing high loads remains without making the conntrack
-support an option. Before now all conntracks were created
-and destroyed for every packet and nf_conntrack_max,
-even if low, probably is never reached.
+--------------020409060502040200090904
+Content-Type: text/x-patch;
+ name="fix.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="fix.patch"
 
-> 	http://marc.info/?l=netfilter-devel&m=128339248723532&w=2
-> 
-> This change (and the other one) is also applicable to net-next, although
-> there is some diff noise. Do you want me to resolve that and post a
-> net-next version separately?
-> 
-> --- v2.6.36-rc2/linux/net/netfilter/ipvs/ip_vs_ftp.c	2010-09-02 00:45:54.000000000 +0300
-> +++ linux/net/netfilter/ipvs/ip_vs_ftp.c	2010-09-02 02:12:52.000000000 +0300
-> @@ -45,6 +45,7 @@
->  #include <linux/netfilter.h>
->  #include <net/netfilter/nf_conntrack.h>
->  #include <net/netfilter/nf_conntrack_expect.h>
-> +#include <net/netfilter/nf_nat.h>
->  #include <net/netfilter/nf_nat_helper.h>
->  #include <linux/gfp.h>
->  #include <net/protocol.h>
-> @@ -359,7 +360,7 @@ static int ip_vs_ftp_out(struct ip_vs_ap
->  		buf_len = strlen(buf);
->  
->  		ct = nf_ct_get(skb, &ctinfo);
-> -		if (ct && !nf_ct_is_untracked(ct)) {
-> +		if (ct && !nf_ct_is_untracked(ct) && nfct_nat(ct)) {
->  			/* If mangling fails this function will return 0
->  			 * which will cause the packet to be dropped.
->  			 * Mangling can only fail under memory pressure,
+ct: fix EINVAL if not TCP attributes are set for Linux kernel <= 2.6.25
 
-Regards
+This patch fixes an EINVAL error that we hit in Linux kernel <= 2.6.25.
+Basically, if we send an empty CTA_PROTOINFO_TCP attribute nest, the
+kernel returns EINVAL. To fix this, we previously check if there is
+any TCP attribute set.
 
---
-Julian Anastasov <ja@ssi.bg>
+Reported-by: Rui Sousa <rui.sousa@mindspeed.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/conntrack/build.c |   24 ++++++++++++++++++++++++
+ 1 files changed, 24 insertions(+), 0 deletions(-)
+
+diff --git a/src/conntrack/build.c b/src/conntrack/build.c
+index b878ddd..ec7623d 100644
+--- a/src/conntrack/build.c
++++ b/src/conntrack/build.c
+@@ -106,6 +106,18 @@ static void __build_protoinfo(struct nfnlhdr *req, size_t size,
+ 
+ 	switch(ct->tuple[__DIR_ORIG].protonum) {
+ 	case IPPROTO_TCP:
++		/* Preliminary attribute check to avoid sending an empty
++		 * CTA_PROTOINFO_TCP nest, which results in EINVAL in
++		 * Linux kernel <= 2.6.25. */
++		if (!(test_bit(ATTR_TCP_STATE, ct->set) ||
++		      test_bit(ATTR_TCP_FLAGS_ORIG, ct->set) ||
++		      test_bit(ATTR_TCP_FLAGS_REPL, ct->set) ||
++		      test_bit(ATTR_TCP_MASK_ORIG, ct->set) ||
++		      test_bit(ATTR_TCP_MASK_REPL, ct->set) ||
++		      test_bit(ATTR_TCP_WSCALE_ORIG, ct->set) ||
++		      test_bit(ATTR_TCP_WSCALE_REPL, ct->set))) {
++			break;
++		}
+ 		nest = nfnl_nest(&req->nlh, size, CTA_PROTOINFO);
+ 		nest_proto = nfnl_nest(&req->nlh, size, CTA_PROTOINFO_TCP);
+ 		if (test_bit(ATTR_TCP_STATE, ct->set))
+@@ -139,6 +151,12 @@ static void __build_protoinfo(struct nfnlhdr *req, size_t size,
+ 		nfnl_nest_end(&req->nlh, nest);
+ 		break;
+ 	case IPPROTO_SCTP:
++		/* See comment above on TCP. */
++		if (!(test_bit(ATTR_SCTP_STATE, ct->set) ||
++		      test_bit(ATTR_SCTP_VTAG_ORIG, ct->set) ||
++		      test_bit(ATTR_SCTP_VTAG_REPL, ct->set))) {
++			break;
++		}
+ 		nest = nfnl_nest(&req->nlh, size, CTA_PROTOINFO);
+ 		nest_proto = nfnl_nest(&req->nlh, size, CTA_PROTOINFO_SCTP);
+ 		if (test_bit(ATTR_SCTP_STATE, ct->set))
+@@ -158,6 +176,12 @@ static void __build_protoinfo(struct nfnlhdr *req, size_t size,
+ 		nfnl_nest_end(&req->nlh, nest);
+ 		break;
+ 	case IPPROTO_DCCP:
++		/* See comment above on TCP. */
++		if (!(test_bit(ATTR_DCCP_STATE, ct->set) ||
++		      test_bit(ATTR_DCCP_ROLE, ct->set) ||
++		      test_bit(ATTR_DCCP_HANDSHAKE_SEQ, ct->set))) {
++			break;
++		}
+ 		nest = nfnl_nest(&req->nlh, size, CTA_PROTOINFO);
+ 		nest_proto = nfnl_nest(&req->nlh, size, CTA_PROTOINFO_DCCP);
+ 		if (test_bit(ATTR_DCCP_STATE, ct->set))
+
+--------------020409060502040200090904--
