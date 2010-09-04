@@ -1,138 +1,87 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH] netfilter: nat: add nf_nat_csum()
-Date: Sat,  4 Sep 2010 12:45:41 +0800
-Message-ID: <1283575541-23101-1-git-send-email-xiaosuo@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Changli Gao <xiaosuo@gmail.com>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Nicola Padovano <nicola.padovano@gmail.com>
+Subject: fragmented packet
+Date: Sat, 4 Sep 2010 19:09:05 +0200
+Message-ID: <AANLkTikniSd5X_ryuhWbAyDLPa7oDSDULe1iYfG02vuP@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:61169 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751940Ab0IDRJ0 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 4 Sep 2010 13:09:26 -0400
+Received: by wwj40 with SMTP id 40so4311918wwj.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 04 Sep 2010 10:09:25 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Add a static function nf_nat_csum() to replace the duplicate code in
-nf_nat_mangle_udp_packet() and __nf_nat_mangle_tcp_packet().
+Hi all! I'm write a simple netfilter module which recognize a fragmented packet.
+First of all, i've used hping to send frag packet to my host (local
+host), in particular i create only one packet (40 byte for default,
+20bytes of header and 20 bytes of payload) specifying an MTU of 4
+byte, so in this way i've to receive 5 packet (20bytes/4bytes of MTU).
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
----
- net/ipv4/netfilter/nf_nat_helper.c |   76 +++++++++++++++----------------------
- 1 file changed, 31 insertions(+), 45 deletions(-)
-diff --git a/net/ipv4/netfilter/nf_nat_helper.c b/net/ipv4/netfilter/nf_nat_helper.c
-index 4a0c6b5..31427fb 100644
---- a/net/ipv4/netfilter/nf_nat_helper.c
-+++ b/net/ipv4/netfilter/nf_nat_helper.c
-@@ -153,6 +153,35 @@ void nf_nat_set_seq_adjust(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
- }
- EXPORT_SYMBOL_GPL(nf_nat_set_seq_adjust);
- 
-+static void nf_nat_csum(struct sk_buff *skb, struct iphdr *iph, void *data,
-+			int datalen, __sum16 *check, int oldlen)
-+{
-+	struct rtable *rt = skb_rtable(skb);
-+
-+	if (skb->ip_summed != CHECKSUM_PARTIAL) {
-+		if (!(rt->rt_flags & RTCF_LOCAL) &&
-+		    skb->dev->features & NETIF_F_V4_CSUM) {
-+			skb->ip_summed = CHECKSUM_PARTIAL;
-+			skb->csum_start = skb_headroom(skb) +
-+					  skb_network_offset(skb) +
-+					  iph->ihl * 4;
-+			skb->csum_offset = (void *)check - data;
-+			*check = ~csum_tcpudp_magic(iph->saddr, iph->daddr,
-+						    datalen, iph->protocol, 0);
-+		} else {
-+			*check = 0;
-+			*check = csum_tcpudp_magic(iph->saddr, iph->daddr,
-+						   datalen, iph->protocol,
-+						   csum_partial(data, datalen,
-+								0));
-+			if (iph->protocol == IPPROTO_UDP && !*check)
-+				*check = CSUM_MANGLED_0;
-+		}
-+	} else
-+		inet_proto_csum_replace2(check, skb,
-+					 htons(oldlen), htons(datalen), 1);
-+}
-+
- /* Generic function for mangling variable-length address changes inside
-  * NATed TCP connections (like the PORT XXX,XXX,XXX,XXX,XXX,XXX
-  * command in FTP).
-@@ -169,7 +198,6 @@ int __nf_nat_mangle_tcp_packet(struct sk_buff *skb,
- 			       const char *rep_buffer,
- 			       unsigned int rep_len, bool adjust)
- {
--	struct rtable *rt = skb_rtable(skb);
- 	struct iphdr *iph;
- 	struct tcphdr *tcph;
- 	int oldlen, datalen;
-@@ -192,26 +220,7 @@ int __nf_nat_mangle_tcp_packet(struct sk_buff *skb,
- 			match_offset, match_len, rep_buffer, rep_len);
- 
- 	datalen = skb->len - iph->ihl*4;
--	if (skb->ip_summed != CHECKSUM_PARTIAL) {
--		if (!(rt->rt_flags & RTCF_LOCAL) &&
--		    skb->dev->features & NETIF_F_V4_CSUM) {
--			skb->ip_summed = CHECKSUM_PARTIAL;
--			skb->csum_start = skb_headroom(skb) +
--					  skb_network_offset(skb) +
--					  iph->ihl * 4;
--			skb->csum_offset = offsetof(struct tcphdr, check);
--			tcph->check = ~tcp_v4_check(datalen,
--						    iph->saddr, iph->daddr, 0);
--		} else {
--			tcph->check = 0;
--			tcph->check = tcp_v4_check(datalen,
--						   iph->saddr, iph->daddr,
--						   csum_partial(tcph,
--								datalen, 0));
--		}
--	} else
--		inet_proto_csum_replace2(&tcph->check, skb,
--					 htons(oldlen), htons(datalen), 1);
-+	nf_nat_csum(skb, iph, tcph, datalen, &tcph->check, oldlen);
- 
- 	if (adjust && rep_len != match_len)
- 		nf_nat_set_seq_adjust(ct, ctinfo, tcph->seq,
-@@ -240,7 +249,6 @@ nf_nat_mangle_udp_packet(struct sk_buff *skb,
- 			 const char *rep_buffer,
- 			 unsigned int rep_len)
- {
--	struct rtable *rt = skb_rtable(skb);
- 	struct iphdr *iph;
- 	struct udphdr *udph;
- 	int datalen, oldlen;
-@@ -274,29 +282,7 @@ nf_nat_mangle_udp_packet(struct sk_buff *skb,
- 	if (!udph->check && skb->ip_summed != CHECKSUM_PARTIAL)
- 		return 1;
- 
--	if (skb->ip_summed != CHECKSUM_PARTIAL) {
--		if (!(rt->rt_flags & RTCF_LOCAL) &&
--		    skb->dev->features & NETIF_F_V4_CSUM) {
--			skb->ip_summed = CHECKSUM_PARTIAL;
--			skb->csum_start = skb_headroom(skb) +
--					  skb_network_offset(skb) +
--					  iph->ihl * 4;
--			skb->csum_offset = offsetof(struct udphdr, check);
--			udph->check = ~csum_tcpudp_magic(iph->saddr, iph->daddr,
--							 datalen, IPPROTO_UDP,
--							 0);
--		} else {
--			udph->check = 0;
--			udph->check = csum_tcpudp_magic(iph->saddr, iph->daddr,
--							datalen, IPPROTO_UDP,
--							csum_partial(udph,
--								     datalen, 0));
--			if (!udph->check)
--				udph->check = CSUM_MANGLED_0;
--		}
--	} else
--		inet_proto_csum_replace2(&udph->check, skb,
--					 htons(oldlen), htons(datalen), 1);
-+	nf_nat_csum(skb, iph, udph, datalen, &udph->check, oldlen);
- 
- 	return 1;
- }
+So, this is the piece of code
+
+[CODE]
+#define FRAG_OFF(x) ntohs(x->frag_off) & IP_OFFSET
+#define MORE_FRAG(x) ntohs(x->frag_off) & IP_MF
+...
+printk(KERN_INFO "sk_buff len: %d\n",skb->size);
+...
+struct iphdr *ip_header = (struct iphdr *)skb_network_header(skb);
+...
+if (FRAG_OFF || MORE_FRAG) {
+   printk(KERN_INFO "!!!fragmented!!!\n");
+   printk(KERN_INFO "frag off: %d\n",FRAG_OFF);
+   printk(KERN_INFO "\n\n");
+}
+[/CODE]
+
+then iptables (where TAR is my new target)
+[IPTABLES]
+iptables -t mangle -A PREROUTING -p tcp -s localhost -j TAR
+[/IPTABLES]
+(note: i use mangle table to have available PREROUTING hook, where the
+packets are not yet defragmented)
+
+so hpinging in this way (-c = packets' number, -m = mtu in byte)
+[HPING]
+hping -m 4 -c 1 localhost
+[/HPING]
+
+Now let's a look to output
+[OUTPUT]
+sk_buff len: 24
+!!!fragmented!!!
+frag off: 0
+
+sk_buff len: 24
+!!!fragmented!!!
+frag off: 0
+
+sk_buff len: 24
+!!!fragmented!!!
+frag off: 1
+
+sk_buff len: 24
+!!!fragmented!!!
+frag off: 1
+
+sk_buff len: 24
+!!!fragmented!!!
+frag off: 2
+[/OUTPUT]
+
+As you can see, there are two couples of frag with the same frag off:
+the first and the second with 0 frag_off, then the third and the
+fourth with 1 frag_off.
+how is it possible?
+
+Thank you guys!
+
+-- 
+Nicola Padovano
+e-mail: nicola.padovano@gmail.com
+web: http://npadovano.altervista.org
