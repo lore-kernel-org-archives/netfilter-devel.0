@@ -1,53 +1,66 @@
-From: Nicola Padovano <nicola.padovano@gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: fragmented packet
-Date: Sat, 4 Sep 2010 20:56:01 +0200
-Message-ID: <AANLkTimZnFK+vOUTvbo9M5FmGRGBBRrSQKGmPOrcSeEx@mail.gmail.com>
+Date: Sun, 5 Sep 2010 00:19:26 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1009050017350.15290@obet.zrqbmnf.qr>
 References: <AANLkTikniSd5X_ryuhWbAyDLPa7oDSDULe1iYfG02vuP@mail.gmail.com>
- <alpine.LNX.2.01.1009042024170.7459@obet.zrqbmnf.qr> <AANLkTimGvx95bexOmJsWYcy2-_0BQuCrra0S52LumYjt@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Nicola Padovano <nicola.padovano@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:63831 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751960Ab0IDS4X (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 4 Sep 2010 14:56:23 -0400
-Received: by wyf22 with SMTP id 22so1339688wyf.19
-        for <netfilter-devel@vger.kernel.org>; Sat, 04 Sep 2010 11:56:22 -0700 (PDT)
-In-Reply-To: <AANLkTimGvx95bexOmJsWYcy2-_0BQuCrra0S52LumYjt@mail.gmail.com>
+Received: from borg.medozas.de ([188.40.89.202]:48497 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753689Ab0IDWT2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 4 Sep 2010 18:19:28 -0400
+In-Reply-To: <AANLkTikniSd5X_ryuhWbAyDLPa7oDSDULe1iYfG02vuP@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-(ps: i _suppose_ that i've not the defrag module because i've
-"fragmented" message in my output: i've checked MF bit and fragment
-offset field and they "say" to me that the packet is
-fragmented...so...)
 
-On Sat, Sep 4, 2010 at 8:31 PM, Nicola Padovano
-<nicola.padovano@gmail.com> wrote:
->> iptables -f? ip6tables -m frag? They already exist :)
+On Saturday 2010-09-04 19:09, Nicola Padovano wrote:
+>then iptables (where TAR is my new target)
+>[IPTABLES]
+>iptables -t mangle -A PREROUTING -p tcp -s localhost -j TAR
+>[/IPTABLES]
+>(note: i use mangle table to have available PREROUTING hook, where the
+>packets are not yet defragmented)
 >
-> yes i know, but the mine is only an exercise...
->
->> The mangle table does already receive defragmented packets (if defrag
->> module is loaded).
->>
-> i don't load the defrag module, so the packet is not you defragmented:
-> infact the output says "fragmented"...
-> the problem is: why there are some frag with the same frag off?
->
->
-> --
-> Nicola Padovano
-> e-mail: nicola.padovano@gmail.com
-> web: http://npadovano.altervista.org
->
+>so hpinging in this way (-c = packets' number, -m = mtu in byte)
+>[HPING]
+>hping -m 4 -c 1 localhost
+>[/HPING]
 
+MTU=4 does not even make for a proper IPv4 packet, for which
+the minimum reasonable MTU would be the IPv4 header size.
+Plus perhaps at least part of the fragment, i.e. 24 octets.
+God knows what happens if you use MTU=4.
+An MTU of 4
 
+>Now let's a look to output
+>[OUTPUT]
+>sk_buff len: 24
+>!!!fragmented!!!
+>frag off: 0
+>
+>sk_buff len: 24
+>!!!fragmented!!!
+>frag off: 0
 
--- 
-Nicola Padovano
-e-mail: nicola.padovano@gmail.com
-web: http://npadovano.altervista.org
+This might be the reply.
+
+>sk_buff len: 24
+>!!!fragmented!!!
+>frag off: 1
+>
+>sk_buff len: 24
+>!!!fragmented!!!
+>frag off: 1
+
+Also reply.
+
+>sk_buff len: 24
+>!!!fragmented!!!
+>frag off: 2
+
+Input only, and empty fragment. You ought to check the packet size.
+
