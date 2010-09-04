@@ -1,66 +1,73 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Nicola Padovano <nicola.padovano@gmail.com>
 Subject: Re: fragmented packet
-Date: Sun, 5 Sep 2010 00:19:26 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1009050017350.15290@obet.zrqbmnf.qr>
-References: <AANLkTikniSd5X_ryuhWbAyDLPa7oDSDULe1iYfG02vuP@mail.gmail.com>
+Date: Sun, 5 Sep 2010 01:31:01 +0200
+Message-ID: <AANLkTimmN8T4fw=kW+CB0Oh285wrVb4BD4_bx9k_kVxs@mail.gmail.com>
+References: <AANLkTikniSd5X_ryuhWbAyDLPa7oDSDULe1iYfG02vuP@mail.gmail.com> <alpine.LNX.2.01.1009050017350.15290@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Nicola Padovano <nicola.padovano@gmail.com>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:48497 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753689Ab0IDWT2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 4 Sep 2010 18:19:28 -0400
-In-Reply-To: <AANLkTikniSd5X_ryuhWbAyDLPa7oDSDULe1iYfG02vuP@mail.gmail.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:63183 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753178Ab0IDXbW (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 4 Sep 2010 19:31:22 -0400
+Received: by wwj40 with SMTP id 40so4608800wwj.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 04 Sep 2010 16:31:21 -0700 (PDT)
+In-Reply-To: <alpine.LNX.2.01.1009050017350.15290@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+> MTU=4 does not even make for a proper IPv4 packet, for which
+> the minimum reasonable MTU would be the IPv4 header size.
+the minimum size of ipv4 header is 20 bytes, the ethernet protocol use
+mtu=16byte, so the sentence below is not valid (imho)...i can build a
+layer2 protocol where the mtu is 4 bytes: IP protocol must be able to
+work above my layer2
 
-On Saturday 2010-09-04 19:09, Nicola Padovano wrote:
->then iptables (where TAR is my new target)
->[IPTABLES]
->iptables -t mangle -A PREROUTING -p tcp -s localhost -j TAR
->[/IPTABLES]
->(note: i use mangle table to have available PREROUTING hook, where the
->packets are not yet defragmented)
+>>sk_buff len: 24
+>>!!!fragmented!!!
+>>frag off: 0
+>>
+>>sk_buff len: 24
+>>!!!fragmented!!!
+>>frag off: 0
 >
->so hpinging in this way (-c = packets' number, -m = mtu in byte)
->[HPING]
->hping -m 4 -c 1 localhost
->[/HPING]
+> This might be the reply.
+no, it is impossibile because i've no response with that line of hping
+(i send only one packet, zero receive): infact the output is:
+--- localhost hping statistic ---
+1 packets tramitted, 0 packets received, 100% packet loss
+(0 received --- READ THE WHY BELOW )
 
-MTU=4 does not even make for a proper IPv4 packet, for which
-the minimum reasonable MTU would be the IPv4 header size.
-Plus perhaps at least part of the fragment, i.e. 24 octets.
-God knows what happens if you use MTU=4.
-An MTU of 4
 
->Now let's a look to output
->[OUTPUT]
->sk_buff len: 24
->!!!fragmented!!!
->frag off: 0
->
->sk_buff len: 24
->!!!fragmented!!!
->frag off: 0
 
-This might be the reply.
+> Input only, and empty fragment. You ought to check the packet size
+the packet size is 40 bytes....
 
->sk_buff len: 24
->!!!fragmented!!!
->frag off: 1
->
->sk_buff len: 24
->!!!fragmented!!!
->frag off: 1
 
-Also reply.
+BELOW:
+but...maybe i've found the "solution"...but i've to test it yet.
+So: i've a 40 bytes packet, and a MTU of 4 byte. the payload size is
+20 byte (because hping use the smaller ipheader: 20bytes). At this
+point the fragment's number is -inevitably- 20/4 = 5. But, how can i
+calculate the fragment offset?
+In this way: the first packet has fragoff = 0, the second packet has
+fragoff = size of the first fragment / 8 = 0!!! (rounded down), the
+third packet has fragoff = (size of the first fragment+size of the
+second fragment) / 8 = 1...
+That's why i have no packet received, because i can't defragmented a
+packet with some frags that have the same fragoff!
+So in this way we have explained:
+1. why i haven't receive a response packet
+2. why i have the same fragoff
 
->sk_buff len: 24
->!!!fragmented!!!
->frag off: 2
+it's all ok, now.
 
-Input only, and empty fragment. You ought to check the packet size.
+what do you think Jan?
 
+-- 
+Nicola Padovano
+e-mail: nicola.padovano@gmail.com
+web: http://npadovano.altervista.org
