@@ -1,54 +1,49 @@
-From: Nicola Padovano <nicola.padovano@gmail.com>
-Subject: Re: get tcp header
-Date: Tue, 7 Sep 2010 13:31:12 +0200
-Message-ID: <AANLkTimBRXYHv63w90h83k13GQDHdjmXd=ES+2iFyHmG@mail.gmail.com>
-References: <AANLkTikz7+MsnB4B0PPLX6ypGaLLnpcXgaXryctaT2LW@mail.gmail.com>
- <alpine.LNX.2.01.1008312034240.10509@obet.zrqbmnf.qr> <AANLkTikQoVP_c6JfoSjz46WrARzP1QEEeuoabSdRjk8A@mail.gmail.com>
- <AANLkTinQvTBiw7Gno42xdRdgF5_aCGb8BdEo82ocoY2e@mail.gmail.com>
- <alpine.LNX.2.01.1009011251590.20617@obet.zrqbmnf.qr> <AANLkTinOVgpRO8TcLVKfypTWtbK3MSzamyMwfm0E8dYL@mail.gmail.com>
+From: Darcy Watkins <dwatkins@tranzeo.com>
+Subject: Is nftables project still alive?
+Date: Tue, 07 Sep 2010 13:44:30 -0700
+Message-ID: <1283892270.29631.13.camel@tr-pentomino>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:55979 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755996Ab0IGLiL (ORCPT
+Received: from testserv.tranzeo.com ([64.114.87.10]:20254 "EHLO
+	mail2.tranzeo.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932118Ab0IGU7n (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Sep 2010 07:38:11 -0400
-Received: by wyf22 with SMTP id 22so4131096wyf.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 07 Sep 2010 04:38:10 -0700 (PDT)
-In-Reply-To: <AANLkTinOVgpRO8TcLVKfypTWtbK3MSzamyMwfm0E8dYL@mail.gmail.com>
+	Tue, 7 Sep 2010 16:59:43 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-(I'm not sure I sent this mail, sorry if you already have one)
+Hello,
 
-ME: in general: when i can use the skb_transport_header function?
+I cross compiled nftables (kernel diffs merged into 2.6.35.4, nftables
+userspace package and the modified libnl) for powerpc using crosstool-ng
+toolchain and buildroot framework.
 
-JAN: When a transport header pointer has been set. Which is when the
-appropriate layer-X function has processed it. (After ip_rcv for
-example)
-On the output path, since it goes in the reverse direction, it will
-always be set.
+I can see the kernel modules load and the nft program runs but I can't
+get past syntax errors.  I think the example rules and user doc must all
+be out of date.
 
-so, today i checked this.
-this is my iptables rule:
+Is anyone actively working on this project?  Is there any updated user
+doc with some good examples of setting up a bridge firewall say
+equivalent to the below (done using ebtables)?
 
-iptables -t filter -A OUTPUT -d 192.168.0.1 -p tcp -j TAR
+ebtables -I INPUT -i eth1 -p ip4 --ip-pro udp --ip-sport 67 --ip-dport 68 -j DROP
+ebtables -I OUTPUT -o eth1 -p ip4 --ip-pro udp --ip-sport 68 --ip-dport 67 -j DROP
+ebtables -I FORWARD -i eth1 -p ip4 --ip-pro udp --ip-sport 67 --ip-dport 68 -j DROP
+ebtables -I FORWARD -o eth1 -p ip4 --ip-pro udp --ip-sport 68 --ip-dport 67 -j DROP
 
-and this is the code's lines of xt_TAR module
+Any pointers would be helpful.
 
-printk(KERN_INFO "xt_TAR-----> tcp header: %p\n",skb_transport_header(skb));
-printk(KERN_INFO "xt_TAR-----> ip header: %p\n",skb_network_header(skb));
+I want to duplicate something I've done using ebtables and then run high
+volume small packet UDP traffic through the bridge using iperf to
+compare performance overhead hits between nftables and ebtables as they
+skip past rules not used by the high volume traffic.
 
-but the skb_transport_header returns the same value of
-skb_network_header, so even though we are on the output path, the
-transport_header is not set...........
+Regards,
 
-what's wrong?
+Darcy
 
---
-Nicola Padovano
-e-mail: nicola.padovano@gmail.com
-web: http://npadovano.altervista.org
+
+
