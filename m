@@ -1,48 +1,47 @@
-From: Jarek Poplawski <jarkao2@gmail.com>
-Subject: Re: Kernel Panic on OOM with 10 HTB rules
-Date: Wed, 08 Sep 2010 19:25:36 +0200
-Message-ID: <4C87C710.8080804@gmail.com>
-References: <AANLkTinQbuN4Y6yUgHhjhOkLGe3GPk9aN5z1gasvQ-zW@mail.gmail.com>	 <1283949778.2748.5.camel@edumazet-laptop>	 <AANLkTimDW-tuTJagnpkFq3TX4t+c_-9UUyG8z-bwPuJ1@mail.gmail.com> <1283957137.2748.71.camel@edumazet-laptop>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [patch net] ipvs: fix active FTP
+Date: Wed, 08 Sep 2010 10:40:33 -0700 (PDT)
+Message-ID: <20100908.104033.39195899.davem@davemloft.net>
+References: <20100906040228.GA21473@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Anand Raj Manickam <anandrm@gmail.com>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, shemminger@vyatta.com
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1283957137.2748.71.camel@edumazet-laptop>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, kaber@trash.net,
+	wensong@linux-vs.org, ja@ssi.bg
+To: horms@verge.net.au
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <20100906040228.GA21473@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Eric Dumazet wrote, On 09/08/2010 04:45 PM:
+From: Simon Horman <horms@verge.net.au>
+Date: Mon, 6 Sep 2010 13:02:29 +0900
 
-> Le mercredi 08 septembre 2010 =C3=A0 19:39 +0530, Anand Raj Manickam =
-a
-> =C3=A9crit :
->>
->> imq0      Link encap:UNSPEC  HWaddr
->> 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00
->>           UP RUNNING NOARP  MTU:16000  Metric:1
->>           RX packets:129112 errors:0 dropped:0 overruns:0 frame:0
->>           TX packets:129114 errors:0 dropped:0 overruns:0 carrier:0
->>           collisions:0 txqueuelen:11000
->>           RX bytes:31060964 (29.6 MiB)  TX bytes:31062207 (29.6 MiB)
->>
-> If you cannot switch to 64bit kernel, then you are forced to use lowe=
-r
-> queue lengths (I see your imq devices use insane 11000 txqueuelen)
->=20
-> Each frame use 4K, maybe 16K, it depends on MTU.
->=20
-> even if we dont take into account other needs :
-> 11000 * 16K =3D 170 Mbytes per imqX
-> 1000 * 4K =3D 4Mbytes per ethX
->=20
-> 170M * 8 -> memory overflow
->=20
+> From: Julian Anastasov <ja@ssi.bg>
+> 
+> - Do not create expectation when forwarding the PORT
+>   command to avoid blocking the connection. The problem is that
+>   nf_conntrack_ftp.c:help() tries to create the same expectation later in
+>   POST_ROUTING and drops the packet with "dropping packet" message after
+>   failure in nf_ct_expect_related.
+> 
+> - Change ip_vs_update_conntrack to alter the conntrack
+>   for related connections from real server. If we do not alter the reply in
+>   this direction the next packet from client sent to vport 20 comes as NEW
+>   connection. We alter it but may be some collision happens for both
+>   conntracks and the second conntrack gets destroyed immediately. The
+>   connection stucks too.
+> 
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> Signed-off-by: Simon Horman <horms@verge.net.au>
 
-You should consider that htb creates by default one queue per class
-with txqueuelen limit each. This should probably explain why your
-problems start when you classify to many classes.
+Applied, thanks.
 
-Jarek P.
+> This change is also applicable to net-next, although there is some diff
+> noise. Do you want me to resolve that and post a net-next version
+> separately? (The same applies to "ipvs: avoid oops for passive FTP" which
+> you merged into net last week.)
+
+No need, the next time I merge net-2.6 into net-next-2.6 it will be
+taken care of transparently.
