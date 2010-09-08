@@ -1,59 +1,49 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] libnetfilter_conntrack 0.9.0 release
-Date: Wed, 08 Sep 2010 11:40:58 +0200
-Message-ID: <4C875A2A.6030206@netfilter.org>
+From: Anand Raj Manickam <anandrm@gmail.com>
+Subject: Kernel Panic on OOM with 10 HTB rules
+Date: Wed, 8 Sep 2010 16:22:28 +0530
+Message-ID: <AANLkTinQbuN4Y6yUgHhjhOkLGe3GPk9aN5z1gasvQ-zW@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020806040805080003060403"
-Cc: netfilter-announce@lists.netfilter.org,
-	netfilter-devel@vger.kernel.org, lwn@lwn.net
-To: netfilter@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+To: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	shemminger@vyatta.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36243 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758141Ab0IHJlH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Sep 2010 05:41:07 -0400
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:46655 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750954Ab0IHKw3 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Sep 2010 06:52:29 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------020806040805080003060403
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Hi,
 
-Hi!
+I m struck with
+Kernel Panic - Out of Memory Issue  when  traffic  is more than 100k
+pps  and have  around 10 tc rules.
 
-The Netfilter project presents libnetfilter_conntrack-0.9.0
+There is NO kernel panic with 1 tc rule .
 
-libnetfilter_conntrack is a userspace library providing a programming
-interface (API) to the in-kernel connection tracking state table. This
-library requires a linux kernel >= 2.6.18.
+I using a 2.6.34.6 ( latest stable kernel) with SMP enabled
 
-This release includes two fixes and the infrastructure to generate API
-documentation in doxygen format. ChangeLog is also attached for more
-details.
+The rules are simple -
+10 iptable rules :
+iptables -t mangle -I FORWARD -s x.x.x.x  -j CLASSIFY --set-class 0xz:0xy
 
-You can download it from:
+10 tc rules :
+tc  class add dev imq0 parent 1:z classid 1:y htb rate 2kbit ceil 32768kbps
 
-http://www.netfilter.org/projects/libnetfilter_conntrack/
-ftp://ftp.netfilter.org/pub/libnetfilter_conntrack/
+I m using  Intel Xeon Quad core x5570, 12GB RAM , with 8 e1000e , irq
+affined ( 1 pair per core)
 
-Pablo,
-on behalf of the Netfilter Core Team.
+There is NO issue / CRASH with multiple iptable rules marking to the
+same tc rule/HTB class , i can sucessfully pass more than 200k pps /
+800Mbps traffic .
 
---------------020806040805080003060403
-Content-Type: text/plain;
- name="changes-libnetfilter_conntrack-0.9.0.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="changes-libnetfilter_conntrack-0.9.0.txt"
+But when each iptable rule is marking to seprate tc rule/HTB class and
+when the traffic exceeds 100K pps / 20000 connections per second , we
+hit this Out of Memory - Kernel panic condition .
+Any help is appreciated . Do let me know if any more further
+information is need.
 
-Pablo Neira Ayuso (5):
-      ct: fix regression with helpers for Linux kernel >= 2.6.34
-      build: add libtool m4 support
-      src: convert documentation from kerneldoc to doxygen format
-      ct: fix EINVAL if not TCP attributes are set for Linux kernel <= 2.6.25
-      build: bump version to 0.9.0
-
-
---------------020806040805080003060403--
+Thanks,
+Anand
