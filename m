@@ -1,43 +1,57 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 4/7] build: use simpler autoreconf in autogen
-Date: Thu,  9 Sep 2010 01:32:39 +0200
-Message-ID: <1283988763-1577-5-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 2/7] build: use modern call syntax for AC_INIT, AM_INIT_AUTOMAKE
+Date: Thu,  9 Sep 2010 01:32:37 +0200
+Message-ID: <1283988763-1577-3-git-send-email-jengelh@medozas.de>
 References: <1283988763-1577-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from borg.medozas.de ([188.40.89.202]:48410 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756727Ab0IHXct (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Sep 2010 19:32:49 -0400
+	id S1756699Ab0IHXcr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Sep 2010 19:32:47 -0400
 In-Reply-To: <1283988763-1577-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Note: the use of -i seems required, otherwise autoreconf barfs about
-missing tools (depcomp, etc.). Since they are provided in the tarballs
-as files anyway rather than like previously as symlinks, I do not see a
-problem using -i.
+automake options also need to definitely go into configure.ac, otherwise
+they only apply to a single directory.
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- autogen.sh |    6 +-----
- 1 files changed, 1 insertions(+), 5 deletions(-)
+ Makefile.am  |    2 --
+ configure.ac |    4 ++--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/autogen.sh b/autogen.sh
-index 07bd67f..4989ed9 100755
---- a/autogen.sh
-+++ b/autogen.sh
-@@ -34,8 +34,4 @@ run ()
- }
+diff --git a/Makefile.am b/Makefile.am
+index 80294cc..3878a8d 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -1,7 +1,5 @@
+ include $(top_srcdir)/Make_global.am
  
- [ "x$1" = "xdistrib" ] && include
--run aclocal
--run libtoolize -f
--#run autoheader
--run automake -a
--run autoconf
-+autoreconf -fi
+-AUTOMAKE_OPTIONS = foreign dist-bzip2 1.6
+-
+ ACLOCAL_AMFLAGS = -I m4
+ 
+ SUBDIRS	= include src utils qa
+diff --git a/configure.ac b/configure.ac
+index ae61ba0..eda4c14 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1,10 +1,10 @@
+ dnl Process this file with autoconf to create configure.
+ 
+-AC_INIT
++AC_INIT([libnetfilter_conntrack], [0.9.0])
+ AC_CANONICAL_SYSTEM
+ AC_CONFIG_MACRO_DIR([m4])
+ 
+-AM_INIT_AUTOMAKE(libnetfilter_conntrack, 0.9.0)
++AM_INIT_AUTOMAKE([-Wall foreign subdir-objects dist-bzip2 1.6])
+ 
+ AC_PROG_CC
+ AM_PROG_LIBTOOL
 -- 
 1.7.1
 
