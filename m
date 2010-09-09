@@ -1,51 +1,30 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [patch net] ipvs: fix active FTP
-Date: Thu, 9 Sep 2010 09:27:48 +0900
-Message-ID: <20100909002743.GA5783@verge.net.au>
-References: <20100906040228.GA21473@verge.net.au>
- <20100908.104033.39195899.davem@davemloft.net>
+From: Michele Jr De Candia <michele.de_candia@alcatel-lucent.com>
+Subject: VLAN ebtables target
+Date: Thu, 9 Sep 2010 12:02:38 +0200
+Message-ID: <1284026558.2111.8.camel@nbmichele>
+Reply-To: michele.de_candia@alcatel-lucent.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, kaber@trash.net,
-	wensong@linux-vs.org, ja@ssi.bg
-To: David Miller <davem@davemloft.net>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100908.104033.39195899.davem@davemloft.net>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smail5.alcatel.fr ([62.23.212.27]:60404 "EHLO smail5.alcatel.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753890Ab0IIK01 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Sep 2010 06:26:27 -0400
+Received: from FRMRSSXCHHUB03.dc-m.alcatel-lucent.com (FRMRSSXCHHUB03.dc-m.alcatel-lucent.com [135.120.45.63])
+	by smail5.alcatel.fr (8.14.3/8.14.3/ICT) with ESMTP id o89A2WPt003844
+	(version=TLSv1/SSLv3 cipher=RC4-MD5 bits=128 verify=NOT)
+	for <netfilter-devel@vger.kernel.org>; Thu, 9 Sep 2010 12:02:33 +0200
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Sep 08, 2010 at 10:40:33AM -0700, David Miller wrote:
-> From: Simon Horman <horms@verge.net.au>
-> Date: Mon, 6 Sep 2010 13:02:29 +0900
-> 
-> > From: Julian Anastasov <ja@ssi.bg>
-> > 
-> > - Do not create expectation when forwarding the PORT
-> >   command to avoid blocking the connection. The problem is that
-> >   nf_conntrack_ftp.c:help() tries to create the same expectation later in
-> >   POST_ROUTING and drops the packet with "dropping packet" message after
-> >   failure in nf_ct_expect_related.
-> > 
-> > - Change ip_vs_update_conntrack to alter the conntrack
-> >   for related connections from real server. If we do not alter the reply in
-> >   this direction the next packet from client sent to vport 20 comes as NEW
-> >   connection. We alter it but may be some collision happens for both
-> >   conntracks and the second conntrack gets destroyed immediately. The
-> >   connection stucks too.
-> > 
-> > Signed-off-by: Julian Anastasov <ja@ssi.bg>
-> > Signed-off-by: Simon Horman <horms@verge.net.au>
-> 
-> Applied, thanks.
-> 
-> > This change is also applicable to net-next, although there is some diff
-> > noise. Do you want me to resolve that and post a net-next version
-> > separately? (The same applies to "ipvs: avoid oops for passive FTP" which
-> > you merged into net last week.)
-> 
-> No need, the next time I merge net-2.6 into net-next-2.6 it will be
-> taken care of transparently.
+Hi all,
+I read on ebtable-devel mailing list that somebody has tried to do a new
+target module to add or remove the VLAN tag with ebtables.
 
-Great, thanks.
+There were some patches or references about previous developments?
+
+Thanks in advance,
+Michele
+
