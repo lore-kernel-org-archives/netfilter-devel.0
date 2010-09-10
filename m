@@ -1,85 +1,40 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: VLAN ebtables target
-Date: Fri, 10 Sep 2010 19:38:31 +0800
-Message-ID: <AANLkTimVhAS07xD+TD1xEfQo03+gAs0Xff_5x+fGR4iQ@mail.gmail.com>
-References: <1284026558.2111.8.camel@nbmichele> <AANLkTinpMZyZgA5QZ8PezZv7r2iW1c6xPN7QcpxSzaqw@mail.gmail.com>
- <1284111698.3072.2.camel@nbmichele> <AANLkTingKBq46n-tM-guNSwxDeaegSCfkW7KNYuiEMjb@mail.gmail.com>
- <1284118256.3072.7.camel@nbmichele>
+From: Fabricio Archanjo <farchanjo@gmail.com>
+Subject: LVS with REDIRECT
+Date: Fri, 10 Sep 2010 19:12:20 -0300
+Message-ID: <AANLkTikbs-R1HN4=7AaWSvom2P0Lt8h+aGS5qS6KTRde@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: michele.de_candia@alcatel-lucent.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:65344 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753036Ab0IJLiw convert rfc822-to-8bit (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:39245 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751075Ab0IJWMV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Sep 2010 07:38:52 -0400
-Received: by wyf22 with SMTP id 22so2703002wyf.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 10 Sep 2010 04:38:51 -0700 (PDT)
-In-Reply-To: <1284118256.3072.7.camel@nbmichele>
+	Fri, 10 Sep 2010 18:12:21 -0400
+Received: by wwb13 with SMTP id 13so406943wwb.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 10 Sep 2010 15:12:20 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Sep 10, 2010 at 7:30 PM, Michele Jr De Candia
-<michele.de_candia@alcatel-lucent.com> wrote:
-> On Fri, 2010-09-10 at 13:21 +0200, Changli Gao wrote:
->> On Fri, Sep 10, 2010 at 5:41 PM, Michele Jr De Candia
->> <michele.de_candia@alcatel-lucent.com> wrote:
->> > On Fri, 2010-09-10 at 04:33 +0200, Changli Gao wrote:
->> >> On Thu, Sep 9, 2010 at 6:02 PM, Michele Jr De Candia
->> >> <michele.de_candia@alcatel-lucent.com> wrote:
->> >> > Hi all,
->> >> > I read on ebtable-devel mailing list that somebody has tried to=
- do a new
->> >> > target module to add or remove the VLAN tag with ebtables.
->> >> >
->> >> > There were some patches or references about previous developmen=
-ts?
->> >> >
->> >>
->> >> What is the requirement which needs this VLAN target? Most of
->> >> requirement can be satisfied =A0with ebtables and vlan network de=
-vices.
->> >
->> > Supposing that the requirement is to get a VLAN tagged L2 frame co=
-ming
->> > from an interface and routing it untagged to another interface, ho=
-w
->> > would you do that?
->> >
->> >>
->>
->> Supposing the VLAN tagged L2 frame conming from eth0, the VLAN ID is
->> 2, and the other interface is eth1.
->>
->> vconfig add eth0 2
->> vconfig set_flag eth0.2 1
->> brctl addbr br0
->> brctl addif br0 eth0.2
->> brctl addif br0 eth1
->>
->
-> Thank you but I think this untags all the frames coming to eth0.2.
->
-> If I want to untag some frames according to some rule (e.g. src or ds=
-t
-> mac address) this can't be the way, right?
->
+Hello,
 
-You need to:
+I've made a labs to test a load balance conection to Squid. I have two
+machines with Squid, which are balanced with LVS on Firewall. Look at
+my ipvsadm -L -n output:
 
-brctl addif br0 eth0
+TCP  10.10.10.1:8080 rr
+  -> 192.168.1.2:3128             Masq    1      0          0
+  -> 192.168.1.3:3128             Masq    1      0          0
 
-And do some ebtables settings in the broute chain to route the vlan
-frames instead.
+The IP 10.10.10.1 is my local network, where are my hosts. 192.168.1.2
+and 192.168.1.3 are my Squids. When I set 10.10.10.1 directly on
+browser the balance works perfect. But i need to use like transparent
+proxy, then i did this rule:
 
---=20
-Regards,
-Changli Gao(xiaosuo@gmail.com)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iptables -t nat -A PREROUTING -i eth2 -p tcp -s 10.10.10.0/24 --dport
+80 -j REDIRECT --to-port 8080
+
+When i applied this rule, any traffic to http port match in this rule
+but it is not redirect my traffic to 8080. may someone help me???
+
+Thanks all,
