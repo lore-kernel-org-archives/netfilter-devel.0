@@ -1,73 +1,55 @@
-From: Michael Kerrisk <mtk.manpages-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/2 v2] man - IP_NODEFRAG option for IPv4 socket
-Date: Sat, 11 Sep 2010 07:36:15 +0200
-Message-ID: <AANLkTi=T0EA_9k13nR9+ivpwUQbugnfkVNQ9ZTZuqY=C@mail.gmail.com>
-References: <1276600052-16499-1-git-send-email-jolsa@redhat.com>
- <1276600052-16499-3-git-send-email-jolsa@redhat.com> <AANLkTim4N5rc8Sn_uo5bXsb9vjvKd3GTQD3p-1uApbB8@mail.gmail.com>
- <20100626.095857.137828263.davem@davemloft.net> <20100626191315.GA2076@jolsa.nomadprime.subscribe.loganwifi.com>
-Reply-To: mtk.manpages-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: Michael Kerrisk <mtk.manpages@gmail.com>
+Subject: [PATCH] enable getsockopt() for IP_NODEFRAG
+Date: Sat, 11 Sep 2010 08:26:56 +0200
+Message-ID: <4C8B2130.7030605@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org,
-	jengelh-nopoi9nDyk+ELgA04lAiVw@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-man-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jiri Olsa <jolsa-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Return-path: <linux-man-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100626191315.GA2076-Wm2NNL2RFAC1BuvyT83C0lrZeV2/+9ztveTR/H6W3zQlvuHqEAARLw@public.gmane.org>
-Sender: linux-man-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Cc: eric.dumazet@gmail.com, jengelh@medozas.de, kaber@trash.net,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	linux-man@vger.kernel.org, David Miller <davem@davemloft.net>
+To: Jiri Olsa <jolsa@redhat.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:43162 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752190Ab0IKG1A (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 11 Sep 2010 02:27:00 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 Hello Jiri
 
-On Sat, Jun 26, 2010 at 9:13 PM, Jiri Olsa <jolsa-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On Sat, Jun 26, 2010 at 09:58:57AM -0700, David Miller wrote:
->> From: Michael Kerrisk <mtk.manpages-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> Date: Sat, 26 Jun 2010 15:01:03 +0200
->>
->> >> =A0sent from this socket.
->> >> +.TP
->> >> +.BR IP_NODEFRAG " (since Linux 2.6)"
->> >
->> > here, we'd write the exact version in which the flag is added. It
->> > looks like that might be 2.36, right?
->>
->> It'll show up in 2.6.36
->>
->> I doubt I'll be alive when we make it to 2.36 :-)
->
-> :) ok, attaching changed patch
+While integrating your man-pages patch for IP_NODEFRAG, I noticed 
+that this option is settable by setsockopt(), but not gettable by 
+getsockopt(). I suppose this is not intended. The (untested, 
+trivial) patch below adds getsockopt() support.
 
-I tweaked that slightly, and applied the below for man-pages-3.27.
+The patch is against 2.6.36-rc3.
 
-Thanks,
+Cheers,
 
 Michael
 
---- a/man7/ip.7
-+++ b/man7/ip.7
-@@ -399,6 +399,14 @@ The default is 1 which means that multicast
-packets don't leave the local
- network unless the user program explicitly requests it.
- Argument is an integer.
- .TP
-+.BR IP_NODEFRAG " (since Linux 2.6.36)"
-+If enabled (argument is nonzero),
-+the reassembly of outgoing packets is disabled in the netfilter layer.
-+This option is only valid for
-+.B SOCK_RAW
-+sockets.
-+The argument is an integer.
-+.TP
- .BR IP_OPTIONS " (since Linux 2.0)"
- .\" Precisely: 1.3.30
- Set or get the IP options to be sent with every packet from this socke=
-t.
---=20
+PS I've just configured Thunderbird on this machine, hopefully the 
+patch is not mangled. Please let me know if there are problems.
+
+Signed-off-by: Michael kerrisk <mtk.manpages@gmail.com>
+
+--- net/ipv4/ip_sockglue.c.orig	2010-09-11 07:25:58.000000000 +0200
++++ net/ipv4/ip_sockglue.c	2010-09-11 07:43:43.000000000 +0200
+@@ -1129,6 +1129,9 @@ static int do_ip_getsockopt(struct sock
+ 	case IP_HDRINCL:
+ 		val = inet->hdrincl;
+ 		break;
++	case IP_NODEFRAG:
++		val = inet->nodefrag;
++		break;
+ 	case IP_MTU_DISCOVER:
+ 		val = inet->pmtudisc;
+ 		break;
+-- 
 Michael Kerrisk
 Linux man-pages maintainer; http://www.kernel.org/doc/man-pages/
-Author of "The Linux Programming Interface"; http://man7.org/tlpi/
---
-To unsubscribe from this list: send the line "unsubscribe linux-man" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Watch my Linux system programming book progress towards publication!
+http://blog.man7.org/
