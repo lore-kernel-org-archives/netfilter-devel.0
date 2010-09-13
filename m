@@ -1,30 +1,43 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: change to max length of jump target
-Date: Mon, 13 Sep 2010 15:51:25 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1009131550370.12482@obet.zrqbmnf.qr>
-References: <4C87D4BC.8090802@vyatta.com>
+From: Erik Schweigert <ejschweigert@gmail.com>
+Subject: TCP Timeout Values
+Date: Mon, 13 Sep 2010 13:01:07 -0700
+Message-ID: <AANLkTik-DnT1rG5Y0YeJtK+42=gLBLaRAvCX2VU285te@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Stig Thormodsrud <stig@vyatta.com>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:47956 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751708Ab0IMNv0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Sep 2010 09:51:26 -0400
-In-Reply-To: <4C87D4BC.8090802@vyatta.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:63270 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752163Ab0IMUBI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Sep 2010 16:01:08 -0400
+Received: by gyd8 with SMTP id 8so2232532gyd.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Sep 2010 13:01:07 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 2010-09-08 20:23, Stig Thormodsrud wrote:
+Hi all,
 
->
->I'm in the process of upgrading to iptables 1.4.9 and noticed that the
->max jump target has changed from 30 characters to 28 characters.  For
->example I can still create a 29 character chain but can't create a jump
->target to it:
->
->root@r1:~# iptables -t filter --new-chain A2345678901234567890123456789
+I am wondering where the timeout values in
 
-An oversight. Will post once I've addressed some more bugreports.
+/net/netfilter/nf_conntrack_proto_tcp.c
 
+of:
+
+static unsigned int tcp_timeouts[TCP_CONNTRACK_MAX] __read_mostly = {
+      [TCP_CONNTRACK_SYN_SENT]        = 2 MINS,
+      [TCP_CONNTRACK_SYN_RECV]        = 60 SECS,
+      [TCP_CONNTRACK_ESTABLISHED]     = 5 DAYS,
+      [TCP_CONNTRACK_FIN_WAIT]        = 2 MINS,
+      [TCP_CONNTRACK_CLOSE_WAIT]      = 60 SECS,
+      [TCP_CONNTRACK_LAST_ACK]        = 30 SECS,
+      [TCP_CONNTRACK_TIME_WAIT]       = 2 MINS,
+      [TCP_CONNTRACK_CLOSE]           = 10 SECS,
+ };
+
+are decided?  Are these arbitrary or is this defined in the TCP RFC (I
+could not see the TCP_CONNTRACK_ESTABLISHED value defined there).
+
+Thanks,
+
+Erik
