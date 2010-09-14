@@ -1,48 +1,49 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH] enable getsockopt() for IP_NODEFRAG
-Date: Mon, 13 Sep 2010 19:57:43 -0700 (PDT)
-Message-ID: <20100913.195743.70199815.davem@davemloft.net>
-References: <4C8B2130.7030605@gmail.com>
-	<20100912215230.GA2091@jolsa.Belkin>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: TCP Timeout Values
+Date: Tue, 14 Sep 2010 11:59:07 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1009141158000.6873@obet.zrqbmnf.qr>
+References: <AANLkTik-DnT1rG5Y0YeJtK+42=gLBLaRAvCX2VU285te@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: mtk.manpages-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, jengelh-nopoi9nDyk+ELgA04lAiVw@public.gmane.org,
-	kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-man-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jolsa-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Return-path: <linux-man-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100912215230.GA2091-Iosbtnj8/lepmqaOOeWOyQ@public.gmane.org>
-Sender: linux-man-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Erik Schweigert <ejschweigert@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from borg.medozas.de ([188.40.89.202]:60747 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752671Ab0INJ7J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Sep 2010 05:59:09 -0400
+In-Reply-To: <AANLkTik-DnT1rG5Y0YeJtK+42=gLBLaRAvCX2VU285te@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jiri Olsa <jolsa-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Date: Sun, 12 Sep 2010 23:52:30 +0200
+On Monday 2010-09-13 22:01, Erik Schweigert wrote:
 
-> On Sat, Sep 11, 2010 at 08:26:56AM +0200, Michael Kerrisk wrote:
->> Hello Jiri
->> 
->> While integrating your man-pages patch for IP_NODEFRAG, I noticed 
->> that this option is settable by setsockopt(), but not gettable by 
->> getsockopt(). I suppose this is not intended. The (untested, 
->> trivial) patch below adds getsockopt() support.
->> 
->> The patch is against 2.6.36-rc3.
->> 
->> Cheers,
->> 
->> Michael
->> 
->> PS I've just configured Thunderbird on this machine, hopefully the 
->> patch is not mangled. Please let me know if there are problems.
-> hi,
-> 
-> applied ok, compiled ok ;) thanks
-> 
-> Acked-by: Jiri Olsa <jolsa-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>Hi all,
+>
+>I am wondering where the timeout values in
+>
+>/net/netfilter/nf_conntrack_proto_tcp.c
+>
+>of:
+>
+>static unsigned int tcp_timeouts[TCP_CONNTRACK_MAX] __read_mostly = {
+>      [TCP_CONNTRACK_SYN_SENT]        = 2 MINS,
+>      [TCP_CONNTRACK_SYN_RECV]        = 60 SECS,
+>      [TCP_CONNTRACK_ESTABLISHED]     = 5 DAYS,
+>      [TCP_CONNTRACK_FIN_WAIT]        = 2 MINS,
+>      [TCP_CONNTRACK_CLOSE_WAIT]      = 60 SECS,
+>      [TCP_CONNTRACK_LAST_ACK]        = 30 SECS,
+>      [TCP_CONNTRACK_TIME_WAIT]       = 2 MINS,
+>      [TCP_CONNTRACK_CLOSE]           = 10 SECS,
+> };
+>
+>are decided?  Are these arbitrary or is this defined in the TCP RFC (I
+>could not see the TCP_CONNTRACK_ESTABLISHED value defined there).
 
-Applied, thanks everyone.
---
-To unsubscribe from this list: send the line "unsubscribe linux-man" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In the TCP RFC. Of course you won't find TCP_CONNTRACK_ESTABLISHED in 
+there, it's a TCP RFC. Not a conntrack RFC.
+
+"""the TCP must keep quiet for a maximum segment lifetime (MSL) before 
+assigning any sequence numbers upon starting up or recovering from a 
+crash in which memory of sequence numbers in use was lost.  For this 
+specification the MSL is taken to be 2 minutes."""
