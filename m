@@ -1,49 +1,49 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: TCP Timeout Values
-Date: Tue, 14 Sep 2010 11:59:07 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1009141158000.6873@obet.zrqbmnf.qr>
-References: <AANLkTik-DnT1rG5Y0YeJtK+42=gLBLaRAvCX2VU285te@mail.gmail.com>
+From: Peter Volkov <pva@gentoo.org>
+Subject: [patch] arptables respect LDFLAGS
+Date: Wed, 15 Sep 2010 17:48:53 +0400
+Message-ID: <1284558534.22085.164.camel@tablet>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Erik Schweigert <ejschweigert@gmail.com>
+Content-Type: multipart/mixed; boundary="=-KUgtslux2A7K0d0Q/9t6"
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: ebtables-devel@lists.sourceforge.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:60747 "EHLO borg.medozas.de"
+Received: from smtp.gentoo.org ([140.211.166.183]:56618 "EHLO smtp.gentoo.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752671Ab0INJ7J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Sep 2010 05:59:09 -0400
-In-Reply-To: <AANLkTik-DnT1rG5Y0YeJtK+42=gLBLaRAvCX2VU285te@mail.gmail.com>
+	id S1752964Ab0IONut (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Sep 2010 09:50:49 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2010-09-13 22:01, Erik Schweigert wrote:
 
->Hi all,
->
->I am wondering where the timeout values in
->
->/net/netfilter/nf_conntrack_proto_tcp.c
->
->of:
->
->static unsigned int tcp_timeouts[TCP_CONNTRACK_MAX] __read_mostly = {
->      [TCP_CONNTRACK_SYN_SENT]        = 2 MINS,
->      [TCP_CONNTRACK_SYN_RECV]        = 60 SECS,
->      [TCP_CONNTRACK_ESTABLISHED]     = 5 DAYS,
->      [TCP_CONNTRACK_FIN_WAIT]        = 2 MINS,
->      [TCP_CONNTRACK_CLOSE_WAIT]      = 60 SECS,
->      [TCP_CONNTRACK_LAST_ACK]        = 30 SECS,
->      [TCP_CONNTRACK_TIME_WAIT]       = 2 MINS,
->      [TCP_CONNTRACK_CLOSE]           = 10 SECS,
-> };
->
->are decided?  Are these arbitrary or is this defined in the TCP RFC (I
->could not see the TCP_CONNTRACK_ESTABLISHED value defined there).
+--=-KUgtslux2A7K0d0Q/9t6
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 
-In the TCP RFC. Of course you won't find TCP_CONNTRACK_ESTABLISHED in 
-there, it's a TCP RFC. Not a conntrack RFC.
+Hi. The patch in attachment makes arptables respect LDFLAGS. Please,
+apply. Thank you.
 
-"""the TCP must keep quiet for a maximum segment lifetime (MSL) before 
-assigning any sequence numbers upon starting up or recovering from a 
-crash in which memory of sequence numbers in use was lost.  For this 
-specification the MSL is taken to be 2 minutes."""
+-- 
+Peter.
+
+--=-KUgtslux2A7K0d0Q/9t6
+Content-Disposition: attachment; filename="arptables-0.0.3.4-ldflags.patch"
+Content-Type: text/x-patch; name="arptables-0.0.3.4-ldflags.patch"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+=== modified file 'Makefile'
+--- Makefile	2010-09-15 11:51:49 +0000
++++ Makefile	2010-09-15 11:52:56 +0000
+@@ -31,7 +31,7 @@
+ 	$(CC) $(CFLAGS) -c -o $@ $<
+ 
+ arptables: arptables-standalone.o arptables.o libarptc/libarptc.o $(EXT_OBJS)
+-	$(CC) $(CFLAGS) -o $@ $^
++	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+ 
+ $(DESTDIR)$(MANDIR)/man8/arptables.8: arptables.8
+ 	mkdir -p $(@D)
+
+
+--=-KUgtslux2A7K0d0Q/9t6--
+
