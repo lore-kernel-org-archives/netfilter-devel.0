@@ -1,41 +1,44 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 1/4] iptables-xml: resolve compiler warnings
-Date: Wed, 15 Sep 2010 20:53:44 +0200
-Message-ID: <1284576828-32412-2-git-send-email-jengelh@medozas.de>
-References: <1284576828-32412-1-git-send-email-jengelh@medozas.de>
+Subject: pull: misc nf bugfixes
+Date: Wed, 15 Sep 2010 20:53:43 +0200
+Message-ID: <1284576828-32412-1-git-send-email-jengelh@medozas.de>
 Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:46817 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:46812 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755162Ab0IOSxy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Sep 2010 14:53:54 -0400
-In-Reply-To: <1284576828-32412-1-git-send-email-jengelh@medozas.de>
+	id S1755135Ab0IOSxx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Sep 2010 14:53:53 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-iptables-xml.c: In function "parse_counters":
-iptables-xml.c:70:8: warning: assignment from incompatible pointer type
-iptables-xml.c:71:8: warning: assignment from incompatible pointer type
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- iptables-xml.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/iptables-xml.c b/iptables-xml.c
-index daf4208..32d996a 100644
---- a/iptables-xml.c
-+++ b/iptables-xml.c
-@@ -64,7 +64,7 @@ print_usage(const char *name, const char *version)
- static int
- parse_counters(char *string, struct ipt_counters *ctr)
- {
--	u_int64_t *pcnt, *bcnt;
-+	__u64 *pcnt, *bcnt;
- 
- 	if (string != NULL) {
- 		pcnt = &ctr->pcnt;
--- 
-1.7.1
 
+Again I went through the bugzilla and shelve off some bugreports.
+Please apply.
+
+
+The following changes since commit 0428e5a6541c3f5eaaf683d8da9ea60c44eac4c7:
+
+  build: fix static linking (2010-08-03 19:58:38 +0200)
+
+are available in the git repository at:
+  git://dev.medozas.de/iptables master
+
+Jan Engelhardt (4):
+      iptables-xml: resolve compiler warnings
+      iptables: limit chain name length to be consistent with targets
+      libiptc: build with -Wl,--no-as-needed
+      libiptc: add Libs.private to pkgconfig files
+
+ Makefile.am                 |    4 +-
+ configure.ac                |    5 +++
+ ip6tables.c                 |    6 ++--
+ iptables-xml.c              |    2 +-
+ iptables.c                  |    6 ++--
+ libiptc.pc.in               |    1 +
+ m4/ax_check_linker_flags.m4 |   78 +++++++++++++++++++++++++++++++++++++++++++
+ xtables.pc.in               |    1 +
+ 8 files changed, 94 insertions(+), 9 deletions(-)
+ create mode 100644 m4/ax_check_linker_flags.m4
