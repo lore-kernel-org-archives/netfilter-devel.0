@@ -1,38 +1,42 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH RESEND 1/3] netfilter: xtables: inclusion of xt_condition
-Date: Wed, 15 Sep 2010 22:59:12 +0200
-Message-ID: <4C9133A0.7050601@trash.net>
-References: <1282034213-1829-1-git-send-email-luciano.coelho@nokia.com> <1282034213-1829-2-git-send-email-luciano.coelho@nokia.com> <4C912EFC.9070406@trash.net> <alpine.LNX.2.01.1009152246320.5146@obet.zrqbmnf.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH RESEND 1/3] netfilter: xtables: inclusion of
+ xt_condition
+Date: Wed, 15 Sep 2010 23:09:31 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1009152309140.6445@obet.zrqbmnf.qr>
+References: <1282034213-1829-1-git-send-email-luciano.coelho@nokia.com> <1282034213-1829-2-git-send-email-luciano.coelho@nokia.com> <4C912EFC.9070406@trash.net> <alpine.LNX.2.01.1009152246320.5146@obet.zrqbmnf.qr> <4C9133A0.7050601@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Luciano Coelho <luciano.coelho@nokia.com>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	sameo@linux.intel.com, janne.ylalehto@nokia.com
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59438 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751892Ab0IOU7P (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Sep 2010 16:59:15 -0400
-In-Reply-To: <alpine.LNX.2.01.1009152246320.5146@obet.zrqbmnf.qr>
+Received: from borg.medozas.de ([188.40.89.202]:44590 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754396Ab0IOVJc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Sep 2010 17:09:32 -0400
+In-Reply-To: <4C9133A0.7050601@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 15.09.2010 22:52, Jan Engelhardt wrote:
-> 
-> On Wednesday 2010-09-15 22:39, Patrick McHardy wrote:
->> Am 17.08.2010 10:36, schrieb Luciano Coelho:
->>> +/* Defaults, these can be overridden on the module command-line. */
->>> +static unsigned int condition_list_perms = S_IRUGO | S_IWUSR;
->>> +static unsigned int condition_uid_perms = 0;
->>> +static unsigned int condition_gid_perms = 0;
->>
->> I'm not sure whether we already discussed this, but this isn't
->> useful if namespaces are used since the IDs aren't global.
-> 
-> Well it's also done for other xt modules that offer a procfs interface.
-> It does not really cost much to have this present I'd say.
 
-They should simply set the permissions for the current namespace.
+On Wednesday 2010-09-15 22:59, Patrick McHardy wrote:
+>On 15.09.2010 22:52, Jan Engelhardt wrote:
+>> 
+>> On Wednesday 2010-09-15 22:39, Patrick McHardy wrote:
+>>> Am 17.08.2010 10:36, schrieb Luciano Coelho:
+>>>> +/* Defaults, these can be overridden on the module command-line. */
+>>>> +static unsigned int condition_list_perms = S_IRUGO | S_IWUSR;
+>>>> +static unsigned int condition_uid_perms = 0;
+>>>> +static unsigned int condition_gid_perms = 0;
+>>>
+>>> I'm not sure whether we already discussed this, but this isn't
+>>> useful if namespaces are used since the IDs aren't global.
+>> 
+>> Well it's also done for other xt modules that offer a procfs interface.
+>> It does not really cost much to have this present I'd say.
+>
+>They should simply set the permissions for the current namespace.
+>
+IIRC, the namespace stuff was going to be a later patch to keep
+early patches simpler.
