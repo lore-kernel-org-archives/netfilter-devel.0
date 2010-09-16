@@ -1,76 +1,41 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Kernel Panic on OOM with 10 HTB rules
-Date: Thu, 16 Sep 2010 11:35:29 +0200
-Message-ID: <4C91E4E1.4030001@trash.net>
-References: <AANLkTinQbuN4Y6yUgHhjhOkLGe3GPk9aN5z1gasvQ-zW@mail.gmail.com> <1283949778.2748.5.camel@edumazet-laptop>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 2/4] iptables: limit chain name length to be consistent
+ with targets
+Date: Thu, 16 Sep 2010 11:45:38 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1009161129580.28367@obet.zrqbmnf.qr>
+References: <1284576828-32412-1-git-send-email-jengelh@medozas.de> <1284576828-32412-3-git-send-email-jengelh@medozas.de> <4C9164D8.2060307@vyatta.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Dumazet <eric.dumazet@gmail.com>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, shemminger@vyatta.com
-To: Anand Raj Manickam <anandrm@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: pablo@netfilter.org, kaber@trash.net,
+	netfilter-devel@vger.kernel.org
+To: Stig Thormodsrud <stig@vyatta.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:39998 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751341Ab0IPJfc (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Sep 2010 05:35:32 -0400
-In-Reply-To: <1283949778.2748.5.camel@edumazet-laptop>
+Received: from borg.medozas.de ([188.40.89.202]:40314 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751498Ab0IPJpk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Sep 2010 05:45:40 -0400
+In-Reply-To: <4C9164D8.2060307@vyatta.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 08.09.2010 14:42, Eric Dumazet wrote:
-> Le mercredi 08 septembre 2010 =E0 16:22 +0530, Anand Raj Manickam a
-> =E9crit :
->> I m struck with
->> Kernel Panic - Out of Memory Issue  when  traffic  is more than 100k
->> pps  and have  around 10 tc rules.
->>
->> There is NO kernel panic with 1 tc rule .
->>
->> I using a 2.6.34.6 ( latest stable kernel) with SMP enabled
->>
->> The rules are simple -
->> 10 iptable rules :
->> iptables -t mangle -I FORWARD -s x.x.x.x  -j CLASSIFY --set-class 0x=
-z:0xy
->>
->> 10 tc rules :
->> tc  class add dev imq0 parent 1:z classid 1:y htb rate 2kbit ceil 32=
-768kbps
->>
->> I m using  Intel Xeon Quad core x5570, 12GB RAM , with 8 e1000e , ir=
-q
->> affined ( 1 pair per core)
->>
->> There is NO issue / CRASH with multiple iptable rules marking to the
->> same tc rule/HTB class , i can sucessfully pass more than 200k pps /
->> 800Mbps traffic .
->>
->> But when each iptable rule is marking to seprate tc rule/HTB class a=
-nd
->> when the traffic exceeds 100K pps / 20000 connections per second , w=
-e
->> hit this Out of Memory - Kernel panic condition .
->> Any help is appreciated . Do let me know if any more further
->> information is need.
->=20
-> Hi Anand
->=20
-> Could you give :
->=20
-> 1) A complete stack trace / panic report
-> 2) cat /proc/interrupts
-> 3) ifconfig -a
-> 4) cat /proc/sys/vm/min_free_kbytes
-> 5) cat /proc/meminfo
->=20
-> for each eth*
->  ethtool -g eth*
 
-Please try to reproduce without the imq patch.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Thursday 2010-09-16 02:29, Stig Thormodsrud wrote:
+>> -	if (chain && strlen(chain) > IPT_FUNCTION_MAXNAMELEN)
+>> +	if (chain != NULL && strlen(chain) >= XT_EXTENSION_MAXNAMELEN)
+>>  		xtables_error(PARAMETER_PROBLEM,
+>> -			   "chain name `%s' too long (must be under %i chars)",
+>> -			   chain, IPT_FUNCTION_MAXNAMELEN);
+>> +			   "chain name `%s' too long (must be under %u chars)",
+>> +			   chain, XT_EXTENSION_MAXNAMELEN);
+>>  
+>>  	/* only allocate handle if we weren't called with a handle */
+>>  	if (!*handle)
+>
+>Thanks for the fix.  I guess my original question was if the change in
+>max name length from 29 to 28 characters was intentional or required by
+>some other data structure change?
+
+struct xt_entry_match simply just has space for 28+1 bytes for the
+name+'\0'. Chain names could be 31+1, but it is unknown in advance
+whether a name whose length is to be checked is going to be a target
+or a chain, so it is safer to just use 29 for now.
