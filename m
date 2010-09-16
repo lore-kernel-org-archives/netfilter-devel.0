@@ -1,42 +1,47 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 5/5] net/netfilter/ipvs: Eliminate memory leak
-Date: Thu, 16 Sep 2010 07:42:43 +0200
-Message-ID: <4C91AE53.2050901@trash.net>
-References: <Pine.LNX.4.64.1008241639300.15172@ask.diku.dk>	<20100825013443.GC7237@verge.net.au> <20100825.163812.242150096.davem@davemloft.net>
+Subject: Re: [PATCH v5 2/2] netfilter: save the hash of the tuple in the original
+ direction for latter use
+Date: Thu, 16 Sep 2010 08:18:38 +0200
+Message-ID: <4C91B6BE.8020300@trash.net>
+References: <1282344540-5306-1-git-send-email-xiaosuo@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: horms@verge.net.au, julia@diku.dk, wensong@linux-vs.org, ja@ssi.bg,
-	netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35246 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750714Ab0IPFmp (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Sep 2010 01:42:45 -0400
-In-Reply-To: <20100825.163812.242150096.davem@davemloft.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>,
+	akpm@linux-foundation.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1282344540-5306-1-git-send-email-xiaosuo@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 26.08.2010 01:38, David Miller wrote:
-> From: Simon Horman <horms@verge.net.au>
-> Date: Wed, 25 Aug 2010 10:34:43 +0900
-> 
->> On Tue, Aug 24, 2010 at 04:39:49PM +0200, Julia Lawall wrote:
->>> Signed-off-by: Julia Lawall <julia@diku.dk>
->>
->> Thanks Julia, that looks good to me.
->>
->> Signed-off-by: Simon Horman <horms@verge.net.au>
->>
->> Patrick, I guess that this should go through nf-next-2.6.
-> 
-> Since Patrick appears to be offline, I'll apply this directly so
-> he has less to do when he comes back online :)
+On 21.08.2010 00:49, Changli Gao wrote:
+> Since we don't change the tuple in the original direction, we can save it
+> in ct->tuplehash[IP_CT_DIR_REPLY].hnode.pprev for __nf_conntrack_confirm()
+> use.
 
-Thanks Dave. I should be done catching up by tonight and will start
-taking care of IPVS patches again.
+I like this idea. We could actually do the same for the reply tuple
+and invalidate the saved hash in case the reply tuple is changed
+(nf_conntrack_alter_reply()), which only happens when NAT is used.
+
+> __hash_conntrack() is split into two steps: ____hash_conntrack() is used
+> to get the raw hash, and __hash_bucket() is used to get the bucket id.
+
+This patch uses underscores a bit excessively, how about renaming:
+
+- ____hash_conntrack() => hash_conntrack_raw()
+- __hash variables => hash
+- hash variables => bucket
+
+> @@ -408,7 +438,8 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+>  		return NF_ACCEPT;
+>  
+>  	zone = nf_ct_zone(ct);
+> -	hash = hash_conntrack(net, zone, &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
+> +	/* reuse the __hash saved before */
+> +	hash = hash_bucket(*(unsigned long *)&ct->tuplehash[IP_CT_DIR_REPLY].hnnode.pprev, net);
+
+Please try to stay at least close to the 80 characters limit.
