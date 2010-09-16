@@ -1,32 +1,29 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: fix a race in nf_ct_ext_create()
-Date: Thu, 16 Sep 2010 20:00:04 +0200
-Message-ID: <4C925B24.8020900@trash.net>
-References: <1283269682.2550.111.camel@edumazet-laptop> <20100831155137.GE2421@linux.vnet.ibm.com>
+From: Nicola Padovano <nicola.padovano@gmail.com>
+Subject: Re: problem with flowi structure
+Date: Thu, 16 Sep 2010 21:25:57 +0200
+Message-ID: <AANLkTi=Y7beG4vPDx5eNg-gTN1CVg_G=1+dWwi2Xd2-R@mail.gmail.com>
+References: <AANLkTi=bGsvMqnTSanA73FhDH_DashmXTcA1sddtj0P6@mail.gmail.com>
+ <1284650768.3352.37.camel@edumazet-laptop> <AANLkTimo1AeBS3rpQj0KtZL15Ct-DGTQMBUsL8hrVNOL@mail.gmail.com>
+ <1284652453.3352.38.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	David Miller <davem@davemloft.net>,
-	netdev <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: paulmck@linux.vnet.ibm.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20100831155137.GE2421@linux.vnet.ibm.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
+	netdev@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:37073 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754350Ab0IPT0U (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Sep 2010 15:26:20 -0400
+In-Reply-To: <1284652453.3352.38.camel@edumazet-laptop>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 31.08.2010 17:51, Paul E. McKenney wrote:
-> On Tue, Aug 31, 2010 at 05:48:02PM +0200, Eric Dumazet wrote:
->> > As soon as rcu_read_unlock() is called, there is no guarantee current
->> > thread can safely derefence t pointer, rcu protected.
->> > 
->> > Fix is to copy t->alloc_size in a temporary variable.
-> Yow!!!  Good catch!!!
-> 
-> Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-> 
->> > Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+ok, let's step back...
+what's the task of ip_route_output_key function ?
 
-Applied, thanks.
+-- 
+Nicola Padovano
+e-mail: nicola.padovano@gmail.com
+web: http://npadovano.altervista.org
