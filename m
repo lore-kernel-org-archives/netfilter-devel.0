@@ -1,40 +1,42 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [patch v1 00/12] IPVS: SIP Persistence Engine
-Date: Thu, 16 Sep 2010 10:12:07 +0200
-Message-ID: <4C91D157.1090804@trash.net>
-References: <20100822124457.339517323@vergenet.net>
+Subject: Re: [patch] netfilter: Use header-y instead of unifdef-y
+Date: Thu, 16 Sep 2010 10:30:19 +0200
+Message-ID: <4C91D59B.40009@trash.net>
+References: <20100823034226.GA29532@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
+Cc: netfilter-devel@vger.kernel.org,
+	Luciano Coelho <luciano.coelho@nokia.com>,
+	Eric Dumazet <eric.dumazet@gmail.com>
 To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <20100822124457.339517323@vergenet.net>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:38794 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751721Ab0IPIaY (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Sep 2010 04:30:24 -0400
+In-Reply-To: <20100823034226.GA29532@verge.net.au>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 22.08.2010 14:44, schrieb Simon Horman:
-> This patch series adds load-balancing of UDP SIP based on Call-ID to
-> IPVS as well as a frame-work for extending IPVS to handle alternate
-> persistence requirements.
+Am 23.08.2010 05:42, schrieb Simon Horman:
+> According to Documentation/kbuild/makefiles.txt
+> the usage of unifdef is deprecated.
 > 
-> REVISIONS
-> 
-> This is "patch v1" of this series, which addresses a few minor problems, as
-> annotated on a per-patch basis, since the initial "rfc" posting. Internally
-> there were 4 rfc versions, 0.1, 0.2, 0.3 and 0.4, some of the notes for
-> some of the patches reflect those versions.
+> Signed-off-by: Simon Horman <horms@verge.net.au>
 
-This looks fine to me as far as I can judge.
+This has already been changed by this commit:
 
-> CODE AVAILABILITY
-> 
-> The kernel patches (13) are available in git as the pe-0.4 branch of
-> git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git
+60641aa1f379820e99ac7f45a38b43795670c741
+Author: Sam Ravnborg <sam@ravnborg.org>
+Date:   Sat Aug 14 10:15:12 2010 +0200
 
-Just to clarify, do you want me to merge this version?
+    include: replace unifdef-y with header-y
+
+    unifdef-y and header-y has same semantic.
+    So there is no need to have both.
+
+    Drop the unifdef-y variant and sort all lines again
+
+    Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
