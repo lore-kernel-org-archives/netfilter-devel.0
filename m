@@ -1,27 +1,23 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH resend] netfilter: nf_nat_core: don't check if the tuple
- is used if there is no other choice
-Date: Thu, 16 Sep 2010 19:45:51 +0200
-Message-ID: <4C9257CF.3080409@trash.net>
-References: <1282029696-3028-1-git-send-email-xiaosuo@gmail.com>
+Subject: Re: [PATCH v2 resend] nf_nat: no IP_NAT_RANGE_MAP_IPS flags when
+ alloc_null_binding()
+Date: Thu, 16 Sep 2010 19:48:20 +0200
+Message-ID: <4C925864.5080806@trash.net>
+References: <1282029898-3071-1-git-send-email-xiaosuo@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: "David S. Miller" <davem@davemloft.net>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: Changli Gao <xiaosuo@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:49234 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755516Ab0IPRpw (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Sep 2010 13:45:52 -0400
-In-Reply-To: <1282029696-3028-1-git-send-email-xiaosuo@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1282029898-3071-1-git-send-email-xiaosuo@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 17.08.2010 09:21, Changli Gao wrote:
-> Eliminate nf_nat_used_tuple() to save some CPU cycles when there is no other
-> choice.
+On 17.08.2010 09:24, Changli Gao wrote:
+> When alloc_null_binding(), no IP_NAT_RNAGE_MAP_IPS in flags means no IP address
+> translation is needed. It isn't necessary to specify the address explicitly.
+> 
 
 Applied.
