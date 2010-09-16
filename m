@@ -1,29 +1,32 @@
-From: Nicola Padovano <nicola.padovano@gmail.com>
-Subject: Re: problem with flowi structure
-Date: Thu, 16 Sep 2010 21:25:57 +0200
-Message-ID: <AANLkTi=Y7beG4vPDx5eNg-gTN1CVg_G=1+dWwi2Xd2-R@mail.gmail.com>
-References: <AANLkTi=bGsvMqnTSanA73FhDH_DashmXTcA1sddtj0P6@mail.gmail.com>
- <1284650768.3352.37.camel@edumazet-laptop> <AANLkTimo1AeBS3rpQj0KtZL15Ct-DGTQMBUsL8hrVNOL@mail.gmail.com>
- <1284652453.3352.38.camel@edumazet-laptop>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: [PATCH 0/3] ipvs: nfct changes
+Date: Thu, 16 Sep 2010 23:38:31 +0300 (EEST)
+Message-ID: <Pine.LNX.4.58.1009162325250.6847@u.domain.uli>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
-	netdev@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:37073 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754350Ab0IPT0U (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Sep 2010 15:26:20 -0400
-In-Reply-To: <1284652453.3352.38.camel@edumazet-laptop>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>, lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-ok, let's step back...
-what's the task of ip_route_output_key function ?
 
--- 
-Nicola Padovano
-e-mail: nicola.padovano@gmail.com
-web: http://npadovano.altervista.org
+	Hello,
+
+	The following patches extend the recent nfct changes
+to IPVS:
+
+1. Extend connection flags to 32 bits:
+	- needed to add new flags after bit 16
+2. Add IP_VS_CONN_F_NFCT and some nfct changes
+3. Add snat_reroute flag to optimize CPU for unipath routes
+
+	The patches are against net-next-2.6-e548833 (2010-SEP-10)
+and are ready to be applied to net-next if there are no
+objections.
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
