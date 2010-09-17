@@ -1,51 +1,34 @@
 From: Simon Horman <horms@verge.net.au>
-Subject: Re: [patch v1 00/12] IPVS: SIP Persistence Engine
-Date: Fri, 17 Sep 2010 11:52:32 +0900
-Message-ID: <20100917025232.GH30855@verge.net.au>
-References: <20100822124457.339517323@vergenet.net>
- <4C91D157.1090804@trash.net>
+Subject: Re: [patch] netfilter: Use header-y instead of unifdef-y
+Date: Fri, 17 Sep 2010 11:53:03 +0900
+Message-ID: <20100917025302.GI30855@verge.net.au>
+References: <20100823034226.GA29532@verge.net.au>
+ <4C91D59B.40009@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
+Cc: netfilter-devel@vger.kernel.org,
+	Luciano Coelho <luciano.coelho@nokia.com>,
+	Eric Dumazet <eric.dumazet@gmail.com>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:35483 "EHLO
+Received: from kirsty.vergenet.net ([202.4.237.240]:35492 "EHLO
 	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751178Ab0IQCw0 (ORCPT
+	with ESMTP id S1754849Ab0IQCw4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Sep 2010 22:52:26 -0400
+	Thu, 16 Sep 2010 22:52:56 -0400
 Content-Disposition: inline
-In-Reply-To: <4C91D157.1090804@trash.net>
+In-Reply-To: <4C91D59B.40009@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 16, 2010 at 10:12:07AM +0200, Patrick McHardy wrote:
-> Am 22.08.2010 14:44, schrieb Simon Horman:
-> > This patch series adds load-balancing of UDP SIP based on Call-ID to
-> > IPVS as well as a frame-work for extending IPVS to handle alternate
-> > persistence requirements.
+On Thu, Sep 16, 2010 at 10:30:19AM +0200, Patrick McHardy wrote:
+> Am 23.08.2010 05:42, schrieb Simon Horman:
+> > According to Documentation/kbuild/makefiles.txt
+> > the usage of unifdef is deprecated.
 > > 
-> > REVISIONS
-> > 
-> > This is "patch v1" of this series, which addresses a few minor problems, as
-> > annotated on a per-patch basis, since the initial "rfc" posting. Internally
-> > there were 4 rfc versions, 0.1, 0.2, 0.3 and 0.4, some of the notes for
-> > some of the patches reflect those versions.
+> > Signed-off-by: Simon Horman <horms@verge.net.au>
 > 
-> This looks fine to me as far as I can judge.
-> 
-> > CODE AVAILABILITY
-> > 
-> > The kernel patches (13) are available in git as the pe-0.4 branch of
-> > git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git
-> 
-> Just to clarify, do you want me to merge this version?
+> This has already been changed by this commit:
 
-Assuming that it applies cleanly, yes.
-Otherwise I can re-base an re-post.
+Thanks, I had a feeling my change would be redundant.
 
