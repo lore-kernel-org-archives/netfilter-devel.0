@@ -1,79 +1,58 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH] netfilter: unregister nf hooks, matches and targets in
- the reverse order
-Date: Sun, 19 Sep 2010 13:58:17 +0800
-Message-ID: <AANLkTi=AhK0jDM8WEf5tHhervKUpB6f4MR+mNx2moYuC@mail.gmail.com>
-References: <1283436908-10744-1-git-send-email-xiaosuo@gmail.com> <4C91033B.6070902@trash.net>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH] ipvs: changes related to service usecnt
+Date: Sun, 19 Sep 2010 20:48:00 +0900
+Message-ID: <20100919114758.GA18134@verge.net.au>
+References: <Pine.LNX.4.58.1009181704560.8786@u.domain.uli>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4C91033B.6070902@trash.net>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Julian Anastasov <ja@ssi.bg>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.1009181704560.8786@u.domain.uli>
+Sender: lvs-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Sep 16, 2010 at 1:32 AM, Patrick McHardy <kaber@trash.net> wrote:
-> Am 02.09.2010 16:15, schrieb Changli Gao:
->> Since we register nf hooks, matches and targets in order, we'd better
->> unregister them in the reverse order.
->
-> Why? Is there a specific bug you've noticed?
->
+On Sat, Sep 18, 2010 at 05:18:46PM +0300, Julian Anastasov wrote:
+> 
+> 	Change the usage of svc usecnt during command execution:
+> 
+> - we check if svc is registered but we do not need to hold usecnt
+> reference while under __ip_vs_mutex, only the packet handling needs
+> it during scheduling
+> 
+> - change __ip_vs_service_get to __ip_vs_service_find and
+> __ip_vs_svc_fwm_get to __ip_vs_svc_fwm_find because now caller
+> will increase svc->usecnt
+> 
+> - put common code that calls update_service in __ip_vs_update_dest
+> 
+> - put common code in ip_vs_unlink_service() and use it to unregister
+> the service
+> 
+> - add comment that svc should not be accessed after ip_vs_del_service 
+> anymore
+> 
+> - all IP_VS_WAIT_WHILE calls are now unified: usecnt > 0
+> 
+> - Properly log the app ports
+> 
+> 	As result, some problems are fixed:
+> 
+> - possible use-after-free of svc in ip_vs_genl_set_cmd after
+> ip_vs_del_service because our usecnt reference does not guarantee that
+> svc is not freed on refcnt==0, eg. when no dests are moved to trash
+> 
+> - possible usecnt leak in do_ip_vs_set_ctl after ip_vs_del_service
+> when the service is not freed now, for example, when some
+> destionations are moved into trash and svc->refcnt remains above 0.
+> It is harmless because svc is not in hash anymore.
+> 
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
 
-No, there isn't any bug. I just think unregistering them in the
-reverse order is more resonable, like the rollback when failing. And
-the code patched generates less object:
+Hi Julian,
 
-The original:
+thats a pretty big patch to review, but it looks good to me.
 
-00000000000009c9 <xt_unregister_matches>:
-     9c9:       55                      push   %rbp
-     9ca:       48 89 e5                mov    %rsp,%rbp
-     9cd:       41 55                   push   %r13
-     9cf:       41 89 f5                mov    %esi,%r13d
-     9d2:       41 54                   push   %r12
-     9d4:       49 89 fc                mov    %rdi,%r12
-     9d7:       53                      push   %rbx
-     9d8:       31 db                   xor    %ebx,%ebx
-     9da:       48 83 ec 08             sub    $0x8,%rsp
-     9de:       eb 0e                   jmp    9ee <xt_unregister_matches+0x25>
-     9e0:       4c 89 e7                mov    %r12,%rdi
-     9e3:       ff c3                   inc    %ebx
-     9e5:       49 83 c4 78             add    $0x78,%r12
-     9e9:       e8 00 00 00 00          callq  9ee <xt_unregister_matches+0x25>
-     9ee:       44 39 eb                cmp    %r13d,%ebx
-     9f1:       72 ed                   jb     9e0 <xt_unregister_matches+0x17>
-     9f3:       41 59                   pop    %r9
-     9f5:       5b                      pop    %rbx
-     9f6:       41 5c                   pop    %r12
-     9f8:       41 5d                   pop    %r13
-     9fa:       c9                      leaveq
-     9fb:       c3                      retq
-
-The patched:
-
-00000000000009c9 <xt_unregister_matches>:
-     9c9:       55                      push   %rbp
-     9ca:       48 89 e5                mov    %rsp,%rbp
-     9cd:       41 54                   push   %r12
-     9cf:       41 89 f4                mov    %esi,%r12d
-     9d2:       53                      push   %rbx
-     9d3:       48 89 fb                mov    %rdi,%rbx
-     9d6:       eb 13                   jmp    9eb <xt_unregister_matches+0x22>
-     9d8:       41 ff cc                dec    %r12d
-     9db:       44 89 e7                mov    %r12d,%edi
-     9de:       48 6b ff 78             imul   $0x78,%rdi,%rdi
-     9e2:       48 8d 3c 3b             lea    (%rbx,%rdi,1),%rdi
-     9e6:       e8 00 00 00 00          callq  9eb <xt_unregister_matches+0x22>
-     9eb:       45 85 e4                test   %r12d,%r12d
-     9ee:       75 e8                   jne    9d8 <xt_unregister_matches+0xf>
-     9f0:       5b                      pop    %rbx
-     9f1:       41 5c                   pop    %r12
-     9f3:       c9                      leaveq
-     9f4:       c3                      retq
-
--- 
-Regards,
-Changli Gao(xiaosuo@gmail.com)
+Acked-by: Simon Horman <horms@verge.net.au>
