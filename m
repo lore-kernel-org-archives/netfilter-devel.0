@@ -1,109 +1,54 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [rfc] IPVS: Masq local real-servers
-Date: Mon, 20 Sep 2010 18:09:14 +0900
-Message-ID: <20100920090911.GA4646@verge.net.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: lvs-devel-owner@vger.kernel.org
+From: Jiri Olsa <jolsa-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] net: ipv4,nodefrag: check socket type before touching nodefrag flag
+Date: Mon, 20 Sep 2010 11:27:56 +0200
+Message-ID: <1284974876-4596-1-git-send-email-jolsa@redhat.com>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	linux-man-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jiri Olsa <jolsa-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, jengelh-nopoi9nDyk+ELgA04lAiVw@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org,
+	davem-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Return-path: <linux-man-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-man-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-IPVS has a special Local forwarding mechanism that is used if the
-real-server is a local IP address. Like the Route and Tunnel forwarding
-mechanism Local does not allow port mapping, and thus the port of the
-real-server is always set to be the same as the virtual service.
+hi,
+we need to check proper socket type within ipv4_conntrack_defrag
+function before referencing the nodefrag flag.
 
-The Masq forwarding mechanism does allow port mapping, and this causes some
-confusion when the real-server happens to be local.
+For example the tun driver receive path produces skbs with
+AF_UNSPEC socket type, and so current code is causing unwanted
+fragmented packets going out.
 
-This patch addresses this confusion by not using the Local forwarding
-mechanism if the masq forwarding mechanism is requested. That is, the masq
-forwarding mechanism will be used, and the real-servers may have a
-different port to the virtual service.
+wbr,
+jirka
 
-Signed-off-by: Simon Horman <horms@verge.net.au>
 
---- 
 
-I considered using Local for the case where the real-server and virtual
-service ports are the same. However, this would require updating the
-real-servers if the port of the virtual-service was changed, however
-editing the forwarding mechanism of a real-server currently isn't
-supported and the extra complexity for an unmeasured performance gain seems
-to be at best left for another patch.
+Signed-off-by: Jiri Olsa <jolsa-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ net/ipv4/netfilter/nf_defrag_ipv4.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-Index: nf-next-2.6/net/netfilter/ipvs/ip_vs_core.c
-===================================================================
---- nf-next-2.6.orig/net/netfilter/ipvs/ip_vs_core.c	2010-09-19 20:51:30.000000000 +0900
-+++ nf-next-2.6/net/netfilter/ipvs/ip_vs_core.c	2010-09-20 16:30:59.000000000 +0900
-@@ -1496,6 +1496,22 @@ static struct nf_hook_ops ip_vs_ops[] __
- 		.hooknum        = NF_INET_FORWARD,
- 		.priority       = 100,
- 	},
-+	/* change source only for local VS/NAT */
-+	{
-+	       .hook           = ip_vs_out,
-+	       .owner          = THIS_MODULE,
-+	       .pf             = PF_INET,
-+	       .hooknum        = NF_INET_LOCAL_OUT,
-+	       .priority       = 100,
-+	},
-+	/* change source only for local VS/NAT */
-+	{
-+	       .hook           = ip_vs_out,
-+	       .owner          = THIS_MODULE,
-+	       .pf             = PF_INET,
-+	       .hooknum        = NF_INET_LOCAL_OUT,
-+	       .priority       = 100,
-+	},
- 	/* After packet filtering (but before ip_vs_out_icmp), catch icmp
- 	 * destined for 0.0.0.0/0, which is for incoming IPVS connections */
- 	{
-Index: nf-next-2.6/net/netfilter/ipvs/ip_vs_ctl.c
-===================================================================
---- nf-next-2.6.orig/net/netfilter/ipvs/ip_vs_ctl.c	2010-09-20 15:07:27.000000000 +0900
-+++ nf-next-2.6/net/netfilter/ipvs/ip_vs_ctl.c	2010-09-20 17:45:46.000000000 +0900
-@@ -766,7 +766,7 @@ ip_vs_zero_stats(struct ip_vs_stats *sta
-  *	Update a destination in the given service
-  */
- static void
--__ip_vs_update_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest,
-+_ip_vs_update_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest,
- 		    struct ip_vs_dest_user_kern *udest, int add)
+diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
+index eab8de3..f3a9b42 100644
+--- a/net/ipv4/netfilter/nf_defrag_ipv4.c
++++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
+@@ -66,9 +66,11 @@ static unsigned int ipv4_conntrack_defrag(unsigned int hooknum,
+ 					  const struct net_device *out,
+ 					  int (*okfn)(struct sk_buff *))
  {
- 	int conn_flags;
-@@ -777,18 +777,22 @@ __ip_vs_update_dest(struct ip_vs_service
- 	conn_flags |= IP_VS_CONN_F_INACTIVE;
++	struct sock *sk = skb->sk;
+ 	struct inet_sock *inet = inet_sk(skb->sk);
  
- 	/* check if local node and update the flags */
-+	if ((conn_flags & IP_VS_CONN_F_FWD_MASK) != IP_VS_CONN_F_MASQ ||
-+	    svc->fwmark) {
- #ifdef CONFIG_IP_VS_IPV6
--	if (svc->af == AF_INET6) {
--		if (__ip_vs_addr_is_local_v6(&udest->addr.in6)) {
--			conn_flags = (conn_flags & ~IP_VS_CONN_F_FWD_MASK)
--				| IP_VS_CONN_F_LOCALNODE;
--		}
--	} else
-+		if (svc->af == AF_INET6) {
-+			if (__ip_vs_addr_is_local_v6(&udest->addr.in6)) {
-+				conn_flags = (conn_flags &
-+					      ~IP_VS_CONN_F_FWD_MASK) |
-+					IP_VS_CONN_F_LOCALNODE;
-+			}
-+		} else
- #endif
- 		if (inet_addr_type(&init_net, udest->addr.ip) == RTN_LOCAL) {
- 			conn_flags = (conn_flags & ~IP_VS_CONN_F_FWD_MASK)
- 				| IP_VS_CONN_F_LOCALNODE;
- 		}
-+	}
+-	if (inet && inet->nodefrag)
++	if (sk && (sk->sk_family == PF_INET) &&
++	    inet->nodefrag)
+ 		return NF_ACCEPT;
  
- 	/* set the IP_VS_CONN_F_NOOUTPUT flag if not masquerading/NAT */
- 	if ((conn_flags & IP_VS_CONN_F_FWD_MASK) != IP_VS_CONN_F_MASQ) {
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+-- 
+1.7.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-man" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
