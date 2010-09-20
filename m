@@ -1,44 +1,61 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH v5 2/2] netfilter: save the hash of the tuple in the original
- direction for latter use
-Date: Mon, 20 Sep 2010 19:08:37 +0200
-Message-ID: <4C979515.4060908@trash.net>
-References: <1282344540-5306-1-git-send-email-xiaosuo@gmail.com> <4C91B6BE.8020300@trash.net> <AANLkTikZeFrS9pj6jxmOxqY6dsaAf1U+FAXe5jNwQ-nV@mail.gmail.com>
+From: =?ISO-8859-1?Q?Andr=E9_Graf?= <andre@dergraf.org>
+Subject: PacketScript: packet mangling using the Lua scripting language
+Date: Mon, 20 Sep 2010 22:04:31 +0200
+Message-ID: <AANLkTi=mPHY0JqEm+dDH-QwiFvVLq7r_86+_xp8d7TLM@mail.gmail.com>
+Reply-To: andre@dergraf.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>,
-	akpm@linux-foundation.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:49412 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753584Ab0ITRIj (ORCPT
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:37058 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754165Ab0ITULi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Sep 2010 13:08:39 -0400
-In-Reply-To: <AANLkTikZeFrS9pj6jxmOxqY6dsaAf1U+FAXe5jNwQ-nV@mail.gmail.com>
+	Mon, 20 Sep 2010 16:11:38 -0400
+Received: by wwe15 with SMTP id 15so1432wwe.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 Sep 2010 13:11:21 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 20.09.2010 17:04, Changli Gao wrote:
-> On Thu, Sep 16, 2010 at 2:18 PM, Patrick McHardy <kaber@trash.net> wrote:
->> On 21.08.2010 00:49, Changli Gao wrote:
->>> Since we don't change the tuple in the original direction, we can save it
->>> in ct->tuplehash[IP_CT_DIR_REPLY].hnode.pprev for __nf_conntrack_confirm()
->>> use.
->>
->> I like this idea. We could actually do the same for the reply tuple
->> and invalidate the saved hash in case the reply tuple is changed
->> (nf_conntrack_alter_reply()), which only happens when NAT is used.
->>
-> 
-> We can't do that, as the unconfirmed ct owned maybe dropped, and
-> pre-computing will wast CPU cycles in this case.
+Hello
 
-Sure we can, dropping unconfirmed conntracks is a rare exception,
-not a common case. Even under DoS we usually drop *unassured*
-conntracks, which have already enterered the hash. If we're unable
-to do that, we won't even allocate a new conntrack.
+As a part of my master thesis I developed PacketScript - a Netfilter
+extension, which enables to extend Netfilter with Lua scripts. The Lua
+scripts are loaded with iptables and provide an easy way to deal with
+network packets. Here a short example:
+
+# iptables -A INPUT -p tcp -j LUA --script /path/to/my/script.lua
+
+and the /path/to/my/script.lua can contain a Lua function similar to
+the following: (Lua uses -- for comments)
+
+-- called by the Netfilter callback function, gets a 'raw' packet
+function process_packet(raw)
+    -- apply the Ethernet dissector
+    ethernet = raw:data(packet_ethernet)
+
+    -- apply the IP dissector
+    ip = ethernet:data(packet_ip)
+
+    -- dissect IP source address
+    src = ip:saddr()
+    if src:get() == "192.168.1.1" then
+        -- rewrite IP source address
+        src:set("10.0.0.123")
+        -- accept packet
+        return NF_ACCEPT
+    end
+    -- drop packet
+    return NF_DROP
+end
+
+PacketScript was not build with a specific network protocol or
+protocol layer in mind, so it offers a simple framework to extend it
+with other protocols. The current version provides rudimentary support
+for Ethernet, IP, ICMP, UDP, TCP, TFTP, and HTTP. For my thesis I also
+developed the possibility to access the Linux workqueue interface
+using Lua.
+
+At the moment I am cleaning up the code and write the user
+documentation. But, before I put too much extra effort into it I would
+really like to know your opinion. Thank you!
