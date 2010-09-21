@@ -1,71 +1,36 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/3] ipvs: Netfilter connection tracking changes
-Date: Tue, 21 Sep 2010 17:36:55 +0200
-Message-ID: <4C98D117.3060807@trash.net>
-References: <Pine.LNX.4.58.1009162342590.6976@u.domain.uli>
+Subject: Re: [PATCH v6] netfilter: save the hash of the tuple in the original
+ direction for latter use
+Date: Tue, 21 Sep 2010 17:50:40 +0200
+Message-ID: <4C98D450.3070601@trash.net>
+References: <1284995176-2994-1-git-send-email-xiaosuo@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.1009162342590.6976@u.domain.uli>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>,
+	akpm@linux-foundation.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:39646 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756994Ab0IUPuo (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Sep 2010 11:50:44 -0400
+In-Reply-To: <1284995176-2994-1-git-send-email-xiaosuo@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 16.09.2010 22:46, schrieb Julian Anastasov:
-> 	Add more code to IPVS to work with Netfilter connection
-> tracking and fix some problems.
+Am 20.09.2010 17:06, schrieb Changli Gao:
+> Since we don't change the tuple in the original direction, we can save it
+> in ct->tuplehash[IP_CT_DIR_REPLY].hnode.pprev for __nf_conntrack_confirm()
+> use.
 > 
-> - Allow IPVS to be compiled without connection tracking as in
-> 2.6.35 and before. This can avoid keeping conntracks for all
-> IPVS connections because this costs memory. ip_vs_ftp still
-> depends on connection tracking and NAT as implemented for 2.6.36.
+> __hash_conntrack() is split into two steps: hash_conntrack_raw() is used
+> to get the raw hash, and __hash_bucket() is used to get the bucket id.
 > 
-> - Add sysctl var "conntrack" to enable connection tracking for
-> all IPVS connections. For loaded IPVS directors it needs
-> tuning of nf_conntrack_max limit.
-> 
-> - Add IP_VS_CONN_F_NFCT connection flag to request the connection
-> to use connection tracking. This allows user space to provide this
-> flag, for example, in dest->conn_flags. This can be useful to
-> request connection tracking per real server instead of forcing it
-> for all connections with the "conntrack" sysctl. This flag is
-> set currently only by ip_vs_ftp and of course by "conntrack" sysctl.
-> 
-> - Add ip_vs_nfct.c file to hold all connection tracking code,
-> by this way main code should not depend of netfilter conntrack
-> support.
-> 
-> - Return back the ip_vs_post_routing handler as in 2.6.35 and use
-> skb->ipvs_property=1 to allow IPVS to work without connection
-> tracking
-> 
-> Connection tracking:
-> 
-> - most of the code is already in 2.6.36-rc
-> 
-> - alter conntrack reply tuple for LVS-NAT connections when first packet
-> from client is forwarded and conntrack state is NEW or RELATED.
-> Additionally, alter reply for RELATED connections from real server,
-> again for packet in original direction.
-> 
-> - add IP_VS_XMIT_TUNNEL to confirm conntrack (without altering
-> reply) for LVS-TUN early because we want to call nf_reset. It is
-> needed because we add IPIP header and the original conntrack
-> should be preserved, not destroyed. The transmitted IPIP packets
-> can reuse same conntrack, so we do not set skb->ipvs_property.
-> 
-> - try to destroy conntrack when the IPVS connection is destroyed.
-> It is not fatal if conntrack disappears before that, it depends
-> on the used timers.
-> 
-> Fix problems from long time:
-> 
-> - add skb->ip_summed = CHECKSUM_NONE for the LVS-TUN transmitters
-> 
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> In SYN-flood case, early_drop() doesn't need to recompute the hash again.
 
-
-Applied, thanks.
+Applied, thanks Changli.
