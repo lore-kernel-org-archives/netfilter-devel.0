@@ -1,27 +1,53 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/4] netfilter: ctnetlink: allow to specify the expectation
- flags
-Date: Tue, 21 Sep 2010 17:18:44 +0200
-Message-ID: <4C98CCD4.2050801@trash.net>
-References: <20100921092843.3279.6914.stgit@decadence> <20100921093508.3279.65795.stgit@decadence>
+Subject: Re: [PATCH v5 2/2] netfilter: save the hash of the tuple in the original
+ direction for latter use
+Date: Tue, 21 Sep 2010 17:32:18 +0200
+Message-ID: <4C98D002.3000309@trash.net>
+References: <1282344540-5306-1-git-send-email-xiaosuo@gmail.com> <4C91B6BE.8020300@trash.net> <AANLkTikZeFrS9pj6jxmOxqY6dsaAf1U+FAXe5jNwQ-nV@mail.gmail.com> <4C979515.4060908@trash.net> <AANLkTi=NXj9PjYA06+UFYms8q5K3Z4DsPMcpVHpj7Gmq@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>,
+	akpm@linux-foundation.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:39227 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:39322 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754855Ab0IUP1a (ORCPT
+	with ESMTP id S1755434Ab0IUPcX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Sep 2010 11:27:30 -0400
-In-Reply-To: <20100921093508.3279.65795.stgit@decadence>
+	Tue, 21 Sep 2010 11:32:23 -0400
+In-Reply-To: <AANLkTi=NXj9PjYA06+UFYms8q5K3Z4DsPMcpVHpj7Gmq@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 21.09.2010 11:35, schrieb Pablo Neira Ayuso:
-> With this patch, you can specify the expectation flags for user-space
-> created expectations.
+Am 21.09.2010 02:02, schrieb Changli Gao:
+> On Tue, Sep 21, 2010 at 1:08 AM, Patrick McHardy <kaber@trash.net> wrote:
+>>
+>> Sure we can, dropping unconfirmed conntracks is a rare exception,
+>> not a common case. Even under DoS we usually drop *unassured*
+>> conntracks, which have already enterered the hash. If we're unable
+>> to do that, we won't even allocate a new conntrack.
+>>
+> 
+> Even so, saving the hash of the reply tuple isn't a good idea.
+> 
+> If NAT is turned on, the current code is:
+> 
+> mangle the reply tuple -> compute the hash of the reply tuple ->
+> insert into the conntrack hash table.
+> 
+> the new code is
+> 
+> compute the hash of the reply tuple -> mangle the reply tuple ->
+> recompute the hash of the reply tuple -> insert into the conntrack
+> hash table.
+> 
+> As you see, the hash computing is done twice, and we use more CPU
+> cycles than before.
 
-We don't seem to be dumping the flags to userspace. I think this
-should be added for consistency.
+You're right of course, we actually don't compute the reply hash
+before inserting the conntrack into the hash table (except in a
+few NAT cases, but we can look at those later).
