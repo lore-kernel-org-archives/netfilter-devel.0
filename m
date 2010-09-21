@@ -1,47 +1,257 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/4] We all need more expectations
-Date: Tue, 21 Sep 2010 11:34:03 +0200
-Message-ID: <20100921092843.3279.6914.stgit@decadence>
+Subject: [PATCH 1/4] netfilter: nf_nat: better error handling of
+	nf_ct_expect_related() in helpers
+Date: Tue, 21 Sep 2010 11:34:25 +0200
+Message-ID: <20100921093425.3279.85095.stgit@decadence>
+References: <20100921092843.3279.6914.stgit@decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33588 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:33668 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756586Ab0IUJeK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Sep 2010 05:34:10 -0400
+	id S1756349Ab0IUJea (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Sep 2010 05:34:30 -0400
+In-Reply-To: <20100921092843.3279.6914.stgit@decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Patrick,
+This patch improves the situation in which the expectation table is
+full for conntrack NAT helpers. Basically, we give up if we don't
+find a place in the table instead of looping over nf_ct_expect_related()
+with a different port (we should only do this if it returns -EBUSY, for
+-EMFILE or -ESHUTDOWN I think that it's better to skip this).
 
-The following patches are focuses on conntrack expectations. The first
-one is an improvement for the situation in which the expectation table
-is full for conntrack NAT helpers. Then, another quite simple to include
-a missing attribute validation. To conclude, a couple of patches oriented
-to support user-space conntrack helpers.
-
-Hope that you like them.
-
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
+ net/ipv4/netfilter/nf_nat_amanda.c |    9 +++++-
+ net/ipv4/netfilter/nf_nat_ftp.c    |    9 +++++-
+ net/ipv4/netfilter/nf_nat_h323.c   |   53 +++++++++++++++++++++++++++++++-----
+ net/ipv4/netfilter/nf_nat_irc.c    |    9 +++++-
+ net/ipv4/netfilter/nf_nat_sip.c    |   27 ++++++++++++++++--
+ 5 files changed, 93 insertions(+), 14 deletions(-)
 
-Pablo Neira Ayuso (4):
-      netfilter: nf_nat: better error handling of nf_ct_expect_related() in helpers
-      netfilter: ctnetlink: missing validation of CTA_EXPECT_ZONE attribute
-      netfilter: ctnetlink: allow to specify the expectation flags
-      netfilter: ctnetlink: add support for user-space expectation helpers
+diff --git a/net/ipv4/netfilter/nf_nat_amanda.c b/net/ipv4/netfilter/nf_nat_amanda.c
+index c31b876..0f23b3f 100644
+--- a/net/ipv4/netfilter/nf_nat_amanda.c
++++ b/net/ipv4/netfilter/nf_nat_amanda.c
+@@ -44,9 +44,16 @@ static unsigned int help(struct sk_buff *skb,
+ 
+ 	/* Try to get same port: if not, try to change it. */
+ 	for (port = ntohs(exp->saved_proto.tcp.port); port != 0; port++) {
++		int ret;
++
+ 		exp->tuple.dst.u.tcp.port = htons(port);
+-		if (nf_ct_expect_related(exp) == 0)
++		ret = nf_ct_expect_related(exp);
++		if (ret == 0)
++			break;
++		else if (ret != -EBUSY) {
++			port = 0;
+ 			break;
++		}
+ 	}
+ 
+ 	if (port == 0)
+diff --git a/net/ipv4/netfilter/nf_nat_ftp.c b/net/ipv4/netfilter/nf_nat_ftp.c
+index 86e0e84..dc73abb 100644
+--- a/net/ipv4/netfilter/nf_nat_ftp.c
++++ b/net/ipv4/netfilter/nf_nat_ftp.c
+@@ -79,9 +79,16 @@ static unsigned int nf_nat_ftp(struct sk_buff *skb,
+ 
+ 	/* Try to get same port: if not, try to change it. */
+ 	for (port = ntohs(exp->saved_proto.tcp.port); port != 0; port++) {
++		int ret;
++
+ 		exp->tuple.dst.u.tcp.port = htons(port);
+-		if (nf_ct_expect_related(exp) == 0)
++		ret = nf_ct_expect_related(exp);
++		if (ret == 0)
++			break;
++		else if (ret != -EBUSY) {
++			port = 0;
+ 			break;
++		}
+ 	}
+ 
+ 	if (port == 0)
+diff --git a/net/ipv4/netfilter/nf_nat_h323.c b/net/ipv4/netfilter/nf_nat_h323.c
+index 5045196..790f316 100644
+--- a/net/ipv4/netfilter/nf_nat_h323.c
++++ b/net/ipv4/netfilter/nf_nat_h323.c
+@@ -222,13 +222,24 @@ static int nat_rtp_rtcp(struct sk_buff *skb, struct nf_conn *ct,
+ 	/* Try to get a pair of ports. */
+ 	for (nated_port = ntohs(rtp_exp->tuple.dst.u.udp.port);
+ 	     nated_port != 0; nated_port += 2) {
++		int ret;
++
+ 		rtp_exp->tuple.dst.u.udp.port = htons(nated_port);
+-		if (nf_ct_expect_related(rtp_exp) == 0) {
++		ret = nf_ct_expect_related(rtp_exp);
++		if (ret == 0) {
+ 			rtcp_exp->tuple.dst.u.udp.port =
+ 			    htons(nated_port + 1);
+-			if (nf_ct_expect_related(rtcp_exp) == 0)
++			ret = nf_ct_expect_related(rtcp_exp);
++			if (ret == 0)
++				break;
++			else if (ret != -EBUSY) {
++				nf_ct_unexpect_related(rtp_exp);
++				nated_port = 0;
+ 				break;
+-			nf_ct_unexpect_related(rtp_exp);
++			}
++		} else if (ret != -EBUSY) {
++			nated_port = 0;
++			break;
+ 		}
+ 	}
+ 
+@@ -284,9 +295,16 @@ static int nat_t120(struct sk_buff *skb, struct nf_conn *ct,
+ 
+ 	/* Try to get same port: if not, try to change it. */
+ 	for (; nated_port != 0; nated_port++) {
++		int ret;
++
+ 		exp->tuple.dst.u.tcp.port = htons(nated_port);
+-		if (nf_ct_expect_related(exp) == 0)
++		ret = nf_ct_expect_related(exp);
++		if (ret == 0)
++			break;
++		else if (ret != -EBUSY) {
++			nated_port = 0;
+ 			break;
++		}
+ 	}
+ 
+ 	if (nated_port == 0) {	/* No port available */
+@@ -334,9 +352,16 @@ static int nat_h245(struct sk_buff *skb, struct nf_conn *ct,
+ 
+ 	/* Try to get same port: if not, try to change it. */
+ 	for (; nated_port != 0; nated_port++) {
++		int ret;
++
+ 		exp->tuple.dst.u.tcp.port = htons(nated_port);
+-		if (nf_ct_expect_related(exp) == 0)
++		ret = nf_ct_expect_related(exp);
++		if (ret == 0)
+ 			break;
++		else if (ret != -EBUSY) {
++			nated_port = 0;
++			break;
++		}
+ 	}
+ 
+ 	if (nated_port == 0) {	/* No port available */
+@@ -418,9 +443,16 @@ static int nat_q931(struct sk_buff *skb, struct nf_conn *ct,
+ 
+ 	/* Try to get same port: if not, try to change it. */
+ 	for (; nated_port != 0; nated_port++) {
++		int ret;
++
+ 		exp->tuple.dst.u.tcp.port = htons(nated_port);
+-		if (nf_ct_expect_related(exp) == 0)
++		ret = nf_ct_expect_related(exp);
++		if (ret == 0)
++			break;
++		else if (ret != -EBUSY) {
++			nated_port = 0;
+ 			break;
++		}
+ 	}
+ 
+ 	if (nated_port == 0) {	/* No port available */
+@@ -500,9 +532,16 @@ static int nat_callforwarding(struct sk_buff *skb, struct nf_conn *ct,
+ 
+ 	/* Try to get same port: if not, try to change it. */
+ 	for (nated_port = ntohs(port); nated_port != 0; nated_port++) {
++		int ret;
++
+ 		exp->tuple.dst.u.tcp.port = htons(nated_port);
+-		if (nf_ct_expect_related(exp) == 0)
++		ret = nf_ct_expect_related(exp);
++		if (ret == 0)
+ 			break;
++		else if (ret != -EBUSY) {
++			nated_port = 0;
++			break;
++		}
+ 	}
+ 
+ 	if (nated_port == 0) {	/* No port available */
+diff --git a/net/ipv4/netfilter/nf_nat_irc.c b/net/ipv4/netfilter/nf_nat_irc.c
+index ea83a88..535e1a8 100644
+--- a/net/ipv4/netfilter/nf_nat_irc.c
++++ b/net/ipv4/netfilter/nf_nat_irc.c
+@@ -45,9 +45,16 @@ static unsigned int help(struct sk_buff *skb,
+ 
+ 	/* Try to get same port: if not, try to change it. */
+ 	for (port = ntohs(exp->saved_proto.tcp.port); port != 0; port++) {
++		int ret;
++
+ 		exp->tuple.dst.u.tcp.port = htons(port);
+-		if (nf_ct_expect_related(exp) == 0)
++		ret = nf_ct_expect_related(exp);
++		if (ret == 0)
++			break;
++		else if (ret != -EBUSY) {
++			port = 0;
+ 			break;
++		}
+ 	}
+ 
+ 	if (port == 0)
+diff --git a/net/ipv4/netfilter/nf_nat_sip.c b/net/ipv4/netfilter/nf_nat_sip.c
+index 11b538d..e40cf78 100644
+--- a/net/ipv4/netfilter/nf_nat_sip.c
++++ b/net/ipv4/netfilter/nf_nat_sip.c
+@@ -307,9 +307,16 @@ static unsigned int ip_nat_sip_expect(struct sk_buff *skb, unsigned int dataoff,
+ 	exp->expectfn = ip_nat_sip_expected;
+ 
+ 	for (; port != 0; port++) {
++		int ret;
++
+ 		exp->tuple.dst.u.udp.port = htons(port);
+-		if (nf_ct_expect_related(exp) == 0)
++		ret = nf_ct_expect_related(exp);
++		if (ret == 0)
++			break;
++		else if (ret != -EBUSY) {
++			port = 0;
+ 			break;
++		}
+ 	}
+ 
+ 	if (port == 0)
+@@ -480,13 +487,25 @@ static unsigned int ip_nat_sdp_media(struct sk_buff *skb, unsigned int dataoff,
+ 	/* Try to get same pair of ports: if not, try to change them. */
+ 	for (port = ntohs(rtp_exp->tuple.dst.u.udp.port);
+ 	     port != 0; port += 2) {
++		int ret;
++
+ 		rtp_exp->tuple.dst.u.udp.port = htons(port);
+-		if (nf_ct_expect_related(rtp_exp) != 0)
++		ret = nf_ct_expect_related(rtp_exp);
++		if (ret == -EBUSY)
+ 			continue;
++		else if (ret < 0) {
++			port = 0;
++			break;
++		}
+ 		rtcp_exp->tuple.dst.u.udp.port = htons(port + 1);
+-		if (nf_ct_expect_related(rtcp_exp) == 0)
++		ret = nf_ct_expect_related(rtcp_exp);
++		if (ret == 0)
+ 			break;
+-		nf_ct_unexpect_related(rtp_exp);
++		else if (ret != -EBUSY) {
++			nf_ct_unexpect_related(rtp_exp);
++			port = 0;
++			break;
++		}
+ 	}
+ 
+ 	if (port == 0)
 
-
- include/linux/netfilter/nf_conntrack_common.h |    5 ++
- include/linux/netfilter/nfnetlink_conntrack.h |    1 
- include/net/netfilter/nf_conntrack_expect.h   |    3 -
- net/ipv4/netfilter/nf_nat_amanda.c            |    9 ++++
- net/ipv4/netfilter/nf_nat_ftp.c               |    9 ++++
- net/ipv4/netfilter/nf_nat_h323.c              |   53 ++++++++++++++++++++++---
- net/ipv4/netfilter/nf_nat_irc.c               |    9 ++++
- net/ipv4/netfilter/nf_nat_sip.c               |   27 +++++++++++--
- net/netfilter/nf_conntrack_expect.c           |   40 ++++++++++++-------
- net/netfilter/nf_conntrack_netlink.c          |   38 ++++++++++++------
- 10 files changed, 149 insertions(+), 45 deletions(-)
