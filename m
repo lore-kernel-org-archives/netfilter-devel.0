@@ -1,53 +1,47 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH v5 2/2] netfilter: save the hash of the tuple in the
- original direction for latter use
-Date: Tue, 21 Sep 2010 08:02:43 +0800
-Message-ID: <AANLkTi=NXj9PjYA06+UFYms8q5K3Z4DsPMcpVHpj7Gmq@mail.gmail.com>
-References: <1282344540-5306-1-git-send-email-xiaosuo@gmail.com>
- <4C91B6BE.8020300@trash.net> <AANLkTikZeFrS9pj6jxmOxqY6dsaAf1U+FAXe5jNwQ-nV@mail.gmail.com>
- <4C979515.4060908@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/4] We all need more expectations
+Date: Tue, 21 Sep 2010 11:34:03 +0200
+Message-ID: <20100921092843.3279.6914.stgit@decadence>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>,
-	akpm@linux-foundation.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:41904 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757697Ab0IUAEd (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Sep 2010 20:04:33 -0400
-In-Reply-To: <4C979515.4060908@trash.net>
+Received: from mail.us.es ([193.147.175.20]:33588 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756586Ab0IUJeK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Sep 2010 05:34:10 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Sep 21, 2010 at 1:08 AM, Patrick McHardy <kaber@trash.net> wrote:
->
-> Sure we can, dropping unconfirmed conntracks is a rare exception,
-> not a common case. Even under DoS we usually drop *unassured*
-> conntracks, which have already enterered the hash. If we're unable
-> to do that, we won't even allocate a new conntrack.
->
+Hi Patrick,
 
-Even so, saving the hash of the reply tuple isn't a good idea.
+The following patches are focuses on conntrack expectations. The first
+one is an improvement for the situation in which the expectation table
+is full for conntrack NAT helpers. Then, another quite simple to include
+a missing attribute validation. To conclude, a couple of patches oriented
+to support user-space conntrack helpers.
 
-If NAT is turned on, the current code is:
+Hope that you like them.
 
-mangle the reply tuple -> compute the hash of the reply tuple ->
-insert into the conntrack hash table.
+---
 
-the new code is
+Pablo Neira Ayuso (4):
+      netfilter: nf_nat: better error handling of nf_ct_expect_related() in helpers
+      netfilter: ctnetlink: missing validation of CTA_EXPECT_ZONE attribute
+      netfilter: ctnetlink: allow to specify the expectation flags
+      netfilter: ctnetlink: add support for user-space expectation helpers
 
-compute the hash of the reply tuple -> mangle the reply tuple ->
-recompute the hash of the reply tuple -> insert into the conntrack
-hash table.
 
-As you see, the hash computing is done twice, and we use more CPU
-cycles than before.
-
--- 
-Regards,
-Changli Gao(xiaosuo@gmail.com)
+ include/linux/netfilter/nf_conntrack_common.h |    5 ++
+ include/linux/netfilter/nfnetlink_conntrack.h |    1 
+ include/net/netfilter/nf_conntrack_expect.h   |    3 -
+ net/ipv4/netfilter/nf_nat_amanda.c            |    9 ++++
+ net/ipv4/netfilter/nf_nat_ftp.c               |    9 ++++
+ net/ipv4/netfilter/nf_nat_h323.c              |   53 ++++++++++++++++++++++---
+ net/ipv4/netfilter/nf_nat_irc.c               |    9 ++++
+ net/ipv4/netfilter/nf_nat_sip.c               |   27 +++++++++++--
+ net/netfilter/nf_conntrack_expect.c           |   40 ++++++++++++-------
+ net/netfilter/nf_conntrack_netlink.c          |   38 ++++++++++++------
+ 10 files changed, 149 insertions(+), 45 deletions(-)
