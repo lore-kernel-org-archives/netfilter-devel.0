@@ -1,62 +1,74 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ipvs: changes related to service usecnt
-Date: Tue, 21 Sep 2010 18:15:09 +0200
-Message-ID: <4C98DA0D.2000804@trash.net>
-References: <Pine.LNX.4.58.1009181704560.8786@u.domain.uli> <20100919114758.GA18134@verge.net.au>
+From: Luciano Coelho <luciano.coelho@nokia.com>
+Subject: Re: [PATCH] netfilter: xt_condition: add security capability
+ support
+Date: Tue, 21 Sep 2010 22:56:00 +0300
+Message-ID: <1285098960.10579.14.camel@powerslave>
+References: <1282567801-2673-1-git-send-email-luciano.coelho@nokia.com>
+	 <AANLkTi=2H+ytOQU9nC_dRp_GB5Sy1831VY14oW=YSOrG@mail.gmail.com>
+	 <1282570935.7198.5.camel@powerslave>
+	 <alpine.LNX.2.01.1008231628010.21000@obet.zrqbmnf.qr>
+	 <1282589101.7198.28.camel@powerslave>
+	 <alpine.LNX.2.01.1008232052170.31619@obet.zrqbmnf.qr>
+	 <1282633220.7198.123.camel@powerslave>
+	 <alpine.LNX.2.01.1008240921230.24349@obet.zrqbmnf.qr>
+	 <1282720198.18016.72.camel@powerslave>
+	 <alpine.LNX.2.01.1008251103150.24022@obet.zrqbmnf.qr>
+	 <1282895723.2006.135.camel@powerslave>  <4C91292F.3090602@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: Julian Anastasov <ja@ssi.bg>, lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <20100919114758.GA18134@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
+Cc: ext Jan Engelhardt <jengelh@medozas.de>,
+	"Makela Juhani.3 (EXT-Nixu/Helsinki)" <ext-juhani.3.makela@nokia.com>,
+	ext Changli Gao <xiaosuo@gmail.com>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	James Morris <jmorris@namei.org>,
+	"linux-security-module@vger.kernel.org"
+	<linux-security-module@vger.kernel.org>
+To: ext Patrick McHardy <kaber@trash.net>
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <4C91292F.3090602@trash.net>
+Sender: linux-security-module-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Am 19.09.2010 13:48, schrieb Simon Horman:
-> On Sat, Sep 18, 2010 at 05:18:46PM +0300, Julian Anastasov wrote:
->> > 
->> > 	Change the usage of svc usecnt during command execution:
->> > 
->> > - we check if svc is registered but we do not need to hold usecnt
->> > reference while under __ip_vs_mutex, only the packet handling needs
->> > it during scheduling
->> > 
->> > - change __ip_vs_service_get to __ip_vs_service_find and
->> > __ip_vs_svc_fwm_get to __ip_vs_svc_fwm_find because now caller
->> > will increase svc->usecnt
->> > 
->> > - put common code that calls update_service in __ip_vs_update_dest
->> > 
->> > - put common code in ip_vs_unlink_service() and use it to unregister
->> > the service
->> > 
->> > - add comment that svc should not be accessed after ip_vs_del_service 
->> > anymore
->> > 
->> > - all IP_VS_WAIT_WHILE calls are now unified: usecnt > 0
->> > 
->> > - Properly log the app ports
->> > 
->> > 	As result, some problems are fixed:
->> > 
->> > - possible use-after-free of svc in ip_vs_genl_set_cmd after
->> > ip_vs_del_service because our usecnt reference does not guarantee that
->> > svc is not freed on refcnt==0, eg. when no dests are moved to trash
->> > 
->> > - possible usecnt leak in do_ip_vs_set_ctl after ip_vs_del_service
->> > when the service is not freed now, for example, when some
->> > destionations are moved into trash and svc->refcnt remains above 0.
->> > It is harmless because svc is not in hash anymore.
->> > 
->> > Signed-off-by: Julian Anastasov <ja@ssi.bg>
-> Hi Julian,
+On Wed, 2010-09-15 at 22:14 +0200, ext Patrick McHardy wrote:
+> Am 27.08.2010 09:55, schrieb Luciano Coelho:
+> > That's what I tried to say when I said that we have a security team
+> > taking care of this.  They are implementing solutions to make the
+> > product more secure, defending it against malware, misuse, attacks and
+> > other such things.  In this specific case, security-wise, we are trying
+> > to prevent some bogus or malicious application from changing our
+> > netfilter rules and causing havoc.
+> > 
+> > LSM doesn't seem to be an option, here I quote Juhani (my colleague from
+> > our security team):
+> > 
+> >> The problem with capabilites is that they are assigned to binaries, not
+> >> users. Kind of a setuid-mechanism, really. In our embedded environment
+> >> that makes a lot of sense, but in a server-type environment with
+> >> multiple users and a competent sysadmin, not so much. In such an
+> >> environment using a LSM might also actually make sense. But for us it's
+> >> not an option, mostly because LSMs are not stackable - you can have only
+> >> one effective at any time - and I'm afraid we have already reserved some
+> >> of the LSM hooks.
+> > 
+> > Maybe Juhani can clarify this a bit more.
+> > 
+> > One other idea that Juhani had was to add an option to the condition
+> > match/target where the capability requiremets could be set, instead of
+> > checking them by default.  If nothing is specified, everything still
+> > works as before (no caps checks).  Or even a Kconfig option?
 > 
-> thats a pretty big patch to review, but it looks good to me.
+> I agree with Jan, adding module parameters to control permission checks
+> or capabilities seems like a bad precedent.
 
-Indeed, I'd prefer slightly smaller patches too.
- 
-> Acked-by: Simon Horman <horms@verge.net.au>
+Okay, the idea is now officially dropped.  We'll use normal ACL to
+control access to the conditions.
 
-Applied, thanks.
+Thanks for your comments and sorry for trying to push ;)
+
+
+-- 
+Cheers,
+Luca.
+
