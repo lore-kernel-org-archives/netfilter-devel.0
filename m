@@ -1,61 +1,35 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] netfilter: don't disable BH again in BH disabled
- context
-Date: Wed, 22 Sep 2010 15:22:27 +0200
-Message-ID: <1285161747.2639.413.camel@edumazet-laptop>
-References: <1282027297-9998-1-git-send-email-xiaosuo@gmail.com>
-	 <1282028127.2487.754.camel@edumazet-laptop>
-	 <AANLkTi=r23zwZpO=Y++a608=K6f7-FvcL2d-gY+foggm@mail.gmail.com>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
+Subject: xtables does not reconise ipportiphash/ipportnethash sets
+Date: Wed, 22 Sep 2010 20:19:47 +0100
+Message-ID: <4C9A56D3.109@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:57678 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752626Ab0IVNWg (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:45450 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755292Ab0IVT0R (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Sep 2010 09:22:36 -0400
-In-Reply-To: <AANLkTi=r23zwZpO=Y++a608=K6f7-FvcL2d-gY+foggm@mail.gmail.com>
+	Wed, 22 Sep 2010 15:26:17 -0400
+Received: by mail-wy0-f174.google.com with SMTP id 28so186638wyb.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Sep 2010 12:26:16 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le mercredi 22 septembre 2010 =C3=A0 18:20 +0800, Changli Gao a =C3=A9c=
-rit :
-> On Tue, Aug 17, 2010 at 2:55 PM, Eric Dumazet <eric.dumazet@gmail.com=
-> wrote:
-> >
-> > Its a thing that might change in a future version. Not a hard fact.
-> >
-> > You can probably change iptables to allow softirqs while processing
-> > OUTPUT chains.
-> >
-> > We had some attempts in the past to switch to RCU.
-> >
-> > It failed at that time because of some RCU implementation details, =
-but
-> > with recent RCU changes, we might try again, and have a clean
-> > implementation, allowing softirqs.
-> >
-> > So your patch would need to be reverted.
-> >
->=20
-> So the smp_processor_id() in xt_cpu.c should be replaced with
-> raw_smp_processor_id()?
->=20
+I compiled xtables (1.28) from source on x86_64 system and it installs 
+OK, except that none of the above two set types seem to be recognised!
 
-Using smp_processor_id() is better. This provides automatic checking.
+When I type ipport --help ipportnethash/ipportiphash it all works as 
+expected (the same goes for the man pages), but when I actually try to 
+create this type of set I am getting 'unknown set type' error message.
 
-If we change output processing to allow softirqs, that doesnt mean we
-allow preemption or cpu migration :)
+Close examination of /lib/modules/... directory reveals that, actually, 
+NO ip_set_ipportiphash.ko/ipportnethash.ko modules are present. The 
+source directory (extensions/ipset) contains the source and header 
+files, but that's about it - no .o, .so or .ko files, which leads me to 
+believe that they have been completely ignored by the Makefile.
 
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+There is an additional file in that directory called modules.order, 
+which seems to be automatically generated, and it does NOT contain these 
+two files in its list.
