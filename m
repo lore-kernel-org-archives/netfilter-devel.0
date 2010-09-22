@@ -1,33 +1,49 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] net: ipv4,nodefrag: check socket type before touching
- nodefrag flag
-Date: Wed, 22 Sep 2010 08:59:55 +0200
-Message-ID: <4C99A96B.4020604@trash.net>
-References: <1284974876-4596-1-git-send-email-jolsa@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: eric.dumazet@gmail.com, jengelh@medozas.de, davem@redhat.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	linux-man@vger.kernel.org
-To: Jiri Olsa <jolsa@redhat.com>
+From: kaber@trash.net
+Subject: [PATCH 2/6] netfilter: nf_ct_sip: default to NF_ACCEPT in sip_help_tcp()
+Date: Wed, 22 Sep 2010 09:17:30 +0200
+Message-ID: <1285139854-11827-3-git-send-email-kaber@trash.net>
+References: <1285139854-11827-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:53693 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:53993 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751250Ab0IVHAO (ORCPT
+	with ESMTP id S1751113Ab0IVHRh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Sep 2010 03:00:14 -0400
-In-Reply-To: <1284974876-4596-1-git-send-email-jolsa@redhat.com>
+	Wed, 22 Sep 2010 03:17:37 -0400
+In-Reply-To: <1285139854-11827-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 20.09.2010 11:27, schrieb Jiri Olsa:
-> we need to check proper socket type within ipv4_conntrack_defrag
-> function before referencing the nodefrag flag.
-> 
-> For example the tun driver receive path produces skbs with
-> AF_UNSPEC socket type, and so current code is causing unwanted
-> fragmented packets going out.
+From: Simon Horman <horms@verge.net.au>
 
-Looks good. Applied, thanks.
+I initially noticed this because of the compiler warning below, but it
+does seem to be a valid concern in the case where ct_sip_get_header()
+returns 0 in the first iteration of the while loop.
+
+net/netfilter/nf_conntrack_sip.c: In function 'sip_help_tcp':
+net/netfilter/nf_conntrack_sip.c:1379: warning: 'ret' may be used uninitialized in this function
+
+Signed-off-by: Simon Horman <horms@verge.net.au>
+[Patrick: changed NF_DROP to NF_ACCEPT]
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ net/netfilter/nf_conntrack_sip.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 53d8922..f64de95 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -1376,7 +1376,7 @@ static int sip_help_tcp(struct sk_buff *skb, unsigned int protoff,
+ 	unsigned int msglen, origlen;
+ 	const char *dptr, *end;
+ 	s16 diff, tdiff = 0;
+-	int ret;
++	int ret = NF_ACCEPT;
+ 	typeof(nf_nat_sip_seq_adjust_hook) nf_nat_sip_seq_adjust;
+ 
+ 	if (ctinfo != IP_CT_ESTABLISHED &&
+-- 
+1.7.1
 
