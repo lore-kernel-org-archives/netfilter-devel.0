@@ -1,36 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/6] netfilter: netfilter fixes
-Date: Wed, 22 Sep 2010 13:12:32 -0700 (PDT)
-Message-ID: <20100922.131232.59680750.davem@davemloft.net>
-References: <1285139854-11827-1-git-send-email-kaber@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: xtables does not reconise ipportiphash/ipportnethash sets
+Date: Wed, 22 Sep 2010 22:27:14 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1009222226110.30669@obet.zrqbmnf.qr>
+References: <4C9A56D3.109@googlemail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1285139854-11827-1-git-send-email-kaber@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Mr Dash Four <mr.dash.four@googlemail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from borg.medozas.de ([188.40.89.202]:35012 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751931Ab0IVU1P (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Sep 2010 16:27:15 -0400
+In-Reply-To: <4C9A56D3.109@googlemail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: kaber@trash.net
-Date: Wed, 22 Sep 2010 09:17:28 +0200
+On Wednesday 2010-09-22 21:19, Mr Dash Four wrote:
 
-> Please apply or pull from:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git master
+>I compiled xtables (1.28) from source on x86_64 system and it installs 
+>OK, except that none of the above two set types seem to be recognised!
+>
+>Close examination of /lib/modules/... directory reveals that, actually, 
+>NO ip_set_ipportiphash.ko/ipportnethash.ko modules are present.
 
-Patrick I can't pull from this, it's not based upon net-2.6
-
-It looks like it's based upon Linus's tree, because when I pull
-I get a bunch of changes that are in Linus's tree but aren't
-in net-2.6
-
-Please base all future pull requests on net-2.6, thanks.
-
-I'll apply these patches by hand (and also this will allow me
-to fix Eric's author email in that one patch).
-
-Thanks again.
-
-
+Yes, it seems to be an unfortunate omission in the Kbuild file. A new 
+release will be up shortly, since I have already been pointed towards 
+2.6.36 changes.
