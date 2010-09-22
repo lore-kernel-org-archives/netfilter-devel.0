@@ -1,56 +1,33 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH RESEND 1/3] netfilter: xtables: inclusion of xt_condition
-Date: Wed, 22 Sep 2010 08:46:54 +0200
-Message-ID: <4C99A65E.7080606@trash.net>
-References: <1282034213-1829-1-git-send-email-luciano.coelho@nokia.com>	 <1282034213-1829-2-git-send-email-luciano.coelho@nokia.com>	 <4C912EFC.9070406@trash.net>	 <alpine.LNX.2.01.1009152246320.5146@obet.zrqbmnf.qr>	 <4C9133A0.7050601@trash.net>	 <alpine.LNX.2.01.1009152309140.6445@obet.zrqbmnf.qr>	 <4C91AD41.1020802@trash.net> <1285099327.10579.20.camel@powerslave>
+Subject: Re: [PATCH] net: ipv4,nodefrag: check socket type before touching
+ nodefrag flag
+Date: Wed, 22 Sep 2010 08:59:55 +0200
+Message-ID: <4C99A96B.4020604@trash.net>
+References: <1284974876-4596-1-git-send-email-jolsa@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"sameo@linux.intel.com" <sameo@linux.intel.com>,
-	"Ylalehto Janne (Nokia-MS/Tampere)" <janne.ylalehto@nokia.com>
-To: Luciano Coelho <luciano.coelho@nokia.com>
+Cc: eric.dumazet@gmail.com, jengelh@medozas.de, davem@redhat.com,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	linux-man@vger.kernel.org
+To: Jiri Olsa <jolsa@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:53428 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:53693 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750731Ab0IVGqz (ORCPT
+	with ESMTP id S1751250Ab0IVHAO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Sep 2010 02:46:55 -0400
-In-Reply-To: <1285099327.10579.20.camel@powerslave>
+	Wed, 22 Sep 2010 03:00:14 -0400
+In-Reply-To: <1284974876-4596-1-git-send-email-jolsa@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 21.09.2010 22:02, schrieb Luciano Coelho:
-> On Thu, 2010-09-16 at 07:38 +0200, ext Patrick McHardy wrote:
->> On 15.09.2010 23:09, Jan Engelhardt wrote:
->>>
->>> On Wednesday 2010-09-15 22:59, Patrick McHardy wrote:
->>>> On 15.09.2010 22:52, Jan Engelhardt wrote:
->>>>>
->>>>> On Wednesday 2010-09-15 22:39, Patrick McHardy wrote:
->>>>>> Am 17.08.2010 10:36, schrieb Luciano Coelho:
->>>>>>> +/* Defaults, these can be overridden on the module command-line. */
->>>>>>> +static unsigned int condition_list_perms = S_IRUGO | S_IWUSR;
->>>>>>> +static unsigned int condition_uid_perms = 0;
->>>>>>> +static unsigned int condition_gid_perms = 0;
->>>>>>
->>>>>> I'm not sure whether we already discussed this, but this isn't
->>>>>> useful if namespaces are used since the IDs aren't global.
->>>>>
->>>>> Well it's also done for other xt modules that offer a procfs interface.
->>>>> It does not really cost much to have this present I'd say.
->>>>
->>>> They should simply set the permissions for the current namespace.
->>>>
->>> IIRC, the namespace stuff was going to be a later patch to keep
->>> early patches simpler.
->>
->> I'm fine with that as long as its done before merging the patches
->> upstream.
+Am 20.09.2010 11:27, schrieb Jiri Olsa:
+> we need to check proper socket type within ipv4_conntrack_defrag
+> function before referencing the nodefrag flag.
 > 
-> I'll try to fix this and create a new patch on top of the existing ones,
-> then I'll send them all as a single patchset.
+> For example the tun driver receive path produces skbs with
+> AF_UNSPEC socket type, and so current code is causing unwanted
+> fragmented packets going out.
 
-Sounds good, thanks.
+Looks good. Applied, thanks.
+
