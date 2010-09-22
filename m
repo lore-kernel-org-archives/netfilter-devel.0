@@ -1,59 +1,56 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 4/4] netfilter: ctnetlink: add support for user-space
- expectation helpers
-Date: Wed, 22 Sep 2010 08:45:40 +0200
-Message-ID: <4C99A614.1030207@trash.net>
-References: <20100921092843.3279.6914.stgit@decadence> <20100921093529.3279.30748.stgit@decadence> <4C98CD4C.3040700@trash.net> <4C9933F1.2060200@netfilter.org>
+Subject: Re: [PATCH RESEND 1/3] netfilter: xtables: inclusion of xt_condition
+Date: Wed, 22 Sep 2010 08:46:54 +0200
+Message-ID: <4C99A65E.7080606@trash.net>
+References: <1282034213-1829-1-git-send-email-luciano.coelho@nokia.com>	 <1282034213-1829-2-git-send-email-luciano.coelho@nokia.com>	 <4C912EFC.9070406@trash.net>	 <alpine.LNX.2.01.1009152246320.5146@obet.zrqbmnf.qr>	 <4C9133A0.7050601@trash.net>	 <alpine.LNX.2.01.1009152309140.6445@obet.zrqbmnf.qr>	 <4C91AD41.1020802@trash.net> <1285099327.10579.20.camel@powerslave>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"sameo@linux.intel.com" <sameo@linux.intel.com>,
+	"Ylalehto Janne (Nokia-MS/Tampere)" <janne.ylalehto@nokia.com>
+To: Luciano Coelho <luciano.coelho@nokia.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:53406 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:53428 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751250Ab0IVGpn (ORCPT
+	with ESMTP id S1750731Ab0IVGqz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Sep 2010 02:45:43 -0400
-In-Reply-To: <4C9933F1.2060200@netfilter.org>
+	Wed, 22 Sep 2010 02:46:55 -0400
+In-Reply-To: <1285099327.10579.20.camel@powerslave>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 22.09.2010 00:38, schrieb Pablo Neira Ayuso:
+Am 21.09.2010 22:02, schrieb Luciano Coelho:
+> On Thu, 2010-09-16 at 07:38 +0200, ext Patrick McHardy wrote:
+>> On 15.09.2010 23:09, Jan Engelhardt wrote:
+>>>
+>>> On Wednesday 2010-09-15 22:59, Patrick McHardy wrote:
+>>>> On 15.09.2010 22:52, Jan Engelhardt wrote:
+>>>>>
+>>>>> On Wednesday 2010-09-15 22:39, Patrick McHardy wrote:
+>>>>>> Am 17.08.2010 10:36, schrieb Luciano Coelho:
+>>>>>>> +/* Defaults, these can be overridden on the module command-line. */
+>>>>>>> +static unsigned int condition_list_perms = S_IRUGO | S_IWUSR;
+>>>>>>> +static unsigned int condition_uid_perms = 0;
+>>>>>>> +static unsigned int condition_gid_perms = 0;
+>>>>>>
+>>>>>> I'm not sure whether we already discussed this, but this isn't
+>>>>>> useful if namespaces are used since the IDs aren't global.
+>>>>>
+>>>>> Well it's also done for other xt modules that offer a procfs interface.
+>>>>> It does not really cost much to have this present I'd say.
+>>>>
+>>>> They should simply set the permissions for the current namespace.
+>>>>
+>>> IIRC, the namespace stuff was going to be a later patch to keep
+>>> early patches simpler.
 >>
->> My main question is - what will be cleaning up these expectations
->> on module unload? Currently expectations are cleaned up on unload
->> of the corresponding helper module, which obviously doesn't
->> happen in this case.
+>> I'm fine with that as long as its done before merging the patches
+>> upstream.
 > 
-> Indeed. I have reworked the patch to add the nf_ct_userspace_expect_list
-> that is used to delete all the user-space created expectations if
-> ctnetlink is unloaded.
+> I'll try to fix this and create a new patch on top of the existing ones,
+> then I'll send them all as a single patchset.
 
-> diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
-> index fdc50ca..23a1a08 100644
-> --- a/include/linux/netfilter/nf_conntrack_common.h
-> +++ b/include/linux/netfilter/nf_conntrack_common.h
-> @@ -103,6 +103,7 @@ enum ip_conntrack_expect_events {
->  /* expectation flags */
->  #define NF_CT_EXPECT_PERMANENT		0x1
->  #define NF_CT_EXPECT_INACTIVE		0x2
-> +#define NF_CT_EXPECT_USERSPACE		0x4
-
-Does this flag need to be exposed to userspace? I also don't
-see anything preventing userspace incorrectly setting it on
-an expectation that actually does have a master, which will
-probably cause problems later on.
-
-> diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-> index acb29cc..361a8ba 100644
-> --- a/net/netfilter/nf_conntrack_expect.c
-> +++ b/net/netfilter/nf_conntrack_expect.c
-> @@ -38,20 +38,26 @@ static int nf_ct_expect_hash_rnd_initted __read_mostly;
->  
->  static struct kmem_cache *nf_ct_expect_cachep __read_mostly;
->  
-> +static HLIST_HEAD(nf_ct_userspace_expect_list);
-> +static int nf_ct_userspace_expect_list_counter;
-
-This counter is write-only.
+Sounds good, thanks.
