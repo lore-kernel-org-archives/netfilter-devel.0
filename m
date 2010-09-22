@@ -1,35 +1,36 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: xtables does not reconise ipportiphash/ipportnethash sets
-Date: Wed, 22 Sep 2010 20:19:47 +0100
-Message-ID: <4C9A56D3.109@googlemail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/6] netfilter: netfilter fixes
+Date: Wed, 22 Sep 2010 13:12:32 -0700 (PDT)
+Message-ID: <20100922.131232.59680750.davem@davemloft.net>
+References: <1285139854-11827-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:45450 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755292Ab0IVT0R (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Sep 2010 15:26:17 -0400
-Received: by mail-wy0-f174.google.com with SMTP id 28so186638wyb.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Sep 2010 12:26:16 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: kaber@trash.net
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1285139854-11827-1-git-send-email-kaber@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-I compiled xtables (1.28) from source on x86_64 system and it installs 
-OK, except that none of the above two set types seem to be recognised!
+From: kaber@trash.net
+Date: Wed, 22 Sep 2010 09:17:28 +0200
 
-When I type ipport --help ipportnethash/ipportiphash it all works as 
-expected (the same goes for the man pages), but when I actually try to 
-create this type of set I am getting 'unknown set type' error message.
+> Please apply or pull from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git master
 
-Close examination of /lib/modules/... directory reveals that, actually, 
-NO ip_set_ipportiphash.ko/ipportnethash.ko modules are present. The 
-source directory (extensions/ipset) contains the source and header 
-files, but that's about it - no .o, .so or .ko files, which leads me to 
-believe that they have been completely ignored by the Makefile.
+Patrick I can't pull from this, it's not based upon net-2.6
 
-There is an additional file in that directory called modules.order, 
-which seems to be automatically generated, and it does NOT contain these 
-two files in its list.
+It looks like it's based upon Linus's tree, because when I pull
+I get a bunch of changes that are in Linus's tree but aren't
+in net-2.6
+
+Please base all future pull requests on net-2.6, thanks.
+
+I'll apply these patches by hand (and also this will allow me
+to fix Eric's author email in that one patch).
+
+Thanks again.
+
+
