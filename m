@@ -1,51 +1,101 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 0/6] netfilter: netfilter fixes
-Date: Thu, 23 Sep 2010 05:49:17 +0200
-Message-ID: <4C9ACE3D.5010008@trash.net>
-References: <1285139854-11827-1-git-send-email-kaber@trash.net> <20100922.131232.59680750.davem@davemloft.net>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: [ABI REVIEW][PATCH 0/8] Namespace file descriptors
+Date: Thu, 23 Sep 2010 01:45:04 -0700
+Message-ID: <m1ocborgq7.fsf@fess.ebiederm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41734 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751893Ab0IWDtV (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Sep 2010 23:49:21 -0400
-In-Reply-To: <20100922.131232.59680750.davem@davemloft.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Linux Containers <containers@lists.osdl.org>,
+	<netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+	<linux-fsdevel@vger.kernel.org>, jamal <hadi@cyberus.ca>,
+	Daniel Lezcano <daniel.lezcano@free.fr>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Michael Kerrisk <mtk.manpages@gmail.com>,
+	Ulrich Drepper <drepper@gmail.com>,
+	Al Viro <viro@ZenIV.linux.org.uk>,
+	David Miller <davem@davemloft.net>,
+	"Serge E. Hallyn" <serge@hallyn.com>,
+	Pavel Emelyanov <xemul@openvz.org>,
+	Pavel Emelyanov <xemul@parallels.com>,
+	Ben Greear <greearb@candelatech.com>,
+	Matt Helsley <matthltc@us.ibm.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>,
+	Jan Engelhardt <jengelh@medozas.de>,
+	Patrick McHardy <kaber@trash.net>
+To: <linux-kernel@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Am 22.09.2010 22:12, schrieb David Miller:
-> From: kaber@trash.net
-> Date: Wed, 22 Sep 2010 09:17:28 +0200
-> 
->> Please apply or pull from:
->>
->> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git master
-> 
-> Patrick I can't pull from this, it's not based upon net-2.6
 
-Indeed, that's what I've always based my nf-2.6 tree on for one
-or two years now, but this time I made a fresh clone at a quite
-late time because of my absence.
+Introduce file for manipulating namespaces and related syscalls.
+files:
+/proc/self/ns/<nstype>
 
-> It looks like it's based upon Linus's tree, because when I pull
-> I get a bunch of changes that are in Linus's tree but aren't
-> in net-2.6
+syscalls:
+int setns(unsigned long nstype, int fd);
+socketat(int nsfd, int family, int type, int protocol);
 
-I didn't notice that, sorry.
+Netlink attribute:
+IFLA_NS_FD int fd.
 
-> Please base all future pull requests on net-2.6, thanks.
+Name space file descriptors address three specific problems that
+can make namespaces hard to work with.
+- Namespaces require a dedicated process to pin them in memory.
+- It is not possible to use a namespace unless you are the child of the
+  original creator.
+- Namespaces don't have names that userspace can use to talk about them.
 
-Sure, will do.
+Opening of the /proc/self/ns/<nstype> files return a file descriptor
+that can be used to talk about a specific namespace, and to keep the
+specified namespace alive.
 
-> I'll apply these patches by hand (and also this will allow me
-> to fix Eric's author email in that one patch).
-> 
-> Thanks again.
+/proc/self/ns/<nstype> can be bind mounted as:
+mount --bind /proc/self/ns/net /some/filesystem/path
+to keep the namespace alive as long as the mount exists.
 
-Thanks Dave!
+setns() as a companion to unshare allows changing the namespace
+of the current process, being able to unshare the namespace is
+a requirement.
 
+There are two primary envisioned uses for this functionality.
+o ``Entering'' an existing container.
+o Allowing multiple network namespaces to be in use at once on
+  the same machine, without requiring elaborate infrastructure.
+
+Overall this received positive reviews on the containers list but this
+needs a wider review of the ABI as this is pretty fundamental kernel
+functionality.
+
+
+I have left out the pid namespaces bits for the moment because the pid
+namespace still needs work before it is safe to unshare, and my concern
+at the moment is ensuring the system calls seem reasonable.
+
+Eric W. Biederman (8):
+      ns: proc files for namespace naming policy.
+      ns: Introduce the setns syscall
+      ns proc: Add support for the network namespace.
+      ns proc: Add support for the uts namespace
+      ns proc: Add support for the ipc namespace
+      ns proc: Add support for the mount namespace
+      net: Allow setting the network namespace by fd
+      net: Implement socketat.
+
+---
+ fs/namespace.c              |   57 +++++++++++++
+ fs/proc/Makefile            |    1 +
+ fs/proc/base.c              |   22 +++---
+ fs/proc/inode.c             |    7 ++
+ fs/proc/internal.h          |   18 ++++
+ fs/proc/namespaces.c        |  193 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/if_link.h     |    1 +
+ include/linux/proc_fs.h     |   20 +++++
+ include/net/net_namespace.h |    1 +
+ ipc/namespace.c             |   31 +++++++
+ kernel/nsproxy.c            |   39 +++++++++
+ kernel/utsname.c            |   32 +++++++
+ net/core/net_namespace.c    |   56 +++++++++++++
+ net/core/rtnetlink.c        |    4 +-
+ net/socket.c                |   26 ++++++-
+ 15 files changed, 494 insertions(+), 14 deletions(-)
