@@ -1,44 +1,79 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: xtables does not reconise ipportiphash/ipportnethash sets
-Date: Thu, 23 Sep 2010 13:49:03 +0100
-Message-ID: <4C9B4CBF.8000704@googlemail.com>
-References: <4C9A56D3.109@googlemail.com> <alpine.LNX.2.01.1009222226110.30669@obet.zrqbmnf.qr> <4C9A9003.7060103@googlemail.com> <alpine.LNX.2.01.1009230206250.9682@obet.zrqbmnf.qr> <4C9A9FAF.8090804@googlemail.com> <alpine.LNX.2.01.1009230240510.10796@obet.zrqbmnf.qr> <4C9AA703.5080301@googlemail.com> <alpine.LNX.2.01.1009231224340.27002@obet.zrqbmnf.qr> <4C9B308E.5010804@googlemail.com> <alpine.LNX.2.01.1009231256200.29321@obet.zrqbmnf.qr> <4C9B3848.8010503@googlemail.com> <alpine.LNX.2.01.1009231415580.31650@obet.zrqbmnf.qr> <4C9B4665.6070904@googlemail.com> <alpine.LNX.2.01.1009231423380.31650@obet.zrqbmnf.qr>
+From: Brian Haley <brian.haley@hp.com>
+Subject: Re: [PATCH 7/8] net: Allow setting the network namespace by fd
+Date: Thu, 23 Sep 2010 10:22:25 -0400
+Message-ID: <4C9B62A1.7020606@hp.com>
+References: <m1ocborgq7.fsf@fess.ebiederm.org> <m1hbhgq1v1.fsf@fess.ebiederm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:43479 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753600Ab0IWMtM (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Sep 2010 08:49:12 -0400
-Received: by wyb28 with SMTP id 28so815129wyb.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Sep 2010 05:49:11 -0700 (PDT)
-In-Reply-To: <alpine.LNX.2.01.1009231423380.31650@obet.zrqbmnf.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: linux-kernel@vger.kernel.org,
+	Linux Containers <containers@lists.osdl.org>,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, jamal <hadi@cyberus.ca>,
+	Daniel Lezcano <daniel.lezcano@free.fr>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Michael Kerrisk <mtk.manpages@gmail.com>,
+	Ulrich Drepper <drepper@gmail.com>,
+	Al Viro <viro@ZenIV.linux.org.uk>,
+	David Miller <davem@davemloft.net>,
+	"Serge E. Hallyn" <serge@hallyn.com>,
+	Pavel Emelyanov <xemul@openvz.org>,
+	Pavel Emelyanov <xemul@parallels.com>,
+	Ben Greear <greearb@candelatech.com>,
+	Matt Helsley <matthltc@us.ibm.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>,
+	Jan Engelhardt <jengelh@medozas.de>,
+	Patrick McHardy <kaber@trash.net>
+To: "Eric W. Biederman" <ebiederm@xmission.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <m1hbhgq1v1.fsf@fess.ebiederm.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On 09/23/2010 04:51 AM, Eric W. Biederman wrote:
+> 
+> Take advantage of the new abstraction and allow network devices
+> to be placed in any network namespace that we have a fd to talk
+> about.
+> 
+...
+> +struct net *get_net_ns_by_fd(int fd)
+> +{
+> +	struct proc_inode *ei;
+> +	struct file *file;
+> +	struct net *net;
+> +
+> +	file = NULL;
 
-> Hm. Can you just send me your F13 kernel-headers-2.6.34 rpm in privat=
-e=20
-> please, so I can figure out why the workaround does not fly yet.
->  =20
-Just noticed another error further up (about 50 lines above the last I=20
-sent you):
+No need to initialize this.
 
-CC libxt_ACCOUNT.oo
-libxt_ACCOUNT.c:147: warning: implicit declaration of function =91ALIGN=
-=92
-libxt_ACCOUNT.c:147: error: initializer element is not constant
-libxt_ACCOUNT.c:147: error: (near initialization for =91account_tg_reg.=
-size=92)
-make[5]: *** [libxt_ACCOUNT.oo] Error 1
+> +	net = ERR_PTR(-EINVAL);
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+or this?
+
+> +	file = proc_ns_fget(fd);
+> +	if (!fd)
+> +		goto out;
+> +		return ERR_PTR(-EINVAL);
+
+Shouldn't this be:
+
+	if (!file)
+
+And the "goto" seems wrong, especially without a {} here.  Unless you
+meant to keep the "goto" and branch below?
+
+-Brian
+
+> +
+> +	ei = PROC_I(file->f_dentry->d_inode);
+> +	if (ei->ns_ops != &netns_operations)
+> +		goto out;
+> +
+> +	net = get_net(ei->ns);
+> +out:
+> +	if (file)
+> +		fput(file);
+> +	return net;
+> +}
