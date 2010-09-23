@@ -1,78 +1,38 @@
-From: jamal <hadi@cyberus.ca>
-Subject: Re: [PATCH 8/8] net: Implement socketat.
-Date: Thu, 23 Sep 2010 08:11:21 -0400
-Message-ID: <1285243881.5036.22.camel@bigi>
-References: <m1ocborgq7.fsf@fess.ebiederm.org>
-	 <m1bp7oq1u8.fsf@fess.ebiederm.org>  <4C9B162E.7040201@parallels.com>
-	 <1285240797.5036.5.camel@bigi>  <4C9B3B06.900@parallels.com>
-	 <1285242055.5036.9.camel@bigi>  <4C9B3F9C.8080506@parallels.com>
-Reply-To: hadi@cyberus.ca
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: xtables does not reconise ipportiphash/ipportnethash sets
+Date: Thu, 23 Sep 2010 14:16:08 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1009231415580.31650@obet.zrqbmnf.qr>
+References: <4C9A56D3.109@googlemail.com> <alpine.LNX.2.01.1009222226110.30669@obet.zrqbmnf.qr> <4C9A9003.7060103@googlemail.com> <alpine.LNX.2.01.1009230206250.9682@obet.zrqbmnf.qr> <4C9A9FAF.8090804@googlemail.com> <alpine.LNX.2.01.1009230240510.10796@obet.zrqbmnf.qr>
+ <4C9AA703.5080301@googlemail.com> <alpine.LNX.2.01.1009231224340.27002@obet.zrqbmnf.qr> <4C9B308E.5010804@googlemail.com> <alpine.LNX.2.01.1009231256200.29321@obet.zrqbmnf.qr> <4C9B3848.8010503@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>,
-	linux-kernel@vger.kernel.org,
-	Linux Containers <containers@lists.osdl.org>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	Daniel Lezcano <daniel.lezcano@free.fr>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Michael Kerrisk <mtk.manpages@gmail.com>,
-	Ulrich Drepper <drepper@gmail.com>,
-	Al Viro <viro@ZenIV.linux.org.uk>,
-	David Miller <davem@davemloft.net>,
-	"Serge E. Hallyn" <serge@hallyn.com>,
-	Pavel Emelyanov <xemul@openvz.org>,
-	Ben Greear <greearb@candelatech.com>,
-	Matt Helsley <matthltc@us.ibm.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Patrick McHardy <kaber@trash.net>
-To: Pavel Emelyanov <xemul@parallels.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Mr Dash Four <mr.dash.four@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:43150 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754524Ab0IWML0 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Sep 2010 08:11:26 -0400
-In-Reply-To: <4C9B3F9C.8080506@parallels.com>
+Received: from borg.medozas.de ([188.40.89.202]:55892 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754746Ab0IWMQK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Sep 2010 08:16:10 -0400
+In-Reply-To: <4C9B3848.8010503@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2010-09-23 at 15:53 +0400, Pavel Emelyanov wrote:
+On Thursday 2010-09-23 13:21, Mr Dash Four wrote:
+>
+>> rpm -q kernel-headers
+>>  
+> kernel-headers-2.6.34.7-56.<my local string>.fc13.x86_64 (this was compiled
+> from source)
+>
+>>  
+>>> that)? Also, how do I 'check out xt-a's
+>>> b5e2c7255a87f3d981968e21ea7f88401fe8f8ad'?
+>>>    
+>>
+>> `git clone
+>> git://xtables-addons.git.sf.net/gitroot/xtables-addons/xtables-addons` 
+>> is what you probably seek.
+>>  
+> Done, though there is no 'configure'! How do I compile this stuff?
 
-> Why does it matter? You told, that the usage scenario was to
-> add routes to container. If I do 2 syscalls instead of 1, is
-> it THAT worse?
-> 
-
-Anything to do with socket IO that requires namespace awareness
-applies for usage; it could be tcp/udp/etc socket. If it doesnt
-make any difference performance wise using one scheme vs other
-to write/read heavy messages then i dont see an issue and socketat
-is redundant.
-
-If i was to pick blindly - I would say whatever approach with
-less syscalls is better even if just a "slow" path one time
-thing. I could create a scenario which would make it bad
-to have more syscalls.
-
-But theres also the simplicity aspect in doing:
-fdx = socketat namespace foo
-use fdx for read/write/poll into foo without any wrapper code.
-Vs
-enter foo
-fdx = socket ..
-read/write fdx
-leave foo.
-
-> Just like it used to before the enter.
-> 
-
-So if i enter foo, get a fdx, leave foo i can use it in
-ns0 as if it was in ns0?
-
-cheers,
-jamal
-
+./autogen.sh, then configure.
