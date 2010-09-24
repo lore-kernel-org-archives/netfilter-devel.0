@@ -1,62 +1,32 @@
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: [PATCH] netfilter: fix kconfig unmet dependency warning
-Date: Thu, 23 Sep 2010 14:03:37 -0700
-Message-ID: <20100923140337.dadf443a.rdunlap@xenotime.net>
+From: "lawyershahrizatrashid@mail.bg" <az@fastwebnet.it>
+Subject: good day
+Date: Fri, 24 Sep 2010 10:59:28 +0200 (CEST)
+Message-ID: <14081985.919171285318768115.JavaMail.defaultUser__48404.3842916892$1285318950$gmane$org@defaultHost>
+Reply-To: shahrizat_rashid@mail.bg
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
-	Patrick McHardy <kaber@trash.net>
-To: netdev <netdev@vger.kernel.org>
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from xenotime.net ([72.52.115.56]:47325 "HELO xenotime.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752337Ab0IWVDm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Sep 2010 17:03:42 -0400
-Received: from chimera.site ([173.50.240.230]) by xenotime.net for <netfilter-devel@vger.kernel.org>; Thu, 23 Sep 2010 14:03:37 -0700
+Received: from aa013msr.fastwebnet.it ([85.18.95.73]:51961 "EHLO
+	aa013msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753639Ab0IXJCP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 24 Sep 2010 05:02:15 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix netfilter kconfig unmet dependencies warning & spell out
-"compatible" while there.
 
-warning: (IP_NF_TARGET_TTL && NET && INET && NETFILTER && IP_NF_IPTABLES && NETFILTER_ADVANCED || IP6_NF_TARGET_HL && NET && INET && IPV6 && NETFILTER && IP6_NF_IPTABLES && NETFILTER_ADVANCED) selects NETFILTER_XT_TARGET_HL which has unmet direct dependencies ((IP_NF_MANGLE || IP6_NF_MANGLE) && NETFILTER_ADVANCED)
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
----
- net/ipv4/netfilter/Kconfig |    4 ++--
- net/ipv6/netfilter/Kconfig |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- linux-next-20100921.orig/net/ipv4/netfilter/Kconfig
-+++ linux-next-20100921/net/ipv4/netfilter/Kconfig
-@@ -324,10 +324,10 @@ config IP_NF_TARGET_ECN
- 
- config IP_NF_TARGET_TTL
- 	tristate '"TTL" target support'
--	depends on NETFILTER_ADVANCED
-+	depends on NETFILTER_ADVANCED && IP_NF_MANGLE
- 	select NETFILTER_XT_TARGET_HL
- 	---help---
--	This is a backwards-compat option for the user's convenience
-+	This is a backwards-compatible option for the user's convenience
- 	(e.g. when running oldconfig). It selects
- 	CONFIG_NETFILTER_XT_TARGET_HL.
- 
---- linux-next-20100921.orig/net/ipv6/netfilter/Kconfig
-+++ linux-next-20100921/net/ipv6/netfilter/Kconfig
-@@ -132,10 +132,10 @@ config IP6_NF_MATCH_RT
- # The targets
- config IP6_NF_TARGET_HL
- 	tristate '"HL" hoplimit target support'
--	depends on NETFILTER_ADVANCED
-+	depends on NETFILTER_ADVANCED && IP6_NF_MANGLE
- 	select NETFILTER_XT_TARGET_HL
- 	---help---
--	This is a backwards-compat option for the user's convenience
-+	This is a backwards-compatible option for the user's convenience
- 	(e.g. when running oldconfig). It selects
- 	CONFIG_NETFILTER_XT_TARGET_HL.
- 
+
+
+
+
+                                         I am Shahrizat Rashid, an attorney at l
+aw. A deceased client of mine,who died as the result of a heart-related conditio
+n on March 12th 2005. His heart condition was due to the death of all the member
+s of his family in the tsunami disaster I contacted you to assist in distributin
+g the money left behind by my late lient(S$19,000,000.00 Million) 
+
