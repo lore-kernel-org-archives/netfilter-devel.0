@@ -1,46 +1,61 @@
-From: Mistick Levi <gmistick@gmail.com>
-Subject: Fwd: TCP ack in libnetfilter_queue
-Date: Sun, 26 Sep 2010 07:53:35 +0200
-Message-ID: <AANLkTi=X0E3keLqnedFG7_BWim3fJvqU+O2RaFUv1+MT@mail.gmail.com>
-References: <AANLkTimxj_yVspgWQB2tHF+=ZGvEh1sdga+RdnD_t_SQ@mail.gmail.com>
+From: James Morris <jmorris@namei.org>
+Subject: Re: [PATCH 3/6] secmark: export binary yes/no rather than kernel
+ internal secid
+Date: Mon, 27 Sep 2010 10:50:34 +1000 (EST)
+Message-ID: <alpine.LRH.2.00.1009271038280.25748@tundra.namei.org>
+References: <20100924204517.28355.42822.stgit@paris.rdu.redhat.com> <20100924204531.28355.20320.stgit@paris.rdu.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: linux-kernel@vger.kernel.org, selinux@tycho.nsa.gov,
+	netfilter-devel@vger.kernel.org, sds@tycho.nsa.gov,
+	jengelh@medozas.de, paul.moore@hp.com, casey@schaufler-ca.com,
+	linux-security-module@vger.kernel.org, netfilter@vger.kernel.org,
+	mr.dash.four@googlemail.com
+To: Eric Paris <eparis@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:51433 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750893Ab0IZFx5 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 26 Sep 2010 01:53:57 -0400
-Received: by fxm3 with SMTP id 3so1331704fxm.19
-        for <netfilter-devel@vger.kernel.org>; Sat, 25 Sep 2010 22:53:56 -0700 (PDT)
-In-Reply-To: <AANLkTimxj_yVspgWQB2tHF+=ZGvEh1sdga+RdnD_t_SQ@mail.gmail.com>
+Received: from tundra.namei.org ([65.99.196.166]:60557 "EHLO tundra.namei.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753933Ab0I0Auz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 26 Sep 2010 20:50:55 -0400
+In-Reply-To: <20100924204531.28355.20320.stgit@paris.rdu.redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-did'nt get any reply on the users list.... Hope anyone here could help out.
+On Fri, 24 Sep 2010, Eric Paris wrote:
+
+> Currently the nfconntrack export code sends the kernel internal secid to
+> userspace in a couple of proc files and over netlink as an integer.  This
+> is wrong.  This number is a kernel internal.
+
+I wouldn't say wrong, exactly.
+
+The secid is a 32-bit integer which each LSM maps to its own domain.  
+It's unlikely to change from this format (we were v. lucky to get this 
+field, btw).
+
+There's really no difference between this and the various kernel addresses 
+exported via procfs by the networking code -- it's an opaque token which 
+you can use to identify the security marking of a packet without 
+necessarily having any knowledge of the security model itself.
+
+It's potentially useful for debugging and writing simple userland tools, 
+and may be in use already by apps.
+
+>  This patch changes the export
+> code to output either 0 or 1 for this value.
+
+This potentially breaks existing apps and does not seem to add any value 
+itself.  If you want to determine if a packet is marked, then simply check 
+for zero or not.
+
+>  A future patch will implement sending the name rather than the number 
+> in a new field.
+
+For the reasons above, I think the secctx string needs to be exported in 
+addition to this rather than instead of.
 
 
----------- Forwarded message ----------
-From: Mistick Levi <gmistick@gmail.com>
-Date: Thu, Sep 23, 2010 at 4:12 PM
-Subject: TCP ack in libnetfilter_queue
-To: netfilter@vger.kernel.org
-
-
-Hey,
-
-i wrote a filter using libnetfilter_queue api, and i want to send
-messages to the queue in a specific way...
-I want to get the first packet after the TCP 3-way-handshak is
-finished ( meaning - only data!)..
-
-i tried using conntrack with "ESTABLISHED" status, but then i start
-getting messages to the queue from the last message of the
-handshake... ( meaning the last ack )... and i dont want that since it
-contain no data....
-
-any help will be appreciated.. thanks.
-
-Yechiel Levi
+- James
+-- 
+James Morris
+<jmorris@namei.org>
