@@ -1,84 +1,84 @@
-From: Mistick Levi <gmistick@gmail.com>
-Subject: Fwd: Fwd: TCP ack in libnetfilter_queue
-Date: Mon, 27 Sep 2010 10:11:10 +0200
-Message-ID: <AANLkTik8TW6PjoifmSVwJX2JBmNZUwNGYcwYacQJnTp1@mail.gmail.com>
-References: <AANLkTimxj_yVspgWQB2tHF+=ZGvEh1sdga+RdnD_t_SQ@mail.gmail.com>
- <AANLkTi=X0E3keLqnedFG7_BWim3fJvqU+O2RaFUv1+MT@mail.gmail.com>
- <1285573277.21274.190.camel@khasse.inl.fr> <AANLkTikkDCufxM1p5g+SzNZZ171pe6J_a8YdpTigscbj@mail.gmail.com>
+From: Steven Ayre <steveayre@gmail.com>
+Subject: performing dnat from userspace with libnetfilter_conntrack
+Date: Mon, 27 Sep 2010 11:09:57 +0100
+Message-ID: <AANLkTinVKv6jd54PWNUj-BgQUSWVHvi9JQqPb_Fno2a_@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:45607 "EHLO
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:42546 "EHLO
 	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758581Ab0I0ILb convert rfc822-to-8bit (ORCPT
+	with ESMTP id S1752614Ab0I0KJ7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 27 Sep 2010 04:11:31 -0400
-Received: by fxm3 with SMTP id 3so1631860fxm.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Sep 2010 01:11:30 -0700 (PDT)
-In-Reply-To: <AANLkTikkDCufxM1p5g+SzNZZ171pe6J_a8YdpTigscbj@mail.gmail.com>
+	Mon, 27 Sep 2010 06:09:59 -0400
+Received: by fxm3 with SMTP id 3so1668046fxm.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Sep 2010 03:09:57 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-Thanks for the reply, i'll give it a go..
+I'm trying to perform DNAT from within my userspace program to a dynamic host.
 
-but i was wondering if maybe there should be added a new FLAG for the
-connection tracking... since i belive most people think that
-"ESTABLISHED" mean's after the 3way handshake and the start of the
-session....
-any Idea's on why is the "ESTABLISHED" state is on before the 3-way
-handshake is finished... or maybe there is another flag that would
-help?
+I have in nat PREROUTING a NFQUEUE rule that gives the packet to my
+program. I am trying to setup a conntrack rule at this time before
+accepting the packet. The NFQUEUE part works just fine. However I am
+having trouble adding the conntrack entry.
 
-Thanks in advance..
-Yechiel Levi
+I also have a SNAT rule in POSTROUTING that ensures all reply packets
+come via the server performing the DNAT.
 
-2010/9/27 Eric Leblond <eric@inl.fr>:
-> Hi,
->
-> Le dimanche 26 septembre 2010 =E0 07:53 +0200, Mistick Levi a =E9crit=
- :
->> Hi,
->> did'nt get any reply on the users list.... Hope anyone here could he=
-lp out.
->>
->>
->> ---------- Forwarded message ----------
->> From: Mistick Levi <gmistick@gmail.com>
->> Date: Thu, Sep 23, 2010 at 4:12 PM
->> Subject: TCP ack in libnetfilter_queue
->> To: netfilter@vger.kernel.org
->>
->>
->> Hey,
->>
->> i wrote a filter using libnetfilter_queue api, and i want to send
->> messages to the queue in a specific way...
->> I want to get the first packet after the TCP 3-way-handshak is
->> finished ( meaning - only data!)..
->>
->> i tried using conntrack with "ESTABLISHED" status, but then i start
->> getting messages to the queue from the last message of the
->> handshake... ( meaning the last ack )... and i dont want that since =
-it
->> contain no data....
->
-> What about filtering on PSH, something like:
-> =A0 =A0 =A0 =A0iptables XXXXX --tcp-flags PSH, PSH -j NFQUEUE
-> Not really strict but it should work in most case.
-> Or you can work on packet length, if it has data it is bigger:
-> =A0 =A0 =A0 =A0iptables XXXXX --length 60:1500 -j NFQUEUE
->
-> BR,
-> --
-> =C9ric Leblond <eric@inl.fr>
-> EdenWall, http://www.edenwall.com/
-> NuFW, http://www.nufw.org
->
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This is the code I currently have:
+
+               /* Pseudocode showing data types */
+              /* All IPs and ports are in network byte order */
+              struct iphdr *ip = (struct iphdr*)payload; // payload is
+char* from nfq_get_payload
+              struct tcphdr *tcp = (struct tcphdr*)(ip + ip->ihl*4);
+              uint32_t new_daddr;
+              uint16_t new_dport;
+              inet_pton(AF_INET, "a.b.c.d", &new_daddr);
+              new_dport = htons(e);
+
+               /* Add a new conntrack entry */
+               if (!(ct = nfct_new())) {
+                       perror("nfct_new");
+                       return -1;
+               }
+               nfct_set_attr_u8(ct, ATTR_ORIG_L3PROTO, AF_INET);
+               nfct_set_attr_u8(ct, ATTR_ORIG_L4PROTO, IPPROTO_TCP);
+               nfct_set_attr_u32(ct, ATTR_ORIG_IPV4_SRC, ip->saddr);
+               nfct_set_attr_u32(ct, ATTR_ORIG_IPV4_DST, ip->daddr);
+               nfct_set_attr_u16(ct, ATTR_ORIG_PORT_SRC, tcp->source);
+               nfct_set_attr_u16(ct, ATTR_ORIG_PORT_SRC, tcp->dest);
+               nfct_setobjopt(ct, NFCT_SOPT_SETUP_REPLY);
+               nfct_set_attr_u32(ct, ATTR_REPL_IPV4_SRC, ip->saddr);
+               nfct_set_attr_u16(ct, ATTR_REPL_PORT_SRC, ip->daddr);
+               nfct_set_attr_u32(ct, ATTR_DNAT_IPV4, new_daddr);
+               nfct_set_attr_u16(ct, ATTR_DNAT_PORT, new_dport);
+               nfct_set_attr_u32(ct, ATTR_TIMEOUT, 120);
+               if (nfct_query(globals.cth, NFCT_Q_CREATE, ct) < 0) {
+                       perror("nfct_query");
+                       return -1;
+               }
+               nfct_destroy(ct);
+
+When the above code runs I get the following event:
+    [NEW] tcp      6 120 src=81.27.101.233 dst=81.27.101.231
+sport=52357 dport=1720 [UNREPLIED] src=81.27.101.231 dst=81.27.101.233
+sport=1720 dport=52357
+
+But when using the DNAT target I get the following:
+    [NEW] tcp      6 120 SYN_SENT src=81.27.101.233 dst=81.27.101.231
+sport=39591 dport=1720 [UNREPLIED] src=81.27.101.232 dst=81.27.101.231
+sport=1721 dport=39591
+
+There's a difference in the events, and while the DNAT target works my
+conntrack entry does not. The event when I create the conntrack entry
+doesn't actually show the DNAT destination at all!
+
+Does anyone know what I'm doing wrong?
+
+Also, do I need to manually mangle the first packet to perform the
+DNAT or will netfilter do this for me after I accept the packet due to
+the conntrack entry? I have working code to do this if it's required.
+
+-Steve
