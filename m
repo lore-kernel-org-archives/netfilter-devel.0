@@ -1,83 +1,73 @@
-From: Eric Paris <eparis@redhat.com>
-Subject: Re: [PATCH 2/6] secmark: make secmark object handling generic
-Date: Mon, 27 Sep 2010 12:47:56 -0400
-Message-ID: <1285606076.2815.15.camel@localhost.localdomain>
+From: Paul Moore <paul.moore@hp.com>
+Subject: Re: [PATCH 3/6] secmark: export binary yes/no rather than kernel
+ internal secid
+Date: Mon, 27 Sep 2010 14:29:16 -0400
+Message-ID: <1285612156.4935.16.camel@sifl>
 References: <20100924204517.28355.42822.stgit@paris.rdu.redhat.com>
-	 <20100924204524.28355.87206.stgit@paris.rdu.redhat.com>
-	 <4C9DB54C.4010100@netfilter.org>
+	 <20100924204531.28355.20320.stgit@paris.rdu.redhat.com>
+	 <alpine.LRH.2.00.1009271038280.25748@tundra.namei.org>
+	 <1285606896.2815.36.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org, selinux@tycho.nsa.gov,
-	netfilter-devel@vger.kernel.org, jmorris@namei.org,
-	sds@tycho.nsa.gov, jengelh@medozas.de, paul.moore@hp.com,
-	casey@schaufler-ca.com, linux-security-module@vger.kernel.org,
-	netfilter@vger.kernel.org, mr.dash.four@googlemail.com
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: James Morris <jmorris@namei.org>, linux-kernel@vger.kernel.org,
+	selinux@tycho.nsa.gov, netfilter-devel@vger.kernel.org,
+	sds@tycho.nsa.gov, jengelh@medozas.de, casey@schaufler-ca.com,
+	linux-security-module@vger.kernel.org, netfilter@vger.kernel.org,
+	mr.dash.four@googlemail.com
+To: Eric Paris <eparis@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48245 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757099Ab0I0RQa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 27 Sep 2010 13:16:30 -0400
-In-Reply-To: <4C9DB54C.4010100@netfilter.org>
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:44036 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757190Ab0I0S3X (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 27 Sep 2010 14:29:23 -0400
+In-Reply-To: <1285606896.2815.36.camel@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 2010-09-25 at 10:39 +0200, Pablo Neira Ayuso wrote:
-> On 24/09/10 22:45, Eric Paris wrote:
-> > Right now secmark has lots of direct selinux calls.  Use all LSM calls and
-> > remove all SELinux specific knowledge.  The only SELinux specific knowledge
-> > we leave is the mode.  The only point is to make sure that other LSMs at
-> > least test this generic code before they assume it works.  (They may also
-> > have to make changes if they do not represent labels as strings)
-> > 
-> > Signed-off-by: Eric Paris <eparis@redhat.com>
-> > ---
-> > 
-> >  include/linux/netfilter/xt_SECMARK.h |   14 ++------
-> >  include/linux/security.h             |   25 +++++++++++++
-> >  include/linux/selinux.h              |   63 ----------------------------------
-> >  net/netfilter/xt_CT.c                |    1 -
-> >  net/netfilter/xt_SECMARK.c           |   57 +++++++++++++++----------------
-> >  security/capability.c                |   17 +++++++++
-> >  security/security.c                  |   18 ++++++++++
-> >  security/selinux/exports.c           |   49 --------------------------
-> >  security/selinux/hooks.c             |   24 +++++++++++++
-> >  security/selinux/include/security.h  |    1 +
-> >  10 files changed, 116 insertions(+), 153 deletions(-)
-> > 
-> > diff --git a/include/linux/netfilter/xt_SECMARK.h b/include/linux/netfilter/xt_SECMARK.h
-> > index 6fcd344..b8d55c4 100644
-> > --- a/include/linux/netfilter/xt_SECMARK.h
-> > +++ b/include/linux/netfilter/xt_SECMARK.h
-> > @@ -10,19 +10,13 @@
-> >   * 'mode' refers to the specific security subsystem which the
-> >   * packets are being marked for.
-> >   */
-> > -#define SECMARK_MODE_SEL	0x01		/* SELinux */
-> > -#define SECMARK_SELCTX_MAX	256
-> > -
-> > -struct xt_secmark_target_selinux_info {
-> > -	__u32 selsid;
-> > -	char selctx[SECMARK_SELCTX_MAX];
-> > -};
-> > +#define SECMARK_MODE_SELINUX	0x01		/* SELinux */
-> > +#define SECMARK_SECCTX_MAX	256
+On Mon, 2010-09-27 at 13:01 -0400, Eric Paris wrote:
+> On Mon, 2010-09-27 at 10:50 +1000, James Morris wrote:
+> > On Fri, 24 Sep 2010, Eric Paris wrote:
 > 
-> The SECMARK_MODE_SEL is exposed to user-space, even if we have a copy of
-> it in the internal iptables tree, I'm not sure if it's a good policy to
-> change it.
+> > For the reasons above, I think the secctx string needs to be exported in 
+> > addition to this rather than instead of.
+> 
+> I won't argue, I don't agree with your reasoning, but I'm not opposed to
+> this result.  We have 3 competing suggestions:
+> 
+> Jan suggested we:
+> completely eliminate secmark from procfs+netlink and only export secctx
+> in netlink.
+> 
+> Eric suggested we:
+> completely eliminate secmark from procfs+netlink and then export secctx
+> in procfs+netlink
+> 
+> sounds like James suggested we:
+> continue to export meaningless and confusing secmark from procfs+netlink
+> and then export secctx in procfs+netlink as well.
+> 
+> I'm going to implement James' idea and resend the patch series.  Any
+> strong objections?
 
-Ok.  I just hate 'SEL' as an abbreviation of SELinux.  I always think
-it's select or something like that.  I could do something hideous like
+I apologize for not getting a chance to look at these patches sooner.
+In general they look fine to me and my only real concern was addressed
+by Pablo already (breaking userspace due to #define changes).
 
-#define SECMARK_MODE_SEL	0x01
-#define SECMARK_MODE_SELINUX	SECMARK_MODE_SEL
+As far as exporting the 32bit secid/secmark to userspace, I think that
+is a mistake.  James correctly points out that it does map to a LSM
+specific value, e.g. SELinux and Smack security labels, but I don't
+think he makes it clear that in the two LSMs that currently use secids
+the mapping between the secid and the secctx is not constant; the secids
+are transient values that will change with each boot in a manner that
+userspace can not predict.  For this reason, I think exporting the
+secids is only going to cause users/admins grief, whereas exporting the
+associated secctx should be a much more stable value and is likely what
+the user/admin is expecting anyway.
 
-But it seems like too much work and doesn't add anything really.  I'll
-revert that part of this change.
-
--Eric
-
+-- 
+paul moore
+linux @ hp
 
 
