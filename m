@@ -1,41 +1,104 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 5/6] conntrack: export lsm context rather than internal
- secid	via netlink
-Date: Mon, 27 Sep 2010 13:01:50 +0200
-Message-ID: <4CA0799E.4010200@netfilter.org>
-References: <20100924204517.28355.42822.stgit@paris.rdu.redhat.com> <20100924204545.28355.92767.stgit@paris.rdu.redhat.com>
+From: Casey Schaufler <casey@schaufler-ca.com>
+Subject: Re: [PATCH 4/6] security: secid_to_secctx returns len when data is
+ NULL
+Date: Mon, 27 Sep 2010 06:49:59 -0700
+Message-ID: <4CA0A107.3020903@schaufler-ca.com>
+References: <20100924204517.28355.42822.stgit@paris.rdu.redhat.com> <20100924204538.28355.32426.stgit@paris.rdu.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Cc: linux-kernel@vger.kernel.org, selinux@tycho.nsa.gov,
 	netfilter-devel@vger.kernel.org, jmorris@namei.org,
 	sds@tycho.nsa.gov, jengelh@medozas.de, paul.moore@hp.com,
-	casey@schaufler-ca.com, linux-security-module@vger.kernel.org,
-	netfilter@vger.kernel.org, mr.dash.four@googlemail.com
+	linux-security-module@vger.kernel.org, netfilter@vger.kernel.org,
+	mr.dash.four@googlemail.com
 To: Eric Paris <eparis@redhat.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37677 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755632Ab0I0LBD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 27 Sep 2010 07:01:03 -0400
-In-Reply-To: <20100924204545.28355.92767.stgit@paris.rdu.redhat.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <20100924204538.28355.32426.stgit@paris.rdu.redhat.com>
+Sender: linux-security-module-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 24/09/10 22:45, Eric Paris wrote:
-> @@ -172,4 +173,11 @@ enum ctattr_help {
->   };
->   #define CTA_HELP_MAX (__CTA_HELP_MAX - 1)
+ On 9/24/2010 1:45 PM, Eric Paris wrote:
+> With the (long ago) interface change to have the secid_to_secctx functions
+> do the string allocation instead of having the caller do the allocation we
+> lost the ability to query the security server for the length of the
+> upcoming string.  The SECMARK code would like to allocate a netlink skb
+> with enough length to hold the string but it is just too unclean to do the
+> string allocation twice or to do the allocation the first time and hold
+> onto the string and slen.  This patch adds the ability to call
+> security_secid_to_secctx() with a NULL data pointer and it will just set
+> the slen pointer.
 >
-> +enum ctattr_secctx {
-> +	CTA_SECCTX_UNSPEC,
-> +	CTA_SECCTX_NAME,
-> +	__CTA_SECCTX_MAX
-> +};
-> +#define CTA_SECCTX_MAX (__CTA_SECCTX_MAX - 1)
+> Signed-off-by: Eric Paris <eparis@redhat.com>
 
-I guess that you have included this nest for consistency with CTA_HELP. 
-My question: do you think that we'll include more attributes in that 
-nest in the future? Otherwise, I would remove that nest and put 
-CTA_SECCTX_NAME in the first level, since the nest would increase the 
-message size.
+Acked-by: Casey Schaufler <casey@schaufler-ca.com>
+
+For the Smack bit at least.
+
+
+> ---
+>
+>  security/selinux/ss/services.c |   11 +++++++++--
+>  security/smack/smack_lsm.c     |    3 ++-
+>  2 files changed, 11 insertions(+), 3 deletions(-)
+>
+> diff --git a/security/selinux/ss/services.c b/security/selinux/ss/services.c
+> index 73508af..1d4955a 100644
+> --- a/security/selinux/ss/services.c
+> +++ b/security/selinux/ss/services.c
+> @@ -998,7 +998,8 @@ static int context_struct_to_string(struct context *context, char **scontext, u3
+>  {
+>  	char *scontextp;
+>  
+> -	*scontext = NULL;
+> +	if (scontext)
+> +		*scontext = NULL;
+>  	*scontext_len = 0;
+>  
+>  	if (context->len) {
+> @@ -1015,6 +1016,9 @@ static int context_struct_to_string(struct context *context, char **scontext, u3
+>  	*scontext_len += strlen(sym_name(&policydb, SYM_TYPES, context->type - 1)) + 1;
+>  	*scontext_len += mls_compute_context_len(context);
+>  
+> +	if (!scontext)
+> +		return 0;
+> +
+>  	/* Allocate space for the context; caller must free this space. */
+>  	scontextp = kmalloc(*scontext_len, GFP_ATOMIC);
+>  	if (!scontextp)
+> @@ -1054,7 +1058,8 @@ static int security_sid_to_context_core(u32 sid, char **scontext,
+>  	struct context *context;
+>  	int rc = 0;
+>  
+> -	*scontext = NULL;
+> +	if (scontext)
+> +		*scontext = NULL;
+>  	*scontext_len  = 0;
+>  
+>  	if (!ss_initialized) {
+> @@ -1062,6 +1067,8 @@ static int security_sid_to_context_core(u32 sid, char **scontext,
+>  			char *scontextp;
+>  
+>  			*scontext_len = strlen(initial_sid_to_string[sid]) + 1;
+> +			if (!scontext)
+> +				goto out;
+>  			scontextp = kmalloc(*scontext_len, GFP_ATOMIC);
+>  			if (!scontextp) {
+>  				rc = -ENOMEM;
+> diff --git a/security/smack/smack_lsm.c b/security/smack/smack_lsm.c
+> index c448d57..b95d7b1 100644
+> --- a/security/smack/smack_lsm.c
+> +++ b/security/smack/smack_lsm.c
+> @@ -3005,7 +3005,8 @@ static int smack_secid_to_secctx(u32 secid, char **secdata, u32 *seclen)
+>  {
+>  	char *sp = smack_from_secid(secid);
+>  
+> -	*secdata = sp;
+> +	if (secdata)
+> +		*secdata = sp;
+>  	*seclen = strlen(sp);
+>  	return 0;
+>  }
+>
+>
+
