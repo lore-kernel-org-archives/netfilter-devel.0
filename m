@@ -1,61 +1,79 @@
-From: James Morris <jmorris@namei.org>
-Subject: Re: [PATCH 3/6] secmark: export binary yes/no rather than kernel
- internal secid
-Date: Mon, 27 Sep 2010 10:50:34 +1000 (EST)
-Message-ID: <alpine.LRH.2.00.1009271038280.25748@tundra.namei.org>
-References: <20100924204517.28355.42822.stgit@paris.rdu.redhat.com> <20100924204531.28355.20320.stgit@paris.rdu.redhat.com>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: Fwd: TCP ack in libnetfilter_queue
+Date: Mon, 27 Sep 2010 09:41:17 +0200
+Message-ID: <1285573277.21274.190.camel@khasse.inl.fr>
+References: <AANLkTimxj_yVspgWQB2tHF+=ZGvEh1sdga+RdnD_t_SQ@mail.gmail.com>
+	 <AANLkTi=X0E3keLqnedFG7_BWim3fJvqU+O2RaFUv1+MT@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: linux-kernel@vger.kernel.org, selinux@tycho.nsa.gov,
-	netfilter-devel@vger.kernel.org, sds@tycho.nsa.gov,
-	jengelh@medozas.de, paul.moore@hp.com, casey@schaufler-ca.com,
-	linux-security-module@vger.kernel.org, netfilter@vger.kernel.org,
-	mr.dash.four@googlemail.com
-To: Eric Paris <eparis@redhat.com>
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-JrV2ot+iTEviMfNYHgxQ"
+Cc: netfilter-devel@vger.kernel.org
+To: Mistick Levi <gmistick@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from tundra.namei.org ([65.99.196.166]:60557 "EHLO tundra.namei.org"
+Received: from smtp3-g21.free.fr ([212.27.42.3]:35773 "EHLO smtp3-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753933Ab0I0Auz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 26 Sep 2010 20:50:55 -0400
-In-Reply-To: <20100924204531.28355.20320.stgit@paris.rdu.redhat.com>
+	id S1753744Ab0I0Hku (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 27 Sep 2010 03:40:50 -0400
+In-Reply-To: <AANLkTi=X0E3keLqnedFG7_BWim3fJvqU+O2RaFUv1+MT@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 24 Sep 2010, Eric Paris wrote:
 
-> Currently the nfconntrack export code sends the kernel internal secid to
-> userspace in a couple of proc files and over netlink as an integer.  This
-> is wrong.  This number is a kernel internal.
+--=-JrV2ot+iTEviMfNYHgxQ
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-I wouldn't say wrong, exactly.
+Hi,
 
-The secid is a 32-bit integer which each LSM maps to its own domain.  
-It's unlikely to change from this format (we were v. lucky to get this 
-field, btw).
+Le dimanche 26 septembre 2010 =C3=A0 07:53 +0200, Mistick Levi a =C3=A9crit=
+ :
+> Hi,
+> did'nt get any reply on the users list.... Hope anyone here could help ou=
+t.
+>=20
+>=20
+> ---------- Forwarded message ----------
+> From: Mistick Levi <gmistick@gmail.com>
+> Date: Thu, Sep 23, 2010 at 4:12 PM
+> Subject: TCP ack in libnetfilter_queue
+> To: netfilter@vger.kernel.org
+>=20
+>=20
+> Hey,
+>=20
+> i wrote a filter using libnetfilter_queue api, and i want to send
+> messages to the queue in a specific way...
+> I want to get the first packet after the TCP 3-way-handshak is
+> finished ( meaning - only data!)..
+>=20
+> i tried using conntrack with "ESTABLISHED" status, but then i start
+> getting messages to the queue from the last message of the
+> handshake... ( meaning the last ack )... and i dont want that since it
+> contain no data....
 
-There's really no difference between this and the various kernel addresses 
-exported via procfs by the networking code -- it's an opaque token which 
-you can use to identify the security marking of a packet without 
-necessarily having any knowledge of the security model itself.
+What about filtering on PSH, something like:
+	iptables XXXXX --tcp-flags PSH, PSH -j NFQUEUE
+Not really strict but it should work in most case.
+Or you can work on packet length, if it has data it is bigger:
+ 	iptables XXXXX --length 60:1500 -j NFQUEUE
 
-It's potentially useful for debugging and writing simple userland tools, 
-and may be in use already by apps.
+BR,
+--=20
+=C3=89ric Leblond <eric@inl.fr>
+EdenWall, http://www.edenwall.com/
+NuFW, http://www.nufw.org
 
->  This patch changes the export
-> code to output either 0 or 1 for this value.
+--=-JrV2ot+iTEviMfNYHgxQ
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Ceci est une partie de message
+	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
 
-This potentially breaks existing apps and does not seem to add any value 
-itself.  If you want to determine if a packet is marked, then simply check 
-for zero or not.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
->  A future patch will implement sending the name rather than the number 
-> in a new field.
+iEYEABECAAYFAkygSpoACgkQnxA7CdMWjzISHACfWBqLj0JXOBUxJJWvgTLvbb+C
+KcsAoIFDxpGYKDyLWFVRcNyVRxvu045L
+=5JM9
+-----END PGP SIGNATURE-----
 
-For the reasons above, I think the secctx string needs to be exported in 
-addition to this rather than instead of.
+--=-JrV2ot+iTEviMfNYHgxQ--
 
-
-- James
--- 
-James Morris
-<jmorris@namei.org>
