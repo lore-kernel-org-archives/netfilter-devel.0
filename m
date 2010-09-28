@@ -1,87 +1,96 @@
-From: Casey Schaufler <casey@schaufler-ca.com>
-Subject: Re: [PATCH 3/6] secmark: export binary yes/no rather than kernel
- internal secid
-Date: Tue, 28 Sep 2010 05:32:17 -0700
-Message-ID: <4CA1E051.9030904@schaufler-ca.com>
-References: <20100924204517.28355.42822.stgit@paris.rdu.redhat.com>	 <20100924204531.28355.20320.stgit@paris.rdu.redhat.com>	 <alpine.LRH.2.00.1009271038280.25748@tundra.namei.org>	 <1285606896.2815.36.camel@localhost.localdomain>	 <1285612156.4935.16.camel@sifl> <1285615525.2815.76.camel@localhost.localdomain>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: performing dnat from userspace with libnetfilter_conntrack
+Date: Tue, 28 Sep 2010 15:35:26 +0200
+Message-ID: <4CA1EF1E.80002@netfilter.org>
+References: <AANLkTinVKv6jd54PWNUj-BgQUSWVHvi9JQqPb_Fno2a_@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Paul Moore <paul.moore@hp.com>, James Morris <jmorris@namei.org>,
-	linux-kernel@vger.kernel.org, selinux@tycho.nsa.gov,
-	netfilter-devel@vger.kernel.org, sds@tycho.nsa.gov,
-	jengelh@medozas.de, linux-security-module@vger.kernel.org,
-	netfilter@vger.kernel.org, mr.dash.four@googlemail.com
-To: Eric Paris <eparis@redhat.com>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <1285615525.2815.76.camel@localhost.localdomain>
-Sender: linux-security-module-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Steven Ayre <steveayre@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:40993 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754717Ab0I1Ned (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Sep 2010 09:34:33 -0400
+In-Reply-To: <AANLkTinVKv6jd54PWNUj-BgQUSWVHvi9JQqPb_Fno2a_@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
- On 9/27/2010 12:25 PM, Eric Paris wrote:
-> On Mon, 2010-09-27 at 14:29 -0400, Paul Moore wrote:
->> On Mon, 2010-09-27 at 13:01 -0400, Eric Paris wrote:
->>> On Mon, 2010-09-27 at 10:50 +1000, James Morris wrote:
->>>> On Fri, 24 Sep 2010, Eric Paris wrote:
->>>> For the reasons above, I think the secctx string needs to be exported in 
->>>> addition to this rather than instead of.
->>> I won't argue, I don't agree with your reasoning, but I'm not opposed to
->>> this result.  We have 3 competing suggestions:
->>>
->>> Jan suggested we:
->>> completely eliminate secmark from procfs+netlink and only export secctx
->>> in netlink.
->>>
->>> Eric suggested we:
->>> completely eliminate secmark from procfs+netlink and then export secctx
->>> in procfs+netlink
->>>
->>> sounds like James suggested we:
->>> continue to export meaningless and confusing secmark from procfs+netlink
->>> and then export secctx in procfs+netlink as well.
->>>
->>> I'm going to implement James' idea and resend the patch series.  Any
->>> strong objections?
->> I apologize for not getting a chance to look at these patches sooner.
->> In general they look fine to me and my only real concern was addressed
->> by Pablo already (breaking userspace due to #define changes).
->>
->> As far as exporting the 32bit secid/secmark to userspace, I think that
->> is a mistake.  James correctly points out that it does map to a LSM
->> specific value, e.g. SELinux and Smack security labels, but I don't
->> think he makes it clear that in the two LSMs that currently use secids
->> the mapping between the secid and the secctx is not constant; the secids
->> are transient values that will change with each boot in a manner that
->> userspace can not predict.  For this reason, I think exporting the
->> secids is only going to cause users/admins grief, whereas exporting the
->> associated secctx should be a much more stable value and is likely what
->> the user/admin is expecting anyway.
-> So it sounds to me like Paul agrees with me that exporting the SELinux
-> sid as 'secmark=' was a bad idea.  It's the whole reason this thread
-> started, someone wanted to be able to translate and use that field (and
-> instantly realized it was useless.)
->
-> I see it as having 3 options.  lets assume was have a packet with
-> selinux sid=121 and selinux context=packet_t.  We can
->
-> 1) secmark=121 secctx=packet_t
-> 	This continues to send secmark like we do and people might continue to
-> be baffled by the 121.
->
-> 2) secmark=1 secctx=packet_t
-> 	This sends a secmark field to userspace so if an application which
-> reads this exists (I doubt such an application actually exists in in the
-> real world) it will still get all of the information it got before but
-> noone will be baffled by what the number means.  1/0 is pretty obvious.
->
-> 3) secctx=packet_t
-> 	Smallest easiest, what my patches actually do.  Could theoretically
-> break some script that expected the field to be there, but any such
-> script is already broken since that field can be easily compiled
-> out......
->
-> James, if you are adamant about #1 I'll resend, otherwise I'm sticking
-> with #3.....
+Hi Steven,
 
-The Smack Project leadership recommends #3.
+On 27/09/10 12:09, Steven Ayre wrote:
+> I'm trying to perform DNAT from within my userspace program to a dynamic host.
+>
+> I have in nat PREROUTING a NFQUEUE rule that gives the packet to my
+> program. I am trying to setup a conntrack rule at this time before
+> accepting the packet. The NFQUEUE part works just fine. However I am
+> having trouble adding the conntrack entry.
+>
+> I also have a SNAT rule in POSTROUTING that ensures all reply packets
+> come via the server performing the DNAT.
+>
+> This is the code I currently have:
+>
+>                 /* Pseudocode showing data types */
+>                /* All IPs and ports are in network byte order */
+>                struct iphdr *ip = (struct iphdr*)payload; // payload is
+> char* from nfq_get_payload
+>                struct tcphdr *tcp = (struct tcphdr*)(ip + ip->ihl*4);
+>                uint32_t new_daddr;
+>                uint16_t new_dport;
+>                inet_pton(AF_INET, "a.b.c.d",&new_daddr);
+>                new_dport = htons(e);
+>
+>                 /* Add a new conntrack entry */
+>                 if (!(ct = nfct_new())) {
+>                         perror("nfct_new");
+>                         return -1;
+>                 }
+>                 nfct_set_attr_u8(ct, ATTR_ORIG_L3PROTO, AF_INET);
+>                 nfct_set_attr_u8(ct, ATTR_ORIG_L4PROTO, IPPROTO_TCP);
+>                 nfct_set_attr_u32(ct, ATTR_ORIG_IPV4_SRC, ip->saddr);
+>                 nfct_set_attr_u32(ct, ATTR_ORIG_IPV4_DST, ip->daddr);
+>                 nfct_set_attr_u16(ct, ATTR_ORIG_PORT_SRC, tcp->source);
+>                 nfct_set_attr_u16(ct, ATTR_ORIG_PORT_SRC, tcp->dest);
+>                 nfct_setobjopt(ct, NFCT_SOPT_SETUP_REPLY);
+>                 nfct_set_attr_u32(ct, ATTR_REPL_IPV4_SRC, ip->saddr);
+>                 nfct_set_attr_u16(ct, ATTR_REPL_PORT_SRC, ip->daddr);
+>                 nfct_set_attr_u32(ct, ATTR_DNAT_IPV4, new_daddr);
+>                 nfct_set_attr_u16(ct, ATTR_DNAT_PORT, new_dport);
+>                 nfct_set_attr_u32(ct, ATTR_TIMEOUT, 120);
+>                 if (nfct_query(globals.cth, NFCT_Q_CREATE, ct)<  0) {
+>                         perror("nfct_query");
+>                         return -1;
+>                 }
+>                 nfct_destroy(ct);
+>
+> When the above code runs I get the following event:
+>      [NEW] tcp      6 120 src=81.27.101.233 dst=81.27.101.231
+> sport=52357 dport=1720 [UNREPLIED] src=81.27.101.231 dst=81.27.101.233
+> sport=1720 dport=52357
+>
+> But when using the DNAT target I get the following:
+>      [NEW] tcp      6 120 SYN_SENT src=81.27.101.233 dst=81.27.101.231
+> sport=39591 dport=1720 [UNREPLIED] src=81.27.101.232 dst=81.27.101.231
+> sport=1721 dport=39591
+>
+> There's a difference in the events, and while the DNAT target works my
+> conntrack entry does not. The event when I create the conntrack entry
+> doesn't actually show the DNAT destination at all!
+>
+> Does anyone know what I'm doing wrong?
 
+It seems that the ATTR_TCP_STATE attribute is missing. Don't forget to 
+use NFQUEUE in the raw table in PREROUTING chain.
+
+> Also, do I need to manually mangle the first packet to perform the
+> DNAT or will netfilter do this for me after I accept the packet due to
+> the conntrack entry? I have working code to do this if it's required.
+
+No.
+
+BTW, you have to set TCP_LIBERAL flag as well to skip the TCP tracking 
+(you will have to wait until 2.6.36 to avoid this, and you'll have to 
+use the WSCALE attributes instead of setting liberal to inject the 
+window scale factor).
