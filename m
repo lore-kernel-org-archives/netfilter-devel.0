@@ -1,38 +1,31 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
 Subject: Re: could ipporthash be extended/modified
-Date: Wed, 29 Sep 2010 09:12:12 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1009290908140.4241@blackhole.kfki.hu>
-References: <4CA25F28.8050202@googlemail.com>
+Date: Wed, 29 Sep 2010 10:58:03 +0100
+Message-ID: <4CA30DAB.6000806@googlemail.com>
+References: <4CA25F28.8050202@googlemail.com> <alpine.DEB.2.00.1009290908140.4241@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Mr Dash Four <mr.dash.four@googlemail.com>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:33532 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751114Ab0I2HVO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 Sep 2010 03:21:14 -0400
-In-Reply-To: <4CA25F28.8050202@googlemail.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:51588 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751102Ab0I2J6G (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 29 Sep 2010 05:58:06 -0400
+Received: by wwd20 with SMTP id 20so622819wwd.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Sep 2010 02:58:05 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1009290908140.4241@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 28 Sep 2010, Mr Dash Four wrote:
 
-> Currently the above type can only accept /16 (B-class) type addresses. Is
-> there any reason for this limitation? 
+>> Could this be extended to accept any IP address?
+>>     
+>
+> In the next ipset branch the limitation is lifted. That version will be 
+> announced and released next month, around the netfilter workshop.
+>   
+OK, will wait for the release then. Thanks!
 
-The limitation makes possible to store the IP address and port data pair 
-in 32 bits.
-
-> Could this be extended to accept any IP address?
-
-In the next ipset branch the limitation is lifted. That version will be 
-announced and released next month, around the netfilter workshop.
- 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
