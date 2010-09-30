@@ -1,56 +1,34 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: how to use secure_tcp_sequence_number
-Date: Thu, 30 Sep 2010 20:21:01 +0200
-Message-ID: <1285870861.2615.946.camel@edumazet-laptop>
-References: <AANLkTimA6jJbCvtxFi41JbH_XSJtKo0FrDE=fQ2OiafY@mail.gmail.com>
-	 <AANLkTikWop213k7cBXAaoCMw_8LouX-qauYEbHD=d1Vh@mail.gmail.com>
+From: David Corrales <corrales.david@gmail.com>
+Subject: Missing kernel header files
+Date: Thu, 30 Sep 2010 14:51:52 -0600
+Message-ID: <AANLkTinPD=3yC=KF_juTvUumXwmuMzgjrXyRg4NmML-C@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
-	netdev@vger.kernel.org
-To: Nicola Padovano <nicola.padovano@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:33087 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753598Ab0I3SVI (ORCPT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:39510 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754788Ab0I3Uvx (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 Sep 2010 14:21:08 -0400
-In-Reply-To: <AANLkTikWop213k7cBXAaoCMw_8LouX-qauYEbHD=d1Vh@mail.gmail.com>
+	Thu, 30 Sep 2010 16:51:53 -0400
+Received: by ewy23 with SMTP id 23so1062367ewy.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 30 Sep 2010 13:51:52 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le jeudi 30 septembre 2010 =C3=A0 19:01 +0200, Nicola Padovano a =C3=A9=
-crit :
-> If i attempt to insert the module that uses the
-> secure_tcp_sequence_number i get this error message:
->=20
-> from insmod:  -1 Invalid module format
-> and from dmesg: version magic '2.6.35.4 SMP mod_unload 586 ' should b=
-e
-> '2.6.35.4 SMP mod_unload modversions 586 '
->=20
-> what's the matter?
+Hi everyone,
 
-diff --git a/drivers/char/random.c b/drivers/char/random.c
-index caef35a..f5ef7ba 100644
---- a/drivers/char/random.c
-+++ b/drivers/char/random.c
-@@ -1550,6 +1550,7 @@ __u32 secure_tcp_sequence_number(__be32 saddr, __=
-be32 daddr,
-=20
- 	return seq;
- }
-+EXPORT_SYMBOL(secure_tcp_sequence_number);
-=20
- /* Generate secure starting point for ephemeral IPV4 transport port se=
-arch */
- u32 secure_ipv4_port_ephemeral(__be32 saddr, __be32 daddr, __be16 dpor=
-t)
+Recently I ran across some issues when compiling iptables 1.2.9
+against kernel 2.6.24. It seems that between kernel versions 2.6.31 to
+2.6.32, lots of headers were removed from linux/include/netfilter and
+linux/include/netfilter_ipv4. Some of them are ipt_connmark.h,
+ipt_conntrack.h, ipt_MARK.h and so on.
 
+I recon that the iptables version is rather old but I was wondering if
+it possible to patch it in order to compile with the upgrades. I just
+can't seem to find any good info on these changes, what was merged or
+what's now deprecated. There's no "migrating" guide anywhere and
+google isn't helping as much as I would like it to.
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks in advance,
+-David
