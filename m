@@ -1,53 +1,58 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: Re: [PATCH 3/6] build: add debug configure flag
-Date: Thu, 30 Sep 2010 23:22:01 +0200
-Message-ID: <1285881721.21111.1.camel@ice-age>
+Subject: Re: [PATCH 2/6] ulogd.conf: Comment library dependant plugins
+Date: Thu, 30 Sep 2010 23:23:57 +0200
+Message-ID: <1285881837.21111.3.camel@ice-age>
 References: <1285116442-32490-1-git-send-email-eric@inl.fr>
-	 <1285116442-32490-4-git-send-email-eric@inl.fr>
-	 <4CA45D5E.9010103@netfilter.org>
+	 <1285116442-32490-3-git-send-email-eric@inl.fr>
+	 <4CA45D9F.3050703@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-HZhZpDDvbeGkN+MgXB6r"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-8oNoBcyI8PFfc4fIOB+r"
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:57974 "EHLO smtp3-g21.free.fr"
+Received: from smtp3-g21.free.fr ([212.27.42.3]:60165 "EHLO smtp3-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932218Ab0I3VWR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 Sep 2010 17:22:17 -0400
-In-Reply-To: <4CA45D5E.9010103@netfilter.org>
+	id S932467Ab0I3VYK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 30 Sep 2010 17:24:10 -0400
+In-Reply-To: <4CA45D9F.3050703@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---=-HZhZpDDvbeGkN+MgXB6r
+--=-8oNoBcyI8PFfc4fIOB+r
 Content-Type: text/plain; charset="ISO-8859-15"
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-Le jeudi 30 septembre 2010 =E0 11:50 +0200, Pablo Neira Ayuso a =E9crit :
+Le jeudi 30 septembre 2010 =E0 11:51 +0200, Pablo Neira Ayuso a =E9crit :
 > On 22/09/10 02:47, Eric Leblond wrote:
-> > --- a/src/Makefile.am
-> > +++ b/src/Makefile.am
-> > @@ -6,4 +6,8 @@ AM_CPPFLAGS =3D $(all_includes) -I$(top_srcdir)/include=
- \
-> >  sbin_PROGRAMS =3D ulogd
+> > diff --git a/ulogd.conf.in b/ulogd.conf.in
+> > index cda5bb9..de5bc11 100644
+> > --- a/ulogd.conf.in
+> > +++ b/ulogd.conf.in
+> > @@ -25,9 +25,9 @@ loglevel=3D1
+> >  # 2. options for each plugin in seperate section below
 > > =20
-> >  ulogd_SOURCES =3D ulogd.c select.c timer.c rbtree.c conffile.c hash.c
-> > +if HAVE_DEBUG
-> > +ulogd_LDFLAGS =3D -lpthread -export-dynamic
+> > =20
+> > -plugin=3D"@libdir@/ulogd/ulogd_inppkt_NFLOG.so"
+> > +#plugin=3D"@libdir@/ulogd/ulogd_inppkt_NFLOG.so"
+> >  #plugin=3D"@libdir@/ulogd/ulogd_inppkt_ULOG.so"
+> > -plugin=3D"@libdir@/ulogd/ulogd_inpflow_NFCT.so"
+> > +#plugin=3D"@libdir@/ulogd/ulogd_inpflow_NFCT.so"
 >=20
-> Do we still have the gdb pthread issue?
+> I prefer leaving this there. I know that you are doing this because of
+> the compile time new option that you have inserted. But these are the
+> main plugins!
 
-I've got it on my debian "sid" and it seems someone has got it on
-bugzilla.
+I'm ok with that. It may cause more difficulty than solve issue.
 
 BR,
 --=20
 Eric Leblond <eric@inl.fr>
 NuFW: http://www.nufw.org/
 
---=-HZhZpDDvbeGkN+MgXB6r
+--=-8oNoBcyI8PFfc4fIOB+r
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Ceci est une partie de message
  =?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
@@ -55,10 +60,10 @@ Content-Description: Ceci est une partie de message
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.10 (GNU/Linux)
 
-iD8DBQBMpP92nxA7CdMWjzIRAkxHAJ9CQrlWHeuf1NlPnhRTotE06cKkdgCfWhye
-lzCtll+NMvVgztItA0ALOFk=
-=I0+Q
+iD8DBQBMpP/qnxA7CdMWjzIRAvPWAJ4xQxF6cNYqcLnttuLOuydmMCXV2QCfZBgp
+iVY0HJU9UZ1G1cdWZT4s9Qg=
+=qMEE
 -----END PGP SIGNATURE-----
 
---=-HZhZpDDvbeGkN+MgXB6r--
+--=-8oNoBcyI8PFfc4fIOB+r--
 
