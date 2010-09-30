@@ -1,26 +1,28 @@
-From: Nicola Padovano <nicola.padovano@gmail.com>
-Subject: how to use secure_tcp_sequence_number
-Date: Wed, 29 Sep 2010 18:46:05 +0200
-Message-ID: <AANLkTimA6jJbCvtxFi41JbH_XSJtKo0FrDE=fQ2OiafY@mail.gmail.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [patch v2] ipvs: IPv6 tunnel mode
+Date: Thu, 30 Sep 2010 10:22:40 +0900
+Message-ID: <20100930012239.GA18392@verge.net.au>
+References: <20100927135913.GA21785@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel <netfilter-devel@vger.kernel.org>,
+Content-Type: text/plain; charset=us-ascii
+Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	Julian Anastasov <ja@ssi.bg>, Julius Volz <juliusv@google.com>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Patrick McHardy <kaber@trash.net>
+To: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	netdev@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:52523 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752577Ab0I2Qq2 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 Sep 2010 12:46:28 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100927135913.GA21785@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi all. How can I export the secure_tcp_sequence_number to use it in my modules?
+On Mon, Sep 27, 2010 at 10:59:14PM +0900, Simon Horman wrote:
+> From: Julian Anastasov <ja@ssi.bg>
+> 
+> Tunnel mode for IPv6 doesn't work.
 
--- 
-Nicola Padovano
-e-mail: nicola.padovano@gmail.com
-web: http://npadovano.altervista.org
+Patrick, can you please drop this patch for now.
+Hans has found some problems with it.
 
-"My only ambition is not be anything at all; it seems the most
-sensible thing" (C. Bukowski)
+http://archive.linuxvirtualserver.org/html/lvs-devel/2010-09/msg00073.html
