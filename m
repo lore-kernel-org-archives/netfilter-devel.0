@@ -1,44 +1,50 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: could ipporthash be extended/modified
-Date: Thu, 30 Sep 2010 18:29:10 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1009301828370.8185@blackhole.kfki.hu>
-References: <4CA25F28.8050202@googlemail.com> <alpine.DEB.2.00.1009290908140.4241@blackhole.kfki.hu> <4CA30DAB.6000806@googlemail.com> <AANLkTikUBsO7moUgoJVPks6MR0uMpV+kAnF_x=cQGFfU@mail.gmail.com>
+From: Nicola Padovano <nicola.padovano@gmail.com>
+Subject: Re: how to use secure_tcp_sequence_number
+Date: Thu, 30 Sep 2010 19:01:25 +0200
+Message-ID: <AANLkTikWop213k7cBXAaoCMw_8LouX-qauYEbHD=d1Vh@mail.gmail.com>
+References: <AANLkTimA6jJbCvtxFi41JbH_XSJtKo0FrDE=fQ2OiafY@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: krunal patel <krunal.raj@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel <netfilter-devel@vger.kernel.org>,
+	netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:49517 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754862Ab0I3Q3M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 Sep 2010 12:29:12 -0400
-In-Reply-To: <AANLkTikUBsO7moUgoJVPks6MR0uMpV+kAnF_x=cQGFfU@mail.gmail.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:46746 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755809Ab0I3RBr (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 30 Sep 2010 13:01:47 -0400
+In-Reply-To: <AANLkTimA6jJbCvtxFi41JbH_XSJtKo0FrDE=fQ2OiafY@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 30 Sep 2010, krunal patel wrote:
+If i attempt to insert the module that uses the
+secure_tcp_sequence_number i get this error message:
 
-> On Wed, Sep 29, 2010 at 3:28 PM, Mr Dash Four
-> <mr.dash.four@googlemail.com> wrote:
-> >
-> >>> Could this be extended to accept any IP address?
-> >>>
-> >>
-> >> In the next ipset branch the limitation is lifted. That version will be
-> >> announced and released next month, around the netfilter workshop.
-> >>
-> >
-> > OK, will wait for the release then. Thanks!
-> >
-> Great.
-> It will have IPv6 support ? :).
+from insmod:  -1 Invalid module format
+and from dmesg: version magic '2.6.35.4 SMP mod_unload 586 ' should be
+'2.6.35.4 SMP mod_unload modversions 586 '
 
-Yes! :-)
+what's the matter?
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+On Wed, Sep 29, 2010 at 6:46 PM, Nicola Padovano
+<nicola.padovano@gmail.com> wrote:
+> Hi all. How can I export the secure_tcp_sequence_number to use it in my modules?
+>
+> --
+> Nicola Padovano
+> e-mail: nicola.padovano@gmail.com
+> web: http://npadovano.altervista.org
+>
+> "My only ambition is not be anything at all; it seems the most
+> sensible thing" (C. Bukowski)
+>
+
+
+
+-- 
+Nicola Padovano
+e-mail: nicola.padovano@gmail.com
+web: http://npadovano.altervista.org
+
+"My only ambition is not be anything at all; it seems the most
+sensible thing" (C. Bukowski)
