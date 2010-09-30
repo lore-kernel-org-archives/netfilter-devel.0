@@ -1,34 +1,64 @@
-From: David Corrales <corrales.david@gmail.com>
-Subject: Missing kernel header files
-Date: Thu, 30 Sep 2010 14:51:52 -0600
-Message-ID: <AANLkTinPD=3yC=KF_juTvUumXwmuMzgjrXyRg4NmML-C@mail.gmail.com>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: [PATCH 3/6] build: add debug configure flag
+Date: Thu, 30 Sep 2010 23:22:01 +0200
+Message-ID: <1285881721.21111.1.camel@ice-age>
+References: <1285116442-32490-1-git-send-email-eric@inl.fr>
+	 <1285116442-32490-4-git-send-email-eric@inl.fr>
+	 <4CA45D5E.9010103@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-HZhZpDDvbeGkN+MgXB6r"
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:39510 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754788Ab0I3Uvx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 Sep 2010 16:51:53 -0400
-Received: by ewy23 with SMTP id 23so1062367ewy.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 Sep 2010 13:51:52 -0700 (PDT)
+Received: from smtp3-g21.free.fr ([212.27.42.3]:57974 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932218Ab0I3VWR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 30 Sep 2010 17:22:17 -0400
+In-Reply-To: <4CA45D5E.9010103@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi everyone,
 
-Recently I ran across some issues when compiling iptables 1.2.9
-against kernel 2.6.24. It seems that between kernel versions 2.6.31 to
-2.6.32, lots of headers were removed from linux/include/netfilter and
-linux/include/netfilter_ipv4. Some of them are ipt_connmark.h,
-ipt_conntrack.h, ipt_MARK.h and so on.
+--=-HZhZpDDvbeGkN+MgXB6r
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: quoted-printable
 
-I recon that the iptables version is rather old but I was wondering if
-it possible to patch it in order to compile with the upgrades. I just
-can't seem to find any good info on these changes, what was merged or
-what's now deprecated. There's no "migrating" guide anywhere and
-google isn't helping as much as I would like it to.
+Hi,
 
-Thanks in advance,
--David
+Le jeudi 30 septembre 2010 =E0 11:50 +0200, Pablo Neira Ayuso a =E9crit :
+> On 22/09/10 02:47, Eric Leblond wrote:
+> > --- a/src/Makefile.am
+> > +++ b/src/Makefile.am
+> > @@ -6,4 +6,8 @@ AM_CPPFLAGS =3D $(all_includes) -I$(top_srcdir)/include=
+ \
+> >  sbin_PROGRAMS =3D ulogd
+> > =20
+> >  ulogd_SOURCES =3D ulogd.c select.c timer.c rbtree.c conffile.c hash.c
+> > +if HAVE_DEBUG
+> > +ulogd_LDFLAGS =3D -lpthread -export-dynamic
+>=20
+> Do we still have the gdb pthread issue?
+
+I've got it on my debian "sid" and it seems someone has got it on
+bugzilla.
+
+BR,
+--=20
+Eric Leblond <eric@inl.fr>
+NuFW: http://www.nufw.org/
+
+--=-HZhZpDDvbeGkN+MgXB6r
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Ceci est une partie de message
+ =?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iD8DBQBMpP92nxA7CdMWjzIRAkxHAJ9CQrlWHeuf1NlPnhRTotE06cKkdgCfWhye
+lzCtll+NMvVgztItA0ALOFk=
+=I0+Q
+-----END PGP SIGNATURE-----
+
+--=-HZhZpDDvbeGkN+MgXB6r--
+
