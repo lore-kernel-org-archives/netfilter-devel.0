@@ -1,32 +1,79 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Missing kernel header files
-Date: Fri, 1 Oct 2010 23:09:09 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1010012248410.24065@obet.zrqbmnf.qr>
-References: <AANLkTinPD=3yC=KF_juTvUumXwmuMzgjrXyRg4NmML-C@mail.gmail.com>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [patch v2 07/12] [PATCH 07/12] IPVS: Add struct ip_vs_pe
+Date: Sat, 2 Oct 2010 00:45:52 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1010020030590.2320@ja.ssi.bg>
+References: <20101001143517.645421976@akiko.akashicho.tokyo.vergenet.net> <20101001143942.297844368@akiko.akashicho.tokyo.vergenet.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: David Corrales <corrales.david@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:58002 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750706Ab0JAVJL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Oct 2010 17:09:11 -0400
-In-Reply-To: <AANLkTinPD=3yC=KF_juTvUumXwmuMzgjrXyRg4NmML-C@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Jan Engelhardt <jengelh@medozas.de>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <20101001143942.297844368@akiko.akashicho.tokyo.vergenet.net>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thursday 2010-09-30 22:51, David Corrales wrote:
 
->Hi everyone,
+ 	Hello,
+
+On Fri, 1 Oct 2010, Simon Horman wrote:
+
+> ===================================================================
+> --- lvs-test-2.6.orig/net/netfilter/ipvs/ip_vs_conn.c	2010-10-01 22:48:42.000000000 +0900
+> +++ lvs-test-2.6/net/netfilter/ipvs/ip_vs_conn.c	2010-10-01 22:49:15.000000000 +0900
+> @@ -148,6 +148,29 @@ static unsigned int ip_vs_conn_hashkey(i
+> 		& ip_vs_conn_tab_mask;
+> }
 >
->Recently I ran across some issues when compiling iptables 1.2.9
->against kernel 2.6.24.
+> +static unsigned int ip_vs_conn_hashkey_param(const struct ip_vs_conn_param *p)
+> +{
+> +	if (p->pe && p->pe->hashkey_raw)
+> +		return p->pe->hashkey_raw(p, ip_vs_conn_rnd) &
+> +			ip_vs_conn_tab_mask;
+> +	return ip_vs_conn_hashkey(p->af, p->protocol, p->caddr, p->cport);
+> +}
+> +
+> +static unsigned int ip_vs_conn_hashkey_conn(const struct ip_vs_conn *cp)
+> +{
+> +	struct ip_vs_conn_param p;
+> +
+> +	ip_vs_conn_fill_param(cp->af, cp->protocol, &cp->caddr, cp->cport,
+> +			      NULL, 0, &p);
+> +
 
-Choosing arbitrary kernels is not designed to work before 1.4.3.
+ 	cp->dest is optional, line should be
+'if (cp->dest && cp->dest->svc->pe) {':
 
->I recon that the iptables version is rather old but I was wondering if
->it possible to patch it in order to compile with the upgrades.
+> +	if (cp->dest->svc->pe) {
+> +		p.pe = cp->dest->svc->pe;
+> +		p.pe_data = cp->pe_data;
+> +		p.pe_data_len = cp->pe_data_len;
+> +	}
+> +
+> +	return ip_vs_conn_hashkey_param(&p);
+> +}
+>
 
-Why bother with patching when just using 1.4.9 yields equivalent 
-behavior?
+
+> @@ -359,7 +387,7 @@ struct ip_vs_conn *ip_vs_conn_out_get(co
+> 	/*
+> 	 *	Check for "full" addressed entries
+> 	 */
+
+ 	Here ip_vs_conn_out_get expects client data in
+p->vaddr and p->vport (was daddr before) but ip_vs_conn_hashkey_param 
+hashes client data from p->caddr and p->cport:
+
+> -	hash = ip_vs_conn_hashkey(p->af, p->protocol, p->vaddr, p->vport);
+> +	hash = ip_vs_conn_hashkey_param(p);
+>
+> 	ct_read_lock(hash);
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
