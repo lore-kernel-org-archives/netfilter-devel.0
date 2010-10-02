@@ -1,64 +1,55 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: [PATCH net-next] nf_nat: make find/put static
-Date: Sat, 2 Oct 2010 14:17:36 +0900
-Message-ID: <20101002141736.0a31bcd7@s6510>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [patch v2 03/12] [PATCH 03/12] IPVS: compact
+ ip_vs_sched_persist()
+Date: Sat, 2 Oct 2010 10:56:19 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1010021048260.1814@ja.ssi.bg>
+References: <20101001143517.645421976@akiko.akashicho.tokyo.vergenet.net> <20101001143941.949669349@akiko.akashicho.tokyo.vergenet.net> <alpine.LFD.2.00.1010020129400.2462@ja.ssi.bg> <20101002022050.GA16593@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Jan Engelhardt <jengelh@medozas.de>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:37218 "EHLO mail.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751265Ab0JBFRk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 Oct 2010 01:17:40 -0400
+Received: from ja.ssi.bg ([178.16.129.10]:38770 "EHLO ja.ssi.bg"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752144Ab0JBH4i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 2 Oct 2010 03:56:38 -0400
+In-Reply-To: <20101002022050.GA16593@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The functions nf_nat_proto_find_get and nf_nat_proto_put are
-only used internally in nf_nat_core. This might break some out
-of tree NAT module.
 
-Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+ 	Hello,
 
---- a/include/net/netfilter/nf_nat_protocol.h	2010-10-02 09:01:09.153396885 +0900
-+++ b/include/net/netfilter/nf_nat_protocol.h	2010-10-02 09:01:55.340910304 +0900
-@@ -45,9 +45,6 @@ struct nf_nat_protocol {
- extern int nf_nat_protocol_register(const struct nf_nat_protocol *proto);
- extern void nf_nat_protocol_unregister(const struct nf_nat_protocol *proto);
- 
--extern const struct nf_nat_protocol *nf_nat_proto_find_get(u_int8_t protocol);
--extern void nf_nat_proto_put(const struct nf_nat_protocol *proto);
--
- /* Built-in protocols. */
- extern const struct nf_nat_protocol nf_nat_protocol_tcp;
- extern const struct nf_nat_protocol nf_nat_protocol_udp;
---- a/net/ipv4/netfilter/nf_nat_core.c	2010-10-02 09:01:09.183396507 +0900
-+++ b/net/ipv4/netfilter/nf_nat_core.c	2010-10-02 09:01:55.340910304 +0900
-@@ -47,7 +47,7 @@ __nf_nat_proto_find(u_int8_t protonum)
- 	return rcu_dereference(nf_nat_protos[protonum]);
- }
- 
--const struct nf_nat_protocol *
-+static const struct nf_nat_protocol *
- nf_nat_proto_find_get(u_int8_t protonum)
- {
- 	const struct nf_nat_protocol *p;
-@@ -60,14 +60,12 @@ nf_nat_proto_find_get(u_int8_t protonum)
- 
- 	return p;
- }
--EXPORT_SYMBOL_GPL(nf_nat_proto_find_get);
- 
--void
-+static void
- nf_nat_proto_put(const struct nf_nat_protocol *p)
- {
- 	module_put(p->me);
- }
--EXPORT_SYMBOL_GPL(nf_nat_proto_put);
- 
- /* We keep an extra hash for each conntrack, for fast searching. */
- static inline unsigned int
+On Sat, 2 Oct 2010, Simon Horman wrote:
 
+>> 	Here dport:
+>>
+>>> +	dport = dest->port;
+>>
+>> 	should be:
+>>
+>> 	dport = ports[1];
+>> 	if (dport == svc->port && dest->port)
+>> 		dport = dest->port;
+>
+> Thanks, fixed.
+
+ 	I'm still wondering, may be it needs separate patch
+but we do not support NAT to different dest->port in the
+case for fwmark. May be the above logic can be changed to
+support it. By this way web to different VIPs and VPORTs
+in a single virtual service (fwmark) can use single NAT
+real server for name-based virtual hosting. But such change
+can create compatibility problems for setups that used
+different vports for the fwmark service and still expect
+it in that way (vport to same dport).
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
