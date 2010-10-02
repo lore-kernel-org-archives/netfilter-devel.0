@@ -1,68 +1,42 @@
-From: Nicola Padovano <nicola.padovano@gmail.com>
-Subject: Re: problem with flowi structure
-Date: Sat, 2 Oct 2010 10:08:56 +0200
-Message-ID: <AANLkTinObV+176prSdCL0RoVx7a74quUM5H58xR2_WLG@mail.gmail.com>
-References: <AANLkTi=bGsvMqnTSanA73FhDH_DashmXTcA1sddtj0P6@mail.gmail.com>
- <1284650768.3352.37.camel@edumazet-laptop> <AANLkTimo1AeBS3rpQj0KtZL15Ct-DGTQMBUsL8hrVNOL@mail.gmail.com>
- <1284652453.3352.38.camel@edumazet-laptop> <AANLkTi=Y7beG4vPDx5eNg-gTN1CVg_G=1+dWwi2Xd2-R@mail.gmail.com>
- <AANLkTim7TeMCG9RQyrrk8WS4+S_y1q06+8FG2-X=1cB-@mail.gmail.com>
- <AANLkTimpnqNSE21u=2qjb5VGJrn_3_--Bqp4veCNXMPE@mail.gmail.com>
- <1284714533.3391.53.camel@edumazet-laptop> <AANLkTi=r__RA=5UfNnhsKizDF6OFVYXcSe9KOPx1zW0u@mail.gmail.com>
- <1284741295.3391.100.camel@edumazet-laptop> <AANLkTi=t2=jqu3XCC-3LK7x1_icke168Bqt-kmds6eOt@mail.gmail.com>
- <1284745887.2235.7.camel@edumazet-laptop> <AANLkTinx_18cVq52tmC0-g0qLYXJ5c_u9aad_rz_p2ND@mail.gmail.com>
- <1284746879.2235.9.camel@edumazet-laptop> <AANLkTi=hXc_ijNgxW+Q6jkRP_T1zjyy2mvKAdTSgeh7w@mail.gmail.com>
- <alpine.LNX.2.01.1010020146440.26371@obet.zrqbmnf.qr>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [patch v3 00/12] IPVS: SIP Persistence Engine
+Date: Sat, 2 Oct 2010 12:00:14 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1010021155520.2055@ja.ssi.bg>
+References: <20101002023056.536217499@akiko.akashicho.tokyo.vergenet.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	AIJAZ BAIG <aijazbaig1@gmail.com>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	netdev@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:51623 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751951Ab0JBIJS convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 Oct 2010 04:09:18 -0400
-In-Reply-To: <alpine.LNX.2.01.1010020146440.26371@obet.zrqbmnf.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Jan Engelhardt <jengelh@medozas.de>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20101002023056.536217499@akiko.akashicho.tokyo.vergenet.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-i.e. like a wildcard?
 
-On Sat, Oct 2, 2010 at 1:46 AM, Jan Engelhardt <jengelh@medozas.de> wro=
-te:
+ 	Hello,
+
+On Sat, 2 Oct 2010, Simon Horman wrote:
+
+> This patch series adds load-balancing of UDP SIP based on Call-ID to
+> IPVS as well as a frame-work for extending IPVS to handle alternate
+> persistence requirements.
 >
-> On Friday 2010-09-17 20:25, Nicola Padovano wrote:
->>
->>[CODE]
->>if (hooknumber =3D=3D NF_INET_LOCAL_IN) fl.nl_u.ip4_u.saddr =3D niph-=
->saddr;
->> =A0//niph is the pointer to ip header of the packet to send
->>if (hooknumber =3D=3D NF_INET_FORWARD) fl.nl_u.ip4_u.saddr =3D 0;
->>[/CODE]
->>
->>so, i don't understand why saddr =3D 0 when the hooknumber is NF_INET=
-_FORWARD....
->>
->>this is the real problem.
+> REVISIONS
 >
-> 0 is automatic address selection.
->
+> This is v3 of the patch series with addresses serveral problems
+> raised by Julian Anastasov on the lvs-devel mailing list.
 
+ 	No other obvious problems in v3 1-12. So,
+Acked-by: Julian Anastasov <ja@ssi.bg>
 
+ 	May be next days I'll test my changes on top of PE v3
 
---=20
-Nicola Padovano
-e-mail: nicola.padovano@gmail.com
-web: http://npadovano.altervista.org
+Regards
 
-"My only ambition is not be anything at all; it seems the most
-sensible thing" (C. Bukowski)
 --
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Julian Anastasov <ja@ssi.bg>
