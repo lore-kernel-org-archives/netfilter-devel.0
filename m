@@ -1,42 +1,58 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [patch v3 00/12] IPVS: SIP Persistence Engine
-Date: Sat, 2 Oct 2010 12:00:14 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1010021155520.2055@ja.ssi.bg>
-References: <20101002023056.536217499@akiko.akashicho.tokyo.vergenet.net>
+From: Nicola Padovano <nicola.padovano@gmail.com>
+Subject: checkentry function
+Date: Sat, 2 Oct 2010 13:59:30 +0200
+Message-ID: <AANLkTimeoRTBMY0OH5sDtVEfqFCx9F3go1qGKy5cJpWS@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20101002023056.536217499@akiko.akashicho.tokyo.vergenet.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel <netfilter-devel@vger.kernel.org>,
+	netdev@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:47135 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755444Ab0JBL7w convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 2 Oct 2010 07:59:52 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello there.
+I've written checkentry function to check my new target, in this way:
 
- 	Hello,
+[CHECK_ENTRY_CODE]
+static bool xt_tarpit_check(const char *tablename, const void *entry,
+                            const struct xt_target *target, void *targi=
+nfo,
+                            unsigned int hook_mask)
+{
+ if (strcmp(tablename, "filter"))   {
+    printk(KERN_INFO "DEBUG: the tablename (not FILTER) is %s\n",tablen=
+ame);
+    return false;
+  }
+return true;
+}
+[/CHECK_ENTRY_CODE]
 
-On Sat, 2 Oct 2010, Simon Horman wrote:
+but it doesn't work.
+In fact if I do:
 
-> This patch series adds load-balancing of UDP SIP based on Call-ID to
-> IPVS as well as a frame-work for extending IPVS to handle alternate
-> persistence requirements.
->
-> REVISIONS
->
-> This is v3 of the patch series with addresses serveral problems
-> raised by Julian Anastasov on the lvs-devel mailing list.
+iptables -A INPUT -t filter -s 192.168.0.1 -p tcp -j TAR
 
- 	No other obvious problems in v3 1-12. So,
-Acked-by: Julian Anastasov <ja@ssi.bg>
+the printk prints this message: DEBUG: the tablename (not FILTER) is: =EF=
+=BF=BD%H =EF=BF=BD
 
- 	May be next days I'll test my changes on top of PE v3
+so: in the tablename i haven't the string "filter"...what' the matter?
 
-Regards
+--=20
+Nicola Padovano
+e-mail: nicola.padovano@gmail.com
+web: http://npadovano.altervista.org
 
+"My only ambition is not be anything at all; it seems the most
+sensible thing" (C. Bukowski)
 --
-Julian Anastasov <ja@ssi.bg>
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
