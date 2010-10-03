@@ -1,46 +1,59 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [patch v3 00/12] IPVS: SIP Persistence Engine
-Date: Sun, 3 Oct 2010 14:07:27 +0900
-Message-ID: <20101003050725.GA5817@verge.net.au>
-References: <20101002023056.536217499@akiko.akashicho.tokyo.vergenet.net>
- <alpine.LFD.2.00.1010021155520.2055@ja.ssi.bg>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 3/6] build: add debug configure flag
+Date: Sun, 03 Oct 2010 12:15:20 +0200
+Message-ID: <4CA857B8.3070205@netfilter.org>
+References: <1285116442-32490-1-git-send-email-eric@inl.fr>  <1285116442-32490-4-git-send-email-eric@inl.fr>  <4CA45D5E.9010103@netfilter.org> <1285881721.21111.1.camel@ice-age> <alpine.LNX.2.01.1010020021520.26371@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1010021155520.2055@ja.ssi.bg>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Eric Leblond <eric@inl.fr>, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:55756 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752801Ab0JCKP1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 Oct 2010 06:15:27 -0400
+In-Reply-To: <alpine.LNX.2.01.1010020021520.26371@obet.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Oct 02, 2010 at 12:00:14PM +0300, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Sat, 2 Oct 2010, Simon Horman wrote:
-> 
-> >This patch series adds load-balancing of UDP SIP based on Call-ID to
-> >IPVS as well as a frame-work for extending IPVS to handle alternate
-> >persistence requirements.
-> >
-> >REVISIONS
-> >
-> >This is v3 of the patch series with addresses serveral problems
-> >raised by Julian Anastasov on the lvs-devel mailing list.
-> 
-> 	No other obvious problems in v3 1-12. So,
-> Acked-by: Julian Anastasov <ja@ssi.bg>
+On 02/10/10 00:22, Jan Engelhardt wrote:
+> On Thursday 2010-09-30 23:22, Eric Leblond wrote:
+>=20
+>> Hi,
+>>
+>> Le jeudi 30 septembre 2010 =C3=A0 11:50 +0200, Pablo Neira Ayuso a =C3=
+=A9crit :
+>>> On 22/09/10 02:47, Eric Leblond wrote:
+>>>> --- a/src/Makefile.am
+>>>> +++ b/src/Makefile.am
+>>>> @@ -6,4 +6,8 @@ AM_CPPFLAGS =3D $(all_includes) -I$(top_srcdir)/in=
+clude \
+>>>>  sbin_PROGRAMS =3D ulogd
+>>>> =20
+>>>>  ulogd_SOURCES =3D ulogd.c select.c timer.c rbtree.c conffile.c ha=
+sh.c
+>>>> +if HAVE_DEBUG
+>>>> +ulogd_LDFLAGS =3D -lpthread -export-dynamic
+>>>
+>>> Do we still have the gdb pthread issue?
+>>
+>> I've got it on my debian "sid" and it seems someone has got it on
+>> bugzilla.
+>=20
+> When exactly does it happen? Do you have a testcase?
+> (I tried `grep -ri pthr .` in ulogd2 but that showed no use of pthr a=
+t=20
+> all.)
 
-Thanks.
+The problem is gdb in debian, which doesn't seem to work if ulogd2 is
+not compiled with pthread.
 
-
-> 	May be next days I'll test my changes on top of PE v3
-
-I think that could save a bit of porting work later
-and perhaps you might notice some more bugs too :-)
+If this is a gdb bug, it should be fixed there, I know that it's
+annoying for debugging ulogd2. However, I think this may confuse people
+since ulogd2 require no pthreads at all.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
