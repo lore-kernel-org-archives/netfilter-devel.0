@@ -1,59 +1,121 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 3/6] build: add debug configure flag
-Date: Sun, 03 Oct 2010 12:15:20 +0200
-Message-ID: <4CA857B8.3070205@netfilter.org>
-References: <1285116442-32490-1-git-send-email-eric@inl.fr>  <1285116442-32490-4-git-send-email-eric@inl.fr>  <4CA45D5E.9010103@netfilter.org> <1285881721.21111.1.camel@ice-age> <alpine.LNX.2.01.1010020021520.26371@obet.zrqbmnf.qr>
+From: jamal <hadi@cyberus.ca>
+Subject: Re: [PATCH 8/8] net: Implement socketat.
+Date: Sun, 03 Oct 2010 09:44:01 -0400
+Message-ID: <1286113441.3812.229.camel@bigi>
+References: <m1ocborgq7.fsf@fess.ebiederm.org>
+	 <m1bp7oq1u8.fsf@fess.ebiederm.org>  <4C9B162E.7040201@parallels.com>
+	 <1285240797.5036.5.camel@bigi>  <4C9B3B06.900@parallels.com>
+	 <1285242055.5036.9.camel@bigi> <4C9B3F9C.8080506@parallels.com>
+	 <4CA7A07C.5030504@free.fr>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Leblond <eric@inl.fr>, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55756 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752801Ab0JCKP1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Oct 2010 06:15:27 -0400
-In-Reply-To: <alpine.LNX.2.01.1010020021520.26371@obet.zrqbmnf.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Pavel Emelyanov <xemul@parallels.com>,
+	"Eric W. Biederman" <ebiederm@xmission.com>,
+	linux-kernel@vger.kernel.org,
+	Linux Containers <containers@lists.osdl.org>,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Michael Kerrisk <mtk.manpages@gmail.com>,
+	Ulrich Drepper <drepper@gmail.com>,
+	Al Viro <viro@ZenIV.linux.org.uk>,
+	David Miller <davem@davemloft.net>,
+	"Serge E. Hallyn" <serge@hallyn.com>,
+	Pavel Emelyanov <xemul@openvz.org>,
+	Ben Greear <greearb@candelatech.com>,
+	Matt Helsley <matthltc@us.ibm.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>,
+	Jan Engelhardt <jengelh@medozas.de>,
+	Patrick McHardy <kaber@trash.net>
+To: Daniel Lezcano <daniel.lezcano@free.fr>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <4CA7A07C.5030504@free.fr>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 02/10/10 00:22, Jan Engelhardt wrote:
-> On Thursday 2010-09-30 23:22, Eric Leblond wrote:
->=20
->> Hi,
->>
->> Le jeudi 30 septembre 2010 =C3=A0 11:50 +0200, Pablo Neira Ayuso a =C3=
-=A9crit :
->>> On 22/09/10 02:47, Eric Leblond wrote:
->>>> --- a/src/Makefile.am
->>>> +++ b/src/Makefile.am
->>>> @@ -6,4 +6,8 @@ AM_CPPFLAGS =3D $(all_includes) -I$(top_srcdir)/in=
-clude \
->>>>  sbin_PROGRAMS =3D ulogd
->>>> =20
->>>>  ulogd_SOURCES =3D ulogd.c select.c timer.c rbtree.c conffile.c ha=
-sh.c
->>>> +if HAVE_DEBUG
->>>> +ulogd_LDFLAGS =3D -lpthread -export-dynamic
->>>
->>> Do we still have the gdb pthread issue?
->>
->> I've got it on my debian "sid" and it seems someone has got it on
->> bugzilla.
->=20
-> When exactly does it happen? Do you have a testcase?
-> (I tried `grep -ri pthr .` in ulogd2 but that showed no use of pthr a=
-t=20
-> all.)
+Hi Daniel,
 
-The problem is gdb in debian, which doesn't seem to work if ulogd2 is
-not compiled with pthread.
+Thanks for clarifying this ..
 
-If this is a gdb bug, it should be fixed there, I know that it's
-annoying for debugging ulogd2. However, I think this may confuse people
-since ulogd2 require no pthreads at all.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Sat, 2010-10-02 at 23:13 +0200, Daniel Lezcano wrote:
+> Just to clarify this point. You enter the namespace, create the socket
+> and go back to the initial namespace (or create a new one). Further 
+> operations can be made against this fd because it is the network 
+> namespace stored in the sock struct which is used, not the current 
+> process network namespace which is used at the socket creation only.
+> 
+> We can actually already do that by unsharing and then create a
+> socket. 
+> This socket will pin the namespace and can be used as a control socket
+> for the namespace (assuming the socket domain will be ok for all the 
+> operations).
+>
+> Jamal, I don't know what kind of application you want to use but if I 
+> assume you want to create a process controlling 1024 netns, 
+
+At the moment i am looking at 8K on a Nehalem with lots of RAM. They
+will mostly be created at startup but some could be created afterwards.
+Each will have its own netdevs etc. also created at startup (and some
+other config that may happen later). 
+Because startup time may accumulate, it is clearly important to me
+to pick whatever scheme that reduces the number of calls...
+
+> let's try to identificate what happen with setns and with socketat :
+> 
+> With setns:
+> 
+>      * open /proc/self/ns/net (1)
+>      * unshare the netns
+>      * open /proc/self/ns/net (2)
+>      * setns (1)
+>      * create a virtual network device
+>      * move the virtual device to (2) (using the set netns by fd)
+>      * unshare the netns
+>      ...
+> 
+> With socketat:
+> 
+>      * open a socket (1)
+>      * unshare the netns
+>      * open a netlink with socketat(1) => (2)
+>      * create a virtual device using (2) (at this point it is
+> init_net_ns)
+>      * move the virtual device to the current netns (using the set
+> netns 
+> by pid)
+>      * open a socket (3)
+>      * unshare the netns
+>      ...
+> 
+> We have the same number of file descriptors kept opened. Except, with 
+> setns we can bind mount the directory somewhere, that will pin the 
+> namespace and then we can close the /proc/self/ns/net file descriptors
+> and reopen them later.
+> 
+
+Ok, so a wrapper such as: create_socket_on(namespaceid)
+will have generally less system calls with socketat()
+
+> If your application has to do a lot of specific network processing, 
+> during its life cycle, in different namespaces, the socketat syscall 
+> will be better because it will reduce the number of syscalls but at
+> the cost of keeping the file descriptors opened (potentially a big
+> number). Otherwise, setns should fit your needs.
+
+Makes sense. 
+
+One thing still confuses me...
+The app control point is in namespace0. I still want to be able to
+"boot" namespaces first and maybe a few seconds later do a socketat()...
+and create devices, tcp sockets etc. I suspect create_ns(namespace-name)
+would involve:
+     * open /proc/self/ns/net (namespace-name)
+     * unshare the netns
+Is this correct?
+
+cheers,
+jamal
+
