@@ -1,25 +1,36 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: remove duplicated include
-Date: Mon, 04 Oct 2010 21:01:11 +0200
-Message-ID: <4CAA2477.9010906@trash.net>
-References: <20101004162216.6d2c26c5@absol.kitzblitz>
+Subject: Re: [patch v2] ipvs: IPv6 tunnel mode
+Date: Mon, 04 Oct 2010 21:06:44 +0200
+Message-ID: <4CAA25C4.1040301@trash.net>
+References: <20100927135913.GA21785@verge.net.au> <20100930012239.GA18392@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Hannes Eder <heder@google.com>, netfilter-devel@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-To: Nicolas Kaiser <nikai@nikai.net>
+Cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	Julian Anastasov <ja@ssi.bg>, Julius Volz <juliusv@google.com>,
+	Wensong Zhang <wensong@linux-vs.org>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64905 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:65020 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932253Ab0JDTBN (ORCPT
+	with ESMTP id S1755022Ab0JDTHE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Oct 2010 15:01:13 -0400
-In-Reply-To: <20101004162216.6d2c26c5@absol.kitzblitz>
+	Mon, 4 Oct 2010 15:07:04 -0400
+In-Reply-To: <20100930012239.GA18392@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 04.10.2010 16:22, schrieb Nicolas Kaiser:
-> Remove duplicated include.
+Am 30.09.2010 03:22, schrieb Simon Horman:
+> On Mon, Sep 27, 2010 at 10:59:14PM +0900, Simon Horman wrote:
+>> From: Julian Anastasov <ja@ssi.bg>
+>>
+>> Tunnel mode for IPv6 doesn't work.
+> 
+> Patrick, can you please drop this patch for now.
+> Hans has found some problems with it.
+> 
+> http://archive.linuxvirtualserver.org/html/lvs-devel/2010-09/msg00073.html
 
-Applied, thanks.
+Sure, just resend once you consider it ready for inclusion.
