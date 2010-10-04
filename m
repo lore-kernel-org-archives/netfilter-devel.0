@@ -1,33 +1,38 @@
-From: David Corrales <corrales.david@gmail.com>
-Subject: Re: Missing kernel header files
-Date: Mon, 4 Oct 2010 10:56:22 -0600
-Message-ID: <AANLkTi=S0f1DR0Y0YCqtV6jqU2ugHUsDWdSDRbMjYKr_@mail.gmail.com>
-References: <AANLkTinPD=3yC=KF_juTvUumXwmuMzgjrXyRg4NmML-C@mail.gmail.com>
-	<alpine.LNX.2.01.1010012248410.24065@obet.zrqbmnf.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [patch v5 00/12] IPVS: SIP Persistence Engine
+Date: Mon, 04 Oct 2010 20:47:56 +0200
+Message-ID: <4CAA215C.8040605@trash.net>
+References: <20101004134624.963907470@akiko.akashicho.tokyo.vergenet.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Jan Engelhardt <jengelh@medozas.de>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:35848 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754087Ab0JDQ4X (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:64600 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756895Ab0JDSr6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Oct 2010 12:56:23 -0400
-Received: by eyb6 with SMTP id 6so1990721eyb.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 04 Oct 2010 09:56:22 -0700 (PDT)
-In-Reply-To: <alpine.LNX.2.01.1010012248410.24065@obet.zrqbmnf.qr>
+	Mon, 4 Oct 2010 14:47:58 -0400
+In-Reply-To: <20101004134624.963907470@akiko.akashicho.tokyo.vergenet.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> Choosing arbitrary kernels is not designed to work before 1.4.3.
+Am 04.10.2010 15:46, schrieb Simon Horman:
+> CODE AVAILABILITY
+> 
+> The kernel patches (12) are available in git as the pe-5 branch of
+> git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git
 
-Oh, that's too bad :(
+Pulled, thanks Simon. I get a warning in ip_vs_pe_sip.c however,
+please send a fix for this on top.
 
-> Why bother with patching when just using 1.4.9 yields equivalent
-> behavior?
->
+net/netfilter/ipvs/ip_vs_pe_sip.c:11: warning: 'ip_vs_dbg_callid'
+defined but not used
 
-Thing is that other software modules depend on this headers as well so
-I wanted to minimize the impact. I rather patch than bump the version
-number.
+Thanks!
