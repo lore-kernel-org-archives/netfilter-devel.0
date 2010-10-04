@@ -1,121 +1,96 @@
-From: jamal <hadi@cyberus.ca>
-Subject: Re: [PATCH 8/8] net: Implement socketat.
-Date: Sun, 03 Oct 2010 09:44:01 -0400
-Message-ID: <1286113441.3812.229.camel@bigi>
-References: <m1ocborgq7.fsf@fess.ebiederm.org>
-	 <m1bp7oq1u8.fsf@fess.ebiederm.org>  <4C9B162E.7040201@parallels.com>
-	 <1285240797.5036.5.camel@bigi>  <4C9B3B06.900@parallels.com>
-	 <1285242055.5036.9.camel@bigi> <4C9B3F9C.8080506@parallels.com>
-	 <4CA7A07C.5030504@free.fr>
-Reply-To: hadi@cyberus.ca
+From: David Miller <davem@davemloft.net>
+Subject: ipvs: Use frag walker helper in SCTP proto support.
+Date: Sun, 03 Oct 2010 23:46:01 -0700 (PDT)
+Message-ID: <20101003.234601.232735559.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Pavel Emelyanov <xemul@parallels.com>,
-	"Eric W. Biederman" <ebiederm@xmission.com>,
-	linux-kernel@vger.kernel.org,
-	Linux Containers <containers@lists.osdl.org>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Michael Kerrisk <mtk.manpages@gmail.com>,
-	Ulrich Drepper <drepper@gmail.com>,
-	Al Viro <viro@ZenIV.linux.org.uk>,
-	David Miller <davem@davemloft.net>,
-	"Serge E. Hallyn" <serge@hallyn.com>,
-	Pavel Emelyanov <xemul@openvz.org>,
-	Ben Greear <greearb@candelatech.com>,
-	Matt Helsley <matthltc@us.ibm.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Patrick McHardy <kaber@trash.net>
-To: Daniel Lezcano <daniel.lezcano@free.fr>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <4CA7A07C.5030504@free.fr>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: horms@verge.net.au
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:34398
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752382Ab0JDGpk (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 4 Oct 2010 02:45:40 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Daniel,
 
-Thanks for clarifying this ..
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ net/netfilter/ipvs/ip_vs_proto_sctp.c |   19 ++++++++++---------
+ 1 files changed, 10 insertions(+), 9 deletions(-)
 
-On Sat, 2010-10-02 at 23:13 +0200, Daniel Lezcano wrote:
-> Just to clarify this point. You enter the namespace, create the socket
-> and go back to the initial namespace (or create a new one). Further 
-> operations can be made against this fd because it is the network 
-> namespace stored in the sock struct which is used, not the current 
-> process network namespace which is used at the socket creation only.
-> 
-> We can actually already do that by unsharing and then create a
-> socket. 
-> This socket will pin the namespace and can be used as a control socket
-> for the namespace (assuming the socket domain will be ok for all the 
-> operations).
->
-> Jamal, I don't know what kind of application you want to use but if I 
-> assume you want to create a process controlling 1024 netns, 
-
-At the moment i am looking at 8K on a Nehalem with lots of RAM. They
-will mostly be created at startup but some could be created afterwards.
-Each will have its own netdevs etc. also created at startup (and some
-other config that may happen later). 
-Because startup time may accumulate, it is clearly important to me
-to pick whatever scheme that reduces the number of calls...
-
-> let's try to identificate what happen with setns and with socketat :
-> 
-> With setns:
-> 
->      * open /proc/self/ns/net (1)
->      * unshare the netns
->      * open /proc/self/ns/net (2)
->      * setns (1)
->      * create a virtual network device
->      * move the virtual device to (2) (using the set netns by fd)
->      * unshare the netns
->      ...
-> 
-> With socketat:
-> 
->      * open a socket (1)
->      * unshare the netns
->      * open a netlink with socketat(1) => (2)
->      * create a virtual device using (2) (at this point it is
-> init_net_ns)
->      * move the virtual device to the current netns (using the set
-> netns 
-> by pid)
->      * open a socket (3)
->      * unshare the netns
->      ...
-> 
-> We have the same number of file descriptors kept opened. Except, with 
-> setns we can bind mount the directory somewhere, that will pin the 
-> namespace and then we can close the /proc/self/ns/net file descriptors
-> and reopen them later.
-> 
-
-Ok, so a wrapper such as: create_socket_on(namespaceid)
-will have generally less system calls with socketat()
-
-> If your application has to do a lot of specific network processing, 
-> during its life cycle, in different namespaces, the socketat syscall 
-> will be better because it will reduce the number of syscalls but at
-> the cost of keeping the file descriptors opened (potentially a big
-> number). Otherwise, setns should fit your needs.
-
-Makes sense. 
-
-One thing still confuses me...
-The app control point is in namespace0. I still want to be able to
-"boot" namespaces first and maybe a few seconds later do a socketat()...
-and create devices, tcp sockets etc. I suspect create_ns(namespace-name)
-would involve:
-     * open /proc/self/ns/net (namespace-name)
-     * unshare the netns
-Is this correct?
-
-cheers,
-jamal
+diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+index 4c0855c..2f982a4 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+@@ -61,6 +61,7 @@ sctp_snat_handler(struct sk_buff *skb,
+ {
+ 	sctp_sctphdr_t *sctph;
+ 	unsigned int sctphoff;
++	struct sk_buff *iter;
+ 	__be32 crc32;
+ 
+ #ifdef CONFIG_IP_VS_IPV6
+@@ -89,8 +90,8 @@ sctp_snat_handler(struct sk_buff *skb,
+ 
+ 	/* Calculate the checksum */
+ 	crc32 = sctp_start_cksum((u8 *) sctph, skb_headlen(skb) - sctphoff);
+-	for (skb = skb_shinfo(skb)->frag_list; skb; skb = skb->next)
+-		crc32 = sctp_update_cksum((u8 *) skb->data, skb_headlen(skb),
++	skb_walk_frags(skb, iter)
++		crc32 = sctp_update_cksum((u8 *) iter->data, skb_headlen(iter),
+ 				          crc32);
+ 	crc32 = sctp_end_cksum(crc32);
+ 	sctph->checksum = crc32;
+@@ -102,9 +103,9 @@ static int
+ sctp_dnat_handler(struct sk_buff *skb,
+ 		  struct ip_vs_protocol *pp, struct ip_vs_conn *cp)
+ {
+-
+ 	sctp_sctphdr_t *sctph;
+ 	unsigned int sctphoff;
++	struct sk_buff *iter;
+ 	__be32 crc32;
+ 
+ #ifdef CONFIG_IP_VS_IPV6
+@@ -133,8 +134,8 @@ sctp_dnat_handler(struct sk_buff *skb,
+ 
+ 	/* Calculate the checksum */
+ 	crc32 = sctp_start_cksum((u8 *) sctph, skb_headlen(skb) - sctphoff);
+-	for (skb = skb_shinfo(skb)->frag_list; skb; skb = skb->next)
+-		crc32 = sctp_update_cksum((u8 *) skb->data, skb_headlen(skb),
++	skb_walk_frags(skb, iter)
++		crc32 = sctp_update_cksum((u8 *) iter->data, skb_headlen(iter),
+ 					  crc32);
+ 	crc32 = sctp_end_cksum(crc32);
+ 	sctph->checksum = crc32;
+@@ -145,9 +146,9 @@ sctp_dnat_handler(struct sk_buff *skb,
+ static int
+ sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
+ {
+-	struct sk_buff *list = skb_shinfo(skb)->frag_list;
+ 	unsigned int sctphoff;
+ 	struct sctphdr *sh, _sctph;
++	struct sk_buff *iter;
+ 	__le32 cmp;
+ 	__le32 val;
+ 	__u32 tmp;
+@@ -166,9 +167,9 @@ sctp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
+ 	cmp = sh->checksum;
+ 
+ 	tmp = sctp_start_cksum((__u8 *) sh, skb_headlen(skb));
+-	for (; list; list = list->next)
+-		tmp = sctp_update_cksum((__u8 *) list->data,
+-					skb_headlen(list), tmp);
++	skb_walk_frags(skb, iter)
++		tmp = sctp_update_cksum((__u8 *) iter->data,
++					skb_headlen(iter), tmp);
+ 
+ 	val = sctp_end_cksum(tmp);
+ 
+-- 
+1.7.3.1
 
