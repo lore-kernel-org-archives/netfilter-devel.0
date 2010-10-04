@@ -1,42 +1,86 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: unregister nf hooks, matches and targets in
- the reverse order
-Date: Mon, 04 Oct 2010 22:26:33 +0200
-Message-ID: <4CAA3879.1020406@trash.net>
-References: <1283436908-10744-1-git-send-email-xiaosuo@gmail.com> <4C91033B.6070902@trash.net> <AANLkTi=AhK0jDM8WEf5tHhervKUpB6f4MR+mNx2moYuC@mail.gmail.com> <alpine.LNX.2.01.1010020157010.26371@obet.zrqbmnf.qr>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [patch v2 03/12] [PATCH 03/12] IPVS: compact
+ ip_vs_sched_persist()
+Date: Tue, 5 Oct 2010 01:36:53 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1010050010080.1856@ja.ssi.bg>
+References: <20101001143517.645421976@akiko.akashicho.tokyo.vergenet.net> <20101001143941.949669349@akiko.akashicho.tokyo.vergenet.net> <alpine.LFD.2.00.1010020129400.2462@ja.ssi.bg> <20101002022050.GA16593@verge.net.au> <alpine.LFD.2.00.1010021048260.1814@ja.ssi.bg>
+ <20101002080850.GC2248@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Changli Gao <xiaosuo@gmail.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Jan Engelhardt <jengelh@medozas.de>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33766 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932604Ab0JDU0x (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Oct 2010 16:26:53 -0400
-In-Reply-To: <alpine.LNX.2.01.1010020157010.26371@obet.zrqbmnf.qr>
+Received: from ja.ssi.bg ([178.16.129.10]:54710 "EHLO ja.ssi.bg"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756079Ab0JDWhC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 4 Oct 2010 18:37:02 -0400
+In-Reply-To: <20101002080850.GC2248@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 02.10.2010 01:57, schrieb Jan Engelhardt:
-> On Sunday 2010-09-19 07:58, Changli Gao wrote:
-> 
->> On Thu, Sep 16, 2010 at 1:32 AM, Patrick McHardy <kaber@trash.net> wrote:
->>> Am 02.09.2010 16:15, schrieb Changli Gao:
->>>> Since we register nf hooks, matches and targets in order, we'd better
->>>> unregister them in the reverse order.
->>>
->>> Why? Is there a specific bug you've noticed?
->>>
->>
->> No, there isn't any bug. I just think unregistering them in the
->> reverse order is more resonable, like the rollback when failing. And
->> the code patched generates less object:
-> 
-> I support this.
 
-Yeah, it seems reasonable, although I don't like changing things
-without a concrete reason. Anyways, applied, thanks everyone.
+ 	Hello,
+
+On Sat, 2 Oct 2010, Simon Horman wrote:
+
+>> 	I'm still wondering, may be it needs separate patch
+>> but we do not support NAT to different dest->port in the
+>> case for fwmark. May be the above logic can be changed to
+>> support it. By this way web to different VIPs and VPORTs
+>> in a single virtual service (fwmark) can use single NAT
+>> real server for name-based virtual hosting. But such change
+>> can create compatibility problems for setups that used
+>> different vports for the fwmark service and still expect
+>> it in that way (vport to same dport).
+>
+> Hi Julian,
+>
+> I think that this sounds line a new flavour of fwmark virtual services to me.
+> Perhaps yet another flag is in order?
+>
+> To be clear, what you have in mind is essentially to nat *:* (as matched by
+> a fwmark) to x:y, where as at this time *:y may be natted to x:y.
+
+ 	Yes, the difference is here, persistent services with fwmark 
+ignore dest->port while non-persistent services with fwmark prefer
+dest->port:
+
+ip_vs_sched_persist:
+         dport = ports[1];
+         if (dport == svc->port && dest->port)
+                 dport = dest->port;
+ 	- before the PE changes even dest->port=0 was selected
+ 	for non-fwmark
+
+ip_vs_schedule:
+ 	dport set as: dest->port ? dest->port : pptr[1]
+
+ 	It is inconsistent. If we add new option for dest
+it should have 3 states:
+
+0: default (current, compatible)
+1: prefer real server port
+2: keep dport in packet
+
+ 	But the same can be done with rport or that was the
+goal before:
+
+- rport=0 (zero port) - keep dport from packet
+- rport>0 - use this real server port
+
+ 	It works perfectly for ip_vs_schedule but not for
+ip_vs_sched_persist, rport>0 is ignored for persistent
+fwmark and this is wrong for NAT. Persistence should just
+select dest but now it changes the rport semantic. The
+right thing is ip_vs_sched_persist to work as ip_vs_schedule
+but it can break some setups with persistence and fwmark.
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
