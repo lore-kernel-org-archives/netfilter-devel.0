@@ -1,38 +1,22 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [patch v5 00/12] IPVS: SIP Persistence Engine
-Date: Mon, 04 Oct 2010 20:47:56 +0200
-Message-ID: <4CAA215C.8040605@trash.net>
-References: <20101004134624.963907470@akiko.akashicho.tokyo.vergenet.net>
+Subject: Re: [PATCH net-next] nf_nat: make find/put static
+Date: Mon, 04 Oct 2010 20:54:12 +0200
+Message-ID: <4CAA22D4.9040106@trash.net>
+References: <20101002141736.0a31bcd7@s6510>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64600 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756895Ab0JDSr6 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Oct 2010 14:47:58 -0400
-In-Reply-To: <20101004134624.963907470@akiko.akashicho.tokyo.vergenet.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Stephen Hemminger <shemminger@vyatta.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20101002141736.0a31bcd7@s6510>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Am 04.10.2010 15:46, schrieb Simon Horman:
-> CODE AVAILABILITY
-> 
-> The kernel patches (12) are available in git as the pe-5 branch of
-> git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git
+Am 02.10.2010 07:17, schrieb Stephen Hemminger:
+> The functions nf_nat_proto_find_get and nf_nat_proto_put are
+> only used internally in nf_nat_core. This might break some out
+> of tree NAT module.
 
-Pulled, thanks Simon. I get a warning in ip_vs_pe_sip.c however,
-please send a fix for this on top.
-
-net/netfilter/ipvs/ip_vs_pe_sip.c:11: warning: 'ip_vs_dbg_callid'
-defined but not used
-
-Thanks!
+Applied, thanks Stephen.
