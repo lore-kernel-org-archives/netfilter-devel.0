@@ -1,65 +1,42 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH 8/8] net: Implement socketat.
-Date: Mon, 04 Oct 2010 12:07:58 -0700
-Message-ID: <m1bp797p4h.fsf@fess.ebiederm.org>
-References: <m1ocborgq7.fsf@fess.ebiederm.org>
-	<m1bp7oq1u8.fsf@fess.ebiederm.org> <4C9B162E.7040201@parallels.com>
-	<1285240797.5036.5.camel@bigi> <4C9B3B06.900@parallels.com>
-	<1285242055.5036.9.camel@bigi> <4C9B3F9C.8080506@parallels.com>
-	<4CA7A07C.5030504@free.fr> <1286113441.3812.229.camel@bigi>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter: unregister nf hooks, matches and targets in
+ the reverse order
+Date: Mon, 04 Oct 2010 22:26:33 +0200
+Message-ID: <4CAA3879.1020406@trash.net>
+References: <1283436908-10744-1-git-send-email-xiaosuo@gmail.com> <4C91033B.6070902@trash.net> <AANLkTi=AhK0jDM8WEf5tHhervKUpB6f4MR+mNx2moYuC@mail.gmail.com> <alpine.LNX.2.01.1010020157010.26371@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Daniel Lezcano <daniel.lezcano@free.fr>,
-	Pavel Emelyanov <xemul@parallels.com>,
-	linux-kernel@vger.kernel.org,
-	Linux Containers <containers@lists.osdl.org>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Michael Kerrisk <mtk.manpages@gmail.com>,
-	Ulrich Drepper <drepper@gmail.com>,
-	Al Viro <viro@ZenIV.linux.org.uk>,
-	David Miller <davem@davemloft.net>,
-	"Serge E. Hallyn" <serge@hallyn.com>,
-	Pavel Emelyanov <xemul@openvz.org>,
-	Ben Greear <greearb@candelatech.com>,
-	Matt Helsley <matthltc@us.ibm.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Patrick McHardy <kaber@trash.net>
-To: hadi@cyberus.ca
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Changli Gao <xiaosuo@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:56795 "EHLO
-	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932248Ab0JDTIS (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:33766 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932604Ab0JDU0x (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Oct 2010 15:08:18 -0400
-In-Reply-To: <1286113441.3812.229.camel@bigi> (jamal's message of "Sun, 03 Oct
-	2010 09:44:01 -0400")
+	Mon, 4 Oct 2010 16:26:53 -0400
+In-Reply-To: <alpine.LNX.2.01.1010020157010.26371@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-jamal <hadi@cyberus.ca> writes:
+Am 02.10.2010 01:57, schrieb Jan Engelhardt:
+> On Sunday 2010-09-19 07:58, Changli Gao wrote:
+> 
+>> On Thu, Sep 16, 2010 at 1:32 AM, Patrick McHardy <kaber@trash.net> wrote:
+>>> Am 02.09.2010 16:15, schrieb Changli Gao:
+>>>> Since we register nf hooks, matches and targets in order, we'd better
+>>>> unregister them in the reverse order.
+>>>
+>>> Why? Is there a specific bug you've noticed?
+>>>
+>>
+>> No, there isn't any bug. I just think unregistering them in the
+>> reverse order is more resonable, like the rollback when failing. And
+>> the code patched generates less object:
+> 
+> I support this.
 
-> One thing still confuses me...
-> The app control point is in namespace0. I still want to be able to
-> "boot" namespaces first and maybe a few seconds later do a socketat()...
-> and create devices, tcp sockets etc. I suspect create_ns(namespace-name)
-> would involve:
->      * open /proc/self/ns/net (namespace-name)
->      * unshare the netns
-> Is this correct?
-
-Almost.
-
-create should be:
-        * verify namespace-name is not already in use
-        * mkdir -p /var/run/netns/<namespace-name>
-	* unshare the netns
-        * mount --bind /proc/self/ns/net /var/run/netns/<namespace-name>
-
-Are you talking about an replacing something that used to use the linux
-vrf patches that are floating around?
-
-Eric
+Yeah, it seems reasonable, although I don't like changing things
+without a concrete reason. Anyways, applied, thanks everyone.
