@@ -1,35 +1,45 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [patch v5 00/12] IPVS: SIP Persistence Engine
-Date: Tue, 5 Oct 2010 19:00:23 +0900
-Message-ID: <20101005100023.GC18737@verge.net.au>
-References: <20101004134624.963907470@akiko.akashicho.tokyo.vergenet.net>
- <4CAA215C.8040605@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: checkentry function
+Date: Tue, 5 Oct 2010 13:32:26 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1010051331550.4582@obet.zrqbmnf.qr>
+References: <AANLkTimeoRTBMY0OH5sDtVEfqFCx9F3go1qGKy5cJpWS@mail.gmail.com> <20101005144615.0f84d53a@s6510> <AANLkTikDi3ziyH9eJbEhjOBwjFVHrtsMzYEJes4=eiJF@mail.gmail.com> <20101005150147.62226282@s6510> <AANLkTinTd5FjJ-6WeAGwintAS9aHdFYnS7--TLMSDEkn@mail.gmail.com>
+ <1286259838.2457.11.camel@edumazet-laptop> <AANLkTinVtz0VuLkOY5d8QjdvLMXOFD2EaWp_kSBbMJBW@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Jan Engelhardt <jengelh@medozas.de>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
 	Stephen Hemminger <shemminger@vyatta.com>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4CAA215C.8040605@trash.net>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	netdev@vger.kernel.org
+To: Nicola Padovano <nicola.padovano@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from borg.medozas.de ([188.40.89.202]:34095 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751573Ab0JELc1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Oct 2010 07:32:27 -0400
+In-Reply-To: <AANLkTinVtz0VuLkOY5d8QjdvLMXOFD2EaWp_kSBbMJBW@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Oct 04, 2010 at 08:47:56PM +0200, Patrick McHardy wrote:
-> Am 04.10.2010 15:46, schrieb Simon Horman:
-> > CODE AVAILABILITY
-> > 
-> > The kernel patches (12) are available in git as the pe-5 branch of
-> > git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git
-> 
-> Pulled, thanks Simon. I get a warning in ip_vs_pe_sip.c however,
-> please send a fix for this on top.
-> 
-> net/netfilter/ipvs/ip_vs_pe_sip.c:11: warning: 'ip_vs_dbg_callid'
-> defined but not used
+On Tuesday 2010-10-05 13:16, Nicola Padovano wrote:
+>>
+>> Could you read source code of _current_ existing modules , and use
+>> copy/paste ?
+>>
+>> static int hashlimit_mt_check(const struct xt_mtchk_param *par)
+>> {
+>> ...
+>> }
+>
+>as i've written in a previously mail this is the checkentry function
+>that i use in my source code to check if the iptables command line is
+>a right line.
+>
+>[CHECK_ENTRY_CODE]
+>static bool xt_tarpit_check(const char *tablename, const void *entry,
+>                           const struct xt_target *target, void *targinfo,
+>                           unsigned int hook_mask)
+>
+>i don't know what "static int hashlimit_mt_check(const struct
+>xt_mtchk_param *par)" is...
 
-Sorry about that, I will investigate and send a fix.
+It's the proper function header.
