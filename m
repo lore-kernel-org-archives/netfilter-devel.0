@@ -1,792 +1,473 @@
-From: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Subject: [RFC PATCH 9/9] ipvs network name space aware
-Date: Fri, 8 Oct 2010 13:17:13 +0200
-Message-ID: <201010081317.15354.hans.schillstrom@ericsson.com>
+From: Nicola Padovano <nicola.padovano@gmail.com>
+Subject: [PATCH] Tarpit target for the last stable (2.6.35.7)
+Date: Fri, 8 Oct 2010 19:01:41 +0200
+Message-ID: <AANLkTimAd8F66D-P=h1i7C-CyCFn-OSbJtNRQX=drdgK@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: horms@verge.net.au, ja@ssi.bg, wensong@linux-vs.org,
-	daniel.lezcano@free.fr
-To: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel <netfilter-devel@vger.kernel.org>,
+	netdev@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:63697 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757437Ab0JHRCE (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 8 Oct 2010 13:02:04 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch contains ip_vs_sync.c and ip_vs_xmit.c
+Kernel module to capture and hold incoming TCP connections sending a
+zero window packet to slow down the worm action.
+More informations and newer version at:
+http://npadovano.altervista.org/tarpit.html (or in the source code
+comments)
+Below you can find the patch and the relative userspace library
+(compile it and put the .so output in /lib/xtables)
 
-There is one sync daemon per netns, and a number is prepended to its name.
-(a kind of incarnation counter)
-
-Part of the netns migration in ip_vs_xmit.c was done in the IPv6 tunnel patch,
-so make sure that "[patch v4] ipvs: IPv6 tunnel mode" is applied
-
-Signed-off-by:Hans Schillstrom <hans.schillstrom@ericsson.com>
-
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index 7ba0693..98575da 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -74,6 +74,7 @@ struct ip_vs_sync_conn_options {
- struct ip_vs_sync_thread_data {
- 	struct socket *sock;
- 	char *buf;
-+	struct net *net;
- };
-
- #define SIMPLE_CONN_SIZE  (sizeof(struct ip_vs_sync_conn))
-@@ -113,9 +114,6 @@ struct ip_vs_sync_mesg {
- 	/* ip_vs_sync_conn entries start here */
- };
-
--/* the maximum length of sync (sending/receiving) message */
--static int sync_send_mesg_maxlen;
--static int sync_recv_mesg_maxlen;
-
- struct ip_vs_sync_buff {
- 	struct list_head        list;
-@@ -127,70 +125,41 @@ struct ip_vs_sync_buff {
- 	unsigned char           *end;
- };
-
--
--/* the sync_buff list head and the lock */
--static LIST_HEAD(ip_vs_sync_queue);
--static DEFINE_SPINLOCK(ip_vs_sync_lock);
--
--/* current sync_buff for accepting new conn entries */
--static struct ip_vs_sync_buff   *curr_sb = NULL;
--static DEFINE_SPINLOCK(curr_sb_lock);
--
--/* ipvs sync daemon state */
--volatile int ip_vs_sync_state = IP_VS_STATE_NONE;
--volatile int ip_vs_master_syncid = 0;
--volatile int ip_vs_backup_syncid = 0;
--
--/* multicast interface name */
--char ip_vs_master_mcast_ifn[IP_VS_IFNAME_MAXLEN];
--char ip_vs_backup_mcast_ifn[IP_VS_IFNAME_MAXLEN];
--
--/* sync daemon tasks */
--static struct task_struct *sync_master_thread;
--static struct task_struct *sync_backup_thread;
--
--/* multicast addr */
--static struct sockaddr_in mcast_addr = {
--	.sin_family		= AF_INET,
--	.sin_port		= cpu_to_be16(IP_VS_SYNC_PORT),
--	.sin_addr.s_addr	= cpu_to_be32(IP_VS_SYNC_GROUP),
--};
--
--
--static inline struct ip_vs_sync_buff *sb_dequeue(void)
-+static inline struct ip_vs_sync_buff *sb_dequeue(struct net *net)
- {
- 	struct ip_vs_sync_buff *sb;
-+	struct netns_ipvs *ipvs = net->ipvs;
-
--	spin_lock_bh(&ip_vs_sync_lock);
--	if (list_empty(&ip_vs_sync_queue)) {
-+	spin_lock_bh(&ipvs->sync_lock);
-+	if (list_empty(&ipvs->sync_queue)) {
- 		sb = NULL;
- 	} else {
--		sb = list_entry(ip_vs_sync_queue.next,
-+		sb = list_entry(ipvs->sync_queue.next,
- 				struct ip_vs_sync_buff,
- 				list);
- 		list_del(&sb->list);
- 	}
--	spin_unlock_bh(&ip_vs_sync_lock);
-+	spin_unlock_bh(&ipvs->sync_lock);
-
- 	return sb;
+----------tarpit-2.6.35.7.patch------------
+diff -rupN linux-2.6.35.7.orig/drivers/char/random.c
+linux-2.6.35.7/drivers/char/random.c
+--- linux-2.6.35.7.orig/drivers/char/random.c	2010-09-29
+03:09:08.000000000 +0200
++++ linux-2.6.35.7/drivers/char/random.c	2010-10-08 02:51:35.000000000 +0200
+@@ -1514,6 +1514,8 @@ __u32 secure_ip_id(__be32 daddr)
+ 	return half_md4_transform(hash, keyptr->secret);
  }
 
--static inline struct ip_vs_sync_buff * ip_vs_sync_buff_create(void)
-+static inline struct ip_vs_sync_buff * ip_vs_sync_buff_create(struct net *net)
- {
- 	struct ip_vs_sync_buff *sb;
-
- 	if (!(sb=kmalloc(sizeof(struct ip_vs_sync_buff), GFP_ATOMIC)))
- 		return NULL;
-
--	if (!(sb->mesg=kmalloc(sync_send_mesg_maxlen, GFP_ATOMIC))) {
-+	if (!(sb->mesg=kmalloc(net->ipvs->sync_send_mesg_maxlen, GFP_ATOMIC))) {
- 		kfree(sb);
- 		return NULL;
- 	}
- 	sb->mesg->nr_conns = 0;
--	sb->mesg->syncid = ip_vs_master_syncid;
-+	sb->mesg->syncid = net->ipvs->master_syncid;
- 	sb->mesg->size = 4;
- 	sb->head = (unsigned char *)sb->mesg + 4;
--	sb->end = (unsigned char *)sb->mesg + sync_send_mesg_maxlen;
-+	sb->end = (unsigned char *)sb->mesg + net->ipvs->sync_send_mesg_maxlen;
- 	sb->firstuse = jiffies;
- 	return sb;
- }
-@@ -201,14 +170,16 @@ static inline void ip_vs_sync_buff_release(struct ip_vs_sync_buff *sb)
- 	kfree(sb);
- }
-
--static inline void sb_queue_tail(struct ip_vs_sync_buff *sb)
-+static inline void sb_queue_tail(struct net *net, struct ip_vs_sync_buff *sb)
- {
--	spin_lock(&ip_vs_sync_lock);
--	if (ip_vs_sync_state & IP_VS_STATE_MASTER)
--		list_add_tail(&sb->list, &ip_vs_sync_queue);
-+	struct netns_ipvs *ipvs = net->ipvs;
++EXPORT_SYMBOL(secure_ip_id);
 +
-+	spin_lock(&ipvs->sync_lock);
-+	if (ipvs->sync_state & IP_VS_STATE_MASTER)
-+		list_add_tail(&sb->list, &ipvs->sync_queue);
- 	else
- 		ip_vs_sync_buff_release(sb);
--	spin_unlock(&ip_vs_sync_lock);
-+	spin_unlock(&ipvs->sync_lock);
+ #ifdef CONFIG_INET
+
+ __u32 secure_tcp_sequence_number(__be32 saddr, __be32 daddr,
+@@ -1551,6 +1553,8 @@ __u32 secure_tcp_sequence_number(__be32
+ 	return seq;
  }
 
- /*
-@@ -216,18 +187,19 @@ static inline void sb_queue_tail(struct ip_vs_sync_buff *sb)
-  *	than the specified time or the specified time is zero.
-  */
- static inline struct ip_vs_sync_buff *
--get_curr_sync_buff(unsigned long time)
-+get_curr_sync_buff(struct net *net, unsigned long time)
- {
- 	struct ip_vs_sync_buff *sb;
-+	struct netns_ipvs *ipvs = net->ipvs;
-
--	spin_lock_bh(&curr_sb_lock);
--	if (curr_sb && (time == 0 ||
--			time_before(jiffies - curr_sb->firstuse, time))) {
--		sb = curr_sb;
--		curr_sb = NULL;
-+	spin_lock_bh(&ipvs->sync_buff_lock);
-+	if (ipvs->sync_buff && (time == 0 ||
-+			time_before(jiffies - ipvs->sync_buff->firstuse, time))) {
-+		sb = ipvs->sync_buff;
-+		ipvs->sync_buff = NULL;
- 	} else
- 		sb = NULL;
--	spin_unlock_bh(&curr_sb_lock);
-+	spin_unlock_bh(&ipvs->sync_buff_lock);
- 	return sb;
- }
-
-@@ -236,16 +208,17 @@ get_curr_sync_buff(unsigned long time)
-  *      Add an ip_vs_conn information into the current sync_buff.
-  *      Called by ip_vs_in.
-  */
--void ip_vs_sync_conn(struct ip_vs_conn *cp)
-+void ip_vs_sync_conn(struct net *net, struct ip_vs_conn *cp)
- {
- 	struct ip_vs_sync_mesg *m;
- 	struct ip_vs_sync_conn *s;
- 	int len;
-+	struct netns_ipvs *ipvs = net->ipvs;
-
--	spin_lock(&curr_sb_lock);
--	if (!curr_sb) {
--		if (!(curr_sb=ip_vs_sync_buff_create())) {
--			spin_unlock(&curr_sb_lock);
-+	spin_lock(&ipvs->sync_buff_lock);
-+	if (!ipvs->sync_buff) {
-+		if (!(ipvs->sync_buff=ip_vs_sync_buff_create(net))) {
-+			spin_unlock(&ipvs->sync_buff_lock);
- 			pr_err("ip_vs_sync_buff_create failed.\n");
- 			return;
- 		}
-@@ -253,8 +226,8 @@ void ip_vs_sync_conn(struct ip_vs_conn *cp)
-
- 	len = (cp->flags & IP_VS_CONN_F_SEQ_MASK) ? FULL_CONN_SIZE :
- 		SIMPLE_CONN_SIZE;
--	m = curr_sb->mesg;
--	s = (struct ip_vs_sync_conn *)curr_sb->head;
-+	m = ipvs->sync_buff->mesg;
-+	s = (struct ip_vs_sync_conn *)ipvs->sync_buff->head;
-
- 	/* copy members */
- 	s->protocol = cp->protocol;
-@@ -274,18 +247,18 @@ void ip_vs_sync_conn(struct ip_vs_conn *cp)
-
- 	m->nr_conns++;
- 	m->size += len;
--	curr_sb->head += len;
-+	ipvs->sync_buff->head += len;
-
- 	/* check if there is a space for next one */
--	if (curr_sb->head+FULL_CONN_SIZE > curr_sb->end) {
--		sb_queue_tail(curr_sb);
--		curr_sb = NULL;
-+	if (ipvs->sync_buff->head+FULL_CONN_SIZE > ipvs->sync_buff->end) {
-+		sb_queue_tail(net, ipvs->sync_buff);
-+		ipvs->sync_buff = NULL;
- 	}
--	spin_unlock(&curr_sb_lock);
-+	spin_unlock(&ipvs->sync_buff_lock);
-
- 	/* synchronize its controller if it has */
- 	if (cp->control)
--		ip_vs_sync_conn(cp->control);
-+		ip_vs_sync_conn(net, cp->control);
- }
-
-
-@@ -293,13 +266,15 @@ void ip_vs_sync_conn(struct ip_vs_conn *cp)
-  *      Process received multicast message and create the corresponding
-  *      ip_vs_conn entries.
-  */
--static void ip_vs_process_message(const char *buffer, const size_t buflen)
-+static void
-+ip_vs_process_message(struct net *net, const char *buffer, const size_t buflen)
- {
- 	struct ip_vs_sync_mesg *m = (struct ip_vs_sync_mesg *)buffer;
- 	struct ip_vs_sync_conn *s;
- 	struct ip_vs_sync_conn_options *opt;
- 	struct ip_vs_conn *cp;
- 	struct ip_vs_protocol *pp;
-+	struct ip_vs_proto_data *pd;
- 	struct ip_vs_dest *dest;
- 	char *p;
- 	int i;
-@@ -318,7 +293,7 @@ static void ip_vs_process_message(const char *buffer, const size_t buflen)
- 	}
-
- 	/* SyncID sanity check */
--	if (ip_vs_backup_syncid != 0 && m->syncid != ip_vs_backup_syncid) {
-+	if (net->ipvs->backup_syncid != 0 && m->syncid != net->ipvs->backup_syncid) {
- 		IP_VS_DBG(7, "Ignoring incoming msg with syncid = %d\n",
- 			  m->syncid);
- 		return;
-@@ -371,13 +346,13 @@ static void ip_vs_process_message(const char *buffer, const size_t buflen)
- 		}
-
- 		if (!(flags & IP_VS_CONN_F_TEMPLATE))
--			cp = ip_vs_conn_in_get(AF_INET, s->protocol,
-+			cp = ip_vs_conn_in_get(net, AF_INET, s->protocol,
- 					       (union nf_inet_addr *)&s->caddr,
- 					       s->cport,
- 					       (union nf_inet_addr *)&s->vaddr,
- 					       s->vport);
- 		else
--			cp = ip_vs_ct_in_get(AF_INET, s->protocol,
-+			cp = ip_vs_ct_in_get(net, AF_INET, s->protocol,
- 					     (union nf_inet_addr *)&s->caddr,
- 					     s->cport,
- 					     (union nf_inet_addr *)&s->vaddr,
-@@ -388,7 +363,7 @@ static void ip_vs_process_message(const char *buffer, const size_t buflen)
- 			 * If it is not found the connection will remain unbound
- 			 * but still handled.
- 			 */
--			dest = ip_vs_find_dest(AF_INET,
-+			dest = ip_vs_find_dest(net, AF_INET,
- 					       (union nf_inet_addr *)&s->daddr,
- 					       s->dport,
- 					       (union nf_inet_addr *)&s->vaddr,
-@@ -406,7 +381,7 @@ static void ip_vs_process_message(const char *buffer, const size_t buflen)
- 				else
- 					flags &= ~IP_VS_CONN_F_INACTIVE;
- 			}
--			cp = ip_vs_conn_new(AF_INET, s->protocol,
-+			cp = ip_vs_conn_new(net, AF_INET, s->protocol,
- 					    (union nf_inet_addr *)&s->caddr,
- 					    s->cport,
- 					    (union nf_inet_addr *)&s->vaddr,
-@@ -421,7 +396,7 @@ static void ip_vs_process_message(const char *buffer, const size_t buflen)
- 				return;
- 			}
- 		} else if (!cp->dest) {
--			dest = ip_vs_try_bind_dest(cp);
-+			dest = ip_vs_try_bind_dest(net, cp);
- 			if (dest)
- 				atomic_dec(&dest->refcnt);
- 		} else if ((cp->dest) && (cp->protocol == IPPROTO_TCP) &&
-@@ -452,7 +427,7 @@ static void ip_vs_process_message(const char *buffer, const size_t buflen)
-
- 		if (opt)
- 			memcpy(&cp->in_seq, opt, sizeof(*opt));
--		atomic_set(&cp->in_pkts, sysctl_ip_vs_sync_threshold[0]);
-+		atomic_set(&cp->in_pkts, net->ipvs->sysctl_sync_threshold[0]);
- 		cp->state = state;
- 		cp->old_state = cp->state;
- 		/*
-@@ -461,8 +436,9 @@ static void ip_vs_process_message(const char *buffer, const size_t buflen)
- 		 * virtual service. If needed, we can do it for
- 		 * non-fwmark persistent services.
- 		 */
--		if (!(flags & IP_VS_CONN_F_TEMPLATE) && pp->timeout_table)
--			cp->timeout = pp->timeout_table[state];
-+		pd = ip_vs_proto_data_get(net,cp->protocol);
-+		if (!(flags & IP_VS_CONN_F_TEMPLATE) && pd && pd->timeout_table )
-+			cp->timeout = pd->timeout_table[state];
- 		else
- 			cp->timeout = (3*60*HZ);
- 		ip_vs_conn_put(cp);
-@@ -503,8 +479,10 @@ static int set_mcast_if(struct sock *sk, char *ifname)
- {
- 	struct net_device *dev;
- 	struct inet_sock *inet = inet_sk(sk);
-+	struct net *net = sock_net(sk);
-
--	if ((dev = __dev_get_by_name(&init_net, ifname)) == NULL)
-+	BUG_ON(!net);
-+	if ((dev = __dev_get_by_name(net, ifname)) == NULL)
- 		return -ENODEV;
-
- 	if (sk->sk_bound_dev_if && dev->ifindex != sk->sk_bound_dev_if)
-@@ -523,30 +501,31 @@ static int set_mcast_if(struct sock *sk, char *ifname)
-  *	Set the maximum length of sync message according to the
-  *	specified interface's MTU.
-  */
--static int set_sync_mesg_maxlen(int sync_state)
-+static int set_sync_mesg_maxlen(struct net *net, int sync_state)
- {
- 	struct net_device *dev;
- 	int num;
-+	struct netns_ipvs *ipvs = net->ipvs;
-
- 	if (sync_state == IP_VS_STATE_MASTER) {
--		if ((dev = __dev_get_by_name(&init_net, ip_vs_master_mcast_ifn)) == NULL)
-+		if ((dev = __dev_get_by_name(net, ipvs->master_mcast_ifn)) == NULL)
- 			return -ENODEV;
-
- 		num = (dev->mtu - sizeof(struct iphdr) -
- 		       sizeof(struct udphdr) -
- 		       SYNC_MESG_HEADER_LEN - 20) / SIMPLE_CONN_SIZE;
--		sync_send_mesg_maxlen = SYNC_MESG_HEADER_LEN +
-+		ipvs->sync_send_mesg_maxlen = SYNC_MESG_HEADER_LEN +
- 			SIMPLE_CONN_SIZE * min(num, MAX_CONNS_PER_SYNCBUFF);
- 		IP_VS_DBG(7, "setting the maximum length of sync sending "
--			  "message %d.\n", sync_send_mesg_maxlen);
-+			  "message %d.\n", ipvs->sync_send_mesg_maxlen);
- 	} else if (sync_state == IP_VS_STATE_BACKUP) {
--		if ((dev = __dev_get_by_name(&init_net, ip_vs_backup_mcast_ifn)) == NULL)
-+		if ((dev = __dev_get_by_name(net, ipvs->backup_mcast_ifn)) == NULL)
- 			return -ENODEV;
-
--		sync_recv_mesg_maxlen = dev->mtu -
-+		ipvs->sync_recv_mesg_maxlen = dev->mtu -
- 			sizeof(struct iphdr) - sizeof(struct udphdr);
- 		IP_VS_DBG(7, "setting the maximum length of sync receiving "
--			  "message %d.\n", sync_recv_mesg_maxlen);
-+			  "message %d.\n", ipvs->sync_recv_mesg_maxlen);
- 	}
-
- 	return 0;
-@@ -564,11 +543,13 @@ join_mcast_group(struct sock *sk, struct in_addr *addr, char *ifname)
- 	struct ip_mreqn mreq;
- 	struct net_device *dev;
- 	int ret;
-+	struct net *net = sock_net(sk);
-
-+	BUG_ON(!net);
- 	memset(&mreq, 0, sizeof(mreq));
- 	memcpy(&mreq.imr_multiaddr, addr, sizeof(struct in_addr));
-
--	if ((dev = __dev_get_by_name(&init_net, ifname)) == NULL)
-+	if ((dev = __dev_get_by_name(net, ifname)) == NULL)
- 		return -ENODEV;
- 	if (sk->sk_bound_dev_if && dev->ifindex != sk->sk_bound_dev_if)
- 		return -EINVAL;
-@@ -588,8 +569,10 @@ static int bind_mcastif_addr(struct socket *sock, char *ifname)
- 	struct net_device *dev;
- 	__be32 addr;
- 	struct sockaddr_in sin;
-+	struct net *net = sock_net(sock->sk);
-
--	if ((dev = __dev_get_by_name(&init_net, ifname)) == NULL)
-+	BUG_ON(!net);
-+	if ((dev = __dev_get_by_name(net, ifname)) == NULL)
- 		return -ENODEV;
-
- 	addr = inet_select_addr(dev, 0, RT_SCOPE_UNIVERSE);
-@@ -611,19 +594,19 @@ static int bind_mcastif_addr(struct socket *sock, char *ifname)
- /*
-  *      Set up sending multicast socket over UDP
-  */
--static struct socket * make_send_sock(void)
-+static struct socket * make_send_sock(struct net *net)
- {
- 	struct socket *sock;
- 	int result;
-
--	/* First create a socket */
--	result = sock_create_kern(PF_INET, SOCK_DGRAM, IPPROTO_UDP, &sock);
-+	/* First create a socket in current netns  */
-+	result = sock_create(PF_INET, SOCK_DGRAM, IPPROTO_UDP, &sock);
- 	if (result < 0) {
- 		pr_err("Error during creation of socket; terminating\n");
- 		return ERR_PTR(result);
- 	}
-
--	result = set_mcast_if(sock->sk, ip_vs_master_mcast_ifn);
-+	result = set_mcast_if(sock->sk, net->ipvs->master_mcast_ifn);
- 	if (result < 0) {
- 		pr_err("Error setting outbound mcast interface\n");
- 		goto error;
-@@ -632,13 +615,14 @@ static struct socket * make_send_sock(void)
- 	set_mcast_loop(sock->sk, 0);
- 	set_mcast_ttl(sock->sk, 1);
-
--	result = bind_mcastif_addr(sock, ip_vs_master_mcast_ifn);
-+	result = bind_mcastif_addr(sock, net->ipvs->master_mcast_ifn);
- 	if (result < 0) {
- 		pr_err("Error binding address of the mcast interface\n");
- 		goto error;
- 	}
-
--	result = sock->ops->connect(sock, (struct sockaddr *) &mcast_addr,
-+	result = sock->ops->connect(sock,
-+			(struct sockaddr *) &net->ipvs->sync_mcast_addr,
- 			sizeof(struct sockaddr), 0);
- 	if (result < 0) {
- 		pr_err("Error connecting to the multicast addr\n");
-@@ -656,13 +640,13 @@ static struct socket * make_send_sock(void)
- /*
-  *      Set up receiving multicast socket over UDP
-  */
--static struct socket * make_receive_sock(void)
-+static struct socket * make_receive_sock(struct net *net)
- {
- 	struct socket *sock;
- 	int result;
-
--	/* First create a socket */
--	result = sock_create_kern(PF_INET, SOCK_DGRAM, IPPROTO_UDP, &sock);
-+	/* First create a socket in current netns */
-+	result = sock_create(PF_INET, SOCK_DGRAM, IPPROTO_UDP, &sock);
- 	if (result < 0) {
- 		pr_err("Error during creation of socket; terminating\n");
- 		return ERR_PTR(result);
-@@ -671,7 +655,8 @@ static struct socket * make_receive_sock(void)
- 	/* it is equivalent to the REUSEADDR option in user-space */
- 	sock->sk->sk_reuse = 1;
-
--	result = sock->ops->bind(sock, (struct sockaddr *) &mcast_addr,
-+	result = sock->ops->bind(sock,
-+			(struct sockaddr *) &net->ipvs->sync_mcast_addr,
- 			sizeof(struct sockaddr));
- 	if (result < 0) {
- 		pr_err("Error binding to the multicast addr\n");
-@@ -680,8 +665,8 @@ static struct socket * make_receive_sock(void)
-
- 	/* join the multicast group */
- 	result = join_mcast_group(sock->sk,
--			(struct in_addr *) &mcast_addr.sin_addr,
--			ip_vs_backup_mcast_ifn);
-+			(struct in_addr *) &net->ipvs->sync_mcast_addr.sin_addr,
-+			net->ipvs->backup_mcast_ifn);
- 	if (result < 0) {
- 		pr_err("Error joining to the multicast group\n");
- 		goto error;
-@@ -756,16 +741,17 @@ static int sync_thread_master(void *data)
-
- 	pr_info("sync thread started: state = MASTER, mcast_ifn = %s, "
- 		"syncid = %d\n",
--		ip_vs_master_mcast_ifn, ip_vs_master_syncid);
-+		tinfo->net->ipvs->master_mcast_ifn,
-+		tinfo->net->ipvs->master_syncid);
-
- 	while (!kthread_should_stop()) {
--		while ((sb = sb_dequeue())) {
-+		while ((sb = sb_dequeue(tinfo->net))) {
- 			ip_vs_send_sync_msg(tinfo->sock, sb->mesg);
- 			ip_vs_sync_buff_release(sb);
- 		}
-
- 		/* check if entries stay in curr_sb for 2 seconds */
--		sb = get_curr_sync_buff(2 * HZ);
-+		sb = get_curr_sync_buff(tinfo->net, 2 * HZ);
- 		if (sb) {
- 			ip_vs_send_sync_msg(tinfo->sock, sb->mesg);
- 			ip_vs_sync_buff_release(sb);
-@@ -775,12 +761,12 @@ static int sync_thread_master(void *data)
- 	}
-
- 	/* clean up the sync_buff queue */
--	while ((sb=sb_dequeue())) {
-+	while ((sb=sb_dequeue(tinfo->net))) {
- 		ip_vs_sync_buff_release(sb);
- 	}
-
- 	/* clean up the current sync_buff */
--	if ((sb = get_curr_sync_buff(0))) {
-+	if ((sb = get_curr_sync_buff(tinfo->net, 0))) {
- 		ip_vs_sync_buff_release(sb);
- 	}
-
-@@ -796,10 +782,11 @@ static int sync_thread_backup(void *data)
- {
- 	struct ip_vs_sync_thread_data *tinfo = data;
- 	int len;
--
++EXPORT_SYMBOL(secure_tcp_sequence_number);
 +
- 	pr_info("sync thread started: state = BACKUP, mcast_ifn = %s, "
- 		"syncid = %d\n",
--		ip_vs_backup_mcast_ifn, ip_vs_backup_syncid);
-+		tinfo->net->ipvs->backup_mcast_ifn,
-+		tinfo->net->ipvs->backup_syncid);
-
- 	while (!kthread_should_stop()) {
- 		wait_event_interruptible(*sk_sleep(tinfo->sock->sk),
-@@ -809,16 +796,15 @@ static int sync_thread_backup(void *data)
- 		/* do we have data now? */
- 		while (!skb_queue_empty(&(tinfo->sock->sk->sk_receive_queue))) {
- 			len = ip_vs_receive(tinfo->sock, tinfo->buf,
--					sync_recv_mesg_maxlen);
-+					tinfo->net->ipvs->sync_recv_mesg_maxlen);
- 			if (len <= 0) {
- 				pr_err("receiving message error\n");
- 				break;
- 			}
--
--			/* disable bottom half, because it accesses the data
-+			/* disable bottom half per netns, because it accesses the data
- 			   shared by softirq while getting/creating conns */
- 			local_bh_disable();
--			ip_vs_process_message(tinfo->buf, len);
-+			ip_vs_process_message(tinfo->net, tinfo->buf, len);
- 			local_bh_enable();
- 		}
- 	}
-@@ -832,41 +818,43 @@ static int sync_thread_backup(void *data)
- }
-
-
--int start_sync_thread(int state, char *mcast_ifn, __u8 syncid)
-+int start_sync_thread(struct net *net, int state, char *mcast_ifn, __u8 syncid)
+ /* Generate secure starting point for ephemeral IPV4 transport port search */
+ u32 secure_ipv4_port_ephemeral(__be32 saddr, __be32 daddr, __be16 dport)
  {
- 	struct ip_vs_sync_thread_data *tinfo;
- 	struct task_struct **realtask, *task;
- 	struct socket *sock;
-+	struct netns_ipvs *ipvs = net->ipvs;
- 	char *name, *buf = NULL;
- 	int (*threadfn)(void *data);
- 	int result = -ENOMEM;
+diff -rupN linux-2.6.35.7.orig/net/netfilter/Kconfig
+linux-2.6.35.7/net/netfilter/Kconfig
+--- linux-2.6.35.7.orig/net/netfilter/Kconfig	2010-09-29
+03:09:08.000000000 +0200
++++ linux-2.6.35.7/net/netfilter/Kconfig	2010-10-08 12:51:07.000000000 +0200
+@@ -548,6 +548,32 @@ config NETFILTER_XT_TARGET_SECMARK
 
--	IP_VS_DBG(7, "%s(): pid %d\n", __func__, task_pid_nr(current));
-+	IP_VS_DBG(7, "%s(): pid %d inc:%d\n", __func__, task_pid_nr(current),
-+		                             ipvs->inc);
- 	IP_VS_DBG(7, "Each ip_vs_sync_conn entry needs %Zd bytes\n",
- 		  sizeof(struct ip_vs_sync_conn));
+ 	  To compile it as a module, choose M here.  If unsure, say N.
 
- 	if (state == IP_VS_STATE_MASTER) {
--		if (sync_master_thread)
-+		if (ipvs->sync_master_thread)
- 			return -EEXIST;
-
--		strlcpy(ip_vs_master_mcast_ifn, mcast_ifn,
--			sizeof(ip_vs_master_mcast_ifn));
--		ip_vs_master_syncid = syncid;
--		realtask = &sync_master_thread;
--		name = "ipvs_syncmaster";
-+		strlcpy(ipvs->master_mcast_ifn, mcast_ifn,
-+			sizeof(ipvs->master_mcast_ifn));
-+		ipvs->master_syncid = syncid;
-+		realtask = &ipvs->sync_master_thread;
-+		name = "ipvs_master:%d";
- 		threadfn = sync_thread_master;
--		sock = make_send_sock();
-+		sock = make_send_sock(net);
- 	} else if (state == IP_VS_STATE_BACKUP) {
--		if (sync_backup_thread)
-+		if (ipvs->sync_backup_thread)
- 			return -EEXIST;
-
--		strlcpy(ip_vs_backup_mcast_ifn, mcast_ifn,
--			sizeof(ip_vs_backup_mcast_ifn));
--		ip_vs_backup_syncid = syncid;
--		realtask = &sync_backup_thread;
--		name = "ipvs_syncbackup";
-+		strlcpy(ipvs->backup_mcast_ifn, mcast_ifn,
-+			sizeof(ipvs->backup_mcast_ifn));
-+		ipvs->backup_syncid = syncid;
-+		realtask = &ipvs->sync_backup_thread;
-+		name = "ipvs_backup:%d";
- 		threadfn = sync_thread_backup;
--		sock = make_receive_sock();
-+		sock = make_receive_sock(net);
- 	} else {
- 		return -EINVAL;
- 	}
-@@ -876,9 +864,9 @@ int start_sync_thread(int state, char *mcast_ifn, __u8 syncid)
- 		goto out;
- 	}
-
--	set_sync_mesg_maxlen(state);
-+	set_sync_mesg_maxlen(net, state);
- 	if (state == IP_VS_STATE_BACKUP) {
--		buf = kmalloc(sync_recv_mesg_maxlen, GFP_KERNEL);
-+		buf = kmalloc(ipvs->sync_recv_mesg_maxlen, GFP_KERNEL);
- 		if (!buf)
- 			goto outsocket;
- 	}
-@@ -889,16 +877,17 @@ int start_sync_thread(int state, char *mcast_ifn, __u8 syncid)
-
- 	tinfo->sock = sock;
- 	tinfo->buf = buf;
-+	tinfo->net = net;
-
--	task = kthread_run(threadfn, tinfo, name);
-+	task = kthread_run(threadfn, tinfo, name, ipvs->inc);
- 	if (IS_ERR(task)) {
- 		result = PTR_ERR(task);
- 		goto outtinfo;
- 	}
--
-+	IP_VS_DBG(1, "kthread %s started (%d)\n", name, task->pid);
- 	/* mark as active */
- 	*realtask = task;
--	ip_vs_sync_state |= state;
-+	ipvs->sync_state |= state;
-
- 	/* increase the module use count */
- 	ip_vs_use_count_inc();
-@@ -916,16 +905,19 @@ out:
- }
-
-
--int stop_sync_thread(int state)
-+int stop_sync_thread(struct net *net, int state)
- {
-+	struct netns_ipvs *ipvs = net->ipvs;
++config NETFILTER_XT_TARGET_TARPIT
++	tristate '"TARPIT" target support'
++	depends on NETFILTER_XTABLES
++	default m if NETFILTER_ADVANCED=n
++	---help---
++	  Adds a TARPIT target to iptables, which captures and holds
++	  incoming TCP connections using no local per-connection resources.
++	  Connections are accepted, but immediately switched to the persist
++	  state (0 byte window), in which the remote side stops sending data
++	  and asks to continue every 60-240 seconds (with a probe packet).
++	  Attempts to close the connection are ignored, forcing the remote
++	  side to time out the connection in 12-24 minutes. Any TCP port that
++	  you would normally DROP or REJECT can instead become a tarpit.
++	  Example:
 +
- 	IP_VS_DBG(7, "%s(): pid %d\n", __func__, task_pid_nr(current));
-
- 	if (state == IP_VS_STATE_MASTER) {
--		if (!sync_master_thread)
-+		if (!ipvs->sync_master_thread)
- 			return -ESRCH;
-
--		pr_info("stopping master sync thread %d ...\n",
--			task_pid_nr(sync_master_thread));
-+		pr_info("stopping master sync thread %d  inc:%d...\n",
-+			task_pid_nr(ipvs->sync_master_thread),
-+			ipvs->inc);
-
- 		/*
- 		 * The lock synchronizes with sb_queue_tail(), so that we don't
-@@ -933,21 +925,22 @@ int stop_sync_thread(int state)
- 		 * progress of stopping the master sync daemon.
- 		 */
-
--		spin_lock_bh(&ip_vs_sync_lock);
--		ip_vs_sync_state &= ~IP_VS_STATE_MASTER;
--		spin_unlock_bh(&ip_vs_sync_lock);
--		kthread_stop(sync_master_thread);
--		sync_master_thread = NULL;
-+		spin_lock_bh(&ipvs->sync_lock);
-+		ipvs->sync_state &= ~IP_VS_STATE_MASTER;
-+		spin_unlock_bh(&ipvs->sync_lock);
-+		kthread_stop(ipvs->sync_master_thread);
-+		ipvs->sync_master_thread = NULL;
- 	} else if (state == IP_VS_STATE_BACKUP) {
--		if (!sync_backup_thread)
-+		if (!ipvs->sync_backup_thread)
- 			return -ESRCH;
-
--		pr_info("stopping backup sync thread %d ...\n",
--			task_pid_nr(sync_backup_thread));
-+		pr_info("stopping backup sync thread %d inc:%d...\n",
-+			task_pid_nr(ipvs->sync_backup_thread),
-+			ipvs->inc);
-
--		ip_vs_sync_state &= ~IP_VS_STATE_BACKUP;
--		kthread_stop(sync_backup_thread);
--		sync_backup_thread = NULL;
-+		ipvs->sync_state &= ~IP_VS_STATE_BACKUP;
-+		kthread_stop(ipvs->sync_backup_thread);
-+		ipvs->sync_backup_thread = NULL;
- 	} else {
- 		return -EINVAL;
- 	}
-@@ -957,3 +950,41 @@ int stop_sync_thread(int state)
-
- 	return 0;
- }
++	  1) iptables -A INPUT -p tcp --dport 1111 -j TARPIT
++	  2) iptables -A FORWARD -p tcp -s x.y.z.k --dport 1111 -j TARPIT
++
++ 	  In the first example all the incoming TCP packets sent to the port
++	  1111 will be tarpitted. In the second one, we're tarpitting all the
++	  forwarded packets sent to the host x.y.z.k on the port 1111.
++
++         You can find more informations and newer versions at:
++	  <http://npadovano.altervista.org/tarpit.html>. Reporting bugs and
++	  improvements are welcome.
++
+ config NETFILTER_XT_TARGET_TCPMSS
+ 	tristate '"TCPMSS" target support'
+ 	depends on (IPV6 || IPV6=n)
+diff -rupN linux-2.6.35.7.orig/net/netfilter/Makefile
+linux-2.6.35.7/net/netfilter/Makefile
+--- linux-2.6.35.7.orig/net/netfilter/Makefile	2010-09-29
+03:09:08.000000000 +0200
++++ linux-2.6.35.7/net/netfilter/Makefile	2010-10-08 02:53:44.000000000 +0200
+@@ -56,6 +56,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_NFQUEUE
+ obj-$(CONFIG_NETFILTER_XT_TARGET_NOTRACK) += xt_NOTRACK.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_RATEEST) += xt_RATEEST.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_SECMARK) += xt_SECMARK.o
++obj-$(CONFIG_NETFILTER_XT_TARGET_TARPIT) += xt_TARPIT.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TPROXY) += xt_TPROXY.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP) += xt_TCPOPTSTRIP.o
+diff -rupN linux-2.6.35.7.orig/net/netfilter/xt_TARPIT.c
+linux-2.6.35.7/net/netfilter/xt_TARPIT.c
+--- linux-2.6.35.7.orig/net/netfilter/xt_TARPIT.c	1970-01-01
+01:00:00.000000000 +0100
++++ linux-2.6.35.7/net/netfilter/xt_TARPIT.c	2010-10-08 13:27:54.000000000 +0200
+@@ -0,0 +1,304 @@
++/*
++ * Kernel module to capture and hold incoming TCP connections using
++ * no local per-connection resources.
++ *
++ * Based on ipt_REJECT.c and offering functionality similar to
++ * LaBrea <http://labrea.sourceforge.net/>.
++ *
++ * Original idea of:
++ *     Aaron Hopkins, <tools@die.net>
++ *
++ * Version 2.6.35.7 kernel release, written by:
++ *     Nicola Padovano, <nicola.padovano@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *
++ *
++ * Goal:
++ * - Allow incoming TCP connections to be established.
++ * - Passing data should result in the connection being switched to the
++ *   persist state (0 byte window), in which the remote side stops sending
++ *   data and asks to continue every 60-240 seconds.
++ * - Prevent spoofing (don't allow the victim to connect with server worm)
++ * - Attempts to shut down the connection should be ignored completely, so
++ *   the remote side ends up having to time it out.
++ *
++ * This means:
++ * - Reply to TCP SYN,!ACK,!RST,!FIN with SYN-ACK, window 5 bytes
++ * - Reply to TCP !SYN,!RST,!FIN with ACK, window 0 bytes, rate-limited
++ * - Reply to TCP SYN,ACK,!RST,!FIN with RST to prevent spoofing
++ * - No reply to TCP RST or FIN
++ *
++ * More informations and newer versions at:
++ * <http://npadovano.altervista.com/tarpit.html>
++ */
++
++#include <linux/version.h>
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/ip.h>
++#include <net/ip.h>
++#include <net/tcp.h>
++#include <net/icmp.h>
++#include <net/route.h>
++#include <linux/random.h>
++#include <linux/netfilter_ipv4/ip_tables.h>
++
++
++MODULE_DESCRIPTION("TARPIT iptables target, info at: "
++		    "http://npadovano.altervista.org/tarpit.html");
++MODULE_AUTHOR("Nicola Padovano <nicola.padovano@gmail.com>");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("xt_TARPIT");
 +
 +/*
-+ * Initialize data struct for each netns
++ * send a packet (to L2 output processing function)
++ *
++ * Note: there is also rtable* argument: it's only
++ *       used for debugging reason. Delete it if
++ *       you're sure things work.
 + */
-+static int __net_init __ip_vs_sync_init(struct net *net)
++static int ip_direct_send(struct sk_buff* skb)
 +{
-+	struct netns_ipvs *ipvs = net->ipvs;
-+	INIT_LIST_HEAD(&ipvs->sync_queue);
-+	spin_lock_init(&ipvs->sync_lock);
-+	spin_lock_init(&ipvs->sync_buff_lock);
++  /* get skb dst_entry pointer */
++  struct dst_entry* dst = skb_dst(skb);
 +
-+	ipvs->sync_mcast_addr.sin_family = AF_INET;
-+	ipvs->sync_mcast_addr.sin_port = cpu_to_be16(IP_VS_SYNC_PORT);
-+	ipvs->sync_mcast_addr.sin_addr.s_addr = cpu_to_be32(IP_VS_SYNC_GROUP);
-+	return 0;
++  /* if we already sent a packet to our neighbour */
++  if (dst->hh != NULL)
++    return neigh_hh_output(dst->hh,skb);
++
++  /* if there isn't header cache, send our packet with simple output
+function */
++  else if (dst->neighbour != NULL)
++    return dst->neighbour->output(skb);
++
++  /* no neighbour, no header cache: it's impossible send the packet */
++  if (net_ratelimit())	
++    printk(KERN_DEBUG "TARPIT> ip_direct_send: no neighbour, no
+header cache\n");
++
++  kfree_skb(skb);
++
++  return -EINVAL;
 +}
 +
-+static void __ip_vs_sync_cleanup(struct net *net)
++/*
++ * tarpit service routine: it accepts a pointer to
++ * sk_buff (the received packet) and its (input)
++ * cache entry.
++ * Note: the received packet it's called "old" in
++ *       the comments below. The packet to send
++ *       it's called "new".
++ */
++static void tarpit_tcp(const struct sk_buff *oskb,
++		       struct rtable *ort)
 +{
-+	stop_sync_thread(net, net->ipvs->sync_state &
-+			      (IP_VS_STATE_MASTER | IP_VS_STATE_BACKUP));
-+	return;
++  struct iphdr    *oiph;             /* old ip header pointer */
++  struct tcphdr   *otcph;            /* old tcp header pointer */
++  unsigned int    oiphlen;           /* old ip header len */
++  unsigned int    otcplen;           /* old tcp (payload + header) len */
++
++  struct sk_buff  *nskb;             /* new skb buffer */
++  struct iphdr    *niph;             /* new ip header pointer */
++  struct tcphdr   *ntcph;            /* new tcp header pointer */
++  struct rtable   *nrt;              /* new routing table */
++
++  struct flowi fl = {};              /* search key used for the cache
+lookups */
++
++  u_int32_t tmp32;                   /* swapping variables*/
++  u_int16_t tmp16;
++
++  /* fill old structs */
++  oiph    = ip_hdr(oskb);            /* get old ip header pointer */
++  oiphlen = ip_hdrlen(oskb);
++  otcph   = (void*)oiph + oiphlen;   /* do not use skb_transport_header! */
++  otcplen = oskb->len - oiphlen;
++
++  /* packets to drop */
++  if ( (oskb->len < oiphlen + sizeof(struct tcphdr)) ||
+    /* truncate tcp header: 1st too fragmented packet...*/
++       (otcph->fin || otcph->rst) ||
+    /* RST or FIN packet*/
++       (!otcph->ack && !otcph->syn) ||
+    /* !ACK,!SYN packet */
++       (tcp_v4_check(otcplen, oiph->saddr, oiph->daddr,
+    /* bad tcp checksum e ip checksum */
++		    csum_partial((char *)otcph, otcplen, 0))) ||
++       (oiph->frag_off & htons(IP_OFFSET)) ||
+    /* fragment packets (after the first one) */
++       (!otcph->syn && otcph->ack && !xrlim_allow(&ort->u.dst,HZ)) ||
+    /* rate-limit answer to SYN,ACK packets */
++       (ort == NULL) ||
+    /* check for an input routing cache entry */
++       (oskb->pkt_type != PACKET_HOST &&
+    /* no replies to physical multi/broadcast */
++        oskb->pkt_type != PACKET_OTHERHOST) ||
++       (ort->rt_flags & (RTCF_BROADCAST | RTCF_MULTICAST)) )
+   /* check IP multi/broadcast */
++    return;
++
++
++  if (!(nskb = skb_copy(oskb, GFP_ATOMIC)))      /* we start with a
+yet-prepared buffer */
++    return;                                      /* return if there's
+an error in copy */
++
++  /* This packet will not be the same as the other: clear nf fields */
++  nf_conntrack_put(nskb->nfct);
++  nskb->nfct = NULL;
++#ifdef CONFIG_NETFILTER_DEBUG
++  nskb->nf_debug = 0;
++#endif
++
++  skb_trim(nskb, ip_hdrlen(nskb) + sizeof(struct tcphdr));     /*
+trim skb size to IP LEN + TCP LEN*/
++  niph  = (struct iphdr*)skb_network_header(nskb);
++  ntcph = (void*)niph + ip_hdrlen(nskb);
++
++  /* set new ip header */
++  tmp32          = niph->saddr;
++  niph->saddr    = niph->daddr;
++  niph->daddr    = tmp32;
++
++  niph->tot_len  = htons(nskb->len);
++  niph->id       = htons(secure_ip_id(niph->daddr));
++
++  niph->frag_off = htons(IP_DF);            /* set don't frag flag */
++  niph->ttl      = (u32)64;
++
++  niph->check    = 0;
++  niph->check    = ip_fast_csum((unsigned char*)niph ,niph->ihl);
++
++  /* set new tcp header */
++  tmp16         = ntcph->source;
++  ntcph->source = ntcph->dest;
++  ntcph->dest   = tmp16;
++
++  ntcph->doff   = sizeof(struct tcphdr)/4;    /* 20bytes, doff is a
+4bit variable */
++
++  ((u_int8_t*)ntcph)[13] = 0;                 /* reset all flag */
++  ntcph->urg_ptr = 0;
++
++   /* 1st goal: new tcp connection */
++  if (otcph->syn && !otcph->ack)
++    {
++      ntcph->syn = 1;
++      ntcph->ack = 1;
++      ntcph->seq = htonl(secure_tcp_sequence_number(niph->saddr,
++						    niph->daddr,
++						    ntcph->source,
++						    ntcph->dest));
++      ntcph->ack_seq = htonl(ntohl(otcph->seq) + 1);
++      ntcph->window = htons(5);
++    }
++
++  /* 2nd goal: RST tcp: RST+ACK */
++  else if (otcph->syn && otcph->ack)
++    {
++      ntcph->syn = 0;
++      ntcph->ack = 1;
++      ntcph->rst = 1;
++
++      ntcph->seq = otcph->ack_seq;
++      ntcph->ack_seq = 0;
++    }
++
++  /* 3rd goal: 0 byte window */
++  else if (!otcph->syn && otcph->ack)
++    {
++      ntcph->syn = 0;
++      ntcph->ack = 1;
++      ntcph->window = 0;
++      ntcph->seq = otcph->ack_seq;
++      ntcph->ack_seq = otcph->seq;   /* it's saying: "i'm not
+received anything" */
++    }
++  else                               /* unacknowledged packet: drop it*/
++    return;
++
++  ntcph->check = 0;
++  ntcph->check = tcp_v4_check(sizeof(struct tcphdr),
++			      niph->saddr,
++			      niph->daddr,
++			      csum_partial((char *)ntcph,
++			      sizeof(struct tcphdr), 0));
++
++
++  /* create a search key to find packet route in cache*/
++  fl.nl_u.ip4_u.daddr = niph->daddr;
++  fl.nl_u.ip4_u.saddr = 0;
++  fl.nl_u.ip4_u.tos = RT_TOS(niph->tos) | RTO_CONN;
++  fl.oif = 0;
++
++  if (ip_route_output_key(&init_net, &nrt, &fl))             /* fill
+nrt struct */
++    goto free_nskb;                                          /* exit
+if errors in filling*/
++
++  dst_release(skb_dst(nskb));
++  nskb->_skb_refdst = ((unsigned long)&(nrt->u.dst));
++
++  ip_direct_send(nskb);                                      /* send
+the packet */
++
++  return;
++
++ free_nskb:
++  kfree_skb(nskb);
 +}
-+static struct pernet_operations ipvs_sync_ops = {
-+	.init = __ip_vs_sync_init,
-+	.exit = __ip_vs_sync_cleanup,
++
++
++/*
++ * target function, called everyone the rule is satisfied
++ * standard behaviour: NF_DROP
++ */
++static unsigned int xt_tarpit_target(struct sk_buff *skb,
++                                     const struct xt_target_param *par)
++{
++  struct rtable *rt = (void *)skb->_skb_refdst;
++  tarpit_tcp(skb,rt);
++  return NF_DROP;
++}
++
++/*
++ * xt_tarpit_check allows only:
++ * 1. raw table & PRE_ROUTING hook or
++ * 2. filter table & (LOCAL_IN or FORWARD) hook
++ * Note: for new kernels version: returns _false_
++ *       if checking is OK, otherwise returns _true_
++ */
++static bool xt_tarpit_check(const struct xt_mtchk_param *par)
++{
++  if (!strcmp(par->table, "raw") &&
++      par->hook_mask == NF_INET_PRE_ROUTING)
++    return false;
++
++  if (strcmp(par->table, "filter"))
++    return true;
++
++  return (par->hook_mask &  ~((1 << NF_INET_LOCAL_IN) |
++	                      (1 << NF_INET_FORWARD)));
++}
++
++
++static struct xt_target xt_tar_reg = {
++  .name       = "TARPIT",            /* target name */
++  .family     = AF_INET,             /* level 3 protocol */
++  .proto      = IPPROTO_TCP,         /* we recognize only tcp protocol */
++  .target     = xt_tarpit_target,    /* pointer to target function */
++  .checkentry = xt_tarpit_check,     /* pointer to check-entry function */
++  .me         = THIS_MODULE,
 +};
 +
-+
-+int __init ip_vs_sync_init(void)
++/*
++ * initing module function
++ */
++static int __init xt_tarpit_init(void)
 +{
-+	return register_pernet_subsys(&ipvs_sync_ops);
++  return xt_register_target(&xt_tar_reg);
 +}
 +
-+void __exit ip_vs_sync_cleanup(void)
++/*
++ * delete module
++ */
++static void __exit xt_tarpit_exit(void)
 +{
-+	unregister_pernet_subsys(&ipvs_sync_ops);
++  xt_unregister_target(&xt_tar_reg);
 +}
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index a2e8497..d68178f 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -410,13 +410,15 @@ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
- 	/* check if it is a connection of no-client-port */
- 	if (unlikely(cp->flags & IP_VS_CONN_F_NO_CPORT)) {
- 		__be16 _pt, *p;
-+		struct net *net;
- 		p = skb_header_pointer(skb, iph->ihl*4, sizeof(_pt), &_pt);
- 		if (p == NULL)
- 			goto tx_error;
--		ip_vs_conn_fill_cport(cp, *p);
-+		net = dev_net(skb->dev);
-+		ip_vs_conn_fill_cport(net, cp, *p);
- 		IP_VS_DBG(10, "filled cport=%d\n", ntohs(*p));
- 	}
--
-+	IP_VS_DBG(10, "%s() dst:%x\n", __func__, iph->daddr);
- 	if (!(rt = __ip_vs_get_out_rt(skb, cp, RT_TOS(iph->tos))))
- 		goto tx_error_icmp;
++
++module_init(xt_tarpit_init);
++module_exit(xt_tarpit_exit);
 
-@@ -486,14 +488,16 @@ ip_vs_nat_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
- 	/* check if it is a connection of no-client-port */
- 	if (unlikely(cp->flags & IP_VS_CONN_F_NO_CPORT)) {
- 		__be16 _pt, *p;
-+		struct net *net;
- 		p = skb_header_pointer(skb, sizeof(struct ipv6hdr),
- 				       sizeof(_pt), &_pt);
- 		if (p == NULL)
- 			goto tx_error;
--		ip_vs_conn_fill_cport(cp, *p);
-+		net = dev_net(skb->dev);
-+		BUG_ON(!net);
-+		ip_vs_conn_fill_cport(net, cp, *p);
- 		IP_VS_DBG(10, "filled cport=%d\n", ntohs(*p));
- 	}
--
- 	rt = __ip_vs_get_out_rt_v6(skb, cp, NULL, 0);
- 	if (!rt)
- 		goto tx_error_icmp;
+
+-------------libxt_TARPIT.c------------
+#include <stdio.h>
+#include <getopt.h>
+#include <xtables.h>
+
+static void tarpit_tg_help(void)
+{
+	printf("TARPIT takes no options\n\n");
+}
+
+static int tarpit_tg_parse(int c, char **argv, int invert, unsigned int *flags,
+                           const void *entry, struct xt_entry_target **target)
+{
+	return 0;
+}
+
+static void tarpit_tg_check(unsigned int flags)
+{
+}
+
+static struct xtables_target tarpit_tg_reg = {
+	.version       = XTABLES_VERSION,
+	.name          = "TARPIT",
+	.family        = AF_INET,
+	.help          = tarpit_tg_help,
+	.parse         = tarpit_tg_parse,
+	.final_check   = tarpit_tg_check,
+};
+
+static __attribute__((constructor)) void tarpit_tg_ldr(void)
+{
+	xtables_register_target(&tarpit_tg_reg);
+}
 
 -- 
-Regards
-Hans Schillstrom <hans.schillstrom@ericsson.com>
+Nicola Padovano
+e-mail: nicola.padovano@gmail.com
+web: http://npadovano.altervista.org
+
+"My only ambition is not be anything at all; it seems the most
+sensible thing" (C. Bukowski)
