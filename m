@@ -1,19 +1,22 @@
-From: Nicola Padovano <nicola.padovano@gmail.com>
-Subject: [PATCH] Tarpit target for the last stable (2.6.35.7)
-Date: Fri, 8 Oct 2010 19:01:41 +0200
-Message-ID: <AANLkTimAd8F66D-P=h1i7C-CyCFn-OSbJtNRQX=drdgK@mail.gmail.com>
+From: Nicola <nicola.padovano@gmail.com>
+Subject: [PATCH] Tarpit target for the last stable (2.6.35.7): right version
+Date: Fri, 08 Oct 2010 21:01:23 +0200
+Message-ID: <4CAF6A83.6090004@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel <netfilter-devel@vger.kernel.org>,
-	netdev@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:63697 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757437Ab0JHRCE (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:37095 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932278Ab0JHTBa (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 8 Oct 2010 13:02:04 -0400
+	Fri, 8 Oct 2010 15:01:30 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
+
+[Sorry for the inconvenience: I just noticed that Gmail has a bad 
+formatting. I resend the patch hoping that now things are right.]
 
 Kernel module to capture and hold incoming TCP connections sending a
 zero window packet to slow down the worm action.
@@ -23,86 +26,92 @@ comments)
 Below you can find the patch and the relative userspace library
 (compile it and put the .so output in /lib/xtables)
 
-----------tarpit-2.6.35.7.patch------------
-diff -rupN linux-2.6.35.7.orig/drivers/char/random.c
+
+----tarpit-2.6.35.7.patch----
+diff -rupN linux-2.6.35.7.orig/drivers/char/random.c 
 linux-2.6.35.7/drivers/char/random.c
---- linux-2.6.35.7.orig/drivers/char/random.c	2010-09-29
+--- linux-2.6.35.7.orig/drivers/char/random.c    2010-09-29 
 03:09:08.000000000 +0200
-+++ linux-2.6.35.7/drivers/char/random.c	2010-10-08 02:51:35.000000000 +0200
++++ linux-2.6.35.7/drivers/char/random.c    2010-10-08 
+02:51:35.000000000 +0200
 @@ -1514,6 +1514,8 @@ __u32 secure_ip_id(__be32 daddr)
- 	return half_md4_transform(hash, keyptr->secret);
- }
+      return half_md4_transform(hash, keyptr->secret);
+  }
 
 +EXPORT_SYMBOL(secure_ip_id);
 +
- #ifdef CONFIG_INET
+  #ifdef CONFIG_INET
 
- __u32 secure_tcp_sequence_number(__be32 saddr, __be32 daddr,
+  __u32 secure_tcp_sequence_number(__be32 saddr, __be32 daddr,
 @@ -1551,6 +1553,8 @@ __u32 secure_tcp_sequence_number(__be32
- 	return seq;
- }
+      return seq;
+  }
 
 +EXPORT_SYMBOL(secure_tcp_sequence_number);
 +
- /* Generate secure starting point for ephemeral IPV4 transport port search */
- u32 secure_ipv4_port_ephemeral(__be32 saddr, __be32 daddr, __be16 dport)
- {
-diff -rupN linux-2.6.35.7.orig/net/netfilter/Kconfig
+  /* Generate secure starting point for ephemeral IPV4 transport port 
+search */
+  u32 secure_ipv4_port_ephemeral(__be32 saddr, __be32 daddr, __be16 dport)
+  {
+diff -rupN linux-2.6.35.7.orig/net/netfilter/Kconfig 
 linux-2.6.35.7/net/netfilter/Kconfig
---- linux-2.6.35.7.orig/net/netfilter/Kconfig	2010-09-29
+--- linux-2.6.35.7.orig/net/netfilter/Kconfig    2010-09-29 
 03:09:08.000000000 +0200
-+++ linux-2.6.35.7/net/netfilter/Kconfig	2010-10-08 12:51:07.000000000 +0200
++++ linux-2.6.35.7/net/netfilter/Kconfig    2010-10-08 
+12:51:07.000000000 +0200
 @@ -548,6 +548,32 @@ config NETFILTER_XT_TARGET_SECMARK
 
- 	  To compile it as a module, choose M here.  If unsure, say N.
+        To compile it as a module, choose M here.  If unsure, say N.
 
 +config NETFILTER_XT_TARGET_TARPIT
-+	tristate '"TARPIT" target support'
-+	depends on NETFILTER_XTABLES
-+	default m if NETFILTER_ADVANCED=n
-+	---help---
-+	  Adds a TARPIT target to iptables, which captures and holds
-+	  incoming TCP connections using no local per-connection resources.
-+	  Connections are accepted, but immediately switched to the persist
-+	  state (0 byte window), in which the remote side stops sending data
-+	  and asks to continue every 60-240 seconds (with a probe packet).
-+	  Attempts to close the connection are ignored, forcing the remote
-+	  side to time out the connection in 12-24 minutes. Any TCP port that
-+	  you would normally DROP or REJECT can instead become a tarpit.
-+	  Example:
++    tristate '"TARPIT" target support'
++    depends on NETFILTER_XTABLES
++    default m if NETFILTER_ADVANCED=n
++    ---help---
++      Adds a TARPIT target to iptables, which captures and holds
++      incoming TCP connections using no local per-connection resources.
++      Connections are accepted, but immediately switched to the persist
++      state (0 byte window), in which the remote side stops sending data
++      and asks to continue every 60-240 seconds (with a probe packet).
++      Attempts to close the connection are ignored, forcing the remote
++      side to time out the connection in 12-24 minutes. Any TCP port that
++      you would normally DROP or REJECT can instead become a tarpit.
++      Example:
 +
-+	  1) iptables -A INPUT -p tcp --dport 1111 -j TARPIT
-+	  2) iptables -A FORWARD -p tcp -s x.y.z.k --dport 1111 -j TARPIT
++      1) iptables -A INPUT -p tcp --dport 1111 -j TARPIT
++      2) iptables -A FORWARD -p tcp -s x.y.z.k --dport 1111 -j TARPIT
 +
-+ 	  In the first example all the incoming TCP packets sent to the port
-+	  1111 will be tarpitted. In the second one, we're tarpitting all the
-+	  forwarded packets sent to the host x.y.z.k on the port 1111.
++       In the first example all the incoming TCP packets sent to the port
++      1111 will be tarpitted. In the second one, we're tarpitting all the
++      forwarded packets sent to the host x.y.z.k on the port 1111.
 +
 +         You can find more informations and newer versions at:
-+	  <http://npadovano.altervista.org/tarpit.html>. Reporting bugs and
-+	  improvements are welcome.
++ <http://npadovano.altervista.org/tarpit.html>. Reporting bugs and
++      improvements are welcome.
 +
- config NETFILTER_XT_TARGET_TCPMSS
- 	tristate '"TCPMSS" target support'
- 	depends on (IPV6 || IPV6=n)
-diff -rupN linux-2.6.35.7.orig/net/netfilter/Makefile
+  config NETFILTER_XT_TARGET_TCPMSS
+      tristate '"TCPMSS" target support'
+      depends on (IPV6 || IPV6=n)
+diff -rupN linux-2.6.35.7.orig/net/netfilter/Makefile 
 linux-2.6.35.7/net/netfilter/Makefile
---- linux-2.6.35.7.orig/net/netfilter/Makefile	2010-09-29
+--- linux-2.6.35.7.orig/net/netfilter/Makefile    2010-09-29 
 03:09:08.000000000 +0200
-+++ linux-2.6.35.7/net/netfilter/Makefile	2010-10-08 02:53:44.000000000 +0200
++++ linux-2.6.35.7/net/netfilter/Makefile    2010-10-08 
+02:53:44.000000000 +0200
 @@ -56,6 +56,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_NFQUEUE
- obj-$(CONFIG_NETFILTER_XT_TARGET_NOTRACK) += xt_NOTRACK.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_RATEEST) += xt_RATEEST.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_SECMARK) += xt_SECMARK.o
+  obj-$(CONFIG_NETFILTER_XT_TARGET_NOTRACK) += xt_NOTRACK.o
+  obj-$(CONFIG_NETFILTER_XT_TARGET_RATEEST) += xt_RATEEST.o
+  obj-$(CONFIG_NETFILTER_XT_TARGET_SECMARK) += xt_SECMARK.o
 +obj-$(CONFIG_NETFILTER_XT_TARGET_TARPIT) += xt_TARPIT.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TPROXY) += xt_TPROXY.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP) += xt_TCPOPTSTRIP.o
-diff -rupN linux-2.6.35.7.orig/net/netfilter/xt_TARPIT.c
+  obj-$(CONFIG_NETFILTER_XT_TARGET_TPROXY) += xt_TPROXY.o
+  obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
+  obj-$(CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP) += xt_TCPOPTSTRIP.o
+diff -rupN linux-2.6.35.7.orig/net/netfilter/xt_TARPIT.c 
 linux-2.6.35.7/net/netfilter/xt_TARPIT.c
---- linux-2.6.35.7.orig/net/netfilter/xt_TARPIT.c	1970-01-01
+--- linux-2.6.35.7.orig/net/netfilter/xt_TARPIT.c    1970-01-01 
 01:00:00.000000000 +0100
-+++ linux-2.6.35.7/net/netfilter/xt_TARPIT.c	2010-10-08 13:27:54.000000000 +0200
++++ linux-2.6.35.7/net/netfilter/xt_TARPIT.c    2010-10-08 
+13:27:54.000000000 +0200
 @@ -0,0 +1,304 @@
 +/*
 + * Kernel module to capture and hold incoming TCP connections using
@@ -164,7 +173,7 @@ linux-2.6.35.7/net/netfilter/xt_TARPIT.c
 +
 +
 +MODULE_DESCRIPTION("TARPIT iptables target, info at: "
-+		    "http://npadovano.altervista.org/tarpit.html");
++ "http://npadovano.altervista.org/tarpit.html");
 +MODULE_AUTHOR("Nicola Padovano <nicola.padovano@gmail.com>");
 +MODULE_LICENSE("GPL");
 +MODULE_ALIAS("xt_TARPIT");
@@ -185,15 +194,15 @@ linux-2.6.35.7/net/netfilter/xt_TARPIT.c
 +  if (dst->hh != NULL)
 +    return neigh_hh_output(dst->hh,skb);
 +
-+  /* if there isn't header cache, send our packet with simple output
++  /* if there isn't header cache, send our packet with simple output 
 function */
 +  else if (dst->neighbour != NULL)
 +    return dst->neighbour->output(skb);
 +
 +  /* no neighbour, no header cache: it's impossible send the packet */
-+  if (net_ratelimit())	
-+    printk(KERN_DEBUG "TARPIT> ip_direct_send: no neighbour, no
-header cache\n");
++  if (net_ratelimit())
++    printk(KERN_DEBUG "TARPIT> ip_direct_send: no neighbour, no header 
+cache\n");
 +
 +  kfree_skb(skb);
 +
@@ -209,7 +218,7 @@ header cache\n");
 + *       it's called "new".
 + */
 +static void tarpit_tcp(const struct sk_buff *oskb,
-+		       struct rtable *ort)
++               struct rtable *ort)
 +{
 +  struct iphdr    *oiph;             /* old ip header pointer */
 +  struct tcphdr   *otcph;            /* old tcp header pointer */
@@ -221,7 +230,7 @@ header cache\n");
 +  struct tcphdr   *ntcph;            /* new tcp header pointer */
 +  struct rtable   *nrt;              /* new routing table */
 +
-+  struct flowi fl = {};              /* search key used for the cache
++  struct flowi fl = {};              /* search key used for the cache 
 lookups */
 +
 +  u_int32_t tmp32;                   /* swapping variables*/
@@ -230,36 +239,39 @@ lookups */
 +  /* fill old structs */
 +  oiph    = ip_hdr(oskb);            /* get old ip header pointer */
 +  oiphlen = ip_hdrlen(oskb);
-+  otcph   = (void*)oiph + oiphlen;   /* do not use skb_transport_header! */
++  otcph   = (void*)oiph + oiphlen;   /* do not use 
+skb_transport_header! */
 +  otcplen = oskb->len - oiphlen;
 +
 +  /* packets to drop */
-+  if ( (oskb->len < oiphlen + sizeof(struct tcphdr)) ||
-    /* truncate tcp header: 1st too fragmented packet...*/
-+       (otcph->fin || otcph->rst) ||
-    /* RST or FIN packet*/
-+       (!otcph->ack && !otcph->syn) ||
-    /* !ACK,!SYN packet */
-+       (tcp_v4_check(otcplen, oiph->saddr, oiph->daddr,
-    /* bad tcp checksum e ip checksum */
-+		    csum_partial((char *)otcph, otcplen, 0))) ||
-+       (oiph->frag_off & htons(IP_OFFSET)) ||
-    /* fragment packets (after the first one) */
-+       (!otcph->syn && otcph->ack && !xrlim_allow(&ort->u.dst,HZ)) ||
-    /* rate-limit answer to SYN,ACK packets */
-+       (ort == NULL) ||
-    /* check for an input routing cache entry */
-+       (oskb->pkt_type != PACKET_HOST &&
-    /* no replies to physical multi/broadcast */
++  if ( (oskb->len < oiphlen + sizeof(struct tcphdr)) 
+||                   /* truncate tcp header: 1st too fragmented packet...*/
++       (otcph->fin || otcph->rst) 
+||                                      /* RST or FIN packet*/
++       (!otcph->ack && !otcph->syn) 
+||                                    /* !ACK,!SYN packet */
++       (tcp_v4_check(otcplen, oiph->saddr, 
+oiph->daddr,                   /* bad tcp checksum e ip checksum */
++            csum_partial((char *)otcph, otcplen, 0))) ||
++       (oiph->frag_off & htons(IP_OFFSET)) 
+||                             /* fragment packets (after the first one) */
++       (!otcph->syn && otcph->ack && !xrlim_allow(&ort->u.dst,HZ)) 
+||     /* rate-limit answer to SYN,ACK packets */
++       (ort == NULL) 
+||                                                   /* check for an 
+input routing cache entry */
++       (oskb->pkt_type != PACKET_HOST 
+&&                                  /* no replies to physical 
+multi/broadcast */
 +        oskb->pkt_type != PACKET_OTHERHOST) ||
-+       (ort->rt_flags & (RTCF_BROADCAST | RTCF_MULTICAST)) )
-   /* check IP multi/broadcast */
++       (ort->rt_flags & (RTCF_BROADCAST | RTCF_MULTICAST)) 
+)             /* check IP multi/broadcast */
 +    return;
 +
 +
-+  if (!(nskb = skb_copy(oskb, GFP_ATOMIC)))      /* we start with a
++  if (!(nskb = skb_copy(oskb, GFP_ATOMIC)))      /* we start with a 
 yet-prepared buffer */
-+    return;                                      /* return if there's
++    return;                                      /* return if there's 
 an error in copy */
 +
 +  /* This packet will not be the same as the other: clear nf fields */
@@ -269,8 +281,8 @@ an error in copy */
 +  nskb->nf_debug = 0;
 +#endif
 +
-+  skb_trim(nskb, ip_hdrlen(nskb) + sizeof(struct tcphdr));     /*
-trim skb size to IP LEN + TCP LEN*/
++  skb_trim(nskb, ip_hdrlen(nskb) + sizeof(struct tcphdr));     /* trim 
+skb size to IP LEN + TCP LEN*/
 +  niph  = (struct iphdr*)skb_network_header(nskb);
 +  ntcph = (void*)niph + ip_hdrlen(nskb);
 +
@@ -293,7 +305,7 @@ trim skb size to IP LEN + TCP LEN*/
 +  ntcph->source = ntcph->dest;
 +  ntcph->dest   = tmp16;
 +
-+  ntcph->doff   = sizeof(struct tcphdr)/4;    /* 20bytes, doff is a
++  ntcph->doff   = sizeof(struct tcphdr)/4;    /* 20bytes, doff is a 
 4bit variable */
 +
 +  ((u_int8_t*)ntcph)[13] = 0;                 /* reset all flag */
@@ -305,9 +317,9 @@ trim skb size to IP LEN + TCP LEN*/
 +      ntcph->syn = 1;
 +      ntcph->ack = 1;
 +      ntcph->seq = htonl(secure_tcp_sequence_number(niph->saddr,
-+						    niph->daddr,
-+						    ntcph->source,
-+						    ntcph->dest));
++                            niph->daddr,
++                            ntcph->source,
++                            ntcph->dest));
 +      ntcph->ack_seq = htonl(ntohl(otcph->seq) + 1);
 +      ntcph->window = htons(5);
 +    }
@@ -330,18 +342,18 @@ trim skb size to IP LEN + TCP LEN*/
 +      ntcph->ack = 1;
 +      ntcph->window = 0;
 +      ntcph->seq = otcph->ack_seq;
-+      ntcph->ack_seq = otcph->seq;   /* it's saying: "i'm not
-received anything" */
++      ntcph->ack_seq = otcph->seq;   /* it's saying: "i'm not received 
+anything" */
 +    }
 +  else                               /* unacknowledged packet: drop it*/
 +    return;
 +
 +  ntcph->check = 0;
 +  ntcph->check = tcp_v4_check(sizeof(struct tcphdr),
-+			      niph->saddr,
-+			      niph->daddr,
-+			      csum_partial((char *)ntcph,
-+			      sizeof(struct tcphdr), 0));
++                  niph->saddr,
++                  niph->daddr,
++                  csum_partial((char *)ntcph,
++                  sizeof(struct tcphdr), 0));
 +
 +
 +  /* create a search key to find packet route in cache*/
@@ -350,15 +362,15 @@ received anything" */
 +  fl.nl_u.ip4_u.tos = RT_TOS(niph->tos) | RTO_CONN;
 +  fl.oif = 0;
 +
-+  if (ip_route_output_key(&init_net, &nrt, &fl))             /* fill
++  if (ip_route_output_key(&init_net, &nrt, &fl))             /* fill 
 nrt struct */
-+    goto free_nskb;                                          /* exit
-if errors in filling*/
++    goto free_nskb;                                          /* exit if 
+errors in filling*/
 +
 +  dst_release(skb_dst(nskb));
 +  nskb->_skb_refdst = ((unsigned long)&(nrt->u.dst));
 +
-+  ip_direct_send(nskb);                                      /* send
++  ip_direct_send(nskb);                                      /* send 
 the packet */
 +
 +  return;
@@ -397,7 +409,7 @@ the packet */
 +    return true;
 +
 +  return (par->hook_mask &  ~((1 << NF_INET_LOCAL_IN) |
-+	                      (1 << NF_INET_FORWARD)));
++                          (1 << NF_INET_FORWARD)));
 +}
 +
 +
@@ -430,20 +442,22 @@ the packet */
 +module_exit(xt_tarpit_exit);
 
 
--------------libxt_TARPIT.c------------
+----libxt_TARPIT.c----
 #include <stdio.h>
 #include <getopt.h>
 #include <xtables.h>
 
 static void tarpit_tg_help(void)
 {
-	printf("TARPIT takes no options\n\n");
+        printf("TARPIT takes no options\n\n");
 }
 
-static int tarpit_tg_parse(int c, char **argv, int invert, unsigned int *flags,
-                           const void *entry, struct xt_entry_target **target)
+static int tarpit_tg_parse(int c, char **argv, int invert, unsigned int 
+*flags,
+                           const void *entry, struct xt_entry_target 
+**target)
 {
-	return 0;
+        return 0;
 }
 
 static void tarpit_tg_check(unsigned int flags)
@@ -451,23 +465,15 @@ static void tarpit_tg_check(unsigned int flags)
 }
 
 static struct xtables_target tarpit_tg_reg = {
-	.version       = XTABLES_VERSION,
-	.name          = "TARPIT",
-	.family        = AF_INET,
-	.help          = tarpit_tg_help,
-	.parse         = tarpit_tg_parse,
-	.final_check   = tarpit_tg_check,
+        .version       = XTABLES_VERSION,
+        .name          = "TARPIT",
+        .family        = AF_INET,
+        .help          = tarpit_tg_help,
+        .parse         = tarpit_tg_parse,
+        .final_check   = tarpit_tg_check,
 };
 
 static __attribute__((constructor)) void tarpit_tg_ldr(void)
 {
-	xtables_register_target(&tarpit_tg_reg);
+        xtables_register_target(&tarpit_tg_reg);
 }
-
--- 
-Nicola Padovano
-e-mail: nicola.padovano@gmail.com
-web: http://npadovano.altervista.org
-
-"My only ambition is not be anything at all; it seems the most
-sensible thing" (C. Bukowski)
