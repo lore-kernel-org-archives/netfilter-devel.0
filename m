@@ -1,39 +1,121 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Announcement: MAP66 extension for ip6tables
-Date: Thu, 7 Oct 2010 14:32:34 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1010071430320.29910@obet.zrqbmnf.qr>
-References: <201010061842.20142.sven-ola@gmx.de> <201010070940.08259.sven-ola@gmx.de> <alpine.LNX.2.01.1010070945540.29249@obet.zrqbmnf.qr> <201010071427.25625.sven-ola@gmx.de>
+From: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Subject: [RFC PATCH 0/9] ipvs network name space (netns) aware
+Date: Fri, 8 Oct 2010 13:16:36 +0200
+Message-ID: <201010081316.38317.hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Sven-Ola Tuecke <sven-ola@gmx.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:35635 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753997Ab0JGMcf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Oct 2010 08:32:35 -0400
-In-Reply-To: <201010071427.25625.sven-ola@gmx.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: horms@verge.net.au, ja@ssi.bg, wensong@linux-vs.org,
+	daniel.lezcano@free.fr
+To: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
+This patch series adds network name space (netns) support to the LVS.
+
+REVISION
+
+This is version 1
+
+OVERVIEW
+
+The patch doesn't remove or add any functionality except for netns.
+For users that don't use network name space (netns) this patch is
+completely transparent.
+
+No it's possible to run LVS in a Linux container (see lxc-tools)
+i.e.  a light weight virtualization. For example it's possible to run
+one or several lvs on a real server in their own network name spaces.
+>From the LVS point of view it looks like it runs on it's own machine.
+
+IMPLEMENTATION
+Basic requirements for netns awareness
+ - Global variables has to be moved to dyn. allocated memory.
+
+Most global variables now resides in a struct ipvs { } in netns/ip_vs.h.
+What is moved and what is not ?
+
+Some cache aligned locks are still in global, module init params and some debug_level.
+
+Algorithm files they are untouched.
+
+QUESTIONS
+Drop rate in ip_vs_ctl per netns or grand total ?
+Should more lock variables be moved (or less) ?
 
 
-On Thursday 2010-10-07 14:27, Sven-Ola Tuecke wrote:
->
->> No oopses should happen. It's just that conntrack will record two
->> different connections for what is one, and the states thus don't work
->> reliably.
->
->Thanks for the estimation - but untested stuff tends to trigger mem leaks and 
->whatnot.
+PATCH SET
+This patch set is based upon net-next-2.6 (2.6.36-rc3) from 4 oct 2010
+and [patch v4] ipvs: IPv6 tunnel mode
 
-Well since it has to record twice the connections it will use twice as much
-memory, yes. It is probably best to tag every packet that is going to be
-MAP66'd with -j NOTRACK anyway (when you don't use raw/rawpost), to avoid
-wasting conntrack resources on something it won't do.
+Note: ip_vs_xmit.c will not work without "[patch v4] ipvs: IPv6 tunnel mode"
 
->I leave the warning there. While I'm here: I wasn't aware that sme. 
->has written a complete book on writing NF modules as well as maintaining a 
->compat framework as well. Next time I'd try google first, then start hacking, 
->Promised ;-)
+SUMMARY
 
-You should come to NFWS in Sevilla later this month. ;)
+ include/net/ip_vs.h                     |  136 ++++---
+ include/net/net_namespace.h             |    2 +
+ include/net/netns/ip_vs.h               |  112 +++++
+ net/netfilter/ipvs/ip_vs_app.c          |   96 +++--
+ net/netfilter/ipvs/ip_vs_conn.c         |  296 ++++++++-----
+ net/netfilter/ipvs/ip_vs_core.c         |  155 ++++---
+ net/netfilter/ipvs/ip_vs_ctl.c          |  771 +++++++++++++++++--------------
+ net/netfilter/ipvs/ip_vs_est.c          |  127 +++--
+ net/netfilter/ipvs/ip_vs_ftp.c          |   64 ++-
+ net/netfilter/ipvs/ip_vs_proto.c        |  108 +++++-
+ net/netfilter/ipvs/ip_vs_proto_ah_esp.c |   34 +-
+ net/netfilter/ipvs/ip_vs_proto_sctp.c   |  126 +++---
+ net/netfilter/ipvs/ip_vs_proto_tcp.c    |  112 +++--
+ net/netfilter/ipvs/ip_vs_proto_udp.c    |  107 +++--
+ net/netfilter/ipvs/ip_vs_sync.c         |  323 +++++++------
+ net/netfilter/ipvs/ip_vs_xmit.c         |   12 +-
+ 16 files changed, 1588 insertions(+), 993 deletions(-)
+
+The patch will be divided for readability into
+ 1. include files
+ 2. app
+ 3. conn
+ 4. core
+ 5. ctl
+ 6. est
+ 7. ftp
+ 8. proto files
+ 9. sync and xmit
+
+Include files,
+A new file added include/net/netns/ip_vs.h containg all netns specific data.
+include/net/net_namespce.h, pointer to "struct ipvs"  added.
+include/net/ip_vs.h a new struct added, and many prototypes changed.
+
+* ip_vs_core.c
+All netns init origins from this file - ip_vs_init()
+
+* ip_vs_conn.c
+Lock array for conn table is kept due to performance,
+(or am I wrong here ?).
+"static struct ip_vs_aligned_lock
+__ip_vs_conntbl_lock_array[CT_LOCKARRAY_SIZE] __cacheline_aligned;"
+
+* ip_vs_ctl.c
+drop_ rate is still global
+
+TESTING
+This patch have been running for a month now with three LVS/machine
+one in root name-space and two in other name-space.
+Both IPv4 & IPv6 have been tested in all three modes DR/TUN and NAT
+Only a limited set of algos have been used (read rr).
+
+Backup have been there all the time and a switch has been performed a couple of times.
+
+There is still some BUG_ON(!net) left  ...
+
+Not tested yet:
+ Drop level, DOS,  schedulers, performance ....
+ Netns exit after usage of LVS (due to a bug in netdev/ipip somewhere tunl0 and
+
+
+--
+Regards
+Hans Schillstrom <hans.schillstrom@ericsson.com>
