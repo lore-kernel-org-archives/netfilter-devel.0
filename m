@@ -1,54 +1,49 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [patch] arptables: some patches from debian
-Date: Sat, 09 Oct 2010 21:17:57 +0200
-Message-ID: <4CB0BFE5.7070201@pandora.be>
-References: <1284558534.22085.164.camel@tablet> <1286630249.3611.514.camel@tablet>
+From: Mistick Levi <gmistick@gmail.com>
+Subject: Re:
+Date: Sat, 9 Oct 2010 23:56:42 +0200
+Message-ID: <AANLkTik-RVPJO7pRtOkk4zo+xUEGHN8qNQxQOomXBH7c@mail.gmail.com>
+References: <20101010012607.zl4aj162o0004ok0@webmail.eon.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: ebtables-devel@lists.sourceforge.net,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Peter Volkov <pva@gentoo.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from brigitte.telenet-ops.be ([195.130.137.66]:47481 "EHLO
-	brigitte.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757059Ab0JITXD (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:46998 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752662Ab0JIV5F convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 9 Oct 2010 15:23:03 -0400
-In-Reply-To: <1286630249.3611.514.camel@tablet>
+	Sat, 9 Oct 2010 17:57:05 -0400
+Received: by fxm14 with SMTP id 14so1058069fxm.19
+        for <netfilter-devel@vger.kernel.org>; Sat, 09 Oct 2010 14:57:03 -0700 (PDT)
+In-Reply-To: <20101010012607.zl4aj162o0004ok0@webmail.eon.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello Peter,
+What's up with all those mail's about business proposal's that are
+sent to the mailing list?!
 
-Patch 2 and 3 are committed.
-For the '*' part of patch 1 I'd rather remove the -v usage in 
-arptables-restore. This will require fixing the reason why -v is used in 
-the first place. I wasn't aware this is due to a bug: the -i and -o 
-interfaces aren't printed unless -v is specified. I'll look into this.
-
-cheers,
-Bart
-
-On 09-10-10 15:17, Peter Volkov wrote:
-> Hi again. What is the best way to contact arptables developers? My
-> previous patch was left without attention, should I resend it? In
-> attachment there are three fixes from debian:
+On Sat, Oct 9, 2010 at 7:26 PM, Mr.Young Chang <info@yahoo.com> wrote:
+> My name is Mr.Young Chang,Credit officer MEVAS BANK,HK.I have a Busin=
+ess
+> Proposal of $19.7 million usd for you to handle with me.Are you inter=
+ested?
 >
-> 1. arptables_save patch makes arp_tables don't resolve host names and
-> don't convert '*' interface names to any. Remove '*' interface names.
-> 2. manpage patch removes old version from man page
-> 3. is a patch from Jeroen van Wolffelaar to make arptables --proto-type
-> also accept hexadecimal inputs (ethernet protocol numbers are often
-> specfied in hex, not decimal), using standard strtol() behaviour (hex
-> iff starts with 0x).
 >
-> Please, apply.
->    
-
-
--- 
-Bart De Schuymer
-www.artinalgorithms.be
-
+>
+>
+>
+>
+> ----------------------------------------------------------------
+> This message was sent using IMP, the Internet Messaging Program.
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter" =
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
