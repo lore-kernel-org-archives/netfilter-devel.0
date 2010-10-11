@@ -1,49 +1,78 @@
-From: Mistick Levi <gmistick@gmail.com>
-Subject: Re:
-Date: Sat, 9 Oct 2010 23:56:42 +0200
-Message-ID: <AANLkTik-RVPJO7pRtOkk4zo+xUEGHN8qNQxQOomXBH7c@mail.gmail.com>
-References: <20101010012607.zl4aj162o0004ok0@webmail.eon.net.au>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: [PATCH] nf_nat: restrict ICMP translation for embedded header
+Date: Mon, 11 Oct 2010 11:23:07 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1010111103470.3743@ja.ssi.bg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:46998 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752662Ab0JIV5F convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 9 Oct 2010 17:57:05 -0400
-Received: by fxm14 with SMTP id 14so1058069fxm.19
-        for <netfilter-devel@vger.kernel.org>; Sat, 09 Oct 2010 14:57:03 -0700 (PDT)
-In-Reply-To: <20101010012607.zl4aj162o0004ok0@webmail.eon.net.au>
+Received: from ja.ssi.bg ([178.16.129.10]:48173 "EHLO ja.ssi.bg"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753149Ab0JKIWU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 Oct 2010 04:22:20 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-What's up with all those mail's about business proposal's that are
-sent to the mailing list?!
 
-On Sat, Oct 9, 2010 at 7:26 PM, Mr.Young Chang <info@yahoo.com> wrote:
-> My name is Mr.Young Chang,Credit officer MEVAS BANK,HK.I have a Busin=
-ess
-> Proposal of $19.7 million usd for you to handle with me.Are you inter=
-ested?
->
->
->
->
->
->
-> ----------------------------------------------------------------
-> This message was sent using IMP, the Internet Messaging Program.
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter" =
-in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	Skip ICMP translation of embedded protocol header
+if NAT bits are not set. Needed for IPVS to see the original
+embedded addresses because for IPVS traffic the IPS_SRC_NAT_BIT
+and IPS_DST_NAT_BIT bits are not set. It happens when IPVS performs
+DNAT for client packets after using nf_conntrack_alter_reply
+to expect replies from real server.
+
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+---
+
+ 	I'm not very familiar with this code, so this change
+must not be considered as trivial. May be there was a
+reason the embedded header to be translated before the NAT
+bits are set?
+
+diff -urp net-next-2.6-e548833/linux/net/ipv4/netfilter/nf_nat_core.c linux/net/ipv4/netfilter/nf_nat_core.c
+--- net-next-2.6-e548833/linux/net/ipv4/netfilter/nf_nat_core.c	2010-09-10 08:27:33.000000000 +0300
++++ linux/net/ipv4/netfilter/nf_nat_core.c	2010-10-11 10:13:17.945355032 +0300
+@@ -458,6 +458,18 @@ int nf_nat_icmp_reply_translation(struct
+  			return 0;
+  	}
+
++	if (manip == IP_NAT_MANIP_SRC)
++		statusbit = IPS_SRC_NAT;
++	else
++		statusbit = IPS_DST_NAT;
++
++	/* Invert if this is reply dir. */
++	if (dir == IP_CT_DIR_REPLY)
++		statusbit ^= IPS_NAT_MASK;
++
++	if (!(ct->status & statusbit))
++		return 1;
++
+  	pr_debug("icmp_reply_translation: translating error %p manip %u "
+  		 "dir %s\n", skb, manip,
+  		 dir == IP_CT_DIR_ORIGINAL ? "ORIG" : "REPLY");
+@@ -492,20 +504,9 @@ int nf_nat_icmp_reply_translation(struct
+
+  	/* Change outer to look the reply to an incoming packet
+  	 * (proto 0 means don't invert per-proto part). */
+-	if (manip == IP_NAT_MANIP_SRC)
+-		statusbit = IPS_SRC_NAT;
+-	else
+-		statusbit = IPS_DST_NAT;
+-
+-	/* Invert if this is reply dir. */
+-	if (dir == IP_CT_DIR_REPLY)
+-		statusbit ^= IPS_NAT_MASK;
+-
+-	if (ct->status & statusbit) {
+-		nf_ct_invert_tuplepr(&target, &ct->tuplehash[!dir].tuple);
+-		if (!manip_pkt(0, skb, 0, &target, manip))
+-			return 0;
+-	}
++	nf_ct_invert_tuplepr(&target, &ct->tuplehash[!dir].tuple);
++	if (!manip_pkt(0, skb, 0, &target, manip))
++		return 0;
+
+  	return 1;
+  }
