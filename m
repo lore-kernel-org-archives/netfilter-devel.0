@@ -1,61 +1,104 @@
-From: Paul Moore <paul.moore@hp.com>
-Subject: Re: [PATCH 2/5] secmark: make secmark object handling generic
-Date: Tue, 12 Oct 2010 19:20:48 -0400
-Message-ID: <1286925648.5133.103.camel@sifl>
+From: Eric Paris <eparis@redhat.com>
+Subject: Re: [PATCH 4/5] conntrack: export lsm context rather than internal
+ secid via netlink
+Date: Tue, 12 Oct 2010 19:24:51 -0400
+Message-ID: <1286925891.2614.13.camel@localhost.localdomain>
 References: <20101012154008.26943.44399.stgit@paris.rdu.redhat.com>
-	 <20101012154015.26943.18385.stgit@paris.rdu.redhat.com>
-	 <1286924143.5133.86.camel@sifl>
-	 <1286924512.2614.1.camel@localhost.localdomain>
-	 <1286924762.5133.91.camel@sifl>
-	 <1286925270.2614.9.camel@localhost.localdomain>
+	 <20101012154028.26943.6918.stgit@paris.rdu.redhat.com>
+	 <1286925284.5133.98.camel@sifl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	netfilter@vger.kernel.org, jmorris@namei.org,
 	selinux@tycho.nsa.gov, sds@tycho.nsa.gov, jengelh@medozas.de,
 	linux-security-module@vger.kernel.org, mr.dash.four@googlemail.com,
 	pablo@netfilter.org
-To: Eric Paris <eparis@redhat.com>
+To: Paul Moore <paul.moore@hp.com>
 Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <1286925270.2614.9.camel@localhost.localdomain>
+In-Reply-To: <1286925284.5133.98.camel@sifl>
 Sender: linux-security-module-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2010-10-12 at 19:14 -0400, Eric Paris wrote:
-> On Tue, 2010-10-12 at 19:06 -0400, Paul Moore wrote:
-> > On Tue, 2010-10-12 at 19:01 -0400, Eric Paris wrote:
-> > > On Tue, 2010-10-12 at 18:55 -0400, Paul Moore wrote:
-> > > > On Tue, 2010-10-12 at 11:40 -0400, Eric Paris wrote:
-> > > > > Right now secmark has lots of direct selinux calls.  Use all LSM calls and
-> > > > > remove all SELinux specific knowledge.  The only SELinux specific knowledge
-> > > > > we leave is the mode.  The only point is to make sure that other LSMs at
-> > > > > least test this generic code before they assume it works.  (They may also
-> > > > > have to make changes if they do not represent labels as strings)
-> > > > 
-> > > > I'm sure you have, but I just want to make sure - you've tested this
-> > > > change (and the others for that matter) against the existing iptables
-> > > > userspace to make sure everything still works, right?
-> > > 
-> > > I did.  The only patch which needs userspace changes is the exporting of
-> > > secctx over netlink.  It appears the current userspace tools just
-> > > ignores unknown field types.  I have a patch to userspace to tell it
-> > > about the new field and will send it after the kernel patch goes in.
-> > 
-> > Okay, that's good.  Is the existing, i.e. unmodified, userspace still
-> > able set a Secmark with your patches applied?  That is the part I'm most
-> > concerned about right now ...
+On Tue, 2010-10-12 at 19:14 -0400, Paul Moore wrote:
+> On Tue, 2010-10-12 at 11:40 -0400, Eric Paris wrote:
+> > The conntrack code can export the internal secid to userspace.  These are
+> > dynamic, can change on lsm changes, and have no meaning in userspace.  We
+> > should instead be sending lsm contexts to userspace instead.  This patch sends
+> > the secctx (rather than secid) to userspace over the netlink socket.  We use a
+> > new field CTA_SECCTX and stop using the the old CTA_SECMARK field since it did
+> > not send particularly useful information.
 > 
-> It is.  Everything about secmark is still userspace ABI compatible.
-> (except what I indicated)
+> Looks fine to me in principal, just a nit-picky comment below ...
+> 
+> > -ctnetlink_dump_secmark(struct sk_buff *skb, const struct nf_conn *ct)
+> > +ctnetlink_dump_secctx(struct sk_buff *skb, const struct nf_conn *ct)
+> >  {
+> > -	NLA_PUT_BE32(skb, CTA_SECMARK, htonl(ct->secmark));
+> > -	return 0;
+> > +	struct nlattr *nest_secctx;
+> > +	int len, ret;
+> > +	char *secctx;
+> > +
+> > +	ret = security_secid_to_secctx(ct->secmark, &secctx, &len);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	ret = -1;
+> > +	nest_secctx = nla_nest_start(skb, CTA_SECCTX | NLA_F_NESTED);
+> > +	if (!nest_secctx)
+> > +		goto nla_put_failure;
+> >  
+> > +	NLA_PUT_STRING(skb, CTA_SECCTX_NAME, secctx);
+> > +	nla_nest_end(skb, nest_secctx);
+> > +
+> > +	ret = 0;
+> >  nla_put_failure:
+> > -	return -1;
+> > +	security_release_secctx(secctx, len);
+> > +	return ret;
+> >  }
+> 
+> All the ret assignments bother me, I also don't think "nla_put_failure"
+> is a good choice since we run this code both on success and failure -
+> how about this:
 
-Excellent, I figured that was the case but just wanted to see it in
-writing :)
+#define NLA_PUT(skb, attrtype, attrlen, data) \
+        do { \
+                if (unlikely(nla_put(skb, attrtype, attrlen, data) < 0)) \
+                        goto nla_put_failure; \
+        } while(0)
 
-Acked-by: Paul Moore <paul.moore@hp.com>
+#define NLA_PUT_STRING(skb, attrtype, value) \
+        NLA_PUT(skb, attrtype, strlen(value) + 1, value)
 
--- 
-paul moore
-linux @ hp
+so we can't get rid of the nla_put_failure tag and it also means your
+ret values aren't quite right, we have to set ret = -1 before the
+NLA_PUT_STRING()....
+
+> ctnetlink_dump_secctx(struct sk_buff *skb, const struct nf_conn *ct)
+> {
+> 	struct nlattr *nest_secctx;
+> 	int len, ret;
+> 	char *secctx;
+> 
+> 	ret = security_secid_to_secctx(ct->secmark, &secctx, &len);
+> 	if (ret)
+> 		return ret;
+> 
+> 	nest_secctx = nla_nest_start(skb, CTA_SECCTX | NLA_F_NESTED);
+> 	if (!nest_secctx) {
+> 		ret = -1;
+> 		goto dump_secctx_out;
+> 	}
+> 
+> 	NLA_PUT_STRING(skb, CTA_SECCTX_NAME, secctx);
+> 	nla_nest_end(skb, nest_secctx);
+> 
+> dump_secctx_out:
+> 	security_release_secctx(secctx, len);
+> 	return ret;
+> }
+> 
 
 
