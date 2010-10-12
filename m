@@ -1,165 +1,71 @@
-From: Eric Paris <eparis@redhat.com>
-Subject: [PATCH 4/5] conntrack: export lsm context rather than internal secid
-	via netlink
-Date: Tue, 12 Oct 2010 11:40:29 -0400
-Message-ID: <20101012154028.26943.6918.stgit@paris.rdu.redhat.com>
-References: <20101012154008.26943.44399.stgit@paris.rdu.redhat.com>
+From: Daniel Lezcano <daniel.lezcano@free.fr>
+Subject: Re: [RFC PATCH 4/9] ipvs network name space aware
+Date: Tue, 12 Oct 2010 18:02:37 +0200
+Message-ID: <4CB4869D.9050605@free.fr>
+References: <201010081317.01120.hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: eparis@redhat.com, paul.moore@hp.com, jmorris@namei.org,
-	selinux@tycho.nsa.gov, sds@tycho.nsa.gov, jengelh@medozas.de,
-	linux-security-module@vger.kernel.org, mr.dash.four@googlemail.com,
-	pablo@netfilter.org
-To: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:17670 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757574Ab0JLPll (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Oct 2010 11:41:41 -0400
-In-Reply-To: <20101012154008.26943.44399.stgit@paris.rdu.redhat.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, horms@verge.net.au, ja@ssi.bg,
+	wensong@linux-vs.org
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <201010081317.01120.hans.schillstrom@ericsson.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The conntrack code can export the internal secid to userspace.  These are
-dynamic, can change on lsm changes, and have no meaning in userspace.  We
-should instead be sending lsm contexts to userspace instead.  This patch sends
-the secctx (rather than secid) to userspace over the netlink socket.  We use a
-new field CTA_SECCTX and stop using the the old CTA_SECMARK field since it did
-not send particularly useful information.
+On 10/08/2010 01:16 PM, Hans Schillstrom wrote:
+> This patch just contains ip_vs_core.c
+>
+> Signed-off-by:Hans Schillstrom<hans.schillstrom@ericsson.com>
+>
+> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> index 0c043b6..4fdc5cb 100644
+> --- a/net/netfilter/ipvs/ip_vs_core.c
+> +++ b/net/netfilter/ipvs/ip_vs_core.c
+> @@ -52,7 +52,6 @@
+>
+>   #include<net/ip_vs.h>
+>
+> -
+>   EXPORT_SYMBOL(register_ip_vs_scheduler);
+>   EXPORT_SYMBOL(unregister_ip_vs_scheduler);
+>   EXPORT_SYMBOL(ip_vs_proto_name);
+> @@ -67,6 +66,8 @@ EXPORT_SYMBOL(ip_vs_conn_put);
+>   EXPORT_SYMBOL(ip_vs_get_debug_level);
+>   #endif
+>
+> +/* netns cnt used for uniqueness */
+> +static atomic_t ipvs_netns_cnt = ATOMIC_INIT(0);
+>    
 
-Signed-off-by: Eric Paris <eparis@redhat.com>
----
+Why is this counter needed ?
 
- include/linux/netfilter/nfnetlink_conntrack.h |   10 +++++
- net/netfilter/nf_conntrack_netlink.c          |   46 ++++++++++++++++++++-----
- 2 files changed, 45 insertions(+), 11 deletions(-)
+[ cut ]
 
-diff --git a/include/linux/netfilter/nfnetlink_conntrack.h b/include/linux/netfilter/nfnetlink_conntrack.h
-index 9ed534c..70cd060 100644
---- a/include/linux/netfilter/nfnetlink_conntrack.h
-+++ b/include/linux/netfilter/nfnetlink_conntrack.h
-@@ -39,8 +39,9 @@ enum ctattr_type {
- 	CTA_TUPLE_MASTER,
- 	CTA_NAT_SEQ_ADJ_ORIG,
- 	CTA_NAT_SEQ_ADJ_REPLY,
--	CTA_SECMARK,
-+	CTA_SECMARK,		/* obsolete */
- 	CTA_ZONE,
-+	CTA_SECCTX,
- 	__CTA_MAX
- };
- #define CTA_MAX (__CTA_MAX - 1)
-@@ -172,4 +173,11 @@ enum ctattr_help {
- };
- #define CTA_HELP_MAX (__CTA_HELP_MAX - 1)
- 
-+enum ctattr_secctx {
-+	CTA_SECCTX_UNSPEC,
-+	CTA_SECCTX_NAME,
-+	__CTA_SECCTX_MAX
-+};
-+#define CTA_SECCTX_MAX (__CTA_SECCTX_MAX - 1)
-+
- #endif /* _IPCONNTRACK_NETLINK_H */
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 5bae1cd..b3c6285 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -22,6 +22,7 @@
- #include <linux/rculist_nulls.h>
- #include <linux/types.h>
- #include <linux/timer.h>
-+#include <linux/security.h>
- #include <linux/skbuff.h>
- #include <linux/errno.h>
- #include <linux/netlink.h>
-@@ -245,16 +246,31 @@ nla_put_failure:
- 
- #ifdef CONFIG_NF_CONNTRACK_SECMARK
- static inline int
--ctnetlink_dump_secmark(struct sk_buff *skb, const struct nf_conn *ct)
-+ctnetlink_dump_secctx(struct sk_buff *skb, const struct nf_conn *ct)
- {
--	NLA_PUT_BE32(skb, CTA_SECMARK, htonl(ct->secmark));
--	return 0;
-+	struct nlattr *nest_secctx;
-+	int len, ret;
-+	char *secctx;
-+
-+	ret = security_secid_to_secctx(ct->secmark, &secctx, &len);
-+	if (ret)
-+		return ret;
-+
-+	ret = -1;
-+	nest_secctx = nla_nest_start(skb, CTA_SECCTX | NLA_F_NESTED);
-+	if (!nest_secctx)
-+		goto nla_put_failure;
- 
-+	NLA_PUT_STRING(skb, CTA_SECCTX_NAME, secctx);
-+	nla_nest_end(skb, nest_secctx);
-+
-+	ret = 0;
- nla_put_failure:
--	return -1;
-+	security_release_secctx(secctx, len);
-+	return ret;
- }
- #else
--#define ctnetlink_dump_secmark(a, b) (0)
-+#define ctnetlink_dump_secctx(a, b) (0)
- #endif
- 
- #define master_tuple(ct) &(ct->master->tuplehash[IP_CT_DIR_ORIGINAL].tuple)
-@@ -391,7 +407,7 @@ ctnetlink_fill_info(struct sk_buff *skb, u32 pid, u32 seq,
- 	    ctnetlink_dump_protoinfo(skb, ct) < 0 ||
- 	    ctnetlink_dump_helpinfo(skb, ct) < 0 ||
- 	    ctnetlink_dump_mark(skb, ct) < 0 ||
--	    ctnetlink_dump_secmark(skb, ct) < 0 ||
-+	    ctnetlink_dump_secctx(skb, ct) < 0 ||
- 	    ctnetlink_dump_id(skb, ct) < 0 ||
- 	    ctnetlink_dump_use(skb, ct) < 0 ||
- 	    ctnetlink_dump_master(skb, ct) < 0 ||
-@@ -437,6 +453,17 @@ ctnetlink_counters_size(const struct nf_conn *ct)
- 	       ;
- }
- 
-+#ifdef CONFIG_NF_CONNTRACK_SECMARK
-+static int ctnetlink_nlmsg_secctx_size(const struct nf_conn *ct)
-+{
-+	int len;
-+
-+	security_secid_to_secctx(ct->secmark, NULL, &len);
-+
-+	return sizeof(char) * len;
-+}
-+#endif
-+
- static inline size_t
- ctnetlink_nlmsg_size(const struct nf_conn *ct)
- {
-@@ -453,7 +480,8 @@ ctnetlink_nlmsg_size(const struct nf_conn *ct)
- 	       + nla_total_size(0) /* CTA_HELP */
- 	       + nla_total_size(NF_CT_HELPER_NAME_LEN) /* CTA_HELP_NAME */
- #ifdef CONFIG_NF_CONNTRACK_SECMARK
--	       + nla_total_size(sizeof(u_int32_t)) /* CTA_SECMARK */
-+	       + nla_total_size(0) /* CTA_SECCTX */
-+	       + nla_total_size(ctnetlink_nlmsg_secctx_size(ct)) /* CTA_SECCTX_NAME */
- #endif
- #ifdef CONFIG_NF_NAT_NEEDED
- 	       + 2 * nla_total_size(0) /* CTA_NAT_SEQ_ADJ_ORIG|REPL */
-@@ -554,11 +582,9 @@ ctnetlink_conntrack_event(unsigned int events, struct nf_ct_event *item)
- 		    && ctnetlink_dump_helpinfo(skb, ct) < 0)
- 			goto nla_put_failure;
- 
--#ifdef CONFIG_NF_CONNTRACK_SECMARK
- 		if ((events & (1 << IPCT_SECMARK) || ct->secmark)
--		    && ctnetlink_dump_secmark(skb, ct) < 0)
-+		    && ctnetlink_dump_secctx(skb, ct) < 0)
- 			goto nla_put_failure;
--#endif
- 
- 		if (events & (1 << IPCT_RELATED) &&
- 		    ctnetlink_dump_master(skb, ct) < 0)
+> + *	Initialize IP Virtual Server netns mem.
+> + */
+> +static int __net_init __ip_vs_init(struct net *net)
+> +{
+> +	struct netns_ipvs *ipvs = 0;
+>
+> +	ipvs = kzalloc(sizeof(struct netns_ipvs), GFP_ATOMIC);
+> +	if( ipvs == NULL ) {
+> +		pr_err("%s(): no memory.\n", __func__);
+> +		return -ENOMEM;
+> +	}
+> +	ipvs->inc = atomic_read(&ipvs_netns_cnt);
+>    
+
+AFAICS, this counter is never used. Is it really needed ?
+
+> +	atomic_inc(&ipvs_netns_cnt);
+> +	IP_VS_DBG(10, "Creating new netns *net=%p *ipvs=%p size=%lu\n",
+> +		     net, ipvs, sizeof(struct netns_ipvs));
+> +	net->ipvs = ipvs;
+> +
+> +	return 0;
+> +}
+>    
 
