@@ -1,281 +1,119 @@
-From: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Subject: [RFC PATCH 2/9 v1.1] ipvs network name space aware (resend with right patch)
-Date: Tue, 12 Oct 2010 16:44:40 +0200
-Message-ID: <201010121644.41160.hans.schillstrom@ericsson.com>
-References: <201010081316.54676.hans.schillstrom@ericsson.com> <4CB470FC.7070500@free.fr>
+From: Eric Paris <eparis@redhat.com>
+Subject: [PATCH 1/5] secmark: do not return early if there was no error
+Date: Tue, 12 Oct 2010 11:40:08 -0400
+Message-ID: <20101012154008.26943.44399.stgit@paris.rdu.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: "lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"horms@verge.net.au" <horms@verge.net.au>, "ja@ssi.bg" <ja@ssi.bg>,
-	"wensong@linux-vs.org" <wensong@linux-vs.org>
-To: Daniel Lezcano <daniel.lezcano@free.fr>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <4CB470FC.7070500@free.fr>
-Content-Disposition: inline
-Sender: lvs-devel-owner@vger.kernel.org
+Cc: eparis@redhat.com, paul.moore@hp.com, jmorris@namei.org,
+	selinux@tycho.nsa.gov, sds@tycho.nsa.gov, jengelh@medozas.de,
+	linux-security-module@vger.kernel.org, mr.dash.four@googlemail.com,
+	pablo@netfilter.org
+To: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org
+Return-path: <linux-security-module-owner@vger.kernel.org>
+Sender: linux-security-module-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is patch 2/9  previous was just a copy of patch 1/9 
+Commit 4a5a5c73 attempted to pass decent error messages back to userspace for
+netfilter errors.  In xt_SECMARK.c however the patch screwed up and returned
+on 0 (aka no error) early and didn't finish setting up secmark.  This results
+in a kernel BUG if you use SECMARK.
 
-This patch just contains ip_vs_app.c
-There is nothing special whith this file,
-just the normal,
- - moving to vars to struct ipvs
- - adding per netns init and exit
+------------[ cut here ]------------
+kernel BUG at net/netfilter/xt_SECMARK.c:38!
+invalid opcode: 0000 [#1] SMP
+last sysfs file: /sys/devices/system/cpu/cpu2/cache/index2/shared_cpu_map
+CPU 0
+Modules linked in: xt_SECMARK iptable_mangle nfs lockd fscache nfs_acl
+auth_rpcgss sunrpc ip6t_REJECT nf_conntrack_ipv6 ip6table_filter ip6_tables
+uinput virtio_net virtio_balloon i2c_piix4 i2c_core joydev microcode ipv6
+virtio_blk virtio_pci virtio_ring virtio [last unloaded: speedstep_lib]
 
-Signed-off-by:Hans Schillstrom <hans.schillstrom@ericsson.com>
+Pid: 0, comm: swapper Not tainted 2.6.36-0.8.rc2.git0.fc15.x86_64 #1 /KVM
+RIP: 0010:[<ffffffffa022117d>]  [<ffffffffa022117d>] secmark_tg+0x17/0x2e [xt_SECMARK]
+RSP: 0018:ffff880003e03a40  EFLAGS: 00010202
+RAX: ffff88001f3074b0 RBX: ffff88001f3073f0 RCX: ffff88001f307490
+RDX: ffff88001f307401 RSI: ffff880003e03b30 RDI: ffff88001f18e500
+RBP: ffff880003e03a40 R08: 0000000000000002 R09: ffff880003e03a10
+R10: ffff880003fd2ad8 R11: ffffffff00000001 R12: ffff88001a85d498
+R13: ffffe8ffff808240 R14: ffff88001ac133ae R15: ffff88001f18e500
+FS:  0000000000000000(0000) GS:ffff880003e00000(0000)
+knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+CR2: 000000000073b130 CR3: 000000000fdc0000 CR4: 00000000000006f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process swapper (pid: 0, threadinfo ffffffff81a00000, task
+ffffffff81a4b020)
+Stack:
+ffff880003e03b90 ffffffff814599ff 0000000000003a18 0000000000000000
+ffff880003e03b70 ffffffffffffffb8 0000000000000000 ffffffff82a39d60
+ffff880003e03a90 ffffffff8140db60 ffff880003e03ae0 ffffffff8140f2c0
+Call Trace:
+ <IRQ>
+[<ffffffff814599ff>] ipt_do_table+0x58a/0x6e2
+[<ffffffff8140db60>] ? rcu_read_unlock+0x21/0x23
+[<ffffffff8140f2c0>] ? nf_conntrack_find_get+0xb4/0xc7
+[<ffffffffa021b182>] iptable_mangle_hook+0x10a/0x120 [iptable_mangle]
+[<ffffffff8140c226>] nf_iterate+0x46/0x89
+[<ffffffff8141d2e8>] ? ip_rcv_finish+0x0/0x3c6
+[<ffffffff8140c2e1>] nf_hook_slow+0x78/0xe3
+[<ffffffff8141d2e8>] ? ip_rcv_finish+0x0/0x3c6
+[<ffffffff81472f06>] ? run_filter+0x0/0xc0
+[<ffffffff813e6802>] ? dev_seq_stop+0x8/0x10
+[<ffffffff8141d2e8>] ? ip_rcv_finish+0x0/0x3c6
+[<ffffffff8141d9a9>] NF_HOOK.clone.6+0x46/0x58
+[<ffffffff8141dd93>] ip_rcv+0x21f/0x24c
+[<ffffffff813e7d43>] __netif_receive_skb+0x3e0/0x40a
+[<ffffffff813e8834>] netif_receive_skb+0x6c/0x73
+[<ffffffffa00c954e>] virtnet_poll+0x55b/0x6cb [virtio_net]
+[<ffffffff8107fb92>] ? lock_release+0x19a/0x1a6
+[<ffffffff813e9bc4>] net_rx_action+0xb1/0x1e3
+[<ffffffff8107d64b>] ? print_lock_contention_bug+0x1b/0xd5
+[<ffffffff8100ac1c>] ? call_softirq+0x1c/0x30
+[<ffffffff8105752a>] __do_softirq+0xfa/0x1cf
+[<ffffffff8107fb92>] ? lock_release+0x19a/0x1a6
+[<ffffffff8100ac1c>] call_softirq+0x1c/0x30
+[<ffffffff8100c3d9>] do_softirq+0x4b/0xa2
+[<ffffffff810576d0>] irq_exit+0x4a/0x8c
+[<ffffffff814a198d>] do_IRQ+0x9d/0xb4
+[<ffffffff8149b813>] ret_from_intr+0x0/0x16
+ <EOI>
+[<ffffffff81010faf>] ? default_idle+0x3c/0x61
+[<ffffffff8102c7b1>] ? native_safe_halt+0xb/0xd
+[<ffffffff810800c0>] ? trace_hardirqs_on+0xd/0xf
+[<ffffffff81010fb4>] default_idle+0x41/0x61
+[<ffffffff8100830b>] cpu_idle+0xb3/0x10f
+[<ffffffff814824c3>] rest_init+0xb7/0xbe
+[<ffffffff8148240c>] ? rest_init+0x0/0xbe
+[<ffffffff81d76c50>] start_kernel+0x412/0x41d
+[<ffffffff81d762c6>] x86_64_start_reservations+0xb1/0xb5
+[<ffffffff81d763c2>] x86_64_start_kernel+0xf8/0x107
+Code: 41 8a 04 24 88 05 1c 05 00 00 5a 89 d8 5b 41 5c 41 5d c9 c3 55 48 89 e5
+0f 1f 44 00 00 48 8b 46 08 8a 10 3a 15 fd 04 00 00 74 02 <0f> 0b fe ca 75 0e
+8b 40 04 89 87 b4 00 00 00 83 c8 ff c9 c3 0f
+RIP  [<ffffffffa022117d>] secmark_tg+0x17/0x2e [xt_SECMARK]
+RSP <ffff880003e03a40>
+---[ end trace 9aa5d06a71143e74 ]---
 
-diff --git a/net/netfilter/ipvs/ip_vs_app.c b/net/netfilter/ipvs/ip_vs_app.c
-index e76f87f..87b7609 100644
---- a/net/netfilter/ipvs/ip_vs_app.c
-+++ b/net/netfilter/ipvs/ip_vs_app.c
-@@ -43,11 +43,6 @@ EXPORT_SYMBOL(register_ip_vs_app);
- EXPORT_SYMBOL(unregister_ip_vs_app);
- EXPORT_SYMBOL(register_ip_vs_app_inc);
+Signed-off-by: Eric Paris <eparis@redhat.com>
+---
 
--/* ipvs application list head */
--static LIST_HEAD(ip_vs_app_list);
--static DEFINE_MUTEX(__ip_vs_app_mutex);
--
--
- /*
-  *	Get an ip_vs_app object
-  */
-@@ -67,7 +62,8 @@ static inline void ip_vs_app_put(struct ip_vs_app *app)
-  *	Allocate/initialize app incarnation and register it in proto apps.
-  */
- static int
--ip_vs_app_inc_new(struct ip_vs_app *app, __u16 proto, __u16 port)
-+ip_vs_app_inc_new(struct net *net, struct ip_vs_app *app, __u16 proto,
-+		  __u16 port)
- {
- 	struct ip_vs_protocol *pp;
- 	struct ip_vs_app *inc;
-@@ -98,7 +94,7 @@ ip_vs_app_inc_new(struct ip_vs_app *app, __u16 proto, __u16 port)
- 		}
- 	}
+ net/netfilter/xt_SECMARK.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
--	ret = pp->register_app(inc);
-+	ret = pp->register_app(net, inc);
- 	if (ret)
- 		goto out;
+diff --git a/net/netfilter/xt_SECMARK.c b/net/netfilter/xt_SECMARK.c
+index 23b2d6c..364ad16 100644
+--- a/net/netfilter/xt_SECMARK.c
++++ b/net/netfilter/xt_SECMARK.c
+@@ -101,7 +101,7 @@ static int secmark_tg_check(const struct xt_tgchk_param *par)
+ 	switch (info->mode) {
+ 	case SECMARK_MODE_SEL:
+ 		err = checkentry_selinux(info);
+-		if (err <= 0)
++		if (err)
+ 			return err;
+ 		break;
+ 
 
-@@ -119,7 +115,7 @@ ip_vs_app_inc_new(struct ip_vs_app *app, __u16 proto, __u16 port)
-  *	Release app incarnation
-  */
- static void
--ip_vs_app_inc_release(struct ip_vs_app *inc)
-+ip_vs_app_inc_release(struct net *net, struct ip_vs_app *inc)
- {
- 	struct ip_vs_protocol *pp;
-
-@@ -127,7 +123,7 @@ ip_vs_app_inc_release(struct ip_vs_app *inc)
- 		return;
-
- 	if (pp->unregister_app)
--		pp->unregister_app(inc);
-+		pp->unregister_app(net, inc);
-
- 	IP_VS_DBG(9, "%s App %s:%u unregistered\n",
- 		  pp->name, inc->name, inc->port);
-@@ -167,16 +163,16 @@ void ip_vs_app_inc_put(struct ip_vs_app *inc)
- /*
-  *	Register an application incarnation in protocol applications
-  */
--int
--register_ip_vs_app_inc(struct ip_vs_app *app, __u16 proto, __u16 port)
-+int register_ip_vs_app_inc(struct net *net, struct ip_vs_app *app, __u16 proto,
-+		           __u16 port)
- {
- 	int result;
-
--	mutex_lock(&__ip_vs_app_mutex);
-+	mutex_lock(&net->ipvs->app_mutex);
-
--	result = ip_vs_app_inc_new(app, proto, port);
-+	result = ip_vs_app_inc_new(net, app, proto, port);
-
--	mutex_unlock(&__ip_vs_app_mutex);
-+	mutex_unlock(&net->ipvs->app_mutex);
-
- 	return result;
- }
-@@ -185,16 +181,16 @@ register_ip_vs_app_inc(struct ip_vs_app *app, __u16 proto, __u16 port)
- /*
-  *	ip_vs_app registration routine
-  */
--int register_ip_vs_app(struct ip_vs_app *app)
-+int register_ip_vs_app(struct net *net, struct ip_vs_app *app)
- {
- 	/* increase the module use count */
- 	ip_vs_use_count_inc();
-
--	mutex_lock(&__ip_vs_app_mutex);
-+	mutex_lock(&net->ipvs->app_mutex);
-
--	list_add(&app->a_list, &ip_vs_app_list);
-+	list_add(&app->a_list, &net->ipvs->app_list);
-
--	mutex_unlock(&__ip_vs_app_mutex);
-+	mutex_unlock(&net->ipvs->app_mutex);
-
- 	return 0;
- }
-@@ -204,19 +200,19 @@ int register_ip_vs_app(struct ip_vs_app *app)
-  *	ip_vs_app unregistration routine
-  *	We are sure there are no app incarnations attached to services
-  */
--void unregister_ip_vs_app(struct ip_vs_app *app)
-+void unregister_ip_vs_app(struct net *net, struct ip_vs_app *app)
- {
- 	struct ip_vs_app *inc, *nxt;
-
--	mutex_lock(&__ip_vs_app_mutex);
-+	mutex_lock(&net->ipvs->app_mutex);
-
- 	list_for_each_entry_safe(inc, nxt, &app->incs_list, a_list) {
--		ip_vs_app_inc_release(inc);
-+		ip_vs_app_inc_release(net, inc);
- 	}
-
- 	list_del(&app->a_list);
-
--	mutex_unlock(&__ip_vs_app_mutex);
-+	mutex_unlock(&net->ipvs->app_mutex);
-
- 	/* decrease the module use count */
- 	ip_vs_use_count_dec();
-@@ -226,9 +222,9 @@ void unregister_ip_vs_app(struct ip_vs_app *app)
- /*
-  *	Bind ip_vs_conn to its ip_vs_app (called by cp constructor)
-  */
--int ip_vs_bind_app(struct ip_vs_conn *cp, struct ip_vs_protocol *pp)
-+int ip_vs_bind_app(struct net *net, struct ip_vs_conn *cp, struct ip_vs_protocol *pp)
- {
--	return pp->app_conn_bind(cp);
-+	return pp->app_conn_bind(net, cp);
- }
-
-
-@@ -481,11 +477,12 @@ int ip_vs_app_pkt_in(struct ip_vs_conn *cp, struct sk_buff *skb)
-  *	/proc/net/ip_vs_app entry function
-  */
-
--static struct ip_vs_app *ip_vs_app_idx(loff_t pos)
-+static struct ip_vs_app *ip_vs_app_idx(struct net *net, loff_t pos)
- {
- 	struct ip_vs_app *app, *inc;
-+	struct netns_ipvs *ipvs = net->ipvs;
-
--	list_for_each_entry(app, &ip_vs_app_list, a_list) {
-+	list_for_each_entry(app, &ipvs->app_list, a_list) {
- 		list_for_each_entry(inc, &app->incs_list, a_list) {
- 			if (pos-- == 0)
- 				return inc;
-@@ -497,19 +494,22 @@ static struct ip_vs_app *ip_vs_app_idx(loff_t pos)
-
- static void *ip_vs_app_seq_start(struct seq_file *seq, loff_t *pos)
- {
--	mutex_lock(&__ip_vs_app_mutex);
-+	struct net *net = seq_file_net(seq);
-+	mutex_lock(&net->ipvs->app_mutex);
-
--	return *pos ? ip_vs_app_idx(*pos - 1) : SEQ_START_TOKEN;
-+	return *pos ? ip_vs_app_idx(net, *pos - 1) : SEQ_START_TOKEN;
- }
-
- static void *ip_vs_app_seq_next(struct seq_file *seq, void *v, loff_t *pos)
- {
- 	struct ip_vs_app *inc, *app;
- 	struct list_head *e;
-+	struct net *net = seq_file_net(seq);
-+	struct netns_ipvs *ipvs = net->ipvs;
-
- 	++*pos;
- 	if (v == SEQ_START_TOKEN)
--		return ip_vs_app_idx(0);
-+		return ip_vs_app_idx(net, 0);
-
- 	inc = v;
- 	app = inc->app;
-@@ -518,7 +518,7 @@ static void *ip_vs_app_seq_next(struct seq_file *seq, void *v, loff_t *pos)
- 		return list_entry(e, struct ip_vs_app, a_list);
-
- 	/* go on to next application */
--	for (e = app->a_list.next; e != &ip_vs_app_list; e = e->next) {
-+	for (e = app->a_list.next; e != &ipvs->app_list; e = e->next) {
- 		app = list_entry(e, struct ip_vs_app, a_list);
- 		list_for_each_entry(inc, &app->incs_list, a_list) {
- 			return inc;
-@@ -529,7 +529,9 @@ static void *ip_vs_app_seq_next(struct seq_file *seq, void *v, loff_t *pos)
-
- static void ip_vs_app_seq_stop(struct seq_file *seq, void *v)
- {
--	mutex_unlock(&__ip_vs_app_mutex);
-+	struct net *net = seq_file_net(seq);
-+
-+	mutex_unlock(&net->ipvs->app_mutex);
- }
-
- static int ip_vs_app_seq_show(struct seq_file *seq, void *v)
-@@ -557,7 +559,8 @@ static const struct seq_operations ip_vs_app_seq_ops = {
-
- static int ip_vs_app_open(struct inode *inode, struct file *file)
- {
--	return seq_open(file, &ip_vs_app_seq_ops);
-+
-+	return seq_open_net(inode,file, &ip_vs_app_seq_ops, sizeof(struct seq_net_private));
- }
-
- static const struct file_operations ip_vs_app_fops = {
-@@ -565,19 +568,38 @@ static const struct file_operations ip_vs_app_fops = {
- 	.open	 = ip_vs_app_open,
- 	.read	 = seq_read,
- 	.llseek  = seq_lseek,
--	.release = seq_release,
-+	.release = seq_release_private,
- };
- #endif
-
--int __init ip_vs_app_init(void)
-+static int __net_init __ip_vs_app_init(struct net *net)
- {
--	/* we will replace it with proc_net_ipvs_create() soon */
--	proc_net_fops_create(&init_net, "ip_vs_app", 0, &ip_vs_app_fops);
-+	INIT_LIST_HEAD(&net->ipvs->app_list);
-+	__mutex_init(&net->ipvs->app_mutex,"ipvs->app_mutex", &net->ipvs->app_key);
-+	proc_net_fops_create(net, "ip_vs_app", 0, &ip_vs_app_fops);
- 	return 0;
- }
-
-+static void __net_exit __ip_vs_app_cleanup(struct net *net)
-+{
-+	proc_net_remove(net, "ip_vs_app");
-+}
-+
-+static struct pernet_operations ip_vs_app_ops = {
-+	.init = __ip_vs_app_init,
-+	.exit = __ip_vs_app_cleanup,
-+};
-+
-+int __init ip_vs_app_init(void)
-+{
-+	int rv;
-+
-+	rv = register_pernet_subsys(&ip_vs_app_ops);
-+	return rv;
-+}
-+
-
- void ip_vs_app_cleanup(void)
- {
--	proc_net_remove(&init_net, "ip_vs_app");
-+	unregister_pernet_subsys(&ip_vs_app_ops);
- }
-
--- 
-Regards
-Hans Schillstrom <hans.schillstrom@ericsson.com>
