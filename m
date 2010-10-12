@@ -1,7 +1,7 @@
 From: Eric Paris <eparis@redhat.com>
-Subject: [PATCH 3/5] security: secid_to_secctx returns len when data is NULL
-Date: Tue, 12 Oct 2010 11:40:22 -0400
-Message-ID: <20101012154022.26943.82444.stgit@paris.rdu.redhat.com>
+Subject: [PATCH 5/5] secmark: export secctx, drop secmark in procfs
+Date: Tue, 12 Oct 2010 11:40:35 -0400
+Message-ID: <20101012154035.26943.35175.stgit@paris.rdu.redhat.com>
 References: <20101012154008.26943.44399.stgit@paris.rdu.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -17,78 +17,122 @@ In-Reply-To: <20101012154008.26943.44399.stgit@paris.rdu.redhat.com>
 Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-With the (long ago) interface change to have the secid_to_secctx functions
-do the string allocation instead of having the caller do the allocation we
-lost the ability to query the security server for the length of the
-upcoming string.  The SECMARK code would like to allocate a netlink skb
-with enough length to hold the string but it is just too unclean to do the
-string allocation twice or to do the allocation the first time and hold
-onto the string and slen.  This patch adds the ability to call
-security_secid_to_secctx() with a NULL data pointer and it will just set
-the slen pointer.
+The current secmark code exports a secmark= field which just indicates if
+there is special labeling on a packet or not.  We drop this field as it
+isn't particularly useful and instead export a new field secctx= which is
+the actual human readable text label.
 
 Signed-off-by: Eric Paris <eparis@redhat.com>
 ---
 
- security/selinux/ss/services.c |   11 +++++++++--
- security/smack/smack_lsm.c     |    3 ++-
- 2 files changed, 11 insertions(+), 3 deletions(-)
+ .../netfilter/nf_conntrack_l3proto_ipv4_compat.c   |   27 ++++++++++++++++++--
+ net/netfilter/nf_conntrack_standalone.c            |   27 ++++++++++++++++++--
+ 2 files changed, 48 insertions(+), 6 deletions(-)
 
-diff --git a/security/selinux/ss/services.c b/security/selinux/ss/services.c
-index 73508af..1d4955a 100644
---- a/security/selinux/ss/services.c
-+++ b/security/selinux/ss/services.c
-@@ -998,7 +998,8 @@ static int context_struct_to_string(struct context *context, char **scontext, u3
- {
- 	char *scontextp;
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
+index 244f7cb..2ca510e 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
+@@ -11,6 +11,7 @@
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+ #include <linux/percpu.h>
++#include <linux/security.h>
+ #include <net/net_namespace.h>
  
--	*scontext = NULL;
-+	if (scontext)
-+		*scontext = NULL;
- 	*scontext_len = 0;
- 
- 	if (context->len) {
-@@ -1015,6 +1016,9 @@ static int context_struct_to_string(struct context *context, char **scontext, u3
- 	*scontext_len += strlen(sym_name(&policydb, SYM_TYPES, context->type - 1)) + 1;
- 	*scontext_len += mls_compute_context_len(context);
- 
-+	if (!scontext)
-+		return 0;
-+
- 	/* Allocate space for the context; caller must free this space. */
- 	scontextp = kmalloc(*scontext_len, GFP_ATOMIC);
- 	if (!scontextp)
-@@ -1054,7 +1058,8 @@ static int security_sid_to_context_core(u32 sid, char **scontext,
- 	struct context *context;
- 	int rc = 0;
- 
--	*scontext = NULL;
-+	if (scontext)
-+		*scontext = NULL;
- 	*scontext_len  = 0;
- 
- 	if (!ss_initialized) {
-@@ -1062,6 +1067,8 @@ static int security_sid_to_context_core(u32 sid, char **scontext,
- 			char *scontextp;
- 
- 			*scontext_len = strlen(initial_sid_to_string[sid]) + 1;
-+			if (!scontext)
-+				goto out;
- 			scontextp = kmalloc(*scontext_len, GFP_ATOMIC);
- 			if (!scontextp) {
- 				rc = -ENOMEM;
-diff --git a/security/smack/smack_lsm.c b/security/smack/smack_lsm.c
-index 174aec4..bc39f40 100644
---- a/security/smack/smack_lsm.c
-+++ b/security/smack/smack_lsm.c
-@@ -3004,7 +3004,8 @@ static int smack_secid_to_secctx(u32 secid, char **secdata, u32 *seclen)
- {
- 	char *sp = smack_from_secid(secid);
- 
--	*secdata = sp;
-+	if (secdata)
-+		*secdata = sp;
- 	*seclen = strlen(sp);
- 	return 0;
+ #include <linux/netfilter.h>
+@@ -87,6 +88,28 @@ static void ct_seq_stop(struct seq_file *s, void *v)
+ 	rcu_read_unlock();
  }
+ 
++#ifdef CONFIG_NF_CONNTRACK_SECMARK
++static int ct_show_secctx(struct seq_file *s, const struct nf_conn *ct)
++{
++	int len, ret;
++	char *secctx;
++
++	ret = security_secid_to_secctx(ct->secmark, &secctx, &len);
++	if (ret)
++		return ret;
++
++	ret = seq_printf(s, "secctx=%s ", secctx);
++
++	security_release_secctx(secctx, len);
++	return ret;
++}
++#else
++static inline int ct_show_secctx(struct seq_file *s, const struct nf_conn *ct)
++{
++	return 0;
++}
++#endif
++
+ static int ct_seq_show(struct seq_file *s, void *v)
+ {
+ 	struct nf_conntrack_tuple_hash *hash = v;
+@@ -148,10 +171,8 @@ static int ct_seq_show(struct seq_file *s, void *v)
+ 		goto release;
+ #endif
+ 
+-#ifdef CONFIG_NF_CONNTRACK_SECMARK
+-	if (seq_printf(s, "secmark=%u ", ct->secmark))
++	if (ct_show_secctx(s, ct))
+ 		goto release;
+-#endif
+ 
+ 	if (seq_printf(s, "use=%u\n", atomic_read(&ct->ct_general.use)))
+ 		goto release;
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index eb973fc..a6985da 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -15,6 +15,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/percpu.h>
+ #include <linux/netdevice.h>
++#include <linux/security.h>
+ #include <net/net_namespace.h>
+ #ifdef CONFIG_SYSCTL
+ #include <linux/sysctl.h>
+@@ -108,6 +109,28 @@ static void ct_seq_stop(struct seq_file *s, void *v)
+ 	rcu_read_unlock();
+ }
+ 
++#ifdef CONFIG_NF_CONNTRACK_SECMARK
++static int ct_show_secctx(struct seq_file *s, const struct nf_conn *ct)
++{
++	int len, ret;
++	char *secctx;
++
++	ret = security_secid_to_secctx(ct->secmark, &secctx, &len);
++	if (ret)
++		return ret;
++
++	ret = seq_printf(s, "secctx=%s ", secctx);
++
++	security_release_secctx(secctx, len);
++	return ret;
++}
++#else
++static inline int ct_show_secctx(struct seq_file *s, const struct nf_conn *ct)
++{
++	return 0;
++}
++#endif
++
+ /* return 0 on success, 1 in case of error */
+ static int ct_seq_show(struct seq_file *s, void *v)
+ {
+@@ -168,10 +191,8 @@ static int ct_seq_show(struct seq_file *s, void *v)
+ 		goto release;
+ #endif
+ 
+-#ifdef CONFIG_NF_CONNTRACK_SECMARK
+-	if (seq_printf(s, "secmark=%u ", ct->secmark))
++	if (ct_show_secctx(s, ct))
+ 		goto release;
+-#endif
+ 
+ #ifdef CONFIG_NF_CONNTRACK_ZONES
+ 	if (seq_printf(s, "zone=%u ", nf_ct_zone(ct)))
 
