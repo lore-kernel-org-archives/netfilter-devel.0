@@ -1,71 +1,69 @@
-From: Daniel Lezcano <daniel.lezcano@free.fr>
-Subject: Re: [RFC PATCH 4/9] ipvs network name space aware
-Date: Tue, 12 Oct 2010 18:02:37 +0200
-Message-ID: <4CB4869D.9050605@free.fr>
-References: <201010081317.01120.hans.schillstrom@ericsson.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 2/5] secmark: make secmark object handling generic
+Date: Tue, 12 Oct 2010 18:26:24 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1010121824540.15529@obet.zrqbmnf.qr>
+References: <20101012154008.26943.44399.stgit@paris.rdu.redhat.com> <20101012154015.26943.18385.stgit@paris.rdu.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, horms@verge.net.au, ja@ssi.bg,
-	wensong@linux-vs.org
-To: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <201010081317.01120.hans.schillstrom@ericsson.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, paul.moore@hp.com, jmorris@namei.org,
+	selinux@tycho.nsa.gov, sds@tycho.nsa.gov,
+	linux-security-module@vger.kernel.org, mr.dash.four@googlemail.com,
+	pablo@netfilter.org
+To: Eric Paris <eparis@redhat.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from borg.medozas.de ([188.40.89.202]:51390 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757692Ab0JLQ00 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Oct 2010 12:26:26 -0400
+In-Reply-To: <20101012154015.26943.18385.stgit@paris.rdu.redhat.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 10/08/2010 01:16 PM, Hans Schillstrom wrote:
-> This patch just contains ip_vs_core.c
->
-> Signed-off-by:Hans Schillstrom<hans.schillstrom@ericsson.com>
->
-> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-> index 0c043b6..4fdc5cb 100644
-> --- a/net/netfilter/ipvs/ip_vs_core.c
-> +++ b/net/netfilter/ipvs/ip_vs_core.c
-> @@ -52,7 +52,6 @@
->
->   #include<net/ip_vs.h>
->
-> -
->   EXPORT_SYMBOL(register_ip_vs_scheduler);
->   EXPORT_SYMBOL(unregister_ip_vs_scheduler);
->   EXPORT_SYMBOL(ip_vs_proto_name);
-> @@ -67,6 +66,8 @@ EXPORT_SYMBOL(ip_vs_conn_put);
->   EXPORT_SYMBOL(ip_vs_get_debug_level);
->   #endif
->
-> +/* netns cnt used for uniqueness */
-> +static atomic_t ipvs_netns_cnt = ATOMIC_INIT(0);
->    
 
-Why is this counter needed ?
+On Tuesday 2010-10-12 17:40, Eric Paris wrote:
+>diff --git a/include/linux/netfilter/xt_SECMARK.h b/include/linux/netfilter/xt_SECMARK.h
+>index 6fcd344..989092b 100644
+>--- a/include/linux/netfilter/xt_SECMARK.h
+>+++ b/include/linux/netfilter/xt_SECMARK.h
+>@@ -11,18 +11,12 @@
+>  * packets are being marked for.
+>  */
+> #define SECMARK_MODE_SEL	0x01		/* SELinux */
+>-#define SECMARK_SELCTX_MAX	256
+>-
+>-struct xt_secmark_target_selinux_info {
+>-	__u32 selsid;
+>-	char selctx[SECMARK_SELCTX_MAX];
+>-};
+>+#define SECMARK_SECCTX_MAX	256
+> 
+> struct xt_secmark_target_info {
+> 	__u8 mode;
+>-	union {
+>-		struct xt_secmark_target_selinux_info sel;
+>-	} u;
+>+	__u32 secid;
+>+	char secctx[SECMARK_SECCTX_MAX];
+> };
 
-[ cut ]
+If you make changes here, bump the .revision please, in here:
 
-> + *	Initialize IP Virtual Server netns mem.
-> + */
-> +static int __net_init __ip_vs_init(struct net *net)
-> +{
-> +	struct netns_ipvs *ipvs = 0;
->
-> +	ipvs = kzalloc(sizeof(struct netns_ipvs), GFP_ATOMIC);
-> +	if( ipvs == NULL ) {
-> +		pr_err("%s(): no memory.\n", __func__);
-> +		return -ENOMEM;
-> +	}
-> +	ipvs->inc = atomic_read(&ipvs_netns_cnt);
->    
-
-AFAICS, this counter is never used. Is it really needed ?
-
-> +	atomic_inc(&ipvs_netns_cnt);
-> +	IP_VS_DBG(10, "Creating new netns *net=%p *ipvs=%p size=%lu\n",
-> +		     net, ipvs, sizeof(struct netns_ipvs));
-> +	net->ipvs = ipvs;
-> +
-> +	return 0;
-> +}
->    
-
+> static struct xt_target secmark_tg_reg __read_mostly = {
+>-	.name       = "SECMARK",
+>-	.revision   = 0,
+>-	.family     = NFPROTO_UNSPEC,
+>-	.checkentry = secmark_tg_check,
+>-	.destroy    = secmark_tg_destroy,
+>-	.target     = secmark_tg,
+>-	.targetsize = sizeof(struct xt_secmark_target_info),
+>-	.me         = THIS_MODULE,
+>+	.name		= "SECMARK",
+>+	.revision	= 0,
+>+	.family		= NFPROTO_UNSPEC,
+>+	.checkentry	= secmark_tg_check,
+>+	.destroy	= secmark_tg_destroy,
+>+	.target		= secmark_tg,
+>+	.targetsize	= sizeof(struct xt_secmark_target_info),
+>+	.me		= THIS_MODULE,
+> };
