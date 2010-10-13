@@ -1,37 +1,39 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: event-driven connection tracking
-Date: Wed, 13 Oct 2010 17:48:51 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1010131747460.27120@obet.zrqbmnf.qr>
-References: <4CB5CF17.3090302@googlemail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, netfilter@vger.kernel.org
-To: Mr Dash Four <mr.dash.four@googlemail.com>
+Subject: Quick intermediate cleanup
+Date: Wed, 13 Oct 2010 20:03:17 +0200
+Message-ID: <1286993003-3444-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:57249 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:43221 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750941Ab0JMPsw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Oct 2010 11:48:52 -0400
-In-Reply-To: <4CB5CF17.3090302@googlemail.com>
+	id S1751298Ab0JMSDZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Oct 2010 14:03:25 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 2010-10-13 17:24, Mr Dash Four wrote:
 
-> Is it possible to use event-driven connection tracking - with conntrack-utils
-> or by other means?
->
-> Ideally, what I would like to do is 'register' a handler for particular
-> connection events (when new connection is established and then closed for
-> example) based on particular pre-defined filter (say, by protocol,
-> source/destination ip etc) and execute a program code/function (if done
-> programmatically) or a script (if done outside the connection-tracking domain)
-> to do what I want?
+The following changes since commit eecc545856c8a0f27783a440d25f4ceaa1f95ce8:
 
-conntrack -Ee NEW,DESTROY
+  netfilter: add missing xt_log.h file (2010-10-04 23:24:21 +0200)
 
-would list you the specified events as they happen. Combined with a 
-script that reacts when a new line is outputted by conntrack should
-do the trick.
+are available in the git repository at:
+  git://dev.medozas.de/linux master
 
+Jan Engelhardt (5):
+      netfilter: xtables: resolve indirect macros 1/3
+      netfilter: xtables: resolve indirect macros 2/3
+      netfilter: xtables: resolve indirect macros 3/3
+      netfilter: xtables: unify {ip,ip6,arp}t_error_target
+      netfilter: xtables: remove unused defines
+
+ include/linux/netfilter/x_tables.h        |    5 ++
+ include/linux/netfilter_arp/arp_tables.h  |   68 ++++++------------
+ include/linux/netfilter_ipv4/ip_tables.h  |  107 ++++++++++++----------------
+ include/linux/netfilter_ipv6/ip6_tables.h |  110 +++++++++++------------------
+ net/ipv4/netfilter/arp_tables.c           |   62 ++++++++--------
+ net/ipv4/netfilter/arpt_mangle.c          |    2 +-
+ net/ipv4/netfilter/ip_tables.c            |   84 +++++++++++-----------
+ net/ipv6/netfilter/ip6_tables.c           |   84 +++++++++++-----------
+ net/sched/act_ipt.c                       |   14 ++--
+ 9 files changed, 240 insertions(+), 296 deletions(-)
