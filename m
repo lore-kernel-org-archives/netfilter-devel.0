@@ -1,42 +1,89 @@
-From: James Morris <jmorris@namei.org>
-Subject: Re: [PATCH 1/5] secmark: do not return early if there was no error
-Date: Wed, 13 Oct 2010 15:07:40 +1100 (EST)
-Message-ID: <alpine.LRH.2.00.1010131507110.3834@tundra.namei.org>
-References: <20101012154008.26943.44399.stgit@paris.rdu.redhat.com>  <alpine.LRH.2.00.1010131038160.2949@tundra.namei.org> <1286927424.2614.15.camel@localhost.localdomain>
+From: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Subject: Re: [RFC PATCH 4/9] ipvs network name space aware
+Date: Wed, 13 Oct 2010 07:07:28 +0200
+Message-ID: <201010130707.28585.hans.schillstrom@ericsson.com>
+References: <201010081317.01120.hans.schillstrom@ericsson.com> <4CB4869D.9050605@free.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, paul.moore@hp.com,
-	selinux@tycho.nsa.gov, sds@tycho.nsa.gov, jengelh@medozas.de,
-	linux-security-module@vger.kernel.org, mr.dash.four@googlemail.com,
-	pablo@netfilter.org
-To: Eric Paris <eparis@redhat.com>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <1286927424.2614.15.camel@localhost.localdomain>
-Sender: linux-security-module-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: "lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"horms@verge.net.au" <horms@verge.net.au>, "ja@ssi.bg" <ja@ssi.bg>,
+	"wensong@linux-vs.org" <wensong@linux-vs.org>
+To: Daniel Lezcano <daniel.lezcano@free.fr>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mailgw9.se.ericsson.net ([193.180.251.57]:45176 "EHLO
+	mailgw9.se.ericsson.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752769Ab0JMFHb (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Oct 2010 01:07:31 -0400
+In-Reply-To: <4CB4869D.9050605@free.fr>
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 12 Oct 2010, Eric Paris wrote:
-
-> On Wed, 2010-10-13 at 10:38 +1100, James Morris wrote:
-> > On Tue, 12 Oct 2010, Eric Paris wrote:
-> > 
-> > > Commit 4a5a5c73 attempted to pass decent error messages back to userspace for
-> > > netfilter errors.  In xt_SECMARK.c however the patch screwed up and returned
-> > > on 0 (aka no error) early and didn't finish setting up secmark.  This results
-> > > in a kernel BUG if you use SECMARK.
-> > > 
-> > 
-> > Does this need to go into current Linus?
+On Tuesday 12 October 2010 18:02:37 Daniel Lezcano wrote:
+> On 10/08/2010 01:16 PM, Hans Schillstrom wrote:
+> > This patch just contains ip_vs_core.c
+> >
+> > Signed-off-by:Hans Schillstrom<hans.schillstrom@ericsson.com>
+> >
+> > diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> > index 0c043b6..4fdc5cb 100644
+> > --- a/net/netfilter/ipvs/ip_vs_core.c
+> > +++ b/net/netfilter/ipvs/ip_vs_core.c
+> > @@ -52,7 +52,6 @@
+> >
+> >   #include<net/ip_vs.h>
+> >
+> > -
+> >   EXPORT_SYMBOL(register_ip_vs_scheduler);
+> >   EXPORT_SYMBOL(unregister_ip_vs_scheduler);
+> >   EXPORT_SYMBOL(ip_vs_proto_name);
+> > @@ -67,6 +66,8 @@ EXPORT_SYMBOL(ip_vs_conn_put);
+> >   EXPORT_SYMBOL(ip_vs_get_debug_level);
+> >   #endif
+> >
+> > +/* netns cnt used for uniqueness */
+> > +static atomic_t ipvs_netns_cnt = ATOMIC_INIT(0);
+> >    
 > 
-> It's been broken since v2.6.35-rc1 so it's not exactly new, but yes,
-> it's broken and will bug like this in current Linus.
+> Why is this counter needed ?
+> 
+It's an incarnation counter that's used globally to name 
+ - cachemem
+ - master/backup thread
 
-Acked-by: James Morris <jmorris@namei.org>
-
-(Guessing this should go in via the networking tree).
-
+> [ cut ]
+> 
+> > + *	Initialize IP Virtual Server netns mem.
+> > + */
+> > +static int __net_init __ip_vs_init(struct net *net)
+> > +{
+> > +	struct netns_ipvs *ipvs = 0;
+> >
+> > +	ipvs = kzalloc(sizeof(struct netns_ipvs), GFP_ATOMIC);
+> > +	if( ipvs == NULL ) {
+> > +		pr_err("%s(): no memory.\n", __func__);
+> > +		return -ENOMEM;
+> > +	}
+> > +	ipvs->inc = atomic_read(&ipvs_netns_cnt);
+> >    
+> 
+> AFAICS, this counter is never used. Is it really needed ?
+> 
+> > +	atomic_inc(&ipvs_netns_cnt);
+> > +	IP_VS_DBG(10, "Creating new netns *net=%p *ipvs=%p size=%lu\n",
+> > +		     net, ipvs, sizeof(struct netns_ipvs));
+> > +	net->ipvs = ipvs;
+> > +
+> > +	return 0;
+> > +}
+> >    
+> 
+> 
 
 -- 
-James Morris
-<jmorris@namei.org>
+Regards
+Hans Schillstrom <hans.schillstrom@ericsson.com>
