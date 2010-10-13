@@ -1,36 +1,34 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Quick intermediate cleanup
-Date: Wed, 13 Oct 2010 21:02:47 +0200
-Message-ID: <4CB60257.8020800@trash.net>
-References: <1286993003-3444-1-git-send-email-jengelh@medozas.de>
+Subject: Re: [PATCH] nf_nat: restrict ICMP translation for embedded header
+Date: Wed, 13 Oct 2010 21:21:19 +0200
+Message-ID: <4CB606AF.4040207@trash.net>
+References: <alpine.LFD.2.00.1010111103470.3743@ja.ssi.bg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40130 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752434Ab0JMTDF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Oct 2010 15:03:05 -0400
-In-Reply-To: <1286993003-3444-1-git-send-email-jengelh@medozas.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org
+To: Julian Anastasov <ja@ssi.bg>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.1010111103470.3743@ja.ssi.bg>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Am 13.10.2010 20:03, schrieb Jan Engelhardt:
-> The following changes since commit eecc545856c8a0f27783a440d25f4ceaa1f95ce8:
+Am 11.10.2010 10:23, schrieb Julian Anastasov:
 > 
->   netfilter: add missing xt_log.h file (2010-10-04 23:24:21 +0200)
+>     Skip ICMP translation of embedded protocol header
+> if NAT bits are not set. Needed for IPVS to see the original
+> embedded addresses because for IPVS traffic the IPS_SRC_NAT_BIT
+> and IPS_DST_NAT_BIT bits are not set. It happens when IPVS performs
+> DNAT for client packets after using nf_conntrack_alter_reply
+> to expect replies from real server.
 > 
-> are available in the git repository at:
->   git://dev.medozas.de/linux master
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> ---
 > 
-> Jan Engelhardt (5):
->       netfilter: xtables: resolve indirect macros 1/3
->       netfilter: xtables: resolve indirect macros 2/3
->       netfilter: xtables: resolve indirect macros 3/3
->       netfilter: xtables: unify {ip,ip6,arp}t_error_target
->       netfilter: xtables: remove unused defines
+>     I'm not very familiar with this code, so this change
+> must not be considered as trivial. May be there was a
+> reason the embedded header to be translated before the NAT
+> bits are set?
 
-Pulled, thanks Jan.
+This seems OK to me, but I need to think about it a bit more,
+this code is subtle.
