@@ -1,157 +1,92 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 4/5] netfilter: xtables: unify {ip,ip6,arp}t_error_target
-Date: Wed, 13 Oct 2010 20:03:21 +0200
-Message-ID: <1286993003-3444-5-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 5/5] netfilter: xtables: remove unused defines
+Date: Wed, 13 Oct 2010 20:03:22 +0200
+Message-ID: <1286993003-3444-6-git-send-email-jengelh@medozas.de>
 References: <1286993003-3444-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:43228 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:43239 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751298Ab0JMSD3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Oct 2010 14:03:29 -0400
+	id S1752622Ab0JMSDa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Oct 2010 14:03:30 -0400
 In-Reply-To: <1286993003-3444-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Unification of struct *_error_target was forgotten in
-v2.6.16-1689-g1e30a01.
-
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/x_tables.h        |    5 +++++
- include/linux/netfilter_arp/arp_tables.h  |   10 +++-------
- include/linux/netfilter_ipv4/ip_tables.h  |   10 +++-------
- include/linux/netfilter_ipv6/ip6_tables.h |   10 +++-------
- 4 files changed, 14 insertions(+), 21 deletions(-)
+ include/linux/netfilter_arp/arp_tables.h  |    4 ----
+ include/linux/netfilter_ipv4/ip_tables.h  |    4 ----
+ include/linux/netfilter_ipv6/ip6_tables.h |    4 ----
+ 3 files changed, 0 insertions(+), 12 deletions(-)
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 24e5d01..742bec0 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -66,6 +66,11 @@ struct xt_standard_target {
- 	int verdict;
- };
- 
-+struct xt_error_target {
-+	struct xt_entry_target target;
-+	char errorname[XT_FUNCTION_MAXNAMELEN];
-+};
-+
- /* The argument to IPT_SO_GET_REVISION_*.  Returns highest revision
-  * kernel supports, if >= revision. */
- struct xt_get_revision {
 diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
-index 6e2341a..f02d574 100644
+index f02d574..adbf4bf 100644
 --- a/include/linux/netfilter_arp/arp_tables.h
 +++ b/include/linux/netfilter_arp/arp_tables.h
-@@ -26,6 +26,7 @@
- #define ARPT_TABLE_MAXNAMELEN XT_TABLE_MAXNAMELEN
- #define arpt_entry_target xt_entry_target
- #define arpt_standard_target xt_standard_target
-+#define arpt_error_target xt_error_target
- #define ARPT_CONTINUE XT_CONTINUE
- #define ARPT_RETURN XT_RETURN
- #define arpt_counters_info xt_counters_info
-@@ -216,14 +217,9 @@ struct arpt_standard {
- 	struct xt_standard_target target;
- };
+@@ -255,8 +255,6 @@ extern unsigned int arpt_do_table(struct sk_buff *skb,
+ 				  const struct net_device *out,
+ 				  struct xt_table *table);
  
--struct arpt_error_target {
--	struct xt_entry_target target;
--	char errorname[XT_FUNCTION_MAXNAMELEN];
--};
+-#define ARPT_ALIGN(s) XT_ALIGN(s)
 -
- struct arpt_error {
- 	struct arpt_entry entry;
--	struct arpt_error_target target;
-+	struct xt_error_target target;
- };
+ #ifdef CONFIG_COMPAT
+ #include <net/compat.h>
  
- #define ARPT_ENTRY_INIT(__size)						       \
-@@ -244,7 +240,7 @@ struct arpt_error {
- {									       \
- 	.entry		= ARPT_ENTRY_INIT(sizeof(struct arpt_error)),	       \
- 	.target		= XT_TARGET_INIT(XT_ERROR_TARGET,		       \
--					 sizeof(struct arpt_error_target)),    \
-+					 sizeof(struct xt_error_target)),      \
- 	.target.errorname = "ERROR",					       \
+@@ -275,8 +273,6 @@ compat_arpt_get_target(struct compat_arpt_entry *e)
+ 	return (void *)e + e->target_offset;
  }
  
+-#define COMPAT_ARPT_ALIGN(s)	COMPAT_XT_ALIGN(s)
+-
+ #endif /* CONFIG_COMPAT */
+ #endif /*__KERNEL__*/
+ #endif /* _ARPTABLES_H */
 diff --git a/include/linux/netfilter_ipv4/ip_tables.h b/include/linux/netfilter_ipv4/ip_tables.h
-index ee54b3b..d0fef0a 100644
+index d0fef0a..64a5d95 100644
 --- a/include/linux/netfilter_ipv4/ip_tables.h
 +++ b/include/linux/netfilter_ipv4/ip_tables.h
-@@ -37,6 +37,7 @@
- #define ipt_entry_match xt_entry_match
- #define ipt_entry_target xt_entry_target
- #define ipt_standard_target xt_standard_target
-+#define ipt_error_target xt_error_target
- #define ipt_counters xt_counters
- #define IPT_CONTINUE XT_CONTINUE
- #define IPT_RETURN XT_RETURN
-@@ -247,14 +248,9 @@ struct ipt_standard {
- 	struct xt_standard_target target;
- };
+@@ -282,8 +282,6 @@ extern unsigned int ipt_do_table(struct sk_buff *skb,
+ 				 const struct net_device *out,
+ 				 struct xt_table *table);
  
--struct ipt_error_target {
--	struct xt_entry_target target;
--	char errorname[XT_FUNCTION_MAXNAMELEN];
--};
+-#define IPT_ALIGN(s) XT_ALIGN(s)
 -
- struct ipt_error {
- 	struct ipt_entry entry;
--	struct ipt_error_target target;
-+	struct xt_error_target target;
- };
+ #ifdef CONFIG_COMPAT
+ #include <net/compat.h>
  
- #define IPT_ENTRY_INIT(__size)						       \
-@@ -275,7 +271,7 @@ struct ipt_error {
- {									       \
- 	.entry		= IPT_ENTRY_INIT(sizeof(struct ipt_error)),	       \
- 	.target		= XT_TARGET_INIT(XT_ERROR_TARGET,		       \
--					 sizeof(struct ipt_error_target)),     \
-+					 sizeof(struct xt_error_target)),      \
- 	.target.errorname = "ERROR",					       \
+@@ -304,8 +302,6 @@ compat_ipt_get_target(struct compat_ipt_entry *e)
+ 	return (void *)e + e->target_offset;
  }
  
+-#define COMPAT_IPT_ALIGN(s) 	COMPAT_XT_ALIGN(s)
+-
+ #endif /* CONFIG_COMPAT */
+ #endif /*__KERNEL__*/
+ #endif /* _IPTABLES_H */
 diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
-index ac2b411..dca1118 100644
+index dca1118..c9784f7 100644
 --- a/include/linux/netfilter_ipv6/ip6_tables.h
 +++ b/include/linux/netfilter_ipv6/ip6_tables.h
-@@ -37,6 +37,7 @@
- #define ip6t_entry_match xt_entry_match
- #define ip6t_entry_target xt_entry_target
- #define ip6t_standard_target xt_standard_target
-+#define ip6t_error_target xt_error_target
- #define ip6t_counters xt_counters
- #define IP6T_CONTINUE XT_CONTINUE
- #define IP6T_RETURN XT_RETURN
-@@ -137,14 +138,9 @@ struct ip6t_standard {
- 	struct xt_standard_target target;
- };
+@@ -292,8 +292,6 @@ extern int ip6t_ext_hdr(u8 nexthdr);
+ extern int ipv6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
+ 			 int target, unsigned short *fragoff);
  
--struct ip6t_error_target {
--	struct xt_entry_target target;
--	char errorname[XT_FUNCTION_MAXNAMELEN];
--};
+-#define IP6T_ALIGN(s) XT_ALIGN(s)
 -
- struct ip6t_error {
- 	struct ip6t_entry entry;
--	struct ip6t_error_target target;
-+	struct xt_error_target target;
- };
+ #ifdef CONFIG_COMPAT
+ #include <net/compat.h>
  
- #define IP6T_ENTRY_INIT(__size)						       \
-@@ -165,7 +161,7 @@ struct ip6t_error {
- {									       \
- 	.entry		= IP6T_ENTRY_INIT(sizeof(struct ip6t_error)),	       \
- 	.target		= XT_TARGET_INIT(XT_ERROR_TARGET,		       \
--					 sizeof(struct ip6t_error_target)),    \
-+					 sizeof(struct xt_error_target)),      \
- 	.target.errorname = "ERROR",					       \
+@@ -313,8 +311,6 @@ compat_ip6t_get_target(struct compat_ip6t_entry *e)
+ 	return (void *)e + e->target_offset;
  }
  
+-#define COMPAT_IP6T_ALIGN(s)	COMPAT_XT_ALIGN(s)
+-
+ #endif /* CONFIG_COMPAT */
+ #endif /*__KERNEL__*/
+ #endif /* _IP6_TABLES_H */
 -- 
 1.7.1
 
