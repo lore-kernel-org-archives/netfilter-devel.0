@@ -1,61 +1,60 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: event-driven connection tracking
-Date: Thu, 14 Oct 2010 14:26:15 +0100
-Message-ID: <4CB704F7.60608@googlemail.com>
-References: <4CB5CF17.3090302@googlemail.com> <alpine.LNX.2.01.1010131747460.27120@obet.zrqbmnf.qr> <4CB6302A.8080507@googlemail.com> <alpine.LNX.2.01.1010140053190.5698@obet.zrqbmnf.qr> <4CB6F1E2.3030702@netfilter.org>
+From: "Gerd v. Egidy" <lists@egidy.de>
+Subject: -j MARK in raw vs. mangle (was Re: xfrm by MARK: tcp problems when mark for in and out differ)
+Date: Thu, 14 Oct 2010 16:16:58 +0200
+Message-ID: <201010141616.58795.lists@egidy.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, netfilter@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:65483 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754502Ab0JNN0Z (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Oct 2010 09:26:25 -0400
-In-Reply-To: <4CB6F1E2.3030702@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netdev@vger.kernel.org
+To: hadi@cyberus.ca, netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+Hi Jamal,
 
->>>> conntrack -Ee NEW,DESTROY
->>>>
->>>> would list you the specified events as they happen. Combined with a script
->>>> that reacts when a new line is outputted by conntrack should
->>>> do the trick.
->>>>  
->>>>         
->>> That's not what I am after!
->>>
->>> If I want to poll a text output every-so-often I can use /proc/net/nf_conntrack
->>>       
->> -E is event driven. (That's why it's got the "E".)
->>     
->
-> Indeed, if you're looking for a tool to listen to event-driven conntrack
-> notifications, then what Jan suggests is the correct approach. If you
-> want to make your own handling application, you can use
-> libnetfilter_conntrack.
->   
-Making my own handling application was the preferred way, though I would 
-have settled for text-based notifications through the stdin pipe (a bit 
-clumsy, but doable). As it turns out libnetfilter_conntrack seems to 
-provide me with what I need, so I would settle for that.
+thanks for your help.
 
-Another constraint I have (which I did not mention in my initial post) 
-is that, for various reasons, I am using the 2.6.16.60 kernel - the 
-libnetfilter_conntrack requirements suggest I can get away with it, is 
-there anything in particular I should be aware of when installing/using 
-this package with this kernel version (no, I am not in a position to 
-upgrade - not yet!)?
+> > So it seems like the fl->mark is never initialized with the packet mark
+> > in the first place. What would be the correct stage in the kernel
+> > network stack to do that?
+> 
+> Can you try a simple setup without xfrm/ipsec and see if this reverse
+> path works? Was there a kernel where it worked?
 
-> For logging, you can use ulogd2.
->   
-I have been doing the logging and it is not what I need as the 'action' 
-I take depends on what I find in the event matches - sometimes it is 
-necessary to just log the necessary data, but sometimes I would need to 
-initiate process scanning and full packet dumps on a particular 
-connection - for that to just use logging won't be enough.
+I just tried opening a simple tcp connection without any xfrm or other weird 
+stuff. I just had one iptables rule in place:
+
+-t raw -A OUTPUT -d 192.168.5.200 -j MARK --set-mark 99
+
+192.168.5.200 is the other system I open the tcp connection from. So this 
+should mark all response packets to the client.
+
+But the moment __xfrm_lookup is called (this is where my debug printk sits), 
+fl->mark is always 0.
+
+By chance I changed the rule over to the mangle table:
+
+-t mangle -A OUTPUT -d 192.168.5.200 -j MARK --set-mark 99
+
+Now it works, the mark in the flow is 99!
+
+So it seems this has nothing to do with xfrm, but that the MARK target has 
+different effects when used in raw than in mangle. I was using raw because I 
+had to set conntrack zones too and it was more conveniant to do both in one 
+place.
+
+Can one of the netfilter guys comment on this? Is using MARK in raw not fully 
+supported or has known deficiencies?
+
+Kind regards,
+
+Gerd
+
+PS: sorry for the double post, had an old netfilter-devel address in my 
+mailer.
+
+-- 
+Address (better: trap) for people I really don't want to get mail from:
+jonas@cactusamerica.com
