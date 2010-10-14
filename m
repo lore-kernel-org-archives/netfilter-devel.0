@@ -1,50 +1,61 @@
 From: Mr Dash Four <mr.dash.four@googlemail.com>
 Subject: Re: event-driven connection tracking
-Date: Thu, 14 Oct 2010 14:14:21 +0100
-Message-ID: <4CB7022D.3010209@googlemail.com>
-References: <4CB5CF17.3090302@googlemail.com> <4CB6F11B.6000103@netfilter.org>
+Date: Thu, 14 Oct 2010 14:26:15 +0100
+Message-ID: <4CB704F7.60608@googlemail.com>
+References: <4CB5CF17.3090302@googlemail.com> <alpine.LNX.2.01.1010131747460.27120@obet.zrqbmnf.qr> <4CB6302A.8080507@googlemail.com> <alpine.LNX.2.01.1010140053190.5698@obet.zrqbmnf.qr> <4CB6F1E2.3030702@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>, netfilter@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:54856 "EHLO
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:65483 "EHLO
 	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754089Ab0JNNOc (ORCPT
+	with ESMTP id S1754502Ab0JNN0Z (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Oct 2010 09:14:32 -0400
-In-Reply-To: <4CB6F11B.6000103@netfilter.org>
+	Thu, 14 Oct 2010 09:26:25 -0400
+In-Reply-To: <4CB6F1E2.3030702@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
->> Is it possible to use event-driven connection tracking - with
->> conntrack-utils or by other means?
->>
->> Ideally, what I would like to do is 'register' a handler for particular
->> connection events (when new connection is established and then closed
->> for example) based on particular pre-defined filter (say, by protocol,
->> source/destination ip etc) and execute a program code/function (if done
->> programmatically) or a script (if done outside the connection-tracking
->> domain) to do what I want?
->> Currently, the only way to track such 'events' is if I include a
->> separate chain in iptables tracking a particular connection (and logging
->> the event via a normal log jump), but that is not enough for me as I
->> also need to trigger a full dump based on that particular 'filter' and
->> end this dump when the connection is closed. Any ideas?
+>>>> conntrack -Ee NEW,DESTROY
+>>>>
+>>>> would list you the specified events as they happen. Combined with a script
+>>>> that reacts when a new line is outputted by conntrack should
+>>>> do the trick.
+>>>>  
+>>>>         
+>>> That's not what I am after!
+>>>
+>>> If I want to poll a text output every-so-often I can use /proc/net/nf_conntrack
+>>>       
+>> -E is event driven. (That's why it's got the "E".)
 >>     
 >
-> You can use libnetfilter_conntrack for that:
-> http://www.netfilter.org/projects/libnetfilter_conntrack/index.html
+> Indeed, if you're looking for a tool to listen to event-driven conntrack
+> notifications, then what Jan suggests is the correct approach. If you
+> want to make your own handling application, you can use
+> libnetfilter_conntrack.
 >   
-THAT is exactly what I was after - program interface through which I can 
-register the events I am interested in and handle them in my own way.
+Making my own handling application was the preferred way, though I would 
+have settled for text-based notifications through the stdin pipe (a bit 
+clumsy, but doable). As it turns out libnetfilter_conntrack seems to 
+provide me with what I need, so I would settle for that.
 
-> There are several examples under utils/ in the tarballs that are
-> distributed.
+Another constraint I have (which I did not mention in my initial post) 
+is that, for various reasons, I am using the 2.6.16.60 kernel - the 
+libnetfilter_conntrack requirements suggest I can get away with it, is 
+there anything in particular I should be aware of when installing/using 
+this package with this kernel version (no, I am not in a position to 
+upgrade - not yet!)?
+
+> For logging, you can use ulogd2.
 >   
-Yep, conntrack_events.c and expect_events.c seem to be a good match and 
-provide me with a decent skeleton on which to base my own code. Thanks 
-for your input, much appreciated.
+I have been doing the logging and it is not what I need as the 'action' 
+I take depends on what I find in the event matches - sometimes it is 
+necessary to just log the necessary data, but sometimes I would need to 
+initiate process scanning and full packet dumps on a particular 
+connection - for that to just use logging won't be enough.
