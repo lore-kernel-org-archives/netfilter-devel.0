@@ -1,43 +1,46 @@
-From: "Gerd v. Egidy" <lists@egidy.de>
-Subject: Re: -j MARK in raw vs. mangle (was Re: xfrm by MARK: tcp problems when mark for in and out differ)
-Date: Fri, 15 Oct 2010 10:05:32 +0200
-Message-ID: <201010151005.32973.lists@egidy.de>
-References: <201010141616.58795.lists@egidy.de> <4CB7FCEB.5070804@trash.net>
+From: jamal <hadi@cyberus.ca>
+Subject: netns patches WAS( Re: [PATCH 8/8] net: Implement socketat.
+Date: Fri, 15 Oct 2010 08:30:55 -0400
+Message-ID: <1287145855.3642.30.camel@bigi>
+References: <m1ocborgq7.fsf@fess.ebiederm.org>
+	 <m1bp7oq1u8.fsf@fess.ebiederm.org>  <4C9B162E.7040201@parallels.com>
+	 <1285240797.5036.5.camel@bigi>  <4C9B3B06.900@parallels.com>
+	 <1285242055.5036.9.camel@bigi> <4C9B3F9C.8080506@parallels.com>
+	 <4CA7A07C.5030504@free.fr>  <1286113441.3812.229.camel@bigi>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: hadi@cyberus.ca, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: Pavel Emelyanov <xemul@parallels.com>,
+	linux-kernel@vger.kernel.org,
+	Linux Containers <containers@lists.osdl.org>,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Michael Kerrisk <mtk.manpages@gmail.com>,
+	Ulrich Drepper <drepper@gmail.com>,
+	Al Viro <viro@ZenIV.linux.org.uk>,
+	David Miller <davem@davemloft.net>,
+	"Serge E. Hallyn" <serge@hallyn.com>,
+	Pavel Emelyanov <xemul@openvz.org>,
+	Ben Greear <greearb@candelatech.com>,
+	Matt Helsley <matthltc@us.ibm.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>,
+	Jan Engelhardt <jengelh@medozas.de>,
+	Patrick McHardy <kaber@trash.net>
+To: Daniel Lezcano <daniel.lezcano@free.fr>,
+	"Eric W. Biederman" <ebiederm@xmission.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4CB7FCEB.5070804@trash.net>
+In-Reply-To: <1286113441.3812.229.camel@bigi>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
+Eric et al,
 
-> > So it seems this has nothing to do with xfrm, but that the MARK target
-> > has different effects when used in raw than in mangle. I was using raw
-> > because I had to set conntrack zones too and it was more conveniant to
-> > do both in one place.
-> > 
-> > Can one of the netfilter guys comment on this? Is using MARK in raw not
-> > fully supported or has known deficiencies?
-> 
-> No, the problem is most likely that for outgoing packets, the XFRM
-> lookup is done with the route lookup before the packet is even sent,
-> so once it hits the raw or mangle table, it is too late. mangle however
-> performs rerouting when the mark value changes, at which point a new
-> XFRM lookup is performed.
+Did these patches make it in? I was looking at
+two Davem net trees and i dont see them.
 
-ah, this would explain it. Thanks for the explanation. I'll just stick with 
-mangle for marking.
+cheers,
+jamal
 
-Kind regards,
-
-Gerd
-
--- 
-Address (better: trap) for people I really don't want to get mail from:
-jonas@cactusamerica.com
