@@ -1,46 +1,51 @@
-From: jamal <hadi@cyberus.ca>
-Subject: netns patches WAS( Re: [PATCH 8/8] net: Implement socketat.
-Date: Fri, 15 Oct 2010 08:30:55 -0400
-Message-ID: <1287145855.3642.30.camel@bigi>
-References: <m1ocborgq7.fsf@fess.ebiederm.org>
-	 <m1bp7oq1u8.fsf@fess.ebiederm.org>  <4C9B162E.7040201@parallels.com>
-	 <1285240797.5036.5.camel@bigi>  <4C9B3B06.900@parallels.com>
-	 <1285242055.5036.9.camel@bigi> <4C9B3F9C.8080506@parallels.com>
-	 <4CA7A07C.5030504@free.fr>  <1286113441.3812.229.camel@bigi>
-Reply-To: hadi@cyberus.ca
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] secmark: do not return early if there was no error
+Date: Fri, 15 Oct 2010 17:08:26 +0200
+Message-ID: <4CB86E6A.1040807@trash.net>
+References: <20101013202105.15011.60553.stgit@paris.rdu.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: Pavel Emelyanov <xemul@parallels.com>,
-	linux-kernel@vger.kernel.org,
-	Linux Containers <containers@lists.osdl.org>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Michael Kerrisk <mtk.manpages@gmail.com>,
-	Ulrich Drepper <drepper@gmail.com>,
-	Al Viro <viro@ZenIV.linux.org.uk>,
-	David Miller <davem@davemloft.net>,
-	"Serge E. Hallyn" <serge@hallyn.com>,
-	Pavel Emelyanov <xemul@openvz.org>,
-	Ben Greear <greearb@candelatech.com>,
-	Matt Helsley <matthltc@us.ibm.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Patrick McHardy <kaber@trash.net>
-To: Daniel Lezcano <daniel.lezcano@free.fr>,
-	"Eric W. Biederman" <ebiederm@xmission.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1286113441.3812.229.camel@bigi>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	davem@davemloft.net, jengelh@medozas.de, paul.moore@hp.com,
+	jmorris@namei.org
+To: Eric Paris <eparis@redhat.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:51025 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755350Ab0JOPIe (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Oct 2010 11:08:34 -0400
+In-Reply-To: <20101013202105.15011.60553.stgit@paris.rdu.redhat.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric et al,
+Am 13.10.2010 22:21, schrieb Eric Paris:
+> Commit 4a5a5c73 attempted to pass decent error messages back to userspace for
+> netfilter errors.  In xt_SECMARK.c however the patch screwed up and returned
+> on 0 (aka no error) early and didn't finish setting up secmark.  This results
+> in a kernel BUG if you use SECMARK.
+> 
+> ------------[ cut here ]------------
+> kernel BUG at net/netfilter/xt_SECMARK.c:38!
+> invalid opcode: 0000 [#1] SMP
+> last sysfs file: /sys/devices/system/cpu/cpu2/cache/index2/shared_cpu_map
+> CPU 0
+> Modules linked in: xt_SECMARK iptable_mangle nfs lockd fscache nfs_acl
+> auth_rpcgss sunrpc ip6t_REJECT nf_conntrack_ipv6 ip6table_filter ip6_tables
+> uinput virtio_net virtio_balloon i2c_piix4 i2c_core joydev microcode ipv6
+> virtio_blk virtio_pci virtio_ring virtio [last unloaded: speedstep_lib]
+> 
+> ...
+> RIP  [<ffffffffa022117d>] secmark_tg+0x17/0x2e [xt_SECMARK]
+> RSP <ffff880003e03a40>
+> ---[ end trace 9aa5d06a71143e74 ]---
+> 
+> Signed-off-by: Eric Paris <eparis@redhat.com>
+> Acked-by: Paul Moore <paul.moore@hp.com>
+> Acked-by: James Morris <jmorris@namei.org>
 
-Did these patches make it in? I was looking at
-two Davem net trees and i dont see them.
+Acked-by: Patrick McHardy <kaber@trash.net>
 
-cheers,
-jamal
-
+I'll leave it up to Dave whether this can still go into 2.6.36.
