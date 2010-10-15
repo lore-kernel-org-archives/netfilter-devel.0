@@ -1,34 +1,43 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: event-driven connection tracking
-Date: Fri, 15 Oct 2010 09:17:08 +0200
-Message-ID: <4CB7FFF4.8030807@netfilter.org>
-References: <4CB5CF17.3090302@googlemail.com> <alpine.LNX.2.01.1010131747460.27120@obet.zrqbmnf.qr> <4CB6302A.8080507@googlemail.com> <alpine.LNX.2.01.1010140053190.5698@obet.zrqbmnf.qr> <4CB6F1E2.3030702@netfilter.org> <4CB704F7.60608@googlemail.com>
+From: "Gerd v. Egidy" <lists@egidy.de>
+Subject: Re: -j MARK in raw vs. mangle (was Re: xfrm by MARK: tcp problems when mark for in and out differ)
+Date: Fri, 15 Oct 2010 10:05:32 +0200
+Message-ID: <201010151005.32973.lists@egidy.de>
+References: <201010141616.58795.lists@egidy.de> <4CB7FCEB.5070804@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, netfilter@vger.kernel.org
-To: Mr Dash Four <mr.dash.four@googlemail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39936 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753232Ab0JOHRM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Oct 2010 03:17:12 -0400
-In-Reply-To: <4CB704F7.60608@googlemail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: hadi@cyberus.ca, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <4CB7FCEB.5070804@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 14/10/10 15:26, Mr Dash Four wrote:
-> Another constraint I have (which I did not mention in my initial post)
-> is that, for various reasons, I am using the 2.6.16.60 kernel - the
-> libnetfilter_conntrack requirements suggest I can get away with it, is
-> there anything in particular I should be aware of when installing/using
-> this package with this kernel version (no, I am not in a position to
-> upgrade - not yet!)?
+Hi Patrick,
 
-Recommended kernel version is >= 2.6.18 (that's on the website and
-docs). With such an old kernel version, I think that you may have
-problems with NAT conntrack entries.
+> > So it seems this has nothing to do with xfrm, but that the MARK target
+> > has different effects when used in raw than in mangle. I was using raw
+> > because I had to set conntrack zones too and it was more conveniant to
+> > do both in one place.
+> > 
+> > Can one of the netfilter guys comment on this? Is using MARK in raw not
+> > fully supported or has known deficiencies?
+> 
+> No, the problem is most likely that for outgoing packets, the XFRM
+> lookup is done with the route lookup before the packet is even sent,
+> so once it hits the raw or mangle table, it is too late. mangle however
+> performs rerouting when the mark value changes, at which point a new
+> XFRM lookup is performed.
 
-Let me know anyway how it goes, it would be interesting to know.
+ah, this would explain it. Thanks for the explanation. I'll just stick with 
+mangle for marking.
+
+Kind regards,
+
+Gerd
+
+-- 
+Address (better: trap) for people I really don't want to get mail from:
+jonas@cactusamerica.com
