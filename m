@@ -1,51 +1,36 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] secmark: do not return early if there was no error
-Date: Fri, 15 Oct 2010 17:08:26 +0200
-Message-ID: <4CB86E6A.1040807@trash.net>
-References: <20101013202105.15011.60553.stgit@paris.rdu.redhat.com>
+Subject: Re: [PATCH 1/4] secmark: make secmark object handling generic
+Date: Fri, 15 Oct 2010 17:18:49 +0200
+Message-ID: <4CB870D9.6020703@trash.net>
+References: <20101013202441.15272.75924.stgit@paris.rdu.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	davem@davemloft.net, jengelh@medozas.de, paul.moore@hp.com,
-	jmorris@namei.org
+Cc: netfilter-devel@vger.kernel.org, selinux@tycho.nsa.gov,
+	jengelh@medozas.de, paul.moore@hp.com, jmorris@namei.org,
+	sds@tycho.nsa.gov, pablo@netfilter.org
 To: Eric Paris <eparis@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:51025 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:51195 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755350Ab0JOPIe (ORCPT
+	with ESMTP id S1756300Ab0JOPTR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Oct 2010 11:08:34 -0400
-In-Reply-To: <20101013202105.15011.60553.stgit@paris.rdu.redhat.com>
+	Fri, 15 Oct 2010 11:19:17 -0400
+In-Reply-To: <20101013202441.15272.75924.stgit@paris.rdu.redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 13.10.2010 22:21, schrieb Eric Paris:
-> Commit 4a5a5c73 attempted to pass decent error messages back to userspace for
-> netfilter errors.  In xt_SECMARK.c however the patch screwed up and returned
-> on 0 (aka no error) early and didn't finish setting up secmark.  This results
-> in a kernel BUG if you use SECMARK.
-> 
-> ------------[ cut here ]------------
-> kernel BUG at net/netfilter/xt_SECMARK.c:38!
-> invalid opcode: 0000 [#1] SMP
-> last sysfs file: /sys/devices/system/cpu/cpu2/cache/index2/shared_cpu_map
-> CPU 0
-> Modules linked in: xt_SECMARK iptable_mangle nfs lockd fscache nfs_acl
-> auth_rpcgss sunrpc ip6t_REJECT nf_conntrack_ipv6 ip6table_filter ip6_tables
-> uinput virtio_net virtio_balloon i2c_piix4 i2c_core joydev microcode ipv6
-> virtio_blk virtio_pci virtio_ring virtio [last unloaded: speedstep_lib]
-> 
-> ...
-> RIP  [<ffffffffa022117d>] secmark_tg+0x17/0x2e [xt_SECMARK]
-> RSP <ffff880003e03a40>
-> ---[ end trace 9aa5d06a71143e74 ]---
+Am 13.10.2010 22:24, schrieb Eric Paris:
+> Right now secmark has lots of direct selinux calls.  Use all LSM calls and
+> remove all SELinux specific knowledge.  The only SELinux specific knowledge
+> we leave is the mode.  The only point is to make sure that other LSMs at
+> least test this generic code before they assume it works.  (They may also
+> have to make changes if they do not represent labels as strings)
 > 
 > Signed-off-by: Eric Paris <eparis@redhat.com>
 > Acked-by: Paul Moore <paul.moore@hp.com>
-> Acked-by: James Morris <jmorris@namei.org>
+
+I think these patches should go through the security tree.
 
 Acked-by: Patrick McHardy <kaber@trash.net>
 
-I'll leave it up to Dave whether this can still go into 2.6.36.
