@@ -1,33 +1,65 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Missing kernel header files
-Date: Sat, 16 Oct 2010 17:34:31 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1010161734040.13972@obet.zrqbmnf.qr>
-References: <AANLkTinPD=3yC=KF_juTvUumXwmuMzgjrXyRg4NmML-C@mail.gmail.com> <alpine.LNX.2.01.1010012248410.24065@obet.zrqbmnf.qr> <AANLkTi=S0f1DR0Y0YCqtV6jqU2ugHUsDWdSDRbMjYKr_@mail.gmail.com>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: [PATCH resend] netfilter: fix kconfig unmet dependency warning
+Date: Sat, 16 Oct 2010 19:11:03 -0700
+Message-ID: <20101016191103.ba9b2e7e.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: David Corrales <corrales.david@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>
+To: netdev <netdev@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:48679 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751441Ab0JPPed (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 Oct 2010 11:34:33 -0400
-In-Reply-To: <AANLkTi=S0f1DR0Y0YCqtV6jqU2ugHUsDWdSDRbMjYKr_@mail.gmail.com>
+Received: from rcsinet10.oracle.com ([148.87.113.121]:55862 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757211Ab0JQCMB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 16 Oct 2010 22:12:01 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2010-10-04 18:56, David Corrales wrote:
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
->> Choosing arbitrary kernels is not designed to work before 1.4.3.
->
->Oh, that's too bad :(
->
->> Why bother with patching when just using 1.4.9 yields equivalent
->> behavior?
->>
->
->Thing is that other software modules depend on this headers as well so
->I wanted to minimize the impact. I rather patch than bump the version
->number.
+Fix netfilter kconfig unmet dependencies warning & spell out
+"compatible" while there.
 
-The risk of incomplete patching is higher than using a newer release.
+warning: (IP_NF_TARGET_TTL && NET && INET && NETFILTER && IP_NF_IPTABLES && NETFILTER_ADVANCED || IP6_NF_TARGET_HL && NET && INET && IPV6 && NETFILTER && IP6_NF_IPTABLES && NETFILTER_ADVANCED) selects NETFILTER_XT_TARGET_HL which has unmet direct dependencies ((IP_NF_MANGLE || IP6_NF_MANGLE) && NETFILTER_ADVANCED)
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+---
+ net/ipv4/netfilter/Kconfig |    4 ++--
+ net/ipv6/netfilter/Kconfig |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+[orig. sent 2010-SEP-23]
+
+--- linux-next-20100921.orig/net/ipv4/netfilter/Kconfig
++++ linux-next-20100921/net/ipv4/netfilter/Kconfig
+@@ -324,10 +324,10 @@ config IP_NF_TARGET_ECN
+ 
+ config IP_NF_TARGET_TTL
+ 	tristate '"TTL" target support'
+-	depends on NETFILTER_ADVANCED
++	depends on NETFILTER_ADVANCED && IP_NF_MANGLE
+ 	select NETFILTER_XT_TARGET_HL
+ 	---help---
+-	This is a backwards-compat option for the user's convenience
++	This is a backwards-compatible option for the user's convenience
+ 	(e.g. when running oldconfig). It selects
+ 	CONFIG_NETFILTER_XT_TARGET_HL.
+ 
+--- linux-next-20100921.orig/net/ipv6/netfilter/Kconfig
++++ linux-next-20100921/net/ipv6/netfilter/Kconfig
+@@ -132,10 +132,10 @@ config IP6_NF_MATCH_RT
+ # The targets
+ config IP6_NF_TARGET_HL
+ 	tristate '"HL" hoplimit target support'
+-	depends on NETFILTER_ADVANCED
++	depends on NETFILTER_ADVANCED && IP6_NF_MANGLE
+ 	select NETFILTER_XT_TARGET_HL
+ 	---help---
+-	This is a backwards-compat option for the user's convenience
++	This is a backwards-compatible option for the user's convenience
+ 	(e.g. when running oldconfig). It selects
+ 	CONFIG_NETFILTER_XT_TARGET_HL.
+ 
+--
