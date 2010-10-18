@@ -1,37 +1,43 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH 00/12] ipvs: changes for local server and local client
-Date: Mon, 18 Oct 2010 23:08:00 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1010182259500.1763@ja.ssi.bg>
-References: <alpine.LFD.2.00.1010171607550.20665@ja.ssi.bg> <201010181042.27654.hans.schillstrom@ericsson.com>
+From: James Morris <jmorris@namei.org>
+Subject: Re: [PATCH] secmark: do not return early if there was no error
+Date: Tue, 19 Oct 2010 09:48:35 +1100 (EST)
+Message-ID: <alpine.LRH.2.00.1010190947480.19779@tundra.namei.org>
+References: <20101013202105.15011.60553.stgit@paris.rdu.redhat.com> <4CB86E6A.1040807@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Simon Horman <horms@verge.net.au>,
-	"lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <201010181042.27654.hans.schillstrom@ericsson.com>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Eric Paris <eparis@redhat.com>, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, davem@davemloft.net, jengelh@medozas.de,
+	paul.moore@hp.com
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from tundra.namei.org ([65.99.196.166]:42005 "EHLO tundra.namei.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933425Ab0JRWtF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Oct 2010 18:49:05 -0400
+In-Reply-To: <4CB86E6A.1040807@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+On Fri, 15 Oct 2010, Patrick McHardy wrote:
+
+> > ...
+> > RIP  [<ffffffffa022117d>] secmark_tg+0x17/0x2e [xt_SECMARK]
+> > RSP <ffff880003e03a40>
+> > ---[ end trace 9aa5d06a71143e74 ]---
+> > 
+> > Signed-off-by: Eric Paris <eparis@redhat.com>
+> > Acked-by: Paul Moore <paul.moore@hp.com>
+> > Acked-by: James Morris <jmorris@namei.org>
+> 
+> Acked-by: Patrick McHardy <kaber@trash.net>
+> 
+> I'll leave it up to Dave whether this can still go into 2.6.36.
+
+FYI, I have a copy now in my #next branch, as it's a pre-requisite for 
+further patches.
 
 
- 	Hello,
-
-On Mon, 18 Oct 2010, Hans Schillstrom wrote:
-
->> Not tested: IPv6. I'll need help here from people with IPv6 setups.
->>
->
-> I can help you with some IPv6 testing this week.
-
- 	Thanks in advance
-
-> I would be nice to change the IPv6 address print format from %pI6 to %pI6c to get a more compact debug output.
-
- 	Yes, may be in following cleanup patches because the
-IPVS debugging needs improvement.
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+-- 
+James Morris
+<jmorris@namei.org>
