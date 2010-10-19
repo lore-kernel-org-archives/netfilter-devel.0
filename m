@@ -1,55 +1,41 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: libmnl build system patches
-Date: Tue, 19 Oct 2010 12:47:31 +0200
-Message-ID: <1287485262-6562-1-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 07/10] build: resolve compiler warnings
+Date: Tue, 19 Oct 2010 12:47:38 +0200
+Message-ID: <1287485262-6562-8-git-send-email-jengelh@medozas.de>
+References: <1287485262-6562-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:44384 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:44407 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758152Ab0JSKro (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Oct 2010 06:47:44 -0400
+	id S1758255Ab0JSKrv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Oct 2010 06:47:51 -0400
+In-Reply-To: <1287485262-6562-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+nlmsg.c: In function "mnl_nlmsg_fprintf":
+nlmsg.c:260:4: warning: format "%.3d" expects type "int", but
+argument 3 has type "size_t"
 
-The following changes since commit e7fa7219245809491fedfd9efcbe50b6c839f734:
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ src/nlmsg.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-  add quote from Thoureau to documentation (2010-10-10 13:53:22 +0200)
+diff --git a/src/nlmsg.c b/src/nlmsg.c
+index af08671..3cec2a2 100644
+--- a/src/nlmsg.c
++++ b/src/nlmsg.c
+@@ -255,7 +255,7 @@ void mnl_nlmsg_fprintf(FILE *fd, const struct nlmsghdr *nlh)
+ 	for (i=sizeof(struct nlmsghdr); i<nlh->nlmsg_len; i+=4) {
+ 		char *b = (char *) nlh;
+ 
+-		fprintf(fd, "(%.3d) %.2x %.2x %.2x %.2x | ", i,
++		fprintf(fd, "(%03zu) %.2x %.2x %.2x %.2x | ", i,
+ 			0xff & b[i],	0xff & b[i+1],
+ 			0xff & b[i+2],	0xff & b[i+3]);
+ 
+-- 
+1.7.1
 
-are available in the git repository at:
-  git://dev.medozas.de/libmnl master
-
-Jan Engelhardt (10):
-      build: just use autoreconf
-      build: do not abuse AM_INIT_AUTOMAKE for autoconf options
-      build: automake options should be in AM_INIT_AUTOMAKE
-      build: use subdir-objects and CC_C_O
-      build: run autoupdate
-      build: rebuild .pc files when configure status changed
-      build: resolve compiler warnings
-      build: remove unneeded -dynamic -ldl -nostartfiles flags
-      build: default to not build static libraries
-      Add .gitignore files
-
- .gitignore                     |   23 +++++++++++++++++++++++
- Make_global.am                 |    2 +-
- Makefile.am                    |    3 ++-
- autogen.sh                     |   18 ++----------------
- configure.ac                   |   21 +++++++++++++++++++++
- configure.in                   |   18 ------------------
- examples/genl/.gitignore       |    1 +
- examples/genl/Makefile.am      |    1 -
- examples/netfilter/.gitignore  |    2 ++
- examples/netfilter/Makefile.am |    2 --
- examples/rtnl/.gitignore       |    7 +++++++
- examples/rtnl/Makefile.am      |    7 -------
- src/Makefile.am                |    4 +---
- src/nlmsg.c                    |    2 +-
- 14 files changed, 61 insertions(+), 50 deletions(-)
- create mode 100644 .gitignore
- create mode 100644 configure.ac
- delete mode 100644 configure.in
- create mode 100644 examples/genl/.gitignore
- create mode 100644 examples/netfilter/.gitignore
- create mode 100644 examples/rtnl/.gitignore
