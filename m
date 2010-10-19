@@ -1,188 +1,54 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [RFC PATCH 1/9] ipvs network name space aware
-Date: Tue, 19 Oct 2010 11:44:36 -0700
-Message-ID: <20101019184436.GG2362@linux.vnet.ibm.com>
-References: <201010081316.46690.hans.schillstrom@ericsson.com>
- <201010181154.35792.hans.schillstrom@ericsson.com>
- <4CBC3182.80605@free.fr>
- <201010181523.49568.hans.schillstrom@ericsson.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Amos Jeffries <squid3@treenet.co.nz>
+Subject: Re: [PATCH 06/10] build: rebuild .pc files when configure status changed
+Date: Tue, 19 Oct 2010 21:41:51 +0000
+Message-ID: <3bb88c0985f0036cdbcc2b6307f4c4ce@mail.treenet.co.nz>
+References: <1287485262-6562-1-git-send-email-jengelh@medozas.de> <1287485262-6562-7-git-send-email-jengelh@medozas.de> <4CBD8B89.7030802@treenet.co.nz> <alpine.LNX.2.01.1010191528290.25338@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Daniel Lezcano <daniel.lezcano@free.fr>,
-	"lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"horms@verge.net.au" <horms@verge.net.au>, "ja@ssi.bg" <ja@ssi.bg>,
-	"wensong@linux-vs.org" <wensong@linux-vs.org>
-To: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201010181523.49568.hans.schillstrom@ericsson.com>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ip-58-28-153-233.static-xdsl.xnet.co.nz ([58.28.153.233]:51447
+	"EHLO treenet.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753247Ab0JSVl4 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Oct 2010 17:41:56 -0400
+In-Reply-To: <alpine.LNX.2.01.1010191528290.25338@obet.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Oct 18, 2010 at 03:23:48PM +0200, Hans Schillstrom wrote:
-> On Monday 18 October 2010 13:37:38 Daniel Lezcano wrote:
-> > On 10/18/2010 11:54 AM, Hans Schillstrom wrote:
-> > > On Monday 18 October 2010 10:59:25 Daniel Lezcano wrote:
-> > >    
-> > >> On 10/08/2010 01:16 PM, Hans Schillstrom wrote:
-> > >>      
-> > >>> This part contains the include files
-> > >>> where include/net/netns/ip_vs.h is new and contains all moved vars.
-> > >>>
-> > >>> SUMMARY
-> > >>>
-> > >>>    include/net/ip_vs.h                     |  136 ++++---
-> > >>>    include/net/net_namespace.h             |    2 +
-> > >>>    include/net/netns/ip_vs.h               |  112 +++++
-> > >>>
-> > >>> Signed-off-by:Hans Schillstrom<hans.schillstrom@ericsson.com>
-> > >>> ---
-> > >>>
-> > >>>
-> > >>>        
-> > >> [ ... ]
-> > >>
-> > >>      
-> > >>>    #ifdef CONFIG_IP_VS_IPV6
-> > >>> diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
-> > >>> index bd10a79..b59cdc5 100644
-> > >>> --- a/include/net/net_namespace.h
-> > >>> +++ b/include/net/net_namespace.h
-> > >>> @@ -15,6 +15,7 @@
-> > >>>    #include<net/netns/ipv4.h>
-> > >>>    #include<net/netns/ipv6.h>
-> > >>>    #include<net/netns/dccp.h>
-> > >>> +#include<net/netns/ip_vs.h>
-> > >>>    #include<net/netns/x_tables.h>
-> > >>>    #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
-> > >>>    #include<net/netns/conntrack.h>
-> > >>> @@ -91,6 +92,7 @@ struct net {
-> > >>>    	struct sk_buff_head	wext_nlevents;
-> > >>>    #endif
-> > >>>    	struct net_generic	*gen;
-> > >>> +	struct netns_ipvs       *ipvs;
-> > >>>    };
-> > >>>
-> > >>>        
-> > >> IMHO, it would be better to use the net_generic infra-structure instead
-> > >> of adding a new field in the netns structure.
-> > >>
-> > >>
-> > >>      
-> > > I realized that to, but the performance penalty is quite high with net_generic :-(
-> > > But on the other hand if you are going to backport it, (without recompiling the kernel)
-> > > you gonna need it!
-> > >    
-> > 
-> > Hmm, yes. We don't want to have the init_net_ns performances to be impacted.
-> > 
-> > You use here a pointer which will be dereferenced like the net_generic, 
-> > I don't think there will be
-> > a big difference between using net_generic and using a pointer in the 
-> > net namespace structure.
-> > 
-> > The difference is the id usage, but this one is based on the idr which 
-> > is quite fast.
-> > 
+On Tue, 19 Oct 2010 15:30:56 +0200 (CEST), Jan Engelhardt
+<jengelh@medozas.de> wrote:
+> On Tuesday 2010-10-19 14:14, Amos Jeffries wrote:
 > 
-> I'm not so sure about that, have a look at net_generic and rcu_read_lock
-> and compare   
->  ipvs = net->ipvs;
-> vs.
->  ipvs = net_generic(net, id)
+>> On 19/10/10 23:47, Jan Engelhardt wrote:
+>>> Signed-off-by: Jan Engelhardt<jengelh@medozas.de>
+>>> ---
+>>>  Makefile.am |    2 ++
+>>>  1 files changed, 2 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/Makefile.am b/Makefile.am
+>>> index 35bfbe2..6d5b8dd 100644
+>>> --- a/Makefile.am
+>>> +++ b/Makefile.am
+>>> @@ -8,6 +8,8 @@ DIST_SUBDIRS = src include examples
+>>>  pkgconfigdir = $(libdir)/pkgconfig
+>>>  pkgconfig_DATA = libmnl.pc
+>>>
+>>> +${pkgconfig_DATA}: ${top_builddir}/config.status
+>>> +
+>>>  $(OBJECTS): libtool
+>>>  libtool: $(LIBTOOL_DEPS)
+>>>  	$(SHELL) ./config.status --recheck
+>>
+>> IIRC {} is a bashism. () is more portable for automake.
 > 
-> static inline void *net_generic(struct net *net, int id)
-> {
-> 	struct net_generic *ng;
-> 	void *ptr;
-> 
-> 	rcu_read_lock();
-> 	ng = rcu_dereference(net->gen);
-> 	BUG_ON(id == 0 || id > ng->len);
-> 	ptr = ng->ptr[id - 1];
-> 	rcu_read_unlock();
-> 
-> 	return ptr;
-> }
-> ...
-> static inline void rcu_read_lock(void)
-> {
->         __rcu_read_lock();
->         __acquire(RCU);
->         rcu_read_acquire();
-> }
-> 
-> Another way of doing it is to pass the ipvs ptr instead of the net ptr,
-> and add *net to the ipvs struct.
-> 
-> > We should experiment a bit here to compare both solutions.
-> Agre
-> > 
-> I single stepped through the rcu_read_lock() on a x86_64 
-> and it's quite many "stepi" that you need to enter :-(
+> What are you talking about? ${...} is not a bash-only feature.
+> The automake developers certainly did not complain about the use
+> of {} when I submitted my patches.
 
-Was this by chance with lockdep enabled?  If not, could you please send
-your .config?
+Okay, they would know best. I'm probably recallling non-linux automakes.
+Sorry for the noise.
 
-							Thanx, Paul
-
-> > IMHO, we can (1) create a non-pointer netns_ipvs field in the net 
-> > namespace structure or (2) use a pointer [with net_generic].
-> > 
-> > (1) is the faster but with the drawback of having a bigger memory 
-> > footprint even if the ipvs module is not loaded.
-> > In this case we have to take care of what we store in the netns_ipvs 
-> > structure, that is reduce the per namespace table and so. At the first 
-> > glance, I think we can reduce this to the sysctls and a very few data, 
-> > for example using global tables tagged with the namespace and we don't 
-> > break the cacheline alignment optimization.
-> > 
-> > (2) is slower but as the memory is allocated and freed when the module 
-> > is loaded/unloaded. What I don't like with this approach is we add some 
-> > overhead even if the netns is not compiled in the kernel.
-> > 
-> or (3)
->  Like (1) with data that needs to be cache aligned in "struct net" 
->  and the rest in an ipvs struct.
->  Global hash tables or not ? 
-> 
-> > > My sugestion, take both with a configuration switch like:
-> > > (i.e. avoid the rcu locking)
-> > >
-> > > --- net/ip_vs.h ---
-> > > ...
-> > > extern int ip_vs_net_id;		/* net id for ip_vs */
-> > >
-> > >
-> > > static inline struct netns_ipvs * net_ipvs(struct net* net, int id) {
-> > > #ifdef CONFIG_IP_VS_FAST_NETNS
-> > > 	return net->ipvs;
-> > > #else
-> > > 	return (struct netns_ipvs *)net_generic(net, id);
-> > > #endif
-> > > }
-> > > ...
-> > >
-> > > and where you need the netns_ipvs struct ptr,
-> > > [snip]
-> > > struct ip_vs_conn *ip_vs_conn_in_get(struct net *net, ....
-> > > {
-> > > 	struct netns_ipvs *ipvs = net_ipvs(net, ip_vs_net_id);
-> > > ...
-> > >    
-> > 
-> > It is a nice way to wrap both solutions but at this point I don't think 
-> > it is worth to add a 3rd option to compile ipvs.
-> > 
-> > 
-> 
-> -- 
-> Regards
-> Hans Schillstrom <hans.schillstrom@ericsson.com>
-> --
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+AYJ
