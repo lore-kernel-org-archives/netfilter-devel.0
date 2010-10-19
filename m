@@ -1,78 +1,52 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH] Fixed race condition at ip_vs.ko module init.
-Date: Tue, 19 Oct 2010 17:23:11 +0200
-Message-ID: <20101019152311.GJ6193@verge.net.au>
-References: <AANLkTinVcSK0Dqx4Pkp1dZskR8YmkGYkkrSNgDqX6psW@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>, Patrick McHardy <kaber@trash.net>
-To: Eduardo Blanco <ejblanco@google.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTinVcSK0Dqx4Pkp1dZskR8YmkGYkkrSNgDqX6psW@mail.gmail.com>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: [PATCH 1/8] build: just use autoreconf
+Date: Tue, 19 Oct 2010 18:12:14 +0200
+Message-ID: <1287504742-12922-2-git-send-email-jengelh@medozas.de>
+References: <1287504742-12922-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kadlec@blackhole.kfki.hu
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from borg.medozas.de ([188.40.89.202]:53564 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754720Ab0JSQM2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Oct 2010 12:12:28 -0400
+In-Reply-To: <1287504742-12922-1-git-send-email-jengelh@medozas.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 19, 2010 at 10:26:47AM +0100, Eduardo Blanco wrote:
-> Lists were initialized after the module was registered.  Multiple ipvsadm
-> processes at module load triggered a race condition that resulted in a null
-> pointer dereference in do_ip_vs_get_ctl(). As a result, __ip_vs_mutex
-> was left locked preventing all further ipvsadm commands.
-> 
-> Signed-off-by: Eduardo J. Blanco <ejblanco@google.com>
+This is the recommended way to regenerate the GNU build system files
+these days.
 
-Thanks Eduardo.
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ autogen.sh |   18 ++----------------
+ 1 files changed, 2 insertions(+), 16 deletions(-)
 
-Patrick, please consider pulling
+diff --git a/autogen.sh b/autogen.sh
+index d65b0b7..72240f7 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -1,18 +1,4 @@
+ #!/bin/sh
+ 
+-run ()
+-{
+-    echo "running: $*"
+-    eval $*
+-
+-    if test $? != 0 ; then
+-	echo "error: while running '$*'"
+-	exit 1
+-    fi
+-}
+-
+-run aclocal
+-run autoheader
+-run libtoolize -f
+-run automake -a
+-run autoconf
++autoreconf -fi
++rm -Rf autom4te.cache
+-- 
+1.7.1
 
-git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git for-patrick
-
-to get this change.
-
-> ---
->  net/netfilter/ipvs/ip_vs_ctl.c |   19 ++++++++++---------
->  1 files changed, 10 insertions(+), 9 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index 0f0c079..68624dc 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -3385,6 +3385,16 @@ int __init ip_vs_control_init(void)
-> 
->  	EnterFunction(2);
-> 
-> +	/* Initialize ip_vs_svc_table, ip_vs_svc_fwm_table, ip_vs_rtable */
-> +	for(idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++)  {
-> +		INIT_LIST_HEAD(&ip_vs_svc_table[idx]);
-> +		INIT_LIST_HEAD(&ip_vs_svc_fwm_table[idx]);
-> +	}
-> +	for(idx = 0; idx < IP_VS_RTAB_SIZE; idx++)  {
-> +		INIT_LIST_HEAD(&ip_vs_rtable[idx]);
-> +	}
-> +	smp_wmb();
-> +
->  	ret = nf_register_sockopt(&ip_vs_sockopts);
->  	if (ret) {
->  		pr_err("cannot register sockopt.\n");
-> @@ -3403,15 +3413,6 @@ int __init ip_vs_control_init(void)
-> 
->  	sysctl_header = register_sysctl_paths(net_vs_ctl_path, vs_vars);
-> 
-> -	/* Initialize ip_vs_svc_table, ip_vs_svc_fwm_table, ip_vs_rtable */
-> -	for(idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++)  {
-> -		INIT_LIST_HEAD(&ip_vs_svc_table[idx]);
-> -		INIT_LIST_HEAD(&ip_vs_svc_fwm_table[idx]);
-> -	}
-> -	for(idx = 0; idx < IP_VS_RTAB_SIZE; idx++)  {
-> -		INIT_LIST_HEAD(&ip_vs_rtable[idx]);
-> -	}
-> -
->  	ip_vs_new_estimator(&ip_vs_stats);
-> 
->  	/* Hook the defense timer */
-> -- 
-> 1.7.1
-> 
