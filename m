@@ -1,35 +1,99 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: ctnetlink: add expectation deletion events
-Date: Tue, 19 Oct 2010 10:20:10 +0200
-Message-ID: <4CBD54BA.3040306@trash.net>
-References: <20101014120209.3062.89240.stgit@decadence> <4CB876D5.208@trash.net> <4CB8847E.4030004@netfilter.org>
+Subject: Re: [patch v4.1] ipvs: IPv6 tunnel mode
+Date: Tue, 19 Oct 2010 10:40:24 +0200
+Message-ID: <4CBD5978.7020108@trash.net>
+References: <20101016075837.GB2027@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37122 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755726Ab0JSIUN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Oct 2010 04:20:13 -0400
-In-Reply-To: <4CB8847E.4030004@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, Julian Anastasov <ja@ssi.bg>,
+	Julius Volz <juliusv@google.com>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	=?ISO-8859-1?Q?Hans_Schillstr=F6?= =?ISO-8859-1?Q?m?=
+	<hans.schillstrom@ericsson.com>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <20101016075837.GB2027@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Am 15.10.2010 18:42, schrieb Pablo Neira Ayuso:
-> On 15/10/10 17:44, Patrick McHardy wrote:
->> Am 14.10.2010 14:02, schrieb Pablo Neira Ayuso:
->>> This patch allows to listen to events that inform about
->>> expectations destroyed.
->>
->> This looks fine, but I'm wondering why we're not delivering
->> events for expectations created and destroyed by helpers using
->> nf_conntrack_expect_related()/nf_conntrack_unexpect_related().
+Am 16.10.2010 09:58, schrieb Simon Horman:
+> From: Hans Schillstrom <hans.schillstrom@ericsson.com>
 > 
-> We already deliver events for new expectations. Wrt. destroyed
-> expectations, nf_ct_unexpect_related() internally calls
-> nf_ct_unlink_expect(), so they are also delivered.
+> ipvs: IPv6 tunnel mode
+> 
+> IPv6 encapsulation uses a bad source address for the tunnel.
+> i.e. VIP will be used as local-addr and encap. dst addr.
+> Decapsulation will not accept this.
+> 
+> Example
+> LVS (eth1 2003::2:0:1/96, VIP 2003::2:0:100)
+>    (eth0 2003::1:0:1/96)
+> RS  (ethX 2003::1:0:5/96)
+> 
+> tcpdump
+> 2003::2:0:100 > 2003::1:0:5:
+> IP6 (hlim 63, next-header TCP (6) payload length: 40)
+>  2003::3:0:10.50991 > 2003::2:0:100.http: Flags [S], cksum 0x7312
+> (correct), seq 3006460279, win 5760, options [mss 1440,sackOK,TS val
+> 1904932 ecr 0,nop,wscale 3], length 0
+> 
+> In Linux IPv6 impl. you can't have a tunnel with an any cast address
+> receiving packets (I have not tried to interpret RFC 2473)
+> To have receive capabilities the tunnel must have:
+>  - Local address set as multicast addr or an unicast addr
+>  - Remote address set as an unicast addr.
+>  - Loop back addres or Link local address are not allowed.
+> 
+> This causes us to setup a tunnel in the Real Server with the
+> LVS as the remote address, here you can't use the VIP address since it's
+> used inside the tunnel.
+> 
+> Solution
+> Use outgoing interface IPv6 address (match against the destination).
+> i.e. use ip6_route_output() to look up the route cache and
+> then use ipv6_dev_get_saddr(...) to set the source address of the
+> encapsulated packet.
+> 
+> Additionally, cache the results in new destination
+> fields: dst_cookie and dst_saddr and properly check the
+> returned dst from ip6_route_output. We now add xfrm_lookup
+> call only for the tunneling method where the source address
+> is a local one.
+> 
+> Signed-off-by:Hans Schillstrom <hans.schillstrom@ericsson.com>
+> 
+> ---
+> 
+> Original patch by Hans Schillstrom.
+> Check dst state and cache results for IPv6 by Julian Anastasov.
+> Subsequent revisions made by Hans Schillstrom:
+> 
+> * v1
+>     
+>   This is Julian's patch with a slightly edited version of the description
+>   from Hans's original patch.
+> 
+> * v2
+>     
+>   Updated changelog as per commends from Julian
+> 
+> * v3
+>     
+>   Flowi dest address used as destination instead of rt6_info in
+> +ip_vs_tunnel_xmit_v6()
+>   rt6_info somtimes contains a netw address insted of a tunnel
+> 
+> * v4
+>     
+>   Update destination as recommended from Julian
+>   i.e. use &cp->daddr.in6
+> 
+> * v4.1 Simon Horman
+>   Fix patch corruption
+> 
+> Patrick, please consider this for nf-next-2.6
 
-I see. Applied, thanks Pablo.
+Applied, thanks.
+
