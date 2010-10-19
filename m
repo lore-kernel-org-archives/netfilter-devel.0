@@ -1,60 +1,63 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 8/8] Add .gitignore files
-Date: Tue, 19 Oct 2010 18:12:21 +0200
-Message-ID: <1287504742-12922-9-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 2/8] build: resolve autoreconf/libtoolize suggestions
+Date: Tue, 19 Oct 2010 18:12:15 +0200
+Message-ID: <1287504742-12922-3-git-send-email-jengelh@medozas.de>
 References: <1287504742-12922-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:53578 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:53567 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755238Ab0JSQMf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Oct 2010 12:12:35 -0400
+	id S1755073Ab0JSQM3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Oct 2010 12:12:29 -0400
 In-Reply-To: <1287504742-12922-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+libtoolize: Consider adding "AC_CONFIG_MACRO_DIR([m4])" to configure.ac and
+libtoolize: rerunning libtoolize, to keep the correct libtool macros in-tree.
+libtoolize: Consider adding "-I m4" to ACLOCAL_AMFLAGS in Makefile.am.
+
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- .gitignore     |   20 ++++++++++++++++++++
- src/.gitignore |    1 +
- 2 files changed, 21 insertions(+), 0 deletions(-)
- create mode 100644 .gitignore
- create mode 100644 src/.gitignore
+ Makefile.am   |    2 ++
+ configure.ac  |    1 +
+ m4/.gitignore |    2 ++
+ 3 files changed, 5 insertions(+), 0 deletions(-)
+ create mode 100644 m4/.gitignore
 
-diff --git a/.gitignore b/.gitignore
-new file mode 100644
-index 0000000..9f6660e
---- /dev/null
-+++ b/.gitignore
-@@ -0,0 +1,20 @@
-+*~
-+*.la
-+*.lo
-+*.o
-+.deps
-+.libs
-+Makefile
-+Makefile.in
+diff --git a/Makefile.am b/Makefile.am
+index 7225f86..acd3d14 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -1,5 +1,7 @@
+ ## Process this file with automake to produce Makefile.in
+ 
++ACLOCAL_AMFLAGS = -I m4
 +
-+/aclocal.m4
-+/autom4te.cache
-+/compile
-+/config.*
-+/configure
-+/depcomp
-+/install-sh
-+/libtool
-+/ltmain.sh
-+/missing
-+/stamp-h1
-diff --git a/src/.gitignore b/src/.gitignore
+ include $(top_srcdir)/Make_global.am
+ 
+ if ! WITH_KBUILDDIR
+diff --git a/configure.ac b/configure.ac
+index 7622ac4..34f0889 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1,6 +1,7 @@
+ dnl Boilerplate
+ AC_INIT([ipset], [5.0], [kadlec@blackhole.kfki.hu])
+ AC_CANONICAL_SYSTEM
++AC_CONFIG_MACRO_DIR([m4])
+ AC_CONFIG_HEADER([config.h])
+ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+ 
+diff --git a/m4/.gitignore b/m4/.gitignore
 new file mode 100644
-index 0000000..6166aba
+index 0000000..64d9bbc
 --- /dev/null
-+++ b/src/.gitignore
-@@ -0,0 +1 @@
-+/ipset
++++ b/m4/.gitignore
+@@ -0,0 +1,2 @@
++/libtool.m4
++/lt*.m4
 -- 
 1.7.1
 
