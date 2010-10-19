@@ -1,46 +1,54 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 06/10] build: rebuild .pc files when configure status
- changed
-Date: Tue, 19 Oct 2010 15:30:56 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1010191528290.25338@obet.zrqbmnf.qr>
-References: <1287485262-6562-1-git-send-email-jengelh@medozas.de> <1287485262-6562-7-git-send-email-jengelh@medozas.de> <4CBD8B89.7030802@treenet.co.nz>
+From: Jesper Dangaard Brouer <hawk@diku.dk>
+Subject: [RFC 0/3] MPEG2/TS drop analyzer iptables match extension
+Date: Tue, 19 Oct 2010 16:21:33 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1010191608080.18708@ask.diku.dk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Amos Jeffries <squid3@treenet.co.nz>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: paulmck@linux.vnet.ibm.com, Eric Dumazet <eric.dumazet@gmail.com>,
+	netdev <netdev@vger.kernel.org>
+To: Netfilter Developers <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:56976 "EHLO borg.medozas.de"
+Received: from mgw2.diku.dk ([130.225.96.92]:35786 "EHLO mgw2.diku.dk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758234Ab0JSNa5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Oct 2010 09:30:57 -0400
-In-Reply-To: <4CBD8B89.7030802@treenet.co.nz>
+	id S1751219Ab0JSOVh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Oct 2010 10:21:37 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 2010-10-19 14:14, Amos Jeffries wrote:
 
-> On 19/10/10 23:47, Jan Engelhardt wrote:
->> Signed-off-by: Jan Engelhardt<jengelh@medozas.de>
->> ---
->>  Makefile.am |    2 ++
->>  1 files changed, 2 insertions(+), 0 deletions(-)
->>
->> diff --git a/Makefile.am b/Makefile.am
->> index 35bfbe2..6d5b8dd 100644
->> --- a/Makefile.am
->> +++ b/Makefile.am
->> @@ -8,6 +8,8 @@ DIST_SUBDIRS = src include examples
->>  pkgconfigdir = $(libdir)/pkgconfig
->>  pkgconfig_DATA = libmnl.pc
->>
->> +${pkgconfig_DATA}: ${top_builddir}/config.status
->> +
->>  $(OBJECTS): libtool
->>  libtool: $(LIBTOOL_DEPS)
->>  	$(SHELL) ./config.status --recheck
->
-> IIRC {} is a bashism. () is more portable for automake.
+This is my iptables match module for analyzing IPTV MPEG2/TS streams.
+Currently it only detects dropped packets, but I want to extend it for
+analyzing jitter and bursts.
 
-What are you talking about? ${...} is not a bash-only feature.
-The automake developers certainly did not complain about the use
-of {} when I submitted my patches.
+Jan Engelhardt convinced me that I should just send the module as-is
+for review on the list.  I wrote the code in 2009, and have only done
+some minor changes to make it work on kernel 2.6.35 since.
+
+The code is running in our production environment, where it handles
+approx 120 TV-channels which gives an approx 600 Mbit/s bandwidth
+usage.  The production hardware are using an ATOM 330 CPU (1.6Ghz),
+and a PCI-express attached NIC Intel 82576 (driver igb).
+
+I take advantage of the multiqueue features in the 82576 Intel NIC.
+This together with using RCU locking, makes the module scale very well
+to several CPUs (the ATOM 330 has two cores with HyperTreading).
+The total CPU load on production is only 10% CPU load (6-7% in softirq).
+
+I do "deep-packet-inspection" of the IP packet in order to process the
+7 internal TS (Transport Stream) packets.
+
+I have placed the presentation I'm giving at Netfilter Workshop 2010 on 
+the Wiki list of presentations:
+  http://workshop.netfilter.org/2010/wiki/index.php/List_of_presentations
+and a direct link here:
+  http://workshop.netfilter.org/2010/presentations/IPTV-burst-issues-NFWS2010-JesperBrouer.odp
+
+Cheers,
+   Jesper Brouer
+
+--
+-------------------------------------------------------------------
+MSc. Master of Computer Science
+Dept. of Computer Science, University of Copenhagen
+Author of http://www.adsl-optimizer.dk
+-------------------------------------------------------------------
