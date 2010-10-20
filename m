@@ -1,9 +1,11 @@
 From: Changli Gao <xiaosuo@gmail.com>
 Subject: Re: [PATCH] net: make ctl_path local and const
-Date: Wed, 20 Oct 2010 11:10:36 +0800
-Message-ID: <AANLkTi=pz4zYnnUSvb9FjVvCAURruHhJTz7pBKDi8Pdw@mail.gmail.com>
+Date: Wed, 20 Oct 2010 12:52:57 +0800
+Message-ID: <AANLkTimGUB-+TTsje1kc3q9PyoB2jJdgCK2Z7n9u7N1J@mail.gmail.com>
 References: <1287543276-4511-1-git-send-email-xiaosuo@gmail.com>
 	<1287543701.10409.599.camel@Joe-Laptop>
+	<AANLkTi=pz4zYnnUSvb9FjVvCAURruHhJTz7pBKDi8Pdw@mail.gmail.com>
+	<1287545337.10409.602.camel@Joe-Laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
@@ -24,7 +26,7 @@ Cc: Andy Grover <andy.grover@oracle.com>, linux-sctp@vger.kernel.org,
         Ralf Baechle <ralf
 To: Joe Perches <joe@perches.com>
 Return-path: <bridge-bounces@lists.linux-foundation.org>
-In-Reply-To: <1287543701.10409.599.camel@Joe-Laptop>
+In-Reply-To: <1287545337.10409.602.camel@Joe-Laptop>
 List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/bridge>,
 	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
 List-Archive: <http://lists.linux-foundation.org/pipermail/bridge>
@@ -36,36 +38,26 @@ Sender: bridge-bounces@lists.linux-foundation.org
 Errors-To: bridge-bounces@lists.linux-foundation.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Oct 20, 2010 at 11:01 AM, Joe Perches <joe@perches.com> wrote:
-> On Wed, 2010-10-20 at 10:54 +0800, Changli Gao wrote:
->> Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-> []
->> diff --git a/net/appletalk/sysctl_net_atalk.c b/net/appletalk/sysctl_net=
-_atalk.c
->> index 04e9c0d..b92f269 100644
->> --- a/net/appletalk/sysctl_net_atalk.c
->> +++ b/net/appletalk/sysctl_net_atalk.c
->> @@ -42,16 +42,16 @@ static struct ctl_table atalk_table[] =3D {
->> =A0 =A0 =A0 { },
->> =A0};
->>
->> -static struct ctl_path atalk_path[] =3D {
->> - =A0 =A0 { .procname =3D "net", },
->> - =A0 =A0 { .procname =3D "appletalk", },
->> - =A0 =A0 { }
->> -};
->> -
->> =A0static struct ctl_table_header *atalk_table_header;
->>
->> =A0void atalk_register_sysctl(void)
->> =A0{
->> + =A0 =A0 const struct ctl_path atalk_path[] =3D {
+On Wed, Oct 20, 2010 at 11:28 AM, Joe Perches <joe@perches.com> wrote:
 >
-> Shouldn't all of these be static const struct ?
+> At least some objects are smaller with static.
+>
+> $ size net/appletalk/sysctl_net_atalk.o.*
+> =A0 text =A0 =A0data =A0 =A0 bss =A0 =A0 dec =A0 =A0 hex filename
+> =A0 =A0324 =A0 =A0 236 =A0 =A0 =A048 =A0 =A0 608 =A0 =A0 260 net/appletal=
+k/sysctl_net_atalk.o.withstatic
+> =A0 =A0344 =A0 =A0 236 =A0 =A0 =A048 =A0 =A0 628 =A0 =A0 274 net/appletal=
+k/sysctl_net_atalk.o.withoutstatic
 >
 >
 
-They needn't. And some variables are specified __net_initdata currently.
+I got the opposite result for the size of the whole kernel image with
+allyesconfig.
+
+original: 33531456
+patched: 33531424
+
+It seems random.
 
 -- =
 
