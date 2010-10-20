@@ -1,133 +1,207 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: [PATCH 4/9] tproxy: added tproxy sockopt interface in the IPV6 layer
-Date: Wed, 20 Oct 2010 13:21:18 +0200
-Message-ID: <20101020112118.6260.78508.stgit@este.odu>
-References: <20101020112118.6260.31618.stgit@este.odu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7BIT
-Cc: Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>
-To: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-reply-to: <20101020112118.6260.31618.stgit@este.odu>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pierre Chifflier <chifflier@edenwall.com>
+Subject: [PATCH 2/2] Add helper script pcap2ulog
+Date: Wed, 20 Oct 2010 13:44:52 +0200
+Message-ID: <1287575092-454-3-git-send-email-chifflier@edenwall.com>
+References: <1287575092-454-1-git-send-email-chifflier@edenwall.com>
+Cc: Eric Leblond <eleblond@edenwall.com>,
+	Pierre Chifflier <chifflier@inl.fr>,
+	Pierre Chifflier <chifflier@edenwall.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp3-g21.free.fr ([212.27.42.3]:46378 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752056Ab0JTMdo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 20 Oct 2010 08:33:44 -0400
+Received: from fydelkass.edenwall.com (unknown [88.171.131.12])
+	by smtp3-g21.free.fr (Postfix) with ESMTP id F2DA9A619E
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 Oct 2010 14:33:37 +0200 (CEST)
+In-Reply-To: <1287575092-454-1-git-send-email-chifflier@edenwall.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Balazs Scheidler <bazsi@balabit.hu>
+From: Pierre Chifflier <chifflier@inl.fr>
 
-Support for IPV6_RECVORIGDSTADDR sockopt for UDP sockets were contributed by
-Harry Mason.
+This script uses the Net::Pcap Perl library to parse an pcap file and
+send packets to ulogd2 throught the UNIXSOCK input module.
 
-Signed-off-by: Balazs Scheidler <bazsi@balabit.hu>
-Signed-off-by: KOVACS Krisztian <hidden@balabit.hu>
+Signed-off-by: Pierre Chifflier <chifflier@edenwall.com>
 ---
- include/linux/in6.h      |    4 ++++
- include/linux/ipv6.h     |    4 +++-
- net/ipv6/datagram.c      |   19 +++++++++++++++++++
- net/ipv6/ipv6_sockglue.c |   23 +++++++++++++++++++++++
- 4 files changed, 49 insertions(+), 1 deletions(-)
+ contrib/pcap2ulog |  166 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 166 insertions(+), 0 deletions(-)
+ create mode 100755 contrib/pcap2ulog
 
-diff --git a/include/linux/in6.h b/include/linux/in6.h
-index c4bf46f..097a34b 100644
---- a/include/linux/in6.h
-+++ b/include/linux/in6.h
-@@ -268,6 +268,10 @@ struct in6_flowlabel_req {
- /* RFC5082: Generalized Ttl Security Mechanism */
- #define IPV6_MINHOPCOUNT		73
- 
-+#define IPV6_ORIGDSTADDR        74
-+#define IPV6_RECVORIGDSTADDR    IPV6_ORIGDSTADDR
-+#define IPV6_TRANSPARENT        75
+diff --git a/contrib/pcap2ulog b/contrib/pcap2ulog
+new file mode 100755
+index 0000000..d4cd3dc
+--- /dev/null
++++ b/contrib/pcap2ulog
+@@ -0,0 +1,166 @@
++#!/usr/bin/perl -w
 +
- /*
-  * Multicast Routing:
-  * see include/linux/mroute6.h.
-diff --git a/include/linux/ipv6.h b/include/linux/ipv6.h
-index e62683b..8e429d0 100644
---- a/include/linux/ipv6.h
-+++ b/include/linux/ipv6.h
-@@ -341,7 +341,9 @@ struct ipv6_pinfo {
- 				odstopts:1,
-                                 rxflow:1,
- 				rxtclass:1,
--				rxpmtu:1;
-+				rxpmtu:1,
-+				rxorigdstaddr:1;
-+				/* 2 bits hole */
- 		} bits;
- 		__u16		all;
- 	} rxopt;
-diff --git a/net/ipv6/datagram.c b/net/ipv6/datagram.c
-index ef371aa..320bdb8 100644
---- a/net/ipv6/datagram.c
-+++ b/net/ipv6/datagram.c
-@@ -577,6 +577,25 @@ int datagram_recv_ctl(struct sock *sk, struct msghdr *msg, struct sk_buff *skb)
- 		u8 *ptr = nh + opt->dst1;
- 		put_cmsg(msg, SOL_IPV6, IPV6_2292DSTOPTS, (ptr[1]+1)<<3, ptr);
- 	}
-+	if (np->rxopt.bits.rxorigdstaddr) {
-+		struct sockaddr_in6 sin6;
-+		u16 *ports = (u16 *) skb_transport_header(skb);
++# Copyright (C) 2009-2010 Pierre Chifflier <chifflier@inl.fr>
++#
++# This program is free software; you can redistribute it and/or modify
++# it under the same terms as Perl itself, either Perl version 5.8.4 or,
++# at your option, any later version of Perl 5 you may have available.
 +
-+		if (skb_transport_offset(skb) + 4 <= skb->len) {
-+			/* All current transport protocols have the port numbers in the
-+			 * first four bytes of the transport header and this function is
-+			 * written with this assumption in mind.
-+			 */
++use strict;
 +
-+			sin6.sin6_family = AF_INET6;
-+			ipv6_addr_copy(&sin6.sin6_addr, &ipv6_hdr(skb)->daddr);
-+			sin6.sin6_port = ports[1];
-+			sin6.sin6_flowinfo = 0;
-+			sin6.sin6_scope_id = 0;
++use IO::Socket;
++use Net::Pcap;
 +
-+			put_cmsg(msg, SOL_IPV6, IPV6_ORIGDSTADDR, sizeof(sin6), &sin6);
-+		}
-+	}
- 	return 0;
- }
- 
-diff --git a/net/ipv6/ipv6_sockglue.c b/net/ipv6/ipv6_sockglue.c
-index a7f66bc..0553867 100644
---- a/net/ipv6/ipv6_sockglue.c
-+++ b/net/ipv6/ipv6_sockglue.c
-@@ -342,6 +342,21 @@ static int do_ipv6_setsockopt(struct sock *sk, int level, int optname,
- 		retv = 0;
- 		break;
- 
-+	case IPV6_TRANSPARENT:
-+		if (optlen < sizeof(int))
-+			goto e_inval;
-+		/* we don't have a separate transparent bit for IPV6 we use the one in the IPv4 socket */
-+		inet_sk(sk)->transparent = valbool;
-+		retv = 0;
-+		break;
++my $ULOGD_SOCKET_MARK = 0x41c90fd4;
 +
-+	case IPV6_RECVORIGDSTADDR:
-+		if (optlen < sizeof(int))
-+			goto e_inval;
-+		np->rxopt.bits.rxorigdstaddr = valbool;
-+		retv = 0;
-+		break;
++my $dumpfile = shift or die "Unable to open pcap file";
++my($pcap_t, $err);
++my($ulogd_client);
++my $socketfile = "/var/run/ulogd2.sock";
++my $data_buffer;
++my $linktype;
++my $proto_offset;
 +
- 	case IPV6_HOPOPTS:
- 	case IPV6_RTHDRDSTOPTS:
- 	case IPV6_RTHDR:
-@@ -1104,6 +1119,14 @@ static int do_ipv6_getsockopt(struct sock *sk, int level, int optname,
- 		break;
- 	}
- 
-+	case IPV6_TRANSPARENT:
-+		val = inet_sk(sk)->transparent;
-+		break;
++my %linktype_to_offset = (
++	Net::Pcap::DLT_LINUX_SLL => 14,
++	Net::Pcap::DLT_EN10MB => 12,
++);
 +
-+	case IPV6_RECVORIGDSTADDR:
-+		val = np->rxopt.bits.rxorigdstaddr;
-+		break;
++sub connect_ulogd2 {
++    (-S $socketfile) or die "ulogd2 socket $socketfile does not exist - is ulogd running ?";
 +
- 	case IPV6_UNICAST_HOPS:
- 	case IPV6_MULTICAST_HOPS:
- 	{
-
++    $ulogd_client = IO::Socket::UNIX->new(Peer  => $socketfile,
++                                          Type      => SOCK_STREAM ) or die $!;
++    $ulogd_client->autoflush(0);
++}
++
++sub print_padding
++{
++    my ($offset) = @_;
++    my $padding;
++    my $align = 8;
++    my $data;
++
++    $padding = ($align - ($offset % $align)) % $align;
++    #print "offset: $offset padding $padding\n";
++
++    $data = "\0" x $padding;
++    $data_buffer .= $data;
++}
++
++sub process_pkt {
++    my($user, $hdr, $pkt) = @_;
++
++    if (($user ne "xyz") or !defined($hdr) or !defined($pkt)) {
++        print("Bad args passed to callback\n");
++        print("Bad user data\n"), if ($user ne "xyz");
++        print("Bad pkthdr\n"), if (!defined($hdr));
++        print("Bad pkt data\n"), if (!defined($pkt));
++        print("not ok\n");
++        exit;
++    }
++
++    #print "Header: len $hdr->{len}\n";
++    #my $len = length $pkt;
++    #print "Packet length: $len\n";
++
++    my $size = length($pkt) - ($proto_offset+2);
++
++    #my $pcaphdr = unpack ("H*", substr ($pkt, 0, 16));
++    #printf("pcap hdr: $pcaphdr\n");
++    my $proto = unpack ("H*", substr ($pkt, $proto_offset, 2));
++    #printf("proto: $proto\n");
++
++    if ($proto ne "0800") {
++      print "ignoring packet with proto $proto\n";
++      return;
++    }
++
++    #my $ip_firstbyte = unpack ("H*", substr ($pkt, $proto_offset+2, 2));
++    #printf("ip_firstbyte: $ip_firstbyte\n");
++
++    # decode packet for a SLL:
++    # packet type (sent by us: 4)
++    # link layer address type: 1
++    # link layer address length: 6
++    # src dst
++    # protocol (IP, ARP, PPP, SNMP ...)
++    # data
++    my $srcmac = substr ($pkt, 6, 6);
++
++    (my $hex_src = unpack("H*", $srcmac)) =~ s/(..)/$1:/g;
++    chop $hex_src;
++    #printf "source mac: $hex_src\n";
++
++    my $hex_dst = "\0";
++
++    # format data
++    my $data;
++
++    $data_buffer = undef;
++
++    # ulogd packet signature
++    $data = pack ('N', $ULOGD_SOCKET_MARK);
++
++    $data_buffer .= $data;
++
++    my $options_num=2;
++    my $options_len=length($hex_src) + length($hex_dst);
++    # total length (will be filled later)
++    my $total_size = 0;
++    $data = pack ('n', $total_size);
++    $data_buffer .= $data;
++
++    # reserved + payload length + payload
++    $data = pack ('Nna*', 0, $size, substr($pkt,$proto_offset+2,$size));
++    $data_buffer .= $data;
++    print_padding($size);
++
++    # options
++    my $OOB_IN = 2;
++    $data = pack ('NNa*', $OOB_IN, length($hex_src), $hex_src);
++    $data_buffer .= $data;
++    print_padding(length($hex_src));
++    my $OOB_OUT = 3;
++    $data = pack ('NNa*', $OOB_OUT, length($hex_dst), $hex_dst);
++    $data_buffer .= $data;
++    print_padding(length($hex_dst));
++
++    # replace total size in buffer
++    my $l = length($data_buffer) - 4;
++    substr($data_buffer, 4, 2) = pack('n', $l);
++
++    #(my $hex = unpack("H*", $data_buffer)) =~ s/(..)/$1 /g;
++    #print "$l will be encoded as " . unpack("H*", pack('n', $l)) . "\n";
++    #print $hex, "\n";
++
++    print $ulogd_client $data_buffer;
++
++    $ulogd_client->flush;
++
++    #exit;
++}
++
++
++connect_ulogd2 or die $!;
++
++$pcap_t = Net::Pcap::open_offline($dumpfile, \$err);
++if (!defined($pcap_t)) {
++    print("Net::Pcap::dump_open failed: ", Net::Pcap::geterr($pcap_t), "\n");
++    exit;
++}
++
++$linktype = Net::Pcap::pcap_datalink($pcap_t);
++
++if (not exists $linktype_to_offset{$linktype}) {
++	print("Unsupported link type ", Net::Pcap::pcap_datalink_val_to_name($linktype), "\n");
++	exit 1;
++}
++
++$proto_offset = $linktype_to_offset{$linktype};
++
++Net::Pcap::loop($pcap_t, -1, \&process_pkt, "xyz");
++Net::Pcap::close($pcap_t);
++
++
++
+-- 
+1.7.1
 
