@@ -1,207 +1,52 @@
-From: Pierre Chifflier <chifflier@edenwall.com>
-Subject: [PATCH 2/2] Add helper script pcap2ulog
-Date: Wed, 20 Oct 2010 13:44:52 +0200
-Message-ID: <1287575092-454-3-git-send-email-chifflier@edenwall.com>
-References: <1287575092-454-1-git-send-email-chifflier@edenwall.com>
-Cc: Eric Leblond <eleblond@edenwall.com>,
-	Pierre Chifflier <chifflier@inl.fr>,
-	Pierre Chifflier <chifflier@edenwall.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:46378 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752056Ab0JTMdo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Oct 2010 08:33:44 -0400
-Received: from fydelkass.edenwall.com (unknown [88.171.131.12])
-	by smtp3-g21.free.fr (Postfix) with ESMTP id F2DA9A619E
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 Oct 2010 14:33:37 +0200 (CEST)
-In-Reply-To: <1287575092-454-1-git-send-email-chifflier@edenwall.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Subject: Re: [PATCH 5/9] tproxy: allow non-local binds of IPv6 sockets if
+ IP_TRANSPARENT is enabled
+Date: Wed, 20 Oct 2010 21:45:17 +0900
+Message-ID: <4CBEE45D.2080201@linux-ipv6.org>
+References: <20101020112118.6260.31618.stgit@este.odu> <20101020112118.6260.93956.stgit@este.odu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>,
+	David Miller <davem@davemloft.net>
+To: KOVACS Krisztian <hidden@balabit.hu>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20101020112118.6260.93956.stgit@este.odu>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Pierre Chifflier <chifflier@inl.fr>
+Hello.
 
-This script uses the Net::Pcap Perl library to parse an pcap file and
-send packets to ulogd2 throught the UNIXSOCK input module.
+(2010/10/20 20:21), KOVACS Krisztian wrote:
+> From: Balazs Scheidler<bazsi@balabit.hu>
+> 
+> Signed-off-by: Balazs Scheidler<bazsi@balabit.hu>
+> Signed-off-by: KOVACS Krisztian<hidden@balabit.hu>
+> ---
+>   net/ipv6/af_inet6.c |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/net/ipv6/af_inet6.c b/net/ipv6/af_inet6.c
+> index 6022098..9480572 100644
+> --- a/net/ipv6/af_inet6.c
+> +++ b/net/ipv6/af_inet6.c
+> @@ -343,7 +343,7 @@ int inet6_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
+>   			 */
+>   			v4addr = LOOPBACK4_IPV6;
+>   			if (!(addr_type&  IPV6_ADDR_MULTICAST))	{
+> -				if (!ipv6_chk_addr(net,&addr->sin6_addr,
+> +				if (!inet->transparent&&  !ipv6_chk_addr(net,&addr->sin6_addr,
+>   						   dev, 0)) {
+>   					err = -EADDRNOTAVAIL;
+>   					goto out_unlock;
+> 
+> 
 
-Signed-off-by: Pierre Chifflier <chifflier@edenwall.com>
----
- contrib/pcap2ulog |  166 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 166 insertions(+), 0 deletions(-)
- create mode 100755 contrib/pcap2ulog
+As I wrote before in other thread, this does not seem sufficient --
+well, it is sufficient to allow non-local bind, but before we're
+allowing this, we need add checks of source address in sending side.
 
-diff --git a/contrib/pcap2ulog b/contrib/pcap2ulog
-new file mode 100755
-index 0000000..d4cd3dc
---- /dev/null
-+++ b/contrib/pcap2ulog
-@@ -0,0 +1,166 @@
-+#!/usr/bin/perl -w
-+
-+# Copyright (C) 2009-2010 Pierre Chifflier <chifflier@inl.fr>
-+#
-+# This program is free software; you can redistribute it and/or modify
-+# it under the same terms as Perl itself, either Perl version 5.8.4 or,
-+# at your option, any later version of Perl 5 you may have available.
-+
-+use strict;
-+
-+use IO::Socket;
-+use Net::Pcap;
-+
-+my $ULOGD_SOCKET_MARK = 0x41c90fd4;
-+
-+my $dumpfile = shift or die "Unable to open pcap file";
-+my($pcap_t, $err);
-+my($ulogd_client);
-+my $socketfile = "/var/run/ulogd2.sock";
-+my $data_buffer;
-+my $linktype;
-+my $proto_offset;
-+
-+my %linktype_to_offset = (
-+	Net::Pcap::DLT_LINUX_SLL => 14,
-+	Net::Pcap::DLT_EN10MB => 12,
-+);
-+
-+sub connect_ulogd2 {
-+    (-S $socketfile) or die "ulogd2 socket $socketfile does not exist - is ulogd running ?";
-+
-+    $ulogd_client = IO::Socket::UNIX->new(Peer  => $socketfile,
-+                                          Type      => SOCK_STREAM ) or die $!;
-+    $ulogd_client->autoflush(0);
-+}
-+
-+sub print_padding
-+{
-+    my ($offset) = @_;
-+    my $padding;
-+    my $align = 8;
-+    my $data;
-+
-+    $padding = ($align - ($offset % $align)) % $align;
-+    #print "offset: $offset padding $padding\n";
-+
-+    $data = "\0" x $padding;
-+    $data_buffer .= $data;
-+}
-+
-+sub process_pkt {
-+    my($user, $hdr, $pkt) = @_;
-+
-+    if (($user ne "xyz") or !defined($hdr) or !defined($pkt)) {
-+        print("Bad args passed to callback\n");
-+        print("Bad user data\n"), if ($user ne "xyz");
-+        print("Bad pkthdr\n"), if (!defined($hdr));
-+        print("Bad pkt data\n"), if (!defined($pkt));
-+        print("not ok\n");
-+        exit;
-+    }
-+
-+    #print "Header: len $hdr->{len}\n";
-+    #my $len = length $pkt;
-+    #print "Packet length: $len\n";
-+
-+    my $size = length($pkt) - ($proto_offset+2);
-+
-+    #my $pcaphdr = unpack ("H*", substr ($pkt, 0, 16));
-+    #printf("pcap hdr: $pcaphdr\n");
-+    my $proto = unpack ("H*", substr ($pkt, $proto_offset, 2));
-+    #printf("proto: $proto\n");
-+
-+    if ($proto ne "0800") {
-+      print "ignoring packet with proto $proto\n";
-+      return;
-+    }
-+
-+    #my $ip_firstbyte = unpack ("H*", substr ($pkt, $proto_offset+2, 2));
-+    #printf("ip_firstbyte: $ip_firstbyte\n");
-+
-+    # decode packet for a SLL:
-+    # packet type (sent by us: 4)
-+    # link layer address type: 1
-+    # link layer address length: 6
-+    # src dst
-+    # protocol (IP, ARP, PPP, SNMP ...)
-+    # data
-+    my $srcmac = substr ($pkt, 6, 6);
-+
-+    (my $hex_src = unpack("H*", $srcmac)) =~ s/(..)/$1:/g;
-+    chop $hex_src;
-+    #printf "source mac: $hex_src\n";
-+
-+    my $hex_dst = "\0";
-+
-+    # format data
-+    my $data;
-+
-+    $data_buffer = undef;
-+
-+    # ulogd packet signature
-+    $data = pack ('N', $ULOGD_SOCKET_MARK);
-+
-+    $data_buffer .= $data;
-+
-+    my $options_num=2;
-+    my $options_len=length($hex_src) + length($hex_dst);
-+    # total length (will be filled later)
-+    my $total_size = 0;
-+    $data = pack ('n', $total_size);
-+    $data_buffer .= $data;
-+
-+    # reserved + payload length + payload
-+    $data = pack ('Nna*', 0, $size, substr($pkt,$proto_offset+2,$size));
-+    $data_buffer .= $data;
-+    print_padding($size);
-+
-+    # options
-+    my $OOB_IN = 2;
-+    $data = pack ('NNa*', $OOB_IN, length($hex_src), $hex_src);
-+    $data_buffer .= $data;
-+    print_padding(length($hex_src));
-+    my $OOB_OUT = 3;
-+    $data = pack ('NNa*', $OOB_OUT, length($hex_dst), $hex_dst);
-+    $data_buffer .= $data;
-+    print_padding(length($hex_dst));
-+
-+    # replace total size in buffer
-+    my $l = length($data_buffer) - 4;
-+    substr($data_buffer, 4, 2) = pack('n', $l);
-+
-+    #(my $hex = unpack("H*", $data_buffer)) =~ s/(..)/$1 /g;
-+    #print "$l will be encoded as " . unpack("H*", pack('n', $l)) . "\n";
-+    #print $hex, "\n";
-+
-+    print $ulogd_client $data_buffer;
-+
-+    $ulogd_client->flush;
-+
-+    #exit;
-+}
-+
-+
-+connect_ulogd2 or die $!;
-+
-+$pcap_t = Net::Pcap::open_offline($dumpfile, \$err);
-+if (!defined($pcap_t)) {
-+    print("Net::Pcap::dump_open failed: ", Net::Pcap::geterr($pcap_t), "\n");
-+    exit;
-+}
-+
-+$linktype = Net::Pcap::pcap_datalink($pcap_t);
-+
-+if (not exists $linktype_to_offset{$linktype}) {
-+	print("Unsupported link type ", Net::Pcap::pcap_datalink_val_to_name($linktype), "\n");
-+	exit 1;
-+}
-+
-+$proto_offset = $linktype_to_offset{$linktype};
-+
-+Net::Pcap::loop($pcap_t, -1, \&process_pkt, "xyz");
-+Net::Pcap::close($pcap_t);
-+
-+
-+
--- 
-1.7.1
+Regards,
 
+--yoshfuji
