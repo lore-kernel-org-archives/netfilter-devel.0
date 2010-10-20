@@ -1,57 +1,56 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: Re: [PATCH 5/9] tproxy: allow non-local binds of IPv6 sockets if
- IP_TRANSPARENT is enabled
-Date: Wed, 20 Oct 2010 16:07:33 +0200
-Message-ID: <1287583653.29676.9.camel@bzorp.lan>
-References: <20101020112118.6260.31618.stgit@este.odu>
-	 <20101020112118.6260.93956.stgit@este.odu>
-	 <4CBEE45D.2080201@linux-ipv6.org>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH] net: make ctl_path local and const
+Date: Tue, 19 Oct 2010 21:59:39 -0700
+Message-ID: <1287550779.10409.620.camel@Joe-Laptop>
+References: <1287543276-4511-1-git-send-email-xiaosuo@gmail.com>
+	<1287543701.10409.599.camel@Joe-Laptop>
+	<AANLkTi=pz4zYnnUSvb9FjVvCAURruHhJTz7pBKDi8Pdw@mail.gmail.com>
+	<1287545337.10409.602.camel@Joe-Laptop>
+	<AANLkTimGUB-+TTsje1kc3q9PyoB2jJdgCK2Z7n9u7N1J@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: KOVACS Krisztian <hidden@balabit.hu>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>
-To: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4CBEE45D.2080201@linux-ipv6.org>
-Sender: netdev-owner@vger.kernel.org
+Cc: Andy Grover <andy.grover@oracle.com>, James Morris <jmorris@namei.org>,
+        linux-sctp@vger.kernel.org, rds-devel@oss.oracle.com,
+        "Pekka Savola \(ipv6\)" <pekkas@netcore.fi>, linux-x25@vger.kernel.org,
+        dccp@vger.kernel.org, bridge@lists.linux-foundation.org,
+        Andrew@smtp1.linux-foundation.org, coreteam@netfilter.org,
+        Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Joerg Reuter <jreuter@yaina.de>, Sridhar Samudrala <sri@us.ibm.com>,
+        Samuel Ortiz <samuel@sortiz.org>,
+        Vlad Yasevich <vladislav.yasevich@hp.com>, netfilter@vger.kernel.org,
+        Remi Denis-Courmont <remi.denis-courmont@nokia.com>,
+        linux-hams@vger.kernel.org,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>, netdev@vger.kernel.org,
+        linux-decnet-user@lists.sourceforge.net, linux-kernel@vger.ker
+To: Changli Gao <xiaosuo@gmail.com>
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+In-Reply-To: <AANLkTimGUB-+TTsje1kc3q9PyoB2jJdgCK2Z7n9u7N1J@mail.gmail.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/bridge>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 2010-10-20 at 21:45 +0900, YOSHIFUJI Hideaki wrote:
-> (2010/10/20 20:21), KOVACS Krisztian wrote:
-> > From: Balazs Scheidler<bazsi@balabit.hu>
-> > 
-> > Signed-off-by: Balazs Scheidler<bazsi@balabit.hu>
-> > Signed-off-by: KOVACS Krisztian<hidden@balabit.hu>
-> > ---
-> >   net/ipv6/af_inet6.c |    2 +-
-> >   1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/net/ipv6/af_inet6.c b/net/ipv6/af_inet6.c
-> > index 6022098..9480572 100644
-> > --- a/net/ipv6/af_inet6.c
-> > +++ b/net/ipv6/af_inet6.c
-> > @@ -343,7 +343,7 @@ int inet6_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
-> >   			 */
-> >   			v4addr = LOOPBACK4_IPV6;
-> >   			if (!(addr_type&  IPV6_ADDR_MULTICAST))	{
-> > -				if (!ipv6_chk_addr(net,&addr->sin6_addr,
-> > +				if (!inet->transparent&&  !ipv6_chk_addr(net,&addr->sin6_addr,
-> >   						   dev, 0)) {
-> >   					err = -EADDRNOTAVAIL;
-> >   					goto out_unlock;
-> > 
-> > 
-> 
-> As I wrote before in other thread, this does not seem sufficient --
-> well, it is sufficient to allow non-local bind, but before we're
-> allowing this, we need add checks of source address in sending side.
+On Wed, 2010-10-20 at 12:52 +0800, Changli Gao wrote:
+> On Wed, Oct 20, 2010 at 11:28 AM, Joe Perches <joe@perches.com> wrote:
+> > At least some objects are smaller with static.
+> > $ size net/appletalk/sysctl_net_atalk.o.*
+> >   text    data     bss     dec     hex filename
+> >    324     236      48     608     260 net/appletalk/sysctl_net_atalk.o.withstatic
+> >    344     236      48     628     274 net/appletalk/sysctl_net_atalk.o.withoutstatic
+> I got the opposite result for the size of the whole kernel image with
+> allyesconfig.
+> original: 33531456
+> patched: 33531424
+> It seems random.
 
-Can you please elaborate or point us to the other thread? Is it some
-kind of address-type check that we miss?
-
--- 
-Bazsi
-
-
+Not using static requires the compiler to emit
+initialization code for any use of the routine
+that otherwise would only be done once.
