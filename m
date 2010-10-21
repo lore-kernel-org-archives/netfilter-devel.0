@@ -1,30 +1,53 @@
-From: David Miller <davem@davemloft.net>
-Subject: net GIT state...
-Date: Thu, 21 Oct 2010 10:03:46 -0700 (PDT)
-Message-ID: <20101021.100346.193729767.davem@davemloft.net>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH 00/12] ipvs: changes for local server and local client
+Date: Thu, 21 Oct 2010 23:20:02 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1010212304240.2196@ja.ssi.bg>
+References: <alpine.LFD.2.00.1010171607550.20665@ja.ssi.bg> <alpine.LFD.2.00.1010182259500.1763@ja.ssi.bg> <20101021092114.GA11154@verge.net.au> <201010211509.42629.hans.schillstrom@ericsson.com> <20101021143652.GB21739@verge.net.au>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, linux-wireless@vger.kernel.org
-To: netdev@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	"lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:44133
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753592Ab0JURDX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Oct 2010 13:03:23 -0400
+Received: from ja.ssi.bg ([178.16.129.10]:57210 "EHLO ja.ssi.bg"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755482Ab0JUUTD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 21 Oct 2010 16:19:03 -0400
+In-Reply-To: <20101021143652.GB21739@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-I've merged pretty much all of the new features I intend
-to let into net-next-2.6
+ 	Hello,
 
-The fixes that didn't make it into 2.6.36, which were
-queued up into net-2.6, are being merged into net-next-2.6
-right now.
+On Thu, 21 Oct 2010, Simon Horman wrote:
 
-Once I push that out it's pretty much only bug fixes from
-here on out.
+>>>>> I can help you with some IPv6 testing this week.
+>>>>
+>>>> 	Thanks in advance
+>>>>
+>>>>> I would be nice to change the IPv6 address print format from %pI6 to %pI6c to get a more compact debug output.
+>>>>
+>>>> 	Yes, may be in following cleanup patches because the
+>>>> IPVS debugging needs improvement.
+>>>
+>>> Hi,
+>>>
+>>> I am happy with this series.
+>>> Do either of you have any objections in me sending
+>>> it to Patrick for merging. The merge window is now open,
+>>> but hopefully we can still get this into 2.6.37-rc1 if we move quickly.
+>>>
+>> Hi,
+>> I'm also happy with it, a basic sanity check for IPv6 performed
+>
+> Thanks, I have sent a pull request to Patrick which includes these changes.
 
-Thanks for your cooperation.
+ 	Thanks to Hans for testing the IPv6 part and to you
+for sending all 12+1 patches! I'm too slow today :)
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
