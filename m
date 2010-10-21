@@ -1,48 +1,49 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: [PATCH 7/9] tproxy: added IPv6 support to the TPROXY target
-Date: Thu, 21 Oct 2010 10:50:14 +0200
-Message-ID: <1287651014.13326.2.camel@este.odu>
-References: <20101020112118.6260.31618.stgit@este.odu>
-	 <20101020112118.6260.51773.stgit@este.odu>
-	 <alpine.LNX.2.01.1010211042190.22922@obet.zrqbmnf.qr>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH 00/12] ipvs: changes for local server and local client
+Date: Thu, 21 Oct 2010 11:21:14 +0200
+Message-ID: <20101021092114.GA11154@verge.net.au>
+References: <alpine.LFD.2.00.1010171607550.20665@ja.ssi.bg>
+ <201010181042.27654.hans.schillstrom@ericsson.com>
+ <alpine.LFD.2.00.1010182259500.1763@ja.ssi.bg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	"lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Julian Anastasov <ja@ssi.bg>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from brother.balabit.com ([195.70.62.219]:50680 "EHLO
-	lists.balabit.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753163Ab0JUJSc (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:52690 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755310Ab0JUJUo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Oct 2010 05:18:32 -0400
-In-Reply-To: <alpine.LNX.2.01.1010211042190.22922@obet.zrqbmnf.qr>
+	Thu, 21 Oct 2010 05:20:44 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1010182259500.1763@ja.ssi.bg>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Mon, Oct 18, 2010 at 11:08:00PM +0300, Julian Anastasov wrote:
+> 
+> 	Hello,
+> 
+> On Mon, 18 Oct 2010, Hans Schillstrom wrote:
+> 
+> >>Not tested: IPv6. I'll need help here from people with IPv6 setups.
+> >>
+> >
+> >I can help you with some IPv6 testing this week.
+> 
+> 	Thanks in advance
+> 
+> >I would be nice to change the IPv6 address print format from %pI6 to %pI6c to get a more compact debug output.
+> 
+> 	Yes, may be in following cleanup patches because the
+> IPVS debugging needs improvement.
+
 Hi,
 
-On Thu, 2010-10-21 at 10:47 +0200, Jan Engelhardt wrote:
-> On Wednesday 2010-10-20 13:21, KOVACS Krisztian wrote:
-> > 
-> > /* TPROXY target is capable of marking the packet to perform
-> >  * redirection. We can get rid of that whenever we get support for
-> >  * mutliple targets in the same rule. */
-> >-struct xt_tproxy_target_info {
-> >+struct xt_tproxy_target_info_v0 {
-> > 	u_int32_t mark_mask;
-> > 	u_int32_t mark_value;
-> > 	__be32 laddr;
-> > 	__be16 lport;
-> > };
-> 
-> You cannot change the struct name either, or it may break userspace
-> compilations.
-
-True, though iptables has its own copy of the header anyway.
-
---KK
-
+I am happy with this series.
+Do either of you have any objections in me sending
+it to Patrick for merging. The merge window is now open,
+but hopefully we can still get this into 2.6.37-rc1 if we move quickly.
 
