@@ -1,244 +1,216 @@
 From: kaber@trash.net
-Subject: [PATCH 26/72] IPVS: sip persistence engine
-Date: Thu, 21 Oct 2010 17:19:13 +0200
-Message-ID: <1287674399-31455-27-git-send-email-kaber@trash.net>
+Subject: [PATCH 23/72] IPVS: management of persistence engine modules
+Date: Thu, 21 Oct 2010 17:19:10 +0200
+Message-ID: <1287674399-31455-24-git-send-email-kaber@trash.net>
 References: <1287674399-31455-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: davem@davemloft.net
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:59999 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752580Ab0JUPUH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 21 Oct 2010 11:20:07 -0400
 In-Reply-To: <1287674399-31455-1-git-send-email-kaber@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Simon Horman <horms@verge.net.au>
 
-Add the SIP callid as a key for persistence.
-
-This allows multiple connections from the same IP address to be
-differentiated on the basis of the callid.
-
-When used in conjunction with the persistence mask, it allows connections
-from different  IP addresses to be aggregated on the basis of the callid.
-
-It is envisaged that a persistence mask of 0.0.0.0 will be a useful
-setting.  That is, ignore the source IP address when checking for
-persistence.
-
-It is envisaged that this option will be used in conjunction with
-one-packet scheduling.
-
-This only works with UDP and cannot be made to work with TCP
-within the current framework.
+This is based heavily on the scheduler management code
 
 Signed-off-by: Simon Horman <horms@verge.net.au>
 Acked-by: Julian Anastasov <ja@ssi.bg>
 ---
- net/netfilter/ipvs/Kconfig        |    7 ++
- net/netfilter/ipvs/Makefile       |    3 +
- net/netfilter/ipvs/ip_vs_pe_sip.c |  167 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 177 insertions(+), 0 deletions(-)
- create mode 100644 net/netfilter/ipvs/ip_vs_pe_sip.c
+ include/net/ip_vs.h           |    6 ++
+ net/netfilter/ipvs/Makefile   |    2 +-
+ net/netfilter/ipvs/ip_vs_pe.c |  147 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 154 insertions(+), 1 deletions(-)
+ create mode 100644 net/netfilter/ipvs/ip_vs_pe.c
 
-diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
-index af3c9f4..a22dac2 100644
---- a/net/netfilter/ipvs/Kconfig
-+++ b/net/netfilter/ipvs/Kconfig
-@@ -256,4 +256,11 @@ config	IP_VS_NFCT
- 	  connection state to be exported to the Netfilter framework
- 	  for filtering purposes.
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index 974daf5..a6b93a2 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -796,6 +796,12 @@ extern int ip_vs_app_pkt_in(struct ip_vs_conn *, struct sk_buff *skb);
+ extern int ip_vs_app_init(void);
+ extern void ip_vs_app_cleanup(void);
  
-+config	IP_VS_PE_SIP
-+	tristate "SIP persistence engine"
-+        depends on IP_VS_PROTO_UDP
-+	depends on NF_CONNTRACK_SIP
-+	---help---
-+	  Allow persistence based on the SIP Call-ID
-+
- endif # IP_VS
++void ip_vs_bind_pe(struct ip_vs_service *svc, struct ip_vs_pe *pe);
++void ip_vs_unbind_pe(struct ip_vs_service *svc);
++int register_ip_vs_pe(struct ip_vs_pe *pe);
++int unregister_ip_vs_pe(struct ip_vs_pe *pe);
++extern struct ip_vs_pe *ip_vs_pe_get(const char *name);
++extern void ip_vs_pe_put(struct ip_vs_pe *pe);
+ 
+ /*
+  *	IPVS protocol functions (from ip_vs_proto.c)
 diff --git a/net/netfilter/ipvs/Makefile b/net/netfilter/ipvs/Makefile
-index 4a87bf3..34ee602 100644
+index 349fe88..4a87bf3 100644
 --- a/net/netfilter/ipvs/Makefile
 +++ b/net/netfilter/ipvs/Makefile
-@@ -35,3 +35,6 @@ obj-$(CONFIG_IP_VS_NQ) += ip_vs_nq.o
+@@ -14,7 +14,7 @@ ip_vs-extra_objs-$(CONFIG_IP_VS_NFCT) += ip_vs_nfct.o
  
- # IPVS application helpers
- obj-$(CONFIG_IP_VS_FTP) += ip_vs_ftp.o
-+
-+# IPVS connection template retrievers
-+obj-$(CONFIG_IP_VS_PE_SIP) += ip_vs_pe_sip.o
-diff --git a/net/netfilter/ipvs/ip_vs_pe_sip.c b/net/netfilter/ipvs/ip_vs_pe_sip.c
+ ip_vs-objs :=	ip_vs_conn.o ip_vs_core.o ip_vs_ctl.o ip_vs_sched.o	   \
+ 		ip_vs_xmit.o ip_vs_app.o ip_vs_sync.o	   		   \
+-		ip_vs_est.o ip_vs_proto.o 				   \
++		ip_vs_est.o ip_vs_proto.o ip_vs_pe.o			   \
+ 		$(ip_vs_proto-objs-y) $(ip_vs-extra_objs-y)
+ 
+ 
+diff --git a/net/netfilter/ipvs/ip_vs_pe.c b/net/netfilter/ipvs/ip_vs_pe.c
 new file mode 100644
-index 0000000..a0539f1
+index 0000000..3414af7
 --- /dev/null
-+++ b/net/netfilter/ipvs/ip_vs_pe_sip.c
-@@ -0,0 +1,167 @@
++++ b/net/netfilter/ipvs/ip_vs_pe.c
+@@ -0,0 +1,147 @@
 +#define KMSG_COMPONENT "IPVS"
 +#define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
 +
 +#include <linux/module.h>
-+#include <linux/kernel.h>
++#include <linux/spinlock.h>
++#include <linux/interrupt.h>
++#include <asm/string.h>
++#include <linux/kmod.h>
++#include <linux/sysctl.h>
 +
 +#include <net/ip_vs.h>
-+#include <net/netfilter/nf_conntrack.h>
-+#include <linux/netfilter/nf_conntrack_sip.h>
 +
-+static const char *ip_vs_dbg_callid(char *buf, size_t buf_len,
-+				    const char *callid, size_t callid_len,
-+				    int *idx)
++/* IPVS pe list */
++static LIST_HEAD(ip_vs_pe);
++
++/* lock for service table */
++static DEFINE_SPINLOCK(ip_vs_pe_lock);
++
++/* Bind a service with a pe */
++void ip_vs_bind_pe(struct ip_vs_service *svc, struct ip_vs_pe *pe)
 +{
-+	size_t len = min(min(callid_len, (size_t)64), buf_len - *idx - 1);
-+	memcpy(buf + *idx, callid, len);
-+	buf[*idx+len] = '\0';
-+	*idx += len + 1;
-+	return buf + *idx - len;
++	svc->pe = pe;
 +}
 +
-+#define IP_VS_DEBUG_CALLID(callid, len)					\
-+	ip_vs_dbg_callid(ip_vs_dbg_buf, sizeof(ip_vs_dbg_buf),		\
-+			 callid, len, &ip_vs_dbg_idx)
-+
-+static int get_callid(const char *dptr, unsigned int dataoff,
-+		      unsigned int datalen,
-+		      unsigned int *matchoff, unsigned int *matchlen)
++/* Unbind a service from its pe */
++void ip_vs_unbind_pe(struct ip_vs_service *svc)
 +{
-+	/* Find callid */
-+	while (1) {
-+		int ret = ct_sip_get_header(NULL, dptr, dataoff, datalen,
-+					    SIP_HDR_CALL_ID, matchoff,
-+					    matchlen);
-+		if (ret > 0)
-+			break;
-+		if (!ret)
-+			return 0;
-+		dataoff += *matchoff;
++	svc->pe = NULL;
++}
++
++/* Get pe in the pe list by name */
++static struct ip_vs_pe *
++ip_vs_pe_getbyname(const char *pe_name)
++{
++	struct ip_vs_pe *pe;
++
++	IP_VS_DBG(2, "%s(): pe_name \"%s\"\n", __func__,
++		  pe_name);
++
++	spin_lock_bh(&ip_vs_pe_lock);
++
++	list_for_each_entry(pe, &ip_vs_pe, n_list) {
++		/* Test and get the modules atomically */
++		if (pe->module &&
++		    !try_module_get(pe->module)) {
++			/* This pe is just deleted */
++			continue;
++		}
++		if (strcmp(pe_name, pe->name)==0) {
++			/* HIT */
++			spin_unlock_bh(&ip_vs_pe_lock);
++			return pe;
++		}
++		if (pe->module)
++			module_put(pe->module);
 +	}
 +
-+	/* Empty callid is useless */
-+	if (!*matchlen)
-+		return -EINVAL;
-+
-+	/* Too large is useless */
-+	if (*matchlen > IP_VS_PEDATA_MAXLEN)
-+		return -EINVAL;
-+
-+	/* SIP headers are always followed by a line terminator */
-+	if (*matchoff + *matchlen == datalen)
-+		return -EINVAL;
-+
-+	/* RFC 2543 allows lines to be terminated with CR, LF or CRLF,
-+	 * RFC 3261 allows only CRLF, we support both. */
-+	if (*(dptr + *matchoff + *matchlen) != '\r' &&
-+	    *(dptr + *matchoff + *matchlen) != '\n')
-+		return -EINVAL;
-+
-+	IP_VS_DBG_BUF(9, "SIP callid %s (%d bytes)\n",
-+		      IP_VS_DEBUG_CALLID(dptr + *matchoff, *matchlen),
-+		      *matchlen);
-+	return 0;
++	spin_unlock_bh(&ip_vs_pe_lock);
++	return NULL;
 +}
 +
-+static int
-+ip_vs_sip_fill_param(struct ip_vs_conn_param *p, struct sk_buff *skb)
++/* Lookup pe and try to load it if it doesn't exist */
++struct ip_vs_pe *ip_vs_pe_get(const char *name)
 +{
-+	struct ip_vs_iphdr iph;
-+	unsigned int dataoff, datalen, matchoff, matchlen;
-+	const char *dptr;
++	struct ip_vs_pe *pe;
 +
-+	ip_vs_fill_iphdr(p->af, skb_network_header(skb), &iph);
++	/* Search for the pe by name */
++	pe = ip_vs_pe_getbyname(name);
 +
-+	/* Only useful with UDP */
-+	if (iph.protocol != IPPROTO_UDP)
++	/* If pe not found, load the module and search again */
++	if (!pe) {
++		request_module("ip_vs_pe_%s", name);
++		pe = ip_vs_pe_getbyname(name);
++	}
++
++	return pe;
++}
++
++void ip_vs_pe_put(struct ip_vs_pe *pe)
++{
++	if (pe && pe->module)
++		module_put(pe->module);
++}
++
++/* Register a pe in the pe list */
++int register_ip_vs_pe(struct ip_vs_pe *pe)
++{
++	struct ip_vs_pe *tmp;
++
++	/* increase the module use count */
++	ip_vs_use_count_inc();
++
++	spin_lock_bh(&ip_vs_pe_lock);
++
++	if (!list_empty(&pe->n_list)) {
++		spin_unlock_bh(&ip_vs_pe_lock);
++		ip_vs_use_count_dec();
++		pr_err("%s(): [%s] pe already linked\n",
++		       __func__, pe->name);
 +		return -EINVAL;
++	}
 +
-+	/* No Data ? */
-+	dataoff = iph.len + sizeof(struct udphdr);
-+	if (dataoff >= skb->len)
-+		return -EINVAL;
-+
-+	dptr = skb->data + dataoff;
-+	datalen = skb->len - dataoff;
-+
-+	if (get_callid(dptr, dataoff, datalen, &matchoff, &matchlen))
-+		return -EINVAL;
-+
-+	p->pe_data = kmalloc(matchlen, GFP_ATOMIC);
-+	if (!p->pe_data)
-+		return -ENOMEM;
-+
-+	/* N.B: pe_data is only set on success,
-+	 * this allows fallback to the default persistence logic on failure
++	/* Make sure that the pe with this name doesn't exist
++	 * in the pe list.
 +	 */
-+	memcpy(p->pe_data, dptr + matchoff, matchlen);
-+	p->pe_data_len = matchlen;
++	list_for_each_entry(tmp, &ip_vs_pe, n_list) {
++		if (strcmp(tmp->name, pe->name) == 0) {
++			spin_unlock_bh(&ip_vs_pe_lock);
++			ip_vs_use_count_dec();
++			pr_err("%s(): [%s] pe already existed "
++			       "in the system\n", __func__, pe->name);
++			return -EINVAL;
++		}
++	}
++	/* Add it into the d-linked pe list */
++	list_add(&pe->n_list, &ip_vs_pe);
++	spin_unlock_bh(&ip_vs_pe_lock);
++
++	pr_info("[%s] pe registered.\n", pe->name);
 +
 +	return 0;
 +}
++EXPORT_SYMBOL_GPL(register_ip_vs_pe);
 +
-+static bool ip_vs_sip_ct_match(const struct ip_vs_conn_param *p,
-+				  struct ip_vs_conn *ct)
-+
++/* Unregister a pe from the pe list */
++int unregister_ip_vs_pe(struct ip_vs_pe *pe)
 +{
-+	bool ret = 0;
++	spin_lock_bh(&ip_vs_pe_lock);
++	if (list_empty(&pe->n_list)) {
++		spin_unlock_bh(&ip_vs_pe_lock);
++		pr_err("%s(): [%s] pe is not in the list. failed\n",
++		       __func__, pe->name);
++		return -EINVAL;
++	}
 +
-+	if (ct->af == p->af &&
-+	    ip_vs_addr_equal(p->af, p->caddr, &ct->caddr) &&
-+	    /* protocol should only be IPPROTO_IP if
-+	     * d_addr is a fwmark */
-+	    ip_vs_addr_equal(p->protocol == IPPROTO_IP ? AF_UNSPEC : p->af,
-+			     p->vaddr, &ct->vaddr) &&
-+	    ct->vport == p->vport &&
-+	    ct->flags & IP_VS_CONN_F_TEMPLATE &&
-+	    ct->protocol == p->protocol &&
-+	    ct->pe_data && ct->pe_data_len == p->pe_data_len &&
-+	    !memcmp(ct->pe_data, p->pe_data, p->pe_data_len))
-+		ret = 1;
++	/* Remove it from the d-linked pe list */
++	list_del(&pe->n_list);
++	spin_unlock_bh(&ip_vs_pe_lock);
 +
-+	IP_VS_DBG_BUF(9, "SIP template match %s %s->%s:%d %s\n",
-+		      ip_vs_proto_name(p->protocol),
-+		      IP_VS_DEBUG_CALLID(p->pe_data, p->pe_data_len),
-+		      IP_VS_DBG_ADDR(p->af, p->vaddr), ntohs(p->vport),
-+		      ret ? "hit" : "not hit");
++	/* decrease the module use count */
++	ip_vs_use_count_dec();
 +
-+	return ret;
++	pr_info("[%s] pe unregistered.\n", pe->name);
++
++	return 0;
 +}
-+
-+static u32 ip_vs_sip_hashkey_raw(const struct ip_vs_conn_param *p,
-+				 u32 initval, bool inverse)
-+{
-+	return jhash(p->pe_data, p->pe_data_len, initval);
-+}
-+
-+static int ip_vs_sip_show_pe_data(const struct ip_vs_conn *cp, char *buf)
-+{
-+	memcpy(buf, cp->pe_data, cp->pe_data_len);
-+	return cp->pe_data_len;
-+}
-+
-+static struct ip_vs_pe ip_vs_sip_pe =
-+{
-+	.name =			"sip",
-+	.refcnt =		ATOMIC_INIT(0),
-+	.module =		THIS_MODULE,
-+	.n_list =		LIST_HEAD_INIT(ip_vs_sip_pe.n_list),
-+	.fill_param =		ip_vs_sip_fill_param,
-+	.ct_match =		ip_vs_sip_ct_match,
-+	.hashkey_raw =		ip_vs_sip_hashkey_raw,
-+	.show_pe_data =		ip_vs_sip_show_pe_data,
-+};
-+
-+static int __init ip_vs_sip_init(void)
-+{
-+	return register_ip_vs_pe(&ip_vs_sip_pe);
-+}
-+
-+static void __exit ip_vs_sip_cleanup(void)
-+{
-+	unregister_ip_vs_pe(&ip_vs_sip_pe);
-+}
-+
-+module_init(ip_vs_sip_init);
-+module_exit(ip_vs_sip_cleanup);
-+MODULE_LICENSE("GPL");
++EXPORT_SYMBOL_GPL(unregister_ip_vs_pe);
 -- 
 1.7.1
 
