@@ -1,9 +1,9 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 4/9] tproxy: added tproxy sockopt interface in the IPV6
- layer
-Date: Thu, 21 Oct 2010 10:39:02 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1010211037520.22922@obet.zrqbmnf.qr>
-References: <20101020112118.6260.31618.stgit@este.odu> <20101020112118.6260.78508.stgit@este.odu>
+Subject: Re: [PATCH 6/9] tproxy: added IPv6 socket lookup function to
+ nf_tproxy_core
+Date: Thu, 21 Oct 2010 10:42:05 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1010211040250.22922@obet.zrqbmnf.qr>
+References: <20101020112118.6260.31618.stgit@este.odu> <20101020112118.6260.89471.stgit@este.odu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
@@ -11,23 +11,18 @@ Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	David Miller <davem@davemloft.net>
 To: KOVACS Krisztian <hidden@balabit.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:33781 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:48607 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751278Ab0JUIjE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Oct 2010 04:39:04 -0400
-In-Reply-To: <20101020112118.6260.78508.stgit@este.odu>
+	id S1753002Ab0JUImH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 21 Oct 2010 04:42:07 -0400
+In-Reply-To: <20101020112118.6260.89471.stgit@este.odu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+
 On Wednesday 2010-10-20 13:21, KOVACS Krisztian wrote:
-
->@@ -268,6 +268,10 @@ struct in6_flowlabel_req {
-> /* RFC5082: Generalized Ttl Security Mechanism */
-> #define IPV6_MINHOPCOUNT		73
-> 
->+#define IPV6_ORIGDSTADDR        74
->+#define IPV6_RECVORIGDSTADDR    IPV6_ORIGDSTADDR
->+#define IPV6_TRANSPARENT        75
 >+
+>+	pr_debug("tproxy socket lookup: proto %u %pI6:%u -> %pI6:%u, lookup type: %d, sock %p\n",
+>+		 protocol, saddr, ntohs(sport), daddr, ntohs(dport), lookup_type, sk);
 
-Why do we actually need two names for the same thing?
+Shorts should preferably be used with %hd/%hu.
