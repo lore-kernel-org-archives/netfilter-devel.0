@@ -1,39 +1,28 @@
-From: kaber@trash.net
-Subject: [PATCH 02/72] netfilter: use NFPROTO_IPV4 instead of AF_INET
-Date: Thu, 21 Oct 2010 17:18:49 +0200
-Message-ID: <1287674399-31455-3-git-send-email-kaber@trash.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/72] netfilter: netfilter update for 2.6.37
+Date: Thu, 21 Oct 2010 08:40:31 -0700 (PDT)
+Message-ID: <20101021.084031.104056786.davem@davemloft.net>
 References: <1287674399-31455-1-git-send-email-kaber@trash.net>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: davem@davemloft.net
-Return-path: <netdev-owner@vger.kernel.org>
+To: kaber@trash.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:41189
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758683Ab0JUPkJ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 21 Oct 2010 11:40:09 -0400
 In-Reply-To: <1287674399-31455-1-git-send-email-kaber@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Changli Gao <xiaosuo@gmail.com>
+From: kaber@trash.net
+Date: Thu, 21 Oct 2010 17:18:47 +0200
 
-The field family of xt_target should be NFPROTO_IPV4, though
-NFPROTO_IPV4 and AF_INET are the same.
+> Please pull from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- net/netfilter/xt_TPROXY.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
-index c61294d..21bb2af 100644
---- a/net/netfilter/xt_TPROXY.c
-+++ b/net/netfilter/xt_TPROXY.c
-@@ -76,7 +76,7 @@ static int tproxy_tg_check(const struct xt_tgchk_param *par)
- 
- static struct xt_target tproxy_tg_reg __read_mostly = {
- 	.name		= "TPROXY",
--	.family		= AF_INET,
-+	.family		= NFPROTO_IPV4,
- 	.table		= "mangle",
- 	.target		= tproxy_tg,
- 	.targetsize	= sizeof(struct xt_tproxy_target_info),
--- 
-1.7.1
-
+Pulled, thanks!
