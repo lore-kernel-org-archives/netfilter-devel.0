@@ -1,34 +1,37 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH v2 9/9] tproxy: use the interface primary IP address as
- a default value for --on-ip
-Date: Thu, 21 Oct 2010 16:48:44 +0200
-Message-ID: <4CC052CC.8010702@trash.net>
-References: <20101021104709.5192.31249.stgit@este.odu> <20101021104710.5192.65152.stgit@este.odu> <4CC04C81.9080504@trash.net> <4CC04D97.9020105@treenet.co.nz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: KOVACS Krisztian <hidden@balabit.hu>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Balazs Scheidler <bazsi@balabit.hu>
-To: Amos Jeffries <squid3@treenet.co.nz>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: [PATCH 2/5] netfilter: xtables: add a missing pair of parentheses
+Date: Thu, 21 Oct 2010 17:06:05 +0200
+Message-ID: <1287673569-8587-3-git-send-email-jengelh@medozas.de>
+References: <1287673569-8587-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org, bdschuym@pandora.be
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59378 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753104Ab0JUOss (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Oct 2010 10:48:48 -0400
-In-Reply-To: <4CC04D97.9020105@treenet.co.nz>
+Received: from borg.medozas.de ([188.40.89.202]:56814 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752921Ab0JUPGN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 21 Oct 2010 11:06:13 -0400
+In-Reply-To: <1287673569-8587-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 21.10.2010 16:26, schrieb Amos Jeffries:
-> On 22/10/10 03:21, Patrick McHardy wrote:
->> Also applied, thanks a lot.
->>
-> 
-> Hoooray!! Thanks very, very, very much.
-> 
-> Just one followup question:
->   which kernel and iptables release is this now headed for?
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ include/linux/netfilter/x_tables.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-These patches will appear in 2.6.37-rc.
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 742bec0..9f69599 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -177,7 +177,7 @@ struct xt_counters_info {
+ 
+ /* can only be xt_entry_match, so no use of typeof here */
+ #define xt_ematch_foreach(pos, entry) \
+-	for ((pos) = (struct xt_entry_match *)entry->elems; \
++	for ((pos) = (struct xt_entry_match *)(entry)->elems; \
+ 	     (pos) < (struct xt_entry_match *)((char *)(entry) + \
+ 	             (entry)->target_offset); \
+ 	     (pos) = (struct xt_entry_match *)((char *)(pos) + \
+-- 
+1.7.1
+
