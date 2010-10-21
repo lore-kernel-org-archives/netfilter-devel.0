@@ -1,38 +1,39 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/3] tproxy: fix hash locking issue when using port redirection
- in __inet_inherit_port()
-Date: Thu, 21 Oct 2010 13:08:06 +0200
-Message-ID: <4CC01F16.2000008@trash.net>
-References: <20101020112142.6538.25550.stgit@este.odu> <20101020112142.6538.40476.stgit@este.odu>
+Subject: Re: [PATCH] nf_nat: restrict ICMP translation for embedded header
+Date: Thu, 21 Oct 2010 13:15:15 +0200
+Message-ID: <4CC020C3.9090104@trash.net>
+References: <alpine.LFD.2.00.1010111103470.3743@ja.ssi.bg> <4CB606AF.4040207@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	David Miller <davem@davemloft.net>
-To: KOVACS Krisztian <hidden@balabit.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54776 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757078Ab0JULIO (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Oct 2010 07:08:14 -0400
-In-Reply-To: <20101020112142.6538.40476.stgit@este.odu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org
+To: Julian Anastasov <ja@ssi.bg>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <4CB606AF.4040207@trash.net>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Am 20.10.2010 13:21, schrieb KOVACS Krisztian:
-> When __inet_inherit_port() is called on a tproxy connection the wrong locks are
-> held for the inet_bind_bucket it is added to. __inet_inherit_port() made an
-> implicit assumption that the listener's port number (and thus its bind bucket).
-> Unfortunately, if you're using the TPROXY target to redirect skbs to a
-> transparent proxy that assumption is not true anymore and things break.
+Am 13.10.2010 21:21, schrieb Patrick McHardy:
+> Am 11.10.2010 10:23, schrieb Julian Anastasov:
+>>
+>>     Skip ICMP translation of embedded protocol header
+>> if NAT bits are not set. Needed for IPVS to see the original
+>> embedded addresses because for IPVS traffic the IPS_SRC_NAT_BIT
+>> and IPS_DST_NAT_BIT bits are not set. It happens when IPVS performs
+>> DNAT for client packets after using nf_conntrack_alter_reply
+>> to expect replies from real server.
+>>
+>> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+>> ---
+>>
+>>     I'm not very familiar with this code, so this change
+>> must not be considered as trivial. May be there was a
+>> reason the embedded header to be translated before the NAT
+>> bits are set?
 > 
-> This patch adds code to __inet_inherit_port() so that it can handle this case
-> by looking up or creating a new bind bucket for the child socket and updates
-> callers of __inet_inherit_port() to gracefully handle __inet_inherit_port()
-> failing.
-> 
-> Reported by and original patch from Stephen Buck <stephen.buck@exinda.com>.
-> See http://marc.info/?t=128169268200001&r=1&w=2 for the original discussion.
+> This seems OK to me, but I need to think about it a bit more,
+> this code is subtle.
 
-Applied, thanks.
+I think this change is fine, it does not apply to the current tree
+anymore however. Could you please send me an updated version
+against the nf-next-2.6.git tree? Thanks!
