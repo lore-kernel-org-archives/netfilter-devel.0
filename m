@@ -1,53 +1,57 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH 00/12] ipvs: changes for local server and local client
-Date: Thu, 21 Oct 2010 23:20:02 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1010212304240.2196@ja.ssi.bg>
-References: <alpine.LFD.2.00.1010171607550.20665@ja.ssi.bg> <alpine.LFD.2.00.1010182259500.1763@ja.ssi.bg> <20101021092114.GA11154@verge.net.au> <201010211509.42629.hans.schillstrom@ericsson.com> <20101021143652.GB21739@verge.net.au>
+From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Subject: Re: [PATCH 63/72] tproxy: allow non-local binds of IPv6 sockets if
+ IP_TRANSPARENT is enabled
+Date: Fri, 22 Oct 2010 06:07:49 +0900
+Message-ID: <1287695269.2707.7.camel@takos>
+References: <1287674399-31455-1-git-send-email-kaber@trash.net>
+	 <1287674399-31455-64-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	"lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Simon Horman <horms@verge.net.au>
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
+Cc: bazsi@balabit.hu, hidden@balabit.hu, davem@davemloft.net,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	yoshfuji@linux-ipv6.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:57210 "EHLO ja.ssi.bg"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755482Ab0JUUTD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Oct 2010 16:19:03 -0400
-In-Reply-To: <20101021143652.GB21739@verge.net.au>
+Received: from 94.43.138.210.xn.2iij.net ([210.138.43.94]:38317 "EHLO
+	mail.st-paulia.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751464Ab0JUVH4 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 21 Oct 2010 17:07:56 -0400
+In-Reply-To: <1287674399-31455-64-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello.
 
- 	Hello,
+On 2010-10-21, kaber@trash.net wrote:
+> From: Balazs Scheidler <bazsi@balabit.hu>
+> 
+> Signed-off-by: Balazs Scheidler <bazsi@balabit.hu>
+> Signed-off-by: KOVACS Krisztian <hidden@balabit.hu>
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
+> ---
+>  net/ipv6/af_inet6.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+> 
+> diff --git a/net/ipv6/af_inet6.c b/net/ipv6/af_inet6.c
+> index 56b9bf2..4869797 100644
+> --- a/net/ipv6/af_inet6.c
+> +++ b/net/ipv6/af_inet6.c
+> @@ -343,7 +343,8 @@ int inet6_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
+>  			 */
+>  			v4addr = LOOPBACK4_IPV6;
+>  			if (!(addr_type & IPV6_ADDR_MULTICAST))	{
+> -				if (!ipv6_chk_addr(net, &addr->sin6_addr,
+> +				if (!inet->transparent &&
+> +				    !ipv6_chk_addr(net, &addr->sin6_addr,
+>  						   dev, 0)) {
+>  					err = -EADDRNOTAVAIL;
+>  					goto out_unlock;
 
-On Thu, 21 Oct 2010, Simon Horman wrote:
+Sorry, NAK.
 
->>>>> I can help you with some IPv6 testing this week.
->>>>
->>>> 	Thanks in advance
->>>>
->>>>> I would be nice to change the IPv6 address print format from %pI6 to %pI6c to get a more compact debug output.
->>>>
->>>> 	Yes, may be in following cleanup patches because the
->>>> IPVS debugging needs improvement.
->>>
->>> Hi,
->>>
->>> I am happy with this series.
->>> Do either of you have any objections in me sending
->>> it to Patrick for merging. The merge window is now open,
->>> but hopefully we can still get this into 2.6.37-rc1 if we move quickly.
->>>
->> Hi,
->> I'm also happy with it, a basic sanity check for IPv6 performed
->
-> Thanks, I have sent a pull request to Patrick which includes these changes.
+http://kerneltrap.org/mailarchive/linux-netdev/2010/7/5/6280572
 
- 	Thanks to Hans for testing the IPv6 part and to you
-for sending all 12+1 patches! I'm too slow today :)
+--yoshfuji
 
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
