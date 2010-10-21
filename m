@@ -1,56 +1,32 @@
-From: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Subject: Re: [PATCH 00/12] ipvs: changes for local server and local client
-Date: Thu, 21 Oct 2010 15:09:41 +0200
-Message-ID: <201010211509.42629.hans.schillstrom@ericsson.com>
-References: <alpine.LFD.2.00.1010171607550.20665@ja.ssi.bg> <alpine.LFD.2.00.1010182259500.1763@ja.ssi.bg> <20101021092114.GA11154@verge.net.au>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH v2 1/9] tproxy: split off ipv6 defragmentation to a separate
+ module
+Date: Thu, 21 Oct 2010 16:04:29 +0200
+Message-ID: <4CC0486D.60703@trash.net>
+References: <20101021104709.5192.31249.stgit@este.odu>	 <20101021104709.5192.64336.stgit@este.odu>  <4CC02456.4050301@trash.net> <1287661385.13326.45.camel@este.odu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: Julian Anastasov <ja@ssi.bg>,
-	"lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Simon Horman <horms@verge.net.au>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Balazs Scheidler <bazsi@balabit.hu>,
+	David Miller <davem@davemloft.net>
+To: KOVACS Krisztian <hidden@balabit.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailgw9.se.ericsson.net ([193.180.251.57]:54149 "EHLO
-	mailgw9.se.ericsson.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757885Ab0JUNJp (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:58552 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758367Ab0JUOEd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Oct 2010 09:09:45 -0400
-In-Reply-To: <20101021092114.GA11154@verge.net.au>
-Content-Disposition: inline
+	Thu, 21 Oct 2010 10:04:33 -0400
+In-Reply-To: <1287661385.13326.45.camel@este.odu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-HOn Thursday 21 October 2010 11:21:14 Simon Horman wrote:
-> On Mon, Oct 18, 2010 at 11:08:00PM +0300, Julian Anastasov wrote:
-> >
-> > 	Hello,
-> >
-> > On Mon, 18 Oct 2010, Hans Schillstrom wrote:
-> >
-> > >>Not tested: IPv6. I'll need help here from people with IPv6 setups.
-> > >>
-> > >
-> > >I can help you with some IPv6 testing this week.
-> >
-> > 	Thanks in advance
-> >
-> > >I would be nice to change the IPv6 address print format from %pI6 to %pI6c to get a more compact debug output.
-> >
-> > 	Yes, may be in following cleanup patches because the
-> > IPVS debugging needs improvement.
->
-> Hi,
->
-> I am happy with this series.
-> Do either of you have any objections in me sending
-> it to Patrick for merging. The merge window is now open,
-> but hopefully we can still get this into 2.6.37-rc1 if we move quickly.
->
-Hi,
-I'm also happy with it, a basic sanity check for IPv6 performed
+Am 21.10.2010 13:43, schrieb KOVACS Krisztian:
+> tproxy: split off ipv6 defragmentation to a separate module
+>     
+>     Like with IPv4, TProxy needs IPv6 defragmentation but does not
+>     require connection tracking. Since defragmentation was coupled
+>     with conntrack, I split off the two, creating an nf_defrag_ipv6 module,
+>     similar to the already existing nf_defrag_ipv4.
 
-
---
-Regards
-Hans Schillstrom <hans.schillstrom@ericsson.com>
+Applied, thanks.
