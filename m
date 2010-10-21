@@ -1,26 +1,55 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [GIT PULL nf-next-2.6] ipvs + nf_net
-Date: Thu, 21 Oct 2010 16:27:11 +0200
-Message-ID: <4CC04DBF.8070207@trash.net>
-References: <20101021142446.GA19085@verge.net.au>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [RFC PATCH 5/9] ipvs network name space aware
+Date: Thu, 21 Oct 2010 16:34:35 +0200
+Message-ID: <20101021143434.GA21739@verge.net.au>
+References: <201010081317.04167.hans.schillstrom@ericsson.com>
+ <20101021111644.GA25555@verge.net.au>
+ <1287660414.6871.85.camel@edumazet-laptop>
+ <201010211349.25921.hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, Julian Anastasov <ja@ssi.bg>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58966 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751987Ab0JUO1O (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Oct 2010 10:27:14 -0400
-In-Reply-To: <20101021142446.GA19085@verge.net.au>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	"lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"ja@ssi.bg" <ja@ssi.bg>,
+	"wensong@linux-vs.org" <wensong@linux-vs.org>,
+	"daniel.lezcano@free.fr" <daniel.lezcano@free.fr>
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201010211349.25921.hans.schillstrom@ericsson.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Am 21.10.2010 16:24, schrieb Simon Horman:
->   git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git for-patrick
+On Thu, Oct 21, 2010 at 01:49:25PM +0200, Hans Schillstrom wrote:
+> On Thursday 21 October 2010 13:26:54 Eric Dumazet wrote:
+> > Le jeudi 21 octobre 2010 =C3=A0 13:16 +0200, Simon Horman a =C3=A9c=
+rit :
+> >
+> > > > @@ -2680,10 +2664,15 @@ static int ip_vs_genl_dump_services(str=
+uct sk_buff *skb,
+> > > >  	int idx =3D 0, i;
+> > > >  	int start =3D cb->args[0];
+> > > >  	struct ip_vs_service *svc;
+> > > > -
+> > > > +	struct net *net =3D skb->sk->sk_net;
+> > >
+> > > skb->sk->sk_net needs CONFIG_NS_NET.
+> > > Is your plan for IPVS to unconditionally depend on CONFIG_NS_NET?
+> > > It would be nice to avoid that, but I fear it will be too messy.
+> > >
+> >
+> >
+> > struct net *net =3D sock_net(skb->sk);
+> >
+> > is your friend ;)
+> >
+> >
+> Tanks Eric,
+>=20
+> Simon,
+> do forget about my last mail....
 
-Pulled, thanks Simon.
+Done :-)
