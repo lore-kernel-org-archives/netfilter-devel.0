@@ -1,72 +1,58 @@
-From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Subject: Re: [PATCH 5/9] tproxy: allow non-local binds of IPv6 sockets if
- IP_TRANSPARENT is enabled
-Date: Fri, 22 Oct 2010 06:24:12 +0900
-Message-ID: <1287696252.2707.24.camel@takos>
-References: <20101020112118.6260.31618.stgit@este.odu>
-	 <20101020112118.6260.93956.stgit@este.odu>
-	 <4CBEE45D.2080201@linux-ipv6.org>  <1287583653.29676.9.camel@bzorp.lan>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH v2 1/9] tproxy: split off ipv6 defragmentation to a
+ separate module
+Date: Fri, 22 Oct 2010 00:19:18 +0200
+Message-ID: <1287699558.2607.5.camel@edumazet-laptop>
+References: <20101021104709.5192.31249.stgit@este.odu>
+	 <20101021104709.5192.64336.stgit@este.odu>  <4CC02456.4050301@trash.net>
+	 <1287661385.13326.45.camel@este.odu>  <4CC0486D.60703@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: KOVACS Krisztian <hidden@balabit.hu>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>, yoshfuji@linux-ipv6.org
-To: Balazs Scheidler <bazsi@balabit.hu>
+	netfilter-devel@vger.kernel.org,
+	Balazs Scheidler <bazsi@balabit.hu>,
+	David Miller <davem@davemloft.net>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 94.43.138.210.xn.2iij.net ([210.138.43.94]:38535 "EHLO
-	mail.st-paulia.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752931Ab0JUVYO (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:50834 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753720Ab0JUWTZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Oct 2010 17:24:14 -0400
-In-Reply-To: <1287583653.29676.9.camel@bzorp.lan>
+	Thu, 21 Oct 2010 18:19:25 -0400
+In-Reply-To: <4CC0486D.60703@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello.
+Le jeudi 21 octobre 2010 =C3=A0 16:04 +0200, Patrick McHardy a =C3=A9cr=
+it :
+> Am 21.10.2010 13:43, schrieb KOVACS Krisztian:
+> > tproxy: split off ipv6 defragmentation to a separate module
+> >    =20
+> >     Like with IPv4, TProxy needs IPv6 defragmentation but does not
+> >     require connection tracking. Since defragmentation was coupled
+> >     with conntrack, I split off the two, creating an nf_defrag_ipv6=
+ module,
+> >     similar to the already existing nf_defrag_ipv4.
+>=20
+> Applied, thanks.
 
-2010-10-20, Balazs Scheidler wrote:
-> On Wed, 2010-10-20 at 21:45 +0900, YOSHIFUJI Hideaki wrote:
-> > (2010/10/20 20:21), KOVACS Krisztian wrote:
-> > > From: Balazs Scheidler<bazsi@balabit.hu>
-> > > 
-> > > Signed-off-by: Balazs Scheidler<bazsi@balabit.hu>
-> > > Signed-off-by: KOVACS Krisztian<hidden@balabit.hu>
-> > > ---
-> > >   net/ipv6/af_inet6.c |    2 +-
-> > >   1 files changed, 1 insertions(+), 1 deletions(-)
-> > > 
-> > > diff --git a/net/ipv6/af_inet6.c b/net/ipv6/af_inet6.c
-> > > index 6022098..9480572 100644
-> > > --- a/net/ipv6/af_inet6.c
-> > > +++ b/net/ipv6/af_inet6.c
-> > > @@ -343,7 +343,7 @@ int inet6_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
-> > >   			 */
-> > >   			v4addr = LOOPBACK4_IPV6;
-> > >   			if (!(addr_type&  IPV6_ADDR_MULTICAST))	{
-> > > -				if (!ipv6_chk_addr(net,&addr->sin6_addr,
-> > > +				if (!inet->transparent&&  !ipv6_chk_addr(net,&addr->sin6_addr,
-> > >   						   dev, 0)) {
-> > >   					err = -EADDRNOTAVAIL;
-> > >   					goto out_unlock;
-> > > 
-> > > 
-> > 
-> > As I wrote before in other thread, this does not seem sufficient --
-> > well, it is sufficient to allow non-local bind, but before we're
-> > allowing this, we need add checks of source address in sending side.
-> 
-> Can you please elaborate or point us to the other thread? Is it some
-> kind of address-type check that we miss?
+Hmm...
 
-Please see my comment at:
-<http://kerneltrap.org/mailarchive/linux-netdev/2010/7/5/6280572>
+CONFIG_IPV6=3Dm
+CONFIG_NETFILTER_TPROXY=3Dm
 
-This will result in allowing non-privileged users easily sending from
-non-local / unauthorized address, which is not good, and which should
-not be allowed from security aspects.
 
-Regards,
+  MODPOST 201 modules
+ERROR: "nf_defrag_ipv6_enable" [net/netfilter/xt_TPROXY.ko] undefined!
+ERROR: "ipv6_find_hdr" [net/netfilter/xt_TPROXY.ko] undefined!
 
---yoshfuji
+Sorry, it's late here, I wont fix this ;)
 
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
