@@ -1,67 +1,53 @@
-From: "Jeff Haran" <jharan@bytemobile.com>
-Subject: Misleading statement in netfilter-hacking-HOWTO
-Date: Thu, 21 Oct 2010 17:59:07 -0700
-Message-ID: <6F5DE7538AFCDA45A114F5E7510424A7021F262E@hq-exchange01.bytemobile.com>
+From: Stephen Clark <sclark46@earthlink.net>
+Subject: clone packet with new destination address
+Date: Fri, 22 Oct 2010 08:31:59 -0400
+Message-ID: <4CC1843F.8050903@earthlink.net>
+Reply-To: sclark46@earthlink.net
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ironport.bytemobile.com ([12.153.136.13]:7703 "EHLO
-	ironport.bytemobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751671Ab0JVBRi convert rfc822-to-8bit (ORCPT
+Received: from elasmtp-masked.atl.sa.earthlink.net ([209.86.89.68]:36348 "EHLO
+	elasmtp-masked.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755983Ab0JVMcB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Oct 2010 21:17:38 -0400
-Content-class: urn:content-classes:message
+	Fri, 22 Oct 2010 08:32:01 -0400
+Received: from [69.22.83.66] (helo=joker.seclark.com)
+	by elasmtp-masked.atl.sa.earthlink.net with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.67)
+	(envelope-from <sclark46@earthlink.net>)
+	id 1P9Gmu-0004CH-GR
+	for netfilter-devel@vger.kernel.org; Fri, 22 Oct 2010 08:32:00 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hello,
 
-I'd like to point out that a statement in the netfilter-hacking-HOWTO
-appears to be misleading. Section 3.1 Netfilter Base contains the
-following:
+Problem:
+I have a two monitoring servers behind a a linux firewall, one is 
+primary and one is backup.
+In the field we have units sending udp informational packet to the 
+primary server. On the
+linux firewall I would like to copy this packet and change the 
+destination address of the copied
+packet to point to the backup server. Is there a way to do this without 
+writing any code?
 
-"A module that registers a function must specify the priority of the
-function within the hook; then when that netfilter hook is called from
-the core networking code, each module registered at that point is called
-in the order of priorites, and is free to manipulate the packet."
+NOTE:
+Currently the firewall is FreeBSD and we accomplish this rather easily using
+ipfw along with natd, but we want to move to linux for our firewall.
 
-It's that "free to manipulate the packet" at the end that I am having
-trouble with. To my reading, it implies that changes to the contents of
-the packet will effect only the packet represented by the skb. However,
-there appear to be places in the kernel where the skb that is passed to
-a netfilter hook has been cloned. The particular instance I am referring
-to here is in the bridge code. Assuming I am not misreading the code,
-br_flood_deliver() in net/bridge/br_forward.c will result in cloned skbs
-being passed to the netfilter hooks that register for NF_BR_LOCAL_OUT in
-PF_BRIDGE.
+Thanks for any ideas,
+Steve
 
-In order to modify just one of the packets that get flooded out of the
-bridge via a hook, it would appear that the hook function would have to
-call skb_unshare() on the passed in skb first and modify only the data
-associated with the skb returned from skb_unshare(). Otherwise, all of
-the other skbs that are sharing the data and which in this case would
-get transmitted out other bridge ports would experiencee the same
-modification.
+-- 
 
-This however raises an interesting question:
+"They that give up essential liberty to obtain temporary safety,
+deserve neither liberty nor safety."  (Ben Franklin)
 
-If said hook function were to do this how would the modified skb get
-iterated through the remainder of the hook functions?
-Would one use nf_reinject() for this? That would cause it to be passed
-through all of the hook functions, including the one that created it,
-right?
-Or is there some method I am unaware of that can cause the netfilter
-frame work to unshared cloned skbs before they are passed to the hook
-functions?
+"The course of history shows that as a government grows, liberty
+decreases."  (Thomas Jefferson)
 
-Perhaps the HOWTO could be updated to advise its readers if they run
-into this situation.
 
-Thanks,
-
-Jeff Haran
-Bytemobile
 
