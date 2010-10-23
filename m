@@ -1,54 +1,84 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 10/13] socket: use more appropriate types for mnl_socket_bind
-Date: Sat, 23 Oct 2010 07:44:47 +0200
-Message-ID: <1287812691-14470-11-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 13/13] attr: rename str_null from NULL away
+Date: Sat, 23 Oct 2010 07:44:50 +0200
+Message-ID: <1287812691-14470-14-git-send-email-jengelh@medozas.de>
 References: <1287812691-14470-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:55126 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:55129 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752580Ab0JWFpK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 23 Oct 2010 01:45:10 -0400
+	id S1752794Ab0JWFpN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 23 Oct 2010 01:45:13 -0400
 In-Reply-To: <1287812691-14470-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-groups, being a bitmask, should be unsigned; and let's also use pid_t
-for pid.
+A small little pedantism: NULL (as in, the pointer) isn't NUL (as in,
+the character with value zero, '\0'). I propose to rename it to strz,
+for the zero-terminated string (sometimes referred to as ASCIZ string,
+but of course C isn't tied to ASCII).
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/libmnl/libmnl.h |    2 +-
- src/socket.c            |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ examples/genl/genl-family-get.c |    2 +-
+ include/libmnl/libmnl.h         |    2 +-
+ src/attr.c                      |    8 ++++----
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
+diff --git a/examples/genl/genl-family-get.c b/examples/genl/genl-family-get.c
+index b015466..be8da3c 100644
+--- a/examples/genl/genl-family-get.c
++++ b/examples/genl/genl-family-get.c
+@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
+ 	genl->version = 1;
+ 
+ 	mnl_attr_put_u32(nlh, CTRL_ATTR_FAMILY_ID, GENL_ID_CTRL);
+-	mnl_attr_put_str_null(nlh, CTRL_ATTR_FAMILY_NAME, argv[1]);
++	mnl_attr_put_strz(nlh, CTRL_ATTR_FAMILY_NAME, argv[1]);
+ 
+ 	nl = mnl_socket_open(NETLINK_GENERIC);
+ 	if (nl == NULL) {
 diff --git a/include/libmnl/libmnl.h b/include/libmnl/libmnl.h
-index d35e1c1..d766183 100644
+index a32fb1d..7094af2 100644
 --- a/include/libmnl/libmnl.h
 +++ b/include/libmnl/libmnl.h
-@@ -16,7 +16,7 @@
- struct mnl_socket;
+@@ -89,7 +89,7 @@ extern void mnl_attr_put_u16(struct nlmsghdr *nlh, uint16_t type, uint16_t data)
+ extern void mnl_attr_put_u32(struct nlmsghdr *nlh, uint16_t type, uint32_t data);
+ extern void mnl_attr_put_u64(struct nlmsghdr *nlh, uint16_t type, uint64_t data);
+ extern void mnl_attr_put_str(struct nlmsghdr *nlh, uint16_t type, const char *data);
+-extern void mnl_attr_put_str_null(struct nlmsghdr *nlh, uint16_t type, const char *data);
++extern void mnl_attr_put_strz(struct nlmsghdr *nlh, uint16_t type, const char *data);
  
- extern struct mnl_socket *mnl_socket_open(int type);
--extern int mnl_socket_bind(struct mnl_socket *nl, int groups, int pid);
-+extern int mnl_socket_bind(struct mnl_socket *nl, unsigned int groups, pid_t pid);
- extern int mnl_socket_close(struct mnl_socket *nl);
- extern int mnl_socket_get_fd(const struct mnl_socket *nl);
- extern unsigned int mnl_socket_get_portid(const struct mnl_socket *nl);
-diff --git a/src/socket.c b/src/socket.c
-index 6ca3d3e..c9afd34 100644
---- a/src/socket.c
-+++ b/src/socket.c
-@@ -131,7 +131,7 @@ struct mnl_socket *mnl_socket_open(int bus)
-  * success, 0 is returned. You can use MNL_SOCKET_AUTOPID which is 0 for
-  * automatic port ID selection.
+ /* TLV attribute nesting */
+ extern struct nlattr *mnl_attr_nest_start(struct nlmsghdr *nlh, uint16_t type);
+diff --git a/src/attr.c b/src/attr.c
+index 06d6367..c60e1f4 100644
+--- a/src/attr.c
++++ b/src/attr.c
+@@ -449,18 +449,18 @@ void mnl_attr_put_str(struct nlmsghdr *nlh, uint16_t type, const char *data)
+ }
+ 
+ /**
+- * mnl_attr_put_str_null - add string attribute to netlink message
++ * mnl_attr_put_strz - add string attribute to netlink message
+  * \param nlh pointer to the netlink message
+  * \param type netlink attribute type
+  * \param data pointer to string data that is stored by the new attribute
+  *
+- * This function is similar to mnl_attr_put_str, but it includes the NUL
+- * terminator at the end of the string.
++ * This function is similar to mnl_attr_put_str, but it includes the
++ * NUL/zero ('\0') terminator at the end of the string.
+  *
+  * This function updates the length field of the Netlink message (nlmsg_len)
+  * by adding the size (header + payload) of the new attribute.
   */
--int mnl_socket_bind(struct mnl_socket *nl, int groups, int pid)
-+int mnl_socket_bind(struct mnl_socket *nl, unsigned int groups, pid_t pid)
+-void mnl_attr_put_str_null(struct nlmsghdr *nlh, uint16_t type, const char *data)
++void mnl_attr_put_strz(struct nlmsghdr *nlh, uint16_t type, const char *data)
  {
- 	int ret;
- 	socklen_t addr_len;
+ 	mnl_attr_put(nlh, type, strlen(data)+1, data);
+ }
 -- 
 1.7.1
 
