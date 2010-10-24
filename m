@@ -1,79 +1,56 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [patch] arptables: some patches from debian
-Date: Sun, 24 Oct 2010 19:10:47 +0200
-Message-ID: <4CC46897.5030809@pandora.be>
-References: <1284558534.22085.164.camel@tablet>	 <1286630249.3611.514.camel@tablet>  <4CB0BFE5.7070201@pandora.be> <1287070653.28231.11.camel@tablet>
+From: Andrew Beverley <andy@andybev.com>
+Subject: Re: Accessing packet marking functions
+Date: Sun, 24 Oct 2010 18:30:23 +0100
+Message-ID: <1287941423.1550.15.camel@andybev>
+References: <1276965739.1476.35.camel@andybev>
+	 <alpine.LSU.2.01.1006192200300.21809@obet.zrqbmnf.qr>
+	 <1277846567.1561.21.camel@andybev>
+	 <AANLkTimPhd8UTiZiQTTYkMxWOZiFD5jK2iYyzhM9U2d4@mail.gmail.com>
+	 <1277878469.1561.25.camel@andybev>
+	 <alpine.LSU.2.01.1006300815280.30439@obet.zrqbmnf.qr>
+	 <1277879533.1561.39.camel@andybev>
+	 <alpine.LSU.2.01.1006300844260.2225@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: ebtables-devel@lists.sourceforge.net,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Peter Volkov <pva@gentoo.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Maciej =?UTF-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>,
+	netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from brigitte.telenet-ops.be ([195.130.137.66]:52228 "EHLO
-	brigitte.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932203Ab0JXRKt (ORCPT
+Received: from earth.simplelists.com ([89.16.184.171]:43067 "EHLO
+	earth.simplelists.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756752Ab0JXSDw (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Oct 2010 13:10:49 -0400
-In-Reply-To: <1287070653.28231.11.camel@tablet>
+	Sun, 24 Oct 2010 14:03:52 -0400
+In-Reply-To: <alpine.LSU.2.01.1006300844260.2225@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Applied.
+> >All I want to do is retain a packet's mark from its arrival into Squid,
+> >onto its transmission to the client. Something like this:
+> >
+> >
+> >ppp0 -> PREROUTING -> Squid -> POSTROUTING -> eth0
+> >
+> >            ^^                      ^^
+> >         Set Mark               Read mark
+> >
+> >If this isn't possible then please tell me.
+> 
+> Hm, interesting case. I would say you could:
+> 
+>  - use CONNMARK in PREROUTING/INPUT
+>  - use libnetfilter_conntrack to query the connmark from within squid
+>    (since squid has address and port, that should identify the 
+>    connection within the nfct table)
+>  - use the so-obtained ctmark to populate the new socket's skmark
 
-Thanks,
+Thanks for this suggestion. Thought I'd drop a quick email (for
+completeness) to say that the patch for this has now been included into
+Squid. So, it is now possible for Squid to retain the mark on packets
+for items that aren't cached, or set a mark on packets when items are
+fetched from the cache.
 
-Bart
-
-On 14-10-10 17:37, Peter Volkov wrote:
-> Hi Bart. Thank you for review/applying patches. Could you also apply
-> attached patch to fix not respecting LDFLAGS issue (very similar to o=
-ne
-> I've sent you long time ago for ebtables :) )
->
-> --
-> Peter.
->
-> =D0=92 =D0=A1=D0=B1=D1=82, 09/10/2010 =D0=B2 21:17 +0200, Bart De Sch=
-uymer =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
->> Hello Peter,
->>
->> Patch 2 and 3 are committed.
->> For the '*' part of patch 1 I'd rather remove the -v usage in=20
->> arptables-restore. This will require fixing the reason why -v is use=
-d in=20
->> the first place. I wasn't aware this is due to a bug: the -i and -o=20
->> interfaces aren't printed unless -v is specified. I'll look into thi=
-s.
->>
->> cheers,
->> Bart
->>
->> On 09-10-10 15:17, Peter Volkov wrote:
->>> Hi again. What is the best way to contact arptables developers? My
->>> previous patch was left without attention, should I resend it? In
->>> attachment there are three fixes from debian:
->>>
->>> 1. arptables_save patch makes arp_tables don't resolve host names a=
-nd
->>> don't convert '*' interface names to any. Remove '*' interface name=
-s.
->>> 2. manpage patch removes old version from man page
->>> 3. is a patch from Jeroen van Wolffelaar to make arptables --proto-=
-type
->>> also accept hexadecimal inputs (ethernet protocol numbers are often
->>> specfied in hex, not decimal), using standard strtol() behaviour (h=
-ex
->>> iff starts with 0x).
+Andy
 
 
---=20
-Bart De Schuymer
-www.artinalgorithms.be
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
