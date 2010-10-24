@@ -1,41 +1,48 @@
-From: Florian Westphal <fw@strlen.de>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: [PATCH] netfilter: remove modulo operations
-Date: Sun, 24 Oct 2010 20:25:08 +0200
-Message-ID: <20101024182508.GM15247@Chamillionaire.breakpoint.cc>
+Date: Sun, 24 Oct 2010 21:11:51 +0200
+Message-ID: <1287947511.2658.1678.camel@edumazet-laptop>
 References: <1287891635-30207-1-git-send-email-xiaosuo@gmail.com>
+	 <20101024182508.GM15247@Chamillionaire.breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Changli Gao <xiaosuo@gmail.com>, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:39701 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932301Ab0JXSZK (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:50228 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751850Ab0JXTMA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Oct 2010 14:25:10 -0400
-Content-Disposition: inline
-In-Reply-To: <1287891635-30207-1-git-send-email-xiaosuo@gmail.com>
+	Sun, 24 Oct 2010 15:12:00 -0400
+Received: by wyf28 with SMTP id 28so2625937wyf.19
+        for <netfilter-devel@vger.kernel.org>; Sun, 24 Oct 2010 12:11:59 -0700 (PDT)
+In-Reply-To: <20101024182508.GM15247@Chamillionaire.breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Changli Gao <xiaosuo@gmail.com> wrote:
-> Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-> ---
->  net/netfilter/xt_NFQUEUE.c |    6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
-> index 039cce1..3962770 100644
-> --- a/net/netfilter/xt_NFQUEUE.c
-> +++ b/net/netfilter/xt_NFQUEUE.c
-> @@ -72,10 +72,12 @@ nfqueue_tg_v1(struct sk_buff *skb, const struct xt_action_param *par)
->  
->  	if (info->queues_total > 1) {
->  		if (par->family == NFPROTO_IPV4)
-> -			queue = hash_v4(skb) % info->queues_total + queue;
-> +			queue = (((u64) hash_v4(skb) * info->queues_total) >>
-> +				 32) + queue;
+Le dimanche 24 octobre 2010 =C3=A0 20:25 +0200, Florian Westphal a =C3=A9=
+crit :
 
-I'd imagine that the result of ((hash * total) >> 32) is (almost)
-always zero, especially if total is small (which it is usually).
+> I'd imagine that the result of ((hash * total) >> 32) is (almost)
+> always zero, especially if total is small (which it is usually).
+>=20
 
-Did you test that this change does not affect distribution average?
+Absolutely not. total is a 32bit number, using full range.
+
+> Did you test that this change does not affect distribution average?
+
+That would be shocking actually, given we use jhash()
+
+I did same tricks in various parts of network stack in the past, and it=
+s
+fine.
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
