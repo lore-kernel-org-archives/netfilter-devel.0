@@ -1,36 +1,31 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 5/9] tproxy: allow non-local binds of IPv6 sockets if
- IP_TRANSPARENT is enabled
-Date: Sun, 24 Oct 2010 16:08:23 -0700 (PDT)
-Message-ID: <20101024.160823.212694928.davem@davemloft.net>
-References: <1287583653.29676.9.camel@bzorp.lan>
-	<1287696252.2707.24.camel@takos>
-	<1287845294.13882.4.camel@bzorp.lan>
+Subject: FYI: net-2.6 and net-next-2.6 rebased
+Date: Sun, 24 Oct 2010 16:55:14 -0700 (PDT)
+Message-ID: <20101024.165514.52187613.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: yoshfuji@linux-ipv6.org, hidden@balabit.hu, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, kaber@trash.net
-To: bazsi@balabit.hu
+Cc: linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	kaber@trash.net, linville@tuxdriver.com, sfr@canb.auug.org.au
+To: netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:47442
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:55245
 	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750788Ab0JXXIA (ORCPT
+	by vger.kernel.org with ESMTP id S1751387Ab0JXXyv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Oct 2010 19:08:00 -0400
-In-Reply-To: <1287845294.13882.4.camel@bzorp.lan>
+	Sun, 24 Oct 2010 19:54:51 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Balazs Scheidler <bazsi@balabit.hu>
-Date: Sat, 23 Oct 2010 16:48:14 +0200
 
-> IP_TRANSPARENT requires root (more precisely CAP_NET_ADMIN privielges)
-> for IPV6.
-> 
-> However as I see right now this check was missed from the IPv6
-> implementation.
-> 
-> Is that enough as a safeguard? e.g. something like this:
+I've rebased both the net-2.6 and net-next-2.6 trees.
 
-Applied, thanks everyone.
+All of the commits that were in those trees are in Linus's
+tree now, so in fact this event ought to be %100 transparent
+for people pulling from my trees.
+
+No commits will appear in net-next-2.6 until the merge
+window is closed, it's just a dummy clone of Linus's current
+tree so that Stephen Rothwell's -next pulls "just work."
+
+Thanks.
