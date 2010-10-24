@@ -1,164 +1,40 @@
 From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH] netfilter: don't always initialize ct->proto
-Date: Sun, 24 Oct 2010 10:40:16 +0800
-Message-ID: <1287888016-25213-1-git-send-email-xiaosuo@gmail.com>
+Subject: [PATCH] netfilter: remove modulo operations
+Date: Sun, 24 Oct 2010 11:40:35 +0800
+Message-ID: <1287891635-30207-1-git-send-email-xiaosuo@gmail.com>
 Cc: netfilter-devel@vger.kernel.org, Changli Gao <xiaosuo@gmail.com>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:56310 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754837Ab0JXCk5 (ORCPT
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:37447 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754077Ab0JXDl1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 23 Oct 2010 22:40:57 -0400
-Received: by pxi15 with SMTP id 15so300549pxi.19
-        for <netfilter-devel@vger.kernel.org>; Sat, 23 Oct 2010 19:40:57 -0700 (PDT)
+	Sat, 23 Oct 2010 23:41:27 -0400
+Received: by pvb32 with SMTP id 32so393178pvb.19
+        for <netfilter-devel@vger.kernel.org>; Sat, 23 Oct 2010 20:41:27 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-ct->proto is big(60 bytes) due to structure ip_ct_tcp, and we don't need
-to initialize the whole for all the other protocols. This patch moves
-proto to the end of structure nf_conn, and pushes the initialization down
-to the individual protocols.
-
 Signed-off-by: Changli Gao <xiaosuo@gmail.com>
 ---
- include/net/netfilter/nf_conntrack.h    |    6 +++---
- net/netfilter/nf_conntrack_core.c       |    3 ++-
- net/netfilter/nf_conntrack_netlink.c    |    1 +
- net/netfilter/nf_conntrack_proto_dccp.c |    3 +++
- net/netfilter/nf_conntrack_proto_sctp.c |    1 +
- net/netfilter/nf_conntrack_proto_tcp.c  |   15 ++++-----------
- 6 files changed, 14 insertions(+), 15 deletions(-)
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index e624dae..f2eaacd 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -116,14 +116,14 @@ struct nf_conn {
- 	u_int32_t secmark;
+ net/netfilter/xt_NFQUEUE.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
+index 039cce1..3962770 100644
+--- a/net/netfilter/xt_NFQUEUE.c
++++ b/net/netfilter/xt_NFQUEUE.c
+@@ -72,10 +72,12 @@ nfqueue_tg_v1(struct sk_buff *skb, const struct xt_action_param *par)
+ 
+ 	if (info->queues_total > 1) {
+ 		if (par->family == NFPROTO_IPV4)
+-			queue = hash_v4(skb) % info->queues_total + queue;
++			queue = (((u64) hash_v4(skb) * info->queues_total) >>
++				 32) + queue;
+ #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
+ 		else if (par->family == NFPROTO_IPV6)
+-			queue = hash_v6(skb) % info->queues_total + queue;
++			queue = (((u64) hash_v6(skb) * info->queues_total) >>
++				 32) + queue;
  #endif
- 
--	/* Storage reserved for other modules: */
--	union nf_conntrack_proto proto;
--
- 	/* Extensions */
- 	struct nf_ct_ext *ext;
- #ifdef CONFIG_NET_NS
- 	struct net *ct_net;
- #endif
-+
-+	/* Storage reserved for other modules, must be the last member */
-+	union nf_conntrack_proto proto;
- };
- 
- static inline struct nf_conn *
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 1eacf8d..3d845ee 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -651,7 +651,8 @@ __nf_conntrack_alloc(struct net *net, u16 zone,
- 	 * and ct->tuplehash[IP_CT_DIR_REPLY].hnnode.next unchanged.
- 	 */
- 	memset(&ct->tuplehash[IP_CT_DIR_MAX], 0,
--	       sizeof(*ct) - offsetof(struct nf_conn, tuplehash[IP_CT_DIR_MAX]));
-+	       offsetof(struct nf_conn, proto) -
-+	       offsetof(struct nf_conn, tuplehash[IP_CT_DIR_MAX]));
- 	spin_lock_init(&ct->lock);
- 	ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple = *orig;
- 	ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode.pprev = NULL;
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 62bad22..d0b28e0 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1347,6 +1347,7 @@ ctnetlink_create_conntrack(struct net *net, u16 zone,
  	}
- #endif
- 
-+	memset(&ct->proto, 0, sizeof(ct->proto));
- 	if (cda[CTA_PROTOINFO]) {
- 		err = ctnetlink_change_protoinfo(ct, cda);
- 		if (err < 0)
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index 5292560..9ae57c5 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -452,6 +452,9 @@ static bool dccp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 	ct->proto.dccp.role[IP_CT_DIR_ORIGINAL] = CT_DCCP_ROLE_CLIENT;
- 	ct->proto.dccp.role[IP_CT_DIR_REPLY] = CT_DCCP_ROLE_SERVER;
- 	ct->proto.dccp.state = CT_DCCP_NONE;
-+	ct->proto.dccp.last_pkt = DCCP_PKT_REQUEST;
-+	ct->proto.dccp.last_dir = IP_CT_DIR_ORIGINAL;
-+	ct->proto.dccp.handshake_seq = 0;
- 	return true;
- 
- out_invalid:
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index c6049c2..6f4ee70 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -413,6 +413,7 @@ static bool sctp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 	    test_bit(SCTP_CID_COOKIE_ACK, map))
- 		return false;
- 
-+	memset(&ct->proto.sctp, 0, sizeof(ct->proto.sctp));
- 	new_state = SCTP_CONNTRACK_MAX;
- 	for_each_sctp_chunk (skb, sch, _sch, offset, dataoff, count) {
- 		/* Don't need lock here: this conntrack not in circulation yet */
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index c4c885d..69da4b0 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -1066,9 +1066,7 @@ static bool tcp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 	BUG_ON(th == NULL);
- 
- 	/* Don't need lock here: this conntrack not in circulation yet */
--	new_state
--		= tcp_conntracks[0][get_conntrack_index(th)]
--		[TCP_CONNTRACK_NONE];
-+	new_state = tcp_conntracks[0][get_conntrack_index(th)][TCP_CONNTRACK_NONE];
- 
- 	/* Invalid: delete conntrack */
- 	if (new_state >= TCP_CONNTRACK_MAX) {
-@@ -1077,6 +1075,7 @@ static bool tcp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 	}
- 
- 	if (new_state == TCP_CONNTRACK_SYN_SENT) {
-+		memset(&ct->proto.tcp, 0, sizeof(ct->proto.tcp));
- 		/* SYN packet */
- 		ct->proto.tcp.seen[0].td_end =
- 			segment_seq_plus_len(ntohl(th->seq), skb->len,
-@@ -1088,11 +1087,12 @@ static bool tcp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 			ct->proto.tcp.seen[0].td_end;
- 
- 		tcp_options(skb, dataoff, th, &ct->proto.tcp.seen[0]);
--		ct->proto.tcp.seen[1].flags = 0;
- 	} else if (nf_ct_tcp_loose == 0) {
- 		/* Don't try to pick up connections. */
- 		return false;
- 	} else {
-+		memset(&ct->proto.tcp, 0, sizeof(ct->proto.tcp));
-+		/* SYN packet */
- 		/*
- 		 * We are in the middle of a connection,
- 		 * its history is lost for us.
-@@ -1107,7 +1107,6 @@ static bool tcp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 		ct->proto.tcp.seen[0].td_maxend =
- 			ct->proto.tcp.seen[0].td_end +
- 			ct->proto.tcp.seen[0].td_maxwin;
--		ct->proto.tcp.seen[0].td_scale = 0;
- 
- 		/* We assume SACK and liberal window checking to handle
- 		 * window scaling */
-@@ -1116,13 +1115,7 @@ static bool tcp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 					      IP_CT_TCP_FLAG_BE_LIBERAL;
- 	}
- 
--	ct->proto.tcp.seen[1].td_end = 0;
--	ct->proto.tcp.seen[1].td_maxend = 0;
--	ct->proto.tcp.seen[1].td_maxwin = 0;
--	ct->proto.tcp.seen[1].td_scale = 0;
--
- 	/* tcp_packet will set them */
--	ct->proto.tcp.state = TCP_CONNTRACK_NONE;
- 	ct->proto.tcp.last_index = TCP_NONE_SET;
- 
- 	pr_debug("tcp_new: sender end=%u maxend=%u maxwin=%u scale=%i "
+ 	return NF_QUEUE_NR(queue);
