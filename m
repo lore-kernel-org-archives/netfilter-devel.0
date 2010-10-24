@@ -1,56 +1,41 @@
-From: Andrew Beverley <andy@andybev.com>
-Subject: Re: Accessing packet marking functions
-Date: Sun, 24 Oct 2010 18:30:23 +0100
-Message-ID: <1287941423.1550.15.camel@andybev>
-References: <1276965739.1476.35.camel@andybev>
-	 <alpine.LSU.2.01.1006192200300.21809@obet.zrqbmnf.qr>
-	 <1277846567.1561.21.camel@andybev>
-	 <AANLkTimPhd8UTiZiQTTYkMxWOZiFD5jK2iYyzhM9U2d4@mail.gmail.com>
-	 <1277878469.1561.25.camel@andybev>
-	 <alpine.LSU.2.01.1006300815280.30439@obet.zrqbmnf.qr>
-	 <1277879533.1561.39.camel@andybev>
-	 <alpine.LSU.2.01.1006300844260.2225@obet.zrqbmnf.qr>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] netfilter: remove modulo operations
+Date: Sun, 24 Oct 2010 20:25:08 +0200
+Message-ID: <20101024182508.GM15247@Chamillionaire.breakpoint.cc>
+References: <1287891635-30207-1-git-send-email-xiaosuo@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Maciej =?UTF-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from earth.simplelists.com ([89.16.184.171]:43067 "EHLO
-	earth.simplelists.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756752Ab0JXSDw (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:39701 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932301Ab0JXSZK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Oct 2010 14:03:52 -0400
-In-Reply-To: <alpine.LSU.2.01.1006300844260.2225@obet.zrqbmnf.qr>
+	Sun, 24 Oct 2010 14:25:10 -0400
+Content-Disposition: inline
+In-Reply-To: <1287891635-30207-1-git-send-email-xiaosuo@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> >All I want to do is retain a packet's mark from its arrival into Squid,
-> >onto its transmission to the client. Something like this:
-> >
-> >
-> >ppp0 -> PREROUTING -> Squid -> POSTROUTING -> eth0
-> >
-> >            ^^                      ^^
-> >         Set Mark               Read mark
-> >
-> >If this isn't possible then please tell me.
-> 
-> Hm, interesting case. I would say you could:
-> 
->  - use CONNMARK in PREROUTING/INPUT
->  - use libnetfilter_conntrack to query the connmark from within squid
->    (since squid has address and port, that should identify the 
->    connection within the nfct table)
->  - use the so-obtained ctmark to populate the new socket's skmark
+Changli Gao <xiaosuo@gmail.com> wrote:
+> Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+> ---
+>  net/netfilter/xt_NFQUEUE.c |    6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+> diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
+> index 039cce1..3962770 100644
+> --- a/net/netfilter/xt_NFQUEUE.c
+> +++ b/net/netfilter/xt_NFQUEUE.c
+> @@ -72,10 +72,12 @@ nfqueue_tg_v1(struct sk_buff *skb, const struct xt_action_param *par)
+>  
+>  	if (info->queues_total > 1) {
+>  		if (par->family == NFPROTO_IPV4)
+> -			queue = hash_v4(skb) % info->queues_total + queue;
+> +			queue = (((u64) hash_v4(skb) * info->queues_total) >>
+> +				 32) + queue;
 
-Thanks for this suggestion. Thought I'd drop a quick email (for
-completeness) to say that the patch for this has now been included into
-Squid. So, it is now possible for Squid to retain the mark on packets
-for items that aren't cached, or set a mark on packets when items are
-fetched from the cache.
+I'd imagine that the result of ((hash * total) >> 32) is (almost)
+always zero, especially if total is small (which it is usually).
 
-Andy
-
-
+Did you test that this change does not affect distribution average?
