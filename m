@@ -1,104 +1,61 @@
-From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Subject: Re: [PATCH 5/9] tproxy: allow non-local binds of IPv6 sockets if
- IP_TRANSPARENT is enabled
-Date: Sun, 24 Oct 2010 14:03:18 +0900
-Message-ID: <1287896598.9883.5.camel@takos>
-References: <20101020112118.6260.31618.stgit@este.odu>
-	 <20101020112118.6260.93956.stgit@este.odu>
-	 <4CBEE45D.2080201@linux-ipv6.org>  <1287583653.29676.9.camel@bzorp.lan>
-	 <1287696252.2707.24.camel@takos>  <1287845294.13882.4.camel@bzorp.lan>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] netfilter: don't always initialize ct->proto
+Date: Sun, 24 Oct 2010 10:27:06 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1010241019360.5890@obet.zrqbmnf.qr>
+References: <1287888016-25213-1-git-send-email-xiaosuo@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
-Cc: KOVACS Krisztian <hidden@balabit.hu>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>, yoshfuji@linux-ipv6.org
-To: Balazs Scheidler <bazsi@balabit.hu>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 94.43.138.210.xn.2iij.net ([210.138.43.94]:39718 "EHLO
-	mail.st-paulia.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751275Ab0JXFD2 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Oct 2010 01:03:28 -0400
-In-Reply-To: <1287845294.13882.4.camel@bzorp.lan>
+Received: from borg.medozas.de ([188.40.89.202]:47346 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932172Ab0JXI1I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 24 Oct 2010 04:27:08 -0400
+In-Reply-To: <1287888016-25213-1-git-send-email-xiaosuo@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2010-10-23, Balazs Scheidler wrote:
-> On Fri, 2010-10-22 at 06:24 +0900, YOSHIFUJI Hideaki wrote:
-> > Hello.
-> > 
-> > 2010-10-20, Balazs Scheidler wrote:
-> > > On Wed, 2010-10-20 at 21:45 +0900, YOSHIFUJI Hideaki wrote:
-> > > > (2010/10/20 20:21), KOVACS Krisztian wrote:
-> > > > > From: Balazs Scheidler<bazsi@balabit.hu>
-> > > > > 
-> > > > > Signed-off-by: Balazs Scheidler<bazsi@balabit.hu>
-> > > > > Signed-off-by: KOVACS Krisztian<hidden@balabit.hu>
-> > > > > ---
-> > > > >   net/ipv6/af_inet6.c |    2 +-
-> > > > >   1 files changed, 1 insertions(+), 1 deletions(-)
-> > > > > 
-> > > > > diff --git a/net/ipv6/af_inet6.c b/net/ipv6/af_inet6.c
-> > > > > index 6022098..9480572 100644
-> > > > > --- a/net/ipv6/af_inet6.c
-> > > > > +++ b/net/ipv6/af_inet6.c
-> > > > > @@ -343,7 +343,7 @@ int inet6_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
-> > > > >   			 */
-> > > > >   			v4addr = LOOPBACK4_IPV6;
-> > > > >   			if (!(addr_type&  IPV6_ADDR_MULTICAST))	{
-> > > > > -				if (!ipv6_chk_addr(net,&addr->sin6_addr,
-> > > > > +				if (!inet->transparent&&  !ipv6_chk_addr(net,&addr->sin6_addr,
-> > > > >   						   dev, 0)) {
-> > > > >   					err = -EADDRNOTAVAIL;
-> > > > >   					goto out_unlock;
-> > > > > 
-> > > > > 
-> > > > 
-> > > > As I wrote before in other thread, this does not seem sufficient --
-> > > > well, it is sufficient to allow non-local bind, but before we're
-> > > > allowing this, we need add checks of source address in sending side.
-> > > 
-> > > Can you please elaborate or point us to the other thread? Is it some
-> > > kind of address-type check that we miss?
-> > 
-> > Please see my comment at:
-> > <http://kerneltrap.org/mailarchive/linux-netdev/2010/7/5/6280572>
-> > 
-> > This will result in allowing non-privileged users easily sending from
-> > non-local / unauthorized address, which is not good, and which should
-> > not be allowed from security aspects.
-> 
-> IP_TRANSPARENT requires root (more precisely CAP_NET_ADMIN privielges)
-> for IPV6.
-> 
-> However as I see right now this check was missed from the IPv6
-> implementation.
-> 
-> Is that enough as a safeguard? e.g. something like this:
-> 
-> diff --git a/net/ipv6/ipv6_sockglue.c b/net/ipv6/ipv6_sockglue.c
-> index 0553867..f683d2c 100644
-> --- a/net/ipv6/ipv6_sockglue.c
-> +++ b/net/ipv6/ipv6_sockglue.c
-> @@ -343,6 +343,10 @@ static int do_ipv6_setsockopt(struct sock *sk, int level, int optname,
->                 break;
->  
->         case IPV6_TRANSPARENT:
-> +                if (!capable(CAP_NET_ADMIN)) {
-> +                        retv = -EPERM;
-> +                        break;
-> +                }
->                 if (optlen < sizeof(int))
->                         goto e_inval;
->                 /* we don't have a separate transparent bit for IPV6 we use the one in the IPv4 socket */
-> 
-> 
-> 
 
-I think it is the thing we must to have.  Thanks.
+On Sunday 2010-10-24 04:40, Changli Gao wrote:
 
-Acked-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+>ct->proto is big(60 bytes) due to structure ip_ct_tcp, and we don't need
+>to initialize the whole for all the other protocols. This patch moves
+>proto to the end of structure nf_conn, and pushes the initialization down
+>to the individual protocols.
+>
+>diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
+>index 5292560..9ae57c5 100644
+>--- a/net/netfilter/nf_conntrack_proto_dccp.c
+>+++ b/net/netfilter/nf_conntrack_proto_dccp.c
+>@@ -452,6 +452,9 @@ static bool dccp_new(struct nf_conn *ct, const struct sk_buff *skb,
+> 	ct->proto.dccp.role[IP_CT_DIR_ORIGINAL] = CT_DCCP_ROLE_CLIENT;
+> 	ct->proto.dccp.role[IP_CT_DIR_REPLY] = CT_DCCP_ROLE_SERVER;
+> 	ct->proto.dccp.state = CT_DCCP_NONE;
+>+	ct->proto.dccp.last_pkt = DCCP_PKT_REQUEST;
+>+	ct->proto.dccp.last_dir = IP_CT_DIR_ORIGINAL;
+>+	ct->proto.dccp.handshake_seq = 0;
+> 	return true;
+> 
+> out_invalid:
 
---yoshfuji
+This hunk seems unrelated to the actual move of the union member -
 
+>diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+>index c4c885d..69da4b0 100644
+>--- a/net/netfilter/nf_conntrack_proto_tcp.c
+>+++ b/net/netfilter/nf_conntrack_proto_tcp.c
+>@@ -1066,9 +1066,7 @@ static bool tcp_new(struct nf_conn *ct, const struct sk_buff *skb,
+> 	BUG_ON(th == NULL);
+> 
+> 	/* Don't need lock here: this conntrack not in circulation yet */
+>-	new_state
+>-		= tcp_conntracks[0][get_conntrack_index(th)]
+>-		[TCP_CONNTRACK_NONE];
+>+	new_state = tcp_conntracks[0][get_conntrack_index(th)][TCP_CONNTRACK_NONE];
+> 
+> 	/* Invalid: delete conntrack */
+> 	if (new_state >= TCP_CONNTRACK_MAX) {
+
+as does this change. Can you elaborate on why they are now needed,
+or did you happen to erroneously squash multiple patches?
