@@ -1,52 +1,48 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: libmnl: misc code updates
-Date: Sun, 24 Oct 2010 22:33:31 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1010242222450.22824@blackhole.kfki.hu>
-References: <1287812691-14470-1-git-send-email-jengelh@medozas.de> <4CC2F6AD.7070603@netfilter.org> <alpine.LNX.2.01.1010232052330.8540@obet.zrqbmnf.qr>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] netfilter: remove modulo operations
+Date: Sun, 24 Oct 2010 22:44:12 +0200
+Message-ID: <20101024204412.GN15247@Chamillionaire.breakpoint.cc>
+References: <1287891635-30207-1-git-send-email-xiaosuo@gmail.com>
+ <20101024182508.GM15247@Chamillionaire.breakpoint.cc>
+ <1287947511.2658.1678.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Florian Westphal <fw@strlen.de>, Changli Gao <xiaosuo@gmail.com>,
+	Patrick McHardy <kaber@trash.net>,
 	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:32956 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932438Ab0JXUdc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Oct 2010 16:33:32 -0400
-In-Reply-To: <alpine.LNX.2.01.1010232052330.8540@obet.zrqbmnf.qr>
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:36559 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932872Ab0JXUoN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 24 Oct 2010 16:44:13 -0400
+Content-Disposition: inline
+In-Reply-To: <1287947511.2658.1678.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> Le dimanche 24 octobre 2010 =E0 20:25 +0200, Florian Westphal a =E9cr=
+it :
+> > I'd imagine that the result of ((hash * total) >> 32) is (almost)
+> > always zero, especially if total is small (which it is usually).
+> >=20
+>=20
+> Absolutely not. total is a 32bit number, using full range.
+>=20
+> > Did you test that this change does not affect distribution average?
+>=20
+> That would be shocking actually, given we use jhash()
+>=20
+> I did same tricks in various parts of network stack in the past, and =
+its
+> fine.
 
-On Sat, 23 Oct 2010, Jan Engelhardt wrote:
-
-> On Saturday 2010-10-23 16:52, Pablo Neira Ayuso wrote:
-> 
-> >On 23/10/10 07:44, Jan Engelhardt wrote:
-> >> The following changes since commit a8956ff09c06869b6c5bc5f525944d8c228e64e9:
-> >> 
-> >>   doc: git tree update (now at netfilter.org) and fix listing in doxygen (2010-10-21 13:32:42 +0200)
-> >> 
-> >> are available in the git repository at:
-> >>   git://dev.medozas.de/libmnl master
-> >
-> >Thanks Jan, I have pulled patches from 1 to 11. Patches 12 and 13 change
-> >the API/ABI and I'd like to hear from Jozsef first.
-> >
-> >@Jozsef, since I haven't released first version libmnl yet, we're still
-> >in time to make those change, or would they be annoying for ipset5? If
-> >so, I won't apply them.
-> 
-> I compile-tested it with ipset5, and there are no new errors or warnings 
-> popping up.
-
-Yes, the changes are OK for ipset5, no problem for me.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Yes, you are right.  I tested this change and it is OK.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
