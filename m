@@ -1,102 +1,57 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH v2 1/9] tproxy: split off ipv6 defragmentation to a
- separate module
-Date: Mon, 25 Oct 2010 12:14:00 +0200
-Message-ID: <1288001640.2826.96.camel@edumazet-laptop>
-References: <20101021104709.5192.31249.stgit@este.odu>
-	 <20101021104709.5192.64336.stgit@este.odu>  <4CC02456.4050301@trash.net>
-	 <1287661385.13326.45.camel@este.odu>  <4CC0486D.60703@trash.net>
-	 <1287699558.2607.5.camel@edumazet-laptop>
-	 <1287999512.2160.25.camel@este.odu>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter: remove modulo operations
+Date: Mon, 25 Oct 2010 17:39:08 +0200
+Message-ID: <4CC5A49C.1040405@trash.net>
+References: <1287891635-30207-1-git-send-email-xiaosuo@gmail.com> <1287998810.2826.46.camel@edumazet-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Balazs Scheidler <bazsi@balabit.hu>,
-	David Miller <davem@davemloft.net>
-To: KOVACS Krisztian <hidden@balabit.hu>
+Cc: Changli Gao <xiaosuo@gmail.com>, netfilter-devel@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:59539 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751592Ab0JYKOG (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:48148 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751267Ab0JYPjM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Oct 2010 06:14:06 -0400
-In-Reply-To: <1287999512.2160.25.camel@este.odu>
+	Mon, 25 Oct 2010 11:39:12 -0400
+In-Reply-To: <1287998810.2826.46.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le lundi 25 octobre 2010 =C3=A0 11:38 +0200, KOVACS Krisztian a =C3=A9c=
+Am 25.10.2010 11:26, schrieb Eric Dumazet:
+> Le dimanche 24 octobre 2010 =C3=A0 11:40 +0800, Changli Gao a =C3=A9c=
 rit :
-> Hi,
->=20
-> On Fri, 2010-10-22 at 00:19 +0200, Eric Dumazet wrote:
-> > Le jeudi 21 octobre 2010 =C3=A0 16:04 +0200, Patrick McHardy a =C3=A9=
-crit :
-> > > Am 21.10.2010 13:43, schrieb KOVACS Krisztian:
-> > > > tproxy: split off ipv6 defragmentation to a separate module
-> > > >    =20
-> > > >     Like with IPv4, TProxy needs IPv6 defragmentation but does =
-not
-> > > >     require connection tracking. Since defragmentation was coup=
-led
-> > > >     with conntrack, I split off the two, creating an nf_defrag_=
-ipv6 module,
-> > > >     similar to the already existing nf_defrag_ipv4.
-> > >=20
-> > > Applied, thanks.
-> >=20
-> > Hmm...
-> >=20
-> > CONFIG_IPV6=3Dm
-> > CONFIG_NETFILTER_TPROXY=3Dm
-> >=20
-> >=20
-> >   MODPOST 201 modules
-> > ERROR: "nf_defrag_ipv6_enable" [net/netfilter/xt_TPROXY.ko] undefin=
-ed!
-> > ERROR: "ipv6_find_hdr" [net/netfilter/xt_TPROXY.ko] undefined!
-> >=20
-> > Sorry, it's late here, I wont fix this ;)
->=20
-> Oops, I guess this is because you do have IPv6 support but don't have
-> ip6tables enabled in your config. Does the patch below fix the issue =
-for
-> you? (For me it now compiles with and without IPv6 conntrack, ip6tabl=
-es
-> and IPv6 support, too.)
+>> Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+>> ---
+>>  net/netfilter/xt_NFQUEUE.c |    6 ++++--
+>>  1 file changed, 4 insertions(+), 2 deletions(-)
+>> diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
+>> index 039cce1..3962770 100644
+>> --- a/net/netfilter/xt_NFQUEUE.c
+>> +++ b/net/netfilter/xt_NFQUEUE.c
+>> @@ -72,10 +72,12 @@ nfqueue_tg_v1(struct sk_buff *skb, const struct =
+xt_action_param *par)
+>> =20
+>>  	if (info->queues_total > 1) {
+>>  		if (par->family =3D=3D NFPROTO_IPV4)
+>> -			queue =3D hash_v4(skb) % info->queues_total + queue;
+>> +			queue =3D (((u64) hash_v4(skb) * info->queues_total) >>
+>> +				 32) + queue;
+>>  #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABL=
+ES_MODULE)
+>>  		else if (par->family =3D=3D NFPROTO_IPV6)
+>> -			queue =3D hash_v6(skb) % info->queues_total + queue;
+>> +			queue =3D (((u64) hash_v6(skb) * info->queues_total) >>
+>> +				 32) + queue;
+>>  #endif
+>>  	}
+>>  	return NF_QUEUE_NR(queue);
 >=20
 >=20
+> Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
 
-I had ip6tables enabled, but not CONFIG_NF_CONNTRACK_IPV6 ;)
-
->=20
-> netfilter: fix module dependency issues with IPv6 defragmentation, ip=
-6tables and xt_TPROXY
->=20
-> One of the previous tproxy related patches split IPv6 defragmentation=
- and
-> connection tracking, but did not correctly add Kconfig stanzas to han=
-dle the
-> new dependencies correctly. This patch fixes that by making the confi=
-g options
-> mirror the setup we have for IPv4: a distinct config option for defra=
-gmentation
-> that is automatically selected by both connection tracking and
-> xt_TPROXY/xt_socket.
->=20
-> The patch also changes the #ifdefs enclosing IPv6 specific code in xt=
-_socket
-> and xt_TPROXY: we only compile these in case we have ip6tables suppor=
-t enabled.
->=20
-> Signed-off-by: KOVACS Krisztian <hidden@balabit.hu>
-
-Reported-and-tested-by: Eric Dumazet <eric.dumazet@gmail.com>
-
-Thanks !
-
-
+This looks fine to me, however I'm currently only taking bugfixes.
+Please resend once net-next opens up for new patches again.
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
