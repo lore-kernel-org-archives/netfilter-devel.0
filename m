@@ -1,47 +1,32 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2 1/9] tproxy: split off ipv6 defragmentation to a
- separate module
-Date: Mon, 25 Oct 2010 13:54:39 -0700 (PDT)
-Message-ID: <20101025.135439.35034391.davem@davemloft.net>
-References: <1287999512.2160.25.camel@este.odu>
-	<1288001640.2826.96.camel@edumazet-laptop>
-	<4CC5EBC8.9000701@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] libxtables: change option precedence order to be
+ intuitive
+Date: Mon, 25 Oct 2010 23:57:57 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1010252357270.18188@obet.zrqbmnf.qr>
+References: <1287501388-5948-1-git-send-email-jengelh@medozas.de> <1287501388-5948-2-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: eric.dumazet@gmail.com, hidden@balabit.hu, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, bazsi@balabit.hu
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:50854
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751995Ab0JYUyQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Oct 2010 16:54:16 -0400
-In-Reply-To: <4CC5EBC8.9000701@trash.net>
+Received: from borg.medozas.de ([188.40.89.202]:53679 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756153Ab0JYV57 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Oct 2010 17:57:59 -0400
+In-Reply-To: <1287501388-5948-2-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 25 Oct 2010 22:42:48 +0200
+On Tuesday 2010-10-19 17:16, Jan Engelhardt wrote:
 
-> Am 25.10.2010 12:14, schrieb Eric Dumazet:
->>> netfilter: fix module dependency issues with IPv6 defragmentation, ip6tables and xt_TPROXY
->>>
->>> One of the previous tproxy related patches split IPv6 defragmentation and
->>> connection tracking, but did not correctly add Kconfig stanzas to handle the
->>> new dependencies correctly. This patch fixes that by making the config options
->>> mirror the setup we have for IPv4: a distinct config option for defragmentation
->>> that is automatically selected by both connection tracking and
->>> xt_TPROXY/xt_socket.
->>>
->>> The patch also changes the #ifdefs enclosing IPv6 specific code in xt_socket
->>> and xt_TPROXY: we only compile these in case we have ip6tables support enabled.
->>>
->>> Signed-off-by: KOVACS Krisztian <hidden@balabit.hu>
->> 
->> Reported-and-tested-by: Eric Dumazet <eric.dumazet@gmail.com>
-> 
-> Dave, please apply directly. Thanks!
+>When using `-m mark --mark 2 -m connmark --mark 2`, the user currently
+>gets an error about the (libxt_mark) --mark option being used twice.
+>This is because libxt_connmark's option table does not override any
+>previous options. This patch changes this behavior, since the current
+>behavior does not allow connmark's option to be used at all, which is
+>illogical.
 
-Will do, thanks Patrick!
+As per fw's suggestion, I should nag you every 48 hours ;-)
+
+Really, this should be in the next tag.
+
