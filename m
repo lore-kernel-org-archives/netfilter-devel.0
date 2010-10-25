@@ -1,234 +1,261 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] netfilter: remove modulo operations
-Date: Mon, 25 Oct 2010 11:28:49 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1010251128270.9308@obet.zrqbmnf.qr>
-References: <1287891635-30207-1-git-send-email-xiaosuo@gmail.com> <20101024182508.GM15247@Chamillionaire.breakpoint.cc> <1287947511.2658.1678.camel@edumazet-laptop> <alpine.LNX.2.01.1010242222380.18070@obet.zrqbmnf.qr> <AANLkTimqOaBx4hr4RiuBQW-JePcf4QScMP56p20eTtF5@mail.gmail.com>
- <alpine.LNX.2.01.1010251050150.9308@obet.zrqbmnf.qr>
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: [PATCH v2 1/9] tproxy: split off ipv6 defragmentation to a
+ separate module
+Date: Mon, 25 Oct 2010 11:38:32 +0200
+Message-ID: <1287999512.2160.25.camel@este.odu>
+References: <20101021104709.5192.31249.stgit@este.odu>
+	 <20101021104709.5192.64336.stgit@este.odu>  <4CC02456.4050301@trash.net>
+	 <1287661385.13326.45.camel@este.odu>  <4CC0486D.60703@trash.net>
+	 <1287699558.2607.5.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Florian Westphal <fw@strlen.de>,
-	Changli Gao <xiaosuo@gmail.com>,
-	Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:37405 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754231Ab0JYJ2u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Oct 2010 05:28:50 -0400
-In-Reply-To: <alpine.LNX.2.01.1010251050150.9308@obet.zrqbmnf.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Balazs Scheidler <bazsi@balabit.hu>,
+	David Miller <davem@davemloft.net>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1287699558.2607.5.camel@edumazet-laptop>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Monday 2010-10-25 11:13, Jan Engelhardt wrote:
+Hi,
 
->On Monday 2010-10-25 05:19, Maciej =C5=BBenczykowski wrote:
->
->>> To be read as: one OV is reachable by 13 input values; 5 OVs are ea=
-ch
->>> reachable by 12 input values (IV) (i.e. a group of 60 IV lead to on=
-ly 5
->>> OV), etc.
->>
->>I don't quite follow what you are doing here.
->
->See the code at the end of the mail; that will probably help some=20
->people more than my description.
+On Fri, 2010-10-22 at 00:19 +0200, Eric Dumazet wrote:
+> Le jeudi 21 octobre 2010 =C3=A0 16:04 +0200, Patrick McHardy a =C3=A9=
+crit :
+> > Am 21.10.2010 13:43, schrieb KOVACS Krisztian:
+> > > tproxy: split off ipv6 defragmentation to a separate module
+> > >    =20
+> > >     Like with IPv4, TProxy needs IPv6 defragmentation but does no=
+t
+> > >     require connection tracking. Since defragmentation was couple=
+d
+> > >     with conntrack, I split off the two, creating an nf_defrag_ip=
+v6 module,
+> > >     similar to the already existing nf_defrag_ipv4.
+> >=20
+> > Applied, thanks.
+>=20
+> Hmm...
+>=20
+> CONFIG_IPV6=3Dm
+> CONFIG_NETFILTER_TPROXY=3Dm
+>=20
+>=20
+>   MODPOST 201 modules
+> ERROR: "nf_defrag_ipv6_enable" [net/netfilter/xt_TPROXY.ko] undefined=
+!
+> ERROR: "ipv6_find_hdr" [net/netfilter/xt_TPROXY.ko] undefined!
+>=20
+> Sorry, it's late here, I wont fix this ;)
 
-/* calculate all possible 32-bit hashes
-   needs 16G of address space, so better have a 64-bit kernel at hand
- */
-#define _GNU_SOURCE 1
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <limits.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+Oops, I guess this is because you do have IPv6 support but don't have
+ip6tables enabled in your config. Does the patch below fix the issue fo=
+r
+you? (For me it now compiles with and without IPv6 conntrack, ip6tables
+and IPv6 support, too.)
 
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
-#define S_IRUGO (S_IRUSR | S_IRGRP | S_IROTH)
-#define S_IWUGO (S_IWUSR | S_IWGRP | S_IWOTH)
 
-#define jrot(x,k) (((x) << (k)) | ((x) >> (32 - (k))))
 
-/* jhash_mix - mix 3 32-bit values reversibly. */
-#define jhash_mix(a, b, c) { \
-	a -=3D c; a ^=3D jrot(c,  4); c +=3D b; \
-	b -=3D a; b ^=3D jrot(a,  6); a +=3D c; \
-	c -=3D b; c ^=3D jrot(b,  8); b +=3D a; \
-	a -=3D c; a ^=3D jrot(c, 16); c +=3D b; \
-	b -=3D a; b ^=3D jrot(a, 19); a +=3D c; \
-	c -=3D b; c ^=3D jrot(b,  4); b +=3D a; \
-}
+netfilter: fix module dependency issues with IPv6 defragmentation, ip6t=
+ables and xt_TPROXY
 
-#define jhash_final(a, b, c) { \
-	c ^=3D b; c -=3D jrot(b, 14); \
-	a ^=3D c; a -=3D jrot(c, 11); \
-	b ^=3D a; b -=3D jrot(a, 25); \
-	c ^=3D b; c -=3D jrot(b, 16); \
-	a ^=3D c; a -=3D jrot(c,  4);  \
-	b ^=3D a; b -=3D jrot(a, 14); \
-	c ^=3D b; c -=3D jrot(b, 24); \
-}
+One of the previous tproxy related patches split IPv6 defragmentation a=
+nd
+connection tracking, but did not correctly add Kconfig stanzas to handl=
+e the
+new dependencies correctly. This patch fixes that by making the config =
+options
+mirror the setup we have for IPv4: a distinct config option for defragm=
+entation
+that is automatically selected by both connection tracking and
+xt_TPROXY/xt_socket.
 
-static uint32_t hash_jlookup3(const void *vkey, size_t length)
-{
-	static const unsigned int JHASH_GOLDEN_RATIO =3D 0x9e3779b9;
-	const uint8_t *key =3D vkey;
-	uint32_t a, b, c;
+The patch also changes the #ifdefs enclosing IPv6 specific code in xt_s=
+ocket
+and xt_TPROXY: we only compile these in case we have ip6tables support =
+enabled.
 
-	a =3D b =3D c =3D JHASH_GOLDEN_RATIO + length;
-	/* All but the last block: affect some 32 bits of (a,b,c) */
-	for (; length > 12; length -=3D 12, key +=3D 12) {
-		a +=3D key[0] + ((uint32_t)key[1] << 8) +
-		     ((uint32_t)key[2] << 16) + ((uint32_t)key[3] << 24);
-		b +=3D key[4] + ((uint32_t)key[5] << 8) +
-		     ((uint32_t)key[6] << 16) + ((uint32_t)key[7] << 24);
-		c +=3D key[8] + ((uint32_t)key[9] << 8) +
-		     ((uint32_t)key[10] << 16)+ ((uint32_t)key[11] << 24);
-		jhash_mix(a, b, c);
-	}
+Signed-off-by: KOVACS Krisztian <hidden@balabit.hu>
 
-	switch (length) {
-	case 12: c +=3D ((uint32_t)key[11]) << 24;
-	case 11: c +=3D ((uint32_t)key[10]) << 16;
-	case 10: c +=3D ((uint32_t)key[9])  << 8;
-	case  9: c +=3D key[8];
-	case  8: b +=3D ((uint32_t)key[7]) << 24;
-	case  7: b +=3D ((uint32_t)key[6]) << 16;
-	case  6: b +=3D ((uint32_t)key[5]) << 8;
-	case  5: b +=3D key[4];
-	case  4: a +=3D ((uint32_t)key[3]) << 24;
-	case  3: a +=3D ((uint32_t)key[2]) << 16;
-	case  2: a +=3D ((uint32_t)key[1]) << 8;
-	case  1: a +=3D key[0];
-		break;
-	case  0: return c;
-	}
+---
+ net/ipv6/netfilter/Kconfig  |    5 +++++
+ net/ipv6/netfilter/Makefile |    5 ++++-
+ net/netfilter/Kconfig       |    2 ++
+ net/netfilter/xt_TPROXY.c   |   10 ++++++----
+ net/netfilter/xt_socket.c   |   12 ++++++++----
+ 5 files changed, 25 insertions(+), 9 deletions(-)
 
-	jhash_final(a,b,c);
-	return c;
-}
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index 29d643b..e5f6edc 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -5,10 +5,15 @@
+ menu "IPv6: Netfilter Configuration"
+ 	depends on INET && IPV6 && NETFILTER
+=20
++config NF_DEFRAG_IPV6
++	tristate
++	default n
++
+ config NF_CONNTRACK_IPV6
+ 	tristate "IPv6 connection tracking support"
+ 	depends on INET && IPV6 && NF_CONNTRACK
+ 	default m if NETFILTER_ADVANCED=3Dn
++	select NF_DEFRAG_IPV6
+ 	---help---
+ 	  Connection tracking keeps a record of what packets have passed
+ 	  through your machine, in order to figure out how they are related
+diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
+index 3f8e4a3..0a432c9 100644
+--- a/net/ipv6/netfilter/Makefile
++++ b/net/ipv6/netfilter/Makefile
+@@ -12,11 +12,14 @@ obj-$(CONFIG_IP6_NF_SECURITY) +=3D ip6table_securit=
+y.o
+=20
+ # objects for l3 independent conntrack
+ nf_conntrack_ipv6-objs  :=3D  nf_conntrack_l3proto_ipv6.o nf_conntrack=
+_proto_icmpv6.o
+-nf_defrag_ipv6-objs :=3D nf_defrag_ipv6_hooks.o nf_conntrack_reasm.o
+=20
+ # l3 independent conntrack
+ obj-$(CONFIG_NF_CONNTRACK_IPV6) +=3D nf_conntrack_ipv6.o nf_defrag_ipv=
+6.o
+=20
++# defrag
++nf_defrag_ipv6-objs :=3D nf_defrag_ipv6_hooks.o nf_conntrack_reasm.o
++obj-$(CONFIG_NF_DEFRAG_IPV6) +=3D nf_defrag_ipv6.o
++
+ # matches
+ obj-$(CONFIG_IP6_NF_MATCH_AH) +=3D ip6t_ah.o
+ obj-$(CONFIG_IP6_NF_MATCH_EUI64) +=3D ip6t_eui64.o
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 4328825..1534f2b 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -525,6 +525,7 @@ config NETFILTER_XT_TARGET_TPROXY
+ 	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	select NF_DEFRAG_IPV4
++	select NF_DEFRAG_IPV6 if IP6_NF_IPTABLES
+ 	help
+ 	  This option adds a `TPROXY' target, which is somewhat similar to
+ 	  REDIRECT.  It can only be used in the mangle table and is useful
+@@ -927,6 +928,7 @@ config NETFILTER_XT_MATCH_SOCKET
+ 	depends on NETFILTER_ADVANCED
+ 	depends on !NF_CONNTRACK || NF_CONNTRACK
+ 	select NF_DEFRAG_IPV4
++	select NF_DEFRAG_IPV6 if IP6_NF_IPTABLES
+ 	help
+ 	  This option adds a `socket' match, which can be used to match
+ 	  packets for which a TCP or UDP socket lookup finds a valid socket.
+diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
+index 19c482c..640678f 100644
+--- a/net/netfilter/xt_TPROXY.c
++++ b/net/netfilter/xt_TPROXY.c
+@@ -21,7 +21,9 @@
+ #include <linux/netfilter_ipv4/ip_tables.h>
+=20
+ #include <net/netfilter/ipv4/nf_defrag_ipv4.h>
+-#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++
++#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_=
+MODULE)
++#define XT_TPROXY_HAVE_IPV6 1
+ #include <net/if_inet6.h>
+ #include <net/addrconf.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+@@ -172,7 +174,7 @@ tproxy_tg4_v1(struct sk_buff *skb, const struct xt_=
+action_param *par)
+ 	return tproxy_tg4(skb, tgi->laddr.ip, tgi->lport, tgi->mark_mask, tgi=
+->mark_value);
+ }
+=20
+-#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++#ifdef XT_TPROXY_HAVE_IPV6
+=20
+ static inline const struct in6_addr *
+ tproxy_laddr6(struct sk_buff *skb, const struct in6_addr *user_laddr,
+@@ -372,7 +374,7 @@ static struct xt_target tproxy_tg_reg[] __read_most=
+ly =3D {
+ 		.hooks		=3D 1 << NF_INET_PRE_ROUTING,
+ 		.me		=3D THIS_MODULE,
+ 	},
+-#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++#ifdef XT_TPROXY_HAVE_IPV6
+ 	{
+ 		.name		=3D "TPROXY",
+ 		.family		=3D NFPROTO_IPV6,
+@@ -391,7 +393,7 @@ static struct xt_target tproxy_tg_reg[] __read_most=
+ly =3D {
+ static int __init tproxy_tg_init(void)
+ {
+ 	nf_defrag_ipv4_enable();
+-#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++#ifdef XT_TPROXY_HAVE_IPV6
+ 	nf_defrag_ipv6_enable();
+ #endif
+=20
+diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
+index 2dbd4c8..d94a858 100644
+--- a/net/netfilter/xt_socket.c
++++ b/net/netfilter/xt_socket.c
+@@ -14,7 +14,6 @@
+ #include <linux/skbuff.h>
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+-#include <linux/netfilter_ipv6/ip6_tables.h>
+ #include <net/tcp.h>
+ #include <net/udp.h>
+ #include <net/icmp.h>
+@@ -22,7 +21,12 @@
+ #include <net/inet_sock.h>
+ #include <net/netfilter/nf_tproxy_core.h>
+ #include <net/netfilter/ipv4/nf_defrag_ipv4.h>
++
++#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_=
+MODULE)
++#define XT_SOCKET_HAVE_IPV6 1
++#include <linux/netfilter_ipv6/ip6_tables.h>
+ #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
++#endif
+=20
+ #include <linux/netfilter/xt_socket.h>
+=20
+@@ -186,7 +190,7 @@ socket_mt4_v1(const struct sk_buff *skb, struct xt_=
+action_param *par)
+ 	return socket_match(skb, par, par->matchinfo);
+ }
+=20
+-#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++#ifdef XT_SOCKET_HAVE_IPV6
+=20
+ static int
+ extract_icmp6_fields(const struct sk_buff *skb,
+@@ -331,7 +335,7 @@ static struct xt_match socket_mt_reg[] __read_mostl=
+y =3D {
+ 				  (1 << NF_INET_LOCAL_IN),
+ 		.me		=3D THIS_MODULE,
+ 	},
+-#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++#ifdef XT_SOCKET_HAVE_IPV6
+ 	{
+ 		.name		=3D "socket",
+ 		.revision	=3D 1,
+@@ -348,7 +352,7 @@ static struct xt_match socket_mt_reg[] __read_mostl=
+y =3D {
+ static int __init socket_mt_init(void)
+ {
+ 	nf_defrag_ipv4_enable();
+-#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++#ifdef XT_SOCKET_HAVE_IPV6
+ 	nf_defrag_ipv6_enable();
+ #endif
+=20
 
-static uint32_t hash_djb2(const void *p, size_t z)
-{
-	const char *c =3D p;
-	unsigned long v =3D 5381;
 
-	while (*c !=3D '\0')
-		v =3D ((v << 5) + v) ^ *c++;
-		/* v =3D v * 33 ^ *c++; */
 
-	return v;
-}
 
-static uint32_t *freq;
-static const unsigned long long freq_size =3D 0x100000000UL * sizeof(*f=
-req);
 
-static void map_freq(void)
-{
-	int fd;
-
-	fd =3D open("jenkins3.frq", O_RDWR | O_CREAT, S_IRUGO | S_IWUGO);
-	if (fd < 0) {
-		perror("open");
-		abort();
-	}
-
-	if (ftruncate(fd, freq_size) < 0) {
-		perror("ftruncate");
-		abort();
-	}
-
-	freq =3D mmap(NULL, freq_size, PROT_READ | PROT_WRITE,
-	       MAP_SHARED, fd, 0);
-	if (freq =3D=3D NULL) {
-		perror("mmap");
-		abort();
-	}
-}
-
-static void malloc_freq(void)
-{
-	freq =3D malloc(freq_size);
-	if (freq =3D=3D NULL) {
-		perror("malloc");
-		abort();
-	}
-}
-
-static inline void calc_all_hashes(void)
-{
-	uint32_t x, y;
-
-	memset(freq, 0, freq_size);
-	for (x =3D 0; x < UINT32_MAX; ++x) {
-		if ((x & 0xFFFFF) =3D=3D 0)
-			fprintf(stderr, "\r\e[2K""fill: %08x", x);
-		y =3D hash_jlookup3(&x, sizeof(x));
-		if (freq[y] < UINT32_MAX)
-			++freq[y];
-	}
-}
-
-static void freq_chart(void)
-{
-	uint32_t dist[32];
-	uint32_t x;
-
-	for (x =3D 0; x < UINT32_MAX; ++x) {
-		if ((x & 0xFFFFFF) =3D=3D 0)
-			fprintf(stderr, "\r\e[2K""%s: %08x", __func__, x);
-		if (freq[x] >=3D ARRAY_SIZE(dist))
-			printf("\nHash %08x reachable by %u input values\n",
-			       x, dist[x]);
-		if (dist[freq[x]] < UINT32_MAX)
-			++dist[freq[x]];
-	}
-	if (freq[UINT32_MAX] < ARRAY_SIZE(dist) &&
-	    dist[freq[UINT32_MAX]] < UINT16_MAX)
-		++dist[freq[UINT32_MAX]];
-
-	fprintf(stderr, "\n----\n");
-	for (x =3D 0; x < ARRAY_SIZE(dist); ++x)
-		printf("%10ux %u\n", dist[x], x);
-}
-
-static void xy_plot(void)
-{
-	uint32_t x, r =3D 0;
-
-	printf("# x y\n");
-	for (x =3D 0; x < UINT32_MAX; ++x) {
-		r +=3D freq[x];
-		if ((x & 0xFFFFF) =3D=3D 0)
-			printf("%u %u\n", x, r);
-	}
-}
-
-int main(int argc, const char **argv)
-{
-	step =3D (argc >=3D 2) ? strtoul(argv[1], NULL, 0) : 0;
-//	map_freq();
-	malloc_freq();
-	calc_all_hashes();
-	if (step =3D=3D 1)
-		freq_chart();
-	else if (step =3D=3D 2)
-		xy_plot();
-	return 0;
-}
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
