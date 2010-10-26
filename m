@@ -1,54 +1,39 @@
 From: Simon Horman <horms@verge.net.au>
-Subject: Re: [RFC PATCH 5/9] ipvs network name space aware
-Date: Wed, 27 Oct 2010 06:03:22 +0900
-Message-ID: <20101026210321.GE13167@verge.net.au>
-References: <201010081317.04167.hans.schillstrom@ericsson.com>
- <20101022190548.GA24978@verge.net.au>
- <201010261507.39734.hans.schillstrom@ericsson.com>
+Subject: Re: [rfc v2 03/10] ipvs network name space aware: conn
+Date: Wed, 27 Oct 2010 07:35:26 +0900
+Message-ID: <20101026223525.GB2270@verge.net.au>
+References: <20101022200934.822223308@joe.akashicho.tokyo.vergenet.net>
+ <20101022202357.344354364@joe.akashicho.tokyo.vergenet.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: "lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"ja@ssi.bg" <ja@ssi.bg>,
-	"wensong@linux-vs.org" <wensong@linux-vs.org>,
-	"daniel.lezcano@free.fr" <daniel.lezcano@free.fr>
-To: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:47122 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753080Ab0JZVCt (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Oct 2010 17:02:49 -0400
+Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	Julian Anastasov <ja@ssi.bg>,
+	Daniel Lezcano <daniel.lezcano@free.fr>,
+	Wensong Zhang <wensong@linux-vs.org>
+To: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+Return-path: <lvs-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <201010261507.39734.hans.schillstrom@ericsson.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20101022202357.344354364@joe.akashicho.tokyo.vergenet.net>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Oct 26, 2010 at 03:07:38PM +0200, Hans Schillstrom wrote:
-> On Friday 22 October 2010 21:05:48 Simon Horman wrote:
-> > On Fri, Oct 08, 2010 at 01:17:02PM +0200, Hans Schillstrom wrote:
-> > > This patch just contains ip_vs_ctl
-> > >
-> > > Signed-off-by:Hans Schillstrom <hans.schillstrom@ericsson.com>
-> > >
-> > > diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> > > index ca8ec8c..7e99cbc 100644
-> > > --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> > > +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> >
-> > [ snip ]
-> > Hi Hans,
-> >
-> > is there a reason that the order some of the entries in
-> > vs_vars has been switched around?
-> >
-> Yes there is, when vars will be copied to it's own NS it's a lot easier
-> when they are in sequence and without a potential insert in the middle
-> the #if 0 ...
+On Fri, Oct 22, 2010 at 10:09:37PM +0200, Simon Horman wrote:
 > 
-> have a look at __ip_vs_control_init(struct net *net)
+> This patch just contains ip_vs_conn.c
+> and does the normal
+>  - moving to vars to struct ipvs
+>  - adding per netns init and exit
+> 
+> proc_fs required some extra work with adding/chaning private data to get the net ptr.
+> 
+> Signed-off-by:Hans Schillstrom <hans.schillstrom@ericsson.com>
 
-Ok, I suspected something like that.
-In that case I think there may be a problem with
-the way that I handled sysctl_ip_vs_conntrack.
+Sorry, I messed this patch up a bit and will repost.
+
+* I still have not addressed any of the problems beyond the
+  original scope of my post, which was to rebase Hans's changes.
+  In particular I have not addressed any of the issues that
+  Julian raised in response to my patches. Hans, are you planning
+  to look into that or should I take another stab at things?
+
