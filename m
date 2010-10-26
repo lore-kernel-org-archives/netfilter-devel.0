@@ -1,37 +1,47 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: linux-next: Tree for October 25 (netfilter/nf_conntrack_reasm)
-Date: Mon, 25 Oct 2010 22:03:16 -0700 (PDT)
-Message-ID: <20101025.220316.39174493.davem@davemloft.net>
-References: <20101025145834.9b68e026.sfr@canb.auug.org.au>
-	<20101025165529.9cedfeac.randy.dunlap@oracle.com>
+From: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Subject: Re: [RFC PATCH 5/9] ipvs network name space aware
+Date: Tue, 26 Oct 2010 15:07:38 +0200
+Message-ID: <201010261507.39734.hans.schillstrom@ericsson.com>
+References: <201010081317.04167.hans.schillstrom@ericsson.com> <20101022190548.GA24978@verge.net.au>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: sfr@canb.auug.org.au, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, linux-next@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-To: randy.dunlap@oracle.com
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20101025165529.9cedfeac.randy.dunlap@oracle.com>
-Sender: linux-next-owner@vger.kernel.org
+Cc: "lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"ja@ssi.bg" <ja@ssi.bg>,
+	"wensong@linux-vs.org" <wensong@linux-vs.org>,
+	"daniel.lezcano@free.fr" <daniel.lezcano@free.fr>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <20101022190548.GA24978@verge.net.au>
+Content-Disposition: inline
+Sender: lvs-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Date: Mon, 25 Oct 2010 16:55:29 -0700
+On Friday 22 October 2010 21:05:48 Simon Horman wrote:
+> On Fri, Oct 08, 2010 at 01:17:02PM +0200, Hans Schillstrom wrote:
+> > This patch just contains ip_vs_ctl
+> >
+> > Signed-off-by:Hans Schillstrom <hans.schillstrom@ericsson.com>
+> >
+> > diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> > index ca8ec8c..7e99cbc 100644
+> > --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> > +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+>
+> [ snip ]
+> Hi Hans,
+>
+> is there a reason that the order some of the entries in
+> vs_vars has been switched around?
+>
+Yes there is, when vars will be copied to it's own NS it's a lot easier
+when they are in sequence and without a potential insert in the middle
+the #if 0 ...
 
-> On Mon, 25 Oct 2010 14:58:34 +1100 Stephen Rothwell wrote:
-> 
->> Hi all,
->> 
->> Reminder: do not add 2.6.38 destined stuff to linux-next until after
->> 2.6.37-rc1 is released.
-> 
-> net/ipv6/netfilter/nf_conntrack_reasm.c:628: error: 'nf_ct_frag6_sysctl_header' undeclared (first use in this function)
-> net/ipv6/netfilter/nf_conntrack_reasm.c:628: error: 'nf_net_netfilter_sysctl_path' undeclared (first use in this function)
-> net/ipv6/netfilter/nf_conntrack_reasm.c:629: error: 'nf_ct_frag6_sysctl_table' undeclared (first use in this function)
-> net/ipv6/netfilter/nf_conntrack_reasm.c:640: error: 'nf_ct_frag6_sysctl_header' undeclared (first use in this function)
-> 
-> 
-> config file is attached.
+have a look at __ip_vs_control_init(struct net *net)
 
-Should also be fixed by the commit I just pointed you to.
+--
+Regards
+Hans Schillstrom <hans.schillstrom@ericsson.com>
