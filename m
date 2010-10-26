@@ -1,57 +1,66 @@
-From: David Miller <davem@davemloft.net>
-Subject: [PATCH] netfilter: Add missing CONFIG_SYSCTL checks in ipv6's
- nf_conntrack_reasm.c
-Date: Tue, 26 Oct 2010 09:10:35 -0700 (PDT)
-Message-ID: <20101026.091035.183042897.davem@davemloft.net>
+From: jamal <hadi@cyberus.ca>
+Subject: Re: netns patches WAS( Re: [PATCH 8/8] net: Implement socketat.
+Date: Tue, 26 Oct 2010 16:52:06 -0400
+Message-ID: <1288126326.2094.131.camel@mojatatu>
+References: <m1ocborgq7.fsf@fess.ebiederm.org>
+	 <m1bp7oq1u8.fsf@fess.ebiederm.org>  <4C9B162E.7040201@parallels.com>
+	 <1285240797.5036.5.camel@bigi>  <4C9B3B06.900@parallels.com>
+	 <1285242055.5036.9.camel@bigi> <4C9B3F9C.8080506@parallels.com>
+	 <4CA7A07C.5030504@free.fr>  <1286113441.3812.229.camel@bigi>
+	 <1287145855.3642.30.camel@bigi>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, kaber@trash.net
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Daniel Lezcano <daniel.lezcano@free.fr>,
+	Pavel Emelyanov <xemul@parallels.com>,
+	linux-kernel@vger.kernel.org,
+	Linux Containers <containers@lists.osdl.org>,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Michael Kerrisk <mtk.manpages@gmail.com>,
+	Ulrich Drepper <drepper@gmail.com>,
+	Al Viro <viro@ZenIV.linux.org.uk>,
+	David Miller <davem@davemloft.net>,
+	"Serge E. Hallyn" <serge@hallyn.com>,
+	Pavel Emelyanov <xemul@openvz.org>,
+	Ben Greear <greearb@candelatech.com>,
+	Matt Helsley <matthltc@us.ibm.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>,
+	Jan Engelhardt <jengelh@medozas.de>,
+	Patrick McHardy <kaber@trash.net>
+To: "Eric W. Biederman" <ebiederm@xmission.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:52731 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755211Ab0JZUwO (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Oct 2010 16:52:14 -0400
+In-Reply-To: <1287145855.3642.30.camel@bigi>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Eric,
 
-Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
+Ping?
+If you are too busy to push these in maybe have
+someone clueful like Daniel help out submitting? I think it
+should probably be reasonable to leave out the sockeat
+patch initially if it is deemed controversial..
 
-I just committed this to net-2.6, just FYI.
+cheers,
+jamal
 
- net/ipv6/netfilter/nf_conntrack_reasm.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+On Fri, 2010-10-15 at 08:30 -0400, jamal wrote:
+> Eric et al,
+> 
+> Did these patches make it in? I was looking at
+> two Davem net trees and i dont see them.
+> 
+> cheers,
+> jamal
+> 
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 489d71b..3a3f129 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -625,21 +625,24 @@ int nf_ct_frag6_init(void)
- 	inet_frags_init_net(&nf_init_frags);
- 	inet_frags_init(&nf_frags);
- 
-+#ifdef CONFIG_SYSCTL
- 	nf_ct_frag6_sysctl_header = register_sysctl_paths(nf_net_netfilter_sysctl_path,
- 							  nf_ct_frag6_sysctl_table);
- 	if (!nf_ct_frag6_sysctl_header) {
- 		inet_frags_fini(&nf_frags);
- 		return -ENOMEM;
- 	}
-+#endif
- 
- 	return 0;
- }
- 
- void nf_ct_frag6_cleanup(void)
- {
-+#ifdef CONFIG_SYSCTL
- 	unregister_sysctl_table(nf_ct_frag6_sysctl_header);
- 	nf_ct_frag6_sysctl_header = NULL;
--
-+#endif
- 	inet_frags_fini(&nf_frags);
- 
- 	nf_init_frags.low_thresh = 0;
--- 
-1.7.3.2
 
