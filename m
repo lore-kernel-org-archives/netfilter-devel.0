@@ -1,43 +1,27 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH] conntrack: allow nf_ct_alloc_hashtable() to get highmem
- pages
-Date: Wed, 27 Oct 2010 11:09:15 +0200
-Message-ID: <1288170555.2709.63.camel@edumazet-laptop>
+From: Pete Kay <petedao@gmail.com>
+Subject: netfilter for DPI
+Date: Wed, 27 Oct 2010 18:36:09 +0800
+Message-ID: <AANLkTi=n4R+6UESQmYVU7ie98-Cu-bagY4WBv1eBL4Db@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netdev <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, stable@kernel.org
-To: David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:43454 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752739Ab0J0KgK (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 27 Oct 2010 06:36:10 -0400
+Received: by qwk3 with SMTP id 3so522031qwk.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Oct 2010 03:36:09 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-commit ea781f197d6a8 (use SLAB_DESTROY_BY_RCU and get rid of call_rcu())
-did a mistake in __vmalloc() call in nf_ct_alloc_hashtable().
+Hi,
 
-I forgot to add __GFP_HIGHMEM, so pages were taken from LOWMEM only.
+Does anyone know if there is any documentation or tutorial on how to
+use netfilter to do deep packet inspection?
 
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
----
- net/netfilter/nf_conntrack_core.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Any hint or direction on where to look or start will be greatly appreciated.
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 1eacf8d..27a5ea6 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1312,7 +1312,8 @@ void *nf_ct_alloc_hashtable(unsigned int *sizep, int *vmalloced, int nulls)
- 	if (!hash) {
- 		*vmalloced = 1;
- 		printk(KERN_WARNING "nf_conntrack: falling back to vmalloc.\n");
--		hash = __vmalloc(sz, GFP_KERNEL | __GFP_ZERO, PAGE_KERNEL);
-+		hash = __vmalloc(sz, GFP_KERNEL | __GFP_HIGHMEM | __GFP_ZERO,
-+				 PAGE_KERNEL);
- 	}
- 
- 	if (hash && nulls)
-
-
+Thanks,
+Pete
