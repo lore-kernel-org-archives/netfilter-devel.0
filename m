@@ -1,64 +1,51 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: netns patches WAS( Re: [PATCH 8/8] net: Implement socketat.
-Date: Tue, 26 Oct 2010 17:27:47 -0700
-Message-ID: <m1aam032f0.fsf@fess.ebiederm.org>
-References: <m1ocborgq7.fsf@fess.ebiederm.org>
-	<m1bp7oq1u8.fsf@fess.ebiederm.org> <4C9B162E.7040201@parallels.com>
-	<1285240797.5036.5.camel@bigi> <4C9B3B06.900@parallels.com>
-	<1285242055.5036.9.camel@bigi> <4C9B3F9C.8080506@parallels.com>
-	<4CA7A07C.5030504@free.fr> <1286113441.3812.229.camel@bigi>
-	<1287145855.3642.30.camel@bigi> <1288126326.2094.131.camel@mojatatu>
+From: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Subject: Re: [rfc v2.1 03/10] ipvs network name space aware: conn
+Date: Wed, 27 Oct 2010 07:37:53 +0200
+Message-ID: <201010270737.54553.hans.schillstrom@ericsson.com>
+References: <20101026223653.GC2270@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Daniel Lezcano <daniel.lezcano@free.fr>,
-	Pavel Emelyanov <xemul@parallels.com>,
-	linux-kernel@vger.kernel.org,
-	Linux Containers <containers@lists.osdl.org>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Michael Kerrisk <mtk.manpages@gmail.com>,
-	Ulrich Drepper <drepper@gmail.com>,
-	Al Viro <viro@ZenIV.linux.org.uk>,
-	David Miller <davem@davemloft.net>,
-	"Serge E. Hallyn" <serge@hallyn.com>,
-	Pavel Emelyanov <xemul@openvz.org>,
-	Ben Greear <greearb@candelatech.com>,
-	Matt Helsley <matthltc@us.ibm.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Patrick McHardy <kaber@trash.net>
-To: hadi@cyberus.ca
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: "lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	Daniel Lezcano <daniel.lezcano@free.fr>,
+	Wensong Zhang <wensong@linux-vs.org>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:53917 "EHLO
-	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754975Ab0J0Afp (ORCPT
+Received: from mailgw9.se.ericsson.net ([193.180.251.57]:48843 "EHLO
+	mailgw9.se.ericsson.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751205Ab0J0Fh5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Oct 2010 20:35:45 -0400
-In-Reply-To: <1288126326.2094.131.camel@mojatatu> (jamal's message of "Tue, 26
-	Oct 2010 16:52:06 -0400")
+	Wed, 27 Oct 2010 01:37:57 -0400
+In-Reply-To: <20101026223653.GC2270@verge.net.au>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-jamal <hadi@cyberus.ca> writes:
-
-> Eric,
+On Wednesday 27 October 2010 00:36:54 Simon Horman wrote:
+> This patch just contains ip_vs_conn.c
+> and does the normal
+>  - moving to vars to struct ipvs
+>  - adding per netns init and exit
 >
-> Ping?
-> If you are too busy to push these in maybe have
-> someone clueful like Daniel help out submitting? I think it
-> should probably be reasonable to leave out the sockeat
-> patch initially if it is deemed controversial..
+> proc_fs required some extra work with adding/chaning private data to get the net ptr.
+>
+> Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
+>
+> ---
+>
+> * v2
+>   Rebase against current nf-next-2.6 (Simon Horman)
+>
+> * v2.1
+>   Fix patch-brokenness in v2 (Simon Horman)
+>
 
-This merge cycle I am too busy, and my patches did not make it into
-linux-next before the merge window.
+Thanx Simon
+I'll rework the patch set now so it will survive a bisect.
+It will take a week or so.
 
-Everything except socketat at seems non-controversial.  socketat makes
-sense to post-pone a little bit until we start converting applications,
-and there is a little real world experience about what is needed.
-
-I anticipate some time freeing up in the next couple of weeks so I
-should be ready for the next merge window.
-
-Eric
+--
+Regards
+Hans Schillstrom <hans.schillstrom@ericsson.com>
