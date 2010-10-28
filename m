@@ -1,36 +1,33 @@
-From: Jyotiswarup Raiturkar <jyotisr5@googlemail.com>
-Subject: CONMARK and SNAT
-Date: Thu, 28 Oct 2010 17:04:23 +0530
-Message-ID: <AANLkTimxtJ+A1FTtiU1ubCx8u7LBPA54A9JhT9p0esep@mail.gmail.com>
-References: <AANLkTin8DL4gEKmFoVwD=h6v=QOSKKneSAmg=YqHV8bN@mail.gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: CONMARK and SNAT
+Date: Thu, 28 Oct 2010 14:09:39 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1010281408410.26171@obet.zrqbmnf.qr>
+References: <AANLkTin8DL4gEKmFoVwD=h6v=QOSKKneSAmg=YqHV8bN@mail.gmail.com> <AANLkTimxtJ+A1FTtiU1ubCx8u7LBPA54A9JhT9p0esep@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Jyotiswarup Raiturkar <jyotisr5@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:55817 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756727Ab0J1Led convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Oct 2010 07:34:33 -0400
-Received: by wyf28 with SMTP id 28so1806282wyf.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Oct 2010 04:34:32 -0700 (PDT)
-In-Reply-To: <AANLkTin8DL4gEKmFoVwD=h6v=QOSKKneSAmg=YqHV8bN@mail.gmail.com>
+Received: from borg.medozas.de ([188.40.89.202]:37344 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757177Ab0J1MJk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 28 Oct 2010 08:09:40 -0400
+In-Reply-To: <AANLkTimxtJ+A1FTtiU1ubCx8u7LBPA54A9JhT9p0esep@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello
+On Thursday 2010-10-28 13:34, Jyotiswarup Raiturkar wrote:
 
-I want to setup a simple generic rule=A0 :
+>Hello
+>
+>I want to setup a simple generic rule=C2=A0 :
+>
+>If (connection has CONMARK =3D xx),=C2=A0 than set TARGET as SNAT --to=
+-source xx
 
-If (connection has CONMARK =3D xx),=A0 than set TARGET as SNAT --to-sou=
-rce xx
-
-i.e. I want all packets to be SNATed to the CONMARK..
-
-Is this possible?
-
--Jyotiswarup Raiturkar
+xx is an integer, but --to-source requires an IPv4 address instead, so=20
+you cannot mix them.
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
