@@ -1,95 +1,71 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: tproxy: added IPv6 support to the socket match
-Date: Thu, 28 Oct 2010 13:00:25 -0700 (PDT)
-Message-ID: <20101028.130025.102564000.davem@davemloft.net>
-References: <201010231923.o9NJNK9U013494@hera.kernel.org>
-	<AANLkTi=KRAcoonwFHKNaptap2LQHDswRCGpect82aHzx@mail.gmail.com>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH] libxtables: change option precedence order to be intuitive
+Date: Fri, 29 Oct 2010 13:26:23 +0800
+Message-ID: <AANLkTi=V1vzOxF84M-weryWgQdozzwiyZwFUBMnd9MTH@mail.gmail.com>
+References: <1287501388-5948-1-git-send-email-jengelh@medozas.de>
+ <1287501388-5948-2-git-send-email-jengelh@medozas.de> <alpine.LNX.2.01.1010252357270.18188@obet.zrqbmnf.qr>
+ <4CC94854.8010306@trash.net> <alpine.LNX.2.01.1010281250120.2326@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: bazsi@balabit.hu, hidden@balabit.hu, kaber@trash.net,
-	akpm@linux-foundation.org, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: geert@linux-m68k.org
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:37658
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760948Ab0J1UAC convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Oct 2010 16:00:02 -0400
-In-Reply-To: <AANLkTi=KRAcoonwFHKNaptap2LQHDswRCGpect82aHzx@mail.gmail.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:64175 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751004Ab0J2F0q convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 29 Oct 2010 01:26:46 -0400
+Received: by wwe15 with SMTP id 15so2868801wwe.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Oct 2010 22:26:45 -0700 (PDT)
+In-Reply-To: <alpine.LNX.2.01.1010281250120.2326@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Thu, 28 Oct 2010 20:51:43 +0200
+On Thu, Oct 28, 2010 at 6:54 PM, Jan Engelhardt <jengelh@medozas.de> wr=
+ote:
+> On Thursday 2010-10-28 11:54, Patrick McHardy wrote:
+>
+>>On 25.10.2010 23:57, Jan Engelhardt wrote:
+>>> On Tuesday 2010-10-19 17:16, Jan Engelhardt wrote:
+>>>
+>>>> When using `-m mark --mark 2 -m connmark --mark 2`, the user curre=
+ntly
+>>>> gets an error about the (libxt_mark) --mark option being used twic=
+e.
+>>>> This is because libxt_connmark's option table does not override an=
+y
+>>>> previous options. This patch changes this behavior, since the curr=
+ent
+>>>> behavior does not allow connmark's option to be used at all, which=
+ is
+>>>> illogical.
+>>>
+>>> As per fw's suggestion, I should nag you every 48 hours ;-)
+>>>
+>>> Really, this should be in the next tag.
+>>
+>>This stuff is pretty fragile and whenever we changed it, something br=
+oke
+>>for users. Why not simply add new options =A0(--connmark etc). That w=
+ould
+>>also be more consistent with the other extensions.
+>
+> Adding new options does not fix the real problem, and you cannot easi=
+ly
+> ensure that no options will clash with another.
+> And what do you do when you use -m hashlimit --hashlimit-name abc -m
+> hashlimit --hashlimit-name def? You can't use new options here.
+>
 
->> + =A0 =A0 =A0 u8 tproto;
->=20
-> tproto is unsigned...
->=20
->> + =A0 =A0 =A0 const struct xt_socket_mtinfo1 *info =3D (struct xt_so=
-cket_mtinfo1 *) par->matchinfo;
->> +
->> + =A0 =A0 =A0 tproto =3D ipv6_find_hdr(skb, &thoff, -1, NULL);
->=20
-> but ipv6_find_hdr() returns int, and negative values for errors...
+I think this issue was discussed in this thread:
+http://marc.info/?l=3Dnetfilter-devel&m=3D121881908205975&w=3D2 . And t=
+he
+above command should be OK. Did you test it?
 
-Thanks Geert, I'll fix it like so:
-
---------------------
-netfilter: xt_socket: Make tproto signed in socket_mt6_v1().
-
-Otherwise error indications from ipv6_find_hdr() won't be noticed.
-
-This required making the protocol argument to extract_icmp6_fields()
-signed too.
-
-Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- net/netfilter/xt_socket.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
-index d94a858..00d6ae8 100644
---- a/net/netfilter/xt_socket.c
-+++ b/net/netfilter/xt_socket.c
-@@ -195,7 +195,7 @@ socket_mt4_v1(const struct sk_buff *skb, struct xt_=
-action_param *par)
- static int
- extract_icmp6_fields(const struct sk_buff *skb,
- 		     unsigned int outside_hdrlen,
--		     u8 *protocol,
-+		     int *protocol,
- 		     struct in6_addr **raddr,
- 		     struct in6_addr **laddr,
- 		     __be16 *rport,
-@@ -252,8 +252,7 @@ socket_mt6_v1(const struct sk_buff *skb, struct xt_=
-action_param *par)
- 	struct sock *sk;
- 	struct in6_addr *daddr, *saddr;
- 	__be16 dport, sport;
--	int thoff;
--	u8 tproto;
-+	int thoff, tproto;
- 	const struct xt_socket_mtinfo1 *info =3D (struct xt_socket_mtinfo1 *)=
- par->matchinfo;
-=20
- 	tproto =3D ipv6_find_hdr(skb, &thoff, -1, NULL);
-@@ -305,7 +304,7 @@ socket_mt6_v1(const struct sk_buff *skb, struct xt_=
-action_param *par)
- 			sk =3D NULL;
- 	}
-=20
--	pr_debug("proto %hhu %pI6:%hu -> %pI6:%hu "
-+	pr_debug("proto %hhd %pI6:%hu -> %pI6:%hu "
- 		 "(orig %pI6:%hu) sock %p\n",
- 		 tproto, saddr, ntohs(sport),
- 		 daddr, ntohs(dport),
 --=20
-1.7.3.2
-
+Regards,
+Changli Gao(xiaosuo@gmail.com)
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
