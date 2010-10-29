@@ -1,103 +1,52 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [ANNOUNCE]: Release of iptables-1.4.10
-Date: Fri, 29 Oct 2010 17:43:06 +0200
-Message-ID: <4CCAEB8A.5090504@trash.net>
+Subject: Re: [PATCH] libxtables: change option precedence order to be intuitive
+Date: Fri, 29 Oct 2010 19:04:05 +0200
+Message-ID: <4CCAFE85.7040409@trash.net>
+References: <1287501388-5948-1-git-send-email-jengelh@medozas.de> <1287501388-5948-2-git-send-email-jengelh@medozas.de> <alpine.LNX.2.01.1010252357270.18188@obet.zrqbmnf.qr> <4CC94854.8010306@trash.net> <alpine.LNX.2.01.1010281250120.2326@obet.zrqbmnf.qr> <AANLkTi=V1vzOxF84M-weryWgQdozzwiyZwFUBMnd9MTH@mail.gmail.com> <alpine.LNX.2.01.1010291458200.3755@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020503020803020608050505"
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, NetDev <netdev@vger.kernel.org>,
-	netfilter-announce@lists.netfilter.org,
-	"'netfilter@vger.kernel.org'" <netfilter
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: Changli Gao <xiaosuo@gmail.com>, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41547 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:43231 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932511Ab0J2PnL (ORCPT
+	with ESMTP id S1754404Ab0J2REH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Oct 2010 11:43:11 -0400
+	Fri, 29 Oct 2010 13:04:07 -0400
+In-Reply-To: <alpine.LNX.2.01.1010291458200.3755@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------020503020803020608050505
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Am 29.10.2010 14:59, schrieb Jan Engelhardt:
+> On Friday 2010-10-29 07:26, Changli Gao wrote:
+>>>>>
+>>>>>> When using `-m mark --mark 2 -m connmark --mark 2`, the user currently
+>>>>>> gets an error about the (libxt_mark) --mark option being used twice.
+>>>>>> This is because libxt_connmark's option table does not override any
+>>>>>> previous options. This patch changes this behavior, since the current
+>>>>>> behavior does not allow connmark's option to be used at all, which is
+>>>>>> illogical.
+>>>>>
+>>>>> As per fw's suggestion, I should nag you every 48 hours ;-)
+>>>>>
+>>>>> Really, this should be in the next tag.
+>>>>
+>>>> This stuff is pretty fragile and whenever we changed it, something broke
+>>>> for users. Why not simply add new options  (--connmark etc). That would
+>>>> also be more consistent with the other extensions.
+>>>
+>>> Adding new options does not fix the real problem, and you cannot easily
+>>> ensure that no options will clash with another.
+>>> And what do you do when you use -m hashlimit --hashlimit-name abc -m
+>>> hashlimit --hashlimit-name def? You can't use new options here.
+>>
+>> I think this issue was discussed in this thread:
+>> http://marc.info/?l=netfilter-devel&m=121881908205975&w=2 . And the
+>> above command should be OK. Did you test it?
+> 
+> Well ok bad example; -m hashlimit twice works, as does your linked 
+> example when replacing -m a and -m b with -m mac.
 
-The netfilter coreteam presents:
-
-    iptables version 1.4.10
-
-the iptables release for the 2.6.36 kernel. Changes include:
-
-- support for the cpu match, which can be used to improve cache
-  locality when running multiple server instances
-
-- support for the IDLETIMER target, which can be used to notify
-  userspace of interfaces being idle
-
-- support for the CHECKSUM target
-
-- support for the ipvs match
-
-- documentation updates
-
-- a fix for deletion of rules using the quota match
-
-See the Changelog for more details.
-
-Version 1.4.10 can be obtained from:
-
-http://www.netfilter.org/projects/iptables/downloads.html
-ftp://ftp.netfilter.org/pub/iptables/
-git://git.netfilter.org/iptables.git
-
-On behalf of the Netfilter Core Team.
-Happy firewalling!
-
---------------020503020803020608050505
-Content-Type: text/plain;
- name="changes-iptables-1.4.10.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="changes-iptables-1.4.10.txt"
-
-Changli Gao (1):
-      libxt_quota: don't ignore the quota value on deletion
-
-Eric Dumazet (2):
-      extensions: REDIRECT: add random help
-      extension: add xt_cpu match
-
-Hannes Eder (1):
-      libxt_ipvs: user-space lib for netfilter matcher xt_ipvs
-
-Jan Engelhardt (11):
-      doc: let man(1) autoalign the text in xt_cpu
-      doc: remove extra empty line from xt_cpu
-      doc: minimal spelling updates to xt_cpu
-      all: consistent syntax use in struct option
-      doc: consistent use of markup
-      xtables: remove unnecessary cast
-      build: fix static linking
-      iptables-xml: resolve compiler warnings
-      iptables: limit chain name length to be consistent with targets
-      libiptc: build with -Wl,--no-as-needed
-      libiptc: add Libs.private to pkgconfig files
-
-Luciano Coelho (2):
-      extensions: add idletimer xt target extension
-      extensions: libxt_IDLETIMER: use xtables_param_act when checking options
-
-Michael S. Tsirkin (1):
-      extensions: libxt_CHECKSUM extension
-
-Patrick McHardy (6):
-      extensions: libipt_LOG/libip6t_LOG: support macdecode option
-      extensions: fix compilation of the new CHECKSUM target
-      Merge branch 'master' into iptables-next
-      Merge branch 'master' into iptables-next
-      Merge branch 'iptables-next'
-      Bump version to 1.4.10
-
-
---------------020503020803020608050505--
+I've applied the patch to iptables-next, but if something breaks
+I'll revert it and add --connmark- prefixed options.
