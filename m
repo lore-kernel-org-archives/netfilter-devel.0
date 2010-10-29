@@ -1,50 +1,45 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH] netfilter: fix nf_conntrack_l4proto_register()
-Date: Fri, 29 Oct 2010 19:57:02 +0200
-Message-ID: <1288375022.2560.306.camel@edumazet-laptop>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [ANNOUNCE]: Release of iptables-1.4.10
+Date: Fri, 29 Oct 2010 19:58:12 +0200
+Message-ID: <4CCB0B34.6030108@trash.net>
+References: <4CCAEB8A.5090504@trash.net> <alpine.LNX.2.01.1010291953580.9183@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>,
-	netdev <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist
+Cc: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:52099 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934254Ab0J2R5I (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:44245 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757536Ab0J2R6O (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Oct 2010 13:57:08 -0400
+	Fri, 29 Oct 2010 13:58:14 -0400
+In-Reply-To: <alpine.LNX.2.01.1010291953580.9183@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-While doing __rcu annotations work on net/netfilter I found following
-bug. On some arches, it is possible we publish a table while its content
-is not yet committed to memory, and lockless reader can dereference wild
-pointer.
+Am 29.10.2010 19:54, schrieb Jan Engelhardt:
+> 
+> On Friday 2010-10-29 17:43, Patrick McHardy wrote:
+> 
+>> The netfilter coreteam presents:
+>>
+>>    iptables version 1.4.10
+>>
+>> Version 1.4.10 can be obtained from:
+>>
+>> http://www.netfilter.org/projects/iptables/downloads.html
+>> ftp://ftp.netfilter.org/pub/iptables/
+>> git://git.netfilter.org/iptables.git
+> 
+> The v1.4.10 tag seems to not have made it onto the server. :^)
+> 
 
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
----
- net/netfilter/nf_conntrack_proto.c |    6 ++++++
- 1 files changed, 6 insertions(+)
+It should be there:
 
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index ed6d929..dc7bb74 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -292,6 +292,12 @@ int nf_conntrack_l4proto_register(struct nf_conntrack_l4proto *l4proto)
- 
- 		for (i = 0; i < MAX_NF_CT_PROTO; i++)
- 			proto_array[i] = &nf_conntrack_l4proto_generic;
-+
-+		/* Before making proto_array visible to lockless readers,
-+		 * we must make sure its content is committed to memory.
-+		 */
-+		smp_wmb();
-+
- 		nf_ct_protos[l4proto->l3proto] = proto_array;
- 	} else if (nf_ct_protos[l4proto->l3proto][l4proto->l4proto] !=
- 					&nf_conntrack_l4proto_generic) {
+$ hostname
+vishnu.netfilter.org
 
-
+$ git tag -l|grep 1.4.10
+v1.4.10
