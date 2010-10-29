@@ -1,48 +1,50 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter: nf_nat: make find/put static
-Date: Fri, 29 Oct 2010 16:30:37 +0200
-Message-ID: <4CCADA8D.3030808@trash.net>
-References: <201010231923.o9NJN2oc012438@hera.kernel.org> <AANLkTikuvBb79Q-mKK-u3tL=f433Om4T3NqJUynv=8=w@mail.gmail.com>
+Subject: Re: tproxy: added IPv6 support to the socket match
+Date: Fri, 29 Oct 2010 16:31:35 +0200
+Message-ID: <4CCADAC7.5040309@trash.net>
+References: <201010231923.o9NJNK9U013494@hera.kernel.org>	<AANLkTi=KRAcoonwFHKNaptap2LQHDswRCGpect82aHzx@mail.gmail.com> <20101028.130025.102564000.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Stephen Hemminger <shemminger@vyatta.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: geert@linux-m68k.org, bazsi@balabit.hu, hidden@balabit.hu,
+	akpm@linux-foundation.org, linux-kernel@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40101 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:40115 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756976Ab0J2Oay (ORCPT
+	with ESMTP id S933911Ab0J2Obh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Oct 2010 10:30:54 -0400
-In-Reply-To: <AANLkTikuvBb79Q-mKK-u3tL=f433Om4T3NqJUynv=8=w@mail.gmail.com>
+	Fri, 29 Oct 2010 10:31:37 -0400
+In-Reply-To: <20101028.130025.102564000.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 28.10.2010 20:42, schrieb Geert Uytterhoeven:
-> On Sat, Oct 23, 2010 at 21:23, Linux Kernel Mailing List
-> <linux-kernel@vger.kernel.org> wrote:
->>    netfilter: nf_nat: make find/put static
+Am 28.10.2010 22:00, schrieb David Miller:
+> From: Geert Uytterhoeven <geert@linux-m68k.org>
+> Date: Thu, 28 Oct 2010 20:51:43 +0200
+> 
+>>> +       u8 tproto;
 >>
->>    ...
->=20
-> They should be moved inside the
-> "#if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MO=
-DULE)",
-> as I now get:
->=20
-> net/ipv4/netfilter/nf_nat_core.c:52: warning: =E2=80=98nf_nat_proto_f=
-ind_get=E2=80=99
-> defined but not used
-> net/ipv4/netfilter/nf_nat_core.c:66: warning: =E2=80=98nf_nat_proto_p=
-ut=E2=80=99
-> defined but not used
+>> tproto is unsigned...
+>>
+>>> +       const struct xt_socket_mtinfo1 *info = (struct xt_socket_mtinfo1 *) par->matchinfo;
+>>> +
+>>> +       tproto = ipv6_find_hdr(skb, &thoff, -1, NULL);
+>>
+>> but ipv6_find_hdr() returns int, and negative values for errors...
+> 
+> Thanks Geert, I'll fix it like so:
+> 
+> --------------------
+> netfilter: xt_socket: Make tproto signed in socket_mt6_v1().
+> 
+> Otherwise error indications from ipv6_find_hdr() won't be noticed.
+> 
+> This required making the protocol argument to extract_icmp6_fields()
+> signed too.
+> 
+> Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> Signed-off-by: David S. Miller <davem@davemloft.net>
 
-Thanks, I'll fix this up.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for taking care of this Dave.
