@@ -1,35 +1,32 @@
-From: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
-Subject: Re: [PATCH 1/2] IPv6: conntrack: Use protocol-related initialization
- routine to initial queues of IPv6 connection track
-Date: Sat, 30 Oct 2010 20:41:03 +0200
-Message-ID: <4CCC66BF.3040305@plouf.fr.eu.org>
-References: <20100125.233254.35824860.davem@davemloft.net>	<4B5EE2C6.6010802@cn.fujitsu.com>	<4B5EE436.3040204@trash.net> <20100126.051147.256313206.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: kaber@trash.net, shanwei@cn.fujitsu.com,
-	yasuyuki.kozakai@toshiba.co.jp, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20100126.051147.256313206.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: libmnl cast remover
+Date: Sat, 30 Oct 2010 22:35:37 +0200
+Message-ID: <1288470939-7346-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from borg.medozas.de ([188.40.89.202]:48489 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751190Ab0J3Ufo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 30 Oct 2010 16:35:44 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
 
-David Miller a =E9crit :
->=20
-> Anyways, meanwhile I'll apply the fix.  And yes I know it needs
-> to go to stable too... :-)
+The following changes since commit bae340593494739f873a2e00d6c8bcfc3777edc1:
 
-It appears that the patch "ipv6: reassembly: use seperate reassembly
-queues for conntrack and local delivery" went to both the 2.6.32 and
-2.6.27 stable branches, but the fix from Shan Wei went to the 2.6.32
-branch only, not to the 2.6.27 branch. However I checked that it applie=
-s
- on the latest 2.6.27 release, and fixes the problem.
+  attr: rename str_null from NULL away (2010-10-25 00:44:00 +0200)
 
-Could someone submit it for the next 2.6.27 stable release ? Or if I
-have to do it, what is the process ?
-Thanks.
+are available in the git repository at:
+  git://dev.medozas.de/libmnl master
+
+Jan Engelhardt (1):
+      examples: remove redundant casts
+
+ examples/genl/genl-family-get.c |    6 +++---
+ examples/netfilter/nf-queue.c   |    2 +-
+ examples/netfilter/nfct-event.c |    8 ++++----
+ examples/rtnl/rtnl-link-dump.c  |    2 +-
+ examples/rtnl/rtnl-link-event.c |    2 +-
+ examples/rtnl/rtnl-route-dump.c |    2 +-
+ 6 files changed, 11 insertions(+), 11 deletions(-)
