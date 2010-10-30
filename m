@@ -1,56 +1,61 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 02/11] build: use modern call syntax for AC_INIT, AM_INIT_AUTOMAKE
-Date: Sun, 31 Oct 2010 00:09:50 +0200
-Message-ID: <1288476600-29859-3-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 03/11] build: avoid use of deprecated INCLUDES
+Date: Sun, 31 Oct 2010 00:09:51 +0200
+Message-ID: <1288476600-29859-4-git-send-email-jengelh@medozas.de>
 References: <1288476600-29859-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:49899 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:49902 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753809Ab0J3WKF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1753837Ab0J3WKF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Sat, 30 Oct 2010 18:10:05 -0400
 In-Reply-To: <1288476600-29859-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-automake options also need to definitely go into configure.ac,
-otherwise they only apply to a single directory.
+And remove unused $(all_includes).
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- Makefile.am  |    2 --
- configure.ac |    4 ++--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ Makefile.am       |    2 +-
+ src/Makefile.am   |    2 +-
+ utils/Makefile.am |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/Makefile.am b/Makefile.am
-index 348cfc6..eb7d586 100644
+index eb7d586..c6e1154 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -1,5 +1,3 @@
--AUTOMAKE_OPTIONS = foreign dist-bzip2 1.6
--
- INCLUDES =$(all_includes) -I$(top_srcdir)/include
+@@ -1,4 +1,4 @@
+-INCLUDES =$(all_includes) -I$(top_srcdir)/include
++AM_CPPFLAGS = -I$(top_srcdir)/include
  SUBDIRS	= include src utils
  LINKOPTS = -lnfnetlink
-diff --git a/configure.ac b/configure.ac
-index e0e1a41..c9b39a0 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -1,11 +1,11 @@
- dnl Process this file with autoconf to create configure.
  
--AC_INIT
-+AC_INIT([libnetfilter_log], [1.0.0])
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 62e877b..65eedf5 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -20,7 +20,7 @@
+ #
+ LIBVERSION=2:0:1
  
- AC_CANONICAL_SYSTEM
- AC_CONFIG_MACRO_DIR([m4])
+-INCLUDES = $(all_includes) -I$(top_srcdir)/include
++AM_CPPFLAGS = -I$(top_srcdir)/include
+ AM_CFLAGS = -fPIC -Wall
+ LIBS = @LIBNFLOG_LIBS@
  
--AM_INIT_AUTOMAKE(libnetfilter_log, 1.0.0)
-+AM_INIT_AUTOMAKE([-Wall foreign subdir-objects dist-bzip2 1.6])
+diff --git a/utils/Makefile.am b/utils/Makefile.am
+index f405dbf..b6c333b 100644
+--- a/utils/Makefile.am
++++ b/utils/Makefile.am
+@@ -1,4 +1,4 @@
+-INCLUDES = $(all_includes) -I$(top_srcdir)/include
++AM_CPPFLAGS = -I$(top_srcdir)/include
  
- AC_PROG_CC
- AM_PROG_LIBTOOL
+ check_PROGRAMS = nfulnl_test ulog_test
+ 
 -- 
 1.7.1
 
