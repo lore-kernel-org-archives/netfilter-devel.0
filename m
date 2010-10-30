@@ -1,43 +1,35 @@
-From: Vasiliy Kulikov <segooon@gmail.com>
-Subject: [PATCH] ipv4: netfilter: ip_tables: fix information leak to userland
-Date: Sat, 30 Oct 2010 18:26:50 +0400
-Message-ID: <1288448810-6628-1-git-send-email-segooon@gmail.com>
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-To: kernel-janitors@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
+Subject: Re: [PATCH 1/2] IPv6: conntrack: Use protocol-related initialization
+ routine to initial queues of IPv6 connection track
+Date: Sat, 30 Oct 2010 20:41:03 +0200
+Message-ID: <4CCC66BF.3040305@plouf.fr.eu.org>
+References: <20100125.233254.35824860.davem@davemloft.net>	<4B5EE2C6.6010802@cn.fujitsu.com>	<4B5EE436.3040204@trash.net> <20100126.051147.256313206.davem@davemloft.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: kaber@trash.net, shanwei@cn.fujitsu.com,
+	yasuyuki.kozakai@toshiba.co.jp, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20100126.051147.256313206.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Structure ipt_getinfo is copied to userland with the field "name"
-that has the last elements unitialized.  It leads to leaking of
-contents of kernel stack memory.
+Hello,
 
-Signed-off-by: Vasiliy Kulikov <segooon@gmail.com>
----
- Compile tested.
+David Miller a =E9crit :
+>=20
+> Anyways, meanwhile I'll apply the fix.  And yes I know it needs
+> to go to stable too... :-)
 
- net/ipv4/netfilter/ip_tables.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+It appears that the patch "ipv6: reassembly: use seperate reassembly
+queues for conntrack and local delivery" went to both the 2.6.32 and
+2.6.27 stable branches, but the fix from Shan Wei went to the 2.6.32
+branch only, not to the 2.6.27 branch. However I checked that it applie=
+s
+ on the latest 2.6.27 release, and fixes the problem.
 
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index d31b007..a846d63 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -1124,6 +1124,7 @@ static int get_info(struct net *net, void __user *user,
- 			private = &tmp;
- 		}
- #endif
-+		memset(&info, 0, sizeof(info));
- 		info.valid_hooks = t->valid_hooks;
- 		memcpy(info.hook_entry, private->hook_entry,
- 		       sizeof(info.hook_entry));
--- 
-1.7.0.4
+Could someone submit it for the next 2.6.27 stable release ? Or if I
+have to do it, what is the process ?
+Thanks.
