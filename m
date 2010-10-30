@@ -1,60 +1,52 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 11/11] Add .gitignore files
-Date: Sun, 31 Oct 2010 00:09:59 +0200
-Message-ID: <1288476600-29859-12-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 05/11] build: run AC_CANONICAL_HOST only
+Date: Sun, 31 Oct 2010 00:09:53 +0200
+Message-ID: <1288476600-29859-6-git-send-email-jengelh@medozas.de>
 References: <1288476600-29859-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:49932 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:49907 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753876Ab0J3WKP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 30 Oct 2010 18:10:15 -0400
+	id S1753841Ab0J3WKH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 30 Oct 2010 18:10:07 -0400
 In-Reply-To: <1288476600-29859-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
----
- .gitignore       |   20 ++++++++++++++++++++
- utils/.gitignore |    2 ++
- 2 files changed, 22 insertions(+), 0 deletions(-)
- create mode 100644 .gitignore
- create mode 100644 utils/.gitignore
+There is no need to call AC_CANONICAL_SYSTEM when only
+AC_CANONICAL_HOST is needed. Also, checking for $target is factually
+incorrect, since we do not produce object code like a compiler. Use
+$host, which specifies the triple/quadruple where the compiled program
+is supposed to run.
 
-diff --git a/.gitignore b/.gitignore
-new file mode 100644
-index 0000000..c9550f5
---- /dev/null
-+++ b/.gitignore
-@@ -0,0 +1,20 @@
-+.deps
-+.libs
-+Makefile
-+Makefile.in
-+*.o
-+*.la
-+*.lo
-+
-+/aclocal.m4
-+/autom4te.cache
-+/config.*
-+/configure
-+/depcomp
-+/install-sh
-+/libtool
-+/ltmain.sh
-+/missing
-+
-+/doxygen.cfg
-+/*.pc
-diff --git a/utils/.gitignore b/utils/.gitignore
-new file mode 100644
-index 0000000..64e4588
---- /dev/null
-+++ b/utils/.gitignore
-@@ -0,0 +1,2 @@
-+/nfulnl_test
-+/ulog_test
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ configure.ac |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index c9b39a0..7fa3566 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -2,7 +2,7 @@ dnl Process this file with autoconf to create configure.
+ 
+ AC_INIT([libnetfilter_log], [1.0.0])
+ 
+-AC_CANONICAL_SYSTEM
++AC_CANONICAL_HOST
+ AC_CONFIG_MACRO_DIR([m4])
+ 
+ AM_INIT_AUTOMAKE([-Wall foreign subdir-objects dist-bzip2 1.6])
+@@ -14,7 +14,7 @@ AC_PROG_LN_S
+ 
+ AC_SUBST(LIBTOOL_DEPS)
+ 
+-case $target in 
++case "$host" in 
+ *-*-linux*) ;;
+ *) AC_MSG_ERROR([Linux only, dude!]);;
+ esac
 -- 
 1.7.1
 
