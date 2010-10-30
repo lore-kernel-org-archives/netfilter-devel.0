@@ -1,39 +1,57 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 07/11] build: remove -fPIC flag
-Date: Sun, 31 Oct 2010 00:09:55 +0200
-Message-ID: <1288476600-29859-8-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 04/11] build: use simpler autoreconf in autogen
+Date: Sun, 31 Oct 2010 00:09:52 +0200
+Message-ID: <1288476600-29859-5-git-send-email-jengelh@medozas.de>
 References: <1288476600-29859-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:49915 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:49905 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753837Ab0J3WKK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 30 Oct 2010 18:10:10 -0400
+	id S1753809Ab0J3WKG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 30 Oct 2010 18:10:06 -0400
 In-Reply-To: <1288476600-29859-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-libtool automatically adds PIC flags as needed.
-
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- src/Makefile.am |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ autogen.sh |   20 +++-----------------
+ 1 files changed, 3 insertions(+), 17 deletions(-)
 
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 65eedf5..5668473 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -21,7 +21,7 @@
- LIBVERSION=2:0:1
+diff --git a/autogen.sh b/autogen.sh
+index b962504..ce22b64 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/bin/sh -e
  
- AM_CPPFLAGS = -I$(top_srcdir)/include
--AM_CFLAGS = -fPIC -Wall
-+AM_CFLAGS = -Wall
- LIBS = @LIBNFLOG_LIBS@
+ include ()
+ {
+@@ -34,20 +34,6 @@ include ()
+     fi
+ }
  
- lib_LTLIBRARIES = libnetfilter_log.la libnetfilter_log_libipulog.la
+-run ()
+-{
+-    echo "running: $*"
+-    eval $*
+-
+-    if test $? != 0 ; then
+-	echo "error: while running '$*'"
+-	exit 1
+-    fi
+-}
+-
+ [ "x$1" == "xdistrib" ] && include
+-run aclocal
+-#run autoheader
+-run libtoolize -f
+-run automake -a
+-run autoconf
++autoreconf -fi
++rm -Rf autom4te.cache
 -- 
 1.7.1
 
