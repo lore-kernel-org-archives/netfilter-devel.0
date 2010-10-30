@@ -1,46 +1,38 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: libnfnetlink: build system cleanup
-Date: Sun, 31 Oct 2010 00:07:24 +0200
-Message-ID: <1288476454-18451-1-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 3/9] build: avoid use of deprecated INCLUDES
+Date: Sun, 31 Oct 2010 00:07:27 +0200
+Message-ID: <1288476454-18451-4-git-send-email-jengelh@medozas.de>
+References: <1288476454-18451-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:46280 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:46288 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751123Ab0J3WHh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 30 Oct 2010 18:07:37 -0400
+	id S1751857Ab0J3WHk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 30 Oct 2010 18:07:40 -0400
+In-Reply-To: <1288476454-18451-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Make_global.am:7: "INCLUDES" is the old name for "AM_CPPFLAGS" (or "*_CPPFLAGS")
 
-The following changes since commit 54c8cf1853e97dcaa974c9f44297f94619f1d880:
+Also remove unused $(all_includes).
 
-  iftable: fix wrong handler unregistration on error (2010-09-30 13:23:07 +0200)
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ Make_global.am |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-are available in the git repository at:
-  git://dev.medozas.de/libnfnetlink master
+diff --git a/Make_global.am b/Make_global.am
+index b62b712..8b406a9 100644
+--- a/Make_global.am
++++ b/Make_global.am
+@@ -4,4 +4,4 @@
+ # http://sources.redhat.com/autobook/autobook/autobook_91.html
+ LIBVERSION=2:0:2
+ 
+-INCLUDES=$(all_includes) -I$(top_srcdir)/include
++AM_CPPFLAGS = -I$(top_srcdir)/include
+-- 
+1.7.1
 
-Jan Engelhardt (9):
-      build: use autoconf-suggested naming of files
-      build: use modern call syntax for AC_INIT, AM_INIT_AUTOMAKE
-      build: avoid use of deprecated INCLUDES
-      build: use simpler autoreconf in autogen
-      build: use AC_CONFIG_MACRO_DIR as directed
-      build: run AC_CANONICAL_HOST only
-      build: remove statements without effect
-      build: remove -fPIC flag
-      Add .gitignore files
-
- .gitignore                   |   19 +++++++++++++++++++
- Make_global.am               |    2 +-
- Makefile.am                  |    6 +-----
- autogen.sh                   |   20 +++-----------------
- configure.in => configure.ac |    8 ++++----
- m4/.gitignore                |    2 ++
- src/Makefile.am              |    3 +--
- utils/.gitignore             |    1 +
- 8 files changed, 32 insertions(+), 29 deletions(-)
- create mode 100644 .gitignore
- rename configure.in => configure.ac (77%)
- create mode 100644 m4/.gitignore
- create mode 100644 utils/.gitignore
