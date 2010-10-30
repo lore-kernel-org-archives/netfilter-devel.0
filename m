@@ -1,39 +1,44 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [ANNOUNCE]: Release of iptables-1.4.10
-Date: Fri, 29 Oct 2010 20:01:41 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1010292000070.9621@obet.zrqbmnf.qr>
-References: <4CCAEB8A.5090504@trash.net> <alpine.LNX.2.01.1010291953580.9183@obet.zrqbmnf.qr> <4CCB0B34.6030108@trash.net>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:50750 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752524Ab0J2SBm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Oct 2010 14:01:42 -0400
-In-Reply-To: <4CCB0B34.6030108@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Vasiliy Kulikov <segooon@gmail.com>
+Subject: [PATCH] ipv4: netfilter: arp_tables: fix information leak to userland
+Date: Sat, 30 Oct 2010 18:26:45 +0400
+Message-ID: <1288448806-6470-1-git-send-email-segooon@gmail.com>
+Cc: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+To: kernel-janitors@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+Structure arpt_getinfo is copied to userland with the field "name"
+that has the last elements unitialized.  It leads to leaking of
+contents of kernel stack memory.
 
-On Friday 2010-10-29 19:58, Patrick McHardy wrote:
->>>
->>> Version 1.4.10 can be obtained from:
->>>
->>> http://www.netfilter.org/projects/iptables/downloads.html
->>> ftp://ftp.netfilter.org/pub/iptables/
->>> git://git.netfilter.org/iptables.git
->> 
->> The v1.4.10 tag seems to not have made it onto the server. :^)
->
->It should be there:
->
->$ hostname
->vishnu.netfilter.org
->$ git tag -l|grep 1.4.10
->v1.4.10
+Signed-off-by: Vasiliy Kulikov <segooon@gmail.com>
+---
+ Compile tested.
 
-Ah. git does not fetch tags if they are not reachable from a
-branch head. (master is still at v1.4.10~1.)
+ net/ipv4/netfilter/arp_tables.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 3cad259..3fac340 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -927,6 +927,7 @@ static int get_info(struct net *net, void __user *user,
+ 			private = &tmp;
+ 		}
+ #endif
++		memset(&info, 0, sizeof(info));
+ 		info.valid_hooks = t->valid_hooks;
+ 		memcpy(info.hook_entry, private->hook_entry,
+ 		       sizeof(info.hook_entry));
+-- 
+1.7.0.4
+
