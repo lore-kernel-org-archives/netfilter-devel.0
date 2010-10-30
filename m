@@ -1,36 +1,39 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 06/11] build: remove statements without effect
-Date: Sun, 31 Oct 2010 00:09:54 +0200
-Message-ID: <1288476600-29859-7-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 07/11] build: remove -fPIC flag
+Date: Sun, 31 Oct 2010 00:09:55 +0200
+Message-ID: <1288476600-29859-8-git-send-email-jengelh@medozas.de>
 References: <1288476600-29859-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:49911 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:49915 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753837Ab0J3WKJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 30 Oct 2010 18:10:09 -0400
+	id S1753837Ab0J3WKK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 30 Oct 2010 18:10:10 -0400
 In-Reply-To: <1288476600-29859-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+libtool automatically adds PIC flags as needed.
+
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- Makefile.am |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+ src/Makefile.am |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index c6e1154..d001fba 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -10,7 +10,3 @@ man_MANS = #nfnetlink_log.3 nfnetlink_log.7
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 65eedf5..5668473 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -21,7 +21,7 @@
+ LIBVERSION=2:0:1
  
- pkgconfigdir = $(libdir)/pkgconfig
- pkgconfig_DATA = libnetfilter_log.pc
--
--$(OBJECTS): libtool
--libtool: $(LIBTOOL_DEPS)
--	$(SHELL) ./config.status --recheck
+ AM_CPPFLAGS = -I$(top_srcdir)/include
+-AM_CFLAGS = -fPIC -Wall
++AM_CFLAGS = -Wall
+ LIBS = @LIBNFLOG_LIBS@
+ 
+ lib_LTLIBRARIES = libnetfilter_log.la libnetfilter_log_libipulog.la
 -- 
 1.7.1
 
