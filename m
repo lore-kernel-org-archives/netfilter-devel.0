@@ -1,36 +1,28 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: icmp_error_message return?
-Date: Mon, 1 Nov 2010 20:42:55 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1011012039090.655@obet.zrqbmnf.qr>
-References: <48821288638402@web131.yandex.ru>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: libmnl cast remover
+Date: Mon, 01 Nov 2010 22:26:32 +0100
+Message-ID: <4CCF3088.7020101@netfilter.org>
+References: <1288470939-7346-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>,
-	Patrick McHardy <kaber@trash.net>, pablo@netfilter.org
-To: "\"Oleg A. Arkhangelsky\"" <sysoleg@yandex.ru>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:44117 "EHLO borg.medozas.de"
+Received: from mail.us.es ([193.147.175.20]:42208 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751473Ab0KATm4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Nov 2010 15:42:56 -0400
-In-Reply-To: <48821288638402@web131.yandex.ru>
+	id S1752869Ab0KAV0i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Nov 2010 17:26:38 -0400
+In-Reply-To: <1288470939-7346-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2010-11-01 20:06, "Oleg A. Arkhangelsky" wrote:
+On 30/10/10 22:35, Jan Engelhardt wrote:
+> The following changes since commit bae340593494739f873a2e00d6c8bcfc3777edc1:
+> 
+>   attr: rename str_null from NULL away (2010-10-25 00:44:00 +0200)
+> 
+> are available in the git repository at:
+>   git://dev.medozas.de/libmnl master
 
->Hello,
->
->Maybe I'm wrong, but the last line of icmp_error_message() from
->net/ipv4/netfilter/nf_conntrack_proto_icmp.c seems illogical to me.
->Should it be return NF_ACCEPT, instead of -NF_ACCEPT?
-
-(Same with icmpv6.c)
-
-Hmm! Maybe that explains why the ICMPv6 packets from my HE tunnel are 
-all -m conntrack --ctstate INVALID?
-
-(Ref.: http://www.spinics.net/lists/netfilter-devel/msg13247.html )
-
+Pulled and pushed, thanks Jan!
