@@ -1,62 +1,69 @@
-From: Stephen Clark <sclark46@earthlink.net>
-Subject: Re: clone packet with new destination address
-Date: Tue, 02 Nov 2010 09:53:57 -0400
-Message-ID: <4CD017F5.90509@earthlink.net>
-References: <4CC1843F.8050903@earthlink.net> <AANLkTi=Y6zdmj4hngEaJPjZjNTTWaWMERfKR=dGSkY9b@mail.gmail.com> <AANLkTi=T3QwJp-yVT3GNk46mjmudQ5CrE71YnMqWfsOh@mail.gmail.com> <4CCEB69B.5080905@earthlink.net> <alpine.LNX.2.01.1011011405480.4499@obet.zrqbmnf.qr> <4CCECEDD.2030107@earthlink.net> <alpine.LNX.2.01.1011012015340.655@obet.zrqbmnf.qr> <4CD015BD.2000408@earthlink.net> <alpine.LNX.2.01.1011021445320.7622@obet.zrqbmnf.qr>
-Reply-To: sclark46@earthlink.net
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [ipset-5: 1/9] Kernel compile-time files are added to .gitignore
+Date: Tue,  2 Nov 2010 15:35:26 +0100
+Message-ID: <1288708534-14510-2-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1288708534-14510-1-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Changli Gao <xiaosuo@gmail.com>, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: multipart/mixed; boundary="------------1.7.0.4"
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from elasmtp-junco.atl.sa.earthlink.net ([209.86.89.63]:55694 "EHLO
-	elasmtp-junco.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752729Ab0KBNyF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Nov 2010 09:54:05 -0400
-In-Reply-To: <alpine.LNX.2.01.1011021445320.7622@obet.zrqbmnf.qr>
+Received: from smtp1.kfki.hu ([148.6.0.26]:46739 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752981Ab0KBOfg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Nov 2010 10:35:36 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by smtp1.kfki.hu (Postfix) with ESMTP id 1591118815E
+	for <netfilter-devel@vger.kernel.org>; Tue,  2 Nov 2010 15:35:35 +0100 (CET)
+Received: from smtp1.kfki.hu ([127.0.0.1])
+	by localhost (smtp1.kfki.hu [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id rzwHOiskCjU0 for <netfilter-devel@vger.kernel.org>;
+	Tue,  2 Nov 2010 15:35:35 +0100 (CET)
+Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.0.114])
+	by smtp1.kfki.hu (Postfix) with ESMTP id F39E4188157
+	for <netfilter-devel@vger.kernel.org>; Tue,  2 Nov 2010 15:35:34 +0100 (CET)
+In-Reply-To: <1288708534-14510-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11/02/2010 09:46 AM, Jan Engelhardt wrote:
-> On Tuesday 2010-11-02 14:44, Stephen Clark wrote:
->    
->>>
->>>        
->>>> Also if I am mistaken and it does hit one of the remaining iptables
->>>> chains how do I tell it is not the original but the cloned packet I
->>>> want to change to the new destination address?
->>>>
->>>>          
->>> Good question. Given the possibilities I think an extra route towards
->>> the logging server that specifies a realm value, that is then
->>> matchable in -A OUTPUT -m realm, is in order.
->>>
->>>        
->> Hmm...,
->>
->> Sounds like maybe an easier way to do this is to use libipq and the
->> QUEUE target to select the packets of interest - then make a copy
->> of the packet in userspace and use a raw socket to send the copy
->> with the new destination address on its way.
->>
->> Does this sound reasonable?
->>      
-> The roundtrip over userspace sounds unnecessarily imperformant.
->
->    
-I would agree but it keeps me from being dependent on a particular 
-kernel version
-and we are only concerned with less than 10 packets per second.
+This is a multi-part message in MIME format.
+--------------1.7.0.4
+Content-Type: text/plain; charset=UTF-8; format=fixed
+Content-Transfer-Encoding: 8bit
 
--- 
 
-"They that give up essential liberty to obtain temporary safety,
-deserve neither liberty nor safety."  (Ben Franklin)
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ .gitignore |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-"The course of history shows that as a government grows, liberty
-decreases."  (Thomas Jefferson)
 
+--------------1.7.0.4
+Content-Type: text/x-patch; name="0001-Kernel-compile-time-files-are-added-to-.gitignore.patch"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline; filename="0001-Kernel-compile-time-files-are-added-to-.gitignore.patch"
+
+diff --git a/.gitignore b/.gitignore
+index 9f6660e..6992cc9 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -7,6 +7,15 @@
+ Makefile
+ Makefile.in
+ 
++*.o.cmd
++*.ko
++*.ko.cmd
++*.mod.c
++*.mod.o.cmd
++.tmp_versions
++Module.symvers
++modules.order
++
+ /aclocal.m4
+ /autom4te.cache
+ /compile
+
+--------------1.7.0.4--
 
 
