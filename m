@@ -1,42 +1,64 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: rules matching ipv6 prefix addrs
-Date: Wed, 3 Nov 2010 23:52:26 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1011032339220.29167@obet.zrqbmnf.qr>
-References: <4CD12B8B.9090506@plouf.fr.eu.org> <20101103.051925.193703726.davem@davemloft.net> <alpine.LNX.2.01.1011031331170.19124@obet.zrqbmnf.qr> <20101103.145503.104044664.davem@davemloft.net> <5ca75042-e809-4439-856a-e3da43cb6c23@email.android.com>
+Subject: Re: [PATCH 5/5] ipv4: netfilter: ip_tables: fix information leak to
+ userland
+Date: Wed, 3 Nov 2010 23:55:58 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1011032355020.31351@obet.zrqbmnf.qr>
+References: <1288822372-21245-1-git-send-email-kaber@trash.net> <1288822372-21245-6-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: David Miller <davem@davemloft.net>, pascal.mail@plouf.fr.eu.org,
-	netfilter-devel@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:55986 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:51112 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752825Ab0KCWw1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Nov 2010 18:52:27 -0400
-In-Reply-To: <5ca75042-e809-4439-856a-e3da43cb6c23@email.android.com>
+	id S1752830Ab0KCW4A (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Nov 2010 18:56:00 -0400
+In-Reply-To: <1288822372-21245-6-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 2010-11-03 23:36, H. Peter Anvin wrote:
+On Wednesday 2010-11-03 23:12, kaber@trash.net wrote:
 
->The prefix is set by the ISP and can change at any time.
+>From: Vasiliy Kulikov <segooon@gmail.com>
+>
+>Structure ipt_getinfo is copied to userland with the field "name"
+>that has the last elements unitialized.  It leads to leaking of
+>contents of kernel stack memory.
+>
+>Signed-off-by: Vasiliy Kulikov <segooon@gmail.com>
+>Signed-off-by: Patrick McHardy <kaber@trash.net>
+>---
+> net/ipv4/netfilter/ip_tables.c |    1 +
 
-I take it you mean a setup where addresses are automatically assigned 
-(DHCPv6, PPP).
 
-Still I don't see the problem - any security-conscious person would use 
-a drop-by-default ruleset. So a change of prefix address would, if 
-anything, cause packets to get dropped in FORWARD. (What do we have the 
-"ip6table_filter.forward" module option for? Right. And why is it set to 
-ACCEPT by default? *headshakethere*)
+But then we would also need this:
 
->In IPv4 this is generally masked by NAT, but in IPv6 it affects every 
->host.
 
-Different scenario. Because packets from Internet are 
-only destined for your home gateway address, they would get locally 
-delivered in the normal case, and any forwarding is an opt-in 
-process on the admin's behalf.
+--------8<-------------
+parent 93aa45607748d2ffa73f41a435dced6a2fd90cb5 (v2.6.36-rc3-1020-g93aa456)
+commit 8aff3f67fa47f7d3211aea8bbef999554d6f65e5
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Wed Nov 3 23:55:18 2010 +0100
 
-If you used a FORWARD-DROP policy in IPv6, forwarding also becomes the 
-same opt-in process. So it's not like NAT would be any magic.
+netfilter: ip6_tables: fix information leak to userspace
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ net/ipv6/netfilter/ip6_tables.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index c683e9e..d13f893 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1137,6 +1137,7 @@ static int get_info(struct net *net, void __user *user,
+ 			private = &tmp;
+ 		}
+ #endif
++		memset(&info, 0, sizeof(info));
+ 		info.valid_hooks = t->valid_hooks;
+ 		memcpy(info.hook_entry, private->hook_entry,
+ 		       sizeof(info.hook_entry));
+-- 
+# Created with git-export-patch
