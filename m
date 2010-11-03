@@ -1,34 +1,40 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ipv4: netfilter: ip_tables: fix information leak to userland
-Date: Wed, 03 Nov 2010 08:45:26 +0100
-Message-ID: <4CD11316.3080707@trash.net>
-References: <1288448810-6628-1-git-send-email-segooon@gmail.com>
+From: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
+Subject: Re: rules matching ipv6 prefix addrs
+Date: Wed, 03 Nov 2010 10:29:47 +0100
+Message-ID: <4CD12B8B.9090506@plouf.fr.eu.org>
+References: <20101102.135254.226783976.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: kernel-janitors@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-To: Vasiliy Kulikov <segooon@gmail.com>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44539 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753378Ab0KCHp2 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Nov 2010 03:45:28 -0400
-In-Reply-To: <1288448810-6628-1-git-send-email-segooon@gmail.com>
+Received: from poutre.nerim.net ([62.4.16.124]:60045 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752847Ab0KCJ3w (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Nov 2010 05:29:52 -0400
+In-Reply-To: <20101102.135254.226783976.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 30.10.2010 16:26, Vasiliy Kulikov wrote:
-> Structure ipt_getinfo is copied to userland with the field "name"
-> that has the last elements unitialized.  It leads to leaking of
-> contents of kernel stack memory.
+Hello,
 
-Also applied, thanks.
+David Miller a =E9crit :
+> H. Peter Anvin just mentioned something interesting to me,
+> basically it's the fact that when your prefix addresses
+> change on an interface in ipv6, this can invalidate your
+> netfilter rules.
+>=20
+> So it would be nice if there were some way to match "the
+> ipv6 prefix address on interface X", and through some
+> kind of caching this could be optimized so it wouldn't
+> really cost anything.
+>=20
+> Thoughts?
+
+What would be a use case ?
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
