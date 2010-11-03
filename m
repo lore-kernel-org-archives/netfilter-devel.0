@@ -1,50 +1,42 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: rules matching ipv6 prefix addrs
-Date: Wed, 03 Nov 2010 18:36:12 -0400
-Message-ID: <5ca75042-e809-4439-856a-e3da43cb6c23@email.android.com>
-References: <4CD12B8B.9090506@plouf.fr.eu.org> <20101103.051925.193703726.davem@davemloft.net> <alpine.LNX.2.01.1011031331170.19124@obet.zrqbmnf.qr> <20101103.145503.104044664.davem@davemloft.net>
+Date: Wed, 3 Nov 2010 23:52:26 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1011032339220.29167@obet.zrqbmnf.qr>
+References: <4CD12B8B.9090506@plouf.fr.eu.org> <20101103.051925.193703726.davem@davemloft.net> <alpine.LNX.2.01.1011031331170.19124@obet.zrqbmnf.qr> <20101103.145503.104044664.davem@davemloft.net> <5ca75042-e809-4439-856a-e3da43cb6c23@email.android.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: pascal.mail@plouf.fr.eu.org, netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>, jengelh@medozas.de
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: David Miller <davem@davemloft.net>, pascal.mail@plouf.fr.eu.org,
+	netfilter-devel@vger.kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:43739 "EHLO mail.zytor.com"
+Received: from borg.medozas.de ([188.40.89.202]:55986 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753299Ab0KCWiH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Nov 2010 18:38:07 -0400
-In-Reply-To: <20101103.145503.104044664.davem@davemloft.net>
+	id S1752825Ab0KCWw1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Nov 2010 18:52:27 -0400
+In-Reply-To: <5ca75042-e809-4439-856a-e3da43cb6c23@email.android.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The prefix is set by the ISP and can change at any time.  In IPv4 this is generally masked by NAT, but in IPv6 it affects every host.
+On Wednesday 2010-11-03 23:36, H. Peter Anvin wrote:
 
-What changes (in the normal case) is the common prefix of the network, i.e. the fraction delegated by the ISP.  If your ISP gives you a /56, for example, those 56 bits can change at any time, and that will affect all the hosts on your network.
+>The prefix is set by the ISP and can change at any time.
 
+I take it you mean a setup where addresses are automatically assigned 
+(DHCPv6, PPP).
 
-"David Miller" <davem@davemloft.net> wrote:
+Still I don't see the problem - any security-conscious person would use 
+a drop-by-default ruleset. So a change of prefix address would, if 
+anything, cause packets to get dropped in FORWARD. (What do we have the 
+"ip6table_filter.forward" module option for? Right. And why is it set to 
+ACCEPT by default? *headshakethere*)
 
->From: Jan Engelhardt <jengelh@medozas.de>
->Date: Wed, 3 Nov 2010 13:32:42 +0100 (CET)
->
->> On Wednesday 2010-11-03 13:19, David Miller wrote:
->>>
->>>> What would be a use case ?
->>>
->>>I thought it was painfully obvious but...  the use case is setting up
->>>a rule that matches the prefix addresses and having such rules still
->>>work properly when the link flaps onto a link with a different prefix
->> 
->> A link moving to another link.. you lost me there.
->> Links usually don't move, packets do. Can you provide `ip addr`-style
->
->> output of Before and After, to better see what's being meant?
->
->This issue was expressed to me by H. Peter Anvin, let's CC: him
->to get some specific examples.
->
->HPA?
+>In IPv4 this is generally masked by NAT, but in IPv6 it affects every 
+>host.
 
--- 
-Sent from my mobile phone.  Please pardon any lack of formatting.
+Different scenario. Because packets from Internet are 
+only destined for your home gateway address, they would get locally 
+delivered in the normal case, and any forwarding is an opt-in 
+process on the admin's behalf.
+
+If you used a FORWARD-DROP policy in IPv6, forwarding also becomes the 
+same opt-in process. So it's not like NAT would be any magic.
