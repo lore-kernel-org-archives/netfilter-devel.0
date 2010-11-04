@@ -1,64 +1,34 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 5/5] ipv4: netfilter: ip_tables: fix information leak to
- userland
-Date: Wed, 3 Nov 2010 23:55:58 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1011032355020.31351@obet.zrqbmnf.qr>
-References: <1288822372-21245-1-git-send-email-kaber@trash.net> <1288822372-21245-6-git-send-email-kaber@trash.net>
+Subject: Re: [RFC 0/3] MPEG2/TS drop analyzer iptables match extension
+Date: Thu, 4 Nov 2010 01:16:47 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1011040113270.8604@obet.zrqbmnf.qr>
+References: <Pine.LNX.4.64.1010191608080.18708@ask.diku.dk>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: kaber@trash.net
+Cc: Netfilter Developers <netfilter-devel@vger.kernel.org>,
+	paulmck@linux.vnet.ibm.com, Eric Dumazet <eric.dumazet@gmail.com>,
+	netdev <netdev@vger.kernel.org>
+To: Jesper Dangaard Brouer <hawk@diku.dk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:51112 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:34662 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752830Ab0KCW4A (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Nov 2010 18:56:00 -0400
-In-Reply-To: <1288822372-21245-6-git-send-email-kaber@trash.net>
+	id S1751199Ab0KDAQw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Nov 2010 20:16:52 -0400
+In-Reply-To: <Pine.LNX.4.64.1010191608080.18708@ask.diku.dk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 2010-11-03 23:12, kaber@trash.net wrote:
-
->From: Vasiliy Kulikov <segooon@gmail.com>
+On Tuesday 2010-10-19 16:21, Jesper Dangaard Brouer wrote:
 >
->Structure ipt_getinfo is copied to userland with the field "name"
->that has the last elements unitialized.  It leads to leaking of
->contents of kernel stack memory.
+> This is my iptables match module for analyzing IPTV MPEG2/TS streams.
+> Currently it only detects dropped packets, but I want to extend it for
+> analyzing jitter and bursts.
 >
->Signed-off-by: Vasiliy Kulikov <segooon@gmail.com>
->Signed-off-by: Patrick McHardy <kaber@trash.net>
->---
-> net/ipv4/netfilter/ip_tables.c |    1 +
+> Jan Engelhardt convinced me that I should just send the module as-is
+> for review on the list.  I wrote the code in 2009, and have only done
+> some minor changes to make it work on kernel 2.6.35 since.
 
-
-But then we would also need this:
-
-
---------8<-------------
-parent 93aa45607748d2ffa73f41a435dced6a2fd90cb5 (v2.6.36-rc3-1020-g93aa456)
-commit 8aff3f67fa47f7d3211aea8bbef999554d6f65e5
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Wed Nov 3 23:55:18 2010 +0100
-
-netfilter: ip6_tables: fix information leak to userspace
-
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- net/ipv6/netfilter/ip6_tables.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index c683e9e..d13f893 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1137,6 +1137,7 @@ static int get_info(struct net *net, void __user *user,
- 			private = &tmp;
- 		}
- #endif
-+		memset(&info, 0, sizeof(info));
- 		info.valid_hooks = t->valid_hooks;
- 		memcpy(info.hook_entry, private->hook_entry,
- 		       sizeof(info.hook_entry));
--- 
-# Created with git-export-patch
+This now lives in the mp2t branch (since NFWS already actually) of xt-a, 
+and I have taken the liberty to start updating it to higher standards. 
+Please watch that branch, as I don't have any MPEG equipment around me 
+to do runtime tests.
