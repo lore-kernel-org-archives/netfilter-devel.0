@@ -1,28 +1,27 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/5] netfilter: netfilter fixes
-Date: Wed, 03 Nov 2010 18:54:24 -0700 (PDT)
-Message-ID: <20101103.185424.112607729.davem@davemloft.net>
+Subject: Re: [PATCH 5/5] ipv4: netfilter: ip_tables: fix information leak
+ to userland
+Date: Wed, 03 Nov 2010 18:55:52 -0700 (PDT)
+Message-ID: <20101103.185552.59666742.davem@davemloft.net>
 References: <1288822372-21245-1-git-send-email-kaber@trash.net>
+	<1288822372-21245-6-git-send-email-kaber@trash.net>
+	<alpine.LNX.2.01.1011032355020.31351@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:45547
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754389Ab0KDByA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Nov 2010 21:54:00 -0400
-In-Reply-To: <1288822372-21245-1-git-send-email-kaber@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: jengelh@medozas.de
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <alpine.LNX.2.01.1011032355020.31351@obet.zrqbmnf.qr>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: kaber@trash.net
-Date: Wed,  3 Nov 2010 23:12:47 +0100
+From: Jan Engelhardt <jengelh@medozas.de>
+Date: Wed, 3 Nov 2010 23:55:58 +0100 (CET)
 
-> Please apply or pull from:
+> netfilter: ip6_tables: fix information leak to userspace
 > 
-> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git
+> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 
-Pulled, thanks a lot Patrick.
+Good catch, applied, thanks Jan.
