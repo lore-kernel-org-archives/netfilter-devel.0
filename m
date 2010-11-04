@@ -1,53 +1,71 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: rules matching ipv6 prefix addrs
-Date: Thu, 4 Nov 2010 09:58:20 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1011040943200.4050@obet.zrqbmnf.qr>
-References: <4CD12B8B.9090506@plouf.fr.eu.org> <20101103.051925.193703726.davem@davemloft.net> <alpine.LNX.2.01.1011031331170.19124@obet.zrqbmnf.qr> <20101103.145503.104044664.davem@davemloft.net> <5ca75042-e809-4439-856a-e3da43cb6c23@email.android.com>
- <alpine.LNX.2.01.1011032339220.29167@obet.zrqbmnf.qr> <4CD21679.2070508@zytor.com>
+From: Jesper Dangaard Brouer <hawk@diku.dk>
+Subject: Re: [RFC 0/3] MPEG2/TS drop analyzer iptables match extension
+Date: Thu, 4 Nov 2010 10:20:29 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.1011040953590.19565@ask.diku.dk>
+References: <Pine.LNX.4.64.1010191608080.18708@ask.diku.dk>
+ <alpine.LNX.2.01.1011040113270.8604@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: David Miller <davem@davemloft.net>, pascal.mail@plouf.fr.eu.org,
-	netfilter-devel@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Netfilter Developers <netfilter-devel@vger.kernel.org>,
+	paulmck@linux.vnet.ibm.com, Eric Dumazet <eric.dumazet@gmail.com>,
+	netdev <netdev@vger.kernel.org>,
+	Solvik Blum <solvik.blum@smartjog.com>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:40452 "EHLO borg.medozas.de"
+Received: from mgw2.diku.dk ([130.225.96.92]:57909 "EHLO mgw2.diku.dk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751111Ab0KDI6Y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Nov 2010 04:58:24 -0400
-In-Reply-To: <4CD21679.2070508@zytor.com>
+	id S1755418Ab0KDJUc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 4 Nov 2010 05:20:32 -0400
+In-Reply-To: <alpine.LNX.2.01.1011040113270.8604@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Thursday 2010-11-04 03:12, H. Peter Anvin wrote:
+On Thu, 4 Nov 2010, Jan Engelhardt wrote:
+> On Tuesday 2010-10-19 16:21, Jesper Dangaard Brouer wrote:
+>>
+>> This is my iptables match module for analyzing IPTV MPEG2/TS streams.
+>> Currently it only detects dropped packets, but I want to extend it for
+>> analyzing jitter and bursts.
+>>
+>> Jan Engelhardt convinced me that I should just send the module as-is
+>> for review on the list.  I wrote the code in 2009, and have only done
+>> some minor changes to make it work on kernel 2.6.35 since.
 >
->Consider for example the case where I get from my ISP the netblock
->2001:0db8:ac10::/48.  I subnet this internally with subnet numbers prefixed by
->/52 security domains, i.e 2001:0db8:ac10:0000::/52, 2001:0db8:ac10:1000::/52
->and so forth.  Accordingly, my ip6tables would contain rules as to what kind of
->traffic can flow between these prefixes.
->
->Now, the upstream (ISP-assigned) prefix changes to 2001:6b2f:1705::/48.  RA
->will handle reassigning addresses to actual downstream hosts, but things that
->explicitly encode IPv6 addresses need to be changed, and that includes
->ip6tables, in this case these rules now need to refer to
->2001:6b2f:1705:0000::/52, 2001:62bf:1705:1000::/52 and so on.
+> This now lives in the mp2t branch (since NFWS already actually) of xt-a,
+> and I have taken the liberty to start updating it to higher standards.
+> Please watch that branch, as I don't have any MPEG equipment around me
+> to do runtime tests.
 
-Now that helps, thanks :)
+Jan, I would actually like to maintain the source via my own git tree. 
+And I would gladly accept your patches against that tree.
 
-You could use
+Since the workshop, I have been busy "Open Sourcing" the project my self. 
+I now have a git repository, which also contains the collector daemon, 
+web-code and database layout.  The git tree also contains some README 
+documentation.  It for example contains a description of howto setup a 
+testlab with MPEG2 streaming via VLC and controlled packet drops via 
+tc-netem, so you can perform your runtime tests.
 
- ip6tables -A FORWARD -d 0:0:0:1000::/0:0:0:ffff::
+I didn't plan to release the project just yet, as I wanted to do some 
+renaming.  E.g I want to rename the mp2t module to mpeg2ts, and I want to 
+rename the collector daemon from tvprobe to iptv-analyzer.
 
-to ignore the changing prefix part.
+The git tree is temporarily located on people.netfilter.org:
 
->You're assuming (a) that I'm talking about a home gateway here (which may be,
->but is far from certain -- the dynamic prefixes are a design feature of the
->entire IPv6 Internet, and any entity that is not large enough to have direct
->access to BGP6 is required to handle arbitrary prefix changes),
+  git://people.netfilter.org/hawk/iptv-analyzer.git
 
-I was just assuming this because I would find it highly disturbing if
-my rented-servers-in-a-datacenter suddenly had their prefix changed,
-for then that would also necessitate a change in the DNS zone.
-If you self-host your own DNS zone to which the ISP has no write
-access then goodluck.
+I have bought the domain iptv-analyzer.org, but I have not installed any 
+servers on that domain, yet.
+
+Solvik Blum (Cc.ed), is currently helping me out with the web-frontend.
+
+Cheers,
+   Jesper Brouer
+
+--
+-------------------------------------------------------------------
+MSc. Master of Computer Science
+Dept. of Computer Science, University of Copenhagen
+Author of http://www.adsl-optimizer.dk
+-------------------------------------------------------------------
