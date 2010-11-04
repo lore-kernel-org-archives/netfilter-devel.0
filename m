@@ -1,55 +1,53 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Can NFQUEUE accept/continue when there is no userspace listener
- registered ?
-Date: Thu, 04 Nov 2010 05:37:54 +0100
-Message-ID: <4CD238A2.8070900@trash.net>
-References: <4CD22E08.2060300@netbauds.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: rules matching ipv6 prefix addrs
+Date: Thu, 4 Nov 2010 09:58:20 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1011040943200.4050@obet.zrqbmnf.qr>
+References: <4CD12B8B.9090506@plouf.fr.eu.org> <20101103.051925.193703726.davem@davemloft.net> <alpine.LNX.2.01.1011031331170.19124@obet.zrqbmnf.qr> <20101103.145503.104044664.davem@davemloft.net> <5ca75042-e809-4439-856a-e3da43cb6c23@email.android.com>
+ <alpine.LNX.2.01.1011032339220.29167@obet.zrqbmnf.qr> <4CD21679.2070508@zytor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Darryl Miles <darryl-mailinglists@netbauds.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: David Miller <davem@davemloft.net>, pascal.mail@plouf.fr.eu.org,
+	netfilter-devel@vger.kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63410 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751227Ab0KDEh4 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Nov 2010 00:37:56 -0400
-In-Reply-To: <4CD22E08.2060300@netbauds.net>
+Received: from borg.medozas.de ([188.40.89.202]:40452 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751111Ab0KDI6Y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 4 Nov 2010 04:58:24 -0400
+In-Reply-To: <4CD21679.2070508@zytor.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 04.11.2010 04:52, Darryl Miles wrote:
-> Is there any mechanism which would allow additional options to NFQUEUE
-> target to instruct the kernel what to do:
-> 
->  --action-no-listener NF_ACCEPT|NF_DROP|CONTINUE  (with NF_DROP being
-> the default)
->  --action-backlog-overflow NF_ACCEPT|NF_DROP|CONTINUE   (with NF_DROP
-> being the default)
 
---action-no-listener is hard to do because the rule has no direct
-connection to the queue and backend queueing mechanism and thus
-it can't determine whether a listener exists. There's also currently
-no way to propagate that information to the backend. Well, maybe
-you could encode it in the verdict, similar to the queue number.
+On Thursday 2010-11-04 03:12, H. Peter Anvin wrote:
+>
+>Consider for example the case where I get from my ISP the netblock
+>2001:0db8:ac10::/48.  I subnet this internally with subnet numbers prefixed by
+>/52 security domains, i.e 2001:0db8:ac10:0000::/52, 2001:0db8:ac10:1000::/52
+>and so forth.  Accordingly, my ip6tables would contain rules as to what kind of
+>traffic can flow between these prefixes.
+>
+>Now, the upstream (ISP-assigned) prefix changes to 2001:6b2f:1705::/48.  RA
+>will handle reassigning addresses to actual downstream hosts, but things that
+>explicitly encode IPv6 addresses need to be changed, and that includes
+>ip6tables, in this case these rules now need to refer to
+>2001:6b2f:1705:0000::/52, 2001:62bf:1705:1000::/52 and so on.
 
---action-backlog-overflow should be pretty easy to add to the
-queueing backend itself (nfnetlink_queue), however when the packet
-reaches the backend, it has already left the ruleset, so it won't
-continue in the chain but instead continue as if a verdict of
-NF_ACCEPT had been issued.
+Now that helps, thanks :)
 
-> Where CONTINUE would in effect ignore the existence of the "-j NFQUEUE"
-> rule in the chain and continue to the next rule.  I guess this is
-> possible if the packet never made it to user-space.
-> 
-> 
-> Would there be any objections to providing a patch to kernel and
-> userspace tooling to provide this configurable behavior ?   Is it
-> obviously useful to others ?
+You could use
 
-Having the packet continue when the queue overflows has been requested
-a couple of times for hung snort processes, so yes, this sounds useful.
-If you can implement the no-listener feature in a reasonable way that
-also sounds useful.
+ ip6tables -A FORWARD -d 0:0:0:1000::/0:0:0:ffff::
+
+to ignore the changing prefix part.
+
+>You're assuming (a) that I'm talking about a home gateway here (which may be,
+>but is far from certain -- the dynamic prefixes are a design feature of the
+>entire IPv6 Internet, and any entity that is not large enough to have direct
+>access to BGP6 is required to handle arbitrary prefix changes),
+
+I was just assuming this because I would find it highly disturbing if
+my rented-servers-in-a-datacenter suddenly had their prefix changed,
+for then that would also necessitate a change in the DNS zone.
+If you self-host your own DNS zone to which the ISP has no write
+access then goodluck.
