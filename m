@@ -1,34 +1,67 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [RFC 0/3] MPEG2/TS drop analyzer iptables match extension
-Date: Thu, 4 Nov 2010 01:16:47 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1011040113270.8604@obet.zrqbmnf.qr>
-References: <Pine.LNX.4.64.1010191608080.18708@ask.diku.dk>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: icmp_error_message return?
+Date: Thu, 04 Nov 2010 10:34:31 +0900 (JST)
+Message-ID: <201011040134.oA41YVtE005603@toshiba.co.jp>
+References: <48821288638402@web131.yandex.ru>
+	<alpine.LNX.2.01.1011012039090.655@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	paulmck@linux.vnet.ibm.com, Eric Dumazet <eric.dumazet@gmail.com>,
-	netdev <netdev@vger.kernel.org>
-To: Jesper Dangaard Brouer <hawk@diku.dk>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: sysoleg@yandex.ru, netfilter-devel@vger.kernel.org,
+	yasuyuki.kozakai@toshiba.co.jp, kaber@trash.net,
+	pablo@netfilter.org
+To: jengelh@medozas.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:34662 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751199Ab0KDAQw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Nov 2010 20:16:52 -0400
-In-Reply-To: <Pine.LNX.4.64.1010191608080.18708@ask.diku.dk>
+Received: from imx9.toshiba.co.jp ([202.33.96.51]:64277 "EHLO
+	imx9.toshiba.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754309Ab0KDBkg (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Nov 2010 21:40:36 -0400
+Received: from imx2.toshiba.co.jp (imx2 [202.33.96.24])
+	by imx9.toshiba.co.jp  with ESMTP id oA41eYjc005361
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Thu, 4 Nov 2010 10:40:34 +0900 (JST)
+Received: from arc1.toshiba.co.jp ([133.199.194.235])
+	by imx2.toshiba.co.jp  with ESMTP id oA41YW7Q010362
+	for <netfilter-devel@vger.kernel.org>; Thu, 4 Nov 2010 10:34:32 +0900 (JST)
+Received: (from root@localhost)
+	by arc1.toshiba.co.jp  id oA41YWfM026976
+	for netfilter-devel@vger.kernel.org; Thu, 4 Nov 2010 10:34:32 +0900 (JST)
+Received: from mx11.toshiba.co.jp (localhost [127.0.0.1])
+	by ovp2.toshiba.co.jp  with ESMTP id oA41YWCn027528
+	for <netfilter-devel@vger.kernel.org>; Thu, 4 Nov 2010 10:34:32 +0900 (JST)
+In-Reply-To: <alpine.LNX.2.01.1011012039090.655@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 2010-10-19 16:21, Jesper Dangaard Brouer wrote:
->
-> This is my iptables match module for analyzing IPTV MPEG2/TS streams.
-> Currently it only detects dropped packets, but I want to extend it for
-> analyzing jitter and bursts.
->
-> Jan Engelhardt convinced me that I should just send the module as-is
-> for review on the list.  I wrote the code in 2009, and have only done
-> some minor changes to make it work on kernel 2.6.35 since.
 
-This now lives in the mp2t branch (since NFWS already actually) of xt-a, 
-and I have taken the liberty to start updating it to higher standards. 
-Please watch that branch, as I don't have any MPEG equipment around me 
-to do runtime tests.
+Hello,
+
+From: Jan Engelhardt <jengelh@medozas.de>
+Date: Mon, 1 Nov 2010 20:42:55 +0100 (CET)
+
+> On Monday 2010-11-01 20:06, "Oleg A. Arkhangelsky" wrote:
+> 
+> >Hello,
+> >
+> >Maybe I'm wrong, but the last line of icmp_error_message() from
+> >net/ipv4/netfilter/nf_conntrack_proto_icmp.c seems illogical to me.
+> >Should it be return NF_ACCEPT, instead of -NF_ACCEPT?
+
+-NF_ACCEPT should be returned. ICMP error is the special packet and
+icmp_error_message() assigns IP_CT_RELATED to ctinfo itself.
+nf_conntrack_in() is unnecessary to resolve ctinfo as normal packets,
+so icmp_error_message() returns -NF_ACCEPT.
+
+
+> (Same with icmpv6.c)
+> 
+> Hmm! Maybe that explains why the ICMPv6 packets from my HE tunnel are 
+> all -m conntrack --ctstate INVALID?
+> 
+> (Ref.: http://www.spinics.net/lists/netfilter-devel/msg13247.html )
+
+I think this is another issue. Maybe fragmentation is related to it ?
+
+
+-- Yasuyuki Kozakai
