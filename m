@@ -1,71 +1,50 @@
-From: Jesper Dangaard Brouer <hawk@diku.dk>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: [RFC 0/3] MPEG2/TS drop analyzer iptables match extension
-Date: Thu, 4 Nov 2010 10:20:29 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.1011040953590.19565@ask.diku.dk>
-References: <Pine.LNX.4.64.1010191608080.18708@ask.diku.dk>
- <alpine.LNX.2.01.1011040113270.8604@obet.zrqbmnf.qr>
+Date: Thu, 4 Nov 2010 11:29:07 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1011041121170.16551@obet.zrqbmnf.qr>
+References: <Pine.LNX.4.64.1010191608080.18708@ask.diku.dk> <alpine.LNX.2.01.1011040113270.8604@obet.zrqbmnf.qr> <Pine.LNX.4.64.1011040953590.19565@ask.diku.dk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developers <netfilter-devel@vger.kernel.org>,
 	paulmck@linux.vnet.ibm.com, Eric Dumazet <eric.dumazet@gmail.com>,
 	netdev <netdev@vger.kernel.org>,
 	Solvik Blum <solvik.blum@smartjog.com>
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Jesper Dangaard Brouer <hawk@diku.dk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:57909 "EHLO mgw2.diku.dk"
+Received: from borg.medozas.de ([188.40.89.202]:54931 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755418Ab0KDJUc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Nov 2010 05:20:32 -0400
-In-Reply-To: <alpine.LNX.2.01.1011040113270.8604@obet.zrqbmnf.qr>
+	id S1755434Ab0KDK3I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 4 Nov 2010 06:29:08 -0400
+In-Reply-To: <Pine.LNX.4.64.1011040953590.19565@ask.diku.dk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Thu, 4 Nov 2010, Jan Engelhardt wrote:
-> On Tuesday 2010-10-19 16:21, Jesper Dangaard Brouer wrote:
+On Thursday 2010-11-04 10:20, Jesper Dangaard Brouer wrote:
+> On Thu, 4 Nov 2010, Jan Engelhardt wrote:
+>> On Tuesday 2010-10-19 16:21, Jesper Dangaard Brouer wrote:
+>>>
+>>> This is my iptables match module for analyzing IPTV MPEG2/TS streams.
+>>> Currently it only detects dropped packets, but I want to extend it for
+>>> analyzing jitter and bursts.
+>>>
+>>> Jan Engelhardt convinced me that I should just send the module as-is
+>>> for review on the list.  I wrote the code in 2009, and have only done
+>>> some minor changes to make it work on kernel 2.6.35 since.
 >>
->> This is my iptables match module for analyzing IPTV MPEG2/TS streams.
->> Currently it only detects dropped packets, but I want to extend it for
->> analyzing jitter and bursts.
->>
->> Jan Engelhardt convinced me that I should just send the module as-is
->> for review on the list.  I wrote the code in 2009, and have only done
->> some minor changes to make it work on kernel 2.6.35 since.
+>> This now lives in the mp2t branch (since NFWS already actually) of xt-a,
+>> and I have taken the liberty to start updating it to higher standards.
+>> Please watch that branch, as I don't have any MPEG equipment around me
+>> to do runtime tests.
 >
-> This now lives in the mp2t branch (since NFWS already actually) of xt-a,
-> and I have taken the liberty to start updating it to higher standards.
-> Please watch that branch, as I don't have any MPEG equipment around me
-> to do runtime tests.
+> Jan, I would actually like to maintain the source via my own git tree. And I
+> would gladly accept your patches against that tree.
 
-Jan, I would actually like to maintain the source via my own git tree. 
-And I would gladly accept your patches against that tree.
+I do not mind who is hosting what parts, as git repos can be
+transferred easily, but I strongly suggest not to decouple xt_mp2t
+from (any clone of) the xtables-addons structure base, because doing
+so would bring you back to square one with regard to maintenance.
 
-Since the workshop, I have been busy "Open Sourcing" the project my self. 
-I now have a git repository, which also contains the collector daemon, 
-web-code and database layout.  The git tree also contains some README 
-documentation.  It for example contains a description of howto setup a 
-testlab with MPEG2 streaming via VLC and controlled packet drops via 
-tc-netem, so you can perform your runtime tests.
-
-I didn't plan to release the project just yet, as I wanted to do some 
-renaming.  E.g I want to rename the mp2t module to mpeg2ts, and I want to 
-rename the collector daemon from tvprobe to iptv-analyzer.
-
-The git tree is temporarily located on people.netfilter.org:
-
-  git://people.netfilter.org/hawk/iptv-analyzer.git
-
-I have bought the domain iptv-analyzer.org, but I have not installed any 
-servers on that domain, yet.
-
-Solvik Blum (Cc.ed), is currently helping me out with the web-frontend.
-
-Cheers,
-   Jesper Brouer
-
---
--------------------------------------------------------------------
-MSc. Master of Computer Science
-Dept. of Computer Science, University of Copenhagen
-Author of http://www.adsl-optimizer.dk
--------------------------------------------------------------------
+I recognize you may dislike splitting up the IPTV codebase, so I
+propose that you make use of submodules, and have an Xt-a clone as
+one submodule. That would allow merging in both directions.
