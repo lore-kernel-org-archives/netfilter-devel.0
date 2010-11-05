@@ -1,45 +1,40 @@
-From: Shan Wei <shanwei@cn.fujitsu.com>
-Subject: [PATCH] netfilter: ipv6: fix overlap check for fragments
-Date: Fri, 05 Nov 2010 19:56:40 +0800
-Message-ID: <4CD3F0F8.5030205@cn.fujitsu.com>
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: Re: [PATCH 46/49] net/netfilter: Use vzalloc
+Date: Fri, 5 Nov 2010 11:10:23 -0400 (EDT)
+Message-ID: <alpine.LNX.2.00.1011051108270.15851@pobox.suse.cz>
+References: <alpine.DEB.2.00.1011031108260.11625@router.home>  <7d6da34b7e84955795717b0241000a0701cd5b34.1288925425.git.joe@perches.com>  <1288938640.3234.12.camel@edumazet-laptop> <1288940146.18440.55.camel@Joe-Laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-To: nicolas.dichtel@6wind.com, David Miller <davem@davemloft.net>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Jesper Juhl <jj@chaosbits.net>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+To: Joe Perches <joe@perches.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:64378 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751803Ab0KEL4U (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Nov 2010 07:56:20 -0400
+Received: from cantor.suse.de ([195.135.220.2]:46626 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751451Ab0KEPK0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Nov 2010 11:10:26 -0400
+In-Reply-To: <1288940146.18440.55.camel@Joe-Laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The type of FRAG6_CB(prev)->offset is int, skb->len is *unsigned* int,
-and offset is int.
+On Thu, 4 Nov 2010, Joe Perches wrote:
 
-Without this patch, type conversion occurred to this expression, when
-(FRAG6_CB(prev)->offset + prev->len) is less than offset.
+> I also think a single rolled-up single patch is good.
+> 
+> I believe Jiri Kosina can easily apply all these individual patches as a 
+> single patch if he chooses.
 
+I will, after this settles a little bit (the same for the WARN series). 
+I prefer waiting a bit before applying your patches usually. 
 
-Signed-off-by: Shan Wei <shanwei@cn.fujitsu.com>
----
- net/ipv6/netfilter/nf_conntrack_reasm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+First to see what lands in linux-next through maintainer's trees, second 
+to gather Acks.
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 3a3f129..79d43aa 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -286,7 +286,7 @@ found:
- 
- 	/* Check for overlap with preceding fragment. */
- 	if (prev &&
--	    (NFCT_FRAG6_CB(prev)->offset + prev->len) - offset > 0)
-+	    (NFCT_FRAG6_CB(prev)->offset + prev->len) > offset)
- 		goto discard_fq;
- 
- 	/* Look for overlap with succeeding segment. */
 -- 
-1.6.3.3
+Jiri Kosina
+SUSE Labs, Novell Inc.
