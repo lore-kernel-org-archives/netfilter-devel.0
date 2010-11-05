@@ -1,36 +1,50 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 2/2] build: use AC_OUTPUT
-Date: Fri,  5 Nov 2010 18:56:13 +0100
-Message-ID: <1288979774-18386-3-git-send-email-jengelh@medozas.de>
-References: <1288979774-18386-1-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 3/5] build: run autoupdate to replace obsolete constructs
+Date: Fri,  5 Nov 2010 18:56:51 +0100
+Message-ID: <1288979814-18512-4-git-send-email-jengelh@medozas.de>
+References: <1288979814-18512-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:55360 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:55379 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753183Ab0KER4W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Nov 2010 13:56:22 -0400
-In-Reply-To: <1288979774-18386-1-git-send-email-jengelh@medozas.de>
+	id S1753332Ab0KER47 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Nov 2010 13:56:59 -0400
+In-Reply-To: <1288979814-18512-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- configure.ac |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ configure.ac |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index f73f323..3831697 100644
+index 1d5ac2b..7f9110a 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -23,4 +23,6 @@ dnl Dependencies
- PKG_CHECK_MODULES([LIBNFNETLINK], [libnfnetlink >= 0.0.41])
+@@ -65,8 +65,7 @@ AC_CHECK_FUNCS(inet_pton)
+ dnl Some systems have it, but not IPv6
+ if test "$ac_cv_func_inet_pton" = "yes" ; then
+ AC_MSG_CHECKING(if inet_pton supports IPv6)
+-AC_TRY_RUN(
+-   [
++AC_RUN_IFELSE([AC_LANG_SOURCE([[
+ #ifdef HAVE_SYS_TYPES_H
+ #include <sys/types.h>
+ #endif
+@@ -87,9 +86,9 @@ int main()
+      else
+         exit(0);
+   }
+-  ], [ AC_MSG_RESULT(yes)
++  ]])],[ AC_MSG_RESULT(yes)
+        AC_DEFINE_UNQUOTED(HAVE_INET_PTON_IPV6, 1, [Define to 1 if inet_pton supports IPv6.])
+-  ], AC_MSG_RESULT(no), AC_MSG_RESULT(no))
++  ],[AC_MSG_RESULT(no)],[AC_MSG_RESULT(no)])
+ fi
  
- dnl Output the makefiles
--AC_OUTPUT(Makefile include/Makefile include/libnetfilter_queue/Makefile src/Makefile utils/Makefile libnetfilter_queue.pc doxygen.cfg)
-+AC_CONFIG_FILES([Makefile include/Makefile include/libnetfilter_queue/Makefile
-+	src/Makefile utils/Makefile libnetfilter_queue.pc doxygen.cfg])
-+AC_OUTPUT
+ # Checks for header files.
 -- 
 1.7.1
 
