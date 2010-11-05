@@ -1,41 +1,39 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: libnfnetlink build updates 2
-Date: Fri,  5 Nov 2010 18:34:12 +0100
-Message-ID: <1288978456-15380-1-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 2/3] build: use AC_OUTPUT
+Date: Fri,  5 Nov 2010 18:37:30 +0100
+Message-ID: <1288978652-15892-3-git-send-email-jengelh@medozas.de>
+References: <1288978652-15892-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:58448 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:42074 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754631Ab0KEReU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Nov 2010 13:34:20 -0400
+	id S1754062Ab0KERhh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Nov 2010 13:37:37 -0400
+In-Reply-To: <1288978652-15892-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ configure.ac |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-The following changes since commit 01a7a3bddd5a6dd21cf23c2e8b097abd935ad15a:
+diff --git a/configure.ac b/configure.ac
+index 18e546f..d0145bd 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -63,5 +63,8 @@ if test ! -z "$libdir"; then
+ fi
+ 
+ dnl Output the makefile
+-AC_OUTPUT(Makefile src/Makefile include/Makefile utils/Makefile qa/Makefile include/libnetfilter_conntrack/Makefile include/internal/Makefile src/conntrack/Makefile src/expect/Makefile libnetfilter_conntrack.pc doxygen.cfg)
+-
++AC_CONFIG_FILES([Makefile src/Makefile include/Makefile utils/Makefile
++	qa/Makefile include/libnetfilter_conntrack/Makefile
++	include/internal/Makefile src/conntrack/Makefile src/expect/Makefile
++	libnetfilter_conntrack.pc doxygen.cfg])
++AC_OUTPUT
+-- 
+1.7.1
 
-  Add .gitignore files (2010-10-30 23:45:17 +0200)
-
-are available in the git repository at:
-  git://dev.medozas.de/libnfnetlink master
-
-Jan Engelhardt (3):
-      build: use AC_OUTPUT
-      build: default to not building static libraries
-      Remove distro-specific parts
-
- configure.ac                    |    5 ++++-
- debian/changelog                |   17 -----------------
- debian/control                  |   23 -----------------------
- debian/copyright                |    9 ---------
- debian/libnfnetlink-dev.install |    2 --
- debian/libnfnetlink0.install    |    1 -
- debian/rules                    |   17 -----------------
- 7 files changed, 4 insertions(+), 70 deletions(-)
- delete mode 100644 debian/changelog
- delete mode 100644 debian/control
- delete mode 100644 debian/copyright
- delete mode 100644 debian/libnfnetlink-dev.install
- delete mode 100644 debian/libnfnetlink0.install
- delete mode 100755 debian/rules
