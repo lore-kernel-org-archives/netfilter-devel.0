@@ -1,69 +1,57 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 46/49] net/netfilter: Use vzalloc
-Date: Fri, 05 Nov 2010 08:16:11 +0100
-Message-ID: <1288941371.3234.31.camel@edumazet-laptop>
-References: <alpine.DEB.2.00.1011031108260.11625@router.home>
-	 <7d6da34b7e84955795717b0241000a0701cd5b34.1288925425.git.joe@perches.com>
-	 <1288938640.3234.12.camel@edumazet-laptop>
-	 <1288940146.18440.55.camel@Joe-Laptop>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Can NFQUEUE accept/continue when there is no userspace listener
+ registered ?
+Date: Fri, 05 Nov 2010 10:29:43 +0100
+Message-ID: <4CD3CE87.2040901@trash.net>
+References: <4CD22E08.2060300@netbauds.net> <4CD238A2.8070900@trash.net> <4CD34AE5.8090606@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jesper Juhl <jj@chaosbits.net>, Jiri Kosina <trivial@kernel.org>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-To: Joe Perches <joe@perches.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Darryl Miles <darryl-mailinglists@netbauds.net>,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:38134 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750827Ab0KEHQR (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:56402 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753874Ab0KEJ3s (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Nov 2010 03:16:17 -0400
-In-Reply-To: <1288940146.18440.55.camel@Joe-Laptop>
+	Fri, 5 Nov 2010 05:29:48 -0400
+In-Reply-To: <4CD34AE5.8090606@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le jeudi 04 novembre 2010 =C3=A0 23:55 -0700, Joe Perches a =C3=A9crit =
-:
-> On Fri, 2010-11-05 at 07:30 +0100, Eric Dumazet wrote:
-> > I had _one_ patch, waiting that David actually had vzalloc() in its=
- tree
-> > before sending it.
->=20
-> Fine by me, use yours.
+On 05.11.2010 01:08, Pablo Neira Ayuso wrote:
+> On 04/11/10 05:37, Patrick McHardy wrote:
+>> On 04.11.2010 04:52, Darryl Miles wrote:
+>>> Is there any mechanism which would allow additional options to NFQUEUE
+>>> target to instruct the kernel what to do:
+>>>
+>>>   --action-no-listener NF_ACCEPT|NF_DROP|CONTINUE  (with NF_DROP being
+>>> the default)
+>>>   --action-backlog-overflow NF_ACCEPT|NF_DROP|CONTINUE   (with NF_DROP
+>>> being the default)
+>>
+>> --action-no-listener is hard to do because the rule has no direct
+>> connection to the queue and backend queueing mechanism and thus
+>> it can't determine whether a listener exists. There's also currently
+>> no way to propagate that information to the backend. Well, maybe
+>> you could encode it in the verdict, similar to the queue number.
+>>
+>> --action-backlog-overflow should be pretty easy to add to the
+>> queueing backend itself (nfnetlink_queue), however when the packet
+>> reaches the backend, it has already left the ruleset, so it won't
+>> continue in the chain but instead continue as if a verdict of
+>> NF_ACCEPT had been issued.
+> 
+> We can add two new netlink attributes like:
+> 
+> * NFQA_CFG_NO_LISTENER_VERDICT
+> * NFQA_CFG_OVERFLOW_VERDICT
+> 
+> These can be used to send messages from user-space to configure the
+> instance, these will remain per-process parameters. It's similar to what
+> we do with NFQA_CFG_QUEUE_MAXLEN.
 
-I dont care at all, only to say that David tree was not ready yet.
-
-
->=20
-> > Given Jesper Juhl was doing this work, could you please take anothe=
-r
-> > one, please ?
-> > For example, explaining him how to use other tools than "bash+egrep
-> > +manual inspection" as he mentioned in a previous mail.
->=20
-> Jesper Juhl was both pointed at the cocci docs and
-> given a cocci script.  He said he'd investigate it
-> when he could.  I trust he will get to it.
->=20
-
-Yes, yet you posted patches, knowing he was working on the _same_
-subject.
-
-I remember other occurrences of such behavior.
-
-I find this behavior very unfriendly, time consuming, and not useful.
-
-We try to work together, to increase our common knowledge, not to throw
-a bunch of patches "just because I know better than you"
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Well, no listener can't be configured in nfnetlink_queue since the
+instance goes away with the listener :) That's why I was saying that
+this information needs to be included in the NF_QUEUE verdict.
