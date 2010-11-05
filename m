@@ -1,39 +1,39 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 9/9] filter/HWHDR: remove redundant sizeof(char)
-Date: Fri,  5 Nov 2010 19:36:23 +0100
-Message-ID: <1288982184-23584-10-git-send-email-jengelh@medozas.de>
-References: <1288982184-23584-1-git-send-email-jengelh@medozas.de>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+Subject: people.netfilter.org v6 busted
+Date: Fri, 5 Nov 2010 19:38:35 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1011051937540.23942@obet.zrqbmnf.qr>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:44417 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:44450 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753309Ab0KESgg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Nov 2010 14:36:36 -0400
-In-Reply-To: <1288982184-23584-1-git-send-email-jengelh@medozas.de>
+	id S1752862Ab0KESig (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Nov 2010 14:38:36 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by borg.medozas.de (Postfix) with ESMTP id 4309364E2
+	for <netfilter-devel@vger.kernel.org>; Fri,  5 Nov 2010 19:38:35 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It is 1 by definition.
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- filter/ulogd_filter_HWHDR.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+JFYI, p.n.o ain't reachable over IPv6 anymore.
 
-diff --git a/filter/ulogd_filter_HWHDR.c b/filter/ulogd_filter_HWHDR.c
-index 0e3f627..3b713a5 100644
---- a/filter/ulogd_filter_HWHDR.c
-+++ b/filter/ulogd_filter_HWHDR.c
-@@ -118,7 +118,7 @@ static int parse_mac2str(struct ulogd_key *ret, unsigned char *mac,
- 	char *buf_cur;
- 	int i;
- 
--	if (len/sizeof(char)*3 + 1 > HWADDR_LENGTH)
-+	if (len * 3 + 1 > HWADDR_LENGTH)
- 		return ULOGD_IRET_ERR;
- 
- 	if (len == 0)
--- 
-1.7.1
+
+19:37 nova:~/code/iptv-analyzer > telnet people.netfilter.org 80
+Trying 2001:780:45:1d:a00:20ff:feb3:606d...
+telnet: connect to address 2001:780:45:1d:a00:20ff:feb3:606d: No route 
+to host
+Trying 213.95.46.76...
+Connected to people.netfilter.org.
+Escape character is '^]'.
+^]
+telnet> Connection closed.
+19:37 nova:~/code/iptv-analyzer > telnet ipv6.google.com 80
+Trying 2a00:1450:8004::67...
+Connected to ipv6.google.com.
+Escape character is '^]'.
+^]
+telnet> Connection closed.
+
 
