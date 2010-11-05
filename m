@@ -1,63 +1,45 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Can NFQUEUE accept/continue when there is no userspace listener
- registered ?
-Date: Fri, 05 Nov 2010 10:33:27 +0100
-Message-ID: <4CD3CF67.9090008@netfilter.org>
-References: <4CD22E08.2060300@netbauds.net> <4CD238A2.8070900@trash.net> <4CD34AE5.8090606@netfilter.org> <4CD3CE87.2040901@trash.net>
+From: Shan Wei <shanwei@cn.fujitsu.com>
+Subject: [PATCH] netfilter: ipv6: fix overlap check for fragments
+Date: Fri, 05 Nov 2010 19:56:40 +0800
+Message-ID: <4CD3F0F8.5030205@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: Darryl Miles <darryl-mailinglists@netbauds.net>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: nicolas.dichtel@6wind.com, David Miller <davem@davemloft.net>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59033 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752307Ab0KEJdb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Nov 2010 05:33:31 -0400
-In-Reply-To: <4CD3CE87.2040901@trash.net>
+Received: from cn.fujitsu.com ([222.73.24.84]:64378 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751803Ab0KEL4U (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Nov 2010 07:56:20 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 05/11/10 10:29, Patrick McHardy wrote:
-> On 05.11.2010 01:08, Pablo Neira Ayuso wrote:
->> On 04/11/10 05:37, Patrick McHardy wrote:
->>> On 04.11.2010 04:52, Darryl Miles wrote:
->>>> Is there any mechanism which would allow additional options to NFQUEUE
->>>> target to instruct the kernel what to do:
->>>>
->>>>   --action-no-listener NF_ACCEPT|NF_DROP|CONTINUE  (with NF_DROP being
->>>> the default)
->>>>   --action-backlog-overflow NF_ACCEPT|NF_DROP|CONTINUE   (with NF_DROP
->>>> being the default)
->>>
->>> --action-no-listener is hard to do because the rule has no direct
->>> connection to the queue and backend queueing mechanism and thus
->>> it can't determine whether a listener exists. There's also currently
->>> no way to propagate that information to the backend. Well, maybe
->>> you could encode it in the verdict, similar to the queue number.
->>>
->>> --action-backlog-overflow should be pretty easy to add to the
->>> queueing backend itself (nfnetlink_queue), however when the packet
->>> reaches the backend, it has already left the ruleset, so it won't
->>> continue in the chain but instead continue as if a verdict of
->>> NF_ACCEPT had been issued.
->>
->> We can add two new netlink attributes like:
->>
->> * NFQA_CFG_NO_LISTENER_VERDICT
->> * NFQA_CFG_OVERFLOW_VERDICT
->>
->> These can be used to send messages from user-space to configure the
->> instance, these will remain per-process parameters. It's similar to what
->> we do with NFQA_CFG_QUEUE_MAXLEN.
-> 
-> Well, no listener can't be configured in nfnetlink_queue since the
-> instance goes away with the listener :)
+The type of FRAG6_CB(prev)->offset is int, skb->len is *unsigned* int,
+and offset is int.
 
-Oh, I forgot that this is a chicken-egg problem :-(.
+Without this patch, type conversion occurred to this expression, when
+(FRAG6_CB(prev)->offset + prev->len) is less than offset.
 
-> That's why I was saying that
-> this information needs to be included in the NF_QUEUE verdict.
 
-Indeed, that seems to me the good choice :-).
+Signed-off-by: Shan Wei <shanwei@cn.fujitsu.com>
+---
+ net/ipv6/netfilter/nf_conntrack_reasm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 3a3f129..79d43aa 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -286,7 +286,7 @@ found:
+ 
+ 	/* Check for overlap with preceding fragment. */
+ 	if (prev &&
+-	    (NFCT_FRAG6_CB(prev)->offset + prev->len) - offset > 0)
++	    (NFCT_FRAG6_CB(prev)->offset + prev->len) > offset)
+ 		goto discard_fq;
+ 
+ 	/* Look for overlap with succeeding segment. */
+-- 
+1.6.3.3
