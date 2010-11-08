@@ -1,49 +1,35 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Fwd: RFC: netfilter: cache dst_entry in conntrack
-Date: Mon, 8 Nov 2010 14:34:07 +0800
-Message-ID: <AANLkTinFKxOb2quNxV8HKz3Bgp9CwO_uzqE+7hBd+WxW@mail.gmail.com>
-References: <AANLkTimVY870t+ugopoabpe3+QCDC9RFh0nCtgPmJLq8@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: RFC: netfilter: cache dst_entry in conntrack
+Date: Mon, 08 Nov 2010 07:39:14 +0100
+Message-ID: <4CD79B12.9060502@trash.net>
+References: <AANLkTimVY870t+ugopoabpe3+QCDC9RFh0nCtgPmJLq8@mail.gmail.com> <4CD79A79.3030103@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: unlisted-recipients:; (no To-header on input)
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:60358 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751701Ab0KHGe2 (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:54301 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751633Ab0KHGjQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Nov 2010 01:34:28 -0500
-Received: by fxm16 with SMTP id 16so3757865fxm.19
-        for <netfilter-devel@vger.kernel.org>; Sun, 07 Nov 2010 22:34:27 -0800 (PST)
-In-Reply-To: <AANLkTimVY870t+ugopoabpe3+QCDC9RFh0nCtgPmJLq8@mail.gmail.com>
+	Mon, 8 Nov 2010 01:39:16 -0500
+In-Reply-To: <4CD79A79.3030103@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Cc: netfilter-devel
+[resend with netfilter-devel address fixed]
 
+On 08.11.2010 07:36, Patrick McHardy wrote:
+> On 08.11.2010 07:32, Changli Gao wrote:
+>> When conntrack is enabled, we can cache dst_entry into the
+>> corresponding conntrack to eliminate the subsequence
+>> ip_route_input_noref() calls for the same connection. The current
+>> implementation is a standalone module. If this idea is welcomed, I'll
+>> try to push it up. Thanks.
+>>
+>> Here it is: https://github.com/xiaosuo/xiaosuo/tree/master/nf_rtcache/
+> 
+> Please send the patch as attachment so it can be discussed.
 
----------- Forwarded message ----------
-From: Changli Gao <xiaosuo@gmail.com>
-Date: Mon, Nov 8, 2010 at 2:32 PM
-Subject: RFC: netfilter: cache dst_entry in conntrack
-To: Patrick McHardy <kaber@trash.net>
-Cc: netfilter-devel@lists.netfilter.org
-
-
-When conntrack is enabled, we can cache dst_entry into the
-corresponding conntrack to eliminate the subsequence
-ip_route_input_noref() calls for the same connection. The current
-implementation is a standalone module. If this idea is welcomed, I'll
-try to push it up. Thanks.
-
-Here it is: https://github.com/xiaosuo/xiaosuo/tree/master/nf_rtcache/
-
---
-Regards,
-Changli Gao(xiaosuo@gmail.com)
-
-
-
--- 
-Regards,
-Changli Gao(xiaosuo@gmail.com)
