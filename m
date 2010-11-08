@@ -1,65 +1,79 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: RFC: netfilter: cache dst_entry in conntrack
-Date: Mon, 8 Nov 2010 22:29:16 +0800
-Message-ID: <AANLkTinUqYAie_4bDbgp+b9Q9Y_aZdKSN0wga5mV=bfc@mail.gmail.com>
-References: <AANLkTimVY870t+ugopoabpe3+QCDC9RFh0nCtgPmJLq8@mail.gmail.com>
- <AANLkTinFKxOb2quNxV8HKz3Bgp9CwO_uzqE+7hBd+WxW@mail.gmail.com> <166541289209552@web79.yandex.ru>
+From: Yechiel Levi <gmistick@gmail.com>
+Subject: Re: Using Netfiletr hooks without IP stack
+Date: Mon, 8 Nov 2010 21:27:08 +0200
+Message-ID: <AANLkTincrrrpG3Yj1LBNDx5S=hVu71RorpUv8sv-+GP-@mail.gmail.com>
+References: <A50724DAD8873141837C64A73A73735F052DD9@mailesl2.esl.corp.elbit.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=KOI8-R
-Cc: netfilter-devel@vger.kernel.org
-To: "Oleg A. Arkhangelsky" <sysoleg@yandex.ru>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: Yedidia Amit <amit.yedidia@elbitsystems.com>,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:43560 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754473Ab0KHO3h (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:57326 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753343Ab0KHT1n convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Nov 2010 09:29:37 -0500
-Received: by bwz11 with SMTP id 11so4903264bwz.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 08 Nov 2010 06:29:36 -0800 (PST)
-In-Reply-To: <166541289209552@web79.yandex.ru>
+	Mon, 8 Nov 2010 14:27:43 -0500
+Received: by fxm16 with SMTP id 16so4318717fxm.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 08 Nov 2010 11:27:41 -0800 (PST)
+In-Reply-To: <A50724DAD8873141837C64A73A73735F052DD9@mailesl2.esl.corp.elbit.co.il>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 8, 2010 at 5:45 PM, "Oleg A. Arkhangelsky"
-<sysoleg@yandex.ru> wrote:
+Maybe those images done by Jan Engelhardt, could help you:
+
+http://jengelh.medozas.de/images/nf-packet-flow.png.,
+http://jengelh.medozas.de/images/nf-components.png
+
+
+
+On Mon, Nov 8, 2010 at 8:32 AM, Yedidia Amit
+<amit.yedidia@elbitsystems.com> wrote:
+> Hi All,
 >
+> I want to use the netfilter framework on my system (running linux
+> 2.6.33)
+> My purpose is to capture and manipulate IP packets. The catch is that=
+ I
+> am working without the IP stack, so I need to capture the packets in =
+the
+> Ethernet layer. =A0I have BSD sockets but the TCP/IP is removed from =
+the
+> menuconfig
 >
-> 08.11.2010, 09:34, "Changli Gao" <xiaosuo@gmail.com>:
+> Are there any hooks which are available for me on that level, or shou=
+ld
+> I add some new ones?
+> Thanks.
 >
->> When conntrack is enabled, we can cache dst_entry into the
->> corresponding conntrack to eliminate the subsequence
->> ip_route_input_noref() calls for the same connection. The current
+> Best Regards,
+> Amit Yedidia
 >
-> Any performance gains? How much?
+> The information in this e-mail transmission contains proprietary and =
+business
+> sensitive information. =A0Unauthorized interception of this e-mail ma=
+y constitute
+> a violation of law. If you are not the intended recipient, you are he=
+reby
+> notified that any review, dissemination, distribution or duplication =
+of this
+> communication is strictly prohibited. You are also asked to contact t=
+he sender
+> by reply email and immediately destroy all copies of the original mes=
+sage.
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
+evel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
 >
 
-I have tested between my host OS and virtual OS runs on virtualbox.
-Here is the result.
 
 
-xiaosuo@gentux src $ netperf -t TCP_RR -H 10.13.150.50 -l 60
-TCP REQUEST/RESPONSE TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to
-10.13.150.50 (10.13.150.50) port 0 AF_INET
-Local /Remote
-Socket Size   Request  Resp.   Elapsed  Trans.
-Send   Recv   Size     Size    Time     Rate
-bytes  Bytes  bytes    bytes   secs.    per sec
-
-16384  87380  1        1       60.00    5625.71
-16384  87380
-xiaosuo@gentux src $ netperf -t TCP_RR -H 10.13.150.50 -l 60
-TCP REQUEST/RESPONSE TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to
-10.13.150.50 (10.13.150.50) port 0 AF_INET
-Local /Remote
-Socket Size   Request  Resp.   Elapsed  Trans.
-Send   Recv   Size     Size    Time     Rate
-bytes  Bytes  bytes    bytes   secs.    per sec
-
-16384  87380  1        1       60.00    5614.79
-16384  87380
-
-The former is with nf_rtcache enabled.
-
--- 
-Regards,
-Changli Gao(xiaosuo@gmail.com)
+--=20
+Kind Regards,
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
