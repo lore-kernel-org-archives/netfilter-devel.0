@@ -1,42 +1,32 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Using Netfiletr hooks without IP stack
-Date: Mon, 8 Nov 2010 21:23:48 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1011082114210.2608@obet.zrqbmnf.qr>
-References: <A50724DAD8873141837C64A73A73735F052DD9@mailesl2.esl.corp.elbit.co.il>
+From: Tommaso Calosi <tcalosi@gmail.com>
+Subject: balance traffic between virtual interfaces on the same network
+Date: Tue, 9 Nov 2010 14:36:25 +0100
+Message-ID: <AANLkTi=bi5TkpZaN=af1YZZDDLt3P9H3k1s7mNk7xQAJ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, netdev@vger.kernel.org
-To: Yedidia Amit <amit.yedidia@elbitsystems.com>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:57215 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754537Ab0KHUXu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Nov 2010 15:23:50 -0500
-In-Reply-To: <A50724DAD8873141837C64A73A73735F052DD9@mailesl2.esl.corp.elbit.co.il>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:32836 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751221Ab0KINg2 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 9 Nov 2010 08:36:28 -0500
+Received: by wyb36 with SMTP id 36so4815851wyb.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 09 Nov 2010 05:36:27 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2010-11-08 07:32, Yedidia Amit wrote:
+Hi all,
 
->Hi All,
->
->I want to use the netfilter framework on my system (running linux
->2.6.33)
->My purpose is to capture and manipulate IP packets. The catch is that I
->am working without the IP stack, so I need to capture the packets in the
->Ethernet layer.  I have BSD sockets but the TCP/IP is removed from the
->menuconfig
->
->Are there any hooks which are available for me on that level, or should
->I add some new ones?
+This is my setup:
 
-That would leave you with af_packet (only).
+eth0:1 192.168.1.10/24
+eth0:2 192.168.1.20/24
+eth0:3 192.168.1.30/24
 
+gateway 192.168.1.1
 
--- 
-By replying, your organization agrees to relinquish control over future 
-messages posted in public places such as these, and grant everybody a 
-worldwide irrevocable right to do with it however they please. The right 
-to claim sending in error is waived. If you don't accept these terms, 
-don't post.
+I know it's a strange question but it's crucial to do this in my setup.
+I need to balance traffic between these virtual interfaces so that the
+gateway sees the traffic originating from 1.10, 1.20,  and 1.30. Is it
+possible
