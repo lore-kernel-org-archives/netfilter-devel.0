@@ -1,66 +1,58 @@
-From: Frederic Leroy <fredo@starox.org>
-Subject: Re: [arptables] rfc: add classify target
-Date: Tue, 9 Nov 2010 22:38:18 +0100
-Message-ID: <20101109223818.41c07321@caresse>
-References: <20101107152636.56f62235@caresse>
-	<alpine.LNX.2.01.1011071616150.21289@obet.zrqbmnf.qr>
-	<4CD959D6.1090705@trash.net>
-	<20101109161047.GB25549@sd-11162.dedibox.fr>
-	<4CD98746.4050100@pandora.be>
-	<20101109211834.4da8e412@caresse>
-	<alpine.LNX.2.01.1011092121210.10710@obet.zrqbmnf.qr>
-	<20101109213439.2f44ec6e@caresse>
-	<alpine.LNX.2.01.1011092226050.24069@obet.zrqbmnf.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: sk->sk_socket seems to disappear before connection termination
+Date: Wed, 10 Nov 2010 02:09:57 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1011100205220.17978@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Bart De Schuymer <bdschuym@pandora.be>,
-	Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: netdev@vger.kernel.org,
+	=?UTF-8?Q?Rafa=C5=82_Maj?= <rafal.maj.it@gmail.com>
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sd-11162.dedibox.fr ([88.191.70.230]:49061 "EHLO
-	sd-11162.dedibox.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755257Ab0KIVh0 convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Nov 2010 16:37:26 -0500
-In-Reply-To: <alpine.LNX.2.01.1011092226050.24069@obet.zrqbmnf.qr>
+Received: from borg.medozas.de ([188.40.89.202]:55630 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751361Ab0KJBJ6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 9 Nov 2010 20:09:58 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le Tue, 9 Nov 2010 22:27:53 +0100 (CET),
-Jan Engelhardt <jengelh@medozas.de> a =C3=A9crit :
+Hi,
 
->=20
-> On Tuesday 2010-11-09 21:34, Frederic Leroy wrote:
-> >> On Tuesday 2010-11-09 21:18, Frederic Leroy wrote:
-> >> >
-> >> >For the kernel part,I didn't add modalias command because the
-> >> >userspace don't work yet :
-> >> >
-> >> ># ./arptables -A OUTPUT -o eth0 -j CLASSIFY --set-class 0:7
-> >> >x_tables: arp_tables: CLASSIFY target: used from hooks INPUT, but
-> >> >only usable from FORWARD/OUTPUT/POSTROUTING
-> >>=20
-> >> Here we have a perfect example of the dentrimentality of code
-> >> duplication. Hooray for NF_ARP_* not matching NF_INET_*.
-> >
-> >It was what saying me that it would be a lot of work. Move arptables
-> >to match NF_INET_*=20
->=20
-> The actual work is minimal - since you just need to change the values
-> of the NF_ARP_ constants. The problem is that it is shared with
-> userspace.
 
-If I remember correctly what I've see sunday, there is some arrays of
-size : number of NF_ARP*
-There is some code with ->hook[NF_xxx]=3Dyyy
+Rafa=C5=82 reported this to us on IRC, paraphrasing what has been obser=
+ved:
 
-Moreover, when I turned debug on, it outputs me warnings with overflow
-on these arrays when I switched to NF_INET.
+Using a simple rule like `iptables -A OUTPUT -p tcp --dport 80 -j LOG=20
+--log-uid`, one can observe on creating a connection and terminating
+it that the trailing packets have skb->sk->sk_socket =3D=3D NULL.
+Is this intended? Is the socket not retained until after TCP has
+sent out the closing exchange?
 
---=20
-=46r=C3=A9d=C3=A9ric Leroy
+As I can reproduce:
+
+$ telnet 134.76.13.21 80
+Trying 134.76.13.21...
+Connected to 134.76.13.21.
+Escape character is '^]'.
+^]
+telnet> ^D
+Connection closed.
+
+[491419.500978] IN=3D OUT=3Dtun0 SRC=3D134.76.2.163 DST=3D134.76.13.21 =
+LEN=3D60 TOS=3D0x10 PREC=3D0x00 TTL=3D64 ID=3D35420 DF PROTO=3DTCP SPT=3D=
+58613 DPT=3D80 WINDOW=3D5488 RES=3D0x00 SYN URGP=3D0 UID=3D25121 GID=3D=
+100=20
+[491419.511533] IN=3D OUT=3Dtun0 SRC=3D134.76.2.163 DST=3D134.76.13.21 =
+LEN=3D52 TOS=3D0x10 PREC=3D0x00 TTL=3D64 ID=3D35421 DF PROTO=3DTCP SPT=3D=
+58613 DPT=3D80 WINDOW=3D86 RES=3D0x00 ACK URGP=3D0 UID=3D25121 GID=3D10=
+0=20
+[491420.052182] IN=3D OUT=3Dtun0 SRC=3D134.76.2.163 DST=3D134.76.13.21 =
+LEN=3D52 TOS=3D0x10 PREC=3D0x00 TTL=3D64 ID=3D35422 DF PROTO=3DTCP SPT=3D=
+58613 DPT=3D80 WINDOW=3D86 RES=3D0x00 ACK FIN URGP=3D0 UID=3D25121 GID=3D=
+100=20
+[491420.063619] IN=3D OUT=3Dtun0 SRC=3D134.76.2.163 DST=3D134.76.13.21 =
+LEN=3D52 TOS=3D0x10 PREC=3D0x00 TTL=3D64 ID=3D35423 DF PROTO=3DTCP SPT=3D=
+58613 DPT=3D80 WINDOW=3D86 RES=3D0x00 ACK URGP=3D0=20
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
