@@ -1,46 +1,78 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [patch] netfilter: nfnetlink: guard against undefined entries
-Date: Wed, 10 Nov 2010 02:50:00 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1011100249390.23289@obet.zrqbmnf.qr>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: sk->sk_socket seems to disappear before connection termination
+Date: Wed, 10 Nov 2010 06:47:17 +0100
+Message-ID: <1289368037.2700.14.camel@edumazet-laptop>
+References: <alpine.LNX.2.01.1011100205220.17978@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, netdev@vger.kernel.org,
+	=?UTF-8?Q?Rafa=C5=82?= Maj <rafal.maj.it@gmail.com>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:39290 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751406Ab0KJBuC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Nov 2010 20:50:02 -0500
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:44507 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751751Ab0KJFrX (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Nov 2010 00:47:23 -0500
+In-Reply-To: <alpine.LNX.2.01.1011100205220.17978@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-parent a391d495f6082f6348b9074214e81c7e2dc1151c (v2.6.37-rc1-184-ga391d49)
-commit 6e97eb121bc8e39c651645c3d937f468d2b3e7fe
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Sat Nov 6 21:19:16 2010 +0100
+Le mercredi 10 novembre 2010 =C3=A0 02:09 +0100, Jan Engelhardt a =C3=A9=
+crit :
+> Hi,
+>=20
+>=20
+> Rafa=C5=82 reported this to us on IRC, paraphrasing what has been obs=
+erved:
+>=20
+> Using a simple rule like `iptables -A OUTPUT -p tcp --dport 80 -j LOG=
+=20
+> --log-uid`, one can observe on creating a connection and terminating
+> it that the trailing packets have skb->sk->sk_socket =3D=3D NULL.
+> Is this intended? Is the socket not retained until after TCP has
+> sent out the closing exchange?
+>=20
+> As I can reproduce:
+>=20
+> $ telnet 134.76.13.21 80
+> Trying 134.76.13.21...
+> Connected to 134.76.13.21.
+> Escape character is '^]'.
+> ^]
+> telnet> ^D
+> Connection closed.
+>=20
+> [491419.500978] IN=3D OUT=3Dtun0 SRC=3D134.76.2.163 DST=3D134.76.13.2=
+1 LEN=3D60 TOS=3D0x10 PREC=3D0x00 TTL=3D64 ID=3D35420 DF PROTO=3DTCP SP=
+T=3D58613 DPT=3D80 WINDOW=3D5488 RES=3D0x00 SYN URGP=3D0 UID=3D25121 GI=
+D=3D100=20
+> [491419.511533] IN=3D OUT=3Dtun0 SRC=3D134.76.2.163 DST=3D134.76.13.2=
+1 LEN=3D52 TOS=3D0x10 PREC=3D0x00 TTL=3D64 ID=3D35421 DF PROTO=3DTCP SP=
+T=3D58613 DPT=3D80 WINDOW=3D86 RES=3D0x00 ACK URGP=3D0 UID=3D25121 GID=3D=
+100=20
+> [491420.052182] IN=3D OUT=3Dtun0 SRC=3D134.76.2.163 DST=3D134.76.13.2=
+1 LEN=3D52 TOS=3D0x10 PREC=3D0x00 TTL=3D64 ID=3D35422 DF PROTO=3DTCP SP=
+T=3D58613 DPT=3D80 WINDOW=3D86 RES=3D0x00 ACK FIN URGP=3D0 UID=3D25121 =
+GID=3D100=20
+> [491420.063619] IN=3D OUT=3Dtun0 SRC=3D134.76.2.163 DST=3D134.76.13.2=
+1 LEN=3D52 TOS=3D0x10 PREC=3D0x00 TTL=3D64 ID=3D35423 DF PROTO=3DTCP SP=
+T=3D58613 DPT=3D80 WINDOW=3D86 RES=3D0x00 ACK URGP=3D0=20
 
-netfilter: nfnetlink: guard against undefined entries
+Hmmm... skb->sk->sk_socket is really NULL ?
 
-Check for empty entries in struct nfnl_callback[] to avoid potential
-NULL deference. (Because I have run into one during development.)
+Are you sure its not skb->sk->sk_socket->file which is NULL ?
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- net/netfilter/nfnetlink.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+In this case, you might need to use sock_i_uid() / sock_i_ino() as a
+fallback ? (expensive because they take a rwlock)
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index b4a4532..7012882 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -152,7 +152,7 @@ replay:
- 	}
- 
- 	nc = nfnetlink_find_client(type, ss);
--	if (!nc)
-+	if (nc == NULL || nc->call == NULL)
- 		return -EINVAL;
- 
- 	{
--- 
-# Created with git-export-patch
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
