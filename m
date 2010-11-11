@@ -1,49 +1,30 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 4/5] attr: remove redundant check for NULL
-Date: Thu, 11 Nov 2010 00:08:03 +0100
-Message-ID: <1289430485-16467-5-git-send-email-jengelh@medozas.de>
-References: <1289430485-16467-1-git-send-email-jengelh@medozas.de>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Andrew Watts <akwatts@ymail.com>
+Subject: NFQUEUE verdicts - adding non-termination
+Date: Thu, 11 Nov 2010 01:01:04 -0800 (PST)
+Message-ID: <897598.58283.qm@web111015.mail.gq1.yahoo.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:56318 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757313Ab0KJXIL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Nov 2010 18:08:11 -0500
-In-Reply-To: <1289430485-16467-1-git-send-email-jengelh@medozas.de>
+Received: from nm2-vm0.bullet.mail.sp2.yahoo.com ([98.139.91.248]:36675 "HELO
+	nm2-vm0.bullet.mail.sp2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751660Ab0KKJBG (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Nov 2010 04:01:06 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Calling mnl_attr_parse with cb==NULL is pointless, because the
-function will do nothing else.
+Hi.
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- src/attr.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+The NF_CONTINUE verdict that Darryl Miles brings up in his 11/4 post is very interesting.
 
-diff --git a/src/attr.c b/src/attr.c
-index 69fda0b..e22a8ac 100644
---- a/src/attr.c
-+++ b/src/attr.c
-@@ -260,7 +260,7 @@ int mnl_attr_parse(const struct nlmsghdr *nlh, unsigned int offset,
- 	int len = nlh->nlmsg_len - MNL_NLMSG_HDRLEN - MNL_ALIGN(offset);
- 
- 	while (mnl_attr_ok(attr, len)) {
--		if (cb && (ret = cb(attr, data)) <= MNL_CB_STOP)
-+		if ((ret = cb(attr, data)) <= MNL_CB_STOP)
- 			return ret;
- 		attr = mnl_attr_next(attr, &len);
- 	}
-@@ -289,7 +289,7 @@ int mnl_attr_parse_nested(const struct nlattr *nested,
- 	int len = mnl_attr_get_payload_len(nested);
- 
- 	while (mnl_attr_ok(attr, len)) {
--		if (cb && (ret = cb(attr, data)) <= MNL_CB_STOP)
-+		if ((ret = cb(attr, data)) <= MNL_CB_STOP)
- 			return ret;
- 		attr = mnl_attr_next(attr, &len);
- 	}
--- 
-1.7.1
+NF_CONTINUE would provide the NFQUEUE target the added flexibility of, say, partial handling in userspace. A queue-handler could have a set of criteria that, when satisfied, would result in an immediate drop or accept. One could then leave the rest of the packets to find their fate in the chains/rules left to traverse.
 
+I would be interested in helping to add this verdict if someone will take the lead (assuming a patch hasn't already been written - has it?).
+
+Your comments appreciated.
+
+~ Andy
+
+
+      
