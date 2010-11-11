@@ -1,57 +1,63 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: sk->sk_socket seems to disappear before connection termination
-Date: Thu, 11 Nov 2010 12:00:32 +0100
-Message-ID: <4CDBCCD0.9040807@trash.net>
-References: <alpine.LNX.2.01.1011100205220.17978@obet.zrqbmnf.qr>	 <1289368037.2700.14.camel@edumazet-laptop>	 <alpine.LNX.2.01.1011101148060.18018@obet.zrqbmnf.qr>	 <1289407451.2860.239.camel@edumazet-laptop>	 <alpine.LNX.2.01.1011101816330.2886@obet.zrqbmnf.qr> <1289410679.2860.245.camel@edumazet-laptop>
+From: Frederic Leroy <fredo@starox.org>
+Subject: Re: [arptables] rfc: add classify target
+Date: Thu, 11 Nov 2010 12:45:05 +0100
+Message-ID: <20101111124505.345643a3@caresse>
+References: <20101107152636.56f62235@caresse>
+	<alpine.LNX.2.01.1011071616150.21289@obet.zrqbmnf.qr>
+	<4CD959D6.1090705@trash.net>
+	<20101109161047.GB25549@sd-11162.dedibox.fr>
+	<4CD98746.4050100@pandora.be>
+	<20101109211834.4da8e412@caresse>
+	<alpine.LNX.2.01.1011092121210.10710@obet.zrqbmnf.qr>
+	<20101109215126.502a155e@caresse>
+	<4CDBC7B1.2020101@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Jan Engelhardt <jengelh@medozas.de>,
-	David Howells <dhowells@redhat.com>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, netdev@vger.kernel.org,
-	=?UTF-8?B?UmFmYcWCIE1hag==?= <rafal.maj.it@gmail.com>
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1289410679.2860.245.camel@edumazet-laptop>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	Bart De Schuymer <bdschuym@pandora.be>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sd-11162.dedibox.fr ([88.191.70.230]:35033 "EHLO
+	sd-11162.dedibox.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755192Ab0KKLoL convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Nov 2010 06:44:11 -0500
+In-Reply-To: <4CDBC7B1.2020101@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 10.11.2010 18:37, Eric Dumazet wrote:
-> Le mercredi 10 novembre 2010 =C3=A0 18:17 +0100, Jan Engelhardt a =C3=
-=A9crit :
->> On Wednesday 2010-11-10 17:44, Eric Dumazet wrote:
->>>
->>> [ 9920.234680] ipt_LOG: sk=3Dffff880118bd32c0 sk->sk_socket=3Dffff8=
-8011d0d8c00 file=3Dffff88011cd4e100
->>> [ 9920.234731] IN=3D OUT=3Deth1 SRC=3D192.168.20.108 DST=3D192.168.=
-20.110 LEN=3D52 TOS=3D0x10 PREC=3D0x00 TTL=3D64 ID=3D63704 DF PROTO=3DT=
-CP SPT=3D60088 DPT=3D22 WINDOW=3D35 RES=3D0x00 ACK FIN URGP=3D0 UID=3D0=
- GID=3D0=20
->>> [ 9920.235221] ipt_LOG: sk=3Dffff880078998000 sk->sk_socket=3Dffff8=
-80078c58300 file=3D          (null)
->>> [ 9920.235271] IN=3D OUT=3Deth1 SRC=3D192.168.20.108 DST=3D192.168.=
-20.110 LEN=3D52 TOS=3D0x00 PREC=3D0x00 TTL=3D64 ID=3D0 DF PROTO=3DTCP S=
-PT=3D60088 DPT=3D22 WINDOW=3D35 RES=3D0x00 ACK URGP=3D0=20
->>>
->>> You can see in my log, that the last packet seems to be from a diff=
-erent
->>> socket ! (sk pointer changed to ffff880078998000 !)
->>
->> Yes, that's it.
->>
->>> Well well well, thats an ACK, in answer to FIN packet received from=
- remote
->>> side.
->>
->> But why is it not handled by sk ffff880118bd32c0 anymore?
->> It does have, after all, the same (addr,port) tuple.
->> And it is sort of a hiccup for xt_owner users.
->=20
-> Its because of TIMEWAIT state : no more socket
->=20
-> We use a special tcp socket (net->ipv4.tcp_sock) in tcp_v4_send_ack()
+Le Thu, 11 Nov 2010 11:38:41 +0100,
+Patrick McHardy <kaber@trash.net> a =C3=A9crit :
 
-Yeah, this has always been a problem with the owner match.
-I don't think this fixable, it should probably only be used
-in a stateful manner.
+> On 09.11.2010 21:51, Frederic Leroy wrote:
+> > Le Tue, 9 Nov 2010 21:28:09 +0100 (CET),
+> > Jan Engelhardt <jengelh@medozas.de> a =C3=A9crit :
+> >=20
+> >> Alas, when I originally coded NFPROTO_UNSPEC wildcard support,
+> >> I allowed for same-rev overloading, as in:
+> >>
+> >> static struct xt_target classify_tg_reg[] __read_mostly =3D {
+> >> 	{
+> >> [...]
+> >> };
+> >>
+> >=20
+> > Here is a patch against my previous patch with your insights.
+> > I had time to test it.=20
+>=20
+> This seems like the best we can do for now. Does it work as intended?
+
+Yes, it works as intended.=20
+
+Nevertheless, I plan to update kernel and arptables to match NF_INET_*.
+I should have time to do it for sunday.=20
+
+--=20
+=46r=C3=A9d=C3=A9ric Leroy
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
