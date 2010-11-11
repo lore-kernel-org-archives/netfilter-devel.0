@@ -1,44 +1,63 @@
-From: Jan Kasprzak <kas@fi.muni.cz>
-Subject: iptables: Resource temporarily unavailable.
-Date: Thu, 11 Nov 2010 16:00:55 +0100
-Message-ID: <20101111150055.GI15421@fi.muni.cz>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: iptables: Resource temporarily unavailable.
+Date: Thu, 11 Nov 2010 16:35:28 +0100
+Message-ID: <1289489728.17691.1331.camel@edumazet-laptop>
+References: <20101111150055.GI15421@fi.muni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Kasprzak <kas@fi.muni.cz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from minas.ics.muni.cz ([147.251.4.40]:44488 "EHLO minas.ics.muni.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752699Ab0KKPWT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Nov 2010 10:22:19 -0500
-Received: from anxur.fi.muni.cz (anxur.fi.muni.cz [147.251.48.3])
-	by minas.ics.muni.cz (8.13.8/8.13.8/SuSE Linux 0.8) with ESMTP id oABF0tux005630
-	for <netfilter-devel@vger.kernel.org>; Thu, 11 Nov 2010 16:00:56 +0100
-Content-Disposition: inline
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:58239 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753987Ab0KKPfc (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Nov 2010 10:35:32 -0500
+Received: by wyb28 with SMTP id 28so818732wyb.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Nov 2010 07:35:31 -0800 (PST)
+In-Reply-To: <20101111150055.GI15421@fi.muni.cz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-	Hello,
+Le jeudi 11 novembre 2010 =C3=A0 16:00 +0100, Jan Kasprzak a =C3=A9crit=
+ :
+> 	Hello,
+>=20
+> I have a iptables-based firewall with ~1200 IPv4 and ~950 IPv6 rules.
+> When I want to reload its configuration, I often get "Resource tempor=
+arily
+> unavailable" error from iptables.
+>=20
+> I have a HA setup with two servers, and the error more often happens =
+on
+> a server with four cores and 2 GB of RAM than on a server with two co=
+res
+> and 4 GB of RAM.
+>=20
+> I have added a band-aid fix to my startup script - sleeping for one s=
+econd
+> and trying again when the error code from iptables is 4, and it appar=
+ently
+> helps. But the error messages from the startup script are still a bit=
+ ugly.
+> What else can I do in order to fix the problem?
 
-I have a iptables-based firewall with ~1200 IPv4 and ~950 IPv6 rules.
-When I want to reload its configuration, I often get "Resource temporarily
-unavailable" error from iptables.
+Hi
 
-I have a HA setup with two servers, and the error more often happens on
-a server with four cores and 2 GB of RAM than on a server with two cores
-and 4 GB of RAM.
+Please provide=20
 
-I have added a band-aid fix to my startup script - sleeping for one second
-and trying again when the error code from iptables is 4, and it apparently
-helps. But the error messages from the startup script are still a bit ugly.
-What else can I do in order to fix the problem?
+cat /proc/meminfo
 
-	Thanks,
+Also please apply this patch :
 
--Yenya
+http://git2.kernel.org/?p=3Dlinux/kernel/git/davem/net-2.6.git;a=3Dcomm=
+itdiff;h=3D6b1686a71e3158d3c5f125260effce171cc7852b
 
--- 
-| Jan "Yenya" Kasprzak  <kas at {fi.muni.cz - work | yenya.net - private}> |
-| GPG: ID 1024/D3498839      Fingerprint 0D99A7FB206605D7 8B35FCDE05B18A5E |
-| http://www.fi.muni.cz/~kas/    Journal: http://www.fi.muni.cz/~kas/blog/ |
-Please don't top post and in particular don't attach entire digests to your
-mail or we'll all soon be using bittorrent to read the list.     --Alan Cox
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
