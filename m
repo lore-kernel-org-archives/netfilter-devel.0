@@ -1,33 +1,41 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] netfilter: NF_HOOK_COND has wrong conditional
-Date: Thu, 11 Nov 2010 21:49:26 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1011112148100.30863@obet.zrqbmnf.qr>
-References: <20101111190954.29005.61686.stgit@paris.rdu.redhat.com>
+Subject: Re: [PATCH 5/5] attr: avoid multiple definition of hidden variable
+Date: Thu, 11 Nov 2010 21:53:01 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1011112150280.30863@obet.zrqbmnf.qr>
+References: <1289430485-16467-1-git-send-email-jengelh@medozas.de> <1289430485-16467-6-git-send-email-jengelh@medozas.de> <4CDBEAD6.9030505@netfilter.org> <alpine.LNX.2.01.1011111424370.22995@obet.zrqbmnf.qr> <4CDC2C3C.5060708@netfilter.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, kaber@trash.net,
-	linux-kernel@vger.kernel.org
-To: Eric Paris <eparis@redhat.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:45251 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:38561 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756128Ab0KKUta (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Nov 2010 15:49:30 -0500
-In-Reply-To: <20101111190954.29005.61686.stgit@paris.rdu.redhat.com>
+	id S1756736Ab0KKUxC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Nov 2010 15:53:02 -0500
+In-Reply-To: <4CDC2C3C.5060708@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2010-11-11 20:09, Eric Paris wrote:
-
->The NF_HOOK_COND returns 0 when it shouldn't due to what I believe to be an
->error in the code as the order of operations is not what was intended.  C will
->evalutate == before =.  Which means ret is getting set to the bool result,
->rather than the return value of the function call.  The code says
+On Thursday 2010-11-11 18:47, Pablo Neira Ayuso wrote:
 >
->if (ret = function() == 1)
->when it meant to say:
->if ((ret = function()) == 1)
+>mnl_attr_for_each() in your patch is OK, sorry. But, here:
+>
+>+#define mnl_attr_for_each_nested(attr, nest) \
+>+	for ((attr) = mnl_attr_get_payload(nest); \
+>+	     mnl_attr_ok((attr), mnl_attr_get_payload(attr) +
+>mnl_attr_get_payload_len(attr) - (void *)(attr)); \
+>+	     (attr) = mnl_attr_next(attr))
+>
+>Once we iterate over the last attribute in the nest, we iterate again to
+>check if there's any next. Then, mnl_attr_get_payload may access
+>attr->len for an attribute that doesn't belong the nest or (if the nest
+>is in the end of the message) an out of bound message access.
 
-Thanks for catching. Indeed (ret = f) == 1 is desired, as can be seen in 
-patch 2249065f4b22b493bae2caf549b86f175f33188e.
+Indeed. Should have been
+
+mnl_attr_ok((attr), mnl_attr_get_payload(nest) +
+	mnl_attr_get_payload_len(nest) - (void *)(attr))
+
+>I think that we can add mnl_attr_get_payload_tail to make tail minus
+>attr, like in mnl_attr_for_each().
+
