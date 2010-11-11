@@ -1,30 +1,33 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Verdict with ebtables?
-Date: Thu, 11 Nov 2010 11:48:09 +0100
-Message-ID: <4CDBC9E9.2010508@trash.net>
-References: <AANLkTinCazaFKSXnfGe2e0nnfeRorV7AHcadQaxGvWg+@mail.gmail.com> <AANLkTikxkvB2pagQswH1S8=sxA+OVfWrqO45FD6+hDQE@mail.gmail.com>
+Subject: Re: NFQUEUE verdicts - adding non-termination
+Date: Thu, 11 Nov 2010 11:50:52 +0100
+Message-ID: <4CDBCA8C.2000801@trash.net>
+References: <897598.58283.qm@web111015.mail.gq1.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Kfir Lavi <lavi.kfir@gmail.com>
+To: Andrew Watts <akwatts@ymail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35895 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:35959 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751689Ab0KKKsJ (ORCPT
+	with ESMTP id S1751689Ab0KKKuv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Nov 2010 05:48:09 -0500
-In-Reply-To: <AANLkTikxkvB2pagQswH1S8=sxA+OVfWrqO45FD6+hDQE@mail.gmail.com>
+	Thu, 11 Nov 2010 05:50:51 -0500
+In-Reply-To: <897598.58283.qm@web111015.mail.gq1.yahoo.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11.11.2010 11:05, Kfir Lavi wrote:
-> Hi,
-> It seems to me that its not possible to do a verdict in userspace of
-> ethernet packets, like it is done with nfqueue and iptables.
-> Why it is not implemented?
+On 11.11.2010 10:01, Andrew Watts wrote:
+> Hi.
+> 
+> The NF_CONTINUE verdict that Darryl Miles brings up in his 11/4 post is very interesting.
+> 
+> NF_CONTINUE would provide the NFQUEUE target the added flexibility of, say, partial handling in userspace. A queue-handler could have a set of criteria that, when satisfied, would result in an immediate drop or accept. One could then leave the rest of the packets to find their fate in the chains/rules left to traverse.
+> 
+> I would be interested in helping to add this verdict if someone will take the lead (assuming a patch hasn't already been written - has it?).
 
-Nobody ever implemented it. IIRC the main problem is that under
-certain circumstances the packets need to be passed back to
-__netif_receive_skb() when queuing in LOCAL_IN, which isn't
-possible from the completion handler.
+There's no difference between returning NF_ACCEPT or a new NF_CONTINUE.
+Queueing happens outside of the ruleset context, so in either case the
+packet would continue through the network stack directly, not after
+the NFQUEUE rule.
