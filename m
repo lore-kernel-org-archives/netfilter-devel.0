@@ -1,41 +1,44 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 5/5] attr: avoid multiple definition of hidden variable
-Date: Thu, 11 Nov 2010 14:25:54 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1011111424370.22995@obet.zrqbmnf.qr>
-References: <1289430485-16467-1-git-send-email-jengelh@medozas.de> <1289430485-16467-6-git-send-email-jengelh@medozas.de> <4CDBEAD6.9030505@netfilter.org>
+From: Jan Kasprzak <kas@fi.muni.cz>
+Subject: iptables: Resource temporarily unavailable.
+Date: Thu, 11 Nov 2010 16:00:55 +0100
+Message-ID: <20101111150055.GI15421@fi.muni.cz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:54320 "EHLO borg.medozas.de"
+Received: from minas.ics.muni.cz ([147.251.4.40]:44488 "EHLO minas.ics.muni.cz"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756027Ab0KKNZz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Nov 2010 08:25:55 -0500
-In-Reply-To: <4CDBEAD6.9030505@netfilter.org>
+	id S1752699Ab0KKPWT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Nov 2010 10:22:19 -0500
+Received: from anxur.fi.muni.cz (anxur.fi.muni.cz [147.251.48.3])
+	by minas.ics.muni.cz (8.13.8/8.13.8/SuSE Linux 0.8) with ESMTP id oABF0tux005630
+	for <netfilter-devel@vger.kernel.org>; Thu, 11 Nov 2010 16:00:56 +0100
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+	Hello,
 
-On Thursday 2010-11-11 14:08, Pablo Neira Ayuso wrote:
->On 11/11/10 00:08, Jan Engelhardt wrote:
->> When nesting two mnl_attr_for_each loops, the __len__ variable will be
->> declared twice, eliciting a warning when -Wshadow is turned on. There
->> can also be warnings in pre-C99 because declarations and code are
->> mixed. Do without any temporaries that are not explicitly specified as
->> macro parameters.
->
->I like this spot, some question below:
->
->> -struct nlattr *mnl_attr_next(const struct nlattr *attr, int *len)
->> +struct nlattr *mnl_attr_next(const struct nlattr *attr)
->>  {
->> -	*len -= MNL_ALIGN(attr->nla_len);
->>  	return (struct nlattr *)((void *)attr + MNL_ALIGN(attr->nla_len));
->>  }
->
->If we remove the len parameter from mnl_attr_next(), we may access
->memory that may be out of the message boundary in mnl_attr_ok().
+I have a iptables-based firewall with ~1200 IPv4 and ~950 IPv6 rules.
+When I want to reload its configuration, I often get "Resource temporarily
+unavailable" error from iptables.
 
-Not that I can see; mnl_attr_ok tests for len >= sizeof(struct nlattr),
-and len is tail minus attr.
+I have a HA setup with two servers, and the error more often happens on
+a server with four cores and 2 GB of RAM than on a server with two cores
+and 4 GB of RAM.
+
+I have added a band-aid fix to my startup script - sleeping for one second
+and trying again when the error code from iptables is 4, and it apparently
+helps. But the error messages from the startup script are still a bit ugly.
+What else can I do in order to fix the problem?
+
+	Thanks,
+
+-Yenya
+
+-- 
+| Jan "Yenya" Kasprzak  <kas at {fi.muni.cz - work | yenya.net - private}> |
+| GPG: ID 1024/D3498839      Fingerprint 0D99A7FB206605D7 8B35FCDE05B18A5E |
+| http://www.fi.muni.cz/~kas/    Journal: http://www.fi.muni.cz/~kas/blog/ |
+Please don't top post and in particular don't attach entire digests to your
+mail or we'll all soon be using bittorrent to read the list.     --Alan Cox
