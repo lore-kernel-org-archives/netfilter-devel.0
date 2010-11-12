@@ -1,46 +1,53 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [patch] netfilter: nfnetlink: guard against undefined entries
-Date: Fri, 12 Nov 2010 08:35:05 +0100
-Message-ID: <4CDCEE29.30808@trash.net>
-References: <alpine.LNX.2.01.1011100249390.23289@obet.zrqbmnf.qr> <4CDBC6A0.2000108@trash.net> <alpine.LNX.2.01.1011112156080.30863@obet.zrqbmnf.qr>
+Subject: Re: iptables: Resource temporarily unavailable.
+Date: Fri, 12 Nov 2010 08:38:06 +0100
+Message-ID: <4CDCEEDE.2090700@trash.net>
+References: <20101111150055.GI15421@fi.muni.cz>	 <1289489728.17691.1331.camel@edumazet-laptop> <4CDC1263.8070206@trash.net>	 <20101111172511.GB20871@fi.muni.cz>	 <1289498295.17691.1589.camel@edumazet-laptop>	 <20101111180305.GD20871@fi.muni.cz> <1289499630.17691.1618.camel@edumazet-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jan Kasprzak <kas@fi.muni.cz>, netfilter-devel@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55873 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:55963 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751289Ab0KLHfE (ORCPT
+	with ESMTP id S1754677Ab0KLHiF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Nov 2010 02:35:04 -0500
-In-Reply-To: <alpine.LNX.2.01.1011112156080.30863@obet.zrqbmnf.qr>
+	Fri, 12 Nov 2010 02:38:05 -0500
+In-Reply-To: <1289499630.17691.1618.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11.11.2010 21:56, Jan Engelhardt wrote:
-> On Thursday 2010-11-11 11:34, Patrick McHardy wrote:
-> 
->> On 10.11.2010 02:50, Jan Engelhardt wrote:
->>> parent a391d495f6082f6348b9074214e81c7e2dc1151c (v2.6.37-rc1-184-ga391d49)
->>> commit 6e97eb121bc8e39c651645c3d937f468d2b3e7fe
->>> Author: Jan Engelhardt <jengelh@medozas.de>
->>> Date:   Sat Nov 6 21:19:16 2010 +0100
->>>
->>> netfilter: nfnetlink: guard against undefined entries
->>>
->>> Check for empty entries in struct nfnl_callback[] to avoid potential
->>> NULL deference. (Because I have run into one during development.)
+On 11.11.2010 19:20, Eric Dumazet wrote:
+> Le jeudi 11 novembre 2010 =E0 19:03 +0100, Jan Kasprzak a =E9crit :
+>> Eric Dumazet wrote:
+>> : > 	There probably can be some other iptables commands running
+>> : > occasionally (automatic blacklisting of some IP addresses, enabl=
+ing
+>> : > traffic to authenticated laptops, etc.), but not in the chains I=
+ am
+>> : > trying to modify with my firewall initscript. Can this also be a=
+ problem?
+>> :=20
+>> : Yes it is a problem. iptables manipulates the whole table, not a
+>> : subtree.
 >>
->> It seems silly to add checks for easy to find bugs in users of
->> this code. Finding the cause of -EINVAL is much harder than
->> getting a nice oops.
-> 
-> But costs a reboot.
+>> 	So do you suggest I should implement some kind of user-space
+>> locking, or is the current approach of "retry after 1 sec when it fa=
+ils"
+>> OK from the kernel point of view?
+>=20
+> You could implement a user-space locking, if the additional delay of =
+the
+> "retry after 1 sec" is bothering you ;)
 
-A forced unload of the nfnetlink module will release the mutex.
-
-> How about a printk?
-
-We usually don't protect against API misuse. There is an endless
-amount of mistakes you can make that will cause oopses.
+Indeed, that's the best solution. The kernel can't really do anything
+about this since incremental ruleset updates are a two-step process.
+=46or dumps we've added retries a while ago, for updates this seems a b=
+it
+dangerous.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
