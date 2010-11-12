@@ -1,53 +1,59 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables: Resource temporarily unavailable.
-Date: Fri, 12 Nov 2010 08:38:06 +0100
-Message-ID: <4CDCEEDE.2090700@trash.net>
-References: <20101111150055.GI15421@fi.muni.cz>	 <1289489728.17691.1331.camel@edumazet-laptop> <4CDC1263.8070206@trash.net>	 <20101111172511.GB20871@fi.muni.cz>	 <1289498295.17691.1589.camel@edumazet-laptop>	 <20101111180305.GD20871@fi.muni.cz> <1289499630.17691.1618.camel@edumazet-laptop>
+From: Shan Wei <shanwei@cn.fujitsu.com>
+Subject: Re: [PATCH] netfilter: ipv6: fix overlap check for fragments
+Date: Fri, 12 Nov 2010 15:47:24 +0800
+Message-ID: <4CDCF10C.5060602@cn.fujitsu.com>
+References: <4CD3F0F8.5030205@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jan Kasprzak <kas@fi.muni.cz>, netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: David Miller <davem@davemloft.net>
+To: nicolas.dichtel@6wind.com,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55963 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754677Ab0KLHiF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Nov 2010 02:38:05 -0500
-In-Reply-To: <1289499630.17691.1618.camel@edumazet-laptop>
+Received: from cn.fujitsu.com ([222.73.24.84]:55634 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752389Ab0KLHsY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Nov 2010 02:48:24 -0500
+In-Reply-To: <4CD3F0F8.5030205@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11.11.2010 19:20, Eric Dumazet wrote:
-> Le jeudi 11 novembre 2010 =E0 19:03 +0100, Jan Kasprzak a =E9crit :
->> Eric Dumazet wrote:
->> : > 	There probably can be some other iptables commands running
->> : > occasionally (automatic blacklisting of some IP addresses, enabl=
-ing
->> : > traffic to authenticated laptops, etc.), but not in the chains I=
- am
->> : > trying to modify with my firewall initscript. Can this also be a=
- problem?
->> :=20
->> : Yes it is a problem. iptables manipulates the whole table, not a
->> : subtree.
->>
->> 	So do you suggest I should implement some kind of user-space
->> locking, or is the current approach of "retry after 1 sec when it fa=
-ils"
->> OK from the kernel point of view?
->=20
-> You could implement a user-space locking, if the additional delay of =
-the
-> "retry after 1 sec" is bothering you ;)
+Hi Patrick:
+ Would you apply this to your tree. The similar patch for ipv6 has been
+applied by David . 
+See http://git.kernel.org/?p=linux/kernel/git/davem/net-2.6.git;a=commit;h=f46421416fb6b91513fb687d6503142cd99034a5
 
-Indeed, that's the best solution. The kernel can't really do anything
-about this since incremental ruleset updates are a two-step process.
-=46or dumps we've added retries a while ago, for updates this seems a b=
-it
-dangerous.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Shan Wei wrote, at 11/05/2010 07:56 PM:
+> The type of FRAG6_CB(prev)->offset is int, skb->len is *unsigned* int,
+> and offset is int.
+> 
+> Without this patch, type conversion occurred to this expression, when
+> (FRAG6_CB(prev)->offset + prev->len) is less than offset.
+> 
+> 
+> Signed-off-by: Shan Wei <shanwei@cn.fujitsu.com>
+> ---
+>  net/ipv6/netfilter/nf_conntrack_reasm.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+> index 3a3f129..79d43aa 100644
+> --- a/net/ipv6/netfilter/nf_conntrack_reasm.c
+> +++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+> @@ -286,7 +286,7 @@ found:
+>  
+>  	/* Check for overlap with preceding fragment. */
+>  	if (prev &&
+> -	    (NFCT_FRAG6_CB(prev)->offset + prev->len) - offset > 0)
+> +	    (NFCT_FRAG6_CB(prev)->offset + prev->len) > offset)
+>  		goto discard_fq;
+>  
+>  	/* Look for overlap with succeeding segment. */
+
+
+-- 
+
+Best Regards
+-----
+Shan Wei
