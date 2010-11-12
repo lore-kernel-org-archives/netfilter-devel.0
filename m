@@ -1,45 +1,99 @@
-From: Stig Thormodsrud <stig@vyatta.com>
+From: Andrew Watts <akwatts@ymail.com>
 Subject: Re: NFQUEUE verdicts - adding non-termination
-Date: Fri, 12 Nov 2010 11:54:02 -0800
-Message-ID: <4CDD9B5A.4050800@vyatta.com>
-References: <897598.58283.qm@web111015.mail.gq1.yahoo.com> <4CDBCA8C.2000801@trash.net>
+Date: Fri, 12 Nov 2010 12:51:29 -0800 (PST)
+Message-ID: <890443.88661.qm@web111003.mail.gq1.yahoo.com>
+References: <4CDD22B8.1090201@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Andrew Watts <akwatts@ymail.com>, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:59830 "EHLO mail.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755084Ab0KLTyF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Nov 2010 14:54:05 -0500
-In-Reply-To: <4CDBCA8C.2000801@trash.net>
+Received: from nm6.bullet.mail.sp2.yahoo.com ([98.139.91.76]:39347 "HELO
+	nm6.bullet.mail.sp2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S932344Ab0KLUvb (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Nov 2010 15:51:31 -0500
+In-Reply-To: <4CDD22B8.1090201@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11/11/2010 02:50 AM, Patrick McHardy wrote:
-> On 11.11.2010 10:01, Andrew Watts wrote:
->> Hi.
->>
->> The NF_CONTINUE verdict that Darryl Miles brings up in his 11/4 post is very interesting.
->>
->> NF_CONTINUE would provide the NFQUEUE target the added flexibility of, say, partial handling in userspace. A queue-handler could have a set of criteria that, when satisfied, would result in an immediate drop or accept. One could then leave the rest of the packets to find their fate in the chains/rules left to traverse.
->>
->> I would be interested in helping to add this verdict if someone will take the lead (assuming a patch hasn't already been written - has it?).
+--- On Fri, 11/12/10, Patrick McHardy <kaber@trash.net> wrote:
+
+> From: Patrick McHardy <kaber@trash.net>
+> Subject: Re: NFQUEUE verdicts - adding non-termination
+> To: "Andrew Watts" <akwatts@ymail.com>
+> Cc: netfilter-devel@vger.kernel.org
+> Date: Friday, November 12, 2010, 11:19 AM
+> On 12.11.2010 12:11, Patrick McHardy
+> wrote:
+> > Am 12.11.2010 12:01, schrieb Andrew Watts:
+> >> --- On Thu, 11/11/10, Patrick McHardy <kaber@trash.net>
+> wrote:
+> >>
+> >>> On 11.11.2010 10:01, Andrew Watts wrote:
+> >>>> Hi.
+> >>>>
+> >>>> The NF_CONTINUE verdict that Darryl Miles
+> brings up in his 11/4
+> >>>> post is very interesting. NF_CONTINUE
+> would provide the NFQUEUE
+> >>>> target the added flexibility of, say,
+> partial handling in
+> >>>> userspace. A queue-handler could have a
+> set of criteria that,
+> >>>> when satisfied, would result in an
+> immediate drop or accept. One
+> >>>> could then leave the rest of the packets
+> to find their fate in the
+> >>>> chains/rules left to traverse. I would be
+> interested in helping
+> >>>> to add this verdict if someone will take
+> the lead (assuming a patch
+> >>>> hasn't already been written - has it?).
+> >>
+> >>> There's no difference between returning
+> NF_ACCEPT or a new NF_CONTINUE.
+> >>> Queueing happens outside of the ruleset
+> context, so in either case the
+> >>> packet would continue through the network
+> stack directly, not after
+> >>> the NFQUEUE rule.
+> >>
+> >> I see. Is there a way to achieve this result under
+> the current
+> >> infrastructure?
+> > 
+> > Having the packet continue after the NFQUEUE rule? No,
+> once the packet
+> > is reinjected, that rule might not even be there
+> anymore.
 > 
-> There's no difference between returning NF_ACCEPT or a new NF_CONTINUE.
-> Queueing happens outside of the ruleset context, so in either case the
-> packet would continue through the network stack directly, not after
-> the NFQUEUE rule.
+> Actually, what you can do is use NF_REPEAT as verdict and
+> have the
+> packet continue at the next rule based on marks. Something
+> like this:
+> 
+> Chain INPUT:
+> -m mark --mark 0 -j NOT_QUEUED
+> -m mark --mark 1 -j BACK_FROM_QUEUE
+> 
+> Chain NOT_QUEUED:
+> ... rules ...
+> -j NFQUEUE
+> 
+> [ nfqueue: return NF_REPEAT, set mark = 1 ]
+> 
+> Chain BACK_FROM_QUEUE:
+> ... further rules ...
+> 
 
-I've been interested in this thread since I recently converted our
-version of snort inline to use NFQUEUE instead of QUEUE.  One of driving
-factors was that I needed to have multiple QUEUE targets.  While I was
-doing the work I was hoping there was a verdict like NF_RETURN, so that
-if it passed the snort inspection then I could have another NFQUEUE
-target that would do https domain filtering.  From reading this thread I
-now understand why I can just continue, but I wondering what is that the
-recommended approach for this type of use case?  As it is now, I think I
-would need to have the 2nd NFQUEUE target on a different hook.
+Yes, that works quite well. If the fork is placed near the
+start of the chain, you reduce the amount of redundant
+traversing since it seems it goes back to square one.
+I initially misunderstood the NF_REPEAT verdict after
+looking at the libnetfilter_queue source "NF_REPEAT
+iterate the same cycle once more".
 
-stig
+~ Andy
+
+
+      
