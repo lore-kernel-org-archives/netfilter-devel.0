@@ -1,59 +1,59 @@
-From: Shan Wei <shanwei@cn.fujitsu.com>
-Subject: Re: [PATCH] netfilter: ipv6: fix overlap check for fragments
-Date: Fri, 12 Nov 2010 15:47:24 +0800
-Message-ID: <4CDCF10C.5060602@cn.fujitsu.com>
-References: <4CD3F0F8.5030205@cn.fujitsu.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [arptables] rfc: add classify target
+Date: Fri, 12 Nov 2010 08:49:59 +0100
+Message-ID: <4CDCF1A7.2050402@trash.net>
+References: <20101107152636.56f62235@caresse>	<alpine.LNX.2.01.1011071616150.21289@obet.zrqbmnf.qr>	<4CD959D6.1090705@trash.net>	<20101109161047.GB25549@sd-11162.dedibox.fr>	<4CD98746.4050100@pandora.be>	<20101109211834.4da8e412@caresse>	<alpine.LNX.2.01.1011092121210.10710@obet.zrqbmnf.qr>	<20101109215126.502a155e@caresse>	<4CDBC7B1.2020101@trash.net> <20101111124505.345643a3@caresse>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>
-To: nicolas.dichtel@6wind.com,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Bart De Schuymer <bdschuym@pandora.be>,
+	netfilter-devel@vger.kernel.org
+To: Frederic Leroy <fredo@starox.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:55634 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752389Ab0KLHsY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Nov 2010 02:48:24 -0500
-In-Reply-To: <4CD3F0F8.5030205@cn.fujitsu.com>
+Received: from stinky.trash.net ([213.144.137.162]:56226 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751289Ab0KLHt6 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Nov 2010 02:49:58 -0500
+In-Reply-To: <20101111124505.345643a3@caresse>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Patrick:
- Would you apply this to your tree. The similar patch for ipv6 has been
-applied by David . 
-See http://git.kernel.org/?p=linux/kernel/git/davem/net-2.6.git;a=commit;h=f46421416fb6b91513fb687d6503142cd99034a5
+On 11.11.2010 12:45, Frederic Leroy wrote:
+> Le Thu, 11 Nov 2010 11:38:41 +0100,
+> Patrick McHardy <kaber@trash.net> a =E9crit :
+>=20
+>> On 09.11.2010 21:51, Frederic Leroy wrote:
+>>> Le Tue, 9 Nov 2010 21:28:09 +0100 (CET),
+>>> Jan Engelhardt <jengelh@medozas.de> a =E9crit :
+>>>
+>>>> Alas, when I originally coded NFPROTO_UNSPEC wildcard support,
+>>>> I allowed for same-rev overloading, as in:
+>>>>
+>>>> static struct xt_target classify_tg_reg[] __read_mostly =3D {
+>>>> 	{
+>>>> [...]
+>>>> };
+>>>>
+>>>
+>>> Here is a patch against my previous patch with your insights.
+>>> I had time to test it.=20
+>>
+>> This seems like the best we can do for now. Does it work as intended=
+?
+>=20
+> Yes, it works as intended.=20
+>=20
+> Nevertheless, I plan to update kernel and arptables to match NF_INET_=
+*.
+> I should have time to do it for sunday.=20
 
-Shan Wei wrote, at 11/05/2010 07:56 PM:
-> The type of FRAG6_CB(prev)->offset is int, skb->len is *unsigned* int,
-> and offset is int.
-> 
-> Without this patch, type conversion occurred to this expression, when
-> (FRAG6_CB(prev)->offset + prev->len) is less than offset.
-> 
-> 
-> Signed-off-by: Shan Wei <shanwei@cn.fujitsu.com>
-> ---
->  net/ipv6/netfilter/nf_conntrack_reasm.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-> index 3a3f129..79d43aa 100644
-> --- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-> +++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-> @@ -286,7 +286,7 @@ found:
->  
->  	/* Check for overlap with preceding fragment. */
->  	if (prev &&
-> -	    (NFCT_FRAG6_CB(prev)->offset + prev->len) - offset > 0)
-> +	    (NFCT_FRAG6_CB(prev)->offset + prev->len) > offset)
->  		goto discard_fq;
->  
->  	/* Look for overlap with succeeding segment. */
-
-
--- 
-
-Best Regards
------
-Shan Wei
+You can't change the numerical values, that would break compatibility.
+That basically leaves the option of using NF_INET_PRE_ROUTING instead
+of NF_ARP_IN etc, which would make things highly confusing :)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
