@@ -1,33 +1,46 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: NF_HOOK_COND has wrong conditional
-Date: Fri, 12 Nov 2010 08:32:10 +0100
-Message-ID: <4CDCED7A.9040202@trash.net>
-References: <20101111190954.29005.61686.stgit@paris.rdu.redhat.com> <alpine.LNX.2.01.1011112148100.30863@obet.zrqbmnf.qr>
+Subject: Re: [patch] netfilter: nfnetlink: guard against undefined entries
+Date: Fri, 12 Nov 2010 08:35:05 +0100
+Message-ID: <4CDCEE29.30808@trash.net>
+References: <alpine.LNX.2.01.1011100249390.23289@obet.zrqbmnf.qr> <4CDBC6A0.2000108@trash.net> <alpine.LNX.2.01.1011112156080.30863@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Eric Paris <eparis@redhat.com>, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, coreteam@netfilter.org,
-	linux-kernel@vger.kernel.org
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.2.01.1011112148100.30863@obet.zrqbmnf.qr>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:55873 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751289Ab0KLHfE (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Nov 2010 02:35:04 -0500
+In-Reply-To: <alpine.LNX.2.01.1011112156080.30863@obet.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11.11.2010 21:49, Jan Engelhardt wrote:
-> On Thursday 2010-11-11 20:09, Eric Paris wrote:
+On 11.11.2010 21:56, Jan Engelhardt wrote:
+> On Thursday 2010-11-11 11:34, Patrick McHardy wrote:
 > 
->> The NF_HOOK_COND returns 0 when it shouldn't due to what I believe to be an
->> error in the code as the order of operations is not what was intended.  C will
->> evalutate == before =.  Which means ret is getting set to the bool result,
->> rather than the return value of the function call.  The code says
+>> On 10.11.2010 02:50, Jan Engelhardt wrote:
+>>> parent a391d495f6082f6348b9074214e81c7e2dc1151c (v2.6.37-rc1-184-ga391d49)
+>>> commit 6e97eb121bc8e39c651645c3d937f468d2b3e7fe
+>>> Author: Jan Engelhardt <jengelh@medozas.de>
+>>> Date:   Sat Nov 6 21:19:16 2010 +0100
+>>>
+>>> netfilter: nfnetlink: guard against undefined entries
+>>>
+>>> Check for empty entries in struct nfnl_callback[] to avoid potential
+>>> NULL deference. (Because I have run into one during development.)
 >>
->> if (ret = function() == 1)
->> when it meant to say:
->> if ((ret = function()) == 1)
+>> It seems silly to add checks for easy to find bugs in users of
+>> this code. Finding the cause of -EINVAL is much harder than
+>> getting a nice oops.
 > 
-> Thanks for catching. Indeed (ret = f) == 1 is desired, as can be seen in 
-> patch 2249065f4b22b493bae2caf549b86f175f33188e.
+> But costs a reboot.
 
-Applied, thanks Eric.
+A forced unload of the nfnetlink module will release the mutex.
+
+> How about a printk?
+
+We usually don't protect against API misuse. There is an endless
+amount of mistakes you can make that will cause oopses.
