@@ -1,52 +1,33 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [patch] netfilter: nfnetlink: guard against undefined entries
-Date: Thu, 11 Nov 2010 21:56:34 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1011112156080.30863@obet.zrqbmnf.qr>
-References: <alpine.LNX.2.01.1011100249390.23289@obet.zrqbmnf.qr> <4CDBC6A0.2000108@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter: NF_HOOK_COND has wrong conditional
+Date: Fri, 12 Nov 2010 08:32:10 +0100
+Message-ID: <4CDCED7A.9040202@trash.net>
+References: <20101111190954.29005.61686.stgit@paris.rdu.redhat.com> <alpine.LNX.2.01.1011112148100.30863@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:37711 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756204Ab0KKU4f (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Nov 2010 15:56:35 -0500
-In-Reply-To: <4CDBC6A0.2000108@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Eric Paris <eparis@redhat.com>, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	linux-kernel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <alpine.LNX.2.01.1011112148100.30863@obet.zrqbmnf.qr>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thursday 2010-11-11 11:34, Patrick McHardy wrote:
+On 11.11.2010 21:49, Jan Engelhardt wrote:
+> On Thursday 2010-11-11 20:09, Eric Paris wrote:
+> 
+>> The NF_HOOK_COND returns 0 when it shouldn't due to what I believe to be an
+>> error in the code as the order of operations is not what was intended.  C will
+>> evalutate == before =.  Which means ret is getting set to the bool result,
+>> rather than the return value of the function call.  The code says
+>>
+>> if (ret = function() == 1)
+>> when it meant to say:
+>> if ((ret = function()) == 1)
+> 
+> Thanks for catching. Indeed (ret = f) == 1 is desired, as can be seen in 
+> patch 2249065f4b22b493bae2caf549b86f175f33188e.
 
->On 10.11.2010 02:50, Jan Engelhardt wrote:
->> parent a391d495f6082f6348b9074214e81c7e2dc1151c (v2.6.37-rc1-184-ga391d49)
->> commit 6e97eb121bc8e39c651645c3d937f468d2b3e7fe
->> Author: Jan Engelhardt <jengelh@medozas.de>
->> Date:   Sat Nov 6 21:19:16 2010 +0100
->> 
->> netfilter: nfnetlink: guard against undefined entries
->> 
->> Check for empty entries in struct nfnl_callback[] to avoid potential
->> NULL deference. (Because I have run into one during development.)
->
->It seems silly to add checks for easy to find bugs in users of
->this code. Finding the cause of -EINVAL is much harder than
->getting a nice oops.
-
-But costs a reboot.
-How about a printk?
-
->> diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
->> index b4a4532..7012882 100644
->> --- a/net/netfilter/nfnetlink.c
->> +++ b/net/netfilter/nfnetlink.c
->> @@ -152,7 +152,7 @@ replay:
->>  	}
->>  
->>  	nc = nfnetlink_find_client(type, ss);
->> -	if (!nc)
->> +	if (nc == NULL || nc->call == NULL)
->>  		return -EINVAL;
->>  
->>  	{
-
+Applied, thanks Eric.
