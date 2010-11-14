@@ -1,66 +1,40 @@
-From: Yechiel Levi <gmistick@gmail.com>
-Subject: Re: libnetfilter_queue: extracting TCP options.
-Date: Sun, 14 Nov 2010 07:05:07 +0200
-Message-ID: <AANLkTik_MQCmDSJCRSoj-oCT5VnEE_Q9jWB7ypZZV6J3@mail.gmail.com>
-References: <AANLkTimJdQAjc_-r1R8ELN_Y+EVaN5Q30Y=Rzxg-Bg_j@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=KOI8-R
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: =?KOI8-R?B?SWdvciAnTG8nICjpLkwuKQ==?= <bombsiteunrested@gmail.com>,
-	netfilter-devel@vger.kernel.org
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: [PATCH] netfilter: fix the wrong alloc_size
+Date: Sun, 14 Nov 2010 14:35:48 +0800
+Message-ID: <1289716548-30767-1-git-send-email-xiaosuo@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Changli Gao <xiaosuo@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:64778 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750708Ab0KNFF3 convert rfc822-to-8bit (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:39560 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753262Ab0KNGgl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 14 Nov 2010 00:05:29 -0500
-Received: by fxm6 with SMTP id 6so1076749fxm.19
-        for <netfilter-devel@vger.kernel.org>; Sat, 13 Nov 2010 21:05:28 -0800 (PST)
-In-Reply-To: <AANLkTimJdQAjc_-r1R8ELN_Y+EVaN5Q30Y=Rzxg-Bg_j@mail.gmail.com>
+	Sun, 14 Nov 2010 01:36:41 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+In function update_alloc_size(), sizeof(struct nf_ct_ext) is added twice
+wrongly.
 
-You should use the nfq_handle_packet method, and in the callback it
-activates use a casting of tcp struct on the payload (nfq_get_payload
-method)
-
-timestamp can be achieved from netfilter using the :
-nfq_get_timestamp (struct nfq_data *nfad, struct timeval *tv)
-
-
-
-2010/11/14 Igor 'Lo' (=E9.L.) <bombsiteunrested@gmail.com>:
-> Hi all,
->
-> How one can get TCP packet's options (especially timestamp and MD5)
-> using only libnetfilter_queue in userspace?
-> Having a callback routine(struct nfq_q_handle *qh, struct nfgenmsg
-> *nfmsg, struct nfq_data *nfa, void *data) - which structure may
-> contain the desired options set?
->
-> Most adequate Netfilter-based code to solve this problem was found in
-> linux/net/netfilter/nf_conntrack_proto_tcp.c - not a best kind of
-> documentation, but provided a nice method of reading a structure. Now
-> just need to get a bytes to read.
->
-> cheers,
-> Igor
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
-evel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =9Ahttp://vger.kernel.org/majordomo-info.html
->
-
-
-
---=20
-Kind Regards,
-Yechiel Levi
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+---
+ net/netfilter/nf_conntrack_extend.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+index bd82450..920f924 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -144,9 +144,8 @@ static void update_alloc_size(struct nf_ct_ext_type *type)
+ 		if (!t1)
+ 			continue;
+ 
+-		t1->alloc_size = sizeof(struct nf_ct_ext)
+-				 + ALIGN(sizeof(struct nf_ct_ext), t1->align)
+-				 + t1->len;
++		t1->alloc_size = ALIGN(sizeof(struct nf_ct_ext), t1->align) +
++				 t1->len;
+ 		for (j = 0; j < NF_CT_EXT_NUM; j++) {
+ 			t2 = nf_ct_ext_types[j];
+ 			if (t2 == NULL || t2 == t1 ||
