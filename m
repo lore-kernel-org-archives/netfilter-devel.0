@@ -1,110 +1,83 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH/RFC] netfilter: nf_conntrack_sip: Handle quirky Cisco
- phones
-Date: Sun, 14 Nov 2010 20:57:44 +0100
-Message-ID: <1289764664.2743.110.camel@edumazet-laptop>
-References: <28d666269c390965f1a4edca42f93c12@localhost>
-	 <1289725175.2743.65.camel@edumazet-laptop>
-	 <AANLkTik4PLga8mX73c8iONPeOtpDiuDhfu3xiPmF07jC@mail.gmail.com>
+From: Jesper Juhl <jj@chaosbits.net>
+Subject: [PATCH] Reduce number of pointer dereferences in IPv4 netfilter LOG
+ module function dump_packet()
+Date: Sun, 14 Nov 2010 22:35:27 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.1011142212310.1253@swampdragon.chaosbits.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	"David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Kevin Cernekee <cernekee@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <AANLkTik4PLga8mX73c8iONPeOtpDiuDhfu3xiPmF07jC@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
+	Rusty Russell <rusty@rustcorp.com.au>
+To: Netfilter Core Team <coreteam@netfilter.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Le dimanche 14 novembre 2010 =C3=A0 10:33 -0800, Kevin Cernekee a =C3=A9=
-crit :
-> On Sun, Nov 14, 2010 at 12:59 AM, Eric Dumazet <eric.dumazet@gmail.co=
-m> wrote:
-> > I would like to get an exact SIP exchange to make sure their is not
-> > another way to handle this without adding a "Cisco" string somewher=
-e...
-> >
-> > Please provide a pcap or tcpdump -A
->=20
-> Existing nf_nat_sip: phone sends unauthenticated REGISTER requests
-> over and over again, because it is not seeing the replies sent back t=
-o
-> port 50070:
->=20
-> 10:05:53.496479 IP 192.168.2.28.50070 > 67.215.241.250.5060: SIP, len=
-gth: 723
-> E`...[..@.r.....C...........REGISTER sip:losangeles.voip.ms SIP/2.0
-> Via: SIP/2.0/
->=20
 
-Hmm, partial tcpdump... you should use" tcpdump -s 1000 -A"=20
+By adding two pointer variables to 
+net/ipv4/netfilter/ipt_LOG.c::dump_packet() we can save 16 bytes of .text 
+and 9 pointer dereferences.
 
-We miss the
+before this patch we did 20 pointer dereferences and had this object file 
+size:
+   text    data     bss     dec     hex filename
+   6233     600    3080    9913    26b9 net/ipv4/netfilter/ipt_LOG.o
 
-Via: SIP/2.0/UDP 192.168.2.28:5060;branch=3Dxxxxxxxx
+after this patch we do just 11 pointer dereferences and have this object 
+file size:
+   text    data     bss     dec     hex filename
+   6217     600    3080    9897    26a9 net/ipv4/netfilter/ipt_LOG.o
 
 
-Maybe a fix would be to use this "5060" port, instead of hardcoding it
-like you did ?
+Please Cc me on replies.
 
 
->=20
-> Patched nf_nat_sip: router sends the replies back to port 5060, so th=
-e
-> phone is now able to register itself and make calls:
->=20
-> 10:09:46.221631 IP 192.168.2.28.50618 > 67.215.241.250.5060: SIP, len=
-gth: 723
-> E`...G..@.p.....C...........REGISTER sip:losangeles.voip.ms SIP/2.0
-> Via: SIP/2.0/
->=20
-> 10:09:46.253052 IP 67.215.241.250.5060 > 192.168.2.28.5060: SIP, leng=
-th: 491
-> E....+..4..$C...............SIP/2.0 100 Trying
-> Via: SIP/2.0/UDP 192.168.2.28:5060
->=20
-> 10:09:46.253472 IP 67.215.241.250.5060 > 192.168.2.28.5060: SIP, leng=
-th: 550
-> E..B.,..4...C...............SIP/2.0 401 Unauthorized
-> Via: SIP/2.0/UDP 192.168.2.2
->=20
-> 10:09:46.261602 IP 192.168.2.28.50618 > 67.215.241.250.5060: SIP, len=
-gth: 900
-> E`...H..@.p.....C...........REGISTER sip:losangeles.voip.ms SIP/2.0
-> Via: SIP/2.0/
->=20
-> 10:09:46.290211 IP 67.215.241.250.5060 > 192.168.2.28.5060: SIP, leng=
-th: 491
-> E....-..4.."C...............SIP/2.0 100 Trying
-> Via: SIP/2.0/UDP 192.168.2.28:5060
->=20
-> 10:09:46.295041 IP 67.215.241.250.5060 > 192.168.2.28.5060: SIP, leng=
-th: 579
-> E.._....4...C............K..SIP/2.0 200 OK
-> Via: SIP/2.0/UDP 192.168.2.28:5060;bra
->=20
->=20
-> BTW, I thought of two possible issues with the original patch:
->=20
-> 1) Might need to call skb_make_writable() prior to modifying the
-> packet.  Presumably the second invocation inside
-> nf_nat_mangle_udp_packet() will have no effect.
->=20
-> (Is there a cleaner way to mangle just the port number?  Most of the
-> utility functions only help with modifying the data area.)
->=20
-> 2) I should probably be checking to make sure request =3D=3D 0 before
-> mangling the packet.  The current behavior is harmless if the SIP
-> proxy is on port 5060, but that might not always be the case.
->=20
-> I can roll these, along with any other suggestions, into v2.
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+---
+ ipt_LOG.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
+diff --git a/net/ipv4/netfilter/ipt_LOG.c b/net/ipv4/netfilter/ipt_LOG.c
+index 72ffc8f..02a92de 100644
+--- a/net/ipv4/netfilter/ipt_LOG.c
++++ b/net/ipv4/netfilter/ipt_LOG.c
+@@ -39,6 +39,8 @@ static void dump_packet(struct sbuff *m,
+ 	struct iphdr _iph;
+ 	const struct iphdr *ih;
+ 	unsigned int logflags;
++	struct sock *sk;
++	struct socket *sk_socket;
+ 
+ 	if (info->type == NF_LOG_TYPE_LOG)
+ 		logflags = info->u.log.logflags;
+@@ -335,13 +337,15 @@ static void dump_packet(struct sbuff *m,
+ 	}
+ 
+ 	/* Max length: 15 "UID=4294967295 " */
+-	if ((logflags & IPT_LOG_UID) && !iphoff && skb->sk) {
+-		read_lock_bh(&skb->sk->sk_callback_lock);
+-		if (skb->sk->sk_socket && skb->sk->sk_socket->file)
++	sk = skb->sk;
++	sk_socket = sk->sk_socket;
++	if ((logflags & IPT_LOG_UID) && !iphoff && sk) {
++		read_lock_bh(&sk->sk_callback_lock);
++		if (sk_socket && sk_socket->file)
+ 			sb_add(m, "UID=%u GID=%u ",
+-				skb->sk->sk_socket->file->f_cred->fsuid,
+-				skb->sk->sk_socket->file->f_cred->fsgid);
+-		read_unlock_bh(&skb->sk->sk_callback_lock);
++				sk_socket->file->f_cred->fsuid,
++				sk_socket->file->f_cred->fsgid);
++		read_unlock_bh(&sk->sk_callback_lock);
+ 	}
+ 
+ 	/* Max length: 16 "MARK=0xFFFFFFFF " */
+
+
+
+-- 
+Jesper Juhl <jj@chaosbits.net>            http://www.chaosbits.net/
+Don't top-post http://www.catb.org/~esr/jargon/html/T/top-post.html
+Plain text mails only, please.
 
