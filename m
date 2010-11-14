@@ -1,65 +1,38 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [arptables] rfc: add classify target
-Date: Sun, 14 Nov 2010 16:36:18 +0100
-Message-ID: <4CE001F2.8020600@pandora.be>
-References: <20101107152636.56f62235@caresse>	<alpine.LNX.2.01.1011071616150.21289@obet.zrqbmnf.qr>	<4CD959D6.1090705@trash.net>	<20101109161047.GB25549@sd-11162.dedibox.fr>	<4CD98746.4050100@pandora.be>	<20101109211834.4da8e412@caresse>	<alpine.LNX.2.01.1011092121210.10710@obet.zrqbmnf.qr>	<20101109215126.502a155e@caresse>	<4CDBC7B1.2020101@trash.net>	<20101111124505.345643a3@caresse>	<4CDCF1A7.2050402@trash.net> <20101113162934.768e4a3c@caresse>
+From: =?KOI8-R?B?SWdvciAnTG8nICjpLkwuKQ==?= <bombsiteunrested@gmail.com>
+Subject: Re: libnetfilter_queue: extracting TCP options.
+Date: Sun, 14 Nov 2010 17:45:06 +0200
+Message-ID: <AANLkTi=35M8KtJUzOcAjJvW=_m0x_G3bYwxs77u7rLEv@mail.gmail.com>
+References: <AANLkTimJdQAjc_-r1R8ELN_Y+EVaN5Q30Y=Rzxg-Bg_j@mail.gmail.com> <AANLkTik_MQCmDSJCRSoj-oCT5VnEE_Q9jWB7ypZZV6J3@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org
-To: Frederic Leroy <fredo@starox.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Yechiel Levi <gmistick@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gerard.telenet-ops.be ([195.130.132.48]:53996 "EHLO
-	gerard.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756068Ab0KNPlW (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:52379 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756037Ab0KNPpr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 14 Nov 2010 10:41:22 -0500
-In-Reply-To: <20101113162934.768e4a3c@caresse>
+	Sun, 14 Nov 2010 10:45:47 -0500
+Received: by gyh4 with SMTP id 4so2612806gyh.19
+        for <netfilter-devel@vger.kernel.org>; Sun, 14 Nov 2010 07:45:47 -0800 (PST)
+In-Reply-To: <AANLkTik_MQCmDSJCRSoj-oCT5VnEE_Q9jWB7ypZZV6J3@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Apart from my comments below, the userspace patch looks ok:
-- I would line up the help and man page entries between arptables and
-iptables so noone gets confused. Also, the man page entry refers to
-set-class-mac.
-- In final_check() you should make sure that the priority has been set
-(similar to what's done in libxt_CLASSIFY.c).
+Hi,
+which .h contains a correct struct tcp? I guess it is tcphdr from
+netinet/tcp.h, which only gives a doff (whole header length), so have
+to get payload, skip header length and read the options by byte?
 
-cheers,
-Bart
-
-On 13-11-10 16:29, Frederic Leroy wrote:
-> Le Fri, 12 Nov 2010 08:49:59 +0100,
-> Patrick McHardy <kaber@trash.net> a =E9crit :
+2010/11/14 Yechiel Levi <gmistick@gmail.com>:
+> Hi,
 >
->> On 11.11.2010 12:45, Frederic Leroy wrote:
->>> Le Thu, 11 Nov 2010 11:38:41 +0100,
->>> Patrick McHardy <kaber@trash.net> a =E9crit :
->> You can't change the numerical values, that would break compatibilit=
-y.
->> That basically leaves the option of using NF_INET_PRE_ROUTING instea=
-d
->> of NF_ARP_IN etc, which would make things highly confusing :)
-> There is no much use of NF_ARP_* in the google codesearch world, but =
-I
-> understand the need to not break compatibility.
+> You should use the nfq_handle_packet method, and in the callback it
+> activates use a casting of tcp struct on the payload (nfq_get_payload
+> method)
 >
-> So I joined my last patches to xt_CLASSIFY and arptables.=20
+> timestamp can be achieved from netfilter using the :
+> nfq_get_timestamp (struct nfq_data *nfad, struct timeval *tv)
 >
-> I checked that :
-> - modules are autoloaded
-> - it works as intended for marking cos on vlan interface.
->
-
-
---=20
-Bart De Schuymer
-www.artinalgorithms.be
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cheer,
+Igor.
