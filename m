@@ -1,51 +1,66 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [patch] netfilter: xt_LOG: do print MAC header on FORWARD
-Date: Sun, 14 Nov 2010 19:01:27 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1011141901020.21430@obet.zrqbmnf.qr>
+From: Yechiel Levi <gmistick@gmail.com>
+Subject: Re: libnetfilter_queue: extracting TCP options.
+Date: Sun, 14 Nov 2010 20:11:53 +0200
+Message-ID: <AANLkTinsE5DQcb5_=+6x971TUx2CN_RHBN0EbZvwcA-y@mail.gmail.com>
+References: <AANLkTimJdQAjc_-r1R8ELN_Y+EVaN5Q30Y=Rzxg-Bg_j@mail.gmail.com>
+ <AANLkTik_MQCmDSJCRSoj-oCT5VnEE_Q9jWB7ypZZV6J3@mail.gmail.com> <AANLkTi=35M8KtJUzOcAjJvW=_m0x_G3bYwxs77u7rLEv@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=KOI8-R
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: =?KOI8-R?B?SWdvciAnTG8nICjpLkwuKQ==?= <bombsiteunrested@gmail.com>,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:50262 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756434Ab0KNSB3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 14 Nov 2010 13:01:29 -0500
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:44031 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756434Ab0KNSMP convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 14 Nov 2010 13:12:15 -0500
+Received: by fxm6 with SMTP id 6so1270293fxm.19
+        for <netfilter-devel@vger.kernel.org>; Sun, 14 Nov 2010 10:12:14 -0800 (PST)
+In-Reply-To: <AANLkTi=35M8KtJUzOcAjJvW=_m0x_G3bYwxs77u7rLEv@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-parent 4e2861b87e1ee692bb02a5e54b1e530c6e319668 (v2.6.37-rc1-191-g4e2861b)
-commit 6c0146f3e3e75738fabfbd17b01f43b8bd1830d6
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Sun Nov 14 17:35:40 2010 +0100
+Hi,
 
-netfilter: xt_LOG: do print MAC header on FORWARD
+You said you want the Checksum and Timestamp.
+1. Timestamp as i said could be achieved from nfq_get_timestamp,
+2. Checksum could be achieved from the tcphdr,
+3. Data length could be computed with iphdr(get the data length - tcp
+header length ) ...
 
-I am observing consistent behavior even with bridges, so let's unlock
-this. xt_mac is already usable in FORWARD, too. Section 9 of
-http://ebtables.sourceforge.net/br_fw_ia/br_fw_ia.html#section9 says
-the MAC source address is changed, but my observation does not match
-that claim -- the MAC header is retained.
+I guess that if you want to get the other options, you could just use
+the tcphdr, and address the wanted members of the struct...
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- net/ipv4/netfilter/ipt_LOG.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_LOG.c b/net/ipv4/netfilter/ipt_LOG.c
-index 72ffc8f..d76d6c9 100644
---- a/net/ipv4/netfilter/ipt_LOG.c
-+++ b/net/ipv4/netfilter/ipt_LOG.c
-@@ -442,8 +442,7 @@ ipt_log_packet(u_int8_t pf,
- 	}
- #endif
- 
--	/* MAC logging for input path only. */
--	if (in && !out)
-+	if (in != NULL)
- 		dump_mac_header(m, loginfo, skb);
- 
- 	dump_packet(m, loginfo, skb, 0);
--- 
-# Created with git-export-patch
+2010/11/14 Igor 'Lo' (=E9.L.) <bombsiteunrested@gmail.com>:
+> Hi,
+> which .h contains a correct struct tcp? I guess it is tcphdr from
+> netinet/tcp.h, which only gives a doff (whole header length), so have
+> to get payload, skip header length and read the options by byte?
+>
+> 2010/11/14 Yechiel Levi <gmistick@gmail.com>:
+>> Hi,
+>>
+>> You should use the nfq_handle_packet method, and in the callback it
+>> activates use a casting of tcp struct on the payload (nfq_get_payloa=
+d
+>> method)
+>>
+>> timestamp can be achieved from netfilter using the :
+>> nfq_get_timestamp (struct nfq_data *nfad, struct timeval *tv)
+>>
+> cheer,
+> Igor.
+>
 
+
+
+--=20
+Kind Regards,
+Yechiel Levi
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
