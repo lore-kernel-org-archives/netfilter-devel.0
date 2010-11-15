@@ -1,87 +1,45 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH] netfilter: define NF_CT_EXT_* as needed
-Date: Mon, 15 Nov 2010 17:25:49 +0800
-Message-ID: <1289813149-22897-1-git-send-email-xiaosuo@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Changli Gao <xiaosuo@gmail.com>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Verdict with ebtables?
+Date: Mon, 15 Nov 2010 10:39:41 +0100
+Message-ID: <4CE0FFDD.4090407@trash.net>
+References: <AANLkTinCazaFKSXnfGe2e0nnfeRorV7AHcadQaxGvWg+@mail.gmail.com>	<AANLkTikxkvB2pagQswH1S8=sxA+OVfWrqO45FD6+hDQE@mail.gmail.com>	<4CDBC9E9.2010508@trash.net> <AANLkTinobDP53eegFuhaQCds4TOb98YHWibf9P7L7_D4@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Kfir Lavi <lavi.kfir@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:60915 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752832Ab0KOJjl (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Nov 2010 04:39:41 -0500
+In-Reply-To: <AANLkTinobDP53eegFuhaQCds4TOb98YHWibf9P7L7_D4@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
----
- include/net/netfilter/nf_conntrack_ecache.h |    8 ++++++++
- include/net/netfilter/nf_conntrack_extend.h |    6 ++++++
- include/net/netfilter/nf_nat.h              |    4 ++++
- 3 files changed, 18 insertions(+)
-diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
-index 96ba5f7..f596b60 100644
---- a/include/net/netfilter/nf_conntrack_ecache.h
-+++ b/include/net/netfilter/nf_conntrack_ecache.h
-@@ -23,12 +23,17 @@ struct nf_conntrack_ecache {
- static inline struct nf_conntrack_ecache *
- nf_ct_ecache_find(const struct nf_conn *ct)
- {
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
- 	return nf_ct_ext_find(ct, NF_CT_EXT_ECACHE);
-+#else
-+	return NULL;
-+#endif
- }
- 
- static inline struct nf_conntrack_ecache *
- nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp)
- {
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
- 	struct net *net = nf_ct_net(ct);
- 	struct nf_conntrack_ecache *e;
- 
-@@ -45,6 +50,9 @@ nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp)
- 		e->expmask = expmask;
- 	}
- 	return e;
-+#else
-+	return NULL;
-+#endif
- };
- 
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
-diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
-index 0772d29..1a9f96d 100644
---- a/include/net/netfilter/nf_conntrack_extend.h
-+++ b/include/net/netfilter/nf_conntrack_extend.h
-@@ -7,10 +7,16 @@
- 
- enum nf_ct_ext_id {
- 	NF_CT_EXT_HELPER,
-+#if defined(CONFIG_NF_NAT) || defined(CONFIG_NF_NAT_MODULE)
- 	NF_CT_EXT_NAT,
-+#endif
- 	NF_CT_EXT_ACCT,
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
- 	NF_CT_EXT_ECACHE,
-+#endif
-+#ifdef CONFIG_NF_CONNTRACK_ZONES
- 	NF_CT_EXT_ZONE,
-+#endif
- 	NF_CT_EXT_NUM,
- };
- 
-diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
-index f5f09f0..e966092 100644
---- a/include/net/netfilter/nf_nat.h
-+++ b/include/net/netfilter/nf_nat.h
-@@ -84,7 +84,11 @@ extern int nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
- 
- static inline struct nf_conn_nat *nfct_nat(const struct nf_conn *ct)
- {
-+#if defined(CONFIG_NF_NAT) || defined(CONFIG_NF_NAT_MODULE)
- 	return nf_ct_ext_find(ct, NF_CT_EXT_NAT);
-+#else
-+	return NULL;
-+#endif
- }
- 
- #else  /* !__KERNEL__: iptables wants this to compile. */
+On 14.11.2010 12:56, Kfir Lavi wrote:
+> On Thu, Nov 11, 2010 at 12:48 PM, Patrick McHardy <kaber@trash.net> wrote:
+>>
+>> On 11.11.2010 11:05, Kfir Lavi wrote:
+>>> Hi,
+>>> It seems to me that its not possible to do a verdict in userspace of
+>>> ethernet packets, like it is done with nfqueue and iptables.
+>>> Why it is not implemented?
+>>
+>> Nobody ever implemented it. IIRC the main problem is that under
+>> certain circumstances the packets need to be passed back to
+>> __netif_receive_skb() when queuing in LOCAL_IN, which isn't
+>> possible from the completion handler.
+> 
+> Thanks Patrick for your replay.
+> Can you explain why it's not possible to pass packets back?
+
+Because the completion handler is executed asynchronously,
+while the bridge receive functions are called directly from
+__netif_receive_skb().
+
+> Also, why should packets need to be sent back?
+
+That's f.i. how the NF_BR_LOCAL_IN handler works for link-local
+packets. Have a look at br_handle_frame().
