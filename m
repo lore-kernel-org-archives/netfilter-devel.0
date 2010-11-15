@@ -1,55 +1,40 @@
-From: Kevin Cernekee <cernekee@gmail.com>
-Subject: Re: [PATCH/RFC] netfilter: nf_conntrack_sip: Handle quirky Cisco phones
-Date: Mon, 15 Nov 2010 08:46:50 -0800
-Message-ID: <AANLkTinELGUzDJ8TTTfA8sfiYiLJV-2ZPujwbuQWTPWd@mail.gmail.com>
-References: <28d666269c390965f1a4edca42f93c12@localhost>
-	<1289725175.2743.65.camel@edumazet-laptop>
-	<AANLkTik4PLga8mX73c8iONPeOtpDiuDhfu3xiPmF07jC@mail.gmail.com>
-	<1289764664.2743.110.camel@edumazet-laptop>
-	<AANLkTi==8nwn3g5t1uw=CP1K0vegUE2hAdDxOq-fkVRW@mail.gmail.com>
-	<4CE1084A.3070100@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nf-next-2.6] netfilter: add __rcu annotations
+Date: Mon, 15 Nov 2010 17:53:37 +0100
+Message-ID: <4CE16591.9030504@trash.net>
+References: <1289839592.2607.91.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <4CE1084A.3070100@trash.net>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:35598 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932132Ab0KOQxj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Nov 2010 11:53:39 -0500
+In-Reply-To: <1289839592.2607.91.camel@edumazet-laptop>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 15, 2010 at 2:15 AM, Patrick McHardy <kaber@trash.net> wrote:
-> The problem in doing this is that further packets from port 49xxx
-> wouldn't be recognized as belonging to the same connection.
+On 15.11.2010 17:46, Eric Dumazet wrote:
+> @@ -49,11 +52,15 @@ EXPORT_SYMBOL(nf_register_queue_handler);
+>  /* The caller must flush their queue before this */
+>  int nf_unregister_queue_handler(u_int8_t pf, const struct nf_queue_handler *qh)
+>  {
+> +	const struct nf_queue_handler *old;
+> +
+>  	if (pf >= ARRAY_SIZE(queue_handler))
+>  		return -EINVAL;
+>  
+>  	mutex_lock(&queue_handler_mutex);
+> -	if (queue_handler[pf] && queue_handler[pf] != qh) {
+> +	old = rcu_dereference_protected(queue_handler[pf],
+> +					lockdep_is_held(&queue_handler_mutex));
+> +	if (old && old) {
 
-OK, makes sense.
+This doesn't look like it was intended :)
 
-> The same problem exists with your current patch, packets from port
-> 5060 to the same destination won't be recognized as belonging to the
-> connection that sent the REGISTER and thus won't be able to modify the
-> timeout or unregister.
->
-> Basically we would need three-legged connections to handle this
-> situation correctly.
-
-Just to clarify: the actual source port on a given device will be
-EITHER a high-numbered port (Cisco) or 5060 (others).  I have not come
-across any devices that send from a "mix" of source ports, e.g. 49xxx
-for REGISTER and then 5060 for INVITE.
-
->From what I have seen, subsequent SIP requests from the Cisco phone
-are indeed getting associated with the original connection.  My phone
-is logging into two different SIP accounts, and each account seems to
-use its own unique UDP source port for all control traffic (both
-expecting replies on 5060).
-
-If Netfilter adds support for three-legged connections, will the third
-leg show up in the tuplehash so I don't have to track it in the "help"
-structure?
+if (old && old != qh)?
