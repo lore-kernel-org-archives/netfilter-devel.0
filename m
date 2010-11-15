@@ -1,83 +1,70 @@
 From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] netfilter: add __rcu annotations
-Date: Mon, 15 Nov 2010 18:32:44 +0100
-Message-ID: <1289842364.2607.107.camel@edumazet-laptop>
-References: <1289841688.2607.102.camel@edumazet-laptop>
-	 <4CE16D38.5030506@trash.net>
+Subject: [PATCH] ipvs: add static and read_mostly attributes
+Date: Mon, 15 Nov 2010 18:38:52 +0100
+Message-ID: <1289842732.2607.111.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:48510 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932998Ab0KORct (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:45366 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932988Ab0KORi5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Nov 2010 12:32:49 -0500
-Received: by ewy8 with SMTP id 8so823360ewy.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Nov 2010 09:32:47 -0800 (PST)
-In-Reply-To: <4CE16D38.5030506@trash.net>
+	Mon, 15 Nov 2010 12:38:57 -0500
+Received: by wwa36 with SMTP id 36so280712wwa.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Nov 2010 09:38:56 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le lundi 15 novembre 2010 =C3=A0 18:26 +0100, Patrick McHardy a =C3=A9c=
-rit :
-> On 15.11.2010 18:21, Eric Dumazet wrote:
-> > Use helpers to reduce number of sparse warnings
-> > (CONFIG_SPARSE_RCU_POINTER=3Dy)
-> >=20
-> > remove one variable in amanda, hiding a previous one.
->=20
-> nf_ct_expect_related() returns negative errno codes. It still
-> works, but I prefer the clarity of actually using a signed
-> variable for this. Unless you have strong feelings about this,
-> I'll remove that part from the patch.
+ip_vs_conn_tab_bits & ip_vs_conn_tab_mask are static to
+ipvs/ip_vs_conn.c
 
-No problem, maybe rename the 2nd variable to avoid a sparse warning ?
-
-net/ipv4/netfilter/nf_nat_amanda.c:47:7: warning: symbol 'ret' shadows
-an earlier one
-net/ipv4/netfilter/nf_nat_amanda.c:35:15: originally declared here
-
-[PATCH] netfilter/amanda: rename a variable
-
-Avoid a sparse warning about 'ret' variable shadowing
+ip_vs_conn_tab_size, ip_vs_conn_tab_mask, ip_vs_conn_tab [the pointer],
+ip_vs_conn_rnd are mostly read.
 
 Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
 ---
- net/ipv4/netfilter/nf_nat_amanda.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ net/netfilter/ipvs/ip_vs_conn.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_nat_amanda.c b/net/ipv4/netfilter/nf=
-_nat_amanda.c
-index 0f23b3f..703f366 100644
---- a/net/ipv4/netfilter/nf_nat_amanda.c
-+++ b/net/ipv4/netfilter/nf_nat_amanda.c
-@@ -44,13 +44,13 @@ static unsigned int help(struct sk_buff *skb,
-=20
- 	/* Try to get same port: if not, try to change it. */
- 	for (port =3D ntohs(exp->saved_proto.tcp.port); port !=3D 0; port++) =
-{
--		int ret;
-+		int res;
-=20
- 		exp->tuple.dst.u.tcp.port =3D htons(port);
--		ret =3D nf_ct_expect_related(exp);
--		if (ret =3D=3D 0)
-+		res =3D nf_ct_expect_related(exp);
-+		if (res =3D=3D 0)
- 			break;
--		else if (ret !=3D -EBUSY) {
-+		else if (res !=3D -EBUSY) {
- 			port =3D 0;
- 			break;
- 		}
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index e9adecd..b543c51 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -48,18 +48,18 @@
+ /*
+  * Connection hash size. Default is what was selected at compile time.
+ */
+-int ip_vs_conn_tab_bits = CONFIG_IP_VS_TAB_BITS;
++static int ip_vs_conn_tab_bits = CONFIG_IP_VS_TAB_BITS;
+ module_param_named(conn_tab_bits, ip_vs_conn_tab_bits, int, 0444);
+ MODULE_PARM_DESC(conn_tab_bits, "Set connections' hash size");
+ 
+ /* size and mask values */
+-int ip_vs_conn_tab_size;
+-int ip_vs_conn_tab_mask;
++int ip_vs_conn_tab_size __read_mostly;
++static int ip_vs_conn_tab_mask __read_mostly;
+ 
+ /*
+  *  Connection hash table: for input and output packets lookups of IPVS
+  */
+-static struct list_head *ip_vs_conn_tab;
++static struct list_head *ip_vs_conn_tab __read_mostly;
+ 
+ /*  SLAB cache for IPVS connections */
+ static struct kmem_cache *ip_vs_conn_cachep __read_mostly;
+@@ -71,7 +71,7 @@ static atomic_t ip_vs_conn_count = ATOMIC_INIT(0);
+ static atomic_t ip_vs_conn_no_cport_cnt = ATOMIC_INIT(0);
+ 
+ /* random value for IPVS connection hash */
+-static unsigned int ip_vs_conn_rnd;
++static unsigned int ip_vs_conn_rnd __read_mostly;
+ 
+ /*
+  *  Fine locking granularity for big connection hash table
 
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
