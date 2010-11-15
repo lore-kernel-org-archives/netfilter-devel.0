@@ -1,32 +1,34 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: xtables: add arp support, allow CLASSIFY target
- on any table
-Date: Mon, 15 Nov 2010 13:59:05 +0100
-Message-ID: <4CE12E99.4080200@trash.net>
-References: <20101107152636.56f62235@caresse>	<alpine.LNX.2.01.1011071616150.21289@obet.zrqbmnf.qr>	<4CD959D6.1090705@trash.net>	<20101109161047.GB25549@sd-11162.dedibox.fr>	<4CD98746.4050100@pandora.be>	<20101109211834.4da8e412@caresse>	<alpine.LNX.2.01.1011092121210.10710@obet.zrqbmnf.qr>	<20101109215126.502a155e@caresse>	<4CDBC7B1.2020101@trash.net>	<20101111124505.345643a3@caresse>	<4CDCF1A7.2050402@trash.net>	<20101113162934.768e4a3c@caresse>	<4CE10F29.4010103@trash.net> <20101115132836.505b4b58@caresse>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] libxtables: change option precedence order to be
+ intuitive
+Date: Mon, 15 Nov 2010 14:13:27 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1011151413200.30546@obet.zrqbmnf.qr>
+References: <1289824097-27337-1-git-send-email-jengelh@medozas.de> <4CE12DF3.8050108@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Bart De Schuymer <bdschuym@pandora.be>,
-	netfilter-devel@vger.kernel.org
-To: Frederic Leroy <fredo@starox.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64187 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754477Ab0KOM7E (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Nov 2010 07:59:04 -0500
-In-Reply-To: <20101115132836.505b4b58@caresse>
+Received: from borg.medozas.de ([188.40.89.202]:57938 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756186Ab0KONN2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Nov 2010 08:13:28 -0500
+In-Reply-To: <4CE12DF3.8050108@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 15.11.2010 13:28, Frederic Leroy wrote:
-> Signed-off-by: Fr=E9d=E9ric Leroy <fredo@starox.org>
+On Monday 2010-11-15 13:56, Patrick McHardy wrote:
 
-Applied, thanks Fr=E9d=E9ric.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>On 15.11.2010 13:28, Jan Engelhardt wrote:
+>> The following changes since commit 648fd1ad68ae2ec675ac07efee80783912535404:
+>>                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>> 
+>>   libxt_TOS: avoid an undesired overflowing computation (2010-11-02 09:17:09 +0100)
+>> 
+>> are available in the git repository at:
+>>   git://dev.medozas.de/iptables master
+>
+>Well, as I'm sure you're aware this doesn't apply to the
+>current tree, so please rebase.
+
+Revert the revert and merge?
