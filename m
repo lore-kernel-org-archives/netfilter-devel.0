@@ -1,117 +1,87 @@
 From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH] netfilter: guard the size of the nf_ct_ext
-Date: Mon, 15 Nov 2010 14:15:49 +0800
-Message-ID: <1289801749-8993-1-git-send-email-xiaosuo@gmail.com>
+Subject: [PATCH] netfilter: define NF_CT_EXT_* as needed
+Date: Mon, 15 Nov 2010 17:25:49 +0800
+Message-ID: <1289813149-22897-1-git-send-email-xiaosuo@gmail.com>
 Cc: "David S. Miller" <davem@davemloft.net>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	Changli Gao <xiaosuo@gmail.com>
 To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:37993 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754154Ab0KOGQV (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Nov 2010 01:16:21 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
-We'd better guard the size of the nf_ct_ext, as the nf_ct_ext.len is u8.
-If the size is bigger than 255, a warning will be printed.
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 Signed-off-by: Changli Gao <xiaosuo@gmail.com>
 ---
- net/netfilter/nf_conntrack_extend.c |   41 +++++++++++++++++++++++++++++-------
- 1 file changed, 34 insertions(+), 7 deletions(-)
-diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
-index bd82450..6a404f9 100644
---- a/net/netfilter/nf_conntrack_extend.c
-+++ b/net/netfilter/nf_conntrack_extend.c
-@@ -8,6 +8,7 @@
-  *      as published by the Free Software Foundation; either version
-  *      2 of the License, or (at your option) any later version.
-  */
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/mutex.h>
-@@ -98,6 +99,11 @@ void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
- 	newlen = newoff + t->len;
- 	rcu_read_unlock();
- 
-+	if (unlikely(newlen > 255)) {
-+		pr_warn_ratelimited("the size of nf_ct_ext is %d, "
-+				    "bigger than 255\n", newlen);
-+		return NULL;
-+	}
- 	new = __krealloc(old, newlen, gfp);
- 	if (!new)
- 		return NULL;
-@@ -125,9 +131,9 @@ void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
- }
- EXPORT_SYMBOL(__nf_ct_ext_add);
- 
--static void update_alloc_size(struct nf_ct_ext_type *type)
-+static bool update_alloc_size(struct nf_ct_ext_type *type)
+ include/net/netfilter/nf_conntrack_ecache.h |    8 ++++++++
+ include/net/netfilter/nf_conntrack_extend.h |    6 ++++++
+ include/net/netfilter/nf_nat.h              |    4 ++++
+ 3 files changed, 18 insertions(+)
+diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
+index 96ba5f7..f596b60 100644
+--- a/include/net/netfilter/nf_conntrack_ecache.h
++++ b/include/net/netfilter/nf_conntrack_ecache.h
+@@ -23,12 +23,17 @@ struct nf_conntrack_ecache {
+ static inline struct nf_conntrack_ecache *
+ nf_ct_ecache_find(const struct nf_conn *ct)
  {
--	int i, j;
-+	int i, j, alloc_size;
- 	struct nf_ct_ext_type *t1, *t2;
- 	enum nf_ct_ext_id min = 0, max = NF_CT_EXT_NUM - 1;
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
+ 	return nf_ct_ext_find(ct, NF_CT_EXT_ECACHE);
++#else
++	return NULL;
++#endif
+ }
  
-@@ -153,16 +159,24 @@ static void update_alloc_size(struct nf_ct_ext_type *type)
- 			    (t2->flags & NF_CT_EXT_F_PREALLOC) == 0)
- 				continue;
+ static inline struct nf_conntrack_ecache *
+ nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp)
+ {
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
+ 	struct net *net = nf_ct_net(ct);
+ 	struct nf_conntrack_ecache *e;
  
--			t1->alloc_size = ALIGN(t1->alloc_size, t2->align)
--					 + t2->len;
-+			alloc_size = ALIGN(t1->alloc_size, t2->align) + t2->len;
-+			if (unlikely(alloc_size > 255)) {
-+				pr_warn("the size of nf_ct_ext is %d, "
-+					"bigger than 255\n", alloc_size);
-+				return false;
-+			}
-+			t1->alloc_size = alloc_size;
- 		}
+@@ -45,6 +50,9 @@ nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp)
+ 		e->expmask = expmask;
  	}
-+
-+	return true;
- }
+ 	return e;
++#else
++	return NULL;
++#endif
+ };
  
- /* This MUST be called in process context. */
- int nf_ct_extend_register(struct nf_ct_ext_type *type)
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
+diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
+index 0772d29..1a9f96d 100644
+--- a/include/net/netfilter/nf_conntrack_extend.h
++++ b/include/net/netfilter/nf_conntrack_extend.h
+@@ -7,10 +7,16 @@
+ 
+ enum nf_ct_ext_id {
+ 	NF_CT_EXT_HELPER,
++#if defined(CONFIG_NF_NAT) || defined(CONFIG_NF_NAT_MODULE)
+ 	NF_CT_EXT_NAT,
++#endif
+ 	NF_CT_EXT_ACCT,
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
+ 	NF_CT_EXT_ECACHE,
++#endif
++#ifdef CONFIG_NF_CONNTRACK_ZONES
+ 	NF_CT_EXT_ZONE,
++#endif
+ 	NF_CT_EXT_NUM,
+ };
+ 
+diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
+index f5f09f0..e966092 100644
+--- a/include/net/netfilter/nf_nat.h
++++ b/include/net/netfilter/nf_nat.h
+@@ -84,7 +84,11 @@ extern int nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
+ 
+ static inline struct nf_conn_nat *nfct_nat(const struct nf_conn *ct)
  {
- 	int ret = 0;
-+	int alloc_size;
- 
- 	mutex_lock(&nf_ct_ext_type_mutex);
- 	if (nf_ct_ext_types[type->id]) {
-@@ -172,13 +186,26 @@ int nf_ct_extend_register(struct nf_ct_ext_type *type)
- 
- 	/* This ensures that nf_ct_ext_create() can allocate enough area
- 	   before updating alloc_size */
--	type->alloc_size = ALIGN(sizeof(struct nf_ct_ext), type->align)
--			   + type->len;
-+	alloc_size = ALIGN(sizeof(struct nf_ct_ext), type->align) + type->len;
-+	if (unlikely(alloc_size > 255)) {
-+		pr_warn("the size of nf_ct_ext is %d, bigger than 255\n",
-+			alloc_size);
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+	type->alloc_size = alloc_size;
- 	rcu_assign_pointer(nf_ct_ext_types[type->id], type);
--	update_alloc_size(type);
-+	if (!update_alloc_size(type))
-+		goto err;
- out:
- 	mutex_unlock(&nf_ct_ext_type_mutex);
- 	return ret;
-+err:
-+	rcu_assign_pointer(nf_ct_ext_types[type->id], NULL);
-+	update_alloc_size(type);
-+	mutex_unlock(&nf_ct_ext_type_mutex);
-+	rcu_barrier();
-+	return -EINVAL;
++#if defined(CONFIG_NF_NAT) || defined(CONFIG_NF_NAT_MODULE)
+ 	return nf_ct_ext_find(ct, NF_CT_EXT_NAT);
++#else
++	return NULL;
++#endif
  }
- EXPORT_SYMBOL_GPL(nf_ct_extend_register);
  
+ #else  /* !__KERNEL__: iptables wants this to compile. */
