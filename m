@@ -1,7 +1,7 @@
 From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH 4/6] IPVS: buffer argument to ip_vs_process_message() should not be const
-Date: Tue, 16 Nov 2010 15:34:56 +0900
-Message-ID: <1289889298-17287-5-git-send-email-horms__16340.4102357619$1289889364$gmane$org@verge.net.au>
+Subject: [PATCH 1/6] IPVS: Only match pe_data created by the same pe
+Date: Tue, 16 Nov 2010 15:34:53 +0900
+Message-ID: <1289889298-17287-2-git-send-email-horms__41333.0552554273$1289889375$gmane$org@verge.net.au>
 References: <1289889298-17287-1-git-send-email-horms@verge.net.au>
 Cc: Simon Horman <horms@verge.net.au>
 To: Eric Dumazet <eric.dumazet@gmail.com>,
@@ -10,36 +10,37 @@ To: Eric Dumazet <eric.dumazet@gmail.com>,
 	Patrick McHardy <kaber@trash.net>, lvs-devel@vger.kernel.org,
 	n
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:33013 "EHLO
+Received: from kirsty.vergenet.net ([202.4.237.240]:32994 "EHLO
 	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933070Ab0KPGfe (ORCPT
+	with ESMTP id S932222Ab0KPGfb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Nov 2010 01:35:34 -0500
+	Tue, 16 Nov 2010 01:35:31 -0500
 In-Reply-To: <1289889298-17287-1-git-send-email-horms@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It is assigned to a non-const variable and its contents are modified.
+Only match persistence engine data if it was
+created by the same persistence engine.
 
-Acked-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Reported-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Simon Horman <horms@verge.net.au>
 ---
- net/netfilter/ipvs/ip_vs_sync.c |    2 +-
+ net/netfilter/ipvs/ip_vs_conn.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index 72b3d88..3897d6b 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -303,7 +303,7 @@ ip_vs_conn_fill_param_sync(int af, int protocol,
-  *      Process received multicast message and create the corresponding
-  *      ip_vs_conn entries.
-  */
--static void ip_vs_process_message(const char *buffer, const size_t buflen)
-+static void ip_vs_process_message(char *buffer, const size_t buflen)
- {
- 	struct ip_vs_sync_mesg *m = (struct ip_vs_sync_mesg *)buffer;
- 	struct ip_vs_sync_conn *s;
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 64a9ca3..261db1a 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -354,7 +354,7 @@ struct ip_vs_conn *ip_vs_ct_in_get(const struct ip_vs_conn_param *p)
+ 
+ 	list_for_each_entry(cp, &ip_vs_conn_tab[hash], c_list) {
+ 		if (p->pe_data && p->pe->ct_match) {
+-			if (p->pe->ct_match(p, cp))
++			if (p->pe == cp->pe && p->pe->ct_match(p, cp))
+ 				goto out;
+ 			continue;
+ 		}
 -- 
 1.7.2.3
 
