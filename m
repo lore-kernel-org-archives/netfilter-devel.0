@@ -1,62 +1,58 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: David Miller <davem@davemloft.net>
 Subject: Re: iproute2: use automake
-Date: Tue, 16 Nov 2010 21:12:35 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1011162111570.24880@obet.zrqbmnf.qr>
-References: <20101115.175928.104078108.davem@davemloft.net> <alpine.LNX.2.01.1011161108330.25859@obet.zrqbmnf.qr> <20101116075851.0de8d177@nehalam> <20101116.094132.59704380.davem@davemloft.net> <alpine.LNX.2.01.1011162017320.24880@obet.zrqbmnf.qr>
+Date: Tue, 16 Nov 2010 12:18:24 -0800 (PST)
+Message-ID: <20101116.121824.242115457.davem@davemloft.net>
+References: <20101116075851.0de8d177@nehalam>
+	<20101116.094132.59704380.davem@davemloft.net>
+	<alpine.LNX.2.01.1011162017320.24880@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: shemminger@vyatta.com, stephen.hemminger@vyatta.com,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
+	netfilter-devel@vger.kernel.org, netdev@medozas.de
+To: jengelh@medozas.de
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:60393
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754409Ab0KPUSA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Nov 2010 15:18:00 -0500
 In-Reply-To: <alpine.LNX.2.01.1011162017320.24880@obet.zrqbmnf.qr>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 2010-11-16 18:41, David Miller wrote:
->
->> Until you make a convincing case that the existing infrastructure
->> is a problem, choosing an alternative solution is bogus.
->
->I can't count the amount of times I've seen major source trees
->invest tons of engineering into things to decrease the pain of
->using things like automake and libtool.
+From: Jan Engelhardt <jengelh@medozas.de>
+Date: Tue, 16 Nov 2010 21:11:32 +0100 (CET)
 
-The pro argument for a build system is not that Linux-only projects
-receive unneeded portability work, but that the work involved with
-maintaining all the commands in Makefiles, which tend to be a source
-of update anomalies, gets reduced.
+> * running make in subdirs is broken
 
->X11 even has a script that basically turns libtool into one big
->fat NOP, because on Linux everything libtool tries to figure out
->is completely superfluous.
+"It hurts when I do that"
+"Don't do it then"
 
-(I was not trying to make a case for Libtool specifically.)
+Or, alternatively, fix it in the infrastrucutre that
+exists, it cannot be so hard.
 
-And yet they do use a build system (which happens to be Automake, but
-that's not my point). Was their time spent just to produce,
-"unnecessary non-sense", as you call it? I can imagine they will
-disagree with you.
+Also, we're talking about a tree with a handful of files, a full make
+takes a fraction of a second, this is not  a real issue.
 
->Don't crap up the tree with unnecessary non-sense just for some
->theoretical gain.  Things work just fine right now.
+> * iproute2/arpd compilation fails if db_185.h, atm.h is not present
+>   and
+> * people could not quite opt out building arpd when they are
+>   fine with not having it
 
-They do not.
+Then make the detection better in the makefile and add the
+necessary bits, this is what the GIT and PERF makefiles do
+and it works just fine.
 
-* running make in subdirs is broken
-* iproute2/arpd compilation fails if db_185.h, atm.h is not present
-  and
-* people could not quite opt out building arpd when they are
-  fine with not having it
-* the DESTDIR variable was completely abused
-* data files were shoven into /usr/lib where they don't even belong
-  (that is, if you care about FHS even a tiny bit)
-* NO_SHARED_LIBS=y is broken
-* -lresolv was added unconditionally when it's not even needed
-* CFLAGS was overriden, which means a user running make CFLAGS="-g"
-  will kill the all-important -Wall and -I../include
-* Out-of-tree building, anyone?
+I don't see GIT or PERF moving to automake any time soon to
+solve this kind of problem, yet it's the one most often
+metioned as a great feature of the tool.
 
-But what do I say; if it works _for you_, I must be wrong by
-definition.
+It's bloated, unnecessary rubbish.
+
+Jan, just stop wasting our time and fix the problems in the
+context which make sense.  And that context isn't adding tons
+of unnecessary bloat to iproute2's build system.
+
+Alternatively I invite you to submit automake patches to both
+the git and perf projects, better wear your aesbestos suit!
