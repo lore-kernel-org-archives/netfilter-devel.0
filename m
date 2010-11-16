@@ -1,23 +1,18 @@
 From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: iproute2: use automake
-Date: Tue, 16 Nov 2010 21:11:32 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1011162017320.24880@obet.zrqbmnf.qr>
-References: <20101115.175928.104078108.davem@davemloft.net> <alpine.LNX.2.01.1011161108330.25859@obet.zrqbmnf.qr> <20101116075851.0de8d177@nehalam> <20101116.094132.59704380.davem@davemloft.net>
+Date: Tue, 16 Nov 2010 21:12:35 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1011162111570.24880@obet.zrqbmnf.qr>
+References: <20101115.175928.104078108.davem@davemloft.net> <alpine.LNX.2.01.1011161108330.25859@obet.zrqbmnf.qr> <20101116075851.0de8d177@nehalam> <20101116.094132.59704380.davem@davemloft.net> <alpine.LNX.2.01.1011162017320.24880@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: shemminger@vyatta.com, stephen.hemminger@vyatta.com,
 	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, netdev@medozas.de
+	<netfilter-devel@vger.kernel.org>, netdev@vger.kernel.org
 To: David Miller <davem@davemloft.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:37138 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932341Ab0KPULd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Nov 2010 15:11:33 -0500
-In-Reply-To: <20101116.094132.59704380.davem@davemloft.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <alpine.LNX.2.01.1011162017320.24880@obet.zrqbmnf.qr>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 On Tuesday 2010-11-16 18:41, David Miller wrote:
 >
