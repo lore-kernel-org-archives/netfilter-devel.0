@@ -1,58 +1,61 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: iproute2: use automake
-Date: Tue, 16 Nov 2010 12:18:24 -0800 (PST)
-Message-ID: <20101116.121824.242115457.davem@davemloft.net>
-References: <20101116075851.0de8d177@nehalam>
-	<20101116.094132.59704380.davem@davemloft.net>
-	<alpine.LNX.2.01.1011162017320.24880@obet.zrqbmnf.qr>
+From: Eric Paris <eparis@redhat.com>
+Subject: [PATCH 2/3] network: tcp_connect should return certain errors up the
+	stack
+Date: Tue, 16 Nov 2010 16:52:49 -0500
+Message-ID: <20101116215249.6727.89763.stgit@paris.rdu.redhat.com>
+References: <20101116215238.6727.39248.stgit@paris.rdu.redhat.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: shemminger@vyatta.com, stephen.hemminger@vyatta.com,
-	netfilter-devel@vger.kernel.org, netdev@medozas.de
-To: jengelh@medozas.de
+Cc: eparis@redhat.com, equinox@diac24.net, eric.dumazet@gmail.com,
+	davem@davemloft.net, hzhong@gmail.com, jmorris@namei.org,
+	kaber@trash.net, kuznet@ms2.inr.ac.ru, paul.moore@hp.com,
+	pekkas@netcore.fi, sds@tycho.nsa.gov, yoshfuji@linux-ipv6.org
+To: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	selinux@tycho.nsa.gov, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:60393
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754409Ab0KPUSA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Nov 2010 15:18:00 -0500
-In-Reply-To: <alpine.LNX.2.01.1011162017320.24880@obet.zrqbmnf.qr>
+Received: from mx1.redhat.com ([209.132.183.28]:42164 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756276Ab0KPVzk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Nov 2010 16:55:40 -0500
+In-Reply-To: <20101116215238.6727.39248.stgit@paris.rdu.redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jan Engelhardt <jengelh@medozas.de>
-Date: Tue, 16 Nov 2010 21:11:32 +0100 (CET)
+The current tcp_connect code completely ignores errors from sending an skb.
+This makes sense in many situations (like -ENOBUFFS) but I want to be able to
+immediately fail connections if they are denied by the SELinux netfilter hook.
+Netfilter does not normally return ECONNREFUSED when it drops a packet so we
+respect that error code as a final and fatal error that can not be recovered.
 
-> * running make in subdirs is broken
+Based-on-patch-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Eric Paris <eparis@redhat.com>
+---
 
-"It hurts when I do that"
-"Don't do it then"
+ net/ipv4/tcp_output.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-Or, alternatively, fix it in the infrastrucutre that
-exists, it cannot be so hard.
+diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
+index e961522..15dcd7b 100644
+--- a/net/ipv4/tcp_output.c
++++ b/net/ipv4/tcp_output.c
+@@ -2592,6 +2592,7 @@ int tcp_connect(struct sock *sk)
+ {
+ 	struct tcp_sock *tp = tcp_sk(sk);
+ 	struct sk_buff *buff;
++	int err;
+ 
+ 	tcp_connect_init(sk);
+ 
+@@ -2614,7 +2615,9 @@ int tcp_connect(struct sock *sk)
+ 	sk->sk_wmem_queued += buff->truesize;
+ 	sk_mem_charge(sk, buff->truesize);
+ 	tp->packets_out += tcp_skb_pcount(buff);
+-	tcp_transmit_skb(sk, buff, 1, sk->sk_allocation);
++	err = tcp_transmit_skb(sk, buff, 1, sk->sk_allocation);
++	if (err == -ECONNREFUSED)
++		return err;
+ 
+ 	/* We change tp->snd_nxt after the tcp_transmit_skb() call
+ 	 * in order to make this packet get counted in tcpOutSegs.
 
-Also, we're talking about a tree with a handful of files, a full make
-takes a fraction of a second, this is not  a real issue.
-
-> * iproute2/arpd compilation fails if db_185.h, atm.h is not present
->   and
-> * people could not quite opt out building arpd when they are
->   fine with not having it
-
-Then make the detection better in the makefile and add the
-necessary bits, this is what the GIT and PERF makefiles do
-and it works just fine.
-
-I don't see GIT or PERF moving to automake any time soon to
-solve this kind of problem, yet it's the one most often
-metioned as a great feature of the tool.
-
-It's bloated, unnecessary rubbish.
-
-Jan, just stop wasting our time and fix the problems in the
-context which make sense.  And that context isn't adding tons
-of unnecessary bloat to iproute2's build system.
-
-Alternatively I invite you to submit automake patches to both
-the git and perf projects, better wear your aesbestos suit!
