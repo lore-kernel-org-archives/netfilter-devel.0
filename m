@@ -1,34 +1,45 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: iproute2: use automake
-Date: Mon, 15 Nov 2010 17:59:28 -0800 (PST)
-Message-ID: <20101115.175928.104078108.davem@davemloft.net>
-References: <1289859785-3098-1-git-send-email-jengelh@medozas.de>
-	<20101115142600.66a7e3c3@nehalam>
-	<alpine.LNX.2.01.1011152327430.3784@obet.zrqbmnf.qr>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: shemminger@vyatta.com, stephen.hemminger@vyatta.com,
-	netfilter-devel@vger.kernel.org
-To: jengelh@medozas.de
+From: Simon Horman <horms@verge.net.au>
+Subject: ipvs: ipvs update for nf-next-2.6
+Date: Tue, 16 Nov 2010 15:34:52 +0900
+Message-ID: <1289889298-17287-1-git-send-email-horms__39139.9611173712$1289889330$gmane$org@verge.net.au>
+To: Eric Dumazet <eric.dumazet@gmail.com>,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	Julian Anastasov <ja@ssi.bg>,
+	Patrick McHardy <kaber@trash.net>, lvs-devel@vger.kernel.org,
+	n
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:53353
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759167Ab0KPB7D (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:32982 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759246Ab0KPGfQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Nov 2010 20:59:03 -0500
-In-Reply-To: <alpine.LNX.2.01.1011152327430.3784@obet.zrqbmnf.qr>
+	Tue, 16 Nov 2010 01:35:16 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jan Engelhardt <jengelh@medozas.de>
-Date: Mon, 15 Nov 2010 23:30:46 +0100 (CET)
+Hi Patrick,
 
-> Not using something standardized is an affront to distributors,
-> and the build instructions just a sore for the eye:
+the following patches contain updates to IPVS since 2.6.37-rc1
+and are targeted at nf-next-2.6.
 
-Making the build take 10 times longer is more of an affront
-than what you accuse iproute2 of doing.
+- Static and shadow variable clean-ups from Eric
 
-Please do not do this, I absolutely hate working on source
-trees that use this crap!
+- Preparation for persistence engine syncrhonisation
+
+- Correctness fix for persistence engine match.
+  I do not consider this a bug as it can only manifest in a problem
+  if there is more than one persistence engine loaded and
+  currently only one exists.
+
+- Code cleanps for ip_vs_sync_conn(), ip_vs_process_message()
+  and ip_vs_process_message()
+
+- Handle GRO aggregated skbs
+  The previous behaviour was to send a needs frag ICMP.
+  This is probably stable material.
+
+Please pull from:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git for-patrick
+
+I expect more activity before 2.6.37-rc1. In particular Hans is working
+heavily with Julian and myself on the new synchronisation code.
