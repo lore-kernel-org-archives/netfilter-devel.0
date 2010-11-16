@@ -1,23 +1,50 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ipvs: ipvs update for nf-next-2.6
-Date: Tue, 16 Nov 2010 10:21:53 +0100
-Message-ID: <4CE24D31.9000906@trash.net>
-References: <1289889298-17287-1-git-send-email-horms@verge.net.au>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 2/5] include: use C++ headers in C++ mode
+Date: Tue, 16 Nov 2010 11:04:17 +0100
+Message-ID: <4CE25721.7080505@netfilter.org>
+References: <1289430485-16467-1-git-send-email-jengelh@medozas.de> <1289430485-16467-3-git-send-email-jengelh@medozas.de> <4CDBE83D.30705@netfilter.org> <alpine.LNX.2.01.1011111358370.13616@obet.zrqbmnf.qr> <4CDBEC7C.8030107@netfilter.org> <alpine.LNX.2.01.1011131918150.15190@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	Julian Anastasov <ja@ssi.bg>, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <1289889298-17287-1-git-send-email-horms@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:53633 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934155Ab0KPKEW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Nov 2010 05:04:22 -0500
+In-Reply-To: <alpine.LNX.2.01.1011131918150.15190@obet.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 16.11.2010 07:34, Simon Horman wrote:
-> git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git for-patrick
+On 13/11/10 19:19, Jan Engelhardt wrote:
+> On Thursday 2010-11-11 14:15, Pablo Neira Ayuso wrote:
+>>>>> -#include <stdio.h>
+>>>>> -#include <stdint.h>
+>>>>> +#ifdef __cplusplus
+>>>>> +#	include <cstdio>
+>>>>> +#	include <cstdint>
+>>>>> +#else
+>>>>> +#	include <stdbool.h> /* not in C++ */
+>>>>> +#	include <stdio.h>
+>>>>> +#	include <stdint.h>
+>>>>> +#endif
+>>>>>  #include <sys/socket.h> /* for sa_family_t */
+>>>>>  #include <linux/netlink.h>
+>>>>> -#ifndef __cplusplus
+>>>>> -#	include <stdbool.h>
+>>>>> -#endif
+>>>>
+>>>> A c++ example compiles fine without this here, so do we really need
+>>>> these extra ifdef's?
+>>>
+>>> Well there is a purpose for having <cXXX> over <XXX.h> in C++. IIRC it 
+>>> was proper namespacing of Standard Library functions.
+>>
+>> I'm looking at other library code but I don't find any doing this. If
+>> you can point to any, I'd appreciate it.
+> 
+> /usr/include/gmp.h from libgmp-devel, for example.
 
-Pulled, thanks Simon!
+Applied thanks Jan.
+
