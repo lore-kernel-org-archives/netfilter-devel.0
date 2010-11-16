@@ -1,26 +1,23 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nf-next-2.6] conntrack: one less atomic op in nf_ct_expect_insert()
-Date: Tue, 16 Nov 2010 10:19:54 +0100
-Message-ID: <4CE24CBA.9020105@trash.net>
-References: <1289861877.3364.22.camel@edumazet-laptop>
+Subject: Re: ipvs: ipvs update for nf-next-2.6
+Date: Tue, 16 Nov 2010 10:21:53 +0100
+Message-ID: <4CE24D31.9000906@trash.net>
+References: <1289889298-17287-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50444 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934022Ab0KPJUA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Nov 2010 04:20:00 -0500
-In-Reply-To: <1289861877.3364.22.camel@edumazet-laptop>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	Julian Anastasov <ja@ssi.bg>, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1289889298-17287-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 15.11.2010 23:57, Eric Dumazet wrote:
-> Instead of doing atomic_inc(&exp->use) twice,
-> call atomic_add(2, &exp->use);
+On 16.11.2010 07:34, Simon Horman wrote:
+> git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git for-patrick
 
-Applied, thanks Eric.
+Pulled, thanks Simon!
