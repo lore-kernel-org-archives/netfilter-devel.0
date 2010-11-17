@@ -1,45 +1,41 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
+From: Rick Jones <rick.jones2@hp.com>
 Subject: Re: [RFC] don't copy the whole table to all the other CPUs
-Date: Wed, 17 Nov 2010 15:57:40 +0100
-Message-ID: <1290005860.2687.36.camel@edumazet-laptop>
+Date: Wed, 17 Nov 2010 10:03:56 -0800
+Message-ID: <4CE4190C.800@hp.com>
 References: <AANLkTinBSZPAMKb7J0aBb4_xBv_QPnXTZAE9c+8=cnHz@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Patrick McHardy <kaber@trash.net>,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
 To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:44822 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756452Ab0KQO6L (ORCPT
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:9950 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935136Ab0KQSD6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Nov 2010 09:58:11 -0500
-Received: by wwa36 with SMTP id 36so2115098wwa.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 17 Nov 2010 06:58:10 -0800 (PST)
+	Wed, 17 Nov 2010 13:03:58 -0500
 In-Reply-To: <AANLkTinBSZPAMKb7J0aBb4_xBv_QPnXTZAE9c+8=cnHz@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le mercredi 17 novembre 2010 =C3=A0 22:54 +0800, Changli Gao a =C3=A9cr=
-it :
+Changli Gao wrote:
 > When reviewing the iptables code, I find there is one exact copy of
 > table on every possible CPU for parallel processing. However, only
 > counters are private, and the others are the same. It is a wast of
 > memory. I know the current implementation maybe good for NUMA, but I
 > don't think NUMA is common, and I doubt its benefit. I'll try to
 > convert the code use one shared table, but private counters.
->=20
+> 
 > Any comment?
->=20
 
-This idea is not new, and I believe Patrick is already working on it.
+Others have already commented on how the code is changing and whether or not 
+what is done is necessary for good performance in the face of NUMA, but I wanted 
+to point-out that NUMA is quite common.  Just in the x86 space, virtually 
+anything with two or more sockets sold starting with Nehalem-EP (?) is a NUMA 
+system, and one can go farther back than that when one goes to Barcelona. 
+Per-processor memory controllers and more than one processor implies NUMA.
 
+rick jones
 
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
