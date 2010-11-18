@@ -1,57 +1,26 @@
-From: Patrick McHardy <kaber@trash.net>
+From: David Miller <davem@davemloft.net>
 Subject: Re: error while building the kernel Mainline
-Date: Thu, 18 Nov 2010 21:32:11 +0100
-Message-ID: <4CE58D4B.6070105@trash.net>
-References: <1290093135.2781.167.camel@edumazet-laptop>	<4CE561A2.2020600@gmail.com>	<1290102497.2781.242.camel@edumazet-laptop> <20101118.095046.28818361.davem@davemloft.net> <4CE56CC4.4020107@gmail.com> <4CE56E89.4000902@trash.net> <4CE57C06.4080105@gmail.com>
+Date: Thu, 18 Nov 2010 12:54:51 -0800 (PST)
+Message-ID: <20101118.125451.98885354.davem@davemloft.net>
+References: <4CE56E89.4000902@trash.net>
+	<4CE57C06.4080105@gmail.com>
+	<4CE58D4B.6070105@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>, eric.dumazet@gmail.com,
+Cc: justinmattock@gmail.com, eric.dumazet@gmail.com,
 	linux-net@vger.kernel.org, linux-kernel@vger.kernel.org,
 	netdev@vger.kernel.org, horms@verge.net.au,
 	netfilter-devel@vger.kernel.org
-To: "Justin P. Mattock" <justinmattock@gmail.com>
+To: kaber@trash.net
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4CE57C06.4080105@gmail.com>
+In-Reply-To: <4CE58D4B.6070105@trash.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Am 18.11.2010 20:18, schrieb Justin P. Mattock:
-> On 11/18/2010 10:20 AM, Patrick McHardy wrote:
->> Am 18.11.2010 19:13, schrieb Justin P. Mattock:
->>> On 11/18/2010 09:50 AM, David Miller wrote:
->>>> From: Eric Dumazet<eric.dumazet@gmail.com>
->>>> Date: Thu, 18 Nov 2010 18:48:17 +0100
->>>>
->>>>> Let me guess...
->>>>>
->>>>> net/netfilter/nf_conntrack_core is compiled as a module, and ip_vs
->>>>> statically (in vmlinux) ?
->>>>>
->>>>> CONFIG_NF_CONNTRACK=m
->>>>> CONFIG_IP_VS=y
->>>>>
->>>>> We probably need some Kconfig magic ;)
->>>>
->>
->> Please try whether this patch fixes the problem.
->>
->> netfilter: fix IP_VS dependencies
->>
->> When NF_CONNTRACK is enabled, IP_VS uses conntrack symbols.
->> Therefore IP_VS can't be linked statically when conntrack
->> is built modular.
->>
->> Reported-by: Justin P. Mattock<justinmattock@gmail.com>
->> Signed-off-by: Patrick McHardy<kaber@trash.net>
->>
->>
-> 
-> 
-> alright!! doing the above change
-> CONFIG_NF_CONNTRACK=y gets a clean build.. as well as reverting
-> everything and using your patch..
-> 
-> Thanks for the fix..
+From: Patrick McHardy <kaber@trash.net>
+Date: Thu, 18 Nov 2010 21:32:11 +0100
 
-Thanks for testing. Dave, please apply directly, thanks!
+> Thanks for testing. Dave, please apply directly, thanks!
+
+Done.
