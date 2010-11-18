@@ -1,10 +1,10 @@
 From: David Miller <davem@davemloft.net>
 Subject: Re: error while building the kernel Mainline
-Date: Thu, 18 Nov 2010 13:10:04 -0800 (PST)
-Message-ID: <20101118.131004.58430322.davem@davemloft.net>
-References: <4CE58D4B.6070105@trash.net>
-	<20101118.125451.98885354.davem@davemloft.net>
+Date: Thu, 18 Nov 2010 13:15:27 -0800 (PST)
+Message-ID: <20101118.131527.45904827.davem@davemloft.net>
+References: <20101118.125451.98885354.davem@davemloft.net>
 	<20101118130318.073f6beb.randy.dunlap@oracle.com>
+	<20101118.131004.58430322.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -13,31 +13,35 @@ Cc: kaber@trash.net, justinmattock@gmail.com, eric.dumazet@gmail.com,
 	netdev@vger.kernel.org, horms@verge.net.au,
 	netfilter-devel@vger.kernel.org
 To: randy.dunlap@oracle.com
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:56784
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760348Ab0KRVJj (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Nov 2010 16:09:39 -0500
-In-Reply-To: <20101118130318.073f6beb.randy.dunlap@oracle.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20101118.131004.58430322.davem@davemloft.net>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Date: Thu, 18 Nov 2010 13:03:18 -0800
+From: David Miller <davem@davemloft.net>
+Date: Thu, 18 Nov 2010 13:10:04 -0800 (PST)
 
-> On Thu, 18 Nov 2010 12:54:51 -0800 (PST) David Miller wrote:
+> From: Randy Dunlap <randy.dunlap@oracle.com>
+> Date: Thu, 18 Nov 2010 13:03:18 -0800
 > 
->> From: Patrick McHardy <kaber@trash.net>
->> Date: Thu, 18 Nov 2010 21:32:11 +0100
+>> On Thu, 18 Nov 2010 12:54:51 -0800 (PST) David Miller wrote:
 >> 
->> > Thanks for testing. Dave, please apply directly, thanks!
+>>> From: Patrick McHardy <kaber@trash.net>
+>>> Date: Thu, 18 Nov 2010 21:32:11 +0100
+>>> 
+>>> > Thanks for testing. Dave, please apply directly, thanks!
+>> 
+>> Dave,
+>> 
+>> This patch does not fix the config/build error that I posted for linux-next.
 > 
-> Dave,
+> And it has bugs, now when NF_CONNTRACT is set to "m" IPVS isn't offered
+> at all.
 > 
-> This patch does not fix the config/build error that I posted for linux-next.
+> So I'm reverting.
 
-And it has bugs, now when NF_CONNTRACT is set to "m" IPVS isn't offered
-at all.
+Ignore this, I was looking for "*_IPVS" in the config instead of
+"*_IP_VS" for some stupid reason.
 
-So I'm reverting.
+Patch is sane and I'll look into Randy's problem when I get a chance.
+:-)
