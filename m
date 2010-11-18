@@ -1,96 +1,62 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [RFC PATCH] netfilter: remove the duplicate tables
-Date: Fri, 19 Nov 2010 07:36:51 +0800
-Message-ID: <AANLkTi=w8vvVNYMa5D-_4UDoVJABbvM9CVYjABrVoWPY@mail.gmail.com>
-References: <1290091194-1590-1-git-send-email-xiaosuo@gmail.com> <1290095020.2781.203.camel@edumazet-laptop>
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+Subject: Re: error while building the kernel Mainline
+Date: Thu, 18 Nov 2010 15:48:00 -0800
+Message-ID: <4CE5BB30.5080209@gmail.com>
+References: <20101118.125451.98885354.davem@davemloft.net>	<20101118130318.073f6beb.randy.dunlap@oracle.com>	<20101118.131004.58430322.davem@davemloft.net> <20101118.131527.45904827.davem@davemloft.net> <4CE59F3F.3080407@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1290095020.2781.203.camel@edumazet-laptop>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: David Miller <davem@davemloft.net>, randy.dunlap@oracle.com,
+	eric.dumazet@gmail.com, linux-net@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	horms@verge.net.au, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4CE59F3F.3080407@trash.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Nov 18, 2010 at 11:43 PM, Eric Dumazet <eric.dumazet@gmail.com>=
- wrote:
-> Le jeudi 18 novembre 2010 =E0 22:39 +0800, Changli Gao a =E9crit :
->> As only xt_counters are private to each CPU, we don't need to mainta=
-in
->> a whole individual table for each CPU.
+On 11/18/2010 01:48 PM, Patrick McHardy wrote:
+> Am 18.11.2010 22:15, schrieb David Miller:
+>> From: David Miller<davem@davemloft.net>
+>> Date: Thu, 18 Nov 2010 13:10:04 -0800 (PST)
 >>
->> In the kernel space, we use the memory of ipt_entry.counters to save=
- a
->> pointer to a percpu xt_counters. When iptables runs, it only update =
-the
->> counters on its own CPU.
+>>> From: Randy Dunlap<randy.dunlap@oracle.com>
+>>> Date: Thu, 18 Nov 2010 13:03:18 -0800
+>>>
+>>>> On Thu, 18 Nov 2010 12:54:51 -0800 (PST) David Miller wrote:
+>>>>
+>>>>> From: Patrick McHardy<kaber@trash.net>
+>>>>> Date: Thu, 18 Nov 2010 21:32:11 +0100
+>>>>>
+>>>>>> Thanks for testing. Dave, please apply directly, thanks!
+>>>>
+>>>> Dave,
+>>>>
+>>>> This patch does not fix the config/build error that I posted for linux-next.
+>>>
+>>> And it has bugs, now when NF_CONNTRACT is set to "m" IPVS isn't offered
+>>> at all.
+>>>
+>>> So I'm reverting.
 >>
->> On non SMP platforms, no change is made.
->>
->> Only the code of iptables is converted. Thanks for reviews.
->>
+>> Ignore this, I was looking for "*_IPVS" in the config instead of
+>> "*_IP_VS" for some stupid reason.
 >
-> Changli
+> I always make the same mistake :)
 >
-> I answered you a (difficult) work was in progress, still you post a
-> patch that needs our review and time ? This is crazy.
-
-Sorry for interrupt, and thanks for review. I posted this patch to
-check if I was in the right direction.
-
+>> Patch is sane and I'll look into Randy's problem when I get a chance.
+>> :-)
 >
-> I am tempted to stop here. Oh well...
->
-> Your way of allocating a percpu counter for each counter is a pure TL=
-B
-> and cache line blower (up to two cache lines per counter), not counti=
-ng
-> the time needed to load a new table with 10.000 entries. Some people
-> still use scripts with hundred of calls to iptables.
->
-> percpu_alloc() is not meant to be used thousand of times per second. =
-It
-> is not scalable.
->
-> You consume 16 bytes per counter in the main table, while 4 bytes ind=
-ex
-> should be enough on SMP build. Most firewalls I know use two or four
-> cpus at most.
-
-I think we can't change the structure of ipt_entry, as it is exposed
-to userspace as an ABI. Though there is no need to keep the same
-structure in the kernel space, converting is a big work. :)
-
->
-> They care about speed, not really because iptables duplicates table o=
-n
-> each cpu. By the way, not using NUMA can definitly hurt firewalls wit=
-h
-> many rules, unless you make sure the main table is vmalloced() with n=
-ode
-> distribution, not a single node. Even with this, this can hurt
-> latencies.
-
-This is what I worry about. I think only test can verify it.
-
->
-> Allocating one contiguous percpu var for all counters is a must.
->
-> Problem is : percpu alloc doesnt allow big allocations.
->
-> #define PCPU_MIN_UNIT_SIZE =A0 =A0 =A0PFN_ALIGN(32 << 10)
->
-> So max allocation is 32 Kbytes, thats 2048 'xt_counters' only.
-> -> cannot really use pcpu-alloc, but a kmalloc_node() or vmalloc_node=
-()
-> per cpu
+> I've already asked the tproxy guys to look into this, it's a
+> different problem that requires more tproxy knowledge than
+> have.
 >
 
-Thanks. I'll try.
 
---=20
-Regards,
-Changli Gao(xiaosuo@gmail.com)
+go outside to clean the garage, and put up the christmas lights up, come 
+back and am freaking for a second that the problems not fixed...
+
+tripping me out man!!
+
+Justin P. Mattock
