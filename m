@@ -1,26 +1,40 @@
-From: David Miller <davem@davemloft.net>
+From: Randy Dunlap <randy.dunlap@oracle.com>
 Subject: Re: error while building the kernel Mainline
-Date: Thu, 18 Nov 2010 12:54:51 -0800 (PST)
-Message-ID: <20101118.125451.98885354.davem@davemloft.net>
+Date: Thu, 18 Nov 2010 13:03:18 -0800
+Message-ID: <20101118130318.073f6beb.randy.dunlap@oracle.com>
 References: <4CE56E89.4000902@trash.net>
 	<4CE57C06.4080105@gmail.com>
 	<4CE58D4B.6070105@trash.net>
+	<20101118.125451.98885354.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: justinmattock@gmail.com, eric.dumazet@gmail.com,
+Cc: kaber@trash.net, justinmattock@gmail.com, eric.dumazet@gmail.com,
 	linux-net@vger.kernel.org, linux-kernel@vger.kernel.org,
 	netdev@vger.kernel.org, horms@verge.net.au,
 	netfilter-devel@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4CE58D4B.6070105@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from rcsinet10.oracle.com ([148.87.113.121]:54933 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751212Ab0KRVFU (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Nov 2010 16:05:20 -0500
+In-Reply-To: <20101118.125451.98885354.davem@davemloft.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 18 Nov 2010 21:32:11 +0100
+On Thu, 18 Nov 2010 12:54:51 -0800 (PST) David Miller wrote:
 
-> Thanks for testing. Dave, please apply directly, thanks!
+> From: Patrick McHardy <kaber@trash.net>
+> Date: Thu, 18 Nov 2010 21:32:11 +0100
+> 
+> > Thanks for testing. Dave, please apply directly, thanks!
 
-Done.
+Dave,
+
+This patch does not fix the config/build error that I posted for linux-next.
+
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
