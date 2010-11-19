@@ -1,39 +1,47 @@
-From: Jan Andrejkovic <jandrejk@gmail.com>
-Subject: xtables - how to use kernel headers not located in /usr/include/ ?
-Date: Fri, 19 Nov 2010 03:30:00 +0000
-Message-ID: <AANLkTimyOo-GMg0CYnnBs4QDeneq5XGV4YO8kVNLL116@mail.gmail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [RFC PATCH] netfilter: remove the duplicate tables
+Date: Fri, 19 Nov 2010 07:24:07 +0100
+Message-ID: <1290147847.2489.1.camel@edumazet-laptop>
+References: <1290091194-1590-1-git-send-email-xiaosuo@gmail.com>
+	 <1290095020.2781.203.camel@edumazet-laptop>
+	 <AANLkTi=w8vvVNYMa5D-_4UDoVJABbvM9CVYjABrVoWPY@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Cc: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:50905 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751173Ab0KSDaC convert rfc822-to-8bit (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:32908 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750930Ab0KSGYM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Nov 2010 22:30:02 -0500
-Received: by iwn35 with SMTP id 35so4279923iwn.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Nov 2010 19:30:01 -0800 (PST)
+	Fri, 19 Nov 2010 01:24:12 -0500
+In-Reply-To: <AANLkTi=w8vvVNYMa5D-_4UDoVJABbvM9CVYjABrVoWPY@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi guys,
+Le vendredi 19 novembre 2010 =C3=A0 07:36 +0800, Changli Gao a =C3=A9cr=
+it :
+> On Thu, Nov 18, 2010 at 11:43 PM, Eric Dumazet <eric.dumazet@gmail.co=
+m> wrote:
+> > You consume 16 bytes per counter in the main table, while 4 bytes i=
+ndex
+> > should be enough on SMP build. Most firewalls I know use two or fou=
+r
+> > cpus at most.
+>=20
+> I think we can't change the structure of ipt_entry, as it is exposed
+> to userspace as an ABI. Though there is no need to keep the same
+> structure in the kernel space, converting is a big work. :)
+>=20
 
-I'm trying to cross-compile xtables 1.4.7 for my arm device, I get
-compilation error:
-/usr/include/netinet/ip.h:47: error: redefinition of =91struct iphdr=92
+We already do that for COMPAT. This is a not a big deal to always use a
+converter and make it dependent on userland being 32 or 64 bit.
 
-I think the error is related with the fact that kernel source I need
-to compile with is located elsewhere and not in /usr/include
 
-How can I influence xtables to use specified kernel headers path?
 
-So far I tried ./configure --with-ksource=3D/mypath and setting
-KERNEL_DIR=3D/mypath, but without luck.
-
-Thank you very much,
-
-Jan
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
