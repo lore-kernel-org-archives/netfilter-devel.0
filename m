@@ -1,90 +1,50 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [RFC PATCH] netfilter: remove the duplicate tables
-Date: Fri, 19 Nov 2010 12:29:40 +0100
-Message-ID: <1290166180.3034.119.camel@edumazet-laptop>
-References: <1290091194-1590-1-git-send-email-xiaosuo@gmail.com>
-	 <1290095020.2781.203.camel@edumazet-laptop>
-	 <alpine.LNX.2.01.1011191210290.29394@obet.zrqbmnf.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 4/6] build: tag function headers rather than decls as
+ exported
+Date: Fri, 19 Nov 2010 12:43:24 +0100
+Message-ID: <4CE662DC.401@netfilter.org>
+References: <1289907814-32706-1-git-send-email-jengelh@medozas.de> <1289907814-32706-5-git-send-email-jengelh@medozas.de> <4CE65AF9.9090904@netfilter.org> <alpine.LNX.2.01.1011191225260.31107@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Changli Gao <xiaosuo@gmail.com>, Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Stephen Hemminger <shemminger@vyatta.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:59295 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753601Ab0KSL3p (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Nov 2010 06:29:45 -0500
-In-Reply-To: <alpine.LNX.2.01.1011191210290.29394@obet.zrqbmnf.qr>
+Received: from mail.us.es ([193.147.175.20]:51672 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751137Ab0KSLn2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 19 Nov 2010 06:43:28 -0500
+In-Reply-To: <alpine.LNX.2.01.1011191225260.31107@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le vendredi 19 novembre 2010 =C3=A0 12:15 +0100, Jan Engelhardt a =C3=A9=
-crit :
+On 19/11/10 12:26, Jan Engelhardt wrote:
+> 
+> On Friday 2010-11-19 12:09, Pablo Neira Ayuso wrote:
+>>
+>> I like this patchset. Some minor glitch:
+>>
+>> On 16/11/10 12:43, Jan Engelhardt wrote:
+>>> @@ -49,31 +43,31 @@ MNL_API int mnl_socket_getsockopt(const struct mnl_socket *nl, int type, void *b
+>>> -MNL_API size_t mnl_nlmsg_size(size_t len);
+>>> -MNL_API size_t mnl_nlmsg_total_size(size_t len);
+>>> -MNL_API size_t mnl_nlmsg_get_payload_len(const struct nlmsghdr *nlh);
+>>> +extern size_t mnl_nlmsg_size(size_t len);
+>>> +extern size_t mnl_nlmsg_total_size(size_t len);
+>>> +extern size_t mnl_nlmsg_get_payload_len(const struct nlmsghdr *nlh);
+>>
+>> In patch 1/6 mnl_nlmsg_next looks like:
+>>
+>> -struct nlattr *mnl_attr_next(const struct nlattr *attr, int *len)
+>> +struct nlattr *mnl_attr_next(const struct nlattr *attr)
+>>
+>> but here the old API seems to come back:
+>>
+>> extern struct nlmsghdr *mnl_nlmsg_next(const struct nlmsghdr *nlh, int
+>> *len);
+> 
+> I only changed the attr iteration interface so far, but not yet
+> that of nlmsg iteration.
 
-> Was it? Quoting Patrick from 24h prior to this post:
->=20
-> |so patches to get rid of the table duplication are highly welcome.
->=20
-> >still you post a patch that needs our review and time ? This is craz=
-y.
->=20
-> You do not need to do it, but I will happily look at this.
-> Of course my observations are the same as yours:
->=20
-> >Your way of allocating a percpu counter for each counter is a pure T=
-LB
-> >and cache line blower (up to two cache lines per counter), not count=
-ing
-> >the time needed to load a new table with 10.000 entries. Some people
-> >still use scripts with hundred of calls to iptables.
->=20
-> The two are statistically independent though. Even for a loaded=20
-> ruleset, the TLB/DC miss accumulation will be desastrous - as I've fo=
-und=20
-> with linked-list rules/small allocs.
->=20
-> >Allocating one contiguous percpu var for all counters is a must.
-> >
-> >Problem is : percpu alloc doesnt allow big allocations.
-> >
-> >#define PCPU_MIN_UNIT_SIZE      PFN_ALIGN(32 << 10)
-> >
-> >So max allocation is 32 Kbytes, thats 2048 'xt_counters' only.
-> >-> cannot really use pcpu-alloc, but a kmalloc_node() or vmalloc_nod=
-e()
-> >per cpu
->=20
-> .. as is already done for jumpstack ;-)
-
-IMHO, the real problem is not the table duplication. We know that addin=
-g
-a level of indirection is going to hurt a lot because of cache misses.
-
-Its the atomic op (spinlock) done for every packet, entering every
-filter, with the conditional branch we do because of possible recursion=
-=2E
-
-per cpu variable, and spinlock... its really expensive.
-
-Stephen tried an RCU conversion some time ago, that aborted because of
-RCU drawbacks (too much memory was possibly waiting to be freed after a
-grace period). Maybe RCU infrastructure is now ready to try again.
-
-We should do what we did for u64 stats counters in network stack, using
-the u64_stats_sync.h infrastructure. No more synchro between the thread=
-s
-running through rules, and one gathering counters. Better latencies in
-particular.
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Oh, I didn't notice that this refers to nlmsg, not to attr. I'll apply
+the remaining patches then. Thanks.
