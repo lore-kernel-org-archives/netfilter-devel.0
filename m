@@ -1,50 +1,38 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 4/6] build: tag function headers rather than decls as
- exported
-Date: Fri, 19 Nov 2010 12:43:24 +0100
-Message-ID: <4CE662DC.401@netfilter.org>
-References: <1289907814-32706-1-git-send-email-jengelh@medozas.de> <1289907814-32706-5-git-send-email-jengelh@medozas.de> <4CE65AF9.9090904@netfilter.org> <alpine.LNX.2.01.1011191225260.31107@obet.zrqbmnf.qr>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [RFC PATCH] netfilter: remove the duplicate tables
+Date: Fri, 19 Nov 2010 20:48:37 +0800
+Message-ID: <AANLkTikF83kxggqyxoxw0m6L5km3zogPsiV7wVO1jbXy@mail.gmail.com>
+References: <1290091194-1590-1-git-send-email-xiaosuo@gmail.com>
+ <1290095020.2781.203.camel@edumazet-laptop> <alpine.LNX.2.01.1011191210290.29394@obet.zrqbmnf.qr>
+ <1290166180.3034.119.camel@edumazet-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Stephen Hemminger <shemminger@vyatta.com>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51672 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751137Ab0KSLn2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Nov 2010 06:43:28 -0500
-In-Reply-To: <alpine.LNX.2.01.1011191225260.31107@obet.zrqbmnf.qr>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:58779 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753696Ab0KSMs7 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 19 Nov 2010 07:48:59 -0500
+In-Reply-To: <1290166180.3034.119.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 19/11/10 12:26, Jan Engelhardt wrote:
-> 
-> On Friday 2010-11-19 12:09, Pablo Neira Ayuso wrote:
->>
->> I like this patchset. Some minor glitch:
->>
->> On 16/11/10 12:43, Jan Engelhardt wrote:
->>> @@ -49,31 +43,31 @@ MNL_API int mnl_socket_getsockopt(const struct mnl_socket *nl, int type, void *b
->>> -MNL_API size_t mnl_nlmsg_size(size_t len);
->>> -MNL_API size_t mnl_nlmsg_total_size(size_t len);
->>> -MNL_API size_t mnl_nlmsg_get_payload_len(const struct nlmsghdr *nlh);
->>> +extern size_t mnl_nlmsg_size(size_t len);
->>> +extern size_t mnl_nlmsg_total_size(size_t len);
->>> +extern size_t mnl_nlmsg_get_payload_len(const struct nlmsghdr *nlh);
->>
->> In patch 1/6 mnl_nlmsg_next looks like:
->>
->> -struct nlattr *mnl_attr_next(const struct nlattr *attr, int *len)
->> +struct nlattr *mnl_attr_next(const struct nlattr *attr)
->>
->> but here the old API seems to come back:
->>
->> extern struct nlmsghdr *mnl_nlmsg_next(const struct nlmsghdr *nlh, int
->> *len);
-> 
-> I only changed the attr iteration interface so far, but not yet
-> that of nlmsg iteration.
+On Fri, Nov 19, 2010 at 7:29 PM, Eric Dumazet <eric.dumazet@gmail.com> wrote:
+>
+> IMHO, the real problem is not the table duplication. We know that adding
+> a level of indirection is going to hurt a lot because of cache misses.
+>
 
-Oh, I didn't notice that this refers to nlmsg, not to attr. I'll apply
-the remaining patches then. Thanks.
+Currently, multi-core CPU is common, the cores in a CPU share the
+lowest level cache. Duplicate tables use more RAM, and may cause more
+pressure of the lowest level cache.
+
+-- 
+Regards,
+Changli Gao(xiaosuo@gmail.com)
