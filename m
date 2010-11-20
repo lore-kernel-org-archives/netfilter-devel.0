@@ -1,54 +1,37 @@
 From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [RFC PATCH] nfqueue: nf_conntrack_confirm race condition
-Date: Sat, 20 Nov 2010 14:49:58 +0800
-Message-ID: <AANLkTimFXUSKTLLMiDVH8Rb0kjVFhtQZQtm+zKT75jhk@mail.gmail.com>
-References: <4CE64A5A.4010707@astaro.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org
-To: Ulrich Weber <uweber@astaro.com>
+Subject: [PATCH] netfilter: remove an atomic bit operation
+Date: Sat, 20 Nov 2010 15:55:17 +0800
+Message-ID: <1290239717-12664-1-git-send-email-xiaosuo@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Changli Gao <xiaosuo@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:33393 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751364Ab0KTGuU (ORCPT
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:33923 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751918Ab0KTHzz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Nov 2010 01:50:20 -0500
-Received: by fxm13 with SMTP id 13so1335820fxm.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Nov 2010 22:50:19 -0800 (PST)
-In-Reply-To: <4CE64A5A.4010707@astaro.com>
+	Sat, 20 Nov 2010 02:55:55 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Nov 19, 2010 at 5:58 PM, Ulrich Weber <uweber@astaro.com> wrote:
-> Hi,
->
-> glibc 2.9 implement parallel IPv4/IPv6 DNS lookup. This caused lots of
-> trouble
-> in all kind of implementations, so all major Linux distributions removed
-> _nss_dns_gethostbyname4_r in their glibc version, except for Debian Squeeze,
-> see also "options single-request" for more information.
->
-> Normally parallel DNS lookups works fine, first packet is received and
-> forwarded, so conntrack is confirmed before second packet is received.
->
-> However in combination with NFQUEUE, the second DNS requests is
-> received while the first one is still in the queue and both DNS requests
-> have an unconfirmed conntrack. So the second one will be dropped
-> in nf_conntrack_confirm, which results in an DNS timeout and retransmit.
->
-> Can be reproduced with: adnshost yahoo.com google.com
->
-> My first idea was to re-lookup the conntrack in nf_conntrack_confirm,
-> but at that time the seconds request was already NATed. So I moved
-> that code to nf_nat_fn(). Of course this only works if nat is loaded...
->
-> Any comments or ideas, how to address this problem?
+As this ct won't be seen by the others, we don't need to set the
+IPS_CONFIRMED_BIT in atomic way.
 
-It seems that you queue packets in the middle of conntrack. Beside
-NFQUEUE, IMQ may causes the same problem. I think you'd better queue
-packets before conntrack, raw table? Or lookup the conntrack again
-after packets are reinjected.
-
--- 
-Regards,
-Changli Gao(xiaosuo@gmail.com)
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+---
+ net/netfilter/nf_conntrack_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 27a5ea6..c708248 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -486,7 +486,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+ 	ct->timeout.expires += jiffies;
+ 	add_timer(&ct->timeout);
+ 	atomic_inc(&ct->ct_general.use);
+-	set_bit(IPS_CONFIRMED_BIT, &ct->status);
++	ct->status |= IPS_CONFIRMED_BIT;
+ 
+ 	/* Since the lookup is lockless, hash insertion must be done after
+ 	 * starting the timer and setting the CONFIRMED bit. The RCU barriers
