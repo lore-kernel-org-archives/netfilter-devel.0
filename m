@@ -1,37 +1,59 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH] netfilter: remove an atomic bit operation
-Date: Sat, 20 Nov 2010 15:55:17 +0800
-Message-ID: <1290239717-12664-1-git-send-email-xiaosuo@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Changli Gao <xiaosuo@gmail.com>
-To: Patrick McHardy <kaber@trash.net>
+From: Tim Gardner <tim.gardner@canonical.com>
+Subject: Re: [PATCH] netfilter: remove an atomic bit operation
+Date: Sat, 20 Nov 2010 09:03:44 -0700
+Message-ID: <4CE7F160.9050107@canonical.com>
+References: <1290239717-12664-1-git-send-email-xiaosuo@gmail.com>
+Reply-To: tim.gardner@canonical.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:33923 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751918Ab0KTHzz (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Nov 2010 02:55:55 -0500
+Received: from mail.tpi.com ([70.99.223.143]:4639 "EHLO mail.tpi.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754141Ab0KTQd6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 20 Nov 2010 11:33:58 -0500
+In-Reply-To: <1290239717-12664-1-git-send-email-xiaosuo@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-As this ct won't be seen by the others, we don't need to set the
-IPS_CONFIRMED_BIT in atomic way.
+On 11/20/2010 12:55 AM, Changli Gao wrote:
+> As this ct won't be seen by the others, we don't need to set the
+> IPS_CONFIRMED_BIT in atomic way.
+>
+> Signed-off-by: Changli Gao<xiaosuo@gmail.com>
+> ---
+>   net/netfilter/nf_conntrack_core.c |    2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> index 27a5ea6..c708248 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -486,7 +486,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+>   	ct->timeout.expires += jiffies;
+>   	add_timer(&ct->timeout);
+>   	atomic_inc(&ct->ct_general.use);
+> -	set_bit(IPS_CONFIRMED_BIT,&ct->status);
+> +	ct->status |= IPS_CONFIRMED_BIT;
+>
+>   	/* Since the lookup is lockless, hash insertion must be done after
+>   	 * starting the timer and setting the CONFIRMED bit. The RCU barriers
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
----
- net/netfilter/nf_conntrack_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 27a5ea6..c708248 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -486,7 +486,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	ct->timeout.expires += jiffies;
- 	add_timer(&ct->timeout);
- 	atomic_inc(&ct->ct_general.use);
--	set_bit(IPS_CONFIRMED_BIT, &ct->status);
-+	ct->status |= IPS_CONFIRMED_BIT;
- 
- 	/* Since the lookup is lockless, hash insertion must be done after
- 	 * starting the timer and setting the CONFIRMED bit. The RCU barriers
+NAK, set_bit() takes a bit number, not a mask. That is, assuming you can 
+get away with a non-atomic operation on this field. I'll defer to 
+Patrick on that.
+
+I think you have to use IPS_CONFIRMED instead, e.g.,
+
+	ct->status |= IPS_CONFIRMED;
+
+rtg
+-- 
+Tim Gardner tim.gardner@canonical.com
