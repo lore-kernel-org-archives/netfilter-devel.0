@@ -1,44 +1,56 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH nf-next-2.6] netfilter: use vzalloc()
-Date: Sat, 20 Nov 2010 19:01:56 +0100
-Message-ID: <1290276116.2756.96.camel@edumazet-laptop>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH] netfilter: remove an atomic bit operation
+Date: Sun, 21 Nov 2010 07:38:05 +0800
+Message-ID: <AANLkTimkr9DqkXMgRpRRu5oXvpSBm7Tf1R4svKhMCcgT@mail.gmail.com>
+References: <1290239717-12664-1-git-send-email-xiaosuo@gmail.com>
+ <4CE7F160.9050107@canonical.com> <1290271804.2756.78.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: tim.gardner@canonical.com, Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:32957 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754615Ab0KTSCD (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:47529 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755370Ab0KTXi2 convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Nov 2010 13:02:03 -0500
-Received: by wwa36 with SMTP id 36so5833241wwa.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 20 Nov 2010 10:02:02 -0800 (PST)
+	Sat, 20 Nov 2010 18:38:28 -0500
+In-Reply-To: <1290271804.2756.78.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nf_ct_alloc_hashtable() can use vzalloc()
+On Sun, Nov 21, 2010 at 12:50 AM, Eric Dumazet <eric.dumazet@gmail.com>=
+ wrote:
+> Le samedi 20 novembre 2010 =E0 09:03 -0700, Tim Gardner a =E9crit :
+>
+>> NAK, set_bit() takes a bit number, not a mask. That is, assuming you=
+ can
+>> get away with a non-atomic operation on this field. I'll defer to
+>> Patrick on that.
+>>
+>> I think you have to use IPS_CONFIRMED instead, e.g.,
+>>
+>> =A0 =A0 =A0 ct->status |=3D IPS_CONFIRMED;
+>>
+>
+> Or
+>
+> =A0 =A0 =A0 =A0__set_bit(IPS_CONFIRMED_BIT, &ct->status);
+>
+>
+> set_bit() is atomic, while __set_bit() is not
+>
 
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
----
- net/netfilter/nf_conntrack_core.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Oh, you are right. Thanks. My a previous patch accepted by Patrick has
+the same problem.
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 0ba7d48..57a60c6 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1313,8 +1313,7 @@ void *nf_ct_alloc_hashtable(unsigned int *sizep, int *vmalloced, int nulls)
- 	if (!hash) {
- 		*vmalloced = 1;
- 		printk(KERN_WARNING "nf_conntrack: falling back to vmalloc.\n");
--		hash = __vmalloc(sz, GFP_KERNEL | __GFP_HIGHMEM | __GFP_ZERO,
--				 PAGE_KERNEL);
-+		hash = vzalloc(sz);
- 	}
- 
- 	if (hash && nulls)
-
-
+--=20
+Regards,
+Changli Gao(xiaosuo@gmail.com)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
