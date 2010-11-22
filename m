@@ -1,212 +1,85 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: linux-next: Tree for November 18 (netfilter)
-Date: Mon, 22 Nov 2010 13:28:49 +0100
-Message-ID: <1290428929.726241.1.camel@nienna.balabit>
-References: <20101118134256.fe132215.sfr@canb.auug.org.au>
-	 <20101118092520.6ad964c7.randy.dunlap@oracle.com>
-	 <4CE5712B.2080909@trash.net>  <1290428077.725556.3.camel@nienna.balabit>
+From: Ulrich Weber <uweber@astaro.com>
+Subject: Re: [RFC PATCH] nfqueue: nf_conntrack_confirm race condition
+Date: Mon, 22 Nov 2010 13:34:52 +0100
+Message-ID: <4CEA636C.80904@astaro.com>
+References: <4CE64A5A.4010707@astaro.com> <AANLkTimFXUSKTLLMiDVH8Rb0kjVFhtQZQtm+zKT75jhk@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Randy Dunlap <randy.dunlap@oracle.com>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	netfilter-devel@vger.kernel.org, linux-next@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>,
-	Balazs Scheidler <bazsi@balabit.hu>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <1290428077.725556.3.camel@nienna.balabit>
-Sender: linux-next-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Ulrich Weber <uweber@astaro.com>, netfilter-devel@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from dhost002-50.dex002.intermedia.net ([64.78.21.148]:51683 "EHLO
+	dhost002-50.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755433Ab0KVMuP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 22 Nov 2010 07:50:15 -0500
+In-Reply-To: <AANLkTimFXUSKTLLMiDVH8Rb0kjVFhtQZQtm+zKT75jhk@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Yes you are right, queuing could be done in raw table PRE_ROUTING and
+LOCAL_OUT. However I dont like the idea of queuing packets which are
+going to be dropped anyway, could trigger an DOS attack.
 
-On Mon, 2010-11-22 at 13:14 +0100, KOVACS Krisztian wrote:
-> Indeed, we were missing quite a few of those ifdefs... The patch below
-> seems to fix the issue for me.
-> 
-> commit ec0ac6f3e7749e25f481c1e0f75766974820fe84
-> Author: KOVACS Krisztian <hidden@balabit.hu>
-> Date:   Mon Nov 22 13:07:15 2010 +0100
+We could add two additional raw hooks for LOCAL_IN and POST_ROUTING,
+after conntrack is confirmed and queue packets then...
 
-Bah, it seems the patch got line-wrapped by my MUA, here it is again.
-Let's hope I got it right this time...
+Conntrack lookup after reinjection is racy too with multiple queues.
 
-commit ec0ac6f3e7749e25f481c1e0f75766974820fe84
-Author: KOVACS Krisztian <hidden@balabit.hu>
-Date:   Mon Nov 22 13:07:15 2010 +0100
+Cheers
+ Ulrich
 
-    netfilter: fix compilation when conntrack is disabled but tproxy is enabled
-    
-    The IPv6 tproxy patches split IPv6 defragmentation off of conntrack, but
-    failed to update the #ifdef stanzas guarding the defragmentation related
-    fields and code in skbuff and conntrack related code in nf_defrag_ipv6.c.
-    
-    This patch adds the required #ifdefs so that IPv6 tproxy can truly be used
-    without connection tracking.
-    
-    Original report:
-    http://marc.info/?l=linux-netdev&m=129010118516341&w=2
-    
-    Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
-    Signed-off-by: KOVACS Krisztian <hidden@balabit.hu>
+On 11/20/2010 07:49 AM, Changli Gao wrote:
+> On Fri, Nov 19, 2010 at 5:58 PM, Ulrich Weber <uweber@astaro.com> wro=
+te:
+>> Hi,
+>>
+>> glibc 2.9 implement parallel IPv4/IPv6 DNS lookup. This caused lots =
+of
+>> trouble
+>> in all kind of implementations, so all major Linux distributions rem=
+oved
+>> _nss_dns_gethostbyname4_r in their glibc version, except for Debian =
+Squeeze,
+>> see also "options single-request" for more information.
+>>
+>> Normally parallel DNS lookups works fine, first packet is received a=
+nd
+>> forwarded, so conntrack is confirmed before second packet is receive=
+d.
+>>
+>> However in combination with NFQUEUE, the second DNS requests is
+>> received while the first one is still in the queue and both DNS requ=
+ests
+>> have an unconfirmed conntrack. So the second one will be dropped
+>> in nf_conntrack_confirm, which results in an DNS timeout and retrans=
+mit.
+>>
+>> Can be reproduced with: adnshost yahoo.com google.com
+>>
+>> My first idea was to re-lookup the conntrack in nf_conntrack_confirm=
+,
+>> but at that time the seconds request was already NATed. So I moved
+>> that code to nf_nat_fn(). Of course this only works if nat is loaded=
+=2E..
+>>
+>> Any comments or ideas, how to address this problem?
+>=20
+> It seems that you queue packets in the middle of conntrack. Beside
+> NFQUEUE, IMQ may causes the same problem. I think you'd better queue
+> packets before conntrack, raw table? Or lookup the conntrack again
+> after packets are reinjected.
+>=20
 
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index e6ba898..4f2db79 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -255,6 +255,11 @@ typedef unsigned int sk_buff_data_t;
- typedef unsigned char *sk_buff_data_t;
- #endif
- 
-+#if defined(CONFIG_NF_DEFRAG_IPV4) || defined(CONFIG_NF_DEFRAG_IPV4_MODULE) || \
-+    defined(CONFIG_NF_DEFRAG_IPV6) || defined(CONFIG_NF_DEFRAG_IPV6_MODULE)
-+#define NET_SKBUFF_NF_DEFRAG_NEEDED 1
-+#endif
-+
- /** 
-  *	struct sk_buff - socket buffer
-  *	@next: Next buffer in list
-@@ -362,6 +367,8 @@ struct sk_buff {
- 	void			(*destructor)(struct sk_buff *skb);
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	struct nf_conntrack	*nfct;
-+#endif
-+#ifdef NET_SKBUFF_NF_DEFRAG_NEEDED
- 	struct sk_buff		*nfct_reasm;
- #endif
- #ifdef CONFIG_BRIDGE_NETFILTER
-@@ -2051,6 +2058,8 @@ static inline void nf_conntrack_get(struct nf_conntrack *nfct)
- 	if (nfct)
- 		atomic_inc(&nfct->use);
- }
-+#endif
-+#ifdef NET_SKBUFF_NF_DEFRAG_NEEDED
- static inline void nf_conntrack_get_reasm(struct sk_buff *skb)
- {
- 	if (skb)
-@@ -2079,6 +2088,8 @@ static inline void nf_reset(struct sk_buff *skb)
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	nf_conntrack_put(skb->nfct);
- 	skb->nfct = NULL;
-+#endif
-+#ifdef NET_SKBUFF_NF_DEFRAG_NEEDED
- 	nf_conntrack_put_reasm(skb->nfct_reasm);
- 	skb->nfct_reasm = NULL;
- #endif
-@@ -2095,6 +2106,8 @@ static inline void __nf_copy(struct sk_buff *dst, const struct sk_buff *src)
- 	dst->nfct = src->nfct;
- 	nf_conntrack_get(src->nfct);
- 	dst->nfctinfo = src->nfctinfo;
-+#endif
-+#ifdef NET_SKBUFF_NF_DEFRAG_NEEDED
- 	dst->nfct_reasm = src->nfct_reasm;
- 	nf_conntrack_get_reasm(src->nfct_reasm);
- #endif
-@@ -2108,6 +2121,8 @@ static inline void nf_copy(struct sk_buff *dst, const struct sk_buff *src)
- {
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	nf_conntrack_put(dst->nfct);
-+#endif
-+#ifdef NET_SKBUFF_NF_DEFRAG_NEEDED
- 	nf_conntrack_put_reasm(dst->nfct_reasm);
- #endif
- #ifdef CONFIG_BRIDGE_NETFILTER
-diff --git a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
-index 1ee717e..a4c9936 100644
---- a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
-+++ b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
-@@ -7,16 +7,6 @@ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6;
- extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6;
- extern struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6;
- 
--extern int nf_ct_frag6_init(void);
--extern void nf_ct_frag6_cleanup(void);
--extern struct sk_buff *nf_ct_frag6_gather(struct sk_buff *skb, u32 user);
--extern void nf_ct_frag6_output(unsigned int hooknum, struct sk_buff *skb,
--			       struct net_device *in,
--			       struct net_device *out,
--			       int (*okfn)(struct sk_buff *));
--
--struct inet_frags_ctl;
--
- #include <linux/sysctl.h>
- extern struct ctl_table nf_ct_ipv6_sysctl_table[];
- 
-diff --git a/include/net/netfilter/ipv6/nf_defrag_ipv6.h b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-index 94dd54d..fd79c9a 100644
---- a/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-+++ b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-@@ -3,4 +3,14 @@
- 
- extern void nf_defrag_ipv6_enable(void);
- 
-+extern int nf_ct_frag6_init(void);
-+extern void nf_ct_frag6_cleanup(void);
-+extern struct sk_buff *nf_ct_frag6_gather(struct sk_buff *skb, u32 user);
-+extern void nf_ct_frag6_output(unsigned int hooknum, struct sk_buff *skb,
-+			       struct net_device *in,
-+			       struct net_device *out,
-+			       int (*okfn)(struct sk_buff *));
-+
-+struct inet_frags_ctl;
-+
- #endif /* _NF_DEFRAG_IPV6_H */
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index 104f844..74ebf4b 100644
---- a/net/core/skbuff.c
-+++ b/net/core/skbuff.c
-@@ -380,6 +380,8 @@ static void skb_release_head_state(struct sk_buff *skb)
- 	}
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	nf_conntrack_put(skb->nfct);
-+#endif
-+#ifdef NET_SKBUFF_NF_DEFRAG_NEEDED
- 	nf_conntrack_put_reasm(skb->nfct_reasm);
- #endif
- #ifdef CONFIG_BRIDGE_NETFILTER
-diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-index 99abfb5..97c5b21 100644
---- a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-+++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-@@ -19,13 +19,15 @@
- 
- #include <linux/netfilter_ipv6.h>
- #include <linux/netfilter_bridge.h>
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- #include <net/netfilter/nf_conntrack.h>
- #include <net/netfilter/nf_conntrack_helper.h>
- #include <net/netfilter/nf_conntrack_l4proto.h>
- #include <net/netfilter/nf_conntrack_l3proto.h>
- #include <net/netfilter/nf_conntrack_core.h>
--#include <net/netfilter/nf_conntrack_zones.h>
- #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
-+#endif
-+#include <net/netfilter/nf_conntrack_zones.h>
- #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
- 
- static enum ip6_defrag_users nf_ct6_defrag_user(unsigned int hooknum,
-@@ -33,8 +35,10 @@ static enum ip6_defrag_users nf_ct6_defrag_user(unsigned int hooknum,
- {
- 	u16 zone = NF_CT_DEFAULT_ZONE;
- 
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	if (skb->nfct)
- 		zone = nf_ct_zone((struct nf_conn *)skb->nfct);
-+#endif
- 
- #ifdef CONFIG_BRIDGE_NETFILTER
- 	if (skb->nf_bridge &&
-@@ -56,9 +60,11 @@ static unsigned int ipv6_defrag(unsigned int hooknum,
- {
- 	struct sk_buff *reasm;
- 
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	/* Previously seen (loopback)?	*/
- 	if (skb->nfct && !nf_ct_is_template((struct nf_conn *)skb->nfct))
- 		return NF_ACCEPT;
-+#endif
- 
- 	reasm = nf_ct_frag6_gather(skb, nf_ct6_defrag_user(hooknum, skb));
- 	/* queued */
+
+--=20
+Ulrich Weber | uweber@astaro.com | Software Engineer
+Astaro GmbH & Co. KG | www.astaro.com | Phone +49-721-25516-0 | Fax =96=
+200
+An der RaumFabrik 33a | 76227 Karlsruhe | Germany
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
