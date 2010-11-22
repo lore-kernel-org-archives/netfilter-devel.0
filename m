@@ -1,50 +1,41 @@
-From: Marek Kierdelewicz <marek@piasta.pl>
-Subject: xtables-addons - problem including nf_nat.h in userspace plugin
-Date: Sun, 21 Nov 2010 22:47:31 +0100
-Message-ID: <20101121224731.22fced2b@catus>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from psyche.piasta.pl ([83.175.144.5]:44880 "EHLO psyche.piasta.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754336Ab0KUWQX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 21 Nov 2010 17:16:23 -0500
-Received: from [10.15.100.1] (helo=catus)
-	by psyche.piasta.pl with esmtpsa (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Pocztex KoBa)
-	(envelope-from <marek@piasta.pl>)
-	id 1PKHkw-0002au-2p
-	for netfilter-devel@vger.kernel.org; Sun, 21 Nov 2010 22:47:30 +0100
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Tracey Dent <tdent48227-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 01/17] Net: bluetooth: Makefile: Remove deprecated kbuild goal definitions
+Date: Sun, 21 Nov 2010 20:03:12 -0500
+Message-ID: <1290387808-2239-2-git-send-email-tdent48227@gmail.com>
+References: <1290387808-2239-1-git-send-email-tdent48227@gmail.com>
+Cc: marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org, padovan-Y3ZbgMPKUGA34EUeqzHoZw@public.gmane.org,
+	linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	sjur.brandeland-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org, socketcan-fJ+pQTUTwRTk1uMJSBkQmQ@public.gmane.org,
+	urs.thuermann-l29pVbxQd1IUtdQbppsyvg@public.gmane.org, socketcan-core-0fE9KPoRgkgATYTw5x5z8w@public.gmane.org,
+	sage-BnTBU8nroG7k1uMJSBkQmQ@public.gmane.org, ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	wang840925-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org,
+	pekkas-UjJjq++bwZ7HOG6cAo2yLw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	samuel-jcdQHdrhKHMdnm+yROfE0A@public.gmane.org, Tracey Dent <tdent48227-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1290387808-2239-1-git-send-email-tdent48227-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Changed Makefile to use <modules>-y instead of <modules>-objs
+because -objs is deprecated and not mentioned in
+Documentation/kbuild/makefiles.txt.
 
-I'm writing a new netfilter module and I'm using xtables-addons
-infrastructure version 1.31 as described in paragraph 2.9.1 of
-"Writing Netfilter modules" ebook[1]. 
+Signed-off-by: Tracey Dent <tdent48227-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ net/bluetooth/Makefile |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Iptables userspace plugin for the module needs definition of "struct
-nf_nat_multi_range", so I added following line to libxt_xxxx.c:
-#include <net/netfilter/nf_nat.h>
-
-Unfortunately I get following message during make: 
-warning: net/netfilter/nf_nat.h: No such file or directory
-... and compilation fails.
-
-I was able to make it work by copying nf_nat.h and nf_conntrack_tuple.h
-to extension directory in xtables-addons tree and by modifying include
-in libxt_xxxx.c to "nf_nat.h", but this doesn't seem to be the proper
-way of doing things.
-
-How can I make it work without copying header files to xtables-addons
-tree?
-
-Please CC me in reply as I'm not subscribed to netfilter-devel. Thx!
-
-[1] http://jengelh.medozas.de/documents/Netfilter_Modules.pdf
-
-Best regards,
-Marek
+diff --git a/net/bluetooth/Makefile b/net/bluetooth/Makefile
+index d1e433f..7ca1f46 100644
+--- a/net/bluetooth/Makefile
++++ b/net/bluetooth/Makefile
+@@ -10,4 +10,4 @@ obj-$(CONFIG_BT_BNEP)	+= bnep/
+ obj-$(CONFIG_BT_CMTP)	+= cmtp/
+ obj-$(CONFIG_BT_HIDP)	+= hidp/
+ 
+-bluetooth-objs := af_bluetooth.o hci_core.o hci_conn.o hci_event.o hci_sock.o hci_sysfs.o lib.o
++bluetooth-y := af_bluetooth.o hci_core.o hci_conn.o hci_event.o hci_sock.o hci_sysfs.o lib.o
+-- 
+1.7.3.2.245.g03276
