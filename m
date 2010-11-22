@@ -1,7 +1,7 @@
 From: Tracey Dent <tdent48227@gmail.com>
-Subject: [PATCH 11/17] Net: irda: irnet: Makefile: Remove deprecated kbuild goal definitions
-Date: Sun, 21 Nov 2010 20:03:22 -0500
-Message-ID: <1290387808-2239-12-git-send-email-tdent48227@gmail.com>
+Subject: [PATCH 10/17] Net: irda: irlan: Makefile: Remove deprecated kbuild goal definitions
+Date: Sun, 21 Nov 2010 20:03:21 -0500
+Message-ID: <1290387808-2239-11-git-send-email-tdent48227@gmail.com>
 References: <1290387808-2239-1-git-send-email-tdent48227@gmail.com>
 Cc: marcel@holtmann.org, padovan@profusion.mobi,
 	linux-bluetooth@vger.kernel.org, netdev@vger.kernel.org,
@@ -24,19 +24,19 @@ Documentation/kbuild/makefiles.txt.
 
 Signed-off-by: Tracey Dent <tdent48227@gmail.com>
 ---
- net/irda/irnet/Makefile |    2 +-
+ net/irda/irlan/Makefile |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/net/irda/irnet/Makefile b/net/irda/irnet/Makefile
-index b3ee01e..61c365c 100644
---- a/net/irda/irnet/Makefile
-+++ b/net/irda/irnet/Makefile
+diff --git a/net/irda/irlan/Makefile b/net/irda/irlan/Makefile
+index 77549bc..94eefbc 100644
+--- a/net/irda/irlan/Makefile
++++ b/net/irda/irlan/Makefile
 @@ -4,4 +4,4 @@
  
- obj-$(CONFIG_IRNET) += irnet.o
+ obj-$(CONFIG_IRLAN) += irlan.o
  
--irnet-objs := irnet_ppp.o irnet_irda.o
-+irnet-y := irnet_ppp.o irnet_irda.o
+-irlan-objs := irlan_common.o irlan_eth.o irlan_event.o irlan_client.o irlan_provider.o irlan_filter.o irlan_provider_event.o irlan_client_event.o
++irlan-y := irlan_common.o irlan_eth.o irlan_event.o irlan_client.o irlan_provider.o irlan_filter.o irlan_provider_event.o irlan_client_event.o
 -- 
 1.7.3.2.245.g03276
 
