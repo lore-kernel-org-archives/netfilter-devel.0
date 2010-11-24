@@ -1,33 +1,51 @@
-From: Marek Kierdelewicz <marek@piasta.pl>
-Subject: Re: xtables-addons - problem including nf_nat.h in userspace plugin
-Date: Mon, 22 Nov 2010 22:52:13 +0100
-Message-ID: <20101122225213.0afd1843@catus>
-References: <20101121224731.22fced2b@catus>
-	<alpine.LNX.2.01.1011221447001.18089@obet.zrqbmnf.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Jan Engelhardt <jengelh@medozas.de>
+From: Florian Westphal <fwestphal@astaro.com>
+Subject: [PATCH 1/1] libxt_time: fix random --datestart skips
+Date: Wed, 24 Nov 2010 17:42:15 +0100
+Message-ID: <1290616935-18291-1-git-send-email-fwestphal@astaro.com>
+Cc: Florian Westphal <fwestphal@astaro.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from psyche.piasta.pl ([83.175.144.5]:41026 "EHLO psyche.piasta.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757110Ab0KVVwS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Nov 2010 16:52:18 -0500
-In-Reply-To: <alpine.LNX.2.01.1011221447001.18089@obet.zrqbmnf.qr>
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:35318 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752558Ab0KXQqx (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 24 Nov 2010 11:46:53 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Frank Lichtenheld points out that -m time --datestart ...
+sometimes messes up --datestart:
 
->As for xt-a, preferable location is
->linux-src/include/net/netfilter/nf_nat.h ->
->xtables-addons/include/net/netfilter/nf_nat.h
->Then #include <net/...> should work.
+$ iptables -A INPUT -m time --datestart 2010-11-24T16:50:00 -j ACCEPT
+$ iptables-save | grep 11
+-A INPUT -m time --datestart 2010-11-24T16:50:00 -j ACCEPT
+$ iptables-save | iptables-restore
+$ iptables-save | grep 11
+-A INPUT -m time --datestart 2010-11-24T15:50:00 -j ACCEPT
 
-Thx! That worked great.
+--datestart moved by one hour.
 
-Best regards,
-Marek
+As the --timestart option does not care about DST, always set
+dst=0 when parsing --starttime input.
+
+Reported-by: Frank Lichtenheld <flichtenheld@astaro.com>
+Signed-off-by: Florian Westphal <fwestphal@astaro.com>
+---
+ extensions/libxt_time.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/extensions/libxt_time.c b/extensions/libxt_time.c
+index 9f12266..055e716 100644
+--- a/extensions/libxt_time.c
++++ b/extensions/libxt_time.c
+@@ -138,6 +138,7 @@ static time_t time_parse_date(const char *s, bool end)
+ 	tm.tm_hour = hour;
+ 	tm.tm_min  = minute;
+ 	tm.tm_sec  = second;
++	tm.tm_isdst = 0;
+ 	ret = mktime(&tm);
+ 	if (ret >= 0)
+ 		return ret;
+-- 
+1.7.2.2
+
