@@ -1,56 +1,42 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: Xtables2 Netlink spec
-Date: Fri, 26 Nov 2010 20:01:37 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1011261950100.18019@blackhole.kfki.hu>
-References: <alpine.LNX.2.01.1011242314580.32646@obet.zrqbmnf.qr>
+Date: Fri, 26 Nov 2010 20:48:47 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1011262045410.18201@blackhole.kfki.hu>
+References: <alpine.LNX.2.01.1011242314580.32646@obet.zrqbmnf.qr> <4CEE4B94.8010307@netfilter.org> <alpine.LNX.2.01.1011251327140.21752@obet.zrqbmnf.qr> <4CEE70CE.60502@netfilter.org> <alpine.LNX.2.01.1011251525490.3245@obet.zrqbmnf.qr> <4CEF6F12.7080601@netfilter.org>
+ <alpine.LNX.2.01.1011261055210.24563@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, netfilter@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:57960 "EHLO smtp2.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:37021 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754090Ab0KZTBj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Nov 2010 14:01:39 -0500
-In-Reply-To: <alpine.LNX.2.01.1011242314580.32646@obet.zrqbmnf.qr>
+	id S1752010Ab0KZTss (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Nov 2010 14:48:48 -0500
+In-Reply-To: <alpine.LNX.2.01.1011261055210.24563@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jan,
+On Fri, 26 Nov 2010, Jan Engelhardt wrote:
 
-On Wed, 24 Nov 2010, Jan Engelhardt wrote:
+> On Friday 2010-11-26 09:25, Pablo Neira Ayuso wrote:
+> >
+> >>[...] memory needs to be allocated and stored, right before
+> >>netlink_dump_start is called. [But] because nlk->cb->cb_args is
+> >>inaccessible from outside[...], the lookup and allocation is
+> >>currently done inside the dump function[...]
+> >
+> >What is that initial data handling in dumps for?
+> 
+> Making an atomic snapshot/copy of the table. A userspace client
+> could take almost indefinitely on retrieving a table, so it is
+> possible that something else changes tables meanwhile.
 
-> By request of Pablo, I am posting the Xtables2 Netlink interface 
-> specification for review. Additionally, further documentation and 
-> toolchain around it is available through the temporary project page at
-> 
-> 	http://jengelh.medozas.de/projects/xtables/
-> 
-> which currently includes
-> 
->  * User Documentation Chapter 1: Architectural Differences
-> 
->  * Developer Documentation Part 1: Netlink interface (WIP)
->    This is copied below to facilitate inline replies
-> 
->  * Runnable Linux source tree
-> 
->  * Runnable userspace library (libnetfilter_xtables)
->    with small test-and-debug program
-[...]
-
-Please add fine-grained error reporting to the protocol: in my opinion the 
-main shortcoming of the current kernel-userspace xtables protocol is the 
-lack of the proper error reporting. I mean, the new protocol should be 
-able to carry back which rule caused the error, in the rule whether it was 
-a general kind of error (ENOMEM), or a table, chain, match or target error 
-and exactly what was the error at table/chain/match/target level.
-
-Say, the TCPMSS target should be able to report back that it cannot be 
-used outside of FORWARD, OUTPUT and POSTROUTING. Or that the rule must 
-match TCP SYN packets.
+Why don't you lock the tables during dumping? That way the tables won't 
+change, whatever long time the dump takes. Snapshotting the table looks as 
+wasting memory and time.
 
 Best regards,
 Jozsef
