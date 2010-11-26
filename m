@@ -1,37 +1,61 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: Xtables2 Netlink spec
-Date: Fri, 26 Nov 2010 16:27:43 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1011261620110.25399@obet.zrqbmnf.qr>
-References: <alpine.LNX.2.01.1011242314580.32646@obet.zrqbmnf.qr> <4CEE4B94.8010307@netfilter.org> <alpine.LNX.2.01.1011251327140.21752@obet.zrqbmnf.qr> <4CEE70CE.60502@netfilter.org> <alpine.LNX.2.01.1011251525490.3245@obet.zrqbmnf.qr>
- <4CEF6F12.7080601@netfilter.org>
+Date: Fri, 26 Nov 2010 20:01:37 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1011261950100.18019@blackhole.kfki.hu>
+References: <alpine.LNX.2.01.1011242314580.32646@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, netfilter@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:53586 "EHLO borg.medozas.de"
+Received: from smtp2.kfki.hu ([148.6.0.28]:57960 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753650Ab0KZP1o (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Nov 2010 10:27:44 -0500
-In-Reply-To: <4CEF6F12.7080601@netfilter.org>
+	id S1754090Ab0KZTBj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Nov 2010 14:01:39 -0500
+In-Reply-To: <alpine.LNX.2.01.1011242314580.32646@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Jan,
 
-On Friday 2010-11-26 09:25, Pablo Neira Ayuso wrote:
+On Wed, 24 Nov 2010, Jan Engelhardt wrote:
 
->>> BTW, I didn't look at your protocol in deep yet but I'd suggest the 
->>> following basis to rework it: one netlink message, one rule operation.
-v>> 
->> I can agree with that suggestion, so I will be doing that.
->
->Great, this approach requires more memory because you spend one netlink
->header for every rule, but the cost is worth since it provides flexibility.
+> By request of Pablo, I am posting the Xtables2 Netlink interface 
+> specification for review. Additionally, further documentation and 
+> toolchain around it is available through the temporary project page at
+> 
+> 	http://jengelh.medozas.de/projects/xtables/
+> 
+> which currently includes
+> 
+>  * User Documentation Chapter 1: Architectural Differences
+> 
+>  * Developer Documentation Part 1: Netlink interface (WIP)
+>    This is copied below to facilitate inline replies
+> 
+>  * Runnable Linux source tree
+> 
+>  * Runnable userspace library (libnetfilter_xtables)
+>    with small test-and-debug program
+[...]
 
-Hm, I remembered a problem with that. With "allow same attribute type
-multiple times", it is possible to send a single TABLE_REPLACE
-request message (even if it is 150 MB in size) that the kernel part
-can then work on. Without it, and instead using per-rule ops, it
-would mean that I would have to keep a per-fd state (which seems not
-possible) and make use of the NETLINK_URELEASE notification handler
-to kill said state when the client goes away unexpectedly.
+Please add fine-grained error reporting to the protocol: in my opinion the 
+main shortcoming of the current kernel-userspace xtables protocol is the 
+lack of the proper error reporting. I mean, the new protocol should be 
+able to carry back which rule caused the error, in the rule whether it was 
+a general kind of error (ENOMEM), or a table, chain, match or target error 
+and exactly what was the error at table/chain/match/target level.
+
+Say, the TCPMSS target should be able to report back that it cannot be 
+used outside of FORWARD, OUTPUT and POSTROUTING. Or that the rule must 
+match TCP SYN packets.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
