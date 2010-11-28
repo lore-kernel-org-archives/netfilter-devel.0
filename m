@@ -1,47 +1,31 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Xtables2 Netlink spec
-Date: Sat, 27 Nov 2010 21:42:40 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1011272053230.22091@blackhole.kfki.hu>
-References: <alpine.LNX.2.01.1011242314580.32646@obet.zrqbmnf.qr> <4CEE4B94.8010307@netfilter.org> <alpine.LNX.2.01.1011251327140.21752@obet.zrqbmnf.qr> <4CEE70CE.60502@netfilter.org> <alpine.LNX.2.01.1011251525490.3245@obet.zrqbmnf.qr> <4CEF6F12.7080601@netfilter.org>
- <alpine.LNX.2.01.1011261055210.24563@obet.zrqbmnf.qr> <alpine.DEB.2.00.1011262045410.18201@blackhole.kfki.hu> <alpine.LNX.2.01.1011262053470.30581@obet.zrqbmnf.qr> <alpine.DEB.2.00.1011262057450.18326@blackhole.kfki.hu> <alpine.LNX.2.01.1011262159310.4752@obet.zrqbmnf.qr>
- <alpine.DEB.2.00.1011270951330.20431@blackhole.kfki.hu> <alpine.LNX.2.01.1011271319330.24289@obet.zrqbmnf.qr> <alpine.DEB.2.00.1011271741030.21709@blackhole.kfki.hu> <alpine.LNX.2.01.1011271828270.28539@obet.zrqbmnf.qr>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: iptables: option parsing fixes
+Date: Sun, 28 Nov 2010 15:44:02 +0100
+Message-ID: <1290955445-17833-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:38071 "EHLO smtp2.kfki.hu"
+Received: from borg.medozas.de ([188.40.89.202]:48192 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753380Ab0K0Uml (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 27 Nov 2010 15:42:41 -0500
-In-Reply-To: <alpine.LNX.2.01.1011271828270.28539@obet.zrqbmnf.qr>
+	id S1753123Ab0K1OoH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 28 Nov 2010 09:44:07 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 27 Nov 2010, Jan Engelhardt wrote:
 
-> On Saturday 2010-11-27 18:04, Jozsef Kadlecsik wrote:
-> >
-> >AFAIK when the kernel dumps and the skb is full, it's not returned 
-> >directly to the userspace but first enqueued.
-> 
-> I don't recognize that inside the code however.
-> 
-> In netlink_dump(), there is the cb->dump call. There are no loops
-> inside this function. Neither are there in the two parents,
-> netlink_dump_start() and netlink_recvmsg().
+The following changes since commit a905ea5c97149da9d76cd278b0447e3316087a45:
 
-In netlink_dump() after the call to cb->dump, you can see the call to 
-skb_queue_tail. So the message is queued.
+  Merge branch 'master' of git://dev.medozas.de/iptables into m2 (2010-11-15 14:39:50 +0100)
 
-Where the looping happens, I do not know. Some socket magic?
- 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+are available in the git repository at:
+
+  git://dev.medozas.de/iptables master
+
+Jan Engelhardt (2):
+      iptables: reset options at the start of each command
+      iptables: do not emit orig_opts twice
+
+ ip6tables.c |    2 +-
+ iptables.c  |    2 +-
+ xtables.c   |    4 ++++
+ 3 files changed, 6 insertions(+), 2 deletions(-)
