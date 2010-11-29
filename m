@@ -1,72 +1,52 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 1/2] iptables: reset options at the start of each command
-Date: Sun, 28 Nov 2010 15:44:03 +0100
-Message-ID: <1290955445-17833-2-git-send-email-jengelh@medozas.de>
-References: <1290955445-17833-1-git-send-email-jengelh@medozas.de>
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Xtables2 Netlink spec
+Date: Mon, 29 Nov 2010 13:23:36 +0100
+Message-ID: <4CF39B48.4090300@netfilter.org>
+References: <alpine.LNX.2.01.1011242314580.32646@obet.zrqbmnf.qr> <4CEE4B94.8010307@netfilter.org> <alpine.LNX.2.01.1011251327140.21752@obet.zrqbmnf.qr> <4CEE70CE.60502@netfilter.org> <alpine.LNX.2.01.1011251525490.3245@obet.zrqbmnf.qr> <4CEF6F12.7080601@netfilter.org> <alpine.LNX.2.01.1011261055210.24563@obet.zrqbmnf.qr> <alpine.DEB.2.00.1011262045410.18201@blackhole.kfki.hu> <alpine.LNX.2.01.1011262053470.30581@obet.zrqbmnf.qr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:48195 "EHLO borg.medozas.de"
+Received: from mail.us.es ([193.147.175.20]:60631 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753193Ab0K1OoI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 28 Nov 2010 09:44:08 -0500
-In-Reply-To: <1290955445-17833-1-git-send-email-jengelh@medozas.de>
+	id S1753839Ab0K2MWz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 29 Nov 2010 07:22:55 -0500
+In-Reply-To: <alpine.LNX.2.01.1011262053470.30581@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-For each new command, iptables is supposed to start afresh with a
-blank option set (opts) that only contains the program-specific
-options (orig_opts), without any extension options. We failed to
-restore this pointer (in function do_command) after the previous free
-call in xtables_free_opts.
+On 26/11/10 20:55, Jan Engelhardt wrote:
+>
+> On Friday 2010-11-26 20:48, Jozsef Kadlecsik wrote:
+>>>>
+>>>> What is that initial data handling in dumps for?
+>>>
+>>> Making an atomic snapshot/copy of the table. A userspace client
+>>> could take almost indefinitely on retrieving a table, so it is
+>>> possible that something else changes tables meanwhile.
+>>
+>> Why don't you lock the tables during dumping? That way the tables won't
+>> change, whatever long time the dump takes. Snapshotting the table looks as
+>> wasting memory and time.
+>
+> For that to work, I would have to use a locking primitive that can be
+> held across returns to userspace, which leaves semaphores as the only
+> option and, ya, I didn't quite feel like using _that_.
 
-Reported-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- ip6tables.c |    2 +-
- iptables.c  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Abusing the Netlink protocol to overcome the "supposed to be" limitation 
+does not seem to me the way to go. Moreover, if we ever have more than X 
+bytes rule-sets (I don't remember that limit that you have previously 
+mentioned), you'll have to add some locking strategy anyway.
 
-diff --git a/ip6tables.c b/ip6tables.c
-index 8318f91..9b1629e 100644
---- a/ip6tables.c
-+++ b/ip6tables.c
-@@ -147,7 +147,6 @@ void ip6tables_exit_error(enum xtables_exittype status, const char *msg, ...) __
- struct xtables_globals ip6tables_globals = {
- 	.option_offset = 0,
- 	.program_version = IPTABLES_VERSION,
--	.opts = original_opts,
- 	.orig_opts = original_opts,
- 	.exit_err = ip6tables_exit_error,
- };
-@@ -1335,6 +1334,7 @@ int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **hand
-            demand-load a protocol. */
- 	opterr = 0;
- 
-+	opts = xt_params->orig_opts;
- 	while ((c = getopt_long(argc, argv,
- 	   "-A:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:bvnt:m:xc:g:",
- 					   opts, NULL)) != -1) {
-diff --git a/iptables.c b/iptables.c
-index c800fff..1127bdd 100644
---- a/iptables.c
-+++ b/iptables.c
-@@ -147,7 +147,6 @@ void iptables_exit_error(enum xtables_exittype status, const char *msg, ...) __a
- struct xtables_globals iptables_globals = {
- 	.option_offset = 0,
- 	.program_version = IPTABLES_VERSION,
--	.opts = original_opts,
- 	.orig_opts = original_opts,
- 	.exit_err = iptables_exit_error,
- };
-@@ -1358,6 +1357,7 @@ int do_command(int argc, char *argv[], char **table, struct iptc_handle **handle
-            demand-load a protocol. */
- 	opterr = 0;
- 
-+	opts = xt_params->orig_opts;
- 	while ((c = getopt_long(argc, argv,
- 	   "-A:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:fbvnt:m:xc:g:",
- 					   opts, NULL)) != -1) {
--- 
-1.7.1
+The locking is the way to go.
 
+> Also sounds a
+> bit like a killer if an admin cannot update a table just because he
+> forgot some dumper process in the background in suspended state. :-/
+
+He will notice that he did that because he hits EAGAIN, so he can kill 
+the process in background and retry.
