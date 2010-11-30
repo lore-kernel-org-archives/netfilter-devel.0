@@ -1,60 +1,52 @@
-From: Dirk <biecie547@gmail.com>
-Subject: Use connection tracking to store private data for rate shaping algorithms?
-Date: Tue, 30 Nov 2010 16:18:42 +0100
-Message-ID: <AANLkTik6sRQ=Pju6krQnUEf7qkhZ0j-cb+CdgmsoHoCf@mail.gmail.com>
+From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: Re: [PATCH] netfilter:  fix  race in conntrack between dump_table
+ and destroy
+Date: Tue, 30 Nov 2010 09:28:03 -0800
+Message-ID: <20101130092803.53fde6af@nehalam>
+References: <20101124222716.437c5547@nehalam>
+	<1290666873.2798.89.camel@edumazet-laptop>
+	<20101124230004.1dc28e5a@nehalam>
+	<1290669214.2798.109.camel@edumazet-laptop>
+	<20101126135101.4e4b97cc@nehalam>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Patrick McHardy <kaber@trash.net>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:35046 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751431Ab0K3PTE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Nov 2010 10:19:04 -0500
-Received: by vws3 with SMTP id 3so416576vws.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Nov 2010 07:19:04 -0800 (PST)
+Received: from mail.vyatta.com ([76.74.103.46]:58279 "EHLO mail.vyatta.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751168Ab0K3R2G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 30 Nov 2010 12:28:06 -0500
+In-Reply-To: <20101126135101.4e4b97cc@nehalam>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+On Fri, 26 Nov 2010 13:51:01 -0800
+Stephen Hemminger <shemminger@vyatta.com> wrote:
 
+> The netlink interface to dump the connection tracking table has a race
+> when entries are deleted at the same time. A customer reported a crash 
+> and the backtrace showed thatctnetlink_dump_table was running while a 
+> conntrack entry wasbeing destroyed.
+> (see https://bugzilla.vyatta.com/show_bug.cgi?id=6402).
+> 
+> According to RCU documentation, when using hlist_nulls the reader
+> must handle the case of seeing a deleted entry and not proceed
+> further down the linked list.  The old code would continue
+> which caused the scan to walk into the free list. 
+> 
+> This patch uses locking (rather than RCU) for this operation which
+> is guaranteed safe, and no longer requires getting reference while
+> doing dump operation.
+> 
+> Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
 
-We are developing some some more advanced TCP rate shaping algorithms
-( http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=1261834&tag=1 )
-and would like to implement it as a (GPL) kernel module. The goal is
-to have a high performant module that can 'shape' traffic for 10 000's
-of hosts and users on individual base and also minimize shaping
-overhead (drop/retransmits/latency) on the network.
-
-Our current solution uses a custom developed iptables target that
-already performs traffic policing for 10'000s of simultaneous users (
-http://tnc2007.terena.org/programme/presentations/showbeb6.html ).
-Since policing is not an ideal way to regulate bandwidth, we want to
-improve it :-)
-
-
-However, in order to function correctly, we need to keep some extra
-information for each flow (both tcp and udp) through the device:
-- few statistics (two 64bit integers)
-- shaping/rate state information (four 64bit integers)
-
- This information should be set/accessible from a kernel tc qdisc module.
-
-My idea was to use the connection tracking framework to keep track of
-connection states (which is also required by the algorithms) and
-somehow extend it to also store the extra information.
-
-I have found there is an extension infrastructure for nf_conntrack (
-http://www.mail-archive.com/git-commits-head@vger.kernel.org/msg15798.html
-), but it does not seem a module is intended to register itself
-without modifying nf_ct_ext_id in /nf_conntrack_extend.h. Since that
-would require a kernel recompile, it is not really an option.
-
-
-Since we're not (yet) familiar with the connection tracking code: what
-would be the best way to accomplish this?
+This should go in net-2.6 and stable for 2.6.32, 2.6.35, and 2.6.36
 
 
 
-Thanks in advance,
-Dirk Janssens
+-- 
