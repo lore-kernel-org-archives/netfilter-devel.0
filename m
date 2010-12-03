@@ -1,52 +1,105 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: Re: [PATCH] netfilter:  fix  race in conntrack between dump_table
- and destroy
-Date: Tue, 30 Nov 2010 09:28:03 -0800
-Message-ID: <20101130092803.53fde6af@nehalam>
-References: <20101124222716.437c5547@nehalam>
-	<1290666873.2798.89.camel@edumazet-laptop>
-	<20101124230004.1dc28e5a@nehalam>
-	<1290669214.2798.109.camel@edumazet-laptop>
-	<20101126135101.4e4b97cc@nehalam>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Patrick McHardy <kaber@trash.net>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:58279 "EHLO mail.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751168Ab0K3R2G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Nov 2010 12:28:06 -0500
-In-Reply-To: <20101126135101.4e4b97cc@nehalam>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH 1/2] Remove calls to jhash internals
+Date: Fri,  3 Dec 2010 13:39:00 +0100
+Message-ID: <1291379941-31565-2-git-send-email-kadlec@blackhole.kfki.hu>
+References: <201011271401.22773.rusty@rustcorp.com.au>
+ <1291379941-31565-1-git-send-email-kadlec@blackhole.kfki.hu>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Linus Torvalds <torvalds@osdl.org>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1291379941-31565-1-git-send-email-kadlec@blackhole.kfki.hu>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 26 Nov 2010 13:51:01 -0800
-Stephen Hemminger <shemminger@vyatta.com> wrote:
+Because the jhash implementation changes, replace the calls to the jhash
+internal macros with calls to the jhash functions.
+---
+ net/ipv6/inet6_connection_sock.c |   18 ++++++++----------
+ net/ipv6/reassembly.c            |   36 ++++++++++++++++--------------------
+ 2 files changed, 24 insertions(+), 30 deletions(-)
 
-> The netlink interface to dump the connection tracking table has a race
-> when entries are deleted at the same time. A customer reported a crash 
-> and the backtrace showed thatctnetlink_dump_table was running while a 
-> conntrack entry wasbeing destroyed.
-> (see https://bugzilla.vyatta.com/show_bug.cgi?id=6402).
-> 
-> According to RCU documentation, when using hlist_nulls the reader
-> must handle the case of seeing a deleted entry and not proceed
-> further down the linked list.  The old code would continue
-> which caused the scan to walk into the free list. 
-> 
-> This patch uses locking (rather than RCU) for this operation which
-> is guaranteed safe, and no longer requires getting reference while
-> doing dump operation.
-> 
-> Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
-
-This should go in net-2.6 and stable for 2.6.32, 2.6.35, and 2.6.36
-
-
-
+diff --git a/net/ipv6/inet6_connection_sock.c b/net/ipv6/inet6_connection_sock.c
+index 8a16280..861d252 100644
+--- a/net/ipv6/inet6_connection_sock.c
++++ b/net/ipv6/inet6_connection_sock.c
+@@ -60,18 +60,16 @@ EXPORT_SYMBOL_GPL(inet6_csk_bind_conflict);
+ static u32 inet6_synq_hash(const struct in6_addr *raddr, const __be16 rport,
+ 			   const u32 rnd, const u16 synq_hsize)
+ {
+-	u32 a = (__force u32)raddr->s6_addr32[0];
+-	u32 b = (__force u32)raddr->s6_addr32[1];
+-	u32 c = (__force u32)raddr->s6_addr32[2];
+-
+-	a += JHASH_GOLDEN_RATIO;
+-	b += JHASH_GOLDEN_RATIO;
+-	c += rnd;
+-	__jhash_mix(a, b, c);
+-
+-	a += (__force u32)raddr->s6_addr32[3];
+-	b += (__force u32)rport;
+-	__jhash_mix(a, b, c);
++	u32 c;
++
++	c = jhash_3words((__force u32)raddr->s6_addr32[0],
++			 (__force u32)raddr->s6_addr32[1],
++			 (__force u32)raddr->s6_addr32[2],
++			 rnd);
++
++	c = jhash_2words((__force u32)raddr->s6_addr32[3],
++			 (__force u32)rport,
++			 c);
+ 
+ 	return c & (synq_hsize - 1);
+ }
+diff --git a/net/ipv6/reassembly.c b/net/ipv6/reassembly.c
+index c7ba314..5e57490 100644
+--- a/net/ipv6/reassembly.c
++++ b/net/ipv6/reassembly.c
+@@ -104,26 +104,22 @@ static int ip6_frag_reasm(struct frag_queue *fq, struct sk_buff *prev,
+ unsigned int inet6_hash_frag(__be32 id, const struct in6_addr *saddr,
+ 			     const struct in6_addr *daddr, u32 rnd)
+ {
+-	u32 a, b, c;
+-
+-	a = (__force u32)saddr->s6_addr32[0];
+-	b = (__force u32)saddr->s6_addr32[1];
+-	c = (__force u32)saddr->s6_addr32[2];
+-
+-	a += JHASH_GOLDEN_RATIO;
+-	b += JHASH_GOLDEN_RATIO;
+-	c += rnd;
+-	__jhash_mix(a, b, c);
+-
+-	a += (__force u32)saddr->s6_addr32[3];
+-	b += (__force u32)daddr->s6_addr32[0];
+-	c += (__force u32)daddr->s6_addr32[1];
+-	__jhash_mix(a, b, c);
+-
+-	a += (__force u32)daddr->s6_addr32[2];
+-	b += (__force u32)daddr->s6_addr32[3];
+-	c += (__force u32)id;
+-	__jhash_mix(a, b, c);
++	u32 c;
++
++	c = jhash_3words((__force u32)saddr->s6_addr32[0],
++			 (__force u32)saddr->s6_addr32[1],
++			 (__force u32)saddr->s6_addr32[2],
++			 rnd);
++
++	c = jhash_3words((__force u32)saddr->s6_addr32[3],
++			 (__force u32)daddr->s6_addr32[0],
++			 (__force u32)daddr->s6_addr32[1],
++			 c);
++
++	c =  jhash_3words((__force u32)daddr->s6_addr32[2],
++			  (__force u32)daddr->s6_addr32[3],
++			  (__force u32)id,
++			  c);
+ 
+ 	return c & (INETFRAGS_HASHSZ - 1);
+ }
 -- 
+1.7.0.4
