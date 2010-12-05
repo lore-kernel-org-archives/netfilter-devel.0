@@ -1,37 +1,49 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset-4.5 released
-Date: Sat, 4 Dec 2010 14:38:31 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1012041435270.3210@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:52783 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754834Ab0LDNid (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 4 Dec 2010 08:38:33 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: [PATCH] netfilter: fix the race when initializing nf_ct_expect_hash_rnd
+Date: Mon,  6 Dec 2010 00:26:37 +0800
+Message-ID: <1291566397-24318-1-git-send-email-xiaosuo@gmail.com>
+Cc: netfilter-devel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	Changli Gao <xiaosuo@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Since nf_ct_expect_dst_hash() may be called without nf_conntrack_lock
+locked, nf_ct_expect_hash_rnd should be initialized in the atomic way.
 
-ipset-4.5 has been released, with the following fixes:
-
-userspace:
-    - Take into account the compile time setting of the default hash size
-      (reported by Dash Four)
-kernel:
-    - The iptreemap type used wrong gfp flags when deleting entries
-      (bug reported by Dash Four)
-
-You can download the new version from the usual places:
-        http://ipset.netfilter.org
-        git://git.netfilter.org/ipset.git
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+---
+ net/netfilter/nf_conntrack_expect.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 46e8966..e2bb3ef 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -34,7 +34,6 @@ EXPORT_SYMBOL_GPL(nf_ct_expect_hsize);
+ 
+ static unsigned int nf_ct_expect_hash_rnd __read_mostly;
+ unsigned int nf_ct_expect_max __read_mostly;
+-static int nf_ct_expect_hash_rnd_initted __read_mostly;
+ 
+ static struct kmem_cache *nf_ct_expect_cachep __read_mostly;
+ 
+@@ -77,10 +76,13 @@ static unsigned int nf_ct_expect_dst_hash(const struct nf_conntrack_tuple *tuple
+ {
+ 	unsigned int hash;
+ 
+-	if (unlikely(!nf_ct_expect_hash_rnd_initted)) {
+-		get_random_bytes(&nf_ct_expect_hash_rnd,
+-				 sizeof(nf_ct_expect_hash_rnd));
+-		nf_ct_expect_hash_rnd_initted = 1;
++	if (unlikely(!nf_ct_expect_hash_rnd)) {
++		unsigned int rand;
++
++		do {
++			get_random_bytes(&rand, sizeof(rand));
++		} while (!rand);
++		cmpxchg(&nf_ct_expect_hash_rnd, 0, rand);
+ 	}
+ 
+ 	hash = jhash2(tuple->dst.u3.all, ARRAY_SIZE(tuple->dst.u3.all),
