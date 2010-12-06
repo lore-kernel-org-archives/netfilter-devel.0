@@ -1,48 +1,67 @@
-From: Ferenc Wagner <wferi@niif.hu>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: Bug? iptables-save dumps resolved uids/gids for owner matches
-Date: Mon, 06 Dec 2010 13:26:39 +0100
-Message-ID: <874oaroznk.fsf@tac.ki.iif.hu>
-References: <87sjyercks.fsf@tac.ki.iif.hu>
-	<alpine.LNX.2.01.1012032018321.26825@obet.zrqbmnf.qr>
+Date: Mon, 6 Dec 2010 13:35:57 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1012061334090.19952@obet.zrqbmnf.qr>
+References: <87sjyercks.fsf@tac.ki.iif.hu> <alpine.LNX.2.01.1012032018321.26825@obet.zrqbmnf.qr> <874oaroznk.fsf@tac.ki.iif.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Ferenc Wagner <wferi@niif.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from tac.ki.iif.hu ([193.6.222.43]:35830 "EHLO tac.ki.iif.hu"
+Received: from borg.medozas.de ([188.40.89.202]:47308 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751204Ab0LFM0n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Dec 2010 07:26:43 -0500
-In-Reply-To: <alpine.LNX.2.01.1012032018321.26825@obet.zrqbmnf.qr> (Jan
-	Engelhardt's message of "Fri, 3 Dec 2010 20:19:54 +0100 (CET)")
+	id S1750804Ab0LFMf6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 Dec 2010 07:35:58 -0500
+In-Reply-To: <874oaroznk.fsf@tac.ki.iif.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt <jengelh@medozas.de> writes:
 
-> On Friday 2010-12-03 18:27, Ferenc Wagner wrote:
+On Monday 2010-12-06 13:26, Ferenc Wagner wrote:
+>>
+>>> I opened http://bugzilla.netfilter.org/show_bug.cgi?id=683
+>>
+>> This was done on purpose by me, because username resolution usually does 
+>> not take ages like DNS, and user ids can actually change if you copy a 
+>> ruleset to another machine (this is much more unlikely to be the case 
+>> with DNS).
 >
->> I opened http://bugzilla.netfilter.org/show_bug.cgi?id=683 quite some
->> time ago, but it hasn't received a single comment yet.  Don't you think
->> it's a real problem?  If you do, I'm willing to work on fixing it,
->> either by introducing a new option or by changing the default behaviour.
->> Actually, since we're seriously affected by this, I'm determined to
->> solve it, but of course I'd prefer to take a blessed route to get my
->> changes incorporated into the official sources if at all possible.
->
-> This was done on purpose by me, because username resolution usually does 
-> not take ages like DNS, and user ids can actually change if you copy a 
-> ruleset to another machine (this is much more unlikely to be the case 
-> with DNS).
+>This is indeed true if you only use a local passwd and group database.
 
-This is indeed true if you only use a local passwd and group database.
-So we're talking about a design decision, which I'd have taken the other
-way, and not for pure consistency alone.  But how do we proceed now?  You
-took responsibily of the ticket (thanks for that and the enlightening
-comment, too), does it mean you've got an action plan and will carry that
-out shortly?  I'm sure you could resolve this in about half an hour, but
-have you got the time?  Also, I'd probably need this backported to 1.4.8.
-Shall I start hacking or had I better wait for you?
+(Is your LDAP _that_ slow?)
+
+The change is now in git://dev.medozas.de/iptables .
+
+
+parent d4105ad56335058af4b0b1be1278e01f5c0bd4ac (v1.4.9-35-gd4105ad)
+commit f3578faae096f191a44742777275a23b566d7566
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Mon Dec 6 13:32:58 2010 +0100
+
+libxt_owner: output numeric IDs when save is requested
+
+References: http://bugzilla.netfilter.org/show_bug.cgi?id=683
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ extensions/libxt_owner.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/extensions/libxt_owner.c b/extensions/libxt_owner.c
+index 4015f13..867ed49 100644
+--- a/extensions/libxt_owner.c
++++ b/extensions/libxt_owner.c
+@@ -558,9 +558,9 @@ static void owner_mt_save(const void *ip, const struct xt_entry_match *match)
+ {
+ 	const struct xt_owner_match_info *info = (void *)match->data;
+ 
+-	owner_mt_print_item(info, "--socket-exists",  XT_OWNER_SOCKET, false);
+-	owner_mt_print_item(info, "--uid-owner",      XT_OWNER_UID,    false);
+-	owner_mt_print_item(info, "--gid-owner",      XT_OWNER_GID,    false);
++	owner_mt_print_item(info, "--socket-exists",  XT_OWNER_SOCKET, true);
++	owner_mt_print_item(info, "--uid-owner",      XT_OWNER_UID,    true);
++	owner_mt_print_item(info, "--gid-owner",      XT_OWNER_GID,    true);
+ }
+ 
+ static struct xtables_match owner_mt_reg[] = {
 -- 
-Thanks,
-Feri.
+# Created with git-export-patch
