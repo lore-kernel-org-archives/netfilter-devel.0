@@ -1,49 +1,43 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH] netfilter: fix the race when initializing nf_ct_expect_hash_rnd
-Date: Mon,  6 Dec 2010 00:26:37 +0800
-Message-ID: <1291566397-24318-1-git-send-email-xiaosuo@gmail.com>
-Cc: netfilter-devel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	Changli Gao <xiaosuo@gmail.com>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Justin Yaple <yaplej@gmail.com>
+Subject: exit netfilter queue processing
+Date: Sun, 5 Dec 2010 18:05:39 -0800
+Message-ID: <AANLkTimyUqtT=dNFvgjyrsWWnDQQ6xRHmkSF0z7aLuSn@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:48631 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751732Ab0LFCFl (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 5 Dec 2010 21:05:41 -0500
+Received: by wyb28 with SMTP id 28so11536322wyb.19
+        for <netfilter-devel@vger.kernel.org>; Sun, 05 Dec 2010 18:05:40 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Since nf_ct_expect_dst_hash() may be called without nf_conntrack_lock
-locked, nf_ct_expect_hash_rnd should be initialized in the atomic way.
+Hello,
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
----
- net/netfilter/nf_conntrack_expect.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 46e8966..e2bb3ef 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -34,7 +34,6 @@ EXPORT_SYMBOL_GPL(nf_ct_expect_hsize);
- 
- static unsigned int nf_ct_expect_hash_rnd __read_mostly;
- unsigned int nf_ct_expect_max __read_mostly;
--static int nf_ct_expect_hash_rnd_initted __read_mostly;
- 
- static struct kmem_cache *nf_ct_expect_cachep __read_mostly;
- 
-@@ -77,10 +76,13 @@ static unsigned int nf_ct_expect_dst_hash(const struct nf_conntrack_tuple *tuple
- {
- 	unsigned int hash;
- 
--	if (unlikely(!nf_ct_expect_hash_rnd_initted)) {
--		get_random_bytes(&nf_ct_expect_hash_rnd,
--				 sizeof(nf_ct_expect_hash_rnd));
--		nf_ct_expect_hash_rnd_initted = 1;
-+	if (unlikely(!nf_ct_expect_hash_rnd)) {
-+		unsigned int rand;
-+
-+		do {
-+			get_random_bytes(&rand, sizeof(rand));
-+		} while (!rand);
-+		cmpxchg(&nf_ct_expect_hash_rnd, 0, rand);
- 	}
- 
- 	hash = jhash2(tuple->dst.u3.all, ARRAY_SIZE(tuple->dst.u3.all),
+I used the netfilter queue example for processing packets but one
+thing that I could not find is how to safely stop everything.  I setup
+some sig handlers to try and be a little more graceful in terminating
+with CTRL+C or when my service is stopped.  My problem is that recv()
+blocks so if there are no packets in the queue my servicestate might
+be changed to STOPPED and there might not be any more packets in the
+queue so it will wait indefinitely for recv().
+
+I have been reading Linux System Programming and I think that a
+select() around the recv() might do the trick but didnt know if there
+was some other way to do this specific to netfilter.  Maybe something
+that would force recv() to return with a value of rv < 0.
+
+while ((servicestate >= STOPPING) && ((rv = recv(fd, buf, sizeof(buf),
+0)) && rv >= 0)) {
+        /*
+         * This will execute the callback_function for each ip packet
+         * that is received into the Netfilter QUEUE.
+         */
+        nfq_handle_packet(h, buf, rv);
+}
+
+Thanks.
