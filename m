@@ -1,35 +1,32 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Michael Tokarev <mjt@tls.msk.ru>
 Subject: Re: Bug? iptables-save dumps resolved uids/gids for owner matches
-Date: Mon, 6 Dec 2010 23:37:30 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1012062336380.27578@obet.zrqbmnf.qr>
+Date: Tue, 07 Dec 2010 09:02:18 +0300
+Message-ID: <4CFDCDEA.7000308@msgid.tls.msk.ru>
 References: <87sjyercks.fsf@tac.ki.iif.hu> <alpine.LNX.2.01.1012032018321.26825@obet.zrqbmnf.qr> <874oaroznk.fsf@tac.ki.iif.hu> <alpine.LNX.2.01.1012061334090.19952@obet.zrqbmnf.qr> <87tyirnhs1.fsf@tac.ki.iif.hu> <alpine.LNX.2.01.1012061457220.29349@obet.zrqbmnf.qr>
- <AANLkTikp3b9WcRFr6aMcn9qJ6VULr75SVHOmpyqb955W@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: Ferenc Wagner <wferi@niif.hu>, netfilter-devel@vger.kernel.org
-To: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:35308 "EHLO borg.medozas.de"
+Received: from isrv.corpit.ru ([86.62.121.231]:51419 "EHLO isrv.corpit.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752926Ab0LFWhc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Dec 2010 17:37:32 -0500
-In-Reply-To: <AANLkTikp3b9WcRFr6aMcn9qJ6VULr75SVHOmpyqb955W@mail.gmail.com>
+	id S1751014Ab0LGGCV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Dec 2010 01:02:21 -0500
+In-Reply-To: <alpine.LNX.2.01.1012061457220.29349@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2010-12-06 23:21, Maciej =C5=BBenczykowski wrote:
+06.12.2010 16:59, Jan Engelhardt wrote:
+[]
+> If the network is not up, the potential connections to the database
+> immediately terminate with "No route to host".
 
->Couldn't (shouldn't?) this have been done better with a '-n' command l=
-ine
->flag?
+This is only true if at least the loopback interface is up.
+If no interface is up-n-running, the connection times out,
+slowly.
 
-The problem _was_ that resolution would take place even in the presence=
-=20
-of requesting numeric output (as triggered by -n, among others).
+It is for this reason I usually put firewall rules in
+post-up of loopback interface.
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+/mjt
