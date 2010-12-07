@@ -1,32 +1,55 @@
-From: Michael Tokarev <mjt@tls.msk.ru>
-Subject: Re: Bug? iptables-save dumps resolved uids/gids for owner matches
-Date: Tue, 07 Dec 2010 09:02:18 +0300
-Message-ID: <4CFDCDEA.7000308@msgid.tls.msk.ru>
-References: <87sjyercks.fsf@tac.ki.iif.hu> <alpine.LNX.2.01.1012032018321.26825@obet.zrqbmnf.qr> <874oaroznk.fsf@tac.ki.iif.hu> <alpine.LNX.2.01.1012061334090.19952@obet.zrqbmnf.qr> <87tyirnhs1.fsf@tac.ki.iif.hu> <alpine.LNX.2.01.1012061457220.29349@obet.zrqbmnf.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Xtables2 Netlink spec
+Date: Tue, 07 Dec 2010 08:49:15 +0100
+Message-ID: <4CFDE6FB.4060103@netfilter.org>
+References: <alpine.LNX.2.01.1011242314580.32646@obet.zrqbmnf.qr> <4CEE4B94.8010307@netfilter.org> <alpine.LNX.2.01.1011251327140.21752@obet.zrqbmnf.qr> <4CEE70CE.60502@netfilter.org> <alpine.LNX.2.01.1011251525490.3245@obet.zrqbmnf.qr> <4CEF6F12.7080601@netfilter.org> <alpine.LNX.2.01.1012032156100.26825@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Ferenc Wagner <wferi@niif.hu>, netfilter-devel@vger.kernel.org
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from isrv.corpit.ru ([86.62.121.231]:51419 "EHLO isrv.corpit.ru"
+Received: from mail.us.es ([193.147.175.20]:51597 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751014Ab0LGGCV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Dec 2010 01:02:21 -0500
-In-Reply-To: <alpine.LNX.2.01.1012061457220.29349@obet.zrqbmnf.qr>
+	id S1752705Ab0LGHt7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Dec 2010 02:49:59 -0500
+In-Reply-To: <alpine.LNX.2.01.1012032156100.26825@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-06.12.2010 16:59, Jan Engelhardt wrote:
-[]
-> If the network is not up, the potential connections to the database
-> immediately terminate with "No route to host".
+On 03/12/10 22:03, Jan Engelhardt wrote:
+>
+> On Friday 2010-11-26 09:25, Pablo Neira Ayuso wrote:
+>>
+>>> In fact, why don't we just use genetlink for new code instead?
+>>
+>> Genetlink is similar. The main difference is that the ID family number
+>> and multicast groups for each subsystem is not fixed, it's registered in
+>> runtime. This means that you have to make the "family name resolution",
+>> ie. to send a message to resolve the ID family number and multicast
+>> groups before doing any operation.
+>>
+>> Another reason is consistency, it's a good idea to use the mechanism
+>> that other netfilter subsystems already use.
+>
+> "Look, iptables uses ioctl! Let's use ioctl again for xt2."
 
-This is only true if at least the loopback interface is up.
-If no interface is up-n-running, the connection times out,
-slowly.
+It's up to you to use an interface from the stone age.
 
-It is for this reason I usually put firewall rules in
-post-up of loopback interface.
+> I am skeptical about shrinkfitting something onto an older
+> interface (nfnetlink) when there is genetlink..
 
-/mjt
+That's an empty argument. Tell me one feature that nfnetlink does not 
+have have but genetlink does.
+
+>>>> BTW, I didn't look at your protocol in deep yet but I'd suggest the
+>>>> following basis to rework it: one netlink message, one rule operation.
+>>>
+>>> I can agree with that suggestion, so I will be doing that.
+>
+> Something else that came to mind -- if ordering of nlattrs is not
+> guaranteed inside nlmsg, we could just pack all the data into a
+> single attribute and mark it binary, which means potential relays (if
+> nl ever gets that far!) won't reorder it.
+
+that's an abuse of netlink.
