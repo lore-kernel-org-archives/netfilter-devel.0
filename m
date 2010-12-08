@@ -1,56 +1,42 @@
-From: Holger Eitzenberger <holger@eitzenberger.org>
-Subject: Re: ctnetlink loop
-Date: Wed, 8 Dec 2010 21:31:21 +0100
-Message-ID: <20101208203121.GB23668@mail.eitzenberger.org>
-References: <20101208.095020.245408999.davem@davemloft.net>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [PATCH 0/2] New jhash function
+Date: Thu, 9 Dec 2010 07:53:45 +1030
+Message-ID: <201012090753.46050.rusty@rustcorp.com.au>
+References: <201011271401.22773.rusty@rustcorp.com.au> <1291379941-31565-1-git-send-email-kadlec@blackhole.kfki.hu> <20101208.090954.115924303.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	netdev@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: kadlec@blackhole.kfki.hu, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	torvalds@osdl.org
 To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:61587 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755273Ab0LHUbZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Dec 2010 15:31:25 -0500
-Content-Disposition: inline
-In-Reply-To: <20101208.095020.245408999.davem@davemloft.net>
+Received: from ozlabs.org ([203.10.76.45]:58804 "EHLO ozlabs.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756158Ab0LHVXv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Dec 2010 16:23:51 -0500
+In-Reply-To: <20101208.090954.115924303.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Thu, 9 Dec 2010 03:39:54 am David Miller wrote:
+> From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> Date: Fri,  3 Dec 2010 13:38:59 +0100
+> 
+> > The current jhash.h implements the lookup2() hash function by Bob Jenkins. 
+> > However, lookup2() is outdated as Bob wrote a new hash function called 
+> > lookup3(). There is a longer comparison of those two and other hash
+> > functions at http://burtleburtle.net/bob/hash/doobs.html.
+> > 
+> > Please consider applying the following patches.
+> 
+> Patch #1 is already in the net-next-2.6 tree, and as long as there are
+> no major objections to the general crowd (including Rusty et al.) I am
+> happy to put patch #2 into my tree as well.
+> 
+> Rusty, does the current version of patch #2 look good to you?
 
-> Holger, this replay -EAGAIN loop in nfnetlink processing was added by
-> Pablo to handle module loading properly, I think.  So it might not be
-> safe to just unilaterally remove it.
+Yes, 2/2 good.  Thanks Jozsef!
 
-thanks for your reply!
-
-Pablo, do we really need the replay loop really?  I now have several
-boxes with problems due to this replay.  'perf report' always gives me
-something like:
-
-      18.88%            ulogd  [kernel]
-  [k] __nla_put
-      10.73%            ulogd  [kernel]
-  [k] nla_parse
-       8.72%            ulogd  [kernel]
-  [k] __nla_reserve
-       6.64%            ulogd  [kernel]
-  [k] nla_put
-       5.14%            ulogd  [kernel]
-  [k] validate_nla
-       5.03%            ulogd  [kernel]
-  [k] pskb_expand_head
-       4.92%            ulogd  [kernel]
-  [k] ctnetlink_fill_info [nf_conntrack_netlink]
-       3.07%            ulogd  [kernel]
-  [k] skb_put
-       3.03%            ulogd  [kernel]
-  [k] ctnetlink_dump_counters [nf_conntrack
-
-And 'strace' shows me that ulogd is stuck in its 'select' call.
-
- /holger
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
