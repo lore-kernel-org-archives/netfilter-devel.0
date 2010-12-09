@@ -1,42 +1,38 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [PATCH 0/2] New jhash function
-Date: Thu, 9 Dec 2010 07:53:45 +1030
-Message-ID: <201012090753.46050.rusty@rustcorp.com.au>
-References: <201011271401.22773.rusty@rustcorp.com.au> <1291379941-31565-1-git-send-email-kadlec@blackhole.kfki.hu> <20101208.090954.115924303.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: kadlec@blackhole.kfki.hu, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	torvalds@osdl.org
-To: David Miller <davem@davemloft.net>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: [PATCH] netfilter: don't need to initialize instance_table
+Date: Thu,  9 Dec 2010 18:10:21 +0800
+Message-ID: <1291889421-10794-1-git-send-email-xiaosuo@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Changli Gao <xiaosuo@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ozlabs.org ([203.10.76.45]:58804 "EHLO ozlabs.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756158Ab0LHVXv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Dec 2010 16:23:51 -0500
-In-Reply-To: <20101208.090954.115924303.davem@davemloft.net>
+Received: from mail-iw0-f172.google.com ([209.85.214.172]:61811 "EHLO
+	mail-iw0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754990Ab0LIKKo (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Dec 2010 05:10:44 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 9 Dec 2010 03:39:54 am David Miller wrote:
-> From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> Date: Fri,  3 Dec 2010 13:38:59 +0100
-> 
-> > The current jhash.h implements the lookup2() hash function by Bob Jenkins. 
-> > However, lookup2() is outdated as Bob wrote a new hash function called 
-> > lookup3(). There is a longer comparison of those two and other hash
-> > functions at http://burtleburtle.net/bob/hash/doobs.html.
-> > 
-> > Please consider applying the following patches.
-> 
-> Patch #1 is already in the net-next-2.6 tree, and as long as there are
-> no major objections to the general crowd (including Rusty et al.) I am
-> happy to put patch #2 into my tree as well.
-> 
-> Rusty, does the current version of patch #2 look good to you?
+Since instance_table is a static array, and has been zeroed already, we
+don't need to take CPU cycles to initialize it.
 
-Yes, 2/2 good.  Thanks Jozsef!
-
-Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+---
+ net/netfilter/nfnetlink_queue.c |    3 ---
+ 1 file changed, 3 deletions(-)
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 68e67d1..9c80d6f 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -893,9 +893,6 @@ static int __init nfnetlink_queue_init(void)
+ {
+ 	int i, status = -ENOMEM;
+ 
+-	for (i = 0; i < INSTANCE_BUCKETS; i++)
+-		INIT_HLIST_HEAD(&instance_table[i]);
+-
+ 	netlink_register_notifier(&nfqnl_rtnl_notifier);
+ 	status = nfnetlink_subsys_register(&nfqnl_subsys);
+ 	if (status < 0) {
