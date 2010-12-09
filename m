@@ -1,60 +1,34 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: ctnetlink loop
-Date: Thu, 09 Dec 2010 11:39:56 +0100
-Message-ID: <4D00B1FC.60801@netfilter.org>
-References: <20101208.095020.245408999.davem@davemloft.net> <20101208203121.GB23668@mail.eitzenberger.org>
+Subject: Re: [patch] xtables: use guarded types
+Date: Thu, 09 Dec 2010 11:43:35 +0100
+Message-ID: <4D00B2D7.4010401@netfilter.org>
+References: <alpine.LNX.2.01.1012032012320.26825@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	netdev@vger.kernel.org
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57913 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47099 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756261Ab0LIKkA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Dec 2010 05:40:00 -0500
-In-Reply-To: <20101208203121.GB23668@mail.eitzenberger.org>
+	id S1756033Ab0LIKnp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Dec 2010 05:43:45 -0500
+In-Reply-To: <alpine.LNX.2.01.1012032012320.26825@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 08/12/10 21:31, Holger Eitzenberger wrote:
-> Hi,
+On 03/12/10 20:13, Jan Engelhardt wrote:
+> parent b880c1f077000956b9f475d5f3b6c5e45ff2e342 (v2.6.37-rc1-241-gb880c1f)
+> commit 4826151aedbe6e364b7b801f026fbe7383904b6a
+> Author: Jan Engelhardt <jengelh@medozas.de>
+> Date:   Thu Dec 2 21:01:17 2010 +0100
 > 
->> Holger, this replay -EAGAIN loop in nfnetlink processing was added by
->> Pablo to handle module loading properly, I think.  So it might not be
->> safe to just unilaterally remove it.
+> netfilter: xtables: use guarded types
 > 
-> thanks for your reply!
-> 
-> Pablo, do we really need the replay loop really?
+> We are supposed to use the kernel's own types in userspace exports.
 
-Yes, we need it for the on-demand module loading.
-
-> I now have several
-> boxes with problems due to this replay.  'perf report' always gives me
-> something like:
-> 
->       18.88%            ulogd  [kernel]
->   [k] __nla_put
->       10.73%            ulogd  [kernel]
->   [k] nla_parse
->        8.72%            ulogd  [kernel]
->   [k] __nla_reserve
->        6.64%            ulogd  [kernel]
->   [k] nla_put
->        5.14%            ulogd  [kernel]
->   [k] validate_nla
->        5.03%            ulogd  [kernel]
->   [k] pskb_expand_head
->        4.92%            ulogd  [kernel]
->   [k] ctnetlink_fill_info [nf_conntrack_netlink]
->        3.07%            ulogd  [kernel]
->   [k] skb_put
->        3.03%            ulogd  [kernel]
->   [k] ctnetlink_dump_counters [nf_conntrack
-> 
-> And 'strace' shows me that ulogd is stuck in its 'select' call.
-
-Sorry, I missed your previous emails. Why do you think that this related
-to -EAGAIN in nfnetlink?
+What's the point to have different headers in the kernel source code
+tree and iptables? They are just a copy, I think it's fine to keep them
+in sync with the kernel.
