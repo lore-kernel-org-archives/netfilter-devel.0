@@ -1,31 +1,36 @@
 From: David Miller <davem@davemloft.net>
 Subject: Re: [PATCH] netfilter: don't need to initialize instance_table
-Date: Thu, 09 Dec 2010 11:56:48 -0800 (PST)
-Message-ID: <20101209.115648.104053657.davem@davemloft.net>
+Date: Thu, 09 Dec 2010 12:05:43 -0800 (PST)
+Message-ID: <20101209.120543.112596810.davem@davemloft.net>
 References: <1291889421-10794-1-git-send-email-xiaosuo@gmail.com>
+	<alpine.LNX.2.01.1012091501270.21049@obet.zrqbmnf.qr>
+	<AANLkTin6u9ZkSNAoxR7az5yBW-WM0RebPcCrOMOYgFrP@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
+Cc: jengelh@medozas.de, kaber@trash.net,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: xiaosuo@gmail.com
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:37223
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753920Ab0LIT4U (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Dec 2010 14:56:20 -0500
-In-Reply-To: <1291889421-10794-1-git-send-email-xiaosuo@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <AANLkTin6u9ZkSNAoxR7az5yBW-WM0RebPcCrOMOYgFrP@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 From: Changli Gao <xiaosuo@gmail.com>
-Date: Thu,  9 Dec 2010 18:10:21 +0800
+Date: Thu, 9 Dec 2010 22:27:24 +0800
 
-> Since instance_table is a static array, and has been zeroed already, we
-> don't need to take CPU cycles to initialize it.
+> On Thu, Dec 9, 2010 at 10:03 PM, Jan Engelhardt <jengelh@medozas.de> wrote:
+>>
+>> This is here for correctness and documentation. If the hlist
+>> implementation changed, one would have a hard time figuring out the
+>> callsites which then need to add the initialization back.
+>>
 > 
-> Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+> I am quite sure there are other users rely on this assumption. So who
+> wants to change the macro INIT_HLIST_HEAD() has to review all the
+> code. It is a huge task, but can't be avoided.
 
-Adding a dependency on the implementation of HLISTs is not a good
-idea, I would not apply this patch.
+Wrong.  Adding debugging facilities to the hlist head would just
+require changing this macro.
+
+That is, unless we apply patches like your's, which we won't.
