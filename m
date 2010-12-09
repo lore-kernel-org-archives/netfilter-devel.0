@@ -1,40 +1,38 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH] netfilter: don't need to initialize instance_table
-Date: Thu, 9 Dec 2010 22:27:24 +0800
-Message-ID: <AANLkTin6u9ZkSNAoxR7az5yBW-WM0RebPcCrOMOYgFrP@mail.gmail.com>
-References: <1291889421-10794-1-git-send-email-xiaosuo@gmail.com> <alpine.LNX.2.01.1012091501270.21049@obet.zrqbmnf.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [patch] xtables: use guarded types
+Date: Thu, 9 Dec 2010 20:25:46 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1012092024000.30670@obet.zrqbmnf.qr>
+References: <alpine.LNX.2.01.1012032012320.26825@obet.zrqbmnf.qr> <4D00B2D7.4010401@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f43.google.com ([209.85.161.43]:58197 "EHLO
-	mail-fx0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753637Ab0LIO1q (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Dec 2010 09:27:46 -0500
-In-Reply-To: <alpine.LNX.2.01.1012091501270.21049@obet.zrqbmnf.qr>
+Received: from borg.medozas.de ([188.40.89.202]:45097 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753920Ab0LITZr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Dec 2010 14:25:47 -0500
+In-Reply-To: <4D00B2D7.4010401@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Dec 9, 2010 at 10:03 PM, Jan Engelhardt <jengelh@medozas.de> wrote:
+On Thursday 2010-12-09 11:43, Pablo Neira Ayuso wrote:
+
+>On 03/12/10 20:13, Jan Engelhardt wrote:
+>> parent b880c1f077000956b9f475d5f3b6c5e45ff2e342 (v2.6.37-rc1-241-gb880c1f)
+>> commit 4826151aedbe6e364b7b801f026fbe7383904b6a
+>> Author: Jan Engelhardt <jengelh@medozas.de>
+>> Date:   Thu Dec 2 21:01:17 2010 +0100
+>> 
+>> netfilter: xtables: use guarded types
+>> 
+>> We are supposed to use the kernel's own types in userspace exports.
 >
-> This is here for correctness and documentation. If the hlist
-> implementation changed, one would have a hard time figuring out the
-> callsites which then need to add the initialization back.
->
+>What's the point to have different headers in the kernel source code
+>tree and iptables?
 
-I am quite sure there are other users rely on this assumption. So who
-wants to change the macro INIT_HLIST_HEAD() has to review all the
-code. It is a huge task, but can't be avoided.
+Because iptables needs to know more structs than the kernel provides.
 
-For now, calling INIT_HLIST_HEAD() has no benefit, but wastes CPU
-cycles and increases the image size.
-
-Thanks.
-
--- 
-Regards,
-Changli Gao(xiaosuo@gmail.com)
+But... what does that have to do with the patch?
