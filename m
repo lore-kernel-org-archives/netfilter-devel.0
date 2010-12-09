@@ -1,38 +1,60 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH] netfilter: don't need to initialize instance_table
-Date: Thu,  9 Dec 2010 18:10:21 +0800
-Message-ID: <1291889421-10794-1-git-send-email-xiaosuo@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Changli Gao <xiaosuo@gmail.com>
-To: Patrick McHardy <kaber@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: ctnetlink loop
+Date: Thu, 09 Dec 2010 11:39:56 +0100
+Message-ID: <4D00B1FC.60801@netfilter.org>
+References: <20101208.095020.245408999.davem@davemloft.net> <20101208203121.GB23668@mail.eitzenberger.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: David Miller <davem@davemloft.net>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iw0-f172.google.com ([209.85.214.172]:61811 "EHLO
-	mail-iw0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754990Ab0LIKKo (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Dec 2010 05:10:44 -0500
+Received: from mail.us.es ([193.147.175.20]:57913 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756261Ab0LIKkA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Dec 2010 05:40:00 -0500
+In-Reply-To: <20101208203121.GB23668@mail.eitzenberger.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Since instance_table is a static array, and has been zeroed already, we
-don't need to take CPU cycles to initialize it.
+On 08/12/10 21:31, Holger Eitzenberger wrote:
+> Hi,
+> 
+>> Holger, this replay -EAGAIN loop in nfnetlink processing was added by
+>> Pablo to handle module loading properly, I think.  So it might not be
+>> safe to just unilaterally remove it.
+> 
+> thanks for your reply!
+> 
+> Pablo, do we really need the replay loop really?
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
----
- net/netfilter/nfnetlink_queue.c |    3 ---
- 1 file changed, 3 deletions(-)
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 68e67d1..9c80d6f 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -893,9 +893,6 @@ static int __init nfnetlink_queue_init(void)
- {
- 	int i, status = -ENOMEM;
- 
--	for (i = 0; i < INSTANCE_BUCKETS; i++)
--		INIT_HLIST_HEAD(&instance_table[i]);
--
- 	netlink_register_notifier(&nfqnl_rtnl_notifier);
- 	status = nfnetlink_subsys_register(&nfqnl_subsys);
- 	if (status < 0) {
+Yes, we need it for the on-demand module loading.
+
+> I now have several
+> boxes with problems due to this replay.  'perf report' always gives me
+> something like:
+> 
+>       18.88%            ulogd  [kernel]
+>   [k] __nla_put
+>       10.73%            ulogd  [kernel]
+>   [k] nla_parse
+>        8.72%            ulogd  [kernel]
+>   [k] __nla_reserve
+>        6.64%            ulogd  [kernel]
+>   [k] nla_put
+>        5.14%            ulogd  [kernel]
+>   [k] validate_nla
+>        5.03%            ulogd  [kernel]
+>   [k] pskb_expand_head
+>        4.92%            ulogd  [kernel]
+>   [k] ctnetlink_fill_info [nf_conntrack_netlink]
+>        3.07%            ulogd  [kernel]
+>   [k] skb_put
+>        3.03%            ulogd  [kernel]
+>   [k] ctnetlink_dump_counters [nf_conntrack
+> 
+> And 'strace' shows me that ulogd is stuck in its 'select' call.
+
+Sorry, I missed your previous emails. Why do you think that this related
+to -EAGAIN in nfnetlink?
