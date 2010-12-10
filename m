@@ -1,36 +1,49 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] netfilter: don't need to initialize instance_table
-Date: Thu, 09 Dec 2010 12:05:43 -0800 (PST)
-Message-ID: <20101209.120543.112596810.davem@davemloft.net>
-References: <1291889421-10794-1-git-send-email-xiaosuo@gmail.com>
-	<alpine.LNX.2.01.1012091501270.21049@obet.zrqbmnf.qr>
-	<AANLkTin6u9ZkSNAoxR7az5yBW-WM0RebPcCrOMOYgFrP@mail.gmail.com>
+Subject: Re: [PATCH 0/2] New jhash function
+Date: Thu, 09 Dec 2010 20:19:26 -0800 (PST)
+Message-ID: <20101209.201926.104055585.davem@davemloft.net>
+References: <1291379941-31565-1-git-send-email-kadlec@blackhole.kfki.hu>
+	<20101208.090954.115924303.davem@davemloft.net>
+	<201012090753.46050.rusty@rustcorp.com.au>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: jengelh@medozas.de, kaber@trash.net,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: xiaosuo@gmail.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <AANLkTin6u9ZkSNAoxR7az5yBW-WM0RebPcCrOMOYgFrP@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: kadlec@blackhole.kfki.hu, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	torvalds@osdl.org
+To: rusty@rustcorp.com.au
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:35734
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755561Ab0LJETA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Dec 2010 23:19:00 -0500
+In-Reply-To: <201012090753.46050.rusty@rustcorp.com.au>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Changli Gao <xiaosuo@gmail.com>
-Date: Thu, 9 Dec 2010 22:27:24 +0800
+From: Rusty Russell <rusty@rustcorp.com.au>
+Date: Thu, 9 Dec 2010 07:53:45 +1030
 
-> On Thu, Dec 9, 2010 at 10:03 PM, Jan Engelhardt <jengelh@medozas.de> wrote:
->>
->> This is here for correctness and documentation. If the hlist
->> implementation changed, one would have a hard time figuring out the
->> callsites which then need to add the initialization back.
->>
+> On Thu, 9 Dec 2010 03:39:54 am David Miller wrote:
+>> From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+>> Date: Fri,  3 Dec 2010 13:38:59 +0100
+>> 
+>> > The current jhash.h implements the lookup2() hash function by Bob Jenkins. 
+>> > However, lookup2() is outdated as Bob wrote a new hash function called 
+>> > lookup3(). There is a longer comparison of those two and other hash
+>> > functions at http://burtleburtle.net/bob/hash/doobs.html.
+>> > 
+>> > Please consider applying the following patches.
+>> 
+>> Patch #1 is already in the net-next-2.6 tree, and as long as there are
+>> no major objections to the general crowd (including Rusty et al.) I am
+>> happy to put patch #2 into my tree as well.
+>> 
+>> Rusty, does the current version of patch #2 look good to you?
 > 
-> I am quite sure there are other users rely on this assumption. So who
-> wants to change the macro INIT_HLIST_HEAD() has to review all the
-> code. It is a huge task, but can't be avoided.
+> Yes, 2/2 good.  Thanks Jozsef!
+> 
+> Acked-by: Rusty Russell <rusty@rustcorp.com.au>
 
-Wrong.  Adding debugging facilities to the hlist head would just
-require changing this macro.
-
-That is, unless we apply patches like your's, which we won't.
+Applied, thanks everyone.
