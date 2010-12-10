@@ -1,49 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/2] New jhash function
-Date: Thu, 09 Dec 2010 20:19:26 -0800 (PST)
-Message-ID: <20101209.201926.104055585.davem@davemloft.net>
-References: <1291379941-31565-1-git-send-email-kadlec@blackhole.kfki.hu>
-	<20101208.090954.115924303.davem@davemloft.net>
-	<201012090753.46050.rusty@rustcorp.com.au>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [patch] xtables: use guarded types
+Date: Fri, 10 Dec 2010 11:24:05 +0100
+Message-ID: <4D01FFC5.90808@netfilter.org>
+References: <alpine.LNX.2.01.1012032012320.26825@obet.zrqbmnf.qr> <4D00B2D7.4010401@netfilter.org> <alpine.LNX.2.01.1012092024000.30670@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: kadlec@blackhole.kfki.hu, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	torvalds@osdl.org
-To: rusty@rustcorp.com.au
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:35734
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755561Ab0LJETA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Dec 2010 23:19:00 -0500
-In-Reply-To: <201012090753.46050.rusty@rustcorp.com.au>
+Received: from mail.us.es ([193.147.175.20]:49915 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753530Ab0LJKZH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Dec 2010 05:25:07 -0500
+In-Reply-To: <alpine.LNX.2.01.1012092024000.30670@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Rusty Russell <rusty@rustcorp.com.au>
-Date: Thu, 9 Dec 2010 07:53:45 +1030
-
-> On Thu, 9 Dec 2010 03:39:54 am David Miller wrote:
->> From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
->> Date: Fri,  3 Dec 2010 13:38:59 +0100
->> 
->> > The current jhash.h implements the lookup2() hash function by Bob Jenkins. 
->> > However, lookup2() is outdated as Bob wrote a new hash function called 
->> > lookup3(). There is a longer comparison of those two and other hash
->> > functions at http://burtleburtle.net/bob/hash/doobs.html.
->> > 
->> > Please consider applying the following patches.
->> 
->> Patch #1 is already in the net-next-2.6 tree, and as long as there are
->> no major objections to the general crowd (including Rusty et al.) I am
->> happy to put patch #2 into my tree as well.
->> 
->> Rusty, does the current version of patch #2 look good to you?
+On 09/12/10 20:25, Jan Engelhardt wrote:
+> On Thursday 2010-12-09 11:43, Pablo Neira Ayuso wrote:
 > 
-> Yes, 2/2 good.  Thanks Jozsef!
+>> On 03/12/10 20:13, Jan Engelhardt wrote:
+>>> parent b880c1f077000956b9f475d5f3b6c5e45ff2e342 (v2.6.37-rc1-241-gb880c1f)
+>>> commit 4826151aedbe6e364b7b801f026fbe7383904b6a
+>>> Author: Jan Engelhardt <jengelh@medozas.de>
+>>> Date:   Thu Dec 2 21:01:17 2010 +0100
+>>>
+>>> netfilter: xtables: use guarded types
+>>>
+>>> We are supposed to use the kernel's own types in userspace exports.
+>>
+>> What's the point to have different headers in the kernel source code
+>> tree and iptables?
 > 
-> Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+> Because iptables needs to know more structs than the kernel provides.
+> 
+> But... what does that have to do with the patch?
 
-Applied, thanks everyone.
+I mean that, after this patch, iptables headers and Linux kernel headers
+will be out of sync, right?
