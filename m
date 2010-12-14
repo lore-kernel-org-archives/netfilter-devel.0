@@ -1,101 +1,96 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
+From: Jesper Dangaard Brouer <hawk@comx.dk>
 Subject: Re: Possible regression: Packet drops during iptables calls
-Date: Tue, 14 Dec 2010 16:31:42 +0100
-Message-ID: <1292340702.5934.5.camel@edumazet-laptop>
+Date: Tue, 14 Dec 2010 17:09:18 +0100
+Message-ID: <1292342958.9155.91.camel@firesoul.comx.local>
 References: <1292337974.9155.68.camel@firesoul.comx.local>
+	 <1292340702.5934.5.camel@edumazet-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Stephen Hemminger <shemminger@vyatta.com>,
 	netfilter-devel <netfilter-devel@vger.kernel.org>,
 	netdev <netdev@vger.kernel.org>
-To: Jesper Dangaard Brouer <hawk@comx.dk>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:48654 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757219Ab0LNPbr (ORCPT
+Received: from lanfw001a.cxnet.dk ([87.72.215.196]:55239 "EHLO
+	lanfw001a.cxnet.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757726Ab0LNQJT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Dec 2010 10:31:47 -0500
-In-Reply-To: <1292337974.9155.68.camel@firesoul.comx.local>
+	Tue, 14 Dec 2010 11:09:19 -0500
+In-Reply-To: <1292340702.5934.5.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le mardi 14 d=C3=A9cembre 2010 =C3=A0 15:46 +0100, Jesper Dangaard Brou=
-er a
-=C3=A9crit :
-> I'm experiencing RX packet drops during call to iptables, on my
-> production servers.
+On Tue, 2010-12-14 at 16:31 +0100, Eric Dumazet wrote:
+> Le mardi 14 d=C3=A9cembre 2010 =C3=A0 15:46 +0100, Jesper Dangaard Br=
+ouer a
+> =C3=A9crit :
+> > I'm experiencing RX packet drops during call to iptables, on my
+> > production servers.
+> >=20
+> > Further investigations showed, that its only the CPU executing the
+> > iptables command that experience packet drops!?  Thus, a quick fix =
+was
+> > to force the iptables command to run on one of the idle CPUs (This =
+can
+> > be achieved with the "taskset" command).
+> >=20
+> > I have a 2x Xeon 5550 CPU system, thus 16 CPUs (with HT enabled).  =
+We
+> > only use 8 CPUs due to a multiqueue limitation of 8 queues in the
+> > 1Gbit/s NICs (82576 chips).  CPUs 0 to 7 is assigned for packet
+> > processing via smp_affinity.
+> >=20
+> > Can someone explain why the packet drops only occur on the CPU
+> > executing the iptables command?
+> >=20
 >=20
-> Further investigations showed, that its only the CPU executing the
-> iptables command that experience packet drops!?  Thus, a quick fix wa=
-s
-> to force the iptables command to run on one of the idle CPUs (This ca=
-n
-> be achieved with the "taskset" command).
+> It blocks BH
 >=20
-> I have a 2x Xeon 5550 CPU system, thus 16 CPUs (with HT enabled).  We
-> only use 8 CPUs due to a multiqueue limitation of 8 queues in the
-> 1Gbit/s NICs (82576 chips).  CPUs 0 to 7 is assigned for packet
-> processing via smp_affinity.
+> take a look at commits :
 >=20
-> Can someone explain why the packet drops only occur on the CPU
-> executing the iptables command?
+> 24b36f0193467fa727b85b4c004016a8dae999b9
+> netfilter: {ip,ip6,arp}_tables: dont block bottom half more than
+> necessary=20
 >=20
+> 001389b9581c13fe5fc357a0f89234f85af4215d
+> netfilter: {ip,ip6,arp}_tables: avoid lockdep false positive
 >=20
+> for attempts to let BH fly ...
+>=20
+> Unfortunately, lockdep rules :(
 
-It blocks BH
+Is the lockdep check a false positive?
+Could I run with 24b36f0193 in production, to fix my problem?
 
-take a look at commits :
+I forgot to mention I run kernel 2.6.35.8-comx01+ (based on Greg's stab=
+le kernel tree).
 
-24b36f0193467fa727b85b4c004016a8dae999b9
-netfilter: {ip,ip6,arp}_tables: dont block bottom half more than
-necessary=20
-
-001389b9581c13fe5fc357a0f89234f85af4215d
-netfilter: {ip,ip6,arp}_tables: avoid lockdep false positive
-
-for attempts to let BH fly ...
-
-Unfortunately, lockdep rules :(
+$ git describe --contains 24b36f019346
+v2.6.36-rc1~571^2~46^2~7
+$ git describe --contains 001389b9581c1
+v2.6.36-rc3~2^2~42
 
 
-> What can we do to solve this issue?
->=20
->=20
-> I should note that I have a very large ruleset on this machine, and
-> the production machine is routing around 800 Mbit/s, in each
-> direction.  The issue occurs on a simple iptables rule listing.
->=20
->=20
-> I think (untested) the problem is related to kernel git commit:
->=20
->  commit 942e4a2bd680c606af0211e64eb216be2e19bf61
->  Author: Stephen Hemminger <shemminger@vyatta.com>
->  Date: Tue Apr 28 22:36:33 2009 -0700
->=20
->  netfilter: revised locking for x_tables
->=20
->  The x_tables are organized with a table structure and a per-cpu copi=
-es
->  of the counters and rules. On older kernels there was a reader/write=
-r
->  lock per table which was a performance bottleneck. In 2.6.30-rc, thi=
-s
->  was converted to use RCU and the counters/rules which solved the per=
-formance
->  problems for do_table but made replacing rules much slower because o=
-f
->  the necessary RCU grace period.
->=20
->  This version uses a per-cpu set of spinlocks and counters to allow t=
-o
->  table processing to proceed without the cache thrashing of a global
->  reader lock and keeps the same performance for table updates.
->=20
->  Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
->  Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
->  Signed-off-by: David S. Miller <davem@davemloft.net>
->=20
+> > What can we do to solve this issue?
+
+Any ideas how we can proceed?
+
+Looking closer at the two combined code change, I see that the code pat=
+h
+has been improved (a bit), as the local BH is only disabled inside the
+for_each_possible_cpu(cpu).  Before local_bh was disabled for the hole
+function.  Guess I need to reproduce this in my testlab.
+
+Thanks for your 'ninja' input ;-)
+--=20
+Med venlig hilsen / Best regards
+  Jesper Brouer
+  ComX Networks A/S
+  Linux Network Kernel Developer
+  Cand. Scient Datalog / MSc.CS
+  Author of http://adsl-optimizer.dk
+  LinkedIn: http://www.linkedin.com/in/brouer
 
 
 --
