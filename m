@@ -1,37 +1,37 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: 6to4/Teredo IPv4 matching
-Date: Tue, 14 Dec 2010 21:29:39 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1012142127270.3226@blackhole.kfki.hu>
-References: <201012140940.11119.luke@dashjr.org>
+From: Evgeniy Polyakov <zbr@ioremap.net>
+Subject: Re: [PATCH 1/2] workqueue: convert
+ cancel_rearming_delayed_work[queue]() users to cancel_delayed_work_sync()
+Date: Wed, 15 Dec 2010 00:24:35 +0300
+Message-ID: <20101214212435.GA10097@ioremap.net>
+References: <4D078B6D.5060202@kernel.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: Luke-Jr <luke@dashjr.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: linux-kernel@vger.kernel.org, jgarzik@pobox.com,
+	benh@kernel.crashing.org, mchehab@infradead.org,
+	davem@davemloft.net, netdev@vger.kernel.org, cbou@mail.ru,
+	dwmw2@infradead.org, gregkh@suse.de, bfields@fieldses.org,
+	neilb@suse.de, aelder@sgi.com, xfs-masters@oss.sgi.com,
+	cl@linux-foundation.org, penberg@cs.helsinki.fi,
+	akpm@linux-foundation.org, netfilter-devel@vger.kernel.org,
+	Trond.Myklebust@netapp.com, linux-nfs@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201012140940.11119.luke@dashjr.org>
+Content-Disposition: inline
+In-Reply-To: <4D078B6D.5060202@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi.
 
-On Tue, 14 Dec 2010, Luke-Jr wrote:
+On Tue, Dec 14, 2010 at 04:21:17PM +0100, Tejun Heo (tj@kernel.org) wrote:
+> cancel_rearming_delayed_work[queue]() has been superceded by
+> cancel_delayed_work_sync() quite some time ago.  Convert all the
+> in-kernel users.  The conversions are completely equivalent and
+> trivial.
+> 
+> Signed-off-by: Tejun Heo <tj@kernel.org>
 
-> Are there any plans to allow matching 6to4/Teredo IPv6 packets against IPv4 
-> rules (or at least ipsets)? Recently I have a server that's been under 
-> constant DDoS from China, and I found that when I use ipsets to drop 
-> everything from China, some continue to hammer my server over 6to4 and/or 
-> Teredo. So I just figured I'd throw the idea out there in case it hasn't 
-> occurred to anyone yet. ;)
+Acked-by: Evgeniy Polyakov <zbr@ioremap.net>
 
-ipset 5 is about to be released in this week, with both IPv4 and IPv6 
-support. But feeding the sets with the proper addresses/networks is left 
-to the users :-).
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+-- 
+	Evgeniy Polyakov
