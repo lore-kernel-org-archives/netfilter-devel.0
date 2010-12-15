@@ -1,53 +1,59 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [patch] xtables: use guarded types
-Date: Wed, 15 Dec 2010 22:59:37 +0100
-Message-ID: <4D093A49.2060500@trash.net>
-References: <alpine.LNX.2.01.1012032012320.26825@obet.zrqbmnf.qr> <4D00B2D7.4010401@netfilter.org> <alpine.LNX.2.01.1012092024000.30670@obet.zrqbmnf.qr> <4D01FFC5.90808@netfilter.org>
+Subject: Re: [PATCH] netfilter: fix the race when initializing nf_ct_expect_hash_rnd
+Date: Wed, 15 Dec 2010 23:16:33 +0100
+Message-ID: <4D093E41.2010306@trash.net>
+References: <1291566397-24318-1-git-send-email-xiaosuo@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59907 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60201 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754391Ab0LOV7l (ORCPT
+	with ESMTP id S1751077Ab0LOWQv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Dec 2010 16:59:41 -0500
-In-Reply-To: <4D01FFC5.90808@netfilter.org>
+	Wed, 15 Dec 2010 17:16:51 -0500
+In-Reply-To: <1291566397-24318-1-git-send-email-xiaosuo@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 10.12.2010 11:24, schrieb Pablo Neira Ayuso:
-> On 09/12/10 20:25, Jan Engelhardt wrote:
->> On Thursday 2010-12-09 11:43, Pablo Neira Ayuso wrote:
->>
->>> On 03/12/10 20:13, Jan Engelhardt wrote:
->>>> parent b880c1f077000956b9f475d5f3b6c5e45ff2e342 (v2.6.37-rc1-241-gb880c1f)
->>>> commit 4826151aedbe6e364b7b801f026fbe7383904b6a
->>>> Author: Jan Engelhardt <jengelh@medozas.de>
->>>> Date:   Thu Dec 2 21:01:17 2010 +0100
->>>>
->>>> netfilter: xtables: use guarded types
->>>>
->>>> We are supposed to use the kernel's own types in userspace exports.
->>>
->>> What's the point to have different headers in the kernel source code
->>> tree and iptables?
->>
->> Because iptables needs to know more structs than the kernel provides.
->>
->> But... what does that have to do with the patch?
+Am 05.12.2010 17:26, schrieb Changli Gao:
+> Since nf_ct_expect_dst_hash() may be called without nf_conntrack_lock
+> locked, nf_ct_expect_hash_rnd should be initialized in the atomic way.
 > 
-> I mean that, after this patch, iptables headers and Linux kernel headers
-> will be out of sync, right?
-> 
+> Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+> ---
+>  net/netfilter/nf_conntrack_expect.c |   12 +++++++-----
+>  1 file changed, 7 insertions(+), 5 deletions(-)
+> diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+> index 46e8966..e2bb3ef 100644
+> --- a/net/netfilter/nf_conntrack_expect.c
+> +++ b/net/netfilter/nf_conntrack_expect.c
+> @@ -34,7 +34,6 @@ EXPORT_SYMBOL_GPL(nf_ct_expect_hsize);
+>  
+>  static unsigned int nf_ct_expect_hash_rnd __read_mostly;
+>  unsigned int nf_ct_expect_max __read_mostly;
+> -static int nf_ct_expect_hash_rnd_initted __read_mostly;
+>  
+>  static struct kmem_cache *nf_ct_expect_cachep __read_mostly;
+>  
+> @@ -77,10 +76,13 @@ static unsigned int nf_ct_expect_dst_hash(const struct nf_conntrack_tuple *tuple
+>  {
+>  	unsigned int hash;
+>  
+> -	if (unlikely(!nf_ct_expect_hash_rnd_initted)) {
+> -		get_random_bytes(&nf_ct_expect_hash_rnd,
+> -				 sizeof(nf_ct_expect_hash_rnd));
+> -		nf_ct_expect_hash_rnd_initted = 1;
+> +	if (unlikely(!nf_ct_expect_hash_rnd)) {
+> +		unsigned int rand;
+> +
+> +		do {
+> +			get_random_bytes(&rand, sizeof(rand));
+> +		} while (!rand);
+> +		cmpxchg(&nf_ct_expect_hash_rnd, 0, rand);
+>  	}
 
-Well, we can resync userspace, but the __ types specifically exist
-to avoid namespace polution.
-
-Applied, thanks.
-
-I'll also gladly apply a patch to get rid of the u_int_XX crap.
+I'd rather just re-use the conntrack hash random value.
