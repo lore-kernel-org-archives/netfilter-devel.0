@@ -1,37 +1,46 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [patch] xtables: use guarded types
-Date: Wed, 15 Dec 2010 23:47:24 +0100
-Message-ID: <4D09457C.5050302@trash.net>
-References: <alpine.LNX.2.01.1012032012320.26825@obet.zrqbmnf.qr> <4D00B2D7.4010401@netfilter.org> <alpine.LNX.2.01.1012092024000.30670@obet.zrqbmnf.qr> <4D01FFC5.90808@netfilter.org> <4D093A49.2060500@trash.net> <alpine.LNX.2.01.1012152319550.2669@obet.zrqbmnf.qr>
+Subject: Re: linux-next: Tree for November 18 (netfilter)
+Date: Wed, 15 Dec 2010 23:55:10 +0100
+Message-ID: <4D09474E.1070100@trash.net>
+References: <20101118134256.fe132215.sfr@canb.auug.org.au>	 <20101118092520.6ad964c7.randy.dunlap@oracle.com>	 <4CE5712B.2080909@trash.net>  <1290428077.725556.3.camel@nienna.balabit> <1290428929.726241.1.camel@nienna.balabit> <4CEA97FE.4080006@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60640 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751691Ab0LOWrZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Dec 2010 17:47:25 -0500
-In-Reply-To: <alpine.LNX.2.01.1012152319550.2669@obet.zrqbmnf.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: KOVACS Krisztian <hidden@balabit.hu>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	netfilter-devel@vger.kernel.org, linux-next@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	netdev <netdev@vger.kernel.org>,
+	Balazs Scheidler <bazsi@balabit.hu>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <4CEA97FE.4080006@oracle.com>
+Sender: linux-next-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Am 15.12.2010 23:20, schrieb Jan Engelhardt:
-> 
-> On Wednesday 2010-12-15 22:59, Patrick McHardy wrote:
+Am 22.11.2010 17:19, schrieb Randy Dunlap:
+> On 11/22/10 04:28, KOVACS Krisztian wrote:
+>> commit ec0ac6f3e7749e25f481c1e0f75766974820fe84
+>> Author: KOVACS Krisztian <hidden@balabit.hu>
+>> Date:   Mon Nov 22 13:07:15 2010 +0100
 >>
->> Well, we can resync userspace, but the __ types specifically exist
->> to avoid namespace polution.
->>
->> Applied, thanks.
->>
->> I'll also gladly apply a patch to get rid of the u_int_XX crap.
+>>     netfilter: fix compilation when conntrack is disabled but tproxy is enabled
+>>     
+>>     The IPv6 tproxy patches split IPv6 defragmentation off of conntrack, but
+>>     failed to update the #ifdef stanzas guarding the defragmentation related
+>>     fields and code in skbuff and conntrack related code in nf_defrag_ipv6.c.
+>>     
+>>     This patch adds the required #ifdefs so that IPv6 tproxy can truly be used
+>>     without connection tracking.
+>>     
+>>     Original report:
+>>     http://marc.info/?l=linux-netdev&m=129010118516341&w=2
+>>     
+>>     Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
+>>     Signed-off-by: KOVACS Krisztian <hidden@balabit.hu>
 > 
-> To be found where? (Choose: kernel/userspace/both)
+> That builds.  Thanks.
 > 
+> Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 
-Both I guess, but I was previously referring to the kernel.
+Applied, thanks everyone.
