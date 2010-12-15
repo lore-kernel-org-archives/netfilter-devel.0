@@ -1,62 +1,184 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Xtables2 Netlink spec
-Date: Wed, 15 Dec 2010 05:55:44 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1012150547590.2888@obet.zrqbmnf.qr>
-References: <alpine.LNX.2.01.1011242314580.32646@obet.zrqbmnf.qr> <alpine.DEB.2.00.1011261950100.18019@blackhole.kfki.hu>
+From: Patrick McHardy <kaber@trash.net>
+Subject: netfilter: xt_conntrack: support matching on port ranges
+Date: Wed, 15 Dec 2010 09:46:26 +0100
+Message-ID: <4D088062.3000805@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, netfilter@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1011261950100.18019@blackhole.kfki.hu>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------080508010209020205050705"
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:46771 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751172Ab0LOIq2 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Dec 2010 03:46:28 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by stinky.trash.net (Postfix) with ESMTP id 43A62B2C5C
+	for <netfilter-devel@vger.kernel.org>; Wed, 15 Dec 2010 09:46:26 +0100 (MET)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+This is a multi-part message in MIME format.
+--------------080508010209020205050705
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+
+Add support for matching on port ranges to the conntrack match.
+iptables patch will follow soon.
 
 
-On Friday 2010-11-26 20:01, Jozsef Kadlecsik wrote:
->On Wed, 24 Nov 2010, Jan Engelhardt wrote:
->
->> By request of Pablo, I am posting the Xtables2 Netlink interface 
->> specification for review. Additionally, further documentation and 
->> toolchain around it is available through the temporary project page at
->> 
->> 	http://jengelh.medozas.de/projects/xtables/
->>  * Runnable userspace library (libnetfilter_xtables)
->>    with small test-and-debug program
->[...]
->
->Please add fine-grained error reporting to the protocol: in my opinion the 
->main shortcoming of the current kernel-userspace xtables protocol is the 
->lack of the proper error reporting. I mean, the new protocol should be 
->able to carry back which rule caused the error, in the rule whether it was 
->a general kind of error (ENOMEM), or a table, chain, match or target error 
->and exactly what was the error at table/chain/match/target level.
+--------------080508010209020205050705
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="x"
 
-That should not be a problem. However, what do we do with the general
-kind of error that is overly general? A.k.a. the dreaded EINVAL.
+commit d9f56e82963575ec3275874e1529ec36683a082c
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Wed Dec 15 08:07:19 2010 +0100
 
-Say a user requested jumping to a chain, but did not give a chain name.
-Normally that would be EINVAL, but EINVAL is overused already.
+    netfilter: xt_conntrack: support matching on port ranges
+    
+    Add a new revision 3 that contains port ranges for all of origsrc,
+    origdst, replsrc and repldst. The high ports are appended to the
+    original v2 data structure to allow sharing most of the code with
+    v1 and v2. Use of the revision specific port matching function is
+    made dependant on par->match->revision.
+    
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-What would you like? Comprehensive error numbers (sort of like the
-ones Windows is said to use) aka. NFXTE_NO_CHAIN_NAME_GIVEN,
-or a human-readable string; or something else?
+diff --git a/include/linux/netfilter/xt_conntrack.h b/include/linux/netfilter/xt_conntrack.h
+index 54f47a2..74b904d 100644
+--- a/include/linux/netfilter/xt_conntrack.h
++++ b/include/linux/netfilter/xt_conntrack.h
+@@ -58,4 +58,19 @@ struct xt_conntrack_mtinfo2 {
+ 	__u16 state_mask, status_mask;
+ };
+ 
++struct xt_conntrack_mtinfo3 {
++	union nf_inet_addr origsrc_addr, origsrc_mask;
++	union nf_inet_addr origdst_addr, origdst_mask;
++	union nf_inet_addr replsrc_addr, replsrc_mask;
++	union nf_inet_addr repldst_addr, repldst_mask;
++	__u32 expires_min, expires_max;
++	__u16 l4proto;
++	__u16 origsrc_port, origdst_port;
++	__u16 replsrc_port, repldst_port;
++	__u16 match_flags, invert_flags;
++	__u16 state_mask, status_mask;
++	__u16 origsrc_port_high, origdst_port_high;
++	__u16 replsrc_port_high, repldst_port_high;
++};
++
+ #endif /*_XT_CONNTRACK_H*/
+diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
+index e536710..4ef1b63 100644
+--- a/net/netfilter/xt_conntrack.c
++++ b/net/netfilter/xt_conntrack.c
+@@ -112,6 +112,54 @@ ct_proto_port_check(const struct xt_conntrack_mtinfo2 *info,
+ 	return true;
+ }
+ 
++static inline bool
++port_match(u16 min, u16 max, u16 port, bool invert)
++{
++	return (port >= min && port <= max) ^ invert;
++}
++
++static inline bool
++ct_proto_port_check_v3(const struct xt_conntrack_mtinfo3 *info,
++		       const struct nf_conn *ct)
++{
++	const struct nf_conntrack_tuple *tuple;
++
++	tuple = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
++	if ((info->match_flags & XT_CONNTRACK_PROTO) &&
++	    (nf_ct_protonum(ct) == info->l4proto) ^
++	    !(info->invert_flags & XT_CONNTRACK_PROTO))
++		return false;
++
++	/* Shortcut to match all recognized protocols by using ->src.all. */
++	if ((info->match_flags & XT_CONNTRACK_ORIGSRC_PORT) &&
++	    !port_match(info->origsrc_port, info->origsrc_port_high,
++			ntohs(tuple->src.u.all),
++			info->invert_flags & XT_CONNTRACK_ORIGSRC_PORT))
++		return false;
++
++	if ((info->match_flags & XT_CONNTRACK_ORIGDST_PORT) &&
++	    !port_match(info->origdst_port, info->origdst_port_high,
++			ntohs(tuple->dst.u.all),
++			info->invert_flags & XT_CONNTRACK_ORIGDST_PORT))
++		return false;
++
++	tuple = &ct->tuplehash[IP_CT_DIR_REPLY].tuple;
++
++	if ((info->match_flags & XT_CONNTRACK_REPLSRC_PORT) &&
++	    !port_match(info->replsrc_port, info->replsrc_port_high,
++			ntohs(tuple->src.u.all),
++			info->invert_flags & XT_CONNTRACK_REPLSRC_PORT))
++		return false;
++
++	if ((info->match_flags & XT_CONNTRACK_REPLDST_PORT) &&
++	    !port_match(info->repldst_port, info->repldst_port_high,
++			ntohs(tuple->dst.u.all),
++			info->invert_flags & XT_CONNTRACK_REPLDST_PORT))
++		return false;
++
++	return true;
++}
++
+ static bool
+ conntrack_mt(const struct sk_buff *skb, struct xt_action_param *par,
+              u16 state_mask, u16 status_mask)
+@@ -170,8 +218,13 @@ conntrack_mt(const struct sk_buff *skb, struct xt_action_param *par,
+ 		    !(info->invert_flags & XT_CONNTRACK_REPLDST))
+ 			return false;
+ 
+-	if (!ct_proto_port_check(info, ct))
+-		return false;
++	if (par->match->revision != 3) {
++		if (!ct_proto_port_check(info, ct))
++			return false;
++	} else {
++		if (!ct_proto_port_check_v3(par->matchinfo, ct))
++			return false;
++	}
+ 
+ 	if ((info->match_flags & XT_CONNTRACK_STATUS) &&
+ 	    (!!(status_mask & ct->status) ^
+@@ -207,6 +260,14 @@ conntrack_mt_v2(const struct sk_buff *skb, struct xt_action_param *par)
+ 	return conntrack_mt(skb, par, info->state_mask, info->status_mask);
+ }
+ 
++static bool
++conntrack_mt_v3(const struct sk_buff *skb, struct xt_action_param *par)
++{
++	const struct xt_conntrack_mtinfo3 *info = par->matchinfo;
++
++	return conntrack_mt(skb, par, info->state_mask, info->status_mask);
++}
++
+ static int conntrack_mt_check(const struct xt_mtchk_param *par)
+ {
+ 	int ret;
+@@ -244,6 +305,16 @@ static struct xt_match conntrack_mt_reg[] __read_mostly = {
+ 		.destroy    = conntrack_mt_destroy,
+ 		.me         = THIS_MODULE,
+ 	},
++	{
++		.name       = "conntrack",
++		.revision   = 3,
++		.family     = NFPROTO_UNSPEC,
++		.matchsize  = sizeof(struct xt_conntrack_mtinfo3),
++		.match      = conntrack_mt_v3,
++		.checkentry = conntrack_mt_check,
++		.destroy    = conntrack_mt_destroy,
++		.me         = THIS_MODULE,
++	},
+ };
+ 
+ static int __init conntrack_mt_init(void)
 
->Say, the TCPMSS target should be able to report back that it cannot be 
->used outside of FORWARD, OUTPUT and POSTROUTING.
-
-NFXTE_HOOKMASK_NOT_ADHERED or string?
-
->Or that the rule must match TCP SYN packets.
-
-TCPMSS doing a rule-search for -p tcp is pretty ugly (it must understand
-the data structures, and that is sort of a backwards shot); Patrick
-once suggested IIRC that TCPMSS should just silently skip non-SYNs.
-
-Maybe both error numbers, and providing extensions with the
-possibility to send strings? It is impossible to provision error
-numbers for out-of-tree extensions, so having a way for an extension
-to return some NFXTA_ERRSTR "One of my parameters is wrong!" seems
-required at least.
+--------------080508010209020205050705--
