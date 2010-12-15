@@ -1,47 +1,54 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset v5.0-pre10
-Date: Wed, 15 Dec 2010 21:23:30 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1012152121160.5033@blackhole.kfki.hu>
-References: <4D08D0A6.4020900@googlemail.com>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [*v2 PATCH 00/22] IPVS, Network Name Space aware
+Date: Wed, 15 Dec 2010 23:11:19 +0200 (EET)
+Message-ID: <alpine.LFD.2.00.1012152305360.1827@ja.ssi.bg>
+References: <1292247510-753-1-git-send-email-hans.schillstrom@ericsson.com>  <alpine.LFD.2.00.1012150136410.2010@ja.ssi.bg> <1292409147.4983.298.camel@seasc0214>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Mr Dash Four <mr.dash.four@googlemail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:58269 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755334Ab0LOUXc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Dec 2010 15:23:32 -0500
-In-Reply-To: <4D08D0A6.4020900@googlemail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: "horms@verge.net.au" <horms@verge.net.au>,
+	"daniel.lezcano@free.fr" <daniel.lezcano@free.fr>,
+	"wensong@linux-vs.org" <wensong@linux-vs.org>,
+	"lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"hans@schillstrom.com" <hans@schillstrom.com>
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1292409147.4983.298.camel@seasc0214>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-On Wed, 15 Dec 2010, Mr Dash Four wrote:
+ 	Hello,
 
-> I've just looked at the code and man pages for the above - it makes some
-> interesting reading!
-> 
-> I have a question though - Would it be possible for me to specify port ranges
-> as well - if not at the members level, then at least from the command line?
-> 
-> For example, with the current setup if I want to include 'low' ports in a set,
-> then I have to run a separate script with a 'count' value from 1 to 1024 and
-> execute 1024 different 'ipset -A' statements to include that particular port
-> into the set. The situation is much worse if I am dealing with high-ports -
-> for obvious reasons.
-> 
-> Would it be possible to be able to specify port ranges (say, '1-1024') in a
-> similar fashion as it is currently done with ip address ranges?
+On Wed, 15 Dec 2010, Hans Schillstrom wrote:
 
-I don't completely understand you: the bitmap:port type already supports 
-adding/deleting port ranges. Could you write a full example?
+>> v2 PATCH 13/22 - ip_vs_est
+>>  	- estimation_timer: what protection is needed for for_each_net?
+>>  	It is rtnl for user context and RCU for softirq?
+>>  	May be est_timer must be per NS? Now may be rcu_read_lock is
+>>  	needed before for_each_net_rcu ? for_each_net can be called
+>>  	only under rtnl_lock?
+>>
+> [snip]
+>
+> In case of a common timer for all ns:
+>
+> 	rcu_read_lock();
+> 	for_each_net_rcu(net) {
+> 		...
+>
+> 	}
+> 	rcu_read_unlock();
+>
+> I guess it's better with a timer per netns ?
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+ 	Yes, I too have little preference for the per-ns timer.
+
+> (then for_each_net() is not needed, and the locking can remain the same
+> as before the netns change.)
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
