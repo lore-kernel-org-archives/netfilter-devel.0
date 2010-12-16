@@ -1,47 +1,68 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: IPTV buffering
-Date: Thu, 16 Dec 2010 12:18:43 +0100 (CET)
-Message-ID: <20101216111843.88E16F0C32AB5@borg.medozas.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Use connection tracking to store private data for rate shaping
+ algorithms?
+Date: Thu, 16 Dec 2010 13:31:12 +0100
+Message-ID: <4D0A0690.4000309@trash.net>
+References: <AANLkTik6sRQ=Pju6krQnUEf7qkhZ0j-cb+CdgmsoHoCf@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jesper Dangaard Brouer <hawk@diku.dk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Dirk <biecie547@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:44123 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754237Ab0LPLSo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Dec 2010 06:18:44 -0500
+Received: from stinky.trash.net ([213.144.137.162]:40501 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752467Ab0LPMbP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Dec 2010 07:31:15 -0500
+In-Reply-To: <AANLkTik6sRQ=Pju6krQnUEf7qkhZ0j-cb+CdgmsoHoCf@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2010-12-16 10:57, Jesper Dangaard Brouer wrote:
+Am 30.11.2010 16:18, schrieb Dirk:
+> Hello,
+> 
+> 
+> We are developing some some more advanced TCP rate shaping algorithms
+> ( http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=1261834&tag=1 )
+> and would like to implement it as a (GPL) kernel module. The goal is
+> to have a high performant module that can 'shape' traffic for 10 000's
+> of hosts and users on individual base and also minimize shaping
+> overhead (drop/retransmits/latency) on the network.
 
-> [...] NetConf 2010, see:
->
-> http://vger.kernel.org/netconf2010.html
+Sounds interesting.
 
-I just went over a few slide sets, and noticed Dave's Netfilter summary=
-=20
-about your IPTV talk, enlisting the point
+> Our current solution uses a custom developed iptables target that
+> already performs traffic policing for 10'000s of simultaneous users (
+> http://tnc2007.terena.org/programme/presentations/showbeb6.html ).
+> Since policing is not an ideal way to regulate bandwidth, we want to
+> improve it :-)
+> 
+> 
+> However, in order to function correctly, we need to keep some extra
+> information for each flow (both tcp and udp) through the device:
+> - few statistics (two 64bit integers)
+> - shaping/rate state information (four 64bit integers)
+> 
+>  This information should be set/accessible from a kernel tc qdisc module.
+> 
+> My idea was to use the connection tracking framework to keep track of
+> connection states (which is also required by the algorithms) and
+> somehow extend it to also store the extra information.
 
- * Ethernet switches buffer too small
+That sounds reasonable. I've implemented TCP rate control about 9
+years ago and did the same.
 
-("too small".. "too few"?) Given the recent uproar about bufferbloat in=
-=20
-routing devices (see LWN coverage about Getty's articles), wanting=20
-larger buffers seems to almost contradict what Getty would like.
+> I have found there is an extension infrastructure for nf_conntrack (
+> http://www.mail-archive.com/git-commits-head@vger.kernel.org/msg15798.html
+> ), but it does not seem a module is intended to register itself
+> without modifying nf_ct_ext_id in /nf_conntrack_extend.h. Since that
+> would require a kernel recompile, it is not really an option.
+> 
+> Since we're not (yet) familiar with the connection tracking code: what
+> would be the best way to accomplish this?
 
-Though TV is usually delivered via UDP rather than TCP, some of the=20
-protocols may too implement some sort of congestion recognition or=20
-even avoidance technique=C2=A0=E2=80=94 IIRC realplayer had something t=
-hat=20
-adapted video quality based upon transfer rate.
-
-Wanting more buffers vs. wanting less buffering seems to be quite=20
-contradictory. Jesper, what is your take on this?
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+You can't add data to the conntrack structure (neither directly nor
+through extensions) without recompiling the kernel. I'd suggest to
+use ct extensions, require a recompile for now and then merge your
+module upstream once it's finished.
