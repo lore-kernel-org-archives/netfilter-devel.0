@@ -1,59 +1,51 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Error reporting in Netlink (Re: Xtables2 Netlink spec)
-Date: Thu, 16 Dec 2010 16:09:01 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1012161604220.25887@obet.zrqbmnf.qr>
-References: <alpine.LNX.2.01.1011242314580.32646@obet.zrqbmnf.qr>  <alpine.DEB.2.00.1011261950100.18019@blackhole.kfki.hu>  <alpine.LNX.2.01.1012150547590.2888@obet.zrqbmnf.qr>  <alpine.DEB.2.00.1012150921330.3983@blackhole.kfki.hu>
- <Pine.LNX.4.64.1012161041200.8276@ask.diku.dk>  <alpine.LNX.2.01.1012161322450.6728@obet.zrqbmnf.qr> <1292507013.3395.19.camel@lsx> <alpine.DEB.2.00.1012161535080.6557@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Thomas Graf <tgraf@redhat.com>,
-	Jesper Dangaard Brouer <hawk@diku.dk>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, netfilter@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1012161535080.6557@blackhole.kfki.hu>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fwestphal@astaro.com>
+Subject: [PATCH][RESEND] libxt_time: fix random --datestart skips
+Date: Thu, 16 Dec 2010 16:28:48 +0100
+Message-ID: <1292513328-19072-1-git-send-email-fwestphal@astaro.com>
+Cc: Florian Westphal <fwestphal@astaro.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from dhost002-62.dex002.intermedia.net ([64.78.20.11]:38936 "EHLO
+	dhost002-62.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756449Ab0LPP1X (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Dec 2010 10:27:23 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Frank Lichtenheld points out that -m time --datestart ...
+sometimes messes up --datestart:
 
-On Thursday 2010-12-16 15:47, Jozsef Kadlecsik wrote:
->> 
->> Thinking of netlink protocols in general and netfilter in specific,
->> maintaining a list of reserved error codes for each subsystem/target/
->> module will result in an unbearable pain if the error codes are not
->> separated into individual namespaces for each module.
->> 
->> That would in turn require each module to define a unique number or
->> some form of namespace resolution mechanism which does not help to keep
->> things simple.
->> 
->> This is the main reason why I advocate the use of error strings.
->
->But why error codes looks complicated? Netlink already supports it and 
->it's simple to separate them:
->	errcode < 256	generic errors
->256 <=	errcode < 512	generic netfilter specific errors
->512 <=	errcode		table/match/module specific errors
+$ iptables -A INPUT -m time --datestart 2010-11-24T16:50:00 -j ACCEPT
+$ iptables-save | grep 11
+-A INPUT -m time --datestart 2010-11-24T16:50:00 -j ACCEPT
+$ iptables-save | iptables-restore
+$ iptables-save | grep 11
+-A INPUT -m time --datestart 2010-11-24T15:50:00 -j ACCEPT
 
-Actually, <4096 is reserved for the generic system errors (Exxx).
+--datestart moved by one hour.
 
-The specific issue here however is that you cannot easily delegate
-the space >=512 to modules, so it's probably best if we don't try.
+As the --timestart option does not care about DST, always set
+dst=0 when parsing --starttime input.
 
->>Do we *really* need internationalization for error messages on this
->>level? Primarily userspace should be in charge of checking for all kinds
->>of erroneous user input and produce meaningful context based,
->>translatable error messages. Error messages produced by the kernel
->>should be the exception and not a substitute for proper userspace error
->>handling.
->
->Netlink based protocol is the path to internationalization. Netlink based 
->protol leads to usable library. Library leads to gui. Gui leads to 
->internationalization. ;-)
+Reported-by: Frank Lichtenheld <flichtenheld@astaro.com>
+Signed-off-by: Florian Westphal <fwestphal@astaro.com>
+---
+ extensions/libxt_time.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-On the contrary:
-"Users leads to guis, guis lead to requests, requests lead to libraries,
-libraries lead to netlink.
-Doesn't make sense? Ask SUN!"
+diff --git a/extensions/libxt_time.c b/extensions/libxt_time.c
+index 5462d93..b2e6ffa 100644
+--- a/extensions/libxt_time.c
++++ b/extensions/libxt_time.c
+@@ -139,6 +139,7 @@ static time_t time_parse_date(const char *s, bool end)
+ 	tm.tm_hour = hour;
+ 	tm.tm_min  = minute;
+ 	tm.tm_sec  = second;
++	tm.tm_isdst = 0;
+ 	ret = mktime(&tm);
+ 	if (ret >= 0)
+ 		return ret;
+-- 
+1.7.2.2
+
