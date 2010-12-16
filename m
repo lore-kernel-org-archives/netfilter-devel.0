@@ -1,55 +1,72 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: Possible regression: Packet drops during iptables calls
-Date: Thu, 16 Dec 2010 15:13:41 +0100
-Message-ID: <1292508821.2883.156.camel@edumazet-laptop>
-References: <1292337974.9155.68.camel@firesoul.comx.local>
-	 <1292340702.5934.5.camel@edumazet-laptop>
-	 <1292342958.9155.91.camel@firesoul.comx.local>
-	 <1292343855.5934.27.camel@edumazet-laptop>
-	 <1292508266.31289.12.camel@firesoul.comx.local>
+From: Thomas Graf <tgraf@infradead.org>
+Subject: Re: Error reporting in Netlink (Re: Xtables2 Netlink spec)
+Date: Thu, 16 Dec 2010 09:19:23 -0500
+Message-ID: <20101216141923.GB23297@canuck.infradead.org>
+References: <alpine.LNX.2.01.1011242314580.32646@obet.zrqbmnf.qr>
+ <alpine.DEB.2.00.1011261950100.18019@blackhole.kfki.hu>
+ <alpine.LNX.2.01.1012150547590.2888@obet.zrqbmnf.qr>
+ <alpine.DEB.2.00.1012150921330.3983@blackhole.kfki.hu>
+ <Pine.LNX.4.64.1012161041200.8276@ask.diku.dk>
+ <alpine.LNX.2.01.1012161322450.6728@obet.zrqbmnf.qr>
+ <1292507013.3395.19.camel@lsx>
+ <alpine.LNX.2.01.1012161444410.16086@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Arnaldo Carvalho de Melo <acme@infradead.org>,
-	Steven Rostedt <srostedt@redhat.com>,
-	Alexander Duyck <alexander.h.duyck@intel.com>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>,
-	Peter P Waskiewicz Jr <peter.p.waskiewicz.jr@intel.com>
-To: Jesper Dangaard Brouer <hawk@comx.dk>
+Content-Type: text/plain; charset=us-ascii
+Cc: Thomas Graf <tgraf@redhat.com>,
+	Jesper Dangaard Brouer <hawk@diku.dk>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, netfilter@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:60206 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753857Ab0LPONr (ORCPT
+Received: from canuck.infradead.org ([134.117.69.58]:57164 "EHLO
+	canuck.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756090Ab0LPOTi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Dec 2010 09:13:47 -0500
-In-Reply-To: <1292508266.31289.12.camel@firesoul.comx.local>
+	Thu, 16 Dec 2010 09:19:38 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.01.1012161444410.16086@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le jeudi 16 d=C3=A9cembre 2010 =C3=A0 15:04 +0100, Jesper Dangaard Brou=
-er a
-=C3=A9crit :
+On Thu, Dec 16, 2010 at 02:51:07PM +0100, Jan Engelhardt wrote:
+> >Why not use nlattr to encode the error string? It would make error
+> >messages easier to extend in the future. At some point we might want
+> >to add an offset field which points into the original netlink
+> >message describing the attribute which caused the failure.
+> 
+> Is that a yes or a no?
 
-> Now I just need to calculate, how large a NIC buffer I need to buffer
-> 3.125 ms at 1Gbit/s.
->=20
->  3.125 ms *  1Gbit/s =3D 390625 bytes
->=20
-> Can this be correct?
->=20
-> How much buffer does each queue have in the 82576 NIC?
-> (Hope Alexander Duyck can answer this one?)
->=20
+The proposed solution at netconf involved appending the error string
+directly. Inspired by your comment I realizezd that encoding the
+error string as nlattr allow for additional attributes would be a
+better implementation.
 
-Worst case is if you receive very small frames, because 3.125 ms is
-about 5000 frames at 1Gbit/s
+As for size limitations, even though most netlink protocols do it, I
+don't see the point in appending the whole request message in a error
+message. The header would be completely sufficient for all request/reply
+based protocols. It is no problem for userspace to keep a copy of the
+last request sent.
 
+> Let's see, why does iproute2 not just do that, then? Because some
+> things only the kernel knows about, so even if the parameters are
+> correct from the userspace side of view, the kernel may reject the
+> request nevertheless.
 
+You are not the first to come up with this but it is still a pretty
+lazy excuse. iproute2 could do a lot better than it does today and
+it has been improved a lot over time. The main reason for the current
+situation is the atomic nature of routing netlink requests handlers.
+Checking for errors in an atomic context where no interface disappears
+and no route can be removed while the request is being processed simply
+makes checking for errors a lot easier.
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This does not mean that userspace should have a card blanche for
+sending bogus combinations of netlink attributes and expect the kernel
+to always come up with a perfect verbose error message.
+
+The kernel can still send ENODEV to indicate the specified network
+device does not exist but it should only cover the case where the
+interface disappeared between the userspace checking for its existance
+and the request being processed.
