@@ -1,68 +1,58 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Use connection tracking to store private data for rate shaping
- algorithms?
-Date: Thu, 16 Dec 2010 13:31:12 +0100
-Message-ID: <4D0A0690.4000309@trash.net>
-References: <AANLkTik6sRQ=Pju6krQnUEf7qkhZ0j-cb+CdgmsoHoCf@mail.gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Error reporting in Netlink (Re: Xtables2 Netlink spec)
+Date: Thu, 16 Dec 2010 13:51:34 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1012161322450.6728@obet.zrqbmnf.qr>
+References: <alpine.LNX.2.01.1011242314580.32646@obet.zrqbmnf.qr> <alpine.DEB.2.00.1011261950100.18019@blackhole.kfki.hu> <alpine.LNX.2.01.1012150547590.2888@obet.zrqbmnf.qr> <alpine.DEB.2.00.1012150921330.3983@blackhole.kfki.hu>
+ <Pine.LNX.4.64.1012161041200.8276@ask.diku.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Dirk <biecie547@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, netfilter@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>, tgraf@redhat.com
+To: Jesper Dangaard Brouer <hawk@diku.dk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40501 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752467Ab0LPMbP (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Dec 2010 07:31:15 -0500
-In-Reply-To: <AANLkTik6sRQ=Pju6krQnUEf7qkhZ0j-cb+CdgmsoHoCf@mail.gmail.com>
+Received: from borg.medozas.de ([188.40.89.202]:51308 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753320Ab0LPMvf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Dec 2010 07:51:35 -0500
+In-Reply-To: <Pine.LNX.4.64.1012161041200.8276@ask.diku.dk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 30.11.2010 16:18, schrieb Dirk:
-> Hello,
-> 
-> 
-> We are developing some some more advanced TCP rate shaping algorithms
-> ( http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=1261834&tag=1 )
-> and would like to implement it as a (GPL) kernel module. The goal is
-> to have a high performant module that can 'shape' traffic for 10 000's
-> of hosts and users on individual base and also minimize shaping
-> overhead (drop/retransmits/latency) on the network.
+On Thursday 2010-12-16 10:57, Jesper Dangaard Brouer wrote:
 
-Sounds interesting.
+>Cc.ed Thomas Graf (tgraf@redhat.com), Thomas presented some interesting 
+>ideas on netlink error-codes and strings during NetConf 2010, see:
+>
+>http://vger.kernel.org/netconf2010.html 
+>http://vger.kernel.org/netconf2010_slides/tgraf_netconf10.odp
 
-> Our current solution uses a custom developed iptables target that
-> already performs traffic policing for 10'000s of simultaneous users (
-> http://tnc2007.terena.org/programme/presentations/showbeb6.html ).
-> Since policing is not an ideal way to regulate bandwidth, we want to
-> improve it :-)
-> 
-> 
-> However, in order to function correctly, we need to keep some extra
-> information for each flow (both tcp and udp) through the device:
-> - few statistics (two 64bit integers)
-> - shaping/rate state information (four 64bit integers)
-> 
->  This information should be set/accessible from a kernel tc qdisc module.
-> 
-> My idea was to use the connection tracking framework to keep track of
-> connection states (which is also required by the algorithms) and
-> somehow extend it to also store the extra information.
+The idea is appending an error string is ok for Netlink as a protocol
+(specification-wise), but the size constraints of the skbuffs in the
+Linux may make its practical implementation a little harder. "Half of
+the packet" is already used for the original request message, and
+cramming an extra error string may bust the space.
+It also does not look very netlinky to not use nlattrs ;-)
 
-That sounds reasonable. I've implemented TCP rate control about 9
-years ago and did the same.
 
-> I have found there is an extension infrastructure for nf_conntrack (
-> http://www.mail-archive.com/git-commits-head@vger.kernel.org/msg15798.html
-> ), but it does not seem a module is intended to register itself
-> without modifying nf_ct_ext_id in /nf_conntrack_extend.h. Since that
-> would require a kernel recompile, it is not really an option.
-> 
-> Since we're not (yet) familiar with the connection tracking code: what
-> would be the best way to accomplish this?
+On Wed, 15 Dec 2010, Jozsef Kadlecsik came about with:
+>
+>>I have got a three-level error coding in my mind: general, standard 
+>>error codes (ENOMEM, EPERM, etc.), general netfilter specific ones 
+>>(like NFXTE_HOOKMASK_NOT_ADHERED) and table/match/target specific 
+>>ones.
+>>
+>>But I do realize that it's much easier (and therefore quite tempting) 
+>>to construct the full error message in kernel space and just send it 
+>>back. However, that'd make quite hard to support internationalization.
 
-You can't add data to the conntrack structure (neither directly nor
-through extensions) without recompiling the kernel. I'd suggest to
-use ct extensions, require a recompile for now and then merge your
-module upstream once it's finished.
+It's not like those strings change all that much.
+
+
+>To support internationalization, we could just add an error-number-code 
+>in front of the constructed error message?
+
+Buying us what? If you change the string, but the gettext lookup is 
+based upon a number, you will get an outdated translation, which is not 
+nice either. IMHO: Better an English message than an inaccurate message.
