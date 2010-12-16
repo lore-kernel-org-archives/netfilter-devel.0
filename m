@@ -1,72 +1,125 @@
-From: Thomas Graf <tgraf@infradead.org>
-Subject: Re: Error reporting in Netlink (Re: Xtables2 Netlink spec)
-Date: Thu, 16 Dec 2010 09:19:23 -0500
-Message-ID: <20101216141923.GB23297@canuck.infradead.org>
-References: <alpine.LNX.2.01.1011242314580.32646@obet.zrqbmnf.qr>
- <alpine.DEB.2.00.1011261950100.18019@blackhole.kfki.hu>
- <alpine.LNX.2.01.1012150547590.2888@obet.zrqbmnf.qr>
- <alpine.DEB.2.00.1012150921330.3983@blackhole.kfki.hu>
- <Pine.LNX.4.64.1012161041200.8276@ask.diku.dk>
- <alpine.LNX.2.01.1012161322450.6728@obet.zrqbmnf.qr>
- <1292507013.3395.19.camel@lsx>
- <alpine.LNX.2.01.1012161444410.16086@obet.zrqbmnf.qr>
+From: Steven Rostedt <srostedt@redhat.com>
+Subject: Re: Possible regression: Packet drops during iptables calls
+Date: Thu, 16 Dec 2010 09:20:44 -0500
+Message-ID: <1292509244.2733.224.camel@fedora>
+References: <1292337974.9155.68.camel@firesoul.comx.local>
+	 <1292340702.5934.5.camel@edumazet-laptop>
+	 <1292342958.9155.91.camel@firesoul.comx.local>
+	 <1292343855.5934.27.camel@edumazet-laptop>
+	 <1292508266.31289.12.camel@firesoul.comx.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Thomas Graf <tgraf@redhat.com>,
-	Jesper Dangaard Brouer <hawk@diku.dk>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, netfilter@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Arnaldo Carvalho de Melo <acme@infradead.org>,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	Alexander Duyck <alexander.h.duyck@intel.com>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	netdev <netdev@vger.kernel.org>,
+	Peter P Waskiewicz Jr <peter.p.waskiewicz.jr@intel.com>
+To: Jesper Dangaard Brouer <hawk@comx.dk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from canuck.infradead.org ([134.117.69.58]:57164 "EHLO
-	canuck.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756090Ab0LPOTi (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Dec 2010 09:19:38 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.01.1012161444410.16086@obet.zrqbmnf.qr>
+Received: from mx1.redhat.com ([209.132.183.28]:20128 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756090Ab0LPOVA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Dec 2010 09:21:00 -0500
+In-Reply-To: <1292508266.31289.12.camel@firesoul.comx.local>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Dec 16, 2010 at 02:51:07PM +0100, Jan Engelhardt wrote:
-> >Why not use nlattr to encode the error string? It would make error
-> >messages easier to extend in the future. At some point we might want
-> >to add an offset field which points into the original netlink
-> >message describing the attribute which caused the failure.
+On Thu, 2010-12-16 at 15:04 +0100, Jesper Dangaard Brouer wrote:
+
 > 
-> Is that a yes or a no?
+> To do some further investigation into the unfortunate behavior of the
+> iptables get_counters() function I started to use "ftrace".  This is a
+> really useful tool (thanks Steven Rostedt).
+> 
+>  # Select the tracer "function_graph"
+>  echo function_graph > /sys/kernel/debug/tracing/current_tracer
+> 
+>  # Limit the number of function we look at:
+>  echo local_bh_\*  >   /sys/kernel/debug/tracing/set_ftrace_filter
+>  echo get_counters >>  /sys/kernel/debug/tracing/set_ftrace_filter
+> 
+>  # Enable tracing while calling iptables
+>  cd /sys/kernel/debug/tracing
+>  echo 0 > trace
+>  echo 1 > tracing_enabled;
+>    taskset 1 iptables -vnL > /dev/null ;
+>  echo 0 > tracing_enabled
+>  cat trace | less
 
-The proposed solution at netconf involved appending the error string
-directly. Inspired by your comment I realizezd that encoding the
-error string as nlattr allow for additional attributes would be a
-better implementation.
+Just an fyi, you can do the above much easier with trace-cmd:
 
-As for size limitations, even though most netlink protocols do it, I
-don't see the point in appending the whole request message in a error
-message. The header would be completely sufficient for all request/reply
-based protocols. It is no problem for userspace to keep a copy of the
-last request sent.
+git://git.kernel.org/pub/scm/linux/kernel/git/rostedt/trace-cmd.git
 
-> Let's see, why does iproute2 not just do that, then? Because some
-> things only the kernel knows about, so even if the parameters are
-> correct from the userspace side of view, the kernel may reject the
-> request nevertheless.
+# trace-cmd record -p function_graph -l 'local_bh_*' -l get_counters taskset 1 iptables -vnL > /dev/null
+# trace-cmd report
 
-You are not the first to come up with this but it is still a pretty
-lazy excuse. iproute2 could do a lot better than it does today and
-it has been improved a lot over time. The main reason for the current
-situation is the atomic nature of routing netlink requests handlers.
-Checking for errors in an atomic context where no interface disappears
-and no route can be removed while the request is being processed simply
-makes checking for errors a lot easier.
+-- Steve
 
-This does not mean that userspace should have a card blanche for
-sending bogus combinations of netlink attributes and expect the kernel
-to always come up with a perfect verbose error message.
+> 
+> 
+> The reduced output:
+> 
+> # tracer: function_graph
+> #
+> # CPU  DURATION                  FUNCTION CALLS
+> # |     |   |                     |   |   |   |
+>   2)   2.772 us    |  local_bh_disable();
+> ....
+>   0)   0.228 us    |  local_bh_enable();
+>   0)               |  get_counters() {
+>   0)   0.232 us    |    local_bh_disable();
+>   0)   7.919 us    |    local_bh_enable();
+>   0) ! 109467.1 us |  }
+>   0)   2.344 us    |  local_bh_disable();
+> 
+> 
+> The output show that we spend no less that 100 ms with local BH
+> disabled.  So, no wonder that this causes packet drops in the NIC
+> (attached to this CPU).
+> 
+> My iptables rule set in question is also very large, it contains:
+>  Chains: 20929
+>  Rules: 81239
+> 
+> The vmalloc size is approx 19 MB (19.820.544 bytes) (see
+> /proc/vmallocinfo).  Looking through vmallocinfo I realized that
+> even-though I only have 16 CPUs, there is 32 allocated rulesets
+> "xt_alloc_table_info" (for the filter table). Thus, I have approx
+> 634MB iptables filter rules in the kernel, half of which is totally
+> unused.
+> 
+> Guess this is because we use: "for_each_possible_cpu" instead of
+> "for_each_online_cpu". (Feel free to fix this, or point me to some
+> documentation of this CPU hotplug stuff... I see we are missing
+> get_cpu() and put_cpu() a lot of places).
+> 
+> 
+> The GOOD NEWS, is that moving the local BH disable section into the
+> "for_each_possible_cpu" fixed the problem with packet drops during
+> iptables calls.
+> 
+> I wanted to profile with ftrace on the new code, but I cannot get the
+> measurement I want. Perhaps Steven or Acme can help?
+> 
+> Now I want to measure the time used between the local_bh_disable() and
+> local_bh_enable, within the loop.  I cannot figure out howto do that?
+> The new trace looks almost the same as before, just a lot of
+> local_bh_* inside the get_counters() function call.
+> 
+>  Guess is that the time spend is: 100 ms / 32 = 3.125 ms.
+> 
+> Now I just need to calculate, how large a NIC buffer I need to buffer
+> 3.125 ms at 1Gbit/s.
+> 
+>  3.125 ms *  1Gbit/s = 390625 bytes
+> 
+> Can this be correct?
+> 
+> How much buffer does each queue have in the 82576 NIC?
+> (Hope Alexander Duyck can answer this one?)
+> 
 
-The kernel can still send ENODEV to indicate the specified network
-device does not exist but it should only cover the case where the
-interface disappeared between the userspace checking for its existance
-and the request being processed.
+
