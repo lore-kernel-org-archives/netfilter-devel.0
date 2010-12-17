@@ -1,58 +1,44 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset-5.0 released
-Date: Fri, 17 Dec 2010 23:26:49 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1012172259100.10231@blackhole.kfki.hu>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [patch] xtables: use guarded types
+Date: Sat, 18 Dec 2010 00:04:12 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1012180003440.28078@obet.zrqbmnf.qr>
+References: <alpine.LNX.2.01.1012032012320.26825@obet.zrqbmnf.qr> <4D00B2D7.4010401@netfilter.org> <alpine.LNX.2.01.1012092024000.30670@obet.zrqbmnf.qr> <4D01FFC5.90808@netfilter.org> <4D093A49.2060500@trash.net> <alpine.LNX.2.01.1012152319550.2669@obet.zrqbmnf.qr>
+ <4D09457C.5050302@trash.net> <alpine.LNX.2.01.1012160120480.2669@obet.zrqbmnf.qr> <4D09BFB2.7040504@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:48846 "EHLO smtp1.kfki.hu"
+Received: from borg.medozas.de ([188.40.89.202]:38589 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755662Ab0LQW0u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 Dec 2010 17:26:50 -0500
+	id S1755153Ab0LQXEN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 17 Dec 2010 18:04:13 -0500
+In-Reply-To: <4D09BFB2.7040504@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Thursday 2010-12-16 08:28, Patrick McHardy wrote:
+>>>
+>>> Both I guess, but I was previously referring to the kernel.
+>> 
+>> I do not see the issue with using POSIX types outside of operating 
+>> system interface specifications.
+>> So I guess this is in order:
+>> 
+>> parent 3a84b3d5de492e40aff7bae5038b06dd6b6041c4 (v1.4.10-17-g3a84b3d)
+>> commit a069355b7933c9afe38b5cb7b251b2ece4fe8456
+>> Author: Jan Engelhardt <jengelh@medozas.de>
+>> Date:   Thu Dec 16 00:59:27 2010 +0100
+>> 
+>> src: use C99/POSIX types
+>> 
+>> "u_int" was a non-standardized extension predating C99 on some platforms.
+>
+>While I don't have a real personal preference, most of the remaining
+>networking stack uses uXX types and I know code has been actively
+>converted from C99 types to those. So for consistency we should also
+>use uXX. Sorry for not being clearer about that before.
 
-I'm happy to announce the new branch of ipset and release it's first 
-element, ipset-5.0.
-
-Just the most important improvements and changes compared to the 4.x tree:
-
-- The hash types support both IPv4 and IPv6.
-- The limitation that the elements of the ipporthash, ipportiphash and 
-  ipportnethash types had to come from a max /16 netblock is removed.
-- The limitation that the ipporthash and ipportnethash types could
-  not store host IP addresses is removed.
-- The hash set types with port sub-element are extended and the protocol
-  of the port is also stored. Now you can store in a single set
-  IP(v4/v6) IP address and TCP or UDP port number pairs, or even IP 
-  address and ICMP(v4/v6) type/code pairs, etc.
-- All set types in the 5.0 branch supports timeouts.
-- Addition or deletion of multiple elements (where applicable)
-  in one step is supported.
-- Netlink based kernel-userspace communication protocol.
-- Faster hashing method behind the hash types, which at the same time
-  uses less memory.
-- New, improved syntax.
-- Backward compatibility layer in syntax: old 4.x commands, saved
-  sets are accepted.
-
-Please note, due to the new protocol, the ipset 5.x utility cannot talk
-to the kernel modules from ipset 4.x and similarly, the ipset 4.x utility
-cannot communicate with the kernel part of ipset 5.x.
-Read the README file in the source tree and the new manpage of ipset.
-
-You can download the source code from:
-	http://ipset.netfilter.org
-	ftp://ftp.netfilter.org/pub/ipset/
-	git://git.netfilter.org/ipset.git, ipset-5 branch
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+So is it ok if I push this patch along with the next batch?
