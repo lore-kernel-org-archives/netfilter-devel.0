@@ -1,51 +1,52 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: Error reporting in Netlink (Re: Xtables2 Netlink spec)
-Date: Fri, 17 Dec 2010 11:00:52 +0100
-Message-ID: <4D0B34D4.9020208__24642.0163814493$1292580091$gmane$org@netfilter.org>
-References: <alpine.LNX.2.01.1011242314580.32646@obet.zrqbmnf.qr> <alpine.DEB.2.00.1011261950100.18019@blackhole.kfki.hu> <alpine.LNX.2.01.1012150547590.2888@obet.zrqbmnf.qr> <alpine.DEB.2.00.1012150921330.3983@blackhole.kfki.hu> <Pine.LNX.4.64.1012161041200.8276@ask.diku.dk> <alpine.LNX.2.01.1012161322450.6728@obet.zrqbmnf.qr> <1292507013.3395.19.camel@lsx> <alpine.LNX.2.01.1012161444410.16086@obet.zrqbmnf.qr> <20101216141923.GB23297@canuck.infradead.org>
+Date: Fri, 17 Dec 2010 11:02:41 +0100
+Message-ID: <4D0B3541.2090501@netfilter.org>
+References: <alpine.LNX.2.01.1011242314580.32646@obet.zrqbmnf.qr> <alpine.DEB.2.00.1011261950100.18019@blackhole.kfki.hu> <alpine.LNX.2.01.1012150547590.2888@obet.zrqbmnf.qr> <alpine.DEB.2.00.1012150921330.3983@blackhole.kfki.hu> <Pine.LNX.4.64.1012161041200.8276@ask.diku.dk> <alpine.LNX.2.01.1012161322450.6728@obet.zrqbmnf.qr> <4D0A9F54.8080602@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: Jan Engelhardt <jengelh@medozas.de>,
-	Thomas Graf <tgraf@redhat.com>,
+Cc: Jan Engelhardt <jengelh@medozas.de>,
 	Jesper Dangaard Brouer <hawk@diku.dk>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Netfilter Developer Mailing L
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57904 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753146Ab0LQKA4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 Dec 2010 05:00:56 -0500
-In-Reply-To: <20101216141923.GB23297@canuck.infradead.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, netfilter@vger.kernel.org,
+	tgraf@redhat.com
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <4D0A9F54.8080602@trash.net>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 16/12/10 15:19, Thomas Graf wrote:
-> On Thu, Dec 16, 2010 at 02:51:07PM +0100, Jan Engelhardt wrote:
->>> Why not use nlattr to encode the error string? It would make error
->>> messages easier to extend in the future. At some point we might want
->>> to add an offset field which points into the original netlink
->>> message describing the attribute which caused the failure.
+On 17/12/10 00:23, Patrick McHardy wrote:
+> Am 16.12.2010 13:51, schrieb Jan Engelhardt:
+>> On Thursday 2010-12-16 10:57, Jesper Dangaard Brouer wrote:
 >>
->> Is that a yes or a no?
+>>> Cc.ed Thomas Graf (tgraf@redhat.com), Thomas presented some interesting 
+>>> ideas on netlink error-codes and strings during NetConf 2010, see:
+>>>
+>>> http://vger.kernel.org/netconf2010.html 
+>>> http://vger.kernel.org/netconf2010_slides/tgraf_netconf10.odp
+>>
+>> The idea is appending an error string is ok for Netlink as a protocol
+>> (specification-wise), but the size constraints of the skbuffs in the
+>> Linux may make its practical implementation a little harder. "Half of
+>> the packet" is already used for the original request message, and
+>> cramming an extra error string may bust the space.
+>> It also does not look very netlinky to not use nlattrs ;-)
 > 
-> The proposed solution at netconf involved appending the error string
-> directly. Inspired by your comment I realizezd that encoding the
-> error string as nlattr allow for additional attributes would be a
-> better implementation.
+> I agree, error strings don't look like a viable solution to me,
+> they are basically impossible to interpret by an application,
+> you run into localization issues and so on.
+> 
+> I'd suggest to return an errno value and the attribute causing
+> the error, possibly also the value (we append the original message
+> anyways, but in case of lists it might be hard to locate the specific
+> attribute). The harder cases are when a combination of multiple
+> attributes are responsible for the error, but still, the application
+> has to understand the kernel interpretation anyways, so I'd simply
+> return the errno and all attributes responsible. Leave interpretation
+> up to userspace.
 
-Indeed, I'd prefer adding an extra netlink header with a new type like
-NLM_ERROR2 followed by attributes like the string (or an int) that
-contain the error.
-
-This also can be added with breaking existing apps and libraries IIRC.
-
-> As for size limitations, even though most netlink protocols do it, I
-> don't see the point in appending the whole request message in a error
-> message. The header would be completely sufficient for all request/reply
-> based protocols. It is no problem for userspace to keep a copy of the
-> last request sent.
-
-At least, we require the netlink header of the request message in error
-messages. This is useful for message batches that are sent to
-kernel-space, to know which one triggered the error.
+I'd also prefer an int. We can define the meaning of the error numbers
+in the protocol header file.
