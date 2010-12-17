@@ -1,83 +1,157 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Xtables2 Netlink spec
-Date: Fri, 17 Dec 2010 15:56:19 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1012171511100.29660@obet.zrqbmnf.qr>
-References: <alpine.LNX.2.01.1011242314580.32646@obet.zrqbmnf.qr> <alpine.DEB.2.00.1011261950100.18019@blackhole.kfki.hu> <4D00C6A4.6090305@netfilter.org> <alpine.LNX.2.01.1012140257430.7384@obet.zrqbmnf.qr> <4D08C892.3080704@netfilter.org>
- <20101216140537.GA23297@canuck.infradead.org> <4D0B3387.5030807@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH] netfilter: ebt_ip6: allow matching on ipv6-icmp types/codes
+Date: Fri, 17 Dec 2010 16:27:02 +0100
+Message-ID: <20101217152702.GB15737@Chamillionaire.breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, netfilter@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:38106 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755137Ab0LQO4V (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 Dec 2010 09:56:21 -0500
-In-Reply-To: <4D0B3387.5030807@netfilter.org>
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:44678 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753006Ab0LQP1E (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 17 Dec 2010 10:27:04 -0500
+Received: id: fw by Chamillionaire.breakpoint.cc with local
+	(easymta 1.00 BETA 1)
+	id 1PTcD0-00046s-Qh
+	for netfilter-devel@vger.kernel.org; Fri, 17 Dec 2010 16:27:02 +0100
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 2010-12-17 10:55, Pablo Neira Ayuso wrote:
+To avoid adding a new match revision icmp type/code are stored
+in the sport/dport area.
 
->On 16/12/10 15:05, Thomas Graf wrote:
->> On Wed, Dec 15, 2010 at 02:54:26PM +0100, Pablo Neira Ayuso wrote:
->>>> BTW, can response messages - all those leading up to NLMSG_DONE -
->>>> have different nlmsg_type, or not?
->>>
->>> They all have the same type.
->> 
->> This is not a MUST. It is perfectly legal to f.e.:
->> 
->>  -> FOO_GET (seq=1, NLM_F_REQUEST)
->>  <- FOO_DEL (seq=1, NLM_F_MULTI)
->>  <- FOO_ADD (seq=1, NLM_F_MULTI)
->>  <- NLMSG_DONE (seq=1)
->
->What realistic situation will require this?
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Reviewed-by: Holger Eitzenberger <holger@eitzenberger.org>
+---
+ patch for ebtables userspace will follow soon.
 
-This does:
+ include/linux/netfilter_bridge/ebt_ip6.h |   15 +++++++++--
+ net/bridge/netfilter/ebt_ip6.c           |   40 ++++++++++++++++++++++-------
+ 2 files changed, 42 insertions(+), 13 deletions(-)
 
--> NFXTM_CHAIN_DUMP<NFXTA_NAME>
-<- NFXTM_RULE_START<>
-<- NFXTM_EMATCH<NFXTA_NAME,NFXTA_REVISION,NFXTA_DATA>
-<- NFXTM_EMATCH<NFXTA_NAME,NFXTA_REVISION,NFXTA_DATA>
-<- NFXTM_ETARGET<NFXTA_NAME,NFXTA_REVISION,NFXTA_DATA>
-<- NFXTM_ETARGET<NFXTA_NAME,NFXTA_REVISION,NFXTA_DATA>
-<- NFXTM_RULE_END<>
-<- NFXTM_RULE_START<>
-<- NFXTM_ETARGET<NFXTA_VERDICT>
-<- NFXTM_RULE_END<>
-<- NLMSG_DONE
+diff --git a/include/linux/netfilter_bridge/ebt_ip6.h b/include/linux/netfilter_bridge/ebt_ip6.h
+index e5de987..22af18a 100644
+--- a/include/linux/netfilter_bridge/ebt_ip6.h
++++ b/include/linux/netfilter_bridge/ebt_ip6.h
+@@ -18,8 +18,11 @@
+ #define EBT_IP6_PROTO 0x08
+ #define EBT_IP6_SPORT 0x10
+ #define EBT_IP6_DPORT 0x20
++#define EBT_IP6_ICMP6 0x40
++
+ #define EBT_IP6_MASK (EBT_IP6_SOURCE | EBT_IP6_DEST | EBT_IP6_TCLASS |\
+-		      EBT_IP6_PROTO | EBT_IP6_SPORT | EBT_IP6_DPORT)
++		      EBT_IP6_PROTO | EBT_IP6_SPORT | EBT_IP6_DPORT | \
++		      EBT_IP6_ICMP6)
+ #define EBT_IP6_MATCH "ip6"
+ 
+ /* the same values are used for the invflags */
+@@ -32,8 +35,14 @@ struct ebt_ip6_info {
+ 	uint8_t  protocol;
+ 	uint8_t  bitmask;
+ 	uint8_t  invflags;
+-	uint16_t sport[2];
+-	uint16_t dport[2];
++	union {
++		uint16_t sport[2];
++		uint8_t icmpv6_type[2];
++	};
++	union {
++		uint16_t dport[2];
++		uint8_t icmpv6_code[2];
++	};
+ };
+ 
+ #endif
+diff --git a/net/bridge/netfilter/ebt_ip6.c b/net/bridge/netfilter/ebt_ip6.c
+index 50a46af..e6e5bbe 100644
+--- a/net/bridge/netfilter/ebt_ip6.c
++++ b/net/bridge/netfilter/ebt_ip6.c
+@@ -22,9 +22,15 @@
+ #include <linux/netfilter_bridge/ebtables.h>
+ #include <linux/netfilter_bridge/ebt_ip6.h>
+ 
+-struct tcpudphdr {
+-	__be16 src;
+-	__be16 dst;
++union pkthdr {
++	struct {
++		__be16 src;
++		__be16 dst;
++	} tcpudphdr;
++	struct {
++		u8 type;
++		u8 code;
++	} icmphdr;
+ };
+ 
+ static bool
+@@ -33,8 +39,8 @@ ebt_ip6_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	const struct ebt_ip6_info *info = par->matchinfo;
+ 	const struct ipv6hdr *ih6;
+ 	struct ipv6hdr _ip6h;
+-	const struct tcpudphdr *pptr;
+-	struct tcpudphdr _ports;
++	const union pkthdr *pptr;
++	union pkthdr _ports;
+ 
+ 	ih6 = skb_header_pointer(skb, 0, sizeof(_ip6h), &_ip6h);
+ 	if (ih6 == NULL)
+@@ -56,26 +62,32 @@ ebt_ip6_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 			return false;
+ 		if (FWINV(info->protocol != nexthdr, EBT_IP6_PROTO))
+ 			return false;
+-		if (!(info->bitmask & EBT_IP6_DPORT) &&
+-		    !(info->bitmask & EBT_IP6_SPORT))
++		if (!(info->bitmask & ( EBT_IP6_DPORT |
++					EBT_IP6_SPORT | EBT_IP6_ICMP6)))
+ 			return true;
+ 		pptr = skb_header_pointer(skb, offset_ph, sizeof(_ports),
+ 					  &_ports);
+ 		if (pptr == NULL)
+ 			return false;
+ 		if (info->bitmask & EBT_IP6_DPORT) {
+-			u32 dst = ntohs(pptr->dst);
++			u32 dst = ntohs(pptr->tcpudphdr.dst);
+ 			if (FWINV(dst < info->dport[0] ||
+ 				  dst > info->dport[1], EBT_IP6_DPORT))
+ 				return false;
+ 		}
+ 		if (info->bitmask & EBT_IP6_SPORT) {
+-			u32 src = ntohs(pptr->src);
++			u32 src = ntohs(pptr->tcpudphdr.src);
+ 			if (FWINV(src < info->sport[0] ||
+ 				  src > info->sport[1], EBT_IP6_SPORT))
+ 			return false;
+ 		}
+-		return true;
++		if ((info->bitmask & EBT_IP6_ICMP6) &&
++		     FWINV(pptr->icmphdr.type < info->icmpv6_type[0] ||
++			   pptr->icmphdr.type > info->icmpv6_type[1] ||
++			   pptr->icmphdr.code < info->icmpv6_code[0] ||
++			   pptr->icmphdr.code > info->icmpv6_code[1],
++							EBT_IP6_ICMP6))
++			return false;
+ 	}
+ 	return true;
+ }
+@@ -103,6 +115,14 @@ static int ebt_ip6_mt_check(const struct xt_mtchk_param *par)
+ 		return -EINVAL;
+ 	if (info->bitmask & EBT_IP6_SPORT && info->sport[0] > info->sport[1])
+ 		return -EINVAL;
++	if (info->bitmask & EBT_IP6_ICMP6) {
++		if ((info->invflags & EBT_IP6_PROTO ||
++		     info->protocol != IPPROTO_ICMPV6))
++			return -EINVAL;
++		if (info->icmpv6_type[0] > info->icmpv6_type[1] ||
++		    info->icmpv6_code[0] > info->icmpv6_code[1])
++			return -EINVAL;
++	}
+ 	return 0;
+ }
+ 
+-- 
+1.7.2.2
 
-This is 9 messages with answers related to the ruleset.
-
-If only a single nlmsg_type was possible for NLM_F_MULTI replies,
-this is probably how things would have looked:
-
--> CHAIN_DUMP<NFXTA_NAME>
-<- CHAIN_DUMP<NFXTA_RULE_START>
-<- CHAIN_DUMP<NFXTA_MATCH_START>
-<- CHAIN_DUMP<NFXTA_NAME><NFXTA_REVISION><NFXTA_DATA>
-<- CHAIN_DUMP<NFXTA_MATCH_END>
-<- CHAIN_DUMP<NFXTA_MATCH_START>
-<- CHAIN_DUMP<NFXTA_NAME><NFXTA_REVISION><NFXTA_DATA>
-<- CHAIN_DUMP<NFXTA_MATCH_END>
-<- CHAIN_DUMP<NFXTA_TARGET_START>
-<- CHAIN_DUMP<NFXTA_NAME><NFXTA_REVISION><NFXTA_DATA>
-<- CHAIN_DUMP<NFXTA_TARGET_END>
-<- CHAIN_DUMP<NFXTA_TARGET_START>
-<- CHAIN_DUMP<NFXTA_NAME><NFXTA_REVISION><NFXTA_DATA>
-<- CHAIN_DUMP<NFXTA_TARGET_END>
-<- CHAIN_DUMP<NFXTA_RULE_END>
-<- CHAIN_DUMP<NFXTA_RULE_START>
-<- CHAIN_DUMP<NFXTA_TARGET_START>
-<- CHAIN_DUMP<NFXTA_VERDICT>
-<- CHAIN_DUMP<NFXTA_TARGET_END>
-<- CHAIN_DUMP<NFXTA_RULE_END>
-<- NLMSG_DONE
-
-This requires more forth-and-back between userspace and the kernel:
-19 messages instead. Using multiple nlmsg_type seems a good thing to
-exploit.
