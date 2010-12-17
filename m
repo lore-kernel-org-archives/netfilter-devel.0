@@ -1,76 +1,54 @@
-From: Thomas Graf <tgraf@redhat.com>
-Subject: Re: Error reporting in Netlink (Re: Xtables2 Netlink spec)
-Date: Fri, 17 Dec 2010 07:58:06 +0100
-Message-ID: <1292569086.3395.59.camel@lsx>
+From: Thomas Graf <tgraf@infradead.org>
+Subject: Re: Xtables2 Netlink spec
+Date: Fri, 17 Dec 2010 02:25:55 -0500
+Message-ID: <20101217072555.GC23297@canuck.infradead.org>
 References: <alpine.LNX.2.01.1011242314580.32646@obet.zrqbmnf.qr>
-	 <alpine.DEB.2.00.1011261950100.18019@blackhole.kfki.hu>
-	 <alpine.LNX.2.01.1012150547590.2888@obet.zrqbmnf.qr>
-	 <alpine.DEB.2.00.1012150921330.3983@blackhole.kfki.hu>
-	 <Pine.LNX.4.64.1012161041200.8276@ask.diku.dk>
-	 <alpine.LNX.2.01.1012161322450.6728@obet.zrqbmnf.qr>
-	 <1292507013.3395.19.camel@lsx>  <4D0AA143.3090608@trash.net>
-Reply-To: tgraf@redhat.com
+ <alpine.DEB.2.00.1011261950100.18019@blackhole.kfki.hu>
+ <4D00C6A4.6090305@netfilter.org>
+ <alpine.LNX.2.01.1012140257430.7384@obet.zrqbmnf.qr>
+ <4D08C892.3080704@netfilter.org>
+ <20101216140537.GA23297@canuck.infradead.org>
+ <alpine.LNX.2.01.1012161514360.20048@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Jesper Dangaard Brouer <hawk@diku.dk>,
+Content-Type: text/plain; charset=us-ascii
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, netfilter@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33528 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751869Ab0LQHQz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 Dec 2010 02:16:55 -0500
-In-Reply-To: <4D0AA143.3090608@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+	<netfilter-devel@vger.kernel.org>, netfilter@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.01.1012161514360.20048@obet.zrqbmnf.qr>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2010-12-17 at 00:31 +0100, Patrick McHardy wrote: 
-> I completely disagree. As I said previously, userspace has to have
-> knowledge of the kernel interpretation anyways.
+On Thu, Dec 16, 2010 at 03:22:07PM +0100, Jan Engelhardt wrote:
+> On Thursday 2010-12-16 15:05, Thomas Graf wrote:
+> >
+> > -> FOO_GET (seq=1, NLM_F_REQUEST)
+> > <- FOO_DEL (seq=1, NLM_F_MULTI)
+> > <- FOO_ADD (seq=1, NLM_F_MULTI)
+> > <- NLMSG_DONE (seq=1)
 > 
-> We already have libc calls which define complex errors like:
+> Oh great, now the confusion is complete. One person says this, another 
+> says something else. Best of all, the Netlink RFC leaves it unspecified, 
+> so it's all hearsay, beliefs and Perl5-style ("Source acts as normative 
+> reference") referencing. I guess we are doomed until the original 
+> Netlink3549 authors step up and tell us their intentions.
 > 
-> stdtod(): if val == HUGE_VAL && errno == ERANGE: positive overflow
-> 
-> I see no reason why we can't define combination of attributes
-> and errno values for netlink messages.
-> 
-> Something like:
-> 
-> [IFLA_VLAN_ID] == NULL && errno == EINVAL: missing attribute
-> [IFLA_VLAN_LINK] && errno == ENODEV: lower link does not exist
-> 
-> and so on.
+> As I see it, we need a discussion to specify what is to be done with 
+> unspecified parts, with 3549 as an origin.
 
-Using strings would still involve including an errno as we currently
-do and as I pointed out in my other mail I am also very positive
-about including an offset pointer or a attribute type to specify the
-attribute that caused the failure.
+The RFC was not written prior to the implementation but after it has
+been around for a while.
 
-Maybe I am thinking too much about other netlink protocols where
-errors often occur due to complicated combinations of missing attributes
-and specific attribute values having special meanings. Those cases
-would benefit a lot from error strings.
+The current netlink code implementation defines the standard. It is the
+standard because we have not been breaking it and will never do.
 
-I really don't want to see:
+Netlink is very open minded, it does not care if individual protocols
+define their own semantics. Most will never make use of the above but
+it is perfectly legal to do so.
 
-return nl_errstring(ENOMEM, "Out of memory");
-
-I am aiming at a verbose error or status string which acts as an
-additional helping point in case of complicated errors. I really
-don't want to replace the method of using errno to report errors
-in general.
-
-I thought about using attrs to specify the error and the reason I
-did choose strings was that when we introduce new errors in the
-kernel we have to update all applications. Which is no problem if
-everyone uses libraries, so it is probably trivial for netfilter but
-will be less trivial for netlink users as a group.
-
-That said, I completely understand your point of view a well.
-
+NLM_F_MULTI && NLMSG_DONE is simply a way to have the receiver
+continue recieving and parsing. The flag states "Wait, be patient,
+my reply consists of multiple messages" and nothing more.
