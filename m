@@ -1,362 +1,119 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
 Subject: Re: [ANNOUNCE] ipset-5.0 released
-Date: Sat, 18 Dec 2010 22:49:00 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1012182136190.19284@obet.zrqbmnf.qr>
-References: <alpine.DEB.2.00.1012172259100.10231@blackhole.kfki.hu> <1292657351.2371.73.camel@kushiel.sterenborg.info> <alpine.DEB.2.00.1012181149560.11002@blackhole.kfki.hu> <alpine.LNX.2.01.1012181635530.13544@obet.zrqbmnf.qr>
- <alpine.DEB.2.00.1012182024240.11577@blackhole.kfki.hu>
+Date: Sat, 18 Dec 2010 21:51:48 +0000
+Message-ID: <4D0D2CF4.5070201@googlemail.com>
+References: <alpine.DEB.2.00.1012172259100.10231@blackhole.kfki.hu> <4D0CC3BB.8030801@googlemail.com> <alpine.DEB.2.00.1012182050280.11577@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "Rob Sterenborg (lists)" <lists@sterenborg.info>,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:45477 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932199Ab0LRVtC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 18 Dec 2010 16:49:02 -0500
-In-Reply-To: <alpine.DEB.2.00.1012182024240.11577@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1012182050280.11577@blackhole.kfki.hu>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 
-On Saturday 2010-12-18 20:50, Jozsef Kadlecsik wrote:
->>>>
->>>> ./configure: line 11510: syntax error near unexpected token `[libm=
-nl],'
->>>> ./configure: line 11510: `PKG_CHECK_MODULES([libmnl], [libmnl >=3D=
- 1])'
->>>>=20
->>>> CentOS' pkg-config is installed, so, for reference: I copied
->>>> '/usr/share/aclocal/pkg.m4' into the 'm4' directory, ran 'autogen.=
-sh'
->>>> again and after that 'configure' had no problems.
->>>
->>>Autoconf has its own pitfalls... I can't reproduce it so I added
->>>'aclocal -I m4' to autogen.sh.
->>=20
->>That is not necessary, because we already have ACLOCAL_AMFLAGS =3D -I=
- m4
->>in Makefile.am.
+> # ipset create foo hash:net,port
+> # ipset add foo 192.168.0.0/30,80
+> # ipset list foo
+> Name: foo
+> Type: hash:net,port
+> Header: family inet hashsize 1024 maxelem 65536 
+> Size in memory: 16792
+> References: 0
+> Members:
+> 192.168.0.0/30,tcp:80
 >
->Yes, I know. Still I had a little hope that that'd fix the issue.
->Do you have another idea? Should for example /usr/share/aclocal/pkg.m4=
- be=20
->unconditionally copied into m4/ by autogen.sh?
+> # ipset create bar hash:ip,port
+> # ipset add bar 192.168.0.0/30,80
+> # ipset list bar
+> Name: bar
+> Type: hash:ip,port
+> Header: family inet hashsize 1024 maxelem 65536 
+> Size in memory: 16632
+> References: 0
+> Members:
+> 192.168.0.0,tcp:80
+> 192.168.0.1,tcp:80
+> 192.168.0.2,tcp:80
+> 192.168.0.3,tcp:80
+>   
+I see!
 
-autoreconf normally has /usr/share/aclocal in its search path,
-and I can say autoreconf does the job properly in CentOS 4.x.
-Ima gonna setup a centos5 vm..
 
->> >Please read the README file: you must patch your kernel source with=
-=20
->> >netlink.patch, compile and install it. Otherwise the new nfnetlink =
-id=20
->> >won't handled by the kernel and thus ipset can't work.
->>=20
->> ipset could try using both nfnetlink and genetlink, in case
->> NFNL_SUBSYS_IPSET is not defined, couldn't it?
+>> I do have another question however: Currently the protocol part from the port
+>> ranges (hash sets) is not mandatory. Does that mean that if I omit it then the
+>> port range is matched *regardless* of the protocol (tcp or udp)? For example,
+>> if I have 10.1.1.0/24,80 would that match 10.1.1.1:tcp:80 *and*
+>> 10.1.1.1:udp:80? If so, that is very good news!
+>>     
 >
->Yes, it could. It's unfortunate that old ipset modules could be compil=
-ed=20
->without any kernel patching while new one needs it. But we are on the=20
->right track: Dave accepted my jhash.h patch in net-next-2.6 and as it =
-is=20
->propagated into Patrick's tree, I'll be able to submit the ipset 5.x=20
->kernel patches. But there's no need to rush: I hope I can get feedback=
-=20
->from other architectures, like Sparc or ARM too. (On Wednesday I'll be=
-=20
->able to dust off a Sparc machine and run the compilation and testsuite=
-=2E)
+> No, that's just a shorthand notation. If the protocol is left out then TCP 
+> is assumed. If you need the same port with TCP and UDP, then you have to 
+> add both to the set. Just using the examle set bar above:
+>
+> # ipset add bar 192.168.0.1,tcp:53
+> # ipset add bar 192.168.0.1,udp:53
+> # ipset list bar
+> Name: bar
+> Type: hash:ip,port
+> Header: family inet hashsize 1024 maxelem 65536 
+> Size in memory: 16696
+> References: 0
+> Members:
+> 192.168.0.0,tcp:80
+> 192.168.0.1,tcp:53
+> 192.168.0.1,tcp:80
+> 192.168.0.2,tcp:80
+> 192.168.0.1,udp:53
+> 192.168.0.3,tcp:80
+>   
+Would it be possible to have 'something', which disregards the protocol 
+on port matching?
 
-I already made this year's presents: a PPC64 is here,
-but it yet needs to be installed...
-
-You can use my sparc. Pierre Chifflier already had his ulogd
-pieces tested here in pair programming with shared screen(1)
-sessions (great stuff that!).
-
-=3D=3D sparcv9
-
-22:30 ares:~/code/ipset > ./configure libmnl_CFLAGS=3D"-I$HOME/code/lib=
-mnl/include" libmnl_LIBS=3D"-L$HOME/code/libmnl/obj32/src/.libs -Wl,-rp=
-ath,$HOME/code/libmnl/obj32/src/.libs -lmnl"
-checking build system type... sparc64-suse-linux-gnu
-checking host system type... sparc64-suse-linux-gnu
-checking target system type... sparc64-suse-linux-gnu
-checking for a BSD-compatible install... /usr/bin/install -c
-checking whether build environment is sane... yes
-checking for a thread-safe mkdir -p... /bin/mkdir -p
-checking for gawk... gawk
-checking whether make sets $(MAKE)... yes
-checking for grep that handles long lines and -e... /usr/bin/grep
-checking for gcc... gcc
-checking whether the C compiler works... yes
-checking for C compiler default output file name... a.out
-checking for suffix of executables...=20
-checking whether we are cross compiling... no
-checking for suffix of object files... o
-checking whether we are using the GNU C compiler... yes
-checking whether gcc accepts -g... yes
-checking for gcc option to accept ISO C89... none needed
-checking for style of include used by make... GNU
-checking dependency style of gcc... gcc3
-checking whether gcc and cc understand -c and -o together... yes
-checking for a sed that does not truncate output... /usr/bin/sed
-checking for egrep... /usr/bin/grep -E
-checking for fgrep... /usr/bin/grep -F
-checking for ld used by gcc... /usr/bin/ld
-checking if the linker (/usr/bin/ld) is GNU ld... yes
-checking for BSD- or MS-compatible name lister (nm)... /usr/bin/nm -B
-checking the name lister (/usr/bin/nm -B) interface... BSD nm
-checking whether ln -s works... yes
-checking the maximum length of command line arguments... 1572864
-checking whether the shell understands some XSI constructs... yes
-checking whether the shell understands "+=3D"... yes
-checking for /usr/bin/ld option to reload object files... -r
-checking for objdump... objdump
-checking how to recognize dependent libraries... pass_all
-checking for ar... ar
-checking for strip... strip
-checking for ranlib... ranlib
-checking command to parse /usr/bin/nm -B output from gcc object... ok
-checking how to run the C preprocessor... gcc -E
-checking for ANSI C header files... yes
-checking for sys/types.h... yes
-checking for sys/stat.h... yes
-checking for stdlib.h... yes
-checking for string.h... yes
-checking for memory.h... yes
-checking for strings.h... yes
-checking for inttypes.h... yes
-checking for stdint.h... yes
-checking for unistd.h... yes
-checking for dlfcn.h... yes
-checking for objdir... .libs
-checking if gcc supports -fno-rtti -fno-exceptions... no
-checking for gcc option to produce PIC... -fPIC -DPIC
-checking if gcc PIC flag -fPIC -DPIC works... yes
-checking if gcc static flag -static works... yes
-checking if gcc supports -c -o file.o... yes
-checking if gcc supports -c -o file.o... (cached) yes
-checking whether the gcc linker (/usr/bin/ld -m elf32_sparc) supports s=
-hared libraries... yes
-checking whether -lc should be explicitly linked in... no
-checking dynamic linker characteristics... GNU/Linux ld.so
-checking how to hardcode library paths into programs... immediate
-checking whether stripping libraries is possible... yes
-checking if libtool supports shared libraries... yes
-checking whether to build shared libraries... yes
-checking whether to build static libraries... yes
-checking whether ln -s works... yes
-checking for pkg-config... /usr/bin/pkg-config
-checking pkg-config is at least version 0.9.0... yes
-checking for libmnl... yes
-checking for union nf_inet_addr... yes
-configure: creating ./config.status
-config.status: creating Makefile
-config.status: creating lib/Makefile
-config.status: creating src/Makefile
-config.status: creating config.h
-config.status: executing depfiles commands
-config.status: executing libtool commands
-22:31 ares:~/code/ipset > make -k
-make  all-recursive
-make[1]: Entering directory `/home/jengelh/code/ipset'
-Making all in lib
-make[2]: Entering directory `/home/jengelh/code/ipset/lib'
-  CC     data.lo
-  CC     icmp.lo
-  CC     icmpv6.lo
-  CC     mnl.lo
-  CC     parse.lo
-cc1: warnings being treated as errors
-parse.c: In function =E2=80=98get_addrinfo=E2=80=99:
-parse.c:637:11: error: cast increases required alignment of target type
-parse.c:640:11: error: cast increases required alignment of target type
-make[2]: *** [parse.lo] Error 1
-  CC     print.lo
-  CC     session.lo
-  CC     types.lo
-make[2]: Target `all' not remade because of errors.
-make[2]: Leaving directory `/home/jengelh/code/ipset/lib'
-Making all in src
-make[2]: Entering directory `/home/jengelh/code/ipset/src'
-  CC     ipset.o
-  CC     errcode.o
-  CC     ipset_bitmap_ip.o
-  CC     ipset_bitmap_ipmac.o
-  CC     ipset_bitmap_port.o
-  CC     ipset_hash_ip.o
-  CC     ipset_hash_ipport.o
-  CC     ipset_hash_ipportip.o
-  CC     ipset_hash_ipportnet.o
-  CC     ipset_hash_net.o
-  CC     ipset_hash_netport.o
-  CC     ipset_list_set.o
-  CC     ui.o
-make[2]: *** No rule to make target `../lib/libipset.la', needed by `ip=
-set'.
-make[2]: Target `all' not remade because of errors.
-make[2]: Leaving directory `/home/jengelh/code/ipset/src'
-make[2]: Entering directory `/home/jengelh/code/ipset'
-make[2]: Leaving directory `/home/jengelh/code/ipset'
-make[1]: *** [all-recursive] Error 1
-make[1]: Leaving directory `/home/jengelh/code/ipset'
-make: *** [all] Error 2
-
-22:43 ares:../ipset/kernel > make
-make -C /lib/modules/`uname -r`/build M=3D`pwd` all
-make[1]: Entering directory `/home/jengelh/code/linux'
-  kernel: arch/sparc/boot/image is ready
-make[1]: Leaving directory `/home/jengelh/code/linux'
-
-That doesn't look right... hm.
-
-The fix is:
-
--        $(MAKE) -C $(KERNELDIR) M=3D$$PWD $@
-+        $(MAKE) -C $(KERNELDIR) M=3D$$PWD
-
-One must not call make with 'all' as a target for modules. (And I am
-surprised it happened to work on x86; normally it does not either.
-Probably because on x86, I had a pure object dir, and on the sparc,
-KERNELDIR refers to a source-object-dir)
+By 'something' I mean either omission of the protocol, or 'all' to be 
+specified instead of the protocol to mean no matching on protocol would 
+be made (in other words the protocol to be disregarded). This will be 
+especially useful for sets with quite a few number of members and will 
+avoid unnecessary duplication - as things stand I have to add the same 
+number of members for both tcp and udp protocols when I don't need any 
+protocol matching - just the subnets and port numbers I specified. Is 
+this doable?
 
 
-=3D=3D=3D sparc64
+>> I downloaded the source to look at, but won't compile it just yet as I am
+>> waiting for this version to be integrated in the xtables tree and hoping that
+>> integration is flawless and without the silly compile-time errors as was the
+>> case with previous xtables releases (*nudges Jan*).
+>>     
+>
+> That won't be so easy for Jan, and it's up to him to decide, which ipset 
+> tree he wants to support in xtables-addons: the old one which does not 
+> need kernel patching or the new one with the burden of the netlink.patch.
+>   
+For me it won't really make a difference as I am always building the 
+kernel from source and apply quite a few (I think 11 at the last count) 
+patches myself - adding one more won't make any difference. With most 
+Fedora distributions the position is exactly the same - they supply one 
+or two patches with xtables as well so it won't be something new.
 
-22:33 ares:~/code/ipset > ./configure libmnl_CFLAGS=3D"-I$HOME/code/lib=
-mnl/include" libmnl_LIBS=3D"-L$HOME/code/libmnl/obj64/src/.libs -Wl,-rp=
-ath,$HOME/code/libmnl/obj64/src/.libs -lmnl" CFLAGS=3D"-m64 -O2" LDFLAG=
-S=3D-m64
-checking build system type... sparc64-suse-linux-gnu
-checking host system type... sparc64-suse-linux-gnu
-checking target system type... sparc64-suse-linux-gnu
-checking for a BSD-compatible install... /usr/bin/install -c
-checking whether build environment is sane... yes
-checking for a thread-safe mkdir -p... /bin/mkdir -p
-checking for gawk... gawk
-checking whether make sets $(MAKE)... yes
-checking for grep that handles long lines and -e... /usr/bin/grep
-checking for gcc... gcc
-checking whether the C compiler works... yes
-checking for C compiler default output file name... a.out
-checking for suffix of executables...=20
-checking whether we are cross compiling... no
-checking for suffix of object files... o
-checking whether we are using the GNU C compiler... yes
-checking whether gcc accepts -g... yes
-checking for gcc option to accept ISO C89... none needed
-checking for style of include used by make... GNU
-checking dependency style of gcc... gcc3
-checking whether gcc and cc understand -c and -o together... yes
-checking for a sed that does not truncate output... /usr/bin/sed
-checking for egrep... /usr/bin/grep -E
-checking for fgrep... /usr/bin/grep -F
-checking for ld used by gcc... /usr/bin/ld
-checking if the linker (/usr/bin/ld) is GNU ld... yes
-checking for BSD- or MS-compatible name lister (nm)... /usr/bin/nm -B
-checking the name lister (/usr/bin/nm -B) interface... BSD nm
-checking whether ln -s works... yes
-checking the maximum length of command line arguments... 1572864
-checking whether the shell understands some XSI constructs... yes
-checking whether the shell understands "+=3D"... yes
-checking for /usr/bin/ld option to reload object files... -r
-checking for objdump... objdump
-checking how to recognize dependent libraries... pass_all
-checking for ar... ar
-checking for strip... strip
-checking for ranlib... ranlib
-checking command to parse /usr/bin/nm -B output from gcc object... ok
-checking how to run the C preprocessor... gcc -E
-checking for ANSI C header files... yes
-checking for sys/types.h... yes
-checking for sys/stat.h... yes
-checking for stdlib.h... yes
-checking for string.h... yes
-checking for memory.h... yes
-checking for strings.h... yes
-checking for inttypes.h... yes
-checking for stdint.h... yes
-checking for unistd.h... yes
-checking for dlfcn.h... yes
-checking for objdir... .libs
-checking if gcc supports -fno-rtti -fno-exceptions... no
-checking for gcc option to produce PIC... -fPIC -DPIC
-checking if gcc PIC flag -fPIC -DPIC works... yes
-checking if gcc static flag -static works... yes
-checking if gcc supports -c -o file.o... yes
-checking if gcc supports -c -o file.o... (cached) yes
-checking whether the gcc linker (/usr/bin/ld -m elf64_sparc) supports s=
-hared libraries... yes
-checking whether -lc should be explicitly linked in... no
-checking dynamic linker characteristics... GNU/Linux ld.so
-checking how to hardcode library paths into programs... immediate
-checking whether stripping libraries is possible... yes
-checking if libtool supports shared libraries... yes
-checking whether to build shared libraries... yes
-checking whether to build static libraries... yes
-checking whether ln -s works... yes
-checking for pkg-config... /usr/bin/pkg-config
-checking pkg-config is at least version 0.9.0... yes
-checking for libmnl... yes
-checking for union nf_inet_addr... yes
-configure: creating ./config.status
-config.status: creating Makefile
-config.status: creating lib/Makefile
-config.status: creating src/Makefile
-config.status: creating config.h
-config.status: config.h is unchanged
-config.status: executing depfiles commands
-config.status: executing libtool commands
-22:34 ares:~/code/ipset > make -k
-make  all-recursive
-make[1]: Entering directory `/home/jengelh/code/ipset'
-Making all in lib
-make[2]: Entering directory `/home/jengelh/code/ipset/lib'
-  CC     data.lo
-  CC     icmp.lo
-  CC     icmpv6.lo
-  CC     mnl.lo
-  CC     parse.lo
-cc1: warnings being treated as errors
-parse.c: In function =E2=80=98get_addrinfo=E2=80=99:
-parse.c:637:11: error: cast increases required alignment of target type
-parse.c:640:11: error: cast increases required alignment of target type
-make[2]: *** [parse.lo] Error 1
-  CC     print.lo
-  CC     session.lo
-  CC     types.lo
-make[2]: Target `all' not remade because of errors.
-make[2]: Leaving directory `/home/jengelh/code/ipset/lib'
-Making all in src
-make[2]: Entering directory `/home/jengelh/code/ipset/src'
-  CC     ipset.o
-  CC     errcode.o
-  CC     ipset_bitmap_ip.o
-  CC     ipset_bitmap_ipmac.o
-  CC     ipset_bitmap_port.o
-  CC     ipset_hash_ip.o
-  CC     ipset_hash_ipport.o
-  CC     ipset_hash_ipportip.o
-  CC     ipset_hash_ipportnet.o
-  CC     ipset_hash_net.o
-  CC     ipset_hash_netport.o
-  CC     ipset_list_set.o
-  CC     ui.o
-make[2]: *** No rule to make target `../lib/libipset.la', needed by `ip=
-set'.
-make[2]: Target `all' not remade because of errors.
-make[2]: Leaving directory `/home/jengelh/code/ipset/src'
-make[2]: Entering directory `/home/jengelh/code/ipset'
-make[2]: Leaving directory `/home/jengelh/code/ipset'
-make[1]: *** [all-recursive] Error 1
-make[1]: Leaving directory `/home/jengelh/code/ipset'
-make: *** [all] Error 2
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Final question from me: As part of the ipset-5.0 package you provide a netlink
+>> patch file. I have read the README and it seems that the only time that patch
+>> needs to be applied is if the kernel version is >= 2.6.31. Is that the case
+>> and are there any other constraints/requirements? Do I apply this patch if the
+>> kernel version is <= 2.6.31? It is important for me to know the answer to this
+>> question when I prepare the .spec file for building the rpm for Fedora.
+>>     
+>
+> In order to support kernel versions below 2.6.31, I had to add a lot of 
+> #ifdefs in xt_set.c to support the countless API changes in netfilter 
+> targets and matches. Hm, maybe I could support kernel releases from 
+> 2.6.24. Below 2.6.24 there are missing netlink definitions as Jan 
+> mentioned.
+>   
+The way I see it, it is best to leave 4.x tree for versions up to 2.6.24 
+and leave 5.x for newer versions and then decide whether the netlink 
+patch should be applied (my understanding is that if the kernel version 
+is >= 2.6.31 the patch definitely needs to be applied - is that right?).
+
