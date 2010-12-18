@@ -1,151 +1,133 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH] src: remove redundant casts
-Date: Sat, 18 Dec 2010 21:18:56 +0100
-Message-ID: <1292703537-16532-2-git-send-email-jengelh@medozas.de>
-References: <1292703537-16532-1-git-send-email-jengelh@medozas.de>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [ANNOUNCE] ipset-5.0 released
+Date: Sat, 18 Dec 2010 21:23:36 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1012182050280.11577@blackhole.kfki.hu>
+References: <alpine.DEB.2.00.1012172259100.10231@blackhole.kfki.hu> <4D0CC3BB.8030801@googlemail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: Mr Dash Four <mr.dash.four@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:47432 "EHLO borg.medozas.de"
+Received: from smtp0.kfki.hu ([148.6.0.25]:57217 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932156Ab0LRUTA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 18 Dec 2010 15:19:00 -0500
-In-Reply-To: <1292703537-16532-1-git-send-email-jengelh@medozas.de>
+	id S932108Ab0LRUXh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 18 Dec 2010 15:23:37 -0500
+In-Reply-To: <4D0CC3BB.8030801@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- src/iftable.c      |    4 ++--
- src/libnfnetlink.c |   27 +++++++++++++--------------
- src/rtnl.c         |   12 ++++++------
- 3 files changed, 21 insertions(+), 22 deletions(-)
+On Sat, 18 Dec 2010, Mr Dash Four wrote:
 
-diff --git a/src/iftable.c b/src/iftable.c
-index c3a8448..959249a 100644
---- a/src/iftable.c
-+++ b/src/iftable.c
-@@ -55,7 +55,7 @@ static int iftable_add(struct nlmsghdr *n, void *arg)
- 	struct ifinfomsg *ifi_msg = NLMSG_DATA(n);
- 	struct ifindex_node *this;
- 	struct rtattr *cb[IFLA_MAX+1];
--	struct nlif_handle *h = (struct nlif_handle *)arg;
-+	struct nlif_handle *h = arg;
- 
- 	if (n->nlmsg_type != RTM_NEWLINK)
- 		return -1;
-@@ -115,7 +115,7 @@ static int iftable_del(struct nlmsghdr *n, void *arg)
- {
- 	struct ifinfomsg *ifi_msg = NLMSG_DATA(n);
- 	struct rtattr *cb[IFLA_MAX+1];
--	struct nlif_handle *h = (struct nlif_handle *)arg;
-+	struct nlif_handle *h = arg;
- 	struct ifindex_node *this, *tmp;
- 	unsigned int hash;
- 
-diff --git a/src/libnfnetlink.c b/src/libnfnetlink.c
-index b048d2b..6e7afc6 100644
---- a/src/libnfnetlink.c
-+++ b/src/libnfnetlink.c
-@@ -445,8 +445,7 @@ void nfnl_fill_hdr(struct nfnl_subsys_handle *ssh,
- 	assert(ssh);
- 	assert(nlh);
- 
--	struct nfgenmsg *nfg = (struct nfgenmsg *) 
--					((void *)nlh + sizeof(*nlh));
-+	struct nfgenmsg *nfg = (void *)nlh + sizeof(*nlh);
- 
- 	nlh->nlmsg_len = NLMSG_LENGTH(len+sizeof(*nfg));
- 	nlh->nlmsg_type = (ssh->subsys_id<<8)|msg_type;
-@@ -478,14 +477,14 @@ nfnl_parse_hdr(const struct nfnl_handle *nfnlh,
- 
- 	if (nlh->nlmsg_len == NLMSG_LENGTH(sizeof(struct nfgenmsg))) {
- 		if (genmsg)
--			*genmsg = (struct nfgenmsg *)((void *)nlh+sizeof(nlh));
-+			*genmsg = (void *)nlh + sizeof(nlh);
- 		return NULL;
- 	}
- 
- 	if (genmsg)
--		*genmsg = (struct nfgenmsg *)((void *)nlh + sizeof(nlh));
-+		*genmsg = (void *)nlh + sizeof(nlh);
- 
--	return ((void *)nlh + NLMSG_LENGTH(sizeof(struct nfgenmsg)));
-+	return (void *)nlh + NLMSG_LENGTH(sizeof(struct nfgenmsg));
- }
- 
- /**
-@@ -575,10 +574,10 @@ int nfnl_listen(struct nfnl_handle *nfnlh,
- 	int quit=0;
- 
- 	struct msghdr msg = {
--		(void *)&nladdr, sizeof(nladdr),
--		&iov, 1,
--		NULL, 0,
--		0
-+		.msg_name    = &nladdr,
-+		.msg_namelen = sizeof(nladdr),
-+		.msg_iov     = &iov,
-+		.msg_iovlen  = 1,
- 	};
- 
- 	memset(&nladdr, 0, sizeof(nladdr));
-@@ -682,13 +681,13 @@ int nfnl_talk(struct nfnl_handle *nfnlh, struct nlmsghdr *n, pid_t peer,
- 	unsigned int seq;
- 	int status;
- 	struct iovec iov = {
--		(void *)n, n->nlmsg_len
-+		n, n->nlmsg_len
- 	};
- 	struct msghdr msg = {
--		(void *)&nladdr, sizeof(nladdr),
--		&iov, 1,
--		NULL, 0,
--		0
-+		.msg_name    = &nladdr,
-+		.msg_namelen = sizeof(nladdr),
-+		.msg_iov     = &iov,
-+		.msg_iovlen  = 1,
- 	};
- 
- 	memset(&nladdr, 0, sizeof(nladdr));
-diff --git a/src/rtnl.c b/src/rtnl.c
-index 548dc09..1092c81 100644
---- a/src/rtnl.c
-+++ b/src/rtnl.c
-@@ -127,7 +127,7 @@ int rtnl_dump_type(struct rtnl_handle *rtnl_handle, unsigned int type)
- 	req.nlh.nlmsg_seq = rtnl_handle->rtnl_dump = ++(rtnl_handle->rtnl_seq);
- 	req.g.rtgen_family = AF_INET;
- 
--	return sendto(rtnl_handle->rtnl_fd, (void*)&req, sizeof(req), 0, 
-+	return sendto(rtnl_handle->rtnl_fd, &req, sizeof(req), 0,
- 		      (struct sockaddr*)&nladdr, sizeof(nladdr));
- }
- 
-@@ -141,10 +141,10 @@ int rtnl_receive(struct rtnl_handle *rtnl_handle)
- 	struct nlmsghdr *h;
- 
- 	struct msghdr msg = {
--		(void *)&nladdr, sizeof(nladdr),
--		&iov, 1,
--		NULL, 0,
--		0
-+		.msg_name    = &nladdr,
-+		.msg_namelen = sizeof(nladdr),
-+		.msg_iov     = &iov,
-+		.msg_iovlen  = 1,
- 	};
- 
- 	status = recvmsg(rtnl_handle->rtnl_fd, &msg, 0);
-@@ -177,7 +177,7 @@ int rtnl_receive(struct rtnl_handle *rtnl_handle)
- 			return 0;
- 		}
- 		if (h->nlmsg_type == NLMSG_ERROR) { 
--			struct nlmsgerr *err = (struct nlmsgerr *)NLMSG_DATA(h);
-+			struct nlmsgerr *err = NLMSG_DATA(h);
- 			if (h->nlmsg_len>=NLMSG_LENGTH(sizeof(struct nlmsgerr)))
- 				errno = -err->error;
- 			rtnl_log(LOG_ERROR, "NLMSG_ERROR, errnp=%d",
--- 
-1.7.1
+> > I'm happy to announce the new branch of ipset and release it's first
+> > element, ipset-5.0.
+> >   
+> I see that you have considered my suggestions and added port ranges to the
+> hash sets. That will make my job much easier! Thank you!
 
+That was not so hard, I hesitated just a little bit to add new features 
+before the release.
+ 
+> Is there any difference between hash:net,ip and hash:ip,port? It seems as
+> though I can specify subnets (CIDR format) of different sizes in both sets!
+
+You meant hash:net,port and hash:ip,port. Of course they are different. In 
+hash:net,port you can store different sized netblock and port pairs, while 
+in hash:ip,port you can store just IP address and port pairs. Let me show 
+you an example:
+
+# ipset create foo hash:net,port
+# ipset add foo 192.168.0.0/30,80
+# ipset list foo
+Name: foo
+Type: hash:net,port
+Header: family inet hashsize 1024 maxelem 65536 
+Size in memory: 16792
+References: 0
+Members:
+192.168.0.0/30,tcp:80
+
+# ipset create bar hash:ip,port
+# ipset add bar 192.168.0.0/30,80
+# ipset list bar
+Name: bar
+Type: hash:ip,port
+Header: family inet hashsize 1024 maxelem 65536 
+Size in memory: 16632
+References: 0
+Members:
+192.168.0.0,tcp:80
+192.168.0.1,tcp:80
+192.168.0.2,tcp:80
+192.168.0.3,tcp:80
+ 
+> I also spotted another feature I previously missed when looked at 5.0-pre10 -
+> nesting of datatypes (I think the default is 4, which would be enough for 99%
+> of cases). That is absolutely brilliant as up until now I have used multiple
+> --match-set directives to do that job, which can now be done 'internally' by
+> ipset. It also addresses the issue of 'binding' (a feature dropped in earlier
+> ipset releases and a feature I badly missed if I am being honest), but the
+> implementation this time is much better. This set of features will be put to
+> the test as I will be using them quite extensively!
+
+Binding was unfortunately a bad ideas therefore had to be dropped. The 
+multidimensional sets and the list of sets fairly well replace it.
+
+> I do have another question however: Currently the protocol part from the port
+> ranges (hash sets) is not mandatory. Does that mean that if I omit it then the
+> port range is matched *regardless* of the protocol (tcp or udp)? For example,
+> if I have 10.1.1.0/24,80 would that match 10.1.1.1:tcp:80 *and*
+> 10.1.1.1:udp:80? If so, that is very good news!
+
+No, that's just a shorthand notation. If the protocol is left out then TCP 
+is assumed. If you need the same port with TCP and UDP, then you have to 
+add both to the set. Just using the examle set bar above:
+
+# ipset add bar 192.168.0.1,tcp:53
+# ipset add bar 192.168.0.1,udp:53
+# ipset list bar
+Name: bar
+Type: hash:ip,port
+Header: family inet hashsize 1024 maxelem 65536 
+Size in memory: 16696
+References: 0
+Members:
+192.168.0.0,tcp:80
+192.168.0.1,tcp:53
+192.168.0.1,tcp:80
+192.168.0.2,tcp:80
+192.168.0.1,udp:53
+192.168.0.3,tcp:80
+ 
+> I downloaded the source to look at, but won't compile it just yet as I am
+> waiting for this version to be integrated in the xtables tree and hoping that
+> integration is flawless and without the silly compile-time errors as was the
+> case with previous xtables releases (*nudges Jan*).
+
+That won't be so easy for Jan, and it's up to him to decide, which ipset 
+tree he wants to support in xtables-addons: the old one which does not 
+need kernel patching or the new one with the burden of the netlink.patch.
+ 
+> As part of that process I will try and create the .spec file needed to build
+> the Fedora rpm package (it would be for FC13 as I am yet to migrate to FC14)
+> and will submit it with them to integrate it with FC as soon as possible.
+> 
+> Final question from me: As part of the ipset-5.0 package you provide a netlink
+> patch file. I have read the README and it seems that the only time that patch
+> needs to be applied is if the kernel version is >= 2.6.31. Is that the case
+> and are there any other constraints/requirements? Do I apply this patch if the
+> kernel version is <= 2.6.31? It is important for me to know the answer to this
+> question when I prepare the .spec file for building the rpm for Fedora.
+
+In order to support kernel versions below 2.6.31, I had to add a lot of 
+#ifdefs in xt_set.c to support the countless API changes in netfilter 
+targets and matches. Hm, maybe I could support kernel releases from 
+2.6.24. Below 2.6.24 there are missing netlink definitions as Jan 
+mentioned.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
