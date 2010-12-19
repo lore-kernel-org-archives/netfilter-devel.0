@@ -1,69 +1,58 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: [ANNOUNCE] ipset-5.0 released
-Date: Sun, 19 Dec 2010 01:05:34 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1012190100180.11753@blackhole.kfki.hu>
+Date: Sun, 19 Dec 2010 01:28:16 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1012190122320.13461@obet.zrqbmnf.qr>
 References: <alpine.DEB.2.00.1012172259100.10231@blackhole.kfki.hu> <1292657351.2371.73.camel@kushiel.sterenborg.info> <alpine.DEB.2.00.1012181149560.11002@blackhole.kfki.hu> <alpine.LNX.2.01.1012181635530.13544@obet.zrqbmnf.qr>
- <alpine.DEB.2.00.1012182024240.11577@blackhole.kfki.hu> <alpine.LNX.2.01.1012182136190.19284@obet.zrqbmnf.qr>
+ <alpine.DEB.2.00.1012182024240.11577@blackhole.kfki.hu> <alpine.LNX.2.01.1012182136190.19284@obet.zrqbmnf.qr> <alpine.DEB.2.00.1012190100180.11753@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: "Rob Sterenborg (lists)" <lists@sterenborg.info>,
 	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:39155 "EHLO smtp2.kfki.hu"
+Received: from borg.medozas.de ([188.40.89.202]:54446 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752289Ab0LSAFg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 18 Dec 2010 19:05:36 -0500
-In-Reply-To: <alpine.LNX.2.01.1012182136190.19284@obet.zrqbmnf.qr>
+	id S1752289Ab0LSA2R (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 18 Dec 2010 19:28:17 -0500
+In-Reply-To: <alpine.DEB.2.00.1012190100180.11753@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 18 Dec 2010, Jan Engelhardt wrote:
 
-> >from other architectures, like Sparc or ARM too. (On Wednesday I'll be 
-> >able to dust off a Sparc machine and run the compilation and testsuite.)
-> 
-> I already made this year's presents: a PPC64 is here,
-> but it yet needs to be installed...
-> 
-> You can use my sparc. Pierre Chifflier already had his ulogd
-> pieces tested here in pair programming with shared screen(1)
-> sessions (great stuff that!).
+On Sunday 2010-12-19 01:05, Jozsef Kadlecsik wrote:
+>>   CC     parse.lo
+>> cc1: warnings being treated as errors
+>> parse.c: In function ?get_addrinfo?:
+>> parse.c:637:11: error: cast increases required alignment of target t=
+ype
+>> parse.c:640:11: error: cast increases required alignment of target t=
+ype
+>
+>Oh well, the good old Sparc issue. I put back the workaround and pushe=
+d.
 
-Let us see the fixes worked, see below
- 
-> == sparcv9
-> 
-> 22:31 ares:~/code/ipset > make -k
-> make  all-recursive
-> make[1]: Entering directory `/home/jengelh/code/ipset'
-> Making all in lib
-> make[2]: Entering directory `/home/jengelh/code/ipset/lib'
->   CC     data.lo
->   CC     icmp.lo
->   CC     icmpv6.lo
->   CC     mnl.lo
->   CC     parse.lo
-> cc1: warnings being treated as errors
-> parse.c: In function ?get_addrinfo?:
-> parse.c:637:11: error: cast increases required alignment of target type
-> parse.c:640:11: error: cast increases required alignment of target type
+Yeah. It seems struct sockaddr only has an alignment of 2=C2=A0=E2=80=94
+even on x86_64.
 
-Oh well, the good old Sparc issue. I put back the workaround and pushed.
+Given struct sockaddr is usually just a base of another sockaddr_XXX
+object and is thus always has the same alignment of the latter,
+we could avoid the memcpy:
 
-> 22:43 ares:../ipset/kernel > make
+const struct sockaddr_in *x =3D (void *)i->ai_addr;
+err =3D ipset_session_data_set(session, opt, &x->sin_addr);
 
-Nobody is supposed to run `make' in the kernel/ subdir. You should have 
-typed one level above:
 
-ares:../ipset/ > make modules
+>> 22:43 ares:../ipset/kernel > make
+>
+>Nobody is supposed to run `make' in the kernel/ subdir. You should hav=
+e=20
+>typed one level above:
 
-I have added a check to Makefile, to prevent it. 
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Hah. So, what's the point of the Makefile? kbuild will find
+Kbuild, so it uses just that.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
