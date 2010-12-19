@@ -1,58 +1,55 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: [ANNOUNCE] ipset-5.0 released
-Date: Sun, 19 Dec 2010 01:28:16 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1012190122320.13461@obet.zrqbmnf.qr>
-References: <alpine.DEB.2.00.1012172259100.10231@blackhole.kfki.hu> <1292657351.2371.73.camel@kushiel.sterenborg.info> <alpine.DEB.2.00.1012181149560.11002@blackhole.kfki.hu> <alpine.LNX.2.01.1012181635530.13544@obet.zrqbmnf.qr>
- <alpine.DEB.2.00.1012182024240.11577@blackhole.kfki.hu> <alpine.LNX.2.01.1012182136190.19284@obet.zrqbmnf.qr> <alpine.DEB.2.00.1012190100180.11753@blackhole.kfki.hu>
+Date: Sun, 19 Dec 2010 01:34:43 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1012190105460.11753@blackhole.kfki.hu>
+References: <alpine.DEB.2.00.1012172259100.10231@blackhole.kfki.hu> <4D0CC3BB.8030801@googlemail.com> <alpine.DEB.2.00.1012182050280.11577@blackhole.kfki.hu> <4D0D2CF4.5070201@googlemail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "Rob Sterenborg (lists)" <lists@sterenborg.info>,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: Mr Dash Four <mr.dash.four@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:54446 "EHLO borg.medozas.de"
+Received: from smtp1.kfki.hu ([148.6.0.26]:55253 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752289Ab0LSA2R (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 18 Dec 2010 19:28:17 -0500
-In-Reply-To: <alpine.DEB.2.00.1012190100180.11753@blackhole.kfki.hu>
+	id S1752290Ab0LSAep (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 18 Dec 2010 19:34:45 -0500
+In-Reply-To: <4D0D2CF4.5070201@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Sat, 18 Dec 2010, Mr Dash Four wrote:
 
-On Sunday 2010-12-19 01:05, Jozsef Kadlecsik wrote:
->>   CC     parse.lo
->> cc1: warnings being treated as errors
->> parse.c: In function ?get_addrinfo?:
->> parse.c:637:11: error: cast increases required alignment of target t=
-ype
->> parse.c:640:11: error: cast increases required alignment of target t=
-ype
->
->Oh well, the good old Sparc issue. I put back the workaround and pushe=
-d.
+> Would it be possible to have 'something', which disregards the protocol on
+> port matching?
+> 
+> By 'something' I mean either omission of the protocol, or 'all' to be
+> specified instead of the protocol to mean no matching on protocol would be
+> made (in other words the protocol to be disregarded). This will be especially
+> useful for sets with quite a few number of members and will avoid unnecessary
+> duplication - as things stand I have to add the same number of members for
+> both tcp and udp protocols when I don't need any protocol matching - just the
+> subnets and port numbers I specified. Is this doable?
 
-Yeah. It seems struct sockaddr only has an alignment of 2=C2=A0=E2=80=94
-even on x86_64.
+Use set types without port sub-part, like hash:net or hash:ip, etc.
+I don't really see why you would want to use a type with port and then 
+ignore it.
 
-Given struct sockaddr is usually just a base of another sockaddr_XXX
-object and is thus always has the same alignment of the latter,
-we could avoid the memcpy:
+> > In order to support kernel versions below 2.6.31, I had to add a lot of
+> > #ifdefs in xt_set.c to support the countless API changes in netfilter
+> > targets and matches. Hm, maybe I could support kernel releases from 2.6.24.
+> > Below 2.6.24 there are missing netlink definitions as Jan mentioned.
+> >   
+> The way I see it, it is best to leave 4.x tree for versions up to 2.6.24 and
+> leave 5.x for newer versions and then decide whether the netlink patch should
+> be applied (my understanding is that if the kernel version is >= 2.6.31 the
+> patch definitely needs to be applied - is that right?).
 
-const struct sockaddr_in *x =3D (void *)i->ai_addr;
-err =3D ipset_session_data_set(session, opt, &x->sin_addr);
+The patch need to be applied below as well. And another version is 
+required for kernels before the osf match was applied.
 
-
->> 22:43 ares:../ipset/kernel > make
->
->Nobody is supposed to run `make' in the kernel/ subdir. You should hav=
-e=20
->typed one level above:
-
-Hah. So, what's the point of the Makefile? kbuild will find
-Kbuild, so it uses just that.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
