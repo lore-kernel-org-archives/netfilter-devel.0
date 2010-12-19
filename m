@@ -1,206 +1,119 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 08/11] libipset: remove redundant indirection via union name
-Date: Sun, 19 Dec 2010 06:18:10 +0100
-Message-ID: <1292735894-17534-9-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 10/11] libipset: const annotations
+Date: Sun, 19 Dec 2010 06:18:12 +0100
+Message-ID: <1292735894-17534-11-git-send-email-jengelh@medozas.de>
 References: <1292735894-17534-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:42675 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:42684 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750992Ab0LSFSY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 19 Dec 2010 00:18:24 -0500
+	id S1751048Ab0LSFS0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 19 Dec 2010 00:18:26 -0500
 In-Reply-To: <1292735894-17534-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-There are no uses of C99 static initializers, so let's make the union
-anonymous and reduce accessor lengths.
 ---
- lib/data.c |   82 ++++++++++++++++++++++++++++++------------------------------
- 1 files changed, 41 insertions(+), 41 deletions(-)
+ lib/mnl.c     |    2 +-
+ lib/parse.c   |    2 +-
+ lib/print.c   |    2 +-
+ lib/session.c |    8 ++++----
+ lib/types.c   |    2 +-
+ 5 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/lib/data.c b/lib/data.c
-index 6bc423b..2719b84 100644
---- a/lib/data.c
-+++ b/lib/data.c
-@@ -72,7 +72,7 @@ struct ipset_data {
- 			char name[IPSET_MAXNAMELEN];
- 			char nameref[IPSET_MAXNAMELEN];
- 		} adt;
--	} u;
-+	};
+diff --git a/lib/mnl.c b/lib/mnl.c
+index aa98a7c..683dba2 100644
+--- a/lib/mnl.c
++++ b/lib/mnl.c
+@@ -31,7 +31,7 @@ struct ipset_handle {
  };
  
- static void
-@@ -233,71 +233,71 @@ ipset_data_set(struct ipset_data *data, enum ipset_opt opt, const void *value)
- 		break;
- 	/* Create-specific options */
- 	case IPSET_OPT_GC:
--		data->u.create.gc = *(const uint32_t *) value;
-+		data->create.gc = *(const uint32_t *) value;
- 		break;
- 	case IPSET_OPT_HASHSIZE:
--		data->u.create.hashsize = *(const uint32_t *) value;
-+		data->create.hashsize = *(const uint32_t *) value;
- 		break;
- 	case IPSET_OPT_MAXELEM:
--		data->u.create.maxelem = *(const uint32_t *) value;
-+		data->create.maxelem = *(const uint32_t *) value;
- 		break;
- 	case IPSET_OPT_NETMASK:
--		data->u.create.netmask = *(const uint8_t *) value;
-+		data->create.netmask = *(const uint8_t *) value;
- 		break;
- 	case IPSET_OPT_PROBES:
--		data->u.create.probes = *(const uint8_t *) value;
-+		data->create.probes = *(const uint8_t *) value;
- 		break;
- 	case IPSET_OPT_RESIZE:
--		data->u.create.resize = *(const uint8_t *) value;
-+		data->create.resize = *(const uint8_t *) value;
- 		break;
- 	case IPSET_OPT_SIZE:
--		data->u.create.size = *(const uint32_t *) value;
-+		data->create.size = *(const uint32_t *) value;
- 		break;
- 	/* Create-specific options, filled out by the kernel */
- 	case IPSET_OPT_ELEMENTS:
--		data->u.create.elements = *(const uint32_t *) value;
-+		data->create.elements = *(const uint32_t *) value;
- 		break;
- 	case IPSET_OPT_REFERENCES:
--		data->u.create.references = *(const uint32_t *) value;
-+		data->create.references = *(const uint32_t *) value;
- 		break;
- 	case IPSET_OPT_MEMSIZE:
--		data->u.create.memsize = *(const uint32_t *) value;
-+		data->create.memsize = *(const uint32_t *) value;
- 		break;
- 	/* Create-specific options, type */
- 	case IPSET_OPT_TYPENAME:
--		ipset_strlcpy(data->u.create.typename, value,
-+		ipset_strlcpy(data->create.typename, value,
- 			      IPSET_MAXNAMELEN);
- 		break;
- 	case IPSET_OPT_REVISION:
--		data->u.create.revision = *(const uint8_t *) value;
-+		data->create.revision = *(const uint8_t *) value;
- 		break;
- 	case IPSET_OPT_REVISION_MIN:
--		data->u.create.revision_min = *(const uint8_t *) value;
-+		data->create.revision_min = *(const uint8_t *) value;
- 		break;
- 	/* ADT-specific options */
- 	case IPSET_OPT_ETHER:
--		memcpy(data->u.adt.ether, value, ETH_ALEN);
-+		memcpy(data->adt.ether, value, ETH_ALEN);
- 		break;
- 	case IPSET_OPT_NAME:
--		ipset_strlcpy(data->u.adt.name, value, IPSET_MAXNAMELEN);
-+		ipset_strlcpy(data->adt.name, value, IPSET_MAXNAMELEN);
- 		break;
- 	case IPSET_OPT_NAMEREF:
--		ipset_strlcpy(data->u.adt.nameref, value, IPSET_MAXNAMELEN);
-+		ipset_strlcpy(data->adt.nameref, value, IPSET_MAXNAMELEN);
- 		break;
- 	case IPSET_OPT_IP2:
- 		if (!(data->family == AF_INET || data->family == AF_INET6))
- 			return -1;
--		copy_addr(data->family, &data->u.adt.ip2, value);
-+		copy_addr(data->family, &data->adt.ip2, value);
- 		break;
- 	case IPSET_OPT_CIDR2:
--		data->u.adt.cidr2 = *(const uint8_t *) value;
-+		data->adt.cidr2 = *(const uint8_t *) value;
- 		break;
- 	case IPSET_OPT_PROTO:
--		data->u.adt.proto = *(const uint8_t *) value;
-+		data->adt.proto = *(const uint8_t *) value;
- 		break;
- 	/* Swap/rename */
- 	case IPSET_OPT_SETNAME2:
--		ipset_strlcpy(data->u.setname2, value, IPSET_MAXNAMELEN);
-+		ipset_strlcpy(data->setname2, value, IPSET_MAXNAMELEN);
- 		break;
- 	/* flags */
- 	case IPSET_OPT_EXIST:
-@@ -348,7 +348,7 @@ ipset_data_get(const struct ipset_data *data, enum ipset_opt opt)
- 		if (ipset_data_test(data, IPSET_OPT_TYPE))
- 			return data->type->name;
- 		else if (ipset_data_test(data, IPSET_OPT_TYPENAME))
--			return data->u.create.typename;
-+			return data->create.typename;
- 		return NULL;
- 	case IPSET_OPT_FAMILY:
- 		return &data->family;
-@@ -367,47 +367,47 @@ ipset_data_get(const struct ipset_data *data, enum ipset_opt opt)
- 		return &data->timeout;
- 	/* Create-specific options */
- 	case IPSET_OPT_GC:
--		return &data->u.create.gc;
-+		return &data->create.gc;
- 	case IPSET_OPT_HASHSIZE:
--		return &data->u.create.hashsize;
-+		return &data->create.hashsize;
- 	case IPSET_OPT_MAXELEM:
--		return &data->u.create.maxelem;
-+		return &data->create.maxelem;
- 	case IPSET_OPT_NETMASK:
--		return &data->u.create.netmask;
-+		return &data->create.netmask;
- 	case IPSET_OPT_PROBES:
--		return &data->u.create.probes;
-+		return &data->create.probes;
- 	case IPSET_OPT_RESIZE:
--		return &data->u.create.resize;
-+		return &data->create.resize;
- 	case IPSET_OPT_SIZE:
--		return &data->u.create.size;
-+		return &data->create.size;
- 	/* Create-specific options, filled out by the kernel */
- 	case IPSET_OPT_ELEMENTS:
--		return &data->u.create.elements;
-+		return &data->create.elements;
- 	case IPSET_OPT_REFERENCES:
--		return &data->u.create.references;
-+		return &data->create.references;
- 	case IPSET_OPT_MEMSIZE:
--		return &data->u.create.memsize;
-+		return &data->create.memsize;
- 	/* Create-specific options, TYPE */
- 	case IPSET_OPT_REVISION:
--		return &data->u.create.revision;
-+		return &data->create.revision;
- 	case IPSET_OPT_REVISION_MIN:
--		return &data->u.create.revision_min;
-+		return &data->create.revision_min;
- 	/* ADT-specific options */
- 	case IPSET_OPT_ETHER:
--		return data->u.adt.ether;
-+		return data->adt.ether;
- 	case IPSET_OPT_NAME:
--		return data->u.adt.name;
-+		return data->adt.name;
- 	case IPSET_OPT_NAMEREF:
--		return data->u.adt.nameref;
-+		return data->adt.nameref;
- 	case IPSET_OPT_IP2:
--		return &data->u.adt.ip2;
-+		return &data->adt.ip2;
- 	case IPSET_OPT_CIDR2:
--		return &data->u.adt.cidr2;
-+		return &data->adt.cidr2;
- 	case IPSET_OPT_PROTO:
--		return &data->u.adt.proto;
-+		return &data->adt.proto;
- 	/* Swap/rename */
- 	case IPSET_OPT_SETNAME2:
--		return data->u.setname2;
-+		return data->setname2;
- 	/* flags */
- 	case IPSET_OPT_FLAGS:
- 	case IPSET_OPT_EXIST:
+ /* Netlink flags of the commands */
+-static uint16_t cmdflags[] = {
++static const uint16_t cmdflags[] = {
+ 	[IPSET_CMD_CREATE-1]	= NLM_F_REQUEST|NLM_F_ACK|NLM_F_CREATE|NLM_F_EXCL,
+ 	[IPSET_CMD_DESTROY-1]	= NLM_F_REQUEST|NLM_F_ACK,
+ 	[IPSET_CMD_FLUSH-1]	= NLM_F_REQUEST|NLM_F_ACK,
+diff --git a/lib/parse.c b/lib/parse.c
+index 437ff61..169d2e0 100644
+--- a/lib/parse.c
++++ b/lib/parse.c
+@@ -345,7 +345,7 @@ int
+ ipset_parse_proto(struct ipset_session *session,
+ 		  enum ipset_opt opt, const char *str)
+ {
+-	struct protoent *protoent;
++	const struct protoent *protoent;
+ 	uint8_t proto = 0;
+ 
+ 	assert(session);
+diff --git a/lib/print.c b/lib/print.c
+index 87a9f2b..767fd04 100644
+--- a/lib/print.c
++++ b/lib/print.c
+@@ -454,7 +454,7 @@ ipset_print_proto(char *buf, unsigned int len,
+ 		  const struct ipset_data *data, enum ipset_opt opt,
+ 		  uint8_t env UNUSED)
+ {
+-	struct protoent *protoent;
++	const struct protoent *protoent;
+ 	uint8_t proto;
+ 
+ 	assert(buf);
+diff --git a/lib/session.c b/lib/session.c
+index d043806..628c1b9 100644
+--- a/lib/session.c
++++ b/lib/session.c
+@@ -690,7 +690,7 @@ retry:
+ static int
+ list_adt(struct ipset_session *session, struct nlattr *nla[])
+ {
+-	struct ipset_data *data = session->data;
++	const struct ipset_data *data = session->data;
+ 	const struct ipset_type *type;
+ 	const struct ipset_arg *arg;
+ 	uint8_t family;
+@@ -774,7 +774,7 @@ list_adt(struct ipset_session *session, struct nlattr *nla[])
+ static int
+ list_create(struct ipset_session *session, struct nlattr *nla[])
+ {
+-	struct ipset_data *data = session->data;
++	const struct ipset_data *data = session->data;
+ 	const struct ipset_type *type;
+ 	const struct ipset_arg *arg;
+ 	uint8_t family;
+@@ -1016,7 +1016,7 @@ static int
+ callback_header(struct ipset_session *session, struct nlattr *nla[])
+ {
+ 	const char *setname;
+-	struct ipset_data *data = session->data;
++	const struct ipset_data *data = session->data;
+ 	
+ 	if (!nla[IPSET_ATTR_SETNAME])
+ 		FAILURE("Broken HEADER kernel message: missing setname!");
+@@ -1047,7 +1047,7 @@ callback_header(struct ipset_session *session, struct nlattr *nla[])
+ static int
+ callback_type(struct ipset_session *session, struct nlattr *nla[])
+ {
+-	struct ipset_data *data = session->data;
++	const struct ipset_data *data = session->data;
+ 	const char *typename, *orig;
+ 	
+ 	if (!(nla[IPSET_ATTR_TYPENAME]
+diff --git a/lib/types.c b/lib/types.c
+index d979c24..1bd4274 100644
+--- a/lib/types.c
++++ b/lib/types.c
+@@ -393,7 +393,7 @@ ipset_type_get(struct ipset_session *session, enum ipset_cmd cmd)
+ const struct ipset_type *
+ ipset_type_check(struct ipset_session *session)
+ {
+-	struct ipset_type *t, *match = NULL;
++	const struct ipset_type *t, *match = NULL;
+ 	struct ipset_data *data;
+ 	const char *typename;
+ 	uint8_t family, revision;
 -- 
 1.7.1
 
