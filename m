@@ -1,44 +1,49 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH] include: add missing unistd.h
-Date: Mon, 20 Dec 2010 01:44:43 +0100
-Message-ID: <1292805884-27782-2-git-send-email-jengelh@medozas.de>
-References: <1292805884-27782-1-git-send-email-jengelh@medozas.de>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: ipset-5: buncha patches
+Date: Mon, 20 Dec 2010 13:16:06 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1012201315330.13904@blackhole.kfki.hu>
+References: <1292735894-17534-1-git-send-email-jengelh@medozas.de>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:59276 "EHLO borg.medozas.de"
+Received: from smtp1.kfki.hu ([148.6.0.26]:59407 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751969Ab0LTAor (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 19 Dec 2010 19:44:47 -0500
-In-Reply-To: <1292805884-27782-1-git-send-email-jengelh@medozas.de>
+	id S1757021Ab0LTMQI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 20 Dec 2010 07:16:08 -0500
+In-Reply-To: <1292735894-17534-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When a project uses MNL_SOCKET_BUFFER_SIZE without having included
-unistd.h, it gets:
+On Sun, 19 Dec 2010, Jan Engelhardt wrote:
 
-mystuff.c:36:2: warning: implicit declaration of function "getpagesize"
+> The following changes since commit 06366c172c487b3038b52e8fe640747b4092a544:
+> 
+>   Prevent calling Makefile directly in the kernel/ subdirectory (2010-12-19 00:56:03 +0100)
+> 
+> are available in the git repository at:
+>   git://dev.medozas.de/ipset master
+> 
+> Jan Engelhardt (11):
+>       build: enable parallel building
+>       xt_set: avoid user types in exported kernel headers
+>       kernel: do not mix const and __read_mostly
+>       kernel: use __read_mostly for registration-type structures
+>       kernel: const annotations
+>       kernel: use EXPORT_SYMBOL_GPL  (suggesting)
+>       libipset: ipset_strncpy is really a strlcpy-type operation
+>       libipset: remove redundant indirection via union name
+>       libipset: remove redundant casts
+>       libipset: const annotations
+>       libipset: static annotations
 
-It is libmnl's job to include this, since mystuff.c did not use
-getpagesize anywhere.
+Pulled and pushed, thanks!
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- include/libmnl/libmnl.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/include/libmnl/libmnl.h b/include/libmnl/libmnl.h
-index 78fd0c4..3e69629 100644
---- a/include/libmnl/libmnl.h
-+++ b/include/libmnl/libmnl.h
-@@ -9,6 +9,7 @@
- #	include <stdio.h>
- #	include <stdint.h>
- #endif
-+#include <unistd.h>
- #include <sys/socket.h> /* for sa_family_t */
- #include <linux/netlink.h>
- 
--- 
-1.7.1
-
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
