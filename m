@@ -1,45 +1,55 @@
-From: "Rob Sterenborg (lists)" <lists@sterenborg.info>
-Subject: Re: [ANNOUNCE] ipset-5.0 released
-Date: Sun, 19 Dec 2010 19:23:32 +0100
-Message-ID: <1292783012.2321.24.camel@kushiel.sterenborg.info>
-References: <alpine.DEB.2.00.1012172259100.10231@blackhole.kfki.hu>
-	 <1292657351.2371.73.camel@kushiel.sterenborg.info>
-	 <alpine.DEB.2.00.1012181149560.11002@blackhole.kfki.hu>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: mnl: getpagesize
+Date: Mon, 20 Dec 2010 01:44:42 +0100
+Message-ID: <1292805884-27782-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from firehole.xs4all.nl ([82.95.248.56]:38312 "EHLO
-	smtp.sterenborg.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932242Ab0LSSX5 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 19 Dec 2010 13:23:57 -0500
-In-Reply-To: <alpine.DEB.2.00.1012181149560.11002@blackhole.kfki.hu>
+Received: from borg.medozas.de ([188.40.89.202]:59272 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751750Ab0LTAor (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 19 Dec 2010 19:44:47 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 2010-12-18 at 12:13 +0100, Jozsef Kadlecsik wrote:
-> Hi Rob,
 
-[...]
+Hi Pablo,
 
-> Your kernel header files at the default location is not recent enough.
+here is a patch for a compile error about missing getpagesize.
 
-That's entirely possible and I suppose it's the same pitfall I fell in
-when compiling libmnl. :-/ I installed kernel 2.6.36.2 but didn't copy
-it's header files into /usr/include, where ipset would pick them up.
-Since I have no intention to go back to 2.6.18, I'm going to copy the
-header files and try everything again to see what happens.
+I also have this now:
+mystuff.c:36:7: error: variably modified =E2=80=98buf=E2=80=99 at file =
+scope
 
-> I'm undecided yet how to solve it: maybe it should be checked by configure 
-> and fail immediately.
+This is due to
 
-I suppose you shouldn't do anything (yet?) because of the above.
+struct def {
+	char buf[MNL_SOCKET_BUFFER_SIZE];
+};
 
-
-Thanks,
-Rob
+This worked before mnl started using getpagesize :-/
 
 
+
+The following changes since commit 093044ed01a91541c46ba9cc987fae5e9071=
+32b1:
+
+  doc: add new website at netfilter.org to doxygen (2010-12-17 15:45:00=
+ +0100)
+
+are available in the git repository at:
+  git://dev.medozas.de/libmnl master
+
+Jan Engelhardt (1):
+      include: add missing unistd.h
+
+ include/libmnl/libmnl.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
