@@ -1,89 +1,159 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH v4 net-next-2.6] netfilter: x_tables: dont block BH
- while reading counters
-Date: Mon, 20 Dec 2010 15:45:46 +0100
-Message-ID: <1292856346.2800.54.camel@edumazet-laptop>
-References: <1292337974.9155.68.camel@firesoul.comx.local>
-	 <1292340702.5934.5.camel@edumazet-laptop>
-	 <1292342958.9155.91.camel@firesoul.comx.local>
-	 <1292343855.5934.27.camel@edumazet-laptop>
-	 <1292508266.31289.12.camel@firesoul.comx.local>
-	 <1292508733.2883.152.camel@edumazet-laptop>
-	 <1292509489.31289.20.camel@firesoul.comx.local>
-	 <1292509775.2883.187.camel@edumazet-laptop>
-	 <1292511761.2883.236.camel@edumazet-laptop>
-	 <1292515625.2883.336.camel@edumazet-laptop>
-	 <1292518436.2883.393.camel@edumazet-laptop>
-	 <20101216093149.71f082c7@nehalam>
-	 <1292521986.2883.472.camel@edumazet-laptop>
-	 <1292646579.7894.42.camel@edumazet-laptop>
-	 <1292852541.31289.75.camel@firesoul.comx.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>,
-	Stephen Hemminger <shemminger@vyatta.com>
-To: Jesper Dangaard Brouer <hawk@comx.dk>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2] netfilter: ebt_ip6: allow matching on ipv6-icmp types/codes
+Date: Mon, 20 Dec 2010 15:57:47 +0100
+Message-ID: <1292857067-1595-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:56034 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932314Ab0LTOpv (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:40665 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757794Ab0LTPCf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Dec 2010 09:45:51 -0500
-In-Reply-To: <1292852541.31289.75.camel@firesoul.comx.local>
+	Mon, 20 Dec 2010 10:02:35 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le lundi 20 d=C3=A9cembre 2010 =C3=A0 14:42 +0100, Jesper Dangaard Brou=
-er a
-=C3=A9crit :
-> I have tested the patch on 2.6.35.  Which implies I also needed to
-> cherry-pick 870f67dcf7ef, which implements the vzalloc() call. (Lates=
-t
-> net-next has a problem with my HP CCISS driver/controller or the PCI
-> layout, and will not boot)
->=20
+To avoid adding a new match revision icmp type/code are stored
+in the sport/dport area.
 
-Ah wait, you need to switch from cciss to hpsa driver, I hit same
-problem some weeks ago ;) (and eventually rename your partitions
-to /dev/sdaX instead of /dev/cciss/c0d0pX)
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Reviewed-by: Holger Eitzenberger <holger@eitzenberger.org>
+---
+ Changes since v1:
+  - use u16 where appropriate
+  - use proper () in if condition
+  - renamed _ports to _pkthdr
+  - add comment that sizeof(_pktheader) is also ok in ICMP6 case.
 
+ include/linux/netfilter_bridge/ebt_ip6.h |   15 ++++++++--
+ net/bridge/netfilter/ebt_ip6.c           |   46 ++++++++++++++++++++++--------
+ 2 files changed, 46 insertions(+), 15 deletions(-)
 
-> According to the function_graph trace, the execution time of
-> get_counters() has increased (approx) from 109 ms to 120 ms, which is
-> the expected result.
->=20
-> The results are not all positive, but I think its related to the
-> debugging options I have enabled.
->=20
-> Because I now see packet drops if my 1Gbit/s pktgen script are sendin=
-g
-> packet with a packet size below 512 bytes, which is "only" approx 230
-> kpps (this is 1Gbit/s on my 10G labsetup where I have seen 5 Mpps).
->=20
+diff --git a/include/linux/netfilter_bridge/ebt_ip6.h b/include/linux/netfilter_bridge/ebt_ip6.h
+index e5de987..22af18a 100644
+--- a/include/linux/netfilter_bridge/ebt_ip6.h
++++ b/include/linux/netfilter_bridge/ebt_ip6.h
+@@ -18,8 +18,11 @@
+ #define EBT_IP6_PROTO 0x08
+ #define EBT_IP6_SPORT 0x10
+ #define EBT_IP6_DPORT 0x20
++#define EBT_IP6_ICMP6 0x40
++
+ #define EBT_IP6_MASK (EBT_IP6_SOURCE | EBT_IP6_DEST | EBT_IP6_TCLASS |\
+-		      EBT_IP6_PROTO | EBT_IP6_SPORT | EBT_IP6_DPORT)
++		      EBT_IP6_PROTO | EBT_IP6_SPORT | EBT_IP6_DPORT | \
++		      EBT_IP6_ICMP6)
+ #define EBT_IP6_MATCH "ip6"
+ 
+ /* the same values are used for the invflags */
+@@ -32,8 +35,14 @@ struct ebt_ip6_info {
+ 	uint8_t  protocol;
+ 	uint8_t  bitmask;
+ 	uint8_t  invflags;
+-	uint16_t sport[2];
+-	uint16_t dport[2];
++	union {
++		uint16_t sport[2];
++		uint8_t icmpv6_type[2];
++	};
++	union {
++		uint16_t dport[2];
++		uint8_t icmpv6_code[2];
++	};
+ };
+ 
+ #endif
+diff --git a/net/bridge/netfilter/ebt_ip6.c b/net/bridge/netfilter/ebt_ip6.c
+index 50a46af..2ed0056 100644
+--- a/net/bridge/netfilter/ebt_ip6.c
++++ b/net/bridge/netfilter/ebt_ip6.c
+@@ -22,9 +22,15 @@
+ #include <linux/netfilter_bridge/ebtables.h>
+ #include <linux/netfilter_bridge/ebt_ip6.h>
+ 
+-struct tcpudphdr {
+-	__be16 src;
+-	__be16 dst;
++union pkthdr {
++	struct {
++		__be16 src;
++		__be16 dst;
++	} tcpudphdr;
++	struct {
++		u8 type;
++		u8 code;
++	} icmphdr;
+ };
+ 
+ static bool
+@@ -33,8 +39,8 @@ ebt_ip6_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	const struct ebt_ip6_info *info = par->matchinfo;
+ 	const struct ipv6hdr *ih6;
+ 	struct ipv6hdr _ip6h;
+-	const struct tcpudphdr *pptr;
+-	struct tcpudphdr _ports;
++	const union pkthdr *pptr;
++	union pkthdr _pkthdr;
+ 
+ 	ih6 = skb_header_pointer(skb, 0, sizeof(_ip6h), &_ip6h);
+ 	if (ih6 == NULL)
+@@ -56,26 +62,34 @@ ebt_ip6_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 			return false;
+ 		if (FWINV(info->protocol != nexthdr, EBT_IP6_PROTO))
+ 			return false;
+-		if (!(info->bitmask & EBT_IP6_DPORT) &&
+-		    !(info->bitmask & EBT_IP6_SPORT))
++		if (!(info->bitmask & ( EBT_IP6_DPORT |
++					EBT_IP6_SPORT | EBT_IP6_ICMP6)))
+ 			return true;
+-		pptr = skb_header_pointer(skb, offset_ph, sizeof(_ports),
+-					  &_ports);
++
++		/* min icmpv6 headersize is 4, so sizeof(_pkthdr) is ok. */
++		pptr = skb_header_pointer(skb, offset_ph, sizeof(_pkthdr),
++					  &_pkthdr);
+ 		if (pptr == NULL)
+ 			return false;
+ 		if (info->bitmask & EBT_IP6_DPORT) {
+-			u32 dst = ntohs(pptr->dst);
++			u16 dst = ntohs(pptr->tcpudphdr.dst);
+ 			if (FWINV(dst < info->dport[0] ||
+ 				  dst > info->dport[1], EBT_IP6_DPORT))
+ 				return false;
+ 		}
+ 		if (info->bitmask & EBT_IP6_SPORT) {
+-			u32 src = ntohs(pptr->src);
++			u16 src = ntohs(pptr->tcpudphdr.src);
+ 			if (FWINV(src < info->sport[0] ||
+ 				  src > info->sport[1], EBT_IP6_SPORT))
+ 			return false;
+ 		}
+-		return true;
++		if ((info->bitmask & EBT_IP6_ICMP6) &&
++		     FWINV(pptr->icmphdr.type < info->icmpv6_type[0] ||
++			   pptr->icmphdr.type > info->icmpv6_type[1] ||
++			   pptr->icmphdr.code < info->icmpv6_code[0] ||
++			   pptr->icmphdr.code > info->icmpv6_code[1],
++							EBT_IP6_ICMP6))
++			return false;
+ 	}
+ 	return true;
+ }
+@@ -103,6 +117,14 @@ static int ebt_ip6_mt_check(const struct xt_mtchk_param *par)
+ 		return -EINVAL;
+ 	if (info->bitmask & EBT_IP6_SPORT && info->sport[0] > info->sport[1])
+ 		return -EINVAL;
++	if (info->bitmask & EBT_IP6_ICMP6) {
++		if ((info->invflags & EBT_IP6_PROTO) ||
++		     info->protocol != IPPROTO_ICMPV6)
++			return -EINVAL;
++		if (info->icmpv6_type[0] > info->icmpv6_type[1] ||
++		    info->icmpv6_code[0] > info->icmpv6_code[1])
++			return -EINVAL;
++	}
+ 	return 0;
+ }
+ 
+-- 
+1.7.2.2
 
-
-
-> There is no packet overruns/drops, iif I run "iptables -vnL >
-> /dev/null" without tracing enabled and only 1Gbit/s pktgen at 512
-> bytes packets.  If I enable tracing while calling iptables I see
-> packet drops/overruns.  So I guess this is caused by the tracing
-> overhead.
-
-yes, probably :)
-
->=20
-> I'll try to rerun my test without all the lock debugging options
-> enabled.
->=20
-
-Thanks !
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
