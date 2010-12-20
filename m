@@ -1,8 +1,8 @@
-From: Jesper Dangaard Brouer <hawk@comx.dk>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: [PATCH v4 net-next-2.6] netfilter: x_tables: dont block BH
  while reading counters
-Date: Mon, 20 Dec 2010 14:42:21 +0100
-Message-ID: <1292852541.31289.75.camel@firesoul.comx.local>
+Date: Mon, 20 Dec 2010 15:45:46 +0100
+Message-ID: <1292856346.2800.54.camel@edumazet-laptop>
 References: <1292337974.9155.68.camel@firesoul.comx.local>
 	 <1292340702.5934.5.camel@edumazet-laptop>
 	 <1292342958.9155.91.camel@firesoul.comx.local>
@@ -17,69 +17,73 @@ References: <1292337974.9155.68.camel@firesoul.comx.local>
 	 <20101216093149.71f082c7@nehalam>
 	 <1292521986.2883.472.camel@edumazet-laptop>
 	 <1292646579.7894.42.camel@edumazet-laptop>
+	 <1292852541.31289.75.camel@firesoul.comx.local>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Patrick McHardy <kaber@trash.net>,
 	netfilter-devel <netfilter-devel@vger.kernel.org>,
 	netdev <netdev@vger.kernel.org>,
 	Stephen Hemminger <shemminger@vyatta.com>
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1292646579.7894.42.camel@edumazet-laptop>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Jesper Dangaard Brouer <hawk@comx.dk>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:56034 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932314Ab0LTOpv (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 20 Dec 2010 09:45:51 -0500
+In-Reply-To: <1292852541.31289.75.camel@firesoul.comx.local>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+Le lundi 20 d=C3=A9cembre 2010 =C3=A0 14:42 +0100, Jesper Dangaard Brou=
+er a
+=C3=A9crit :
+> I have tested the patch on 2.6.35.  Which implies I also needed to
+> cherry-pick 870f67dcf7ef, which implements the vzalloc() call. (Lates=
+t
+> net-next has a problem with my HP CCISS driver/controller or the PCI
+> layout, and will not boot)
+>=20
+
+Ah wait, you need to switch from cciss to hpsa driver, I hit same
+problem some weeks ago ;) (and eventually rename your partitions
+to /dev/sdaX instead of /dev/cciss/c0d0pX)
 
 
-I have tested the patch on 2.6.35.  Which implies I also needed to
-cherry-pick 870f67dcf7ef, which implements the vzalloc() call. (Latest
-net-next has a problem with my HP CCISS driver/controller or the PCI
-layout, and will not boot)
-
-According to the function_graph trace, the execution time of
-get_counters() has increased (approx) from 109 ms to 120 ms, which is
-the expected result.
-
-The results are not all positive, but I think its related to the
-debugging options I have enabled.
-
-Because I now see packet drops if my 1Gbit/s pktgen script are sending
-packet with a packet size below 512 bytes, which is "only" approx 230
-kpps (this is 1Gbit/s on my 10G labsetup where I have seen 5 Mpps).
-
-There is no packet overruns/drops, iif I run "iptables -vnL >
-/dev/null" without tracing enabled and only 1Gbit/s pktgen at 512
-bytes packets.  If I enable tracing while calling iptables I see
-packet drops/overruns.  So I guess this is caused by the tracing
-overhead.
-
-I'll try to rerun my test without all the lock debugging options
-enabled.
-
--- 
-Med venlig hilsen / Best regards
-  Jesper Brouer
-  ComX Networks A/S
-  Linux Network Kernel Developer
-  Cand. Scient Datalog / MSc.CS
-  Author of http://adsl-optimizer.dk
-  LinkedIn: http://www.linkedin.com/in/brouer
+> According to the function_graph trace, the execution time of
+> get_counters() has increased (approx) from 109 ms to 120 ms, which is
+> the expected result.
+>=20
+> The results are not all positive, but I think its related to the
+> debugging options I have enabled.
+>=20
+> Because I now see packet drops if my 1Gbit/s pktgen script are sendin=
+g
+> packet with a packet size below 512 bytes, which is "only" approx 230
+> kpps (this is 1Gbit/s on my 10G labsetup where I have seen 5 Mpps).
+>=20
 
 
-On Sat, 2010-12-18 at 05:29 +0100, Eric Dumazet wrote:
-> Using "iptables -L" with a lot of rules have a too big BH latency.
-> Jesper mentioned ~6 ms and worried of frame drops.
-> 
-> Switch to a per_cpu seqlock scheme, so that taking a snapshot of
-> counters doesnt need to block BH (for this cpu, but also other cpus).
-> 
-> This adds two increments on seqlock sequence per ipt_do_table() call,
-> its a reasonable cost for allowing "iptables -L" not block BH
-> processing.
-> 
-> Reported-by: Jesper Dangaard Brouer <hawk@comx.dk>
-> Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-> Acked-by: Stephen Hemminger <shemminger@vyatta.com>
-> ---
+
+> There is no packet overruns/drops, iif I run "iptables -vnL >
+> /dev/null" without tracing enabled and only 1Gbit/s pktgen at 512
+> bytes packets.  If I enable tracing while calling iptables I see
+> packet drops/overruns.  So I guess this is caused by the tracing
+> overhead.
+
+yes, probably :)
+
+>=20
+> I'll try to rerun my test without all the lock debugging options
+> enabled.
+>=20
+
+Thanks !
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
