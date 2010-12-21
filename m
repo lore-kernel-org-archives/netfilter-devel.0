@@ -1,84 +1,23 @@
-From: Jesper Dangaard Brouer <hawk@comx.dk>
-Subject: Re: [PATCH v4 net-next-2.6] netfilter: x_tables: dont block BH
- while reading counters
-Date: Tue, 21 Dec 2010 17:48:50 +0100
-Message-ID: <1292950130.31289.85.camel@firesoul.comx.local>
-References: <1292337974.9155.68.camel@firesoul.comx.local>
-	 <1292340702.5934.5.camel@edumazet-laptop>
-	 <1292342958.9155.91.camel@firesoul.comx.local>
-	 <1292343855.5934.27.camel@edumazet-laptop>
-	 <1292508266.31289.12.camel@firesoul.comx.local>
-	 <1292508733.2883.152.camel@edumazet-laptop>
-	 <1292509489.31289.20.camel@firesoul.comx.local>
-	 <1292509775.2883.187.camel@edumazet-laptop>
-	 <1292511761.2883.236.camel@edumazet-laptop>
-	 <1292515625.2883.336.camel@edumazet-laptop>
-	 <1292518436.2883.393.camel@edumazet-laptop>
-	 <20101216093149.71f082c7@nehalam>
-	 <1292521986.2883.472.camel@edumazet-laptop>
-	 <1292646579.7894.42.camel@edumazet-laptop>
-	 <1292852541.31289.75.camel@firesoul.comx.local>
-	 <1292856346.2800.54.camel@edumazet-laptop>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: libnetfilter_conntrack: misc annotations
+Date: Tue, 21 Dec 2010 20:28:40 +0100
+Message-ID: <4D10FFE8.5090103@netfilter.org>
+References: <1292703371-15946-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>,
-	Stephen Hemminger <shemminger@vyatta.com>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lanfw001a.cxnet.dk ([87.72.215.196]:59562 "EHLO
-	lanfw001a.cxnet.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750936Ab0LUQsw (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Dec 2010 11:48:52 -0500
-In-Reply-To: <1292856346.2800.54.camel@edumazet-laptop>
+Received: from mail.us.es ([193.147.175.20]:40941 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751240Ab0LUT2t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Dec 2010 14:28:49 -0500
+In-Reply-To: <1292703371-15946-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 2010-12-20 at 15:45 +0100, Eric Dumazet wrote:
-...
-> > There is no packet overruns/drops, iif I run "iptables -vnL >
-> > /dev/null" without tracing enabled and only 1Gbit/s pktgen at 512
-> > bytes packets.  If I enable tracing while calling iptables I see
-> > packet drops/overruns.  So I guess this is caused by the tracing
-> > overhead.
-> 
-> yes, probably :)
-> 
-> > 
-> > I'll try to rerun my test without all the lock debugging options
-> > enabled.
+On 18/12/10 21:16, Jan Engelhardt wrote:
+> git://dev.medozas.de/libnetfilter_conntrack master
 
-Results are much better without the kernel debugging options enabled.
-I took the .config from production and enabled tracer "function_graph".
-And applied your patches (plus vzalloc) on top of 2.6.36-stable tree.
-
-I can now hit the system with a pktgen at 128 bytes, and see no
-drops/overruns while running iptables.  (This packet load at 128bytes
-is 822 kpps and 840Mbit/s) (iptables ruleset is the big chains: 20929
-rules: 81239).
-
-If I reduce the ftrace filter to only track get_counters, I can even
-run a trace without any drops.
-
- echo get_counters >  /sys/kernel/debug/tracing/set_ftrace_filter
-
-Some trace funny stats on get_counters(), under the packet storm.
-When running iptables on a CPU not processing packets (via taskset),
-the execution time is increased to 124ms.  If I force iptables to run
-on a CPU processing packets, the execution time is increased to
-1308ms, which is large but the expected behavior.
-
-Acked-by: Jesper Dangaard Brouer <hawk@comx.dk>
-
--- 
-Med venlig hilsen / Best regards
-  Jesper Brouer
-  ComX Networks A/S
-  Linux Network Kernel Developer
-  Cand. Scient Datalog / MSc.CS
-  Author of http://adsl-optimizer.dk
-  LinkedIn: http://www.linkedin.com/in/brouer
-
+pulled and pushed out, thanks Jan.
