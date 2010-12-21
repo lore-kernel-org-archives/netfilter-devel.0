@@ -1,41 +1,61 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [PATCH v2] netfilter: ebt_ip6: allow matching on ipv6-icmp types/codes
-Date: Mon, 20 Dec 2010 19:17:03 +0100
-Message-ID: <4D0F9D9F.7090608@pandora.be>
-References: <1292857067-1595-1-git-send-email-fw@strlen.de>
+From: Peter Volkov <pva@gentoo.org>
+Subject: [Fwd: [iptables]fix a typo]
+Date: Tue, 21 Dec 2010 12:44:58 +0300
+Message-ID: <1292924699.18804.19.camel@tablet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Li Yewang <lyw@cn.fujitsu.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from jacques.telenet-ops.be ([195.130.132.50]:37148 "EHLO
-	jacques.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932618Ab0LTSRH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Dec 2010 13:17:07 -0500
-In-Reply-To: <1292857067-1595-1-git-send-email-fw@strlen.de>
+Received: from smtp.gentoo.org ([140.211.166.183]:51993 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933661Ab0LUJp3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Dec 2010 04:45:29 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Op 20/12/2010 15:57, Florian Westphal schreef:
-> To avoid adding a new match revision icmp type/code are stored
-> in the sport/dport area.
->
-> Signed-off-by: Florian Westphal<fw@strlen.de>
-> Reviewed-by: Holger Eitzenberger<holger@eitzenberger.org>
-> ---
->   Changes since v1:
->    - use u16 where appropriate
->    - use proper () in if condition
->    - renamed _ports to _pkthdr
->    - add comment that sizeof(_pktheader) is also ok in ICMP6 case.
->
->   include/linux/netfilter_bridge/ebt_ip6.h |   15 ++++++++--
->   net/bridge/netfilter/ebt_ip6.c           |   46 ++++++++++++++++++++++--------
->   2 files changed, 46 insertions(+), 15 deletions(-)
->
-OK for me.
+Hi guys, this patch looks correct to me. Could somebody apply it?
 
-Reviewed-by: Bart De Schuymer<bdschuym@pandora.be>
+--
+Peter.
 
+-------- =D0=9F=D0=B5=D1=80=D0=B5=D1=81=D1=8B=D0=BB=D0=B0=D0=B5=D0=BC=D0=
+=BE=D0=B5 =D1=81=D0=BE=D0=BE=D0=B1=D1=89=D0=B5=D0=BD=D0=B8=D0=B5 ------=
+--
+=D0=9E=D1=82: Li Yewang <lyw@cn.fujitsu.com>
+=D0=9A=D0=BE=D0=BC=D1=83: netfilter-devel@vger.kernel.org
+=D0=A2=D0=B5=D0=BC=D0=B0: [iptables]fix a typo
+=D0=94=D0=B0=D1=82=D0=B0: 	Wed, 04 Aug 2010 13:22:21 +0800
+
+=46ix a typo.
+
+
+Signed-off-by: Li Yewang <lyw@cn.fujitsu.com>
+
+---
+  xtables.c |    2 +-
+  1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/xtables.c b/xtables.c
+index ed082f3..31fd8f9 100644
+--- a/xtables.c
++++ b/xtables.c
+@@ -734,7 +734,7 @@ void xtables_register_match(struct xtables_match *m=
+e)
+  	}
+
+  	if (strlen(me->name) >=3D XT_EXTENSION_MAXNAMELEN) {
+-		fprintf(stderr, "%s: target `%s' has invalid name\n",
++		fprintf(stderr, "%s: match `%s' has invalid name\n",
+  			xt_params->program_name, me->name);
+  		exit(1);
+  	}
+--=20
+1.5.5.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
