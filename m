@@ -1,61 +1,78 @@
-From: Peter Volkov <pva@gentoo.org>
-Subject: [Fwd: [iptables]fix a typo]
-Date: Tue, 21 Dec 2010 12:44:58 +0300
-Message-ID: <1292924699.18804.19.camel@tablet>
+From: "Rob Sterenborg (lists)" <lists@sterenborg.info>
+Subject: Re: [ANNOUNCE] ipset-5.0 released
+Date: Tue, 21 Dec 2010 12:14:14 +0100
+Message-ID: <1292930054.3313.15.camel@ns014530.dcyb.net>
+References: <alpine.DEB.2.00.1012172259100.10231@blackhole.kfki.hu>
+	 <1292657351.2371.73.camel@kushiel.sterenborg.info>
+	 <alpine.DEB.2.00.1012181149560.11002@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Li Yewang <lyw@cn.fujitsu.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:51993 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933661Ab0LUJp3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Dec 2010 04:45:29 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1012181149560.11002@blackhole.kfki.hu>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi guys, this patch looks correct to me. Could somebody apply it?
+On Sat, 2010-12-18 at 12:13 +0100, Jozsef Kadlecsik wrote:
 
---
-Peter.
+Hi Jozsef,
 
--------- =D0=9F=D0=B5=D1=80=D0=B5=D1=81=D1=8B=D0=BB=D0=B0=D0=B5=D0=BC=D0=
-=BE=D0=B5 =D1=81=D0=BE=D0=BE=D0=B1=D1=89=D0=B5=D0=BD=D0=B8=D0=B5 ------=
---
-=D0=9E=D1=82: Li Yewang <lyw@cn.fujitsu.com>
-=D0=9A=D0=BE=D0=BC=D1=83: netfilter-devel@vger.kernel.org
-=D0=A2=D0=B5=D0=BC=D0=B0: [iptables]fix a typo
-=D0=94=D0=B0=D1=82=D0=B0: 	Wed, 04 Aug 2010 13:22:21 +0800
+> > When running 'configure' I got this error:
+> > 
+> > ./configure: line 11510: syntax error near unexpected token `[libmnl],'
+> > ./configure: line 11510: `PKG_CHECK_MODULES([libmnl], [libmnl >= 1])'
+> > 
+> > CentOS' pkg-config is installed, so, for reference: I copied
+> > '/usr/share/aclocal/pkg.m4' into the 'm4' directory, ran 'autogen.sh'
+> > again and after that 'configure' had no problems.
+> 
+> Autoconf has its own pitfalls... I can't reproduce it so I added
+> 'aclocal -I m4' to autogen.sh. After checking out the git tree, could you 
+> give it a try whether it solves the issue?
 
-=46ix a typo.
+Call me stupid, but I couldn't figure out how to download the git branch
+using git (when I did, I downloaded the 4.5 tree), but I did see it on
+the web inferface. I downloaded today's snapshot from the git-5 branch;
+I hope that's the same. I still get the same error however.
+
+I've resolved the other issues I had: I should have thought of
+installing the accompanying kernel header files.
+
+> > Finally, when trying the new ipset it seems that except for 'version',
+> > every command I tried returns 'Invalid argument':
+> > 
+> > (Yes I know this is incorrect syntax, but now I know it's trying to do
+> > something besides giving me 'Invalid argument'.)
+> > # ipset create TEST hash   
+> > ipset v5.0: Syntax error: typename 'hash' is unkown
+> > 
+> > (As per ipset.8 example.)
+> > # ipset create foo bitmap:ip range 192.168.0.0/16
+> > ipset v5.0: Kernel error received: Invalid argument
+> > 
+> > # ipset list               
+> > ipset v5.0: Kernel error received: Invalid argument
+> > 
+> > # lsmod|grep set
+> > ip_set                 16790  0 
+> > nfnetlink               3179  2 ip_set,nf_conntrack_netlink
+> > 
+> > So, I guess something must have gone wrong when compiling ipset anyhow.
+> 
+> Please read the README file: you must patch your kernel source with 
+> netlink.patch, compile and install it. Otherwise the new nfnetlink id 
+> won't handled by the kernel and thus ipset can't work.
+
+I did this. The patch succeeded and compilation went, except for pkg.m4
+which is easily resolved, without errors that I can see. I still get the
+above results however.
+
+> Thanks for tests and the reporting!
+
+NP. Thank you..
 
 
-Signed-off-by: Li Yewang <lyw@cn.fujitsu.com>
+Rob
 
----
-  xtables.c |    2 +-
-  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/xtables.c b/xtables.c
-index ed082f3..31fd8f9 100644
---- a/xtables.c
-+++ b/xtables.c
-@@ -734,7 +734,7 @@ void xtables_register_match(struct xtables_match *m=
-e)
-  	}
-
-  	if (strlen(me->name) >=3D XT_EXTENSION_MAXNAMELEN) {
--		fprintf(stderr, "%s: target `%s' has invalid name\n",
-+		fprintf(stderr, "%s: match `%s' has invalid name\n",
-  			xt_params->program_name, me->name);
-  		exit(1);
-  	}
---=20
-1.5.5.1
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
