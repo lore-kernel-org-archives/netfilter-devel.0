@@ -1,23 +1,36 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: libnetfilter_conntrack: misc annotations
-Date: Tue, 21 Dec 2010 20:28:40 +0100
-Message-ID: <4D10FFE8.5090103@netfilter.org>
-References: <1292703371-15946-1-git-send-email-jengelh@medozas.de>
+Subject: Re: libnfnetlink: cast removal
+Date: Tue, 21 Dec 2010 20:38:31 +0100
+Message-ID: <4D110237.4080905@netfilter.org>
+References: <1292703537-16532-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40941 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:56073 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751240Ab0LUT2t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Dec 2010 14:28:49 -0500
-In-Reply-To: <1292703371-15946-1-git-send-email-jengelh@medozas.de>
+	id S1752921Ab0LUTih (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Dec 2010 14:38:37 -0500
+In-Reply-To: <1292703537-16532-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 18/12/10 21:16, Jan Engelhardt wrote:
-> git://dev.medozas.de/libnetfilter_conntrack master
+On 18/12/10 21:18, Jan Engelhardt wrote:
+> The following changes since commit ac19c1954c3d8505c1612b219f71d7c86cc7fb13:
+> 
+>   Remove distro-specific parts (2010-11-05 18:31:30 +0100)
+> 
+> are available in the git repository at:
+>   git://dev.medozas.de/libnfnetlink master
+> 
+> Jan Engelhardt (1):
+>       src: remove redundant casts
+> 
+>  src/iftable.c      |    4 ++--
+>  src/libnfnetlink.c |   27 +++++++++++++--------------
+>  src/rtnl.c         |   12 ++++++------
+>  3 files changed, 21 insertions(+), 22 deletions(-)
 
-pulled and pushed out, thanks Jan.
+pulled and pushed out, thanks jan!
