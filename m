@@ -1,79 +1,88 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [ANNOUNCE] ipset-5.0 released
-Date: Tue, 21 Dec 2010 15:03:08 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1012211457020.15662@blackhole.kfki.hu>
-References: <alpine.DEB.2.00.1012172259100.10231@blackhole.kfki.hu>  <1292657351.2371.73.camel@kushiel.sterenborg.info>  <alpine.DEB.2.00.1012181149560.11002@blackhole.kfki.hu> <1292930054.3313.15.camel@ns014530.dcyb.net>
+From: Jesper Dangaard Brouer <hawk@diku.dk>
+Subject: Re: IPTV buffering
+Date: Tue, 21 Dec 2010 17:24:23 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.1012211634330.21593@ask.diku.dk>
+References: <20101216111843.88E16F0C32AB5@borg.medozas.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: "Rob Sterenborg (lists)" <lists@sterenborg.info>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <1292930054.3313.15.camel@ns014530.dcyb.net>
-Sender: netfilter-owner@vger.kernel.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="-511516320-104410420-1292948663=:21593"
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20101216111843.88E16F0C32AB5@borg.medozas.de>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Rob,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Tue, 21 Dec 2010, Rob Sterenborg (lists) wrote:
+---511516320-104410420-1292948663=:21593
+Content-Type: TEXT/PLAIN; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: 8BIT
 
-> On Sat, 2010-12-18 at 12:13 +0100, Jozsef Kadlecsik wrote:
-> 
-> > > When running 'configure' I got this error:
-> > > 
-> > > ./configure: line 11510: syntax error near unexpected token `[libmnl],'
-> > > ./configure: line 11510: `PKG_CHECK_MODULES([libmnl], [libmnl >= 1])'
-> > > 
-> > > CentOS' pkg-config is installed, so, for reference: I copied
-> > > '/usr/share/aclocal/pkg.m4' into the 'm4' directory, ran 'autogen.sh'
-> > > again and after that 'configure' had no problems.
-> > 
-> > Autoconf has its own pitfalls... I can't reproduce it so I added
-> > 'aclocal -I m4' to autogen.sh. After checking out the git tree, could you 
-> > give it a try whether it solves the issue?
-> 
-> Call me stupid, but I couldn't figure out how to download the git branch
-> using git (when I did, I downloaded the 4.5 tree), but I did see it on
-> the web inferface. I downloaded today's snapshot from the git-5 branch;
-> I hope that's the same. I still get the same error however.
 
-Clone the git tree, then checkout the ipset-5 branch:
+On Thu, 16 Dec 2010, Jan Engelhardt wrote:
+> On Thursday 2010-12-16 10:57, Jesper Dangaard Brouer wrote:
+>
+>> [...] NetConf 2010, see:
+>>
+>> http://vger.kernel.org/netconf2010.html
+>
+> I just went over a few slide sets, and noticed Dave's Netfilter summary
+> about your IPTV talk, enlisting the point
+>
+> * Ethernet switches buffer too small
+>
+> ("too small".. "too few"?) Given the recent uproar about bufferbloat in
+> routing devices (see LWN coverage about Getty's articles), wanting
+> larger buffers seems to almost contradict what Getty would like.
 
-% git clone git://git.netfilter.org/ipset.git
-% cd ipset
-% git checkout ipset-5
+Always wanting small buffers doesn't make sense.  It seem that he is not 
+considering that network equipment can be used for other things than 
+TCP/IP.
 
-> > > # ipset create TEST hash   
-> > > ipset v5.0: Syntax error: typename 'hash' is unkown
-> > > 
-> > > (As per ipset.8 example.)
-> > > # ipset create foo bitmap:ip range 192.168.0.0/16
-> > > ipset v5.0: Kernel error received: Invalid argument
-> > > 
-> > > # ipset list               
-> > > ipset v5.0: Kernel error received: Invalid argument
-> > > 
-> > > # lsmod|grep set
-> > > ip_set                 16790  0 
-> > > nfnetlink               3179  2 ip_set,nf_conntrack_netlink
-> > > 
-> > > So, I guess something must have gone wrong when compiling ipset anyhow.
-> > 
-> > Please read the README file: you must patch your kernel source with 
-> > netlink.patch, compile and install it. Otherwise the new nfnetlink id 
-> > won't handled by the kernel and thus ipset can't work.
-> 
-> I did this. The patch succeeded and compilation went, except for pkg.m4
-> which is easily resolved, without errors that I can see. I still get the
-> above results however.
+What I want is a *smooth* IPTV multicast signal (which thus consumes 
+minimal buffer space), but because the streamers are bursting packets, I 
+want large enough buffers in the switch, to handle these bursts.
 
-I can think only that you still have the unpatched kernel binary running. 
-Please note, netlink cannot be compiled as module, it's in the core 
-kernel. So it's required to reboot using the patched kernel core.
+What I recommend (in the backbone) is to increase the buffer size in the 
+QoS queue, which is used for e.g. IPTV/multicast.  And have another queue 
+for the normal Internet traffic (because too large buffers can cause 
+issues).
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+
+> Though TV is usually delivered via UDP rather than TCP, some of the
+> protocols may too implement some sort of congestion recognition or
+> even avoidance technique ÿÿ IIRC realplayer had something that
+> adapted video quality based upon transfer rate.
+
+Our TV streamer send out a MULTICAST signal, thus there is NOT any
+congestion feedback...
+
+
+> Wanting more buffers vs. wanting less buffering seems to be quite
+> contradictory. Jesper, what is your take on this?
+
+Skimming through Getty's blog post, I think Getty has actually missed what 
+is happening.  He should read my masters thesis[1]... The real problem is 
+that TCP/IP is clocked by the ACK packets, and on asymetric links (like 
+ADSL and DOCSIS), the ACK packets are simply comming downstream too fast 
+on the larger downstream link, resulting in bursts and high-latency on the 
+upstream link.
+
+With the ADSL-optimizer I actually solved Gettys problem, but I guess the 
+real solution would be to implement a TCP algorithm which handels this 
+asymmtry, and e.g. isn't based on the ACK feedback...
+
+[1] http://www.adsl-optimizer.dk/thesis/
+
+Cheers,
+   Jesper Brouer
+
+--
+-------------------------------------------------------------------
+MSc. Master of Computer Science
+Dept. of Computer Science, University of Copenhagen
+Author of http://www.adsl-optimizer.dk
+-------------------------------------------------------------------
+---511516320-104410420-1292948663=:21593--
