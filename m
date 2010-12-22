@@ -1,47 +1,55 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipsets: examples?
-Date: Wed, 22 Dec 2010 11:45:03 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1012221125040.3482@blackhole.kfki.hu>
-References: <201012192237.43878.reuben.m@gmail.com> <alpine.DEB.2.00.1012201622001.14191@blackhole.kfki.hu> <201012201418.14281.reuben.m@gmail.com> <alpine.DEB.2.00.1012211032420.15250@blackhole.kfki.hu>
- <AANLkTi=9HYAAhbj4eauqzYm07OJeS+jmNVY=rtgad6Fd@mail.gmail.com>
+Subject: Re: [ANNOUNCE] ipset-5.0 released
+Date: Wed, 22 Dec 2010 11:59:15 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1012221146060.3482@blackhole.kfki.hu>
+References: <alpine.DEB.2.00.1012172259100.10231@blackhole.kfki.hu> <4D0CC3BB.8030801@googlemail.com> <alpine.DEB.2.00.1012182050280.11577@blackhole.kfki.hu> <4D0D2CF4.5070201@googlemail.com> <alpine.DEB.2.00.1012190105460.11753@blackhole.kfki.hu>
+ <4D0E0E2A.3090604@googlemail.com> <4D0E22A5.8090808@conversis.de> <4D0E3B34.7090105@googlemail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Reuben Martin <reuben.m@gmail.com>
+Cc: Dennis Jacobfeuerborn <dennisml@conversis.de>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: Mr Dash Four <mr.dash.four@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:45598 "EHLO smtp2.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:47093 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751475Ab0LVKpG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Dec 2010 05:45:06 -0500
-In-Reply-To: <AANLkTi=9HYAAhbj4eauqzYm07OJeS+jmNVY=rtgad6Fd@mail.gmail.com>
+	id S1751469Ab0LVK7Q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Dec 2010 05:59:16 -0500
+In-Reply-To: <4D0E3B34.7090105@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 21 Dec 2010, Reuben Martin wrote:
+On Sun, 19 Dec 2010, Mr Dash Four wrote:
 
-> I want to be able to do:
-> 
-> ... -j MY_TARGET --ipset foo
-> 
-> where MY_TARGET would iterate over the members of foo, and for each
-> member of foo the original packet is duplicated, the duplicate's
-> destination is changed to the address value of the member, checksums
-> recalculated, and sent on it's way.
-> 
-> My intent is to be able to take RTP media stream packets, and
-> transparently forward them to a dynamically changing group of
-> destination addresses.in a network where multicast is not an option.
-> I'm sure there might be other uses for it, but that's all I'm
-> concerned about at the moment.
+> > > Wouldn't you agree that this is a better solution than registering 
+> > > twice as many members in a particular set in order to get the match 
+> > > I need?
+> > 
+> > Given that ports are only meaningful in the context of a protocol I don't
+> > think that makes sense.
+> You are mistaken! I've never actually stated, nor implied, that protocols are
+> 'meaningless' when ports are specified or used - I stated that I am not
+> interested in *matching* the protocol as for me this part of the match is
+> irrelevant - there are plenty of examples where a particular service can
+> employ either tcp or udp protocol on the same port - see below for examples.
 
-I see. Sorry, it's not possible to use ipset for this purpose: there are 
-no iterators which'd return the members of a set (listing is not similar 
-or applicable). To design such an interface is not trivial. Maybe instead 
-of iterating, passing your function to ipset is more feasible: ipset would 
-call your function for every member of the given set.
+I could not come up with a good solution. It is not possible to avoid
+double lookup in the set if the elements may have (say hash:ip,port type 
+of set) the forms:
 
-(I Cc-ed netfilter-devel, because that's more appropriate list for such a 
-discussion.)
+ipaddr,tcp:port
+ipaddr,udp:port
+ipadd,tcpudp:port
+
+But if the double-lookup is required, then better add all tcp and udp port 
+variants and go with a single-lookup.
+
+Or if you have uniform ports for all elements, you can use two set 
+matches:
+
+ipset create hash:ip ipaddrs
+ipset create bitmap:port ports
+
+... -m set --match-set ipaddrs dst -m set --match-set ports dst ...
 
 Best regards,
 Jozsef
