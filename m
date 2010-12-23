@@ -1,22 +1,54 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: [ANNOUNCE] ipset-5.0 released
-Date: Thu, 23 Dec 2010 22:23:20 +0000
-Message-ID: <4D13CBD8.3090007@googlemail.com>
-References: <alpine.DEB.2.00.1012172259100.10231@blackhole.kfki.hu> <4D0CC3BB.8030801@googlemail.com> <alpine.DEB.2.00.1012182050280.11577@blackhole.kfki.hu> <4D0D2CF4.5070201@googlemail.com> <alpine.DEB.2.00.1012190105460.11753@blackhole.kfki.hu> <4D0E0E2A.3090604@googlemail.com> <4D0E22A5.8090808@conversis.de> <4D0E3B34.7090105@googlemail.com> <alpine.DEB.2.00.1012221146060.3482@blackhole.kfki.hu> <4D11F384.3070908@googlemail.com> <alpine.DEB.2.00.1012231558390.6044@blackhole.kfki.hu> <4D138C02.3050905@googlemail.com> <alpine.DEB.2.00.1012232008520.6582@blackhole.kfki.hu>
+From: Stephen Clark <sclark46@earthlink.net>
+Subject: Re: inconsistent address treatment.
+Date: Thu, 23 Dec 2010 17:45:19 -0500
+Message-ID: <4D13D0FF.1010900@earthlink.net>
+References: <4D1358C0.4060704@earthlink.net> <4D13A863.70600@plouf.fr.eu.org>
+Reply-To: sclark46@earthlink.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Dennis Jacobfeuerborn <dennisml@conversis.de>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1012232008520.6582@blackhole.kfki.hu>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from elasmtp-junco.atl.sa.earthlink.net ([209.86.89.63]:36081 "EHLO
+	elasmtp-junco.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751193Ab0LWWpV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Dec 2010 17:45:21 -0500
+In-Reply-To: <4D13A863.70600@plouf.fr.eu.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+On 12/23/2010 02:52 PM, Pascal Hambourg wrote:
+> Hello,
+>
+> Stephen Clark a =E9crit :
+>   =20
+>> Why the inconsistency in the way addresses are treated. I can use -d
+>> 2.2.2.2/32
+>>    but not --to-source 205.201.149.214/32
+>>     =20
+> Because -d takes a prefix and --to-source takes an address range.
+>   =20
+
+So? you can't parse
+
+205.201.149.214/32-205.201.149.218/32
 
 
-> The implementation behind ipset looks up the  (ipaddr, proto, port) triple 
-> in one step. Such packing don't work there.
->   
-If that's the case how do you lookup IP address and port ranges then?
+--=20
 
+"They that give up essential liberty to obtain temporary safety,
+deserve neither liberty nor safety."  (Ben Franklin)
+
+"The course of history shows that as a government grows, liberty
+decreases."  (Thomas Jefferson)
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
