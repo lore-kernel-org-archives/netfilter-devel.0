@@ -1,131 +1,161 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
 Subject: Re: [ANNOUNCE] ipset-5.0 released
-Date: Thu, 23 Dec 2010 16:39:53 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1012231558390.6044@blackhole.kfki.hu>
-References: <alpine.DEB.2.00.1012172259100.10231@blackhole.kfki.hu> <4D0CC3BB.8030801@googlemail.com> <alpine.DEB.2.00.1012182050280.11577@blackhole.kfki.hu> <4D0D2CF4.5070201@googlemail.com> <alpine.DEB.2.00.1012190105460.11753@blackhole.kfki.hu>
- <4D0E0E2A.3090604@googlemail.com> <4D0E22A5.8090808@conversis.de> <4D0E3B34.7090105@googlemail.com> <alpine.DEB.2.00.1012221146060.3482@blackhole.kfki.hu> <4D11F384.3070908@googlemail.com>
+Date: Thu, 23 Dec 2010 17:50:58 +0000
+Message-ID: <4D138C02.3050905@googlemail.com>
+References: <alpine.DEB.2.00.1012172259100.10231@blackhole.kfki.hu> <4D0CC3BB.8030801@googlemail.com> <alpine.DEB.2.00.1012182050280.11577@blackhole.kfki.hu> <4D0D2CF4.5070201@googlemail.com> <alpine.DEB.2.00.1012190105460.11753@blackhole.kfki.hu> <4D0E0E2A.3090604@googlemail.com> <4D0E22A5.8090808@conversis.de> <4D0E3B34.7090105@googlemail.com> <alpine.DEB.2.00.1012221146060.3482@blackhole.kfki.hu> <4D11F384.3070908@googlemail.com> <alpine.DEB.2.00.1012231558390.6044@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Dennis Jacobfeuerborn <dennisml@conversis.de>,
 	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: Mr Dash Four <mr.dash.four@googlemail.com>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <4D11F384.3070908@googlemail.com>
+In-Reply-To: <alpine.DEB.2.00.1012231558390.6044@blackhole.kfki.hu>
 Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 22 Dec 2010, Mr Dash Four wrote:
 
-> > I could not come up with a good solution. It is not possible to avoid
-> > double lookup in the set if the elements may have (say hash:ip,port type of
-> > set) the forms:
-> > 
-> > ipaddr,tcp:port
-> > ipaddr,udp:port
-> > ipadd,tcpudp:port
-> >   
-> I was thinking that you may interpret either the absence of the protocol
-> specification ('tcp', 'udp' and 'tcpudp' in your examples above) or the word
-> 'all' (even '*' though I don't know if that's possible) to mean that no
-> protocol match is necessary.
+> The algorithm does not allow to ignore the protocol part. That's the 
+> reason why double lookup would be needed if such syntactic sugar as 
+> 'tcpudp' were introduced. Lets assume we store in the artifical set above 
+> two elements:
+>
+> 192.168.0.1,tcpudp:53
+> 192.168.0.1,tcp:80
+>
+> Now, assuming that first 'tcpudp' is looked up, to match the first 
+> element, we need one lookup. To check the existence of the second element, 
+> we have to use two lookups: first with '192.168.0.1,tcpudp:80' (nomatch),
+> then with '192.168.0.1,tcp:80'. And to check the existence of any 
+> non-matching element (say 192.168.0.1,udp:123) needs again two lookups.
+>   
+Then your matching algorithm is wrong!
 
-The algorithm does not allow to ignore the protocol part. That's the 
-reason why double lookup would be needed if such syntactic sugar as 
-'tcpudp' were introduced. Lets assume we store in the artifical set above 
-two elements:
+Using your example above, I'd add the following change: the protocol 
+specifier could be converted (internally) to a number: 1 - tcp (1 in 
+binary form), 2 - udp (10 in binary form), 3 - 'tcp and udp' (11 in 
+binary form). When you need to match against a real protocol (which, if 
+I am not mistaken, can only be either tcp or udp), then you can use 
+binary 'and' operation (&) with one simple statement to determine 
+whether there is a match. Using your example above, we will have the 
+following (internal) representation:
 
-192.168.0.1,tcpudp:53
-192.168.0.1,tcp:80
+192.168.0.1,3,53
+192.168.0.1,1,80
 
-Now, assuming that first 'tcpudp' is looked up, to match the first 
-element, we need one lookup. To check the existence of the second element, 
-we have to use two lookups: first with '192.168.0.1,tcpudp:80' (nomatch),
-then with '192.168.0.1,tcp:80'. And to check the existence of any 
-non-matching element (say 192.168.0.1,udp:123) needs again two lookups.
+Thus, to check for 192.168.0.1:53 (tcp) - there will be a match as when 
+you apply 1) ip match; and 2) protocol match - i.e. 1 & 3 (1 & 11) you 
+will get >0, therefore protocol matches; and 3) port match, there is a 
+match on all 3 elements, hence return a complete match. Just one lookup 
+needed.
 
-Such a hack thus would penalize the normal cases.
+When you have 192.168.0.1:53 (udp) the situation is exactly the same as 
+far as the protocol goes - 2 & 3 (10 & 11) you will get > 0, hence there 
+is a match again. Just one lookup needed.
 
-> > But if the double-lookup is required, then better add all tcp and udp port
-> > variants and go with a single-lookup.
-> >   
-> I am not sure I understand you.
+When you have 192.168.0.1:80 (tcp) - you will have a match on the ip and 
+protocol, bit mismatch on the port, so no match - you also need one lookup.
 
-If you need to match the same port both with TCP and UDP, then add it 
-to the set twice, with the proper protocols.
- 
-> > Or if you have uniform ports for all elements, you can use two set matches:
-> > 
-> > ipset create hash:ip ipaddrs
-> > ipset create bitmap:port ports
-> > 
-> > ... -m set --match-set ipaddrs dst -m set --match-set ports dst ...
-> >   
-> There is a problem with this - the 'bond' which exists with (the imaginary and
-> working) hash:ip,all,port (i.e. the implicit link between the element's ip
-> address/subnet and the port or port range)  is not there if two separate sets
-> are used!
-> 
-> In order to create this 'bond' I have to use not one, but two separate sets
-> (i.e. vpn_hosts/vpn_ports) and even then I cannot control this fully.
-> 
-> One very simple example: if I have a vpn host group which is on the
-> 10.1.1.0/24 subnet and operates within the 1194 (tcp/udp) port range and then
-> have another vpn host group 10.1.2.0/24 which operates on a different port
-> range - 80,443 (tcp and udp).
-> 
-> If I follow your example above I have to define *four* sets to accommodate the
-> double matches, because if I put all the vpn ports into one ipset group (say
-> vpn-ports) which contains ports 1194,80 and 443 and then use a similar ipset
-> for the vpn hosts (say vpn-hosts) containing 10.1.1.0/24 and 10.1.2.0/24 as
-> its members and then do a double match "-m set --match-set vpn-hosts dst -m
-> set --match-set vpn-ports dst" that would mean packets destined to 10.1.1.0/24
-> on ports 80,443 (tcp/udp) and 10.1.2.0/24:1194 (tcp,udp) will be allowed which
-> is not what I want.
-> 
-> If I want to separate this fully and make it work as it should, I have to
-> define *four* sets (vpn-hosts1->10.1.1.0/24, vpn-ports1->1194, then
-> vpn-hosts2->10.1.2.0/24,vpn-ports2->80,443), which makes the whole job rather
-> cumbersome.
+You have exactly the same scenario with 192.168.0.1:123 (udp) - match on 
+the ip and protocol part, but mismatch on the port, so no match!
 
-Yes, therfore my assumption was that the ports are uniform, identical for 
-all elements.
+> Such a hack thus would penalize the normal cases.
+>   
+There is no need for a 'hack' just sensible and efficient programming, 
+that's all.
 
-You wrote earlier:
+>   
+>   
+>> I am not sure I understand you.
+>>     
+>
+> If you need to match the same port both with TCP and UDP, then add it 
+> to the set twice, with the proper protocols.
+>   
+I've already dealt with this - I do not see the need to add 2x as many 
+elements to a set when, in reality, I am not interested in matching the 
+protocol part.
 
-> > Why would you want to match a port for all protocols? Do you have a
-> > specific example for that?
+  
 
-> You already mentioned DNS, I'd add DHCP to that list as well as VPN, 
-> IPSec and Kerberos traffic, which could be either tcp or udp on the same 
-> port numbers. 
+>> There is a problem with this - the 'bond' which exists with (the imaginary and
+>> working) hash:ip,all,port (i.e. the implicit link between the element's ip
+>> address/subnet and the port or port range)  is not there if two separate sets
+>> are used!
+>>
+>> [...]
+>>     
+>
+> Yes, therfore my assumption was that the ports are uniform, identical for 
+> all elements.
+>   
+An isolated case and one which does not apply to a common scenario.
 
-DHCP uses UDP only. VPN (e.g OpenVPN) can be configured to use UDP or TCP, 
-but not both at the same time. For ipset point of view, IPSec is an 
-independent (actually, two, AH and ESP) protocol. Kerberos uses a couple 
-of TCP and UDP ports, but not both with the same port number (except for 
-changing password under Windows, if you have to support both the old and 
-new interfaces).
+>> You already mentioned DNS, I'd add DHCP to that list as well as VPN, 
+>> IPSec and Kerberos traffic, which could be either tcp or udp on the same 
+>> port numbers. 
+>>     
+>
+> DHCP uses UDP only.
+You are mistaken - DHCPv6 (client as well as server configurations) uses 
+both TCP and UDP protocols on the same port numbers.
 
-> VOIP (including STUN, RTP and SIP) is another example - not only the 
-> port numbers vary wildly within (usually) pre-defined group, but could 
-> utilise tcp as well as the udp protocol on these ports. IRC
 
-STUN uses a single port over TCP and UDP. RTP may run over TCP but the 
-majority of the applications uses UDP only. SIP is complex... IRC uses TCP 
-only.
+>  VPN (e.g OpenVPN) can be configured to use UDP or TCP, 
+> but not both at the same time.
+You are assuming that I will have a single machine on which VPN is 
+running, which, again, is an isolated case. When I have a central hub, 
+which controls multiple subnets VPN packets can originate from (or be 
+destined to) the same port numbers using TCP as well as UDP protocols.
 
-> and media streaming too, not to mention the (notoriously bad) Microsoft 
-> NetBIOS (ports 135, 137, 138 and 139), WINS
+>  For ipset point of view, IPSec is an 
+> independent (actually, two, AH and ESP) protocol. Kerberos uses a couple 
+> of TCP and UDP ports, but not both with the same port number (except for 
+> changing password under Windows, if you have to support both the old and 
+> new interfaces).
+>   
+Again, not true and you are assuming I am running a single machine - 
+that is not the case at all.
 
->  or even LDAP. Various databases (MySQL, PostgreSQL and Oracle to name a 
-> few) also utilise both protocols on the same port numbers.
+Kerberos remote login, change password (except klogin which uses tcp 
+only), administration and kreg can all be ran using either tcp or udp on 
+the same port numbers. As for IPSec - the situation is exactly the same 
+- port 1293 with either tcp or udp utilised.
 
-LDAP and *SQL use TCP only.
+>> VOIP (including STUN, RTP and SIP) is another example - not only the 
+>> port numbers vary wildly within (usually) pre-defined group, but could 
+>> utilise tcp as well as the udp protocol on these ports. IRC
+>>     
+>
+> STUN uses a single port over TCP and UDP.
+Yep, that's right - both protocols could be used on the same port.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+>  RTP may run over TCP but the 
+> majority of the applications uses UDP only.
+Again, utilising TCP is not as uncommon as you might think - TCP gives 
+you better line quality when you have good (optical for example) network 
+and it is also the preferred option when you utilise encrypted data 
+streams. Same goes for SIP.
+
+>  SIP is complex... IRC uses TCP 
+> only.
+>   
+IRC on Port 194, protocols could be either TCP or UDP, again, depending 
+on the configuration. AOL instant messenger also utilises both tcp and 
+udp protocols on the same port (531).
+
+
+>>  or even LDAP. Various databases (MySQL, PostgreSQL and Oracle to name a 
+>> few) also utilise both protocols on the same port numbers.
+>>     
+>
+> LDAP and *SQL use TCP only.
+>   
+Wrong again! Check the documentation for the databases I mentioned 
+properly and you will see that MySQL could use 3306 utilising both tcp 
+and udp protocols, PostgreSQL can also utilise both protocols on its 
+common port (5432) and with the case of Oracle - although the commonly 
+used Oracle port is 1521 it also utilises ports 2483 (for insecure) and 
+2484 (for secure) client connections replacing the 'old' 1521 port for 
+insecure client connections.
+
