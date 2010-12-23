@@ -1,45 +1,38 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: [ANNOUNCE] ipset-5.0 released
-Date: Thu, 23 Dec 2010 18:10:05 +0000
-Message-ID: <4D13907D.3040301@googlemail.com>
-References: <4D138C02.3050905@googlemail.com>	<20101223.095545.183057798.davem@davemloft.net>	<4D138E46.7090207@googlemail.com> <20101223.100653.115946740.davem@davemloft.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [ANNOUNCE] ipset-5.2 released
+Date: Thu, 23 Dec 2010 11:32:26 -0800 (PST)
+Message-ID: <20101223.113226.102539649.davem@davemloft.net>
+References: <alpine.DEB.2.00.1012231553460.6044@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: kadlec@blackhole.kfki.hu, dennisml@conversis.de,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <20101223.100653.115946740.davem@davemloft.net>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: kadlec@blackhole.kfki.hu
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:57742
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751213Ab0LWTb5 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Dec 2010 14:31:57 -0500
+In-Reply-To: <alpine.DEB.2.00.1012231553460.6044@blackhole.kfki.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Date: Thu, 23 Dec 2010 15:57:12 +0100 (CET)
 
->> What do you mean by 'puts the ports in a different location'? Clarify
->> please.
->>     
->
-> Look at the proto_ports_offset() function in the kernel if you don't
-> believe me.
->   
-I've never stated that I do not believe you - I just asked for a 
-clarification. After looking at the example below I am still unclear 
-what your point is (call me daft if you like!).
+>         git://git.netfilter.org/ipset.git, ipset-5 branch
 
-> static inline int proto_ports_offset(int proto)
-> {
-> 	switch (proto) {
-> 	case IPPROTO_TCP:
-> 	case IPPROTO_UDP:
-> 	case IPPROTO_DCCP:
-> 	case IPPROTO_ESP:	/* SPI */
-> 	case IPPROTO_SCTP:
-> 	case IPPROTO_UDPLITE:
-> 		return 0;
-> 	case IPPROTO_AH:	/* SPI */
-> 		return 4;
-> 	default:
-> 		return -EINVAL;
-> 	}
-> }
->   
+This is way more difficult than it should be.
+
+People cannot just clone your tree to look at the latest code.  The
+master branch, which should be the latest and greatest, is your 4.x
+stuff.
+
+They have to go through a multi-step non-trivial process to get at the
+latest 5.x code, and this is a serious discouragement.
+
+It's frankly rediculious.
+
+I personally did a "rm -rf ipset/" when I discovered how this was
+setup, and I seriously wanted to review your code and look for bugs.
