@@ -1,52 +1,42 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [ANNOUNCE] ipset-5.2 released
-Date: Thu, 23 Dec 2010 20:48:50 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1012232035440.6582@blackhole.kfki.hu>
-References: <alpine.DEB.2.00.1012231553460.6044@blackhole.kfki.hu> <20101223.113226.102539649.davem@davemloft.net>
+From: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
+Subject: Re: inconsistent address treatment.
+Date: Thu, 23 Dec 2010 20:52:03 +0100
+Message-ID: <4D13A863.70600@plouf.fr.eu.org>
+References: <4D1358C0.4060704@earthlink.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:33266 "EHLO smtp0.kfki.hu"
+Received: from poutre.nerim.net ([62.4.16.124]:63576 "EHLO poutre.nerim.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751213Ab0LWTsv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Dec 2010 14:48:51 -0500
-In-Reply-To: <20101223.113226.102539649.davem@davemloft.net>
+	id S1751681Ab0LWTwI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Dec 2010 14:52:08 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by poutre.nerim.net (Postfix) with ESMTP id 2501D39DF0A
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Dec 2010 20:52:05 +0100 (CET)
+Received: from poutre.nerim.net ([127.0.0.1])
+	by localhost (poutre.nerim.net [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 2vlML36UbWqZ for <netfilter-devel@vger.kernel.org>;
+	Thu, 23 Dec 2010 20:52:04 +0100 (CET)
+Received: from [192.168.0.246] (plouf.fr.eu.org [213.41.173.35])
+	by poutre.nerim.net (Postfix) with ESMTP id 1C7A239DEE2
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Dec 2010 20:52:04 +0100 (CET)
+In-Reply-To: <4D1358C0.4060704@earthlink.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 23 Dec 2010, David Miller wrote:
+Hello,
 
-> From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> Date: Thu, 23 Dec 2010 15:57:12 +0100 (CET)
-> 
-> >         git://git.netfilter.org/ipset.git, ipset-5 branch
-> 
-> This is way more difficult than it should be.
-> 
-> People cannot just clone your tree to look at the latest code.  The
-> master branch, which should be the latest and greatest, is your 4.x
-> stuff.
+Stephen Clark a =E9crit :
+>=20
+> Why the inconsistency in the way addresses are treated. I can use -d=20
+> 2.2.2.2/32
+>   but not --to-source 205.201.149.214/32
 
-I *was* thinking on renaming the ipset-5 branch to the master one, but 
-then from some reason I refrained from doing so. Should have done.
- 
-> They have to go through a multi-step non-trivial process to get at the
-> latest 5.x code, and this is a serious discouragement.
-> 
-> It's frankly rediculious.
-> 
-> I personally did a "rm -rf ipset/" when I discovered how this was
-> setup, and I seriously wanted to review your code and look for bugs.
-
-I have just renamed the ipset-5 branch to the master one. I'm sorry for 
-wasting time.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Because -d takes a prefix and --to-source takes an address range.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
