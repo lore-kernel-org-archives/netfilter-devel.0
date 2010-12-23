@@ -1,44 +1,39 @@
-From: Stephen Clark <sclark46@earthlink.net>
-Subject: inconsistent address treatment.
-Date: Thu, 23 Dec 2010 09:12:16 -0500
-Message-ID: <4D1358C0.4060704@earthlink.net>
-Reply-To: sclark46@earthlink.net
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [ANNOUNCE] ipset-5.2 released
+Date: Thu, 23 Dec 2010 15:57:12 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1012231553460.6044@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from elasmtp-scoter.atl.sa.earthlink.net ([209.86.89.67]:60244 "EHLO
-	elasmtp-scoter.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751704Ab0LWOMR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Dec 2010 09:12:17 -0500
-Received: from [69.22.83.66] (helo=joker.seclark.com)
-	by elasmtp-scoter.atl.sa.earthlink.net with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.67)
-	(envelope-from <sclark46@earthlink.net>)
-	id 1PVltx-0004ld-ET
-	for netfilter-devel@vger.kernel.org; Thu, 23 Dec 2010 09:12:17 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Hi,
 
-Why the inconsistency in the way addresses are treated. I can use -d 
-2.2.2.2/32
-  but not --to-source 205.201.149.214/32
+I'm happy to announce ipset 5.2. The changelogs are short, one important 
+fix is of listing/saving large sets:
 
-iptables -t nat -A POSTROUTING -o eth1 -s 10.0.128.0/17 -d 2.2.2.2/32 -j 
-SNAT --to-source 205.201.149.214/32
+userspace:
+ - Handle internal printing errors
+ - Use cast to void * instead of memcpy as Sparc workaround at 
+   sockaddr_XXX (suggested by Jan Engelhardt)
+ - Listing/saving of large sets could produce broken listing, fixed.
+ - Support libtool < 2.2
 
+kernel part:
+ - Kernel version check at minimal supported version was mistyped, now 
+   fixed.
 
--- 
+You can download the source code from:
+        http://ipset.netfilter.org
+        ftp://ftp.netfilter.org/pub/ipset/
+        git://git.netfilter.org/ipset.git, ipset-5 branch
 
-"They that give up essential liberty to obtain temporary safety,
-deserve neither liberty nor safety."  (Ben Franklin)
-
-"The course of history shows that as a government grows, liberty
-decreases."  (Thomas Jefferson)
-
-
-
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
