@@ -1,44 +1,52 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 1/1] netfilter: ebtables: make broute table work again
-Date: Fri, 24 Dec 2010 01:55:50 +0100
-Message-ID: <20101224005550.GA14050@strlen.de>
-References: <1293150436-12092-1-git-send-email-fw@strlen.de>
- <AANLkTikgoc6xzx-0xn4cXsVuWVETOG1=dpE_1kZKBVnM@mail.gmail.com>
+From: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
+Subject: Re: inconsistent address treatment.
+Date: Fri, 24 Dec 2010 09:20:37 +0100
+Message-ID: <4D1457D5.3040305@plouf.fr.eu.org>
+References: <4D1358C0.4060704@earthlink.net> <4D13A863.70600@plouf.fr.eu.org> <4D13D0FF.1010900@earthlink.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: eric.dumazet@gmail.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:47596 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752111Ab0LXBA2 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Dec 2010 20:00:28 -0500
-Content-Disposition: inline
-In-Reply-To: <AANLkTikgoc6xzx-0xn4cXsVuWVETOG1=dpE_1kZKBVnM@mail.gmail.com>
+Received: from bamako.nerim.net ([62.4.17.28]:64934 "EHLO bamako.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751542Ab0LXIU3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 24 Dec 2010 03:20:29 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by bamako.nerim.net (Postfix) with ESMTP id 4BA0439DEB9
+	for <netfilter-devel@vger.kernel.org>; Fri, 24 Dec 2010 09:20:27 +0100 (CET)
+Received: from bamako.nerim.net ([127.0.0.1])
+	by localhost (bamako.nerim.net [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id J5nqMY8VSZ2T for <netfilter-devel@vger.kernel.org>;
+	Fri, 24 Dec 2010 09:20:26 +0100 (CET)
+Received: from [192.168.0.246] (plouf.fr.eu.org [213.41.173.35])
+	by bamako.nerim.net (Postfix) with ESMTP id 3D05839DEC4
+	for <netfilter-devel@vger.kernel.org>; Fri, 24 Dec 2010 09:20:26 +0100 (CET)
+In-Reply-To: <4D13D0FF.1010900@earthlink.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Changli Gao <xiaosuo@gmail.com> wrote:
-> > diff --git a/net/bridge/br_input.c b/net/bridge/br_input.c
-> > index 6f6d8e1..1d677bf 100644
-> > --- a/net/bridge/br_input.c
-> > +++ b/net/bridge/br_input.c
-> > @@ -178,7 +178,7 @@ forward:
-> > =A0 =A0 =A0 =A0case BR_STATE_FORWARDING:
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0rhook =3D rcu_dereference(br_should_=
-route_hook);
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (rhook) {
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if ((*rhook)(skb))
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (rhook(skb))
+Stephen Clark a =E9crit :
+> On 12/23/2010 02:52 PM, Pascal Hambourg wrote:
+>>
+>> Stephen Clark a =E9crit :
+>>   =20
+>>> Why the inconsistency in the way addresses are treated. I can use -=
+d
+>>> 2.2.2.2/32
+>>>    but not --to-source 205.201.149.214/32
+>>>     =20
+>> Because -d takes a prefix and --to-source takes an address range.
 >=20
-> I don't think this change is necessary. Would you like to remove this
-> change and test again?
+> So? you can't parse
+>=20
+> 205.201.149.214/32-205.201.149.218/32
 
-Its not needed, but i consider it less confusing.
-I do not have a strong preference, though.
+a.b.c.d/32 is a prefix notation, even though it represents a single
+address. IMO it does not make sense to use a prefix notation in an
+interval, so I don't see why the parser should handle it. AFAICS, other
+commands such as 'ip' from iproute don't accept /32 prefixes where a
+single address is expected either.
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
