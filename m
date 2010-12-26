@@ -1,187 +1,57 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 5/6] netfilter: allow NFQUEUE bypass if no listener is available
-Date: Mon, 27 Dec 2010 00:58:23 +0100
-Message-ID: <1293407904-31464-6-git-send-email-fw@strlen.de>
+Subject: [PATCH 6/6] netfilter: do not omit re-route check on NF_QUEUE verdict
+Date: Mon, 27 Dec 2010 00:58:24 +0100
+Message-ID: <1293407904-31464-7-git-send-email-fw@strlen.de>
 References: <1293407904-31464-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>,
-	Florian Westphal <fwestphal@astaro.com>
+Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:53936 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:53938 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753035Ab0L0AD2 (ORCPT
+	by vger.kernel.org with ESMTP id S1753035Ab0L0ADa (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 26 Dec 2010 19:03:28 -0500
+	Sun, 26 Dec 2010 19:03:30 -0500
 In-Reply-To: <1293407904-31464-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If an skb is to be NF_QUEUE'd, but no program has opened the queue, the
-packet is dropped.
+ret != NF_QUEUE only works in the "--queue-num 0" case; for
+queues > 0 the test should be '(ret & NF_VERDICT_MASK) != NF_QUEUE'.
 
-This adds a v2 target revision of xt_NFQUEUE that allows packets to
-continue through the ruleset instead.
+However, NF_QUEUE no longer DROPs the skb unconditionally if queueing
+fails (due to NF_VERDICT_FLAG_QUEUE_BYPASS verdict flag), so the
+re-route test should also be performed if this flag is set in the
+verdict.
 
-Because the actual queueing happens outside of the target context, the
-'bypass' flag has to be communicated back to the netfilter core.
+The full test would then look something like
 
-Unfortunately the only choice to do this without adding a new function
-argument is to use the target function return value (i.e. the verdict).
+&& ((ret & NF_VERDICT_MASK) == NF_QUEUE && (ret & NF_VERDICT_FLAG_QUEUE_BYPASS))
 
-In the NF_QUEUE case, the upper 16bit already contain the queue number
-to use.  The previous patch reduced NF_VERDICT_MASK to 0xff, i.e.
-we now have extra room for a new flag.
+This is rather ugly, so just remove the NF_QUEUE test altogether.
 
-If a hook issued a NF_QUEUE verdict, then the netfilter core will
-continue packet processing if the queueing hook
-returns -ESRCH (== "this queue does not exist") and the new
-NF_VERDICT_FLAG_QUEUE_BYPASS flag is set in the verdict value.
+The only effect is that we might perform an unnecessary route lookup
+in the NF_QUEUE case.
 
-Note: If the queue exists, but userspace does not consume packets fast
-enough, the skb will still be dropped.
+ip6table_mangle did not have such a check.
 
-Signed-off-by: Florian Westphal <fwestphal@astaro.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/netfilter.h            |    1 +
- include/linux/netfilter/xt_NFQUEUE.h |    6 ++++++
- net/netfilter/core.c                 |    6 +++++-
- net/netfilter/nf_queue.c             |   10 ++++++++--
- net/netfilter/xt_NFQUEUE.c           |   28 +++++++++++++++++++++++++---
- 5 files changed, 45 insertions(+), 6 deletions(-)
+ net/ipv4/netfilter/iptable_mangle.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 231277f..041ec8f 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -29,6 +29,7 @@
- #define NF_VERDICT_MASK 0x000000ff
+diff --git a/net/ipv4/netfilter/iptable_mangle.c b/net/ipv4/netfilter/iptable_mangle.c
+index 294a2a3..aef5d1f 100644
+--- a/net/ipv4/netfilter/iptable_mangle.c
++++ b/net/ipv4/netfilter/iptable_mangle.c
+@@ -60,7 +60,7 @@ ipt_mangle_out(struct sk_buff *skb, const struct net_device *out)
+ 	ret = ipt_do_table(skb, NF_INET_LOCAL_OUT, NULL, out,
+ 			   dev_net(out)->ipv4.iptable_mangle);
+ 	/* Reroute for ANY change. */
+-	if (ret != NF_DROP && ret != NF_STOLEN && ret != NF_QUEUE) {
++	if (ret != NF_DROP && ret != NF_STOLEN) {
+ 		iph = ip_hdr(skb);
  
- /* extra verdict flags have mask 0x0000ff00 */
-+#define NF_VERDICT_FLAG_QUEUE_BYPASS	0x00008000
- 
- /* queue number (NF_QUEUE) or errno (NF_DROP) */
- #define NF_VERDICT_QMASK 0xffff0000
-diff --git a/include/linux/netfilter/xt_NFQUEUE.h b/include/linux/netfilter/xt_NFQUEUE.h
-index 2584f4a..9eafdbb 100644
---- a/include/linux/netfilter/xt_NFQUEUE.h
-+++ b/include/linux/netfilter/xt_NFQUEUE.h
-@@ -20,4 +20,10 @@ struct xt_NFQ_info_v1 {
- 	__u16 queues_total;
- };
- 
-+struct xt_NFQ_info_v2 {
-+	__u16 queuenum;
-+	__u16 queues_total;
-+	__u16 bypass;
-+};
-+
- #endif /* _XT_NFQ_TARGET_H */
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 18ee9b9..7dabbdd 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -181,8 +181,12 @@ next_hook:
- 	} else if ((verdict & NF_VERDICT_MASK) == NF_QUEUE) {
- 		ret = nf_queue(skb, elem, pf, hook, indev, outdev, okfn,
- 			       verdict >> NF_VERDICT_QBITS);
--		if (ret < 0)
-+		if (ret < 0) {
-+			if (ret == -ESRCH &&
-+			   (verdict & NF_VERDICT_FLAG_QUEUE_BYPASS))
-+				goto next_hook;
- 			kfree_skb(skb);
-+		}
- 		ret = 0;
- 	}
- 	rcu_read_unlock();
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 1a5067c..f32d097 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -128,8 +128,10 @@ static int __nf_queue(struct sk_buff *skb,
- 	rcu_read_lock();
- 
- 	qh = rcu_dereference(queue_handler[pf]);
--	if (!qh)
-+	if (!qh) {
-+		error = -ESRCH;
- 		goto err_unlock;
-+	}
- 
- 	afinfo = nf_get_afinfo(pf);
- 	if (!afinfo)
-@@ -284,8 +286,12 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 		err = __nf_queue(skb, elem, entry->pf, entry->hook,
- 				 entry->indev, entry->outdev, entry->okfn,
- 				 verdict >> NF_VERDICT_QBITS);
--		if (err < 0)
-+		if (err < 0) {
-+			if (err == -ESRCH &&
-+			   (verdict & NF_VERDICT_FLAG_QUEUE_BYPASS))
-+				goto next_hook;
- 			kfree_skb(skb);
-+		}
- 		break;
- 	case NF_STOLEN:
- 	default:
-diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
-index 039cce1..41da6c3 100644
---- a/net/netfilter/xt_NFQUEUE.c
-+++ b/net/netfilter/xt_NFQUEUE.c
-@@ -81,9 +81,20 @@ nfqueue_tg_v1(struct sk_buff *skb, const struct xt_action_param *par)
- 	return NF_QUEUE_NR(queue);
- }
- 
--static int nfqueue_tg_v1_check(const struct xt_tgchk_param *par)
-+static unsigned int
-+nfqueue_tg_v2(struct sk_buff *skb, const struct xt_action_param *par)
- {
--	const struct xt_NFQ_info_v1 *info = par->targinfo;
-+	const struct xt_NFQ_info_v2 *info = par->targinfo;
-+	unsigned int ret = nfqueue_tg_v1(skb, par);
-+
-+	if (info->bypass)
-+		ret |= NF_VERDICT_FLAG_QUEUE_BYPASS;
-+	return ret;
-+}
-+
-+static int nfqueue_tg_check(const struct xt_tgchk_param *par)
-+{
-+	const struct xt_NFQ_info_v2 *info = par->targinfo;
- 	u32 maxid;
- 
- 	if (unlikely(!rnd_inited)) {
-@@ -100,6 +111,8 @@ static int nfqueue_tg_v1_check(const struct xt_tgchk_param *par)
- 		       info->queues_total, maxid);
- 		return -ERANGE;
- 	}
-+	if (par->target->revision == 2 && info->bypass > 1)
-+		return -EINVAL;
- 	return 0;
- }
- 
-@@ -115,11 +128,20 @@ static struct xt_target nfqueue_tg_reg[] __read_mostly = {
- 		.name		= "NFQUEUE",
- 		.revision	= 1,
- 		.family		= NFPROTO_UNSPEC,
--		.checkentry	= nfqueue_tg_v1_check,
-+		.checkentry	= nfqueue_tg_check,
- 		.target		= nfqueue_tg_v1,
- 		.targetsize	= sizeof(struct xt_NFQ_info_v1),
- 		.me		= THIS_MODULE,
- 	},
-+	{
-+		.name		= "NFQUEUE",
-+		.revision	= 2,
-+		.family		= NFPROTO_UNSPEC,
-+		.checkentry	= nfqueue_tg_check,
-+		.target		= nfqueue_tg_v2,
-+		.targetsize	= sizeof(struct xt_NFQ_info_v2),
-+		.me		= THIS_MODULE,
-+	},
- };
- 
- static int __init nfqueue_tg_init(void)
+ 		if (iph->saddr != saddr ||
 -- 
 1.7.2.2
 
