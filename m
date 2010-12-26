@@ -1,66 +1,57 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [ANNOUNCE] ipset-5.0 released
-Date: Sun, 26 Dec 2010 11:32:23 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1012261130200.9618@blackhole.kfki.hu>
-References: <alpine.DEB.2.00.1012172259100.10231@blackhole.kfki.hu> <4D0CC3BB.8030801@googlemail.com> <alpine.DEB.2.00.1012182050280.11577@blackhole.kfki.hu> <4D0D2CF4.5070201@googlemail.com> <alpine.DEB.2.00.1012190105460.11753@blackhole.kfki.hu>
- <4D0E0E2A.3090604@googlemail.com> <4D0E22A5.8090808@conversis.de> <4D0E3B34.7090105@googlemail.com> <alpine.DEB.2.00.1012221146060.3482@blackhole.kfki.hu> <4D11F384.3070908@googlemail.com> <alpine.DEB.2.00.1012231558390.6044@blackhole.kfki.hu>
- <4D138C02.3050905@googlemail.com> <alpine.DEB.2.00.1012232008520.6582@blackhole.kfki.hu> <4D13CBD8.3090007@googlemail.com> <alpine.DEB.2.00.1012232337070.7027@blackhole.kfki.hu> <4D13D553.8050907@googlemail.com>
+From: Amos Jeffries <squid3@treenet.co.nz>
+Subject: Re: inconsistent address treatment.
+Date: Mon, 27 Dec 2010 01:10:31 +1300
+Message-ID: <4D1730B7.3090805@treenet.co.nz>
+References: <4D1358C0.4060704@earthlink.net> <4D13A863.70600@plouf.fr.eu.org> <4D13D0FF.1010900@earthlink.net> <4D1457D5.3040305@plouf.fr.eu.org> <4D14BD05.8020509@earthlink.net> <alpine.LNX.2.01.1012242242440.30415@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Dennis Jacobfeuerborn <dennisml@conversis.de>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: Mr Dash Four <mr.dash.four@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Stephen Clark <sclark46@earthlink.net>,
+	Pascal Hambourg <pascal.mail@plouf.fr.eu.org>,
+	netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:33437 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751706Ab0LZKcY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 26 Dec 2010 05:32:24 -0500
-In-Reply-To: <4D13D553.8050907@googlemail.com>
+Received: from ip-58-28-153-233.static-xdsl.xnet.co.nz ([58.28.153.233]:52778
+	"EHLO treenet.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752086Ab0LZMRr (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 26 Dec 2010 07:17:47 -0500
+In-Reply-To: <alpine.LNX.2.01.1012242242440.30415@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 23 Dec 2010, Mr Dash Four wrote:
+On 25/12/10 10:48, Jan Engelhardt wrote:
+>
+> On Friday 2010-12-24 16:32, Stephen Clark wrote:
+>>>>> Because -d takes a prefix and --to-source takes an address range.
+>>>>
+>>>> So? you can't parse
+>>>> 205.201.149.214/32-205.201.149.218/32
+>>>
+>>> a.b.c.d/32 is a prefix notation, even though it represents a single
+>>> address. IMO it does not make sense to use a prefix notation in an
+>>> interval, so I don't see why the parser should handle it. AFAICS, other
+>>> commands such as 'ip' from iproute don't accept /32 prefixes where a
+>>> single address is expected either.
+>>
+>> Well It is just one more idiosyncrasy one has to remember, when to me there
+>> is no obvious reason
+>
+> Historical reasons.
+>
+> Possible extra explanations:
+>
+> - DNAT was added later than the -s argument, and someone thought
+>    it's better to use a range, since a range can be more expressive
+>    than addr[/prefixlen] for the same memory usage.
+> - On the other hand, since iptables also accepts addr[/mask], and it
+>    also allows /masks that are not representable as a /prefixlen, it
+>    is not necessarily specifying a contiguous range which may be
+>    useless to use with DNAT to some.
 
-> > > > The implementation behind ipset looks up the  (ipaddr, proto, port)
-> > > > triple
-> > > > in one step. Such packing don't work there.
-> > > >         
-> > > If that's the case how do you lookup IP address and port ranges then?
-> > >     
-> > 
-> > IP address and port ranges are exploded and the elements are inserted
-> > one-by-one. And the exploded ranges are *not* converted back to ranges when
-> > listing/saving the sets. At the bitmap types the ranges could be converted
-> > back (not done yet), at the hash types it's not possible.
-> >   
-> If I understand you correctly, if I define hash:net,proto,port ipset and add a
-> single element to it - 10.1.1.0/30,udp,80-83 - that translates (in primitive
-> terms) to:
-> 
-> 10.1.1.0,udp,80
-> 10.1.1.0,udp,81
-> ...
-> 10.1.1.0,udp,83
-> 10.1.1.1,udp,80
-> ...
-> 10.1.1.1,udp,83
-> ...
-> ...
-> 10.1.1.3,udp,83
+FWIW: we (Squid project) use the syntax "ip[-ip][/mask]". This is simple 
+enough to parse and is a bit more flexible.
 
-No, "net" types are not exploded in the terms of networks.
- 
-> One other question - if I insert the above element in the set what is shown
-> when I execute ipset -L: "10.1.1.0-10.1.1.3,udp,80-83" or the various
-> permutations I listed above?
+/2c
 
-The protocol does not allow to list a subset of the elements in a set. 
-Just the whole set can be listed.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+AYJ
