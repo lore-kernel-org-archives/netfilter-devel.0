@@ -1,80 +1,137 @@
-From: Stephen Clark <sclark46@earthlink.net>
-Subject: Re: inconsistent address treatment.
-Date: Sun, 26 Dec 2010 13:35:32 -0500
-Message-ID: <4D178AF4.7040801@earthlink.net>
-References: <4D1358C0.4060704@earthlink.net> <4D13A863.70600@plouf.fr.eu.org> <4D13D0FF.1010900@earthlink.net> <4D1457D5.3040305@plouf.fr.eu.org> <4D14BD05.8020509@earthlink.net> <alpine.LNX.2.01.1012242242440.30415@obet.zrqbmnf.qr> <4D1730B7.3090805@treenet.co.nz> <alpine.LNX.2.01.1012261345210.31198@obet.zrqbmnf.qr>
-Reply-To: sclark46@earthlink.net
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [ANNOUNCE] ipset-5.0 released
+Date: Sun, 26 Dec 2010 21:09:33 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1012262034390.10148@blackhole.kfki.hu>
+References: <alpine.DEB.2.00.1012172259100.10231@blackhole.kfki.hu> <4D0CC3BB.8030801@googlemail.com> <alpine.DEB.2.00.1012182050280.11577@blackhole.kfki.hu> <4D0D2CF4.5070201@googlemail.com> <alpine.DEB.2.00.1012190105460.11753@blackhole.kfki.hu>
+ <4D0E0E2A.3090604@googlemail.com> <4D0E22A5.8090808@conversis.de> <4D0E3B34.7090105@googlemail.com> <alpine.DEB.2.00.1012221146060.3482@blackhole.kfki.hu> <4D11F384.3070908@googlemail.com> <alpine.DEB.2.00.1012231558390.6044@blackhole.kfki.hu>
+ <4D138C02.3050905@googlemail.com> <alpine.DEB.2.00.1012232008520.6582@blackhole.kfki.hu> <4D13CBD8.3090007@googlemail.com> <alpine.DEB.2.00.1012232337070.7027@blackhole.kfki.hu> <alpine.DEB.2.00.1012232354510.7109@blackhole.kfki.hu> <4D13D60C.3020304@googlemail.com>
+ <alpine.DEB.2.00.1012261125100.9618@blackhole.kfki.hu> <4D17475B.9000909@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Amos Jeffries <squid3@treenet.co.nz>,
-	Pascal Hambourg <pascal.mail@plouf.fr.eu.org>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Dennis Jacobfeuerborn <dennisml@conversis.de>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: Mr Dash Four <mr.dash.four@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from elasmtp-junco.atl.sa.earthlink.net ([209.86.89.63]:34138 "EHLO
-	elasmtp-junco.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752325Ab0LZSfn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 26 Dec 2010 13:35:43 -0500
-In-Reply-To: <alpine.LNX.2.01.1012261345210.31198@obet.zrqbmnf.qr>
+Received: from smtp-in.kfki.hu ([148.6.0.25]:53841 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752202Ab0LZUJf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 26 Dec 2010 15:09:35 -0500
+In-Reply-To: <4D17475B.9000909@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 12/26/2010 07:47 AM, Jan Engelhardt wrote:
-> On Sunday 2010-12-26 13:10, Amos Jeffries wrote:
->
->    
->> On 25/12/10 10:48, Jan Engelhardt wrote:
->>      
->>> On Friday 2010-12-24 16:32, Stephen Clark wrote:
->>>        
->>>>>>> Because -d takes a prefix and --to-source takes an address range.
->>>>>>>                
->>>>>> So? you can't parse
->>>>>> 205.201.149.214/32-205.201.149.218/32
->>>>>>              
->>>>> a.b.c.d/32 is a prefix notation, even though it represents a single
->>>>> address. IMO it does not make sense to use a prefix notation in an
->>>>> interval, so I don't see why the parser should handle it. AFAICS, other
->>>>> commands such as 'ip' from iproute don't accept /32 prefixes where a
->>>>> single address is expected either.
->>>>>            
->>>> Well It is just one more idiosyncrasy one has to remember, when to me there
->>>> is no obvious reason
->>>>          
->>> Historical reasons.
->>>
->>> Possible extra explanations:
->>>
->>> - DNAT was added later than the -s argument, and someone thought
->>>    it's better to use a range, since a range can be more expressive
->>>    than addr[/prefixlen] for the same memory usage.
->>> - On the other hand, since iptables also accepts addr[/mask], and it
->>>    also allows /masks that are not representable as a /prefixlen, it
->>>    is not necessarily specifying a contiguous range which may be
->>>    useless to use with DNAT to some.
->>>        
->> FWIW: we (Squid project) use the syntax "ip[-ip][/mask]". This is simple enough
->> to parse and is a bit more flexible.
->>      
-> Indeed, but we don't have the space for it ;-)
-> There are just two uint32s available in the current struct ipt_ip,
-> so it's either ip-ip or ip/mask.
-> Of course, in the near future, the ipv4 match can be extended just like
-> other extensions (revision bump).
->
->    
-That is a reasonable answer.
+On Sun, 26 Dec 2010, Mr Dash Four wrote:
 
+> > > OK, does that differ if I have hash:net,port set (I presume when listing
+> > > with
+> > > ipset -L you will show the net ranges -
+> > > 192.168.0.0-192.168.0.0,tcp:80-82), is
+> > > that right?
+> > 
+> > For net types the networks are not exploded, of course:
+> > 
+> > # ipset create test hash:net,port # ipset add test 192.168.0.0/30,tcp:80-82
+> > # ipset list test
+> > Name: test
+> > Type: hash:net,port
+> > Header: family inet hashsize 1024 maxelem 65536
+> > Size in memory: 16856
+> > References: 0
+> > Members:
+> > 192.168.0.0/30,tcp:80
+> > 192.168.0.0/30,tcp:82
+> > 192.168.0.0/30,tcp:81                                                             
+> OK, it is much clearer to me now.
+> 
+> You are expanding the command line port ranges (80-82 in your example above)
+> to add the underlying elements. Could you not do a similar arrangement for the
+> protocol as well?
+> 
+> For example, if I execute "ipset add test 192.168.0.0/30,*:80-82" (or "all"
+> instead of "*" if that is not possible) could you not expand that to represent
+> the following elements:
+> 
+> 192.168.0.0/30,tcp,80
+> ..
+> 192.168.0.0/30,tcp,82
+> 192.168.0.0/30,udp,80
+> ..
+> 192.168.0.0/30,udp,82
 
--- 
+That won't go: tcp and udp are not the possible protocols alone, so by any 
+reasonable syntax, '*' or 'all' should have to mean all protocols from 
+/etc/protocols.
+ 
+> It is not a perfect solution by any stretch, but at least it will save me the
+> hassle, as with the introduction of the port ranges, of executing the
+> statement twice each time I want to include net and port ranges without being
+> interested in the protocol match.
 
-"They that give up essential liberty to obtain temporary safety,
-deserve neither liberty nor safety."  (Ben Franklin)
+What I could come up as something similar in effect is to make possible to 
+use a copy of /etc/services maintained by the administrator of the given 
+ipset installation and whatever protocols and ports a service name is
+resolved to from that file, use those.
 
-"The course of history shows that as a government grows, liberty
-decreases."  (Thomas Jefferson)
+However such a feature won't be added tomorrow. Nor this year (:-) or the 
+very near future.
+ 
+> As an aside note: since this is a hash set I am assuming that you use hashes
+> to do the match as hash matching is very fast. I also presume that is the main
+> reason you expand the port ranges so that you can calculate the hashes for
+> that particular element and then match it with the real
+> ip/subnet,protocol,port.
 
+Yes, that's the reason for the expansion.
+ 
+> If that is the case how do you match subnets? In other words (using your
+> example above) how do you match (the calculated hash for) 192.168.0.2,tcp:80
+> against (the calculated hash for) 192.168.0.0/30,tcp:80 - they, on the face of
+> it, will differ!
 
+For the "net" (sub)type of sets the different prefixes in the set is 
+recorded. When testing (adding/deleting) entries, the IP part of the entry 
+is masked with the prefixes one by one and looked up until a match is 
+found or the list is exhausted - that's why the speed is linearly slows 
+down with the different number of prefixes added to the set. An example:
 
+# ipset create test hash:net
+# ipset add test 192.168.0.0/30
+# ipset add test 192.168.1.0/24
+
+There are two different prefixes in the set, 30, 24. So when the command 
+is issued
+
+# ipset test test 192.168.0.1
+
+the address 192.168.0.1 is masked with /30 and the result is looked up 
+and the match is reported:
+
+192.168.0.1 is in set test.
+
+If we want to test 192.168.1.1, then first it's masked with /30. Because 
+there's no match, it's masked again by /24 then and now it's found:
+
+root@teg:~/ipset/src# ./ipset test test 192.168.1.1                             
+192.168.1.1 is in set test.
+
+> > However please note, the "net" types slow down linearly with the number of
+> > different network prefixes in the set.
+> >   
+> Is this slowdown more than when I use iptreemap set for example? How does the
+> new set (hash) performance compares against the 'old' iptreemap/treemap sets
+> used in 4.x?
+
+I never measured the speed difference between the two types. A good guess 
+is that iptreemap is faster. However, the problem with iptree(map) is that 
+it's susceptible when used as a container to block attackers dynamically 
+by the SET target: it's trivial to mount an attack by which the worst tree 
+structure is forced to be created. Therefore iptree(map) was dropped at
+ipset-5.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
