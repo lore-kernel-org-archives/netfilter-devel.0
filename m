@@ -1,46 +1,47 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: inconsistent address treatment.
-Date: Fri, 24 Dec 2010 22:48:27 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1012242242440.30415@obet.zrqbmnf.qr>
-References: <4D1358C0.4060704@earthlink.net> <4D13A863.70600@plouf.fr.eu.org> <4D13D0FF.1010900@earthlink.net> <4D1457D5.3040305@plouf.fr.eu.org> <4D14BD05.8020509@earthlink.net>
+Subject: netfilter: xt_comment: drop unneeded unsigned qualifier
+Date: Sun, 26 Dec 2010 10:22:22 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1012261022030.5017@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>,
-	netfilter-devel@vger.kernel.org
-To: Stephen Clark <sclark46@earthlink.net>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:32972 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:53897 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753162Ab0LXVs3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 24 Dec 2010 16:48:29 -0500
-In-Reply-To: <4D14BD05.8020509@earthlink.net>
+	id S1751605Ab0LZJWY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 26 Dec 2010 04:22:24 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+parent 0167acf6cbdf1d70d1540e61680d8301c0c388fb (v2.6.37-rc1-237-g0167acf)
+commit c21eb58de7b4d9c6bb406fd0b08388e6eb76a106
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Sun Dec 26 10:21:19 2010 +0100
 
-On Friday 2010-12-24 16:32, Stephen Clark wrote:
->>>> Because -d takes a prefix and --to-source takes an address range.
->>>
->>>So? you can't parse
->>>205.201.149.214/32-205.201.149.218/32
->>
->>a.b.c.d/32 is a prefix notation, even though it represents a single
->>address. IMO it does not make sense to use a prefix notation in an
->>interval, so I don't see why the parser should handle it. AFAICS, other
->>commands such as 'ip' from iproute don't accept /32 prefixes where a
->>single address is expected either.
->
->Well It is just one more idiosyncrasy one has to remember, when to me there
->is no obvious reason
+netfilter: xt_comment: drop unneeded unsigned qualifier
 
-Historical reasons.
+Since a string is stored, and not something like a MAC address that
+would rely on (un)signedness, drop the qualifier.
 
-Possible extra explanations:
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ include/linux/netfilter/xt_comment.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-- DNAT was added later than the -s argument, and someone thought
-  it's better to use a range, since a range can be more expressive
-  than addr[/prefixlen] for the same memory usage.
-- On the other hand, since iptables also accepts addr[/mask], and it
-  also allows /masks that are not representable as a /prefixlen, it
-  is not necessarily specifying a contiguous range which may be
-  useless to use with DNAT to some.
+diff --git a/include/linux/netfilter/xt_comment.h b/include/linux/netfilter/xt_comment.h
+index eacfedc..0ea5e79 100644
+--- a/include/linux/netfilter/xt_comment.h
++++ b/include/linux/netfilter/xt_comment.h
+@@ -4,7 +4,7 @@
+ #define XT_MAX_COMMENT_LEN 256
+ 
+ struct xt_comment_info {
+-	unsigned char comment[XT_MAX_COMMENT_LEN];
++	char comment[XT_MAX_COMMENT_LEN];
+ };
+ 
+ #endif /* XT_COMMENT_H */
+-- 
+# Created with git-export-patch
+
