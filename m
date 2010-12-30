@@ -1,84 +1,96 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: linux-next: Tree for December 29 (netfilter build errors)
-Date: Thu, 30 Dec 2010 10:18:43 +0800
-Message-ID: <AANLkTin8Zc4wkx9BjD0vJSNdne8LVHx=JyeSC2YdKTKH@mail.gmail.com>
-References: <20101229130700.0ef93735.sfr@canb.auug.org.au> <20101229085300.1ceac200.randy.dunlap@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	netfilter-devel@vger.kernel.org, linux-next@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20101229085300.1ceac200.randy.dunlap@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: hans@schillstrom.com
+Subject: [*v3 PATCH 09/22] IPVS: netns preparation for proto_ah_esp
+Date: Thu, 30 Dec 2010 11:50:53 +0100
+Message-ID: <1293706266-27152-10-git-send-email-hans@schillstrom.com>
+References: <1293706266-27152-1-git-send-email-hans@schillstrom.com>
+Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>
+To: horms@verge.net.au, ja@ssi.bg, daniel.lezcano@free.fr,
+	wensong@linux-vs.org, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:39958 "EHLO
+	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753590Ab0L3KvT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 30 Dec 2010 05:51:19 -0500
+In-Reply-To: <1293706266-27152-1-git-send-email-hans@schillstrom.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Dec 30, 2010 at 12:53 AM, Randy Dunlap <randy.dunlap@oracle.com=
-> wrote:
-> On Wed, 29 Dec 2010 13:07:00 +1100 Stephen Rothwell wrote:
->
->> Hi all,
->>
->> Changes since 20101228:
->
->
-> In file included from linux-next-20101229/net/ipv6/netfilter/nf_defra=
-g_ipv6_hooks.c:22:
-> linux-next-20101229/include/net/netfilter/nf_conntrack.h:94: error: f=
-ield 'ct_general' has incomplete type
-> linux-next-20101229/include/net/netfilter/nf_conntrack.h: In function=
- 'nf_ct_get':
-> linux-next-20101229/include/net/netfilter/nf_conntrack.h:174: error: =
-'const struct sk_buff' has no member named 'nfct'
-> linux-next-20101229/include/net/netfilter/nf_conntrack.h: In function=
- 'nf_ct_put':
-> linux-next-20101229/include/net/netfilter/nf_conntrack.h:181: error: =
-implicit declaration of function 'nf_conntrack_put'
-> =A0CC =A0 =A0 =A0net/ipv6/exthdrs_core.o
-> In file included from linux-next-20101229/include/net/netfilter/nf_co=
-nntrack_core.h:18,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 from linux-next-20101229/net/ipv6/net=
-filter/nf_defrag_ipv6_hooks.c:26:
-> linux-next-20101229/include/net/netfilter/nf_conntrack_ecache.h: In f=
-unction 'nf_ct_ecache_ext_add':
-> linux-next-20101229/include/net/netfilter/nf_conntrack_ecache.h:35: e=
-rror: 'struct net' has no member named 'ct'
-> In file included from linux-next-20101229/net/ipv6/netfilter/nf_defra=
-g_ipv6_hooks.c:26:
-> linux-next-20101229/include/net/netfilter/nf_conntrack_core.h: In fun=
-ction 'nf_conntrack_confirm':
-> linux-next-20101229/include/net/netfilter/nf_conntrack_core.h:60: err=
-or: 'struct sk_buff' has no member named 'nfct'
-> linux-next-20101229/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c: In fun=
-ction 'nf_ct6_defrag_user':
-> linux-next-20101229/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c:36: err=
-or: 'struct sk_buff' has no member named 'nfct'
-> linux-next-20101229/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c:37: err=
-or: implicit declaration of function 'nf_ct_zone'
-> linux-next-20101229/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c:37: err=
-or: 'struct sk_buff' has no member named 'nfct'
-> linux-next-20101229/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c: In fun=
-ction 'ipv6_defrag':
-> linux-next-20101229/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c:60: err=
-or: 'struct sk_buff' has no member named 'nfct'
-> linux-next-20101229/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c:60: err=
-or: 'struct sk_buff' has no member named 'nfct'
-> make[4]: *** [net/ipv6/netfilter/nf_defrag_ipv6_hooks.o] Error 1
-> make[3]: *** [net/ipv6/netfilter] Error 2
->
->
->
+From: Hans Schillstrom <hans.schillstrom@ericsson.com>
 
-This bug has been already fixed in nf-next-2.6:
-http://git.kernel.org/?p=3Dlinux/kernel/git/kaber/nf-next-2.6.git;a=3Dc=
-ommitdiff;h=3Dae90bdeaeac6b964b7a1e853a90a19f358a9ac20;hp=3Df1c722295e0=
-29eace7960fc687efd5afd67dc555
+In this phase (one), all local vars will be moved to ipvs struct.
 
-Thanks.
+Remaining work, add param struct net *net to a couple of
+functions that common for all protos.
 
---=20
-Regards,
-Changli Gao(xiaosuo@gmail.com)
+Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
+---
+ net/netfilter/ipvs/ip_vs_proto.c        |    6 ++++++
+ net/netfilter/ipvs/ip_vs_proto_ah_esp.c |   20 ++++----------------
+ 2 files changed, 10 insertions(+), 16 deletions(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_proto.c b/net/netfilter/ipvs/ip_vs_proto.c
+index fd3a7a8..1089248 100644
+--- a/net/netfilter/ipvs/ip_vs_proto.c
++++ b/net/netfilter/ipvs/ip_vs_proto.c
+@@ -316,6 +316,12 @@ static int  __net_init  __ip_vs_protocol_init(struct net *net)
+ #ifdef CONFIG_IP_VS_PROTO_SCTP
+ 	register_ip_vs_proto_netns(net, &ip_vs_protocol_sctp);
+ #endif
++#ifdef CONFIG_IP_VS_PROTO_AH
++	register_ip_vs_proto_netns(net, &ip_vs_protocol_ah);
++#endif
++#ifdef CONFIG_IP_VS_PROTO_ESP
++	register_ip_vs_proto_netns(net, &ip_vs_protocol_esp);
++#endif
+ 	return 0;
+ }
+ 
+diff --git a/net/netfilter/ipvs/ip_vs_proto_ah_esp.c b/net/netfilter/ipvs/ip_vs_proto_ah_esp.c
+index 3a04611..b8b37fa 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_ah_esp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_ah_esp.c
+@@ -117,26 +117,14 @@ ah_esp_conn_schedule(int af, struct sk_buff *skb, struct ip_vs_protocol *pp,
+ 	return 0;
+ }
+ 
+-static void ah_esp_init(struct ip_vs_protocol *pp)
+-{
+-	/* nothing to do now */
+-}
+-
+-
+-static void ah_esp_exit(struct ip_vs_protocol *pp)
+-{
+-	/* nothing to do now */
+-}
+-
+-
+ #ifdef CONFIG_IP_VS_PROTO_AH
+ struct ip_vs_protocol ip_vs_protocol_ah = {
+ 	.name =			"AH",
+ 	.protocol =		IPPROTO_AH,
+ 	.num_states =		1,
+ 	.dont_defrag =		1,
+-	.init =			ah_esp_init,
+-	.exit =			ah_esp_exit,
++	.init =			NULL,
++	.exit =			NULL,
+ 	.conn_schedule =	ah_esp_conn_schedule,
+ 	.conn_in_get =		ah_esp_conn_in_get,
+ 	.conn_out_get =		ah_esp_conn_out_get,
+@@ -159,8 +147,8 @@ struct ip_vs_protocol ip_vs_protocol_esp = {
+ 	.protocol =		IPPROTO_ESP,
+ 	.num_states =		1,
+ 	.dont_defrag =		1,
+-	.init =			ah_esp_init,
+-	.exit =			ah_esp_exit,
++	.init =			NULL,
++	.exit =			NULL,
+ 	.conn_schedule =	ah_esp_conn_schedule,
+ 	.conn_in_get =		ah_esp_conn_in_get,
+ 	.conn_out_get =		ah_esp_conn_out_get,
+-- 
+1.7.2.3
+
