@@ -1,50 +1,39 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: genetlink misinterprets NEW as GET
-Date: Tue, 4 Jan 2011 03:14:05 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1101040304500.29858@obet.zrqbmnf.qr>
+Subject: Xtables-addons 1.32/ipset-GENL 5.2
+Date: Tue, 4 Jan 2011 05:14:13 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1101040456270.11091@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Linux Networking Developer Mailing List <netdev@vger.kernel.org>
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter@vger.kernel.org,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hey there,
+'=E3=81=A1=E3=82=8F
+
+So a few people had been asking on whether ipset 5.x will be bundled=20
+along with Xtables-addons. Naturally this is a difficult question=20
+because ipset-5 wants a kernel patch. But yes, it is included as of Xt-=
+a=20
+1.32 (just out).
+
+It has been augmented to not require the patch anymore, by moving it=20
+over from nfnetlink (booo) to genetlink which does not depend on static=
+=20
+numbers, though you will need at least Linux 2.6.35 for this GENL=20
+variant in both compilation and at runtime.
+(As such, ipset-5 is deactivated by default in Xt-a 1.32 and needs to b=
+e=20
+turned on in mconfig.)
 
 
-I can't really say whether it's genetlink or netlink to blame,
-but I noticed that a request with
+Xt-a files at the usual place.
 
-	nlmsg_flags = NLM_F_CREATE | NLM_F_EXCL
-
-to a genl-registered component can return -EOPNOTSUPP because it does 
-not have a dumpit function defined in struct genl_ops. Make sense?
-Not at first sight at least.
-include/linux/netlink.h has this nice anecdote:
-
-	/* Modifiers to GET request */
-	#define NLM_F_ROOT      0x100
-	#define NLM_F_MATCH     0x200
-	#define NLM_F_ATOMIC    0x400
-	#define NLM_F_DUMP      (NLM_F_ROOT|NLM_F_MATCH)
-	
-	/* Modifiers to NEW request */
-	#define NLM_F_REPLACE   0x100
-	#define NLM_F_EXCL      0x200
-	#define NLM_F_CREATE    0x400
-	#define NLM_F_APPEND    0x800
-
-Except there is nothing that declares a particular Netlink message
-as "GET" or "NEW". Subsequently, genetlink chokes:
-
-	if (nlh->nlmsg_flags & NLM_F_DUMP)
-		if (ops->dumpit == NULL)
-			return -EOPNOTSUPP;
-
-Because NLM_F_CREATE | NLM_F_EXCL == NLM_F_DUMP.
-That, of course, is absolutely bogus.
-
-[N.B.: I am also wondering whether
-	(nlh->nlmsg_flags & NLM_F_DUMP) == NLM_F_DUMP
-may have been desired, because NLM_F_DUMP is composed of two bits.]
+The plain genl patch to ipset-5 can be found as a commit at=20
+git://dev.medozas.de/ipset in the "genl" branch. It has received a run=20
+through the testsuite (as far as it went until ospf), and I take that a=
+s=20
+an indication that proxying the protocol onto genl was successful.
