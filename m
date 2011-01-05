@@ -1,57 +1,131 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Xtables-addons 1.32/ipset-GENL 5.2
-Date: Wed, 5 Jan 2011 13:08:04 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1101051223190.12025@obet.zrqbmnf.qr>
-References: <alpine.LNX.2.01.1101040456270.11091@obet.zrqbmnf.qr> <alpine.DEB.2.00.1101050921130.23762@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: [PATCH v2] netfilter: fix the race when initializing nf_ct_expect_hash_rnd
+Date: Wed,  5 Jan 2011 22:23:23 +0800
+Message-ID: <1294237403-15616-1-git-send-email-xiaosuo@gmail.com>
+Cc: netfilter-devel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	Changli Gao <xiaosuo@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:33459 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751716Ab1AEMIG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Jan 2011 07:08:06 -0500
-In-Reply-To: <alpine.DEB.2.00.1101050921130.23762@blackhole.kfki.hu>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:52337 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751216Ab1AEOXp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 5 Jan 2011 09:23:45 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Since nf_ct_expect_dst_hash() may be called without nf_conntrack_lock
+locked, nf_ct_expect_hash_rnd should be initialized in the atomic way.
 
-On Wednesday 2011-01-05 10:22, Jozsef Kadlecsik wrote:
->On Tue, 4 Jan 2011, Jan Engelhardt wrote:
->
->> So a few people had been asking on whether ipset 5.x will be bundled 
->> along with Xtables-addons. Naturally this is a difficult question 
->> because ipset-5 wants a kernel patch. But yes, it is included as of Xt-a 
->> 1.32 (just out).
->> 
->> It has been augmented to not require the patch anymore, by moving it 
->> over from nfnetlink (booo) to genetlink which does not depend on static 
->> numbers, though you will need at least Linux 2.6.35 for this GENL 
->> variant in both compilation and at runtime.
->
->I fully appreciate your effort, however with it you forked ipset 5.x and 
->now the two branches cannot talk to each other.
+In this patch, we use nf_conntrack_hash_rnd instead of
+nf_ct_expect_hash_rnd.
 
-Was not planned; I hardly see a case where there is a reason to mix
-two versions of out-of-tree modules. (There is always a lockstep
-update of both kernel and user side when using Xt-a.)
-
->I'm not convinced that ipset should be moved from nfnetlink to
->genetlink. It'd make life easier for the users at the beginning,
->however on the longer run it'd buy nothing and I believe ipset
->belongs to nfnetlink. I considered the idea of adding support of
->both protocols, however it might make the acceptance for kernel
->inclusion harder. I'm not happy.
-
-The genl patch was solely made for the users wanting to try ipset5.
-
-I cannot say I am happy about it either, knowing about the nfnetlink
-doctrine. You say genl does not buy us anything, but I feel people
-have not thought about what nfnl could possibly buy over genl. Right
-now, nfnl has two drawbacks: preallocated IDs and extra memory use.
-
-There were no intentions of inclusion of this genl patch, though that
-does not mean I prohibit its integration.
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+---
+v2: use nf_conntrack_hash_rnd.
+ include/net/netfilter/nf_conntrack.h |    2 ++
+ net/netfilter/nf_conntrack_core.c    |   30 +++++++++++++++++-------------
+ net/netfilter/nf_conntrack_expect.c  |   10 +++-------
+ 3 files changed, 22 insertions(+), 20 deletions(-)
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index caf17db..d85cff1 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -298,6 +298,8 @@ static inline int nf_ct_is_untracked(const struct nf_conn *ct)
+ extern int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp);
+ extern unsigned int nf_conntrack_htable_size;
+ extern unsigned int nf_conntrack_max;
++extern unsigned int nf_conntrack_hash_rnd;
++void init_nf_conntrack_hash_rnd(void);
+ 
+ #define NF_CT_STAT_INC(net, count)	\
+ 	__this_cpu_inc((net)->ct.stat->count)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 27a5ea6..e615119 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -65,7 +65,7 @@ EXPORT_SYMBOL_GPL(nf_conntrack_max);
+ DEFINE_PER_CPU(struct nf_conn, nf_conntrack_untracked);
+ EXPORT_PER_CPU_SYMBOL(nf_conntrack_untracked);
+ 
+-static unsigned int nf_conntrack_hash_rnd __read_mostly;
++unsigned int nf_conntrack_hash_rnd __read_mostly;
+ 
+ static u32 hash_conntrack_raw(const struct nf_conntrack_tuple *tuple, u16 zone)
+ {
+@@ -596,6 +596,21 @@ static noinline int early_drop(struct net *net, unsigned int hash)
+ 	return dropped;
+ }
+ 
++void init_nf_conntrack_hash_rnd(void)
++{
++	unsigned int rand;
++
++	/*
++	 * Why not initialize nf_conntrack_rnd in a "init()" function ?
++	 * Because there isn't enough entropy when system initializing,
++	 * and we initialize it as late as possible.
++	 */
++	do {
++		get_random_bytes(&rand, sizeof(rand));
++	} while (!rand);
++	cmpxchg(&nf_conntrack_hash_rnd, 0, rand);
++}
++
+ static struct nf_conn *
+ __nf_conntrack_alloc(struct net *net, u16 zone,
+ 		     const struct nf_conntrack_tuple *orig,
+@@ -605,18 +620,7 @@ __nf_conntrack_alloc(struct net *net, u16 zone,
+ 	struct nf_conn *ct;
+ 
+ 	if (unlikely(!nf_conntrack_hash_rnd)) {
+-		unsigned int rand;
+-
+-		/*
+-		 * Why not initialize nf_conntrack_rnd in a "init()" function ?
+-		 * Because there isn't enough entropy when system initializing,
+-		 * and we initialize it as late as possible.
+-		 */
+-		do {
+-			get_random_bytes(&rand, sizeof(rand));
+-		} while (!rand);
+-		cmpxchg(&nf_conntrack_hash_rnd, 0, rand);
+-
++		init_nf_conntrack_hash_rnd();
+ 		/* recompute the hash as nf_conntrack_hash_rnd is initialized */
+ 		hash = hash_conntrack_raw(orig, zone);
+ 	}
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 46e8966..a20fb0b 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -32,9 +32,7 @@
+ unsigned int nf_ct_expect_hsize __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_ct_expect_hsize);
+ 
+-static unsigned int nf_ct_expect_hash_rnd __read_mostly;
+ unsigned int nf_ct_expect_max __read_mostly;
+-static int nf_ct_expect_hash_rnd_initted __read_mostly;
+ 
+ static struct kmem_cache *nf_ct_expect_cachep __read_mostly;
+ 
+@@ -77,15 +75,13 @@ static unsigned int nf_ct_expect_dst_hash(const struct nf_conntrack_tuple *tuple
+ {
+ 	unsigned int hash;
+ 
+-	if (unlikely(!nf_ct_expect_hash_rnd_initted)) {
+-		get_random_bytes(&nf_ct_expect_hash_rnd,
+-				 sizeof(nf_ct_expect_hash_rnd));
+-		nf_ct_expect_hash_rnd_initted = 1;
++	if (unlikely(!nf_conntrack_hash_rnd)) {
++		init_nf_conntrack_hash_rnd();
+ 	}
+ 
+ 	hash = jhash2(tuple->dst.u3.all, ARRAY_SIZE(tuple->dst.u3.all),
+ 		      (((tuple->dst.protonum ^ tuple->src.l3num) << 16) |
+-		       (__force __u16)tuple->dst.u.all) ^ nf_ct_expect_hash_rnd);
++		       (__force __u16)tuple->dst.u.all) ^ nf_conntrack_hash_rnd);
+ 	return ((u64)hash * nf_ct_expect_hsize) >> 32;
+ }
+ 
