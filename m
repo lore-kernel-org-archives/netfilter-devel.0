@@ -1,52 +1,42 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: genetlink misinterprets NEW as GET
-Date: Thu, 6 Jan 2011 17:12:59 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1101061706080.14797@obet.zrqbmnf.qr>
-References: <alpine.LNX.2.01.1101040304500.29858@obet.zrqbmnf.qr> <4D25C82F.4010306@netfilter.org> <alpine.LNX.2.01.1101061508550.13211@obet.zrqbmnf.qr> <4D25D7CD.6070006@netfilter.org>
+From: Balazs Scheidler <bazsi@balabit.hu>
+Subject: Re: tproxy for ipv6
+Date: Thu, 06 Jan 2011 17:22:14 +0100
+Message-ID: <1294330934.12745.44.camel@bzorp.lan>
+References: <AANLkTiktkM1r4pEkc3vWskVoWFGPSTF=EEokf=0TEu+C@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Linux Networking Developer Mailing List
-	<netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, tproxy@lists.balabit.hu
+To: maria isabel <marifran.isabel0@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:38884 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753157Ab1AFQNI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Jan 2011 11:13:08 -0500
-In-Reply-To: <4D25D7CD.6070006@netfilter.org>
+Received: from brother.balabit.com ([195.70.62.219]:49270 "EHLO
+	lists.balabit.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751727Ab1AFQuF (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 6 Jan 2011 11:50:05 -0500
+Received: from balabit.hu (unknown [10.80.0.254])
+	by lists.balabit.hu (Postfix) with ESMTP id BB94411E05B
+	for <netfilter-devel@vger.kernel.org>; Thu,  6 Jan 2011 17:22:33 +0100 (CET)
+In-Reply-To: <AANLkTiktkM1r4pEkc3vWskVoWFGPSTF=EEokf=0TEu+C@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2011-01-06 15:55, Pablo Neira Ayuso wrote:
+Hi,
 
->On 06/01/11 15:25, Jan Engelhardt wrote:
->> On Thursday 2011-01-06 14:48, Pablo Neira Ayuso wrote:
->>>>
->>>> 	/* Modifiers to GET request */
->>>> 	#define NLM_F_ROOT      0x100
->>>> 	#define NLM_F_MATCH     0x200
->>>> 	#define NLM_F_ATOMIC    0x400
->>>> 	#define NLM_F_DUMP      (NLM_F_ROOT|NLM_F_MATCH)
->>>> 	
->>>> 	/* Modifiers to NEW request */
->>>> 	#define NLM_F_REPLACE   0x100
->>>> 	#define NLM_F_EXCL      0x200
->>>> 	#define NLM_F_CREATE    0x400
->>>> 	#define NLM_F_APPEND    0x800
->>>>
->
->i getting confused, so ipset is also setting NLM_F_REPLACE to match the
->NLM_F_DUMP bitmask?
+The latest versions got integrated into 2.6.37 last October.
 
-Any userspace program sending a (ge)netlink message with
-NLM_F_CREATE|NLM_F_EXCL -- with the intent of creating an entry with
-excl semantics --, will be misunderstood by genetlink.c to be a dump
-request.
+On Thu, 2011-01-06 at 14:51 +0530, maria isabel wrote:
+> Hi,
+>   Can you please give me the patch which has TPROXY for IPV6?I have my
+> own NAT modules for IPV6.Also can you also give me the pyhton script
+> to test tproxy for both ipv4 and ipv6.
+> I got your contact from this link.
+> 
+> http://lwn.net/Articles/349958/
+> 
+> Regards,
+>      Maria
 
-The problem is of general nature and not limited to ipset. I only
-noticed it while making the ipset-genl patch, because ipset sends all
-IPSET_CMD_CREATE requests with
-NLM_F_REQUEST|NLM_F_ACK|NLM_F_CREATE|NLM_F_EXCL (see
-ipset/lib/mnl.c).
+-- 
+Bazsi
+
