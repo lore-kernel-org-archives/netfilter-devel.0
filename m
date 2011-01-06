@@ -1,42 +1,46 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: Re: tproxy for ipv6
-Date: Thu, 06 Jan 2011 17:22:14 +0100
-Message-ID: <1294330934.12745.44.camel@bzorp.lan>
-References: <AANLkTiktkM1r4pEkc3vWskVoWFGPSTF=EEokf=0TEu+C@mail.gmail.com>
+From: Ben Pfaff <blp@nicira.com>
+Subject: Re: genetlink misinterprets NEW as GET
+Date: Thu, 06 Jan 2011 09:23:57 -0800
+Message-ID: <878vyyvtci.fsf@benpfaff.org>
+References: <alpine.LNX.2.01.1101040304500.29858@obet.zrqbmnf.qr>
+	<4D25C82F.4010306@netfilter.org>
+Reply-To: Ben Pfaff <blp@nicira.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, tproxy@lists.balabit.hu
-To: maria isabel <marifran.isabel0@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Linux Networking Developer Mailing List
+	<netdev@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from brother.balabit.com ([195.70.62.219]:49270 "EHLO
-	lists.balabit.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751727Ab1AFQuF (ORCPT
+Received: from outmail149113.authsmtp.com ([62.13.149.113]:52035 "EHLO
+	outmail149113.authsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752715Ab1AFRly (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Jan 2011 11:50:05 -0500
-Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id BB94411E05B
-	for <netfilter-devel@vger.kernel.org>; Thu,  6 Jan 2011 17:22:33 +0100 (CET)
-In-Reply-To: <AANLkTiktkM1r4pEkc3vWskVoWFGPSTF=EEokf=0TEu+C@mail.gmail.com>
+	Thu, 6 Jan 2011 12:41:54 -0500
+In-Reply-To: <4D25C82F.4010306@netfilter.org> (Pablo Neira Ayuso's message of
+	"Thu, 06 Jan 2011 14:48:31 +0100")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Pablo Neira Ayuso <pablo@netfilter.org> writes:
 
-The latest versions got integrated into 2.6.37 last October.
+> On 04/01/11 03:14, Jan Engelhardt wrote:
+>> 	/* Modifiers to GET request */
+>> 	#define NLM_F_ROOT      0x100
+>> 	#define NLM_F_MATCH     0x200
+>> 	#define NLM_F_ATOMIC    0x400
+>> 	#define NLM_F_DUMP      (NLM_F_ROOT|NLM_F_MATCH)
+[...]
+>> [N.B.: I am also wondering whether
+>> 	(nlh->nlmsg_flags & NLM_F_DUMP) == NLM_F_DUMP
+>> may have been desired, because NLM_F_DUMP is composed of two bits.]
+>
+> Someone may include NLM_F_ATOMIC to a dump operation, in that case the
+> checking that you propose is not valid.
 
-On Thu, 2011-01-06 at 14:51 +0530, maria isabel wrote:
-> Hi,
->   Can you please give me the patch which has TPROXY for IPV6?I have my
-> own NAT modules for IPV6.Also can you also give me the pyhton script
-> to test tproxy for both ipv4 and ipv6.
-> I got your contact from this link.
-> 
-> http://lwn.net/Articles/349958/
-> 
-> Regards,
->      Maria
-
--- 
-Bazsi
-
+Are you saying that NLM_F_MATCH and NLM_F_ATOMIC are mutually
+exclusive, and that NLM_F_ROOT|NLM_F_ATOMIC would also signal a
+dump operation?  Otherwise the test that Jan proposes looks valid
+to me.
