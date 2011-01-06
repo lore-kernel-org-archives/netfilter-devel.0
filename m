@@ -1,58 +1,89 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 4/5] build: implement export symbols
-Date: Thu, 06 Jan 2011 03:41:22 +0100
-Message-ID: <4D252BD2.9010904@netfilter.org>
-References: <1293752411-12923-1-git-send-email-jengelh@medozas.de> <1293752411-12923-5-git-send-email-jengelh@medozas.de>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Xtables-addons 1.32/ipset-GENL 5.2
+Date: Thu, 6 Jan 2011 04:21:46 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1101060322370.28915@obet.zrqbmnf.qr>
+References: <alpine.LNX.2.01.1101040456270.11091@obet.zrqbmnf.qr> <4D2524DB.8090408@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter@vger.kernel.org,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49653 "EHLO mail.us.es"
+Received: from borg.medozas.de ([188.40.89.202]:36474 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752664Ab1AFClZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Jan 2011 21:41:25 -0500
-In-Reply-To: <1293752411-12923-5-git-send-email-jengelh@medozas.de>
+	id S1753416Ab1AFDVs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 5 Jan 2011 22:21:48 -0500
+In-Reply-To: <4D2524DB.8090408@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 31/12/10 00:40, Jan Engelhardt wrote:
-> This removed the rtnl symbols (7 pieces) that are not usable (there
-> are no prototypes in libnfnetlink.h) from the .dynsym section of the
-> library.
-> 
-> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
-> ---
->  .gitignore            |    1 +
->  Make_global.am        |    2 +-
->  configure.ac          |    2 +
->  m4/gcc4_visibility.m4 |   21 +++++++
->  src/iftable.c         |   23 ++++----
->  src/internal.h        |   12 ++++
->  src/libnfnetlink.c    |  159 ++++++++++++++++++++++++++++---------------------
->  7 files changed, 140 insertions(+), 80 deletions(-)
->  create mode 100644 m4/gcc4_visibility.m4
->  create mode 100644 src/internal.h
 
-Making all in src
-make[3]: se ingresa al directorio
-`/home/pablo/devel/scm/git-netfilter/libnfnetlink/libnfnetlink-1.0.0/_build/src'
-depbase=`echo libnfnetlink.lo | sed 's|[^/]*$|.deps/&|;s|\.lo$||'`;\
-        /bin/sh ../libtool --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H
--I. -I../../src -I..  -I../../include  -Wall -fvisibility=hidden -g -O2
--MT libnfnetlink.lo -MD -MP -MF $depbase.Tpo -c -o libnfnetlink.lo
-../../src/libnfnetlink.c &&\
-        mv -f $depbase.Tpo $depbase.Plo
-libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I../../src -I..
--I../../include -Wall -fvisibility=hidden -g -O2 -MT libnfnetlink.lo -MD
--MP -MF .deps/libnfnetlink.Tpo -c ../../src/libnfnetlink.c  -fPIC -DPIC
--o .libs/libnfnetlink.o
-../../src/libnfnetlink.c:53:22: error: internal.h: No existe el fichero
-o el directorio
+On Thursday 2011-01-06 03:11, Pablo Neira Ayuso wrote:
+>On 04/01/11 05:14, Jan Engelhardt wrote:
+>> '=E3=81=A1=E3=82=8F
+>>=20
+>> So a few people had been asking on whether ipset 5.x will be bundled=
+=20
+>> along with Xtables-addons. Naturally this is a difficult question=20
+>> because ipset-5 wants a kernel patch. But yes, it is included as of =
+Xt-a=20
+>> 1.32 (just out).
+>>=20
+>> It has been augmented to not require the patch anymore, by moving it=
+=20
+>> over from nfnetlink (booo) to genetlink which does not depend on sta=
+tic=20
+>> numbers, though you will need at least Linux 2.6.35 for this GENL=20
+>> variant in both compilation and at runtime.
+>
+>Not depending of static numbers is a good thing to me because it makes
+>the whole user-space simpler since: a) you don't have to send a messag=
+e
+>to perform the initial family ID lookup and b) you don't have to
+>subscribe to genl control events (which is required since the the
+>floating family number may change if the module is unloaded).
 
-Please, run `make distcheck' to check that everything's fine. We have to
-add internal.h to noinst_HEADERS in src/Makefile.am
+Sounds like genl could benefit from a pinning mechanism; rather than
+just using CTRL_CMD_GETFAMILY, a CTRL_CMD_GETIT would use
+module_get(genl_ops->owner) to grab the module, with the reverse
+being a CTRL_CMD_PUTBACK, which is then also implicit on closing the
+nl socket.
 
-Could you fix this in your tree so can I pull from it with this problem
-resolved?
+>> (As such, ipset-5 is deactivated by default in Xt-a 1.32 and needs t=
+o be=20
+>> turned on in mconfig.)
+>>=20
+>> Xt-a files at the usual place.
+>>=20
+>> The plain genl patch to ipset-5 can be found as a commit at=20
+>> git://dev.medozas.de/ipset in the "genl" branch. It has received a r=
+un=20
+>> through the testsuite (as far as it went until ospf), and I take tha=
+t as=20
+>> an indication that proxying the protocol onto genl was successful.
+>
+>This is going to confuse everyone. Since ipset-5 will be submitted int=
+o
+>mainline soon, some distributors may start packaging the user-space ge=
+nl
+>binaries.
+
+Some distributors also package kernels patched with random things.
+
+=46alls under the well-known answer field of "those who have no clue
+should not touch it".
+
+Not providing a tarball, not providing a diff, stowing away the code
+in git, and stowing it away in a non-default branch as is done with
+ipset-genl keeps out the worst offenders.
+
+Getting involved in NF packages in major distros works proactively
+against incompatible or rotten package submissions.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
