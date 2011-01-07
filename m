@@ -1,60 +1,26 @@
-From: Marek Kierdelewicz <marek@piasta.pl>
-Subject: Re: new netfilter target - DNETMAP
-Date: Fri, 7 Jan 2011 22:23:49 +0100
-Message-ID: <20110107222349.6503ed26@kuguar>
-References: <20110107000259.775ba310@kuguar>
-	<alpine.LNX.2.01.1101070008590.19521@obet.zrqbmnf.qr>
+From: doug arro <doug_arro@yahoo.com>
+Subject: Why and when to use skb_make_writable()?
+Date: Fri, 7 Jan 2011 15:11:36 -0800 (PST)
+Message-ID: <969249.6164.qm@web111109.mail.gq1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter@vger.kernel.org,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.2.01.1101070008590.19521@obet.zrqbmnf.qr>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from nm26-vm0.bullet.mail.sp2.yahoo.com ([98.139.91.230]:28887 "HELO
+	nm26-vm0.bullet.mail.sp2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751538Ab1AGXLi (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 7 Jan 2011 18:11:38 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
->Hi,
+Hello,
 
-Hi,
+What is the recommended practice for using skb_make_writable()?  I am experimenting with netfilter modules to manipulate IP headers in the mangle table.  Most of the target modules call skb_make_writable() right at the start of the target function but some don't.  What is the conventional wisdom?
 
->Have you considered updating the NETMAP target inside the linux
->kernel instead?
+Thanks,
+doug
 
-Nope, I haven't thought about it. It's doable. Classic NETMAP
-functionality could be available through some rule option.
 
->Your idea looks interesting in that I could envision it superseding
->DNAT, SNAT and NETMAP altogether.
 
-Thanks :-).
-
->>Polite request to Jan Engelhardt for inclusion of the target into
->>xtables-addons.
->It would be nice if you could
-> * resolve the inconsistencies in indentation. Specifically, use tabs
->...
-> * wrap lines at 80 cols in xt_DNETMAP.man 
-
-Will do.
-
->The manpage mentions "If host 192.168.0.10 generates some traffic, it 
->gets bound to first free IP in subnet - 20.0.0.0.". However,
->20.0.0.0 can be a network address and thus lead to problems.
-
-Usage of network and broadcast addresses for NAT shouldn't pose
-any kind of problems. I tested such setups in my networks. If you use
-classic NETMAP to map wider address space to shorter one, you can also
-have flows NATed to network and broadcast address of subnet specified
-as a parameter of the NETMAP rule.
-
->Is there a way for the user to specify that the range to use
->should be 20.0.0.1-20.255.255.254 rather than 20.0.0.0-20.255.255.255?
-
-Not yet, but module option could do a trick as long as it's really
-necessary.
-
-Best regards,
-Marek Kierdelewicz
+      
