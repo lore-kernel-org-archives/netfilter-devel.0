@@ -1,53 +1,62 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: inconsistent address treatment.
-Date: Sat, 8 Jan 2011 13:32:13 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1101081321420.9010@obet.zrqbmnf.qr>
-References: <4D1358C0.4060704@earthlink.net> <4D13A863.70600@plouf.fr.eu.org> <4D13D0FF.1010900@earthlink.net> <4D1457D5.3040305@plouf.fr.eu.org> <4D14BD05.8020509@earthlink.net> <alpine.LNX.2.01.1012242242440.30415@obet.zrqbmnf.qr> <4D1730B7.3090805@treenet.co.nz>
- <4D17B6FB.5020807@plouf.fr.eu.org> <alpine.LNX.2.01.1012262309540.5681@obet.zrqbmnf.qr> <4D27E60D.6080205@treenet.co.nz>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>,
-	Stephen Clark <sclark46@earthlink.net>,
-	netfilter-devel@vger.kernel.org
-To: Amos Jeffries <squid3@treenet.co.nz>
+Subject: [PATCH 01/13] iptables-restore: resolve confusing policy error message
+Date: Sat,  8 Jan 2011 16:20:02 +0100
+Message-ID: <1294500015-10691-2-git-send-email-jengelh@medozas.de>
+References: <1294500015-10691-1-git-send-email-jengelh@medozas.de>
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:42316 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:32879 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751697Ab1AHMcO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 8 Jan 2011 07:32:14 -0500
-In-Reply-To: <4D27E60D.6080205@treenet.co.nz>
+	id S1752505Ab1AHPUR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 8 Jan 2011 10:20:17 -0500
+In-Reply-To: <1294500015-10691-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Rob Leslie <rob@mars.org>
 
-On Saturday 2011-01-08 05:20, Amos Jeffries wrote:
->>>>
->>>> FWIW: we (Squid project) use the syntax "ip[-ip][/mask]".
->>>
->>> I'm being curious : what is the meaning of "ip-ip/mask" when both the
->>> range and mask are present ?
->>
->> Sounds like
->>
-The scheme (a-b)/msk:
->>
->> 192.168.0.64-192.168.191/255.255.255.253
->> <=>
->> 192.168.0.{64 65 68 69 72 73 76 77 77...}
->>
->> Well, it's probably of use... to someone.
-Squid's a-lastof(b/plen):
-> For yourselves I was thinking limit it to CIDR masks.
-> As in:
-> 192.168.1.0-192.168.10.0/23  ==> 192.168.1.0-192.168.11.255
+When iptables-restore (and ip6tables-restore) is unable to set a
+chain's policy, it responds with a confusing message, e.g.:
 
-If, for any combination of a,b,plen in your a-lastof(b/plen), you get a
-contiuguous range [and that does seem to be the case], it is
-redundant to store plen, since that can just be expressed by an
-appropriate contiguous range a-c.
+iptables-restore v1.4.9: Can't set policy "PREROUTING" on "ACCEPT"
+line 16: Bad built-in chain name
 
-That said, a-b/plen does look confusing, because one might
-also assume (a-b)/plen:
+This is due to the chain and policy arguments being used in the wrong
+order. The attached patch corrects this problem.
 
-192.168.1.0-192.168.10.0/23 => 192.168.0.0-192.168.11.255
-(Because 192.168.1.0/23's top is 192.168.0.0)
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ ip6tables-restore.c |    2 +-
+ iptables-restore.c  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ip6tables-restore.c b/ip6tables-restore.c
+index 008566c..cea5f36 100644
+--- a/ip6tables-restore.c
++++ b/ip6tables-restore.c
+@@ -312,7 +312,7 @@ int main(int argc, char *argv[])
+ 					xtables_error(OTHER_PROBLEM,
+ 						"Can't set policy `%s'"
+ 						" on `%s' line %u: %s\n",
+-						chain, policy, line,
++						policy, chain, line,
+ 						ip6tc_strerror(errno));
+ 			}
+ 
+diff --git a/iptables-restore.c b/iptables-restore.c
+index 8c6648e..bf80e78 100644
+--- a/iptables-restore.c
++++ b/iptables-restore.c
+@@ -317,7 +317,7 @@ main(int argc, char *argv[])
+ 					xtables_error(OTHER_PROBLEM,
+ 						"Can't set policy `%s'"
+ 						" on `%s' line %u: %s\n",
+-						chain, policy, line,
++						policy, chain, line,
+ 						iptc_strerror(errno));
+ 			}
+ 
+-- 
+1.7.1
+
