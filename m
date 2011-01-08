@@ -1,142 +1,256 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: iptables: accumulated bugfixes and annotations
-Date: Sat,  8 Jan 2011 16:20:01 +0100
-Message-ID: <1294500015-10691-1-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 02/13] src: const annotations
+Date: Sat,  8 Jan 2011 16:20:03 +0100
+Message-ID: <1294500015-10691-3-git-send-email-jengelh@medozas.de>
+References: <1294500015-10691-1-git-send-email-jengelh@medozas.de>
 Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:32868 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:32884 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752505Ab1AHPUQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 8 Jan 2011 10:20:16 -0500
+	id S1752505Ab1AHPUS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 8 Jan 2011 10:20:18 -0500
+In-Reply-To: <1294500015-10691-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Also one int -> uint here on the way through.
 
-Hey Pablo,
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ ip6tables.c |   27 ++++++++++++++-------------
+ iptables.c  |   25 +++++++++++++------------
+ 2 files changed, 27 insertions(+), 25 deletions(-)
 
+diff --git a/ip6tables.c b/ip6tables.c
+index 9b1629e..0284791 100644
+--- a/ip6tables.c
++++ b/ip6tables.c
+@@ -160,7 +160,7 @@ struct xtables_globals ip6tables_globals = {
+  *     optional
+  */
+ 
+-static char commands_v_options[NUMBER_OF_CMD][NUMBER_OF_OPT] =
++static const char commands_v_options[NUMBER_OF_CMD][NUMBER_OF_OPT] =
+ /* Well, it's better than "Re: Linux vs FreeBSD" */
+ {
+ 	/*     -n  -s  -d  -p  -j  -v  -x  -i  -o --line -c */
+@@ -180,7 +180,7 @@ static char commands_v_options[NUMBER_OF_CMD][NUMBER_OF_OPT] =
+ /*LIST_RULES*/{'x','x','x','x','x',' ','x','x','x','x','x'}
+ };
+ 
+-static int inverse_for_options[NUMBER_OF_OPT] =
++static const unsigned int inverse_for_options[NUMBER_OF_OPT] =
+ {
+ /* -n */ 0,
+ /* -s */ IP6T_INV_SRCIP,
+@@ -201,7 +201,7 @@ static int inverse_for_options[NUMBER_OF_OPT] =
+ /* A few hardcoded protocols for 'all' and in case the user has no
+    /etc/protocols */
+ struct pprot {
+-	char *name;
++	const char *name;
+ 	u_int8_t num;
+ };
+ 
+@@ -211,7 +211,7 @@ proto_to_name(u_int8_t proto, int nolookup)
+ 	unsigned int i;
+ 
+ 	if (proto && !nolookup) {
+-		struct protoent *pent = getprotobynumber(proto);
++		const struct protoent *pent = getprotobynumber(proto);
+ 		if (pent)
+ 			return pent->p_name;
+ 	}
+@@ -235,7 +235,7 @@ exit_tryhelp(int status)
+ }
+ 
+ static void
+-exit_printhelp(struct xtables_rule_match *matches)
++exit_printhelp(const struct xtables_rule_match *matches)
+ {
+ 	printf("%s v%s\n\n"
+ "Usage: %s -[AD] chain rule-specification [options]\n"
+@@ -569,7 +569,7 @@ print_match(const struct ip6t_entry_match *m,
+ 	    const struct ip6t_ip6 *ip,
+ 	    int numeric)
+ {
+-	struct xtables_match *match =
++	const struct xtables_match *match =
+ 		xtables_find_match(m->u.user.name, XTF_TRY_LOAD, NULL);
+ 
+ 	if (match) {
+@@ -593,7 +593,7 @@ print_firewall(const struct ip6t_entry *fw,
+ 	       unsigned int format,
+ 	       struct ip6tc_handle *const handle)
+ {
+-	struct xtables_target *target = NULL;
++	const struct xtables_target *target = NULL;
+ 	const struct ip6t_entry_target *t;
+ 	u_int8_t flags;
+ 	char buf[BUFSIZ];
+@@ -804,12 +804,12 @@ insert_entry(const ip6t_chainlabel chain,
+ }
+ 
+ static unsigned char *
+-make_delete_mask(struct xtables_rule_match *matches,
++make_delete_mask(const struct xtables_rule_match *matches,
+ 		 const struct xtables_target *target)
+ {
+ 	/* Establish mask for comparison */
+ 	unsigned int size;
+-	struct xtables_rule_match *matchp;
++	const struct xtables_rule_match *matchp;
+ 	unsigned char *mask, *mptr;
+ 
+ 	size = sizeof(struct ip6t_entry);
+@@ -1035,7 +1035,7 @@ static void print_proto(u_int16_t proto, int invert)
+ 		unsigned int i;
+ 		const char *invertstr = invert ? "! " : "";
+ 
+-		struct protoent *pent = getprotobynumber(proto);
++		const struct protoent *pent = getprotobynumber(proto);
+ 		if (pent) {
+ 			printf("%s-p %s ",
+ 			       invertstr, pent->p_name);
+@@ -1056,7 +1056,7 @@ static void print_proto(u_int16_t proto, int invert)
+ static int print_match_save(const struct ip6t_entry_match *e,
+ 			const struct ip6t_ip6 *ip)
+ {
+-	struct xtables_match *match =
++	const struct xtables_match *match =
+ 		xtables_find_match(e->u.user.name, XTF_TRY_LOAD, NULL);
+ 
+ 	if (match) {
+@@ -1077,7 +1077,8 @@ static int print_match_save(const struct ip6t_entry_match *e,
+ }
+ 
+ /* print a given ip including mask if neccessary */
+-static void print_ip(char *prefix, const struct in6_addr *ip, const struct in6_addr *mask, int invert)
++static void print_ip(const char *prefix, const struct in6_addr *ip,
++		     const struct in6_addr *mask, int invert)
+ {
+ 	char buf[51];
+ 	int l = ipv6_prefix_length(mask);
+@@ -1101,7 +1102,7 @@ static void print_ip(char *prefix, const struct in6_addr *ip, const struct in6_a
+ void print_rule(const struct ip6t_entry *e,
+ 		       struct ip6tc_handle *h, const char *chain, int counters)
+ {
+-	struct ip6t_entry_target *t;
++	const struct ip6t_entry_target *t;
+ 	const char *target_name;
+ 
+ 	/* print counters for iptables-save */
+diff --git a/iptables.c b/iptables.c
+index 1127bdd..342ea04 100644
+--- a/iptables.c
++++ b/iptables.c
+@@ -160,7 +160,7 @@ struct xtables_globals iptables_globals = {
+  *     optional
+  */
+ 
+-static char commands_v_options[NUMBER_OF_CMD][NUMBER_OF_OPT] =
++static const char commands_v_options[NUMBER_OF_CMD][NUMBER_OF_OPT] =
+ /* Well, it's better than "Re: Linux vs FreeBSD" */
+ {
+ 	/*     -n  -s  -d  -p  -j  -v  -x  -i  -o  -f --line -c */
+@@ -180,7 +180,7 @@ static char commands_v_options[NUMBER_OF_CMD][NUMBER_OF_OPT] =
+ /*LIST_RULES*/{'x','x','x','x','x',' ','x','x','x','x','x','x'}
+ };
+ 
+-static int inverse_for_options[NUMBER_OF_OPT] =
++static const int inverse_for_options[NUMBER_OF_OPT] =
+ {
+ /* -n */ 0,
+ /* -s */ IPT_INV_SRCIP,
+@@ -248,7 +248,7 @@ exit_tryhelp(int status)
+ }
+ 
+ static void
+-exit_printhelp(struct xtables_rule_match *matches)
++exit_printhelp(const struct xtables_rule_match *matches)
+ {
+ 	printf("%s v%s\n\n"
+ "Usage: %s -[AD] chain rule-specification [options]\n"
+@@ -573,7 +573,7 @@ print_match(const struct ipt_entry_match *m,
+ 	    const struct ipt_ip *ip,
+ 	    int numeric)
+ {
+-	struct xtables_match *match =
++	const struct xtables_match *match =
+ 		xtables_find_match(m->u.user.name, XTF_TRY_LOAD, NULL);
+ 
+ 	if (match) {
+@@ -597,7 +597,7 @@ print_firewall(const struct ipt_entry *fw,
+ 	       unsigned int format,
+ 	       struct iptc_handle *const handle)
+ {
+-	struct xtables_target *target = NULL;
++	const struct xtables_target *target = NULL;
+ 	const struct ipt_entry_target *t;
+ 	u_int8_t flags;
+ 	char buf[BUFSIZ];
+@@ -806,12 +806,12 @@ insert_entry(const ipt_chainlabel chain,
+ }
+ 
+ static unsigned char *
+-make_delete_mask(struct xtables_rule_match *matches,
++make_delete_mask(const struct xtables_rule_match *matches,
+ 		 const struct xtables_target *target)
+ {
+ 	/* Establish mask for comparison */
+ 	unsigned int size;
+-	struct xtables_rule_match *matchp;
++	const struct xtables_rule_match *matchp;
+ 	unsigned char *mask, *mptr;
+ 
+ 	size = sizeof(struct ipt_entry);
+@@ -1008,7 +1008,7 @@ static void print_proto(u_int16_t proto, int invert)
+ 		unsigned int i;
+ 		const char *invertstr = invert ? "! " : "";
+ 
+-		struct protoent *pent = getprotobynumber(proto);
++		const struct protoent *pent = getprotobynumber(proto);
+ 		if (pent) {
+ 			printf("%s-p %s ", invertstr, pent->p_name);
+ 			return;
+@@ -1064,7 +1064,7 @@ print_iface(char letter, const char *iface, const unsigned char *mask,
+ static int print_match_save(const struct ipt_entry_match *e,
+ 			const struct ipt_ip *ip)
+ {
+-	struct xtables_match *match =
++	const struct xtables_match *match =
+ 		xtables_find_match(e->u.user.name, XTF_TRY_LOAD, NULL);
+ 
+ 	if (match) {
+@@ -1085,7 +1085,8 @@ static int print_match_save(const struct ipt_entry_match *e,
+ }
+ 
+ /* print a given ip including mask if neccessary */
+-static void print_ip(char *prefix, u_int32_t ip, u_int32_t mask, int invert)
++static void print_ip(const char *prefix, u_int32_t ip,
++		     u_int32_t mask, int invert)
+ {
+ 	u_int32_t bits, hmask = ntohl(mask);
+ 	int i;
+@@ -1118,7 +1119,7 @@ static void print_ip(char *prefix, u_int32_t ip, u_int32_t mask, int invert)
+ void print_rule(const struct ipt_entry *e,
+ 		struct iptc_handle *h, const char *chain, int counters)
+ {
+-	struct ipt_entry_target *t;
++	const struct ipt_entry_target *t;
+ 	const char *target_name;
+ 
+ 	/* print counters for iptables-save */
+@@ -1168,7 +1169,7 @@ void print_rule(const struct ipt_entry *e,
+ 	/* Print targinfo part */
+ 	t = ipt_get_target((struct ipt_entry *)e);
+ 	if (t->u.user.name[0]) {
+-		struct xtables_target *target =
++		const struct xtables_target *target =
+ 			xtables_find_target(t->u.user.name, XTF_TRY_LOAD);
+ 
+ 		if (!target) {
+-- 
+1.7.1
 
-could you please pull this while Patrick is away, so that users get a
-chance to benefit of these accumulated bugfixes.
-
-==
-The following changes since commit 3a84b3d5de492e40aff7bae5038b06dd6b6041c4:
-
-  Merge branch 'master' of git://dev.medozas.de/iptables (2010-12-15 23:36:19 +0100)
-
-are available in the git repository at:
-
-  git://dev.medozas.de/iptables master
-
-Jan Engelhardt (11):
-      src: const annotations
-      xt_comment: remove redundant cast
-      src: use C99/POSIX types
-      iptables: abort on empty interface specification
-      xtables: reorder num_old substraction for clarity
-      ip[6]tables: only call match's parse function when option char is in range
-      ip[6]tables: only call target's parse function when option char is in range
-      extensions: remove no longer necessary default: cases
-      libxt_sctp: fix a typo
-      libipt_CLUSTERIP: const annotations
-      libxtables: do some option structure checking
-
-Rob Leslie (1):
-      iptables-restore: resolve confusing policy error message
-
-Stephen Beahm (1):
-      libipt_REDIRECT: avoid dereference of uninitialized pointer
-
- extensions/libip6t_HL.c              |    4 --
- extensions/libip6t_LOG.c             |    5 +--
- extensions/libip6t_REJECT.c          |    3 --
- extensions/libip6t_ah.c              |   10 ++----
- extensions/libip6t_dst.c             |   12 +++----
- extensions/libip6t_frag.c            |    8 ++---
- extensions/libip6t_hbh.c             |   12 +++----
- extensions/libip6t_hl.c              |    4 +--
- extensions/libip6t_icmp6.c           |   13 +++-----
- extensions/libip6t_ipv6header.c      |   14 ++++-----
- extensions/libip6t_mh.c              |   13 +++-----
- extensions/libip6t_rt.c              |    8 ++---
- extensions/libipt_CLUSTERIP.c        |    8 ++---
- extensions/libipt_DNAT.c             |    4 +--
- extensions/libipt_ECN.c              |    2 -
- extensions/libipt_LOG.c              |    4 +--
- extensions/libipt_MASQUERADE.c       |    4 +--
- extensions/libipt_NETMAP.c           |   14 ++++-----
- extensions/libipt_REDIRECT.c         |    6 +--
- extensions/libipt_REJECT.c           |    2 -
- extensions/libipt_SAME.c             |    3 --
- extensions/libipt_SNAT.c             |    4 +--
- extensions/libipt_TTL.c              |    4 --
- extensions/libipt_ULOG.c             |    2 -
- extensions/libipt_addrtype.c         |   10 ++----
- extensions/libipt_ah.c               |    8 ++---
- extensions/libipt_ecn.c              |    2 -
- extensions/libipt_icmp.c             |   13 +++-----
- extensions/libipt_realm.c            |    3 --
- extensions/libipt_ttl.c              |    3 --
- extensions/libxt_CHECKSUM.c          |    2 -
- extensions/libxt_CLASSIFY.c          |    3 --
- extensions/libxt_CONNMARK.c          |    6 +--
- extensions/libxt_CONNSECMARK.c       |    3 --
- extensions/libxt_CT.c                |    2 -
- extensions/libxt_DSCP.c              |    5 +--
- extensions/libxt_IDLETIMER.c         |    3 --
- extensions/libxt_MARK.c              |   11 +-----
- extensions/libxt_NFLOG.c             |    2 -
- extensions/libxt_NFQUEUE.c           |    4 --
- extensions/libxt_RATEEST.c           |    3 --
- extensions/libxt_SECMARK.c           |    2 -
- extensions/libxt_SET.c               |    6 ----
- extensions/libxt_TCPMSS.c            |    3 --
- extensions/libxt_TOS.c               |    7 +---
- extensions/libxt_cluster.c           |    2 -
- extensions/libxt_comment.c           |    5 +--
- extensions/libxt_connbytes.c         |    2 -
- extensions/libxt_connlimit.c         |   10 ++----
- extensions/libxt_connmark.c          |    5 +--
- extensions/libxt_conntrack.c         |   10 +-----
- extensions/libxt_cpu.c               |    3 --
- extensions/libxt_dccp.c              |   18 +++++------
- extensions/libxt_dscp.c              |    3 --
- extensions/libxt_esp.c               |    8 ++---
- extensions/libxt_hashlimit.c         |   12 +++----
- extensions/libxt_helper.c            |    3 --
- extensions/libxt_iprange.c           |    7 +---
- extensions/libxt_ipvs.c              |    7 +----
- extensions/libxt_length.c            |    5 +--
- extensions/libxt_limit.c             |   13 +++-----
- extensions/libxt_mac.c               |    3 --
- extensions/libxt_mark.c              |    5 +--
- extensions/libxt_multiport.c         |   34 +++++++++------------
- extensions/libxt_osf.c               |    2 -
- extensions/libxt_owner.c             |   10 +++---
- extensions/libxt_physdev.c           |    3 --
- extensions/libxt_pkttype.c           |    3 --
- extensions/libxt_policy.c            |    6 +--
- extensions/libxt_quota.c             |    5 +--
- extensions/libxt_rateest.c           |    7 +---
- extensions/libxt_recent.c            |    3 --
- extensions/libxt_sctp.c              |   19 +++++-------
- extensions/libxt_set.c               |    6 ----
- extensions/libxt_state.c             |    3 --
- extensions/libxt_statistic.c         |    2 -
- extensions/libxt_string.c            |    3 --
- extensions/libxt_tcp.c               |   17 ++++------
- extensions/libxt_tcpmss.c            |    6 +--
- extensions/libxt_tos.c               |    4 +-
- extensions/libxt_u32.c               |    4 +-
- extensions/libxt_udp.c               |    9 ++----
- extensions/tos_values.c              |    2 +-
- include/linux/netfilter/xt_comment.h |    2 +-
- ip6tables-restore.c                  |    2 +-
- ip6tables.c                          |   54 +++++++++++++++++++++------------
- iptables-restore.c                   |    2 +-
- iptables.c                           |   50 ++++++++++++++++++++-----------
- libipq/libipq.c                      |    4 +-
- libiptc/libip4tc.c                   |    4 +-
- xshared.h                            |    4 ++
- xtables.c                            |   42 +++++++++++++++++++-------
- 92 files changed, 262 insertions(+), 435 deletions(-)
