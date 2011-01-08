@@ -1,59 +1,74 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 2/2] examples/genl: support dumping the genl families
-Date: Sat,  8 Jan 2011 04:09:47 +0100
-Message-ID: <1294456188-4221-3-git-send-email-jengelh@medozas.de>
-References: <1294456188-4221-1-git-send-email-jengelh@medozas.de>
+Subject: [PATCH] kernel: remove unused ctnl parameter from call_ad
+Date: Sat,  8 Jan 2011 04:14:38 +0100
+Message-ID: <1294456479-4401-2-git-send-email-jengelh@medozas.de>
+References: <1294456479-4401-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+To: kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:41636 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:48622 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751682Ab1AHDJw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Jan 2011 22:09:52 -0500
-In-Reply-To: <1294456188-4221-1-git-send-email-jengelh@medozas.de>
+	id S1751697Ab1AHDOm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 7 Jan 2011 22:14:42 -0500
+In-Reply-To: <1294456479-4401-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The usage text already specified [family] as optional, now implement it :-)
-
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- examples/genl/genl-family-get.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ kernel/ip_set.c |   11 +++++------
+ 1 files changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/examples/genl/genl-family-get.c b/examples/genl/genl-family-get.c
-index 1ad1a04..b16f7b6 100644
---- a/examples/genl/genl-family-get.c
-+++ b/examples/genl/genl-family-get.c
-@@ -178,6 +178,7 @@ static int data_cb(const struct nlmsghdr *nlh, void *data)
- 		printf("grps:\n");
- 		parse_genl_mc_grps(tb[CTRL_ATTR_MCAST_GROUPS]);
- 	}
-+	printf("\n");
- 	return MNL_CB_OK;
- }
+diff --git a/kernel/ip_set.c b/kernel/ip_set.c
+index 6d353d9..85e4e23 100644
+--- a/kernel/ip_set.c
++++ b/kernel/ip_set.c
+@@ -1315,8 +1315,7 @@ static const struct nla_policy ip_set_adt_policy[IPSET_ATTR_CMD_MAX + 1] = {
+ };
  
-@@ -190,7 +191,7 @@ int main(int argc, char *argv[])
- 	int ret;
- 	unsigned int seq, portid;
+ static int
+-call_ad(struct sock *ctnl, struct sk_buff *skb,
+-	const struct nlattr * const attr[],
++call_ad(struct sk_buff *skb, const struct nlattr *const attr[],
+ 	struct ip_set *set, const struct nlattr *nla,
+ 	enum ipset_adt adt, u32 flags)
+ {
+@@ -1372,7 +1371,7 @@ ip_set_uadd(struct sock *ctnl, struct sk_buff *skb,
+ 		return -EEXIST;
  
--	if (argc != 2) {
-+	if (argc > 2) {
- 		printf("%s [family name]\n", argv[0]);
- 		exit(EXIT_FAILURE);
- 	}
-@@ -205,7 +206,10 @@ int main(int argc, char *argv[])
- 	genl->version = 1;
+ 	if (attr[IPSET_ATTR_DATA]) {
+-		ret = call_ad(ctnl, skb, attr,
++		ret = call_ad(skb, attr,
+ 			      set, attr[IPSET_ATTR_DATA], IPSET_ADD, flags);
+ 	} else {
+ 		int nla_rem;
+@@ -1381,7 +1380,7 @@ ip_set_uadd(struct sock *ctnl, struct sk_buff *skb,
+ 			if (nla_type(nla) != IPSET_ATTR_DATA
+ 			    || !flag_nested(nla))
+ 				return -IPSET_ERR_PROTOCOL;
+-			ret = call_ad(ctnl, skb, attr,
++			ret = call_ad(skb, attr,
+ 				       set, nla, IPSET_ADD, flags);
+ 			if (ret < 0)
+ 				return ret;
+@@ -1416,7 +1415,7 @@ ip_set_udel(struct sock *ctnl, struct sk_buff *skb,
+ 		return -EEXIST;
  
- 	mnl_attr_put_u32(nlh, CTRL_ATTR_FAMILY_ID, GENL_ID_CTRL);
--	mnl_attr_put_strz(nlh, CTRL_ATTR_FAMILY_NAME, argv[1]);
-+	if (argc >= 2)
-+		mnl_attr_put_strz(nlh, CTRL_ATTR_FAMILY_NAME, argv[1]);
-+	else
-+		nlh->nlmsg_flags |= NLM_F_DUMP;
- 
- 	nl = mnl_socket_open(NETLINK_GENERIC);
- 	if (nl == NULL) {
+ 	if (attr[IPSET_ATTR_DATA]) {
+-		ret = call_ad(ctnl, skb, attr,
++		ret = call_ad(skb, attr,
+ 			      set, attr[IPSET_ATTR_DATA], IPSET_DEL, flags);
+ 	} else {
+ 		int nla_rem;
+@@ -1425,7 +1424,7 @@ ip_set_udel(struct sock *ctnl, struct sk_buff *skb,
+ 			if (nla_type(nla) != IPSET_ATTR_DATA
+ 			    || !flag_nested(nla))
+ 				return -IPSET_ERR_PROTOCOL;
+-			ret = call_ad(ctnl, skb, attr,
++			ret = call_ad(skb, attr,
+ 				       set, nla, IPSET_DEL, flags);
+ 			if (ret < 0)
+ 				return ret;
 -- 
 1.7.1
 
