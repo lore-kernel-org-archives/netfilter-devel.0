@@ -1,26 +1,50 @@
-From: doug arro <doug_arro@yahoo.com>
-Subject: Why and when to use skb_make_writable()?
-Date: Fri, 7 Jan 2011 15:11:36 -0800 (PST)
-Message-ID: <969249.6164.qm@web111109.mail.gq1.yahoo.com>
+From: Steven Jan Springl <steven@springl.ukfsn.org>
+Subject: Possible bug with ip6tables hl module.
+Date: Sat, 8 Jan 2011 00:38:34 +0000
+Message-ID: <201101080038.34932.steven@springl.ukfsn.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nm26-vm0.bullet.mail.sp2.yahoo.com ([98.139.91.230]:28887 "HELO
-	nm26-vm0.bullet.mail.sp2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751538Ab1AGXLi (ORCPT
+Received: from mail.springl.ukfsn.org ([84.45.199.6]:41650 "EHLO
+	mail.springl.ukfsn.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752263Ab1AHAqd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Jan 2011 18:11:38 -0500
+	Fri, 7 Jan 2011 19:46:33 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by mail.springl.ukfsn.org (Postfix) with ESMTP id D21CC20D2F
+	for <netfilter-devel@vger.kernel.org>; Sat,  8 Jan 2011 00:38:35 +0000 (GMT)
+Received: from mail.springl.ukfsn.org ([127.0.0.1])
+	by localhost (l2.home [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id Ji4Q5VGDZUdi for <netfilter-devel@vger.kernel.org>;
+	Sat,  8 Jan 2011 00:38:35 +0000 (GMT)
+Received: from l3.home (l3.home [IPv6:2001:4d48:ad51:24:250:daff:fe6d:bbdd])
+	by mail.springl.ukfsn.org (Postfix) with ESMTP id 2443520D20
+	for <netfilter-devel@vger.kernel.org>; Sat,  8 Jan 2011 00:38:35 +0000 (GMT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+Hello
 
-What is the recommended practice for using skb_make_writable()?  I am experimenting with netfilter modules to manipulate IP headers in the mangle table.  Most of the target modules call skb_make_writable() right at the start of the target function but some don't.  What is the conventional wisdom?
+I am using ip6tables 1.4.10 and kernel 2.6.37.
 
-Thanks,
-doug
+If I type the following command:
+
+ip6tables -A INPUT -m length --length 100 -m hl --hl-gt 100 -j ACCEPT
+
+It works.
+
+If I swap the length and hl options around:
+
+ip6tables -A INPUT -m hl --hl-gt 100 -m length --length 100 -j ACCEPT
+
+It fails with the following message:
+
+ip6tables v1.4.10: Can't specify HL option twice
+
+Steven.
 
 
-
-      
