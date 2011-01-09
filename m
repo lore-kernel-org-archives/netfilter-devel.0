@@ -1,48 +1,74 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: collecting netfilter bugfixes for 2.6.37
-Date: Sun, 09 Jan 2011 22:48:18 +0100
-Message-ID: <4D2A2D22.909@netfilter.org>
-References: <4D2A2ACC.6010906@netfilter.org> <alpine.LNX.2.01.1101092244040.30460@obet.zrqbmnf.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>,
-	Stephen Hemminger <shemminger@vyatta.com>,
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH][resend] netfilter: ebtables: make broute table work again
+Date: Sun,  9 Jan 2011 22:48:49 +0100
+Message-ID: <1294609729-13039-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>,
 	Eric Dumazet <eric.dumazet@gmail.com>
-To: Jan Engelhardt <jengelh@medozas.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44894 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751407Ab1AIVsW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 9 Jan 2011 16:48:22 -0500
-In-Reply-To: <alpine.LNX.2.01.1101092244040.30460@obet.zrqbmnf.qr>
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:42956 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752071Ab1AIVx7 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 9 Jan 2011 16:53:59 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jan,
+broute table init hook sets up the "br_should_route_hook" pointer,
+which then gets called from br_input.
 
-On 09/01/11 22:45, Jan Engelhardt wrote:
-> On Sunday 2011-01-09 22:38, Pablo Neira Ayuso wrote:
-> 
->> Hi,
->>
->> While Patrick is not available, I have set up a tree to collect
->> netfilter bugfixes that need to get into 2.6.37 asap. You can find them at:
->>
->> http://1984.lsi.us.es/git/?p=net-2.6/.git;a=summary
->>
->> I have iterated over the emails pending in the list since Dec 16th
->> (which is when Patrick replied for last time), and I found two patches,
->> one from Eric and another from Stephen.
->>
->> Please, if you have more patches for -stable, post them to the list.
->> I'll pass them to davem by this week.
-> 
-> The NLM_F_DUMP patch maybe - Dave has not replied yet either on whether 
-> he took care of the single patch.
+commit a386f99025f13b32502fe5dedf223c20d7283826
+(bridge: add proper RCU annotation to should_route_hook)
+introduced a typedef, and then changed this to:
 
-That patch is not netfilter related, the common proceeding is that David
-(the netdev maintainer) accepts that himself.
+br_should_route_hook_t *rhook;
+[..]
+rhook = rcu_dereference(br_should_route_hook);
+if (*rhook(skb))
+
+problem is that "br_should_route_hook" contains the address of the function,
+so calling *rhook() results in kernel panic.
+
+Can't simply use "if (rhook(skb)", because br_should_route_hook_t *rhook
+is not a function.
+
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Eric, does this patch look sane to you?
+
+ Pablo, only the if_bridge.h change is needed.
+ If you do not like the br_input.c change, feel
+ free to remove it when applying.
+
+ Thanks!
+
+diff --git a/include/linux/if_bridge.h b/include/linux/if_bridge.h
+index f7e73c3..dd3f201 100644
+--- a/include/linux/if_bridge.h
++++ b/include/linux/if_bridge.h
+@@ -103,7 +103,7 @@ struct __fdb_entry {
+ 
+ extern void brioctl_set(int (*ioctl_hook)(struct net *, unsigned int, void __user *));
+ 
+-typedef int (*br_should_route_hook_t)(struct sk_buff *skb);
++typedef int br_should_route_hook_t(struct sk_buff *skb);
+ extern br_should_route_hook_t __rcu *br_should_route_hook;
+ 
+ #endif
+diff --git a/net/bridge/br_input.c b/net/bridge/br_input.c
+index 6f6d8e1..1d677bf 100644
+--- a/net/bridge/br_input.c
++++ b/net/bridge/br_input.c
+@@ -178,7 +178,7 @@ forward:
+ 	case BR_STATE_FORWARDING:
+ 		rhook = rcu_dereference(br_should_route_hook);
+ 		if (rhook) {
+-			if ((*rhook)(skb))
++			if (rhook(skb))
+ 				return skb;
+ 			dest = eth_hdr(skb)->h_dest;
+ 		}
+-- 
+1.7.2.2
+
