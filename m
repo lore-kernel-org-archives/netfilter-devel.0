@@ -1,39 +1,32 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH][RESEND] libxt_time: fix random --datestart skips
-Date: Sun, 09 Jan 2011 22:01:59 +0100
-Message-ID: <4D2A2247.10806@netfilter.org>
-References: <1292513328-19072-1-git-send-email-fwestphal@astaro.com>
+Subject: Re: Possible bug with ip6tables hl module.
+Date: Sun, 09 Jan 2011 22:14:22 +0100
+Message-ID: <4D2A252E.4070402@netfilter.org>
+References: <201101080038.34932.steven@springl.ukfsn.org> <alpine.LNX.2.01.1101080236500.2125@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fwestphal@astaro.com>
+Cc: Steven Jan Springl <steven@springl.ukfsn.org>,
+	netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:32850 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43158 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751411Ab1AIVCN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 9 Jan 2011 16:02:13 -0500
-In-Reply-To: <1292513328-19072-1-git-send-email-fwestphal@astaro.com>
+	id S1752770Ab1AIVOi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 9 Jan 2011 16:14:38 -0500
+In-Reply-To: <alpine.LNX.2.01.1101080236500.2125@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 16/12/10 16:28, Florian Westphal wrote:
-> Frank Lichtenheld points out that -m time --datestart ...
-> sometimes messes up --datestart:
+On 08/01/11 02:38, Jan Engelhardt wrote:
+> On Saturday 2011-01-08 01:38, Steven Jan Springl wrote:
 > 
-> $ iptables -A INPUT -m time --datestart 2010-11-24T16:50:00 -j ACCEPT
-> $ iptables-save | grep 11
-> -A INPUT -m time --datestart 2010-11-24T16:50:00 -j ACCEPT
-> $ iptables-save | iptables-restore
-> $ iptables-save | grep 11
-> -A INPUT -m time --datestart 2010-11-24T15:50:00 -j ACCEPT
+>> ip6tables -A INPUT -m hl --hl-gt 100 -m length --length 100 -j ACCEPT
+>> It fails with the following message:
+>> ip6tables v1.4.10: Can't specify HL option twice
 > 
-> --datestart moved by one hour.
-> 
-> As the --timestart option does not care about DST, always set
-> dst=0 when parsing --starttime input.
-> 
-> Reported-by: Frank Lichtenheld <flichtenheld@astaro.com>
-> Signed-off-by: Florian Westphal <fwestphal@astaro.com>
+> I queued this patch (to be merged when everybody got
+> out of vacation, hehe):
 
-Applied, thanks Florian.
+JFYI, the fix for this is now in the git tree, it will be available in
+the next iptables release.
