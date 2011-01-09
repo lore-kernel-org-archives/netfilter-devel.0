@@ -1,44 +1,36 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter:  fix  race in conntrack between dump_table
- and destroy
-Date: Sun, 09 Jan 2011 22:32:06 +0100
-Message-ID: <4D2A2956.8050505@netfilter.org>
-References: <20101124222716.437c5547@nehalam>	<1290666873.2798.89.camel@edumazet-laptop>	<20101124230004.1dc28e5a@nehalam>	<1290669214.2798.109.camel@edumazet-laptop> <20101126135101.4e4b97cc@nehalam>
+Subject: collecting netfilter bugfixes for 2.6.37
+Date: Sun, 09 Jan 2011 22:38:20 +0100
+Message-ID: <4D2A2ACC.6010906@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+Cc: "David S. Miller" <davem@davemloft.net>,
 	Patrick McHardy <kaber@trash.net>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Stephen Hemminger <shemminger@vyatta.com>
+	Stephen Hemminger <shemminger@vyatta.com>,
+	Eric Dumazet <eric.dumazet@gmail.com>
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56466 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45777 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752055Ab1AIVcL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 9 Jan 2011 16:32:11 -0500
-In-Reply-To: <20101126135101.4e4b97cc@nehalam>
+	id S1751797Ab1AIViY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 9 Jan 2011 16:38:24 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 26/11/10 22:51, Stephen Hemminger wrote:
-> The netlink interface to dump the connection tracking table has a race
-> when entries are deleted at the same time. A customer reported a crash 
-> and the backtrace showed thatctnetlink_dump_table was running while a 
-> conntrack entry wasbeing destroyed.
-> (see https://bugzilla.vyatta.com/show_bug.cgi?id=6402).
-> 
-> According to RCU documentation, when using hlist_nulls the reader
-> must handle the case of seeing a deleted entry and not proceed
-> further down the linked list.  The old code would continue
-> which caused the scan to walk into the free list. 
-> 
-> This patch uses locking (rather than RCU) for this operation which
-> is guaranteed safe, and no longer requires getting reference while
-> doing dump operation.
+Hi,
 
-I have put this in my tree:
+While Patrick is not available, I have set up a tree to collect
+netfilter bugfixes that need to get into 2.6.37 asap. You can find them at:
 
 http://1984.lsi.us.es/git/?p=net-2.6/.git;a=summary
 
-I'll pass it to David for -stable inclusion.
+I have iterated over the emails pending in the list since Dec 16th
+(which is when Patrick replied for last time), and I found two patches,
+one from Eric and another from Stephen.
+
+Please, if you have more patches for -stable, post them to the list.
+I'll pass them to davem by this week.
+
+Thanks!
