@@ -1,373 +1,62 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH v4 net-next-2.6] netfilter: x_tables: dont block BH
- while reading counters
-Date: Sat, 08 Jan 2011 17:45:12 +0100
-Message-ID: <1294505112.2709.534.camel@edumazet-laptop>
-References: <1292337974.9155.68.camel@firesoul.comx.local>
-	 <1292340702.5934.5.camel@edumazet-laptop>
-	 <1292342958.9155.91.camel@firesoul.comx.local>
-	 <1292343855.5934.27.camel@edumazet-laptop>
-	 <1292508266.31289.12.camel@firesoul.comx.local>
-	 <1292508733.2883.152.camel@edumazet-laptop>
-	 <1292509489.31289.20.camel@firesoul.comx.local>
-	 <1292509775.2883.187.camel@edumazet-laptop>
-	 <1292511761.2883.236.camel@edumazet-laptop>
-	 <1292515625.2883.336.camel@edumazet-laptop>
-	 <1292518436.2883.393.camel@edumazet-laptop>
-	 <20101216093149.71f082c7@nehalam>
-	 <1292521986.2883.472.camel@edumazet-laptop>
-	 <1292646579.7894.42.camel@edumazet-laptop>
+From: Marek Kierdelewicz <marek@piasta.pl>
+Subject: Re: new netfilter target - DNETMAP
+Date: Sun, 9 Jan 2011 10:26:34 +0100
+Message-ID: <20110109102634.16b0a3c1@kuguar>
+References: <20110107000259.775ba310@kuguar>
+	<alpine.LNX.2.01.1101070008590.19521@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Jesper Dangaard Brouer <hawk@comx.dk>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>,
-	Stephen Hemminger <shemminger@vyatta.com>
-To: Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>
+Cc: netfilter@vger.kernel.org,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:60775 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753156Ab1AHQpU (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 8 Jan 2011 11:45:20 -0500
-In-Reply-To: <1292646579.7894.42.camel@edumazet-laptop>
+Received: from psyche.piasta.pl ([83.175.144.5]:58806 "EHLO psyche.piasta.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750908Ab1AIJ0f (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 9 Jan 2011 04:26:35 -0500
+In-Reply-To: <alpine.LNX.2.01.1101070008590.19521@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-David,
+Hi,
 
-I am resending this patch, sent 3 weeks ago, Patrick gave no answer.
+>It would be nice if you could
+> * resolve the inconsistencies in indentation. Specifically, use tabs
+>   to indent statements. If in doubt, use scripts/Lindent 
+>and scripts/checkpatch.pl from linux.
 
-I believe it should be included in linux-2.6.38 and stable kernels.
+Done. Patch passes checkpatch.pl except for:
+- nf_conntrack_tuple.h and nf_nat.h in include/net/netfilter/;
+  these two files are copied frome kernel tree;
+- lack of signed-off which AFAIK is used for kernel patches only;
 
-Some people found they had to change NIC RX ring sizes in order not
-missing frames (from 1024 to 2048), while root cause of the problem was
-this.
+I hope it's ok.
 
-Quoting Jesper : "I can now hit the system with a pktgen at 128 bytes,
-and see no drops/overruns while running iptables.  (This packet load at
-128bytes is 822 kpps and 840Mbit/s) (iptables ruleset is the big chains:
-20929 rules: 81239)."
+> * wrap lines at 80 cols in xt_DNETMAP.man 
 
-Thanks
+Done.
 
-[PATCH v4] netfilter: x_tables: dont block BH while reading counters
+Updated versions are located here:
+http://cat.piasta.pl/dnetmap/xtables-addons-1.31-dnetmap-1.0.tar.bz2
+http://cat.piasta.pl/dnetmap/xtables-addons-1.31-dnetmap-1.0.patch.bz2
 
-Using "iptables -L" with a lot of rules have a too big BH latency.
-Jesper mentioned ~6 ms and worried of frame drops.
+>Things I have noticed while spending a quick look:
+>The manpage mentions "If host 192.168.0.10 generates some traffic, it 
+>gets bound to first free IP in subnet - 20.0.0.0.". However,
+>20.0.0.0 can be a network address and thus lead to problems.
+>Is there a way for the user to specify that the range to use
+>should be 20.0.0.1-20.255.255.254 rather than 20.0.0.0-20.255.255.255?
 
-Switch to a per_cpu seqlock scheme, so that taking a snapshot of
-counters doesnt need to block BH (for this cpu, but also other cpus).
+To address your concerns I've added new module parameter:
 
-This adds two increments on seqlock sequence per ipt_do_table() call,
-its a reasonable cost for allowing "iptables -L" not block BH
-processing.
+whole_prefix: use network and broadcast addresses of specified prefix
+for bindings (default: 1) (uint)
 
-Reported-by: Jesper Dangaard Brouer <hawk@comx.dk>
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-CC: Patrick McHardy <kaber@trash.net>
-Acked-by: Stephen Hemminger <shemminger@vyatta.com>
-Acked-by: Jesper Dangaard Brouer <hawk@comx.dk>
----
- include/linux/netfilter/x_tables.h |   10 +++---
- net/ipv4/netfilter/arp_tables.c    |   45 ++++++++-------------------
- net/ipv4/netfilter/ip_tables.c     |   45 ++++++++-------------------
- net/ipv6/netfilter/ip6_tables.c    |   45 ++++++++-------------------
- net/netfilter/x_tables.c           |    3 +
- 5 files changed, 49 insertions(+), 99 deletions(-)
+Implementing this as target parameter would be messy because data
+structures for a given prefix are created on addition of the first
+rule for a given prefix.
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 742bec0..6712e71 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -472,7 +472,7 @@ extern void xt_free_table_info(struct xt_table_info *info);
-  *  necessary for reading the counters.
-  */
- struct xt_info_lock {
--	spinlock_t lock;
-+	seqlock_t lock;
- 	unsigned char readers;
- };
- DECLARE_PER_CPU(struct xt_info_lock, xt_info_locks);
-@@ -497,7 +497,7 @@ static inline void xt_info_rdlock_bh(void)
- 	local_bh_disable();
- 	lock = &__get_cpu_var(xt_info_locks);
- 	if (likely(!lock->readers++))
--		spin_lock(&lock->lock);
-+		write_seqlock(&lock->lock);
- }
- 
- static inline void xt_info_rdunlock_bh(void)
-@@ -505,7 +505,7 @@ static inline void xt_info_rdunlock_bh(void)
- 	struct xt_info_lock *lock = &__get_cpu_var(xt_info_locks);
- 
- 	if (likely(!--lock->readers))
--		spin_unlock(&lock->lock);
-+		write_sequnlock(&lock->lock);
- 	local_bh_enable();
- }
- 
-@@ -516,12 +516,12 @@ static inline void xt_info_rdunlock_bh(void)
-  */
- static inline void xt_info_wrlock(unsigned int cpu)
- {
--	spin_lock(&per_cpu(xt_info_locks, cpu).lock);
-+	write_seqlock(&per_cpu(xt_info_locks, cpu).lock);
- }
- 
- static inline void xt_info_wrunlock(unsigned int cpu)
- {
--	spin_unlock(&per_cpu(xt_info_locks, cpu).lock);
-+	write_sequnlock(&per_cpu(xt_info_locks, cpu).lock);
- }
- 
- /*
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 3fac340..e855fff 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -710,42 +710,25 @@ static void get_counters(const struct xt_table_info *t,
- 	struct arpt_entry *iter;
- 	unsigned int cpu;
- 	unsigned int i;
--	unsigned int curcpu = get_cpu();
--
--	/* Instead of clearing (by a previous call to memset())
--	 * the counters and using adds, we set the counters
--	 * with data used by 'current' CPU
--	 *
--	 * Bottom half has to be disabled to prevent deadlock
--	 * if new softirq were to run and call ipt_do_table
--	 */
--	local_bh_disable();
--	i = 0;
--	xt_entry_foreach(iter, t->entries[curcpu], t->size) {
--		SET_COUNTER(counters[i], iter->counters.bcnt,
--			    iter->counters.pcnt);
--		++i;
--	}
--	local_bh_enable();
--	/* Processing counters from other cpus, we can let bottom half enabled,
--	 * (preemption is disabled)
--	 */
- 
- 	for_each_possible_cpu(cpu) {
--		if (cpu == curcpu)
--			continue;
-+		seqlock_t *lock = &per_cpu(xt_info_locks, cpu).lock;
-+
- 		i = 0;
--		local_bh_disable();
--		xt_info_wrlock(cpu);
- 		xt_entry_foreach(iter, t->entries[cpu], t->size) {
--			ADD_COUNTER(counters[i], iter->counters.bcnt,
--				    iter->counters.pcnt);
-+			u64 bcnt, pcnt;
-+			unsigned int start;
-+
-+			do {
-+				start = read_seqbegin(lock);
-+				bcnt = iter->counters.bcnt;
-+				pcnt = iter->counters.pcnt;
-+			} while (read_seqretry(lock, start));
-+
-+			ADD_COUNTER(counters[i], bcnt, pcnt);
- 			++i;
- 		}
--		xt_info_wrunlock(cpu);
--		local_bh_enable();
- 	}
--	put_cpu();
- }
- 
- static struct xt_counters *alloc_counters(const struct xt_table *table)
-@@ -759,7 +742,7 @@ static struct xt_counters *alloc_counters(const struct xt_table *table)
- 	 * about).
- 	 */
- 	countersize = sizeof(struct xt_counters) * private->number;
--	counters = vmalloc(countersize);
-+	counters = vzalloc(countersize);
- 
- 	if (counters == NULL)
- 		return ERR_PTR(-ENOMEM);
-@@ -1007,7 +990,7 @@ static int __do_replace(struct net *net, const char *name,
- 	struct arpt_entry *iter;
- 
- 	ret = 0;
--	counters = vmalloc(num_counters * sizeof(struct xt_counters));
-+	counters = vzalloc(num_counters * sizeof(struct xt_counters));
- 	if (!counters) {
- 		ret = -ENOMEM;
- 		goto out;
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index a846d63..652efea 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -884,42 +884,25 @@ get_counters(const struct xt_table_info *t,
- 	struct ipt_entry *iter;
- 	unsigned int cpu;
- 	unsigned int i;
--	unsigned int curcpu = get_cpu();
--
--	/* Instead of clearing (by a previous call to memset())
--	 * the counters and using adds, we set the counters
--	 * with data used by 'current' CPU.
--	 *
--	 * Bottom half has to be disabled to prevent deadlock
--	 * if new softirq were to run and call ipt_do_table
--	 */
--	local_bh_disable();
--	i = 0;
--	xt_entry_foreach(iter, t->entries[curcpu], t->size) {
--		SET_COUNTER(counters[i], iter->counters.bcnt,
--			    iter->counters.pcnt);
--		++i;
--	}
--	local_bh_enable();
--	/* Processing counters from other cpus, we can let bottom half enabled,
--	 * (preemption is disabled)
--	 */
- 
- 	for_each_possible_cpu(cpu) {
--		if (cpu == curcpu)
--			continue;
-+		seqlock_t *lock = &per_cpu(xt_info_locks, cpu).lock;
-+
- 		i = 0;
--		local_bh_disable();
--		xt_info_wrlock(cpu);
- 		xt_entry_foreach(iter, t->entries[cpu], t->size) {
--			ADD_COUNTER(counters[i], iter->counters.bcnt,
--				    iter->counters.pcnt);
-+			u64 bcnt, pcnt;
-+			unsigned int start;
-+
-+			do {
-+				start = read_seqbegin(lock);
-+				bcnt = iter->counters.bcnt;
-+				pcnt = iter->counters.pcnt;
-+			} while (read_seqretry(lock, start));
-+
-+			ADD_COUNTER(counters[i], bcnt, pcnt);
- 			++i; /* macro does multi eval of i */
- 		}
--		xt_info_wrunlock(cpu);
--		local_bh_enable();
- 	}
--	put_cpu();
- }
- 
- static struct xt_counters *alloc_counters(const struct xt_table *table)
-@@ -932,7 +915,7 @@ static struct xt_counters *alloc_counters(const struct xt_table *table)
- 	   (other than comefrom, which userspace doesn't care
- 	   about). */
- 	countersize = sizeof(struct xt_counters) * private->number;
--	counters = vmalloc(countersize);
-+	counters = vzalloc(countersize);
- 
- 	if (counters == NULL)
- 		return ERR_PTR(-ENOMEM);
-@@ -1203,7 +1186,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
- 	struct ipt_entry *iter;
- 
- 	ret = 0;
--	counters = vmalloc(num_counters * sizeof(struct xt_counters));
-+	counters = vzalloc(num_counters * sizeof(struct xt_counters));
- 	if (!counters) {
- 		ret = -ENOMEM;
- 		goto out;
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 4555823..7d227c6 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -897,42 +897,25 @@ get_counters(const struct xt_table_info *t,
- 	struct ip6t_entry *iter;
- 	unsigned int cpu;
- 	unsigned int i;
--	unsigned int curcpu = get_cpu();
--
--	/* Instead of clearing (by a previous call to memset())
--	 * the counters and using adds, we set the counters
--	 * with data used by 'current' CPU
--	 *
--	 * Bottom half has to be disabled to prevent deadlock
--	 * if new softirq were to run and call ipt_do_table
--	 */
--	local_bh_disable();
--	i = 0;
--	xt_entry_foreach(iter, t->entries[curcpu], t->size) {
--		SET_COUNTER(counters[i], iter->counters.bcnt,
--			    iter->counters.pcnt);
--		++i;
--	}
--	local_bh_enable();
--	/* Processing counters from other cpus, we can let bottom half enabled,
--	 * (preemption is disabled)
--	 */
- 
- 	for_each_possible_cpu(cpu) {
--		if (cpu == curcpu)
--			continue;
-+		seqlock_t *lock = &per_cpu(xt_info_locks, cpu).lock;
-+
- 		i = 0;
--		local_bh_disable();
--		xt_info_wrlock(cpu);
- 		xt_entry_foreach(iter, t->entries[cpu], t->size) {
--			ADD_COUNTER(counters[i], iter->counters.bcnt,
--				    iter->counters.pcnt);
-+			u64 bcnt, pcnt;
-+			unsigned int start;
-+
-+			do {
-+				start = read_seqbegin(lock);
-+				bcnt = iter->counters.bcnt;
-+				pcnt = iter->counters.pcnt;
-+			} while (read_seqretry(lock, start));
-+
-+			ADD_COUNTER(counters[i], bcnt, pcnt);
- 			++i;
- 		}
--		xt_info_wrunlock(cpu);
--		local_bh_enable();
- 	}
--	put_cpu();
- }
- 
- static struct xt_counters *alloc_counters(const struct xt_table *table)
-@@ -945,7 +928,7 @@ static struct xt_counters *alloc_counters(const struct xt_table *table)
- 	   (other than comefrom, which userspace doesn't care
- 	   about). */
- 	countersize = sizeof(struct xt_counters) * private->number;
--	counters = vmalloc(countersize);
-+	counters = vzalloc(countersize);
- 
- 	if (counters == NULL)
- 		return ERR_PTR(-ENOMEM);
-@@ -1216,7 +1199,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
- 	struct ip6t_entry *iter;
- 
- 	ret = 0;
--	counters = vmalloc(num_counters * sizeof(struct xt_counters));
-+	counters = vzalloc(num_counters * sizeof(struct xt_counters));
- 	if (!counters) {
- 		ret = -ENOMEM;
- 		goto out;
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 8046350..c942376 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1325,7 +1325,8 @@ static int __init xt_init(void)
- 
- 	for_each_possible_cpu(i) {
- 		struct xt_info_lock *lock = &per_cpu(xt_info_locks, i);
--		spin_lock_init(&lock->lock);
-+
-+		seqlock_init(&lock->lock);
- 		lock->readers = 0;
- 	}
- 
-
-
+best regards,
+Marek Kierdelewicz
