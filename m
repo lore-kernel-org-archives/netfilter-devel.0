@@ -1,21 +1,41 @@
 From: David Miller <davem@davemloft.net>
-Subject: GIT trees refreshed
-Date: Sun, 09 Jan 2011 15:39:59 -0800 (PST)
-Message-ID: <20110109.153959.15234733.davem@davemloft.net>
+Subject: Re: [patch] Re: genetlink misinterprets NEW as GET
+Date: Sun, 09 Jan 2011 16:25:33 -0800 (PST)
+Message-ID: <20110109.162533.241446494.davem@davemloft.net>
+References: <4D266CE5.4000309@netfilter.org>
+	<alpine.LNX.2.01.1101071357420.27454@obet.zrqbmnf.qr>
+	<4D271614.6000303@netfilter.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: sparclinux@vger.kernel.org
-Return-path: <sparclinux-owner@vger.kernel.org>
-Sender: sparclinux-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: jengelh@medozas.de, blp@nicira.com,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:36825
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751564Ab1AJAZB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 9 Jan 2011 19:25:01 -0500
+In-Reply-To: <4D271614.6000303@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Fri, 07 Jan 2011 14:33:08 +0100
 
-I've synchronized all of my GIT trees to be uptodate with Linus's
-tree.
+> On 07/01/11 14:15, Jan Engelhardt wrote:
+>> netlink: test for all flags of the NLM_F_DUMP composite
+>> 
+>> Due to NLM_F_DUMP is composed of two bits, NLM_F_ROOT | NLM_F_MATCH,
+>> when doing "if (x & NLM_F_DUMP)", it tests for _either_ of the bits
+>> being set. Because NLM_F_MATCH's value overlaps with NLM_F_EXCL,
+>> non-dump requests with NLM_F_EXCL set are mistaken as dump requests.
+>> 
+>> Substitute the condition to test for _all_ bits being set.
+>> 
+>> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+> 
+> Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Right now net-2.6 and sparc-2.6 are active for bug fixes.
-
-The "-next" trees will become active once Linus releases 2.6.38-rc1
+Applied, and queued up for -stable, thanks guys!
