@@ -1,39 +1,45 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [GIT PULL nf-next-2.6] ipvs namespaces
-Date: Wed, 12 Jan 2011 08:01:18 +0900
-Message-ID: <20110111230118.GK3848@verge.net.au>
-References: <1294294578-8601-1-git-send-email-horms@verge.net.au>
- <20110111062114.GA5630@verge.net.au>
- <20110111.143445.135961091.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, kaber@trash.net, ja@ssi.bg,
-	hans.schillstrom@ericsson.com, davem@davemloft.org
-To: David Miller <davem@davemloft.net>
+From: pablo@netfilter.org
+Subject: [PATCH 0/3] netfilter fixes for 2.6.37
+Date: Wed, 12 Jan 2011 00:26:15 +0100
+Message-ID: <1294788378-11475-1-git-send-email-pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:42253 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754584Ab1AKXBV (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Jan 2011 18:01:21 -0500
-Content-Disposition: inline
-In-Reply-To: <20110111.143445.135961091.davem@davemloft.net>
+Received: from mail.us.es ([193.147.175.20]:40139 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755916Ab1AKX0j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 11 Jan 2011 18:26:39 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 11, 2011 at 02:34:45PM -0800, David Miller wrote:
-> From: Simon Horman <horms@verge.net.au>
-> Date: Tue, 11 Jan 2011 15:21:14 +0900
-> 
-> > Patrick seems to be rather quiet (perhaps he is on holidays?).
-> > Could you consider taking these changes through your tree as
-> > it would be nice to get this feature in 2.6.38?
-> 
-> Patrick seems to be coming back up to speed.  And also we're trying
-> to setup a situation where Pablo is able to pick up the slack when
-> Patrick is away or busy.
-> 
-> So it's let's try to get your changes merged that way. :-)
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-No problem, lets do that :-)
+Hi David,
+
+The following patchset contains Netfilter bugfixes for 2.6.37.
+
+You can pull them from:
+
+git://1984.lsi.us.es/net-2.6 master
+
+Please, apply!
+
+Eric Dumazet (1):
+  netfilter: x_tables: dont block BH while reading counters
+
+Florian Westphal (1):
+  netfilter: ebtables: make broute table work again
+
+Stephen Hemminger (1):
+  netfilter: fix race in conntrack between dump_table and destroy
+
+ include/linux/if_bridge.h            |    2 +-
+ include/linux/netfilter/x_tables.h   |   10 ++++----
+ net/ipv4/netfilter/arp_tables.c      |   45 ++++++++++-----------------------
+ net/ipv4/netfilter/ip_tables.c       |   45 ++++++++++-----------------------
+ net/ipv6/netfilter/ip6_tables.c      |   45 ++++++++++-----------------------
+ net/netfilter/nf_conntrack_netlink.c |   14 ++++-------
+ net/netfilter/x_tables.c             |    3 +-
+ 7 files changed, 55 insertions(+), 109 deletions(-)
+
