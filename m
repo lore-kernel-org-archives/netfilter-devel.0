@@ -1,67 +1,57 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] netfilter: ebtables: make broute table work again
-Date: Mon, 10 Jan 2011 20:51:51 +0100
-Message-ID: <4D2B6357.4080103@netfilter.org>
-References: <20110110162009.GD31228@Chamillionaire.breakpoint.cc> <1294676914.3491.10.camel@edumazet-laptop>
+From: Pierre Chifflier <chifflier@wzdftpd.net>
+Subject: Idea for a new NFQUEUE module (ebtables) ?
+Date: Tue, 11 Jan 2011 16:09:49 +0100
+Message-ID: <4D2C72BD.2040104@wzdftpd.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38475 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751565Ab1AJTv4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Jan 2011 14:51:56 -0500
-In-Reply-To: <1294676914.3491.10.camel@edumazet-laptop>
+Received: from sd-6807.dedibox.fr ([88.191.37.40]:40672 "EHLO
+	sd-6807.edenwall.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753837Ab1AKPlq (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 11 Jan 2011 10:41:46 -0500
+Received: from [88.171.131.12] (helo=fydelkass.edenwall.com)
+	by sd-6807.edenwall.com with esmtp (Exim 4.69)
+	(envelope-from <chifflier@wzdftpd.net>)
+	id 1Pcfr3-0005rr-Lg
+	for netfilter-devel@vger.kernel.org; Tue, 11 Jan 2011 16:09:49 +0100
+Received: from piche2.inl.fr ([192.168.33.184])
+	by fydelkass.edenwall.com with esmtpsa (TLS-1.0:RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.63)
+	(envelope-from <chifflier@wzdftpd.net>)
+	id 1Pcfr3-0005ru-9X
+	for netfilter-devel@vger.kernel.org; Tue, 11 Jan 2011 16:09:49 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 10/01/11 17:28, Eric Dumazet wrote:
-> Le lundi 10 janvier 2011 =C3=A0 17:20 +0100, Florian Westphal a =C3=A9=
-crit :
->> broute table init hook sets up the "br_should_route_hook" pointer,
->> which then gets called from br_input.
->>
->> commit a386f99025f13b32502fe5dedf223c20d7283826
->> (bridge: add proper RCU annotation to should_route_hook)
->> introduced a typedef, and then changed this to:
->>
->> br_should_route_hook_t *rhook;
->> [..]
->> rhook =3D rcu_dereference(br_should_route_hook);
->> if (*rhook(skb))
->>
->> problem is that "br_should_route_hook" contains the address of the f=
-unction,
->> so calling *rhook() results in kernel panic.
->>
->> Cc: Eric Dumazet <eric.dumazet@gmail.com>
->> Signed-off-by: Florian Westphal <fw@strlen.de>
->> ---
->>  include/linux/if_bridge.h |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/include/linux/if_bridge.h b/include/linux/if_bridge.h
->> index f7e73c3..dd3f201 100644
->> --- a/include/linux/if_bridge.h
->> +++ b/include/linux/if_bridge.h
->> @@ -103,7 +103,7 @@ struct __fdb_entry {
->> =20
->>  extern void brioctl_set(int (*ioctl_hook)(struct net *, unsigned in=
-t, void __user *));
->> =20
->> -typedef int (*br_should_route_hook_t)(struct sk_buff *skb);
->> +typedef int br_should_route_hook_t(struct sk_buff *skb);
->>  extern br_should_route_hook_t __rcu *br_should_route_hook;
->> =20
->>  #endif
->=20
-> Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
+Hi,
 
-Applied, thanks guys!
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I' currently looking at the kernel part of the code (for fun ;) ) and am
+looking a ebtables.
+I am thinking at writing a module to send packets to userspace, using
+NFQUEUE. This has previously been asked [1] and Patrick answered there
+could be problems, but if it makes some sense I'd like to try anyway
+
+This would allow to queue packets to userspace, not only IP packet but
+any protocol. I think this would also send the raw (not reassembled)
+packets, which makes some sense for IDS like Suricata.
+
+I've looked at the net/bridge code for core functions and modules, this
+does not look impossible, though I must admit I'm not familiar with the
+code at all and not understanding it entirely for the moment .. I've
+looked at the ebt_NFLOG module and the netfilter NFQUEUE code to
+understand how to implement it
+
+Basically, I've started looking at the code and implementing a few
+functions, but before going into deep modifications or problems, I'd
+like to ask if that sounds like a good idea at all ?
+If yes, I'll probably have lots of questions (including beginners), is
+there someone I can ask directly, or should I send them to the -devel list ?
+
+Thanks,
+Pierre
+
+
+[1] http://www.spinics.net/lists/netfilter-devel/msg15730.html
