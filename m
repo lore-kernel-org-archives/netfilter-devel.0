@@ -1,57 +1,36 @@
-From: pablo@netfilter.org
-Subject: [PATCH 3/3] netfilter: ebtables: make broute table work again
-Date: Wed, 12 Jan 2011 00:26:18 +0100
-Message-ID: <1294788378-11475-4-git-send-email-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/3] netfilter fixes for 2.6.37
+Date: Tue, 11 Jan 2011 15:43:58 -0800 (PST)
+Message-ID: <20110111.154358.190389964.davem@davemloft.net>
 References: <1294788378-11475-1-git-send-email-pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: davem@davemloft.net
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41307 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753816Ab1AKX2B (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Jan 2011 18:28:01 -0500
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:48780
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756043Ab1AKXnZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 11 Jan 2011 18:43:25 -0500
 In-Reply-To: <1294788378-11475-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
+From: pablo@netfilter.org
+Date: Wed, 12 Jan 2011 00:26:15 +0100
 
-broute table init hook sets up the "br_should_route_hook" pointer,
-which then gets called from br_input.
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> Hi David,
+> 
+> The following patchset contains Netfilter bugfixes for 2.6.37.
+> 
+> You can pull them from:
+> 
+> git://1984.lsi.us.es/net-2.6 master
+> 
+> Please, apply!
 
-commit a386f99025f13b32502fe5dedf223c20d7283826
-(bridge: add proper RCU annotation to should_route_hook)
-introduced a typedef, and then changed this to:
-
-br_should_route_hook_t *rhook;
-[..]
-rhook = rcu_dereference(br_should_route_hook);
-if (*rhook(skb))
-
-problem is that "br_should_route_hook" contains the address of the function,
-so calling *rhook() results in kernel panic.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/linux/if_bridge.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/include/linux/if_bridge.h b/include/linux/if_bridge.h
-index f7e73c3..dd3f201 100644
---- a/include/linux/if_bridge.h
-+++ b/include/linux/if_bridge.h
-@@ -103,7 +103,7 @@ struct __fdb_entry {
- 
- extern void brioctl_set(int (*ioctl_hook)(struct net *, unsigned int, void __user *));
- 
--typedef int (*br_should_route_hook_t)(struct sk_buff *skb);
-+typedef int br_should_route_hook_t(struct sk_buff *skb);
- extern br_should_route_hook_t __rcu *br_should_route_hook;
- 
- #endif
--- 
-1.7.2.3
-
+Pulled, thanks a lot!
