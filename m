@@ -1,22 +1,20 @@
-From: pablo@netfilter.org
+From: KOVACS Krisztian <hidden@balabit.hu>
 Subject: [PATCH] netfilter: fix compilation when conntrack is disabled but tproxy is enabled
-Date: Wed, 12 Jan 2011 20:36:38 +0100
-Message-ID: <1294860998-15883-2-git-send-email-pablo@netfilter.org>
-References: <1294860998-15883-1-git-send-email-pablo@netfilter.org>
+Date: Wed, 12 Jan 2011 20:29:58 +0100
+Message-ID: <1294860598-15843-2-git-send-email-hidden@balabit.hu>
+References: <1294860598-15843-1-git-send-email-hidden@balabit.hu>
 Cc: netfilter-devel@vger.kernel.org,
 	KOVACS Krisztian <hidden@balabit.hu>,
 	Pablo Neira Ayuso <pablo@netfilter.org>
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53328 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53352 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753821Ab1ALTgz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Jan 2011 14:36:55 -0500
-In-Reply-To: <1294860998-15883-1-git-send-email-pablo@netfilter.org>
+	id S1752329Ab1ALThI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Jan 2011 14:37:08 -0500
+In-Reply-To: <1294860598-15843-1-git-send-email-hidden@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
-
-From: KOVACS Krisztian <hidden@balabit.hu>
 
 The IPv6 tproxy patches split IPv6 defragmentation off of conntrack, but
 failed to update the #ifdef stanzas guarding the defragmentation related
