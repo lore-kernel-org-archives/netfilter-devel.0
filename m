@@ -1,15 +1,15 @@
-From: pablo@netfilter.org
+From: KOVACS Krisztian <hidden@balabit.hu>
 Subject: [PATCH] netfilter fixes for 2.6.37 (one leftover patch)
-Date: Wed, 12 Jan 2011 20:36:37 +0100
-Message-ID: <1294860998-15883-1-git-send-email-pablo@netfilter.org>
+Date: Wed, 12 Jan 2011 20:29:57 +0100
+Message-ID: <1294860598-15843-1-git-send-email-hidden@balabit.hu>
 Cc: netfilter-devel@vger.kernel.org,
 	Pablo Neira Ayuso <pablo@netfilter.org>
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53297 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53315 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752329Ab1ALTgn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Jan 2011 14:36:43 -0500
+	id S1752329Ab1ALTgy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Jan 2011 14:36:54 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
