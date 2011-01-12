@@ -1,36 +1,41 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/3] netfilter fixes for 2.6.37
-Date: Tue, 11 Jan 2011 15:43:58 -0800 (PST)
-Message-ID: <20110111.154358.190389964.davem@davemloft.net>
-References: <1294788378-11475-1-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [GIT PULL nf-next-2.6] ipvs namespaces
+Date: Wed, 12 Jan 2011 01:15:05 +0100
+Message-ID: <4D2CF289.1@netfilter.org>
+References: <1294294578-8601-1-git-send-email-horms@verge.net.au> <20110111062114.GA5630@verge.net.au> <20110111.143445.135961091.davem@davemloft.net> <20110111230118.GK3848@verge.net.au>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+Cc: David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, kaber@trash.net, ja@ssi.bg,
+	hans.schillstrom@ericsson.com, davem@davemloft.org
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:48780
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756043Ab1AKXnZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Jan 2011 18:43:25 -0500
-In-Reply-To: <1294788378-11475-1-git-send-email-pablo@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:36870 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756394Ab1ALAPK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 11 Jan 2011 19:15:10 -0500
+In-Reply-To: <20110111230118.GK3848@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: pablo@netfilter.org
-Date: Wed, 12 Jan 2011 00:26:15 +0100
+On 12/01/11 00:01, Simon Horman wrote:
+> On Tue, Jan 11, 2011 at 02:34:45PM -0800, David Miller wrote:
+>> From: Simon Horman <horms@verge.net.au>
+>> Date: Tue, 11 Jan 2011 15:21:14 +0900
+>>
+>>> Patrick seems to be rather quiet (perhaps he is on holidays?).
+>>> Could you consider taking these changes through your tree as
+>>> it would be nice to get this feature in 2.6.38?
+>>
+>> Patrick seems to be coming back up to speed.  And also we're trying
+>> to setup a situation where Pablo is able to pick up the slack when
+>> Patrick is away or busy.
+>>
+>> So it's let's try to get your changes merged that way. :-)
+> 
+> No problem, lets do that :-)
 
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> Hi David,
-> 
-> The following patchset contains Netfilter bugfixes for 2.6.37.
-> 
-> You can pull them from:
-> 
-> git://1984.lsi.us.es/net-2.6 master
-> 
-> Please, apply!
-
-Pulled, thanks a lot!
+JFYI: I'll start iterating through the pending patches (since Dec 16th)
+to apply them to 2.6.38-rc tomorrow.
