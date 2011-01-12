@@ -1,40 +1,35 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [GIT PULL nf-next-2.6] ipvs namespaces
-Date: Wed, 12 Jan 2011 21:29:38 +0100
-Message-ID: <4D2E0F32.8020602@netfilter.org>
-References: <1294294578-8601-1-git-send-email-horms@verge.net.au>
+Subject: Re: netfilter: xt_comment: drop unneeded unsigned qualifier
+Date: Wed, 12 Jan 2011 21:31:00 +0100
+Message-ID: <4D2E0F84.1070509@netfilter.org>
+References: <alpine.LNX.2.01.1012261022030.5017@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	Julian Anastasov <ja@ssi.bg>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <1294294578-8601-1-git-send-email-horms@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:47204 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755441Ab1ALUbH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Jan 2011 15:31:07 -0500
+In-Reply-To: <alpine.LNX.2.01.1012261022030.5017@obet.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Simon,
-
-On 06/01/11 07:15, Simon Horman wrote:
-> Hi Patrick,
+On 26/12/10 10:22, Jan Engelhardt wrote:
+> parent 0167acf6cbdf1d70d1540e61680d8301c0c388fb (v2.6.37-rc1-237-g0167acf)
+> commit c21eb58de7b4d9c6bb406fd0b08388e6eb76a106
+> Author: Jan Engelhardt <jengelh@medozas.de>
+> Date:   Sun Dec 26 10:21:19 2010 +0100
 > 
-> please consider pulling
-> git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git master
-> in order to get the netns changes to IPVS from Hans Schillstrom.
+> netfilter: xt_comment: drop unneeded unsigned qualifier
+> 
+> Since a string is stored, and not something like a MAC address that
+> would rely on (un)signedness, drop the qualifier.
+> 
+> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 
-I'm hitting some conflicts when pulling from your tree.
-
->From git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6
- * branch            master     -> FETCH_HEAD
-Auto-merging include/linux/netfilter.h
-Auto-merging include/linux/skbuff.h
-Auto-merging include/net/netfilter/nf_conntrack.h
-Auto-merging net/core/skbuff.c
-Auto-merging net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-Auto-merging net/ipv6/netfilter/nf_conntrack_reasm.c
-Auto-merging net/netfilter/core.c
-Auto-merging net/netfilter/ipvs/ip_vs_ctl.c
-CONFLICT (content): Merge conflict in net/netfilter/ipvs/ip_vs_ctl.c
+Applied for nf-next, thanks.
