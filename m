@@ -1,27 +1,49 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: netfilter tree for 2.6.38 is open
-Date: Wed, 12 Jan 2011 22:17:40 +0100
-Message-ID: <4D2E1A74.5080102@netfilter.org>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH net-next] netfilter: x_table: speedup compat operations
+Date: Wed, 12 Jan 2011 22:14:25 +0100
+Message-ID: <1294866865.3335.3.camel@edumazet-laptop>
+References: <1292693715.18869.148.camel@edumazet-laptop>
+	 <4D2E12B9.6090201@netfilter.org> <1294866229.3335.2.camel@edumazet-laptop>
+	 <4D2E18E5.4000902@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Patrick McHardy <kaber@trash.net>,
+	David Miller <davem@davemloft.net>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52381 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755190Ab1ALVRn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Jan 2011 16:17:43 -0500
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:44692 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756405Ab1ALVV4 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Jan 2011 16:21:56 -0500
+In-Reply-To: <4D2E18E5.4000902@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Le mercredi 12 janvier 2011 =C3=A0 22:11 +0100, Pablo Neira Ayuso a =C3=
+=A9crit :
+> On 12/01/11 22:03, Eric Dumazet wrote:
+> > Le mercredi 12 janvier 2011 =C3=A0 21:44 +0100, Pablo Neira Ayuso a=
+ =C3=A9crit :
+> >=20
+> >> minor glitch: We leak xp->compat_tab if this error condition above=
+ is true.
+> >>
+> >=20
+> > I dont think so, pointer is stored in xp->compat_tab
+> >=20
+> > xt_compat_flush_offsets() will free it.
+>=20
+> Indeed, sorry. I'm going apply your patch. Thanks Eric.
 
-My netfilter tree for 2.6.38 is open. You can find it at:
+Thanks ! I completely forgot about it, to be honest :)
 
-http://1984.lsi.us.es/git/?p=net-next-2.6/.git;a=summary
 
-I'm iterating over the list of pending patches since Dec 16th 2010.
-Please, resubmit your patches if I missed them.
-
-Thanks!
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
