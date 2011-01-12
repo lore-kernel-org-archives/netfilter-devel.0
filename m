@@ -1,45 +1,27 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] netfilter: ebt_ip6: allow matching on ipv6-icmp types/codes
-Date: Wed, 12 Jan 2011 22:15:45 +0100
-Message-ID: <4D2E1A01.1060105@netfilter.org>
-References: <1292857067-1595-1-git-send-email-fw@strlen.de> <4D0F9D9F.7090608@pandora.be>
+Subject: netfilter tree for 2.6.38 is open
+Date: Wed, 12 Jan 2011 22:17:40 +0100
+Message-ID: <4D2E1A74.5080102@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Bart De Schuymer <bdschuym@pandora.be>
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52064 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52381 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755342Ab1ALVPt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Jan 2011 16:15:49 -0500
-In-Reply-To: <4D0F9D9F.7090608@pandora.be>
+	id S1755190Ab1ALVRn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Jan 2011 16:17:43 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 20/12/10 19:17, Bart De Schuymer wrote:
-> Op 20/12/2010 15:57, Florian Westphal schreef:
->> To avoid adding a new match revision icmp type/code are stored
->> in the sport/dport area.
->>
->> Signed-off-by: Florian Westphal<fw@strlen.de>
->> Reviewed-by: Holger Eitzenberger<holger@eitzenberger.org>
->> ---
->>   Changes since v1:
->>    - use u16 where appropriate
->>    - use proper () in if condition
->>    - renamed _ports to _pkthdr
->>    - add comment that sizeof(_pktheader) is also ok in ICMP6 case.
->>
->>   include/linux/netfilter_bridge/ebt_ip6.h |   15 ++++++++--
->>   net/bridge/netfilter/ebt_ip6.c           |   46
->> ++++++++++++++++++++++--------
->>   2 files changed, 46 insertions(+), 15 deletions(-)
->>
-> OK for me.
-> 
-> Reviewed-by: Bart De Schuymer<bdschuym@pandora.be>
+Hi,
 
-Applied, thanks!
+My netfilter tree for 2.6.38 is open. You can find it at:
 
-Did you already included the user-space part to ebtables?
+http://1984.lsi.us.es/git/?p=net-next-2.6/.git;a=summary
+
+I'm iterating over the list of pending patches since Dec 16th 2010.
+Please, resubmit your patches if I missed them.
+
+Thanks!
