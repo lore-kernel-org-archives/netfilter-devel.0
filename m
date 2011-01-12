@@ -1,49 +1,36 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH net-next] netfilter: x_table: speedup compat operations
-Date: Wed, 12 Jan 2011 22:14:25 +0100
-Message-ID: <1294866865.3335.3.camel@edumazet-laptop>
-References: <1292693715.18869.148.camel@edumazet-laptop>
-	 <4D2E12B9.6090201@netfilter.org> <1294866229.3335.2.camel@edumazet-laptop>
-	 <4D2E18E5.4000902@netfilter.org>
+From: Sam Roberts <vieuxtech@gmail.com>
+Subject: can libnetfilter_conntrack be used to write a userspace connection tracker?
+Date: Wed, 12 Jan 2011 13:25:11 -0800
+Message-ID: <AANLkTimfmoEKVWA_kBM-1DiuTR0=OG0Y8kC5nvq0G7G-@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:44692 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756405Ab1ALVV4 (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:45837 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755460Ab1ALVZO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Jan 2011 16:21:56 -0500
-In-Reply-To: <4D2E18E5.4000902@netfilter.org>
+	Wed, 12 Jan 2011 16:25:14 -0500
+Received: by bwz15 with SMTP id 15so943290bwz.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Jan 2011 13:25:12 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le mercredi 12 janvier 2011 =C3=A0 22:11 +0100, Pablo Neira Ayuso a =C3=
-=A9crit :
-> On 12/01/11 22:03, Eric Dumazet wrote:
-> > Le mercredi 12 janvier 2011 =C3=A0 21:44 +0100, Pablo Neira Ayuso a=
- =C3=A9crit :
-> >=20
-> >> minor glitch: We leak xp->compat_tab if this error condition above=
- is true.
-> >>
-> >=20
-> > I dont think so, pointer is stored in xp->compat_tab
-> >=20
-> > xt_compat_flush_offsets() will free it.
->=20
-> Indeed, sorry. I'm going apply your patch. Thanks Eric.
+I'm working on a connection tracker for a RPC-like protocol (over TCP).
 
-Thanks ! I completely forgot about it, to be honest :)
+I believe that by inspecting packets using nfqueue, and
+creating/destroying expectations using nfconntrack, I can do a
+connection tracker in user-space.
 
+In order to remove nfqueue from the mix, I've been looking at the
+conntrack code, trying to figure out whether even notifications about
+connection status can include the TCP data that I need to inspect, the
+data that's in the skbs provided to kernel module conntrack helpers. I
+haven't been able to be certain what libnfconntrack can/cannot do, but
+it seems outside of the usage that the command line tools and
+conntrack daemon need, so I suspect its not possible.
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Can somebody confirm my suspicions?
+
+Thank you.
+Sam
