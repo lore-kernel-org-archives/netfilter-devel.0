@@ -1,46 +1,40 @@
-From: Valdis.Kletnieks@vt.edu
-Subject: XT_MATCH_REALM Kconfig whinge...
-Date: Wed, 12 Jan 2011 14:15:15 -0500
-Message-ID: <20519.1294859715@localhost>
-Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1294859715_4778P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>
+From: pablo@netfilter.org
+Subject: [PATCH] netfilter fixes for 2.6.37 (one leftover patch)
+Date: Wed, 12 Jan 2011 20:36:37 +0100
+Message-ID: <1294860998-15883-1-git-send-email-pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lennier.cc.vt.edu ([198.82.162.213]:60036 "EHLO
-	lennier.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755052Ab1ALTQX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Jan 2011 14:16:23 -0500
+Received: from mail.us.es ([193.147.175.20]:53297 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752329Ab1ALTgn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Jan 2011 14:36:43 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---==_Exmh_1294859715_4778P
-Content-Type: text/plain; charset=us-ascii
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-I think I posted about this a long ways back, still seeing it in yesterday's linux-next:
+Hi David,
 
-scripts/kconfig/conf --silentoldconfig Kconfig
-warning: (NETFILTER_XT_MATCH_REALM) selects NET_CLS_ROUTE which has unmet direct dependencies (NET && NET_SCHED)
-warning: (NETFILTER_XT_MATCH_REALM) selects NET_CLS_ROUTE which has unmet direct dependencies (NET && NET_SCHED)
+I found one leftover patch from November 22th that was applied
+to Patrick's tree (nf-next-2.6) but it didn't ever take its way
+to reach net-2.6.
 
-(NET is of course set, NET_SCHED isn't).
+Can you still pass it to Linus?
 
---==_Exmh_1294859715_4778P
-Content-Type: application/pgp-signature
+You can pull it from:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
+git://1984.lsi.us.es/net-2.6 master
 
-iD8DBQFNLf3DcC3lWbTT17ARAkv7AJ9npRmZcvO5kl/lQNBNaDxcjCsKAQCcCxJR
-t2cc2/jjFQMsH4mJW0xcStw=
-=sfka
------END PGP SIGNATURE-----
+KOVACS Krisztian (1):
+  netfilter: fix compilation when conntrack is disabled but tproxy is
+    enabled
 
---==_Exmh_1294859715_4778P--
+ include/linux/skbuff.h                         |   15 +++++++++++++++
+ include/net/netfilter/ipv6/nf_conntrack_ipv6.h |   10 ----------
+ include/net/netfilter/ipv6/nf_defrag_ipv6.h    |   10 ++++++++++
+ net/core/skbuff.c                              |    2 ++
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c      |    8 +++++++-
+ 5 files changed, 34 insertions(+), 11 deletions(-)
 
