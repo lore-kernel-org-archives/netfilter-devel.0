@@ -1,40 +1,45 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net-next] netfilter: x_table: speedup compat operations
-Date: Wed, 12 Jan 2011 22:11:01 +0100
-Message-ID: <4D2E18E5.4000902@netfilter.org>
-References: <1292693715.18869.148.camel@edumazet-laptop>	 <4D2E12B9.6090201@netfilter.org> <1294866229.3335.2.camel@edumazet-laptop>
+Subject: Re: [PATCH v2] netfilter: ebt_ip6: allow matching on ipv6-icmp types/codes
+Date: Wed, 12 Jan 2011 22:15:45 +0100
+Message-ID: <4D2E1A01.1060105@netfilter.org>
+References: <1292857067-1595-1-git-send-email-fw@strlen.de> <4D0F9D9F.7090608@pandora.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Bart De Schuymer <bdschuym@pandora.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50251 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52064 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756411Ab1ALVLF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Jan 2011 16:11:05 -0500
-In-Reply-To: <1294866229.3335.2.camel@edumazet-laptop>
+	id S1755342Ab1ALVPt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Jan 2011 16:15:49 -0500
+In-Reply-To: <4D0F9D9F.7090608@pandora.be>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 12/01/11 22:03, Eric Dumazet wrote:
-> Le mercredi 12 janvier 2011 =C3=A0 21:44 +0100, Pablo Neira Ayuso a =C3=
-=A9crit :
->=20
->> minor glitch: We leak xp->compat_tab if this error condition above i=
-s true.
+On 20/12/10 19:17, Bart De Schuymer wrote:
+> Op 20/12/2010 15:57, Florian Westphal schreef:
+>> To avoid adding a new match revision icmp type/code are stored
+>> in the sport/dport area.
 >>
->=20
-> I dont think so, pointer is stored in xp->compat_tab
->=20
-> xt_compat_flush_offsets() will free it.
+>> Signed-off-by: Florian Westphal<fw@strlen.de>
+>> Reviewed-by: Holger Eitzenberger<holger@eitzenberger.org>
+>> ---
+>>   Changes since v1:
+>>    - use u16 where appropriate
+>>    - use proper () in if condition
+>>    - renamed _ports to _pkthdr
+>>    - add comment that sizeof(_pktheader) is also ok in ICMP6 case.
+>>
+>>   include/linux/netfilter_bridge/ebt_ip6.h |   15 ++++++++--
+>>   net/bridge/netfilter/ebt_ip6.c           |   46
+>> ++++++++++++++++++++++--------
+>>   2 files changed, 46 insertions(+), 15 deletions(-)
+>>
+> OK for me.
+> 
+> Reviewed-by: Bart De Schuymer<bdschuym@pandora.be>
 
-Indeed, sorry. I'm going apply your patch. Thanks Eric.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied, thanks!
+
+Did you already included the user-space part to ebtables?
