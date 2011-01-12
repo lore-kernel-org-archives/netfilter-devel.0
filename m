@@ -1,59 +1,62 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter fixes for 2.6.37 (one leftover patch)
-Date: Wed, 12 Jan 2011 20:40:06 +0100
-Message-ID: <4D2E0396.2010205@netfilter.org>
-References: <1294860598-15843-1-git-send-email-hidden@balabit.hu>
+Subject: Re: XT_MATCH_REALM Kconfig whinge...
+Date: Wed, 12 Jan 2011 20:48:13 +0100
+Message-ID: <4D2E057D.30707@netfilter.org>
+References: <20519.1294859715@localhost>
 Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------040802060206090200020108"
+Cc: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: Valdis.Kletnieks@vt.edu
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20519.1294859715@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------040802060206090200020108
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: KOVACS Krisztian <hidden@balabit.hu>,
-	"David S. Miller" <davem@davemloft.net>
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42757 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755738Ab1ALTkL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Jan 2011 14:40:11 -0500
-In-Reply-To: <1294860598-15843-1-git-send-email-hidden@balabit.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On 12/01/11 20:15, Valdis.Kletnieks@vt.edu wrote:
+> scripts/kconfig/conf --silentoldconfig Kconfig
+> warning: (NETFILTER_XT_MATCH_REALM) selects NET_CLS_ROUTE which has unmet direct dependencies (NET && NET_SCHED)
+> warning: (NETFILTER_XT_MATCH_REALM) selects NET_CLS_ROUTE which has unmet direct dependencies (NET && NET_SCHED)
 
-I'm sorry for impersonating Krisztian's identity, I used the wrong
-script and it resulted in this error.
+Does this fix your problem?
 
-Sorry for the inconvenience.
+--------------040802060206090200020108
+Content-Type: text/x-patch;
+ name="realm.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="realm.patch"
 
-On 12/01/11 20:29, KOVACS Krisztian wrote:
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> Hi David,
-> 
-> I found one leftover patch from November 22th that was applied
-> to Patrick's tree (nf-next-2.6) but it didn't ever take its way
-> to reach net-2.6.
-> 
-> Can you still pass it to Linus?
-> 
-> You can pull it from:
-> 
-> git://1984.lsi.us.es/net-2.6 master
-> 
-> KOVACS Krisztian (1):
->   netfilter: fix compilation when conntrack is disabled but tproxy is
->     enabled
-> 
->  include/linux/skbuff.h                         |   15 +++++++++++++++
->  include/net/netfilter/ipv6/nf_conntrack_ipv6.h |   10 ----------
->  include/net/netfilter/ipv6/nf_defrag_ipv6.h    |   10 ++++++++++
->  net/core/skbuff.c                              |    2 ++
->  net/ipv6/netfilter/nf_defrag_ipv6_hooks.c      |    8 +++++++-
->  5 files changed, 34 insertions(+), 11 deletions(-)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+netfilter: xt_realm: fix unmet direct dependencies
 
+scripts/kconfig/conf --silentoldconfig Kconfig
+warning: (NETFILTER_XT_MATCH_REALM) selects NET_CLS_ROUTE which has unmet direct dependencies (NET && NET_SCHED)
+warning: (NETFILTER_XT_MATCH_REALM) selects NET_CLS_ROUTE which has unmet direct dependencies (NET && NET_SCHED)
+
+Reported by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 1534f2b..ae56764 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -886,7 +886,8 @@ config NETFILTER_XT_MATCH_RATEEST
+ config NETFILTER_XT_MATCH_REALM
+ 	tristate  '"realm" match support'
+ 	depends on NETFILTER_ADVANCED
+-	select NET_CLS_ROUTE
++	depends on NET_SCHED
++	depends on NET_CLS_ROUTE
+ 	help
+ 	  This option adds a `realm' match, which allows you to use the realm
+ 	  key from the routing subsystem inside iptables.
+
+--------------040802060206090200020108--
