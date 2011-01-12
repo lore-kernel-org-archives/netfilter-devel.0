@@ -1,40 +1,203 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: [PATCH] netfilter fixes for 2.6.37 (one leftover patch)
-Date: Wed, 12 Jan 2011 20:29:57 +0100
-Message-ID: <1294860598-15843-1-git-send-email-hidden@balabit.hu>
+From: pablo@netfilter.org
+Subject: [PATCH] netfilter: fix compilation when conntrack is disabled but tproxy is enabled
+Date: Wed, 12 Jan 2011 20:36:38 +0100
+Message-ID: <1294860998-15883-2-git-send-email-pablo@netfilter.org>
+References: <1294860998-15883-1-git-send-email-pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org,
+	KOVACS Krisztian <hidden@balabit.hu>,
 	Pablo Neira Ayuso <pablo@netfilter.org>
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53315 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53328 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752329Ab1ALTgy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Jan 2011 14:36:54 -0500
+	id S1753821Ab1ALTgz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Jan 2011 14:36:55 -0500
+In-Reply-To: <1294860998-15883-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: KOVACS Krisztian <hidden@balabit.hu>
 
-Hi David,
+The IPv6 tproxy patches split IPv6 defragmentation off of conntrack, but
+failed to update the #ifdef stanzas guarding the defragmentation related
+fields and code in skbuff and conntrack related code in nf_defrag_ipv6.c.
 
-I found one leftover patch from November 22th that was applied
-to Patrick's tree (nf-next-2.6) but it didn't ever take its way
-to reach net-2.6.
+This patch adds the required #ifdefs so that IPv6 tproxy can truly be used
+without connection tracking.
 
-Can you still pass it to Linus?
+Original report:
+http://marc.info/?l=linux-netdev&m=129010118516341&w=2
 
-You can pull it from:
-
-git://1984.lsi.us.es/net-2.6 master
-
-KOVACS Krisztian (1):
-  netfilter: fix compilation when conntrack is disabled but tproxy is
-    enabled
-
+Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: KOVACS Krisztian <hidden@balabit.hu>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
  include/linux/skbuff.h                         |   15 +++++++++++++++
  include/net/netfilter/ipv6/nf_conntrack_ipv6.h |   10 ----------
  include/net/netfilter/ipv6/nf_defrag_ipv6.h    |   10 ++++++++++
  net/core/skbuff.c                              |    2 ++
  net/ipv6/netfilter/nf_defrag_ipv6_hooks.c      |    8 +++++++-
  5 files changed, 34 insertions(+), 11 deletions(-)
+
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index 20ec0a6..bf221d6 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -255,6 +255,11 @@ typedef unsigned int sk_buff_data_t;
+ typedef unsigned char *sk_buff_data_t;
+ #endif
+ 
++#if defined(CONFIG_NF_DEFRAG_IPV4) || defined(CONFIG_NF_DEFRAG_IPV4_MODULE) || \
++    defined(CONFIG_NF_DEFRAG_IPV6) || defined(CONFIG_NF_DEFRAG_IPV6_MODULE)
++#define NET_SKBUFF_NF_DEFRAG_NEEDED 1
++#endif
++
+ /** 
+  *	struct sk_buff - socket buffer
+  *	@next: Next buffer in list
+@@ -362,6 +367,8 @@ struct sk_buff {
+ 	void			(*destructor)(struct sk_buff *skb);
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	struct nf_conntrack	*nfct;
++#endif
++#ifdef NET_SKBUFF_NF_DEFRAG_NEEDED
+ 	struct sk_buff		*nfct_reasm;
+ #endif
+ #ifdef CONFIG_BRIDGE_NETFILTER
+@@ -2057,6 +2064,8 @@ static inline void nf_conntrack_get(struct nf_conntrack *nfct)
+ 	if (nfct)
+ 		atomic_inc(&nfct->use);
+ }
++#endif
++#ifdef NET_SKBUFF_NF_DEFRAG_NEEDED
+ static inline void nf_conntrack_get_reasm(struct sk_buff *skb)
+ {
+ 	if (skb)
+@@ -2085,6 +2094,8 @@ static inline void nf_reset(struct sk_buff *skb)
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	nf_conntrack_put(skb->nfct);
+ 	skb->nfct = NULL;
++#endif
++#ifdef NET_SKBUFF_NF_DEFRAG_NEEDED
+ 	nf_conntrack_put_reasm(skb->nfct_reasm);
+ 	skb->nfct_reasm = NULL;
+ #endif
+@@ -2101,6 +2112,8 @@ static inline void __nf_copy(struct sk_buff *dst, const struct sk_buff *src)
+ 	dst->nfct = src->nfct;
+ 	nf_conntrack_get(src->nfct);
+ 	dst->nfctinfo = src->nfctinfo;
++#endif
++#ifdef NET_SKBUFF_NF_DEFRAG_NEEDED
+ 	dst->nfct_reasm = src->nfct_reasm;
+ 	nf_conntrack_get_reasm(src->nfct_reasm);
+ #endif
+@@ -2114,6 +2127,8 @@ static inline void nf_copy(struct sk_buff *dst, const struct sk_buff *src)
+ {
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	nf_conntrack_put(dst->nfct);
++#endif
++#ifdef NET_SKBUFF_NF_DEFRAG_NEEDED
+ 	nf_conntrack_put_reasm(dst->nfct_reasm);
+ #endif
+ #ifdef CONFIG_BRIDGE_NETFILTER
+diff --git a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
+index 1ee717e..a4c9936 100644
+--- a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
++++ b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
+@@ -7,16 +7,6 @@ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6;
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6;
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6;
+ 
+-extern int nf_ct_frag6_init(void);
+-extern void nf_ct_frag6_cleanup(void);
+-extern struct sk_buff *nf_ct_frag6_gather(struct sk_buff *skb, u32 user);
+-extern void nf_ct_frag6_output(unsigned int hooknum, struct sk_buff *skb,
+-			       struct net_device *in,
+-			       struct net_device *out,
+-			       int (*okfn)(struct sk_buff *));
+-
+-struct inet_frags_ctl;
+-
+ #include <linux/sysctl.h>
+ extern struct ctl_table nf_ct_ipv6_sysctl_table[];
+ 
+diff --git a/include/net/netfilter/ipv6/nf_defrag_ipv6.h b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
+index 94dd54d..fd79c9a 100644
+--- a/include/net/netfilter/ipv6/nf_defrag_ipv6.h
++++ b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
+@@ -3,4 +3,14 @@
+ 
+ extern void nf_defrag_ipv6_enable(void);
+ 
++extern int nf_ct_frag6_init(void);
++extern void nf_ct_frag6_cleanup(void);
++extern struct sk_buff *nf_ct_frag6_gather(struct sk_buff *skb, u32 user);
++extern void nf_ct_frag6_output(unsigned int hooknum, struct sk_buff *skb,
++			       struct net_device *in,
++			       struct net_device *out,
++			       int (*okfn)(struct sk_buff *));
++
++struct inet_frags_ctl;
++
+ #endif /* _NF_DEFRAG_IPV6_H */
+diff --git a/net/core/skbuff.c b/net/core/skbuff.c
+index 19d6c21..d31bb36 100644
+--- a/net/core/skbuff.c
++++ b/net/core/skbuff.c
+@@ -380,6 +380,8 @@ static void skb_release_head_state(struct sk_buff *skb)
+ 	}
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	nf_conntrack_put(skb->nfct);
++#endif
++#ifdef NET_SKBUFF_NF_DEFRAG_NEEDED
+ 	nf_conntrack_put_reasm(skb->nfct_reasm);
+ #endif
+ #ifdef CONFIG_BRIDGE_NETFILTER
+diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+index 99abfb5..97c5b21 100644
+--- a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
++++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+@@ -19,13 +19,15 @@
+ 
+ #include <linux/netfilter_ipv6.h>
+ #include <linux/netfilter_bridge.h>
++#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_helper.h>
+ #include <net/netfilter/nf_conntrack_l4proto.h>
+ #include <net/netfilter/nf_conntrack_l3proto.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+-#include <net/netfilter/nf_conntrack_zones.h>
+ #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
++#endif
++#include <net/netfilter/nf_conntrack_zones.h>
+ #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
+ 
+ static enum ip6_defrag_users nf_ct6_defrag_user(unsigned int hooknum,
+@@ -33,8 +35,10 @@ static enum ip6_defrag_users nf_ct6_defrag_user(unsigned int hooknum,
+ {
+ 	u16 zone = NF_CT_DEFAULT_ZONE;
+ 
++#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	if (skb->nfct)
+ 		zone = nf_ct_zone((struct nf_conn *)skb->nfct);
++#endif
+ 
+ #ifdef CONFIG_BRIDGE_NETFILTER
+ 	if (skb->nf_bridge &&
+@@ -56,9 +60,11 @@ static unsigned int ipv6_defrag(unsigned int hooknum,
+ {
+ 	struct sk_buff *reasm;
+ 
++#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	/* Previously seen (loopback)?	*/
+ 	if (skb->nfct && !nf_ct_is_template((struct nf_conn *)skb->nfct))
+ 		return NF_ACCEPT;
++#endif
+ 
+ 	reasm = nf_ct_frag6_gather(skb, nf_ct6_defrag_user(hooknum, skb));
+ 	/* queued */
+-- 
+1.7.2.3
 
