@@ -1,48 +1,87 @@
-From: pablo@netfilter.org
-Subject: [PATCH 1/1] netfilter: ctnetlink: fix loop in ctnetlink_get_conntrack()
-Date: Thu, 13 Jan 2011 17:19:27 +0100
-Message-ID: <1294935567-4137-1-git-send-email-pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: davem@davemloft.net
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v4] netfilter: ipt_CLUSTERIP: remove "no conntrack!"
+Date: Thu, 13 Jan 2011 17:30:49 +0100
+Message-ID: <4D2F28B9.50407@netfilter.org>
+References: <4D2E1A74.5080102@netfilter.org>	 <1294917210.3570.48.camel@edumazet-laptop> <4D2EE09A.1010409@netfilter.org>	 <1294918365.3570.56.camel@edumazet-laptop> <4D2EE80B.6010707@netfilter.org>	 <1294925915.3570.87.camel@edumazet-laptop>	 <alpine.LNX.2.01.1101131502240.25211@obet.zrqbmnf.qr> <1294929579.3570.163.camel@edumazet-laptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44533 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39244 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932965Ab1AMQTi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Jan 2011 11:19:38 -0500
+	id S933040Ab1AMQax (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Jan 2011 11:30:53 -0500
+In-Reply-To: <1294929579.3570.163.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+On 13/01/11 15:39, Eric Dumazet wrote:
+> Le jeudi 13 janvier 2011 =C3=A0 15:02 +0100, Jan Engelhardt a =C3=A9c=
+rit :
+>> On Thursday 2011-01-13 14:38, Eric Dumazet wrote:
+>>
+>>> Le jeudi 13 janvier 2011 =C3=A0 12:54 +0100, Pablo Neira Ayuso a =C3=
+=A9crit :
+>>>
+>>>> But printing this does not provide any useful information. The fir=
+st
+>>>> packet that does not belong to the cluster node that has received =
+the
+>>>> packet, or the first invalid packet, will trigger this.
+>>>>
+>>>> Moreover, this confuses users since they can do nothing if they re=
+ceive
+>>>> this message.
+>>>>
+>>>> Moreover, this target should be supersedes by the cluster match, w=
+hich
+>>>> has been there for quite some time (it's also more flexible).
+>>>
+>>> Now you mentioned it, cluster match is not as flexible right now,
+>>> its hashing is on source_ip only.
+>>
+>> I think in that case, xt_cluster should be improved rather
+>> than an old module.
+>=20
+> Amen
+>=20
+> We should not improve IPv4 support then, I see.
+>=20
+> My customers use this old module, and upgrading to xt_cluster is not =
+an
+> option.
+>=20
+> Should we discuss this forever or fix it ?
 
-This patch fixes a loop in ctnetlink_get_conntrack() that can be
-triggered if you use the same socket to receive events and to
-perform a GET operation. Under heavy load, netlink_unicast()
-may return -EAGAIN, this error code is reserved in nfnetlink for
-the module load-on-demand. Instead, we return -ENOBUFS which is
-the appropriate error code that has to be propagated to
-user-space.
+hey hey, I'm fine with fixing things. Patch v4 is OK.
 
-Reported-by: Holger Eitzenberger <holger@eitzenberger.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_netlink.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 5cb8d30..2b7eef3 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -972,7 +972,8 @@ ctnetlink_get_conntrack(struct sock *ctnl, struct sk_buff *skb,
- free:
- 	kfree_skb(skb2);
- out:
--	return err;
-+	/* this avoids a loop in nfnetlink. */
-+	return err == -EAGAIN ? -ENOBUFS : err;
- }
- 
- #ifdef CONFIG_NF_NAT_NEEDED
--- 
-1.7.2.3
+> In the end, people are forced to add useless iptables rule to DROP
+> INVALID packets before entering ipt_CLUSTERIP, after googling or
+> eventually asking to experts.
+>=20
+> Last time this was discussed, this went nowhere :
+>=20
+> http://www.spinics.net/lists/netfilter/msg48676.html
+>=20
+> Come on guys, we can do it, dont be afraid.
+>=20
+> A non rate limited printk() in kernel is forbidden, especially in
+> network stack.
+>=20
+> Then, cluster match can be improved, I am sure you already have a pat=
+ch
+> for it.
 
+what scenario could benefit from the destination-based hashing?
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
