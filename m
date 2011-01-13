@@ -1,47 +1,90 @@
-From: Florian Westphal <fwestphal@astaro.com>
-Subject: [PATCH] netfilter: ctnetlink: fix loop in ctnetlink_get_conntrack()
-Date: Thu, 13 Jan 2011 14:19:55 +0100
-Message-ID: <1294924795-20816-1-git-send-email-fwestphal@astaro.com>
-Cc: davem@davemloft.net, Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH v4] netfilter: ipt_CLUSTERIP: remove "no conntrack!"
+Date: Thu, 13 Jan 2011 14:38:35 +0100
+Message-ID: <1294925915.3570.87.camel@edumazet-laptop>
+References: <4D2E1A74.5080102@netfilter.org>
+	 <1294917210.3570.48.camel@edumazet-laptop> <4D2EE09A.1010409@netfilter.org>
+	 <1294918365.3570.56.camel@edumazet-laptop> <4D2EE80B.6010707@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dhost002-53.dex002.intermedia.net ([64.78.21.155]:54721 "EHLO
-	dhost002-53.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756720Ab1AMNd5 (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:54403 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756773Ab1AMNij (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Jan 2011 08:33:57 -0500
+	Thu, 13 Jan 2011 08:38:39 -0500
+In-Reply-To: <4D2EE80B.6010707@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Le jeudi 13 janvier 2011 =C3=A0 12:54 +0100, Pablo Neira Ayuso a =C3=A9=
+crit :
 
-This patch fixes a loop in ctnetlink_get_conntrack() that can be
-triggered if you use the same socket to receive events and to
-perform a GET operation. Under heavy load, netlink_unicast()
-may return -EAGAIN, this error code is reserved in nfnetlink for
-the module load-on-demand. Instead, we return -ENOBUFS which is
-the appropriate error code that has to be propagated to
-user-space.
+> But printing this does not provide any useful information. The first
+> packet that does not belong to the cluster node that has received the
+> packet, or the first invalid packet, will trigger this.
+>=20
+> Moreover, this confuses users since they can do nothing if they recei=
+ve
+> this message.
+>=20
+> Moreover, this target should be supersedes by the cluster match, whic=
+h
+> has been there for quite some time (it's also more flexible).
 
-Reported-by: Holger Eitzenberger <holger@eitzenberger.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Now you mentioned it, cluster match is not as flexible right now,
+its hashing is on source_ip only.
+
+Many people still use ipt_CLUSTERIP, and probably for couple of years.
+
+This issue was raised several times, we should fix CLUSTERIP for good.
+
+Thanks
+
+[PATCH v4] netfilter: ipt_CLUSTERIP: remove "no conntrack!"
+
+When a packet is meant to be handled by another node of the cluster,
+silently drop it instead of flooding kernel log.
+
+Note : INVALID packets are also dropped without notice.
+
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+CC: Patrick McHardy <kaber@trash.net>
+CC: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- Looks like this patch got lost -- I cannot find in in linus' or net-2.6 trees...
+ net/ipv4/netfilter/ipt_CLUSTERIP.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 5cb8d30..2b7eef3 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -972,7 +972,8 @@ ctnetlink_get_conntrack(struct sock *ctnl, struct sk_buff *skb,
- free:
- 	kfree_skb(skb2);
- out:
--	return err;
-+	/* this avoids a loop in nfnetlink. */
-+	return err == -EAGAIN ? -ENOBUFS : err;
- }
- 
- #ifdef CONFIG_NF_NAT_NEEDED
--- 
-1.7.2.2
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ip=
+t_CLUSTERIP.c
+index 1e26a48..403ca57 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -300,13 +300,8 @@ clusterip_tg(struct sk_buff *skb, const struct xt_=
+action_param *par)
+ 	 * that the ->target() function isn't called after ->destroy() */
+=20
+ 	ct =3D nf_ct_get(skb, &ctinfo);
+-	if (ct =3D=3D NULL) {
+-		pr_info("no conntrack!\n");
+-			/* FIXME: need to drop invalid ones, since replies
+-			 * to outgoing connections of other nodes will be
+-			 * marked as INVALID */
++	if (ct =3D=3D NULL)
+ 		return NF_DROP;
+-	}
+=20
+ 	/* special case: ICMP error handling. conntrack distinguishes between
+ 	 * error messages (RELATED) and information requests (see below) */
 
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
