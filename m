@@ -1,137 +1,50 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] netfilter: ipt_CLUSTERIP: dont flood with "no
- conntrack!"
-Date: Thu, 13 Jan 2011 12:36:18 +0100
-Message-ID: <1294918578.3570.59.camel@edumazet-laptop>
-References: <4D2E1A74.5080102@netfilter.org>
-	 <1294917210.3570.48.camel@edumazet-laptop> <4D2EE09A.1010409@netfilter.org>
-	 <4D2EE1F8.2040206@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: ipt_CLUSTERIP: dont flood with "no conntrack!"
+Date: Thu, 13 Jan 2011 12:54:51 +0100
+Message-ID: <4D2EE80B.6010707@netfilter.org>
+References: <4D2E1A74.5080102@netfilter.org>	 <1294917210.3570.48.camel@edumazet-laptop> <4D2EE09A.1010409@netfilter.org> <1294918365.3570.56.camel@edumazet-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:48619 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933010Ab1AMLgX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Jan 2011 06:36:23 -0500
-In-Reply-To: <4D2EE1F8.2040206@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1294918365.3570.56.camel@edumazet-laptop>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Le jeudi 13 janvier 2011 =C3=A0 12:28 +0100, Patrick McHardy a =C3=A9cr=
-it :
-> On 13.01.2011 12:23, Pablo Neira Ayuso wrote:
-> > Hi Eric,
-> >=20
-> > On 13/01/11 12:13, Eric Dumazet wrote:
-> >> ipt_CLUSTERIP users might hit this annoying printk, if they forgot=
- an
-> >> "iptables -I INPUT -m state --state INVALID -j DROP" before CLUSTE=
-RIP
-> >> rule. We could use net_ratelimit() here, or not log the message at=
- all.
-> >> I chose to log it once per config.
-> >=20
-> > I think that this should be converted to pr_debug() instead, there'=
-s
-> > also another reference to "unknown protocol" that should be convert=
-ed as
-> > well.
+On 13/01/11 12:32, Eric Dumazet wrote:
+> Le jeudi 13 janvier 2011 =C3=A0 12:23 +0100, Pablo Neira Ayuso a =C3=A9=
+crit :
+>> Hi Eric,
+>>
+>> On 13/01/11 12:13, Eric Dumazet wrote:
+>>> ipt_CLUSTERIP users might hit this annoying printk, if they forgot =
+an
+>>> "iptables -I INPUT -m state --state INVALID -j DROP" before CLUSTER=
+IP
+>>> rule. We could use net_ratelimit() here, or not log the message at =
+all.
+>>> I chose to log it once per config.
+>>
+>> I think that this should be converted to pr_debug() instead, there's
+>> also another reference to "unknown protocol" that should be converte=
+d as
+>> well.
 >=20
-> I think the FIXME could also be removed, we *do* drop invalid
-> packets in CLUSTERIP.
+> Problem is pr_debug() is a noop most of the time,
+> and printk(KERN_DEBUG is a bit ugly ...
+>=20
+> If we print the message once, better to really print it ;)
 
-Ah yes indeed :)
+But printing this does not provide any useful information. The first
+packet that does not belong to the cluster node that has received the
+packet, or the first invalid packet, will trigger this.
 
-Thanks !
+Moreover, this confuses users since they can do nothing if they receive
+this message.
 
-[PATCH v3] netfilter: ipt_CLUSTERIP: dont flood with "no conntrack!"
-
-ipt_CLUSTERIP users might hit this annoying printk, if they forgot an
-"iptables -I INPUT -m state --state INVALID -j DROP" before CLUSTERIP
-rule. We could use net_ratelimit() here, or not log the message at all.
-I chose to log it once per config.
-
-Pablo suggested to use same logic for the "unknown protocol" message
-Patrick asked to remove an obsolete comment.
-
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-CC: Patrick McHardy <kaber@trash.net>
-CC: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv4/netfilter/ipt_CLUSTERIP.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ip=
-t_CLUSTERIP.c
-index 1e26a48..b5cf3e4 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -47,6 +47,8 @@ struct clusterip_config {
- 	u_int8_t clustermac[ETH_ALEN];		/* the MAC address */
- 	struct net_device *dev;			/* device */
- 	u_int16_t num_total_nodes;		/* total number of nodes */
-+	bool warned_no_conntrack;
-+	bool warned_unknown_protocol;
- 	unsigned long local_nodes;		/* node number array */
-=20
- #ifdef CONFIG_PROC_FS
-@@ -228,7 +230,7 @@ clusterip_del_node(struct clusterip_config *c, u_in=
-t16_t nodenum)
-=20
- static inline u_int32_t
- clusterip_hashfn(const struct sk_buff *skb,
--		 const struct clusterip_config *config)
-+		 struct clusterip_config *config)
- {
- 	const struct iphdr *iph =3D ip_hdr(skb);
- 	unsigned long hashval;
-@@ -236,7 +238,7 @@ clusterip_hashfn(const struct sk_buff *skb,
- 	int poff;
-=20
- 	poff =3D proto_ports_offset(iph->protocol);
--	if (poff >=3D 0) {
-+	if (likely(poff >=3D 0)) {
- 		const u_int16_t *ports;
- 		u16 _ports[2];
-=20
-@@ -246,8 +248,10 @@ clusterip_hashfn(const struct sk_buff *skb,
- 			dport =3D ports[1];
- 		}
- 	} else {
--		if (net_ratelimit())
-+		if (unlikely(!config->warned_unknown_protocol)) {
-+			config->warned_unknown_protocol =3D true;
- 			pr_info("unknown protocol %u\n", iph->protocol);
-+		}
- 	}
-=20
- 	switch (config->hash_mode) {
-@@ -301,10 +305,10 @@ clusterip_tg(struct sk_buff *skb, const struct xt=
-_action_param *par)
-=20
- 	ct =3D nf_ct_get(skb, &ctinfo);
- 	if (ct =3D=3D NULL) {
--		pr_info("no conntrack!\n");
--			/* FIXME: need to drop invalid ones, since replies
--			 * to outgoing connections of other nodes will be
--			 * marked as INVALID */
-+		if (unlikely(!cipinfo->config->warned_no_conntrack)) {
-+			cipinfo->config->warned_no_conntrack =3D true;
-+			pr_info("no conntrack!\n");
-+		}
- 		return NF_DROP;
- 	}
-=20
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Moreover, this target should be supersedes by the cluster match, which
+has been there for quite some time (it's also more flexible).
