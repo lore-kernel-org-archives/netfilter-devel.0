@@ -1,86 +1,28 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH v4] netfilter: ipt_CLUSTERIP: remove "no conntrack!"
-Date: Thu, 13 Jan 2011 15:39:39 +0100
-Message-ID: <1294929579.3570.163.camel@edumazet-laptop>
-References: <4D2E1A74.5080102@netfilter.org>
-	 <1294917210.3570.48.camel@edumazet-laptop> <4D2EE09A.1010409@netfilter.org>
-	 <1294918365.3570.56.camel@edumazet-laptop> <4D2EE80B.6010707@netfilter.org>
-	 <1294925915.3570.87.camel@edumazet-laptop>
-	 <alpine.LNX.2.01.1101131502240.25211@obet.zrqbmnf.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: nf_conntrack_tstamp: add flow-based timestamp
+ extension
+Date: Thu, 13 Jan 2011 16:40:55 +0100
+Message-ID: <4D2F1D07.9090301@netfilter.org>
+References: <20110113123030.3407.59986.stgit@decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:59315 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754728Ab1AMOjo (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Jan 2011 09:39:44 -0500
-In-Reply-To: <alpine.LNX.2.01.1101131502240.25211@obet.zrqbmnf.qr>
+Received: from mail.us.es ([193.147.175.20]:36399 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757156Ab1AMPlB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Jan 2011 10:41:01 -0500
+In-Reply-To: <20110113123030.3407.59986.stgit@decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le jeudi 13 janvier 2011 =C3=A0 15:02 +0100, Jan Engelhardt a =C3=A9cri=
-t :
-> On Thursday 2011-01-13 14:38, Eric Dumazet wrote:
->=20
-> >Le jeudi 13 janvier 2011 =C3=A0 12:54 +0100, Pablo Neira Ayuso a =C3=
-=A9crit :
-> >
-> >> But printing this does not provide any useful information. The fir=
-st
-> >> packet that does not belong to the cluster node that has received =
-the
-> >> packet, or the first invalid packet, will trigger this.
-> >>=20
-> >> Moreover, this confuses users since they can do nothing if they re=
-ceive
-> >> this message.
-> >>=20
-> >> Moreover, this target should be supersedes by the cluster match, w=
-hich
-> >> has been there for quite some time (it's also more flexible).
-> >
-> >Now you mentioned it, cluster match is not as flexible right now,
-> >its hashing is on source_ip only.
->=20
-> I think in that case, xt_cluster should be improved rather
-> than an old module.
+On 13/01/11 13:30, Pablo Neira Ayuso wrote:
+> This patch adds flow-based timestamping for conntracks. This
+> conntrack extension is disabled by default. Basically, we use
+> two 64-bits variables to store the creation timestamp once the
+> conntrack has been confirmed and the other to store the deletion
+> time.
 
-Amen
-
-We should not improve IPv4 support then, I see.
-
-My customers use this old module, and upgrading to xt_cluster is not an
-option.
-
-Should we discuss this forever or fix it ?
-
-In the end, people are forced to add useless iptables rule to DROP
-INVALID packets before entering ipt_CLUSTERIP, after googling or
-eventually asking to experts.
-
-Last time this was discussed, this went nowhere :
-
-http://www.spinics.net/lists/netfilter/msg48676.html
-
-Come on guys, we can do it, dont be afraid.
-
-A non rate limited printk() in kernel is forbidden, especially in
-network stack.
-
-Then, cluster match can be improved, I am sure you already have a patch
-for it.
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sorry, this patch does not apply, I'll fix it and will resend.
