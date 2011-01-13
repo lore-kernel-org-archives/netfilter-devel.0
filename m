@@ -1,32 +1,33 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: ctnetlink: fix loop in ctnetlink_get_conntrack()
-Date: Thu, 13 Jan 2011 17:00:20 +0100
-Message-ID: <4D2F2194.4000601@netfilter.org>
-References: <1294924795-20816-1-git-send-email-fwestphal@astaro.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net
-To: Florian Westphal <fwestphal@astaro.com>
+From: pablo@netfilter.org
+Subject: [PATCH 0/1] Netfilter fixes for 2.6.37 (round 3)
+Date: Thu, 13 Jan 2011 17:19:18 +0100
+Message-ID: <1294935558-4106-1-git-send-email-pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49562 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44512 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757007Ab1AMQAZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Jan 2011 11:00:25 -0500
-In-Reply-To: <1294924795-20816-1-git-send-email-fwestphal@astaro.com>
+	id S932965Ab1AMQT0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Jan 2011 11:19:26 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 13/01/11 14:19, Florian Westphal wrote:
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> This patch fixes a loop in ctnetlink_get_conntrack() that can be
-> triggered if you use the same socket to receive events and to
-> perform a GET operation. Under heavy load, netlink_unicast()
-> may return -EAGAIN, this error code is reserved in nfnetlink for
-> the module load-on-demand. Instead, we return -ENOBUFS which is
-> the appropriate error code that has to be propagated to
-> user-space.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Indeed, it's in Patrick's tree but it didn't get the patch to reach the
-kernel. I'll pass it to davem.
+Hi David,
+
+Still another bugfix pending. I'm sorry, this one was incorporated
+to Patrick's tree before Dec 16th and I thought that it followed
+its patch to your tree.
+
+Holger reported that it didn't. You can pull it from:
+
+git://1984.lsi.us.es/net-2.6 master
+
+Pablo Neira Ayuso (1):
+  netfilter: ctnetlink: fix loop in ctnetlink_get_conntrack()
+
+ net/netfilter/nf_conntrack_netlink.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
