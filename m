@@ -1,49 +1,36 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [GIT PULL nf-next-2.6] ipvs namespaces
-Date: Thu, 13 Jan 2011 10:57:09 +0900
-Message-ID: <20110113015707.GA7082@verge.net.au>
-References: <1294294578-8601-1-git-send-email-horms@verge.net.au>
- <4D2E0F32.8020602@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] netfilter fixes for 2.6.37 (one leftover patch)
+Date: Wed, 12 Jan 2011 18:58:39 -0800 (PST)
+Message-ID: <20110112.185839.209583436.davem@davemloft.net>
+References: <1294860998-15883-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	Julian Anastasov <ja@ssi.bg>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4D2E0F32.8020602@netfilter.org>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:34834
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932750Ab1AMC6G (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Jan 2011 21:58:06 -0500
+In-Reply-To: <1294860998-15883-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jan 12, 2011 at 09:29:38PM +0100, Pablo Neira Ayuso wrote:
-> Hi Simon,
+From: pablo@netfilter.org
+Date: Wed, 12 Jan 2011 20:36:37 +0100
+
+> I found one leftover patch from November 22th that was applied
+> to Patrick's tree (nf-next-2.6) but it didn't ever take its way
+> to reach net-2.6.
 > 
-> On 06/01/11 07:15, Simon Horman wrote:
-> > Hi Patrick,
-> > 
-> > please consider pulling
-> > git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git master
-> > in order to get the netns changes to IPVS from Hans Schillstrom.
+> Can you still pass it to Linus?
+
+Of course I can.
+
+> You can pull it from:
 > 
-> I'm hitting some conflicts when pulling from your tree.
-> 
-> >From git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6
->  * branch            master     -> FETCH_HEAD
-> Auto-merging include/linux/netfilter.h
-> Auto-merging include/linux/skbuff.h
-> Auto-merging include/net/netfilter/nf_conntrack.h
-> Auto-merging net/core/skbuff.c
-> Auto-merging net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-> Auto-merging net/ipv6/netfilter/nf_conntrack_reasm.c
-> Auto-merging net/netfilter/core.c
-> Auto-merging net/netfilter/ipvs/ip_vs_ctl.c
-> CONFLICT (content): Merge conflict in net/netfilter/ipvs/ip_vs_ctl.c
+> git://1984.lsi.us.es/net-2.6 master
 
-Hi Pablo,
-
-I've sent a fresh series "[PATCH 00/22] ipvs namespaces v3.3" that should
-resolve the conficts (I think).  More details in the cover email for that
-series.
-
+Pulled, thanks Pablo.
