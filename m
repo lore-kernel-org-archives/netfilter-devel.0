@@ -1,39 +1,33 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: ipt_CLUSTERIP: dont flood with "no conntrack!"
-Date: Thu, 13 Jan 2011 12:29:41 +0100
-Message-ID: <4D2EE225.6010403@netfilter.org>
-References: <4D2E1A74.5080102@netfilter.org> <1294917210.3570.48.camel@edumazet-laptop> <4D2EE09A.1010409@netfilter.org> <4D2EE1F8.2040206@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 00/22] ipvs namespaces v3.3
+Date: Thu, 13 Jan 2011 12:31:18 +0100
+Message-ID: <4D2EE286.1040207@trash.net>
+References: <1294883588-5683-1-git-send-email-horms@verge.net.au> <4D2EDDD0.8060903@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38511 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756626Ab1AML3q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Jan 2011 06:29:46 -0500
-In-Reply-To: <4D2EE1F8.2040206@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Simon Horman <horms@verge.net.au>, netfilter-devel@vger.kernel.org,
+	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Julian Anastasov <ja@ssi.bg>,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <4D2EDDD0.8060903@netfilter.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 13/01/11 12:28, Patrick McHardy wrote:
-> On 13.01.2011 12:23, Pablo Neira Ayuso wrote:
->> Hi Eric,
+On 13.01.2011 12:11, Pablo Neira Ayuso wrote:
+> On 13/01/11 02:52, Simon Horman wrote:
+>> In order to create this series I merged net-next-2.6 into nf-next-2.6.
+>> The result is at
+>> git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6 ipvs-netns3.3
 >>
->> On 13/01/11 12:13, Eric Dumazet wrote:
->>> ipt_CLUSTERIP users might hit this annoying printk, if they forgot an
->>> "iptables -I INPUT -m state --state INVALID -j DROP" before CLUSTERIP
->>> rule. We could use net_ratelimit() here, or not log the message at all.
->>> I chose to log it once per config.
->>
->> I think that this should be converted to pr_debug() instead, there's
->> also another reference to "unknown protocol" that should be converted as
->> well.
+>> However, I guess that you have already done your own merge and simply
+>> pulling the branch above will create a bit of a mess. Please let me know
+>> if you have a tree/branch that I should use as a base for a pull request.
 > 
-> I think the FIXME could also be removed, we *do* drop invalid
-> packets in CLUSTERIP.
+> I have pulled it, everything was fine. Thanks Simon!
+> 
 
-Hey! You're back! :-)
+Thanks Pablo. I'm back up to speed, if you want, I can pull your tree
+into mine.
