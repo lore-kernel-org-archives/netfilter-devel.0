@@ -1,59 +1,47 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH 00/22] ipvs namespaces v3.3
-Date: Thu, 13 Jan 2011 22:18:22 +0900
-Message-ID: <20110113131822.GB11202@verge.net.au>
-References: <1294883588-5683-1-git-send-email-horms@verge.net.au>
- <4D2EDDD0.8060903@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	Julian Anastasov <ja@ssi.bg>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4D2EDDD0.8060903@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fwestphal@astaro.com>
+Subject: [PATCH] netfilter: ctnetlink: fix loop in ctnetlink_get_conntrack()
+Date: Thu, 13 Jan 2011 14:19:55 +0100
+Message-ID: <1294924795-20816-1-git-send-email-fwestphal@astaro.com>
+Cc: davem@davemloft.net, Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from dhost002-53.dex002.intermedia.net ([64.78.21.155]:54721 "EHLO
+	dhost002-53.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756720Ab1AMNd5 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Jan 2011 08:33:57 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jan 13, 2011 at 12:11:12PM +0100, Pablo Neira Ayuso wrote:
-> On 13/01/11 02:52, Simon Horman wrote:
-> > Hi Pablo,
-> > 
-> > this changest includes the following changes since the v3.2 series
-> > which was most recently posted as "[GIT PULL nf-next-2.6] ipvs namespaces".
-> > 
-> > * Remove several hunks that only make whitespace changes
-> 
-> Thanks a lot for doing this.
-> 
-> > * Add Acked-by: Julian Anastasov <ja@ssi.bg>
-> >   (It was an omission from v3.2)
-> > * Fix merge conflicts
-> > 
-> > There are two changes that produce conflicts
-> > * In the current net-next-2.6 tree but absent from the current nf-next-2.6 tree
-> >   there is "workqueue: convert
-> >   cancel_rearming_delayed_work[queue]() users to cancel_delayed_work_sync()"
-> > * And in the current nf-next-2.6 tree  but absent from the current
-> >   net-next-2.6 tree there is "net: use the macros defined for the members
-> >   of flowi"
-> 
-> nf-*-2.6 are Patrick's trees. My trees are here:
-> 
-> http://1984.lsi.us.es/git/
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Thanks, noted.
+This patch fixes a loop in ctnetlink_get_conntrack() that can be
+triggered if you use the same socket to receive events and to
+perform a GET operation. Under heavy load, netlink_unicast()
+may return -EAGAIN, this error code is reserved in nfnetlink for
+the module load-on-demand. Instead, we return -ENOBUFS which is
+the appropriate error code that has to be propagated to
+user-space.
 
-> > In order to create this series I merged net-next-2.6 into nf-next-2.6.
-> > The result is at
-> > git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6 ipvs-netns3.3
-> > 
-> > However, I guess that you have already done your own merge and simply
-> > pulling the branch above will create a bit of a mess. Please let me know
-> > if you have a tree/branch that I should use as a base for a pull request.
-> 
-> I have pulled it, everything was fine. Thanks Simon!
+Reported-by: Holger Eitzenberger <holger@eitzenberger.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ Looks like this patch got lost -- I cannot find in in linus' or net-2.6 trees...
 
-Great!
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 5cb8d30..2b7eef3 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -972,7 +972,8 @@ ctnetlink_get_conntrack(struct sock *ctnl, struct sk_buff *skb,
+ free:
+ 	kfree_skb(skb2);
+ out:
+-	return err;
++	/* this avoids a loop in nfnetlink. */
++	return err == -EAGAIN ? -ENOBUFS : err;
+ }
+ 
+ #ifdef CONFIG_NF_NAT_NEEDED
+-- 
+1.7.2.2
+
