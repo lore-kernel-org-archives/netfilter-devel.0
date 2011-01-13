@@ -1,32 +1,37 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH] netfilter: ipt_CLUSTERIP: dont flood with "no conntrack!"
-Date: Thu, 13 Jan 2011 12:23:06 +0100
-Message-ID: <4D2EE09A.1010409@netfilter.org>
-References: <4D2E1A74.5080102@netfilter.org> <1294917210.3570.48.camel@edumazet-laptop>
+Date: Thu, 13 Jan 2011 12:28:56 +0100
+Message-ID: <4D2EE1F8.2040206@trash.net>
+References: <4D2E1A74.5080102@netfilter.org> <1294917210.3570.48.camel@edumazet-laptop> <4D2EE09A.1010409@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36103 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756571Ab1AMLXL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Jan 2011 06:23:11 -0500
-In-Reply-To: <1294917210.3570.48.camel@edumazet-laptop>
+Received: from stinky.trash.net ([213.144.137.162]:41497 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756566Ab1AML26 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Jan 2011 06:28:58 -0500
+In-Reply-To: <4D2EE09A.1010409@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Eric,
+On 13.01.2011 12:23, Pablo Neira Ayuso wrote:
+> Hi Eric,
+> 
+> On 13/01/11 12:13, Eric Dumazet wrote:
+>> ipt_CLUSTERIP users might hit this annoying printk, if they forgot an
+>> "iptables -I INPUT -m state --state INVALID -j DROP" before CLUSTERIP
+>> rule. We could use net_ratelimit() here, or not log the message at all.
+>> I chose to log it once per config.
+> 
+> I think that this should be converted to pr_debug() instead, there's
+> also another reference to "unknown protocol" that should be converted as
+> well.
 
-On 13/01/11 12:13, Eric Dumazet wrote:
-> ipt_CLUSTERIP users might hit this annoying printk, if they forgot an
-> "iptables -I INPUT -m state --state INVALID -j DROP" before CLUSTERIP
-> rule. We could use net_ratelimit() here, or not log the message at all.
-> I chose to log it once per config.
-
-I think that this should be converted to pr_debug() instead, there's
-also another reference to "unknown protocol" that should be converted as
-well.
+I think the FIXME could also be removed, we *do* drop invalid
+packets in CLUSTERIP.
