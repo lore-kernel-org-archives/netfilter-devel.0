@@ -1,36 +1,53 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] netfilter fixes for 2.6.37 (one leftover patch)
-Date: Wed, 12 Jan 2011 18:58:39 -0800 (PST)
-Message-ID: <20110112.185839.209583436.davem@davemloft.net>
-References: <1294860998-15883-1-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 00/22] ipvs namespaces v3.3
+Date: Thu, 13 Jan 2011 12:11:12 +0100
+Message-ID: <4D2EDDD0.8060903@netfilter.org>
+References: <1294883588-5683-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:34834
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932750Ab1AMC6G (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Jan 2011 21:58:06 -0500
-In-Reply-To: <1294860998-15883-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	Julian Anastasov <ja@ssi.bg>,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1294883588-5683-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: pablo@netfilter.org
-Date: Wed, 12 Jan 2011 20:36:37 +0100
-
-> I found one leftover patch from November 22th that was applied
-> to Patrick's tree (nf-next-2.6) but it didn't ever take its way
-> to reach net-2.6.
+On 13/01/11 02:52, Simon Horman wrote:
+> Hi Pablo,
 > 
-> Can you still pass it to Linus?
-
-Of course I can.
-
-> You can pull it from:
+> this changest includes the following changes since the v3.2 series
+> which was most recently posted as "[GIT PULL nf-next-2.6] ipvs namespaces".
 > 
-> git://1984.lsi.us.es/net-2.6 master
+> * Remove several hunks that only make whitespace changes
 
-Pulled, thanks Pablo.
+Thanks a lot for doing this.
+
+> * Add Acked-by: Julian Anastasov <ja@ssi.bg>
+>   (It was an omission from v3.2)
+> * Fix merge conflicts
+> 
+> There are two changes that produce conflicts
+> * In the current net-next-2.6 tree but absent from the current nf-next-2.6 tree
+>   there is "workqueue: convert
+>   cancel_rearming_delayed_work[queue]() users to cancel_delayed_work_sync()"
+> * And in the current nf-next-2.6 tree  but absent from the current
+>   net-next-2.6 tree there is "net: use the macros defined for the members
+>   of flowi"
+
+nf-*-2.6 are Patrick's trees. My trees are here:
+
+http://1984.lsi.us.es/git/
+
+> In order to create this series I merged net-next-2.6 into nf-next-2.6.
+> The result is at
+> git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6 ipvs-netns3.3
+> 
+> However, I guess that you have already done your own merge and simply
+> pulling the branch above will create a bit of a mess. Please let me know
+> if you have a tree/branch that I should use as a base for a pull request.
+
+I have pulled it, everything was fine. Thanks Simon!
