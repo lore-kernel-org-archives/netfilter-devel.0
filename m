@@ -1,41 +1,305 @@
-From: Eric Paris <eparis@parisplace.org>
-Subject: Re: [PATCHv2] netfilter: audit target to record accepted/dropped packets
-Date: Fri, 14 Jan 2011 14:24:10 -0500
-Message-ID: <AANLkTik8wzag7TtvdqeZOecSeNcbWnO=fid3q0n5N4t_@mail.gmail.com>
-References: <20110114152024.GA9654@canuck.infradead.org>
-	<4D306FBB.8020705@trash.net>
-	<20110114161937.GA22101@canuck.infradead.org>
-	<20110114165937.GA5759@canuck.infradead.org>
-	<4D309B4D.2010701@googlemail.com>
-	<alpine.LNX.2.01.1101142017410.30008@obet.zrqbmnf.qr>
+From: Jiri Olsa <jolsa@redhat.com>
+Subject: [RFC,PATCH] netfilter: SNMP conntrack module
+Date: Fri, 14 Jan 2011 21:18:05 +0100
+Message-ID: <20110114201805.GC4546@jolsa.brq.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Mr Dash Four <mr.dash.four@googlemail.com>,
-	Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, linux-audit@redhat.com,
-	Al Viro <viro@zeniv.linux.org.uk>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>, Tim Waugh <twaugh@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:65484 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933167Ab1ANTYL (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 14 Jan 2011 14:24:11 -0500
-Received: by iyj18 with SMTP id 18so2799422iyj.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Jan 2011 11:24:10 -0800 (PST)
-In-Reply-To: <alpine.LNX.2.01.1101142017410.30008@obet.zrqbmnf.qr>
+Received: from mx1.redhat.com ([209.132.183.28]:5880 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751880Ab1ANUSJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 14 Jan 2011 15:18:09 -0500
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jan 14, 2011 at 2:18 PM, Jan Engelhardt <jengelh@medozas.de> wrote:
- (The reason for audit's existence still eludes me..)
+hi,
 
-audit exists because a very large number of gov't customers (Not just
-USA) have special requirements about how 'relevant' information is
-gathered and stored.  They require centralization and standardization
-and require pretty formal documentation describing it's operation.
-The gov't certification authority has recently added a requirement
-that they be able to log 'illegal attempted network connections' via
-the approved audit facility.  Thus, this patch.
+attached patch adds SNMP conntrack module to the netfilter.
 
--Eric
+I refer to the following conversation:
+http://marc.info/?l=netfilter-devel&m=125992205006600&w=2
+
+Patrick McHardy wrote:
+> The best solution would be to add generic broadcast tracking, the
+> use of expectations for this is a bit of abuse.
+
+> The second best choice I guess would be to move the help() function
+> to a shared module and generalize it so it can be used for both.
+
+The patch tries to implement the "second best choice".
+
+In case the 'second best choice' is not good enough anyway,
+could you please outline the first one in more detail..?
+
+Also the patch is not adding the "help" function to the
+shared module, since I'm not sure where to put it. If the
+idea of the patch would be acceptable, could you please
+suggest the shared module for the 'help' function?
+
+Also I'm not netfilter expert, the patch might have some
+issues..
+
+thanks,
+jirka
+
+
+---
+ include/linux/netfilter/nf_conntrack_snmp.h |    9 ++
+ net/ipv4/netfilter/Kconfig                  |    3 +-
+ net/ipv4/netfilter/nf_nat_snmp_basic.c      |    9 +-
+ net/netfilter/Kconfig                       |   14 +++
+ net/netfilter/Makefile                      |    1 +
+ net/netfilter/nf_conntrack_snmp.c           |  141 +++++++++++++++++++++++++++
+ 6 files changed, 172 insertions(+), 5 deletions(-)
+
+diff --git a/include/linux/netfilter/nf_conntrack_snmp.h b/include/linux/netfilter/nf_conntrack_snmp.h
+new file mode 100644
+index 0000000..064bc63
+--- /dev/null
++++ b/include/linux/netfilter/nf_conntrack_snmp.h
+@@ -0,0 +1,9 @@
++#ifndef _NF_CONNTRACK_SNMP_H
++#define _NF_CONNTRACK_SNMP_H
++
++extern int (*nf_nat_snmp_hook)(struct sk_buff *skb,
++				unsigned int protoff,
++				struct nf_conn *ct,
++				enum ip_conntrack_info ctinfo);
++
++#endif /* _NF_CONNTRACK_SNMP_H */
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index babd1a2..f926a31 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -206,8 +206,9 @@ config IP_NF_TARGET_REDIRECT
+ 
+ config NF_NAT_SNMP_BASIC
+ 	tristate "Basic SNMP-ALG support"
+-	depends on NF_NAT
++	depends on NF_CONNTRACK_SNMP && NF_NAT
+ 	depends on NETFILTER_ADVANCED
++	default NF_NAT && NF_CONNTRACK_SNMP
+ 	---help---
+ 
+ 	  This module implements an Application Layer Gateway (ALG) for
+diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+index ee5f419..8812a02 100644
+--- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
++++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+@@ -54,6 +54,7 @@
+ #include <net/netfilter/nf_conntrack_expect.h>
+ #include <net/netfilter/nf_conntrack_helper.h>
+ #include <net/netfilter/nf_nat_helper.h>
++#include <linux/netfilter/nf_conntrack_snmp.h>
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("James Morris <jmorris@intercode.com.au>");
+@@ -1310,9 +1311,9 @@ static int __init nf_nat_snmp_basic_init(void)
+ {
+ 	int ret = 0;
+ 
+-	ret = nf_conntrack_helper_register(&snmp_helper);
+-	if (ret < 0)
+-		return ret;
++	BUG_ON(nf_nat_snmp_hook != NULL);
++	rcu_assign_pointer(nf_nat_snmp_hook, help);
++
+ 	ret = nf_conntrack_helper_register(&snmp_trap_helper);
+ 	if (ret < 0) {
+ 		nf_conntrack_helper_unregister(&snmp_helper);
+@@ -1323,7 +1324,7 @@ static int __init nf_nat_snmp_basic_init(void)
+ 
+ static void __exit nf_nat_snmp_basic_fini(void)
+ {
+-	nf_conntrack_helper_unregister(&snmp_helper);
++	rcu_assign_pointer(nf_nat_snmp_hook, NULL);
+ 	nf_conntrack_helper_unregister(&snmp_trap_helper);
+ }
+ 
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 1534f2b..955e666 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -204,6 +204,20 @@ config NF_CONNTRACK_NETBIOS_NS
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
++config NF_CONNTRACK_SNMP
++	tristate "SNMP service protocol support"
++	depends on NETFILTER_ADVANCED
++	help
++	  SNMP service requests are sent as broadcast messages from an
++	  unprivileged port and responded to with unicast messages to the
++	  same port. This make them hard to firewall properly because connection
++	  tracking doesn't deal with broadcasts. This helper tracks locally
++	  originating SNMP service requests and the corresponding
++	  responses. It relies on correct IP address configuration, specifically
++	  netmask and broadcast address.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
+ config NF_CONNTRACK_PPTP
+ 	tristate "PPtP protocol support"
+ 	depends on NETFILTER_ADVANCED
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 441050f..5b7df7f 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -29,6 +29,7 @@ obj-$(CONFIG_NF_CONNTRACK_FTP) += nf_conntrack_ftp.o
+ obj-$(CONFIG_NF_CONNTRACK_H323) += nf_conntrack_h323.o
+ obj-$(CONFIG_NF_CONNTRACK_IRC) += nf_conntrack_irc.o
+ obj-$(CONFIG_NF_CONNTRACK_NETBIOS_NS) += nf_conntrack_netbios_ns.o
++obj-$(CONFIG_NF_CONNTRACK_SNMP) += nf_conntrack_snmp.o
+ obj-$(CONFIG_NF_CONNTRACK_PPTP) += nf_conntrack_pptp.o
+ obj-$(CONFIG_NF_CONNTRACK_SANE) += nf_conntrack_sane.o
+ obj-$(CONFIG_NF_CONNTRACK_SIP) += nf_conntrack_sip.o
+diff --git a/net/netfilter/nf_conntrack_snmp.c b/net/netfilter/nf_conntrack_snmp.c
+new file mode 100644
+index 0000000..4bbb9cb
+--- /dev/null
++++ b/net/netfilter/nf_conntrack_snmp.c
+@@ -0,0 +1,141 @@
++/*
++ *      SNMP service broadcast connection tracking helper
++ *
++ *      (c) 2011 Jiri Olsa <jolsa@redhat.com>
++ *
++ *      This program is free software; you can redistribute it and/or
++ *      modify it under the terms of the GNU General Public License
++ *      as published by the Free Software Foundation; either version
++ *      2 of the License, or (at your option) any later version.
++ */
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/skbuff.h>
++#include <linux/netdevice.h>
++#include <linux/inetdevice.h>
++#include <linux/if_addr.h>
++#include <linux/in.h>
++#include <linux/ip.h>
++#include <linux/netfilter.h>
++#include <net/route.h>
++
++#include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack_helper.h>
++#include <net/netfilter/nf_conntrack_expect.h>
++
++#define SNMP_PORT	161
++
++MODULE_AUTHOR("Jiri Olsa <jolsa@redhat.com>");
++MODULE_DESCRIPTION("SNMP service broadcast connection tracking helper");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("ip_conntrack_snmp");
++MODULE_ALIAS_NFCT_HELPER("snmp");
++
++static unsigned int timeout __read_mostly = 30;
++module_param(timeout, uint, 0400);
++MODULE_PARM_DESC(timeout, "timeout for master connection/replies in seconds");
++
++int (*nf_nat_snmp_hook)(struct sk_buff *skb,
++			unsigned int protoff,
++			struct nf_conn *ct,
++			enum ip_conntrack_info ctinfo);
++EXPORT_SYMBOL_GPL(nf_nat_snmp_hook);
++
++static int shared_help(struct sk_buff *skb, unsigned int protoff,
++		struct nf_conn *ct, enum ip_conntrack_info ctinfo)
++{
++	struct nf_conntrack_expect *exp;
++	struct iphdr *iph = ip_hdr(skb);
++	struct rtable *rt = skb_rtable(skb);
++	struct in_device *in_dev;
++	struct nf_conn_help *help = nfct_help(ct);
++	__be32 mask = 0;
++
++	/* we're only interested in locally generated packets */
++	if (skb->sk == NULL)
++		goto out;
++	if (rt == NULL || !(rt->rt_flags & RTCF_BROADCAST))
++		goto out;
++	if (CTINFO2DIR(ctinfo) != IP_CT_DIR_ORIGINAL)
++		goto out;
++
++	rcu_read_lock();
++	in_dev = __in_dev_get_rcu(rt->dst.dev);
++	if (in_dev != NULL) {
++		for_primary_ifa(in_dev) {
++			if (ifa->ifa_broadcast == iph->daddr) {
++				mask = ifa->ifa_mask;
++				break;
++			}
++		} endfor_ifa(in_dev);
++	}
++	rcu_read_unlock();
++
++	if (mask == 0)
++		goto out;
++
++	exp = nf_ct_expect_alloc(ct);
++	if (exp == NULL)
++		goto out;
++
++	exp->tuple                = ct->tuplehash[IP_CT_DIR_REPLY].tuple;
++	exp->tuple.src.u.udp.port = help->helper->tuple.src.u.udp.port;
++
++	exp->mask.src.u3.ip       = mask;
++	exp->mask.src.u.udp.port  = htons(0xFFFF);
++
++	exp->expectfn             = NULL;
++	exp->flags                = NF_CT_EXPECT_PERMANENT;
++	exp->class		  = NF_CT_EXPECT_CLASS_DEFAULT;
++	exp->helper               = NULL;
++
++	nf_ct_expect_related(exp);
++	nf_ct_expect_put(exp);
++
++	nf_ct_refresh(ct, skb, timeout * HZ);
++out:
++	return NF_ACCEPT;
++}
++
++static int help(struct sk_buff *skb, unsigned int protoff,
++		struct nf_conn *ct, enum ip_conntrack_info ctinfo)
++{
++	typeof(nf_nat_snmp_hook) nf_nat_snmp;
++
++	shared_help(skb, protoff, ct, ctinfo);
++
++	nf_nat_snmp = rcu_dereference(nf_nat_snmp_hook);
++	if (nf_nat_snmp && ct->status & IPS_NAT_MASK)
++		return nf_nat_snmp(skb, protoff, ct, ctinfo);
++
++	return NF_ACCEPT;
++}
++
++static struct nf_conntrack_expect_policy exp_policy = {
++	.max_expected	= 1,
++};
++
++static struct nf_conntrack_helper helper __read_mostly = {
++	.name			= "snmp",
++	.tuple.src.l3num	= AF_INET,
++	.tuple.src.u.udp.port	= cpu_to_be16(SNMP_PORT),
++	.tuple.dst.protonum	= IPPROTO_UDP,
++	.me			= THIS_MODULE,
++	.help			= help,
++	.expect_policy		= &exp_policy,
++};
++
++static int __init nf_conntrack_snmp_init(void)
++{
++	exp_policy.timeout = timeout;
++	return nf_conntrack_helper_register(&helper);
++}
++
++static void __exit nf_conntrack_snmp_fini(void)
++{
++	nf_conntrack_helper_unregister(&helper);
++}
++
++module_init(nf_conntrack_snmp_init);
++module_exit(nf_conntrack_snmp_fini);
