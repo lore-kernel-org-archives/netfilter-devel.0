@@ -1,91 +1,42 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH resend] netfilter: make rcu read section smaller
-Date: Sat, 15 Jan 2011 19:28:50 +0800
-Message-ID: <1295090930-16671-2-git-send-email-xiaosuo@gmail.com>
-References: <1295090930-16671-1-git-send-email-xiaosuo@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Changli Gao <xiaosuo@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 4/6] netfilter: reduce NF_VERDICT_MASK to 0xff
+Date: Sat, 15 Jan 2011 15:29:02 +0100
+Message-ID: <4D31AF2E.8030305@netfilter.org>
+References: <1293407904-31464-1-git-send-email-fw@strlen.de> <1293407904-31464-5-git-send-email-fw@strlen.de> <4D2DFAC5.8020802@netfilter.org> <20110112205216.GC10801@Chamillionaire.breakpoint.cc> <4D305836.8080007@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:54930 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752275Ab1AOL3h (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 15 Jan 2011 06:29:37 -0500
-In-Reply-To: <1295090930-16671-1-git-send-email-xiaosuo@gmail.com>
+Received: from mail.us.es ([193.147.175.20]:55406 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750795Ab1AOO3J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 15 Jan 2011 09:29:09 -0500
+In-Reply-To: <4D305836.8080007@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
----
- net/ipv4/netfilter/nf_nat_core.c |   38 +++++++++++++++++++-------------------
- 1 file changed, 19 insertions(+), 19 deletions(-)
-diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
-index c04787c..7300611 100644
---- a/net/ipv4/netfilter/nf_nat_core.c
-+++ b/net/ipv4/netfilter/nf_nat_core.c
-@@ -85,7 +85,7 @@ in_range(const struct nf_conntrack_tuple *tuple,
- 	 const struct nf_nat_range *range)
- {
- 	const struct nf_nat_protocol *proto;
--	int ret = 0;
-+	int ret = 1;
- 
- 	/* If we are supposed to map IPs, then we must be in the
- 	   range specified, otherwise let this drag us onto a new src IP. */
-@@ -95,13 +95,14 @@ in_range(const struct nf_conntrack_tuple *tuple,
- 			return 0;
- 	}
- 
--	rcu_read_lock();
--	proto = __nf_nat_proto_find(tuple->dst.protonum);
--	if (!(range->flags & IP_NAT_RANGE_PROTO_SPECIFIED) ||
--	    proto->in_range(tuple, IP_NAT_MANIP_SRC,
--			    &range->min, &range->max))
--		ret = 1;
--	rcu_read_unlock();
-+	if (range->flags & IP_NAT_RANGE_PROTO_SPECIFIED) {
-+		rcu_read_lock();
-+		proto = __nf_nat_proto_find(tuple->dst.protonum);
-+		if (!proto->in_range(tuple, IP_NAT_MANIP_SRC, &range->min,
-+				     &range->max))
-+			ret = 0;
-+		rcu_read_unlock();
-+	}
- 
- 	return ret;
- }
-@@ -235,22 +236,21 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
- 
- 	/* 3) The per-protocol part of the manip is made to map into
- 	   the range to make a unique tuple. */
-+	if (!(range->flags & (IP_NAT_RANGE_PROTO_RANDOM |
-+			      IP_NAT_RANGE_PROTO_SPECIFIED)) &&
-+	    !nf_nat_used_tuple(tuple, ct))
-+		return;
- 
- 	rcu_read_lock();
- 	proto = __nf_nat_proto_find(orig_tuple->dst.protonum);
- 
- 	/* Only bother mapping if it's not already in range and unique */
--	if (!(range->flags & IP_NAT_RANGE_PROTO_RANDOM)) {
--		if (range->flags & IP_NAT_RANGE_PROTO_SPECIFIED) {
--			if (proto->in_range(tuple, maniptype, &range->min,
--					    &range->max) &&
--			    (range->min.all == range->max.all ||
--			     !nf_nat_used_tuple(tuple, ct)))
--				goto out;
--		} else if (!nf_nat_used_tuple(tuple, ct)) {
--			goto out;
--		}
--	}
-+	if ((range->flags & (IP_NAT_RANGE_PROTO_RANDOM |
-+			     IP_NAT_RANGE_PROTO_SPECIFIED)) ==
-+	    IP_NAT_RANGE_PROTO_SPECIFIED &&
-+	    proto->in_range(tuple, maniptype, &range->min, &range->max) &&
-+	    (range->min.all == range->max.all || !nf_nat_used_tuple(tuple, ct)))
-+		goto out;
- 
- 	/* Last change: get protocol to try to obtain unique tuple. */
- 	proto->unique_tuple(tuple, range, maniptype, ct);
+On 14/01/11 15:05, Patrick McHardy wrote:
+> On 12.01.2011 21:52, Florian Westphal wrote:
+>> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>>>>  /* only for userspace compatibility */
+>>>>  #ifndef __KERNEL__
+>>>> @@ -41,6 +44,9 @@
+>>>>     <= 0x2000 is used for protocol-flags. */
+>>>>  #define NFC_UNKNOWN 0x4000
+>>>>  #define NFC_ALTERED 0x8000
+>>>> +
+>>>> +/* NF_VERDICT_BITS should be 8 now, but userspace might break if this changes */
+>>>> +#define NF_VERDICT_BITS 16
+>>>>  #endif
+>>>
+>>> i don't find any use of this in user-space.
+>>
+>> Alright, I will simply remove it, then :-)
+> 
+> I think we should still keep it around in the compat section,
+> just because we don't know of any userspace code using this
+> doesn't mean it doesn't exist.
+
+Yes, that's true, but I don't fine any sane use of that macro in userspace.
