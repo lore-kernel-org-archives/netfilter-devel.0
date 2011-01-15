@@ -1,70 +1,58 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: netfilter: add a typedef for the recurring okfn use
-Date: Sat, 15 Jan 2011 16:52:47 +0100
-Message-ID: <1295106767.3977.26.camel@edumazet-laptop>
-References: <alpine.LNX.2.01.1101142253330.15697@obet.zrqbmnf.qr>
-	 <4D31B08A.4020101@netfilter.org>  <4D31B322.2070305@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCHv4] netfilter: audit target to record accepted/dropped
+ packets
+Date: Sat, 15 Jan 2011 17:07:12 +0100
+Message-ID: <4D31C630.7090100@trash.net>
+References: <20110114152024.GA9654@canuck.infradead.org> <4D306FBB.8020705@trash.net> <20110114161937.GA22101@canuck.infradead.org> <20110114165937.GA5759@canuck.infradead.org> <alpine.LNX.2.01.1101141819300.17624@obet.zrqbmnf.qr> <20110114222429.GB22508@canuck.infradead.org> <20110114234823.GD22508@canuck.infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: Jan Engelhardt <jengelh@medozas.de>,
+	netfilter-devel@vger.kernel.org, linux-audit@redhat.com,
+	Eric Paris <eparis@parisplace.org>,
+	Al Viro <viro@ZenIV.linux.org.uk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:55276 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752633Ab1AOPwy (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:60165 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752633Ab1AOQHS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 15 Jan 2011 10:52:54 -0500
-Received: by wwi17 with SMTP id 17so701534wwi.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 15 Jan 2011 07:52:53 -0800 (PST)
-In-Reply-To: <4D31B322.2070305@trash.net>
+	Sat, 15 Jan 2011 11:07:18 -0500
+In-Reply-To: <20110114234823.GD22508@canuck.infradead.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le samedi 15 janvier 2011 =C3=A0 15:45 +0100, Patrick McHardy a =C3=A9c=
-rit :
-> Am 15.01.2011 15:34, schrieb Pablo Neira Ayuso:
-> > On 14/01/11 22:54, Jan Engelhardt wrote:
+Am 15.01.2011 00:48, schrieb Thomas Graf:
+> [Save the planet and make Jan happy by returning EDOM instead of ERANGE]
+> 
+> This patch adds a new netfilter target which creates audit records
+> for packets traversing a certain chain.
+> 
+> It can be used to record packets which are rejected administraively
+> as follows:
+> 
+>   -N AUDIT_DROP
+>   -A AUDIT_DROP -j AUDIT --type DROP
+>   -A AUDIT_DROP -j DROP
+> 
+> a rule which would typically drop or reject a packet would then
+> invoke the new chain to record packets before dropping them.
+> 
+>   -j AUDIT_DROP
+> 
+> The module is protocol independant and works for iptables, ip6tables
+> and ebtables.
+> 
+> The following information is logged:
+>  - netfilter hook
+>  - packet length
+>  - incomming/outgoing interface
+>  - MAC src/dst/proto for ethernet packets
+>  - src/dst/protocol address for IPv4/IPv6
+>  - src/dst port for TCP/UDP/UDPLITE
+>  - icmp type/code
 
-> >> =20
-> >> +typedef int (*nf_okfn_t)(struct sk_buff *);
-> >>  typedef unsigned int nf_hookfn(unsigned int hooknum,
-> >>  			       struct sk_buff *skb,
-> >>  			       const struct net_device *in,
-> >>  			       const struct net_device *out,
-> >> -			       int (*okfn)(struct sk_buff *));
-> >> +			       nf_okfn_t okfn);
-> >=20
-> > This typedef makes the source code less readable in my opinion. You=
- have
-> > to look for nf_okfn_t to look what it actually is.
->=20
-> I agree. This also violates the CodingStyle rules for use of typedefs=
-=2E
->=20
+Looks fine to me, if there are no further objections, I'll apply this
+tommorrow.
 
-I had to add typedefs only because of the __rcu game, in apparent
-violation of Linus rule (not adding typedefs), because of sparse or
-compiler limitations.
+> 
 
-int br_should_route_hook_t(struct sk_buff *skb);=20
-br_should_route_hook_t __rcu *br_should_route_hook __read_mostly;
-
-I also prefer to read :
-
-int (*okfn)(struct sk_buff *)=20
-
-instead of=20
-
-nf_okfn_t okfn
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
