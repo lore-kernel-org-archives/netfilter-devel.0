@@ -1,58 +1,47 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC,PATCH] netfilter: SNMP conntrack module
-Date: Sat, 15 Jan 2011 17:15:00 +0100
-Message-ID: <4D31C804.5090304@trash.net>
-References: <20110114201805.GC4546@jolsa.brq.redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Tim Waugh <twaugh@redhat.com>, netfilter-devel@vger.kernel.org
-To: Jiri Olsa <jolsa@redhat.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2] NFQUEUE v2 target with 'queue bypass' support
+Date: Sun, 16 Jan 2011 14:19:01 +0100
+Message-ID: <1295183947-12786-1-git-send-email-fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60265 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753284Ab1AOQPB (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:42904 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752102Ab1APNYY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 15 Jan 2011 11:15:01 -0500
-In-Reply-To: <20110114201805.GC4546@jolsa.brq.redhat.com>
+	Sun, 16 Jan 2011 08:24:24 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 14.01.2011 21:18, schrieb Jiri Olsa:
-> hi,
-> 
-> attached patch adds SNMP conntrack module to the netfilter.
-> 
-> I refer to the following conversation:
-> http://marc.info/?l=netfilter-devel&m=125992205006600&w=2
-> 
-> Patrick McHardy wrote:
->> The best solution would be to add generic broadcast tracking, the
->> use of expectations for this is a bit of abuse.
-> 
->> The second best choice I guess would be to move the help() function
->> to a shared module and generalize it so it can be used for both.
-> 
-> The patch tries to implement the "second best choice".
-> 
-> In case the 'second best choice' is not good enough anyway,
-> could you please outline the first one in more detail..?
+This is V2 of the NFQUEUEv2 target revision, adding support for accepting
+packets in case the userspace listener is not available.
+This fixes issues pointed out by Pablo in his review.
 
-Adding full broadcast tracking is non-trivial, so this is good
-enough for now.
+See individual patches for changes vs. V1.
+Patch to iptables userspace follows in a couple of minutes.
 
-> Also the patch is not adding the "help" function to the
-> shared module, since I'm not sure where to put it. If the
-> idea of the patch would be acceptable, could you please
-> suggest the shared module for the 'help' function?
+These changes are also available via git pull:
 
-How about adding a nf_conntrack_broadcast.c or something
-like that and keep the common code there? The help function
-and the expect policy (probably not really worth it) could
-be moved to that file.
+The following changes since commit d862a6622e9db508d4b28cc7c5bc28bd548cc24e:
 
-> --- /dev/null
-> +++ b/net/netfilter/nf_conntrack_snmp.c
+  netfilter: nf_conntrack: use is_vmalloc_addr() (2011-01-14 15:45:56 +0100)
 
-Besides Jan comments, the patch looks fine to me.
+are available in the git repository at:
+  git://git.breakpoint.cc/fw/nf-next-2.6.git nfq_bypass_v2
 
+Florian Westphal (6):
+      netfilter: kconfig: NFQUEUE is useless without NETFILTER_NETLINK_QUEUE
+      netfilter: nfnetlink_queue: return error number to caller
+      netfilter: nfnetlink_queue: do not free skb on error
+      netfilter: reduce NF_VERDICT_MASK to 0xff
+      netfilter: allow NFQUEUE bypass if no listener is available
+      netfilter: do not omit re-route check on NF_QUEUE verdict
+
+ include/linux/netfilter.h            |   21 ++++++++---
+ include/linux/netfilter/xt_NFQUEUE.h |    6 +++
+ net/ipv4/netfilter/iptable_mangle.c  |    2 +-
+ net/netfilter/Kconfig                |    1 +
+ net/netfilter/core.c                 |   16 ++++++--
+ net/netfilter/nf_queue.c             |   64 ++++++++++++++++++++++++----------
+ net/netfilter/nfnetlink_queue.c      |   22 +++++++----
+ net/netfilter/xt_NFQUEUE.c           |   28 +++++++++++++--
+ 8 files changed, 120 insertions(+), 40 deletions(-)
