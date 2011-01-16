@@ -1,130 +1,181 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 4/6] netfilter: reduce NF_VERDICT_MASK to 0xff
-Date: Sun, 16 Jan 2011 14:19:05 +0100
-Message-ID: <1295183947-12786-5-git-send-email-fw@strlen.de>
+Subject: [PATCH 5/6] netfilter: allow NFQUEUE bypass if no listener is available
+Date: Sun, 16 Jan 2011 14:19:06 +0100
+Message-ID: <1295183947-12786-6-git-send-email-fw@strlen.de>
 References: <1295183947-12786-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>,
+	Florian Westphal <fwestphal@astaro.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:42908 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:42909 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752417Ab1APNYi (ORCPT
+	by vger.kernel.org with ESMTP id S1752417Ab1APNYo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 16 Jan 2011 08:24:38 -0500
+	Sun, 16 Jan 2011 08:24:44 -0500
 In-Reply-To: <1295183947-12786-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-NF_VERDICT_MASK is currently 0xffff. This is because the upper
-16 bits are used to store errno (for NF_DROP) or the queue number
-(NF_QUEUE verdict).
+If an skb is to be NF_QUEUE'd, but no program has opened the queue, the
+packet is dropped.
 
-As there are up to 0xffff different queues available, there is no more
-room to store additional flags.
+This adds a v2 target revision of xt_NFQUEUE that allows packets to
+continue through the ruleset instead.
 
-At the moment there are only 6 different verdicts, i.e. we can reduce
-NF_VERDICT_MASK to 0xff to allow storing additional flags in the 0xff00 space.
+Because the actual queueing happens outside of the target context, the
+'bypass' flag has to be communicated back to the netfilter core.
 
-NF_VERDICT_BITS would then be reduced to 8, but because the value is
-exported to userspace, this might cause breakage; e.g.:
+Unfortunately the only choice to do this without adding a new function
+argument is to use the target function return value (i.e. the verdict).
 
-e.g. 'queuenr = (1 << NF_VERDICT_BITS) | NF_QUEUE'  would now break.
+In the NF_QUEUE case, the upper 16bit already contain the queue number
+to use.  The previous patch reduced NF_VERDICT_MASK to 0xff, i.e.
+we now have extra room for a new flag.
 
-Thus, remove NF_VERDICT_BITS usage in the kernel and move the old value
-to the 'userspace compat' section.
+If a hook issued a NF_QUEUE verdict, then the netfilter core will
+continue packet processing if the queueing hook
+returns -ESRCH (== "this queue does not exist") and the new
+NF_VERDICT_FLAG_QUEUE_BYPASS flag is set in the verdict value.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Note: If the queue exists, but userspace does not consume packets fast
+enough, the skb will still be dropped.
+
+Signed-off-by: Florian Westphal <fwestphal@astaro.com>
 ---
- no changes since v1.  In particular, I've kept NF_VERDICT_BITS define
- in the userspace compat section, as Patrick did prefer to keept it.
+ no changes since v1.
 
- include/linux/netfilter.h |   20 +++++++++++++++-----
- net/netfilter/core.c      |    4 ++--
- net/netfilter/nf_queue.c  |    2 +-
- 3 files changed, 18 insertions(+), 8 deletions(-)
+ include/linux/netfilter.h            |    1 +
+ include/linux/netfilter/xt_NFQUEUE.h |    6 ++++++
+ net/netfilter/core.c                 |    3 +++
+ net/netfilter/nf_queue.c             |    7 ++++++-
+ net/netfilter/xt_NFQUEUE.c           |   28 +++++++++++++++++++++++++---
+ 5 files changed, 41 insertions(+), 4 deletions(-)
 
 diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 0ab7ca7..78b73cc 100644
+index 78b73cc..eeec00a 100644
 --- a/include/linux/netfilter.h
 +++ b/include/linux/netfilter.h
-@@ -24,16 +24,19 @@
- #define NF_MAX_VERDICT NF_STOP
+@@ -29,6 +29,7 @@
+ #define NF_VERDICT_MASK 0x000000ff
  
- /* we overload the higher bits for encoding auxiliary data such as the queue
-- * number. Not nice, but better than additional function arguments. */
--#define NF_VERDICT_MASK 0x0000ffff
--#define NF_VERDICT_BITS 16
-+ * number or errno values. Not nice, but better than additional function
-+ * arguments. */
-+#define NF_VERDICT_MASK 0x000000ff
-+
-+/* extra verdict flags have mask 0x0000ff00 */
+ /* extra verdict flags have mask 0x0000ff00 */
++#define NF_VERDICT_FLAG_QUEUE_BYPASS	0x00008000
  
-+/* queue number (NF_QUEUE) or errno (NF_DROP) */
+ /* queue number (NF_QUEUE) or errno (NF_DROP) */
  #define NF_VERDICT_QMASK 0xffff0000
- #define NF_VERDICT_QBITS 16
+diff --git a/include/linux/netfilter/xt_NFQUEUE.h b/include/linux/netfilter/xt_NFQUEUE.h
+index 2584f4a..9eafdbb 100644
+--- a/include/linux/netfilter/xt_NFQUEUE.h
++++ b/include/linux/netfilter/xt_NFQUEUE.h
+@@ -20,4 +20,10 @@ struct xt_NFQ_info_v1 {
+ 	__u16 queues_total;
+ };
  
--#define NF_QUEUE_NR(x) ((((x) << NF_VERDICT_BITS) & NF_VERDICT_QMASK) | NF_QUEUE)
-+#define NF_QUEUE_NR(x) ((((x) << 16) & NF_VERDICT_QMASK) | NF_QUEUE)
- 
--#define NF_DROP_ERR(x) (((-x) << NF_VERDICT_BITS) | NF_DROP)
-+#define NF_DROP_ERR(x) (((-x) << 16) | NF_DROP)
- 
- /* only for userspace compatibility */
- #ifndef __KERNEL__
-@@ -41,6 +44,9 @@
-    <= 0x2000 is used for protocol-flags. */
- #define NFC_UNKNOWN 0x4000
- #define NFC_ALTERED 0x8000
++struct xt_NFQ_info_v2 {
++	__u16 queuenum;
++	__u16 queues_total;
++	__u16 bypass;
++};
 +
-+/* NF_VERDICT_BITS should be 8 now, but userspace might break if this changes */
-+#define NF_VERDICT_BITS 16
- #endif
- 
- enum nf_inet_hooks {
-@@ -72,6 +78,10 @@ union nf_inet_addr {
- 
- #ifdef __KERNEL__
- #ifdef CONFIG_NETFILTER
-+static inline int NF_DROP_GETERR(int verdict)
-+{
-+	return -(verdict >> NF_VERDICT_QBITS);
-+}
- 
- static inline int nf_inet_addr_cmp(const union nf_inet_addr *a1,
- 				   const union nf_inet_addr *a2)
+ #endif /* _XT_NFQ_TARGET_H */
 diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 0c5b796..4d88e45 100644
+index 4d88e45..1e00bf7 100644
 --- a/net/netfilter/core.c
 +++ b/net/netfilter/core.c
-@@ -175,12 +175,12 @@ next_hook:
- 		ret = 1;
- 	} else if ((verdict & NF_VERDICT_MASK) == NF_DROP) {
- 		kfree_skb(skb);
--		ret = -(verdict >> NF_VERDICT_BITS);
-+		ret = NF_DROP_GETERR(verdict);
- 		if (ret == 0)
- 			ret = -EPERM;
- 	} else if ((verdict & NF_VERDICT_MASK) == NF_QUEUE) {
- 		ret = nf_queue(skb, elem, pf, hook, indev, outdev, okfn,
--			       verdict >> NF_VERDICT_BITS);
-+			       verdict >> NF_VERDICT_QBITS);
+@@ -184,6 +184,9 @@ next_hook:
  		if (ret < 0) {
  			if (ret == -ECANCELED)
  				goto next_hook;
++			if (ret == -ESRCH &&
++			   (verdict & NF_VERDICT_FLAG_QUEUE_BYPASS))
++				goto next_hook;
+ 			kfree_skb(skb);
+ 		}
+ 		ret = 0;
 diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 2a9a6fc..4800649 100644
+index 4800649..45dd8bc 100644
 --- a/net/netfilter/nf_queue.c
 +++ b/net/netfilter/nf_queue.c
-@@ -299,7 +299,7 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 	case NF_QUEUE:
- 		err = __nf_queue(skb, elem, entry->pf, entry->hook,
- 				 entry->indev, entry->outdev, entry->okfn,
--				 verdict >> NF_VERDICT_BITS);
-+				 verdict >> NF_VERDICT_QBITS);
+@@ -138,8 +138,10 @@ static int __nf_queue(struct sk_buff *skb,
+ 	rcu_read_lock();
+ 
+ 	qh = rcu_dereference(queue_handler[pf]);
+-	if (!qh)
++	if (!qh) {
++		status = -ESRCH;
+ 		goto err_unlock;
++	}
+ 
+ 	afinfo = nf_get_afinfo(pf);
+ 	if (!afinfo)
+@@ -303,6 +305,9 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
  		if (err < 0) {
  			if (err == -ECANCELED)
  				goto next_hook;
++			if (err == -ESRCH &&
++			   (verdict & NF_VERDICT_FLAG_QUEUE_BYPASS))
++				goto next_hook;
+ 			kfree_skb(skb);
+ 		}
+ 		break;
+diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
+index 3962770..d4f4b5d 100644
+--- a/net/netfilter/xt_NFQUEUE.c
++++ b/net/netfilter/xt_NFQUEUE.c
+@@ -83,9 +83,20 @@ nfqueue_tg_v1(struct sk_buff *skb, const struct xt_action_param *par)
+ 	return NF_QUEUE_NR(queue);
+ }
+ 
+-static int nfqueue_tg_v1_check(const struct xt_tgchk_param *par)
++static unsigned int
++nfqueue_tg_v2(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+-	const struct xt_NFQ_info_v1 *info = par->targinfo;
++	const struct xt_NFQ_info_v2 *info = par->targinfo;
++	unsigned int ret = nfqueue_tg_v1(skb, par);
++
++	if (info->bypass)
++		ret |= NF_VERDICT_FLAG_QUEUE_BYPASS;
++	return ret;
++}
++
++static int nfqueue_tg_check(const struct xt_tgchk_param *par)
++{
++	const struct xt_NFQ_info_v2 *info = par->targinfo;
+ 	u32 maxid;
+ 
+ 	if (unlikely(!rnd_inited)) {
+@@ -102,6 +113,8 @@ static int nfqueue_tg_v1_check(const struct xt_tgchk_param *par)
+ 		       info->queues_total, maxid);
+ 		return -ERANGE;
+ 	}
++	if (par->target->revision == 2 && info->bypass > 1)
++		return -EINVAL;
+ 	return 0;
+ }
+ 
+@@ -117,11 +130,20 @@ static struct xt_target nfqueue_tg_reg[] __read_mostly = {
+ 		.name		= "NFQUEUE",
+ 		.revision	= 1,
+ 		.family		= NFPROTO_UNSPEC,
+-		.checkentry	= nfqueue_tg_v1_check,
++		.checkentry	= nfqueue_tg_check,
+ 		.target		= nfqueue_tg_v1,
+ 		.targetsize	= sizeof(struct xt_NFQ_info_v1),
+ 		.me		= THIS_MODULE,
+ 	},
++	{
++		.name		= "NFQUEUE",
++		.revision	= 2,
++		.family		= NFPROTO_UNSPEC,
++		.checkentry	= nfqueue_tg_check,
++		.target		= nfqueue_tg_v2,
++		.targetsize	= sizeof(struct xt_NFQ_info_v2),
++		.me		= THIS_MODULE,
++	},
+ };
+ 
+ static int __init nfqueue_tg_init(void)
 -- 
 1.7.2.2
 
