@@ -1,42 +1,60 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [patch 1/4] ipset: show correct line numbers in restore output
-Date: Tue, 18 Jan 2011 21:15:39 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1101182113280.28203@blackhole.kfki.hu>
-References: <20110118142154.697547841@eitzenberger.org> <20110118142247.001984763@eitzenberger.org>
+Subject: Re: [patch 3/4] ipset: do session initialization once
+Date: Tue, 18 Jan 2011 21:16:09 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1101182115460.28203@blackhole.kfki.hu>
+References: <20110118142154.697547841@eitzenberger.org> <20110118142247.991392505@eitzenberger.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: holger@eitzenberger.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:41168 "EHLO smtp1.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:39215 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753218Ab1ARUPk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Jan 2011 15:15:40 -0500
-In-Reply-To: <20110118142247.001984763@eitzenberger.org>
+	id S1752780Ab1ARUQK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Jan 2011 15:16:10 -0500
+In-Reply-To: <20110118142247.991392505@eitzenberger.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Holger,
-
-First of all, thanks for the patches and reports.
-
 On Tue, 18 Jan 2011, holger@eitzenberger.org wrote:
 
-> When passing something like
+> Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
 > 
->   create foo6 hash:ip hashsize 64 family inet6
->   add foo6 20a1:1234:5678::/64
->   add foo6 20a1:1234:5679::/64
+> Index: ipset/src/ipset.c
+> ===================================================================
+> --- ipset.orig/src/ipset.c	2011-01-05 12:05:31.000000000 +0100
+> +++ ipset/src/ipset.c	2011-01-05 12:07:02.000000000 +0100
+> @@ -431,14 +431,6 @@
+>  	const struct ipset_commands *command;
+>  	const struct ipset_type *type;
+>  
+> -	/* Initialize session */
+> -	if (session == NULL) {
+> -		session = ipset_session_init(printf);
+> -		if (session == NULL)
+> -			return exit_error(OTHER_PROBLEM,
+> -				"Cannot initialize ipset session, aborting.");
+> -	}
+> -
+>  	/* Commandline parsing, somewhat similar to that of 'ip' */
+>  
+>  	/* First: parse core options */
+> @@ -743,5 +735,10 @@
+>  	ipset_type_add(&ipset_hash_ipportnet0);
+>  	ipset_type_add(&ipset_list_set0);
+>  
+> +	session = ipset_session_init(printf);
+> +	if (session == NULL)
+> +		return exit_error(OTHER_PROBLEM,
+> +						  "Cannot initialize ipset session, aborting.");
+> +
+>  	return parse_commandline(argc, argv);
+>  }
 > 
-> you get:
+> -- 
 > 
->   ipset v5.2: Error in line 1: Syntax error: plain IP address must be supplied: 20a1:1234:5678::/64
-> 
-> Should be line 2 though.
 
-Yes, good catch! Unfortunately your patch overwrites the correct line 
-number when reported by the kernel. The proper fix was to add the missing 
-session line number setting *before* the parser is called.
+Applied, thanks!
 
 Best regards,
 Jozsef
