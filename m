@@ -1,118 +1,97 @@
-From: Jiri Olsa <jolsa@redhat.com>
-Subject: [PATCHv2] netfilter: nf_conntrack snmp helper
-Date: Tue, 18 Jan 2011 17:37:58 +0100
-Message-ID: <20110118163758.GC1941@jolsa.brq.redhat.com>
-References: <20110114201805.GC4546@jolsa.brq.redhat.com>
- <4D31C804.5090304@trash.net>
- <20110117094547.GA1918@jolsa.brq.redhat.com>
- <4D35997E.6060502@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCHv2] netfilter: nf_conntrack snmp helper
+Date: Tue, 18 Jan 2011 18:14:01 +0100
+Message-ID: <4D35CA59.8080602@trash.net>
+References: <20110114201805.GC4546@jolsa.brq.redhat.com> <4D31C804.5090304@trash.net> <20110117094547.GA1918@jolsa.brq.redhat.com> <4D35997E.6060502@trash.net> <20110118163758.GC1941@jolsa.brq.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+ boundary="------------030309090604030301090904"
 Cc: Jan Engelhardt <jengelh@medozas.de>, Tim Waugh <twaugh@redhat.com>,
 	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Jiri Olsa <jolsa@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:15076 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752178Ab1ARQiG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Jan 2011 11:38:06 -0500
-Content-Disposition: inline
-In-Reply-To: <4D35997E.6060502@trash.net>
+Received: from stinky.trash.net ([213.144.137.162]:59662 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752502Ab1ARROD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Jan 2011 12:14:03 -0500
+In-Reply-To: <20110118163758.GC1941@jolsa.brq.redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 18, 2011 at 02:45:34PM +0100, Patrick McHardy wrote:
-> On 17.01.2011 10:45, Jiri Olsa wrote:
-> > hi,
-> > thanks for comments, attaching new patch
+This is a multi-part message in MIME format.
+--------------030309090604030301090904
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+
+On 18.01.2011 17:37, Jiri Olsa wrote:
+> Adding support for SNMP broadcast connection tracking. The SNMP
+> broadcast requests are now paired with the SNMP responses.
+> Thus allowing using SNMP broadcasts with firewall enabled.
 > 
-> > --- a/net/netfilter/Makefile
-> > +++ b/net/netfilter/Makefile
-> > @@ -28,7 +28,8 @@ obj-$(CONFIG_NF_CONNTRACK_AMANDA) += nf_conntrack_amanda.o
-> >  obj-$(CONFIG_NF_CONNTRACK_FTP) += nf_conntrack_ftp.o
-> >  obj-$(CONFIG_NF_CONNTRACK_H323) += nf_conntrack_h323.o
-> >  obj-$(CONFIG_NF_CONNTRACK_IRC) += nf_conntrack_irc.o
-> > -obj-$(CONFIG_NF_CONNTRACK_NETBIOS_NS) += nf_conntrack_netbios_ns.o
-> > +obj-$(CONFIG_NF_CONNTRACK_NETBIOS_NS) += nf_conntrack_netbios_ns.o nf_conntrack_broadcast.o
-> > +obj-$(CONFIG_NF_CONNTRACK_SNMP) += nf_conntrack_snmp.o nf_conntrack_broadcast.o
+> Please refer to the following conversation:
+> http://marc.info/?l=netfilter-devel&m=125992205006600&w=2
 > 
-> Just add an EXPORT_SYMBOL_GPL'ed function and a new Kconfig
-> symbol for the nf_conntrack_broadcast.o file that is selected
-> by NETBIOS_NS and SNMP.
+> Patrick McHardy wrote:
+>> The best solution would be to add generic broadcast tracking, the
+>> use of expectations for this is a bit of abuse.
+>> The second best choice I guess would be to move the help() function
+>> to a shared module and generalize it so it can be used for both.
 > 
-> >  obj-$(CONFIG_NF_CONNTRACK_PPTP) += nf_conntrack_pptp.o
-> >  obj-$(CONFIG_NF_CONNTRACK_SANE) += nf_conntrack_sane.o
-> >  obj-$(CONFIG_NF_CONNTRACK_SIP) += nf_conntrack_sip.o
-> > diff --git a/net/netfilter/nf_conntrack_broadcast.c b/net/netfilter/nf_conntrack_broadcast.c
-> > new file mode 100644
-> > index 0000000..fb48be1
-> > --- /dev/null
-> > +++ b/net/netfilter/nf_conntrack_broadcast.c
-> > @@ -0,0 +1,79 @@
-> > +/*
-> > + *      broadcast connection tracking helper
-> > + *
-> > + *      (c) 2011 Jiri Olsa <jolsa@redhat.com>
+> This patch implements the "second best choice".
 > 
-> I'd also prefer if you keep my copyright statement from
-> the netbios ns file.
+> Since the netbios-ns conntrack module uses the same helper
+> functionality as the snmp, only one helper function is added
+> for both snmp and netbios-ns modules into the new object -
+> nf_conntrack_broadcast.
 > 
-> > + *
-> > + *      This program is free software; you can redistribute it and/or
-> > + *      modify it under the terms of the GNU General Public License
-> > + *      as published by the Free Software Foundation; either version
-> > + *      2 of the License, or (at your option) any later version.
-> > + */
+> v2 changes:
+>   - exporting nf_conntrack_broadcast_help via EXPORT_SYMBOL_GPL
+>   - nf_conntrack_broadcast object now built based on new config symbol
+>     NF_CONNTRACK_BROADCAST 
+>   - changed nf_conntrack_broadcast.c copyright message
 
-sending updated version
+I've applied the patch after fixeing up a few minor issues (does not
+build with NF_CONNTRACK=m) by adding a MODULE_LICENSE and changing the
+Kconfig bool to a tristate.
 
-thanks,
-jirka
-
-
----
-Adding support for SNMP broadcast connection tracking. The SNMP
-broadcast requests are now paired with the SNMP responses.
-Thus allowing using SNMP broadcasts with firewall enabled.
-
-Please refer to the following conversation:
-http://marc.info/?l=netfilter-devel&m=125992205006600&w=2
-
-Patrick McHardy wrote:
-> The best solution would be to add generic broadcast tracking, the
-> use of expectations for this is a bit of abuse.
-> The second best choice I guess would be to move the help() function
-> to a shared module and generalize it so it can be used for both.
-
-This patch implements the "second best choice".
-
-Since the netbios-ns conntrack module uses the same helper
-functionality as the snmp, only one helper function is added
-for both snmp and netbios-ns modules into the new object -
-nf_conntrack_broadcast.
-
-v2 changes:
-  - exporting nf_conntrack_broadcast_help via EXPORT_SYMBOL_GPL
-  - nf_conntrack_broadcast object now built based on new config symbol
-    NF_CONNTRACK_BROADCAST 
-  - changed nf_conntrack_broadcast.c copyright message
-
-thanks,
-jirka
+The final patch is attached to this email.
 
 
-Signed-off-by: Jiri Olsa <jolsa@redhat.com>
----
- include/linux/netfilter/nf_conntrack_snmp.h |    9 +++
- include/net/netfilter/nf_conntrack_helper.h |    6 ++
- net/ipv4/netfilter/Kconfig                  |    3 +-
- net/ipv4/netfilter/nf_nat_snmp_basic.c      |    9 ++-
- net/netfilter/Kconfig                       |   21 +++++++
- net/netfilter/Makefile                      |    2 +
- net/netfilter/nf_conntrack_broadcast.c      |   80 +++++++++++++++++++++++++++
- net/netfilter/nf_conntrack_netbios_ns.c     |   74 +++----------------------
- net/netfilter/nf_conntrack_snmp.c           |   77 ++++++++++++++++++++++++++
- 9 files changed, 211 insertions(+), 70 deletions(-)
+--------------030309090604030301090904
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="x"
+
+commit 93557f53e1fbd9e2b6574ab0a9b5852628fde9e3
+Author: Jiri Olsa <jolsa@redhat.com>
+Date:   Tue Jan 18 18:12:24 2011 +0100
+
+    netfilter: nf_conntrack: nf_conntrack snmp helper
+    
+    Adding support for SNMP broadcast connection tracking. The SNMP
+    broadcast requests are now paired with the SNMP responses.
+    Thus allowing using SNMP broadcasts with firewall enabled.
+    
+    Please refer to the following conversation:
+    http://marc.info/?l=netfilter-devel&m=125992205006600&w=2
+    
+    Patrick McHardy wrote:
+    > > The best solution would be to add generic broadcast tracking, the
+    > > use of expectations for this is a bit of abuse.
+    > > The second best choice I guess would be to move the help() function
+    > > to a shared module and generalize it so it can be used for both.
+    This patch implements the "second best choice".
+    
+    Since the netbios-ns conntrack module uses the same helper
+    functionality as the snmp, only one helper function is added
+    for both snmp and netbios-ns modules into the new object -
+    nf_conntrack_broadcast.
+    
+    Signed-off-by: Jiri Olsa <jolsa@redhat.com>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 diff --git a/include/linux/netfilter/nf_conntrack_snmp.h b/include/linux/netfilter/nf_conntrack_snmp.h
 new file mode 100644
@@ -194,17 +173,15 @@ index ee5f419..8812a02 100644
  }
  
 diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 1534f2b..f08d701 100644
+index e2480bd..939b504 100644
 --- a/net/netfilter/Kconfig
 +++ b/net/netfilter/Kconfig
-@@ -185,9 +185,15 @@ config NF_CONNTRACK_IRC
+@@ -185,9 +185,13 @@ config NF_CONNTRACK_IRC
  
  	  To compile it as a module, choose M here.  If unsure, say N.
  
 +config NF_CONNTRACK_BROADCAST
-+	bool
-+	help
-+	  Provides helper for broadcast connection tracking.
++	tristate
 +
  config NF_CONNTRACK_NETBIOS_NS
  	tristate "NetBIOS name service protocol support"
@@ -213,7 +190,7 @@ index 1534f2b..f08d701 100644
  	help
  	  NetBIOS name service requests are sent as broadcast messages from an
  	  unprivileged port and responded to with unicast messages to the
-@@ -204,6 +210,21 @@ config NF_CONNTRACK_NETBIOS_NS
+@@ -204,6 +208,21 @@ config NF_CONNTRACK_NETBIOS_NS
  
  	  To compile it as a module, choose M here.  If unsure, say N.
  
@@ -236,7 +213,7 @@ index 1534f2b..f08d701 100644
  	tristate "PPtP protocol support"
  	depends on NETFILTER_ADVANCED
 diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 441050f..344b0cc 100644
+index 401d574..2c2628d 100644
 --- a/net/netfilter/Makefile
 +++ b/net/netfilter/Makefile
 @@ -28,7 +28,9 @@ obj-$(CONFIG_NF_CONNTRACK_AMANDA) += nf_conntrack_amanda.o
@@ -251,10 +228,10 @@ index 441050f..344b0cc 100644
  obj-$(CONFIG_NF_CONNTRACK_SIP) += nf_conntrack_sip.o
 diff --git a/net/netfilter/nf_conntrack_broadcast.c b/net/netfilter/nf_conntrack_broadcast.c
 new file mode 100644
-index 0000000..2b19f4f
+index 0000000..4e99cca
 --- /dev/null
 +++ b/net/netfilter/nf_conntrack_broadcast.c
-@@ -0,0 +1,80 @@
+@@ -0,0 +1,82 @@
 +/*
 + *      broadcast connection tracking helper
 + *
@@ -266,6 +243,7 @@ index 0000000..2b19f4f
 + *      2 of the License, or (at your option) any later version.
 + */
 +
++#include <linux/module.h>
 +#include <linux/ip.h>
 +#include <net/route.h>
 +#include <linux/inetdevice.h>
@@ -333,8 +311,9 @@ index 0000000..2b19f4f
 +out:
 +	return NF_ACCEPT;
 +}
-+
 +EXPORT_SYMBOL_GPL(nf_conntrack_broadcast_help);
++
++MODULE_LICENSE("GPL");
 diff --git a/net/netfilter/nf_conntrack_netbios_ns.c b/net/netfilter/nf_conntrack_netbios_ns.c
 index aadde01..4c8f30a 100644
 --- a/net/netfilter/nf_conntrack_netbios_ns.c
@@ -522,3 +501,5 @@ index 0000000..6e545e2
 +
 +module_init(nf_conntrack_snmp_init);
 +module_exit(nf_conntrack_snmp_fini);
+
+--------------030309090604030301090904--
