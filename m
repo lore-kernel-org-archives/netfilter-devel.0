@@ -1,21 +1,25 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Holger Eitzenberger <holger@eitzenberger.org>
 Subject: Re: [patch 2/4] ipset: make IPv4 and IPv6 address handling similar
-Date: Tue, 18 Jan 2011 21:54:46 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1101182144510.28424@blackhole.kfki.hu>
-References: <20110118142154.697547841@eitzenberger.org> <20110118142247.498399684@eitzenberger.org> <alpine.DEB.2.00.1101182116150.28203@blackhole.kfki.hu> <alpine.LNX.2.01.1101182121310.19007@obet.zrqbmnf.qr> <alpine.DEB.2.00.1101182128210.28350@blackhole.kfki.hu>
- <alpine.LNX.2.01.1101182139030.19166@obet.zrqbmnf.qr>
+Date: Tue, 18 Jan 2011 22:43:43 +0100
+Message-ID: <20110118214343.GA4845@mail.eitzenberger.org>
+References: <20110118142154.697547841@eitzenberger.org> <20110118142247.498399684@eitzenberger.org> <alpine.DEB.2.00.1101182116150.28203@blackhole.kfki.hu> <alpine.LNX.2.01.1101182121310.19007@obet.zrqbmnf.qr> <alpine.DEB.2.00.1101182128210.28350@blackhole.kfki.hu> <alpine.LNX.2.01.1101182139030.19166@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: holger@eitzenberger.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.186]:49276 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751733Ab1ARVnq (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Jan 2011 16:43:46 -0500
+Content-Disposition: inline
 In-Reply-To: <alpine.LNX.2.01.1101182139030.19166@obet.zrqbmnf.qr>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 18 Jan 2011, Jan Engelhardt wrote:
-
+On Tue, Jan 18, 2011 at 09:39:32PM +0100, Jan Engelhardt wrote:
 > On Tuesday 2011-01-18 21:37, Jozsef Kadlecsik wrote:
 > >> >> 
 > >> >> this does not work for AF_INET6:
@@ -38,21 +42,32 @@ On Tue, 18 Jan 2011, Jan Engelhardt wrote:
 > 
 > Is there a specific reason that there is no IPv6 net support?
 
-Call it laziness: for IPv6, the hash:ip* types does *not* accept a 
-range of elements to be added/deleted in one command, expressed as
+You shouldn't use hash:ip with ranges for IPv4 too because the range
+members are added individually, which is less efficient both memory
+and performance wise, see:
 
-ipset add foo6 20a1:1:2:3:4:5:6:7/120
+ $ ipset create foo hash:ip hashsize 64
+ $ ipset add foo 192.168.1.0/30
+ $ ipset list foo
+ Name: foo
+ Type: hash:ip
+ Header: family inet hashsize 64 maxelem 65536 
+ Size in memory: 628
+ References: 0
+ Members:
+ 192.168.1.3
+ 192.168.1.2
+ 192.168.1.0
+ 192.168.1.1
 
-or
+> Call it laziness: for IPv6, the hash:ip* types does *not* accept a 
+> range of elements to be added/deleted in one command, expressed as
+> 
+> ipset add foo6 20a1:1:2:3:4:5:6:7/120
+> 
+> or
+> 
+> ipset add foo6 20A1:1:2:3:4:5:6:0-20A1:1:2:3:4:5:6:FF
+> 
+> For IPv4 the syntax is accepted and handled.
 
-ipset add foo6 20A1:1:2:3:4:5:6:0-20A1:1:2:3:4:5:6:FF
-
-For IPv4 the syntax is accepted and handled.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
