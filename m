@@ -1,57 +1,42 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: nf_conntrack_tstamp: add flow-based timestamp
- extension
-Date: Tue, 18 Jan 2011 14:59:18 +0100
-Message-ID: <4D359CB6.60701@trash.net>
-References: <20110116223329.32349.13288.stgit@decadence>
+Subject: Re: [PATCH resend] netfilter: change IPS_*_BIT to IPS_*
+Date: Tue, 18 Jan 2011 15:05:51 +0100
+Message-ID: <4D359E3F.4040804@trash.net>
+References: <1295090445-14431-1-git-send-email-xiaosuo@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Tim Gardner <tim.gardner@canonical.com>,
+	Eric Dumazet <eric.dumazet@gmail.com>
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:56133 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:56245 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750962Ab1ARN7U (ORCPT
+	with ESMTP id S1750962Ab1AROFw (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Jan 2011 08:59:20 -0500
-In-Reply-To: <20110116223329.32349.13288.stgit@decadence>
+	Tue, 18 Jan 2011 09:05:52 -0500
+In-Reply-To: <1295090445-14431-1-git-send-email-xiaosuo@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 16.01.2011 23:33, Pablo Neira Ayuso wrote:
-> This patch adds flow-based timestamping for conntracks. This
-> conntrack extension is disabled by default. Basically, we use
-> two 64-bits variables to store the creation timestamp once the
-> conntrack has been confirmed and the other to store the deletion
-> time. This extension is disabled by default, to enable it, you
-> have to:
-> 
-> echo 1 > /proc/sys/net/netfilter/nf_conntrack_timestamp
-> 
-> This patch allows to save memory for user-space flow-based
-> loogers such as ulogd2. In short, ulogd2 does not need to
-> keep a hashtable with the conntrack in user-space to know
-> when they were created and destroyed, instead we use the
-> kernel timestamp. If we want to have a sane IPFIX implementation
-> in user-space, this nanosecs resolution timestamps are also
-> useful. Other custom user-space applications can benefit from
-> this via libnetfilter_conntrack.
-> 
-> This patch modifies the /proc output to display the delta time
-> in seconds since the flow start. You can also obtain the
-> flow-start date by means of the conntrack-tools.
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  include/linux/netfilter/nfnetlink_conntrack.h  |    9 ++++
->  include/net/netfilter/nf_conntrack_extend.h    |    4 ++
->  include/net/netfilter/nf_conntrack_timestamp.h |   53 ++++++++++++++++++++++++
->  include/net/netns/conntrack.h                  |    2 +
->  net/netfilter/Kconfig                          |   11 +++++
->  net/netfilter/Makefile                         |    1 
->  net/netfilter/nf_conntrack_core.c              |   26 ++++++++++++
->  net/netfilter/nf_conntrack_netlink.c           |   46 ++++++++++++++++++++-
->  net/netfilter/nf_conntrack_standalone.c        |   41 +++++++++++++++++++
+On 15.01.2011 12:20, Changli Gao wrote:
+> My previous patch made a mistake when converting atomic_set to a normal
+> bit 'or'. IPS_*_BIT should be replaced with IPS_*.
 
-The nf_conntrack_timestamp.c file is missing from this patch.
+Then please state this clearly in the subject instead of calling it
+a resend. Also we use "netfilter: <subsystem>: <change description>",
+as I've told you multiple times already.
+
+> 
+>   commit 76a2d3bcfcc86e2a8044258515b86492a37631a3
+>   Author: Changli Gao <xiaosuo@gmail.com>
+>   Date:   Mon Nov 15 11:59:03 2010 +0100
+> 
+>   netfilter: nf_nat: don't use atomic bit operation
+> 
+>   As we own the conntrack and the others can't see it until we confirm it,
+>   we don't need to use atomic bit operation on ct->status.
+
+Applied, thanks.
