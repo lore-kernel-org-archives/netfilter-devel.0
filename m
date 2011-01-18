@@ -1,30 +1,47 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH v4] netfilter: ipt_CLUSTERIP: remove "no conntrack!"
-Date: Tue, 18 Jan 2011 16:28:59 +0100
-Message-ID: <4D35B1BB.3010306@trash.net>
-References: <4D2E1A74.5080102@netfilter.org>	 <1294917210.3570.48.camel@edumazet-laptop> <4D2EE09A.1010409@netfilter.org>	 <1294918365.3570.56.camel@edumazet-laptop> <4D2EE80B.6010707@netfilter.org>	 <1294925915.3570.87.camel@edumazet-laptop>	 <alpine.LNX.2.01.1101131502240.25211@obet.zrqbmnf.qr> <1294929579.3570.163.camel@edumazet-laptop> <4D2F28B9.50407@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH 6/6] netfilter: do not omit re-route check on NF_QUEUE
+ verdict
+Date: Tue, 18 Jan 2011 16:31:46 +0100
+Message-ID: <20110118153146.GH7849@Chamillionaire.breakpoint.cc>
+References: <1295183947-12786-1-git-send-email-fw@strlen.de>
+ <1295183947-12786-7-git-send-email-fw@strlen.de>
+ <4D35AE71.6010301@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57770 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752678Ab1ARP27 (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:41227 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752604Ab1ARPbr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Jan 2011 10:28:59 -0500
-In-Reply-To: <4D2F28B9.50407@netfilter.org>
+	Tue, 18 Jan 2011 10:31:47 -0500
+Content-Disposition: inline
+In-Reply-To: <4D35AE71.6010301@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 13.01.2011 17:30, Pablo Neira Ayuso wrote:
-> On 13/01/11 15:39, Eric Dumazet wrote:
-> hey hey, I'm fine with fixing things. Patch v4 is OK.
+Patrick McHardy <kaber@trash.net> wrote:
+> > However, NF_QUEUE no longer DROPs the skb unconditionally if queueing
+> > fails (due to NF_VERDICT_FLAG_QUEUE_BYPASS verdict flag), so the
+> > re-route test should also be performed if this flag is set in the
+> > verdict.
+> > 
+> > The full test would then look something like
+> > 
+> > && ((ret & NF_VERDICT_MASK) == NF_QUEUE && (ret & NF_VERDICT_FLAG_QUEUE_BYPASS))
+> > 
+> > This is rather ugly, so just remove the NF_QUEUE test altogether.
+> > 
+> > The only effect is that we might perform an unnecessary route lookup
+> > in the NF_QUEUE case.
 > 
-> Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Alternatively we could have nf_queue.c perform the rerouting when
+> a packet is marked for queue bypass, just as it already does when
+> reinjecting a packet. mangle just needs to check for NF_ACCEPT,
+> since that is the only verdict we can return from the table that
+> doesn't cause the packet to be dropped or queued.
 
-Applied, thanks.
+Good point, thanks!
+
+I'll look into it.
