@@ -1,41 +1,33 @@
-From: holger@eitzenberger.org
-Subject: [patch 4/4] ipset: fix build with NDEBUG defined
-Date: Tue, 18 Jan 2011 15:21:58 +0100
-Message-ID: <20110118142248.489615870@eitzenberger.org>
-References: <20110118142154.697547841@eitzenberger.org>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline; filename=ipset-fix-NDEBUG.diff
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 2/6] netfilter: nfnetlink_queue: return error number to
+ caller
+Date: Tue, 18 Jan 2011 15:27:50 +0100
+Message-ID: <4D35A366.4060507@trash.net>
+References: <1295183947-12786-1-git-send-email-fw@strlen.de> <1295183947-12786-3-git-send-email-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:56650 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751742Ab1ARO1w (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Jan 2011 09:27:52 -0500
+In-Reply-To: <1295183947-12786-3-git-send-email-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-The usage of the gcc option -Wunused-parameter interferes badly with
-the assert() macros.  In case -DNDEBUG is specified build fails with:
+On 16.01.2011 14:19, Florian Westphal wrote:
+> instead of returning -1 on error, return an error number to allow the
+> caller to handle some errors differently.
+> 
+> ECANCELED is used to indicate that the hook is going away and should be
+> ignored.
+> 
+> A followup patch will introduce more 'ignore this hook' conditions,
+> (depending on queue settings) and will move kfree_skb responsibility
+> to the caller.
 
-  cc1: warnings being treated as errors
-  print.c: In function 'ipset_print_family':
-  print.c:92: error: unused parameter 'opt'
-  print.c: In function 'ipset_print_port':
-  print.c:413: error: unused parameter 'opt'
-  print.c: In function 'ipset_print_proto':
-
-A possible fix is just to remove -Wunused, as -Wextra + -Wunused enables
--Wunused-paramter.
-
-Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
-
-Index: ipset/configure.ac
-===================================================================
---- ipset.orig/configure.ac	2011-01-18 14:47:46.000000000 +0100
-+++ ipset/configure.ac	2011-01-18 14:56:11.000000000 +0100
-@@ -144,7 +144,6 @@
- AX_CFLAGS_GCC_OPTION(-Wstrict-prototypes)
- AX_CFLAGS_GCC_OPTION(-Wswitch-default)
- AX_CFLAGS_GCC_OPTION(-Wundef)
--AX_CFLAGS_GCC_OPTION(-Wunused)
- AX_CFLAGS_GCC_OPTION(-Wwrite-strings)
- 
- dnl Checks for library functions.
-
--- 
+Applied, thanks.
