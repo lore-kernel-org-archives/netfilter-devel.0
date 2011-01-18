@@ -1,73 +1,52 @@
-From: Holger Eitzenberger <holger@eitzenberger.org>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
 Subject: Re: [patch 2/4] ipset: make IPv4 and IPv6 address handling similar
-Date: Tue, 18 Jan 2011 22:43:43 +0100
-Message-ID: <20110118214343.GA4845@mail.eitzenberger.org>
-References: <20110118142154.697547841@eitzenberger.org> <20110118142247.498399684@eitzenberger.org> <alpine.DEB.2.00.1101182116150.28203@blackhole.kfki.hu> <alpine.LNX.2.01.1101182121310.19007@obet.zrqbmnf.qr> <alpine.DEB.2.00.1101182128210.28350@blackhole.kfki.hu> <alpine.LNX.2.01.1101182139030.19166@obet.zrqbmnf.qr>
+Date: Tue, 18 Jan 2011 22:49:21 +0000
+Message-ID: <4D3618F1.2040409@googlemail.com>
+References: <20110118142154.697547841@eitzenberger.org> <20110118142247.498399684@eitzenberger.org> <alpine.DEB.2.00.1101182116150.28203@blackhole.kfki.hu> <alpine.LNX.2.01.1101182121310.19007@obet.zrqbmnf.qr> <alpine.DEB.2.00.1101182128210.28350@blackhole.kfki.hu> <alpine.LNX.2.01.1101182139030.19166@obet.zrqbmnf.qr> <20110118214343.GA4845@mail.eitzenberger.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: Jan Engelhardt <jengelh@medozas.de>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:49276 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751733Ab1ARVnq (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:42549 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751812Ab1ARWt1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Jan 2011 16:43:46 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.01.1101182139030.19166@obet.zrqbmnf.qr>
+	Tue, 18 Jan 2011 17:49:27 -0500
+In-Reply-To: <20110118214343.GA4845@mail.eitzenberger.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 18, 2011 at 09:39:32PM +0100, Jan Engelhardt wrote:
-> On Tuesday 2011-01-18 21:37, Jozsef Kadlecsik wrote:
-> >> >> 
-> >> >> this does not work for AF_INET6:
-> >> >> 
-> >> >>  ipset add foo6 20a1:1:2:3:4:5:6:7/128
-> >> >>  ipset v5.2: Syntax error: plain IP address must be supplied: 20a1:1:2:3:4:5:6:7/128
-> >> >
-> >> >Yeah, the usual issue: should IPv4/32 and IPv6/128 be handled as a plain 
-> >> >IPv4/v6 address when the manual says "enter a plain IPv4/v6 address" :-).
-> >> 
-> >> (Assuming this was a question, heuristically based on the word order
-> >> you used:) I don't think so. iptables, resp. its modules, do not
-> >> allow that either.
-> >
-> >I know, but the situation is a little bit more complicated: the set type 
-> >in question works differently with IPv4 and IPv6. In the IPv4 case, a 
-> >range of IP addresses as IPv4/prefix is accepted as input (thus 
-> >192.168.1.1/32 too), while for IPv6, only plain IPv6 addresses are allowed 
-> >and therefore 20a1:1:2:3:4:5:6:7/128 was rejected.
-> 
-> Is there a specific reason that there is no IPv6 net support?
 
-You shouldn't use hash:ip with ranges for IPv4 too because the range
-members are added individually, which is less efficient both memory
-and performance wise, see:
+> You shouldn't use hash:ip with ranges for IPv4 too because the range
+> members are added individually, which is less efficient both memory
+> and performance wise, see:
+>
+>  $ ipset create foo hash:ip hashsize 64
+>  $ ipset add foo 192.168.1.0/30
+>  $ ipset list foo
+>  Name: foo
+>  Type: hash:ip
+>  Header: family inet hashsize 64 maxelem 65536 
+>  Size in memory: 628
+>  References: 0
+>  Members:
+>  192.168.1.3
+>  192.168.1.2
+>  192.168.1.0
+>  192.168.1.1
+>   
+I disagree!
 
- $ ipset create foo hash:ip hashsize 64
- $ ipset add foo 192.168.1.0/30
- $ ipset list foo
- Name: foo
- Type: hash:ip
- Header: family inet hashsize 64 maxelem 65536 
- Size in memory: 628
- References: 0
- Members:
- 192.168.1.3
- 192.168.1.2
- 192.168.1.0
- 192.168.1.1
+If I need to add the 192.168.1.0/30 then I have to execute a loop (via a 
+script) and add individual elements (i.e. ipset add foo 192.168.1.0, 
+ipset add foo 192.168.1.1 etc).
 
-> Call it laziness: for IPv6, the hash:ip* types does *not* accept a 
-> range of elements to be added/deleted in one command, expressed as
-> 
-> ipset add foo6 20a1:1:2:3:4:5:6:7/120
-> 
-> or
-> 
-> ipset add foo6 20A1:1:2:3:4:5:6:0-20A1:1:2:3:4:5:6:FF
-> 
-> For IPv4 the syntax is accepted and handled.
+By specifying ipset add foo 192.168.1.0/30 I do that in one go. Even 
+though I am inclined to agree that storing individual elements may not 
+be the best way memory/storage wise I think performance wise (i.e. when 
+the actual matching is performed) it is better matching a single IP 
+address than IP range.
 
