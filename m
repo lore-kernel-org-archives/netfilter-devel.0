@@ -1,40 +1,48 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 4/6] netfilter: reduce NF_VERDICT_MASK to 0xff
-Date: Tue, 18 Jan 2011 15:52:47 +0100
-Message-ID: <4D35A93F.2040405@trash.net>
-References: <1295183947-12786-1-git-send-email-fw@strlen.de> <1295183947-12786-5-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH 5/6] netfilter: allow NFQUEUE bypass if no listener is
+ available
+Date: Tue, 18 Jan 2011 16:09:29 +0100
+Message-ID: <4D35AD29.2060400@trash.net>
+References: <1295183947-12786-1-git-send-email-fw@strlen.de> <1295183947-12786-6-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org,
+	Florian Westphal <fwestphal@astaro.com>
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57121 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:57423 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752476Ab1AROwt (ORCPT
+	with ESMTP id S1752100Ab1ARPJc (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Jan 2011 09:52:49 -0500
-In-Reply-To: <1295183947-12786-5-git-send-email-fw@strlen.de>
+	Tue, 18 Jan 2011 10:09:32 -0500
+In-Reply-To: <1295183947-12786-6-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 On 16.01.2011 14:19, Florian Westphal wrote:
-> NF_VERDICT_MASK is currently 0xffff. This is because the upper
-> 16 bits are used to store errno (for NF_DROP) or the queue number
-> (NF_QUEUE verdict).
+> If an skb is to be NF_QUEUE'd, but no program has opened the queue, the
+> packet is dropped.
 > 
-> As there are up to 0xffff different queues available, there is no more
-> room to store additional flags.
+> This adds a v2 target revision of xt_NFQUEUE that allows packets to
+> continue through the ruleset instead.
 > 
-> At the moment there are only 6 different verdicts, i.e. we can reduce
-> NF_VERDICT_MASK to 0xff to allow storing additional flags in the 0xff00 space.
+> Because the actual queueing happens outside of the target context, the
+> 'bypass' flag has to be communicated back to the netfilter core.
 > 
-> NF_VERDICT_BITS would then be reduced to 8, but because the value is
-> exported to userspace, this might cause breakage; e.g.:
+> Unfortunately the only choice to do this without adding a new function
+> argument is to use the target function return value (i.e. the verdict).
 > 
-> e.g. 'queuenr = (1 << NF_VERDICT_BITS) | NF_QUEUE'  would now break.
+> In the NF_QUEUE case, the upper 16bit already contain the queue number
+> to use.  The previous patch reduced NF_VERDICT_MASK to 0xff, i.e.
+> we now have extra room for a new flag.
 > 
-> Thus, remove NF_VERDICT_BITS usage in the kernel and move the old value
-> to the 'userspace compat' section.
+> If a hook issued a NF_QUEUE verdict, then the netfilter core will
+> continue packet processing if the queueing hook
+> returns -ESRCH (== "this queue does not exist") and the new
+> NF_VERDICT_FLAG_QUEUE_BYPASS flag is set in the verdict value.
+> 
+> Note: If the queue exists, but userspace does not consume packets fast
+> enough, the skb will still be dropped.
 
 Applied, thanks.
