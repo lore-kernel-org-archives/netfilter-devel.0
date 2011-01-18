@@ -1,61 +1,42 @@
-From: Jiri Olsa <jolsa@redhat.com>
-Subject: Re: [PATCHv2] netfilter: nf_conntrack snmp helper
-Date: Tue, 18 Jan 2011 18:21:52 +0100
-Message-ID: <20110118172152.GE1941@jolsa.brq.redhat.com>
-References: <20110114201805.GC4546@jolsa.brq.redhat.com>
- <4D31C804.5090304@trash.net>
- <20110117094547.GA1918@jolsa.brq.redhat.com>
- <4D35997E.6060502@trash.net>
- <20110118163758.GC1941@jolsa.brq.redhat.com>
- <4D35CA59.8080602@trash.net>
+From: Sam Roberts <vieuxtech@gmail.com>
+Subject: Re: [0/5] xtables: phase out case sensitivity
+Date: Tue, 18 Jan 2011 09:37:28 -0800
+Message-ID: <AANLkTi=YWWM-ScWU6GZaYT3AszGi4-92Leya=hqOUQbX@mail.gmail.com>
+References: <alpine.LNX.2.01.1101181628540.15366@obet.zrqbmnf.qr>
+	<4D35BCC7.90805@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:8258 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752397Ab1ARRV5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Jan 2011 12:21:57 -0500
-Content-Disposition: inline
-In-Reply-To: <4D35CA59.8080602@trash.net>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:56257 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752680Ab1ARRhc (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Jan 2011 12:37:32 -0500
+Received: by bwz15 with SMTP id 15so3599543bwz.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jan 2011 09:37:30 -0800 (PST)
+In-Reply-To: <4D35BCC7.90805@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 18, 2011 at 06:14:01PM +0100, Patrick McHardy wrote:
-> On 18.01.2011 17:37, Jiri Olsa wrote:
-> > Adding support for SNMP broadcast connection tracking. The SNMP
-> > broadcast requests are now paired with the SNMP responses.
-> > Thus allowing using SNMP broadcasts with firewall enabled.
-> > 
-> > Please refer to the following conversation:
-> > http://marc.info/?l=netfilter-devel&m=125992205006600&w=2
-> > 
-> > Patrick McHardy wrote:
-> >> The best solution would be to add generic broadcast tracking, the
-> >> use of expectations for this is a bit of abuse.
-> >> The second best choice I guess would be to move the help() function
-> >> to a shared module and generalize it so it can be used for both.
-> > 
-> > This patch implements the "second best choice".
-> > 
-> > Since the netbios-ns conntrack module uses the same helper
-> > functionality as the snmp, only one helper function is added
-> > for both snmp and netbios-ns modules into the new object -
-> > nf_conntrack_broadcast.
-> > 
-> > v2 changes:
-> >   - exporting nf_conntrack_broadcast_help via EXPORT_SYMBOL_GPL
-> >   - nf_conntrack_broadcast object now built based on new config symbol
-> >     NF_CONNTRACK_BROADCAST 
-> >   - changed nf_conntrack_broadcast.c copyright message
-> 
-> I've applied the patch after fixeing up a few minor issues (does not
-> build with NF_CONNTRACK=m) by adding a MODULE_LICENSE and changing the
-> Kconfig bool to a tristate.
-> 
-> The final patch is attached to this email.
+On Tue, Jan 18, 2011 at 8:16 AM, Patrick McHardy <kaber@trash.net> wrote:
+> On 18.01.2011 16:38, Jan Engelhardt wrote:
+>> bug report http://bugzilla.netfilter.org/show_bug.cgi?id=694 , though
+>> being written in a heated fashion, did prompt me to revisit the
+>> actual issue. While I have to question why users are relying on
+>> inferior filesystems (the issue was raised before on the lists), I
+>> feel inclined to solve bugs.
+>
+> Well, I don't see any benefit in causing so much churn just for
+> *one* user, who has been feeling unhappy about his scripts not
+> working properly.
 
-cool :) thanks a lot
+It is a lot of churn, but it might be more than scripts. I've had
+occaison to check out code on case-insensitive filesystems for the
+purpose of reading it (Apple's and MS's), and had the checked files
+trash each other because the file system considers the names to be the
+same. Its annoying, even if it is the filesystem's fault. Though not
+recently, not netfilter, and not with git.
 
-jirka
+Cheers,
+Sam
