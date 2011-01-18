@@ -1,44 +1,29 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 6/6] netfilter: do not omit re-route check on NF_QUEUE
- verdict
-Date: Tue, 18 Jan 2011 16:14:57 +0100
-Message-ID: <4D35AE71.6010301@trash.net>
-References: <1295183947-12786-1-git-send-email-fw@strlen.de> <1295183947-12786-7-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH 00/12] ipset kernel patches
+Date: Tue, 18 Jan 2011 16:16:33 +0100
+Message-ID: <4D35AED1.4060403@trash.net>
+References: yes <1295047436-20702-1-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57516 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:57550 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752307Ab1ARPO6 (ORCPT
+	with ESMTP id S1752178Ab1ARPQe (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Jan 2011 10:14:58 -0500
-In-Reply-To: <1295183947-12786-7-git-send-email-fw@strlen.de>
+	Tue, 18 Jan 2011 10:16:34 -0500
+In-Reply-To: <1295047436-20702-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 16.01.2011 14:19, Florian Westphal wrote:
-> ret != NF_QUEUE only works in the "--queue-num 0" case; for
-> queues > 0 the test should be '(ret & NF_VERDICT_MASK) != NF_QUEUE'.
+On 15.01.2011 00:23, Jozsef Kadlecsik wrote:
+> Hi,
 > 
-> However, NF_QUEUE no longer DROPs the skb unconditionally if queueing
-> fails (due to NF_VERDICT_FLAG_QUEUE_BYPASS verdict flag), so the
-> re-route test should also be performed if this flag is set in the
-> verdict.
-> 
-> The full test would then look something like
-> 
-> && ((ret & NF_VERDICT_MASK) == NF_QUEUE && (ret & NF_VERDICT_FLAG_QUEUE_BYPASS))
-> 
-> This is rather ugly, so just remove the NF_QUEUE test altogether.
-> 
-> The only effect is that we might perform an unnecessary route lookup
-> in the NF_QUEUE case.
+> Please review and consider for applying the following patches, which
+> are the kernel part of the ipset 5.x release.
 
-Alternatively we could have nf_queue.c perform the rerouting when
-a packet is marked for queue bypass, just as it already does when
-reinjecting a packet. mangle just needs to check for NF_ACCEPT,
-since that is the only verdict we can return from the table that
-doesn't cause the packet to be dropped or queued.
+Thanks Jozsef. This is a huge amount of code, I'll likely need
+a few days for reviewing this.
