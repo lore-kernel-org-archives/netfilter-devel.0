@@ -1,62 +1,57 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: nf_conntrack snmp helper
-Date: Tue, 18 Jan 2011 14:45:34 +0100
-Message-ID: <4D35997E.6060502@trash.net>
-References: <20110114201805.GC4546@jolsa.brq.redhat.com> <4D31C804.5090304@trash.net> <20110117094547.GA1918@jolsa.brq.redhat.com>
+Subject: Re: [PATCH] netfilter: nf_conntrack_tstamp: add flow-based timestamp
+ extension
+Date: Tue, 18 Jan 2011 14:59:18 +0100
+Message-ID: <4D359CB6.60701@trash.net>
+References: <20110116223329.32349.13288.stgit@decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>, Tim Waugh <twaugh@redhat.com>,
-	netfilter-devel@vger.kernel.org
-To: Jiri Olsa <jolsa@redhat.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55865 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:56133 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751532Ab1ARNpg (ORCPT
+	with ESMTP id S1750962Ab1ARN7U (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Jan 2011 08:45:36 -0500
-In-Reply-To: <20110117094547.GA1918@jolsa.brq.redhat.com>
+	Tue, 18 Jan 2011 08:59:20 -0500
+In-Reply-To: <20110116223329.32349.13288.stgit@decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 17.01.2011 10:45, Jiri Olsa wrote:
-> hi,
-> thanks for comments, attaching new patch
+On 16.01.2011 23:33, Pablo Neira Ayuso wrote:
+> This patch adds flow-based timestamping for conntracks. This
+> conntrack extension is disabled by default. Basically, we use
+> two 64-bits variables to store the creation timestamp once the
+> conntrack has been confirmed and the other to store the deletion
+> time. This extension is disabled by default, to enable it, you
+> have to:
+> 
+> echo 1 > /proc/sys/net/netfilter/nf_conntrack_timestamp
+> 
+> This patch allows to save memory for user-space flow-based
+> loogers such as ulogd2. In short, ulogd2 does not need to
+> keep a hashtable with the conntrack in user-space to know
+> when they were created and destroyed, instead we use the
+> kernel timestamp. If we want to have a sane IPFIX implementation
+> in user-space, this nanosecs resolution timestamps are also
+> useful. Other custom user-space applications can benefit from
+> this via libnetfilter_conntrack.
+> 
+> This patch modifies the /proc output to display the delta time
+> in seconds since the flow start. You can also obtain the
+> flow-start date by means of the conntrack-tools.
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  include/linux/netfilter/nfnetlink_conntrack.h  |    9 ++++
+>  include/net/netfilter/nf_conntrack_extend.h    |    4 ++
+>  include/net/netfilter/nf_conntrack_timestamp.h |   53 ++++++++++++++++++++++++
+>  include/net/netns/conntrack.h                  |    2 +
+>  net/netfilter/Kconfig                          |   11 +++++
+>  net/netfilter/Makefile                         |    1 
+>  net/netfilter/nf_conntrack_core.c              |   26 ++++++++++++
+>  net/netfilter/nf_conntrack_netlink.c           |   46 ++++++++++++++++++++-
+>  net/netfilter/nf_conntrack_standalone.c        |   41 +++++++++++++++++++
 
-> --- a/net/netfilter/Makefile
-> +++ b/net/netfilter/Makefile
-> @@ -28,7 +28,8 @@ obj-$(CONFIG_NF_CONNTRACK_AMANDA) += nf_conntrack_amanda.o
->  obj-$(CONFIG_NF_CONNTRACK_FTP) += nf_conntrack_ftp.o
->  obj-$(CONFIG_NF_CONNTRACK_H323) += nf_conntrack_h323.o
->  obj-$(CONFIG_NF_CONNTRACK_IRC) += nf_conntrack_irc.o
-> -obj-$(CONFIG_NF_CONNTRACK_NETBIOS_NS) += nf_conntrack_netbios_ns.o
-> +obj-$(CONFIG_NF_CONNTRACK_NETBIOS_NS) += nf_conntrack_netbios_ns.o nf_conntrack_broadcast.o
-> +obj-$(CONFIG_NF_CONNTRACK_SNMP) += nf_conntrack_snmp.o nf_conntrack_broadcast.o
-
-Just add an EXPORT_SYMBOL_GPL'ed function and a new Kconfig
-symbol for the nf_conntrack_broadcast.o file that is selected
-by NETBIOS_NS and SNMP.
-
->  obj-$(CONFIG_NF_CONNTRACK_PPTP) += nf_conntrack_pptp.o
->  obj-$(CONFIG_NF_CONNTRACK_SANE) += nf_conntrack_sane.o
->  obj-$(CONFIG_NF_CONNTRACK_SIP) += nf_conntrack_sip.o
-> diff --git a/net/netfilter/nf_conntrack_broadcast.c b/net/netfilter/nf_conntrack_broadcast.c
-> new file mode 100644
-> index 0000000..fb48be1
-> --- /dev/null
-> +++ b/net/netfilter/nf_conntrack_broadcast.c
-> @@ -0,0 +1,79 @@
-> +/*
-> + *      broadcast connection tracking helper
-> + *
-> + *      (c) 2011 Jiri Olsa <jolsa@redhat.com>
-
-I'd also prefer if you keep my copyright statement from
-the netbios ns file.
-
-> + *
-> + *      This program is free software; you can redistribute it and/or
-> + *      modify it under the terms of the GNU General Public License
-> + *      as published by the Free Software Foundation; either version
-> + *      2 of the License, or (at your option) any later version.
-> + */
+The nf_conntrack_timestamp.c file is missing from this patch.
