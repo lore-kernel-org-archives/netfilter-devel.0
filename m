@@ -1,57 +1,47 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [PATCH v2] netfilter: ebt_ip6: allow matching on ipv6-icmp types/codes
-Date: Tue, 18 Jan 2011 21:10:41 +0100
-Message-ID: <4D35F3C1.7040108@pandora.be>
-References: <1292857067-1595-1-git-send-email-fw@strlen.de> <4D0F9D9F.7090608@pandora.be> <4D2E1A01.1060105@netfilter.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [patch 1/4] ipset: show correct line numbers in restore output
+Date: Tue, 18 Jan 2011 21:15:39 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1101182113280.28203@blackhole.kfki.hu>
+References: <20110118142154.697547841@eitzenberger.org> <20110118142247.001984763@eitzenberger.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: holger@eitzenberger.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gerard.telenet-ops.be ([195.130.132.48]:44625 "EHLO
-	gerard.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752512Ab1ARUKp (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Jan 2011 15:10:45 -0500
-In-Reply-To: <4D2E1A01.1060105@netfilter.org>
+Received: from smtp-in.kfki.hu ([148.6.0.26]:41168 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753218Ab1ARUPk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Jan 2011 15:15:40 -0500
+In-Reply-To: <20110118142247.001984763@eitzenberger.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 12-01-11 22:15, Pablo Neira Ayuso wrote:
-> On 20/12/10 19:17, Bart De Schuymer wrote:
->> Op 20/12/2010 15:57, Florian Westphal schreef:
->>> To avoid adding a new match revision icmp type/code are stored
->>> in the sport/dport area.
->>>
->>> Signed-off-by: Florian Westphal<fw@strlen.de>
->>> Reviewed-by: Holger Eitzenberger<holger@eitzenberger.org>
->>> ---
->>>    Changes since v1:
->>>     - use u16 where appropriate
->>>     - use proper () in if condition
->>>     - renamed _ports to _pkthdr
->>>     - add comment that sizeof(_pktheader) is also ok in ICMP6 case.
->>>
->>>    include/linux/netfilter_bridge/ebt_ip6.h |   15 ++++++++--
->>>    net/bridge/netfilter/ebt_ip6.c           |   46
->>> ++++++++++++++++++++++--------
->>>    2 files changed, 46 insertions(+), 15 deletions(-)
->>>
->> OK for me.
->>
->> Reviewed-by: Bart De Schuymer<bdschuym@pandora.be>
->
-> Applied, thanks!
->
-> Did you already included the user-space part to ebtables?
+Hi Holger,
 
-I've applied the userspace patch, thanks again.
+First of all, thanks for the patches and reports.
 
-Bart
+On Tue, 18 Jan 2011, holger@eitzenberger.org wrote:
 
+> When passing something like
+> 
+>   create foo6 hash:ip hashsize 64 family inet6
+>   add foo6 20a1:1234:5678::/64
+>   add foo6 20a1:1234:5679::/64
+> 
+> you get:
+> 
+>   ipset v5.2: Error in line 1: Syntax error: plain IP address must be supplied: 20a1:1234:5678::/64
+> 
+> Should be line 2 though.
 
+Yes, good catch! Unfortunately your patch overwrites the correct line 
+number when reported by the kernel. The proper fix was to add the missing 
+session line number setting *before* the parser is called.
 
--- 
-Bart De Schuymer
-www.artinalgorithms.be
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
