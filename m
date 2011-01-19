@@ -1,53 +1,49 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 01/12] IP set core support
-Date: Wed, 19 Jan 2011 22:55:29 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1101192254460.31954@blackhole.kfki.hu>
-References: yes <1295047436-20702-1-git-send-email-kadlec@blackhole.kfki.hu>  <1295047436-20702-2-git-send-email-kadlec@blackhole.kfki.hu> <1295454292.3273.21.camel@edumazet-laptop>
+Subject: Re: [patch 0/2] Ipset patches
+Date: Wed, 19 Jan 2011 22:59:35 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1101192255590.31954@blackhole.kfki.hu>
+References: <20110119202607.532407993@eitzenberger.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: holger@eitzenberger.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:47224 "EHLO smtp2.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:57324 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754367Ab1ASVza (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Jan 2011 16:55:30 -0500
-In-Reply-To: <1295454292.3273.21.camel@edumazet-laptop>
+	id S1753109Ab1ASV7g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Jan 2011 16:59:36 -0500
+In-Reply-To: <20110119202607.532407993@eitzenberger.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 19 Jan 2011, Eric Dumazet wrote:
+Hi Holger,
 
-> Le samedi 15 janvier 2011 ? 00:23 +0100, Jozsef Kadlecsik a ?crit :
-> 
-> > +/* Allocate members */
-> > +static inline void *
-> > +ip_set_alloc(size_t size, gfp_t gfp_mask)
-> > +{
-> > +	void *members = NULL;
-> > +
-> > +	if (size < KMALLOC_MAX_SIZE)
-> > +		members = kzalloc(size, gfp_mask | __GFP_NOWARN);
-> > +
-> > +	if (members) {
-> > +		pr_debug("%p: allocated with kmalloc", members);
-> > +		return members;
-> > +	}
-> > +
-> > +	members = __vmalloc(size, gfp_mask | __GFP_ZERO, PAGE_KERNEL);
-> > +	if (!members)
-> > +		return NULL;
-> > +	pr_debug("%p: allocated with vmalloc", members);
-> > +
-> > +	return members;
-> > +}
-> > +
-> 
-> Note : We now have vzalloc(), no need to use __vmalloc() (BTW
-> __GFP_HIGHMEM is missing)
+On Wed, 19 Jan 2011, holger@eitzenberger.org wrote:
 
-Thanks Eric, I'll use vzalloc and add the missing flag.
+> what follows are two small patches which remove unneeded argv[]
+> loops when parsing the ipset commands.  They are in particular no
+> change in command line handling.
+> 
+> The command line handling can still be improved, as e. g.
+> 
+>  $ ipset -o xml create foo hash:ip
+>  $ ipset -s add foo 192.168.1.1
+> 
+> both work, but the options are just ignored.  And they don't
+> make much sense for either 'create' or 'add'.
+> 
+> Also we should consider to make the argument handling a little
+> more strict, as e. g.
+> 
+>  $ ipset -o xml list foo
+>  $ ipset list -o xml foo
+>  $ ipset list foo -o xml
+> 
+> all work.  By removing some of those possibilities it should even
+> get simpler code wise.
+
+Thank you indeed, after fixing the issues raised by Patrick and Eric, I'll 
+work on the userspace part and your patches.
 
 Best regards,
 Jozsef
