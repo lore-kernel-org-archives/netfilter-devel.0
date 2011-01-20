@@ -1,92 +1,59 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 6/6] netfilter: do not omit re-route check on NF_QUEUE
- verdict
-Date: Thu, 20 Jan 2011 00:14:35 +0100
-Message-ID: <20110119231435.GA956@Chamillionaire.breakpoint.cc>
-References: <1295183947-12786-1-git-send-email-fw@strlen.de>
- <1295183947-12786-7-git-send-email-fw@strlen.de>
- <4D35AE71.6010301@trash.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/79] netfilter: netfilter update
+Date: Wed, 19 Jan 2011 16:50:45 -0800 (PST)
+Message-ID: <20110119.165045.25148392.davem@davemloft.net>
+References: <1295464519-21763-1-git-send-email-kaber@trash.net>
+	<20110119.135504.149816150.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:32822 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753106Ab1ASXOg (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:58589
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751792Ab1ATAuL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Jan 2011 18:14:36 -0500
-Content-Disposition: inline
-In-Reply-To: <4D35AE71.6010301@trash.net>
+	Wed, 19 Jan 2011 19:50:11 -0500
+In-Reply-To: <20110119.135504.149816150.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy <kaber@trash.net> wrote:
-> On 16.01.2011 14:19, Florian Westphal wrote:
-> > ret != NF_QUEUE only works in the "--queue-num 0" case; for
-> > queues > 0 the test should be '(ret & NF_VERDICT_MASK) != NF_QUEUE'.
-> > 
-> > However, NF_QUEUE no longer DROPs the skb unconditionally if queueing
-> > fails (due to NF_VERDICT_FLAG_QUEUE_BYPASS verdict flag), so the
-> > re-route test should also be performed if this flag is set in the
-> > verdict.
-> > 
-> > The full test would then look something like
-> > 
-> > && ((ret & NF_VERDICT_MASK) == NF_QUEUE && (ret & NF_VERDICT_FLAG_QUEUE_BYPASS))
-> > 
-> > This is rather ugly, so just remove the NF_QUEUE test altogether.
-> > 
-> > The only effect is that we might perform an unnecessary route lookup
-> > in the NF_QUEUE case.
+From: David Miller <davem@davemloft.net>
+Date: Wed, 19 Jan 2011 13:55:04 -0800 (PST)
+
+> From: kaber@trash.net
+> Date: Wed, 19 Jan 2011 20:14:00 +0100
 > 
-> Alternatively we could have nf_queue.c perform the rerouting when
-> a packet is marked for queue bypass, just as it already does when
-> reinjecting a packet. mangle just needs to check for NF_ACCEPT,
-> since that is the only verdict we can return from the table that
-> doesn't cause the packet to be dropped or queued.
+>> Please pull from
+>> 
+>> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
+> 
+> Pulled, thanks.
 
-Hrm.  I was looking into this, but the current logic appears to be subtly
-broken, or at least it is inconsistent.
+I'm undoing my pull, what was this build tested against?
+In particular this commit breaks the build:
 
-Here is what I did:
+Subject: [PATCH 68/79] netfilter: xtables: add missing header files to export list
 
-ip addr add 192.168.7.20/24 dev eth0
-ip addr add 192.168.8.20/24 dev eth1
-ip route add default via 192.168.7.1
-ip route add default via 192.168.8.1 table 2
-ip rule fwmark 2 lookup 2
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+ ...
+@@ -56,6 +56,8 @@ header-y += xt_rateest.h
+ header-y += xt_realm.h
+ header-y += xt_recent.h
+ header-y += xt_sctp.h
++header-y += xt_secmark.h
++header-y += xt_socket.h
+ header-y += xt_state.h
+ header-y += xt_statistic.h
+ header-y += xt_string.h
 
-iptables -t mangle -A OUTPUT -d 10.1.1.1 -j MARK --set-mark 2
+No active tree has a include/linux/netfilter/xt_secmark.h file.  Therefore
+we end up with:
 
-When I run 'ping -c 1 10.1.1.1' i see the icmp packet on eth1.
+make[2]: `scripts/unifdef' is up to date.
+make[4]: *** No rule to make target `/home/davem/src/GIT/net-next-2.6/include/linux/netfilter/xt_secmark.h', needed by `/home/davem/src/GIT/net-next-2.6/usr/include/linux/netfilter/.install'.  Stop.
 
-But, when I add
-iptables -t mangle -A OUTPUT -d 10.1.1.1 -j NFQUEUE
+Did you mean xt_SECMARK.h (caps)?
 
-I see the packet leaving via eth0 (i am running the nfqueue test program
-from libnetfilter_queue on id 0).
-
-When I change the rule to -j NFQUEUE --queue-id 1, it leaves via eth1
-%-)
-
-Here is what I think is happening:
-
-In the --queue-id 0 case, ipt_mangle_out() skips rerouting, because
-it tests for ret != NF_QUEUE.
-
-But nf_queue does not re-route either:
-__nf_queue calls afinfo->saveroute(), and, because the test program
-does not modify the nfmark any further, afinfo->reroute does not do
-anything.
-
-In the --queue-id 1 case, ipt_mangle_out() does re-routing because
-the return value is (1 << 16|NF_QUEUE) and the nfmark is different
-than it was before OUTPUT was called.
-
-My think it would be best to just remove the 'ret != NF_QUEUE' test
-in ipt_mangle_out so we always re-route when the nfmark was modified.
-
-Thoughts?
-
-Thanks, Florian
+Please fix this up and resubmit your pull request, thanks.
