@@ -1,47 +1,121 @@
-From: Richard Weinberger <richard@nod.at>
-Subject: Re: [PATCH 0/3][RFC] Relationship between conntrack and firewall rules
-Date: Fri, 21 Jan 2011 00:02:24 +0100
-Message-ID: <201101210002.24922.richard@nod.at>
-References: <1295563629-14996-1-git-send-email-richard@nod.at> <alpine.LNX.2.01.1101202351050.26671@obet.zrqbmnf.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 2/3] netfilter: add APPROVE target
+Date: Fri, 21 Jan 2011 00:17:48 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1101210012330.29106@obet.zrqbmnf.qr>
+References: <1295563629-14996-1-git-send-email-richard@nod.at> <1295563629-14996-2-git-send-email-richard@nod.at> <1295563629-14996-3-git-send-email-richard@nod.at>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Richard Weinberger <richard@nod.at>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a.ns.miles-group.at ([95.130.255.143]:40351 "EHLO radon.swed.at"
+Received: from borg.medozas.de ([188.40.89.202]:40581 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755731Ab1ATXC2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jan 2011 18:02:28 -0500
-In-Reply-To: <alpine.LNX.2.01.1101202351050.26671@obet.zrqbmnf.qr>
+	id S1754715Ab1ATXRt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Jan 2011 18:17:49 -0500
+In-Reply-To: <1295563629-14996-3-git-send-email-richard@nod.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am Donnerstag 20 Januar 2011, 23:52:25 schrieb Jan Engelhardt:
-> On Thursday 2011-01-20 23:47, Richard Weinberger wrote:
-> >Hi,
-> >
-> >as a firewall admin I would like to see which rules allow
-> >the connections through my firewall.
-> >A relationship between conntrack and firewall rules would be nice.
-> >The next five patches bring this feature to the Linux Netfilter.
-> >
-> >First a small example.
-> >Consider this iptables rules:
-> >-A INPUT -m state --state ESTABLISHED,RELATED -j APPROVE --rule-id 1
-> >-A OUTPUT -m state --state NEW,ESTABLISHED,RELATED -j APPROVE --rule-id 2
-> >-A INPUT -p tcp --dport 22 -m state --state NEW -j APPROVE --rule-id 3
-> >-A INPUT -p icmp -m state --state NEW -j APPROVE --rule-id 4
-> >
-> >The APPROVE target is the same as ACCEPT but it stores also a rule id into
-> >the connection tracking entry.
+On Thursday 2011-01-20 23:47, Richard Weinberger wrote:
+
+>This new target is related to the ruleid extension.
+>It accepts a packet and stores it's rule id into
+>the connection tracking entry.
+>
+>Signed-off-by: Richard Weinberger <richard@nod.at>
+>---
+> include/linux/netfilter/xt_APPROVE.h |    8 +++
+> net/netfilter/Kconfig                |   12 +++++
+> net/netfilter/Makefile               |    1 +
+> net/netfilter/xt_APPROVE.c           |   85 ++++++++++++++++++++++++++++++++++
+
+Until the situation with preexisting modules is solved,
+let's at least not add anymore modules with cased names.
+
+xt_approve.{c,h} please. (Do retain the module aliases however.)
+
+> 4 files changed, 106 insertions(+), 0 deletions(-)
+> create mode 100644 include/linux/netfilter/xt_APPROVE.h
+> create mode 100644 net/netfilter/xt_APPROVE.c
+>
+>diff --git a/include/linux/netfilter/xt_APPROVE.h b/include/linux/netfilter/xt_APPROVE.h
+>new file mode 100644
+>index 0000000..c62c6bc
+>--- /dev/null
+>+++ b/include/linux/netfilter/xt_APPROVE.h
+>@@ -0,0 +1,8 @@
+>+#ifndef _XT_APPROVE_H
+>+#define _XT_APPROVE_H
+>+
+>+struct nf_approve_info {
+>+	u_int16_t ruleid;
+>+};
+
+Intended to be "struct xt_approve_info"?
+
+>+
+>+#endif /* _XT_APPROVE_H */
+>diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+>index 1534f2b..34cd76c 100644
+>--- a/net/netfilter/Kconfig
+>+++ b/net/netfilter/Kconfig
+>@@ -546,6 +546,18 @@ config NETFILTER_XT_TARGET_TRACE
+> 	  If you want to compile it as a module, say M here and read
+> 	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
 > 
-> What about connmark? You could have used that. Perhaps combined with the
-> use of -j TRACE that can show which rules were processed before a
-> verdict was issued.
+>+config NETFILTER_XT_TARGET_APPROVE
+>+	tristate  '"APPROVE" target support'
+>+	depends on NF_CONNTRACK
+>+	depends on NETFILTER_ADVANCED
+>+	help
+>+	  The APPROVE target allows you to add a rule ID to the
+>+	  connection tracking entry. So you can see which rules
+>+	  allowed a connection.
+>+
+>+	  If you want to compile it as a module, say M here and read
+>+	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
+>+
 
-Yeah, I know commark and TRACE but they are quite clumsy to use for such a purpose.
-Especially writing firewall rules becomes more complex.
+Do please keep the list sorted rather than throwing it somewhere :)
 
-//richard
+>diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+>index f5bff47..db8a342 100644
+>--- a/net/netfilter/Makefile
+>+++ b/net/netfilter/Makefile
+>@@ -62,6 +62,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
+> obj-$(CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP) += xt_TCPOPTSTRIP.o
+> obj-$(CONFIG_NETFILTER_XT_TARGET_TEE) += xt_TEE.o
+> obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) += xt_TRACE.o
+>+obj-$(CONFIG_NETFILTER_XT_TARGET_APPROVE) += xt_APPROVE.o
+> obj-$(CONFIG_NETFILTER_XT_TARGET_IDLETIMER) += xt_IDLETIMER.o
+
+Likewise.
+
+>+static unsigned int
+>+approve_tg(struct sk_buff *skb, const struct xt_action_param *par)
+>+{
+>+	enum ip_conntrack_info cti;
+>+	struct nf_conn *nfc;
+>+	struct nf_conn_ruleid *nfcr;
+>+	const struct nf_approve_info *ri = par->targinfo;
+
+(There is no strict rule to use three-letter variable names. It's
+just that skb and par are often typed and thus warrant having it.)
+
+>+	if (!nfcr) {
+>+		nfcr = nf_ct_ext_add(nfc, NF_CT_EXT_RULEID, GFP_ATOMIC);
+>+
+>+		/* we're out of memory */
+>+		if (!nfcr)
+>+			goto out;
+>+	}
+>+
+>+	nfcr->rule[cti] = ri->ruleid;
+>+
+>+	spin_unlock_bh(&nfc->lock);
+>+
+>+out:
+>+	return NF_ACCEPT;
+>+}
+
+In the error case, you forget to unlock the spinlock.
