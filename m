@@ -1,38 +1,31 @@
-From: kaber@trash.net
-Subject: [PATCH] netfilter: xtables: remove extraneous header that slipped in
-Date: Thu, 20 Jan 2011 08:58:02 +0100
-Message-ID: <1295510282-16860-2-git-send-email-kaber@trash.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/80] netfilter: netfilter update
+Date: Thu, 20 Jan 2011 00:23:32 -0800 (PST)
+Message-ID: <20110120.002332.146374923.davem@davemloft.net>
 References: <1295510282-16860-1-git-send-email-kaber@trash.net>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: davem@davemloft.net
-Return-path: <netdev-owner@vger.kernel.org>
+To: kaber@trash.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:59966
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754508Ab1ATIW6 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Jan 2011 03:22:58 -0500
 In-Reply-To: <1295510282-16860-1-git-send-email-kaber@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jan Engelhardt <jengelh@medozas.de>
+From: kaber@trash.net
+Date: Thu, 20 Jan 2011 08:58:01 +0100
 
-Commit 0b8ad87 (netfilter: xtables: add missing header files to export
-list) erroneously added this.
+> [resend of the previous pull request, I've added Jan's fix to my tree,
+>  just resending the new patch instead of the entire batch]
+ ...
+> Please pull from
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- include/linux/netfilter/Kbuild |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
-
-diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/Kbuild
-index fc4e0aa..89c0d1e 100644
---- a/include/linux/netfilter/Kbuild
-+++ b/include/linux/netfilter/Kbuild
-@@ -56,7 +56,6 @@ header-y += xt_rateest.h
- header-y += xt_realm.h
- header-y += xt_recent.h
- header-y += xt_sctp.h
--header-y += xt_secmark.h
- header-y += xt_socket.h
- header-y += xt_state.h
- header-y += xt_statistic.h
--- 
-1.7.2.3
-
+Much better, pulled and pushed back out, thanks!
