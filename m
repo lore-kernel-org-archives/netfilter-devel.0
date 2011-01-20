@@ -1,37 +1,32 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH] libxt_connlimit: remove duplicate member that caused size change
-Date: Thu, 20 Jan 2011 14:17:01 +0100
-Message-ID: <1295529422-25624-2-git-send-email-jengelh@medozas.de>
-References: <1295529422-25624-1-git-send-email-jengelh@medozas.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: xtables: connlimit rev1 addendum
+Date: Thu, 20 Jan 2011 14:18:08 +0100
+Message-ID: <4D383610.2070404@trash.net>
+References: <1295529245-21127-1-git-send-email-jengelh@medozas.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org, jan.rovner@diadema.cz
-To: kaber@trash.net
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:37134 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755559Ab1ATNRH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jan 2011 08:17:07 -0500
-In-Reply-To: <1295529422-25624-1-git-send-email-jengelh@medozas.de>
+Received: from stinky.trash.net ([213.144.137.162]:35919 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755559Ab1ATNSM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Jan 2011 08:18:12 -0500
+In-Reply-To: <1295529245-21127-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- include/linux/netfilter/xt_connlimit.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Am 20.01.2011 14:14, schrieb Jan Engelhardt:
+> The following changes since commit cc4fc022571376412986e27e08b0765e9cb2aafb:
+> 
+>   netfilter: xtables: connlimit revision 1 (2011-01-19 18:27:46 +0100)
+> 
+> are available in the git repository at:
+>   git://dev.medozas.de/linux connlimit
+> 
+> Jan Engelhardt (1):
+>       netfilter: xtables: remove duplicate member
 
-diff --git a/include/linux/netfilter/xt_connlimit.h b/include/linux/netfilter/xt_connlimit.h
-index d6c84c9..ba774d3 100644
---- a/include/linux/netfilter/xt_connlimit.h
-+++ b/include/linux/netfilter/xt_connlimit.h
-@@ -16,7 +16,7 @@ struct xt_connlimit_info {
- 			__be32 v6_mask[4];
- 		};
- 	};
--	unsigned int limit, inverse;
-+	unsigned int limit;
- 	union {
- 		/* revision 0 */
- 		unsigned int inverse;
--- 
-1.7.1
-
+Pulled, thanks.
