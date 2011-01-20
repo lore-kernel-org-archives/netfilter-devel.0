@@ -1,78 +1,174 @@
 From: Richard Weinberger <richard@nod.at>
-Subject: [PATCH 0/3][RFC] Relationship between conntrack and firewall rules
-Date: Thu, 20 Jan 2011 23:47:04 +0100
-Message-ID: <1295563629-14996-1-git-send-email-richard@nod.at>
+Subject: [PATCH 2/3] netfilter: add APPROVE target
+Date: Thu, 20 Jan 2011 23:47:06 +0100
+Message-ID: <1295563629-14996-3-git-send-email-richard@nod.at>
+References: <1295563629-14996-1-git-send-email-richard@nod.at>
+ <1295563629-14996-2-git-send-email-richard@nod.at>
 Cc: Richard Weinberger <richard@nod.at>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a.ns.miles-group.at ([95.130.255.143]:39944 "EHLO radon.swed.at"
+Received: from a.ns.miles-group.at ([95.130.255.143]:39946 "EHLO radon.swed.at"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754950Ab1ATWrU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jan 2011 17:47:20 -0500
+	id S1755242Ab1ATWr3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Jan 2011 17:47:29 -0500
+In-Reply-To: <1295563629-14996-2-git-send-email-richard@nod.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-
-as a firewall admin I would like to see which rules allow
-the connections through my firewall.
-A relationship between conntrack and firewall rules would be nice.
-The next five patches bring this feature to the Linux Netfilter.
-
-First a small example.
-Consider this iptables rules:
--A INPUT -m state --state ESTABLISHED,RELATED -j APPROVE --rule-id 1
--A OUTPUT -m state --state NEW,ESTABLISHED,RELATED -j APPROVE --rule-id 2
--A INPUT -p tcp --dport 22 -m state --state NEW -j APPROVE --rule-id 3
--A INPUT -p icmp -m state --state NEW -j APPROVE --rule-id 4
-
-The APPROVE target is the same as ACCEPT but it stores also a rule id into 
+This new target is related to the ruleid extension.
+It accepts a packet and stores it's rule id into
 the connection tracking entry.
 
-"conntrack -L" shows us this two entries:
-tcp      6 431999 ESTABLISHED src=192.168.1.1 dst=192.168.1.2 sport=51444 \
-	dport=22 src=192.168.1.2 dst=192.168.1.1 sport=22 dport=51444 [ASSURED] \
-	mark=0 established=1 related=0 new=3 reply=2 use=1
-
-icmp     1 28 src=192.168.1.2 dst=149.20.20.133 type=8 code=0 id=63239 \
-	src=149.20.20.133 dst=192.168.1.2 type=0 code=0 id=63239 mark=0 \
-	established=2 related=0 new=2 reply=1 use=1
-
-1. We observe a SSH connection from 192.168.1.1 to 192.168.1.2,
-it was allowed by rule 1, 3 and 2. (0 indicates that no rule was involved)
-2. An ICMP ping from 192.168.1.2 to 149.20.20.133 which was allowed
-by the rules 1 and 2.
-
-The ruleid conntrack extension adds four u_int16_t values.
-Thus we can have up to 2^16 rules, I think this is enough
-and is not much overhead.
-Alternatively we a pointer to a string could also be useful.
-Maybe in conjunction with xt_comment...
-
-What do you think?
-Any feedback is welcome!
-
-//richard
-
---
-Richard Weinberger (3):
-  netfilter: add ruleid extension
-  netfilter: add APPROVE target
-  netfilter: implement ctnetlink_dump_ruleid()
-
- include/linux/netfilter/nfnetlink_conntrack.h |    4 +
- include/linux/netfilter/xt_APPROVE.h          |    8 +++
- include/net/netfilter/nf_conntrack_extend.h   |    2 +
- include/net/netfilter/nf_conntrack_ruleid.h   |   25 +++++++
- net/netfilter/Kconfig                         |   12 ++++
- net/netfilter/Makefile                        |    3 +-
- net/netfilter/nf_conntrack_core.c             |    6 ++
- net/netfilter/nf_conntrack_netlink.c          |   23 +++++++-
- net/netfilter/nf_conntrack_ruleid.c           |   44 +++++++++++++
- net/netfilter/xt_APPROVE.c                    |   85 +++++++++++++++++++++++++
- 10 files changed, 210 insertions(+), 2 deletions(-)
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ include/linux/netfilter/xt_APPROVE.h |    8 +++
+ net/netfilter/Kconfig                |   12 +++++
+ net/netfilter/Makefile               |    1 +
+ net/netfilter/xt_APPROVE.c           |   85 ++++++++++++++++++++++++++++++++++
+ 4 files changed, 106 insertions(+), 0 deletions(-)
  create mode 100644 include/linux/netfilter/xt_APPROVE.h
- create mode 100644 include/net/netfilter/nf_conntrack_ruleid.h
- create mode 100644 net/netfilter/nf_conntrack_ruleid.c
  create mode 100644 net/netfilter/xt_APPROVE.c
+
+diff --git a/include/linux/netfilter/xt_APPROVE.h b/include/linux/netfilter/xt_APPROVE.h
+new file mode 100644
+index 0000000..c62c6bc
+--- /dev/null
++++ b/include/linux/netfilter/xt_APPROVE.h
+@@ -0,0 +1,8 @@
++#ifndef _XT_APPROVE_H
++#define _XT_APPROVE_H
++
++struct nf_approve_info {
++	u_int16_t ruleid;
++};
++
++#endif /* _XT_APPROVE_H */
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 1534f2b..34cd76c 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -546,6 +546,18 @@ config NETFILTER_XT_TARGET_TRACE
+ 	  If you want to compile it as a module, say M here and read
+ 	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
+ 
++config NETFILTER_XT_TARGET_APPROVE
++	tristate  '"APPROVE" target support'
++	depends on NF_CONNTRACK
++	depends on NETFILTER_ADVANCED
++	help
++	  The APPROVE target allows you to add a rule ID to the
++	  connection tracking entry. So you can see which rules
++	  allowed a connection.
++
++	  If you want to compile it as a module, say M here and read
++	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
++
+ config NETFILTER_XT_TARGET_SECMARK
+ 	tristate '"SECMARK" target support'
+ 	depends on NETWORK_SECMARK
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index f5bff47..db8a342 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -62,6 +62,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP) += xt_TCPOPTSTRIP.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TEE) += xt_TEE.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) += xt_TRACE.o
++obj-$(CONFIG_NETFILTER_XT_TARGET_APPROVE) += xt_APPROVE.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_IDLETIMER) += xt_IDLETIMER.o
+ 
+ # matches
+diff --git a/net/netfilter/xt_APPROVE.c b/net/netfilter/xt_APPROVE.c
+new file mode 100644
+index 0000000..345465b
+--- /dev/null
++++ b/net/netfilter/xt_APPROVE.c
+@@ -0,0 +1,85 @@
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/spinlock.h>
++
++#include <linux/netfilter.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/nf_conntrack_common.h>
++#include <linux/netfilter/xt_APPROVE.h>
++
++#include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack_ruleid.h>
++
++MODULE_DESCRIPTION("Xtables: Accept a packet and mark connection with an ID");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("ipt_APPROVE");
++MODULE_ALIAS("ip6t_APPROVE");
++
++static unsigned int
++approve_tg(struct sk_buff *skb, const struct xt_action_param *par)
++{
++	enum ip_conntrack_info cti;
++	struct nf_conn *nfc;
++	struct nf_conn_ruleid *nfcr;
++	const struct nf_approve_info *ri = par->targinfo;
++
++	nfc = nf_ct_get(skb, &cti);
++	if (!nfc)
++		goto out;
++
++	if (nf_ct_is_untracked(nfc))
++		goto out;
++
++	spin_lock_bh(&nfc->lock);
++
++	nfcr = nf_ct_ext_find(nfc, NF_CT_EXT_RULEID);
++
++	if (!nfcr) {
++		nfcr = nf_ct_ext_add(nfc, NF_CT_EXT_RULEID, GFP_ATOMIC);
++
++		/* we're out of memory */
++		if (!nfcr)
++			goto out;
++	}
++
++	nfcr->rule[cti] = ri->ruleid;
++
++	spin_unlock_bh(&nfc->lock);
++
++out:
++	return NF_ACCEPT;
++}
++
++static int approve_tg_check(const struct xt_tgchk_param *par)
++{
++	const struct nf_approve_info *ri = par->targinfo;
++
++	if (ri->ruleid < 1)
++		return -EINVAL;
++
++	return 0;
++}
++
++static struct xt_target approve_tg_reg __read_mostly = {
++	.name       = "APPROVE",
++	.revision   = 0,
++	.family     = NFPROTO_UNSPEC,
++	.table			= "filter",
++	.target     = approve_tg,
++	.targetsize	= sizeof(struct nf_approve_info),
++	.checkentry	= approve_tg_check,
++	.me         = THIS_MODULE,
++};
++
++static int __init approve_tg_init(void)
++{
++	return xt_register_target(&approve_tg_reg);
++}
++
++static void __exit approve_tg_exit(void)
++{
++	xt_unregister_target(&approve_tg_reg);
++}
++
++module_init(approve_tg_init);
++module_exit(approve_tg_exit);
+-- 
+1.6.6.1
 
