@@ -1,35 +1,26 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables: connlimit dstaddr support
-Date: Thu, 20 Jan 2011 11:21:47 +0100
-Message-ID: <4D380CBB.9020804@trash.net>
-References: <1295458349-14106-1-git-send-email-jengelh@medozas.de>
+Subject: Re: [PATCH] libxt_AUDIT: add AUDIT target
+Date: Thu, 20 Jan 2011 11:26:27 +0100
+Message-ID: <4D380DD3.1030102@trash.net>
+References: <20110117091924.GF22508@canuck.infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, jan.rovner@diadema.cz
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Thomas Graf <tgraf@infradead.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33102 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:33179 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755215Ab1ATKVu (ORCPT
+	with ESMTP id S1752110Ab1ATK02 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jan 2011 05:21:50 -0500
-In-Reply-To: <1295458349-14106-1-git-send-email-jengelh@medozas.de>
+	Thu, 20 Jan 2011 05:26:28 -0500
+In-Reply-To: <20110117091924.GF22508@canuck.infradead.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 19.01.2011 18:32, schrieb Jan Engelhardt:
-> The following changes since commit 9c60365e043a430f74115bbfaf58ce0df7585f49:
+Am 17.01.2011 10:19, schrieb Thomas Graf:
+> libxt module for the AUDIT target.
 > 
->   libxt_quota: print negation when it has been selected (2011-01-18 11:02:04 +0100)
-> 
-> are available in the git repository at:
->   git://dev.medozas.de/iptables master
-> 
-> Jan Engelhardt (3):
->       libxt_connlimit: reword help text to say prefix length
->       libxt_connlimit: add a --connlimit-upto option
->       libxt_connlimit: support for dstaddr-supporting revision 1
-> 
+> -j AUDIT --type (accept|reject|drop)
 
-Pulled, thanks Jan.
+Applied, thanks Thomas.
