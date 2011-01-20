@@ -1,47 +1,55 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: [PATCH 00/79] netfilter: netfilter update
-Date: Thu, 20 Jan 2011 02:13:31 +0100
-Message-ID: <4D378C3B.1020202@trash.net>
-References: <1295464519-21763-1-git-send-email-kaber@trash.net>	<20110119.135504.149816150.davem@davemloft.net> <20110119.165045.25148392.davem@davemloft.net>
+Date: Thu, 20 Jan 2011 02:36:10 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1101200235350.31108@obet.zrqbmnf.qr>
+References: <1295464519-21763-1-git-send-email-kaber@trash.net> <20110119.135504.149816150.davem@davemloft.net> <20110119.165045.25148392.davem@davemloft.net> <4D378C3B.1020202@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Jan Engelhardt <jengelh@computergmbh.de>
-To: David Miller <davem@davemloft.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20110119.165045.25148392.davem@davemloft.net>
+In-Reply-To: <4D378C3B.1020202@trash.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 20.01.2011 01:50, David Miller wrote:
-> I'm undoing my pull, what was this build tested against?
 
-My build tests didn't include header-install. No idea what Jan
-tested against.
+On Thursday 2011-01-20 02:13, Patrick McHardy wrote:
+>> +header-y += xt_secmark.h
+>> 
+>> No active tree has a include/linux/netfilter/xt_secmark.h file.  Therefore
+>> we end up with:
+>> 
+>> Did you mean xt_SECMARK.h (caps)?
+>
+>I guess so. Jan, please fix this up.
 
-> In particular this commit breaks the build:
-> 
-> Subject: [PATCH 68/79] netfilter: xtables: add missing header files to export list
-> 
-> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
->  ...
-> @@ -56,6 +56,8 @@ header-y += xt_rateest.h
->  header-y += xt_realm.h
->  header-y += xt_recent.h
->  header-y += xt_sctp.h
-> +header-y += xt_secmark.h
-> +header-y += xt_socket.h
->  header-y += xt_state.h
->  header-y += xt_statistic.h
->  header-y += xt_string.h
-> 
-> No active tree has a include/linux/netfilter/xt_secmark.h file.  Therefore
-> we end up with:
-> 
-> make[2]: `scripts/unifdef' is up to date.
-> make[4]: *** No rule to make target `/home/davem/src/GIT/net-next-2.6/include/linux/netfilter/xt_secmark.h', needed by `/home/davem/src/GIT/net-next-2.6/usr/include/linux/netfilter/.install'.  Stop.
-> 
-> Did you mean xt_SECMARK.h (caps)?
+parent f5c88f56b35599ab9ff2d3398e0153e4cd4a4c82 (v2.6.37-3820-gf5c88f5)
+commit 51c7fc9e4e086e4a145617945fdda92a8ae0290f
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Thu Jan 20 02:34:48 2011 +0100
 
-I guess so. Jan, please fix this up.
+netfilter: xtables: remove extraneous header that slipped in
+
+Commit 0b8ad876275c74e4bfb6ec3150793f3c0ecfcee2 erroneously added
+this.
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ include/linux/netfilter/Kbuild |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/Kbuild
+index fc4e0aa..89c0d1e 100644
+--- a/include/linux/netfilter/Kbuild
++++ b/include/linux/netfilter/Kbuild
+@@ -56,7 +56,6 @@ header-y += xt_rateest.h
+ header-y += xt_realm.h
+ header-y += xt_recent.h
+ header-y += xt_sctp.h
+-header-y += xt_secmark.h
+ header-y += xt_socket.h
+ header-y += xt_state.h
+ header-y += xt_statistic.h
+-- 
+# Created with git-export-patch
