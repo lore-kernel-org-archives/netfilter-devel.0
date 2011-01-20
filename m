@@ -1,40 +1,56 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: add a missing include in nf_conntrack_reasm.c
-Date: Thu, 20 Jan 2011 20:18:27 +0100
-Message-ID: <4D388A83.5020501@trash.net>
-References: <1295545997.2825.458.camel@edumazet-laptop>
+From: John Fastabend <john.r.fastabend@intel.com>
+Subject: [PATCH] netfilter: undefined reference to 'nf_conntrack_tstamp_*'
+Date: Thu, 20 Jan 2011 11:16:12 -0800
+Message-ID: <20110120191612.24205.73463.stgit@jf-dev1-dcblab>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>,
-	KOVACS Krisztian <hidden@balabit.hu>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: john.r.fastabend@intel.com, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, pablo@netfilter.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:42965 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754046Ab1ATTS2 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jan 2011 14:18:28 -0500
-In-Reply-To: <1295545997.2825.458.camel@edumazet-laptop>
+Received: from mga01.intel.com ([192.55.52.88]:18663 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752128Ab1ATTUu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Jan 2011 14:20:50 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 20.01.2011 18:53, schrieb Eric Dumazet:
-> After commit ae90bdeaeac6b (netfilter: fix compilation when conntrack is
-> disabled but tproxy is enabled) we have following warnings :
-> 
-> net/ipv6/netfilter/nf_conntrack_reasm.c:520:16: warning: symbol
-> 'nf_ct_frag6_gather' was not declared. Should it be static?
-> net/ipv6/netfilter/nf_conntrack_reasm.c:591:6: warning: symbol
-> 'nf_ct_frag6_output' was not declared. Should it be static?
-> net/ipv6/netfilter/nf_conntrack_reasm.c:612:5: warning: symbol
-> 'nf_ct_frag6_init' was not declared. Should it be static?
-> net/ipv6/netfilter/nf_conntrack_reasm.c:640:6: warning: symbol
-> 'nf_ct_frag6_cleanup' was not declared. Should it be static?
-> 
-> Fix this including net/netfilter/ipv6/nf_defrag_ipv6.h
-> 
+net/built-in.o: In function `nf_conntrack_init_net':
+net/netfilter/nf_conntrack_core.c:1521:
+	undefined reference to `nf_conntrack_tstamp_init'
+net/netfilter/nf_conntrack_core.c:1531:
+	undefined reference to `nf_conntrack_tstamp_fini'
 
-I currently don't have access to all my trees, does this patch
-apply to 2.6.38 or just the current -rc?
+Add 'selects' notation to Kconfig to include NF_CONNTRACK_TIMESTAMP
+this resolves all the config files I tested.
+
+Signed-off-by: John Fastabend <john.r.fastabend@intel.com>
+CC: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+
+ net/netfilter/Kconfig |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index faf7412..2079911 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -27,6 +27,7 @@ config NETFILTER_NETLINK_LOG
+ config NF_CONNTRACK
+ 	tristate "Netfilter connection tracking support"
+ 	default m if NETFILTER_ADVANCED=n
++	select NF_CONNTRACK_TIMESTAMP
+ 	help
+ 	  Connection tracking keeps a record of what packets have passed
+ 	  through your machine, in order to figure out how they are related
+@@ -87,7 +88,7 @@ config NF_CONNTRACK_EVENTS
+ 
+ config NF_CONNTRACK_TIMESTAMP
+ 	bool  'Connection tracking timestamping'
+-	depends on NETFILTER_ADVANCED
++	default m if NETFILTER_ADVANCED
+ 	help
+ 	  This option enables support for connection tracking timestamping.
+ 	  This allows you to store the flow start-time and to obtain
+
