@@ -1,46 +1,44 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH resend] netfilter: place in source hash after SNAT is
- done
-Date: Thu, 20 Jan 2011 15:51:04 +0100
-Message-ID: <4D384BD8.9080709@trash.net>
-References: <1295090930-16671-1-git-send-email-xiaosuo@gmail.com> <4D35A0F2.5010908@trash.net> <AANLkTimPEaXiiFiyD7Anvg+x5zJUsF04P_yPbj8KzYaF@mail.gmail.com>
+Subject: Re: [PATCH 4/5] netfilter: xtables: use __uXX guarded types for userspace
+ exports
+Date: Thu, 20 Jan 2011 16:16:58 +0100
+Message-ID: <4D3851EA.2060905@trash.net>
+References: <1295363820-14881-1-git-send-email-jengelh@medozas.de> <1295363820-14881-5-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37576 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:38779 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755857Ab1ATOvH (ORCPT
+	with ESMTP id S1755677Ab1ATPRA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jan 2011 09:51:07 -0500
-In-Reply-To: <AANLkTimPEaXiiFiyD7Anvg+x5zJUsF04P_yPbj8KzYaF@mail.gmail.com>
+	Thu, 20 Jan 2011 10:17:00 -0500
+In-Reply-To: <1295363820-14881-5-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 19.01.2011 01:03, schrieb Changli Gao:
-> On Tue, Jan 18, 2011 at 10:17 PM, Patrick McHardy <kaber@trash.net> wrote:
->>>  net/ipv4/netfilter/nf_nat_core.c |   18 +++++++++++-------
->>>  1 file changed, 11 insertions(+), 7 deletions(-)
->>> diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
->>> index c04787c..51ce55a 100644
->>> --- a/net/ipv4/netfilter/nf_nat_core.c
->>> +++ b/net/ipv4/netfilter/nf_nat_core.c
->>> @@ -221,7 +221,14 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
->>>          manips not an issue.  */
->>>       if (maniptype == IP_NAT_MANIP_SRC &&
->>>           !(range->flags & IP_NAT_RANGE_PROTO_RANDOM)) {
->>> -             if (find_appropriate_src(net, zone, orig_tuple, tuple, range)) {
->>> +             /* try the original tuple first */
->>
->> This doesn't seem to be related to the hashing change. Please describe
->> the intention behind this change.
-> 
-> Currently, we add the ct at the head of the corresponding bucket of
-> the source hash table after DNAT is done, so when we do SNAT, the
-> original ct will be tried first. This change is used to keep this
-> behavior.
+Am 18.01.2011 16:16, schrieb Jan Engelhardt:
+> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+> ---
+>  include/linux/netfilter_bridge/ebt_802_3.h     |   24 ++++++++++++------------
+>  include/linux/netfilter_bridge/ebt_among.h     |    2 +-
+>  ...
 
-Thanks for the explanation, applied.
+
+This patch introduces a bunch of warnings with CONFIG_HEADERS_CHECK:
+
+  CHECK   include/linux/netfilter (66 files)
+/home/kaber/src/nf/nf-next-2.6/usr/include/linux/netfilter/xt_CT.h:7:
+found __[us]{8,16,32,64} type without #include <linux/types.h>
+/home/kaber/src/nf/nf-next-2.6/usr/include/linux/netfilte
+/xt_TCPOPTSTRIP.h:10: found __[us]{8,16,32,64} type without #include
+<linux/types.h>
+/home/kaber/src/nf/nf-next-2.6/usr/include/linux/netfilter/xt_TPROXY.h:8: found
+__[us]{8,16,32,64} type without #include <linux/types.h>
+/home/kaber/src/nf/nf-next-2.6/usr/include/linux/netfilter/xt_cluster.h:9:
+found __[us]{8,16,32,64} type without #include <linux/types.h>
+/home/kaber/src/nf/nf-next-2.6/usr/include/linux/netfilter/xt_connlimit.h:25:
+found __[us]{8,16,32,64} type without #include <linux/types.h>
+...
