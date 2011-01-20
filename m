@@ -1,33 +1,46 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables: connlimit rev1 addendum
-Date: Thu, 20 Jan 2011 14:18:52 +0100
-Message-ID: <4D38363C.6000502@trash.net>
-References: <1295529422-25624-1-git-send-email-jengelh@medozas.de>
+Subject: Re: [PATCH resend] netfilter: place in source hash after SNAT is
+ done
+Date: Thu, 20 Jan 2011 15:51:04 +0100
+Message-ID: <4D384BD8.9080709@trash.net>
+References: <1295090930-16671-1-git-send-email-xiaosuo@gmail.com> <4D35A0F2.5010908@trash.net> <AANLkTimPEaXiiFiyD7Anvg+x5zJUsF04P_yPbj8KzYaF@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, jan.rovner@diadema.cz
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35926 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:37576 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755566Ab1ATNSx (ORCPT
+	with ESMTP id S1755857Ab1ATOvH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jan 2011 08:18:53 -0500
-In-Reply-To: <1295529422-25624-1-git-send-email-jengelh@medozas.de>
+	Thu, 20 Jan 2011 09:51:07 -0500
+In-Reply-To: <AANLkTimPEaXiiFiyD7Anvg+x5zJUsF04P_yPbj8KzYaF@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 20.01.2011 14:17, schrieb Jan Engelhardt:
-> The following changes since commit c8f28cc8b84133f20421470e9a61a5a0c78b9c4a:
+Am 19.01.2011 01:03, schrieb Changli Gao:
+> On Tue, Jan 18, 2011 at 10:17 PM, Patrick McHardy <kaber@trash.net> wrote:
+>>>  net/ipv4/netfilter/nf_nat_core.c |   18 +++++++++++-------
+>>>  1 file changed, 11 insertions(+), 7 deletions(-)
+>>> diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+>>> index c04787c..51ce55a 100644
+>>> --- a/net/ipv4/netfilter/nf_nat_core.c
+>>> +++ b/net/ipv4/netfilter/nf_nat_core.c
+>>> @@ -221,7 +221,14 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
+>>>          manips not an issue.  */
+>>>       if (maniptype == IP_NAT_MANIP_SRC &&
+>>>           !(range->flags & IP_NAT_RANGE_PROTO_RANDOM)) {
+>>> -             if (find_appropriate_src(net, zone, orig_tuple, tuple, range)) {
+>>> +             /* try the original tuple first */
+>>
+>> This doesn't seem to be related to the hashing change. Please describe
+>> the intention behind this change.
 > 
->   extensions: libxt_conntrack: add support for specifying port ranges (2011-01-20 11:45:12 +0100)
-> 
-> are available in the git repository at:
->   git://dev.medozas.de/iptables master
-> 
-> Jan Engelhardt (1):
->       libxt_connlimit: remove duplicate member that caused size change
-> 
+> Currently, we add the ct at the head of the corresponding bucket of
+> the source hash table after DNAT is done, so when we do SNAT, the
+> original ct will be tried first. This change is used to keep this
+> behavior.
 
-Also pulled, thanks.
+Thanks for the explanation, applied.
