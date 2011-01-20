@@ -1,31 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/80] netfilter: netfilter update
-Date: Thu, 20 Jan 2011 00:23:32 -0800 (PST)
-Message-ID: <20110120.002332.146374923.davem@davemloft.net>
-References: <1295510282-16860-1-git-send-email-kaber@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 6/6] netfilter: do not omit re-route check on NF_QUEUE
+ verdict
+Date: Thu, 20 Jan 2011 10:24:25 +0100
+Message-ID: <4D37FF49.4020509@trash.net>
+References: <1295183947-12786-1-git-send-email-fw@strlen.de> <1295183947-12786-7-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: kaber@trash.net
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:59966
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754508Ab1ATIW6 (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:64626 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753118Ab1ATJY3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jan 2011 03:22:58 -0500
-In-Reply-To: <1295510282-16860-1-git-send-email-kaber@trash.net>
+	Thu, 20 Jan 2011 04:24:29 -0500
+In-Reply-To: <1295183947-12786-7-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: kaber@trash.net
-Date: Thu, 20 Jan 2011 08:58:01 +0100
-
-> [resend of the previous pull request, I've added Jan's fix to my tree,
->  just resending the new patch instead of the entire batch]
- ...
-> Please pull from
+Am 16.01.2011 14:19, schrieb Florian Westphal:
+> ret != NF_QUEUE only works in the "--queue-num 0" case; for
+> queues > 0 the test should be '(ret & NF_VERDICT_MASK) != NF_QUEUE'.
 > 
-> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
+> However, NF_QUEUE no longer DROPs the skb unconditionally if queueing
+> fails (due to NF_VERDICT_FLAG_QUEUE_BYPASS verdict flag), so the
+> re-route test should also be performed if this flag is set in the
+> verdict.
+> 
+> The full test would then look something like
+> 
+> && ((ret & NF_VERDICT_MASK) == NF_QUEUE && (ret & NF_VERDICT_FLAG_QUEUE_BYPASS))
+> 
+> This is rather ugly, so just remove the NF_QUEUE test altogether.
+> 
+> The only effect is that we might perform an unnecessary route lookup
+> in the NF_QUEUE case.
+> 
+> ip6table_mangle did not have such a check.
 
-Much better, pulled and pushed back out, thanks!
+Applied, thanks Florian.
