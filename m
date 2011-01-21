@@ -1,29 +1,28 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: [PATCH 0/3][RFC] Relationship between conntrack and firewall
- rules
-Date: Fri, 21 Jan 2011 00:13:20 +0000
-Message-ID: <4D38CFA0.9080407@googlemail.com>
-References: <1295563629-14996-1-git-send-email-richard@nod.at> <4D38CD9F.1040905@googlemail.com> <201101210110.38451.richard@nod.at>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/7] netfilter: netfilter fixes for net-next
+Date: Thu, 20 Jan 2011 16:38:45 -0800 (PST)
+Message-ID: <20110120.163845.148563511.davem@davemloft.net>
+References: <1295554966-5263-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Richard Weinberger <richard@nod.at>
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:48055 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752121Ab1AUAN1 (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:59574
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753780Ab1AUAiM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Jan 2011 19:13:27 -0500
-Received: by wyb28 with SMTP id 28so1244102wyb.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Jan 2011 16:13:26 -0800 (PST)
-In-Reply-To: <201101210110.38451.richard@nod.at>
+	Thu, 20 Jan 2011 19:38:12 -0500
+In-Reply-To: <1295554966-5263-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: kaber@trash.net
+Date: Thu, 20 Jan 2011 21:22:39 +0100
 
-> SELinux is disabled on my box.
->   
-Still, isn't it supposed to show secctx=0 (or was it secctx=-1) if 
-SELinux is in permissive/disabled mode?
+> Please apply or pull from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
 
+Pulled, thanks Patrick.
