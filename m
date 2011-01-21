@@ -1,42 +1,25 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: ipt_ACCOUNT 1.16 released
-Date: Fri, 21 Jan 2011 16:57:56 +0100
-Message-ID: <201101211657.56812.thomas.jarosch@intra2net.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter: ipvs: fix compiler warnings
+Date: Fri, 21 Jan 2011 17:50:03 +0100
+Message-ID: <4D39B93B.2000408@trash.net>
+References: <1295604133-6869-1-git-send-email-xiaosuo@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org,
-	ipt_account@developer.intra2net.com
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from re01.intra2net.com ([82.165.28.202]:32969 "EHLO
-	re01.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750880Ab1AUQQF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Jan 2011 11:16:05 -0500
-Received: from intranator.m.i2n (unknown [172.16.1.99])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by re01.intra2net.com (Postfix) with ESMTP id C6C865258
-	for <netfilter-devel@vger.kernel.org>; Fri, 21 Jan 2011 16:57:58 +0100 (CET)
-Received: from localhost (intranator.m.i2n [127.0.0.1])
-	by localhost (Postfix) with ESMTP id 8C0F12AC56
-	for <netfilter-devel@vger.kernel.org>; Fri, 21 Jan 2011 16:57:58 +0100 (CET)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Simon Horman <horms@verge.net.au>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1295604133-6869-1-git-send-email-xiaosuo@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Am 21.01.2011 11:02, schrieb Changli Gao:
+> Fix compiler warnings when no transport protocol load balancing support
+> is configured.
 
-I'm pleased to announce the release of ipt_ACCOUNT 1.16.
-
-Changelog:
-- Support for kernel 2.6.36 / 2.6.37
-- Support for iptables 1.4.3 and 1.4.4 by Blazej
-  iptables 1.4.2 and below is no longer supported
-
-
-Get it from here:
-http://www.intra2net.com/en/developer/ipt_ACCOUNT/
-
-Best regards,
-Thomas Jarosch
+Thanks Changli, I'll apply your patch once one of the IPVS developers
+ACKs this.
