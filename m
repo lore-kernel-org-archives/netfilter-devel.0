@@ -1,69 +1,74 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 05/13] bitmap:port set type support
-Date: Fri, 21 Jan 2011 15:01:58 +0100
-Message-ID: <1295618527-9583-6-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 07/13] hash:ip,port set type support
+Date: Fri, 21 Jan 2011 15:02:00 +0100
+Message-ID: <1295618527-9583-8-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1295618527-9583-1-git-send-email-kadlec@blackhole.kfki.hu>
  <1295618527-9583-2-git-send-email-kadlec@blackhole.kfki.hu>
  <1295618527-9583-3-git-send-email-kadlec@blackhole.kfki.hu>
  <1295618527-9583-4-git-send-email-kadlec@blackhole.kfki.hu>
  <1295618527-9583-5-git-send-email-kadlec@blackhole.kfki.hu>
+ <1295618527-9583-6-git-send-email-kadlec@blackhole.kfki.hu>
+ <1295618527-9583-7-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Patrick McHardy <kaber@trash.net>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:37600 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:36474 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752625Ab1AUOCJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1752678Ab1AUOCJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Fri, 21 Jan 2011 09:02:09 -0500
-In-Reply-To: <1295618527-9583-5-git-send-email-kadlec@blackhole.kfki.hu>
+In-Reply-To: <1295618527-9583-7-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The module implements the bitmap:port type in two flavours, without
-and with timeout support to store TCP/UDP ports from a range.
+The module implements the hash:ip,port type support in four flavours:
+for IPv4 and IPv6, both without and with timeout support. The elements
+are two dimensional: IPv4/IPv6 address and protocol/port pairs. The port
+is interpeted for TCP, UPD, ICMP and ICMPv6 (at the latters as type/code
+of course).
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
  net/netfilter/ipset/Kconfig              |    9 +
  net/netfilter/ipset/Makefile             |    1 +
- net/netfilter/ipset/ip_set_bitmap_port.c |  649 ++++++++++++++++++++++++++++++
- 3 files changed, 659 insertions(+), 0 deletions(-)
- create mode 100644 net/netfilter/ipset/ip_set_bitmap_port.c
+ net/netfilter/ipset/ip_set_hash_ipport.c |  565 ++++++++++++++++++++++++++++++
+ 3 files changed, 575 insertions(+), 0 deletions(-)
+ create mode 100644 net/netfilter/ipset/ip_set_hash_ipport.c
 
 diff --git a/net/netfilter/ipset/Kconfig b/net/netfilter/ipset/Kconfig
-index f18654c..f401e91 100644
+index 194d89c..325b531 100644
 --- a/net/netfilter/ipset/Kconfig
 +++ b/net/netfilter/ipset/Kconfig
-@@ -41,4 +41,13 @@ config IP_SET_BITMAP_IPMAC
+@@ -60,4 +60,13 @@ config IP_SET_HASH_IP
  
  	  To compile it as a module, choose M here.  If unsure, say N.
  
-+config IP_SET_BITMAP_PORT
-+	tristate "bitmap:port set support"
++config IP_SET_HASH_IPPORT
++	tristate "hash:ip,port set support"
 +	depends on IP_SET
 +	help
-+	  This option adds the bitmap:port set type support, by which one
-+	  can store TCP/UDP port numbers from a range.
++	  This option adds the hash:ip,port set type support, by which one
++	  can store IPv4/IPv6 address and protocol/port pairs.
 +
 +	  To compile it as a module, choose M here.  If unsure, say N.
 +
  endif # IP_SET
 diff --git a/net/netfilter/ipset/Makefile b/net/netfilter/ipset/Makefile
-index f7a099f..40866e2 100644
+index 5cbf00c..6a3663e 100644
 --- a/net/netfilter/ipset/Makefile
 +++ b/net/netfilter/ipset/Makefile
-@@ -10,3 +10,4 @@ obj-$(CONFIG_IP_SET) += ip_set.o
- # bitmap types
- obj-$(CONFIG_IP_SET_BITMAP_IP) += ip_set_bitmap_ip.o
- obj-$(CONFIG_IP_SET_BITMAP_IPMAC) += ip_set_bitmap_ipmac.o
-+obj-$(CONFIG_IP_SET_BITMAP_PORT) += ip_set_bitmap_port.o
-diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
+@@ -14,3 +14,4 @@ obj-$(CONFIG_IP_SET_BITMAP_PORT) += ip_set_bitmap_port.o
+ 
+ # hash types
+ obj-$(CONFIG_IP_SET_HASH_IP) += ip_set_hash_ip.o
++obj-$(CONFIG_IP_SET_HASH_IPPORT) += ip_set_hash_ipport.o
+diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
 new file mode 100644
-index 0000000..fbd0aaf
+index 0000000..7f37192
 --- /dev/null
-+++ b/net/netfilter/ipset/ip_set_bitmap_port.c
-@@ -0,0 +1,649 @@
++++ b/net/netfilter/ipset/ip_set_hash_ipport.c
+@@ -0,0 +1,565 @@
 +/* Copyright (C) 2003-2011 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 + *
 + * This program is free software; you can redistribute it and/or modify
@@ -71,349 +76,175 @@ index 0000000..fbd0aaf
 + * published by the Free Software Foundation.
 + */
 +
-+/* Kernel module implementing an IP set type: the bitmap:port type */
++/* Kernel module implementing an IP set type: the hash:ip,port type */
 +
++#include <linux/jhash.h>
 +#include <linux/module.h>
 +#include <linux/ip.h>
-+#include <linux/tcp.h>
-+#include <linux/udp.h>
 +#include <linux/skbuff.h>
 +#include <linux/errno.h>
 +#include <linux/uaccess.h>
 +#include <linux/bitops.h>
 +#include <linux/spinlock.h>
-+#include <linux/netlink.h>
-+#include <linux/jiffies.h>
-+#include <linux/timer.h>
++#include <linux/random.h>
++#include <net/ip.h>
++#include <net/ipv6.h>
 +#include <net/netlink.h>
++#include <net/tcp.h>
 +
++#include <linux/netfilter.h>
++#include <linux/netfilter/ipset/pfxlen.h>
 +#include <linux/netfilter/ipset/ip_set.h>
-+#include <linux/netfilter/ipset/ip_set_bitmap.h>
-+#include <linux/netfilter/ipset/ip_set_getport.h>
-+#define IP_SET_BITMAP_TIMEOUT
 +#include <linux/netfilter/ipset/ip_set_timeout.h>
++#include <linux/netfilter/ipset/ip_set_getport.h>
++#include <linux/netfilter/ipset/ip_set_hash.h>
 +
 +MODULE_LICENSE("GPL");
 +MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
-+MODULE_DESCRIPTION("bitmap:port type of IP sets");
-+MODULE_ALIAS("ip_set_bitmap:port");
++MODULE_DESCRIPTION("hash:ip,port type of IP sets");
++MODULE_ALIAS("ip_set_hash:ip,port");
 +
-+/* Base variant */
++/* Type specific function prefix */
++#define TYPE		hash_ipport
 +
-+struct bitmap_port {
-+	void *members;		/* the set members */
-+	u16 first_port;		/* host byte order, included in range */
-+	u16 last_port;		/* host byte order, included in range */
-+	size_t memsize;		/* members size */
++static bool
++hash_ipport_same_set(const struct ip_set *a, const struct ip_set *b);
++
++#define hash_ipport4_same_set	hash_ipport_same_set
++#define hash_ipport6_same_set	hash_ipport_same_set
++
++/* The type variant functions: IPv4 */
++
++/* Member elements without timeout */
++struct hash_ipport4_elem {
++	__be32 ip;
++	__be16 port;
++	u8 proto;
++	u8 padding;
 +};
 +
-+static inline int
-+bitmap_port_test(const struct bitmap_port *map, u16 id)
++/* Member elements with timeout support */
++struct hash_ipport4_telem {
++	__be32 ip;
++	__be16 port;
++	u8 proto;
++	u8 padding;
++	unsigned long timeout;
++};
++
++static inline bool
++hash_ipport4_data_equal(const struct hash_ipport4_elem *ip1,
++			const struct hash_ipport4_elem *ip2)
 +{
-+	return !!test_bit(id, map->members);
++	return ip1->ip == ip2->ip &&
++	       ip1->port == ip2->port &&
++	       ip1->proto == ip2->proto;
 +}
 +
-+static inline int
-+bitmap_port_add(struct bitmap_port *map, u16 id)
++static inline bool
++hash_ipport4_data_isnull(const struct hash_ipport4_elem *elem)
 +{
-+	if (test_and_set_bit(id, map->members))
-+		return -IPSET_ERR_EXIST;
++	return elem->proto == 0;
++}
++
++static inline void
++hash_ipport4_data_copy(struct hash_ipport4_elem *dst,
++		       const struct hash_ipport4_elem *src)
++{
++	dst->ip = src->ip;
++	dst->port = src->port;
++	dst->proto = src->proto;
++}
++
++static inline void
++hash_ipport4_data_zero_out(struct hash_ipport4_elem *elem)
++{
++	elem->proto = 0;
++}
++
++static bool
++hash_ipport4_data_list(struct sk_buff *skb,
++		       const struct hash_ipport4_elem *data)
++{
++	NLA_PUT_IPADDR4(skb, IPSET_ATTR_IP, data->ip);
++	NLA_PUT_NET16(skb, IPSET_ATTR_PORT, data->port);
++	NLA_PUT_U8(skb, IPSET_ATTR_PROTO, data->proto);
++	return 0;
++
++nla_put_failure:
++	return 1;
++}
++
++static bool
++hash_ipport4_data_tlist(struct sk_buff *skb,
++			const struct hash_ipport4_elem *data)
++{
++	const struct hash_ipport4_telem *tdata =
++		(const struct hash_ipport4_telem *)data;
++
++	NLA_PUT_IPADDR4(skb, IPSET_ATTR_IP, tdata->ip);
++	NLA_PUT_NET16(skb, IPSET_ATTR_PORT, tdata->port);
++	NLA_PUT_U8(skb, IPSET_ATTR_PROTO, data->proto);
++	NLA_PUT_NET32(skb, IPSET_ATTR_TIMEOUT,
++		      htonl(ip_set_timeout_get(tdata->timeout)));
 +
 +	return 0;
++
++nla_put_failure:
++	return 1;
 +}
++
++#define PF		4
++#define HOST_MASK	32
++#include <linux/netfilter/ipset/ip_set_ahash.h>
 +
 +static int
-+bitmap_port_del(struct bitmap_port *map, u16 id)
++hash_ipport4_kadt(struct ip_set *set, const struct sk_buff *skb,
++		  enum ipset_adt adt, u8 pf, u8 dim, u8 flags)
 +{
-+	if (!test_and_clear_bit(id, map->members))
-+		return -IPSET_ERR_EXIST;
++	const struct ip_set_hash *h = set->data;
++	ipset_adtfn adtfn = set->variant->adt[adt];
++	struct hash_ipport4_elem data = { };
 +
-+	return 0;
-+}
-+
-+static int
-+bitmap_port_kadt(struct ip_set *set, const struct sk_buff *skb,
-+		 enum ipset_adt adt, u8 pf, u8 dim, u8 flags)
-+{
-+	struct bitmap_port *map = set->data;
-+	__be16 __port;
-+	u16 port = 0;
-+
-+	if (!ip_set_get_ip_port(skb, pf, flags & IPSET_DIM_ONE_SRC, &__port))
++	if (!ip_set_get_ip4_port(skb, flags & IPSET_DIM_TWO_SRC,
++				 &data.port, &data.proto))
 +		return -EINVAL;
 +
-+	port = ntohs(__port);
++	ip4addrptr(skb, flags & IPSET_DIM_ONE_SRC, &data.ip);
 +
-+	if (port < map->first_port || port > map->last_port)
-+		return -IPSET_ERR_BITMAP_RANGE;
-+
-+	port -= map->first_port;
-+
-+	switch (adt) {
-+	case IPSET_TEST:
-+		return bitmap_port_test(map, port);
-+	case IPSET_ADD:
-+		return bitmap_port_add(map, port);
-+	case IPSET_DEL:
-+		return bitmap_port_del(map, port);
-+	default:
-+		return -EINVAL;
-+	}
++	return adtfn(set, &data, h->timeout);
 +}
 +
-+static const struct nla_policy bitmap_port_adt_policy[IPSET_ATTR_ADT_MAX+1] = {
++static const struct nla_policy
++hash_ipport_adt_policy[IPSET_ATTR_ADT_MAX + 1] = {
++	[IPSET_ATTR_IP]		= { .type = NLA_NESTED },
++	[IPSET_ATTR_IP_TO]	= { .type = NLA_NESTED },
 +	[IPSET_ATTR_PORT]	= { .type = NLA_U16 },
 +	[IPSET_ATTR_PORT_TO]	= { .type = NLA_U16 },
++	[IPSET_ATTR_CIDR]	= { .type = NLA_U8 },
++	[IPSET_ATTR_PROTO]	= { .type = NLA_U8 },
 +	[IPSET_ATTR_TIMEOUT]	= { .type = NLA_U32 },
 +	[IPSET_ATTR_LINENO]	= { .type = NLA_U32 },
 +};
 +
 +static int
-+bitmap_port_uadt(struct ip_set *set, struct nlattr *head, int len,
-+		 enum ipset_adt adt, u32 *lineno, u32 flags)
++hash_ipport4_uadt(struct ip_set *set, struct nlattr *head, int len,
++		  enum ipset_adt adt, u32 *lineno, u32 flags)
 +{
-+	struct bitmap_port *map = set->data;
++	const struct ip_set_hash *h = set->data;
 +	struct nlattr *tb[IPSET_ATTR_ADT_MAX+1];
-+	u32 port;	/* wraparound */
-+	u16 id, port_to;
-+	int ret = 0;
++	ipset_adtfn adtfn = set->variant->adt[adt];
++	struct hash_ipport4_elem data = { };
++	u32 ip, ip_to, p, port, port_to;
++	u32 timeout = h->timeout;
++	int ret;
 +
 +	if (nla_parse(tb, IPSET_ATTR_ADT_MAX, head, len,
-+		      bitmap_port_adt_policy))
++		      hash_ipport_adt_policy))
 +		return -IPSET_ERR_PROTOCOL;
 +
-+	if (unlikely(!ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO)))
-+		return -IPSET_ERR_PROTOCOL;
-+
-+	if (tb[IPSET_ATTR_LINENO])
-+		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
-+
-+	port = ip_set_get_h16(tb[IPSET_ATTR_PORT]);
-+	if (port < map->first_port || port > map->last_port)
-+		return -IPSET_ERR_BITMAP_RANGE;
-+
-+	if (tb[IPSET_ATTR_TIMEOUT])
-+		return -IPSET_ERR_TIMEOUT;
-+
-+	if (adt == IPSET_TEST)
-+		return bitmap_port_test(map, port - map->first_port);
-+
-+	if (tb[IPSET_ATTR_PORT_TO]) {
-+		port_to = ip_set_get_h16(tb[IPSET_ATTR_PORT_TO]);
-+		if (port > port_to) {
-+			swap(port, port_to);
-+			if (port < map->first_port)
-+				return -IPSET_ERR_BITMAP_RANGE;
-+		}
-+	} else
-+		port_to = port;
-+
-+	if (port_to > map->last_port)
-+		return -IPSET_ERR_BITMAP_RANGE;
-+
-+	for (; port <= port_to; port++) {
-+		id = port - map->first_port;
-+		ret = adt == IPSET_ADD ? bitmap_port_add(map, id)
-+				       : bitmap_port_del(map, id);
-+
-+		if (ret && !ip_set_eexist(ret, flags))
-+			return ret;
-+		else
-+			ret = 0;
-+	}
-+	return ret;
-+}
-+
-+static void
-+bitmap_port_destroy(struct ip_set *set)
-+{
-+	struct bitmap_port *map = set->data;
-+
-+	ip_set_free(map->members);
-+	kfree(map);
-+
-+	set->data = NULL;
-+}
-+
-+static void
-+bitmap_port_flush(struct ip_set *set)
-+{
-+	struct bitmap_port *map = set->data;
-+
-+	memset(map->members, 0, map->memsize);
-+}
-+
-+static int
-+bitmap_port_head(struct ip_set *set, struct sk_buff *skb)
-+{
-+	const struct bitmap_port *map = set->data;
-+	struct nlattr *nested;
-+
-+	nested = ipset_nest_start(skb, IPSET_ATTR_DATA);
-+	if (!nested)
-+		goto nla_put_failure;
-+	NLA_PUT_NET16(skb, IPSET_ATTR_PORT, htons(map->first_port));
-+	NLA_PUT_NET16(skb, IPSET_ATTR_PORT_TO, htons(map->last_port));
-+	NLA_PUT_NET32(skb, IPSET_ATTR_REFERENCES,
-+		      htonl(atomic_read(&set->ref) - 1));
-+	NLA_PUT_NET32(skb, IPSET_ATTR_MEMSIZE,
-+		      htonl(sizeof(*map) + map->memsize));
-+	ipset_nest_end(skb, nested);
-+
-+	return 0;
-+nla_put_failure:
-+	return -EFAULT;
-+}
-+
-+static int
-+bitmap_port_list(const struct ip_set *set,
-+		 struct sk_buff *skb, struct netlink_callback *cb)
-+{
-+	const struct bitmap_port *map = set->data;
-+	struct nlattr *atd, *nested;
-+	u16 id, first = cb->args[2];
-+	u16 last = map->last_port - map->first_port;
-+
-+	atd = ipset_nest_start(skb, IPSET_ATTR_ADT);
-+	if (!atd)
-+		return -EFAULT;
-+	for (; cb->args[2] <= last; cb->args[2]++) {
-+		id = cb->args[2];
-+		if (!test_bit(id, map->members))
-+			continue;
-+		nested = ipset_nest_start(skb, IPSET_ATTR_DATA);
-+		if (!nested) {
-+			if (id == first) {
-+				nla_nest_cancel(skb, atd);
-+				return -EFAULT;
-+			} else
-+				goto nla_put_failure;
-+		}
-+		NLA_PUT_NET16(skb, IPSET_ATTR_PORT,
-+			      htons(map->first_port + id));
-+		ipset_nest_end(skb, nested);
-+	}
-+	ipset_nest_end(skb, atd);
-+	/* Set listing finished */
-+	cb->args[2] = 0;
-+
-+	return 0;
-+
-+nla_put_failure:
-+	nla_nest_cancel(skb, nested);
-+	ipset_nest_end(skb, atd);
-+	return 0;
-+}
-+
-+static bool
-+bitmap_port_same_set(const struct ip_set *a, const struct ip_set *b)
-+{
-+	const struct bitmap_port *x = a->data;
-+	const struct bitmap_port *y = b->data;
-+
-+	return x->first_port == y->first_port &&
-+	       x->last_port == y->last_port;
-+}
-+
-+static const struct ip_set_type_variant bitmap_port = {
-+	.kadt	= bitmap_port_kadt,
-+	.uadt	= bitmap_port_uadt,
-+	.destroy = bitmap_port_destroy,
-+	.flush	= bitmap_port_flush,
-+	.head	= bitmap_port_head,
-+	.list	= bitmap_port_list,
-+	.same_set = bitmap_port_same_set,
-+};
-+
-+/* Timeout variant */
-+
-+struct bitmap_port_timeout {
-+	unsigned long *members;	/* the set members */
-+	u16 first_port;		/* host byte order, included in range */
-+	u16 last_port;		/* host byte order, included in range */
-+	size_t memsize;		/* members size */
-+
-+	u32 timeout;		/* timeout parameter */
-+	struct timer_list gc;	/* garbage collection */
-+};
-+
-+static inline bool
-+bitmap_port_timeout_test(const struct bitmap_port_timeout *map, u16 id)
-+{
-+	return ip_set_timeout_test(map->members[id]);
-+}
-+
-+static int
-+bitmap_port_timeout_add(const struct bitmap_port_timeout *map,
-+			u16 id, u32 timeout)
-+{
-+	if (bitmap_port_timeout_test(map, id))
-+		return -IPSET_ERR_EXIST;
-+
-+	map->members[id] = ip_set_timeout_set(timeout);
-+
-+	return 0;
-+}
-+
-+static int
-+bitmap_port_timeout_del(const struct bitmap_port_timeout *map,
-+			u16 id)
-+{
-+	int ret = -IPSET_ERR_EXIST;
-+
-+	if (bitmap_port_timeout_test(map, id))
-+		ret = 0;
-+
-+	map->members[id] = IPSET_ELEM_UNSET;
-+	return ret;
-+}
-+
-+static int
-+bitmap_port_timeout_kadt(struct ip_set *set, const struct sk_buff *skb,
-+			 enum ipset_adt adt, u8 pf, u8 dim, u8 flags)
-+{
-+	struct bitmap_port_timeout *map = set->data;
-+	__be16 __port;
-+	u16 port = 0;
-+
-+	if (!ip_set_get_ip_port(skb, pf, flags & IPSET_DIM_ONE_SRC, &__port))
-+		return -EINVAL;
-+
-+	port = ntohs(__port);
-+
-+	if (port < map->first_port || port > map->last_port)
-+		return -IPSET_ERR_BITMAP_RANGE;
-+
-+	port -= map->first_port;
-+
-+	switch (adt) {
-+	case IPSET_TEST:
-+		return bitmap_port_timeout_test(map, port);
-+	case IPSET_ADD:
-+		return bitmap_port_timeout_add(map, port, map->timeout);
-+	case IPSET_DEL:
-+		return bitmap_port_timeout_del(map, port);
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+static int
-+bitmap_port_timeout_uadt(struct ip_set *set, struct nlattr *head, int len,
-+			 enum ipset_adt adt, u32 *lineno, u32 flags)
-+{
-+	const struct bitmap_port_timeout *map = set->data;
-+	struct nlattr *tb[IPSET_ATTR_ADT_MAX+1];
-+	u16 id, port_to;
-+	u32 port, timeout = map->timeout;	/* wraparound */
-+	int ret = 0;
-+
-+	if (nla_parse(tb, IPSET_ATTR_ADT_MAX, head, len,
-+		      bitmap_port_adt_policy))
-+		return -IPSET_ERR_PROTOCOL;
-+
-+	if (unlikely(!ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
++	if (unlikely(!tb[IPSET_ATTR_IP] ||
++		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
 +		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
 +		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT)))
 +		return -IPSET_ERR_PROTOCOL;
@@ -421,34 +252,270 @@ index 0000000..fbd0aaf
 +	if (tb[IPSET_ATTR_LINENO])
 +		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
 +
-+	port = ip_set_get_h16(tb[IPSET_ATTR_PORT]);
-+	if (port < map->first_port || port > map->last_port)
-+		return -IPSET_ERR_BITMAP_RANGE;
++	ret = ip_set_get_ipaddr4(tb[IPSET_ATTR_IP], &data.ip);
++	if (ret)
++		return ret;
 +
-+	if (adt == IPSET_TEST)
-+		return bitmap_port_timeout_test(map, port - map->first_port);
++	if (tb[IPSET_ATTR_PORT])
++		data.port = nla_get_be16(tb[IPSET_ATTR_PORT]);
++	else
++		return -IPSET_ERR_PROTOCOL;
 +
++	if (tb[IPSET_ATTR_PROTO]) {
++		data.proto = nla_get_u8(tb[IPSET_ATTR_PROTO]);
++
++		if (data.proto == 0)
++			return -IPSET_ERR_INVALID_PROTO;
++	} else
++		return -IPSET_ERR_MISSING_PROTO;
++
++	switch (data.proto) {
++	case IPPROTO_UDP:
++	case IPPROTO_TCP:
++	case IPPROTO_ICMP:
++		break;
++	default:
++		data.port = 0;
++		break;
++	}
++
++	if (tb[IPSET_ATTR_TIMEOUT]) {
++		if (!with_timeout(h->timeout))
++			return -IPSET_ERR_TIMEOUT;
++		timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
++	}
++
++	if (adt == IPSET_TEST ||
++	    !(data.proto == IPPROTO_TCP || data.proto == IPPROTO_UDP) ||
++	    !(tb[IPSET_ATTR_IP_TO] || tb[IPSET_ATTR_CIDR] ||
++	      tb[IPSET_ATTR_PORT_TO])) {
++		ret = adtfn(set, &data, timeout);
++		return ip_set_eexist(ret, flags) ? 0 : ret;
++	}
++
++	ip = ntohl(data.ip);
++	if (tb[IPSET_ATTR_IP_TO]) {
++		ret = ip_set_get_hostipaddr4(tb[IPSET_ATTR_IP_TO], &ip_to);
++		if (ret)
++			return ret;
++		if (ip > ip_to)
++			swap(ip, ip_to);
++	} else if (tb[IPSET_ATTR_CIDR]) {
++		u8 cidr = nla_get_u8(tb[IPSET_ATTR_CIDR]);
++
++		if (cidr > 32)
++			return -IPSET_ERR_INVALID_CIDR;
++		ip &= ip_set_hostmask(cidr);
++		ip_to = ip | ~ip_set_hostmask(cidr);
++	} else
++		ip_to = ip;
++
++	port = ntohs(data.port);
 +	if (tb[IPSET_ATTR_PORT_TO]) {
 +		port_to = ip_set_get_h16(tb[IPSET_ATTR_PORT_TO]);
-+		if (port > port_to) {
++		if (port > port_to)
 +			swap(port, port_to);
-+			if (port < map->first_port)
-+				return -IPSET_ERR_BITMAP_RANGE;
-+		}
 +	} else
 +		port_to = port;
 +
-+	if (port_to > map->last_port)
-+		return -IPSET_ERR_BITMAP_RANGE;
++	for (; !before(ip_to, ip); ip++)
++		for (p = port; p <= port_to; p++) {
++			data.ip = htonl(ip);
++			data.port = htons(p);
++			ret = adtfn(set, &data, timeout);
 +
-+	if (tb[IPSET_ATTR_TIMEOUT])
++			if (ret && !ip_set_eexist(ret, flags))
++				return ret;
++			else
++				ret = 0;
++		}
++	return ret;
++}
++
++static bool
++hash_ipport_same_set(const struct ip_set *a, const struct ip_set *b)
++{
++	const struct ip_set_hash *x = a->data;
++	const struct ip_set_hash *y = b->data;
++
++	/* Resizing changes htable_bits, so we ignore it */
++	return x->maxelem == y->maxelem &&
++	       x->timeout == y->timeout;
++}
++
++/* The type variant functions: IPv6 */
++
++struct hash_ipport6_elem {
++	union nf_inet_addr ip;
++	__be16 port;
++	u8 proto;
++	u8 padding;
++};
++
++struct hash_ipport6_telem {
++	union nf_inet_addr ip;
++	__be16 port;
++	u8 proto;
++	u8 padding;
++	unsigned long timeout;
++};
++
++static inline bool
++hash_ipport6_data_equal(const struct hash_ipport6_elem *ip1,
++			const struct hash_ipport6_elem *ip2)
++{
++	return ipv6_addr_cmp(&ip1->ip.in6, &ip2->ip.in6) == 0 &&
++	       ip1->port == ip2->port &&
++	       ip1->proto == ip2->proto;
++}
++
++static inline bool
++hash_ipport6_data_isnull(const struct hash_ipport6_elem *elem)
++{
++	return elem->proto == 0;
++}
++
++static inline void
++hash_ipport6_data_copy(struct hash_ipport6_elem *dst,
++		       const struct hash_ipport6_elem *src)
++{
++	memcpy(dst, src, sizeof(*dst));
++}
++
++static inline void
++hash_ipport6_data_zero_out(struct hash_ipport6_elem *elem)
++{
++	elem->proto = 0;
++}
++
++static bool
++hash_ipport6_data_list(struct sk_buff *skb,
++		       const struct hash_ipport6_elem *data)
++{
++	NLA_PUT_IPADDR6(skb, IPSET_ATTR_IP, &data->ip);
++	NLA_PUT_NET16(skb, IPSET_ATTR_PORT, data->port);
++	NLA_PUT_U8(skb, IPSET_ATTR_PROTO, data->proto);
++	return 0;
++
++nla_put_failure:
++	return 1;
++}
++
++static bool
++hash_ipport6_data_tlist(struct sk_buff *skb,
++			const struct hash_ipport6_elem *data)
++{
++	const struct hash_ipport6_telem *e =
++		(const struct hash_ipport6_telem *)data;
++
++	NLA_PUT_IPADDR6(skb, IPSET_ATTR_IP, &e->ip);
++	NLA_PUT_NET16(skb, IPSET_ATTR_PORT, data->port);
++	NLA_PUT_U8(skb, IPSET_ATTR_PROTO, data->proto);
++	NLA_PUT_NET32(skb, IPSET_ATTR_TIMEOUT,
++		      htonl(ip_set_timeout_get(e->timeout)));
++	return 0;
++
++nla_put_failure:
++	return 1;
++}
++
++#undef PF
++#undef HOST_MASK
++
++#define PF		6
++#define HOST_MASK	128
++#include <linux/netfilter/ipset/ip_set_ahash.h>
++
++static int
++hash_ipport6_kadt(struct ip_set *set, const struct sk_buff *skb,
++		  enum ipset_adt adt, u8 pf, u8 dim, u8 flags)
++{
++	const struct ip_set_hash *h = set->data;
++	ipset_adtfn adtfn = set->variant->adt[adt];
++	struct hash_ipport6_elem data = { };
++
++	if (!ip_set_get_ip6_port(skb, flags & IPSET_DIM_TWO_SRC,
++				 &data.port, &data.proto))
++		return -EINVAL;
++
++	ip6addrptr(skb, flags & IPSET_DIM_ONE_SRC, &data.ip.in6);
++
++	return adtfn(set, &data, h->timeout);
++}
++
++static int
++hash_ipport6_uadt(struct ip_set *set, struct nlattr *head, int len,
++		  enum ipset_adt adt, u32 *lineno, u32 flags)
++{
++	const struct ip_set_hash *h = set->data;
++	struct nlattr *tb[IPSET_ATTR_ADT_MAX+1];
++	ipset_adtfn adtfn = set->variant->adt[adt];
++	struct hash_ipport6_elem data = { };
++	u32 port, port_to;
++	u32 timeout = h->timeout;
++	int ret;
++
++	if (nla_parse(tb, IPSET_ATTR_ADT_MAX, head, len,
++		      hash_ipport_adt_policy))
++		return -IPSET_ERR_PROTOCOL;
++
++	if (unlikely(!tb[IPSET_ATTR_IP] ||
++		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT)))
++		return -IPSET_ERR_PROTOCOL;
++
++	if (tb[IPSET_ATTR_LINENO])
++		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
++
++	ret = ip_set_get_ipaddr6(tb[IPSET_ATTR_IP], &data.ip);
++	if (ret)
++		return ret;
++
++	if (tb[IPSET_ATTR_PORT])
++		data.port = nla_get_be16(tb[IPSET_ATTR_PORT]);
++	else
++		return -IPSET_ERR_PROTOCOL;
++
++	if (tb[IPSET_ATTR_PROTO]) {
++		data.proto = nla_get_u8(tb[IPSET_ATTR_PROTO]);
++
++		if (data.proto == 0)
++			return -IPSET_ERR_INVALID_PROTO;
++	} else
++		return -IPSET_ERR_MISSING_PROTO;
++
++	switch (data.proto) {
++	case IPPROTO_UDP:
++	case IPPROTO_TCP:
++	case IPPROTO_ICMPV6:
++		break;
++	default:
++		data.port = 0;
++		break;
++	}
++
++	if (tb[IPSET_ATTR_TIMEOUT]) {
++		if (!with_timeout(h->timeout))
++			return -IPSET_ERR_TIMEOUT;
 +		timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
++	}
++
++	if (adt == IPSET_TEST ||
++	    !(data.proto == IPPROTO_TCP || data.proto == IPPROTO_UDP) ||
++	    !tb[IPSET_ATTR_PORT_TO]) {
++		ret = adtfn(set, &data, timeout);
++		return ip_set_eexist(ret, flags) ? 0 : ret;
++	}
++
++	port = ntohs(data.port);
++	port_to = ip_set_get_h16(tb[IPSET_ATTR_PORT_TO]);
++	if (port > port_to)
++		swap(port, port_to);
 +
 +	for (; port <= port_to; port++) {
-+		id = port - map->first_port;
-+		ret = adt == IPSET_ADD
-+			? bitmap_port_timeout_add(map, id, timeout)
-+			: bitmap_port_timeout_del(map, id);
++		data.port = htons(port);
++		ret = adtfn(set, &data, timeout);
 +
 +		if (ret && !ip_set_eexist(ret, flags))
 +			return ret;
@@ -458,261 +525,115 @@ index 0000000..fbd0aaf
 +	return ret;
 +}
 +
-+static void
-+bitmap_port_timeout_destroy(struct ip_set *set)
-+{
-+	struct bitmap_port_timeout *map = set->data;
-+
-+	del_timer_sync(&map->gc);
-+	ip_set_free(map->members);
-+	kfree(map);
-+
-+	set->data = NULL;
-+}
-+
-+static void
-+bitmap_port_timeout_flush(struct ip_set *set)
-+{
-+	struct bitmap_port_timeout *map = set->data;
-+
-+	memset(map->members, 0, map->memsize);
-+}
-+
-+static int
-+bitmap_port_timeout_head(struct ip_set *set, struct sk_buff *skb)
-+{
-+	const struct bitmap_port_timeout *map = set->data;
-+	struct nlattr *nested;
-+
-+	nested = ipset_nest_start(skb, IPSET_ATTR_DATA);
-+	if (!nested)
-+		goto nla_put_failure;
-+	NLA_PUT_NET16(skb, IPSET_ATTR_PORT, htons(map->first_port));
-+	NLA_PUT_NET16(skb, IPSET_ATTR_PORT_TO, htons(map->last_port));
-+	NLA_PUT_NET32(skb, IPSET_ATTR_TIMEOUT , htonl(map->timeout));
-+	NLA_PUT_NET32(skb, IPSET_ATTR_REFERENCES,
-+		      htonl(atomic_read(&set->ref) - 1));
-+	NLA_PUT_NET32(skb, IPSET_ATTR_MEMSIZE,
-+		      htonl(sizeof(*map) + map->memsize));
-+	ipset_nest_end(skb, nested);
-+
-+	return 0;
-+nla_put_failure:
-+	return -EFAULT;
-+}
-+
-+static int
-+bitmap_port_timeout_list(const struct ip_set *set,
-+			 struct sk_buff *skb, struct netlink_callback *cb)
-+{
-+	const struct bitmap_port_timeout *map = set->data;
-+	struct nlattr *adt, *nested;
-+	u16 id, first = cb->args[2];
-+	u16 last = map->last_port - map->first_port;
-+	const unsigned long *table = map->members;
-+
-+	adt = ipset_nest_start(skb, IPSET_ATTR_ADT);
-+	if (!adt)
-+		return -EFAULT;
-+	for (; cb->args[2] <= last; cb->args[2]++) {
-+		id = cb->args[2];
-+		if (!bitmap_port_timeout_test(map, id))
-+			continue;
-+		nested = ipset_nest_start(skb, IPSET_ATTR_DATA);
-+		if (!nested) {
-+			if (id == first) {
-+				nla_nest_cancel(skb, adt);
-+				return -EFAULT;
-+			} else
-+				goto nla_put_failure;
-+		}
-+		NLA_PUT_NET16(skb, IPSET_ATTR_PORT,
-+			      htons(map->first_port + id));
-+		NLA_PUT_NET32(skb, IPSET_ATTR_TIMEOUT,
-+			      htonl(ip_set_timeout_get(table[id])));
-+		ipset_nest_end(skb, nested);
-+	}
-+	ipset_nest_end(skb, adt);
-+
-+	/* Set listing finished */
-+	cb->args[2] = 0;
-+
-+	return 0;
-+
-+nla_put_failure:
-+	nla_nest_cancel(skb, nested);
-+	ipset_nest_end(skb, adt);
-+	return 0;
-+}
-+
-+static bool
-+bitmap_port_timeout_same_set(const struct ip_set *a, const struct ip_set *b)
-+{
-+	const struct bitmap_port_timeout *x = a->data;
-+	const struct bitmap_port_timeout *y = b->data;
-+
-+	return x->first_port == y->first_port &&
-+	       x->last_port == y->last_port &&
-+	       x->timeout == y->timeout;
-+}
-+
-+static const struct ip_set_type_variant bitmap_port_timeout = {
-+	.kadt	= bitmap_port_timeout_kadt,
-+	.uadt	= bitmap_port_timeout_uadt,
-+	.destroy = bitmap_port_timeout_destroy,
-+	.flush	= bitmap_port_timeout_flush,
-+	.head	= bitmap_port_timeout_head,
-+	.list	= bitmap_port_timeout_list,
-+	.same_set = bitmap_port_timeout_same_set,
-+};
-+
-+static void
-+bitmap_port_gc(unsigned long ul_set)
-+{
-+	struct ip_set *set = (struct ip_set *) ul_set;
-+	struct bitmap_port_timeout *map = set->data;
-+	unsigned long *table = map->members;
-+	u32 id;	/* wraparound */
-+	u16 last = map->last_port - map->first_port;
-+
-+	/* We run parallel with other readers (test element)
-+	 * but adding/deleting new entries is locked out */
-+	read_lock_bh(&set->lock);
-+	for (id = 0; id <= last; id++)
-+		if (ip_set_timeout_expired(table[id]))
-+			table[id] = IPSET_ELEM_UNSET;
-+	read_unlock_bh(&set->lock);
-+
-+	map->gc.expires = jiffies + IPSET_GC_PERIOD(map->timeout) * HZ;
-+	add_timer(&map->gc);
-+}
-+
-+static void
-+bitmap_port_gc_init(struct ip_set *set)
-+{
-+	struct bitmap_port_timeout *map = set->data;
-+
-+	init_timer(&map->gc);
-+	map->gc.data = (unsigned long) set;
-+	map->gc.function = bitmap_port_gc;
-+	map->gc.expires = jiffies + IPSET_GC_PERIOD(map->timeout) * HZ;
-+	add_timer(&map->gc);
-+}
-+
-+/* Create bitmap:ip type of sets */
++/* Create hash:ip type of sets */
 +
 +static const struct nla_policy
-+bitmap_port_create_policy[IPSET_ATTR_CREATE_MAX+1] = {
-+	[IPSET_ATTR_PORT]	= { .type = NLA_U16 },
-+	[IPSET_ATTR_PORT_TO]	= { .type = NLA_U16 },
++hash_ipport_create_policy[IPSET_ATTR_CREATE_MAX+1] = {
++	[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
++	[IPSET_ATTR_MAXELEM]	= { .type = NLA_U32 },
++	[IPSET_ATTR_PROBES]	= { .type = NLA_U8 },
++	[IPSET_ATTR_RESIZE]	= { .type = NLA_U8  },
++	[IPSET_ATTR_PROTO]	= { .type = NLA_U8 },
 +	[IPSET_ATTR_TIMEOUT]	= { .type = NLA_U32 },
 +};
 +
-+static bool
-+init_map_port(struct ip_set *set, struct bitmap_port *map,
-+	      u16 first_port, u16 last_port)
-+{
-+	map->members = ip_set_alloc(map->memsize, GFP_KERNEL);
-+	if (!map->members)
-+		return false;
-+	map->first_port = first_port;
-+	map->last_port = last_port;
-+
-+	set->data = map;
-+	set->family = AF_UNSPEC;
-+
-+	return true;
-+}
-+
 +static int
-+bitmap_port_create(struct ip_set *set, struct nlattr *head, int len,
-+		 u32 flags)
++hash_ipport_create(struct ip_set *set, struct nlattr *head, int len, u32 flags)
 +{
 +	struct nlattr *tb[IPSET_ATTR_CREATE_MAX+1];
-+	u16 first_port, last_port;
++	struct ip_set_hash *h;
++	u32 hashsize = IPSET_DEFAULT_HASHSIZE, maxelem = IPSET_DEFAULT_MAXELEM;
++	u8 hbits;
++
++	if (!(set->family == AF_INET || set->family == AF_INET6))
++		return -IPSET_ERR_INVALID_FAMILY;
 +
 +	if (nla_parse(tb, IPSET_ATTR_CREATE_MAX, head, len,
-+		      bitmap_port_create_policy))
++		      hash_ipport_create_policy))
 +		return -IPSET_ERR_PROTOCOL;
 +
-+	if (unlikely(!ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
-+		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT_TO) ||
++	if (unlikely(!ip_set_optattr_netorder(tb, IPSET_ATTR_HASHSIZE) ||
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_MAXELEM) ||
 +		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT)))
 +		return -IPSET_ERR_PROTOCOL;
 +
-+	first_port = ip_set_get_h16(tb[IPSET_ATTR_PORT]);
-+	last_port = ip_set_get_h16(tb[IPSET_ATTR_PORT_TO]);
-+	if (first_port > last_port) {
-+		u16 tmp = first_port;
-+
-+		first_port = last_port;
-+		last_port = tmp;
++	if (tb[IPSET_ATTR_HASHSIZE]) {
++		hashsize = ip_set_get_h32(tb[IPSET_ATTR_HASHSIZE]);
++		if (hashsize < IPSET_MIMINAL_HASHSIZE)
++			hashsize = IPSET_MIMINAL_HASHSIZE;
 +	}
++
++	if (tb[IPSET_ATTR_MAXELEM])
++		maxelem = ip_set_get_h32(tb[IPSET_ATTR_MAXELEM]);
++
++	h = kzalloc(sizeof(*h), GFP_KERNEL);
++	if (!h)
++		return -ENOMEM;
++
++	h->maxelem = maxelem;
++	get_random_bytes(&h->initval, sizeof(h->initval));
++	h->timeout = IPSET_NO_TIMEOUT;
++
++	hbits = htable_bits(hashsize);
++	h->table = ip_set_alloc(
++			sizeof(struct htable)
++			+ jhash_size(hbits) * sizeof(struct hbucket),
++			GFP_KERNEL);
++	if (!h->table) {
++		kfree(h);
++		return -ENOMEM;
++	}
++	h->table->htable_bits = hbits;
++
++	set->data = h;
 +
 +	if (tb[IPSET_ATTR_TIMEOUT]) {
-+		struct bitmap_port_timeout *map;
++		h->timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
 +
-+		map = kzalloc(sizeof(*map), GFP_KERNEL);
-+		if (!map)
-+			return -ENOMEM;
++		set->variant = set->family == AF_INET
++			? &hash_ipport4_tvariant : &hash_ipport6_tvariant;
 +
-+		map->memsize = (last_port - first_port + 1)
-+			       * sizeof(unsigned long);
-+
-+		if (!init_map_port(set, (struct bitmap_port *) map,
-+				   first_port, last_port)) {
-+			kfree(map);
-+			return -ENOMEM;
-+		}
-+
-+		map->timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
-+		set->variant = &bitmap_port_timeout;
-+
-+		bitmap_port_gc_init(set);
++		if (set->family == AF_INET)
++			hash_ipport4_gc_init(set);
++		else
++			hash_ipport6_gc_init(set);
 +	} else {
-+		struct bitmap_port *map;
-+
-+		map = kzalloc(sizeof(*map), GFP_KERNEL);
-+		if (!map)
-+			return -ENOMEM;
-+
-+		map->memsize = bitmap_bytes(0, last_port - first_port);
-+		pr_debug("memsize: %zu\n", map->memsize);
-+		if (!init_map_port(set, map, first_port, last_port)) {
-+			kfree(map);
-+			return -ENOMEM;
-+		}
-+
-+		set->variant = &bitmap_port;
++		set->variant = set->family == AF_INET
++			? &hash_ipport4_variant : &hash_ipport6_variant;
 +	}
++
++	pr_debug("create %s hashsize %u (%u) maxelem %u: %p(%p)\n",
++		 set->name, jhash_size(h->table->htable_bits),
++		 h->table->htable_bits, h->maxelem, set->data, h->table);
++
 +	return 0;
 +}
 +
-+static struct ip_set_type bitmap_port_type = {
-+	.name		= "bitmap:port",
++static struct ip_set_type hash_ipport_type __read_mostly = {
++	.name		= "hash:ip,port",
 +	.protocol	= IPSET_PROTOCOL,
-+	.features	= IPSET_TYPE_PORT,
-+	.dimension	= IPSET_DIM_ONE,
++	.features	= IPSET_TYPE_IP | IPSET_TYPE_PORT,
++	.dimension	= IPSET_DIM_TWO,
 +	.family		= AF_UNSPEC,
 +	.revision	= 0,
-+	.create		= bitmap_port_create,
++	.create		= hash_ipport_create,
 +	.me		= THIS_MODULE,
 +};
 +
 +static int __init
-+bitmap_port_init(void)
++hash_ipport_init(void)
 +{
-+	return ip_set_type_register(&bitmap_port_type);
++	return ip_set_type_register(&hash_ipport_type);
 +}
 +
 +static void __exit
-+bitmap_port_fini(void)
++hash_ipport_fini(void)
 +{
-+	ip_set_type_unregister(&bitmap_port_type);
++	ip_set_type_unregister(&hash_ipport_type);
 +}
 +
-+module_init(bitmap_port_init);
-+module_exit(bitmap_port_fini);
++module_init(hash_ipport_init);
++module_exit(hash_ipport_fini);
 -- 
 1.7.0.4
 
