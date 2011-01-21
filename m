@@ -1,55 +1,76 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/3][RFC] Relationship between conntrack and firewall
- rules
-Date: Fri, 21 Jan 2011 14:57:57 +0100
-Message-ID: <4D3990E5.1010402@netfilter.org>
-References: <1295563629-14996-1-git-send-email-richard@nod.at> <201101211353.40377.richard@nod.at> <4D398956.3030201@netfilter.org> <201101211438.31772.richard@nod.at>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org
-To: Richard Weinberger <richard@nod.at>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH 01/13] NFNL_SUBSYS_IPSET id and NLA_PUT_NET* macros
+Date: Fri, 21 Jan 2011 15:01:54 +0100
+Message-ID: <1295618527-9583-2-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1295618527-9583-1-git-send-email-kadlec@blackhole.kfki.hu>
+Cc: Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36549 "EHLO mail.us.es"
+Received: from smtp2.kfki.hu ([148.6.0.28]:36461 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752668Ab1AUN6B (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Jan 2011 08:58:01 -0500
-In-Reply-To: <201101211438.31772.richard@nod.at>
+	id S1752647Ab1AUOCI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Jan 2011 09:02:08 -0500
+In-Reply-To: <1295618527-9583-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 21/01/11 14:38, Richard Weinberger wrote:
-> Am Freitag 21 Januar 2011, 14:25:42 schrieb Pablo Neira Ayuso:
->>> Using the TRACE target the kernel would produce a lot of log messages
->>> which may slow down the firewall. Especially when tracing ESTABLISHED
->>> connections. My extension does not have this overhead.
->>
->> AFAICS, this is an ad-hoc optimization for a specific case that you
->> need. So, it's basically a subset of the trace infrastructure.
-> 
-> But without the overhead...
-
-I guess that one runs after defining the rule-set for first time or if
-it finds a problem in his rule-set. Not in his daily ruleset.
-
->>> All I want is a friendlier output from conntrack, why should I reinvent
->>> the wheel?
->>
->> Why doing things in user-space is reinventing the wheel?
-> 
-> When I'm using TRACE I'll get a lot of log messages.
-> But I'm not interested in logs, I have already enough of them.
-
-I know that.
-
-I'm proposing you to make a program in user-space that can process them
-and print the output in some compact format, more useful than the current.
-
-> I want a session table where I can see what sessions are allowed by
-> which rules.
-
-I know what you want but who else in this world needs this in the Linux
+The patch adds the NFNL_SUBSYS_IPSET id and NLA_PUT_NET* macros to the vanilla
 kernel.
 
-Of course, you can maintain this hack in your internal tree if you need it.
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ include/linux/netfilter/nfnetlink.h |    3 ++-
+ include/net/netlink.h               |    9 +++++++++
+ 2 files changed, 11 insertions(+), 1 deletions(-)
+
+diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
+index 361d6b5..2b11fc1 100644
+--- a/include/linux/netfilter/nfnetlink.h
++++ b/include/linux/netfilter/nfnetlink.h
+@@ -47,7 +47,8 @@ struct nfgenmsg {
+ #define NFNL_SUBSYS_QUEUE		3
+ #define NFNL_SUBSYS_ULOG		4
+ #define NFNL_SUBSYS_OSF			5
+-#define NFNL_SUBSYS_COUNT		6
++#define NFNL_SUBSYS_IPSET		6
++#define NFNL_SUBSYS_COUNT		7
+ 
+ #ifdef __KERNEL__
+ 
+diff --git a/include/net/netlink.h b/include/net/netlink.h
+index 373f1a9..8a3906a 100644
+--- a/include/net/netlink.h
++++ b/include/net/netlink.h
+@@ -856,18 +856,27 @@ static inline int nla_put_msecs(struct sk_buff *skb, int attrtype,
+ #define NLA_PUT_BE16(skb, attrtype, value) \
+ 	NLA_PUT_TYPE(skb, __be16, attrtype, value)
+ 
++#define NLA_PUT_NET16(skb, attrtype, value) \
++	NLA_PUT_BE16(skb, attrtype | NLA_F_NET_BYTEORDER, value)
++
+ #define NLA_PUT_U32(skb, attrtype, value) \
+ 	NLA_PUT_TYPE(skb, u32, attrtype, value)
+ 
+ #define NLA_PUT_BE32(skb, attrtype, value) \
+ 	NLA_PUT_TYPE(skb, __be32, attrtype, value)
+ 
++#define NLA_PUT_NET32(skb, attrtype, value) \
++	NLA_PUT_BE32(skb, attrtype | NLA_F_NET_BYTEORDER, value)
++
+ #define NLA_PUT_U64(skb, attrtype, value) \
+ 	NLA_PUT_TYPE(skb, u64, attrtype, value)
+ 
+ #define NLA_PUT_BE64(skb, attrtype, value) \
+ 	NLA_PUT_TYPE(skb, __be64, attrtype, value)
+ 
++#define NLA_PUT_NET64(skb, attrtype, value) \
++	NLA_PUT_BE64(skb, attrtype | NLA_F_NET_BYTEORDER, value)
++
+ #define NLA_PUT_STRING(skb, attrtype, value) \
+ 	NLA_PUT(skb, attrtype, strlen(value) + 1, value)
+ 
+-- 
+1.7.0.4
+
