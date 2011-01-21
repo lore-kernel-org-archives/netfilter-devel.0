@@ -1,84 +1,56 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH] netfilter: ipvs: fix compiler warnings
-Date: Fri, 21 Jan 2011 18:02:13 +0800
-Message-ID: <1295604133-6869-1-git-send-email-xiaosuo@gmail.com>
-Cc: Wensong Zhang <wensong@linux-vs.org>, Julian Anastasov <ja@ssi.bg>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Changli Gao <xiaosuo@gmail.com>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Richard Weinberger <richard@nod.at>
+Subject: Re: [PATCH 0/3][RFC] Relationship between conntrack and firewall rules
+Date: Fri, 21 Jan 2011 12:13:56 +0100
+Message-ID: <201101211213.57308.richard@nod.at>
+References: <1295563629-14996-1-git-send-email-richard@nod.at> <201101210002.24922.richard@nod.at> <4D395950.8060304@netfilter.org>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from a.ns.miles-group.at ([95.130.255.143]:59262 "EHLO radon.swed.at"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754154Ab1AULOC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Jan 2011 06:14:02 -0500
+In-Reply-To: <4D395950.8060304@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Fix compiler warnings when no transport protocol load balancing support
-is configured.
+Am Freitag 21 Januar 2011, 11:00:48 schrieb Pablo Neira Ayuso:
+> On 21/01/11 00:02, Richard Weinberger wrote:
+> > Am Donnerstag 20 Januar 2011, 23:52:25 schrieb Jan Engelhardt:
+> >> On Thursday 2011-01-20 23:47, Richard Weinberger wrote:
+> >>> Hi,
+> >>> 
+> >>> as a firewall admin I would like to see which rules allow
+> >>> the connections through my firewall.
+> >>> A relationship between conntrack and firewall rules would be nice.
+> >>> The next five patches bring this feature to the Linux Netfilter.
+> >>> 
+> >>> First a small example.
+> >>> Consider this iptables rules:
+> >>> -A INPUT -m state --state ESTABLISHED,RELATED -j APPROVE --rule-id 1
+> >>> -A OUTPUT -m state --state NEW,ESTABLISHED,RELATED -j APPROVE --rule-id
+> >>> 2 -A INPUT -p tcp --dport 22 -m state --state NEW -j APPROVE --rule-id
+> >>> 3 -A INPUT -p icmp -m state --state NEW -j APPROVE --rule-id 4
+> >>> 
+> >>> The APPROVE target is the same as ACCEPT but it stores also a rule id
+> >>> into the connection tracking entry.
+> >> 
+> >> What about connmark? You could have used that. Perhaps combined with the
+> >> use of -j TRACE that can show which rules were processed before a
+> >> verdict was issued.
+> > 
+> > Yeah, I know commark and TRACE but they are quite clumsy to use for such
+> > a purpose.
+> 
+> Why are the clumsy for this purpose?
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
----
- net/netfilter/ipvs/ip_vs_core.c  |    4 +---
- net/netfilter/ipvs/ip_vs_ctl.c   |    4 ++++
- net/netfilter/ipvs/ip_vs_proto.c |    4 ++++
- 3 files changed, 9 insertions(+), 3 deletions(-)
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index f36a84f..d889f4f 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1894,9 +1894,7 @@ static int __net_init __ip_vs_init(struct net *net)
- 
- static void __net_exit __ip_vs_cleanup(struct net *net)
- {
--	struct netns_ipvs *ipvs = net_ipvs(net);
--
--	IP_VS_DBG(10, "ipvs netns %d released\n", ipvs->gen);
-+	IP_VS_DBG(10, "ipvs netns %d released\n", net_ipvs(net)->gen);
- }
- 
- static struct pernet_operations ipvs_core_ops = {
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 09ca2ce..68b8033 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -2062,7 +2062,9 @@ static const struct file_operations ip_vs_stats_percpu_fops = {
-  */
- static int ip_vs_set_timeout(struct net *net, struct ip_vs_timeout_user *u)
- {
-+#if defined(CONFIG_IP_VS_PROTO_TCP) || defined(CONFIG_IP_VS_PROTO_UDP)
- 	struct ip_vs_proto_data *pd;
-+#endif
- 
- 	IP_VS_DBG(2, "Setting timeout tcp:%d tcpfin:%d udp:%d\n",
- 		  u->tcp_timeout,
-@@ -2405,7 +2407,9 @@ __ip_vs_get_dest_entries(struct net *net, const struct ip_vs_get_dests *get,
- static inline void
- __ip_vs_get_timeouts(struct net *net, struct ip_vs_timeout_user *u)
- {
-+#if defined(CONFIG_IP_VS_PROTO_TCP) || defined(CONFIG_IP_VS_PROTO_UDP)
- 	struct ip_vs_proto_data *pd;
-+#endif
- 
- #ifdef CONFIG_IP_VS_PROTO_TCP
- 	pd = ip_vs_proto_data_get(net, IPPROTO_TCP);
-diff --git a/net/netfilter/ipvs/ip_vs_proto.c b/net/netfilter/ipvs/ip_vs_proto.c
-index 6ac986c..17484a4 100644
---- a/net/netfilter/ipvs/ip_vs_proto.c
-+++ b/net/netfilter/ipvs/ip_vs_proto.c
-@@ -60,6 +60,9 @@ static int __used __init register_ip_vs_protocol(struct ip_vs_protocol *pp)
- 	return 0;
- }
- 
-+#if defined(CONFIG_IP_VS_PROTO_TCP) || defined(CONFIG_IP_VS_PROTO_UDP) || \
-+    defined(CONFIG_IP_VS_PROTO_SCTP) || defined(CONFIG_IP_VS_PROTO_AH) || \
-+    defined(CONFIG_IP_VS_PROTO_ESP)
- /*
-  *	register an ipvs protocols netns related data
-  */
-@@ -85,6 +88,7 @@ register_ip_vs_proto_netns(struct net *net, struct ip_vs_protocol *pp)
- 
- 	return 0;
- }
-+#endif
- 
- /*
-  *	unregister an ipvs protocol
+Because I would need more than one iptables command to model a firewall rule.
+Or can you show me a simple iptables configuration using connmark which 
+achieves the same as my APPROVE example above?
+
+//richard
