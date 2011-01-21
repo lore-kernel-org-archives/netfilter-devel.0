@@ -1,70 +1,57 @@
-From: Richard Weinberger <richard@nod.at>
-Subject: Re: [PATCH 0/3][RFC] Relationship between conntrack and firewall rules
-Date: Fri, 21 Jan 2011 15:11:51 +0100
-Message-ID: <201101211511.51371.richard@nod.at>
-References: <1295563629-14996-1-git-send-email-richard@nod.at> <201101211438.31772.richard@nod.at> <4D3990E5.1010402@netfilter.org>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
+Subject: Re: [PATCH 0/3][RFC] Relationship between conntrack and firewall
+ rules
+Date: Fri, 21 Jan 2011 15:09:05 +0000
+Message-ID: <4D39A191.1050703@googlemail.com>
+References: <1295563629-14996-1-git-send-email-richard@nod.at> <201101211353.40377.richard@nod.at> <4D398956.3030201@netfilter.org> <201101211438.31772.richard@nod.at>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Richard Weinberger <richard@nod.at>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jan Engelhardt <jengelh@medozas.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a.ns.miles-group.at ([95.130.255.143]:37408 "EHLO radon.swed.at"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751487Ab1AUOLz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Jan 2011 09:11:55 -0500
-In-Reply-To: <4D3990E5.1010402@netfilter.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:32901 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754299Ab1AUPJN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Jan 2011 10:09:13 -0500
+Received: by wyb28 with SMTP id 28so1897212wyb.19
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Jan 2011 07:09:12 -0800 (PST)
+In-Reply-To: <201101211438.31772.richard@nod.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am Freitag 21 Januar 2011, 14:57:57 schrieb Pablo Neira Ayuso:
-> On 21/01/11 14:38, Richard Weinberger wrote:
-> > Am Freitag 21 Januar 2011, 14:25:42 schrieb Pablo Neira Ayuso:
-> >>> Using the TRACE target the kernel would produce a lot of log messages
-> >>> which may slow down the firewall. Especially when tracing ESTABLISHED
-> >>> connections. My extension does not have this overhead.
-> >> 
-> >> AFAICS, this is an ad-hoc optimization for a specific case that you
-> >> need. So, it's basically a subset of the trace infrastructure.
-> > 
-> > But without the overhead...
-> 
-> I guess that one runs after defining the rule-set for first time or if
-> it finds a problem in his rule-set. Not in his daily ruleset.
 
-TRACE is a debug tool.
-My extension is not it helps me to see what is going on now.
-Sometimes I see a session in conntrack and have to ask me 
-"What the heck is this session doing here?!".
-This is why I've made APPROVE and ruleid.
+>>> All I want is a friendlier output from conntrack, why should I reinvent
+>>> the wheel?
+>>>       
+>> Why doing things in user-space is reinventing the wheel?
+>>     
+>
+> When I'm using TRACE I'll get a lot of log messages.
+> But I'm not interested in logs, I have already enough of them.
+> I want a session table where I can see what sessions are allowed by
+> which rules.
+> I would have to write a tool like conntrack which builds me a session table
+> from all these logs.
+>   
+I personally like the patch and find it quite useful, though I also 
+think that tracing/tracking/matching sessions and rules could be 
+improved and made more easier for the end user. That is especially true 
+when one has a large number of rules in a particular chain.
 
-> >>> All I want is a friendlier output from conntrack, why should I reinvent
-> >>> the wheel?
-> >> 
-> >> Why doing things in user-space is reinventing the wheel?
-> > 
-> > When I'm using TRACE I'll get a lot of log messages.
-> > But I'm not interested in logs, I have already enough of them.
-> 
-> I know that.
-> 
-> I'm proposing you to make a program in user-space that can process them
-> and print the output in some compact format, more useful than the current.
-> 
-> > I want a session table where I can see what sessions are allowed by
-> > which rules.
-> 
-> I know what you want but who else in this world needs this in the Linux
-> kernel.
+As things stand, in order to trace a particular session and match it 
+with a rule (using your patch) I have to execute iptables (or conntrack) 
+twice in order to get what I need. Even if I use the line-numbers option 
+to show rule numbers in a particular chain, that won't be straight 
+forward when I have large number of rules.
 
-Quite all commercial firewalls have this feature, why shouldn't netfilter have it?
+It would be better if this matching is done (again, by using the rule 
+numbers provided by your patch) with a userspace tool, may be conntrack, 
+or similar, which shows those matches as well as the rules in question, 
+and present them in a form, which does not require me to scan for those 
+matches over and over. Just my two pence, of course, and I hope I am 
+on-topic this time!
 
-> Of course, you can maintain this hack in your internal tree if you need it.
-
-Ok, you hate my extension.
-Why do you consider it as hack?
-It does does not touch anything unless you are using the APPROVE target.
-
-//richard
