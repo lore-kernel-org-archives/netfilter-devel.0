@@ -1,80 +1,79 @@
 From: Thomas Jacob <jacob@internet24.de>
-Subject: Incorrect xt_iprange boundary check for IPv6
-Date: Sat, 22 Jan 2011 15:10:31 +0100
-Message-ID: <1295705432-2588-1-git-send-email-jacob@internet24.de>
+Subject: [PATCH] Incorrect xt_iprange boundary check for IPv6
+Date: Sat, 22 Jan 2011 15:10:32 +0100
+Message-ID: <1295705432-2588-2-git-send-email-jacob@internet24.de>
+References: <1295705432-2588-1-git-send-email-jacob@internet24.de>
+Cc: Thomas Jacob <jacob@internet24.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailout01.ims-firmen.de ([213.174.32.96]:36946 "EHLO
-	mailout01.ims-firmen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753197Ab1AVO3V (ORCPT
+Received: from mailout02.ims-firmen.de ([213.174.32.97]:51747 "EHLO
+	mailout02.ims-firmen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753197Ab1AVO31 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 22 Jan 2011 09:29:21 -0500
+	Sat, 22 Jan 2011 09:29:27 -0500
 Received: from [192.168.1.112] (helo=mailin03.ims-firmen.de)
-	by mailout01.ims-firmen.de with esmtp (Exim 4.72)
+	by mailout02.ims-firmen.de with esmtp (Exim 4.72)
 	(envelope-from <jacob@internet24.de>)
-	id 1PgeAk-0005RF-SV
-	for netfilter-devel@vger.kernel.org; Sat, 22 Jan 2011 15:10:34 +0100
-Received: from [213.174.32.254] (helo=localhost.localdomain)
-	by mailin03.ims-firmen.de with esmtpa (Exim 4.72)
-	(envelope-from <jacob@internet24.de>)
-	id 1PgeAk-0002V9-Rd
-	for netfilter-devel@vger.kernel.org; Sat, 22 Jan 2011 15:10:34 +0100
+	id 1PgeAk-0000b6-Vu
+	for netfilter-devel@vger.kernel.org; Sat, 22 Jan 2011 15:10:35 +0100
+In-Reply-To: <1295705432-2588-1-git-send-email-jacob@internet24.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+iprange_ipv6_sub was substracting 2 unsigned ints and then casting
+the result to int to find out whether they are lt, eq or gt each
+other, this doesn't work if the full 32 bits of each part
+can be used in IPv6 addresses. Patch should remedy that without
+significant performance penalties.
 
-Developed for and tested on 2.6.27.57, but applies and compiles
-in current mainline as well (haven't tested it there though).
+Signed-off-by: Thomas Jacob <jacob@internet24.de>
+---
+ net/netfilter/xt_iprange.c |   16 +++++++---------
+ 1 files changed, 7 insertions(+), 9 deletions(-)
 
-See the following script for a demonstration of the problem:
-
-#!/bin/sh
-PREFIX=fc42:4242
-LEFTOUT=$PREFIX:0:ffff:ffff:ffff:ffff:ffff
-FROM=$PREFIX:1::0
-MIDDLE=$PREFIX:1::8000:0:0:0
-TILL=$PREFIX:1::ffff:ffff:ffff:ffff
-RIGHTOUT=$PREFIX:2::0
-SUBNET=$PREFIX:1::/64
-SOURCE=fc23:2323::1
-CHAIN=iprange_bug
-
-ip6tables -S OUTPUT | fgrep -q -- '-A OUTPUT -j '"$CHAIN" \
-	&& ip6tables -D OUTPUT -j $CHAIN
-
-ip6tables -F $CHAIN 2>/dev/null
-ip6tables -X $CHAIN 2>/dev/null
-ip6tables -N $CHAIN
-
-ip6tables -A $CHAIN -p icmpv6 --icmpv6-type echo-request -s $SOURCE -m iprange --dst-range $FROM-$TILL
-ip6tables -A $CHAIN -p icmpv6 --icmpv6-type echo-request -s $SOURCE -d $SUBNET -j DROP
-
-ip6tables -I OUTPUT 1 -j $CHAIN
-
-ip addr replace $SOURCE/128 dev lo
-ip addr replace $LEFTOUT/128 dev lo
-ip addr replace $FROM/128 dev lo
-ip addr replace $MIDDLE/128 dev lo
-ip addr replace $TILL/128 dev lo
-ip addr replace $RIGHTOUT/128 dev lo
-
-for IP in $LEFTOUT $FROM $MIDDLE $TILL $RIGHTOUT
-do
-	ping6 -c 1 -W 1 -q -I $SOURCE $IP | grep ^PING
-done
-
-echo
-ip6tables -vnL $CHAIN
-
-ip addr del $RIGHTOUT/128 dev lo
-ip addr del $TILL/128 dev lo
-ip addr del $MIDDLE/128 dev lo
-ip addr del $FROM/128 dev lo
-ip addr del $LEFTOUT/128 dev lo
-ip addr del $SOURCE/128 dev lo
-
-ip6tables -D OUTPUT -j $CHAIN
-ip6tables -F $CHAIN
-ip6tables -X $CHAIN
-
+diff --git a/net/netfilter/xt_iprange.c b/net/netfilter/xt_iprange.c
+index 4b5741b..3cc5d21 100644
+--- a/net/netfilter/xt_iprange.c
++++ b/net/netfilter/xt_iprange.c
+@@ -96,15 +96,13 @@ iprange_mt4(const struct sk_buff *skb, const struct net_device *in,
+ }
+ 
+ static inline int
+-iprange_ipv6_sub(const struct in6_addr *a, const struct in6_addr *b)
++iprange_ipv6_lt(const struct in6_addr *a, const struct in6_addr *b)
+ {
+ 	unsigned int i;
+-	int r;
+ 
+ 	for (i = 0; i < 4; ++i) {
+-		r = ntohl(a->s6_addr32[i]) - ntohl(b->s6_addr32[i]);
+-		if (r != 0)
+-			return r;
++		if(ntohl(a->s6_addr32[i]) != ntohl(b->s6_addr32[i]))
++			return ntohl(a->s6_addr32[i]) < ntohl(b->s6_addr32[i]);
+ 	}
+ 
+ 	return 0;
+@@ -121,15 +119,15 @@ iprange_mt6(const struct sk_buff *skb, const struct net_device *in,
+ 	bool m;
+ 
+ 	if (info->flags & IPRANGE_SRC) {
+-		m  = iprange_ipv6_sub(&iph->saddr, &info->src_min.in6) < 0;
+-		m |= iprange_ipv6_sub(&iph->saddr, &info->src_max.in6) > 0;
++		m  = iprange_ipv6_lt(&iph->saddr, &info->src_min.in6);
++		m |= iprange_ipv6_lt(&info->src_max.in6, &iph->saddr);
+ 		m ^= !!(info->flags & IPRANGE_SRC_INV);
+ 		if (m)
+ 			return false;
+ 	}
+ 	if (info->flags & IPRANGE_DST) {
+-		m  = iprange_ipv6_sub(&iph->daddr, &info->dst_min.in6) < 0;
+-		m |= iprange_ipv6_sub(&iph->daddr, &info->dst_max.in6) > 0;
++		m  = iprange_ipv6_lt(&iph->daddr, &info->dst_min.in6);
++		m |= iprange_ipv6_lt(&info->dst_max.in6, &iph->daddr);
+ 		m ^= !!(info->flags & IPRANGE_DST_INV);
+ 		if (m)
+ 			return false;
+-- 
+1.5.6.5
 
