@@ -1,58 +1,99 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset 5.4 released
-Date: Fri, 21 Jan 2011 23:14:49 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1101212302300.10656@blackhole.kfki.hu>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH] netfilter: ipvs: fix compiler warnings
+Date: Sat, 22 Jan 2011 13:22:33 +1100
+Message-ID: <20110122022232.GL2661@verge.net.au>
+References: <1295604133-6869-1-git-send-email-xiaosuo@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Wensong Zhang <wensong@linux-vs.org>, Julian Anastasov <ja@ssi.bg>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1295604133-6869-1-git-send-email-xiaosuo@gmail.com>
+Sender: lvs-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Fri, Jan 21, 2011 at 06:02:13PM +0800, Changli Gao wrote:
+> Fix compiler warnings when no transport protocol load balancing support
+> is configured.
+> 
+> Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+> ---
+>  net/netfilter/ipvs/ip_vs_core.c  |    4 +---
+>  net/netfilter/ipvs/ip_vs_ctl.c   |    4 ++++
+>  net/netfilter/ipvs/ip_vs_proto.c |    4 ++++
+>  3 files changed, 9 insertions(+), 3 deletions(-)
+> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> index f36a84f..d889f4f 100644
+> --- a/net/netfilter/ipvs/ip_vs_core.c
+> +++ b/net/netfilter/ipvs/ip_vs_core.c
+> @@ -1894,9 +1894,7 @@ static int __net_init __ip_vs_init(struct net *net)
+>  
+>  static void __net_exit __ip_vs_cleanup(struct net *net)
+>  {
+> -	struct netns_ipvs *ipvs = net_ipvs(net);
+> -
+> -	IP_VS_DBG(10, "ipvs netns %d released\n", ipvs->gen);
+> +	IP_VS_DBG(10, "ipvs netns %d released\n", net_ipvs(net)->gen);
+>  }
+>  
 
-I'm happy to announce ipset 5.4! Because there are some important kernel 
-part fixes in this release, please upgrade. The list of the changes are:
+The hunk above seems unrelated to the problem described.
+The rest of the changes look good. I will double check and
+apply them to my tree.
 
-- Kernel part:
-  - Fix ICMP and ICMPv6 handling
-  - Fix trailing whitespaces and pr_* messages
-  - Un-inline functions which are not small enough
-  - Fix module loading at create/header commands
-  - Fix wrong kzalloc flag in type_pf_expire
-  - The get_ip*_port functions are too large to be inlined, moved into the 
-    core
-  - Add missing __GFP_HIGHMEM flag to __vmalloc
-  - Enforce network-ordered data in the netlink protocol
-  - Use annotated types and fix sparse warnings
-  - Move ip_set_alloc, ip_set_free and ip_set_get_ipaddr* into the core
-  - NETMASK*, HOSTMASK* macros are too generic, replace with inline 
-    functions
-  - Use static LIST_HEAD() for ip_set_type_list
-  - Move NLA_PUT_NET* macros to include/net/netlink.h
-  - The module parameter max_sets should be unsigned int
-  - Get rid of ip_set_kernel.h
-  - Fix the placement style of boolean operators at continued lines
+Patrick, I have another fix. So I think it would be best
+to take this fix though my tree and. I'll send you a pull
+request shortly.
 
-Most of the changes are suggested by Patrick in his review, many thanks.
-
-You can download the source code from:
-        http://ipset.netfilter.org
-        ftp://ftp.netfilter.org/pub/ipset/
-        git://git.netfilter.org/ipset.git
-
-I fixed a bug in the SET target of iptables/ip6tables, which produced 
-incorrect output at listing/saving rules with the SET target. The fix is 
-available from the git tree or from the daily snapshot 
-iptables-20110121.tar.bz2 (or later), or from the next iptables release:
-
-	git://git.netfilter.org/iptables.git
-	ftp://ftp.netfilter.org/pub/iptables/snapshot/
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+>  static struct pernet_operations ipvs_core_ops = {
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index 09ca2ce..68b8033 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> @@ -2062,7 +2062,9 @@ static const struct file_operations ip_vs_stats_percpu_fops = {
+>   */
+>  static int ip_vs_set_timeout(struct net *net, struct ip_vs_timeout_user *u)
+>  {
+> +#if defined(CONFIG_IP_VS_PROTO_TCP) || defined(CONFIG_IP_VS_PROTO_UDP)
+>  	struct ip_vs_proto_data *pd;
+> +#endif
+>  
+>  	IP_VS_DBG(2, "Setting timeout tcp:%d tcpfin:%d udp:%d\n",
+>  		  u->tcp_timeout,
+> @@ -2405,7 +2407,9 @@ __ip_vs_get_dest_entries(struct net *net, const struct ip_vs_get_dests *get,
+>  static inline void
+>  __ip_vs_get_timeouts(struct net *net, struct ip_vs_timeout_user *u)
+>  {
+> +#if defined(CONFIG_IP_VS_PROTO_TCP) || defined(CONFIG_IP_VS_PROTO_UDP)
+>  	struct ip_vs_proto_data *pd;
+> +#endif
+>  
+>  #ifdef CONFIG_IP_VS_PROTO_TCP
+>  	pd = ip_vs_proto_data_get(net, IPPROTO_TCP);
+> diff --git a/net/netfilter/ipvs/ip_vs_proto.c b/net/netfilter/ipvs/ip_vs_proto.c
+> index 6ac986c..17484a4 100644
+> --- a/net/netfilter/ipvs/ip_vs_proto.c
+> +++ b/net/netfilter/ipvs/ip_vs_proto.c
+> @@ -60,6 +60,9 @@ static int __used __init register_ip_vs_protocol(struct ip_vs_protocol *pp)
+>  	return 0;
+>  }
+>  
+> +#if defined(CONFIG_IP_VS_PROTO_TCP) || defined(CONFIG_IP_VS_PROTO_UDP) || \
+> +    defined(CONFIG_IP_VS_PROTO_SCTP) || defined(CONFIG_IP_VS_PROTO_AH) || \
+> +    defined(CONFIG_IP_VS_PROTO_ESP)
+>  /*
+>   *	register an ipvs protocols netns related data
+>   */
+> @@ -85,6 +88,7 @@ register_ip_vs_proto_netns(struct net *net, struct ip_vs_protocol *pp)
+>  
+>  	return 0;
+>  }
+> +#endif
+>  
+>  /*
+>   *	unregister an ipvs protocol
+> 
