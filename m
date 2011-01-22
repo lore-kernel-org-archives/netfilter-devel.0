@@ -1,46 +1,36 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] Incorrect xt_iprange boundary check for IPv6
-Date: Sat, 22 Jan 2011 15:53:24 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1101221551470.31929@obet.zrqbmnf.qr>
-References: <1295705432-2588-1-git-send-email-jacob@internet24.de> <1295705432-2588-2-git-send-email-jacob@internet24.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [GIT PULL nf-next-2.6] IPVS updates for v2.6.38-rc1
+Date: Sat, 22 Jan 2011 18:04:24 +0100
+Message-ID: <4D3B0E18.7080501@trash.net>
+References: <1295665835-8708-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Thomas Jacob <jacob@internet24.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, Changli Gao <xiaosuo@gmail.com>,
+	Hans Schillstrom <hans@schillstrom.com>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:40290 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753331Ab1AVOxZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 22 Jan 2011 09:53:25 -0500
-In-Reply-To: <1295705432-2588-2-git-send-email-jacob@internet24.de>
+Received: from stinky.trash.net ([213.144.137.162]:53185 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751487Ab1AVREb (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 22 Jan 2011 12:04:31 -0500
+In-Reply-To: <1295665835-8708-1-git-send-email-horms@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Saturday 2011-01-22 15:10, Thomas Jacob wrote:
-
->iprange_ipv6_sub was substracting 2 unsigned ints and then casting
->the result to int to find out whether they are lt, eq or gt each
->other, this doesn't work if the full 32 bits of each part
->can be used in IPv6 addresses. Patch should remedy that without
->significant performance penalties.
-
-Correctness before speed ;)
-
-The algo change looks ok to me, thanks for spotting.
-
-> static inline int
->-iprange_ipv6_sub(const struct in6_addr *a, const struct in6_addr *b)
->+iprange_ipv6_lt(const struct in6_addr *a, const struct in6_addr *b)
-> {
-> 	unsigned int i;
->-	int r;
+On 22.01.2011 04:10, Simon Horman wrote:
+> Hi Patrick, please consider pulling
+>   git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git for-patrick
 > 
-> 	for (i = 0; i < 4; ++i) {
->-		r = ntohl(a->s6_addr32[i]) - ntohl(b->s6_addr32[i]);
->-		if (r != 0)
->-			return r;
->+		if(ntohl(a->s6_addr32[i]) != ntohl(b->s6_addr32[i]))
->+			return ntohl(a->s6_addr32[i]) < ntohl(b->s6_addr32[i]);
-> 	}
+> This includes bugfixes by Changli Gao and Hans Schillstrom.
 > 
-> 	return 0;
+> Changli Gao (1):
+>       netfilter: ipvs: fix compiler warnings
+> 
+> Simon Horman (1):
+>       IPVS: Change sock_create_kernel() to __sock_create()
+
+Pulled, thanks Simon.
