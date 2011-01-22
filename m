@@ -1,54 +1,80 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [ANNOUNCE] ipset 5.4 released
-Date: Sat, 22 Jan 2011 10:45:50 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1101221041400.11692@blackhole.kfki.hu>
-References: <alpine.DEB.2.00.1101212302300.10656@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+From: Thomas Jacob <jacob@internet24.de>
+Subject: Incorrect xt_iprange boundary check for IPv6
+Date: Sat, 22 Jan 2011 15:10:31 +0100
+Message-ID: <1295705432-2588-1-git-send-email-jacob@internet24.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:41080 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752159Ab1AVJpw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 22 Jan 2011 04:45:52 -0500
-In-Reply-To: <alpine.DEB.2.00.1101212302300.10656@blackhole.kfki.hu>
+Received: from mailout01.ims-firmen.de ([213.174.32.96]:36946 "EHLO
+	mailout01.ims-firmen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753197Ab1AVO3V (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 22 Jan 2011 09:29:21 -0500
+Received: from [192.168.1.112] (helo=mailin03.ims-firmen.de)
+	by mailout01.ims-firmen.de with esmtp (Exim 4.72)
+	(envelope-from <jacob@internet24.de>)
+	id 1PgeAk-0005RF-SV
+	for netfilter-devel@vger.kernel.org; Sat, 22 Jan 2011 15:10:34 +0100
+Received: from [213.174.32.254] (helo=localhost.localdomain)
+	by mailin03.ims-firmen.de with esmtpa (Exim 4.72)
+	(envelope-from <jacob@internet24.de>)
+	id 1PgeAk-0002V9-Rd
+	for netfilter-devel@vger.kernel.org; Sat, 22 Jan 2011 15:10:34 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 21 Jan 2011, Jozsef Kadlecsik wrote:
 
-> I'm happy to announce ipset 5.4! Because there are some important kernel 
-> part fixes in this release, please upgrade.
+Developed for and tested on 2.6.27.57, but applies and compiles
+in current mainline as well (haven't tested it there though).
 
-In order to make upgrading as smooth as possible, I have released ipset 
-5.4.1, which includes an UPGRADE instructions file with the content:
+See the following script for a demonstration of the problem:
 
-ipset 5.x upgrade notices
+#!/bin/sh
+PREFIX=fc42:4242
+LEFTOUT=$PREFIX:0:ffff:ffff:ffff:ffff:ffff
+FROM=$PREFIX:1::0
+MIDDLE=$PREFIX:1::8000:0:0:0
+TILL=$PREFIX:1::ffff:ffff:ffff:ffff
+RIGHTOUT=$PREFIX:2::0
+SUBNET=$PREFIX:1::/64
+SOURCE=fc23:2323::1
+CHAIN=iprange_bug
 
-- From ipset 5.0-5.3 to 5.4:
+ip6tables -S OUTPUT | fgrep -q -- '-A OUTPUT -j '"$CHAIN" \
+	&& ip6tables -D OUTPUT -j $CHAIN
 
-  Due to the source code reorganization, some macros were moved to
-  the netlink.patch. Therefore when upgrading, you have two choices:
+ip6tables -F $CHAIN 2>/dev/null
+ip6tables -X $CHAIN 2>/dev/null
+ip6tables -N $CHAIN
 
-  a. force the application of the new netlink.patch
+ip6tables -A $CHAIN -p icmpv6 --icmpv6-type echo-request -s $SOURCE -m iprange --dst-range $FROM-$TILL
+ip6tables -A $CHAIN -p icmpv6 --icmpv6-type echo-request -s $SOURCE -d $SUBNET -j DROP
 
-     kernel-source-dir # patch -p1 -f < ipset-5.4-dir/netlink.patch
+ip6tables -I OUTPUT 1 -j $CHAIN
 
-  b. remove the earlier netlink.patch and apply the new one:
+ip addr replace $SOURCE/128 dev lo
+ip addr replace $LEFTOUT/128 dev lo
+ip addr replace $FROM/128 dev lo
+ip addr replace $MIDDLE/128 dev lo
+ip addr replace $TILL/128 dev lo
+ip addr replace $RIGHTOUT/128 dev lo
 
-     kernel-source-dir # patch -p1 -R < ipset-before-5.4-dir/netlink.patch
-     kernel-source-dir # patch -p1 < ipset-5.4-dir/netlink.patch
+for IP in $LEFTOUT $FROM $MIDDLE $TILL $RIGHTOUT
+do
+	ping6 -c 1 -W 1 -q -I $SOURCE $IP | grep ^PING
+done
 
-  You do not need to recompile your kernel.
+echo
+ip6tables -vnL $CHAIN
 
-  Of course the kernel modules in ipset-5.4 must be compiled and installed.
+ip addr del $RIGHTOUT/128 dev lo
+ip addr del $TILL/128 dev lo
+ip addr del $MIDDLE/128 dev lo
+ip addr del $FROM/128 dev lo
+ip addr del $LEFTOUT/128 dev lo
+ip addr del $SOURCE/128 dev lo
 
-Nothing else is changed between 5.4 and 5.4.1.
+ip6tables -D OUTPUT -j $CHAIN
+ip6tables -F $CHAIN
+ip6tables -X $CHAIN
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+
