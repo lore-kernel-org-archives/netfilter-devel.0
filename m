@@ -1,69 +1,54 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH] netfilter: ipvs: fix compiler warnings
-Date: Sat, 22 Jan 2011 14:12:02 +1100
-Message-ID: <20110122031202.GA9142@verge.net.au>
-References: <1295604133-6869-1-git-send-email-xiaosuo@gmail.com>
- <20110122022232.GL2661@verge.net.au>
- <AANLkTimoSQbjH-iW6x36FHs6yzDgsey9RS+yFXnKOxq5@mail.gmail.com>
- <20110122031116.GA8443@verge.net.au>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [ANNOUNCE] ipset 5.4 released
+Date: Sat, 22 Jan 2011 10:45:50 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1101221041400.11692@blackhole.kfki.hu>
+References: <alpine.DEB.2.00.1101212302300.10656@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Wensong Zhang <wensong@linux-vs.org>, Julian Anastasov <ja@ssi.bg>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110122031116.GA8443@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-in.kfki.hu ([148.6.0.25]:41080 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752159Ab1AVJpw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 22 Jan 2011 04:45:52 -0500
+In-Reply-To: <alpine.DEB.2.00.1101212302300.10656@blackhole.kfki.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Jan 22, 2011 at 02:11:16PM +1100, Simon Horman wrote:
-> On Sat, Jan 22, 2011 at 10:34:23AM +0800, Changli Gao wrote:
-> > On Sat, Jan 22, 2011 at 10:22 AM, Simon Horman <horms@verge.net.au>=
- wrote:
-> > > On Fri, Jan 21, 2011 at 06:02:13PM +0800, Changli Gao wrote:
-> > >> Fix compiler warnings when no transport protocol load balancing =
-support
-> > >> is configured.
-> > >>
-> > >> Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-> > >> ---
-> > >> =C2=A0net/netfilter/ipvs/ip_vs_core.c =C2=A0| =C2=A0 =C2=A04 +--=
+On Fri, 21 Jan 2011, Jozsef Kadlecsik wrote:
+
+> I'm happy to announce ipset 5.4! Because there are some important kernel 
+> part fixes in this release, please upgrade.
+
+In order to make upgrading as smooth as possible, I have released ipset 
+5.4.1, which includes an UPGRADE instructions file with the content:
+
+ipset 5.x upgrade notices
+
+- From ipset 5.0-5.3 to 5.4:
+
+  Due to the source code reorganization, some macros were moved to
+  the netlink.patch. Therefore when upgrading, you have two choices:
+
+  a. force the application of the new netlink.patch
+
+     kernel-source-dir # patch -p1 -f < ipset-5.4-dir/netlink.patch
+
+  b. remove the earlier netlink.patch and apply the new one:
+
+     kernel-source-dir # patch -p1 -R < ipset-before-5.4-dir/netlink.patch
+     kernel-source-dir # patch -p1 < ipset-5.4-dir/netlink.patch
+
+  You do not need to recompile your kernel.
+
+  Of course the kernel modules in ipset-5.4 must be compiled and installed.
+
+Nothing else is changed between 5.4 and 5.4.1.
+
+Best regards,
+Jozsef
 -
-> > >> =C2=A0net/netfilter/ipvs/ip_vs_ctl.c =C2=A0 | =C2=A0 =C2=A04 +++=
-+
-> > >> =C2=A0net/netfilter/ipvs/ip_vs_proto.c | =C2=A0 =C2=A04 ++++
-> > >> =C2=A03 files changed, 9 insertions(+), 3 deletions(-)
-> > >> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipv=
-s/ip_vs_core.c
-> > >> index f36a84f..d889f4f 100644
-> > >> --- a/net/netfilter/ipvs/ip_vs_core.c
-> > >> +++ b/net/netfilter/ipvs/ip_vs_core.c
-> > >> @@ -1894,9 +1894,7 @@ static int __net_init __ip_vs_init(struct =
-net *net)
-> > >>
-> > >> =C2=A0static void __net_exit __ip_vs_cleanup(struct net *net)
-> > >> =C2=A0{
-> > >> - =C2=A0 =C2=A0 struct netns_ipvs *ipvs =3D net_ipvs(net);
-> > >> -
-> > >> - =C2=A0 =C2=A0 IP_VS_DBG(10, "ipvs netns %d released\n", ipvs->=
-gen);
-> > >> + =C2=A0 =C2=A0 IP_VS_DBG(10, "ipvs netns %d released\n", net_ip=
-vs(net)->gen);
-> > >> =C2=A0}
-> > >>
-> > >
-> > > The hunk above seems unrelated to the problem described.
-> > > The rest of the changes look good. I will double check and
-> > > apply them to my tree.
-> > >
-> >=20
-> > Yes, is a separated patch needed? It is trivial. Thanks.
->=20
-> Yes, please send a separate patch.
-
-To clarify, I have applied the other hunks and included
-them in a pull request that I sent to Patrick a few moments ago.
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
