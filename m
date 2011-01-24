@@ -1,44 +1,62 @@
-From: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Subject: [PATCH 1/1] IPVS netns BUG, register sysctl for root ns
-Date: Mon, 24 Jan 2011 15:14:41 +0100
-Message-ID: <1295878481-13623-1-git-send-email-hans.schillstrom@ericsson.com>
+From: "Mario 'BitKoenig' Holbe" <Mario.Holbe@TU-Ilmenau.DE>
+Subject: Re: netfilter: marking IPv6 packets sends them to the wrong
+ interface
+Date: Mon, 24 Jan 2011 15:35:18 +0100
+Message-ID: <20110124143518.GA2616@darkside.kls.lan>
+References: <20110123122108.GA30305@darkside.kls.lan>
+ <4D3D82D1.6050305@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: <hans@schillstrom.com>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>
-To: <horms@verge.net.au>, <ja@ssi.bg>, <wensong@linux-vs.org>,
-	<lvs-devel@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailgw10.se.ericsson.net ([193.180.251.61]:42934 "EHLO
-	mailgw10.se.ericsson.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751346Ab1AXOOo (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Jan 2011 09:14:44 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mYCpIKhGyMATD0i+"
+Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4D3D82D1.6050305@trash.net>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The newly created table was not used when register sysctl for a new namespace.
-I.e. sysctl doesn't work for other than root namespace (init_net)
 
-Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
----
- net/netfilter/ipvs/ip_vs_ctl.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+--mYCpIKhGyMATD0i+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 68b8033..98df59a 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -3556,7 +3556,7 @@ int __net_init __ip_vs_control_init(struct net *net)
- 
- 
- 	ipvs->sysctl_hdr = register_net_sysctl_table(net, net_vs_ctl_path,
--						  vs_vars);
-+						     tbl);
- 	if (ipvs->sysctl_hdr == NULL)
- 		goto err_reg;
- 	ip_vs_new_estimator(net, ipvs->tot_stats);
--- 
-1.7.2.3
+On Mon, Jan 24, 2011 at 02:46:57PM +0100, Patrick McHardy wrote:
+> On 23.01.2011 13:21, Mario 'BitKoenig' Holbe wrote:
+> > Without marking everything runs as it should be.
+> > Marking eth0 packets results in all advertisements transmitted via eth1.
+> > The behaviour goes back to normal as soon as the marking disappears.
+> > I also tried marking with 0xff00 instead of 1 - same results.
+> That probably means that we're not using the correct keys
+> when rerouting in ip6_route_me_harder(). Just for testing,
+> please try to disable the ip6_route_me_harder() call in
+> net/ipv6/netfilter/ip6table_mangle.c::ip6t_mangle_out().
 
+Yes, disabling the ip6_route_me_harder() call in ip6t_mangle_out()
+results in the advertisements being transmitted on the correct
+interfaces.
+
+
+Mario
+--=20
+I thought the only thing the internet was good for was porn.  -- Futurama
+
+--mYCpIKhGyMATD0i+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQEVAwUBTT2OJhS+e2HeSPbpAQKMvQf/b8mSHiKJnarNyI94b7ReRh92QZB0w5Bs
+pvy/CJ6wgk9M2MxoVlJYI/QF3Ys5jGnkURDEvcyo/Moi863t+7xX4IsLE4gB/jqw
+bDwMRHToITovKuE/pWqR3flHQEhMwAtCMI8QHrJcLicY/hpsltsj7TDnP3XHIVYn
+AMUoY0aLe8EWkPHLNfSBGOE2t5SYRTolsexyBdA9K4184HERRkIozKj3DMg6AgMM
+suF3D6olTdYN6poJLkPYMp/ZRECriO1e9b10hc0AV8hXrn65pGKXGrwCNP6mljpW
+edO6dOcpY4h4juXuCAaTcIbMJut3GPfbQnou/y0rICVluT6it0uIJQ==
+=G19Y
+-----END PGP SIGNATURE-----
+
+--mYCpIKhGyMATD0i+--
