@@ -1,51 +1,61 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: ctnetlink: fix (really) race condition between
- dump_table and destroy
-Date: Mon, 24 Jan 2011 14:37:35 +0100
-Message-ID: <4D3D809F.30808@trash.net>
-References: <20110123231602.3383.31480.stgit@decadence>	 <1295851305.28358.16.camel@edumazet-laptop>	 <4D3D691F.3050403@netfilter.org> <4D3D74AD.5080300@trash.net>	 <1295873689.2755.22.camel@edumazet-laptop> <4D3D794D.9010401@netfilter.org> <1295874722.2755.25.camel@edumazet-laptop> <4D3D7DD5.9020902@netfilter.org>
+Subject: Re: netfilter: marking IPv6 packets sends them to the wrong interface
+Date: Mon, 24 Jan 2011 14:46:57 +0100
+Message-ID: <4D3D82D1.6050305@trash.net>
+References: <20110123122108.GA30305@darkside.kls.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	netfilter-devel@vger.kernel.org,
-	Stephen Hemminger <shemminger@vyatta.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Transfer-Encoding: 7bit
+To: Mario 'BitKoenig' Holbe <Mario.Holbe@TU-Ilmenau.DE>,
+	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63169 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:63335 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752022Ab1AXNhm (ORCPT
+	with ESMTP id S1752680Ab1AXNrD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Jan 2011 08:37:42 -0500
-In-Reply-To: <4D3D7DD5.9020902@netfilter.org>
+	Mon, 24 Jan 2011 08:47:03 -0500
+In-Reply-To: <20110123122108.GA30305@darkside.kls.lan>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 24.01.2011 14:25, Pablo Neira Ayuso wrote:
-> On 24/01/11 14:12, Eric Dumazet wrote:
->> Le lundi 24 janvier 2011 =E0 14:06 +0100, Pablo Neira Ayuso a =E9cri=
-t :
->>
->>> Yes, we can use nf_conntrack_get (which does atomic_inc) instead. N=
-ew
->>> patch attached.
->>
->> I feel now a bit uncomfortable, sorry ;)
->>
->> Are we sure the refcount cannot reach 0 while we hold
->> nf_conntrack_lock ?
->=20
-> the ct deletion from the hash list is protected by spin lock, so
-> whatever deletion would wait until we have left the dump section.
->=20
-> with this patch, the code looks like it was in 2.6.24 before the rcu =
-stuff.
+On 23.01.2011 13:21, Mario 'BitKoenig' Holbe wrote:
+> Hello,
+> 
+> I have a strange issue with netfilter MARK on IPv6 which I cannot
+> explain and which I believe to be a kernel bug:
+> If I mark outgoing IPv6 packets they appear to be transmitted via the
+> wrong physical interface. At least multicast packets - at least some of
+> them.
+> 
+> I'm running a Linux-based router with two local interfaces and radvd
+> advertises stateless autoconfiguration information on them.
+> If I mark all outgoing IPv6 packets, after some time all hosts on both
+> subnets appear to be autoconfigured for both subnets, i.e. they all have
+> two IPv6 addresses - one of each subnet and two default routes - one for
+> each router interface. Of course, only one of them really works on each
+> host.
+> 
+> The gateway does pretty normal routing, no routing policies,
+> particularly no fwmark rules, does no bridging or something like that.
+> The network interfaces are Intel driven by e100.
+> 
+> The following debug session is done with a 2.6.32 kernel, the condensed
+> packet information originates from tcpdump:
+> 
+> Without marking everything runs as it should be.
+> Marking eth0 packets results in all advertisements transmitted via eth1.
+> The behaviour goes back to normal as soon as the marking disappears.
+> Marking eth1 packets doesn't appear to change the normal behaviour at
+> the first glance, but with that I experience hiccups after some time of
+> inactivity (i.e. from time to time ping6 from one subnet to the other
+> gets no answers for the first 6 to 8 packets). 
+> 
+> I also tried marking with 0xff00 instead of 1 - same results.
+> I tested this on kernels 2.6.26, 2.6.32, and 2.6.37 - all show the same
+> behaviour.
 
-Yeah, we definitely have a reference while the conntrack is contained
-in the hash table, and removal requires taking nf_conntrack_lock,
-therefor using the conntrack entry while holding the lock is valid.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That probably means that we're not using the correct keys
+when rerouting in ip6_route_me_harder(). Just for testing,
+please try to disable the ip6_route_me_harder() call in
+net/ipv6/netfilter/ip6table_mangle.c::ip6t_mangle_out().
+
