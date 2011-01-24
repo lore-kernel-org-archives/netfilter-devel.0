@@ -1,37 +1,19 @@
 From: "Holger Eitzenberger" <holger@eitzenberger.org>
-Subject: [patch 5/6] ipset: improve command argument parsing
-Date: Mon, 24 Jan 2011 22:36:36 +0100
-Message-ID: <20110124214014.604070478@jonathan.eitzenberger.org>
+Subject: [patch 3/6] ipset: pass ipset_arg argument pointer
+Date: Mon, 24 Jan 2011 22:36:34 +0100
+Message-ID: <20110124214012.012613658@jonathan.eitzenberger.org>
 References: <20110124213631.195499507@jonathan.eitzenberger.org>
 Cc: netfilter-devel@vger.kernel.org
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:53154 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.186]:53905 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751435Ab1AXVkQ (ORCPT
+	with ESMTP id S1751397Ab1AXVkO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Jan 2011 16:40:16 -0500
-Content-Disposition: inline; filename=ipset-improve-cmd-argument-parsing.diff
+	Mon, 24 Jan 2011 16:40:14 -0500
+Content-Disposition: inline; filename=ipset-pass-arg.diff
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
-
-The number of comparisons for a matching a command name can be
-made smaller by just checking on argv[1].
-
-As an example consider the following 'create' arguments 'hashsize',
-'family' and 'timeout'.  When having the command
- 
- create foo hash:ip timeout 60 family inet hashsize 64
-
-it compares without this patch:
-
- strcmp("timeout", "hashsize")
- strcmp("64", "hashsize")
- strcmp("family", "hashsize")
- strcmp("inet", "hashsize")
- strcmp("hashsize", "hashsize")
-
-It is worse in practice, as 'create' has more arguments than this.
 
 Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
 
@@ -39,80 +21,92 @@ Index: ipset/src/ipset.c
 ===================================================================
 --- ipset.orig/src/ipset.c
 +++ ipset/src/ipset.c
-@@ -206,38 +206,35 @@ restore(char *argv0)
- static int
- call_parser(int *argc, char *argv[], const struct ipset_arg *args)
+@@ -208,7 +208,6 @@ call_parser(int *argc, char *argv[], con
  {
--	int i = 1, ret = 0;
-+	int ret = 0;
+ 	int i = 1, ret = 0;
  	const struct ipset_arg *arg;
+-	const char *optstr;
  	
  	/* Currently CREATE and ADT may have got additional arguments */
--	if (!args)
--		goto done;
--	for (arg = args; arg->opt; arg++) {
--		for (i = 1; i < *argc; ) {
--			D("argc: %u, i: %u: %s vs %s",
--			  *argc, i, argv[i], arg->name[0]);
--			if (!(ipset_match_option(argv[i], arg->name))) {
--				i++;
-+	if (!args && *argc > 1)
-+		goto err_unknown;
-+	while (*argc > 1) {
-+		for (arg = args; arg->opt; arg++) {
-+			D("argc: %u, %s vs %s", *argc, argv[1], arg->name[0]);
-+			if (!(ipset_match_option(argv[1], arg->name)))
+ 	if (!args)
+@@ -221,7 +220,6 @@ call_parser(int *argc, char *argv[], con
+ 				i++;
  				continue;
--			}
-+
+ 			}
+-			optstr = argv[i];
  			/* Shift off matched option */
  			D("match %s", arg->name[0]);
--			ipset_shift_argv(argc, argv, i);
--			D("argc: %u, i: %u", *argc, i);
-+			ipset_shift_argv(argc, argv, 1);
- 			switch (arg->has_arg) {
- 			case IPSET_MANDATORY_ARG:
--				if (i + 1 > *argc)
-+				if (*argc < 2)
- 					return exit_error(PARAMETER_PROBLEM,
- 						"Missing mandatory argument "
- 						"of option `%s'",
- 						arg->name[0]);
+ 			ipset_shift_argv(argc, argv, i);
+@@ -236,10 +234,7 @@ call_parser(int *argc, char *argv[], con
  				/* Fall through */
  			case IPSET_OPTIONAL_ARG:
--				if (i + 1 <= *argc) {
--					ret = ipset_call_parser(session, arg, argv[i]);
-+				if (*argc >= 2) {
-+					ret = ipset_call_parser(session, arg, argv[1]);
+ 				if (i + 1 <= *argc) {
+-					ret = ipset_call_parser(session,
+-							arg->parse,
+-							optstr, arg->opt,
+-							argv[i]);
++					ret = ipset_call_parser(session, arg, argv[i]);
  					if (ret < 0)
  						return ret;
--					ipset_shift_argv(argc, argv, i);
-+					ipset_shift_argv(argc, argv, 1);
- 					break;
+ 					ipset_shift_argv(argc, argv, i);
+@@ -247,10 +242,7 @@ call_parser(int *argc, char *argv[], con
  				}
  				/* Fall through */
-@@ -246,14 +243,18 @@ call_parser(int *argc, char *argv[], con
+ 			default:
+-				ret = ipset_call_parser(session,
+-							arg->parse,
+-							optstr, arg->opt,
+-							optstr);
++				ret = ipset_call_parser(session, arg, argv[1]);
  				if (ret < 0)
  					return ret;
  			}
-+
-+			break;
- 		}
-+
-+		if (!arg->opt)
-+			goto err_unknown;
- 	}
--done:
--	if (i < *argc)
--		return exit_error(PARAMETER_PROBLEM,
--				  "Unknown argument: `%s'",
--				  argv[i]);
-+
- 	return ret;
-+
-+err_unknown:
-+	return exit_error(PARAMETER_PROBLEM, "Unknown argument: `%s'", argv[1]);
+Index: ipset/include/libipset/parse.h
+===================================================================
+--- ipset.orig/include/libipset/parse.h
++++ ipset/include/libipset/parse.h
+@@ -17,6 +17,7 @@
+ #define IPSET_PROTO_SEPARATOR	":"
+ 
+ struct ipset_session;
++struct ipset_arg;
+ 
+ typedef int (*ipset_parsefn)(struct ipset_session *s,
+ 			     enum ipset_opt opt, const char *str);
+@@ -84,8 +85,8 @@ extern int ipset_parse_ignored(struct ip
+ extern int ipset_parse_elem(struct ipset_session *session,
+                             enum ipset_opt opt, const char *str);
+ extern int ipset_call_parser(struct ipset_session *session,
+-			     ipset_parsefn parse, const char *optstr,
+-			     enum ipset_opt optional, const char *str);
++							 const struct ipset_arg *arg,
++							 const char *str);
+ 
+ /* Compatibility parser functions */
+ extern int ipset_parse_iptimeout(struct ipset_session *session,
+Index: ipset/lib/parse.c
+===================================================================
+--- ipset.orig/lib/parse.c
++++ ipset/lib/parse.c
+@@ -1416,15 +1416,14 @@ ipset_parse_ignored(struct ipset_session
+  */
+ int
+ ipset_call_parser(struct ipset_session *session,
+-		  ipset_parsefn parse, const char *optstr,
+-		  enum ipset_opt opt, const char *str)
++				  const struct ipset_arg *arg,
++				  const char *str)
+ {
+ 	if (ipset_data_flags_test(ipset_session_data(session),
+-				  IPSET_FLAG(opt)))
+-		syntax_err("%s already specified", optstr);
++				  IPSET_FLAG(arg->opt)))
++		syntax_err("%s already specified", arg->name[0]);
+ 
+-	return parse(session, opt, parse == ipset_parse_ignored
+-				   ? optstr : str);
++	return arg->parse(session, arg->opt, str);
  }
  
- static enum ipset_adt
+ #define parse_elem(s, t, d, str)					\
 
