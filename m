@@ -1,91 +1,79 @@
-From: Thomas Jacob <jacob@internet24.de>
-Subject: [PATCH] Incorrect xt_iprange boundary check for IPv6 (V3)
-Date: Mon, 24 Jan 2011 15:00:20 +0100
-Message-ID: <1295877620-2399-2-git-send-email-jacob@internet24.de>
-References: <1295877620-2399-1-git-send-email-jacob@internet24.de>
-Cc: Thomas Jacob <jacob@internet24.de>
-To: netfilter-devel@vger.kernel.org
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH] netfilter: ctnetlink: fix (really) race condition
+ between dump_table and destroy
+Date: Mon, 24 Jan 2011 15:06:11 +0100
+Message-ID: <1295877971.2755.30.camel@edumazet-laptop>
+References: <20110123231602.3383.31480.stgit@decadence>
+	 <1295851305.28358.16.camel@edumazet-laptop>
+	 <4D3D691F.3050403@netfilter.org> <4D3D74AD.5080300@trash.net>
+	 <1295873689.2755.22.camel@edumazet-laptop> <4D3D794D.9010401@netfilter.org>
+	 <1295874722.2755.25.camel@edumazet-laptop> <4D3D7DD5.9020902@netfilter.org>
+	  <4D3D809F.30808@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org,
+	Stephen Hemminger <shemminger@vyatta.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailout01.ims-firmen.de ([213.174.32.96]:34072 "EHLO
-	mailout01.ims-firmen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751369Ab1AXOAZ (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:36339 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751346Ab1AXOGQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Jan 2011 09:00:25 -0500
-Received: from [192.168.1.112] (helo=mailin03.ims-firmen.de)
-	by mailout01.ims-firmen.de with esmtp (Exim 4.72)
-	(envelope-from <jacob@internet24.de>)
-	id 1PhMxz-0005uC-S6
-	for netfilter-devel@vger.kernel.org; Mon, 24 Jan 2011 15:00:23 +0100
-In-Reply-To: <1295877620-2399-1-git-send-email-jacob@internet24.de>
+	Mon, 24 Jan 2011 09:06:16 -0500
+Received: by bwz15 with SMTP id 15so3576226bwz.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jan 2011 06:06:15 -0800 (PST)
+In-Reply-To: <4D3D809F.30808@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Variant 3
+Le lundi 24 janvier 2011 =C3=A0 14:37 +0100, Patrick McHardy a =C3=A9cr=
+it :
+> On 24.01.2011 14:25, Pablo Neira Ayuso wrote:
+> > On 24/01/11 14:12, Eric Dumazet wrote:
+> >> Le lundi 24 janvier 2011 =C3=A0 14:06 +0100, Pablo Neira Ayuso a =C3=
+=A9crit :
+> >>
+> >>> Yes, we can use nf_conntrack_get (which does atomic_inc) instead.=
+ New
+> >>> patch attached.
+> >>
+> >> I feel now a bit uncomfortable, sorry ;)
+> >>
+> >> Are we sure the refcount cannot reach 0 while we hold
+> >> nf_conntrack_lock ?
+> >=20
+> > the ct deletion from the hash list is protected by spin lock, so
+> > whatever deletion would wait until we have left the dump section.
+> >=20
+> > with this patch, the code looks like it was in 2.6.24 before the rc=
+u stuff.
+>=20
+> Yeah, we definitely have a reference while the conntrack is contained
+> in the hash table, and removal requires taking nf_conntrack_lock,
+> therefor using the conntrack entry while holding the lock is valid.
 
-iprange_ipv6_sub was substracting 2 unsigned ints and then casting
-the result to int to find out whether they are lt, eq or gt each
-other, this doesn't work if the full 32 bits of each part
-can be used in IPv6 addresses. Patch should remedy that without
-significant performance penalties. Also the number of ntohl
-calls can be reduced this way (Jozsef Kadlecsik).
+Yes, but to clarify my question, is the following possible ?
 
-In order to take advantage of the fact that that we are dealing
-with ordered interval borders, combine checks for both interval
-borders into one function to skip some tests that would
-always result in false anyway.
+CPU 0                                           CPU1
+dump()
+spin_lock()
+=2E...
+    if (not enough room in skb)
+						decrement last refcount
+      increment_ref_count()
+spin_unlock();
+						since refcount hit 0,
+						spin_lock(nf_conntrack)
+						remove ct from hashes
 
-Signed-off-by: Thomas Jacob <jacob@internet24.de>
----
- net/netfilter/xt_iprange.c |   20 +++++++++++---------
- 1 files changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/xt_iprange.c b/net/netfilter/xt_iprange.c
-index 4b5741b..8186f63 100644
---- a/net/netfilter/xt_iprange.c
-+++ b/net/netfilter/xt_iprange.c
-@@ -96,15 +96,19 @@ iprange_mt4(const struct sk_buff *skb, const struct net_device *in,
- }
- 
- static inline int
--iprange_ipv6_sub(const struct in6_addr *a, const struct in6_addr *b)
-+iprange_ipv6_cmp(const struct in6_addr *a, const struct in6_addr *b,
-+		 const struct in6_addr *x)
- {
- 	unsigned int i;
--	int r;
- 
- 	for (i = 0; i < 4; ++i) {
--		r = ntohl(a->s6_addr32[i]) - ntohl(b->s6_addr32[i]);
--		if (r != 0)
--			return r;
-+		if (x->s6_addr32[i] != a->s6_addr32[i] &&
-+		    ntohl(x->s6_addr32[i]) < ntohl(a->s6_addr32[i]))
-+			return 1;
-+
-+		if (x->s6_addr32[i] != b->s6_addr32[i] &&
-+		    ntohl(b->s6_addr32[i]) < ntohl(x->s6_addr32[i]))
-+			return 1;
- 	}
- 
- 	return 0;
-@@ -121,15 +125,13 @@ iprange_mt6(const struct sk_buff *skb, const struct net_device *in,
- 	bool m;
- 
- 	if (info->flags & IPRANGE_SRC) {
--		m  = iprange_ipv6_sub(&iph->saddr, &info->src_min.in6) < 0;
--		m |= iprange_ipv6_sub(&iph->saddr, &info->src_max.in6) > 0;
-+		m  = iprange_ipv6_cmp(&info->src_min.in6, &info->src_max.in6, &iph->saddr);
- 		m ^= !!(info->flags & IPRANGE_SRC_INV);
- 		if (m)
- 			return false;
- 	}
- 	if (info->flags & IPRANGE_DST) {
--		m  = iprange_ipv6_sub(&iph->daddr, &info->dst_min.in6) < 0;
--		m |= iprange_ipv6_sub(&iph->daddr, &info->dst_max.in6) > 0;
-+		m  = iprange_ipv6_cmp(&info->dst_min.in6, &info->dst_max.in6, &iph->daddr);
- 		m ^= !!(info->flags & IPRANGE_DST_INV);
- 		if (m)
- 			return false;
--- 
-1.5.6.5
+If yes we should use the atomic_inc_not_zero() form.
 
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
