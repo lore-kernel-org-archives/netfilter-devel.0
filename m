@@ -1,57 +1,28 @@
 From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH 18/79] IPVS: Remove useless { } block from
- ip_vs_process_message()
-Date: Tue, 25 Jan 2011 12:10:00 +1000
-Message-ID: <20110125020959.GB7420@verge.net.au>
-References: <1295464519-21763-1-git-send-email-kaber@trash.net>
- <1295464519-21763-19-git-send-email-kaber@trash.net>
- <1295466052.1952.29.camel@Joe-Laptop>
+Subject: Re: [PATCH 1/1] IPVS netns BUG, register sysctl for root ns
+Date: Tue, 25 Jan 2011 12:15:17 +1000
+Message-ID: <20110125021516.GC7420@verge.net.au>
+References: <1295878481-13623-1-git-send-email-hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, davem@davemloft.net,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:49368 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752840Ab1AYCKB (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Jan 2011 21:10:01 -0500
+Cc: ja@ssi.bg, wensong@linux-vs.org, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	hans@schillstrom.com
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1295466052.1952.29.camel@Joe-Laptop>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1295878481-13623-1-git-send-email-hans.schillstrom@ericsson.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jan 19, 2011 at 11:40:52AM -0800, Joe Perches wrote:
-> On Wed, 2011-01-19 at 20:14 +0100, kaber@trash.net wrote:
-> > From: Simon Horman <horms@verge.net.au>
-> >  net/netfilter/ipvs/ip_vs_sync.c |   24 +++++++++++-------------
-> > diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-> > @@ -381,20 +381,18 @@ static void ip_vs_process_message(const char *buffer, const size_t buflen)
-> >  			}
-> >  		}
-> >  
-> > -		{
-> > -			if (ip_vs_conn_fill_param_sync(AF_INET, s->protocol,
-> > -					      (union nf_inet_addr *)&s->caddr,
-> > -					      s->cport,
-> > -					      (union nf_inet_addr *)&s->vaddr,
-> > -					      s->vport, &param)) {
-> > -				pr_err("ip_vs_conn_fill_param_sync failed");
-> > -				return;
-> > -			}
-> > -			if (!(flags & IP_VS_CONN_F_TEMPLATE))
-> > -				cp = ip_vs_conn_in_get(&param);
-> > -			else
-> > -				cp = ip_vs_ct_in_get(&param);
-> > +		if (ip_vs_conn_fill_param_sync(AF_INET, s->protocol,
-> > +					       (union nf_inet_addr *)&s->caddr,
-> > +					       s->cport,
-> > +					       (union nf_inet_addr *)&s->vaddr,
-> > +					       s->vport, &param)) {
-> > +			pr_err("ip_vs_conn_fill_param_sync failed");
+On Mon, Jan 24, 2011 at 03:14:41PM +0100, Hans Schillstrom wrote:
+> The newly created table was not used when register sysctl for a new namespace.
+> I.e. sysctl doesn't work for other than root namespace (init_net)
 > 
-> The original and this pr_err is missing a \n before close quote.
+> Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
 
-Thanks Joe, I'll get this fixed once nf-next-2.6 opens up again.
+Thanks Hans.
 
+Patrick, please pull this change from
+
+git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git for-patrick
