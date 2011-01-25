@@ -1,29 +1,25 @@
-From: Glauco Junquera <glaucoaok@gmail.com>
-Subject: Filter input traffic by uid
-Date: Tue, 25 Jan 2011 09:04:50 -0300
-Message-ID: <AANLkTikXDsRGoV4aFDxpWzdU9Pov=_-=6dMB=cbmtpQu@mail.gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Module/Extension Tutorial
+Date: Tue, 25 Jan 2011 13:50:05 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1101251349390.11475@obet.zrqbmnf.qr>
+References: <4D3EAE69.6060909@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Srinivasa T N <seenutn@linux.vnet.ibm.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:46285 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751940Ab1AYMEu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Jan 2011 07:04:50 -0500
-Received: by iwn9 with SMTP id 9so5027676iwn.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Jan 2011 04:04:50 -0800 (PST)
+Received: from borg.medozas.de ([188.40.89.202]:38355 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752475Ab1AYMuI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Jan 2011 07:50:08 -0500
+In-Reply-To: <4D3EAE69.6060909@linux.vnet.ibm.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi All,
+On Tuesday 2011-01-25 12:05, Srinivasa T N wrote:
 
-Iptables can filter output traffic by uid, for example iptables -A
-OUTPUT -m owner --uid-owner 100 -p udp -j DROP.
-I need to implement the same for input traffic. Anyone have any idea
-of how can i do it (where i must start)? I am new to netfilter
-development i tried some simple modifications on code with no success.
-I would really appreciate any kind of help.
+> Hi All,
+> 	Any (nice) tutorial on writing extensions to the netfilter of the
+> latest kernel (2.6.35 or above)?
 
-Regards,
-Glauco.
+"Writing Netfilter Modules".
