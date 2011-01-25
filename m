@@ -1,34 +1,32 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [patch 1/6] ipset: turn Set name[] into a const pointer
-Date: Tue, 25 Jan 2011 21:26:04 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1101252124270.19492@blackhole.kfki.hu>
-References: <20110124213631.195499507@jonathan.eitzenberger.org> <20110124214009.410600508@jonathan.eitzenberger.org>
+Subject: Re: [patch 2/6] ipset: fix the Netlink sequence number
+Date: Tue, 25 Jan 2011 21:26:47 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1101252126120.19492@blackhole.kfki.hu>
+References: <20110124213631.195499507@jonathan.eitzenberger.org> <20110124214010.719680787@jonathan.eitzenberger.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
 To: Holger Eitzenberger <holger@eitzenberger.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:42140 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:54289 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751508Ab1AYU0G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Jan 2011 15:26:06 -0500
-In-Reply-To: <20110124214009.410600508@jonathan.eitzenberger.org>
+	id S1752444Ab1AYU0s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Jan 2011 15:26:48 -0500
+In-Reply-To: <20110124214010.719680787@jonathan.eitzenberger.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 On Mon, 24 Jan 2011, Holger Eitzenberger wrote:
 
-> Also check for the name length.
-> 
-> Note that passing errno values back is not done consistently at
-> various place, as there are some functions which set errno manually,
-> others pass -errno back.  I use the -errno approach here, as it is
-> slightly shorter.
+> Do not use time() as a Netlink sequence number for each message,
+> as otherwise the same seq number will be used when sending
+> another message in the same second.  Instead use time() just for
+> initialization, then increment per message.
 > 
 > Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
 
-Applied, thanks Holger!
- 
+Yes, you are right, also applied.
+
 Best regards,
 Jozsef
 -
