@@ -1,28 +1,49 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: ipvs: fix compiler warnings
-Date: Tue, 25 Jan 2011 11:25:42 +0100
-Message-ID: <4D3EA526.5030704@trash.net>
-References: <1295930418-14980-1-git-send-email-xiaosuo@gmail.com> <20110125050535.GB7183@verge.net.au>
+Subject: Re: ebtables_nfqueue: missing structure afinfo
+Date: Tue, 25 Jan 2011 11:34:19 +0100
+Message-ID: <4D3EA72B.7000509@trash.net>
+References: <4D3DE736.70808@wzdftpd.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Changli Gao <xiaosuo@gmail.com>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <20110125050535.GB7183@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Pierre Chifflier <chifflier@wzdftpd.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:50483 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751401Ab1AYKeZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Jan 2011 05:34:25 -0500
+In-Reply-To: <4D3DE736.70808@wzdftpd.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 25.01.2011 06:05, Simon Horman wrote:
-> On Tue, Jan 25, 2011 at 12:40:18PM +0800, Changli Gao wrote:
->> Fix compiler warnings when IP_VS_DBG() isn't defined.
->>
->> Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+On 24.01.2011 21:55, Pierre Chifflier wrote:
+> Hi,
 > 
-> Thanks, I will queue this up for when nf-next-2.6 is open again.
+> I'm still working on a module to add the NFQUEUE target to ebtables.
+> 
+> So far, I've been able to split the work on two parts: sending the
+> packets to nfqueue, and re-inject them after a verdict. I'll split
+> questions on separate emails.
+> 
+> Adding the NFQUEUE target is not a difficult task (making the
+> ebt_do_tables return NF_QUEUE_NR(queue_num)), however this won't work
+> since the __nf_queue() function [1] requires an afinfo structure :
+> 132         afinfo = nf_get_afinfo(pf);
+> 133         if (!afinfo)
+> 134                 goto err_unlock;
+> 
+> Since there is no afinfo structure for AF_BRIDGE, this won't work.
+> 
+> I tried adding a dummy (empty) afinfo structure and registering it in
+> ebtables_init(), but that does not look like a clean solution ...
+> 
+> What would be the best way (in order to be proposed mainstream) to do
+> that ? The afinfo structure seems to be called to save the route (and
+> then restored when re-injecting), I'm not sure yet if this is necessary
+> for AF_BRIDGE packets.
 
-It's already open.
+No, I don't think so either. I'd simply make the afinfo handling
+in nf_queue.c optional, we can't get packets for non-existant
+address families anyways.
