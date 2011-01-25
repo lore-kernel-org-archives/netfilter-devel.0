@@ -1,55 +1,42 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [patch 6/6] ipset: fix spelling error
-Date: Tue, 25 Jan 2011 21:43:24 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1101252143020.19580@blackhole.kfki.hu>
-References: <20110124213631.195499507@jonathan.eitzenberger.org> <20110124214015.902503724@jonathan.eitzenberger.org>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH] netfilter: ipvs: fix compiler warnings
+Date: Tue, 25 Jan 2011 23:22:42 +0200 (EET)
+Message-ID: <alpine.LFD.2.00.1101252317280.1690@ja.ssi.bg>
+References: <1295930418-14980-1-git-send-email-xiaosuo@gmail.com> <20110125050535.GB7183@verge.net.au> <4D3EA526.5030704@trash.net> <20110125130933.GA2841@verge.net.au> <20110125131558.GB2841@verge.net.au>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Holger Eitzenberger <holger@eitzenberger.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:40118 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752444Ab1AYUnZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Jan 2011 15:43:25 -0500
-In-Reply-To: <20110124214015.902503724@jonathan.eitzenberger.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Patrick McHardy <kaber@trash.net>, Changli Gao <xiaosuo@gmail.com>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <20110125131558.GB2841@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 24 Jan 2011, Holger Eitzenberger wrote:
 
-> Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
-> 
-> Index: ipset/src/errcode.c
-> ===================================================================
-> --- ipset.orig/src/errcode.c
-> +++ ipset/src/errcode.c
-> @@ -30,14 +30,14 @@ static const struct ipset_errcode_table
->  	{ EEXIST, IPSET_CMD_CREATE,
->  	  "Set cannot be created: set with the same name already exists" },
->  	{ IPSET_ERR_FIND_TYPE, 0,
-> -	  "Kernel error received: set type does not supported" },
-> +	  "Kernel error received: set type not supported" },
->  	{ IPSET_ERR_MAX_SETS, 0,
->  	  "Kernel error received: maximal number of sets reached, "
->  	  "cannot create more." },
->  	{ IPSET_ERR_INVALID_NETMASK, 0,
->  	  "The value of the netmask parameter is invalid" },
->  	{ IPSET_ERR_INVALID_FAMILY, 0,
-> -	  "The protocol family not supported by the set type" },
-> +	  "Potocol family not supported by the set type" },
->  
->  	/* DESTROY specific error codes */
->  	{ IPSET_ERR_BUSY, IPSET_CMD_DESTROY,
-> 
-> --
+ 	Hello,
 
-Applied, thanks!
+On Tue, 25 Jan 2011, Simon Horman wrote:
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+>> Hi Patrick,
+>>
+>> I'm a little unsure how you would like me to differentiate
+>> between fixes for 2.6.38 - e.g. my previous two pull requests.
+>> And patches intended for 2.6.39.
+>>
+>> In any case I will send a pull request that includes
+>> Changli's change against nf-next-2.6.
+>
+> Actually, I realise that Changli's change is actually
+> 2.6.38 material. I'll send a pull request. Please ignore
+> my noise about 2.6.39.
+
+ 	Simon, I don't see IPVS netns work in 2.6.38-rc2,
+so these changes are not for 2.6.38-rc.
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
