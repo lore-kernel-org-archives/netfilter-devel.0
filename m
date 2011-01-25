@@ -1,37 +1,29 @@
-From: Srinivasa T N <seenutn@linux.vnet.ibm.com>
-Subject: Module/Extension Tutorial
-Date: Tue, 25 Jan 2011 16:35:13 +0530
-Message-ID: <4D3EAE69.6060909@linux.vnet.ibm.com>
+From: Glauco Junquera <glaucoaok@gmail.com>
+Subject: Filter input traffic by uid
+Date: Tue, 25 Jan 2011 09:04:50 -0300
+Message-ID: <AANLkTikXDsRGoV4aFDxpWzdU9Pov=_-=6dMB=cbmtpQu@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from e28smtp05.in.ibm.com ([122.248.162.5]:57107 "EHLO
-	e28smtp05.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751699Ab1AYLFQ (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:46285 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751940Ab1AYMEu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Jan 2011 06:05:16 -0500
-Received: from d28relay05.in.ibm.com (d28relay05.in.ibm.com [9.184.220.62])
-	by e28smtp05.in.ibm.com (8.14.4/8.13.1) with ESMTP id p0PB5F9o012284
-	for <netfilter-devel@vger.kernel.org>; Tue, 25 Jan 2011 16:35:15 +0530
-Received: from d28av02.in.ibm.com (d28av02.in.ibm.com [9.184.220.64])
-	by d28relay05.in.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id p0PB5E5U2453614
-	for <netfilter-devel@vger.kernel.org>; Tue, 25 Jan 2011 16:35:14 +0530
-Received: from d28av02.in.ibm.com (loopback [127.0.0.1])
-	by d28av02.in.ibm.com (8.14.4/8.13.1/NCO v10.0 AVout) with ESMTP id p0PB5Doo031792
-	for <netfilter-devel@vger.kernel.org>; Tue, 25 Jan 2011 22:05:14 +1100
-Received: from [9.124.158.53] (om-009124158053.in.ibm.com [9.124.158.53])
-	by d28av02.in.ibm.com (8.14.4/8.13.1/NCO v10.0 AVin) with ESMTP id p0PB5DiJ031776
-	for <netfilter-devel@vger.kernel.org>; Tue, 25 Jan 2011 22:05:13 +1100
+	Tue, 25 Jan 2011 07:04:50 -0500
+Received: by iwn9 with SMTP id 9so5027676iwn.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Jan 2011 04:04:50 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi All,
-	Any (nice) tutorial on writing extensions to the netfilter of the 
-latest kernel (2.6.35 or above)?
 
-	TIA.
+Iptables can filter output traffic by uid, for example iptables -A
+OUTPUT -m owner --uid-owner 100 -p udp -j DROP.
+I need to implement the same for input traffic. Anyone have any idea
+of how can i do it (where i must start)? I am new to netfilter
+development i tried some simple modifications on code with no success.
+I would really appreciate any kind of help.
 
 Regards,
-Seenu.
+Glauco.
