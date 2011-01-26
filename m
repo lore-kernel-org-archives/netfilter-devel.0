@@ -1,55 +1,29 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [GIT PULL nf-next-2.6] IPVS changes for 2.6.38-rc3
-Date: Wed, 26 Jan 2011 09:57:47 +1000
-Message-ID: <20110125235744.GA11026@verge.net.au>
-References: <1295961426-7402-1-git-send-email-horms@verge.net.au>
- <4D3ED7BF.1080202@trash.net>
+From: Adarsh Joshi <eadarshjoshi@gmail.com>
+Subject: tips for a starter
+Date: Tue, 25 Jan 2011 20:54:06 -0800
+Message-ID: <1296017646.2131.4.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, Changli Gao <xiaosuo@gmail.com>,
-	Julian Anastasov <ja@ssi.bg>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:60416 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751828Ab1AYX5s (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:47206 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751954Ab1AZExt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Jan 2011 18:57:48 -0500
-Content-Disposition: inline
-In-Reply-To: <4D3ED7BF.1080202@trash.net>
+	Tue, 25 Jan 2011 23:53:49 -0500
+Received: by ywe10 with SMTP id 10so1624593ywe.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Jan 2011 20:53:48 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 25, 2011 at 03:01:35PM +0100, Patrick McHardy wrote:
-> On 25.01.2011 14:17, Simon Horman wrote:
-> > Hi Patrick,
-> > 
-> > please consider pulling
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git for-patrick
-> > 
-> > Which includes the following changes, both of which I believe 2.6.38 material.
-> > 
-> > Changli Gao (1):
-> >       netfilter: ipvs: fix compiler warnings
-> > 
-> > Hans Schillstrom (1):
-> >       IPVS netns BUG, register sysctl for root ns
-> 
-> That tree is based on nf-next-2.6, so I can't pull this into my nf-2.6
-> tree.
+Hi,
 
-Hi Patrick,
-
-Sorry about this.
-
-As it turns out I was mistaken in assuming that the IPVS netns changes
-had been merged into nf-2.6. They haven't, they only exist in net-next-2.6.
-
-All of the recent patches that I have passed on to you relate to the IPVS
-netns changes so nf-next-2.6 is the right place for these fixes. So could
-you please pull the above tree into nf-next-2.6? I do not believe there are
-any nf-2.6 changes at this time.
+I am a newbie interested in contributing to netfilter as a developer. I
+do have experience writing a couple of modules for netfilter but I have
+a hard time undrestanding the bug reports and going down to the code
+level and working on it. Any tips on where to start from would be highly
+appreciated.
 
 Thanks
 
