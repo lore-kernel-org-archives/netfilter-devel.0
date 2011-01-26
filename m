@@ -1,138 +1,96 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 02/13] IP set core support
-Date: Wed, 26 Jan 2011 12:57:33 +0100
-Message-ID: <4D400C2D.6090200@trash.net>
-References: <1295618527-9583-1-git-send-email-kadlec@blackhole.kfki.hu> <1295618527-9583-2-git-send-email-kadlec@blackhole.kfki.hu> <1295618527-9583-3-git-send-email-kadlec@blackhole.kfki.hu> <alpine.DEB.2.00.1101212232290.10581@blackhole.kfki.hu> <4D3EE277.9070804@trash.net> <alpine.DEB.2.00.1101252150450.19648@blackhole.kfki.hu>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: netfilter: xt_connlimit: pick right dstaddr in NAT scenario
+Date: Wed, 26 Jan 2011 13:07:10 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1101261304310.4561@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Jan Rovner <jan.rovner@diadema.cz>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:42442 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753125Ab1AZL5f (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Jan 2011 06:57:35 -0500
-In-Reply-To: <alpine.DEB.2.00.1101252150450.19648@blackhole.kfki.hu>
+Received: from borg.medozas.de ([188.40.89.202]:57340 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753245Ab1AZMHL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 Jan 2011 07:07:11 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 25.01.2011 22:23, schrieb Jozsef Kadlecsik:
-> On Tue, 25 Jan 2011, Patrick McHardy wrote:
-> 
->>> +static int
->>> +ip_set_dump_start(struct sk_buff *skb, struct netlink_callback *cb)
->>> +{
->>> +	ip_set_id_t index = IPSET_INVALID_ID, max;
->>> +	struct ip_set *set = NULL;
->>> +	struct nlmsghdr *nlh = NULL;
->>> +	unsigned int flags = NETLINK_CB(cb->skb).pid ? NLM_F_MULTI : 0;
->>> +	int ret = 0;
->>> +
->>> +	if (cb->args[0] == DUMP_INIT) {
->>> +		ret = dump_init(cb);
->>> +		if (ret < 0) {
->>> +			/* We have to create and send the error message
->>> +			 * manually :-( */
->>> +			netlink_ack(cb->skb, nlmsg_hdr(cb->skb), ret);
->>
->> This should probably only be done if the NLM_F_ACK flag was set
->> on the request.
-> 
-> I never thought to set NLM_F_ACK for dumping. I'll set the flag in the 
-> request but I believe I have to send the error message regardless of the 
-> flag: the dump initialization fails iff the named set does not exist and 
-> it should be reported.
-
-netlink_dump() will already include the errno code in the final
-(in this case only) message. Perhaps we should also return it
-back from sendmsg() if the first call to ->dump() fails without
-putting anything in the message.
-
->  
->>> +
->>> +	if (attr[IPSET_ATTR_DATA]) {
->>> +		ret = call_ad(skb, attr,
->>> +			      set, attr[IPSET_ATTR_DATA], IPSET_ADD, flags);
->>> +	} else {
->>> +		int nla_rem;
->>> +
->>> +		nla_for_each_nested(nla, attr[IPSET_ATTR_ADT], nla_rem) {
->>> +			if (nla_type(nla) != IPSET_ATTR_DATA ||
->>> +			    !flag_nested(nla))
->>> +				return -IPSET_ERR_PROTOCOL;
->>
->> Since addition can fail due to size problems anyways it not very
->> important, but we could perform validation before attempting to
->> add members so the operation either succeeds or fails entirely.
-> 
-> Yeah, it's a protocol check, so it should come first. But the call again 
-> to nla_for_each_nested wouldn't be too ugly? Wrapping the condition into 
-> unlikely() would make it better?
-
-I guess it would make sense if we could make sure the following
-operations won't fail. Unless that is done I'd leave it as it is.
-
-> 
->> To really make sense that would require to test for existance of
->> members on deletion and for enough space (+ possibly pre-allocation)
->> on addition though, so for now we can ignore it I guess.
-> 
->>> +
->>> +	read_lock_bh(&set->lock);
->>> +	ret = set->variant->uadt(set,
->>> +				 nla_data(attr[IPSET_ATTR_DATA]),
->>> +				 nla_len(attr[IPSET_ATTR_DATA]),
->>> +				 IPSET_TEST, NULL, 0);
->>> +	read_unlock_bh(&set->lock);
->>> +	/* Userspace can't trigger element to be re-added */
->>> +	if (ret == -EAGAIN)
->>> +		ret = 1;
->>
->> This value is returned to userspace, what does '1' mean?
-> 
-> The test functions return a positive integer for success. The only 
-> exception is the -EAGAIN return value, which means an incomplete element 
-> was tested and it triggers the core to re-add the element. However 
-> re-adding is meaningful for kernel side tests only. So for the sake of 
-> consistency, the return value is corrected to a positive integer.
-> 
-> The bitmap:ip,mac type uses -EAGAIN: if the element was added without the 
-> MAC part then when it's tested as a kernel requests, by re-adding the 
-> element we can fill out the MAC part from the tested packet.
-
-Yes, but since this is a nfnetlink callback, we'll return that
-value in the ACK message. Is that really intended? Usually we
-indicate success to userspace using the value '0'.
 
 
->>> +	set = ip_set_list[index];
->>> +
->>> +	skb2 = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
->>> +	if (skb2 == NULL)
->>> +		return -ENOMEM;
->>> +
->>> +	nlh2 = start_msg(skb2, NETLINK_CB(skb).pid, nlh->nlmsg_seq, 0,
->>> +			 IPSET_CMD_HEADER);
->>> +	if (!nlh2)
->>> +		goto nlmsg_failure;
->>> +	NLA_PUT_U8(skb2, IPSET_ATTR_PROTOCOL, IPSET_PROTOCOL);
->>> +	NLA_PUT_STRING(skb2, IPSET_ATTR_SETNAME, set->name);
->>> +	NLA_PUT_STRING(skb2, IPSET_ATTR_TYPENAME, set->type->name);
->>> +	NLA_PUT_U8(skb2, IPSET_ATTR_FAMILY, set->family);
->>> +	NLA_PUT_U8(skb2, IPSET_ATTR_REVISION, set->type->revision);
->>> +	nlmsg_end(skb2, nlh2);
->>> +
->>> +	ret = netlink_unicast(ctnl, skb2, NETLINK_CB(skb).pid, MSG_DONTWAIT);
->>> +	if (ret < 0)
->>> +		return -EFAULT;
->>
->> Why not propagate the error?
-> 
-> I don't quite understand what do you mean. Should I attempt to send a 
-> second message?
+The following changes since commit 4b3fd57138c969dd940651fadf90db627254=
+edbf:
 
-No, just return "ret" instead of EFAULT. netlink_rcv_skb() will include
-it in the ACK message.
+  IPVS: Change sock_create_kernel() to __sock_create() (2011-01-22 13:4=
+8:01 +1100)
+
+are available in the git repository at:
+  git://dev.medozas.de/linux connlimit
+
+Jan Engelhardt (1):
+      netfilter: xt_connlimit: pick right dstaddr in NAT scenario
+
+ net/netfilter/xt_connlimit.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
+
+=3D=3D=3D
+
+parent 4b3fd57138c969dd940651fadf90db627254edbf (v2.6.38-rc1-151-g4b3fd=
+57)
+commit ad86e1f27a9a97a9e50810b10bca678407b1d6fd
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Wed Jan 26 11:50:03 2011 +0100
+
+netfilter: xt_connlimit: pick right dstaddr in NAT scenario
+
+xt_connlimit normally records the "original" tuples in a hashlist
+(such as "1.2.3.4 -> 5.6.7.8"), and looks in this list for iph->daddr
+when counting.
+
+When the user however uses DNAT in PREROUTING, looking for
+iph->daddr=C2=A0-- which is now 192.168.9.10 -- will not match. Thus in
+daddr mode, we need to record the reverse direction tuple
+("192.168.9.10 -> 1.2.3.4") instead. In the reverse tuple, the dst
+addr is on the src side, which is convenient, as count_them still uses
+&conn->tuple.src.u3.
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ net/netfilter/xt_connlimit.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.=
+c
+index 7fd3fd5..e029c48 100644
+--- a/net/netfilter/xt_connlimit.c
++++ b/net/netfilter/xt_connlimit.c
+@@ -185,11 +185,15 @@ connlimit_mt(const struct sk_buff *skb, struct xt=
+_action_param *par)
+ 	int connections;
+=20
+ 	ct =3D nf_ct_get(skb, &ctinfo);
+-	if (ct !=3D NULL)
+-		tuple_ptr =3D &ct->tuplehash[0].tuple;
+-	else if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb),
+-				    par->family, &tuple))
++	if (ct !=3D NULL) {
++		if (info->flags & XT_CONNLIMIT_DADDR)
++			tuple_ptr =3D &ct->tuplehash[IP_CT_DIR_REPLY].tuple;
++		else
++			tuple_ptr =3D &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
++	} else if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb),
++				    par->family, &tuple)) {
+ 		goto hotdrop;
++	}
+=20
+ 	if (par->family =3D=3D NFPROTO_IPV6) {
+ 		const struct ipv6hdr *iph =3D ipv6_hdr(skb);
+--=20
+# Created with git-export-patch
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
