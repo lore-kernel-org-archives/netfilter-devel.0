@@ -1,41 +1,29 @@
-From: Thomas Jacob <jacob@internet24.de>
-Subject: [PATCH 1/2] Typo in IPv4 match debug print code
-Date: Wed, 26 Jan 2011 18:22:50 +0100
-Message-ID: <1296062571-2644-1-git-send-email-jacob@internet24.de>
-Cc: Thomas Jacob <jacob@internet24.de>
-To: netfilter-devel@vger.kernel.org
+From: Ferenc Wagner <wferi@niif.hu>
+Subject: Re: [patch 6/6] ipset: fix spelling error
+Date: Wed, 26 Jan 2011 18:57:06 +0100
+Message-ID: <87aainsg3x.fsf@tac.ki.iif.hu>
+References: <20110124213631.195499507@jonathan.eitzenberger.org>
+	<20110124214015.902503724@jonathan.eitzenberger.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org
+To: "Holger Eitzenberger" <holger@eitzenberger.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailout02.ims-firmen.de ([213.174.32.97]:36915 "EHLO
-	mailout02.ims-firmen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753669Ab1AZRW6 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Jan 2011 12:22:58 -0500
-Received: from [192.168.1.112] (helo=mailin03.ims-firmen.de)
-	by mailout02.ims-firmen.de with esmtp (Exim 4.72)
-	(envelope-from <jacob@internet24.de>)
-	id 1Pi954-000772-IX
-	for netfilter-devel@vger.kernel.org; Wed, 26 Jan 2011 18:22:54 +0100
+Received: from tac.ki.iif.hu ([193.6.222.43]:41741 "EHLO tac.ki.iif.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753605Ab1AZR5J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 Jan 2011 12:57:09 -0500
+In-Reply-To: <20110124214015.902503724@jonathan.eitzenberger.org> (Holger
+	Eitzenberger's message of "Mon, 24 Jan 2011 22:36:37 +0100")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Thomas Jacob <jacob@internet24.de>
----
- net/netfilter/xt_iprange.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+"Holger Eitzenberger" <holger@eitzenberger.org> writes:
 
-diff --git a/net/netfilter/xt_iprange.c b/net/netfilter/xt_iprange.c
-index 73c33a4..5c14308 100644
---- a/net/netfilter/xt_iprange.c
-+++ b/net/netfilter/xt_iprange.c
-@@ -31,7 +31,7 @@ iprange_mt4(const struct sk_buff *skb, struct xt_action_param *par)
- 			pr_debug("src IP %pI4 NOT in range %s%pI4-%pI4\n",
- 			         &iph->saddr,
- 			         (info->flags & IPRANGE_SRC_INV) ? "(INV) " : "",
--			         &info->src_max.ip,
-+			         &info->src_min.ip,
- 			         &info->src_max.ip);
- 			return false;
- 		}
+> -	  "The protocol family not supported by the set type" },
+> +	  "Potocol family not supported by the set type" },
+
+I guess you meat Protocol instead.
 -- 
-1.5.6.5
-
+Feri.
