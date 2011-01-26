@@ -1,60 +1,65 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter: xt_connlimit: pick right dstaddr in NAT scenario
-Date: Wed, 26 Jan 2011 16:29:13 +0100
-Message-ID: <4D403DC9.2000708@trash.net>
-References: <alpine.LNX.2.01.1101261304310.4561@obet.zrqbmnf.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Jan Rovner <jan.rovner@diadema.cz>
-To: Jan Engelhardt <jengelh@medozas.de>
+From: Thomas Jacob <jacob@internet24.de>
+Subject: [PATCH 2/2] Add IPv6 match debug print code
+Date: Wed, 26 Jan 2011 18:22:51 +0100
+Message-ID: <1296062571-2644-2-git-send-email-jacob@internet24.de>
+References: <1296062571-2644-1-git-send-email-jacob@internet24.de>
+Cc: Thomas Jacob <jacob@internet24.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45913 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753364Ab1AZP3U (ORCPT
+Received: from mailout02.ims-firmen.de ([213.174.32.97]:36914 "EHLO
+	mailout02.ims-firmen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752974Ab1AZRW5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Jan 2011 10:29:20 -0500
-In-Reply-To: <alpine.LNX.2.01.1101261304310.4561@obet.zrqbmnf.qr>
+	Wed, 26 Jan 2011 12:22:57 -0500
+Received: from [192.168.1.112] (helo=mailin03.ims-firmen.de)
+	by mailout02.ims-firmen.de with esmtp (Exim 4.72)
+	(envelope-from <jacob@internet24.de>)
+	id 1Pi954-000774-N9
+	for netfilter-devel@vger.kernel.org; Wed, 26 Jan 2011 18:22:54 +0100
+In-Reply-To: <1296062571-2644-1-git-send-email-jacob@internet24.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 26.01.2011 13:07, Jan Engelhardt wrote:
-> 
-> 
-> The following changes since commit 4b3fd57138c969dd940651fadf90db627254edbf:
-> 
->   IPVS: Change sock_create_kernel() to __sock_create() (2011-01-22 13:48:01 +1100)
-> 
-> are available in the git repository at:
->   git://dev.medozas.de/linux connlimit
-> 
-> Jan Engelhardt (1):
->       netfilter: xt_connlimit: pick right dstaddr in NAT scenario
-> 
->  net/netfilter/xt_connlimit.c |   12 ++++++++----
->  1 files changed, 8 insertions(+), 4 deletions(-)
-> 
-> ===
-> 
-> parent 4b3fd57138c969dd940651fadf90db627254edbf (v2.6.38-rc1-151-g4b3fd57)
-> commit ad86e1f27a9a97a9e50810b10bca678407b1d6fd
-> Author: Jan Engelhardt <jengelh@medozas.de>
-> Date:   Wed Jan 26 11:50:03 2011 +0100
-> 
-> netfilter: xt_connlimit: pick right dstaddr in NAT scenario
-> 
-> xt_connlimit normally records the "original" tuples in a hashlist
-> (such as "1.2.3.4 -> 5.6.7.8"), and looks in this list for iph->daddr
-> when counting.
-> 
-> When the user however uses DNAT in PREROUTING, looking for
-> iph->daddr -- which is now 192.168.9.10 -- will not match. Thus in
-> daddr mode, we need to record the reverse direction tuple
-> ("192.168.9.10 -> 1.2.3.4") instead. In the reverse tuple, the dst
-> addr is on the src side, which is convenient, as count_them still uses
-> &conn->tuple.src.u3.
-> 
 
-Pulled, thanks Jan.
+Signed-off-by: Thomas Jacob <jacob@internet24.de>
+---
+ net/netfilter/xt_iprange.c |   16 ++++++++++++++--
+ 1 files changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/xt_iprange.c b/net/netfilter/xt_iprange.c
+index 5c14308..cd6e263 100644
+--- a/net/netfilter/xt_iprange.c
++++ b/net/netfilter/xt_iprange.c
+@@ -76,15 +76,27 @@ iprange_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 		m  = iprange_ipv6_lt(&iph->saddr, &info->src_min.in6);
+ 		m |= iprange_ipv6_lt(&info->src_max.in6, &iph->saddr);
+ 		m ^= !!(info->flags & IPRANGE_SRC_INV);
+-		if (m)
++		if (m) {
++			pr_debug("src IP %pI6 NOT in range %s%pI6-%pI6\n",
++			         &iph->saddr,
++			         (info->flags & IPRANGE_SRC_INV) ? "(INV) " : "",
++			         &info->src_min.in6,
++			         &info->src_max.in6);
+ 			return false;
++		}
+ 	}
+ 	if (info->flags & IPRANGE_DST) {
+ 		m  = iprange_ipv6_lt(&iph->daddr, &info->dst_min.in6);
+ 		m |= iprange_ipv6_lt(&info->dst_max.in6, &iph->daddr);
+ 		m ^= !!(info->flags & IPRANGE_DST_INV);
+-		if (m)
++		if (m) {
++			pr_debug("dst IP %pI6 NOT in range %s%pI6-%pI6\n",
++			         &iph->daddr,
++			         (info->flags & IPRANGE_DST_INV) ? "(INV) " : "",
++			         &info->dst_min.in6,
++			         &info->dst_max.in6);
+ 			return false;
++		}
+ 	}
+ 	return true;
+ }
+-- 
+1.5.6.5
+
