@@ -1,35 +1,82 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH] netfilter: CONNMARK: support save the mark of the master connection
-Date: Thu, 27 Jan 2011 18:01:03 +0800
-Message-ID: <AANLkTinKHJPEf8EukDGSX=NPMtU9zb7y7GoYwbUQOjt5@mail.gmail.com>
-References: <1296121124-7016-1-git-send-email-xiaosuo@gmail.com> <4D413F96.2070309@trash.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [patch 3/6] ipset: pass ipset_arg argument pointer
+Date: Thu, 27 Jan 2011 11:06:29 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1101271104170.24771@blackhole.kfki.hu>
+References: <20110124213631.195499507@jonathan.eitzenberger.org> <20110124214012.012613658@jonathan.eitzenberger.org> <alpine.DEB.2.00.1101252139400.19580@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Holger Eitzenberger <holger@eitzenberger.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:40272 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753846Ab1A0KBZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 Jan 2011 05:01:25 -0500
-In-Reply-To: <4D413F96.2070309@trash.net>
+Received: from smtp-in.kfki.hu ([148.6.0.26]:53434 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752243Ab1A0KGa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 27 Jan 2011 05:06:30 -0500
+In-Reply-To: <alpine.DEB.2.00.1101252139400.19580@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jan 27, 2011 at 5:49 PM, Patrick McHardy <kaber@trash.net> wrote:
-> Am 27.01.2011 10:38, schrieb Changli Gao:
->> In some cases(Policy routing), it is expected that all the sub-connections
->> share the same mark with their master.
->
-> We already automatically mark expected connections with the mark of the
-> master. What purpose does your patch serve on top of that?
->
->
+Hi Holger,
 
-It is done in init_conntrack(), indeed. Sorry for the noise. Thanks.
+On Tue, 25 Jan 2011, Jozsef Kadlecsik wrote:
 
--- 
-Regards,
-Changli Gao(xiaosuo@gmail.com)
+> On Mon, 24 Jan 2011, Holger Eitzenberger wrote:
+> 
+> > Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
+> > 
+> > Index: ipset/src/ipset.c
+> > ===================================================================
+> > --- ipset.orig/src/ipset.c
+> > +++ ipset/src/ipset.c
+> > @@ -208,7 +208,6 @@ call_parser(int *argc, char *argv[], con
+> >  {
+> >  	int i = 1, ret = 0;
+> >  	const struct ipset_arg *arg;
+> > -	const char *optstr;
+> >  	
+> >  	/* Currently CREATE and ADT may have got additional arguments */
+> >  	if (!args)
+> > @@ -221,7 +220,6 @@ call_parser(int *argc, char *argv[], con
+> >  				i++;
+> >  				continue;
+> >  			}
+> > -			optstr = argv[i];
+> >  			/* Shift off matched option */
+> >  			D("match %s", arg->name[0]);
+> >  			ipset_shift_argv(argc, argv, i);
+> > @@ -236,10 +234,7 @@ call_parser(int *argc, char *argv[], con
+> >  				/* Fall through */
+> >  			case IPSET_OPTIONAL_ARG:
+> >  				if (i + 1 <= *argc) {
+> > -					ret = ipset_call_parser(session,
+> > -							arg->parse,
+> > -							optstr, arg->opt,
+> > -							argv[i]);
+> > +					ret = ipset_call_parser(session, arg, argv[i]);
+> >  					if (ret < 0)
+> >  						return ret;
+> >  					ipset_shift_argv(argc, argv, i);
+> > @@ -247,10 +242,7 @@ call_parser(int *argc, char *argv[], con
+> >  				}
+> >  				/* Fall through */
+> >  			default:
+> > -				ret = ipset_call_parser(session,
+> > -							arg->parse,
+> > -							optstr, arg->opt,
+> > -							optstr);
+> > +				ret = ipset_call_parser(session, arg, argv[1]);
+> 
+> We can't do this, because then the flag-style options (no arg) cannot be 
+> parsed. So I cannot apply this patch and the next two ones based on it.
+
+If optstr is kept, then that can be passed to the parser in the default 
+branch. Could you rewrite your patch that way and resend to me (and the 
+dependent ones too)?
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
