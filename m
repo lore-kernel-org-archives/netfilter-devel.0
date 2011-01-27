@@ -1,56 +1,60 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 03/13] bitmap:ip set type support
-Date: Thu, 27 Jan 2011 10:08:28 +0100
-Message-ID: <4D41360C.30403@trash.net>
-References: <1295618527-9583-1-git-send-email-kadlec@blackhole.kfki.hu> <1295618527-9583-2-git-send-email-kadlec@blackhole.kfki.hu> <1295618527-9583-3-git-send-email-kadlec@blackhole.kfki.hu> <1295618527-9583-4-git-send-email-kadlec@blackhole.kfki.hu> <4D3EE6B6.8090008@trash.net> <alpine.DEB.2.00.1101252229250.19648@blackhole.kfki.hu> <alpine.DEB.2.00.1101270959100.24591@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:61497 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753363Ab1A0JIh (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 Jan 2011 04:08:37 -0500
-In-Reply-To: <alpine.DEB.2.00.1101270959100.24591@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: [PATCH] netfilter: CONNMARK: support save the mark of the master connection
+Date: Thu, 27 Jan 2011 17:38:44 +0800
+Message-ID: <1296121124-7016-1-git-send-email-xiaosuo@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Changli Gao <xiaosuo@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 27.01.2011 10:06, Jozsef Kadlecsik wrote:
-> On Tue, 25 Jan 2011, Jozsef Kadlecsik wrote:
-> 
->>>> +			} else
->>>> +				goto nla_put_failure;
->>>> +		}
->>>> +		NLA_PUT_IPADDR4(skb, IPSET_ATTR_IP,
->>>> +				htonl(map->first_ip + id * map->hosts));
->>>> +		ipset_nest_end(skb, nested);
->>>> +	}
->>>> +	ipset_nest_end(skb, atd);
->>>> +	/* Set listing finished */
->>>> +	cb->args[2] = 0;
->>>> +	return 0;
->>>> +
->>>> +nla_put_failure:
->>>> +	nla_nest_cancel(skb, nested);
->>>> +	ipset_nest_end(skb, atd);
->>>> +	return 0;
->>>
->>> Doesn't this need to return an errno value to indicate that the
->>> dump is incomplete?
-> 
-> The success return code was there because in general we reach there when 
-> the message gets full. However it does not mean an incomplete dump: the 
-> last partially dumped element is cancelled, the outer nesting is finished 
-> and we send the success code.
-> 
-> The nla_put_failure label name can be misleading but I cannot do much 
-> about it: NLA_PUT_* relies on it.
+In some cases(Policy routing), it is expected that all the sub-connections
+share the same mark with their master.
 
-Sure, my question was mainly related to whether the ip_set_core needs
-to get an indication that the dump was incomplete and needs to be
-continued on the next recvmsg() call. But I see now that cb->args[2]
-is used to provide this indication, so everything should be fine.
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+---
+ include/linux/netfilter/xt_connmark.h |    3 ++-
+ net/netfilter/xt_connmark.c           |   15 +++++++++++++++
+ 2 files changed, 17 insertions(+), 1 deletion(-)
+diff --git a/include/linux/netfilter/xt_connmark.h b/include/linux/netfilter/xt_connmark.h
+index efc17a8..4b513f8 100644
+--- a/include/linux/netfilter/xt_connmark.h
++++ b/include/linux/netfilter/xt_connmark.h
+@@ -15,7 +15,8 @@
+ enum {
+ 	XT_CONNMARK_SET = 0,
+ 	XT_CONNMARK_SAVE,
+-	XT_CONNMARK_RESTORE
++	XT_CONNMARK_RESTORE,
++	XT_CONNMARK_SAVE_MASTER,
+ };
+ 
+ struct xt_connmark_tginfo1 {
+diff --git a/net/netfilter/xt_connmark.c b/net/netfilter/xt_connmark.c
+index 7278145..4207bb6 100644
+--- a/net/netfilter/xt_connmark.c
++++ b/net/netfilter/xt_connmark.c
+@@ -69,6 +69,21 @@ connmark_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ 		          (ct->mark & info->ctmask);
+ 		skb->mark = newmark;
+ 		break;
++	case XT_CONNMARK_SAVE_MASTER:
++		if (ct->master) {
++			struct nf_conn *master;
++
++			master = ct->master;
++			while (master->master)
++				master = master->master;
++			newmark = (ct->mark & ~info->ctmask) ^
++				  (master->mark & info->nfmask);
++			if (ct->mark != newmark) {
++				ct->mark = newmark;
++				nf_conntrack_event_cache(IPCT_MARK, ct);
++			}
++		}
++		break;
+ 	}
+ 
+ 	return XT_CONTINUE;
