@@ -1,29 +1,31 @@
-From: JeHo Park <linuxpark@gmail.com>
-Subject: [HELP] why the string match does not work in nat tables?
-Date: Mon, 31 Jan 2011 10:53:33 +0900
-Message-ID: <AANLkTinoBfMTDNVLHuBhMFJHHSrMmP0gwYTz2AX3f_ew@mail.gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [HELP] why the string match does not work in nat tables?
+Date: Mon, 31 Jan 2011 03:09:11 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1101310306560.15201@obet.zrqbmnf.qr>
+References: <AANLkTinoBfMTDNVLHuBhMFJHHSrMmP0gwYTz2AX3f_ew@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
-hi there
-
-i have been trying to apply the string match or external wurlmatch to
-my NAT environment.
-but the matches was not valid in NAT or tproxy
-so i tried to verify TCP payload with debugging code in the string
-match during runtime, and then i found there is no TCP data in skbuff
-
-the string match works well in filter table, but it does not work in NAT.
-i want to know why the string match does not work in NAT.
-if you know that reason, please let me know
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: JeHo Park <linuxpark@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from borg.medozas.de ([188.40.89.202]:45767 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752300Ab1AaCJN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 30 Jan 2011 21:09:13 -0500
+In-Reply-To: <AANLkTinoBfMTDNVLHuBhMFJHHSrMmP0gwYTz2AX3f_ew@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 
-i used following iptables rules
-#  iptables -A PREROUTING -t nat -p tcp --dport 80 -m string --string
-"goole.com" --algo bm -j DNAT --to-destination 10.10.10.125:80
+On Monday 2011-01-31 02:53, JeHo Park wrote:
+>
+>the string match works well in filter table, but it does not work in NAT.
 
-10.10.10.125 is IP address of my linux router and there is HTTP proxy server
+Oh it _does_ work in nat.
+
+But given that the nat table is an abstract configuration database
+rather than a filter, not all packets do a lookup.
+
+>i used following iptables rules
+>#  iptables -A PREROUTING -t nat -p tcp --dport 80 -m string --string
+>"goole.com" --algo bm -j DNAT --to-destination 10.10.10.125:80
