@@ -1,25 +1,34 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [HELP] why the string match does not work in nat tables?
-Date: Mon, 31 Jan 2011 10:35:07 +0100
-Message-ID: <4D46824B.2010706@netfilter.org>
-References: <AANLkTinoBfMTDNVLHuBhMFJHHSrMmP0gwYTz2AX3f_ew@mail.gmail.com>	<alpine.LNX.2.01.1101310306560.15201@obet.zrqbmnf.qr>	<AANLkTik02D=agfFrc8VX+Wh4WAg_odm6cEcpbXvbgtqM@mail.gmail.com>	<alpine.LNX.2.01.1101310337270.19252@obet.zrqbmnf.qr> <AANLkTikxZf8zMJxRTGg6BS4uc0PDus+E6cEtfLDQRTQu@mail.gmail.com>
+Subject: Re: netfilter - u32 module
+Date: Mon, 31 Jan 2011 10:36:33 +0100
+Message-ID: <4D4682A1.70200@netfilter.org>
+References: <AANLkTinoBfMTDNVLHuBhMFJHHSrMmP0gwYTz2AX3f_ew@mail.gmail.com>	<alpine.LNX.2.01.1101310306560.15201@obet.zrqbmnf.qr>	<AANLkTik02D=agfFrc8VX+Wh4WAg_odm6cEcpbXvbgtqM@mail.gmail.com>	<alpine.LNX.2.01.1101310337270.19252@obet.zrqbmnf.qr> <AANLkTikxZf8zMJxRTGg6BS4uc0PDus+E6cEtfLDQRTQu@mail.gmail.com> <000001cbc0f7$bb09fc40$311df4c0$@com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>, netfilter@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: JeHo Park <linuxpark@gmail.com>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikxZf8zMJxRTGg6BS4uc0PDus+E6cEtfLDQRTQu@mail.gmail.com>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Sridhar Kumar <sridhar@moore-performance.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:35366 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755204Ab1AaJgh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 31 Jan 2011 04:36:37 -0500
+In-Reply-To: <000001cbc0f7$bb09fc40$311df4c0$@com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 31/01/11 03:47, JeHo Park wrote:
-> hello jan
-> i see, i took mistake. Ccs.. :-)
-> anyway, i wonder why there is no TCP payload in the skb of the string
-> or wurl match.
+On 31/01/11 04:34, Sridhar Kumar wrote:
+> 
+> Hi,
+> 
+> I am building a kernel, version 2.6.27 for a MIPS processor.
+> I need module U32 included in netfilter.
+> 
+> In the downloaded kernel source I did not see the files "xt_u32.c" etc.
+> Pls let me know where can I find the source code for netfilter modules.
 
-Because you only see the first packet of the flow in the NAT table.
+Update your Linux kernel.
 
-You should use the string match in the filter or raw tables.
+Please, don't cross post. This question is user related, it should go to
+netfilter@vger.kernel.org, not to netfilter-devel since it's not a
+bugfix, bug report or contribution.
