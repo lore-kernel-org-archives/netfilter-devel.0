@@ -1,34 +1,65 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/2] bugfixes for nf-next-2.6 (2.6.38-rc)
-Date: Tue, 01 Feb 2011 13:47:56 +0100
-Message-ID: <4D4800FC.7070901@netfilter.org>
-References: <20110201120116.3427.96097.stgit@decadence> <4D480066.5000402@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 00/13] ipset kernel patches v3
+Date: Tue, 01 Feb 2011 15:18:49 +0100
+Message-ID: <4D481649.3080109@trash.net>
+References: <1296514388-20900-1-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40510 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754664Ab1BAMr7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Feb 2011 07:47:59 -0500
-In-Reply-To: <4D480066.5000402@trash.net>
+Received: from stinky.trash.net ([213.144.137.162]:43098 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756921Ab1BAOTM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Feb 2011 09:19:12 -0500
+In-Reply-To: <1296514388-20900-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 01/02/11 13:45, Patrick McHardy wrote:
-> Am 01.02.2011 13:05, schrieb Pablo Neira Ayuso:
->> Hi Patrick!
->>
->> I've got a couple of patches for nf-next-2.6. The first fixes
->> arptables that seems to be broken since quite some time due
->> to a broken cleanup. The latter refers to the CT event filtering,
->> I think it can be qualified as bugfix since the current filtering
->> schema is not useful for conntrackd.
+Am 31.01.2011 23:52, schrieb Jozsef Kadlecsik:
+> Hi,
 > 
-> The subject is contradictional, nf-next-2.6/net-next-2.6 will be
-> merged once 2.6.38 is released, not for 2.6.38-rc. I suppose these
-> fixes should go into nf-2.6.git for 2.6.38-rc?
+> Here follows the updated ipset kernel patches. The list of changes compared
+> to the previous one:
+> 
+> - Separate ipset errnos completely from system ones and bump protocol
+>   version
+> - Use better error codes in xt_set.c
+> - Fix sparse warning about shadowed definition
+> - bitmap:ip type: flavour specific adt functions
+> - bitmap:port type: flavour specific adt functions
+> - Move the type specificic attribute validation to the core
+> - Use vzalloc() instead of __vmalloc()
+> - Use meaningful error messages in xt_set.c
+> - Constified attribute cannot be written
+> - Send (N)ACK at dumping only when NLM_F_ACK is set
+> - Correct the error codes: use ENOENT and EMSGSIZE
+> 
+> [Because the protocol changed (NLM_F_ACK is used at dumping and error codes
+> are changed), the protocol version number is incremented.]
+> 
+> Best regards,
+> Jozsef
+> 
+> Jozsef Kadlecsik (13):
+>   NFNL_SUBSYS_IPSET id and NLA_PUT_NET* macros
+>   IP set core support
+>   bitmap:ip set type support
+>   bitmap:ip,mac type support
+>   bitmap:port set type support
+>   hash:ip set type support
+>   hash:ip,port set type support
+>   hash:ip,port,ip set type support
+>   hash:ip,port,net set type support
+>   hash:net set type support
+>   hash:net,port set type support
+>   list:set set type support
+>   "set" match and "SET" target support
 
-Indeed, I think this should go to nf-2.6.git for 2.6.38-rc. Sorry!
+Thanks Jozsef. I don't see any major issues with the API and anything
+else can be changed more easily once this is in the tree, so I'll apply
+everything and will probably send a few minor cleanups on top later.
+
