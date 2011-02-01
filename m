@@ -1,62 +1,52 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH] netfilter: ctnetlink: fix ctnetlink_parse_tuple() warning
-Date: Tue, 01 Feb 2011 17:51:21 +0100
-Message-ID: <4D483A09.8000202@trash.net>
+Subject: Re: [PATCH 00/13] ipset kernel patches v3
+Date: Tue, 01 Feb 2011 18:42:44 +0100
+Message-ID: <4D484614.1000400@trash.net>
+References: <1296514388-20900-1-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040405000401070505000001"
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45692 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:46550 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751432Ab1BAQvY (ORCPT
+	with ESMTP id S1752436Ab1BARmr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Feb 2011 11:51:24 -0500
-Received: from x100e.localnet (localhost [127.0.0.1])
-	by stinky.trash.net (Postfix) with ESMTP id 0F0D1B2C43
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Feb 2011 17:51:21 +0100 (MET)
+	Tue, 1 Feb 2011 12:42:47 -0500
+In-Reply-To: <1296514388-20900-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------040405000401070505000001
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Am 31.01.2011 23:52, schrieb Jozsef Kadlecsik:
+> Hi,
+> 
+> Here follows the updated ipset kernel patches. The list of changes compared
+> to the previous one:
+> 
+> - Separate ipset errnos completely from system ones and bump protocol
+>   version
+> - Use better error codes in xt_set.c
+> - Fix sparse warning about shadowed definition
+> - bitmap:ip type: flavour specific adt functions
+> - bitmap:port type: flavour specific adt functions
+> - Move the type specificic attribute validation to the core
+> - Use vzalloc() instead of __vmalloc()
+> - Use meaningful error messages in xt_set.c
+> - Constified attribute cannot be written
+> - Send (N)ACK at dumping only when NLM_F_ACK is set
+> - Correct the error codes: use ENOENT and EMSGSIZE
 
+A few more issues I just noticed:
 
---------------040405000401070505000001
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="x"
+- There are still a bunch of purely kernel internal files
+  in include/linux/netfilter/ipset which should be moved to
+  include/net/netfilter/ipset.
 
-commit a00f1f3686d6a062b5295c092a9dff059adbdbf5
-Author: Patrick McHardy <kaber@trash.net>
-Date:   Tue Feb 1 17:26:37 2011 +0100
+- Some other include files contain mostly kernel internal
+  things, I'd prefer to split those and move the kernel internal
+  portions to include/net/netfilter/ipvs as well.
 
-    netfilter: ctnetlink: fix ctnetlink_parse_tuple() warning
-    
-    net/netfilter/nf_conntrack_netlink.c: In function 'ctnetlink_parse_tuple':
-    net/netfilter/nf_conntrack_netlink.c:832:11: warning: comparison between 'enum ctattr_tuple' and 'enum ctattr_type'
-    
-    Use ctattr_type for the 'type' parameter since that's the type of all attributes
-    passed to this function.
-    
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
-
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 61c7394..cb1a819 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -803,7 +803,7 @@ static const struct nla_policy tuple_nla_policy[CTA_TUPLE_MAX+1] = {
- static int
- ctnetlink_parse_tuple(const struct nlattr * const cda[],
- 		      struct nf_conntrack_tuple *tuple,
--		      enum ctattr_tuple type, u_int8_t l3num)
-+		      enum ctattr_type type, u_int8_t l3num)
- {
- 	struct nlattr *tb[CTA_TUPLE_MAX+1];
- 	int err;
-
---------------040405000401070505000001--
+- The headers are not installed. I'm currently adding proper
+  Kbuild entries, will send over for review in a few minutes.
