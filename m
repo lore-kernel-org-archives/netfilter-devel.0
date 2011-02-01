@@ -1,52 +1,81 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 00/13] ipset kernel patches v3
-Date: Tue, 01 Feb 2011 18:42:44 +0100
-Message-ID: <4D484614.1000400@trash.net>
-References: <1296514388-20900-1-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH] netfilter: ipset: install ipset related header files
+Date: Tue, 01 Feb 2011 18:54:54 +0100
+Message-ID: <4D4848EE.2050000@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: multipart/mixed;
+ boundary="------------050006000505020609090101"
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46550 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:46748 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752436Ab1BARmr (ORCPT
+	with ESMTP id S1752235Ab1BARy4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Feb 2011 12:42:47 -0500
-In-Reply-To: <1296514388-20900-1-git-send-email-kadlec@blackhole.kfki.hu>
+	Tue, 1 Feb 2011 12:54:56 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 31.01.2011 23:52, schrieb Jozsef Kadlecsik:
-> Hi,
-> 
-> Here follows the updated ipset kernel patches. The list of changes compared
-> to the previous one:
-> 
-> - Separate ipset errnos completely from system ones and bump protocol
->   version
-> - Use better error codes in xt_set.c
-> - Fix sparse warning about shadowed definition
-> - bitmap:ip type: flavour specific adt functions
-> - bitmap:port type: flavour specific adt functions
-> - Move the type specificic attribute validation to the core
-> - Use vzalloc() instead of __vmalloc()
-> - Use meaningful error messages in xt_set.c
-> - Constified attribute cannot be written
-> - Send (N)ACK at dumping only when NLM_F_ACK is set
-> - Correct the error codes: use ENOENT and EMSGSIZE
+This is a multi-part message in MIME format.
+--------------050006000505020609090101
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-A few more issues I just noticed:
 
-- There are still a bunch of purely kernel internal files
-  in include/linux/netfilter/ipset which should be moved to
-  include/net/netfilter/ipset.
+--------------050006000505020609090101
+Content-Type: text/plain;
+ name="03.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="03.diff"
 
-- Some other include files contain mostly kernel internal
-  things, I'd prefer to split those and move the kernel internal
-  portions to include/net/netfilter/ipvs as well.
+commit e3e241b2769b27669d05f0a05083acd21b4faa2c
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Tue Feb 1 18:52:42 2011 +0100
 
-- The headers are not installed. I'm currently adding proper
-  Kbuild entries, will send over for review in a few minutes.
+    netfilter: ipset: install ipset related header files
+    
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/Kbuild
+index 89c0d1e..ba19544 100644
+--- a/include/linux/netfilter/Kbuild
++++ b/include/linux/netfilter/Kbuild
+@@ -1,3 +1,5 @@
++header-y += ipset/
++
+ header-y += nf_conntrack_common.h
+ header-y += nf_conntrack_ftp.h
+ header-y += nf_conntrack_sctp.h
+@@ -55,6 +57,7 @@ header-y += xt_quota.h
+ header-y += xt_rateest.h
+ header-y += xt_realm.h
+ header-y += xt_recent.h
++header-y += xt_set.h
+ header-y += xt_sctp.h
+ header-y += xt_socket.h
+ header-y += xt_state.h
+diff --git a/include/linux/netfilter/ipset/Kbuild b/include/linux/netfilter/ipset/Kbuild
+new file mode 100644
+index 0000000..601fe71
+--- /dev/null
++++ b/include/linux/netfilter/ipset/Kbuild
+@@ -0,0 +1,4 @@
++header-y += ip_set.h
++header-y += ip_set_bitmap.h
++header-y += ip_set_hash.h
++header-y += ip_set_list.h
+diff --git a/include/linux/netfilter/xt_set.h b/include/linux/netfilter/xt_set.h
+index 69b2bd1..081f1de 100644
+--- a/include/linux/netfilter/xt_set.h
++++ b/include/linux/netfilter/xt_set.h
+@@ -1,6 +1,7 @@
+ #ifndef _XT_SET_H
+ #define _XT_SET_H
+ 
++#include <linux/types.h>
+ #include <linux/netfilter/ipset/ip_set.h>
+ 
+ /* Revision 0 interface: backward compatible with netfilter/iptables */
+
+--------------050006000505020609090101--
