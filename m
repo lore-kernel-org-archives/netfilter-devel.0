@@ -1,81 +1,56 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH] netfilter: ipset: install ipset related header files
-Date: Tue, 01 Feb 2011 18:54:54 +0100
-Message-ID: <4D4848EE.2050000@trash.net>
+From: Bhanu CV <vbhanu.mailinglists@gmail.com>
+Subject: Re: How does iptables classify change skb priority
+Date: Tue, 1 Feb 2011 10:10:56 -0800
+Message-ID: <AANLkTinYJ9udZEOAyAse7Sg6r6Tho1pXLRG3ZLHjEn2o@mail.gmail.com>
+References: <AANLkTimK=LsDOGJGFSFNxH_zC-zDWv=Z3FpLZAPt1g0E@mail.gmail.com>
+	<4D48368B.6050906@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050006000505020609090101"
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46748 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752235Ab1BARy4 (ORCPT
+Received: from mail-fx0-f66.google.com ([209.85.161.66]:40227 "EHLO
+	mail-fx0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751366Ab1BASK6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Feb 2011 12:54:56 -0500
+	Tue, 1 Feb 2011 13:10:58 -0500
+Received: by fxm14 with SMTP id 14so1518228fxm.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 01 Feb 2011 10:10:56 -0800 (PST)
+In-Reply-To: <4D48368B.6050906@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------050006000505020609090101
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+If I had a qdisc with handle 0:3 would the behavior be different?
 
+Thanks a lot for the response!
+Bhanu
 
---------------050006000505020609090101
-Content-Type: text/plain;
- name="03.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="03.diff"
-
-commit e3e241b2769b27669d05f0a05083acd21b4faa2c
-Author: Patrick McHardy <kaber@trash.net>
-Date:   Tue Feb 1 18:52:42 2011 +0100
-
-    netfilter: ipset: install ipset related header files
-    
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
-
-diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/Kbuild
-index 89c0d1e..ba19544 100644
---- a/include/linux/netfilter/Kbuild
-+++ b/include/linux/netfilter/Kbuild
-@@ -1,3 +1,5 @@
-+header-y += ipset/
-+
- header-y += nf_conntrack_common.h
- header-y += nf_conntrack_ftp.h
- header-y += nf_conntrack_sctp.h
-@@ -55,6 +57,7 @@ header-y += xt_quota.h
- header-y += xt_rateest.h
- header-y += xt_realm.h
- header-y += xt_recent.h
-+header-y += xt_set.h
- header-y += xt_sctp.h
- header-y += xt_socket.h
- header-y += xt_state.h
-diff --git a/include/linux/netfilter/ipset/Kbuild b/include/linux/netfilter/ipset/Kbuild
-new file mode 100644
-index 0000000..601fe71
---- /dev/null
-+++ b/include/linux/netfilter/ipset/Kbuild
-@@ -0,0 +1,4 @@
-+header-y += ip_set.h
-+header-y += ip_set_bitmap.h
-+header-y += ip_set_hash.h
-+header-y += ip_set_list.h
-diff --git a/include/linux/netfilter/xt_set.h b/include/linux/netfilter/xt_set.h
-index 69b2bd1..081f1de 100644
---- a/include/linux/netfilter/xt_set.h
-+++ b/include/linux/netfilter/xt_set.h
-@@ -1,6 +1,7 @@
- #ifndef _XT_SET_H
- #define _XT_SET_H
- 
-+#include <linux/types.h>
- #include <linux/netfilter/ipset/ip_set.h>
- 
- /* Revision 0 interface: backward compatible with netfilter/iptables */
-
---------------050006000505020609090101--
+On Tue, Feb 1, 2011 at 8:36 AM, Patrick McHardy <kaber@trash.net> wrote:
+> Am 01.02.2011 17:31, schrieb Bhanu CV:
+>> Hi,
+>>
+>> I am trying to change the skb priority of the packets going out to a
+>> particular destination. Then I use vlan set_egress_map to change the
+>> vlan priority of the packet. This works as I want it to, the confusing
+>> part is I do not know why it works!
+>>
+>> I use the following two commands:
+>>
+>> change the skb->priority (?) for the packets that I am interested in to 3:
+>> iptables -t mangle -A POSTROUTING -d 192.168.10.75 -j CLASSIFY --set-class 0:3
+>>
+>> change the vlan priority of the packet leaving over the vlan
+>> vconfig set_egress_map eth4.2 3 3
+>>
+>> This does send a packet on the wire with MAC layer priority of 3,
+>> which is what I want. What I am trying to understand is the action
+>> that iptables is taking. I do not have any class under the root qdisc
+>> on eth4. The root qdisc has handle 0:
+>>
+>> It would be great if someone could explain how iptables is classifying
+>> the packet in a way which changes the skb->priority of the packet.
+>
+> It simply changes the skb->priority value, which used by the VLAN
+> driver to map to VLAN proprities. This is done by the VLAN driver
+> internally and unrelated to qdiscs.
+>
