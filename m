@@ -1,44 +1,41 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [HELP] why the string match does not work in nat tables?
-Date: Tue, 1 Feb 2011 12:51:25 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1102011246520.4106@obet.zrqbmnf.qr>
-References: <AANLkTinoBfMTDNVLHuBhMFJHHSrMmP0gwYTz2AX3f_ew@mail.gmail.com> <alpine.LNX.2.01.1101310306560.15201@obet.zrqbmnf.qr> <AANLkTik02D=agfFrc8VX+Wh4WAg_odm6cEcpbXvbgtqM@mail.gmail.com> <alpine.LNX.2.01.1101310337270.19252@obet.zrqbmnf.qr>
- <AANLkTikxZf8zMJxRTGg6BS4uc0PDus+E6cEtfLDQRTQu@mail.gmail.com> <4D46824B.2010706@netfilter.org> <AANLkTimLxY-sM28GHq_RYKyMzN-7n6VXaDJD7FLz4vv4@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/2] bugfixes for nf-next-2.6 (2.6.38-rc)
+Date: Tue, 01 Feb 2011 13:05:04 +0100
+Message-ID: <20110201120116.3427.96097.stgit@decadence>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, wp@elim.net
-To: JeHo Park <linuxpark@gmail.com>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <AANLkTimLxY-sM28GHq_RYKyMzN-7n6VXaDJD7FLz4vv4@mail.gmail.com>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:57583 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754438Ab1BAMFT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Feb 2011 07:05:19 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+Hi Patrick!
+
+I've got a couple of patches for nf-next-2.6. The first fixes
+arptables that seems to be broken since quite some time due
+to a broken cleanup. The latter refers to the CT event filtering,
+I think it can be qualified as bugfix since the current filtering
+schema is not useful for conntrackd.
+
+Please, apply!
+
+---
+
+Pablo Neira Ayuso (2):
+      netfilter: arpt_mangle: fix return values of checkentry
+      netfilter: ecache: always set events bits, filter them later
 
 
-On Tuesday 2011-02-01 02:50, JeHo Park wrote:
->>> anyway, i wonder why there is no TCP payload in the skb of the string
->>> or wurl match.
->>
->> Because you only see the first packet of the flow in the NAT table.
->>
->first, i thought or assumed what you said like above is from the
->reason that NAT mapping is first started from L3 IP connection mapping
->[...] but it is not based on TCP contents.
->so you said it is not possible to rediect such connection.
->is it right?
+ include/net/netfilter/nf_conntrack_ecache.h |    3 ---
+ net/ipv4/netfilter/arpt_mangle.c            |    6 +++---
+ net/netfilter/nf_conntrack_ecache.c         |    3 +++
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-The simple fact is that there is usually no content in the
-TCP SYN packet that you could possibly match on.
-
->> You should use the string match in the filter or raw tables.
->>
->
->and second, i think some people might also want such a functionality
->like what i want to do, redirection some connection to other server
->judging from its TCP contents infomation. [in this case, the URI
->infomation of the HTTP transaction]
-
-That is what proxies like squid are for.
-
-See http://l7-filter.sourceforge.net/FAQ#usage for an elaborate
-answer.
+--
+1+1=1
