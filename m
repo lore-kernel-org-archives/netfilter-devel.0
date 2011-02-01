@@ -1,44 +1,29 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2] netfilter: ecache: always set events bits,	filter
- them later
-Date: Tue, 01 Feb 2011 16:09:29 +0100
-Message-ID: <4D482229.6000707@trash.net>
-References: <20110201120116.3427.96097.stgit@decadence> <20110201120547.3427.21721.stgit@decadence>
+Subject: Re: [PATCH] CT: add "none" as parameter for --ctevents
+Date: Tue, 01 Feb 2011 16:19:40 +0100
+Message-ID: <4D48248C.6070000@trash.net>
+References: <20110131224856.4390.31272.stgit@decadence>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43986 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:44159 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751185Ab1BAPJv (ORCPT
+	with ESMTP id S1751682Ab1BAPTo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Feb 2011 10:09:51 -0500
-In-Reply-To: <20110201120547.3427.21721.stgit@decadence>
+	Tue, 1 Feb 2011 10:19:44 -0500
+In-Reply-To: <20110131224856.4390.31272.stgit@decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 01.02.2011 13:05, schrieb Pablo Neira Ayuso:
-> For the following rule:
+Am 31.01.2011 23:48, schrieb Pablo Neira Ayuso:
+> This allows not to deliver any event. This can be useful if you want
+> no events for some protocols, for example:
 > 
-> iptables -I PREROUTING -t raw -j CT --ctevents assured
+> iptables -I PREROUTING -t raw -p udp -j CT --ctevents none
 > 
-> The event delivered looks like the following:
-> 
->  [UPDATE] tcp      6 src=192.168.0.2 dst=192.168.1.2 sport=37041 dport=80 src=192.168.1.2 dst=192.168.1.100 sport=80 dport=37041 [ASSURED]
-> 
-> Note that the TCP protocol state is not included. For that reason
-> the CT event filtering is not very useful for conntrackd.
-> 
-> To resolve this issue, instead of conditionally setting the CT events
-> bits based on the ctmask, we always set them and perform the filtering
-> in the late stage, just before the delivery.
-> 
-> Thus, the event delivered looks like the following:
-> 
->  [UPDATE] tcp      6 432000 ESTABLISHED src=192.168.0.2 dst=192.168.1.2 sport=37041 dport=80 src=192.168.1.2 dst=192.168.1.100 sport=80 dport=37041 [ASSURED]
-> 
+> Thus, no events for UDP traffic are delivered to user-space.
 
-Looks good to me, applied, thanks. Do you want me to push this
-one to -stable as well?
+Looks fine to me.
