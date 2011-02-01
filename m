@@ -1,47 +1,62 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: How does iptables classify change skb priority
-Date: Tue, 01 Feb 2011 17:36:27 +0100
-Message-ID: <4D48368B.6050906@trash.net>
-References: <AANLkTimK=LsDOGJGFSFNxH_zC-zDWv=Z3FpLZAPt1g0E@mail.gmail.com>
+Subject: [PATCH] netfilter: ctnetlink: fix ctnetlink_parse_tuple() warning
+Date: Tue, 01 Feb 2011 17:51:21 +0100
+Message-ID: <4D483A09.8000202@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Bhanu CV <vbhanu.mailinglists@gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------040405000401070505000001"
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45448 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45692 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751432Ab1BAQgc (ORCPT
+	with ESMTP id S1751432Ab1BAQvY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Feb 2011 11:36:32 -0500
-In-Reply-To: <AANLkTimK=LsDOGJGFSFNxH_zC-zDWv=Z3FpLZAPt1g0E@mail.gmail.com>
+	Tue, 1 Feb 2011 11:51:24 -0500
+Received: from x100e.localnet (localhost [127.0.0.1])
+	by stinky.trash.net (Postfix) with ESMTP id 0F0D1B2C43
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Feb 2011 17:51:21 +0100 (MET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 01.02.2011 17:31, schrieb Bhanu CV:
-> Hi,
-> 
-> I am trying to change the skb priority of the packets going out to a
-> particular destination. Then I use vlan set_egress_map to change the
-> vlan priority of the packet. This works as I want it to, the confusing
-> part is I do not know why it works!
-> 
-> I use the following two commands:
-> 
-> change the skb->priority (?) for the packets that I am interested in to 3:
-> iptables -t mangle -A POSTROUTING -d 192.168.10.75 -j CLASSIFY --set-class 0:3
-> 
-> change the vlan priority of the packet leaving over the vlan
-> vconfig set_egress_map eth4.2 3 3
-> 
-> This does send a packet on the wire with MAC layer priority of 3,
-> which is what I want. What I am trying to understand is the action
-> that iptables is taking. I do not have any class under the root qdisc
-> on eth4. The root qdisc has handle 0:
-> 
-> It would be great if someone could explain how iptables is classifying
-> the packet in a way which changes the skb->priority of the packet.
+This is a multi-part message in MIME format.
+--------------040405000401070505000001
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-It simply changes the skb->priority value, which used by the VLAN
-driver to map to VLAN proprities. This is done by the VLAN driver
-internally and unrelated to qdiscs.
+
+--------------040405000401070505000001
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="x"
+
+commit a00f1f3686d6a062b5295c092a9dff059adbdbf5
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Tue Feb 1 17:26:37 2011 +0100
+
+    netfilter: ctnetlink: fix ctnetlink_parse_tuple() warning
+    
+    net/netfilter/nf_conntrack_netlink.c: In function 'ctnetlink_parse_tuple':
+    net/netfilter/nf_conntrack_netlink.c:832:11: warning: comparison between 'enum ctattr_tuple' and 'enum ctattr_type'
+    
+    Use ctattr_type for the 'type' parameter since that's the type of all attributes
+    passed to this function.
+    
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 61c7394..cb1a819 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -803,7 +803,7 @@ static const struct nla_policy tuple_nla_policy[CTA_TUPLE_MAX+1] = {
+ static int
+ ctnetlink_parse_tuple(const struct nlattr * const cda[],
+ 		      struct nf_conntrack_tuple *tuple,
+-		      enum ctattr_tuple type, u_int8_t l3num)
++		      enum ctattr_type type, u_int8_t l3num)
+ {
+ 	struct nlattr *tb[CTA_TUPLE_MAX+1];
+ 	int err;
+
+--------------040405000401070505000001--
