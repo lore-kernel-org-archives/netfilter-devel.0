@@ -1,34 +1,55 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 02/13] IP set core support
-Date: Wed, 02 Feb 2011 23:56:57 +0100
-Message-ID: <4D49E139.1090403@trash.net>
-References: <1296514388-20900-1-git-send-email-kadlec@blackhole.kfki.hu> <1296514388-20900-2-git-send-email-kadlec@blackhole.kfki.hu> <1296514388-20900-3-git-send-email-kadlec@blackhole.kfki.hu> <4D482817.7090407@trash.net> <alpine.DEB.2.00.1102012002430.24267@blackhole.kfki.hu> <alpine.DEB.2.00.1102012154130.24580@blackhole.kfki.hu> <alpine.DEB.2.00.1102012225080.24657@blackhole.kfki.hu> <4D48FEC6.5080701@trash.net> <alpine.DEB.2.00.1102022044440.29552@blackhole.kfki.hu>
+Subject: Re: ebtables_nfqueue: missing structure afinfo
+Date: Wed, 02 Feb 2011 23:59:44 +0100
+Message-ID: <4D49E1E0.50304@trash.net>
+References: <4D3DE736.70808@wzdftpd.net> <4D3EA72B.7000509@trash.net> <4D49AEFC.4040203@wzdftpd.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Pierre Chifflier <chifflier@wzdftpd.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44495 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:44527 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755268Ab1BBW46 (ORCPT
+	with ESMTP id S1755268Ab1BBW7q (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Feb 2011 17:56:58 -0500
-In-Reply-To: <alpine.DEB.2.00.1102022044440.29552@blackhole.kfki.hu>
+	Wed, 2 Feb 2011 17:59:46 -0500
+In-Reply-To: <4D49AEFC.4040203@wzdftpd.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 02.02.2011 20:46, schrieb Jozsef Kadlecsik:
-> netfilter: ipset: send error message manually
+Am 02.02.2011 20:22, schrieb Pierre Chifflier:
+> I've spent a few days trying to make it optional (in nf_queue.c,
+> function __nf_queue), however I have a weird problem:
+> If I remove the test for afinfo (and ensure that the pointer is not used
+> if null), everything seems to work fine.
+> However, when I use a userspace program (always returning NF_ACCEPT), I
+> got a fatal kernel oops (or panic) regarding packets.
+> According to the info displayed, it seems to be sometimes in
+> br_handle_frame, at
+> this point:
+> 	case BR_STATE_FORWARDING:
+> 		rhook = rcu_dereference(br_should_route_hook);
+> 		if (rhook) {
+> 			if ((*rhook)(skb))
 > 
-> When a message carries multiple commands and one of them triggers
-> an error, we have to report to the userspace which one was that.
-> The line number of the command plays this role and there's an attribute
-> reserved in the header part of the message to be filled out with the error
-> line number. In order not to modify the original message received from
-> the userspace, we construct a new, complete netlink error message and
-> modifies the attribute there, then send it.
-> Netlink is notified not to send its ACK/error message.
+> inside the (*rhook) call.
 
-Applied, thanks Jozsef.
+It shouldn't even get to this function since this is before the
+NF_HOOK calls.
+
+> Sometimes it's in netlink_unicast (unknown location), always when
+> reinjecting packet.
+> 
+> I tried to get more info with kgdb, but without much success:
+> #2  0xc11d1adc in skb_release_all (skb=0xdf1ed600) at net/core/skbuff.c:403
+> #3  __kfree_skb (skb=0xdf1ed600) at net/core/skbuff.c:417
+> #4  0xc11d1bdb in kfree_skb (skb=0xdf1ed600) at net/core/skbuff.c:438
+> #5  0xc11ee4d1 in netlink_unicast (ssk=0xdbf15c00, skb=<value optimized
+> out>,
+>     pid=<value optimized out>, nonblock=0) at net/netlink/af_netlink.c:921
+> 
+> Any idea on what could cause this ? AFAICT, it was not happening when I
+> used a fake afinfo structure.
+
+No. Please send over the code you're using and I'll have a closer look.
