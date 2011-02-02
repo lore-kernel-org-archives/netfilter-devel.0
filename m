@@ -1,34 +1,58 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/26] netfilter: netfilter update
-Date: Wed, 02 Feb 2011 15:24:42 -0800 (PST)
-Message-ID: <20110202.152442.102566341.davem@davemloft.net>
-References: <1296688324-7830-1-git-send-email-kaber@trash.net>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1296688324-7830-1-git-send-email-kaber@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
 From: kaber@trash.net
-Date: Thu,  3 Feb 2011 00:11:38 +0100
+Subject: [PATCH 3/4] netfilter: arpt_mangle: fix return values of checkentry
+Date: Thu,  3 Feb 2011 00:45:29 +0100
+Message-ID: <1296690330-9887-4-git-send-email-kaber@trash.net>
+References: <1296690330-9887-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: davem@davemloft.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:45195 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755337Ab1BBXpr (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 2 Feb 2011 18:45:47 -0500
+In-Reply-To: <1296690330-9887-1-git-send-email-kaber@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-> following is another netfilter update for net-next-2.6, containing:
-> 
-> - IP set from Jozsef, with some bugfixes from Jozsef and me on top
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-W00t!
+In 135367b "netfilter: xtables: change xt_target.checkentry return type",
+the type returned by checkentry was changed from boolean to int, but the
+return values where not adjusted.
 
-> - IPVS fixes from Simon
-> 
-> - a new xtables 'devgroup' match to match on the network device group,
->   from myself
-> 
-> Please pull from:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
+arptables: Input/output error
 
-Pulled, thanks a lot!
+This broke arptables with the mangle target since it returns true
+under success, which is interpreted by xtables as >0, thus
+returning EIO.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ net/ipv4/netfilter/arpt_mangle.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/net/ipv4/netfilter/arpt_mangle.c b/net/ipv4/netfilter/arpt_mangle.c
+index b8ddcc4..a5e52a9 100644
+--- a/net/ipv4/netfilter/arpt_mangle.c
++++ b/net/ipv4/netfilter/arpt_mangle.c
+@@ -60,12 +60,12 @@ static int checkentry(const struct xt_tgchk_param *par)
+ 
+ 	if (mangle->flags & ~ARPT_MANGLE_MASK ||
+ 	    !(mangle->flags & ARPT_MANGLE_MASK))
+-		return false;
++		return -EINVAL;
+ 
+ 	if (mangle->target != NF_DROP && mangle->target != NF_ACCEPT &&
+ 	   mangle->target != XT_CONTINUE)
+-		return false;
+-	return true;
++		return -EINVAL;
++	return 0;
+ }
+ 
+ static struct xt_target arpt_mangle_reg __read_mostly = {
+-- 
+1.7.2.3
+
