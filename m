@@ -1,55 +1,78 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ebtables_nfqueue: missing structure afinfo
-Date: Wed, 02 Feb 2011 23:59:44 +0100
-Message-ID: <4D49E1E0.50304@trash.net>
-References: <4D3DE736.70808@wzdftpd.net> <4D3EA72B.7000509@trash.net> <4D49AEFC.4040203@wzdftpd.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Pierre Chifflier <chifflier@wzdftpd.net>
+From: kaber@trash.net
+Subject: [PATCH 01/26] netfilter: NFNL_SUBSYS_IPSET id and NLA_PUT_NET* macros
+Date: Thu,  3 Feb 2011 00:11:39 +0100
+Message-ID: <1296688324-7830-2-git-send-email-kaber@trash.net>
+References: <1296688324-7830-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44527 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:44710 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755268Ab1BBW7q (ORCPT
+	with ESMTP id S1754512Ab1BBXMa (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Feb 2011 17:59:46 -0500
-In-Reply-To: <4D49AEFC.4040203@wzdftpd.net>
+	Wed, 2 Feb 2011 18:12:30 -0500
+In-Reply-To: <1296688324-7830-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 02.02.2011 20:22, schrieb Pierre Chifflier:
-> I've spent a few days trying to make it optional (in nf_queue.c,
-> function __nf_queue), however I have a weird problem:
-> If I remove the test for afinfo (and ensure that the pointer is not used
-> if null), everything seems to work fine.
-> However, when I use a userspace program (always returning NF_ACCEPT), I
-> got a fatal kernel oops (or panic) regarding packets.
-> According to the info displayed, it seems to be sometimes in
-> br_handle_frame, at
-> this point:
-> 	case BR_STATE_FORWARDING:
-> 		rhook = rcu_dereference(br_should_route_hook);
-> 		if (rhook) {
-> 			if ((*rhook)(skb))
-> 
-> inside the (*rhook) call.
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-It shouldn't even get to this function since this is before the
-NF_HOOK calls.
+The patch adds the NFNL_SUBSYS_IPSET id and NLA_PUT_NET* macros to the
+vanilla kernel.
 
-> Sometimes it's in netlink_unicast (unknown location), always when
-> reinjecting packet.
-> 
-> I tried to get more info with kgdb, but without much success:
-> #2  0xc11d1adc in skb_release_all (skb=0xdf1ed600) at net/core/skbuff.c:403
-> #3  __kfree_skb (skb=0xdf1ed600) at net/core/skbuff.c:417
-> #4  0xc11d1bdb in kfree_skb (skb=0xdf1ed600) at net/core/skbuff.c:438
-> #5  0xc11ee4d1 in netlink_unicast (ssk=0xdbf15c00, skb=<value optimized
-> out>,
->     pid=<value optimized out>, nonblock=0) at net/netlink/af_netlink.c:921
-> 
-> Any idea on what could cause this ? AFAICT, it was not happening when I
-> used a fake afinfo structure.
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ include/linux/netfilter/nfnetlink.h |    3 ++-
+ include/net/netlink.h               |    9 +++++++++
+ 2 files changed, 11 insertions(+), 1 deletions(-)
 
-No. Please send over the code you're using and I'll have a closer look.
+diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
+index 361d6b5..2b11fc1 100644
+--- a/include/linux/netfilter/nfnetlink.h
++++ b/include/linux/netfilter/nfnetlink.h
+@@ -47,7 +47,8 @@ struct nfgenmsg {
+ #define NFNL_SUBSYS_QUEUE		3
+ #define NFNL_SUBSYS_ULOG		4
+ #define NFNL_SUBSYS_OSF			5
+-#define NFNL_SUBSYS_COUNT		6
++#define NFNL_SUBSYS_IPSET		6
++#define NFNL_SUBSYS_COUNT		7
+ 
+ #ifdef __KERNEL__
+ 
+diff --git a/include/net/netlink.h b/include/net/netlink.h
+index 373f1a9..8a3906a 100644
+--- a/include/net/netlink.h
++++ b/include/net/netlink.h
+@@ -856,18 +856,27 @@ static inline int nla_put_msecs(struct sk_buff *skb, int attrtype,
+ #define NLA_PUT_BE16(skb, attrtype, value) \
+ 	NLA_PUT_TYPE(skb, __be16, attrtype, value)
+ 
++#define NLA_PUT_NET16(skb, attrtype, value) \
++	NLA_PUT_BE16(skb, attrtype | NLA_F_NET_BYTEORDER, value)
++
+ #define NLA_PUT_U32(skb, attrtype, value) \
+ 	NLA_PUT_TYPE(skb, u32, attrtype, value)
+ 
+ #define NLA_PUT_BE32(skb, attrtype, value) \
+ 	NLA_PUT_TYPE(skb, __be32, attrtype, value)
+ 
++#define NLA_PUT_NET32(skb, attrtype, value) \
++	NLA_PUT_BE32(skb, attrtype | NLA_F_NET_BYTEORDER, value)
++
+ #define NLA_PUT_U64(skb, attrtype, value) \
+ 	NLA_PUT_TYPE(skb, u64, attrtype, value)
+ 
+ #define NLA_PUT_BE64(skb, attrtype, value) \
+ 	NLA_PUT_TYPE(skb, __be64, attrtype, value)
+ 
++#define NLA_PUT_NET64(skb, attrtype, value) \
++	NLA_PUT_BE64(skb, attrtype | NLA_F_NET_BYTEORDER, value)
++
+ #define NLA_PUT_STRING(skb, attrtype, value) \
+ 	NLA_PUT(skb, attrtype, strlen(value) + 1, value)
+ 
+-- 
+1.7.2.3
+
