@@ -1,39 +1,71 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: ulogd2: build fixes
-Date: Thu, 03 Feb 2011 18:17:47 +0100
-Message-ID: <4D4AE33B.4060504@netfilter.org>
-References: <1296683468-30413-1-git-send-email-jengelh@medozas.de>
+From: Hans Schillstrom <hans@schillstrom.com>
+Subject: Re: [PATCH] NETFILTER module xt_hmark new target for HASH MARK
+Date: Thu, 3 Feb 2011 18:37:32 +0100
+Message-ID: <201102031837.32971.hans@schillstrom.com>
+References: <1296740050-6311-1-git-send-email-hans.schillstrom@ericsson.com> <4D4ACCCB.8030902@netfilter.org> <4D4AD157.50707@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	"kaber@trash.net" <kaber@trash.net>,
+	"jengelh@medozas.de" <jengelh@medozas.de>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57027 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756170Ab1BCRRu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Feb 2011 12:17:50 -0500
-In-Reply-To: <1296683468-30413-1-git-send-email-jengelh@medozas.de>
+Received: from smtp-gw11.han.skanova.net ([81.236.55.20]:45947 "EHLO
+	smtp-gw11.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756453Ab1BCRhg (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Feb 2011 12:37:36 -0500
+In-Reply-To: <4D4AD157.50707@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 02/02/11 22:51, Jan Engelhardt wrote:
-> The following changes since commit 4f652cc32aebeac20f46009f146ad973a1ed0e99:
+On Thursday, February 03, 2011 17:01:27 Pablo Neira Ayuso wrote:
+> On 03/02/11 16:42, Pablo Neira Ayuso wrote:
+> > On 03/02/11 15:23, Hans Schillstrom wrote:
+> >> On Thu, 2011-02-03 at 14:51 +0100, Pablo Neira Ayuso wrote:
+> >>> On 03/02/11 14:34, Hans Schillstrom wrote:
+> >>> this assumption is not valid in NAT handlings.
+> >>
+> >> That's true, because I want to avoid conntrack
+> >>
+> >>> If you want consistent hashing with NAT handlings you'll have to make
+> >>> this stateful and use the conntrack source and reply directions of the
+> >>> original tuples (thus making it stateful). That may be a problem because
+> >>> some people may want to use this without enabling connection tracking.
+> >>
+> >> What about a compilation switch or a sysctl ?
+> > 
+> > or better some option for iptables.
 > 
->   NFCT: fix bug in polling mode (2010-12-09 12:02:15 +0100)
+> Hm, this is actually not straight forward to implement, you'll have to
+> use hook functions to avoid the module dependencies with conntrack and
+> that's pretty annoying.
 > 
-> are available in the git repository at:
->   git://dev.medozas.de/ulogd2 master
+> I don't come up with a good solution for this.
+
+A configuration switch might be OK.
+
 > 
-> Jan Engelhardt (3):
->       build: avoid use of LIBS variable
->       build: use appropriate location for program modules
->       build: use compile/link information from pkgconfig
+> >>> Are you using this for (uplink) load balancing?
+> >>
+> >> Actually in both ways 
+> >>  - in front of a bunch of ipvs
+> 
+> to make some preliminary load-sharing between the load balancers?
 
-Pulled and pushed out, thanks!
+Yes that's right
+and in the payloads send the return traffic in the same path.
 
-> Pablo Neira Ayuso (1):
->       ulogd: fix double call of stop for reused input plugins
+> 
+> >>  - and in the payloads for outgoing traffic.
+> 
+> and then to select the uplink, right?
+> 
 
-Hm, this seems to have slipped through :-)
-
+Yes.
+It also has the same role for cluster originated traffic to spread the load over multiple interfaces,
+and catch the return traffic.
