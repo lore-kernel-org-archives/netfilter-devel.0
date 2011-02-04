@@ -1,40 +1,34 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: WIP/RFC: add new module ebt_NFQUEUE for ebtables
-Date: Fri, 04 Feb 2011 14:21:31 +0100
-Message-ID: <4D4BFD5B.4010400@trash.net>
-References: <4D49E1E0.50304@trash.net> <1296743540-8148-1-git-send-email-chifflier@edenwall.com> <4D4BCF5E.8020100@edenwall.com> <4D4BFA1D.4070007@trash.net> <4D4BFD13.8090306@edenwall.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 7/8] libxtables: symbol visibility
+Date: Fri, 4 Feb 2011 14:22:49 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1102041421530.5968@obet.zrqbmnf.qr>
+References: <1296824935-4606-1-git-send-email-jengelh@medozas.de> <1296824935-4606-8-git-send-email-jengelh@medozas.de> <4D4BFB75.4080803@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Pierre Chifflier <chifflier@edenwall.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46550 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752286Ab1BDNVq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Feb 2011 08:21:46 -0500
-In-Reply-To: <4D4BFD13.8090306@edenwall.com>
+Received: from borg.medozas.de ([188.40.89.202]:52242 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752286Ab1BDNWu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Feb 2011 08:22:50 -0500
+In-Reply-To: <4D4BFB75.4080803@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 04.02.2011 14:20, Pierre Chifflier wrote:
-> On 02/04/2011 02:07 PM, Patrick McHardy wrote:
->>> At the moment, I'm wondering if I'm not having several cumulated
->>> problems, which may be triggered more easily by my modifications ...
->>
->> We can't really help debug this without seeing the code, so please
->> post your current version (either privately or to the list).
-> 
-> Hi Patrick,
-> 
-> I just realized I didn't cc: you when sending the patches, but I send
-> them yesterday on the list (in reply to this thread)
-> 
-> <1296743540-8148-2-git-send-email-chifflier@edenwall.com>
-> [PATCH 1/3] Make the afinfo structure optional in nf_queue and nf_reinject
-> 
-> And the 2 following.
-> Sorry for the missing cc.
+On Friday 2011-02-04 14:13, Patrick McHardy wrote:
 
-Thanks, I just noticed them on the list.
+>On 04.02.2011 14:08, Jan Engelhardt wrote:
+>> -void xtables_free_opts(int unused)
+>> +EXPORT_SYMBOL void xtables_free_opts(int unused)
+>
+>This is pretty ugly in my opinion. Please do something like this:
+>
+>#define EXPORT_SYMBOL(x)        typeof(x) (x)
+>__attribute__((visibility("default")))
+>
+>so you can use EXPORT_SYMBOL as in the kernel.
+
+But that is redundancy nonplusultra. The reason why EXPORT_SYMBOL is a 
+separate statement is because it is much more than just a function 
+attribute inside the kernel.
