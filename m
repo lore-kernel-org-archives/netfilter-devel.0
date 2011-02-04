@@ -1,59 +1,53 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: Kernel crash with repeated NF invocation
-Date: Thu, 03 Feb 2011 13:10:04 -0800 (PST)
-Message-ID: <20110203.131004.226772735.davem@davemloft.net>
-References: <alpine.LNX.2.01.1102031605330.21536@obet.zrqbmnf.qr>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
-To: jengelh@medozas.de
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:51368
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752426Ab1BCVJ2 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Feb 2011 16:09:28 -0500
-In-Reply-To: <alpine.LNX.2.01.1102031605330.21536@obet.zrqbmnf.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: [PATCH 02/14] IPVS: Add sysctl_snat_reroute()
+Date: Fri,  4 Feb 2011 18:46:10 +0900
+Message-ID: <1296812782-14953-3-git-send-email-horms@verge.net.au>
+References: <1296812782-14953-1-git-send-email-horms@verge.net.au>
+Cc: Julian Anastasov <ja@ssi.bg>,
+	Hans Schillstrom <hans@schillstrom.com>,
+	Simon Horman <horms@verge.net.au>
+To: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, lvs-devel@vger.kernel.org
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1296812782-14953-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Jan Engelhardt <jengelh@medozas.de>
-Date: Thu, 3 Feb 2011 16:19:56 +0100 (CET)
+In preparation for not including sysctl_snat_reroute in
+struct netns_ipvs when CONFIG_SYCTL is not defined.
 
-> I remember there being a kernel config option 
-> (CONFIG_DEBUG_STACKOVERFLOW) that would emit messages 
-> similar to
-> "process foobar (12345) used greatest stack depth: 2042" --
-> would that also work for softirqs?
+Signed-off-by: Simon Horman <horms@verge.net.au>
+---
+ net/netfilter/ipvs/ip_vs_core.c |   20 ++++++++++++++++----
+ 1 files changed, 16 insertions(+), 4 deletions(-)
 
-The kernel stack tracer is your best bet right now, it's easy to
-enable, it's something like just writing "1" to the /sys filesystem
-file that controls it.
-
-Enable CONFIG_STACK_TRACER in your config.
-
-config STACK_TRACER
-	bool "Trace max stack"
-	depends on HAVE_FUNCTION_TRACER
-	select FUNCTION_TRACER
-	select STACKTRACE
-	select KALLSYMS
-	help
-	  This special tracer records the maximum stack footprint of the
-	  kernel and displays it in /sys/kernel/debug/tracing/stack_trace.
-
-	  This tracer works by hooking into every function call that the
-	  kernel executes, and keeping a maximum stack depth value and
-	  stack-trace saved.  If this is configured with DYNAMIC_FTRACE
-	  then it will not have any overhead while the stack tracer
-	  is disabled.
-
-	  To enable the stack tracer on bootup, pass in 'stacktrace'
-	  on the kernel command line.
-
-	  The stack tracer can also be enabled or disabled via the
-	  sysctl kernel.stack_tracer_enabled
-
-	  Say N if unsure.
-
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index c4c8199..3abc009 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -599,6 +599,20 @@ int ip_vs_leave(struct ip_vs_service *svc, struct sk_buff *skb,
+ 	return NF_DROP;
+ }
+ 
++#ifdef CONFIG_SYSCTL
++
++static int sysctl_snat_reroute(struct sk_buff *skb)
++{
++	struct netns_ipvs *ipvs = net_ipvs(skb_net(skb));
++	return ipvs->sysctl_snat_reroute;
++}
++
++#else
++
++static int sysctl_snat_reroute(struct sk_buff *skb) { return 0; }
++
++#endif
++
+ __sum16 ip_vs_checksum_complete(struct sk_buff *skb, int offset)
+ {
+ 	return csum_fold(skb_checksum(skb, offset, skb->len - offset, 0));
+@@ -633,15 +647,13 @@ static inline int ip_vs_gather_frags_v6(struct sk_buff *skb, u_int32_t user)
+ 
+ static int ip_vs_route_me_harder(int af, struct sk_buff *skb)
+ {
+-	struct netns_ipvs *ipvs = net_ipvs(skb_net(skb));
