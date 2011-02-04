@@ -1,30 +1,49 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 7/8] libxtables: symbol visibility
-Date: Fri, 04 Feb 2011 14:13:25 +0100
-Message-ID: <4D4BFB75.4080803@trash.net>
-References: <1296824935-4606-1-git-send-email-jengelh@medozas.de> <1296824935-4606-8-git-send-email-jengelh@medozas.de>
+Subject: Re: [PATCH] NETFILTER module xt_hmark new target for HASH MARK
+Date: Fri, 04 Feb 2011 14:17:28 +0100
+Message-ID: <4D4BFC68.2070306@trash.net>
+References: <1296740050-6311-1-git-send-email-hans.schillstrom@ericsson.com>	 <1296740050-6311-2-git-send-email-hans.schillstrom@ericsson.com>	 <4D4AB2D6.7070302@netfilter.org> <1296742995.6662.57.camel@seasc0214> <4D4ACCCB.8030902@netfilter.org> <4D4AD157.50707@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	"jengelh@medozas.de" <jengelh@medozas.de>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"hans@schillstrom.com" <hans@schillstrom.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46392 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:46468 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752697Ab1BDNNk (ORCPT
+	with ESMTP id S1752135Ab1BDNRn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Feb 2011 08:13:40 -0500
-In-Reply-To: <1296824935-4606-8-git-send-email-jengelh@medozas.de>
+	Fri, 4 Feb 2011 08:17:43 -0500
+In-Reply-To: <4D4AD157.50707@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 04.02.2011 14:08, Jan Engelhardt wrote:
-> -void xtables_free_opts(int unused)
-> +EXPORT_SYMBOL void xtables_free_opts(int unused)
+On 03.02.2011 17:01, Pablo Neira Ayuso wrote:
+> On 03/02/11 16:42, Pablo Neira Ayuso wrote:
+>> On 03/02/11 15:23, Hans Schillstrom wrote:
+>>> On Thu, 2011-02-03 at 14:51 +0100, Pablo Neira Ayuso wrote:
+>>>> On 03/02/11 14:34, Hans Schillstrom wrote:
+>>>> this assumption is not valid in NAT handlings.
+>>>
+>>> That's true, because I want to avoid conntrack
+>>>
+>>>> If you want consistent hashing with NAT handlings you'll have to make
+>>>> this stateful and use the conntrack source and reply directions of the
+>>>> original tuples (thus making it stateful). That may be a problem because
+>>>> some people may want to use this without enabling connection tracking.
+>>>
+>>> What about a compilation switch or a sysctl ?
+>>
+>> or better some option for iptables.
+> 
+> Hm, this is actually not straight forward to implement, you'll have to
+> use hook functions to avoid the module dependencies with conntrack and
+> that's pretty annoying.
 
-This is pretty ugly in my opinion. Please do something like this:
-
-#define EXPORT_SYMBOL(x)        typeof(x) (x)
-__attribute__((visibility("default")))
-
-so you can use EXPORT_SYMBOL as in the kernel.
+Actually it should be pretty simple since nf_ct_get() doesn't have any
+module dependencies. If it succeeds, use the addresses from the tuples,
+otherwise fall back to getting them directly from the packet.
