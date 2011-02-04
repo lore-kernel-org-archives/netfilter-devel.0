@@ -1,40 +1,48 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: WIP/RFC: add new module ebt_NFQUEUE for ebtables
-Date: Fri, 04 Feb 2011 14:07:41 +0100
-Message-ID: <4D4BFA1D.4070007@trash.net>
-References: <4D49E1E0.50304@trash.net> <1296743540-8148-1-git-send-email-chifflier@edenwall.com> <4D4BCF5E.8020100@edenwall.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: iptables: mainloop cleanup, symbol vis+versioning
+Date: Fri,  4 Feb 2011 14:08:46 +0100
+Message-ID: <1296824935-4606-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
-To: Pierre Chifflier <chifflier@edenwall.com>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46291 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752033Ab1BDNH6 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Feb 2011 08:07:58 -0500
-In-Reply-To: <4D4BCF5E.8020100@edenwall.com>
+Received: from borg.medozas.de ([188.40.89.202]:36760 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752223Ab1BDNI4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Feb 2011 08:08:56 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 04.02.2011 11:05, Pierre Chifflier wrote:
-> On 02/03/2011 03:32 PM, Pierre Chifflier wrote:
-> 
->> The current problems I'm facing are described in the previous mail,
->> and specifically a fault in skb_free, deep inside the br_handle_frame code
->> after a reinject.
->> I'll try to isolate a backtrace when it happens.
->>
-> 
-> Hi,
-> 
-> The backtrace is more or less the same as the one in Jan's email
-> <alpine.LNX.2.01.1102031605330.21536@obet.zrqbmnf.qr>
-> (Kernel crash with repeated NF invocation)
-> 
-> At the moment, I'm wondering if I'm not having several cumulated
-> problems, which may be triggered more easily by my modifications ...
 
-We can't really help debug this without seeing the code, so please
-post your current version (either privately or to the list).
+The following changes since commit 9ee2a9fe2f74b616da34878104bd1ff406534ad1:
+
+  extensions: add extension for devgroup match (2011-02-03 06:10:41 +0100)
+
+are available in the git repository at:
+  git://dev.medozas.de/iptables master
+
+Jan Engelhardt (8):
+      iptables: reduce indentation of parse loop (1/3)
+      iptables: reduce indentation of parse loop (2/3)
+      iptables: use variable as shortcut in parse loop
+      iptables: reduce indentation of parse loop (3/3)
+      iptables: fix error message for unknown options
+      build: directly use config.h in internal.h
+      libxtables: symbol visibility
+      libxtables: symbol versioning
+
+ .gitignore                     |    1 -
+ Makefile.am                    |    9 +-
+ configure.ac                   |    6 +-
+ extensions/GNUmakefile.in      |    2 +-
+ include/iptables/internal.h    |   21 +++++
+ include/iptables/internal.h.in |   13 ---
+ ip6tables.c                    |  187 ++++++++++++++++++---------------------
+ iptables.c                     |  194 ++++++++++++++++++----------------------
+ libxtables.map                 |   55 +++++++++++
+ m4/gcc4_visibility.m4          |   21 +++++
+ xtables.c                      |  109 +++++++++++++----------
+ 11 files changed, 340 insertions(+), 278 deletions(-)
+ create mode 100644 include/iptables/internal.h
+ delete mode 100644 include/iptables/internal.h.in
+ create mode 100644 libxtables.map
+ create mode 100644 m4/gcc4_visibility.m4
