@@ -1,60 +1,40 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] libxt_cluster: fix inversion in the cluster match
-Date: Sun, 06 Feb 2011 21:40:15 +0100
-Message-ID: <20110206204015.3401.51728.stgit@decadence>
+From: Dan Carpenter <error27@gmail.com>
+Subject: [patch] IPVS: precedence bug in ip_vs_sync_switch_mode()
+Date: Mon, 7 Feb 2011 11:38:55 +0300
+Message-ID: <20110207083855.GD4384@bicker>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
+	hans.schillstrom@ericsson.com, Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+To: Wensong Zhang <wensong@linux-vs.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43900 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753951Ab1BFUkW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 6 Feb 2011 15:40:22 -0500
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:33160 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752775Ab1BGIjS (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 Feb 2011 03:39:18 -0500
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-In libxt_cluster.c, we use:
+'!' has higher precedence than '&'.  IP_VS_STATE_MASTER is 0x1 so
+the original code is equivelent to if (!ipvs->sync_state) ...
 
-info->flags |= (1 << XT_CLUSTER_F_INV);
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 
-but we should use instead:
-
-info->flags |= XT_CLUSTER_F_INV;
-
-since the definition of XT_CLUSTER_F_INV is:
-
-enum xt_cluster_flags {
-        XT_CLUSTER_F_INV        = (1 << 0)
-};
-
-This fixes the inversion in the cluster match.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- extensions/libxt_cluster.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/extensions/libxt_cluster.c b/extensions/libxt_cluster.c
-index edc14d3..e1607d0 100644
---- a/extensions/libxt_cluster.c
-+++ b/extensions/libxt_cluster.c
-@@ -90,7 +90,7 @@ cluster_parse(int c, char **argv, int invert, unsigned int *flags,
- 				      "`--cluster-local-node'", optarg);
- 		}
- 		if (invert)
--			info->flags |= (1 << XT_CLUSTER_F_INV);
-+			info->flags |= XT_CLUSTER_F_INV;
+diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
+index 2a2a836..d1b7298 100644
+--- a/net/netfilter/ipvs/ip_vs_sync.c
++++ b/net/netfilter/ipvs/ip_vs_sync.c
+@@ -392,7 +392,7 @@ void ip_vs_sync_switch_mode(struct net *net, int mode)
+ {
+ 	struct netns_ipvs *ipvs = net_ipvs(net);
  
- 		info->node_mask = node_mask = (1 << (num - 1));
- 		*flags |= 1 << c;
-@@ -115,7 +115,7 @@ cluster_parse(int c, char **argv, int invert, unsigned int *flags,
- 				      "`--cluster-local-node'", optarg);
- 		}
- 		if (invert)
--			info->flags |= (1 << XT_CLUSTER_F_INV);
-+			info->flags |= XT_CLUSTER_F_INV;
- 
- 		info->node_mask = node_mask = num;
- 		*flags |= 1 << c;
-
+-	if (!ipvs->sync_state & IP_VS_STATE_MASTER)
++	if (!(ipvs->sync_state & IP_VS_STATE_MASTER))
+ 		return;
+ 	if (mode == ipvs->sysctl_sync_ver || !ipvs->sync_buff)
+ 		return;
