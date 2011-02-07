@@ -1,54 +1,36 @@
-From: "Hans Schillstrom" <hans@schillstrom.com>
-Subject: Re: [patch] IPVS: precedence bug in ip_vs_sync_switch_mode()
-Date: Mon, 7 Feb 2011 10:34:46 +0100 (CET)
-Message-ID: <div5b80.5723d88b3447e2cae7eaaffaea275f79@obelix.schillstrom.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] One fix for iptables' CT event filtering
+Date: Mon, 07 Feb 2011 12:40:30 +0100
+Message-ID: <20110207113905.32414.94829.stgit@decadence>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Cc: "Wensong Zhang" <wensong@linux-vs.org>,
-	"Simon Horman" <horms@verge.net.au>,
-	"Julian Anastasov" <ja@ssi.bg>, hans.schillstrom@ericsson.com,
-	"Patrick McHardy" <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-To: "Dan Carpenter" <error27@gmail.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:33686 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751775Ab1BGMkH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 Feb 2011 07:40:07 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
->---- Original Message ----
->From: Dan Carpenter <error27@gmail.com>
->To: "Wensong Zhang" <wensong@linux-vs.org>
->Cc: "Simon Horman" <horms@verge.net.au>, "Julian Anastasov" <ja@ssi.bg>, hans.schillstrom@ericsson.com, "Patrick McHardy" <kaber@trash.net>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org, kernel-janitors@vger.kernel.org
->Sent: Mon, Feb 7, 2011, 9:39 AM
->Subject: [patch] IPVS: precedence bug in ip_vs_sync_switch_mode()
->
->'!' has higher precedence than '&'.  IP_VS_STATE_MASTER is 0x1 so
->the original code is equivelent to if (!ipvs->sync_state) ...
->
-Oops,
-Thanks
-Hans
+Hi Patrick,
 
->Signed-off-by: Dan Carpenter <error27@gmail.com>
-Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
+This is one bugfix for the iptables' CT event filtering. There's
+one situation in which the filtering does not work for TCP flows.
 
->
->diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
->index 2a2a836..d1b7298 100644
->--- a/net/netfilter/ipvs/ip_vs_sync.c
->+++ b/net/netfilter/ipvs/ip_vs_sync.c
->@@ -392,7 +392,7 @@ void ip_vs_sync_switch_mode(struct net *net, int mode)
-> {
-> 	struct netns_ipvs *ipvs = net_ipvs(net);
-> 
->-	if (!ipvs->sync_state & IP_VS_STATE_MASTER)
->+	if (!(ipvs->sync_state & IP_VS_STATE_MASTER))
-> 		return;
-> 	if (mode == ipvs->sysctl_sync_ver || !ipvs->sync_buff)
-> 		return;
->--
+See patch description for details, please apply!
+Thanks!
+
+---
+
+Pablo Neira Ayuso (1):
+      netfilter: nf_conntrack: set conntrack templates again if we return NF_REPEAT
 
 
+ net/netfilter/nf_conntrack_core.c |   11 +++++++++--
+ 1 files changed, 9 insertions(+), 2 deletions(-)
+
+-- 
+tum-te-tum-dum-de-dum
