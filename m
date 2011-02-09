@@ -1,63 +1,31 @@
-From: Ratnaraj Mirgal <ratnaraj20@gmail.com>
-Subject: Using iptables CONNMARK target and match in filter table
-Date: Wed, 9 Feb 2011 07:52:42 +0530
-Message-ID: <AANLkTikSoTmnZ3JAS8Bb0WfuuVbA64T0Qj0UHuphxLiD@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [GIT PULL nf-next-2.6] IPVS
+Date: Wed, 09 Feb 2011 08:06:09 +0100
+Message-ID: <4D523CE1.2090009@trash.net>
+References: <1297070381-24377-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:51405 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756200Ab1BICWn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Feb 2011 21:22:43 -0500
-Received: by wyb28 with SMTP id 28so6432562wyb.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 08 Feb 2011 18:22:42 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, lvs-devel@vger.kernel.org,
+	Julian Anastasov <ja@ssi.bg>,
+	Hans Schillstrom <hans@schillstrom.com>,
+	Dan Carpenter <error27@gmail.com>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1297070381-24377-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+Am 07.02.2011 10:19, schrieb Simon Horman:
+> Hi Patrick,
+> 
+> please consider pulling 
+> git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git master
+> to get a precedence bug fix from Dan Carpenter.
+> 
+>  net/netfilter/ipvs/ip_vs_sync.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 
-I'm trying use CONNMARK to bypass rules for established connections.
-I'm using only filter table and also not using MARK, since iproute is
-not used to mark the packet.
+Pulled, thanks Simon.
 
-*filter
-:INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-:cmchain - [0:0]
-:inbound - [0:0]
-:outbound - [0:0]
--A INPUT -m connmark ! --mark 0x0 -j ACCEPT
--A INPUT -j inbound
--A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j cmchain
--A OUTPUT -m connmark ! --mark 0x0 -j ACCEPT
--A OUTPUT -j outbound
--A cmchain -j CONNMARK --set-xmark 0x1/0xffffffff
--A cmchain -j ACCEPT
-COMMIT
-
-as you can see, inbound chain contains incoming traffic rules, while
-outbound chain contains outbound traffic rules.
-
-i'm trying to bypass inbound rules with checking connection mark for
-non-zero. This condition is under the assumption that
-skb->nfct is getting populated in prerouting hook in kernel.
-Similarly thing i'm doing to bypass outbound rules for established connection.
-
-But this implementation is not working since inbound rules are still
-getting traversed for a established connection.
-
-seems like i'm missing some step.
-
-Please help me understand where i'm going wrong.
-
-TIA
-
-
--- 
-Warm Regards,
-Ratnaraj Mirgal
-http://www.google.co.in/search?q=ratnaraj+mirgal
-:-)
