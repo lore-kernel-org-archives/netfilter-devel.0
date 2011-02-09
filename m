@@ -1,42 +1,48 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: nf_conntrack: set conntrack templates again
- if we	return NF_REPEAT
-Date: Wed, 09 Feb 2011 08:09:17 +0100
-Message-ID: <4D523D9D.5050405@trash.net>
-References: <20110207113905.32414.94829.stgit@decadence> <20110207114051.32414.65019.stgit@decadence>
+Subject: Re: iptables: clean up main command loop
+Date: Wed, 09 Feb 2011 08:13:43 +0100
+Message-ID: <4D523EA7.40200@trash.net>
+References: <1297216137-18505-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45878 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45931 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751238Ab1BIHJS (ORCPT
+	with ESMTP id S1751264Ab1BIHNo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Feb 2011 02:09:18 -0500
-In-Reply-To: <20110207114051.32414.65019.stgit@decadence>
+	Wed, 9 Feb 2011 02:13:44 -0500
+In-Reply-To: <1297216137-18505-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 07.02.2011 12:40, schrieb Pablo Neira Ayuso:
-> The TCP tracking code has a special case that allows to return
-> NF_REPEAT if we receive a new SYN packet while in TIME_WAIT state.
+Am 09.02.2011 02:48, schrieb Jan Engelhardt:
+> This is a respin of the earlier patch. Now the cases for -j and -m
+> are also in their own functions, and the shared code has
+> moved to xshared.c.
 > 
-> In this situation, the TCP tracking code destroys the existing
-> conntrack to start a new clean session.
 > 
-> [DESTROY] tcp      6 src=192.168.0.2 dst=192.168.1.2 sport=38925 dport=8000 src=192.168.1.2 dst=192.168.1.100 sport=8000 dport=38925 [ASSURED]
->     [NEW] tcp      6 120 SYN_SENT src=192.168.0.2 dst=192.168.1.2 sport=38925 dport=8000 [UNREPLIED] src=192.168.1.2 dst=192.168.1.100 sport=8000 dport=38925
+> The following changes since commit e76ec99b48745b0e3c8aecbc91ed5bba186cf25f:
 > 
-> However, this is a problem for the iptables' CT target event filtering
-> which will not work in this case since the conntrack template will not
-> be there for the new session. To fix this, we reassign the conntrack
-> template to the packet if we return NF_REPEAT.
+>   libxt_cluster: fix inversion in the cluster match (2011-02-06 21:34:33 +0100)
 > 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  net/netfilter/nf_conntrack_core.c |   11 +++++++++--
->  1 files changed, 9 insertions(+), 2 deletions(-)
+> are available in the git repository at:
+>   git://dev.medozas.de/iptables master
+> 
+> Jan Engelhardt (11):
+>       src: collect do_command variables in a struct
+>       src: move large default: block from do_command6 into its own function
+>       src: share iptables_command_state across the two programs
+>       src: deduplicate find_proto function
+>       src: move OPT_FRAGMENT to the end so the list can be shared
+>       src: put shared option flags into xshared
+>       src: deduplicate and simplify implicit protocol extension loading
+>       src: unclutter command_default function
+>       src: move jump option handling from do_command6 into its own function
+>       src: move match option handling from do_command6 into its own functions
+>       iptables: fix error message for unknown options
+> 
 
-Nice catch. Applied, thanks.
+Pulled, thanks Jan!
