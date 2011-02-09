@@ -1,27 +1,42 @@
-From: kaber@trash.net
-Subject: [PATCH 0/1] netfilter: netfilter fixes
-Date: Wed,  9 Feb 2011 15:39:28 +0100
-Message-ID: <1297262369-26393-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: davem@davemloft.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52922 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755599Ab1BIOju (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Feb 2011 09:39:50 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: linux-next: Tree for February 3 (netfilter)
+Date: Wed, 09 Feb 2011 07:51:44 -0800
+Message-ID: <4D52B810.403@oracle.com>
+References: <20110203160034.44ae3247.sfr@canb.auug.org.au> <20110204111511.1f4d6706.randy.dunlap@oracle.com> <4D524079.1000908@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	netdev <netdev@vger.kernel.org>, linux-next@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4D524079.1000908@trash.net>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Dave,
+On 02/08/11 23:21, Patrick McHardy wrote:
+> Am 04.02.2011 20:15, schrieb Randy Dunlap:
+>> On Thu, 3 Feb 2011 16:00:34 +1100 Stephen Rothwell wrote:
+>>
+>>> Hi all,
+>>>
+>>> Changes since 20110202:
+>>
+>> When SYSCTL and PROC_FS and NETFILTER_NETLINK are not enabled:
+>>
+>> net/built-in.o: In function `try_to_load_type':
+>> ip_set_core.c:(.text+0x3ab49): undefined reference to `nfnl_unlock'
+>> ip_set_core.c:(.text+0x3ab4e): undefined reference to `nfnl_lock'
+> 
+> Does this patch fix the problem?
 
-following is a single netfilter fix for net-2.6.git, fixing use of conntrack
-templates when TCP conntrack kills the current conntrack in TIME_WAIT state
-in order to have the conntrack core create a fresh one, from Pablo.
+Yes, it does.  Thanks.
 
-Please pull from:
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 
-git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git master
-
-Thanks!
-
+-- 
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
