@@ -1,26 +1,20 @@
-From: David Miller <davem@davemloft.net>
+From: Herbert Xu <herbert@gondor.apana.org.au>
 Subject: Re: GRO/GSO hiding PMTU?
-Date: Thu, 10 Feb 2011 15:07:59 -0800 (PST)
-Message-ID: <20110210.150759.59671055.davem@davemloft.net>
+Date: Fri, 11 Feb 2011 10:50:22 +1100
+Message-ID: <20110210235022.GA25293@gondor.apana.org.au>
 References: <20110210.145555.39165146.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: herbert@gondor.apana.org.au
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:47242
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752828Ab1BJXHX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Feb 2011 18:07:23 -0500
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <20110210.145555.39165146.davem@davemloft.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Thu, 10 Feb 2011 14:55:55 -0800 (PST)
-
+On Thu, Feb 10, 2011 at 02:55:55PM -0800, David Miller wrote:
+>
 > I suspect that the packet arrives on eth1, accumulates into GRO, and
 > thus marked as GSO as well, then GSO/TSO on output to eth0 is
 > re-segmenting things transparently, and we're not getting the ICMP
@@ -37,16 +31,12 @@ Date: Thu, 10 Feb 2011 14:55:55 -0800 (PST)
 > 
 > So if that's what is happening, that's cute, but I think we need to
 > fix this :-)
-> 
-> Perhaps the check in ip_forward() should instead validate the gso_size
-> in the skb_is_gso() case?
-> 
-> That'd be a little tricky since gso_size is an MSS value whereas what
-> we're checking against (skb->len) is the full packet size, headers and
-> all.
 
-Nevermind, I turned off gso/tso on eth0 (outgoing interface) and it still
-happens.
+Yes this is a known problem and we do need to fix this, even if
+it doesn't appear to be the cause of your immediate issue :)
 
-I guess netfilter or something else is causing this.
-
+Thanks,
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
