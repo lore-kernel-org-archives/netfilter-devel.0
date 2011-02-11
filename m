@@ -1,36 +1,29 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: GRO/GSO hiding PMTU?
-Date: Fri, 11 Feb 2011 11:07:21 +1100
-Message-ID: <20110211000721.GA25457@gondor.apana.org.au>
-References: <20110210.145555.39165146.davem@davemloft.net> <20110210.150759.59671055.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: iptables: option fix
+Date: Fri, 11 Feb 2011 02:07:25 +0100
+Message-ID: <1297386447-30546-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from helcar.apana.org.au ([209.40.204.226]:48580 "EHLO
-	fornost.hengli.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753883Ab1BKAHX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Feb 2011 19:07:23 -0500
-Content-Disposition: inline
-In-Reply-To: <20110210.150759.59671055.davem@davemloft.net>
+Received: from borg.medozas.de ([188.40.89.202]:52919 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756930Ab1BKBH3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Feb 2011 20:07:29 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 10, 2011 at 03:07:59PM -0800, David Miller wrote:
->
-> Nevermind, I turned off gso/tso on eth0 (outgoing interface) and it still
-> happens.
 
-Turning off GSO/TSO has no effect if it's GRO generating the packet
-since it still has to be segmented regardless.
+The following changes since commit 7ada0bb7aafd94ef7c9c076e8be50c80bc549a4f:
 
-So I think this is the problem that you found and we need to fix it
-by checking the gso_size parameter.
+  Merge branch 'master' of git://dev.medozas.de/iptables (2011-02-09 08:13:23 +0100)
 
-Cheers,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+are available in the git repository at:
+
+  git://dev.medozas.de/iptables master
+
+Jan Engelhardt (1):
+      iptables: fix segfault target option parsing
+
+ ip6tables.c |    6 +++---
+ iptables.c  |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
