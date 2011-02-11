@@ -1,54 +1,59 @@
 From: Herbert Xu <herbert@gondor.apana.org.au>
 Subject: Re: GRO/GSO hiding PMTU?
-Date: Fri, 11 Feb 2011 17:37:53 +1100
-Message-ID: <20110211063753.GA29940@gondor.apana.org.au>
-References: <20110210.145555.39165146.davem@davemloft.net> <20110210235022.GA25293@gondor.apana.org.au> <20110210.222216.104050992.davem@davemloft.net>
+Date: Fri, 11 Feb 2011 17:41:38 +1100
+Message-ID: <20110211064138.GB29940@gondor.apana.org.au>
+References: <20110210.145555.39165146.davem@davemloft.net> <20110210235022.GA25293@gondor.apana.org.au> <20110210.222216.104050992.davem@davemloft.net> <20110210.223544.189709102.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
 To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from helcar.apana.org.au ([209.40.204.226]:48330 "EHLO
+Received: from helcar.apana.org.au ([209.40.204.226]:47425 "EHLO
 	fornost.hengli.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751861Ab1BKGh4 (ORCPT
+	with ESMTP id S1751851Ab1BKGlk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Feb 2011 01:37:56 -0500
+	Fri, 11 Feb 2011 01:41:40 -0500
 Content-Disposition: inline
-In-Reply-To: <20110210.222216.104050992.davem@davemloft.net>
+In-Reply-To: <20110210.223544.189709102.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 10, 2011 at 10:22:16PM -0800, David Miller wrote:
+On Thu, Feb 10, 2011 at 10:35:44PM -0800, David Miller wrote:
 >
-> I gave it a shot but it isn't easy.  We can figure out the length of
-> the IP headers just fine, but the rest of the value we need to add
-> to the MSS (the TCP header length) is transport specific which kind
-> of implies a transport dependent gso proto op of some sort.
+> Herbert how does this look for now?
 
-That's pretty much where I gave up :)
+This should work.
 
-> Or we just hack it, admit that only TCP creates GSO packets, and
-> directly check for TCP protcol and then inspect the TCP header
-> length :-)
+> Of course, we need to do something similar in all kinds of other spots.
+> 
+> Even places like bridging :-/
 
-Sure we can do that for now.
+Yeah every place that does skb->len and skb_is_gso checks will need
+this.
 
-What I wanted to do if I ever get enough time to work on this is
-to record the transport header length in a gso_hlen field so we
-can fix this properly.
+> +static bool send_frag_needed(struct sk_buff *skb, struct rtable *rt)
+> +{
+> +	unsigned int len_to_check = skb->len;
+> +
+> +	if (skb_is_gso(skb)) {
+> +		unsigned int gso_size = skb_shinfo(skb)->gso_size;
+> +		unsigned int ihl = ip_hdr(skb)->ihl * 4;
+> +		struct tcphdr th_stack, *th;
+> +
+> +		if (WARN_ON_ONCE(ip_hdr(skb)->protocol != IPPROTO_TCP))
+> +			return false;
+> +
+> +		th = skb_header_pointer(skb, ihl, sizeof(th_stack),
+> +					&th_stack);
+> +		if (!th)
+> +			return false;
+> +
+> +		len_to_check = gso_size + ihl + (th->doff * 4);
 
-We currently have a useless gso_segs field that only has one or
-two users that don't even need it.  We could easily get rid of it
-and use that space for gso_hlen instead.
+I think we need to do some length verifications here because for
+a malicious guest-generated packet the TCP header may not be present.
 
-The gso_hlen field only needs to be filled in at the few spots
-that generate GSO packets, i.e.,
-
-1) TCP
-2) Virt backends like tun.c
-3) GRO
-
-Cheers,
+Thanks,
 -- 
 Email: Herbert Xu <herbert@gondor.apana.org.au>
 Home Page: http://gondor.apana.org.au/~herbert/
