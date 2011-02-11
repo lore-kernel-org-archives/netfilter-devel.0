@@ -1,60 +1,29 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
+From: David Miller <davem@davemloft.net>
 Subject: Re: GRO/GSO hiding PMTU?
-Date: Fri, 11 Feb 2011 17:41:38 +1100
-Message-ID: <20110211064138.GB29940@gondor.apana.org.au>
-References: <20110210.145555.39165146.davem@davemloft.net> <20110210235022.GA25293@gondor.apana.org.au> <20110210.222216.104050992.davem@davemloft.net> <20110210.223544.189709102.davem@davemloft.net>
+Date: Thu, 10 Feb 2011 23:06:01 -0800 (PST)
+Message-ID: <20110210.230601.112607712.davem@davemloft.net>
+References: <20110210.222216.104050992.davem@davemloft.net>
+	<20110210.223544.189709102.davem@davemloft.net>
+	<20110211064138.GB29940@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+To: herbert@gondor.apana.org.au
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from helcar.apana.org.au ([209.40.204.226]:47425 "EHLO
-	fornost.hengli.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751851Ab1BKGlk (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:56136
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752652Ab1BKHF0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Feb 2011 01:41:40 -0500
-Content-Disposition: inline
-In-Reply-To: <20110210.223544.189709102.davem@davemloft.net>
+	Fri, 11 Feb 2011 02:05:26 -0500
+In-Reply-To: <20110211064138.GB29940@gondor.apana.org.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 10, 2011 at 10:35:44PM -0800, David Miller wrote:
->
-> Herbert how does this look for now?
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Date: Fri, 11 Feb 2011 17:41:38 +1100
 
-This should work.
+> I think we need to do some length verifications here because for
+> a malicious guest-generated packet the TCP header may not be present.
 
-> Of course, we need to do something similar in all kinds of other spots.
-> 
-> Even places like bridging :-/
-
-Yeah every place that does skb->len and skb_is_gso checks will need
-this.
-
-> +static bool send_frag_needed(struct sk_buff *skb, struct rtable *rt)
-> +{
-> +	unsigned int len_to_check = skb->len;
-> +
-> +	if (skb_is_gso(skb)) {
-> +		unsigned int gso_size = skb_shinfo(skb)->gso_size;
-> +		unsigned int ihl = ip_hdr(skb)->ihl * 4;
-> +		struct tcphdr th_stack, *th;
-> +
-> +		if (WARN_ON_ONCE(ip_hdr(skb)->protocol != IPPROTO_TCP))
-> +			return false;
-> +
-> +		th = skb_header_pointer(skb, ihl, sizeof(th_stack),
-> +					&th_stack);
-> +		if (!th)
-> +			return false;
-> +
-> +		len_to_check = gso_size + ihl + (th->doff * 4);
-
-I think we need to do some length verifications here because for
-a malicious guest-generated packet the TCP header may not be present.
-
-Thanks,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Indeed, good catch.
