@@ -1,35 +1,48 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: linux-next: Tree for February 10 (netfilter)
-Date: Mon, 14 Feb 2011 08:34:56 +0100
-Message-ID: <4D58DB20.5060401@trash.net>
-References: <20110210180525.54ec83e9.sfr@canb.auug.org.au> <20110210095210.6fcf3011.randy.dunlap@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	netdev <netdev@vger.kernel.org>, linux-next@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org, Thomas Graf <tgraf@suug.ch>
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110210095210.6fcf3011.randy.dunlap@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: [PATCH] bridge: netfilter: fix information leak
+Date: Mon, 14 Feb 2011 13:54:35 +0300
+Message-ID: <1297680875-11663-1-git-send-email-segoon@openwall.com>
+Cc: security@kernel.org,
+	Bart De Schuymer <bart.de.schuymer@pandora.be>,
+	Patrick McHardy <kaber@trash.net>,
+	Stephen Hemminger <shemminger@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	ebtables-user@lists.sourceforge.net,
+	ebtables-devel@lists.sourceforge.net,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, bridge@lists.linux-foundation.org,
+	netdev@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 10.02.2011 18:52, Randy Dunlap wrote:
-> On Thu, 10 Feb 2011 18:05:25 +1100 Stephen Rothwell wrote:
-> 
->> Hi all,
->>
->> [The kernel.org mirroring is being slow ...]
->>
->> Changes since 20110209:
-> 
-> 
-> xt_AUDIT.c:(.text+0x39ca9): undefined reference to `ipv6_skip_exthdr'
-> 
-> IPV6 is not enabled.
-> 
-> Full config file is attached.
+Struct tmp is copied from userspace.  It is not checked whether the "name"
+field is NULL terminated.  This may lead to buffer overflow and passing
+contents of kernel stack as a module name to try_then_request_module() and,
+consequently, to modprobe commandline.  It would be seen by all userspace
+processes.
 
-Thomas, please have a look at this.
+Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+---
+ Compile tested.
+
+ net/bridge/netfilter/ebtables.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 5f1825d..1ea820b 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1107,6 +1107,8 @@ static int do_replace(struct net *net, const void __user *user,
+ 	if (tmp.num_counters >= INT_MAX / sizeof(struct ebt_counter))
+ 		return -ENOMEM;
+ 
++	tmp.name[sizeof(tmp.name)-1] = 0;
++
+ 	countersize = COUNTER_OFFSET(tmp.nentries) * nr_cpu_ids;
+ 	newinfo = vmalloc(sizeof(*newinfo) + countersize);
+ 	if (!newinfo)
+-- 
+1.7.0.4
+
