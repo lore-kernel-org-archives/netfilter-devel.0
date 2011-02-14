@@ -1,30 +1,50 @@
-From: Avi Kivity <avi@redhat.com>
-Subject: Possible netfilter-related memory corruption in 2.6.37
-Date: Mon, 14 Feb 2011 16:58:27 +0200
-Message-ID: <4D594313.4050009@redhat.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: Possible netfilter-related memory corruption in 2.6.37
+Date: Mon, 14 Feb 2011 16:11:23 +0100
+Message-ID: <1297696283.2996.33.camel@edumazet-laptop>
+References: <4D594313.4050009@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Marcelo Tosatti <mtosatti@redhat.com>,
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org,
+	Marcelo Tosatti <mtosatti@redhat.com>,
 	nicolas prochazka <prochazka.nicolas@gmail.com>,
-	KVM list <kvm@vger.kernel.org>
-To: netfilter-devel@vger.kernel.org
+	KVM list <kvm@vger.kernel.org>, netdev <netdev@vger.kernel.org>
+To: Avi Kivity <avi@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42544 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755423Ab1BNO6c (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Feb 2011 09:58:32 -0500
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:59546 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754441Ab1BNPQm (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Feb 2011 10:16:42 -0500
+In-Reply-To: <4D594313.4050009@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We see severe memory corruption in kvm while used in conjunction with 
-bridge/netfilter.  Enabling slab debugging points the finger at a 
-netfilter chain invoked from the bridge code.
+Le lundi 14 f=C3=A9vrier 2011 =C3=A0 16:58 +0200, Avi Kivity a =C3=A9cr=
+it :
+> We see severe memory corruption in kvm while used in conjunction with=
+=20
+> bridge/netfilter.  Enabling slab debugging points the finger at a=20
+> netfilter chain invoked from the bridge code.
+>=20
+> Can someone take a look?
+>=20
+> https://bugzilla.kernel.org/show_bug.cgi?id=3D27052
+>=20
 
-Can someone take a look?
+CC netdev
 
-https://bugzilla.kernel.org/show_bug.cgi?id=27052
+Does a revert of commit ca44ac386181ba7 help a bit ?
 
--- 
-error compiling committee.c: too many arguments to function
+(net: don't reallocate skb->head unless the current one hasn't the
+needed extra size or is shared)
 
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
