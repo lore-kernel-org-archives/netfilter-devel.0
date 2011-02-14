@@ -1,46 +1,50 @@
-From: Stefan Berger <stefanb@linux.vnet.ibm.com>
-Subject: Re: [PATCH] [connlimit] connlimit-above early loop termination
-Date: Sun, 13 Feb 2011 13:53:17 -0500
-Message-ID: <4D58289D.5000801@linux.vnet.ibm.com>
-References: <1297441335.25407.9.camel@d941e-10> <4D556B45.8030304@trash.net>
+From: Max Kellermann <max@duempel.org>
+Subject: [PATCH] xtables: use strspn() to check if string needs to be quoted
+Date: Mon, 14 Feb 2011 07:54:45 +0100
+Message-ID: <20110214065445.30608.81511.stgit@woodpecker.blarg.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <4D556B45.8030304@trash.net>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from cc-smtpout2.netcologne.de ([89.1.8.212]:47659 "EHLO
+	cc-smtpout2.netcologne.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751707Ab1BNHEV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Feb 2011 02:04:21 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 02/11/2011 12:00 PM, Patrick McHardy wrote:
-> On 11.02.2011 17:22, Stefan Berger wrote:
->> The patch below introduces an early termination of the loop that is
->> counting matches. It terminates once the counter has exceeded the
->> threshold provided by the user. There's no point in continuing the loop
->> afterwards and looking at other entries.
->>
->> It plays together with the following code further below:
->>
->> return (connections>  info->limit) ^ info->inverse;
->>
->> where connections is the result of the counted connection, which in turn
->> is the matches variable in the loop. So once
->>
->>          ->  matches = info->limit + 1
->> alias   ->  matches>  info->limit
->> alias   ->  matches>  threshold
->>
->> we can terminate the loop.
->>
-> Applied, thanks Stefan.
-I am currently creating a derivative of this module for a slightly 
-different purpose. While testing that one and not using the -m state 
---state -NEW in front of the -m connlimit, I saw that that shortcut 
-doesn't work properly but keeps on adding entries into the list. So, 
-unfortunately I have to withdraw that patch. I apologize and I'll send a 
-patch for this.
+Problem: the call xtables_save_string("'") prints just a single quote,
+not enclosed in double quoted and not escaped.
 
-   Regards,
-      Stefan
+Steps to reproduce:
+
+ $ iptables -A foo -m comment --comment "'" -j ACCEPT
+ $ iptables-multi save|grep foo
+ -A foo -m comment --comment ' -j ACCEPT
+
+The cause was the use of strcspn() to locate the first character which
+justified quoting the string in double quotes.  That however was
+wrong, because the way strcspn() was called, it returned a pointer to
+the first character that was not to be escaped, which did the right
+thing most of the time, but not for strings consisting only of quote
+characters.  This patch changes strcspn() to strspn().
+---
+ xtables.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/xtables.c b/xtables.c
+index fc59f75..57d5d13 100644
+--- a/xtables.c
++++ b/xtables.c
+@@ -1638,7 +1638,7 @@ void xtables_save_string(const char *value)
+ 	size_t length;
+ 	const char *p;
+ 
+-	length = strcspn(value, no_quote_chars);
++	length = strspn(value, no_quote_chars);
+ 	if (length > 0 && value[length] == 0) {
+ 		/* no quoting required */
+ 		putchar(' ');
+
