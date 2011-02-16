@@ -1,38 +1,51 @@
 From: Sam Roberts <vieuxtech@gmail.com>
-Subject: kernel bug while trying to create expectations in user-space
-Date: Tue, 15 Feb 2011 15:21:49 -0800
-Message-ID: <AANLkTiku+WoLDn_vnGv-Bo7sc1GmC=g_f9KmPssJ8and@mail.gmail.com>
+Subject: Re: can libnetfilter_conntrack be used to write a userspace
+ connection tracker?
+Date: Tue, 15 Feb 2011 16:08:14 -0800
+Message-ID: <AANLkTi=CjQZW5mOmgsk8yjk3Q10iDQp4VLYFqM43T+Ah@mail.gmail.com>
+References: <AANLkTimfmoEKVWA_kBM-1DiuTR0=OG0Y8kC5nvq0G7G-@mail.gmail.com>
+	<4D2E1EF6.1010003@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:60736 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755731Ab1BOXVt (ORCPT
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:61643 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751406Ab1BPAIS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Feb 2011 18:21:49 -0500
-Received: by qwa26 with SMTP id 26so586121qwa.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Feb 2011 15:21:49 -0800 (PST)
+	Tue, 15 Feb 2011 19:08:18 -0500
+Received: by qyk12 with SMTP id 12so693395qyk.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Feb 2011 16:08:17 -0800 (PST)
+In-Reply-To: <4D2E1EF6.1010003@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I am running v2.6.37 from http://kernel.ubuntu.com/~kernel-ppa/mainline/.
+On Wed, Jan 12, 2011 at 1:36 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> You can implement a user-space conntrack helper with NFQUEUE and
+> libnetfilter_conntrack:
+>
+> http://people.netfilter.org/pablo/userspace-conntrack-helpers/
+>
+> You require Linux kernel >= 2.6.37
 
-I've removed the ubuntu conntrack libraries and tools, and rebuilt
-libnfct and conntrack tools from git master.
+I've upgraded the kernel to
+http://kernel.ubuntu.com/~kernel-ppa/mainline/v2.6.37-rc2-maverick/.
 
-I ran expect_create_userspace a few times, the first was shown by
-conntrack -E expect, I think the third run in a row crashed.
+I began experiencing this bug
+http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=612272
+For me, conntrack -E expect is exiting immediately, on an almost unloaded box.
 
-BUG: unable to handle kernel NULL pointer dereference at    (null)
-IP: [f9b71ce2>] exp_seq_show+0xd2/0x200 [nf_conntrack]
+So I built the two conntrack projects from git master to see if that
+would help - and got a kernel bug (see other message).
 
-It goes on...
+Are there any other requirements? Would it be better if I build my own
+kernel? Are there any other dependency issues between the various
+players here: libnfnetlink, libnfconntrack, conntrack, and the kernel?
 
-Is there a better way to report this?
+Or is there a limit to the users of conntrack? Can my own daemon
+(modelled on the ftp userspace example of yours), conntrack -E, and
+other users of conntrack coexist?
 
-I'll try to reproduce this, I'm thrashing around with a range of
-problems with nfct right now.
-
-Cheers,
+Thanks,
 Sam
