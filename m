@@ -1,51 +1,39 @@
-From: Sam Roberts <vieuxtech@gmail.com>
-Subject: Re: can libnetfilter_conntrack be used to write a userspace
- connection tracker?
-Date: Tue, 15 Feb 2011 16:08:14 -0800
-Message-ID: <AANLkTi=CjQZW5mOmgsk8yjk3Q10iDQp4VLYFqM43T+Ah@mail.gmail.com>
-References: <AANLkTimfmoEKVWA_kBM-1DiuTR0=OG0Y8kC5nvq0G7G-@mail.gmail.com>
-	<4D2E1EF6.1010003@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: [PATCH 1/3] ip6tables: spacing fixes for -o argument
+Date: Wed, 16 Feb 2011 03:18:54 +0100
+Message-ID: <1297822737-11204-2-git-send-email-jengelh@medozas.de>
+References: <1297822737-11204-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:61643 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751406Ab1BPAIS (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Feb 2011 19:08:18 -0500
-Received: by qyk12 with SMTP id 12so693395qyk.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Feb 2011 16:08:17 -0800 (PST)
-In-Reply-To: <4D2E1EF6.1010003@netfilter.org>
+Received: from borg.medozas.de ([188.40.89.202]:36201 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756269Ab1BPCTA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Feb 2011 21:19:00 -0500
+In-Reply-To: <1297822737-11204-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jan 12, 2011 at 1:36 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> You can implement a user-space conntrack helper with NFQUEUE and
-> libnetfilter_conntrack:
->
-> http://people.netfilter.org/pablo/userspace-conntrack-helpers/
->
-> You require Linux kernel >= 2.6.37
+For aesthetic consistency, put a space after -o.
 
-I've upgraded the kernel to
-http://kernel.ubuntu.com/~kernel-ppa/mainline/v2.6.37-rc2-maverick/.
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ ip6tables.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I began experiencing this bug
-http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=612272
-For me, conntrack -E expect is exiting immediately, on an almost unloaded box.
+diff --git a/ip6tables.c b/ip6tables.c
+index 9f0b892..06f570b 100644
+--- a/ip6tables.c
++++ b/ip6tables.c
+@@ -962,7 +962,7 @@ print_iface(char letter, const char *iface, const unsigned char *mask,
+ 	if (mask[0] == 0)
+ 		return;
+ 
+-	printf("%s -%c", invert ? " !" : "", letter);
++	printf("%s -%c ", invert ? " !" : "", letter);
+ 
+ 	for (i = 0; i < IFNAMSIZ; i++) {
+ 		if (mask[i] != 0) {
+-- 
+1.7.1
 
-So I built the two conntrack projects from git master to see if that
-would help - and got a kernel bug (see other message).
-
-Are there any other requirements? Would it be better if I build my own
-kernel? Are there any other dependency issues between the various
-players here: libnfnetlink, libnfconntrack, conntrack, and the kernel?
-
-Or is there a limit to the users of conntrack? Can my own daemon
-(modelled on the ftp userspace example of yours), conntrack -E, and
-other users of conntrack coexist?
-
-Thanks,
-Sam
