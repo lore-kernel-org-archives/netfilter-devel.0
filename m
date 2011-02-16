@@ -1,39 +1,37 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 1/3] ip6tables: spacing fixes for -o argument
-Date: Wed, 16 Feb 2011 03:18:54 +0100
-Message-ID: <1297822737-11204-2-git-send-email-jengelh@medozas.de>
-References: <1297822737-11204-1-git-send-email-jengelh@medozas.de>
+Subject: iptables: spaces, spaces.
+Date: Wed, 16 Feb 2011 03:18:53 +0100
+Message-ID: <1297822737-11204-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:36201 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:36198 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756269Ab1BPCTA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1756596Ab1BPCTA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Tue, 15 Feb 2011 21:19:00 -0500
-In-Reply-To: <1297822737-11204-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-For aesthetic consistency, put a space after -o.
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- ip6tables.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+The following changes since commit af3d73ec867debb5e38c6c6fde66f05093714fec:
 
-diff --git a/ip6tables.c b/ip6tables.c
-index 9f0b892..06f570b 100644
---- a/ip6tables.c
-+++ b/ip6tables.c
-@@ -962,7 +962,7 @@ print_iface(char letter, const char *iface, const unsigned char *mask,
- 	if (mask[0] == 0)
- 		return;
- 
--	printf("%s -%c", invert ? " !" : "", letter);
-+	printf("%s -%c ", invert ? " !" : "", letter);
- 
- 	for (i = 0; i < IFNAMSIZ; i++) {
- 		if (mask[i] != 0) {
--- 
-1.7.1
+  iptables: fix segfault target option parsing (2011-02-11 01:46:45 +0100)
 
+are available in the git repository at:
+  git://dev.medozas.de/iptables master
+
+Jan Engelhardt (3):
+      ip6tables: spacing fixes for -o argument
+      libxt_devgroup: option whitespace update following v1.4.10-49-g7386635
+      extensions: fix indent of vtable
+
+ extensions/libip6t_LOG.c    |   22 +++++++++++-----------
+ extensions/libipt_LOG.c     |   22 +++++++++++-----------
+ extensions/libipt_ecn.c     |   22 +++++++++++-----------
+ extensions/libxt_devgroup.c |   14 +++++++-------
+ extensions/libxt_recent.c   |   24 ++++++++++++------------
+ ip6tables.c                 |    2 +-
+ 6 files changed, 53 insertions(+), 53 deletions(-)
+
+The last one is for an upcoming patchset proposal of mine, so I thought
+I might just include that here already.
