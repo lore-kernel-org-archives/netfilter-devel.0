@@ -1,134 +1,71 @@
-From: Pierre Chifflier <chifflier@wzdftpd.net>
-Subject: Re: [RFH] bridge: add new target NFQUEUE for ebtables
-Date: Wed, 16 Feb 2011 17:57:09 +0100
-Message-ID: <4D5C01E5.8000302@wzdftpd.net>
-References: <4D49E1E0.50304@trash.net> <1296743540-8148-4-git-send-email-chifflier@edenwall.com> <4D4BFE3C.3060407@trash.net> <4D4C01B2.2030605@edenwall.com> <4D4C020A.9000909@trash.net> <4D5104C4.3010105@edenwall.com> <4D59C047.5050404@trash.net>
+From: Sam Roberts <vieuxtech@gmail.com>
+Subject: Re: can libnetfilter_conntrack be used to write a userspace
+ connection tracker?
+Date: Wed, 16 Feb 2011 09:52:36 -0800
+Message-ID: <AANLkTim9ANWYvJ5NGBt_8roRLzC21Kep1ZGHU48nwkPY@mail.gmail.com>
+References: <AANLkTimfmoEKVWA_kBM-1DiuTR0=OG0Y8kC5nvq0G7G-@mail.gmail.com>
+	<4D2E1EF6.1010003@netfilter.org>
+	<AANLkTi=CjQZW5mOmgsk8yjk3Q10iDQp4VLYFqM43T+Ah@mail.gmail.com>
+	<4D5BCF12.5010001@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sd-6807.dedibox.fr ([88.191.37.40]:35733 "EHLO
-	sd-6807.edenwall.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753696Ab1BPRmx (ORCPT
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:44735 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751795Ab1BPRwi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Feb 2011 12:42:53 -0500
-In-Reply-To: <4D59C047.5050404@trash.net>
+	Wed, 16 Feb 2011 12:52:38 -0500
+Received: by vxb37 with SMTP id 37so691978vxb.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Feb 2011 09:52:37 -0800 (PST)
+In-Reply-To: <4D5BCF12.5010001@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 02/15/2011 12:52 AM, Patrick McHardy wrote:
+On Wed, Feb 16, 2011 at 5:20 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Probably you have hit one of the bugs that went into 2.6.37. Please, try
+> the patch attached. IIRC, this is fixed in -stable and 2.6.38 and later
+> kernels.
 
->> That looks interesting, however I am not sure of what you meant:
->> - using the ebtables tool to add a rule with a xtables target ? (that
->> does not seem to work)
-> 
-> It depends on the registration, if you either register for
-> NFPROTO_BRIDGE or NFPROTO_UNSPEC, this should work. ARP (the
-> only additional protocol besides INET/INET6/BRIDGE) should
-> work just fine with userspace queueing with your changes to
-> not require an afinfo in nf_queue. So using AF_UNSPEC seems
-> like the proper choice.
+Since I'm not yet building my kernels from source, its easier for me
+to build a newer kernel than to find an old one and patch it.
 
-[CC-ing -devel]
+Stable is 2.6.37, I'll try 2.6.38-rc5.
 
-Hi,
+userspace connection trackers seems a bit bleading edge, I'd be happy
+to build your latest code from git if you point me to it.
 
-Thanks for your reply Patrick.
-So I did the following:
-- rebased on today's nf-next-2.6
-- apply only the first patch (which makes afinfo optional)
-- revert all other patches
-- apply the recent fix on nf_iterate since it was the cause of my oops
+I'm now two steps back since upgrading from ubuntu's default kernel
+2.6..35 and tools 0.9.14.
 
-I patched ebtables to use xt_NFQUEUE (using a struct xt_NFQ_info_v1 with
-arguments queuenum 1 and queues_total 1), and removed any other change.
+It used to be everything but setting expectations was working for me,
+but I no longer get updates at all about the conntrack table, and
+neither does conntrack -E or -L:
 
-When I add a rule with the NFQUEUE target with ebtables, I almost
-immediately get a panic (full backtrace later in this mail).
+% sudo conntrack -L conntrack
+conntrack v0.9.15 (conntrack-tools): 0 flow entries have been shown.
 
-What is weird is that I got a NULL skb  in ebt_in_hook (frame 2) while
-the skb was not NULL earlier - like if it was stolen by some hook. Any
-idea on what could cause that ?
+% sudo cat /proc/net/nf_conntrack
+ipv4     2 unknown  2 530 src=0.0.0.0 dst=224.0.0.1 [UNREPLIED]
+src=224.0.0.1 dst=0.0.0.0 mark=0 ipv4     2 tcp      6 45 CLOSE_WAIT
+src=127.0.0.1 dst=127.0.0.1 sport=35780 dport=9999 src=127.0.0.1
+dst=127.0.0.1 sport=9999 dport=35780 [ASSURED] mark=0 ipv4     2 tcp
+   6 108 SYN_SENT src=127.0.0.1 dst=127.0.0.1 sport=58000 dport=36011
+[UNREPLIED] src=127.0.0.1 dst=127.0.0.1 sport=36011 dport=58000 mark=0
 
-Thanks for your help.
+% conntrack --version
+conntrack v0.9.15 (conntrack-tools)
 
-Pierre
+% grep -i version /usr/local/lib/pkgconfig/libn* /usr/lib/pkgconfig/libn
+/usr/local/lib/pkgconfig/libnetfilter_conntrack.pc:Version: 0.9.0
+/usr/local/lib/pkgconfig/libnetfilter_queue.pc:Version: 1.0.0
+/usr/local/lib/pkgconfig/libnfnetlink.pc:Version: 1.0.0
+grep: /usr/lib/pkgconfig/libn: No such file or directory
 
+% uname -a
+Linux samtu 2.6.37-020637rc2-generic #201011160905 SMP Tue Nov 16
+10:15:47 UTC 2010 i686 GNU/Linux
 
-(gdb) bt
-#0  0xc1292de3 in ebt_do_table (hook=<value optimized out>,
-    skb=<value optimized out>, in=<value optimized out>, out=0xdcbfd000,
-    table=0xdcbd8200) at net/bridge/netfilter/ebtables.c:287
-#1  0xc1293753 in ebt_in_hook (hook=65539, skb=0x0, in=0x1, out=0xdcbfd000,
-    okfn=0xc128cc05 <br_forward_finish>)
-    at net/bridge/netfilter/ebtable_filter.c:66
-#2  0xc11fc573 in nf_iterate (head=<value optimized out>,
-    skb=<value optimized out>, hook=2, indev=0xd7530000, outdev=0xdcbfd000,
-    i=0xdf071e58, okfn=0xc128cc05 <br_forward_finish>,
-hook_thresh=-2147483648)
-    at net/netfilter/core.c:137
-#3  0xc11fc5fb in nf_hook_slow (pf=<value optimized out>, hook=2,
-    skb=<value optimized out>, indev=0xd7530000, outdev=0xdcbfd000,
-    okfn=0xc128cc05 <br_forward_finish>, hook_thresh=-2147483648)
-    at net/netfilter/core.c:173
-#4  0xc128cb3a in nf_hook_thresh (hook=<value optimized out>,
-skb=0xd7a73c00,
-    in=<value optimized out>, out=0xdcbfd000,
-    okfn=0xc128cc05 <br_forward_finish>, pf=<value optimized out>)
-    at include/linux/netfilter.h:185
-#5  NF_HOOK_THRESH (hook=<value optimized out>, skb=0xd7a73c00,
-    in=<value optimized out>, out=0xdcbfd000,
-    okfn=0xc128cc05 <br_forward_finish>, pf=<value optimized out>)
-    at include/linux/netfilter.h:217
-#6  NF_HOOK (hook=<value optimized out>, skb=0xd7a73c00,
----Type <return> to continue, or q <return> to quit---
-    in=<value optimized out>, out=0xdcbfd000,
-    okfn=0xc128cc05 <br_forward_finish>, pf=<value optimized out>)
-    at include/linux/netfilter.h:241
-#7  0xc128cc85 in __br_forward (to=<value optimized out>, skb=0x0)
-    at net/bridge/br_forward.c:94
-#8  0xc128c9e8 in deliver_clone (prev=0xd79a9e00, skb=<value optimized
-out>,
-    __packet_hook=0xc128cc20 <__br_forward>) at net/bridge/br_forward.c:137
-#9  0xc128ca71 in br_flood (br=<value optimized out>, skb=0xd759d000,
-    skb0=0xd759d000, __packet_hook=0xc128cc20 <__br_forward>)
-    at net/bridge/br_forward.c:184
-#10 0xc128ca99 in br_flood_forward (br=0x10003, skb=0x0, skb2=0x1)
-    at net/bridge/br_forward.c:205
-#11 0xc128d6bf in br_handle_frame_finish (skb=0xd759d000)
-    at net/bridge/br_input.c:104
-#12 0xc128d5fe in NF_HOOK_THRESH (hook=<value optimized out>,
-skb=0xd759d000,
-    in=<value optimized out>, okfn=0xc128d605 <br_handle_frame_finish>,
-    out=<value optimized out>, pf=<value optimized out>)
-    at include/linux/netfilter.h:219
-#13 NF_HOOK (hook=<value optimized out>, skb=0xd759d000,
-    in=<value optimized out>, okfn=0xc128d605 <br_handle_frame_finish>,
-    out=<value optimized out>, pf=<value optimized out>)
-    at include/linux/netfilter.h:241
-#14 0xc128d87a in br_handle_frame (skb=0x0) at net/bridge/br_input.c:190
----Type <return> to continue, or q <return> to quit---
-#15 0xc11e3c02 in __netif_receive_skb (skb=0xd759d000) at
-net/core/dev.c:3137
-#16 0xc11e7524 in netif_receive_skb (skb=0xd759d000) at net/core/dev.c:3231
-#17 0xe0bca898 in ?? ()
-#18 0xc11e7ab6 in net_rx_action (h=<value optimized out>)
-    at net/core/dev.c:3779
-#19 0xc1034345 in __do_softirq () at kernel/softirq.c:238
-#20 0xc1003f96 in call_on_stack () at arch/x86/kernel/irq_32.c:66
-#21 do_softirq () at arch/x86/kernel/irq_32.c:173
-#22 0xc1034228 in irq_exit () at kernel/softirq.c:328
-#23 0xc10037d3 in do_IRQ (regs=<value optimized out>)
-    at arch/x86/kernel/irq.c:248
-#24 0xc1002d70 in ?? () at arch/x86/kernel/entry_32.S:825
-#25 0xc101b82b in native_safe_halt ()
-    at /home/pollux/build/nf-next-2.6/arch/x86/include/asm/irqflags.h:49
-#26 0xc1007e3f in arch_safe_halt ()
-    at /home/pollux/build/nf-next-2.6/arch/x86/include/asm/paravirt.h:110
-#27 default_idle () at arch/x86/kernel/process.c:380
-#28 0xc1001a66 in cpu_idle () at arch/x86/kernel/process_32.c:112
-#29 0xc12af2ce in start_secondary (unused=<value optimized out>)
-    at arch/x86/kernel/smpboot.c:355
-#30 0x00000000 in ?? ()
+Cheers,
+Sam
