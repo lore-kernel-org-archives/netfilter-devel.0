@@ -1,39 +1,60 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [GIT PULL nf-next-2.6] IPVS
-Date: Wed, 16 Feb 2011 15:04:50 +0900
-Message-ID: <1297836293-5942-1-git-send-email-horms@verge.net.au>
-Cc: Julian Anastasov <ja@ssi.bg>, Patrick Schaaf <netdev@bof.de>,
-	Patrick McHardy <kaber@trash.net>
-To: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: [PATCH 1/1] tproxy: do not assign timewait sockets to skb->sk
+Date: Wed, 16 Feb 2011 09:54:31 +0100
+Message-ID: <4D5B90C7.5040603@balabit.hu>
+References: <1297683874-10188-1-git-send-email-fw@strlen.de> <4D594F9E.2090100@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, Balazs Scheidler <bazsi@balabit.hu>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from brother.balabit.com ([195.70.62.219]:54538 "EHLO
+	lists.balabit.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758754Ab1BPJMN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 Feb 2011 04:12:13 -0500
+In-Reply-To: <4D594F9E.2090100@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Patrick,
+Hi,
 
-please consider pulling
-git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git master
-go get:
+On 02/14/2011 04:51 PM, Patrick McHardy wrote:
+> Am 14.02.2011 12:44, schrieb Florian Westphal:
+>> Assigning a socket in timewait state to skb->sk can trigger
+>> kernel oops, e.g. in nfnetlink_log, which does:
+>>
+>> if (skb->sk) {
+>>          read_lock_bh(&skb->sk->sk_callback_lock);
+>>          if (skb->sk->sk_socket&&  skb->sk->sk_socket->file) ...
+>>
+>> in the timewait case, accessing sk->sk_callback_lock and sk->sk_socket
+>> is invalid.
+>>
+>> Either all of these spots will need to add a test for sk->sk_state != TCP_TIME_WAIT,
+>> or xt_TPROXY must not assign a timewait socket to skb->sk.
+>>
+>> This does the latter.
+>>
+>> If a TW socket is found, assign the tproxy nfmark, but skip the skb->sk assignment,
+>> thus mimicking behaviour of a '-m socket .. -j MARK/ACCEPT' re-routing rule.
+>>
+>> The 'SYN to TW socket' case is left unchanged -- we try to redirect to the
+>> listener socket.
+>>
+>> Cc: Balazs Scheidler<bazsi@balabit.hu>
+>> Cc: KOVACS Krisztian<hidden@balabit.hu>
+>> Signed-off-by: Florian Westphal<fwestphal@astaro.com>
+>
+> Looks fine to me. Balazs. Krisztian, any objections?
 
-	* Removal of unused ICMP code by Julian
-	* More informative "no destination available" messages
-	  by Patrick Schaaf
-	* Fix to buffering of synchronisation messages
-	  by Tinggong Wang and Julian
+Seems to be OK, as far as I can see.
 
- include/net/ip_vs.h              |    2 ++
- net/netfilter/ipvs/ip_vs_core.c  |   28 +++-------------------------
- net/netfilter/ipvs/ip_vs_lblc.c  |    2 +-
- net/netfilter/ipvs/ip_vs_lblcr.c |    2 +-
- net/netfilter/ipvs/ip_vs_lc.c    |    2 +-
- net/netfilter/ipvs/ip_vs_nq.c    |    2 +-
- net/netfilter/ipvs/ip_vs_rr.c    |    2 +-
- net/netfilter/ipvs/ip_vs_sched.c |   25 +++++++++++++++++++++++++
- net/netfilter/ipvs/ip_vs_sed.c   |    2 +-
- net/netfilter/ipvs/ip_vs_sh.c    |    2 +-
- net/netfilter/ipvs/ip_vs_sync.c  |    4 ++--
- net/netfilter/ipvs/ip_vs_wlc.c   |    2 +-
- net/netfilter/ipvs/ip_vs_wrr.c   |   14 ++++++++------
- 13 files changed, 48 insertions(+), 41 deletions(-)
+Florian, did you make sure the tests still run after applying this patch?
 
+http://git.balabit.hu/?p=bazsi/tproxy-test.git;a=summary
+
+-- 
+KOVACS Krisztian
