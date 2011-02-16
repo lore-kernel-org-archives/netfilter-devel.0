@@ -1,66 +1,52 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 2/3] libxt_devgroup: option whitespace update following v1.4.10-49-g7386635
-Date: Wed, 16 Feb 2011 03:18:55 +0100
-Message-ID: <1297822737-11204-3-git-send-email-jengelh@medozas.de>
-References: <1297822737-11204-1-git-send-email-jengelh@medozas.de>
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+From: Simon Horman <horms@verge.net.au>
+Subject: [PATCH 1/3] ipvs: fix timer in get_curr_sync_buff
+Date: Wed, 16 Feb 2011 15:04:51 +0900
+Message-ID: <1297836293-5942-2-git-send-email-horms@verge.net.au>
+References: <1297836293-5942-1-git-send-email-horms@verge.net.au>
+Cc: Julian Anastasov <ja@ssi.bg>, Patrick Schaaf <netdev@bof.de>,
+	Patrick McHardy <kaber@trash.net>,
+	Tinggong Wang <wangtinggong@gmail.com>,
+	Simon Horman <horms@verge.net.au>
+To: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:36204 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756488Ab1BPCTB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Feb 2011 21:19:01 -0500
-In-Reply-To: <1297822737-11204-1-git-send-email-jengelh@medozas.de>
+Received: from kirsty.vergenet.net ([202.4.237.240]:49560 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752171Ab1BPGFO (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 Feb 2011 01:05:14 -0500
+In-Reply-To: <1297836293-5942-1-git-send-email-horms@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- extensions/libxt_devgroup.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+From: Tinggong Wang <wangtinggong@gmail.com>
 
-diff --git a/extensions/libxt_devgroup.c b/extensions/libxt_devgroup.c
-index 893a2fa..2624868 100644
---- a/extensions/libxt_devgroup.c
-+++ b/extensions/libxt_devgroup.c
-@@ -225,14 +225,14 @@ print_devgroup(unsigned int id, unsigned int mask, int numeric)
- 	const char *name = NULL;
+ 	Fix get_curr_sync_buff to keep buffer for 2 seconds
+as intended, not just for the current jiffie. By this way
+we will sync more connection structures with single packet.
+
+Signed-off-by: Tinggong Wang <wangtinggong@gmail.com>
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+---
+ net/netfilter/ipvs/ip_vs_sync.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
+index d1b7298..fecf24d 100644
+--- a/net/netfilter/ipvs/ip_vs_sync.c
++++ b/net/netfilter/ipvs/ip_vs_sync.c
+@@ -374,8 +374,8 @@ get_curr_sync_buff(struct netns_ipvs *ipvs, unsigned long time)
+ 	struct ip_vs_sync_buff *sb;
  
- 	if (mask != 0xffffffff)
--		printf("0x%x/0x%x ", id, mask);
-+		printf("0x%x/0x%x", id, mask);
- 	else {
- 		if (numeric == 0)
- 			name = devgroup_id2name(id);
- 		if (name)
--			printf("%s ", name);
-+			printf("%s", name);
- 		else
--			printf("0x%x ", id);
-+			printf("0x%x", id);
- 	}
- }
- 
-@@ -241,15 +241,15 @@ static void devgroup_show(const char *pfx, const struct xt_devgroup_info *info,
- {
- 	if (info->flags & XT_DEVGROUP_MATCH_SRC) {
- 		if (info->flags & XT_DEVGROUP_INVERT_SRC)
--			printf("! ");
--		printf("%ssrc-group ", pfx);
-+			printf(" !");
-+		printf(" %ssrc-group ", pfx);
- 		print_devgroup(info->src_group, info->src_mask, numeric);
- 	}
- 
- 	if (info->flags & XT_DEVGROUP_MATCH_DST) {
- 		if (info->flags & XT_DEVGROUP_INVERT_DST)
--			printf("! ");
--		printf("%sdst-group ", pfx);
-+			printf(" !");
-+		printf(" %sdst-group ", pfx);
- 		print_devgroup(info->src_group, info->src_mask, numeric);
- 	}
- }
+ 	spin_lock_bh(&ipvs->sync_buff_lock);
+-	if (ipvs->sync_buff && (time == 0 ||
+-	    time_before(jiffies - ipvs->sync_buff->firstuse, time))) {
++	if (ipvs->sync_buff &&
++	    time_after_eq(jiffies - ipvs->sync_buff->firstuse, time)) {
+ 		sb = ipvs->sync_buff;
+ 		ipvs->sync_buff = NULL;
+ 	} else
 -- 
-1.7.1
+1.7.2.3
 
