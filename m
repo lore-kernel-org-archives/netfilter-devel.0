@@ -1,34 +1,40 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Fix a flaw in printing the MAC
-Date: Thu, 17 Feb 2011 16:24:13 +0100
-Message-ID: <4D5D3D9D.2010503@trash.net>
-References: <4D5D36B2.2090608@secunet.com>
+From: Chris Friesen <chris.friesen@genband.com>
+Subject: Re: any way to reset all marked connections when using CONNMARK?
+Date: Thu, 17 Feb 2011 12:58:31 -0600
+Message-ID: <4D5D6FD7.8060104@genband.com>
+References: <4D55A927.7060703@genband.com> <1297510935.1770.38.camel@andybev> <4D5AF8CA.8080908@genband.com> <alpine.LNX.2.01.1102152342380.18599@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	"Schloegel, Robin" <robin.schloegel@secunet.com>
-To: Joerg Marx <joerg.marx@secunet.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57397 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932086Ab1BQPYP (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Feb 2011 10:24:15 -0500
-In-Reply-To: <4D5D36B2.2090608@secunet.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Andrew Beverley <andy@andybev.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	netfilter <netfilter@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <alpine.LNX.2.01.1102152342380.18599@obet.zrqbmnf.qr>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 17.02.2011 15:54, Joerg Marx wrote:
-> The flaw was in skipping the second byte in MAC header due to increas=
-ing
-> the pointer AND indexed access starting at '1'.
->=20
+On 02/15/2011 04:42 PM, Jan Engelhardt wrote:
+> On Tuesday 2011-02-15 23:06, Chris Friesen wrote:
 
-Applied, thanks J=F6rg.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> For some reason the online man pages for conntrack don't seem to be up
+>> to date...they don't have the -U option.  It's listed in the package
+>> itself though.
+> 
+> What online manpages are you referring to?
+
+The first google result for "man conntrack" is
+
+http://linux.die.net/man/8/conntrack
+
+which appears out of date.  The second google result appears okay.
+
+Chris
+
+-- 
+Chris Friesen
+Software Developer
+GENBAND
+chris.friesen@genband.com
+www.genband.com
