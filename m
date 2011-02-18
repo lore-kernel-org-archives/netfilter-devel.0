@@ -1,41 +1,66 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 1/1] tproxy: do not assign timewait sockets to skb->sk
-Date: Thu, 17 Feb 2011 22:27:17 +0100
-Message-ID: <20110217212717.GG8821@Chamillionaire.breakpoint.cc>
-References: <1297683874-10188-1-git-send-email-fw@strlen.de>
- <1297972902.2253.51.camel@Nokia-N900-51-1>
- <20110217205249.GF8821@Chamillionaire.breakpoint.cc>
- <1297976642.3789.5.camel@Nokia-N900-51-1>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFH] bridge: add new target NFQUEUE for ebtables
+Date: Fri, 18 Feb 2011 14:42:23 +0100
+Message-ID: <4D5E773F.7020804@trash.net>
+References: <4D49E1E0.50304@trash.net> <1296743540-8148-4-git-send-email-chifflier@edenwall.com> <4D4BFE3C.3060407@trash.net> <4D4C01B2.2030605@edenwall.com> <4D4C020A.9000909@trash.net> <4D5104C4.3010105@edenwall.com> <4D59C047.5050404@trash.net> <4D5C01E5.8000302@wzdftpd.net> <4D5CFCDD.10007@trash.net> <4D5D2497.5020908@wzdftpd.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, KOVACS Krisztian <hidden@balabit.hu>
-To: Balazs Scheidler <bazsi@balabit.hu>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1297976642.3789.5.camel@Nokia-N900-51-1>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Pierre Chifflier <chifflier@wzdftpd.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:44190 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751707Ab1BRNm1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 18 Feb 2011 08:42:27 -0500
+In-Reply-To: <4D5D2497.5020908@wzdftpd.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Balazs Scheidler <bazsi@balabit.hu> wrote:
-> the destination port in the packet can be different in the two lookups. --on-port tproxy option.
+Am 17.02.2011 14:37, schrieb Pierre Chifflier:
+> On 02/17/2011 11:47 AM, Patrick McHardy wrote:
+>> Am 16.02.2011 17:57, schrieb Pierre Chifflier:
+>>> Hi,
+>>>
+>>> Thanks for your reply Patrick.
+>>> So I did the following:
+>>> - rebased on today's nf-next-2.6
+>>> - apply only the first patch (which makes afinfo optional)
+>>> - revert all other patches
+>>> - apply the recent fix on nf_iterate since it was the cause of my oops
+>>>
+>>> I patched ebtables to use xt_NFQUEUE (using a struct xt_NFQ_info_v1 with
+>>> arguments queuenum 1 and queues_total 1), and removed any other change.
+>>>
+>>> When I add a rule with the NFQUEUE target with ebtables, I almost
+>>> immediately get a panic (full backtrace later in this mail).
+>>>
+>>> What is weird is that I got a NULL skb  in ebt_in_hook (frame 2) while
+>>> the skb was not NULL earlier - like if it was stolen by some hook. Any
+>>> idea on what could cause that ?
+>>
+>> The backtrace doesn't seem to be fully accurate. Please also post
+>> the full oops output corresponding to the backtrace.
+>>
+>> Two more questions:
+>>
+>> - is the bridge device in promiscous mode?
+>> - do you have IGMP snooping enabled?
+>>
+> 
+> Here is the most relevant part of the log I could capture on the serial
+> port.
+> - Bridge device is not in promiscuous mode
+> - CONFIG_BRIDGE_ICMP_SNOOPING is not set
+> 
+> What I do to reproduce the crash:
+> - setup the bridge (at this point, everything is fine)
+> - load an ebtables rule: ebtables -A FORWARD -j NFQUEUE
+> the crash happens immediately when adding the rule.
+> 
+> If relevant, the code for ebt_NFQUEUE.c is available at
+> https://www.wzdftpd.net/downloads/ebt_NFQUEUE.c
+> 
 
-Hrm...  The initial lookup uses the header ip addresses:
-        sk = nf_tproxy_get_sock_v4(dev_net(skb->dev), iph->protocol,
-                                   iph->saddr, iph->daddr,
-                                   hp->source, hp->dest,
-                                   skb->dev, NFT_LOOKUP_ESTABLISHED);
-
-3 possible cases:
-- no socket -- try to find listener. This case is not changed by my patch.
-- sk is normal socket. set nfmark and skb->sk. Also not changed.
-- sk is in TW state. This is not changed either:
-	tproxy_handle_time_wait4() will check if this is a SYN. If it is, a new
-	listener lookup is made, and TW socket is kicked out.
-
-If the packet is not a SYN, then tproxy_handle_time_wait4() won't do anything.
-Previously, the timewait sk would now be assigned to skb->sk, which my patch
-prevents.  But I don't see where the '--on-port' port number is involved in the
-TW socket lookup?
-
-Thanks for reviwing the patch!
+Thanks, I'm going to give this a try myself during the weekend.
