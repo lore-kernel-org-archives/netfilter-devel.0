@@ -1,68 +1,81 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: Possible netfilter-related memory corruption in 2.6.37
-Date: Fri, 18 Feb 2011 19:37:33 +0100
-Message-ID: <4D5EBC6D.6070200@trash.net>
-References: <4D594313.4050009@redhat.com>	 <1297696283.2996.33.camel@edumazet-laptop>	 <alpine.LNX.2.01.1102141617330.12050@obet.zrqbmnf.qr>	 <1297698641.2996.38.camel@edumazet-laptop>  <4D595745.7070505@trash.net>	 <1297700955.2996.40.camel@edumazet-laptop>  <4D595A48.9070201@trash.net> <1297702128.2996.41.camel@edumazet-laptop> <4D595DBD.3090005@trash.net>
+Date: Fri, 18 Feb 2011 20:14:55 +0100
+Message-ID: <1298056495.2425.26.camel@edumazet-laptop>
+References: <4D594313.4050009@redhat.com>
+	 <1297696283.2996.33.camel@edumazet-laptop>
+	 <alpine.LNX.2.01.1102141617330.12050@obet.zrqbmnf.qr>
+	 <1297698641.2996.38.camel@edumazet-laptop>  <4D595745.7070505@trash.net>
+	 <1297700955.2996.40.camel@edumazet-laptop>  <4D595A48.9070201@trash.net>
+	 <1297702128.2996.41.camel@edumazet-laptop> <4D595DBD.3090005@trash.net>
+	 <4D5EBC6D.6070200@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060608050108090802020104"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Jan Engelhardt <jengelh@medozas.de>, Avi Kivity <avi@redhat.com>,
 	netfilter-devel@vger.kernel.org,
 	Marcelo Tosatti <mtosatti@redhat.com>,
 	nicolas prochazka <prochazka.nicolas@gmail.com>,
 	KVM list <kvm@vger.kernel.org>, netdev <netdev@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48541 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752795Ab1BRShi (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:52112 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751999Ab1BRTPN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Feb 2011 13:37:38 -0500
-In-Reply-To: <4D595DBD.3090005@trash.net>
+	Fri, 18 Feb 2011 14:15:13 -0500
+In-Reply-To: <4D5EBC6D.6070200@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------060608050108090802020104
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Le vendredi 18 f=C3=A9vrier 2011 =C3=A0 19:37 +0100, Patrick McHardy a =
+=C3=A9crit :
+> Am 14.02.2011 17:52, schrieb Patrick McHardy:
+> > Am 14.02.2011 17:48, schrieb Eric Dumazet:
+> >> I am not sure, but I guess nf_reinject() needs a fix too ;)
+> >=20
+> > I agree. That one looks uglier though, I guess we'll have to
+> > iterate through all hooks to note the previous one.
+>=20
+> How about this? Unfortunately I don't think we can avoid
+> iterating through all hooks without violating RCU rules.
+>=20
+>=20
 
-Am 14.02.2011 17:52, schrieb Patrick McHardy:
-> Am 14.02.2011 17:48, schrieb Eric Dumazet:
->> I am not sure, but I guess nf_reinject() needs a fix too ;)
-> 
-> I agree. That one looks uglier though, I guess we'll have to
-> iterate through all hooks to note the previous one.
+       /* Continue traversal iff userspace said ok... */
+        if (verdict =3D=3D NF_REPEAT) {
+-               elem =3D elem->prev;
+-               verdict =3D NF_ACCEPT;
++               prev =3D NULL;
++               list_for_each_entry_rcu(i,
+&nf_hooks[entry->pf][entry->hook],
++                                       list) {
++                       if (&i->list =3D=3D elem)
++                               break;
++                       prev =3D i;
 
-How about this? Unfortunately I don't think we can avoid
-iterating through all hooks without violating RCU rules.
+=09
+Hmm... what happens if "elem" was the first elem in list ?
+
+We exit with prev =3D NULL  --> NF_DROP ?
+
+I must miss something...
+
++               }
++
++               if (prev =3D=3D NULL ||
++                   &i->list =3D=3D &nf_hooks[entry->pf][entry->hook])
++                       verdict =3D NF_DROP;
++               else {
++                       elem =3D &prev->list;
++                       verdict =3D NF_ACCEPT;
++               }
+        }
 
 
 
---------------060608050108090802020104
-Content-Type: text/plain;
- name="x.diff"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="x.diff"
-
-ZGlmZiAtLWdpdCBhL25ldC9uZXRmaWx0ZXIvbmZfcXVldWUuYyBiL25ldC9uZXRmaWx0ZXIv
-bmZfcXVldWUuYwppbmRleCA3NGFlYmVkLi44MzRiYjA3IDEwMDY0NAotLS0gYS9uZXQvbmV0
-ZmlsdGVyL25mX3F1ZXVlLmMKKysrIGIvbmV0L25ldGZpbHRlci9uZl9xdWV1ZS5jCkBAIC0y
-MzUsNiArMjM1LDcgQEAgaW50IG5mX3F1ZXVlKHN0cnVjdCBza19idWZmICpza2IsCiB2b2lk
-IG5mX3JlaW5qZWN0KHN0cnVjdCBuZl9xdWV1ZV9lbnRyeSAqZW50cnksIHVuc2lnbmVkIGlu
-dCB2ZXJkaWN0KQogewogCXN0cnVjdCBza19idWZmICpza2IgPSBlbnRyeS0+c2tiOworCXN0
-cnVjdCBuZl9ob29rX29wcyAqaSwgKnByZXY7CiAJc3RydWN0IGxpc3RfaGVhZCAqZWxlbSA9
-ICZlbnRyeS0+ZWxlbS0+bGlzdDsKIAljb25zdCBzdHJ1Y3QgbmZfYWZpbmZvICphZmluZm87
-CiAKQEAgLTI0NCw4ICsyNDUsMjEgQEAgdm9pZCBuZl9yZWluamVjdChzdHJ1Y3QgbmZfcXVl
-dWVfZW50cnkgKmVudHJ5LCB1bnNpZ25lZCBpbnQgdmVyZGljdCkKIAogCS8qIENvbnRpbnVl
-IHRyYXZlcnNhbCBpZmYgdXNlcnNwYWNlIHNhaWQgb2suLi4gKi8KIAlpZiAodmVyZGljdCA9
-PSBORl9SRVBFQVQpIHsKLQkJZWxlbSA9IGVsZW0tPnByZXY7Ci0JCXZlcmRpY3QgPSBORl9B
-Q0NFUFQ7CisJCXByZXYgPSBOVUxMOworCQlsaXN0X2Zvcl9lYWNoX2VudHJ5X3JjdShpLCAm
-bmZfaG9va3NbZW50cnktPnBmXVtlbnRyeS0+aG9va10sCisJCQkJCWxpc3QpIHsKKwkJCWlm
-ICgmaS0+bGlzdCA9PSBlbGVtKQorCQkJCWJyZWFrOworCQkJcHJldiA9IGk7CisJCX0KKwor
-CQlpZiAocHJldiA9PSBOVUxMIHx8CisJCSAgICAmaS0+bGlzdCA9PSAmbmZfaG9va3NbZW50
-cnktPnBmXVtlbnRyeS0+aG9va10pCisJCQl2ZXJkaWN0ID0gTkZfRFJPUDsKKwkJZWxzZSB7
-CisJCQllbGVtID0gJnByZXYtPmxpc3Q7CisJCQl2ZXJkaWN0ID0gTkZfQUNDRVBUOworCQl9
-CiAJfQogCiAJaWYgKHZlcmRpY3QgPT0gTkZfQUNDRVBUKSB7Cg==
---------------060608050108090802020104--
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
