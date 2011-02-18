@@ -1,66 +1,163 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFH] bridge: add new target NFQUEUE for ebtables
-Date: Fri, 18 Feb 2011 14:42:23 +0100
-Message-ID: <4D5E773F.7020804@trash.net>
-References: <4D49E1E0.50304@trash.net> <1296743540-8148-4-git-send-email-chifflier@edenwall.com> <4D4BFE3C.3060407@trash.net> <4D4C01B2.2030605@edenwall.com> <4D4C020A.9000909@trash.net> <4D5104C4.3010105@edenwall.com> <4D59C047.5050404@trash.net> <4D5C01E5.8000302@wzdftpd.net> <4D5CFCDD.10007@trash.net> <4D5D2497.5020908@wzdftpd.net>
+From: Valentijn Sessink <valentijn@sessink.nl>
+Subject: [Fwd: [Bug 29332] xt_recent handles "! --update" wrong]
+Date: Fri, 18 Feb 2011 14:46:38 +0100
+Message-ID: <4D5E783E.6000600@sessink.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pierre Chifflier <chifflier@wzdftpd.net>
+Content-Type: multipart/mixed;
+ boundary="------------020208020003010900090704"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44190 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751707Ab1BRNm1 (ORCPT
+Received: from filter.openoffice.nl ([178.63.187.165]:33919 "EHLO
+	filter.openoffice.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750775Ab1BRNz2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Feb 2011 08:42:27 -0500
-In-Reply-To: <4D5D2497.5020908@wzdftpd.net>
+	Fri, 18 Feb 2011 08:55:28 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by filter.openoffice.nl (Postfix) with ESMTP id BF520613A8
+	for <netfilter-devel@vger.kernel.org>; Fri, 18 Feb 2011 14:46:41 +0100 (CET)
+Received: from filter.openoffice.nl ([127.0.0.1])
+	by localhost (filter.openoffice.nl [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id wICX5NehnHSe for <netfilter-devel@vger.kernel.org>;
+	Fri, 18 Feb 2011 14:46:39 +0100 (CET)
+Received: from blub.net (unknown [IPv6:2001:7b8:1529:0:5054:ff:fe70:c2c4])
+	by filter.openoffice.nl (Postfix) with ESMTP id A9DAF61338
+	for <netfilter-devel@vger.kernel.org>; Fri, 18 Feb 2011 14:46:39 +0100 (CET)
+Received: from stout.kantoor.openoffice.nl (unknown [IPv6:2001:7b8:1529::1234:5678])
+	by blub.net (Postfix) with ESMTP id 7B60E30015B
+	for <netfilter-devel@vger.kernel.org>; Fri, 18 Feb 2011 14:46:39 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 17.02.2011 14:37, schrieb Pierre Chifflier:
-> On 02/17/2011 11:47 AM, Patrick McHardy wrote:
->> Am 16.02.2011 17:57, schrieb Pierre Chifflier:
->>> Hi,
->>>
->>> Thanks for your reply Patrick.
->>> So I did the following:
->>> - rebased on today's nf-next-2.6
->>> - apply only the first patch (which makes afinfo optional)
->>> - revert all other patches
->>> - apply the recent fix on nf_iterate since it was the cause of my oops
->>>
->>> I patched ebtables to use xt_NFQUEUE (using a struct xt_NFQ_info_v1 with
->>> arguments queuenum 1 and queues_total 1), and removed any other change.
->>>
->>> When I add a rule with the NFQUEUE target with ebtables, I almost
->>> immediately get a panic (full backtrace later in this mail).
->>>
->>> What is weird is that I got a NULL skb  in ebt_in_hook (frame 2) while
->>> the skb was not NULL earlier - like if it was stolen by some hook. Any
->>> idea on what could cause that ?
->>
->> The backtrace doesn't seem to be fully accurate. Please also post
->> the full oops output corresponding to the backtrace.
->>
->> Two more questions:
->>
->> - is the bridge device in promiscous mode?
->> - do you have IGMP snooping enabled?
->>
-> 
-> Here is the most relevant part of the log I could capture on the serial
-> port.
-> - Bridge device is not in promiscuous mode
-> - CONFIG_BRIDGE_ICMP_SNOOPING is not set
-> 
-> What I do to reproduce the crash:
-> - setup the bridge (at this point, everything is fine)
-> - load an ebtables rule: ebtables -A FORWARD -j NFQUEUE
-> the crash happens immediately when adding the rule.
-> 
-> If relevant, the code for ebt_NFQUEUE.c is available at
-> https://www.wzdftpd.net/downloads/ebt_NFQUEUE.c
-> 
+This is a multi-part message in MIME format.
+--------------020208020003010900090704
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Thanks, I'm going to give this a try myself during the weekend.
+Hello Netfilter devs,
+
+As per request from Patrick McHardy:
+> https://bugzilla.kernel.org/show_bug.cgi?id=29332
+> --- Comment #3 from Patrick McHardy <kaber@trash.net>
+> Please submit your patch to netfilter-devel@vger.kernel.org so others
+> can have a look as well.
+
+... please find attached my proposed patch - free cleanup included.
+
+As noted in Bugzilla, I'm by no means a programmer, so please take my
+patch with a grain of salt. Also, I do realise that fixing bugs and
+cleaning up should probably not be mixed, so you might want to just use
+the simple (but IMHO stupid) fix:
+
+(info->check_set & XT_RECENT_UPDATE && (ret ^ info->invert)))
+
+I hope the problem is trivial enough to not present a test case, but if
+you want one, I'll make one.
+
+Please feel free to throw my patch away and build something more
+sensible ;-)
+
+Best regards,
+
+Valentijn
+-- 
+Durgerdamstraat 29, 1507 JL Zaandam; telefoon 075-7074579
+
+--------------020208020003010900090704
+Content-Type: text/x-diff;
+ name="xt_recent.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="xt_recent.patch"
+
+--- net/netfilter/xt_recent.c	2011-02-18 00:44:35.000000000 +0100
++++ net/netfilter/xt_recent.c.fixed	2011-02-18 10:49:18.000000000 +0100
+@@ -233,7 +233,7 @@
+ 	struct recent_entry *e;
+ 	union nf_inet_addr addr = {};
+ 	u_int8_t ttl;
+-	bool ret = info->invert;
++	bool match = false;
+ 
+ 	if (par->family == NFPROTO_IPV4) {
+ 		const struct iphdr *iph = ip_hdr(skb);
+@@ -264,46 +264,44 @@
+ 	e = recent_entry_lookup(t, &addr, par->family,
+ 				(info->check_set & XT_RECENT_TTL) ? ttl : 0);
+ 	if (e == NULL) {
+-		if (!(info->check_set & XT_RECENT_SET))
+-			goto out;
+-		e = recent_entry_init(t, &addr, par->family, ttl);
+-		if (e == NULL)
+-			par->hotdrop = true;
+-		ret = !ret;
+-		goto out;
+-	}
++		if (info->check_set & XT_RECENT_SET) {
++			e = recent_entry_init(t, &addr, par->family, ttl);
++			if (e == NULL)
++				par->hotdrop = true;
++			match = true; }
++	} else {
+ 
+-	if (info->check_set & XT_RECENT_SET)
+-		ret = !ret;
+-	else if (info->check_set & XT_RECENT_REMOVE) {
+-		recent_entry_remove(t, e);
+-		ret = !ret;
+-	} else if (info->check_set & (XT_RECENT_CHECK | XT_RECENT_UPDATE)) {
+-		unsigned long time = jiffies - info->seconds * HZ;
+-		unsigned int i, hits = 0;
+-
+-		for (i = 0; i < e->nstamps; i++) {
+-			if (info->seconds && time_after(time, e->stamps[i]))
+-				continue;
+-			if (!info->hit_count || ++hits >= info->hit_count) {
+-				ret = !ret;
+-				break;
++		if (info->check_set & XT_RECENT_SET)
++			match = true;
++		else if (info->check_set & XT_RECENT_REMOVE) {
++			recent_entry_remove(t, e);
++			match = true;
++		} else if (info->check_set & (XT_RECENT_CHECK | XT_RECENT_UPDATE)) {
++			unsigned long time = jiffies - info->seconds * HZ;
++			unsigned int i, hits = 0;
++
++			for (i = 0; i < e->nstamps; i++) {
++				if (info->seconds && time_after(time, e->stamps[i]))
++					continue;
++				if (!info->hit_count || ++hits >= info->hit_count) {
++					match = true;
++					break;
++				}
+ 			}
+-		}
+ 
+-		/* info->seconds must be non-zero */
+-		if (info->check_set & XT_RECENT_REAP)
+-			recent_entry_reap(t, time);
+-	}
++			/* info->seconds must be non-zero */
++			if (info->check_set & XT_RECENT_REAP)
++				recent_entry_reap(t, time);
++		}
+ 
+-	if (info->check_set & XT_RECENT_SET ||
+-	    (info->check_set & XT_RECENT_UPDATE && ret)) {
+-		recent_entry_update(t, e);
+-		e->ttl = ttl;
++		if (info->check_set & XT_RECENT_SET ||
++		    (info->check_set & XT_RECENT_UPDATE && match)) {
++			recent_entry_update(t, e);
++			e->ttl = ttl;
++		}
+ 	}
+-out:
+ 	spin_unlock_bh(&recent_lock);
+-	return ret;
++	return (match ^ info->invert);
+ }
+ 
+ static int recent_mt_check(const struct xt_mtchk_param *par)
+
+--------------020208020003010900090704--
