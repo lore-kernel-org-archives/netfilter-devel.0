@@ -1,7 +1,7 @@
 From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH] ipvs: unify the formula to estimate the overhead of processing connections
-Date: Sat, 19 Feb 2011 09:18:17 +0800
-Message-ID: <1298078297-25865-1-git-send-email-xiaosuo@gmail.com>
+Subject: [PATCH v2] ipvs: unify the formula to estimate the overhead of processing connections
+Date: Sat, 19 Feb 2011 17:32:28 +0800
+Message-ID: <1298107948-9224-1-git-send-email-xiaosuo@gmail.com>
 Cc: "David S. Miller" <davem@davemloft.net>,
 	Patrick McHardy <kaber@trash.net>,
 	Wensong Zhang <wensong@linux-vs.org>,
@@ -20,14 +20,15 @@ The formula used by lc is used by all the lc variants in this patch.
 
 Signed-off-by: Changli Gao <xiaosuo@gmail.com>
 ---
+v2: use ip_vs_dest_conn_overhead() instead.
  include/net/ip_vs.h              |   14 ++++++++++++++
  net/netfilter/ipvs/ip_vs_lblc.c  |   13 +++----------
  net/netfilter/ipvs/ip_vs_lblcr.c |   25 +++++++------------------
- net/netfilter/ipvs/ip_vs_lc.c    |   16 ----------------
+ net/netfilter/ipvs/ip_vs_lc.c    |   18 +-----------------
  net/netfilter/ipvs/ip_vs_wlc.c   |   20 ++------------------
- 5 files changed, 26 insertions(+), 62 deletions(-)
+ 5 files changed, 27 insertions(+), 63 deletions(-)
 diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 5d75fea..d9dac3b 100644
+index 5d75fea..e80ffb7 100644
 --- a/include/net/ip_vs.h
 +++ b/include/net/ip_vs.h
 @@ -1241,6 +1241,20 @@ static inline void ip_vs_conn_drop_conntrack(struct ip_vs_conn *cp)
@@ -35,7 +36,7 @@ index 5d75fea..d9dac3b 100644
  #endif
  
 +static inline unsigned int
-+ip_vs_lc_dest_overhead(struct ip_vs_dest *dest)
++ip_vs_dest_conn_overhead(struct ip_vs_dest *dest)
 +{
 +	/*
 +	 * We think the overhead of processing active connections is 256
@@ -52,7 +53,7 @@ index 5d75fea..d9dac3b 100644
  
  #endif	/* _NET_IP_VS_H */
 diff --git a/net/netfilter/ipvs/ip_vs_lblc.c b/net/netfilter/ipvs/ip_vs_lblc.c
-index 00b5ffa..bb6f7a7 100644
+index 00b5ffa..58ae403 100644
 --- a/net/netfilter/ipvs/ip_vs_lblc.c
 +++ b/net/netfilter/ipvs/ip_vs_lblc.c
 @@ -389,12 +389,7 @@ __ip_vs_lblc_schedule(struct ip_vs_service *svc)
@@ -75,7 +76,7 @@ index 00b5ffa..bb6f7a7 100644
  			least = dest;
 -			loh = atomic_read(&least->activeconns) * 50
 -				+ atomic_read(&least->inactconns);
-+			loh = ip_vs_lc_dest_overhead(least);
++			loh = ip_vs_dest_conn_overhead(least);
  			goto nextstage;
  		}
  	}
@@ -85,12 +86,12 @@ index 00b5ffa..bb6f7a7 100644
  
 -		doh = atomic_read(&dest->activeconns) * 50
 -			+ atomic_read(&dest->inactconns);
-+		doh = ip_vs_lc_dest_overhead(dest);
++		doh = ip_vs_dest_conn_overhead(dest);
  		if (loh * atomic_read(&dest->weight) >
  		    doh * atomic_read(&least->weight)) {
  			least = dest;
 diff --git a/net/netfilter/ipvs/ip_vs_lblcr.c b/net/netfilter/ipvs/ip_vs_lblcr.c
-index bfa25f1..d5b57e2 100644
+index bfa25f1..2ddefe8 100644
 --- a/net/netfilter/ipvs/ip_vs_lblcr.c
 +++ b/net/netfilter/ipvs/ip_vs_lblcr.c
 @@ -178,8 +178,7 @@ static inline struct ip_vs_dest *ip_vs_dest_set_min(struct ip_vs_dest_set *set)
@@ -99,7 +100,7 @@ index bfa25f1..d5b57e2 100644
  		    && (least->flags & IP_VS_DEST_F_AVAILABLE)) {
 -			loh = atomic_read(&least->activeconns) * 50
 -				+ atomic_read(&least->inactconns);
-+			loh = ip_vs_lc_dest_overhead(least);
++			loh = ip_vs_dest_conn_overhead(least);
  			goto nextstage;
  		}
  	}
@@ -109,7 +110,7 @@ index bfa25f1..d5b57e2 100644
  
 -		doh = atomic_read(&dest->activeconns) * 50
 -			+ atomic_read(&dest->inactconns);
-+		doh = ip_vs_lc_dest_overhead(dest);
++		doh = ip_vs_dest_conn_overhead(dest);
  		if ((loh * atomic_read(&dest->weight) >
  		     doh * atomic_read(&least->weight))
  		    && (dest->flags & IP_VS_DEST_F_AVAILABLE)) {
@@ -119,7 +120,7 @@ index bfa25f1..d5b57e2 100644
  		if (atomic_read(&most->weight) > 0) {
 -			moh = atomic_read(&most->activeconns) * 50
 -				+ atomic_read(&most->inactconns);
-+			moh = ip_vs_lc_dest_overhead(most);
++			moh = ip_vs_dest_conn_overhead(most);
  			goto nextstage;
  		}
  	}
@@ -129,7 +130,7 @@ index bfa25f1..d5b57e2 100644
  		dest = e->dest;
 -		doh = atomic_read(&dest->activeconns) * 50
 -			+ atomic_read(&dest->inactconns);
-+		doh = ip_vs_lc_dest_overhead(dest);
++		doh = ip_vs_dest_conn_overhead(dest);
  		/* moh/mw < doh/dw ==> moh*dw < doh*mw, where mw,dw>0 */
  		if ((moh * atomic_read(&dest->weight) <
  		     doh * atomic_read(&most->weight))
@@ -153,7 +154,7 @@ index bfa25f1..d5b57e2 100644
  			least = dest;
 -			loh = atomic_read(&least->activeconns) * 50
 -				+ atomic_read(&least->inactconns);
-+			loh = ip_vs_lc_dest_overhead(least);
++			loh = ip_vs_dest_conn_overhead(least);
  			goto nextstage;
  		}
  	}
@@ -163,12 +164,12 @@ index bfa25f1..d5b57e2 100644
  
 -		doh = atomic_read(&dest->activeconns) * 50
 -			+ atomic_read(&dest->inactconns);
-+		doh = ip_vs_lc_dest_overhead(dest);
++		doh = ip_vs_dest_conn_overhead(dest);
  		if (loh * atomic_read(&dest->weight) >
  		    doh * atomic_read(&least->weight)) {
  			least = dest;
 diff --git a/net/netfilter/ipvs/ip_vs_lc.c b/net/netfilter/ipvs/ip_vs_lc.c
-index 4f69db1..d8e2975 100644
+index 4f69db1..160cb80 100644
 --- a/net/netfilter/ipvs/ip_vs_lc.c
 +++ b/net/netfilter/ipvs/ip_vs_lc.c
 @@ -22,22 +22,6 @@
@@ -194,8 +195,17 @@ index 4f69db1..d8e2975 100644
  /*
   *	Least Connection scheduling
   */
+@@ -62,7 +46,7 @@ ip_vs_lc_schedule(struct ip_vs_service *svc, const struct sk_buff *skb)
+ 		if ((dest->flags & IP_VS_DEST_F_OVERLOAD) ||
+ 		    atomic_read(&dest->weight) == 0)
+ 			continue;
+-		doh = ip_vs_lc_dest_overhead(dest);
++		doh = ip_vs_dest_conn_overhead(dest);
+ 		if (!least || doh < loh) {
+ 			least = dest;
+ 			loh = doh;
 diff --git a/net/netfilter/ipvs/ip_vs_wlc.c b/net/netfilter/ipvs/ip_vs_wlc.c
-index bbddfdb..45cbaaf 100644
+index bbddfdb..db751f5 100644
 --- a/net/netfilter/ipvs/ip_vs_wlc.c
 +++ b/net/netfilter/ipvs/ip_vs_wlc.c
 @@ -27,22 +27,6 @@
