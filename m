@@ -1,42 +1,36 @@
-From: Wes Campaigne <westacular@gmail.com>
-Subject: [PATCH 2/4] xtables: fix excessive memory allocation in host_to_ipaddr
-Date: Mon, 21 Feb 2011 19:10:11 -0500
-Message-ID: <1298333413-14253-3-git-send-email-westacular@gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: xtables: various fixes for handling multiple src/dst addresses
+Date: Tue, 22 Feb 2011 04:48:45 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1102220445190.29995@obet.zrqbmnf.qr>
 References: <1298333413-14253-1-git-send-email-westacular@gmail.com>
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Wes Campaigne <westacular@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:60696 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751702Ab1BVAKn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Feb 2011 19:10:43 -0500
-Received: by iyb26 with SMTP id 26so1267218iyb.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Feb 2011 16:10:42 -0800 (PST)
+Received: from borg.medozas.de ([188.40.89.202]:39504 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752966Ab1BVDsr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Feb 2011 22:48:47 -0500
 In-Reply-To: <1298333413-14253-1-git-send-email-westacular@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-host_to_ipaddr was unnecessarily asking for an array of length n^2
-to store just n addresses.
 
-Signed-off-by: Wes Campaigne <westacular@gmail.com>
----
- xtables.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+On Tuesday 2011-02-22 01:10, Wes Campaigne wrote:
 
-diff --git a/xtables.c b/xtables.c
-index aea32ca..9a51e81 100644
---- a/xtables.c
-+++ b/xtables.c
-@@ -1143,7 +1143,7 @@ static struct in_addr *host_to_ipaddr(const char *name, unsigned int *naddr)
- 
- 		while (host->h_addr_list[*naddr] != NULL)
- 			++*naddr;
--		addr = xtables_calloc(*naddr, sizeof(struct in_addr) * *naddr);
-+		addr = xtables_calloc(*naddr, sizeof(struct in_addr));
- 		for (i = 0; i < *naddr; i++)
- 			memcpy(&addr[i], host->h_addr_list[i],
- 			       sizeof(struct in_addr));
--- 
-1.7.1
+>Hi! I've been working on enabling robust IPv6 support in the TomatoUSB router firmware. In the process, I found and fixed a few old iptables bugs, mostly related to lookups and the handling of multiple addresses. Please review!
+>
+>NOTE: TomatoUSB is actually still using an old 1.3.8 branch of iptables, and analogous versions of these patches against that version have been commited on the TomatoUSB repo at repo.or.cz/w/tomato.git tomato-RT
+>
+>===
+>Wes Campaigne (4):
+>  xtables: use *all* IPv6 addresses resolved from a hostname
+>  xtables: fix excessive memory allocation in host_to_ipaddr
+>  xtables: fix the broken detection/removal of redundant addresses
+>  xtables: use the correct loop count when applying masks to addresses
+
+The last one has already beek taken care of (cf.
+http://bugs.debian.org/611990), I am checking the rest as the
+lines enlighten me :)
 
