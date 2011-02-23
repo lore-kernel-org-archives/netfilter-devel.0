@@ -1,44 +1,42 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables: misc option edits
-Date: Wed, 23 Feb 2011 17:40:34 +0100
-Message-ID: <4D653882.7070501@trash.net>
-References: <1298142259-11213-1-git-send-email-jengelh@medozas.de>
+From: "\"Oleg A. Arkhangelsky\"" <sysoleg@yandex.ru>
+Subject: Kernel panic nf_nat_setup_info+0x5b3/0x6e0
+Date: Wed, 23 Feb 2011 20:07:21 +0300
+Message-ID: <118081298480841@web25.yandex.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55232 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755043Ab1BWQkj (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Feb 2011 11:40:39 -0500
-In-Reply-To: <1298142259-11213-1-git-send-email-jengelh@medozas.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Am 19.02.2011 20:04, schrieb Jan Engelhardt:
-> Please review! (And if ok, merge.)
-> 
-> ===
-> 
-> The following changes since commit 87dc7c4c842deb1e2e3d38089ffcad9f238d98de:
-> 
->   xtables: use strspn() to check if string needs to be quoted (2011-02-17 11:57:19 +0100)
-> 
-> are available in the git repository at:
->   git://dev.medozas.de/iptables master
-> 
-> Jan Engelhardt (8):
->       doc: fix wrong sentence about negation in xt_limit
->       doc: fix misspelling of "field"
->       extensions: remove redundant init functions
->       Remove unused CVS expanded keywords
->       libip6t_dst: remove unimplemented --dst-not-strict
->       libip6t_hbh: remove unimplemented --hbh-not-strict
->       extensions: add missing checks for specific flags
->       libipt_ECN: set proper option flags
-> 
+Hello,
 
-Looks good, pulled, thanks Jan.
+Got this panic yesterday:
+http://www.progtech.ru/~oleg/crash.txt
+
+The offending instruction is:
+cmpb 54(%edx), %cl # <variable>.tuple.dst.protonum,
+
+and here is the assembler code of net/ipv4/netfilter/nf_nat_core.c:
+http://www.progtech.ru/~oleg/nf_nat_core.s
+
+Quick investigation lead me to conclusion that the problem is in
+return of same_src function:
+
+        return (t->dst.protonum == tuple->dst.protonum &&
+                t->src.u3.ip == tuple->src.u3.ip &&
+                t->src.u.all == tuple->src.u.all);
+
+So either t or tuple pointer is bad, but I don't understand how
+this can be.
+
+Looks like the similar situation described here:
+https://bugzilla.kernel.org/show_bug.cgi?id=21512
+
+Any thoughts on this?
+Thank you!
+
+-- 
+wbr, Oleg.
