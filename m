@@ -1,34 +1,33 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [GIT PULL nf-next-2.6] IPVS
-Date: Fri, 25 Feb 2011 11:43:29 +0900
-Message-ID: <1298601812-8168-1-git-send-email-horms@verge.net.au>
-Cc: Changli Gao <xiaosuo@gmail.com>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Patrick McHardy <kaber@trash.net>,
-	Simon Horman <horms@verge.net.au>
-To: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] improvement for TCP connection tracking
+Date: Sat, 26 Feb 2011 04:32:08 +0100
+Message-ID: <20110226032834.4335.74168.stgit@decadence>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:59697 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751297Ab1BZDd7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Feb 2011 22:33:59 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Patrick,
+Hi Patrick, Jozsef,
 
-please consider pulling
-git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git master
-go get the following changes by Changli.
+I've been testing the following patch in my HA firewall setup
+with success. This patch provides better recovery in stress
+scenarios.
 
-      ipvs: use hlist instead of list
-      ipvs: use enum to instead of magic numbers
-      ipvs: unify the formula to estimate the overhead of processing connections
+Please, if you're OK with it, pass to it 2.6.38.
 
- include/net/ip_vs.h              |   16 +++++++++++-
- net/netfilter/ipvs/ip_vs_conn.c  |   52 +++++++++++++++++++++----------------
- net/netfilter/ipvs/ip_vs_lblc.c  |   13 ++-------
- net/netfilter/ipvs/ip_vs_lblcr.c |   25 +++++-------------
- net/netfilter/ipvs/ip_vs_lc.c    |   18 +------------
- net/netfilter/ipvs/ip_vs_wlc.c   |   20 +-------------
- net/netfilter/ipvs/ip_vs_xmit.c  |   41 +++++++++++++++++++----------
- 7 files changed, 84 insertions(+), 101 deletions(-)
+---
 
+Pablo Neira Ayuso (1):
+      netfilter: nf_ct_tcp: better handling for SYN retransmissions after SYN+ACK
+
+
+ net/netfilter/nf_conntrack_proto_tcp.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
