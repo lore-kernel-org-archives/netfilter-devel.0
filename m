@@ -1,99 +1,97 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 8/9] xtables: fix the broken detection/removal of redundant addresses
-Date: Sun, 27 Feb 2011 02:31:18 +0100
-Message-ID: <1298770280-7652-9-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 9/9] xtables: use all IPv6 addresses resolved from a hostname
+Date: Sun, 27 Feb 2011 02:31:19 +0100
+Message-ID: <1298770280-7652-10-git-send-email-jengelh@medozas.de>
 References: <1298770280-7652-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:52527 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:52529 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751250Ab1B0Bbf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 26 Feb 2011 20:31:35 -0500
+	id S1751275Ab1B0Bbg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 26 Feb 2011 20:31:36 -0500
 In-Reply-To: <1298770280-7652-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Wes Campaigne <westacular@gmail.com>
 
-	[To observe this issue, populate a hostname (DNS or local db)
-	with multiple adresses across multiple subnets (cf. prefixlen
-	below)
+Fixes a long-standing issue where host_to_ip6addr would only ever
+examine/return the first item of the address chain returned by
+getaddrinfo, instead of traversing the chain and copying each of them.
 
-	# e.g. /etc/hosts
-	127.0.0.2       lo-x
-	127.0.0.3       lo-x
-	127.0.1.4       lo-x
-	127.0.1.5       lo-x
-	127.0.2.6       lo-x
+This has always been how host_to_ip6addr behaves, and all of the other
+related IPv6 code is already written to handle multiple possible
+addresses.
 
-	Then invoke xtables_ipparse_any by e.g. `-m conntrack
-	--ctorigsrc lo-x/24`. -j.eng]
-
-This same block of code, apparently to detect if addresses are
-identical after applying the mask, and to skip the duplicates and the
-ones made redundant by the mask, has been present and unchanged from
-as far back as I could find (circa iptables 1.2).
-
-By inspection, it was wrong, and always has been: once the code finds
-a duplicate, it will drop the rest of the array one by one as it
-re-detects the same duplicate over and over. When the addresses came
-from a single hostname lookup, and their order was random, then this
-created unpredictable behaviour by iptables, which seem to ignore some
-of those addresses at random times.
-
-I suspect the original idea also involved a swap between the duplicate
-and the address from the (current) end of the array, but a line of
-code to do that seems to have never existed. I have finally added it.
-(Well, as much as is needed: there does not need to be a full swap,
-because we are just going to ignore the duplicate, pretend the array
-is one shorter, and never look at the contents of the end again. So,
-we can get away with just copying from the end.)
-
-[Reword comment about shuffle: replace by mentioning tail copy to
-replace dup. -j.eng]
+[Style fixups. Removal of redundant i<*naddrs check. -j.eng]
 
 Signed-off-by: Wes Campaigne <westacular@gmail.com>
 ---
- xtables.c |   18 ++++++++++++++----
- 1 files changed, 14 insertions(+), 4 deletions(-)
+ xtables.c |   29 ++++++++++++-----------------
+ 1 files changed, 12 insertions(+), 17 deletions(-)
 
 diff --git a/xtables.c b/xtables.c
-index b45bf92..660fbd0 100644
+index 660fbd0..2f00e39 100644
 --- a/xtables.c
 +++ b/xtables.c
-@@ -1311,8 +1311,13 @@ void xtables_ipparse_any(const char *name, struct in_addr **addrpp,
- 		addrp[j++].s_addr &= maskp->s_addr;
- 		for (k = 0; k < j - 1; ++k)
- 			if (addrp[k].s_addr == addrp[j-1].s_addr) {
--				--*naddrs;
--				--j;
-+				/*
-+				 * Nuke the dup by copying an address from the
-+				 * tail here, and check the current position
-+				 * again (--j).
-+				 */
-+				memcpy(&addrp[--j], &addrp[--*naddrs],
-+				       sizeof(struct in_addr));
- 				break;
- 			}
+@@ -1420,10 +1420,11 @@ struct in6_addr *xtables_numeric_to_ip6addr(const char *num)
+ static struct in6_addr *
+ host_to_ip6addr(const char *name, unsigned int *naddr)
+ {
+-	static struct in6_addr *addr;
++	struct in6_addr *addr;
+ 	struct addrinfo hints;
+-	struct addrinfo *res;
++	struct addrinfo *res, *p;
+ 	int err;
++	unsigned int i;
+ 
+ 	memset(&hints, 0, sizeof(hints));
+ 	hints.ai_flags    = AI_CANONNAME;
+@@ -1437,20 +1438,20 @@ host_to_ip6addr(const char *name, unsigned int *naddr)
+ #endif
+ 		return NULL;
+ 	} else {
+-		if (res->ai_family != AF_INET6 ||
+-		    res->ai_addrlen != sizeof(struct sockaddr_in6))
+-			return NULL;
+-
++		/* Find length of address chain */
++		for (p = res; p != NULL; p = p->ai_next)
++			++*naddr;
+ #ifdef DEBUG
+ 		fprintf(stderr, "resolved: len=%d  %s ", res->ai_addrlen,
+ 		        xtables_ip6addr_to_numeric(&((struct sockaddr_in6 *)res->ai_addr)->sin6_addr));
+ #endif
+-		/* Get the first element of the address-chain */
+-		addr = xtables_malloc(sizeof(struct in6_addr));
+-		memcpy(addr, &((const struct sockaddr_in6 *)res->ai_addr)->sin6_addr,
+-		       sizeof(struct in6_addr));
++		/* Copy each element of the address chain */
++		addr = xtables_calloc(*naddr, sizeof(struct in6_addr));
++		for (i = 0, p = res; p != NULL; p = p->ai_next)
++			memcpy(&addr[i++],
++			       &((const struct sockaddr_in6 *)p->ai_addr)->sin6_addr,
++			       sizeof(struct in6_addr));
+ 		freeaddrinfo(res);
+-		*naddr = 1;
+ 		return addr;
  	}
-@@ -1620,8 +1625,13 @@ void xtables_ip6parse_any(const char *name, struct in6_addr **addrpp,
- 		++j;
- 		for (k = 0; k < j - 1; ++k)
- 			if (IN6_ARE_ADDR_EQUAL(&addrp[k], &addrp[j - 1])) {
--				--*naddrs;
--				--j;
-+				/*
-+				 * Nuke the dup by copying an address from the
-+				 * tail here, and check the current position
-+				 * again (--j).
-+				 */
-+				memcpy(&addrp[--j], &addrp[--*naddrs],
-+				       sizeof(struct in_addr));
- 				break;
- 			}
- 	}
+ 
+@@ -1562,12 +1563,6 @@ xtables_ip6parse_multiple(const char *name, struct in6_addr **addrpp,
+ 			strcpy(buf, "::");
+ 
+ 		addrp = ip6parse_hostnetwork(buf, &n);
+-		/* ip6parse_hostnetwork only ever returns one IP
+-		address (it exits if the resolution fails).
+-		Therefore, n will always be 1 here.  Leaving the
+-		code below in anyway in case ip6parse_hostnetwork
+-		is improved some day to behave like
+-		ipparse_hostnetwork: */
+ 		if (n > 1) {
+ 			count += n - 1;
+ 			*addrpp = xtables_realloc(*addrpp,
 -- 
 1.7.1
 
