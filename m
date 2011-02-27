@@ -1,42 +1,42 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables: docs & address parsing
-Date: Sun, 27 Feb 2011 16:19:50 +0100
-Message-ID: <4D6A6B96.1010504@trash.net>
-References: <1298770280-7652-1-git-send-email-jengelh@medozas.de>
+Subject: Re: [PATCH] netfilter: nf_ct_tcp: better handling for SYN retransmissions
+ after SYN+ACK
+Date: Sun, 27 Feb 2011 16:22:30 +0100
+Message-ID: <4D6A6C36.9050402@trash.net>
+References: <20110226032834.4335.74168.stgit@decadence> <20110226033324.4335.53000.stgit@decadence> <alpine.DEB.2.00.1102261917180.22866@blackhole.kfki.hu> <4D695E73.2090006@netfilter.org> <alpine.DEB.2.00.1102262238360.23113@blackhole.kfki.hu> <4D698FCB.6060205@netfilter.org> <4D699421.4070309@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org, Changli Gao <xiaosuo@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34941 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:34989 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752076Ab1B0PTv (ORCPT
+	with ESMTP id S1751144Ab1B0PW3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 27 Feb 2011 10:19:51 -0500
-In-Reply-To: <1298770280-7652-1-git-send-email-jengelh@medozas.de>
+	Sun, 27 Feb 2011 10:22:29 -0500
+In-Reply-To: <4D699421.4070309@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 27.02.2011 02:31, Jan Engelhardt wrote:
-> The following changes since commit 094f104af71ca859c7c44406baed401659ad9421:
+On 27.02.2011 01:00, Pablo Neira Ayuso wrote:
+> On 27/02/11 00:42, Pablo Neira Ayuso wrote:
+>> On 26/02/11 22:45, Jozsef Kadlecsik wrote:
+>>> On Sat, 26 Feb 2011, Pablo Neira Ayuso wrote:
+>>>> I have test it here, it works fine. Let me know if you're OK with it.
+>>>
+>>> The patch looks OK but I think Changli Gao is also right and it'd be 
+>>> simpler to set the [reply][synack][SR] state to sIG. What do you think?
+>>
+>> I read his email before leaving and after I made the new patch.
+>>
+>> Indeed, his idea is simpler, here's a new patch. I tested it here, it
+>> works fine.
+>>
+>> Patrick, please apply!
 > 
->   libipt_ECN: set proper option flags (2011-02-19 20:08:29 +0100)
-> 
-> are available in the git repository at:
->   git://dev.medozas.de/iptables master
-> 
-> Jan Engelhardt (5):
->       doc: mention other possible nf_loggers for TRACE
->       doc: fix odd partial sentence in libipt_TTL
->       libxt_quota: require --quota to be specified
->       doc: rateest options can be optional
->       libxtables: fix memory scribble beyond end of array
-> 
-> Wes Campaigne (4):
->       libxtables: avoid confusing use of ai_protocol=IPPROTO_IPV6
->       xtables: fix excessive memory allocation in host_to_ipaddr
->       xtables: fix the broken detection/removal of redundant addresses
->       xtables: use all IPv6 addresses resolved from a hostname
+> Hm, I forgot to include the description. New patch attached.
 
-Pulled, thanks Jan.
+Thanks. I'll apply this tommorrow, assuming Jozsef is fine with
+this version.
