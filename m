@@ -1,29 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [patch] fix nla_policy_len to actually _iterate_ over the
- policy
-Date: Mon, 28 Feb 2011 12:38:35 -0800 (PST)
-Message-ID: <20110228.123835.245399145.davem@davemloft.net>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [stable] [patch] fix nla_policy_len to actually _iterate_ over
+ the policy
+Date: Mon, 28 Feb 2011 13:26:02 -0800
+Message-ID: <20110228212602.GA9495@kroah.com>
 References: <20110228203559.GD8906@barkeeper1-xen.linbit>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: linux-kernel@vger.kernel.org, trivial@kernel.org,
-	holger@eitzenberger.org, kaber@trash.net,
-	netfilter-devel@vger.kernel.org, stable@kernel.org
-To: lars.ellenberg@linbit.com
+	"David S. Miller" <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org,
+	Holger Eitzenberger <holger@eitzenberger.org>,
+	stable@kernel.org
+To: Lars Ellenberg <lars.ellenberg@linbit.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:56387
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751667Ab1B1Uh6 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Feb 2011 15:37:58 -0500
+Received: from kroah.org ([198.145.64.141]:38199 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751184Ab1B1V00 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Feb 2011 16:26:26 -0500
+Content-Disposition: inline
 In-Reply-To: <20110228203559.GD8906@barkeeper1-xen.linbit>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Lars Ellenberg <lars.ellenberg@linbit.com>
-Date: Mon, 28 Feb 2011 21:35:59 +0100
-
+On Mon, Feb 28, 2011 at 09:35:59PM +0100, Lars Ellenberg wrote:
 > Currently nla_policy_len always returns n * NLA_HDRLEN:
 > It loops, but does not advance it's iterator.
 > NLA_UNSPEC == 0 does not contain a .len in any policy.
@@ -31,5 +31,13 @@ Date: Mon, 28 Feb 2011 21:35:59 +0100
 > Trivially fixed by adding p++.
 > 
 > Signed-off-by: Lars Ellenberg <lars.ellenberg@linbit.com>
+> 
+> diff --git a/lib/nlattr.c b/lib/nlattr.c
 
-Applied, thanks.
+Please read how to properly get patches into the stable kernel tree in
+the file Documentation/stable_kernel_rules.txt (hint, randomly cc:ing
+stable@kernel.org is NOT how to do it...)
+
+thanks,
+
+greg k-h
