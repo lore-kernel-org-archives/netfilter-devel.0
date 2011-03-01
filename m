@@ -1,51 +1,33 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 2/2] doc: add VERSION section to manpages
-Date: Tue,  1 Mar 2011 15:44:26 +0100
-Message-ID: <1298990667-22518-3-git-send-email-jengelh@medozas.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: iptables: option parsing inversion fix
+Date: Tue, 01 Mar 2011 17:52:10 +0100
+Message-ID: <4D6D243A.7030709@trash.net>
 References: <1298990667-22518-1-git-send-email-jengelh@medozas.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
-To: kaber@trash.net
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:46326 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754241Ab1CAOob (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Mar 2011 09:44:31 -0500
+Received: from stinky.trash.net ([213.144.137.162]:45750 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755237Ab1CAQwI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Mar 2011 11:52:08 -0500
 In-Reply-To: <1298990667-22518-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This shall make it easier to identify outdated HTML renditions on the
-interwebs, since many of them do not display the .TH header like man(1)
-does.
+On 01.03.2011 15:44, Jan Engelhardt wrote:
+> The following changes since commit 2ad8dc895ec28a173c629c695c2e11c41b625b6e:
+> 
+>   xtables: use all IPv6 addresses resolved from a hostname (2011-02-27 02:28:44 +0100)
+> 
+> are available in the git repository at:
+>   git://dev.medozas.de/iptables master
+> 
+> Jan Engelhardt (2):
+>       iptables: fix an inversion
+>       doc: add VERSION section to manpages
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- ip6tables.8.in |    3 +++
- iptables.8.in  |    3 +++
- 2 files changed, 6 insertions(+), 0 deletions(-)
-
-diff --git a/ip6tables.8.in b/ip6tables.8.in
-index 5688133..4306934 100644
---- a/ip6tables.8.in
-+++ b/ip6tables.8.in
-@@ -419,3 +419,6 @@ iptables man page written by Herve Eychenne <rv@wallfire.org>.
- .\" .. sexy, too ..
- .\" .. witty, charming, powerful ..
- .\" .. and most of all, modest ..
-+.SH VERSION
-+.PP
-+This manual page applies to ip6tables @PACKAGE_VERSION@.
-diff --git a/iptables.8.in b/iptables.8.in
-index d29deb2..f36d220 100644
---- a/iptables.8.in
-+++ b/iptables.8.in
-@@ -427,3 +427,6 @@ Man page originally written by Herve Eychenne <rv@wallfire.org>.
- .\" .. sexy, too ..
- .\" .. witty, charming, powerful ..
- .\" .. and most of all, modest ..
-+.SH VERSION
-+.PP
-+This manual page applies to iptables @PACKAGE_VERSION@.
--- 
-1.7.1
-
+Pulled, thanks Jan.
