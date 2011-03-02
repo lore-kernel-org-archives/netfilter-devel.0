@@ -1,50 +1,29 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Kernel panic nf_nat_setup_info+0x5b3/0x6e0
-Date: Wed, 02 Mar 2011 12:37:15 +0100
-Message-ID: <4D6E2BEB.50805@trash.net>
-References: <118081298480841@web25.yandex.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+From: kaber@trash.net
+Subject: [PATCH 0/2] netfilter: netfilter fixes for 2.6.38
+Date: Wed,  2 Mar 2011 12:56:19 +0100
+Message-ID: <1299066981-14058-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: "Oleg A. Arkhangelsky" <sysoleg@yandex.ru>
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64928 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:65379 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753312Ab1CBLhT (ORCPT
+	with ESMTP id S1754485Ab1CBL4f (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Mar 2011 06:37:19 -0500
-In-Reply-To: <118081298480841@web25.yandex.ru>
+	Wed, 2 Mar 2011 06:56:35 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 23.02.2011 18:07, schrieb "Oleg A. Arkhangelsky":
-> Hello,
-> 
-> Got this panic yesterday:
-> http://www.progtech.ru/~oleg/crash.txt
-> 
-> The offending instruction is:
-> cmpb 54(%edx), %cl # <variable>.tuple.dst.protonum,
-> 
-> and here is the assembler code of net/ipv4/netfilter/nf_nat_core.c:
-> http://www.progtech.ru/~oleg/nf_nat_core.s
-> 
-> Quick investigation lead me to conclusion that the problem is in
-> return of same_src function:
-> 
->         return (t->dst.protonum == tuple->dst.protonum &&
->                 t->src.u3.ip == tuple->src.u3.ip &&
->                 t->src.u.all == tuple->src.u.all);
-> 
-> So either t or tuple pointer is bad, but I don't understand how
-> this can be.
+Hi Dave,
 
-I'm not sure myself, I'm guessing it has something to do with
-reallocation of the NAT extension area. Please post your full
-ruleset and any helpers in use.
+the following patches fix two IPVS/netfilter bugs:
 
-> [2971152.752502] Pid: 0, comm: swapper Not tainted (2.6.32.25-pt #1)
+- incorrect locking in __ip_vs_update_dest(), from Julian
 
-Also please try whether the problem still happens with the current
-kernel version.
+- a potential oops when binding or unbinding an invalid address family
+  through nfnetlink_log, from Jan
+
+Please apply or pull from:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git master
+
+Thanks!
