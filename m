@@ -1,44 +1,30 @@
-From: =?KOI8-R?B?SWdvciAnTG8nICjpLkwuKQ==?= <bombsiteunrested@gmail.com>
-Subject: recommendations on implementing a custom Netfilter hook to QUEUE
- packets before their SEQ/ACK and size before fragmentation are known?
-Date: Wed, 2 Mar 2011 05:22:39 +0200
-Message-ID: <AANLkTi=x_khzkObaG4F7PrVzbStd5c1OZMCE_oKHa35b@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [GIT PULL nf-2.6] IPVS
+Date: Wed, 02 Mar 2011 11:58:18 +0100
+Message-ID: <4D6E22CA.2020305@trash.net>
+References: <1299020375-11362-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:64850 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757764Ab1CBDXU (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Mar 2011 22:23:20 -0500
-Received: by wyg36 with SMTP id 36so5373744wyg.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 01 Mar 2011 19:23:19 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	Hans Schillstrom <hans@schillstrom.com>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1299020375-11362-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi all.
+Am 01.03.2011 23:59, schrieb Simon Horman:
+> Hi Patrick,
+> 
+> please consider pulling
+> git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git for-patrick
+> to get the following change from Julian. Please note that it is an nf-2.6
+> (that is 2.6.38-rc) change.
+> 
+> Julian Anastasov (1):
+>       ipvs: fix dst_lock locking on dest update
 
-What I look for is reimplementing a part of NFQUEUE functionality at
-the stage where TCP packet is formed before sending to network.
-It seems that NFQUEUE can't just handle expanded (> MTU) packet, and
-also want to have control over SEQ/ACK numbers assigned to
-both packets and connection structures.
-
-But errr.. where to look for? The sources are too complex and there's
-not enough guides.
-Actually I have this doc only:
-http://www.nsnam.org/wiki/index.php/GSOC2009Netfilter#Callback_Priority
-
-Can anyone point me to correct place in kernel sources to see/attach
-with SystemTap and track how SEQs are generated and how outgoing
-packets are planned to be fragmented or even dropped? Deliberately
-want a good tour.
-
-P.S. There's at least 2 projects that can benefit from such
-transparent packet size growing, one is mine and second is StegBox
-(steganography based covert channels in traffic)
-
--- 
-cheers,
-Igor
+Pulled, thanks Simon.
