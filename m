@@ -1,35 +1,41 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/13] netfilter: netfilter update
-Date: Wed, 02 Mar 2011 11:30:44 -0800 (PST)
-Message-ID: <20110302.113044.226764702.davem@davemloft.net>
-References: <1299067973-15977-1-git-send-email-kaber@trash.net>
+From: "\"Oleg A. Arkhangelsky\"" <sysoleg@yandex.ru>
+Subject: Re: Kernel panic nf_nat_setup_info+0x5b3/0x6e0
+Date: Wed, 02 Mar 2011 22:50:25 +0300
+Message-ID: <124481299095426@web67.yandex.ru>
+References: <118081298480841@web25.yandex.ru> <4D6E2BEB.50805@trash.net> <AANLkTikkz23221ZSiat8N5tnE_bkHN=1EUNQTDdnC30L@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1299067973-15977-1-git-send-email-kaber@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	Paul E McKenney <paulmck@linux.vnet.ibm.com>
+To: Changli Gao <xiaosuo@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from forward2.mail.yandex.net ([77.88.46.7]:58537 "EHLO
+	forward2.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754735Ab1CBT6F (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 2 Mar 2011 14:58:05 -0500
+In-Reply-To: <AANLkTikkz23221ZSiat8N5tnE_bkHN=1EUNQTDdnC30L@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: kaber@trash.net
-Date: Wed,  2 Mar 2011 13:12:40 +0100
+02.03.2011, 17:37, "Changli Gao" <xiaosuo@gmail.com>:
 
-> following is a netfilter update for net-next, containing:
-> 
-> - minor cleanups and bugfixes
-> 
-> - a fix for a bridge netfilter information leak, from Vasiliy Kulikov
-> 
-> - IPVS timer fixes, from Tinggong Wang
-> 
-> - conversion of the IPVS hash table to hlists, from Changli
-> 
-> - TCP conntrack improvements, from Pablo
-> 
-> Please pull from:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
+> t should be NULL here, as offsetof(struct nf_conn, dst.protonum) == 0x36.
+> We should free the nf_ct_extend with call_rcu(), since nat ext is
+> referenced in the rcu read context.
 
-Also pulled, thanks!
+Yes, I think the problem is triggered when nf_conntrack_free() is called by
+different CPU during net->ipv4.nat_bysource hash traversal. Extensions
+framework doesn't have any SLAB_DESTROY_BY_RCU magic.
+
+I'm not sure, but couldn't this problem be introduced by:
+
+ea781f197d6a835cbb93a0bf88ee1696296ed8aa
+netfilter: nf_conntrack: use SLAB_DESTROY_BY_RCU and get rid of call_rcu()
+
+?
+
+-- 
+wbr, Oleg.
