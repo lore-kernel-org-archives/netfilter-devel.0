@@ -1,41 +1,43 @@
-From: "\"Oleg A. Arkhangelsky\"" <sysoleg@yandex.ru>
-Subject: Re: Kernel panic nf_nat_setup_info+0x5b3/0x6e0
-Date: Wed, 02 Mar 2011 22:50:25 +0300
-Message-ID: <124481299095426@web67.yandex.ru>
-References: <118081298480841@web25.yandex.ru> <4D6E2BEB.50805@trash.net> <AANLkTikkz23221ZSiat8N5tnE_bkHN=1EUNQTDdnC30L@mail.gmail.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [GIT PULL nf-2.6] IPVS
+Date: Thu, 3 Mar 2011 07:06:37 +0900
+Message-ID: <20110302220637.GD8193@verge.net.au>
+References: <1299020375-11362-1-git-send-email-horms@verge.net.au>
+ <4D6E22CA.2020305@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org,
-	Paul E McKenney <paulmck@linux.vnet.ibm.com>
-To: Changli Gao <xiaosuo@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	Hans Schillstrom <hans@schillstrom.com>,
+	Julian Anastasov <ja@ssi.bg>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from forward2.mail.yandex.net ([77.88.46.7]:58537 "EHLO
-	forward2.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754735Ab1CBT6F (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:46963 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754516Ab1CBWGl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Mar 2011 14:58:05 -0500
-In-Reply-To: <AANLkTikkz23221ZSiat8N5tnE_bkHN=1EUNQTDdnC30L@mail.gmail.com>
+	Wed, 2 Mar 2011 17:06:41 -0500
+Content-Disposition: inline
+In-Reply-To: <4D6E22CA.2020305@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-02.03.2011, 17:37, "Changli Gao" <xiaosuo@gmail.com>:
+On Wed, Mar 02, 2011 at 11:58:18AM +0100, Patrick McHardy wrote:
+> Am 01.03.2011 23:59, schrieb Simon Horman:
+> > Hi Patrick,
+> > 
+> > please consider pulling
+> > git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git for-patrick
+> > to get the following change from Julian. Please note that it is an nf-2.6
+> > (that is 2.6.38-rc) change.
+> > 
+> > Julian Anastasov (1):
+> >       ipvs: fix dst_lock locking on dest update
+> 
+> Pulled, thanks Simon.
 
-> t should be NULL here, as offsetof(struct nf_conn, dst.protonum) == 0x36.
-> We should free the nf_ct_extend with call_rcu(), since nat ext is
-> referenced in the rcu read context.
+Thanks Patrick.
 
-Yes, I think the problem is triggered when nf_conntrack_free() is called by
-different CPU during net->ipv4.nat_bysource hash traversal. Extensions
-framework doesn't have any SLAB_DESTROY_BY_RCU magic.
-
-I'm not sure, but couldn't this problem be introduced by:
-
-ea781f197d6a835cbb93a0bf88ee1696296ed8aa
-netfilter: nf_conntrack: use SLAB_DESTROY_BY_RCU and get rid of call_rcu()
-
-?
-
--- 
-wbr, Oleg.
+This change is also needed in nf-next-2.6 but I assume that
+will automatically happen when nf-2.6 is merged into nf-next-2.6,
+possibly via a merge of net-2.6 into net-next-2.6.
