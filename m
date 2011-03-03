@@ -1,43 +1,48 @@
-From: Simon Horman <horms@verge.net.au>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [GIT PULL nf-2.6] IPVS
-Date: Thu, 3 Mar 2011 07:06:37 +0900
-Message-ID: <20110302220637.GD8193@verge.net.au>
-References: <1299020375-11362-1-git-send-email-horms@verge.net.au>
- <4D6E22CA.2020305@trash.net>
+Date: Thu, 03 Mar 2011 07:53:06 +0100
+Message-ID: <4D6F3AD2.30502@trash.net>
+References: <1299020375-11362-1-git-send-email-horms@verge.net.au> <4D6E22CA.2020305@trash.net> <20110302220637.GD8193@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
 	Hans Schillstrom <hans@schillstrom.com>,
 	Julian Anastasov <ja@ssi.bg>
-To: Patrick McHardy <kaber@trash.net>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:46963 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754516Ab1CBWGl (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:49831 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750818Ab1CCGxH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Mar 2011 17:06:41 -0500
-Content-Disposition: inline
-In-Reply-To: <4D6E22CA.2020305@trash.net>
+	Thu, 3 Mar 2011 01:53:07 -0500
+In-Reply-To: <20110302220637.GD8193@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 02, 2011 at 11:58:18AM +0100, Patrick McHardy wrote:
-> Am 01.03.2011 23:59, schrieb Simon Horman:
-> > Hi Patrick,
-> > 
-> > please consider pulling
-> > git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git for-patrick
-> > to get the following change from Julian. Please note that it is an nf-2.6
-> > (that is 2.6.38-rc) change.
-> > 
-> > Julian Anastasov (1):
-> >       ipvs: fix dst_lock locking on dest update
+On 02.03.2011 23:06, Simon Horman wrote:
+> On Wed, Mar 02, 2011 at 11:58:18AM +0100, Patrick McHardy wrote:
+>> Am 01.03.2011 23:59, schrieb Simon Horman:
+>>> Hi Patrick,
+>>>
+>>> please consider pulling
+>>> git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git for-patrick
+>>> to get the following change from Julian. Please note that it is an nf-2.6
+>>> (that is 2.6.38-rc) change.
+>>>
+>>> Julian Anastasov (1):
+>>>       ipvs: fix dst_lock locking on dest update
+>>
+>> Pulled, thanks Simon.
 > 
-> Pulled, thanks Simon.
+> Thanks Patrick.
+> 
+> This change is also needed in nf-next-2.6 but I assume that
+> will automatically happen when nf-2.6 is merged into nf-next-2.6,
+> possibly via a merge of net-2.6 into net-next-2.6.
 
-Thanks Patrick.
+Yes. If you need it as base for further work, the fastest way
+is to ask Dave to pull net-2.6 into net-next-2.6, I can then
+pull it into nf-next.
 
-This change is also needed in nf-next-2.6 but I assume that
-will automatically happen when nf-2.6 is merged into nf-next-2.6,
-possibly via a merge of net-2.6 into net-next-2.6.
