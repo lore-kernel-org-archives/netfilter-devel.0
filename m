@@ -1,48 +1,99 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [GIT PULL nf-2.6] IPVS
-Date: Thu, 03 Mar 2011 07:53:06 +0100
-Message-ID: <4D6F3AD2.30502@trash.net>
-References: <1299020375-11362-1-git-send-email-horms@verge.net.au> <4D6E22CA.2020305@trash.net> <20110302220637.GD8193@verge.net.au>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: Kernel panic nf_nat_setup_info+0x5b3/0x6e0
+Date: Thu, 3 Mar 2011 15:33:31 +0800
+Message-ID: <AANLkTik87dd0=CqcMOcwKN-Hx7W6KD7A36DUhGAzLddr@mail.gmail.com>
+References: <118081298480841@web25.yandex.ru> <4D6E2BEB.50805@trash.net>
+ <AANLkTikkz23221ZSiat8N5tnE_bkHN=1EUNQTDdnC30L@mail.gmail.com> <124481299095426@web67.yandex.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	Hans Schillstrom <hans@schillstrom.com>,
-	Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
+Content-Type: multipart/mixed; boundary=20cf304341f8076ed4049d8f0de5
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	Paul E McKenney <paulmck@linux.vnet.ibm.com>
+To: "Oleg A. Arkhangelsky" <sysoleg@yandex.ru>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:49831 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750818Ab1CCGxH (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:62014 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750742Ab1CCHdw (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Mar 2011 01:53:07 -0500
-In-Reply-To: <20110302220637.GD8193@verge.net.au>
+	Thu, 3 Mar 2011 02:33:52 -0500
+In-Reply-To: <124481299095426@web67.yandex.ru>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 02.03.2011 23:06, Simon Horman wrote:
-> On Wed, Mar 02, 2011 at 11:58:18AM +0100, Patrick McHardy wrote:
->> Am 01.03.2011 23:59, schrieb Simon Horman:
->>> Hi Patrick,
->>>
->>> please consider pulling
->>> git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git for-patrick
->>> to get the following change from Julian. Please note that it is an nf-2.6
->>> (that is 2.6.38-rc) change.
->>>
->>> Julian Anastasov (1):
->>>       ipvs: fix dst_lock locking on dest update
->>
->> Pulled, thanks Simon.
-> 
-> Thanks Patrick.
-> 
-> This change is also needed in nf-next-2.6 but I assume that
-> will automatically happen when nf-2.6 is merged into nf-next-2.6,
-> possibly via a merge of net-2.6 into net-next-2.6.
+--20cf304341f8076ed4049d8f0de5
+Content-Type: text/plain; charset=KOI8-R
 
-Yes. If you need it as base for further work, the fastest way
-is to ask Dave to pull net-2.6 into net-next-2.6, I can then
-pull it into nf-next.
+On Thu, Mar 3, 2011 at 3:50 AM, "Oleg A. Arkhangelsky"
+<sysoleg@yandex.ru> wrote:
+> 02.03.2011, 17:37, "Changli Gao" <xiaosuo@gmail.com>:
+>
+>> t should be NULL here, as offsetof(struct nf_conn, dst.protonum) == 0x36.
+>> We should free the nf_ct_extend with call_rcu(), since nat ext is
+>> referenced in the rcu read context.
+>
+> Yes, I think the problem is triggered when nf_conntrack_free() is called by
+> different CPU during net->ipv4.nat_bysource hash traversal. Extensions
+> framework doesn't have any SLAB_DESTROY_BY_RCU magic.
+>
+> I'm not sure, but couldn't this problem be introduced by:
+>
+> ea781f197d6a835cbb93a0bf88ee1696296ed8aa
+> netfilter: nf_conntrack: use SLAB_DESTROY_BY_RCU and get rid of call_rcu()
+>
+> ?
+>
 
+There is nothing to do with SLAB_DESTROY_BY_RCU. Here is the comment
+for this flag:
+
+/*
+ * SLAB_DESTROY_BY_RCU - **WARNING** READ THIS!
+ *
+ * This delays freeing the SLAB page by a grace period, it does _NOT_
+ * delay object freeing. This means that if you do kmem_cache_free()
+ * that memory location is free to be reused at any time. Thus it may
+ * be possible to see another object there in the same RCU grace period.
+ *
+ * This feature only ensures the memory location backing the object
+ * stays valid, the trick to using this is relying on an independent
+ * object validation pass. Something like:
+...
+
+Please try the patch attached and test if the problem is solved or not. Thanks.
+
+-- 
+Regards,
+Changli Gao(xiaosuo@gmail.com)
+
+--20cf304341f8076ed4049d8f0de5
+Content-Type: text/plain; charset=US-ASCII; name="nf_ext_rcu.diff"
+Content-Disposition: attachment; filename="nf_ext_rcu.diff"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gktd48in0
+
+ZGlmZiAtLWdpdCBhL2luY2x1ZGUvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfZXh0ZW5kLmgg
+Yi9pbmNsdWRlL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2V4dGVuZC5oCmluZGV4IDJkY2Yz
+MTcuLjM1NGNjY2I5IDEwMDY0NAotLS0gYS9pbmNsdWRlL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRy
+YWNrX2V4dGVuZC5oCisrKyBiL2luY2x1ZGUvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfZXh0
+ZW5kLmgKQEAgLTY2LDEzICs2NiwxNSBAQCBzdGF0aWMgaW5saW5lIHZvaWQgbmZfY3RfZXh0X2Rl
+c3Ryb3koc3RydWN0IG5mX2Nvbm4gKmN0KQogCQlfX25mX2N0X2V4dF9kZXN0cm95KGN0KTsKIH0K
+IAordm9pZCBfX25mX2N0X2V4dF9mcmVlX3JjdShzdHJ1Y3QgcmN1X2hlYWQgKmhlYWQpOworCiAv
+KiBGcmVlIG9wZXJhdGlvbi4gSWYgeW91IHdhbnQgdG8gZnJlZSBhIG9iamVjdCByZWZlcnJlZCBm
+cm9tIHByaXZhdGUgYXJlYSwKICAqIHBsZWFzZSBpbXBsZW1lbnQgX19uZl9jdF9leHRfZnJlZSgp
+IGFuZCBjYWxsIGl0LgogICovCiBzdGF0aWMgaW5saW5lIHZvaWQgbmZfY3RfZXh0X2ZyZWUoc3Ry
+dWN0IG5mX2Nvbm4gKmN0KQogewogCWlmIChjdC0+ZXh0KQotCQlrZnJlZShjdC0+ZXh0KTsKKwkJ
+Y2FsbF9yY3UoJmN0LT5leHQtPnJjdSwgX19uZl9jdF9leHRfZnJlZV9yY3UpOwogfQogCiAvKiBB
+ZGQgdGhpcyB0eXBlLCByZXR1cm5zIHBvaW50ZXIgdG8gZGF0YSBvciBOVUxMLiAqLwpkaWZmIC0t
+Z2l0IGEvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfZXh0ZW5kLmMgYi9uZXQvbmV0ZmlsdGVy
+L25mX2Nvbm50cmFja19leHRlbmQuYwppbmRleCA4MGEyM2VkLi4zYTQ3Yjc2IDEwMDY0NAotLS0g
+YS9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19leHRlbmQuYworKysgYi9uZXQvbmV0ZmlsdGVy
+L25mX2Nvbm50cmFja19leHRlbmQuYwpAQCAtNjgsMTEgKzY4LDEyIEBAIG5mX2N0X2V4dF9jcmVh
+dGUoc3RydWN0IG5mX2N0X2V4dCAqKmV4dCwgZW51bSBuZl9jdF9leHRfaWQgaWQsIGdmcF90IGdm
+cCkKIAlyZXR1cm4gKHZvaWQgKikoKmV4dCkgKyBvZmY7CiB9CiAKLXN0YXRpYyB2b2lkIF9fbmZf
+Y3RfZXh0X2ZyZWVfcmN1KHN0cnVjdCByY3VfaGVhZCAqaGVhZCkKK3ZvaWQgX19uZl9jdF9leHRf
+ZnJlZV9yY3Uoc3RydWN0IHJjdV9oZWFkICpoZWFkKQogewogCXN0cnVjdCBuZl9jdF9leHQgKmV4
+dCA9IGNvbnRhaW5lcl9vZihoZWFkLCBzdHJ1Y3QgbmZfY3RfZXh0LCByY3UpOwogCWtmcmVlKGV4
+dCk7CiB9CitFWFBPUlRfU1lNQk9MX0dQTChfX25mX2N0X2V4dF9mcmVlX3JjdSk7CiAKIHZvaWQg
+Kl9fbmZfY3RfZXh0X2FkZChzdHJ1Y3QgbmZfY29ubiAqY3QsIGVudW0gbmZfY3RfZXh0X2lkIGlk
+LCBnZnBfdCBnZnApCiB7Cg==
+--20cf304341f8076ed4049d8f0de5--
