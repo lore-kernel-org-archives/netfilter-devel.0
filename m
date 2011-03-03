@@ -1,28 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [GIT PULL nf-2.6] IPVS
-Date: Thu, 03 Mar 2011 00:31:14 -0800 (PST)
-Message-ID: <20110303.003114.232734761.davem@davemloft.net>
-References: <4D6E22CA.2020305@trash.net>
-	<20110302220637.GD8193@verge.net.au>
-	<4D6F3AD2.30502@trash.net>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: linux-next: Tree for February 10 (netfilter)
+Date: Thu, 3 Mar 2011 13:54:14 -0800
+Message-ID: <20110303135414.bfcabb2a.randy.dunlap@oracle.com>
+References: <20110210180525.54ec83e9.sfr@canb.auug.org.au>
+	<20110210095210.6fcf3011.randy.dunlap@oracle.com>
+	<4D58DB20.5060401@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: horms@verge.net.au, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, hans@schillstrom.com, ja@ssi.bg
-To: kaber@trash.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4D6F3AD2.30502@trash.net>
-Sender: netdev-owner@vger.kernel.org
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	netdev <netdev@vger.kernel.org>, linux-next@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org, Thomas Graf <tgraf@suug.ch>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <4D58DB20.5060401@trash.net>
+Sender: linux-next-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 03 Mar 2011 07:53:06 +0100
+On Mon, 14 Feb 2011 08:34:56 +0100 Patrick McHardy wrote:
 
-> Yes. If you need it as base for further work, the fastest way
-> is to ask Dave to pull net-2.6 into net-next-2.6, I can then
-> pull it into nf-next.
+> On 10.02.2011 18:52, Randy Dunlap wrote:
+> > On Thu, 10 Feb 2011 18:05:25 +1100 Stephen Rothwell wrote:
+> > 
+> >> Hi all,
+> >>
+> >> [The kernel.org mirroring is being slow ...]
+> >>
+> >> Changes since 20110209:
+> > 
+> > 
+> > xt_AUDIT.c:(.text+0x39ca9): undefined reference to `ipv6_skip_exthdr'
+> > 
+> > IPV6 is not enabled.
+> > 
+> > Full config file is attached.
+> 
+> Thomas, please have a look at this.
 
-I plan to do a net-2.6 into net-next-2.6 merge for another reason
-tomorrow, so this should be taken care of soon.
+
+Ping.
+This build error is still with us in linux-next 2011.0303...
+
+
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
