@@ -1,34 +1,34 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] iptables: add -C to check for existing rules
-Date: Tue, 08 Mar 2011 15:57:45 +0100
-Message-ID: <4D7643E9.4050801@trash.net>
-References: <20110308115639.GA30013@zirkel.wertarbyte.de>
+Subject: Re: [PATCH 1/2] netfilter: ipt_addrtype: rename to xt_addrtype
+Date: Tue, 08 Mar 2011 16:11:26 +0100
+Message-ID: <4D76471E.8050503@trash.net>
+References: <1299341328-4663-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Stefan Tomanek <stefan.tomanek@wertarbyte.de>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60012 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60218 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754767Ab1CHO5r (ORCPT
+	with ESMTP id S1755438Ab1CHPL2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Mar 2011 09:57:47 -0500
-In-Reply-To: <20110308115639.GA30013@zirkel.wertarbyte.de>
+	Tue, 8 Mar 2011 10:11:28 -0500
+In-Reply-To: <1299341328-4663-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 08.03.2011 12:56, schrieb Stefan Tomanek:
-> It is often useful to check whether a specific rule is already present
-> in a chain without actually modifying the iptables config.
+Am 05.03.2011 17:08, schrieb Florian Westphal:
+> From: Florian Westphal <fwestphal@astaro.com>
 > 
-> Services like fail2ban usually employ techniques like grepping through
-> the output of "iptables -L" which is quite error prone.
+> followup patch will add ipv6 support.
 > 
-> This patch adds a new operation -C to the iptables command which mostly
-> works like -D; it can detect and indicate the existence of the specified
-> rule by modifying the exit code. The new operation TC_CHECK_ENTRY uses
-> the same code as the -D operation, whose functions got a dry-run
-> parameter appended.
+> Signed-off-by: Florian Westphal <fwestphal@astaro.com>
+> ---
+>  include/linux/netfilter/Kbuild                     |    1 +
+>  .../ipt_addrtype.h => netfilter/xt_addrtype.h}     |   16 +++++-----
 
-Looks fine to me. I'll apply this if nobody else objects.
+Please keep this file and the original definitions for a while
+(add to feature-removal-schedule) for compatibility. You can
+redefine them to the xt_ values/structures so they can be used
+inside the kernel.
