@@ -1,35 +1,46 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: XT_CONTINUE/EBT_CONTINUE for universal modules
-Date: Tue, 8 Mar 2011 14:53:14 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1103081443350.32577@obet.zrqbmnf.qr>
-References: <20110308120815.GA28673@canuck.infradead.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter:ipset: fix the compile warning in ip_set_create
+Date: Tue, 08 Mar 2011 15:38:11 +0100
+Message-ID: <4D763F53.3010109@trash.net>
+References: <4D70960B.2040209@cn.fujitsu.com> <alpine.DEB.2.00.1103040956050.29227@blackhole.kfki.hu> <4D70CC89.5020604@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Thomas Graf <tgraf@infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org
+To: Shan Wei <shanwei@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:59661 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755003Ab1CHNxQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Mar 2011 08:53:16 -0500
-In-Reply-To: <20110308120815.GA28673@canuck.infradead.org>
+Received: from stinky.trash.net ([213.144.137.162]:59744 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755177Ab1CHOiP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Mar 2011 09:38:15 -0500
+In-Reply-To: <4D70CC89.5020604@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 2011-03-08 13:08, Thomas Graf wrote:
->
->xt_AUDIT.c currently returns XT_CONTINUE. The module is universal and would
->be useable from ebtables if it wasn't for ebtables to expect EBT_CONTINUE.
->
->Is the only way around this cloning xt_AUDIT.c to ebt_audit.c?
+Am 04.03.2011 12:27, schrieb Shan Wei:
+>> > Thanks, I applied your patch in my tree.
+>> >=20
+>> > Patrick, please apply it too.
+>> >=20
+>> > Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+>> >=20
+> Thanks for your review.
+> Bad sob in first patch, fix it in new one.
+>=20
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> [PATCH v2] netfilter:ipset: fix the compile warning in ip_set_create
+>=20
+> net/netfilter/ipset/ip_set_core.c:615: warning: =E2=80=98clash=E2=80=99=
+ may be used uninitialized in this function
+>=20
+> Signed-off-by: Shan Wei <shanwei@cn.fujitsu.com>
+> Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-You could make all ebt targets ust XT_* values, provided that they are 
-translated from/to EBT_* when reading/writing the table from/to 
-userspace.
-
->I've seen some patches from Jan converting ebtables to use xtables 
->infrastucture but they haven't been merged.
-
->From what I remember, they have become
-v2.6.28-rc1~717^2~109^2~29..v2.6.28-rc1~717^2~109^2~18 .
-If not, which patches would you be referring to?
+Applied, thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
