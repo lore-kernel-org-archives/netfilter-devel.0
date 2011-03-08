@@ -1,34 +1,40 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] iptables: add -C to check for existing rules
-Date: Tue, 8 Mar 2011 23:20:31 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1103082318020.23007@obet.zrqbmnf.qr>
-References: <20110308214251.GA21681@zirkel.wertarbyte.de>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: subcommand consolidation and -C option
+Date: Tue,  8 Mar 2011 23:20:57 +0100
+Message-ID: <1299622860-32634-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
-To: Stefan Tomanek <stefan.tomanek@wertarbyte.de>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:55695 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:55702 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753976Ab1CHWUg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Mar 2011 17:20:36 -0500
-In-Reply-To: <20110308214251.GA21681@zirkel.wertarbyte.de>
+	id S1754008Ab1CHWVE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Mar 2011 17:21:04 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 2011-03-08 22:42, Stefan Tomanek wrote:
 
->It is often useful to check whether a specific rule is already present
->in a chain without actually modifying the iptables config.
->
->Services like fail2ban usually employ techniques like grepping through
->the output of "iptables -L" which is quite error prone.
->
->This patch adds a new operation -C to the iptables command which mostly
->works like -D; it can detect and indicate the existence of the specified
->rule by modifying the exit code. The new operation TC_CHECK_ENTRY uses
->the same code as the -D operation, whose functions got a dry-run
->parameter appended.
+The following changes since commit f96cb8094ceffb9ffe8e94b4ee6800aa581dd021:
 
-I picked this up, sorted -C in and ironed out a few style issues.
-Thanks.
+  doc: add VERSION section to manpages (2011-03-01 15:43:49 +0100)
+
+are available in the git repository at:
+  git://dev.medozas.de/iptables master
+
+Stefan Tomanek (2):
+      ip(6)tables-multi: unify subcommand handling
+      iptables: add -C to check for existing rules
+
+ include/libiptc/libip6tc.h |    6 ++++
+ include/libiptc/libiptc.h  |    6 ++++
+ ip6tables-multi.c          |   46 +++++++++-------------------------
+ ip6tables.8.in             |   10 ++++++-
+ ip6tables.c                |   60 +++++++++++++++++++++++++++++++++++++++----
+ iptables-multi.c           |   52 ++++++++++---------------------------
+ iptables.8.in              |    9 ++++++-
+ iptables.c                 |   60 +++++++++++++++++++++++++++++++++++++++----
+ libiptc/libip4tc.c         |    1 +
+ libiptc/libip6tc.c         |    1 +
+ libiptc/libiptc.c          |   30 +++++++++++++++++----
+ xshared.c                  |   36 ++++++++++++++++++++++++++
+ xshared.h                  |   11 ++++++++
+ 13 files changed, 235 insertions(+), 93 deletions(-)
