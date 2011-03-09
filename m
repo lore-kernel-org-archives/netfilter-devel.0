@@ -1,47 +1,34 @@
-From: Thomas Graf <tgraf@infradead.org>
-Subject: Re: XT_CONTINUE/EBT_CONTINUE for universal modules
-Date: Wed, 9 Mar 2011 06:07:04 -0500
-Message-ID: <20110309110704.GB28673@canuck.infradead.org>
-References: <20110308120815.GA28673@canuck.infradead.org>
- <alpine.LNX.2.01.1103081443350.32577@obet.zrqbmnf.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: subcommand consolidation and -C option
+Date: Wed, 09 Mar 2011 13:57:48 +0100
+Message-ID: <4D77794C.8060607@trash.net>
+References: <1299622860-32634-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:49275 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753252Ab1CILHJ (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:46718 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932144Ab1CIM5u (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Mar 2011 06:07:09 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.01.1103081443350.32577@obet.zrqbmnf.qr>
+	Wed, 9 Mar 2011 07:57:50 -0500
+In-Reply-To: <1299622860-32634-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 08, 2011 at 02:53:14PM +0100, Jan Engelhardt wrote:
-> On Tuesday 2011-03-08 13:08, Thomas Graf wrote:
-> >
-> >xt_AUDIT.c currently returns XT_CONTINUE. The module is universal and would
-> >be useable from ebtables if it wasn't for ebtables to expect EBT_CONTINUE.
-> >
-> >Is the only way around this cloning xt_AUDIT.c to ebt_audit.c?
+Am 08.03.2011 23:20, schrieb Jan Engelhardt:
+> The following changes since commit f96cb8094ceffb9ffe8e94b4ee6800aa581dd021:
 > 
-> You could make all ebt targets ust XT_* values, provided that they are 
-> translated from/to EBT_* when reading/writing the table from/to 
-> userspace.
-
-I guess it's not worth it considering that Xtables2 is around the corner.
-
-I'll just clone xt_AUDIT.
-
-> >I've seen some patches from Jan converting ebtables to use xtables 
-> >infrastucture but they haven't been merged.
+>   doc: add VERSION section to manpages (2011-03-01 15:43:49 +0100)
 > 
-> >From what I remember, they have become
-> v2.6.28-rc1~717^2~109^2~29..v2.6.28-rc1~717^2~109^2~18 .
-> If not, which patches would you be referring to?
+> are available in the git repository at:
+>   git://dev.medozas.de/iptables master
+> 
+> Stefan Tomanek (2):
+>       ip(6)tables-multi: unify subcommand handling
+>       iptables: add -C to check for existing rules
 
-I was referring to:
 
-11/13 [NETFILTER]: Make Ebtables use Xtables infrastructure
+Pulled, thanks Jan!
