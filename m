@@ -1,39 +1,100 @@
-From: "Fabien C." <7o5fzvj4duxjxzp@jetable.org>
-Subject: Re: libnetfilter_queue: Some accepted packets get lost
-Date: Thu, 10 Mar 2011 00:27:15 +0100
-Message-ID: <4D780CD3.2000006@jetable.org>
-References: <4D716FFE.8050503@jetable.org> <4D778432.10802@netfilter.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH 03/18] ipvs: zero percpu stats
+Date: Thu, 10 Mar 2011 10:34:42 +0900
+Message-ID: <20110310013442.GD3028@verge.net.au>
+References: <1299368760-14271-1-git-send-email-horms@verge.net.au>
+ <1299368760-14271-4-git-send-email-horms@verge.net.au>
+ <1299402367.2758.87.camel@edumazet-laptop>
+ <alpine.LFD.2.00.1103061218470.1879@ja.ssi.bg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Eric Dumazet <eric.dumazet@gmail.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	lvs-devel@vger.kernel.org, Hans Schillstrom <hans@schillstrom.com>
+To: Julian Anastasov <ja@ssi.bg>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:39478 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751249Ab1CIX1X (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Mar 2011 18:27:23 -0500
-In-Reply-To: <4D778432.10802@netfilter.org>
+Received: from kirsty.vergenet.net ([202.4.237.240]:58368 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751456Ab1CJBes (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Mar 2011 20:34:48 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1103061218470.1879@ja.ssi.bg>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello Pablo,
+On Sun, Mar 06, 2011 at 02:18:35PM +0200, Julian Anastasov wrote:
 
->> 01) 20:08:00.486366: recv returned 108
->> 02) 20:08:00.486566: setting verdict : accept the packet...
->> 03) 20:08:00.486614 IP 10.3.5.8.46938 > 10.3.5.1.53: 51146+ A? www.mydomain.net. (35)
->> 04) 20:08:00.487193 IP 10.3.5.1.53 > 10.3.5.8.46938: 51146 1/3/3 A 12.34.123.210 (157)
->> 05) 20:08:00.586723: recv returned 108
->> 06) 20:08:00.586789: setting verdict : accept the packet...
->>  [==> tcpdump doesn't see this one - so browser waits for 5sec, and retries]
+[ snip ]
+
+> 	Zero the new percpu stats because we copy from there.
+> Use the stats spin lock to synchronize the percpu zeroing with
+> the percpu reading, both in user context and not in a hot path.
 > 
-> Check for errors in recv() to see if you are hitting ENOBUFS.
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
 
-Nope. recv() seems to be fine. As you can see from the output I gave in my
-first message, it always returns positive values "recv returned 108".
+Eric, do you have any thoughts on this?
+It seems clean to me.
 
-For the record, I must add: I compiled a custom 2.6.32 and surprisingly still
-have the problem. Is it my config, or the Debian patches that make the
-difference, I don't know...
-
-Fabien
+> ---
+> 
+> diff -urp lvs-test-2.6-8a80c79/linux/net/netfilter/ipvs/ip_vs_ctl.c linux/net/netfilter/ipvs/ip_vs_ctl.c
+> --- lvs-test-2.6-8a80c79/linux/net/netfilter/ipvs/ip_vs_ctl.c	2011-03-06 13:39:59.000000000 +0200
+> +++ linux/net/netfilter/ipvs/ip_vs_ctl.c	2011-03-06 13:44:56.108275455 +0200
+> @@ -713,8 +713,25 @@ static void ip_vs_trash_cleanup(struct n
+>  static void
+>  ip_vs_zero_stats(struct ip_vs_stats *stats)
+>  {
+> +	struct ip_vs_cpu_stats *cpustats = stats->cpustats;
+> +	int i;
+> +
+>  	spin_lock_bh(&stats->lock);
+> 
+> +	for_each_possible_cpu(i) {
+> +		struct ip_vs_cpu_stats *u = per_cpu_ptr(cpustats, i);
+> +		unsigned int start;
+> +
+> +		/* Do not pretend to be writer, it is enough to
+> +		 * sync with writers that modify the u64 counters
+> +		 * because under stats->lock there are no other readers
+> +		 */
+> +		do {
+> +			start = u64_stats_fetch_begin(&u->syncp);
+> +			memset(&u->ustats, 0, sizeof(u->ustats));
+> +		} while (u64_stats_fetch_retry(&u->syncp, start));
+> +	}
+> +
+>  	memset(&stats->ustats, 0, sizeof(stats->ustats));
+>  	ip_vs_zero_estimator(stats);
+> 
+> @@ -2015,16 +2032,19 @@ static int ip_vs_stats_percpu_show(struc
+>  	seq_printf(seq,
+>  		   "CPU    Conns  Packets  Packets            Bytes            Bytes\n");
+> 
+> +	/* Use spin lock early to synchronize with percpu zeroing */
+> +	spin_lock_bh(&tot_stats->lock);
+> +
+>  	for_each_possible_cpu(i) {
+>  		struct ip_vs_cpu_stats *u = per_cpu_ptr(cpustats, i);
+>  		unsigned int start;
+>  		__u64 inbytes, outbytes;
+> 
+>  		do {
+> -			start = u64_stats_fetch_begin_bh(&u->syncp);
+> +			start = u64_stats_fetch_begin(&u->syncp);
+>  			inbytes = u->ustats.inbytes;
+>  			outbytes = u->ustats.outbytes;
+> -		} while (u64_stats_fetch_retry_bh(&u->syncp, start));
+> +		} while (u64_stats_fetch_retry(&u->syncp, start));
+> 
+>  		seq_printf(seq, "%3X %8X %8X %8X %16LX %16LX\n",
+>  			   i, u->ustats.conns, u->ustats.inpkts,
+> @@ -2032,7 +2052,6 @@ static int ip_vs_stats_percpu_show(struc
+>  			   (__u64)outbytes);
+>  	}
+> 
+> -	spin_lock_bh(&tot_stats->lock);
+>  	seq_printf(seq, "  ~ %8X %8X %8X %16LX %16LX\n\n",
+>  		   tot_stats->ustats.conns, tot_stats->ustats.inpkts,
+>  		   tot_stats->ustats.outpkts,
+> 
