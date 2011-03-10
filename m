@@ -1,38 +1,52 @@
-From: "Fabien C." <7o5fzvj4duxjxzp@jetable.org>
-Subject: Re: libnetfilter_queue: Some accepted packets get lost
-Date: Thu, 10 Mar 2011 22:21:18 +0100
-Message-ID: <4D7940CE.8080602@jetable.org>
-References: <4D716FFE.8050503@jetable.org> <4D778432.10802@netfilter.org> <4D780CD3.2000006@jetable.org> <20110310062922.GY8821@Chamillionaire.breakpoint.cc> <4D78D77E.6040703@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v2 2/2] netfilter: xt_addrtype: ipv6 support.
+Date: Thu, 10 Mar 2011 23:22:04 +0100
+Message-ID: <20110310222204.GZ8821@Chamillionaire.breakpoint.cc>
+References: <1299619045-4027-1-git-send-email-fw@strlen.de>
+ <1299619045-4027-2-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:56636 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751077Ab1CJVV1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Mar 2011 16:21:27 -0500
-In-Reply-To: <4D78D77E.6040703@netfilter.org>
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:48509 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750980Ab1CJWWG (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Mar 2011 17:22:06 -0500
+Received: id: fw by Chamillionaire.breakpoint.cc with local
+	(easymta 1.00 BETA 1)
+	id 1PxoFA-0005pn-Kd
+	for netfilter-devel@vger.kernel.org; Thu, 10 Mar 2011 23:22:04 +0100
+Content-Disposition: inline
+In-Reply-To: <1299619045-4027-2-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->> perhaps you're hitting this problem?:
->> http://marc.info/?l=netfilter-devel&m=129016166319433&w=2
->> It triggers when your receive a 2nd UDP packet with the same
->> address/port pair while the 1st packet is still queued.
-> 
-> Fabien, to confirm that this is the problem, please use the following rule:
-> iptables -A OUTPUT -t raw -p udp --dport 53 -j NFQUEUE --queue-num 666
-> and retest. Let us know if that fixed it.
+Florian Westphal <fw@strlen.de> wrote:
+> diff --git a/net/netfilter/xt_addrtype.c b/net/netfilter/xt_addrtype.c
+> index e89c0b8..2220b85 100644
+> --- a/net/netfilter/xt_addrtype.c
+> +++ b/net/netfilter/xt_addrtype.c
+[..]
+> +	if ((XT_ADDRTYPE_LOCAL | XT_ADDRTYPE_ANYCAST |
+> +	     XT_ADDRTYPE_UNREACHABLE) & mask) {
+> +		struct rt6_info *rt;
+> +		u32 type;
+> +		int ifindex = dev ? dev->ifindex : 0;
+> +
+> +		rt = rt6_lookup(net, addr, NULL, ifindex, !!dev);
+> +
 
-Yes, that fixed it, thank you for the information!
+This needs a Kconfig
+	 depends on (IPV6 || IPV6=n)
 
-It's just a bit sad not being able to use conntracking, it avoided some packets
-going through userland once one had already been accepted on the same source
-ip/port.
+to avoid linker errors for the ipv6=m and xt_addrtype=y case.
 
-Do you think it's not technically possible to fix that race condition in a
-proper way?
+Patrick, I'll refrain from sending v3 for now in case any other changes
+might be needed.
 
-Fabien
+Please let me know if you want me to send a V3 with the Kconfig change
+only.
+
+Thanks,
+Florian
