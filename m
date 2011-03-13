@@ -1,41 +1,82 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: conntrack -L shows nothing
-Date: Sun, 13 Mar 2011 13:58:07 +0100
-Message-ID: <4D7CBF5F.20005@netfilter.org>
-References: <alpine.LNX.2.01.1103112029440.10848@obet.zrqbmnf.qr> <4D7CA71D.8040009@netfilter.org> <alpine.LNX.2.01.1103131354340.30398@obet.zrqbmnf.qr>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH] ipv4: netfilter: ipt_CLUSTERIP: fix buffer overflow
+Date: Sun, 13 Mar 2011 22:00:03 +0800
+Message-ID: <AANLkTimPZJoCzz386e-4m0Y4khWGZirZguGFmuFYCrry@mail.gmail.com>
+References: <1299780740-32652-1-git-send-email-segoon@openwall.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: linux-kernel@vger.kernel.org, security@kernel.org,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org
+To: Vasiliy Kulikov <segoon@openwall.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45772 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754261Ab1CMM6L (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 13 Mar 2011 08:58:11 -0400
-In-Reply-To: <alpine.LNX.2.01.1103131354340.30398@obet.zrqbmnf.qr>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:53280 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756451Ab1CMOAZ convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 13 Mar 2011 10:00:25 -0400
+In-Reply-To: <1299780740-32652-1-git-send-email-segoon@openwall.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 13/03/11 13:54, Jan Engelhardt wrote:
-> On Sunday 2011-03-13 12:14, Pablo Neira Ayuso wrote:
->>>
->>> I have observed a really odd issue, whereby running Linux 2.6.37.{0,1,2} 
->>> would cause `conntrack -L` to show nothing despite 
->>> /proc/net/nf_conntrack clearly having entries. Furthermore, the 
->>> functionality is restored in Patrick's nf-next that currently carries 
->>> 2.6.38-rc1, so there might have been a bug fix I am not aware about.
->>> .config is the same in either case, and the nfnetlink modules are 
->>> loaded.
->>>
->>> (Unfortunately, bisecting between 2.6.37 and 38-rc1 is problematic 
->>> because it can step through Nick Piggin's VFS changes that, at some 
->>> points, can cause an oops.)
->>
->> Does cba85b532e4aabdb97f44c18987d45141fd93faa fix your problem?
-> 
-> It does, thanks.
+On Fri, Mar 11, 2011 at 2:12 AM, Vasiliy Kulikov <segoon@openwall.com> =
+wrote:
+> buffer string is copied from userspace. =A0It is not checked whether =
+it is
+> zero terminated. =A0This may lead to overflow inside of simple_strtou=
+l().
+>
+> It was introduced before the git epoch. =A0Files "ipt_CLUSTERIP/*" ar=
+e
+> root writable only by default, however, on some setups permissions mi=
+ght be
+> relaxed to e.g. network admin user.
+>
+> Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+> ---
+> =A0Compile tested.
+>
+> =A0net/ipv4/netfilter/ipt_CLUSTERIP.c | =A0 =A01 +
+> =A01 files changed, 1 insertions(+), 0 deletions(-)
+>
+> diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/=
+ipt_CLUSTERIP.c
+> index 403ca57..7aabf9a 100644
+> --- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
+> +++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+> @@ -666,6 +666,7 @@ static ssize_t clusterip_proc_write(struct file *=
+file, const char __user *input,
+>
+> =A0 =A0 =A0 =A0if (copy_from_user(buffer, input, PROC_WRITELEN))
 
-thanks for confirming Jan.
+I think size should be used instead of PROC_WRITELEN.
 
-I have already sent this to -stable.
+if (size > PROC_WRITELEN)
+     return -EIO;
+if (copy_from_user(buffer, input, size))
+    return -EFAULT;
+buffer[size] =3D '\0';
+
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EFAULT;
+> + =A0 =A0 =A0 buffer[sizeof(buffer)-1] =3D 0;
+>
+> =A0 =A0 =A0 =A0if (*buffer =3D=3D '+') {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0nodenum =3D simple_strtoul(buffer+1, N=
+ULL, 10);
+
+
+
+--=20
+Regards,
+Changli Gao(xiaosuo@gmail.com)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
