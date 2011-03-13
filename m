@@ -1,82 +1,53 @@
 From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH] ipv4: netfilter: ipt_CLUSTERIP: fix buffer overflow
-Date: Sun, 13 Mar 2011 22:00:03 +0800
-Message-ID: <AANLkTimPZJoCzz386e-4m0Y4khWGZirZguGFmuFYCrry@mail.gmail.com>
-References: <1299780740-32652-1-git-send-email-segoon@openwall.com>
+Subject: Re: [Fwd: [Bug 29332] xt_recent handles "! --update" wrong]
+Date: Sun, 13 Mar 2011 23:00:38 +0800
+Message-ID: <AANLkTikS0zi2ncD_aMNQdT+fxjhUQWKihTDAShChT1A_@mail.gmail.com>
+References: <4D5E783E.6000600@sessink.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: linux-kernel@vger.kernel.org, security@kernel.org,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org
-To: Vasiliy Kulikov <segoon@openwall.com>
+Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
+To: Valentijn Sessink <valentijn@sessink.nl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:53280 "EHLO
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:41389 "EHLO
 	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756451Ab1CMOAZ convert rfc822-to-8bit (ORCPT
+	with ESMTP id S1751543Ab1CMPA7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 13 Mar 2011 10:00:25 -0400
-In-Reply-To: <1299780740-32652-1-git-send-email-segoon@openwall.com>
+	Sun, 13 Mar 2011 11:00:59 -0400
+Received: by fxm17 with SMTP id 17so2223127fxm.19
+        for <netfilter-devel@vger.kernel.org>; Sun, 13 Mar 2011 08:00:58 -0700 (PDT)
+In-Reply-To: <4D5E783E.6000600@sessink.nl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Mar 11, 2011 at 2:12 AM, Vasiliy Kulikov <segoon@openwall.com> =
-wrote:
-> buffer string is copied from userspace. =A0It is not checked whether =
-it is
-> zero terminated. =A0This may lead to overflow inside of simple_strtou=
-l().
+On Fri, Feb 18, 2011 at 9:46 PM, Valentijn Sessink <valentijn@sessink.nl> wrote:
+> Hello Netfilter devs,
 >
-> It was introduced before the git epoch. =A0Files "ipt_CLUSTERIP/*" ar=
-e
-> root writable only by default, however, on some setups permissions mi=
-ght be
-> relaxed to e.g. network admin user.
+> As per request from Patrick McHardy:
+>> https://bugzilla.kernel.org/show_bug.cgi?id=29332
+>> --- Comment #3 from Patrick McHardy <kaber@trash.net>
+>> Please submit your patch to netfilter-devel@vger.kernel.org so others
+>> can have a look as well.
 >
-> Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-> ---
-> =A0Compile tested.
+> ... please find attached my proposed patch - free cleanup included.
 >
-> =A0net/ipv4/netfilter/ipt_CLUSTERIP.c | =A0 =A01 +
-> =A01 files changed, 1 insertions(+), 0 deletions(-)
+> As noted in Bugzilla, I'm by no means a programmer, so please take my
+> patch with a grain of salt. Also, I do realise that fixing bugs and
+> cleaning up should probably not be mixed, so you might want to just use
+> the simple (but IMHO stupid) fix:
 >
-> diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/=
-ipt_CLUSTERIP.c
-> index 403ca57..7aabf9a 100644
-> --- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-> +++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-> @@ -666,6 +666,7 @@ static ssize_t clusterip_proc_write(struct file *=
-file, const char __user *input,
+> (info->check_set & XT_RECENT_UPDATE && (ret ^ info->invert)))
+
+IMHO, we should keep bugfix patches as clean as possible, so I prefer
+the above fix. Thanks.
+
 >
-> =A0 =A0 =A0 =A0if (copy_from_user(buffer, input, PROC_WRITELEN))
-
-I think size should be used instead of PROC_WRITELEN.
-
-if (size > PROC_WRITELEN)
-     return -EIO;
-if (copy_from_user(buffer, input, size))
-    return -EFAULT;
-buffer[size] =3D '\0';
-
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EFAULT;
-> + =A0 =A0 =A0 buffer[sizeof(buffer)-1] =3D 0;
+> I hope the problem is trivial enough to not present a test case, but if
+> you want one, I'll make one.
 >
-> =A0 =A0 =A0 =A0if (*buffer =3D=3D '+') {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0nodenum =3D simple_strtoul(buffer+1, N=
-ULL, 10);
+> Please feel free to throw my patch away and build something more
+> sensible ;-)
+>
 
-
-
---=20
+-- 
 Regards,
 Changli Gao(xiaosuo@gmail.com)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
