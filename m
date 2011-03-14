@@ -1,48 +1,49 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH 02/20] ipvs: reorganize tot_stats
-Date: Mon, 14 Mar 2011 11:21:21 +0200 (EET)
-Message-ID: <alpine.LFD.2.00.1103141104070.1736@ja.ssi.bg>
-References: <1300074346-13799-1-git-send-email-horms@verge.net.au>  <1300074346-13799-3-git-send-email-horms@verge.net.au> <1300076903.2761.64.camel@edumazet-laptop>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 1/4] netfilter: xt_connlimit: fix daddr connlimit in SNAT
+ scenario
+Date: Mon, 14 Mar 2011 13:26:00 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1103141310140.27542@obet.zrqbmnf.qr>
+References: <1300085414-27275-1-git-send-email-xiaosuo@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Simon Horman <horms@verge.net.au>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	lvs-devel@vger.kernel.org, Hans Schillstrom <hans@schillstrom.com>
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <1300076903.2761.64.camel@edumazet-laptop>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from borg.medozas.de ([188.40.89.202]:43463 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755461Ab1CNM0C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Mar 2011 08:26:02 -0400
+In-Reply-To: <1300085414-27275-1-git-send-email-xiaosuo@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+On Monday 2011-03-14 07:50, Changli Gao wrote:
 
- 	Hello,
+>We use the reply tuples when limiting the connections by the destinati=
+on
+>addresses, however, in SNAT scenario, the final reply tuples won't be
+>ready until SNAT is done in POSTROUING or INPUT chain
 
-On Mon, 14 Mar 2011, Eric Dumazet wrote:
+If I am not mistaken: if you do daddr counting, SNAT is irrelevant.
+Consider ruleset
+ -t nat -A PREROUTING -p tcp --dport 80 -j DNAT --to 1.2.3.4:80
+ -t nat -A PREROUTING -p tcp --dport 443 -j DNAT --to 1.2.3.5:443
 
->>  	Also, make sure ip_vs_stats_percpu_show reads properly
->> the u64 stats from user context.
->>
->> Signed-off-by: Julian Anastasov <ja@ssi.bg>
->> Signed-off-by: Simon Horman <horms@verge.net.au>
->
-> Reviewed-by: Eric Dumazet <eric.dumazet@gmail.com>
->
-> One comment : per cpu stats are really good to avoid cache misses, but I
-> see tot_stats is included in struct netns_ipvs right after "conn_count",
-> possibly sharing a hot cache line ?
+The tuple will first be (as per conntrack -L):
+ src=3Dhome dst=3Drouter src=3Drouter dst=3Dhome
+After DNAT:
+ src=3Dhome dst=3Drouter src=3D1.2.3.4 dst=3Dhome
 
- 	conn_count and tcp_app_lock, udp_app_lock, sctp_app_lock
-are used when packet creates new connection, probably on the
-same time depending on the protocol in packet. May be conn_count
-better to be before tcp_apps, far away from some sysctl vars
-that are mostly read?
-
- 	For tot_stats: cpustats ptr is always read,
-other fields in tot_stats are updated from the 2-second
-timer. May be it is better just to move tot_stats before
-est_list, it is written at the same time?
-
-Regards
-
+Thus looking at the src of the reply tuple seems correct =E2=80=94 at l=
+east this=20
+is what was wanted, counting per stashed servers (=3D1 customer), not p=
+er=20
+globally visible address.
 --
-Julian Anastasov <ja@ssi.bg>
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
