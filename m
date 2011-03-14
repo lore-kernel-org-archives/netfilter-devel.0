@@ -1,47 +1,35 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 02/20] ipvs: reorganize tot_stats
-Date: Mon, 14 Mar 2011 05:28:23 +0100
-Message-ID: <1300076903.2761.64.camel@edumazet-laptop>
-References: <1300074346-13799-1-git-send-email-horms@verge.net.au>
-	 <1300074346-13799-3-git-send-email-horms@verge.net.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, lvs-devel@vger.kernel.org,
-	Julian Anastasov <ja@ssi.bg>,
-	Hans Schillstrom <hans@schillstrom.com>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <1300074346-13799-3-git-send-email-horms@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: [PATCH] iptables: fix the dead loop when meeting unknown options
+Date: Mon, 14 Mar 2011 14:23:31 +0800
+Message-ID: <1300083811-27146-1-git-send-email-xiaosuo@gmail.com>
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	netfilter-devel@vger.kernel.org, Changli Gao <xiaosuo@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:33887 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752859Ab1CNGZn (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Mar 2011 02:25:43 -0400
+Received: by iwn34 with SMTP id 34so4617199iwn.19
+        for <netfilter-devel@vger.kernel.org>; Sun, 13 Mar 2011 23:25:43 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Le lundi 14 mars 2011 =C3=A0 12:45 +0900, Simon Horman a =C3=A9crit :
-> From: Julian Anastasov <ja@ssi.bg>
->=20
->  	The global tot_stats contains cpustats field just like the
-> stats for dest and svc, so better use it to simplify the usage
-> in estimation_timer. As tot_stats is registered as estimator
-> we can remove the special ip_vs_read_cpu_stats call for
-> tot_stats. Fix ip_vs_read_cpu_stats to be called under
-> stats lock because it is still used as synchronization between
-> estimation timer and user context (the stats readers).
->=20
->  	Also, make sure ip_vs_stats_percpu_show reads properly
-> the u64 stats from user context.
->=20
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
-> Signed-off-by: Simon Horman <horms@verge.net.au>
-
-Reviewed-by: Eric Dumazet <eric.dumazet@gmail.com>
-
-One comment : per cpu stats are really good to avoid cache misses, but =
-I
-see tot_stats is included in struct netns_ipvs right after "conn_count"=
-,
-possibly sharing a hot cache line ?
-
-Thanks
-
-
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+---
+ xshared.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+diff --git a/xshared.c b/xshared.c
+index 404a9f5..87402b4 100644
+--- a/xshared.c
++++ b/xshared.c
+@@ -92,7 +92,7 @@ static bool should_load_proto(struct iptables_command_state *cs)
+ 	if (find_proto(cs->protocol, XTF_DONT_LOAD,
+ 	    cs->options & OPT_NUMERIC, NULL) == NULL)
+ 		return true;
+-	return cs->proto_used;
++	return !cs->proto_used;
+ }
+ 
+ struct xtables_match *load_proto(struct iptables_command_state *cs)
