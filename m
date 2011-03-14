@@ -1,93 +1,65 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [GIT PULL nf-next-2.6] IPVS
-Date: Tue, 15 Mar 2011 08:13:27 +0900
-Message-ID: <20110314231327.GE2788@verge.net.au>
-References: <1300056261-14709-1-git-send-email-horms@verge.net.au>
- <4D7E5BBE.7060702@trash.net>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH 1/4] netfilter: xt_connlimit: fix daddr connlimit in SNAT scenario
+Date: Tue, 15 Mar 2011 07:49:04 +0800
+Message-ID: <AANLkTimBV9x7Y-tUez5VMDoU+8mtaw1f48GV1yxgZ71c@mail.gmail.com>
+References: <1300085414-27275-1-git-send-email-xiaosuo@gmail.com>
+ <alpine.LNX.2.01.1103141310140.27542@obet.zrqbmnf.qr> <AANLkTi=QgVBVAPcTmb_La=VJOLq5LmGPqMfw7bbCuByP@mail.gmail.com>
+ <alpine.LNX.2.01.1103141955180.21929@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	Hans Schillstrom <hans@schillstrom.com>,
-	Julian Anastasov <ja@ssi.bg>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:51168 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753236Ab1CNXNd (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:62680 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751554Ab1CNXt0 convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Mar 2011 19:13:33 -0400
-Content-Disposition: inline
-In-Reply-To: <4D7E5BBE.7060702@trash.net>
+	Mon, 14 Mar 2011 19:49:26 -0400
+In-Reply-To: <alpine.LNX.2.01.1103141955180.21929@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 14, 2011 at 07:17:34PM +0100, Patrick McHardy wrote:
-> On 13.03.2011 23:44, Simon Horman wrote:
-> > Hi Patrick,
-> > 
-> > please consider pulling
-> > git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git master
-> > to get the following changes.
-> > 
-> > Jesper Juhl (1):
-> >       Fix variable assignment in ip_vs_notrack
-> > 
-> > Julian Anastasov (2):
-> >       ipvs: avoid lookup for fwmark 0
-> >       ipvs: remove _bh from percpu stats reading
-> > 
-> > Shan Wei (1):
-> >       netfilter:ipvs: use kmemdup
-> > 
-> >  include/net/ip_vs.h               |    2 +-
-> >  net/netfilter/ipvs/ip_vs_ctl.c    |    8 +++++---
-> >  net/netfilter/ipvs/ip_vs_est.c    |    8 ++++----
-> >  net/netfilter/ipvs/ip_vs_pe_sip.c |    9 ++++-----
-> >  net/netfilter/ipvs/ip_vs_sync.c   |    3 +--
-> >  5 files changed, 15 insertions(+), 15 deletions(-)
-> 
-> The pull contained quite a lot of other changes. I'm undoing the
-> pull for now, please resubmit the patches you actually want me to
-> pull. Thanks!
+On Tue, Mar 15, 2011 at 3:00 AM, Jan Engelhardt <jengelh@medozas.de> wr=
+ote:
+> On Monday 2011-03-14 13:42, Changli Gao wrote:
+>
+>>
+>>Yes, you are correct only when there is no SNAT rule. If there is an
+>>SNAT rule:
+>>
+>>-t nat -A POSTROUTING -p tcp --dport 80 -j SNAT --to-source 192.168.0=
+=2E1
+>>
+>>the final tuples will be:
+>>src =3D home dst =3D router src=3D1.2.3.4 dst=3D192.168.0.1
+>>
+>>However, the tuple saved by connlimit is src=3D1.2.3.4 dst=3Dhome, so=
+ this
+>>conn will be removed later as there isn't any conntrack, which has
+>>this tuple in any direction.
+>
+> But I don't yet see how your patch #1 can help. At the time
+> conn->tuple=A0=3D *tuple is done, *tuple still contains the non-SNATe=
+d
+> tuple, and it is never updated again.
+>
 
-Sorry about that. I will double check things but
-the list below looks like the second request that I sent out
-yesterday.
+In this patch, conn->addr is used to save the destination/source
+address instead of conn->tuple.src.u3, so the conn->tuple is used for
+conntrack lookup only. Just as the original tuple isn't updated, we
+can use it to looking up the associated conntrack all the time.
 
-> 
-> Jesper Juhl (1):
->       Fix variable assignment in ip_vs_notrack
-> 
-> Julian Anastasov (8):
->       ipvs: avoid lookup for fwmark 0
->       ipvs: remove _bh from percpu stats reading
->       ipvs: move struct netns_ipvs
->       ipvs: reorganize tot_stats
->       ipvs: properly zero stats and rates
->       ipvs: remove unused seqcount stats
->       ipvs: optimize rates reading
->       ipvs: rename estimator functions
-> 
-> Patrick McHardy (1):
->       Merge branch 'master' of git://git.kernel.org/.../horms/lvs-test-2.6
-> 
-> Shan Wei (1):
->       netfilter:ipvs: use kmemdup
-> 
-> Simon Horman (14):
->       IPVS: Add ip_vs_route_me_harder()
->       IPVS: Add sysctl_snat_reroute()
->       IPVS: Add sysctl_nat_icmp_send()
->       IPVS: Add {sysctl_sync_threshold,period}()
->       IPVS: Add sysctl_sync_ver()
->       IPVS: Add sysctl_expire_nodest_conn()
->       IPVS: Add expire_quiescent_template()
->       IPVS: Conditinally use sysctl_lblc{r}_expiration
->       IPVS: ip_vs_todrop() becomes a noop when CONFIG_SYSCTL is undefined
->       IPVS: Conditional ip_vs_conntrack_enabled()
->       IPVS: Minimise ip_vs_leave when CONFIG_SYSCTL is undefined
->       IPVS: Conditionally define and use ip_vs_lblc{r}_table
->       IPVS: Add __ip_vs_control_{init,cleanup}_sysctl()
->       IPVS: Conditionally include sysctl members of struct netns_ipvs
-> 
+addr: 192.168.0.1
+tuple: src =3D home, dst =3D router
+
+--=20
+Regards,
+Changli Gao(xiaosuo@gmail.com)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
