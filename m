@@ -1,64 +1,85 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH 1/4] netfilter: xt_connlimit: fix daddr connlimit in SNAT scenario
-Date: Mon, 14 Mar 2011 20:42:29 +0800
-Message-ID: <AANLkTi=QgVBVAPcTmb_La=VJOLq5LmGPqMfw7bbCuByP@mail.gmail.com>
-References: <1300085414-27275-1-git-send-email-xiaosuo@gmail.com> <alpine.LNX.2.01.1103141310140.27542@obet.zrqbmnf.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [GIT PULL nf-next-2.6] IPVS
+Date: Mon, 14 Mar 2011 19:17:34 +0100
+Message-ID: <4D7E5BBE.7060702@trash.net>
+References: <1300056261-14709-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.2.01.1103141310140.27542@obet.zrqbmnf.qr>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	Hans Schillstrom <hans@schillstrom.com>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:59565 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752621Ab1CNSRj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Mar 2011 14:17:39 -0400
+In-Reply-To: <1300056261-14709-1-git-send-email-horms@verge.net.au>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 14, 2011 at 8:26 PM, Jan Engelhardt <jengelh@medozas.de> wr=
-ote:
-> On Monday 2011-03-14 07:50, Changli Gao wrote:
->
->>We use the reply tuples when limiting the connections by the destinat=
-ion
->>addresses, however, in SNAT scenario, the final reply tuples won't be
->>ready until SNAT is done in POSTROUING or INPUT chain
->
-> If I am not mistaken: if you do daddr counting, SNAT is irrelevant.
-> Consider ruleset
-> =A0-t nat -A PREROUTING -p tcp --dport 80 -j DNAT --to 1.2.3.4:80
-> =A0-t nat -A PREROUTING -p tcp --dport 443 -j DNAT --to 1.2.3.5:443
->
-> The tuple will first be (as per conntrack -L):
-> =A0src=3Dhome dst=3Drouter src=3Drouter dst=3Dhome
-> After DNAT:
-> =A0src=3Dhome dst=3Drouter src=3D1.2.3.4 dst=3Dhome
->
-> Thus looking at the src of the reply tuple seems correct =97 at least=
- this
-> is what was wanted, counting per stashed servers (=3D1 customer), not=
- per
-> globally visible address.
->
+On 13.03.2011 23:44, Simon Horman wrote:
+> Hi Patrick,
+> 
+> please consider pulling
+> git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git master
+> to get the following changes.
+> 
+> Jesper Juhl (1):
+>       Fix variable assignment in ip_vs_notrack
+> 
+> Julian Anastasov (2):
+>       ipvs: avoid lookup for fwmark 0
+>       ipvs: remove _bh from percpu stats reading
+> 
+> Shan Wei (1):
+>       netfilter:ipvs: use kmemdup
+> 
+>  include/net/ip_vs.h               |    2 +-
+>  net/netfilter/ipvs/ip_vs_ctl.c    |    8 +++++---
+>  net/netfilter/ipvs/ip_vs_est.c    |    8 ++++----
+>  net/netfilter/ipvs/ip_vs_pe_sip.c |    9 ++++-----
+>  net/netfilter/ipvs/ip_vs_sync.c   |    3 +--
+>  5 files changed, 15 insertions(+), 15 deletions(-)
 
-Yes, you are correct only when there is no SNAT rule. If there is an SN=
-AT rule:
+The pull contained quite a lot of other changes. I'm undoing the
+pull for now, please resubmit the patches you actually want me to
+pull. Thanks!
 
--t nat -A POSTROUTING -p tcp --dport 80 -j SNAT --to-source 192.168.0.1
+Jesper Juhl (1):
+      Fix variable assignment in ip_vs_notrack
 
-the final tuples will be:
-src =3D home dst =3D router src=3D1.2.3.4 dst=3D192.168.0.1
+Julian Anastasov (8):
+      ipvs: avoid lookup for fwmark 0
+      ipvs: remove _bh from percpu stats reading
+      ipvs: move struct netns_ipvs
+      ipvs: reorganize tot_stats
+      ipvs: properly zero stats and rates
+      ipvs: remove unused seqcount stats
+      ipvs: optimize rates reading
+      ipvs: rename estimator functions
 
-However, the tuple saved by connlimit is src=3D1.2.3.4 dst=3Dhome, so t=
-his
-conn will be removed later as there isn't any conntrack, which has
-this tuple in any direction.
+Patrick McHardy (1):
+      Merge branch 'master' of git://git.kernel.org/.../horms/lvs-test-2.6
 
-You can't prevent a user from doing such a configuration, although you
-might think it is stupid to do that.
+Shan Wei (1):
+      netfilter:ipvs: use kmemdup
 
-Thanks for your review.
-
---=20
-Regards,
-Changli Gao(xiaosuo@gmail.com)
+Simon Horman (14):
+      IPVS: Add ip_vs_route_me_harder()
+      IPVS: Add sysctl_snat_reroute()
+      IPVS: Add sysctl_nat_icmp_send()
+      IPVS: Add {sysctl_sync_threshold,period}()
+      IPVS: Add sysctl_sync_ver()
+      IPVS: Add sysctl_expire_nodest_conn()
+      IPVS: Add expire_quiescent_template()
+      IPVS: Conditinally use sysctl_lblc{r}_expiration
+      IPVS: ip_vs_todrop() becomes a noop when CONFIG_SYSCTL is undefined
+      IPVS: Conditional ip_vs_conntrack_enabled()
+      IPVS: Minimise ip_vs_leave when CONFIG_SYSCTL is undefined
+      IPVS: Conditionally define and use ip_vs_lblc{r}_table
+      IPVS: Add __ip_vs_control_{init,cleanup}_sysctl()
+      IPVS: Conditionally include sysctl members of struct netns_ipvs
