@@ -1,35 +1,56 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ipv6: netfilter: ip6_tables: fix infoleak to userspace
-Date: Tue, 15 Mar 2011 13:37:44 +0100
-Message-ID: <4D7F5D98.1060105@trash.net>
-References: <1299780827-344-1-git-send-email-segoon@openwall.com>
+Subject: Re: [PATCH 1/2] netfilter: ipt_addrtype: rename to xt_addrtype
+Date: Tue, 15 Mar 2011 14:29:32 +0100
+Message-ID: <4D7F69BC.2090309@trash.net>
+References: <1299341328-4663-1-git-send-email-fw@strlen.de> <4D76471E.8050503@trash.net> <alpine.LNX.2.01.1103092006131.9143@obet.zrqbmnf.qr> <20110309195432.GX8821@Chamillionaire.breakpoint.cc> <alpine.LNX.2.01.1103092120570.22286@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org, security@kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org
-To: Vasiliy Kulikov <segoon@openwall.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1299780827-344-1-git-send-email-segoon@openwall.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:43572 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757786Ab1CON3g (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Mar 2011 09:29:36 -0400
+In-Reply-To: <alpine.LNX.2.01.1103092120570.22286@obet.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 10.03.2011 19:13, Vasiliy Kulikov wrote:
-> Structures ip6t_replace, compat_ip6t_replace, and xt_get_revision are
-> copied from userspace.  Fields of these structs that are
-> zero-terminated strings are not checked.  When they are used as argument
-> to a format string containing "%s" in request_module(), some sensitive
-> information is leaked to userspace via argument of spawned modprobe
-> process.
+On 09.03.2011 21:21, Jan Engelhardt wrote:
+> On Wednesday 2011-03-09 20:54, Florian Westphal wrote:
 > 
-> The first bug was introduced before the git epoch;  the second was
-> introduced in 3bc3fe5e (v2.6.25-rc1);  the third is introduced by
-> 6b7d31fc (v2.6.15-rc1).  To trigger the bug one should have
-> CAP_NET_ADMIN.
+>> Jan Engelhardt <jengelh@medozas.de> wrote:
+>>> On Tuesday 2011-03-08 16:11, Patrick McHardy wrote:
+>>>
+>>>> Am 05.03.2011 17:08, schrieb Florian Westphal:
+>>>>> From: Florian Westphal <fwestphal@astaro.com>
+>>>>>
+>>>>> followup patch will add ipv6 support.
+>>>>>
+>>>>> Signed-off-by: Florian Westphal <fwestphal@astaro.com>
+>>>>> ---
+>>>>>  include/linux/netfilter/Kbuild                     |    1 +
+>>>>>  .../ipt_addrtype.h => netfilter/xt_addrtype.h}     |   16 +++++-----
+>>>>
+>>>> Please keep this file and the original definitions for a while
+>>>> (add to feature-removal-schedule) for compatibility. You can
+>>>> redefine them to the xt_ values/structures so they can be used
+>>>> inside the kernel.
+>>>
+>>> Just like ipt_realm.h does, yeah.
+>>
+>> Sorry, redefining structures and enums is really not my cup of tea.
+>>
+>> If thats really what you would prefer (as opposed to keeping the file
+>> as-is) I can send a V3 patch that includes xt_addrtype.h and then
+>> re-defines the enums/structures with the ipt_ prefixes.
+>>
+>> But personally I would prefer to just keep it as-is and then remove it
+>> in a year or so.
+> 
+> I don't mind, t'was just a suggestion because ipt_realm happened to hit 
+> my eye.
 
-Also applied, thanks Vasiliy.
+I don't mind either as long as we keep the old definitions.
