@@ -1,52 +1,72 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 1/4] netfilter: xt_connlimit: fix daddr connlimit in SNAT
- scenario
-Date: Tue, 15 Mar 2011 03:05:21 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1103150302310.27019@obet.zrqbmnf.qr>
-References: <1300085414-27275-1-git-send-email-xiaosuo@gmail.com> <alpine.LNX.2.01.1103141310140.27542@obet.zrqbmnf.qr> <AANLkTi=QgVBVAPcTmb_La=VJOLq5LmGPqMfw7bbCuByP@mail.gmail.com> <alpine.LNX.2.01.1103141955180.21929@obet.zrqbmnf.qr>
- <AANLkTimBV9x7Y-tUez5VMDoU+8mtaw1f48GV1yxgZ71c@mail.gmail.com> <alpine.LNX.2.01.1103150210370.21929@obet.zrqbmnf.qr> <AANLkTinZiVbVttzNuGdShC25=BtwJUzhSX_YZBxAr+qF@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:60821 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750913Ab1COCFW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Mar 2011 22:05:22 -0400
-In-Reply-To: <AANLkTinZiVbVttzNuGdShC25=BtwJUzhSX_YZBxAr+qF@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: [GIT PULL nf-next-2.6] IPVS
+Date: Tue, 15 Mar 2011 14:27:08 +0900
+Message-ID: <1300166852-725-1-git-send-email-horms@verge.net.au>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Julian Anastasov <ja@ssi.bg>,
+	Hans Schillstrom <hans@schillstrom.com>,
+	Patrick McHardy <kaber@trash.net>
+To: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, lvs-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 2011-03-15 02:30, Changli Gao wrote:
+Hi Patrick,
 
->On Tue, Mar 15, 2011 at 9:16 AM, Jan Engelhardt <jengelh@medozas.de> w=
-rote:
->>
->>
->> The original tuple may not be updated, but the reply tuple is.
->> And we are taking the reply tuple in
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0tuple_ptr =3D &ct->tuplehash[IP_CT_DIR_RE=
-PLY].tuple;
->>
->> which is subsequently copied to conn->tuple on the first invocation.
->>
->> Afterwards, SNAT will update ct->tuplehash[reply].tuple, and so
->> conn->tuple is outdated. Calling nf_conntrack_find_get(conn->tuple)
->> in count_them would then fail, would it not?
->>
->
->After my patch, tuple is only used to look up the corresponding
->conntrack.
+please consider pulling
+git://git.kernel.org/pub/scm/linux/kernel/git/horms/lvs-test-2.6.git for-patrick
+to get the changes listed below.
 
-Ok, the patch may be applied. Somehow I was under the impression
-addr was extracted from tuple_ptr, but it is, in fact, not.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This replaces the pull requests that I sent yesterday, sorry for messing
+that up.
+
+Also, sorry for letting the number of patches grow so much, Julian and I
+were working on patches that conflicted with each other. But regardless, I
+should have done something about getting a request to you earlier.
+
+Jesper Juhl (1):
+      IPVS: Fix variable assignment in ip_vs_notrack
+
+Julian Anastasov (8):
+      ipvs: avoid lookup for fwmark 0
+      ipvs: remove _bh from percpu stats reading
+      ipvs: move struct netns_ipvs
+      ipvs: reorganize tot_stats
+      ipvs: properly zero stats and rates
+      ipvs: remove unused seqcount stats
+      ipvs: optimize rates reading
+      ipvs: rename estimator functions
+
+Shan Wei (1):
+      netfilter:ipvs: use kmemdup
+
+Simon Horman (14):
+      IPVS: Add ip_vs_route_me_harder()
+      IPVS: Add sysctl_snat_reroute()
+      IPVS: Add sysctl_nat_icmp_send()
+      IPVS: Add {sysctl_sync_threshold,period}()
+      IPVS: Add sysctl_sync_ver()
+      IPVS: Add sysctl_expire_nodest_conn()
+      IPVS: Add expire_quiescent_template()
+      IPVS: Conditinally use sysctl_lblc{r}_expiration
+      IPVS: ip_vs_todrop() becomes a noop when CONFIG_SYSCTL is undefined
+      IPVS: Conditional ip_vs_conntrack_enabled()
+      IPVS: Minimise ip_vs_leave when CONFIG_SYSCTL is undefined
+      IPVS: Conditionally define and use ip_vs_lblc{r}_table
+      IPVS: Add __ip_vs_control_{init,cleanup}_sysctl()
+      IPVS: Conditionally include sysctl members of struct netns_ipvs
+
+ include/net/ip_vs.h               |  198 ++++++++++++++++++++++++++---
+ include/net/net_namespace.h       |    2 +-
+ include/net/netns/ip_vs.h         |  143 ---------------------
+ net/netfilter/ipvs/ip_vs_conn.c   |   13 ++-
+ net/netfilter/ipvs/ip_vs_core.c   |  104 +++++++++------
+ net/netfilter/ipvs/ip_vs_ctl.c    |  256 ++++++++++++++++++++++---------------
+ net/netfilter/ipvs/ip_vs_est.c    |   63 ++++-----
+ net/netfilter/ipvs/ip_vs_lblc.c   |   31 ++++-
+ net/netfilter/ipvs/ip_vs_lblcr.c  |   35 ++++--
+ net/netfilter/ipvs/ip_vs_pe_sip.c |    9 +-
+ net/netfilter/ipvs/ip_vs_sync.c   |   11 +-
+ 11 files changed, 492 insertions(+), 373 deletions(-)
+ delete mode 100644 include/net/netns/ip_vs.h
