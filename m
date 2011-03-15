@@ -1,7 +1,7 @@
 From: kaber@trash.net
-Subject: [PATCH 25/37] IPVS: Minimise ip_vs_leave when CONFIG_SYSCTL is undefined
-Date: Tue, 15 Mar 2011 20:44:05 +0100
-Message-ID: <1300218257-26953-26-git-send-email-kaber@trash.net>
+Subject: [PATCH 04/37] netfilter: nf_conntrack: fix sysctl memory leak
+Date: Tue, 15 Mar 2011 20:43:44 +0100
+Message-ID: <1300218257-26953-5-git-send-email-kaber@trash.net>
 References: <1300218257-26953-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: davem@davemloft.net
@@ -10,58 +10,32 @@ In-Reply-To: <1300218257-26953-1-git-send-email-kaber@trash.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Simon Horman <horms@verge.net.au>
+From: Stephen Hemminger <shemminger@vyatta.com>
 
-Much of ip_vs_leave() is unnecessary if CONFIG_SYSCTL is undefined.
+Message in log because sysctl table was not empty at netns exit
+ WARNING: at net/sysctl_net.c:84 sysctl_net_exit+0x2a/0x2c()
 
-I tried an approach of breaking the now #ifdef'ed portions out
-into a separate function. However this appeared to grow the
-compiled code on x86_64 by about 200 bytes in the case where
-CONFIG_SYSCTL is defined. So I have gone with the simpler though
-less elegant #ifdef'ed solution for now.
+Instrumenting showed that the nf_conntrack_timestamp was the entry
+that was being created but not cleared.
 
-Signed-off-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- net/netfilter/ipvs/ip_vs_core.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ net/netfilter/nf_conntrack_core.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index d418bc6..07accf6 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -499,11 +499,13 @@ ip_vs_schedule(struct ip_vs_service *svc, struct sk_buff *skb,
- int ip_vs_leave(struct ip_vs_service *svc, struct sk_buff *skb,
- 		struct ip_vs_proto_data *pd)
- {
--	struct net *net;
--	struct netns_ipvs *ipvs;
- 	__be16 _ports[2], *pptr;
- 	struct ip_vs_iphdr iph;
-+#ifdef CONFIG_SYSCTL
-+	struct net *net;
-+	struct netns_ipvs *ipvs;
- 	int unicast;
-+#endif
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 1909311..1181236 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1294,6 +1294,7 @@ static void nf_conntrack_cleanup_net(struct net *net)
  
- 	ip_vs_fill_iphdr(svc->af, skb_network_header(skb), &iph);
- 
-@@ -512,6 +514,8 @@ int ip_vs_leave(struct ip_vs_service *svc, struct sk_buff *skb,
- 		ip_vs_service_put(svc);
- 		return NF_DROP;
- 	}
-+
-+#ifdef CONFIG_SYSCTL
- 	net = skb_net(skb);
- 
- #ifdef CONFIG_IP_VS_IPV6
-@@ -563,6 +567,7 @@ int ip_vs_leave(struct ip_vs_service *svc, struct sk_buff *skb,
- 		ip_vs_conn_put(cp);
- 		return ret;
- 	}
-+#endif
- 
- 	/*
- 	 * When the virtual ftp service is presented, packets destined
+ 	nf_ct_free_hashtable(net->ct.hash, net->ct.htable_size);
+ 	nf_conntrack_ecache_fini(net);
++	nf_conntrack_tstamp_fini(net);
+ 	nf_conntrack_acct_fini(net);
+ 	nf_conntrack_expect_fini(net);
+ 	kmem_cache_destroy(net->ct.nf_conntrack_cachep);
 -- 
 1.7.2.3
 
