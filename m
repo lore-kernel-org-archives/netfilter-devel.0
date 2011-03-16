@@ -1,38 +1,36 @@
-From: David Miller <davem@davemloft.net>
-Subject: net-next-2.6 status...
-Date: Tue, 15 Mar 2011 16:01:24 -0700 (PDT)
-Message-ID: <20110315.160124.104058374.davem@davemloft.net>
+From: "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>
+Subject: Re: net-next-2.6 status...
+Date: Tue, 15 Mar 2011 20:13:20 -0400
+Message-ID: <20110316001319.GB28663@tuxdriver.com>
+References: <20110315.160124.104058374.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	eric.dumazet@vger.kernel.org, jpirko@redhat.com,
-	linville@tuxdriver.com, kaber@trash.net
-To: netdev@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eric.dumazet-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	jpirko-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20110315.160124.104058374.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Tue, Mar 15, 2011 at 04:01:24PM -0700, David Miller wrote:
 
-Please do not submit feature patches until the merge window is over and
-Linus releases 2.6.39-rc1, thank you.
+> John and Patrick, I assume that after today's pulls I am completely
+> up to date with everything, feature wise, that will go into the merge
+> window for wireless and netfilter.
 
-Bug fixes are, of course, still ok.
+Just sent a pull request for wireless-2.6 to cover a one-liner to
+enable some new firmware for iwlagn -- I nearly forgot!
 
-I have merged all of the stragglers from net-2.6 that didn't make it
-into 2.6.38 into net-next-2.6, and also just about everything that
-is relevant from patchwork.
+Thanks,
 
-Jiri, I know there is your patch set there, but I think you and Changli
-still need to go back and forth one more time wrt. orig_dev semantics.
-Since you have been posting this patch set for some time I'm still
-willing to apply it for this merge window, but please make haste and
-work out the remaining discussion.  Thank you.
-
-Eric, I'd like to have the ECN one-liner in the tree soon.
-
-John and Patrick, I assume that after today's pulls I am completely
-up to date with everything, feature wise, that will go into the merge
-window for wireless and netfilter.
-
-Thanks.
+John
+-- 
+John W. Linville		Someday the world will need a hero, and you
+linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org			might be all we have.  Be ready.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
