@@ -1,36 +1,57 @@
-From: David Miller <davem@davemloft.net>
+From: Jiri Pirko <jpirko-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: net-next-2.6 status...
-Date: Wed, 16 Mar 2011 11:17:36 -0700 (PDT)
-Message-ID: <20110316.111736.48500809.davem@davemloft.net>
-References: <20110316084022.GA2845@psychotron.brq.redhat.com>
-	<20110316.104236.104065822.davem@davemloft.net>
-	<1300299219.2811.7.camel@bwh-desktop>
+Date: Wed, 16 Mar 2011 18:56:44 +0100
+Message-ID: <20110316175642.GB2867@psychotron.redhat.com>
+References: <20110316065008.GA2780@psychotron.redhat.com>
+ <20110316.000251.189704695.davem@davemloft.net>
+ <20110316073803.GB2780@psychotron.redhat.com>
+ <20110316.103857.226773145.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: jpirko@redhat.com, netdev@vger.kernel.org,
-	linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	eric.dumazet@gmail.com, linville@tuxdriver.com, kaber@trash.net
-To: bhutchings@solarflare.com
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:58053
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751218Ab1CPSQ6 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Mar 2011 14:16:58 -0400
-In-Reply-To: <1300299219.2811.7.camel@bwh-desktop>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org,
+	linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20110316.103857.226773145.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Ben Hutchings <bhutchings@solarflare.com>
-Date: Wed, 16 Mar 2011 18:13:39 +0000
+Wed, Mar 16, 2011 at 06:38:57PM CET, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org wrote:
+>From: Jiri Pirko <jpirko-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>Date: Wed, 16 Mar 2011 08:38:03 +0100
+>
+>> Wed, Mar 16, 2011 at 08:02:51AM CET, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org wrote:
+>>>From: Jiri Pirko <jpirko-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>>>Date: Wed, 16 Mar 2011 07:50:09 +0100
+>>>
+>>>>>Jiri, I know there is your patch set there, but I think you and Changli
+>>>>>still need to go back and forth one more time wrt. orig_dev semantics.
+>>>>>Since you have been posting this patch set for some time I'm still
+>>>>>willing to apply it for this merge window, but please make haste and
+>>>>>work out the remaining discussion.  Thank you.
+>>>> 
+>>>> Dave, you can apply the rest of the series and leave only the first
+>>>> patch (af_packet) out. There's no dependency. We will figure out things
+>>>> around origdev later.
+>>>
+>>>I was about to do that but I've found other problems.
+>>>
+>>>You cannot make the modifications you make to linux/if.h, those
+>>>interface flags are visible to userspace.
+>> 
+>> What do you suggest? To remove unused flags and leave gaps there or to
+>> not to remove the flags at all?
+>
+>You can't remove them, otherwise if it happened to be reference in the
+>sources to some app out there, it will start to fail to compile.
+>
+>This is pretty obvious stuff, I hope :-)
 
-> Though, in this case, the priv_flags are not in any way visible to
-> user-space, so it would be quite hard to find a use for them!
+Ok :( So would you leave out if.h hunk out or should I repost?
 
-There are pieces of infrastructure, such as scripts that turn header
-file visible macro values into values usable in other languages such
-as perl, that do that wholesale for entire header files and therefore
-expect these individual values to be there.
-
-I'm not going to be the person who breaks such things.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
