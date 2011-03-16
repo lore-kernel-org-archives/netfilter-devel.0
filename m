@@ -1,46 +1,34 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ebtables: Clone xt_AUDIT to ebt_audit to return EBT_CONTINUE
-Date: Wed, 16 Mar 2011 06:40:33 +0100
-Message-ID: <4D804D51.1010205@trash.net>
-References: <20110316003307.GB26145@canuck.infradead.org> <alpine.LNX.2.01.1103160138160.1189@obet.zrqbmnf.qr>
+From: Jiri Pirko <jpirko@redhat.com>
+Subject: Re: net-next-2.6 status...
+Date: Wed, 16 Mar 2011 07:50:09 +0100
+Message-ID: <20110316065008.GA2780@psychotron.redhat.com>
+References: <20110315.160124.104058374.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Thomas Graf <tgraf@infradead.org>, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, eric.dumazet@vger.kernel.org,
+	linville@tuxdriver.com, kaber@trash.net
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:56733 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751060Ab1CPFkh (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Mar 2011 01:40:37 -0400
-In-Reply-To: <alpine.LNX.2.01.1103160138160.1189@obet.zrqbmnf.qr>
+Received: from mx1.redhat.com ([209.132.183.28]:62581 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751735Ab1CPGuS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 Mar 2011 02:50:18 -0400
+Content-Disposition: inline
+In-Reply-To: <20110315.160124.104058374.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 16.03.2011 01:43, schrieb Jan Engelhardt:
-> On Wednesday 2011-03-16 01:33, Thomas Graf wrote:
-> 
->> Even though ebtables uses xtables it still requires targets to
->> return EBT_CONTINUE instead of XT_CONTINUE. This prevented
->> xt_AUDIT to work as ebt module.
-> 
-> Something that just came to mind is that you could probably do
-> to keep the code at a minimum:
-> 
-> 
-> static unsigned int ebt_audit(struct xt_target_param *par)
-> {
-> 	unsigned int ret = xt_audit_tg(par);
-> 
-> 	if (ret == XT_CONTINUE)
-> 		return EBT_CONTINUE;
-> 	...
-> }
+>Jiri, I know there is your patch set there, but I think you and Changli
+>still need to go back and forth one more time wrt. orig_dev semantics.
+>Since you have been posting this patch set for some time I'm still
+>willing to apply it for this merge window, but please make haste and
+>work out the remaining discussion.  Thank you.
 
-Seems like a good idea to me. If more modules need this (f.i.
-MARK) we could also consider doing the mapping based on a target
-flag in ebtables itself.
+Dave, you can apply the rest of the series and leave only the first
+patch (af_packet) out. There's no dependency. We will figure out things
+around origdev later.
 
-However please see Dave's mail about net-next, until the merge
-window is over and -rc1 released only bugfixes will be accepted.
+Thanks.
+
+Jirka
