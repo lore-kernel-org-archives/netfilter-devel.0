@@ -1,40 +1,27 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v3 2/2] netfilter: xt_addrtype: ipv6 support
-Date: Wed, 16 Mar 2011 15:19:48 +0100
-Message-ID: <20110316141948.GA13371@Chamillionaire.breakpoint.cc>
-References: <1300214971-20345-1-git-send-email-fw@strlen.de>
- <1300214971-20345-2-git-send-email-fw@strlen.de>
- <4D80C12E.4010107@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] iptables: add manual page section for AUDIT target
+Date: Wed, 16 Mar 2011 16:39:17 +0100
+Message-ID: <4D80D9A5.8090904@trash.net>
+References: <20110316002620.GA26145@canuck.infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:43986 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750929Ab1CPOTt (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:33666 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753437Ab1CPPjU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Mar 2011 10:19:49 -0400
-Content-Disposition: inline
-In-Reply-To: <4D80C12E.4010107@trash.net>
+	Wed, 16 Mar 2011 11:39:20 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by stinky.trash.net (Postfix) with ESMTP id 80855B2C48
+	for <netfilter-devel@vger.kernel.org>; Wed, 16 Mar 2011 16:39:18 +0100 (MET)
+In-Reply-To: <20110316002620.GA26145@canuck.infradead.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy <kaber@trash.net> wrote:
-> > +		rt = rt6_lookup(net, addr, NULL, ifindex, !!dev);
+On 16.03.2011 01:26, Thomas Graf wrote:
 > 
-> Florian, I just noticed that this will pull in the IPv6 module just
-> by loading the xt_addrtype module.
+> Signed-off-by: Thomas Graf <tgraf@redhat.com>
 
-Yes...
-
-> Can we convert this to use
-> nf_ip6_afinfo->route() instead?
-
-I agree that it would be much nicer, thanks for the
-suggestion.
-
-I'll look into this on Saturday.
-
-Thanks,
-Florian
+Applied, thanks Thomas.
