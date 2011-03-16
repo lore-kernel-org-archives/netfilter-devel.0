@@ -1,29 +1,50 @@
-From: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Subject: Re: net-next-2.6 status...
-Date: Tue, 15 Mar 2011 17:36:41 -0700
-Message-ID: <AANLkTi=nwU7TxOX2sT-9gogUd4fVdZsZpzzOz4z2BE+j@mail.gmail.com>
-References: <20110315.160124.104058374.davem@davemloft.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] ebtables: Clone xt_AUDIT to ebt_audit to return
+ EBT_CONTINUE
+Date: Wed, 16 Mar 2011 01:43:42 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1103160138160.1189@obet.zrqbmnf.qr>
+References: <20110316003307.GB26145@canuck.infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, eric.dumazet@vger.kernel.org,
-	jpirko@redhat.com, linville@tuxdriver.com, kaber@trash.net
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20110315.160124.104058374.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
+To: Thomas Graf <tgraf@infradead.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from borg.medozas.de ([188.40.89.202]:41626 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753460Ab1CPAnn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Mar 2011 20:43:43 -0400
+In-Reply-To: <20110316003307.GB26145@canuck.infradead.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 15, 2011 at 16:01, David Miller <davem@davemloft.net> wrote:
->
-> Please do not submit feature patches until the merge window is over and
-> Linus releases 2.6.39-rc1, thank you.
->
-> Bug fixes are, of course, still ok.
->
+On Wednesday 2011-03-16 01:33, Thomas Graf wrote:
 
-Understood, thanks Dave.
+>Even though ebtables uses xtables it still requires targets to
+>return EBT_CONTINUE instead of XT_CONTINUE. This prevented
+>xt_AUDIT to work as ebt module.
 
--- 
-Cheers,
-Jeff
+Something that just came to mind is that you could probably do
+to keep the code at a minimum:
+
+
+static unsigned int ebt_audit(struct xt_target_param *par)
+{
+	unsigned int ret = xt_audit_tg(par);
+
+	if (ret == XT_CONTINUE)
+		return EBT_CONTINUE;
+	...
+}
+
+static struct xt_target audit_tg_reg[] = {
+	{
+		.name = "AUDIT",
+		.family = NFPROTO_UNSPEC,
+		.target = xt_audit_tg,
+	},
+	{
+		.name = "AUDIT",
+		.family = NFPROTO_BRIDGE,
+		.target = ebt_audit_tg,
+	},
+};
