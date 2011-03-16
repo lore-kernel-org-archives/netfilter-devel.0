@@ -1,61 +1,46 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: Re: [PATCH] iptables: add manual page section for AUDIT target
-Date: Tue, 15 Mar 2011 19:29:44 -0700
-Message-ID: <20110315192944.20d30ad9@nehalam>
-References: <20110316002620.GA26145@canuck.infradead.org>
-	<20110315192847.27cb35fb@nehalam>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] ebtables: Clone xt_AUDIT to ebt_audit to return EBT_CONTINUE
+Date: Wed, 16 Mar 2011 06:40:33 +0100
+Message-ID: <4D804D51.1010205@trash.net>
+References: <20110316003307.GB26145@canuck.infradead.org> <alpine.LNX.2.01.1103160138160.1189@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Thomas Graf <tgraf@infradead.org>,
-	Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org
-To: Stephen Hemminger <shemminger@vyatta.com>
+Cc: Thomas Graf <tgraf@infradead.org>, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:45060 "EHLO mail.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752195Ab1CPC3s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Mar 2011 22:29:48 -0400
-In-Reply-To: <20110315192847.27cb35fb@nehalam>
+Received: from stinky.trash.net ([213.144.137.162]:56733 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751060Ab1CPFkh (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 Mar 2011 01:40:37 -0400
+In-Reply-To: <alpine.LNX.2.01.1103160138160.1189@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 15 Mar 2011 19:28:47 -0700
-Stephen Hemminger <shemminger@vyatta.com> wrote:
-
-> On Tue, 15 Mar 2011 20:26:20 -0400
-> Thomas Graf <tgraf@infradead.org> wrote:
+Am 16.03.2011 01:43, schrieb Jan Engelhardt:
+> On Wednesday 2011-03-16 01:33, Thomas Graf wrote:
 > 
-> > 
-> > Signed-off-by: Thomas Graf <tgraf@redhat.com>
-> > 
-> > diff --git a/extensions/libxt_AUDIT.man b/extensions/libxt_AUDIT.man
-> > new file mode 100644
-> > index 0000000..cd79696
-> > --- /dev/null
-> > +++ b/extensions/libxt_AUDIT.man
-> > @@ -0,0 +1,14 @@
-> > +This target allows to create audit records for packets hitting the target.
-> > +It can be used to record accepted, dropped, and rejected packets. See
-> > +auditd(8) for additional details.
-> > +.TP
-> > +\fB\-\-type\fP {\fBaccept\fP|\fBdrop\fP|\fBreject\fP}
-> > +Set type of audit record.
-> > +.PP
-> > +Example:
-> > +.IP
-> > +iptables \-N AUDIT_DROP
-> > +.IP
-> > +iptables \-A AUDIT_DROP \-j AUDIT \-\-type drop
-> > +.IP
-> > +iptables \-A AUDIT_DROP \-j DROP
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Even though ebtables uses xtables it still requires targets to
+>> return EBT_CONTINUE instead of XT_CONTINUE. This prevented
+>> xt_AUDIT to work as ebt module.
 > 
-> Applied to net-next
+> Something that just came to mind is that you could probably do
+> to keep the code at a minimum:
+> 
+> 
+> static unsigned int ebt_audit(struct xt_target_param *par)
+> {
+> 	unsigned int ret = xt_audit_tg(par);
+> 
+> 	if (ret == XT_CONTINUE)
+> 		return EBT_CONTINUE;
+> 	...
+> }
 
-Sorry that was to my local copy, not upstream
+Seems like a good idea to me. If more modules need this (f.i.
+MARK) we could also consider doing the mapping based on a target
+flag in ebtables itself.
 
--- 
+However please see Dave's mail about net-next, until the merge
+window is over and -rc1 released only bugfixes will be accepted.
