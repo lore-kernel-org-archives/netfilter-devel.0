@@ -1,32 +1,42 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ebtables: Fix xt_AUDIT to work with ebtables, return
- EBT_CONTINUE if NFPROTO_BRIDGE
-Date: Wed, 16 Mar 2011 18:33:56 +0100
-Message-ID: <4D80F484.4000508@trash.net>
-References: <20110316003307.GB26145@canuck.infradead.org> <alpine.LNX.2.01.1103160138160.1189@obet.zrqbmnf.qr> <20110316092032.GA10096@canuck.infradead.org>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: net-next-2.6 status...
+Date: Wed, 16 Mar 2011 10:38:52 -0700 (PDT)
+Message-ID: <20110316.103852.193714733.davem@davemloft.net>
+References: <20110316073803.GB2780@psychotron.redhat.com>
+	<20110316084022.GA2845@psychotron.brq.redhat.com>
+	<20110316084739.GD26145@canuck.infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org,
-	Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35540 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751218Ab1CPRd6 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Mar 2011 13:33:58 -0400
-In-Reply-To: <20110316092032.GA10096@canuck.infradead.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: jpirko-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org
+To: tgraf-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110316084739.GD26145-oJAMn8VJQk8CUdFEqe4BF2D2FQJk+8+b@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 16.03.2011 10:20, Thomas Graf wrote:
-> Even though ebtables uses xtables it still requires targets to
-> return EBT_CONTINUE instead of XT_CONTINUE. This prevented
-> xt_AUDIT to work as ebt module.
-> 
-> Upon Jan's suggestion, use a separate struct xt_target for
-> NFPROTO_BRIDGE having its own target callback returning
-> EBT_CONTINUE instead of cloning the module.
-> 
+From: Thomas Graf <tgraf-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Date: Wed, 16 Mar 2011 04:47:39 -0400
 
-Applied, thanks Thomas.
+> On Wed, Mar 16, 2011 at 09:40:23AM +0100, Jiri Pirko wrote:
+>> >What do you suggest? To remove unused flags and leave gaps there or to
+>> >not to remove the flags at all?
+>> 
+>> Well, the following comment:
+>> <quote>
+>> /* Private (from user) interface flags (netdevice->priv_flags). */
+>> </quote>
+>> leads me to think that these flags should not be used by userspace.
+>> So maybe it may not be problem to change those values.
+> 
+> These flags should be moved to linux/netdevice.h
+
+We've had them exposed in a header file without __KERNEL__ protection
+for a long time, the cat is therefore out of the bag and it's too late
+to just remove them from user visibility as if they were not there.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
