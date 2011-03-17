@@ -1,66 +1,51 @@
-From: Jesper Dangaard Brouer <hawk@diku.dk>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: [PATCH] netfilter: xtables: fix reentrancy
-Date: Thu, 17 Mar 2011 12:36:56 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.1103171231220.21558@ask.diku.dk>
+Date: Thu, 17 Mar 2011 12:45:23 +0100
+Message-ID: <1300362323.3133.195.camel@edumazet-laptop>
 References: <1300302005.3202.23.camel@edumazet-laptop>
- <20110316.131648.15245216.davem@davemloft.net> <1300358140.3133.117.camel@edumazet-laptop>
+	 <20110316.131648.15245216.davem@davemloft.net>
+	 <1300358140.3133.117.camel@edumazet-laptop>
+	 <Pine.LNX.4.64.1103171231220.21558@ask.diku.dk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: David Miller <davem@davemloft.net>,
 	Patrick McHardy <kaber@trash.net>,
 	Netfilter Developers <netfilter-devel@vger.kernel.org>,
 	netdev <netdev@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+To: Jesper Dangaard Brouer <hawk@diku.dk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:54962 "EHLO mgw2.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751846Ab1CQLhC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Mar 2011 07:37:02 -0400
-In-Reply-To: <1300358140.3133.117.camel@edumazet-laptop>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:41248 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752910Ab1CQLpe (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Mar 2011 07:45:34 -0400
+In-Reply-To: <Pine.LNX.4.64.1103171231220.21558@ask.diku.dk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Le jeudi 17 mars 2011 =C3=A0 12:36 +0100, Jesper Dangaard Brouer a =C3=A9=
+crit :
+> Hi Eric,
+>=20
+> How critial is this bug fix?
+>=20
+> Should I apply this on my stable production kernels?
+> (I'm preparing a 2.6.38 kernel for prod usage, eventhougt its just be=
+en=20
+> released, because I want your SFQ fixes...)
 
-Hi Eric,
+I would say the race is there, but probability must be very small, and
+might need malicious iptables rules (with RETURN targets)
 
-How critial is this bug fix?
+Especially in routers, where OUTPUT path is taken from softirq handler
+anyway ;)
 
-Should I apply this on my stable production kernels?
-(I'm preparing a 2.6.38 kernel for prod usage, eventhougt its just been 
-released, because I want your SFQ fixes...)
+So dont worry at all, consider this as a cleanup :)
 
-
-On Thu, 17 Mar 2011, Eric Dumazet wrote:
-
-> While looking at it (and trying to only require preemption disabled
-> instead of BH disabled), I believe stackptr management is not safe.
->
-> I suggest following patch to make sure we restore *stackptr to origptr
-> before enabling BH (or preemption later)
->
-> Thanks
->
-> [PATCH] netfilter: xtables: fix reentrancy
->
-> commit f3c5c1bfd4308 (make ip_tables reentrant) introduced a race in
-> handling the stackptr restore, at the end of ipt_do_table()
->
-> We should do it before the call to xt_info_rdunlock_bh(), or we allow
-> cpu preemption and another cpu overwrites stackptr of original one.
->
-> A second fix is to change the underflow test to check the origptr value
-> instead of 0 to detect underflow, or else we allow a jump from different
-> hooks.
->
-> Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-[...]
-
-Hilsen
-   Jesper Brouer
 
 --
--------------------------------------------------------------------
-MSc. Master of Computer Science
-Dept. of Computer Science, University of Copenhagen
-Author of http://www.adsl-optimizer.dk
--------------------------------------------------------------------
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
