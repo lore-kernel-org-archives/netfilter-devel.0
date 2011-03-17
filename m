@@ -1,49 +1,53 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] netfilter: xtables: fix reentrancy
-Date: Thu, 17 Mar 2011 12:45:23 +0100
-Message-ID: <1300362323.3133.195.camel@edumazet-laptop>
-References: <1300302005.3202.23.camel@edumazet-laptop>
-	 <20110316.131648.15245216.davem@davemloft.net>
-	 <1300358140.3133.117.camel@edumazet-laptop>
-	 <Pine.LNX.4.64.1103171231220.21558@ask.diku.dk>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH v2] ipv4: netfilter: ipt_CLUSTERIP: fix buffer overflow
+Date: Thu, 17 Mar 2011 20:15:06 +0800
+Message-ID: <AANLkTimtsB0B98E2xcoJgRsPwSpwuG+ahT+LX0s1YwpX@mail.gmail.com>
+References: <1299780740-32652-1-git-send-email-segoon@openwall.com>
+ <AANLkTimPZJoCzz386e-4m0Y4khWGZirZguGFmuFYCrry@mail.gmail.com>
+ <4D7F5CAC.6070006@trash.net> <20110317113229.GA7710@albatros>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>
-To: Jesper Dangaard Brouer <hawk@diku.dk>
+Cc: Patrick McHardy <kaber@trash.net>, linux-kernel@vger.kernel.org,
+	security@kernel.org, "David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org
+To: Vasiliy Kulikov <segoon@openwall.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:41248 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752910Ab1CQLpe (ORCPT
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:44895 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752910Ab1CQMP2 convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Mar 2011 07:45:34 -0400
-In-Reply-To: <Pine.LNX.4.64.1103171231220.21558@ask.diku.dk>
+	Thu, 17 Mar 2011 08:15:28 -0400
+In-Reply-To: <20110317113229.GA7710@albatros>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le jeudi 17 mars 2011 =C3=A0 12:36 +0100, Jesper Dangaard Brouer a =C3=A9=
-crit :
-> Hi Eric,
->=20
-> How critial is this bug fix?
->=20
-> Should I apply this on my stable production kernels?
-> (I'm preparing a 2.6.38 kernel for prod usage, eventhougt its just be=
-en=20
-> released, because I want your SFQ fixes...)
+On Thu, Mar 17, 2011 at 7:32 PM, Vasiliy Kulikov <segoon@openwall.com> =
+wrote:
+> 'buffer' string is copied from userspace. =A0It is not checked whethe=
+r it is
+> zero terminated. =A0This may lead to overflow inside of simple_strtou=
+l().
+> Changli Gao suggested to copy not more than user supplied 'size' byte=
+s.
+>
+> It was introduced before the git epoch. =A0Files "ipt_CLUSTERIP/*" ar=
+e
+> root writable only by default, however, on some setups permissions mi=
+ght be
+> relaxed to e.g. network admin user.
+>
+> Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+Acked-by: Changli Gao <xiaosuo@gmail.com>
 
-I would say the race is there, but probability must be very small, and
-might need malicious iptables rules (with RETURN targets)
 
-Especially in routers, where OUTPUT path is taken from softirq handler
-anyway ;)
-
-So dont worry at all, consider this as a cleanup :)
-
-
+--=20
+Regards,
+Changli Gao(xiaosuo@gmail.com)
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
