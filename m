@@ -1,46 +1,60 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] netfilter: get rid of atomic ops in fast path
-Date: Thu, 17 Mar 2011 11:39:01 +0100
-Message-ID: <4D81E4C5.5060009@trash.net>
-References: <1300302005.3202.23.camel@edumazet-laptop>
+From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: [PATCH v2] ipv4: netfilter: ipt_CLUSTERIP: fix buffer overflow
+Date: Thu, 17 Mar 2011 14:32:29 +0300
+Message-ID: <20110317113229.GA7710@albatros>
+References: <1299780740-32652-1-git-send-email-segoon@openwall.com>
+ <AANLkTimPZJoCzz386e-4m0Y4khWGZirZguGFmuFYCrry@mail.gmail.com>
+ <4D7F5CAC.6070006@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>,
-	Jesper Dangaard Brouer <hawk@diku.dk>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Changli Gao <xiaosuo@gmail.com>, linux-kernel@vger.kernel.org,
+	security@kernel.org, "David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:49345 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753678Ab1CQKjG (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:63897 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753763Ab1CQLcf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Mar 2011 06:39:06 -0400
-In-Reply-To: <1300302005.3202.23.camel@edumazet-laptop>
+	Thu, 17 Mar 2011 07:32:35 -0400
+Content-Disposition: inline
+In-Reply-To: <4D7F5CAC.6070006@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 16.03.2011 20:00, schrieb Eric Dumazet:
-> We currently use a percpu spinlock to 'protect' rule bytes/packets
-> counters, after various attempts to use RCU instead.
-> 
-> Lately we added a seqlock so that get_counters() can run without
-> blocking BH or 'writers'. But we really use the seqcount in it.
-> 
-> Spinlock itself is only locked by the current cpu, so we can remove it
-> completely.
-> 
-> This cleanups api, using correct 'writer' vs 'reader' semantic.
-> 
-> At replace time, the get_counters() call makes sure all cpus are done
-> using the old table.
-> 
-> We could probably avoid blocking BH (we currently block them in xmit
-> path), but thats a different topic ;)
-> 
-> Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-> ---
-> This is a POC patch (based on net-next-2.6), only handling ip_tables.
-> ip6/arp/... need similar changes.
+'buffer' string is copied from userspace.  It is not checked whether it is
+zero terminated.  This may lead to overflow inside of simple_strtoul().
+Changli Gao suggested to copy not more than user supplied 'size' bytes.
 
-Thanks Eric, this looks good to me.
+It was introduced before the git epoch.  Files "ipt_CLUSTERIP/*" are
+root writable only by default, however, on some setups permissions might be
+relaxed to e.g. network admin user.
+
+Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+---
+ net/ipv4/netfilter/ipt_CLUSTERIP.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 1e26a48..af7dec6 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -669,8 +669,11 @@ static ssize_t clusterip_proc_write(struct file *file, const char __user *input,
+ 	char buffer[PROC_WRITELEN+1];
+ 	unsigned long nodenum;
+ 
+-	if (copy_from_user(buffer, input, PROC_WRITELEN))
++	if (size > PROC_WRITELEN)
++		return -EIO;
++	if (copy_from_user(buffer, input, size))
+ 		return -EFAULT;
++	buffer[size] = 0;
+ 
+ 	if (*buffer == '+') {
+ 		nodenum = simple_strtoul(buffer+1, NULL, 10);
+-- 
+1.7.0.4
