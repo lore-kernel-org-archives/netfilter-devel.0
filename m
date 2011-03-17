@@ -1,65 +1,55 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
+From: Christoph Lameter <cl@linux.com>
 Subject: Re: Poll about irqsafe_cpu_add and others
-Date: Thu, 17 Mar 2011 19:29:29 +0100
-Message-ID: <1300386569.6315.404.camel@edumazet-laptop>
-References: <1300371834.6315.93.camel@edumazet-laptop>
-	 <20110317.081420.71114992.davem@davemloft.net>
-	 <alpine.DEB.2.00.1103171016270.12540@router.home>
-	 <1300380801.6315.306.camel@edumazet-laptop>
-	 <alpine.DEB.2.00.1103171245430.16620@router.home>
+Date: Thu, 17 Mar 2011 13:42:10 -0500 (CDT)
+Message-ID: <alpine.DEB.2.00.1103171338350.18529@router.home>
+References: <1300371834.6315.93.camel@edumazet-laptop>  <20110317.081420.71114992.davem@davemloft.net>  <alpine.DEB.2.00.1103171016270.12540@router.home>  <1300380801.6315.306.camel@edumazet-laptop>  <alpine.DEB.2.00.1103171245430.16620@router.home>
+ <1300386569.6315.404.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: David Miller <davem@davemloft.net>, linux-kernel@vger.kernel.org,
 	linux-arch@vger.kernel.org, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
-To: Christoph Lameter <cl@linux.com>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:46724 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754975Ab1CQSae (ORCPT
+Received: from smtp108.prem.mail.ac4.yahoo.com ([76.13.13.47]:47586 "HELO
+	smtp108.prem.mail.ac4.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754954Ab1CQSmO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Mar 2011 14:30:34 -0400
-In-Reply-To: <alpine.DEB.2.00.1103171245430.16620@router.home>
+	Thu, 17 Mar 2011 14:42:14 -0400
+In-Reply-To: <1300386569.6315.404.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le jeudi 17 mars 2011 =C3=A0 12:46 -0500, Christoph Lameter a =C3=A9cri=
-t :
-> On Thu, 17 Mar 2011, Eric Dumazet wrote:
->=20
-> > When we know we run from BH context, we can use __this_cpu_inc(), b=
-ut if
-> > we dont know or run from user/process context, we would need irqsaf=
-e_inc
-> > variant.
->=20
-> If the BH context is the only one where we care about performance the=
-n its
-> ok I would think.
+On Thu, 17 Mar 2011, Eric Dumazet wrote:
 
-Hmm... yes.
+> By the way, I noticed :
+>
+> DECLARE_PER_CPU(u64, xt_u64);
+> __this_cpu_add(xt_u64, 2) translates to following x86_32 code :
+>
+> 	mov	$xt_u64,%eax
+> 	add	%fs:0x0,%eax
+> 	addl	$0x2,(%eax)
+> 	adcl	$0x0,0x4(%eax)
+>
+>
+> I wonder why we dont use :
+>
+> 	addl	$0x2,%fs:xt_u64
+> 	addcl	$0x0,%fs:xt_u64+4
 
-By the way, I noticed :
+The compiler is fed the following
 
-DECLARE_PER_CPU(u64, xt_u64);
-__this_cpu_add(xt_u64, 2) translates to following x86_32 code :
+	*__this_cpu_ptr(xt_u64) += 2
 
-	mov	$xt_u64,%eax
-	add	%fs:0x0,%eax
-	addl	$0x2,(%eax)
-	adcl	$0x0,0x4(%eax)
+__this_cpu_ptr makes it:
 
+	*(xt_u64 + __my_cpu_offset) += 2
 
-I wonder why we dont use :
+So the compiler calculates the address first and then increments it.
 
-	addl	$0x2,%fs:xt_u64
-	addcl	$0x0,%fs:xt_u64+4
+The compiler could optimize this I think. Wonder why that does not happen.
 
 
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
