@@ -1,49 +1,58 @@
-From: Christoph Lameter <cl@linux.com>
-Subject: Re: Poll about irqsafe_cpu_add and others
-Date: Thu, 17 Mar 2011 14:21:33 -0500 (CDT)
-Message-ID: <alpine.DEB.2.00.1103171419280.18529@router.home>
-References: <1300371834.6315.93.camel@edumazet-laptop>  <20110317.081420.71114992.davem@davemloft.net>  <alpine.DEB.2.00.1103171016270.12540@router.home>  <1300380801.6315.306.camel@edumazet-laptop>  <alpine.DEB.2.00.1103171245430.16620@router.home>
- <1300386569.6315.404.camel@edumazet-laptop>  <alpine.DEB.2.00.1103171338350.18529@router.home> <1300388139.6315.418.camel@edumazet-laptop>
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: [PATCH 25/36] net,rcu: convert call_rcu(__nf_ct_ext_free_rcu) to
+ kfree_rcu()
+Date: Fri, 18 Mar 2011 12:07:09 +0800
+Message-ID: <4D82DA6D.7030100__32078.0661226765$1300421143$gmane$org@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: David Miller <davem@davemloft.net>, linux-kernel@vger.kernel.org,
-	linux-arch@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <linux-arch-owner@vger.kernel.org>
-In-Reply-To: <1300388139.6315.418.camel@edumazet-laptop>
-Sender: linux-arch-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Ingo Molnar <mingo@elte.hu>, Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.o
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:50233 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751031Ab1CREFW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 18 Mar 2011 00:05:22 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 17 Mar 2011, Eric Dumazet wrote:
 
-> > > I wonder why we dont use :
-> > >
-> > > 	addl	$0x2,%fs:xt_u64
-> > > 	addcl	$0x0,%fs:xt_u64+4
-> >
-> > The compiler is fed the following
-> >
-> > 	*__this_cpu_ptr(xt_u64) += 2
-> >
-> > __this_cpu_ptr makes it:
-> >
-> > 	*(xt_u64 + __my_cpu_offset) += 2
-> >
-> > So the compiler calculates the address first and then increments it.
-> >
-> > The compiler could optimize this I think. Wonder why that does not happen.
->
-> Compiler is really forced to compute addr, thats why.
->
-> Hmm, we should not fallback to generic ops I think, but tweak
->
-> percpu_add_op() {
 
-percpu_add_op() is not used. This is a 64 bit operation on a 32 bit
-machine thus we fall back to this_cpu_generic_to_op()
+The rcu callback __nf_ct_ext_free_rcu() just calls a kfree(),
+so we use kfree_rcu() instead of the call_rcu(__nf_ct_ext_free_rcu).
 
-#define __this_cpu_generic_to_op(pcp, val, op)                          \
-do {                                                                    \
-        *__this_cpu_ptr(&(pcp)) op val;                                 \
-} while (0)
+Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+---
+ net/netfilter/nf_conntrack_extend.c |    8 +-------
+ 1 files changed, 1 insertions(+), 7 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+index bd82450..cc0bcda 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -68,12 +68,6 @@ nf_ct_ext_create(struct nf_ct_ext **ext, enum nf_ct_ext_id id, gfp_t gfp)
+ 	return (void *)(*ext) + off;
+ }
+ 
+-static void __nf_ct_ext_free_rcu(struct rcu_head *head)
+-{
+-	struct nf_ct_ext *ext = container_of(head, struct nf_ct_ext, rcu);
+-	kfree(ext);
+-}
+-
+ void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ {
+ 	struct nf_ct_ext *old, *new;
+@@ -114,7 +108,7 @@ void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ 					(void *)old + old->offset[i]);
+ 			rcu_read_unlock();
+ 		}
+-		call_rcu(&old->rcu, __nf_ct_ext_free_rcu);
++		kfree_rcu(old, rcu);
+ 		ct->ext = new;
+ 	}
+ 
+-- 
+1.7.4
