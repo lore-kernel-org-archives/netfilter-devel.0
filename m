@@ -1,63 +1,89 @@
 From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] netfilter: xtables: fix reentrancy
-Date: Fri, 18 Mar 2011 11:50:27 +0100
-Message-ID: <1300445427.2888.23.camel@edumazet-laptop>
-References: <1300302005.3202.23.camel@edumazet-laptop>
-	 <20110316.131648.15245216.davem@davemloft.net>
-	 <1300358140.3133.117.camel@edumazet-laptop>
-	 <Pine.LNX.4.64.1103171231220.21558@ask.diku.dk>
-	 <1300362323.3133.195.camel@edumazet-laptop>
-	 <1300367841.6315.9.camel@edumazet-laptop>
-	 <Pine.LNX.4.64.1103181113040.21558@ask.diku.dk>
+Subject: [PATCH 1/2] netfilter: xtables: fix reentrancy
+Date: Fri, 18 Mar 2011 18:05:21 +0100
+Message-ID: <1300467921.2888.157.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>
-To: Jesper Dangaard Brouer <hawk@diku.dk>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.1103181113040.21558@ask.diku.dk>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>,
+	Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>,
+	David Miller <davem@davemloft.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:43472 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757185Ab1CRRF3 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 18 Mar 2011 13:05:29 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Le vendredi 18 mars 2011 =C3=A0 11:27 +0100, Jesper Dangaard Brouer a =C3=
-=A9crit :
+commit f3c5c1bfd4308 (make ip_tables reentrant) introduced a race in
+handling the stackptr restore, at the end of ipt_do_table()
 
-> I have actually enabled PREEMPTion, am I in trouble then?
->=20
+We should do it before the call to xt_info_rdunlock_bh(), or we allow
+cpu preemption and another cpu overwrites stackptr of original one.
 
-Well, to get problem on localy generated trafic (as all forwarding is
-done from softirq handler), you'll need a malicious -j RETURN in OUTPUT
-hook (in the OUTPUT chain, not a called one)
+A second fix is to change the underflow test to check the origptr value
+instead of 0 to detect underflow, or else we allow a jump from different
+hooks.
 
-Also, even for localy generated trafic, I guess most callers block BH
-before calling ipt_do_table() anyway...
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Jan Engelhardt <jengelh@medozas.de>
+Cc: Patrick McHardy <kaber@trash.net>
+---
+ net/ipv4/netfilter/ip_tables.c  |    4 ++--
+ net/ipv6/netfilter/ip6_tables.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-> I have modified the .config I got from you, quite a lot, during my=20
-> attempts to find the CCISS/HPSA problem.
->=20
-> Which reminds me that I needed to enable, the follwing config options=
-,=20
-> (which your config didn't have):
->   CONFIG_PCIEASPM=3Dy
->   CONFIG_X86_X2APIC=3Dy
->=20
-> In order to get rid of a PCI warning:
->   NMI: PCI system error (SERR) for reason b1 on CPU 0.
->   Dazed and confused, but trying to continue
->=20
-> The system worked fine, and you might not see this issue on your G6=20
-> servers, as its most likely BIOS related (my server is a HP DL370 G6)=
-=2E
->=20
-
-Mine is ProLiant BL460c G6
-
-> FYI: Operations have deployed the kernel on prod server this morning.
-
-Okay, lets pray ;)
-
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index b09ed0d..ffcea0d 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -387,7 +387,7 @@ ipt_do_table(struct sk_buff *skb,
+ 					verdict = (unsigned)(-v) - 1;
+ 					break;
+ 				}
+-				if (*stackptr == 0) {
++				if (*stackptr <= origptr) {
+ 					e = get_entry(table_base,
+ 					    private->underflow[hook]);
+ 					pr_debug("Underflow (this is normal) "
+@@ -427,10 +427,10 @@ ipt_do_table(struct sk_buff *skb,
+ 			/* Verdict */
+ 			break;
+ 	} while (!acpar.hotdrop);
+-	xt_info_rdunlock_bh();
+ 	pr_debug("Exiting %s; resetting sp from %u to %u\n",
+ 		 __func__, *stackptr, origptr);
+ 	*stackptr = origptr;
++	xt_info_rdunlock_bh();
+ #ifdef DEBUG_ALLOW_ALL
+ 	return NF_ACCEPT;
+ #else
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index c9598a9..0b2af9b 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -410,7 +410,7 @@ ip6t_do_table(struct sk_buff *skb,
+ 					verdict = (unsigned)(-v) - 1;
+ 					break;
+ 				}
+-				if (*stackptr == 0)
++				if (*stackptr <= origptr)
+ 					e = get_entry(table_base,
+ 					    private->underflow[hook]);
+ 				else
+@@ -441,8 +441,8 @@ ip6t_do_table(struct sk_buff *skb,
+ 			break;
+ 	} while (!acpar.hotdrop);
+ 
+-	xt_info_rdunlock_bh();
+ 	*stackptr = origptr;
++	xt_info_rdunlock_bh();
+ 
+ #ifdef DEBUG_ALLOW_ALL
+ 	return NF_ACCEPT;
 
 
