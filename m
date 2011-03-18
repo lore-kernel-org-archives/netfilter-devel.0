@@ -1,50 +1,93 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Subject: Re: Poll about irqsafe_cpu_add and others
-Date: Fri, 18 Mar 2011 17:56:24 +1100
-Message-ID: <1300431384.22236.1280.camel@pasglop>
-References: <1300371834.6315.93.camel@edumazet-laptop>
+From: Jesper Dangaard Brouer <hawk@diku.dk>
+Subject: Re: [PATCH] netfilter: xtables: fix reentrancy
+Date: Fri, 18 Mar 2011 11:27:53 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.1103181113040.21558@ask.diku.dk>
+References: <1300302005.3202.23.camel@edumazet-laptop>
+ <20110316.131648.15245216.davem@davemloft.net>  <1300358140.3133.117.camel@edumazet-laptop>
+  <Pine.LNX.4.64.1103171231220.21558@ask.diku.dk>  <1300362323.3133.195.camel@edumazet-laptop>
+ <1300367841.6315.9.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: linux-kernel <linux-kernel@vger.kernel.org>,
-	linux-arch@vger.kernel.org,
-	Christoph Lameter <cl@linux-foundation.org>,
-	netdev <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-511516320-1226776439-1300444073=:21558"
+Cc: David Miller <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>,
+	netdev <netdev@vger.kernel.org>
 To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <linux-arch-owner@vger.kernel.org>
-In-Reply-To: <1300371834.6315.93.camel@edumazet-laptop>
-Sender: linux-arch-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mgw2.diku.dk ([130.225.96.92]:59315 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751162Ab1CRK17 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 18 Mar 2011 06:27:59 -0400
+In-Reply-To: <1300367841.6315.9.camel@edumazet-laptop>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2011-03-17 at 15:23 +0100, Eric Dumazet wrote:
-> Hi
-> 
-> irqsafe_cpu_{dec|inc} are used in network stack since 2.6.37 (commit
-> 29b4433d991c88), and I would like to use irqsafe_cpu_add() in netfilter
-> fast path too, and SNMP counters eventually (to lower ram needs by 50%)
-> 
-> Initial support of irqsafe_ was given by Christoph in 2.6.34
-> 
-> It seems only x86 arch is using a native and efficient implementation.
-> 
-> Others use irqsafe_cpu_generic_to_op() and its pair of
-> local_irq_save() / local_irq_restore()
-> 
-> Which other arches could use a native implementation ?
-> 
-> What about defining a HAVE_FAST_IRQSAFE_ADD ?
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On powerpc, we use the generic one and it's fast :-) Well, at least on
-ppc64, bcs we do lazy irq disabling, disabling/enabling interrupt is
-basically just poking a byte in a per-cpu data structure (there's a tad
-more work on enable in case the interrupt actually occured and we ended
-up really disabling but that's not the common case). Overall faster than
-using the atomic ops which have to go all the way to the L2 cache.
+---511516320-1226776439-1300444073=:21558
+Content-Type: TEXT/PLAIN; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: 8BIT
 
-So if you define the above, please set in on powerpc despite the fact
-that we use the generic implementation.
+
+
+On Thu, 17 Mar 2011, Eric Dumazet wrote:
+> Le jeudi 17 mars 2011 à 12:45 +0100, Eric Dumazet a écrit :
+>> Le jeudi 17 mars 2011 à 12:36 +0100, Jesper Dangaard Brouer a écrit :
+>>> Hi Eric,
+>>>
+>>> How critial is this bug fix?
+>>>
+>>> Should I apply this on my stable production kernels?
+>>> (I'm preparing a 2.6.38 kernel for prod usage, eventhougt its just been
+>>> released, because I want your SFQ fixes...)
+>>
+>> I would say the race is there, but probability must be very small, and
+>> might need malicious iptables rules (with RETURN targets)
+
+Actually do have a large number of return targets.
+In the filter forward chain.
+
+
+>> Especially in routers, where OUTPUT path is taken from softirq handler
+>> anyway ;)
+>>
+>> So dont worry at all, consider this as a cleanup :)
+>>
+>
+> Almost forgot to mention your kernels probably have :
+>
+> CONFIG_PREEMPT_NONE=y
+> # CONFIG_PREEMPT is not set
+>
+> So you can take it easy ;)
+
+I have actually enabled PREEMPTion, am I in trouble then?
+
+I have modified the .config I got from you, quite a lot, during my 
+attempts to find the CCISS/HPSA problem.
+
+Which reminds me that I needed to enable, the follwing config options, 
+(which your config didn't have):
+  CONFIG_PCIEASPM=y
+  CONFIG_X86_X2APIC=y
+
+In order to get rid of a PCI warning:
+  NMI: PCI system error (SERR) for reason b1 on CPU 0.
+  Dazed and confused, but trying to continue
+
+The system worked fine, and you might not see this issue on your G6 
+servers, as its most likely BIOS related (my server is a HP DL370 G6).
+
+FYI: Operations have deployed the kernel on prod server this morning.
 
 Cheers,
-Ben.
+   Jesper Brouer
+
+--
+-------------------------------------------------------------------
+MSc. Master of Computer Science
+Dept. of Computer Science, University of Copenhagen
+Author of http://www.adsl-optimizer.dk
+-------------------------------------------------------------------
+---511516320-1226776439-1300444073=:21558--
