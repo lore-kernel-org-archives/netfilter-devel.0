@@ -1,47 +1,45 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH] netfilter:ipset fix revision reporting
-Date: Sat, 19 Mar 2011 11:10:04 +0100
-Message-ID: <1300529404-18673-1-git-send-email-kadlec@blackhole.kfki.hu>
-Cc: Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: netfilter-devel@vger.kernel.org
+Subject: [ANNOUNCE] ipset-6.1 released
+Date: Sat, 19 Mar 2011 11:42:37 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1103191138070.18290@blackhole.kfki.hu>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:51889 "EHLO smtp2.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:60538 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755684Ab1CSKKF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 19 Mar 2011 06:10:05 -0400
+	id S1751069Ab1CSKmj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 19 Mar 2011 06:42:39 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Patrick,
+Hi,
 
-Sorry, my last patch broke the revision reporting (I should have ran the
-testsuite first). So please apply this patch on top of the previous ones.
+I'm happy to announce ipset 6.1 with the following changes compared to the 
+previous version:
+
+kernel part:
+ - The hash:*port* types ignored the address range with non TCP/UDP, fixed
+ - Fix checking the revision number of the set type at create command
+ - SCTP, UDPLITE support to hash:*port* types added
+ - Fix revision reporting got broken by the revision checking patch
+
+userspace part:
+ - Manpage was not installed (reported by Mark A. Ziesemer)
+ - SCTP, UDPLITE support to the hash:*port* types added
+
+I'll submit the SCTP, UDPLITE support for net-next-2.6 when the merge 
+window will be over.
+
+You can download the source code from:
+        http://ipset.netfilter.org
+        ftp://ftp.netfilter.org/pub/ipset/
+        git://git.netfilter.org/ipset.git
 
 Best regards,
 Jozsef
-
-The patch 'netfilter:ipset: fix checking the type revision at create command'
-broke the set type revisioning.
-
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
----
- net/netfilter/ipset/ip_set_core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index b11cc5e..d6b4823 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -136,7 +136,7 @@ find_set_type_minmax(const char *name, u8 family, u8 *min, u8 *max)
- 			found = true;
- 			if (type->revision < *min)
- 				*min = type->revision;
--			else if (type->revision > *max)
-+			if (type->revision > *max)
- 				*max = type->revision;
- 		}
- 	rcu_read_unlock();
--- 
-1.7.0.4
-
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
