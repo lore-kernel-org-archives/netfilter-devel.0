@@ -1,53 +1,41 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 2/2] netfilter: get rid of atomic ops in fast path
-Date: Sun, 20 Mar 2011 20:06:03 +0100
-Message-ID: <1300647963.2831.291.camel@edumazet-laptop>
-References: <1300468038.2888.160.camel@edumazet-laptop>
-	 <4D86121C.7050503@trash.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/4] netfilter: netfilter fixes
+Date: Sun, 20 Mar 2011 13:42:57 -0700 (PDT)
+Message-ID: <20110320.134257.71116215.davem@davemloft.net>
+References: <1300635148-22648-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>,
-	Jan Engelhardt <jengelh@medozas.de>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:63905 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751101Ab1CTTGZ (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:35898
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752358Ab1CTUmT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 20 Mar 2011 15:06:25 -0400
-In-Reply-To: <4D86121C.7050503@trash.net>
+	Sun, 20 Mar 2011 16:42:19 -0400
+In-Reply-To: <1300635148-22648-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le dimanche 20 mars 2011 =C3=A0 15:41 +0100, Patrick McHardy a =C3=A9cr=
-it :
-> Am 18.03.2011 18:07, schrieb Eric Dumazet:
-> > We currently use a percpu spinlock to 'protect' rule bytes/packets
-> > counters, after various attempts to use RCU instead.
-> >=20
-> > Lately we added a seqlock so that get_counters() can run without
-> > blocking BH or 'writers'. But we really use the seqcount in it.
-> >=20
-> > Spinlock itself is only locked by the current/owner cpu, so we can
-> > remove it completely.
-> >=20
-> > This cleanups api, using correct 'writer' vs 'reader' semantic.
-> >=20
-> > At replace time, the get_counters() call makes sure all cpus are do=
-ne
-> > using the old table.
->=20
-> I think this will have to wait until net-next opens up again since
-> its not a bugfix.
+From: kaber@trash.net
+Date: Sun, 20 Mar 2011 16:32:24 +0100
 
-Sure :)
+> the following patches fix a couple of netfilter bugs:
+> 
+> - a bug in ipset which caused the hash:port set types to silently
+>   ignore address ranges when non-TCP/UDP entries were added, from
+>   Jozsef
+> 
+> - a missing check for set type revision in ipset, from Jozsef
+> 
+> - a fix for iptables reentrancy, from Eric
+> 
+> - a fix for a buffer overflow in the ipt_CLUSTERIP proc handler,
+>   from Vasiliy Kulikov
+> 
+> Please apply or pull from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git master
 
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Pulled, thanks a lot Patrick.
