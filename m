@@ -1,35 +1,34 @@
-From: Sam Roberts <vieuxtech@gmail.com>
-Subject: Any suggestions for getting a pcap of traffic over netlink?
-Date: Mon, 21 Mar 2011 16:15:12 -0700
-Message-ID: <AANLkTi==4LicoDZ5JqY3YD7zSrh=E1GvPp5TJ33L5+_d@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 2/3] netfilter: af_info: add 'strict' parameter to
+ limit lookup to .oif
+Date: Mon, 21 Mar 2011 16:58:29 -0700 (PDT)
+Message-ID: <20110321.165829.28821319.davem@davemloft.net>
+References: <1300746341-18011-2-git-send-email-fw@strlen.de>
+	<1300747149.2837.22.camel@edumazet-laptop>
+	<1300747379.2837.23.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: fw@strlen.de, netfilter-devel@vger.kernel.org
+To: eric.dumazet@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:34980 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755004Ab1CUXPN (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:53099
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755250Ab1CUX5u (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Mar 2011 19:15:13 -0400
-Received: by vxi39 with SMTP id 39so5393184vxi.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Mar 2011 16:15:12 -0700 (PDT)
+	Mon, 21 Mar 2011 19:57:50 -0400
+In-Reply-To: <1300747379.2837.23.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Obviously, there is no net device to pcap - I'm wondering if anybody
-knows of ways to watch netlink traffic? I don't know netlink well, I'm
-wondering if its possible to do a PF_NETLINK socket that promiscuously
-receives all netlink traffic on all sockets?
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Date: Mon, 21 Mar 2011 23:42:59 +0100
 
-I can build wireshark dissectors once I've got pcaps, but I'm not too
-sure how to get the captures, other than hacking libnfnetlink to dump
-all sendmsg/recvmsg payload into a pcap file with a custom link type,
-but I'm hoping I'm not the first person to want to do this.
+> Ah sorry, I missed the "static const". Maybe I should just sleep now ;)
 
-I want to troubleshoot interactions, like when my userspace code
-blocks indefinitely waiting for a response from the kernel, but the
-sample code I'm looking at doesn't, and I want to understand what I'm
-doing differently.
+Well, I would really prefer if ip6_route_output() and friends mark
+their 'sk' argument as 'const'.
 
-Cheers,
-Sam
+Otherwise someone is going to read this code and be really concerned
+that "sk" really might be modified in some way by this code path,
+thus making parallel access to this static const 'sk' illegal.
