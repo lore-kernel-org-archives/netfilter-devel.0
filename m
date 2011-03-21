@@ -1,41 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/4] netfilter: netfilter fixes
-Date: Sun, 20 Mar 2011 13:42:57 -0700 (PDT)
-Message-ID: <20110320.134257.71116215.davem@davemloft.net>
-References: <1300635148-22648-1-git-send-email-kaber@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: iptables release plans
+Date: Mon, 21 Mar 2011 19:48:54 +0100
+Message-ID: <4D879D96.2000904@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: kaber@trash.net
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:35898
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752358Ab1CTUmT (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:34473 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751986Ab1CUStA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 20 Mar 2011 16:42:19 -0400
-In-Reply-To: <1300635148-22648-1-git-send-email-kaber@trash.net>
+	Mon, 21 Mar 2011 14:49:00 -0400
+Received: from x100e.localnet (localhost [127.0.0.1])
+	by stinky.trash.net (Postfix) with ESMTP id 7652EB2C43
+	for <netfilter-devel@vger.kernel.org>; Mon, 21 Mar 2011 19:48:55 +0100 (MET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: kaber@trash.net
-Date: Sun, 20 Mar 2011 16:32:24 +0100
+About a potential iptables release for 2.6.38 - we don't have any
+new features in the kernel that would require a new release.
+However we've had a lot of other changes that would be good to
+get out for wider testing.
 
-> the following patches fix a couple of netfilter bugs:
-> 
-> - a bug in ipset which caused the hash:port set types to silently
->   ignore address ranges when non-TCP/UDP entries were added, from
->   Jozsef
-> 
-> - a missing check for set type revision in ipset, from Jozsef
-> 
-> - a fix for iptables reentrancy, from Eric
-> 
-> - a fix for a buffer overflow in the ipt_CLUSTERIP proc handler,
->   from Vasiliy Kulikov
-> 
-> Please apply or pull from:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git master
+Unfortunately due some confusion at the time of the last kernel
+release, all patches for the upcoming feature in 2.6.39 have been
+added to the master branch. I don't want to release extensions
+for new kernel features while we're in the -rc phase since we
+might still decide to change the userspace API.
 
-Pulled, thanks a lot Patrick.
+So the options basically are:
+
+- branch off the current HEAD, remove all new extension for upcoming
+  features and release that branch
+
+- skip the release for 2.6.38
+
+Any opinions?
