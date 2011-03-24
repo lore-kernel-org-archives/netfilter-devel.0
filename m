@@ -1,117 +1,77 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 3/3] netfilter: xt_addrtype: replace rt6_lookup with nf_afinfo->route
-Date: Thu, 24 Mar 2011 21:29:57 +0100
-Message-ID: <1300998597-2018-3-git-send-email-fw@strlen.de>
-References: <1300998597-2018-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Problem sending skb built from scratch with IPv6
+Date: Thu, 24 Mar 2011 22:16:40 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1103242207250.15489@obet.zrqbmnf.qr>
+References: <4D893485.5050709@gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Pierre Rondou <prondou@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:32795 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756417Ab1CXUgV (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Mar 2011 16:36:21 -0400
-In-Reply-To: <1300998597-2018-1-git-send-email-fw@strlen.de>
+Received: from borg.medozas.de ([188.40.89.202]:38201 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752397Ab1CXVQl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 Mar 2011 17:16:41 -0400
+In-Reply-To: <4D893485.5050709@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This avoids pulling in the ipv6 module when using (ipv4-only) iptables -m addrtype.
+On Wednesday 2011-03-23 00:45, Pierre Rondou wrote:
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- rebased on top of nf-2.6.git.
+> Hi all,
+>
+>
+> I'm a student at the University of Liege (Belgium) and for my master thesis, I
+> have to devellop a netfilter module implementing NatIvI and Nat64.
 
- Tested briefly with:
- [0:0] -A INPUT -m addrtype --src-type LOCAL
- [16:1552] -A INPUT -m addrtype --dst-type LOCAL
- [10:928] -A INPUT -m addrtype --dst-type LOCAL --limit-iface-in
+Let me just make aware of preexisting software, such as Ecdysis nat64, 
+because too often have I encountered students who just reimplemented
+everything and then felt like it was for nothing.
 
- net/netfilter/Kconfig       |    1 -
- net/netfilter/xt_addrtype.c |   42 ++++++++++++++++++++++++++++--------------
- 2 files changed, 28 insertions(+), 15 deletions(-)
+>The modules, as stated by the protocols, need to be able to send packet 
+>with IP that doesn't belong to them (i.e, sort of spoofing). Everything 
+>works fine for the newly created IPv4 skb (I can see the packets in 
+>wireshark), you can see the source code at the end.
+>
+>But for Ipv6, the only think I see is neighbour solicitation messages 
+>(ICMPv6) for both the source IP and the dest IP. There is one only case 
+>when the program works: when the source IP of the packet is the same as 
+>the interface's one.
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index c3f988a..32bff6d 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -652,7 +652,6 @@ comment "Xtables matches"
- config NETFILTER_XT_MATCH_ADDRTYPE
- 	tristate '"addrtype" address type match support'
- 	depends on NETFILTER_ADVANCED
--	depends on (IPV6 || IPV6=n)
- 	---help---
- 	  This option allows you to match what routing thinks of an address,
- 	  eg. UNICAST, LOCAL, BROADCAST, ...
-diff --git a/net/netfilter/xt_addrtype.c b/net/netfilter/xt_addrtype.c
-index 2220b85..b77d383 100644
---- a/net/netfilter/xt_addrtype.c
-+++ b/net/netfilter/xt_addrtype.c
-@@ -32,11 +32,32 @@ MODULE_ALIAS("ipt_addrtype");
- MODULE_ALIAS("ip6t_addrtype");
- 
- #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
--static u32 xt_addrtype_rt6_to_type(const struct rt6_info *rt)
-+static u32 match_lookup_rt6(struct net *net, const struct net_device *dev,
-+			    const struct in6_addr *addr)
- {
-+	const struct nf_afinfo *afinfo;
-+	struct flowi6 flow;
-+	struct rt6_info *rt;
- 	u32 ret;
-+	int route_err;
- 
--	if (!rt)
-+	memset(&flow, 0, sizeof(flow));
-+	ipv6_addr_copy(&flow.daddr, addr);
-+	if (dev)
-+		flow.flowi6_oif = dev->ifindex;
-+
-+	rcu_read_lock();
-+
-+	afinfo = nf_get_afinfo(NFPROTO_IPV6);
-+	if (afinfo != NULL)
-+		route_err = afinfo->route(net, (struct dst_entry **)&rt,
-+					flowi6_to_flowi(&flow), !!dev);
-+	else
-+		route_err = 1;
-+
-+	rcu_read_unlock();
-+
-+	if (route_err)
- 		return XT_ADDRTYPE_UNREACHABLE;
- 
- 	if (rt->rt6i_flags & RTF_REJECT)
-@@ -48,6 +69,9 @@ static u32 xt_addrtype_rt6_to_type(const struct rt6_info *rt)
- 		ret |= XT_ADDRTYPE_LOCAL;
- 	if (rt->rt6i_flags & RTF_ANYCAST)
- 		ret |= XT_ADDRTYPE_ANYCAST;
-+
-+
-+	dst_release(&rt->dst);
- 	return ret;
- }
- 
-@@ -65,18 +89,8 @@ static bool match_type6(struct net *net, const struct net_device *dev,
- 		return false;
- 
- 	if ((XT_ADDRTYPE_LOCAL | XT_ADDRTYPE_ANYCAST |
--	     XT_ADDRTYPE_UNREACHABLE) & mask) {
--		struct rt6_info *rt;
--		u32 type;
--		int ifindex = dev ? dev->ifindex : 0;
--
--		rt = rt6_lookup(net, addr, NULL, ifindex, !!dev);
--
--		type = xt_addrtype_rt6_to_type(rt);
--
--		dst_release(&rt->dst);
--		return !!(mask & type);
--	}
-+	     XT_ADDRTYPE_UNREACHABLE) & mask)
-+		return !!(mask & match_lookup_rt6(net, dev, addr));
- 	return true;
- }
- 
--- 
-1.7.3.4
+Of course a connected router will do NDISC if the address is directly 
+reachable according to its routing table.
 
+
+> The source code used for the new IPv4 packets (working 100%), it's copied from
+> the NAT64 module available in GPL:
+
+"The NAT64 module", but which?
+
+>   skb_dst_set(newskb, dst);
+>   newskb->dev = dst->dev;
+>   skb_dst_set(newskb, dst);
+
+Why set dst twice?
+
+> # route --inet
+> Table de routage IP du noyau
+> Destination     Passerelle      Genmask         Indic Metric Ref    Use Iface
+> 192.168.1.0     *               255.255.255.0   U     0      0        0 eth1
+> default         192.168.1.1     0.0.0.0         UG    0      0        0 eth1
+
+For future reference, stick to iproute2.
+
+> # route --inet6
+> Table de routage IPv6 du noyau
+> Destination                    Next Hop                   Flag Met Ref Use If
+> 2001:6a8:2d80:128::/64         ::                         U    256 0     1 eth1
+> fe80::/64                      ::                         U    256 0     0 eth1
+> ::/0                           2001:6a8:2d80:128::2       UG   1   0    35 eth1
+> ::/0                           ::                         !n   -1  1    61 lo
+> ::1/128                        ::                         Un   0   1    80 lo
+> 2001:6a8:2d80:128::/128        ::                         Un   0   1     0 lo
+> 2001:6a8:2d80:128::1/128       ::                         Un   0   1    20 lo
+> fe80::/128                     ::                         Un   0   1     0 lo
+> fe80::20e:a6ff:feb0:e1a2/128   ::                         Un   0   1    14 lo
+> ff00::/8                       ::                         U    256 0     0 eth1
+> ::/0                           ::                         !n   -1  1    61 lo
