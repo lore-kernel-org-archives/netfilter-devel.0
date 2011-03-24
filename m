@@ -1,54 +1,120 @@
-From: Sam Roberts <vieuxtech@gmail.com>
-Subject: is assert() an appropriate substitute for return -1?
-Date: Thu, 24 Mar 2011 11:23:04 -0700
-Message-ID: <AANLkTikDX+SqxROiZDQZXop_Ooiv9QXZR3JJ66sG2m--@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 1/3] netfilter: af_info: add network namespace parameter to route hook
+Date: Thu, 24 Mar 2011 21:29:55 +0100
+Message-ID: <1300998597-2018-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:50648 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932133Ab1CXSXF (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:52830 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754804Ab1CXUgK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Mar 2011 14:23:05 -0400
-Received: by vws1 with SMTP id 1so226367vws.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Mar 2011 11:23:04 -0700 (PDT)
+	Thu, 24 Mar 2011 16:36:10 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->From libnfnetlink.c:
+This is required to eventually replace the rt6_lookup call in xt_addrtype.c
+with nf_afinfo->route().
 
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ rebased on top of nf-2.6.git.
+ include/linux/netfilter.h              |    3 ++-
+ net/ipv4/netfilter.c                   |    5 +++--
+ net/ipv6/netfilter.c                   |    5 +++--
+ net/netfilter/nf_conntrack_h323_main.c |    8 ++++----
+ net/netfilter/xt_TCPMSS.c              |    2 +-
+ 5 files changed, 13 insertions(+), 10 deletions(-)
 
- * On success, 0 is returned. On error, -1 is returned and errno is set
- * appropiately.
- */
-int nfnl_callback_register(struct nfnl_subsys_handle *ssh,
-                           u_int8_t type, struct nfnl_callback *cb)
-{
-        assert(ssh);
-        assert(cb);
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index eeec00a..20ed452 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -270,7 +270,8 @@ struct nf_afinfo {
+ 					    unsigned int dataoff,
+ 					    unsigned int len,
+ 					    u_int8_t protocol);
+-	int		(*route)(struct dst_entry **dst, struct flowi *fl);
++	int		(*route)(struct net *net, struct dst_entry **dst,
++				 struct flowi *fl);
+ 	void		(*saveroute)(const struct sk_buff *skb,
+ 				     struct nf_queue_entry *entry);
+ 	int		(*reroute)(struct sk_buff *skb,
+diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
+index f3c0b54..f1035f0 100644
+--- a/net/ipv4/netfilter.c
++++ b/net/ipv4/netfilter.c
+@@ -221,9 +221,10 @@ static __sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
+ 	return csum;
+ }
+ 
+-static int nf_ip_route(struct dst_entry **dst, struct flowi *fl)
++static int nf_ip_route(struct net *net, struct dst_entry **dst,
++		       struct flowi *fl)
+ {
+-	struct rtable *rt = ip_route_output_key(&init_net, &fl->u.ip4);
++	struct rtable *rt = ip_route_output_key(net, &fl->u.ip4);
+ 	if (IS_ERR(rt))
+ 		return PTR_ERR(rt);
+ 	*dst = &rt->dst;
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index 39aaca2..e008b9b 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -90,9 +90,10 @@ static int nf_ip6_reroute(struct sk_buff *skb,
+ 	return 0;
+ }
+ 
+-static int nf_ip6_route(struct dst_entry **dst, struct flowi *fl)
++static int nf_ip6_route(struct net *net, struct dst_entry **dst,
++			struct flowi *fl)
+ {
+-	*dst = ip6_route_output(&init_net, NULL, &fl->u.ip6);
++	*dst = ip6_route_output(net, NULL, &fl->u.ip6);
+ 	return (*dst)->error;
+ }
+ 
+diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+index 533a183..39a4538 100644
+--- a/net/netfilter/nf_conntrack_h323_main.c
++++ b/net/netfilter/nf_conntrack_h323_main.c
+@@ -731,9 +731,9 @@ static int callforward_do_filter(const union nf_inet_addr *src,
+ 
+ 		memset(&fl2, 0, sizeof(fl2));
+ 		fl2.daddr = dst->ip;
+-		if (!afinfo->route((struct dst_entry **)&rt1,
++		if (!afinfo->route(&init_net, (struct dst_entry **)&rt1,
+ 				   flowi4_to_flowi(&fl1))) {
+-			if (!afinfo->route((struct dst_entry **)&rt2,
++			if (!afinfo->route(&init_net, (struct dst_entry **)&rt2,
+ 					   flowi4_to_flowi(&fl2))) {
+ 				if (rt1->rt_gateway == rt2->rt_gateway &&
+ 				    rt1->dst.dev  == rt2->dst.dev)
+@@ -755,9 +755,9 @@ static int callforward_do_filter(const union nf_inet_addr *src,
+ 
+ 		memset(&fl2, 0, sizeof(fl2));
+ 		ipv6_addr_copy(&fl2.daddr, &dst->in6);
+-		if (!afinfo->route((struct dst_entry **)&rt1,
++		if (!afinfo->route(&init_net, (struct dst_entry **)&rt1,
+ 				   flowi6_to_flowi(&fl1))) {
+-			if (!afinfo->route((struct dst_entry **)&rt2,
++			if (!afinfo->route(&init_net, (struct dst_entry **)&rt2,
+ 					   flowi6_to_flowi(&fl2))) {
+ 				if (!memcmp(&rt1->rt6i_gateway, &rt2->rt6i_gateway,
+ 					    sizeof(rt1->rt6i_gateway)) &&
+diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+index 6e6b46c..8690125 100644
+--- a/net/netfilter/xt_TCPMSS.c
++++ b/net/netfilter/xt_TCPMSS.c
+@@ -166,7 +166,7 @@ static u_int32_t tcpmss_reverse_mtu(const struct sk_buff *skb,
+ 	rcu_read_lock();
+ 	ai = nf_get_afinfo(family);
+ 	if (ai != NULL)
+-		ai->route((struct dst_entry **)&rt, &fl);
++		ai->route(&init_net, (struct dst_entry **)&rt, &fl);
+ 	rcu_read_unlock();
+ 
+ 	if (rt != NULL) {
+-- 
+1.7.3.4
 
-        if (type >= ssh->cb_count) {
-                errno = EINVAL;
-                return -1;
-        }
-
-The docs say return -1, the code asserts on two arg checks, and
-returns an error for the third.
-
-I found this behaviour when calling nfct_callback_register() on a
-handle that was opened with the EXPECT subsystem.
-
-It appears to be the prevalent convention in the code, but I'm binding
-the nfct APIs into lua, and would like users of the scripting language
-to not have abort()ions on misuse of the API.
-
-I'm not super-keen on checking in my binding code all the conditions
-in underlying asserts. And there is no public nfct API to determine
-what subsystem the handle was opened on, anyhow, so I can't easily
-check.
-
-Is it worth supplying patches?
-
-Cheers,
-Sam
