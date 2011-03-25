@@ -1,30 +1,155 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2 3/3] netfilter: xt_addrtype: replace rt6_lookup with
- nf_afinfo->route
-Date: Thu, 24 Mar 2011 16:15:25 -0700 (PDT)
-Message-ID: <20110324.161525.214209011.davem@davemloft.net>
-References: <1300998597-2018-1-git-send-email-fw@strlen.de>
-	<1300998597-2018-3-git-send-email-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: fw@strlen.de
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH 1/2] netfilter:ipset: list:set timeout variant fixes
+Date: Fri, 25 Mar 2011 11:42:12 +0100
+Message-ID: <1301049733-32160-2-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1301049733-32160-1-git-send-email-kadlec@blackhole.kfki.hu>
+Cc: Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:54039
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934344Ab1CXXOq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Mar 2011 19:14:46 -0400
-In-Reply-To: <1300998597-2018-3-git-send-email-fw@strlen.de>
+Received: from smtp-in.kfki.hu ([148.6.0.28]:55730 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934195Ab1CYKmP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Mar 2011 06:42:15 -0400
+In-Reply-To: <1301049733-32160-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
-Date: Thu, 24 Mar 2011 21:29:57 +0100
+- the timeout value was actually not set
+- the garbage collector was broken
 
-> This avoids pulling in the ipv6 module when using (ipv4-only) iptables -m addrtype.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+The variant is fixed, the tests to the ipset testsuite are added.
 
-Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ net/netfilter/ipset/ip_set_list_set.c |   53 +++++++++++++++------------------
+ 1 files changed, 24 insertions(+), 29 deletions(-)
+
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index a47c329..f4a46c0 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -43,14 +43,19 @@ struct list_set {
+ static inline struct set_elem *
+ list_set_elem(const struct list_set *map, u32 id)
+ {
+-	return (struct set_elem *)((char *)map->members + id * map->dsize);
++	return (struct set_elem *)((void *)map->members + id * map->dsize);
++}
++
++static inline struct set_telem *
++list_set_telem(const struct list_set *map, u32 id)
++{
++	return (struct set_telem *)((void *)map->members + id * map->dsize);
+ }
+ 
+ static inline bool
+ list_set_timeout(const struct list_set *map, u32 id)
+ {
+-	const struct set_telem *elem =
+-		(const struct set_telem *) list_set_elem(map, id);
++	const struct set_telem *elem = list_set_telem(map, id);
+ 
+ 	return ip_set_timeout_test(elem->timeout);
+ }
+@@ -58,19 +63,11 @@ list_set_timeout(const struct list_set *map, u32 id)
+ static inline bool
+ list_set_expired(const struct list_set *map, u32 id)
+ {
+-	const struct set_telem *elem =
+-		(const struct set_telem *) list_set_elem(map, id);
++	const struct set_telem *elem = list_set_telem(map, id);
+ 
+ 	return ip_set_timeout_expired(elem->timeout);
+ }
+ 
+-static inline int
+-list_set_exist(const struct set_telem *elem)
+-{
+-	return elem->id != IPSET_INVALID_ID &&
+-	       !ip_set_timeout_expired(elem->timeout);
+-}
+-
+ /* Set list without and with timeout */
+ 
+ static int
+@@ -146,11 +143,11 @@ list_elem_tadd(struct list_set *map, u32 i, ip_set_id_t id,
+ 	struct set_telem *e;
+ 
+ 	for (; i < map->size; i++) {
+-		e = (struct set_telem *)list_set_elem(map, i);
++		e = list_set_telem(map, i);
+ 		swap(e->id, id);
++		swap(e->timeout, timeout);
+ 		if (e->id == IPSET_INVALID_ID)
+ 			break;
+-		swap(e->timeout, timeout);
+ 	}
+ }
+ 
+@@ -164,7 +161,7 @@ list_set_add(struct list_set *map, u32 i, ip_set_id_t id,
+ 		/* Last element replaced: e.g. add new,before,last */
+ 		ip_set_put_byindex(e->id);
+ 	if (with_timeout(map->timeout))
+-		list_elem_tadd(map, i, id, timeout);
++		list_elem_tadd(map, i, id, ip_set_timeout_set(timeout));
+ 	else
+ 		list_elem_add(map, i, id);
+ 
+@@ -172,11 +169,11 @@ list_set_add(struct list_set *map, u32 i, ip_set_id_t id,
+ }
+ 
+ static int
+-list_set_del(struct list_set *map, ip_set_id_t id, u32 i)
++list_set_del(struct list_set *map, u32 i)
+ {
+ 	struct set_elem *a = list_set_elem(map, i), *b;
+ 
+-	ip_set_put_byindex(id);
++	ip_set_put_byindex(a->id);
+ 
+ 	for (; i < map->size - 1; i++) {
+ 		b = list_set_elem(map, i + 1);
+@@ -308,11 +305,11 @@ list_set_uadt(struct ip_set *set, struct nlattr *tb[],
+ 				 (before == 0 ||
+ 				  (before > 0 &&
+ 				   next_id_eq(map, i, refid))))
+-				ret = list_set_del(map, id, i);
++				ret = list_set_del(map, i);
+ 			else if (before < 0 &&
+ 				 elem->id == refid &&
+ 				 next_id_eq(map, i, id))
+-				ret = list_set_del(map, id, i + 1);
++				ret = list_set_del(map, i + 1);
+ 		}
+ 		break;
+ 	default:
+@@ -460,17 +457,15 @@ list_set_gc(unsigned long ul_set)
+ 	struct list_set *map = set->data;
+ 	struct set_telem *e;
+ 	u32 i;
+-
+-	/* We run parallel with other readers (test element)
+-	 * but adding/deleting new entries is locked out */
+-	read_lock_bh(&set->lock);
+-	for (i = map->size - 1; i >= 0; i--) {
+-		e = (struct set_telem *) list_set_elem(map, i);
+-		if (e->id != IPSET_INVALID_ID &&
+-		    list_set_expired(map, i))
+-			list_set_del(map, e->id, i);
++	
++	/* nfnl_lock should be called */
++	write_lock_bh(&set->lock);
++	for (i = 0; i < map->size; i++) {
++		e = list_set_telem(map, i);
++		if (e->id != IPSET_INVALID_ID && list_set_expired(map, i))
++			list_set_del(map, i);
+ 	}
+-	read_unlock_bh(&set->lock);
++	write_unlock_bh(&set->lock);
+ 
+ 	map->gc.expires = jiffies + IPSET_GC_PERIOD(map->timeout) * HZ;
+ 	add_timer(&map->gc);
+-- 
+1.7.0.4
+
