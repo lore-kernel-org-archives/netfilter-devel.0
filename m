@@ -1,82 +1,32 @@
 From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH] ip_fragment:kernel may panic when replay big packet with
- RST flag
-Date: Sat, 26 Mar 2011 21:36:15 +0800
-Message-ID: <AANLkTimOzYG4Weh7wanYfU_qBM4tJDPz+zJZQx_H-vn0@mail.gmail.com>
-References: <AANLkTikoSxVd3kTggsCGpjXz-5CFuVNxjnpuZNgWd3eV@mail.gmail.com>
+Subject: Re: Kernel panic nf_nat_setup_info+0x5b3/0x6e0
+Date: Sat, 26 Mar 2011 23:44:31 +0800
+Message-ID: <AANLkTi=v_Ckn00N=b2R2pW7jb3BmyyWPSkeCYRxBW0CW@mail.gmail.com>
+References: <118081298480841@web25.yandex.ru> <4D6E2BEB.50805@trash.net>
+ <AANLkTikkz23221ZSiat8N5tnE_bkHN=1EUNQTDdnC30L@mail.gmail.com>
+ <124481299095426@web67.yandex.ru> <AANLkTik87dd0=CqcMOcwKN-Hx7W6KD7A36DUhGAzLddr@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netdev@vger.kernel.org, Eric Dumazet <eric.dumazet@gmail.com>,
-	Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Feng Gao <kernel.goter@gmail.com>
+Content-Type: text/plain; charset=KOI8-R
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	Paul E McKenney <paulmck@linux.vnet.ibm.com>
+To: "Oleg A. Arkhangelsky" <sysoleg@yandex.ru>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:59395 "EHLO
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:35729 "EHLO
 	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751660Ab1CZNgh convert rfc822-to-8bit (ORCPT
+	with ESMTP id S1752508Ab1CZPow (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 26 Mar 2011 09:36:37 -0400
-In-Reply-To: <AANLkTikoSxVd3kTggsCGpjXz-5CFuVNxjnpuZNgWd3eV@mail.gmail.com>
+	Sat, 26 Mar 2011 11:44:52 -0400
+In-Reply-To: <AANLkTik87dd0=CqcMOcwKN-Hx7W6KD7A36DUhGAzLddr@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 23, 2011 at 6:49 PM, Feng Gao <kernel.goter@gmail.com> wrot=
-e:
-> Hello everyone:
->
-> PC(A)-linux(B)-PC(C)
-> computer(linux B) with two net interface,eth0 and eth1.
-> PC(A) send syn to PC(C) =A0though linux B.
-> then PC(C) replay a big packet =A0with RST flag(use tcpsic or other t=
-ools).
->
-> This RST packet(1480) come in from eth0(mtu 1500) and go out from
-> eth1(mtu 700), so this RST packet should fragment.
->
-> BUT in tcp_packet func: if the connection has no reply packet,and
-> receive the RST packet.ip_conntrack should =A0destroy.
-> =A0if (!test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* If only reply is a RST, we can cons=
-ider ourselves not to
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 have an established connection: t=
-his is a fairly common
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 problem case, so we can delete th=
-e conntrack
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 immediately. =A0--RR */
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (th->rst) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0nf_ct_kill_acct(ct, ct=
-info, skb);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return NF_ACCEPT;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
-> =A0 =A0 =A0 =A0}
->
-> BUT the skb->nfct is not set NULL in func nf_ct_kill_acct.
-> so when this RST packet goto ip_fragment,ip_fragment call nf_copy, in
-> __nf_copy func
-> the fragment skb->nfct point to the destory mem.
-> dst->nfct =3D src->nfct;
-> nf_conntrack_get(src->nfct);
->
-> SO finally.kfree_skb call destroy_conntrack again. this may result in
-> LINUX B kernel panic.
->
+On Thu, Mar 3, 2011 at 3:33 PM, Changli Gao <xiaosuo@gmail.com> wrote:
+> Please try the patch attached and test if the problem is solved or not. Thanks.
 >
 
-Have you ever tested that? I am afraid no panic will happen.
-nf_ct_kill_acct() just drops the reference owned by the corresponding
-timeout timer to the ct if the timer is installed, so the skb still
-has the reference to the ct after nf_ct_kill_acct() returns. Thanks.
+Any feedback? Thanks.
 
-BTW: all the patches related to netfilter should be sent to the
-netfilter developer mailing list.
-
---=20
+-- 
 Regards,
 Changli Gao(xiaosuo@gmail.com)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
