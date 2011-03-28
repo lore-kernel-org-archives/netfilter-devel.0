@@ -1,66 +1,123 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 2/2] netfilter:ipset: References are protected by rwlock
- instead of mutex
-Date: Mon, 28 Mar 2011 15:33:09 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1103281438120.2069@blackhole.kfki.hu>
-References: <1301049733-32160-1-git-send-email-kadlec@blackhole.kfki.hu> <1301049733-32160-2-git-send-email-kadlec@blackhole.kfki.hu> <1301049733-32160-3-git-send-email-kadlec@blackhole.kfki.hu> <4D908075.1010008@trash.net>
+From: Mark Montague <mark@catseye.org>
+Subject: [PATCH] iptables: documentation for iptables and ip6tables "security"
+ tables
+Date: Mon, 28 Mar 2011 10:18:17 -0400
+Message-ID: <4D9098A9.7070106@catseye.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:46729 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753981Ab1C1NdM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Mar 2011 09:33:12 -0400
-In-Reply-To: <4D908075.1010008@trash.net>
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:41701 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754081Ab1C1OSS (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Mar 2011 10:18:18 -0400
+Received: from compute3.internal (compute3.nyi.mail.srv.osa [10.202.2.43])
+	by gateway1.messagingengine.com (Postfix) with ESMTP id 17110207AD
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Mar 2011 10:18:18 -0400 (EDT)
+Received: from asura.catseye.org (unknown [198.111.179.55])
+	by mail.messagingengine.com (Postfix) with ESMTPSA id B42484076B3
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Mar 2011 10:18:17 -0400 (EDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 28 Mar 2011, Patrick McHardy wrote:
+  Add documentation for the iptables and ip6tables "security" tables.
+Based on http://lwn.net/Articles/267140/ and kernel source.
 
-> Am 25.03.2011 11:42, schrieb Jozsef Kadlecsik:
-> > The timeout variant of the list:set type must reference the member sets.
-> > However, its garbage collector runs at timer interrupt so the mutex protection
-> > of the references is a no go. Therefore the reference protection
-> > is converted to rwlock.
-> > 
-> 
-> >  __ip_set_get(ip_set_id_t index)
-> >  {
-> > -	atomic_inc(&ip_set_list[index]->ref);
-> > +	write_lock_bh(&ip_set_ref_lock);
-> > +	ip_set_list[index]->ref++;
-> > +	write_unlock_bh(&ip_set_ref_lock);
-> >  }
-> >  
-> 
-> I'm not sure I get this, why aren't regular atomic ops working
-> here?
+Signed-off-by: Mark Montague <mark@catseye.org>
+---
+  extensions/libxt_CONNSECMARK.man |    7 +++++--
+  extensions/libxt_SECMARK.man     |    7 +++++--
+  ip6tables.8.in                   |   11 +++++++++++
+  iptables.8.in                    |   11 +++++++++++
+  4 files changed, 32 insertions(+), 4 deletions(-)
 
-A set can only be destroyed if it's not referenced. The reference counter 
-is incremented/decremented by the checkentry/destroy functions of the set 
-match and target, and when the set is added/deleted to/from a list:set 
-type of set. These operations are serialized by the nfnl mutex.
+diff --git a/extensions/libxt_CONNSECMARK.man 
+b/extensions/libxt_CONNSECMARK.man
+index a72e710..2616ab9 100644
+--- a/extensions/libxt_CONNSECMARK.man
++++ b/extensions/libxt_CONNSECMARK.man
+@@ -1,9 +1,12 @@
+  This module copies security markings from packets to connections
+  (if unlabeled), and from connections back to packets (also only
+  if unlabeled).  Typically used in conjunction with SECMARK, it is
+-only valid in the
++valid in the
++.B security
++table (for backwards compatibility with older kernels, it is also
++valid in the
+  .B mangle
+-table.
++table).
+  .TP
+  \fB\-\-save\fP
+  If the packet has a security marking, copy it to the connection
+diff --git a/extensions/libxt_SECMARK.man b/extensions/libxt_SECMARK.man
+index e44efce..45c8b19 100644
+--- a/extensions/libxt_SECMARK.man
++++ b/extensions/libxt_SECMARK.man
+@@ -1,7 +1,10 @@
+  This is used to set the security mark value associated with the
+-packet for use by security subsystems such as SELinux.  It is only
++packet for use by security subsystems such as SELinux.  It is
++valid in the
++.B security
++table (for backwards compatibility with older kernels, it is also
+  valid in the
+  .B mangle
+-table. The mark is 32 bits wide.
++table). The mark is 32 bits wide.
+  .TP
+  \fB\-\-selctx\fP \fIsecurity_context\fP
+diff --git a/ip6tables.8.in b/ip6tables.8.in
+index 7690ba1..61d6667 100644
+--- a/ip6tables.8.in
++++ b/ip6tables.8.in
+@@ -123,6 +123,17 @@ hooks with higher priority and is thus called 
+before ip_conntrack, or any other
+  IP tables.  It provides the following built-in chains: \fBPREROUTING\fP
+  (for packets arriving via any network interface) \fBOUTPUT\fP
+  (for packets generated by local processes)
++.TP
++\fBsecurity\fP:
++This table is used for Mandatory Access Control (MAC) networking rules, 
+such
++as those enabled by the \fBSECMARK\fP and \fBCONNSECMARK\fP targets.
++Mandatory Access Control is implemented by Linux Security Modules such as
++SELinux.  The security table is called after the filter table, allowing any
++Discretionary Access Control (DAC) rules in the filter table to take effect
++before MAC rules.  This table provides the following built-in chains:
++\fBINPUT\fP (for packets coming into the box itself),
++\fBOUTPUT\fP (for altering locally-generated packets before routing), and
++\fBFORWARD\fP (for altering packets being routed through the box).
+  .RE
+  .SH OPTIONS
+  The options that are recognized by
+diff --git a/iptables.8.in b/iptables.8.in
+index 4b97bc3..110c599 100644
+--- a/iptables.8.in
++++ b/iptables.8.in
+@@ -129,6 +129,17 @@ hooks with higher priority and is thus called 
+before ip_conntrack, or any other
+  IP tables.  It provides the following built-in chains: \fBPREROUTING\fP
+  (for packets arriving via any network interface) \fBOUTPUT\fP
+  (for packets generated by local processes)
++.TP
++\fBsecurity\fP:
++This table is used for Mandatory Access Control (MAC) networking rules, 
+such
++as those enabled by the \fBSECMARK\fP and \fBCONNSECMARK\fP targets.
++Mandatory Access Control is implemented by Linux Security Modules such as
++SELinux.  The security table is called after the filter table, allowing any
++Discretionary Access Control (DAC) rules in the filter table to take effect
++before MAC rules.  This table provides the following built-in chains:
++\fBINPUT\fP (for packets coming into the box itself),
++\fBOUTPUT\fP (for altering locally-generated packets before routing), and
++\fBFORWARD\fP (for altering packets being routed through the box).
+  .RE
+  .SH OPTIONS
+  The options that are recognized by
+-- 
+1.7.4
 
-However sets get deleted from the timeout variant of a list:set types by 
-the garbage collector, too, which runs at timer interrupt. The set 
-destroying happens by first checking the reference counter, then 
-destroying the set without holding any lock. Because the garbage collector 
-only decrements the refcount, we could go without using any rwlock and 
-having atomic refcounts: if the counter is zero, we are safe and can 
-destroy the set.
-
-But when swapping two sets, the operation swaps the names, reference 
-counters and the pointers of the sets. The values of two atomic counters 
-cannot safely be swapped without holding some kind of lock. So I could not 
-avoid introducing a rwlock to protect the refcounts, but then those are
-not needed to be atomic.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
