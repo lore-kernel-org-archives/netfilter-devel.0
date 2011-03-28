@@ -1,39 +1,53 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2] netfilter:ipset: References are protected by rwlock
- instead of mutex
-Date: Mon, 28 Mar 2011 14:35:01 +0200
-Message-ID: <4D908075.1010008@trash.net>
-References: <1301049733-32160-1-git-send-email-kadlec@blackhole.kfki.hu> <1301049733-32160-2-git-send-email-kadlec@blackhole.kfki.hu> <1301049733-32160-3-git-send-email-kadlec@blackhole.kfki.hu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: ctnetlink kernel dump while running multiple libnfct clients
+Date: Mon, 28 Mar 2011 14:47:13 +0200
+Message-ID: <4D908351.5010407@netfilter.org>
+References: <AANLkTi=17VZ6Sjgj57LTa-xcJj00BSjv_-4DveiutNo1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Sam Roberts <vieuxtech@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41150 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620Ab1C1MfE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Mar 2011 08:35:04 -0400
-In-Reply-To: <1301049733-32160-3-git-send-email-kadlec@blackhole.kfki.hu>
+Received: from mail.us.es ([193.147.175.20]:45820 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753098Ab1C1Mqp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Mar 2011 08:46:45 -0400
+In-Reply-To: <AANLkTi=17VZ6Sjgj57LTa-xcJj00BSjv_-4DveiutNo1@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 25.03.2011 11:42, schrieb Jozsef Kadlecsik:
-> The timeout variant of the list:set type must reference the member sets.
-> However, its garbage collector runs at timer interrupt so the mutex protection
-> of the references is a no go. Therefore the reference protection
-> is converted to rwlock.
-> 
+On 25/03/11 01:21, Sam Roberts wrote:
+> Screenshot attached.
+>
+> At the time I had 3 connections to nfnetlink open
+> - a userspace connection tracker
 
->  __ip_set_get(ip_set_id_t index)
->  {
-> -	atomic_inc(&ip_set_list[index]->ref);
-> +	write_lock_bh(&ip_set_ref_lock);
-> +	ip_set_list[index]->ref++;
-> +	write_unlock_bh(&ip_set_ref_lock);
->  }
->  
+what protocol are you tracking from user-space?
 
-I'm not sure I get this, why aren't regular atomic ops working
-here?
+> - a utility of mine that prints conntrack and expect events
+> (https://github.com/sam-github/libnet/blob/master/lua/nfct-events)
+> - watch -n0.8 -d sudo conntrack -L e
+>
+> It was after 5 or so loops of the watch that the kernel BUGged out.
+>
+> kernel is 2.6.38-020638-generic (ubuntu's v2.6.28-natty).
+>
+> For what it's worth, ctnetlink_exp_dump_expect() seems to assume that
+> the expectation being printed has a helper with a name that it can
+> call strlen() on:
+>
+>                 helper = rcu_dereference(help->helper);
+>                  if (helper)
+>                          NLA_PUT_STRING(skb, CTA_EXPECT_HELP_NAME, helper->name);
+>          }
+
+AFAICS, the only way to hit this problem is to have some connection 
+tracking helper in the kernel which overlaps your user-space helper, ie. 
+someone is attaching a kernel helper to your conntrack.
+
+> The expectation being printed is one I created from userspace, so I
+> don't know what helper was found for it, or what it's name would be
+> (if any).
+
+Need more info to know what's going on.
