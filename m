@@ -1,36 +1,35 @@
-From: Sam Roberts <vieuxtech@gmail.com>
-Subject: Re: can expectations be marked persistent, so they can match
- repeatedly until they timeout?
-Date: Tue, 29 Mar 2011 11:54:15 -0700
-Message-ID: <AANLkTinP8AMGwmyX7WxCrXTLNZcc_4ofAO7_D+ASkvu_@mail.gmail.com>
-References: <AANLkTi=dEfb8f1moPE5Mp2yS5DqiB=abuJcFP99opXy9@mail.gmail.com>
-	<4D9070AA.60100@trash.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [ANNOUNCE] ipset 6.2 released
+Date: Tue, 29 Mar 2011 21:23:57 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1103292123001.8329@blackhole.kfki.hu>
+References: <alpine.DEB.2.00.1103272124170.3535@blackhole.kfki.hu> <4D91E7D7.3070000@msgid.tls.msk.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Michael Tokarev <mjt@tls.msk.ru>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:41700 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751212Ab1C2SyQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Mar 2011 14:54:16 -0400
-Received: by vws1 with SMTP id 1so418289vws.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Mar 2011 11:54:15 -0700 (PDT)
-In-Reply-To: <4D9070AA.60100@trash.net>
+Received: from smtp1.kfki.hu ([148.6.0.26]:38028 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751836Ab1C2TX7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Mar 2011 15:23:59 -0400
+In-Reply-To: <4D91E7D7.3070000@msgid.tls.msk.ru>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 28, 2011 at 4:27 AM, Patrick McHardy <kaber@trash.net> wrote:
-> On 24.03.2011 18:43, Sam Roberts wrote:
->> I'm writing a userspace conntrack, using nfqueue and conntrack.
+On Tue, 29 Mar 2011, Michael Tokarev wrote:
 
->> However, unlike ftp, the negotiated ephemeral port is used by multiple
->> simultaneous tcp connections for some period. I'd like the expectation
->> to be kept in place until it times out, even when its matched.
+> ipset-6.2/kernel/net/netfilter/ipset/Kconfig file
+> appears to be some net/netfilter/Kconfig file from
+> linux source tree (from one directory level up),
+> patched with NETFILTER_XT_SET.  It gets included
+> into itself recursively.
 
-> You should be able to use NF_CT_EXPECT_PERMANENT.
+Yes, you are right, I fixed it in the ipset git tree. Thanks!
 
-Yes, that works perfectly. Thank you.
-
-Sam
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
