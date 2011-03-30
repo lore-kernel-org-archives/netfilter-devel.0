@@ -1,35 +1,67 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: ctnetlink kernel dump while running multiple libnfct clients
-Date: Wed, 30 Mar 2011 01:11:54 +0200
-Message-ID: <4D92673A.5070108@netfilter.org>
-References: <AANLkTi=17VZ6Sjgj57LTa-xcJj00BSjv_-4DveiutNo1@mail.gmail.com>	<4D908351.5010407@netfilter.org>	<AANLkTi=LNMqTMf34OnjP3rgp5hrw=bLgrdZneZ4cyffi@mail.gmail.com>	<4D91B083.2000001@netfilter.org>	<AANLkTi=XfknKE9RkiohtW4+xzpAe2CGY1JDg7_JtfSUG@mail.gmail.com>	<4D925614.2000909@netfilter.org> <AANLkTi=9y=E3dfq3QZEUHcQ506uHb+VhsivB+Ot-QQgR@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] netfilter: Fix build failure when ipv6 but xt_tproxy
+ is built in
+Date: Tue, 29 Mar 2011 22:35:36 -0700 (PDT)
+Message-ID: <20110329.223536.245392030.davem@davemloft.net>
+References: <1301451199.14261.327.camel@gandalf.stny.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Sam Roberts <vieuxtech@gmail.com>
+Cc: linux-kernel@vger.kernel.org, hidden@balabit.hu,
+	akpm@linux-foundation.org, netfilter-devel@vger.kernel.org,
+	kaber@trash.net, netdev@vger.kernel.org
+To: rostedt@goodmis.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53596 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751989Ab1C2XMA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Mar 2011 19:12:00 -0400
-In-Reply-To: <AANLkTi=9y=E3dfq3QZEUHcQ506uHb+VhsivB+Ot-QQgR@mail.gmail.com>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:47849
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750912Ab1C3FgO (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Mar 2011 01:36:14 -0400
+In-Reply-To: <1301451199.14261.327.camel@gandalf.stny.rr.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 30/03/11 00:44, Sam Roberts wrote:
-> When this happened, I was running the prototype conntracker, and
-> several instances of conntrack -E (for each table). I typed a
-> conntrack -L command, and the kernel died after I hit ENTER. Could be
-> unrelated to that, but seems suspiciously coincidental that the
-> backtrace shown reflects something I did (it looks related to printing
-> conntracks). Still, you would know better than me what the kernel does
-> when things go wrong.
+From: Steven Rostedt <rostedt@goodmis.org>
+Date: Tue, 29 Mar 2011 22:13:19 -0400
 
-I think I've got the problematic scenario: the master ct is released
-while there are still user-space expectations. In that case, the
-expectations still point to the master, once they've been released. Once
-the expectations expire, we dereference to the master ct which is not
-valid anymore.
+> While running ktest.pl doing ranconfigs, the following build error
+> occurred:
 
-I'll send a patch to fix this.
+Is sending netfilter patches to the explicitly listed maintainer in
+MAINTAINERS too much to ask Stephen? :-/
+
+CC:'d
+
+> 
+> net/built-in.o: In function `tproxy_tg6_v1':
+> /home/rostedt/work/autotest/nobackup/linux-test.git/net/netfilter/xt_TPROXY.c:288: undefined reference to `ipv6_find_hdr'
+> 
+> This happened because the xt_TPROXY code was compiled into the kernel
+> proper, but the ipv6 netfilter was compiled as a module. The fix is to
+> only enter the code that calls ipv6_find_hdr if ipv6 netfilter is
+> compiled into the kernel, or if it is a module, so is the xt_TPROXY
+> code.
+> 
+> Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+> 
+> diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
+> index dcfd57e..5915f94 100644
+> --- a/net/netfilter/xt_TPROXY.c
+> +++ b/net/netfilter/xt_TPROXY.c
+> @@ -22,7 +22,13 @@
+>  
+>  #include <net/netfilter/ipv4/nf_defrag_ipv4.h>
+>  
+> -#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
+> +/*
+> + * Only include the following if ip6 tables is compiled in
+> + * the kernel, or it is a module and this code is also a module.
+> + */
+> +#if defined(CONFIG_IP6_NF_IPTABLES) || \
+> +	(defined(CONFIG_IP6_NF_IPTABLES_MODULE) && \
+> +	 defined(CONFIG_NETFILTER_XT_TARGET_TPROXY_MODULE))
+>  #define XT_TPROXY_HAVE_IPV6 1
+>  #include <net/if_inet6.h>
+>  #include <net/addrconf.h>
+> 
+> 
