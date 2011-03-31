@@ -1,60 +1,47 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH] IPVS Bug, Null ptr in ip_vs_ctl.c ip_vs_genl_dump_daemons().
-Date: Thu, 31 Mar 2011 10:32:15 +0900
-Message-ID: <1301535135-4288-2-git-send-email-horms@verge.net.au>
-References: <1301535135-4288-1-git-send-email-horms@verge.net.au>
-Cc: Hans Schillstrom <hans@schillstrom.com>,
-	Julian Anastasov <ja@ssi.bg>,
-	Patrick McHardy <kaber@trash.net>,
-	Simon Horman <horms@verge.net.au>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>
-To: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1301535135-4288-1-git-send-email-horms@verge.net.au>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: "\"Oleg A. Arkhangelsky\"" <sysoleg@yandex.ru>
+Subject: Re: Kernel panic nf_nat_setup_info+0x5b3/0x6e0
+Date: Thu, 31 Mar 2011 18:03:42 +0400
+Message-ID: <586191301580222@web107.yandex.ru>
+References: <118081298480841@web25.yandex.ru> <4D6E2BEB.50805@trash.net>
+ <AANLkTikkz23221ZSiat8N5tnE_bkHN=1EUNQTDdnC30L@mail.gmail.com>
+ <124481299095426@web67.yandex.ru> <AANLkTik87dd0=CqcMOcwKN-Hx7W6KD7A36DUhGAzLddr@mail.gmail.com> <AANLkTi=v_Ckn00N=b2R2pW7jb3BmyyWPSkeCYRxBW0CW@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	Paul E McKenney <paulmck@linux.vnet.ibm.com>
+To: Changli Gao <xiaosuo@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from forward10.mail.yandex.net ([77.88.61.49]:38372 "EHLO
+	forward10.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757875Ab1CaOKK (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 31 Mar 2011 10:10:10 -0400
+In-Reply-To: <AANLkTi=v_Ckn00N=b2R2pW7jb3BmyyWPSkeCYRxBW0CW@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Hans Schillstrom <hans.schillstrom@ericsson.com>
 
-ipvsadm -ln --daemon will trigger a Null pointer exception because
-ip_vs_genl_dump_daemons() uses skb_net() instead of skb_sknet().
 
-To prevent others from NULL ptr a check is made in ip_vs.h skb_net().
+26.03.2011, 16:44, "Changli Gao" <xiaosuo@gmail.com>:
+> On Thu, Mar 3, 2011 at 3:33 PM, Changli Gao <xiaosuo@gmail.com>; wrot=
+e:
+>
+>> =9APlease try the patch attached and test if the problem is solved o=
+r not. Thanks.
+>
+> Any feedback? Thanks.
+>
 
-Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Signed-off-by: Simon Horman <horms@verge.net.au>
----
- include/net/ip_vs.h            |    2 +-
- net/netfilter/ipvs/ip_vs_ctl.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Seems that patch is fine.
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 30b49ed..4d1b71a 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -52,7 +52,7 @@ static inline struct net *skb_net(const struct sk_buff *skb)
- 	 */
- 	if (likely(skb->dev && skb->dev->nd_net))
- 		return dev_net(skb->dev);
--	if (skb_dst(skb)->dev)
-+	if (skb_dst(skb) && skb_dst(skb)->dev)
- 		return dev_net(skb_dst(skb)->dev);
- 	WARN(skb->sk, "Maybe skb_sknet should be used in %s() at line:%d\n",
- 		      __func__, __LINE__);
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 33733c8..ae47090 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -3120,7 +3120,7 @@ nla_put_failure:
- static int ip_vs_genl_dump_daemons(struct sk_buff *skb,
- 				   struct netlink_callback *cb)
- {
--	struct net *net = skb_net(skb);
-+	struct net *net = skb_sknet(skb);
- 	struct netns_ipvs *ipvs = net_ipvs(net);
- 
- 	mutex_lock(&__ip_vs_mutex);
--- 
-1.7.4.1
+https://bugzilla.kernel.org/show_bug.cgi?id=3D21512
 
+--=20
+wbr, Oleg.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
