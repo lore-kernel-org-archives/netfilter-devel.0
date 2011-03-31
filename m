@@ -1,47 +1,53 @@
-From: "\"Oleg A. Arkhangelsky\"" <sysoleg@yandex.ru>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: Kernel panic nf_nat_setup_info+0x5b3/0x6e0
-Date: Thu, 31 Mar 2011 18:03:42 +0400
-Message-ID: <586191301580222@web107.yandex.ru>
+Date: Thu, 31 Mar 2011 16:47:52 +0200
+Message-ID: <1301582872.3169.44.camel@edumazet-laptop>
 References: <118081298480841@web25.yandex.ru> <4D6E2BEB.50805@trash.net>
- <AANLkTikkz23221ZSiat8N5tnE_bkHN=1EUNQTDdnC30L@mail.gmail.com>
- <124481299095426@web67.yandex.ru> <AANLkTik87dd0=CqcMOcwKN-Hx7W6KD7A36DUhGAzLddr@mail.gmail.com> <AANLkTi=v_Ckn00N=b2R2pW7jb3BmyyWPSkeCYRxBW0CW@mail.gmail.com>
+	 <AANLkTikkz23221ZSiat8N5tnE_bkHN=1EUNQTDdnC30L@mail.gmail.com>
+	 <124481299095426@web67.yandex.ru>
+	 <AANLkTik87dd0=CqcMOcwKN-Hx7W6KD7A36DUhGAzLddr@mail.gmail.com>
+	 <AANLkTi=v_Ckn00N=b2R2pW7jb3BmyyWPSkeCYRxBW0CW@mail.gmail.com>
+	 <586191301580222@web107.yandex.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=koi8-r
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org,
+Cc: Changli Gao <xiaosuo@gmail.com>, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	Paul E McKenney <paulmck@linux.vnet.ibm.com>
-To: Changli Gao <xiaosuo@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from forward10.mail.yandex.net ([77.88.61.49]:38372 "EHLO
-	forward10.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757875Ab1CaOKK (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Mar 2011 10:10:10 -0400
-In-Reply-To: <AANLkTi=v_Ckn00N=b2R2pW7jb3BmyyWPSkeCYRxBW0CW@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: "\"Oleg A. Arkhangelsky\"" <sysoleg@yandex.ru>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <586191301580222@web107.yandex.ru>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-
-
-26.03.2011, 16:44, "Changli Gao" <xiaosuo@gmail.com>:
-> On Thu, Mar 3, 2011 at 3:33 PM, Changli Gao <xiaosuo@gmail.com>; wrot=
-e:
->
->> =9APlease try the patch attached and test if the problem is solved o=
+Le jeudi 31 mars 2011 =C3=A0 18:03 +0400, "Oleg A. Arkhangelsky" a =C3=A9=
+crit :
+>=20
+> 26.03.2011, 16:44, "Changli Gao" <xiaosuo@gmail.com>:
+> > On Thu, Mar 3, 2011 at 3:33 PM, Changli Gao <xiaosuo@gmail.com>; wr=
+ote:
+> >
+> >>  Please try the patch attached and test if the problem is solved o=
 r not. Thanks.
->
-> Any feedback? Thanks.
->
+> >
+> > Any feedback? Thanks.
+> >
+>=20
+> Seems that patch is fine.
+>=20
+> https://bugzilla.kernel.org/show_bug.cgi?id=3D21512
+>=20
 
-Seems that patch is fine.
+I wonder if this is not hiding another bug.
 
-https://bugzilla.kernel.org/show_bug.cgi?id=3D21512
+Adding an RCU grace period might reduce the probability window.
 
---=20
-wbr, Oleg.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+By the time nf_conntrack_free(ct) is called, no other cpu/thread
+could/should use ct, or ct->ext ?
+
+Sure, another thread can find/pass_on ct in a lookup but should not use
+it, since its refcount (ct_general.use) should be 0.
+
+Patrick ?
+
+
