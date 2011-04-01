@@ -1,142 +1,148 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: Kernel panic nf_nat_setup_info+0x5b3/0x6e0
-Date: Fri, 01 Apr 2011 07:30:40 +0200
-Message-ID: <1301635840.2881.19.camel@edumazet-laptop>
-References: <118081298480841@web25.yandex.ru> <4D6E2BEB.50805@trash.net>
-	 <AANLkTikkz23221ZSiat8N5tnE_bkHN=1EUNQTDdnC30L@mail.gmail.com>
-	 <124481299095426@web67.yandex.ru>
-	 <AANLkTik87dd0=CqcMOcwKN-Hx7W6KD7A36DUhGAzLddr@mail.gmail.com>
-	 <AANLkTi=v_Ckn00N=b2R2pW7jb3BmyyWPSkeCYRxBW0CW@mail.gmail.com>
-	 <586191301580222@web107.yandex.ru>
-	 <1301582872.3169.44.camel@edumazet-laptop>
-	 <AANLkTinBn+dKCaHN2Hq7kOocfMsvCO8wBpOgWd3VBV3g@mail.gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 02/17] mark newly opened fds as FD_CLOEXEC (close on
+ exec)
+Date: Fri, 1 Apr 2011 11:31:32 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1104011130430.10168@obet.zrqbmnf.qr>
+References: <AANLkTika7Hgg=AUkkoDE0QroXKnJvA8fr23q-trk8Wbv@mail.gmail.com> <1301632053-3694-2-git-send-email-zenczykowski@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "\"Oleg A. Arkhangelsky\"" <sysoleg@yandex.ru>,
-	Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Paul E McKenney <paulmck@linux.vnet.ibm.com>
-To: Changli Gao <xiaosuo@gmail.com>
+Cc: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <maze@google.com>,
+	netfilter-devel@vger.kernel.org
+To: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:43332 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751530Ab1DAFaq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Apr 2011 01:30:46 -0400
-In-Reply-To: <AANLkTinBn+dKCaHN2Hq7kOocfMsvCO8wBpOgWd3VBV3g@mail.gmail.com>
+Received: from borg.medozas.de ([188.40.89.202]:57226 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755193Ab1DAJbe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 1 Apr 2011 05:31:34 -0400
+In-Reply-To: <1301632053-3694-2-git-send-email-zenczykowski@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le vendredi 01 avril 2011 =C3=A0 10:02 +0800, Changli Gao a =C3=A9crit =
-:
-> On Thu, Mar 31, 2011 at 10:47 PM, Eric Dumazet <eric.dumazet@gmail.co=
-m> wrote:
-> >
-> > I wonder if this is not hiding another bug.
-> >
-> > Adding an RCU grace period might reduce the probability window.
+On Friday 2011-04-01 06:27, Maciej =C5=BBenczykowski wrote:
+
+>From: Maciej =C5=BBenczykowski <maze@google.com>
+>
+>(This is iptables-1.4.3.1-cloexec.patch from RedHat iptables.src.rpm)
+
+Redhat still has not given a reason as to why this is needed.
+
+
+>@@ -49,7 +49,7 @@ static void load_realms(void)
+> 	int id;
+> 	struct realmname *oldnm =3D NULL, *newnm =3D NULL;
 >=20
-> What bug? This one?
+>-	fil =3D fopen(rfnm, "r");
+>+	fil =3D fopen(rfnm, "re");
+> 	if (!fil) {
+> 		rdberr =3D 1;
+> 		return;
+>diff --git a/ip6tables-restore.c b/ip6tables-restore.c
+>index e9a130f..10c3acf 100644
+>--- a/ip6tables-restore.c
+>+++ b/ip6tables-restore.c
+>@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
+> 	}
 >=20
-
-Yes. I am saying your patch is a brown paper bag.
-
-Real bug is elsewhere, and we must find it, not make it happen less
-frequently.
-
-Maybe its a missing barrier, and adding a full RCU grace period is a
-waste (of cpu caches space, since call_rcu() fill a potential big list)
-
-> >
-> > By the time nf_conntrack_free(ct) is called, no other cpu/thread
-> > could/should use ct, or ct->ext ?
+> 	if (optind =3D=3D argc - 1) {
+>-		in =3D fopen(argv[optind], "r");
+>+		in =3D fopen(argv[optind], "re");
+> 		if (!in) {
+> 			fprintf(stderr, "Can't open %s: %s\n", argv[optind],
+> 				strerror(errno));
+>diff --git a/ip6tables-save.c b/ip6tables-save.c
+>index dc189e9..c3b8ec0 100644
+>--- a/ip6tables-save.c
+>+++ b/ip6tables-save.c
+>@@ -41,7 +41,7 @@ static int for_each_table(int (*func)(const char *ta=
+blename))
+> 	FILE *procfile =3D NULL;
+> 	char tablename[IP6T_TABLE_MAXNAMELEN+1];
 >=20
-> nat->ct may refer it.
+>-	procfile =3D fopen("/proc/net/ip6_tables_names", "r");
+>+	procfile =3D fopen("/proc/net/ip6_tables_names", "re");
+> 	if (!procfile)
+> 		return ret;
 >=20
-
-conntrack must have a real problem of refcounting then.
-
-Each time an object A has a reference to object B, we should increase B
-refcount, so B cannot disappear.
-
-nat->ct _cannot_ refer ct if we are freeing ct. Thats quite simple rule=
-=2E
-
-> >
-> > Sure, another thread can find/pass_on ct in a lookup but should not=
- use
-> > it, since its refcount (ct_general.use) should be 0.
-> >
-> >
+>diff --git a/iptables-restore.c b/iptables-restore.c
+>index 31ce52b..c2cc58c 100644
+>--- a/iptables-restore.c
+>+++ b/iptables-restore.c
+>@@ -174,7 +174,7 @@ main(int argc, char *argv[])
+> 	}
 >=20
-> As SLAB_DESTROY_BY_RCU is used, we should validate ct->orig_tuple too=
-=2E
+> 	if (optind =3D=3D argc - 1) {
+>-		in =3D fopen(argv[optind], "r");
+>+		in =3D fopen(argv[optind], "re");
+> 		if (!in) {
+> 			fprintf(stderr, "Can't open %s: %s\n", argv[optind],
+> 				strerror(errno));
+>diff --git a/iptables-save.c b/iptables-save.c
+>index 3bcf422..3e3ec43 100644
+>--- a/iptables-save.c
+>+++ b/iptables-save.c
+>@@ -39,7 +39,7 @@ static int for_each_table(int (*func)(const char *ta=
+blename))
+> 	FILE *procfile =3D NULL;
+> 	char tablename[IPT_TABLE_MAXNAMELEN+1];
 >=20
-> There is another minor problem.
+>-	procfile =3D fopen("/proc/net/ip_tables_names", "r");
+>+	procfile =3D fopen("/proc/net/ip_tables_names", "re");
+> 	if (!procfile)
+> 		return ret;
 >=20
-
-minor or serious ?
-
-
-> nf_nat_core.c:
+>diff --git a/iptables-xml.c b/iptables-xml.c
+>index 8d67056..57c7486 100644
+>--- a/iptables-xml.c
+>+++ b/iptables-xml.c
+>@@ -651,7 +651,7 @@ main(int argc, char *argv[])
+> 	}
 >=20
-> 133         rcu_read_lock();
-> 134         hlist_for_each_entry_rcu(nat, n,
-> &net->ipv4.nat_bysource[h], bysourc    e) {
-> 135                 ct =3D nat->ct;
-> 136                 if (same_src(ct, tuple) && nf_ct_zone(ct) =3D=3D =
-zone) {
-> 137                         /* Copy source part from reply tuple. */
-> 138                         nf_ct_invert_tuplepr(result,
-> 139
-> &ct->tuplehash[IP_CT_DIR_REPLY].tuple    );
-> 140                         result->dst =3D tuple->dst;
-> 141
-> 142                         if (in_range(result, range)) {
-> 143                                 rcu_read_unlock();
-> 144                                 return 1;
-> 145                         }
-> 146                 }
-> 147         }
-> 148         rcu_read_unlock();
+> 	if (optind =3D=3D argc - 1) {
+>-		in =3D fopen(argv[optind], "r");
+>+		in =3D fopen(argv[optind], "re");
+> 		if (!in) {
+> 			fprintf(stderr, "Can't open %s: %s", argv[optind],
+> 				strerror(errno));
+>diff --git a/xtables.c b/xtables.c
+>index 2f00e39..352963f 100644
+>--- a/xtables.c
+>+++ b/xtables.c
+>@@ -300,6 +300,11 @@ static char *get_modprobe(void)
+> 	procfile =3D open(PROC_SYS_MODPROBE, O_RDONLY);
+> 	if (procfile < 0)
+> 		return NULL;
+>+	if (fcntl(procfile, F_SETFD, FD_CLOEXEC) =3D=3D -1) {
+>+		fprintf(stderr, "Could not set close on exec: %s\n",
+>+			strerror(errno));
+>+		exit(1);
+>+	}
 >=20
-> If the ct is reused, NAT mapping will be wrong. It isn't a serious
-> problem, and can't be fixed, even though we check the reference
-> counter before using it, but we can't validate it with the original
-> tuple.
+> 	ret =3D malloc(PROCFILE_BUFSIZ);
+> 	if (ret) {
+>@@ -697,6 +702,12 @@ static int compatible_revision(const char *name, =
+uint8_t revision, int opt)
+> 		exit(1);
+> 	}
 >=20
-
-I call this a serious problem. netfilter is not a fuzzy logic.
-
-> Maybe we can do it in this way
+>+	if (fcntl(sockfd, F_SETFD, FD_CLOEXEC) =3D=3D -1) {
+>+		fprintf(stderr, "Could not set close on exec: %s\n",
+>+			strerror(errno));
+>+		exit(1);
+>+	}
+>+
+> 	xtables_load_ko(xtables_modprobe_program, true);
 >=20
->                 ct =3D nat->ct;
->                 if (!nf_ct_is_dying(ct) &&
-> atomic_inc_not_zero(&ct->ct_general.use))) {
->                                if (nf_ct_ext_find(ct, NF_CT_EXT_NAT) =
-=3D=3D nat) {
->                                         /* ct is valid, do sth... */
->                                }
->                                nf_ct_put(ct);
->                 }
->=20
-> I think two additional atomic operations are expensive. It isn't a go=
-od idea.
->=20
-
-It depends. This is better than taking the conntrack lock.
-
-SLAB_DESTROY_BY_RCU is not allowing for fuzzy logic. Rules are we _must=
-_
-take a reference on object after finding it, and _recheck_ validity of
-the object before using it.
-
-Another way to avoid atomic operations in find_appropriate_src() is to
-use a seqcount (or seqlock), and change the seqcount every time
-something is changed in ct.
-
-
+> 	strcpy(rev.name, name);
+>--=20
+>1.7.3.1
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe netfilter-de=
+vel" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
