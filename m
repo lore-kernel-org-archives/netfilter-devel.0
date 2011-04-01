@@ -1,7 +1,7 @@
 From: =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Subject: [PATCH 10/17] v4: rename flush_entries() to flush_entries4()
-Date: Thu, 31 Mar 2011 21:27:26 -0700
-Message-ID: <1301632053-3694-10-git-send-email-zenczykowski@gmail.com>
+Subject: [PATCH 11/17] v6: rename flush_entries() to flush_entries6()
+Date: Thu, 31 Mar 2011 21:27:27 -0700
+Message-ID: <1301632053-3694-11-git-send-email-zenczykowski@gmail.com>
 References: <AANLkTika7Hgg=AUkkoDE0QroXKnJvA8fr23q-trk8Wbv@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -12,11 +12,11 @@ To: =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from mail-iy0-f174.google.com ([209.85.210.174]:51270 "EHLO
 	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751590Ab1DAE21 (ORCPT
+	with ESMTP id S1751590Ab1DAE22 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Apr 2011 00:28:27 -0400
+	Fri, 1 Apr 2011 00:28:28 -0400
 Received: by mail-iy0-f174.google.com with SMTP id 14so3069298iyb.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 31 Mar 2011 21:28:26 -0700 (PDT)
+        for <netfilter-devel@vger.kernel.org>; Thu, 31 Mar 2011 21:28:28 -0700 (PDT)
 In-Reply-To: <AANLkTika7Hgg=AUkkoDE0QroXKnJvA8fr23q-trk8Wbv@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -25,65 +25,70 @@ List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Maciej =C5=BBenczykowski <maze@google.com>
 ---
- include/iptables.h |    2 +-
- iptables-restore.c |    2 +-
- iptables.c         |    6 +++---
+ include/ip6tables.h |    2 +-
+ ip6tables-restore.c |    2 +-
+ ip6tables.c         |    6 +++---
  3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/include/iptables.h b/include/iptables.h
-index 76cc8d6..a2ed9d6 100644
---- a/include/iptables.h
-+++ b/include/iptables.h
-@@ -11,7 +11,7 @@ extern int do_command(int argc, char *argv[], char **=
-table,
- 		      struct iptc_handle **handle);
- extern int delete_chain(const ipt_chainlabel chain, int verbose,
- 			struct iptc_handle *handle);
--extern int flush_entries(const ipt_chainlabel chain, int verbose,=20
-+extern int flush_entries4(const ipt_chainlabel chain, int verbose,=20
- 			struct iptc_handle *handle);
- extern int for_each_chain4(int (*fn)(const ipt_chainlabel, int, struct=
- iptc_handle *),
- 		int verbose, int builtinstoo, struct iptc_handle *handle);
-diff --git a/iptables-restore.c b/iptables-restore.c
-index d3b7124..1bdce8a 100644
---- a/iptables-restore.c
-+++ b/iptables-restore.c
-@@ -233,7 +233,7 @@ main(int argc, char *argv[])
+diff --git a/include/ip6tables.h b/include/ip6tables.h
+index e9a0f4e..672faed 100644
+--- a/include/ip6tables.h
++++ b/include/ip6tables.h
+@@ -11,7 +11,7 @@ extern int do_command6(int argc, char *argv[], char *=
+*table,
+ 		       struct ip6tc_handle **handle);
+=20
+ extern int for_each_chain6(int (*fn)(const ip6t_chainlabel, int, struc=
+t ip6tc_handle *), int verbose, int builtinstoo, struct ip6tc_handle *h=
+andle);
+-extern int flush_entries(const ip6t_chainlabel chain, int verbose, str=
+uct ip6tc_handle *handle);
++extern int flush_entries6(const ip6t_chainlabel chain, int verbose, st=
+ruct ip6tc_handle *handle);
+ extern int delete_chain(const ip6t_chainlabel chain, int verbose, stru=
+ct ip6tc_handle *handle);
+ void print_rule(const struct ip6t_entry *e, struct ip6tc_handle *h, co=
+nst char *chain, int counters);
+=20
+diff --git a/ip6tables-restore.c b/ip6tables-restore.c
+index a4e3707..3b50a54 100644
+--- a/ip6tables-restore.c
++++ b/ip6tables-restore.c
+@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
  			if (noflush =3D=3D 0) {
  				DEBUGP("Cleaning all chains of table '%s'\n",
  					table);
--				for_each_chain4(flush_entries, verbose, 1,
-+				for_each_chain4(flush_entries4, verbose, 1,
+-				for_each_chain6(flush_entries, verbose, 1,
++				for_each_chain6(flush_entries6, verbose, 1,
  						handle);
 =20
  				DEBUGP("Deleting all user-defined chains "
-diff --git a/iptables.c b/iptables.c
-index b7cedd2..3987b67 100644
---- a/iptables.c
-+++ b/iptables.c
-@@ -898,11 +898,11 @@ for_each_chain4(int (*fn)(const ipt_chainlabel, i=
-nt, struct iptc_handle *),
+diff --git a/ip6tables.c b/ip6tables.c
+index 6774586..abcf0ca 100644
+--- a/ip6tables.c
++++ b/ip6tables.c
+@@ -895,11 +895,11 @@ for_each_chain6(int (*fn)(const ip6t_chainlabel, =
+int, struct ip6tc_handle *),
  }
 =20
  int
--flush_entries(const ipt_chainlabel chain, int verbose,
-+flush_entries4(const ipt_chainlabel chain, int verbose,
- 	      struct iptc_handle *handle)
+-flush_entries(const ip6t_chainlabel chain, int verbose,
++flush_entries6(const ip6t_chainlabel chain, int verbose,
+ 	      struct ip6tc_handle *handle)
  {
  	if (!chain)
--		return for_each_chain4(flush_entries, verbose, 1, handle);
-+		return for_each_chain4(flush_entries4, verbose, 1, handle);
+-		return for_each_chain6(flush_entries, verbose, 1, handle);
++		return for_each_chain6(flush_entries6, verbose, 1, handle);
 =20
  	if (verbose)
  		fprintf(stdout, "Flushing chain `%s'\n", chain);
-@@ -1975,7 +1975,7 @@ int do_command(int argc, char *argv[], char **tab=
-le, struct iptc_handle **handle
+@@ -1937,7 +1937,7 @@ int do_command6(int argc, char *argv[], char **ta=
+ble, struct ip6tc_handle **hand
  				   *handle);
  		break;
  	case CMD_FLUSH:
 -		ret =3D flush_entries(chain, cs.options&OPT_VERBOSE, *handle);
-+		ret =3D flush_entries4(chain, cs.options&OPT_VERBOSE, *handle);
++		ret =3D flush_entries6(chain, cs.options&OPT_VERBOSE, *handle);
  		break;
  	case CMD_ZERO:
  		ret =3D zero_entries(chain, cs.options&OPT_VERBOSE, *handle);
