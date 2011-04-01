@@ -1,56 +1,55 @@
 From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Subject: Re: [PATCH 02/17] mark newly opened fds as FD_CLOEXEC (close on exec)
-Date: Fri, 1 Apr 2011 14:34:39 -0700
-Message-ID: <BANLkTinwDu8MkeoNyHh9e6p1S69DqFEZGQ@mail.gmail.com>
+Subject: Re: [PATCH 05/17] v4: rename init_extensions() to init_extensions4()
+Date: Fri, 1 Apr 2011 14:38:16 -0700
+Message-ID: <AANLkTim+sqcwuGgR1-qK1q_0iJTqn7Qkc3sQYJcT2mg3@mail.gmail.com>
 References: <AANLkTika7Hgg=AUkkoDE0QroXKnJvA8fr23q-trk8Wbv@mail.gmail.com>
-	<1301632053-3694-2-git-send-email-zenczykowski@gmail.com>
-	<alpine.LNX.2.01.1104011130430.10168@obet.zrqbmnf.qr>
+	<1301632053-3694-5-git-send-email-zenczykowski@gmail.com>
+	<alpine.LNX.2.01.1104011214570.10168@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:12611 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757161Ab1DAVes (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:48753 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757161Ab1DAVjY convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Apr 2011 17:34:48 -0400
-Received: from hpaq5.eem.corp.google.com (hpaq5.eem.corp.google.com [172.25.149.5])
-	by smtp-out.google.com with ESMTP id p31LYfCl023777
-	for <netfilter-devel@vger.kernel.org>; Fri, 1 Apr 2011 14:34:45 -0700
-Received: from pwi4 (pwi4.prod.google.com [10.241.219.4])
-	by hpaq5.eem.corp.google.com with ESMTP id p31LY6FZ021974
-	(version=TLSv1/SSLv3 cipher=RC4-MD5 bits=128 verify=NOT)
-	for <netfilter-devel@vger.kernel.org>; Fri, 1 Apr 2011 14:34:39 -0700
-Received: by pwi4 with SMTP id 4so1367093pwi.11
-        for <netfilter-devel@vger.kernel.org>; Fri, 01 Apr 2011 14:34:39 -0700 (PDT)
-In-Reply-To: <alpine.LNX.2.01.1104011130430.10168@obet.zrqbmnf.qr>
+	Fri, 1 Apr 2011 17:39:24 -0400
+Received: by wya21 with SMTP id 21so3311939wya.19
+        for <netfilter-devel@vger.kernel.org>; Fri, 01 Apr 2011 14:39:23 -0700 (PDT)
+In-Reply-To: <alpine.LNX.2.01.1104011214570.10168@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> Redhat still has not given a reason as to why this is needed.
+To be able to combine iptables-multi and ip6tables-multi into one
+binary (ie. to avoid duplicate symbol definition problems at link
+time).
 
-I believe:
-  a) the fact CLOEXEC isn't the default on new fd's is a (UNIX/POSIX)
-API bug (which of course can't be fixed...)
-  b) not setting CLOEXEC on every fd is an application bug (with the
-exception of the specific few fd's you actually want inherited)
-  c) iptables does occasionally fork/exec (to load modules), for
-example "/sbin/modprobe ip6_tables -q", but also for match/target
-revision compatibility checking, and when it does this it can call
-modprobe with additional opened descriptors (for example sockfd inside
-of compatible_revision isn't closed before fork/exec modprobe) - this
-is unclean, and could potentially cause security warnings (or even
-issues?) since iptables and modprobe have different contexts.
-
-[fc14]# ls -alZ `which iptables`
-lrwxrwxrwx. root root system_u:object_r:bin_t:s0       /sbin/iptables
--> iptables-multi
-[fc14]# ls -alZ /sbin/iptables-multi
--rwxr-xr-x. root root system_u:object_r:iptables_exec_t:s0 /sbin/iptables-multi
-[fc14]#  ls -alZ `which modprobe`
--rwxr-xr-x. root root system_u:object_r:insmod_exec_t:s0 /sbin/modprobe
-
-I'm not going to claim I fully understand the security implications of
-leaving the file descriptor open across exec, but there is clearly no
-reason to do so, hence the patch.
+2011/4/1 Jan Engelhardt <jengelh@medozas.de>:
+> On Friday 2011-04-01 06:27, Maciej =C5=BBenczykowski wrote:
+>>diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+>>index b96bd11..84688d3 100644
+>>--- a/extensions/GNUmakefile.in
+>>+++ b/extensions/GNUmakefile.in
+>>@@ -127,8 +127,8 @@ initext4.c: .initext4.dd
+>> =C2=A0 =C2=A0 =C2=A0 for i in ${initext_func}; do \
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 echo "extern void l=
+ib$${i}_init(void);" >>$@; \
+>> =C2=A0 =C2=A0 =C2=A0 done; \
+>>- =C2=A0 =C2=A0 =C2=A0echo "void init_extensions(void);" >>$@; \
+>>- =C2=A0 =C2=A0 =C2=A0echo "void init_extensions(void)" >>$@; \
+>>+ =C2=A0 =C2=A0 =C2=A0echo "void init_extensions4(void);" >>$@; \
+>>+ =C2=A0 =C2=A0 =C2=A0echo "void init_extensions4(void)" >>$@; \
+>> =C2=A0 =C2=A0 =C2=A0 echo "{" >>$@; \
+>> =C2=A0 =C2=A0 =C2=A0 for i in ${initext_func}; do \
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 echo =C2=A0" ""lib$=
+${i}_init();" >>$@; \
+>
+> And the reason for these renames is...?
+>
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
