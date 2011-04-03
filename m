@@ -1,30 +1,31 @@
 From: Brian G <unixman83@gmail.com>
-Subject: Re: How to get access to NAT info from userland
-Date: Sat, 02 Apr 2011 19:07:15 -0500
-Message-ID: <4D97BA33.20205@gmail.com>
-References: <4D96DD0E.4020404@gmail.com> <AANLkTi=U8KZ_=ckSJ9yrqsTdG=L3tgtzLcDQ58mS=eRM@mail.gmail.com>
+Subject: Writing a mangle TARGET for iptables, questions about fragments,
+ checksums
+Date: Sat, 02 Apr 2011 23:47:20 -0500
+Message-ID: <4D97FBD8.9050907@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:36053 "EHLO
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:61082 "EHLO
 	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755567Ab1DCAH1 (ORCPT
+	with ESMTP id S1751091Ab1DCEra (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 Apr 2011 20:07:27 -0400
-Received: by iyb14 with SMTP id 14so4758787iyb.19
-        for <netfilter-devel@vger.kernel.org>; Sat, 02 Apr 2011 17:07:27 -0700 (PDT)
-In-Reply-To: <AANLkTi=U8KZ_=ckSJ9yrqsTdG=L3tgtzLcDQ58mS=eRM@mail.gmail.com>
+	Sun, 3 Apr 2011 00:47:30 -0400
+Received: by iyb14 with SMTP id 14so4871852iyb.19
+        for <netfilter-devel@vger.kernel.org>; Sat, 02 Apr 2011 21:47:29 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 4/2/2011 6:55 PM, Sam Roberts wrote:
-> On Sat, Apr 2, 2011 at 1:23 AM, Brian G<unixman83@gmail.com>  wrote:
->> If not, I still need to know the TRUE DESTINATION when using a transparent
->> proxy so I know where to send to request. What needs to added to the kernel
->> (e.g. like an iptables TARGET) to get this info.
-> Does the conntrack -L output have the info you'd like?
-Probably. Too bad my distro (CentOS) doesn't seem to provide this binary.
-> Sam
-Brian
+Hi,
+
+I want to modify a packet in the TCP mangle PREROUTING table.
+
+First question: Fragments, does the kernel reassemble them BEFORE this 
+point?
+Second question: Checksums, do I need to update the checksum?
+
+Is there example code that I could work with?
+
+- Brian
