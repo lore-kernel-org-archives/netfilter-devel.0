@@ -1,24 +1,28 @@
-From: dann frazier <dannf@dannf.org>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: shutdown oops in xt_compat_calc_jump
-Date: Mon, 4 Apr 2011 15:17:15 -0600
-Message-ID: <20110404211714.GB3720@dannf.org>
-References: <20110404194856.GA3720@dannf.org>
- <4D9A23BC.4010505@trash.net>
- <1301949477.3021.55.camel@edumazet-laptop>
+Date: Tue, 05 Apr 2011 00:48:13 +0200
+Message-ID: <1301957293.3021.191.camel@edumazet-laptop>
+References: <20110404194856.GA3720@dannf.org>  <4D9A23BC.4010505@trash.net>
+	 <1301949477.3021.55.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
+Cc: dann frazier <dannf@dannf.org>, netdev@vger.kernel.org,
 	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:44223 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755819Ab1DDWsS (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 4 Apr 2011 18:48:18 -0400
 In-Reply-To: <1301949477.3021.55.camel@edumazet-laptop>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Apr 04, 2011 at 10:37:57PM +0200, Eric Dumazet wrote:
-> Le lundi 04 avril 2011 =E0 22:02 +0200, Patrick McHardy a =E9crit :
+Le lundi 04 avril 2011 =C3=A0 22:37 +0200, Eric Dumazet a =C3=A9crit :
+> Le lundi 04 avril 2011 =C3=A0 22:02 +0200, Patrick McHardy a =C3=A9cr=
+it :
 > > CCed netfilter-devel.
 > >=20
 > > Am 04.04.2011 21:48, schrieb dann frazier:
@@ -51,8 +55,7 @@ wlagn snd_timer snd_seq_device drm snd mac80211 psmouse btusb serio_raw=
  bluetooth evdev tpm_tis snd_page_alloc tpm i2c_i801 i2c_algo_bit cfg80=
 211 battery soundcore nvram tpm_bios i2c_core rfkill wmi ac power_suppl=
 y video button processor ext4 mbcache jbd2 crc16 sha256_generic aesni_i=
-ntel cryptd aes_x86_64 aes_generic cbc dm_crypt dm_mod sd_mod crc_t10
->  di
+ntel cryptd aes_x86_64 aes_generic cbc dm_crypt dm_mod sd_mod crc_t10di
 > > f=20
 > > >  usbhid
 > > > hid usb_storage ahci libahci libata ehci_hcd scsi_mod usbcore e10=
@@ -134,25 +137,42 @@ da/0xec
 s ?
 >=20
 > Dann, could you give us what you do with ebtables ?
+>=20
+> Thanks
+>=20
 
-I don't do anything explicitly with ebtables, I just happen to have it
-installed. The only place I know of that calls ebtables on shutdown is
-the ebtables initscript itself:
+=46or sure, there was a typo in above commit, but this is not enough to
+make ebtables work in COMPAT mode.
 
-dannf@fluid:~$ sudo rm /tmp/ebtables.log=20
-dannf@fluid:~$ cat /sbin/ebtables
-#!/bin/sh
+Hmm...
 
-echo "$*" >> /tmp/ebtables.log
+[PATCH] netfilter: fix a typo in ebtables
 
-/sbin/ebtables.real $*
-dannf@fluid:~$ sudo /etc/init.d/ebtables stop
-Clearing ebtables rulesets: filter nat broute done.
-dannf@fluid:~$ sudo cat /tmp/ebtables.log=20
--t filter -L
--t filter -L
--t nat -L
--t broute -L
--t filter --init-table
--t nat --init-table
--t broute --init-table
+commit 255d0dc34068a976 (netfilter: x_table: speedup compat operations)
+added a typo in compat_table_info()
+
+Reported-by: dann frazier <dannf@dannf.org>
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+---
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebt=
+ables.c
+index 893669c..b5d0d1f 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1766,7 +1766,7 @@ static int compat_table_info(const struct ebt_tab=
+le_info *info,
+=20
+ 	newinfo->entries_size =3D size;
+=20
+-	xt_compat_init_offsets(AF_INET, info->nentries);
++	xt_compat_init_offsets(NFPROTO_BRIDGE, info->nentries);
+ 	return EBT_ENTRY_ITERATE(entries, size, compat_calc_entry, info,
+ 							entries, newinfo);
+ }
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
