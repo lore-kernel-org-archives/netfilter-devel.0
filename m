@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 03/17] xtables_ip6addr_to_numeric: fix typo in comment
-Date: Mon, 04 Apr 2011 15:31:29 +0200
-Message-ID: <4D99C831.1010208@trash.net>
-References: <AANLkTika7Hgg=AUkkoDE0QroXKnJvA8fr23q-trk8Wbv@mail.gmail.com> <1301632053-3694-3-git-send-email-zenczykowski@gmail.com>
+Subject: Re: [PATCH 04/17] Delay (statically built) match/target initialization
+Date: Mon, 04 Apr 2011 15:32:17 +0200
+Message-ID: <4D99C861.1090406@trash.net>
+References: <AANLkTika7Hgg=AUkkoDE0QroXKnJvA8fr23q-trk8Wbv@mail.gmail.com> <1301632053-3694-4-git-send-email-zenczykowski@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
@@ -10,24 +10,32 @@ Cc: =?UTF-8?B?TWFjaWVqIMW7ZW5jenlrb3dza2k=?= <maze@google.com>,
 	netfilter-devel@vger.kernel.org
 To: =?UTF-8?B?TWFjaWVqIMW7ZW5jenlrb3dza2k=?= <zenczykowski@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52352 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:52364 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753941Ab1DDNbf (ORCPT
+	with ESMTP id S1753116Ab1DDNcY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Apr 2011 09:31:35 -0400
-In-Reply-To: <1301632053-3694-3-git-send-email-zenczykowski@gmail.com>
+	Mon, 4 Apr 2011 09:32:24 -0400
+In-Reply-To: <1301632053-3694-4-git-send-email-zenczykowski@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 On 01.04.2011 06:27, Maciej =C5=BBenczykowski wrote:
-> An IPv6 address consists of eight hexadecimal 16-bit values seperated
-> by colons, or alternatively, six (not five) of these followed by a co=
-lon
-> and an IPv4 address in standard dotted decimal quad notation
-> (for IPv4 mapped addresses and the like).
+> Matches and targets built into the iptables static binary will always
+> be registered as the binary starts up, this may potentially (as a res=
+ult
+> of kernel version support checking) result in modules being autoloade=
+d.
+>=20
+> This is undesirable (for example it may cause CONNMARK target to load
+> and thus cause the kernel to load the conntrack module, which isn't a=
+ no-op).
+>=20
+> Transition to a system where matches and targets are registered into
+> a pending list, from whence they get fully registered only when requi=
+red.
 >=20
 
-Applied.
+Applied, thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
