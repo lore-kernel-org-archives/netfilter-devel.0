@@ -1,49 +1,29 @@
-From: Florian Westphal <fwestphal@astaro.com>
-Subject: [PATCH] netfilter: xt_conntrack: fix inverted conntrack direction test
-Date: Mon,  4 Apr 2011 16:19:00 +0200
-Message-ID: <1301926740-22216-1-git-send-email-fwestphal@astaro.com>
-Cc: Florian Westphal <fwestphal@astaro.com>
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH v2 1/3] netfilter: af_info: add network namespace parameter
+ to route hook
+Date: Mon, 04 Apr 2011 16:57:09 +0200
+Message-ID: <4D99DC45.4080708@trash.net>
+References: <1300998597-2018-1-git-send-email-fw@strlen.de> <20110324.161510.57488462.davem@davemloft.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: fw@strlen.de, netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dhost002-101.dex002.intermedia.net ([64.78.19.88]:15274 "EHLO
-	DHOST002-101.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754401Ab1DDOcn (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:54011 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754642Ab1DDO5R (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Apr 2011 10:32:43 -0400
+	Mon, 4 Apr 2011 10:57:17 -0400
+In-Reply-To: <20110324.161510.57488462.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---ctdir ORIGINAL matches REPLY packets, and vv:
+On 25.03.2011 00:15, David Miller wrote:
+>> > This is required to eventually replace the rt6_lookup call in xt_addrtype.c
+>> > with nf_afinfo->route().
+>> > 
+>> > Signed-off-by: Florian Westphal <fw@strlen.de>
+> Acked-by: David S. Miller <davem@davemloft.net>
 
-userspace sets "invert_flags &= ~XT_CONNTRACK_DIRECTION" in ORIGINAL
-case.
-
-Thus: (CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL) ^
-      !!(info->invert_flags & XT_CONNTRACK_DIRECTION))
-
-yields "1 ^ 0", which is true -> returns false.
-
-Reproducer:
-iptables -I OUTPUT 1 -p tcp --syn -m conntrack --ctdir ORIGINAL
-
-Signed-off-by: Florian Westphal <fwestphal@astaro.com>
----
- net/netfilter/xt_conntrack.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
-index 2c0086a..481a86f 100644
---- a/net/netfilter/xt_conntrack.c
-+++ b/net/netfilter/xt_conntrack.c
-@@ -195,7 +195,7 @@ conntrack_mt(const struct sk_buff *skb, struct xt_action_param *par,
- 		return info->match_flags & XT_CONNTRACK_STATE;
- 	if ((info->match_flags & XT_CONNTRACK_DIRECTION) &&
- 	    (CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL) ^
--	    !!(info->invert_flags & XT_CONNTRACK_DIRECTION))
-+	    !(info->invert_flags & XT_CONNTRACK_DIRECTION))
- 		return false;
- 
- 	if (info->match_flags & XT_CONNTRACK_ORIGSRC)
--- 
-1.7.3.4
-
+Applied, thanks.
