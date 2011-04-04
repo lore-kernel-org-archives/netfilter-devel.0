@@ -1,40 +1,36 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH net-next-2.6] netfilter: get rid of atomic ops in fast
- path
-Date: Mon, 04 Apr 2011 17:05:04 +0200
-Message-ID: <4D99DE20.2060404@trash.net>
-References: <1300468038.2888.160.camel@edumazet-laptop> <1301836523.2837.159.camel@edumazet-laptop>
+Subject: Re: [PATCH] netfilter: xt_conntrack: fix inverted conntrack direction
+ test
+Date: Mon, 04 Apr 2011 17:07:06 +0200
+Message-ID: <4D99DE9A.8050408@trash.net>
+References: <1301926740-22216-1-git-send-email-fwestphal@astaro.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>,
-	Jan Engelhardt <jengelh@medozas.de>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fwestphal@astaro.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54128 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:54161 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754269Ab1DDPFK (ORCPT
+	with ESMTP id S1754269Ab1DDPHM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Apr 2011 11:05:10 -0400
-In-Reply-To: <1301836523.2837.159.camel@edumazet-laptop>
+	Mon, 4 Apr 2011 11:07:12 -0400
+In-Reply-To: <1301926740-22216-1-git-send-email-fwestphal@astaro.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 03.04.2011 15:15, Eric Dumazet wrote:
-> We currently use a percpu spinlock to 'protect' rule bytes/packets
-> counters, after various attempts to use RCU instead.
+On 04.04.2011 16:19, Florian Westphal wrote:
+> --ctdir ORIGINAL matches REPLY packets, and vv:
 > 
-> Lately we added a seqlock so that get_counters() can run without
-> blocking BH or 'writers'. But we really only need the seqcount in it.
+> userspace sets "invert_flags &= ~XT_CONNTRACK_DIRECTION" in ORIGINAL
+> case.
 > 
-> Spinlock itself is only locked by the current/owner cpu, so we can
-> remove it completely.
+> Thus: (CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL) ^
+>       !!(info->invert_flags & XT_CONNTRACK_DIRECTION))
 > 
-> This cleanups api, using correct 'writer' vs 'reader' semantic.
+> yields "1 ^ 0", which is true -> returns false.
 > 
-> At replace time, the get_counters() call makes sure all cpus are done
-> using the old table.
+> Reproducer:
+> iptables -I OUTPUT 1 -p tcp --syn -m conntrack --ctdir ORIGINAL
 
-Applied, thanks Eric.
+Applied, thanks Florian.
