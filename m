@@ -1,81 +1,49 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: Fix build failure when ipv6 but xt_tproxy
- is built in
-Date: Mon, 04 Apr 2011 15:54:40 +0200
-Message-ID: <4D99CDA0.3030305@trash.net>
-References: <1301451199.14261.327.camel@gandalf.stny.rr.com> <20110329.223536.245392030.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: rostedt@goodmis.org, linux-kernel@vger.kernel.org,
-	hidden@balabit.hu, akpm@linux-foundation.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+From: Florian Westphal <fwestphal@astaro.com>
+Subject: [PATCH] netfilter: xt_conntrack: fix inverted conntrack direction test
+Date: Mon,  4 Apr 2011 16:19:00 +0200
+Message-ID: <1301926740-22216-1-git-send-email-fwestphal@astaro.com>
+Cc: Florian Westphal <fwestphal@astaro.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52837 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751544Ab1DDNyr (ORCPT
+Received: from dhost002-101.dex002.intermedia.net ([64.78.19.88]:15274 "EHLO
+	DHOST002-101.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754401Ab1DDOcn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Apr 2011 09:54:47 -0400
-In-Reply-To: <20110329.223536.245392030.davem@davemloft.net>
+	Mon, 4 Apr 2011 10:32:43 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 30.03.2011 07:35, David Miller wrote:
-> From: Steven Rostedt <rostedt@goodmis.org>
-> Date: Tue, 29 Mar 2011 22:13:19 -0400
-> 
->> While running ktest.pl doing ranconfigs, the following build error
->> occurred:
-> 
-> Is sending netfilter patches to the explicitly listed maintainer in
-> MAINTAINERS too much to ask Stephen? :-/
-> 
-> CC:'d
-> 
->>
->> net/built-in.o: In function `tproxy_tg6_v1':
->> /home/rostedt/work/autotest/nobackup/linux-test.git/net/netfilter/xt_TPROXY.c:288: undefined reference to `ipv6_find_hdr'
->>
->> This happened because the xt_TPROXY code was compiled into the kernel
->> proper, but the ipv6 netfilter was compiled as a module. The fix is to
->> only enter the code that calls ipv6_find_hdr if ipv6 netfilter is
->> compiled into the kernel, or if it is a module, so is the xt_TPROXY
->> code.
+--ctdir ORIGINAL matches REPLY packets, and vv:
 
-I don't think this is a good fix for the problem since it may lead to
-the confusing situation that both TPROXY and ip6tables are enabled,
-but TPROXY has no IPv6 support.
+userspace sets "invert_flags &= ~XT_CONNTRACK_DIRECTION" in ORIGINAL
+case.
 
-I think we should solve this by either adding a Kconfig dependency
-on (IP6_NF_IPTABLES || IP6_NF_IPTABLES=n) or using ipv6_skip_exthdr()
-instead of ipv6_find_hdr().
+Thus: (CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL) ^
+      !!(info->invert_flags & XT_CONNTRACK_DIRECTION))
 
-Krisztian, what do you think?
+yields "1 ^ 0", which is true -> returns false.
 
->>
->> Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
->>
->> diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
->> index dcfd57e..5915f94 100644
->> --- a/net/netfilter/xt_TPROXY.c
->> +++ b/net/netfilter/xt_TPROXY.c
->> @@ -22,7 +22,13 @@
->>  
->>  #include <net/netfilter/ipv4/nf_defrag_ipv4.h>
->>  
->> -#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
->> +/*
->> + * Only include the following if ip6 tables is compiled in
->> + * the kernel, or it is a module and this code is also a module.
->> + */
->> +#if defined(CONFIG_IP6_NF_IPTABLES) || \
->> +	(defined(CONFIG_IP6_NF_IPTABLES_MODULE) && \
->> +	 defined(CONFIG_NETFILTER_XT_TARGET_TPROXY_MODULE))
->>  #define XT_TPROXY_HAVE_IPV6 1
->>  #include <net/if_inet6.h>
->>  #include <net/addrconf.h>
->>
->>
-> 
+Reproducer:
+iptables -I OUTPUT 1 -p tcp --syn -m conntrack --ctdir ORIGINAL
+
+Signed-off-by: Florian Westphal <fwestphal@astaro.com>
+---
+ net/netfilter/xt_conntrack.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
+index 2c0086a..481a86f 100644
+--- a/net/netfilter/xt_conntrack.c
++++ b/net/netfilter/xt_conntrack.c
+@@ -195,7 +195,7 @@ conntrack_mt(const struct sk_buff *skb, struct xt_action_param *par,
+ 		return info->match_flags & XT_CONNTRACK_STATE;
+ 	if ((info->match_flags & XT_CONNTRACK_DIRECTION) &&
+ 	    (CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL) ^
+-	    !!(info->invert_flags & XT_CONNTRACK_DIRECTION))
++	    !(info->invert_flags & XT_CONNTRACK_DIRECTION))
+ 		return false;
+ 
+ 	if (info->match_flags & XT_CONNTRACK_ORIGSRC)
+-- 
+1.7.3.4
 
