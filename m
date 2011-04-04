@@ -1,36 +1,33 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: xt_conntrack: fix inverted conntrack direction
- test
-Date: Mon, 04 Apr 2011 17:07:06 +0200
-Message-ID: <4D99DE9A.8050408@trash.net>
-References: <1301926740-22216-1-git-send-email-fwestphal@astaro.com>
+From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: Re: [PATCH 17/17] v6: rename do_command() to do_command6()
+Date: Mon, 4 Apr 2011 12:33:41 -0700
+Message-ID: <BANLkTikk81Vb+s=mGdL+DwGuZ6xeZJmJAQ@mail.gmail.com>
+References: <AANLkTika7Hgg=AUkkoDE0QroXKnJvA8fr23q-trk8Wbv@mail.gmail.com>
+	<1301632053-3694-17-git-send-email-zenczykowski@gmail.com>
+	<4D99CA61.1070503@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fwestphal@astaro.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54161 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754269Ab1DDPHM (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:60360 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755301Ab1DDTlZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Apr 2011 11:07:12 -0400
-In-Reply-To: <1301926740-22216-1-git-send-email-fwestphal@astaro.com>
+	Mon, 4 Apr 2011 15:41:25 -0400
+Received: by wya21 with SMTP id 21so4974950wya.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 04 Apr 2011 12:41:24 -0700 (PDT)
+In-Reply-To: <4D99CA61.1070503@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 04.04.2011 16:19, Florian Westphal wrote:
-> --ctdir ORIGINAL matches REPLY packets, and vv:
-> 
-> userspace sets "invert_flags &= ~XT_CONNTRACK_DIRECTION" in ORIGINAL
-> case.
-> 
-> Thus: (CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL) ^
->       !!(info->invert_flags & XT_CONNTRACK_DIRECTION))
-> 
-> yields "1 ^ 0", which is true -> returns false.
-> 
-> Reproducer:
-> iptables -I OUTPUT 1 -p tcp --syn -m conntrack --ctdir ORIGINAL
+> Also applied, thanks.
+>
+> If you plan to submit more patches in the future, I'd appreciate it
+> if you would combine simple patches that basically all do the same
+> things like the v4 and v6 renames into a single larger patch.
 
-Applied, thanks Florian.
+Ok, I was assuming review would be easier with simpler patches.
+Does your request also hold true if I provide a git repo to pull from?
+
+Maciej
