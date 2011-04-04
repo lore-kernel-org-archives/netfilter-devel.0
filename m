@@ -1,35 +1,33 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] IPVS Bug, Null ptr in ip_vs_ctl.c ip_vs_genl_dump_daemons().
-Date: Mon, 04 Apr 2011 15:28:03 +0200
-Message-ID: <4D99C763.6040503@trash.net>
-References: <1301535135-4288-1-git-send-email-horms@verge.net.au> <1301535135-4288-2-git-send-email-horms@verge.net.au>
+Subject: Re: [PATCH 01/17] man pages: allow underscores in match and target
+ names
+Date: Mon, 04 Apr 2011 15:30:09 +0200
+Message-ID: <4D99C7E1.1030004@trash.net>
+References: <AANLkTika7Hgg=AUkkoDE0QroXKnJvA8fr23q-trk8Wbv@mail.gmail.com> <1301632053-3694-1-git-send-email-zenczykowski@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	Hans Schillstrom <hans@schillstrom.com>,
-	Julian Anastasov <ja@ssi.bg>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>
-To: Simon Horman <horms@verge.net.au>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: =?UTF-8?B?TWFjaWVqIMW7ZW5jenlrb3dza2k=?= <maze@google.com>,
+	netfilter-devel@vger.kernel.org
+To: =?UTF-8?B?TWFjaWVqIMW7ZW5jenlrb3dza2k=?= <zenczykowski@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52261 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:52319 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751142Ab1DDN2K (ORCPT
+	with ESMTP id S1751549Ab1DDNaP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Apr 2011 09:28:10 -0400
-In-Reply-To: <1301535135-4288-2-git-send-email-horms@verge.net.au>
+	Mon, 4 Apr 2011 09:30:15 -0400
+In-Reply-To: <1301632053-3694-1-git-send-email-zenczykowski@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 31.03.2011 03:32, Simon Horman wrote:
-> From: Hans Schillstrom <hans.schillstrom@ericsson.com>
-> 
-> ipvsadm -ln --daemon will trigger a Null pointer exception because
-> ip_vs_genl_dump_daemons() uses skb_net() instead of skb_sknet().
-> 
-> To prevent others from NULL ptr a check is made in ip_vs.h skb_net().
-> 
+On 01.04.2011 06:27, Maciej =C5=BBenczykowski wrote:
+> From: Maciej =C5=BBenczykowski <maze@google.com>
+>=20
+> Signed-off-by: Maciej =C5=BBenczykowski <maze@google.com>
 
 Applied, thanks.
-
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
