@@ -1,63 +1,64 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2] netfilter:ipset: References are protected by rwlock
- instead of mutex
-Date: Mon, 04 Apr 2011 15:20:23 +0200
-Message-ID: <4D99C597.20703@trash.net>
-References: <1301049733-32160-1-git-send-email-kadlec@blackhole.kfki.hu> <1301049733-32160-2-git-send-email-kadlec@blackhole.kfki.hu> <1301049733-32160-3-git-send-email-kadlec@blackhole.kfki.hu> <4D908075.1010008@trash.net> <alpine.DEB.2.00.1103281438120.2069@blackhole.kfki.hu>
+Subject: Re: [PATCH] netfilter: h323: bug in parsing of ASN1 SEQOF field
+Date: Mon, 04 Apr 2011 15:24:19 +0200
+Message-ID: <4D99C683.5070000@trash.net>
+References: <1300794929-1541-1-git-send-email-dsterba@suse.cz> <20110322.193349.102533280.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: dsterba@suse.cz, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, stable@kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52108 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:52173 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750934Ab1DDNUf (ORCPT
+	with ESMTP id S1750934Ab1DDNY0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Apr 2011 09:20:35 -0400
-In-Reply-To: <alpine.DEB.2.00.1103281438120.2069@blackhole.kfki.hu>
+	Mon, 4 Apr 2011 09:24:26 -0400
+In-Reply-To: <20110322.193349.102533280.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 28.03.2011 15:33, Jozsef Kadlecsik wrote:
-> On Mon, 28 Mar 2011, Patrick McHardy wrote:
+On 23.03.2011 03:33, David Miller wrote:
+> From: David Sterba <dsterba@suse.cz>
+> Date: Tue, 22 Mar 2011 12:55:29 +0100
 > 
->> Am 25.03.2011 11:42, schrieb Jozsef Kadlecsik:
->>> The timeout variant of the list:set type must reference the member sets.
->>> However, its garbage collector runs at timer interrupt so the mutex protection
->>> of the references is a no go. Therefore the reference protection
->>> is converted to rwlock.
->>>
+>> Static analyzer of clang found a dead store which appears to be a bug in
+>> reading count of items in SEQOF field, only the lower byte of word is
+>> stored. This may lead to corrupted read and communication shutdown.
 >>
->>>  __ip_set_get(ip_set_id_t index)
->>>  {
->>> -	atomic_inc(&ip_set_list[index]->ref);
->>> +	write_lock_bh(&ip_set_ref_lock);
->>> +	ip_set_list[index]->ref++;
->>> +	write_unlock_bh(&ip_set_ref_lock);
->>>  }
->>>  
+>> The bug has been in the module since it's first inclusion into linux
+>> kernel.
 >>
->> I'm not sure I get this, why aren't regular atomic ops working
->> here?
+>> Signed-off-by: David Sterba <dsterba@suse.cz>
 > 
-> A set can only be destroyed if it's not referenced. The reference counter 
-> is incremented/decremented by the checkentry/destroy functions of the set 
-> match and target, and when the set is added/deleted to/from a list:set 
-> type of set. These operations are serialized by the nfnl mutex.
+> Please send netfilter patches to the listed netfilter maintainer
+> and appropriate mailing lists.  I've added them to the CC:
 > 
-> However sets get deleted from the timeout variant of a list:set types by 
-> the garbage collector, too, which runs at timer interrupt. The set 
-> destroying happens by first checking the reference counter, then 
-> destroying the set without holding any lock. Because the garbage collector 
-> only decrements the refcount, we could go without using any rwlock and 
-> having atomic refcounts: if the counter is zero, we are safe and can 
-> destroy the set.
+> Otherwise your patch will not be looked at by the right people.
 > 
-> But when swapping two sets, the operation swaps the names, reference 
-> counters and the pointers of the sets. The values of two atomic counters 
-> cannot safely be swapped without holding some kind of lock. So I could not 
-> avoid introducing a rwlock to protect the refcounts, but then those are
-> not needed to be atomic.
+>> CC: David Miller <davem@davemloft.net>
+>> CC: netdev@vger.kernel.org
+>> CC: stable@kernel.org
+>> ---
+>>  net/netfilter/nf_conntrack_h323_asn1.c |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
+>> index 8678823..bcd5ed6 100644
+>> --- a/net/netfilter/nf_conntrack_h323_asn1.c
+>> +++ b/net/netfilter/nf_conntrack_h323_asn1.c
+>> @@ -631,7 +631,7 @@ static int decode_seqof(bitstr_t *bs, const struct field_t *f,
+>>  		CHECK_BOUND(bs, 2);
+>>  		count = *bs->cur++;
+>>  		count <<= 8;
+>> -		count = *bs->cur++;
+>> +		count += *bs->cur++;
+>>  		break;
 
-Thanks for the explanation, applied.
+This looks correct to me. The problem is without practical consequence
+though, the largest amount of sequence-of members we parse is 30.
+
+Applied, thanks.
