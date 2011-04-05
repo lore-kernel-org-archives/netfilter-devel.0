@@ -1,67 +1,69 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: Fix build failure when ipv6 but xt_tproxy
- is built in
-Date: Tue, 05 Apr 2011 16:49:22 +0200
-Message-ID: <4D9B2BF2.2010606@trash.net>
-References: <1301451199.14261.327.camel@gandalf.stny.rr.com>	 <20110329.223536.245392030.davem@davemloft.net>	 <4D99CDA0.3030305@trash.net> <1302014626.67568.1.camel@nienna.balabit>
+From: dann frazier <dannf@dannf.org>
+Subject: Re: shutdown oops in xt_compat_calc_jump
+Date: Tue, 5 Apr 2011 15:08:33 -0600
+Message-ID: <20110405210833.GA22667@dannf.org>
+References: <20110404194856.GA3720@dannf.org>
+ <4D9A23BC.4010505@trash.net>
+ <1301949477.3021.55.camel@edumazet-laptop>
+ <1301957293.3021.191.camel@edumazet-laptop>
+ <1301984679.3021.655.camel@edumazet-laptop>
+ <1301987879.3021.714.camel@edumazet-laptop>
+ <4D9AF1C6.6050304@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>, rostedt@goodmis.org,
-	linux-kernel@vger.kernel.org, akpm@linux-foundation.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: KOVACS Krisztian <hidden@balabit.hu>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1302014626.67568.1.camel@nienna.balabit>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Eric Dumazet <eric.dumazet@gmail.com>, netdev@vger.kernel.org,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from complete.lackof.org ([198.49.126.79]:45776 "EHLO
+	complete.lackof.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753605Ab1DEVIg (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Apr 2011 17:08:36 -0400
+Content-Disposition: inline
+In-Reply-To: <4D9AF1C6.6050304@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 05.04.2011 16:43, schrieb KOVACS Krisztian:
-> Hi,
+On Tue, Apr 05, 2011 at 12:41:10PM +0200, Patrick McHardy wrote:
+> On 05.04.2011 09:17, Eric Dumazet wrote:
+> > Here is the cumulative patch
 > 
-> On Mon, 2011-04-04 at 15:54 +0200, Patrick McHardy wrote:
->>>> net/built-in.o: In function `tproxy_tg6_v1':
->>>> /home/rostedt/work/autotest/nobackup/linux-test.git/net/netfilter/xt_TPROXY.c:288: undefined reference to `ipv6_find_hdr'
->>>>
->>>> This happened because the xt_TPROXY code was compiled into the kernel
->>>> proper, but the ipv6 netfilter was compiled as a module. The fix is to
->>>> only enter the code that calls ipv6_find_hdr if ipv6 netfilter is
->>>> compiled into the kernel, or if it is a module, so is the xt_TPROXY
->>>> code.
->>
->> I don't think this is a good fix for the problem since it may lead to
->> the confusing situation that both TPROXY and ip6tables are enabled,
->> but TPROXY has no IPv6 support.
->>
->> I think we should solve this by either adding a Kconfig dependency
->> on (IP6_NF_IPTABLES || IP6_NF_IPTABLES=n) or using ipv6_skip_exthdr()
->> instead of ipv6_find_hdr().
->>
->> Krisztian, what do you think?
 > 
-> I'd definitely prefer using ipv6_skip_exthdr() instead of playing
-> various tricks with the config preprocessor macros.
-> 
-> What about something like this?
-> 
-> diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
-> index dcfd57e..1ef0e56 100644
-> --- a/net/netfilter/xt_TPROXY.c
-> +++ b/net/netfilter/xt_TPROXY.c
-> @@ -283,10 +283,10 @@ tproxy_tg6_v1(struct sk_buff *skb, const struct xt_action_param *par)
->         const struct in6_addr *laddr;
->         __be16 lport;
->         int thoff;
-> -       int tproto;
-> +       u8 tproto = iph->nexthdr;
->  
-> -       tproto = ipv6_find_hdr(skb, &thoff, -1, NULL);
-> -       if (tproto < 0) {
-> +       thoff = ipv6_skip_exthdr(skb, sizeof(*iph), &tproto);
-> +       if (thoff < 0) {
->                 pr_debug("unable to find transport header in IPv6 packet, dropping\n");
->                 return NF_DROP;
->         }
+> Thanks Eric. I'll wait for confirmation from Dann before applying
+> this.
 
-Looks good to me. Please formally submit this including a Signed-off-by:
-line and I'll push it upstream.
+Yes, thanks Eric! I'll test as soon as I can take my laptop down..
+
+     -dann
+> 
+> > [PATCH] netfilter: fix ebtables
+> > 
+> > commit 255d0dc34068a976 (netfilter: x_table: speedup compat operations)
+> > made ebtables not working anymore.
+> > 
+> > 1) xt_compat_calc_jump() is not an exact match lookup, and 
+> > 2) compat_table_info() has a typo in xt_compat_init_offsets() call
+> > 3) compat_do_replace() misses a xt_compat_init_offsets() call
+> > 
+> > Reported-by: dann frazier <dannf@dannf.org>
+> > Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+> > ---
+> >  net/bridge/netfilter/ebtables.c |    3 ++-
+> >  net/netfilter/x_tables.c        |    3 +++
+> >  2 files changed, 5 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+> > index 893669c..c66aa80 100644
+> > --- a/net/bridge/netfilter/ebtables.c
+> > +++ b/net/bridge/netfilter/ebtables.c
+> > @@ -1766,7 +1766,7 @@ static int compat_table_info(const struct ebt_table_info *info,
+> >  
+> >  	newinfo->entries_size = size;
+> >  
+> > -	xt_compat_init_offsets(AF_INET, info->nentries);
+> > +	xt_compat_init_offsets(NFPROTO_BRIDGE, info->nentries /* + 4*/);
+> 
+> I assume the /* + 4 */ is left over from debugging, I'll remove it
+> before applying.
+> 
