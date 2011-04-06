@@ -1,49 +1,27 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: shutdown oops in xt_compat_calc_jump
-Date: Wed, 6 Apr 2011 09:40:47 +0200
-Message-ID: <20110406074047.GE32579@Chamillionaire.breakpoint.cc>
-References: <20110404194856.GA3720@dannf.org>
- <4D9A23BC.4010505@trash.net>
- <1301949477.3021.55.camel@edumazet-laptop>
- <1301957293.3021.191.camel@edumazet-laptop>
- <1301984679.3021.655.camel@edumazet-laptop>
- <1301987879.3021.714.camel@edumazet-laptop>
- <20110405234216.GD32579@Chamillionaire.breakpoint.cc>
- <1302064927.3020.1.camel@edumazet-laptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Florian Westphal <fw@strlen.de>, Patrick McHardy <kaber@trash.net>,
-	dann frazier <dannf@dannf.org>, netdev@vger.kernel.org,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: One documentation fix
+Date: Wed,  6 Apr 2011 13:24:49 +0200
+Message-ID: <1302089091-14260-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:41267 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753247Ab1DFHku (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Apr 2011 03:40:50 -0400
-Content-Disposition: inline
-In-Reply-To: <1302064927.3020.1.camel@edumazet-laptop>
+Received: from borg.medozas.de ([188.40.89.202]:50480 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755353Ab1DFLYx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 6 Apr 2011 07:24:53 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> Le mercredi 06 avril 2011 =E0 01:42 +0200, Florian Westphal a =E9crit=
- :
->=20
-> > using ninfo->nentries does not always work because ebtables compat
-> > can call xt_compat_add_offset() more than once per entry.
-> >=20
->=20
-> With same offset ? Maybe we should tweak xt_compat_add_offset() to
-> detect this and add delta to previous delta in this case
 
-No, different offset (it calls it per match/watcher/target instead
-of summing up the match/target deltas and using that in a single
-add_offset call).
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The following changes since commit 6a86854bf91227a70392fc2665ed4f99af0229e3:
+
+  convert ip6?tables-multi to actually use their own header files (2011-04-05 12:43:26 +0200)
+
+are available in the git repository at:
+  git://dev.medozas.de/iptables master
+
+Jan Engelhardt (1):
+      doc: avoid duplicate entries in manpage
+
+ extensions/GNUmakefile.in |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
