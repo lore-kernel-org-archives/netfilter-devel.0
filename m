@@ -1,102 +1,127 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 03/10] libxt_CHECKSUM: use guided option parser
-Date: Wed,  6 Apr 2011 13:31:10 +0200
-Message-ID: <1302089478-15022-4-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 06/10] libxt_CONNSECMARK: use guided option parser
+Date: Wed,  6 Apr 2011 13:31:13 +0200
+Message-ID: <1302089478-15022-7-git-send-email-jengelh@medozas.de>
 References: <1302089478-15022-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:46485 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:46496 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750807Ab1DFLbY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Apr 2011 07:31:24 -0400
+	id S1755592Ab1DFLb1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 6 Apr 2011 07:31:27 -0400
 In-Reply-To: <1302089478-15022-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libxt_CHECKSUM.c |   46 +++++++++++++-----------------------------
- 1 files changed, 14 insertions(+), 32 deletions(-)
+ extensions/libxt_CONNSECMARK.c |   59 +++++++++++++++------------------------
+ 1 files changed, 23 insertions(+), 36 deletions(-)
 
-diff --git a/extensions/libxt_CHECKSUM.c b/extensions/libxt_CHECKSUM.c
-index 83b3d69..df9f9b3 100644
---- a/extensions/libxt_CHECKSUM.c
-+++ b/extensions/libxt_CHECKSUM.c
-@@ -8,15 +8,14 @@
+diff --git a/extensions/libxt_CONNSECMARK.c b/extensions/libxt_CONNSECMARK.c
+index 6b161f3..df2e6b8 100644
+--- a/extensions/libxt_CONNSECMARK.c
++++ b/extensions/libxt_CONNSECMARK.c
+@@ -5,16 +5,19 @@
   *
-  * libxt_CHECKSUM.c borrowed some bits from libipt_ECN.c
+  * Copyright (C) 2006 Red Hat, Inc., James Morris <jmorris@redhat.com>
   */
 -#include <stdbool.h>
  #include <stdio.h>
 -#include <string.h>
 -#include <stdlib.h>
 -#include <getopt.h>
--
  #include <xtables.h>
- #include <linux/netfilter/xt_CHECKSUM.h>
+ #include <linux/netfilter/xt_CONNSECMARK.h>
+ 
+ #define PFX "CONNSECMARK target: "
  
 +enum {
-+	O_CHECKSUM_FILL = 0,
++	O_SAVE = 0,
++	O_RESTORE,
++	F_SAVE    = 1 << O_SAVE,
++	F_RESTORE = 1 << O_RESTORE,
 +};
 +
- static void CHECKSUM_help(void)
+ static void CONNSECMARK_help(void)
  {
  	printf(
-@@ -24,34 +23,18 @@ static void CHECKSUM_help(void)
- "  --checksum-fill			Fill in packet checksum.\n");
+@@ -23,48 +26,32 @@ static void CONNSECMARK_help(void)
+ "  --restore                Copy security mark from connection to packet\n");
  }
  
--static const struct option CHECKSUM_opts[] = {
--	{.name = "checksum-fill", .has_arg = false, .val = 'F'},
+-static const struct option CONNSECMARK_opts[] = {
+-	{.name = "save",    .has_arg = false, .val = '1'},
+-	{.name = "restore", .has_arg = false, .val = '2'},
 -	XT_GETOPT_TABLEEND,
-+static const struct xt_option_entry CHECKSUM_opts[] = {
-+	{.name = "checksum-fill", .id = O_CHECKSUM_FILL,
-+	 .flags = XTOPT_MAND, .type = XTTYPE_NONE},
++static const struct xt_option_entry CONNSECMARK_opts[] = {
++	{.name = "save", .id = O_SAVE, .excl = F_RESTORE, .type = XTTYPE_NONE},
++	{.name = "restore", .id = O_RESTORE, .excl = F_SAVE,
++	 .type = XTTYPE_NONE},
 +	XTOPT_TABLEEND,
  };
  
--static int CHECKSUM_parse(int c, char **argv, int invert, unsigned int *flags,
--                     const void *entry, struct xt_entry_target **target)
-+static void CHECKSUM_parse(struct xt_option_call *cb)
+-static int
+-CONNSECMARK_parse(int c, char **argv, int invert, unsigned int *flags,
+-                  const void *entry, struct xt_entry_target **target)
++static void CONNSECMARK_parse(struct xt_option_call *cb)
  {
--	struct xt_CHECKSUM_info *einfo
--		= (struct xt_CHECKSUM_info *)(*target)->data;
--
--	switch (c) {
--	case 'F':
--		xtables_param_act(XTF_ONLY_ONCE, "CHECKSUM", "--checksum-fill",
--			*flags & XT_CHECKSUM_OP_FILL);
--		einfo->operation = XT_CHECKSUM_OP_FILL;
--		*flags |= XT_CHECKSUM_OP_FILL;
--		break;
--	}
-+	struct xt_CHECKSUM_info *einfo = cb->data;
+-	struct xt_connsecmark_target_info *info =
+-		(struct xt_connsecmark_target_info*)(*target)->data;
++	struct xt_connsecmark_target_info *info = cb->data;
  
--	return 1;
--}
--
--static void CHECKSUM_check(unsigned int flags)
--{
--	if (!flags)
--		xtables_error(PARAMETER_PROBLEM,
--		           "CHECKSUM target: Parameter --checksum-fill is required");
+-	switch (c) {
+-	case '1':
+-		if (*flags & CONNSECMARK_SAVE)
+-			xtables_error(PARAMETER_PROBLEM, PFX
+-				   "Can't specify --save twice");
 +	xtables_option_parse(cb);
-+	einfo->operation = XT_CHECKSUM_OP_FILL;
++	switch (cb->entry->id) {
++	case O_SAVE:
+ 		info->mode = CONNSECMARK_SAVE;
+-		*flags |= CONNSECMARK_SAVE;
+ 		break;
+-
+-	case '2':
+-		if (*flags & CONNSECMARK_RESTORE)
+-			xtables_error(PARAMETER_PROBLEM, PFX
+-				   "Can't specify --restore twice");
++	case O_RESTORE:
+ 		info->mode = CONNSECMARK_RESTORE;
+-		*flags |= CONNSECMARK_RESTORE;
+ 		break;
+ 	}
+-
+-	return 1;
  }
  
- static void CHECKSUM_print(const void *ip, const struct xt_entry_target *target,
-@@ -82,11 +65,10 @@ static struct xtables_target checksum_tg_reg = {
- 	.size		= XT_ALIGN(sizeof(struct xt_CHECKSUM_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_CHECKSUM_info)),
- 	.help		= CHECKSUM_help,
--	.parse		= CHECKSUM_parse,
--	.final_check	= CHECKSUM_check,
- 	.print		= CHECKSUM_print,
- 	.save		= CHECKSUM_save,
--	.extra_opts	= CHECKSUM_opts,
-+	.x6_parse	= CHECKSUM_parse,
-+	.x6_options	= CHECKSUM_opts,
+-static void CONNSECMARK_check(unsigned int flags)
++static void CONNSECMARK_check(struct xt_fcheck_call *cb)
+ {
+-	if (!flags)
++	if (cb->xflags == 0)
+ 		xtables_error(PARAMETER_PROBLEM, PFX "parameter required");
+-
+-	if (flags == (CONNSECMARK_SAVE|CONNSECMARK_RESTORE))
+-		xtables_error(PARAMETER_PROBLEM, PFX "only one flag of --save "
+-		           "or --restore is allowed");
+ }
+ 
+ static void print_connsecmark(const struct xt_connsecmark_target_info *info)
+@@ -111,12 +98,12 @@ static struct xtables_target connsecmark_target = {
+ 	.revision	= 0,
+ 	.size		= XT_ALIGN(sizeof(struct xt_connsecmark_target_info)),
+ 	.userspacesize	= XT_ALIGN(sizeof(struct xt_connsecmark_target_info)),
+-	.parse		= CONNSECMARK_parse,
+ 	.help		= CONNSECMARK_help,
+-	.final_check	= CONNSECMARK_check,
+ 	.print		= CONNSECMARK_print,
+ 	.save		= CONNSECMARK_save,
+-	.extra_opts	= CONNSECMARK_opts,
++	.x6_parse	= CONNSECMARK_parse,
++	.x6_fcheck	= CONNSECMARK_check,
++	.x6_options	= CONNSECMARK_opts,
  };
  
  void _init(void)
