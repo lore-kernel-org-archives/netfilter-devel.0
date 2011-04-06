@@ -1,45 +1,47 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 Subject: Re: shutdown oops in xt_compat_calc_jump
-Date: Wed, 06 Apr 2011 06:42:07 +0200
-Message-ID: <1302064927.3020.1.camel@edumazet-laptop>
-References: <20110404194856.GA3720@dannf.org> <4D9A23BC.4010505@trash.net>
-	 <1301949477.3021.55.camel@edumazet-laptop>
-	 <1301957293.3021.191.camel@edumazet-laptop>
-	 <1301984679.3021.655.camel@edumazet-laptop>
-	 <1301987879.3021.714.camel@edumazet-laptop>
-	 <20110405234216.GD32579@Chamillionaire.breakpoint.cc>
+Date: Wed, 6 Apr 2011 09:40:47 +0200
+Message-ID: <20110406074047.GE32579@Chamillionaire.breakpoint.cc>
+References: <20110404194856.GA3720@dannf.org>
+ <4D9A23BC.4010505@trash.net>
+ <1301949477.3021.55.camel@edumazet-laptop>
+ <1301957293.3021.191.camel@edumazet-laptop>
+ <1301984679.3021.655.camel@edumazet-laptop>
+ <1301987879.3021.714.camel@edumazet-laptop>
+ <20110405234216.GD32579@Chamillionaire.breakpoint.cc>
+ <1302064927.3020.1.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>, dann frazier <dannf@dannf.org>,
-	netdev@vger.kernel.org,
+Cc: Florian Westphal <fw@strlen.de>, Patrick McHardy <kaber@trash.net>,
+	dann frazier <dannf@dannf.org>, netdev@vger.kernel.org,
 	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:36556 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750738Ab1DFEmP (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:41267 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753247Ab1DFHku (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Apr 2011 00:42:15 -0400
-In-Reply-To: <20110405234216.GD32579@Chamillionaire.breakpoint.cc>
+	Wed, 6 Apr 2011 03:40:50 -0400
+Content-Disposition: inline
+In-Reply-To: <1302064927.3020.1.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le mercredi 06 avril 2011 =C3=A0 01:42 +0200, Florian Westphal a =C3=A9=
-crit :
-
-> using ninfo->nentries does not always work because ebtables compat
-> can call xt_compat_add_offset() more than once per entry.
+Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> Le mercredi 06 avril 2011 =E0 01:42 +0200, Florian Westphal a =E9crit=
+ :
 >=20
+> > using ninfo->nentries does not always work because ebtables compat
+> > can call xt_compat_add_offset() more than once per entry.
+> >=20
+>=20
+> With same offset ? Maybe we should tweak xt_compat_add_offset() to
+> detect this and add delta to previous delta in this case
 
-With same offset ? Maybe we should tweak xt_compat_add_offset() to
-detect this and add delta to previous delta in this case
-
-> That is of course not necessary; the ebt compat code should do better=
-=2E
-> I plan to look at this in the evening.
-
-
+No, different offset (it calls it per match/watcher/target instead
+of summing up the match/target deltas and using that in a single
+add_offset call).
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
