@@ -1,80 +1,82 @@
 From: Ed W <lists@wildgooses.com>
 Subject: Re: Performance issue due to constant "modprobes"
-Date: Fri, 08 Apr 2011 18:11:09 +0100
-Message-ID: <4D9F41AD.5000503@wildgooses.com>
-References: <4D9E45C2.7030805@wildgooses.com> <alpine.LNX.2.01.1104080212310.8883@obet.zrqbmnf.qr>
+Date: Fri, 08 Apr 2011 18:11:22 +0100
+Message-ID: <4D9F41BA.1060509@wildgooses.com>
+References: <4D9E45C2.7030805@wildgooses.com> <BANLkTinfSAk0ruyqNcfAgReATbX_OV64EA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: unlisted-recipients:; (no To-header on input)
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail1.nippynetworks.com ([91.220.24.129]:57958 "EHLO
+Received: from mail1.nippynetworks.com ([91.220.24.129]:57990 "EHLO
 	mail1.nippynetworks.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752739Ab1DHRLL (ORCPT
+	with ESMTP id S1754291Ab1DHRLX convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 8 Apr 2011 13:11:11 -0400
+	Fri, 8 Apr 2011 13:11:23 -0400
 Received: from localhost (mail1.nippynetworks.com [127.0.0.1])
-	by mail1.nippynetworks.com (Postfix) with ESMTP id 9FEC034032B
-	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2011 18:11:10 +0100 (BST)
+	by mail1.nippynetworks.com (Postfix) with ESMTP id CFACC340325
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2011 18:11:22 +0100 (BST)
 Received: from mail1.nippynetworks.com ([127.0.0.1])
 	by localhost (mail1.nippynetworks.com [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id 1inky5UmQuUS for <netfilter-devel@vger.kernel.org>;
-	Fri,  8 Apr 2011 18:11:10 +0100 (BST)
+	with LMTP id xFKP9DOQ-aTo for <netfilter-devel@vger.kernel.org>;
+	Fri,  8 Apr 2011 18:11:22 +0100 (BST)
 Received: from Ed-Wildgooses-MacBook-Pro.local (office.nippynetworks.com [212.69.49.94])
 	(Authenticated sender: edward@wildgooses.com)
-	by mail1.nippynetworks.com (Postfix) with ESMTPSA id 41BB7340325
-	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2011 18:11:10 +0100 (BST)
-In-Reply-To: <alpine.LNX.2.01.1104080212310.8883@obet.zrqbmnf.qr>
+	by mail1.nippynetworks.com (Postfix) with ESMTPSA id 76D30340324
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2011 18:11:22 +0100 (BST)
+In-Reply-To: <BANLkTinfSAk0ruyqNcfAgReATbX_OV64EA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 08/04/2011 01:18, Jan Engelhardt wrote:
+On 08/04/2011 01:47, Maciej =C5=BBenczykowski wrote:
+>> Does someone have any ideas on how I can finesse these constant (and
+>> expensive in my case) modprobes each time we run the iptables comman=
+d?
+>=20
+> Could you try with an iptables built from iptables git master branch?
+> I believe a recent change I submitted (delayed initialization of
+> target/matches to prevent module autoloading) may actually fix your
+> problem.
 
->> I have my kernel compiled without modules.  My modprobe takes a little
->> under 1ms to execute.  "iptables" appears to try and modprobe some 21
->> match/target modules.
-> 
-> This is your kernel calling modprobe through
+Thanks - very helpful!
 
-I think not, or that you mean in a more roundabout fashion than I do?
+It was easiest for me to patch my iptables with just your commit and my
+results are very promising:
 
+Starting "shorewall"
+- using busybox modprobe + released iptables =3D several minutes...
+- module-init-tools + released iptables =3D 12s
+- module-init-tools + your commit =3D 7.7s
+- module-init-tools + patching out modprobe completely =3D 4.9s
 
->> I have dug through the code a bit and the first thing I notice is that
->> there is no --modprobe option actually parsed for, and the undocumented
->> "-M" option doesn't appear to pass through to xtables.c? (I thought
->> about simply lying about the modprobe binary name)
-> 
-> ip6tables.c:do_command6, near case 'M'.
+So, whilst your patch has a huge positive benefit, I'm still seeing a
+substantial amount of cpu going to useless modprobing.
 
-I see the code, but "iptables -M /dev/null -h" still runs /sbin/modprobe
-(lots)
+I don't see an immediate solution, *unless* there is some way to ask th=
+e
+kernel if some module is already compiled in? I don't immediately see
+that this is possible and google didn't turn anything up? I guess the
+various xtables modules could export something that allows them to be
+detected as loaded, but I sense that this is unlikely to be an
+acceptable patch unless others have shown that there is a performance
+problem?
 
+Of the rest of my 4.9s, 97% of that is waiting for iptables and tc to d=
+o
+stuff.  I need to profile further to see where the delays are though
 
+Thanks for your commit above - extremely helpful - grateful if you migh=
+t
+consider whether there is some way to avoid any modprobes at all? (Note
+that the -M option appears not to work in iptables at present?)
 
->> The final thought is whether it's possible to notice that a module is
->> already loaded and skip the modprobe call altogether? (/proc/modules is
->> not enough because the module could be built into the kernel)
-> 
-> If ip_tables.ko is already loaded, iptc_init will not fail (per the 
-> command above xtables_load_ko(xtables_modprobe_program, false), and 
-> thus, modprobe will not be called - at least not by iptables.
-
-Sure, but everything derived from xtables.c calls modprobe?
-
-I'm sorry if I'm misunderstanding "who" calls modprobe, but the point is
-that you can do a simple strace on "iptables -h" and without Maciej'
-patch you will see a boatload of modprobe's...
-
-Even with his patch then I still seem to get a load of modprobe's where
-extra xtable matches are needed, and in my case (500Mhz processor),
-modprobe is slow and also unnecessary because (nearly) everything is
-compiled into the kernel
-
-Avoiding modprobe would be very desirable in my case.  Any ideas?  (For
-the moment I have just patched out the xtables.c insmod function, but
-it's not very neat)
-
-Thanks all
+Thanks
 
 Ed W
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
