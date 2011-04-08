@@ -1,58 +1,56 @@
-From: Ed W <lists@wildgooses.com>
-Subject: Performance issue due to constant "modprobes"
-Date: Fri, 08 Apr 2011 00:16:18 +0100
-Message-ID: <4D9E45C2.7030805@wildgooses.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Performance issue due to constant "modprobes"
+Date: Fri, 8 Apr 2011 02:18:04 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1104080212310.8883@obet.zrqbmnf.qr>
+References: <4D9E45C2.7030805@wildgooses.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Ed W <lists@wildgooses.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail1.nippynetworks.com ([91.220.24.129]:48548 "EHLO
-	mail1.nippynetworks.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752870Ab1DGX0j (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Apr 2011 19:26:39 -0400
-Received: from localhost (mail1.nippynetworks.com [127.0.0.1])
-	by mail1.nippynetworks.com (Postfix) with ESMTP id 2CC3034036D
-	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2011 00:16:19 +0100 (BST)
-Received: from mail1.nippynetworks.com ([127.0.0.1])
-	by localhost (mail1.nippynetworks.com [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id sHMTV-zcLiz8 for <netfilter-devel@vger.kernel.org>;
-	Fri,  8 Apr 2011 00:16:19 +0100 (BST)
-Received: from Ed-Wildgooses-MacBook-Pro.local (office.nippynetworks.com [212.69.49.94])
-	(Authenticated sender: edward@wildgooses.com)
-	by mail1.nippynetworks.com (Postfix) with ESMTPSA id D7BCB34036B
-	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2011 00:16:18 +0100 (BST)
+Received: from borg.medozas.de ([188.40.89.202]:56478 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753051Ab1DHASG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 7 Apr 2011 20:18:06 -0400
+In-Reply-To: <4D9E45C2.7030805@wildgooses.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi, I am using a relatively low powered (embedded) platform and I have a
-significant performance problem due to slow "modprobe" performance.
+On Friday 2011-04-08 01:16, Ed W wrote:
 
-I have my kernel compiled without modules.  My modprobe takes a little
-under 1ms to execute.  "iptables" appears to try and modprobe some 21
-match/target modules.  As a result, even "iptables -h" takes around 14ms
-to run.  This is adding some substantial time to my firewall setup time
-(hacking out the modprobes reduces run time from the 14ms to near zero,
-ie it's 90+% of my runtime)
+>Hi, I am using a relatively low powered (embedded) platform and I have a
+>significant performance problem due to slow "modprobe" performance.
+>
+>I have my kernel compiled without modules.  My modprobe takes a little
+>under 1ms to execute.  "iptables" appears to try and modprobe some 21
+>match/target modules.
 
-I have dug through the code a bit and the first thing I notice is that
-there is no --modprobe option actually parsed for, and the undocumented
-"-M" option doesn't appear to pass through to xtables.c? (I thought
-about simply lying about the modprobe binary name)
+This is your kernel calling modprobe through ____call_usermodehelper in 
+response to inquiries about modules' ABIs. This will also happen if you 
+removed modprobing from iptables - the latter of which is only used to 
+load ip_tables.ko itself, since that is the only thing that currently 
+is not fully autoloadable by the kernel.
 
-My next thought was to collect all the modprobes and run them with a
-single execution (modprobe -a). However, it's not clear to me whether
-it's important that the modprobe occurs in the middle of xtables.c /
-compatible_revision() ?
+>I have dug through the code a bit and the first thing I notice is that
+>there is no --modprobe option actually parsed for, and the undocumented
+>"-M" option doesn't appear to pass through to xtables.c? (I thought
+>about simply lying about the modprobe binary name)
 
-The final thought is whether it's possible to notice that a module is
-already loaded and skip the modprobe call altogether? (/proc/modules is
-not enough because the module could be built into the kernel)
+ip6tables.c:do_command6, near case 'M'.
 
-Does someone have any ideas on how I can finesse these constant (and
-expensive in my case) modprobes each time we run the iptables command?
+>My next thought was to collect all the modprobes and run them with a
+>single execution (modprobe -a). However, it's not clear to me whether
+>it's important that the modprobe occurs in the middle of xtables.c /
+>compatible_revision() ?
 
-Thanks
+To determine which ABI/revision is available on the kernel side, and 
+based upon the result, display what options the extensions can use when 
+you invoke -h.
 
-Ed W
+>The final thought is whether it's possible to notice that a module is
+>already loaded and skip the modprobe call altogether? (/proc/modules is
+>not enough because the module could be built into the kernel)
+
+If ip_tables.ko is already loaded, iptc_init will not fail (per the 
+command above xtables_load_ko(xtables_modprobe_program, false), and 
+thus, modprobe will not be called - at least not by iptables.
