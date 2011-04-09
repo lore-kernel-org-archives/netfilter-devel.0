@@ -1,66 +1,58 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset issues in 2.6.39-rc2
-Date: Sat, 9 Apr 2011 22:06:58 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1104092203520.32398@blackhole.kfki.hu>
-References: <20110409151655.GA22881@wantstofly.org>
+From: Ed W <lists@wildgooses.com>
+Subject: Re: Performance issue due to constant "modprobes"
+Date: Sat, 09 Apr 2011 21:39:30 +0100
+Message-ID: <4DA0C402.1090809@wildgooses.com>
+References: <4D9E45C2.7030805@wildgooses.com> <BANLkTinfSAk0ruyqNcfAgReATbX_OV64EA@mail.gmail.com> <4D9F41BA.1060509@wildgooses.com> <alpine.LNX.2.01.1104082152500.24599@obet.zrqbmnf.qr> <4D9F98D3.5070802@wildgooses.com> <alpine.LNX.2.01.1104090140010.3023@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Lennert Buytenhek <buytenh@wantstofly.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:41347 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755437Ab1DIUG7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 9 Apr 2011 16:06:59 -0400
-In-Reply-To: <20110409151655.GA22881@wantstofly.org>
+Received: from mail1.nippynetworks.com ([91.220.24.129]:41325 "EHLO
+	mail1.nippynetworks.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755567Ab1DIUjc (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 9 Apr 2011 16:39:32 -0400
+In-Reply-To: <alpine.LNX.2.01.1104090140010.3023@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-
-On Sat, 9 Apr 2011, Lennert Buytenhek wrote:
-
-> On the current Fedora Rawhide kernel (2.6.39-0.rc2.git0.0.fc16), I am
-> seeing the following two issues:
+On 09/04/2011 00:42, Jan Engelhardt wrote:
 > 
-> 1. Attempting to create a -j SET rule with a certain invalid set of
->    flags leaks a reference to the specified pool:
-> 
-> 	# ipset create foo hash:ip
-> 	# ipset list foo | grep References
-> 	References: 0
-> 	# iptables -A INPUT -j SET --del-set foo src,src,src,src,src,src
-> 	iptables: Numerical result out of range.
-> 	# ipset list foo | grep References
-> 	References: 1
-> 	#
-> 
-> 2. --del-set doesn't seem to work (or I don't understand how it's supposed
->    to work):
-> 
-> 	# ipset create bar hash:ip
-> 	# ipset add bar 127.0.0.1
-> 	# iptables -I INPUT -s 127.0.0.1 -p icmp -j SET --del-set bar src
-> 	# ping -c 1 127.0.0.1
-> 	[...]
-> 	# iptables -L INPUT -v | grep SET
-> 	    2   168 SET        icmp --  *      *       127.0.0.1            0.0.0.0/0           del-set bar src,dst,dst,dst,dst,dst 
-> 	# ipset list bar
-> 	[...]
-> 	Members:
-> 	127.0.0.1
+> You said `iptables -h` itself would take a long time due to modprobe, 
+> however, I can spot no invocation of it using `strace -fe execve 
+> iptables -h` when the desired codes are already loaded into the kernel 
+> one way or another.
 
-Both are real bugs indeed. I have sent the fixes to netfilter-devel and 
-I'll release a new ipset version at the weekend. I also fixed the set 
-match/target in iptables to catch properly the invalid number of dir 
-parameters and committed it in git.
 
-Thanks for the bugreport!
+Maciej pointed out this is the case for git as of around 4 days ago, and
+in my last email I confirmed I saw the same.  I don't expect you to
+observe what you say if you use last released 1.4.10?
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+However, if you use an xtables match then I would expect you to see a
+module loaded? (For example running up a fairly vanilla "shorewall"
+script manages to cause some 20 odd modules to load).  My specific
+problem is that on my hardware, invoking modprobe takes some good few ms
+(whether something is loaded or not), all modules are compiled into the
+kernel, so this time is dead time.  In the case of shorewall (which for
+sure is a beefy firewall script), this amounts to some several seconds
+of wasted time (since nothing is loaded)
+
+I appear to be able to eliminate this delay by modifying
+/proc/sys/kernel/modprobe, but I not (apparently) by using "iptables -M
+blah"? No one else is commenting on this, so either it's resolved in
+current git, or ...?
+
+
+No one has suggested anything, but basically, is there some way to avoid
+running modprobe when the kernel has all the xtables modules compiled
+in? ie can we detect that the code is already loaded and avoid trying to
+probe for it?
+
+However, many thanks to Maciej - that commit massively improves the
+performance of the simple cases!
+
+Cheers
+
+Ed W
