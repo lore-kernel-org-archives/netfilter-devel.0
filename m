@@ -1,47 +1,45 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset 6.3 released
-Date: Sun, 10 Apr 2011 17:40:17 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1104101734180.3240@blackhole.kfki.hu>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: ipset-6.2 testsuite failure
+Date: Sun, 10 Apr 2011 19:38:19 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1104101937470.549@obet.zrqbmnf.qr>
+References: <alpine.LNX.2.01.1104071453410.19048@obet.zrqbmnf.qr> <alpine.DEB.2.00.1104072059250.22730@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from borg.medozas.de ([188.40.89.202]:49326 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753651Ab1DJRiU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 10 Apr 2011 13:38:20 -0400
+In-Reply-To: <alpine.DEB.2.00.1104072059250.22730@blackhole.kfki.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
 
-I'm happy to announce ipset 6.3. The number of changes is relatively 
-small, with one important fix in the SET target with --del-set option. As 
-it was non-functional, if you need the SET target with --del-set then 
-please upgrade.
+On Thursday 2011-04-07 21:10, Jozsef Kadlecsik wrote:
+>On Thu, 7 Apr 2011, Jan Engelhardt wrote:
+>
+>> Using 2.6.39-rc1+ (kaber/nf-next) with ipset-6.2 (plain, nfnetlink):
+>> 
+>> jng-0:/home/jengelh/code/ipset/tests # ./runtest.sh 
+>> hash:ip6: Network: Check listing: passed
+>> hash:ip6: Sleep 5s so that elements can time out: passed
+>> hash:ip6: Network: List set: passed
+>> hash:ip6: Network: Check listing: 6a7
+>> > 200:100:10:: timeout 0
+>> FAILED
+>> Failed test: diff -I 'Size in memory.*' .foo hash:ip6.t.list1 && rm .foo
+>> jng-0:/home/jengelh/code/ipset/tests # 
+>
+>I was unable to reproduce this with the kernel from Patrick's tree and 
+>with ipset-6.2.
+>
+>However, in the testsuite of ipset-6.2 the hash:ip6 tests are not executed 
+>just after the ipmap tests: there are missing tests in the listing above.
+>
+>Also, the testsuite in ipset-6.2 contains the tests against the kernel in 
+>the package itself: the patches I have submitted today are missing from 
+>2.6.39-rc1+
 
-Kernel part changes:
- - ipset/Kconfig was a mixed up kernel config file, fixed (Michael 
-   Tokarev)
- - bitmap:ip,mac type requires "src" for MAC, enforce it
- - whitespace fixes: some space before tab slipped in
- - set match and SET target fixes (bugs reported by Lennert Buytenhek)
-
-Userspace changes:
- - Testsuite changes: keep temporary files
- - bitmap:ip,mac type requires "src" for MAC: manpage is updated to 
-   reflect the change
- - Testsuite checks added (SET target and dir parameter checks)
-
-The syntax checking of the set match/target extensions of ip6?tables was 
-also fixed: if you want to run the testsuite in ipset, you need iptables
-from the git tree.
-
-You can download the source code from:
-        http://ipset.netfilter.org
-        ftp://ftp.netfilter.org/pub/ipset/
-        git://git.netfilter.org/ipset.git
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Tried with ipset 6.3 and modules from ipset-6.3, and seems to work.
