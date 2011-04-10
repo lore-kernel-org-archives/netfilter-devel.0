@@ -1,32 +1,68 @@
-From: "suzanne mubarak" <suzanne-mubarak@live.com>
-Subject: From Suzanne mubarak
-Date: Sun, 10 Apr 2011 16:56:26 -0700
-Message-ID: <UIacYCGSPhBmm5f8Yd9g4aPXgWRDjpsApzQrrE9zdizu@live.com>
-Reply-To: suzannemubarak78@yahoo.com
+From: Lennert Buytenhek <buytenh@wantstofly.org>
+Subject: Re: ipset issues in 2.6.39-rc2
+Date: Sun, 10 Apr 2011 13:44:20 +0200
+Message-ID: <20110410114420.GC22881@wantstofly.org>
+References: <20110409151655.GA22881@wantstofly.org>
+ <alpine.DEB.2.00.1104092203520.32398@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
-	format=flowed
-Content-Transfer-Encoding: 7BIT
-To: "Netfilter-devel" <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nm16-vm0.bullet.mail.ac4.yahoo.com ([98.139.52.238]:29335 "HELO
-	nm16-vm0.bullet.mail.ac4.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754517Ab1DJIDl convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 10 Apr 2011 04:03:41 -0400
+Received: from fw.wantstofly.org ([80.101.37.227]:64214 "EHLO
+	mail.wantstofly.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754289Ab1DJLl3 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 10 Apr 2011 07:41:29 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1104092203520.32398@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-As my name may imply. I am first lady of Egypt.
+On Sat, Apr 09, 2011 at 10:06:58PM +0200, Jozsef Kadlecsik wrote:
 
-As the ongoing crises lingers. it became important for me to begin to plan
-and to save some of my wealth overseas and home in the hands of willing
-philanthropists and would be business partners. I will disclose my phone
- contact and or that of my attorney if you show interest in securing a minimum
-of $2billion for me wherever you are and or any country of my choice.
-This shall be done in pure business terms and conditions that shall be mutually beneficial.
+> Hi,
 
-Get back to me if you are interested
+Hi there,
 
-Thanks for your anticipated cooperation
 
+> > On the current Fedora Rawhide kernel (2.6.39-0.rc2.git0.0.fc16), I am
+> > seeing the following two issues:
+> > 
+> > 1. Attempting to create a -j SET rule with a certain invalid set of
+> >    flags leaks a reference to the specified pool:
+> > 
+> > 	# ipset create foo hash:ip
+> > 	# ipset list foo | grep References
+> > 	References: 0
+> > 	# iptables -A INPUT -j SET --del-set foo src,src,src,src,src,src
+> > 	iptables: Numerical result out of range.
+> > 	# ipset list foo | grep References
+> > 	References: 1
+> > 	#
+> > 
+> > 2. --del-set doesn't seem to work (or I don't understand how it's supposed
+> >    to work):
+> > 
+> > 	# ipset create bar hash:ip
+> > 	# ipset add bar 127.0.0.1
+> > 	# iptables -I INPUT -s 127.0.0.1 -p icmp -j SET --del-set bar src
+> > 	# ping -c 1 127.0.0.1
+> > 	[...]
+> > 	# iptables -L INPUT -v | grep SET
+> > 	    2   168 SET        icmp --  *      *       127.0.0.1            0.0.0.0/0           del-set bar src,dst,dst,dst,dst,dst 
+> > 	# ipset list bar
+> > 	[...]
+> > 	Members:
+> > 	127.0.0.1
+> 
+> Both are real bugs indeed. I have sent the fixes to netfilter-devel and 
+> I'll release a new ipset version at the weekend. I also fixed the set 
+> match/target in iptables to catch properly the invalid number of dir 
+> parameters and committed it in git.
+
+I didn't test (1), but your patch at least fixes (2) -- thanks!
+
+
+cheers,
+Lennert
