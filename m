@@ -1,52 +1,37 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset-6.3 unexpected htable order
-Date: Mon, 11 Apr 2011 10:48:45 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1104111040380.6049@blackhole.kfki.hu>
-References: <alpine.LNX.2.01.1104110439420.14676@obet.zrqbmnf.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: xtables-addons: pknock extension crashes the kernel
+Date: Mon, 11 Apr 2011 18:32:34 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1104111831001.23395@obet.zrqbmnf.qr>
+References: <59618.87.244.225.21.1296328332.squirrel@mail.atlantis.sk>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: jp@skylan.sk
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:39718 "EHLO smtp1.kfki.hu"
+Received: from borg.medozas.de ([188.40.89.202]:37452 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754651Ab1DKIsq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Apr 2011 04:48:46 -0400
-In-Reply-To: <alpine.LNX.2.01.1104110439420.14676@obet.zrqbmnf.qr>
+	id S1751061Ab1DKQcf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 Apr 2011 12:32:35 -0400
+In-Reply-To: <59618.87.244.225.21.1296328332.squirrel@mail.atlantis.sk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jan,
+On Saturday 2011-01-29 20:12, jp@skylan.sk wrote:
 
-On Mon, 11 Apr 2011, Jan Engelhardt wrote:
+>Hi,
+>
+>I am using gentoo, hardened build, kernel version 2.6.34-r6. The pknock
+>module does not load, instead, it crashes. GCC version is 4.4.4-r2,
+>iptables version 1.4.10. Tried all xtables-addons versions from 1.28 to
+>newest 1.32, same result for all builds.
 
-> What would it mean if this testcase failure occured to me? I have
-> observing this issue reproducibly with ipset-6.3-genl, though I can't
-> make heads-tails of it. Apparently the members are the same, albeit
-> in different order (which should be irrelevant in hashes anyway), and
-> less memory happens to be used in this occurrence.
-> 
-> What immediately comes to mind about the different order is that
-> the hash was perturbed, perhaps by an uninitialized variable or
-> otherwise undefined operation.
+It is possible that this is fixed in v1.34:
 
-No, it's the locale settings... "sort" is dependent of the locale.
+xt_pknock: avoid crash when hash TFM could not be allocated (commit 0ba44bd)
 
-> The fact that occurs only on ipv6 hash types is also worth mentioning.
-
-Punctuation characters are ignored by sort if the locale is not C/POSIX. 
-Therefore if your locale setting is different than mine :-), the checking 
-failed.
- 
-I set LC_ALL to C in the testsuite script and re-sorted the results 
-according to that. Git is updated, testsuite is re-checked.
-
-Thanks for the testings!
- 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+I can't say more because you have symbols disabled in your kernel image
+so that the IP value - normally suffixed by the name of the function -
+is of no use.
+>BUG: unable to handle kernel NULL pointer dereference at 000000000000002e
+>IP: [<ffffffffa002c0a3>]
+>Pid: 8772, comm: modprobe Not tainted 2.6.34-hardened-r6 #3 /ProLiant
