@@ -1,34 +1,61 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: ipt_NETFLOW and xtables-addons
-Date: Mon, 11 Apr 2011 04:37:36 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1104110434280.14676@obet.zrqbmnf.qr>
-References: <4D4661F3.4070507@linux.vnet.ibm.com>
+Subject: ipset-6.3 unexpected htable order
+Date: Mon, 11 Apr 2011 05:28:57 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1104110439420.14676@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Srinivasa T N <seenutn@linux.vnet.ibm.com>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:35187 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:55417 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752138Ab1DKChi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 10 Apr 2011 22:37:38 -0400
-In-Reply-To: <4D4661F3.4070507@linux.vnet.ibm.com>
+	id S1752633Ab1DKD26 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 10 Apr 2011 23:28:58 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2011-01-31 08:17, Srinivasa T N wrote:
+Hej,
 
-> Hi,
->   Can I compile ipt_NETFLOW standalone (i.e., use pom and not change kernel)?
-> Or should I integrate that with xtables-addons?  If I have to integrate, how
-> can I do so?
 
-POM is defunct.
+What would it mean if this testcase failure occured to me? I have
+observing this issue reproducibly with ipset-6.3-genl, though I can't
+make heads-tails of it. Apparently the members are the same, albeit
+in different order (which should be irrelevant in hashes anyway), and
+less memory happens to be used in this occurrence.
 
-Integration into xtables-addons requires that the files be copied into 
-it and the Kbuild, Mbuild, mconfig files be modified appropriately.
+What immediately comes to mind about the different order is that
+the hash was perturbed, perhaps by an uninitialized variable or
+otherwise undefined operation.
 
-Most important of all is that the copy in xtables-addons should be a 
-first-class citizen that is maintained, preferably by the person that 
-does the current standalone releases. Me picking code updates from 
-external projects would be time-consuming.
+I know I can't expect you to dig around in the GENL patch, but maybe
+you are interested. The latest is at git://dev.medozas.de/ipset-6 genl .
+
+The fact that occurs only on ipv6 hash types is also worth mentioning.
+
+hash:ip6,port: Check listing:
+--- .foo  2011-04-11 04:27:28.384089921 +0200
++++ hash:ip6,port.t.list0       2011-04-04 00:22:28.398552604 +0200
+@@ -1,11 +1,11 @@
+ Name: test
+ Type: hash:ip,port
+ Header: family inet6 hashsize 1024 maxelem 65536 timeout x
+-Size in memory: 17112
++Size in memory: 8848
+ References: 0
+ Members:
+-2:1::,tcp:128 timeout x
+ 2:1::1,tcp:128 timeout x
+-2::,tcp:5 timeout x
++2:1::,tcp:128 timeout x
+ 2::1,tcp:5 timeout x
++2::,tcp:5 timeout x
+
+FAILED
+Failed test: diff -uI 'Size in memory.*' .foo hash:ip6,port.t.list0
+
+Other tests affected:
+ hash:ip6,port,ip6
+ hash:net6
+ hash:net6,port
+ hash:ip6,port,net6
+
