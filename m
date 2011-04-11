@@ -1,39 +1,48 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset-6.2 testsuite failure
-Date: Mon, 11 Apr 2011 10:40:33 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1104111038350.6049@blackhole.kfki.hu>
-References: <alpine.LNX.2.01.1104071453410.19048@obet.zrqbmnf.qr> <alpine.DEB.2.00.1104072059250.22730@blackhole.kfki.hu> <alpine.LNX.2.01.1104101937470.549@obet.zrqbmnf.qr> <alpine.DEB.2.00.1104102013230.3680@blackhole.kfki.hu>
- <alpine.LNX.2.01.1104110207210.2501@obet.zrqbmnf.qr>
+Subject: Re: ipset-6.3 unexpected htable order
+Date: Mon, 11 Apr 2011 10:48:45 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1104111040380.6049@blackhole.kfki.hu>
+References: <alpine.LNX.2.01.1104110439420.14676@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:36804 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:39718 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755411Ab1DKIkf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Apr 2011 04:40:35 -0400
-In-Reply-To: <alpine.LNX.2.01.1104110207210.2501@obet.zrqbmnf.qr>
+	id S1754651Ab1DKIsq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 Apr 2011 04:48:46 -0400
+In-Reply-To: <alpine.LNX.2.01.1104110439420.14676@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Jan,
+
 On Mon, 11 Apr 2011, Jan Engelhardt wrote:
 
-> On Sunday 2011-04-10 20:18, Jozsef Kadlecsik wrote:
-> >> >Also, the testsuite in ipset-6.2 contains the tests against the kernel in 
-> >> >the package itself: the patches I have submitted today are missing from 
-> >> >2.6.39-rc1+
-> >> 
-> >> Tried with ipset 6.3 and modules from ipset-6.3, and seems to work.
-> >
-> >Thanks! The kernel is a little bit behind the package.
+> What would it mean if this testcase failure occured to me? I have
+> observing this issue reproducibly with ipset-6.3-genl, though I can't
+> make heads-tails of it. Apparently the members are the same, albeit
+> in different order (which should be irrelevant in hashes anyway), and
+> less memory happens to be used in this occurrence.
 > 
-> The testsuite should use diff -u at least, the context numbers are not very
-> telling.
+> What immediately comes to mind about the different order is that
+> the hash was perturbed, perhaps by an uninitialized variable or
+> otherwise undefined operation.
 
-I updated the testsuite in git tree, 'diff -u' is used at displaying the 
-differences.
+No, it's the locale settings... "sort" is dependent of the locale.
 
+> The fact that occurs only on ipv6 hash types is also worth mentioning.
+
+Punctuation characters are ignored by sort if the locale is not C/POSIX. 
+Therefore if your locale setting is different than mine :-), the checking 
+failed.
+ 
+I set LC_ALL to C in the testsuite script and re-sorted the results 
+according to that. Git is updated, testsuite is re-checked.
+
+Thanks for the testings!
+ 
 Best regards,
 Jozsef
 -
