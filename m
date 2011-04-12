@@ -1,332 +1,144 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 02/28] libip[6]t_HL: use guided option parser
-Date: Tue, 12 Apr 2011 16:23:17 +0200
-Message-ID: <1302618224-9449-3-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 04/28] libxtables: XTTYPE_UINT32RC support
+Date: Tue, 12 Apr 2011 16:23:19 +0200
+Message-ID: <1302618224-9449-5-git-send-email-jengelh@medozas.de>
 References: <1302618224-9449-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from borg.medozas.de ([188.40.89.202]:51082 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755069Ab1DLOXs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Apr 2011 10:23:48 -0400
+	id S1755899Ab1DLOXu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Apr 2011 10:23:50 -0400
 In-Reply-To: <1302618224-9449-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libip6t_HL.c |  111 ++++++++++++++++++-----------------------------
- extensions/libipt_TTL.c |  110 ++++++++++++++++++-----------------------------
- 2 files changed, 84 insertions(+), 137 deletions(-)
+ include/xtables.h.in |    6 ++++-
+ xtoptions.c          |   55 +++++++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 59 insertions(+), 2 deletions(-)
 
-diff --git a/extensions/libip6t_HL.c b/extensions/libip6t_HL.c
-index 900564c..254b191 100644
---- a/extensions/libip6t_HL.c
-+++ b/extensions/libip6t_HL.c
-@@ -4,17 +4,33 @@
-  * Based on HW's ttl target
-  * This program is distributed under the terms of GNU GPL
+diff --git a/include/xtables.h.in b/include/xtables.h.in
+index dc074bc..3e596e0 100644
+--- a/include/xtables.h.in
++++ b/include/xtables.h.in
+@@ -48,11 +48,13 @@ struct in_addr;
+ /**
+  * %XTTYPE_NONE:	option takes no argument
+  * %XTTYPE_UINT*:	standard integer
++ * %XTTYPE_UINT*RC:	colon-separated range of standard integers
   */
--
--#include <getopt.h>
--#include <stdbool.h>
- #include <stdio.h>
--#include <string.h>
--#include <stdlib.h>
- #include <xtables.h>
--
- #include <linux/netfilter_ipv6/ip6t_HL.h>
- 
--#define IP6T_HL_USED	1
-+enum {
-+	O_HL_SET = 0,
-+	O_HL_INC,
-+	O_HL_DEC,
-+	F_HL_SET = 1 << O_HL_SET,
-+	F_HL_INC = 1 << O_HL_INC,
-+	F_HL_DEC = 1 << O_HL_DEC,
-+	F_ANY    = F_HL_SET | F_HL_INC | F_HL_DEC,
-+};
-+
-+#define s struct ip6t_HL_info
-+static const struct xt_option_entry HL_opts[] = {
-+	{.name = "ttl-set", .type = XTTYPE_UINT8, .id = O_HL_SET,
-+	 .excl = F_ANY, .flags = XTOPT_PUT, XTOPT_POINTER(s, hop_limit)},
-+	{.name = "ttl-dec", .type = XTTYPE_UINT8, .id = O_HL_DEC,
-+	 .excl = F_ANY, .flags = XTOPT_PUT, XTOPT_POINTER(s, hop_limit),
-+	 .min = 1},
-+	{.name = "ttl-inc", .type = XTTYPE_UINT8, .id = O_HL_INC,
-+	 .excl = F_ANY, .flags = XTOPT_PUT, XTOPT_POINTER(s, hop_limit),
-+	 .min = 1},
-+	XTOPT_TABLEEND,
-+};
-+#undef s
- 
- static void HL_help(void)
- {
-@@ -25,63 +41,27 @@ static void HL_help(void)
- "  --hl-inc value		Increment HL by <value 1-255>\n");
- }
- 
--static int HL_parse(int c, char **argv, int invert, unsigned int *flags,
--                    const void *entry, struct xt_entry_target **target)
-+static void HL_parse(struct xt_option_call *cb)
- {
--	struct ip6t_HL_info *info = (struct ip6t_HL_info *) (*target)->data;
--	unsigned int value;
--
--	if (*flags & IP6T_HL_USED) {
--		xtables_error(PARAMETER_PROBLEM,
--				"Can't specify HL option twice");
-+	struct ip6t_HL_info *info = cb->data;
-+
-+	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case O_HL_SET:
-+		info->mode = IP6T_HL_SET;
-+		break;
-+	case O_HL_INC:
-+		info->mode = IP6T_HL_INC;
-+		break;
-+	case O_HL_DEC:
-+		info->mode = IP6T_HL_DEC;
-+		break;
- 	}
--
--	if (!optarg) 
--		xtables_error(PARAMETER_PROBLEM,
--				"HL: You must specify a value");
--
--	if (xtables_check_inverse(optarg, &invert, NULL, 0, argv))
--		xtables_error(PARAMETER_PROBLEM,
--				"HL: unexpected `!'");
--	
--	if (!xtables_strtoui(optarg, NULL, &value, 0, UINT8_MAX))
--		xtables_error(PARAMETER_PROBLEM,
--		           "HL: Expected value between 0 and 255");
--
--	switch (c) {
--
--		case '1':
--			info->mode = IP6T_HL_SET;
--			break;
--
--		case '2':
--			if (value == 0) {
--				xtables_error(PARAMETER_PROBLEM,
--					"HL: decreasing by 0?");
--			}
--
--			info->mode = IP6T_HL_DEC;
--			break;
--
--		case '3':
--			if (value == 0) {
--				xtables_error(PARAMETER_PROBLEM,
--					"HL: increasing by 0?");
--			}
--
--			info->mode = IP6T_HL_INC;
--			break;
--	}
--	
--	info->hop_limit = value;
--	*flags |= IP6T_HL_USED;
--
--	return 1;
- }
- 
--static void HL_check(unsigned int flags)
-+static void HL_check(struct xt_fcheck_call *cb)
- {
--	if (!(flags & IP6T_HL_USED))
-+	if (!(cb->xflags & F_ANY))
- 		xtables_error(PARAMETER_PROBLEM,
- 				"HL: You must specify an action");
- }
-@@ -127,13 +107,6 @@ static void HL_print(const void *ip, const struct xt_entry_target *target,
- 	printf(" %u", info->hop_limit);
- }
- 
--static const struct option HL_opts[] = {
--	{.name = "hl-set", .has_arg = true, .val = '1'},
--	{.name = "hl-dec", .has_arg = true, .val = '2'},
--	{.name = "hl-inc", .has_arg = true, .val = '3'},
--	XT_GETOPT_TABLEEND,
--};
--
- static struct xtables_target hl_tg6_reg = {
- 	.name 		= "HL",
- 	.version	= XTABLES_VERSION,
-@@ -141,11 +114,11 @@ static struct xtables_target hl_tg6_reg = {
- 	.size		= XT_ALIGN(sizeof(struct ip6t_HL_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct ip6t_HL_info)),
- 	.help		= HL_help,
--	.parse		= HL_parse,
--	.final_check	= HL_check,
- 	.print		= HL_print,
- 	.save		= HL_save,
--	.extra_opts	= HL_opts,
-+	.x6_parse	= HL_parse,
-+	.x6_fcheck	= HL_check,
-+	.x6_options	= HL_opts,
+ enum xt_option_type {
+ 	XTTYPE_NONE,
+ 	XTTYPE_UINT8,
+ 	XTTYPE_UINT32,
++	XTTYPE_UINT32RC,
  };
  
- void _init(void)
-diff --git a/extensions/libipt_TTL.c b/extensions/libipt_TTL.c
-index c2518f8..0f81280 100644
---- a/extensions/libipt_TTL.c
-+++ b/extensions/libipt_TTL.c
-@@ -3,16 +3,33 @@
-  *
-  * This program is distributed under the terms of GNU GPL
+ /**
+@@ -96,6 +98,7 @@ struct xt_option_entry {
+  * @data:	per-extension data block
+  * @xflags:	options of the extension that have been used
+  * @invert:	whether option was used with !
++ * @nvals:	number of results in uXX_multi
+  * @val:	parsed result
   */
--#include <stdbool.h>
- #include <stdio.h>
--#include <string.h>
--#include <stdlib.h>
--#include <getopt.h>
- #include <xtables.h>
--
- #include <linux/netfilter_ipv4/ipt_TTL.h>
- 
--#define IPT_TTL_USED	1
-+enum {
-+	O_TTL_SET = 0,
-+	O_TTL_INC,
-+	O_TTL_DEC,
-+	F_TTL_SET = 1 << O_TTL_SET,
-+	F_TTL_INC = 1 << O_TTL_INC,
-+	F_TTL_DEC = 1 << O_TTL_DEC,
-+	F_ANY     = F_TTL_SET | F_TTL_INC | F_TTL_DEC,
-+};
-+
-+#define s struct ipt_TTL_info
-+static const struct xt_option_entry TTL_opts[] = {
-+	{.name = "ttl-set", .type = XTTYPE_UINT8, .id = O_TTL_SET,
-+	 .excl = F_ANY, .flags = XTOPT_PUT, XTOPT_POINTER(s, ttl)},
-+	{.name = "ttl-dec", .type = XTTYPE_UINT8, .id = O_TTL_DEC,
-+	 .excl = F_ANY, .flags = XTOPT_PUT, XTOPT_POINTER(s, ttl),
-+	 .min = 1},
-+	{.name = "ttl-inc", .type = XTTYPE_UINT8, .id = O_TTL_INC,
-+	 .excl = F_ANY, .flags = XTOPT_PUT, XTOPT_POINTER(s, ttl),
-+	 .min = 1},
-+	XTOPT_TABLEEND,
-+};
-+#undef s
- 
- static void TTL_help(void)
- {
-@@ -23,63 +40,27 @@ static void TTL_help(void)
- "  --ttl-inc value		Increment TTL by <value 1-255>\n");
- }
- 
--static int TTL_parse(int c, char **argv, int invert, unsigned int *flags,
--                     const void *entry, struct xt_entry_target **target)
-+static void TTL_parse(struct xt_option_call *cb)
- {
--	struct ipt_TTL_info *info = (struct ipt_TTL_info *) (*target)->data;
--	unsigned int value;
--
--	if (*flags & IPT_TTL_USED) {
--		xtables_error(PARAMETER_PROBLEM,
--				"Can't specify TTL option twice");
--	}
--
--	if (!optarg) 
--		xtables_error(PARAMETER_PROBLEM,
--				"TTL: You must specify a value");
--
--	if (xtables_check_inverse(optarg, &invert, NULL, 0, argv))
--		xtables_error(PARAMETER_PROBLEM,
--				"TTL: unexpected `!'");
--	
--	if (!xtables_strtoui(optarg, NULL, &value, 0, UINT8_MAX))
--		xtables_error(PARAMETER_PROBLEM,
--		           "TTL: Expected value between 0 and 255");
--
--	switch (c) {
--
--		case '1':
--			info->mode = IPT_TTL_SET;
--			break;
--
--		case '2':
--			if (value == 0) {
--				xtables_error(PARAMETER_PROBLEM,
--					"TTL: decreasing by 0?");
--			}
--
--			info->mode = IPT_TTL_DEC;
--			break;
--
--		case '3':
--			if (value == 0) {
--				xtables_error(PARAMETER_PROBLEM,
--					"TTL: increasing by 0?");
--			}
--
--			info->mode = IPT_TTL_INC;
--			break;
-+	struct ipt_TTL_info *info = cb->data;
-+
-+	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case O_TTL_SET:
-+		info->mode = IPT_TTL_SET;
-+		break;
-+	case O_TTL_DEC:
-+		info->mode = IPT_TTL_DEC;
-+		break;
-+	case O_TTL_INC:
-+		info->mode = IPT_TTL_INC;
-+		break;
- 	}
--	
--	info->ttl = value;
--	*flags |= IPT_TTL_USED;
--
--	return 1;
- }
- 
--static void TTL_check(unsigned int flags)
-+static void TTL_check(struct xt_fcheck_call *cb)
- {
--	if (!(flags & IPT_TTL_USED))
-+	if (!(cb->xflags & F_ANY))
- 		xtables_error(PARAMETER_PROBLEM,
- 				"TTL: You must specify an action");
- }
-@@ -125,13 +106,6 @@ static void TTL_print(const void *ip, const struct xt_entry_target *target,
- 	printf(" %u", info->ttl);
- }
- 
--static const struct option TTL_opts[] = {
--	{.name = "ttl-set", .has_arg = true, .val = '1'},
--	{.name = "ttl-dec", .has_arg = true, .val = '2'},
--	{.name = "ttl-inc", .has_arg = true, .val = '3'},
--	XT_GETOPT_TABLEEND,
--};
--
- static struct xtables_target ttl_tg_reg = {
- 	.name		= "TTL",
- 	.version	= XTABLES_VERSION,
-@@ -139,11 +113,11 @@ static struct xtables_target ttl_tg_reg = {
- 	.size		= XT_ALIGN(sizeof(struct ipt_TTL_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct ipt_TTL_info)),
- 	.help		= TTL_help,
--	.parse		= TTL_parse,
--	.final_check	= TTL_check,
- 	.print		= TTL_print,
- 	.save		= TTL_save,
--	.extra_opts	= TTL_opts,
-+	.x6_parse	= TTL_parse,
-+	.x6_fcheck	= TTL_check,
-+	.x6_options	= TTL_opts,
+ struct xt_option_call {
+@@ -104,9 +107,10 @@ struct xt_option_call {
+ 	void *data;
+ 	unsigned int xflags;
+ 	bool invert;
++	uint8_t nvals;
+ 	union {
+ 		uint8_t u8;
+-		uint32_t u32;
++		uint32_t u32, u32_range[2];
+ 	} val;
  };
  
- void _init(void)
+diff --git a/xtoptions.c b/xtoptions.c
+index 693c06d..03c629e 100644
+--- a/xtoptions.c
++++ b/xtoptions.c
+@@ -113,14 +113,66 @@ static void xtopt_parse_int(struct xt_option_call *cb)
+ 	}
+ }
+ 
++/**
++ * Multiple integer parse routine.
++ *
++ * This function is capable of parsing any number of fields. Only the first
++ * two values from the string will be put into @cb however (and as such,
++ * @cb->val.uXX_range is just that large) to cater for the few extensions that
++ * do not have a range[2] field, but {min, max}, and which cannot use
++ * XTOPT_POINTER.
++ */
++static void xtopt_parse_mint(struct xt_option_call *cb)
++{
++	const struct xt_option_entry *entry = cb->entry;
++	const char *arg = cb->arg;
++	uint32_t *put = XTOPT_MKPTR(cb);
++	unsigned int maxiter, value;
++	char *end = "";
++	char sep = ':';
++
++	maxiter = entry->size / sizeof(uint32_t);
++	if (maxiter == 0)
++		maxiter = 2; /* ARRAY_SIZE(cb->val.uXX_range) */
++	if (entry->size % sizeof(uint32_t) != 0)
++		xt_params->exit_err(OTHER_PROBLEM, "%s: memory block does "
++			"not have proper size\n", __func__);
++
++	cb->nvals = 0;
++	for (arg = cb->arg; ; arg = end + 1) {
++		if (cb->nvals == maxiter)
++			xt_params->exit_err(PARAMETER_PROBLEM, "%s: Too many "
++				"components for option \"--%s\" (max: %u)\n",
++				cb->ext_name, entry->name, maxiter);
++		if (!xtables_strtoui(arg, &end, &value, 0, UINT32_MAX))
++			xt_params->exit_err(PARAMETER_PROBLEM,
++				"%s: bad value for option \"--%s\", "
++				"or out of range (0-%u).\n",
++				cb->ext_name, entry->name, UINT32_MAX);
++		if (*end != '\0' && *end != sep)
++			xt_params->exit_err(PARAMETER_PROBLEM,
++				"%s: Argument to \"--%s\" has unexpected "
++				"characters.\n", cb->ext_name, entry->name);
++		++cb->nvals;
++		if (cb->nvals < ARRAY_SIZE(cb->val.u32_range))
++			cb->val.u32_range[cb->nvals] = value;
++		if (entry->flags & XTOPT_PUT)
++			*put++ = value;
++		if (*end == '\0')
++			break;
++	}
++}
++
+ static void (*const xtopt_subparse[])(struct xt_option_call *) = {
+ 	[XTTYPE_UINT8]       = xtopt_parse_int,
+ 	[XTTYPE_UINT32]      = xtopt_parse_int,
++	[XTTYPE_UINT32RC]    = xtopt_parse_mint,
+ };
+ 
+ static const size_t xtopt_psize[] = {
+ 	[XTTYPE_UINT8]       = sizeof(uint8_t),
+ 	[XTTYPE_UINT32]      = sizeof(uint32_t),
++	[XTTYPE_UINT32RC]    = sizeof(uint32_t[2]),
+ };
+ 
+ /**
+@@ -180,7 +232,8 @@ void xtables_option_metavalidate(const char *name,
+ 				"%s: entry type of option \"--%s\" cannot be "
+ 				"combined with XTOPT_PUT\n",
+ 				name, entry->name);
+-		if (xtopt_psize[entry->type] != entry->size)
++		if (xtopt_psize[entry->type] != -1 &&
++		    xtopt_psize[entry->type] != entry->size)
+ 			xt_params->exit_err(OTHER_PROBLEM,
+ 				"%s: option \"--%s\" points to a memory block "
+ 				"of wrong size (expected %zu, got %zu)\n",
 -- 
 1.7.1
 
