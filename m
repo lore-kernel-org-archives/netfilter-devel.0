@@ -1,37 +1,33 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: xtables-addons: pknock extension crashes the kernel
-Date: Mon, 11 Apr 2011 18:32:34 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1104111831001.23395@obet.zrqbmnf.qr>
-References: <59618.87.244.225.21.1296328332.squirrel@mail.atlantis.sk>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: One documentation fix
+Date: Tue, 12 Apr 2011 16:04:56 +0200
+Message-ID: <4DA45C08.6090902@trash.net>
+References: <1302089091-14260-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: jp@skylan.sk
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:37452 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751061Ab1DKQcf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Apr 2011 12:32:35 -0400
-In-Reply-To: <59618.87.244.225.21.1296328332.squirrel@mail.atlantis.sk>
+Received: from stinky.trash.net ([213.144.137.162]:51060 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756134Ab1DLOFM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Apr 2011 10:05:12 -0400
+In-Reply-To: <1302089091-14260-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Saturday 2011-01-29 20:12, jp@skylan.sk wrote:
+On 06.04.2011 13:24, Jan Engelhardt wrote:
+> The following changes since commit 6a86854bf91227a70392fc2665ed4f99af0229e3:
+> 
+>   convert ip6?tables-multi to actually use their own header files (2011-04-05 12:43:26 +0200)
+> 
+> are available in the git repository at:
+>   git://dev.medozas.de/iptables master
+> 
+> Jan Engelhardt (1):
+>       doc: avoid duplicate entries in manpage
 
->Hi,
->
->I am using gentoo, hardened build, kernel version 2.6.34-r6. The pknock
->module does not load, instead, it crashes. GCC version is 4.4.4-r2,
->iptables version 1.4.10. Tried all xtables-addons versions from 1.28 to
->newest 1.32, same result for all builds.
 
-It is possible that this is fixed in v1.34:
-
-xt_pknock: avoid crash when hash TFM could not be allocated (commit 0ba44bd)
-
-I can't say more because you have symbols disabled in your kernel image
-so that the IP value - normally suffixed by the name of the function -
-is of no use.
->BUG: unable to handle kernel NULL pointer dereference at 000000000000002e
->IP: [<ffffffffa002c0a3>]
->Pid: 8772, comm: modprobe Not tainted 2.6.34-hardened-r6 #3 /ProLiant
+Pulled, thanks Jan.
