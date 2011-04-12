@@ -1,131 +1,224 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 11/28] libip6t_hbh: use guided option parser
-Date: Tue, 12 Apr 2011 16:23:26 +0200
-Message-ID: <1302618224-9449-12-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 09/28] libip[6]t_REJECT: use guided option parser
+Date: Tue, 12 Apr 2011 16:23:24 +0200
+Message-ID: <1302618224-9449-10-git-send-email-jengelh@medozas.de>
 References: <1302618224-9449-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:54652 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:54646 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756321Ab1DLOX5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Apr 2011 10:23:57 -0400
+	id S1756120Ab1DLOX4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Apr 2011 10:23:56 -0400
 In-Reply-To: <1302618224-9449-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libip6t_hbh.c |   61 ++++++++++++++++-----------------------------
- 1 files changed, 22 insertions(+), 39 deletions(-)
+ extensions/libip6t_REJECT.c |   48 ++++++++++++++++-------------------
+ extensions/libipt_REJECT.c  |   58 +++++++++++++++++++-----------------------
+ 2 files changed, 48 insertions(+), 58 deletions(-)
 
-diff --git a/extensions/libip6t_hbh.c b/extensions/libip6t_hbh.c
-index b6a8e46..809e80d 100644
---- a/extensions/libip6t_hbh.c
-+++ b/extensions/libip6t_hbh.c
-@@ -1,19 +1,17 @@
--/* Shared library add-on to ip6tables to add Hop-by-Hop header support. */
+diff --git a/extensions/libip6t_REJECT.c b/extensions/libip6t_REJECT.c
+index f906ab8..8085321 100644
+--- a/extensions/libip6t_REJECT.c
++++ b/extensions/libip6t_REJECT.c
+@@ -5,11 +5,8 @@
+  * ported to IPv6 by Harald Welte <laforge@gnumonks.org>
+  *
+  */
+-#include <stdbool.h>
  #include <stdio.h>
--#include <netdb.h>
  #include <string.h>
- #include <stdlib.h>
+-#include <stdlib.h>
 -#include <getopt.h>
- #include <errno.h>
  #include <xtables.h>
--/*#include <linux/in6.h>*/
- #include <linux/netfilter_ipv6/ip6t_opts.h>
--#include <sys/types.h>
--#include <sys/socket.h>
--#include <arpa/inet.h>
+ #include <linux/netfilter_ipv6/ip6t_REJECT.h>
  
- #define DEBUG		0
+@@ -20,6 +17,10 @@ struct reject_names {
+ 	const char *desc;
+ };
  
 +enum {
-+	O_HBH_LEN = 0,
-+	O_HBH_OPTS,
++	O_REJECT_WITH = 0,
 +};
 +
- static void hbh_help(void)
- {
- 	printf(
-@@ -24,10 +22,12 @@ static void hbh_help(void)
- IP6T_OPTS_OPTSNR);
+ static const struct reject_names reject_table[] = {
+ 	{"icmp6-no-route", "no-route",
+ 		IP6T_ICMP6_NO_ROUTE, "ICMPv6 no route"},
+@@ -61,9 +62,9 @@ static void REJECT_help(void)
+ 	print_reject_types();
  }
  
--static const struct option hbh_opts[] = {
--	{.name = "hbh-len",        .has_arg = true, .val = '1'},
--	{.name = "hbh-opts",       .has_arg = true, .val = '2'},
+-static const struct option REJECT_opts[] = {
+-	{.name = "reject-with", .has_arg = true, .val = '1'},
 -	XT_GETOPT_TABLEEND,
-+static const struct xt_option_entry hbh_opts[] = {
-+	{.name = "hbh-len", .id = O_HBH_LEN, .type = XTTYPE_UINT32,
-+	 .flags = XTOPT_INVERT | XTOPT_PUT,
-+	 XTOPT_POINTER(struct ip6t_opts, hdrlen)},
-+	{.name = "hbh-opts", .id = O_HBH_OPTS, .type = XTTYPE_STRING},
++static const struct xt_option_entry REJECT_opts[] = {
++	{.name = "reject-with", .id = O_REJECT_WITH, .type = XTTYPE_STRING},
 +	XTOPT_TABLEEND,
  };
  
- static uint32_t
-@@ -99,38 +99,21 @@ parse_options(const char *optsstr, uint16_t *opts)
- 	return i;
+ static void REJECT_init(struct xt_entry_target *t)
+@@ -75,27 +76,22 @@ static void REJECT_init(struct xt_entry_target *t)
+ 
  }
  
--static int hbh_parse(int c, char **argv, int invert, unsigned int *flags,
--                     const void *entry, struct xt_entry_match **match)
-+static void hbh_parse(struct xt_option_call *cb)
+-static int REJECT_parse(int c, char **argv, int invert, unsigned int *flags,
+-                        const void *entry, struct xt_entry_target **target)
++static void REJECT_parse(struct xt_option_call *cb)
  {
--	struct ip6t_opts *optinfo = (struct ip6t_opts *)(*match)->data;
--
--	switch (c) {
+-	struct ip6t_reject_info *reject = 
+-		(struct ip6t_reject_info *)(*target)->data;
++	struct ip6t_reject_info *reject = cb->data;
+ 	unsigned int i;
+ 
+-	switch(c) {
 -	case '1':
--		if (*flags & IP6T_OPTS_LEN)
+-		if (xtables_check_inverse(optarg, &invert, NULL, 0, argv))
 -			xtables_error(PARAMETER_PROBLEM,
--				   "Only one `--hbh-len' allowed");
--		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
--		optinfo->hdrlen = parse_opts_num(optarg, "length");
--		if (invert)
-+	struct ip6t_opts *optinfo = cb->data;
-+
+-				   "Unexpected `!' after --reject-with");
+-		for (i = 0; i < ARRAY_SIZE(reject_table); ++i)
+-			if ((strncasecmp(reject_table[i].name, optarg, strlen(optarg)) == 0)
+-			    || (strncasecmp(reject_table[i].alias, optarg, strlen(optarg)) == 0)) {
+-				reject->with = reject_table[i].with;
+-				return 1;
+-			}
+-		xtables_error(PARAMETER_PROBLEM, "unknown reject type \"%s\"", optarg);
+-	}
+-	return 0;
 +	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case O_HBH_LEN:
-+		if (cb->invert)
- 			optinfo->invflags |= IP6T_OPTS_INV_LEN;
--		optinfo->flags |= IP6T_OPTS_LEN;
--		*flags |= IP6T_OPTS_LEN;
- 		break;
--	case '2':
--		if (*flags & IP6T_OPTS_OPTS)
--			xtables_error(PARAMETER_PROBLEM,
--				   "Only one `--hbh-opts' allowed");
--                xtables_check_inverse(optarg, &invert, &optind, 0, argv);
--                if (invert)
--			xtables_error(PARAMETER_PROBLEM,
--				" '!' not allowed with `--hbh-opts'");
--		optinfo->optsnr = parse_options(optarg, optinfo->opts);
-+	case O_HBH_OPTS:
-+		optinfo->optsnr = parse_options(cb->arg, optinfo->opts);
- 		optinfo->flags |= IP6T_OPTS_OPTS;
--		*flags |= IP6T_OPTS_OPTS;
- 		break;
- 	}
--
--	return 1;
++	for (i = 0; i < ARRAY_SIZE(reject_table); ++i)
++		if (strncasecmp(reject_table[i].name,
++		      cb->arg, strlen(cb->arg)) == 0 ||
++		    strncasecmp(reject_table[i].alias,
++		      cb->arg, strlen(cb->arg)) == 0) {
++			reject->with = reject_table[i].with;
++			return;
++		}
++	xtables_error(PARAMETER_PROBLEM,
++		"unknown reject type \"%s\"", cb->arg);
  }
  
- static void
-@@ -187,10 +170,10 @@ static struct xtables_match hbh_mt6_reg = {
- 	.size		= XT_ALIGN(sizeof(struct ip6t_opts)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct ip6t_opts)),
- 	.help		= hbh_help,
--	.parse		= hbh_parse,
- 	.print		= hbh_print,
- 	.save		= hbh_save,
--	.extra_opts	= hbh_opts,
-+	.x6_parse	= hbh_parse,
-+	.x6_options	= hbh_opts,
+ static void REJECT_print(const void *ip, const struct xt_entry_target *target,
+@@ -132,10 +128,10 @@ static struct xtables_target reject_tg6_reg = {
+ 	.userspacesize 	= XT_ALIGN(sizeof(struct ip6t_reject_info)),
+ 	.help		= REJECT_help,
+ 	.init		= REJECT_init,
+-	.parse		= REJECT_parse,
+ 	.print		= REJECT_print,
+ 	.save		= REJECT_save,
+-	.extra_opts	= REJECT_opts,
++	.x6_parse	= REJECT_parse,
++	.x6_options	= REJECT_opts,
  };
  
- void
+ void _init(void)
+diff --git a/extensions/libipt_REJECT.c b/extensions/libipt_REJECT.c
+index 0ed58cb..362c65e 100644
+--- a/extensions/libipt_REJECT.c
++++ b/extensions/libipt_REJECT.c
+@@ -2,11 +2,8 @@
+  *
+  * (C) 2000 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+  */
+-#include <stdbool.h>
+ #include <stdio.h>
+ #include <string.h>
+-#include <stdlib.h>
+-#include <getopt.h>
+ #include <xtables.h>
+ #include <linux/netfilter_ipv4/ipt_REJECT.h>
+ #include <linux/version.h>
+@@ -27,6 +24,10 @@ struct reject_names {
+ 	const char *desc;
+ };
+ 
++enum {
++	O_REJECT_WITH = 0,
++};
++
+ static const struct reject_names reject_table[] = {
+ 	{"icmp-net-unreachable", "net-unreach",
+ 		IPT_ICMP_NET_UNREACHABLE, "ICMP network unreachable"},
+@@ -76,9 +77,9 @@ static void REJECT_help(void)
+ 	printf("(*) See man page or read the INCOMPATIBILITES file for compatibility issues.\n");
+ }
+ 
+-static const struct option REJECT_opts[] = {
+-	{.name = "reject-with", .has_arg = true, .val = '1'},
+-	XT_GETOPT_TABLEEND,
++static const struct xt_option_entry REJECT_opts[] = {
++	{.name = "reject-with", .id = O_REJECT_WITH, .type = XTTYPE_STRING},
++	XTOPT_TABLEEND,
+ };
+ 
+ static void REJECT_init(struct xt_entry_target *t)
+@@ -90,34 +91,27 @@ static void REJECT_init(struct xt_entry_target *t)
+ 
+ }
+ 
+-static int REJECT_parse(int c, char **argv, int invert, unsigned int *flags,
+-                        const void *entry, struct xt_entry_target **target)
++static void REJECT_parse(struct xt_option_call *cb)
+ {
+-	struct ipt_reject_info *reject = (struct ipt_reject_info *)(*target)->data;
+-	static const unsigned int limit = ARRAY_SIZE(reject_table);
++	struct ipt_reject_info *reject = cb->data;
+ 	unsigned int i;
+ 
+-	switch(c) {
+-	case '1':
+-		if (xtables_check_inverse(optarg, &invert, NULL, 0, argv))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "Unexpected `!' after --reject-with");
+-		for (i = 0; i < limit; i++) {
+-			if ((strncasecmp(reject_table[i].name, optarg, strlen(optarg)) == 0)
+-			    || (strncasecmp(reject_table[i].alias, optarg, strlen(optarg)) == 0)) {
+-				reject->with = reject_table[i].with;
+-				return 1;
+-			}
++	xtables_option_parse(cb);
++	for (i = 0; i < ARRAY_SIZE(reject_table); ++i)
++		if (strncasecmp(reject_table[i].name,
++		      cb->arg, strlen(cb->arg)) == 0 ||
++		    strncasecmp(reject_table[i].alias,
++		      cb->arg, strlen(cb->arg)) == 0) {
++			reject->with = reject_table[i].with;
++			return;
+ 		}
+-		/* This due to be dropped late in 2.4 pre-release cycle --RR */
+-		if (strncasecmp("echo-reply", optarg, strlen(optarg)) == 0
+-		    || strncasecmp("echoreply", optarg, strlen(optarg)) == 0)
+-			fprintf(stderr, "--reject-with echo-reply no longer"
+-				" supported\n");
+-		xtables_error(PARAMETER_PROBLEM, "unknown reject type \"%s\"", optarg);
+-		break;
+-	}
+-	return 0;
++	/* This due to be dropped late in 2.4 pre-release cycle --RR */
++	if (strncasecmp("echo-reply", cb->arg, strlen(cb->arg)) == 0 ||
++	    strncasecmp("echoreply", cb->arg, strlen(cb->arg)) == 0)
++		fprintf(stderr, "--reject-with echo-reply no longer"
++			" supported\n");
++	xtables_error(PARAMETER_PROBLEM,
++		"unknown reject type \"%s\"", cb->arg);
+ }
+ 
+ static void REJECT_print(const void *ip, const struct xt_entry_target *target,
+@@ -154,10 +148,10 @@ static struct xtables_target reject_tg_reg = {
+ 	.userspacesize	= XT_ALIGN(sizeof(struct ipt_reject_info)),
+ 	.help		= REJECT_help,
+ 	.init		= REJECT_init,
+-	.parse		= REJECT_parse,
+ 	.print		= REJECT_print,
+ 	.save		= REJECT_save,
+-	.extra_opts	= REJECT_opts,
++	.x6_parse	= REJECT_parse,
++	.x6_options	= REJECT_opts,
+ };
+ 
+ void _init(void)
 -- 
 1.7.1
 
