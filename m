@@ -1,145 +1,113 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 19/28] libxt_LED: use guided option parser
-Date: Tue, 12 Apr 2011 16:23:34 +0200
-Message-ID: <1302618224-9449-20-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 26/28] libxt_state: use guided option parser
+Date: Tue, 12 Apr 2011 16:23:41 +0200
+Message-ID: <1302618224-9449-27-git-send-email-jengelh@medozas.de>
 References: <1302618224-9449-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:54678 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:54695 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756352Ab1DLOYH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Apr 2011 10:24:07 -0400
+	id S1756481Ab1DLOYO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Apr 2011 10:24:14 -0400
 In-Reply-To: <1302618224-9449-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libxt_LED.c |   84 +++++++++++++++++++-----------------------------
- 1 files changed, 33 insertions(+), 51 deletions(-)
+ extensions/libxt_state.c |   50 ++++++++++++++-------------------------------
+ 1 files changed, 16 insertions(+), 34 deletions(-)
 
-diff --git a/extensions/libxt_LED.c b/extensions/libxt_LED.c
-index 9e8b9b0..9d68fa2 100644
---- a/extensions/libxt_LED.c
-+++ b/extensions/libxt_LED.c
-@@ -9,23 +9,30 @@
-  * published by the Free Software Foundation.
-  *
-  */
+diff --git a/extensions/libxt_state.c b/extensions/libxt_state.c
+index 9a631aa..3fc747d 100644
+--- a/extensions/libxt_state.c
++++ b/extensions/libxt_state.c
+@@ -1,10 +1,5 @@
+-/* Shared library add-on to iptables to add state tracking support. */
 -#include <stdbool.h>
  #include <stdio.h>
+-#include <netdb.h>
  #include <string.h>
- #include <stdlib.h>
+-#include <stdlib.h>
 -#include <getopt.h>
--#include <stddef.h>
--
  #include <xtables.h>
--
- #include <linux/netfilter/xt_LED.h>
+ #include <linux/netfilter/nf_conntrack_common.h>
+ #include <linux/netfilter/xt_state.h>
+@@ -13,6 +8,10 @@
+ #define XT_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 1))
+ #endif
  
--static const struct option LED_opts[] = {
--	{.name = "led-trigger-id",   .has_arg = true,  .val = 'i'},
--	{.name = "led-delay",        .has_arg = true,  .val = 'd'},
--	{.name = "led-always-blink", .has_arg = false, .val = 'a'},
--	XT_GETOPT_TABLEEND,
 +enum {
-+	O_LED_TRIGGER_ID = 0,
-+	O_LED_DELAY,
-+	O_LED_ALWAYS_BLINK,
++	O_STATE = 0,
 +};
 +
-+#define s struct xt_led_info
-+static const struct xt_option_entry LED_opts[] = {
-+	{.name = "led-trigger-id", .id = O_LED_TRIGGER_ID,
-+	 .flags = XTOPT_MAND, .type = XTTYPE_STRING, .min = 0,
-+	 .max = sizeof(((struct xt_led_info *)NULL)->id) -
-+	        sizeof("netfilter-")},
-+	{.name = "led-delay", .id = O_LED_DELAY, .type = XTTYPE_STRING},
-+	{.name = "led-always-blink", .id = O_LED_ALWAYS_BLINK,
-+	 .type = XTTYPE_NONE},
+ static void
+ state_help(void)
+ {
+@@ -22,9 +21,10 @@ state_help(void)
+ "				State(s) to match\n");
+ }
+ 
+-static const struct option state_opts[] = {
+-	{.name = "state", .has_arg = true, .val = '1'},
+-	XT_GETOPT_TABLEEND,
++static const struct xt_option_entry state_opts[] = {
++	{.name = "state", .id = O_STATE, .type = XTTYPE_STRING,
++	 .flags = XTOPT_MAND},
 +	XTOPT_TABLEEND,
  };
-+#undef s
  
- static void LED_help(void)
- {
-@@ -39,50 +46,26 @@ static void LED_help(void)
- 	);
+ static int
+@@ -63,31 +63,14 @@ state_parse_states(const char *arg, struct xt_state_info *sinfo)
+ 		xtables_error(PARAMETER_PROBLEM, "Bad state \"%s\"", arg);
  }
  
--static int LED_parse(int c, char **argv, int invert, unsigned int *flags,
--		     const void *entry, struct xt_entry_target **target)
-+static void LED_parse(struct xt_option_call *cb)
+-static int
+-state_parse(int c, char **argv, int invert, unsigned int *flags,
+-      const void *entry,
+-      struct xt_entry_match **match)
++static void state_parse(struct xt_option_call *cb)
  {
--	struct xt_led_info *led = (void *)(*target)->data;
+-	struct xt_state_info *sinfo = (struct xt_state_info *)(*match)->data;
 -
 -	switch (c) {
--	case 'i':
--		xtables_param_act(XTF_NO_INVERT, "LED",
--			"--led-trigger-id", invert);
--		if (strlen("netfilter-") + strlen(optarg) > sizeof(led->id))
--			xtables_error(PARAMETER_PROBLEM,
--				"--led-trigger-id must be 16 chars or less");
--		if (optarg[0] == '\0')
--			xtables_error(PARAMETER_PROBLEM,
--				"--led-trigger-id cannot be blank");
-+	struct xt_led_info *led = cb->data;
- 
--		/* "netfilter-" + 16 char id == 26 == sizeof(led->id) */
-+	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case O_LED_TRIGGER_ID:
- 		strcpy(led->id, "netfilter-");
--		strcat(led->id, optarg);
+-	case '1':
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
+-
+-		state_parse_states(optarg, sinfo);
+-		if (invert)
+-			sinfo->statemask = ~sinfo->statemask;
 -		*flags = 1;
--		return true;
--
--	case 'd':
--		xtables_param_act(XTF_NO_INVERT, "LED", "--led-delay", invert);
--		if (strncasecmp(optarg, "inf", 3) == 0)
-+		strcat(led->id, cb->arg);
-+		break;
-+	case O_LED_DELAY:
-+		if (strncasecmp(cb->arg, "inf", 3) == 0)
- 			led->delay = -1;
- 		else
--			led->delay = strtoul(optarg, NULL, 0);
--
--		return true;
--
--	case 'a':
--		if (!invert)
--			led->always_blink = 1;
--		return true;
-+			led->delay = strtoul(cb->arg, NULL, 0);
-+		break;
-+	case O_LED_ALWAYS_BLINK:
-+		led->always_blink = 1;
-+		break;
- 	}
--	return false;
+-		break;
+-	}
++	struct xt_state_info *sinfo = cb->data;
+ 
+-	return 1;
 -}
 -
--static void LED_final_check(unsigned int flags)
+-static void state_final_check(unsigned int flags)
 -{
--	if (flags == 0)
--		xtables_error(PARAMETER_PROBLEM,
--			"--led-trigger-id must be specified");
+-	if (!flags)
+-		xtables_error(PARAMETER_PROBLEM, "You must specify \"--state\"");
++	xtables_option_parse(cb);
++	state_parse_states(cb->arg, sinfo);
++	if (cb->invert)
++		sinfo->statemask = ~sinfo->statemask;
  }
  
- static void LED_print(const void *ip, const struct xt_entry_target *target,
-@@ -142,11 +125,10 @@ static struct xtables_target led_tg_reg = {
- 	.size          = XT_ALIGN(sizeof(struct xt_led_info)),
- 	.userspacesize = offsetof(struct xt_led_info, internal_data),
- 	.help          = LED_help,
--	.parse         = LED_parse,
--	.final_check   = LED_final_check,
--	.extra_opts    = LED_opts,
- 	.print         = LED_print,
- 	.save          = LED_save,
-+	.x6_parse      = LED_parse,
-+	.x6_options    = LED_opts,
+ static void state_print_state(unsigned int statemask)
+@@ -142,11 +125,10 @@ static struct xtables_match state_match = {
+ 	.size		= XT_ALIGN(sizeof(struct xt_state_info)),
+ 	.userspacesize	= XT_ALIGN(sizeof(struct xt_state_info)),
+ 	.help		= state_help,
+-	.parse		= state_parse,
+-	.final_check	= state_final_check,
+ 	.print		= state_print,
+ 	.save		= state_save,
+-	.extra_opts	= state_opts,
++	.x6_parse	= state_parse,
++	.x6_options	= state_opts,
  };
  
  void _init(void)
