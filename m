@@ -1,261 +1,297 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 15/28] libipt_addrtype: use guided option parser
-Date: Tue, 12 Apr 2011 16:23:30 +0200
-Message-ID: <1302618224-9449-16-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 14/28] libipt_ECN: use guided option parser
+Date: Tue, 12 Apr 2011 16:23:29 +0200
+Message-ID: <1302618224-9449-15-git-send-email-jengelh@medozas.de>
 References: <1302618224-9449-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:54665 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:54661 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756352Ab1DLOYC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Apr 2011 10:24:02 -0400
+	id S1756355Ab1DLOYB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Apr 2011 10:24:01 -0400
 In-Reply-To: <1302618224-9449-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libipt_addrtype.c |  160 +++++++++++++++---------------------------
- 1 files changed, 57 insertions(+), 103 deletions(-)
+ extensions/libipt_ECN.c |   95 ++++++++++++++++++----------------------------
+ extensions/libipt_ecn.c |   82 +++++++++++++++-------------------------
+ 2 files changed, 68 insertions(+), 109 deletions(-)
 
-diff --git a/extensions/libipt_addrtype.c b/extensions/libipt_addrtype.c
-index a592f0d..3dec626 100644
---- a/extensions/libipt_addrtype.c
-+++ b/extensions/libipt_addrtype.c
-@@ -1,15 +1,22 @@
- /* Shared library add-on to iptables to add addrtype matching support 
-  * 
-  * This program is released under the terms of GNU GPL */
+diff --git a/extensions/libipt_ECN.c b/extensions/libipt_ECN.c
+index 2aa1a00..ee09f29 100644
+--- a/extensions/libipt_ECN.c
++++ b/extensions/libipt_ECN.c
+@@ -6,15 +6,20 @@
+  *
+  * libipt_ECN.c borrowed heavily from libipt_DSCP.c
+  */
 -#include <stdbool.h>
  #include <stdio.h>
+-#include <string.h>
 -#include <stdlib.h>
- #include <string.h>
 -#include <getopt.h>
- #include <xtables.h>
 -
- #include <linux/netfilter_ipv4/ipt_addrtype.h>
+ #include <xtables.h>
+ #include <linux/netfilter_ipv4/ipt_ECN.h>
  
 +enum {
-+	O_SRC_TYPE = 0,
-+	O_DST_TYPE,
-+	O_LIMIT_IFACE_IN,
-+	O_LIMIT_IFACE_OUT,
-+	F_SRC_TYPE        = 1 << O_SRC_TYPE,
-+	F_DST_TYPE        = 1 << O_DST_TYPE,
-+	F_LIMIT_IFACE_IN  = 1 << O_LIMIT_IFACE_IN,
-+	F_LIMIT_IFACE_OUT = 1 << O_LIMIT_IFACE_OUT,
++	O_ECN_TCP_REMOVE = 0,
++	O_ECN_TCP_CWR,
++	O_ECN_TCP_ECE,
++	O_ECN_IP_ECT,
++	F_ECN_TCP_REMOVE = 1 << O_ECN_TCP_REMOVE,
++	F_ECN_TCP_CWR    = 1 << O_ECN_TCP_CWR,
++	F_ECN_TCP_ECE    = 1 << O_ECN_TCP_ECE,
 +};
 +
- /* from linux/rtnetlink.h, must match order of enumeration */
- static const char *const rtn_names[] = {
- 	"UNSPEC",
-@@ -89,110 +96,57 @@ static void parse_types(const char *arg, uint16_t *mask)
- 		xtables_error(PARAMETER_PROBLEM, "addrtype: bad type \"%s\"", arg);
- }
- 	
--#define IPT_ADDRTYPE_OPT_SRCTYPE	0x1
--#define IPT_ADDRTYPE_OPT_DSTTYPE	0x2
--#define IPT_ADDRTYPE_OPT_LIMIT_IFACE_IN		0x4
--#define IPT_ADDRTYPE_OPT_LIMIT_IFACE_OUT	0x8
+ static void ECN_help(void)
+ {
+ 	printf(
+@@ -29,73 +34,47 @@ static void ECN_help(void)
+ "  --ecn-tcp-ece		Set the IPv4 ECE bit (0 or 1)\n",
+ #endif
+ 
 -
--static int
--addrtype_parse_v0(int c, char **argv, int invert, unsigned int *flags,
--                  const void *entry, struct xt_entry_match **match)
-+static void addrtype_parse_v0(struct xt_option_call *cb)
- {
--	struct ipt_addrtype_info *info =
--		(struct ipt_addrtype_info *) (*match)->data;
-+	struct ipt_addrtype_info *info = cb->data;
+-static const struct option ECN_opts[] = {
+-	{.name = "ecn-tcp-remove", .has_arg = false, .val = 'F'},
+-	{.name = "ecn-tcp-cwr",    .has_arg = true,  .val = 'G'},
+-	{.name = "ecn-tcp-ece",    .has_arg = true,  .val = 'H'},
+-	{.name = "ecn-ip-ect",     .has_arg = true,  .val = '9'},
+-	XT_GETOPT_TABLEEND,
++static const struct xt_option_entry ECN_opts[] = {
++	{.name = "ecn-tcp-remove", .id = O_ECN_TCP_REMOVE, .type = XTTYPE_NONE,
++	 .excl = F_ECN_TCP_CWR | F_ECN_TCP_ECE},
++	{.name = "ecn-tcp-cwr", .id = O_ECN_TCP_CWR, .type = XTTYPE_UINT8,
++	 .min = 0, .max = 1, .excl = F_ECN_TCP_REMOVE},
++	{.name = "ecn-tcp-ece", .id = O_ECN_TCP_ECE, .type = XTTYPE_UINT8,
++	 .min = 0, .max = 1, .excl = F_ECN_TCP_REMOVE},
++	{.name = "ecn-ip-ect", .id = O_ECN_IP_ECT, .type = XTTYPE_UINT8,
++	 .min = 0, .max = 3},
++	XTOPT_TABLEEND,
+ };
  
+-static int ECN_parse(int c, char **argv, int invert, unsigned int *flags,
+-                     const void *entry, struct xt_entry_target **target)
++static void ECN_parse(struct xt_option_call *cb)
+ {
+-	unsigned int result;
+-	struct ipt_ECN_info *einfo
+-		= (struct ipt_ECN_info *)(*target)->data;
+-
 -	switch (c) {
--	case '1':
--		if (*flags&IPT_ADDRTYPE_OPT_SRCTYPE)
+-	case 'F':
+-		if (*flags)
 -			xtables_error(PARAMETER_PROBLEM,
--			           "addrtype: can't specify src-type twice");
--		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
--		parse_types(optarg, &info->source);
--		if (invert)
+-			        "ECN target: Only use --ecn-tcp-remove ONCE!");
++	struct ipt_ECN_info *einfo = cb->data;
++
 +	xtables_option_parse(cb);
 +	switch (cb->entry->id) {
-+	case O_SRC_TYPE:
-+		parse_types(cb->arg, &info->source);
-+		if (cb->invert)
- 			info->invert_source = 1;
--		*flags |= IPT_ADDRTYPE_OPT_SRCTYPE;
++	case O_ECN_TCP_REMOVE:
+ 		einfo->operation = IPT_ECN_OP_SET_ECE | IPT_ECN_OP_SET_CWR;
+ 		einfo->proto.tcp.ece = 0;
+ 		einfo->proto.tcp.cwr = 0;
+-		*flags |= IPT_ECN_OP_SET_ECE | IPT_ECN_OP_SET_CWR;
  		break;
--	case '2':
--		if (*flags&IPT_ADDRTYPE_OPT_DSTTYPE)
+-	case 'G':
+-		if (*flags & IPT_ECN_OP_SET_CWR)
 -			xtables_error(PARAMETER_PROBLEM,
--			           "addrtype: can't specify dst-type twice");
--		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
--		parse_types(optarg, &info->dest);
--		if (invert)
-+	case O_DST_TYPE:
-+		parse_types(cb->arg, &info->dest);
-+		if (cb->invert)
- 			info->invert_dest = 1;
--		*flags |= IPT_ADDRTYPE_OPT_DSTTYPE;
+-				"ECN target: Only use --ecn-tcp-cwr ONCE!");
+-		if (!xtables_strtoui(optarg, NULL, &result, 0, 1))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "ECN target: Value out of range");
++	case O_ECN_TCP_CWR:
+ 		einfo->operation |= IPT_ECN_OP_SET_CWR;
+-		einfo->proto.tcp.cwr = result;
+-		*flags |= IPT_ECN_OP_SET_CWR;
++		einfo->proto.tcp.cwr = cb->val.u8;
+ 		break;
+-	case 'H':
+-		if (*flags & IPT_ECN_OP_SET_ECE)
+-			xtables_error(PARAMETER_PROBLEM,
+-				"ECN target: Only use --ecn-tcp-ece ONCE!");
+-		if (!xtables_strtoui(optarg, NULL, &result, 0, 1))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "ECN target: Value out of range");
++	case O_ECN_TCP_ECE:
+ 		einfo->operation |= IPT_ECN_OP_SET_ECE;
+-		einfo->proto.tcp.ece = result;
+-		*flags |= IPT_ECN_OP_SET_ECE;
++		einfo->proto.tcp.ece = cb->val.u8;
+ 		break;
+-	case '9':
+-		if (*flags & IPT_ECN_OP_SET_IP)
+-			xtables_error(PARAMETER_PROBLEM,
+-				"ECN target: Only use --ecn-ip-ect ONCE!");
+-		if (!xtables_strtoui(optarg, NULL, &result, 0, 3))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "ECN target: Value out of range");
++	case O_ECN_IP_ECT:
+ 		einfo->operation |= IPT_ECN_OP_SET_IP;
+-		einfo->ip_ect = result;
+-		*flags |= IPT_ECN_OP_SET_IP;
++		einfo->ip_ect = cb->val.u8;
  		break;
  	}
--	
+-
 -	return 1;
  }
  
--static int
--addrtype_parse_v1(int c, char **argv, int invert, unsigned int *flags,
--                  const void *entry, struct xt_entry_match **match)
-+static void addrtype_parse_v1(struct xt_option_call *cb)
+-static void ECN_check(unsigned int flags)
++static void ECN_check(struct xt_fcheck_call *cb)
  {
--	struct ipt_addrtype_info_v1 *info =
--		(struct ipt_addrtype_info_v1 *) (*match)->data;
-+	struct ipt_addrtype_info_v1 *info = cb->data;
- 
--	switch (c) {
--	case '1':
--		if (*flags & IPT_ADDRTYPE_OPT_SRCTYPE)
--			xtables_error(PARAMETER_PROBLEM,
--			           "addrtype: can't specify src-type twice");
--		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
--		parse_types(optarg, &info->source);
--		if (invert)
-+	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case O_SRC_TYPE:
-+		parse_types(cb->arg, &info->source);
-+		if (cb->invert)
- 			info->flags |= IPT_ADDRTYPE_INVERT_SOURCE;
--		*flags |= IPT_ADDRTYPE_OPT_SRCTYPE;
- 		break;
--	case '2':
--		if (*flags & IPT_ADDRTYPE_OPT_DSTTYPE)
--			xtables_error(PARAMETER_PROBLEM,
--			           "addrtype: can't specify dst-type twice");
--		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
--		parse_types(optarg, &info->dest);
--		if (invert)
-+	case O_DST_TYPE:
-+		parse_types(cb->arg, &info->dest);
-+		if (cb->invert)
- 			info->flags |= IPT_ADDRTYPE_INVERT_DEST;
--		*flags |= IPT_ADDRTYPE_OPT_DSTTYPE;
- 		break;
--	case '3':
--		if (*flags & IPT_ADDRTYPE_OPT_LIMIT_IFACE_IN)
--			xtables_error(PARAMETER_PROBLEM,
--			           "addrtype: can't specify limit-iface-in twice");
-+	case O_LIMIT_IFACE_IN:
- 		info->flags |= IPT_ADDRTYPE_LIMIT_IFACE_IN;
--		*flags |= IPT_ADDRTYPE_OPT_LIMIT_IFACE_IN;
- 		break;
--	case '4':
--		if (*flags & IPT_ADDRTYPE_OPT_LIMIT_IFACE_OUT)
--			xtables_error(PARAMETER_PROBLEM,
--			           "addrtype: can't specify limit-iface-out twice");
-+	case O_LIMIT_IFACE_OUT:
- 		info->flags |= IPT_ADDRTYPE_LIMIT_IFACE_OUT;
--		*flags |= IPT_ADDRTYPE_OPT_LIMIT_IFACE_OUT;
- 		break;
- 	}
--	
--	return 1;
- }
- 
--static void addrtype_check_v0(unsigned int flags)
-+static void addrtype_check(struct xt_fcheck_call *cb)
- {
--	if (!(flags & (IPT_ADDRTYPE_OPT_SRCTYPE|IPT_ADDRTYPE_OPT_DSTTYPE)))
-+	if (!(cb->xflags & (F_SRC_TYPE | F_DST_TYPE)))
+-	if (!flags)
++	if (cb->xflags == 0)
  		xtables_error(PARAMETER_PROBLEM,
- 			   "addrtype: you must specify --src-type or --dst-type");
+ 		           "ECN target: An operation is required");
  }
+@@ -153,11 +132,11 @@ static struct xtables_target ecn_tg_reg = {
+ 	.size		= XT_ALIGN(sizeof(struct ipt_ECN_info)),
+ 	.userspacesize	= XT_ALIGN(sizeof(struct ipt_ECN_info)),
+ 	.help		= ECN_help,
+-	.parse		= ECN_parse,
+-	.final_check	= ECN_check,
+ 	.print		= ECN_print,
+ 	.save		= ECN_save,
+-	.extra_opts	= ECN_opts,
++	.x6_parse	= ECN_parse,
++	.x6_fcheck	= ECN_check,
++	.x6_options	= ECN_opts,
+ };
  
--static void addrtype_check_v1(unsigned int flags)
--{
--	if (!(flags & (IPT_ADDRTYPE_OPT_SRCTYPE|IPT_ADDRTYPE_OPT_DSTTYPE)))
--		xtables_error(PARAMETER_PROBLEM,
--			   "addrtype: you must specify --src-type or --dst-type");
--	if (flags & IPT_ADDRTYPE_OPT_LIMIT_IFACE_IN &&
--	    flags & IPT_ADDRTYPE_OPT_LIMIT_IFACE_OUT)
--		xtables_error(PARAMETER_PROBLEM,
--			   "addrtype: you can't specify both --limit-iface-in "
--			   "and --limit-iface-out");
--}
+ void _init(void)
+diff --git a/extensions/libipt_ecn.c b/extensions/libipt_ecn.c
+index d6b521f..56a0347 100644
+--- a/extensions/libipt_ecn.c
++++ b/extensions/libipt_ecn.c
+@@ -7,15 +7,16 @@
+  * libipt_ecn.c borrowed heavily from libipt_dscp.c
+  *
+  */
+-#include <stdbool.h>
+ #include <stdio.h>
+-#include <string.h>
+-#include <stdlib.h>
+-#include <getopt.h>
 -
- static void print_types(uint16_t mask)
+ #include <xtables.h>
+ #include <linux/netfilter_ipv4/ipt_ecn.h>
+ 
++enum {
++	O_ECN_TCP_CWR = 0,
++	O_ECN_TCP_ECE,
++	O_ECN_IP_ECT,
++};
++
+ static void ecn_help(void)
  {
- 	const char *sep = "";
-@@ -297,24 +251,24 @@ static void addrtype_save_v1(const void *ip, const struct xt_entry_match *match)
- 	}
+ 	printf(
+@@ -25,65 +26,44 @@ static void ecn_help(void)
+ "[!] --ecn-ip-ect [0..3]	Match ECN codepoint in IPv4 header\n");
  }
  
--static const struct option addrtype_opts[] = {
--	{.name = "src-type", .has_arg = true, .val = '1'},
--	{.name = "dst-type", .has_arg = true, .val = '2'},
+-static const struct option ecn_opts[] = {
+-	{.name = "ecn-tcp-cwr", .has_arg = false, .val = 'F'},
+-	{.name = "ecn-tcp-ece", .has_arg = false, .val = 'G'},
+-	{.name = "ecn-ip-ect",  .has_arg = true,  .val = 'H'},
 -	XT_GETOPT_TABLEEND,
--};
++static const struct xt_option_entry ecn_opts[] = {
++	{.name = "ecn-tcp-cwr", .id = O_ECN_TCP_CWR, .type = XTTYPE_NONE,
++	 .flags = XTOPT_INVERT},
++	{.name = "ecn-tcp-ece", .id = O_ECN_TCP_ECE, .type = XTTYPE_NONE,
++	 .flags = XTOPT_INVERT},
++	{.name = "ecn-ip-ect", .id = O_ECN_IP_ECT, .type = XTTYPE_UINT8,
++	 .min = 0, .max = 3, .flags = XTOPT_INVERT},
++	XTOPT_TABLEEND,
+ };
+ 
+-static int ecn_parse(int c, char **argv, int invert, unsigned int *flags,
+-                     const void *entry, struct xt_entry_match **match)
++static void ecn_parse(struct xt_option_call *cb)
+ {
+-	unsigned int result;
+-	struct ipt_ecn_info *einfo
+-		= (struct ipt_ecn_info *)(*match)->data;
 -
--static const struct option addrtype_opts_v0[] = {
--	{.name = "src-type", .has_arg = true, .val = '1'},
--	{.name = "dst-type", .has_arg = true, .val = '2'},
--	XT_GETOPT_TABLEEND,
-+static const struct xt_option_entry addrtype_opts_v0[] = {
-+	{.name = "src-type", .id = O_SRC_TYPE, .type = XTTYPE_STRING,
-+	 .flags = XTOPT_INVERT},
-+	{.name = "dst-type", .id = O_DST_TYPE, .type = XTTYPE_STRING,
-+	 .flags = XTOPT_INVERT},
-+	XTOPT_TABLEEND,
+-	switch (c) {
+-	case 'F':
+-		if (*flags & IPT_ECN_OP_MATCH_CWR)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "ECN match: can only use parameter ONCE!");
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
++	struct ipt_ecn_info *einfo = cb->data;
++
++	xtables_option_parse(cb);
++	switch (cb->entry->id) {
++	case O_ECN_TCP_CWR:
+ 		einfo->operation |= IPT_ECN_OP_MATCH_CWR;
+-		if (invert)
++		if (cb->invert)
+ 			einfo->invert |= IPT_ECN_OP_MATCH_CWR;
+-		*flags |= IPT_ECN_OP_MATCH_CWR;
+ 		break;
+-
+-	case 'G':
+-		if (*flags & IPT_ECN_OP_MATCH_ECE)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "ECN match: can only use parameter ONCE!");
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
++	case O_ECN_TCP_ECE:
+ 		einfo->operation |= IPT_ECN_OP_MATCH_ECE;
+-		if (invert)
++		if (cb->invert)
+ 			einfo->invert |= IPT_ECN_OP_MATCH_ECE;
+-		*flags |= IPT_ECN_OP_MATCH_ECE;
+ 		break;
+-
+-	case 'H':
+-		if (*flags & IPT_ECN_OP_MATCH_IP)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "ECN match: can only use parameter ONCE!");
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
+-		if (invert)
++	case O_ECN_IP_ECT:
++		if (cb->invert)
+ 			einfo->invert |= IPT_ECN_OP_MATCH_IP;
+-		*flags |= IPT_ECN_OP_MATCH_IP;
+ 		einfo->operation |= IPT_ECN_OP_MATCH_IP;
+-		if (!xtables_strtoui(optarg, NULL, &result, 0, 3))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "ECN match: Value out of range");
+-		einfo->ip_ect = result;
++		einfo->ip_ect = cb->val.u8;
+ 		break;
+ 	}
+-
+-	return 1;
+ }
+ 
+-static void ecn_check(unsigned int flags)
++static void ecn_check(struct xt_fcheck_call *cb)
+ {
+-	if (!flags)
++	if (cb->xflags == 0)
+ 		xtables_error(PARAMETER_PROBLEM,
+ 		           "ECN match: some option required");
+ }
+@@ -144,11 +124,11 @@ static struct xtables_match ecn_mt_reg = {
+ 	.size          = XT_ALIGN(sizeof(struct ipt_ecn_info)),
+ 	.userspacesize = XT_ALIGN(sizeof(struct ipt_ecn_info)),
+ 	.help          = ecn_help,
+-	.parse         = ecn_parse,
+-	.final_check   = ecn_check,
+ 	.print         = ecn_print,
+ 	.save          = ecn_save,
+-	.extra_opts    = ecn_opts,
++	.x6_parse      = ecn_parse,
++	.x6_fcheck     = ecn_check,
++	.x6_options    = ecn_opts,
  };
  
--static const struct option addrtype_opts_v1[] = {
--	{.name = "src-type",        .has_arg = true,  .val = '1'},
--	{.name = "dst-type",        .has_arg = true,  .val = '2'},
--	{.name = "limit-iface-in",  .has_arg = false, .val = '3'},
--	{.name = "limit-iface-out", .has_arg = false, .val = '4'},
--	XT_GETOPT_TABLEEND,
-+static const struct xt_option_entry addrtype_opts_v1[] = {
-+	{.name = "src-type", .id = O_SRC_TYPE, .type = XTTYPE_STRING,
-+	 .flags = XTOPT_INVERT},
-+	{.name = "dst-type", .id = O_DST_TYPE, .type = XTTYPE_STRING,
-+	 .flags = XTOPT_INVERT},
-+	{.name = "limit-iface-in", .id = O_LIMIT_IFACE_IN,
-+	 .type = XTTYPE_NONE, .excl = F_LIMIT_IFACE_OUT},
-+	{.name = "limit-iface-out", .id = O_LIMIT_IFACE_OUT,
-+	 .type = XTTYPE_NONE, .excl = F_LIMIT_IFACE_IN},
-+	XTOPT_TABLEEND,
- };
- 
- static struct xtables_match addrtype_mt_reg[] = {
-@@ -325,11 +279,11 @@ static struct xtables_match addrtype_mt_reg[] = {
- 		.size          = XT_ALIGN(sizeof(struct ipt_addrtype_info)),
- 		.userspacesize = XT_ALIGN(sizeof(struct ipt_addrtype_info)),
- 		.help          = addrtype_help_v0,
--		.parse         = addrtype_parse_v0,
--		.final_check   = addrtype_check_v0,
- 		.print         = addrtype_print_v0,
- 		.save          = addrtype_save_v0,
--		.extra_opts    = addrtype_opts_v0,
-+		.x6_parse      = addrtype_parse_v0,
-+		.x6_fcheck     = addrtype_check,
-+		.x6_options    = addrtype_opts_v0,
- 	},
- 	{
- 		.name          = "addrtype",
-@@ -339,11 +293,11 @@ static struct xtables_match addrtype_mt_reg[] = {
- 		.size          = XT_ALIGN(sizeof(struct ipt_addrtype_info_v1)),
- 		.userspacesize = XT_ALIGN(sizeof(struct ipt_addrtype_info_v1)),
- 		.help          = addrtype_help_v1,
--		.parse         = addrtype_parse_v1,
--		.final_check   = addrtype_check_v1,
- 		.print         = addrtype_print_v1,
- 		.save          = addrtype_save_v1,
--		.extra_opts    = addrtype_opts_v1,
-+		.x6_parse      = addrtype_parse_v1,
-+		.x6_fcheck     = addrtype_check,
-+		.x6_options    = addrtype_opts_v1,
- 	},
- };
- 
+ void _init(void)
 -- 
 1.7.1
 
