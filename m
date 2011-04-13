@@ -1,86 +1,72 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 15/26] libxtables: XTTYPE_UINT16 support
-Date: Wed, 13 Apr 2011 18:13:36 +0200
-Message-ID: <1302711228-15947-16-git-send-email-jengelh@medozas.de>
-References: <1302711228-15947-1-git-send-email-jengelh@medozas.de>
+Subject: guided option parser, run 3
+Date: Wed, 13 Apr 2011 18:13:21 +0200
+Message-ID: <1302711228-15947-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:42463 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:42505 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933062Ab1DMQOG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Apr 2011 12:14:06 -0400
-In-Reply-To: <1302711228-15947-1-git-send-email-jengelh@medozas.de>
+	id S932850Ab1DMQNu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Apr 2011 12:13:50 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- include/xtables.h.in |    3 ++-
- xtoptions.c          |    8 ++++++++
- 2 files changed, 10 insertions(+), 1 deletions(-)
 
-diff --git a/include/xtables.h.in b/include/xtables.h.in
-index 325c04c..6167f4d 100644
---- a/include/xtables.h.in
-+++ b/include/xtables.h.in
-@@ -55,6 +55,7 @@ struct in_addr;
- enum xt_option_type {
- 	XTTYPE_NONE,
- 	XTTYPE_UINT8,
-+	XTTYPE_UINT16,
- 	XTTYPE_UINT32,
- 	XTTYPE_UINT64,
- 	XTTYPE_UINT8RC,
-@@ -118,7 +119,7 @@ struct xt_option_call {
- 	uint8_t nvals;
- 	union {
- 		uint8_t u8, u8_range[2];
--		uint16_t u16_range[2];
-+		uint16_t u16, u16_range[2];
- 		uint32_t u32, u32_range[2];
- 		uint64_t u64, u64_range[2];
- 		struct {
-diff --git a/xtoptions.c b/xtoptions.c
-index a74938f..939e686 100644
---- a/xtoptions.c
-+++ b/xtoptions.c
-@@ -92,6 +92,8 @@ static void xtopt_parse_int(struct xt_option_call *cb)
- 
- 	if (entry->type == XTTYPE_UINT8)
- 		lmax = UINT8_MAX;
-+	else if (entry->type == XTTYPE_UINT16)
-+		lmax = UINT16_MAX;
- 	else if (entry->type == XTTYPE_UINT64)
- 		lmax = UINT64_MAX;
- 	if (cb->entry->min != 0)
-@@ -109,6 +111,10 @@ static void xtopt_parse_int(struct xt_option_call *cb)
- 		cb->val.u8 = value;
- 		if (entry->flags & XTOPT_PUT)
- 			*(uint8_t *)XTOPT_MKPTR(cb) = cb->val.u8;
-+	} else if (entry->type == XTTYPE_UINT16) {
-+		cb->val.u16 = value;
-+		if (entry->flags & XTOPT_PUT)
-+			*(uint16_t *)XTOPT_MKPTR(cb) = cb->val.u16;
- 	} else if (entry->type == XTTYPE_UINT32) {
- 		cb->val.u32 = value;
- 		if (entry->flags & XTOPT_PUT)
-@@ -247,6 +253,7 @@ static void xtopt_parse_markmask(struct xt_option_call *cb)
- 
- static void (*const xtopt_subparse[])(struct xt_option_call *) = {
- 	[XTTYPE_UINT8]       = xtopt_parse_int,
-+	[XTTYPE_UINT16]      = xtopt_parse_int,
- 	[XTTYPE_UINT32]      = xtopt_parse_int,
- 	[XTTYPE_UINT64]      = xtopt_parse_int,
- 	[XTTYPE_UINT8RC]     = xtopt_parse_mint,
-@@ -259,6 +266,7 @@ static void (*const xtopt_subparse[])(struct xt_option_call *) = {
- 
- static const size_t xtopt_psize[] = {
- 	[XTTYPE_UINT8]       = sizeof(uint8_t),
-+	[XTTYPE_UINT16]      = sizeof(uint16_t),
- 	[XTTYPE_UINT32]      = sizeof(uint32_t),
- 	[XTTYPE_UINT64]      = sizeof(uint64_t),
- 	[XTTYPE_UINT8RC]     = sizeof(uint8_t[2]),
--- 
-1.7.1
+The following changes since commit 316ae9d2f1996caea4cf221201accb8c2087a154:
 
+  Merge branch 'opts' of git://dev.medozas.de/iptables (2011-04-13 13:38:20 +0200)
+
+are available in the git repository at:
+
+  git://dev.medozas.de/iptables floating/opts
+
+Jan Engelhardt (26):
+      libxtables: XTTYPE_MARKMASK32 support
+      libxt_MARK: use guided option parser
+      libxt_CONNMARK: use guided option parser
+      libxtables: XTTYPE_UINT64 support
+      libxt_quota: use guided option parser
+      libxtables: linked-list name<->id map
+      libxt_devgroup: use guided option parser
+      libipt_realm: use guided option parser
+      libxtables: XTTYPE_UINT16RC support
+      libxt_length: use guided option parser
+      libxt_tcpmss: use guided option parser
+      libxtables: XTTYPE_UINT8RC support
+      libxtables: XTTYPE_UINT64RC support
+      libxt_connbytes: use guided option parser
+      libxtables: XTTYPE_UINT16 support
+      libxt_CT: use guided option parser
+      libxt_NFQUEUE: use guided option parser
+      libxt_TCPMSS: use guided option parser
+      libxtables: pass struct xt_entry_{match,target} to x6 parser
+      libxt_string: use guided option parser
+      libxtables: XTTYPE_SYSLOGLEVEL support
+      libip[6]t_LOG: use guided option parser
+      libxtables: XTTYPE_ONEHOST support
+      libxtables: XTTYPE_PORT support
+      libxt_TPROXY: use guided option parser
+      libipt_ULOG: use guided option parser
+
+ extensions/libip6t_LOG.c     |  174 +++++----------------
+ extensions/libipt_LOG.c      |  174 +++++----------------
+ extensions/libipt_ULOG.c     |  137 ++++------------
+ extensions/libipt_realm.c    |  202 +++++-------------------
+ extensions/libxt_CONNMARK.c  |  271 +++++++++++++-------------------
+ extensions/libxt_CT.c        |   74 ++++------
+ extensions/libxt_MARK.c      |  202 ++++++++++---------------
+ extensions/libxt_NFQUEUE.c   |  139 ++++++-----------
+ extensions/libxt_TCPMSS.c    |   96 ++++--------
+ extensions/libxt_TPROXY.c    |  216 ++++++++------------------
+ extensions/libxt_connbytes.c |  107 +++++--------
+ extensions/libxt_connmark.c  |   98 +++---------
+ extensions/libxt_devgroup.c  |  201 +++++-------------------
+ extensions/libxt_length.c    |   92 ++---------
+ extensions/libxt_mark.c      |   95 +++---------
+ extensions/libxt_quota.c     |   67 ++------
+ extensions/libxt_string.c    |  138 ++++++-----------
+ extensions/libxt_tcpmss.c    |   92 +++---------
+ include/xtables.h.in         |   42 +++++-
+ xtoptions.c                  |  352 ++++++++++++++++++++++++++++++++++++++++-
+ 20 files changed, 1127 insertions(+), 1842 deletions(-)
