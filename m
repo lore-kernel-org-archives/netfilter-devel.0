@@ -1,147 +1,100 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 11/26] libxt_tcpmss: use guided option parser
-Date: Wed, 13 Apr 2011 18:13:32 +0200
-Message-ID: <1302711228-15947-12-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 04/26] libxtables: XTTYPE_UINT64 support
+Date: Wed, 13 Apr 2011 18:13:25 +0200
+Message-ID: <1302711228-15947-5-git-send-email-jengelh@medozas.de>
 References: <1302711228-15947-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:42455 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:42439 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933061Ab1DMQOC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Apr 2011 12:14:02 -0400
+	id S933050Ab1DMQNy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Apr 2011 12:13:54 -0400
 In-Reply-To: <1302711228-15947-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libxt_tcpmss.c |   92 ++++++++++-----------------------------------
- 1 files changed, 20 insertions(+), 72 deletions(-)
+ include/xtables.h.in |    2 ++
+ xtoptions.c          |   12 ++++++++++--
+ 2 files changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/extensions/libxt_tcpmss.c b/extensions/libxt_tcpmss.c
-index 3dc3528..c7c5971 100644
---- a/extensions/libxt_tcpmss.c
-+++ b/extensions/libxt_tcpmss.c
-@@ -1,14 +1,11 @@
--/* Shared library add-on to iptables to add tcp MSS matching support. */
--#include <stdbool.h>
- #include <stdio.h>
--#include <netdb.h>
--#include <string.h>
--#include <stdlib.h>
--#include <getopt.h>
--
- #include <xtables.h>
- #include <linux/netfilter/xt_tcpmss.h>
- 
-+enum {
-+	O_TCPMSS = 0,
-+};
-+
- static void tcpmss_help(void)
+diff --git a/include/xtables.h.in b/include/xtables.h.in
+index 2fa5977..c361bdb 100644
+--- a/include/xtables.h.in
++++ b/include/xtables.h.in
+@@ -56,6 +56,7 @@ enum xt_option_type {
+ 	XTTYPE_NONE,
+ 	XTTYPE_UINT8,
+ 	XTTYPE_UINT32,
++	XTTYPE_UINT64,
+ 	XTTYPE_UINT32RC,
+ 	XTTYPE_STRING,
+ 	XTTYPE_MARKMASK32,
+@@ -115,6 +116,7 @@ struct xt_option_call {
+ 	union {
+ 		uint8_t u8;
+ 		uint32_t u32, u32_range[2];
++		uint64_t u64;
+ 		struct {
+ 			uint32_t mark, mask;
+ 		};
+diff --git a/xtoptions.c b/xtoptions.c
+index e9bcaa8..4206314 100644
+--- a/xtoptions.c
++++ b/xtoptions.c
+@@ -86,11 +86,13 @@ xtables_options_xfrm(struct option *orig_opts, struct option *oldopts,
+ static void xtopt_parse_int(struct xt_option_call *cb)
  {
- 	printf(
-@@ -17,71 +14,23 @@ static void tcpmss_help(void)
- "				(only valid for TCP SYN or SYN/ACK packets)\n");
+ 	const struct xt_option_entry *entry = cb->entry;
+-	unsigned int lmin = 0, lmax = UINT32_MAX;
++	unsigned long long lmin = 0, lmax = UINT32_MAX;
+ 	unsigned int value;
+ 
+ 	if (entry->type == XTTYPE_UINT8)
+ 		lmax = UINT8_MAX;
++	else if (entry->type == XTTYPE_UINT64)
++		lmax = UINT64_MAX;
+ 	if (cb->entry->min != 0)
+ 		lmin = cb->entry->min;
+ 	if (cb->entry->max != 0)
+@@ -99,7 +101,7 @@ static void xtopt_parse_int(struct xt_option_call *cb)
+ 	if (!xtables_strtoui(cb->arg, NULL, &value, lmin, lmax))
+ 		xt_params->exit_err(PARAMETER_PROBLEM,
+ 			"%s: bad value for option \"--%s\", "
+-			"or out of range (%u-%u).\n",
++			"or out of range (%llu-%llu).\n",
+ 			cb->ext_name, entry->name, lmin, lmax);
+ 
+ 	if (entry->type == XTTYPE_UINT8) {
+@@ -110,6 +112,10 @@ static void xtopt_parse_int(struct xt_option_call *cb)
+ 		cb->val.u32 = value;
+ 		if (entry->flags & XTOPT_PUT)
+ 			*(uint32_t *)XTOPT_MKPTR(cb) = cb->val.u32;
++	} else if (entry->type == XTTYPE_UINT64) {
++		cb->val.u64 = value;
++		if (entry->flags & XTOPT_PUT)
++			*(uint64_t *)XTOPT_MKPTR(cb) = cb->val.u64;
+ 	}
  }
  
--static const struct option tcpmss_opts[] = {
--	{.name = "mss", .has_arg = true, .val = '1'},
--	XT_GETOPT_TABLEEND,
-+static const struct xt_option_entry tcpmss_opts[] = {
-+	{.name = "mss", .id = O_TCPMSS, .type = XTTYPE_UINT16RC,
-+	 .flags = XTOPT_MAND | XTOPT_INVERT},
-+	XTOPT_TABLEEND,
+@@ -217,6 +223,7 @@ static void xtopt_parse_markmask(struct xt_option_call *cb)
+ static void (*const xtopt_subparse[])(struct xt_option_call *) = {
+ 	[XTTYPE_UINT8]       = xtopt_parse_int,
+ 	[XTTYPE_UINT32]      = xtopt_parse_int,
++	[XTTYPE_UINT64]      = xtopt_parse_int,
+ 	[XTTYPE_UINT32RC]    = xtopt_parse_mint,
+ 	[XTTYPE_STRING]      = xtopt_parse_string,
+ 	[XTTYPE_MARKMASK32]  = xtopt_parse_markmask,
+@@ -225,6 +232,7 @@ static void (*const xtopt_subparse[])(struct xt_option_call *) = {
+ static const size_t xtopt_psize[] = {
+ 	[XTTYPE_UINT8]       = sizeof(uint8_t),
+ 	[XTTYPE_UINT32]      = sizeof(uint32_t),
++	[XTTYPE_UINT64]      = sizeof(uint64_t),
+ 	[XTTYPE_UINT32RC]    = sizeof(uint32_t[2]),
+ 	[XTTYPE_STRING]      = -1,
  };
- 
--static uint16_t
--parse_tcp_mssvalue(const char *mssvalue)
--{
--	unsigned int mssvaluenum;
--
--	if (xtables_strtoui(mssvalue, NULL, &mssvaluenum, 0, UINT16_MAX))
--		return mssvaluenum;
--
--	xtables_error(PARAMETER_PROBLEM,
--		   "Invalid mss `%s' specified", mssvalue);
--}
--
--static void
--parse_tcp_mssvalues(const char *mssvaluestring,
--		    uint16_t *mss_min, uint16_t *mss_max)
--{
--	char *buffer;
--	char *cp;
--
--	buffer = strdup(mssvaluestring);
--	if ((cp = strchr(buffer, ':')) == NULL)
--		*mss_min = *mss_max = parse_tcp_mssvalue(buffer);
--	else {
--		*cp = '\0';
--		cp++;
--
--		*mss_min = buffer[0] ? parse_tcp_mssvalue(buffer) : 0;
--		*mss_max = cp[0] ? parse_tcp_mssvalue(cp) : 0xFFFF;
--	}
--	free(buffer);
--}
--
--static int
--tcpmss_parse(int c, char **argv, int invert, unsigned int *flags,
--             const void *entry, struct xt_entry_match **match)
--{
--	struct xt_tcpmss_match_info *mssinfo =
--		(struct xt_tcpmss_match_info *)(*match)->data;
--
--	switch (c) {
--	case '1':
--		if (*flags)
--			xtables_error(PARAMETER_PROBLEM,
--				   "Only one `--mss' allowed");
--		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
--		parse_tcp_mssvalues(optarg,
--				    &mssinfo->mss_min, &mssinfo->mss_max);
--		if (invert)
--			mssinfo->invert = 1;
--		*flags = 1;
--		break;
--	}
--	return 1;
--}
--
--static void tcpmss_check(unsigned int flags)
-+static void tcpmss_parse(struct xt_option_call *cb)
- {
--	if (!flags)
--		xtables_error(PARAMETER_PROBLEM,
--			   "tcpmss match: You must specify `--mss'");
-+	struct xt_tcpmss_match_info *mssinfo = cb->data;
-+
-+	xtables_option_parse(cb);
-+	mssinfo->mss_min = cb->val.u16_range[0];
-+	mssinfo->mss_max = mssinfo->mss_min;
-+	if (cb->nvals == 2)
-+		mssinfo->mss_max = cb->val.u16_range[1];
-+	if (cb->invert)
-+		mssinfo->invert = 1;
- }
- 
- static void
-@@ -114,11 +63,10 @@ static struct xtables_match tcpmss_match = {
- 	.size		= XT_ALIGN(sizeof(struct xt_tcpmss_match_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_tcpmss_match_info)),
- 	.help		= tcpmss_help,
--	.parse		= tcpmss_parse,
--	.final_check	= tcpmss_check,
- 	.print		= tcpmss_print,
- 	.save		= tcpmss_save,
--	.extra_opts	= tcpmss_opts,
-+	.x6_parse	= tcpmss_parse,
-+	.x6_options	= tcpmss_opts,
- };
- 
- void _init(void)
 -- 
 1.7.1
 
