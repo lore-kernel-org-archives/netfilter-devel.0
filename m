@@ -1,111 +1,148 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 09/26] libxtables: XTTYPE_UINT16RC support
-Date: Wed, 13 Apr 2011 18:13:30 +0200
-Message-ID: <1302711228-15947-10-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 10/26] libxt_length: use guided option parser
+Date: Wed, 13 Apr 2011 18:13:31 +0200
+Message-ID: <1302711228-15947-11-git-send-email-jengelh@medozas.de>
 References: <1302711228-15947-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:42450 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:42453 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932986Ab1DMQOA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Apr 2011 12:14:00 -0400
+	id S933062Ab1DMQOB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Apr 2011 12:14:01 -0400
 In-Reply-To: <1302711228-15947-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/xtables.h.in |    2 ++
- xtoptions.c          |   28 +++++++++++++++++++++-------
- 2 files changed, 23 insertions(+), 7 deletions(-)
+ extensions/libxt_length.c |   92 ++++++++------------------------------------
+ 1 files changed, 17 insertions(+), 75 deletions(-)
 
-diff --git a/include/xtables.h.in b/include/xtables.h.in
-index 30d9e73..ae76bb6 100644
---- a/include/xtables.h.in
-+++ b/include/xtables.h.in
-@@ -57,6 +57,7 @@ enum xt_option_type {
- 	XTTYPE_UINT8,
- 	XTTYPE_UINT32,
- 	XTTYPE_UINT64,
-+	XTTYPE_UINT16RC,
- 	XTTYPE_UINT32RC,
- 	XTTYPE_STRING,
- 	XTTYPE_MARKMASK32,
-@@ -115,6 +116,7 @@ struct xt_option_call {
- 	uint8_t nvals;
- 	union {
- 		uint8_t u8;
-+		uint16_t u16_range[2];
- 		uint32_t u32, u32_range[2];
- 		uint64_t u64;
- 		struct {
-diff --git a/xtoptions.c b/xtoptions.c
-index f48c011..ca5bffa 100644
---- a/xtoptions.c
-+++ b/xtoptions.c
-@@ -133,15 +133,18 @@ static void xtopt_parse_mint(struct xt_option_call *cb)
+diff --git a/extensions/libxt_length.c b/extensions/libxt_length.c
+index a12aefe..4f3a331 100644
+--- a/extensions/libxt_length.c
++++ b/extensions/libxt_length.c
+@@ -1,14 +1,11 @@
+-/* Shared library add-on to iptables to add packet length matching support. */
+-#include <stdbool.h>
+ #include <stdio.h>
+-#include <netdb.h>
+-#include <string.h>
+-#include <stdlib.h>
+-#include <getopt.h>
+-
+ #include <xtables.h>
+ #include <linux/netfilter/xt_length.h>
+ 
++enum {
++	O_LENGTH = 0,
++};
++
+ static void length_help(void)
  {
- 	const struct xt_option_entry *entry = cb->entry;
- 	const char *arg = cb->arg;
--	uint32_t *put = XTOPT_MKPTR(cb);
-+	size_t esize = sizeof(uint32_t);
-+	char *put = XTOPT_MKPTR(cb);
- 	unsigned int maxiter, value;
- 	char *end = "";
- 	char sep = ':';
- 
--	maxiter = entry->size / sizeof(uint32_t);
-+	if (entry->type == XTTYPE_UINT16RC)
-+		esize = sizeof(uint16_t);
-+	maxiter = entry->size / esize;
- 	if (maxiter == 0)
- 		maxiter = 2; /* ARRAY_SIZE(cb->val.uXX_range) */
--	if (entry->size % sizeof(uint32_t) != 0)
-+	if (entry->size % esize != 0)
- 		xt_params->exit_err(OTHER_PROBLEM, "%s: memory block does "
- 			"not have proper size\n", __func__);
- 
-@@ -161,10 +164,19 @@ static void xtopt_parse_mint(struct xt_option_call *cb)
- 				"%s: Argument to \"--%s\" has unexpected "
- 				"characters.\n", cb->ext_name, entry->name);
- 		++cb->nvals;
--		if (cb->nvals < ARRAY_SIZE(cb->val.u32_range))
--			cb->val.u32_range[cb->nvals] = value;
--		if (entry->flags & XTOPT_PUT)
--			*put++ = value;
-+		if (cb->nvals < ARRAY_SIZE(cb->val.u32_range)) {
-+			if (entry->type == XTTYPE_UINT16RC)
-+				cb->val.u16_range[cb->nvals] = value;
-+			else if (entry->type == XTTYPE_UINT32RC)
-+				cb->val.u32_range[cb->nvals] = value;
-+		}
-+		if (entry->flags & XTOPT_PUT) {
-+			if (entry->type == XTTYPE_UINT16RC)
-+				*(uint16_t *)put = value;
-+			else if (entry->type == XTTYPE_UINT32RC)
-+				*(uint32_t *)put = value;
-+			put += esize;
-+		}
- 		if (*end == '\0')
- 			break;
- 	}
-@@ -225,6 +237,7 @@ static void (*const xtopt_subparse[])(struct xt_option_call *) = {
- 	[XTTYPE_UINT8]       = xtopt_parse_int,
- 	[XTTYPE_UINT32]      = xtopt_parse_int,
- 	[XTTYPE_UINT64]      = xtopt_parse_int,
-+	[XTTYPE_UINT16RC]    = xtopt_parse_mint,
- 	[XTTYPE_UINT32RC]    = xtopt_parse_mint,
- 	[XTTYPE_STRING]      = xtopt_parse_string,
- 	[XTTYPE_MARKMASK32]  = xtopt_parse_markmask,
-@@ -234,6 +247,7 @@ static const size_t xtopt_psize[] = {
- 	[XTTYPE_UINT8]       = sizeof(uint8_t),
- 	[XTTYPE_UINT32]      = sizeof(uint32_t),
- 	[XTTYPE_UINT64]      = sizeof(uint64_t),
-+	[XTTYPE_UINT16RC]    = sizeof(uint16_t[2]),
- 	[XTTYPE_UINT32RC]    = sizeof(uint32_t[2]),
- 	[XTTYPE_STRING]      = -1,
+ 	printf(
+@@ -17,75 +14,21 @@ static void length_help(void)
+ "                                of values (inclusive)\n");
+ }
+   
+-static const struct option length_opts[] = {
+-	{.name = "length", .has_arg = true, .val = '1'},
+-	XT_GETOPT_TABLEEND,
++static const struct xt_option_entry length_opts[] = {
++	{.name = "length", .id = O_LENGTH, .type = XTTYPE_UINT16RC,
++	 .flags = XTOPT_MAND | XTOPT_INVERT},
++	XTOPT_TABLEEND,
  };
+ 
+-static uint16_t
+-parse_length(const char *s)
+-{
+-	unsigned int len;
+-	
+-	if (!xtables_strtoui(s, NULL, &len, 0, UINT32_MAX))
+-		xtables_error(PARAMETER_PROBLEM, "length invalid: \"%s\"\n", s);
+-	else
+-		return len;
+-}
+-
+-/* If a single value is provided, min and max are both set to the value */
+-static void
+-parse_lengths(const char *s, struct xt_length_info *info)
+-{
+-	char *buffer;
+-	char *cp;
+-
+-	buffer = strdup(s);
+-	if ((cp = strchr(buffer, ':')) == NULL)
+-		info->min = info->max = parse_length(buffer);
+-	else {
+-		*cp = '\0';
+-		cp++;
+-
+-		info->min = buffer[0] ? parse_length(buffer) : 0;
+-		info->max = cp[0] ? parse_length(cp) : 0xFFFF;
+-	}
+-	free(buffer);
+-	
+-	if (info->min > info->max)
+-		xtables_error(PARAMETER_PROBLEM,
+-		           "length min. range value `%u' greater than max. "
+-		           "range value `%u'", info->min, info->max);
+-	
+-}
+-
+-static int
+-length_parse(int c, char **argv, int invert, unsigned int *flags,
+-             const void *entry, struct xt_entry_match **match)
++static void length_parse(struct xt_option_call *cb)
+ {
+-	struct xt_length_info *info = (struct xt_length_info *)(*match)->data;
+-
+-	switch (c) {
+-		case '1':
+-			if (*flags)
+-				xtables_error(PARAMETER_PROBLEM,
+-				           "length: `--length' may only be "
+-				           "specified once");
+-			xtables_check_inverse(optarg, &invert, &optind, 0, argv);
+-			parse_lengths(optarg, info);
+-			if (invert)
+-				info->invert = 1;
+-			*flags = 1;
+-			break;
+-	}
+-	return 1;
+-}
++	struct xt_length_info *info = cb->data;
+ 
+-static void length_check(unsigned int flags)
+-{
+-	if (!flags)
+-		xtables_error(PARAMETER_PROBLEM,
+-			   "length: You must specify `--length'");
++	xtables_option_parse(cb);
++	info->min = cb->val.u16_range[0];
++	info->max = (cb->nvals == 2) ? cb->val.u16_range[1] : UINT16_MAX;
++	if (cb->invert)
++		info->invert = 1;
+ }
+ 
+ static void
+@@ -118,11 +61,10 @@ static struct xtables_match length_match = {
+ 	.size		= XT_ALIGN(sizeof(struct xt_length_info)),
+ 	.userspacesize	= XT_ALIGN(sizeof(struct xt_length_info)),
+ 	.help		= length_help,
+-	.parse		= length_parse,
+-	.final_check	= length_check,
+ 	.print		= length_print,
+ 	.save		= length_save,
+-	.extra_opts	= length_opts,
++	.x6_parse	= length_parse,
++	.x6_options	= length_opts,
+ };
+ 
+ void _init(void)
 -- 
 1.7.1
 
