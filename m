@@ -1,44 +1,25 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/2] rework of userspace expectation support
-Date: Wed, 13 Apr 2011 13:47:20 +0200
-Message-ID: <4DA58D48.4010307@netfilter.org>
-References: <20110412215458.3145.40830.stgit@decadence> <4DA58AE2.7000204@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 1/2] netfilter: ipset: SCTP, UDPLITE support added
+Date: Wed, 13 Apr 2011 13:52:08 +0200
+Message-ID: <4DA58E68.9090205@trash.net>
+References: <1302171060-20872-1-git-send-email-kadlec@blackhole.kfki.hu> <1302171060-20872-2-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44329 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753043Ab1DMLr0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Apr 2011 07:47:26 -0400
-In-Reply-To: <4DA58AE2.7000204@trash.net>
+Received: from stinky.trash.net ([213.144.137.162]:38912 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752906Ab1DMLwJ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Apr 2011 07:52:09 -0400
+In-Reply-To: <1302171060-20872-2-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 13/04/11 13:37, Patrick McHardy wrote:
-> Am 12.04.2011 23:59, schrieb Pablo Neira Ayuso:
->> Hi Patrick,
->>
->> The following patches rework the userspace expectation support
->> to fix one problematic scenario: if the master conntrack vanishes
->> while there are still userspace expectations, we hit an oops
->> in the destroy event path for expectations.
+Am 07.04.2011 12:10, schrieb Jozsef Kadlecsik:
+> SCTP and UDPLITE port support added to the hash:*port* set types.
 > 
-> Just wondering, how can this happen? We take a reference for
-> userspace expectations just as we do for kernel expectations.
-> 
-> Ok, I see, we are releasing it again at the end of
-> ctnetlink_create_expect(), that seems to be the actual problem
-> if I'm not mistaken.
 
-Indeed, we have keep that reference, that would fix the problem.
-
-Still, with the curent approach the userspace expectation will be valid
-after the master conntrack has expired.
-
-So we can do the following: Fix this refcount issue in -stable and
-current, and schedule these patches for nf-next to change the behaviour.
-
-What do you think?
+Applied to nf-next, thanks.
