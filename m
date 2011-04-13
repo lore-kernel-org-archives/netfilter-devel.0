@@ -1,93 +1,181 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 13/26] libxtables: XTTYPE_UINT64RC support
-Date: Wed, 13 Apr 2011 18:13:34 +0200
-Message-ID: <1302711228-15947-14-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 14/26] libxt_connbytes: use guided option parser
+Date: Wed, 13 Apr 2011 18:13:35 +0200
+Message-ID: <1302711228-15947-15-git-send-email-jengelh@medozas.de>
 References: <1302711228-15947-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:42459 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:42461 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933064Ab1DMQOE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Apr 2011 12:14:04 -0400
+	id S933063Ab1DMQOF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Apr 2011 12:14:05 -0400
 In-Reply-To: <1302711228-15947-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/xtables.h.in |    3 ++-
- xtoptions.c          |    8 ++++++++
- 2 files changed, 10 insertions(+), 1 deletions(-)
+ extensions/libxt_connbytes.c |  107 +++++++++++++++---------------------------
+ 1 files changed, 38 insertions(+), 69 deletions(-)
 
-diff --git a/include/xtables.h.in b/include/xtables.h.in
-index 8f65b05..325c04c 100644
---- a/include/xtables.h.in
-+++ b/include/xtables.h.in
-@@ -60,6 +60,7 @@ enum xt_option_type {
- 	XTTYPE_UINT8RC,
- 	XTTYPE_UINT16RC,
- 	XTTYPE_UINT32RC,
-+	XTTYPE_UINT64RC,
- 	XTTYPE_STRING,
- 	XTTYPE_MARKMASK32,
- };
-@@ -119,7 +120,7 @@ struct xt_option_call {
- 		uint8_t u8, u8_range[2];
- 		uint16_t u16_range[2];
- 		uint32_t u32, u32_range[2];
--		uint64_t u64;
-+		uint64_t u64, u64_range[2];
- 		struct {
- 			uint32_t mark, mask;
- 		};
-diff --git a/xtoptions.c b/xtoptions.c
-index babc827..a74938f 100644
---- a/xtoptions.c
-+++ b/xtoptions.c
-@@ -143,6 +143,8 @@ static void xtopt_parse_mint(struct xt_option_call *cb)
- 		esize = sizeof(uint8_t);
- 	else if (entry->type == XTTYPE_UINT16RC)
- 		esize = sizeof(uint16_t);
-+	else if (entry->type == XTTYPE_UINT64RC)
-+		esize = sizeof(uint64_t);
- 	maxiter = entry->size / esize;
- 	if (maxiter == 0)
- 		maxiter = 2; /* ARRAY_SIZE(cb->val.uXX_range) */
-@@ -173,6 +175,8 @@ static void xtopt_parse_mint(struct xt_option_call *cb)
- 				cb->val.u16_range[cb->nvals] = value;
- 			else if (entry->type == XTTYPE_UINT32RC)
- 				cb->val.u32_range[cb->nvals] = value;
-+			else if (entry->type == XTTYPE_UINT64RC)
-+				cb->val.u64_range[cb->nvals] = value;
- 		}
- 		if (entry->flags & XTOPT_PUT) {
- 			if (entry->type == XTTYPE_UINT8RC)
-@@ -181,6 +185,8 @@ static void xtopt_parse_mint(struct xt_option_call *cb)
- 				*(uint16_t *)put = value;
- 			else if (entry->type == XTTYPE_UINT32RC)
- 				*(uint32_t *)put = value;
-+			else if (entry->type == XTTYPE_UINT64RC)
-+				*(uint64_t *)put = value;
- 			put += esize;
- 		}
- 		if (*end == '\0')
-@@ -246,6 +252,7 @@ static void (*const xtopt_subparse[])(struct xt_option_call *) = {
- 	[XTTYPE_UINT8RC]     = xtopt_parse_mint,
- 	[XTTYPE_UINT16RC]    = xtopt_parse_mint,
- 	[XTTYPE_UINT32RC]    = xtopt_parse_mint,
-+	[XTTYPE_UINT64RC]    = xtopt_parse_mint,
- 	[XTTYPE_STRING]      = xtopt_parse_string,
- 	[XTTYPE_MARKMASK32]  = xtopt_parse_markmask,
- };
-@@ -257,6 +264,7 @@ static const size_t xtopt_psize[] = {
- 	[XTTYPE_UINT8RC]     = sizeof(uint8_t[2]),
- 	[XTTYPE_UINT16RC]    = sizeof(uint16_t[2]),
- 	[XTTYPE_UINT32RC]    = sizeof(uint32_t[2]),
-+	[XTTYPE_UINT64RC]    = sizeof(uint64_t[2]),
- 	[XTTYPE_STRING]      = -1,
+diff --git a/extensions/libxt_connbytes.c b/extensions/libxt_connbytes.c
+index 1d3391a..46a7e4b 100644
+--- a/extensions/libxt_connbytes.c
++++ b/extensions/libxt_connbytes.c
+@@ -1,14 +1,14 @@
+-/* Shared library add-on to iptables to add byte tracking support. */
+-#include <stdbool.h>
+ #include <stdio.h>
+-#include <netdb.h>
+ #include <string.h>
+-#include <stdlib.h>
+-#include <getopt.h>
+ #include <xtables.h>
+-#include <linux/netfilter/nf_conntrack_common.h>
+ #include <linux/netfilter/xt_connbytes.h>
+ 
++enum {
++	O_CONNBYTES = 0,
++	O_CONNBYTES_DIR,
++	O_CONNBYTES_MODE,
++};
++
+ static void connbytes_help(void)
+ {
+ 	printf(
+@@ -18,87 +18,57 @@ static void connbytes_help(void)
+ "     --connbytes-mode [packets, bytes, avgpkt]\n");
+ }
+ 
+-static const struct option connbytes_opts[] = {
+-	{.name = "connbytes",      .has_arg = true, .val = '1'},
+-	{.name = "connbytes-dir",  .has_arg = true, .val = '2'},
+-	{.name = "connbytes-mode", .has_arg = true, .val = '3'},
+-	XT_GETOPT_TABLEEND,
++static const struct xt_option_entry connbytes_opts[] = {
++	{.name = "connbytes", .id = O_CONNBYTES, .type = XTTYPE_UINT64RC,
++	 .flags = XTOPT_MAND | XTOPT_INVERT},
++	{.name = "connbytes-dir", .id = O_CONNBYTES_DIR, .type = XTTYPE_STRING,
++	 .flags = XTOPT_MAND},
++	{.name = "connbytes-mode", .id = O_CONNBYTES_MODE,
++	 .type = XTTYPE_STRING, .flags = XTOPT_MAND},
++	XTOPT_TABLEEND,
  };
  
+-static void
+-parse_range(const char *arg, struct xt_connbytes_info *si)
+-{
+-	char *colon,*p;
+-
+-	si->count.from = strtoul(arg,&colon,10);
+-	if (*colon != ':') 
+-		xtables_error(PARAMETER_PROBLEM, "Bad range \"%s\"", arg);
+-	si->count.to = strtoul(colon+1,&p,10);
+-	if (p == colon+1) {
+-		/* second number omited */
+-		si->count.to = 0xffffffff;
+-	}
+-	if (si->count.from > si->count.to)
+-		xtables_error(PARAMETER_PROBLEM, "%llu should be less than %llu",
+-			   (unsigned long long)si->count.from,
+-			   (unsigned long long)si->count.to);
+-}
+-
+-static int
+-connbytes_parse(int c, char **argv, int invert, unsigned int *flags,
+-                const void *entry, struct xt_entry_match **match)
++static void connbytes_parse(struct xt_option_call *cb)
+ {
+-	struct xt_connbytes_info *sinfo = (struct xt_connbytes_info *)(*match)->data;
+-	unsigned long i;
+-
+-	switch (c) {
+-	case '1':
+-		if (xtables_check_inverse(optarg, &invert, &optind, 0, argv))
+-			optind++;
+-
+-		parse_range(optarg, sinfo);
+-		if (invert) {
++	struct xt_connbytes_info *sinfo = cb->data;
++	unsigned long long i;
++
++	xtables_option_parse(cb);
++	switch (cb->entry->id) {
++	case O_CONNBYTES:
++		sinfo->count.from = cb->val.u64_range[0];
++		sinfo->count.to   = cb->val.u64_range[0];
++		if (cb->nvals == 2)
++			sinfo->count.to = cb->val.u64_range[1];
++		if (cb->invert) {
+ 			i = sinfo->count.from;
+ 			sinfo->count.from = sinfo->count.to;
+ 			sinfo->count.to = i;
+ 		}
+-		*flags |= 1;
+ 		break;
+-	case '2':
+-		if (!strcmp(optarg, "original"))
++	case O_CONNBYTES_DIR:
++		if (strcmp(cb->arg, "original") == 0)
+ 			sinfo->direction = XT_CONNBYTES_DIR_ORIGINAL;
+-		else if (!strcmp(optarg, "reply"))
++		else if (strcmp(cb->arg, "reply") == 0)
+ 			sinfo->direction = XT_CONNBYTES_DIR_REPLY;
+-		else if (!strcmp(optarg, "both"))
++		else if (strcmp(cb->arg, "both") == 0)
+ 			sinfo->direction = XT_CONNBYTES_DIR_BOTH;
+ 		else
+ 			xtables_error(PARAMETER_PROBLEM,
+-				   "Unknown --connbytes-dir `%s'", optarg);
+-
+-		*flags |= 2;
++				   "Unknown --connbytes-dir `%s'", cb->arg);
+ 		break;
+-	case '3':
+-		if (!strcmp(optarg, "packets"))
++	case O_CONNBYTES_MODE:
++		if (strcmp(cb->arg, "packets") == 0)
+ 			sinfo->what = XT_CONNBYTES_PKTS;
+-		else if (!strcmp(optarg, "bytes"))
++		else if (strcmp(cb->arg, "bytes") == 0)
+ 			sinfo->what = XT_CONNBYTES_BYTES;
+-		else if (!strcmp(optarg, "avgpkt"))
++		else if (strcmp(cb->arg, "avgpkt") == 0)
+ 			sinfo->what = XT_CONNBYTES_AVGPKT;
+ 		else
+ 			xtables_error(PARAMETER_PROBLEM,
+-				   "Unknown --connbytes-mode `%s'", optarg);
+-		*flags |= 4;
++				   "Unknown --connbytes-mode `%s'", cb->arg);
+ 		break;
+ 	}
+-
+-	return 1;
+-}
+-
+-static void connbytes_check(unsigned int flags)
+-{
+-	if (flags != 7)
+-		xtables_error(PARAMETER_PROBLEM, "You must specify `--connbytes'"
+-			   "`--connbytes-dir' and `--connbytes-mode'");
+ }
+ 
+ static void print_mode(const struct xt_connbytes_info *sinfo)
+@@ -185,11 +155,10 @@ static struct xtables_match connbytes_match = {
+ 	.size 		= XT_ALIGN(sizeof(struct xt_connbytes_info)),
+ 	.userspacesize	= XT_ALIGN(sizeof(struct xt_connbytes_info)),
+ 	.help		= connbytes_help,
+-	.parse		= connbytes_parse,
+-	.final_check	= connbytes_check,
+ 	.print		= connbytes_print,
+ 	.save 		= connbytes_save,
+-	.extra_opts	= connbytes_opts,
++	.x6_parse	= connbytes_parse,
++	.x6_options	= connbytes_opts,
+ };
+ 
+ void _init(void)
 -- 
 1.7.1
 
