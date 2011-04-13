@@ -1,301 +1,244 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 25/26] libxt_TPROXY: use guided option parser
-Date: Wed, 13 Apr 2011 18:13:46 +0200
-Message-ID: <1302711228-15947-26-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 20/26] libxt_string: use guided option parser
+Date: Wed, 13 Apr 2011 18:13:41 +0200
+Message-ID: <1302711228-15947-21-git-send-email-jengelh@medozas.de>
 References: <1302711228-15947-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:42489 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:42475 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933055Ab1DMQOR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Apr 2011 12:14:17 -0400
+	id S933078Ab1DMQOM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Apr 2011 12:14:12 -0400
 In-Reply-To: <1302711228-15947-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I am starting with a simple module here that does not require a
-final_check function.
-
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libxt_TPROXY.c |  216 +++++++++++++--------------------------------
- 1 files changed, 62 insertions(+), 154 deletions(-)
+ extensions/libxt_string.c |  138 +++++++++++++++-----------------------------
+ 1 files changed, 47 insertions(+), 91 deletions(-)
 
-diff --git a/extensions/libxt_TPROXY.c b/extensions/libxt_TPROXY.c
-index 890dd86..5264ea7 100644
---- a/extensions/libxt_TPROXY.c
-+++ b/extensions/libxt_TPROXY.c
-@@ -1,32 +1,42 @@
- /*
-- * Shared library add-on to iptables to add TPROXY target support.
-+ * shared library add-on to iptables to add TPROXY target support.
-  *
-  * Copyright (C) 2002-2008 BalaBit IT Ltd.
+diff --git a/extensions/libxt_string.c b/extensions/libxt_string.c
+index 1030d2e..eef0b08 100644
+--- a/extensions/libxt_string.c
++++ b/extensions/libxt_string.c
+@@ -20,18 +20,25 @@
+  *             updated to work with slightly modified
+  *             ipt_string_info.
   */
--#include <getopt.h>
+-#define _GNU_SOURCE 1
 -#include <stdbool.h>
--#include <stdint.h>
  #include <stdio.h>
--#include <string.h>
--#include <stdlib.h>
- #include <limits.h>
--
+-#include <netdb.h>
+ #include <string.h>
+ #include <stdlib.h>
+-#include <getopt.h>
+ #include <ctype.h>
  #include <xtables.h>
--#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_TPROXY.h>
-+#include <arpa/inet.h>
+-#include <stddef.h>
+ #include <linux/netfilter/xt_string.h>
  
--static const struct option tproxy_tg_opts[] = {
--	{.name = "on-port",     .has_arg = true, .val = '1'},
--	{.name = "on-ip",       .has_arg = true, .val = '2'},
--	{.name = "tproxy-mark", .has_arg = true, .val = '3'},
--	XT_GETOPT_TABLEEND,
 +enum {
-+	P_PORT = 0,
-+	P_ADDR,
-+	P_MARK,
-+	F_PORT = 1 << P_PORT,
-+	F_ADDR = 1 << P_ADDR,
-+	F_MARK = 1 << P_MARK,
- };
- 
--enum {
--	PARAM_ONPORT = 1 << 0,
--	PARAM_ONIP = 1 << 1,
--	PARAM_MARK = 1 << 2,
-+#define s struct xt_tproxy_target_info
-+static const struct xt_option_entry tproxy_tg0_opts[] = {
-+	{.name = "on-port", .id = P_PORT, .type = XTTYPE_PORT_NE,
-+	 .flags = XTOPT_MAND | XTOPT_PUT, XTOPT_POINTER(s, lport)},
-+	{.name = "on-ip", .id = P_ADDR, .type = XTTYPE_ONEHOST},
-+	{.name = "tproxy-mark", .id = P_MARK, .type = XTTYPE_MARKMASK32},
-+	XTOPT_TABLEEND,
- };
-+#undef s
-+#define s struct xt_tproxy_target_info_v1
-+static const struct xt_option_entry tproxy_tg1_opts[] = {
-+	{.name = "on-port", .id = P_PORT, .type = XTTYPE_PORT_NE,
-+	 .flags = XTOPT_MAND | XTOPT_PUT, XTOPT_POINTER(s, lport)},
-+	{.name = "on-ip", .id = P_ADDR, .type = XTTYPE_ONEHOST,
-+	 .flags = XTOPT_PUT, XTOPT_POINTER(s, laddr)},
-+	{.name = "tproxy-mark", .id = P_MARK, .type = XTTYPE_MARKMASK32},
-+	XTOPT_TABLEEND,
++	O_FROM = 0,
++	O_TO,
++	O_ALGO,
++	O_ICASE,
++	O_STRING,
++	O_HEX_STRING,
++	F_STRING     = 1 << O_STRING,
++	F_HEX_STRING = 1 << O_HEX_STRING,
++	F_OP_ANY     = F_STRING | F_HEX_STRING,
 +};
++
+ static void string_help(void)
+ {
+ 	printf(
+@@ -44,15 +51,22 @@ static void string_help(void)
+ "[!] --hex-string string      Match a hex string in a packet\n");
+ }
+ 
+-static const struct option string_opts[] = {
+-	{.name = "from",       .has_arg = true,  .val = '1'},
+-	{.name = "to",         .has_arg = true,  .val = '2'},
+-	{.name = "algo",       .has_arg = true,  .val = '3'},
+-	{.name = "string",     .has_arg = true,  .val = '4'},
+-	{.name = "hex-string", .has_arg = true,  .val = '5'},
+-	{.name = "icase",      .has_arg = false, .val = '6'},
+-	XT_GETOPT_TABLEEND,
++#define s struct xt_string_info
++static const struct xt_option_entry string_opts[] = {
++	{.name = "from", .id = O_FROM, .type = XTTYPE_UINT16,
++	 .flags = XTOPT_PUT, XTOPT_POINTER(s, from_offset)},
++	{.name = "to", .id = O_TO, .type = XTTYPE_UINT16,
++	 .flags = XTOPT_PUT, XTOPT_POINTER(s, to_offset)},
++	{.name = "algo", .id = O_ALGO, .type = XTTYPE_STRING,
++	 .flags = XTOPT_MAND | XTOPT_PUT, XTOPT_POINTER(s, algo)},
++	{.name = "string", .id = O_STRING, .type = XTTYPE_STRING,
++	 .flags = XTOPT_INVERT, .excl = F_HEX_STRING},
++	{.name = "hex-string", .id = O_HEX_STRING, .type = XTTYPE_STRING,
++	 .flags = XTOPT_INVERT, .excl = F_STRING},
++	{.name = "icase", .id = O_ICASE, .type = XTTYPE_NONE},
++	XTOPT_TABLEEND,
+ };
 +#undef s
  
- static void tproxy_tg_help(void)
+ static void string_init(struct xt_entry_match *m)
  {
-@@ -37,134 +47,6 @@ static void tproxy_tg_help(void)
- "  --tproxy-mark value[/mask]	    Mark packets with the given value/mask\n\n");
+@@ -74,17 +88,6 @@ parse_string(const char *s, struct xt_string_info *info)
  }
  
--static void parse_tproxy_lport(const char *s, uint16_t *portp)
+ static void
+-parse_algo(const char *s, struct xt_string_info *info)
 -{
--	unsigned int lport;
--
--	if (xtables_strtoui(s, NULL, &lport, 0, UINT16_MAX))
--		*portp = htons(lport);
--	else
--		xtables_param_act(XTF_BAD_VALUE, "TPROXY", "--on-port", s);
--}
--
--static void parse_tproxy_laddr(const char *s, union nf_inet_addr *addrp,
--			       unsigned int nfproto)
--{
--	struct in6_addr *laddr6 = NULL;
--	struct in_addr *laddr4 = NULL;
--
--	if (nfproto == NFPROTO_IPV6) {
--		laddr6 = xtables_numeric_to_ip6addr(s);
--		if (laddr6 == NULL)
--			goto out;
--		addrp->in6 = *laddr6;
--	} else if (nfproto == NFPROTO_IPV4) {
--		laddr4 = xtables_numeric_to_ipaddr(s);
--		if (laddr4 == NULL)
--			goto out;
--		addrp->in = *laddr4;
+-	/* xt_string needs \0 for algo name */
+-	if (strlen(s) < XT_STRING_MAX_ALGO_NAME_SIZE) {
+-		strncpy(info->algo, s, XT_STRING_MAX_ALGO_NAME_SIZE);
+-		return;
 -	}
--	return;
-- out:
--	xtables_param_act(XTF_BAD_VALUE, "TPROXY", "--on-ip", s);
+-	xtables_error(PARAMETER_PROBLEM, "ALGO too long \"%s\"", s);
 -}
 -
--static void parse_tproxy_mark(char *s, uint32_t *markp, uint32_t *maskp)
--{
--	unsigned int value, mask = UINT32_MAX;
--	char *end;
+-static void
+ parse_hex_string(const char *s, struct xt_string_info *info)
+ {
+ 	int i=0, slen, sindex=0, schar;
+@@ -162,94 +165,47 @@ parse_hex_string(const char *s, struct xt_string_info *info)
+ 	info->patlen = sindex;
+ }
+ 
+-#define STRING 0x1
+-#define ALGO   0x2
+-#define FROM   0x4
+-#define TO     0x8
+-#define ICASE  0x10
 -
--	if (!xtables_strtoui(s, &end, &value, 0, UINT32_MAX))
--		xtables_param_act(XTF_BAD_VALUE, "TPROXY", "--tproxy-mark", s);
--	if (*end == '/')
--		if (!xtables_strtoui(end + 1, &end, &mask, 0, UINT32_MAX))
--			xtables_param_act(XTF_BAD_VALUE, "TPROXY", "--tproxy-mark", s);
--	if (*end != '\0')
--		xtables_param_act(XTF_BAD_VALUE, "TPROXY", "--tproxy-mark", s);
--
--	*markp = value;
--	*maskp = mask;
--}
--
--static int tproxy_tg_parse(int c, char **argv, int invert, unsigned int *flags,
--			const void *entry, struct xt_entry_target **target)
--{
--	struct xt_tproxy_target_info *info = (void *)(*target)->data;
--
+-static int
+-string_parse(int c, char **argv, int invert, unsigned int *flags,
+-             const void *entry, struct xt_entry_match **match)
++static void string_parse(struct xt_option_call *cb)
+ {
+-	struct xt_string_info *stringinfo =
+-	    (struct xt_string_info *)(*match)->data;
+-	const int revision = (*match)->u.user.revision;
++	struct xt_string_info *stringinfo = cb->data;
++	const unsigned int revision = (*cb->match)->u.user.revision;
+ 
 -	switch (c) {
 -	case '1':
--		xtables_param_act(XTF_ONLY_ONCE, "TPROXY", "--on-port", *flags & PARAM_ONPORT);
--		xtables_param_act(XTF_NO_INVERT, "TPROXY", "--on-port", invert);
--		parse_tproxy_lport(optarg, &info->lport);
--		*flags |= PARAM_ONPORT;
--		return 1;
+-		if (*flags & FROM)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "Can't specify multiple --from");
+-		stringinfo->from_offset = atoi(optarg);
+-		*flags |= FROM;
+-		break;
 -	case '2':
--		xtables_param_act(XTF_ONLY_ONCE, "TPROXY", "--on-ip", *flags & PARAM_ONIP);
--		xtables_param_act(XTF_NO_INVERT, "TPROXY", "--on-ip", invert);
--		parse_tproxy_laddr(optarg, (void *)&info->laddr, NFPROTO_IPV4);
--		*flags |= PARAM_ONIP;
--		return 1;
+-		if (*flags & TO)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "Can't specify multiple --to");
+-		stringinfo->to_offset = atoi(optarg);
+-		*flags |= TO;
+-		break;
 -	case '3':
--		xtables_param_act(XTF_ONLY_ONCE, "TPROXY", "--tproxy-mark", *flags & PARAM_MARK);
--		xtables_param_act(XTF_NO_INVERT, "TPROXY", "--tproxy-mark", invert);
--		parse_tproxy_mark(optarg, &info->mark_value, &info->mark_mask);
--		*flags |= PARAM_MARK;
--		return 1;
--	}
+-		if (*flags & ALGO)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "Can't specify multiple --algo");
+-		parse_algo(optarg, stringinfo);
+-		*flags |= ALGO;
+-		break;
+-	case '4':
+-		if (*flags & STRING)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "Can't specify multiple --string");
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
+-		parse_string(optarg, stringinfo);
+-		if (invert) {
++	xtables_option_parse(cb);
++	switch (cb->entry->id) {
++	case O_STRING:
++		parse_string(cb->arg, stringinfo);
++		if (cb->invert) {
+ 			if (revision == 0)
+ 				stringinfo->u.v0.invert = 1;
+ 			else
+ 				stringinfo->u.v1.flags |= XT_STRING_FLAG_INVERT;
+ 		}
+-		*flags |= STRING;
+ 		break;
 -
--	return 0;
--}
+-	case '5':
+-		if (*flags & STRING)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "Can't specify multiple --hex-string");
 -
--static int
--tproxy_tg_parse1(int c, char **argv, int invert, unsigned int *flags,
--		 struct xt_tproxy_target_info_v1 *info, unsigned int nfproto)
--{
--	switch (c) {
--	case '1':
--		xtables_param_act(XTF_ONLY_ONCE, "TPROXY", "--on-port", *flags & PARAM_ONPORT);
--		xtables_param_act(XTF_NO_INVERT, "TPROXY", "--on-port", invert);
--		parse_tproxy_lport(optarg, &info->lport);
--		*flags |= PARAM_ONPORT;
--		return true;
--	case '2':
--		xtables_param_act(XTF_ONLY_ONCE, "TPROXY", "--on-ip", *flags & PARAM_ONIP);
--		xtables_param_act(XTF_NO_INVERT, "TPROXY", "--on-ip", invert);
--		parse_tproxy_laddr(optarg, (void *)&info->laddr, nfproto);
--		*flags |= PARAM_ONIP;
--		return true;
--	case '3':
--		xtables_param_act(XTF_ONLY_ONCE, "TPROXY", "--tproxy-mark", *flags & PARAM_MARK);
--		xtables_param_act(XTF_NO_INVERT, "TPROXY", "--tproxy-mark", invert);
--		parse_tproxy_mark(optarg, &info->mark_value, &info->mark_mask);
--		*flags |= PARAM_MARK;
--		return true;
--	}
--	return false;
--}
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
+-		parse_hex_string(optarg, stringinfo);  /* sets length */
+-		if (invert) {
++	case O_HEX_STRING:
++		parse_hex_string(cb->arg, stringinfo);  /* sets length */
++		if (cb->invert) {
+ 			if (revision == 0)
+ 				stringinfo->u.v0.invert = 1;
+ 			else
+ 				stringinfo->u.v1.flags |= XT_STRING_FLAG_INVERT;
+ 		}
+-		*flags |= STRING;
+ 		break;
 -
--static int
--tproxy_tg_parse4(int c, char **argv, int invert, unsigned int *flags,
--		 const void *entry, struct xt_entry_target **target)
--{
--	struct xt_tproxy_target_info_v1 *info = (void *)(*target)->data;
--	return tproxy_tg_parse1(c, argv, invert, flags, info, NFPROTO_IPV4);
--}
--
--static int
--tproxy_tg_parse6(int c, char **argv, int invert, unsigned int *flags,
--		 const void *entry, struct xt_entry_target **target)
--{
--	struct xt_tproxy_target_info_v1 *info = (void *)(*target)->data;
--	return tproxy_tg_parse1(c, argv, invert, flags, info, NFPROTO_IPV6);
--}
--
--static void tproxy_tg_check(unsigned int flags)
--{
--	if (!(flags & PARAM_ONPORT))
+-	case '6':
++	case O_ICASE:
+ 		if (revision == 0)
+ 			xtables_error(VERSION_PROBLEM,
+ 				   "Kernel doesn't support --icase");
+ 
+ 		stringinfo->u.v1.flags |= XT_STRING_FLAG_IGNORECASE;
+-		*flags |= ICASE;
+ 		break;
+ 	}
+-	return 1;
+ }
+ 
+-static void string_check(unsigned int flags)
++static void string_check(struct xt_fcheck_call *cb)
+ {
+-	if (!(flags & STRING))
++	if (!(cb->xflags & F_OP_ANY))
+ 		xtables_error(PARAMETER_PROBLEM,
+ 			   "STRING match: You must specify `--string' or "
+ 			   "`--hex-string'");
+-	if (!(flags & ALGO))
 -		xtables_error(PARAMETER_PROBLEM,
--			   "TPROXY target: Parameter --on-port is required");
--}
--
- static void tproxy_tg_print(const void *ip, const struct xt_entry_target *target,
- 			 int numeric)
- {
-@@ -236,6 +118,35 @@ tproxy_tg_save6(const void *ip, const struct xt_entry_target *target)
- 	       (unsigned int)info->mark_value, (unsigned int)info->mark_mask);
+-			   "STRING match: You must specify `--algo'");
  }
  
-+static void tproxy_tg0_parse(struct xt_option_call *cb)
-+{
-+	struct xt_tproxy_target_info *info = cb->data;
-+
-+	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case P_MARK:
-+		info->mark_value = cb->val.mark;
-+		info->mark_mask  = cb->val.mask;
-+		break;
-+	case P_ADDR:
-+		info->laddr = cb->val.inetaddr.ip;
-+		break;
-+	}
-+}
-+
-+static void tproxy_tg1_parse(struct xt_option_call *cb)
-+{
-+	struct xt_tproxy_target_info_v1 *info = cb->data;
-+
-+	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case P_MARK:
-+		info->mark_value = cb->val.mark;
-+		info->mark_mask  = cb->val.mask;
-+		break;
-+	}
-+}
-+
- static struct xtables_target tproxy_tg_reg[] = {
- 	{
- 		.name          = "TPROXY",
-@@ -245,11 +156,10 @@ static struct xtables_target tproxy_tg_reg[] = {
- 		.size          = XT_ALIGN(sizeof(struct xt_tproxy_target_info)),
- 		.userspacesize = XT_ALIGN(sizeof(struct xt_tproxy_target_info)),
- 		.help          = tproxy_tg_help,
--		.parse         = tproxy_tg_parse,
--		.final_check   = tproxy_tg_check,
- 		.print         = tproxy_tg_print,
- 		.save          = tproxy_tg_save,
--		.extra_opts    = tproxy_tg_opts,
-+		.x6_options    = tproxy_tg0_opts,
-+		.x6_parse      = tproxy_tg0_parse,
+ /* Test to see if the string contains non-printable chars or quotes */
+@@ -357,11 +313,11 @@ static struct xtables_match string_mt_reg[] = {
+ 		.userspacesize = offsetof(struct xt_string_info, config),
+ 		.help          = string_help,
+ 		.init          = string_init,
+-		.parse         = string_parse,
+-		.final_check   = string_check,
+ 		.print         = string_print,
+ 		.save          = string_save,
+-		.extra_opts    = string_opts,
++		.x6_parse      = string_parse,
++		.x6_fcheck     = string_check,
++		.x6_options    = string_opts,
  	},
  	{
- 		.name          = "TPROXY",
-@@ -259,11 +169,10 @@ static struct xtables_target tproxy_tg_reg[] = {
- 		.size          = XT_ALIGN(sizeof(struct xt_tproxy_target_info_v1)),
- 		.userspacesize = XT_ALIGN(sizeof(struct xt_tproxy_target_info_v1)),
- 		.help          = tproxy_tg_help,
--		.parse         = tproxy_tg_parse4,
--		.final_check   = tproxy_tg_check,
- 		.print         = tproxy_tg_print4,
- 		.save          = tproxy_tg_save4,
--		.extra_opts    = tproxy_tg_opts,
-+		.x6_options    = tproxy_tg1_opts,
-+		.x6_parse      = tproxy_tg1_parse,
- 	},
- 	{
- 		.name          = "TPROXY",
-@@ -273,11 +182,10 @@ static struct xtables_target tproxy_tg_reg[] = {
- 		.size          = XT_ALIGN(sizeof(struct xt_tproxy_target_info_v1)),
- 		.userspacesize = XT_ALIGN(sizeof(struct xt_tproxy_target_info_v1)),
- 		.help          = tproxy_tg_help,
--		.parse         = tproxy_tg_parse6,
--		.final_check   = tproxy_tg_check,
- 		.print         = tproxy_tg_print6,
- 		.save          = tproxy_tg_save6,
--		.extra_opts    = tproxy_tg_opts,
-+		.x6_options    = tproxy_tg1_opts,
-+		.x6_parse      = tproxy_tg1_parse,
+ 		.name          = "string",
+@@ -372,11 +328,11 @@ static struct xtables_match string_mt_reg[] = {
+ 		.userspacesize = offsetof(struct xt_string_info, config),
+ 		.help          = string_help,
+ 		.init          = string_init,
+-		.parse         = string_parse,
+-		.final_check   = string_check,
+ 		.print         = string_print,
+ 		.save          = string_save,
+-		.extra_opts    = string_opts,
++		.x6_parse      = string_parse,
++		.x6_fcheck     = string_check,
++		.x6_options    = string_opts,
  	},
  };
  
