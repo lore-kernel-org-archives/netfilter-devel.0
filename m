@@ -1,59 +1,162 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH] iptables: fix the dead loop when meeting unknown options
-Date: Thu, 14 Apr 2011 15:30:41 +0800
-Message-ID: <BANLkTinS4yO0uY8BW6SJmVKhSMxJ9+5BmQ@mail.gmail.com>
-References: <1300083811-27146-1-git-send-email-xiaosuo@gmail.com> <alpine.LNX.2.01.1104140919470.30983@obet.zrqbmnf.qr>
+From: =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: [PATCH] Add --ipv4/-4 and --ipv6/-6 support to ip6?tables{,-restore}.
+Date: Thu, 14 Apr 2011 02:48:48 -0700
+Message-ID: <1302774528-28658-1-git-send-email-zenczykowski@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org,
+	=?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>
+To: =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-px0-f179.google.com ([209.85.212.179]:62305 "EHLO
-	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753447Ab1DNHbB convert rfc822-to-8bit (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:41902 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758233Ab1DNJtG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Apr 2011 03:31:01 -0400
-Received: by pxi2 with SMTP id 2so744241pxi.10
-        for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2011 00:31:01 -0700 (PDT)
-In-Reply-To: <alpine.LNX.2.01.1104140919470.30983@obet.zrqbmnf.qr>
+	Thu, 14 Apr 2011 05:49:06 -0400
+Received: by iwn34 with SMTP id 34so1308288iwn.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2011 02:49:05 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Apr 14, 2011 at 3:20 PM, Jan Engelhardt <jengelh@medozas.de> wr=
-ote:
-> On Monday 2011-03-14 07:23, Changli Gao wrote:
->
->>Signed-off-by: Changli Gao <xiaosuo@gmail.com>
->>---
->> xshared.c | =A0 =A02 +-
->> 1 file changed, 1 insertion(+), 1 deletion(-)
->>diff --git a/xshared.c b/xshared.c
->>index 404a9f5..87402b4 100644
->>--- a/xshared.c
->>+++ b/xshared.c
->>@@ -92,7 +92,7 @@ static bool should_load_proto(struct iptables_comma=
-nd_state *cs)
->> =A0 =A0 =A0 if (find_proto(cs->protocol, XTF_DONT_LOAD,
->> =A0 =A0 =A0 =A0 =A0 cs->options & OPT_NUMERIC, NULL) =3D=3D NULL)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return true;
->>- =A0 =A0 =A0return cs->proto_used;
->>+ =A0 =A0 =A0return !cs->proto_used;
->> }
->
-> Could you, for completeness, give the command that causes the infinit=
-e
-> loop?
->
+=46rom: Maciej =C5=BBenczykowski <maze@google.com>
 
-I can't remember it clearly. At that time, I was testing connlimit.
-Maybe a spell mistake in the option list for connlimit. You can refer
-to the comment above the code, and the code isn't consistent with the
-comment. This bug maybe just a typo by you. :)
+This enables one to have a single configuration file for both ipv4 and =
+ipv6
+firewall rules.
 
+Example:
+  iptables-restore config
+  ip6tables-restore config
+
+Where the file 'config' contains:
+  *filter
+  :INPUT ACCEPT [0:0]
+  :FORWARD ACCEPT [0:0]
+  :OUTPUT ACCEPT [0:0]
+  :ssh - [0:0]
+
+  -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+  -A INPUT -m state --state INVALID -j DROP
+  -A INPUT -i lo -j ACCEPT
+  -A INPUT -4 -p icmp -j ACCEPT
+  -A INPUT -6 -p icmpv6 -j ACCEPT
+  -A INPUT -p tcp --dport 22 -m state --state NEW -j ssh
+  -A ssh -j ACCEPT
+
+  COMMIT
+---
+ ip6tables.c |   16 +++++++++++++++-
+ iptables.c  |   15 ++++++++++++++-
+ 2 files changed, 29 insertions(+), 2 deletions(-)
+
+diff --git a/ip6tables.c b/ip6tables.c
+index f9909f1..8d73641 100644
+--- a/ip6tables.c
++++ b/ip6tables.c
+@@ -124,6 +124,8 @@ static struct option original_opts[] =3D {
+ 	{.name =3D "modprobe",      .has_arg =3D 1, .val =3D 'M'},
+ 	{.name =3D "set-counters",  .has_arg =3D 1, .val =3D 'c'},
+ 	{.name =3D "goto",          .has_arg =3D 1, .val =3D 'g'},
++	{.name =3D "ipv4",          .has_arg =3D 0, .val =3D '4'},
++	{.name =3D "ipv6",          .has_arg =3D 0, .val =3D '6'},
+ 	{NULL},
+ };
+=20
+@@ -248,6 +250,8 @@ exit_printhelp(const struct xtables_rule_match *mat=
+ches)
+ "				Change chain name, (moving any references)\n"
+=20
+ "Options:\n"
++"    --ipv4	-4		Error (line is ignored by ip6tables-restore)\n"
++"    --ipv6	-6		Nothing (line is ignored by iptables-restore)\n"
+ "[!] --proto	-p proto	protocol: by number or name, eg. `tcp'\n"
+ "[!] --source	-s address[/mask][,...]\n"
+ "				source specification\n"
+@@ -1439,7 +1443,7 @@ int do_command6(int argc, char *argv[], char **ta=
+ble, struct ip6tc_handle **hand
+=20
+ 	opts =3D xt_params->orig_opts;
+ 	while ((cs.c =3D getopt_long(argc, argv,
+-	   "-:A:C:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:bvnt:m:xc:g:",
++	   "-:A:C:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:bvnt:m:xc:g:46=
+",
+ 					   opts, NULL)) !=3D -1) {
+ 		switch (cs.c) {
+ 			/*
+@@ -1756,6 +1760,16 @@ int do_command6(int argc, char *argv[], char **t=
+able, struct ip6tc_handle **hand
+ 			cs.fw6.counters.bcnt =3D cnt;
+ 			break;
+=20
++		case '4':
++			/* This is not the IPv4 iptables */
++			if (line !=3D -1) return 1; /* success: line ignored */
++			fprintf(stderr, "This is the IPv6 version of ip6tables.\n");
++			exit_tryhelp(2);
++
++		case '6':
++			/* This is indeed the IPv6 ip6tables */
++			break;
++
+ 		case 1: /* non option */
+ 			if (optarg[0] =3D=3D '!' && optarg[1] =3D=3D '\0') {
+ 				if (cs.invert)
+diff --git a/iptables.c b/iptables.c
+index 0441dce..523454d 100644
+--- a/iptables.c
++++ b/iptables.c
+@@ -123,6 +123,8 @@ static struct option original_opts[] =3D {
+ 	{.name =3D "modprobe",      .has_arg =3D 1, .val =3D 'M'},
+ 	{.name =3D "set-counters",  .has_arg =3D 1, .val =3D 'c'},
+ 	{.name =3D "goto",          .has_arg =3D 1, .val =3D 'g'},
++	{.name =3D "ipv4",          .has_arg =3D 0, .val =3D '4'},
++	{.name =3D "ipv6",          .has_arg =3D 0, .val =3D '6'},
+ 	{NULL},
+ };
+=20
+@@ -261,6 +263,8 @@ exit_printhelp(const struct xtables_rule_match *mat=
+ches)
+ "				Change chain name, (moving any references)\n"
+=20
+ "Options:\n"
++"    --ipv4	-4		Nothing (line is ignored by ip6tables-restore)\n"
++"    --ipv6	-6		Error (line is ignored by iptables-restore)\n"
+ "[!] --proto	-p proto	protocol: by number or name, eg. `tcp'\n"
+ "[!] --source	-s address[/mask][...]\n"
+ "				source specification\n"
+@@ -1467,7 +1471,7 @@ int do_command4(int argc, char *argv[], char **ta=
+ble, struct iptc_handle **handl
+=20
+ 	opts =3D xt_params->orig_opts;
+ 	while ((cs.c =3D getopt_long(argc, argv,
+-	   "-:A:C:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:fbvnt:m:xc:g:"=
+,
++	   "-:A:C:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:fbvnt:m:xc:g:4=
+6",
+ 					   opts, NULL)) !=3D -1) {
+ 		switch (cs.c) {
+ 			/*
+@@ -1782,6 +1786,15 @@ int do_command4(int argc, char *argv[], char **t=
+able, struct iptc_handle **handl
+ 			cs.fw.counters.bcnt =3D cnt;
+ 			break;
+=20
++		case '4':
++			/* This is indeed the IPv4 iptables */
++			break;
++
++		case '6':
++			/* This is not the IPv6 ip6tables */
++			if (line !=3D -1) return 1; /* success: line ignored */
++			fprintf(stderr, "This is the IPv4 version of iptables.\n");
++			exit_tryhelp(2);
+=20
+ 		case 1: /* non option */
+ 			if (optarg[0] =3D=3D '!' && optarg[1] =3D=3D '\0') {
 --=20
-Regards,
-Changli Gao(xiaosuo@gmail.com)
+1.7.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
