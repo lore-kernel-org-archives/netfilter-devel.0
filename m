@@ -1,37 +1,48 @@
-From: Brian G <unixman83@gmail.com>
-Subject: Re: How to get access to NAT info from userland
-Date: Thu, 14 Apr 2011 02:12:49 -0500
-Message-ID: <4DA69E71.4040807@gmail.com>
-References: <4D96DD0E.4020404@gmail.com> <AANLkTi=U8KZ_=ckSJ9yrqsTdG=L3tgtzLcDQ58mS=eRM@mail.gmail.com> <4D97BA33.20205@gmail.com> <alpine.LNX.2.01.1104140901331.28694@obet.zrqbmnf.qr>
+From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: Re: Performance issue due to constant "modprobes"
+Date: Thu, 14 Apr 2011 00:13:28 -0700
+Message-ID: <BANLkTimNc7_XyEoX2usooZLsYyYTn4OnUA@mail.gmail.com>
+References: <4D9E45C2.7030805@wildgooses.com>
+	<BANLkTinfSAk0ruyqNcfAgReATbX_OV64EA@mail.gmail.com>
+	<4D9F41BA.1060509@wildgooses.com>
+	<alpine.LNX.2.01.1104082152500.24599@obet.zrqbmnf.qr>
+	<4D9F98D3.5070802@wildgooses.com>
+	<alpine.LNX.2.01.1104090140010.3023@obet.zrqbmnf.qr>
+	<4DA0C402.1090809@wildgooses.com>
+	<alpine.LNX.2.01.1104100022500.27387@obet.zrqbmnf.qr>
+	<BANLkTik3=XWQHH9au7434RTJuf_Rg2sYSw@mail.gmail.com>
+	<4DA58A73.9030308@wildgooses.com>
+	<alpine.LNX.2.01.1104131406130.25539@obet.zrqbmnf.qr>
+	<4DA59881.1050501@wildgooses.com>
+	<alpine.LNX.2.01.1104131441520.25539@obet.zrqbmnf.qr>
+	<4DA5D346.5030303@wildgooses.com>
+	<BANLkTincEe0_Fj89wJecgR5Up7CvS6ERtw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=UTF-8
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	netfilter-devel@vger.kernel.org
+To: Ed W <lists@wildgooses.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:56178 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757612Ab1DNHNJ (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:37565 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757659Ab1DNHNa (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Apr 2011 03:13:09 -0400
-Received: by iyb14 with SMTP id 14so1206131iyb.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2011 00:13:09 -0700 (PDT)
-In-Reply-To: <alpine.LNX.2.01.1104140901331.28694@obet.zrqbmnf.qr>
+	Thu, 14 Apr 2011 03:13:30 -0400
+Received: by wya21 with SMTP id 21so1125849wya.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2011 00:13:28 -0700 (PDT)
+In-Reply-To: <BANLkTincEe0_Fj89wJecgR5Up7CvS6ERtw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 4/14/2011 2:03 AM, Jan Engelhardt wrote:
-> On Sunday 2011-04-03 02:07, Brian G wrote:
->> On 4/2/2011 6:55 PM, Sam Roberts wrote:
->>> On Sat, Apr 2, 2011 at 1:23 AM, Brian G<unixman83@gmail.com>   wrote:
->>> Does the conntrack -L output have the info you'd like?
->> Probably. Too bad my distro (CentOS) doesn't seem to provide this binary.
-> Ye, enterprise distributions have a bad track record for shipping the
-> complete NF suite. Avoid :/
+Note that: -M '' is -M followed by a space and two single quotes.
 
-TPROXY will work, it should become commonplace by the time IPv6 gets 
-going strong. Someone on stackoverflow answered my question, although he 
-called tproxy a 'hack'. It will work fine so long as it doesn't hinder 
-performance.
+Furthermore, note that with -M '', you will want to modprobe ip_tables
+or modprobe ip6_tables manually first at system startup (or build them
+into the kernel), since those modules don't autoload (hence why
+iptables tries to load them).
 
-Brian G.
+I wonder if there's an easy way iptables userspace could detect
+whether these modules are already loaded (or compiled into the
+kernel), and not even try to load them, if so...
+
+- Maciej
