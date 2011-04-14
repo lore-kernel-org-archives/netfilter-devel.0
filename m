@@ -1,7 +1,7 @@
 From: =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Subject: [PATCH] Add --ipv4/-4 and --ipv6/-6 support to ip6?tables{,-restore}.
-Date: Thu, 14 Apr 2011 02:48:48 -0700
-Message-ID: <1302774528-28658-1-git-send-email-zenczykowski@gmail.com>
+Subject: [PATCH] Move common parts of libext{4,6}.a into libext.a
+Date: Thu, 14 Apr 2011 02:57:24 -0700
+Message-ID: <1302775044-873-1-git-send-email-zenczykowski@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
@@ -9,151 +9,286 @@ Cc: netfilter-devel@vger.kernel.org,
 	=?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>
 To: =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:41902 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758233Ab1DNJtG (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:35214 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932382Ab1DNJ5m (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Apr 2011 05:49:06 -0400
-Received: by iwn34 with SMTP id 34so1308288iwn.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2011 02:49:05 -0700 (PDT)
+	Thu, 14 Apr 2011 05:57:42 -0400
+Received: by gyd10 with SMTP id 10so366492gyd.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2011 02:57:41 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 =46rom: Maciej =C5=BBenczykowski <maze@google.com>
 
-This enables one to have a single configuration file for both ipv4 and =
-ipv6
-firewall rules.
-
-Example:
-  iptables-restore config
-  ip6tables-restore config
-
-Where the file 'config' contains:
-  *filter
-  :INPUT ACCEPT [0:0]
-  :FORWARD ACCEPT [0:0]
-  :OUTPUT ACCEPT [0:0]
-  :ssh - [0:0]
-
-  -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-  -A INPUT -m state --state INVALID -j DROP
-  -A INPUT -i lo -j ACCEPT
-  -A INPUT -4 -p icmp -j ACCEPT
-  -A INPUT -6 -p icmpv6 -j ACCEPT
-  -A INPUT -p tcp --dport 22 -m state --state NEW -j ssh
-  -A ssh -j ACCEPT
-
-  COMMIT
 ---
- ip6tables.c |   16 +++++++++++++++-
- iptables.c  |   15 ++++++++++++++-
- 2 files changed, 29 insertions(+), 2 deletions(-)
+ .gitignore                |    1 +
+ Makefile.am               |    8 +++++-
+ extensions/GNUmakefile.in |   53 ++++++++++++++++++++++++++++++++++---=
+--------
+ include/xtables.h.in      |    1 +
+ ip6tables-restore.c       |    1 +
+ ip6tables-save.c          |    1 +
+ ip6tables-standalone.c    |    1 +
+ iptables-restore.c        |    1 +
+ iptables-save.c           |    1 +
+ iptables-standalone.c     |    1 +
+ 10 files changed, 54 insertions(+), 15 deletions(-)
 
-diff --git a/ip6tables.c b/ip6tables.c
-index f9909f1..8d73641 100644
---- a/ip6tables.c
-+++ b/ip6tables.c
-@@ -124,6 +124,8 @@ static struct option original_opts[] =3D {
- 	{.name =3D "modprobe",      .has_arg =3D 1, .val =3D 'M'},
- 	{.name =3D "set-counters",  .has_arg =3D 1, .val =3D 'c'},
- 	{.name =3D "goto",          .has_arg =3D 1, .val =3D 'g'},
-+	{.name =3D "ipv4",          .has_arg =3D 0, .val =3D '4'},
-+	{.name =3D "ipv6",          .has_arg =3D 0, .val =3D '6'},
- 	{NULL},
- };
+diff --git a/.gitignore b/.gitignore
+index e5d3099..9b59e6a 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -13,6 +13,7 @@ Makefile
+ Makefile.in
 =20
-@@ -248,6 +250,8 @@ exit_printhelp(const struct xtables_rule_match *mat=
-ches)
- "				Change chain name, (moving any references)\n"
+ /extensions/GNUmakefile
++/extensions/initext.c
+ /extensions/initext?.c
+ /extensions/matches?.man
+ /extensions/targets?.man
+diff --git a/Makefile.am b/Makefile.am
+index fbed41f..6affcac 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -45,7 +45,9 @@ if ENABLE_STATIC
+ iptables_multi_CFLAGS    +=3D -DALL_INCLUSIVE
+ endif
+ iptables_multi_LDFLAGS    =3D -rdynamic
+-iptables_multi_LDADD      =3D libiptc/libip4tc.la extensions/libext4.a=
+ libxtables.la -lm
++iptables_multi_LDADD      =3D libiptc/libip4tc.la \
++                            extensions/libext.a extensions/libext4.a \
++                            libxtables.la -lm
 =20
- "Options:\n"
-+"    --ipv4	-4		Error (line is ignored by ip6tables-restore)\n"
-+"    --ipv6	-6		Nothing (line is ignored by iptables-restore)\n"
- "[!] --proto	-p proto	protocol: by number or name, eg. `tcp'\n"
- "[!] --source	-s address[/mask][,...]\n"
- "				source specification\n"
-@@ -1439,7 +1443,7 @@ int do_command6(int argc, char *argv[], char **ta=
-ble, struct ip6tc_handle **hand
+ ip6tables_multi_SOURCES   =3D ip6tables-multi.c ip6tables-save.c \
+                             ip6tables-restore.c ip6tables-standalone.c=
+ \
+@@ -55,7 +57,9 @@ if ENABLE_STATIC
+ ip6tables_multi_CFLAGS   +=3D -DALL_INCLUSIVE
+ endif
+ ip6tables_multi_LDFLAGS   =3D -rdynamic
+-ip6tables_multi_LDADD     =3D libiptc/libip6tc.la extensions/libext6.a=
+ libxtables.la -lm
++ip6tables_multi_LDADD     =3D libiptc/libip6tc.la \
++                            extensions/libext.a extensions/libext6.a \
++                            libxtables.la -lm
 =20
- 	opts =3D xt_params->orig_opts;
- 	while ((cs.c =3D getopt_long(argc, argv,
--	   "-:A:C:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:bvnt:m:xc:g:",
-+	   "-:A:C:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:bvnt:m:xc:g:46=
-",
- 					   opts, NULL)) !=3D -1) {
- 		switch (cs.c) {
- 			/*
-@@ -1756,6 +1760,16 @@ int do_command6(int argc, char *argv[], char **t=
-able, struct ip6tc_handle **hand
- 			cs.fw6.counters.bcnt =3D cnt;
- 			break;
+ sbin_PROGRAMS    =3D
+ man_MANS         =3D iptables.8 iptables-restore.8 iptables-save.8 \
+diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+index 0e562fb..a511a39 100644
+--- a/extensions/GNUmakefile.in
++++ b/extensions/GNUmakefile.in
+@@ -51,11 +51,13 @@ pf6_solibs    :=3D $(patsubst %,libip6t_%.so,${pf6_=
+build_mod})
+ #
+ # Building blocks
+ #
+-targets :=3D libext4.a libext6.a matches4.man matches6.man \
++targets :=3D libext.a libext4.a libext6.a \
++           matches4.man matches6.man \
+            targets4.man targets6.man
+ targets_install :=3D
+-@ENABLE_STATIC_TRUE@ libext4_objs :=3D ${pfx_objs} ${pf4_objs}
+-@ENABLE_STATIC_TRUE@ libext6_objs :=3D ${pfx_objs} ${pf6_objs}
++@ENABLE_STATIC_TRUE@ libext_objs :=3D ${pfx_objs}
++@ENABLE_STATIC_TRUE@ libext4_objs :=3D ${pf4_objs}
++@ENABLE_STATIC_TRUE@ libext6_objs :=3D ${pf6_objs}
+ @ENABLE_STATIC_FALSE@ targets +=3D ${pfx_solibs} ${pf4_solibs} ${pf6_s=
+olibs}
+ @ENABLE_STATIC_FALSE@ targets_install +=3D ${pfx_solibs} ${pf4_solibs}=
+ ${pf6_solibs}
 =20
-+		case '4':
-+			/* This is not the IPv4 iptables */
-+			if (line !=3D -1) return 1; /* success: line ignored */
-+			fprintf(stderr, "This is the IPv6 version of ip6tables.\n");
-+			exit_tryhelp(2);
+@@ -70,7 +72,7 @@ install: ${targets_install}
+ 	if test -n "${targets_install}"; then install -pm0755 $^ "${DESTDIR}$=
+{xtlibdir}/"; fi;
+=20
+ clean:
+-	rm -f *.o *.oo *.so *.a {matches,targets}[46].man initext4.c initext6=
+=2Ec;
++	rm -f *.o *.oo *.so *.a {matches,targets}[46].man initext.c initext4.=
+c initext6.c;
+=20
+ distclean: clean
+ 	rm -f .*.d .*.dd;
+@@ -101,36 +103,61 @@ lib%.oo: ${srcdir}/lib%.c
+ lib%.o: ${srcdir}/lib%.c
+ 	${AM_VERBOSE_CC} ${CC} ${AM_DEPFLAGS} ${AM_CFLAGS} -DNO_SHARED_LIBS=3D=
+1 -D_INIT=3Dlib$*_init ${CFLAGS} -o $@ -c $<;
+=20
++libext.a: initext.o ${libext_objs}
++	${AM_VERBOSE_AR} ${AR} crs $@ $^;
 +
-+		case '6':
-+			/* This is indeed the IPv6 ip6tables */
-+			break;
+ libext4.a: initext4.o ${libext4_objs}
+ 	${AM_VERBOSE_AR} ${AR} crs $@ $^;
+=20
+ libext6.a: initext6.o ${libext6_objs}
+ 	${AM_VERBOSE_AR} ${AR} crs $@ $^;
+=20
+-initext_func  :=3D $(addprefix xt_,${pfx_build_mod}) $(addprefix ipt_,=
+${pf4_build_mod})
+-initext6_func :=3D $(addprefix xt_,${pfx_build_mod}) $(addprefix ip6t_=
+,${pf6_build_mod})
++initext_func  :=3D $(addprefix xt_,${pfx_build_mod})
++initext4_func :=3D $(addprefix ipt_,${pf4_build_mod})
++initext6_func :=3D $(addprefix ip6t_,${pf6_build_mod})
+=20
+-.initext4.dd: FORCE
++.initext.dd: FORCE
+ 	@echo "${initext_func}" >$@.tmp; \
+ 	cmp -s $@ $@.tmp || mv $@.tmp $@; \
+ 	rm -f $@.tmp;
+=20
++.initext4.dd: FORCE
++	@echo "${initext4_func}" >$@.tmp; \
++	cmp -s $@ $@.tmp || mv $@.tmp $@; \
++	rm -f $@.tmp;
 +
- 		case 1: /* non option */
- 			if (optarg[0] =3D=3D '!' && optarg[1] =3D=3D '\0') {
- 				if (cs.invert)
-diff --git a/iptables.c b/iptables.c
-index 0441dce..523454d 100644
---- a/iptables.c
-+++ b/iptables.c
-@@ -123,6 +123,8 @@ static struct option original_opts[] =3D {
- 	{.name =3D "modprobe",      .has_arg =3D 1, .val =3D 'M'},
- 	{.name =3D "set-counters",  .has_arg =3D 1, .val =3D 'c'},
- 	{.name =3D "goto",          .has_arg =3D 1, .val =3D 'g'},
-+	{.name =3D "ipv4",          .has_arg =3D 0, .val =3D '4'},
-+	{.name =3D "ipv6",          .has_arg =3D 0, .val =3D '6'},
- 	{NULL},
- };
+ .initext6.dd: FORCE
+ 	@echo "${initext6_func}" >$@.tmp; \
+ 	cmp -s $@ $@.tmp || mv $@.tmp $@; \
+ 	rm -f $@.tmp;
 =20
-@@ -261,6 +263,8 @@ exit_printhelp(const struct xtables_rule_match *mat=
-ches)
- "				Change chain name, (moving any references)\n"
-=20
- "Options:\n"
-+"    --ipv4	-4		Nothing (line is ignored by ip6tables-restore)\n"
-+"    --ipv6	-6		Error (line is ignored by iptables-restore)\n"
- "[!] --proto	-p proto	protocol: by number or name, eg. `tcp'\n"
- "[!] --source	-s address[/mask][...]\n"
- "				source specification\n"
-@@ -1467,7 +1471,7 @@ int do_command4(int argc, char *argv[], char **ta=
-ble, struct iptc_handle **handl
-=20
- 	opts =3D xt_params->orig_opts;
- 	while ((cs.c =3D getopt_long(argc, argv,
--	   "-:A:C:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:fbvnt:m:xc:g:"=
-,
-+	   "-:A:C:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:fbvnt:m:xc:g:4=
-6",
- 					   opts, NULL)) !=3D -1) {
- 		switch (cs.c) {
- 			/*
-@@ -1782,6 +1786,15 @@ int do_command4(int argc, char *argv[], char **t=
-able, struct iptc_handle **handl
- 			cs.fw.counters.bcnt =3D cnt;
- 			break;
-=20
-+		case '4':
-+			/* This is indeed the IPv4 iptables */
-+			break;
+-initext4.c: .initext4.dd
++initext.c: .initext.dd
+ 	${AM_VERBOSE_GEN}
+ 	@( \
+ 	echo "" >$@; \
+ 	for i in ${initext_func}; do \
+ 		echo "extern void lib$${i}_init(void);" >>$@; \
+ 	done; \
++	echo "void init_extensions(void);" >>$@; \
++	echo "void init_extensions(void)" >>$@; \
++	echo "{" >>$@; \
++	for i in ${initext_func}; do \
++		echo  " ""lib$${i}_init();" >>$@; \
++	done; \
++	echo "}" >>$@; \
++	);
 +
-+		case '6':
-+			/* This is not the IPv6 ip6tables */
-+			if (line !=3D -1) return 1; /* success: line ignored */
-+			fprintf(stderr, "This is the IPv4 version of iptables.\n");
-+			exit_tryhelp(2);
++initext4.c: .initext4.dd
++	${AM_VERBOSE_GEN}
++	@( \
++	echo "" >$@; \
++	for i in ${initext4_func}; do \
++		echo "extern void lib$${i}_init(void);" >>$@; \
++	done; \
+ 	echo "void init_extensions4(void);" >>$@; \
+ 	echo "void init_extensions4(void)" >>$@; \
+ 	echo "{" >>$@; \
+-	for i in ${initext_func}; do \
++	for i in ${initext4_func}; do \
+ 		echo  " ""lib$${i}_init();" >>$@; \
+ 	done; \
+ 	echo "}" >>$@; \
+@@ -177,14 +204,14 @@ man_run    =3D \
+ 		fi; \
+ 	done >$@;
 =20
- 		case 1: /* non option */
- 			if (optarg[0] =3D=3D '!' && optarg[1] =3D=3D '\0') {
+-matches4.man: .initext4.dd $(wildcard ${srcdir}/lib*.man)
++matches4.man: .initext.dd .initext4.dd $(wildcard ${srcdir}/lib*.man)
+ 	$(call man_run,$(call ex_matches,${pfx_build_mod} ${pf4_build_mod}),i=
+p,NFPROTO_IPV4)
+=20
+-matches6.man: .initext6.dd $(wildcard ${srcdir}/lib*.man)
++matches6.man: .initext.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
+ 	$(call man_run,$(call ex_matches,${pfx_build_mod} ${pf6_build_mod}),i=
+p6,NFPROTO_IPV6)
+=20
+-targets4.man: .initext4.dd $(wildcard ${srcdir}/lib*.man)
++targets4.man: .initext.dd .initext4.dd $(wildcard ${srcdir}/lib*.man)
+ 	$(call man_run,$(call ex_targets,${pfx_build_mod} ${pf4_build_mod}),i=
+p,NFPROTO_IPV4)
+=20
+-targets6.man: .initext6.dd $(wildcard ${srcdir}/lib*.man)
++targets6.man: .initext.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
+ 	$(call man_run,$(call ex_targets,${pfx_build_mod} ${pf6_build_mod}),i=
+p6,NFPROTO_IPV6)
+diff --git a/include/xtables.h.in b/include/xtables.h.in
+index b4915c4..7bf2994 100644
+--- a/include/xtables.h.in
++++ b/include/xtables.h.in
+@@ -387,6 +387,7 @@ extern void xtables_save_string(const char *value);
+ #		undef _init
+ #		define _init _INIT
+ #	endif
++	extern void init_extensions(void);
+ 	extern void init_extensions4(void);
+ 	extern void init_extensions6(void);
+ #else
+diff --git a/ip6tables-restore.c b/ip6tables-restore.c
+index 5531d6e..420bc52 100644
+--- a/ip6tables-restore.c
++++ b/ip6tables-restore.c
+@@ -137,6 +137,7 @@ int main(int argc, char *argv[])
+ 		exit(1);
+ 	}
+ #if defined(ALL_INCLUSIVE) || defined(NO_SHARED_LIBS)
++	init_extensions();
+ 	init_extensions6();
+ #endif
+=20
+diff --git a/ip6tables-save.c b/ip6tables-save.c
+index d9ecc62..39a3325 100644
+--- a/ip6tables-save.c
++++ b/ip6tables-save.c
+@@ -149,6 +149,7 @@ int main(int argc, char *argv[])
+ 		exit(1);
+ 	}
+ #if defined(ALL_INCLUSIVE) || defined(NO_SHARED_LIBS)
++	init_extensions();
+ 	init_extensions6();
+ #endif
+=20
+diff --git a/ip6tables-standalone.c b/ip6tables-standalone.c
+index 7d34684..9d8d5a0 100644
+--- a/ip6tables-standalone.c
++++ b/ip6tables-standalone.c
+@@ -59,6 +59,7 @@ main(int argc, char *argv[])
+ 	}
+=20
+ #if defined(ALL_INCLUSIVE) || defined(NO_SHARED_LIBS)
++	init_extensions();
+ 	init_extensions6();
+ #endif
+=20
+diff --git a/iptables-restore.c b/iptables-restore.c
+index e4f0604..2624599 100644
+--- a/iptables-restore.c
++++ b/iptables-restore.c
+@@ -140,6 +140,7 @@ main(int argc, char *argv[])
+ 		exit(1);
+ 	}
+ #if defined(ALL_INCLUSIVE) || defined(NO_SHARED_LIBS)
++	init_extensions();
+ 	init_extensions4();
+ #endif
+=20
+diff --git a/iptables-save.c b/iptables-save.c
+index dee1752..7542bdc 100644
+--- a/iptables-save.c
++++ b/iptables-save.c
+@@ -149,6 +149,7 @@ main(int argc, char *argv[])
+ 		exit(1);
+ 	}
+ #if defined(ALL_INCLUSIVE) || defined(NO_SHARED_LIBS)
++	init_extensions();
+ 	init_extensions4();
+ #endif
+=20
+diff --git a/iptables-standalone.c b/iptables-standalone.c
+index b085946..87f1d31 100644
+--- a/iptables-standalone.c
++++ b/iptables-standalone.c
+@@ -59,6 +59,7 @@ main(int argc, char *argv[])
+ 				exit(1);
+ 	}
+ #if defined(ALL_INCLUSIVE) || defined(NO_SHARED_LIBS)
++	init_extensions();
+ 	init_extensions4();
+ #endif
+=20
 --=20
 1.7.3.1
 
