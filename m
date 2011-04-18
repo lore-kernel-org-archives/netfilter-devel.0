@@ -1,122 +1,69 @@
-From: Pierre Rondou <prondou@gmail.com>
-Subject: Re: Problem sending skb built from scratch with IPv6
-Date: Mon, 18 Apr 2011 17:05:20 +0200
-Message-ID: <4DAC5330.9060107@gmail.com>
-References: <4D893485.5050709@gmail.com> <alpine.LNX.2.01.1103242207250.15489@obet.zrqbmnf.qr>
+From: Ed W <lists@wildgooses.com>
+Subject: Re: Performance issue due to constant "modprobes"
+Date: Mon, 18 Apr 2011 17:33:55 +0100
+Message-ID: <4DAC67F3.3070503@wildgooses.com>
+References: <4D9E45C2.7030805@wildgooses.com>	<BANLkTinfSAk0ruyqNcfAgReATbX_OV64EA@mail.gmail.com>	<4D9F41BA.1060509@wildgooses.com>	<alpine.LNX.2.01.1104082152500.24599@obet.zrqbmnf.qr>	<4D9F98D3.5070802@wildgooses.com>	<alpine.LNX.2.01.1104090140010.3023@obet.zrqbmnf.qr>	<4DA0C402.1090809@wildgooses.com>	<alpine.LNX.2.01.1104100022500.27387@obet.zrqbmnf.qr>	<BANLkTik3=XWQHH9au7434RTJuf_Rg2sYSw@mail.gmail.com>	<4DA58A73.9030308@wildgooses.com>	<alpine.LNX.2.01.1104131406130.25539@obet.zrqbmnf.qr>	<4DA59881.1050501@wildgooses.com>	<alpine.LNX.2.01.1104131441520.25539@obet.zrqbmnf.qr>	<4DA5D346.5030303@wildgooses.com>	<BANLkTincEe0_Fj89wJecgR5Up7CvS6ERtw@mail.gmail.com> <BANLkTimNc7_XyEoX2usooZLsYyYTn4OnUA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	netfilter-devel@vger.kernel.org
+To: =?UTF-8?B?TWFjaWVqIMW7ZW5jenlrb3dza2k=?= <zenczykowski@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailrelay009.isp.belgacom.be ([195.238.6.176]:1332 "EHLO
-	mailrelay009.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753447Ab1DRPFb (ORCPT
+Received: from mail1.nippynetworks.com ([91.220.24.129]:34819 "EHLO
+	mail1.nippynetworks.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755652Ab1DRQd5 convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Apr 2011 11:05:31 -0400
-In-Reply-To: <alpine.LNX.2.01.1103242207250.15489@obet.zrqbmnf.qr>
+	Mon, 18 Apr 2011 12:33:57 -0400
+In-Reply-To: <BANLkTimNc7_XyEoX2usooZLsYyYTn4OnUA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Long time since my previous mail, I've been looking on other issues.
-
-The problem solved itself by upgrading to debian squeeze (I previously=20
-was on a testing version between Lenny and squeeze).
-
-Thanks anyway :-)
-
-
-Le 24/03/11 22:16, Jan Engelhardt a =E9crit :
-> On Wednesday 2011-03-23 00:45, Pierre Rondou wrote:
->
->   =20
->> Hi all,
->>
->>
->> I'm a student at the University of Liege (Belgium) and for my master=
- thesis, I
->> have to devellop a netfilter module implementing NatIvI and Nat64.
->>     =20
-> Let me just make aware of preexisting software, such as Ecdysis nat64=
-,
-> because too often have I encountered students who just reimplemented
-> everything and then felt like it was for nothing.
->
->   =20
->> The modules, as stated by the protocols, need to be able to send pac=
-ket
->> with IP that doesn't belong to them (i.e, sort of spoofing). Everyth=
-ing
->> works fine for the newly created IPv4 skb (I can see the packets in
->> wireshark), you can see the source code at the end.
->>
->> But for Ipv6, the only think I see is neighbour solicitation message=
+On 14/04/2011 08:13, Maciej =C5=BBenczykowski wrote:
+> Note that: -M '' is -M followed by a space and two single quotes.
+>=20
+> Furthermore, note that with -M '', you will want to modprobe ip_table=
 s
->> (ICMPv6) for both the source IP and the dest IP. There is one only c=
-ase
->> when the program works: when the source IP of the packet is the same=
- as
->> the interface's one.
->>     =20
-> Of course a connected router will do NDISC if the address is directly
-> reachable according to its routing table.
->
->
->   =20
->> The source code used for the new IPv4 packets (working 100%), it's c=
-opied from
->> the NAT64 module available in GPL:
->>     =20
-> "The NAT64 module", but which?
->
->   =20
->>    skb_dst_set(newskb, dst);
->>    newskb->dev =3D dst->dev;
->>    skb_dst_set(newskb, dst);
->>     =20
-> Why set dst twice?
->
->   =20
->> # route --inet
->> Table de routage IP du noyau
->> Destination     Passerelle      Genmask         Indic Metric Ref    =
-Use Iface
->> 192.168.1.0     *               255.255.255.0   U     0      0      =
-  0 eth1
->> default         192.168.1.1     0.0.0.0         UG    0      0      =
-  0 eth1
->>     =20
-> For future reference, stick to iproute2.
->
->   =20
->> # route --inet6
->> Table de routage IPv6 du noyau
->> Destination                    Next Hop                   Flag Met R=
-ef Use If
->> 2001:6a8:2d80:128::/64         ::                         U    256 0=
-     1 eth1
->> fe80::/64                      ::                         U    256 0=
-     0 eth1
->> ::/0                           2001:6a8:2d80:128::2       UG   1   0=
-    35 eth1
->> ::/0                           ::                         !n   -1  1=
-    61 lo
->> ::1/128                        ::                         Un   0   1=
-    80 lo
->> 2001:6a8:2d80:128::/128        ::                         Un   0   1=
-     0 lo
->> 2001:6a8:2d80:128::1/128       ::                         Un   0   1=
-    20 lo
->> fe80::/128                     ::                         Un   0   1=
-     0 lo
->> fe80::20e:a6ff:feb0:e1a2/128   ::                         Un   0   1=
-    14 lo
->> ff00::/8                       ::                         U    256 0=
-     0 eth1
->> ::/0                           ::                         !n   -1  1=
-    61 lo
->>     =20
+> or modprobe ip6_tables manually first at system startup (or build the=
+m
+> into the kernel), since those modules don't autoload (hence why
+> iptables tries to load them).
+>=20
+> I wonder if there's an easy way iptables userspace could detect
+> whether these modules are already loaded (or compiled into the
+> kernel), and not even try to load them, if so...
+>=20
+
+OK, using kernel 2.6.38 (previously on .37) iptables 1.4.10 patched wit=
+h
+the delayed module loading commit, then I still get something like 20
+attempts to "modprobe iptables -q" when I start up a near vanilla
+shorewall script (I just entered enough info that it boots up with a
+couple of basic zones).
+
+If I just do an iptables restore, or a near equivalent "shorewall
+restore" then I get just a single modprobe iptables -q.
+
+This suggests that the shorewall start tickles several iptables calls.
+Each call causing one modprobe
+
+
+Now this seems to be coming from the iptables.c modprobe call.
+Annoyingly this didn't seem to be happening when I used kernel 2.6.37.
+It's timeconsuming to reload kernel changes to this embedded device, bu=
+t
+I will check back and confirm this is a change in behaviour between ker=
+nels.
+
+However, it seems unexpected that there are any calls from iptables
+since it does some kind of test before calling modprobe?  I'm sure I
+didn't get any on .37??!  Any insights on why I get even a single
+modprobe call given everything built in kernel and a static iptables bi=
+nary?
+
+Thanks
+
+Ed W
 
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
