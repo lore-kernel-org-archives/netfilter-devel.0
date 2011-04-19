@@ -1,86 +1,38 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 1/1] netfilter: ipset: Fix the order of listing of sets
-Date: Tue, 19 Apr 2011 10:39:30 +0200
-Message-ID: <1303202370-12510-1-git-send-email-kadlec@blackhole.kfki.hu>
-Cc: Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: netfilter-devel@vger.kernel.org
+From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: Re: [PATCH 5/5] add xtables-multi{32,64} recognition
+Date: Tue, 19 Apr 2011 01:55:15 -0700
+Message-ID: <BANLkTinY9SzKLS0FrqEdLR74+Ty5SqdPtQ@mail.gmail.com>
+References: <BANLkTikeSwL=TU9nPFsUJeLXTHnPdu5BUg@mail.gmail.com>
+	<1303176233-14063-5-git-send-email-zenczykowski@gmail.com>
+	<alpine.LNX.2.01.1104190950260.25800@obet.zrqbmnf.qr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:46162 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753051Ab1DSIjb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Apr 2011 04:39:31 -0400
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:58026 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752296Ab1DSIzQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Apr 2011 04:55:16 -0400
+Received: by wwa36 with SMTP id 36so6692133wwa.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 19 Apr 2011 01:55:15 -0700 (PDT)
+In-Reply-To: <alpine.LNX.2.01.1104190950260.25800@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Patrick,
+> I do not see a reason to having these names added. If you do have
+> more than one iptables program with different configuration installed
+> in your custom environment, use some custom shell scripts to readout $0
+> and pass control to whatever instance.
 
-Please apply the following bugfix against nf-2.6. Thanks!
+Fair enough, I can easily keep this change locally.
 
-Best regards,
-Jozsef
+(FYI, in this particular case the wrapper is actually a generic
+arch-based dispatch binary used for many other binaries as well: you
+symlink /bin/prog to /bin/arch_dispatch, and then /bin/prog32 or
+/bin/prog64 gets called,
+ultimately probably the dispatcher should be fixed to pass 'prog'
+instead of 'prog32' or 'prog64' as argv[0].)
 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-A restoreable saving of sets requires that list:set type of sets
-come last and the code part which should have taken into account
-the ordering was broken. The patch fixes the listing order.
-
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
----
- net/netfilter/ipset/ip_set_core.c |   18 ++++++++++--------
- 1 files changed, 10 insertions(+), 8 deletions(-)
-
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index e88ac3c..d87e03b 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1022,8 +1022,9 @@ ip_set_dump_start(struct sk_buff *skb, struct netlink_callback *cb)
- 	if (cb->args[1] >= ip_set_max)
- 		goto out;
- 
--	pr_debug("args[0]: %ld args[1]: %ld\n", cb->args[0], cb->args[1]);
- 	max = cb->args[0] == DUMP_ONE ? cb->args[1] + 1 : ip_set_max;
-+dump_last:
-+	pr_debug("args[0]: %ld args[1]: %ld\n", cb->args[0], cb->args[1]);
- 	for (; cb->args[1] < max; cb->args[1]++) {
- 		index = (ip_set_id_t) cb->args[1];
- 		set = ip_set_list[index];
-@@ -1038,8 +1039,8 @@ ip_set_dump_start(struct sk_buff *skb, struct netlink_callback *cb)
- 		 * so that lists (unions of sets) are dumped last.
- 		 */
- 		if (cb->args[0] != DUMP_ONE &&
--		    !((cb->args[0] == DUMP_ALL) ^
--		      (set->type->features & IPSET_DUMP_LAST)))
-+		    ((cb->args[0] == DUMP_ALL) ==
-+		     !!(set->type->features & IPSET_DUMP_LAST)))
- 			continue;
- 		pr_debug("List set: %s\n", set->name);
- 		if (!cb->args[2]) {
-@@ -1083,6 +1084,12 @@ ip_set_dump_start(struct sk_buff *skb, struct netlink_callback *cb)
- 			goto release_refcount;
- 		}
- 	}
-+	/* If we dump all sets, continue with dumping last ones */
-+	if (cb->args[0] == DUMP_ALL) {
-+		cb->args[0] = DUMP_LAST;
-+		cb->args[1] = 0;
-+		goto dump_last;
-+	}
- 	goto out;
- 
- nla_put_failure:
-@@ -1093,11 +1100,6 @@ release_refcount:
- 		pr_debug("release set %s\n", ip_set_list[index]->name);
- 		ip_set_put_byindex(index);
- 	}
--
--	/* If we dump all sets, continue with dumping last ones */
--	if (cb->args[0] == DUMP_ALL && cb->args[1] >= max && !cb->args[2])
--		cb->args[0] = DUMP_LAST;
--
- out:
- 	if (nlh) {
- 		nlmsg_end(skb, nlh);
--- 
-1.7.0.4
-
+- Maciej
