@@ -1,7 +1,7 @@
 From: =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Subject: [PATCH 3/5] Move common parts of libext{4,6}.a into libext.a
-Date: Mon, 18 Apr 2011 18:23:51 -0700
-Message-ID: <1303176233-14063-3-git-send-email-zenczykowski@gmail.com>
+Subject: [PATCH 4/5] combine ip6?tables-multi into xtables-multi
+Date: Mon, 18 Apr 2011 18:23:52 -0700
+Message-ID: <1303176233-14063-4-git-send-email-zenczykowski@gmail.com>
 References: <BANLkTikeSwL=TU9nPFsUJeLXTHnPdu5BUg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -10,13 +10,13 @@ Cc: netfilter-devel@vger.kernel.org,
 	=?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>
 To: =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:50715 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753737Ab1DSBYY (ORCPT
+Received: from mail-px0-f179.google.com ([209.85.212.179]:43567 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753738Ab1DSBY2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Apr 2011 21:24:24 -0400
-Received: by mail-pz0-f46.google.com with SMTP id 9so2374021pzk.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2011 18:24:24 -0700 (PDT)
+	Mon, 18 Apr 2011 21:24:28 -0400
+Received: by mail-px0-f179.google.com with SMTP id 2so3954254pxi.10
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2011 18:24:28 -0700 (PDT)
 In-Reply-To: <BANLkTikeSwL=TU9nPFsUJeLXTHnPdu5BUg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -25,273 +25,218 @@ List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Maciej Zenczykowski <maze@google.com>
 ---
- .gitignore                |    1 +
- Makefile.am               |    8 +++++-
- extensions/GNUmakefile.in |   53 ++++++++++++++++++++++++++++++++++---=
---------
- include/xtables.h.in      |    1 +
- ip6tables-restore.c       |    1 +
- ip6tables-save.c          |    1 +
- ip6tables-standalone.c    |    1 +
- iptables-restore.c        |    1 +
- iptables-save.c           |    1 +
- iptables-standalone.c     |    1 +
- 10 files changed, 54 insertions(+), 15 deletions(-)
+ .gitignore        |    3 +--
+ Makefile.am       |   44 ++++++++++++++++++++------------------------
+ ip6tables-multi.c |   20 --------------------
+ iptables-multi.c  |   22 ----------------------
+ xtables-multi.c   |   39 +++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 60 insertions(+), 68 deletions(-)
+ delete mode 100644 ip6tables-multi.c
+ delete mode 100644 iptables-multi.c
+ create mode 100644 xtables-multi.c
 
 diff --git a/.gitignore b/.gitignore
-index e5d3099..9b59e6a 100644
+index 9b59e6a..9d24ce0 100644
 --- a/.gitignore
 +++ b/.gitignore
-@@ -13,6 +13,7 @@ Makefile
- Makefile.in
+@@ -41,14 +41,13 @@ Makefile.in
 =20
- /extensions/GNUmakefile
-+/extensions/initext.c
- /extensions/initext?.c
- /extensions/matches?.man
- /extensions/targets?.man
+ /ip6tables
+ /ip6tables.8
+-/ip6tables-multi
+ /ip6tables-save
+ /ip6tables-restore
+ /ip6tables-static
+ /iptables
+ /iptables.8
+-/iptables-multi
+ /iptables-save
+ /iptables-restore
+ /iptables-static
+ /iptables-xml
++/xtables-multi
 diff --git a/Makefile.am b/Makefile.am
-index fbed41f..6affcac 100644
+index 6affcac..13e144e 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -45,7 +45,9 @@ if ENABLE_STATIC
- iptables_multi_CFLAGS    +=3D -DALL_INCLUSIVE
- endif
- iptables_multi_LDFLAGS    =3D -rdynamic
--iptables_multi_LDADD      =3D libiptc/libip4tc.la extensions/libext4.a=
- libxtables.la -lm
-+iptables_multi_LDADD      =3D libiptc/libip4tc.la \
-+                            extensions/libext.a extensions/libext4.a \
-+                            libxtables.la -lm
+@@ -17,7 +17,7 @@ endif
+ lib_LTLIBRARIES =3D
 =20
- ip6tables_multi_SOURCES   =3D ip6tables-multi.c ip6tables-save.c \
-                             ip6tables-restore.c ip6tables-standalone.c=
+ # libiptc
+-lib_LTLIBRARIES           +=3D libiptc/libip4tc.la libiptc/libip6tc.la=
+ libiptc/libiptc.la
++lib_LTLIBRARIES            +=3D libiptc/libip4tc.la libiptc/libip6tc.l=
+a libiptc/libiptc.la
+ libiptc_libiptc_la_SOURCES  =3D
+ libiptc_libiptc_la_LIBADD   =3D libiptc/libip4tc.la libiptc/libip6tc.l=
+a
+ libiptc_libiptc_la_LDFLAGS  =3D -version-info 0:0:0 ${libiptc_LDFLAGS2=
+}
+@@ -37,43 +37,39 @@ libxtables_la_CFLAGS  =3D ${AM_CFLAGS} -DNO_SHARED_=
+LIBS=3D1
+ libxtables_la_LIBADD  =3D
+ endif
+=20
+-iptables_multi_SOURCES    =3D iptables-multi.c iptables-save.c \
+-                            iptables-restore.c iptables-xml.c \
+-                            iptables-standalone.c iptables.c xshared.c
+-iptables_multi_CFLAGS     =3D ${AM_CFLAGS} -DIPTABLES_MULTI
++xtables_multi_SOURCES  =3D xtables-multi.c
++xtables_multi_CFLAGS   =3D ${AM_CFLAGS} -DIPTABLES_MULTI
++xtables_multi_LDFLAGS  =3D -rdynamic
++xtables_multi_LDADD    =3D extensions/libext.a
+ if ENABLE_STATIC
+-iptables_multi_CFLAGS    +=3D -DALL_INCLUSIVE
++xtables_multi_CFLAGS  +=3D -DALL_INCLUSIVE
+ endif
+-iptables_multi_LDFLAGS    =3D -rdynamic
+-iptables_multi_LDADD      =3D libiptc/libip4tc.la \
+-                            extensions/libext.a extensions/libext4.a \
+-                            libxtables.la -lm
+-
+-ip6tables_multi_SOURCES   =3D ip6tables-multi.c ip6tables-save.c \
+-                            ip6tables-restore.c ip6tables-standalone.c=
  \
-@@ -55,7 +57,9 @@ if ENABLE_STATIC
- ip6tables_multi_CFLAGS   +=3D -DALL_INCLUSIVE
+-                            ip6tables.c xshared.c
+-ip6tables_multi_CFLAGS    =3D ${AM_CFLAGS} -DIPTABLES_MULTI
+-if ENABLE_STATIC
+-ip6tables_multi_CFLAGS   +=3D -DALL_INCLUSIVE
++if ENABLE_IPV4
++xtables_multi_SOURCES +=3D iptables-save.c iptables-restore.c iptables=
+-xml.c \
++                         iptables-standalone.c iptables.c
++xtables_multi_CFLAGS  +=3D -DENABLE_IPV4
++xtables_multi_LDADD   +=3D libiptc/libip4tc.la extensions/libext4.a
++endif
++if ENABLE_IPV6
++xtables_multi_SOURCES +=3D ip6tables-save.c ip6tables-restore.c \
++                          ip6tables-standalone.c ip6tables.c
++xtables_multi_CFLAGS  +=3D -DENABLE_IPV6
++xtables_multi_LDADD   +=3D libiptc/libip6tc.la extensions/libext6.a
  endif
- ip6tables_multi_LDFLAGS   =3D -rdynamic
--ip6tables_multi_LDADD     =3D libiptc/libip6tc.la extensions/libext6.a=
- libxtables.la -lm
-+ip6tables_multi_LDADD     =3D libiptc/libip6tc.la \
-+                            extensions/libext.a extensions/libext6.a \
-+                            libxtables.la -lm
+-ip6tables_multi_LDFLAGS   =3D -rdynamic
+-ip6tables_multi_LDADD     =3D libiptc/libip6tc.la \
+-                            extensions/libext.a extensions/libext6.a \
+-                            libxtables.la -lm
++xtables_multi_SOURCES +=3D xshared.c
++xtables_multi_LDADD   +=3D libxtables.la -lm
 =20
- sbin_PROGRAMS    =3D
+-sbin_PROGRAMS    =3D
++sbin_PROGRAMS    =3D xtables-multi
  man_MANS         =3D iptables.8 iptables-restore.8 iptables-save.8 \
-diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
-index 0e562fb..a511a39 100644
---- a/extensions/GNUmakefile.in
-+++ b/extensions/GNUmakefile.in
-@@ -51,11 +51,13 @@ pf6_solibs    :=3D $(patsubst %,libip6t_%.so,${pf6_=
-build_mod})
- #
- # Building blocks
- #
--targets :=3D libext4.a libext6.a matches4.man matches6.man \
-+targets :=3D libext.a libext4.a libext6.a \
-+           matches4.man matches6.man \
-            targets4.man targets6.man
- targets_install :=3D
--@ENABLE_STATIC_TRUE@ libext4_objs :=3D ${pfx_objs} ${pf4_objs}
--@ENABLE_STATIC_TRUE@ libext6_objs :=3D ${pfx_objs} ${pf6_objs}
-+@ENABLE_STATIC_TRUE@ libext_objs :=3D ${pfx_objs}
-+@ENABLE_STATIC_TRUE@ libext4_objs :=3D ${pf4_objs}
-+@ENABLE_STATIC_TRUE@ libext6_objs :=3D ${pf6_objs}
- @ENABLE_STATIC_FALSE@ targets +=3D ${pfx_solibs} ${pf4_solibs} ${pf6_s=
-olibs}
- @ENABLE_STATIC_FALSE@ targets_install +=3D ${pfx_solibs} ${pf4_solibs}=
- ${pf6_solibs}
+                    iptables-xml.8 ip6tables.8 ip6tables-restore.8 \
+                    ip6tables-save.8
+ CLEANFILES       =3D iptables.8 ip6tables.8
 =20
-@@ -70,7 +72,7 @@ install: ${targets_install}
- 	if test -n "${targets_install}"; then install -pm0755 $^ "${DESTDIR}$=
-{xtlibdir}/"; fi;
+ if ENABLE_IPV4
+-sbin_PROGRAMS +=3D iptables-multi
+ v4_bin_links   =3D iptables-xml
+ v4_sbin_links  =3D iptables iptables-restore iptables-save
+ endif
+ if ENABLE_IPV6
+-sbin_PROGRAMS +=3D ip6tables-multi
+ v6_sbin_links  =3D ip6tables ip6tables-restore ip6tables-save
+ endif
 =20
- clean:
--	rm -f *.o *.oo *.so *.a {matches,targets}[46].man initext4.c initext6=
-=2Ec;
-+	rm -f *.o *.oo *.so *.a {matches,targets}[46].man initext.c initext4.=
-c initext6.c;
-=20
- distclean: clean
- 	rm -f .*.d .*.dd;
-@@ -101,36 +103,61 @@ lib%.oo: ${srcdir}/lib%.c
- lib%.o: ${srcdir}/lib%.c
- 	${AM_VERBOSE_CC} ${CC} ${AM_DEPFLAGS} ${AM_CFLAGS} -DNO_SHARED_LIBS=3D=
-1 -D_INIT=3Dlib$*_init ${CFLAGS} -o $@ -c $<;
-=20
-+libext.a: initext.o ${libext_objs}
-+	${AM_VERBOSE_AR} ${AR} crs $@ $^;
+diff --git a/ip6tables-multi.c b/ip6tables-multi.c
+deleted file mode 100644
+index 40ce37b..0000000
+--- a/ip6tables-multi.c
++++ /dev/null
+@@ -1,20 +0,0 @@
+-#include <stdio.h>
+-#include <stdlib.h>
+-#include <string.h>
+-#include "xshared.h"
+-#include "ip6tables-multi.h"
+-
+-static const struct subcommand multi6_subcommands[] =3D {
+-	{"ip6tables",         ip6tables_main},
+-	{"main",              ip6tables_main},
+-	{"ip6tables-save",    ip6tables_save_main},
+-	{"save",              ip6tables_save_main},
+-	{"ip6tables-restore", ip6tables_restore_main},
+-	{"restore",           ip6tables_restore_main},
+-	{NULL},
+-};
+-
+-int main(int argc, char **argv)
+-{
+-	return subcmd_main(argc, argv, multi6_subcommands);
+-}
+diff --git a/iptables-multi.c b/iptables-multi.c
+deleted file mode 100644
+index 14579e0..0000000
+--- a/iptables-multi.c
++++ /dev/null
+@@ -1,22 +0,0 @@
+-#include <stdio.h>
+-#include <stdlib.h>
+-#include <string.h>
+-#include "xshared.h"
+-#include "iptables-multi.h"
+-
+-static const struct subcommand multi4_subcommands[] =3D {
+-	{"iptables",         iptables_main},
+-	{"main",             iptables_main},
+-	{"iptables-save",    iptables_save_main},
+-	{"save",             iptables_save_main},
+-	{"iptables-restore", iptables_restore_main},
+-	{"restore",          iptables_restore_main},
+-	{"iptables-xml",     iptables_xml_main},
+-	{"xml",              iptables_xml_main},
+-	{NULL},
+-};
+-
+-int main(int argc, char **argv)
+-{
+-	return subcmd_main(argc, argv, multi4_subcommands);
+-}
+diff --git a/xtables-multi.c b/xtables-multi.c
+new file mode 100644
+index 0000000..f8d56ce
+--- /dev/null
++++ b/xtables-multi.c
+@@ -0,0 +1,39 @@
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include "xshared.h"
 +
- libext4.a: initext4.o ${libext4_objs}
- 	${AM_VERBOSE_AR} ${AR} crs $@ $^;
-=20
- libext6.a: initext6.o ${libext6_objs}
- 	${AM_VERBOSE_AR} ${AR} crs $@ $^;
-=20
--initext_func  :=3D $(addprefix xt_,${pfx_build_mod}) $(addprefix ipt_,=
-${pf4_build_mod})
--initext6_func :=3D $(addprefix xt_,${pfx_build_mod}) $(addprefix ip6t_=
-,${pf6_build_mod})
-+initext_func  :=3D $(addprefix xt_,${pfx_build_mod})
-+initext4_func :=3D $(addprefix ipt_,${pf4_build_mod})
-+initext6_func :=3D $(addprefix ip6t_,${pf6_build_mod})
-=20
--.initext4.dd: FORCE
-+.initext.dd: FORCE
- 	@echo "${initext_func}" >$@.tmp; \
- 	cmp -s $@ $@.tmp || mv $@.tmp $@; \
- 	rm -f $@.tmp;
-=20
-+.initext4.dd: FORCE
-+	@echo "${initext4_func}" >$@.tmp; \
-+	cmp -s $@ $@.tmp || mv $@.tmp $@; \
-+	rm -f $@.tmp;
++#ifdef ENABLE_IPV4
++#include "iptables-multi.h"
++#endif
 +
- .initext6.dd: FORCE
- 	@echo "${initext6_func}" >$@.tmp; \
- 	cmp -s $@ $@.tmp || mv $@.tmp $@; \
- 	rm -f $@.tmp;
-=20
--initext4.c: .initext4.dd
-+initext.c: .initext.dd
- 	${AM_VERBOSE_GEN}
- 	@( \
- 	echo "" >$@; \
- 	for i in ${initext_func}; do \
- 		echo "extern void lib$${i}_init(void);" >>$@; \
- 	done; \
-+	echo "void init_extensions(void);" >>$@; \
-+	echo "void init_extensions(void)" >>$@; \
-+	echo "{" >>$@; \
-+	for i in ${initext_func}; do \
-+		echo  " ""lib$${i}_init();" >>$@; \
-+	done; \
-+	echo "}" >>$@; \
-+	);
++#ifdef ENABLE_IPV6
++#include "ip6tables-multi.h"
++#endif
 +
-+initext4.c: .initext4.dd
-+	${AM_VERBOSE_GEN}
-+	@( \
-+	echo "" >$@; \
-+	for i in ${initext4_func}; do \
-+		echo "extern void lib$${i}_init(void);" >>$@; \
-+	done; \
- 	echo "void init_extensions4(void);" >>$@; \
- 	echo "void init_extensions4(void)" >>$@; \
- 	echo "{" >>$@; \
--	for i in ${initext_func}; do \
-+	for i in ${initext4_func}; do \
- 		echo  " ""lib$${i}_init();" >>$@; \
- 	done; \
- 	echo "}" >>$@; \
-@@ -177,14 +204,14 @@ man_run    =3D \
- 		fi; \
- 	done >$@;
-=20
--matches4.man: .initext4.dd $(wildcard ${srcdir}/lib*.man)
-+matches4.man: .initext.dd .initext4.dd $(wildcard ${srcdir}/lib*.man)
- 	$(call man_run,$(call ex_matches,${pfx_build_mod} ${pf4_build_mod}),i=
-p,NFPROTO_IPV4)
-=20
--matches6.man: .initext6.dd $(wildcard ${srcdir}/lib*.man)
-+matches6.man: .initext.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
- 	$(call man_run,$(call ex_matches,${pfx_build_mod} ${pf6_build_mod}),i=
-p6,NFPROTO_IPV6)
-=20
--targets4.man: .initext4.dd $(wildcard ${srcdir}/lib*.man)
-+targets4.man: .initext.dd .initext4.dd $(wildcard ${srcdir}/lib*.man)
- 	$(call man_run,$(call ex_targets,${pfx_build_mod} ${pf4_build_mod}),i=
-p,NFPROTO_IPV4)
-=20
--targets6.man: .initext6.dd $(wildcard ${srcdir}/lib*.man)
-+targets6.man: .initext.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
- 	$(call man_run,$(call ex_targets,${pfx_build_mod} ${pf6_build_mod}),i=
-p6,NFPROTO_IPV6)
-diff --git a/include/xtables.h.in b/include/xtables.h.in
-index b4915c4..7bf2994 100644
---- a/include/xtables.h.in
-+++ b/include/xtables.h.in
-@@ -387,6 +387,7 @@ extern void xtables_save_string(const char *value);
- #		undef _init
- #		define _init _INIT
- #	endif
-+	extern void init_extensions(void);
- 	extern void init_extensions4(void);
- 	extern void init_extensions6(void);
- #else
-diff --git a/ip6tables-restore.c b/ip6tables-restore.c
-index 5531d6e..420bc52 100644
---- a/ip6tables-restore.c
-+++ b/ip6tables-restore.c
-@@ -137,6 +137,7 @@ int main(int argc, char *argv[])
- 		exit(1);
- 	}
- #if defined(ALL_INCLUSIVE) || defined(NO_SHARED_LIBS)
-+	init_extensions();
- 	init_extensions6();
- #endif
-=20
-diff --git a/ip6tables-save.c b/ip6tables-save.c
-index d9ecc62..39a3325 100644
---- a/ip6tables-save.c
-+++ b/ip6tables-save.c
-@@ -149,6 +149,7 @@ int main(int argc, char *argv[])
- 		exit(1);
- 	}
- #if defined(ALL_INCLUSIVE) || defined(NO_SHARED_LIBS)
-+	init_extensions();
- 	init_extensions6();
- #endif
-=20
-diff --git a/ip6tables-standalone.c b/ip6tables-standalone.c
-index 7d34684..9d8d5a0 100644
---- a/ip6tables-standalone.c
-+++ b/ip6tables-standalone.c
-@@ -59,6 +59,7 @@ main(int argc, char *argv[])
- 	}
-=20
- #if defined(ALL_INCLUSIVE) || defined(NO_SHARED_LIBS)
-+	init_extensions();
- 	init_extensions6();
- #endif
-=20
-diff --git a/iptables-restore.c b/iptables-restore.c
-index e4f0604..2624599 100644
---- a/iptables-restore.c
-+++ b/iptables-restore.c
-@@ -140,6 +140,7 @@ main(int argc, char *argv[])
- 		exit(1);
- 	}
- #if defined(ALL_INCLUSIVE) || defined(NO_SHARED_LIBS)
-+	init_extensions();
- 	init_extensions4();
- #endif
-=20
-diff --git a/iptables-save.c b/iptables-save.c
-index dee1752..7542bdc 100644
---- a/iptables-save.c
-+++ b/iptables-save.c
-@@ -149,6 +149,7 @@ main(int argc, char *argv[])
- 		exit(1);
- 	}
- #if defined(ALL_INCLUSIVE) || defined(NO_SHARED_LIBS)
-+	init_extensions();
- 	init_extensions4();
- #endif
-=20
-diff --git a/iptables-standalone.c b/iptables-standalone.c
-index b085946..87f1d31 100644
---- a/iptables-standalone.c
-+++ b/iptables-standalone.c
-@@ -59,6 +59,7 @@ main(int argc, char *argv[])
- 				exit(1);
- 	}
- #if defined(ALL_INCLUSIVE) || defined(NO_SHARED_LIBS)
-+	init_extensions();
- 	init_extensions4();
- #endif
-=20
++static const struct subcommand multi_subcommands[] =3D {
++#ifdef ENABLE_IPV4
++	{"iptables",            iptables_main},
++	{"main4",               iptables_main},
++	{"iptables-save",       iptables_save_main},
++	{"save4",               iptables_save_main},
++	{"iptables-restore",    iptables_restore_main},
++	{"restore4",            iptables_restore_main},
++	{"iptables-xml",        iptables_xml_main},
++	{"xml4",                iptables_xml_main},
++#endif
++#ifdef ENABLE_IPV6
++	{"ip6tables",           ip6tables_main},
++	{"main6",               ip6tables_main},
++	{"ip6tables-save",      ip6tables_save_main},
++	{"save6",               ip6tables_save_main},
++	{"ip6tables-restore",   ip6tables_restore_main},
++	{"restore6",            ip6tables_restore_main},
++#endif
++	{NULL},
++};
++
++int main(int argc, char **argv)
++{
++	return subcmd_main(argc, argv, multi_subcommands);
++}
 --=20
 1.7.3.1
 
