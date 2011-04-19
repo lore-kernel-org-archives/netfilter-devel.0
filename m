@@ -1,25 +1,41 @@
 From: kaber@trash.net
-Subject: [PATCH 0/3] netfilter: netfilter update
-Date: Tue, 19 Apr 2011 16:31:29 +0200
-Message-ID: <1303223492-13549-1-git-send-email-kaber@trash.net>
+Subject: [PATCH 2/3] IPVS: combine consecutive #ifdef CONFIG_PROC_FS blocks
+Date: Tue, 19 Apr 2011 16:31:31 +0200
+Message-ID: <1303223492-13549-3-git-send-email-kaber@trash.net>
+References: <1303223492-13549-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: davem@davemloft.net
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:39713 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752626Ab1DSObj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Apr 2011 10:31:39 -0400
+In-Reply-To: <1303223492-13549-1-git-send-email-kaber@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Dave,
+From: Simon Horman <horms@verge.net.au>
 
-following is a small netfilter update for net-next, containing:
+Signed-off-by: Simon Horman <horms@verge.net.au>
+---
+ net/netfilter/ipvs/ip_vs_ctl.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-- a patch from Eric to remove some atomic ops in the *tables fastpath
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 33733c8..36f4495 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -1984,9 +1984,6 @@ static const struct file_operations ip_vs_info_fops = {
+ 	.release = seq_release_private,
+ };
+ 
+-#endif
+-
+-#ifdef CONFIG_PROC_FS
+ static int ip_vs_stats_show(struct seq_file *seq, void *v)
+ {
+ 	struct net *net = seq_file_single_net(seq);
+-- 
+1.7.4.4
 
-- removal of an unnecessary ifdef from IPVS by Simon
-
-- SCTP and UDPLITE support for ipset, from Jozsef
-
-Please pull from:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
-
-Thanks!
