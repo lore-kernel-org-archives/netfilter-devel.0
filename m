@@ -1,45 +1,48 @@
-From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Subject: Re: Performance issue due to constant "modprobes"
-Date: Tue, 19 Apr 2011 02:03:42 -0700
-Message-ID: <BANLkTikyT1VOH9aBJ4=LmM5raL2L8Y+46w@mail.gmail.com>
-References: <4D9E45C2.7030805@wildgooses.com>
-	<BANLkTinfSAk0ruyqNcfAgReATbX_OV64EA@mail.gmail.com>
-	<4D9F41BA.1060509@wildgooses.com>
-	<alpine.LNX.2.01.1104082152500.24599@obet.zrqbmnf.qr>
-	<4D9F98D3.5070802@wildgooses.com>
-	<alpine.LNX.2.01.1104090140010.3023@obet.zrqbmnf.qr>
-	<4DA0C402.1090809@wildgooses.com>
-	<alpine.LNX.2.01.1104100022500.27387@obet.zrqbmnf.qr>
-	<BANLkTik3=XWQHH9au7434RTJuf_Rg2sYSw@mail.gmail.com>
-	<4DA58A73.9030308@wildgooses.com>
-	<alpine.LNX.2.01.1104131406130.25539@obet.zrqbmnf.qr>
-	<4DA59881.1050501@wildgooses.com>
-	<alpine.LNX.2.01.1104131441520.25539@obet.zrqbmnf.qr>
-	<4DA5D346.5030303@wildgooses.com>
-	<BANLkTincEe0_Fj89wJecgR5Up7CvS6ERtw@mail.gmail.com>
-	<BANLkTimNc7_XyEoX2usooZLsYyYTn4OnUA@mail.gmail.com>
-	<4DAC67F3.3070503@wildgooses.com>
-	<BANLkTikq_5uRpzZWqRA9-VMT4h2Vxjgvpg@mail.gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [ANNOUNCE] ipset 6.4 released
+Date: Tue, 19 Apr 2011 13:42:54 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1104191335440.11453@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Ed W <lists@wildgooses.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:36145 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753232Ab1DSJDn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Apr 2011 05:03:43 -0400
-Received: by wya21 with SMTP id 21so4618293wya.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 19 Apr 2011 02:03:42 -0700 (PDT)
-In-Reply-To: <BANLkTikq_5uRpzZWqRA9-VMT4h2Vxjgvpg@mail.gmail.com>
+Received: from smtp0.kfki.hu ([148.6.0.25]:47983 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751217Ab1DSLmz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Apr 2011 07:42:55 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-And the "Don't load ip6?_tables module when already loaded" patch is
-now available in upstream git...
+Hi,
 
-That patch combined with my previous patch should solve all your woes.
-If they don't... let me know.
+I'm happy to announce ipset 6.4. The list of changes are:
 
-- Maciej
+Kernel part changes:
+ - Support listing just setnames and headers
+ - Fix the order of listing of sets
+ - Options and flags support added to the kernel API
+
+Userspace changes:
+ - Get rid of the trailing empty line at listing sets
+ - Fix XML listing, remove broken unused "elements" tag
+ - Support listing just setnames and headers
+ - Sorting is dependent on the locale settings, use LC_ALL=C
+ - Use unified diff output in tests
+
+With the options and flags support in the kernel, ipset 6.4 supports 
+specifying and/or resetting the timeout value of entries by the SET 
+target. However it needs the updated SET target too, which is 
+available in iptables from git.
+
+You can download the source code of ipset from:
+        http://ipset.netfilter.org
+        ftp://ftp.netfilter.org/pub/ipset/
+        git://git.netfilter.org/ipset.git
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
