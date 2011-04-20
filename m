@@ -1,41 +1,170 @@
-From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Subject: Re: Patches: don't call modprobe, ipv4/ipv6 flag support,
- xtables-multi unification.
-Date: Tue, 19 Apr 2011 18:44:06 -0700
-Message-ID: <BANLkTimsGzmOnXR1otTvnKBYAS7m=91+uA@mail.gmail.com>
-References: <BANLkTikeSwL=TU9nPFsUJeLXTHnPdu5BUg@mail.gmail.com>
+From: =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: [PATCH 1/3] Add --ipv4/-4 and --ipv6/-6 support to ip6?tables{,-restore}.
+Date: Tue, 19 Apr 2011 18:44:44 -0700
+Message-ID: <1303263886-5665-1-git-send-email-zenczykowski@gmail.com>
+References: <BANLkTimsGzmOnXR1otTvnKBYAS7m=91+uA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	Jan Engelhardt <jengelh@medozas.de>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org,
+	=?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>
+To: =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:35850 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751720Ab1DTBoI (ORCPT
+Received: from mail-px0-f179.google.com ([209.85.212.179]:44947 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754379Ab1DTBpF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Apr 2011 21:44:08 -0400
-Received: by wya21 with SMTP id 21so219387wya.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 19 Apr 2011 18:44:07 -0700 (PDT)
-In-Reply-To: <BANLkTikeSwL=TU9nPFsUJeLXTHnPdu5BUg@mail.gmail.com>
+	Tue, 19 Apr 2011 21:45:05 -0400
+Received: by pxi2 with SMTP id 2so202705pxi.10
+        for <netfilter-devel@vger.kernel.org>; Tue, 19 Apr 2011 18:45:04 -0700 (PDT)
+In-Reply-To: <BANLkTimsGzmOnXR1otTvnKBYAS7m=91+uA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Here's version 2.
+=46rom: Maciej =C5=BBenczykowski <maze@google.com>
 
-Since the first patch was already applied, and the last isn't wanted,
-we're down to 3 patches.
+This enables one to have a single configuration file for both ipv4 and =
+ipv6
+firewall rules.
 
-The following changes are available in the git repository at:
-  git://github.com/zenczykowski/iptables.git for-upstream
+Example:
+  iptables-restore config
+  ip6tables-restore config
 
-The first patch is standalone, the third builds on the second.
-Only the first patch was changed, and then only by adding
-'enter,tab,tab,tab,tab' in two spots to fixup formatting.
+Where the file 'config' contains:
+  *filter
+  :INPUT ACCEPT [0:0]
+  :FORWARD ACCEPT [0:0]
+  :OUTPUT ACCEPT [0:0]
+  :ssh - [0:0]
 
-Maciej Zenczykowski (5):
-  Add --ipv4/-4 and --ipv6/-6 support to ip6?tables{,-restore}.
-  Move common parts of libext{4,6}.a into libext.a
-  combine ip6?tables-multi into xtables-multi
+  -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+  -A INPUT -m state --state INVALID -j DROP
+  -A INPUT -i lo -j ACCEPT
+  -A INPUT -4 -p icmp -j ACCEPT
+  -A INPUT -6 -p icmpv6 -j ACCEPT
+  -A INPUT -p tcp --dport 22 -m state --state NEW -j ssh
+  -A ssh -j ACCEPT
 
-Thanks,
-Maciej
+  COMMIT
+
+Signed-off-by: Maciej Zenczykowski <maze@google.com>
+---
+ ip6tables.c |   17 ++++++++++++++++-
+ iptables.c  |   16 +++++++++++++++-
+ 2 files changed, 31 insertions(+), 2 deletions(-)
+
+diff --git a/ip6tables.c b/ip6tables.c
+index f9909f1..967a5f8 100644
+--- a/ip6tables.c
++++ b/ip6tables.c
+@@ -124,6 +124,8 @@ static struct option original_opts[] =3D {
+ 	{.name =3D "modprobe",      .has_arg =3D 1, .val =3D 'M'},
+ 	{.name =3D "set-counters",  .has_arg =3D 1, .val =3D 'c'},
+ 	{.name =3D "goto",          .has_arg =3D 1, .val =3D 'g'},
++	{.name =3D "ipv4",          .has_arg =3D 0, .val =3D '4'},
++	{.name =3D "ipv6",          .has_arg =3D 0, .val =3D '6'},
+ 	{NULL},
+ };
+=20
+@@ -248,6 +250,8 @@ exit_printhelp(const struct xtables_rule_match *mat=
+ches)
+ "				Change chain name, (moving any references)\n"
+=20
+ "Options:\n"
++"    --ipv4	-4		Error (line is ignored by ip6tables-restore)\n"
++"    --ipv6	-6		Nothing (line is ignored by iptables-restore)\n"
+ "[!] --proto	-p proto	protocol: by number or name, eg. `tcp'\n"
+ "[!] --source	-s address[/mask][,...]\n"
+ "				source specification\n"
+@@ -1439,7 +1443,7 @@ int do_command6(int argc, char *argv[], char **ta=
+ble, struct ip6tc_handle **hand
+=20
+ 	opts =3D xt_params->orig_opts;
+ 	while ((cs.c =3D getopt_long(argc, argv,
+-	   "-:A:C:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:bvnt:m:xc:g:",
++	   "-:A:C:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:bvnt:m:xc:g:46=
+",
+ 					   opts, NULL)) !=3D -1) {
+ 		switch (cs.c) {
+ 			/*
+@@ -1756,6 +1760,17 @@ int do_command6(int argc, char *argv[], char **t=
+able, struct ip6tc_handle **hand
+ 			cs.fw6.counters.bcnt =3D cnt;
+ 			break;
+=20
++		case '4':
++			/* This is not the IPv4 iptables */
++			if (line !=3D -1)
++				return 1; /* success: line ignored */
++			fprintf(stderr, "This is the IPv6 version of ip6tables.\n");
++			exit_tryhelp(2);
++
++		case '6':
++			/* This is indeed the IPv6 ip6tables */
++			break;
++
+ 		case 1: /* non option */
+ 			if (optarg[0] =3D=3D '!' && optarg[1] =3D=3D '\0') {
+ 				if (cs.invert)
+diff --git a/iptables.c b/iptables.c
+index 0441dce..cc7525a 100644
+--- a/iptables.c
++++ b/iptables.c
+@@ -123,6 +123,8 @@ static struct option original_opts[] =3D {
+ 	{.name =3D "modprobe",      .has_arg =3D 1, .val =3D 'M'},
+ 	{.name =3D "set-counters",  .has_arg =3D 1, .val =3D 'c'},
+ 	{.name =3D "goto",          .has_arg =3D 1, .val =3D 'g'},
++	{.name =3D "ipv4",          .has_arg =3D 0, .val =3D '4'},
++	{.name =3D "ipv6",          .has_arg =3D 0, .val =3D '6'},
+ 	{NULL},
+ };
+=20
+@@ -261,6 +263,8 @@ exit_printhelp(const struct xtables_rule_match *mat=
+ches)
+ "				Change chain name, (moving any references)\n"
+=20
+ "Options:\n"
++"    --ipv4	-4		Nothing (line is ignored by ip6tables-restore)\n"
++"    --ipv6	-6		Error (line is ignored by iptables-restore)\n"
+ "[!] --proto	-p proto	protocol: by number or name, eg. `tcp'\n"
+ "[!] --source	-s address[/mask][...]\n"
+ "				source specification\n"
+@@ -1467,7 +1471,7 @@ int do_command4(int argc, char *argv[], char **ta=
+ble, struct iptc_handle **handl
+=20
+ 	opts =3D xt_params->orig_opts;
+ 	while ((cs.c =3D getopt_long(argc, argv,
+-	   "-:A:C:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:fbvnt:m:xc:g:"=
+,
++	   "-:A:C:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:fbvnt:m:xc:g:4=
+6",
+ 					   opts, NULL)) !=3D -1) {
+ 		switch (cs.c) {
+ 			/*
+@@ -1782,6 +1786,16 @@ int do_command4(int argc, char *argv[], char **t=
+able, struct iptc_handle **handl
+ 			cs.fw.counters.bcnt =3D cnt;
+ 			break;
+=20
++		case '4':
++			/* This is indeed the IPv4 iptables */
++			break;
++
++		case '6':
++			/* This is not the IPv6 ip6tables */
++			if (line !=3D -1)
++				return 1; /* success: line ignored */
++			fprintf(stderr, "This is the IPv4 version of iptables.\n");
++			exit_tryhelp(2);
+=20
+ 		case 1: /* non option */
+ 			if (optarg[0] =3D=3D '!' && optarg[1] =3D=3D '\0') {
+--=20
+1.7.3.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
