@@ -1,113 +1,64 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH 3/3] IPVS: init and cleanup restructuring.
-Date: Wed, 20 Apr 2011 02:19:38 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1104200207340.1724@ja.ssi.bg>
-References: <1303226705-29178-1-git-send-email-hans@schillstrom.com> <1303226705-29178-3-git-send-email-hans@schillstrom.com>
+From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: Re: Performance issue due to constant "modprobes"
+Date: Tue, 19 Apr 2011 18:26:40 -0700
+Message-ID: <BANLkTi=PqPkDpKu8ej1tCkVNugpecbLHyg@mail.gmail.com>
+References: <4D9E45C2.7030805@wildgooses.com>
+	<BANLkTinfSAk0ruyqNcfAgReATbX_OV64EA@mail.gmail.com>
+	<4D9F41BA.1060509@wildgooses.com>
+	<alpine.LNX.2.01.1104082152500.24599@obet.zrqbmnf.qr>
+	<4D9F98D3.5070802@wildgooses.com>
+	<alpine.LNX.2.01.1104090140010.3023@obet.zrqbmnf.qr>
+	<4DA0C402.1090809@wildgooses.com>
+	<alpine.LNX.2.01.1104100022500.27387@obet.zrqbmnf.qr>
+	<BANLkTik3=XWQHH9au7434RTJuf_Rg2sYSw@mail.gmail.com>
+	<4DA58A73.9030308@wildgooses.com>
+	<alpine.LNX.2.01.1104131406130.25539@obet.zrqbmnf.qr>
+	<4DA59881.1050501@wildgooses.com>
+	<alpine.LNX.2.01.1104131441520.25539@obet.zrqbmnf.qr>
+	<4DA5D346.5030303@wildgooses.com>
+	<BANLkTincEe0_Fj89wJecgR5Up7CvS6ERtw@mail.gmail.com>
+	<BANLkTimNc7_XyEoX2usooZLsYyYTn4OnUA@mail.gmail.com>
+	<4DAC67F3.3070503@wildgooses.com>
+	<BANLkTikq_5uRpzZWqRA9-VMT4h2Vxjgvpg@mail.gmail.com>
+	<BANLkTikyT1VOH9aBJ4=LmM5raL2L8Y+46w@mail.gmail.com>
+	<4DADB406.1040606@wildgooses.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: horms@verge.net.au, ebiederm@xmission.com,
-	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, hans.schillstrom@ericsson.com
-To: Hans Schillstrom <hans@schillstrom.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <1303226705-29178-3-git-send-email-hans@schillstrom.com>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Ed W <lists@wildgooses.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:65009 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751044Ab1DTB0l convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Apr 2011 21:26:41 -0400
+Received: by wwa36 with SMTP id 36so291978wwa.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 19 Apr 2011 18:26:40 -0700 (PDT)
+In-Reply-To: <4DADB406.1040606@wildgooses.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+> Yep, now I just see an attempt to modprobe "ip_set" (under limited
+> circumstances), which seems reasonable given that I am on 2.6.38 and
+> this isn't compiled in (nor is it a module)
 
-	Hello,
+> That said, I'm also slightly baffled where it's getting probed since =
+I
+> patched out xtables.c/xtables_load_ko(). =C2=A0The modprobe call does=
+n't have
+> a -q on it, so I suspect somehow it might be the kernel or something
+> else calling it?
 
-On Tue, 19 Apr 2011, Hans Schillstrom wrote:
+Yeah, that's getting modprobe'd by the kernel.
+But that shouldn't happen (after both my patches are applied) unless
+you actually try to use it, so what are you doing to cause that to
+happen? ie. there should not be any attempted loads of ip_set without
+"iptables -m set" being called (or equivalent).
 
-> This patch tries to restore the initial init and cleanup
-> sequences that was before name space patch.
-> 
-> The number of calls to register_pernet_device have been
-> reduced to one for the ip_vs.ko
-> Schedulers still have their own calls.
-> 
-> This patch adds a function __ip_vs_service_cleanup()
-> and a throttle or actually on/off switch for
-> the netfilter hooks.
-> 
-> The nf hooks will be enabled when the first service is loaded
-> and disabled when the last service is removed or when a
-> name space exit starts.
-
-	For me using _net suffix is more clear compared
-to __ prefix for the pernet methods.
-
-	For ip_vs_in: may be we can move the check here:
-
-+	net = skb_net(skb);
-+	if (net->ipvs->throttle)
-+		return NF_ACCEPT;
- 	ip_vs_fill_iphdr(af, skb_network_header(skb), &iph);
- 
- 	/* Bad... Do not break raw sockets */
-
-	It will save such checks later in ICMP funcs. But this
-throttle idea looks dangerous for cleanup. It does not use RCU.
-The readers can cache the 0 in throttle for long time.
-May be by using register_pernet_device we are in list with other
-devices and it is still possible some device used by
-our dst_cache to be unregistered before IPVS or we to be
-unregistered before such device and some race with throttle
-to happen. throttle is good when enabling traffic with
-the first virtual service, later it can slowly stop the traffic
-but we can not rely on it during netns cleanup.
-
-	So, there are 2 problems with the devices:
-
-- if we use _device pernet registration we can see packets
-in our netns during cleanup. I assume this is possible
-when IPVS is unregistered before such devices.
-
-- dests can cache dst and to hold the device after it is
-unregistered in netns, obviously for very short time until
-IPVS is later unregistered from netns. And for long time
-if device is unregistered but netns remains.
-
-	Also, in most of the cases svc->refcnt is above 0 because
-dests can be in trash list. You should be lucky to delete the
-service without any connections, only then ip_vs_svc_unhash can
-see refcnt == 0.
-
-	So, may be we have to use register_pernet_subsys (not
-_device). We need just to register notifier with
-register_netdevice_notifier and to catch NETDEV_UNREGISTER,
-so that if any dest uses this device we have to release the dst:
-
-	- lock mutex
-	- for every dest (also in trash):
-	spin_lock_bh(&dest->dst_lock);
-	if (dest->dst_cache && dest->dst_cache->dev == unregistered_dev)
-		ip_vs_dst_reset(dest);
-	spin_unlock_bh(&dest->dst_lock);
-
-	There are many examples for this, eg. net/core/fib_rules.c
-Then we are sure on cleanup we can not see traffic for our net
-because all devices are unregistered before us. We don't have
-to rely on throttle to stop the traffic during cleanup. And
-we do not hold devices after NETDEV_UNREGISTER.
-
-	I can prepare such patch but in next days. We need such
-code anyways because the dests can hold such dsts when no
-traffic is present and we can see again this "waiting for %s" ...
-message.
-
-	throttle still can be used but now it can not stop
-the traffic if connections exist.
-
-	For __ip_vs_service_cleanup: it still has to use mutex.
-Or we can avoid it by introducing ip_vs_unlink_service_nolock:
-ip_vs_flush will look like your __ip_vs_service_cleanup and
-will call ip_vs_unlink_service_nolock. ip_vs_unlink_service_nolock
-will be called by ip_vs_flush and by ip_vs_unlink_service.
-You can try such changes, if not, I'll prepare some patches
-after 2-3 days.
-
-Regards
-
+- Maciej
 --
-Julian Anastasov <ja@ssi.bg>
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
