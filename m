@@ -1,71 +1,44 @@
-From: Hans Schillstrom <hans@schillstrom.com>
-Subject: Re: [PATCH 3/3] IPVS: init and cleanup restructuring.
-Date: Wed, 20 Apr 2011 14:00:09 +0200
-Message-ID: <201104201400.10175.hans@schillstrom.com>
-References: <1303226705-29178-1-git-send-email-hans@schillstrom.com> <1303226705-29178-3-git-send-email-hans@schillstrom.com> <20110419231234.GE6418@verge.net.au>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/2] rework of userspace expectation support
+Date: Wed, 20 Apr 2011 14:10:42 +0200
+Message-ID: <4DAECD42.9080006@netfilter.org>
+References: <20110412215458.3145.40830.stgit@decadence> <4DA58AE2.7000204@trash.net> <4DA58D48.4010307@netfilter.org> <4DA58F41.9080603@trash.net> <4DA592F3.1090201@netfilter.org> <4DA59700.9000400@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: ja@ssi.bg, ebiederm@xmission.com, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	hans.schillstrom@ericsson.com
-To: Simon Horman <horms@verge.net.au>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20110419231234.GE6418@verge.net.au>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:60370 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751862Ab1DTMLX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 20 Apr 2011 08:11:23 -0400
+In-Reply-To: <4DA59700.9000400@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday, April 20, 2011 01:12:34 Simon Horman wrote:
-> On Tue, Apr 19, 2011 at 05:25:05PM +0200, Hans Schillstrom wrote:
-> > This patch tries to restore the initial init and cleanup
-> > sequences that was before name space patch.
-[snip]
-> perhaps enable or active would be names that fits better with the
-> schemantics used.  Using a bool might also make things more obvious.
+On 13/04/11 14:28, Patrick McHardy wrote:
+> I see, you're talking about unfulfilled expectations. Still, we're
+> releasing expectations in destroy_conntrack(), if we fix the refcount
+> issue, the master conntrack will not be destroyed while userspace
+> expectations exist.
 
-I'll use enable
-> 
-[snip]
-> 
-> Can we just remove ip_vs_app_init() and ip_vs_app_cleanup() as
-> they no longer do anything? Likewise with other init and cleanup
-> functions below.
+I missed one point. We don't seem to increase the refcnt for unfulfilled
+expectations.
 
-I will add a "final" patch that removes empty functions,
-(They are nice to have during the review, to keep track of the order in different contexts)
+The following example shows a unfulfilled FTP expectation:
 
-> 
-> > diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-> > index 36cd5ea..f8d6702 100644
-> > --- a/net/netfilter/ipvs/ip_vs_conn.c
-> > +++ b/net/netfilter/ipvs/ip_vs_conn.c
-> > @@ -1251,30 +1251,30 @@ int __net_init __ip_vs_conn_init(struct net *net)
-> >  {
-> >  	struct netns_ipvs *ipvs = net_ipvs(net);
-> > 
-> > +	EnterFunction(2);
-> >  	atomic_set(&ipvs->conn_count, 0);
-> > 
-> >  	proc_net_fops_create(net, "ip_vs_conn", 0, &ip_vs_conn_fops);
-> >  	proc_net_fops_create(net, "ip_vs_conn_sync", 0, &ip_vs_conn_sync_fops);
-> > +	LeaveFunction(2);
-> >  	return 0;
-> >  }
-> 
-> Does adding these EnterFunction() and LeaveFunction() calls
-> restore some previous behaviour? If not, I think they should at the very
-> least be in a separate patch. Likewise for similar changes below.
-> 
+# conntrack -L exp
+262 proto=6 src=192.168.1.128 dst=130.89.149.226 sport=0 dport=20412
+conntrack v1.0.0 (conntrack-tools): 1 expectations have been shown.
 
-I can remove them if you want, (but they are nice for debugging)
+# conntrack -L
+tcp      6 431979 ESTABLISHED src=192.168.1.128 dst=130.89.149.226
+sport=37348 dport=21 packets=9 bytes=503 src=130.89.149.226
+dst=192.168.1.128 sport=21 dport=37348 packets=8 bytes=564 [ASSURED]
+mark=0 delta-time=29 use=1
 
-[snip]
-> 
-> While I do prefer labels to be in column 0, putting those changes
-> here is rather a lot of noise. Could you put them in a separate patch?
+The use field of the master conntrack shows 1.
 
-OK it will be patch no 1 later on
-
-Regards
-Hans
+So, I think that these patches are still the way to fix the problem with
+the expectations created through ctnetlink.
