@@ -1,62 +1,98 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 0/2] rework of userspace expectation support
-Date: Wed, 20 Apr 2011 16:06:34 +0200
-Message-ID: <4DAEE86A.6070800@trash.net>
-References: <20110412215458.3145.40830.stgit@decadence> <4DA58AE2.7000204@trash.net> <4DA58D48.4010307@netfilter.org> <4DA58F41.9080603@trash.net> <4DA592F3.1090201@netfilter.org> <4DA59700.9000400@trash.net> <4DAECD42.9080006@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Hans Schillstrom <hans@schillstrom.com>
+Subject: [PATCH 2/6] IPVS: labels at pos 0
+Date: Wed, 20 Apr 2011 20:33:50 +0200
+Message-ID: <1303324434-14024-3-git-send-email-hans@schillstrom.com>
+References: <1303324434-14024-1-git-send-email-hans@schillstrom.com>
+Cc: hans.schillstrom@ericsson.com,
+	Hans Schillstrom <hans@schillstrom.com>
+To: horms@verge.net.au, ja@ssi.bg, ebiederm@xmission.com,
+	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59135 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752542Ab1DTOGv (ORCPT
+Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:51553 "EHLO
+	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754211Ab1DTSeE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Apr 2011 10:06:51 -0400
-In-Reply-To: <4DAECD42.9080006@netfilter.org>
+	Wed, 20 Apr 2011 14:34:04 -0400
+In-Reply-To: <1303324434-14024-1-git-send-email-hans@schillstrom.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 20.04.2011 14:10, schrieb Pablo Neira Ayuso:
-> On 13/04/11 14:28, Patrick McHardy wrote:
->> I see, you're talking about unfulfilled expectations. Still, we're
->> releasing expectations in destroy_conntrack(), if we fix the refcount
->> issue, the master conntrack will not be destroyed while userspace
->> expectations exist.
-> 
-> I missed one point. We don't seem to increase the refcnt for unfulfilled
-> expectations.
+Put goto labels at the beginig of row
+acording to coding style example.
 
-Yes, that's not necessary since unfulfilled expectations are cleaned
-up once the master is destroyed. Its just the ct->master pointer of
-an expected connection that takes a reference.
+Signed-off-by: Hans Schillstrom <hans@schillstrom.com>
+---
+ net/netfilter/ipvs/ip_vs_core.c |   10 +++++-----
+ net/netfilter/ipvs/ip_vs_ctl.c  |    8 ++++----
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-I thought this is what your patches try to fix?
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index a0791dc..d536b51 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -1388,7 +1388,7 @@ ip_vs_in_icmp(struct sk_buff *skb, int *related, unsigned int hooknum)
+ 		verdict = NF_DROP;
+ 	}
+ 
+-  out:
++out:
+ 	__ip_vs_conn_put(cp);
+ 
+ 	return verdict;
+@@ -1955,14 +1955,14 @@ static int __init ip_vs_init(void)
+ 
+ cleanup_sync:
+ 	ip_vs_sync_cleanup();
+-  cleanup_conn:
++cleanup_conn:
+ 	ip_vs_conn_cleanup();
+-  cleanup_app:
++cleanup_app:
+ 	ip_vs_app_cleanup();
+-  cleanup_protocol:
++cleanup_protocol:
+ 	ip_vs_protocol_cleanup();
+ 	ip_vs_control_cleanup();
+-  cleanup_estimator:
++cleanup_estimator:
+ 	ip_vs_estimator_cleanup();
+ 	unregister_pernet_subsys(&ipvs_core_ops);	/* free ip_vs struct */
+ 	return ret;
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index ae47090..a31a70c 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -1327,9 +1327,9 @@ ip_vs_edit_service(struct ip_vs_service *svc, struct ip_vs_service_user_kern *u)
+ 		ip_vs_bind_pe(svc, pe);
+ 	}
+ 
+-  out_unlock:
++out_unlock:
+ 	write_unlock_bh(&__ip_vs_svc_lock);
+-  out:
++out:
+ 	ip_vs_scheduler_put(old_sched);
+ 	ip_vs_pe_put(old_pe);
+ 	return ret;
+@@ -2387,7 +2387,7 @@ __ip_vs_get_service_entries(struct net *net,
+ 			count++;
+ 		}
+ 	}
+-  out:
++out:
+ 	return ret;
+ }
+ 
+@@ -2625,7 +2625,7 @@ do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
+ 		ret = -EINVAL;
+ 	}
+ 
+-  out:
++out:
+ 	mutex_unlock(&__ip_vs_mutex);
+ 	return ret;
+ }
+-- 
+1.7.2.3
 
-> The following example shows a unfulfilled FTP expectation:
-> 
-> # conntrack -L exp
-> 262 proto=6 src=192.168.1.128 dst=130.89.149.226 sport=0 dport=20412
-> conntrack v1.0.0 (conntrack-tools): 1 expectations have been shown.
-> 
-> # conntrack -L
-> tcp      6 431979 ESTABLISHED src=192.168.1.128 dst=130.89.149.226
-> sport=37348 dport=21 packets=9 bytes=503 src=130.89.149.226
-> dst=192.168.1.128 sport=21 dport=37348 packets=8 bytes=564 [ASSURED]
-> mark=0 delta-time=29 use=1
-> 
-> The use field of the master conntrack shows 1.
-> 
-> So, I think that these patches are still the way to fix the problem with
-> the expectations created through ctnetlink.
-
-Just for my understanding, why not simply take the reference for
-the master conntrack for "fulfilled" expectations (IOW conntracks
-that have a master assigned), which is necessary anyways since
-destroy_conntrack() attempts to release that reference again, and
-clean up userspace expectations once the master conntrack vanishes?
-
-This would match what we do for kernel expectations and I don't
-really see why we would want to keep an unfulfilled userspace
-expectation without the corresponding master.
