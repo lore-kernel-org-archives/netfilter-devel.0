@@ -1,30 +1,28 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: ctnetlink: fix timestamp support for new conntracks
-Date: Thu, 21 Apr 2011 10:55:56 +0200
-Message-ID: <4DAFF11C.7040602@trash.net>
-References: <20110420122213.3000.14349.stgit@decadence>
+Subject: Re: shutdown oops in xt_compat_calc_jump
+Date: Thu, 21 Apr 2011 10:57:58 +0200
+Message-ID: <4DAFF196.6040505@trash.net>
+References: <20110404194856.GA3720@dannf.org> <4D9A23BC.4010505@trash.net>	 <1301949477.3021.55.camel@edumazet-laptop>	 <1301957293.3021.191.camel@edumazet-laptop>	 <1301984679.3021.655.camel@edumazet-laptop>	 <1301987879.3021.714.camel@edumazet-laptop>	 <20110406162547.GA3064@dannf.org>	 <1302108258.3209.117.camel@edumazet-laptop> <1302108567.3209.121.camel@edumazet-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:42084 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752968Ab1DUIz7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Apr 2011 04:55:59 -0400
-In-Reply-To: <20110420122213.3000.14349.stgit@decadence>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: dann frazier <dannf@dannf.org>, netdev@vger.kernel.org,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1302108567.3209.121.camel@edumazet-laptop>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 20.04.2011 14:22, Pablo Neira Ayuso wrote:
-> This patch fixes the missing initialization of the start time if
-> the timestamp support is enabled.
+On 06.04.2011 18:49, Eric Dumazet wrote:
+> [PATCH] netfilter: fix ebtables
 > 
-> libnetfilter_conntrack/utils# conntrack -E &
-> libnetfilter_conntrack/utils# ./conntrack_create
-> tcp      6 109 ESTABLISHED src=1.1.1.1 dst=2.2.2.2 sport=1025 dport=21 packets=0 bytes=0 [UNREPLIED] src=2.2.2.2 dst=1.1.1.1 sport=21 dport=1025 packets=0 bytes=0 mark=0 delta-time=1303296401 use=2
+> commit 255d0dc34068a976 (netfilter: x_table: speedup compat operations)
+> made ebtables not working anymore.
 > 
+> 1) xt_compat_calc_jump() is not an exact match lookup
+> 2) compat_table_info() has a typo in xt_compat_init_offsets() call
+> 3) compat_do_replace() misses a xt_compat_init_offsets() call
 
-Applied, thanks Pablo.
+
+Applied, thanks Eric.
