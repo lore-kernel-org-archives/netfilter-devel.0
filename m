@@ -1,32 +1,42 @@
-From: Thomas Backlund <tmb@mageia.org>
-Subject: RE: [ANNOUNCE] ipset 6.4 released
-Date: Thu, 21 Apr 2011 23:43:03 +0300
-Message-ID: <1303418583.3310.18.camel@tmb-laptop.supernet>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] netfilter/IPv6: fix DSCP mangle code
+Date: Fri, 22 Apr 2011 00:08:38 -0700 (PDT)
+Message-ID: <20110422.000838.193727308.davem@davemloft.net>
+References: <1303455759.2023.39.camel@nausicaa>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: kadlec@blackhole.kfki.hu
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mbox2.netikka.net ([213.250.81.203]:41744 "EHLO
-	mbox2.netikka.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752998Ab1DUUut (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Apr 2011 16:50:49 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netdev@vger.kernel.org, yoshfuji@linux-ipv6.org,
+	jengelh@medozas.de, netfilter-devel@vger.kernel.org
+To: fernando@oss.ntt.co.jp
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1303455759.2023.39.camel@nausicaa>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Date: Fri, 22 Apr 2011 16:02:39 +0900
 
-A small question...
+> The mask indicates the bits one wants to zero out, so it needs to be
+> inverted before applying to the original TOS field.
+> 
+> Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+> ---
 
+Netfilter patches should be sent to the netfilter developer
+list, CC:'d
 
-What is the preferred version of ipset utils to be used with 2.6.39
-series kernels?
-
-If I understand correctly, the ipset kernel part that got merged is 6.2
-
-Does that mean I should use the same version on userspace part, or will
-the newer one cope with the version difference ?
-
-
-
+> diff -urNp linux-2.6.37-orig/net/netfilter/xt_DSCP.c linux-2.6.37/net/netfilter/xt_DSCP.c
+> --- linux-2.6.37-orig/net/netfilter/xt_DSCP.c	2011-01-05 09:50:19.000000000 +0900
+> +++ linux-2.6.37/net/netfilter/xt_DSCP.c	2011-04-21 16:01:25.801890733 +0900
+> @@ -99,7 +99,7 @@ tos_tg6(struct sk_buff *skb, const struc
+>  	u_int8_t orig, nv;
+>  
+>  	orig = ipv6_get_dsfield(iph);
+> -	nv   = (orig & info->tos_mask) ^ info->tos_value;
+> +	nv   = (orig & ~info->tos_mask) ^ info->tos_value;
+>  
+>  	if (orig != nv) {
+>  		if (!skb_make_writable(skb, sizeof(struct iphdr)))
+> 
+> 
