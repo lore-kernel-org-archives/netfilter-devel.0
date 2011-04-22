@@ -1,45 +1,57 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] netfilter/IPv6:  initialize TOS field in REJECT target
- module
-Date: Fri, 22 Apr 2011 10:37:41 +0200
-Message-ID: <1303461461.3134.15.camel@edumazet-laptop>
-References: <1303455759.2023.39.camel@nausicaa>
-	 <1303456743.2023.55.camel@nausicaa>
-	 <1303457656.3134.12.camel@edumazet-laptop>
-	 <1303458454.9791.13.camel@nausicaa>
-	 <1303459560.3134.14.camel@edumazet-laptop>
-	 <1303459875.9791.19.camel@nausicaa>
+From: "Hans Schillstrom" <hans@schillstrom.com>
+Subject: Re: Re: [v2 PATCH 0/6] IPVS: init and cleanup.
+Date: Fri, 22 Apr 2011 17:19:27 +0200 (CEST)
+Message-ID: <1pukl91.dee882dc58d0fe53f4e800b09c9f9eab@obelix.schillstrom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	yoshfuji@linux-ipv6.org, jengelh@medozas.de, davem@davemloft.net
-To: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:56963 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752718Ab1DVIhq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 Apr 2011 04:37:46 -0400
-In-Reply-To: <1303459875.9791.19.camel@nausicaa>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Cc: horms@verge.net.au, ebiederm@xmission.com,
+	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, hans.schillstrom@ericsson.com
+To: "Julian Anastasov" <ja@ssi.bg>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Le vendredi 22 avril 2011 =C3=A0 17:11 +0900, Fernando Luis Vazquez Cao=
- a
-=C3=A9crit :
+Hello Julian
 
-> Thank you!
->=20
-> Should we send these two patches to -stable too?
->=20
+>From what I can see there is nothing in the rs_table except for NAT:ed dest, or ?
+so the code fragment below will not work.
 
-David takes care of stable submissions for netdev stuff, thanks.
+I.e. my double list_for_each that goes throug the service table must be there...
+or do we need both?
+
+[snip]
+>
+>- For ip_vs_dst_event: I prefer to put everything in this
+>function, the ip_vs_svc_reset is not needed (name is not
+>good too). For example:
+>
+>	struct ip_vs_dest *dest;
+>	unsigned int hash;
+>
+>	mutex_lock(&__ip_vs_mutex);
+>	/* No need to use rs_lock, the mutex protects the list */
+>	for (hash = 0; hash < IP_VS_RTAB_SIZE; hash++) {
+>		list_for_each_entry(dest, &ipvs->rs_table[hash], d_list) {
+>			__ip_vs_dev_reset(dest, dev);
+>		}
+>	}
+>
+>	/* The mutex protects the trash list */
+>	list_for_each_entry(dest, &ipvs->dest_trash, n_list) {
+>		__ip_vs_dev_reset(dest, dev);
+>	}
+>
+>	mutex_unlock(&__ip_vs_mutex);
+>
+>	No need to use __ip_vs_svc_lock or rs_lock because we
+>do not change the lists, __ip_vs_dev_reset has the needed
+>dst_cache locking (dst_lock). I assume we can safely use our
+>__ip_vs_mutex from netdevice notifier.
 
 
+Regards
+Hans
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
