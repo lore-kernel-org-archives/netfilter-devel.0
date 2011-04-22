@@ -1,45 +1,40 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: RE: [ANNOUNCE] ipset 6.4 released
-Date: Fri, 22 Apr 2011 09:27:25 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1104220916020.29563@blackhole.kfki.hu>
-References: <1303418583.3310.18.camel@tmb-laptop.supernet>
+From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Subject: Re: [PATCH] netfilter/IPv6: fix DSCP mangle code
+Date: Fri, 22 Apr 2011 16:29:22 +0900
+Message-ID: <1303457362.9791.8.camel@nausicaa>
+References: <1303455759.2023.39.camel@nausicaa>
+	 <20110422.000838.193727308.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Thomas Backlund <tmb@mageia.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:34036 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752282Ab1DVH10 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 Apr 2011 03:27:26 -0400
-In-Reply-To: <1303418583.3310.18.camel@tmb-laptop.supernet>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, yoshfuji@linux-ipv6.org,
+	jengelh@medozas.de, netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20110422.000838.193727308.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 21 Apr 2011, Thomas Backlund wrote:
-
-> What is the preferred version of ipset utils to be used with 2.6.39
-> series kernels?
+On Fri, 2011-04-22 at 00:08 -0700, David Miller wrote:
+> From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+> Date: Fri, 22 Apr 2011 16:02:39 +0900
 > 
-> If I understand correctly, the ipset kernel part that got merged is 6.2
+> > The mask indicates the bits one wants to zero out, so it needs to be
+> > inverted before applying to the original TOS field.
+> > 
+> > Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+> > ---
 > 
-> Does that mean I should use the same version on userspace part, or will
-> the newer one cope with the version difference ?
+> Netfilter patches should be sent to the netfilter developer
+> list, CC:'d
 
-All bugfixes are submitted into the kernel and will be available in 
-the next 2.6.39-rc5 release. Hopefully the improvements will be available 
-in the next-next kernel release.
+Thank you for the heads-up, David.
 
-If you need the new functionalities, you should use the kernel modules 
-from the ipset package. The protocol did not change, so the userspace can 
-cope with the different kernel versions, of course except missing new 
-functionalities, like listing only setnames. The same applies to the SET 
-target.
+By the way, I have just sent one more patch that fixes what I think is
+another netfilter bug. If everyone is ok with these two patches it would
+be great if we could get them merged for the next -rc release (we hit
+these bugs in our production systems).
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Regards,
+Fernando
+
