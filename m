@@ -1,51 +1,26 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: Re: [v2 PATCH 0/6] IPVS: init and cleanup.
-Date: Fri, 22 Apr 2011 19:49:13 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1104221945340.1550@ja.ssi.bg>
-References: <1pukl91.dee882dc58d0fe53f4e800b09c9f9eab@obelix.schillstrom.com>
+From: "CONFIDENTIAL" <europaycen@hotmail.com>
+Subject: CONFIDENTIAL
+Date: Mon, 25 Apr 2011 04:49:11 +0000 (UTC)
+Message-ID: <20110424104106.6CC992A8EDCB@mail.alsa.co.cr>
+Reply-To: <europaycen@hotmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: horms@verge.net.au, ebiederm@xmission.com,
-	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, hans.schillstrom@ericsson.com
-To: Hans Schillstrom <hans@schillstrom.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <1pukl91.dee882dc58d0fe53f4e800b09c9f9eab@obelix.schillstrom.com>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain;
+	charset="Windows-1251"
+Content-Transfer-Encoding: 7bit
+To: undisclosed-recipients:;
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from logistix.cr ([201.201.66.140]:4409 "EHLO mail.alsa.co.cr"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751037Ab1DYEsy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Apr 2011 00:48:54 -0400
+Date: Fri, 13 May 2011 01:08:47 +0200
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Acknowledge,
 
-	Hello,
-
-On Fri, 22 Apr 2011, Hans Schillstrom wrote:
-
-> Hello Julian
-> 
-> >From what I can see there is nothing in the rs_table except for NAT:ed dest, or ?
-> so the code fragment below will not work.
-> 
-> I.e. my double list_for_each that goes throug the service table must be there...
-> or do we need both?
-
-	Yes, I now see that dests are added to rs_table only for
-NAT. So, we have no choice, we have to walk svc->destinations.
-To remove usage of dest_trash in ip_vs_dst_event we can move
-the ip_vs_dst_reset call in __ip_vs_del_dest() above the
-atomic_dec_and_test check. But it is not a safe operation.
-While with svc->usecnt we know if packet accesses the svc,
-the same for dest is not possible. Packet can hit existing
-connection (without searching for svc), conn has reference to
-dest, so the packet can refresh dest->dst_cache at any point
-of time, eg. while we move dest to trash. That is why
-__ip_vs_del_dest calls ip_vs_dst_reset only when dest->refcnt
-reaches 0, i.e. when no conn refers to dest. So, even if we
-call ip_vs_dst_reset() before the atomic_dec_and_test check,
-it is still possible some packet to attach new dst_cache
-entry. As result, we can not assume that dests in trash have
-no dst_cache entry. So, ip_vs_dst_event() needs to walk
-both svc->destinations and ipvs->dest_trash under mutex lock.
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+An Iraqi made a fixed deposit of $6.5m usd in my bank branch (Hang Seng Bank,Hong Kong) where am a director and he died with his entire family in the war leaving behind no next of kin, I?m ready to share 50/50 with you if you choose to stand as my deceased client next of kin. If interested mail me at the address below: 
+tongwon@ibibo.com  or
+tongwonhk@ibibo.com
+Yours Truly,
+Tong Won.
