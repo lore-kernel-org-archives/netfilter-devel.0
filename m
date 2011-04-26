@@ -1,66 +1,76 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter/IPv6: initialize TOS field in REJECT target
- module
-Date: Tue, 26 Apr 2011 17:35:35 +0200
-Message-ID: <4DB6E647.5060608@netfilter.org>
-References: <1303461461.3134.15.camel@edumazet-laptop>	 <4DB61C2C.7060508@netfilter.org> <1303781180.2874.13.camel@nausicaa>	 <20110425.221744.226775617.davem@davemloft.net> <1303795522.6010.5.camel@nausicaa> <4DB6E607.6000303@netfilter.org>
+From: Jon Grant <jg@jguk.org>
+Subject: kernel source code files with same name (different case) xt_*
+Date: Tue, 26 Apr 2011 21:47:07 +0100
+Message-ID: <BANLkTinDLPBeYkLE17cyhQg5m-_ZTWbgXg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, eric.dumazet@gmail.com,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	yoshfuji@linux-ipv6.org, jengelh@medozas.de,
-	Patrick McHardy <kaber@trash.net>
-To: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4DB6E607.6000303@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:56829 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753389Ab1DZUrI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Apr 2011 16:47:08 -0400
+Received: by gyd10 with SMTP id 10so373024gyd.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Apr 2011 13:47:07 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 26/04/11 17:34, Pablo Neira Ayuso wrote:
-> On 26/04/11 07:25, Fernando Luis Vazquez Cao wrote:
->> On Mon, 2011-04-25 at 22:17 -0700, David Miller wrote:
->>> From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
->>> Date: Tue, 26 Apr 2011 10:26:20 +0900
->>>
->>>> On Tue, 2011-04-26 at 03:13 +0200, Pablo Neira Ayuso wrote:
->>>>> On 22/04/11 10:37, Eric Dumazet wrote:
->>>>>> Le vendredi 22 avril 2011 =C3=A0 17:11 +0900, Fernando Luis Vazq=
-uez Cao a
->>>>>> =C3=A9crit :
->>>>>>
->>>>>>> Thank you!
->>>>>>>
->>>>>>> Should we send these two patches to -stable too?
->>>>>>
->>>>>> David takes care of stable submissions for netdev stuff, thanks.
->>>>>
->>>>> If the patch follows the netfilter path, we'll take care of sendi=
-ng
->>>>> stable submissions.
->>>>
->>>> David, will you take care of these two patches or should they go t=
-hrough
->>>> the netfilter tree?
->>>
->>> Netfilter, as usual.
->>
->> Thank you for the clarification. I really appreciate it.
->>
->> Pablo, could you pull in the two patches below? They have already be=
-en
->> acked by Eric. It would be great it we could get them merged for the
->> next -rc and stable releases.
->>
->> [PATCH] netfilter/IPv6: fix DSCP mangle code
->> [PATCH] netfilter/IPv6: initialize TOS field in REJECT target module
->=20
-> Patrick is the primary link to take patches, I'm including him in thi=
-s
-> CC. If he experiences any problem, I'll make sure that these hit -rc,=
- so
-> never mind.
-  ^^^^^^^^^^
+Hello
 
-Sorry, I meant to say, "don't worry" :-)
+When extracting kernel source on a partition which does not support
+filenames with different case of the same letters (NTFS), I noticed
+/include/linux/netfilter/ files have a CAPS version, and lower case
+version. The netfilter/KBuild file refers to the CAPS file in certain
+cases, which then simply includes the lower-case filename.
 
+Would a patch be considered for review which amended the
+netfilter/KBuild to simply refer to the lower-case files, and deleted
+the CAPS version files?
+
+An alternative idea would be to make them alphabetically unique. e.g.
+appending_def to the CAPS filenames (i.e. xt_CONNMARK_def.h). Of cause
+both of these options depend on if agreement that having
+alphabetically unique names is something worth the change.
+
+linux kernel files with different case
+
+Looking at 2.6.38.3
+
+/include/linux/netfilter/
+
+
+xt_CONNMARK.h
+includes "xt_connmark.h"
+
+xt_DSCP.h  (contains struct)
+xt_dscp.h
+
+xt_MARK.h
+includes "xt_mark.h"
+
+xt_RATEEST.h  (contains struct)
+xt_rateest.h
+
+xt_TCPMSS.h  (contains struct)
+xt_tcpmss.h
+
+
+There are two other files in ip4 folder, in addition C files:
+
+ipt_ecn.c
+xt_dscp.c
+xt_hl.c
+xt_rateest.c
+xt_tcpmss.c
+
+I know ideally we'd only extract the tar.bz on a regular GNU+Linux
+system (ext4 formatted partition). Would a patch to rename these files
+to be alphabetically unique be accepted for review?
+
+I will wait for reply before starting to prepare a patch. In addition,
+then I would look into the files comprehensively.
+
+Thank you for reading this far. Please keep my email address included
+in any replies.
+Cheers, Jon
