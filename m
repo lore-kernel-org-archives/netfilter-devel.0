@@ -1,32 +1,49 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: kernel source code files with same name (different case) xt_*
-Date: Tue, 26 Apr 2011 13:48:11 -0700 (PDT)
-Message-ID: <20110426.134811.260073531.davem@davemloft.net>
-References: <BANLkTinDLPBeYkLE17cyhQg5m-_ZTWbgXg@mail.gmail.com>
+From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Subject: Re: [PATCH] netfilter/IPv6: initialize TOS field in REJECT target
+ module
+Date: Wed, 27 Apr 2011 13:21:11 +0900
+Message-ID: <1303878071.2930.1.camel@nausicaa>
+References: <1303461461.3134.15.camel@edumazet-laptop>
+	 <4DB61C2C.7060508@netfilter.org> <1303781180.2874.13.camel@nausicaa>
+	 <20110425.221744.226775617.davem@davemloft.net>
+	 <1303795522.6010.5.camel@nausicaa> <4DB6E607.6000303@netfilter.org>
+	 <4DB6E647.5060608@netfilter.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: jg@jguk.org
+Cc: David Miller <davem@davemloft.net>, eric.dumazet@gmail.com,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	yoshfuji@linux-ipv6.org, jengelh@medozas.de,
+	Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:46221
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753389Ab1DZUso (ORCPT
+Received: from serv2.oss.ntt.co.jp ([222.151.198.100]:49269 "EHLO
+	serv2.oss.ntt.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750993Ab1D0EVM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Apr 2011 16:48:44 -0400
-In-Reply-To: <BANLkTinDLPBeYkLE17cyhQg5m-_ZTWbgXg@mail.gmail.com>
+	Wed, 27 Apr 2011 00:21:12 -0400
+In-Reply-To: <4DB6E647.5060608@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jon Grant <jg@jguk.org>
-Date: Tue, 26 Apr 2011 21:47:07 +0100
+On Tue, 2011-04-26 at 17:35 +0200, Pablo Neira Ayuso wrote:
+> On 26/04/11 17:34, Pablo Neira Ayuso wrote:
+> > On 26/04/11 07:25, Fernando Luis Vazquez Cao wrote:
+> >> Pablo, could you pull in the two patches below? They have already been
+> >> acked by Eric. It would be great it we could get them merged for the
+> >> next -rc and stable releases.
+> >>
+> >> [PATCH] netfilter/IPv6: fix DSCP mangle code
+> >> [PATCH] netfilter/IPv6: initialize TOS field in REJECT target module
+> > 
+> > Patrick is the primary link to take patches, I'm including him in this
+> > CC. If he experiences any problem, I'll make sure that these hit -rc, so
+> > never mind.
+>   ^^^^^^^^^^
+> 
+> Sorry, I meant to say, "don't worry" :-)
 
-> Would a patch be considered for review which amended the
-> netfilter/KBuild to simply refer to the lower-case files, and deleted
-> the CAPS version files?
+Thank you, Pablo. I really appreciate it.
 
-Unlikely.  Please use a real filesystem when building the kernel
-sources.
-
-It's not like there's a shortage of them to choose from.
+- Fernando
 
