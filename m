@@ -1,50 +1,43 @@
-From: =?iso-8859-1?Q?Hans_Schillstr=F6m?= <hans.schillstrom@ericsson.com>
-Subject: RE: [v2 PATCH 0/6] IPVS: init and cleanup.
-Date: Fri, 29 Apr 2011 11:48:39 +0200
-Message-ID: <C8A6796DE7C66C4ABCBC18106CB6C1CC08232F0887@ESESSCMS0356.eemea.ericsson.se>
-References: <1304058334-17594-1-git-send-email-hans@schillstrom.com>,<20110429064225.GA23958@verge.net.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Cc: "ja@ssi.bg" <ja@ssi.bg>,
-	"ebiederm@xmission.com" <ebiederm@xmission.com>,
-	"lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Simon Horman <horms@verge.net.au>,
-	Hans Schillstrom <hans@schillstrom.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: iptables: guided option parser, run 4
+Date: Sun,  1 May 2011 13:50:20 +0200
+Message-ID: <1304250630-6150-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailgw10.se.ericsson.net ([193.180.251.61]:62290 "EHLO
-	mailgw10.se.ericsson.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757942Ab1D2Jub convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Apr 2011 05:50:31 -0400
-In-Reply-To: <20110429064225.GA23958@verge.net.au>
-Content-Language: en-US
+Received: from borg.medozas.de ([188.40.89.202]:49992 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752070Ab1EALuf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 1 May 2011 07:50:35 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
->Subject: Re: [v2 PATCH 0/6] IPVS: init and cleanup.
->
->On Fri, Apr 29, 2011 at 08:25:28AM +0200, Hans Schillstrom wrote:
-> This patch series handles exit from a network name space.
->
->Hi Hans,
->
->thanks for your work on this.
->I've looked over the patches and nothing catches my eye -
->thanks for fixing up the things that I commented on previously.
->
->I think that patches 1 and 2 should be targeted at 2.6.39,
->while the remainder look like 2.6.40 material. Does that
->sound reasonable to you?
+The following changes since commit 26ed9ea93564bb5ffdb5238eaa202cd9bcf6d6d1:
 
-I do prefer to keep them together, 
-but if you want it in that way it's OK for me.
+  combine ip6?tables-multi into xtables-multi (2011-04-19 18:22:11 -0700)
 
-We are doing a lot of tests right now with this patch set.
-If we found any issues I'll let you know.
+are available in the git repository at:
+  git://dev.medozas.de/iptables opts
 
-Regards
-Hans
+Jan Engelhardt (9):
+      build: bump libxtables ABI version
+      libxt_TEE: use guided option parser
+      xtoptions: respect return value in xtables_getportbyname
+      libxt_TOS: use guided option parser
+      libxt_tos: use guided option parser
+      extensions: remove unused TOS code
+      libxtables: XTTYPE_PORTRC support
+      libxt_udp: use guided option parser
+      libxt_dccp: use guided option parser
+
+ configure.ac            |    2 +-
+ extensions/libxt_TEE.c  |  103 +++++-----------------------------
+ extensions/libxt_TOS.c  |  137 +++++++++++++++++++--------------------------
+ extensions/libxt_dccp.c |  134 +++++++++++++-------------------------------
+ extensions/libxt_tos.c  |   88 +++++++++++------------------
+ extensions/libxt_udp.c  |   95 ++++++++++---------------------
+ extensions/tos_values.c |   58 -------------------
+ include/xtables.h.in    |   11 +++-
+ xtoptions.c             |  142 +++++++++++++++++++++++++++++++++++++++++++++++
+ 9 files changed, 327 insertions(+), 443 deletions(-)
