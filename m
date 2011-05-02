@@ -1,44 +1,30 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Are pre- postrouting states device independent ?
-Date: Mon, 2 May 2011 12:07:44 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1105021207290.28373@obet.zrqbmnf.qr>
-References: <4DBE7B58.6000800@mediadesign-fh.de>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [v4 PATCH 1/6] IPVS: Change of socket usage to enable name
+ space exit.
+Date: Mon, 2 May 2011 20:03:15 +0900
+Message-ID: <20110502110315.GB32576@verge.net.au>
+References: <1304268618-18103-1-git-send-email-hans@schillstrom.com>
+ <1304268618-18103-2-git-send-email-hans@schillstrom.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Falk Nisius <f.nisius@mediadesign-fh.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:38139 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755616Ab1EBKHp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 May 2011 06:07:45 -0400
-In-Reply-To: <4DBE7B58.6000800@mediadesign-fh.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: ja@ssi.bg, ebiederm@xmission.com, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	hans.schillstrom@ericsson.com
+To: Hans Schillstrom <hans@schillstrom.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1304268618-18103-2-git-send-email-hans@schillstrom.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Monday 2011-05-02 11:37, Falk Nisius wrote:
+On Sun, May 01, 2011 at 06:50:13PM +0200, Hans Schillstrom wrote:
+> To work this patch also needs the other patches in this series.
 
->I have a box with some virtual machines.
->One of them has a firewalling function without any natting,
->like the following scheme.
->
->+--------+
->|        |192.168.11.42/30
->| guest1 |------------------+
->|        |       br11       |
->+--------+                  |  192.168.11.41/30  +---------+
->                            +--------------------|         |
->                                                 | guest3  |
->+--------+                  +--------------------| (fw)    |
->|        |192.168.11.46/30  |  192.168.11.45/30  +---------+
->| guest2 |------------------+                         | 192.168.10.2/30
->|        |       br12                                 | hostnet
->+--------+
-> 
->The traffic on the br11 and br12 is allowed.
->There is an rule to SNAT guest1 to extern-IP-one
->There is an rule to SNAT guest2 to extern-IP-two
->There is an rule to SNAT guest3 to extern-IP-three
+Hi Hans,
 
-You will have to post the entire rules, not some fragment, and in 
-iptable-save -c format.
+could you explain the implications statement above?
+What kind of behaviour might I expect if only this patch is applied?
+
+I'm planning to push this and 2/6 for 2.6.39, and as we have
+discussed (offline) that combination works. But from a bisection
+point of view, this patch needs to not "blow up" if used by itself.
