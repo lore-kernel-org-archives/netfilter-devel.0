@@ -1,61 +1,89 @@
-From: "Hans Schillstrom" <hans@schillstrom.com>
-Subject: Re: [GIT PULL nf-2.6] IPVS (Take II)
-Date: Tue, 3 May 2011 15:33:44 +0200 (CEST)
-Message-ID: <t9h34u8.2f81b788a5829200fb85fb52402dbb66@obelix.schillstrom.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	"Wensong Zhang" <wensong@linux-vs.org>,
-	"Julian Anastasov" <ja@ssi.bg>,
-	"Patrick McHardy" <kaber@trash.net>,
-	"Hans Schillstrom" <hans.schillstrom@ericsson.com>,
-	"Eric W. Biederman" <ebiederm@xmission.com>
-To: "Simon Horman" <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Sender: lvs-devel-owner@vger.kernel.org
+From: Samir Bellabes <sam@synack.fr>
+Subject: [RFC v3 09/10] snet: introduce snet_utils
+Date: Tue,  3 May 2011 16:24:22 +0200
+Message-ID: <1304432663-1575-10-git-send-email-sam@synack.fr>
+References: <1304432663-1575-1-git-send-email-sam@synack.fr>
+Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, jamal <hadi@cyberus.ca>,
+	Patrick McHardy <kaber@trash.net>,
+	Evgeniy Polyakov <zbr@ioremap.net>,
+	Grzegorz Nosek <root@localdomain.pl>,
+	Samir Bellabes <sam@synack.fr>
+To: linux-security-module@vger.kernel.org
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <1304432663-1575-1-git-send-email-sam@synack.fr>
+Sender: linux-security-module-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick & Simon
-Please drop this patch / pull request.
-I need to take a way 2 rows, 
-I.e. the new feature that disables ipvs when last service is removed,
-it doesn't work since it's not the last service.
+This patch provides helper functions for other subsystems
 
->Sent: Tue, May 3, 2011, 9:06 AM
->Subject: [GIT PULL nf-2.6] IPVS (Take II)
->
->Hi Patrick,
->
->please consider pulling
->git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-2.6.git for-patrick
->to get the following fix from Hans. They resolve some problems related
->to his netns for IPVS work which was incorporated into 2.6.39-rc1.
->
->The pull request is based on nf-2.6/master.
->
->There are other less-pressing changes from Hans which
->I plan to get you to pull into nf-next-2.6 once these
->changes make it there (presumably via net-2.6 and then net-next-2.6).
->
->Hans Schillstrom (2):
->      IPVS: Change of socket usage to enable name space exit.
->      IPVS: init and cleanup restructuring.
->
-> include/net/ip_vs.h              |   17 +++++
-> net/netfilter/ipvs/ip_vs_app.c   |   15 +----
-> net/netfilter/ipvs/ip_vs_conn.c  |   12 +---
-> net/netfilter/ipvs/ip_vs_core.c  |  102 ++++++++++++++++++++++++++++---
-> net/netfilter/ipvs/ip_vs_ctl.c   |  123 ++++++++++++++++++++++++++++++++------
-> net/netfilter/ipvs/ip_vs_est.c   |   14 +----
-> net/netfilter/ipvs/ip_vs_proto.c |   11 +---
-> net/netfilter/ipvs/ip_vs_sync.c  |   65 +++++++++++---------
-> 8 files changed, 260 insertions(+), 99 deletions(-)
->--
+Signed-off-by: Samir Bellabes <sam@synack.fr>
+---
+ security/snet/snet_utils.c |   38 ++++++++++++++++++++++++++++++++++++++
+ security/snet/snet_utils.h |    9 +++++++++
+ 2 files changed, 47 insertions(+), 0 deletions(-)
+ create mode 100644 security/snet/snet_utils.c
+ create mode 100644 security/snet/snet_utils.h
 
-Regards
-Hans Schillstrom 
-
+diff --git a/security/snet/snet_utils.c b/security/snet/snet_utils.c
+new file mode 100644
+index 0000000..e9178d7
+--- /dev/null
++++ b/security/snet/snet_utils.c
+@@ -0,0 +1,38 @@
++#include <linux/types.h>
++#include <linux/snet.h>
++
++const char *snet_verdict_name(const enum snet_verdict cmd)
++{
++	static const char *const verdict_name[] = {
++		[SNET_VERDICT_GRANT]	= "Grant",
++		[SNET_VERDICT_DENY]	= "Deny",
++		[SNET_VERDICT_PENDING]	= "Pending",
++		[SNET_VERDICT_NONE]	= "None",
++	};
++
++	if (cmd >= SNET_NR_VERDICT_TYPES)
++		return "INVALID";
++	else
++		return verdict_name[cmd];
++}
++
++const char *snet_syscall_name(const enum snet_syscall sys)
++{
++	static const char *const syscall_name[] = {
++		[SNET_SOCKET_CREATE]		= "Create",
++		[SNET_SOCKET_BIND]		= "Bind",
++		[SNET_SOCKET_CONNECT]		= "Connect",
++		[SNET_SOCKET_LISTEN]		= "Listen",
++		[SNET_SOCKET_ACCEPT]		= "Accept",
++		[SNET_SOCKET_POST_ACCEPT]	= "Post Accept",
++		[SNET_SOCKET_SENDMSG]		= "Sendmsg",
++		[SNET_SOCKET_RECVMSG]		= "Recvmsg",
++		[SNET_SOCKET_SOCK_RCV_SKB]	= "Sock Rcv Skb",
++		[SNET_SOCKET_CLOSE]		= "Close",
++	};
++
++	if (sys >= SNET_NR_SOCKET_TYPES)
++		return "INVALID";
++	else
++		return syscall_name[sys];
++}
+diff --git a/security/snet/snet_utils.h b/security/snet/snet_utils.h
+new file mode 100644
+index 0000000..01e515f
+--- /dev/null
++++ b/security/snet/snet_utils.h
+@@ -0,0 +1,9 @@
++#ifndef _SNET_UTILS_H
++#define _SNET_UTILS_H
++
++#include <linux/skbuff.h>
++
++const char *snet_verdict_name(const enum snet_verdict cmd);
++const char *snet_syscall_name(const enum snet_syscall sys);
++
++#endif	/* _SNET_UTILS_H */
+-- 
+1.7.4.1
 
