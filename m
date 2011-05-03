@@ -1,155 +1,59 @@
-From: Paul Moore <paul.moore@hp.com>
-Subject: Re: [RFC v3 02/10] Revert "lsm: Remove the socket_post_accept() hook"
-Date: Tue, 3 May 2011 18:02:34 -0400
-Message-ID: <201105031802.34724.paul.moore@hp.com>
-References: <1304432663-1575-1-git-send-email-sam@synack.fr> <1304432663-1575-3-git-send-email-sam@synack.fr>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [GIT PULL nf-2.6] IPVS (Take II)
+Date: Wed, 4 May 2011 07:12:15 +0900
+Message-ID: <20110503221213.GA28540@verge.net.au>
+References: <1304406316-15636-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: linux-security-module@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, jamal <hadi@cyberus.ca>,
+Content-Type: text/plain; charset=us-ascii
+Cc: Wensong Zhang <wensong@linux-vs.org>, Julian Anastasov <ja@ssi.bg>,
 	Patrick McHardy <kaber@trash.net>,
-	Evgeniy Polyakov <zbr@ioremap.net>,
-	Grzegorz Nosek <root@localdomain.pl>
-To: Samir Bellabes <sam@synack.fr>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <1304432663-1575-3-git-send-email-sam@synack.fr>
-Sender: linux-security-module-owner@vger.kernel.org
+	Hans Schillstrom <hans@schillstrom.com>,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	"Eric W. Biederman" <ebiederm@xmission.com>
+To: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1304406316-15636-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday, May 03, 2011 10:24:15 AM Samir Bellabes wrote:
-> snet needs to reintroduce this hook, as it was designed to be: a hook for
-> updating security informations on objects.
+On Tue, May 03, 2011 at 04:05:14PM +0900, Simon Horman wrote:
+> Hi Patrick,
+> 
+> please consider pulling
+> git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-2.6.git for-patrick
+> to get the following fix from Hans. They resolve some problems related
+> to his netns for IPVS work which was incorporated into 2.6.39-rc1.
 
-Looking at this and 5/10 again, it seems that you should be able to do what 
-you need with the sock_graft() hook.  Am I missing something?
+Sorry for all the messing about.
+A fresh version of these patches has been provided by Hans,
+and I'm looking into weather they should replace this pull request.
 
-My apologies if we've already discussed this approach previously ...
+So please ignore this for now (again!).
 
-> Originally, This was a direct revert of commit
-> 8651d5c0b1f874c5b8307ae2b858bc40f9f02482.
 > 
-> But from the comment of Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp> :
-> > Please move security_socket_post_accept() to before fd_install().
-> > Otherwise, other threads which share fd tables can use
-> > security-informations-not-yet-updated accept()ed sockets.
+> The pull request is based on nf-2.6/master.
 > 
-> Signed-off-by: Samir Bellabes <sam@synack.fr>
-> Acked-by: Serge Hallyn <serue@us.ibm.com>
+> There are other less-pressing changes from Hans which
+> I plan to get you to pull into nf-next-2.6 once these
+> changes make it there (presumably via net-2.6 and then net-next-2.6).
 > 
-> snet needs to reintroduce this hook, as it was designed to be: a hook for
-> updating security informations on objects.
+> Hans Schillstrom (2):
+>       IPVS: Change of socket usage to enable name space exit.
+>       IPVS: init and cleanup restructuring.
 > 
-> Signed-off-by: Samir Bellabes <sam@synack.fr>
-> ---
->  include/linux/security.h |   13 +++++++++++++
->  net/socket.c             |    2 ++
->  security/capability.c    |    5 +++++
->  security/security.c      |    5 +++++
->  4 files changed, 25 insertions(+), 0 deletions(-)
+>  include/net/ip_vs.h              |   17 +++++
+>  net/netfilter/ipvs/ip_vs_app.c   |   15 +----
+>  net/netfilter/ipvs/ip_vs_conn.c  |   12 +---
+>  net/netfilter/ipvs/ip_vs_core.c  |  102 ++++++++++++++++++++++++++++---
+>  net/netfilter/ipvs/ip_vs_ctl.c   |  123 ++++++++++++++++++++++++++++++++------
+>  net/netfilter/ipvs/ip_vs_est.c   |   14 +----
+>  net/netfilter/ipvs/ip_vs_proto.c |   11 +---
+>  net/netfilter/ipvs/ip_vs_sync.c  |   65 +++++++++++---------
+>  8 files changed, 260 insertions(+), 99 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> diff --git a/include/linux/security.h b/include/linux/security.h
-> index da0d59e..02effe5 100644
-> --- a/include/linux/security.h
-> +++ b/include/linux/security.h
-> @@ -875,6 +875,11 @@ static inline void security_free_mnt_opts(struct
-> security_mnt_opts *opts) *	@sock contains the listening socket structure.
->   *	@newsock contains the newly created server socket for connection.
->   *	Return 0 if permission is granted.
-> + * @socket_post_accept:
-> + *	This hook allows a security module to copy security
-> + *	information into the newly created socket's inode.
-> + *	@sock contains the listening socket structure.
-> + *	@newsock contains the newly created server socket for connection.
->   * @socket_sendmsg:
->   *	Check permission before transmitting a message to another socket.
->   *	@sock contains the socket structure.
-> @@ -1587,6 +1592,8 @@ struct security_operations {
->  			       struct sockaddr *address, int addrlen);
->  	int (*socket_listen) (struct socket *sock, int backlog);
->  	int (*socket_accept) (struct socket *sock, struct socket *newsock);
-> +	void (*socket_post_accept) (struct socket *sock,
-> +				    struct socket *newsock);
->  	int (*socket_sendmsg) (struct socket *sock,
->  			       struct msghdr *msg, int size);
->  	int (*socket_recvmsg) (struct socket *sock,
-> @@ -2555,6 +2562,7 @@ int security_socket_bind(struct socket *sock, struct
-> sockaddr *address, int addr int security_socket_connect(struct socket
-> *sock, struct sockaddr *address, int addrlen); int
-> security_socket_listen(struct socket *sock, int backlog);
->  int security_socket_accept(struct socket *sock, struct socket *newsock);
-> +void security_socket_post_accept(struct socket *sock, struct socket
-> *newsock); int security_socket_sendmsg(struct socket *sock, struct msghdr
-> *msg, int size); int security_socket_recvmsg(struct socket *sock, struct
-> msghdr *msg, int size, int flags);
-> @@ -2640,6 +2648,11 @@ static inline int security_socket_accept(struct
-> socket *sock, return 0;
->  }
-> 
-> +static inline void security_socket_post_accept(struct socket *sock,
-> +					       struct socket *newsock)
-> +{
-> +}
-> +
->  static inline int security_socket_sendmsg(struct socket *sock,
->  					  struct msghdr *msg, int size)
->  {
-> diff --git a/net/socket.c b/net/socket.c
-> index d588e9e..7807904 100644
-> --- a/net/socket.c
-> +++ b/net/socket.c
-> @@ -1535,6 +1535,8 @@ SYSCALL_DEFINE4(accept4, int, fd, struct sockaddr
-> __user *, upeer_sockaddr, goto out_fd;
->  	}
-> 
-> +	security_socket_post_accept(sock, newsock);
-> +
->  	/* File flags are not inherited via accept() unlike another OSes. */
-> 
->  	fd_install(newfd, newfile);
-> diff --git a/security/capability.c b/security/capability.c
-> index 1f8bbe2..da68c60 100644
-> --- a/security/capability.c
-> +++ b/security/capability.c
-> @@ -593,6 +593,10 @@ static int cap_socket_accept(struct socket *sock,
-> struct socket *newsock) return 0;
->  }
-> 
-> +static void cap_socket_post_accept(struct socket *sock, struct socket
-> *newsock) +{
-> +}
-> +
->  static int cap_socket_sendmsg(struct socket *sock, struct msghdr *msg, int
-> size) {
->  	return 0;
-> @@ -1022,6 +1026,7 @@ void __init security_fixup_ops(struct
-> security_operations *ops) set_to_cap_if_null(ops, socket_connect);
->  	set_to_cap_if_null(ops, socket_listen);
->  	set_to_cap_if_null(ops, socket_accept);
-> +	set_to_cap_if_null(ops, socket_post_accept);
->  	set_to_cap_if_null(ops, socket_sendmsg);
->  	set_to_cap_if_null(ops, socket_recvmsg);
->  	set_to_cap_if_null(ops, socket_getsockname);
-> diff --git a/security/security.c b/security/security.c
-> index 84187d8..eda2b75 100644
-> --- a/security/security.c
-> +++ b/security/security.c
-> @@ -1038,6 +1038,11 @@ int security_socket_accept(struct socket *sock,
-> struct socket *newsock) return security_ops->socket_accept(sock, newsock);
->  }
-> 
-> +void security_socket_post_accept(struct socket *sock, struct socket
-> *newsock) +{
-> +	security_ops->socket_post_accept(sock, newsock);
-> +}
-> +
->  int security_socket_sendmsg(struct socket *sock, struct msghdr *msg, int
-> size) {
->  	return security_ops->socket_sendmsg(sock, msg, size);
-
-
---
-paul moore
-linux @ hp
