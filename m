@@ -1,59 +1,67 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [GIT PULL nf-2.6] IPVS (Take II)
-Date: Wed, 4 May 2011 07:12:15 +0900
-Message-ID: <20110503221213.GA28540@verge.net.au>
-References: <1304406316-15636-1-git-send-email-horms@verge.net.au>
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: Re: [RFC v3 02/10] Revert "lsm: Remove the socket_post_accept() hook"
+Date: Wed, 4 May 2011 11:28:24 +0900
+Message-ID: <201105041128.BAB13061.LMHVtOSOQOFFJF@I-love.SAKURA.ne.jp>
+References: <1304432663-1575-1-git-send-email-sam@synack.fr>
+	<1304432663-1575-3-git-send-email-sam@synack.fr>
+	<201105031802.34724.paul.moore@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Wensong Zhang <wensong@linux-vs.org>, Julian Anastasov <ja@ssi.bg>,
-	Patrick McHardy <kaber@trash.net>,
-	Hans Schillstrom <hans@schillstrom.com>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	"Eric W. Biederman" <ebiederm@xmission.com>
-To: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1304406316-15636-1-git-send-email-horms@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
+Cc: linux-security-module@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, hadi@cyberus.ca, kaber@trash.net,
+	zbr@ioremap.net, root@localdomain.pl
+To: paul.moore@hp.com, sam@synack.fr
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <201105031802.34724.paul.moore@hp.com>
+Sender: linux-security-module-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, May 03, 2011 at 04:05:14PM +0900, Simon Horman wrote:
-> Hi Patrick,
+Paul Moore wrote:
+> On Tuesday, May 03, 2011 10:24:15 AM Samir Bellabes wrote:
+> > snet needs to reintroduce this hook, as it was designed to be: a hook for
+> > updating security informations on objects.
 > 
-> please consider pulling
-> git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-2.6.git for-patrick
-> to get the following fix from Hans. They resolve some problems related
-> to his netns for IPVS work which was incorporated into 2.6.39-rc1.
+> Looking at this and 5/10 again, it seems that you should be able to do what 
+> you need with the sock_graft() hook.  Am I missing something?
+> 
+> My apologies if we've already discussed this approach previously ...
 
-Sorry for all the messing about.
-A fresh version of these patches has been provided by Hans,
-and I'm looking into weather they should replace this pull request.
+static void snet_socket_post_accept(struct socket *sock, struct socket *newsock)
+{
+	static void snet_do_send_event(struct snet_info *info)
+	{
+		int snet_nl_send_event(struct snet_info *info)
+		{
+			skb_rsp = genlmsg_new(size, GFP_KERNEL);
+			genlmsg_unicast()
+		}
+	}
+}
 
-So please ignore this for now (again!).
+First problem with using snet_do_send_event() from security_sock_graft() is
+that we have to use GFP_ATOMIC rather than GFP_KERNEL because we are inside
+write_lock_bh()/write_unlock_bh().
 
-> 
-> The pull request is based on nf-2.6/master.
-> 
-> There are other less-pressing changes from Hans which
-> I plan to get you to pull into nf-next-2.6 once these
-> changes make it there (presumably via net-2.6 and then net-next-2.6).
-> 
-> Hans Schillstrom (2):
->       IPVS: Change of socket usage to enable name space exit.
->       IPVS: init and cleanup restructuring.
-> 
->  include/net/ip_vs.h              |   17 +++++
->  net/netfilter/ipvs/ip_vs_app.c   |   15 +----
->  net/netfilter/ipvs/ip_vs_conn.c  |   12 +---
->  net/netfilter/ipvs/ip_vs_core.c  |  102 ++++++++++++++++++++++++++++---
->  net/netfilter/ipvs/ip_vs_ctl.c   |  123 ++++++++++++++++++++++++++++++++------
->  net/netfilter/ipvs/ip_vs_est.c   |   14 +----
->  net/netfilter/ipvs/ip_vs_proto.c |   11 +---
->  net/netfilter/ipvs/ip_vs_sync.c  |   65 +++++++++++---------
->  8 files changed, 260 insertions(+), 99 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+static inline int genlmsg_unicast(struct net *net, struct sk_buff *skb, u32 pid)
+{
+	static inline int nlmsg_unicast(struct sock *sk, struct sk_buff *skb, u32 pid)
+	{
+		int netlink_unicast(struct sock *ssk, struct sk_buff *skb,
+			u32 pid, MSG_DONTWAIT)
+		{
+			int netlink_attachskb(struct sock *sk, struct sk_buff *skb,
+				      long *timeo, struct sock *ssk)
+			{
+				if (!*timeo) {
+					return -EAGAIN;
+			}
+		}
+	}
+}
+
+Second problem is that genlmsg_unicast() might return -EAGAIN because we can't
+sleep inside write_lock_bh()/write_unlock_bh().
+
+Third problem (though independent with security_sock_graft()) is that
+snet_do_send_event() ignores snet_nl_send_event() failure.
