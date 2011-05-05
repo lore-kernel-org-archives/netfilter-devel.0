@@ -1,7 +1,7 @@
 From: y@vger.kernel.org
 Subject: [RFC v4 08/11] snet: introduce snet_ticket
 Date: Thu,  5 May 2011 15:59:18 +0200
-Message-ID: <44957.6594554403$1304604691@news.gmane.org>
+Message-ID: <14558.9328640655$1304604691@news.gmane.org>
 References: <1304603961-2517-1-git-send-email-y>
 Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org, jamal <hadi@cyberus.ca>,
@@ -9,9 +9,9 @@ Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
 	Grzegorz Nosek <root@localdomain.pl>,
 	Samir Bellabes <sam@synack.fr>
 To: linux-security-module@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1304603961-2517-1-git-send-email-y>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Samir Bellabes <sam@synack.fr>
@@ -461,3 +461,4 @@ index 0000000..177bca5
 +#endif	/* _SNET_TICKET_HELPER_H */
 -- 
 1.7.4.1
+
