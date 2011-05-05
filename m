@@ -1,101 +1,62 @@
-From: Mansour Moufid <mansourmoufid@gmail.com>
-Subject: [PATCH] netfilter: nf_conntrack_ftp: prevent integer overflows in get_port()
-Date: Wed, 4 May 2011 18:31:34 -0400
-Message-ID: <BANLkTikp9ZV4w1E8NNsGBkftGh=jRDx5fw@mail.gmail.com>
+From: Pierre Rondou <prondou@gmail.com>
+Subject: Netfilter Module for NAT IVI available
+Date: Thu, 05 May 2011 03:18:04 +0200
+Message-ID: <4DC1FACC.4080204@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
-To: kaber@trash.net
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: guy.leduc@ulg.ac.be, evyncke@cisco.com,
+	Cyril Soldani <cyril.soldani@ulg.ac.be>
+To: behave@ietf.org, v6ops@ietf.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:62953 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753011Ab1EDWbz (ORCPT
+Received: from mailrelay004.isp.belgacom.be ([195.238.6.170]:35714 "EHLO
+	mailrelay004.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751252Ab1EEBSG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 May 2011 18:31:55 -0400
+	Wed, 4 May 2011 21:18:06 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Mansour Moufid <mansourmoufid@gmail.com>
+Hello everybody,
 
-This patch prevents potential integer overflows from occurring in the
-port number parsing function `get_port', in the file
-net/netfilter/nf_conntrack_ftp.c; related constants are defined in
-include/linux/kernel.h. This applies to stable version 2.6.38.5.
+I'm currently a student at the University of Li=E8ge. As part of my mas=
+ter=20
+thesis, I have to develop a Linux kernel module for IVI (=20
+http://datatracker.ietf.org/doc/rfc6219/ ).
 
-The concern is a firewall could be made to open an otherwise closed
-port. For example, get_port("65558?", 0, 6, '?', foo) currently
-returns 22 in *foo.
+I now consider my module as finished (i.e, all functionalities are=20
+implemented) and publish it.
 
-Signed-off-by: Mansour Moufid <mansourmoufid@gmail.com>
----
-diff -uprN -X linux-2.6.38.5-vanilla/Documentation/dontdiff
-linux-2.6.38.5-vanilla/include/linux/kernel.h
-linux-2.6.38.5/include/linux/kernel.h
---- linux-2.6.38.5-vanilla/include/linux/kernel.h	2011-05-04
-17:48:40.619103335 -0400
-+++ linux-2.6.38.5/include/linux/kernel.h	2011-05-04 18:09:12.183411601 -0400
-@@ -34,6 +34,8 @@
- #define LLONG_MAX	((long long)(~0ULL>>1))
- #define LLONG_MIN	(-LLONG_MAX - 1)
- #define ULLONG_MAX	(~0ULL)
-+#define SIZE_MAX	(~((size_t)0))
-+#define UINT16_MAX	(~((u_int16_t)0))
+It is available on sourceforge:
 
- #define STACK_MAGIC	0xdeadbeef
+http://sourceforge.net/projects/nativi/
 
-diff -uprN -X linux-2.6.38.5-vanilla/Documentation/dontdiff
-linux-2.6.38.5-vanilla/net/netfilter/nf_conntrack_ftp.c
-linux-2.6.38.5/net/netfilter/nf_conntrack_ftp.c
---- linux-2.6.38.5-vanilla/net/netfilter/nf_conntrack_ftp.c	2011-05-04
-17:14:11.533008253 -0400
-+++ linux-2.6.38.5/net/netfilter/nf_conntrack_ftp.c	2011-05-04
-18:09:38.863070568 -0400
-@@ -9,6 +9,7 @@
-  * published by the Free Software Foundation.
-  */
+=46eel free to test it and report to me any bug, bad implementation,=20
+error, ...
 
-+#include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/netfilter.h>
-@@ -162,11 +163,16 @@ static int try_rfc959(const char *data,
- }
+If you believe that this module can be included is the Linux Kernel or=20
+in the Xtables-addons framework, I'll be glad and will help you in this=
+=20
+task.
 
- /* Grab port: number up to delimiter */
--static int get_port(const char *data, int start, size_t dlen, char delim,
-+static int get_port(const char *data, size_t start, size_t dlen, char delim,
- 		    __be16 *port)
- {
- 	u_int16_t tmp_port = 0;
--	int i;
-+	size_t i;
-+
-+	if (start > SIZE_MAX - dlen) {
-+		pr_debug("get_port: invalid parameters\n");
-+		return 0;
-+	}
 
- 	for (i = start; i < dlen; i++) {
- 		/* Finished? */
-@@ -176,14 +182,18 @@ static int get_port(const char *data, in
- 			*port = htons(tmp_port);
- 			pr_debug("get_port: return %d\n", tmp_port);
- 			return i + 1;
--		}
--		else if (data[i] >= '0' && data[i] <= '9')
--			tmp_port = tmp_port*10 + data[i] - '0';
--		else { /* Some other crap */
-+		} else if (data[i] >= '0' && data[i] <= '9') {
-+			if (tmp_port > (UINT16_MAX - (data[i] - '0')) / 10) {
-+				pr_debug("get_port: integer overflow\n");
-+				break;
-+			}
-+			tmp_port = tmp_port * 10 + data[i] - '0';
-+		} else { /* Some other crap */
- 			pr_debug("get_port: invalid char.\n");
- 			break;
- 		}
- 	}
-+
- 	return 0;
- }
+I have tested my module inside the Xtables-addons framework (version=20
+1.32) on a debian squeeze (6.0.1) linux with a 2.6.32-5  kernel (i686).
+
+Because of the lack of "EXPORT_SYMBOL" in the kernel, I had to=20
+copy-paste several functions from the kernel into the=20
+nativi_kernel_code.c file in order to use some features already=20
+available in the kernel (ip_finish_output, ip6_output, icmp_send).
+
+Documentation is provided in the source code, if you have any question=20
+don't hesitate to ask me.
+
+Regards,
+
+Pierre RONDOU
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
