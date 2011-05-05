@@ -1,20 +1,16 @@
 From: y@vger.kernel.org
 Subject: [RFC v4 00/11] snet: Security for NETwork syscalls
 Date: Thu,  5 May 2011 15:59:10 +0200
-Message-ID: <28407.6223768809$1304604648@news.gmane.org>
+Message-ID: <28913.0063298673$1304604648@news.gmane.org>
 Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org, jamal <hadi@cyberus.ca>,
 	Patrick McHardy <kaber@trash.net>,
 	Grzegorz Nosek <root@localdomain.pl>,
 	Samir Bellabes <sam@synack.fr>
 To: linux-security-module@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 236.121.91-79.rev.gaoland.net ([79.91.121.236]:43793 "EHLO
-	mx.synack.fr" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1754578Ab1EEOGz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 May 2011 10:06:55 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 From: Samir Bellabes <sam@synack.fr>
 
@@ -151,4 +147,3 @@ Samir Bellabes (11):
 
 -- 
 1.7.4.1
-
