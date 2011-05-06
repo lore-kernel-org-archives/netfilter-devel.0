@@ -1,59 +1,73 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] netfilter/IPv6: initialize TOS field in REJECT target
- module
-Date: Fri, 6 May 2011 12:45:12 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1105061245070.25306@obet.zrqbmnf.qr>
-References: <1303461461.3134.15.camel@edumazet-laptop>  <4DB61C2C.7060508@netfilter.org> <1303781180.2874.13.camel@nausicaa>  <20110425.221744.226775617.davem@davemloft.net>  <1303795522.6010.5.camel@nausicaa>  <4DB6E607.6000303@netfilter.org>
- <1304670430.6581.45.camel@nexus.oss.ntt.co.jp> <4DC3CFAD.8020305@netfilter.org>
+From: Leo Baltus <Leo.Baltus@omroep.nl>
+Subject: Re: ip6tables breaks dnssec?
+Date: Fri, 6 May 2011 16:05:05 +0200
+Message-ID: <20110506140505.GG27268@omroep.nl>
+References: <20110427085755.GD2418@omroep.nl>
+ <alpine.LNX.2.01.1104271200480.12004@obet.zrqbmnf.qr>
+ <4DB7F347.1080107@gmail.com>
+ <alpine.LNX.2.01.1104271321060.10844@obet.zrqbmnf.qr>
+ <20110427114138.GC9859@omroep.nl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: =?UTF-8?Q?Fernando_Luis_V=C3=A1zquez_Cao?= <fernando@oss.ntt.co.jp>,
-	David Miller <davem@davemloft.net>, eric.dumazet@gmail.com,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	yoshfuji@linux-ipv6.org, Patrick McHardy <kaber@trash.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Ulrich Weber <ulrich.weber@googlemail.com>,
+	netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:37247 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752388Ab1EFKpN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 May 2011 06:45:13 -0400
-In-Reply-To: <4DC3CFAD.8020305@netfilter.org>
+Received: from out1b.mail.omroep.nl ([145.58.30.185]:49744 "EHLO
+	out1b.mail.omroep.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756260Ab1EFOFI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 6 May 2011 10:05:08 -0400
+Content-Disposition: inline
+In-Reply-To: <20110427114138.GC9859@omroep.nl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 2011-05-06 12:38, Pablo Neira Ayuso wrote:
+Op 27/04/2011 om 13:41:39 +0200, schreef Leo Baltus:
+> Op 27/04/2011 om 13:22:57 +0200, schreef Jan Engelhardt:
+> > On Wednesday 2011-04-27 12:43, Ulrich Weber wrote:
+> > 
+> > >Each fragmented IPv6 packets will traverse netfilter separately,
+> > >in contrast to IPv4, where its only one refragmented packet.
+> > 
+> > Not really. All fragments enter nf_hook_slow, be it IPv4 or IPv6.
+> > It's just that nf_defrag - which is a netfilter module - collects and 
+> > suppresses fragments before spitting out the unfragmented one.
+> > 
+> > >"ip6tables -A INPUT -j ACCEPT -p udp --dport 53" will only match the
+> > >first fragment, where the UDP header can be found. To match the
+> > >additional fragments, you have to insert these rules:
+> > >
+> > >ip6tables -I INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+> > >ip6tables -I OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+> > 
+> > That will load nf_conntrack_ipv6, and because conntrack depends on 
+> > nf_defrag_ipv6, will load that too. Once it is loaded, packets should 
+> > be defragmented independetly of whether you actually use -m conntrack 
+> > (or the obsolete -m state) or not.
+> 
+> my /proc/config.gs says:
+> CONFIG_NF_CONNTRACK_IPV6=y
+> so it is already loaded
+> 
+> But is does not defrag.
+> 
 
->On 06/05/11 10:27, Fernando Luis V=C3=A1zquez Cao wrote:
->> On Tue, 2011-04-26 at 17:34 +0200, Pablo Neira Ayuso wrote:
->>> On 26/04/11 07:25, Fernando Luis Vazquez Cao wrote:
->>>> Pablo, could you pull in the two patches below? They have already =
-been
->>>> acked by Eric. It would be great it we could get them merged for t=
-he
->>>> next -rc and stable releases.
->>>>
->>>> [PATCH] netfilter/IPv6: fix DSCP mangle code
->>>> [PATCH] netfilter/IPv6: initialize TOS field in REJECT target modu=
-le
->>>
->>> Patrick is the primary link to take patches, I'm including him in t=
-his
->>> CC. If he experiences any problem, I'll make sure that these hit -r=
-c, so
->>> never mind.
->>=20
->> It seems that the two patches above did not make it into 2.6.39-rc6.=
- Any
->> chance we can get them merged before 2.6.39 is released?
->
->I'll pick them and push them to davem by monday. Thanks!
+So is this a bug? Given the state ip6tables is now in the only way to
+make defrag work is to set '--state RELATED,ESTABLISHED'. As I
+understand it, this should not be the case, right?
 
-Also revert a2361c8735e07322023aedc36e4938b35af31eb0 please.
+> Also I am a bit worried about using conntrack because of the high
+> volume dns queries tend to be which would generate a very large
+> connectiontracking table and/or system load.
+> 
 
+I am not sure if this is true or not for fragments, but for heavy tcp
+traffic (http) we use raw/NOTRACK to avoid conntrack, how would that work
+with ip6tables considering heavy fragmented (http or dns) traffic?
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Leo Baltus, internetbeheerder                         /\
+NPO ICT Internet Services                            /NPO/\
+Sumatralaan 45, 1217 GP Hilversum, Filmcentrum, west \  /\/
+beheer@omroep.nl, 035-6773555                         \/
