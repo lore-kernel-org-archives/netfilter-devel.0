@@ -1,52 +1,47 @@
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: Re: [RFC v3 02/10] Revert "lsm: Remove the socket_post_accept() hook"
-Date: Fri, 6 May 2011 06:43:42 +0900
-Message-ID: <201105060643.JBD90633.MOQJtSFFLFHOOV@I-love.SAKURA.ne.jp>
-References: <1304432663-1575-1-git-send-email-sam@synack.fr>
-	<201105031802.34724.paul.moore@hp.com>
-	<201105041128.BAB13061.LMHVtOSOQOFFJF@I-love.SAKURA.ne.jp>
-	<201105051011.32845.paul.moore@hp.com>
+From: Fernando Luis =?ISO-8859-1?Q?V=E1zquez?= Cao
+	<fernando@oss.ntt.co.jp>
+Subject: Re: [PATCH] netfilter/IPv6: initialize TOS field in REJECT target
+ module
+Date: Fri, 06 May 2011 17:27:10 +0900
+Message-ID: <1304670430.6581.45.camel@nexus.oss.ntt.co.jp>
+References: <1303461461.3134.15.camel@edumazet-laptop>
+	 <4DB61C2C.7060508@netfilter.org> <1303781180.2874.13.camel@nausicaa>
+	 <20110425.221744.226775617.davem@davemloft.net>
+	 <1303795522.6010.5.camel@nausicaa>  <4DB6E607.6000303@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-security-module@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, hadi@cyberus.ca, kaber@trash.net,
-	zbr@ioremap.net, root@localdomain.pl
-To: paul.moore@hp.com, sam@synack.fr
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <201105051011.32845.paul.moore@hp.com>
-Sender: linux-security-module-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: David Miller <davem@davemloft.net>, eric.dumazet@gmail.com,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	yoshfuji@linux-ipv6.org, jengelh@medozas.de,
+	Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from serv2.oss.ntt.co.jp ([222.151.198.100]:52709 "EHLO
+	serv2.oss.ntt.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753761Ab1EFI1M (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 6 May 2011 04:27:12 -0400
+In-Reply-To: <4DB6E607.6000303@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Paul Moore wrote:
-> On Tuesday, May 03, 2011 10:28:24 PM Tetsuo Handa wrote:
-> > Paul Moore wrote:
-> > > On Tuesday, May 03, 2011 10:24:15 AM Samir Bellabes wrote:
-> > > > snet needs to reintroduce this hook, as it was designed to be: a hook
-> > > > for updating security informations on objects.
-> > > 
-> > > Looking at this and 5/10 again, it seems that you should be able to do
-> > > what you need with the sock_graft() hook.  Am I missing something?
-> > > 
-> > > My apologies if we've already discussed this approach previously ...
+On Tue, 2011-04-26 at 17:34 +0200, Pablo Neira Ayuso wrote:
+> On 26/04/11 07:25, Fernando Luis Vazquez Cao wrote:
+> > Pablo, could you pull in the two patches below? They have already been
+> > acked by Eric. It would be great it we could get them merged for the
+> > next -rc and stable releases.
 > > 
-> > Second problem is that genlmsg_unicast() might return -EAGAIN because we
-> > can't sleep inside write_lock_bh()/write_unlock_bh().
+> > [PATCH] netfilter/IPv6: fix DSCP mangle code
+> > [PATCH] netfilter/IPv6: initialize TOS field in REJECT target module
 > 
-> Ah yes, the real problem.  I forgot that snet relied on a user space tool.  I 
-> tend to agree with others who have suggested this is not the right approach, 
-> but I understand why you want the post_accept() hook; thanks for reminding me.
-> 
-However, it sounds that Samir says genlmsg_unicast() failure is not fatal.
+> Patrick is the primary link to take patches, I'm including him in this
+> CC. If he experiences any problem, I'll make sure that these hit -rc, so
+> never mind.
 
-Samir Bellabes wrote:
-> using snet_do_send_event() means that system is sending data to
-> userspace. the system is not waiting for a verdict from userspace.
-> 
-> If error occurs, we actually loose the information data.
-> I may be able to write a solution which try to send the data again, but
-> we need a exit solution for this loop (a number of try ?).
+It seems that the two patches above did not make it into 2.6.39-rc6. Any
+chance we can get them merged before 2.6.39 is released?
 
-If genlmsg_unicast() failure is not fatal, snet doesn't need the
-socket_post_accept hook. Samir, is genlmsg_unicast() failure fatal for snet?
-(Although, I'd like to ask for revival of the hook for TOMOYO anyway.)
+Thanks,
+Fernando
+
