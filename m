@@ -1,48 +1,38 @@
-From: Lutz Jaenicke <ljaenicke@innominate.com>
-Subject: [PATCH] Fix reversed logic when implictly loading protocol matches
-Date: Sat,  7 May 2011 14:46:54 +0200
-Message-ID: <1304772414-17294-1-git-send-email-ljaenicke@innominate.com>
-Cc: Lutz Jaenicke <ljaenicke@innominate.com>
-To: netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] Fix reversed logic when implictly loading protocol
+ matches
+Date: Sat, 7 May 2011 16:52:34 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1105071650590.31190@obet.zrqbmnf.qr>
+References: <1304772414-17294-1-git-send-email-ljaenicke@innominate.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Lutz Jaenicke <ljaenicke@innominate.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from host2.bln.innominate.com ([77.245.32.75]:57616 "EHLO
-	home.innominate.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753929Ab1EGMrI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 7 May 2011 08:47:08 -0400
+Received: from borg.medozas.de ([188.40.89.202]:38495 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755289Ab1EGOwg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 7 May 2011 10:52:36 -0400
+In-Reply-To: <1304772414-17294-1-git-send-email-ljaenicke@innominate.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If the protocol module has already been loaded (find_proto()
-is succesfull) would but has not yet been activated for this command
-(proto_used is not yet set), we have to activate the protocol
-specific match for this command.
-Without the modification iptables-restore will fail if an
-implicitly loaded protocol match is used for the second time.
-  ...
-  -A somechain -p udp --dport 500 -j ACCEPT
-  -A somechain -p udp --dport 4500 -j ACCEPT
-  ...
-will fail for the "4500" line with '--dport" being an unknown option.
+On Saturday 2011-05-07 14:46, Lutz Jaenicke wrote:
 
-Signed-off-by: Lutz Jaenicke <ljaenicke@innominate.com>
----
- xshared.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+>If the protocol module has already been loaded (find_proto()
+>is succesfull) would but has not yet been activated for this command
+>(proto_used is not yet set), we have to activate the protocol
+>specific match for this command.
+>Without the modification iptables-restore will fail if an
+>implicitly loaded protocol match is used for the second time.
+>  ...
+>  -A somechain -p udp --dport 500 -j ACCEPT
+>  -A somechain -p udp --dport 4500 -j ACCEPT
+>  ...
+>will fail for the "4500" line with '--dport" being an unknown option.
 
-diff --git a/xshared.c b/xshared.c
-index 404a9f5..87402b4 100644
---- a/xshared.c
-+++ b/xshared.c
-@@ -92,7 +92,7 @@ static bool should_load_proto(struct iptables_command_state *cs)
- 	if (find_proto(cs->protocol, XTF_DONT_LOAD,
- 	    cs->options & OPT_NUMERIC, NULL) == NULL)
- 		return true;
--	return cs->proto_used;
-+	return !cs->proto_used;
- }
- 
- struct xtables_match *load_proto(struct iptables_command_state *cs)
--- 
-1.7.2.5
+It was here previously:
+http://www.spinics.net/lists/netfilter-devel/msg17530.html
 
+But it was not picked up.. [maintenance needs to be reevaluated I 
+suppose]
