@@ -1,38 +1,43 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] Fix reversed logic when implictly loading protocol
- matches
-Date: Sat, 7 May 2011 16:52:34 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1105071650590.31190@obet.zrqbmnf.qr>
-References: <1304772414-17294-1-git-send-email-ljaenicke@innominate.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Lutz Jaenicke <ljaenicke@innominate.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:38495 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755289Ab1EGOwg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 7 May 2011 10:52:36 -0400
-In-Reply-To: <1304772414-17294-1-git-send-email-ljaenicke@innominate.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: [GIT PULL nf-2.6] IPVS (take III)
+Date: Mon,  9 May 2011 08:17:49 +0900
+Message-ID: <1304896671-29384-1-git-send-email-horms@verge.net.au>
+Cc: Wensong Zhang <wensong@linux-vs.org>, Julian Anastasov <ja@ssi.bg>,
+	Patrick McHardy <kaber@trash.net>,
+	Hans Schillstrom <hans@schillstrom.com>,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	"Eric W. Biederman" <ebiederm@xmission.com>
+To: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Saturday 2011-05-07 14:46, Lutz Jaenicke wrote:
+please consider pulling
 
->If the protocol module has already been loaded (find_proto()
->is succesfull) would but has not yet been activated for this command
->(proto_used is not yet set), we have to activate the protocol
->specific match for this command.
->Without the modification iptables-restore will fail if an
->implicitly loaded protocol match is used for the second time.
->  ...
->  -A somechain -p udp --dport 500 -j ACCEPT
->  -A somechain -p udp --dport 4500 -j ACCEPT
->  ...
->will fail for the "4500" line with '--dport" being an unknown option.
+  git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-2.6.git for-nf-2.6
 
-It was here previously:
-http://www.spinics.net/lists/netfilter-devel/msg17530.html
+to get the following fix from Hans. They resolve some problems related
+to his netns for IPVS work which was incorporated into 2.6.39-rc1.
 
-But it was not picked up.. [maintenance needs to be reevaluated I 
-suppose]
+The pull request is based on nf-2.6/master.
+
+There are other less-pressing changes from Hans which
+I plan to get you to pull into nf-next-2.6 once these
+changes make it there (presumably via net-2.6 and then net-next-2.6).
+
+There are minor changes since take II.
+
+Hans Schillstrom (2):
+      IPVS: Change of socket usage to enable name space exit.
+      IPVS: init and cleanup restructuring
+
+ include/net/ip_vs.h              |   17 +++++
+ net/netfilter/ipvs/ip_vs_app.c   |   15 +----
+ net/netfilter/ipvs/ip_vs_conn.c  |   12 +---
+ net/netfilter/ipvs/ip_vs_core.c  |  103 +++++++++++++++++++++++++++++---
+ net/netfilter/ipvs/ip_vs_ctl.c   |  120 ++++++++++++++++++++++++++++++++------
+ net/netfilter/ipvs/ip_vs_est.c   |   14 +----
+ net/netfilter/ipvs/ip_vs_proto.c |   11 +---
+ net/netfilter/ipvs/ip_vs_sync.c  |   65 ++++++++++++---------
+ 8 files changed, 258 insertions(+), 99 deletions(-)
