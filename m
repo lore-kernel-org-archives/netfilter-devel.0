@@ -1,257 +1,533 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 04/17] libxtables: do not overlay addr and mask parts, and cleanup
-Date: Mon,  9 May 2011 21:54:58 +0200
-Message-ID: <1304970912-11520-5-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 07/17] libxt_hashlimit: use guided option parser
+Date: Mon,  9 May 2011 21:55:01 +0200
+Message-ID: <1304970912-11520-8-git-send-email-jengelh@medozas.de>
 References: <1304970912-11520-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:49337 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:49349 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754448Ab1EITzV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 May 2011 15:55:21 -0400
+	id S1754585Ab1EITzY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 May 2011 15:55:24 -0400
 In-Reply-To: <1304970912-11520-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-XTTYPE_HOSTMASK will require that what has now become haddr,
-hmask/hlen are not overlays of another. Thus relax the structure and
-always set all members of the {haddr, hmask, hlen} triplet now for all
-types that touch any of the members.
-
-Add some more comments and clean out ONEHOST.
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libxt_TEE.c    |    2 +-
- extensions/libxt_TPROXY.c |    6 ++--
- include/xtables.h.in      |   17 +++++++++++---
- xtoptions.c               |   50 +++++++++++++++++++++++++++-----------------
- 4 files changed, 48 insertions(+), 27 deletions(-)
+ extensions/libxt_hashlimit.c |  419 +++++++++++++-----------------------------
+ 1 files changed, 129 insertions(+), 290 deletions(-)
 
-diff --git a/extensions/libxt_TEE.c b/extensions/libxt_TEE.c
-index fd9a1b2..c89e580 100644
---- a/extensions/libxt_TEE.c
-+++ b/extensions/libxt_TEE.c
-@@ -31,7 +31,7 @@ enum {
+diff --git a/extensions/libxt_hashlimit.c b/extensions/libxt_hashlimit.c
+index cd057c5..e683f9a 100644
+--- a/extensions/libxt_hashlimit.c
++++ b/extensions/libxt_hashlimit.c
+@@ -15,9 +15,7 @@
+ #include <stdio.h>
+ #include <string.h>
+ #include <stdlib.h>
+-#include <getopt.h>
+ #include <xtables.h>
+-#include <stddef.h>
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_hashlimit.h>
  
- #define s struct xt_tee_tginfo
- static const struct xt_option_entry tee_tg_opts[] = {
--	{.name = "gateway", .id = O_GATEWAY, .type = XTTYPE_ONEHOST,
-+	{.name = "gateway", .id = O_GATEWAY, .type = XTTYPE_HOST,
- 	 .flags = XTOPT_MAND | XTOPT_PUT, XTOPT_POINTER(s, gw)},
- 	{.name = "oif", .id = O_OIF, .type = XTTYPE_STRING,
- 	 .flags = XTOPT_PUT, XTOPT_POINTER(s, oif)},
-diff --git a/extensions/libxt_TPROXY.c b/extensions/libxt_TPROXY.c
-index 5264ea7..61646c9 100644
---- a/extensions/libxt_TPROXY.c
-+++ b/extensions/libxt_TPROXY.c
-@@ -22,7 +22,7 @@ enum {
- static const struct xt_option_entry tproxy_tg0_opts[] = {
- 	{.name = "on-port", .id = P_PORT, .type = XTTYPE_PORT_NE,
- 	 .flags = XTOPT_MAND | XTOPT_PUT, XTOPT_POINTER(s, lport)},
--	{.name = "on-ip", .id = P_ADDR, .type = XTTYPE_ONEHOST},
-+	{.name = "on-ip", .id = P_ADDR, .type = XTTYPE_HOST},
- 	{.name = "tproxy-mark", .id = P_MARK, .type = XTTYPE_MARKMASK32},
- 	XTOPT_TABLEEND,
+@@ -45,6 +43,23 @@ static void hashlimit_help(void)
+ XT_HASHLIMIT_BURST);
+ }
+ 
++enum {
++	O_UPTO = 0,
++	O_ABOVE,
++	O_LIMIT,
++	O_MODE,
++	O_SRCMASK,
++	O_DSTMASK,
++	O_NAME,
++	O_BURST,
++	O_HTABLE_SIZE,
++	O_HTABLE_MAX,
++	O_HTABLE_GCINT,
++	O_HTABLE_EXPIRE,
++	F_UPTO  = 1 << O_UPTO,
++	F_ABOVE = 1 << O_ABOVE,
++};
++
+ static void hashlimit_mt_help(void)
+ {
+ 	printf(
+@@ -66,33 +81,64 @@ static void hashlimit_mt_help(void)
+ "\n", XT_HASHLIMIT_BURST);
+ }
+ 
+-static const struct option hashlimit_opts[] = {
+-	{.name = "hashlimit",                   .has_arg = true, .val = '%'},
+-	{.name = "hashlimit-burst",             .has_arg = true, .val = '$'},
+-	{.name = "hashlimit-htable-size",       .has_arg = true, .val = '&'},
+-	{.name = "hashlimit-htable-max",        .has_arg = true, .val = '*'},
+-	{.name = "hashlimit-htable-gcinterval", .has_arg = true, .val = '('},
+-	{.name = "hashlimit-htable-expire",     .has_arg = true, .val = ')'},
+-	{.name = "hashlimit-mode",              .has_arg = true, .val = '_'},
+-	{.name = "hashlimit-name",              .has_arg = true, .val = '"'},
+-	XT_GETOPT_TABLEEND,
++#define s struct xt_hashlimit_info
++static const struct xt_option_entry hashlimit_opts[] = {
++	{.name = "hashlimit", .id = O_UPTO, .excl = F_ABOVE,
++	 .type = XTTYPE_STRING, .flags = XTOPT_INVERT},
++	{.name = "hashlimit-burst", .id = O_BURST, .type = XTTYPE_UINT32,
++	 .min = 1, .max = 10000, .flags = XTOPT_PUT,
++	 XTOPT_POINTER(s, cfg.burst)},
++	{.name = "hashlimit-htable-size", .id = O_HTABLE_SIZE,
++	 .type = XTTYPE_UINT32, .flags = XTOPT_PUT,
++	 XTOPT_POINTER(s, cfg.size)},
++	{.name = "hashlimit-htable-max", .id = O_HTABLE_MAX,
++	 .type = XTTYPE_UINT32, .flags = XTOPT_PUT,
++	 XTOPT_POINTER(s, cfg.max)},
++	{.name = "hashlimit-htable-gcinterval", .id = O_HTABLE_GCINT,
++	 .type = XTTYPE_UINT32, .flags = XTOPT_PUT,
++	 XTOPT_POINTER(s, cfg.gc_interval)},
++	{.name = "hashlimit-htable-expire", .id = O_HTABLE_EXPIRE,
++	 .type = XTTYPE_UINT32, .flags = XTOPT_PUT,
++	 XTOPT_POINTER(s, cfg.expire)},
++	{.name = "hashlimit-mode", .id = O_MODE, .type = XTTYPE_STRING,
++	 .flags = XTOPT_MAND},
++	{.name = "hashlimit-name", .id = O_NAME, .type = XTTYPE_STRING,
++	 .flags = XTOPT_MAND | XTOPT_PUT, XTOPT_POINTER(s, name), .min = 1},
++	XTOPT_TABLEEND,
  };
-@@ -31,7 +31,7 @@ static const struct xt_option_entry tproxy_tg0_opts[] = {
- static const struct xt_option_entry tproxy_tg1_opts[] = {
- 	{.name = "on-port", .id = P_PORT, .type = XTTYPE_PORT_NE,
- 	 .flags = XTOPT_MAND | XTOPT_PUT, XTOPT_POINTER(s, lport)},
--	{.name = "on-ip", .id = P_ADDR, .type = XTTYPE_ONEHOST,
-+	{.name = "on-ip", .id = P_ADDR, .type = XTTYPE_HOST,
- 	 .flags = XTOPT_PUT, XTOPT_POINTER(s, laddr)},
- 	{.name = "tproxy-mark", .id = P_MARK, .type = XTTYPE_MARKMASK32},
- 	XTOPT_TABLEEND,
-@@ -129,7 +129,7 @@ static void tproxy_tg0_parse(struct xt_option_call *cb)
- 		info->mark_mask  = cb->val.mask;
+-
+-static const struct option hashlimit_mt_opts[] = {
+-	{.name = "hashlimit-upto",              .has_arg = true, .val = '%'},
+-	{.name = "hashlimit-above",             .has_arg = true, .val = '^'},
+-	{.name = "hashlimit",                   .has_arg = true, .val = '%'},
+-	{.name = "hashlimit-srcmask",           .has_arg = true, .val = '<'},
+-	{.name = "hashlimit-dstmask",           .has_arg = true, .val = '>'},
+-	{.name = "hashlimit-burst",             .has_arg = true, .val = '$'},
+-	{.name = "hashlimit-htable-size",       .has_arg = true, .val = '&'},
+-	{.name = "hashlimit-htable-max",        .has_arg = true, .val = '*'},
+-	{.name = "hashlimit-htable-gcinterval", .has_arg = true, .val = '('},
+-	{.name = "hashlimit-htable-expire",     .has_arg = true, .val = ')'},
+-	{.name = "hashlimit-mode",              .has_arg = true, .val = '_'},
+-	{.name = "hashlimit-name",              .has_arg = true, .val = '"'},
+-	XT_GETOPT_TABLEEND,
++#undef s
++
++#define s struct xt_hashlimit_mtinfo1
++static const struct xt_option_entry hashlimit_mt_opts[] = {
++	{.name = "hashlimit-upto", .id = O_UPTO, .excl = F_ABOVE,
++	 .type = XTTYPE_STRING, .flags = XTOPT_INVERT},
++	{.name = "hashlimit-above", .id = O_ABOVE, .excl = F_UPTO,
++	 .type = XTTYPE_STRING, .flags = XTOPT_INVERT},
++	{.name = "hashlimit", .id = O_UPTO, .excl = F_ABOVE,
++	 .type = XTTYPE_STRING, .flags = XTOPT_INVERT}, /* old name */
++	{.name = "hashlimit-srcmask", .id = O_SRCMASK, .type = XTTYPE_PLEN},
++	{.name = "hashlimit-dstmask", .id = O_DSTMASK, .type = XTTYPE_PLEN},
++	{.name = "hashlimit-burst", .id = O_BURST, .type = XTTYPE_UINT32,
++	 .min = 1, .max = 10000, .flags = XTOPT_PUT,
++	 XTOPT_POINTER(s, cfg.burst)},
++	{.name = "hashlimit-htable-size", .id = O_HTABLE_SIZE,
++	 .type = XTTYPE_UINT32, .flags = XTOPT_PUT,
++	 XTOPT_POINTER(s, cfg.size)},
++	{.name = "hashlimit-htable-max", .id = O_HTABLE_MAX,
++	 .type = XTTYPE_UINT32, .flags = XTOPT_PUT,
++	 XTOPT_POINTER(s, cfg.max)},
++	{.name = "hashlimit-htable-gcinterval", .id = O_HTABLE_GCINT,
++	 .type = XTTYPE_UINT32, .flags = XTOPT_PUT,
++	 XTOPT_POINTER(s, cfg.gc_interval)},
++	{.name = "hashlimit-htable-expire", .id = O_HTABLE_EXPIRE,
++	 .type = XTTYPE_UINT32, .flags = XTOPT_PUT,
++	 XTOPT_POINTER(s, cfg.expire)},
++	{.name = "hashlimit-mode", .id = O_MODE, .type = XTTYPE_STRING},
++	{.name = "hashlimit-name", .id = O_NAME, .type = XTTYPE_STRING,
++	 .flags = XTOPT_MAND | XTOPT_PUT, XTOPT_POINTER(s, name), .min = 1},
++	XTOPT_TABLEEND,
+ };
++#undef s
+ 
+ static
+ int parse_rate(const char *rate, uint32_t *val)
+@@ -165,7 +211,7 @@ static void hashlimit_mt6_init(struct xt_entry_match *match)
+ }
+ 
+ /* Parse a 'mode' parameter into the required bitmask */
+-static int parse_mode(uint32_t *mode, char *option_arg)
++static int parse_mode(uint32_t *mode, const char *option_arg)
+ {
+ 	char *tok;
+ 	char *arg = strdup(option_arg);
+@@ -193,280 +239,73 @@ static int parse_mode(uint32_t *mode, char *option_arg)
+ 	return 0;
+ }
+ 
+-enum {
+-	PARAM_LIMIT      = 1 << 0,
+-	PARAM_BURST      = 1 << 1,
+-	PARAM_MODE       = 1 << 2,
+-	PARAM_NAME       = 1 << 3,
+-	PARAM_SIZE       = 1 << 4,
+-	PARAM_MAX        = 1 << 5,
+-	PARAM_GCINTERVAL = 1 << 6,
+-	PARAM_EXPIRE     = 1 << 7,
+-	PARAM_SRCMASK    = 1 << 8,
+-	PARAM_DSTMASK    = 1 << 9,
+-};
+-
+-static int
+-hashlimit_parse(int c, char **argv, int invert, unsigned int *flags,
+-                const void *entry, struct xt_entry_match **match)
++static void hashlimit_parse(struct xt_option_call *cb)
+ {
+-	struct xt_hashlimit_info *r = 
+-			(struct xt_hashlimit_info *)(*match)->data;
+-	unsigned int num;
+-
+-	switch(c) {
+-	case '%':
+-		xtables_param_act(XTF_ONLY_ONCE, "hashlimit", "--hashlimit",
+-		          *flags & PARAM_LIMIT);
+-		if (xtables_check_inverse(optarg, &invert, &optind, 0, argv)) break;
+-		if (!parse_rate(optarg, &r->cfg.avg))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "bad rate `%s'", optarg);
+-		*flags |= PARAM_LIMIT;
+-		break;
++	struct xt_hashlimit_info *info = cb->data;
+ 
+-	case '$':
+-		xtables_param_act(XTF_ONLY_ONCE, "hashlimit", "--hashlimit-burst",
+-		          *flags & PARAM_BURST);
+-		if (xtables_check_inverse(optarg, &invert, &optind, 0, argv)) break;
+-		if (!xtables_strtoui(optarg, NULL, &num, 0, 10000))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "bad --hashlimit-burst `%s'", optarg);
+-		r->cfg.burst = num;
+-		*flags |= PARAM_BURST;
+-		break;
+-	case '&':
+-		xtables_param_act(XTF_ONLY_ONCE, "hashlimit", "--hashlimit-htable-size",
+-		          *flags & PARAM_SIZE);
+-		if (xtables_check_inverse(optarg, &invert, &optind, 0, argv)) break;
+-		if (!xtables_strtoui(optarg, NULL, &num, 0, UINT32_MAX))
+-			xtables_error(PARAMETER_PROBLEM,
+-				"bad --hashlimit-htable-size: `%s'", optarg);
+-		r->cfg.size = num;
+-		*flags |= PARAM_SIZE;
+-		break;
+-	case '*':
+-		xtables_param_act(XTF_ONLY_ONCE, "hashlimit", "--hashlimit-htable-max",
+-		          *flags & PARAM_MAX);
+-		if (xtables_check_inverse(optarg, &invert, &optind, 0, argv)) break;
+-		if (!xtables_strtoui(optarg, NULL, &num, 0, UINT32_MAX))
+-			xtables_error(PARAMETER_PROBLEM,
+-				"bad --hashlimit-htable-max: `%s'", optarg);
+-		r->cfg.max = num;
+-		*flags |= PARAM_MAX;
+-		break;
+-	case '(':
+-		xtables_param_act(XTF_ONLY_ONCE, "hashlimit",
+-		          "--hashlimit-htable-gcinterval",
+-		          *flags & PARAM_GCINTERVAL);
+-		if (xtables_check_inverse(optarg, &invert, &optind, 0, argv)) break;
+-		if (!xtables_strtoui(optarg, NULL, &num, 0, UINT32_MAX))
+-			xtables_error(PARAMETER_PROBLEM,
+-				"bad --hashlimit-htable-gcinterval: `%s'", 
+-				optarg);
+-		/* FIXME: not HZ dependent!! */
+-		r->cfg.gc_interval = num;
+-		*flags |= PARAM_GCINTERVAL;
+-		break;
+-	case ')':
+-		xtables_param_act(XTF_ONLY_ONCE, "hashlimit",
+-		          "--hashlimit-htable-expire", *flags & PARAM_EXPIRE);
+-		if (xtables_check_inverse(optarg, &invert, &optind, 0, argv)) break;
+-		if (!xtables_strtoui(optarg, NULL, &num, 0, UINT32_MAX))
+-			xtables_error(PARAMETER_PROBLEM,
+-				"bad --hashlimit-htable-expire: `%s'", optarg);
+-		/* FIXME: not HZ dependent */
+-		r->cfg.expire = num;
+-		*flags |= PARAM_EXPIRE;
++	xtables_option_parse(cb);
++	switch (cb->entry->id) {
++	case O_UPTO:
++		if (cb->invert)
++			info->cfg.mode |= XT_HASHLIMIT_INVERT;
++		if (!parse_rate(cb->arg, &info->cfg.avg))
++			xtables_param_act(XTF_BAD_VALUE, "hashlimit",
++			          "--hashlimit-upto", cb->arg);
  		break;
- 	case P_ADDR:
--		info->laddr = cb->val.inetaddr.ip;
-+		info->laddr = cb->val.haddr.ip;
+-	case '_':
+-		xtables_param_act(XTF_ONLY_ONCE, "hashlimit", "--hashlimit-mode",
+-		          *flags & PARAM_MODE);
+-		if (xtables_check_inverse(optarg, &invert, &optind, 0, argv)) break;
+-		if (parse_mode(&r->cfg.mode, optarg) < 0)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "bad --hashlimit-mode: `%s'\n", optarg);
+-		*flags |= PARAM_MODE;
++	case O_ABOVE:
++		if (!cb->invert)
++			info->cfg.mode |= XT_HASHLIMIT_INVERT;
++		if (!parse_rate(cb->arg, &info->cfg.avg))
++			xtables_param_act(XTF_BAD_VALUE, "hashlimit",
++			          "--hashlimit-above", cb->arg);
+ 		break;
+-	case '"':
+-		xtables_param_act(XTF_ONLY_ONCE, "hashlimit", "--hashlimit-name",
+-		          *flags & PARAM_NAME);
+-		if (xtables_check_inverse(optarg, &invert, &optind, 0, argv)) break;
+-		if (strlen(optarg) == 0)
+-			xtables_error(PARAMETER_PROBLEM, "Zero-length name?");
+-		strncpy(r->name, optarg, sizeof(r->name));
+-		*flags |= PARAM_NAME;
++	case O_MODE:
++		if (parse_mode(&info->cfg.mode, cb->arg) < 0)
++			xtables_param_act(XTF_BAD_VALUE, "hashlimit",
++			          "--hashlimit-mode", cb->arg);
  		break;
  	}
- }
-diff --git a/include/xtables.h.in b/include/xtables.h.in
-index a760755..c9ad523 100644
---- a/include/xtables.h.in
-+++ b/include/xtables.h.in
-@@ -46,6 +46,12 @@ struct in_addr;
- #define XTOPT_TABLEEND {.name = NULL}
- 
- /**
-+ * Select the format the input has to conform to, as well as the target type
-+ * (area pointed to with XTOPT_POINTER). Note that the storing is not always
-+ * uniform. @cb->val will be populated with as much as there is space, i.e.
-+ * exactly 2 items for ranges, but the target area can receive more values
-+ * (e.g. in case of ranges), or less values (e.g. %XTTYPE_HOSTMASK).
-+ *
-  * %XTTYPE_NONE:	option takes no argument
-  * %XTTYPE_UINT*:	standard integer
-  * %XTTYPE_UINT*RC:	colon-separated range of standard integers
-@@ -54,12 +60,12 @@ struct in_addr;
-  * %XTTYPE_TOSMASK:	8-bit TOS value with optional mask
-  * %XTTYPE_MARKMASK32:	32-bit mark with optional mask
-  * %XTTYPE_SYSLOGLEVEL:	syslog level by name or number
-- * %XTTYPE_ONEHOST:	one host or address (union nf_inet_addr)
-+ * %XTTYPE_HOST:	one host or address (ptr: union nf_inet_addr)
-  * %XTTYPE_PORT:	16-bit port name or number
-  * %XTTYPE_PORT_NE:	16-bit port name or number, stored as network-endian
-  * %XTTYPE_PORTRC:	colon-separated port range (names acceptable)
-  * %XTTYPE_PORTRC_NE:	same as %XTTYPE_PORTRC, stored in network-endian
-- * %XTTYPE_PLENMASK:	prefix len stored as union nf_inet_addr
-+ * %XTTYPE_PLENMASK:	prefix length (ptr: union nf_inet_addr)
-  */
- enum xt_option_type {
- 	XTTYPE_NONE,
-@@ -76,7 +82,7 @@ enum xt_option_type {
- 	XTTYPE_TOSMASK,
- 	XTTYPE_MARKMASK32,
- 	XTTYPE_SYSLOGLEVEL,
--	XTTYPE_ONEHOST,
-+	XTTYPE_HOST,
- 	XTTYPE_PORT,
- 	XTTYPE_PORT_NE,
- 	XTTYPE_PORTRC,
-@@ -141,7 +147,10 @@ struct xt_option_call {
- 		uint32_t u32, u32_range[2];
- 		uint64_t u64, u64_range[2];
- 		double dbl;
--		union nf_inet_addr inetaddr, inetmask;
-+		struct {
-+			union nf_inet_addr haddr, hmask;
-+			uint8_t hlen;
-+		};
- 		struct {
- 			uint8_t tos_value, tos_mask;
- 		};
-diff --git a/xtoptions.c b/xtoptions.c
-index 2bd66f9..f8031bb 100644
---- a/xtoptions.c
-+++ b/xtoptions.c
-@@ -419,9 +419,11 @@ static socklen_t xtables_sa_hostlen(unsigned int afproto)
- }
- 
- /**
-- * Accepts: a hostname (DNS), or a single inetaddr.
-+ * Accepts: a hostname (DNS), or a single inetaddr - without any mask. The
-+ * result is stored in @cb->val.haddr. Additionally, @cb->val.hmask and
-+ * @cb->val.hlen are set for completeness to the appropriate values.
-  */
--static void xtopt_parse_onehost(struct xt_option_call *cb)
-+static void xtopt_parse_host(struct xt_option_call *cb)
- {
- 	struct addrinfo hints = {.ai_family = afinfo->family};
- 	unsigned int adcount = 0;
-@@ -433,16 +435,19 @@ static void xtopt_parse_onehost(struct xt_option_call *cb)
- 		xt_params->exit_err(PARAMETER_PROBLEM,
- 			"getaddrinfo: %s\n", gai_strerror(ret));
- 
-+	memset(&cb->val.hmask, 0xFF, sizeof(cb->val.hmask));
-+	cb->val.hlen = (afinfo->family == NFPROTO_IPV4) ? 32 : 128;
-+
- 	for (p = res; p != NULL; p = p->ai_next) {
- 		if (adcount == 0) {
--			memset(&cb->val.inetaddr, 0, sizeof(cb->val.inetaddr));
--			memcpy(&cb->val.inetaddr,
-+			memset(&cb->val.haddr, 0, sizeof(cb->val.haddr));
-+			memcpy(&cb->val.haddr,
- 			       xtables_sa_host(p->ai_addr, p->ai_family),
- 			       xtables_sa_hostlen(p->ai_family));
- 			++adcount;
- 			continue;
- 		}
--		if (memcmp(&cb->val.inetaddr,
-+		if (memcmp(&cb->val.haddr,
- 		    xtables_sa_host(p->ai_addr, p->ai_family),
- 		    xtables_sa_hostlen(p->ai_family)) != 0)
- 			xt_params->exit_err(PARAMETER_PROBLEM,
-@@ -453,8 +458,8 @@ static void xtopt_parse_onehost(struct xt_option_call *cb)
- 	freeaddrinfo(res);
- 	if (cb->entry->flags & XTOPT_PUT)
- 		/* Validation in xtables_option_metavalidate */
--		memcpy(XTOPT_MKPTR(cb), &cb->val.inetaddr,
--		       sizeof(cb->val.inetaddr));
-+		memcpy(XTOPT_MKPTR(cb), &cb->val.haddr,
-+		       sizeof(cb->val.haddr));
- }
- 
- /**
-@@ -488,7 +493,8 @@ static int xtables_getportbyname(const char *name)
- }
- 
- /**
-- * Validate and parse a port specification and put the result into @cb.
-+ * Validate and parse a port specification and put the result into
-+ * @cb->val.port.
-  */
- static void xtopt_parse_port(struct xt_option_call *cb)
- {
-@@ -561,25 +567,27 @@ static void xtopt_parse_mport(struct xt_option_call *cb)
- 	free(lo_arg);
- }
- 
-+/**
-+ * Parse an integer and ensure it is within the address family's prefix length
-+ * limits. The result is stored in @cb->val.hmask and @cb->val.hlen. If
-+ * %XTOPT_PUT is used, hmask will be copied to the pointed-to area.
-+ */
- static void xtopt_parse_plenmask(struct xt_option_call *cb)
- {
- 	const struct xt_option_entry *entry = cb->entry;
--	uint32_t *mask = cb->val.inetmask.all;
-+	uint32_t *mask = cb->val.hmask.all;
- 	unsigned int prefix_len = 128;
--	uint8_t max = 128;
- 
--	if (afinfo->family == NFPROTO_IPV6)
--		max = 128;
--	else if (afinfo->family == NFPROTO_IPV4)
--		max = 32;
 -
--	if (!xtables_strtoui(cb->arg, NULL, &prefix_len, 0, max))
-+	cb->val.hlen = (afinfo->family == NFPROTO_IPV4) ? 32 : 128;
-+	if (!xtables_strtoui(cb->arg, NULL, &prefix_len, 0, cb->val.hlen))
- 		xt_params->exit_err(PARAMETER_PROBLEM,
- 			"%s: bad value for option \"--%s\", "
- 			"or out of range (%u-%u).\n",
--			cb->ext_name, entry->name, 0, max);
-+			cb->ext_name, entry->name, 0, cb->val.hlen);
+-	if (invert)
+-		xtables_error(PARAMETER_PROBLEM,
+-			   "hashlimit does not support invert");
+-
+-	return 1;
+ }
  
-+	cb->val.hlen = prefix_len;
- 	memset(mask, 0xFF, sizeof(union nf_inet_addr));
-+	/* This shifting is AF-independent. */
- 	if (prefix_len == 0) {
- 		mask[0] = mask[1] = mask[2] = mask[3] = 0;
- 	} else if (prefix_len <= 32) {
-@@ -616,7 +624,7 @@ static void (*const xtopt_subparse[])(struct xt_option_call *) = {
- 	[XTTYPE_TOSMASK]     = xtopt_parse_tosmask,
- 	[XTTYPE_MARKMASK32]  = xtopt_parse_markmask,
- 	[XTTYPE_SYSLOGLEVEL] = xtopt_parse_sysloglevel,
--	[XTTYPE_ONEHOST]     = xtopt_parse_onehost,
-+	[XTTYPE_HOST]        = xtopt_parse_host,
- 	[XTTYPE_PORT]        = xtopt_parse_port,
- 	[XTTYPE_PORT_NE]     = xtopt_parse_port,
- 	[XTTYPE_PORTRC]      = xtopt_parse_mport,
-@@ -625,6 +633,10 @@ static void (*const xtopt_subparse[])(struct xt_option_call *) = {
+-static int
+-hashlimit_mt_parse(struct xt_hashlimit_mtinfo1 *info, unsigned int *flags,
+-                   int c, int invert, unsigned int maxmask)
++static void hashlimit_mt_parse(struct xt_option_call *cb)
+ {
+-	unsigned int num;
++	struct xt_hashlimit_mtinfo1 *info = cb->data;
+ 
+-	switch(c) {
+-	case '%': /* --hashlimit / --hashlimit-below */
+-		xtables_param_act(XTF_ONLY_ONCE, "hashlimit", "--hashlimit-upto",
+-		          *flags & PARAM_LIMIT);
+-		if (invert)
++	xtables_option_parse(cb);
++	switch (cb->entry->id) {
++	case O_UPTO:
++		if (cb->invert)
+ 			info->cfg.mode |= XT_HASHLIMIT_INVERT;
+-		if (!parse_rate(optarg, &info->cfg.avg))
++		if (!parse_rate(cb->arg, &info->cfg.avg))
+ 			xtables_param_act(XTF_BAD_VALUE, "hashlimit",
+-			          "--hashlimit-upto", optarg);
+-		*flags |= PARAM_LIMIT;
+-		return true;
+-
+-	case '^': /* --hashlimit-above == !--hashlimit-below */
+-		xtables_param_act(XTF_ONLY_ONCE, "hashlimit", "--hashlimit-above",
+-		          *flags & PARAM_LIMIT);
+-		if (!invert)
++			          "--hashlimit-upto", cb->arg);
++		break;
++	case O_ABOVE:
++		if (!cb->invert)
+ 			info->cfg.mode |= XT_HASHLIMIT_INVERT;
+-		if (!parse_rate(optarg, &info->cfg.avg))
+-			xtables_param_act(XTF_BAD_VALUE, "hashlimit",
+-			          "--hashlimit-above", optarg);
+-		*flags |= PARAM_LIMIT;
+-		return true;
+-
+-	case '$': /* --hashlimit-burst */
+-		xtables_param_act(XTF_ONLY_ONCE, "hashlimit", "--hashlimit-burst",
+-		          *flags & PARAM_BURST);
+-		if (!xtables_strtoui(optarg, NULL, &num, 0, 10000))
++		if (!parse_rate(cb->arg, &info->cfg.avg))
+ 			xtables_param_act(XTF_BAD_VALUE, "hashlimit",
+-			          "--hashlimit-burst", optarg);
+-		info->cfg.burst = num;
+-		*flags |= PARAM_BURST;
+-		return true;
+-
+-	case '&': /* --hashlimit-htable-size */
+-		xtables_param_act(XTF_ONLY_ONCE, "hashlimit", "--hashlimit-htable-size",
+-		          *flags & PARAM_SIZE);
+-		if (!xtables_strtoui(optarg, NULL, &num, 0, UINT32_MAX))
+-			xtables_param_act(XTF_BAD_VALUE, "hashlimit",
+-			          "--hashlimit-htable-size", optarg);
+-		info->cfg.size = num;
+-		*flags |= PARAM_SIZE;
+-		return true;
+-
+-	case '*': /* --hashlimit-htable-max */
+-		xtables_param_act(XTF_ONLY_ONCE, "hashlimit", "--hashlimit-htable-max",
+-		          *flags & PARAM_MAX);
+-		if (!xtables_strtoui(optarg, NULL, &num, 0, UINT32_MAX))
+-			xtables_param_act(XTF_BAD_VALUE, "hashlimit",
+-			          "--hashlimit-htable-max", optarg);
+-		info->cfg.max = num;
+-		*flags |= PARAM_MAX;
+-		return true;
+-
+-	case '(': /* --hashlimit-htable-gcinterval */
+-		xtables_param_act(XTF_ONLY_ONCE, "hashlimit",
+-		          "--hashlimit-htable-gcinterval",
+-		          *flags & PARAM_GCINTERVAL);
+-		if (!xtables_strtoui(optarg, NULL, &num, 0, UINT32_MAX))
+-			xtables_param_act(XTF_BAD_VALUE, "hashlimit",
+-			          "--hashlimit-htable-gcinterval", optarg);
+-		/* FIXME: not HZ dependent!! */
+-		info->cfg.gc_interval = num;
+-		*flags |= PARAM_GCINTERVAL;
+-		return true;
+-
+-	case ')': /* --hashlimit-htable-expire */
+-		xtables_param_act(XTF_ONLY_ONCE, "hashlimit",
+-		          "--hashlimit-htable-expire", *flags & PARAM_EXPIRE);
+-		if (!xtables_strtoui(optarg, NULL, &num, 0, UINT32_MAX))
+-			xtables_param_act(XTF_BAD_VALUE, "hashlimit",
+-			          "--hashlimit-htable-expire", optarg);
+-		/* FIXME: not HZ dependent */
+-		info->cfg.expire = num;
+-		*flags |= PARAM_EXPIRE;
+-		return true;
+-
+-	case '_':
+-		xtables_param_act(XTF_ONLY_ONCE, "hashlimit", "--hashlimit-mode",
+-		          *flags & PARAM_MODE);
+-		if (parse_mode(&info->cfg.mode, optarg) < 0)
+-			xtables_param_act(XTF_BAD_VALUE, "hashlimit",
+-			          "--hashlimit-mode", optarg);
+-		*flags |= PARAM_MODE;
+-		return true;
+-
+-	case '"': /* --hashlimit-name */
+-		xtables_param_act(XTF_ONLY_ONCE, "hashlimit", "--hashlimit-name",
+-		          *flags & PARAM_NAME);
+-		if (strlen(optarg) == 0)
+-			xtables_error(PARAMETER_PROBLEM, "Zero-length name?");
+-		strncpy(info->name, optarg, sizeof(info->name));
+-		info->name[sizeof(info->name)-1] = '\0';
+-		*flags |= PARAM_NAME;
+-		return true;
+-
+-	case '<': /* --hashlimit-srcmask */
+-		xtables_param_act(XTF_ONLY_ONCE, "hashlimit", "--hashlimit-srcmask",
+-		          *flags & PARAM_SRCMASK);
+-		if (!xtables_strtoui(optarg, NULL, &num, 0, maxmask))
+-			xtables_param_act(XTF_BAD_VALUE, "hashlimit",
+-			          "--hashlimit-srcmask", optarg);
+-		info->cfg.srcmask = num;
+-		*flags |= PARAM_SRCMASK;
+-		return true;
+-
+-	case '>': /* --hashlimit-dstmask */
+-		xtables_param_act(XTF_ONLY_ONCE, "hashlimit", "--hashlimit-dstmask",
+-		          *flags & PARAM_DSTMASK);
+-		if (!xtables_strtoui(optarg, NULL, &num, 0, maxmask))
++			          "--hashlimit-above", cb->arg);
++		break;
++	case O_MODE:
++		if (parse_mode(&info->cfg.mode, cb->arg) < 0)
+ 			xtables_param_act(XTF_BAD_VALUE, "hashlimit",
+-			          "--hashlimit-dstmask", optarg);
+-		info->cfg.dstmask = num;
+-		*flags |= PARAM_DSTMASK;
+-		return true;
++			          "--hashlimit-mode", cb->arg);
++		break;
++	case O_SRCMASK:
++		info->cfg.srcmask = cb->val.hlen;
++		break;
++	case O_DSTMASK:
++		info->cfg.dstmask = cb->val.hlen;
++		break;
+ 	}
+-	return false;
+-}
+-
+-static int
+-hashlimit_mt4_parse(int c, char **argv, int invert, unsigned int *flags,
+-                    const void *entry, struct xt_entry_match **match)
+-{
+-	return hashlimit_mt_parse((void *)(*match)->data,
+-	       flags, c, invert, 32);
+-}
+-
+-static int
+-hashlimit_mt6_parse(int c, char **argv, int invert, unsigned int *flags,
+-                    const void *entry, struct xt_entry_match **match)
+-{
+-	return hashlimit_mt_parse((void *)(*match)->data,
+-	       flags, c, invert, 128);
+ }
+ 
+-static void hashlimit_check(unsigned int flags)
++static void hashlimit_check(struct xt_fcheck_call *cb)
+ {
+-	if (!(flags & PARAM_LIMIT))
++	if (!(cb->xflags & (F_UPTO | F_ABOVE)))
+ 		xtables_error(PARAMETER_PROBLEM,
+ 				"You have to specify --hashlimit");
+-	if (!(flags & PARAM_MODE))
+-		xtables_error(PARAMETER_PROBLEM,
+-				"You have to specify --hashlimit-mode");
+-	if (!(flags & PARAM_NAME))
+-		xtables_error(PARAMETER_PROBLEM,
+-				"You have to specify --hashlimit-name");
+-}
+-
+-static void hashlimit_mt_check(unsigned int flags)
+-{
+-	if (!(flags & PARAM_LIMIT))
+-		xtables_error(PARAMETER_PROBLEM, "You have to specify "
+-		           "--hashlimit-upto or --hashlimit-above");
+-	if (!(flags & PARAM_NAME))
+-		xtables_error(PARAMETER_PROBLEM,
+-		           "You have to specify --hashlimit-name");
+ }
+ 
+ static const struct rates
+@@ -664,11 +503,11 @@ static struct xtables_match hashlimit_mt_reg[] = {
+ 		.userspacesize = offsetof(struct xt_hashlimit_info, hinfo),
+ 		.help          = hashlimit_help,
+ 		.init          = hashlimit_init,
+-		.parse         = hashlimit_parse,
+-		.final_check   = hashlimit_check,
++		.x6_parse      = hashlimit_parse,
++		.x6_fcheck     = hashlimit_check,
+ 		.print         = hashlimit_print,
+ 		.save          = hashlimit_save,
+-		.extra_opts    = hashlimit_opts,
++		.x6_options    = hashlimit_mt_opts,
+ 	},
+ 	{
+ 		.version       = XTABLES_VERSION,
+@@ -679,11 +518,11 @@ static struct xtables_match hashlimit_mt_reg[] = {
+ 		.userspacesize = offsetof(struct xt_hashlimit_mtinfo1, hinfo),
+ 		.help          = hashlimit_mt_help,
+ 		.init          = hashlimit_mt4_init,
+-		.parse         = hashlimit_mt4_parse,
+-		.final_check   = hashlimit_mt_check,
++		.x6_parse      = hashlimit_mt_parse,
++		.x6_fcheck     = hashlimit_check,
+ 		.print         = hashlimit_mt4_print,
+ 		.save          = hashlimit_mt4_save,
+-		.extra_opts    = hashlimit_mt_opts,
++		.x6_options    = hashlimit_mt_opts,
+ 	},
+ 	{
+ 		.version       = XTABLES_VERSION,
+@@ -694,11 +533,11 @@ static struct xtables_match hashlimit_mt_reg[] = {
+ 		.userspacesize = offsetof(struct xt_hashlimit_mtinfo1, hinfo),
+ 		.help          = hashlimit_mt_help,
+ 		.init          = hashlimit_mt6_init,
+-		.parse         = hashlimit_mt6_parse,
+-		.final_check   = hashlimit_mt_check,
++		.x6_parse      = hashlimit_mt_parse,
++		.x6_fcheck     = hashlimit_check,
+ 		.print         = hashlimit_mt6_print,
+ 		.save          = hashlimit_mt6_save,
+-		.extra_opts    = hashlimit_mt_opts,
++		.x6_options    = hashlimit_mt_opts,
+ 	},
  };
  
- static const size_t xtopt_psize[] = {
-+	/*
-+	 * All types not listed here, and thus essentially being initialized to
-+	 * zero have zero on purpose.
-+	 */
- 	[XTTYPE_UINT8]       = sizeof(uint8_t),
- 	[XTTYPE_UINT16]      = sizeof(uint16_t),
- 	[XTTYPE_UINT32]      = sizeof(uint32_t),
-@@ -636,7 +648,7 @@ static const size_t xtopt_psize[] = {
- 	[XTTYPE_DOUBLE]      = sizeof(double),
- 	[XTTYPE_STRING]      = -1,
- 	[XTTYPE_SYSLOGLEVEL] = sizeof(uint8_t),
--	[XTTYPE_ONEHOST]     = sizeof(union nf_inet_addr),
-+	[XTTYPE_HOST]        = sizeof(union nf_inet_addr),
- 	[XTTYPE_PORT]        = sizeof(uint16_t),
- 	[XTTYPE_PORT_NE]     = sizeof(uint16_t),
- 	[XTTYPE_PORTRC]      = sizeof(uint16_t[2]),
 -- 
 1.7.1
 
