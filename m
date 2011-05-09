@@ -1,104 +1,375 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 15/17] libxtables: XTTYPE_PROTOCOL support
-Date: Mon,  9 May 2011 21:55:09 +0200
-Message-ID: <1304970912-11520-16-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 12/17] libxt_multiport: use guided option parser
+Date: Mon,  9 May 2011 21:55:06 +0200
+Message-ID: <1304970912-11520-13-git-send-email-jengelh@medozas.de>
 References: <1304970912-11520-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:49376 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:49366 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754586Ab1EITzd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 May 2011 15:55:33 -0400
+	id S1754586Ab1EITza (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 May 2011 15:55:30 -0400
 In-Reply-To: <1304970912-11520-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/xtables.h.in |    4 +++-
- xtoptions.c          |   25 +++++++++++++++++++++++++
- 2 files changed, 28 insertions(+), 1 deletions(-)
+ extensions/libxt_multiport.c |  178 +++++++++++++++++-------------------------
+ include/xtables.h.in         |    2 +
+ xtoptions.c                  |    2 +
+ 3 files changed, 77 insertions(+), 105 deletions(-)
 
-diff --git a/include/xtables.h.in b/include/xtables.h.in
-index 50aa414..c3996a0 100644
---- a/include/xtables.h.in
-+++ b/include/xtables.h.in
-@@ -63,6 +63,7 @@ struct in_addr;
-  * %XTTYPE_HOST:	one host or address (ptr: union nf_inet_addr)
-  * %XTTYPE_HOSTMASK:	one host or address, with an optional prefix length
-  * 			(ptr: union nf_inet_addr; only host portion is stored)
-+ * %XTTYPE_PROTOCOL:	protocol number/name from /etc/protocols (ptr: uint8_t)
-  * %XTTYPE_PORT:	16-bit port name or number
-  * %XTTYPE_PORT_NE:	16-bit port name or number, stored as network-endian
-  * %XTTYPE_PORTRC:	colon-separated port range (names acceptable)
-@@ -87,6 +88,7 @@ enum xt_option_type {
- 	XTTYPE_SYSLOGLEVEL,
- 	XTTYPE_HOST,
- 	XTTYPE_HOSTMASK,
-+	XTTYPE_PROTOCOL,
- 	XTTYPE_PORT,
- 	XTTYPE_PORT_NE,
- 	XTTYPE_PORTRC,
-@@ -147,7 +149,7 @@ struct xt_option_call {
- 	bool invert;
- 	uint8_t nvals;
- 	union {
--		uint8_t u8, u8_range[2], syslog_level;
-+		uint8_t u8, u8_range[2], syslog_level, protocol;
- 		uint16_t u16, u16_range[2], port, port_range[2];
- 		uint32_t u32, u32_range[2];
- 		uint64_t u64, u64_range[2];
-diff --git a/xtoptions.c b/xtoptions.c
-index 413de1b..70370ed 100644
---- a/xtoptions.c
-+++ b/xtoptions.c
-@@ -493,6 +493,29 @@ static int xtables_getportbyname(const char *name)
+diff --git a/extensions/libxt_multiport.c b/extensions/libxt_multiport.c
+index 7fa537e..03af5a9 100644
+--- a/extensions/libxt_multiport.c
++++ b/extensions/libxt_multiport.c
+@@ -1,19 +1,23 @@
+-/* Shared library add-on to iptables to add multiple TCP port support. */
+-#include <stdbool.h>
+ #include <stdio.h>
+ #include <netdb.h>
+ #include <string.h>
+ #include <stdlib.h>
+-#include <getopt.h>
+-
+ #include <xtables.h>
+-#include <libiptc/libiptc.h>
+-#include <libiptc/libip6tc.h>
+ #include <limits.h> /* INT_MAX in ip_tables.h/ip6_tables.h */
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+ #include <linux/netfilter/xt_multiport.h>
+ 
++enum {
++	O_SOURCE_PORTS = 0,
++	O_DEST_PORTS,
++	O_SD_PORTS,
++	F_SOURCE_PORTS = 1 << O_SOURCE_PORTS,
++	F_DEST_PORTS   = 1 << O_DEST_PORTS,
++	F_SD_PORTS     = 1 << O_SD_PORTS,
++	F_ANY          = F_SOURCE_PORTS | F_DEST_PORTS | F_SD_PORTS,
++};
++
+ /* Function which prints out usage message. */
+ static void multiport_help(void)
+ {
+@@ -44,13 +48,18 @@ static void multiport_help_v1(void)
+ "				match both source and destination port(s)\n");
  }
  
+-static const struct option multiport_opts[] = {
+-	{.name = "source-ports",      .has_arg = true, .val = '1'},
+-	{.name = "sports",            .has_arg = true, .val = '1'}, /* synonym */
+-	{.name = "destination-ports", .has_arg = true, .val = '2'},
+-	{.name = "dports",            .has_arg = true, .val = '2'}, /* synonym */
+-	{.name = "ports",             .has_arg = true, .val = '3'},
+-	XT_GETOPT_TABLEEND,
++static const struct xt_option_entry multiport_opts[] = {
++	{.name = "source-ports", .id = O_SOURCE_PORTS, .type = XTTYPE_STRING,
++	 .excl = F_ANY, .flags = XTOPT_INVERT},
++	{.name = "sports", .id = O_SOURCE_PORTS, .type = XTTYPE_STRING,
++	 .excl = F_ANY, .flags = XTOPT_INVERT},
++	{.name = "destination-ports", .id = O_DEST_PORTS,
++	 .type = XTTYPE_STRING, .excl = F_ANY, .flags = XTOPT_INVERT},
++	{.name = "dports", .id = O_DEST_PORTS, .type = XTTYPE_STRING,
++	 .excl = F_ANY, .flags = XTOPT_INVERT},
++	{.name = "ports", .id = O_SD_PORTS, .type = XTTYPE_STRING,
++	 .excl = F_ANY, .flags = XTOPT_INVERT},
++	XTOPT_TABLEEND,
+ };
+ 
+ static const char *
+@@ -152,136 +161,97 @@ check_proto(uint16_t pnum, uint8_t invflags)
+ 			   "multiport only works with TCP, UDP, UDPLITE, SCTP and DCCP");
+ }
+ 
+-/* Function which parses command options; returns true if it
+-   ate an option */
+-static int
+-__multiport_parse(int c, char **argv, int invert, unsigned int *flags,
+-                  struct xt_entry_match **match, uint16_t pnum,
+-                  uint8_t invflags)
++static void __multiport_parse(struct xt_option_call *cb, uint16_t pnum,
++			      uint8_t invflags)
+ {
+ 	const char *proto;
+-	struct xt_multiport *multiinfo
+-		= (struct xt_multiport *)(*match)->data;
++	struct xt_multiport *multiinfo = cb->data;
+ 
+-	switch (c) {
+-	case '1':
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
++	xtables_option_parse(cb);
++	switch (cb->entry->id) {
++	case O_SOURCE_PORTS:
+ 		proto = check_proto(pnum, invflags);
+-		multiinfo->count = parse_multi_ports(optarg,
++		multiinfo->count = parse_multi_ports(cb->arg,
+ 						     multiinfo->ports, proto);
+ 		multiinfo->flags = XT_MULTIPORT_SOURCE;
+ 		break;
+-
+-	case '2':
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
++	case O_DEST_PORTS:
+ 		proto = check_proto(pnum, invflags);
+-		multiinfo->count = parse_multi_ports(optarg,
++		multiinfo->count = parse_multi_ports(cb->arg,
+ 						     multiinfo->ports, proto);
+ 		multiinfo->flags = XT_MULTIPORT_DESTINATION;
+ 		break;
+-
+-	case '3':
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
++	case O_SD_PORTS:
+ 		proto = check_proto(pnum, invflags);
+-		multiinfo->count = parse_multi_ports(optarg,
++		multiinfo->count = parse_multi_ports(cb->arg,
+ 						     multiinfo->ports, proto);
+ 		multiinfo->flags = XT_MULTIPORT_EITHER;
+ 		break;
+ 	}
+-
+-	if (invert)
++	if (cb->invert)
+ 		xtables_error(PARAMETER_PROBLEM,
+-			   "multiport does not support invert");
+-
+-	if (*flags)
+-		xtables_error(PARAMETER_PROBLEM,
+-			   "multiport can only have one option");
+-	*flags = 1;
+-	return 1;
++			   "multiport.0 does not support invert");
+ }
+ 
+-static int
+-multiport_parse(int c, char **argv, int invert, unsigned int *flags,
+-                const void *e, struct xt_entry_match **match)
++static void multiport_parse(struct xt_option_call *cb)
+ {
+-	const struct ipt_entry *entry = e;
+-	return __multiport_parse(c, argv, invert, flags, match,
++	const struct ipt_entry *entry = cb->xt_entry;
++	return __multiport_parse(cb,
+ 	       entry->ip.proto, entry->ip.invflags);
+ }
+ 
+-static int
+-multiport_parse6(int c, char **argv, int invert, unsigned int *flags,
+-                 const void *e, struct xt_entry_match **match)
++static void multiport_parse6(struct xt_option_call *cb)
+ {
+-	const struct ip6t_entry *entry = e;
+-	return __multiport_parse(c, argv, invert, flags, match,
++	const struct ip6t_entry *entry = cb->xt_entry;
++	return __multiport_parse(cb,
+ 	       entry->ipv6.proto, entry->ipv6.invflags);
+ }
+ 
+-static int
+-__multiport_parse_v1(int c, char **argv, int invert, unsigned int *flags,
+-                     struct xt_entry_match **match, uint16_t pnum,
+-                     uint8_t invflags)
++static void __multiport_parse_v1(struct xt_option_call *cb, uint16_t pnum,
++				 uint8_t invflags)
+ {
+ 	const char *proto;
+-	struct xt_multiport_v1 *multiinfo
+-		= (struct xt_multiport_v1 *)(*match)->data;
++	struct xt_multiport_v1 *multiinfo = cb->data;
+ 
+-	switch (c) {
+-	case '1':
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
++	xtables_option_parse(cb);
++	switch (cb->entry->id) {
++	case O_SOURCE_PORTS:
+ 		proto = check_proto(pnum, invflags);
+-		parse_multi_ports_v1(optarg, multiinfo, proto);
++		parse_multi_ports_v1(cb->arg, multiinfo, proto);
+ 		multiinfo->flags = XT_MULTIPORT_SOURCE;
+ 		break;
+-
+-	case '2':
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
++	case O_DEST_PORTS:
+ 		proto = check_proto(pnum, invflags);
+-		parse_multi_ports_v1(optarg, multiinfo, proto);
++		parse_multi_ports_v1(cb->arg, multiinfo, proto);
+ 		multiinfo->flags = XT_MULTIPORT_DESTINATION;
+ 		break;
+-
+-	case '3':
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
++	case O_SD_PORTS:
+ 		proto = check_proto(pnum, invflags);
+-		parse_multi_ports_v1(optarg, multiinfo, proto);
++		parse_multi_ports_v1(cb->arg, multiinfo, proto);
+ 		multiinfo->flags = XT_MULTIPORT_EITHER;
+ 		break;
+ 	}
+-
+-	if (invert)
++	if (cb->invert)
+ 		multiinfo->invert = 1;
+-
+-	if (*flags)
+-		xtables_error(PARAMETER_PROBLEM,
+-			   "multiport can only have one option");
+-	*flags = 1;
+-	return 1;
+ }
+ 
+-static int
+-multiport_parse_v1(int c, char **argv, int invert, unsigned int *flags,
+-                   const void *e, struct xt_entry_match **match)
++static void multiport_parse_v1(struct xt_option_call *cb)
+ {
+-	const struct ipt_entry *entry = e;
+-	return __multiport_parse_v1(c, argv, invert, flags, match,
++	const struct ipt_entry *entry = cb->xt_entry;
++	return __multiport_parse_v1(cb,
+ 	       entry->ip.proto, entry->ip.invflags);
+ }
+ 
+-static int
+-multiport_parse6_v1(int c, char **argv, int invert, unsigned int *flags,
+-                    const void *e, struct xt_entry_match **match)
++static void multiport_parse6_v1(struct xt_option_call *cb)
+ {
+-	const struct ip6t_entry *entry = e;
+-	return __multiport_parse_v1(c, argv, invert, flags, match,
++	const struct ip6t_entry *entry = cb->xt_entry;
++	return __multiport_parse_v1(cb,
+ 	       entry->ipv6.proto, entry->ipv6.invflags);
+ }
+ 
+-/* Final check; must specify something. */
+-static void multiport_check(unsigned int flags)
++static void multiport_check(struct xt_fcheck_call *cb)
+ {
+-	if (!flags)
++	if (cb->xflags == 0)
+ 		xtables_error(PARAMETER_PROBLEM, "multiport expection an option");
+ }
+ 
+@@ -307,7 +277,6 @@ print_port(uint16_t port, uint8_t protocol, int numeric)
+ 		printf("%s", service);
+ }
+ 
+-/* Prints out the matchinfo. */
+ static void
+ __multiport_print(const struct xt_entry_match *match, int numeric,
+                   uint16_t proto)
+@@ -410,7 +379,6 @@ static void multiport_print6_v1(const void *ip_void,
+ 	__multiport_print_v1(match, numeric, ip->proto);
+ }
+ 
+-/* Saves the union ipt_matchinfo in parsable form to stdout. */
+ static void __multiport_save(const struct xt_entry_match *match,
+                              uint16_t proto)
+ {
+@@ -509,11 +477,11 @@ static struct xtables_match multiport_mt_reg[] = {
+ 		.size          = XT_ALIGN(sizeof(struct xt_multiport)),
+ 		.userspacesize = XT_ALIGN(sizeof(struct xt_multiport)),
+ 		.help          = multiport_help,
+-		.parse         = multiport_parse,
+-		.final_check   = multiport_check,
++		.x6_parse      = multiport_parse,
++		.x6_fcheck     = multiport_check,
+ 		.print         = multiport_print,
+ 		.save          = multiport_save,
+-		.extra_opts    = multiport_opts,
++		.x6_options    = multiport_opts,
+ 	},
+ 	{
+ 		.family        = NFPROTO_IPV6,
+@@ -523,11 +491,11 @@ static struct xtables_match multiport_mt_reg[] = {
+ 		.size          = XT_ALIGN(sizeof(struct xt_multiport)),
+ 		.userspacesize = XT_ALIGN(sizeof(struct xt_multiport)),
+ 		.help          = multiport_help,
+-		.parse         = multiport_parse6,
+-		.final_check   = multiport_check,
++		.x6_parse      = multiport_parse6,
++		.x6_fcheck     = multiport_check,
+ 		.print         = multiport_print6,
+ 		.save          = multiport_save6,
+-		.extra_opts    = multiport_opts,
++		.x6_options    = multiport_opts,
+ 	},
+ 	{
+ 		.family        = NFPROTO_IPV4,
+@@ -537,11 +505,11 @@ static struct xtables_match multiport_mt_reg[] = {
+ 		.size          = XT_ALIGN(sizeof(struct xt_multiport_v1)),
+ 		.userspacesize = XT_ALIGN(sizeof(struct xt_multiport_v1)),
+ 		.help          = multiport_help_v1,
+-		.parse         = multiport_parse_v1,
+-		.final_check   = multiport_check,
++		.x6_parse      = multiport_parse_v1,
++		.x6_fcheck     = multiport_check,
+ 		.print         = multiport_print_v1,
+ 		.save          = multiport_save_v1,
+-		.extra_opts    = multiport_opts,
++		.x6_options    = multiport_opts,
+ 	},
+ 	{
+ 		.family        = NFPROTO_IPV6,
+@@ -551,11 +519,11 @@ static struct xtables_match multiport_mt_reg[] = {
+ 		.size          = XT_ALIGN(sizeof(struct xt_multiport_v1)),
+ 		.userspacesize = XT_ALIGN(sizeof(struct xt_multiport_v1)),
+ 		.help          = multiport_help_v1,
+-		.parse         = multiport_parse6_v1,
+-		.final_check   = multiport_check,
++		.x6_parse      = multiport_parse6_v1,
++		.x6_fcheck     = multiport_check,
+ 		.print         = multiport_print6_v1,
+ 		.save          = multiport_save6_v1,
+-		.extra_opts    = multiport_opts,
++		.x6_options    = multiport_opts,
+ 	},
+ };
+ 
+diff --git a/include/xtables.h.in b/include/xtables.h.in
+index caaec2f..50aa414 100644
+--- a/include/xtables.h.in
++++ b/include/xtables.h.in
+@@ -163,10 +163,12 @@ struct xt_option_call {
+ 			uint32_t mark, mask;
+ 		};
+ 	} val;
++	/* Wished for a world where the ones below were gone: */
+ 	union {
+ 		struct xt_entry_match **match;
+ 		struct xt_entry_target **target;
+ 	};
++	void *xt_entry;
+ };
+ 
  /**
-+ * Validate and parse a protocol specification (number or name) by use of
-+ * /etc/protocols and put the result into @cb->val.protocol.
-+ */
-+static void xtopt_parse_protocol(struct xt_option_call *cb)
-+{
-+	const struct protoent *entry;
-+	unsigned int value = -1;
-+
-+	if (xtables_strtoui(cb->arg, NULL, &value, 0, UINT8_MAX)) {
-+		cb->val.protocol = value;
-+		return;
-+	}
-+	entry = getprotobyname(cb->arg);
-+	if (entry == NULL)
-+		xt_params->exit_err(PARAMETER_PROBLEM,
-+			"Protocol \"%s\" does not resolve to anything.\n",
-+			cb->arg);
-+	cb->val.protocol = entry->p_proto;
-+	if (cb->entry->flags & XTOPT_PUT)
-+		*(uint8_t *)XTOPT_MKPTR(cb) = cb->val.protocol;
-+}
-+
-+/**
-  * Validate and parse a port specification and put the result into
-  * @cb->val.port.
-  */
-@@ -665,6 +688,7 @@ static void (*const xtopt_subparse[])(struct xt_option_call *) = {
- 	[XTTYPE_SYSLOGLEVEL] = xtopt_parse_sysloglevel,
- 	[XTTYPE_HOST]        = xtopt_parse_host,
- 	[XTTYPE_HOSTMASK]    = xtopt_parse_hostmask,
-+	[XTTYPE_PROTOCOL]    = xtopt_parse_protocol,
- 	[XTTYPE_PORT]        = xtopt_parse_port,
- 	[XTTYPE_PORT_NE]     = xtopt_parse_port,
- 	[XTTYPE_PORTRC]      = xtopt_parse_mport,
-@@ -691,6 +715,7 @@ static const size_t xtopt_psize[] = {
- 	[XTTYPE_SYSLOGLEVEL] = sizeof(uint8_t),
- 	[XTTYPE_HOST]        = sizeof(union nf_inet_addr),
- 	[XTTYPE_HOSTMASK]    = sizeof(union nf_inet_addr),
-+	[XTTYPE_PROTOCOL]    = sizeof(uint8_t),
- 	[XTTYPE_PORT]        = sizeof(uint16_t),
- 	[XTTYPE_PORT_NE]     = sizeof(uint16_t),
- 	[XTTYPE_PORTRC]      = sizeof(uint16_t[2]),
+diff --git a/xtoptions.c b/xtoptions.c
+index 36f90e4..413de1b 100644
+--- a/xtoptions.c
++++ b/xtoptions.c
+@@ -808,6 +808,7 @@ void xtables_option_tpcall(unsigned int c, char **argv, bool invert,
+ 	cb.data     = t->t->data;
+ 	cb.xflags   = t->tflags;
+ 	cb.target   = &t->t;
++	cb.xt_entry = fw;
+ 	t->x6_parse(&cb);
+ 	t->tflags = cb.xflags;
+ }
+@@ -842,6 +843,7 @@ void xtables_option_mpcall(unsigned int c, char **argv, bool invert,
+ 	cb.data     = m->m->data;
+ 	cb.xflags   = m->mflags;
+ 	cb.match    = &m->m;
++	cb.xt_entry = fw;
+ 	m->x6_parse(&cb);
+ 	m->mflags = cb.xflags;
+ }
 -- 
 1.7.1
 
