@@ -1,58 +1,122 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: guided option parser, run 6
-Date: Mon,  9 May 2011 21:54:54 +0200
-Message-ID: <1304970912-11520-1-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 01/17] libxtables: support for XTTYPE_PLENMASK
+Date: Mon,  9 May 2011 21:54:55 +0200
+Message-ID: <1304970912-11520-2-git-send-email-jengelh@medozas.de>
+References: <1304970912-11520-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:49329 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:49331 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754223Ab1EITzQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 May 2011 15:55:16 -0400
+	id S1754223Ab1EITzR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 May 2011 15:55:17 -0400
+In-Reply-To: <1304970912-11520-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ include/xtables.h.in |    4 +++-
+ xtoptions.c          |   43 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 46 insertions(+), 1 deletions(-)
 
-The following changes since commit c29f7ef7cb5a31620060ef721d3c65b343eb537a:
+diff --git a/include/xtables.h.in b/include/xtables.h.in
+index 47f797b..a760755 100644
+--- a/include/xtables.h.in
++++ b/include/xtables.h.in
+@@ -59,6 +59,7 @@ struct in_addr;
+  * %XTTYPE_PORT_NE:	16-bit port name or number, stored as network-endian
+  * %XTTYPE_PORTRC:	colon-separated port range (names acceptable)
+  * %XTTYPE_PORTRC_NE:	same as %XTTYPE_PORTRC, stored in network-endian
++ * %XTTYPE_PLENMASK:	prefix len stored as union nf_inet_addr
+  */
+ enum xt_option_type {
+ 	XTTYPE_NONE,
+@@ -80,6 +81,7 @@ enum xt_option_type {
+ 	XTTYPE_PORT_NE,
+ 	XTTYPE_PORTRC,
+ 	XTTYPE_PORTRC_NE,
++	XTTYPE_PLENMASK,
+ };
+ 
+ /**
+@@ -139,7 +141,7 @@ struct xt_option_call {
+ 		uint32_t u32, u32_range[2];
+ 		uint64_t u64, u64_range[2];
+ 		double dbl;
+-		union nf_inet_addr inetaddr;
++		union nf_inet_addr inetaddr, inetmask;
+ 		struct {
+ 			uint8_t tos_value, tos_mask;
+ 		};
+diff --git a/xtoptions.c b/xtoptions.c
+index 86498a9..2bd66f9 100644
+--- a/xtoptions.c
++++ b/xtoptions.c
+@@ -561,6 +561,47 @@ static void xtopt_parse_mport(struct xt_option_call *cb)
+ 	free(lo_arg);
+ }
+ 
++static void xtopt_parse_plenmask(struct xt_option_call *cb)
++{
++	const struct xt_option_entry *entry = cb->entry;
++	uint32_t *mask = cb->val.inetmask.all;
++	unsigned int prefix_len = 128;
++	uint8_t max = 128;
++
++	if (afinfo->family == NFPROTO_IPV6)
++		max = 128;
++	else if (afinfo->family == NFPROTO_IPV4)
++		max = 32;
++
++	if (!xtables_strtoui(cb->arg, NULL, &prefix_len, 0, max))
++		xt_params->exit_err(PARAMETER_PROBLEM,
++			"%s: bad value for option \"--%s\", "
++			"or out of range (%u-%u).\n",
++			cb->ext_name, entry->name, 0, max);
++
++	memset(mask, 0xFF, sizeof(union nf_inet_addr));
++	if (prefix_len == 0) {
++		mask[0] = mask[1] = mask[2] = mask[3] = 0;
++	} else if (prefix_len <= 32) {
++		mask[0] <<= 32 - prefix_len;
++		mask[1] = mask[2] = mask[3] = 0;
++	} else if (prefix_len <= 64) {
++		mask[1] <<= 32 - (prefix_len - 32);
++		mask[2] = mask[3] = 0;
++	} else if (prefix_len <= 96) {
++		mask[2] <<= 32 - (prefix_len - 64);
++		mask[3] = 0;
++	} else if (prefix_len <= 128) {
++		mask[3] <<= 32 - (prefix_len - 96);
++	}
++	mask[0] = htonl(mask[0]);
++	mask[1] = htonl(mask[1]);
++	mask[2] = htonl(mask[2]);
++	mask[3] = htonl(mask[3]);
++	if (entry->flags & XTOPT_PUT)
++		memcpy(XTOPT_MKPTR(cb), mask, sizeof(union nf_inet_addr));
++}
++
+ static void (*const xtopt_subparse[])(struct xt_option_call *) = {
+ 	[XTTYPE_UINT8]       = xtopt_parse_int,
+ 	[XTTYPE_UINT16]      = xtopt_parse_int,
+@@ -580,6 +621,7 @@ static void (*const xtopt_subparse[])(struct xt_option_call *) = {
+ 	[XTTYPE_PORT_NE]     = xtopt_parse_port,
+ 	[XTTYPE_PORTRC]      = xtopt_parse_mport,
+ 	[XTTYPE_PORTRC_NE]   = xtopt_parse_mport,
++	[XTTYPE_PLENMASK]    = xtopt_parse_plenmask,
+ };
+ 
+ static const size_t xtopt_psize[] = {
+@@ -599,6 +641,7 @@ static const size_t xtopt_psize[] = {
+ 	[XTTYPE_PORT_NE]     = sizeof(uint16_t),
+ 	[XTTYPE_PORTRC]      = sizeof(uint16_t[2]),
+ 	[XTTYPE_PORTRC_NE]   = sizeof(uint16_t[2]),
++	[XTTYPE_PLENMASK]    = sizeof(union nf_inet_addr),
+ };
+ 
+ /**
+-- 
+1.7.1
 
-  Merge branch 'opts' of git://dev.medozas.de/iptables (2011-05-09 20:23:21 +0200)
-
-are available in the git repository at:
-
-  git://dev.medozas.de/iptables opts
-
-Jan Engelhardt (17):
-      libxtables: support for XTTYPE_PLENMASK
-      libxt_connlimit: use guided option parser
-      libxt_recent: use guided option parser
-      libxtables: do not overlay addr and mask parts, and cleanup
-      libxtables: flag invalid uses of XTOPT_PUT
-      libxtables: XTTYPE_PLEN support
-      libxt_hashlimit: use guided option parser
-      libxtables: XTTYPE_HOSTMASK support
-      libxt_policy: use guided option parser
-      libxt_owner: use guided option parser
-      libxt_osf: use guided option parser
-      libxt_multiport: use guided option parser
-      libipt_NETMAP: use guided option parser
-      libxt_limit: use guided option parser
-      libxtables: XTTYPE_PROTOCOL support
-      libxt_ipvs: use guided option parser
-      libxt_conntrack: use guided option parser
-
- extensions/libipt_NETMAP.c   |  106 +------
- extensions/libxt_TEE.c       |    2 +-
- extensions/libxt_TPROXY.c    |    6 +-
- extensions/libxt_connlimit.c |  176 ++++-------
- extensions/libxt_conntrack.c |  670 ++++++++++++++----------------------------
- extensions/libxt_hashlimit.c |  419 ++++++++------------------
- extensions/libxt_ipvs.c      |  208 ++++---------
- extensions/libxt_limit.c     |   53 ++--
- extensions/libxt_multiport.c |  178 +++++-------
- extensions/libxt_osf.c       |   97 ++-----
- extensions/libxt_owner.c     |  288 ++++++++-----------
- extensions/libxt_policy.c    |  269 +++++------------
- extensions/libxt_recent.c    |  186 +++++-------
- include/xtables.h.in         |   28 ++-
- xtoptions.c                  |  147 +++++++++-
- 15 files changed, 1050 insertions(+), 1783 deletions(-)
