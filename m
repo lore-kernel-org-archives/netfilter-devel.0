@@ -1,79 +1,58 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 2/2] doc: S/DNAT allows to omit IP addresses
-Date: Mon,  9 May 2011 21:53:42 +0200
-Message-ID: <1304970823-11244-3-git-send-email-jengelh@medozas.de>
-References: <1304970823-11244-1-git-send-email-jengelh@medozas.de>
+Subject: guided option parser, run 6
+Date: Mon,  9 May 2011 21:54:54 +0200
+Message-ID: <1304970912-11520-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:54469 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:49329 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754102Ab1EITxr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 May 2011 15:53:47 -0400
-In-Reply-To: <1304970823-11244-1-git-send-email-jengelh@medozas.de>
+	id S1754223Ab1EITzQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 May 2011 15:55:16 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- extensions/libipt_DNAT.c   |    2 +-
- extensions/libipt_DNAT.man |    2 +-
- extensions/libipt_SNAT.c   |    2 +-
- extensions/libipt_SNAT.man |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/extensions/libipt_DNAT.c b/extensions/libipt_DNAT.c
-index 49c74e1..6eedca1 100644
---- a/extensions/libipt_DNAT.c
-+++ b/extensions/libipt_DNAT.c
-@@ -26,7 +26,7 @@ static void DNAT_help(void)
- {
- 	printf(
- "DNAT target options:\n"
--" --to-destination <ipaddr>[-<ipaddr>][:port-port]\n"
-+" --to-destination [<ipaddr>[-<ipaddr>]][:port[-port]]\n"
- "				Address to map destination to.\n"
- "[--random] [--persistent]\n");
- }
-diff --git a/extensions/libipt_DNAT.man b/extensions/libipt_DNAT.man
-index d1e0a3a..d5ded35 100644
---- a/extensions/libipt_DNAT.man
-+++ b/extensions/libipt_DNAT.man
-@@ -10,7 +10,7 @@ should be modified (and all future packets in this connection will
- also be mangled), and rules should cease being examined.  It takes one
- type of option:
- .TP
--\fB\-\-to\-destination\fP [\fIipaddr\fP][\fB\-\fP\fIipaddr\fP][\fB:\fP\fIport\fP[\fB\-\fP\fIport\fP]]
-+\fB\-\-to\-destination\fP [\fIipaddr\fP[\fB\-\fP\fIipaddr\fP]][\fB:\fP\fIport\fP[\fB\-\fP\fIport\fP]]
- which can specify a single new destination IP address, an inclusive
- range of IP addresses, and optionally, a port range (which is only
- valid if the rule also specifies
-diff --git a/extensions/libipt_SNAT.c b/extensions/libipt_SNAT.c
-index 532770d..1a00954 100644
---- a/extensions/libipt_SNAT.c
-+++ b/extensions/libipt_SNAT.c
-@@ -26,7 +26,7 @@ static void SNAT_help(void)
- {
- 	printf(
- "SNAT target options:\n"
--" --to-source <ipaddr>[-<ipaddr>][:port-port]\n"
-+" --to-source [<ipaddr>[-<ipaddr>]][:port[-port]]\n"
- "				Address to map source to.\n"
- "[--random] [--persistent]\n");
- }
-diff --git a/extensions/libipt_SNAT.man b/extensions/libipt_SNAT.man
-index 6b828fd..80e2cb9 100644
---- a/extensions/libipt_SNAT.man
-+++ b/extensions/libipt_SNAT.man
-@@ -7,7 +7,7 @@ modified (and all future packets in this connection will also be
- mangled), and rules should cease being examined.  It takes one type
- of option:
- .TP
--\fB\-\-to\-source\fP \fIipaddr\fP[\fB\-\fP\fIipaddr\fP][\fB:\fP\fIport\fP[\fB\-\fP\fIport\fP]]
-+\fB\-\-to\-source\fP [\fIipaddr\fP[\fB\-\fP\fIipaddr\fP]][\fB:\fP\fIport\fP[\fB\-\fP\fIport\fP]]
- which can specify a single new source IP address, an inclusive range
- of IP addresses, and optionally, a port range (which is only valid if
- the rule also specifies
--- 
-1.7.1
+The following changes since commit c29f7ef7cb5a31620060ef721d3c65b343eb537a:
 
+  Merge branch 'opts' of git://dev.medozas.de/iptables (2011-05-09 20:23:21 +0200)
+
+are available in the git repository at:
+
+  git://dev.medozas.de/iptables opts
+
+Jan Engelhardt (17):
+      libxtables: support for XTTYPE_PLENMASK
+      libxt_connlimit: use guided option parser
+      libxt_recent: use guided option parser
+      libxtables: do not overlay addr and mask parts, and cleanup
+      libxtables: flag invalid uses of XTOPT_PUT
+      libxtables: XTTYPE_PLEN support
+      libxt_hashlimit: use guided option parser
+      libxtables: XTTYPE_HOSTMASK support
+      libxt_policy: use guided option parser
+      libxt_owner: use guided option parser
+      libxt_osf: use guided option parser
+      libxt_multiport: use guided option parser
+      libipt_NETMAP: use guided option parser
+      libxt_limit: use guided option parser
+      libxtables: XTTYPE_PROTOCOL support
+      libxt_ipvs: use guided option parser
+      libxt_conntrack: use guided option parser
+
+ extensions/libipt_NETMAP.c   |  106 +------
+ extensions/libxt_TEE.c       |    2 +-
+ extensions/libxt_TPROXY.c    |    6 +-
+ extensions/libxt_connlimit.c |  176 ++++-------
+ extensions/libxt_conntrack.c |  670 ++++++++++++++----------------------------
+ extensions/libxt_hashlimit.c |  419 ++++++++------------------
+ extensions/libxt_ipvs.c      |  208 ++++---------
+ extensions/libxt_limit.c     |   53 ++--
+ extensions/libxt_multiport.c |  178 +++++-------
+ extensions/libxt_osf.c       |   97 ++-----
+ extensions/libxt_owner.c     |  288 ++++++++-----------
+ extensions/libxt_policy.c    |  269 +++++------------
+ extensions/libxt_recent.c    |  186 +++++-------
+ include/xtables.h.in         |   28 ++-
+ xtoptions.c                  |  147 +++++++++-
+ 15 files changed, 1050 insertions(+), 1783 deletions(-)
