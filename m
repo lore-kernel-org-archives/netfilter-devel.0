@@ -1,54 +1,29 @@
-From: Jesper Dangaard Brouer <hawk@comx.dk>
-Subject: [ANNOUNCE] IPTV-Analyzer project released v0.9.0
-Date: Tue, 10 May 2011 16:03:19 -0400
-Message-ID: <1305057799.2688.8.camel__36436.2097265714$1305058399$gmane$org@probook>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: GIT net-2.6 rolled back 8 commits...
+Date: Tue, 10 May 2011 15:08:14 -0700 (PDT)
+Message-ID: <20110510.150814.226778453.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-To: hawk@comx.dk
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lanfw001a.cxnet.dk ([87.72.215.196]:38779 "EHLO
-	lanfw001a.cxnet.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751450Ab1EJUMu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 May 2011 16:12:50 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
 
-I'm happy to announce the first official release of the IPTV-Analyzer
-project, as an Open Source project.
+I made a mistake and applied to net-2.6 a patch from Eric Dumazet that
+only is applicable for net-next-2.6
 
- Homepage:
-  http://www.iptv-analyzer.org
+I really don't want to have to toss Linus that commit and a revert commit
+just to fix it up.
 
- Git tree:
-  https://github.com/netoptimizer/IPTV-Analyzer
+So I rewound the net-2.6 tree by 8 commits.
 
-The IPTV-Analyzer is a continuous/real-time tool for analyzing the
-contents of MPEG2 Transport Stream (TS) packets, which is commonly
-used for IPTV multicast signals. The main purpose is continuous
-quality measurement, with a focus on detecting MPEG2 TS/CC packet
-drops.
+So if you've pulled in the past 3 hours, please reset your pull and repull.
 
-The core component is an iptables (Linux) kernel module, named
-"mpeg2ts".  This kernel module performs the real-time Deep Packet
-Inspection of the MPEG2-TS packets. Its highly performance optimized,
-written for parallel processing across CPU cores (via RCU locking) and
-hash tables are used for handling large number of streams. Statistics
-are exported via the proc filesystem (scalability is achieved via use
-of the seq_file proc API).  It scales to hundreds of IPTV channels,
-even on small ATOM based CPUs.
-
-Please send bugreports, patches, improvement, comments or insults to:
- hawk@comx.dk
-
--- 
-Best regards,
-  Jesper Dangaard Brouer
-  ComX Networks A/S
-  Linux Network Kernel Developer
-  Cand. Scient Datalog / MSc.CS
-  Author of http://adsl-optimizer.dk
-  LinkedIn: http://www.linkedin.com/in/brouer
-
+Thanks!
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
