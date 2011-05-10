@@ -1,28 +1,54 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/8] netfilter: netfilter fixes for 2.6.39-rc7
-Date: Tue, 10 May 2011 12:01:07 -0700 (PDT)
-Message-ID: <20110510.120107.71125747.davem@davemloft.net>
-References: <1305021959-2980-1-git-send-email-pablo@netfilter.org>
+From: Jesper Dangaard Brouer <hawk@comx.dk>
+Subject: [ANNOUNCE] IPTV-Analyzer project released v0.9.0
+Date: Tue, 10 May 2011 16:03:19 -0400
+Message-ID: <1305057799.2688.8.camel__36436.2097265714$1305058399$gmane$org@probook>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+To: hawk@comx.dk
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:50631
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750911Ab1EJTBj (ORCPT
+Received: from lanfw001a.cxnet.dk ([87.72.215.196]:38779 "EHLO
+	lanfw001a.cxnet.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751450Ab1EJUMu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 May 2011 15:01:39 -0400
-In-Reply-To: <1305021959-2980-1-git-send-email-pablo@netfilter.org>
+	Tue, 10 May 2011 16:12:50 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: pablo@netfilter.org
-Date: Tue, 10 May 2011 12:05:51 +0200
 
-> Please pull from:
-> 
-> git://1984.lsi.us.es/net-2.6 pablo/nf-2.6-updates
+I'm happy to announce the first official release of the IPTV-Analyzer
+project, as an Open Source project.
 
-Pulled, thanks Pablo.
+ Homepage:
+  http://www.iptv-analyzer.org
+
+ Git tree:
+  https://github.com/netoptimizer/IPTV-Analyzer
+
+The IPTV-Analyzer is a continuous/real-time tool for analyzing the
+contents of MPEG2 Transport Stream (TS) packets, which is commonly
+used for IPTV multicast signals. The main purpose is continuous
+quality measurement, with a focus on detecting MPEG2 TS/CC packet
+drops.
+
+The core component is an iptables (Linux) kernel module, named
+"mpeg2ts".  This kernel module performs the real-time Deep Packet
+Inspection of the MPEG2-TS packets. Its highly performance optimized,
+written for parallel processing across CPU cores (via RCU locking) and
+hash tables are used for handling large number of streams. Statistics
+are exported via the proc filesystem (scalability is achieved via use
+of the seq_file proc API).  It scales to hundreds of IPTV channels,
+even on small ATOM based CPUs.
+
+Please send bugreports, patches, improvement, comments or insults to:
+ hawk@comx.dk
+
+-- 
+Best regards,
+  Jesper Dangaard Brouer
+  ComX Networks A/S
+  Linux Network Kernel Developer
+  Cand. Scient Datalog / MSc.CS
+  Author of http://adsl-optimizer.dk
+  LinkedIn: http://www.linkedin.com/in/brouer
+
