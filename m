@@ -1,80 +1,216 @@
 From: pablo@netfilter.org
-Subject: [PATCH 2/8] netfilter: fix ebtables compat support
-Date: Tue, 10 May 2011 12:05:53 +0200
-Message-ID: <1305021959-2980-3-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 4/8] IPVS: Change of socket usage to enable name space exit.
+Date: Tue, 10 May 2011 12:05:55 +0200
+Message-ID: <1305021959-2980-5-git-send-email-pablo@netfilter.org>
 References: <1305021959-2980-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, Eric Dumazet <eric.dumazet@gmail.com>,
-	Patrick McHardy <kaber@trash.net>
+Cc: davem@davemloft.net, Hans Schillstrom <hans@schillstrom.com>,
+	Simon Horman <horms@verge.net.au>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48545 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48570 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755377Ab1EJKGU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 May 2011 06:06:20 -0400
+	id S1755377Ab1EJKGZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 May 2011 06:06:25 -0400
 In-Reply-To: <1305021959-2980-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Eric Dumazet <eric.dumazet@gmail.com>
+From: Hans Schillstrom <hans@schillstrom.com>
 
-commit 255d0dc34068a976 (netfilter: x_table: speedup compat operations)
-made ebtables not working anymore.
+If the sync daemons run in a name space while it crashes
+or get killed, there is no way to stop them except for a reboot.
+When all patches are there, ip_vs_core will handle register_pernet_(),
+i.e. ip_vs_sync_init() and ip_vs_sync_cleanup() will be removed.
 
-1) xt_compat_calc_jump() is not an exact match lookup
-2) compat_table_info() has a typo in xt_compat_init_offsets() call
-3) compat_do_replace() misses a xt_compat_init_offsets() call
+Kernel threads should not increment the use count of a socket.
+By calling sk_change_net() after creating a socket this is avoided.
+sock_release cant be used intead sk_release_kernel() should be used.
 
-Reported-by: dann frazier <dannf@dannf.org>
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Thanks Eric W Biederman for your advices.
+
+Signed-off-by: Hans Schillstrom <hans@schillstrom.com>
+[horms@verge.net.au: minor edit to changelog]
+Signed-off-by: Simon Horman <horms@verge.net.au>
 ---
- net/bridge/netfilter/ebtables.c |    3 ++-
- net/netfilter/x_tables.c        |    4 ++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ net/netfilter/ipvs/ip_vs_core.c |    2 +-
+ net/netfilter/ipvs/ip_vs_sync.c |   58 +++++++++++++++++++++++++--------------
+ 2 files changed, 38 insertions(+), 22 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 893669c..9707079 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -1766,7 +1766,7 @@ static int compat_table_info(const struct ebt_table_info *info,
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 07accf6..a0791dc 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -1896,7 +1896,7 @@ static int __net_init __ip_vs_init(struct net *net)
  
- 	newinfo->entries_size = size;
- 
--	xt_compat_init_offsets(AF_INET, info->nentries);
-+	xt_compat_init_offsets(NFPROTO_BRIDGE, info->nentries);
- 	return EBT_ENTRY_ITERATE(entries, size, compat_calc_entry, info,
- 							entries, newinfo);
+ static void __net_exit __ip_vs_cleanup(struct net *net)
+ {
+-	IP_VS_DBG(10, "ipvs netns %d released\n", net_ipvs(net)->gen);
++	IP_VS_DBG(2, "ipvs netns %d released\n", net_ipvs(net)->gen);
  }
-@@ -2240,6 +2240,7 @@ static int compat_do_replace(struct net *net, void __user *user,
  
- 	xt_compat_lock(NFPROTO_BRIDGE);
+ static struct pernet_operations ipvs_core_ops = {
+diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
+index 3e7961e..0cce953 100644
+--- a/net/netfilter/ipvs/ip_vs_sync.c
++++ b/net/netfilter/ipvs/ip_vs_sync.c
+@@ -1303,13 +1303,18 @@ static struct socket *make_send_sock(struct net *net)
+ 	struct socket *sock;
+ 	int result;
  
-+	xt_compat_init_offsets(NFPROTO_BRIDGE, tmp.nentries);
- 	ret = compat_copy_entries(entries_tmp, tmp.entries_size, &state);
- 	if (ret < 0)
- 		goto out_unlock;
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index a9adf4c..8a025a5 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -455,6 +455,7 @@ void xt_compat_flush_offsets(u_int8_t af)
- 		vfree(xt[af].compat_tab);
- 		xt[af].compat_tab = NULL;
- 		xt[af].number = 0;
-+		xt[af].cur = 0;
+-	/* First create a socket */
+-	result = __sock_create(net, PF_INET, SOCK_DGRAM, IPPROTO_UDP, &sock, 1);
++	/* First create a socket move it to right name space later */
++	result = sock_create_kern(PF_INET, SOCK_DGRAM, IPPROTO_UDP, &sock);
+ 	if (result < 0) {
+ 		pr_err("Error during creation of socket; terminating\n");
+ 		return ERR_PTR(result);
  	}
+-
++	/*
++	 * Kernel sockets that are a part of a namespace, should not
++	 * hold a reference to a namespace in order to allow to stop it.
++	 * After sk_change_net should be released using sk_release_kernel.
++	 */
++	sk_change_net(sock->sk, net);
+ 	result = set_mcast_if(sock->sk, ipvs->master_mcast_ifn);
+ 	if (result < 0) {
+ 		pr_err("Error setting outbound mcast interface\n");
+@@ -1334,8 +1339,8 @@ static struct socket *make_send_sock(struct net *net)
+ 
+ 	return sock;
+ 
+-  error:
+-	sock_release(sock);
++error:
++	sk_release_kernel(sock->sk);
+ 	return ERR_PTR(result);
  }
- EXPORT_SYMBOL_GPL(xt_compat_flush_offsets);
-@@ -473,8 +474,7 @@ int xt_compat_calc_jump(u_int8_t af, unsigned int offset)
- 		else
- 			return mid ? tmp[mid - 1].delta : 0;
+ 
+@@ -1350,12 +1355,17 @@ static struct socket *make_receive_sock(struct net *net)
+ 	int result;
+ 
+ 	/* First create a socket */
+-	result = __sock_create(net, PF_INET, SOCK_DGRAM, IPPROTO_UDP, &sock, 1);
++	result = sock_create_kern(PF_INET, SOCK_DGRAM, IPPROTO_UDP, &sock);
+ 	if (result < 0) {
+ 		pr_err("Error during creation of socket; terminating\n");
+ 		return ERR_PTR(result);
  	}
--	WARN_ON_ONCE(1);
+-
++	/*
++	 * Kernel sockets that are a part of a namespace, should not
++	 * hold a reference to a namespace in order to allow to stop it.
++	 * After sk_change_net should be released using sk_release_kernel.
++	 */
++	sk_change_net(sock->sk, net);
+ 	/* it is equivalent to the REUSEADDR option in user-space */
+ 	sock->sk->sk_reuse = 1;
+ 
+@@ -1377,8 +1387,8 @@ static struct socket *make_receive_sock(struct net *net)
+ 
+ 	return sock;
+ 
+-  error:
+-	sock_release(sock);
++error:
++	sk_release_kernel(sock->sk);
+ 	return ERR_PTR(result);
+ }
+ 
+@@ -1473,7 +1483,7 @@ static int sync_thread_master(void *data)
+ 		ip_vs_sync_buff_release(sb);
+ 
+ 	/* release the sending multicast socket */
+-	sock_release(tinfo->sock);
++	sk_release_kernel(tinfo->sock->sk);
+ 	kfree(tinfo);
+ 
+ 	return 0;
+@@ -1513,7 +1523,7 @@ static int sync_thread_backup(void *data)
+ 	}
+ 
+ 	/* release the sending multicast socket */
+-	sock_release(tinfo->sock);
++	sk_release_kernel(tinfo->sock->sk);
+ 	kfree(tinfo->buf);
+ 	kfree(tinfo);
+ 
+@@ -1601,7 +1611,7 @@ outtinfo:
+ outbuf:
+ 	kfree(buf);
+ outsocket:
+-	sock_release(sock);
++	sk_release_kernel(sock->sk);
+ out:
+ 	return result;
+ }
+@@ -1610,6 +1620,7 @@ out:
+ int stop_sync_thread(struct net *net, int state)
+ {
+ 	struct netns_ipvs *ipvs = net_ipvs(net);
++	int retc = -EINVAL;
+ 
+ 	IP_VS_DBG(7, "%s(): pid %d\n", __func__, task_pid_nr(current));
+ 
+@@ -1629,7 +1640,7 @@ int stop_sync_thread(struct net *net, int state)
+ 		spin_lock_bh(&ipvs->sync_lock);
+ 		ipvs->sync_state &= ~IP_VS_STATE_MASTER;
+ 		spin_unlock_bh(&ipvs->sync_lock);
+-		kthread_stop(ipvs->master_thread);
++		retc = kthread_stop(ipvs->master_thread);
+ 		ipvs->master_thread = NULL;
+ 	} else if (state == IP_VS_STATE_BACKUP) {
+ 		if (!ipvs->backup_thread)
+@@ -1639,16 +1650,14 @@ int stop_sync_thread(struct net *net, int state)
+ 			task_pid_nr(ipvs->backup_thread));
+ 
+ 		ipvs->sync_state &= ~IP_VS_STATE_BACKUP;
+-		kthread_stop(ipvs->backup_thread);
++		retc = kthread_stop(ipvs->backup_thread);
+ 		ipvs->backup_thread = NULL;
+-	} else {
+-		return -EINVAL;
+ 	}
+ 
+ 	/* decrease the module use count */
+ 	ip_vs_use_count_dec();
+ 
 -	return 0;
-+	return left ? tmp[left - 1].delta : 0;
++	return retc;
  }
- EXPORT_SYMBOL_GPL(xt_compat_calc_jump);
  
+ /*
+@@ -1670,8 +1679,15 @@ static int __net_init __ip_vs_sync_init(struct net *net)
+ 
+ static void __ip_vs_sync_cleanup(struct net *net)
+ {
+-	stop_sync_thread(net, IP_VS_STATE_MASTER);
+-	stop_sync_thread(net, IP_VS_STATE_BACKUP);
++	int retc;
++
++	retc = stop_sync_thread(net, IP_VS_STATE_MASTER);
++	if (retc && retc != -ESRCH)
++		pr_err("Failed to stop Master Daemon\n");
++
++	retc = stop_sync_thread(net, IP_VS_STATE_BACKUP);
++	if (retc && retc != -ESRCH)
++		pr_err("Failed to stop Backup Daemon\n");
+ }
+ 
+ static struct pernet_operations ipvs_sync_ops = {
+@@ -1682,10 +1698,10 @@ static struct pernet_operations ipvs_sync_ops = {
+ 
+ int __init ip_vs_sync_init(void)
+ {
+-	return register_pernet_subsys(&ipvs_sync_ops);
++	return register_pernet_device(&ipvs_sync_ops);
+ }
+ 
+ void ip_vs_sync_cleanup(void)
+ {
+-	unregister_pernet_subsys(&ipvs_sync_ops);
++	unregister_pernet_device(&ipvs_sync_ops);
+ }
 -- 
 1.7.2.3
 
