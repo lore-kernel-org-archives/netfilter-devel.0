@@ -1,14 +1,14 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 01/11] libip6t_mh: use guided option parser
-Date: Wed, 11 May 2011 15:52:46 +0200
-Message-ID: <1305121977-4361-2-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 08/11] libipt_SNAT: use guided option parser
+Date: Wed, 11 May 2011 15:52:53 +0200
+Message-ID: <1305121977-4361-9-git-send-email-jengelh@medozas.de>
 References: <1305121977-4361-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:60361 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:60359 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754971Ab1EKPsQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1755139Ab1EKPsQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Wed, 11 May 2011 11:48:16 -0400
 In-Reply-To: <1305121977-4361-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -16,92 +16,176 @@ List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libip6t_mh.c |   44 +++++++++++++++++---------------------------
- 1 files changed, 17 insertions(+), 27 deletions(-)
+ extensions/libipt_SNAT.c |   88 ++++++++++++++++++++-------------------------
+ 1 files changed, 39 insertions(+), 49 deletions(-)
 
-diff --git a/extensions/libip6t_mh.c b/extensions/libip6t_mh.c
-index 460f9e4..686a293 100644
---- a/extensions/libip6t_mh.c
-+++ b/extensions/libip6t_mh.c
-@@ -11,15 +11,17 @@
-  *
-  * Based on libip6t_{icmpv6,udp}.c
-  */
+diff --git a/extensions/libipt_SNAT.c b/extensions/libipt_SNAT.c
+index 532770d..97769e6 100644
+--- a/extensions/libipt_SNAT.c
++++ b/extensions/libipt_SNAT.c
+@@ -1,18 +1,20 @@
+-/* Shared library add-on to iptables to add source-NAT support. */
 -#include <stdbool.h>
-+#include <stdint.h>
  #include <stdio.h>
--#include <netdb.h>
+ #include <netdb.h>
  #include <string.h>
  #include <stdlib.h>
 -#include <getopt.h>
  #include <xtables.h>
- #include <linux/netfilter_ipv6/ip6t_mh.h>
+ #include <iptables.h>
+ #include <limits.h> /* INT_MAX in ip_tables.h */
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <net/netfilter/nf_nat.h>
  
+-#define IPT_SNAT_OPT_SOURCE 0x01
+-#define IPT_SNAT_OPT_RANDOM 0x02
 +enum {
-+	O_MH_TYPE = 0,
++	O_TO_SRC = 0,
++	O_RANDOM,
++	O_PERSISTENT,
++	F_TO_SRC = 1 << O_TO_SRC,
++	F_RANDOM = 1 << O_RANDOM,
 +};
-+
- struct mh_name {
- 	const char *name;
- 	uint8_t type;
-@@ -122,27 +124,14 @@ static void parse_mh_types(const char *mhtype, uint8_t *types)
- 	free(buffer);
+ 
+ /* Source NAT data consists of a multi-range, indicating where to map
+    to. */
+@@ -31,11 +33,12 @@ static void SNAT_help(void)
+ "[--random] [--persistent]\n");
  }
  
--#define MH_TYPES 0x01
--
--static int mh_parse(int c, char **argv, int invert, unsigned int *flags,
--                    const void *entry, struct xt_entry_match **match)
-+static void mh_parse(struct xt_option_call *cb)
- {
--	struct ip6t_mh *mhinfo = (struct ip6t_mh *)(*match)->data;
--
--	switch (c) {
--	case '1':
--		if (*flags & MH_TYPES)
--			xtables_error(PARAMETER_PROBLEM,
--				   "Only one `--mh-type' allowed");
--		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
--		parse_mh_types(optarg, mhinfo->types);
--		if (invert)
--			mhinfo->invflags |= IP6T_MH_INV_TYPE;
--		*flags |= MH_TYPES;
--		break;
--	}
-+	struct ip6t_mh *mhinfo = cb->data;
- 
--	return 1;
-+	xtables_option_parse(cb);
-+	parse_mh_types(cb->arg, mhinfo->types);
-+	if (cb->invert)
-+		mhinfo->invflags |= IP6T_MH_INV_TYPE;
- }
- 
- static const char *type_to_name(uint8_t type)
-@@ -213,9 +202,10 @@ static void mh_save(const void *ip, const struct xt_entry_match *match)
- 		printf(" --mh-type %u", mhinfo->types[0]);
- }
- 
--static const struct option mh_opts[] = {
--	{.name = "mh-type", .has_arg = true, .val = '1'},
+-static const struct option SNAT_opts[] = {
+-	{.name = "to-source",  .has_arg = true,  .val = '1'},
+-	{.name = "random",     .has_arg = false, .val = '2'},
+-	{.name = "persistent", .has_arg = false, .val = '3'},
 -	XT_GETOPT_TABLEEND,
-+static const struct xt_option_entry mh_opts[] = {
-+	{.name = "mh-type", .id = O_MH_TYPE, .type = XTTYPE_STRING,
-+	 .flags = XTOPT_INVERT},
++static const struct xt_option_entry SNAT_opts[] = {
++	{.name = "to-source", .id = O_TO_SRC, .type = XTTYPE_STRING,
++	 .flags = XTOPT_MAND | XTOPT_MULTI},
++	{.name = "random", .id = O_RANDOM, .type = XTTYPE_NONE},
++	{.name = "persistent", .id = O_PERSISTENT, .type = XTTYPE_NONE},
 +	XTOPT_TABLEEND,
  };
  
- static struct xtables_match mh_mt6_reg = {
-@@ -226,10 +216,10 @@ static struct xtables_match mh_mt6_reg = {
- 	.userspacesize	= XT_ALIGN(sizeof(struct ip6t_mh)),
- 	.help		= mh_help,
- 	.init		= mh_init,
--	.parse		= mh_parse,
-+	.x6_parse	= mh_parse,
- 	.print		= mh_print,
- 	.save		= mh_save,
--	.extra_opts	= mh_opts,
-+	.x6_options	= mh_opts,
+ static struct ipt_natinfo *
+@@ -59,12 +62,15 @@ append_range(struct ipt_natinfo *info, const struct nf_nat_range *range)
+ 
+ /* Ranges expected in network order. */
+ static struct xt_entry_target *
+-parse_to(char *arg, int portok, struct ipt_natinfo *info)
++parse_to(const char *orig_arg, int portok, struct ipt_natinfo *info)
+ {
+ 	struct nf_nat_range range;
+-	char *colon, *dash, *error;
++	char *arg, *colon, *dash, *error;
+ 	const struct in_addr *ip;
+ 
++	arg = strdup(orig_arg);
++	if (arg == NULL)
++		xtables_error(RESOURCE_PROBLEM, "strdup");
+ 	memset(&range, 0, sizeof(range));
+ 	colon = strchr(arg, ':');
+ 
+@@ -107,8 +113,10 @@ parse_to(char *arg, int portok, struct ipt_natinfo *info)
+ 			range.max.tcp.port = htons(maxport);
+ 		}
+ 		/* Starts with a colon? No IP info...*/
+-		if (colon == arg)
++		if (colon == arg) {
++			free(arg);
+ 			return &(append_range(info, &range)->t);
++		}
+ 		*colon = '\0';
+ 	}
+ 
+@@ -134,14 +142,14 @@ parse_to(char *arg, int portok, struct ipt_natinfo *info)
+ 	} else
+ 		range.max_ip = range.min_ip;
+ 
++	free(arg);
+ 	return &(append_range(info, &range)->t);
+ }
+ 
+-static int SNAT_parse(int c, char **argv, int invert, unsigned int *flags,
+-                      const void *e, struct xt_entry_target **target)
++static void SNAT_parse(struct xt_option_call *cb)
+ {
+-	const struct ipt_entry *entry = e;
+-	struct ipt_natinfo *info = (void *)*target;
++	const struct ipt_entry *entry = cb->xt_entry;
++	struct ipt_natinfo *info = (void *)(*cb->target);
+ 	int portok;
+ 
+ 	if (entry->ip.proto == IPPROTO_TCP
+@@ -153,46 +161,29 @@ static int SNAT_parse(int c, char **argv, int invert, unsigned int *flags,
+ 	else
+ 		portok = 0;
+ 
+-	switch (c) {
+-	case '1':
+-		if (xtables_check_inverse(optarg, &invert, NULL, 0, argv))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "Unexpected `!' after --to-source");
+-
+-		if (*flags & IPT_SNAT_OPT_SOURCE) {
++	xtables_option_parse(cb);
++	switch (cb->entry->id) {
++	case O_TO_SRC:
++		if (cb->xflags & F_TO_SRC) {
+ 			if (!kernel_version)
+ 				get_kernel_version();
+ 			if (kernel_version > LINUX_VERSION(2, 6, 10))
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					   "Multiple --to-source not supported");
+ 		}
+-		*target = parse_to(optarg, portok, info);
++		*cb->target = parse_to(cb->arg, portok, info);
+ 		/* WTF do we need this for?? */
+-		if (*flags & IPT_SNAT_OPT_RANDOM)
++		if (cb->xflags & F_RANDOM)
+ 			info->mr.range[0].flags |= IP_NAT_RANGE_PROTO_RANDOM;
+-		*flags |= IPT_SNAT_OPT_SOURCE;
+-		return 1;
+-
+-	case '2':
+-		if (*flags & IPT_SNAT_OPT_SOURCE) {
++		break;
++	case O_RANDOM:
++		if (cb->xflags & F_TO_SRC)
+ 			info->mr.range[0].flags |= IP_NAT_RANGE_PROTO_RANDOM;
+-			*flags |= IPT_SNAT_OPT_RANDOM;
+-		} else
+-			*flags |= IPT_SNAT_OPT_RANDOM;
+-		return 1;
+-
+-	case '3':
++		break;
++	case O_PERSISTENT:
+ 		info->mr.range[0].flags |= IP_NAT_RANGE_PERSISTENT;
+-		return 1;
++		break;
+ 	}
+-	return 0;
+-}
+-
+-static void SNAT_check(unsigned int flags)
+-{
+-	if (!(flags & IPT_SNAT_OPT_SOURCE))
+-		xtables_error(PARAMETER_PROBLEM,
+-			   "You must specify --to-source");
+ }
+ 
+ static void print_range(const struct nf_nat_range *r)
+@@ -253,11 +244,10 @@ static struct xtables_target snat_tg_reg = {
+ 	.size		= XT_ALIGN(sizeof(struct nf_nat_multi_range)),
+ 	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_multi_range)),
+ 	.help		= SNAT_help,
+-	.parse		= SNAT_parse,
+-	.final_check	= SNAT_check,
++	.x6_parse	= SNAT_parse,
+ 	.print		= SNAT_print,
+ 	.save		= SNAT_save,
+-	.extra_opts	= SNAT_opts,
++	.x6_options	= SNAT_opts,
  };
  
  void _init(void)
