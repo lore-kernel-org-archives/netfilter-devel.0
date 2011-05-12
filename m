@@ -1,49 +1,43 @@
-From: Fernando Luis =?ISO-8859-1?Q?V=E1zquez?= Cao
-	<fernando@oss.ntt.co.jp>
-Subject: Re: [PATCH 6/8] netfilter: IPv6: initialize TOS field in REJECT
- target module
-Date: Thu, 12 May 2011 17:33:05 +0900
-Message-ID: <1305189185.10374.28.camel@nexus.oss.ntt.co.jp>
-References: <1305021959-2980-1-git-send-email-pablo@netfilter.org>
-	 <1305021959-2980-7-git-send-email-pablo@netfilter.org>
-	 <1305090777.5570.7.camel@nexus.oss.ntt.co.jp>
-	 <4DCB98E7.4010804@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: guided option parser, run 7
+Date: Thu, 12 May 2011 11:14:36 +0200
+Message-ID: <4DCBA4FC.7090703@trash.net>
+References: <1305121977-4361-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	Shinya SATO <sato.shinya@oss.ntt.co.jp>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from serv2.oss.ntt.co.jp ([222.151.198.100]:50418 "EHLO
-	serv2.oss.ntt.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753350Ab1ELIdH (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:44485 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755446Ab1ELJOi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 May 2011 04:33:07 -0400
-In-Reply-To: <4DCB98E7.4010804@netfilter.org>
+	Thu, 12 May 2011 05:14:38 -0400
+In-Reply-To: <1305121977-4361-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2011-05-12 at 10:23 +0200, Pablo Neira Ayuso wrote:
-> On 11/05/11 07:12, Fernando Luis V=C3=A1zquez Cao wrote:
-> > Thank you for taking care of these patches, I really appreciate it.
-> >
-> > I noticed that they have just been picked up by Linus. Could we get=
- them
-> > into the -stable and -longterm trees too?
-> >
-> > 1ed2f73d90fb49bcf5704aee7e9084adb882bfc5 (netfilter: IPv6: fix DSCP=
- mangle code)
-> > 4319cc0cf5bb894b7368008cdf6dd20eb8868018 (netfilter: IPv6: initiali=
-ze TOS field in REJECT target module)
->=20
-> OK, I'll pass them to -stable as soon as I find some spare time.
+Am 11.05.2011 15:52, schrieb Jan Engelhardt:
+> The following changes since commit 8075493a00e06857147263574333df4073ea671b:
+> 
+>   Merge branch 'opts' of git://dev.medozas.de/iptables (2011-05-11 13:43:44 +0200)
+> 
+> are available in the git repository at:
+> 
+>   git://dev.medozas.de/iptables floating/opts
+> 
+> Jan Engelhardt (11):
+>       libip6t_mh: use guided option parser
+>       libip6t_rt: use guided option parser
+>       libxtables: XTTYPE_ETHERMAC support
+>       libxt_mac: use guided option parser
+>       libipt_CLUSTERIP: use guided option parser
+>       libxt_iprange: use guided option parser
+>       libipt_DNAT: use guided option parser
+>       libipt_SNAT: use guided option parser
+>       libipt_MASQUERADE: use guided option parser
+>       libipt_REDIRECT: use guided option parser
+>       libipt_SAME: use guided option parser
 
-Thank you Pablo. By doing so they are more likely to trickle down to
-enterprise distributions and Debian, which we are using.
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Pulled, thanks Jan.
