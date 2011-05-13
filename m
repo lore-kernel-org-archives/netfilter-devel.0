@@ -1,46 +1,41 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 05/12] libxt_policy: use XTTYPE_PROTOCOL type
-Date: Fri, 13 May 2011 02:47:29 +0200
-Message-ID: <1305247657-29158-6-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 04/12] libxtables: avoid running into .also checks when option not used
+Date: Fri, 13 May 2011 02:47:28 +0200
+Message-ID: <1305247657-29158-5-git-send-email-jengelh@medozas.de>
 References: <1305247657-29158-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:54327 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:54324 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759031Ab1EMAtY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 May 2011 20:49:24 -0400
+	id S1752272Ab1EMAtW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 12 May 2011 20:49:22 -0400
 In-Reply-To: <1305247657-29158-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+If a particular option was not specified, it should not be subject to
+.also checks in xtables_option_fcheck2 either.
+
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libxt_policy.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ xtoptions.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/extensions/libxt_policy.c b/extensions/libxt_policy.c
-index 7affd1b..97722d6 100644
---- a/extensions/libxt_policy.c
-+++ b/extensions/libxt_policy.c
-@@ -52,7 +52,7 @@ static const struct xt_option_entry policy_opts[] = {
- 	 .flags = XTOPT_MULTI | XTOPT_INVERT},
- 	{.name = "tunnel-dst", .id = O_TUNNELDST, .type = XTTYPE_HOSTMASK,
- 	 .flags = XTOPT_MULTI | XTOPT_INVERT},
--	{.name = "proto", .id = O_PROTO, .type = XTTYPE_STRING,
-+	{.name = "proto", .id = O_PROTO, .type = XTTYPE_PROTOCOL,
- 	 .flags = XTOPT_MULTI | XTOPT_INVERT},
- 	{.name = "mode", .id = O_MODE, .type = XTTYPE_STRING,
- 	 .flags = XTOPT_MULTI | XTOPT_INVERT},
-@@ -143,7 +143,7 @@ static void policy_parse(struct xt_option_call *cb)
- 		if (e->match.proto)
- 			xtables_error(PARAMETER_PROBLEM,
- 			           "policy match: double --proto option");
--		e->proto = xtables_parse_protocol(cb->arg);
-+		e->proto = cb->val.protocol;
- 		if (e->proto != IPPROTO_AH && e->proto != IPPROTO_ESP &&
- 		    e->proto != IPPROTO_COMP)
- 			xtables_error(PARAMETER_PROBLEM,
+diff --git a/xtoptions.c b/xtoptions.c
+index 8d54dd8..9e19250 100644
+--- a/xtoptions.c
++++ b/xtoptions.c
+@@ -949,6 +949,9 @@ void xtables_options_fcheck(const char *name, unsigned int xflags,
+ 			xt_params->exit_err(PARAMETER_PROBLEM,
+ 				"%s: option \"--%s\" must be specified\n",
+ 				name, entry->name);
++		if (!(xflags & (1 << entry->id)))
++			/* Not required, not specified, thus skip. */
++			continue;
+ 
+ 		for (i = 0; i < CHAR_BIT * sizeof(entry->id); ++i) {
+ 			if (entry->id == i)
 -- 
 1.7.1
 
