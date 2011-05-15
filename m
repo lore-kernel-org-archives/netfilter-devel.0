@@ -1,107 +1,43 @@
-From: Hans Schillstrom <hans@schillstrom.com>
-Subject: Re: [PATCH 1/1] IPVS: seq_release_net should be used.
-Date: Sat, 14 May 2011 12:05:41 +0200
-Message-ID: <201105141205.41912.hans@schillstrom.com>
-References: <1305266600-21507-1-git-send-email-hans.schillstrom@ericsson.com> <20110514005025.GD4862@verge.net.au>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [ANNOUNCE] ipset 6.5 released
+Date: Sun, 15 May 2011 15:50:26 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1105151540340.25248@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>, ja@ssi.bg,
-	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <20110514005025.GD4862@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp0.kfki.hu ([148.6.0.25]:37117 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753617Ab1EONu2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 15 May 2011 09:50:28 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Saturday, May 14, 2011 02:50:26 Simon Horman wrote:
-> On Fri, May 13, 2011 at 08:03:20AM +0200, Hans Schillstrom wrote:
-> > Without this patch every access to ip_vs in procfs will increase
-> > the netns count i.e. an unbalanced get_net()/put_net().
-> > (ipvsadm commands also use procfs.)
-> > The result is you can't exit a netns if reading ip_vs_* procfs entries.
-> 
-> Hi Hans,
-> 
-> we should try and get this into 2.6.39, right?
+Hi,
 
-Yes, this is a trivial bug fix
+I'm happy to announce ipset 6.5. The list of changes are:
 
-> 
-> > 
-> > Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
-> > ---
-> >  net/netfilter/ipvs/ip_vs_app.c  |    2 +-
-> >  net/netfilter/ipvs/ip_vs_conn.c |    4 ++--
-> >  net/netfilter/ipvs/ip_vs_ctl.c  |    6 +++---
-> >  3 files changed, 6 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/net/netfilter/ipvs/ip_vs_app.c b/net/netfilter/ipvs/ip_vs_app.c
-> > index 51f3af7..059af31 100644
-> > --- a/net/netfilter/ipvs/ip_vs_app.c
-> > +++ b/net/netfilter/ipvs/ip_vs_app.c
-> > @@ -572,7 +572,7 @@ static const struct file_operations ip_vs_app_fops = {
-> >  	.open	 = ip_vs_app_open,
-> >  	.read	 = seq_read,
-> >  	.llseek  = seq_lseek,
-> > -	.release = seq_release,
-> > +	.release = seq_release_net,
-> >  };
-> >  #endif
-> >  
-> > diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-> > index d3fd91b..bf28ac2 100644
-> > --- a/net/netfilter/ipvs/ip_vs_conn.c
-> > +++ b/net/netfilter/ipvs/ip_vs_conn.c
-> > @@ -1046,7 +1046,7 @@ static const struct file_operations ip_vs_conn_fops = {
-> >  	.open    = ip_vs_conn_open,
-> >  	.read    = seq_read,
-> >  	.llseek  = seq_lseek,
-> > -	.release = seq_release,
-> > +	.release = seq_release_net,
-> >  };
-> >  
-> >  static const char *ip_vs_origin_name(unsigned flags)
-> > @@ -1114,7 +1114,7 @@ static const struct file_operations ip_vs_conn_sync_fops = {
-> >  	.open    = ip_vs_conn_sync_open,
-> >  	.read    = seq_read,
-> >  	.llseek  = seq_lseek,
-> > -	.release = seq_release,
-> > +	.release = seq_release_net,
-> >  };
-> >  
-> >  #endif
-> > diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> > index 89842f0..699c79a 100644
-> > --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> > +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> > @@ -2066,7 +2066,7 @@ static const struct file_operations ip_vs_info_fops = {
-> >  	.open    = ip_vs_info_open,
-> >  	.read    = seq_read,
-> >  	.llseek  = seq_lseek,
-> > -	.release = seq_release_private,
-> > +	.release = seq_release_net,
-> >  };
-> >  
-> >  static int ip_vs_stats_show(struct seq_file *seq, void *v)
-> > @@ -2106,7 +2106,7 @@ static const struct file_operations ip_vs_stats_fops = {
-> >  	.open = ip_vs_stats_seq_open,
-> >  	.read = seq_read,
-> >  	.llseek = seq_lseek,
-> > -	.release = single_release,
-> > +	.release = single_release_net,
-> >  };
-> >  
-> >  static int ip_vs_stats_percpu_show(struct seq_file *seq, void *v)
-> > @@ -2175,7 +2175,7 @@ static const struct file_operations ip_vs_stats_percpu_fops = {
-> >  	.open = ip_vs_stats_percpu_seq_open,
-> >  	.read = seq_read,
-> >  	.llseek = seq_lseek,
-> > -	.release = single_release,
-> > +	.release = single_release_net,
-> >  };
-> >  #endif
-> >  
-> 
+Kernel part changes:
+ - Support range for IPv4 at adding/deleting elements for hash:*net* types
+ - Set type support with multiple revisions added
+ - Fix adding ranges to hash types
+
+Userspace changes:
+ - Support range for IPv4 at adding/deleting elements for hash:*net* types
+ - Disable type revisions which are not supported both by the kernel and
+   ipset
+ - Update ipset help text to reflect SCTP and UDPLITE support
+ - Ignore -n flag (list just setnames) when sets are to be saved
+
+You can download the source code of ipset from:
+        http://ipset.netfilter.org
+        ftp://ftp.netfilter.org/pub/ipset/
+        git://git.netfilter.org/ipset.git
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
