@@ -1,30 +1,44 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] netfilter: netfilter fixes for 2.6.39-rc7 (2nd round)
-Date: Sun, 15 May 2011 23:49:51 -0400 (EDT)
-Message-ID: <20110515.234951.1521718559039117752.davem@davemloft.net>
-References: <1305475077-3283-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: kaber@trash.net
+Subject: [PATCH 1/2] netfilter: nf_ct_sip: validate Content-Length in TCP SIP messages
+Date: Tue, 17 May 2011 07:26:53 +0200
+Message-ID: <1305610014-3056-2-git-send-email-kaber@trash.net>
+References: <1305610014-3056-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:56065 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754162Ab1EPDvE (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:36179 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751203Ab1EQF1X (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 15 May 2011 23:51:04 -0400
-In-Reply-To: <1305475077-3283-1-git-send-email-pablo@netfilter.org>
+	Tue, 17 May 2011 01:27:23 -0400
+In-Reply-To: <1305610014-3056-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: pablo@netfilter.org
-Date: Sun, 15 May 2011 17:57:56 +0200
+From: Patrick McHardy <kaber@trash.net>
 
-> following are one late fix for 2.6.39-rc7 from the IPVS guys.
-> 
-> Please pull from:
-> 
-> git://1984.lsi.us.es/net-2.6 pablo/nf-2.6-updates
+Verify that the message length of a single SIP message, which is calculated
+based on the Content-Length field contained in the SIP message, does not
+exceed the packet boundaries.
 
-Pulled, thanks.
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ net/netfilter/nf_conntrack_sip.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index bcf47eb..1f81abd 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -1461,6 +1461,8 @@ static int sip_help_tcp(struct sk_buff *skb, unsigned int protoff,
+ 		end += strlen("\r\n\r\n") + clen;
+ 
+ 		msglen = origlen = end - dptr;
++		if (msglen > datalen)
++			return NF_DROP;
+ 
+ 		ret = process_sip_msg(skb, ct, dataoff, &dptr, &msglen);
+ 		if (ret != NF_ACCEPT)
+-- 
+1.7.2.3
+
