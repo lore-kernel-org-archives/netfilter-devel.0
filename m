@@ -1,116 +1,111 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset timeout problem
-Date: Tue, 17 May 2011 13:43:59 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1105171333550.31927@blackhole.kfki.hu>
-References: <4DD22A6B.9080904@metu.edu.tr>
+From: =?iso-8859-2?Q?Ond=F8ej_Slanina?= <oslanina@kerio.com>
+Subject: Re: netfilter 03/03: nf_queue: fix NF_STOLEN skb leak
+Date: Tue, 17 May 2011 13:25:16 +0200
+Message-ID: <AD57A470C4C54FD5BC30CAD5BCE0D0D8@kerio.local>
+References: <20100219170206.18096.12788.sendpatchset@x2.localnet> <20100219170210.18096.32795.sendpatchset@x2.localnet>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="110391808-1172078584-1305632639=:31927"
-Cc: netfilter-devel@vger.kernel.org
-To: Lutfi <lutfio@metu.edu.tr>
+Content-Type: text/plain; charset=iso-8859-2;
+	format=flowed	reply-type=original
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:40012 "EHLO smtp2.kfki.hu"
+Received: from mx1.kerio.com ([195.113.184.2]:53184 "EHLO mx1.kerio.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753570Ab1EQLoD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 May 2011 07:44:03 -0400
-In-Reply-To: <4DD22A6B.9080904@metu.edu.tr>
+	id S1753987Ab1EQL5J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 May 2011 07:57:09 -0400
+Received: from localhost ([127.0.0.1])
+	by mx1.kerio.com
+	(using TLSv1/SSLv3 with cipher AES256-SHA (256 bits))
+	for netfilter-devel@vger.kernel.org;
+	Tue, 17 May 2011 13:25:47 +0200
+Received: from localhost ([127.0.0.1])
+	by bes-test.kerio.local
+	(using TLSv1/SSLv3 with cipher AES128-SHA (128 bits))
+	for netfilter-devel@vger.kernel.org;
+	Tue, 17 May 2011 13:25:41 +0200
+In-Reply-To: <20100219170210.18096.32795.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi,
+I know that this patch were applied a long time ago but unfortunately I=
+=20
+worked all the time on old 2.6.32 kernel. I am confused, because=20
+documentation said that returning NF_STOLEN means that netfilter releas=
+e=20
+ownership of this skb and my hook/queue function is responsible for=20
+deallocating of this skb. But from now, It's true only for function=20
+registered by nf_register_hooks (for example defrag function still uses=
+=20
+NF_STOLEN verdict when performing packed defragmentation). For function=
+=20
+registered by nf_register_queue_handler() it's not true, because NF_STO=
+LEN=20
+wil free skb! It's the same as NF_DROP. I have no chance to get ownersh=
+ip of=20
+skb after call to nf_reinject. Or I am missed something ?
+Best Regards,
+Ondrej Slanina
 
---110391808-1172078584-1305632639=:31927
-Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-On Tue, 17 May 2011, Lutfi wrote:
+-----P=F9vodn=ED zpr=E1va-----=20
+=46rom: Patrick McHardy
+Sent: Friday, February 19, 2010 6:02 PM
+To: davem@davemloft.net
+Cc: netdev@vger.kernel.org ; Patrick McHardy ;=20
+netfilter-devel@vger.kernel.org
+Subject: netfilter 03/03: nf_queue: fix NF_STOLEN skb leak
 
-> I am using ipset v. 6.2 on my Debian 6.0 64 bit box with kernel verison
-> 2.6.37.2 #12. I used the command  "ipset create test iptree  --timeout
-> 10800" for creating  the set and add the ip addresses by using "ipset
-> add test x.x.x.x". At beginning there seems no problem but after a while
-> timeout values increases for ip addresses. Moreover I use a script to
-> add those ip addresses to this set.  The output of "ipset
-> list test" is below:
-> 
-> Name: test
-> Type: hash:ip
-> Header: family inet hashsize 8192 maxelem 65536 timeout 10800
-> Size in memory: 733184
-> References: 3
-> Members:
-> 82.192.209.168 timeout 14134968
+commit 64507fdbc29c3a622180378210ecea8659b14e40
+Author: Eric Dumazet <eric.dumazet@gmail.com>
+Date:   Fri Feb 19 15:28:38 2010 +0100
 
-I have tried to reproduce it with ipset-6.5 and was unsuccessful. However, 
-there are some problems with the timeout conversions in the kernel. Could 
-you try the attached patch and report back whether it solves the issue?
+    netfilter: nf_queue: fix NF_STOLEN skb leak
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
---110391808-1172078584-1305632639=:31927
-Content-Type: TEXT/x-diff; name=timeout2.patch
-Content-Transfer-Encoding: BASE64
-Content-ID: <alpine.DEB.2.00.1105171343590.31927@blackhole.kfki.hu>
-Content-Description: timeout.patch
-Content-Disposition: attachment; filename=timeout2.patch
+    commit 3bc38712e3a6e059 (handle NF_STOP and unknown verdicts in
+    nf_reinject) was a partial fix to packet leaks.
 
-ZGlmZiAtLWdpdCBhL2tlcm5lbC9pbmNsdWRlL2xpbnV4L25ldGZpbHRlci9p
-cHNldC9pcF9zZXRfdGltZW91dC5oIGIva2VybmVsL2luY2x1ZGUvbGludXgv
-bmV0ZmlsdGVyL2lwc2V0L2lwX3NldF90aW1lb3V0LmgNCmluZGV4IGI5YTBj
-MjYuLmJhZTA4NmEgMTAwNjQ0DQotLS0gYS9rZXJuZWwvaW5jbHVkZS9saW51
-eC9uZXRmaWx0ZXIvaXBzZXQvaXBfc2V0X3RpbWVvdXQuaA0KKysrIGIva2Vy
-bmVsL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyL2lwc2V0L2lwX3NldF90aW1l
-b3V0LmgNCkBAIC00OCw3ICs0OCw3IEBAIGlwX3NldF90aW1lb3V0X3Rlc3Qo
-dW5zaWduZWQgbG9uZyB0aW1lb3V0KQ0KIHsNCiAJcmV0dXJuIHRpbWVvdXQg
-IT0gSVBTRVRfRUxFTV9VTlNFVCAmJg0KIAkgICAgICAgKHRpbWVvdXQgPT0g
-SVBTRVRfRUxFTV9QRVJNQU5FTlQgfHwNCi0JCXRpbWVfYWZ0ZXIodGltZW91
-dCwgamlmZmllcykpOw0KKwkJdGltZV9pc19hZnRlcl9qaWZmaWVzKHRpbWVv
-dXQpKTsNCiB9DQogDQogc3RhdGljIGlubGluZSBib29sDQpAQCAtNTYsNyAr
-NTYsNyBAQCBpcF9zZXRfdGltZW91dF9leHBpcmVkKHVuc2lnbmVkIGxvbmcg
-dGltZW91dCkNCiB7DQogCXJldHVybiB0aW1lb3V0ICE9IElQU0VUX0VMRU1f
-VU5TRVQgJiYNCiAJICAgICAgIHRpbWVvdXQgIT0gSVBTRVRfRUxFTV9QRVJN
-QU5FTlQgJiYNCi0JICAgICAgIHRpbWVfYmVmb3JlKHRpbWVvdXQsIGppZmZp
-ZXMpOw0KKwkgICAgICAgdGltZV9pc19iZWZvcmVfamlmZmllcyh0aW1lb3V0
-KTsNCiB9DQogDQogc3RhdGljIGlubGluZSB1bnNpZ25lZCBsb25nDQpAQCAt
-NjcsNyArNjcsNyBAQCBpcF9zZXRfdGltZW91dF9zZXQodTMyIHRpbWVvdXQp
-DQogCWlmICghdGltZW91dCkNCiAJCXJldHVybiBJUFNFVF9FTEVNX1BFUk1B
-TkVOVDsNCiANCi0JdCA9IHRpbWVvdXQgKiBIWiArIGppZmZpZXM7DQorCXQg
-PSBtc2Vjc190b19qaWZmaWVzKHRpbWVvdXQgKiAxMDAwKSArIGppZmZpZXM7
-DQogCWlmICh0ID09IElQU0VUX0VMRU1fVU5TRVQgfHwgdCA9PSBJUFNFVF9F
-TEVNX1BFUk1BTkVOVCkNCiAJCS8qIEJpbmdvISAqLw0KIAkJdCsrOw0KQEAg
-LTc4LDcgKzc4LDggQEAgaXBfc2V0X3RpbWVvdXRfc2V0KHUzMiB0aW1lb3V0
-KQ0KIHN0YXRpYyBpbmxpbmUgdTMyDQogaXBfc2V0X3RpbWVvdXRfZ2V0KHVu
-c2lnbmVkIGxvbmcgdGltZW91dCkNCiB7DQotCXJldHVybiB0aW1lb3V0ID09
-IElQU0VUX0VMRU1fUEVSTUFORU5UID8gMCA6ICh0aW1lb3V0IC0gamlmZmll
-cykvSFo7DQorCXJldHVybiB0aW1lb3V0ID09IElQU0VUX0VMRU1fUEVSTUFO
-RU5UID8gMCA6IA0KKwkJamlmZmllc190b19tc2Vjcyh0aW1lb3V0IC0gamlm
-ZmllcykvMTAwMDsNCiB9DQogDQogI2Vsc2UNCkBAIC05MiwxNCArOTMsMTQg
-QEAgc3RhdGljIGlubGluZSBib29sDQogaXBfc2V0X3RpbWVvdXRfdGVzdCh1
-bnNpZ25lZCBsb25nIHRpbWVvdXQpDQogew0KIAlyZXR1cm4gdGltZW91dCA9
-PSBJUFNFVF9FTEVNX1BFUk1BTkVOVCB8fA0KLQkgICAgICAgdGltZV9hZnRl
-cih0aW1lb3V0LCBqaWZmaWVzKTsNCisJICAgICAgIHRpbWVfaXNfYWZ0ZXJf
-amlmZmllcyh0aW1lb3V0KTsNCiB9DQogDQogc3RhdGljIGlubGluZSBib29s
-DQogaXBfc2V0X3RpbWVvdXRfZXhwaXJlZCh1bnNpZ25lZCBsb25nIHRpbWVv
-dXQpDQogew0KIAlyZXR1cm4gdGltZW91dCAhPSBJUFNFVF9FTEVNX1BFUk1B
-TkVOVCAmJg0KLQkgICAgICAgdGltZV9iZWZvcmUodGltZW91dCwgamlmZmll
-cyk7DQorCSAgICAgICB0aW1lX2lzX2JlZm9yZV9qaWZmaWVzKHRpbWVvdXQp
-Ow0KIH0NCiANCiBzdGF0aWMgaW5saW5lIHVuc2lnbmVkIGxvbmcNCkBAIC0x
-MTAsNyArMTExLDcgQEAgaXBfc2V0X3RpbWVvdXRfc2V0KHUzMiB0aW1lb3V0
-KQ0KIAlpZiAoIXRpbWVvdXQpDQogCQlyZXR1cm4gSVBTRVRfRUxFTV9QRVJN
-QU5FTlQ7DQogDQotCXQgPSB0aW1lb3V0ICogSFogKyBqaWZmaWVzOw0KKwl0
-ID0gbXNlY3NfdG9famlmZmllcyh0aW1lb3V0ICogMTAwMCkgKyBqaWZmaWVz
-Ow0KIAlpZiAodCA9PSBJUFNFVF9FTEVNX1BFUk1BTkVOVCkNCiAJCS8qIEJp
-bmdvISA6LSkgKi8NCiAJCXQrKzsNCkBAIC0xMjEsNyArMTIyLDggQEAgaXBf
-c2V0X3RpbWVvdXRfc2V0KHUzMiB0aW1lb3V0KQ0KIHN0YXRpYyBpbmxpbmUg
-dTMyDQogaXBfc2V0X3RpbWVvdXRfZ2V0KHVuc2lnbmVkIGxvbmcgdGltZW91
-dCkNCiB7DQotCXJldHVybiB0aW1lb3V0ID09IElQU0VUX0VMRU1fUEVSTUFO
-RU5UID8gMCA6ICh0aW1lb3V0IC0gamlmZmllcykvSFo7DQorCXJldHVybiB0
-aW1lb3V0ID09IElQU0VUX0VMRU1fUEVSTUFORU5UID8gMCA6DQorCQlqaWZm
-aWVzX3RvX21zZWNzKHRpbWVvdXQgLSBqaWZmaWVzKS8xMDAwOw0KIH0NCiAj
-ZW5kaWYgLyogISBJUF9TRVRfQklUTUFQX1RJTUVPVVQgKi8NCiANCg==
+    If user asks NF_STOLEN status, we must free the skb as well.
 
---110391808-1172078584-1305632639=:31927--
+    Reported-by: Afi Gjermund <afigjermund@gmail.com>
+    Signed-off-by: Eric DUmazet <eric.dumazet@gmail.com>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 3a6fd77..ba095fd 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -265,7 +265,6 @@ void nf_reinject(struct nf_queue_entry *entry, unsi=
+gned=20
+int verdict)
+  local_bh_disable();
+  entry->okfn(skb);
+  local_bh_enable();
+- case NF_STOLEN:
+  break;
+  case NF_QUEUE:
+  if (!__nf_queue(skb, elem, entry->pf, entry->hook,
+@@ -273,6 +272,7 @@ void nf_reinject(struct nf_queue_entry *entry, unsi=
+gned=20
+int verdict)
+  verdict >> NF_VERDICT_BITS))
+  goto next_hook;
+  break;
++ case NF_STOLEN:
+  default:
+  kfree_skb(skb);
+  }
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el"=20
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
