@@ -1,61 +1,33 @@
-From: kaber@trash.net
-Subject: [PATCH 2/2] netfilter: nf_ct_sip: fix SDP parsing in TCP SIP messages for some Cisco phones
-Date: Tue, 17 May 2011 07:26:54 +0200
-Message-ID: <1305610014-3056-3-git-send-email-kaber@trash.net>
-References: <1305610014-3056-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: davem@davemloft.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1305610014-3056-1-git-send-email-kaber@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Lutfi <lutfio@metu.edu.tr>
+Subject: About IPset 6.2 Time out problem
+Date: Tue, 17 May 2011 09:24:26 +0300
+Message-ID: <4DD2149A.9060603@metu.edu.tr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from likya.general.services.metu.edu.tr ([144.122.144.158]:37006
+	"EHLO mail.metu.edu.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751221Ab1EQGeS (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 May 2011 02:34:18 -0400
+Received: from [144.122.3.229] (sandal.cc.metu.edu.tr [144.122.3.229])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.metu.edu.tr (Postfix) with ESMTPSA id EC3CB5052B
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2011 09:24:14 +0300 (EEST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
+Hello,
 
-Some Cisco phones do not place the Content-Length field at the end of the
-SIP message. This is valid, due to a misunderstanding of the specification
-the parser expects the SDP body to start directly after the Content-Length
-field. Fix the parser to scan for \r\n\r\n to locate the beginning of the
-SDP body.
+I am using a ipset 6.2 on my Deiban 6.0 64 bit box with kernel 2.6.37.2.
+I got a set that i created by using the command "ipset create XXX iptree
+--timeout 10800". After a while timeout values increases to billions of
+seconds.
+What may be the problem?
 
-Reported-by: Teresa Kang <teresa_kang@gemtek.com.tw>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- net/netfilter/nf_conntrack_sip.c |   14 ++++++++++----
- 1 files changed, 10 insertions(+), 4 deletions(-)
+Thanks,
 
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 1f81abd..c05c0dc 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -1419,6 +1419,7 @@ static int sip_help_tcp(struct sk_buff *skb, unsigned int protoff,
- 	const char *dptr, *end;
- 	s16 diff, tdiff = 0;
- 	int ret = NF_ACCEPT;
-+	bool term;
- 	typeof(nf_nat_sip_seq_adjust_hook) nf_nat_sip_seq_adjust;
- 
- 	if (ctinfo != IP_CT_ESTABLISHED &&
-@@ -1453,10 +1454,15 @@ static int sip_help_tcp(struct sk_buff *skb, unsigned int protoff,
- 		if (dptr + matchoff == end)
- 			break;
- 
--		if (end + strlen("\r\n\r\n") > dptr + datalen)
--			break;
--		if (end[0] != '\r' || end[1] != '\n' ||
--		    end[2] != '\r' || end[3] != '\n')
-+		term = false;
-+		for (; end + strlen("\r\n\r\n") <= dptr + datalen; end++) {
-+			if (end[0] == '\r' && end[1] == '\n' &&
-+			    end[2] == '\r' && end[3] == '\n') {
-+				term = true;
-+				break;
-+			}
-+		}
-+		if (!term)
- 			break;
- 		end += strlen("\r\n\r\n") + clen;
- 
--- 
-1.7.2.3
-
+Lutfi
