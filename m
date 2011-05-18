@@ -1,55 +1,57 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 07/11] libipt_DNAT: use guided option parser
-Date: Wed, 18 May 2011 16:17:48 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1105181612560.25276@frira.zrqbmnf.qr>
-References: <1305121977-4361-1-git-send-email-jengelh@medozas.de> <1305121977-4361-8-git-send-email-jengelh@medozas.de> <20110518135819.GA19013@lutz.bln.innominate.local> <alpine.LNX.2.01.1105181600060.25276@frira.zrqbmnf.qr>
- <20110518140536.GA21298@lutz.bln.innominate.local>
+From: Detlev Zundel <dzu@denx.de>
+Subject: UDP DNAT to a broadcast address
+Date: Wed, 18 May 2011 17:58:09 +0200
+Message-ID: <m2wrhorofi.fsf@ohwell.denx.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Lutz Jaenicke <ljaenicke@innominate.com>
+Content-Type: text/plain
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:42281 "EHLO seven.medozas.de"
+Received: from lo.gmane.org ([80.91.229.12]:44832 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751573Ab1ERORt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 May 2011 10:17:49 -0400
-In-Reply-To: <20110518140536.GA21298@lutz.bln.innominate.local>
+	id S1755620Ab1ERQPI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 May 2011 12:15:08 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
+	id 1QMjOs-0003uo-9g
+	for netfilter-devel@vger.kernel.org; Wed, 18 May 2011 18:15:06 +0200
+Received: from p4fd63d4d.dip.t-dialin.net ([79.214.61.77])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2011 18:15:06 +0200
+Received: from dzu by p4fd63d4d.dip.t-dialin.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2011 18:15:06 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 2011-05-18 16:05, Lutz Jaenicke wrote:
+Hi,
 
->On Wed, May 18, 2011 at 04:00:56PM +0200, Jan Engelhardt wrote:
->> On Wednesday 2011-05-18 15:58, Lutz Jaenicke wrote:
->> 
->> >> +	case O_TO_DEST:
->> >> +		if (cb->xflags & F_TO_DEST) {
->> >>  			if (!kernel_version)
->> >>  				get_kernel_version();
->> >>  			if (kernel_version > LINUX_VERSION(2, 6, 10))
->> >>  				xtables_error(PARAMETER_PROBLEM,
->> >>  					   "Multiple --to-destination not supported");
->> >>  		}
->> >> -		*target = parse_to(optarg, portok, info);
->> >> +		*cb->target = parse_to(cb->arg, portok, info);
->> >>  		/* WTF do we need this for?? */
->> >> -		if (*flags & IPT_DNAT_OPT_RANDOM)
->> >> +		if (cb->xflags & F_RANDOM)
->> >>  			info->mr.range[0].flags |= IP_NAT_RANGE_PROTO_RANDOM;
->> >> -		*flags |= IPT_DNAT_OPT_DEST;
->> >> -		return 1;
->> >
->> >If I understand the logic correctly, cb->xflags will have F_TO_DEST set
->> >if the --to-destination option is found. The additional option parsing
->> >is only performed afterwards such that the (cb->xflags & F_TO_DEST) will
->> >be triggered already on the first and valid call and a "Multiple ... not
->> >supported" will be issued.
->> 
->> Fixed by my most recent submission (run 8), f25b235.
->
->I see. I was working against the git repo...
+looking for the answer to this problem, I searched the web and this
+mailing list, but I still couldn't find a definitive answer to the
+question that I have.
 
-If it is my repo, that should work.
+In my setup I need to a UDP packet sent to the external IP of my router
+to trigger a broadcast UDP packet on the local network and relay back
+the answers to this packet.
 
-Live maintainers for upstream iptables seem to have run out 
-(in either sense) for the moment.
+It looks like this should do the trick:
+
+iptables -t nat -I PREROUTING -i ppp0 -p udp --dport 3333 -j DNAT --to 192.168.0.255
+
+Of course, as I write this e-mail, this does not work.  I can see the
+packets entering the INPUT chain, but I see no packets on the OUTPUT
+chain.  I speculate that this is because braodcast addresses are not
+routable and thus the packet gets lost somewhere.
+
+Is there any method to solve this with netfilter or do I need to write a
+bi-directional UDP proxy in userspace?
+
+Thanks
+  Detlev
+
+-- 
+(3)   With sufficient thrust,  pigs fly just fine.  However, this is not
+necessarily a good idea.  It is hard to be sure  where they are going to
+land, and it could be dangerous sitting under them as they fly overhead.
+                              -- The Twelve Networking Truths (RFC 1925)
+
