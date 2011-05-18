@@ -1,93 +1,58 @@
-From: Lutz Jaenicke <ljaenicke@innominate.com>
-Subject: Re: [PATCH 07/11] libipt_DNAT: use guided option parser
-Date: Wed, 18 May 2011 15:58:19 +0200
-Message-ID: <20110518135819.GA19013@lutz.bln.innominate.local>
-References: <1305121977-4361-1-git-send-email-jengelh@medozas.de>
- <1305121977-4361-8-git-send-email-jengelh@medozas.de>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 8/9] libxt_udp: use guided option parser
+Date: Wed, 18 May 2011 15:58:40 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1105181546160.25276@frira.zrqbmnf.qr>
+References: <1304250630-6150-1-git-send-email-jengelh@medozas.de> <1304250630-6150-9-git-send-email-jengelh@medozas.de> <20110518124916.GA12964@lutz.bln.innominate.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Lutz Jaenicke <ljaenicke@innominate.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from home.innominate.com ([77.245.32.75]:54855 "EHLO
-	home.innominate.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932824Ab1ERN6V (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 May 2011 09:58:21 -0400
-Content-Disposition: inline
-In-Reply-To: <1305121977-4361-8-git-send-email-jengelh@medozas.de>
+Received: from seven.medozas.de ([188.40.89.202]:51754 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932824Ab1ERN6l (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 May 2011 09:58:41 -0400
+In-Reply-To: <20110518124916.GA12964@lutz.bln.innominate.local>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hmm.
 
-On Wed, May 11, 2011 at 03:52:52PM +0200, Jan Engelhardt wrote:
-> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
-> ---
->  extensions/libipt_DNAT.c |   88 ++++++++++++++++++++----------------=
----------
->  1 files changed, 39 insertions(+), 49 deletions(-)
+On Wednesday 2011-05-18 14:49, Lutz Jaenicke wrote:
+>
+>this modification lead to a subtle failure I don't know how to cure yet.
+>
+>> +	{.name = "dport", .id = O_DEST_PORT, .type = XTTYPE_PORTRC_NE,
+>> +	 .flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, dpts)},
+>> +	XTOPT_TABLEEND,
+>>  };
+>
+>The port parsing now performed indirectly via xtables_getportbyname() and
+>then hence getaddrinfo().
+>At least for uClibc (did not test glibc), getaddrinfo() will complain
+>when a port is specified by number but no socket type of address family
+>is set:
+>...
+>  /*
+>   * Can't specify a numerical socket unless a protocol
+>   * family was given.
+>   */
+>   if (hints->ai_socktype == 0 && hints->ai_protocol == 0)
+>            return EAI_SERVICE;
+>...
 
-> @@ -153,46 +161,29 @@ static int DNAT_parse(int c, char **argv, int i=
-nvert, unsigned int *flags,
->  	else
->  		portok =3D 0;
-> =20
-> -	switch (c) {
-> -	case '1':
-> -		if (xtables_check_inverse(optarg, &invert, NULL, 0, argv))
-> -			xtables_error(PARAMETER_PROBLEM,
-> -				   "Unexpected `!' after --to-destination");
-> -
-> -		if (*flags & IPT_DNAT_OPT_DEST) {
-> +	xtables_option_parse(cb);
-> +	switch (cb->entry->id) {
-> +	case O_TO_DEST:
-> +		if (cb->xflags & F_TO_DEST) {
->  			if (!kernel_version)
->  				get_kernel_version();
->  			if (kernel_version > LINUX_VERSION(2, 6, 10))
->  				xtables_error(PARAMETER_PROBLEM,
->  					   "Multiple --to-destination not supported");
->  		}
-> -		*target =3D parse_to(optarg, portok, info);
-> +		*cb->target =3D parse_to(cb->arg, portok, info);
->  		/* WTF do we need this for?? */
-> -		if (*flags & IPT_DNAT_OPT_RANDOM)
-> +		if (cb->xflags & F_RANDOM)
->  			info->mr.range[0].flags |=3D IP_NAT_RANGE_PROTO_RANDOM;
-> -		*flags |=3D IPT_DNAT_OPT_DEST;
-> -		return 1;
+That's one of these totally useless comments. I know from the
+condition that it disallows them, but it fails to say _why_, and what
+makes numerical specs different from name-based ones - in particular
+they should ask themselves, why should getaddrinfo special-case it
+when getportbyfoo does not?
 
-If I understand the logic correctly, cb->xflags will have F_TO_DEST set
-if the --to-destination option is found. The additional option parsing
-is only performed afterwards such that the (cb->xflags & F_TO_DEST) wil=
-l
-be triggered already on the first and valid call and a "Multiple ... no=
-t
-supported" will be issued.
-In the original code the *flags |=3D IPT_DNAT_OPT_DEST was only perform=
-ed
-at the end of the respective "case" section.
+>The straight forward solution would be to add a respective ai_protocol
+>information (we actually know that it is IPPROTO_UDP). I am currently
+>however not deep enough into the new parser structure to know where to
+>add this information to the function calls and or data structures.
 
-Best regards,
-	Lutz
---=20
-Dr.-Ing. Lutz J=E4nicke
-CTO
-Innominate Security Technologies AG  /protecting industrial networks/
-tel: +49.30.921028-200
-fax: +49.30.921028-020
-Rudower Chaussee 13
-D-12489 Berlin, Germany
-www.innominate.com
-
-Register Court: AG Charlottenburg, HR B 81603
-Management Board: Dirk Seewald
-Chairman of the Supervisory Board: Volker Bibelhausen
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The approach would be to encode the family in xt_option_entry somehow. 
+Possilibites are a new XTTYPE_UDPPORT (suboptimal because all protos 
+would need to be specified), or seemingly better, a flag that would 
+interpret the .max field as a family instead (similar to how 
+XTTYPE_TOSMASK uses it). Me ponders.
