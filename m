@@ -1,57 +1,43 @@
-From: Detlev Zundel <dzu@denx.de>
-Subject: UDP DNAT to a broadcast address
-Date: Wed, 18 May 2011 17:58:09 +0200
-Message-ID: <m2wrhorofi.fsf@ohwell.denx.de>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Lutz Jaenicke <ljaenicke@innominate.com>
+Subject: [PATCH] libxt_devgroup: actually set XT_DEVGROUP_OPT_???GROUP flags
+Date: Wed, 18 May 2011 18:47:37 +0200
+Message-ID: <1305737257-31464-1-git-send-email-ljaenicke@innominate.com>
+Cc: Lutz Jaenicke <ljaenicke@innominate.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:44832 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755620Ab1ERQPI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 May 2011 12:15:08 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
-	id 1QMjOs-0003uo-9g
-	for netfilter-devel@vger.kernel.org; Wed, 18 May 2011 18:15:06 +0200
-Received: from p4fd63d4d.dip.t-dialin.net ([79.214.61.77])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2011 18:15:06 +0200
-Received: from dzu by p4fd63d4d.dip.t-dialin.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2011 18:15:06 +0200
+Received: from home.innominate.com ([77.245.32.75]:39387 "EHLO
+	home.innominate.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932984Ab1ERQro (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 May 2011 12:47:44 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Signed-off-by: Lutz Jaenicke <ljaenicke@innominate.com>
+---
+ extensions/libxt_devgroup.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-looking for the answer to this problem, I searched the web and this
-mailing list, but I still couldn't find a definitive answer to the
-question that I have.
-
-In my setup I need to a UDP packet sent to the external IP of my router
-to trigger a broadcast UDP packet on the local network and relay back
-the answers to this packet.
-
-It looks like this should do the trick:
-
-iptables -t nat -I PREROUTING -i ppp0 -p udp --dport 3333 -j DNAT --to 192.168.0.255
-
-Of course, as I write this e-mail, this does not work.  I can see the
-packets entering the INPUT chain, but I see no packets on the OUTPUT
-chain.  I speculate that this is because braodcast addresses are not
-routable and thus the packet gets lost somewhere.
-
-Is there any method to solve this with netfilter or do I need to write a
-bi-directional UDP proxy in userspace?
-
-Thanks
-  Detlev
-
+diff --git a/extensions/libxt_devgroup.c b/extensions/libxt_devgroup.c
+index a925dd0..4487c83 100644
+--- a/extensions/libxt_devgroup.c
++++ b/extensions/libxt_devgroup.c
+@@ -70,6 +70,7 @@ static void devgroup_parse(struct xt_option_call *cb)
+ 			info->src_group = id;
+ 			info->src_mask  = 0xffffffff;
+ 		}
++		info->flags |= XT_DEVGROUP_MATCH_SRC;
+ 		if (cb->invert)
+ 			info->flags |= XT_DEVGROUP_INVERT_SRC;
+ 		break;
+@@ -93,6 +94,7 @@ static void devgroup_parse(struct xt_option_call *cb)
+ 			info->dst_group = id;
+ 			info->dst_mask  = 0xffffffff;
+ 		}
++		info->flags |= XT_DEVGROUP_MATCH_DST;
+ 		if (cb->invert)
+ 			info->flags |= XT_DEVGROUP_INVERT_DST;
+ 		break;
 -- 
-(3)   With sufficient thrust,  pigs fly just fine.  However, this is not
-necessarily a good idea.  It is hard to be sure  where they are going to
-land, and it could be dangerous sitting under them as they fly overhead.
-                              -- The Twelve Networking Truths (RFC 1925)
+1.7.2.5
 
