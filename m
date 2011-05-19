@@ -1,119 +1,76 @@
-From: JP Abgrall <jpa@google.com>
-Subject: xtoptions + quota: parse and store 64bit values?
-Date: Wed, 18 May 2011 20:26:14 -0700
-Message-ID: <BANLkTi=cn4RQSDt3bAGrpSxdd7A4FttVew@mail.gmail.com>
+From: Detlev Zundel <dzu@denx.de>
+Subject: Re: UDP DNAT to a broadcast address
+Date: Thu, 19 May 2011 09:19:16 +0200
+Message-ID: <m27h9nrwcr.fsf@ohwell.denx.de>
+References: <m2wrhorofi.fsf@ohwell.denx.de>
+	<alpine.LNX.2.01.1105182203510.27350@frira.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:27361 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756414Ab1ESD0g (ORCPT
+Received: from mail-out.m-online.net ([212.18.0.10]:53605 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755777Ab1ESHTs (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 May 2011 23:26:36 -0400
-Received: from wpaz37.hot.corp.google.com (wpaz37.hot.corp.google.com [172.24.198.101])
-	by smtp-out.google.com with ESMTP id p4J3QZY9021307
-	for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2011 20:26:35 -0700
-Received: from ywf9 (ywf9.prod.google.com [10.192.6.9])
-	by wpaz37.hot.corp.google.com with ESMTP id p4J3QLui009024
-	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
-	for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2011 20:26:34 -0700
-Received: by ywf9 with SMTP id 9so914593ywf.36
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2011 20:26:34 -0700 (PDT)
+	Thu, 19 May 2011 03:19:48 -0400
+In-Reply-To: <alpine.LNX.2.01.1105182203510.27350@frira.zrqbmnf.qr> (Jan
+	Engelhardt's message of "Wed, 18 May 2011 22:18:27 +0200 (CEST)")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Without this change, my kernel's xt_quota.c::quota_mt_check() doesn't
-see the values.
+Hi Jan,
 
+thanks for the quick answer.
 
->From b65b9fe5096bd49a9ec2f0f6c2f23d274cfc88ee Mon Sep 17 00:00:00 2001
-From: JP Abgrall <jpa@google.com>
-Date: Wed, 18 May 2011 20:19:39 -0700
-Subject: [PATCH] xtoptions + quota: parse and store 64bit values
+> On Wednesday 2011-05-18 17:58, Detlev Zundel wrote:
+>
+>>Hi,
+>>
+>>looking for the answer to this problem, I searched the web and this
+>>mailing list, but I still couldn't find a definitive answer to the
+>>question that I have.
+>>
+>>In my setup I need to a UDP packet sent to the external IP of my router
+>>to trigger a broadcast UDP packet on the local network and relay back
+>>the answers to this packet.
+>>
+>>It looks like this should do the trick:
+>>
+>>iptables -t nat -I PREROUTING -i ppp0 -p udp --dport 3333 -j DNAT --to 
+>>192.168.0.255
+>>
+>>Of course, as I write this e-mail, this does not work.
+>
+> On the contrary. This should exactly do what is requested: changing
+> the dst address in the packet to 255, and you should be able to
+> observe that this address change was successful by using -j LOG in
+> filter-INPUT.
+>
+>>I can see the packets entering the INPUT chain, but I see no packets
+>>on the OUTPUT chain. I speculate that this is because braodcast
+>>addresses are not routable and thus the packet gets lost somewhere.
+>
+> By the very definition of broadcast, a receiver is not to route it
+> any further, wh. As such, it enters INPUT. No loss, the machine
+> properly receives it (as it is supposed to). OUTPUT is only for
+> locally-generated packets, but received frames can only appear in
+> INPUT or FORWARD.
 
-The xtables_strtoul() would cram a long long into a long.
-The parse_int would try to cram a UINT64 into a long.
-The quota_parse would just ignore whatever value was parsed.
+Yes, sorry, I really meant that I did not see anything on the FORWARD
+chain.
 
-Change-Id: Ie1f05e98e974a255d962dd757a5592458f942f8b
----
- extensions/libxt_quota.c |    1 +
- include/xtables.h.in     |    2 +-
- xtables.c                |    4 ++--
- xtoptions.c              |    4 ++--
- 4 files changed, 6 insertions(+), 5 deletions(-)
+> Netfilter does not even play a role in this.
+>
+> All the bcast/mcast forwarders are userspace AFAICS.
 
-diff --git a/extensions/libxt_quota.c b/extensions/libxt_quota.c
-index 988f404..dc9b3b0 100644
---- a/extensions/libxt_quota.c
-+++ b/extensions/libxt_quota.c
-@@ -47,6 +47,7 @@ static void quota_parse(struct xt_option_call *cb)
- 	xtables_option_parse(cb);
- 	if (cb->invert)
- 		info->flags |= XT_QUOTA_INVERT;
-+	info->quota = cb->val.u64;
- }
+Ok, thanks for the explanation, this now all makes sense to me and I'll
+turn to userspace.
 
- static struct xtables_match quota_match = {
-diff --git a/include/xtables.h.in b/include/xtables.h.in
-index 38c0e5e..5e9dec7 100644
---- a/include/xtables.h.in
-+++ b/include/xtables.h.in
-@@ -408,7 +408,7 @@ extern void xtables_register_matches(struct
-xtables_match *, unsigned int);
- extern void xtables_register_target(struct xtables_target *me);
- extern void xtables_register_targets(struct xtables_target *, unsigned int);
+Best wishes
+  Detlev
 
--extern bool xtables_strtoul(const char *, char **, unsigned long *,
-+extern bool xtables_strtoul(const char *, char **, unsigned long long *,
- 	unsigned long, unsigned long);
- extern bool xtables_strtoui(const char *, char **, unsigned int *,
- 	unsigned int, unsigned int);
-diff --git a/xtables.c b/xtables.c
-index 9038f89..69e79b1 100644
---- a/xtables.c
-+++ b/xtables.c
-@@ -426,7 +426,7 @@ int xtables_load_ko(const char *modprobe, bool quiet)
-  * Returns true/false whether number was accepted. On failure, *value has
-  * undefined contents.
-  */
--bool xtables_strtoul(const char *s, char **end, unsigned long *value,
-+bool xtables_strtoul(const char *s, char **end, unsigned long long *value,
-                      unsigned long min, unsigned long max)
- {
- 	unsigned long v;
-@@ -454,7 +454,7 @@ bool xtables_strtoul(const char *s, char **end,
-unsigned long *value,
- bool xtables_strtoui(const char *s, char **end, unsigned int *value,
-                      unsigned int min, unsigned int max)
- {
--	unsigned long v;
-+	unsigned long long v;
- 	bool ret;
-
- 	ret = xtables_strtoul(s, end, &v, min, max);
-diff --git a/xtoptions.c b/xtoptions.c
-index 8d54dd8..7a35ffa 100644
---- a/xtoptions.c
-+++ b/xtoptions.c
-@@ -105,7 +105,7 @@ static void xtopt_parse_int(struct xt_option_call *cb)
- {
- 	const struct xt_option_entry *entry = cb->entry;
- 	unsigned long long lmin = 0, lmax = UINT32_MAX;
--	unsigned int value;
-+	unsigned long long value;
-
- 	if (entry->type == XTTYPE_UINT8)
- 		lmax = UINT8_MAX;
-@@ -118,7 +118,7 @@ static void xtopt_parse_int(struct xt_option_call *cb)
- 	if (cb->entry->max != 0)
- 		lmax = cb->entry->max;
-
--	if (!xtables_strtoui(cb->arg, NULL, &value, lmin, lmax))
-+	if (!xtables_strtoul(cb->arg, NULL, &value, lmin, lmax))
- 		xt_params->exit_err(PARAMETER_PROBLEM,
- 			"%s: bad value for option \"--%s\", "
- 			"or out of range (%llu-%llu).\n",
 -- 
-1.7.3.1
+It is practically impossible to teach good programming to students that have
+had a  prior exposure to BASIC:  as potential  programmers they are mentally
+mutilated beyond hope of regeneration.                    -- Edsger Dijkstra 
