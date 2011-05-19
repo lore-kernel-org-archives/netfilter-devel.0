@@ -1,203 +1,119 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH] netfilter: the "none" conntrack helper module
-Date: Thu, 19 May 2011 00:21:05 +0200
-Message-ID: <1305757266-8730-2-git-send-email-jengelh@medozas.de>
-References: <1305757266-8730-1-git-send-email-jengelh@medozas.de>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: JP Abgrall <jpa@google.com>
+Subject: xtoptions + quota: parse and store 64bit values?
+Date: Wed, 18 May 2011 20:26:14 -0700
+Message-ID: <BANLkTi=cn4RQSDt3bAGrpSxdd7A4FttVew@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:50562 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753365Ab1ERWVL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 May 2011 18:21:11 -0400
-In-Reply-To: <1305757266-8730-1-git-send-email-jengelh@medozas.de>
+Received: from smtp-out.google.com ([216.239.44.51]:27361 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756414Ab1ESD0g (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 May 2011 23:26:36 -0400
+Received: from wpaz37.hot.corp.google.com (wpaz37.hot.corp.google.com [172.24.198.101])
+	by smtp-out.google.com with ESMTP id p4J3QZY9021307
+	for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2011 20:26:35 -0700
+Received: from ywf9 (ywf9.prod.google.com [10.192.6.9])
+	by wpaz37.hot.corp.google.com with ESMTP id p4J3QLui009024
+	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
+	for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2011 20:26:34 -0700
+Received: by ywf9 with SMTP id 9so914593ywf.36
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 May 2011 20:26:34 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-To cope with some crappy, easily DOS-able network equipment, a
-customer put Linux on each side of the shabby shaper in question.
-Since NFCT supports zones since recently, these two system images can
-be collapsed without causing tracking problems. The layout thus is
-something like:
+Without this change, my kernel's xt_quota.c::quota_mt_check() doesn't
+see the values.
 
-graph {
-	subgraph cluster_1 {
-		label="linux";
-		subgraph cluster_2 { label="ctzone0"; eth0; eth1; };
-		subgraph cluster_3 { label="ctzone1"; eth2; eth3; };
-	};
-	subgraph cluster_4 {
-		label="shaper";
-		"FE/0"; "FE/1";
-	};
-	netA -- eth0 -- eth1 -- "FE/0" -- "FE/1" --
-	eth2 -- eth3 -- netB;
-};
 
-With this setup however, nf_conntrack_ftp seems to discard packets
-when they re-enter nfct_ftp for the second time. To work around this,
-I devised this "none" helper module, which can be used in the raw
-table with `-j CT --helper none` in one zone to avoid automatically
-running nfct_ftp - or any other helper for that matter. `-j CT
---notrack` was out of the option, as both zones needed tracking
-support for xt_connlimit.
+>From b65b9fe5096bd49a9ec2f0f6c2f23d274cfc88ee Mon Sep 17 00:00:00 2001
+From: JP Abgrall <jpa@google.com>
+Date: Wed, 18 May 2011 20:19:39 -0700
+Subject: [PATCH] xtoptions + quota: parse and store 64bit values
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+The xtables_strtoul() would cram a long long into a long.
+The parse_int would try to cram a UINT64 into a long.
+The quota_parse would just ignore whatever value was parsed.
+
+Change-Id: Ie1f05e98e974a255d962dd757a5592458f942f8b
 ---
- net/netfilter/Kconfig             |    8 +++
- net/netfilter/Makefile            |    1 +
- net/netfilter/nf_conntrack_none.c |  111 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 120 insertions(+), 0 deletions(-)
- create mode 100644 net/netfilter/nf_conntrack_none.c
+ extensions/libxt_quota.c |    1 +
+ include/xtables.h.in     |    2 +-
+ xtables.c                |    4 ++--
+ xtoptions.c              |    4 ++--
+ 4 files changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 32bff6d..9300b11 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -132,6 +132,14 @@ config NF_CT_PROTO_UDPLITE
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+config NF_CONNTRACK_NONE
-+	tristate '"none" helper'
-+	depends on NETFILTER_ADVANCED
-+	---help---
-+	This helper does nothing, and is a workaround for
-+	nf_conntrack_* breaking down on expectations when traffic
-+	is fed back into the system.
-+
- config NF_CONNTRACK_AMANDA
- 	tristate "Amanda backup protocol support"
- 	depends on NETFILTER_ADVANCED
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 1a02853..d710ec5 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -25,6 +25,7 @@ obj-$(CONFIG_NF_CT_NETLINK) += nf_conntrack_netlink.o
- # connection tracking helpers
- nf_conntrack_h323-objs := nf_conntrack_h323_main.o nf_conntrack_h323_asn1.o
- 
-+obj-$(CONFIG_NF_CONNTRACK_NONE) += nf_conntrack_none.o
- obj-$(CONFIG_NF_CONNTRACK_AMANDA) += nf_conntrack_amanda.o
- obj-$(CONFIG_NF_CONNTRACK_FTP) += nf_conntrack_ftp.o
- obj-$(CONFIG_NF_CONNTRACK_H323) += nf_conntrack_h323.o
-diff --git a/net/netfilter/nf_conntrack_none.c b/net/netfilter/nf_conntrack_none.c
-new file mode 100644
-index 0000000..5ae618f
---- /dev/null
-+++ b/net/netfilter/nf_conntrack_none.c
-@@ -0,0 +1,111 @@
-+#include <linux/module.h>
-+#include <net/netfilter/nf_conntrack.h>
-+#include <net/netfilter/nf_conntrack_expect.h>
-+#include <net/netfilter/nf_conntrack_helper.h>
-+
-+static int nohelp_helper(struct sk_buff *skb, unsigned int protoff,
-+			 struct nf_conn *ct, enum ip_conntrack_info ctinfo)
-+{
-+	return NF_ACCEPT;
-+}
-+
-+static const struct nf_conntrack_expect_policy noexp_policy = {
-+	.max_expected = 1,
-+	.timeout      = 5 * 60,
-+};
-+
-+static struct nf_conntrack_helper nohelp_reg[] __read_mostly = {
-+	{
-+		.name               = "none",
-+		.me                 = THIS_MODULE,
-+		.help               = nohelp_helper,
-+		.expect_policy      = &noexp_policy,
-+		.tuple.src.l3num    = NFPROTO_IPV6,
-+		.tuple.dst.protonum = IPPROTO_TCP,
-+	},
-+	{
-+		.name               = "none",
-+		.me                 = THIS_MODULE,
-+		.help               = nohelp_helper,
-+		.expect_policy      = &noexp_policy,
-+		.tuple.src.l3num    = NFPROTO_IPV6,
-+		.tuple.dst.protonum = IPPROTO_SCTP,
-+	},
-+	{
-+		.name               = "none",
-+		.me                 = THIS_MODULE,
-+		.help               = nohelp_helper,
-+		.expect_policy      = &noexp_policy,
-+		.tuple.src.l3num    = NFPROTO_IPV6,
-+		.tuple.dst.protonum = IPPROTO_UDP,
-+	},
-+	{
-+		.name               = "none",
-+		.me                 = THIS_MODULE,
-+		.help               = nohelp_helper,
-+		.expect_policy      = &noexp_policy,
-+		.tuple.src.l3num    = NFPROTO_IPV6,
-+		.tuple.dst.protonum = IPPROTO_DCCP,
-+	},
-+	{
-+		.name               = "none",
-+		.me                 = THIS_MODULE,
-+		.help               = nohelp_helper,
-+		.expect_policy      = &noexp_policy,
-+		.tuple.src.l3num    = NFPROTO_IPV4,
-+		.tuple.dst.protonum = IPPROTO_TCP,
-+	},
-+	{
-+		.name               = "none",
-+		.me                 = THIS_MODULE,
-+		.help               = nohelp_helper,
-+		.expect_policy      = &noexp_policy,
-+		.tuple.src.l3num    = NFPROTO_IPV4,
-+		.tuple.dst.protonum = IPPROTO_SCTP,
-+	},
-+	{
-+		.name               = "none",
-+		.me                 = THIS_MODULE,
-+		.help               = nohelp_helper,
-+		.expect_policy      = &noexp_policy,
-+		.tuple.src.l3num    = NFPROTO_IPV4,
-+		.tuple.dst.protonum = IPPROTO_UDP,
-+	},
-+	{
-+		.name               = "none",
-+		.me                 = THIS_MODULE,
-+		.help               = nohelp_helper,
-+		.expect_policy      = &noexp_policy,
-+		.tuple.src.l3num    = NFPROTO_IPV4,
-+		.tuple.dst.protonum = IPPROTO_DCCP,
-+	},
-+};
-+
-+static int __init nfct_none_init(void)
-+{
-+	unsigned int i;
-+	int ret;
-+
-+	for (i = 0; i < ARRAY_SIZE(nohelp_reg); ++i) {
-+		ret = nf_conntrack_helper_register(&nohelp_reg[i]);
-+		if (ret < 0)
-+			goto out;
-+	}
-+	return 0;
-+out:
-+	while (i-- > 0)
-+		nf_conntrack_helper_unregister(&nohelp_reg[i]);
-+	return ret;
-+}
-+
-+static void __exit nfct_none_exit(void)
-+{
-+	unsigned int i = ARRAY_SIZE(nohelp_reg);
-+
-+	while (i-- > 0)
-+		nf_conntrack_helper_unregister(&nohelp_reg[i]);
-+}
-+
-+module_init(nfct_none_init);
-+module_exit(nfct_none_exit);
-+MODULE_LICENSE("GPL");
+diff --git a/extensions/libxt_quota.c b/extensions/libxt_quota.c
+index 988f404..dc9b3b0 100644
+--- a/extensions/libxt_quota.c
++++ b/extensions/libxt_quota.c
+@@ -47,6 +47,7 @@ static void quota_parse(struct xt_option_call *cb)
+ 	xtables_option_parse(cb);
+ 	if (cb->invert)
+ 		info->flags |= XT_QUOTA_INVERT;
++	info->quota = cb->val.u64;
+ }
+
+ static struct xtables_match quota_match = {
+diff --git a/include/xtables.h.in b/include/xtables.h.in
+index 38c0e5e..5e9dec7 100644
+--- a/include/xtables.h.in
++++ b/include/xtables.h.in
+@@ -408,7 +408,7 @@ extern void xtables_register_matches(struct
+xtables_match *, unsigned int);
+ extern void xtables_register_target(struct xtables_target *me);
+ extern void xtables_register_targets(struct xtables_target *, unsigned int);
+
+-extern bool xtables_strtoul(const char *, char **, unsigned long *,
++extern bool xtables_strtoul(const char *, char **, unsigned long long *,
+ 	unsigned long, unsigned long);
+ extern bool xtables_strtoui(const char *, char **, unsigned int *,
+ 	unsigned int, unsigned int);
+diff --git a/xtables.c b/xtables.c
+index 9038f89..69e79b1 100644
+--- a/xtables.c
++++ b/xtables.c
+@@ -426,7 +426,7 @@ int xtables_load_ko(const char *modprobe, bool quiet)
+  * Returns true/false whether number was accepted. On failure, *value has
+  * undefined contents.
+  */
+-bool xtables_strtoul(const char *s, char **end, unsigned long *value,
++bool xtables_strtoul(const char *s, char **end, unsigned long long *value,
+                      unsigned long min, unsigned long max)
+ {
+ 	unsigned long v;
+@@ -454,7 +454,7 @@ bool xtables_strtoul(const char *s, char **end,
+unsigned long *value,
+ bool xtables_strtoui(const char *s, char **end, unsigned int *value,
+                      unsigned int min, unsigned int max)
+ {
+-	unsigned long v;
++	unsigned long long v;
+ 	bool ret;
+
+ 	ret = xtables_strtoul(s, end, &v, min, max);
+diff --git a/xtoptions.c b/xtoptions.c
+index 8d54dd8..7a35ffa 100644
+--- a/xtoptions.c
++++ b/xtoptions.c
+@@ -105,7 +105,7 @@ static void xtopt_parse_int(struct xt_option_call *cb)
+ {
+ 	const struct xt_option_entry *entry = cb->entry;
+ 	unsigned long long lmin = 0, lmax = UINT32_MAX;
+-	unsigned int value;
++	unsigned long long value;
+
+ 	if (entry->type == XTTYPE_UINT8)
+ 		lmax = UINT8_MAX;
+@@ -118,7 +118,7 @@ static void xtopt_parse_int(struct xt_option_call *cb)
+ 	if (cb->entry->max != 0)
+ 		lmax = cb->entry->max;
+
+-	if (!xtables_strtoui(cb->arg, NULL, &value, lmin, lmax))
++	if (!xtables_strtoul(cb->arg, NULL, &value, lmin, lmax))
+ 		xt_params->exit_err(PARAMETER_PROBLEM,
+ 			"%s: bad value for option \"--%s\", "
+ 			"or out of range (%llu-%llu).\n",
 -- 
-1.7.3.4
-
+1.7.3.1
