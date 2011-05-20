@@ -1,37 +1,40 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset return value in type_pf_tdel()
-Date: Fri, 20 May 2011 09:46:57 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1105200945330.12364@blackhole.kfki.hu>
-References: <20110519.190937.1873377377043137868.davem@davemloft.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: xtoptions + quota: parse and store 64bit values?
+Date: Fri, 20 May 2011 16:06:55 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1105201606010.24270@frira.zrqbmnf.qr>
+References: <BANLkTi=cn4RQSDt3bAGrpSxdd7A4FttVew@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: David Miller <davem@davemloft.net>
+Cc: netfilter-devel@vger.kernel.org
+To: JP Abgrall <jpa@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:50257 "EHLO smtp1.kfki.hu"
+Received: from seven.medozas.de ([188.40.89.202]:44282 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932135Ab1ETHq7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 May 2011 03:46:59 -0400
-In-Reply-To: <20110519.190937.1873377377043137868.davem@davemloft.net>
+	id S933417Ab1ETOG5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 May 2011 10:06:57 -0400
+In-Reply-To: <BANLkTi=cn4RQSDt3bAGrpSxdd7A4FttVew@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 19 May 2011, David Miller wrote:
+On Thursday 2011-05-19 05:26, JP Abgrall wrote:
 
-> Variable 'ret' in this function is set but not used.
-> 
-> I'm thinking that the "return 0" should perhaps be "return ret"
-> but it maybe should not be and 'ret' should simply be deleted
-> entirely.
-> 
-> Please take a look at this.
+>Without this change, my kernel's xt_quota.c::quota_mt_check() doesn't
+>see the values.
 
-I'll look at it and send the fix together with my pending patches.
+>The xtables_strtoul() would cram a long long into a long.
+>The parse_int would try to cram a UINT64 into a long.
+>The quota_parse would just ignore whatever value was parsed.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Thanks, taken.
+
+
+>@@ -47,6 +47,7 @@ static void quota_parse(struct xt_option_call *cb)
+> 	xtables_option_parse(cb);
+> 	if (cb->invert)
+> 		info->flags |= XT_QUOTA_INVERT;
+>+	info->quota = cb->val.u64;
+> }
+>
+> static struct xtables_match quota_match = {
+
+I replaced this by XTOPT_PUT as it should have been.
