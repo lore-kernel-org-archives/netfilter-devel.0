@@ -1,65 +1,66 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 07/13] doc: add some coded option examples to libxt_hashlimit
-Date: Mon, 23 May 2011 16:39:17 +0200
-Message-ID: <1306161564-4370-8-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 09/13] doc: clarify that -p all is a special keyword only
+Date: Mon, 23 May 2011 16:39:19 +0200
+Message-ID: <1306161564-4370-10-git-send-email-jengelh@medozas.de>
 References: <1306161564-4370-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:44628 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:44637 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755441Ab1EWOje (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 May 2011 10:39:34 -0400
+	id S1755552Ab1EWOjg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 May 2011 10:39:36 -0400
 In-Reply-To: <1306161564-4370-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libxt_hashlimit.man |   26 ++++++++++++++++----------
- 1 files changed, 16 insertions(+), 10 deletions(-)
+ ip6tables.8.in |    5 ++---
+ iptables.8.in  |    5 ++---
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/extensions/libxt_hashlimit.man b/extensions/libxt_hashlimit.man
-index e91d0c6..f90577e 100644
---- a/extensions/libxt_hashlimit.man
-+++ b/extensions/libxt_hashlimit.man
-@@ -2,16 +2,7 @@
- \fBlimit\fP match) for a group of connections using a \fBsingle\fP iptables
- rule. Grouping can be done per-hostgroup (source and/or destination address)
- and/or per-port. It gives you the ability to express "\fIN\fP packets per time
--quantum per group":
--.TP
--matching on source host
--"1000 packets per second for every host in 192.168.0.0/16"
--.TP
--matching on source port
--"100 packets per second for every service of 192.168.1.1"
--.TP
--matching on subnet
--"10000 packets per minute for every /28 subnet in 10.0.0.0/8"
-+quantum per group" (see below for some examples).
- .PP
- A hash limit option (\fB\-\-hashlimit\-upto\fP, \fB\-\-hashlimit\-above\fP) and
- \fB\-\-hashlimit\-name\fP are required.
-@@ -57,3 +48,18 @@ After how many milliseconds do hash entries expire.
+diff --git a/ip6tables.8.in b/ip6tables.8.in
+index 61d6667..48ba18e 100644
+--- a/ip6tables.8.in
++++ b/ip6tables.8.in
+@@ -243,15 +243,14 @@ add, delete, insert, replace and append commands).
+ [\fB!\fP] \fB\-p\fP, \fB\-\-protocol\fP \fIprotocol\fP
+ The protocol of the rule or of the packet to check.
+ The specified protocol can be one of \fBtcp\fP, \fBudp\fP, \fBudplite\fP,
+-\fBicmpv6\fP, \fBesp\fP, \fBmh\fP or \fBall\fP,
++\fBicmpv6\fP, \fBesp\fP, \fBmh\fP or the special keyword "\fBall\fP",
+ or it can be a numeric value, representing one of these protocols or a
+ different one. A protocol name from /etc/protocols is also allowed.
+ But IPv6 extension headers except \fBesp\fP are not allowed.
+ \fBesp\fP and \fBipv6\-nonext\fP
+ can be used with Kernel version 2.6.11 or later.
+ A "!" argument before the protocol inverts the
+-test.  The number zero is equivalent to \fBall\fP.
+-Protocol \fBall\fP
++test.  The number zero is equivalent to \fBall\fP. "\fBall\fP"
+ will match with all protocols and is taken as default when this
+ option is omitted.
  .TP
- \fB\-\-hashlimit\-htable\-gcinterval\fP \fImsec\fP
- How many milliseconds between garbage collection intervals.
-+.PP
-+Examples:
-+.TP
-+matching on source host
-+"1000 packets per second for every host in 192.168.0.0/16" =>
-+\-s 192.168.0.0/16 \-\-hashlimit\-mode srcip \-\-hashlimit\-upto 1000/sec
-+.TP
-+matching on source port
-+"100 packets per second for every service of 192.168.1.1" =>
-+\-s 192.168.1.1 \-\-hashlimit\-mode srcport \-\-hashlimit\-upto 100/sec
-+.TP
-+matching on subnet
-+"10000 packets per minute for every /28 subnet (groups of 8 addresses)
-+in 10.0.0.0/8" =>
-+\-s 10.0.0.8 \-\-hashlimit\-mask 28 \-\-hashlimit\-upto 10000/min
+diff --git a/iptables.8.in b/iptables.8.in
+index 110c599..d09bf7a 100644
+--- a/iptables.8.in
++++ b/iptables.8.in
+@@ -246,12 +246,11 @@ add, delete, insert, replace and append commands).
+ [\fB!\fP] \fB\-p\fP, \fB\-\-protocol\fP \fIprotocol\fP
+ The protocol of the rule or of the packet to check.
+ The specified protocol can be one of \fBtcp\fP, \fBudp\fP, \fBudplite\fP,
+-\fBicmp\fP, \fBesp\fP, \fBah\fP, \fBsctp\fP or \fBall\fP,
++\fBicmp\fP, \fBesp\fP, \fBah\fP, \fBsctp\fP or the special keyword "\fBall\fP",
+ or it can be a numeric value, representing one of these protocols or a
+ different one.  A protocol name from /etc/protocols is also allowed.
+ A "!" argument before the protocol inverts the
+-test.  The number zero is equivalent to \fBall\fP.
+-Protocol \fBall\fP
++test.  The number zero is equivalent to \fBall\fP. "\fBall\fP"
+ will match with all protocols and is taken as default when this
+ option is omitted.
+ .TP
 -- 
 1.7.3.4
 
