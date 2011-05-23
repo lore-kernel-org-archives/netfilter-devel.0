@@ -1,42 +1,44 @@
-From: Thomas Graf <tgraf@redhat.com>
-Subject: Re: [PATCH] xt_AUDIT.c: remove ipv6 dependencies
-Date: Sun, 22 May 2011 13:58:07 +0200
-Message-ID: <1306065487.4840.133.camel@lsx>
-References: <4DD83EB4.5040800@googlemail.com>
-	 <1306057384.12435.5.camel@edumazet-laptop> <1306058500.4840.130.camel@lsx>
-	 <4DD8F713.1020902@googlemail.com>
-Reply-To: tgraf@redhat.com
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Guided option parser run 8
+Date: Mon, 23 May 2011 15:23:19 +0200
+Message-ID: <4DDA5FC7.4080006@trash.net>
+References: <1305247657-29158-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	Eric Paris <eparis@parisplace.org>,
-	Al Viro <viro@ZenIV.linux.org.uk>
-To: Mr Dash Four <mr.dash.four@googlemail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40155 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753767Ab1EVL6f (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 22 May 2011 07:58:35 -0400
-In-Reply-To: <4DD8F713.1020902@googlemail.com>
+Received: from stinky.trash.net ([213.144.137.162]:33945 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752319Ab1EWNYG (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 May 2011 09:24:06 -0400
+In-Reply-To: <1305247657-29158-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, 2011-05-22 at 12:44 +0100, Mr Dash Four wrote: 
-> >> Its not clear why you beliebe this patch is needed.
-> >>
-> >> I have a kernel without IPV6, and xt_AUDIT compiles fine here, it even
-> >> loads properly.
-> >>     
-> >
-> > The patch is not required. The protocol definitions and header parsing
-> > functions are available even if IPv6 is not selected.
-> >   
-> I had errors when I tried to compile it in (I do not have ipv6 at all), 
-> hence I introduced the latest patch - with that patch everything 
-> compiles and runs without problems.
+On 13.05.2011 02:47, Jan Engelhardt wrote:
+> The following changes since commit 59ce5bd1d05225911051a4c46ce5ccdd7c1ed078:
+> 
+>   Merge branch 'floating/opts' of git://dev.medozas.de/iptables (2011-05-12 11:11:51 +0200)
+> 
+> are available in the git repository at:
+> 
+>   git://dev.medozas.de/iptables master
+> 
+> Jan Engelhardt (12):
+>       src: replace old IP*T_ALIGN macros
+>       src: combine default_command functions
+>       libxt_policy: option table fixes, improved error tracking
+>       libxtables: avoid running into .also checks when option not used
+>       libxt_policy: use XTTYPE_PROTOCOL type
+>       libxtables: collapse double protocol parsing
+>       libipt_[SD]NAT: flag up module name on error
+>       libipt_[SD]NAT: avoid false error about multiple destinations specified
+>       libxt_conntrack: correct printed module name
+>       libxt_conntrack: fix assignment to wrong member
+>       libxt_conntrack: resolve erroneous rev-2 port range message
+>       libip6t_rt: rt-0-not-strict should take no arg
 
-Could you provide the config combination which results in the compile
-errors?
-
+Pulled, thanks Jan.
