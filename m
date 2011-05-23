@@ -1,45 +1,37 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 13/13] libxt_ipvs: restore network-byte order
-Date: Mon, 23 May 2011 16:39:23 +0200
-Message-ID: <1306161564-4370-14-git-send-email-jengelh@medozas.de>
-References: <1306161564-4370-1-git-send-email-jengelh@medozas.de>
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: The glorious NFCT "none" helper
+Date: Mon, 23 May 2011 17:47:16 +0200
+Message-ID: <4DDA8184.3060407@netfilter.org>
+References: <1305757266-8730-1-git-send-email-jengelh@medozas.de> <4DDA6F53.9060809@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:44652 "EHLO seven.medozas.de"
+Received: from mail.us.es ([193.147.175.20]:45661 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755552Ab1EWOjk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 May 2011 10:39:40 -0400
-In-Reply-To: <1306161564-4370-1-git-send-email-jengelh@medozas.de>
+	id S1755300Ab1EWPr2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 May 2011 11:47:28 -0400
+In-Reply-To: <4DDA6F53.9060809@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- extensions/libxt_ipvs.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+On 23/05/11 16:29, Patrick McHardy wrote:
+> On 19.05.2011 00:21, Jan Engelhardt wrote:
+>> Hej,
+>>
+>>
+>> While working with a customer setup, I came up with this funny idea
+>> of plugging a no-op NFCT helper in to workaround some nfct_ftp
+>> problem. Besides that, it may also be used to simply skip helping and
+>> save cycles. See the patch's message for details - I'd love to hear
+>> something about it.
+>>
+>> (NB: nf_nat_ftp was loaded, but not used when connecting between netA
+>> and netB.)
+> 
+> Wouldn't a flag to the CT target to skip the helper lookup work as well?
 
-diff --git a/extensions/libxt_ipvs.c b/extensions/libxt_ipvs.c
-index 88d235f..4672766 100644
---- a/extensions/libxt_ipvs.c
-+++ b/extensions/libxt_ipvs.c
-@@ -32,12 +32,14 @@ static const struct xt_option_entry ipvs_mt_opts[] = {
- 	{.name = "vaddr", .id = O_VADDR, .type = XTTYPE_HOSTMASK,
- 	 .flags = XTOPT_INVERT},
- 	{.name = "vport", .id = O_VPORT, .type = XTTYPE_PORT,
--	 .flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, vport)},
-+	 .flags = XTOPT_NBO | XTOPT_INVERT | XTOPT_PUT,
-+	 XTOPT_POINTER(s, vport)},
- 	{.name = "vdir", .id = O_VDIR, .type = XTTYPE_STRING},
- 	{.name = "vmethod", .id = O_VMETHOD, .type = XTTYPE_STRING,
- 	 .flags = XTOPT_INVERT},
- 	{.name = "vportctl", .id = O_VPORTCTL, .type = XTTYPE_PORT,
--	 .flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, vportctl)},
-+	 .flags = XTOPT_NBO | XTOPT_INVERT | XTOPT_PUT,
-+	 XTOPT_POINTER(s, vportctl)},
- 	XTOPT_TABLEEND,
- };
- #undef s
--- 
-1.7.3.4
-
+Indeed.
