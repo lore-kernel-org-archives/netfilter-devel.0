@@ -1,119 +1,365 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 08/13] doc: make usage of libxt_rateest more obvious
-Date: Mon, 23 May 2011 16:39:18 +0200
-Message-ID: <1306161564-4370-9-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 12/13] libxt_rateest: use guided option parser
+Date: Mon, 23 May 2011 16:39:22 +0200
+Message-ID: <1306161564-4370-13-git-send-email-jengelh@medozas.de>
 References: <1306161564-4370-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:44633 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:44650 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755574Ab1EWOjf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 May 2011 10:39:35 -0400
+	id S1755552Ab1EWOjk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 May 2011 10:39:40 -0400
 In-Reply-To: <1306161564-4370-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libxt_rateest.man |   71 +++++++++++++++++++++++++++++++++---------
- 1 files changed, 56 insertions(+), 15 deletions(-)
+ extensions/libxt_rateest.c |  256 +++++++++++++++-----------------------------
+ 1 files changed, 88 insertions(+), 168 deletions(-)
 
-diff --git a/extensions/libxt_rateest.man b/extensions/libxt_rateest.man
-index 75303c5..42a82f3 100644
---- a/extensions/libxt_rateest.man
-+++ b/extensions/libxt_rateest.man
-@@ -1,34 +1,75 @@
- The rate estimator can match on estimated rates as collected by the RATEEST
- target. It supports matching on absolute bps/pps values, comparing two rate
- estimators and matching on the difference between two rate estimators.
-+.PP
-+For a better understanding of the available options, these are all possible
-+combinations:
-+.\" * Absolute:
-+.IP \(bu 4
-+\fBrateest\fP \fIoperator\fP \fBrateest-bps\fP
-+.IP \(bu 4
-+\fBrateest\fP \fIoperator\fP \fBrateest-pps\fP
-+.\" * Absolute + Delta:
-+.IP \(bu 4
-+(\fBrateest\fP minus \fBrateest-bps1\fP) \fIoperator\fP \fBrateest-bps2\fP
-+.IP \(bu 4
-+(\fBrateest\fP minus \fBrateest-pps1\fP) \fIoperator\fP \fBrateest-pps2\fP
-+.\" * Relative:
-+.IP \(bu 4
-+\fBrateest1\fP \fIoperator\fP \fBrateest2\fP \fBrateest-bps\fP(without rate!)
-+.IP \(bu 4
-+\fBrateest1\fP \fIoperator\fP \fBrateest2\fP \fBrateest-pps\fP(without rate!)
-+.\" * Relative + Delta:
-+.IP \(bu 4
-+(\fBrateest1\fP minus \fBrateest-bps1\fP) \fIoperator\fP
-+(\fBrateest2\fP minus \fBrateest-bps2\fP)
-+.IP \(bu 4
-+(\fBrateest1\fP minus \fBrateest-pps1\fP) \fIoperator\fP
-+(\fBrateest2\fP minus \fBrateest-pps2\fP)
-+.TP
-+\fB\-\-rateest\-delta\fP
-+For each estimator (either absolute or relative mode), calculate the difference
-+between the estimator-determined flow rate and the static value chosen with the
-+BPS/PPS options. If the flow rate is higher than the specified BPS/PPS, 0 will
-+be used instead of a negative value. In other words, "max(0, rateest#_rate -
-+rateest#_bps)" is used.
-+.TP
-+[\fB!\fP] \fB\-\-rateest\-lt\fP
-+Match if rate is less than given rate/estimator.
-+.TP
-+[\fB!\fP] \fB\-\-rateest\-gt\fP
-+Match if rate is greater than given rate/estimator.
-+.TP
-+[\fB!\fP] \fB\-\-rateest\-eq\fP
-+Match if rate is equal to given rate/estimator.
-+.PP
-+In the so-called "absolute mode", only one rate estimator is used and compared
-+against a static value, while in "relative mode", two rate estimators are
-+compared against another.
-+.TP
-+\fB\-\-rateest\fP \fIname\fP
-+Name of the one rate estimator for absolute mode.
- .TP
- \fB\-\-rateest1\fP \fIname\fP
--Name of the first rate estimator.
- .TP
- \fB\-\-rateest2\fP \fIname\fP
--Name of the second rate estimator (if difference is to be calculated).
-+The names of the two rate estimators for relative mode.
- .TP
--\fB\-\-rateest\-delta\fP
--Compare difference(s) to given rate(s)
-+\fB\-\-rateest\-bps\fP [\fIvalue\fP]
-+.TP
-+\fB\-\-rateest\-pps\fP [\fIvalue\fP]
- .TP
- \fB\-\-rateest\-bps1\fP [\fIvalue\fP]
- .TP
- \fB\-\-rateest\-bps2\fP [\fIvalue\fP]
--Compare bytes per second.
- .TP
- \fB\-\-rateest\-pps1\fP [\fIvalue\fP]
- .TP
- \fB\-\-rateest\-pps2\fP [\fIvalue\fP]
--Compare packets per second.
--.TP
--[\fB!\fP] \fB\-\-rateest\-lt\fP
--Match if rate is less than given rate/estimator.
--.TP
--[\fB!\fP] \fB\-\-rateest\-gt\fP
--Match if rate is greater than given rate/estimator.
--.TP
--[\fB!\fP] \fB\-\-rateest\-eq\fP
--Match if rate is equal to given rate/estimator.
-+Compare the estimator(s) by bytes or packets per second, and compare against
-+the chosen value. See the above bullet list for which option is to be used in
-+which case. A unit suffix may be used - available ones are: bit, [kmgt]bit,
-+[KMGT]ibit, Bps, [KMGT]Bps, [KMGT]iBps.
- .PP
- Example: This is what can be used to route outgoing data connections from an
- FTP server over two lines based on the available bandwidth at the time the data
+diff --git a/extensions/libxt_rateest.c b/extensions/libxt_rateest.c
+index 2244558..92b8d50 100644
+--- a/extensions/libxt_rateest.c
++++ b/extensions/libxt_rateest.c
+@@ -8,9 +8,6 @@
+ #include <xtables.h>
+ #include <linux/netfilter/xt_rateest.h>
+ 
+-/* Ugly hack to pass info to final_check function. We should fix the API */
+-static struct xt_rateest_match_info *rateest_info;
+-
+ static void rateest_help(void)
+ {
+ 	printf(
+@@ -29,8 +26,11 @@ static void rateest_help(void)
+ }
+ 
+ enum rateest_options {
++	OPT_RATEEST_A,
+ 	OPT_RATEEST1,
+ 	OPT_RATEEST2,
++	OPT_RATEEST_ABPS,
++	OPT_RATEEST_APPS,
+ 	OPT_RATEEST_BPS1,
+ 	OPT_RATEEST_PPS1,
+ 	OPT_RATEEST_BPS2,
+@@ -41,26 +41,71 @@ enum rateest_options {
+ 	OPT_RATEEST_EQ,
+ 	OPT_RATEEST_BYTES,
+ 	OPT_RATEEST_PACKETS,
++	F_RATEEST_A       = 1 << OPT_RATEEST_A,
++	F_RATEEST1        = 1 << OPT_RATEEST1,
++	F_RATEEST2        = 1 << OPT_RATEEST2,
++	F_RATEEST_ABPS    = 1 << OPT_RATEEST_ABPS,
++	F_RATEEST_APPS    = 1 << OPT_RATEEST_APPS,
++	F_RATEEST_BPS1    = 1 << OPT_RATEEST_BPS1,
++	F_RATEEST_BPS2    = 1 << OPT_RATEEST_BPS2,
++	F_RATEEST_PPS1    = 1 << OPT_RATEEST_PPS1,
++	F_RATEEST_PPS2    = 1 << OPT_RATEEST_PPS2,
++	F_RATEEST_BYTES   = 1 << OPT_RATEEST_BYTES,
++	F_RATEEST_PACKETS = 1 << OPT_RATEEST_PACKETS,
+ };
+ 
+-static const struct option rateest_opts[] = {
+-	{.name = "rateest1",      .has_arg = true,  .val = OPT_RATEEST1},
+-	{.name = "rateest",       .has_arg = true,  .val = OPT_RATEEST1}, /* alias for absolute mode */
+-	{.name = "rateest2",      .has_arg = true,  .val = OPT_RATEEST2},
+-	{.name = "rateest-bps1",  .has_arg = true, .val = OPT_RATEEST_BPS1},
+-	{.name = "rateest-pps1",  .has_arg = true, .val = OPT_RATEEST_PPS1},
+-	{.name = "rateest-bps2",  .has_arg = true, .val = OPT_RATEEST_BPS2},
+-	{.name = "rateest-pps2",  .has_arg = true, .val = OPT_RATEEST_PPS2},
+-	{.name = "rateest-bps",   .has_arg = true, .val = OPT_RATEEST_BPS2}, /* alias for absolute mode */
+-	{.name = "rateest-pps",   .has_arg = true, .val = OPT_RATEEST_PPS2}, /* alias for absolute mode */
+-	{.name = "rateest-delta", .has_arg = false, .val = OPT_RATEEST_DELTA},
+-	{.name = "rateest-lt",    .has_arg = false, .val = OPT_RATEEST_LT},
+-	{.name = "rateest-gt",    .has_arg = false, .val = OPT_RATEEST_GT},
+-	{.name = "rateest-eq",    .has_arg = false, .val = OPT_RATEEST_EQ},
+-	{.name = "bytes",   .has_arg = false, .val = OPT_RATEEST_BYTES},
+-	{.name = "packets", .has_arg = false, .val = OPT_RATEEST_PACKETS},
+-	XT_GETOPT_TABLEEND,
++#define s struct xt_rateest_match_info
++static const struct xt_option_entry rateest_opts[] = {
++	{.name = "rateest-delta", .id = OPT_RATEEST_DELTA, .type = XTTYPE_NONE},
++	{.name = "rateest-lt", .id = OPT_RATEEST_LT, .type = XTTYPE_NONE,
++	 .flags = XTOPT_INVERT},
++	{.name = "rateest-gt", .id = OPT_RATEEST_GT, .type = XTTYPE_NONE,
++	 .flags = XTOPT_INVERT},
++	{.name = "rateest-eq", .id = OPT_RATEEST_EQ, .type = XTTYPE_NONE,
++	 .flags = XTOPT_INVERT},
++
++	{.name = "rateest", .id = OPT_RATEEST_A, .type = XTTYPE_STRING,
++	 .excl = F_RATEEST1 | F_RATEEST2,
++	 .flags = XTOPT_PUT, XTOPT_POINTER(s, name1)},
++	{.name = "rateest1", .id = OPT_RATEEST1, .type = XTTYPE_STRING,
++	 .excl = F_RATEEST_A, .also = F_RATEEST2,
++	 .flags = XTOPT_PUT, XTOPT_POINTER(s, name1)},
++	{.name = "rateest2", .id = OPT_RATEEST2, .type = XTTYPE_STRING,
++	 .excl = F_RATEEST_A, .also = F_RATEEST1,
++	 .flags = XTOPT_PUT, XTOPT_POINTER(s, name2)},
++
++	{.name = "rateest-bps", .id = OPT_RATEEST_ABPS, .type = XTTYPE_STRING,
++	 .excl = F_RATEEST_BPS1 | F_RATEEST_BPS2 | F_RATEEST_APPS,
++	 F_RATEEST_PPS1 | F_RATEEST_PPS2 | F_RATEEST_BYTES | F_RATEEST_PACKETS,
++	 .also = F_RATEEST_A},
++	{.name = "rateest-pps", .id = OPT_RATEEST_APPS, .type = XTTYPE_UINT32,
++	 .excl = F_RATEEST_BPS1 | F_RATEEST_BPS2 | F_RATEEST_ABPS,
++	 F_RATEEST_PPS1 | F_RATEEST_PPS2 | F_RATEEST_BYTES | F_RATEEST_PACKETS,
++	 .also = F_RATEEST_A, .flags = XTOPT_PUT, XTOPT_POINTER(s, pps2)},
++	{.name = "bytes", .id = OPT_RATEEST_BYTES, .type = XTTYPE_NONE,
++	 .excl = F_RATEEST_PACKETS, .also = F_RATEEST2},
++	{.name = "packets", .id = OPT_RATEEST_PACKETS, .type = XTTYPE_NONE,
++	 .excl = F_RATEEST_BYTES, .also = F_RATEEST2},
++
++	{.name = "rateest-bps1", .id = OPT_RATEEST_BPS1, .type = XTTYPE_STRING,
++	 .excl = F_RATEEST_ABPS | F_RATEEST_APPS | F_RATEEST_PPS1 |
++	  F_RATEEST_PPS2 | F_RATEEST_BYTES | F_RATEEST_PACKETS,
++	 .also = F_RATEEST_BPS2},
++	{.name = "rateest-bps2", .id = OPT_RATEEST_BPS2, .type = XTTYPE_STRING,
++	 .excl = F_RATEEST_ABPS | F_RATEEST_APPS | F_RATEEST_PPS1 |
++	 F_RATEEST_PPS2 | F_RATEEST_BYTES | F_RATEEST_PACKETS,
++	 .also = F_RATEEST_BPS1},
++	{.name = "rateest-pps1", .id = OPT_RATEEST_PPS1, .type = XTTYPE_UINT32,
++	 .excl = F_RATEEST_ABPS | F_RATEEST_APPS | F_RATEEST_BPS1 |
++	 F_RATEEST_BPS2 | F_RATEEST_BYTES | F_RATEEST_PACKETS,
++	 .also = F_RATEEST_PPS2, .flags = XTOPT_PUT, XTOPT_POINTER(s, pps1)},
++	{.name = "rateest-pps2", .id = OPT_RATEEST_PPS2, .type = XTTYPE_UINT32,
++	 .excl = F_RATEEST_ABPS | F_RATEEST_APPS | F_RATEEST_BPS1 |
++	 F_RATEEST_BPS2 | F_RATEEST_BYTES | F_RATEEST_PACKETS,
++	 .also = F_RATEEST_PPS1, .flags = XTOPT_PUT, XTOPT_POINTER(s, pps2)},
++	XTOPT_TABLEEND,
+ };
++#undef s
+ 
+ /* Copied from iproute. See http://physics.nist.gov/cuu/Units/binary.html */
+ static const struct rate_suffix {
+@@ -113,173 +158,51 @@ rateest_get_rate(uint32_t *rate, const char *str)
+ 	return -1;
+ }
+ 
+-static int
+-rateest_parse(int c, char **argv, int invert, unsigned int *flags,
+-	      const void *entry, struct xt_entry_match **match)
++static void rateest_parse(struct xt_option_call *cb)
+ {
+-	struct xt_rateest_match_info *info = (void *)(*match)->data;
+-	unsigned int val;
+-
+-	rateest_info = info;
++	struct xt_rateest_match_info *info = cb->data;
+ 
+-	switch (c) {
++	xtables_option_parse(cb);
++	switch (cb->entry->id) {
+ 	case OPT_RATEEST1:
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
+-		if (invert)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "rateest: rateest can't be inverted");
+-
+-		if (*flags & (1 << c))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "rateest: can't specify --rateest1 twice");
+-		*flags |= 1 << c;
+-
+-		strncpy(info->name1, optarg, sizeof(info->name1) - 1);
+-		break;
+-
+ 	case OPT_RATEEST2:
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
+-		if (invert)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "rateest: rateest can't be inverted");
+-
+-		if (*flags & (1 << c))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "rateest: can't specify --rateest2 twice");
+-		*flags |= 1 << c;
+-
+-		strncpy(info->name2, optarg, sizeof(info->name2) - 1);
+ 		info->flags |= XT_RATEEST_MATCH_REL;
+ 		break;
+-
++	case OPT_RATEEST_APPS:
++	case OPT_RATEEST_PPS1:
++	case OPT_RATEEST_PPS2:
++		info->flags |= XT_RATEEST_MATCH_PPS;
++		break;
++	case OPT_RATEEST_ABPS:
+ 	case OPT_RATEEST_BPS1:
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
+-		if (invert)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "rateest: rateest-bps can't be inverted");
+-
+-		if (*flags & (1 << c))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "rateest: can't specify --rateest-bps1 twice");
+-		*flags |= 1 << c;
+-
+ 		info->flags |= XT_RATEEST_MATCH_BPS;
+-
+-		if (rateest_get_rate(&info->bps1, optarg) < 0)
++		if (rateest_get_rate(&info->bps1, cb->arg) < 0)
+ 			xtables_error(PARAMETER_PROBLEM,
+ 				   "rateest: could not parse rate `%s'",
+-				   optarg);
+-		break;
+-
+-	case OPT_RATEEST_PPS1:
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
+-		if (invert)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "rateest: rateest-pps can't be inverted");
+-
+-		if (*flags & (1 << c))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "rateest: can't specify --rateest-pps1 twice");
+-		*flags |= 1 << c;
+-
+-		info->flags |= XT_RATEEST_MATCH_PPS;
+-
+-		if (!xtables_strtoui(optarg, NULL, &val, 0, UINT32_MAX))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "rateest: could not parse pps `%s'",
+-				   optarg);
+-		info->pps1 = val;
+-		break;
+-
++				   cb->arg);
+ 	case OPT_RATEEST_BPS2:
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
+-		if (invert)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "rateest: rateest-bps can't be inverted");
+-
+-		if (*flags & (1 << c))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "rateest: can't specify --rateest-bps2 twice");
+-		*flags |= 1 << c;
+-
+ 		info->flags |= XT_RATEEST_MATCH_BPS;
+-
+-		if (rateest_get_rate(&info->bps2, optarg) < 0)
++		if (rateest_get_rate(&info->bps2, cb->arg) < 0)
+ 			xtables_error(PARAMETER_PROBLEM,
+ 				   "rateest: could not parse rate `%s'",
+-				   optarg);
++				   cb->arg);
+ 		break;
+-
+-	case OPT_RATEEST_PPS2:
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
+-		if (invert)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "rateest: rateest-pps can't be inverted");
+-
+-		if (*flags & (1 << c))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "rateest: can't specify --rateest-pps2 twice");
+-		*flags |= 1 << c;
+-
+-		info->flags |= XT_RATEEST_MATCH_PPS;
+-
+-		if (!xtables_strtoui(optarg, NULL, &val, 0, UINT32_MAX))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "rateest: could not parse pps `%s'",
+-				   optarg);
+-		info->pps2 = val;
+-		break;
+-
+ 	case OPT_RATEEST_DELTA:
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
+-		if (invert)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "rateest: rateest-delta can't be inverted");
+-
+-		if (*flags & (1 << c))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "rateest: can't specify --rateest-delta twice");
+-		*flags |= 1 << c;
+-
+ 		info->flags |= XT_RATEEST_MATCH_DELTA;
+ 		break;
+-
+ 	case OPT_RATEEST_EQ:
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
+-
+-		if (*flags & (1 << c))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "rateest: can't specify lt/gt/eq twice");
+-		*flags |= 1 << c;
+-
+ 		info->mode = XT_RATEEST_MATCH_EQ;
+-		if (invert)
++		if (cb->invert)
+ 			info->flags |= XT_RATEEST_MATCH_INVERT;
+ 		break;
+-
+ 	case OPT_RATEEST_LT:
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
+-
+-		if (*flags & (1 << c))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "rateest: can't specify lt/gt/eq twice");
+-		*flags |= 1 << c;
+-
+ 		info->mode = XT_RATEEST_MATCH_LT;
+-		if (invert)
++		if (cb->invert)
+ 			info->flags |= XT_RATEEST_MATCH_INVERT;
+ 		break;
+-
+ 	case OPT_RATEEST_GT:
+-		xtables_check_inverse(optarg, &invert, &optind, 0, argv);
+-
+-		if (*flags & (1 << c))
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "rateest: can't specify lt/gt/eq twice");
+-		*flags |= 1 << c;
+-
+ 		info->mode = XT_RATEEST_MATCH_GT;
+-		if (invert)
++		if (cb->invert)
+ 			info->flags |= XT_RATEEST_MATCH_INVERT;
+ 		break;
+ 
+@@ -291,16 +214,13 @@ rateest_parse(int c, char **argv, int invert, unsigned int *flags,
+ 		info->flags |= XT_RATEEST_MATCH_PPS;
+ 		break;
+ 	}
+-
+-	return 1;
+ }
+ 
+-static void
+-rateest_final_check(unsigned int flags)
++static void rateest_final_check(struct xt_fcheck_call *cb)
+ {
+-	struct xt_rateest_match_info *info = rateest_info;
++	struct xt_rateest_match_info *info = cb->data;
+ 
+-	if (info == NULL)
++	if (cb->xflags == 0)
+ 		xtables_error(PARAMETER_PROBLEM, "rateest match: "
+ 		           "you need to specify some flags");
+ 	if (!(info->flags & XT_RATEEST_MATCH_REL))
+@@ -468,11 +388,11 @@ static struct xtables_match rateest_mt_reg = {
+ 	.size		= XT_ALIGN(sizeof(struct xt_rateest_match_info)),
+ 	.userspacesize	= XT_ALIGN(offsetof(struct xt_rateest_match_info, est1)),
+ 	.help		= rateest_help,
+-	.parse		= rateest_parse,
+-	.final_check	= rateest_final_check,
++	.x6_parse	= rateest_parse,
++	.x6_fcheck	= rateest_final_check,
+ 	.print		= rateest_print,
+ 	.save		= rateest_save,
+-	.extra_opts	= rateest_opts,
++	.x6_options	= rateest_opts,
+ };
+ 
+ void _init(void)
 -- 
 1.7.3.4
 
