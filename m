@@ -1,25 +1,34 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] libxt_devgroup: actually set XT_DEVGROUP_OPT_???GROUP
- flags
-Date: Mon, 23 May 2011 16:28:45 +0200
-Message-ID: <4DDA6F1D.80209@trash.net>
-References: <1305737257-31464-1-git-send-email-ljaenicke@innominate.com>
+Subject: Re: The glorious NFCT "none" helper
+Date: Mon, 23 May 2011 16:29:39 +0200
+Message-ID: <4DDA6F53.9060809@trash.net>
+References: <1305757266-8730-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Lutz Jaenicke <ljaenicke@innominate.com>
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34931 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:34945 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752363Ab1EWO3R (ORCPT
+	with ESMTP id S1754389Ab1EWOaL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 May 2011 10:29:17 -0400
-In-Reply-To: <1305737257-31464-1-git-send-email-ljaenicke@innominate.com>
+	Mon, 23 May 2011 10:30:11 -0400
+In-Reply-To: <1305757266-8730-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 18.05.2011 18:47, Lutz Jaenicke wrote:
-> Signed-off-by: Lutz Jaenicke <ljaenicke@innominate.com>
+On 19.05.2011 00:21, Jan Engelhardt wrote:
+> Hej,
+> 
+> 
+> While working with a customer setup, I came up with this funny idea
+> of plugging a no-op NFCT helper in to workaround some nfct_ftp
+> problem. Besides that, it may also be used to simply skip helping and
+> save cycles. See the patch's message for details - I'd love to hear
+> something about it.
+> 
+> (NB: nf_nat_ftp was loaded, but not used when connecting between netA
+> and netB.)
 
-Applied, thanks.
+Wouldn't a flag to the CT target to skip the helper lookup work as well?
