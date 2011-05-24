@@ -1,32 +1,60 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: ipset and interfaces
-Date: Tue, 24 May 2011 13:43:07 +0100
-Message-ID: <4DDBA7DB.9010102@googlemail.com>
-References: <BANLkTim0bcPRtN1PYSZz4TyKUHGasGhsBQ@mail.gmail.com> <alpine.DEB.2.00.1105241344200.1846@blackhole.kfki.hu> <BANLkTi=drvnwAiXk-Js+1Dw0wxWGNsT1xA@mail.gmail.com> <alpine.DEB.2.00.1105241433030.1846@blackhole.kfki.hu>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 10/13] libxt_rateest: avoid optional arguments
+Date: Tue, 24 May 2011 14:49:28 +0200
+Message-ID: <4DDBA958.30004@trash.net>
+References: <1306161564-4370-1-git-send-email-jengelh@medozas.de> <1306161564-4370-11-git-send-email-jengelh@medozas.de> <4DDB542D.5060006@trash.net> <alpine.LNX.2.01.1105240943200.13058@frira.zrqbmnf.qr> <4DDB68DB.4040000@trash.net> <alpine.LNX.2.01.1105241040260.13058@frira.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Oskar Berggren <oskar.berggren@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:49049 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755230Ab1EXMnL (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:54163 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755296Ab1EXMuC (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 May 2011 08:43:11 -0400
-Received: by wwk4 with SMTP id 4so2398277wwk.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 May 2011 05:43:10 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1105241433030.1846@blackhole.kfki.hu>
+	Tue, 24 May 2011 08:50:02 -0400
+In-Reply-To: <alpine.LNX.2.01.1105241040260.13058@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On 24.05.2011 10:51, Jan Engelhardt wrote:
+> 
+> On Tuesday 2011-05-24 10:14, Patrick McHardy wrote:
+>>>> On 23.05.2011 16:39, Jan Engelhardt wrote:
+>>>>> Optional arguments make parsing unnecessarily harder - even more so
+>>>>> than two-args. Right now, rateest even crashes because of it.
+>>>>>
+>>>>>  static const struct option rateest_opts[] = {
+>>> [...]
+>>>>> -	{.name = "rateest-bps1",  .has_arg = false, .val = OPT_RATEEST_BPS1},
+>>>>> +	{.name = "rateest-bps1",  .has_arg = true, .val = OPT_RATEEST_BPS1},
+>>> [...]
+>>>>
+>>>> This appears to be breaking backwards compatibility.
+>>>
+>>> Admittedly yes, though the fact that this has remained unseen for so
+>>> long suggests that the potential user base is very small or not yet
+>>> existing.
+>>
+>> I'm pretty sure this used to work at some point. Let me check history.
+>>
+>>> In my time with users in IRC, I notice that they in particular prefer
+>>> hard stops in parsing over silent upgrades of rules[1], so as to
+>>> actually become aware of the change upfront. As such, I believe the
+>>> impact is well justified.
+>>
+>> Well, if it really was broken from the beginning I'm fine of course,
+>> but I don't think that's case.
+> 
+> It works half of the time, and fails half of the time because it can
+> run - since the beginning - into UB when using argv[optind].
+> 
+> Yes, the fix can be done in many ways, silent update is possible, but
+> that is undesirable, as are optional arguments in the first place.
+> 
 
-> So it looks like a valid case, for a new set type with interfaces and IP 
-> addresses/networks ;-) I'll work on it.
->   
-Keep in mind though, that interfaces can be specified in "-i" as well as 
-"-o" (i.e. input as well as output) - so you need to create some sort of 
-matching mechanism which distinguishes between these. Obviously this is 
-currently resolved in iptables with the "-i" and -"o" options respectively.
-
+Well, not breaking compatibility for the people it used to work for
+certainly is desirable. If its not too much trouble, I very much
+prefer a soft update and if necessary replacement of the old options
+after some warning period.
