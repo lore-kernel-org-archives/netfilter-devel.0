@@ -1,45 +1,49 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 12/24] libxt_ipvs: restore network-byte order
-Date: Wed, 25 May 2011 01:08:13 +0200
-Message-ID: <1306278506-11463-13-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 15/24] libxtables: more detailed error message on multi-int parsing
+Date: Wed, 25 May 2011 01:08:16 +0200
+Message-ID: <1306278506-11463-16-git-send-email-jengelh@medozas.de>
 References: <1306278506-11463-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:40959 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:40973 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933036Ab1EXXIl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 May 2011 19:08:41 -0400
+	id S1752365Ab1EXXIp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 May 2011 19:08:45 -0400
 In-Reply-To: <1306278506-11463-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Now shows where exactly the error is.
+
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libxt_ipvs.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ xtoptions.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/extensions/libxt_ipvs.c b/extensions/libxt_ipvs.c
-index 88d235f..4672766 100644
---- a/extensions/libxt_ipvs.c
-+++ b/extensions/libxt_ipvs.c
-@@ -32,12 +32,14 @@ static const struct xt_option_entry ipvs_mt_opts[] = {
- 	{.name = "vaddr", .id = O_VADDR, .type = XTTYPE_HOSTMASK,
- 	 .flags = XTOPT_INVERT},
- 	{.name = "vport", .id = O_VPORT, .type = XTTYPE_PORT,
--	 .flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, vport)},
-+	 .flags = XTOPT_NBO | XTOPT_INVERT | XTOPT_PUT,
-+	 XTOPT_POINTER(s, vport)},
- 	{.name = "vdir", .id = O_VDIR, .type = XTTYPE_STRING},
- 	{.name = "vmethod", .id = O_VMETHOD, .type = XTTYPE_STRING,
- 	 .flags = XTOPT_INVERT},
- 	{.name = "vportctl", .id = O_VPORTCTL, .type = XTTYPE_PORT,
--	 .flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, vportctl)},
-+	 .flags = XTOPT_NBO | XTOPT_INVERT | XTOPT_PUT,
-+	 XTOPT_POINTER(s, vportctl)},
- 	XTOPT_TABLEEND,
- };
- #undef s
+diff --git a/xtoptions.c b/xtoptions.c
+index ec2269b..9884b7d 100644
+--- a/xtoptions.c
++++ b/xtoptions.c
+@@ -206,13 +206,14 @@ static void xtopt_parse_mint(struct xt_option_call *cb)
+ 				cb->ext_name, entry->name, maxiter);
+ 		if (!xtables_strtoui(arg, &end, &value, 0, UINT32_MAX))
+ 			xt_params->exit_err(PARAMETER_PROBLEM,
+-				"%s: bad value for option \"--%s\", "
+-				"or out of range (0-%u).\n",
+-				cb->ext_name, entry->name, UINT32_MAX);
++				"%s: bad value for option \"--%s\" near "
++				"\"%s\", or out of range (0-%u).\n",
++				cb->ext_name, entry->name, arg, UINT32_MAX);
+ 		if (*end != '\0' && *end != sep)
+ 			xt_params->exit_err(PARAMETER_PROBLEM,
+ 				"%s: Argument to \"--%s\" has unexpected "
+-				"characters.\n", cb->ext_name, entry->name);
++				"characters near \"%s\".\n",
++				cb->ext_name, entry->name, end);
+ 		if (cb->nvals < ARRAY_SIZE(cb->val.u32_range)) {
+ 			if (entry->type == XTTYPE_UINT8RC)
+ 				cb->val.u8_range[cb->nvals] = value;
 -- 
 1.7.3.4
 
