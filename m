@@ -1,53 +1,50 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 10/13] libxt_rateest: avoid optional arguments
-Date: Tue, 24 May 2011 10:14:19 +0200
-Message-ID: <4DDB68DB.4040000@trash.net>
-References: <1306161564-4370-1-git-send-email-jengelh@medozas.de> <1306161564-4370-11-git-send-email-jengelh@medozas.de> <4DDB542D.5060006@trash.net> <alpine.LNX.2.01.1105240943200.13058@frira.zrqbmnf.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH 2/3] netfilter: ipset: remove unused variable from type_pf_tdel()
+Date: Tue, 24 May 2011 10:20:18 +0200
+Message-ID: <1306225219-1498-3-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1306225219-1498-1-git-send-email-kadlec@blackhole.kfki.hu>
+ <1306225219-1498-2-git-send-email-kadlec@blackhole.kfki.hu>
+Cc: Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50199 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754234Ab1EXIOx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 May 2011 04:14:53 -0400
-In-Reply-To: <alpine.LNX.2.01.1105240943200.13058@frira.zrqbmnf.qr>
+Received: from smtp0.kfki.hu ([148.6.0.25]:58655 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754343Ab1EXIUV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 May 2011 04:20:21 -0400
+In-Reply-To: <1306225219-1498-2-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 24.05.2011 10:03, Jan Engelhardt wrote:
-> On Tuesday 2011-05-24 08:46, Patrick McHardy wrote:
-> 
->> On 23.05.2011 16:39, Jan Engelhardt wrote:
->>> Optional arguments make parsing unnecessarily harder - even more so
->>> than two-args. Right now, rateest even crashes because of it.
->>>
->>>  static const struct option rateest_opts[] = {
-> [...]
->>> -	{.name = "rateest-bps1",  .has_arg = false, .val = OPT_RATEEST_BPS1},
->>> +	{.name = "rateest-bps1",  .has_arg = true, .val = OPT_RATEEST_BPS1},
-> [...]
->>
->> This appears to be breaking backwards compatibility.
-> 
-> Admittedly yes, though the fact that this has remained unseen for so
-> long suggests that the potential user base is very small or not yet
-> existing.
+Variable 'ret' is set in type_pf_tdel() but not used, remove.
 
-I'm pretty sure this used to work at some point. Let me check history.
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ include/linux/netfilter/ipset/ip_set_ahash.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-> In my time with users in IRC, I notice that they in particular prefer
-> hard stops in parsing over silent upgrades of rules[1], so as to
-> actually become aware of the change upfront. As such, I believe the
-> impact is well justified.
-
-Well, if it really was broken from the beginning I'm fine of course,
-but I don't think that's case.
-
-> [1] i.e. `diff -u rules <(xtables-main save6)` is supposed to yield
-> no diff except for counters
-> 
+diff --git a/include/linux/netfilter/ipset/ip_set_ahash.h b/include/linux/netfilter/ipset/ip_set_ahash.h
+index a0196ac..ac3c822 100644
+--- a/include/linux/netfilter/ipset/ip_set_ahash.h
++++ b/include/linux/netfilter/ipset/ip_set_ahash.h
+@@ -839,7 +839,7 @@ type_pf_tdel(struct ip_set *set, void *value, u32 timeout)
+ 	struct htable *t = h->table;
+ 	const struct type_pf_elem *d = value;
+ 	struct hbucket *n;
+-	int i, ret = 0;
++	int i;
+ 	struct type_pf_elem *data;
+ 	u32 key;
+ 
+@@ -850,7 +850,7 @@ type_pf_tdel(struct ip_set *set, void *value, u32 timeout)
+ 		if (!type_pf_data_equal(data, d))
+ 			continue;
+ 		if (type_pf_data_expired(data))
+-			ret = -IPSET_ERR_EXIST;
++			return -IPSET_ERR_EXIST;
+ 		if (i != n->pos - 1)
+ 			/* Not last one */
+ 			type_pf_data_copy(data, ahash_tdata(n, n->pos - 1));
+-- 
+1.7.0.4
 
