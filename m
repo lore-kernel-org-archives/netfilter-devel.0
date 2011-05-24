@@ -1,60 +1,72 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: EXPORT_SYMBOL missing in the kernel?
-Date: Tue, 24 May 2011 15:40:51 +0200
-Message-ID: <1306244451.3026.42.camel@edumazet-laptop>
-References: <4DDBACA6.2060501@gmail.com>
+From: Pierre Rondou <prondou@gmail.com>
+Subject: Re: icmp_send function broken?
+Date: Tue, 24 May 2011 15:42:40 +0200
+Message-ID: <4DDBB5D0.6000906@gmail.com>
+References: <4DDBAE27.7020502@gmail.com> <1306243605.3026.38.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, evyncke@cisco.com,
-	guy.leduc@ulg.ac.be, Cyril Soldani <cyril.soldani@ulg.ac.be>
-To: Pierre Rondou <prondou@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:52123 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756552Ab1EXNky (ORCPT
+Received: from mailrelay011.isp.belgacom.be ([195.238.6.178]:56101 "EHLO
+	mailrelay011.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756372Ab1EXNmk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 May 2011 09:40:54 -0400
-Received: by wya21 with SMTP id 21so4979673wya.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 May 2011 06:40:53 -0700 (PDT)
-In-Reply-To: <4DDBACA6.2060501@gmail.com>
+	Tue, 24 May 2011 09:42:40 -0400
+In-Reply-To: <1306243605.3026.38.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le mardi 24 mai 2011 =C3=A0 15:03 +0200, Pierre Rondou a =C3=A9crit :
-> Hello,
->=20
-> I'm a student at the University of Liege, currently developing a NAT6=
-4=20
-> (see RFC 6146) module for Netfilter.
->=20
-> In order to develop this module, I had to use some in-kernel function=
-,=20
-> such as icmp_send, ip6_output, ip_finish_output, ... and many more.
->=20
-> But many of those functions didn't have an "EXPORT_SYMBOL" allowing t=
-hem=20
-> to be reachable from outside the kernel.
->=20
-> So, to be able to use them, I had to copy paste about 1500 lines of=20
-> kernel source code (those functions + related functions). This makes =
-the=20
-> module hardly updatable as all those functions are likely to be updat=
-ed.
->=20
-> Is there a reason why those functions are not associated with an=20
-> "EXPORT_SYMBOL"?
+Le 24/05/11 15:26, Eric Dumazet a =C3=A9crit :
+>> I'm using 2.6.32-5 kernel to developp, but the function itself didn'=
+t
+>> seem to have been updated in the 2.6.38 kernel.
+>>
+>>     =20
+> You really should use 2.6.39 kernel for your dev...
+>   =20
 
-We dont export all possible symbols (each export has a memory cost)
+It is a long-term work (started in October 2010), plus I rely on Xtable=
+s=20
+to develop it, I used a stable kernel, as my module does not involve=20
+kernel re-compilation.
 
-We export one symbol when its needed from a module.
+>   =20
+>> The modification I had to apply is to re-execute the routing process=
+ on
+>> the incoming paquet in order to get the ICMP packet sent:
+>>     =20
+>
+>
+>   =20
+>> instead of the simple
+>>
+>>      if (!rt)
+>> //       goto out;
+>>
+>> Is there an other reason why the rtable of the incoming packet was n=
+ot set?
+>>     =20
+> It is set by caller.
+>
+> check ip_rcv_finish()
+>
+> Also please take a look at commit 64f3b9e203bd06855
+> net: ip_expire() must revalidate route
+>
+> [ Since I understand from a prior mail that you maybe queued an skb f=
+or
+> a while for your defrag purpose ]
+>   =20
 
-Dont copy/paste code, but add EXPORT_SYMBOL when/if needed.
-
-icmp_send() is for sure already exported (needed in various netfilter
-modules)
-
-
+It is a packet that has just been matched by an iptables rule (my modul=
+e=20
+is simply branched on a hook), so no queue for it.
+So i just should just process the routing before calling the icmp_send(=
+)=20
+function?
 
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
