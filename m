@@ -1,56 +1,53 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: The glorious NFCT "none" helper
-Date: Tue, 24 May 2011 21:03:27 +0200
-Message-ID: <4DDC00FF.6040405@netfilter.org>
-References: <1305757266-8730-1-git-send-email-jengelh@medozas.de> <4DDA6F53.9060809@trash.net> <4DDA8184.3060407@netfilter.org> <alpine.LNX.2.01.1105231755550.18360@frira.zrqbmnf.qr> <4DDA8793.7010203@netfilter.org> <4DDB5901.2090607@trash.net>
+From: Jesper Dangaard Brouer <hawk@comx.dk>
+Subject: [ANNOUNCE] IPTV-Analyzer project released v0.9.1
+Date: Tue, 24 May 2011 16:40:05 -0400
+Message-ID: <1306269605.11061.10.camel__49598.5597874553$1306269644$gmane$org@probook>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: hawk@comx.dk
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56700 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754648Ab1EXTFB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 May 2011 15:05:01 -0400
-In-Reply-To: <4DDB5901.2090607@trash.net>
+Received: from lanfw001a.cxnet.dk ([87.72.215.196]:32777 "EHLO
+	lanfw001a.cxnet.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751635Ab1EXUkN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 May 2011 16:40:13 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 24/05/11 09:06, Patrick McHardy wrote:
-> On 23.05.2011 18:13, Pablo Neira Ayuso wrote:
->> On 23/05/11 17:59, Jan Engelhardt wrote:
->>> On Monday 2011-05-23 17:47, Pablo Neira Ayuso wrote:
->>>> On 23/05/11 16:29, Patrick McHardy wrote:
->>>>> Wouldn't a flag to the CT target to skip the helper lookup work as well?
->>>>
->>>> Indeed.
->>>
->>> Yes, but how would xt_CT.ko convey to NFCT then that no helper is 
->>> supposed to be used? Calling nf_ct_helper_ext_add, but then leave help 
->>> at NULL?
->>
->> You can attach a template conntrack in the raw table with the CT target.
->> That template should have some status flag set to skip helper
->> allocation/assignation.
-> 
-> Problem might be the second lookup done after NAT. We don't have the
-> template available at that time.
+The new release 0.9.1 of the IPTV-Analyzer project is comming to you
+directly from New York City RedHat office ;-)
 
-We'll have some IPS_NO_HELPER flag set for the conntrack at that time to
-skip the helper assignation.
+New features include bytes and packet counters, no-signal detection,
+heartbeat system per stream, and new event types.
 
-> I don't like the dummy helper idea very much though, what I would
-> prefer is an option to use only explicit helper assignment. That
-> would be a more flexible option, additionally allowing to track
-> protocols on any port without specifying each of them when loading
-> the helper.
+ Homepage:
+  http://www.iptv-analyzer.org
 
-I don't want to assign a dummy helper, but use a flag to skip helper
-assignation, would you be OK with that idea?
+ Git tree:
+  https://github.com/netoptimizer/IPTV-Analyzer
 
-BTW, not related with this patch but I'd like to fix the current issue
-with the userspace expectation support problem, still don't like my
-patches to add a template and set one flag to explicitly tell conntrack
-to allocate the helper CT extension?
+Notice, database changes in this release.  Its possible to upgrade
+the database schema without loosing your current data.
+
+The IPTV-Analyzer is a continuous/real-time tool for analyzing the
+contents of MPEG2 Transport Stream (TS) packets, which is commonly
+used for IPTV multicast signals. The main purpose is continuous
+quality measurement, with a focus on detecting MPEG2 TS/CC packet
+drops.
+
+ Bugreports and feature requests please use:
+  https://github.com/netoptimizer/IPTV-Analyzer/issues
+
+(Disclaimer, RedHat is not directly associated with project, I just
+hangout with them during my visit to NYC).
+
+-- 
+Best regards,
+  Jesper Dangaard Brouer
+  ComX Networks A/S
+  Linux Network Kernel Developer
+  Cand. Scient Datalog / MSc.CS
+  Author of http://adsl-optimizer.dk
+  LinkedIn: http://www.linkedin.com/in/brouer
+
