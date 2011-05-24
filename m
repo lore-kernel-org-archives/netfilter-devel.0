@@ -1,39 +1,78 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: [ANNOUNCE] ipset 6.6 released
-Date: Tue, 24 May 2011 13:22:51 +0100
-Message-ID: <4DDBA31B.4040406@googlemail.com>
-References: <alpine.DEB.2.00.1105241039080.1846@blackhole.kfki.hu> <4DDB91CD.3080003@googlemail.com> <alpine.DEB.2.00.1105241329170.1846@blackhole.kfki.hu> <4DDB9C6A.9040308@googlemail.com> <alpine.DEB.2.00.1105241404390.1846@blackhole.kfki.hu>
+From: Oskar Berggren <oskar.berggren@gmail.com>
+Subject: Re: ipset and interfaces
+Date: Tue, 24 May 2011 14:23:05 +0200
+Message-ID: <BANLkTi=drvnwAiXk-Js+1Dw0wxWGNsT1xA@mail.gmail.com>
+References: <BANLkTim0bcPRtN1PYSZz4TyKUHGasGhsBQ@mail.gmail.com> <alpine.DEB.2.00.1105241344200.1846@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:41215 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750992Ab1EXMWz (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:32893 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753934Ab1EXMXp convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 May 2011 08:22:55 -0400
-Received: by wwa36 with SMTP id 36so7259351wwa.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 May 2011 05:22:54 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1105241404390.1846@blackhole.kfki.hu>
+	Tue, 24 May 2011 08:23:45 -0400
+Received: by bwz15 with SMTP id 15so5571850bwz.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 May 2011 05:23:44 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1105241344200.1846@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-> Currently I can suggest you that tune both the hashsize and maxelem 
-> parameters: the hashsize tells the system the initial hash size (and thus 
-> the used memory resource) while maxelem tells up to what number of 
-> elements can be added to the set. You are free to enter quite high maxelem 
-> values, it does not waste memory. As you add more and more elements, the 
-> hash size is increased from the one specified by 'hashsize'. But you (or 
-> the SET targets) can't add more elements than "maxelem".
+2011/5/24 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>:
+> On Tue, 24 May 2011, Oskar Berggren wrote:
 >
-> When you save a set, the current hashsize is saved and not the one 
-> specified at set creation time.
->   
-Ah, I see! So maxelem does not have an impact on system resources as 
-hashsize has, is that right? If that is the case, then I may as well 
-leave the default (64k) as I'd never exceed this value. Thanks for your 
-input, as always!
+>> Regarding ipsets.... how crazy would it be to add a set type
+>> containing interface names?
+>
+> Usually the number of interfaces are not quite high in a system, so i=
+t
+> does not seem required.
 
+I have machines with plenty of vlans. About 700 interfaces in the
+largest instance currently.
+That said, I don't have a clear use case for this particular set type
+currently, but out of curiosity,
+would it be reasonably doable within the ipset framework?
+
+
+>
+>> And how crazy would it be to add a set type containing tuples of
+>> ip-address and interface name? =A0(I.e. the set match would look for=
+ ip,
+>> and match if a tuple with the proper interface is found)
+>
+> What is the case where a combination of matches does not solve the is=
+sue?
+> Something like this
+>
+> -N interfaces
+> -A interfaces -i foo -j ACTION
+> ...
+>
+> -A rule -m set --match-set src -j interfaces
+>
+> and thus you can match IP addresses and possible (incoming) interface=
+s
+> easily.
+
+
+As above, about 700 interfaces, each with a generally just a few
+source ip-addresses
+expected for each interface, or a few subnets. I.e. in the simplest
+case a single ip is
+acceptable for a single interface, for a total of a couple of hundred
+interfaces. This
+is similar to rp_filter, but I had trouble getting that to work
+predictably with multiple
+routing tables. Currently I've solved it with a tree structure of
+iptables chains and rules,
+but being able to use a single set for this would look so much nicer.
+
+/Oskar
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
