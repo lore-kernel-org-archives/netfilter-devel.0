@@ -1,26 +1,34 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/3] netfilter: ipset: remove unused variable from type_pf_tdel()
-Date: Tue, 24 May 2011 16:40:08 +0200
-Message-ID: <4DDBC348.30300@trash.net>
-References: <1306225219-1498-1-git-send-email-kadlec@blackhole.kfki.hu> <1306225219-1498-2-git-send-email-kadlec@blackhole.kfki.hu> <1306225219-1498-3-git-send-email-kadlec@blackhole.kfki.hu>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: EXPORT_SYMBOL missing in the kernel?
+Date: Tue, 24 May 2011 16:41:27 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1105241639150.32028@frira.zrqbmnf.qr>
+References: <4DDBACA6.2060501@gmail.com> <1306244451.3026.42.camel@edumazet-laptop> <4DDBB71D.6080205@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	netfilter-devel@vger.kernel.org, evyncke@cisco.com,
+	guy.leduc@ulg.ac.be, Cyril Soldani <cyril.soldani@ulg.ac.be>
+To: Pierre Rondou <prondou@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55878 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932798Ab1EXOkk (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 May 2011 10:40:40 -0400
-In-Reply-To: <1306225219-1498-3-git-send-email-kadlec@blackhole.kfki.hu>
+Received: from seven.medozas.de ([188.40.89.202]:57971 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932774Ab1EXOl3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 May 2011 10:41:29 -0400
+In-Reply-To: <4DDBB71D.6080205@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 24.05.2011 10:20, Jozsef Kadlecsik wrote:
-> Variable 'ret' is set in type_pf_tdel() but not used, remove.
 
-I'll qualify this as a bugfix since it removes a warning.
 
-Applied, thanks.
+On Tuesday 2011-05-24 15:48, Pierre Rondou wrote:
+> Of course, the best way would be to patch the currently dev kernel (2.6.39 if I
+> take your word from previous mail) to use my module.
+> But I'm not a kernel developper and my previously proposed module (NATIVI,
+> which had the same problem) didn't seem to get interest from kernel or Xtables
+> developers :(
+
+On the contrary. If there was no interest, I would not have written a 
+reply. But you seem to have chosen to ignore that and went away with "it 
+fixed itself".
+
+http://www.spinics.net/lists/netfilter-devel/msg18073.html
