@@ -1,7 +1,7 @@
 From: Pierre Rondou <prondou@gmail.com>
-Subject: IPv6 reassembly in the FORWARD HOOK in Netfilter
-Date: Tue, 24 May 2011 14:52:27 +0200
-Message-ID: <4DDBAA0B.6070406@gmail.com>
+Subject: EXPORT_SYMBOL missing in the kernel?
+Date: Tue, 24 May 2011 15:03:34 +0200
+Message-ID: <4DDBACA6.2060501@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -9,39 +9,31 @@ Cc: evyncke@cisco.com, guy.leduc@ulg.ac.be,
 	Cyril Soldani <cyril.soldani@ulg.ac.be>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailrelay001.isp.belgacom.be ([195.238.6.51]:3067 "EHLO
+Received: from mailrelay001.isp.belgacom.be ([195.238.6.51]:44782 "EHLO
 	mailrelay001.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755236Ab1EXMw1 (ORCPT
+	by vger.kernel.org with ESMTP id S1756112Ab1EXNDe (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 May 2011 08:52:27 -0400
+	Tue, 24 May 2011 09:03:34 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hello,
 
-I'm a student at the University of Liege currently developing a NAT64 
+I'm a student at the University of Liege, currently developing a NAT64 
 (see RFC 6146) module for Netfilter.
 
-In order to make it compliant to the RFC specifications, the module 
-needs to perform some sort of reassembly (in fact, accept out-of-order 
-fragments arrival).
-RFC says that the IPv6-IPv4 gateway can forward fragments as they 
-arrive, but in the case the first fragment of a packet does not arrive 
-first at the gateway, there will be a problem because it won't know how 
-to translate the packet (don't know which IPv4 address to use).
+In order to develop this module, I had to use some in-kernel function, 
+such as icmp_send, ip6_output, ip_finish_output, ... and many more.
 
-So, the gateway needs to handle out of order fragments and maintain 
-state for the following fragments.
+But many of those functions didn't have an "EXPORT_SYMBOL" allowing them 
+to be reachable from outside the kernel.
 
-Rather than creating many structures for that goal, I would have loved 
-to use the kernel reassembly module, but it is limited to the INPUT hook.
+So, to be able to use them, I had to copy paste about 1500 lines of 
+kernel source code (those functions + related functions). This makes the 
+module hardly updatable as all those functions are likely to be updated.
 
-Where this limitations may be understandable for router purpose (even 
-though router admin could just kill it if they don't want it), it is a 
-problem for the NAT64 module as the gateway has the reassemble 
-fragmented paquet which are not destinated to it.
-
-Is there a way to remove that specific limitation?
+Is there a reason why those functions are not associated with an 
+"EXPORT_SYMBOL"?
 
 Regards,
 
