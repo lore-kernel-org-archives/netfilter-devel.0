@@ -1,49 +1,102 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 15/24] libxtables: more detailed error message on multi-int parsing
-Date: Wed, 25 May 2011 01:08:16 +0200
-Message-ID: <1306278506-11463-16-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 17/24] libxtables: make multiint parser have greater range
+Date: Wed, 25 May 2011 01:08:18 +0200
+Message-ID: <1306278506-11463-18-git-send-email-jengelh@medozas.de>
 References: <1306278506-11463-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:40973 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:40982 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752365Ab1EXXIp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 May 2011 19:08:45 -0400
+	id S932831Ab1EXXIq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 May 2011 19:08:46 -0400
 In-Reply-To: <1306278506-11463-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Now shows where exactly the error is.
+Since parse_mint can handle XTTYPE_UINT64RC, it must allow numbers
+larger than UINT32_MAX.
 
+Cc: JP Abgrall <jpa@google.com>
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- xtoptions.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ xtoptions.c |   38 +++++++++++++++++++++++++++-----------
+ 1 files changed, 27 insertions(+), 11 deletions(-)
 
 diff --git a/xtoptions.c b/xtoptions.c
-index ec2269b..9884b7d 100644
+index e9736a4..1fc90ee 100644
 --- a/xtoptions.c
 +++ b/xtoptions.c
-@@ -206,13 +206,14 @@ static void xtopt_parse_mint(struct xt_option_call *cb)
+@@ -98,21 +98,35 @@ xtables_options_xfrm(struct option *orig_opts, struct option *oldopts,
+ 	return merge;
+ }
+ 
++static uintmax_t xtopt_max_by_type(enum xt_option_type type)
++{
++	switch (type) {
++	case XTTYPE_UINT8:
++	case XTTYPE_UINT8RC:
++		return UINT8_MAX;
++	case XTTYPE_UINT16:
++	case XTTYPE_UINT16RC:
++		return UINT16_MAX;
++	case XTTYPE_UINT32:
++	case XTTYPE_UINT32RC:
++		return UINT32_MAX;
++	case XTTYPE_UINT64:
++	case XTTYPE_UINT64RC:
++		return UINT64_MAX;
++	default:
++		return 0;
++	}
++}
++
+ /**
+  * Require a simple integer.
+  */
+ static void xtopt_parse_int(struct xt_option_call *cb)
+ {
+ 	const struct xt_option_entry *entry = cb->entry;
+-	uintmax_t lmin = 0, lmax = UINT32_MAX;
++	uintmax_t lmin = 0, lmax = xtopt_max_by_type(entry->type);
+ 	uintmax_t value;
+ 
+-	if (entry->type == XTTYPE_UINT8)
+-		lmax = UINT8_MAX;
+-	else if (entry->type == XTTYPE_UINT16)
+-		lmax = UINT16_MAX;
+-	else if (entry->type == XTTYPE_UINT64)
+-		lmax = UINT64_MAX;
+ 	if (cb->entry->min != 0)
+ 		lmin = cb->entry->min;
+ 	if (cb->entry->max != 0)
+@@ -180,8 +194,10 @@ static void xtopt_parse_mint(struct xt_option_call *cb)
+ 	const struct xt_option_entry *entry = cb->entry;
+ 	const char *arg = cb->arg;
+ 	size_t esize = sizeof(uint32_t);
++	uintmax_t lmax = xtopt_max_by_type(entry->type);
+ 	char *put = XTOPT_MKPTR(cb);
+-	unsigned int maxiter, value;
++	unsigned int maxiter;
++	uintmax_t value;
+ 	char *end = "";
+ 	char sep = ':';
+ 
+@@ -204,11 +220,11 @@ static void xtopt_parse_mint(struct xt_option_call *cb)
+ 			xt_params->exit_err(PARAMETER_PROBLEM, "%s: Too many "
+ 				"components for option \"--%s\" (max: %u)\n",
  				cb->ext_name, entry->name, maxiter);
- 		if (!xtables_strtoui(arg, &end, &value, 0, UINT32_MAX))
+-		if (!xtables_strtoui(arg, &end, &value, 0, UINT32_MAX))
++		if (!xtables_strtoul(arg, &end, &value, 0, lmax))
  			xt_params->exit_err(PARAMETER_PROBLEM,
--				"%s: bad value for option \"--%s\", "
--				"or out of range (0-%u).\n",
--				cb->ext_name, entry->name, UINT32_MAX);
-+				"%s: bad value for option \"--%s\" near "
-+				"\"%s\", or out of range (0-%u).\n",
-+				cb->ext_name, entry->name, arg, UINT32_MAX);
+ 				"%s: bad value for option \"--%s\" near "
+-				"\"%s\", or out of range (0-%u).\n",
+-				cb->ext_name, entry->name, arg, UINT32_MAX);
++				"\"%s\", or out of range (0-%ju).\n",
++				cb->ext_name, entry->name, arg, lmax);
  		if (*end != '\0' && *end != sep)
  			xt_params->exit_err(PARAMETER_PROBLEM,
  				"%s: Argument to \"--%s\" has unexpected "
--				"characters.\n", cb->ext_name, entry->name);
-+				"characters near \"%s\".\n",
-+				cb->ext_name, entry->name, end);
- 		if (cb->nvals < ARRAY_SIZE(cb->val.u32_range)) {
- 			if (entry->type == XTTYPE_UINT8RC)
- 				cb->val.u8_range[cb->nvals] = value;
 -- 
 1.7.3.4
 
