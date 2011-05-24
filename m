@@ -1,78 +1,60 @@
-From: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Subject: [PATCH 1/1] IPVS : bug in ip_vs_ftp, same list heaad used in all netns.
-Date: Tue, 24 May 2011 14:11:05 +0200
-Message-ID: <1306239065-17271-1-git-send-email-hans.schillstrom@ericsson.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [ANNOUNCE] ipset 6.6 released
+Date: Tue, 24 May 2011 14:19:28 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1105241404390.1846@blackhole.kfki.hu>
+References: <alpine.DEB.2.00.1105241039080.1846@blackhole.kfki.hu> <4DDB91CD.3080003@googlemail.com> <alpine.DEB.2.00.1105241329170.1846@blackhole.kfki.hu> <4DDB9C6A.9040308@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: hans@schillstrom.com,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>
-To: horms@verge.net.au, ja@ssi.bg, wensong@linux-vs.org,
-	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Mr Dash Four <mr.dash.four@googlemail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp1.kfki.hu ([148.6.0.26]:57455 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753934Ab1EXMT3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 May 2011 08:19:29 -0400
+In-Reply-To: <4DDB9C6A.9040308@googlemail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-When ip_vs was adapted to netns the ftp application was not adapted
-in a correct way.
-However this is a fix to avoid kernel errors. In the long term another solution
-might be chosen.  I.e the ports that the ftp appl, uses should be per netns.
+On Tue, 24 May 2011, Mr Dash Four wrote:
 
-Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
----
- include/net/ip_vs.h            |    3 ++-
- net/netfilter/ipvs/ip_vs_ftp.c |   27 +++++++++++++++++++--------
- 2 files changed, 21 insertions(+), 9 deletions(-)
+> > The problem with it that the reported number can be inaccurate, at least in
+> > two cases:
+> > 
+> > - Elements can time out, so even if whatever number reported, by the
+> >   time it's displayed, the set can even be completely empty. In the case
+> >   of a huge set, it can even occur that the number of elements reported
+> >   does not match the actual number of elements listed.
+> > - Sets can be updated by the SET target
+> > 
+> > The first one is the main reason I dropped reporting the number of elements
+> > (the initial design of the new ipset included it).
+> >   
+> I see, reasonable point.
+> 
+> OK, would it be possible then to get this figure when I use restore - I am
+> asking for this because, as you already know, ip ranges may mean inserting
+> more elements than the range itself and the indicator I used up until now to
+> determine how many set members I would have (the number of lines in my restore
+> file) is no longer a reliable indicator, so I would need to know how many
+> members I have inserted as a result of restore in order to determine the
+> maxelem value, adjust it and thus save system resources. Do you see my point?
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 4fff432..481f856 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -797,7 +797,8 @@ struct netns_ipvs {
- 	struct list_head	rs_table[IP_VS_RTAB_SIZE];
- 	/* ip_vs_app */
- 	struct list_head	app_list;
+Currently I can suggest you that tune both the hashsize and maxelem 
+parameters: the hashsize tells the system the initial hash size (and thus 
+the used memory resource) while maxelem tells up to what number of 
+elements can be added to the set. You are free to enter quite high maxelem 
+values, it does not waste memory. As you add more and more elements, the 
+hash size is increased from the one specified by 'hashsize'. But you (or 
+the SET targets) can't add more elements than "maxelem".
+
+When you save a set, the current hashsize is saved and not the one 
+specified at set creation time.
+
+Best regards,
+Jozsef
 -
-+	/* ip_vs_ftp */
-+	struct ip_vs_app	*ftp_app;
- 	/* ip_vs_proto */
- 	#define IP_VS_PROTO_TAB_SIZE	32	/* must be power of 2 */
- 	struct ip_vs_proto_data *proto_data_table[IP_VS_PROTO_TAB_SIZE];
-diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-index 6b5dd6d..af63553 100644
---- a/net/netfilter/ipvs/ip_vs_ftp.c
-+++ b/net/netfilter/ipvs/ip_vs_ftp.c
-@@ -411,25 +411,35 @@ static struct ip_vs_app ip_vs_ftp = {
- static int __net_init __ip_vs_ftp_init(struct net *net)
- {
- 	int i, ret;
--	struct ip_vs_app *app = &ip_vs_ftp;
-+	struct ip_vs_app *app;
-+	struct netns_ipvs *ipvs = net_ipvs(net);
-+
-+	app = kmemdup(&ip_vs_ftp, sizeof(struct ip_vs_app), GFP_KERNEL);
-+	if (!app)
-+		return -ENOMEM;
-+	INIT_LIST_HEAD(&app->a_list);
-+	INIT_LIST_HEAD(&app->incs_list);
-+	ipvs->ftp_app = app;
- 
- 	ret = register_ip_vs_app(net, app);
- 	if (ret)
--		return ret;
-+		goto err_exit;
- 
- 	for (i=0; i<IP_VS_APP_MAX_PORTS; i++) {
- 		if (!ports[i])
- 			continue;
- 		ret = register_ip_vs_app_inc(net, app, app->protocol, ports[i]);
- 		if (ret)
--			break;
-+			goto err_unreg;
- 		pr_info("%s: loaded support on port[%d] = %d\n",
- 			app->name, i, ports[i]);
- 	}
-+	return 0;
- 
--	if (ret)
--		unregister_ip_vs_app(net, app);
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
