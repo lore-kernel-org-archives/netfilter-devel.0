@@ -1,50 +1,40 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 10/13] libxt_rateest: avoid optional arguments
-Date: Tue, 24 May 2011 08:46:05 +0200
-Message-ID: <4DDB542D.5060006@trash.net>
-References: <1306161564-4370-1-git-send-email-jengelh@medozas.de> <1306161564-4370-11-git-send-email-jengelh@medozas.de>
+Subject: Re: Force socket error on iptables reject with icmp semantics?
+Date: Tue, 24 May 2011 09:01:47 +0200
+Message-ID: <4DDB57DB.8050004@trash.net>
+References: <BANLkTi=APDmR7c8eqVySKofXx_wMtgPGOw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: JP Abgrall <jpa@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48502 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:48722 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752282Ab1EXGql (ORCPT
+	with ESMTP id S1752635Ab1EXHCU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 May 2011 02:46:41 -0400
-In-Reply-To: <1306161564-4370-11-git-send-email-jengelh@medozas.de>
+	Tue, 24 May 2011 03:02:20 -0400
+In-Reply-To: <BANLkTi=APDmR7c8eqVySKofXx_wMtgPGOw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 23.05.2011 16:39, Jan Engelhardt wrote:
-> Optional arguments make parsing unnecessarily harder - even more so
-> than two-args. Right now, rateest even crashes because of it.
+On 24.05.2011 01:16, JP Abgrall wrote:
+> Before I go bug the kernel people, I'd like to know if this seems
+> reasonable from a netfilter perspective.
 > 
->  static const struct option rateest_opts[] = {
->  	{.name = "rateest1",      .has_arg = true,  .val = OPT_RATEEST1},
->  	{.name = "rateest",       .has_arg = true,  .val = OPT_RATEEST1}, /* alias for absolute mode */
->  	{.name = "rateest2",      .has_arg = true,  .val = OPT_RATEEST2},
-> -	{.name = "rateest-bps1",  .has_arg = false, .val = OPT_RATEEST_BPS1},
-> -	{.name = "rateest-pps1",  .has_arg = false, .val = OPT_RATEEST_PPS1},
-> -	{.name = "rateest-bps2",  .has_arg = false, .val = OPT_RATEEST_BPS2},
-> -	{.name = "rateest-pps2",  .has_arg = false, .val = OPT_RATEEST_PPS2},
-> -	{.name = "rateest-bps",   .has_arg = false, .val = OPT_RATEEST_BPS2}, /* alias for absolute mode */
-> -	{.name = "rateest-pps",   .has_arg = false, .val = OPT_RATEEST_PPS2}, /* alias for absolute mode */
-> +	{.name = "rateest-bps1",  .has_arg = true, .val = OPT_RATEEST_BPS1},
-> +	{.name = "rateest-pps1",  .has_arg = true, .val = OPT_RATEEST_PPS1},
-> +	{.name = "rateest-bps2",  .has_arg = true, .val = OPT_RATEEST_BPS2},
-> +	{.name = "rateest-pps2",  .has_arg = true, .val = OPT_RATEEST_PPS2},
-> +	{.name = "rateest-bps",   .has_arg = true, .val = OPT_RATEEST_BPS2}, /* alias for absolute mode */
-> +	{.name = "rateest-pps",   .has_arg = true, .val = OPT_RATEEST_PPS2}, /* alias for absolute mode */
->  	{.name = "rateest-delta", .has_arg = false, .val = OPT_RATEEST_DELTA},
->  	{.name = "rateest-lt",    .has_arg = false, .val = OPT_RATEEST_LT},
->  	{.name = "rateest-gt",    .has_arg = false, .val = OPT_RATEEST_GT},
->  	{.name = "rateest-eq",    .has_arg = false, .val = OPT_RATEEST_EQ},
-> +	{.name = "bytes",   .has_arg = false, .val = OPT_RATEEST_BYTES},
-> +	{.name = "packets", .has_arg = false, .val = OPT_RATEEST_PACKETS},
->  	XT_GETOPT_TABLEEND,
->  };
+>>From e8b45cfd66ccc1be0bc406fc9662f0f1e7a94283 Mon Sep 17 00:00:00 2001
+> From: JP Abgrall <jpa@google.com>
+> Date: Thu, 19 May 2011 19:30:02 -0700
+> Subject: [PATCH] netfilter: have ip*t REJECT set the sock err when an
+> icmp is to be sent
+> 
+> Allow the REJECT --reject-with icmp*blabla to also set the matching error
+> locally on the socket affected by the reject.
+> This allows the process to see an error as if it received it via ICMP.
+> It avoids the local process who's packet is rejected to have to wait
+> for a pseudo-eternity until some timeout kicks in.
 
-This appears to be breaking backwards compatibility.
+The interpretation and handling of the ICMP errors is up to the higher
+layer protocols. So doing this in the REJECT target is not a good idea.
+Unless there's something wrong in your setup, the ICMP message should
+be received by the socket anyways.
