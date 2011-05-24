@@ -1,53 +1,50 @@
-From: Jesper Dangaard Brouer <hawk@comx.dk>
-Subject: [ANNOUNCE] IPTV-Analyzer project released v0.9.1
-Date: Tue, 24 May 2011 16:40:05 -0400
-Message-ID: <1306269605.11061.10.camel__49598.5597874553$1306269644$gmane$org@probook>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: EXPORT_SYMBOL missing in the kernel?
+Date: Tue, 24 May 2011 23:32:49 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1105242323290.2691@frira.zrqbmnf.qr>
+References: <4DDBACA6.2060501@gmail.com> <1306244451.3026.42.camel@edumazet-laptop> <4DDBB71D.6080205@gmail.com> <alpine.LNX.2.01.1105241639150.32028@frira.zrqbmnf.qr> <4DDBD1FD.1070203@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-To: hawk@comx.dk
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	netfilter-devel@vger.kernel.org, evyncke@cisco.com,
+	guy.leduc@ulg.ac.be, Cyril Soldani <cyril.soldani@ulg.ac.be>
+To: Pierre Rondou <prondou@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lanfw001a.cxnet.dk ([87.72.215.196]:32777 "EHLO
-	lanfw001a.cxnet.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751635Ab1EXUkN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 May 2011 16:40:13 -0400
+Received: from seven.medozas.de ([188.40.89.202]:52379 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932161Ab1EXVcv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 May 2011 17:32:51 -0400
+In-Reply-To: <4DDBD1FD.1070203@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The new release 0.9.1 of the IPTV-Analyzer project is comming to you
-directly from New York City RedHat office ;-)
 
-New features include bytes and packet counters, no-signal detection,
-heartbeat system per stream, and new event types.
+On Tuesday 2011-05-24 17:42, Pierre Rondou wrote:
+>
+>The little complain about NATIVI
+>(http://www.spinics.net/lists/netfilter-devel/msg18248.html) was
+>that no kernel/Xtables developers told me they wanted the module
+>inside the kernel/Xtables
 
- Homepage:
-  http://www.iptv-analyzer.org
+But they did not say "don't want" either :)
 
- Git tree:
-  https://github.com/netoptimizer/IPTV-Analyzer
+Sorry, I must have skipped over that mail somehow. It's still in
+my inbox, so that means the topic had not been closed.
 
-Notice, database changes in this release.  Its possible to upgrade
-the database schema without loosing your current data.
+The only other "excuse" I can give is that, on a closer look now, the
+mail did not contain a merge request, just an offer for help.
+(Wording: "If you believe that this module can be included is the
+Linux Kernel or in the Xtables-addons framework, I'll be glad and
+will help you in this task.")
 
-The IPTV-Analyzer is a continuous/real-time tool for analyzing the
-contents of MPEG2 Transport Stream (TS) packets, which is commonly
-used for IPTV multicast signals. The main purpose is continuous
-quality measurement, with a focus on detecting MPEG2 TS/CC packet
-drops.
+If you, or somebody else, wants to have it merged, in either the
+kernel or Xtables-addons, please send in a patch, and we will discuss
+it from there on.
 
- Bugreports and feature requests please use:
-  https://github.com/netoptimizer/IPTV-Analyzer/issues
+> While I'm sending you an e-mail, I may contribute to your very interesting
+> "Writing Netfilter modules" ebook.
 
-(Disclaimer, RedHat is not directly associated with project, I just
-hangout with them during my visit to NYC).
-
--- 
-Best regards,
-  Jesper Dangaard Brouer
-  ComX Networks A/S
-  Linux Network Kernel Developer
-  Cand. Scient Datalog / MSc.CS
-  Author of http://adsl-optimizer.dk
-  LinkedIn: http://www.linkedin.com/in/brouer
-
+If you replace .pdf in the URL by .lyx, you can get at the source
+of the document and make a patch against that if you like.
+Other ways to convey your additions are also acceptable - it
+is not required to be diff.
