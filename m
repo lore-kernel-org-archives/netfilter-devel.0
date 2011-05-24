@@ -1,119 +1,65 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 08/24] doc: make usage of libxt_rateest more obvious
-Date: Wed, 25 May 2011 01:08:09 +0200
-Message-ID: <1306278506-11463-9-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 07/24] doc: add some coded option examples to libxt_hashlimit
+Date: Wed, 25 May 2011 01:08:08 +0200
+Message-ID: <1306278506-11463-8-git-send-email-jengelh@medozas.de>
 References: <1306278506-11463-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:40936 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:40939 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933580Ab1EXXIh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 May 2011 19:08:37 -0400
+	id S933573Ab1EXXIg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 May 2011 19:08:36 -0400
 In-Reply-To: <1306278506-11463-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libxt_rateest.man |   71 +++++++++++++++++++++++++++++++++---------
- 1 files changed, 56 insertions(+), 15 deletions(-)
+ extensions/libxt_hashlimit.man |   26 ++++++++++++++++----------
+ 1 files changed, 16 insertions(+), 10 deletions(-)
 
-diff --git a/extensions/libxt_rateest.man b/extensions/libxt_rateest.man
-index 75303c5..42a82f3 100644
---- a/extensions/libxt_rateest.man
-+++ b/extensions/libxt_rateest.man
-@@ -1,34 +1,75 @@
- The rate estimator can match on estimated rates as collected by the RATEEST
- target. It supports matching on absolute bps/pps values, comparing two rate
- estimators and matching on the difference between two rate estimators.
-+.PP
-+For a better understanding of the available options, these are all possible
-+combinations:
-+.\" * Absolute:
-+.IP \(bu 4
-+\fBrateest\fP \fIoperator\fP \fBrateest-bps\fP
-+.IP \(bu 4
-+\fBrateest\fP \fIoperator\fP \fBrateest-pps\fP
-+.\" * Absolute + Delta:
-+.IP \(bu 4
-+(\fBrateest\fP minus \fBrateest-bps1\fP) \fIoperator\fP \fBrateest-bps2\fP
-+.IP \(bu 4
-+(\fBrateest\fP minus \fBrateest-pps1\fP) \fIoperator\fP \fBrateest-pps2\fP
-+.\" * Relative:
-+.IP \(bu 4
-+\fBrateest1\fP \fIoperator\fP \fBrateest2\fP \fBrateest-bps\fP(without rate!)
-+.IP \(bu 4
-+\fBrateest1\fP \fIoperator\fP \fBrateest2\fP \fBrateest-pps\fP(without rate!)
-+.\" * Relative + Delta:
-+.IP \(bu 4
-+(\fBrateest1\fP minus \fBrateest-bps1\fP) \fIoperator\fP
-+(\fBrateest2\fP minus \fBrateest-bps2\fP)
-+.IP \(bu 4
-+(\fBrateest1\fP minus \fBrateest-pps1\fP) \fIoperator\fP
-+(\fBrateest2\fP minus \fBrateest-pps2\fP)
-+.TP
-+\fB\-\-rateest\-delta\fP
-+For each estimator (either absolute or relative mode), calculate the difference
-+between the estimator-determined flow rate and the static value chosen with the
-+BPS/PPS options. If the flow rate is higher than the specified BPS/PPS, 0 will
-+be used instead of a negative value. In other words, "max(0, rateest#_rate -
-+rateest#_bps)" is used.
-+.TP
-+[\fB!\fP] \fB\-\-rateest\-lt\fP
-+Match if rate is less than given rate/estimator.
-+.TP
-+[\fB!\fP] \fB\-\-rateest\-gt\fP
-+Match if rate is greater than given rate/estimator.
-+.TP
-+[\fB!\fP] \fB\-\-rateest\-eq\fP
-+Match if rate is equal to given rate/estimator.
-+.PP
-+In the so-called "absolute mode", only one rate estimator is used and compared
-+against a static value, while in "relative mode", two rate estimators are
-+compared against another.
-+.TP
-+\fB\-\-rateest\fP \fIname\fP
-+Name of the one rate estimator for absolute mode.
- .TP
- \fB\-\-rateest1\fP \fIname\fP
--Name of the first rate estimator.
- .TP
- \fB\-\-rateest2\fP \fIname\fP
--Name of the second rate estimator (if difference is to be calculated).
-+The names of the two rate estimators for relative mode.
- .TP
--\fB\-\-rateest\-delta\fP
--Compare difference(s) to given rate(s)
-+\fB\-\-rateest\-bps\fP [\fIvalue\fP]
-+.TP
-+\fB\-\-rateest\-pps\fP [\fIvalue\fP]
- .TP
- \fB\-\-rateest\-bps1\fP [\fIvalue\fP]
- .TP
- \fB\-\-rateest\-bps2\fP [\fIvalue\fP]
--Compare bytes per second.
- .TP
- \fB\-\-rateest\-pps1\fP [\fIvalue\fP]
- .TP
- \fB\-\-rateest\-pps2\fP [\fIvalue\fP]
--Compare packets per second.
+diff --git a/extensions/libxt_hashlimit.man b/extensions/libxt_hashlimit.man
+index e91d0c6..f90577e 100644
+--- a/extensions/libxt_hashlimit.man
++++ b/extensions/libxt_hashlimit.man
+@@ -2,16 +2,7 @@
+ \fBlimit\fP match) for a group of connections using a \fBsingle\fP iptables
+ rule. Grouping can be done per-hostgroup (source and/or destination address)
+ and/or per-port. It gives you the ability to express "\fIN\fP packets per time
+-quantum per group":
 -.TP
--[\fB!\fP] \fB\-\-rateest\-lt\fP
--Match if rate is less than given rate/estimator.
+-matching on source host
+-"1000 packets per second for every host in 192.168.0.0/16"
 -.TP
--[\fB!\fP] \fB\-\-rateest\-gt\fP
--Match if rate is greater than given rate/estimator.
+-matching on source port
+-"100 packets per second for every service of 192.168.1.1"
 -.TP
--[\fB!\fP] \fB\-\-rateest\-eq\fP
--Match if rate is equal to given rate/estimator.
-+Compare the estimator(s) by bytes or packets per second, and compare against
-+the chosen value. See the above bullet list for which option is to be used in
-+which case. A unit suffix may be used - available ones are: bit, [kmgt]bit,
-+[KMGT]ibit, Bps, [KMGT]Bps, [KMGT]iBps.
+-matching on subnet
+-"10000 packets per minute for every /28 subnet in 10.0.0.0/8"
++quantum per group" (see below for some examples).
  .PP
- Example: This is what can be used to route outgoing data connections from an
- FTP server over two lines based on the available bandwidth at the time the data
+ A hash limit option (\fB\-\-hashlimit\-upto\fP, \fB\-\-hashlimit\-above\fP) and
+ \fB\-\-hashlimit\-name\fP are required.
+@@ -57,3 +48,18 @@ After how many milliseconds do hash entries expire.
+ .TP
+ \fB\-\-hashlimit\-htable\-gcinterval\fP \fImsec\fP
+ How many milliseconds between garbage collection intervals.
++.PP
++Examples:
++.TP
++matching on source host
++"1000 packets per second for every host in 192.168.0.0/16" =>
++\-s 192.168.0.0/16 \-\-hashlimit\-mode srcip \-\-hashlimit\-upto 1000/sec
++.TP
++matching on source port
++"100 packets per second for every service of 192.168.1.1" =>
++\-s 192.168.1.1 \-\-hashlimit\-mode srcport \-\-hashlimit\-upto 100/sec
++.TP
++matching on subnet
++"10000 packets per minute for every /28 subnet (groups of 8 addresses)
++in 10.0.0.0/8" =>
++\-s 10.0.0.8 \-\-hashlimit\-mask 28 \-\-hashlimit\-upto 10000/min
 -- 
 1.7.3.4
 
