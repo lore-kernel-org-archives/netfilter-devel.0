@@ -1,107 +1,44 @@
-From: Lutz Jaenicke <ljaenicke@innominate.com>
-Subject: [PATCH] Provide family and protocol to make getaddrinfo happy
-Date: Wed, 25 May 2011 14:16:26 +0200
-Message-ID: <1306325786-16849-2-git-send-email-ljaenicke@innominate.com>
-References: <1306325786-16849-1-git-send-email-ljaenicke@innominate.com>
-Cc: Lutz Jaenicke <ljaenicke@innominate.com>
-To: netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] Provide family and protocol to make getaddrinfo happy
+Date: Wed, 25 May 2011 14:31:05 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1105251423280.22697@frira.zrqbmnf.qr>
+References: <1306325786-16849-1-git-send-email-ljaenicke@innominate.com> <1306325786-16849-2-git-send-email-ljaenicke@innominate.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Lutz Jaenicke <ljaenicke@innominate.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from home.innominate.com ([77.245.32.75]:51274 "EHLO
-	home.innominate.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756612Ab1EYMQj (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 May 2011 08:16:39 -0400
-In-Reply-To: <1306325786-16849-1-git-send-email-ljaenicke@innominate.com>
+Received: from seven.medozas.de ([188.40.89.202]:55797 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756892Ab1EYMbG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 May 2011 08:31:06 -0400
+In-Reply-To: <1306325786-16849-2-git-send-email-ljaenicke@innominate.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-getaddrinfo() will fail for numeric port numbers if neither
-the socket type (stream/datagram) nor the protocol is
-provided.
-Since matches on ports only make sense if the protocol is known
-we "just" have to derive the protocol number from the information
-already collected.
+On Wednesday 2011-05-25 14:16, Lutz Jaenicke wrote:
 
-Signed-off-by: Lutz Jaenicke <ljaenicke@innominate.com>
----
- xtoptions.c |   34 +++++++++++++++++++++++++++++-----
- 1 files changed, 29 insertions(+), 5 deletions(-)
+>getaddrinfo() will fail for numeric port numbers if neither
+>the socket type (stream/datagram) nor the protocol is
+>provided.
+>Since matches on ports only make sense if the protocol is known
+>we "just" have to derive the protocol number from the information
+>already collected.
 
-diff --git a/xtoptions.c b/xtoptions.c
-index ac0601f..e38b7ef 100644
---- a/xtoptions.c
-+++ b/xtoptions.c
-@@ -556,12 +556,15 @@ static void xtopt_parse_host(struct xt_option_call *cb)
-  * Resolve a port name to a number. Returns the port number in integral
-  * form on success, or <0 on error. (errno will not be set.)
-  */
--static int xtables_getportbyname(const char *name)
-+static int xtables_getportbyname(const char *name, int family, int protocol)
- {
--	struct addrinfo *res = NULL, *p;
-+	struct addrinfo hints, *res = NULL, *p;
- 	int ret;
- 
--	ret = getaddrinfo(NULL, name, NULL, &res);
-+	memset(&hints, 0, sizeof(hints));
-+	hints.ai_family = family;
-+	hints.ai_protocol = protocol;
-+	ret = getaddrinfo(NULL, name, &hints, &res);
- 	if (ret < 0)
- 		return -1;
- 	ret = -1;
-@@ -598,9 +601,19 @@ static void xtopt_parse_protocol(struct xt_option_call *cb)
- static void xtopt_parse_port(struct xt_option_call *cb)
- {
- 	const struct xt_option_entry *entry = cb->entry;
-+	struct ipt_entry *fw = cb->xt_entry;
-+	struct ip6t_entry *fw6 = cb->xt_entry;
-+	int family, protocol;
- 	int ret;
- 
--	ret = xtables_getportbyname(cb->arg);
-+	if (afinfo->family == NFPROTO_IPV4) {
-+		family = AF_INET;
-+		protocol = fw->ip.proto;
-+	} else {
-+		family = AF_INET6;
-+		protocol = fw6->ipv6.proto;
-+	}
-+	ret = xtables_getportbyname(cb->arg, family, protocol);
- 	if (ret < 0)
- 		xt_params->exit_err(PARAMETER_PROBLEM,
- 			"Port \"%s\" does not resolve to anything.\n",
-@@ -616,10 +629,21 @@ static void xtopt_parse_mport(struct xt_option_call *cb)
- {
- 	static const size_t esize = sizeof(uint16_t);
- 	const struct xt_option_entry *entry = cb->entry;
-+	struct ipt_entry *fw = cb->xt_entry;
-+	struct ip6t_entry *fw6 = cb->xt_entry;
- 	char *lo_arg, *wp_arg, *arg;
- 	unsigned int maxiter;
-+	int family, protocol;
- 	int value;
- 
-+	if (afinfo->family == NFPROTO_IPV4) {
-+		family = AF_INET;
-+		protocol = fw->ip.proto;
-+	} else {
-+		family = AF_INET6;
-+		protocol = fw6->ipv6.proto;
-+	}
-+
- 	wp_arg = lo_arg = strdup(cb->arg);
- 	if (lo_arg == NULL)
- 		xt_params->exit_err(RESOURCE_PROBLEM, "strdup");
-@@ -645,7 +669,7 @@ static void xtopt_parse_mport(struct xt_option_call *cb)
- 			continue;
- 		}
- 
--		value = xtables_getportbyname(arg);
-+		value = xtables_getportbyname(arg, family, protocol);
- 		if (value < 0)
- 			xt_params->exit_err(PARAMETER_PROBLEM,
- 				"Port \"%s\" does not resolve to "
--- 
-1.7.2.5
+Not quite; ports are also possible with -m ipvs and -m conntrack, which=
+=20
+do not require -p tcp/udp.
 
+If someone speicifies a numeric port to getaddrinfo, I just want the=20
+thing encoded in struct sockaddr_XX.sXX_port - it does not need to know=
+=20
+the particular L4 proto, or the service's text-based name to do that -=20
+which is most likely why glibc allows it.
+
+I would like to have an opinion on that from =C2=B5clibc preferably..
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
