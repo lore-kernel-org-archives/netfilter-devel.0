@@ -1,68 +1,122 @@
-From: Pierre Rondou <prondou@gmail.com>
-Subject: Re: EXPORT_SYMBOL missing in the kernel?
-Date: Wed, 25 May 2011 15:05:22 +0200
-Message-ID: <4DDCFE92.1040003@gmail.com>
-References: <4DDBACA6.2060501@gmail.com> <1306244451.3026.42.camel@edumazet-laptop> <4DDBB71D.6080205@gmail.com> <alpine.LNX.2.01.1105241639150.32028@frira.zrqbmnf.qr> <4DDBD1FD.1070203@gmail.com> <alpine.LNX.2.01.1105242323290.2691@frira.zrqbmnf.qr>
+From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: Re: Netfilter Module for NAT IVI available
+Date: Wed, 25 May 2011 15:09:43 +0200
+Message-ID: <BANLkTinofP5BhXpCJB6z18yBbiN3H0N=vw@mail.gmail.com>
+References: <4DC1FACC.4080204@gmail.com>
+	<1306248975.3026.47.camel@edumazet-laptop>
+	<4DDBD2F1.3020704@gmail.com>
+	<1306252554.3026.66.camel@edumazet-laptop>
+	<4DDCFD42.3010708@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	netfilter-devel@vger.kernel.org, evyncke@cisco.com,
-	guy.leduc@ulg.ac.be, Cyril Soldani <cyril.soldani@ulg.ac.be>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>, behave@ietf.org,
+	v6ops@ietf.org, netfilter-devel@vger.kernel.org,
+	guy.leduc@ulg.ac.be, evyncke@cisco.com,
+	Cyril Soldani <cyril.soldani@ulg.ac.be>
+To: Pierre Rondou <prondou@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailrelay002.isp.belgacom.be ([195.238.6.175]:41650 "EHLO
-	mailrelay002.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757855Ab1EYNFX (ORCPT
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:54378 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753157Ab1EYNJn convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 May 2011 09:05:23 -0400
-In-Reply-To: <alpine.LNX.2.01.1105242323290.2691@frira.zrqbmnf.qr>
+	Wed, 25 May 2011 09:09:43 -0400
+Received: by pvg12 with SMTP id 12so3385764pvg.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 25 May 2011 06:09:43 -0700 (PDT)
+In-Reply-To: <4DDCFD42.3010708@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le 24/05/11 23:32, Jan Engelhardt a =E9crit :
-> On Tuesday 2011-05-24 17:42, Pierre Rondou wrote:
->   =20
->> The little complain about NATIVI
->> (http://www.spinics.net/lists/netfilter-devel/msg18248.html) was
->> that no kernel/Xtables developers told me they wanted the module
->> inside the kernel/Xtables
->>     =20
-> But they did not say "don't want" either :)
+Not that I've really been following the thread.
+But I think that this sort of functionality should most likely be
+developed as a virtual (tun/tap/veth/sit) style tunnel-like device.
+
+You would use ipv4/ipv6 routing in the normal kernel to direct traffic
+out this virtual interface, and immediately ipv6/ipv4 traffic would
+come back out of it.
+
+This should allow all the rest of the kernel (including connection
+tracking) to function normally - although of course every connection
+would be registered in an unrelated way twice (once as v4, once as
+v6).
+
+I think this has nice 'black box' semantics.
+
+On Wed, May 25, 2011 at 14:59, Pierre Rondou <prondou@gmail.com> wrote:
+> Le 24/05/11 17:55, Eric Dumazet a =C3=A9crit :
+>>
+>>>>>
+>>>>>
+>>>>
+>>>> Hi Pierre
+>>>>
+>>>> 1) Are you sure netfilter is the right place for this IVI feature =
+?
+>>>> =C2=A0 =C2=A0 (fact that you had to copy/paste ~1300 lines of code=
+ from kernel
+>>>> might show that this would be better to use a module hooked into
+>>>> forwarding stack ?)
+>>>>
+>>>>
+>>>
+>>> I used Xtables to produce my module, fact is that I was (and still =
+am) a
+>>> kernel nooby, Xtables seemed to a be good way to produce this code.
+>>> I'm not sure to what you're refering about, are you suggesting I sh=
+ould
+>>> have developed the module directly into the kernel?
+>>>
+>>>
+>>
+>> We all were kernel newbie at very beginning ;)
+>>
 >
-> Sorry, I must have skipped over that mail somehow. It's still in
-> my inbox, so that means the topic had not been closed.
+> Sure, unfortunately there is no real book to teach new coders on what=
+ they
+> should do.
 >
-> The only other "excuse" I can give is that, on a closer look now, the
-> mail did not contain a merge request, just an offer for help.
-> (Wording: "If you believe that this module can be included is the
-> Linux Kernel or in the Xtables-addons framework, I'll be glad and
-> will help you in this task.")
+>>
+>>>>
+>>>> 2) How this can integrate a {conntrack enabled} firewall ?
+>>>>
+>>>>
+>>>>
+>>>
+>>> I can't ... It's a drawback of the module. The fact is that I only =
+have
+>>> found a very little documentation about conntrack code, so I droppe=
+d the
+>>> idea of dealing with it.
+>>> But it shouldn't be difficult to update the conntrack for a kernel =
+pro I
+>>> guess ;-)
+>>>
+>>
+>> This has to be discussed before even coding ;)
+>>
+>> One packet going through this gateway has one IPv6 side and one ipv4
+>> side. This can be a problem to firewalling (either its ipv4, either =
+its
+>> ipv6) and conntracking.
+>>
+>>
+>>
 >
-> If you, or somebody else, wants to have it merged, in either the
-> kernel or Xtables-addons, please send in a patch, and we will discuss
-> it from there on.
->   =20
-
-Ok, I didn't know how adding kernel functionalities works actually...
-I'll propose a patch to get it added on current dev kernel a bit later=20
-(gotta finish writing my thesis first).
-
->   =20
->> While I'm sending you an e-mail, I may contribute to your very inter=
-esting
->> "Writing Netfilter modules" ebook.
->>     =20
-> If you replace .pdf in the URL by .lyx, you can get at the source
-> of the document and make a patch against that if you like.
-> Other ways to convey your additions are also acceptable - it
-> is not required to be diff.
->   =20
-
-Ok, I'll send you a patch or something like that after I finished the=20
-writing of my thesis.
-
+> It is a problem that's sure.
+> But as stated before, I didn't any suitable conntrack doc :(
+> My main thesis goal is to provide a working module, conntrack support=
+ would
+> be a bonus, but for now, I cannot do it on my own because of a lack o=
+f
+> conntrack knowledge.
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
+evel"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+>
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
