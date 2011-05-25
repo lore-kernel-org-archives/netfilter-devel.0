@@ -1,50 +1,64 @@
-From: JP Abgrall <jpa@google.com>
-Subject: Re: Force socket error on iptables reject with icmp semantics?
-Date: Tue, 24 May 2011 18:57:50 -0700
-Message-ID: <BANLkTim10aVkudq_iOtW8KWLqNpS=TBo=Q@mail.gmail.com>
-References: <BANLkTi=APDmR7c8eqVySKofXx_wMtgPGOw@mail.gmail.com> <4DDB57DB.8050004@trash.net>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
+Subject: Re: [ANNOUNCE] ipset 6.6 released
+Date: Wed, 25 May 2011 02:58:24 +0100
+Message-ID: <4DDC6240.7050701@googlemail.com>
+References: <alpine.DEB.2.00.1105241039080.1846@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:19079 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751416Ab1EYB6N (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:64995 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752365Ab1EYB62 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 May 2011 21:58:13 -0400
-Received: from hpaq6.eem.corp.google.com (hpaq6.eem.corp.google.com [172.25.149.6])
-	by smtp-out.google.com with ESMTP id p4P1wB3R003014
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 May 2011 18:58:12 -0700
-Received: from gyd8 (gyd8.prod.google.com [10.243.49.200])
-	by hpaq6.eem.corp.google.com with ESMTP id p4P1vpHj024613
-	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 May 2011 18:58:10 -0700
-Received: by gyd8 with SMTP id 8so2950232gyd.28
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 May 2011 18:58:10 -0700 (PDT)
-In-Reply-To: <4DDB57DB.8050004@trash.net>
+	Tue, 24 May 2011 21:58:28 -0400
+Received: by wwa36 with SMTP id 36so7941995wwa.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 May 2011 18:58:26 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1105241039080.1846@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 24, 2011 at 00:01, Patrick McHardy <kaber@trash.net> wrote:
-> The interpretation and handling of the ICMP errors is up to the higher
-> layer protocols.
-This is only for DEST_UNREACH, and I was expecting that the convert
-table/func was the way to deal with it. But apparently not.
 
-How about e.g. "--reject-with-forced-socket-error-matching-icmp
---reject-with icmp*blabla"?
+> Userspace changes:
+>  - Restore with bitmap:port and list:set types did not work, fixed
+>   
+Having had the chance to test this now, I can say that it works, and 
+what's more - the loading performance is much, much better - all my sets 
+now load in about 2-3 seconds, while with the 4.5 version it took in 
+excess of 10 minutes, completely hogging my CPU in the process. I 
+haven't had the chance yet to judge the matching performance, but this 
+is what I will do in the coming days.
 
-> Unless there's something wrong in your setup, the ICMP message should
-> be received by the socket anyways.
-My understanding was that it won't happen if an ingress packet gets
-rejected. In that case the icmp is only sent back out, as it uses
-icmp*_send().
+I have found a bug, however. :-\
 
-I'll see if it is not too hard to have icmp*_send(...., direction),
-and call it for each direction.
+When I have multiple sets of different type to restore, each restore 
+file normally ends with "COMMIT" statement for ipset to commit the whole 
+transaction, or so I thought. If there is a mistake (syntax or any 
+other) somewhere in the restore file, which prevents the restore 
+process, ipset already commits everything up to that point, which I 
+think is wrong.
 
-For now, I'll keep my reject change (after fixing the arg in the v6
-convert call) as it does allow user space to not wait for incoming
-data after that.
---
+For example, if I have this:
+
+n privileged-ports bitmap:port range 1-1023 timeout 0
+a privileged-ports 1-1023
+n test-ports bitmap:port range 12770-19999 timeout 0
+a test-ports 20000-30000
+a test-ports 19999
+n test-port bitmap:port range 29950-29950 timeout 0
+a test-port 29950
+COMMIT
+
+There is an obvious error in line 4 above ("a test-ports 20000-30000" - 
+this is out of the defined range for this set) - ipset should have 
+aborted the whole transaction and not committed anything, but in 
+practice, privileged-ports set is already registered and its members are 
+already added.
+
+Apart from the obvious error of ipset committing before the actual 
+"COMMIT" has taken place, this raises another issue when I actually try 
+to reload this file - I will get an error straight away as 
+privileged-ports is already registered and that shouldn't be the case. 
+Thought to let you know.
