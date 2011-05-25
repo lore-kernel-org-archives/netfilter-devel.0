@@ -1,67 +1,77 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Doc/Option parser fixes
-Date: Wed, 25 May 2011 05:35:31 +0200
-Message-ID: <4DDC7903.9020706@trash.net>
-References: <1306278506-11463-1-git-send-email-jengelh@medozas.de>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [ANNOUNCE] ipset 6.6 released
+Date: Wed, 25 May 2011 09:23:19 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1105250916260.5929@blackhole.kfki.hu>
+References: <alpine.DEB.2.00.1105241039080.1846@blackhole.kfki.hu> <4DDC6240.7050701@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Mr Dash Four <mr.dash.four@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33563 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755396Ab1EYDgH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 May 2011 23:36:07 -0400
-In-Reply-To: <1306278506-11463-1-git-send-email-jengelh@medozas.de>
+Received: from smtp-in.kfki.hu ([148.6.0.26]:55793 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754041Ab1EYHXV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 May 2011 03:23:21 -0400
+In-Reply-To: <4DDC6240.7050701@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 25.05.2011 01:08, Jan Engelhardt wrote:
-> Notes:
->  - libxt_time's --localtz remains being recognized, albeit with a warning
->  - no changes to libxt_rateest parser
-> 
-> With this applied, I have cleared my stash of fixes, and release can
-> proceed.
-> 
-> =-=-=
-> The following changes since commit 17f7937f79af4d260c60cb800e56fc0df0a48b37:
-> 
->   libxt_devgroup: actually set XT_DEVGROUP_OPT_???GROUP flags (2011-05-23 16:28:25 +0200)
-> 
-> are available in the git repository at:
->   git://dev.medozas.de/iptables master
-> 
-> JP Abgrall (1):
->       libxt_quota: make sure uint64 is not truncated
-> 
-> Jan Engelhardt (22):
->       libxtables: retract _NE types and use a flag instead
->       libxt_quota: readd missing XTOPT_PUT request
->       libxtables: check for negative numbers in xtables_strtou*
->       libxt_rateest: streamline case display of units
->       doc: add some coded option examples to libxt_hashlimit
->       doc: make usage of libxt_rateest more obvious
->       doc: clarify that -p all is a special keyword only
->       doc: use .IP list for TCPMSS
->       doc: remove redundant .IP calls in libxt_time
->       libxt_ipvs: restore network-byte order
->       libxt_u32: --u32 option is required
->       libip6t_rt: restore --rt-type storing
->       libxtables: more detailed error message on multi-int parsing
->       libxtables: use uintmax for xtables_strtoul
->       libxtables: make multiint parser have greater range
->       libxtables: unclutter xtopt_parse_mint
->       libxtables: have xtopt_parse_mint interpret partially-spec'd ranges
->       libxt_NFQUEUE: avoid double attempt at parsing
->       libxt_NFQUEUE: add mutual exclusion between qnum and qbal
->       libxt_time: always ignore libc timezone
->       libxt_time: --utc and --localtz are mutually exclusive
->       libxt_time: deprecate --localtz option, document kernel TZ caveats
-> 
-> Lutz Jaenicke (1):
->       libipt_REDIRECT: "--to-ports" is not mandatory
+On Wed, 25 May 2011, Mr Dash Four wrote:
 
-Pulled, thanks Jan.
+> > Userspace changes:
+> >  - Restore with bitmap:port and list:set types did not work, fixed
+> >   
+> Having had the chance to test this now, I can say that it works, and what's
+> more - the loading performance is much, much better - all my sets now load in
+> about 2-3 seconds, while with the 4.5 version it took in excess of 10 minutes,
+> completely hogging my CPU in the process. I haven't had the chance yet to
+> judge the matching performance, but this is what I will do in the coming days.
+> 
+> I have found a bug, however. :-\
+> 
+> When I have multiple sets of different type to restore, each restore file
+> normally ends with "COMMIT" statement for ipset to commit the whole
+> transaction, or so I thought. If there is a mistake (syntax or any other)
+> somewhere in the restore file, which prevents the restore process, ipset
+> already commits everything up to that point, which I think is wrong.
+> 
+> For example, if I have this:
+> 
+> n privileged-ports bitmap:port range 1-1023 timeout 0
+> a privileged-ports 1-1023
+> n test-ports bitmap:port range 12770-19999 timeout 0
+> a test-ports 20000-30000
+> a test-ports 19999
+> n test-port bitmap:port range 29950-29950 timeout 0
+> a test-port 29950
+> COMMIT
+> 
+> There is an obvious error in line 4 above ("a test-ports 20000-30000" - this
+> is out of the defined range for this set) - ipset should have aborted the
+> whole transaction and not committed anything, but in practice,
+> privileged-ports set is already registered and its members are already added.
+> 
+> Apart from the obvious error of ipset committing before the actual "COMMIT"
+> has taken place, this raises another issue when I actually try to reload this
+> file - I will get an error straight away as privileged-ports is already
+> registered and that shouldn't be the case. Thought to let you know.
+
+If you have got a restore file with an error in it, fix the file and 
+restore it again but with the '-!' flag. That way all already defined 
+sets, elements are ignored (technically: not raised the error due to the 
+clashing set/elements):
+
+# ipset restore < file
+<syntax error, fix the file>
+# ipset -! restore < file
+
+The "COMMIT" string is not required at all in ipset 6.x. It's just kept 
+for backward compatibility reasons.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
