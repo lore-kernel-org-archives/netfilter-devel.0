@@ -1,22 +1,29 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH 1/1] IPVS : bug in ip_vs_ftp, same list heaad used in all
- netns.
-Date: Thu, 26 May 2011 10:48:29 +0900
-Message-ID: <20110526014828.GH8181@verge.net.au>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH 1/1] IPVS : bug in ip_vs_ftp, same list heaad used in
+ all netns.
+Date: Thu, 26 May 2011 11:07:09 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1105261105380.1602@ja.ssi.bg>
 References: <1306239065-17271-1-git-send-email-hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: ja@ssi.bg, wensong@linux-vs.org, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	hans@schillstrom.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: horms@verge.net.au, wensong@linux-vs.org,
+	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, hans@schillstrom.com
 To: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ja.ssi.bg ([178.16.129.10]:43798 "EHLO ja.ssi.bg"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756209Ab1EZIFj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 May 2011 04:05:39 -0400
 In-Reply-To: <1306239065-17271-1-git-send-email-hans.schillstrom@ericsson.com>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 24, 2011 at 02:11:05PM +0200, Hans Schillstrom wrote:
+
+	Hello,
+
+On Tue, 24 May 2011, Hans Schillstrom wrote:
+
 > When ip_vs was adapted to netns the ftp application was not adapted
 > in a correct way.
 > However this is a fix to avoid kernel errors. In the long term another solution
@@ -24,7 +31,9 @@ On Tue, May 24, 2011 at 02:11:05PM +0200, Hans Schillstrom wrote:
 > 
 > Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
 
-Julian, do you have any thoughts on this?
+	Looks good
+
+Acked-by: Julian Anastasov <ja@ssi.bg>
 
 > ---
 >  include/net/ip_vs.h            |    3 ++-
@@ -106,9 +115,8 @@ Julian, do you have any thoughts on this?
 >  static struct pernet_operations ip_vs_ftp_ops = {
 > -- 
 > 1.7.2.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe lvs-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
