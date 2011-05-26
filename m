@@ -1,65 +1,28 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [ANNOUNCE]: Release of iptables-1.4.11
-Date: Thu, 26 May 2011 19:04:20 +0200
-Message-ID: <4DDE8814.7090201@trash.net>
-References: <4DDE857E.40807@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/3] ipset patches against net-2.6/nf-2.6, updated
+Date: Thu, 26 May 2011 19:08:47 +0200
+Message-ID: <4DDE891F.6070508@netfilter.org>
+References: <1306225219-1498-1-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, NetDev <netdev@vger.kernel.org>,
-	netfilter-announce@lists.netfilter.org,
-	"'netfilter@vger.kernel.org'" <netfilter
+Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:65505 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751600Ab1EZREY (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 May 2011 13:04:24 -0400
-In-Reply-To: <4DDE857E.40807@trash.net>
+Received: from mail.us.es ([193.147.175.20]:37942 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756933Ab1EZRI4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 May 2011 13:08:56 -0400
+In-Reply-To: <1306225219-1498-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 26.05.2011 18:53, schrieb Patrick McHardy:
-> The netfilter coreteam presents:
+On 24/05/11 10:20, Jozsef Kadlecsik wrote:
+> Hi Patrick,
 > 
->     iptables version 1.4.10
+> Here follows three patches against net-2.6/nf-2.6, please apply them
+> (and discard the patches I sent on last Friday).
 
-That's supposed to read 1.4.11 of course :)
+OK, I'm removing the ones you sent last Friday to take these.
 
-> 
-> the iptables release for the 2.6.39 kernels. Due to some mistakes
-> on my side we didn't have a release for longer than expected, so
-> this contains a rather large number of changes.
-> 
-> Changes include:
-> 
-> - various bugfixes, cleanups and documentation updates
-> 
-> - a new "guided option parser" from Jan, replacing a lot of the
->   open-coded option parsing by a data driven parser
-> 
-> - support for the current SET target as contained in 2.6.39
-> 
-> - support for the new devgroup match
-> 
-> - support for the new AUDIT target
-> 
-> - support for a new NFQUEUE bypass option, allowing to bypass the
->   queue if no userspace listener is present
-> 
-> - a new iptables option "-C" to check for existance of a rules
-> 
-> - a new xtables-multi binary which supports both IPv4 and IPv6
-> 
-> See the attached changelogs for the full list of changes.
-> 
-> Version 1.4.11 can be obtained from:
-> 
-> http://www.netfilter.org/projects/iptables/downloads.html
-> ftp://ftp.netfilter.org/pub/iptables/
-> git://git.netfilter.org/iptables.git
-> 
-> On behalf of the Netfilter Core Team.
-> Happy firewalling!
-
+They're now in my tree.
