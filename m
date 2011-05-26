@@ -1,88 +1,114 @@
-From: Lutz Jaenicke <ljaenicke@innominate.com>
-Subject: Re: [PATCH] Provide family and protocol to make getaddrinfo happy
-Date: Wed, 25 May 2011 16:06:37 +0200
-Message-ID: <20110525140636.GA21259@lutz.bln.innominate.local>
-References: <1306325786-16849-1-git-send-email-ljaenicke@innominate.com>
- <1306325786-16849-2-git-send-email-ljaenicke@innominate.com>
- <alpine.LNX.2.01.1105251423280.22697@frira.zrqbmnf.qr>
- <20110525132629.GA17366@lutz.bln.innominate.local>
- <alpine.LNX.2.01.1105251538090.17415@frira.zrqbmnf.qr>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH 1/1] IPVS : bug in ip_vs_ftp, same list heaad used in all
+ netns.
+Date: Thu, 26 May 2011 10:48:29 +0900
+Message-ID: <20110526014828.GH8181@verge.net.au>
+References: <1306239065-17271-1-git-send-email-hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from host2.bln.innominate.com ([77.245.32.75]:35669 "EHLO
-	home.innominate.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753157Ab1EYOGi (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 May 2011 10:06:38 -0400
+Content-Type: text/plain; charset=us-ascii
+Cc: ja@ssi.bg, wensong@linux-vs.org, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	hans@schillstrom.com
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.01.1105251538090.17415@frira.zrqbmnf.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1306239065-17271-1-git-send-email-hans.schillstrom@ericsson.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, May 25, 2011 at 03:41:17PM +0200, Jan Engelhardt wrote:
->=20
-> On Wednesday 2011-05-25 15:26, Lutz Jaenicke wrote:
-> >On Wed, May 25, 2011 at 02:31:05PM +0200, Jan Engelhardt wrote:
-> >>=20
-> >> >getaddrinfo() will fail for numeric port numbers if neither
-> >> >the socket type (stream/datagram) nor the protocol is
-> >> >provided. [in uclibc]
-> >
-> >As I wrote in my introduction for the patch (which has not yet made =
-it to the
-> >mailing list), other C libraries behave like uClibc:
-> >* http://gitorious.org/0xdroid/bionic/blobs/9ab75d4cc803e91b7f1b656f=
-fbe2ad32c52a86f9/libc/netbsd/net/getaddrinfo.c                         =
-                      =20
-> >  -> look for "ANDROID-SPECIFIC CHANGE TO MATCH GLIBC" :-)
-> >* http://www.freebsd.org/cgi/query-pr.cgi?pr=3D51827
-> >* Especially I like
-> >  http://www.openbsd.org/cgi-bin/cvsweb/~checkout~/src/lib/libc/net/=
-getaddrinfo.c?rev=3D1.72;content-type=3Dtext%2Fplain
-> >  which in the text says=20
-> >	/*
-> >	 * check for special cases.  (1) numeric servname is disallowed if
-> >	 * socktype/protocol are left unspecified. (2) servname is disallow=
-ed
-> >	 * for raw and other inet{,6} sockets.
-> >	 */
-> >  (and I took this as a reference until now) but later in get_portma=
-tch():
-> >  	case SOCK_DGRAM:
-> >	case SOCK_STREAM:
-> >	case ANY:
-> >		allownumeric =3D 1;
->=20
-> So in other words, four libraries allow it, and one - =B5clibc - has =
-a bug that
-> should be fixed.
+On Tue, May 24, 2011 at 02:11:05PM +0200, Hans Schillstrom wrote:
+> When ip_vs was adapted to netns the ftp application was not adapted
+> in a correct way.
+> However this is a fix to avoid kernel errors. In the long term another solution
+> might be chosen.  I.e the ports that the ftp appl, uses should be per netns.
+> 
+> Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
 
-I am not sure it is actually a bug. RFC 3493 does not specify this way
-or the other. It just seems that most other C libraries changed the
-behavior from "not accepted" to "accepted" in 2009 such that these days
-the consensus seems to be this way.
+Julian, do you have any thoughts on this?
 
-Best regards,
-	Lutz
---=20
-Dr.-Ing. Lutz J=E4nicke
-CTO
-Innominate Security Technologies AG  /protecting industrial networks/
-tel: +49.30.921028-200
-fax: +49.30.921028-020
-Rudower Chaussee 13
-D-12489 Berlin, Germany
-www.innominate.com
-
-Register Court: AG Charlottenburg, HR B 81603
-Management Board: Dirk Seewald
-Chairman of the Supervisory Board: Volker Bibelhausen
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  include/net/ip_vs.h            |    3 ++-
+>  net/netfilter/ipvs/ip_vs_ftp.c |   27 +++++++++++++++++++--------
+>  2 files changed, 21 insertions(+), 9 deletions(-)
+> 
+> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+> index 4fff432..481f856 100644
+> --- a/include/net/ip_vs.h
+> +++ b/include/net/ip_vs.h
+> @@ -797,7 +797,8 @@ struct netns_ipvs {
+>  	struct list_head	rs_table[IP_VS_RTAB_SIZE];
+>  	/* ip_vs_app */
+>  	struct list_head	app_list;
+> -
+> +	/* ip_vs_ftp */
+> +	struct ip_vs_app	*ftp_app;
+>  	/* ip_vs_proto */
+>  	#define IP_VS_PROTO_TAB_SIZE	32	/* must be power of 2 */
+>  	struct ip_vs_proto_data *proto_data_table[IP_VS_PROTO_TAB_SIZE];
+> diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
+> index 6b5dd6d..af63553 100644
+> --- a/net/netfilter/ipvs/ip_vs_ftp.c
+> +++ b/net/netfilter/ipvs/ip_vs_ftp.c
+> @@ -411,25 +411,35 @@ static struct ip_vs_app ip_vs_ftp = {
+>  static int __net_init __ip_vs_ftp_init(struct net *net)
+>  {
+>  	int i, ret;
+> -	struct ip_vs_app *app = &ip_vs_ftp;
+> +	struct ip_vs_app *app;
+> +	struct netns_ipvs *ipvs = net_ipvs(net);
+> +
+> +	app = kmemdup(&ip_vs_ftp, sizeof(struct ip_vs_app), GFP_KERNEL);
+> +	if (!app)
+> +		return -ENOMEM;
+> +	INIT_LIST_HEAD(&app->a_list);
+> +	INIT_LIST_HEAD(&app->incs_list);
+> +	ipvs->ftp_app = app;
+>  
+>  	ret = register_ip_vs_app(net, app);
+>  	if (ret)
+> -		return ret;
+> +		goto err_exit;
+>  
+>  	for (i=0; i<IP_VS_APP_MAX_PORTS; i++) {
+>  		if (!ports[i])
+>  			continue;
+>  		ret = register_ip_vs_app_inc(net, app, app->protocol, ports[i]);
+>  		if (ret)
+> -			break;
+> +			goto err_unreg;
+>  		pr_info("%s: loaded support on port[%d] = %d\n",
+>  			app->name, i, ports[i]);
+>  	}
+> +	return 0;
+>  
+> -	if (ret)
+> -		unregister_ip_vs_app(net, app);
+> -
+> +err_unreg:
+> +	unregister_ip_vs_app(net, app);
+> +err_exit:
+> +	kfree(ipvs->ftp_app);
+>  	return ret;
+>  }
+>  /*
+> @@ -437,9 +447,10 @@ static int __net_init __ip_vs_ftp_init(struct net *net)
+>   */
+>  static void __ip_vs_ftp_exit(struct net *net)
+>  {
+> -	struct ip_vs_app *app = &ip_vs_ftp;
+> +	struct netns_ipvs *ipvs = net_ipvs(net);
+>  
+> -	unregister_ip_vs_app(net, app);
+> +	unregister_ip_vs_app(net, ipvs->ftp_app);
+> +	kfree(ipvs->ftp_app);
+>  }
+>  
+>  static struct pernet_operations ip_vs_ftp_ops = {
+> -- 
+> 1.7.2.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe lvs-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
