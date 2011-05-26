@@ -1,32 +1,25 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: Fix several warnings in compat_mtw_from_user().
-Date: Thu, 26 May 2011 18:44:05 +0200
-Message-ID: <4DDE8355.1060604@netfilter.org>
-References: <20110519.181439.385337593682366302.davem@davemloft.net>
+Subject: Re: [PATCH] Add SELinux context support to AUDIT target
+Date: Thu, 26 May 2011 18:49:19 +0200
+Message-ID: <4DDE848F.1070508@netfilter.org>
+References: <4DD5BF5A.2030108@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+To: Mr Dash Four <mr.dash.four@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50401 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43322 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756601Ab1EZQoJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 May 2011 12:44:09 -0400
-In-Reply-To: <20110519.181439.385337593682366302.davem@davemloft.net>
+	id S932308Ab1EZQt1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 May 2011 12:49:27 -0400
+In-Reply-To: <4DD5BF5A.2030108@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 20/05/11 00:14, David Miller wrote:
+On 20/05/11 03:09, Mr Dash Four wrote:
+> Add SELinux context support for AUDIT target. Typical (raw auditd) output after applying this patch would be:
 > 
-> Kill set but not used 'entry_offset'.
-> 
-> Add a default case to the switch statement so the compiler
-> can see that we always initialize off and size_kern before
-> using them.
-> 
-> Signed-off-by: David S. Miller <davem@davemloft.net>
+> type=NETFILTER_PKT msg=audit(1305852240.082:31012): action=0 hook=3 len=52 inif=? outif=eth0 subj=system_u:object_r:sshd_packet_t:s0 saddr=10.1.1.7 daddr=10.1.2.1 ipid=16312 proto=6 sport=56150 dport=22
 
-applied to my nf-2.6 tree, thanks.
-
-http://1984.lsi.us.es/git/?p=net-2.6/.git;a=shortlog;h=refs/heads/pablo/nf-2.6-updates
+I think this new information should be added at the end of the string.
