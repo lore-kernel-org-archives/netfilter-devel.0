@@ -1,42 +1,65 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: [PATCH] Add SELinux context support to AUDIT target
-Date: Thu, 26 May 2011 18:03:49 +0100
-Message-ID: <4DDE87F5.9050606@googlemail.com>
-References: <4DD5BF5A.2030108@googlemail.com> <4DDE848F.1070508@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [ANNOUNCE]: Release of iptables-1.4.11
+Date: Thu, 26 May 2011 19:04:20 +0200
+Message-ID: <4DDE8814.7090201@trash.net>
+References: <4DDE857E.40807@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>, NetDev <netdev@vger.kernel.org>,
+	netfilter-announce@lists.netfilter.org,
+	"'netfilter@vger.kernel.org'" <netfilter
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:42926 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751533Ab1EZRDz (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:65505 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751600Ab1EZREY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 May 2011 13:03:55 -0400
-Received: by wya21 with SMTP id 21so673981wya.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 May 2011 10:03:54 -0700 (PDT)
-In-Reply-To: <4DDE848F.1070508@netfilter.org>
+	Thu, 26 May 2011 13:04:24 -0400
+In-Reply-To: <4DDE857E.40807@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Am 26.05.2011 18:53, schrieb Patrick McHardy:
+> The netfilter coreteam presents:
+> 
+>     iptables version 1.4.10
 
-> I think this new information should be added at the end of the string.
->   
-In other words:
+That's supposed to read 1.4.11 of course :)
 
-type=NETFILTER_PKT msg=audit(1305852240.082:31012): action=0 hook=3 
-len=52 inif=? outif=eth0 saddr=10.1.1.7 daddr=10.1.2.1 ipid=16312 
-proto=6 sport=56150 dport=22 subj=system_u:object_r:sshd_packet_t:s0
+> 
+> the iptables release for the 2.6.39 kernels. Due to some mistakes
+> on my side we didn't have a release for longer than expected, so
+> this contains a rather large number of changes.
+> 
+> Changes include:
+> 
+> - various bugfixes, cleanups and documentation updates
+> 
+> - a new "guided option parser" from Jan, replacing a lot of the
+>   open-coded option parsing by a data driven parser
+> 
+> - support for the current SET target as contained in 2.6.39
+> 
+> - support for the new devgroup match
+> 
+> - support for the new AUDIT target
+> 
+> - support for a new NFQUEUE bypass option, allowing to bypass the
+>   queue if no userspace listener is present
+> 
+> - a new iptables option "-C" to check for existance of a rules
+> 
+> - a new xtables-multi binary which supports both IPv4 and IPv6
+> 
+> See the attached changelogs for the full list of changes.
+> 
+> Version 1.4.11 can be obtained from:
+> 
+> http://www.netfilter.org/projects/iptables/downloads.html
+> ftp://ftp.netfilter.org/pub/iptables/
+> git://git.netfilter.org/iptables.git
+> 
+> On behalf of the Netfilter Core Team.
+> Happy firewalling!
 
-As I am currently discussing this very issue (adding SELinux context to 
-AUDIT) on the audit mail list, it was pointed out that "subj" should 
-actually be "obj" as this is an object (i.e. a packet) on which this is 
-applied, so that would ultimately mean:
-
-type=NETFILTER_PKT msg=audit(1305852240.082:31012): action=0 hook=3 
-len=52 inif=? outif=eth0 saddr=10.1.1.7 daddr=10.1.2.1 ipid=16312 
-proto=6 sport=56150 dport=22 obj=system_u:object_r:sshd_packet_t:s0
-
-I also need to check as I think the order is also important, otherwise 
-ausearch/aureport may skip this due to "misconfiguration".
