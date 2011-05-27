@@ -1,46 +1,65 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH 1/1] IPVS : bug in ip_vs_ftp, same list heaad used in all
- netns.
-Date: Fri, 27 May 2011 15:04:10 +0900
-Message-ID: <20110527060409.GB24641@verge.net.au>
-References: <1306239065-17271-1-git-send-email-hans.schillstrom@ericsson.com>
- <4DDE8B3E.30009@netfilter.org>
- <20110526233744.GD2815@verge.net.au>
- <201105270724.24129.hans.schillstrom@ericsson.com>
+From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: Re: [ANNOUNCE]: Release of iptables-1.4.11
+Date: Fri, 27 May 2011 09:40:40 +0200
+Message-ID: <BANLkTimJMQ8Gc4Jj3eZC50hLp-=zXQgekg@mail.gmail.com>
+References: <4DDE857E.40807@trash.net>
+	<1306434537.2543.4.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, "ja@ssi.bg" <ja@ssi.bg>,
-	"wensong@linux-vs.org" <wensong@linux-vs.org>,
-	"lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"hans@schillstrom.com" <hans@schillstrom.com>,
-	David Miller <davem@davemloft.net>
-To: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201105270724.24129.hans.schillstrom@ericsson.com>
-Sender: lvs-devel-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>, NetDev <netdev@vger.kernel.org>,
+	netfilter-announce@lists.netfilter.org,
+	"netfilter@vger.kernel.org" <netfilter@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1306434537.2543.4.camel@edumazet-laptop>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, May 27, 2011 at 07:24:22AM +0200, Hans Schillstrom wrote:
-> On Friday 27 May 2011 01:37:45 Simon Horman wrote:
-> > On Thu, May 26, 2011 at 07:17:50PM +0200, Pablo Neira Ayuso wrote:
-> > > On 24/05/11 14:11, Hans Schillstrom wrote:
-> > > > When ip_vs was adapted to netns the ftp application was not adapted
-> > > > in a correct way.
-> > > > However this is a fix to avoid kernel errors. In the long term another solution
-> > > > might be chosen.  I.e the ports that the ftp appl, uses should be per netns.
-> > > 
-> > > applied, thanks.
-> > 
-> > Thanks Pablo.
-> > 
-> > Hans, is this appropriate for -stable (i.e. 2.6.39.x) ?
-> 
-> Yes it is.
+you could try with -M '' (or something like that) if you want to
+prevent even xtables from being loaded.
+Although that will probably still not prevent iptable_filter from
+being loaded if ip_tables is already loaded...
 
-Thanks.
-
-Dave, can you handle that once this change makes
-it into your tree?
+On Thu, May 26, 2011 at 20:28, Eric Dumazet <eric.dumazet@gmail.com> wr=
+ote:
+> Le jeudi 26 mai 2011 =C3=A0 18:53 +0200, Patrick McHardy a =C3=A9crit=
+ :
+>> The netfilter coreteam presents:
+>>
+>> =C2=A0 =C2=A0 iptables version 1.4.10
+>>
+>> the iptables release for the 2.6.39 kernels. Due to some mistakes
+>> on my side we didn't have a release for longer than expected, so
+>> this contains a rather large number of changes.
+>>
+>> Changes include:
+>>
+>
+> ...
+>> - a new iptables option "-C" to check for existance of a rules
+>
+> Nice, but this still loads modules...
+>
+> # lsmod | grep ipta
+> # ./iptables -C INPUT -p tcp
+> iptables: Bad rule (does a matching rule exist in that chain?).
+> # lsmod | grep ipta
+> iptable_filter =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A01730 =C2=A00
+> ip_tables =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A015958 =C2=A0=
+1 iptable_filter
+> x_tables =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 22998 =C2=A0=
+3 iptable_filter,ip_tables,xt_tcpudp
+>
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
+evel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+>
