@@ -1,47 +1,47 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [ANNOUNCE]: Release of iptables-1.4.11
-Date: Fri, 27 May 2011 10:32:19 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1105271025100.2853@frira.zrqbmnf.qr>
-References: <4DDE857E.40807@trash.net> <4DDE8814.7090201@trash.net> <20110526200020.GA5988@lutz.bln.innominate.local> <alpine.LNX.2.01.1105262210150.30203@frira.zrqbmnf.qr> <20110527075811.GA3103@lutz.bln.innominate.local>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/1] IPVS : bug in ip_vs_ftp, same list heaad used in
+ all netns.
+Date: Fri, 27 May 2011 11:33:25 +0200
+Message-ID: <4DDF6FE5.507@netfilter.org>
+References: <1306239065-17271-1-git-send-email-hans.schillstrom@ericsson.com> <4DDE8B3E.30009@netfilter.org> <20110526233744.GD2815@verge.net.au> <201105270724.24129.hans.schillstrom@ericsson.com> <20110527060409.GB24641@verge.net.au>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Lutz Jaenicke <ljaenicke@innominate.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:60506 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751525Ab1E0IcV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 May 2011 04:32:21 -0400
-In-Reply-To: <20110527075811.GA3103@lutz.bln.innominate.local>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	"ja@ssi.bg" <ja@ssi.bg>,
+	"wensong@linux-vs.org" <wensong@linux-vs.org>,
+	"lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"hans@schillstrom.com" <hans@schillstrom.com>,
+	David Miller <davem@davemloft.net>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <20110527060409.GB24641@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Friday 2011-05-27 09:58, Lutz Jaenicke wrote:
+On 27/05/11 08:04, Simon Horman wrote:
+> On Fri, May 27, 2011 at 07:24:22AM +0200, Hans Schillstrom wrote:
+>> On Friday 27 May 2011 01:37:45 Simon Horman wrote:
+>>> On Thu, May 26, 2011 at 07:17:50PM +0200, Pablo Neira Ayuso wrote:
+>>>> On 24/05/11 14:11, Hans Schillstrom wrote:
+>>>>> When ip_vs was adapted to netns the ftp application was not adapted
+>>>>> in a correct way.
+>>>>> However this is a fix to avoid kernel errors. In the long term another solution
+>>>>> might be chosen.  I.e the ports that the ftp appl, uses should be per netns.
+>>>>
+>>>> applied, thanks.
+>>>
+>>> Thanks Pablo.
+>>>
+>>> Hans, is this appropriate for -stable (i.e. 2.6.39.x) ?
+>>
+>> Yes it is.
+> 
+> Thanks.
+> 
+> Dave, can you handle that once this change makes
+> it into your tree?
 
->> >> That's supposed to read 1.4.11 of course :)
->> >
->> >Hmm. For reasons I do not (yet?) understand I do not get the
->> >tag with "git pull" and configure.ac stays at 1.4.10 in
->> >"master".
->> >
->> >What am I doing wrong?
->> 
->> That there is no tag, or even commit a potential tag could refer to.
->> Someone must have forgotten push.
->
->Maybe. If I perform a "git clone" the tag is in the packed refs.
->The tag itself (also see gitweb) includes the modification of config.ac
->to reflect the bumped version number...
-
-`git remote update` only requests the branch heads, and since the 
-v1.4.11 tag is not reachable through any branch (again - ugh), it does 
-not get downloaded.
-
-`git fetch origin --tags` retrieves it, but of course that does not fix 
-the underlying problem that a tag should be reachable[*] through a head.
-
-
-[*] Since ancient versions are out of focus, no heads are 
-usually provided for these (e.g. v1.4.9.1); the fact that v1.4.9 is 
-reachable is merely a sideeffect.
+http://permalink.gmane.org/gmane.linux.kernel.wireless.general/70374
