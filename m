@@ -1,109 +1,88 @@
-From: pablo@netfilter.org
-Subject: [PATCH 5/5] IPVS: bug in ip_vs_ftp, same list heaad used in all netns.
-Date: Fri, 27 May 2011 13:44:57 +0200
-Message-ID: <1306496697-12196-6-git-send-email-pablo@netfilter.org>
-References: <1306496697-12196-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57241 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753079Ab1E0Lpe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 May 2011 07:45:34 -0400
-In-Reply-To: <1306496697-12196-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [ANNOUNCE]: Release of iptables-1.4.11
+Date: Fri, 27 May 2011 13:55:22 +0200
+Message-ID: <4DDF912A.5070003@netfilter.org>
+References: <4DDE857E.40807@trash.net> <4DDE8814.7090201@trash.net> <201105270952.44811.a.miskiewicz@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: shemminger@osdl.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>, NetDev <netdev@vger.kernel.org>
+To: Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <201105270952.44811.a.miskiewicz@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Hans Schillstrom <hans.schillstrom@ericsson.com>
+On 27/05/11 09:52, Arkadiusz Miskiewicz wrote:
+> On Thursday 26 of May 2011, Patrick McHardy wrote:
+>> Am 26.05.2011 18:53, schrieb Patrick McHardy:
+>>> The netfilter coreteam presents:
+>>>     iptables version 1.4.10
+>>
+>> That's supposed to read 1.4.11 of course :)
+>=20
+> Too bad it breaks iproute2 build, hope to see fixed iproute2 release =
+then
+>=20
+> gcc -D_GNU_SOURCE -O2 -Wstrict-prototypes -Wall -I../include -
+> DRESOLVE_HOSTNAMES -DLIBDIR=3D\"/usr/lib/\" -DCONFIG_GACT -DCONFIG_GA=
+CT_PROB -
+> DIPT_LIB_DIR=3D\"/usr/lib64/xtables\" -Wl,-export-dynamic -shared -fp=
+ic -o=20
+> q_atm.so q_atm.c -latm
+> gcc -D_GNU_SOURCE -O2 -Wstrict-prototypes -Wall -I../include -
+> DRESOLVE_HOSTNAMES -DLIBDIR=3D\"/usr/lib/\" -DCONFIG_GACT -DCONFIG_GA=
+CT_PROB -
+> DIPT_LIB_DIR=3D\"/usr/lib64/xtables\" -Wl,-export-dynamic -shared -fp=
+ic -o=20
+> m_xt.so m_xt.c -lxtables
+> m_xt.c: In function =E2=80=98parse_ipt=E2=80=99:
+> m_xt.c:167:31: warning: passing argument 2 of =E2=80=98xtables_merge_=
+options=E2=80=99 discards=20
+> =E2=80=98const=E2=80=99 qualifier from pointer target type [enabled b=
+y default]
+> /usr/include/xtables.h:395:23: note: expected =E2=80=98struct option =
+*=E2=80=99 but argument=20
+> is of type =E2=80=98const struct option *=E2=80=99
+> m_xt.c:167:31: warning: passing argument 3 of =E2=80=98xtables_merge_=
+options=E2=80=99 from=20
+> incompatible pointer type [enabled by default]
+> /usr/include/xtables.h:395:23: note: expected =E2=80=98const struct o=
+ption *=E2=80=99 but=20
+> argument is of type =E2=80=98unsigned int *=E2=80=99
+> m_xt.c:167:31: error: too few arguments to function =E2=80=98xtables_=
+merge_options=E2=80=99
+> /usr/include/xtables.h:395:23: note: declared here
+> m_xt.c:127:6: warning: variable =E2=80=98res=E2=80=99 set but not use=
+d [-Wunused-but-set-
+> variable]
+> m_xt.c: In function =E2=80=98print_ipt=E2=80=99:
+> m_xt.c:312:30: warning: passing argument 2 of =E2=80=98xtables_merge_=
+options=E2=80=99 discards=20
+> =E2=80=98const=E2=80=99 qualifier from pointer target type [enabled b=
+y default]
+> /usr/include/xtables.h:395:23: note: expected =E2=80=98struct option =
+*=E2=80=99 but argument=20
+> is of type =E2=80=98const struct option *=E2=80=99
+> m_xt.c:312:30: warning: passing argument 3 of =E2=80=98xtables_merge_=
+options=E2=80=99 from=20
+> incompatible pointer type [enabled by default]
+> /usr/include/xtables.h:395:23: note: expected =E2=80=98const struct o=
+ption *=E2=80=99 but=20
+> argument is of type =E2=80=98unsigned int *=E2=80=99
+> m_xt.c:312:30: error: too few arguments to function =E2=80=98xtables_=
+merge_options=E2=80=99
+> /usr/include/xtables.h:395:23: note: declared here
+> make[1]: *** [m_xt.so] B=C5=82=C4=85d 1
+> rm emp_ematch.lex.c emp_ematch.yacc.c
 
-When ip_vs was adapted to netns the ftp application was not adapted
-in a correct way.
-However this is a fix to avoid kernel errors. In the long term another solution
-might be chosen.  I.e the ports that the ftp appl, uses should be per netns.
+Backward compatibility was broken in the following iptables commit:
 
-Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/ip_vs.h            |    3 ++-
- net/netfilter/ipvs/ip_vs_ftp.c |   27 +++++++++++++++++++--------
- 2 files changed, 21 insertions(+), 9 deletions(-)
-
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 4fff432..481f856 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -797,7 +797,8 @@ struct netns_ipvs {
- 	struct list_head	rs_table[IP_VS_RTAB_SIZE];
- 	/* ip_vs_app */
- 	struct list_head	app_list;
--
-+	/* ip_vs_ftp */
-+	struct ip_vs_app	*ftp_app;
- 	/* ip_vs_proto */
- 	#define IP_VS_PROTO_TAB_SIZE	32	/* must be power of 2 */
- 	struct ip_vs_proto_data *proto_data_table[IP_VS_PROTO_TAB_SIZE];
-diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-index 6b5dd6d..af63553 100644
---- a/net/netfilter/ipvs/ip_vs_ftp.c
-+++ b/net/netfilter/ipvs/ip_vs_ftp.c
-@@ -411,25 +411,35 @@ static struct ip_vs_app ip_vs_ftp = {
- static int __net_init __ip_vs_ftp_init(struct net *net)
- {
- 	int i, ret;
--	struct ip_vs_app *app = &ip_vs_ftp;
-+	struct ip_vs_app *app;
-+	struct netns_ipvs *ipvs = net_ipvs(net);
-+
-+	app = kmemdup(&ip_vs_ftp, sizeof(struct ip_vs_app), GFP_KERNEL);
-+	if (!app)
-+		return -ENOMEM;
-+	INIT_LIST_HEAD(&app->a_list);
-+	INIT_LIST_HEAD(&app->incs_list);
-+	ipvs->ftp_app = app;
- 
- 	ret = register_ip_vs_app(net, app);
- 	if (ret)
--		return ret;
-+		goto err_exit;
- 
- 	for (i=0; i<IP_VS_APP_MAX_PORTS; i++) {
- 		if (!ports[i])
- 			continue;
- 		ret = register_ip_vs_app_inc(net, app, app->protocol, ports[i]);
- 		if (ret)
--			break;
-+			goto err_unreg;
- 		pr_info("%s: loaded support on port[%d] = %d\n",
- 			app->name, i, ports[i]);
- 	}
-+	return 0;
- 
--	if (ret)
--		unregister_ip_vs_app(net, app);
--
-+err_unreg:
-+	unregister_ip_vs_app(net, app);
-+err_exit:
-+	kfree(ipvs->ftp_app);
- 	return ret;
- }
- /*
-@@ -437,9 +447,10 @@ static int __net_init __ip_vs_ftp_init(struct net *net)
-  */
- static void __ip_vs_ftp_exit(struct net *net)
- {
--	struct ip_vs_app *app = &ip_vs_ftp;
-+	struct netns_ipvs *ipvs = net_ipvs(net);
- 
--	unregister_ip_vs_app(net, app);
-+	unregister_ip_vs_app(net, ipvs->ftp_app);
-+	kfree(ipvs->ftp_app);
- }
- 
- static struct pernet_operations ip_vs_ftp_ops = {
--- 
-1.7.2.5
-
+=46rom 600f38db82548a683775fd89b6e136673e924097 Mon Sep 17 00:00:00 200=
+1
+=46rom: Jan Engelhardt <jengelh@medozas.de>
+Date: Fri, 29 Oct 2010 18:57:42 +0200
+Subject: [PATCH] libxtables: change option precedence order to be intui=
+tive
