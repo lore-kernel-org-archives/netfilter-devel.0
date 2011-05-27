@@ -1,40 +1,41 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH] netfilter: nf_conntrack: remove one synchronize_net()
-Date: Fri, 27 May 2011 17:15:13 +0200
-Message-ID: <1306509313.3445.5.camel@edumazet-laptop>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/5] Netfilter updates for net-2.6
+Date: Fri, 27 May 2011 13:06:08 -0400 (EDT)
+Message-ID: <20110527.130608.337010134024602314.davem@davemloft.net>
+References: <1306496697-12196-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:61647 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750922Ab1E0PPV (ORCPT
+Received: from shards.monkeyblade.net ([198.137.202.13]:51220 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750922Ab1E0RHR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 May 2011 11:15:21 -0400
+	Fri, 27 May 2011 13:07:17 -0400
+In-Reply-To: <1306496697-12196-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-No point to wait a rcu grace period before the unregisters.
+From: pablo@netfilter.org
+Date: Fri, 27 May 2011 13:44:52 +0200
 
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
----
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    1 -
- 1 file changed, 1 deletion(-)
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> Hi David,
+> 
+> the following patches contain Netfilter updates for net-2.6.
+> The highlights are:
+> 
+> - Fix several warning for ebtables by yourself.
+> 
+> - Fix one bug in IPVS FTP helper from Hans Schillstrom.
+> 
+> - Three fixes for the new ipset subsystem from Jozsef.
+> 
+> Please pull from:
+> 
+> git://1984.lsi.us.es/net-2.6 pablo/nf-2.6-updates
 
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 5a03c02..b09bfeb 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -435,7 +435,6 @@ static int __init nf_conntrack_l3proto_ipv4_init(void)
- 
- static void __exit nf_conntrack_l3proto_ipv4_fini(void)
- {
--	synchronize_net();
- #if defined(CONFIG_PROC_FS) && defined(CONFIG_NF_CONNTRACK_PROC_COMPAT)
- 	nf_conntrack_ipv4_compat_fini();
- #endif
-
-
+Pulled, thanks Pablo!
