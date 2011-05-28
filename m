@@ -1,41 +1,75 @@
-From: "Roth, Andrew" <andrew.roth@etrade.com>
-Subject: Problems Compiling netfilter_queue on Fedora 14
-Date: Fri, 27 May 2011 18:29:11 +0000
-Message-ID: <B7A0862DFA14654BB90599BAA9BC479329370C52@atl1ex10mbx2.corp.etradegrp.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1w27m3.etrade.com ([198.93.34.160]:58004 "EHLO
-	mx1w27m3.etrade.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751277Ab1E0TCz convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 May 2011 15:02:55 -0400
-Received: from atl1ex10ht2.corp.etradegrp.com (lbint6p27m3.etrade.com [10.53.27.144])
-	by mx1w27m3.etrade.com (8.13.8/8.13.8) with ESMTP id p4RITCU3027894
-	for <netfilter-devel@vger.kernel.org>; Fri, 27 May 2011 11:29:12 -0700
-Content-Language: en-US
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Joe Perches <joe@perches.com>
+Subject: [TRIVIAL PATCH next 15/15] net: Convert vmalloc/memset to vzalloc
+Date: Sat, 28 May 2011 10:36:35 -0700
+Message-ID: <045996b9688bfaa2efbd8999405a67e23cd0a075.1306603968.git.joe@perches.com>
+References: <cover.1306603968.git.joe@perches.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, rds-devel@oss.oracle.com
+To: Patrick McHardy <kaber@trash.net>,
+	Andy Grover <andy.grover@oracle.com>,
+	Jiri Kosina <trivial@kernel.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <cover.1306603968.git.joe@perches.com>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ net/netfilter/x_tables.c |    5 ++---
+ net/rds/ib_cm.c          |    6 ++----
+ 2 files changed, 4 insertions(+), 7 deletions(-)
 
-I am having a problem with the nfqnl_test.c program.  I have installed the needed packages to build the program and it builds with no errors.  When I run the program, it returns an error.  Can someone explain what this error is?
-
-Program Output:
-# ./nfqnl_test 
-opening library handle
-unbinding existing nf_queue handler for AF_INET (if any)
-error during nfq_unbind_pf()
-
-The source code for nfqnl_test.c can be found here:
-http://www.netfilter.org/projects/libnetfilter_queue/doxygen/nfqnl__test_8c_source.html
-
-Thanks,
-
-~Andrew Roth
-
-
-
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index b0869fe..71441b9 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -776,12 +776,11 @@ static int xt_jumpstack_alloc(struct xt_table_info *i)
+ 
+ 	size = sizeof(void **) * nr_cpu_ids;
+ 	if (size > PAGE_SIZE)
+-		i->jumpstack = vmalloc(size);
++		i->jumpstack = vzalloc(size);
+ 	else
+-		i->jumpstack = kmalloc(size, GFP_KERNEL);
++		i->jumpstack = kzalloc(size, GFP_KERNEL);
+ 	if (i->jumpstack == NULL)
+ 		return -ENOMEM;
+-	memset(i->jumpstack, 0, size);
+ 
+ 	i->stacksize *= xt_jumpstack_multiplier;
+ 	size = sizeof(void *) * i->stacksize;
+diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+index fd453dd..6ecaf78 100644
+--- a/net/rds/ib_cm.c
++++ b/net/rds/ib_cm.c
+@@ -374,23 +374,21 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
+ 		goto out;
+ 	}
+ 
+-	ic->i_sends = vmalloc_node(ic->i_send_ring.w_nr * sizeof(struct rds_ib_send_work),
++	ic->i_sends = vzalloc_node(ic->i_send_ring.w_nr * sizeof(struct rds_ib_send_work),
+ 				   ibdev_to_node(dev));
+ 	if (!ic->i_sends) {
+ 		ret = -ENOMEM;
+ 		rdsdebug("send allocation failed\n");
+ 		goto out;
+ 	}
+-	memset(ic->i_sends, 0, ic->i_send_ring.w_nr * sizeof(struct rds_ib_send_work));
+ 
+-	ic->i_recvs = vmalloc_node(ic->i_recv_ring.w_nr * sizeof(struct rds_ib_recv_work),
++	ic->i_recvs = vzalloc_node(ic->i_recv_ring.w_nr * sizeof(struct rds_ib_recv_work),
+ 				   ibdev_to_node(dev));
+ 	if (!ic->i_recvs) {
+ 		ret = -ENOMEM;
+ 		rdsdebug("recv allocation failed\n");
+ 		goto out;
+ 	}
+-	memset(ic->i_recvs, 0, ic->i_recv_ring.w_nr * sizeof(struct rds_ib_recv_work));
+ 
+ 	rds_ib_recv_init_ack(ic);
+ 
+-- 
+1.7.5.rc3.dirty
 
