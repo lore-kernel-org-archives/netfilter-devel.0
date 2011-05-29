@@ -1,55 +1,93 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH 1/1] IPVS : bug in ip_vs_ftp, same list heaad used in all
- netns.
-Date: Sun, 29 May 2011 11:10:20 +0900
-Message-ID: <20110529021018.GL32395@verge.net.au>
-References: <1306239065-17271-1-git-send-email-hans.schillstrom@ericsson.com>
- <4DDE8B3E.30009@netfilter.org>
- <20110526233744.GD2815@verge.net.au>
- <201105270724.24129.hans.schillstrom@ericsson.com>
- <20110527060409.GB24641@verge.net.au>
- <4DDF6FE5.507@netfilter.org>
+From: Tom Eastep <teastep@shorewall.net>
+Subject: Possible iptables 4.4.11 issues
+Date: Sun, 29 May 2011 07:33:34 -0700
+Message-ID: <4DE2593E.7000208@shorewall.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	"ja@ssi.bg" <ja@ssi.bg>,
-	"wensong@linux-vs.org" <wensong@linux-vs.org>,
-	"lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"hans@schillstrom.com" <hans@schillstrom.com>,
-	David Miller <davem@davemloft.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4DDF6FE5.507@netfilter.org>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig5C78079159D4ECB9AAF0790D"
+Cc: Steven Jan Springl <steven@springl.ukfsn.org>
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from lists.shorewall.net ([70.90.191.124]:49948 "EHLO
+	lists.shorewall.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752195Ab1E2Okh (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 29 May 2011 10:40:37 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, May 27, 2011 at 11:33:25AM +0200, Pablo Neira Ayuso wrote:
-> On 27/05/11 08:04, Simon Horman wrote:
-> > On Fri, May 27, 2011 at 07:24:22AM +0200, Hans Schillstrom wrote:
-> >> On Friday 27 May 2011 01:37:45 Simon Horman wrote:
-> >>> On Thu, May 26, 2011 at 07:17:50PM +0200, Pablo Neira Ayuso wrote:
-> >>>> On 24/05/11 14:11, Hans Schillstrom wrote:
-> >>>>> When ip_vs was adapted to netns the ftp application was not adapted
-> >>>>> in a correct way.
-> >>>>> However this is a fix to avoid kernel errors. In the long term another solution
-> >>>>> might be chosen.  I.e the ports that the ftp appl, uses should be per netns.
-> >>>>
-> >>>> applied, thanks.
-> >>>
-> >>> Thanks Pablo.
-> >>>
-> >>> Hans, is this appropriate for -stable (i.e. 2.6.39.x) ?
-> >>
-> >> Yes it is.
-> > 
-> > Thanks.
-> > 
-> > Dave, can you handle that once this change makes
-> > it into your tree?
-> 
-> http://permalink.gmane.org/gmane.linux.kernel.wireless.general/70374
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig5C78079159D4ECB9AAF0790D
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Thanks, I missed that.
+One of the Shorewall Beta testers just installed iptables 1.4.11 and is
+seeing a couple of anomalies. Before I run off and change Shorewall, I
+would like to confirm that these are intentional changes in iptables
+behavior and not bugs:
+
+-------- Original Message --------
+Subject: Re: [Shorewall-devel] Shorewall 4.4.20 Beta 5
+Date: Sun, 29 May 2011 15:01:09 +0100
+From: Steven Jan Springl <steven@springl.ukfsn.org>
+Reply-To: shorewall-devel@lists.sourceforge.net
+To: shorewall-devel@lists.sourceforge.net
+
+Using kernel 2.6.39, iptables 1.4.10 and xtables-addons 1.35
+
+The following rules file entry:
+
+ACCEPT  $FW  lan  tcp  22  -  -  -  !root:root
+
+produces the following iptables rule:
+
+-A fw2lan -p 6 --dport 22 -m owner ! --uid-owner root ! --gid-owner root =
+-j
+ACCEPT
+
+Which works.
+
+After upgrading iptables to 1.4.11 the following iptables-restore error
+is produced:
+
+iptables-restore v1.4.11: owner: option "--uid-owner" cannot be inverted.=
+
+
+
+The following tcrules file entry:
+
+IPMARK(dst,-1,-64)  $FW  eth1  tcp  888
+
+produces the following iptables rule:
+
+-A OUTPUT -p 6 --dport 888 -o eth1 -j IPMARK --addr
+dst --and-mask -1 --or-mask -64 --shift 0
+
+Which works.
+After upgrading to iptables 1.4.11 the following iptables-restore error i=
+s
+produced:
+
+iptables-restore v1.4.11: IPMARK: Bad value for "and-mask" option: "-1"
+
+---------------------------------
+Thanks,
+-Tom
+
+
+--------------enig5C78079159D4ECB9AAF0790D
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (Darwin)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iEYEARECAAYFAk3iWUMACgkQO/MAbZfjDLIfnwCfbzbR7QePIdF6t6T6ARsXQXKJ
+DUcAoJgYc/2ZUBxuoPFkq8EpThpFWi33
+=hAIj
+-----END PGP SIGNATURE-----
+
+--------------enig5C78079159D4ECB9AAF0790D--
