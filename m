@@ -1,79 +1,55 @@
-From: Joe Perches <joe@perches.com>
-Subject: [TRIVIAL PATCH next 00/15] treewide: Convert vmalloc/memset to vzalloc
-Date: Sat, 28 May 2011 10:36:20 -0700
-Message-ID: <cover.1306603968.git.joe__23433.0680025325$1306604468$gmane$org@perches.com>
-Cc: linux-s390@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	xfs@oss.sgi.com
-To: linux-atm-general@lists.sourceforge.net, netdev@vger.kernel.org,
-	drbd-user@lists.linbit.com, dm-devel@redhat.com,
-	linux-raid@vger.kernel.org, linux-mtd@lists.infradead.org,
-	linux-scsi
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.perches.com ([173.55.12.10]:2185 "EHLO mail.perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751971Ab1E1Rgz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 28 May 2011 13:36:55 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH 1/1] IPVS : bug in ip_vs_ftp, same list heaad used in all
+ netns.
+Date: Sun, 29 May 2011 11:10:20 +0900
+Message-ID: <20110529021018.GL32395@verge.net.au>
+References: <1306239065-17271-1-git-send-email-hans.schillstrom@ericsson.com>
+ <4DDE8B3E.30009@netfilter.org>
+ <20110526233744.GD2815@verge.net.au>
+ <201105270724.24129.hans.schillstrom@ericsson.com>
+ <20110527060409.GB24641@verge.net.au>
+ <4DDF6FE5.507@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	"ja@ssi.bg" <ja@ssi.bg>,
+	"wensong@linux-vs.org" <wensong@linux-vs.org>,
+	"lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"hans@schillstrom.com" <hans@schillstrom.com>,
+	David Miller <davem@davemloft.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4DDF6FE5.507@netfilter.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Resubmittal of patches from November 2010 and a few new ones.
+On Fri, May 27, 2011 at 11:33:25AM +0200, Pablo Neira Ayuso wrote:
+> On 27/05/11 08:04, Simon Horman wrote:
+> > On Fri, May 27, 2011 at 07:24:22AM +0200, Hans Schillstrom wrote:
+> >> On Friday 27 May 2011 01:37:45 Simon Horman wrote:
+> >>> On Thu, May 26, 2011 at 07:17:50PM +0200, Pablo Neira Ayuso wrote:
+> >>>> On 24/05/11 14:11, Hans Schillstrom wrote:
+> >>>>> When ip_vs was adapted to netns the ftp application was not adapted
+> >>>>> in a correct way.
+> >>>>> However this is a fix to avoid kernel errors. In the long term another solution
+> >>>>> might be chosen.  I.e the ports that the ftp appl, uses should be per netns.
+> >>>>
+> >>>> applied, thanks.
+> >>>
+> >>> Thanks Pablo.
+> >>>
+> >>> Hans, is this appropriate for -stable (i.e. 2.6.39.x) ?
+> >>
+> >> Yes it is.
+> > 
+> > Thanks.
+> > 
+> > Dave, can you handle that once this change makes
+> > it into your tree?
+> 
+> http://permalink.gmane.org/gmane.linux.kernel.wireless.general/70374
 
-Joe Perches (15):
-  s390: Convert vmalloc/memset to vzalloc
-  x86: Convert vmalloc/memset to vzalloc
-  atm: Convert vmalloc/memset to vzalloc
-  drbd: Convert vmalloc/memset to vzalloc
-  char: Convert vmalloc/memset to vzalloc
-  isdn: Convert vmalloc/memset to vzalloc
-  md: Convert vmalloc/memset to vzalloc
-  media: Convert vmalloc/memset to vzalloc
-  mtd: Convert vmalloc/memset to vzalloc
-  scsi: Convert vmalloc/memset to vzalloc
-  staging: Convert vmalloc/memset to vzalloc
-  video: Convert vmalloc/memset to vzalloc
-  fs: Convert vmalloc/memset to vzalloc
-  mm: Convert vmalloc/memset to vzalloc
-  net: Convert vmalloc/memset to vzalloc
-
- arch/s390/hypfs/hypfs_diag.c           |    3 +--
- arch/x86/mm/pageattr-test.c            |    3 +--
- drivers/atm/idt77252.c                 |   11 ++++++-----
- drivers/atm/lanai.c                    |    3 +--
- drivers/block/drbd/drbd_bitmap.c       |    5 ++---
- drivers/char/agp/backend.c             |    3 +--
- drivers/char/raw.c                     |    3 +--
- drivers/isdn/i4l/isdn_common.c         |    4 ++--
- drivers/isdn/mISDN/dsp_core.c          |    3 +--
- drivers/isdn/mISDN/l1oip_codec.c       |    6 ++----
- drivers/md/dm-log.c                    |    3 +--
- drivers/md/dm-snap-persistent.c        |    3 +--
- drivers/md/dm-table.c                  |    4 +---
- drivers/media/video/videobuf2-dma-sg.c |    8 ++------
- drivers/mtd/mtdswap.c                  |    3 +--
- drivers/s390/cio/blacklist.c           |    3 +--
- drivers/scsi/bfa/bfad.c                |    3 +--
- drivers/scsi/bfa/bfad_debugfs.c        |    8 ++------
- drivers/scsi/cxgbi/libcxgbi.h          |    6 ++----
- drivers/scsi/qla2xxx/qla_attr.c        |    6 ++----
- drivers/scsi/qla2xxx/qla_bsg.c         |    3 +--
- drivers/scsi/scsi_debug.c              |    7 ++-----
- drivers/staging/rts_pstor/ms.c         |    3 +--
- drivers/staging/rts_pstor/rtsx_chip.c  |    6 ++----
- drivers/video/arcfb.c                  |    5 ++---
- drivers/video/broadsheetfb.c           |    4 +---
- drivers/video/hecubafb.c               |    5 ++---
- drivers/video/metronomefb.c            |    4 +---
- drivers/video/xen-fbfront.c            |    3 +--
- fs/coda/coda_linux.h                   |    5 ++---
- fs/reiserfs/journal.c                  |    9 +++------
- fs/reiserfs/resize.c                   |    4 +---
- fs/xfs/linux-2.6/kmem.h                |    7 +------
- mm/page_cgroup.c                       |    3 +--
- net/netfilter/x_tables.c               |    5 ++---
- net/rds/ib_cm.c                        |    6 ++----
- 36 files changed, 57 insertions(+), 113 deletions(-)
-
--- 
-1.7.5.rc3.dirty
-
+Thanks, I missed that.
