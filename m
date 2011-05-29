@@ -1,82 +1,66 @@
 From: Tom Eastep <teastep@shorewall.net>
-Subject: Possible iptables 4.4.11 issues
-Date: Sun, 29 May 2011 07:33:34 -0700
-Message-ID: <4DE2593E.7000208@shorewall.net>
+Subject: Re: Possible iptables 4.4.11 issues
+Date: Sun, 29 May 2011 07:43:52 -0700
+Message-ID: <4DE25BA8.3070709@shorewall.net>
+References: <4DE2593E.7000208@shorewall.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
  protocol="application/pgp-signature";
- boundary="------------enig5C78079159D4ECB9AAF0790D"
+ boundary="------------enigEE0962F256413A55066756C1"
 Cc: Steven Jan Springl <steven@springl.ukfsn.org>
 To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lists.shorewall.net ([70.90.191.124]:49948 "EHLO
+Received: from lists.shorewall.net ([70.90.191.124]:56946 "EHLO
 	lists.shorewall.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752195Ab1E2Okh (ORCPT
+	with ESMTP id S1753572Ab1E2Onx (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 29 May 2011 10:40:37 -0400
+	Sun, 29 May 2011 10:43:53 -0400
+In-Reply-To: <4DE2593E.7000208@shorewall.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig5C78079159D4ECB9AAF0790D
+--------------enigEE0962F256413A55066756C1
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-One of the Shorewall Beta testers just installed iptables 1.4.11 and is
-seeing a couple of anomalies. Before I run off and change Shorewall, I
-would like to confirm that these are intentional changes in iptables
-behavior and not bugs:
+On 5/29/11 7:33 AM, Tom Eastep wrote:
+> One of the Shorewall Beta testers just installed iptables 1.4.11 and is=
 
--------- Original Message --------
-Subject: Re: [Shorewall-devel] Shorewall 4.4.20 Beta 5
-Date: Sun, 29 May 2011 15:01:09 +0100
-From: Steven Jan Springl <steven@springl.ukfsn.org>
-Reply-To: shorewall-devel@lists.sourceforge.net
-To: shorewall-devel@lists.sourceforge.net
+> seeing a couple of anomalies. Before I run off and change Shorewall, I
+> would like to confirm that these are intentional changes in iptables
+> behavior and not bugs:
 
-Using kernel 2.6.39, iptables 1.4.10 and xtables-addons 1.35
+=2E..
 
-The following rules file entry:
-
-ACCEPT  $FW  lan  tcp  22  -  -  -  !root:root
-
-produces the following iptables rule:
-
--A fw2lan -p 6 --dport 22 -m owner ! --uid-owner root ! --gid-owner root =
--j
-ACCEPT
-
-Which works.
-
-After upgrading iptables to 1.4.11 the following iptables-restore error
-is produced:
-
-iptables-restore v1.4.11: owner: option "--uid-owner" cannot be inverted.=
+>=20
+> IPMARK(dst,-1,-64)  $FW  eth1  tcp  888
+>=20
+> produces the following iptables rule:
+>=20
+> -A OUTPUT -p 6 --dport 888 -o eth1 -j IPMARK --addr
+> dst --and-mask -1 --or-mask -64 --shift 0
+>=20
+> Which works.
+> After upgrading to iptables 1.4.11 the following iptables-restore error=
+ is
+> produced:
+>=20
+> iptables-restore v1.4.11: IPMARK: Bad value for "and-mask" option: "-1"=
 
 
+I apologize for responding to my own post, but this one looks like
+inadequate edited by Shorewall. So this one is mine.
 
-The following tcrules file entry:
-
-IPMARK(dst,-1,-64)  $FW  eth1  tcp  888
-
-produces the following iptables rule:
-
--A OUTPUT -p 6 --dport 888 -o eth1 -j IPMARK --addr
-dst --and-mask -1 --or-mask -64 --shift 0
-
-Which works.
-After upgrading to iptables 1.4.11 the following iptables-restore error i=
-s
-produced:
-
-iptables-restore v1.4.11: IPMARK: Bad value for "and-mask" option: "-1"
-
----------------------------------
-Thanks,
 -Tom
+--=20
+Tom Eastep        \ When I die, I want to go like my Grandfather who
+Shoreline,         \ died peacefully in his sleep. Not screaming like
+Washington, USA     \ all of the passengers in his car
+http://shorewall.net \________________________________________________
 
 
---------------enig5C78079159D4ECB9AAF0790D
+--------------enigEE0962F256413A55066756C1
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -85,9 +69,9 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.9 (Darwin)
 Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
 
-iEYEARECAAYFAk3iWUMACgkQO/MAbZfjDLIfnwCfbzbR7QePIdF6t6T6ARsXQXKJ
-DUcAoJgYc/2ZUBxuoPFkq8EpThpFWi33
-=hAIj
+iEYEARECAAYFAk3iW6gACgkQO/MAbZfjDLIYrACgoNfEc64febTrp587E/Koz4cG
+13oAn2IvK34dHk46wWEuJZwLAKxppo5q
+=R7ur
 -----END PGP SIGNATURE-----
 
---------------enig5C78079159D4ECB9AAF0790D--
+--------------enigEE0962F256413A55066756C1--
