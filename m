@@ -1,107 +1,71 @@
-From: Jesper Juhl <jj@chaosbits.net>
-Subject: [PATCH] netfilter, ipvs: Avoid undefined order of evaluation in
- assignments to struct nf_conn *
-Date: Sun, 29 May 2011 20:22:56 +0200 (CEST)
-Message-ID: <alpine.LNX.2.00.1105292011450.4411@swampdragon.chaosbits.net>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Problem with seq adjustment for NAT over loopback device
+Date: Sun, 29 May 2011 21:36:50 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1105292126080.1429@ja.ssi.bg>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org, coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>,
-	Julian Anastasov <ja@ssi.bg>,
-	Simon Horman <horms@verge.net.au>,
-	Wensong Zhang <wensong@linux-vs.org>
-To: linux-kernel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:19335 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755759Ab1E2Saq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 29 May 2011 14:30:46 -0400
+Received: from ja.ssi.bg ([178.16.129.10]:58833 "EHLO ja.ssi.bg"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755142Ab1E2Se6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 29 May 2011 14:34:58 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-In net/netfilter/ipvs/ip_vs_nfct.c::ip_vs_update_conntrack(),
-net/netfilter/ipvs/ip_vs_xmit.c::ip_vs_nat_xmit(), 
-net/netfilter/ipvs/ip_vs_xmit.c::ip_vs_nat_xmit_v6(), 
-net/netfilter/ipvs/ip_vs_xmit.c::ip_vs_icmp_xmit)() 
-net/netfilter/ipvs/ip_vs_xmit.c::and ip_vs_icmp_xmit_v6() we do this:
-	...
-	struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
-	...
 
-Since '=' is not a sequence point the order of these assignments happening 
-is undefined. Luckily it's easy to avoid by just doing what is obviously 
-the intended thing:
-	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+	Hello,
 
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
----
- ip_vs_nfct.c |    2 +-
- ip_vs_xmit.c |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+	I see a problem that nf_nat_seq_adjust is called twice
+for same packet. I saw it while playing with IPVS NAT forwarding
+over loopback device, it happens for iptables -j DNAT too. For example:
 
- Compile tested only.
- Patch is against Linus' tree as of a few minutes ago.
+- I'm adding two addresses: 192.168.1.200 (long) and 192.168.1.2 (short)
 
-diff --git a/net/netfilter/ipvs/ip_vs_nfct.c b/net/netfilter/ipvs/ip_vs_nfct.c
-index f454c80..a3d86c2 100644
---- a/net/netfilter/ipvs/ip_vs_nfct.c
-+++ b/net/netfilter/ipvs/ip_vs_nfct.c
-@@ -82,7 +82,7 @@ void
- ip_vs_update_conntrack(struct sk_buff *skb, struct ip_vs_conn *cp, int outin)
- {
- 	enum ip_conntrack_info ctinfo;
--	struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
-+	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
- 	struct nf_conntrack_tuple new_tuple;
- 
- 	if (ct == NULL || nf_ct_is_confirmed(ct) || nf_ct_is_untracked(ct) ||
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index ee319a4..16d129e 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -544,7 +544,7 @@ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
- 		enum ip_conntrack_info ctinfo;
--		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
-+		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
- 
- 		if (ct && !nf_ct_is_untracked(ct)) {
- 			IP_VS_DBG_RL_PKT(10, AF_INET, pp, skb, 0,
-@@ -661,7 +661,7 @@ ip_vs_nat_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
- 		enum ip_conntrack_info ctinfo;
--		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
-+		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
- 
- 		if (ct && !nf_ct_is_untracked(ct)) {
- 			IP_VS_DBG_RL_PKT(10, AF_INET6, pp, skb, 0,
-@@ -1176,7 +1176,7 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
- 		enum ip_conntrack_info ctinfo;
--		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
-+		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
- 
- 		if (ct && !nf_ct_is_untracked(ct)) {
- 			IP_VS_DBG(10, "%s(): "
-@@ -1296,7 +1296,7 @@ ip_vs_icmp_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
- 		enum ip_conntrack_info ctinfo;
--		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
-+		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
- 
- 		if (ct && !nf_ct_is_untracked(ct)) {
- 			IP_VS_DBG(10, "%s(): "
+- Adding DNAT rule to redirect local clients to different local server:
 
+iptables -t nat -A OUTPUT -p TCP -d 192.168.1.200 --dport 21 \
+	-j DNAT --to-destination 192.168.1.2
 
--- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
+	Trying passive FTP causes address info in PASV response
+to be mangled in reply direction from 192.168.1.2 to 192.168.1.200
+increasing the payload with 2 bytes. Later, in original direction the
+acks are decreased with 2 but the problem is that it happens
+once in POSTROUTING and second time in LOCAL_IN, i.e. the two places
+where seq adjustment happens in ipv4_confirm. The funny effect is
+that the client receives next response with the "\r\n" (remember,
+2 bytes) from the PASV response copied before the next 150 response:
 
+RX: 227 Entering Passive Mode (...)\r\n		<<<- \r\n duplicated
+TX: LIST\r\n
+RX: \r\n150 Directory listing	<<<- extra "\r\n" at beginning
+
+	I assume the problem happens because same conntrack is
+used in original direction for the outgoing phase (OUTPUT->POSTROUTING)
+and for the incoming phase (PREROUTING->LOCAL_IN). Looking at
+nf_nat_rule_find() I see that checking with nf_nat_initialized()
+allows only one src and/or one dst manipulation. For traffic
+over loopback I assume these NAT manipulations will be scheduled
+in OUTPUT and POSTROUTING (the outgoing phase) and no NAT
+rules will be considered from the incoming phase (PREROUTING and
+LOCAL_IN). In such case NAT does not occur in the incoming
+phase and we do not need any seq adjustments and NAT manips
+in LOCAL_IN for loopback traffic.
+
+	I guess that a skb flag is needed that can be set after
+POSTROUTING, so that we should avoid any SEQ and NAT manipulations
+for the incoming phase if this flag is set. All NAT hooks
+can ignore such packets to save some CPU cycles (NF_ACCEPT in
+nf_nat_fn). By this way, even if a single manipulation is possible
+for two hooks, eg. src manip for POSTROUTING and LOCAL_IN,
+and dst manip for PREROUTING and OUTPUT we should do it only
+once for a packet.
+
+	Any ideas how to solve this problem? If such solution
+sounds good I can prepare and test some patch...
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
