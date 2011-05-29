@@ -1,41 +1,107 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH] libxt_owner: restore inversion support
-Date: Sun, 29 May 2011 17:12:15 +0200
-Message-ID: <1306681936-30866-2-git-send-email-jengelh@medozas.de>
-References: <1306681936-30866-1-git-send-email-jengelh@medozas.de>
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+From: Jesper Juhl <jj@chaosbits.net>
+Subject: [PATCH] netfilter, ipvs: Avoid undefined order of evaluation in
+ assignments to struct nf_conn *
+Date: Sun, 29 May 2011 20:22:56 +0200 (CEST)
+Message-ID: <alpine.LNX.2.00.1105292011450.4411@swampdragon.chaosbits.net>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter@vger.kernel.org, coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>,
+	Julian Anastasov <ja@ssi.bg>,
+	Simon Horman <horms@verge.net.au>,
+	Wensong Zhang <wensong@linux-vs.org>
+To: linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:52076 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753252Ab1E2PMS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 29 May 2011 11:12:18 -0400
-In-Reply-To: <1306681936-30866-1-git-send-email-jengelh@medozas.de>
+Received: from swampdragon.chaosbits.net ([90.184.90.115]:19335 "EHLO
+	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755759Ab1E2Saq (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 29 May 2011 14:30:46 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- extensions/libxt_owner.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+In net/netfilter/ipvs/ip_vs_nfct.c::ip_vs_update_conntrack(),
+net/netfilter/ipvs/ip_vs_xmit.c::ip_vs_nat_xmit(), 
+net/netfilter/ipvs/ip_vs_xmit.c::ip_vs_nat_xmit_v6(), 
+net/netfilter/ipvs/ip_vs_xmit.c::ip_vs_icmp_xmit)() 
+net/netfilter/ipvs/ip_vs_xmit.c::and ip_vs_icmp_xmit_v6() we do this:
+	...
+	struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
+	...
 
-diff --git a/extensions/libxt_owner.c b/extensions/libxt_owner.c
-index b60f907..d2fdfa9 100644
---- a/extensions/libxt_owner.c
-+++ b/extensions/libxt_owner.c
-@@ -125,8 +125,10 @@ static const struct xt_option_entry owner_mt6_opts_v0[] = {
- #undef s
+Since '=' is not a sequence point the order of these assignments happening 
+is undefined. Luckily it's easy to avoid by just doing what is obviously 
+the intended thing:
+	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+---
+ ip_vs_nfct.c |    2 +-
+ ip_vs_xmit.c |    8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+ Compile tested only.
+ Patch is against Linus' tree as of a few minutes ago.
+
+diff --git a/net/netfilter/ipvs/ip_vs_nfct.c b/net/netfilter/ipvs/ip_vs_nfct.c
+index f454c80..a3d86c2 100644
+--- a/net/netfilter/ipvs/ip_vs_nfct.c
++++ b/net/netfilter/ipvs/ip_vs_nfct.c
+@@ -82,7 +82,7 @@ void
+ ip_vs_update_conntrack(struct sk_buff *skb, struct ip_vs_conn *cp, int outin)
+ {
+ 	enum ip_conntrack_info ctinfo;
+-	struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
++	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 	struct nf_conntrack_tuple new_tuple;
  
- static const struct xt_option_entry owner_mt_opts[] = {
--	{.name = "uid-owner", .id = O_USER, .type = XTTYPE_STRING},
--	{.name = "gid-owner", .id = O_GROUP, .type = XTTYPE_STRING},
-+	{.name = "uid-owner", .id = O_USER, .type = XTTYPE_STRING,
-+	 .flags = XTOPT_INVERT},
-+	{.name = "gid-owner", .id = O_GROUP, .type = XTTYPE_STRING,
-+	 .flags = XTOPT_INVERT},
- 	{.name = "socket-exists", .id = O_SOCK_EXISTS, .type = XTTYPE_NONE},
- 	XTOPT_TABLEEND,
- };
+ 	if (ct == NULL || nf_ct_is_confirmed(ct) || nf_ct_is_untracked(ct) ||
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index ee319a4..16d129e 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -544,7 +544,7 @@ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
+ 		enum ip_conntrack_info ctinfo;
+-		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
++		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 
+ 		if (ct && !nf_ct_is_untracked(ct)) {
+ 			IP_VS_DBG_RL_PKT(10, AF_INET, pp, skb, 0,
+@@ -661,7 +661,7 @@ ip_vs_nat_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
+ 		enum ip_conntrack_info ctinfo;
+-		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
++		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 
+ 		if (ct && !nf_ct_is_untracked(ct)) {
+ 			IP_VS_DBG_RL_PKT(10, AF_INET6, pp, skb, 0,
+@@ -1176,7 +1176,7 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
+ 		enum ip_conntrack_info ctinfo;
+-		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
++		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 
+ 		if (ct && !nf_ct_is_untracked(ct)) {
+ 			IP_VS_DBG(10, "%s(): "
+@@ -1296,7 +1296,7 @@ ip_vs_icmp_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
+ 		enum ip_conntrack_info ctinfo;
+-		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
++		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 
+ 		if (ct && !nf_ct_is_untracked(ct)) {
+ 			IP_VS_DBG(10, "%s(): "
+
+
 -- 
-1.7.3.4
+Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
+Don't top-post http://www.catb.org/jargon/html/T/top-post.html
+Plain text mails only, please.
 
