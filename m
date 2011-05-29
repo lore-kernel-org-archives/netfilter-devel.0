@@ -1,71 +1,38 @@
 From: Julian Anastasov <ja@ssi.bg>
-Subject: Problem with seq adjustment for NAT over loopback device
-Date: Sun, 29 May 2011 21:36:50 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1105292126080.1429@ja.ssi.bg>
+Subject: [PATCH] netfilter: nf_nat: fix crash in nf_nat_csum
+Date: Sun, 29 May 2011 23:42:29 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1105292335220.1429@ja.ssi.bg>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:58833 "EHLO ja.ssi.bg"
+Received: from ja.ssi.bg ([178.16.129.10]:54011 "EHLO ja.ssi.bg"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755142Ab1E2Se6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 29 May 2011 14:34:58 -0400
+	id S1752153Ab1E2Uke (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 29 May 2011 16:40:34 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-	Hello,
+	Fix crash in nf_nat_csum when mangling packets
+in OUTPUT hook where skb->dev is not defined, it is set
+later before POSTROUTING. Problem happens for CHECKSUM_NONE.
+We can check device from rt but using CHECKSUM_PARTIAL
+should be safe (skb_checksum_help).
 
-	I see a problem that nf_nat_seq_adjust is called twice
-for same packet. I saw it while playing with IPVS NAT forwarding
-over loopback device, it happens for iptables -j DNAT too. For example:
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+---
 
-- I'm adding two addresses: 192.168.1.200 (long) and 192.168.1.2 (short)
-
-- Adding DNAT rule to redirect local clients to different local server:
-
-iptables -t nat -A OUTPUT -p TCP -d 192.168.1.200 --dport 21 \
-	-j DNAT --to-destination 192.168.1.2
-
-	Trying passive FTP causes address info in PASV response
-to be mangled in reply direction from 192.168.1.2 to 192.168.1.200
-increasing the payload with 2 bytes. Later, in original direction the
-acks are decreased with 2 but the problem is that it happens
-once in POSTROUTING and second time in LOCAL_IN, i.e. the two places
-where seq adjustment happens in ipv4_confirm. The funny effect is
-that the client receives next response with the "\r\n" (remember,
-2 bytes) from the PASV response copied before the next 150 response:
-
-RX: 227 Entering Passive Mode (...)\r\n		<<<- \r\n duplicated
-TX: LIST\r\n
-RX: \r\n150 Directory listing	<<<- extra "\r\n" at beginning
-
-	I assume the problem happens because same conntrack is
-used in original direction for the outgoing phase (OUTPUT->POSTROUTING)
-and for the incoming phase (PREROUTING->LOCAL_IN). Looking at
-nf_nat_rule_find() I see that checking with nf_nat_initialized()
-allows only one src and/or one dst manipulation. For traffic
-over loopback I assume these NAT manipulations will be scheduled
-in OUTPUT and POSTROUTING (the outgoing phase) and no NAT
-rules will be considered from the incoming phase (PREROUTING and
-LOCAL_IN). In such case NAT does not occur in the incoming
-phase and we do not need any seq adjustments and NAT manips
-in LOCAL_IN for loopback traffic.
-
-	I guess that a skb flag is needed that can be set after
-POSTROUTING, so that we should avoid any SEQ and NAT manipulations
-for the incoming phase if this flag is set. All NAT hooks
-can ignore such packets to save some CPU cycles (NF_ACCEPT in
-nf_nat_fn). By this way, even if a single manipulation is possible
-for two hooks, eg. src manip for POSTROUTING and LOCAL_IN,
-and dst manip for PREROUTING and OUTPUT we should do it only
-once for a packet.
-
-	Any ideas how to solve this problem? If such solution
-sounds good I can prepare and test some patch...
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+diff -urp v2.6.39/linux/net/ipv4/netfilter/nf_nat_helper.c linux/net/ipv4/netfilter/nf_nat_helper.c
+--- v2.6.39/linux/net/ipv4/netfilter/nf_nat_helper.c	2011-01-06 00:01:22.000000000 +0200
++++ linux/net/ipv4/netfilter/nf_nat_helper.c	2011-05-29 23:14:40.166245897 +0300
+@@ -160,7 +160,7 @@ static void nf_nat_csum(struct sk_buff *
+ 
+ 	if (skb->ip_summed != CHECKSUM_PARTIAL) {
+ 		if (!(rt->rt_flags & RTCF_LOCAL) &&
+-		    skb->dev->features & NETIF_F_V4_CSUM) {
++		    (!skb->dev || skb->dev->features & NETIF_F_V4_CSUM)) {
+ 			skb->ip_summed = CHECKSUM_PARTIAL;
+ 			skb->csum_start = skb_headroom(skb) +
+ 					  skb_network_offset(skb) +
