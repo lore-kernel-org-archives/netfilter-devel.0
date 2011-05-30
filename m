@@ -1,64 +1,37 @@
-From: Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
-Subject: Re: [ANNOUNCE]: Release of iptables-1.4.11
-Date: Mon, 30 May 2011 11:05:29 +0200
-Message-ID: <201105301105.30036.a.miskiewicz@gmail.com>
-References: <4DDE857E.40807@trash.net> <201105270952.44811.a.miskiewicz@gmail.com> <4DDF912A.5070003@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: NetDev <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: iptables fixes for 2011-05-30
+Date: Mon, 30 May 2011 12:18:00 +0200
+Message-ID: <1306750686-11595-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:32777 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753167Ab1E3JFf convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 May 2011 05:05:35 -0400
-In-Reply-To: <4DDF912A.5070003@netfilter.org>
+Received: from seven.medozas.de ([188.40.89.202]:49381 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751354Ab1E3KSJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 May 2011 06:18:09 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 27 of May 2011, Pablo Neira Ayuso wrote:
-> On 27/05/11 09:52, Arkadiusz Miskiewicz wrote:
 
-> > /usr/include/xtables.h:395:23: note: expected =E2=80=98const struct=
- option *=E2=80=99 but
-> > argument is of type =E2=80=98unsigned int *=E2=80=99
-> > m_xt.c:312:30: error: too few arguments to function
-> > =E2=80=98xtables_merge_options=E2=80=99 /usr/include/xtables.h:395:=
-23: note: declared
-> > here
-> > make[1]: *** [m_xt.so] B=C5=82=C4=85d 1
-> > rm emp_ematch.lex.c emp_ematch.yacc.c
->=20
-> Backward compatibility was broken in the following iptables commit:
->=20
-> From 600f38db82548a683775fd89b6e136673e924097 Mon Sep 17 00:00:00 200=
-1
-> From: Jan Engelhardt <jengelh@medozas.de>
-> Date: Fri, 29 Oct 2010 18:57:42 +0200
-> Subject: [PATCH] libxtables: change option precedence order to be int=
-uitive
+The following changes since commit 874b76221f74a00520a712ef89b5254a1ed896f8:
 
-Another bug seems to be in Makefile.am
+  libxt_owner: restore inversion support (2011-05-29 16:43:25 +0200)
 
-        for i in ${v4_bin_links}; do ${LN_S} -f "${sbindir}/iptables-mu=
-lti"=20
-"${DESTDIR}${bindir}/$$i"; done;
-        for i in ${v4_sbin_links}; do ${LN_S} -f iptables-multi=20
-"${DESTDIR}${sbindir}/$$i"; done;
-        for i in ${v6_sbin_links}; do ${LN_S} -f ip6tables-multi=20
-"${DESTDIR}${sbindir}/$$i"; done;
+are available in the git repository at:
+  git://dev.medozas.de/iptables next
 
-These will point to nowhere since now there is xtables-multi only.
+Jan Engelhardt (5):
+      build: remove dead code parts
+      build: fix installation of symlinks
+      build: fix absence of xml translator in IPv6-only builds
+      doc: update GPL license text
+      doc: iptables-xml should be in manpage section 1
 
---=20
-Arkadiusz Mi=C5=9Bkiewicz        PLD/Linux Team
-arekm / maven.pl            http://ftp.pld-linux.org/
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ COPYING                          |   42 +++++++++++++++++++-------------------
+ Makefile.am                      |   10 ++++----
+ ip6tables.c                      |    2 -
+ iptables-xml.8 => iptables-xml.1 |    0
+ iptables-xml.c                   |    3 --
+ libiptc/libiptc.c                |    7 +----
+ 6 files changed, 28 insertions(+), 36 deletions(-)
+ rename iptables-xml.8 => iptables-xml.1 (100%)
