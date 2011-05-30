@@ -1,123 +1,41 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 1/5] build: remove dead code parts
-Date: Mon, 30 May 2011 12:18:01 +0200
-Message-ID: <1306750686-11595-2-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 2/5] build: fix installation of symlinks
+Date: Mon, 30 May 2011 12:18:02 +0200
+Message-ID: <1306750686-11595-3-git-send-email-jengelh@medozas.de>
 References: <1306750686-11595-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:49382 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:49385 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751354Ab1E3KSK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 May 2011 06:18:10 -0400
+	id S1753330Ab1E3KSL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 May 2011 06:18:11 -0400
 In-Reply-To: <1306750686-11595-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-gcc-4.6 has a new warning, -Wunused-but-set-variable, which flags
-no-op code.
-
-  CC     libiptc/libip4tc.lo
-In file included from libiptc/libip4tc.c:118:0:
-libiptc/libiptc.c: In function "iptcc_chain_index_delete_chain":
-libiptc/libiptc.c:611:32: warning: variable "index_ptr2" set but not used
-libiptc/libiptc.c: In function "alloc_handle":
-libiptc/libiptc.c:1282:9: warning: variable "len" set but not used
-  CC     libiptc/libip6tc.lo
-In file included from libiptc/libip6tc.c:113:0:
-libiptc/libiptc.c: In function "iptcc_chain_index_delete_chain":
-libiptc/libiptc.c:611:32: warning: variable "index_ptr2" set but not used
-libiptc/libiptc.c: In function "alloc_handle":
-libiptc/libiptc.c:1282:9: warning: variable "len" set but not used
-  CC     xtables_multi-iptables-xml.o
-iptables-xml.c: In function "do_rule_part":
-iptables-xml.c:376:8: warning: variable "thisChain" set but not used
-  CC     xtables_multi-ip6tables.o
-ip6tables.c: In function "print_firewall":
-ip6tables.c:552:10: warning: variable "flags" set but not used
+Commit v1.4.11~20 forgot to change the symlink target names to the new
+executable name.
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- ip6tables.c       |    2 --
- iptables-xml.c    |    3 ---
- libiptc/libiptc.c |    7 ++-----
- 3 files changed, 2 insertions(+), 10 deletions(-)
+ Makefile.am |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/ip6tables.c b/ip6tables.c
-index a74238c..4df73b8 100644
---- a/ip6tables.c
-+++ b/ip6tables.c
-@@ -549,7 +549,6 @@ print_firewall(const struct ip6t_entry *fw,
- {
- 	const struct xtables_target *target = NULL;
- 	const struct ip6t_entry_target *t;
--	uint8_t flags;
- 	char buf[BUFSIZ];
- 
- 	if (!ip6tc_is_chain(targname, handle))
-@@ -559,7 +558,6 @@ print_firewall(const struct ip6t_entry *fw,
- 		         XTF_LOAD_MUST_SUCCEED);
- 
- 	t = ip6t_get_target((struct ip6t_entry *)fw);
--	flags = fw->ipv6.flags;
- 
- 	if (format & FMT_LINENUMBERS)
- 		printf(FMT("%-4u ", "%u "), num);
-diff --git a/iptables-xml.c b/iptables-xml.c
-index dc3cd4f..aa98f75 100644
---- a/iptables-xml.c
-+++ b/iptables-xml.c
-@@ -373,7 +373,6 @@ do_rule_part(char *leveltag1, char *leveltag2, int part, int argc,
- {
- 	int arg = 1;		// ignore leading -A
- 	char invert_next = 0;
--	char *thisChain = NULL;
- 	char *spacer = "";	// space when needed to assemble arguments
- 	char *level1 = NULL;
- 	char *level2 = NULL;
-@@ -397,8 +396,6 @@ do_rule_part(char *leveltag1, char *leveltag2, int part, int argc,
- 		} else printf("%s<%s ", (leveli ## LEVEL), (level ## LEVEL)); \
- 	} while(0)
- 
--	thisChain = argv[arg++];
--
- 	if (part == 1) {	/* skip */
- 		/* use argvattr to tell which arguments were quoted 
- 		   to avoid comparing quoted arguments, like comments, to -j, */
-diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
-index d3b1c51..0b6d5e3 100644
---- a/libiptc/libiptc.c
-+++ b/libiptc/libiptc.c
-@@ -608,7 +608,7 @@ static int iptcc_chain_index_rebuild(struct xtc_handle *h)
-  */
- static int iptcc_chain_index_delete_chain(struct chain_head *c, struct xtc_handle *h)
- {
--	struct list_head *index_ptr, *index_ptr2, *next;
-+	struct list_head *index_ptr, *next;
- 	struct chain_head *c2;
- 	unsigned int idx, idx2;
- 
-@@ -628,7 +628,7 @@ static int iptcc_chain_index_delete_chain(struct chain_head *c, struct xtc_handl
- 		 * is located in the same index bucket.
- 		 */
- 		c2         = list_entry(next, struct chain_head, list);
--		index_ptr2 = iptcc_bsearch_chain_index(c2->name, &idx2, h);
-+		iptcc_bsearch_chain_index(c2->name, &idx2, h);
- 		if (idx != idx2) {
- 			/* Rebuild needed */
- 			return iptcc_chain_index_rebuild(h);
-@@ -1279,11 +1279,8 @@ static int iptcc_compile_table(struct xtc_handle *h, STRUCT_REPLACE *repl)
- static struct xtc_handle *
- alloc_handle(const char *tablename, unsigned int size, unsigned int num_rules)
- {
--	size_t len;
- 	struct xtc_handle *h;
- 
--	len = sizeof(STRUCT_TC_HANDLE) + size;
--
- 	h = malloc(sizeof(STRUCT_TC_HANDLE));
- 	if (!h) {
- 		errno = ENOMEM;
+diff --git a/Makefile.am b/Makefile.am
+index 13e144e..741729b 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -96,6 +96,6 @@ config.status: extensions/GNUmakefile.in \
+ install-exec-hook:
+ 	-if test -z "${DESTDIR}"; then /sbin/ldconfig; fi;
+ 	${INSTALL} -dm0755 "${DESTDIR}${bindir}";
+-	for i in ${v4_bin_links}; do ${LN_S} -f "${sbindir}/iptables-multi" "${DESTDIR}${bindir}/$$i"; done;
+-	for i in ${v4_sbin_links}; do ${LN_S} -f iptables-multi "${DESTDIR}${sbindir}/$$i"; done;
+-	for i in ${v6_sbin_links}; do ${LN_S} -f ip6tables-multi "${DESTDIR}${sbindir}/$$i"; done;
++	for i in ${v4_bin_links}; do ${LN_S} -f "${sbindir}/xtables-multi" "${DESTDIR}${bindir}/$$i"; done;
++	for i in ${v4_sbin_links}; do ${LN_S} -f xtables-multi "${DESTDIR}${sbindir}/$$i"; done;
++	for i in ${v6_sbin_links}; do ${LN_S} -f xtables-multi "${DESTDIR}${sbindir}/$$i"; done;
 -- 
 1.7.3.4
 
