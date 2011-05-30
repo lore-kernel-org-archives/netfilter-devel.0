@@ -1,41 +1,55 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH] netfilter, ipvs: Avoid undefined order of evaluation in
- assignments to struct nf_conn *
-Date: Mon, 30 May 2011 08:23:37 +0900
-Message-ID: <20110529232337.GD5856@verge.net.au>
-References: <alpine.LNX.2.00.1105292011450.4411@swampdragon.chaosbits.net>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: build warning in Linus' tree
+Date: Mon, 30 May 2011 11:43:33 +1000
+Message-ID: <20110530114333.6aa13281.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Mon__30_May_2011_11_43_33_+1000_PCpJtQVSRZ9Xlk63"
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
 	"David S. Miller" <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>,
-	Julian Anastasov <ja@ssi.bg>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jesper Juhl <jj@chaosbits.net>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.00.1105292011450.4411@swampdragon.chaosbits.net>
-Sender: lvs-devel-owner@vger.kernel.org
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, May 29, 2011 at 08:22:56PM +0200, Jesper Juhl wrote:
-> In net/netfilter/ipvs/ip_vs_nfct.c::ip_vs_update_conntrack(),
-> net/netfilter/ipvs/ip_vs_xmit.c::ip_vs_nat_xmit(), 
-> net/netfilter/ipvs/ip_vs_xmit.c::ip_vs_nat_xmit_v6(), 
-> net/netfilter/ipvs/ip_vs_xmit.c::ip_vs_icmp_xmit)() 
-> net/netfilter/ipvs/ip_vs_xmit.c::and ip_vs_icmp_xmit_v6() we do this:
-> 	...
-> 	struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
-> 	...
-> 
-> Since '=' is not a sequence point the order of these assignments happening 
-> is undefined. Luckily it's easy to avoid by just doing what is obviously 
-> the intended thing:
-> 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
-> 
-> Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+--Signature=_Mon__30_May_2011_11_43_33_+1000_PCpJtQVSRZ9Xlk63
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Simon Horman <horms@verge.net.au>
+Hi all,
+
+In Linus' tree, today's linux-next build (powerpc ppc64_defconfig)
+produced this warning:
+
+net/ipv4/netfilter/nf_nat_standalone.c: In function 'nf_nat_fn':
+net/ipv4/netfilter/nf_nat_standalone.c:119:2: warning: case value '4' not i=
+n enumerated type 'enum ip_conntrack_info'
+net/ipv4/netfilter/ipt_CLUSTERIP.c: In function 'clusterip_tg':
+net/ipv4/netfilter/ipt_CLUSTERIP.c:324:3: warning: case value '4' not in en=
+umerated type 'enum ip_conntrack_info'
+
+I am now using gcc v4.5.2.
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
+
+--Signature=_Mon__30_May_2011_11_43_33_+1000_PCpJtQVSRZ9Xlk63
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJN4vZFAAoJEDMEi1NhKgbsZ0gH/0icvXHPifE7pBoUVkdbbZ01
+vMyADneqGZv5HRWXTPR2UfU8MV7ghR2LOj+BWVd5EGLBoYJsaoEEHjpHCj6FGBON
+1WP1yuIoNRyk1xcESbM+e6A6fTMiL9d/LcSAzDS9uC+8GYMz8+ZgGeI+oyvRSe2C
+gUMvPkvAw9XHzrOvttaoeGTmZBfV33AtLq+U78u8S1lSWFOxtCi3sP0Adda8C1G3
+KOdnFIounHezgVNxstArhbd+gSXK1qaoxiSd9n+f8eo20QTTNj5/949uA1Md0AeA
+zmptwSleMfSm9Ka50EclZGaTOYxMS1GYjF6ZQzR2nCCeBn0+bOktBf5m0Wp282Q=
+=6Q41
+-----END PGP SIGNATURE-----
+
+--Signature=_Mon__30_May_2011_11_43_33_+1000_PCpJtQVSRZ9Xlk63--
