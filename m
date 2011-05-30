@@ -1,41 +1,64 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: linux-next: build warning in Linus' tree
-Date: Mon, 30 May 2011 04:01:03 +0200
-Message-ID: <1306720863.30021.25.camel@edumazet-laptop>
-References: <20110530114333.6aa13281.sfr@canb.auug.org.au>
+From: Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
+Subject: Re: [ANNOUNCE]: Release of iptables-1.4.11
+Date: Mon, 30 May 2011 11:05:29 +0200
+Message-ID: <201105301105.30036.a.miskiewicz@gmail.com>
+References: <4DDE857E.40807@trash.net> <201105270952.44811.a.miskiewicz@gmail.com> <4DDF912A.5070003@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>, linux-next@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20110530114333.6aa13281.sfr@canb.auug.org.au>
-Sender: linux-next-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: NetDev <netdev@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:32777 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753167Ab1E3JFf convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 May 2011 05:05:35 -0400
+In-Reply-To: <4DDF912A.5070003@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Le lundi 30 mai 2011 =C3=A0 11:43 +1000, Stephen Rothwell a =C3=A9crit =
-:
-> Hi all,
+On Friday 27 of May 2011, Pablo Neira Ayuso wrote:
+> On 27/05/11 09:52, Arkadiusz Miskiewicz wrote:
+
+> > /usr/include/xtables.h:395:23: note: expected =E2=80=98const struct=
+ option *=E2=80=99 but
+> > argument is of type =E2=80=98unsigned int *=E2=80=99
+> > m_xt.c:312:30: error: too few arguments to function
+> > =E2=80=98xtables_merge_options=E2=80=99 /usr/include/xtables.h:395:=
+23: note: declared
+> > here
+> > make[1]: *** [m_xt.so] B=C5=82=C4=85d 1
+> > rm emp_ematch.lex.c emp_ematch.yacc.c
 >=20
-> In Linus' tree, today's linux-next build (powerpc ppc64_defconfig)
-> produced this warning:
+> Backward compatibility was broken in the following iptables commit:
 >=20
-> net/ipv4/netfilter/nf_nat_standalone.c: In function 'nf_nat_fn':
-> net/ipv4/netfilter/nf_nat_standalone.c:119:2: warning: case value '4'=
- not in enumerated type 'enum ip_conntrack_info'
-> net/ipv4/netfilter/ipt_CLUSTERIP.c: In function 'clusterip_tg':
-> net/ipv4/netfilter/ipt_CLUSTERIP.c:324:3: warning: case value '4' not=
- in enumerated type 'enum ip_conntrack_info'
->=20
-> I am now using gcc v4.5.2.
+> From 600f38db82548a683775fd89b6e136673e924097 Mon Sep 17 00:00:00 200=
+1
+> From: Jan Engelhardt <jengelh@medozas.de>
+> Date: Fri, 29 Oct 2010 18:57:42 +0200
+> Subject: [PATCH] libxtables: change option precedence order to be int=
+uitive
 
-I sent a patch for this some days ago, not sure what happened to it.
+Another bug seems to be in Makefile.am
 
-David Acked it, but Patrick is a bit busy these days.
+        for i in ${v4_bin_links}; do ${LN_S} -f "${sbindir}/iptables-mu=
+lti"=20
+"${DESTDIR}${bindir}/$$i"; done;
+        for i in ${v4_sbin_links}; do ${LN_S} -f iptables-multi=20
+"${DESTDIR}${sbindir}/$$i"; done;
+        for i in ${v6_sbin_links}; do ${LN_S} -f ip6tables-multi=20
+"${DESTDIR}${sbindir}/$$i"; done;
 
-http://www.spinics.net/lists/netdev/msg164837.html
+These will point to nowhere since now there is xtables-multi only.
 
-Thanks
+--=20
+Arkadiusz Mi=C5=9Bkiewicz        PLD/Linux Team
+arekm / maven.pl            http://ftp.pld-linux.org/
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
