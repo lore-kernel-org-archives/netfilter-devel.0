@@ -1,60 +1,77 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Possible iptables 4.4.11 issues
-Date: Tue, 31 May 2011 11:53:26 +0200
-Message-ID: <4DE4BA96.3070603@netfilter.org>
-References: <4DE2593E.7000208@shorewall.net>	<alpine.LNX.2.01.1105291647200.26223@frira.zrqbmnf.qr>	<4DE4B7EE.9060107@netfilter.org> <BANLkTikKCG1O3MPY66J1omnOQF+QPf-NJw@mail.gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [ANNOUNCE] ipset 6.7 released
+Date: Tue, 31 May 2011 22:11:12 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1105312155260.29607@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Tom Eastep <teastep@shorewall.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Steven Jan Springl <steven@springl.ukfsn.org>
-To: =?UTF-8?B?TWFjaWVqIMW7ZW5jenlrb3dza2k=?= <zenczykowski@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56529 "EHLO mail.us.es"
+Received: from smtp1.kfki.hu ([148.6.0.26]:41787 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750762Ab1EaJxh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 31 May 2011 05:53:37 -0400
-In-Reply-To: <BANLkTikKCG1O3MPY66J1omnOQF+QPf-NJw@mail.gmail.com>
+	id S1758294Ab1EaULO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 31 May 2011 16:11:14 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 31/05/11 11:51, Maciej =C5=BBenczykowski wrote:
->>>> -A OUTPUT -p 6 --dport 888 -o eth1 -j IPMARK --addr
->>>> dst --and-mask -1 --or-mask -64 --shift 0
->>>> After upgrading to iptables 1.4.11 the following iptables-restore =
-error is
->>>> produced:
->>>>
->>>> iptables-restore v1.4.11: IPMARK: Bad value for "and-mask" option:=
- "-1"
->>>
->>> This is intentional. Bitwise operations work best when fed unsigned=
- numbers
->>> only.
->>
->> but this used to work, we shouldn't break this sort of things Jan.
->=20
-> Assuming 2's complement arithmetic, an --and-mask of -1 should be a n=
-o-op
-> (since -1 is all 1's in binary)
->=20
-> However when reading --and-mask -1 my first gut instinct is that this
-> is --and-mask ~1 and is thus clears the least significant bit.
-> I also instinctively incorrectly assume --or-mask -64 sets all but bi=
-t
-> 6, when it is actually setting all but the bottom 6 bits (ie. bits 0
-> through 5)...
->=20
-> To me this sort of lack of clarity is undesirable, and I can certainl=
-y
-> understand the desire to disable masks with negative integers.
+Hi,
 
-makes sense, thanks for the clarification.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Besides a few bugfixes, ipset 6.7 comes with a new set type called 
+hash:net,iface. The new type makes possible to store network address and 
+interface name pairs in a set. That way egress and ingress filtering is 
+possible with ipset, in just a few rules. Just an example:
+
+# Define the set for all your networks and fill it out
+ipset create nets hash:net
+ipset add nets 10.0.0.0/8
+ipset add nets 192.168.0.0/16
+...
+# Define the set with the allowed network, interface pairs
+ipset create ifaces hash:net,iface
+ipset add ifaces 10.0.0.0/24,eth0
+ipset add ifaces 10.2.0.0/16,eth1
+...
+# Create a chain to handle your networks
+iptables -N nets
+iptables -A nets -m set --match-set ifaces src,src -j ACCEPT
+iptables -A nets -j log-and-drop-spoofed-packets
+# Egress and ingress filtering
+iptables -t raw -A PREROUTING -m set --match-set nets src -j ifaces
+iptables -t raw -A PREROUTING -i external-iface0 -j ACCEPT
+iptables -t raw -A PREROUTING -i external-iface1 -j ACCEPT
+...
+iptables -t raw -j log-and-drop-spoofed-packets
+# That's all :-)
+
+Kernel part changes:
+ - Whitespace and coding fixes, detected by checkpatch.pl
+ - hash:net,iface type introduced
+ - Use the stored first cidr value instead of '1'
+ - Fix return code for destroy when sets are in use
+ - Add xt_action_param to the variant level kadt functions, ipset API 
+   change
+ - Drop supporting kernel versions below 2.6.35
+
+Userspace changes:
+ - Whitespace and coding fixes, detected by checkpatch.pl
+ - hash:net,iface type introduced
+ - hash:* tests may seem to fail due to the too wide grep pattern, fix 
+   them
+ - Remove iptree tests and compatibility element parsing
+ - hash:net test may seem to fail due to the too wide grep pattern, fix it
+ - Fix long time uncovered bug at adding string attributes to the netlink
+   messages
+ - Fix warnings reported by valgrind
+ - Remove supporting set types iptree and iptreemap
+
+You can download the source code of ipset from:
+        http://ipset.netfilter.org
+        ftp://ftp.netfilter.org/pub/ipset/
+        git://git.netfilter.org/ipset.git
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
