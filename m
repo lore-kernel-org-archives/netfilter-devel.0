@@ -1,54 +1,44 @@
-From: Pierre Rondou <prondou@gmail.com>
-Subject: Netfilter Module for NAT64 available
-Date: Wed, 01 Jun 2011 01:57:22 +0200
-Message-ID: <4DE58062.90207@gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [ANNOUNCE] ipset 6.7 released
+Date: Wed, 1 Jun 2011 09:34:49 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1106010925300.31195@blackhole.kfki.hu>
+References: <alpine.DEB.2.00.1105312155260.29607@blackhole.kfki.hu> <1306878128.3171.4.camel@edumazet-laptop> <4DE5619F.5040408@googlemail.com> <alpine.LNX.2.01.1105312347170.14867@frira.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: behave@ietf.org, v6ops@ietf.org, netfilter-devel@vger.kernel.org,
-	evyncke@cisco.com, guy.leduc@ulg.ac.be,
-	Cyril Soldani <cyril.soldani@ulg.ac.be>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Mr Dash Four <mr.dash.four@googlemail.com>,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailrelay001.isp.belgacom.be ([195.238.6.51]:27551 "EHLO
-	mailrelay001.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932972Ab1EaX5a (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 31 May 2011 19:57:30 -0400
+Received: from smtp-in.kfki.hu ([148.6.0.26]:50430 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752192Ab1FAHev (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 1 Jun 2011 03:34:51 -0400
+In-Reply-To: <alpine.LNX.2.01.1105312347170.14867@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello everybody,
+On Tue, 31 May 2011, Jan Engelhardt wrote:
 
-I'm currently a student at the University of Li=E8ge. As part of my mas=
-ter=20
-thesis, I have to develop a Linux kernel module for NAT64 (=20
-http://datatracker.ietf.org/doc/rfc6146/ ).
+> On Tuesday 2011-05-31 23:46, Mr Dash Four wrote:
+> 
+> >> tc filter add dev ifb0 protocol ip parent 10: handle 2 \
+> >> 	flow ipset ipset keys src \
+> >> 	flowid 1:40
+> >>
+> >> Any plan on this side ?
+> >>  
+> > ++1!
+> 
+> There is already m_xt in iproute2... now it would only need f_xt.
+> Maybe you can convince Jamal..
 
-I now consider my module as finished (i.e, all functionalities are=20
-implemented) and publish it.
+Yes, f_xt would be required to integrate ipset into tc.
 
-It is available on sourceforge:
-
-http://sourceforge.net/projects/nat64/
-
-=46eel free to test it and report to me any bug, bad implementation,=20
-error, ...
-
-Like my previous module (http://sourceforge.net/projects/nativi/ , whic=
-h=20
-have been updated), it can get included in Xtables/Kernel if you want,=20
-for now it is limited to 2.6.32 kernel.
-I may provide patches for this a bit later.
-
-Documentation is provided in the source code, if you have any question=20
-don't hesitate to ask me.
-
-Regards,
-
-Pierre RONDOU
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
