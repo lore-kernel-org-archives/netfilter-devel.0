@@ -1,329 +1,175 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 05/12] netfilter: ipset: Set type support with multiple revisions added
-Date: Wed,  1 Jun 2011 23:35:44 +0200
-Message-ID: <1306964151-4686-6-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 07/12] netfilter: ipset: Take into account cidr value for the from address when creating the set
+Date: Wed,  1 Jun 2011 23:35:46 +0200
+Message-ID: <1306964151-4686-8-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1306964151-4686-1-git-send-email-kadlec@blackhole.kfki.hu>
  <1306964151-4686-2-git-send-email-kadlec@blackhole.kfki.hu>
  <1306964151-4686-3-git-send-email-kadlec@blackhole.kfki.hu>
  <1306964151-4686-4-git-send-email-kadlec@blackhole.kfki.hu>
  <1306964151-4686-5-git-send-email-kadlec@blackhole.kfki.hu>
+ <1306964151-4686-6-git-send-email-kadlec@blackhole.kfki.hu>
+ <1306964151-4686-7-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Patrick McHardy <kaber@trash.net>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:39126 "EHLO smtp2.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:39147 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759754Ab1FAVfx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Jun 2011 17:35:53 -0400
-In-Reply-To: <1306964151-4686-5-git-send-email-kadlec@blackhole.kfki.hu>
+	id S1759959Ab1FAVf5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 1 Jun 2011 17:35:57 -0400
+In-Reply-To: <1306964151-4686-7-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-A set type may have multiple revisions, for example when syntax is extended.
-Support continuous revision ranges in set types.
+When creating a set from a range expressed as a network like
+10.1.1.172/29, the from address was taken as the IP address part and
+not masked with the netmask from the cidr. Use unified from/to address
+masking.
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/linux/netfilter/ipset/ip_set.h      |    6 ++-
- net/netfilter/ipset/ip_set_bitmap_ip.c      |    3 +-
- net/netfilter/ipset/ip_set_bitmap_ipmac.c   |    3 +-
- net/netfilter/ipset/ip_set_bitmap_port.c    |    3 +-
- net/netfilter/ipset/ip_set_core.c           |   45 +++++++++++++++------------
- net/netfilter/ipset/ip_set_hash_ip.c        |    3 +-
- net/netfilter/ipset/ip_set_hash_ipport.c    |    3 +-
- net/netfilter/ipset/ip_set_hash_ipportip.c  |    3 +-
- net/netfilter/ipset/ip_set_hash_ipportnet.c |    3 +-
- net/netfilter/ipset/ip_set_hash_net.c       |    3 +-
- net/netfilter/ipset/ip_set_hash_netport.c   |    3 +-
- net/netfilter/ipset/ip_set_list_set.c       |    3 +-
- 12 files changed, 49 insertions(+), 32 deletions(-)
+ include/linux/netfilter/ipset/pfxlen.h      |    6 ++++++
+ net/netfilter/ipset/ip_set_bitmap_ip.c      |    5 ++---
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c   |    2 +-
+ net/netfilter/ipset/ip_set_hash_ip.c        |    3 +--
+ net/netfilter/ipset/ip_set_hash_ipport.c    |    3 +--
+ net/netfilter/ipset/ip_set_hash_ipportip.c  |    3 +--
+ net/netfilter/ipset/ip_set_hash_ipportnet.c |    6 ++----
+ net/netfilter/ipset/ip_set_hash_netport.c   |    3 +--
+ 8 files changed, 15 insertions(+), 16 deletions(-)
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index 710ba00..ac31e38 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -282,8 +282,8 @@ struct ip_set_type {
- 	u8 dimension;
- 	/* Supported family: may be AF_UNSPEC for both AF_INET/AF_INET6 */
- 	u8 family;
--	/* Type revision */
--	u8 revision;
-+	/* Type revisions */
-+	u8 revision_min, revision_max;
+diff --git a/include/linux/netfilter/ipset/pfxlen.h b/include/linux/netfilter/ipset/pfxlen.h
+index 84efa33..d55a6cc 100644
+--- a/include/linux/netfilter/ipset/pfxlen.h
++++ b/include/linux/netfilter/ipset/pfxlen.h
+@@ -35,4 +35,10 @@ ip_set_hostmask6(u8 pfxlen)
  
- 	/* Create set */
- 	int (*create)(struct ip_set *set, struct nlattr *tb[], u32 flags);
-@@ -314,6 +314,8 @@ struct ip_set {
- 	const struct ip_set_type_variant *variant;
- 	/* The actual INET family of the set */
- 	u8 family;
-+	/* The type revision */
-+	u8 revision;
- 	/* The type specific data */
- 	void *data;
- };
+ extern u32 ip_set_range_to_cidr(u32 from, u32 to, u8 *cidr);
+ 
++#define ip_set_mask_from_to(from, to, cidr)	\
++do {						\
++	from &= ip_set_hostmask(cidr);		\
++	to = from | ~ip_set_hostmask(cidr);	\
++} while (0)
++
+ #endif /*_PFXLEN_H */
 diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
-index 3a71c8e..3b5920b 100644
+index 3b5920b..c46e344 100644
 --- a/net/netfilter/ipset/ip_set_bitmap_ip.c
 +++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
-@@ -551,7 +551,8 @@ static struct ip_set_type bitmap_ip_type __read_mostly = {
- 	.features	= IPSET_TYPE_IP,
- 	.dimension	= IPSET_DIM_ONE,
- 	.family		= AF_INET,
--	.revision	= 0,
-+	.revision_min	= 0,
-+	.revision_max	= 0,
- 	.create		= bitmap_ip_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_IP]		= { .type = NLA_NESTED },
+@@ -283,8 +283,7 @@ bitmap_ip_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 		if (cidr > 32)
+ 			return -IPSET_ERR_INVALID_CIDR;
+-		ip &= ip_set_hostmask(cidr);
+-		ip_to = ip | ~ip_set_hostmask(cidr);
++		ip_set_mask_from_to(ip, ip_to, cidr);
+ 	} else
+ 		ip_to = ip;
+ 
+@@ -478,7 +477,7 @@ bitmap_ip_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 
+ 		if (cidr >= 32)
+ 			return -IPSET_ERR_INVALID_CIDR;
+-		last_ip = first_ip | ~ip_set_hostmask(cidr);
++		ip_set_mask_from_to(first_ip, last_ip, cidr);
+ 	} else
+ 		return -IPSET_ERR_PROTOCOL;
+ 
 diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-index fdd5f79..5deb7bb 100644
+index 5deb7bb..aa2cfa1 100644
 --- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
 +++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-@@ -623,7 +623,8 @@ static struct ip_set_type bitmap_ipmac_type = {
- 	.features	= IPSET_TYPE_IP | IPSET_TYPE_MAC,
- 	.dimension	= IPSET_DIM_TWO,
- 	.family		= AF_INET,
--	.revision	= 0,
-+	.revision_min	= 0,
-+	.revision_max	= 0,
- 	.create		= bitmap_ipmac_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_IP]		= { .type = NLA_NESTED },
-diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
-index a6a5b35..c3e906f 100644
---- a/net/netfilter/ipset/ip_set_bitmap_port.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_port.c
-@@ -483,7 +483,8 @@ static struct ip_set_type bitmap_port_type = {
- 	.features	= IPSET_TYPE_PORT,
- 	.dimension	= IPSET_DIM_ONE,
- 	.family		= AF_UNSPEC,
--	.revision	= 0,
-+	.revision_min	= 0,
-+	.revision_max	= 0,
- 	.create		= bitmap_port_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_PORT]	= { .type = NLA_U16 },
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 28237c5..5bfe2af 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -70,7 +70,8 @@ find_set_type(const char *name, u8 family, u8 revision)
- 	list_for_each_entry_rcu(type, &ip_set_type_list, list)
- 		if (STREQ(type->name, name) &&
- 		    (type->family == family || type->family == AF_UNSPEC) &&
--		    type->revision == revision)
-+		    revision >= type->revision_min &&
-+		    revision <= type->revision_max)
- 			return type;
- 	return NULL;
- }
-@@ -135,10 +136,10 @@ find_set_type_minmax(const char *name, u8 family, u8 *min, u8 *max)
- 		if (STREQ(type->name, name) &&
- 		    (type->family == family || type->family == AF_UNSPEC)) {
- 			found = true;
--			if (type->revision < *min)
--				*min = type->revision;
--			if (type->revision > *max)
--				*max = type->revision;
-+			if (type->revision_min < *min)
-+				*min = type->revision_min;
-+			if (type->revision_max > *max)
-+				*max = type->revision_max;
- 		}
- 	rcu_read_unlock();
- 	if (found)
-@@ -159,25 +160,27 @@ ip_set_type_register(struct ip_set_type *type)
- 	int ret = 0;
+@@ -578,7 +578,7 @@ bitmap_ipmac_create(struct ip_set *set, struct nlattr *tb[],
  
- 	if (type->protocol != IPSET_PROTOCOL) {
--		pr_warning("ip_set type %s, family %s, revision %u uses "
-+		pr_warning("ip_set type %s, family %s, revision %u:%u uses "
- 			   "wrong protocol version %u (want %u)\n",
- 			   type->name, family_name(type->family),
--			   type->revision, type->protocol, IPSET_PROTOCOL);
-+			   type->revision_min, type->revision_max,
-+			   type->protocol, IPSET_PROTOCOL);
- 		return -EINVAL;
- 	}
+ 		if (cidr >= 32)
+ 			return -IPSET_ERR_INVALID_CIDR;
+-		last_ip = first_ip | ~ip_set_hostmask(cidr);
++		ip_set_mask_from_to(first_ip, last_ip, cidr);
+ 	} else
+ 		return -IPSET_ERR_PROTOCOL;
  
- 	ip_set_type_lock();
--	if (find_set_type(type->name, type->family, type->revision)) {
-+	if (find_set_type(type->name, type->family, type->revision_min)) {
- 		/* Duplicate! */
--		pr_warning("ip_set type %s, family %s, revision %u "
-+		pr_warning("ip_set type %s, family %s with revision min %u "
- 			   "already registered!\n", type->name,
--			   family_name(type->family), type->revision);
-+			   family_name(type->family), type->revision_min);
- 		ret = -EINVAL;
- 		goto unlock;
- 	}
- 	list_add_rcu(&type->list, &ip_set_type_list);
--	pr_debug("type %s, family %s, revision %u registered.\n",
--		 type->name, family_name(type->family), type->revision);
-+	pr_debug("type %s, family %s, revision %u:%u registered.\n",
-+		 type->name, family_name(type->family),
-+		 type->revision_min, type->revision_max);
- unlock:
- 	ip_set_type_unlock();
- 	return ret;
-@@ -189,15 +192,15 @@ void
- ip_set_type_unregister(struct ip_set_type *type)
- {
- 	ip_set_type_lock();
--	if (!find_set_type(type->name, type->family, type->revision)) {
--		pr_warning("ip_set type %s, family %s, revision %u "
-+	if (!find_set_type(type->name, type->family, type->revision_min)) {
-+		pr_warning("ip_set type %s, family %s with revision min %u "
- 			   "not registered\n", type->name,
--			   family_name(type->family), type->revision);
-+			   family_name(type->family), type->revision_min);
- 		goto unlock;
- 	}
- 	list_del_rcu(&type->list);
--	pr_debug("type %s, family %s, revision %u unregistered.\n",
--		 type->name, family_name(type->family), type->revision);
-+	pr_debug("type %s, family %s with revision min %u unregistered.\n",
-+		 type->name, family_name(type->family), type->revision_min);
- unlock:
- 	ip_set_type_unlock();
- 
-@@ -656,6 +659,7 @@ ip_set_create(struct sock *ctnl, struct sk_buff *skb,
- 	rwlock_init(&set->lock);
- 	strlcpy(set->name, name, IPSET_MAXNAMELEN);
- 	set->family = family;
-+	set->revision = revision;
- 
- 	/*
- 	 * Next, check that we know the type, and take
-@@ -696,7 +700,8 @@ ip_set_create(struct sock *ctnl, struct sk_buff *skb,
- 		    (flags & IPSET_FLAG_EXIST) &&
- 		    STREQ(set->type->name, clash->type->name) &&
- 		    set->type->family == clash->type->family &&
--		    set->type->revision == clash->type->revision &&
-+		    set->type->revision_min == clash->type->revision_min &&
-+		    set->type->revision_max == clash->type->revision_max &&
- 		    set->variant->same_set(set, clash))
- 			ret = 0;
- 		goto cleanup;
-@@ -1080,7 +1085,7 @@ dump_last:
- 			NLA_PUT_U8(skb, IPSET_ATTR_FAMILY,
- 				   set->family);
- 			NLA_PUT_U8(skb, IPSET_ATTR_REVISION,
--				   set->type->revision);
-+				   set->revision);
- 			ret = set->variant->head(set, skb);
- 			if (ret < 0)
- 				goto release_refcount;
-@@ -1385,7 +1390,7 @@ ip_set_header(struct sock *ctnl, struct sk_buff *skb,
- 	NLA_PUT_STRING(skb2, IPSET_ATTR_SETNAME, set->name);
- 	NLA_PUT_STRING(skb2, IPSET_ATTR_TYPENAME, set->type->name);
- 	NLA_PUT_U8(skb2, IPSET_ATTR_FAMILY, set->family);
--	NLA_PUT_U8(skb2, IPSET_ATTR_REVISION, set->type->revision);
-+	NLA_PUT_U8(skb2, IPSET_ATTR_REVISION, set->revision);
- 	nlmsg_end(skb2, nlh2);
- 
- 	ret = netlink_unicast(ctnl, skb2, NETLINK_CB(skb).pid, MSG_DONTWAIT);
 diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
-index c99e861..c3bc06d 100644
+index c3bc06d..bdb432e 100644
 --- a/net/netfilter/ipset/ip_set_hash_ip.c
 +++ b/net/netfilter/ipset/ip_set_hash_ip.c
-@@ -441,7 +441,8 @@ static struct ip_set_type hash_ip_type __read_mostly = {
- 	.features	= IPSET_TYPE_IP,
- 	.dimension	= IPSET_DIM_ONE,
- 	.family		= AF_UNSPEC,
--	.revision	= 0,
-+	.revision_min	= 0,
-+	.revision_max	= 0,
- 	.create		= hash_ip_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
+@@ -177,8 +177,7 @@ hash_ip4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 		if (cidr > 32)
+ 			return -IPSET_ERR_INVALID_CIDR;
+-		ip &= ip_set_hostmask(cidr);
+-		ip_to = ip | ~ip_set_hostmask(cidr);
++		ip_set_mask_from_to(ip, ip_to, cidr);
+ 	} else
+ 		ip_to = ip;
+ 
 diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
-index aa91b2c..de2e351 100644
+index de2e351..bdeb716 100644
 --- a/net/netfilter/ipset/ip_set_hash_ipport.c
 +++ b/net/netfilter/ipset/ip_set_hash_ipport.c
-@@ -512,7 +512,8 @@ static struct ip_set_type hash_ipport_type __read_mostly = {
- 	.features	= IPSET_TYPE_IP | IPSET_TYPE_PORT,
- 	.dimension	= IPSET_DIM_TWO,
- 	.family		= AF_UNSPEC,
--	.revision	= 1,
-+	.revision_min	= 0,
-+	.revision_max	= 1,	/* SCTP and UDPLITE support added */
- 	.create		= hash_ipport_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
+@@ -216,8 +216,7 @@ hash_ipport4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 		if (cidr > 32)
+ 			return -IPSET_ERR_INVALID_CIDR;
+-		ip &= ip_set_hostmask(cidr);
+-		ip_to = ip | ~ip_set_hostmask(cidr);
++		ip_set_mask_from_to(ip, ip_to, cidr);
+ 	} else
+ 		ip_to = ip;
+ 
 diff --git a/net/netfilter/ipset/ip_set_hash_ipportip.c b/net/netfilter/ipset/ip_set_hash_ipportip.c
-index b88e74e..031ed05 100644
+index 031ed05..fb986fc 100644
 --- a/net/netfilter/ipset/ip_set_hash_ipportip.c
 +++ b/net/netfilter/ipset/ip_set_hash_ipportip.c
-@@ -530,7 +530,8 @@ static struct ip_set_type hash_ipportip_type __read_mostly = {
- 	.features	= IPSET_TYPE_IP | IPSET_TYPE_PORT | IPSET_TYPE_IP2,
- 	.dimension	= IPSET_DIM_THREE,
- 	.family		= AF_UNSPEC,
--	.revision	= 1,
-+	.revision_min	= 0,
-+	.revision_max	= 1,	/* SCTP and UDPLITE support added */
- 	.create		= hash_ipportip_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
+@@ -224,8 +224,7 @@ hash_ipportip4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 		if (cidr > 32)
+ 			return -IPSET_ERR_INVALID_CIDR;
+-		ip &= ip_set_hostmask(cidr);
+-		ip_to = ip | ~ip_set_hostmask(cidr);
++		ip_set_mask_from_to(ip, ip_to, cidr);
+ 	} else
+ 		ip_to = ip;
+ 
 diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-index 605ef3b..0b54fde 100644
+index ef068b0..2ed5e75 100644
 --- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
 +++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-@@ -595,7 +595,8 @@ static struct ip_set_type hash_ipportnet_type __read_mostly = {
- 	.features	= IPSET_TYPE_IP | IPSET_TYPE_PORT | IPSET_TYPE_IP2,
- 	.dimension	= IPSET_DIM_THREE,
- 	.family		= AF_UNSPEC,
--	.revision	= 1,
-+	.revision_min	= 0,
-+	.revision_max	= 1,	/* SCTP and UDPLITE support added */
- 	.create		= hash_ipportnet_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
-diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/ip_set_hash_net.c
-index e6f8bc5..360cf5b 100644
---- a/net/netfilter/ipset/ip_set_hash_net.c
-+++ b/net/netfilter/ipset/ip_set_hash_net.c
-@@ -437,7 +437,8 @@ static struct ip_set_type hash_net_type __read_mostly = {
- 	.features	= IPSET_TYPE_IP,
- 	.dimension	= IPSET_DIM_ONE,
- 	.family		= AF_UNSPEC,
--	.revision	= 0,
-+	.revision_min	= 0,
-+	.revision_max	= 0,
- 	.create		= hash_net_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
+@@ -254,8 +254,7 @@ hash_ipportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 		if (cidr > 32)
+ 			return -IPSET_ERR_INVALID_CIDR;
+-		ip &= ip_set_hostmask(cidr);
+-		ip_to = ip | ~ip_set_hostmask(cidr);
++		ip_set_mask_from_to(ip, ip_to, cidr);
+ 	}
+ 
+ 	port_to = port = ntohs(data.port);
+@@ -273,8 +272,7 @@ hash_ipportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		if (ip2_from + UINT_MAX == ip2_to)
+ 			return -IPSET_ERR_HASH_RANGE;
+ 	} else {
+-		ip2_from &= ip_set_hostmask(data.cidr);
+-		ip2_to = ip2_from | ~ip_set_hostmask(data.cidr);
++		ip_set_mask_from_to(ip2_from, ip2_to, data.cidr);
+ 	}
+ 
+ 	if (retried)
 diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ipset/ip_set_hash_netport.c
-index 037b829..09f807f 100644
+index 3001030..90adc2c 100644
 --- a/net/netfilter/ipset/ip_set_hash_netport.c
 +++ b/net/netfilter/ipset/ip_set_hash_netport.c
-@@ -544,7 +544,8 @@ static struct ip_set_type hash_netport_type __read_mostly = {
- 	.features	= IPSET_TYPE_IP | IPSET_TYPE_PORT,
- 	.dimension	= IPSET_DIM_TWO,
- 	.family		= AF_UNSPEC,
--	.revision	= 1,
-+	.revision_min	= 0,
-+	.revision_max	= 1,	/* SCTP and UDPLITE support added */
- 	.create		= hash_netport_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
-diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-index 74f0dcc..898fe68 100644
---- a/net/netfilter/ipset/ip_set_list_set.c
-+++ b/net/netfilter/ipset/ip_set_list_set.c
-@@ -575,7 +575,8 @@ static struct ip_set_type list_set_type __read_mostly = {
- 	.features	= IPSET_TYPE_NAME | IPSET_DUMP_LAST,
- 	.dimension	= IPSET_DIM_ONE,
- 	.family		= AF_UNSPEC,
--	.revision	= 0,
-+	.revision_min	= 0,
-+	.revision_max	= 0,
- 	.create		= list_set_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_SIZE]	= { .type = NLA_U32 },
+@@ -245,8 +245,7 @@ hash_netport4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		if (ip + UINT_MAX == ip_to)
+ 			return -IPSET_ERR_HASH_RANGE;
+ 	} else {
+-		ip &= ip_set_hostmask(data.cidr);
+-		ip_to = ip | ~ip_set_hostmask(data.cidr);
++		ip_set_mask_from_to(ip, ip_to, data.cidr);
+ 	}
+ 
+ 	if (retried)
 -- 
 1.7.0.4
 
