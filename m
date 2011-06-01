@@ -1,44 +1,48 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [ANNOUNCE] ipset 6.7 released
-Date: Wed, 1 Jun 2011 09:34:49 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1106010925300.31195@blackhole.kfki.hu>
-References: <alpine.DEB.2.00.1105312155260.29607@blackhole.kfki.hu> <1306878128.3171.4.camel@edumazet-laptop> <4DE5619F.5040408@googlemail.com> <alpine.LNX.2.01.1105312347170.14867@frira.zrqbmnf.qr>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Mr Dash Four <mr.dash.four@googlemail.com>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Subject: [PATCH 09/12] netfilter: ipset: Fix return code for destroy when sets are in use
+Date: Wed,  1 Jun 2011 23:35:48 +0200
+Message-ID: <1306964151-4686-10-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1306964151-4686-1-git-send-email-kadlec@blackhole.kfki.hu>
+ <1306964151-4686-2-git-send-email-kadlec@blackhole.kfki.hu>
+ <1306964151-4686-3-git-send-email-kadlec@blackhole.kfki.hu>
+ <1306964151-4686-4-git-send-email-kadlec@blackhole.kfki.hu>
+ <1306964151-4686-5-git-send-email-kadlec@blackhole.kfki.hu>
+ <1306964151-4686-6-git-send-email-kadlec@blackhole.kfki.hu>
+ <1306964151-4686-7-git-send-email-kadlec@blackhole.kfki.hu>
+ <1306964151-4686-8-git-send-email-kadlec@blackhole.kfki.hu>
+ <1306964151-4686-9-git-send-email-kadlec@blackhole.kfki.hu>
+Cc: Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:50430 "EHLO smtp1.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:40748 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752192Ab1FAHev (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Jun 2011 03:34:51 -0400
-In-Reply-To: <alpine.LNX.2.01.1105312347170.14867@frira.zrqbmnf.qr>
+	id S1759793Ab1FAVfx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 1 Jun 2011 17:35:53 -0400
+In-Reply-To: <1306964151-4686-9-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 31 May 2011, Jan Engelhardt wrote:
 
-> On Tuesday 2011-05-31 23:46, Mr Dash Four wrote:
-> 
-> >> tc filter add dev ifb0 protocol ip parent 10: handle 2 \
-> >> 	flow ipset ipset keys src \
-> >> 	flowid 1:40
-> >>
-> >> Any plan on this side ?
-> >>  
-> > ++1!
-> 
-> There is already m_xt in iproute2... now it would only need f_xt.
-> Maybe you can convince Jamal..
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ net/netfilter/ipset/ip_set_core.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Yes, f_xt would be required to integrate ipset into tc.
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index c68f139..3cfe27a 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -776,7 +776,7 @@ ip_set_destroy(struct sock *ctnl, struct sk_buff *skb,
+ 	if (!attr[IPSET_ATTR_SETNAME]) {
+ 		for (i = 0; i < ip_set_max; i++) {
+ 			if (ip_set_list[i] != NULL && ip_set_list[i]->ref) {
+-				ret = IPSET_ERR_BUSY;
++				ret = -IPSET_ERR_BUSY;
+ 				goto out;
+ 			}
+ 		}
+-- 
+1.7.0.4
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
