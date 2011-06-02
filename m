@@ -1,25 +1,30 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 12/12] netfilter: ipset: Whitespace and coding fixes,
- detected by checkpatch.pl
-Date: Thu, 02 Jun 2011 14:57:17 +0200
-Message-ID: <4DE788AD.5060702@netfilter.org>
-References: <1306964151-4686-1-git-send-email-kadlec@blackhole.kfki.hu> <1306964151-4686-2-git-send-email-kadlec@blackhole.kfki.hu> <1306964151-4686-3-git-send-email-kadlec@blackhole.kfki.hu> <1306964151-4686-4-git-send-email-kadlec@blackhole.kfki.hu> <1306964151-4686-5-git-send-email-kadlec@blackhole.kfki.hu> <1306964151-4686-6-git-send-email-kadlec@blackhole.kfki.hu> <1306964151-4686-7-git-send-email-kadlec@blackhole.kfki.hu> <1306964151-4686-8-git-send-email-kadlec@blackhole.kfki.hu> <1306964151-4686-9-git-send-email-kadlec@blackhole.kfki.hu> <1306964151-4686-10-git-send-email-kadlec@blackhole.kfki.hu> <1306964151-4686-11-git-send-email-kadlec@blackhole.kfki.hu> <1306964151-4686-12-git-send-email-kadlec@blackhole.kfki.hu> <1306964151-4686-13-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] netfilter, ipvs: Avoid undefined order of evaluation
+ in assignments to struct nf_conn *
+Date: Thu, 02 Jun 2011 14:59:33 +0200
+Message-ID: <4DE78935.2030904@netfilter.org>
+References: <alpine.LNX.2.00.1105292011450.4411@swampdragon.chaosbits.net> <20110529232337.GD5856@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Jesper Juhl <jj@chaosbits.net>, linux-kernel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>,
+	Julian Anastasov <ja@ssi.bg>,
+	Wensong Zhang <wensong@linux-vs.org>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59749 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55637 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750762Ab1FBM5V (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Jun 2011 08:57:21 -0400
-In-Reply-To: <1306964151-4686-13-git-send-email-kadlec@blackhole.kfki.hu>
+	id S1753587Ab1FBM7w (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 2 Jun 2011 08:59:52 -0400
+In-Reply-To: <20110529232337.GD5856@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 01/06/11 23:35, Jozsef Kadlecsik wrote:
-> I added a call to checkpatch.pl into the pre-commit hook of my git tree
-> in order to prevent whitespace errors in the future.
+On 30/05/11 01:23, Simon Horman wrote:
+> Acked-by: Simon Horman <horms@verge.net.au>
 
 applied, thanks
