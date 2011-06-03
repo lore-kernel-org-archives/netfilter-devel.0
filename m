@@ -1,35 +1,57 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Additional GOP fix
-Date: Fri, 03 Jun 2011 11:52:52 +0200
-Message-ID: <4DE8AEF4.6090601@netfilter.org>
-References: <1306681936-30866-1-git-send-email-jengelh@medozas.de> <4DE78C64.10804@netfilter.org> <alpine.LNX.2.01.1106031046350.32042@frira.zrqbmnf.qr>
+Subject: Re: [PATCH] Use unsigned variables for packet lengths in ip[6]_queue.
+Date: Fri, 03 Jun 2011 12:07:37 +0200
+Message-ID: <4DE8B269.9070505@netfilter.org>
+References: <20110420014221.GC26949@redhat.com> <20110419.204105.68144653.davem@davemloft.net> <20110528003651.GA8380@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Dave Jones <davej@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57440 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35206 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751343Ab1FCJwz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Jun 2011 05:52:55 -0400
-In-Reply-To: <alpine.LNX.2.01.1106031046350.32042@frira.zrqbmnf.qr>
+	id S1752555Ab1FCKHl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Jun 2011 06:07:41 -0400
+In-Reply-To: <20110528003651.GA8380@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 03/06/11 10:46, Jan Engelhardt wrote:
-> On Thursday 2011-06-02 15:13, Pablo Neira Ayuso wrote:
+On 28/05/11 02:36, Dave Jones wrote:
+> On Tue, Apr 19, 2011 at 08:41:05PM -0700, David Miller wrote:
+>  > From: Dave Jones <davej@redhat.com>
+>  > Date: Tue, 19 Apr 2011 21:42:22 -0400
+>  > 
+>  > > Not catastrophic, but ipqueue seems to be too trusting of what it gets
+>  > > passed from userspace, and passes it on down to the page allocator,
+>  > > where it will spew warnings if the page order is too high.
+>  > > 
+>  > > __ipq_rcv_skb has several checks for lengths too small, but doesn't
+>  > > seem to have any for oversized ones.   I'm not sure what the maximum
+>  > > we should check for is. I'll code up a diff if anyone has any ideas
+>  > > on a sane maximum.
+>  > 
+>  > Maybe the thing to do is to simply pass __GFP_NOWARN to nlmsg_new()
+>  > in netlink_ack()?
+>  > 
+>  > Anyone else have a better idea?
 > 
->> On 29/05/11 17:12, Jan Engelhardt wrote:
->>> The following changes since commit 172e9b15271c276aa1485b4a2fb63928a65b13ae:
->>>
->>>   Bump version to 1.4.11 (2011-05-26 18:12:12 +0200)
->>>
->>> are available in the git repository at:
->>>   git://dev.medozas.de/iptables master
->>
->> I find more patches in this branch. Is this OK?
+> So I went back to this today, and found something that doesn't look right.
+> After adding some instrumentation, and re-running my tests, I found that
+> the reason we were blowing up with enormous allocations was that we
+> were passing down a nlmsglen's like -1061109568
 > 
-> Always :)
+> Is there any reason for that to be signed ?
+> The nlmsg_len entry of nlmsghdr is a u32, so I'm assuming this is a bug.
+> 
+> With the patch below, I haven't been able to reproduce the problem, but
+> I don't know if I've inadvertantly broken some other behaviour somewhere
+> deeper in netlink where this is valid.
 
-OK, pushed, thanks Jan.
+I have applied this. Thanks.
+
+BTW, ip[6]_queue has been marked obsoleted since long time, probably we
+can schedule this for removal anytime soon. The nfnetlink_queue
+successor has been there to provide a replacement for this since long time.
