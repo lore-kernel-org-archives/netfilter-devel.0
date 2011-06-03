@@ -1,57 +1,73 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] Use unsigned variables for packet lengths in ip[6]_queue.
-Date: Fri, 03 Jun 2011 12:07:37 +0200
-Message-ID: <4DE8B269.9070505@netfilter.org>
-References: <20110420014221.GC26949@redhat.com> <20110419.204105.68144653.davem@davemloft.net> <20110528003651.GA8380@redhat.com>
+Subject: Re: Problem with seq adjustment for NAT over loopback device
+Date: Fri, 03 Jun 2011 12:10:04 +0200
+Message-ID: <4DE8B2FC.4040601@netfilter.org>
+References: <alpine.LFD.2.00.1105292126080.1429@ja.ssi.bg>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Dave Jones <davej@redhat.com>
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Julian Anastasov <ja@ssi.bg>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35206 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:51499 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752555Ab1FCKHl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Jun 2011 06:07:41 -0400
-In-Reply-To: <20110528003651.GA8380@redhat.com>
+	id S1754430Ab1FCKKH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Jun 2011 06:10:07 -0400
+In-Reply-To: <alpine.LFD.2.00.1105292126080.1429@ja.ssi.bg>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 28/05/11 02:36, Dave Jones wrote:
-> On Tue, Apr 19, 2011 at 08:41:05PM -0700, David Miller wrote:
->  > From: Dave Jones <davej@redhat.com>
->  > Date: Tue, 19 Apr 2011 21:42:22 -0400
->  > 
->  > > Not catastrophic, but ipqueue seems to be too trusting of what it gets
->  > > passed from userspace, and passes it on down to the page allocator,
->  > > where it will spew warnings if the page order is too high.
->  > > 
->  > > __ipq_rcv_skb has several checks for lengths too small, but doesn't
->  > > seem to have any for oversized ones.   I'm not sure what the maximum
->  > > we should check for is. I'll code up a diff if anyone has any ideas
->  > > on a sane maximum.
->  > 
->  > Maybe the thing to do is to simply pass __GFP_NOWARN to nlmsg_new()
->  > in netlink_ack()?
->  > 
->  > Anyone else have a better idea?
+On 29/05/11 20:36, Julian Anastasov wrote:
 > 
-> So I went back to this today, and found something that doesn't look right.
-> After adding some instrumentation, and re-running my tests, I found that
-> the reason we were blowing up with enormous allocations was that we
-> were passing down a nlmsglen's like -1061109568
+> 	Hello,
 > 
-> Is there any reason for that to be signed ?
-> The nlmsg_len entry of nlmsghdr is a u32, so I'm assuming this is a bug.
+> 	I see a problem that nf_nat_seq_adjust is called twice
+> for same packet. I saw it while playing with IPVS NAT forwarding
+> over loopback device, it happens for iptables -j DNAT too. For example:
 > 
-> With the patch below, I haven't been able to reproduce the problem, but
-> I don't know if I've inadvertantly broken some other behaviour somewhere
-> deeper in netlink where this is valid.
+> - I'm adding two addresses: 192.168.1.200 (long) and 192.168.1.2 (short)
+> 
+> - Adding DNAT rule to redirect local clients to different local server:
+> 
+> iptables -t nat -A OUTPUT -p TCP -d 192.168.1.200 --dport 21 \
+> 	-j DNAT --to-destination 192.168.1.2
+> 
+> 	Trying passive FTP causes address info in PASV response
+> to be mangled in reply direction from 192.168.1.2 to 192.168.1.200
+> increasing the payload with 2 bytes. Later, in original direction the
+> acks are decreased with 2 but the problem is that it happens
+> once in POSTROUTING and second time in LOCAL_IN, i.e. the two places
+> where seq adjustment happens in ipv4_confirm. The funny effect is
+> that the client receives next response with the "\r\n" (remember,
+> 2 bytes) from the PASV response copied before the next 150 response:
+> 
+> RX: 227 Entering Passive Mode (...)\r\n		<<<- \r\n duplicated
+> TX: LIST\r\n
+> RX: \r\n150 Directory listing	<<<- extra "\r\n" at beginning
+> 
+> 	I assume the problem happens because same conntrack is
+> used in original direction for the outgoing phase (OUTPUT->POSTROUTING)
+> and for the incoming phase (PREROUTING->LOCAL_IN). Looking at
+> nf_nat_rule_find() I see that checking with nf_nat_initialized()
+> allows only one src and/or one dst manipulation. For traffic
+> over loopback I assume these NAT manipulations will be scheduled
+> in OUTPUT and POSTROUTING (the outgoing phase) and no NAT
+> rules will be considered from the incoming phase (PREROUTING and
+> LOCAL_IN). In such case NAT does not occur in the incoming
+> phase and we do not need any seq adjustments and NAT manips
+> in LOCAL_IN for loopback traffic.
+> 
+> 	I guess that a skb flag is needed that can be set after
+> POSTROUTING, so that we should avoid any SEQ and NAT manipulations
+> for the incoming phase if this flag is set. All NAT hooks
+> can ignore such packets to save some CPU cycles (NF_ACCEPT in
+> nf_nat_fn). By this way, even if a single manipulation is possible
+> for two hooks, eg. src manip for POSTROUTING and LOCAL_IN,
+> and dst manip for PREROUTING and OUTPUT we should do it only
+> once for a packet.
+> 
+> 	Any ideas how to solve this problem? If such solution
+> sounds good I can prepare and test some patch...
 
-I have applied this. Thanks.
-
-BTW, ip[6]_queue has been marked obsoleted since long time, probably we
-can schedule this for removal anytime soon. The nfnetlink_queue
-successor has been there to provide a replacement for this since long time.
+I haven't missed this report :-), however, I didn't come with a clean
+solution for this yet, let give it some spins.
