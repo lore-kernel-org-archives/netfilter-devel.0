@@ -1,44 +1,58 @@
-From: Brad Campbell <brad@fnarfbargle.com>
-Subject: Re: KVM induced panic on 2.6.38[2367] & 2.6.39
-Date: Sat, 04 Jun 2011 00:07:28 +0800
-Message-ID: <4DE906C0.6060901@fnarfbargle.com>
-References: <20110601011527.GN19505@random.random> <alpine.LSU.2.00.1105312120530.22808@sister.anvils> <4DE5DCA8.7070704@fnarfbargle.com> <4DE5E29E.7080009@redhat.com> <4DE60669.9050606@fnarfbargle.com> <4DE60918.3010008@redhat.com> <4DE60940.1070107@redhat.com> <4DE61A2B.7000008@fnarfbargle.com> <20110601111841.GB3956@zip.com.au> <4DE62801.9080804@fnarfbargle.com> <20110601230342.GC3956@zip.com.au> <4DE8E3ED.7080004@fnarfbargle.com> <isavsg$3or$1@dough.gmane.org>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: Linux netfilter shuts down the server
+Date: Fri, 03 Jun 2011 21:40:19 +0200
+Message-ID: <1307130019.2600.4.camel@edumazet-laptop>
+References: <4DE8C3B6.4080409@metu.edu.tr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: kvm@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <isavsg$3or$1@dough.gmane.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Lutfi ODUNCUOGLU <lutfio@metu.edu.tr>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:60878 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752096Ab1FCTkX (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Jun 2011 15:40:23 -0400
+Received: by wwk4 with SMTP id 4so5417532wwk.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 03 Jun 2011 12:40:21 -0700 (PDT)
+In-Reply-To: <4DE8C3B6.4080409@metu.edu.tr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 03/06/11 23:50, Bernhard Held wrote:
-> Am 03.06.2011 15:38, schrieb Brad Campbell:
->> On 02/06/11 07:03, CaT wrote:
->>> On Wed, Jun 01, 2011 at 07:52:33PM +0800, Brad Campbell wrote:
->>>> Unfortunately the only interface that is mentioned by name anywhere
->>>> in my firewall is $DMZ (which is ppp0 and not part of any bridge).
->>>>
->>>> All of the nat/dnat and other horrible hacks are based on IP addresses.
->>>
->>> Damn. Not referencing the bridge interfaces at all stopped our host from
->>> going down in flames when we passed it a few packets. These are two
->>> of the oopses we got from it. Whilst the kernel here is .35 we got the
->>> same issue from a range of kernels. Seems related.
->>
->> Well, I tried sending an explanatory message to netdev, netfilter &
->> cc'd to kvm,
->> but it appears not to have made it to kvm or netfilter, and the cc to
->> netdev has
->> not elicited a response. My resend to netfilter seems to have dropped
->> into the
->> bit bucket also.
-> Just another reference 3.5 months ago:
-> http://www.spinics.net/lists/netfilter-devel/msg17239.html
+Le vendredi 03 juin 2011 =C3=A0 14:21 +0300, Lutfi ODUNCUOGLU a =C3=A9c=
+rit :
+> > On 02/06/11 16:18, Lutfi ODUNCUOGLU wrote:
+> >> Hello,
+> >>
+> >> I have a sun x1400 series server, that I use as a router. The OS i=
+s
+> >> Debian Squeeze and every week my router goes down and I cannot do
+> >> anything then hard booting the server. The photo of the error mess=
+ages
+> >> can be seen at http://metu.edu.tr/~lutfio/a.jpg. What may be the p=
+roblem?
+> >=20
+> > That information is incomplete. We need to know what Linux kernel
+> > version you're using, and the upper part of the backtrace would be
+> > really helpful.
+> > --
+> Ok. I am using custom compiled 2.6.37.2 AMD 64 bit kernel. For upper
+> backtrace issue when I hard boot the server, I can't find any logs ab=
+out
+> this error. Is there a way to have this backtrace for next time?
+>=20
 
-<waves hands around shouting "I have a reproducible test case for this 
-and don't mind patching and crashing the machine to get it fixed">
+Please try to setup netconsole so that another machine in your lan can
+get a copy of full backtrace, because your screen is too small to get i=
+t
+all.
 
-Attempted to add netfilter-devel to the cc this time.
+Thanks
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
