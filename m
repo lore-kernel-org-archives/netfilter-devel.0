@@ -1,58 +1,81 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: Linux netfilter shuts down the server
-Date: Fri, 03 Jun 2011 21:40:19 +0200
-Message-ID: <1307130019.2600.4.camel@edumazet-laptop>
-References: <4DE8C3B6.4080409@metu.edu.tr>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: [PATCH] netfilter: nf_nat: avoid double nat for loopback
+Date: Sat, 4 Jun 2011 17:02:15 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1106041640080.1437@ja.ssi.bg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Lutfi ODUNCUOGLU <lutfio@metu.edu.tr>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:60878 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752096Ab1FCTkX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Jun 2011 15:40:23 -0400
-Received: by wwk4 with SMTP id 4so5417532wwk.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 03 Jun 2011 12:40:21 -0700 (PDT)
-In-Reply-To: <4DE8C3B6.4080409@metu.edu.tr>
+Received: from ja.ssi.bg ([178.16.129.10]:58357 "EHLO ja.ssi.bg"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753770Ab1FDOAM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 4 Jun 2011 10:00:12 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le vendredi 03 juin 2011 =C3=A0 14:21 +0300, Lutfi ODUNCUOGLU a =C3=A9c=
-rit :
-> > On 02/06/11 16:18, Lutfi ODUNCUOGLU wrote:
-> >> Hello,
-> >>
-> >> I have a sun x1400 series server, that I use as a router. The OS i=
-s
-> >> Debian Squeeze and every week my router goes down and I cannot do
-> >> anything then hard booting the server. The photo of the error mess=
-ages
-> >> can be seen at http://metu.edu.tr/~lutfio/a.jpg. What may be the p=
-roblem?
-> >=20
-> > That information is incomplete. We need to know what Linux kernel
-> > version you're using, and the upper part of the backtrace would be
-> > really helpful.
-> > --
-> Ok. I am using custom compiled 2.6.37.2 AMD 64 bit kernel. For upper
-> backtrace issue when I hard boot the server, I can't find any logs ab=
-out
-> this error. Is there a way to have this backtrace for next time?
->=20
 
-Please try to setup netconsole so that another machine in your lan can
-get a copy of full backtrace, because your screen is too small to get i=
-t
-all.
+	Avoid double NAT and seq adjustment for loopback
+traffic because it causes silent repetition of TCP data. One
+example is passive FTP with DNAT rule and difference in the
+length of IP addresses.
 
-Thanks
+	This patch adds checks if packet is sent and
+received via loopback device. As the same conntrack is used
+both for outgoing and incoming direction, we restrict NAT,
+seq adjustment and confirmation to happen only in
+outgoing direction (OUTPUT and POSTROUTING).
 
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+---
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	As the check is not so cheap, another alternative
+is to add new skb flag, eg. "loopback", that can be set in 
+drivers/net/loopback.c, loopback_xmit(). May be there is space
+for it in flags2?
+
+diff -urp v2.6.39/linux/include/net/netfilter/nf_conntrack.h linux/include/net/netfilter/nf_conntrack.h
+--- v2.6.39/linux/include/net/netfilter/nf_conntrack.h	2011-05-20 10:38:04.000000000 +0300
++++ linux/include/net/netfilter/nf_conntrack.h	2011-06-04 14:53:54.636380393 +0300
+@@ -308,6 +308,12 @@ static inline int nf_ct_is_untracked(con
+ 	return test_bit(IPS_UNTRACKED_BIT, &ct->status);
+ }
+ 
++/* Packet is received from loopback */
++static inline bool nf_is_loopback_packet(const struct sk_buff *skb)
++{
++	return skb->dev && skb->skb_iif && skb->dev->flags & IFF_LOOPBACK;
++}
++
+ extern int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp);
+ extern unsigned int nf_conntrack_htable_size;
+ extern unsigned int nf_conntrack_max;
+diff -urp v2.6.39/linux/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c linux/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+--- v2.6.39/linux/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c	2010-08-02 09:37:49.000000000 +0300
++++ linux/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c	2011-06-04 14:17:28.223380526 +0300
+@@ -99,6 +99,10 @@ static unsigned int ipv4_confirm(unsigne
+ 	const struct nf_conntrack_helper *helper;
+ 	unsigned int ret;
+ 
++	/* loopback traffic is confirmed only in outgoing direction */
++	if (unlikely(nf_is_loopback_packet(skb)))
++		return NF_ACCEPT;
++
+ 	/* This is where we call the helper: as the packet goes out. */
+ 	ct = nf_ct_get(skb, &ctinfo);
+ 	if (!ct || ctinfo == IP_CT_RELATED + IP_CT_IS_REPLY)
+diff -urp v2.6.39/linux/net/ipv4/netfilter/nf_nat_standalone.c linux/net/ipv4/netfilter/nf_nat_standalone.c
+--- v2.6.39/linux/net/ipv4/netfilter/nf_nat_standalone.c	2011-05-20 10:38:08.000000000 +0300
++++ linux/net/ipv4/netfilter/nf_nat_standalone.c	2011-06-04 14:55:02.542587345 +0300
+@@ -86,6 +86,10 @@ nf_nat_fn(unsigned int hooknum,
+ 	/* maniptype == SRC for postrouting. */
+ 	enum nf_nat_manip_type maniptype = HOOK2MANIP(hooknum);
+ 
++	/* NAT for loopback traffic is done only in outgoing direction */
++	if (unlikely(nf_is_loopback_packet(skb)))
++		return NF_ACCEPT;
++
+ 	/* We never see fragments: conntrack defrags on pre-routing
+ 	   and local-out, and nf_nat_out protects post-routing. */
+ 	NF_CT_ASSERT(!(ip_hdr(skb)->frag_off & htons(IP_MF | IP_OFFSET)));
