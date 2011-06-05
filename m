@@ -1,53 +1,142 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: option to disable /proc/net/nf_conntrack procfs [was Re: netfilter
- patches for 3.0.0-rc1]
-Date: Mon, 06 Jun 2011 01:07:05 +0200
-Message-ID: <4DEC0C19.1000205@netfilter.org>
-References: <4DE79466.6080400@netfilter.org> <alpine.LNX.2.01.1106031052210.32042@frira.zrqbmnf.qr> <4DE8AE7D.8060609@netfilter.org> <alpine.LNX.2.01.1106031605160.15918@frira.zrqbmnf.qr>
+From: pablo@netfilter.org
+Subject: [PATCH 00/20] netfilter updates for 3.0.0-rc1
+Date: Mon,  6 Jun 2011 01:08:51 +0200
+Message-ID: <1307315350-17782-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: davem@davemloft.net, Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60000 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52009 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756388Ab1FEXHJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Jun 2011 19:07:09 -0400
-In-Reply-To: <alpine.LNX.2.01.1106031605160.15918@frira.zrqbmnf.qr>
+	id S1756366Ab1FEXJX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 5 Jun 2011 19:09:23 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 03/06/11 16:06, Jan Engelhardt wrote:
-> On Friday 2011-06-03 11:50, Pablo Neira Ayuso wrote:
-> 
->> On 03/06/11 10:53, Jan Engelhardt wrote:
->>> netfilter: provide config option to disable ancient procfs parts
->>>
->>> +config NF_CONNTRACK_PROCFS
->>> +	bool "Supply CT list in procfs (OBSOLETE)"
->>> +	default y
->>> +	depends on PROC_FS
->>> +	---help---
->>> +	This option enables for the list of known conntrack entries
->>> +	to be shown in procfs under net/netfilter/nf_conntrack. This
->>> +	is considered obsolete in favor of using the conntrack(8)
->>> +	tool which uses Netlink.
->>> +
->>
->> This still misses /proc/net/ip_conntrack which would be available. See
->> nf_conntrack_l3proto_ipv4_compat.c
-> 
-> Hm indeed. New try:
-> 
-> parent 6b914d11bc76286fd6d39833d046a3ce32a9b3cb (v3.0-rc1-100-g6b914d1)
-> commit 80a72a00f509c26f9fa50434e0a3df6274f01484
-> Author: Jan Engelhardt <jengelh@medozas.de>
-> Date:   Thu Apr 21 09:32:45 2011 +0200
-> 
-> netfilter: provide config option to disable ancient procfs parts
-> 
-> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Applied, thanks.
+Hi David,
+
+the following patches contain Netfilter updates for 3.0.0-rc1
+The highlights are:
+
+- ipset updates from Jozsef.
+
+- one IPVS fix from Julian Anastasov.
+
+- one enhancement for the SIP tracker to handle Cisco 7941/7945 IP phones
+
+- deprecate /proc/net/nf_conntrack interface from Jan.
+
+- one fix for nf_nat_csum mangling also from Julian.
+
+- one fix for a refcount leak in the untracked conntrack by myself.
+
+Please pull from:
+
+git://1984.lsi.us.es/net-next-2.6 pablo/nf-next-2.6-updates
+
+Thanks!
+
+Dave Jones (1):
+  netfilter: use unsigned variables for packet lengths in ip[6]_queue.
+
+Eric Dumazet (2):
+  netfilter: add more values to enum ip_conntrack_info
+  netfilter: nf_conntrack: remove one synchronize_net()
+
+Jan Engelhardt (1):
+  netfilter: nf_conntrack: provide config option to disable ancient
+    procfs parts
+
+Jesper Juhl (1):
+  ipvs: Avoid undefined order of evaluation in assignments to struct
+    nf_conn *
+
+Jozsef Kadlecsik (11):
+  netfilter: ipset: Options and flags support added to the kernel API
+  netfilter: ipset: Support listing setnames and headers too
+  netfilter: ipset: Fix adding ranges to hash types
+  netfilter: ipset: Set type support with multiple revisions added
+  netfilter: ipset: Support range for IPv4 at adding/deleting elements
+    for hash:*net* types
+  netfilter: ipset: Take into account cidr value for the from address
+    when creating the set
+  netfilter: ipset: Add xt_action_param to the variant level kadt
+    functions
+  netfilter: ipset: Fix return code for destroy when sets are in use
+  netfilter: ipset: Use the stored first cidr value instead of '1'
+  netfilter: ipset: hash:net,iface type introduced
+  netfilter: ipset: Whitespace and coding fixes, detected by
+    checkpatch.pl
+
+Julian Anastasov (2):
+  ipvs: restore support for iptables SNAT
+  netfilter: nf_nat: fix crash in nf_nat_csum
+
+Kevin Cernekee (1):
+  netfilter: nf_conntrack_sip: Handle Cisco 7941/7945 IP phones
+
+Pablo Neira Ayuso (1):
+  netfilter: nf_conntrack: fix ct refcount leak in l4proto->error()
+
+ include/linux/netfilter/ipset/ip_set.h         |   47 ++-
+ include/linux/netfilter/ipset/ip_set_ahash.h   |   33 +-
+ include/linux/netfilter/ipset/ip_set_hash.h    |    4 +
+ include/linux/netfilter/ipset/ip_set_timeout.h |    3 +
+ include/linux/netfilter/ipset/pfxlen.h         |   11 +-
+ include/linux/netfilter/nf_conntrack_common.h  |    3 +
+ include/linux/netfilter/nf_conntrack_sip.h     |    3 +
+ include/linux/netfilter/xt_set.h               |   15 +-
+ net/ipv4/netfilter/Kconfig                     |    2 +-
+ net/ipv4/netfilter/ip_queue.c                  |    3 +-
+ net/ipv4/netfilter/ipt_CLUSTERIP.c             |    6 +-
+ net/ipv4/netfilter/ipt_MASQUERADE.c            |    2 +-
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    3 +-
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |    2 +-
+ net/ipv4/netfilter/nf_nat_core.c               |    2 +-
+ net/ipv4/netfilter/nf_nat_helper.c             |    2 +-
+ net/ipv4/netfilter/nf_nat_rule.c               |    2 +-
+ net/ipv4/netfilter/nf_nat_sip.c                |   26 +-
+ net/ipv4/netfilter/nf_nat_standalone.c         |    4 +-
+ net/ipv6/netfilter/ip6_queue.c                 |    3 +-
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    2 +-
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    2 +-
+ net/netfilter/Kconfig                          |   10 +
+ net/netfilter/ipset/Kconfig                    |   10 +
+ net/netfilter/ipset/Makefile                   |    1 +
+ net/netfilter/ipset/ip_set_bitmap_ip.c         |   17 +-
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c      |   19 +-
+ net/netfilter/ipset/ip_set_bitmap_port.c       |   13 +-
+ net/netfilter/ipset/ip_set_core.c              |  165 +++---
+ net/netfilter/ipset/ip_set_hash_ip.c           |   37 +-
+ net/netfilter/ipset/ip_set_hash_ipport.c       |   55 ++-
+ net/netfilter/ipset/ip_set_hash_ipportip.c     |   59 ++-
+ net/netfilter/ipset/ip_set_hash_ipportnet.c    |  135 +++--
+ net/netfilter/ipset/ip_set_hash_net.c          |   88 +++-
+ net/netfilter/ipset/ip_set_hash_netiface.c     |  762 ++++++++++++++++++++++++
+ net/netfilter/ipset/ip_set_hash_netport.c      |  113 +++-
+ net/netfilter/ipset/ip_set_list_set.c          |   14 +-
+ net/netfilter/ipset/pfxlen.c                   |   23 +-
+ net/netfilter/ipvs/ip_vs_core.c                |   16 +-
+ net/netfilter/ipvs/ip_vs_nfct.c                |    2 +-
+ net/netfilter/ipvs/ip_vs_xmit.c                |    8 +-
+ net/netfilter/nf_conntrack_core.c              |    7 +-
+ net/netfilter/nf_conntrack_expect.c            |   12 +-
+ net/netfilter/nf_conntrack_ftp.c               |    2 +-
+ net/netfilter/nf_conntrack_h323_main.c         |   10 +-
+ net/netfilter/nf_conntrack_irc.c               |    3 +-
+ net/netfilter/nf_conntrack_pptp.c              |    3 +-
+ net/netfilter/nf_conntrack_sane.c              |    2 +-
+ net/netfilter/nf_conntrack_sip.c               |   19 +-
+ net/netfilter/nf_conntrack_standalone.c        |    4 +-
+ net/netfilter/xt_set.c                         |  152 ++++--
+ net/netfilter/xt_socket.c                      |    4 +-
+ 52 files changed, 1581 insertions(+), 364 deletions(-)
+ create mode 100644 net/netfilter/ipset/ip_set_hash_netiface.c
+
+-- 
+1.7.2.5
+
