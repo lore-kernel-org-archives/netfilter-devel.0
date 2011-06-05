@@ -1,81 +1,48 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: [PATCH 2nd revision] Add SELinux context support to AUDIT target
-Date: Sat, 04 Jun 2011 16:12:04 +0100
-Message-ID: <4DEA4B44.8050809@googlemail.com>
-References: <4DDE9194.4030303@netfilter.org> <4DD5BF5A.2030108@googlemail.com> <4DDE848F.1070508@netfilter.org> <4DDE87F5.9050606@googlemail.com>
+From: Avi Kivity <avi@redhat.com>
+Subject: Re: KVM induced panic on 2.6.38[2367] & 2.6.39
+Date: Sun, 05 Jun 2011 16:58:47 +0300
+Message-ID: <4DEB8B97.6020605@redhat.com>
+References: <20110601011527.GN19505@random.random> <alpine.LSU.2.00.1105312120530.22808@sister.anvils> <4DE5DCA8.7070704@fnarfbargle.com> <4DE5E29E.7080009@redhat.com> <4DE60669.9050606@fnarfbargle.com> <4DE60918.3010008@redhat.com> <4DE60940.1070107@redhat.com> <4DE61A2B.7000008@fnarfbargle.com> <20110601111841.GB3956@zip.com.au> <4DE62801.9080804@fnarfbargle.com> <20110601230342.GC3956@zip.com.au> <4DE8E3ED.7080004@fnarfbargle.com> <4DEB3AE4.8040700@redhat.com> <4DEB8872.2060801@fnarfbargle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Thomas Graf <tgraf@redhat.com>, Patrick McHardy <kaber@trash.net>,
-	Eric Paris <eparis@parisplace.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Al Viro <viro@ZenIV.linux.org.uk>,
-	Linux-audit <linux-audit@redhat.com>
-To: netfilter-devel@vger.kernel.org
+Cc: CaT <cat@zip.com.au>, Hugh Dickins <hughd@google.com>,
+	Andrea Arcangeli <aarcange@redhat.com>,
+	Borislav Petkov <bp@alien8.de>, linux-kernel@vger.kernel.org,
+	kvm@vger.kernel.org, linux-mm <linux-mm@kvack.org>,
+	netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
+To: Brad Campbell <lists2009@fnarfbargle.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:54405 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754473Ab1FDPMQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 4 Jun 2011 11:12:16 -0400
-Received: by wya21 with SMTP id 21so1959993wya.19
-        for <netfilter-devel@vger.kernel.org>; Sat, 04 Jun 2011 08:12:14 -0700 (PDT)
-In-Reply-To: <4DDE87F5.9050606@googlemail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:40296 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752680Ab1FEN7K (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 5 Jun 2011 09:59:10 -0400
+In-Reply-To: <4DEB8872.2060801@fnarfbargle.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add SELinux context support to AUDIT target (2nd revision). Typical (raw auditd) output after applying this patch would be:
+On 06/05/2011 04:45 PM, Brad Campbell wrote:
+>> The mailing list might be set not to send your own mails back to you.
+>> Check the list archive.
+>
+>
+> Yep, I did that first..
+>
+> Given the response to previous issues along the same line, it looks a 
+> bit like I just remember not to actually use the system in the way 
+> that triggers the bug and be happy that 99% of the time the kernel 
+> does not panic, but have that lovely feeling in the back of the skull 
+> that says "any time now, and without obvious reason the whole machine 
+> might just come crashing down"..
+>
+> I guess it's still better than running Xen or Windows..
 
-type=NETFILTER_PKT msg=audit(1305852240.082:31012): action=0 hook=1 len=52 inif=? outif=eth0 saddr=10.1.1.7 daddr=10.1.2.1 ipid=16312 proto=6 sport=56150 dport=22 obj=system_u:object_r:ssh_packet_t:s0
-type=NETFILTER_PKT msg=audit(1306772064.079:56): action=0 hook=3 len=48 inif=eth0 outif=? smac=00:05:5d:7c:27:0b dmac=00:02:b3:0a:7f:81 macproto=0x0800 saddr=10.1.2.1 daddr=10.1.1.7 ipid=462 proto=6 sport=3561 dport=22 obj=system_u:object_r:ssh_packet_t:s0
+Not at all.  Can some networking/netfilter expert look at this?
 
+Please file a bug with all the relevant information in this thread.  If 
+you can look for a previous version that worked, that might increase the 
+chances of the bug being resolved faster.
 
-Signed-off-by: Mr Dash Four <mr.dash.four@googlemail.com>
----
- net/netfilter/xt_AUDIT.c |   15 +++++++++++++++
- 1 files changed, 15 insertions(+), 0 deletions(-)
-
-diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
-index 363a99e..616cadc 100644
---- a/net/netfilter/xt_AUDIT.c
-+++ b/net/netfilter/xt_AUDIT.c
-@@ -20,6 +20,9 @@
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_AUDIT.h>
- #include <linux/netfilter_bridge/ebtables.h>
-+#ifdef CONFIG_NF_CONNTRACK_SECMARK
-+#include <linux/security.h>
-+#endif
- #include <net/ipv6.h>
- #include <net/ip.h>
- 
-@@ -122,6 +125,10 @@ audit_tg(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	const struct xt_audit_info *info = par->targinfo;
- 	struct audit_buffer *ab;
-+#ifdef CONFIG_NF_CONNTRACK_SECMARK
-+	u32 len;
-+	char *secctx;
-+#endif
- 
- 	ab = audit_log_start(NULL, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
- 	if (ab == NULL)
-@@ -163,6 +170,14 @@ audit_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 		break;
- 	}
- 
-+#ifdef CONFIG_NF_CONNTRACK_SECMARK
-+	if (skb->secmark)
-+	  	if (!security_secid_to_secctx(skb->secmark, &secctx, &len)) {
-+			audit_log_format(ab, " obj=%s", secctx);
-+			security_release_secctx(secctx, len);
-+		}
-+#endif
-+
- 	audit_log_end(ab);
- 
- errout:
 -- 
-1.7.3.4
-
+error compiling committee.c: too many arguments to function
 
