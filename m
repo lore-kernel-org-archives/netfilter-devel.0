@@ -1,367 +1,421 @@
 From: pablo@netfilter.org
-Subject: [PATCH 08/20] netfilter: add more values to enum ip_conntrack_info
-Date: Mon,  6 Jun 2011 01:08:59 +0200
-Message-ID: <1307315350-17782-9-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 10/20] netfilter: ipset: Add xt_action_param to the variant level kadt functions
+Date: Mon,  6 Jun 2011 01:09:00 +0200
+Message-ID: <1307315350-17782-10-git-send-email-pablo@netfilter.org>
 References: <1307315350-17782-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: davem@davemloft.net, Eric Dumazet <eric.dumazet@gmail.com>,
+Cc: davem@davemloft.net, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52209 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52214 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756468Ab1FEXJk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Jun 2011 19:09:40 -0400
+	id S1756471Ab1FEXJl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 5 Jun 2011 19:09:41 -0400
 In-Reply-To: <1307315350-17782-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: Eric Dumazet <eric.dumazet@gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-=46ollowing error is raised (and other similar ones) :
+With the change the sets can use any parameter available for the match
+and target extensions, like input/output interface. It's required for
+the hash:net,iface set type.
 
-net/ipv4/netfilter/nf_nat_standalone.c: In function =E2=80=98nf_nat_fn=E2=
-=80=99:
-net/ipv4/netfilter/nf_nat_standalone.c:119:2: warning: case value =E2=80=
-=984=E2=80=99
-not in enumerated type =E2=80=98enum ip_conntrack_info=E2=80=99
-
-gcc barfs on adding two enum values and getting a not enumerated
-result :
-
-case IP_CT_RELATED+IP_CT_IS_REPLY:
-
-Add missing enum values
-
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-CC: David Miller <davem@davemloft.net>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter/nf_conntrack_common.h  |    3 +++
- net/ipv4/netfilter/ipt_CLUSTERIP.c             |    6 +++---
- net/ipv4/netfilter/ipt_MASQUERADE.c            |    2 +-
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    2 +-
- net/ipv4/netfilter/nf_nat_core.c               |    2 +-
- net/ipv4/netfilter/nf_nat_rule.c               |    2 +-
- net/ipv4/netfilter/nf_nat_standalone.c         |    4 ++--
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    2 +-
- net/netfilter/nf_conntrack_core.c              |    4 ++--
- net/netfilter/nf_conntrack_ftp.c               |    2 +-
- net/netfilter/nf_conntrack_h323_main.c         |   10 ++++------
- net/netfilter/nf_conntrack_irc.c               |    3 +--
- net/netfilter/nf_conntrack_pptp.c              |    3 +--
- net/netfilter/nf_conntrack_sane.c              |    2 +-
- net/netfilter/nf_conntrack_sip.c               |    2 +-
- net/netfilter/xt_socket.c                      |    4 ++--
- 16 files changed, 26 insertions(+), 27 deletions(-)
+ include/linux/netfilter/ipset/ip_set.h       |    5 +++++
+ include/linux/netfilter/ipset/ip_set_ahash.h |    1 +
+ net/netfilter/ipset/ip_set_bitmap_ip.c       |    1 +
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c    |    1 +
+ net/netfilter/ipset/ip_set_bitmap_port.c     |    1 +
+ net/netfilter/ipset/ip_set_core.c            |   12 ++++++++----
+ net/netfilter/ipset/ip_set_hash_ip.c         |    2 ++
+ net/netfilter/ipset/ip_set_hash_ipport.c     |    2 ++
+ net/netfilter/ipset/ip_set_hash_ipportip.c   |    2 ++
+ net/netfilter/ipset/ip_set_hash_ipportnet.c  |    2 ++
+ net/netfilter/ipset/ip_set_hash_net.c        |    2 ++
+ net/netfilter/ipset/ip_set_hash_netport.c    |    2 ++
+ net/netfilter/ipset/ip_set_list_set.c        |    7 ++++---
+ net/netfilter/xt_set.c                       |   19 ++++++++++---------
+ 14 files changed, 43 insertions(+), 16 deletions(-)
 
-diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/li=
-nux/netfilter/nf_conntrack_common.h
-index 50cdc25..0d3dd66 100644
---- a/include/linux/netfilter/nf_conntrack_common.h
-+++ b/include/linux/netfilter/nf_conntrack_common.h
-@@ -18,6 +18,9 @@ enum ip_conntrack_info {
- 	/* >=3D this indicates reply direction */
- 	IP_CT_IS_REPLY,
-=20
-+	IP_CT_ESTABLISHED_REPLY =3D IP_CT_ESTABLISHED + IP_CT_IS_REPLY,
-+	IP_CT_RELATED_REPLY =3D IP_CT_RELATED + IP_CT_IS_REPLY,
-+	IP_CT_NEW_REPLY =3D IP_CT_NEW + IP_CT_IS_REPLY,=09
- 	/* Number of distinct IP_CT types (no NEW in reply dirn). */
- 	IP_CT_NUMBER =3D IP_CT_IS_REPLY * 2 - 1
- };
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ip=
-t_CLUSTERIP.c
-index d609ac3..5c9e97c 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -307,7 +307,7 @@ clusterip_tg(struct sk_buff *skb, const struct xt_a=
-ction_param *par)
- 	 * error messages (RELATED) and information requests (see below) */
- 	if (ip_hdr(skb)->protocol =3D=3D IPPROTO_ICMP &&
- 	    (ctinfo =3D=3D IP_CT_RELATED ||
--	     ctinfo =3D=3D IP_CT_RELATED + IP_CT_IS_REPLY))
-+	     ctinfo =3D=3D IP_CT_RELATED_REPLY))
- 		return XT_CONTINUE;
-=20
- 	/* ip_conntrack_icmp guarantees us that we only have ICMP_ECHO,
-@@ -321,12 +321,12 @@ clusterip_tg(struct sk_buff *skb, const struct xt=
-_action_param *par)
- 			ct->mark =3D hash;
- 			break;
- 		case IP_CT_RELATED:
--		case IP_CT_RELATED+IP_CT_IS_REPLY:
-+		case IP_CT_RELATED_REPLY:
- 			/* FIXME: we don't handle expectations at the
- 			 * moment.  they can arrive on a different node than
- 			 * the master connection (e.g. FTP passive mode) */
- 		case IP_CT_ESTABLISHED:
--		case IP_CT_ESTABLISHED+IP_CT_IS_REPLY:
-+		case IP_CT_ESTABLISHED_REPLY:
- 			break;
- 		default:
- 			break;
-diff --git a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/i=
-pt_MASQUERADE.c
-index d2ed9dc..9931152 100644
---- a/net/ipv4/netfilter/ipt_MASQUERADE.c
-+++ b/net/ipv4/netfilter/ipt_MASQUERADE.c
-@@ -60,7 +60,7 @@ masquerade_tg(struct sk_buff *skb, const struct xt_ac=
-tion_param *par)
- 	nat =3D nfct_nat(ct);
-=20
- 	NF_CT_ASSERT(ct && (ctinfo =3D=3D IP_CT_NEW || ctinfo =3D=3D IP_CT_RE=
-LATED ||
--			    ctinfo =3D=3D IP_CT_RELATED + IP_CT_IS_REPLY));
-+			    ctinfo =3D=3D IP_CT_RELATED_REPLY));
-=20
- 	/* Source address is 0.0.0.0 - locally generated packet that is
- 	 * probably not supposed to be masqueraded.
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/=
-netfilter/nf_conntrack_l3proto_ipv4.c
-index 5a03c02..db10075 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -101,7 +101,7 @@ static unsigned int ipv4_confirm(unsigned int hookn=
-um,
-=20
- 	/* This is where we call the helper: as the packet goes out. */
- 	ct =3D nf_ct_get(skb, &ctinfo);
--	if (!ct || ctinfo =3D=3D IP_CT_RELATED + IP_CT_IS_REPLY)
-+	if (!ct || ctinfo =3D=3D IP_CT_RELATED_REPLY)
- 		goto out;
-=20
- 	help =3D nfct_help(ct);
-diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_n=
-at_core.c
-index 9c71b27..3346de5 100644
---- a/net/ipv4/netfilter/nf_nat_core.c
-+++ b/net/ipv4/netfilter/nf_nat_core.c
-@@ -433,7 +433,7 @@ int nf_nat_icmp_reply_translation(struct nf_conn *c=
-t,
-=20
- 	/* Must be RELATED */
- 	NF_CT_ASSERT(skb->nfctinfo =3D=3D IP_CT_RELATED ||
--		     skb->nfctinfo =3D=3D IP_CT_RELATED+IP_CT_IS_REPLY);
-+		     skb->nfctinfo =3D=3D IP_CT_RELATED_REPLY);
-=20
- 	/* Redirects on non-null nats must be dropped, else they'll
- 	   start talking to each other without our translation, and be
-diff --git a/net/ipv4/netfilter/nf_nat_rule.c b/net/ipv4/netfilter/nf_n=
-at_rule.c
-index 21c3042..733c9ab 100644
---- a/net/ipv4/netfilter/nf_nat_rule.c
-+++ b/net/ipv4/netfilter/nf_nat_rule.c
-@@ -53,7 +53,7 @@ ipt_snat_target(struct sk_buff *skb, const struct xt_=
-action_param *par)
-=20
- 	/* Connection must be valid and new. */
- 	NF_CT_ASSERT(ct && (ctinfo =3D=3D IP_CT_NEW || ctinfo =3D=3D IP_CT_RE=
-LATED ||
--			    ctinfo =3D=3D IP_CT_RELATED + IP_CT_IS_REPLY));
-+			    ctinfo =3D=3D IP_CT_RELATED_REPLY));
- 	NF_CT_ASSERT(par->out !=3D NULL);
-=20
- 	return nf_nat_setup_info(ct, &mr->range[0], IP_NAT_MANIP_SRC);
-diff --git a/net/ipv4/netfilter/nf_nat_standalone.c b/net/ipv4/netfilte=
-r/nf_nat_standalone.c
-index 7317bdf..483b76d 100644
---- a/net/ipv4/netfilter/nf_nat_standalone.c
-+++ b/net/ipv4/netfilter/nf_nat_standalone.c
-@@ -116,7 +116,7 @@ nf_nat_fn(unsigned int hooknum,
-=20
- 	switch (ctinfo) {
- 	case IP_CT_RELATED:
--	case IP_CT_RELATED+IP_CT_IS_REPLY:
-+	case IP_CT_RELATED_REPLY:
- 		if (ip_hdr(skb)->protocol =3D=3D IPPROTO_ICMP) {
- 			if (!nf_nat_icmp_reply_translation(ct, ctinfo,
- 							   hooknum, skb))
-@@ -144,7 +144,7 @@ nf_nat_fn(unsigned int hooknum,
- 	default:
- 		/* ESTABLISHED */
- 		NF_CT_ASSERT(ctinfo =3D=3D IP_CT_ESTABLISHED ||
--			     ctinfo =3D=3D (IP_CT_ESTABLISHED+IP_CT_IS_REPLY));
-+			     ctinfo =3D=3D IP_CT_ESTABLISHED_REPLY);
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+index fd83f4f..8955165 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -170,6 +170,7 @@ enum ipset_adt {
+ #include <linux/ipv6.h>
+ #include <linux/netlink.h>
+ #include <linux/netfilter.h>
++#include <linux/netfilter/x_tables.h>
+ #include <linux/vmalloc.h>
+ #include <net/netlink.h>
+ 
+@@ -238,6 +239,7 @@ struct ip_set_type_variant {
+ 	 *			zero for no match/success to add/delete
+ 	 *			positive for matching element */
+ 	int (*kadt)(struct ip_set *set, const struct sk_buff * skb,
++		    const struct xt_action_param *par,
+ 		    enum ipset_adt adt, const struct ip_set_adt_opt *opt);
+ 
+ 	/* Userspace: test/add/del entries
+@@ -332,10 +334,13 @@ extern void ip_set_nfnl_put(ip_set_id_t index);
+ /* API for iptables set match, and SET target */
+ 
+ extern int ip_set_add(ip_set_id_t id, const struct sk_buff *skb,
++		      const struct xt_action_param *par,
+ 		      const struct ip_set_adt_opt *opt);
+ extern int ip_set_del(ip_set_id_t id, const struct sk_buff *skb,
++		      const struct xt_action_param *par,
+ 		      const struct ip_set_adt_opt *opt);
+ extern int ip_set_test(ip_set_id_t id, const struct sk_buff *skb,
++		       const struct xt_action_param *par,
+ 		       const struct ip_set_adt_opt *opt);
+ 
+ /* Utility functions */
+diff --git a/include/linux/netfilter/ipset/ip_set_ahash.h b/include/linux/netfilter/ipset/ip_set_ahash.h
+index a099d40..1c977e1 100644
+--- a/include/linux/netfilter/ipset/ip_set_ahash.h
++++ b/include/linux/netfilter/ipset/ip_set_ahash.h
+@@ -599,6 +599,7 @@ nla_put_failure:
+ 
+ static int
+ type_pf_kadt(struct ip_set *set, const struct sk_buff * skb,
++	     const struct xt_action_param *par,
+ 	     enum ipset_adt adt, const struct ip_set_adt_opt *opt);
+ static int
+ type_pf_uadt(struct ip_set *set, struct nlattr *tb[],
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
+index c46e344..e3e7399 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ip.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
+@@ -219,6 +219,7 @@ nla_put_failure:
+ 
+ static int
+ bitmap_ip_kadt(struct ip_set *set, const struct sk_buff *skb,
++	       const struct xt_action_param *par,
+ 	       enum ipset_adt adt, const struct ip_set_adt_opt *opt)
+ {
+ 	struct bitmap_ip *map = set->data;
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index aa2cfa1..51ab664 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -338,6 +338,7 @@ nla_put_failure:
+ 
+ static int
+ bitmap_ipmac_kadt(struct ip_set *set, const struct sk_buff *skb,
++		  const struct xt_action_param *par,
+ 		  enum ipset_adt adt, const struct ip_set_adt_opt *opt)
+ {
+ 	struct bitmap_ipmac *map = set->data;
+diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
+index c3e906f..29ba93b 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_port.c
++++ b/net/netfilter/ipset/ip_set_bitmap_port.c
+@@ -208,6 +208,7 @@ nla_put_failure:
+ 
+ static int
+ bitmap_port_kadt(struct ip_set *set, const struct sk_buff *skb,
++		 const struct xt_action_param *par,
+ 		 enum ipset_adt adt, const struct ip_set_adt_opt *opt)
+ {
+ 	struct bitmap_port *map = set->data;
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index b23feaf..8e2bced 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -21,6 +21,7 @@
+ #include <net/netlink.h>
+ 
+ #include <linux/netfilter.h>
++#include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/ipset/ip_set.h>
+ 
+@@ -328,6 +329,7 @@ __ip_set_put(ip_set_id_t index)
+ 
+ int
+ ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
++	    const struct xt_action_param *par,
+ 	    const struct ip_set_adt_opt *opt)
+ {
+ 	struct ip_set *set = ip_set_list[index];
+@@ -341,14 +343,14 @@ ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
+ 		return 0;
+ 
+ 	read_lock_bh(&set->lock);
+-	ret = set->variant->kadt(set, skb, IPSET_TEST, opt);
++	ret = set->variant->kadt(set, skb, par, IPSET_TEST, opt);
+ 	read_unlock_bh(&set->lock);
+ 
+ 	if (ret == -EAGAIN) {
+ 		/* Type requests element to be completed */
+ 		pr_debug("element must be competed, ADD is triggered\n");
+ 		write_lock_bh(&set->lock);
+-		set->variant->kadt(set, skb, IPSET_ADD, opt);
++		set->variant->kadt(set, skb, par, IPSET_ADD, opt);
+ 		write_unlock_bh(&set->lock);
+ 		ret = 1;
  	}
-=20
- 	return nf_nat_packet(ct, ctinfo, hooknum, skb);
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/=
-netfilter/nf_conntrack_l3proto_ipv6.c
-index c8af58b..4111050 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -160,7 +160,7 @@ static unsigned int ipv6_confirm(unsigned int hookn=
-um,
-=20
- 	/* This is where we call the helper: as the packet goes out. */
- 	ct =3D nf_ct_get(skb, &ctinfo);
--	if (!ct || ctinfo =3D=3D IP_CT_RELATED + IP_CT_IS_REPLY)
-+	if (!ct || ctinfo =3D=3D IP_CT_RELATED_REPLY)
- 		goto out;
-=20
- 	help =3D nfct_help(ct);
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_connt=
-rack_core.c
-index 2e1c11f..0bd5689 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -850,7 +850,7 @@ resolve_normal_ct(struct net *net, struct nf_conn *=
-tmpl,
-=20
- 	/* It exists; we have (non-exclusive) reference. */
- 	if (NF_CT_DIRECTION(h) =3D=3D IP_CT_DIR_REPLY) {
--		*ctinfo =3D IP_CT_ESTABLISHED + IP_CT_IS_REPLY;
-+		*ctinfo =3D IP_CT_ESTABLISHED_REPLY;
- 		/* Please set reply bit if this packet OK */
- 		*set_reply =3D 1;
- 	} else {
-@@ -1143,7 +1143,7 @@ static void nf_conntrack_attach(struct sk_buff *n=
-skb, struct sk_buff *skb)
- 	/* This ICMP is in reverse direction to the packet which caused it */
- 	ct =3D nf_ct_get(skb, &ctinfo);
- 	if (CTINFO2DIR(ctinfo) =3D=3D IP_CT_DIR_ORIGINAL)
--		ctinfo =3D IP_CT_RELATED + IP_CT_IS_REPLY;
-+		ctinfo =3D IP_CT_RELATED_REPLY;
- 	else
- 		ctinfo =3D IP_CT_RELATED;
-=20
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntr=
-ack_ftp.c
-index e17cb7c..6f5801e 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -368,7 +368,7 @@ static int help(struct sk_buff *skb,
-=20
- 	/* Until there's been traffic both ways, don't look in packets. */
- 	if (ctinfo !=3D IP_CT_ESTABLISHED &&
--	    ctinfo !=3D IP_CT_ESTABLISHED + IP_CT_IS_REPLY) {
-+	    ctinfo !=3D IP_CT_ESTABLISHED_REPLY) {
- 		pr_debug("ftp: Conntrackinfo =3D %u\n", ctinfo);
- 		return NF_ACCEPT;
- 	}
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_=
-conntrack_h323_main.c
-index 18b2ce5..f03c2d4 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -571,10 +571,9 @@ static int h245_help(struct sk_buff *skb, unsigned=
- int protoff,
- 	int ret;
-=20
- 	/* Until there's been traffic both ways, don't look in packets. */
--	if (ctinfo !=3D IP_CT_ESTABLISHED &&
--	    ctinfo !=3D IP_CT_ESTABLISHED + IP_CT_IS_REPLY) {
-+	if (ctinfo !=3D IP_CT_ESTABLISHED && ctinfo !=3D IP_CT_ESTABLISHED_RE=
-PLY)
- 		return NF_ACCEPT;
--	}
-+
- 	pr_debug("nf_ct_h245: skblen =3D %u\n", skb->len);
-=20
- 	spin_lock_bh(&nf_h323_lock);
-@@ -1125,10 +1124,9 @@ static int q931_help(struct sk_buff *skb, unsign=
-ed int protoff,
- 	int ret;
-=20
- 	/* Until there's been traffic both ways, don't look in packets. */
--	if (ctinfo !=3D IP_CT_ESTABLISHED &&
--	    ctinfo !=3D IP_CT_ESTABLISHED + IP_CT_IS_REPLY) {
-+	if (ctinfo !=3D IP_CT_ESTABLISHED && ctinfo !=3D IP_CT_ESTABLISHED_RE=
-PLY)
- 		return NF_ACCEPT;
--	}
-+
- 	pr_debug("nf_ct_q931: skblen =3D %u\n", skb->len);
-=20
- 	spin_lock_bh(&nf_h323_lock);
-diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntr=
-ack_irc.c
-index b394aa3..4f9390b 100644
---- a/net/netfilter/nf_conntrack_irc.c
-+++ b/net/netfilter/nf_conntrack_irc.c
-@@ -125,8 +125,7 @@ static int help(struct sk_buff *skb, unsigned int p=
-rotoff,
- 		return NF_ACCEPT;
-=20
- 	/* Until there's been traffic both ways, don't look in packets. */
--	if (ctinfo !=3D IP_CT_ESTABLISHED &&
--	    ctinfo !=3D IP_CT_ESTABLISHED + IP_CT_IS_REPLY)
-+	if (ctinfo !=3D IP_CT_ESTABLISHED && ctinfo !=3D IP_CT_ESTABLISHED_RE=
-PLY)
- 		return NF_ACCEPT;
-=20
- 	/* Not a full tcp header? */
-diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_connt=
-rack_pptp.c
-index 0889448..2fd4565 100644
---- a/net/netfilter/nf_conntrack_pptp.c
-+++ b/net/netfilter/nf_conntrack_pptp.c
-@@ -519,8 +519,7 @@ conntrack_pptp_help(struct sk_buff *skb, unsigned i=
-nt protoff,
- 	u_int16_t msg;
-=20
- 	/* don't do any tracking before tcp handshake complete */
--	if (ctinfo !=3D IP_CT_ESTABLISHED &&
--	    ctinfo !=3D IP_CT_ESTABLISHED + IP_CT_IS_REPLY)
-+	if (ctinfo !=3D IP_CT_ESTABLISHED && ctinfo !=3D IP_CT_ESTABLISHED_RE=
-PLY)
- 		return NF_ACCEPT;
-=20
- 	nexthdr_off =3D protoff;
-diff --git a/net/netfilter/nf_conntrack_sane.c b/net/netfilter/nf_connt=
-rack_sane.c
-index d9e2773..8501823 100644
---- a/net/netfilter/nf_conntrack_sane.c
-+++ b/net/netfilter/nf_conntrack_sane.c
-@@ -78,7 +78,7 @@ static int help(struct sk_buff *skb,
- 	ct_sane_info =3D &nfct_help(ct)->help.ct_sane_info;
- 	/* Until there's been traffic both ways, don't look in packets. */
- 	if (ctinfo !=3D IP_CT_ESTABLISHED &&
--	    ctinfo !=3D IP_CT_ESTABLISHED+IP_CT_IS_REPLY)
-+	    ctinfo !=3D IP_CT_ESTABLISHED_REPLY)
- 		return NF_ACCEPT;
-=20
- 	/* Not a full tcp header? */
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntr=
-ack_sip.c
-index 2c0d6ce..6a9c9aa 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -1440,7 +1440,7 @@ static int sip_help_tcp(struct sk_buff *skb, unsi=
-gned int protoff,
- 	typeof(nf_nat_sip_seq_adjust_hook) nf_nat_sip_seq_adjust;
-=20
- 	if (ctinfo !=3D IP_CT_ESTABLISHED &&
--	    ctinfo !=3D IP_CT_ESTABLISHED + IP_CT_IS_REPLY)
-+	    ctinfo !=3D IP_CT_ESTABLISHED_REPLY)
- 		return NF_ACCEPT;
-=20
- 	/* No Data ? */
-diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
-index 9cc4635..fe39f7e 100644
---- a/net/netfilter/xt_socket.c
-+++ b/net/netfilter/xt_socket.c
-@@ -143,9 +143,9 @@ socket_match(const struct sk_buff *skb, struct xt_a=
-ction_param *par,
- 	ct =3D nf_ct_get(skb, &ctinfo);
- 	if (ct && !nf_ct_is_untracked(ct) &&
- 	    ((iph->protocol !=3D IPPROTO_ICMP &&
--	      ctinfo =3D=3D IP_CT_IS_REPLY + IP_CT_ESTABLISHED) ||
-+	      ctinfo =3D=3D IP_CT_ESTABLISHED_REPLY) ||
- 	     (iph->protocol =3D=3D IPPROTO_ICMP &&
--	      ctinfo =3D=3D IP_CT_IS_REPLY + IP_CT_RELATED)) &&
-+	      ctinfo =3D=3D IP_CT_RELATED_REPLY)) &&
- 	    (ct->status & IPS_SRC_NAT_DONE)) {
-=20
- 		daddr =3D ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3.ip;
---=20
+@@ -360,6 +362,7 @@ EXPORT_SYMBOL_GPL(ip_set_test);
+ 
+ int
+ ip_set_add(ip_set_id_t index, const struct sk_buff *skb,
++	   const struct xt_action_param *par,
+ 	   const struct ip_set_adt_opt *opt)
+ {
+ 	struct ip_set *set = ip_set_list[index];
+@@ -373,7 +376,7 @@ ip_set_add(ip_set_id_t index, const struct sk_buff *skb,
+ 		return 0;
+ 
+ 	write_lock_bh(&set->lock);
+-	ret = set->variant->kadt(set, skb, IPSET_ADD, opt);
++	ret = set->variant->kadt(set, skb, par, IPSET_ADD, opt);
+ 	write_unlock_bh(&set->lock);
+ 
+ 	return ret;
+@@ -382,6 +385,7 @@ EXPORT_SYMBOL_GPL(ip_set_add);
+ 
+ int
+ ip_set_del(ip_set_id_t index, const struct sk_buff *skb,
++	   const struct xt_action_param *par,
+ 	   const struct ip_set_adt_opt *opt)
+ {
+ 	struct ip_set *set = ip_set_list[index];
+@@ -395,7 +399,7 @@ ip_set_del(ip_set_id_t index, const struct sk_buff *skb,
+ 		return 0;
+ 
+ 	write_lock_bh(&set->lock);
+-	ret = set->variant->kadt(set, skb, IPSET_DEL, opt);
++	ret = set->variant->kadt(set, skb, par, IPSET_DEL, opt);
+ 	write_unlock_bh(&set->lock);
+ 
+ 	return ret;
+diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
+index bdb432e..fa80bb9 100644
+--- a/net/netfilter/ipset/ip_set_hash_ip.c
++++ b/net/netfilter/ipset/ip_set_hash_ip.c
+@@ -116,6 +116,7 @@ hash_ip4_data_next(struct ip_set_hash *h, const struct hash_ip4_elem *d)
+ 
+ static int
+ hash_ip4_kadt(struct ip_set *set, const struct sk_buff *skb,
++	      const struct xt_action_param *par,
+ 	      enum ipset_adt adt, const struct ip_set_adt_opt *opt)
+ {
+ 	const struct ip_set_hash *h = set->data;
+@@ -295,6 +296,7 @@ hash_ip6_data_next(struct ip_set_hash *h, const struct hash_ip6_elem *d)
+ 
+ static int
+ hash_ip6_kadt(struct ip_set *set, const struct sk_buff *skb,
++	      const struct xt_action_param *par,
+ 	      enum ipset_adt adt, const struct ip_set_adt_opt *opt)
+ {
+ 	const struct ip_set_hash *h = set->data;
+diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
+index bdeb716..bbf51b6 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipport.c
++++ b/net/netfilter/ipset/ip_set_hash_ipport.c
+@@ -134,6 +134,7 @@ hash_ipport4_data_next(struct ip_set_hash *h,
+ 
+ static int
+ hash_ipport4_kadt(struct ip_set *set, const struct sk_buff *skb,
++		  const struct xt_action_param *par,
+ 		  enum ipset_adt adt, const struct ip_set_adt_opt *opt)
+ {
+ 	const struct ip_set_hash *h = set->data;
+@@ -348,6 +349,7 @@ hash_ipport6_data_next(struct ip_set_hash *h,
+ 
+ static int
+ hash_ipport6_kadt(struct ip_set *set, const struct sk_buff *skb,
++		  const struct xt_action_param *par,
+ 		  enum ipset_adt adt, const struct ip_set_adt_opt *opt)
+ {
+ 	const struct ip_set_hash *h = set->data;
+diff --git a/net/netfilter/ipset/ip_set_hash_ipportip.c b/net/netfilter/ipset/ip_set_hash_ipportip.c
+index fb986fc..96525f5 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipportip.c
++++ b/net/netfilter/ipset/ip_set_hash_ipportip.c
+@@ -137,6 +137,7 @@ hash_ipportip4_data_next(struct ip_set_hash *h,
+ 
+ static int
+ hash_ipportip4_kadt(struct ip_set *set, const struct sk_buff *skb,
++		    const struct xt_action_param *par,
+ 		    enum ipset_adt adt, const struct ip_set_adt_opt *opt)
+ {
+ 	const struct ip_set_hash *h = set->data;
+@@ -361,6 +362,7 @@ hash_ipportip6_data_next(struct ip_set_hash *h,
+ 
+ static int
+ hash_ipportip6_kadt(struct ip_set *set, const struct sk_buff *skb,
++		    const struct xt_action_param *par,
+ 		    enum ipset_adt adt, const struct ip_set_adt_opt *opt)
+ {
+ 	const struct ip_set_hash *h = set->data;
+diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+index 2ed5e75..dcd351b 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+@@ -151,6 +151,7 @@ hash_ipportnet4_data_next(struct ip_set_hash *h,
+ 
+ static int
+ hash_ipportnet4_kadt(struct ip_set *set, const struct sk_buff *skb,
++		     const struct xt_action_param *par,
+ 		     enum ipset_adt adt, const struct ip_set_adt_opt *opt)
+ {
+ 	const struct ip_set_hash *h = set->data;
+@@ -428,6 +429,7 @@ hash_ipportnet6_data_next(struct ip_set_hash *h,
+ 
+ static int
+ hash_ipportnet6_kadt(struct ip_set *set, const struct sk_buff *skb,
++		     const struct xt_action_param *par,
+ 		     enum ipset_adt adt, const struct ip_set_adt_opt *opt)
+ {
+ 	const struct ip_set_hash *h = set->data;
+diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/ip_set_hash_net.c
+index 8d3c3ef..dcbb5d4 100644
+--- a/net/netfilter/ipset/ip_set_hash_net.c
++++ b/net/netfilter/ipset/ip_set_hash_net.c
+@@ -134,6 +134,7 @@ hash_net4_data_next(struct ip_set_hash *h,
+ 
+ static int
+ hash_net4_kadt(struct ip_set *set, const struct sk_buff *skb,
++	       const struct xt_action_param *par,
+ 	       enum ipset_adt adt, const struct ip_set_adt_opt *opt)
+ {
+ 	const struct ip_set_hash *h = set->data;
+@@ -330,6 +331,7 @@ hash_net6_data_next(struct ip_set_hash *h,
+ 
+ static int
+ hash_net6_kadt(struct ip_set *set, const struct sk_buff *skb,
++	       const struct xt_action_param *par,
+ 	       enum ipset_adt adt, const struct ip_set_adt_opt *opt)
+ {
+ 	const struct ip_set_hash *h = set->data;
+diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ipset/ip_set_hash_netport.c
+index 90adc2c..72961ba 100644
+--- a/net/netfilter/ipset/ip_set_hash_netport.c
++++ b/net/netfilter/ipset/ip_set_hash_netport.c
+@@ -147,6 +147,7 @@ hash_netport4_data_next(struct ip_set_hash *h,
+ 
+ static int
+ hash_netport4_kadt(struct ip_set *set, const struct sk_buff *skb,
++		   const struct xt_action_param *par,
+ 		   enum ipset_adt adt, const struct ip_set_adt_opt *opt)
+ {
+ 	const struct ip_set_hash *h = set->data;
+@@ -390,6 +391,7 @@ hash_netport6_data_next(struct ip_set_hash *h,
+ 
+ static int
+ hash_netport6_kadt(struct ip_set *set, const struct sk_buff *skb,
++		   const struct xt_action_param *par,
+ 		   enum ipset_adt adt, const struct ip_set_adt_opt *opt)
+ {
+ 	const struct ip_set_hash *h = set->data;
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index 898fe68..4d10819 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -72,6 +72,7 @@ list_set_expired(const struct list_set *map, u32 id)
+ 
+ static int
+ list_set_kadt(struct ip_set *set, const struct sk_buff *skb,
++	      const struct xt_action_param *par,
+ 	      enum ipset_adt adt, const struct ip_set_adt_opt *opt)
+ {
+ 	struct list_set *map = set->data;
+@@ -87,17 +88,17 @@ list_set_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 			continue;
+ 		switch (adt) {
+ 		case IPSET_TEST:
+-			ret = ip_set_test(elem->id, skb, opt);
++			ret = ip_set_test(elem->id, skb, par, opt);
+ 			if (ret > 0)
+ 				return ret;
+ 			break;
+ 		case IPSET_ADD:
+-			ret = ip_set_add(elem->id, skb, opt);
++			ret = ip_set_add(elem->id, skb, par, opt);
+ 			if (ret == 0)
+ 				return ret;
+ 			break;
+ 		case IPSET_DEL:
+-			ret = ip_set_del(elem->id, skb, opt);
++			ret = ip_set_del(elem->id, skb, par, opt);
+ 			if (ret == 0)
+ 				return ret;
+ 			break;
+diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
+index eb265bd..453847f 100644
+--- a/net/netfilter/xt_set.c
++++ b/net/netfilter/xt_set.c
+@@ -29,9 +29,10 @@ MODULE_ALIAS("ip6t_SET");
+ 
+ static inline int
+ match_set(ip_set_id_t index, const struct sk_buff *skb,
++	  const struct xt_action_param *par,
+ 	  const struct ip_set_adt_opt *opt, int inv)
+ {
+-	if (ip_set_test(index, skb, opt))
++	if (ip_set_test(index, skb, par, opt))
+ 		inv = !inv;
+ 	return inv;
+ }
+@@ -54,7 +55,7 @@ set_match_v0(const struct sk_buff *skb, struct xt_action_param *par)
+ 	ADT_OPT(opt, par->family, info->match_set.u.compat.dim,
+ 		info->match_set.u.compat.flags, 0, UINT_MAX);
+ 
+-	return match_set(info->match_set.index, skb, &opt,
++	return match_set(info->match_set.index, skb, par, &opt,
+ 			 info->match_set.u.compat.flags & IPSET_INV_MATCH);
+ }
+ 
+@@ -118,9 +119,9 @@ set_target_v0(struct sk_buff *skb, const struct xt_action_param *par)
+ 		info->del_set.u.compat.flags, 0, UINT_MAX);
+ 
+ 	if (info->add_set.index != IPSET_INVALID_ID)
+-		ip_set_add(info->add_set.index, skb, &add_opt);
++		ip_set_add(info->add_set.index, skb, par, &add_opt);
+ 	if (info->del_set.index != IPSET_INVALID_ID)
+-		ip_set_del(info->del_set.index, skb, &del_opt);
++		ip_set_del(info->del_set.index, skb, par, &del_opt);
+ 
+ 	return XT_CONTINUE;
+ }
+@@ -188,7 +189,7 @@ set_match_v1(const struct sk_buff *skb, struct xt_action_param *par)
+ 	ADT_OPT(opt, par->family, info->match_set.dim,
+ 		info->match_set.flags, 0, UINT_MAX);
+ 
+-	return match_set(info->match_set.index, skb, &opt,
++	return match_set(info->match_set.index, skb, par, &opt,
+ 			 info->match_set.flags & IPSET_INV_MATCH);
+ }
+ 
+@@ -233,9 +234,9 @@ set_target_v1(struct sk_buff *skb, const struct xt_action_param *par)
+ 		info->del_set.flags, 0, UINT_MAX);
+ 
+ 	if (info->add_set.index != IPSET_INVALID_ID)
+-		ip_set_add(info->add_set.index, skb, &add_opt);
++		ip_set_add(info->add_set.index, skb, par, &add_opt);
+ 	if (info->del_set.index != IPSET_INVALID_ID)
+-		ip_set_del(info->del_set.index, skb, &del_opt);
++		ip_set_del(info->del_set.index, skb, par, &del_opt);
+ 
+ 	return XT_CONTINUE;
+ }
+@@ -302,9 +303,9 @@ set_target_v2(struct sk_buff *skb, const struct xt_action_param *par)
+ 		info->del_set.flags, 0, UINT_MAX);
+ 
+ 	if (info->add_set.index != IPSET_INVALID_ID)
+-		ip_set_add(info->add_set.index, skb, &add_opt);
++		ip_set_add(info->add_set.index, skb, par, &add_opt);
+ 	if (info->del_set.index != IPSET_INVALID_ID)
+-		ip_set_del(info->del_set.index, skb, &del_opt);
++		ip_set_del(info->del_set.index, skb, par, &del_opt);
+ 
+ 	return XT_CONTINUE;
+ }
+-- 
 1.7.2.5
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
