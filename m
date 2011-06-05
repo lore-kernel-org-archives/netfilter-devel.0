@@ -1,75 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2nd revision] Add SELinux context support to AUDIT target
-Date: Mon, 06 Jun 2011 01:06:41 +0200
-Message-ID: <4DEC0C01.4040900@netfilter.org>
-References: <4DDE9194.4030303@netfilter.org> <4DD5BF5A.2030108@googlemail.com> <4DDE848F.1070508@netfilter.org> <4DDE87F5.9050606@googlemail.com> <4DEA4B44.8050809@googlemail.com>
+Subject: Re: option to disable /proc/net/nf_conntrack procfs [was Re: netfilter
+ patches for 3.0.0-rc1]
+Date: Mon, 06 Jun 2011 01:07:05 +0200
+Message-ID: <4DEC0C19.1000205@netfilter.org>
+References: <4DE79466.6080400@netfilter.org> <alpine.LNX.2.01.1106031052210.32042@frira.zrqbmnf.qr> <4DE8AE7D.8060609@netfilter.org> <alpine.LNX.2.01.1106031605160.15918@frira.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, Thomas Graf <tgraf@redhat.com>,
-	Patrick McHardy <kaber@trash.net>,
-	Eric Paris <eparis@parisplace.org>,
-	Al Viro <viro@ZenIV.linux.org.uk>,
-	Linux-audit <linux-audit@redhat.com>
-To: Mr Dash Four <mr.dash.four@googlemail.com>
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59933 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:60000 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756346Ab1FEXGv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Jun 2011 19:06:51 -0400
-In-Reply-To: <4DEA4B44.8050809@googlemail.com>
+	id S1756388Ab1FEXHJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 5 Jun 2011 19:07:09 -0400
+In-Reply-To: <alpine.LNX.2.01.1106031605160.15918@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 04/06/11 17:12, Mr Dash Four wrote:
-> Add SELinux context support to AUDIT target (2nd revision). Typical (raw auditd) output after applying this patch would be:
+On 03/06/11 16:06, Jan Engelhardt wrote:
+> On Friday 2011-06-03 11:50, Pablo Neira Ayuso wrote:
 > 
-> type=NETFILTER_PKT msg=audit(1305852240.082:31012): action=0 hook=1 len=52 inif=? outif=eth0 saddr=10.1.1.7 daddr=10.1.2.1 ipid=16312 proto=6 sport=56150 dport=22 obj=system_u:object_r:ssh_packet_t:s0
-> type=NETFILTER_PKT msg=audit(1306772064.079:56): action=0 hook=3 len=48 inif=eth0 outif=? smac=00:05:5d:7c:27:0b dmac=00:02:b3:0a:7f:81 macproto=0x0800 saddr=10.1.2.1 daddr=10.1.1.7 ipid=462 proto=6 sport=3561 dport=22 obj=system_u:object_r:ssh_packet_t:s0
+>> On 03/06/11 10:53, Jan Engelhardt wrote:
+>>> netfilter: provide config option to disable ancient procfs parts
+>>>
+>>> +config NF_CONNTRACK_PROCFS
+>>> +	bool "Supply CT list in procfs (OBSOLETE)"
+>>> +	default y
+>>> +	depends on PROC_FS
+>>> +	---help---
+>>> +	This option enables for the list of known conntrack entries
+>>> +	to be shown in procfs under net/netfilter/nf_conntrack. This
+>>> +	is considered obsolete in favor of using the conntrack(8)
+>>> +	tool which uses Netlink.
+>>> +
+>>
+>> This still misses /proc/net/ip_conntrack which would be available. See
+>> nf_conntrack_l3proto_ipv4_compat.c
 > 
+> Hm indeed. New try:
 > 
-> Signed-off-by: Mr Dash Four <mr.dash.four@googlemail.com>
-> ---
->  net/netfilter/xt_AUDIT.c |   15 +++++++++++++++
->  1 files changed, 15 insertions(+), 0 deletions(-)
+> parent 6b914d11bc76286fd6d39833d046a3ce32a9b3cb (v3.0-rc1-100-g6b914d1)
+> commit 80a72a00f509c26f9fa50434e0a3df6274f01484
+> Author: Jan Engelhardt <jengelh@medozas.de>
+> Date:   Thu Apr 21 09:32:45 2011 +0200
 > 
-> diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
-> index 363a99e..616cadc 100644
-> --- a/net/netfilter/xt_AUDIT.c
-> +++ b/net/netfilter/xt_AUDIT.c
-> @@ -20,6 +20,9 @@
->  #include <linux/netfilter/x_tables.h>
->  #include <linux/netfilter/xt_AUDIT.h>
->  #include <linux/netfilter_bridge/ebtables.h>
-> +#ifdef CONFIG_NF_CONNTRACK_SECMARK
-> +#include <linux/security.h>
-> +#endif
->  #include <net/ipv6.h>
->  #include <net/ip.h>
->  
-> @@ -122,6 +125,10 @@ audit_tg(struct sk_buff *skb, const struct xt_action_param *par)
->  {
->  	const struct xt_audit_info *info = par->targinfo;
->  	struct audit_buffer *ab;
-> +#ifdef CONFIG_NF_CONNTRACK_SECMARK
-> +	u32 len;
-> +	char *secctx;
-> +#endif
->  
->  	ab = audit_log_start(NULL, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
->  	if (ab == NULL)
-> @@ -163,6 +170,14 @@ audit_tg(struct sk_buff *skb, const struct xt_action_param *par)
->  		break;
->  	}
->  
-> +#ifdef CONFIG_NF_CONNTRACK_SECMARK
-> +	if (skb->secmark)
+> netfilter: provide config option to disable ancient procfs parts
+> 
+> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 
-Minor nitpick. This 'if' needs one {
-
-> +	  	if (!security_secid_to_secctx(skb->secmark, &secctx, &len)) {
-> +			audit_log_format(ab, " obj=%s", secctx);
-> +			security_release_secctx(secctx, len);
-> +		}
-
-}
+Applied, thanks.
