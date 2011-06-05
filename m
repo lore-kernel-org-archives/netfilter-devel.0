@@ -1,142 +1,207 @@
 From: pablo@netfilter.org
-Subject: [PATCH 00/20] netfilter updates for 3.0.0-rc1
-Date: Mon,  6 Jun 2011 01:08:51 +0200
-Message-ID: <1307315350-17782-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: davem@davemloft.net, Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 02/20] netfilter: ipset: Support listing setnames and headers too
+Date: Mon,  6 Jun 2011 01:08:53 +0200
+Message-ID: <1307315350-17782-3-git-send-email-pablo@netfilter.org>
+References: <1307315350-17782-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52009 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52024 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756366Ab1FEXJX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Jun 2011 19:09:23 -0400
+	id S1756395Ab1FEXJ2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 5 Jun 2011 19:09:28 -0400
+In-Reply-To: <1307315350-17782-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-Hi David,
+Current listing makes possible to list sets with full content only.
+The patch adds support partial listings, i.e. listing just
+the existing setnames or listing set headers, without set members.
 
-the following patches contain Netfilter updates for 3.0.0-rc1
-The highlights are:
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/linux/netfilter/ipset/ip_set.h |    4 ++
+ net/netfilter/ipset/ip_set_core.c      |   73 ++++++++++++++++++++------------
+ 2 files changed, 50 insertions(+), 27 deletions(-)
 
-- ipset updates from Jozsef.
-
-- one IPVS fix from Julian Anastasov.
-
-- one enhancement for the SIP tracker to handle Cisco 7941/7945 IP phones
-
-- deprecate /proc/net/nf_conntrack interface from Jan.
-
-- one fix for nf_nat_csum mangling also from Julian.
-
-- one fix for a refcount leak in the untracked conntrack by myself.
-
-Please pull from:
-
-git://1984.lsi.us.es/net-next-2.6 pablo/nf-next-2.6-updates
-
-Thanks!
-
-Dave Jones (1):
-  netfilter: use unsigned variables for packet lengths in ip[6]_queue.
-
-Eric Dumazet (2):
-  netfilter: add more values to enum ip_conntrack_info
-  netfilter: nf_conntrack: remove one synchronize_net()
-
-Jan Engelhardt (1):
-  netfilter: nf_conntrack: provide config option to disable ancient
-    procfs parts
-
-Jesper Juhl (1):
-  ipvs: Avoid undefined order of evaluation in assignments to struct
-    nf_conn *
-
-Jozsef Kadlecsik (11):
-  netfilter: ipset: Options and flags support added to the kernel API
-  netfilter: ipset: Support listing setnames and headers too
-  netfilter: ipset: Fix adding ranges to hash types
-  netfilter: ipset: Set type support with multiple revisions added
-  netfilter: ipset: Support range for IPv4 at adding/deleting elements
-    for hash:*net* types
-  netfilter: ipset: Take into account cidr value for the from address
-    when creating the set
-  netfilter: ipset: Add xt_action_param to the variant level kadt
-    functions
-  netfilter: ipset: Fix return code for destroy when sets are in use
-  netfilter: ipset: Use the stored first cidr value instead of '1'
-  netfilter: ipset: hash:net,iface type introduced
-  netfilter: ipset: Whitespace and coding fixes, detected by
-    checkpatch.pl
-
-Julian Anastasov (2):
-  ipvs: restore support for iptables SNAT
-  netfilter: nf_nat: fix crash in nf_nat_csum
-
-Kevin Cernekee (1):
-  netfilter: nf_conntrack_sip: Handle Cisco 7941/7945 IP phones
-
-Pablo Neira Ayuso (1):
-  netfilter: nf_conntrack: fix ct refcount leak in l4proto->error()
-
- include/linux/netfilter/ipset/ip_set.h         |   47 ++-
- include/linux/netfilter/ipset/ip_set_ahash.h   |   33 +-
- include/linux/netfilter/ipset/ip_set_hash.h    |    4 +
- include/linux/netfilter/ipset/ip_set_timeout.h |    3 +
- include/linux/netfilter/ipset/pfxlen.h         |   11 +-
- include/linux/netfilter/nf_conntrack_common.h  |    3 +
- include/linux/netfilter/nf_conntrack_sip.h     |    3 +
- include/linux/netfilter/xt_set.h               |   15 +-
- net/ipv4/netfilter/Kconfig                     |    2 +-
- net/ipv4/netfilter/ip_queue.c                  |    3 +-
- net/ipv4/netfilter/ipt_CLUSTERIP.c             |    6 +-
- net/ipv4/netfilter/ipt_MASQUERADE.c            |    2 +-
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    3 +-
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |    2 +-
- net/ipv4/netfilter/nf_nat_core.c               |    2 +-
- net/ipv4/netfilter/nf_nat_helper.c             |    2 +-
- net/ipv4/netfilter/nf_nat_rule.c               |    2 +-
- net/ipv4/netfilter/nf_nat_sip.c                |   26 +-
- net/ipv4/netfilter/nf_nat_standalone.c         |    4 +-
- net/ipv6/netfilter/ip6_queue.c                 |    3 +-
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    2 +-
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    2 +-
- net/netfilter/Kconfig                          |   10 +
- net/netfilter/ipset/Kconfig                    |   10 +
- net/netfilter/ipset/Makefile                   |    1 +
- net/netfilter/ipset/ip_set_bitmap_ip.c         |   17 +-
- net/netfilter/ipset/ip_set_bitmap_ipmac.c      |   19 +-
- net/netfilter/ipset/ip_set_bitmap_port.c       |   13 +-
- net/netfilter/ipset/ip_set_core.c              |  165 +++---
- net/netfilter/ipset/ip_set_hash_ip.c           |   37 +-
- net/netfilter/ipset/ip_set_hash_ipport.c       |   55 ++-
- net/netfilter/ipset/ip_set_hash_ipportip.c     |   59 ++-
- net/netfilter/ipset/ip_set_hash_ipportnet.c    |  135 +++--
- net/netfilter/ipset/ip_set_hash_net.c          |   88 +++-
- net/netfilter/ipset/ip_set_hash_netiface.c     |  762 ++++++++++++++++++++++++
- net/netfilter/ipset/ip_set_hash_netport.c      |  113 +++-
- net/netfilter/ipset/ip_set_list_set.c          |   14 +-
- net/netfilter/ipset/pfxlen.c                   |   23 +-
- net/netfilter/ipvs/ip_vs_core.c                |   16 +-
- net/netfilter/ipvs/ip_vs_nfct.c                |    2 +-
- net/netfilter/ipvs/ip_vs_xmit.c                |    8 +-
- net/netfilter/nf_conntrack_core.c              |    7 +-
- net/netfilter/nf_conntrack_expect.c            |   12 +-
- net/netfilter/nf_conntrack_ftp.c               |    2 +-
- net/netfilter/nf_conntrack_h323_main.c         |   10 +-
- net/netfilter/nf_conntrack_irc.c               |    3 +-
- net/netfilter/nf_conntrack_pptp.c              |    3 +-
- net/netfilter/nf_conntrack_sane.c              |    2 +-
- net/netfilter/nf_conntrack_sip.c               |   19 +-
- net/netfilter/nf_conntrack_standalone.c        |    4 +-
- net/netfilter/xt_set.c                         |  152 ++++--
- net/netfilter/xt_socket.c                      |    4 +-
- 52 files changed, 1581 insertions(+), 364 deletions(-)
- create mode 100644 net/netfilter/ipset/ip_set_hash_netiface.c
-
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+index 68b21f5..e677c4d 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -142,6 +142,10 @@ enum ipset_errno {
+ enum ipset_cmd_flags {
+ 	IPSET_FLAG_BIT_EXIST	= 0,
+ 	IPSET_FLAG_EXIST	= (1 << IPSET_FLAG_BIT_EXIST),
++	IPSET_FLAG_BIT_LIST_SETNAME = 1,
++	IPSET_FLAG_LIST_SETNAME	= (1 << IPSET_FLAG_BIT_LIST_SETNAME),
++	IPSET_FLAG_BIT_LIST_HEADER = 2,
++	IPSET_FLAG_LIST_HEADER	= (1 << IPSET_FLAG_BIT_LIST_HEADER),
+ };
+ 
+ /* Flags at CADT attribute level */
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index 68e3527..3343e5b 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -939,10 +939,13 @@ ip_set_swap(struct sock *ctnl, struct sk_buff *skb,
+ 
+ /* List/save set data */
+ 
+-#define DUMP_INIT	0L
+-#define DUMP_ALL	1L
+-#define DUMP_ONE	2L
+-#define DUMP_LAST	3L
++#define DUMP_INIT	0
++#define DUMP_ALL	1
++#define DUMP_ONE	2
++#define DUMP_LAST	3
++
++#define DUMP_TYPE(arg)		(((u32)(arg)) & 0x0000FFFF)
++#define DUMP_FLAGS(arg)		(((u32)(arg)) >> 16)
+ 
+ static int
+ ip_set_dump_done(struct netlink_callback *cb)
+@@ -973,6 +976,7 @@ dump_init(struct netlink_callback *cb)
+ 	int min_len = NLMSG_SPACE(sizeof(struct nfgenmsg));
+ 	struct nlattr *cda[IPSET_ATTR_CMD_MAX+1];
+ 	struct nlattr *attr = (void *)nlh + min_len;
++	u32 dump_type;
+ 	ip_set_id_t index;
+ 
+ 	/* Second pass, so parser can't fail */
+@@ -984,17 +988,22 @@ dump_init(struct netlink_callback *cb)
+ 	 *         [..]: type specific
+ 	 */
+ 
+-	if (!cda[IPSET_ATTR_SETNAME]) {
+-		cb->args[0] = DUMP_ALL;
+-		return 0;
+-	}
++	if (cda[IPSET_ATTR_SETNAME]) {
++		index = find_set_id(nla_data(cda[IPSET_ATTR_SETNAME]));
++		if (index == IPSET_INVALID_ID)
++			return -ENOENT;
+ 
+-	index = find_set_id(nla_data(cda[IPSET_ATTR_SETNAME]));
+-	if (index == IPSET_INVALID_ID)
+-		return -ENOENT;
++		dump_type = DUMP_ONE;
++		cb->args[1] = index;
++	} else
++		dump_type = DUMP_ALL;
++
++	if (cda[IPSET_ATTR_FLAGS]) {
++		u32 f = ip_set_get_h32(cda[IPSET_ATTR_FLAGS]);
++		dump_type |= (f << 16);
++	}
++	cb->args[0] = dump_type;
+ 
+-	cb->args[0] = DUMP_ONE;
+-	cb->args[1] = index;
+ 	return 0;
+ }
+ 
+@@ -1005,9 +1014,10 @@ ip_set_dump_start(struct sk_buff *skb, struct netlink_callback *cb)
+ 	struct ip_set *set = NULL;
+ 	struct nlmsghdr *nlh = NULL;
+ 	unsigned int flags = NETLINK_CB(cb->skb).pid ? NLM_F_MULTI : 0;
++	u32 dump_type, dump_flags;
+ 	int ret = 0;
+ 
+-	if (cb->args[0] == DUMP_INIT) {
++	if (!cb->args[0]) {
+ 		ret = dump_init(cb);
+ 		if (ret < 0) {
+ 			nlh = nlmsg_hdr(cb->skb);
+@@ -1022,14 +1032,17 @@ ip_set_dump_start(struct sk_buff *skb, struct netlink_callback *cb)
+ 	if (cb->args[1] >= ip_set_max)
+ 		goto out;
+ 
+-	max = cb->args[0] == DUMP_ONE ? cb->args[1] + 1 : ip_set_max;
++	dump_type = DUMP_TYPE(cb->args[0]);
++	dump_flags = DUMP_FLAGS(cb->args[0]);
++	max = dump_type == DUMP_ONE ? cb->args[1] + 1 : ip_set_max;
+ dump_last:
+-	pr_debug("args[0]: %ld args[1]: %ld\n", cb->args[0], cb->args[1]);
++	pr_debug("args[0]: %u %u args[1]: %ld\n",
++		 dump_type, dump_flags, cb->args[1]);
+ 	for (; cb->args[1] < max; cb->args[1]++) {
+ 		index = (ip_set_id_t) cb->args[1];
+ 		set = ip_set_list[index];
+ 		if (set == NULL) {
+-			if (cb->args[0] == DUMP_ONE) {
++			if (dump_type == DUMP_ONE) {
+ 				ret = -ENOENT;
+ 				goto out;
+ 			}
+@@ -1038,8 +1051,8 @@ dump_last:
+ 		/* When dumping all sets, we must dump "sorted"
+ 		 * so that lists (unions of sets) are dumped last.
+ 		 */
+-		if (cb->args[0] != DUMP_ONE &&
+-		    ((cb->args[0] == DUMP_ALL) ==
++		if (dump_type != DUMP_ONE &&
++		    ((dump_type == DUMP_ALL) ==
+ 		     !!(set->type->features & IPSET_DUMP_LAST)))
+ 			continue;
+ 		pr_debug("List set: %s\n", set->name);
+@@ -1057,6 +1070,8 @@ dump_last:
+ 		}
+ 		NLA_PUT_U8(skb, IPSET_ATTR_PROTOCOL, IPSET_PROTOCOL);
+ 		NLA_PUT_STRING(skb, IPSET_ATTR_SETNAME, set->name);
++		if (dump_flags & IPSET_FLAG_LIST_SETNAME)
++			goto next_set;
+ 		switch (cb->args[2]) {
+ 		case 0:
+ 			/* Core header data */
+@@ -1069,24 +1084,23 @@ dump_last:
+ 			ret = set->variant->head(set, skb);
+ 			if (ret < 0)
+ 				goto release_refcount;
++			if (dump_flags & IPSET_FLAG_LIST_HEADER)
++				goto next_set;
+ 			/* Fall through and add elements */
+ 		default:
+ 			read_lock_bh(&set->lock);
+ 			ret = set->variant->list(set, skb, cb);
+ 			read_unlock_bh(&set->lock);
+-			if (!cb->args[2]) {
++			if (!cb->args[2])
+ 				/* Set is done, proceed with next one */
+-				if (cb->args[0] == DUMP_ONE)
+-					cb->args[1] = IPSET_INVALID_ID;
+-				else
+-					cb->args[1]++;
+-			}
++				goto next_set;
+ 			goto release_refcount;
+ 		}
+ 	}
+ 	/* If we dump all sets, continue with dumping last ones */
+-	if (cb->args[0] == DUMP_ALL) {
+-		cb->args[0] = DUMP_LAST;
++	if (dump_type == DUMP_ALL) {
++		dump_type = DUMP_LAST;
++		cb->args[0] = dump_type | (dump_flags << 16);
+ 		cb->args[1] = 0;
+ 		goto dump_last;
+ 	}
+@@ -1094,6 +1108,11 @@ dump_last:
+ 
+ nla_put_failure:
+ 	ret = -EFAULT;
++next_set:
++	if (dump_type == DUMP_ONE)
++		cb->args[1] = IPSET_INVALID_ID;
++	else
++		cb->args[1]++;
+ release_refcount:
+ 	/* If there was an error or set is done, release set */
+ 	if (ret || !cb->args[2]) {
 -- 
 1.7.2.5
 
