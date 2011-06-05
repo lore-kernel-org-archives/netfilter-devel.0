@@ -1,136 +1,30 @@
-From: pablo@netfilter.org
-Subject: [PATCH 20/20] netfilter: nf_conntrack: provide config option to disable ancient procfs parts
-Date: Mon,  6 Jun 2011 01:09:10 +0200
-Message-ID: <1307315350-17782-20-git-send-email-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/20] netfilter updates for 3.0.0-rc1
+Date: Sun, 05 Jun 2011 16:15:05 -0700 (PDT)
+Message-ID: <20110605.161505.1477780372925642508.davem@davemloft.net>
 References: <1307315350-17782-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, Jan Engelhardt <jengelh@medozas.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52261 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756503Ab1FEXJz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Jun 2011 19:09:55 -0400
+Received: from shards.monkeyblade.net ([198.137.202.13]:49758 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756498Ab1FEXQP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 5 Jun 2011 19:16:15 -0400
 In-Reply-To: <1307315350-17782-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jan Engelhardt <jengelh@medozas.de>
+From: pablo@netfilter.org
+Date: Mon,  6 Jun 2011 01:08:51 +0200
 
-This option enables for the list of known conntrack entries
-to be shown in procfs under net/netfilter/nf_conntrack. This
-is considered obsolete in favor of using the conntrack(8)
-tool which uses Netlink.
+> the following patches contain Netfilter updates for 3.0.0-rc1
+> The highlights are:
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv4/netfilter/Kconfig              |    2 +-
- net/netfilter/Kconfig                   |   10 ++++++++++
- net/netfilter/nf_conntrack_expect.c     |   12 ++++++------
- net/netfilter/nf_conntrack_standalone.c |    4 ++--
- 4 files changed, 19 insertions(+), 9 deletions(-)
+Are these bug fixes only or do we have new features in here?
 
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 1dfc18a..bf8ff2b 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -27,7 +27,7 @@ config NF_CONNTRACK_IPV4
- 
- config NF_CONNTRACK_PROC_COMPAT
- 	bool "proc/sysctl compatibility with old connection tracking"
--	depends on NF_CONNTRACK_IPV4
-+	depends on NF_CONNTRACK_PROCFS && NF_CONNTRACK_IPV4
- 	default y
- 	help
- 	  This option enables /proc and sysctl compatibility with the old
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 32bff6d..e4b1076 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -75,6 +75,16 @@ config NF_CONNTRACK_ZONES
- 
- 	  If unsure, say `N'.
- 
-+config NF_CONNTRACK_PROCFS
-+	bool "Supply CT list in procfs (OBSOLETE)"
-+	default y
-+	depends on PROC_FS
-+	---help---
-+	This option enables for the list of known conntrack entries
-+	to be shown in procfs under net/netfilter/nf_conntrack. This
-+	is considered obsolete in favor of using the conntrack(8)
-+	tool which uses Netlink.
-+
- config NF_CONNTRACK_EVENTS
- 	bool "Connection tracking events"
- 	depends on NETFILTER_ADVANCED
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index cd1e8e0..b76787e 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -474,7 +474,7 @@ void nf_ct_remove_userspace_expectations(void)
- }
- EXPORT_SYMBOL_GPL(nf_ct_remove_userspace_expectations);
- 
--#ifdef CONFIG_PROC_FS
-+#ifdef CONFIG_NF_CONNTRACK_PROCFS
- struct ct_expect_iter_state {
- 	struct seq_net_private p;
- 	unsigned int bucket;
-@@ -602,25 +602,25 @@ static const struct file_operations exp_file_ops = {
- 	.llseek  = seq_lseek,
- 	.release = seq_release_net,
- };
--#endif /* CONFIG_PROC_FS */
-+#endif /* CONFIG_NF_CONNTRACK_PROCFS */
- 
- static int exp_proc_init(struct net *net)
- {
--#ifdef CONFIG_PROC_FS
-+#ifdef CONFIG_NF_CONNTRACK_PROCFS
- 	struct proc_dir_entry *proc;
- 
- 	proc = proc_net_fops_create(net, "nf_conntrack_expect", 0440, &exp_file_ops);
- 	if (!proc)
- 		return -ENOMEM;
--#endif /* CONFIG_PROC_FS */
-+#endif /* CONFIG_NF_CONNTRACK_PROCFS */
- 	return 0;
- }
- 
- static void exp_proc_remove(struct net *net)
- {
--#ifdef CONFIG_PROC_FS
-+#ifdef CONFIG_NF_CONNTRACK_PROCFS
- 	proc_net_remove(net, "nf_conntrack_expect");
--#endif /* CONFIG_PROC_FS */
-+#endif /* CONFIG_NF_CONNTRACK_PROCFS */
- }
- 
- module_param_named(expect_hashsize, nf_ct_expect_hsize, uint, 0400);
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 05e9feb..885f5ab 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -34,7 +34,7 @@
- 
- MODULE_LICENSE("GPL");
- 
--#ifdef CONFIG_PROC_FS
-+#ifdef CONFIG_NF_CONNTRACK_PROCFS
- int
- print_tuple(struct seq_file *s, const struct nf_conntrack_tuple *tuple,
-             const struct nf_conntrack_l3proto *l3proto,
-@@ -396,7 +396,7 @@ static int nf_conntrack_standalone_init_proc(struct net *net)
- static void nf_conntrack_standalone_fini_proc(struct net *net)
- {
- }
--#endif /* CONFIG_PROC_FS */
-+#endif /* CONFIG_NF_CONNTRACK_PROCFS */
- 
- /* Sysctl support */
- 
--- 
-1.7.2.5
-
+If new features, then this stuff should be targeted for 3.1
+(ie. net-next-2.6) not 3.0.0-rc1
