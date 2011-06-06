@@ -1,59 +1,38 @@
-From: pablo@netfilter.org
-Subject: [PATCH 7/7] netfilter: use unsigned variables for packet lengths in ip[6]_queue.
-Date: Mon,  6 Jun 2011 02:11:40 +0200
-Message-ID: <1307319100-21827-8-git-send-email-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/7] netfilter fixes for 3.0.0-rc1 (try 2)
+Date: Sun, 05 Jun 2011 17:15:26 -0700 (PDT)
+Message-ID: <20110605.171526.465829039753091229.davem@davemloft.net>
 References: <1307319100-21827-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, Dave Jones <davej@redhat.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54955 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752392Ab1FFAMI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Jun 2011 20:12:08 -0400
+Received: from shards.monkeyblade.net ([198.137.202.13]:41451 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752392Ab1FFAQb (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 5 Jun 2011 20:16:31 -0400
 In-Reply-To: <1307319100-21827-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Dave Jones <davej@redhat.com>
+From: pablo@netfilter.org
+Date: Mon,  6 Jun 2011 02:11:33 +0200
 
-Netlink message lengths can't be negative, so use unsigned variables.
+> - fix compilation warning in conntrack with recent gcc versions by Eric.
+> 
+> - a couple of minor fixes for ipset from Jozsef.
+> 
+> - one fix for IPVS with SNAT from Julian Anastasov.
+> 
+> - one fix for NAT and checksumming also from Julian.
+> 
+> - fix refcount leak in conntrack with ICMP[v6] by myself.
+> 
+> You can pull them from:
+> 
+> git://1984.lsi.us.es/net-2.6 pablo/nf-2.6-updates
 
-Signed-off-by: Dave Jones <davej@redhat.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv4/netfilter/ip_queue.c  |    3 ++-
- net/ipv6/netfilter/ip6_queue.c |    3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ip_queue.c b/net/ipv4/netfilter/ip_queue.c
-index d2c1311..f7f9bd7 100644
---- a/net/ipv4/netfilter/ip_queue.c
-+++ b/net/ipv4/netfilter/ip_queue.c
-@@ -402,7 +402,8 @@ ipq_dev_drop(int ifindex)
- static inline void
- __ipq_rcv_skb(struct sk_buff *skb)
- {
--	int status, type, pid, flags, nlmsglen, skblen;
-+	int status, type, pid, flags;
-+	unsigned int nlmsglen, skblen;
- 	struct nlmsghdr *nlh;
- 
- 	skblen = skb->len;
-diff --git a/net/ipv6/netfilter/ip6_queue.c b/net/ipv6/netfilter/ip6_queue.c
-index 413ab07..065fe40 100644
---- a/net/ipv6/netfilter/ip6_queue.c
-+++ b/net/ipv6/netfilter/ip6_queue.c
-@@ -403,7 +403,8 @@ ipq_dev_drop(int ifindex)
- static inline void
- __ipq_rcv_skb(struct sk_buff *skb)
- {
--	int status, type, pid, flags, nlmsglen, skblen;
-+	int status, type, pid, flags;
-+	unsigned int nlmsglen, skblen;
- 	struct nlmsghdr *nlh;
- 
- 	skblen = skb->len;
--- 
-1.7.2.5
-
+Pulled, thanks a lot!
