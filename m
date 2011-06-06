@@ -1,41 +1,134 @@
 From: pablo@netfilter.org
-Subject: [PATCH 3/7] netfilter: ipset: Fix return code for destroy when sets are in use
-Date: Mon,  6 Jun 2011 02:11:36 +0200
-Message-ID: <1307319100-21827-4-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 2/7] ipvs: restore support for iptables SNAT
+Date: Mon,  6 Jun 2011 02:11:35 +0200
+Message-ID: <1307319100-21827-3-git-send-email-pablo@netfilter.org>
 References: <1307319100-21827-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+Cc: davem@davemloft.net, Julian Anastasov <ja@ssi.bg>,
+	Simon Horman <horms@verge.net.au>,
 	Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54930 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:54924 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751607Ab1FFAL7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Jun 2011 20:11:59 -0400
+	id S1751685Ab1FFAL5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 5 Jun 2011 20:11:57 -0400
 In-Reply-To: <1307319100-21827-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Julian Anastasov <ja@ssi.bg>
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+	Fix the IPVS priority in LOCAL_IN hook,
+so that SNAT target in POSTROUTING is supported for IPVS
+traffic as in 2.6.36 where it worked depending on
+module load order.
+
+	Before 2.6.37 we used priority 100 in LOCAL_IN to
+process remote requests. We used the same priority as
+iptables SNAT and if IPVS handlers are installed before
+SNAT handlers we supported SNAT in POSTROUTING for the IPVS
+traffic. If SNAT is installed before IPVS, the netfilter
+handlers are before IPVS and netfilter checks the NAT
+table twice for the IPVS requests: once in LOCAL_IN where
+IPS_SRC_NAT_DONE is set and second time in POSTROUTING
+where the SNAT rules are ignored because IPS_SRC_NAT_DONE
+was already set in LOCAL_IN.
+
+	But in 2.6.37 we changed the IPVS priority for
+LOCAL_IN with the goal to be unique (101) forgetting the
+fact that for IPVS traffic we should not walk both
+LOCAL_IN and POSTROUTING nat tables.
+
+	So, change the priority for processing remote
+IPVS requests from 101 to 99, i.e. before NAT_SRC (100)
+because we prefer to support SNAT in POSTROUTING
+instead of LOCAL_IN. It also moves the priority for
+IPVS replies from 99 to 98. Use constants instead of
+magic numbers at these places.
+
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ net/netfilter/ipvs/ip_vs_core.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 8041bef..42aa64b 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -767,7 +767,7 @@ ip_set_destroy(struct sock *ctnl, struct sk_buff *skb,
- 	if (!attr[IPSET_ATTR_SETNAME]) {
- 		for (i = 0; i < ip_set_max; i++) {
- 			if (ip_set_list[i] != NULL && ip_set_list[i]->ref) {
--				ret = IPSET_ERR_BUSY;
-+				ret = -IPSET_ERR_BUSY;
- 				goto out;
- 			}
- 		}
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index bfa808f..55af224 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -1772,7 +1772,7 @@ static struct nf_hook_ops ip_vs_ops[] __read_mostly = {
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET,
+ 		.hooknum	= NF_INET_LOCAL_IN,
+-		.priority	= 99,
++		.priority	= NF_IP_PRI_NAT_SRC - 2,
+ 	},
+ 	/* After packet filtering, forward packet through VS/DR, VS/TUN,
+ 	 * or VS/NAT(change destination), so that filtering rules can be
+@@ -1782,7 +1782,7 @@ static struct nf_hook_ops ip_vs_ops[] __read_mostly = {
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET,
+ 		.hooknum	= NF_INET_LOCAL_IN,
+-		.priority	= 101,
++		.priority	= NF_IP_PRI_NAT_SRC - 1,
+ 	},
+ 	/* Before ip_vs_in, change source only for VS/NAT */
+ 	{
+@@ -1790,7 +1790,7 @@ static struct nf_hook_ops ip_vs_ops[] __read_mostly = {
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET,
+ 		.hooknum	= NF_INET_LOCAL_OUT,
+-		.priority	= -99,
++		.priority	= NF_IP_PRI_NAT_DST + 1,
+ 	},
+ 	/* After mangle, schedule and forward local requests */
+ 	{
+@@ -1798,7 +1798,7 @@ static struct nf_hook_ops ip_vs_ops[] __read_mostly = {
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET,
+ 		.hooknum	= NF_INET_LOCAL_OUT,
+-		.priority	= -98,
++		.priority	= NF_IP_PRI_NAT_DST + 2,
+ 	},
+ 	/* After packet filtering (but before ip_vs_out_icmp), catch icmp
+ 	 * destined for 0.0.0.0/0, which is for incoming IPVS connections */
+@@ -1824,7 +1824,7 @@ static struct nf_hook_ops ip_vs_ops[] __read_mostly = {
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET6,
+ 		.hooknum	= NF_INET_LOCAL_IN,
+-		.priority	= 99,
++		.priority	= NF_IP6_PRI_NAT_SRC - 2,
+ 	},
+ 	/* After packet filtering, forward packet through VS/DR, VS/TUN,
+ 	 * or VS/NAT(change destination), so that filtering rules can be
+@@ -1834,7 +1834,7 @@ static struct nf_hook_ops ip_vs_ops[] __read_mostly = {
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET6,
+ 		.hooknum	= NF_INET_LOCAL_IN,
+-		.priority	= 101,
++		.priority	= NF_IP6_PRI_NAT_SRC - 1,
+ 	},
+ 	/* Before ip_vs_in, change source only for VS/NAT */
+ 	{
+@@ -1842,7 +1842,7 @@ static struct nf_hook_ops ip_vs_ops[] __read_mostly = {
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET,
+ 		.hooknum	= NF_INET_LOCAL_OUT,
+-		.priority	= -99,
++		.priority	= NF_IP6_PRI_NAT_DST + 1,
+ 	},
+ 	/* After mangle, schedule and forward local requests */
+ 	{
+@@ -1850,7 +1850,7 @@ static struct nf_hook_ops ip_vs_ops[] __read_mostly = {
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET6,
+ 		.hooknum	= NF_INET_LOCAL_OUT,
+-		.priority	= -98,
++		.priority	= NF_IP6_PRI_NAT_DST + 2,
+ 	},
+ 	/* After packet filtering (but before ip_vs_out_icmp), catch icmp
+ 	 * destined for 0.0.0.0/0, which is for incoming IPVS connections */
 -- 
 1.7.2.5
 
