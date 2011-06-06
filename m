@@ -1,33 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2nd revision] Add SELinux context support to AUDIT target
-Date: Tue, 07 Jun 2011 01:22:43 +0200
-Message-ID: <4DED6143.1050809@netfilter.org>
-References: <4DDE9194.4030303@netfilter.org> <201106060830.52644.sgrubb@redhat.com> <4DECCB27.6040706@googlemail.com> <201106060853.57940.sgrubb@redhat.com> <4DECD1D8.60804@googlemail.com>
+Subject: Re: ip6tables functionality test is wanted
+Date: Tue, 07 Jun 2011 01:36:41 +0200
+Message-ID: <4DED6489.4050205@netfilter.org>
+References: <4DED2B6D.1020008@parallels.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=KOI8-R
 Content-Transfer-Encoding: 7bit
-Cc: Steve Grubb <sgrubb@redhat.com>, linux-audit@redhat.com,
-	netfilter-devel@vger.kernel.org, Thomas Graf <tgraf@redhat.com>,
-	Al Viro <viro@zeniv.linux.org.uk>,
-	Eric Paris <eparis@parisplace.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Mr Dash Four <mr.dash.four@googlemail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Konstantin Khorenko <khorenko@parallels.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56673 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:51582 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750722Ab1FFXWw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jun 2011 19:22:52 -0400
-In-Reply-To: <4DECD1D8.60804@googlemail.com>
+	id S1751085Ab1FFXgv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 Jun 2011 19:36:51 -0400
+In-Reply-To: <4DED2B6D.1020008@parallels.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 06/06/11 15:10, Mr Dash Four wrote:
+On 06/06/11 21:33, Konstantin Khorenko wrote:
+> Dear All,
 > 
->> Exactly my point. There is no leak if its text or numeric.
->>   
-> No, there is no leak if it is a text, but there *is* a leak if it is a
-> numeric. I think I've made that quite clear.
+> working on iptables IPv6 32bit compat kernel code implementation we need
+> to somehow test it.
+> i've spent some time searching for a good ip6tables test, but have to
+> admit that did not find any.
+> 
+> On the other hand i guess during the development new version of
+> "iptables" could be tested on some regression test suites.
 
-We don't use numeric secmark anymore in nf_conntrack. Not very familiar
-with SELinux, but I remember that the convention was not to provide
-internal numeric values.
+These regression tests are missing, we should have some indeed.
+
+Rusty already considered this in nfsim, but that project was not any
+longer supported (getting part of the kernel compile to compile in
+userspace with every version is a daunting task).
+
+> i'd very appreciate if someone can point me some test for ip6tables we
+> can use.
+> (Checking the kernel part is not important in our case - we can simply
+> compare the resulted chains/rules after the test execution with the list
+> taken on a native 32bit node,
+> so the most important thing is a list of valid ip6tables commands.)
+
+Sorry, we don't have them at the moment.
