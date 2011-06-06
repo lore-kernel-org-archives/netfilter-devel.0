@@ -1,37 +1,86 @@
-From: Konstantin Khorenko <khorenko@parallels.com>
-Subject: ip6tables functionality test is wanted
-Date: Mon, 06 Jun 2011 23:33:01 +0400
-Message-ID: <4DED2B6D.1020008@parallels.com>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: KVM induced panic on 2.6.38[2367] & 2.6.39
+Date: Mon, 06 Jun 2011 22:10:53 +0200
+Message-ID: <4DED344D.7000005@pandora.be>
+References: <20110601011527.GN19505@random.random> <alpine.LSU.2.00.1105312120530.22808@sister.anvils> <4DE5DCA8.7070704@fnarfbargle.com> <4DE5E29E.7080009@redhat.com> <4DE60669.9050606@fnarfbargle.com> <4DE60918.3010008@redhat.com> <4DE60940.1070107@redhat.com> <4DE61A2B.7000008@fnarfbargle.com> <20110601111841.GB3956@zip.com.au> <4DE62801.9080804@fnarfbargle.com> <20110601230342.GC3956@zip.com.au> <4DE8E3ED.7080004@fnarfbargle.com> <isavsg$3or$1@dough.gmane.org> <4DE906C0.6060901@fnarfbargle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=KOI8-R; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailhub.sw.ru ([195.214.232.25]:20989 "EHLO relay.sw.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757559Ab1FFTdH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jun 2011 15:33:07 -0400
-Received: from [192.168.10.2] (ppp91-77-227-53.pppoe.mtu-net.ru [91.77.227.53])
-	(authenticated bits=0)
-	by relay.sw.ru (8.13.4/8.13.4) with ESMTP id p56JZDuU014669
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <netfilter-devel@vger.kernel.org>; Mon, 6 Jun 2011 23:35:16 +0400 (MSD)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: kvm@vger.kernel.org, linux-mm@kvack.org,
+ linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+ netfilter-devel@vger.kernel.org
+To: Brad Campbell <brad@fnarfbargle.com>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <4DE906C0.6060901@fnarfbargle.com>
+Sender: owner-linux-mm@kvack.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Dear All,
+Hi Brad,
 
-working on iptables IPv6 32bit compat kernel code implementation we need to somehow test it.
-i've spent some time searching for a good ip6tables test, but have to admit that did not find any.
+This has probably nothing to do with ebtables, so please rmmod in case 
+it's loaded.
+A few questions I didn't directly see an answer to in the threads I 
+scanned...
+I'm assuming you actually use the bridging firewall functionality. So, 
+what iptables modules do you use? Can you reduce your iptables rules to 
+a core that triggers the bug?
+Or does it get triggered even with an empty set of firewall rules?
+Are you using a stock .35 kernel or is it patched?
+Is this something I can trigger on a poor guy's laptop or does it 
+require specialized hardware (I'm catching up on qemu/kvm...)?
 
-On the other hand i guess during the development new version of "iptables" could be tested on some regression test suites.
+cheers,
+Bart
 
-i'd very appreciate if someone can point me some test for ip6tables we can use.
-(Checking the kernel part is not important in our case - we can simply compare the resulted chains/rules after the test execution with the list taken on a native 32bit node,
-so the most important thing is a list of valid ip6tables commands.)
+PS: I'm not sure if we should keep CC-ing everybody, netfilter-devel 
+together with kvm should probably do fine.
 
-Thank you in advance.
+Op 3/06/2011 18:07, Brad Campbell schreef:
+> On 03/06/11 23:50, Bernhard Held wrote:
+>> Am 03.06.2011 15:38, schrieb Brad Campbell:
+>>> On 02/06/11 07:03, CaT wrote:
+>>>> On Wed, Jun 01, 2011 at 07:52:33PM +0800, Brad Campbell wrote:
+>>>>> Unfortunately the only interface that is mentioned by name anywhere
+>>>>> in my firewall is $DMZ (which is ppp0 and not part of any bridge).
+>>>>>
+>>>>> All of the nat/dnat and other horrible hacks are based on IP 
+>>>>> addresses.
+>>>>
+>>>> Damn. Not referencing the bridge interfaces at all stopped our host 
+>>>> from
+>>>> going down in flames when we passed it a few packets. These are two
+>>>> of the oopses we got from it. Whilst the kernel here is .35 we got the
+>>>> same issue from a range of kernels. Seems related.
+>>>
+>>> Well, I tried sending an explanatory message to netdev, netfilter &
+>>> cc'd to kvm,
+>>> but it appears not to have made it to kvm or netfilter, and the cc to
+>>> netdev has
+>>> not elicited a response. My resend to netfilter seems to have dropped
+>>> into the
+>>> bit bucket also.
+>> Just another reference 3.5 months ago:
+>> http://www.spinics.net/lists/netfilter-devel/msg17239.html
+>
+> <waves hands around shouting "I have a reproducible test case for this 
+> and don't mind patching and crashing the machine to get it fixed">
+>
+> Attempted to add netfilter-devel to the cc this time.
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe 
+> netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>
+
+
+-- 
+Bart De Schuymer
+www.artinalgorithms.be
 
 --
-Best regards,
-Konstantin Khorenko
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
