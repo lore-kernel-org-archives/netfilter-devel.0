@@ -1,36 +1,32 @@
-From: "\"Oleg A. Arkhangelsky\"" <sysoleg@yandex.ru>
-Subject: Re: [PATCH 6/7] netfilter: nf_conntrack: fix ct refcount leak in l4proto->error()
-Date: Mon, 06 Jun 2011 06:10:39 +0400
-Message-ID: <402391307326240@web153.yandex.ru>
-References: <1307319100-21827-1-git-send-email-pablo@netfilter.org> <1307319100-21827-7-git-send-email-pablo@netfilter.org>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
+Subject: Re: [PATCH 2nd revision] Add SELinux context support to AUDIT target
+Date: Mon, 06 Jun 2011 13:02:33 +0100
+Message-ID: <4DECC1D9.7010605@googlemail.com>
+References: <4DDE9194.4030303@netfilter.org> <4DD5BF5A.2030108@googlemail.com> <4DDE848F.1070508@netfilter.org> <4DDE87F5.9050606@googlemail.com> <4DEA4B44.8050809@googlemail.com> <4DEC0C01.4040900@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net
+Cc: netfilter-devel@vger.kernel.org, Thomas Graf <tgraf@redhat.com>,
+	Patrick McHardy <kaber@trash.net>,
+	Eric Paris <eparis@parisplace.org>,
+	Al Viro <viro@ZenIV.linux.org.uk>,
+	Linux-audit <linux-audit@redhat.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from forward13.mail.yandex.net ([95.108.130.120]:58513 "EHLO
-	forward13.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753862Ab1FFCRM (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:43162 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754416Ab1FFMCo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Jun 2011 22:17:12 -0400
-In-Reply-To: <1307319100-21827-7-git-send-email-pablo@netfilter.org>
+	Mon, 6 Jun 2011 08:02:44 -0400
+Received: by wya21 with SMTP id 21so2723201wya.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jun 2011 05:02:42 -0700 (PDT)
+In-Reply-To: <4DEC0C01.4040900@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
 
-06.06.2011, 04:11, pablo@netfilter.org:
+> Minor nitpick. This 'if' needs one {
+>   
+Is this a style-type requirement I wasn't aware of? Because from a 
+syntax point of view the left/right braces aren't necessary.
 
-> With this patch, we can also fix wrong return values (-NF_ACCEPT)
-> for special cases in ICMP[v6] that should not bump the invalid/error
-> statistic counters.
-
-Are you sure? Please, look here:
-
-http://www.spinics.net/lists/netfilter-devel/msg15520.html
-
-Thank you!
-
--- 
-wbr, Oleg.
