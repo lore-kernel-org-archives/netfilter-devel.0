@@ -1,39 +1,37 @@
-From: Olaf <mailinglists@ban-solms.de>
-Subject: iptables 1.4.11, cannot invert tcp flags
-Date: Tue, 07 Jun 2011 07:24:39 +0200
-Message-ID: <4DEDB617.7090805@ban-solms.de>
-References: <4DDE857E.40807@trash.net>
+From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: Re: [PATCH 2/2] netfilter: IPv6: fix DSCP mangle code
+Date: Mon, 6 Jun 2011 23:03:54 -0700
+Message-ID: <BANLkTin2bTj9nW9kFvYWh8v0+LDbBLuYUT1Nn6Dq4LmK3_BTqw@mail.gmail.com>
+References: <1307320871-31770-1-git-send-email-pablo@netfilter.org>
+	<1307320871-31770-2-git-send-email-pablo@netfilter.org>
+	<BANLkTikAs7fN2JQJTUwQHAYPPGMf8i9uEA@mail.gmail.com>
+	<1307411912.6576.8.camel@nexus.oss.ntt.co.jp>
+	<BANLkTikaTp3NAhy307vkH_pUVSgoFuvgVQ@mail.gmail.com>
+	<1307422292.6576.54.camel@nexus.oss.ntt.co.jp>
+	<1307422500.6576.57.camel@nexus.oss.ntt.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Cc: pablo@netfilter.org, stable@kernel.org,
+	netfilter-devel@vger.kernel.org
+To: =?UTF-8?Q?Fernando_Luis_V=C3=A1zquez_Cao?= <fernando@oss.ntt.co.jp>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from hss-server.de ([212.72.183.75]:54665 "EHLO hss-server.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750835Ab1FGFc4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jun 2011 01:32:56 -0400
-Received: from hss-server.de (localhost.localdomain [127.0.0.1])
-	by hss-server.de (Postfix) with ESMTP id DC13091C026
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Jun 2011 07:24:38 +0200 (CEST)
-Received: from [184.193.0.0] (p4FF7CC89.dip.t-dialin.net [79.247.204.137])
-	by hss-server.de (Postfix) with ESMTPSA
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Jun 2011 07:24:38 +0200 (CEST)
-In-Reply-To: <4DDE857E.40807@trash.net>
+Received: from mail-px0-f179.google.com ([209.85.212.179]:39580 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750882Ab1FGGDz (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Jun 2011 02:03:55 -0400
+Received: by pxi2 with SMTP id 2so3385978pxi.10
+        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jun 2011 23:03:55 -0700 (PDT)
+In-Reply-To: <1307422500.6576.57.camel@nexus.oss.ntt.co.jp>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi all,
+> As an aside, we could even add a note to the relevant man page saying
+> that the IPv6 DSCP mangle code used to be broken but not anymore (it has
+> been done before).
 
-
-with 1.4.11 I can no longer invert --syn nor it's equivalent --tcp-flags 
-SYN,RST,ACK,FIN SYN.
-Both show up 'normal' (tcp flags:0x17/0x02) instead of 'inverted' (tcp 
-flags:!0x17/0x02) when listing rules.
-Works fine when using 1.4.10 or older versions.
-
-Is inverting of tcp flags no longer supported? iptables -p tcp -h still 
-shows [!] as possible option.
-
-
-Thanks Olaf
+That sounds reasonable - especially if we make it clear which versions
+of the kernel are affected.
+Unfortunately, people upgrade kernel and utilities seperately...
+[theoretically iptables could detect kernel version and automatically
+invert the mask for too old kernels...]
