@@ -1,61 +1,40 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH] netfilter: nf_nat: avoid double nat for loopback
-Date: Tue, 7 Jun 2011 22:46:47 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1106072234140.1619@ja.ssi.bg>
-References: <alpine.LFD.2.00.1106041640080.1437@ja.ssi.bg> <4DEDF167.1010202@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] xtables-multi: fix absence of xml translator in IPv6-only
+ builds
+Date: Tue, 7 Jun 2011 21:56:21 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1106072156090.19995@frira.zrqbmnf.qr>
+References: <1307410029-6104-1-git-send-email-zenczykowski@gmail.com> <alpine.LNX.2.01.1106071110580.25037@frira.zrqbmnf.qr> <BANLkTikyH6yUTv3kjykYVSPONoz_qOkJHA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4DEDF167.1010202@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from seven.medozas.de ([188.40.89.202]:35205 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754422Ab1FGT4X (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Jun 2011 15:56:23 -0400
+In-Reply-To: <BANLkTikyH6yUTv3kjykYVSPONoz_qOkJHA@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+On Tuesday 2011-06-07 20:04, Maciej =C5=BBenczykowski wrote:
 
-	Hello,
+>2011/6/7 Jan Engelhardt <jengelh@medozas.de>:
+>> Simply put this in xshared.h.
+>
+>Theoretically this is only needed for compilation of xtables-multi,
+>and thus doesn't quite strictly belong in xshared.h.
+>
+>I was also thinking of renaming the files iptables-xml.* to
+>xtables-xml.* to make it better reflect that it isn't ip4tables
+>specific
+>(a binary symlink would continue to exist).
 
-On Tue, 7 Jun 2011, Patrick McHardy wrote:
-
-> On 04.06.2011 16:02, Julian Anastasov wrote:
-> > 
-> > 	Avoid double NAT and seq adjustment for loopback
-> > traffic because it causes silent repetition of TCP data. One
-> > example is passive FTP with DNAT rule and difference in the
-> > length of IP addresses.
-> > 
-> > 	This patch adds checks if packet is sent and
-> > received via loopback device. As the same conntrack is used
-> > both for outgoing and incoming direction, we restrict NAT,
-> > seq adjustment and confirmation to happen only in
-> > outgoing direction (OUTPUT and POSTROUTING).
-> > 
-> > Signed-off-by: Julian Anastasov <ja@ssi.bg>
-> > ---
-> > 
-> > 	As the check is not so cheap, another alternative
-> > is to add new skb flag, eg. "loopback", that can be set in 
-> > drivers/net/loopback.c, loopback_xmit(). May be there is space
-> > for it in flags2?
-> 
-> I don't think we should be adding code specifically needed for netfilter
-> to the loopback driver if we can avoid it. I don't think we need to
-> actually avoid calling nf_nat_packet twice, that shouldn't do any harm,
-> just the sequence number adjustment. So we could add the loopback check
-
-	Yes, may be calling nf_nat_packet is not fatal.
-
-> to the IPS_SEQ_ADJUST_BIT case to at least avoid it in some cases.
-> Would that work or am I missing something?
-
-	Logically, the new check can be after
-test_bit(IPS_SEQ_ADJUST_BIT, &ct->status). But I suspect
-some modules adjust seqs in the helper->help call,
-for example, sip_help_tcp if I'm correctly reading the
-code.
-
-Regards
-
+Let me take care of that, I plan to move this into a separate dir=20
+already.
 --
-Julian Anastasov <ja@ssi.bg>
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
