@@ -1,163 +1,270 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 2/5] src: move all libiptc pieces into its directory
-Date: Tue,  7 Jun 2011 22:36:00 +0200
-Message-ID: <1307478964-2034-3-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 4/5] tests: add some sample rulesets to test save-restore cycle
+Date: Tue,  7 Jun 2011 22:36:02 +0200
+Message-ID: <1307478964-2034-5-git-send-email-jengelh@medozas.de>
 References: <1307478964-2034-1-git-send-email-jengelh@medozas.de>
 Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from seven.medozas.de ([188.40.89.202]:39437 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752545Ab1FGUgK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jun 2011 16:36:10 -0400
+	id S1756591Ab1FGUgM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Jun 2011 16:36:12 -0400
 In-Reply-To: <1307478964-2034-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+These rulesets use practically all options (I may have missed some)
+for verification that the new Guided Option Parser would take the same
+input as the old open-coded ones did. They might come in handy at some
+point.
+
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- .gitignore            |    1 -
- Makefile.am           |   17 +++--------------
- configure.ac          |    4 ++--
- libiptc.pc.in         |   12 ------------
- libiptc/.gitignore    |    1 +
- libiptc/Makefile.am   |   12 ++++++++++++
- libiptc/libiptc.pc.in |   12 ++++++++++++
- 7 files changed, 30 insertions(+), 29 deletions(-)
- delete mode 100644 libiptc.pc.in
- create mode 100644 libiptc/.gitignore
- create mode 100644 libiptc/Makefile.am
- create mode 100644 libiptc/libiptc.pc.in
+ tests/options-ipv4.rules |   52 ++++++++++++++
+ tests/options-most.rules |  170 ++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 222 insertions(+), 0 deletions(-)
+ create mode 100644 tests/options-ipv4.rules
+ create mode 100644 tests/options-most.rules
 
-diff --git a/.gitignore b/.gitignore
-index 9d24ce0..fc68536 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -36,7 +36,6 @@ Makefile.in
- /ltmain.sh
- /missing
- /stamp-h1
--/libiptc.pc
- /xtables.pc
- 
- /ip6tables
-diff --git a/Makefile.am b/Makefile.am
-index 48f01d8..02b5c09 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign subdir-objects
- 
- AM_CFLAGS        = ${regular_CFLAGS}
- AM_CPPFLAGS      = ${regular_CPPFLAGS} -I${top_builddir}/include -I${top_srcdir}/include ${kinclude_CPPFLAGS}
--SUBDIRS          = extensions
-+SUBDIRS          = extensions libiptc
- if ENABLE_DEVEL
- SUBDIRS         += include
- endif
-@@ -15,19 +15,8 @@ endif
- if HAVE_LIBNFNETLINK
- SUBDIRS         += utils
- endif
--lib_LTLIBRARIES =
- 
--# libiptc
--lib_LTLIBRARIES            += libiptc/libip4tc.la libiptc/libip6tc.la libiptc/libiptc.la
--libiptc_libiptc_la_SOURCES  =
--libiptc_libiptc_la_LIBADD   = libiptc/libip4tc.la libiptc/libip6tc.la
--libiptc_libiptc_la_LDFLAGS  = -version-info 0:0:0 ${libiptc_LDFLAGS2}
--libiptc_libip4tc_la_SOURCES = libiptc/libip4tc.c
--libiptc_libip4tc_la_LDFLAGS = -version-info 0:0:0
--libiptc_libip6tc_la_SOURCES = libiptc/libip6tc.c
--libiptc_libip6tc_la_LDFLAGS = -version-info 0:0:0 ${libiptc_LDFLAGS2}
--
--lib_LTLIBRARIES      += libxtables.la
-+lib_LTLIBRARIES       = libxtables.la
- libxtables_la_SOURCES = xtables.c xtoptions.c
- libxtables_la_LDFLAGS = -version-info ${libxtables_vcurrent}:0:${libxtables_vage}
- if ENABLE_SHARED
-@@ -80,7 +69,7 @@ iptables.8: ${srcdir}/iptables.8.in extensions/matches4.man extensions/targets4.
- ip6tables.8: ${srcdir}/ip6tables.8.in extensions/matches6.man extensions/targets6.man
- 	${AM_VERBOSE_GEN} sed -e 's/@PACKAGE_AND_VERSION@/${PACKAGE} ${PACKAGE_VERSION}/g' -e '/@MATCH@/ r extensions/matches6.man' -e '/@TARGET@/ r extensions/targets6.man' $< >$@;
- 
--pkgconfig_DATA = libiptc.pc xtables.pc
-+pkgconfig_DATA = xtables.pc
- 
- .PHONY: tarball
- tarball:
-diff --git a/configure.ac b/configure.ac
-index daed602..f3de3d3 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -111,6 +111,6 @@ libxtables_vmajor=$(($libxtables_vcurrent - $libxtables_vage));
- AC_SUBST([libxtables_vmajor])
- 
- AC_CONFIG_FILES([Makefile extensions/GNUmakefile include/Makefile
--	libipq/Makefile utils/Makefile
--	include/xtables.h include/iptables/internal.h libiptc.pc xtables.pc])
-+	libipq/Makefile libiptc/Makefile libiptc/libiptc.pc utils/Makefile
-+	include/xtables.h include/iptables/internal.h xtables.pc])
- AC_OUTPUT
-diff --git a/libiptc.pc.in b/libiptc.pc.in
-deleted file mode 100644
-index 99a3544..0000000
---- a/libiptc.pc.in
-+++ /dev/null
-@@ -1,12 +0,0 @@
--
--prefix=@prefix@
--exec_prefix=@exec_prefix@
--libdir=@libdir@
--includedir=@includedir@
--
--Name:		libiptc
--Description:	iptables ruleset ADT and kernel interface
--Version:	@PACKAGE_VERSION@
--Libs:		-L${libdir} -liptc
--Libs.private:	-lip4tc -lip6tc
--Cflags:		-I${includedir}
-diff --git a/libiptc/.gitignore b/libiptc/.gitignore
+diff --git a/tests/options-ipv4.rules b/tests/options-ipv4.rules
 new file mode 100644
-index 0000000..8767550
+index 0000000..b4adc92
 --- /dev/null
-+++ b/libiptc/.gitignore
-@@ -0,0 +1 @@
-+/libiptc.pc
-diff --git a/libiptc/Makefile.am b/libiptc/Makefile.am
++++ b/tests/options-ipv4.rules
+@@ -0,0 +1,52 @@
++# Generated by iptables-save v1.4.10 on Mon Jan 31 03:03:38 2011
++*mangle
++:PREROUTING ACCEPT [2461:977932]
++:INPUT ACCEPT [2461:977932]
++:FORWARD ACCEPT [0:0]
++:OUTPUT ACCEPT [1740:367048]
++:POSTROUTING ACCEPT [1740:367048]
++
++# libipt_
++-A INPUT -p ah -m ah --ahspi 1
++-A INPUT -p ah -m ah --ahspi :2
++-A INPUT -p ah -m ah --ahspi 0:3
++-A INPUT -p ah -m ah --ahspi 4:
++-A INPUT -p ah -m ah --ahspi 5:4294967295
++
++-A FORWARD -p tcp -j ECN --ecn-tcp-remove
++-A FORWARD -j LOG --log-prefix "hi" --log-tcp-sequence --log-tcp-options --log-ip-options --log-uid --log-macdecode
++-A FORWARD -j TTL --ttl-inc 1
++-A FORWARD -j TTL --ttl-dec 1
++-A FORWARD -j TTL --ttl-set 1
++-A FORWARD -j ULOG --ulog-prefix "abc" --ulog-cprange 2 --ulog-qthreshold 2
++COMMIT
++# Completed on Mon Jan 31 03:03:38 2011
++# Generated by iptables-save v1.4.10 on Mon Jan 31 03:03:38 2011
++*nat
++:PREROUTING ACCEPT [0:0]
++:INPUT ACCEPT [0:0]
++:OUTPUT ACCEPT [0:0]
++:POSTROUTING ACCEPT [0:0]
++-A PREROUTING -d 1.2.3.4/32 -i lo -j CLUSTERIP --new --hashmode sourceip --clustermac 01:02:03:04:05:06 --total-nodes 9 --local-node 2 --hash-init 123456789
++-A PREROUTING -i dummy0 -j DNAT --to-destination 1.2.3.4 --random --persistent
++-A PREROUTING -i dummy0 -p tcp -j REDIRECT --to-ports 1-2 --random
++-A POSTROUTING -o dummy0 -p tcp -j MASQUERADE --to-ports 1-2 --random
++-A POSTROUTING -o dummy0 -p tcp -j NETMAP --to 1.0.0.0/8
++-A POSTROUTING -o dummy0 -p tcp -j SNAT --to-source 1.2.3.4-1.2.3.5 --random --persistent
++COMMIT
++# Completed on Mon Jan 31 03:03:38 2011
++# Generated by iptables-save v1.4.10 on Mon Jan 31 03:03:38 2011
++*filter
++:INPUT ACCEPT [76:13548]
++:FORWARD ACCEPT [0:0]
++:OUTPUT ACCEPT [59:11240]
++#-A INPUT -m addrtype --src-type UNICAST --dst-type UNICAST --limit-iface-in
++-A INPUT -p tcp -m ecn --ecn-tcp-ece --ecn-tcp-cwr --ecn-ip-ect 0
++-A INPUT -p tcp -m ecn --ecn-tcp-ece --ecn-tcp-cwr --ecn-ip-ect 1
++-A INPUT -p icmp -m icmp --icmp-type 5/0
++-A INPUT -p icmp -m icmp --icmp-type 5/1
++-A INPUT -p icmp -m icmp --icmp-type 5
++-A INPUT -m realm --realm 0x1 -m ttl --ttl-eq  64 -m ttl --ttl-lt  64 -m ttl --ttl-gt  64
++-A FORWARD -p tcp -j REJECT --reject-with tcp-reset
++COMMIT
++# Completed on Mon Jan 31 03:03:39 2011
+diff --git a/tests/options-most.rules b/tests/options-most.rules
 new file mode 100644
-index 0000000..a7d0ea2
+index 0000000..4cd3a87
 --- /dev/null
-+++ b/libiptc/Makefile.am
-@@ -0,0 +1,12 @@
-+# -*- Makefile -*-
-+
-+pkgconfig_DATA      = libiptc.pc
-+
-+lib_LTLIBRARIES     = libip4tc.la libip6tc.la libiptc.la
-+libiptc_la_SOURCES  =
-+libiptc_la_LIBADD   = libip4tc.la libip6tc.la
-+libiptc_la_LDFLAGS  = -version-info 0:0:0 ${libiptc_LDFLAGS2}
-+libip4tc_la_SOURCES = libip4tc.c
-+libip4tc_la_LDFLAGS = -version-info 0:0:0
-+libip6tc_la_SOURCES = libip6tc.c
-+libip6tc_la_LDFLAGS = -version-info 0:0:0 ${libiptc_LDFLAGS2}
-diff --git a/libiptc/libiptc.pc.in b/libiptc/libiptc.pc.in
-new file mode 100644
-index 0000000..99a3544
---- /dev/null
-+++ b/libiptc/libiptc.pc.in
-@@ -0,0 +1,12 @@
-+
-+prefix=@prefix@
-+exec_prefix=@exec_prefix@
-+libdir=@libdir@
-+includedir=@includedir@
-+
-+Name:		libiptc
-+Description:	iptables ruleset ADT and kernel interface
-+Version:	@PACKAGE_VERSION@
-+Libs:		-L${libdir} -liptc
-+Libs.private:	-lip4tc -lip6tc
-+Cflags:		-I${includedir}
++++ b/tests/options-most.rules
+@@ -0,0 +1,170 @@
++# Generated by ip6tables-save v1.4.10 on Mon Jan 31 02:19:53 2011
++*filter
++:INPUT ACCEPT [0:0]
++:FORWARD ACCEPT [0:0]
++:OUTPUT ACCEPT [0:0]
++:matches - -
++:ntarg - -
++:zmatches - -
++-A INPUT -j matches
++-A INPUT -m u32 --u32 "0x0=0x0&&0x0=0x1" -j ntarg
++-A INPUT -j zmatches
++-A INPUT -m conntrack --ctstate INVALID --ctproto 6 --ctorigsrc fe80::/64 --ctorigdst fe80::/64 --ctreplsrc fe80::/64 --ctrepldst fe80::/64 --ctorigsrcport 12 --ctorigdstport 13 --ctreplsrcport 14 --ctrepldstport 15 --ctstatus EXPECTED --ctexpire 1:2 --ctdir REPLY 
++-A INPUT -p tcp -m cluster --cluster-local-nodemask 0x00000001 --cluster-total-nodes 2 --cluster-hash-seed 0x00000001 -m cluster --cluster-local-nodemask 0x00000001 --cluster-total-nodes 2 --cluster-hash-seed 0x00000001 -m comment --comment foo -m connbytes --connbytes 1:2 --connbytes-mode packets --connbytes-dir both -m connlimit --connlimit-upto 1 --connlimit-mask 8 --connlimit-saddr -m connlimit --connlimit-above 1 --connlimit-mask 9 --connlimit-daddr -m connmark --mark 0x99 -m conntrack --ctstate INVALID --ctproto 6 --ctorigsrc fe80::/64 --ctorigdst fe80::/64 --ctreplsrc fe80::/64 --ctrepldst fe80::/64 --ctorigsrcport 12 --ctorigdstport 13 --ctreplsrcport 14 --ctrepldstport 15 --ctstatus EXPECTED --ctexpire 1:2 --ctdir REPLY -m cpu --cpu 2 -m dscp --dscp 0x04 -m dscp --dscp 0x00 -m ha
+ shlimit --hashlimit-upto 1/sec --hashlimit-burst 5 --hashlimit-mode srcip,dstip --hashlimit-name f1 --hashlimit-htable-size 64 --hashlimit-htable-max 128 --hashlimit-htable-gcinterval 60 --h
+ ashlimit-htable-expire 120 --hashlimit-srcmask 24 --hashlimit-dstmask 24 -m hashlimit --hashlimit-above 5/sec --hashlimit-burst 5 --hashlimit-name f1 -m helper --helper ftp -m iprange --src-range ::1-::2 --dst-range ::1-::2 -m ipvs --vaddr fe80::/64 --vport 1 --vdir REPLY --vmethod GATE --vportctl 21 -m length --length 1:2 -m limit --limit 1/sec -m mac --mac-source 01:02:03:04:05:06 -m mark --mark 0x1 -m physdev --physdev-in eth0 -m pkttype --pkt-type unicast -m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto esp --mode tunnel --tunnel-dst fe80::/64 --tunnel-src fe80::/64 --next --reqid 2 -m quota --quota 0 -m recent --rcheck --name DEFAULT --rsource -m socket --transparent -m string --string "foobar" --algo kmp --from 1 --to 2 --icase -m time --timestart 01:02:03 --times
+ top 03:04:05 --monthdays 1,2,3,4,5 --weekdays Mon,Fri,Sun --datestart 2001-02-03T04:05:06 --datestop 2012-09-08T09:06:05 --utc -m tos --tos 0xff/0x01 -m u32 --u32 "0x0=0x0" -m u32 --u32 "0x0
+ =0x0" -m hbh -m hbh -m hl --hl-eq 1
++-A INPUT -m ipv6header --header hop-by-hop --soft
++-A INPUT -p tcp -m cluster --cluster-local-nodemask 0x00000001 --cluster-total-nodes 2 --cluster-hash-seed 0x00000001
++-A INPUT -p tcp -m cluster --cluster-local-nodemask 0x00000001 --cluster-total-nodes 2 --cluster-hash-seed 0x00000001
++-A INPUT -p tcp -m comment --comment foo
++-A INPUT -p tcp -m connbytes --connbytes 1:2 --connbytes-mode packets --connbytes-dir both
++-A INPUT -p tcp -m connlimit --connlimit-upto 1 --connlimit-mask 8 --connlimit-saddr
++-A INPUT -p tcp -m connlimit --connlimit-above 1 --connlimit-mask 9 --connlimit-daddr
++-A INPUT -p tcp -m connmark --mark 0x99
++-A INPUT -p tcp -m conntrack --ctstate INVALID --ctproto 6 --ctorigsrc fe80::/64 --ctorigdst fe80::/64 --ctreplsrc fe80::/64 --ctrepldst fe80::/64 --ctorigsrcport 12 --ctorigdstport 13 --ctreplsrcport 14 --ctrepldstport 15 --ctstatus EXPECTED --ctexpire 1:2 --ctdir REPLY
++-A INPUT -p tcp -m cpu --cpu 2
++-A INPUT -p tcp -m dscp --dscp 0x04
++-A INPUT -p tcp -m dscp --dscp 0x00
++-A INPUT -p tcp -m hashlimit --hashlimit-upto 1/sec --hashlimit-burst 5 --hashlimit-mode srcip,dstip --hashlimit-name f1 --hashlimit-htable-size 64 --hashlimit-htable-max 128 --hashlimit-htable-gcinterval 60 --hashlimit-htable-expire 120 --hashlimit-srcmask 24 --hashlimit-dstmask 24
++-A INPUT -p tcp -m hashlimit --hashlimit-above 5/sec --hashlimit-burst 5 --hashlimit-name f1
++-A INPUT -p tcp -m helper --helper ftp
++-A INPUT -p tcp -m iprange --src-range ::1-::2 --dst-range ::1-::2
++-A INPUT -p tcp -m length --length 1:2
++-A INPUT -p tcp -m limit --limit 1/sec
++-A INPUT -p tcp -m mac --mac-source 01:02:03:04:05:06
++-A INPUT -p tcp -m mark --mark 0x1
++-A INPUT -p tcp -m physdev --physdev-in eth0
++-A INPUT -p tcp -m pkttype --pkt-type unicast
++-A INPUT -p tcp -m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto esp --mode tunnel --tunnel-dst fe80::/64 --tunnel-src fe80::/64 --next --reqid 2
++-A INPUT -p tcp -m quota --quota 0
++-A INPUT -p tcp -m recent --rcheck --name DEFAULT --rsource
++-A INPUT -p tcp -m socket --transparent
++-A INPUT -p tcp -m string --string "foobar" --algo kmp --from 1 --to 2 --icase
++-A INPUT -p tcp -m tos --tos 0xff/0x01
++-A INPUT -p tcp -m u32 --u32 "0x0=0x0" -m u32 --u32 "0x0=0x0"
++-A INPUT -p tcp -m hbh -m hbh -m hl --hl-eq 1 -m ipv6header --header hop-by-hop --soft
++-A INPUT -m ipv6header --header hop-by-hop --soft -m rt --rt-type 2 --rt-segsleft 2 --rt-len 5 -m rt --rt-type 0 --rt-segsleft 2 --rt-len 5 --rt-0-res --rt-0-addrs ::1 --rt-0-not-strict -m rt --rt-type 0 --rt-segsleft 2 --rt-len 5 --rt-0-res --rt-0-addrs ::1,::2 --rt-0-not-strict
++-A INPUT -p tcp -m cpu --cpu 1 -m tcp --sport 1:2 --dport 1:2 --tcp-option 1 --tcp-flags FIN,SYN,RST,ACK SYN -m cpu --cpu 1
++-A INPUT -p dccp -m cpu --cpu 1 -m dccp --sport 1:2 --dport 3:4 -m cpu --cpu 1
++-A INPUT -p udp -m cpu --cpu 1 -m udp --sport 1:2 --dport 3:4 -m cpu --cpu 1
++-A INPUT -p sctp -m cpu --cpu 1 -m sctp --sport 1:2 --dport 3:4 --chunk-types all INIT,SACK -m cpu --cpu 1
++-A INPUT -p esp -m esp --espspi 1:2
++-A INPUT -p tcp -m multiport --dports 1,2 -m multiport --dports 1,2
++-A INPUT -p tcp -m tcpmss --mss 1:2 -m tcp --tcp-flags FIN,SYN,RST,ACK SYN
++-A INPUT -p ipv6-icmp -m icmp6 --icmpv6-type 4/0
++-A INPUT
++-A INPUT -p mobility
++-A INPUT -p mobility -m mh --mh-type 3
++-A OUTPUT -m owner --socket-exists --uid-owner 1-2 --gid-owner 2-3
++-A matches -m connbytes --connbytes 1 --connbytes-mode bytes --connbytes-dir both
++-A matches
++-A matches -m connbytes --connbytes :2 --connbytes-mode bytes --connbytes-dir both
++-A matches
++-A matches -m connbytes --connbytes 0:3 --connbytes-mode bytes --connbytes-dir both
++-A matches
++-A matches -m connbytes --connbytes 4: --connbytes-mode bytes --connbytes-dir both
++-A matches
++-A matches -m connbytes --connbytes 5:18446744073709551615 --connbytes-mode bytes --connbytes-dir both
++-A matches
++-A matches -m conntrack --ctexpire 1
++-A matches
++-A matches -m conntrack --ctexpire :2
++-A matches
++-A matches -m conntrack --ctexpire 0:3
++-A matches
++-A matches -m conntrack --ctexpire 4:
++-A matches
++-A matches -m conntrack --ctexpire 5:4294967295
++-A matches
++-A matches -p esp -m esp --espspi 1
++-A matches
++-A matches -p esp -m esp --espspi :2
++-A matches
++-A matches -p esp -m esp --espspi 0:3
++-A matches
++-A matches -p esp -m esp --espspi 4:
++-A matches
++-A matches -p esp -m esp --espspi 5:4294967295
++-A matches
++-A matches -m ipvs --vaddr fe80::/64 --vport 1 --vdir REPLY --vmethod GATE --vportctl 21
++-A matches
++-A matches -m length --length 1
++-A matches
++-A matches -m length --length :2
++-A matches
++-A matches -m length --length 0:3
++-A matches
++-A matches -m length --length 4:
++-A matches
++-A matches -m length --length 5:65535
++-A matches
++-A matches -p tcp -m tcpmss --mss 1
++-A matches
++-A matches -p tcp -m tcpmss --mss :2
++-A matches
++-A matches -p tcp -m tcpmss --mss 0:3
++-A matches
++-A matches -p tcp -m tcpmss --mss 4:
++-A matches
++-A matches -p tcp -m tcpmss --mss 5:65535
++-A matches
++-A matches -m time --timestart 01:02:03 --timestop 04:05:06 --monthdays 1,2,3,4,5 --weekdays Mon,Fri,Sun --datestart 2001-02-03T04:05:06 --datestop 2012-09-08T09:06:05 --localtz
++-A matches
++-A matches -m time --timestart 01:02:03 --timestop 04:05:06 --monthdays 1,2,3,4,5 --weekdays Mon,Fri,Sun --datestart 2001-02-03T04:05:06 --datestop 2012-09-08T09:06:05 --kerneltz
++-A matches
++-A matches -m time --timestart 01:02:03 --timestop 04:05:06 --monthdays 1,2,3,4,5 --weekdays Mon,Fri,Sun --datestart 2001-02-03T04:05:06 --datestop 2012-09-08T09:06:05
++-A matches
++-A matches -m time --timestart 02:00:00 --timestop 03:00:00 --datestart 1970-01-01T02:00:00 --datestop 1970-01-01T03:00:00
++-A matches
++-A matches -m ah --ahspi 1
++-A matches
++-A matches -m ah --ahspi :2
++-A matches
++-A matches -m ah --ahspi 0:3
++-A matches
++-A matches -m ah --ahspi 4:
++-A matches
++-A matches -m ah --ahspi 5:4294967295
++-A matches
++-A matches -m frag --fragid 1
++-A matches
++-A matches -m frag --fragid :2
++-A matches
++-A matches -m frag --fragid 0:3
++-A matches
++-A matches -m frag --fragid 4:
++-A matches
++-A matches -m frag --fragid 5:4294967295
++-A matches
++-A matches -m rt --rt-segsleft 1
++-A matches
++-A matches -m rt --rt-segsleft :2
++-A matches
++-A matches -m rt --rt-segsleft 0:3
++-A matches
++-A matches -m rt --rt-segsleft 4:
++-A matches
++-A matches -m rt --rt-segsleft 5:4294967295
++-A matches
++-A ntarg -j NFQUEUE --queue-num 1
++-A ntarg
++-A ntarg -j NFQUEUE --queue-balance 8:99
++-A ntarg
++-A ntarg -j RATEEST --rateest-name RE1 --rateest-interval 250.0ms --rateest-ewmalog 500.0ms
++-A ntarg
++-A ntarg -j RATEEST --rateest-name RE2 --rateest-interval 250.0ms --rateest-ewmalog 500.0ms
++-A ntarg
++#-A zmatches -m rateest --rateest RE1 --rateest-lt --rateest-bps 8bit
++#-A zmatches -m rateest --rateest RE1 --rateest-eq --rateest-bps 8bit
++#-A zmatches -m rateest --rateest RE1 --rateest-gt --rateest-bps 8bit
++#-A zmatches -m rateest --rateest RE1 --rateest-lt --rateest-pps 5
++#-A zmatches -m rateest --rateest RE1 --rateest-eq --rateest-pps 5
++#-A zmatches -m rateest --rateest RE1 --rateest-gt --rateest-pps 5
++#-A zmatches -m rateest --rateest-delta --rateest RE1 --rateest-bps1 8bit --rateest-lt --rateest-bps2 16bit
++#-A zmatches -m rateest --rateest1 RE1 --rateest-lt --rateest2 RE2 --bytes
++#-A zmatches -m rateest --rateest1 RE1 --rateest-lt --rateest2 RE2 --packets
++#-A zmatches -m rateest --rateest-delta --rateest RE1 --rateest-bps1 8bit --rateest-eq --rateest-bps2 16bit
++#-A zmatches -m rateest --rateest-delta --rateest RE1 --rateest-bps1 8bit --rateest-gt --rateest-bps2 16bit
++#-A zmatches -m rateest --rateest-delta --rateest RE1 --rateest-pps1 8 --rateest-lt --rateest-pps2 9
++#-A zmatches -m rateest --rateest-delta --rateest RE1 --rateest-pps1 8 --rateest-eq --rateest-pps2 9
++#-A zmatches -m rateest --rateest-delta --rateest RE1 --rateest-pps1 8 --rateest-gt --rateest-pps2 9
++COMMIT
++# Completed on Mon Jan 31 02:19:54 2011
 -- 
 1.7.3.4
 
