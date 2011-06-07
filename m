@@ -1,55 +1,139 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH] netfilter: nf_nat: fix crash in nf_nat_csum
-Date: Tue, 7 Jun 2011 23:02:03 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1106072246570.1619@ja.ssi.bg>
-References: <alpine.LFD.2.00.1105292335220.1429@ja.ssi.bg> <4DEE22A4.8060202@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: [PATCH 1/5] xtables-multi: fix absence of xml translator in IPv6-only builds
+Date: Tue,  7 Jun 2011 22:35:59 +0200
+Message-ID: <1307478964-2034-2-git-send-email-jengelh@medozas.de>
+References: <1307478964-2034-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:48356 "EHLO ja.ssi.bg"
+Received: from seven.medozas.de ([188.40.89.202]:39434 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753546Ab1FGT7o (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jun 2011 15:59:44 -0400
-In-Reply-To: <4DEE22A4.8060202@trash.net>
+	id S1756591Ab1FGUgJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Jun 2011 16:36:09 -0400
+In-Reply-To: <1307478964-2034-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+=46rom: Maciej =C5=BBenczykowski <zenczykowski@gmail.com>
 
-	Hello,
+Commit v1.4.11-4-gde791ff did not actually build the iptables-xml code
+into the xtables-multi binary.
 
-On Tue, 7 Jun 2011, Patrick McHardy wrote:
+Signed-off-by: Maciej Zenczykowski <maze@google.com>
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ Makefile.am      |    4 ++--
+ iptables-multi.h |    1 -
+ iptables-xml.c   |    4 ++--
+ xtables-multi.c  |    6 ++++--
+ xtables-multi.h  |    6 ++++++
+ 5 files changed, 14 insertions(+), 7 deletions(-)
+ create mode 100644 xtables-multi.h
 
-> On 29.05.2011 22:42, Julian Anastasov wrote:
-> > 
-> > 	Fix crash in nf_nat_csum when mangling packets
-> > in OUTPUT hook where skb->dev is not defined, it is set
-> > later before POSTROUTING. Problem happens for CHECKSUM_NONE.
-> > We can check device from rt but using CHECKSUM_PARTIAL
-> > should be safe (skb_checksum_help).
-> 
-> We don't call helpers in LOCAL_OUT, how can this happen?
-
-	I think, this happened with IPVS only in OUTPUT hook: 
-tcp_snat_handler -> ip_vs_ftp_out -> nf_nat_mangle_tcp_packet -> 
-nf_nat_csum. This is again PASV FTP via loopback.
-
-> > diff -urp v2.6.39/linux/net/ipv4/netfilter/nf_nat_helper.c linux/net/ipv4/netfilter/nf_nat_helper.c
-> > --- v2.6.39/linux/net/ipv4/netfilter/nf_nat_helper.c	2011-01-06 00:01:22.000000000 +0200
-> > +++ linux/net/ipv4/netfilter/nf_nat_helper.c	2011-05-29 23:14:40.166245897 +0300
-> > @@ -160,7 +160,7 @@ static void nf_nat_csum(struct sk_buff *
-> >  
-> >  	if (skb->ip_summed != CHECKSUM_PARTIAL) {
-> >  		if (!(rt->rt_flags & RTCF_LOCAL) &&
-> > -		    skb->dev->features & NETIF_F_V4_CSUM) {
-> > +		    (!skb->dev || skb->dev->features & NETIF_F_V4_CSUM)) {
-> >  			skb->ip_summed = CHECKSUM_PARTIAL;
-> >  			skb->csum_start = skb_headroom(skb) +
-> >  					  skb_network_offset(skb) +
-> > 
-
-Regards
+diff --git a/Makefile.am b/Makefile.am
+index 60ea83b..48f01d8 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -38,7 +38,7 @@ libxtables_la_CFLAGS  =3D ${AM_CFLAGS} -DNO_SHARED_LI=
+BS=3D1
+ libxtables_la_LIBADD  =3D
+ endif
+=20
+-xtables_multi_SOURCES  =3D xtables-multi.c
++xtables_multi_SOURCES  =3D xtables-multi.c iptables-xml.c
+ xtables_multi_CFLAGS   =3D ${AM_CFLAGS} -DIPTABLES_MULTI
+ xtables_multi_LDFLAGS  =3D -rdynamic
+ xtables_multi_LDADD    =3D extensions/libext.a
+@@ -46,7 +46,7 @@ if ENABLE_STATIC
+ xtables_multi_CFLAGS  +=3D -DALL_INCLUSIVE
+ endif
+ if ENABLE_IPV4
+-xtables_multi_SOURCES +=3D iptables-save.c iptables-restore.c iptables=
+-xml.c \
++xtables_multi_SOURCES +=3D iptables-save.c iptables-restore.c \
+                          iptables-standalone.c iptables.c
+ xtables_multi_CFLAGS  +=3D -DENABLE_IPV4
+ xtables_multi_LDADD   +=3D libiptc/libip4tc.la extensions/libext4.a
+diff --git a/iptables-multi.h b/iptables-multi.h
+index a9912b0..a2bb878 100644
+--- a/iptables-multi.h
++++ b/iptables-multi.h
+@@ -4,6 +4,5 @@
+ extern int iptables_main(int, char **);
+ extern int iptables_save_main(int, char **);
+ extern int iptables_restore_main(int, char **);
+-extern int iptables_xml_main(int, char **);
+=20
+ #endif /* _IPTABLES_MULTI_H */
+diff --git a/iptables-xml.c b/iptables-xml.c
+index aa98f75..5aa638c 100644
+--- a/iptables-xml.c
++++ b/iptables-xml.c
+@@ -1,6 +1,6 @@
+ /* Code to convert iptables-save format to xml format,
+  * (C) 2006 Ufo Mechanic <azez@ufomechanic.net>
+- * based on iptables-restor (C) 2000-2002 by Harald Welte <laforge@gnu=
+monks.org>
++ * based on iptables-restore (C) 2000-2002 by Harald Welte <laforge@gn=
+umonks.org>
+  * based on previous code from Rusty Russell <rusty@linuxcare.com.au>
+  *
+  * This code is distributed under the terms of GNU GPL v2
+@@ -14,7 +14,7 @@
+ #include <stdarg.h>
+ #include "iptables.h"
+ #include "libiptc/libiptc.h"
+-#include "iptables-multi.h"
++#include "xtables-multi.h"
+ #include <xtables.h>
+=20
+ #ifdef DEBUG
+diff --git a/xtables-multi.c b/xtables-multi.c
+index f8d56ce..8014d5f 100644
+--- a/xtables-multi.c
++++ b/xtables-multi.c
+@@ -3,6 +3,8 @@
+ #include <string.h>
+ #include "xshared.h"
+=20
++#include "xtables-multi.h"
++
+ #ifdef ENABLE_IPV4
+ #include "iptables-multi.h"
+ #endif
+@@ -19,9 +21,9 @@ static const struct subcommand multi_subcommands[] =3D=
+ {
+ 	{"save4",               iptables_save_main},
+ 	{"iptables-restore",    iptables_restore_main},
+ 	{"restore4",            iptables_restore_main},
+-	{"iptables-xml",        iptables_xml_main},
+-	{"xml4",                iptables_xml_main},
+ #endif
++	{"iptables-xml",        iptables_xml_main},
++	{"xml",                 iptables_xml_main},
+ #ifdef ENABLE_IPV6
+ 	{"ip6tables",           ip6tables_main},
+ 	{"main6",               ip6tables_main},
+diff --git a/xtables-multi.h b/xtables-multi.h
+new file mode 100644
+index 0000000..615724b
+--- /dev/null
++++ b/xtables-multi.h
+@@ -0,0 +1,6 @@
++#ifndef _XTABLES_MULTI_H
++#define _XTABLES_MULTI_H 1
++
++extern int iptables_xml_main(int, char **);
++
++#endif /* _XTABLES_MULTI_H */
+--=20
+1.7.3.4
 
 --
-Julian Anastasov <ja@ssi.bg>
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
