@@ -1,36 +1,52 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: [PATCH 2nd revision] Add SELinux context support to AUDIT target
-Date: Tue, 07 Jun 2011 09:18:54 +0100
-Message-ID: <4DEDDEEE.90509@googlemail.com>
-References: <4DDE9194.4030303@netfilter.org> <4DD5BF5A.2030108@googlemail.com> <4DDE848F.1070508@netfilter.org> <4DDE87F5.9050606@googlemail.com> <4DEA4B44.8050809@googlemail.com> <4DEC0C01.4040900@netfilter.org> <4DECC1D9.7010605@googlemail.com> <4DED60B1.9080804@netfilter.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: ip6tables functionality test is wanted
+Date: Tue, 7 Jun 2011 11:01:04 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1106071059120.25037@frira.zrqbmnf.qr>
+References: <4DED2B6D.1020008@parallels.com> <4DED6489.4050205@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, Thomas Graf <tgraf@redhat.com>,
-	Patrick McHardy <kaber@trash.net>,
-	Eric Paris <eparis@parisplace.org>,
-	Al Viro <viro@ZenIV.linux.org.uk>,
-	Linux-audit <linux-audit@redhat.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Konstantin Khorenko <khorenko@parallels.com>,
+	netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:40830 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752041Ab1FGITH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jun 2011 04:19:07 -0400
-Received: by wya21 with SMTP id 21so3363301wya.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 07 Jun 2011 01:19:05 -0700 (PDT)
-In-Reply-To: <4DED60B1.9080804@netfilter.org>
+Received: from seven.medozas.de ([188.40.89.202]:52173 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751803Ab1FGJBG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Jun 2011 05:01:06 -0400
+In-Reply-To: <4DED6489.4050205@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Tuesday 2011-06-07 01:36, Pablo Neira Ayuso wrote:
 
->> Is this a style-type requirement I wasn't aware of? Because from a
->> syntax point of view the left/right braces aren't necessary.
->>     
+>On 06/06/11 21:33, Konstantin Khorenko wrote:
+>> Dear All,
+>> 
+>> working on iptables IPv6 32bit compat kernel code implementation we need
+>> to somehow test it.
+>> i've spent some time searching for a good ip6tables test, but have to
+>> admit that did not find any.
+>> 
+>> On the other hand i guess during the development new version of
+>> "iptables" could be tested on some regression test suites.
 >
-> Aware of it, it's just coding style.
->   
-Thanks for pointing it out (now I know)! Would you like me to resubmit 
-the patch with the 2 braces included or are you happy with what I have 
-provided?
+>These regression tests are missing, we should have some indeed.
+>
+>Rusty already considered this in nfsim, but that project was not any
+>longer supported (getting part of the kernel compile to compile in
+>userspace with every version is a daunting task).
+>
+>> i'd very appreciate if someone can point me some test for ip6tables we
+>> can use.
+>> (Checking the kernel part is not important in our case - we can simply
+>> compare the resulted chains/rules after the test execution with the list
+>> taken on a native 32bit node,
+>> so the most important thing is a list of valid ip6tables commands.)
+>
+>Sorry, we don't have them at the moment.
+
+I have rule test files that were helpful during the Guided Option Parser 
+implementation. I shall submit.
+
+About compat, it is as simple as running an ELF32 executable of iptables 
+to trigger its use.
