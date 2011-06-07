@@ -1,137 +1,122 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 1/5] xtables-multi: fix absence of xml translator in IPv6-only builds
-Date: Tue,  7 Jun 2011 22:35:59 +0200
-Message-ID: <1307478964-2034-2-git-send-email-jengelh@medozas.de>
-References: <1307478964-2034-1-git-send-email-jengelh@medozas.de>
+Subject: Installer, option fixes
+Date: Tue,  7 Jun 2011 22:35:58 +0200
+Message-ID: <1307478964-2034-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:39434 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:39430 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756591Ab1FGUgJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jun 2011 16:36:09 -0400
-In-Reply-To: <1307478964-2034-1-git-send-email-jengelh@medozas.de>
+	id S1756564Ab1FGUgH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Jun 2011 16:36:07 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: Maciej =C5=BBenczykowski <zenczykowski@gmail.com>
 
-Commit v1.4.11-4-gde791ff did not actually build the iptables-xml code
-into the xtables-multi binary.
+Here are a couple of fixes. I have also taken the liberty to move the
+main code into a directory of its own to unclutter the toplevel directo=
+ry.
+This does not impact AFAICS.
 
-Signed-off-by: Maciej Zenczykowski <maze@google.com>
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- Makefile.am      |    4 ++--
- iptables-multi.h |    1 -
- iptables-xml.c   |    4 ++--
- xtables-multi.c  |    6 ++++--
- xtables-multi.h  |    6 ++++++
- 5 files changed, 14 insertions(+), 7 deletions(-)
- create mode 100644 xtables-multi.h
+With this in, it would be prudent to produce a 1.4.12.
+=3D=3D=3D
+The following changes since commit a1cd1f2a4a35427c68cd0d1bd2761d5be42b=
+12b1:
 
-diff --git a/Makefile.am b/Makefile.am
-index 60ea83b..48f01d8 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -38,7 +38,7 @@ libxtables_la_CFLAGS  =3D ${AM_CFLAGS} -DNO_SHARED_LI=
-BS=3D1
- libxtables_la_LIBADD  =3D
- endif
-=20
--xtables_multi_SOURCES  =3D xtables-multi.c
-+xtables_multi_SOURCES  =3D xtables-multi.c iptables-xml.c
- xtables_multi_CFLAGS   =3D ${AM_CFLAGS} -DIPTABLES_MULTI
- xtables_multi_LDFLAGS  =3D -rdynamic
- xtables_multi_LDADD    =3D extensions/libext.a
-@@ -46,7 +46,7 @@ if ENABLE_STATIC
- xtables_multi_CFLAGS  +=3D -DALL_INCLUSIVE
- endif
- if ENABLE_IPV4
--xtables_multi_SOURCES +=3D iptables-save.c iptables-restore.c iptables=
--xml.c \
-+xtables_multi_SOURCES +=3D iptables-save.c iptables-restore.c \
-                          iptables-standalone.c iptables.c
- xtables_multi_CFLAGS  +=3D -DENABLE_IPV4
- xtables_multi_LDADD   +=3D libiptc/libip4tc.la extensions/libext4.a
-diff --git a/iptables-multi.h b/iptables-multi.h
-index a9912b0..a2bb878 100644
---- a/iptables-multi.h
-+++ b/iptables-multi.h
-@@ -4,6 +4,5 @@
- extern int iptables_main(int, char **);
- extern int iptables_save_main(int, char **);
- extern int iptables_restore_main(int, char **);
--extern int iptables_xml_main(int, char **);
-=20
- #endif /* _IPTABLES_MULTI_H */
-diff --git a/iptables-xml.c b/iptables-xml.c
-index aa98f75..5aa638c 100644
---- a/iptables-xml.c
-+++ b/iptables-xml.c
-@@ -1,6 +1,6 @@
- /* Code to convert iptables-save format to xml format,
-  * (C) 2006 Ufo Mechanic <azez@ufomechanic.net>
-- * based on iptables-restor (C) 2000-2002 by Harald Welte <laforge@gnu=
-monks.org>
-+ * based on iptables-restore (C) 2000-2002 by Harald Welte <laforge@gn=
-umonks.org>
-  * based on previous code from Rusty Russell <rusty@linuxcare.com.au>
-  *
-  * This code is distributed under the terms of GNU GPL v2
-@@ -14,7 +14,7 @@
- #include <stdarg.h>
- #include "iptables.h"
- #include "libiptc/libiptc.h"
--#include "iptables-multi.h"
-+#include "xtables-multi.h"
- #include <xtables.h>
-=20
- #ifdef DEBUG
-diff --git a/xtables-multi.c b/xtables-multi.c
-index f8d56ce..8014d5f 100644
---- a/xtables-multi.c
-+++ b/xtables-multi.c
-@@ -3,6 +3,8 @@
- #include <string.h>
- #include "xshared.h"
-=20
-+#include "xtables-multi.h"
-+
- #ifdef ENABLE_IPV4
- #include "iptables-multi.h"
- #endif
-@@ -19,9 +21,9 @@ static const struct subcommand multi_subcommands[] =3D=
- {
- 	{"save4",               iptables_save_main},
- 	{"iptables-restore",    iptables_restore_main},
- 	{"restore4",            iptables_restore_main},
--	{"iptables-xml",        iptables_xml_main},
--	{"xml4",                iptables_xml_main},
- #endif
-+	{"iptables-xml",        iptables_xml_main},
-+	{"xml",                 iptables_xml_main},
- #ifdef ENABLE_IPV6
- 	{"ip6tables",           ip6tables_main},
- 	{"main6",               ip6tables_main},
-diff --git a/xtables-multi.h b/xtables-multi.h
-new file mode 100644
-index 0000000..615724b
---- /dev/null
-+++ b/xtables-multi.h
-@@ -0,0 +1,6 @@
-+#ifndef _XTABLES_MULTI_H
-+#define _XTABLES_MULTI_H 1
-+
-+extern int iptables_xml_main(int, char **);
-+
-+#endif /* _XTABLES_MULTI_H */
---=20
-1.7.3.4
+  doc: fix trivial typo in libipt_SNAT (2011-06-01 02:35:28 +0200)
 
+are available in the git repository at:
+  git://dev.medozas.de/iptables master
+
+Jan Engelhardt (4):
+      src: move all libiptc pieces into its directory
+      src: move all iptables pieces into a separate directory
+      tests: add some sample rulesets to test save-restore cycle
+      option: fix ignored negation before implicit extension loading
+
+Maciej =C5=BBenczykowski (1):
+      xtables-multi: fix absence of xml translator in IPv6-only builds
+
+ .gitignore                                         |   15 --
+ Makefile.am                                        |   78 +---------
+ configure.ac                                       |    5 +-
+ iptables/.gitignore                                |   14 ++
+ iptables/Makefile.am                               |   67 ++++++++
+ ip6tables-multi.h =3D> iptables/ip6tables-multi.h    |    0
+ .../ip6tables-restore.8                            |    0
+ .../ip6tables-restore.c                            |    0
+ ip6tables-save.8 =3D> iptables/ip6tables-save.8      |    0
+ ip6tables-save.c =3D> iptables/ip6tables-save.c      |    0
+ .../ip6tables-standalone.c                         |    0
+ ip6tables.8.in =3D> iptables/ip6tables.8.in          |    0
+ ip6tables.c =3D> iptables/ip6tables.c                |    8 +-
+ iptables-apply =3D> iptables/iptables-apply          |    0
+ iptables-apply.8 =3D> iptables/iptables-apply.8      |    0
+ iptables-multi.h =3D> iptables/iptables-multi.h      |    1 -
+ iptables-restore.8 =3D> iptables/iptables-restore.8  |    0
+ iptables-restore.c =3D> iptables/iptables-restore.c  |    0
+ iptables-save.8 =3D> iptables/iptables-save.8        |    0
+ iptables-save.c =3D> iptables/iptables-save.c        |    0
+ .../iptables-standalone.c                          |    0
+ iptables-xml.1 =3D> iptables/iptables-xml.1          |    0
+ iptables-xml.c =3D> iptables/iptables-xml.c          |    4 +-
+ iptables.8.in =3D> iptables/iptables.8.in            |    0
+ iptables.c =3D> iptables/iptables.c                  |    4 +-
+ iptables.xslt =3D> iptables/iptables.xslt            |    0
+ xshared.c =3D> iptables/xshared.c                    |   12 +-
+ xshared.h =3D> iptables/xshared.h                    |    2 +-
+ xtables-multi.c =3D> iptables/xtables-multi.c        |    6 +-
+ iptables/xtables-multi.h                           |    6 +
+ xtables.c =3D> iptables/xtables.c                    |    0
+ xtables.pc.in =3D> iptables/xtables.pc.in            |    0
+ xtoptions.c =3D> iptables/xtoptions.c                |    0
+ libiptc/.gitignore                                 |    1 +
+ libiptc/Makefile.am                                |   12 ++
+ libiptc.pc.in =3D> libiptc/libiptc.pc.in             |    0
+ tests/options-ipv4.rules                           |   52 ++++++
+ tests/options-most.rules                           |  172 ++++++++++++=
+++++++++
+ 38 files changed, 352 insertions(+), 107 deletions(-)
+ create mode 100644 iptables/.gitignore
+ create mode 100644 iptables/Makefile.am
+ rename ip6tables-multi.h =3D> iptables/ip6tables-multi.h (100%)
+ rename ip6tables-restore.8 =3D> iptables/ip6tables-restore.8 (100%)
+ rename ip6tables-restore.c =3D> iptables/ip6tables-restore.c (100%)
+ rename ip6tables-save.8 =3D> iptables/ip6tables-save.8 (100%)
+ rename ip6tables-save.c =3D> iptables/ip6tables-save.c (100%)
+ rename ip6tables-standalone.c =3D> iptables/ip6tables-standalone.c (10=
+0%)
+ rename ip6tables.8.in =3D> iptables/ip6tables.8.in (100%)
+ rename ip6tables.c =3D> iptables/ip6tables.c (99%)
+ rename iptables-apply =3D> iptables/iptables-apply (100%)
+ rename iptables-apply.8 =3D> iptables/iptables-apply.8 (100%)
+ rename iptables-multi.h =3D> iptables/iptables-multi.h (83%)
+ rename iptables-restore.8 =3D> iptables/iptables-restore.8 (100%)
+ rename iptables-restore.c =3D> iptables/iptables-restore.c (100%)
+ rename iptables-save.8 =3D> iptables/iptables-save.8 (100%)
+ rename iptables-save.c =3D> iptables/iptables-save.c (100%)
+ rename iptables-standalone.c =3D> iptables/iptables-standalone.c (100%=
+)
+ rename iptables-xml.1 =3D> iptables/iptables-xml.1 (100%)
+ rename iptables-xml.c =3D> iptables/iptables-xml.c (99%)
+ rename iptables.8.in =3D> iptables/iptables.8.in (100%)
+ rename iptables.c =3D> iptables/iptables.c (99%)
+ rename iptables.xslt =3D> iptables/iptables.xslt (100%)
+ rename xshared.c =3D> iptables/xshared.c (96%)
+ rename xshared.h =3D> iptables/xshared.h (97%)
+ rename xtables-multi.c =3D> iptables/xtables-multi.c (93%)
+ create mode 100644 iptables/xtables-multi.h
+ rename xtables.c =3D> iptables/xtables.c (100%)
+ rename xtables.pc.in =3D> iptables/xtables.pc.in (100%)
+ rename xtoptions.c =3D> iptables/xtoptions.c (100%)
+ create mode 100644 libiptc/.gitignore
+ create mode 100644 libiptc/Makefile.am
+ rename libiptc.pc.in =3D> libiptc/libiptc.pc.in (100%)
+ create mode 100644 tests/options-ipv4.rules
+ create mode 100644 tests/options-most.rules
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
