@@ -1,41 +1,36 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] xtables-multi: fix absence of xml translator in IPv6-only
- builds
-Date: Tue, 7 Jun 2011 11:12:32 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1106071110580.25037@frira.zrqbmnf.qr>
-References: <1307410029-6104-1-git-send-email-zenczykowski@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 2nd revision] Add SELinux context support to AUDIT target
+Date: Tue, 07 Jun 2011 11:12:57 +0200
+Message-ID: <4DEDEB99.4070601@netfilter.org>
+References: <4DDE9194.4030303@netfilter.org> <4DD5BF5A.2030108@googlemail.com> <4DDE848F.1070508@netfilter.org> <4DDE87F5.9050606@googlemail.com> <4DEA4B44.8050809@googlemail.com> <4DEC0C01.4040900@netfilter.org> <4DECC1D9.7010605@googlemail.com> <4DED60B1.9080804@netfilter.org> <4DEDDEEE.90509@googlemail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <maze@google.com>,
-	netfilter-devel@vger.kernel.org
-To: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, Thomas Graf <tgraf@redhat.com>,
+	Patrick McHardy <kaber@trash.net>,
+	Eric Paris <eparis@parisplace.org>,
+	Al Viro <viro@ZenIV.linux.org.uk>,
+	Linux-audit <linux-audit@redhat.com>
+To: Mr Dash Four <mr.dash.four@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:60736 "EHLO seven.medozas.de"
+Received: from mail.us.es ([193.147.175.20]:49581 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752289Ab1FGJMd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jun 2011 05:12:33 -0400
-In-Reply-To: <1307410029-6104-1-git-send-email-zenczykowski@gmail.com>
+	id S1752331Ab1FGJNH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Jun 2011 05:13:07 -0400
+In-Reply-To: <4DEDDEEE.90509@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 2011-06-07 03:27, Maciej =C5=BBenczykowski wrote:
+On 07/06/11 10:18, Mr Dash Four wrote:
+> 
+>>> Is this a style-type requirement I wasn't aware of? Because from a
+>>> syntax point of view the left/right braces aren't necessary.
+>>>     
+>>
+>> Aware of it, it's just coding style.
+>>   
+> Thanks for pointing it out (now I know)! Would you like me to resubmit
+> the patch with the 2 braces included or are you happy with what I have
+> provided?
 
->index 0000000..615724b
->--- /dev/null
->+++ b/xtables-multi.h
->@@ -0,0 +1,6 @@
->+#ifndef _XTABLES_MULTI_H
->+#define _XTABLES_MULTI_H 1
->+
->+extern int iptables_xml_main(int, char **);
->+
->+#endif /* _XTABLES_MULTI_H */
-=20
-Simply put this in xshared.h.
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+resubmit please.
