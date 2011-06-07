@@ -1,41 +1,47 @@
-From: Olaf <mailinglists@ban-solms.de>
-Subject: Re: iptables 1.4.11, cannot invert tcp flags
-Date: Tue, 07 Jun 2011 23:22:58 +0200
-Message-ID: <4DEE96B2.5020104@ban-solms.de>
-References: <4DDE857E.40807@trash.net> <4DEDB617.7090805@ban-solms.de> <4DEE3077.3080400@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [RFC] SLOB breaks netfilter
+Date: Tue, 7 Jun 2011 23:27:25 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1106072316370.3052@frira.zrqbmnf.qr>
+References: <20110607210651.GA11159@Chamillionaire.breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Jan Engelhardt <jengelh@medozas.de>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	tglx@linutronix.de
+To: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from hss-server.de ([212.72.183.75]:49517 "EHLO hss-server.de"
+Received: from seven.medozas.de ([188.40.89.202]:53649 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757510Ab1FGVW6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jun 2011 17:22:58 -0400
-In-Reply-To: <4DEE3077.3080400@trash.net>
+	id S1757576Ab1FGV11 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Jun 2011 17:27:27 -0400
+In-Reply-To: <20110607210651.GA11159@Chamillionaire.breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2011-06-07 16:06, Patrick McHardy wrote:
+On Tuesday 2011-06-07 23:06, Sebastian Andrzej Siewior wrote:
 
->> with 1.4.11 I can no longer invert --syn nor it's equivalent --tcp-flags
->> SYN,RST,ACK,FIN SYN.
->> Both show up 'normal' (tcp flags:0x17/0x02) instead of 'inverted' (tcp
->> flags:!0x17/0x02) when listing rules.
->> Works fine when using 1.4.10 or older versions.
+>After more debugging I found the root cause: In
+>check_entry_size_and_hooks() I see:
+>              if ((unsigned long)e % __alignof__(struct arpt_entry) != 0 ||
 >
-> It works for me when using "-p tcp -m tcp ! --syn", but not when
-> using "-p tcp ! --syn", so I guess something is broken in command
-> parsing for implicitly loaded matches.
+>and SLOB defines:
 >
-> CCed Jan, who can probably help.
+>|#ifdef ARCH_DMA_MINALIGN
+>|#define ARCH_KMALLOC_MINALIGN ARCH_DMA_MINALIGN
+>|#else
+>|#define ARCH_KMALLOC_MINALIGN __alignof__(unsigned long)
+>|#endif
+>| 
+>|#ifndef ARCH_SLAB_MINALIGN
+>|#define ARCH_SLAB_MINALIGN __alignof__(unsigned long)
+>|#endif
+>
+>Using u64 instead solved the problem. So my question is this check
+>really required?
 
-Sure looks that way :-)
+The e % .. check is strictly needed. We might be doing *(uint64_t *)e
+at some point, and so alignment is of utmost importance.
 
-Thanks Jan!
-
-
-Olaf
+THOUGH: I notice that alignof(uint64_t) yields 8 even for i586-linux-gnu
+mode, but for 32-bit mode, e % 4 is enough.
+To be investigated more tomorrow :)
