@@ -1,48 +1,66 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: nf_nat: fix crash in nf_nat_csum
-Date: Tue, 07 Jun 2011 15:07:48 +0200
-Message-ID: <4DEE22A4.8060202@trash.net>
-References: <alpine.LFD.2.00.1105292335220.1429@ja.ssi.bg>
+Subject: Re: KVM induced panic on 2.6.38[2367] & 2.6.39
+Date: Tue, 07 Jun 2011 15:30:06 +0200
+Message-ID: <4DEE27DE.7060004@trash.net>
+References: <20110601011527.GN19505@random.random> <alpine.LSU.2.00.1105312120530.22808@sister.anvils> <4DE5DCA8.7070704@fnarfbargle.com> <4DE5E29E.7080009@redhat.com> <4DE60669.9050606@fnarfbargle.com> <4DE60918.3010008@redhat.com> <4DE60940.1070107@redhat.com> <4DE61A2B.7000008@fnarfbargle.com> <20110601111841.GB3956@zip.com.au> <4DE62801.9080804@fnarfbargle.com> <20110601230342.GC3956@zip.com.au> <4DE8E3ED.7080004@fnarfbargle.com> <isavsg$3or$1@dough.gmane.org> <4DE906C0.6060901@fnarfbargle.com> <4DED344D.7000005@pandora.be> <4DED9C23.2030408@fnarfbargle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52381 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754230Ab1FGNH4 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jun 2011 09:07:56 -0400
-In-Reply-To: <alpine.LFD.2.00.1105292335220.1429@ja.ssi.bg>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Bart De Schuymer <bdschuym@pandora.be>, kvm@vger.kernel.org,
+ linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+ netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Brad Campbell <brad@fnarfbargle.com>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <4DED9C23.2030408@fnarfbargle.com>
+Sender: owner-linux-mm@kvack.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 29.05.2011 22:42, Julian Anastasov wrote:
+On 07.06.2011 05:33, Brad Campbell wrote:
+> On 07/06/11 04:10, Bart De Schuymer wrote:
+>> Hi Brad,
+>>
+>> This has probably nothing to do with ebtables, so please rmmod in case
+>> it's loaded.
+>> A few questions I didn't directly see an answer to in the threads I
+>> scanned...
+>> I'm assuming you actually use the bridging firewall functionality. So,
+>> what iptables modules do you use? Can you reduce your iptables rules to
+>> a core that triggers the bug?
+>> Or does it get triggered even with an empty set of firewall rules?
+>> Are you using a stock .35 kernel or is it patched?
+>> Is this something I can trigger on a poor guy's laptop or does it
+>> require specialized hardware (I'm catching up on qemu/kvm...)?
 > 
-> 	Fix crash in nf_nat_csum when mangling packets
-> in OUTPUT hook where skb->dev is not defined, it is set
-> later before POSTROUTING. Problem happens for CHECKSUM_NONE.
-> We can check device from rt but using CHECKSUM_PARTIAL
-> should be safe (skb_checksum_help).
+> Not specialised hardware as such, I've just not been able to reproduce
+> it outside of this specific operating scenario.
 
-We don't call helpers in LOCAL_OUT, how can this happen?
+The last similar problem we've had was related to the 32/64 bit compat
+code. Are you running 32 bit userspace on a 64 bit kernel?
 
+> I can't trigger it with empty firewall rules as it relies on a DNAT to
+> occur. If I try it directly to the internal IP address (as I have to
+> without netfilter loaded) then of course nothing fails.
 > 
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
-> ---
+> It's a pain in the bum as a fault, but it's one I can easily reproduce
+> as long as I use the same set of circumstances.
 > 
-> diff -urp v2.6.39/linux/net/ipv4/netfilter/nf_nat_helper.c linux/net/ipv4/netfilter/nf_nat_helper.c
-> --- v2.6.39/linux/net/ipv4/netfilter/nf_nat_helper.c	2011-01-06 00:01:22.000000000 +0200
-> +++ linux/net/ipv4/netfilter/nf_nat_helper.c	2011-05-29 23:14:40.166245897 +0300
-> @@ -160,7 +160,7 @@ static void nf_nat_csum(struct sk_buff *
->  
->  	if (skb->ip_summed != CHECKSUM_PARTIAL) {
->  		if (!(rt->rt_flags & RTCF_LOCAL) &&
-> -		    skb->dev->features & NETIF_F_V4_CSUM) {
-> +		    (!skb->dev || skb->dev->features & NETIF_F_V4_CSUM)) {
->  			skb->ip_summed = CHECKSUM_PARTIAL;
->  			skb->csum_start = skb_headroom(skb) +
->  					  skb_network_offset(skb) +
+> I'll try using 3.0-rc2 (current git) tonight, and if I can reproduce it
+> on that then I'll attempt to pare down the IPTABLES rules to a bare
+> minimum.
 > 
+> It is nothing to do with ebtables as I don't compile it. I'm not really
+> sure about "bridging firewall" functionality. I just use a couple of
+> hand coded bash scripts to set the tables up.
 
+>From one of your previous mails:
+
+> # CONFIG_BRIDGE_NF_EBTABLES is not set
+
+How about CONFIG_BRIDGE_NETFILTER?
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
