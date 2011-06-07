@@ -1,40 +1,55 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] xtables-multi: fix absence of xml translator in IPv6-only
- builds
-Date: Tue, 7 Jun 2011 21:56:21 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1106072156090.19995@frira.zrqbmnf.qr>
-References: <1307410029-6104-1-git-send-email-zenczykowski@gmail.com> <alpine.LNX.2.01.1106071110580.25037@frira.zrqbmnf.qr> <BANLkTikyH6yUTv3kjykYVSPONoz_qOkJHA@mail.gmail.com>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH] netfilter: nf_nat: fix crash in nf_nat_csum
+Date: Tue, 7 Jun 2011 23:02:03 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1106072246570.1619@ja.ssi.bg>
+References: <alpine.LFD.2.00.1105292335220.1429@ja.ssi.bg> <4DEE22A4.8060202@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:35205 "EHLO seven.medozas.de"
+Received: from ja.ssi.bg ([178.16.129.10]:48356 "EHLO ja.ssi.bg"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754422Ab1FGT4X (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jun 2011 15:56:23 -0400
-In-Reply-To: <BANLkTikyH6yUTv3kjykYVSPONoz_qOkJHA@mail.gmail.com>
+	id S1753546Ab1FGT7o (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Jun 2011 15:59:44 -0400
+In-Reply-To: <4DEE22A4.8060202@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 2011-06-07 20:04, Maciej =C5=BBenczykowski wrote:
 
->2011/6/7 Jan Engelhardt <jengelh@medozas.de>:
->> Simply put this in xshared.h.
->
->Theoretically this is only needed for compilation of xtables-multi,
->and thus doesn't quite strictly belong in xshared.h.
->
->I was also thinking of renaming the files iptables-xml.* to
->xtables-xml.* to make it better reflect that it isn't ip4tables
->specific
->(a binary symlink would continue to exist).
+	Hello,
 
-Let me take care of that, I plan to move this into a separate dir=20
-already.
+On Tue, 7 Jun 2011, Patrick McHardy wrote:
+
+> On 29.05.2011 22:42, Julian Anastasov wrote:
+> > 
+> > 	Fix crash in nf_nat_csum when mangling packets
+> > in OUTPUT hook where skb->dev is not defined, it is set
+> > later before POSTROUTING. Problem happens for CHECKSUM_NONE.
+> > We can check device from rt but using CHECKSUM_PARTIAL
+> > should be safe (skb_checksum_help).
+> 
+> We don't call helpers in LOCAL_OUT, how can this happen?
+
+	I think, this happened with IPVS only in OUTPUT hook: 
+tcp_snat_handler -> ip_vs_ftp_out -> nf_nat_mangle_tcp_packet -> 
+nf_nat_csum. This is again PASV FTP via loopback.
+
+> > diff -urp v2.6.39/linux/net/ipv4/netfilter/nf_nat_helper.c linux/net/ipv4/netfilter/nf_nat_helper.c
+> > --- v2.6.39/linux/net/ipv4/netfilter/nf_nat_helper.c	2011-01-06 00:01:22.000000000 +0200
+> > +++ linux/net/ipv4/netfilter/nf_nat_helper.c	2011-05-29 23:14:40.166245897 +0300
+> > @@ -160,7 +160,7 @@ static void nf_nat_csum(struct sk_buff *
+> >  
+> >  	if (skb->ip_summed != CHECKSUM_PARTIAL) {
+> >  		if (!(rt->rt_flags & RTCF_LOCAL) &&
+> > -		    skb->dev->features & NETIF_F_V4_CSUM) {
+> > +		    (!skb->dev || skb->dev->features & NETIF_F_V4_CSUM)) {
+> >  			skb->ip_summed = CHECKSUM_PARTIAL;
+> >  			skb->csum_start = skb_headroom(skb) +
+> >  					  skb_network_offset(skb) +
+> > 
+
+Regards
+
 --
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Julian Anastasov <ja@ssi.bg>
