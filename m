@@ -1,124 +1,163 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Installer, option fixes
-Date: Tue,  7 Jun 2011 22:35:58 +0200
-Message-ID: <1307478964-2034-1-git-send-email-jengelh@medozas.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH 2/5] src: move all libiptc pieces into its directory
+Date: Tue,  7 Jun 2011 22:36:00 +0200
+Message-ID: <1307478964-2034-3-git-send-email-jengelh@medozas.de>
+References: <1307478964-2034-1-git-send-email-jengelh@medozas.de>
 Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:39430 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:39437 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756564Ab1FGUgH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jun 2011 16:36:07 -0400
+	id S1752545Ab1FGUgK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Jun 2011 16:36:10 -0400
+In-Reply-To: <1307478964-2034-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-Here are a couple of fixes. I have also taken the liberty to move the
-main code into a directory of its own to unclutter the toplevel directo=
-ry.
-This does not impact AFAICS.
-
-With this in, it would be prudent to produce a 1.4.12.
-=3D=3D=3D
-The following changes since commit a1cd1f2a4a35427c68cd0d1bd2761d5be42b=
-12b1:
-
-  doc: fix trivial typo in libipt_SNAT (2011-06-01 02:35:28 +0200)
-
-are available in the git repository at:
-  git://dev.medozas.de/iptables master
-
-Jan Engelhardt (4):
-      src: move all libiptc pieces into its directory
-      src: move all iptables pieces into a separate directory
-      tests: add some sample rulesets to test save-restore cycle
-      option: fix ignored negation before implicit extension loading
-
-Maciej =C5=BBenczykowski (1):
-      xtables-multi: fix absence of xml translator in IPv6-only builds
-
- .gitignore                                         |   15 --
- Makefile.am                                        |   78 +---------
- configure.ac                                       |    5 +-
- iptables/.gitignore                                |   14 ++
- iptables/Makefile.am                               |   67 ++++++++
- ip6tables-multi.h =3D> iptables/ip6tables-multi.h    |    0
- .../ip6tables-restore.8                            |    0
- .../ip6tables-restore.c                            |    0
- ip6tables-save.8 =3D> iptables/ip6tables-save.8      |    0
- ip6tables-save.c =3D> iptables/ip6tables-save.c      |    0
- .../ip6tables-standalone.c                         |    0
- ip6tables.8.in =3D> iptables/ip6tables.8.in          |    0
- ip6tables.c =3D> iptables/ip6tables.c                |    8 +-
- iptables-apply =3D> iptables/iptables-apply          |    0
- iptables-apply.8 =3D> iptables/iptables-apply.8      |    0
- iptables-multi.h =3D> iptables/iptables-multi.h      |    1 -
- iptables-restore.8 =3D> iptables/iptables-restore.8  |    0
- iptables-restore.c =3D> iptables/iptables-restore.c  |    0
- iptables-save.8 =3D> iptables/iptables-save.8        |    0
- iptables-save.c =3D> iptables/iptables-save.c        |    0
- .../iptables-standalone.c                          |    0
- iptables-xml.1 =3D> iptables/iptables-xml.1          |    0
- iptables-xml.c =3D> iptables/iptables-xml.c          |    4 +-
- iptables.8.in =3D> iptables/iptables.8.in            |    0
- iptables.c =3D> iptables/iptables.c                  |    4 +-
- iptables.xslt =3D> iptables/iptables.xslt            |    0
- xshared.c =3D> iptables/xshared.c                    |   12 +-
- xshared.h =3D> iptables/xshared.h                    |    2 +-
- xtables-multi.c =3D> iptables/xtables-multi.c        |    6 +-
- iptables/xtables-multi.h                           |    6 +
- xtables.c =3D> iptables/xtables.c                    |    0
- xtables.pc.in =3D> iptables/xtables.pc.in            |    0
- xtoptions.c =3D> iptables/xtoptions.c                |    0
- libiptc/.gitignore                                 |    1 +
- libiptc/Makefile.am                                |   12 ++
- libiptc.pc.in =3D> libiptc/libiptc.pc.in             |    0
- tests/options-ipv4.rules                           |   52 ++++++
- tests/options-most.rules                           |  172 ++++++++++++=
-++++++++
- 38 files changed, 352 insertions(+), 107 deletions(-)
- create mode 100644 iptables/.gitignore
- create mode 100644 iptables/Makefile.am
- rename ip6tables-multi.h =3D> iptables/ip6tables-multi.h (100%)
- rename ip6tables-restore.8 =3D> iptables/ip6tables-restore.8 (100%)
- rename ip6tables-restore.c =3D> iptables/ip6tables-restore.c (100%)
- rename ip6tables-save.8 =3D> iptables/ip6tables-save.8 (100%)
- rename ip6tables-save.c =3D> iptables/ip6tables-save.c (100%)
- rename ip6tables-standalone.c =3D> iptables/ip6tables-standalone.c (10=
-0%)
- rename ip6tables.8.in =3D> iptables/ip6tables.8.in (100%)
- rename ip6tables.c =3D> iptables/ip6tables.c (99%)
- rename iptables-apply =3D> iptables/iptables-apply (100%)
- rename iptables-apply.8 =3D> iptables/iptables-apply.8 (100%)
- rename iptables-multi.h =3D> iptables/iptables-multi.h (83%)
- rename iptables-restore.8 =3D> iptables/iptables-restore.8 (100%)
- rename iptables-restore.c =3D> iptables/iptables-restore.c (100%)
- rename iptables-save.8 =3D> iptables/iptables-save.8 (100%)
- rename iptables-save.c =3D> iptables/iptables-save.c (100%)
- rename iptables-standalone.c =3D> iptables/iptables-standalone.c (100%=
-)
- rename iptables-xml.1 =3D> iptables/iptables-xml.1 (100%)
- rename iptables-xml.c =3D> iptables/iptables-xml.c (99%)
- rename iptables.8.in =3D> iptables/iptables.8.in (100%)
- rename iptables.c =3D> iptables/iptables.c (99%)
- rename iptables.xslt =3D> iptables/iptables.xslt (100%)
- rename xshared.c =3D> iptables/xshared.c (96%)
- rename xshared.h =3D> iptables/xshared.h (97%)
- rename xtables-multi.c =3D> iptables/xtables-multi.c (93%)
- create mode 100644 iptables/xtables-multi.h
- rename xtables.c =3D> iptables/xtables.c (100%)
- rename xtables.pc.in =3D> iptables/xtables.pc.in (100%)
- rename xtoptions.c =3D> iptables/xtoptions.c (100%)
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ .gitignore            |    1 -
+ Makefile.am           |   17 +++--------------
+ configure.ac          |    4 ++--
+ libiptc.pc.in         |   12 ------------
+ libiptc/.gitignore    |    1 +
+ libiptc/Makefile.am   |   12 ++++++++++++
+ libiptc/libiptc.pc.in |   12 ++++++++++++
+ 7 files changed, 30 insertions(+), 29 deletions(-)
+ delete mode 100644 libiptc.pc.in
  create mode 100644 libiptc/.gitignore
  create mode 100644 libiptc/Makefile.am
- rename libiptc.pc.in =3D> libiptc/libiptc.pc.in (100%)
- create mode 100644 tests/options-ipv4.rules
- create mode 100644 tests/options-most.rules
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ create mode 100644 libiptc/libiptc.pc.in
+
+diff --git a/.gitignore b/.gitignore
+index 9d24ce0..fc68536 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -36,7 +36,6 @@ Makefile.in
+ /ltmain.sh
+ /missing
+ /stamp-h1
+-/libiptc.pc
+ /xtables.pc
+ 
+ /ip6tables
+diff --git a/Makefile.am b/Makefile.am
+index 48f01d8..02b5c09 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign subdir-objects
+ 
+ AM_CFLAGS        = ${regular_CFLAGS}
+ AM_CPPFLAGS      = ${regular_CPPFLAGS} -I${top_builddir}/include -I${top_srcdir}/include ${kinclude_CPPFLAGS}
+-SUBDIRS          = extensions
++SUBDIRS          = extensions libiptc
+ if ENABLE_DEVEL
+ SUBDIRS         += include
+ endif
+@@ -15,19 +15,8 @@ endif
+ if HAVE_LIBNFNETLINK
+ SUBDIRS         += utils
+ endif
+-lib_LTLIBRARIES =
+ 
+-# libiptc
+-lib_LTLIBRARIES            += libiptc/libip4tc.la libiptc/libip6tc.la libiptc/libiptc.la
+-libiptc_libiptc_la_SOURCES  =
+-libiptc_libiptc_la_LIBADD   = libiptc/libip4tc.la libiptc/libip6tc.la
+-libiptc_libiptc_la_LDFLAGS  = -version-info 0:0:0 ${libiptc_LDFLAGS2}
+-libiptc_libip4tc_la_SOURCES = libiptc/libip4tc.c
+-libiptc_libip4tc_la_LDFLAGS = -version-info 0:0:0
+-libiptc_libip6tc_la_SOURCES = libiptc/libip6tc.c
+-libiptc_libip6tc_la_LDFLAGS = -version-info 0:0:0 ${libiptc_LDFLAGS2}
+-
+-lib_LTLIBRARIES      += libxtables.la
++lib_LTLIBRARIES       = libxtables.la
+ libxtables_la_SOURCES = xtables.c xtoptions.c
+ libxtables_la_LDFLAGS = -version-info ${libxtables_vcurrent}:0:${libxtables_vage}
+ if ENABLE_SHARED
+@@ -80,7 +69,7 @@ iptables.8: ${srcdir}/iptables.8.in extensions/matches4.man extensions/targets4.
+ ip6tables.8: ${srcdir}/ip6tables.8.in extensions/matches6.man extensions/targets6.man
+ 	${AM_VERBOSE_GEN} sed -e 's/@PACKAGE_AND_VERSION@/${PACKAGE} ${PACKAGE_VERSION}/g' -e '/@MATCH@/ r extensions/matches6.man' -e '/@TARGET@/ r extensions/targets6.man' $< >$@;
+ 
+-pkgconfig_DATA = libiptc.pc xtables.pc
++pkgconfig_DATA = xtables.pc
+ 
+ .PHONY: tarball
+ tarball:
+diff --git a/configure.ac b/configure.ac
+index daed602..f3de3d3 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -111,6 +111,6 @@ libxtables_vmajor=$(($libxtables_vcurrent - $libxtables_vage));
+ AC_SUBST([libxtables_vmajor])
+ 
+ AC_CONFIG_FILES([Makefile extensions/GNUmakefile include/Makefile
+-	libipq/Makefile utils/Makefile
+-	include/xtables.h include/iptables/internal.h libiptc.pc xtables.pc])
++	libipq/Makefile libiptc/Makefile libiptc/libiptc.pc utils/Makefile
++	include/xtables.h include/iptables/internal.h xtables.pc])
+ AC_OUTPUT
+diff --git a/libiptc.pc.in b/libiptc.pc.in
+deleted file mode 100644
+index 99a3544..0000000
+--- a/libiptc.pc.in
++++ /dev/null
+@@ -1,12 +0,0 @@
+-
+-prefix=@prefix@
+-exec_prefix=@exec_prefix@
+-libdir=@libdir@
+-includedir=@includedir@
+-
+-Name:		libiptc
+-Description:	iptables ruleset ADT and kernel interface
+-Version:	@PACKAGE_VERSION@
+-Libs:		-L${libdir} -liptc
+-Libs.private:	-lip4tc -lip6tc
+-Cflags:		-I${includedir}
+diff --git a/libiptc/.gitignore b/libiptc/.gitignore
+new file mode 100644
+index 0000000..8767550
+--- /dev/null
++++ b/libiptc/.gitignore
+@@ -0,0 +1 @@
++/libiptc.pc
+diff --git a/libiptc/Makefile.am b/libiptc/Makefile.am
+new file mode 100644
+index 0000000..a7d0ea2
+--- /dev/null
++++ b/libiptc/Makefile.am
+@@ -0,0 +1,12 @@
++# -*- Makefile -*-
++
++pkgconfig_DATA      = libiptc.pc
++
++lib_LTLIBRARIES     = libip4tc.la libip6tc.la libiptc.la
++libiptc_la_SOURCES  =
++libiptc_la_LIBADD   = libip4tc.la libip6tc.la
++libiptc_la_LDFLAGS  = -version-info 0:0:0 ${libiptc_LDFLAGS2}
++libip4tc_la_SOURCES = libip4tc.c
++libip4tc_la_LDFLAGS = -version-info 0:0:0
++libip6tc_la_SOURCES = libip6tc.c
++libip6tc_la_LDFLAGS = -version-info 0:0:0 ${libiptc_LDFLAGS2}
+diff --git a/libiptc/libiptc.pc.in b/libiptc/libiptc.pc.in
+new file mode 100644
+index 0000000..99a3544
+--- /dev/null
++++ b/libiptc/libiptc.pc.in
+@@ -0,0 +1,12 @@
++
++prefix=@prefix@
++exec_prefix=@exec_prefix@
++libdir=@libdir@
++includedir=@includedir@
++
++Name:		libiptc
++Description:	iptables ruleset ADT and kernel interface
++Version:	@PACKAGE_VERSION@
++Libs:		-L${libdir} -liptc
++Libs.private:	-lip4tc -lip6tc
++Cflags:		-I${includedir}
+-- 
+1.7.3.4
+
