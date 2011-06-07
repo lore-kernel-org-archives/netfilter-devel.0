@@ -1,72 +1,32 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: KVM induced panic on 2.6.38[2367] & 2.6.39
-Date: Tue, 07 Jun 2011 20:04:05 +0200
-Message-ID: <4DEE6815.7040504@pandora.be>
-References: <20110601011527.GN19505@random.random> <alpine.LSU.2.00.1105312120530.22808@sister.anvils> <4DE5DCA8.7070704@fnarfbargle.com> <4DE5E29E.7080009@redhat.com> <4DE60669.9050606@fnarfbargle.com> <4DE60918.3010008@redhat.com> <4DE60940.1070107@redhat.com> <4DE61A2B.7000008@fnarfbargle.com> <20110601111841.GB3956@zip.com.au> <4DE62801.9080804@fnarfbargle.com> <20110601230342.GC3956@zip.com.au> <4DE8E3ED.7080004@fnarfbargle.com> <isavsg$3or$1@dough.gmane.org> <4DE906C0.6060901@fnarfbargle.com> <4DED344D.7000005@pandora.be> <4DED9C23.2030408@fnarfbargle.com> <4DEE27DE.7060004@trash.net> <4DEE3859.6070808@fnarfbargle.com>
+From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: Re: [PATCH] xtables-multi: fix absence of xml translator in IPv6-only builds
+Date: Tue, 7 Jun 2011 11:04:39 -0700
+Message-ID: <BANLkTikyH6yUTv3kjykYVSPONoz_qOkJHA@mail.gmail.com>
+References: <1307410029-6104-1-git-send-email-zenczykowski@gmail.com>
+	<alpine.LNX.2.01.1106071110580.25037@frira.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, kvm@vger.kernel.org,
- linux-mm@kvack.org, linux-kernel@vger.kernel.org,
- netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Brad Campbell <brad@fnarfbargle.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <4DEE3859.6070808@fnarfbargle.com>
-Sender: owner-linux-mm@kvack.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-px0-f179.google.com ([209.85.212.179]:52711 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755961Ab1FGSEk (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Jun 2011 14:04:40 -0400
+Received: by pxi2 with SMTP id 2so3869173pxi.10
+        for <netfilter-devel@vger.kernel.org>; Tue, 07 Jun 2011 11:04:39 -0700 (PDT)
+In-Reply-To: <alpine.LNX.2.01.1106071110580.25037@frira.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Op 7/06/2011 16:40, Brad Campbell schreef:
-> On 07/06/11 21:30, Patrick McHardy wrote:
->> On 07.06.2011 05:33, Brad Campbell wrote:
->>> On 07/06/11 04:10, Bart De Schuymer wrote:
->>>> Hi Brad,
->>>>
->>>> This has probably nothing to do with ebtables, so please rmmod in case
->>>> it's loaded.
->>>> A few questions I didn't directly see an answer to in the threads I
->>>> scanned...
->>>> I'm assuming you actually use the bridging firewall functionality. So,
->>>> what iptables modules do you use? Can you reduce your iptables 
->>>> rules to
->>>> a core that triggers the bug?
->>>> Or does it get triggered even with an empty set of firewall rules?
->>>> Are you using a stock .35 kernel or is it patched?
->>>> Is this something I can trigger on a poor guy's laptop or does it
->>>> require specialized hardware (I'm catching up on qemu/kvm...)?
->>>
->>> Not specialised hardware as such, I've just not been able to reproduce
->>> it outside of this specific operating scenario.
->>
->> The last similar problem we've had was related to the 32/64 bit compat
->> code. Are you running 32 bit userspace on a 64 bit kernel?
->
-> No, 32 bit Guest OS, but a completely 64 bit userspace on a 64 bit 
-> kernel.
->
-> Userspace is current Debian Stable. Kernel is Vanilla and qemu-kvm is 
-> current git
->
-If the bug is easily triggered with your guest os, then you could try to 
-capture the traffic with wireshark (or something else) in a 
-configuration that doesn't crash your system. Save the traffic in a pcap 
-file. Then you can see if resending that traffic in the vulnerable 
-configuration triggers the bug (I don't know if something in Windows 
-exists, but tcpreplay should work for Linux). Once you have such a 
-capture , chances are the bug is even easily reproducible by us (unless 
-it's hardware-specific). Success isn't guaranteed, but I think it's 
-worth a shot...
+2011/6/7 Jan Engelhardt <jengelh@medozas.de>:
+> Simply put this in xshared.h.
 
-cheers,
-Bart
+Theoretically this is only needed for compilation of xtables-multi,
+and thus doesn't quite strictly belong in xshared.h.
 
-
--- 
-Bart De Schuymer
-www.artinalgorithms.be
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+I was also thinking of renaming the files iptables-xml.* to
+xtables-xml.* to make it better reflect that it isn't ip4tables
+specific
+(a binary symlink would continue to exist).
