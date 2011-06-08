@@ -1,47 +1,96 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Iptables 1.4.11.1
-Date: Wed, 08 Jun 2011 15:24:27 +0200
-Message-ID: <4DEF780B.1070508@trash.net>
-References: <BANLkTikXniUM8jvKXr7UMauRtXGti1Bxqw@mail.gmail.com> <4DEEABCB.4060203@trash.net> <alpine.LNX.2.01.1106081300580.1830@frira.zrqbmnf.qr>
+Subject: [ANNOUNCE]: Release of iptables-1.4.11.1
+Date: Wed, 08 Jun 2011 15:54:01 +0200
+Message-ID: <4DEF7EF9.7010609@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: =?UTF-8?B?TWFjaWVqIMW7ZW5jenlrb3dza2k=?= <zenczykowski@gmail.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: multipart/mixed;
+ boundary="------------070206020401010904020204"
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	netfilter-announce@lists.netfilter.org,
+	"'netfilter@vger.kernel.org'
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45529 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:46141 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753334Ab1FHNYi (ORCPT
+	with ESMTP id S1755208Ab1FHNyK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jun 2011 09:24:38 -0400
-In-Reply-To: <alpine.LNX.2.01.1106081300580.1830@frira.zrqbmnf.qr>
+	Wed, 8 Jun 2011 09:54:10 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 08.06.2011 13:02, Jan Engelhardt wrote:
-> On Wednesday 2011-06-08 00:52, Patrick McHardy wrote:
->=20
->> On 07.06.2011 20:06, Maciej =C5=BBenczykowski wrote:
->>> Seeing as there's a couple build fixes and inverted flags don't wor=
-k fixes,
->>> are you planning on releasing an iptables 1.4.11.1 sometime soon?
->>
->> Yes, but since we're still getting new reports without multiple
->> reports for the same issues, I think we should wait a few more
->> days and then put out a new release.
->=20
-> "Release early, release often". Waiting would increase the chance tha=
-t=20
-> Debian updates to .11 instead of jumping from .10->.12, and that woul=
-d=20
-> then send us duplicates all the way.
->=20
+This is a multi-part message in MIME format.
+--------------070206020401010904020204
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-Well, why not, no new bug reports since yesterday.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The netfilter coreteam presents:
+
+    iptables version 1.4.11.1
+
+a minor release containing bugfixes for problems discovered in
+the 1.4.11 release as well as some minor documentation updates.
+
+Due to the large number of changes in 1.4.11, some regressions
+and a few minor bugs made it into the release. This version
+addresses all identified problems:
+
+- broken inversion support in the owner match
+
+- broken inversion in implicitly loaded protocol extensions, most
+  importantly causing "-p tcp ! --syn" to not negate --syn
+
+- symlink installation fixes
+
+- xml translation missing in IPv6 only builds
+
+See the attached changelogs for the full list of changes.
+
+Version 1.4.11.1 can be obtained from:
+
+http://www.netfilter.org/projects/iptables/downloads.html
+ftp://ftp.netfilter.org/pub/iptables/
+git://git.netfilter.org/iptables.git
+
+On behalf of the Netfilter Core Team.
+Happy firewalling!
+
+--------------070206020401010904020204
+Content-Type: text/plain;
+ name="changes-iptables-1.4.11.1.txt"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: attachment;
+ filename="changes-iptables-1.4.11.1.txt"
+
+Elie De Brauwer (1):
+      doc: fix trivial typo in libipt_SNAT
+
+Jan Engelhardt (13):
+      libxt_owner: restore inversion support
+      build: remove dead code parts
+      build: fix installation of symlinks
+      build: fix absence of xml translator in IPv6-only builds
+      doc: update GPL license text
+      doc: iptables-xml should be in manpage section 1
+      build: move basic preprocessor flags to regular_CPPFLAGS
+      build: move kinclude's preprocessor flags to kinclude_CPPFLAGS
+      src: move all libiptc pieces into its directory
+      src: move all iptables pieces into a separate directory
+      tests: add some sample rulesets to test save-restore cycle
+      option: fix ignored negation before implicit extension loading
+      build: re-add missing CPPFLAGS for libiptc
+
+Maciej Żenczykowski (1):
+      xtables-multi: fix absence of xml translator in IPv6-only builds
+
+Mike Frysinger (1):
+      build: move remaining preprocessor flags to CPPFLAGS
+
+Patrick McHardy (1):
+      Bump version to 1.4.11.1
+
+Vlad Dogaru (1):
+      doc: fix MASQUERADE section of man page
+
+
+--------------070206020401010904020204--
