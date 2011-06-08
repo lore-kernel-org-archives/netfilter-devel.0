@@ -1,32 +1,40 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Compile fix
-Date: Wed, 08 Jun 2011 12:37:36 +0200
-Message-ID: <4DEF50F0.10200@trash.net>
-References: <1307529230-20173-1-git-send-email-jengelh@medozas.de>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Iptables 1.4.11.1
+Date: Wed, 8 Jun 2011 13:02:05 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1106081300580.1830@frira.zrqbmnf.qr>
+References: <BANLkTikXniUM8jvKXr7UMauRtXGti1Bxqw@mail.gmail.com> <4DEEABCB.4060203@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:42400 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753910Ab1FHKhq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jun 2011 06:37:46 -0400
-In-Reply-To: <1307529230-20173-1-git-send-email-jengelh@medozas.de>
+Received: from seven.medozas.de ([188.40.89.202]:56637 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753871Ab1FHLCG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Jun 2011 07:02:06 -0400
+In-Reply-To: <4DEEABCB.4060203@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 08.06.2011 12:33, Jan Engelhardt wrote:
-> The following changes since commit 780607f8b040a47cd2d4775376e2d30f567dc049:
-> 
->   option: fix ignored negation before implicit extension loading (2011-06-07 22:33:13 +0200)
-> 
-> are available in the git repository at:
->   git://dev.medozas.de/iptables master
-> 
-> Jan Engelhardt (1):
->       build: re-add missing CPPFLAGS for libiptc
+On Wednesday 2011-06-08 00:52, Patrick McHardy wrote:
 
-Pulled, thanks Jan.
+>On 07.06.2011 20:06, Maciej =C5=BBenczykowski wrote:
+>> Seeing as there's a couple build fixes and inverted flags don't work=
+ fixes,
+>> are you planning on releasing an iptables 1.4.11.1 sometime soon?
+>
+>Yes, but since we're still getting new reports without multiple
+>reports for the same issues, I think we should wait a few more
+>days and then put out a new release.
+
+"Release early, release often". Waiting would increase the chance that=20
+Debian updates to .11 instead of jumping from .10->.12, and that would=20
+then send us duplicates all the way.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
