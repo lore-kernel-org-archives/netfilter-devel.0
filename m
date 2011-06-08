@@ -1,34 +1,54 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [RFC] ecn match ported to ipv6
-Date: Wed, 08 Jun 2011 17:01:52 +0200
-Message-ID: <1307545312.3057.49.camel@edumazet-laptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, Dave Taht <dave.taht@gmail.com>
-To: Patrick McHardy <kaber@trash.net>,
-	Jan Engelhardt <jengelh@medozas.de>
+From: Nicolas Cavallari <Nicolas.Cavallari@lri.fr>
+Subject: [PATCH] netfilter: fix looped (broad|multi)cast's bogus MACs in NFQUEUE
+Date: Wed,  8 Jun 2011 17:18:17 +0200 (CEST)
+Message-ID: <20110608151817.C95E24587D@pc11-132.lri.fr>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:36149 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755977Ab1FHPB7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jun 2011 11:01:59 -0400
-Received: by mail-wy0-f174.google.com with SMTP id 21so423374wya.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 08 Jun 2011 08:01:58 -0700 (PDT)
+Received: from smtp1.u-psud.fr ([129.175.33.41]:57944 "EHLO smtp1.u-psud.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756294Ab1FHPWu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Jun 2011 11:22:50 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Dave Taht mentioned in bloat list that netfilter ecn match was ipv4
-only.
+By default, when broadcast or multicast packet are sent from a local
+application, they are sent to the interface then looped by the kernel
+to other local applications, going throught netfilter hooks in the process.
 
-Is there any plan to make the switch from net/ipv4/netfilter/ipt_ecn.c
-to net/netfilter/xt_ecn.c ?
+These looped packet have their MAC header removed from the skb by the kernel
+looping code.
+This confuse netfilter's netlink queue because it tries to extract a hardware
+address from these packets, but extracts a part of the IP header instead.
 
-I can probably do it but not before ~ten days, so if someone is
-interested, this will please Dave ;)
+This patch prevent NFQUEUE to include a MAC header in the netlink message
+if there is none.
 
-Thanks
+Signed-off-by: Nicolas Cavallari <cavallar@lri.fr>
+---
+To reproduce the bug, run libnetfilter_queue's nfqnl_test.c and add
+some iptables -j NFQUEUE rule in PREROUTING.
+Then, either ping -b 255.255.255.255 or ping nonexistenthost.local (if
+avahi or another multicast dns client is configured)
 
+If you see MAC addresses like 40:00:ff:11:0d::70 (for mdns) or
+ 00:00:80:11:70:62 then you can see that they match this part of the packet's
+ip header :
 
+               |flags| fragment offset|
+ |ttl| protocol|       checksum       |
+
+patch done against 2.6.39.1 but should also apply to nf-next
+---
+--- linux-2.6.39.1/net/netfilter/nfnetlink_queue.c	2011-06-08 14:43:41.188003302 +0200
++++ linux-2.6.39.1/net/netfilter/nfnetlink_queue.c	2011-06-08 14:46:10.892003541 +0200
+@@ -335,7 +335,8 @@ nfqnl_build_packet_message(struct nfqnl_
+ 	if (entskb->mark)
+ 		NLA_PUT_BE32(skb, NFQA_MARK, htonl(entskb->mark));
+ 
+-	if (indev && entskb->dev) {
++	if (indev && entskb->dev &&
++	    entskb->network_header != entskb->mac_header) {
+ 		struct nfqnl_msg_packet_hw phw;
+ 		int len = dev_parse_header(entskb, phw.hw_addr);
+ 		if (len) {
