@@ -1,113 +1,80 @@
-From: Eric Paris <eparis@parisplace.org>
-Subject: Re: [PATCH 3rd revision] Add SELinux context support to AUDIT target
-Date: Wed, 8 Jun 2011 15:39:37 -0400
-Message-ID: <BANLkTik9wXe+g4EXByUt3MrxGhuLKgTV3A@mail.gmail.com>
-References: <4DEDEB99.4070601@netfilter.org>
-	<4DEFC6C9.5030004@googlemail.com>
-	<BANLkTikhbT7EVXcKM8vSHir=6Va+qWY19A@mail.gmail.com>
-	<201106081528.22926.sgrubb@redhat.com>
+From: Nadeem Douba <ndouba@gmail.com>
+Subject: FTP Packet Mangling & NAT
+Date: Wed, 8 Jun 2011 16:18:11 -0400
+Message-ID: <BANLkTintTA8T_FEqF-vWe85iTonfZHGn3w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Mr Dash Four <mr.dash.four@googlemail.com>,
-	Casey Schaufler <casey@schaufler-ca.com>,
-	linux-audit@redhat.com, Thomas Graf <tgraf@redhat.com>,
-	netfilter-devel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>,
-	Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Steve Grubb <sgrubb@redhat.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:54793 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755008Ab1FHTjh convert rfc822-to-8bit (ORCPT
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:47585 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751327Ab1FHUSM convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jun 2011 15:39:37 -0400
-Received: by iyb14 with SMTP id 14so698649iyb.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 08 Jun 2011 12:39:37 -0700 (PDT)
-In-Reply-To: <201106081528.22926.sgrubb@redhat.com>
+	Wed, 8 Jun 2011 16:18:12 -0400
+Received: by pvg12 with SMTP id 12so411621pvg.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 08 Jun 2011 13:18:11 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 8, 2011 at 3:28 PM, Steve Grubb <sgrubb@redhat.com> wrote:
-> On Wednesday, June 08, 2011 03:08:38 PM Eric Paris wrote:
->> On Wed, Jun 8, 2011 at 3:00 PM, Mr Dash Four
->>
->> <mr.dash.four@googlemail.com> wrote:
->> >> int audit_log_secctx(struct auditbuffer *ab, u32 secid)
->> >> {
->> >> =A0 =A0int len, rc;
->> >> =A0 =A0char *ctx;
->> >>
->> >> =A0 =A0rc =3D security_secid_to_secctx(sid, &ctx, &len);
->> >> =A0 =A0if (rc) {
->> >> =A0 =A0 =A0 =A0audit_panic("Cannot convert secid to context");
->> >> =A0 =A0} else {
->> >> =A0 =A0 =A0 =A0 =A0 =A0audit_log_format(ab, " subj=3D%s", ctx);
->> >> =A0 =A0 =A0 =A0 =A0 =A0security_release_secctx(ctx, len);
->> >> =A0 =A0}
->> >> =A0 =A0return rc;
->> >> }
->> >>
->> >> Such a function could be used a couple of places in the audit cod=
-e
->> >> itself.
->> >
->> > My view on this is that LSM error-handling should be part of LSM.
->> >
->> > I presume security_secid_to_secctx is going to be called from quit=
-e a few
->> > places (well, I know of at least two now and they have nothing to =
-do with
->> > the LSM) and in my opinion it would be better if that error handli=
-ng, if
->> > adopted, is implemented within the function itself - whether by ca=
-lling
->> > another function, like the one you proposed above, or as part of t=
-he
->> > secctx retrieval - this could be open to interpretation, but the p=
-oint I
->> > am trying to make is that whichever code security_secid_to_secctx =
-is
->> > invoked from shouldn't be involved in reporting/handling (internal=
- LSM)
->> > errors at all.
->> >
->> > I think I made that point in my previous post, but just wanted to =
-make
->> > sure that is the case.
->>
->> The LSM might report and error. =A0It's up to the caller to figure o=
-ut
->> how to deal with that error. =A0In this case we want to use the audi=
-t
->> system so it's up to the audit system how to handle that error.
->
-> We are happy recording the failed number. Its the LSM people that say=
- nuke the system.
-> So, I would put that in security_secid_to_secctx() so that everyone k=
-nows whose
-> requirements it was to do the nuclear option.
+Hi all,
 
-If the number meets your requirements then the requirements are total
-shit.  The number has NO relation to the label on the object as
-understood by the system.  If audit has a requirement to always log
-the label or call audit_panic(), its only option is to call
-audit_panic().
+I have an interesting scenario where I have a transparent proxy that
+does some funny things with PASSIVE=A0FTP communications that is making
+me think of developing a netfilters module to correct the behavior.
+What is going on is the following:
 
-Exposing secids and internal representations of information to
-userspace is always wrong.  Full stop.
+1. Client establishes connection to FTP server s1.s2.s3.s4 via
+transparent proxy (where s1, s2, s3, s4 is the first, second, third,
+and fourth octet of the IPv4 address for the remote server,
+respectively)
+2. Client sends PASV command to FTP server indicating that the client
+will be using a PASSIVE FTP connection for its data channel
+3. Server responds with '227 Entering Passive Mode
+(tp1,tp2,tp3,tp4,p1,p2).' (where t1, t2, t3, t4 is the first, second,
+third, and fourth octet of the IPv4 address for the transparent proxy,
+respectively. Where p1 and p2 are the higher and lower order octets
+for the remote TCP port, respectively)
 
-I'd be willing to take a patch which caused security_secid_to_secctx()
-to BUG() if it got an invalid secid.  But on ENOMEM I'm going to just
-push the error back up the stack.  In that case audit has to decide
-how to handle the situation.  That secid is NOT the label associated
-with the object and printing it to userspace is meaningless garbage.
+In step three, the transparent proxy modifies the server's original
+response to the PASV command by translating what should have been '227
+Entering Passive Mode (s1,s2,s3,s4,p1,p2).' to '227 Entering Passive
+Mode (tp1,tp2,tp3,tp4,p1,p2).'. Some clients (like IE and Firefox)
+don't like this at all and this results in a broken FTP session.
 
-Just because audit did it wrong yesterday doesn't mean I'm going to
-ACK more patches that do it wrong tomorrow.  I don't care what some
-arbitrary and obviously poorly thought out requirement document says.
+This is where a custom netfilters module would come in handy. I'd like
+to be able to "untranslate" the server's response back into it's
+original form. However, the transparent proxy expects to broker the
+passive data channel at the same time, so simply fixing the response
+would break the communications to and from the FTP server. Therefore,
+in addition to fixing the server's response, I need to do some NAT'ing
+on all data channel packets. I was wondering if anybody could help
+point me in the right direction with regards to developing such a
+module. The flow would be as follows:
 
--Eric
+1. module detects PASV response '227 Entering Passive Mode
+(tp1,tp2,tp3,tp4,p1,p2).'
+2. module records tp1, tp2, tp3, tp4, p1, p2 as well as the server's
+remote IP s1, s2, s3, s4 for future NAT'ing.
+3. module alters the payload to '227 Entering Passive Mode
+(s1,s2,s3,s4,p1,p2).' and forwards packet to client.
+4. module detects RELATED data channel being established.
+5. module performs destination NAT to change packet destination from
+s1,s2,s3,s4 to tp1,tp2,tp3,tp4
+6. module performs source NAT to change packet source from
+tp1,tp2,tp3,tp4 to s1,s2,s3,s4
+
+I've read over the netfilters hacking HowTo and some of the modules
+like ip_nat_ftp.c and ip_conntrack_ftp.c but I'm sure how to tie all
+these concepts together to develop my solution. I was wondering if any
+of the netfilter gurus could help point me in the right direction with
+an overall strategy of how to develop this solution.
+
+Your help would be greatly appreciated!
+
+Thanks,
+
+Nadeem
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
