@@ -1,57 +1,34 @@
-From: Steve Grubb <sgrubb@redhat.com>
-Subject: Re: [PATCH 3rd revision] Add SELinux context support to AUDIT target
-Date: Wed, 8 Jun 2011 10:49:47 -0400
-Message-ID: <201106081049.48026.sgrubb@redhat.com>
-References: <4DEDEB99.4070601@netfilter.org> <4DEDFE43.5060402@googlemail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [RFC] ecn match ported to ipv6
+Date: Wed, 08 Jun 2011 17:01:52 +0200
+Message-ID: <1307545312.3057.49.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: Mr Dash Four <mr.dash.four@googlemail.com>,
-	netfilter-devel@vger.kernel.org, Thomas Graf <tgraf@redhat.com>,
-	Al Viro <viro@zeniv.linux.org.uk>,
-	Eric Paris <eparis@parisplace.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: linux-audit@redhat.com
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>, Dave Taht <dave.taht@gmail.com>
+To: Patrick McHardy <kaber@trash.net>,
+	Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31275 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751703Ab1FHOut (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jun 2011 10:50:49 -0400
-In-Reply-To: <4DEDFE43.5060402@googlemail.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:36149 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755977Ab1FHPB7 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Jun 2011 11:01:59 -0400
+Received: by mail-wy0-f174.google.com with SMTP id 21so423374wya.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 08 Jun 2011 08:01:58 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday, June 07, 2011 06:32:35 AM Mr Dash Four wrote:
-> Add SELinux context support to AUDIT target - 3rd revision (style-type
-> changes made *only* since 2nd revision of this patch). Typical (raw
-> auditd) output after applying this patch would be:
+Dave Taht mentioned in bloat list that netfilter ecn match was ipv4
+only.
 
-<snip> 
+Is there any plan to make the switch from net/ipv4/netfilter/ipt_ecn.c
+to net/netfilter/xt_ecn.c ?
 
-> @@ -163,6 +170,15 @@ audit_tg(struct sk_buff *skb, const struct
-> xt_action_param *par) break;
->  	}
-> 
-> +#ifdef CONFIG_NF_CONNTRACK_SECMARK
-> +	if (skb->secmark) {
-> +	  	if (!security_secid_to_secctx(skb->secmark, &secctx, &len)) {
-> +			audit_log_format(ab, " obj=%s", secctx);
-> +			security_release_secctx(secctx, len);
-> +		}
+I can probably do it but not before ~ten days, so if someone is
+interested, this will please Dave ;)
 
-else
-	audit_log_format(ab, " osid=%u", skb->secmark);
-
-_All_  audit code records the number on a failed conversion.
-
--Steve
+Thanks
 
 
-> +	}
-> +#endif
-> +
->  	audit_log_end(ab);
-> 
->  errout:
