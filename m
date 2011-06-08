@@ -1,70 +1,80 @@
-From: Steve Grubb <sgrubb@redhat.com>
-Subject: Re: [PATCH 3rd revision] Add SELinux context support to AUDIT target
-Date: Wed, 8 Jun 2011 13:14:55 -0400
-Message-ID: <201106081314.55947.sgrubb@redhat.com>
-References: <4DEDEB99.4070601@netfilter.org> <201106081049.48026.sgrubb@redhat.com> <4DEF9F77.1080406@googlemail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC] ecn match ported to ipv6
+Date: Wed, 08 Jun 2011 19:32:03 +0200
+Message-ID: <4DEFB213.5030802@trash.net>
+References: <1307545312.3057.49.camel@edumazet-laptop> <BANLkTi=ORBH0q_arGbFUdjk=WMjbBz1KZg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: linux-audit@redhat.com, netfilter-devel@vger.kernel.org,
-	Thomas Graf <tgraf@redhat.com>,
-	Al Viro <viro@zeniv.linux.org.uk>,
-	Eric Paris <eparis@parisplace.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Mr Dash Four <mr.dash.four@googlemail.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Jan Engelhardt <jengelh@medozas.de>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Dave Taht <dave.taht@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13695 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751233Ab1FHRPQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jun 2011 13:15:16 -0400
-In-Reply-To: <4DEF9F77.1080406@googlemail.com>
+Received: from stinky.trash.net ([213.144.137.162]:50455 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751373Ab1FHRcN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Jun 2011 13:32:13 -0400
+In-Reply-To: <BANLkTi=ORBH0q_arGbFUdjk=WMjbBz1KZg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday, June 08, 2011 12:12:39 PM Mr Dash Four wrote:
-> Mr Dash Four wrote:
-> > Logging the internal numerical representation of secctx is, as I have
-> > already stated about 3 times by now, exposing internal
-> > (private-to-the-kernel-only) information to userspace. That cannot be
-> > allowed.
-
-It doesn't matter if its private. If its important enough to log to the audit system, 
-we can't let something like this slide.
-
-
-> > Besides, this numerical representation isn't reliable - these numbers
-> > are dynamic and can change - another reason why they should not be
-> > allowed to be present in the audit log. 
-
-Doesn't matter. Its the event that we want and all its attributes. If the label is not 
-correct, how else are we going to know? Do the LSMs generate an audit event saying 
-they couldn't lookup a label?
-
-> > What happens if I make changes to my security policy and then run
-> > ausearch/aureport? 
-
-Nothing.
-
-> > I am either going to see different (wrong!) context reported if ausearch/aureport
-> > attempts to "convert" those numbers into SELinux context, or, I am
-> > going to see meaningless numbers. Either way, useless or misleading
-> > information is going to be reported and we don't want that, do we?
-
-Yes, we do.
-
-> > else
-> > 
-> > 	audit_log_format(ab, " osid=%u", skb->secmark);
-> > 
-> > _All_  audit code records the number on a failed conversion.
+On 08.06.2011 17:47, Dave Taht wrote:
+> On Wed, Jun 8, 2011 at 9:01 AM, Eric Dumazet <eric.dumazet@gmail.com> wrote:
 > 
-> I am assuming you haven't read the above. Show me one good reason why I
-> should alter my patch to include that abomination of yours?
+>> Dave Taht mentioned in bloat list that netfilter ecn match was ipv4
+>> only.
+>>
+>> Is there any plan to make the switch from net/ipv4/netfilter/ipt_ecn.c
+>> to net/netfilter/xt_ecn.c ?
+>>
+>> I can probably do it but not before ~ten days, so if someone is
+>> interested, this will please Dave ;)
 
-Because _all_ logging of object labels in the audit system do this. You are asking to 
-add information to the audit system. I am telling you how its done everywhere else so 
-that you patch is consistent.
+That should be a relatively quick job, I'll give it a shot while
+my dinner is cooking :)
 
--Steve
+> The larger question I had was this
+> 
+> "iptables seems to think ecn can only be looked at in TCP streams, where (for
+> example), ecn bits can be copied to the outer header of a udp vpn
+> stream, and marked
+> 
+> when needed."
+> 
+> ECN is an ip level standard, not just a tcp one.
+
+That probably needs a new revision and is slightly more work, lets
+begin by porting it to IPv6, then we can add this on top.
+
+> http://www.ietf.org/rfc/rfc3168.txt
+> 
+> Example of ECN on ipsec:
+> 
+> http://huchra.bufferbloat.net/~d/veryhappynetwork.png
+> 
+> Also ECN marking in various qdiscs like HTB as presently being discussed on
+> the bloat list
+> 
+> https://lists.bufferbloat.net/pipermail/bloat/2011-June/000555.html
+
+I'd suggest to make this generic so other qdiscs can use it as well.
+
+> and a truly crazy idea regarding combining DSCP with firewalling is here:
+> 
+> https://lists.bufferbloat.net/pipermail/bloat/2011-June/000558.html
+> 
+> To give some context as to what we've been up to regarding bufferbloat, I
+> have a test lab setup with a bunch of wndr3700v2 routers at georgia tech,
+> and have pushed  every ecn and bloat related patch in linux head into the
+> openwrt distro, and am playing with all sorts of techniques now, with
+> increasingly good results.
+> 
+> The 'uberwrt' project is in addition to the debloat-testing work
+> and has various subprojects...
+> 
+> http://www.bufferbloat.net/projects/uberwrt/wiki
+> 
+
