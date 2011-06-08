@@ -1,50 +1,71 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
+From: Steve Grubb <sgrubb@redhat.com>
 Subject: Re: [PATCH 3rd revision] Add SELinux context support to AUDIT target
-Date: Wed, 08 Jun 2011 20:14:38 +0100
-Message-ID: <4DEFCA1E.1040404@googlemail.com>
-References: <4DEDEB99.4070601@netfilter.org>	<4DEDFE43.5060402@googlemail.com>	<201106081049.48026.sgrubb@redhat.com>	<4DEFBBBE.6090307@schaufler-ca.com>	<BANLkTinjSiNc8VtxTntq7ekFtHrR2nq8EA@mail.gmail.com>	<4DEFC6C9.5030004@googlemail.com> <BANLkTikhbT7EVXcKM8vSHir=6Va+qWY19A@mail.gmail.com>
+Date: Wed, 8 Jun 2011 15:28:22 -0400
+Message-ID: <201106081528.22926.sgrubb@redhat.com>
+References: <4DEDEB99.4070601@netfilter.org> <4DEFC6C9.5030004@googlemail.com> <BANLkTikhbT7EVXcKM8vSHir=6Va+qWY19A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: Casey Schaufler <casey@schaufler-ca.com>,
-	Steve Grubb <sgrubb@redhat.com>, linux-audit@redhat.com,
-	Thomas Graf <tgraf@redhat.com>,
+Cc: Mr Dash Four <mr.dash.four@googlemail.com>,
+	Casey Schaufler <casey@schaufler-ca.com>,
+	linux-audit@redhat.com, Thomas Graf <tgraf@redhat.com>,
 	netfilter-devel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>,
 	Patrick McHardy <kaber@trash.net>,
 	Pablo Neira Ayuso <pablo@netfilter.org>
 To: Eric Paris <eparis@parisplace.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:34624 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753703Ab1FHTOo (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jun 2011 15:14:44 -0400
-Received: by wwa36 with SMTP id 36so912473wwa.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 08 Jun 2011 12:14:43 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:13498 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754492Ab1FHT2q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Jun 2011 15:28:46 -0400
 In-Reply-To: <BANLkTikhbT7EVXcKM8vSHir=6Va+qWY19A@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
+On Wednesday, June 08, 2011 03:08:38 PM Eric Paris wrote:
+> On Wed, Jun 8, 2011 at 3:00 PM, Mr Dash Four
+> 
+> <mr.dash.four@googlemail.com> wrote:
+> >> int audit_log_secctx(struct auditbuffer *ab, u32 secid)
+> >> {
+> >>    int len, rc;
+> >>    char *ctx;
+> >> 
+> >>    rc = security_secid_to_secctx(sid, &ctx, &len);
+> >>    if (rc) {
+> >>        audit_panic("Cannot convert secid to context");
+> >>    } else {
+> >>            audit_log_format(ab, " subj=%s", ctx);
+> >>            security_release_secctx(ctx, len);
+> >>    }
+> >>    return rc;
+> >> }
+> >> 
+> >> Such a function could be used a couple of places in the audit code
+> >> itself.
+> > 
+> > My view on this is that LSM error-handling should be part of LSM.
+> > 
+> > I presume security_secid_to_secctx is going to be called from quite a few
+> > places (well, I know of at least two now and they have nothing to do with
+> > the LSM) and in my opinion it would be better if that error handling, if
+> > adopted, is implemented within the function itself - whether by calling
+> > another function, like the one you proposed above, or as part of the
+> > secctx retrieval - this could be open to interpretation, but the point I
+> > am trying to make is that whichever code security_secid_to_secctx is
+> > invoked from shouldn't be involved in reporting/handling (internal LSM)
+> > errors at all.
+> > 
+> > I think I made that point in my previous post, but just wanted to make
+> > sure that is the case.
+> 
 > The LSM might report and error.  It's up to the caller to figure out
 > how to deal with that error.  In this case we want to use the audit
-> system so it's up to the audit system how to handle that error.  This
-> helper function says the audit system should log it if it work and
-> should audit_panic() if it doesn't.  audit_panic() will just call
-> printk for most people and can actually panic the box for nutters who
-> really care.  In this way we always log the information and if we
-> don't it's up to audit how audit handles it's inability to log info.
->
-> It's not netfilter's job to handle the error.  It's not the LSMs job
-> to know how it's caller wants to handle the error.  Audit is who has
-> special requirements and the code to handle the error should be in
-> audit code.  (Maybe it wasn't clear, but I think this function should
-> go in kernel/audit.c, not the netfilter code.  The netfilter code
-> should call this helper function.
->   
-Yeah, that's fair enough, though from what I remember 
-security_secid_to_secctx already returns a 'yes'/'no' result (I am 
-talking from the top of my head here as I am away at present and can't 
-check it out to be certain), indicating whether the conversion was 
-successful or not.
+> system so it's up to the audit system how to handle that error. 
 
+We are happy recording the failed number. Its the LSM people that say nuke the system. 
+So, I would put that in security_secid_to_secctx() so that everyone knows whose 
+requirements it was to do the nuclear option.
+
+-Steve
