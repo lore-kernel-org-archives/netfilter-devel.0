@@ -1,30 +1,43 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Installer, option fixes
-Date: Wed, 08 Jun 2011 12:15:46 +0200
-Message-ID: <4DEF4BD2.8020104@trash.net>
-References: <1307478964-2034-1-git-send-email-jengelh@medozas.de> <4DEF2633.2070808@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: [PATCH] build: re-add missing CPPFLAGS for libiptc
+Date: Wed,  8 Jun 2011 12:33:49 +0200
+Message-ID: <1307529230-20173-2-git-send-email-jengelh@medozas.de>
+References: <1307529230-20173-1-git-send-email-jengelh@medozas.de>
 Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:42004 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753866Ab1FHKP6 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jun 2011 06:15:58 -0400
-In-Reply-To: <4DEF2633.2070808@trash.net>
+Received: from seven.medozas.de ([188.40.89.202]:50136 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753881Ab1FHKdx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Jun 2011 06:33:53 -0400
+In-Reply-To: <1307529230-20173-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 08.06.2011 09:35, Patrick McHardy wrote:
-> On 07.06.2011 22:35, Jan Engelhardt wrote:
->> Here are a couple of fixes. I have also taken the liberty to move the
->> main code into a directory of its own to unclutter the toplevel directory.
->> This does not impact AFAICS.
->>
->> With this in, it would be prudent to produce a 1.4.12.
+These got lost on commit v1.4.11-12-g5c8f5b6.
 
-Just FYI, I'm doing some testing myself and will wait until tommorrow,
-then make a new release.
+Note: When /usr/include/libiptc/libiptc.h exists, this error is
+masked away :-/  (IMO, #include-with-quotes "foo.h" should not
+search system dirs...)
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ libiptc/Makefile.am |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/libiptc/Makefile.am b/libiptc/Makefile.am
+index a7d0ea2..22c920f 100644
+--- a/libiptc/Makefile.am
++++ b/libiptc/Makefile.am
+@@ -1,5 +1,8 @@
+ # -*- Makefile -*-
+ 
++AM_CFLAGS        = ${regular_CFLAGS}
++AM_CPPFLAGS      = ${regular_CPPFLAGS} -I${top_builddir}/include -I${top_srcdir}/include ${kinclude_CPPFLAGS}
++
+ pkgconfig_DATA      = libiptc.pc
+ 
+ lib_LTLIBRARIES     = libip4tc.la libip6tc.la libiptc.la
+-- 
+1.7.3.4
+
