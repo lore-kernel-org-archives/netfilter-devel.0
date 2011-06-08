@@ -1,34 +1,40 @@
-From: Konstantin Khorenko <khorenko@openvz.org>
-Subject: Re: [PATCH 4/5] tests: add some sample rulesets to test save-restore
- cycle
-Date: Wed, 08 Jun 2011 11:08:35 +0400
-Message-ID: <4DEF1FF3.7030204@openvz.org>
-References: <1307478964-2034-1-git-send-email-jengelh@medozas.de> <1307478964-2034-5-git-send-email-jengelh@medozas.de>
+From: Sebastian Siewior <sebastian@breakpoint.cc>
+Subject: Re: [RFC] SLOB breaks netfilter
+Date: Wed, 8 Jun 2011 09:10:31 +0200
+Message-ID: <20110608071031.GA2892@breakpoint.cc>
+References: <20110607210651.GA11159@Chamillionaire.breakpoint.cc>
+ <20110607.141810.2159514423065256050.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=KOI8-R; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailhub.sw.ru ([195.214.232.25]:17617 "EHLO relay.sw.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752429Ab1FHHIk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jun 2011 03:08:40 -0400
-In-Reply-To: <1307478964-2034-5-git-send-email-jengelh@medozas.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	tglx@linutronix.de
+To: David Miller <davem@davemloft.net>
+Return-path: <netfilter-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20110607.141810.2159514423065256050.davem@davemloft.net>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 06/08/2011 12:36 AM, Jan Engelhardt wrote:
-> These rulesets use practically all options (I may have missed some)
-> for verification that the new Guided Option Parser would take the same
-> input as the old open-coded ones did. They might come in handy at some
-> point.
->
-> Signed-off-by: Jan Engelhardt<jengelh@medozas.de>
+* Thus spake David Miller (davem@davemloft.net):
+> From: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+> Date: Tue, 7 Jun 2011 23:06:51 +0200
+> 
+> > and SLOB defines:
+> > 
+> > |#ifdef ARCH_DMA_MINALIGN
+> > |#define ARCH_KMALLOC_MINALIGN ARCH_DMA_MINALIGN
+> > |#else
+> > |#define ARCH_KMALLOC_MINALIGN __alignof__(unsigned long)
+> > |#endif
+> 
+> SLOB should really use "unsigned long long" I think.
+> 
+> An allocator needs to provide memory with the maximum
+> alignment that might be required for types on a given
+> architecture.
 
-Hi Jan,
+The larger alignment is due to u64 in the counter struct. However, it still
+needs two loads/stores for it on my 32bit powerpc here.
 
-thank you very much for the ruleset, it helps a lot!
-
---
-Konstantin Khorenko,
+Sebastian
