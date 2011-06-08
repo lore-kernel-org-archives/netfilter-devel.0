@@ -1,40 +1,38 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Iptables 1.4.11.1
-Date: Wed, 8 Jun 2011 13:02:05 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1106081300580.1830@frira.zrqbmnf.qr>
-References: <BANLkTikXniUM8jvKXr7UMauRtXGti1Bxqw@mail.gmail.com> <4DEEABCB.4060203@trash.net>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+From: Vlad Dogaru <ddvlad@rosedu.org>
+Subject: [PATCH] iptables: fix MASQUERADE section of man page
+Date: Wed,  8 Jun 2011 15:22:22 +0300
+Message-ID: <1307535742-24214-1-git-send-email-ddvlad@rosedu.org>
+Cc: Vlad Dogaru <ddvlad@rosedu.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:56637 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753871Ab1FHLCG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jun 2011 07:02:06 -0400
-In-Reply-To: <4DEEABCB.4060203@trash.net>
+Received: from [141.85.37.41] ([141.85.37.41]:37604 "EHLO swarm.cs.pub.ro"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751029Ab1FHMb7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Jun 2011 08:31:59 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 2011-06-08 00:52, Patrick McHardy wrote:
+The section about MASQUERADE specifies that it takes a single option,
+but in reality it takes two: --to-ports and --random.
 
->On 07.06.2011 20:06, Maciej =C5=BBenczykowski wrote:
->> Seeing as there's a couple build fixes and inverted flags don't work=
- fixes,
->> are you planning on releasing an iptables 1.4.11.1 sometime soon?
->
->Yes, but since we're still getting new reports without multiple
->reports for the same issues, I think we should wait a few more
->days and then put out a new release.
+Signed-off-by: Vlad Dogaru <ddvlad@rosedu.org>
+---
+ extensions/libipt_MASQUERADE.man |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-"Release early, release often". Waiting would increase the chance that=20
-Debian updates to .11 instead of jumping from .10->.12, and that would=20
-then send us duplicates all the way.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/extensions/libipt_MASQUERADE.man b/extensions/libipt_MASQUERADE.man
+index 8f42993..2dae964 100644
+--- a/extensions/libipt_MASQUERADE.man
++++ b/extensions/libipt_MASQUERADE.man
+@@ -10,7 +10,7 @@ effect that connections are
+ .I forgotten
+ when the interface goes down.  This is the correct behavior when the
+ next dialup is unlikely to have the same interface address (and hence
+-any established connections are lost anyway).  It takes one option:
++any established connections are lost anyway).
+ .TP
+ \fB\-\-to\-ports\fP \fIport\fP[\fB\-\fP\fIport\fP]
+ This specifies a range of source ports to use, overriding the default
+-- 
+1.7.4.1
+
