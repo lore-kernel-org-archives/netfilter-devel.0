@@ -1,59 +1,73 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 4/4] netfilter: xtables: collapse conditions in xt_ecn
-Date: Thu,  9 Jun 2011 22:23:56 +0200
-Message-ID: <1307651037-20520-5-git-send-email-jengelh@medozas.de>
-References: <1307651037-20520-1-git-send-email-jengelh@medozas.de>
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:57117 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755790Ab1FIUYD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jun 2011 16:24:03 -0400
-In-Reply-To: <1307651037-20520-1-git-send-email-jengelh@medozas.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: ipvs netns exit causes crash in conntrack.
+Date: Fri, 10 Jun 2011 00:13:33 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1106092325350.1472@ja.ssi.bg>
+References: <201106091457.29205.hans@schillstrom.com> <4DF0C67B.8040300@trash.net> <201106092146.35494.hans@schillstrom.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>,
+	Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Hans Schillstrom <hans@schillstrom.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <201106092146.35494.hans@schillstrom.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- net/netfilter/xt_ecn.c |   15 ++++++---------
- 1 files changed, 6 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/xt_ecn.c b/net/netfilter/xt_ecn.c
-index 6ccc35d..3c831a8 100644
---- a/net/netfilter/xt_ecn.c
-+++ b/net/netfilter/xt_ecn.c
-@@ -37,9 +37,8 @@ static bool match_tcp(const struct sk_buff *skb, struct xt_action_param *par)
- 	 * be good citizens.
- 	 */
- 	th = skb_header_pointer(skb, par->thoff, sizeof(_tcph), &_tcph);
--	if (th == NULL) {
-+	if (th == NULL)
- 		return false;
--	}
- 
- 	if (einfo->operation & XT_ECN_OP_MATCH_ECE) {
- 		if (einfo->invert & XT_ECN_OP_MATCH_ECE) {
-@@ -75,14 +74,12 @@ static bool ecn_mt4(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	const struct xt_ecn_info *info = par->matchinfo;
- 
--	if (info->operation & XT_ECN_OP_MATCH_IP)
--		if (!match_ip(skb, info))
--			return false;
-+	if (info->operation & XT_ECN_OP_MATCH_IP && !match_ip(skb, info))
-+		return false;
- 
--	if (info->operation & (XT_ECN_OP_MATCH_ECE | XT_ECN_OP_MATCH_CWR)) {
--		if (!match_tcp(skb, par))
--			return false;
--	}
-+	if (info->operation & (XT_ECN_OP_MATCH_ECE | XT_ECN_OP_MATCH_CWR) &&
-+	    !match_tcp(skb, par))
-+		return false;
- 
- 	return true;
- }
--- 
-1.7.3.4
+	Hello,
 
+On Thu, 9 Jun 2011, Hans Schillstrom wrote:
+
+> > This looks like nfnetlink.c excited and destroyed the nfnl socket, but
+> > ip_vs was still holding a reference to a conntrack. When the conntrack
+> > got destroyed it created a ctnetlink event, causing an oops in
+> > netlink_has_listeners when trying to use the destroyed nfnetlink
+> > socket.
+> > 
+> > Usually this shouldn't happen since network namespace cleanup
+> > happens in reverse order from registration. In this case the
+> > reason might be that IPVS has no dependencies on conntrack
+> > or ctnetlink and therefore can get loaded first, meaning it
+> > will get cleaned up afterwards.
+> > 
+> > Does that make any sense?
+> > 
+> Yes,  
+> >From what I can see is ip_vs have a dependency on nf_conntrack but not on nf_conntrack_netlink
+> i.e. nf_conntrack is loded first and then ip_vs and last nf_conntrack_netlink
+
+	Yes, may be nfnetlink subsys is unregistered first,
+before ipvs and net->nfnl is already NULL. Note that
+nf_conntrack_find_get returns existing conntrack, so
+this module is still active for the net. Then I'm wondering,
+may be this can happen even without IPVS if conntrack flushes
+connections after nfnetlink is unregistered. Not sure, may be
+nfnetlink_has_listeners() and other funcs need proper
+rcu_dereference for net->nfnl under rcu. Also, nfnetlink_send
+should free the skb if net->nfnl is NULL.
+
+> It's hard to tell exactly what was going on in user-space when the lxc container get killed....
+> Basically there is a lot of traffic (and connections) through the container with ipvs inside,
+> - ipvs conntrack support is turned on
+> - iptables with conntrack 
+> - conntrackd is running 
+> - ~50 iptables rules
+> I'm not sure if it's only IPv4 traffic ...
+> 
+> Hmmm... I think I know,  the culprit is conntrackd !! (i.e. it causes loading of ct_netlink)
+> conntrackd will definitely get killed before the namespace exit starts 
+> I think it is like you describe, I will make some test tomorrow.
+> How to solve this is another question....
+
+	In IPVS we can add checks to exit ip_vs_conn_drop_conntrack()
+early if net cleanup is in progress because conntrack can be
+loaded after IPVS and its cleanup called before IPVS.
+We do not need to delete conntrack while in IPVS cleanup.
+It should solve this problem but may be nfnetlink needs some
+protection for net->nfnl too.
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
