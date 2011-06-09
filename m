@@ -1,45 +1,50 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 0/3] netfilter: ecn match fixes and IPv6 capable xtables
- port
-Date: Thu, 09 Jun 2011 15:21:18 +0200
-Message-ID: <4DF0C8CE.1050308@trash.net>
-References: <1307621554-19108-1-git-send-email-kaber@trash.net> <alpine.LNX.2.01.1106091515160.22244@frira.zrqbmnf.qr>
+Subject: Re: [NEW SOFTWARE] FIRO - Iptables optimization
+Date: Thu, 09 Jun 2011 15:23:40 +0200
+Message-ID: <4DF0C95C.5070207@trash.net>
+References: <BANLkTinGcunf22dZQr1mX6omuB88eAZZ6A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: eric.dumazet@gmail.com, dave.taht@gmail.com,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Tihomir Katic <tihomir.katic@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38889 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:38925 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757591Ab1FINVT (ORCPT
+	with ESMTP id S1757849Ab1FINXm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jun 2011 09:21:19 -0400
-In-Reply-To: <alpine.LNX.2.01.1106091515160.22244@frira.zrqbmnf.qr>
+	Thu, 9 Jun 2011 09:23:42 -0400
+In-Reply-To: <BANLkTinGcunf22dZQr1mX6omuB88eAZZ6A@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 09.06.2011 15:16, Jan Engelhardt wrote:
-> On Thursday 2011-06-09 14:12, kaber@trash.net wrote:
+On 09.06.2011 15:18, Tihomir Katic wrote:
+> Hi
 > 
->> These patches contain two fixes for the ipt_ecn match and an IPv6 capable
->> xtables port. Nothing particulary exciting in the patches, if noone spots
->> any problems I'll push the first two patches to net-2.6 and the third one
->> to net-next-2.6.
->>
->> iptables patch will follow shortly.
->>
->> Patrick McHardy (3):
->>      netfilter: ipt_ecn: fix protocol check in ecn_mt_check()
->>      netfilter: ipt_ecn: fix inversion for IP header ECN match
->>      netfilter: xtables: add an IPv6 capable version of the ECN match
+> I developed some firewall optimizer for iptables optimization.
 > 
-> Do you have these in a git:// tree handy? I would like to see if the 
-> automatic move detection still kicks in (since it has a 50% threshold).
-> The raw non-move change could have been split otherwise.
+> FIRO is parsing output of iptables-save command and removes redundant
+> rules from it. Rules in each chain and table are optimized separately.
+> Optimization procedure continues until there are no more rules to
+> remove or to modify. As a result, FIRO generates new file with new set
+> of rules for every successful optimization procedure. Also, it logs
+> all actions and changes in separated files.
 > 
+> List of optimization procedures:
+>  -  Remove irrelevant rules
+>  -  Remove redundant "shadowed after" rules
+>  -  Remove redundant "shadowed before" rules
+>  -  Remove last rules with same action as chain
+>  -  Merge rules
+>  -  Remove redundant parameters from rules
+>  -  Remove redundant elements from parameters
+>  -  Reposition of "logging" rules in chain
+> 
+> This is free software, 1st published version, and I would appreciate
+> every download, every test, every reported bug, suggestion, etc.
+> 
+> Link to FIRO:
+> http://valeria.zesoi.fer.hr/~tkatic
 
-I pushed them out to
-
-git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-testing.git
+Sounds interesting, but I can't unpack that rar, every file
+fails. Please provide a tar.gz/bz2 or something similar.
