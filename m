@@ -1,44 +1,75 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH] doc: include matches/targets in manpage again
-Date: Thu,  9 Jun 2011 15:29:43 +0200
-Message-ID: <1307626184-25928-2-git-send-email-jengelh@medozas.de>
-References: <1307626184-25928-1-git-send-email-jengelh@medozas.de>
+From: Pierre Chifflier <chifflier@wzdftpd.net>
+Subject: Re: [NEW SOFTWARE] FIRO - Iptables optimization
+Date: Thu, 9 Jun 2011 15:33:23 +0200
+Message-ID: <20110609133323.GG8745@mail.wzdftpd.net>
+References: <BANLkTinGcunf22dZQr1mX6omuB88eAZZ6A@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+To: Tihomir Katic <tihomir.katic@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:48127 "EHLO seven.medozas.de"
+Received: from www.wzdftpd.net ([91.121.80.151]:50796 "EHLO mail.wzdftpd.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757789Ab1FIN3r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jun 2011 09:29:47 -0400
-In-Reply-To: <1307626184-25928-1-git-send-email-jengelh@medozas.de>
+	id S1757352Ab1FINip (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Jun 2011 09:38:45 -0400
+Content-Disposition: inline
+In-Reply-To: <BANLkTinGcunf22dZQr1mX6omuB88eAZZ6A@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Evil sed did not throw any warning whatsoever when it cannot find the
-file.
+On Thu, Jun 09, 2011 at 03:18:38PM +0200, Tihomir Katic wrote:
+> Hi
+>=20
+> I developed some firewall optimizer for iptables optimization.
+>=20
+> FIRO is parsing output of iptables-save command and removes redundant
+> rules from it. Rules in each chain and table are optimized separately=
+=2E
+> Optimization procedure continues until there are no more rules to
+> remove or to modify. As a result, FIRO generates new file with new se=
+t
+> of rules for every successful optimization procedure. Also, it logs
+> all actions and changes in separated files.
+>=20
+> List of optimization procedures:
+>  -  Remove irrelevant rules
+>  -  Remove redundant "shadowed after" rules
+>  -  Remove redundant "shadowed before" rules
+>  -  Remove last rules with same action as chain
+>  -  Merge rules
+>  -  Remove redundant parameters from rules
+>  -  Remove redundant elements from parameters
+>  -  Reposition of "logging" rules in chain
+>=20
+> This is free software, 1st published version, and I would appreciate
+> every download, every test, every reported bug, suggestion, etc.
+>=20
+> Link to FIRO:
+> http://valeria.zesoi.fer.hr/~tkatic
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- iptables/Makefile.am |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Hi,
 
-diff --git a/iptables/Makefile.am b/iptables/Makefile.am
-index 13cca9c..a068278 100644
---- a/iptables/Makefile.am
-+++ b/iptables/Makefile.am
-@@ -51,10 +51,10 @@ v6_sbin_links  = ip6tables ip6tables-restore ip6tables-save
- endif
- 
- iptables.8: ${srcdir}/iptables.8.in ../extensions/matches4.man ../extensions/targets4.man
--	${AM_VERBOSE_GEN} sed -e 's/@PACKAGE_AND_VERSION@/${PACKAGE} ${PACKAGE_VERSION}/g' -e '/@MATCH@/ r extensions/matches4.man' -e '/@TARGET@/ r extensions/targets4.man' $< >$@;
-+	${AM_VERBOSE_GEN} sed -e 's/@PACKAGE_AND_VERSION@/${PACKAGE} ${PACKAGE_VERSION}/g' -e '/@MATCH@/ r ../extensions/matches4.man' -e '/@TARGET@/ r ../extensions/targets4.man' $< >$@;
- 
- ip6tables.8: ${srcdir}/ip6tables.8.in ../extensions/matches6.man ../extensions/targets6.man
--	${AM_VERBOSE_GEN} sed -e 's/@PACKAGE_AND_VERSION@/${PACKAGE} ${PACKAGE_VERSION}/g' -e '/@MATCH@/ r extensions/matches6.man' -e '/@TARGET@/ r extensions/targets6.man' $< >$@;
-+	${AM_VERBOSE_GEN} sed -e 's/@PACKAGE_AND_VERSION@/${PACKAGE} ${PACKAGE_VERSION}/g' -e '/@MATCH@/ r ../extensions/matches6.man' -e '/@TARGET@/ r ../extensions/targets6.man' $< >$@;
- 
- pkgconfig_DATA = xtables.pc
- 
--- 
-1.7.3.4
+There are some problems with the download link:
+- as Patrick said, please do not use a rar file, tar.gz is better
+- please package it as a directory (and not unpack all files in current
+  directory)
+- please provide a build system (a Makefile)
 
+There are many build errors:
+CharField.cpp: In destructor =E2=80=98cCharField::~cCharField()=E2=80=99=
+:
+CharField.cpp:37:12: error: =E2=80=98free=E2=80=99 was not declared in =
+this scope
+=2E.
+Configuration.cpp: In member function =E2=80=98void cConfiguration::Log=
+DebugData(int, std::string)=E2=80=99:
+Configuration.cpp:160:38: error: =E2=80=98fopen=E2=80=99 was not declar=
+ed in this scope.
+
+Pierre
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
