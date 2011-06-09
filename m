@@ -1,84 +1,94 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] ecn match ported to ipv6
-Date: Thu, 09 Jun 2011 14:20:05 +0200
-Message-ID: <4DF0BA75.1070102@trash.net>
-References: <1307545312.3057.49.camel@edumazet-laptop>	<BANLkTi=ORBH0q_arGbFUdjk=WMjbBz1KZg@mail.gmail.com>	<4DEFB213.5030802@trash.net>	<alpine.LNX.2.01.1106082248110.13030@frira.zrqbmnf.qr>	<4DF081B5.2060102@trash.net> <BANLkTimMEBayFC2T+Y-0vTzUEyWHEsG6JQ@mail.gmail.com>
+Subject: Re: [PATCH 3rd revision] Add SELinux context support to AUDIT target
+Date: Thu, 09 Jun 2011 14:28:15 +0200
+Message-ID: <4DF0BC5F.5040100@trash.net>
+References: <4DEDEB99.4070601@netfilter.org>	<4DEFC6C9.5030004@googlemail.com>	<BANLkTikhbT7EVXcKM8vSHir=6Va+qWY19A@mail.gmail.com>	<201106081528.22926.sgrubb@redhat.com> <BANLkTik9wXe+g4EXByUt3MrxGhuLKgTV3A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Dave Taht <dave.taht@gmail.com>
+Cc: Steve Grubb <sgrubb@redhat.com>,
+	Mr Dash Four <mr.dash.four@googlemail.com>,
+	Casey Schaufler <casey@schaufler-ca.com>,
+	linux-audit@redhat.com, Thomas Graf <tgraf@redhat.com>,
+	netfilter-devel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Eric Paris <eparis@parisplace.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37928 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:38068 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754355Ab1FIMUG (ORCPT
+	with ESMTP id S1757264Ab1FIM2T (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jun 2011 08:20:06 -0400
-In-Reply-To: <BANLkTimMEBayFC2T+Y-0vTzUEyWHEsG6JQ@mail.gmail.com>
+	Thu, 9 Jun 2011 08:28:19 -0400
+In-Reply-To: <BANLkTik9wXe+g4EXByUt3MrxGhuLKgTV3A@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 09.06.2011 14:15, Dave Taht wrote:
-> On Thu, Jun 9, 2011 at 2:17 AM, Patrick McHardy <kaber@trash.net> wrote:
->> On 08.06.2011 22:50, Jan Engelhardt wrote:
->>> On Wednesday 2011-06-08 19:32, Patrick McHardy wrote:
+On 08.06.2011 21:39, Eric Paris wrote:
+> On Wed, Jun 8, 2011 at 3:28 PM, Steve Grubb <sgrubb@redhat.com> wrote:
+>> On Wednesday, June 08, 2011 03:08:38 PM Eric Paris wrote:
+>>> On Wed, Jun 8, 2011 at 3:00 PM, Mr Dash Four
 >>>
->>>> On 08.06.2011 17:47, Dave Taht wrote:
->>>>> On Wed, Jun 8, 2011 at 9:01 AM, Eric Dumazet <eric.dumazet@gmail.com> wrote:
+>>> <mr.dash.four@googlemail.com> wrote:
+>>>>> int audit_log_secctx(struct auditbuffer *ab, u32 secid)
+>>>>> {
+>>>>>    int len, rc;
+>>>>>    char *ctx;
 >>>>>
->>>>>> Dave Taht mentioned in bloat list that netfilter ecn match was ipv4
->>>>>> only.
->>>>>>
->>>>>> Is there any plan to make the switch from net/ipv4/netfilter/ipt_ecn.c
->>>>>> to net/netfilter/xt_ecn.c ?
->>>>>>
->>>>>> I can probably do it but not before ~ten days, so if someone is
->>>>>> interested, this will please Dave ;)
+>>>>>    rc = security_secid_to_secctx(sid, &ctx, &len);
+>>>>>    if (rc) {
+>>>>>        audit_panic("Cannot convert secid to context");
+>>>>>    } else {
+>>>>>            audit_log_format(ab, " subj=%s", ctx);
+>>>>>            security_release_secctx(ctx, len);
+>>>>>    }
+>>>>>    return rc;
+>>>>> }
+>>>>>
+>>>>> Such a function could be used a couple of places in the audit code
+>>>>> itself.
 >>>>
->>>> That should be a relatively quick job, I'll give it a shot while
->>>> my dinner is cooking :)
+>>>> My view on this is that LSM error-handling should be part of LSM.
 >>>>
->>>>> The larger question I had was this
->>>>>
->>>>> "iptables seems to think ecn can only be looked at in TCP streams, where (for
->>>>> example), ecn bits can be copied to the outer header of a udp vpn
->>>>> stream, and marked
->>>>>
->>>>> when needed."
->>>>>
->>>>> ECN is an ip level standard, not just a tcp one.
+>>>> I presume security_secid_to_secctx is going to be called from quite a few
+>>>> places (well, I know of at least two now and they have nothing to do with
+>>>> the LSM) and in my opinion it would be better if that error handling, if
+>>>> adopted, is implemented within the function itself - whether by calling
+>>>> another function, like the one you proposed above, or as part of the
+>>>> secctx retrieval - this could be open to interpretation, but the point I
+>>>> am trying to make is that whichever code security_secid_to_secctx is
+>>>> invoked from shouldn't be involved in reporting/handling (internal LSM)
+>>>> errors at all.
 >>>>
->>>> That probably needs a new revision and is slightly more work, lets
->>>> begin by porting it to IPv6, then we can add this on top.
+>>>> I think I made that point in my previous post, but just wanted to make
+>>>> sure that is the case.
 >>>
->>> Moving it to xt_ecn first seems like producing a smaller patchset
->>> because you don't have to potentially duplicate the functions first. :)
+>>> The LSM might report and error.  It's up to the caller to figure out
+>>> how to deal with that error.  In this case we want to use the audit
+>>> system so it's up to the audit system how to handle that error.
 >>
->> It actually already supports matching on IP header ECN bits:
->>
->> [!] --ecn-ip-ect [0..3] Match ECN codepoint in IPv4 header
->>
+>> We are happy recording the failed number. Its the LSM people that say nuke the system.
+>> So, I would put that in security_secid_to_secctx() so that everyone knows whose
+>> requirements it was to do the nuclear option.
 > 
-> Sorry, my bad. It's even documented as existing.
+> If the number meets your requirements then the requirements are total
+> shit.  The number has NO relation to the label on the object as
+> understood by the system.  If audit has a requirement to always log
+> the label or call audit_panic(), its only option is to call
+> audit_panic().
 > 
-> So it's just a pair of convienence functions (
-> --ecn-ip-ece --ecn-ip-cwr )
-
-Yeah, that would make usage easier.
-
-> and ipv6 iptables support for ECN that are MIA.
-
-Sent out patches a few seconds ago.
-
-> I'll argue that extending the blackhole-ing feature to also include ip
+> Exposing secids and internal representations of information to
+> userspace is always wrong.  Full stop.
 > 
->        --ecn-tcp-remove
+> I'd be willing to take a patch which caused security_secid_to_secctx()
+> to BUG() if it got an invalid secid.  But on ENOMEM I'm going to just
+> push the error back up the stack.  In that case audit has to decide
+> how to handle the situation.  That secid is NOT the label associated
+> with the object and printing it to userspace is meaningless garbage.
 > 
-> might be good... although in my testing I have not found a blackhole
-> yet, they must still be out there.
+> Just because audit did it wrong yesterday doesn't mean I'm going to
+> ACK more patches that do it wrong tomorrow.  I don't care what some
+> arbitrary and obviously poorly thought out requirement document says.
 
-That would be the ECN target, not the match.
-
+Just to make sure, so the conclusion is that the patch is fine as
+it is and anything related to unconvertible secids will be handled
+by SELinux internally?
