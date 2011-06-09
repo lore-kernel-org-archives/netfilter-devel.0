@@ -1,60 +1,52 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] ecn match ported to ipv6
-Date: Thu, 09 Jun 2011 10:17:57 +0200
-Message-ID: <4DF081B5.2060102@trash.net>
-References: <1307545312.3057.49.camel@edumazet-laptop> <BANLkTi=ORBH0q_arGbFUdjk=WMjbBz1KZg@mail.gmail.com> <4DEFB213.5030802@trash.net> <alpine.LNX.2.01.1106082248110.13030@frira.zrqbmnf.qr>
+From: Adam Sampson <ats@offog.org>
+Subject: netfilter release signing keys
+Date: Thu, 9 Jun 2011 09:30:00 +0100
+Message-ID: <20110609083000.GP3173@cartman.at.offog.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Dave Taht <dave.taht@gmail.com>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34439 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753637Ab1FIIR7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jun 2011 04:17:59 -0400
-In-Reply-To: <alpine.LNX.2.01.1106082248110.13030@frira.zrqbmnf.qr>
+Received: from malt.us-lot.org ([78.31.108.14]:38824 "EHLO malt.us-lot.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753802Ab1FIIsJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Jun 2011 04:48:09 -0400
+Received: from 94-194-126-16.zone8.bethere.co.uk ([94.194.126.16] helo=cartman.offog.org)
+	by malt.us-lot.org with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <ats@offog.org>)
+	id 1QUacL-00089Z-N4
+	for netfilter-devel@vger.kernel.org; Thu, 09 Jun 2011 09:29:29 +0100
+Received: from ats by cartman.offog.org with local (Exim 4.76)
+	(envelope-from <ats@offog.org>)
+	id 1QUacq-0004p1-HN
+	for netfilter-devel@vger.kernel.org; Thu, 09 Jun 2011 09:30:00 +0100
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 08.06.2011 22:50, Jan Engelhardt wrote:
-> On Wednesday 2011-06-08 19:32, Patrick McHardy wrote:
-> 
->> On 08.06.2011 17:47, Dave Taht wrote:
->>> On Wed, Jun 8, 2011 at 9:01 AM, Eric Dumazet <eric.dumazet@gmail.com> wrote:
->>>
->>>> Dave Taht mentioned in bloat list that netfilter ecn match was ipv4
->>>> only.
->>>>
->>>> Is there any plan to make the switch from net/ipv4/netfilter/ipt_ecn.c
->>>> to net/netfilter/xt_ecn.c ?
->>>>
->>>> I can probably do it but not before ~ten days, so if someone is
->>>> interested, this will please Dave ;)
->>
->> That should be a relatively quick job, I'll give it a shot while
->> my dinner is cooking :)
->>
->>> The larger question I had was this
->>>
->>> "iptables seems to think ecn can only be looked at in TCP streams, where (for
->>> example), ecn bits can be copied to the outer header of a udp vpn
->>> stream, and marked
->>>
->>> when needed."
->>>
->>> ECN is an ip level standard, not just a tcp one.
->>
->> That probably needs a new revision and is slightly more work, lets
->> begin by porting it to IPv6, then we can add this on top.
-> 
-> Moving it to xt_ecn first seems like producing a smaller patchset 
-> because you don't have to potentially duplicate the functions first. :)
+Hi,
 
-It actually already supports matching on IP header ECN bits:
+(I sent this to webmaster@netfilter.org as suggested on
+http://netfilter.org/about.html, but that address bounced.)
 
-[!] --ecn-ip-ect [0..3]	Match ECN codepoint in IPv4 header
+The latest iptables release is signed with key ID BB5F58CC:
+
+http://www.netfilter.org/projects/iptables/files/iptables-1.4.11.tar.bz2.sig
+
+The "key" link next to that on the iptables downloads page points to:
+
+http://www.netfilter.org/files/coreteam-gpg-key.txt
+
+However, that key is CA9A8D5B.
+
+On the "About" page, it says that the current key is 2D0987E6 and gives
+a revocation certificate for CA9A8D5B. It says that 2D0987E6 "will be
+valid until March 27, 2011", so I guess that someone's generated a new
+key and not updated the About page or download links yet. Please could
+someone confirm that BB5F58CC is a legitimate key for iptables releases,
+and update the web pages?
+
+Thanks,
+
+-- 
+Adam Sampson <ats@offog.org>                         <http://offog.org/>
