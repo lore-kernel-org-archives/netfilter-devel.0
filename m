@@ -1,108 +1,37 @@
-From: Tihomir Katic <tihomir.katic@gmail.com>
-Subject: Re: [NEW SOFTWARE] FIRO - Iptables optimization
-Date: Thu, 9 Jun 2011 17:55:59 +0200
-Message-ID: <BANLkTik6n1wj7LgYDHmkR5zzDuGeD_VFGw@mail.gmail.com>
-References: <BANLkTinGcunf22dZQr1mX6omuB88eAZZ6A@mail.gmail.com>
-	<alpine.LNX.2.01.1106091530110.22244@frira.zrqbmnf.qr>
-	<BANLkTi=Ggxj5Pv1t8H_S4gqEWGQwP=iWqA@mail.gmail.com>
-	<alpine.LNX.2.01.1106091615510.31505@frira.zrqbmnf.qr>
-	<BANLkTikkY=Hcksw7Lb8CvgD+fhDN=TtCJg@mail.gmail.com>
-	<alpine.LNX.2.01.1106091632200.31505@frira.zrqbmnf.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter: fix looped (broad|multi)cast's MAC handling.
+Date: Thu, 09 Jun 2011 18:08:06 +0200
+Message-ID: <4DF0EFE6.4010206@trash.net>
+References: <20110608153032.GA26912@Chamillionaire.breakpoint.cc> <1307626748-10992-1-git-send-email-cavallar@lri.fr> <1307626748-10992-2-git-send-email-cavallar@lri.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: fw@strlen.de, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, Nicolas Cavallari <cavallar@lri.fr>
+To: Nicolas Cavallari <Nicolas.Cavallari@lri.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:49720 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753886Ab1FIP4A convert rfc822-to-8bit (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:41677 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751346Ab1FIQIJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jun 2011 11:56:00 -0400
-Received: by iyb14 with SMTP id 14so1420869iyb.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 09 Jun 2011 08:55:59 -0700 (PDT)
-In-Reply-To: <alpine.LNX.2.01.1106091632200.31505@frira.zrqbmnf.qr>
+	Thu, 9 Jun 2011 12:08:09 -0400
+In-Reply-To: <1307626748-10992-2-git-send-email-cavallar@lri.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This times are per 1 command.So total time is
+On 09.06.2011 15:39, Nicolas Cavallari wrote:
+> By default, when broadcast or multicast packet are sent from a local
+> application, they are sent to the interface then looped by the kernel
+> to other local applications, going throught netfilter hooks in the process.
+> 
+> These looped packet have their MAC header removed from the skb by the kernel
+> looping code.
+> This confuse various netfilter's netlink queue, netlink log and the
+> legacy ip_queue, because they try to extract a hardware
+> address from these packets, but extracts a part of the IP header instead.
+> 
+> This patch prevent NFQUEUE, NFLOG and ip_QUEUE to include a MAC header
+> if there is none in the packet.
 
- {
-1 MIN ( 1000 single):  0.206000 us
-1 MIN ( 1000 array):  0.264000 us
-1 MIN ( 1000 range):  0.182000 us
-} x 1000
-=3D
-(10000 single):  206 us
-(10000 array):  264 us
-(10000 range):  182 us
-
-and
-{
-1 MIN (10000 single):  0.081400 us
-1 MIN (10000 array):  0.156900 us
-1 MIN (10000 range):  0.081900 us
-}  x 10000
-=3D
-(10000 single):  814 us
-(10000 array):  1569 us
-(10000 range):  819 us
-
-
-Of course there is some noise ..., but in general 1 rule with array
-list (15 single numbers) is in worst case same as 2 rules (1 single
-number).
-So with current implementation, 15 single ports can be generated from
-2 rules (e.g. --dport 80 and --dport 101:114)
-
-But, I must allow ranges in multiport parameter, and than this
-discussion will not be needed.
-
-Br
-
-
-2011/6/9 Jan Engelhardt <jengelh@medozas.de>:
-> On Thursday 2011-06-09 16:23, Tihomir Katic wrote:
->
->>>That is purely noise. You need a lot more rules (10000 and up) to
->>>measure an effect.
->>
->>I've been testing, list with 1000 rules, list with 10000 rules, list
->>with 50000 rules.
->>Searching for minimum time, in 100 tests, etc.
->>
->>1 MIN ( 1000 single): =A00.206000 us
->>1 MIN (1000 array): =A00.264000 us
->>
->>1 MIN (10000 single): =A00.081400 us
->>1 MIN (10000 array): =A00.156900 us
->
-> It seems you are not executing all rules. How else could 10k rules be
-> faster than 1k? You must not use any -j.
->
-> What you need is something like:
->
-> *filter
-> :INPUT ACCEPT [0:0]
-> :FORWARD ACCEPT [0:0]
-> :OUTPUT ACCEPT [0:0]
-> -A INPUT -p tcp -m multiport --dport 1:5,20:25
-> -A INPUT -p tcp -m multiport --dport 1:5,20:25
-> -A INPUT -p tcp -m multiport --dport 1:5,20:25
-> -A INPUT -p tcp -m multiport --dport 1:5,20:25
-> -A INPUT -p tcp -m multiport --dport 1:5,20:25
-> -A INPUT -p tcp -m multiport --dport 1:5,20:25
-> -A INPUT -p tcp -m multiport --dport 1:5,20:25
-> -A INPUT -p tcp -m multiport --dport 1:5,20:25
-> COMMIT
-> # Completed on Thu Jun =A09 16:33:15 2011
->
-> (of course, replicating this to 1000 rules), and then sending yoursel=
-f
-> some packet and measure the RTT.
->
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please add a Signed-off-by: line to your patch so I can apply it.
+Thanks!
