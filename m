@@ -1,45 +1,50 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 0/3] netfilter: ecn match fixes and IPv6 capable xtables
- port
-Date: Thu, 9 Jun 2011 22:19:02 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1106092217020.14110@frira.zrqbmnf.qr>
-References: <1307621554-19108-1-git-send-email-kaber@trash.net> <alpine.LNX.2.01.1106091515160.22244@frira.zrqbmnf.qr> <4DF0C8CE.1050308@trash.net>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: eric.dumazet@gmail.com, dave.taht@gmail.com,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Subject: xt_ecn in smaller pieces
+Date: Thu,  9 Jun 2011 22:23:52 +0200
+Message-ID: <1307651037-20520-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:52687 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:57113 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755753Ab1FIUTD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jun 2011 16:19:03 -0400
-In-Reply-To: <4DF0C8CE.1050308@trash.net>
+	id S1755555Ab1FIUX7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Jun 2011 16:23:59 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Thursday 2011-06-09 15:21, Patrick McHardy wrote:
->On 09.06.2011 15:16, Jan Engelhardt wrote:
->> On Thursday 2011-06-09 14:12, kaber@trash.net wrote:
->> 
->>> These patches contain two fixes for the ipt_ecn match and an IPv6 capable
->>> xtables port. Nothing particulary exciting in the patches, if noone spots
->>> any problems I'll push the first two patches to net-2.6 and the third one
->>> to net-next-2.6.
->>>
->>> iptables patch will follow shortly.
->>>
->>> Patrick McHardy (3):
->>>      netfilter: ipt_ecn: fix protocol check in ecn_mt_check()
->>>      netfilter: ipt_ecn: fix inversion for IP header ECN match
->>>      netfilter: xtables: add an IPv6 capable version of the ECN match
->> 
->> Do you have these in a git:// tree handy? I would like to see if the 
->> automatic move detection still kicks in (since it has a 50% threshold).
->> The raw non-move change could have been split otherwise.
->
->I pushed them out to
->git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-testing.git
+Alternate xt_ecn history crafting, whereby the move of the code is explicit,
+i.e. will show up in git log --stat -M as such.
 
-I have an alternate patch approach based upon yours. send-email dump following.
+===
+The following changes since commit b08220bec4daa318a049182dc1cbd395873109cb:
+
+>>>>>>
+  netfilter: ipt_ecn: fix inversion for IP header ECN match (2011-06-09 15:20:26 +0200)
+<<<<<<
+(tacks onto your 2/3)
+
+are available in the git repository at:
+  git://dev.medozas.de/linux xtecn
+
+Jan Engelhardt (3):
+      netfilter: xtables: move ipt_ecn to xt_ecn
+      netfilter: xtables: give xt_ecn its own name
+      netfilter: xtables: collapse conditions in xt_ecn
+
+Patrick McHardy (1):
+      netfilter: xtables: add an IPv6 capable version of the ECN match
+
+ include/linux/netfilter/Kbuild         |    1 +
+ include/linux/netfilter/xt_ecn.h       |   35 ++++++
+ include/linux/netfilter_ipv4/ipt_ecn.h |   38 ++-----
+ net/ipv4/netfilter/Kconfig             |   10 +-
+ net/ipv4/netfilter/Makefile            |    1 -
+ net/ipv4/netfilter/ipt_ecn.c           |  127 ----------------------
+ net/netfilter/Kconfig                  |    9 ++
+ net/netfilter/Makefile                 |    1 +
+ net/netfilter/xt_ecn.c                 |  179 ++++++++++++++++++++++++++++++++
+ 9 files changed, 239 insertions(+), 162 deletions(-)
+ create mode 100644 include/linux/netfilter/xt_ecn.h
+ delete mode 100644 net/ipv4/netfilter/ipt_ecn.c
+ create mode 100644 net/netfilter/xt_ecn.c
