@@ -1,50 +1,43 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NEW SOFTWARE] FIRO - Iptables optimization
-Date: Thu, 09 Jun 2011 15:23:40 +0200
-Message-ID: <4DF0C95C.5070207@trash.net>
-References: <BANLkTinGcunf22dZQr1mX6omuB88eAZZ6A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: [PATCH 0/1] doc: include matches/targets in manpage again
+Date: Thu,  9 Jun 2011 15:29:42 +0200
+Message-ID: <1307626184-25928-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
-To: Tihomir Katic <tihomir.katic@gmail.com>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38925 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757849Ab1FINXm (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jun 2011 09:23:42 -0400
-In-Reply-To: <BANLkTinGcunf22dZQr1mX6omuB88eAZZ6A@mail.gmail.com>
+Received: from seven.medozas.de ([188.40.89.202]:48125 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757555Ab1FIN3q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Jun 2011 09:29:46 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 09.06.2011 15:18, Tihomir Katic wrote:
-> Hi
-> 
-> I developed some firewall optimizer for iptables optimization.
-> 
-> FIRO is parsing output of iptables-save command and removes redundant
-> rules from it. Rules in each chain and table are optimized separately.
-> Optimization procedure continues until there are no more rules to
-> remove or to modify. As a result, FIRO generates new file with new set
-> of rules for every successful optimization procedure. Also, it logs
-> all actions and changes in separated files.
-> 
-> List of optimization procedures:
->  -  Remove irrelevant rules
->  -  Remove redundant "shadowed after" rules
->  -  Remove redundant "shadowed before" rules
->  -  Remove last rules with same action as chain
->  -  Merge rules
->  -  Remove redundant parameters from rules
->  -  Remove redundant elements from parameters
->  -  Reposition of "logging" rules in chain
-> 
-> This is free software, 1st published version, and I would appreciate
-> every download, every test, every reported bug, suggestion, etc.
-> 
-> Link to FIRO:
-> http://valeria.zesoi.fer.hr/~tkatic
 
-Sounds interesting, but I can't unpack that rar, every file
-fails. Please provide a tar.gz/bz2 or something similar.
+I spent some thoughts about this already - should we perhaps separate
+the extensions' manpages into their own file, rather than doing a
+hackish substitution into ip[6]tables.8.in?
+
+I was thinking of just taking the produced
+matches[46].man/targets[46].man and install these, so that the only
+postprocessing needed is cat, no sed,
+and the result looking something like the xtables-addons(8) manpage.
+
+That way, the duplicate presence of descriptions - since xt pieces
+are copied to both - between iptables(8) and ip6tables(8) could also
+be removed, and the makefile simplified.
+How about it?
+
+For now, this one:
+===
+The following changes since commit c960bde4a82792c285110589cf8b2cf1438e1b8f:
+
+  Bump version to 1.4.11.1 (2011-06-08 15:26:17 +0200)
+
+are available in the git repository at:
+  git://dev.medozas.de/iptables master
+
+Jan Engelhardt (1):
+      doc: include matches/targets in manpage again
+
+ iptables/Makefile.am |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
