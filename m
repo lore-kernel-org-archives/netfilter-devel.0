@@ -1,52 +1,40 @@
 From: kaber@trash.net
-Subject: [PATCH 1/3] netfilter: ipt_ecn: fix protocol check in ecn_mt_check()
-Date: Thu,  9 Jun 2011 14:12:32 +0200
-Message-ID: <1307621554-19108-2-git-send-email-kaber@trash.net>
-References: <1307621554-19108-1-git-send-email-kaber@trash.net>
+Subject: [PATCH 0/3] netfilter: ecn match fixes and IPv6 capable xtables port
+Date: Thu,  9 Jun 2011 14:12:31 +0200
+Message-ID: <1307621554-19108-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: eric.dumazet@gmail.com, dave.taht@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37834 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:37833 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757030Ab1FIMMj (ORCPT
+	with ESMTP id S1757361Ab1FIMMj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 9 Jun 2011 08:12:39 -0400
-In-Reply-To: <1307621554-19108-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
+These patches contain two fixes for the ipt_ecn match and an IPv6 capable
+xtables port. Nothing particulary exciting in the patches, if noone spots
+any problems I'll push the first two patches to net-2.6 and the third one
+to net-next-2.6.
 
-Check for protocol inversion in ecn_mt_check() and remove the unnecessary
-runtime check for IPPROTO_TCP in ecn_mt().
+iptables patch will follow shortly.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- net/ipv4/netfilter/ipt_ecn.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+Patrick McHardy (3):
+      netfilter: ipt_ecn: fix protocol check in ecn_mt_check()
+      netfilter: ipt_ecn: fix inversion for IP header ECN match
+      netfilter: xtables: add an IPv6 capable version of the ECN match
 
-diff --git a/net/ipv4/netfilter/ipt_ecn.c b/net/ipv4/netfilter/ipt_ecn.c
-index af6e9c7..aaa85be 100644
---- a/net/ipv4/netfilter/ipt_ecn.c
-+++ b/net/ipv4/netfilter/ipt_ecn.c
-@@ -76,8 +76,6 @@ static bool ecn_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 			return false;
- 
- 	if (info->operation & (IPT_ECN_OP_MATCH_ECE|IPT_ECN_OP_MATCH_CWR)) {
--		if (ip_hdr(skb)->protocol != IPPROTO_TCP)
--			return false;
- 		if (!match_tcp(skb, info, &par->hotdrop))
- 			return false;
- 	}
-@@ -97,7 +95,7 @@ static int ecn_mt_check(const struct xt_mtchk_param *par)
- 		return -EINVAL;
- 
- 	if (info->operation & (IPT_ECN_OP_MATCH_ECE|IPT_ECN_OP_MATCH_CWR) &&
--	    ip->proto != IPPROTO_TCP) {
-+	    (ip->proto != IPPROTO_TCP || ip->invflags & IPT_INV_PROTO)) {
- 		pr_info("cannot match TCP bits in rule for non-tcp packets\n");
- 		return -EINVAL;
- 	}
--- 
-1.7.4.1
+ include/linux/netfilter/Kbuild   |    1 +
+ include/linux/netfilter/xt_ecn.h |   33 +++++++
+ net/ipv4/netfilter/Kconfig       |    9 --
+ net/ipv4/netfilter/Makefile      |    1 -
+ net/ipv4/netfilter/ipt_ecn.c     |  128 --------------------------
+ net/netfilter/Kconfig            |    9 ++
+ net/netfilter/Makefile           |    1 +
+ net/netfilter/xt_ecn.c           |  187 ++++++++++++++++++++++++++++++++++++++
+ 8 files changed, 231 insertions(+), 138 deletions(-)
+ create mode 100644 include/linux/netfilter/xt_ecn.h
+ delete mode 100644 net/ipv4/netfilter/ipt_ecn.c
+ create mode 100644 net/netfilter/xt_ecn.c
 
