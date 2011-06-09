@@ -1,97 +1,136 @@
 From: pablo@netfilter.org
-Subject: [PATCH 2/4] ipvs: Avoid undefined order of evaluation in assignments to struct nf_conn *
-Date: Thu,  9 Jun 2011 20:41:00 +0200
-Message-ID: <1307644862-3091-3-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 4/4] netfilter: nf_conntrack: provide config option to disable ancient procfs parts
+Date: Thu,  9 Jun 2011 20:41:02 +0200
+Message-ID: <1307644862-3091-5-git-send-email-pablo@netfilter.org>
 References: <1307644862-3091-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, Jesper Juhl <jj@chaosbits.net>,
+Cc: kaber@trash.net, Jan Engelhardt <jengelh@medozas.de>,
 	Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60813 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:60829 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753368Ab1FISlS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jun 2011 14:41:18 -0400
+	id S1752158Ab1FISlT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Jun 2011 14:41:19 -0400
 In-Reply-To: <1307644862-3091-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jesper Juhl <jj@chaosbits.net>
+From: Jan Engelhardt <jengelh@medozas.de>
 
-In net/netfilter/ipvs/ip_vs_nfct.c::ip_vs_update_conntrack(),
-net/netfilter/ipvs/ip_vs_xmit.c::ip_vs_nat_xmit(),
-net/netfilter/ipvs/ip_vs_xmit.c::ip_vs_nat_xmit_v6(),
-net/netfilter/ipvs/ip_vs_xmit.c::ip_vs_icmp_xmit)()
-net/netfilter/ipvs/ip_vs_xmit.c::and ip_vs_icmp_xmit_v6() we do this:
-	...
-	struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
-	...
+This option enables for the list of known conntrack entries
+to be shown in procfs under net/netfilter/nf_conntrack. This
+is considered obsolete in favor of using the conntrack(8)
+tool which uses Netlink.
 
-Since '=' is not a sequence point the order of these assignments happening
-is undefined. Luckily it's easy to avoid by just doing what is obviously
-the intended thing:
-	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
-
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-Acked-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_nfct.c |    2 +-
- net/netfilter/ipvs/ip_vs_xmit.c |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ net/ipv4/netfilter/Kconfig              |    2 +-
+ net/netfilter/Kconfig                   |   10 ++++++++++
+ net/netfilter/nf_conntrack_expect.c     |   12 ++++++------
+ net/netfilter/nf_conntrack_standalone.c |    4 ++--
+ 4 files changed, 19 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_nfct.c b/net/netfilter/ipvs/ip_vs_nfct.c
-index f454c80..a3d86c2 100644
---- a/net/netfilter/ipvs/ip_vs_nfct.c
-+++ b/net/netfilter/ipvs/ip_vs_nfct.c
-@@ -82,7 +82,7 @@ void
- ip_vs_update_conntrack(struct sk_buff *skb, struct ip_vs_conn *cp, int outin)
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 1dfc18a..bf8ff2b 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -27,7 +27,7 @@ config NF_CONNTRACK_IPV4
+ 
+ config NF_CONNTRACK_PROC_COMPAT
+ 	bool "proc/sysctl compatibility with old connection tracking"
+-	depends on NF_CONNTRACK_IPV4
++	depends on NF_CONNTRACK_PROCFS && NF_CONNTRACK_IPV4
+ 	default y
+ 	help
+ 	  This option enables /proc and sysctl compatibility with the old
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 32bff6d..e4b1076 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -75,6 +75,16 @@ config NF_CONNTRACK_ZONES
+ 
+ 	  If unsure, say `N'.
+ 
++config NF_CONNTRACK_PROCFS
++	bool "Supply CT list in procfs (OBSOLETE)"
++	default y
++	depends on PROC_FS
++	---help---
++	This option enables for the list of known conntrack entries
++	to be shown in procfs under net/netfilter/nf_conntrack. This
++	is considered obsolete in favor of using the conntrack(8)
++	tool which uses Netlink.
++
+ config NF_CONNTRACK_EVENTS
+ 	bool "Connection tracking events"
+ 	depends on NETFILTER_ADVANCED
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index cd1e8e0..b76787e 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -474,7 +474,7 @@ void nf_ct_remove_userspace_expectations(void)
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_remove_userspace_expectations);
+ 
+-#ifdef CONFIG_PROC_FS
++#ifdef CONFIG_NF_CONNTRACK_PROCFS
+ struct ct_expect_iter_state {
+ 	struct seq_net_private p;
+ 	unsigned int bucket;
+@@ -602,25 +602,25 @@ static const struct file_operations exp_file_ops = {
+ 	.llseek  = seq_lseek,
+ 	.release = seq_release_net,
+ };
+-#endif /* CONFIG_PROC_FS */
++#endif /* CONFIG_NF_CONNTRACK_PROCFS */
+ 
+ static int exp_proc_init(struct net *net)
  {
- 	enum ip_conntrack_info ctinfo;
--	struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
-+	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
- 	struct nf_conntrack_tuple new_tuple;
+-#ifdef CONFIG_PROC_FS
++#ifdef CONFIG_NF_CONNTRACK_PROCFS
+ 	struct proc_dir_entry *proc;
  
- 	if (ct == NULL || nf_ct_is_confirmed(ct) || nf_ct_is_untracked(ct) ||
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index ee319a4..16d129e 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -544,7 +544,7 @@ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
- 		enum ip_conntrack_info ctinfo;
--		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
-+		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 	proc = proc_net_fops_create(net, "nf_conntrack_expect", 0440, &exp_file_ops);
+ 	if (!proc)
+ 		return -ENOMEM;
+-#endif /* CONFIG_PROC_FS */
++#endif /* CONFIG_NF_CONNTRACK_PROCFS */
+ 	return 0;
+ }
  
- 		if (ct && !nf_ct_is_untracked(ct)) {
- 			IP_VS_DBG_RL_PKT(10, AF_INET, pp, skb, 0,
-@@ -661,7 +661,7 @@ ip_vs_nat_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
- 		enum ip_conntrack_info ctinfo;
--		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
-+		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ static void exp_proc_remove(struct net *net)
+ {
+-#ifdef CONFIG_PROC_FS
++#ifdef CONFIG_NF_CONNTRACK_PROCFS
+ 	proc_net_remove(net, "nf_conntrack_expect");
+-#endif /* CONFIG_PROC_FS */
++#endif /* CONFIG_NF_CONNTRACK_PROCFS */
+ }
  
- 		if (ct && !nf_ct_is_untracked(ct)) {
- 			IP_VS_DBG_RL_PKT(10, AF_INET6, pp, skb, 0,
-@@ -1176,7 +1176,7 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
- 		enum ip_conntrack_info ctinfo;
--		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
-+		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ module_param_named(expect_hashsize, nf_ct_expect_hsize, uint, 0400);
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 05e9feb..885f5ab 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -34,7 +34,7 @@
  
- 		if (ct && !nf_ct_is_untracked(ct)) {
- 			IP_VS_DBG(10, "%s(): "
-@@ -1296,7 +1296,7 @@ ip_vs_icmp_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
- 		enum ip_conntrack_info ctinfo;
--		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
-+		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ MODULE_LICENSE("GPL");
  
- 		if (ct && !nf_ct_is_untracked(ct)) {
- 			IP_VS_DBG(10, "%s(): "
+-#ifdef CONFIG_PROC_FS
++#ifdef CONFIG_NF_CONNTRACK_PROCFS
+ int
+ print_tuple(struct seq_file *s, const struct nf_conntrack_tuple *tuple,
+             const struct nf_conntrack_l3proto *l3proto,
+@@ -396,7 +396,7 @@ static int nf_conntrack_standalone_init_proc(struct net *net)
+ static void nf_conntrack_standalone_fini_proc(struct net *net)
+ {
+ }
+-#endif /* CONFIG_PROC_FS */
++#endif /* CONFIG_NF_CONNTRACK_PROCFS */
+ 
+ /* Sysctl support */
+ 
 -- 
 1.7.2.5
 
