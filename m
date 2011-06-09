@@ -1,35 +1,50 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 00/12] ipset patches against nf-next-2.6, updated again
-Date: Thu, 09 Jun 2011 20:41:43 +0200
-Message-ID: <4DF113E7.20105@netfilter.org>
-References: <1306964151-4686-1-git-send-email-kadlec@blackhole.kfki.hu> <4DF0F05E.2090406@trash.net>
+From: Nadeem Douba <ndouba@gmail.com>
+Subject: Re: FTP Packet Mangling & NAT
+Date: Thu, 9 Jun 2011 15:06:45 -0400
+Message-ID: <BANLkTim6WA1AW=ARNXKEx1kyVDo6TjCp-Q@mail.gmail.com>
+References: <BANLkTintTA8T_FEqF-vWe85iTonfZHGn3w@mail.gmail.com>
+	<81c0aab748c6ad27b289055e31777945@treenet.co.nz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: netfilter-devel@vger.kernel.org
+To: Amos Jeffries <squid3@treenet.co.nz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60926 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753368Ab1FISlx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jun 2011 14:41:53 -0400
-In-Reply-To: <4DF0F05E.2090406@trash.net>
+Received: from mail-px0-f179.google.com ([209.85.212.179]:39521 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751481Ab1FITGq (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Jun 2011 15:06:46 -0400
+Received: by pxi2 with SMTP id 2so1223862pxi.10
+        for <netfilter-devel@vger.kernel.org>; Thu, 09 Jun 2011 12:06:46 -0700 (PDT)
+In-Reply-To: <81c0aab748c6ad27b289055e31777945@treenet.co.nz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 09/06/11 18:10, Patrick McHardy wrote:
-> On 01.06.2011 23:35, Jozsef Kadlecsik wrote:
->> Hi Patrick,
->>
->> I have updated the patches with the changes since last time I sent them.
->> The patches can be applied only if nf-next-2.6 is rebased onto current
->> net-next-2.6.
->>
->> Please consider applying them.
-> 
-> Thanks, I'll wait for Pablo to either apply these or submit his pending
-> patches so we can avoid any conflicts.
+>  The proxy completely controls what the client gets given. It is
+>  breaking transparency by not reverse-mapping the response properly.
+>  Mention it to the authors and get it fixed.
 
-I just send the four patches that I collected. Please take Jozsef's
-directly from him.
+The authors (Websense) are of a different opinion of how this issue is
+fixed. They recommended that we enable active FTP (significant
+security risk).
+
+
+>  A transparent proxy is equivalent to a NAT module in all respects.
+>  Merely operates on the FTP layer in this case.
+>  Switch "module" for "proxy" and you have a good plan for fixing the
+>  bug.
+
+Not really, even proxying these requests would result in the same
+issue as the child proxy would relay the parent proxy's response.
+
+>  NOTE: If you do steps 5 and 6 in the IP layer you will be bypassing the
+>  proxy data handling and void all your reasons for having it done by a
+>  proxy in the first place. Instead of by the conntrack NAT module for FTP
+>  for both outgoing and returning traffic.
+
+The point is not to get rid of the proxy but to fix the issue that the
+proxy is presenting to all FTP communications.
+
+>  Disclaimer: I'm not one of the NF gurus. Just a proxy guy.
+
+Thanks anyways.
