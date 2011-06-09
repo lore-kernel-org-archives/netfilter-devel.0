@@ -1,92 +1,119 @@
-From: Nicolas Cavallari <Nicolas.Cavallari@lri.fr>
-Subject: [PATCH] netfilter: fix looped (broad|multi)cast's MAC handling.
-Date: Thu,  9 Jun 2011 15:39:08 +0200
-Message-ID: <1307626748-10992-2-git-send-email-cavallar@lri.fr>
-References: <20110608153032.GA26912@Chamillionaire.breakpoint.cc>
- <1307626748-10992-1-git-send-email-cavallar@lri.fr>
-Cc: Nicolas Cavallari <cavallar@lri.fr>
-To: fw@strlen.de, kaber@trash.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1307626748-10992-1-git-send-email-cavallar@lri.fr>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Tihomir Katic <tihomir.katic@gmail.com>
+Subject: Re: [NEW SOFTWARE] FIRO - Iptables optimization
+Date: Thu, 9 Jun 2011 16:07:45 +0200
+Message-ID: <BANLkTi=Ggxj5Pv1t8H_S4gqEWGQwP=iWqA@mail.gmail.com>
+References: <BANLkTinGcunf22dZQr1mX6omuB88eAZZ6A@mail.gmail.com>
+	<alpine.LNX.2.01.1106091530110.22244@frira.zrqbmnf.qr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-yi0-f46.google.com ([209.85.218.46]:63242 "EHLO
+	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750899Ab1FIOHt convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Jun 2011 10:07:49 -0400
+Received: by yie30 with SMTP id 30so807733yie.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 09 Jun 2011 07:07:48 -0700 (PDT)
+In-Reply-To: <alpine.LNX.2.01.1106091530110.22244@frira.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-By default, when broadcast or multicast packet are sent from a local
-application, they are sent to the interface then looped by the kernel
-to other local applications, going throught netfilter hooks in the process.
+Hi Jan
 
-These looped packet have their MAC header removed from the skb by the kernel
-looping code.
-This confuse various netfilter's netlink queue, netlink log and the
-legacy ip_queue, because they try to extract a hardware
-address from these packets, but extracts a part of the IP header instead.
+Thank you, I downloaded it, but I have to check how to work with GIT.
+Now I am sorry I didn't upload this SW sooner.
 
-This patch prevent NFQUEUE, NFLOG and ip_QUEUE to include a MAC header
-if there is none in the packet.
----
- net/ipv4/netfilter/ip_queue.c   |    3 ++-
- net/ipv6/netfilter/ip6_queue.c  |    3 ++-
- net/netfilter/nfnetlink_log.c   |    3 ++-
- net/netfilter/nfnetlink_queue.c |    3 ++-
- 4 files changed, 8 insertions(+), 4 deletions(-)
+Some explanation of it can be found in this work
+http://biblio.irb.hr/prikazi-rad?&rad=3D310019
 
-diff --git a/net/ipv4/netfilter/ip_queue.c b/net/ipv4/netfilter/ip_queue.c
-index f7f9bd7..5c9b9d9 100644
---- a/net/ipv4/netfilter/ip_queue.c
-+++ b/net/ipv4/netfilter/ip_queue.c
-@@ -203,7 +203,8 @@ ipq_build_packet_message(struct nf_queue_entry *entry, int *errp)
- 	else
- 		pmsg->outdev_name[0] = '\0';
- 
--	if (entry->indev && entry->skb->dev) {
-+	if (entry->indev && entry->skb->dev &&
-+	    entry->skb->mac_header != entry->skb->network_header) {
- 		pmsg->hw_type = entry->skb->dev->type;
- 		pmsg->hw_addrlen = dev_parse_header(entry->skb,
- 						    pmsg->hw_addr);
-diff --git a/net/ipv6/netfilter/ip6_queue.c b/net/ipv6/netfilter/ip6_queue.c
-index 065fe40..2493948 100644
---- a/net/ipv6/netfilter/ip6_queue.c
-+++ b/net/ipv6/netfilter/ip6_queue.c
-@@ -204,7 +204,8 @@ ipq_build_packet_message(struct nf_queue_entry *entry, int *errp)
- 	else
- 		pmsg->outdev_name[0] = '\0';
- 
--	if (entry->indev && entry->skb->dev) {
-+	if (entry->indev && entry->skb->dev &&
-+	    entry->skb->mac_header != entry->skb->network_header) {
- 		pmsg->hw_type = entry->skb->dev->type;
- 		pmsg->hw_addrlen = dev_parse_header(entry->skb, pmsg->hw_addr);
- 	}
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index e0ee010..2e7ccbb 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -456,7 +456,8 @@ __build_packet_message(struct nfulnl_instance *inst,
- 	if (skb->mark)
- 		NLA_PUT_BE32(inst->skb, NFULA_MARK, htonl(skb->mark));
- 
--	if (indev && skb->dev) {
-+	if (indev && skb->dev &&
-+	    skb->mac_header != skb->network_header) {
- 		struct nfulnl_msg_packet_hw phw;
- 		int len = dev_parse_header(skb, phw.hw_addr);
- 		if (len > 0) {
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index b83123f..fdd2faf 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -335,7 +335,8 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
- 	if (entskb->mark)
- 		NLA_PUT_BE32(skb, NFQA_MARK, htonl(entskb->mark));
- 
--	if (indev && entskb->dev) {
-+	if (indev && entskb->dev &&
-+	    entskb->mac_header != entskb->network_header) {
- 		struct nfqnl_msg_packet_hw phw;
- 		int len = dev_parse_header(entskb, phw.hw_addr);
- 		if (len) {
--- 
-1.7.5.3
+But it is pretty old. I am preparing document with 100 pages of
+explanation, for now it is in Croatian:-( But code is commented in
+English
 
+Basic idea behind this work is to have "static optimizator of iptables
+rules" or even some other with modifications. It takes only result of
+iptables-save, removes redundant rules, removes unnecessary elements
+e.g from multiport array, or even whole matching parameter,  merge
+rules, reposition LOG rules later in file. This is not perfect,
+because network traffic is probably more important.
+
+I will try to generate some test input files, so you could see how
+does it work. All optimization actions are documented in generated
+files.
+
+
+Also, I have been doing some tests, and in config.txt you will see:
+## Optimal size of multiport - port array
+port_array_size_optimal =3D 10
+
+It means, it will merge 2 rules for example --dport 1:5 and --dport
+21:25 into -m multiport --dports 1,2,3,4,5,21,22,23,24,25
+but it will not merge them if they have more than 10 elements in array
+
+But, based on my recent tests, it should be
+port_array_size_optimal =3D 15
+
+Because
+rule with  --dport 1:5  takes e.g. ~0.2 us
+and rule with 15 elements in multiport array lasts ~0.4us, so it is
+pretty much the same
+
+Br
+Tihomir
+
+2011/6/9 Jan Engelhardt <jengelh@medozas.de>:
+> On Thursday 2011-06-09 15:18, Tihomir Katic wrote:
+>>
+>>I developed some firewall optimizer for iptables optimization.
+>>
+>>FIRO is parsing output of iptables-save command and removes redundant
+>>rules from it. Rules in each chain and table are optimized separately=
+=2E
+>>Optimization procedure continues until there are no more rules to
+>>remove or to modify. As a result, FIRO generates new file with new se=
+t
+>>of rules for every successful optimization procedure. Also, it logs
+>>all actions and changes in separated files.
+>>
+>>List of optimization procedures:
+>> - =A0Remove irrelevant rules
+>> - =A0Remove redundant "shadowed after" rules
+>> - =A0Remove redundant "shadowed before" rules
+>> - =A0Remove last rules with same action as chain
+>> - =A0Merge rules
+>> - =A0Remove redundant parameters from rules
+>> - =A0Remove redundant elements from parameters
+>> - =A0Reposition of "logging" rules in chain
+>>
+>>This is free software, 1st published version, and I would appreciate
+>>every download, every test, every reported bug, suggestion, etc.
+>>
+>>Link to FIRO:
+>>http://valeria.zesoi.fer.hr/~tkatic
+>
+> Great idea. Consider
+> http://jengelh.medozas.de/documents/Perfect_Ruleset.pdf for more thin=
+gs
+> to do in rulesets.
+>
+> Some of the suggestions are not a 1:1 conversion, such as replacing -=
+s
+> 127.0.0.0/8 by -i lo. In this case, a warning is the most one can do =
+in
+> an automated fashion, and actually sufficient. -- in the spirit of
+> checkpatch.pl.
+>
+>
+> Inbetween, I have created a git repo with Makefiles. If I feel lucky,
+> I'll also fix the build in a minute.
+>
+> =A0 =A0 =A0 =A0git://dev.medozas.de/firo
+>
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
