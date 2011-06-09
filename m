@@ -1,52 +1,40 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: [PATCH 3rd revision] Add SELinux context support to AUDIT target
-Date: Thu, 09 Jun 2011 15:08:09 +0100
-Message-ID: <4DF0D3C9.8030404@googlemail.com>
-References: <4DEDEB99.4070601@netfilter.org>	<4DEFC6C9.5030004@googlemail.com>	<BANLkTikhbT7EVXcKM8vSHir=6Va+qWY19A@mail.gmail.com>	<201106081528.22926.sgrubb@redhat.com>	<BANLkTik9wXe+g4EXByUt3MrxGhuLKgTV3A@mail.gmail.com>	<4DF0BC5F.5040100@trash.net> <BANLkTin-M-60LSTbvAdpzfio0suYj2WcqA@mail.gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [NEW SOFTWARE] FIRO - Iptables optimization
+Date: Thu, 9 Jun 2011 16:16:57 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1106091615510.31505@frira.zrqbmnf.qr>
+References: <BANLkTinGcunf22dZQr1mX6omuB88eAZZ6A@mail.gmail.com> <alpine.LNX.2.01.1106091530110.22244@frira.zrqbmnf.qr> <BANLkTi=Ggxj5Pv1t8H_S4gqEWGQwP=iWqA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, Steve Grubb <sgrubb@redhat.com>,
-	Casey Schaufler <casey@schaufler-ca.com>,
-	linux-audit@redhat.com, Thomas Graf <tgraf@redhat.com>,
-	netfilter-devel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Eric Paris <eparis@parisplace.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Tihomir Katic <tihomir.katic@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:54635 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751740Ab1FIOIO (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jun 2011 10:08:14 -0400
-Received: by wwa36 with SMTP id 36so1737897wwa.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 09 Jun 2011 07:08:13 -0700 (PDT)
-In-Reply-To: <BANLkTin-M-60LSTbvAdpzfio0suYj2WcqA@mail.gmail.com>
+Received: from seven.medozas.de ([188.40.89.202]:37871 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751218Ab1FIOQ6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Jun 2011 10:16:58 -0400
+In-Reply-To: <BANLkTi=Ggxj5Pv1t8H_S4gqEWGQwP=iWqA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
->> Just to make sure, so the conclusion is that the patch is fine as
->> it is and anything related to unconvertible secids will be handled
->> by SELinux internally?
->>
->>     
+On Thursday 2011-06-09 16:07, Tihomir Katic wrote:
 >
-> No.  This patch does not get my ACK.  Steve is right that silently
-> dropping information is a big big no no for the audit system and
-> that's what this patch does.  This cannot be wholly handled properly
-> inside the LSM either.  I don't see any patch meeting everyone's
-> requirements outside of a new one that includes the audit helper I
-> suggested.
->   
-Right, so the function you suggested yesterday (audit_log_secctx) should 
-be added in audit.c in its entirety, and xt_AUDIT.c should just have 
-something like:
+>Also, I have been doing some tests, and in config.txt you will see:
+>## Optimal size of multiport - port array
+>port_array_size_optimal = 10
+>
+>It means, it will merge 2 rules for example --dport 1:5 and --dport
+>21:25 into -m multiport --dports 1,2,3,4,5,21,22,23,24,25
 
-#ifdef CONFIG_NF_CONNTRACK_SECMARK
-    if (skb->secmark)
-                audit_log_secctx(ab,skb->secmark);
-#endif
+This should be -m multiport --dports 1:5,21:25
 
-Thus, discarding the result (rc), unless we are interested in the error 
-code, which I don't think is the case here. Would everyone be happy with 
-this?
+>But, based on my recent tests, it should be
+>port_array_size_optimal = 15
+
+Yes, multiport can hold 15 "things".
+
+>rule with  --dport 1:5  takes e.g. ~0.2 us
+>and rule with 15 elements in multiport array lasts ~0.4us, so it is
+>pretty much the same
+
+That is purely noise. You need a lot more rules (10000 and up) to 
+measure an effect.
