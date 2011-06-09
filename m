@@ -1,226 +1,121 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH next] netfilter: nfqueue: batch verdict support
-Date: Fri, 10 Jun 2011 00:14:19 +0200
-Message-ID: <1307657659-30266-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Bertrand Jacquin <beber@meleeweb.net>
+Subject: ebtables-2.0.9-2 libebetc PHONY
+Date: Fri, 10 Jun 2011 01:11:31 +0200
+Message-ID: <20110609231131.GA6508@lemonhead.scabb>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="nVMJ2NtxeReIH9PS"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:46868 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753536Ab1FIWOq (ORCPT
+Received: from toothrot.meleeweb.net ([88.191.120.102]:58256 "EHLO
+	toothrot.meleeweb.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752715Ab1FIXXn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jun 2011 18:14:46 -0400
+	Thu, 9 Jun 2011 19:23:43 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Introduces a new nfnetlink type that applies a given
-verdict to all queued packets with an id <= the id in the verdict
-message.
 
-If a mark is provided it is applied to all matched packets.
+--nVMJ2NtxeReIH9PS
+Content-Type: multipart/mixed; boundary="SUOF0GtieIMvvwua"
+Content-Disposition: inline
 
-This reduces the number of verdicts that have to be sent.
-Applications that make use of this feature need to maintain
-a timeout to send a batchverdict periodically to avoid starvation.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/linux/netfilter/nfnetlink_queue.h |    1 +
- net/netfilter/nfnetlink_queue.c           |  132 ++++++++++++++++++++++++----
- 2 files changed, 114 insertions(+), 19 deletions(-)
+--SUOF0GtieIMvvwua
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/include/linux/netfilter/nfnetlink_queue.h b/include/linux/netfilter/nfnetlink_queue.h
-index af94e00..24b32e6 100644
---- a/include/linux/netfilter/nfnetlink_queue.h
-+++ b/include/linux/netfilter/nfnetlink_queue.h
-@@ -8,6 +8,7 @@ enum nfqnl_msg_types {
- 	NFQNL_MSG_PACKET,		/* packet from kernel to userspace */
- 	NFQNL_MSG_VERDICT,		/* verdict from userspace to kernel */
- 	NFQNL_MSG_CONFIG,		/* connect to a particular queue */
-+	NFQNL_MSG_VERDICT_BATCH,	/* batchv from userspace to kernel */
- 
- 	NFQNL_MSG_MAX
- };
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index b83123f..4d4264e 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -171,6 +171,13 @@ __enqueue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
-        queue->queue_total++;
- }
- 
-+static void
-+__dequeue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
-+{
-+	list_del(&entry->list);
-+	queue->queue_total--;
-+}
-+
- static struct nf_queue_entry *
- find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id)
- {
-@@ -185,10 +192,8 @@ find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id)
- 		}
- 	}
- 
--	if (entry) {
--		list_del(&entry->list);
--		queue->queue_total--;
--	}
-+	if (entry)
-+		__dequeue_entry(queue, entry);
- 
- 	spin_unlock_bh(&queue->lock);
- 
-@@ -607,6 +612,102 @@ static const struct nla_policy nfqa_verdict_policy[NFQA_MAX+1] = {
- 	[NFQA_PAYLOAD]		= { .type = NLA_UNSPEC },
- };
- 
-+static const struct nla_policy nfqa_verdict_batch_policy[NFQA_MAX+1] = {
-+	[NFQA_VERDICT_HDR]	= { .len = sizeof(struct nfqnl_msg_verdict_hdr) },
-+	[NFQA_MARK]		= { .type = NLA_U32 },
-+};
-+
-+static struct nfqnl_instance *verdict_instance_lookup(u16 queue_num, int nlpid)
-+{
-+	struct nfqnl_instance *queue;
-+
-+	queue = instance_lookup(queue_num);
-+	if (!queue)
-+		return ERR_PTR(-ENODEV);
-+
-+	if (queue->peer_pid != nlpid)
-+		return ERR_PTR(-EPERM);
-+
-+	return queue;
-+}
-+
-+static struct nfqnl_msg_verdict_hdr*
-+verdicthdr_get(const struct nlattr * const nfqa[])
-+{
-+	struct nfqnl_msg_verdict_hdr *vhdr;
-+	unsigned int verdict;
-+
-+	if (!nfqa[NFQA_VERDICT_HDR])
-+		return NULL;
-+
-+	vhdr = nla_data(nfqa[NFQA_VERDICT_HDR]);
-+	verdict = ntohl(vhdr->verdict);
-+	if ((verdict & NF_VERDICT_MASK) > NF_MAX_VERDICT)
-+		return NULL;
-+	return vhdr;
-+}
-+
-+static int nfq_id_after(unsigned int id, unsigned int max)
-+{
-+	return (int)(id - max) > 0;
-+}
-+
-+static int
-+nfqnl_recv_verdict_batch(struct sock *ctnl, struct sk_buff *skb,
-+		   const struct nlmsghdr *nlh,
-+		   const struct nlattr * const nfqa[])
-+{
-+	struct nfgenmsg *nfmsg = NLMSG_DATA(nlh);
-+	struct nf_queue_entry *entry, *tmp;
-+	unsigned int verdict, maxid;
-+	struct nfqnl_msg_verdict_hdr *vhdr;
-+	struct nfqnl_instance *queue;
-+	int err;
-+	LIST_HEAD(batch_list);
-+	u16 queue_num = ntohs(nfmsg->res_id);
-+
-+	rcu_read_lock();
-+	queue = verdict_instance_lookup(queue_num, NETLINK_CB(skb).pid);
-+	if (IS_ERR(queue)) {
-+		err = PTR_ERR(queue);
-+		goto err_out_unlock;
-+	}
-+
-+	vhdr = verdicthdr_get(nfqa);
-+	if (!vhdr) {
-+		err = -EINVAL;
-+		goto err_out_unlock;
-+	}
-+	verdict = ntohl(vhdr->verdict);
-+	maxid = ntohl(vhdr->id);
-+
-+	spin_lock_bh(&queue->lock);
-+
-+	list_for_each_entry_safe(entry, tmp, &queue->queue_list, list) {
-+		if (nfq_id_after(entry->id, maxid))
-+			break;
-+		__dequeue_entry(queue, entry);
-+		list_add_tail(&entry->list, &batch_list);
-+	}
-+
-+	spin_unlock_bh(&queue->lock);
-+	rcu_read_unlock();
-+
-+	if (list_empty(&batch_list))
-+		return -ENOENT;
-+
-+	list_for_each_entry_safe(entry, tmp, &batch_list, list) {
-+		if (nfqa[NFQA_MARK])
-+			entry->skb->mark = ntohl(nla_get_be32(nfqa[NFQA_MARK]));
-+		nf_reinject(entry, verdict);
-+	}
-+	return 0;
-+
-+ err_out_unlock:
-+	rcu_read_unlock();
-+	return err;
-+}
-+
- static int
- nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
- 		   const struct nlmsghdr *nlh,
-@@ -622,30 +723,20 @@ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
- 	int err;
- 
- 	rcu_read_lock();
--	queue = instance_lookup(queue_num);
--	if (!queue) {
--		err = -ENODEV;
-+	queue = verdict_instance_lookup(queue_num, NETLINK_CB(skb).pid);
-+	if (IS_ERR(queue)) {
-+		err = PTR_ERR(queue);
- 		goto err_out_unlock;
- 	}
- 
--	if (queue->peer_pid != NETLINK_CB(skb).pid) {
--		err = -EPERM;
--		goto err_out_unlock;
--	}
--
--	if (!nfqa[NFQA_VERDICT_HDR]) {
-+	vhdr = verdicthdr_get(nfqa);
-+	if (!vhdr) {
- 		err = -EINVAL;
- 		goto err_out_unlock;
- 	}
- 
--	vhdr = nla_data(nfqa[NFQA_VERDICT_HDR]);
- 	verdict = ntohl(vhdr->verdict);
- 
--	if ((verdict & NF_VERDICT_MASK) > NF_MAX_VERDICT) {
--		err = -EINVAL;
--		goto err_out_unlock;
--	}
--
- 	entry = find_dequeue_entry(queue, ntohl(vhdr->id));
- 	if (entry == NULL) {
- 		err = -ENOENT;
-@@ -788,6 +879,9 @@ static const struct nfnl_callback nfqnl_cb[NFQNL_MSG_MAX] = {
- 	[NFQNL_MSG_CONFIG]	= { .call = nfqnl_recv_config,
- 				    .attr_count = NFQA_CFG_MAX,
- 				    .policy = nfqa_cfg_policy },
-+	[NFQNL_MSG_VERDICT_BATCH]={ .call = nfqnl_recv_verdict_batch,
-+				    .attr_count = NFQA_MAX,
-+				    .policy = nfqa_verdict_batch_policy },
- };
- 
- static const struct nfnetlink_subsystem nfqnl_subsys = {
--- 
-1.7.3.4
+Hi,
 
+ebtables-v2.0.9-2 declare libebetc.so as PHONY. I'm wondering why. In my
+case I'm cross-compiling it and define CC only for compilation. So when
+running "make install" libebtc.so is one more time builded without CC
+defined, so it failed :
+
+# make
+=2E.
+i586-geode-linux-gnu-gcc -Os -pipe -march=3Dk6-2 -fomit-frame-pointer -I/us=
+r/i586-geode-linux-gnu/usr/include/ -I/usr/i586-geode-linux-gnu/include/ -L=
+/usr/i586-geode-linux-gnu/lib -L/usr/i586-geode-linux-gnu/usr/lib -Wl,--no-=
+as-needed -o ebtables-restore ebtables-restore.o -Iinclude/ -L. -Lextension=
+s -lebtc  -lebt_802_3  -lebt_nat  -lebt_arp  -lebt_arpreply  -lebt_ip  -leb=
+t_ip6  -lebt_standard  -lebt_log  -lebt_redirect  -lebt_vlan  -lebt_mark_m =
+ -lebt_mark  -lebt_pkttype  -lebt_stp  -lebt_among  -lebt_limit  -lebt_ulog=
+  -lebt_nflog  -lebtable_filter  -lebtable_nat  -lebtable_broute \
+
+# make install
+mkdir -p /usr/i586-geode-linux-gnu/tmp/portage/net-firewall/ebtables-2.0.9.=
+2-r1/image//etc
+install -m 0644 -o root -g root ethertypes /usr/i586-geode-linux-gnu/tmp/po=
+rtage/net-firewall/ebtables-2.0.9.2-r1/image//etc/ethertypes
+gcc -shared -L/usr/i586-geode-linux-gnu/lib -L/usr/i586-geode-linux-gnu/usr=
+/lib -Wl,--no-as-needed -Wl,-soname,libebtc.so -o libebtc.so -lc getetherty=
+pe.o communication.o libebtc.o useful_functions.o ebtables.o
+/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.2/../../../../x86_64-pc-linux-gnu/bin/=
+ld: skipping incompatible /usr/i586-geode-linux-gnu/usr/lib/libc.so when se=
+arching for -lc
+/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.2/../../../../x86_64-pc-linux-gnu/bin/=
+ld: skipping incompatible /usr/i586-geode-linux-gnu/usr/lib/libc.a when sea=
+rching for -lc
+/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.2/../../../../x86_64-pc-linux-gnu/bin/=
+ld: skipping incompatible /usr/i586-geode-linux-gnu/usr/lib/libc.so when se=
+arching for -lc
+/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.2/../../../../x86_64-pc-linux-gnu/bin/=
+ld: skipping incompatible /usr/i586-geode-linux-gnu/usr/lib/libc.a when sea=
+rching for -lc
+/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.2/../../../../x86_64-pc-linux-gnu/bin/=
+ld: i386 architecture of input file `getethertype.o' is incompatible with i=
+386:x86-64 output
+/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.2/../../../../x86_64-pc-linux-gnu/bin/=
+ld: i386 architecture of input file `communication.o' is incompatible with =
+i386:x86-64 output
+/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.2/../../../../x86_64-pc-linux-gnu/bin/=
+ld: i386 architecture of input file `libebtc.o' is incompatible with i386:x=
+86-64 output
+/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.2/../../../../x86_64-pc-linux-gnu/bin/=
+ld: i386 architecture of input file `useful_functions.o' is incompatible wi=
+th i386:x86-64 output
+/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.2/../../../../x86_64-pc-linux-gnu/bin/=
+ld: i386 architecture of input file `ebtables.o' is incompatible with i386:=
+x86-64 output
+collect2: ld returned 1 exit status
+
+Attached a patch to not PHONY libebtc.so
+
+--=20
+Beber
+
+--SUOF0GtieIMvvwua
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: attachment; filename="ebtables-2.0.9-2-libebtc.so-PHONY.diff"
+Content-Transfer-Encoding: quoted-printable
+
+--- Makefile.ori	2011-06-10 00:57:34.000000000 +0200
++++ Makefile	2011-06-10 01:06:27.000000000 +0200
+@@ -82,7 +82,6 @@
+ ebtables-standalone.o: ebtables-standalone.c include/ebtables_u.h
+ 	$(CC) $(CFLAGS) $(CFLAGS_SH_LIB) $(PROGSPECS) -c $< -o $@ -I$(KERNEL_INCL=
+UDES)
+=20
+-.PHONY: libebtc
+ libebtc: $(OBJECTS2)
+ 	$(CC) -shared $(LDFLAGS) -Wl,-soname,libebtc.so -o libebtc.so -lc $(OBJEC=
+TS2)
+=20
+
+--SUOF0GtieIMvvwua--
+
+--nVMJ2NtxeReIH9PS
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.17 (GNU/Linux)
+
+iEYEARECAAYFAk3xUyMACgkQibjJUzm7jPRhiACfToIN21wWqcTsX2qfJsNYWHKd
+tmwAoKtZ86+zCCJR0vrJYJodx3eT2+K4
+=1Uiz
+-----END PGP SIGNATURE-----
+
+--nVMJ2NtxeReIH9PS--
