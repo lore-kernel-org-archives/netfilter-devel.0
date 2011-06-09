@@ -1,50 +1,97 @@
 From: pablo@netfilter.org
-Subject: [PATCH 0/4] netfilter patches for nf-next-2.6
-Date: Thu,  9 Jun 2011 20:40:58 +0200
-Message-ID: <1307644862-3091-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 2/4] ipvs: Avoid undefined order of evaluation in assignments to struct nf_conn *
+Date: Thu,  9 Jun 2011 20:41:00 +0200
+Message-ID: <1307644862-3091-3-git-send-email-pablo@netfilter.org>
+References: <1307644862-3091-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net, Jesper Juhl <jj@chaosbits.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60812 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:60813 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753102Ab1FISlS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1753368Ab1FISlS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 9 Jun 2011 14:41:18 -0400
+In-Reply-To: <1307644862-3091-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Jesper Juhl <jj@chaosbits.net>
 
-Hi Patrick,
+In net/netfilter/ipvs/ip_vs_nfct.c::ip_vs_update_conntrack(),
+net/netfilter/ipvs/ip_vs_xmit.c::ip_vs_nat_xmit(),
+net/netfilter/ipvs/ip_vs_xmit.c::ip_vs_nat_xmit_v6(),
+net/netfilter/ipvs/ip_vs_xmit.c::ip_vs_icmp_xmit)()
+net/netfilter/ipvs/ip_vs_xmit.c::and ip_vs_icmp_xmit_v6() we do this:
+	...
+	struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
+	...
 
-These are the patches that I collected for nf-next-2.6.
-Please, take recent Jozsef's patches directly from him.
+Since '=' is not a sequence point the order of these assignments happening
+is undefined. Luckily it's easy to avoid by just doing what is obviously
+the intended thing:
+	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
 
-Eric Dumazet (1):
-  netfilter: nf_conntrack: remove one synchronize_net()
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+Acked-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/ipvs/ip_vs_nfct.c |    2 +-
+ net/netfilter/ipvs/ip_vs_xmit.c |    8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-Jan Engelhardt (1):
-  netfilter: nf_conntrack: provide config option to disable ancient
-    procfs parts
-
-Jesper Juhl (1):
-  ipvs: Avoid undefined order of evaluation in assignments to struct
-    nf_conn *
-
-Kevin Cernekee (1):
-  netfilter: nf_conntrack_sip: Handle Cisco 7941/7945 IP phones
-
- include/linux/netfilter/nf_conntrack_sip.h     |    3 ++
- net/ipv4/netfilter/Kconfig                     |    2 +-
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    1 -
- net/ipv4/netfilter/nf_nat_sip.c                |   26 +++++++++++++++++++++--
- net/netfilter/Kconfig                          |   10 +++++++++
- net/netfilter/ipvs/ip_vs_nfct.c                |    2 +-
- net/netfilter/ipvs/ip_vs_xmit.c                |    8 +++---
- net/netfilter/nf_conntrack_expect.c            |   12 +++++-----
- net/netfilter/nf_conntrack_sip.c               |   17 +++++++++++++++
- net/netfilter/nf_conntrack_standalone.c        |    4 +-
- 10 files changed, 67 insertions(+), 18 deletions(-)
-
+diff --git a/net/netfilter/ipvs/ip_vs_nfct.c b/net/netfilter/ipvs/ip_vs_nfct.c
+index f454c80..a3d86c2 100644
+--- a/net/netfilter/ipvs/ip_vs_nfct.c
++++ b/net/netfilter/ipvs/ip_vs_nfct.c
+@@ -82,7 +82,7 @@ void
+ ip_vs_update_conntrack(struct sk_buff *skb, struct ip_vs_conn *cp, int outin)
+ {
+ 	enum ip_conntrack_info ctinfo;
+-	struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
++	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 	struct nf_conntrack_tuple new_tuple;
+ 
+ 	if (ct == NULL || nf_ct_is_confirmed(ct) || nf_ct_is_untracked(ct) ||
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index ee319a4..16d129e 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -544,7 +544,7 @@ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
+ 		enum ip_conntrack_info ctinfo;
+-		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
++		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 
+ 		if (ct && !nf_ct_is_untracked(ct)) {
+ 			IP_VS_DBG_RL_PKT(10, AF_INET, pp, skb, 0,
+@@ -661,7 +661,7 @@ ip_vs_nat_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
+ 		enum ip_conntrack_info ctinfo;
+-		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
++		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 
+ 		if (ct && !nf_ct_is_untracked(ct)) {
+ 			IP_VS_DBG_RL_PKT(10, AF_INET6, pp, skb, 0,
+@@ -1176,7 +1176,7 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
+ 		enum ip_conntrack_info ctinfo;
+-		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
++		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 
+ 		if (ct && !nf_ct_is_untracked(ct)) {
+ 			IP_VS_DBG(10, "%s(): "
+@@ -1296,7 +1296,7 @@ ip_vs_icmp_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
+ 		enum ip_conntrack_info ctinfo;
+-		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
++		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 
+ 		if (ct && !nf_ct_is_untracked(ct)) {
+ 			IP_VS_DBG(10, "%s(): "
 -- 
 1.7.2.5
 
