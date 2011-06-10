@@ -1,56 +1,56 @@
 From: Jiri Popelka <jpopelka@redhat.com>
-Subject: [PATCH 1/8] iptables: Coverity: DEADCODE
-Date: Fri, 10 Jun 2011 15:25:55 +0200
-Message-ID: <1307712362-17727-2-git-send-email-jpopelka@redhat.com>
-References: <1307712362-17727-1-git-send-email-jpopelka@redhat.com>
+Subject: [PATCH 0/8] Possible problems found by static analysis of code
+Date: Fri, 10 Jun 2011 15:25:54 +0200
+Message-ID: <1307712362-17727-1-git-send-email-jpopelka@redhat.com>
 Cc: Jiri Popelka <jpopelka@redhat.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4333 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:28453 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755989Ab1FJN0k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Jun 2011 09:26:40 -0400
+	id S1755721Ab1FJN0i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Jun 2011 09:26:38 -0400
 Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p5ADQe3C009033
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p5ADQcRt018670
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <netfilter-devel@vger.kernel.org>; Fri, 10 Jun 2011 09:26:40 -0400
-In-Reply-To: <1307712362-17727-1-git-send-email-jpopelka@redhat.com>
+	for <netfilter-devel@vger.kernel.org>; Fri, 10 Jun 2011 09:26:38 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-libiptc/libiptc.c:407: dead_error_condition: On this path, the condition "res > 0" cannot be false.
-libiptc/libiptc.c:396: at_least: After this line, the value of "res" is at least 1.
-libiptc/libiptc.c:393: equality_cond: Condition "res == 0" is evaluated as false.
-libiptc/libiptc.c:396: new_values: Noticing condition "res < 0".
-libiptc/libiptc.c:425: new_values: Noticing condition "res < 0".
-libiptc/libiptc.c:407: new_values: Noticing condition "res > 0".
-libiptc/libiptc.c:435: dead_error_line: Execution cannot reach this statement "return list_pos;".
----
- libiptc/libiptc.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+We had analyzed the iptables-1.4.10 code with Coverity.
+Coverity is commercial enterprise level tool for
+static analysis (analysis based only on compiling of sources,
+not based on running of binary) of the code.
 
-diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
-index 0b6d5e3..c2cb0bc 100644
---- a/libiptc/libiptc.c
-+++ b/libiptc/libiptc.c
-@@ -403,7 +403,7 @@ __iptcc_bsearch_chain_index(const char *name, unsigned int offset,
- 		}
- 		debug("jump back to pos:%d (end:%d)\n", pos, end);
- 		goto loop;
--	} else if (res > 0 ){ /* Not far enough, jump forward */
-+	} else { /* Not far enough, jump forward */
- 
- 		/* Exit case: Last element of array */
- 		if (pos == handle->chain_index_sz-1) {
-@@ -430,8 +430,6 @@ __iptcc_bsearch_chain_index(const char *name, unsigned int offset,
- 		debug("jump forward to pos:%d (end:%d)\n", pos, end);
- 		goto loop;
- 	}
--
--	return list_pos;
- }
- 
- /* Wrapper for string chain name based bsearch */
+As a result I have the following patches that should fix some possible problems.
+There's a respective part(s) of the Coverity error log in each commit comment.
+
+You could also find this link useful:
+https://www.securecoding.cert.org/confluence/display/seccode/Coverity+Prevent
+
+Jiri Popelka (8):
+  iptables: Coverity: DEADCODE
+  iptables: Coverity: FORWARD_NULL
+  iptables: Coverity: NEGATIVE_RETURNS
+  iptables: Coverity: REVERSE_INULL
+  iptables: Coverity: UNINIT
+  iptables: Coverity: VARARGS
+  iptables: Coverity: OVERRUN_STATIC
+  iptables: Coverity: RESOURCE_LEAK
+
+ extensions/libip6t_REJECT.c  |   13 +++++++------
+ extensions/libipt_REJECT.c   |   11 ++++++-----
+ extensions/libxt_multiport.c |    2 --
+ extensions/libxt_sctp.c      |    2 +-
+ iptables/ip6tables-restore.c |    3 +--
+ iptables/ip6tables.c         |    5 ++++-
+ iptables/iptables-restore.c  |    5 ++---
+ iptables/iptables-xml.c      |    6 +++---
+ iptables/iptables.c          |    8 ++++++--
+ iptables/xtables.c           |   15 +++++++++++----
+ libipq/libipq.c              |    1 -
+ libiptc/libiptc.c            |    8 +++-----
+ 12 files changed, 44 insertions(+), 35 deletions(-)
+
 -- 
 1.7.5.2
 
