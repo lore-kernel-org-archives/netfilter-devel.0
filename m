@@ -1,51 +1,123 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: KVM induced panic on 2.6.38[2367] & 2.6.39
-Date: Fri, 10 Jun 2011 11:52:49 +0900
-Message-ID: <20110610025249.GD643@verge.net.au>
-References: <4DED344D.7000005@pandora.be>
- <4DED9C23.2030408@fnarfbargle.com>
- <4DEE27DE.7060004@trash.net>
- <4DEE3859.6070808@fnarfbargle.com>
- <4DEE4538.1020404@trash.net>
- <1307471484.3091.43.camel@edumazet-laptop>
- <4DEEACC3.3030509@trash.net>
- <4DEEBFC2.4060102@fnarfbargle.com>
- <1307505541.3102.12.camel@edumazet-laptop>
- <4DEFAB15.2060905@fnarfbargle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: [PATCH] net: netfilter: ipvs: clean up the dead code
+Date: Fri, 10 Jun 2011 15:11:14 +0800
+Message-ID: <1307689874-10890-1-git-send-email-xiaosuo@gmail.com>
+Cc: Wensong Zhang <wensong@linux-vs.org>, Julian Anastasov <ja@ssi.bg>,
 	Patrick McHardy <kaber@trash.net>,
-	Bart De Schuymer <bdschuym@pandora.be>, kvm@vger.kernel.org,
-	linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Brad Campbell <brad@fnarfbargle.com>
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <4DEFAB15.2060905@fnarfbargle.com>
-Sender: owner-linux-mm@kvack.org
-List-Id: netfilter-devel.vger.kernel.org
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Changli Gao <xiaosuo@gmail.com>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:40450 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752106Ab1FJHMy (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Jun 2011 03:12:54 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 09, 2011 at 01:02:13AM +0800, Brad Campbell wrote:
-> On 08/06/11 11:59, Eric Dumazet wrote:
-> 
-> >Well, a bisection definitely should help, but needs a lot of time in
-> >your case.
-> 
-> Yes. compile, test, crash, walk out to the other building to press
-> reset, lather, rinse, repeat.
-> 
-> I need a reset button on the end of a 50M wire, or a hardware watchdog!
+This dead code has been commented out since 2005, and too many things
+have happened. Currently, even vs_timeout_table_dos doesn't exist.
 
-Not strictly on-topic, but in situations where I have machines
-that either don't have lights-out facilities or have broken ones
-I find that network controlled power switches to be very useful.
-
-At one point I would have need an 8000km long wire to the reset switch :-)
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+---
+ net/netfilter/ipvs/ip_vs_ctl.c |   86 -----------------------------------------
+ 1 file changed, 86 deletions(-)
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 699c79a..f6670da 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -1756,92 +1756,6 @@ static struct ctl_table vs_vars[] = {
+ 		.proc_handler	= proc_dointvec,
+ 	},
+ #endif
+-#if 0
+-	{
+-		.procname	= "timeout_established",
+-		.data	= &vs_timeout_table_dos.timeout[IP_VS_S_ESTABLISHED],
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_jiffies,
+-	},
+-	{
+-		.procname	= "timeout_synsent",
+-		.data	= &vs_timeout_table_dos.timeout[IP_VS_S_SYN_SENT],
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_jiffies,
+-	},
+-	{
+-		.procname	= "timeout_synrecv",
+-		.data	= &vs_timeout_table_dos.timeout[IP_VS_S_SYN_RECV],
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_jiffies,
+-	},
+-	{
+-		.procname	= "timeout_finwait",
+-		.data	= &vs_timeout_table_dos.timeout[IP_VS_S_FIN_WAIT],
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_jiffies,
+-	},
+-	{
+-		.procname	= "timeout_timewait",
+-		.data	= &vs_timeout_table_dos.timeout[IP_VS_S_TIME_WAIT],
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_jiffies,
+-	},
+-	{
+-		.procname	= "timeout_close",
+-		.data	= &vs_timeout_table_dos.timeout[IP_VS_S_CLOSE],
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_jiffies,
+-	},
+-	{
+-		.procname	= "timeout_closewait",
+-		.data	= &vs_timeout_table_dos.timeout[IP_VS_S_CLOSE_WAIT],
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_jiffies,
+-	},
+-	{
+-		.procname	= "timeout_lastack",
+-		.data	= &vs_timeout_table_dos.timeout[IP_VS_S_LAST_ACK],
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_jiffies,
+-	},
+-	{
+-		.procname	= "timeout_listen",
+-		.data	= &vs_timeout_table_dos.timeout[IP_VS_S_LISTEN],
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_jiffies,
+-	},
+-	{
+-		.procname	= "timeout_synack",
+-		.data	= &vs_timeout_table_dos.timeout[IP_VS_S_SYNACK],
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_jiffies,
+-	},
+-	{
+-		.procname	= "timeout_udp",
+-		.data	= &vs_timeout_table_dos.timeout[IP_VS_S_UDP],
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_jiffies,
+-	},
+-	{
+-		.procname	= "timeout_icmp",
+-		.data	= &vs_timeout_table_dos.timeout[IP_VS_S_ICMP],
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_jiffies,
+-	},
+-#endif
+ 	{ }
+ };
+ 
