@@ -1,26 +1,57 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/8] Possible problems found by static analysis of code
-Date: Fri, 10 Jun 2011 18:04:35 +0200
-Message-ID: <4DF24093.9090900@netfilter.org>
-References: <1307712362-17727-1-git-send-email-jpopelka@redhat.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: KVM induced panic on 2.6.38[2367] & 2.6.39
+Date: Fri, 10 Jun 2011 13:43:41 -0300
+Message-ID: <20110610164341.GA784@khazad-dum.debian.net>
+References: <4DEE27DE.7060004@trash.net>
+ <4DEE3859.6070808@fnarfbargle.com>
+ <4DEE4538.1020404@trash.net>
+ <1307471484.3091.43.camel@edumazet-laptop>
+ <4DEEACC3.3030509@trash.net>
+ <4DEEBFC2.4060102@fnarfbargle.com>
+ <1307505541.3102.12.camel@edumazet-laptop>
+ <4DEFAB15.2060905@fnarfbargle.com>
+ <20110610025249.GD643@verge.net.au>
+ <4DF21002.3040708@teksavvy.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jiri Popelka <jpopelka@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Simon Horman <horms@verge.net.au>,
+	Brad Campbell <brad@fnarfbargle.com>,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	Patrick McHardy <kaber@trash.net>,
+	Bart De Schuymer <bdschuym@pandora.be>, kvm@vger.kernel.org,
+	linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Mark Lord <kernel@teksavvy.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39794 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751135Ab1FJQEk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Jun 2011 12:04:40 -0400
-In-Reply-To: <1307712362-17727-1-git-send-email-jpopelka@redhat.com>
+Received: from out4.smtp.messagingengine.com ([66.111.4.28]:41355 "EHLO
+	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752889Ab1FJQnp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Jun 2011 12:43:45 -0400
+Content-Disposition: inline
+In-Reply-To: <4DF21002.3040708@teksavvy.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 10/06/11 15:25, Jiri Popelka wrote:
-> We had analyzed the iptables-1.4.10 code with Coverity.
-> Coverity is commercial enterprise level tool for
-> static analysis (analysis based only on compiling of sources,
-> not based on running of binary) of the code.
+On Fri, 10 Jun 2011, Mark Lord wrote:
+> Something many of us don't realize is that nearly all Intel chipsets
+> have a built-in hardware watchdog timer.  This includes chipset for
+> consumer desktop boards as well as the big iron server stuff.
+> 
+> It's the "i8xx_tco" driver in the kernel enables use of them:
 
-it would be cool if you pass that tool to the conntrack-tools and ipset.
+That's the old module name, but yes, it is very useful in desktops and
+laptops (when it works).   Server-class hardware will have a baseboard
+management unit that can really power-cycle the system instead of just
+rebooting.
+
+And test it first before you depend on it triggering at a remote location,
+as the firmware might cause the Intel chipset watchdog to actually hang the
+box instead of causing a proper reboot (happens on the IBM thinkpad T43, for
+example).
+
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
