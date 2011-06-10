@@ -1,121 +1,51 @@
-From: Bertrand Jacquin <beber@meleeweb.net>
-Subject: ebtables-2.0.9-2 libebetc PHONY
-Date: Fri, 10 Jun 2011 01:11:31 +0200
-Message-ID: <20110609231131.GA6508@lemonhead.scabb>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: KVM induced panic on 2.6.38[2367] & 2.6.39
+Date: Fri, 10 Jun 2011 11:52:49 +0900
+Message-ID: <20110610025249.GD643@verge.net.au>
+References: <4DED344D.7000005@pandora.be>
+ <4DED9C23.2030408@fnarfbargle.com>
+ <4DEE27DE.7060004@trash.net>
+ <4DEE3859.6070808@fnarfbargle.com>
+ <4DEE4538.1020404@trash.net>
+ <1307471484.3091.43.camel@edumazet-laptop>
+ <4DEEACC3.3030509@trash.net>
+ <4DEEBFC2.4060102@fnarfbargle.com>
+ <1307505541.3102.12.camel@edumazet-laptop>
+ <4DEFAB15.2060905@fnarfbargle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="nVMJ2NtxeReIH9PS"
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from toothrot.meleeweb.net ([88.191.120.102]:58256 "EHLO
-	toothrot.meleeweb.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752715Ab1FIXXn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jun 2011 19:23:43 -0400
+Content-Type: text/plain; charset=us-ascii
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Patrick McHardy <kaber@trash.net>,
+	Bart De Schuymer <bdschuym@pandora.be>, kvm@vger.kernel.org,
+	linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Brad Campbell <brad@fnarfbargle.com>
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <4DEFAB15.2060905@fnarfbargle.com>
+Sender: owner-linux-mm@kvack.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Thu, Jun 09, 2011 at 01:02:13AM +0800, Brad Campbell wrote:
+> On 08/06/11 11:59, Eric Dumazet wrote:
+> 
+> >Well, a bisection definitely should help, but needs a lot of time in
+> >your case.
+> 
+> Yes. compile, test, crash, walk out to the other building to press
+> reset, lather, rinse, repeat.
+> 
+> I need a reset button on the end of a 50M wire, or a hardware watchdog!
 
---nVMJ2NtxeReIH9PS
-Content-Type: multipart/mixed; boundary="SUOF0GtieIMvvwua"
-Content-Disposition: inline
+Not strictly on-topic, but in situations where I have machines
+that either don't have lights-out facilities or have broken ones
+I find that network controlled power switches to be very useful.
 
+At one point I would have need an 8000km long wire to the reset switch :-)
 
---SUOF0GtieIMvvwua
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-ebtables-v2.0.9-2 declare libebetc.so as PHONY. I'm wondering why. In my
-case I'm cross-compiling it and define CC only for compilation. So when
-running "make install" libebtc.so is one more time builded without CC
-defined, so it failed :
-
-# make
-=2E.
-i586-geode-linux-gnu-gcc -Os -pipe -march=3Dk6-2 -fomit-frame-pointer -I/us=
-r/i586-geode-linux-gnu/usr/include/ -I/usr/i586-geode-linux-gnu/include/ -L=
-/usr/i586-geode-linux-gnu/lib -L/usr/i586-geode-linux-gnu/usr/lib -Wl,--no-=
-as-needed -o ebtables-restore ebtables-restore.o -Iinclude/ -L. -Lextension=
-s -lebtc  -lebt_802_3  -lebt_nat  -lebt_arp  -lebt_arpreply  -lebt_ip  -leb=
-t_ip6  -lebt_standard  -lebt_log  -lebt_redirect  -lebt_vlan  -lebt_mark_m =
- -lebt_mark  -lebt_pkttype  -lebt_stp  -lebt_among  -lebt_limit  -lebt_ulog=
-  -lebt_nflog  -lebtable_filter  -lebtable_nat  -lebtable_broute \
-
-# make install
-mkdir -p /usr/i586-geode-linux-gnu/tmp/portage/net-firewall/ebtables-2.0.9.=
-2-r1/image//etc
-install -m 0644 -o root -g root ethertypes /usr/i586-geode-linux-gnu/tmp/po=
-rtage/net-firewall/ebtables-2.0.9.2-r1/image//etc/ethertypes
-gcc -shared -L/usr/i586-geode-linux-gnu/lib -L/usr/i586-geode-linux-gnu/usr=
-/lib -Wl,--no-as-needed -Wl,-soname,libebtc.so -o libebtc.so -lc getetherty=
-pe.o communication.o libebtc.o useful_functions.o ebtables.o
-/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.2/../../../../x86_64-pc-linux-gnu/bin/=
-ld: skipping incompatible /usr/i586-geode-linux-gnu/usr/lib/libc.so when se=
-arching for -lc
-/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.2/../../../../x86_64-pc-linux-gnu/bin/=
-ld: skipping incompatible /usr/i586-geode-linux-gnu/usr/lib/libc.a when sea=
-rching for -lc
-/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.2/../../../../x86_64-pc-linux-gnu/bin/=
-ld: skipping incompatible /usr/i586-geode-linux-gnu/usr/lib/libc.so when se=
-arching for -lc
-/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.2/../../../../x86_64-pc-linux-gnu/bin/=
-ld: skipping incompatible /usr/i586-geode-linux-gnu/usr/lib/libc.a when sea=
-rching for -lc
-/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.2/../../../../x86_64-pc-linux-gnu/bin/=
-ld: i386 architecture of input file `getethertype.o' is incompatible with i=
-386:x86-64 output
-/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.2/../../../../x86_64-pc-linux-gnu/bin/=
-ld: i386 architecture of input file `communication.o' is incompatible with =
-i386:x86-64 output
-/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.2/../../../../x86_64-pc-linux-gnu/bin/=
-ld: i386 architecture of input file `libebtc.o' is incompatible with i386:x=
-86-64 output
-/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.2/../../../../x86_64-pc-linux-gnu/bin/=
-ld: i386 architecture of input file `useful_functions.o' is incompatible wi=
-th i386:x86-64 output
-/usr/lib/gcc/x86_64-pc-linux-gnu/4.5.2/../../../../x86_64-pc-linux-gnu/bin/=
-ld: i386 architecture of input file `ebtables.o' is incompatible with i386:=
-x86-64 output
-collect2: ld returned 1 exit status
-
-Attached a patch to not PHONY libebtc.so
-
---=20
-Beber
-
---SUOF0GtieIMvvwua
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: attachment; filename="ebtables-2.0.9-2-libebtc.so-PHONY.diff"
-Content-Transfer-Encoding: quoted-printable
-
---- Makefile.ori	2011-06-10 00:57:34.000000000 +0200
-+++ Makefile	2011-06-10 01:06:27.000000000 +0200
-@@ -82,7 +82,6 @@
- ebtables-standalone.o: ebtables-standalone.c include/ebtables_u.h
- 	$(CC) $(CFLAGS) $(CFLAGS_SH_LIB) $(PROGSPECS) -c $< -o $@ -I$(KERNEL_INCL=
-UDES)
-=20
--.PHONY: libebtc
- libebtc: $(OBJECTS2)
- 	$(CC) -shared $(LDFLAGS) -Wl,-soname,libebtc.so -o libebtc.so -lc $(OBJEC=
-TS2)
-=20
-
---SUOF0GtieIMvvwua--
-
---nVMJ2NtxeReIH9PS
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.17 (GNU/Linux)
-
-iEYEARECAAYFAk3xUyMACgkQibjJUzm7jPRhiACfToIN21wWqcTsX2qfJsNYWHKd
-tmwAoKtZ86+zCCJR0vrJYJodx3eT2+K4
-=1Uiz
------END PGP SIGNATURE-----
-
---nVMJ2NtxeReIH9PS--
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
