@@ -1,71 +1,26 @@
-From: Jiri Popelka <jpopelka@redhat.com>
-Subject: [PATCH 6/8] iptables: Coverity: VARARGS
-Date: Fri, 10 Jun 2011 15:26:00 +0200
-Message-ID: <1307712362-17727-7-git-send-email-jpopelka@redhat.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/8] Possible problems found by static analysis of code
+Date: Fri, 10 Jun 2011 18:04:35 +0200
+Message-ID: <4DF24093.9090900@netfilter.org>
 References: <1307712362-17727-1-git-send-email-jpopelka@redhat.com>
-Cc: Jiri Popelka <jpopelka@redhat.com>
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jiri Popelka <jpopelka@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49643 "EHLO mx1.redhat.com"
+Received: from mail.us.es ([193.147.175.20]:39794 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755721Ab1FJN0s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Jun 2011 09:26:48 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p5ADQm9x009064
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <netfilter-devel@vger.kernel.org>; Fri, 10 Jun 2011 09:26:48 -0400
+	id S1751135Ab1FJQEk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Jun 2011 12:04:40 -0400
 In-Reply-To: <1307712362-17727-1-git-send-email-jpopelka@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-xtables.c:931: va_init: Initializing va_list "args".
-xtables.c:938: missing_va_end: va_end was not called for "args".
-xtables.c:947: missing_va_end: va_end was not called for "args".
-xtables.c:961: missing_va_end: va_end was not called for "args".
----
- iptables/xtables.c |   12 +++++++++---
- 1 files changed, 9 insertions(+), 3 deletions(-)
+On 10/06/11 15:25, Jiri Popelka wrote:
+> We had analyzed the iptables-1.4.10 code with Coverity.
+> Coverity is commercial enterprise level tool for
+> static analysis (analysis based only on compiling of sources,
+> not based on running of binary) of the code.
 
-diff --git a/iptables/xtables.c b/iptables/xtables.c
-index ee38421..9a43612 100644
---- a/iptables/xtables.c
-+++ b/iptables/xtables.c
-@@ -1042,8 +1042,10 @@ void xtables_param_act(unsigned int status, const char *p1, ...)
- 	case XTF_ONLY_ONCE:
- 		p2 = va_arg(args, const char *);
- 		b  = va_arg(args, unsigned int);
--		if (!b)
-+		if (!b) {
-+			va_end(args);
- 			return;
-+		}
- 		xt_params->exit_err(PARAMETER_PROBLEM,
- 		           "%s: \"%s\" option may only be specified once",
- 		           p1, p2);
-@@ -1051,8 +1053,10 @@ void xtables_param_act(unsigned int status, const char *p1, ...)
- 	case XTF_NO_INVERT:
- 		p2 = va_arg(args, const char *);
- 		b  = va_arg(args, unsigned int);
--		if (!b)
-+		if (!b) {
-+			va_end(args);
- 			return;
-+		}
- 		xt_params->exit_err(PARAMETER_PROBLEM,
- 		           "%s: \"%s\" option cannot be inverted", p1, p2);
- 		break;
-@@ -1065,8 +1069,10 @@ void xtables_param_act(unsigned int status, const char *p1, ...)
- 		break;
- 	case XTF_ONE_ACTION:
- 		b = va_arg(args, unsigned int);
--		if (!b)
-+		if (!b) {
-+			va_end(args);
- 			return;
-+		}
- 		xt_params->exit_err(PARAMETER_PROBLEM,
- 		           "%s: At most one action is possible", p1);
- 		break;
--- 
-1.7.5.2
-
+it would be cool if you pass that tool to the conntrack-tools and ipset.
