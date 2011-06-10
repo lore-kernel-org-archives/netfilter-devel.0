@@ -1,51 +1,94 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 7/8] iptables: Coverity: OVERRUN_STATIC
-Date: Fri, 10 Jun 2011 23:10:54 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1106102308300.28383@frira.zrqbmnf.qr>
-References: <1307712362-17727-1-git-send-email-jpopelka@redhat.com> <1307712362-17727-8-git-send-email-jpopelka@redhat.com>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: ipvs netns exit causes crash in conntrack.
+Date: Sat, 11 Jun 2011 02:10:09 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1106102302320.1771@ja.ssi.bg>
+References: <201106091457.29205.hans@schillstrom.com> <201106092146.35494.hans@schillstrom.com> <alpine.LFD.2.00.1106092325350.1472@ja.ssi.bg> <201106101102.41234.hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Jiri Popelka <jpopelka@redhat.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:54785 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753477Ab1FJVK5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Jun 2011 17:10:57 -0400
-In-Reply-To: <1307712362-17727-8-git-send-email-jpopelka@redhat.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Hans Schillstrom <hans@schillstrom.com>,
+	Patrick McHardy <kaber@trash.net>,
+	Simon Horman <horms@verge.net.au>,
+	"lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <201106101102.41234.hans.schillstrom@ericsson.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 
-On Friday 2011-06-10 15:26, Jiri Popelka wrote:
->
->libiptc/libiptc.c:1690: overrun-buffer-arg: Overrunning static array "t->target.u.user.name"
->                        of size 29 bytes by passing it to a function which indexes it
->                        with argument "30UL" at byte position 29.
->
->libiptc/libiptc.c:1127: overrun-buffer-arg: Overrunning static array "t->target.u.user.name"
->                        of size 29 bytes by passing it to a function which indexes it
->                        with argument "30UL" at byte position 29.
+	Hello,
 
->diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
->index c2cb0bc..1a99047 100644
->--- a/libiptc/libiptc.c
->+++ b/libiptc/libiptc.c
->@@ -1121,7 +1121,7 @@ static inline int iptcc_compile_rule (struct xtc_handle *h, STRUCT_REPLACE *repl
-> 		STRUCT_STANDARD_TARGET *t;
-> 		t = (STRUCT_STANDARD_TARGET *)GET_TARGET(r->entry);
-> 		/* memset for memcmp convenience on delete/replace */
->-		memset(t->target.u.user.name, 0, FUNCTION_MAXNAMELEN);
->+		memset(t->target.u.user.name, 0, XT_EXTENSION_MAXNAMELEN);
-> 		strcpy(t->target.u.user.name, STANDARD_TARGET);
-> 		/* Jumps can only happen to builtin chains, so we
-> 		 * can safely assume that they always have a header */
+On Fri, 10 Jun 2011, Hans Schillstrom wrote:
 
-I have a feeling that there was something... namely implicitly
-setting t->target.u.user.revision too.
+> > 	In IPVS we can add checks to exit ip_vs_conn_drop_conntrack()
+> > early if net cleanup is in progress because conntrack can be
+> > loaded after IPVS and its cleanup called before IPVS.
+> > We do not need to delete conntrack while in IPVS cleanup.
+> 
+> This is a quite simple patch ... 
+> The enable flag is set to 0 already when an exit begins 
 
-So this might need  a +t->target.u.user.revision = 0;
-unless you want t->target.u.user.revision to contain.. something,
-probably undefined value.
+	Correct, this should work because we clear the
+flag during device cleanup.
+
+> So it's just to check it
+> maybe it should be atomic, but for my quick test "volatile" will do.
+
+	Yes, may be this check will need smp_rmb, not
+atomic operations, sort of:
+
+	if (cp->flags & IP_VS_CONN_F_NFCT) {
+		smp_rmb():
+		if (ipvs->enable)
+			ip_vs_conn_drop_conntrack(cp);
+	}
+
+	And corresponding smp_wmb:
+
+static void __net_exit __ip_vs_dev_cleanup(struct net *net)
+{
+	EnterFunction(2);
+	net_ipvs(net)->enable = 0;	/* Disable packet reception */
+--->>>	smp_wmb();
+	__ip_vs_sync_cleanup(net);
+	LeaveFunction(2);
+}
 
 
+	All other places do not need smp_rmb, it is not fatal
+there.
+
+	Also, we can put some comments that we should not access
+conntracks during subsys cleanup because nf_conntrack_find_get
+can not be used after conntrack cleanup for the net.
+
+	One option to avoid such checks is the netfilter
+framework to provide priority based list of netns init/exit
+handlers, so that all modules are ordered by known
+priority based on their dependency. For example,
+nf_register_netns_subsys_hooks function can be created
+in a similar way like nf_register_hooks. By this way,
+IPVS should be one of the first to be called for cleanup
+and such checks for enable flag will not be needed.
+
+> diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+> index bf28ac2..ae5e9e2 100644
+> --- a/net/netfilter/ipvs/ip_vs_conn.c
+> +++ b/net/netfilter/ipvs/ip_vs_conn.c
+> @@ -775,8 +775,8 @@ static void ip_vs_conn_expire(unsigned long data)
+>                 /* does anybody control me? */
+>                 if (cp->control)
+>                         ip_vs_control_del(cp);
+> -
+> -               if (cp->flags & IP_VS_CONN_F_NFCT)
+> +               /* Do not try do drop ct when netns is dying */
+> +               if (cp->flags & IP_VS_CONN_F_NFCT && ipvs->enable)
+>                         ip_vs_conn_drop_conntrack(cp);
+> 
+>                 ip_vs_pe_put(cp->pe);
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
