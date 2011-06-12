@@ -1,35 +1,43 @@
-From: Avi Kivity <avi@redhat.com>
-Subject: Re: KVM induced panic on 2.6.38[2367] & 2.6.39
-Date: Sun, 12 Jun 2011 18:38:12 +0300
-Message-ID: <4DF4DD64.2020802@redhat.com>
-References: <4DED344D.7000005@pandora.be> <4DED9C23.2030408@fnarfbargle.com> <4DEE27DE.7060004@trash.net> <4DEE3859.6070808@fnarfbargle.com> <4DEE4538.1020404@trash.net> <1307471484.3091.43.camel@edumazet-laptop> <4DEEACC3.3030509@trash.net> <4DEEBFC2.4060102@fnarfbargle.com> <1307505541.3102.12.camel@edumazet-laptop> <4DEFAB15.2060905@fnarfbargle.com> <20110610025249.GD643@verge.net.au>
+From: Sergei Zhirikov <sfzhi@yahoo.com>
+Subject: option "--state" cannot be inverted
+Date: Sun, 12 Jun 2011 19:36:08 +0200
+Message-ID: <it2te9$o7a$1@dough.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Brad Campbell <brad@fnarfbargle.com>,
-        Eric Dumazet <eric.dumazet@gmail.com>,
-        Patrick McHardy <kaber@trash.net>,
-        Bart De Schuymer <bdschuym@pandora.be>, kvm@vger.kernel.org,
-        linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Simon Horman <horms@verge.net.au>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20110610025249.GD643@verge.net.au>
-Sender: owner-linux-mm@kvack.org
-List-Id: netfilter-devel.vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from lo.gmane.org ([80.91.229.12]:57908 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751141Ab1FLRgY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 12 Jun 2011 13:36:24 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
+	id 1QVoaD-0001g5-EH
+	for netfilter-devel@vger.kernel.org; Sun, 12 Jun 2011 19:36:21 +0200
+Received: from h75021.upc-h.chello.nl ([62.194.75.21])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Sun, 12 Jun 2011 19:36:21 +0200
+Received: from sfzhi by h75021.upc-h.chello.nl with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Sun, 12 Jun 2011 19:36:21 +0200
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 06/10/2011 05:52 AM, Simon Horman wrote:
-> At one point I would have need an 8000km long wire to the reset switch :-)
+Hi,
 
-Even more off-topic, there has been a case when a 200,000,000 km long 
-wire to the reset button was needed.  IIRC they got away with a watchdog.
+If I try to use
 
--- 
-error compiling committee.c: too many arguments to function
+-m state ! --state NEW
+
+as a part of the iptables command line I get this error message:
+
+iptables v1.4.11.1: state: option "--state" cannot be inverted.
+
+It worked fine with iptables 1.4.10. I'm wondering if this an intended change
+or one more in the series of similar bugs introduced in 1.4.11?
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Sergei.
+
