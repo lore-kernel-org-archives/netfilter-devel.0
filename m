@@ -1,42 +1,114 @@
-From: Sam Roberts <vieuxtech@gmail.com>
-Subject: Re: [PATCH 0/2] rework of userspace expectation support
-Date: Mon, 13 Jun 2011 14:57:31 -0700
-Message-ID: <BANLkTimziN7bET5TcdsyiBkDHd8MaLz-8w@mail.gmail.com>
-References: <20110412215458.3145.40830.stgit@decadence>
-	<4DA58AE2.7000204@trash.net>
-	<4DA58D48.4010307@netfilter.org>
-	<4DA58F41.9080603@trash.net>
-	<4DA592F3.1090201@netfilter.org>
-	<4DA59700.9000400@trash.net>
-	<4DAECD42.9080006@netfilter.org>
-	<4DAEE86A.6070800@trash.net>
-	<4DB02DAC.1070406@netfilter.org>
-	<BANLkTinreLDGTuQ0tH+KyHVuB7XHckzYzA@mail.gmail.com>
+From: "Hans Schillstrom" <hans@schillstrom.com>
+Subject: Re: Re: [RFC PATCH 1/1] IPVS netns shutdown/startup dead-lock
+Date: Tue, 14 Jun 2011 00:09:26 +0200 (CEST)
+Message-ID: <oth2obo.8109e7bd386ff72c34c0bda4b6945edf@obelix.schillstrom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Cc: "Hans Schillstrom" <hans.schillstrom@ericsson.com>,
+	horms@verge.net.au, wensong@linux-vs.org,
+	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:37736 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753009Ab1FMV5c (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Jun 2011 17:57:32 -0400
-Received: by vws1 with SMTP id 1so4005875vws.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Jun 2011 14:57:32 -0700 (PDT)
-In-Reply-To: <BANLkTinreLDGTuQ0tH+KyHVuB7XHckzYzA@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: "Julian Anastasov" <ja@ssi.bg>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, May 17, 2011 at 2:12 PM, Sam Roberts <vieuxtech@gmail.com> wrote:
-> Patrick, are you going to merge these?
+>---- Original Message ----
+>From: Julian Anastasov <ja@ssi.bg>
+>To: "Hans Schillstrom" <hans.schillstrom@ericsson.com>
+>Cc: horms@verge.net.au, wensong@linux-vs.org, lvs-devel@vger.kernel.org, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, hans@schillstrom.com
+>Sent: Mon, Jun 13, 2011, 23:23 PM
+>Subject: Re: [RFC PATCH 1/1] IPVS netns shutdown/startup dead-lock
 >
-> I don't see it in nf-next-2.6.git.
+>Hello,
+>
+>On Mon, 13 Jun 2011, Hans Schillstrom wrote:
+>
+>> ip_vs_mutext is used by both netns shutdown code and startup
+>> and both implicit uses sk_lock-AF_INET mutex.
+>> 
+>> cleanup CPU-1         startup CPU-2
+>> ip_vs_dst_event()     ip_vs_genl_set_cmd()
+>>  sk_lock-AF_INET     __ip_vs_mutex
+>>                      sk_lock-AF_INET
+>> __ip_vs_mutex
+>> * DEAD LOCK *
+>
+>	So, sk_lock-AF_INET is locked before calling
+>ip_vs_dst_event ? Do you have a backtrace for this case?
 
-Btw, here's a reproduction tool that will oops:
+Yes plenty this one is with lockdep
 
-https://github.com/sam-github/nfct-expect-oops
+Chain exists of:
+  rtnl_mutex --> __ip_vs_mutex --> sk_lock-AF_INET
 
-Cheers,
-Sam
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(sk_lock-AF_INET);
+                               lock(__ip_vs_mutex);
+                               lock(sk_lock-AF_INET);
+  lock(rtnl_mutex);
+
+ *** DEADLOCK ***
+
+3 locks held by ipvsadm/993:
+ #0:  (genl_mutex){+.+.+.}, at: [<ffffffff812edc52>] genl_lock+0x17/0x19
+ #1:  (__ip_vs_mutex){+.+.+.}, at: [<ffffffff81307dcb>] ip_vs_genl_set_cmd+0xe1/0x3a3
+ #2:  (sk_lock-AF_INET){+.+.+.}, at: [<ffffffff8130ffc1>] start_sync_thread+0x3ec/0x5ff
+
+
+>I assume your patch is tested to fix the problem ?
+
+Yes.
+
+>
+>> This can be solved by have the ip_vs_mutex per netns
+>> or avid locking when starting/stoping sync-threads.
+>> i.e. just add a starting/stoping flag.
+>
+>	sk_release_kernel is called in thread
+>context, so ip_vs_mutex is not involved there. We
+>have a problem only with start_sync_thread, right?
+
+Yes the socket operations
+
+>
+>> ip_vs_mutex per name-space seems to be a more future proof solution.
+>
+>	Global mutex protects some global lists such as
+>virtual services. If your patch works, better way to fix this problem
+>is to use some new mutex. May be we can move the IPVS_CMD_NEW_DAEMON,
+>IPVS_CMD_DEL_DAEMON and IP_VS_SO_GET_DAEMON code before the
+>__ip_vs_mutex locking. This mutex should be used for start_sync_thread,
+>stop_sync_thread, ip_vs_genl_dump_daemons and IP_VS_SO_GET_DAEMON.
+>For example, ip_vs_sync_mutex.
+
+I think we should avoid global mutexes as a rule of tumb, 
+because it's realy hard to keep track of all possible cases 
+that can occur when multiple netns is alive and/or goes up and down.
+
+There might be more suprises while a netns exits (in terms of locks)...
+my gut feeling is, avoid global locks as long as possible.
+
+>
+>	Note that __ip_vs_sync_cleanup is missing a
+>__ip_vs_mutex lock. We have to use the new mutex there.
+
+OK
+
+>
+>> Which one should be used ?
+>
+>	For now __ip_vs_mutex should be global ...
+
+I do agree, but in the long term I vote for mutex per netns.
+ 
+Thanks a lot Julian
+
+Regards
+Hans
+
