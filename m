@@ -1,68 +1,42 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [RFC PATCH 1/1] IPVS netns shutdown/startup dead-lock
-Date: Tue, 14 Jun 2011 00:25:31 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1106132309440.1627@ja.ssi.bg>
-References: <1307957530-12732-1-git-send-email-hans.schillstrom@ericsson.com>
+From: Sam Roberts <vieuxtech@gmail.com>
+Subject: Re: [PATCH 0/2] rework of userspace expectation support
+Date: Mon, 13 Jun 2011 14:57:31 -0700
+Message-ID: <BANLkTimziN7bET5TcdsyiBkDHd8MaLz-8w@mail.gmail.com>
+References: <20110412215458.3145.40830.stgit@decadence>
+	<4DA58AE2.7000204@trash.net>
+	<4DA58D48.4010307@netfilter.org>
+	<4DA58F41.9080603@trash.net>
+	<4DA592F3.1090201@netfilter.org>
+	<4DA59700.9000400@trash.net>
+	<4DAECD42.9080006@netfilter.org>
+	<4DAEE86A.6070800@trash.net>
+	<4DB02DAC.1070406@netfilter.org>
+	<BANLkTinreLDGTuQ0tH+KyHVuB7XHckzYzA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: horms@verge.net.au, wensong@linux-vs.org,
-	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, hans@schillstrom.com
-To: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:57404 "EHLO ja.ssi.bg"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753791Ab1FMVX3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Jun 2011 17:23:29 -0400
-In-Reply-To: <1307957530-12732-1-git-send-email-hans.schillstrom@ericsson.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:37736 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753009Ab1FMV5c (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Jun 2011 17:57:32 -0400
+Received: by vws1 with SMTP id 1so4005875vws.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Jun 2011 14:57:32 -0700 (PDT)
+In-Reply-To: <BANLkTinreLDGTuQ0tH+KyHVuB7XHckzYzA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Tue, May 17, 2011 at 2:12 PM, Sam Roberts <vieuxtech@gmail.com> wrote:
+> Patrick, are you going to merge these?
+>
+> I don't see it in nf-next-2.6.git.
 
-	Hello,
+Btw, here's a reproduction tool that will oops:
 
-On Mon, 13 Jun 2011, Hans Schillstrom wrote:
+https://github.com/sam-github/nfct-expect-oops
 
-> ip_vs_mutext is used by both netns shutdown code and startup
-> and both implicit uses sk_lock-AF_INET mutex.
-> 
-> cleanup CPU-1         startup CPU-2
-> ip_vs_dst_event()     ip_vs_genl_set_cmd()
->  sk_lock-AF_INET     __ip_vs_mutex
->                      sk_lock-AF_INET
-> __ip_vs_mutex
-> * DEAD LOCK *
-
-	So, sk_lock-AF_INET is locked before calling
-ip_vs_dst_event ? Do you have a backtrace for this case?
-I assume your patch is tested to fix the problem ?
-
-> This can be solved by have the ip_vs_mutex per netns
-> or avid locking when starting/stoping sync-threads.
-> i.e. just add a starting/stoping flag.
-
-	sk_release_kernel is called in thread
-context, so ip_vs_mutex is not involved there. We
-have a problem only with start_sync_thread, right?
-
-> ip_vs_mutex per name-space seems to be a more future proof solution.
-
-	Global mutex protects some global lists such as
-virtual services. If your patch works, better way to fix this problem
-is to use some new mutex. May be we can move the IPVS_CMD_NEW_DAEMON,
-IPVS_CMD_DEL_DAEMON and IP_VS_SO_GET_DAEMON code before the
-__ip_vs_mutex locking. This mutex should be used for start_sync_thread,
-stop_sync_thread, ip_vs_genl_dump_daemons and IP_VS_SO_GET_DAEMON.
-For example, ip_vs_sync_mutex.
-
-	Note that __ip_vs_sync_cleanup is missing a
-__ip_vs_mutex lock. We have to use the new mutex there.
-
-> Which one should be used ?
-
-	For now __ip_vs_mutex should be global ...
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+Cheers,
+Sam
