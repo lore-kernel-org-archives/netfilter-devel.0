@@ -1,237 +1,215 @@
-From: Jiri Popelka <jpopelka@redhat.com>
-Subject: [PATCH] ebtables: Possible problems found by static analysis of code
-Date: Tue, 14 Jun 2011 12:32:14 +0200
-Message-ID: <4DF738AE.3060306@redhat.com>
+From: Sam Roberts <vieuxtech@gmail.com>
+Subject: BUG: scheduling while atomic: expect_create_u
+Date: Tue, 14 Jun 2011 16:13:51 -0700
+Message-ID: <BANLkTik8ghXXp8JTj4WzQ-yGfzMaC3DorA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060508090002060400030801"
-To: netfilter-devel@vger.kernel.org
+Content-Type: multipart/mixed; boundary=20cf3071cfd065d0d304a5b43001
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58164 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754651Ab1FNKcP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Jun 2011 06:32:15 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p5EAWF1N028000
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2011 06:32:15 -0400
-Received: from zepelin.brq.redhat.com (zepelin.brq.redhat.com [10.34.24.67])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id p5EAWEsL026313
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2011 06:32:15 -0400
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:47881 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751581Ab1FNXNw (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Jun 2011 19:13:52 -0400
+Received: by vxi39 with SMTP id 39so4893225vxi.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2011 16:13:51 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------060508090002060400030801
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+--20cf3071cfd065d0d304a5b43001
+Content-Type: text/plain; charset=ISO-8859-1
 
-Hello,
+I've some of these in my dmesg output, for ubuntu kernel
+2.6.38-020638-generic, on 10.10:
 
-we had analyzed the ebtables-v2.0.9-2 code with Coverity.
-Coverity is commercial enterprise level tool for
-static analysis (analysis based only on compiling of sources,
-not based on running of binary) of the code.
+[433850.173586] BUG: scheduling while atomic: expect_create_u/9806/0x00000200
+[433850.173683] Pid: 9806, comm: expect_create_u Not tainted
+2.6.38-020638-generic #201103151303
+[433850.173688] Call Trace:
+[433850.173705]  [<c103f405>] ? __schedule_bug+0x65/0x70
+[433850.173710]  [<c150a2d5>] ? schedule+0x5a5/0x6e0
+[433850.173713]  [<c103cd7f>] ? __enqueue_entity+0x8f/0xb0
+[433850.173717]  [<c1048612>] ? enqueue_entity+0x72/0x120
+[433850.173720]  [<c104870a>] ? enqueue_task_fair+0x4a/0x80
+[433850.173722]  [<c103aee2>] ? resched_task+0x22/0x70
+[433850.173726]  [<c1042f58>] ? check_preempt_curr+0x68/0x80
+[433850.173729]  [<c150a906>] ? schedule_timeout+0x146/0x260
+[433850.173732]  [<c104b234>] ? wake_up_process+0x14/0x20
+[433850.173736]  [<c1066939>] ? wake_up_worker+0x19/0x20
+[433850.173739]  [<c1066990>] ? insert_work+0x50/0x60
+[433850.173741]  [<c150a5c2>] ? wait_for_common+0xa2/0x120
+[433850.173744]  [<c104b1e0>] ? default_wake_function+0x0/0x20
+[433850.173746]  [<c150a717>] ? wait_for_completion+0x17/0x20
+[433850.173749]  [<c1065d0e>] ? call_usermodehelper_exec+0x8e/0xa0
+[433850.173754]  [<f9d3e487>] ? ctnetlink_create_conntrack+0x2f7/0x330
+[nf_conntrack_netlink]
 
-As a result I have the following patches that should fix some possible problems.
-There's a respective part(s) of the Coverity error log in each patch.
+...
 
-You could also find this link useful:
-https://www.securecoding.cert.org/confluence/display/seccode/Coverity+Prevent
+[434303.777903] BUG: scheduling while atomic: lt-expect_creat/9972/0x00000200
+[434303.777946] Pid: 9972, comm: lt-expect_creat Not tainted
+2.6.38-020638-generic #201103151303
+[434303.777948] Call Trace:
+[434303.777956]  [<c103f405>] ? __schedule_bug+0x65/0x70
+[434303.777960]  [<c150a2d5>] ? schedule+0x5a5/0x6e0
+[434303.777963]  [<c103cd7f>] ? __enqueue_entity+0x8f/0xb0
+[434303.777967]  [<c1048612>] ? enqueue_entity+0x72/0x120
+[434303.777970]  [<c104870a>] ? enqueue_task_fair+0x4a/0x80
+[434303.777973]  [<c103aee2>] ? resched_task+0x22/0x70
+[434303.777977]  [<c1042f58>] ? check_preempt_curr+0x68/0x80
+[434303.777980]  [<c150a906>] ? schedule_timeout+0x146/0x260
+[434303.777983]  [<c104b234>] ? wake_up_process+0x14/0x20
+[434303.777986]  [<c1066939>] ? wake_up_worker+0x19/0x20
+[434303.777987]  [<c1066990>] ? insert_work+0x50/0x60
+[434303.777990]  [<c150a5c2>] ? wait_for_common+0xa2/0x120
+[434303.777993]  [<c104b1e0>] ? default_wake_function+0x0/0x20
+[434303.777995]  [<c150a717>] ? wait_for_completion+0x17/0x20
+[434303.777997]  [<c1065d0e>] ? call_usermodehelper_exec+0x8e/0xa0
+[434303.778002]  [<f9d3e487>] ? ctnetlink_create_conntrack+0x2f7/0x330
+[nf_conntrack_netlink]
 
-With regards,
-Jiri Popelka
+...
 
-
---------------060508090002060400030801
-Content-Type: text/plain;
- name="ebtables-v2.0.9-2-Coverity-forward_null.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="ebtables-v2.0.9-2-Coverity-forward_null.patch"
-
-Error: FORWARD_NULL
-ebtables-v2.0.9-2/communication.c:305: var_compare_op: Comparing "next" to null implies that "next" might be null.
-ebtables-v2.0.9-2/communication.c:316: var_deref_op: Dereferencing null variable "next".
-
-Error: FORWARD_NULL
-ebtables-v2.0.9-2/communication.c:632: assign_zero: Assigning: "repl->counters" = 0.
-ebtables-v2.0.9-2/communication.c:634: var_deref_model: Passing null variable "(char *)repl->counters" to function "fread", which dereferences it.
-
-diff -up ebtables-v2.0.9-2/communication.c.forward_null ebtables-v2.0.9-2/communication.c
---- ebtables-v2.0.9-2/communication.c.forward_null	2010-02-03 22:17:45.000000000 +0100
-+++ ebtables-v2.0.9-2/communication.c	2011-06-01 18:20:52.844295103 +0200
-@@ -309,6 +309,8 @@ void ebt_deliver_counters(struct ebt_u_r
- 			if (chainnr == u_repl->num_chains)
- 				break;
- 		}
-+		if (next == NULL)
-+			ebt_print_error("ebt_deliver_counters: next == NULL");
- 		if (cc->type == CNT_NORM) {
- 			/* 'Normal' rule, meaning we didn't do anything to it
- 			 * So, we just copy */
-@@ -636,9 +638,9 @@ static int retrieve_from_file(char *file
- 	   != repl->entries_size ||
- 	   fseek(file, sizeof(struct ebt_replace) + repl->entries_size,
- 		 SEEK_SET)
--	   || fread((char *)repl->counters, sizeof(char),
-+	   || (repr->counters && fread((char *)repl->counters, sizeof(char),
- 	   repl->nentries * sizeof(struct ebt_counter), file)
--	   != repl->nentries * sizeof(struct ebt_counter)) {
-+	   != repl->nentries * sizeof(struct ebt_counter))) {
- 		ebt_print_error("File %s is corrupt", filename);
- 		free(entries);
- 		repl->entries = NULL;
-
---------------060508090002060400030801
-Content-Type: text/plain;
- name="ebtables-v2.0.9-2-Coverity-no_effect.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="ebtables-v2.0.9-2-Coverity-no_effect.patch"
-
-Error: NO_EFFECT
-ebtables-v2.0.9-2/extensions/ebt_nflog.c:83: unsigned_compare: This less-than-zero comparison of an unsigned value is never true. "i < 0U".
-ebtables-v2.0.9-2/extensions/ebt_nflog.c:95: unsigned_compare: This less-than-zero comparison of an unsigned value is never true. "i < 0U".
-ebtables-v2.0.9-2/extensions/ebt_nflog.c:107: unsigned_compare: This less-than-zero comparison of an unsigned value is never true. "i < 0U".
-
-diff -up ebtables-v2.0.9-2/extensions/ebt_nflog.c.no_effect ebtables-v2.0.9-2/extensions/ebt_nflog.c
---- ebtables-v2.0.9-2/extensions/ebt_nflog.c.no_effect	2010-02-03 22:17:45.000000000 +0100
-+++ ebtables-v2.0.9-2/extensions/ebt_nflog.c	2011-06-01 18:29:41.058691515 +0200
-@@ -80,7 +80,7 @@ static int nflog_parse(int c, char **arg
- 		i = strtoul(optarg, &end, 10);
- 		if (*end != '\0')
- 			ebt_print_error2("--nflog-group must be a number!");
--		if (i < 0)
-+		if (i == ULONG_MAX)
- 			ebt_print_error2("--nflog-group can not be negative");
- 		info->group = i;
- 		break;
-@@ -92,7 +92,7 @@ static int nflog_parse(int c, char **arg
- 		i = strtoul(optarg, &end, 10);
- 		if (*end != '\0')
- 			ebt_print_error2("--nflog-range must be a number!");
--		if (i < 0)
-+		if (i == ULONG_MAX)
- 			ebt_print_error2("--nflog-range can not be negative");
- 		info->len = i;
- 		break;
-@@ -104,7 +104,7 @@ static int nflog_parse(int c, char **arg
- 		i = strtoul(optarg, &end, 10);
- 		if (*end != '\0')
- 			ebt_print_error2("--nflog-threshold must be a number!");
--		if (i < 0)
-+		if (i == ULONG_MAX)
- 			ebt_print_error2
- 			    ("--nflog-threshold can not be negative");
- 		info->threshold = i;
-
---------------060508090002060400030801
-Content-Type: text/plain;
- name="ebtables-v2.0.9-2-Coverity-overrun_static.patch"
+--20cf3071cfd065d0d304a5b43001
+Content-Type: application/octet-stream; name="boot.messages"
+Content-Disposition: attachment; filename="boot.messages"
 Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="ebtables-v2.0.9-2-Coverity-overrun_static.patch"
+X-Attachment-Id: f_goxgxej60
 
-RXJyb3I6IE9WRVJSVU5fU1RBVElDCmVidGFibGVzLXYyLjAuOS0yL2NvbW11bmljYXRpb24u
-YzozNzg6IGFzc2lnbm1lbnQ6IEFzc2lnbmluZzogIm9wdGxlbiIgPSAidV9yZXBsLT5uZW50
-cmllcyAqIHNpemVvZiAoc3RydWN0IGVidF9jb3VudGVyKSAvKjE2Ki8gKyBzaXplb2YgKHN0
-cnVjdCBlYnRfcmVwbGFjZSkgLyoxMjAqLyIuCmVidGFibGVzLXYyLjAuOS0yL2NvbW11bmlj
-YXRpb24uYzozODc6IG92ZXJydW4tYnVmZmVyLWFyZzogT3ZlcnJ1bm5pbmcgc3RydWN0IHR5
-cGUgc3RydWN0IGVidF9yZXBsYWNlIG9mIHNpemUgMTIwIGJ5dGVzIGJ5IHBhc3NpbmcgaXQg
-dG8gYSBmdW5jdGlvbiB3aGljaCBpbmRleGVzIGl0IHdpdGggYXJndW1lbnQgIm9wdGxlbiIg
-YXQgYnl0ZSBwb3NpdGlvbiAxMzUuCgpFcnJvcjogVU5JTklUCmVidGFibGVzLXYyLjAuOS0y
-L2NvbW11bmljYXRpb24uYzoyODg6IHZhcl9kZWNsOiBEZWNsYXJpbmcgdmFyaWFibGUgInJl
-cGwiIHdpdGhvdXQgaW5pdGlhbGl6ZXIuCmVidGFibGVzLXYyLjAuOS0yL2NvbW11bmljYXRp
-b24uYzozODc6IHVuaW5pdF91c2VfaW5fY2FsbDogVXNpbmcgdW5pbml0aWFsaXplZCB2YWx1
-ZSAicmVwbCI6IGZpZWxkICJyZXBsIi5lbnRyaWVzIGlzIHVuaW5pdGlhbGl6ZWQgd2hlbiBj
-YWxsaW5nICJzZXRzb2Nrb3B0Ii4KCkknbSBub3Qgc3VyZSB3aGV0aGVyIHRoaXMgaXMgcmVh
-bGx5IGEgcHJvYmxlbSBhbmQgaG93IHRvIHByb3Blcmx5IHRyZWF0IGl0LApzbyB0aGVyZSdz
-IGFjdHVhbGx5IG5vIHBhdGNoIGhlcmUgOi0p
---------------060508090002060400030801
-Content-Type: text/plain;
- name="ebtables-v2.0.9-2-Coverity-resource_leak.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="ebtables-v2.0.9-2-Coverity-resource_leak.patch"
-
-Error: RESOURCE_LEAK
-ebtables-v2.0.9-2/extensions/ebt_among.c:191: alloc_fn: Calling allocation function "new_wormhash".
-ebtables-v2.0.9-2/extensions/ebt_among.c:87: alloc_fn: Storage is returned from allocation function "malloc".
-ebtables-v2.0.9-2/extensions/ebt_among.c:87: var_assign: Assigning: "result" = "malloc(size)".
-ebtables-v2.0.9-2/extensions/ebt_among.c:92: noescape: Variable "result" is not freed or pointed-to in function "memset".
-ebtables-v2.0.9-2/extensions/ebt_among.c:94: return_alloc: Returning allocated memory "result".
-ebtables-v2.0.9-2/extensions/ebt_among.c:191: var_assign: Assigning: "workcopy" =  storage returned from "new_wormhash(1024)".
-ebtables-v2.0.9-2/extensions/ebt_among.c:205: leaked_storage: Variable "workcopy" going out of scope leaks the storage it points to.
-ebtables-v2.0.9-2/extensions/ebt_among.c:210: leaked_storage: Variable "workcopy" going out of scope leaks the storage it points to.
-
-diff -up ebtables-v2.0.9-2/extensions/ebt_among.c.resource_leak ebtables-v2.0.9-2/extensions/ebt_among.c
---- ebtables-v2.0.9-2/extensions/ebt_among.c.resource_leak	2010-02-03 22:17:45.000000000 +0100
-+++ ebtables-v2.0.9-2/extensions/ebt_among.c	2011-06-01 19:19:46.886113499 +0200
-@@ -202,11 +202,13 @@ static struct ebt_mac_wormhash *create_w
- 			if (read_until(&pc, ":", token, 2) < 0
- 			    || token[0] == 0) {
- 				ebt_print_error("MAC parse error: %.20s", anchor);
-+				free(workcopy);
- 				return NULL;
- 			}
- 			mac[i] = strtol(token, &endptr, 16);
- 			if (*endptr) {
- 				ebt_print_error("MAC parse error: %.20s", anchor);
-+				free(workcopy);
- 				return NULL;
- 			}
- 			pc++;
-
---------------060508090002060400030801
-Content-Type: text/plain;
- name="ebtables-v2.0.9-2-Coverity-uninit.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="ebtables-v2.0.9-2-Coverity-uninit.patch"
-
-Error: UNINIT
-ebtables-v2.0.9-2/communication.c:59: var_decl: Declaring variable "chain_offsets" without initializer.
-ebtables-v2.0.9-2/communication.c:69: alloc_fn: Assigning: "chain_offsets" = "(unsigned int *)malloc(u_repl->num_chains * sizeof (unsigned int) /*4*/)", which is allocated but not initialized.
-ebtables-v2.0.9-2/communication.c:169: uninit_use: Using uninitialized value "*chain_offsets".
-
-diff -up ebtables-v2.0.9-2/communication.c.uninit ebtables-v2.0.9-2/communication.c
---- ebtables-v2.0.9-2/communication.c.uninit	2010-02-03 22:17:45.000000000 +0100
-+++ ebtables-v2.0.9-2/communication.c	2011-06-01 19:36:52.192295410 +0200
-@@ -66,7 +66,10 @@ static struct ebt_replace *translate_use
- 	new->nentries = u_repl->nentries;
- 	new->num_counters = u_repl->num_counters;
- 	new->counters = sparc_cast u_repl->counters;
--	chain_offsets = (unsigned int *)malloc(u_repl->num_chains * sizeof(unsigned int));
-+	chain_offsets = (unsigned int *)calloc(u_repl->num_chains, sizeof(unsigned int));
-+	if (!chain_offsets)
-+		ebt_print_memory();
-+	
- 	/* Determine size */
- 	for (i = 0; i < u_repl->num_chains; i++) {
- 		if (!(entries = u_repl->chains[i]))
-
---------------060508090002060400030801
-Content-Type: text/plain;
- name="ebtables-v2.0.9-2-Coverity-use_after_free.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="ebtables-v2.0.9-2-Coverity-use_after_free.patch"
-
-Error: USE_AFTER_FREE
-ebtables-v2.0.9-2/libebtc.c:408: freed_arg: "free" frees "cc".
-ebtables-v2.0.9-2/libebtc.c:410: deref_after_free: Dereferencing freed pointer "cc".
-
-diff -up ebtables-v2.0.9-2/libebtc.c.use_after_free ebtables-v2.0.9-2/libebtc.c
---- ebtables-v2.0.9-2/libebtc.c.use_after_free	2010-02-03 22:17:45.000000000 +0100
-+++ ebtables-v2.0.9-2/libebtc.c	2011-06-01 19:53:36.764736526 +0200
-@@ -407,7 +407,6 @@ void ebt_delete_cc(struct ebt_cntchanges
- 		cc->next->prev = cc->prev;
- 		free(cc);
- 	}
--	cc->type = CNT_DEL;
- }
- 
- void ebt_empty_chain(struct ebt_u_entries *entries)
-
---------------060508090002060400030801--
+WzQzMzg0My40MDkyMThdIE5ldGZpbHRlciBtZXNzYWdlcyB2aWEgTkVUTElOSyB2MC4zMC4KWzQz
+Mzg1MC4xNzM0NzldIGN0bmV0bGluayB2MC45MzogcmVnaXN0ZXJpbmcgd2l0aCBuZm5ldGxpbmsu
+Cls0MzM4NTAuMTczNTg2XSBCVUc6IHNjaGVkdWxpbmcgd2hpbGUgYXRvbWljOiBleHBlY3RfY3Jl
+YXRlX3UvOTgwNi8weDAwMDAwMjAwCls0MzM4NTAuMTczNTkwXSBNb2R1bGVzIGxpbmtlZCBpbjog
+bmZfY29ubnRyYWNrX25ldGxpbmsgbmZuZXRsaW5rIGJpbmZtdF9taXNjIHZib3huZXRhZHAgdmJv
+eG5ldGZsdCB2Ym94ZHJ2IGlwNnRhYmxlX2ZpbHRlciBpcDZfdGFibGVzIGVidGFibGVfbmF0IGVi
+dGFibGVzIGlwdF9NQVNRVUVSQURFIGlwdGFibGVfbmF0IG5mX25hdCBuZl9jb25udHJhY2tfaXB2
+NCBuZl9kZWZyYWdfaXB2NCB4dF9zdGF0ZSB2bW5ldCBuZl9jb25udHJhY2sgdm1ibG9jayB2c29j
+ayBpcHRfUkVKRUNUIHZtY2kgeHRfdGNwdWRwIGlwdGFibGVfZmlsdGVyIHZtbW9uIGlwX3RhYmxl
+cyB4X3RhYmxlcyBicmlkZ2Ugc3RwIGt2bV9pbnRlbCBrdm0gcGFycG9ydF9wYyBwcGRldiBuZnNk
+IGV4cG9ydGZzIG5mcyBsb2NrZCBmc2NhY2hlIG5mc19hY2wgYXV0aF9ycGNnc3Mgc3VucnBjIHNu
+ZF9oZGFfY29kZWNfaGRtaSBzbmRfaGRhX2NvZGVjX3JlYWx0ZWsgc25kX2hkYV9pbnRlbCBzbmRf
+aGRhX2NvZGVjIHNuZF9od2RlcCBzbmRfcGNtIHNuZF9zZXFfbWlkaSBzbmRfcmF3bWlkaSBzbmRf
+c2VxX21pZGlfZXZlbnQgc25kX3NlcSBzbmRfdGltZXIgc25kX3NlcV9kZXZpY2Ugc25kIHNvdW5k
+Y29yZSBzbmRfcGFnZV9hbGxvYyBpOTE1IGRybV9rbXNfaGVscGVyIGRybSBpMmNfYWxnb19iaXQg
+dmlkZW8gYXN1c19hdGswMTEwIGxwIHBhcnBvcnQgdXNiaGlkIGhpZCBhaGNpIHI4MTY5IHBhdGFf
+am1pY3JvbiB2aWFfdmVsb2NpdHkgbGliYWhjaSBjcmNfY2NpdHQKWzQzMzg1MC4xNzM2ODNdIFBp
+ZDogOTgwNiwgY29tbTogZXhwZWN0X2NyZWF0ZV91IE5vdCB0YWludGVkIDIuNi4zOC0wMjA2Mzgt
+Z2VuZXJpYyAjMjAxMTAzMTUxMzAzCls0MzM4NTAuMTczNjg4XSBDYWxsIFRyYWNlOgpbNDMzODUw
+LjE3MzcwNV0gIFs8YzEwM2Y0MDU+XSA/IF9fc2NoZWR1bGVfYnVnKzB4NjUvMHg3MApbNDMzODUw
+LjE3MzcxMF0gIFs8YzE1MGEyZDU+XSA/IHNjaGVkdWxlKzB4NWE1LzB4NmUwCls0MzM4NTAuMTcz
+NzEzXSAgWzxjMTAzY2Q3Zj5dID8gX19lbnF1ZXVlX2VudGl0eSsweDhmLzB4YjAKWzQzMzg1MC4x
+NzM3MTddICBbPGMxMDQ4NjEyPl0gPyBlbnF1ZXVlX2VudGl0eSsweDcyLzB4MTIwCls0MzM4NTAu
+MTczNzIwXSAgWzxjMTA0ODcwYT5dID8gZW5xdWV1ZV90YXNrX2ZhaXIrMHg0YS8weDgwCls0MzM4
+NTAuMTczNzIyXSAgWzxjMTAzYWVlMj5dID8gcmVzY2hlZF90YXNrKzB4MjIvMHg3MApbNDMzODUw
+LjE3MzcyNl0gIFs8YzEwNDJmNTg+XSA/IGNoZWNrX3ByZWVtcHRfY3VycisweDY4LzB4ODAKWzQz
+Mzg1MC4xNzM3MjldICBbPGMxNTBhOTA2Pl0gPyBzY2hlZHVsZV90aW1lb3V0KzB4MTQ2LzB4MjYw
+Cls0MzM4NTAuMTczNzMyXSAgWzxjMTA0YjIzND5dID8gd2FrZV91cF9wcm9jZXNzKzB4MTQvMHgy
+MApbNDMzODUwLjE3MzczNl0gIFs8YzEwNjY5Mzk+XSA/IHdha2VfdXBfd29ya2VyKzB4MTkvMHgy
+MApbNDMzODUwLjE3MzczOV0gIFs8YzEwNjY5OTA+XSA/IGluc2VydF93b3JrKzB4NTAvMHg2MApb
+NDMzODUwLjE3Mzc0MV0gIFs8YzE1MGE1YzI+XSA/IHdhaXRfZm9yX2NvbW1vbisweGEyLzB4MTIw
+Cls0MzM4NTAuMTczNzQ0XSAgWzxjMTA0YjFlMD5dID8gZGVmYXVsdF93YWtlX2Z1bmN0aW9uKzB4
+MC8weDIwCls0MzM4NTAuMTczNzQ2XSAgWzxjMTUwYTcxNz5dID8gd2FpdF9mb3JfY29tcGxldGlv
+bisweDE3LzB4MjAKWzQzMzg1MC4xNzM3NDldICBbPGMxMDY1ZDBlPl0gPyBjYWxsX3VzZXJtb2Rl
+aGVscGVyX2V4ZWMrMHg4ZS8weGEwCls0MzM4NTAuMTczNzU0XSAgWzxmOWQzZTQ4Nz5dID8gY3Ru
+ZXRsaW5rX2NyZWF0ZV9jb25udHJhY2srMHgyZjcvMHgzMzAgW25mX2Nvbm50cmFja19uZXRsaW5r
+XQpbNDMzODUwLjE3Mzc1N10gIFs8YzEwNjVmN2U+XSA/IF9fcmVxdWVzdF9tb2R1bGUrMHgxMGUv
+MHgxYTAKWzQzMzg1MC4xNzM3NjNdICBbPGMxMjgzZjcxPl0gPyB2YWxpZGF0ZV9ubGErMHg3MS8w
+eDE1MApbNDMzODUwLjE3Mzc2NV0gIFs8YzEyODQ0ZTg+XSA/IG5sYV9wYXJzZSsweDc4LzB4YzAK
+WzQzMzg1MC4xNzM3NjhdICBbPGY5ZDNlNDg3Pl0gPyBjdG5ldGxpbmtfY3JlYXRlX2Nvbm50cmFj
+aysweDJmNy8weDMzMCBbbmZfY29ubnRyYWNrX25ldGxpbmtdCls0MzM4NTAuMTczNzc2XSAgWzxm
+OWIzNDhlMj5dID8gX19uZl9jb25udHJhY2tfZmluZCsweDMyLzB4NDAgW25mX2Nvbm50cmFja10K
+WzQzMzg1MC4xNzM3ODBdICBbPGY5ZDNmZmI3Pl0gPyBjdG5ldGxpbmtfbmV3X2Nvbm50cmFjaysw
+eDE1Ny8weDQzMCBbbmZfY29ubnRyYWNrX25ldGxpbmtdCls0MzM4NTAuMTczNzgzXSAgWzxjMTA2
+NjkzOT5dID8gd2FrZV91cF93b3JrZXIrMHgxOS8weDIwCls0MzM4NTAuMTczNzg3XSAgWzxjMTUw
+YmZlOD5dID8gX3Jhd19zcGluX2xvY2tfaXJxKzB4MTgvMHgyMApbNDMzODUwLjE3Mzc4OV0gIFs8
+YzEwM2M5YTU+XSA/IF9fd2FrZV91cCsweDQ1LzB4NjAKWzQzMzg1MC4xNzM3OTNdICBbPGZjMGZk
+Mzg2Pl0gPyBuZm5ldGxpbmtfcmN2X21zZysweDEwNi8weDFiMCBbbmZuZXRsaW5rXQpbNDMzODUw
+LjE3Mzc5N10gIFs8ZmMwZmQzYzc+XSA/IG5mbmV0bGlua19yY3ZfbXNnKzB4MTQ3LzB4MWIwIFtu
+Zm5ldGxpbmtdCls0MzM4NTAuMTczODAwXSAgWzxmYzBmZDI4MD5dID8gbmZuZXRsaW5rX3Jjdl9t
+c2crMHgwLzB4MWIwIFtuZm5ldGxpbmtdCls0MzM4NTAuMTczODA1XSAgWzxjMTQ1MmE1ZD5dID8g
+bmV0bGlua19yY3Zfc2tiKzB4N2QvMHhhMApbNDMzODUwLjE3MzgwOF0gIFs8ZmMwZmQxN2M+XSA/
+IG5mbmV0bGlua19yY3YrMHgxYy8weDMwIFtuZm5ldGxpbmtdCls0MzM4NTAuMTczODExXSAgWzxj
+MTQ1MjA0Mz5dID8gbmV0bGlua191bmljYXN0KzB4MTgzLzB4MWQwCls0MzM4NTAuMTczODE2XSAg
+WzxjMTQyN2IyYz5dID8gbWVtY3B5X2Zyb21pb3ZlYysweDRjLzB4NzAKWzQzMzg1MC4xNzM4MTld
+ICBbPGMxNDUyNzFkPl0gPyBuZXRsaW5rX3NlbmRtc2crMHgyYWQvMHgzNDAKWzQzMzg1MC4xNzM4
+MjNdICBbPGMxNDFkMmNmPl0gPyBzb2NrX3NlbmRtc2crMHhlZi8weDExMApbNDMzODUwLjE3Mzgy
+OF0gIFs8YzExMWY0ODY+XSA/IG1lbV9jZ3JvdXBfdXBkYXRlX3BhZ2Vfc3RhdCsweDM2LzB4ZTAK
+WzQzMzg1MC4xNzM4MzNdICBbPGMxMGUxYzIxPl0gPyB1bmxvY2tfcGFnZSsweDIxLzB4MzAKWzQz
+Mzg1MC4xNzM4MzddICBbPGMxMGRhMDI1Pl0gPyBwZXJmX291dHB1dF9zYW1wbGUrMHg0YTUvMHg2
+NzAKWzQzMzg1MC4xNzM4NDJdICBbPGMxMjc4MTYxPl0gPyBfY29weV9mcm9tX3VzZXIrMHg0MS8w
+eDcwCls0MzM4NTAuMTczODQ1XSAgWzxjMTQxZjMwZD5dID8gc3lzX3NlbmR0bysweDEwZC8weDE1
+MApbNDMzODUwLjE3Mzg0OV0gIFs8YzExMDEwNmU+XSA/IGhhbmRsZV9tbV9mYXVsdCsweDllLzB4
+ZDAKWzQzMzg1MC4xNzM4NTJdICBbPGMxNTBmNzAwPl0gPyBkb19wYWdlX2ZhdWx0KzB4MC8weDRk
+MApbNDMzODUwLjE3Mzg1NF0gIFs8YzE1MGY5Mjg+XSA/IGRvX3BhZ2VfZmF1bHQrMHgyMjgvMHg0
+ZDAKWzQzMzg1MC4xNzM4NThdICBbPGMxNDFmZTg1Pl0gPyBzeXNfc29ja2V0Y2FsbCsweDFkNS8w
+eDJkMApbNDMzODUwLjE3Mzg2Ml0gIFs8YzEwMDJlMWY+XSA/IHN5c2VudGVyX2RvX2NhbGwrMHgx
+Mi8weDI4Cls0MzQzMDMuNzc3OTAzXSBCVUc6IHNjaGVkdWxpbmcgd2hpbGUgYXRvbWljOiBsdC1l
+eHBlY3RfY3JlYXQvOTk3Mi8weDAwMDAwMjAwCls0MzQzMDMuNzc3OTA2XSBNb2R1bGVzIGxpbmtl
+ZCBpbjogbmZfY29ubnRyYWNrX25ldGxpbmsgbmZuZXRsaW5rIGJpbmZtdF9taXNjIHZib3huZXRh
+ZHAgdmJveG5ldGZsdCB2Ym94ZHJ2IGlwNnRhYmxlX2ZpbHRlciBpcDZfdGFibGVzIGVidGFibGVf
+bmF0IGVidGFibGVzIGlwdF9NQVNRVUVSQURFIGlwdGFibGVfbmF0IG5mX25hdCBuZl9jb25udHJh
+Y2tfaXB2NCBuZl9kZWZyYWdfaXB2NCB4dF9zdGF0ZSB2bW5ldCBuZl9jb25udHJhY2sgdm1ibG9j
+ayB2c29jayBpcHRfUkVKRUNUIHZtY2kgeHRfdGNwdWRwIGlwdGFibGVfZmlsdGVyIHZtbW9uIGlw
+X3RhYmxlcyB4X3RhYmxlcyBicmlkZ2Ugc3RwIGt2bV9pbnRlbCBrdm0gcGFycG9ydF9wYyBwcGRl
+diBuZnNkIGV4cG9ydGZzIG5mcyBsb2NrZCBmc2NhY2hlIG5mc19hY2wgYXV0aF9ycGNnc3Mgc3Vu
+cnBjIHNuZF9oZGFfY29kZWNfaGRtaSBzbmRfaGRhX2NvZGVjX3JlYWx0ZWsgc25kX2hkYV9pbnRl
+bCBzbmRfaGRhX2NvZGVjIHNuZF9od2RlcCBzbmRfcGNtIHNuZF9zZXFfbWlkaSBzbmRfcmF3bWlk
+aSBzbmRfc2VxX21pZGlfZXZlbnQgc25kX3NlcSBzbmRfdGltZXIgc25kX3NlcV9kZXZpY2Ugc25k
+IHNvdW5kY29yZSBzbmRfcGFnZV9hbGxvYyBpOTE1IGRybV9rbXNfaGVscGVyIGRybSBpMmNfYWxn
+b19iaXQgdmlkZW8gYXN1c19hdGswMTEwIGxwIHBhcnBvcnQgdXNiaGlkIGhpZCBhaGNpIHI4MTY5
+IHBhdGFfam1pY3JvbiB2aWFfdmVsb2NpdHkgbGliYWhjaSBjcmNfY2NpdHQKWzQzNDMwMy43Nzc5
+NDZdIFBpZDogOTk3MiwgY29tbTogbHQtZXhwZWN0X2NyZWF0IE5vdCB0YWludGVkIDIuNi4zOC0w
+MjA2MzgtZ2VuZXJpYyAjMjAxMTAzMTUxMzAzCls0MzQzMDMuNzc3OTQ4XSBDYWxsIFRyYWNlOgpb
+NDM0MzAzLjc3Nzk1Nl0gIFs8YzEwM2Y0MDU+XSA/IF9fc2NoZWR1bGVfYnVnKzB4NjUvMHg3MApb
+NDM0MzAzLjc3Nzk2MF0gIFs8YzE1MGEyZDU+XSA/IHNjaGVkdWxlKzB4NWE1LzB4NmUwCls0MzQz
+MDMuNzc3OTYzXSAgWzxjMTAzY2Q3Zj5dID8gX19lbnF1ZXVlX2VudGl0eSsweDhmLzB4YjAKWzQz
+NDMwMy43Nzc5NjddICBbPGMxMDQ4NjEyPl0gPyBlbnF1ZXVlX2VudGl0eSsweDcyLzB4MTIwCls0
+MzQzMDMuNzc3OTcwXSAgWzxjMTA0ODcwYT5dID8gZW5xdWV1ZV90YXNrX2ZhaXIrMHg0YS8weDgw
+Cls0MzQzMDMuNzc3OTczXSAgWzxjMTAzYWVlMj5dID8gcmVzY2hlZF90YXNrKzB4MjIvMHg3MApb
+NDM0MzAzLjc3Nzk3N10gIFs8YzEwNDJmNTg+XSA/IGNoZWNrX3ByZWVtcHRfY3VycisweDY4LzB4
+ODAKWzQzNDMwMy43Nzc5ODBdICBbPGMxNTBhOTA2Pl0gPyBzY2hlZHVsZV90aW1lb3V0KzB4MTQ2
+LzB4MjYwCls0MzQzMDMuNzc3OTgzXSAgWzxjMTA0YjIzND5dID8gd2FrZV91cF9wcm9jZXNzKzB4
+MTQvMHgyMApbNDM0MzAzLjc3Nzk4Nl0gIFs8YzEwNjY5Mzk+XSA/IHdha2VfdXBfd29ya2VyKzB4
+MTkvMHgyMApbNDM0MzAzLjc3Nzk4N10gIFs8YzEwNjY5OTA+XSA/IGluc2VydF93b3JrKzB4NTAv
+MHg2MApbNDM0MzAzLjc3Nzk5MF0gIFs8YzE1MGE1YzI+XSA/IHdhaXRfZm9yX2NvbW1vbisweGEy
+LzB4MTIwCls0MzQzMDMuNzc3OTkzXSAgWzxjMTA0YjFlMD5dID8gZGVmYXVsdF93YWtlX2Z1bmN0
+aW9uKzB4MC8weDIwCls0MzQzMDMuNzc3OTk1XSAgWzxjMTUwYTcxNz5dID8gd2FpdF9mb3JfY29t
+cGxldGlvbisweDE3LzB4MjAKWzQzNDMwMy43Nzc5OTddICBbPGMxMDY1ZDBlPl0gPyBjYWxsX3Vz
+ZXJtb2RlaGVscGVyX2V4ZWMrMHg4ZS8weGEwCls0MzQzMDMuNzc4MDAyXSAgWzxmOWQzZTQ4Nz5d
+ID8gY3RuZXRsaW5rX2NyZWF0ZV9jb25udHJhY2srMHgyZjcvMHgzMzAgW25mX2Nvbm50cmFja19u
+ZXRsaW5rXQpbNDM0MzAzLjc3ODAwNV0gIFs8YzEwNjVmN2U+XSA/IF9fcmVxdWVzdF9tb2R1bGUr
+MHgxMGUvMHgxYTAKWzQzNDMwMy43NzgwMTBdICBbPGMxMjgzZjcxPl0gPyB2YWxpZGF0ZV9ubGEr
+MHg3MS8weDE1MApbNDM0MzAzLjc3ODAxM10gIFs8YzEyODQ0ZTg+XSA/IG5sYV9wYXJzZSsweDc4
+LzB4YzAKWzQzNDMwMy43NzgwMTZdICBbPGY5ZDNlNDg3Pl0gPyBjdG5ldGxpbmtfY3JlYXRlX2Nv
+bm50cmFjaysweDJmNy8weDMzMCBbbmZfY29ubnRyYWNrX25ldGxpbmtdCls0MzQzMDMuNzc4MDI2
+XSAgWzxmOWIzNDhlMj5dID8gX19uZl9jb25udHJhY2tfZmluZCsweDMyLzB4NDAgW25mX2Nvbm50
+cmFja10KWzQzNDMwMy43NzgwMzBdICBbPGY5ZDNmZmI3Pl0gPyBjdG5ldGxpbmtfbmV3X2Nvbm50
+cmFjaysweDE1Ny8weDQzMCBbbmZfY29ubnRyYWNrX25ldGxpbmtdCls0MzQzMDMuNzc4MDM0XSAg
+WzxmYzBmZDM4Nj5dID8gbmZuZXRsaW5rX3Jjdl9tc2crMHgxMDYvMHgxYjAgW25mbmV0bGlua10K
+WzQzNDMwMy43NzgwMzhdICBbPGZjMGZkMmI3Pl0gPyBuZm5ldGxpbmtfcmN2X21zZysweDM3LzB4
+MWIwIFtuZm5ldGxpbmtdCls0MzQzMDMuNzc4MDQyXSAgWzxmYzBmZDI4MD5dID8gbmZuZXRsaW5r
+X3Jjdl9tc2crMHgwLzB4MWIwIFtuZm5ldGxpbmtdCls0MzQzMDMuNzc4MDQ4XSAgWzxjMTQ1MmE1
+ZD5dID8gbmV0bGlua19yY3Zfc2tiKzB4N2QvMHhhMApbNDM0MzAzLjc3ODA1MV0gIFs8ZmMwZmQx
+N2M+XSA/IG5mbmV0bGlua19yY3YrMHgxYy8weDMwIFtuZm5ldGxpbmtdCls0MzQzMDMuNzc4MDU0
+XSAgWzxjMTQ1MjA0Mz5dID8gbmV0bGlua191bmljYXN0KzB4MTgzLzB4MWQwCls0MzQzMDMuNzc4
+MDU4XSAgWzxjMTQyN2IyYz5dID8gbWVtY3B5X2Zyb21pb3ZlYysweDRjLzB4NzAKWzQzNDMwMy43
+NzgwNjFdICBbPGMxNDUyNzFkPl0gPyBuZXRsaW5rX3NlbmRtc2crMHgyYWQvMHgzNDAKWzQzNDMw
+My43NzgwNjZdICBbPGMxNDFkMmNmPl0gPyBzb2NrX3NlbmRtc2crMHhlZi8weDExMApbNDM0MzAz
+Ljc3ODA3MV0gIFs8YzExMWY0ODY+XSA/IG1lbV9jZ3JvdXBfdXBkYXRlX3BhZ2Vfc3RhdCsweDM2
+LzB4ZTAKWzQzNDMwMy43NzgwNzVdICBbPGMxMGUxYzIxPl0gPyB1bmxvY2tfcGFnZSsweDIxLzB4
+MzAKWzQzNDMwMy43NzgwODBdICBbPGMxMjc4MTYxPl0gPyBfY29weV9mcm9tX3VzZXIrMHg0MS8w
+eDcwCls0MzQzMDMuNzc4MDgzXSAgWzxjMTQxZjMwZD5dID8gc3lzX3NlbmR0bysweDEwZC8weDE1
+MApbNDM0MzAzLjc3ODA4N10gIFs8YzExMDEwNmU+XSA/IGhhbmRsZV9tbV9mYXVsdCsweDllLzB4
+ZDAKWzQzNDMwMy43NzgwOTFdICBbPGMxNTBmNzAwPl0gPyBkb19wYWdlX2ZhdWx0KzB4MC8weDRk
+MApbNDM0MzAzLjc3ODA5M10gIFs8YzE1MGY5Mjg+XSA/IGRvX3BhZ2VfZmF1bHQrMHgyMjgvMHg0
+ZDAKWzQzNDMwMy43NzgwOTddICBbPGMxNDFmZTg1Pl0gPyBzeXNfc29ja2V0Y2FsbCsweDFkNS8w
+eDJkMApbNDM0MzAzLjc3ODEwMV0gIFs8YzEwMDJlMWY+XSA/IHN5c2VudGVyX2RvX2NhbGwrMHgx
+Mi8weDI4Cls0NTM4NDcuMDk0MjYyXSBFWFQ0LWZzIChzZGExKTogVW5hbGlnbmVkIEFJTy9ESU8g
+b24gaW5vZGUgNTkxMTUzMjMgYnkgVmlydHVhbEJveDsgcGVyZm9ybWFuY2Ugd2lsbCBiZSBwb29y
+LgpbNDc1NTM5LjQ2NjA3NV0gRVhUNC1mcyAoc2RhMSk6IFVuYWxpZ25lZCBBSU8vRElPIG9uIGlu
+b2RlIDU5MTE1MzIzIGJ5IFZpcnR1YWxCb3g7IHBlcmZvcm1hbmNlIHdpbGwgYmUgcG9vci4KWzQ5
+NzE0MS43NjE3NDddIEVYVDQtZnMgKHNkYTEpOiBVbmFsaWduZWQgQUlPL0RJTyBvbiBpbm9kZSA1
+OTExNTMyMyBieSBWaXJ0dWFsQm94OyBwZXJmb3JtYW5jZSB3aWxsIGJlIHBvb3IuCls1MTg3MDAu
+MjAwNTIxXSBFWFQ0LWZzIChzZGExKTogVW5hbGlnbmVkIEFJTy9ESU8gb24gaW5vZGUgNTkxMTUz
+MjMgYnkgVmlydHVhbEJveDsgcGVyZm9ybWFuY2Ugd2lsbCBiZSBwb29yLgo=
+--20cf3071cfd065d0d304a5b43001--
