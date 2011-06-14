@@ -1,215 +1,57 @@
-From: Sam Roberts <vieuxtech@gmail.com>
-Subject: BUG: scheduling while atomic: expect_create_u
-Date: Tue, 14 Jun 2011 16:13:51 -0700
-Message-ID: <BANLkTik8ghXXp8JTj4WzQ-yGfzMaC3DorA@mail.gmail.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [GIT PULL next-2.6] IPVS
+Date: Wed, 15 Jun 2011 08:42:20 +0900
+Message-ID: <20110614234218.GA19636@verge.net.au>
+References: <1307953569-15429-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=20cf3071cfd065d0d304a5b43001
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:47881 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751581Ab1FNXNw (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Jun 2011 19:13:52 -0400
-Received: by vxi39 with SMTP id 39so4893225vxi.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2011 16:13:51 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Wensong Zhang <wensong@linux-vs.org>, Julian Anastasov <ja@ssi.bg>,
+	Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1307953569-15429-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
---20cf3071cfd065d0d304a5b43001
-Content-Type: text/plain; charset=ISO-8859-1
+On Mon, Jun 13, 2011 at 05:26:06PM +0900, Simon Horman wrote:
+> Hi Patrick, Hi Pablo,
+> 
+> please consider pulling
+> git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next-2.6.git master
+> 
+> It includes two clean-ups by Hans
+> and an enhancement of the FTP helper by Julian.
 
-I've some of these in my dmesg output, for ubuntu kernel
-2.6.38-020638-generic, on 10.10:
+I have two more clean-ups from Hans,
+I will send a fresh pull request.
 
-[433850.173586] BUG: scheduling while atomic: expect_create_u/9806/0x00000200
-[433850.173683] Pid: 9806, comm: expect_create_u Not tainted
-2.6.38-020638-generic #201103151303
-[433850.173688] Call Trace:
-[433850.173705]  [<c103f405>] ? __schedule_bug+0x65/0x70
-[433850.173710]  [<c150a2d5>] ? schedule+0x5a5/0x6e0
-[433850.173713]  [<c103cd7f>] ? __enqueue_entity+0x8f/0xb0
-[433850.173717]  [<c1048612>] ? enqueue_entity+0x72/0x120
-[433850.173720]  [<c104870a>] ? enqueue_task_fair+0x4a/0x80
-[433850.173722]  [<c103aee2>] ? resched_task+0x22/0x70
-[433850.173726]  [<c1042f58>] ? check_preempt_curr+0x68/0x80
-[433850.173729]  [<c150a906>] ? schedule_timeout+0x146/0x260
-[433850.173732]  [<c104b234>] ? wake_up_process+0x14/0x20
-[433850.173736]  [<c1066939>] ? wake_up_worker+0x19/0x20
-[433850.173739]  [<c1066990>] ? insert_work+0x50/0x60
-[433850.173741]  [<c150a5c2>] ? wait_for_common+0xa2/0x120
-[433850.173744]  [<c104b1e0>] ? default_wake_function+0x0/0x20
-[433850.173746]  [<c150a717>] ? wait_for_completion+0x17/0x20
-[433850.173749]  [<c1065d0e>] ? call_usermodehelper_exec+0x8e/0xa0
-[433850.173754]  [<f9d3e487>] ? ctnetlink_create_conntrack+0x2f7/0x330
-[nf_conntrack_netlink]
-
-...
-
-[434303.777903] BUG: scheduling while atomic: lt-expect_creat/9972/0x00000200
-[434303.777946] Pid: 9972, comm: lt-expect_creat Not tainted
-2.6.38-020638-generic #201103151303
-[434303.777948] Call Trace:
-[434303.777956]  [<c103f405>] ? __schedule_bug+0x65/0x70
-[434303.777960]  [<c150a2d5>] ? schedule+0x5a5/0x6e0
-[434303.777963]  [<c103cd7f>] ? __enqueue_entity+0x8f/0xb0
-[434303.777967]  [<c1048612>] ? enqueue_entity+0x72/0x120
-[434303.777970]  [<c104870a>] ? enqueue_task_fair+0x4a/0x80
-[434303.777973]  [<c103aee2>] ? resched_task+0x22/0x70
-[434303.777977]  [<c1042f58>] ? check_preempt_curr+0x68/0x80
-[434303.777980]  [<c150a906>] ? schedule_timeout+0x146/0x260
-[434303.777983]  [<c104b234>] ? wake_up_process+0x14/0x20
-[434303.777986]  [<c1066939>] ? wake_up_worker+0x19/0x20
-[434303.777987]  [<c1066990>] ? insert_work+0x50/0x60
-[434303.777990]  [<c150a5c2>] ? wait_for_common+0xa2/0x120
-[434303.777993]  [<c104b1e0>] ? default_wake_function+0x0/0x20
-[434303.777995]  [<c150a717>] ? wait_for_completion+0x17/0x20
-[434303.777997]  [<c1065d0e>] ? call_usermodehelper_exec+0x8e/0xa0
-[434303.778002]  [<f9d3e487>] ? ctnetlink_create_conntrack+0x2f7/0x330
-[nf_conntrack_netlink]
-
-...
-
---20cf3071cfd065d0d304a5b43001
-Content-Type: application/octet-stream; name="boot.messages"
-Content-Disposition: attachment; filename="boot.messages"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_goxgxej60
-
-WzQzMzg0My40MDkyMThdIE5ldGZpbHRlciBtZXNzYWdlcyB2aWEgTkVUTElOSyB2MC4zMC4KWzQz
-Mzg1MC4xNzM0NzldIGN0bmV0bGluayB2MC45MzogcmVnaXN0ZXJpbmcgd2l0aCBuZm5ldGxpbmsu
-Cls0MzM4NTAuMTczNTg2XSBCVUc6IHNjaGVkdWxpbmcgd2hpbGUgYXRvbWljOiBleHBlY3RfY3Jl
-YXRlX3UvOTgwNi8weDAwMDAwMjAwCls0MzM4NTAuMTczNTkwXSBNb2R1bGVzIGxpbmtlZCBpbjog
-bmZfY29ubnRyYWNrX25ldGxpbmsgbmZuZXRsaW5rIGJpbmZtdF9taXNjIHZib3huZXRhZHAgdmJv
-eG5ldGZsdCB2Ym94ZHJ2IGlwNnRhYmxlX2ZpbHRlciBpcDZfdGFibGVzIGVidGFibGVfbmF0IGVi
-dGFibGVzIGlwdF9NQVNRVUVSQURFIGlwdGFibGVfbmF0IG5mX25hdCBuZl9jb25udHJhY2tfaXB2
-NCBuZl9kZWZyYWdfaXB2NCB4dF9zdGF0ZSB2bW5ldCBuZl9jb25udHJhY2sgdm1ibG9jayB2c29j
-ayBpcHRfUkVKRUNUIHZtY2kgeHRfdGNwdWRwIGlwdGFibGVfZmlsdGVyIHZtbW9uIGlwX3RhYmxl
-cyB4X3RhYmxlcyBicmlkZ2Ugc3RwIGt2bV9pbnRlbCBrdm0gcGFycG9ydF9wYyBwcGRldiBuZnNk
-IGV4cG9ydGZzIG5mcyBsb2NrZCBmc2NhY2hlIG5mc19hY2wgYXV0aF9ycGNnc3Mgc3VucnBjIHNu
-ZF9oZGFfY29kZWNfaGRtaSBzbmRfaGRhX2NvZGVjX3JlYWx0ZWsgc25kX2hkYV9pbnRlbCBzbmRf
-aGRhX2NvZGVjIHNuZF9od2RlcCBzbmRfcGNtIHNuZF9zZXFfbWlkaSBzbmRfcmF3bWlkaSBzbmRf
-c2VxX21pZGlfZXZlbnQgc25kX3NlcSBzbmRfdGltZXIgc25kX3NlcV9kZXZpY2Ugc25kIHNvdW5k
-Y29yZSBzbmRfcGFnZV9hbGxvYyBpOTE1IGRybV9rbXNfaGVscGVyIGRybSBpMmNfYWxnb19iaXQg
-dmlkZW8gYXN1c19hdGswMTEwIGxwIHBhcnBvcnQgdXNiaGlkIGhpZCBhaGNpIHI4MTY5IHBhdGFf
-am1pY3JvbiB2aWFfdmVsb2NpdHkgbGliYWhjaSBjcmNfY2NpdHQKWzQzMzg1MC4xNzM2ODNdIFBp
-ZDogOTgwNiwgY29tbTogZXhwZWN0X2NyZWF0ZV91IE5vdCB0YWludGVkIDIuNi4zOC0wMjA2Mzgt
-Z2VuZXJpYyAjMjAxMTAzMTUxMzAzCls0MzM4NTAuMTczNjg4XSBDYWxsIFRyYWNlOgpbNDMzODUw
-LjE3MzcwNV0gIFs8YzEwM2Y0MDU+XSA/IF9fc2NoZWR1bGVfYnVnKzB4NjUvMHg3MApbNDMzODUw
-LjE3MzcxMF0gIFs8YzE1MGEyZDU+XSA/IHNjaGVkdWxlKzB4NWE1LzB4NmUwCls0MzM4NTAuMTcz
-NzEzXSAgWzxjMTAzY2Q3Zj5dID8gX19lbnF1ZXVlX2VudGl0eSsweDhmLzB4YjAKWzQzMzg1MC4x
-NzM3MTddICBbPGMxMDQ4NjEyPl0gPyBlbnF1ZXVlX2VudGl0eSsweDcyLzB4MTIwCls0MzM4NTAu
-MTczNzIwXSAgWzxjMTA0ODcwYT5dID8gZW5xdWV1ZV90YXNrX2ZhaXIrMHg0YS8weDgwCls0MzM4
-NTAuMTczNzIyXSAgWzxjMTAzYWVlMj5dID8gcmVzY2hlZF90YXNrKzB4MjIvMHg3MApbNDMzODUw
-LjE3MzcyNl0gIFs8YzEwNDJmNTg+XSA/IGNoZWNrX3ByZWVtcHRfY3VycisweDY4LzB4ODAKWzQz
-Mzg1MC4xNzM3MjldICBbPGMxNTBhOTA2Pl0gPyBzY2hlZHVsZV90aW1lb3V0KzB4MTQ2LzB4MjYw
-Cls0MzM4NTAuMTczNzMyXSAgWzxjMTA0YjIzND5dID8gd2FrZV91cF9wcm9jZXNzKzB4MTQvMHgy
-MApbNDMzODUwLjE3MzczNl0gIFs8YzEwNjY5Mzk+XSA/IHdha2VfdXBfd29ya2VyKzB4MTkvMHgy
-MApbNDMzODUwLjE3MzczOV0gIFs8YzEwNjY5OTA+XSA/IGluc2VydF93b3JrKzB4NTAvMHg2MApb
-NDMzODUwLjE3Mzc0MV0gIFs8YzE1MGE1YzI+XSA/IHdhaXRfZm9yX2NvbW1vbisweGEyLzB4MTIw
-Cls0MzM4NTAuMTczNzQ0XSAgWzxjMTA0YjFlMD5dID8gZGVmYXVsdF93YWtlX2Z1bmN0aW9uKzB4
-MC8weDIwCls0MzM4NTAuMTczNzQ2XSAgWzxjMTUwYTcxNz5dID8gd2FpdF9mb3JfY29tcGxldGlv
-bisweDE3LzB4MjAKWzQzMzg1MC4xNzM3NDldICBbPGMxMDY1ZDBlPl0gPyBjYWxsX3VzZXJtb2Rl
-aGVscGVyX2V4ZWMrMHg4ZS8weGEwCls0MzM4NTAuMTczNzU0XSAgWzxmOWQzZTQ4Nz5dID8gY3Ru
-ZXRsaW5rX2NyZWF0ZV9jb25udHJhY2srMHgyZjcvMHgzMzAgW25mX2Nvbm50cmFja19uZXRsaW5r
-XQpbNDMzODUwLjE3Mzc1N10gIFs8YzEwNjVmN2U+XSA/IF9fcmVxdWVzdF9tb2R1bGUrMHgxMGUv
-MHgxYTAKWzQzMzg1MC4xNzM3NjNdICBbPGMxMjgzZjcxPl0gPyB2YWxpZGF0ZV9ubGErMHg3MS8w
-eDE1MApbNDMzODUwLjE3Mzc2NV0gIFs8YzEyODQ0ZTg+XSA/IG5sYV9wYXJzZSsweDc4LzB4YzAK
-WzQzMzg1MC4xNzM3NjhdICBbPGY5ZDNlNDg3Pl0gPyBjdG5ldGxpbmtfY3JlYXRlX2Nvbm50cmFj
-aysweDJmNy8weDMzMCBbbmZfY29ubnRyYWNrX25ldGxpbmtdCls0MzM4NTAuMTczNzc2XSAgWzxm
-OWIzNDhlMj5dID8gX19uZl9jb25udHJhY2tfZmluZCsweDMyLzB4NDAgW25mX2Nvbm50cmFja10K
-WzQzMzg1MC4xNzM3ODBdICBbPGY5ZDNmZmI3Pl0gPyBjdG5ldGxpbmtfbmV3X2Nvbm50cmFjaysw
-eDE1Ny8weDQzMCBbbmZfY29ubnRyYWNrX25ldGxpbmtdCls0MzM4NTAuMTczNzgzXSAgWzxjMTA2
-NjkzOT5dID8gd2FrZV91cF93b3JrZXIrMHgxOS8weDIwCls0MzM4NTAuMTczNzg3XSAgWzxjMTUw
-YmZlOD5dID8gX3Jhd19zcGluX2xvY2tfaXJxKzB4MTgvMHgyMApbNDMzODUwLjE3Mzc4OV0gIFs8
-YzEwM2M5YTU+XSA/IF9fd2FrZV91cCsweDQ1LzB4NjAKWzQzMzg1MC4xNzM3OTNdICBbPGZjMGZk
-Mzg2Pl0gPyBuZm5ldGxpbmtfcmN2X21zZysweDEwNi8weDFiMCBbbmZuZXRsaW5rXQpbNDMzODUw
-LjE3Mzc5N10gIFs8ZmMwZmQzYzc+XSA/IG5mbmV0bGlua19yY3ZfbXNnKzB4MTQ3LzB4MWIwIFtu
-Zm5ldGxpbmtdCls0MzM4NTAuMTczODAwXSAgWzxmYzBmZDI4MD5dID8gbmZuZXRsaW5rX3Jjdl9t
-c2crMHgwLzB4MWIwIFtuZm5ldGxpbmtdCls0MzM4NTAuMTczODA1XSAgWzxjMTQ1MmE1ZD5dID8g
-bmV0bGlua19yY3Zfc2tiKzB4N2QvMHhhMApbNDMzODUwLjE3MzgwOF0gIFs8ZmMwZmQxN2M+XSA/
-IG5mbmV0bGlua19yY3YrMHgxYy8weDMwIFtuZm5ldGxpbmtdCls0MzM4NTAuMTczODExXSAgWzxj
-MTQ1MjA0Mz5dID8gbmV0bGlua191bmljYXN0KzB4MTgzLzB4MWQwCls0MzM4NTAuMTczODE2XSAg
-WzxjMTQyN2IyYz5dID8gbWVtY3B5X2Zyb21pb3ZlYysweDRjLzB4NzAKWzQzMzg1MC4xNzM4MTld
-ICBbPGMxNDUyNzFkPl0gPyBuZXRsaW5rX3NlbmRtc2crMHgyYWQvMHgzNDAKWzQzMzg1MC4xNzM4
-MjNdICBbPGMxNDFkMmNmPl0gPyBzb2NrX3NlbmRtc2crMHhlZi8weDExMApbNDMzODUwLjE3Mzgy
-OF0gIFs8YzExMWY0ODY+XSA/IG1lbV9jZ3JvdXBfdXBkYXRlX3BhZ2Vfc3RhdCsweDM2LzB4ZTAK
-WzQzMzg1MC4xNzM4MzNdICBbPGMxMGUxYzIxPl0gPyB1bmxvY2tfcGFnZSsweDIxLzB4MzAKWzQz
-Mzg1MC4xNzM4MzddICBbPGMxMGRhMDI1Pl0gPyBwZXJmX291dHB1dF9zYW1wbGUrMHg0YTUvMHg2
-NzAKWzQzMzg1MC4xNzM4NDJdICBbPGMxMjc4MTYxPl0gPyBfY29weV9mcm9tX3VzZXIrMHg0MS8w
-eDcwCls0MzM4NTAuMTczODQ1XSAgWzxjMTQxZjMwZD5dID8gc3lzX3NlbmR0bysweDEwZC8weDE1
-MApbNDMzODUwLjE3Mzg0OV0gIFs8YzExMDEwNmU+XSA/IGhhbmRsZV9tbV9mYXVsdCsweDllLzB4
-ZDAKWzQzMzg1MC4xNzM4NTJdICBbPGMxNTBmNzAwPl0gPyBkb19wYWdlX2ZhdWx0KzB4MC8weDRk
-MApbNDMzODUwLjE3Mzg1NF0gIFs8YzE1MGY5Mjg+XSA/IGRvX3BhZ2VfZmF1bHQrMHgyMjgvMHg0
-ZDAKWzQzMzg1MC4xNzM4NThdICBbPGMxNDFmZTg1Pl0gPyBzeXNfc29ja2V0Y2FsbCsweDFkNS8w
-eDJkMApbNDMzODUwLjE3Mzg2Ml0gIFs8YzEwMDJlMWY+XSA/IHN5c2VudGVyX2RvX2NhbGwrMHgx
-Mi8weDI4Cls0MzQzMDMuNzc3OTAzXSBCVUc6IHNjaGVkdWxpbmcgd2hpbGUgYXRvbWljOiBsdC1l
-eHBlY3RfY3JlYXQvOTk3Mi8weDAwMDAwMjAwCls0MzQzMDMuNzc3OTA2XSBNb2R1bGVzIGxpbmtl
-ZCBpbjogbmZfY29ubnRyYWNrX25ldGxpbmsgbmZuZXRsaW5rIGJpbmZtdF9taXNjIHZib3huZXRh
-ZHAgdmJveG5ldGZsdCB2Ym94ZHJ2IGlwNnRhYmxlX2ZpbHRlciBpcDZfdGFibGVzIGVidGFibGVf
-bmF0IGVidGFibGVzIGlwdF9NQVNRVUVSQURFIGlwdGFibGVfbmF0IG5mX25hdCBuZl9jb25udHJh
-Y2tfaXB2NCBuZl9kZWZyYWdfaXB2NCB4dF9zdGF0ZSB2bW5ldCBuZl9jb25udHJhY2sgdm1ibG9j
-ayB2c29jayBpcHRfUkVKRUNUIHZtY2kgeHRfdGNwdWRwIGlwdGFibGVfZmlsdGVyIHZtbW9uIGlw
-X3RhYmxlcyB4X3RhYmxlcyBicmlkZ2Ugc3RwIGt2bV9pbnRlbCBrdm0gcGFycG9ydF9wYyBwcGRl
-diBuZnNkIGV4cG9ydGZzIG5mcyBsb2NrZCBmc2NhY2hlIG5mc19hY2wgYXV0aF9ycGNnc3Mgc3Vu
-cnBjIHNuZF9oZGFfY29kZWNfaGRtaSBzbmRfaGRhX2NvZGVjX3JlYWx0ZWsgc25kX2hkYV9pbnRl
-bCBzbmRfaGRhX2NvZGVjIHNuZF9od2RlcCBzbmRfcGNtIHNuZF9zZXFfbWlkaSBzbmRfcmF3bWlk
-aSBzbmRfc2VxX21pZGlfZXZlbnQgc25kX3NlcSBzbmRfdGltZXIgc25kX3NlcV9kZXZpY2Ugc25k
-IHNvdW5kY29yZSBzbmRfcGFnZV9hbGxvYyBpOTE1IGRybV9rbXNfaGVscGVyIGRybSBpMmNfYWxn
-b19iaXQgdmlkZW8gYXN1c19hdGswMTEwIGxwIHBhcnBvcnQgdXNiaGlkIGhpZCBhaGNpIHI4MTY5
-IHBhdGFfam1pY3JvbiB2aWFfdmVsb2NpdHkgbGliYWhjaSBjcmNfY2NpdHQKWzQzNDMwMy43Nzc5
-NDZdIFBpZDogOTk3MiwgY29tbTogbHQtZXhwZWN0X2NyZWF0IE5vdCB0YWludGVkIDIuNi4zOC0w
-MjA2MzgtZ2VuZXJpYyAjMjAxMTAzMTUxMzAzCls0MzQzMDMuNzc3OTQ4XSBDYWxsIFRyYWNlOgpb
-NDM0MzAzLjc3Nzk1Nl0gIFs8YzEwM2Y0MDU+XSA/IF9fc2NoZWR1bGVfYnVnKzB4NjUvMHg3MApb
-NDM0MzAzLjc3Nzk2MF0gIFs8YzE1MGEyZDU+XSA/IHNjaGVkdWxlKzB4NWE1LzB4NmUwCls0MzQz
-MDMuNzc3OTYzXSAgWzxjMTAzY2Q3Zj5dID8gX19lbnF1ZXVlX2VudGl0eSsweDhmLzB4YjAKWzQz
-NDMwMy43Nzc5NjddICBbPGMxMDQ4NjEyPl0gPyBlbnF1ZXVlX2VudGl0eSsweDcyLzB4MTIwCls0
-MzQzMDMuNzc3OTcwXSAgWzxjMTA0ODcwYT5dID8gZW5xdWV1ZV90YXNrX2ZhaXIrMHg0YS8weDgw
-Cls0MzQzMDMuNzc3OTczXSAgWzxjMTAzYWVlMj5dID8gcmVzY2hlZF90YXNrKzB4MjIvMHg3MApb
-NDM0MzAzLjc3Nzk3N10gIFs8YzEwNDJmNTg+XSA/IGNoZWNrX3ByZWVtcHRfY3VycisweDY4LzB4
-ODAKWzQzNDMwMy43Nzc5ODBdICBbPGMxNTBhOTA2Pl0gPyBzY2hlZHVsZV90aW1lb3V0KzB4MTQ2
-LzB4MjYwCls0MzQzMDMuNzc3OTgzXSAgWzxjMTA0YjIzND5dID8gd2FrZV91cF9wcm9jZXNzKzB4
-MTQvMHgyMApbNDM0MzAzLjc3Nzk4Nl0gIFs8YzEwNjY5Mzk+XSA/IHdha2VfdXBfd29ya2VyKzB4
-MTkvMHgyMApbNDM0MzAzLjc3Nzk4N10gIFs8YzEwNjY5OTA+XSA/IGluc2VydF93b3JrKzB4NTAv
-MHg2MApbNDM0MzAzLjc3Nzk5MF0gIFs8YzE1MGE1YzI+XSA/IHdhaXRfZm9yX2NvbW1vbisweGEy
-LzB4MTIwCls0MzQzMDMuNzc3OTkzXSAgWzxjMTA0YjFlMD5dID8gZGVmYXVsdF93YWtlX2Z1bmN0
-aW9uKzB4MC8weDIwCls0MzQzMDMuNzc3OTk1XSAgWzxjMTUwYTcxNz5dID8gd2FpdF9mb3JfY29t
-cGxldGlvbisweDE3LzB4MjAKWzQzNDMwMy43Nzc5OTddICBbPGMxMDY1ZDBlPl0gPyBjYWxsX3Vz
-ZXJtb2RlaGVscGVyX2V4ZWMrMHg4ZS8weGEwCls0MzQzMDMuNzc4MDAyXSAgWzxmOWQzZTQ4Nz5d
-ID8gY3RuZXRsaW5rX2NyZWF0ZV9jb25udHJhY2srMHgyZjcvMHgzMzAgW25mX2Nvbm50cmFja19u
-ZXRsaW5rXQpbNDM0MzAzLjc3ODAwNV0gIFs8YzEwNjVmN2U+XSA/IF9fcmVxdWVzdF9tb2R1bGUr
-MHgxMGUvMHgxYTAKWzQzNDMwMy43NzgwMTBdICBbPGMxMjgzZjcxPl0gPyB2YWxpZGF0ZV9ubGEr
-MHg3MS8weDE1MApbNDM0MzAzLjc3ODAxM10gIFs8YzEyODQ0ZTg+XSA/IG5sYV9wYXJzZSsweDc4
-LzB4YzAKWzQzNDMwMy43NzgwMTZdICBbPGY5ZDNlNDg3Pl0gPyBjdG5ldGxpbmtfY3JlYXRlX2Nv
-bm50cmFjaysweDJmNy8weDMzMCBbbmZfY29ubnRyYWNrX25ldGxpbmtdCls0MzQzMDMuNzc4MDI2
-XSAgWzxmOWIzNDhlMj5dID8gX19uZl9jb25udHJhY2tfZmluZCsweDMyLzB4NDAgW25mX2Nvbm50
-cmFja10KWzQzNDMwMy43NzgwMzBdICBbPGY5ZDNmZmI3Pl0gPyBjdG5ldGxpbmtfbmV3X2Nvbm50
-cmFjaysweDE1Ny8weDQzMCBbbmZfY29ubnRyYWNrX25ldGxpbmtdCls0MzQzMDMuNzc4MDM0XSAg
-WzxmYzBmZDM4Nj5dID8gbmZuZXRsaW5rX3Jjdl9tc2crMHgxMDYvMHgxYjAgW25mbmV0bGlua10K
-WzQzNDMwMy43NzgwMzhdICBbPGZjMGZkMmI3Pl0gPyBuZm5ldGxpbmtfcmN2X21zZysweDM3LzB4
-MWIwIFtuZm5ldGxpbmtdCls0MzQzMDMuNzc4MDQyXSAgWzxmYzBmZDI4MD5dID8gbmZuZXRsaW5r
-X3Jjdl9tc2crMHgwLzB4MWIwIFtuZm5ldGxpbmtdCls0MzQzMDMuNzc4MDQ4XSAgWzxjMTQ1MmE1
-ZD5dID8gbmV0bGlua19yY3Zfc2tiKzB4N2QvMHhhMApbNDM0MzAzLjc3ODA1MV0gIFs8ZmMwZmQx
-N2M+XSA/IG5mbmV0bGlua19yY3YrMHgxYy8weDMwIFtuZm5ldGxpbmtdCls0MzQzMDMuNzc4MDU0
-XSAgWzxjMTQ1MjA0Mz5dID8gbmV0bGlua191bmljYXN0KzB4MTgzLzB4MWQwCls0MzQzMDMuNzc4
-MDU4XSAgWzxjMTQyN2IyYz5dID8gbWVtY3B5X2Zyb21pb3ZlYysweDRjLzB4NzAKWzQzNDMwMy43
-NzgwNjFdICBbPGMxNDUyNzFkPl0gPyBuZXRsaW5rX3NlbmRtc2crMHgyYWQvMHgzNDAKWzQzNDMw
-My43NzgwNjZdICBbPGMxNDFkMmNmPl0gPyBzb2NrX3NlbmRtc2crMHhlZi8weDExMApbNDM0MzAz
-Ljc3ODA3MV0gIFs8YzExMWY0ODY+XSA/IG1lbV9jZ3JvdXBfdXBkYXRlX3BhZ2Vfc3RhdCsweDM2
-LzB4ZTAKWzQzNDMwMy43NzgwNzVdICBbPGMxMGUxYzIxPl0gPyB1bmxvY2tfcGFnZSsweDIxLzB4
-MzAKWzQzNDMwMy43NzgwODBdICBbPGMxMjc4MTYxPl0gPyBfY29weV9mcm9tX3VzZXIrMHg0MS8w
-eDcwCls0MzQzMDMuNzc4MDgzXSAgWzxjMTQxZjMwZD5dID8gc3lzX3NlbmR0bysweDEwZC8weDE1
-MApbNDM0MzAzLjc3ODA4N10gIFs8YzExMDEwNmU+XSA/IGhhbmRsZV9tbV9mYXVsdCsweDllLzB4
-ZDAKWzQzNDMwMy43NzgwOTFdICBbPGMxNTBmNzAwPl0gPyBkb19wYWdlX2ZhdWx0KzB4MC8weDRk
-MApbNDM0MzAzLjc3ODA5M10gIFs8YzE1MGY5Mjg+XSA/IGRvX3BhZ2VfZmF1bHQrMHgyMjgvMHg0
-ZDAKWzQzNDMwMy43NzgwOTddICBbPGMxNDFmZTg1Pl0gPyBzeXNfc29ja2V0Y2FsbCsweDFkNS8w
-eDJkMApbNDM0MzAzLjc3ODEwMV0gIFs8YzEwMDJlMWY+XSA/IHN5c2VudGVyX2RvX2NhbGwrMHgx
-Mi8weDI4Cls0NTM4NDcuMDk0MjYyXSBFWFQ0LWZzIChzZGExKTogVW5hbGlnbmVkIEFJTy9ESU8g
-b24gaW5vZGUgNTkxMTUzMjMgYnkgVmlydHVhbEJveDsgcGVyZm9ybWFuY2Ugd2lsbCBiZSBwb29y
-LgpbNDc1NTM5LjQ2NjA3NV0gRVhUNC1mcyAoc2RhMSk6IFVuYWxpZ25lZCBBSU8vRElPIG9uIGlu
-b2RlIDU5MTE1MzIzIGJ5IFZpcnR1YWxCb3g7IHBlcmZvcm1hbmNlIHdpbGwgYmUgcG9vci4KWzQ5
-NzE0MS43NjE3NDddIEVYVDQtZnMgKHNkYTEpOiBVbmFsaWduZWQgQUlPL0RJTyBvbiBpbm9kZSA1
-OTExNTMyMyBieSBWaXJ0dWFsQm94OyBwZXJmb3JtYW5jZSB3aWxsIGJlIHBvb3IuCls1MTg3MDAu
-MjAwNTIxXSBFWFQ0LWZzIChzZGExKTogVW5hbGlnbmVkIEFJTy9ESU8gb24gaW5vZGUgNTkxMTUz
-MjMgYnkgVmlydHVhbEJveDsgcGVyZm9ybWFuY2Ugd2lsbCBiZSBwb29yLgo=
---20cf3071cfd065d0d304a5b43001--
+> 
+> I have based the pull request on next-2.6 as
+> nf-next-2.6 seems to be a little old. Please let me
+> know if a different base would suit you better.
+> 
+> Hans Schillstrom (2):
+>       IPVS remove unused var from migration to netns
+>       IPVS: rename of netns init and cleanup functions.
+> 
+> Julian Anastasov (1):
+>       ipvs: support more FTP PASV responses
+> 
+>  include/net/ip_vs.h              |   28 +++++++++-----------
+>  net/netfilter/ipvs/ip_vs_app.c   |    4 +-
+>  net/netfilter/ipvs/ip_vs_conn.c  |    4 +-
+>  net/netfilter/ipvs/ip_vs_core.c  |   36 +++++++++++++-------------
+>  net/netfilter/ipvs/ip_vs_ctl.c   |   20 +++++++-------
+>  net/netfilter/ipvs/ip_vs_est.c   |    4 +-
+>  net/netfilter/ipvs/ip_vs_ftp.c   |   52 +++++++++++++++++++++++++++----------
+>  net/netfilter/ipvs/ip_vs_proto.c |    4 +-
+>  net/netfilter/ipvs/ip_vs_sync.c  |    4 +-
+>  9 files changed, 89 insertions(+), 67 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
