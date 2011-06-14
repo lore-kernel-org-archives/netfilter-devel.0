@@ -1,114 +1,54 @@
-From: "Hans Schillstrom" <hans@schillstrom.com>
-Subject: Re: Re: [RFC PATCH 1/1] IPVS netns shutdown/startup dead-lock
-Date: Tue, 14 Jun 2011 00:09:26 +0200 (CEST)
-Message-ID: <oth2obo.8109e7bd386ff72c34c0bda4b6945edf@obelix.schillstrom.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Cc: "Hans Schillstrom" <hans.schillstrom@ericsson.com>,
-	horms@verge.net.au, wensong@linux-vs.org,
-	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: "Julian Anastasov" <ja@ssi.bg>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH net-next 0/2] net: remove casts of void *
+Date: Mon, 13 Jun 2011 19:21:25 -0700
+Message-ID: <cover.1308017857.git.joe@perches.com>
+Cc: linux-kernel@vger.kernel.org, ebtables-user@lists.sourceforge.net,
+	ebtables-devel@lists.sourceforge.net,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, bridge@lists.linux-foundation.org,
+	ceph-devel@vger.kernel.org,
+	linux-decnet-user@lists.sourceforge.net, linux-sctp@vger.kernel.org
+To: netdev@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.perches.com ([173.55.12.10]:2899 "EHLO mail.perches.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751059Ab1FNCVa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Jun 2011 22:21:30 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
->---- Original Message ----
->From: Julian Anastasov <ja@ssi.bg>
->To: "Hans Schillstrom" <hans.schillstrom@ericsson.com>
->Cc: horms@verge.net.au, wensong@linux-vs.org, lvs-devel@vger.kernel.org, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, hans@schillstrom.com
->Sent: Mon, Jun 13, 2011, 23:23 PM
->Subject: Re: [RFC PATCH 1/1] IPVS netns shutdown/startup dead-lock
->
->Hello,
->
->On Mon, 13 Jun 2011, Hans Schillstrom wrote:
->
->> ip_vs_mutext is used by both netns shutdown code and startup
->> and both implicit uses sk_lock-AF_INET mutex.
->> 
->> cleanup CPU-1         startup CPU-2
->> ip_vs_dst_event()     ip_vs_genl_set_cmd()
->>  sk_lock-AF_INET     __ip_vs_mutex
->>                      sk_lock-AF_INET
->> __ip_vs_mutex
->> * DEAD LOCK *
->
->	So, sk_lock-AF_INET is locked before calling
->ip_vs_dst_event ? Do you have a backtrace for this case?
+Joe Perches (2):
+  net: Remove casts of void *
+  net: netfilter: Remove casts of void *
 
-Yes plenty this one is with lockdep
+ net/8021q/vlanproc.c                |    2 +-
+ net/atm/mpc.c                       |    2 +-
+ net/bridge/netfilter/ebtables.c     |    2 +-
+ net/ceph/crypto.c                   |    2 +-
+ net/decnet/dn_dev.c                 |    2 +-
+ net/ipv4/netfilter/arp_tables.c     |   16 ++++++----------
+ net/ipv4/netfilter/ip_tables.c      |   13 +++++--------
+ net/ipv6/netfilter/ip6_tables.c     |   13 +++++--------
+ net/irda/af_irda.c                  |    4 ++--
+ net/irda/ircomm/ircomm_tty_attach.c |    2 +-
+ net/irda/irda_device.c              |    2 +-
+ net/irda/iriap.c                    |    8 ++++----
+ net/irda/irlan/irlan_client.c       |   10 +++++-----
+ net/irda/irlan/irlan_common.c       |   10 +++++-----
+ net/irda/irlan/irlan_eth.c          |    2 +-
+ net/irda/irlan/irlan_provider.c     |   10 +++++-----
+ net/irda/irqueue.c                  |    4 ++--
+ net/irda/irttp.c                    |   18 +++++++++---------
+ net/key/af_key.c                    |   20 ++++++++++----------
+ net/netfilter/ipset/ip_set_core.c   |    2 +-
+ net/netfilter/nf_conntrack_proto.c  |    2 +-
+ net/netlabel/netlabel_unlabeled.c   |   10 ++++------
+ net/sctp/bind_addr.c                |    2 +-
+ net/sctp/input.c                    |    3 +--
+ net/sctp/sm_make_chunk.c            |   26 ++++++++++----------------
+ net/sctp/sm_sideeffect.c            |    2 +-
+ net/sctp/socket.c                   |   16 ++++++++--------
+ 27 files changed, 93 insertions(+), 112 deletions(-)
 
-Chain exists of:
-  rtnl_mutex --> __ip_vs_mutex --> sk_lock-AF_INET
-
- Possible unsafe locking scenario:
-
-       CPU0                    CPU1
-       ----                    ----
-  lock(sk_lock-AF_INET);
-                               lock(__ip_vs_mutex);
-                               lock(sk_lock-AF_INET);
-  lock(rtnl_mutex);
-
- *** DEADLOCK ***
-
-3 locks held by ipvsadm/993:
- #0:  (genl_mutex){+.+.+.}, at: [<ffffffff812edc52>] genl_lock+0x17/0x19
- #1:  (__ip_vs_mutex){+.+.+.}, at: [<ffffffff81307dcb>] ip_vs_genl_set_cmd+0xe1/0x3a3
- #2:  (sk_lock-AF_INET){+.+.+.}, at: [<ffffffff8130ffc1>] start_sync_thread+0x3ec/0x5ff
-
-
->I assume your patch is tested to fix the problem ?
-
-Yes.
-
->
->> This can be solved by have the ip_vs_mutex per netns
->> or avid locking when starting/stoping sync-threads.
->> i.e. just add a starting/stoping flag.
->
->	sk_release_kernel is called in thread
->context, so ip_vs_mutex is not involved there. We
->have a problem only with start_sync_thread, right?
-
-Yes the socket operations
-
->
->> ip_vs_mutex per name-space seems to be a more future proof solution.
->
->	Global mutex protects some global lists such as
->virtual services. If your patch works, better way to fix this problem
->is to use some new mutex. May be we can move the IPVS_CMD_NEW_DAEMON,
->IPVS_CMD_DEL_DAEMON and IP_VS_SO_GET_DAEMON code before the
->__ip_vs_mutex locking. This mutex should be used for start_sync_thread,
->stop_sync_thread, ip_vs_genl_dump_daemons and IP_VS_SO_GET_DAEMON.
->For example, ip_vs_sync_mutex.
-
-I think we should avoid global mutexes as a rule of tumb, 
-because it's realy hard to keep track of all possible cases 
-that can occur when multiple netns is alive and/or goes up and down.
-
-There might be more suprises while a netns exits (in terms of locks)...
-my gut feeling is, avoid global locks as long as possible.
-
->
->	Note that __ip_vs_sync_cleanup is missing a
->__ip_vs_mutex lock. We have to use the new mutex there.
-
-OK
-
->
->> Which one should be used ?
->
->	For now __ip_vs_mutex should be global ...
-
-I do agree, but in the long term I vote for mutex per netns.
- 
-Thanks a lot Julian
-
-Regards
-Hans
-
+-- 
+1.7.6.rc0
