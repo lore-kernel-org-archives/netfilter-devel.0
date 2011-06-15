@@ -1,49 +1,40 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 2/2] conntrack: -U: skip sending conntrack update message if conntrack is unchanged
-Date: Wed, 15 Jun 2011 14:13:40 +0200
-Message-ID: <1308140020-13487-3-git-send-email-fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/2] conntrack: permit updating only a part of the ctmark
+Date: Wed, 15 Jun 2011 14:47:37 +0200
+Message-ID: <4DF8A9E9.8060508@netfilter.org>
 References: <1308140020-13487-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:36351 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752006Ab1FOML5 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jun 2011 08:11:57 -0400
+Received: from mail.us.es ([193.147.175.20]:54477 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752832Ab1FOMrx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Jun 2011 08:47:53 -0400
 In-Reply-To: <1308140020-13487-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This speeds up operation when a lot of conntracks exist, but only
-a few of them have to be altered.
+On 15/06/11 14:13, Florian Westphal wrote:
+> Hello Pablo,
+> 
+> here are two patches for conntrack(8).
+> 
+> I want to alter the upper 8 bits of the conntrack mark while keeping
+> the rest intact.  At the moment it is only possible to specifiy
+> an absolute value, so i've extended --mark to optionally handle
+> a mask argument.  Its possible to either filter by mark (e.g.
+> list conntracks with a particular mark bit set) or to update
+> parts of the mark.
+> 
+> The 2nd patch is not absolutely needed, but it speeds up operation
+> when only a couple of conntracks are affected by the modification.
 
-This change is user-visible because the exit message
-("%d flow entries have been updated") will now print the number of entries
-that have been altered instead of the total number of conntracks seen.
+I like them both, I've applied them.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/conntrack.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+Would you send me another patch for the qa/testsuite/ to include some
+test to check that --mark works with absolute value and masks?
 
-diff --git a/src/conntrack.c b/src/conntrack.c
-index fb133f1..3e1cb11 100644
---- a/src/conntrack.c
-+++ b/src/conntrack.c
-@@ -1258,6 +1258,12 @@ static int update_cb(enum nf_conntrack_msg_type type,
- 	nfct_copy(tmp, obj, NFCT_CP_META);
- 	copy_mark(tmp, ct, &tmpl.mark);
- 
-+	/* do not send NFCT_Q_UPDATE if ct appears unchanged */
-+	if (nfct_cmp(tmp, ct, NFCT_CMP_ALL | NFCT_CMP_MASK)) {
-+		nfct_destroy(tmp);
-+		return NFCT_CB_CONTINUE;
-+	}
-+
- 	res = nfct_query(ith, NFCT_Q_UPDATE, tmp);
- 	if (res < 0) {
- 		nfct_destroy(tmp);
--- 
-1.7.3.4
-
+Thank you.
