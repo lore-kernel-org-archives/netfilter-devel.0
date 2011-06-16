@@ -1,35 +1,45 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH v2] netfilter: avoid double seq_adjust for loopback
-Date: Thu, 16 Jun 2011 17:30:16 +0200
-Message-ID: <4DFA2188.5000505@trash.net>
-References: <alpine.LFD.2.00.1106080926320.1457@ja.ssi.bg>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 1/4] netfilter: xtables: move ipt_ecn to xt_ecn
+Date: Thu, 16 Jun 2011 17:31:39 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1106161730540.10380@frira.zrqbmnf.qr>
+References: <1307651037-20520-1-git-send-email-jengelh@medozas.de> <1307651037-20520-2-git-send-email-jengelh@medozas.de> <4DFA1F60.7080704@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Julian Anastasov <ja@ssi.bg>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60072 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756166Ab1FPPaU (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jun 2011 11:30:20 -0400
-In-Reply-To: <alpine.LFD.2.00.1106080926320.1457@ja.ssi.bg>
+Received: from seven.medozas.de ([188.40.89.202]:34537 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756166Ab1FPPbl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Jun 2011 11:31:41 -0400
+In-Reply-To: <4DFA1F60.7080704@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 08.06.2011 08:31, Julian Anastasov wrote:
-> 	Avoid double seq adjustment for loopback traffic
-> because it causes silent repetition of TCP data. One
-> example is passive FTP with DNAT rule and difference in the
-> length of IP addresses.
-> 
-> 	This patch adds check if packet is sent and
-> received via loopback device. As the same conntrack is
-> used both for outgoing and incoming direction, we restrict
-> seq adjustment to happen only in POSTROUTING.
-> 
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
 
-Applied, thanks Julian.
+On Thursday 2011-06-16 17:21, Patrick McHardy wrote:
+>On 09.06.2011 22:23, Jan Engelhardt wrote:
+>> --- a/net/ipv4/netfilter/Kconfig
+>> +++ b/net/ipv4/netfilter/Kconfig
+>> @@ -76,11 +76,11 @@ config IP_NF_MATCH_AH
+>>  config IP_NF_MATCH_ECN
+>>  	tristate '"ecn" match support'
+>>  	depends on NETFILTER_ADVANCED
+>> -	help
+>> -	  This option adds a `ECN' match, which allows you to match against
+>> -	  the IPv4 and TCP header ECN fields.
+>> -
+>> -	  To compile it as a module, choose M here.  If unsure, say N.
+>> +	select NETFILTER_XT_MATCH_ECN
+>> +	---help---
+>> +	This is a backwards-compat option for the user's convenience
+>> +	(e.g. when running oldconfig). It selects
+>> +	CONFIG_NETFILTER_XT_MATCH_ECN.
+>>  
+>
+>Did this work? I've tried myself, but it would still show the new
+>option.
+
+What do you mean? Of course it is supposed to show NETFILTER_XT_MATCH_ECN.
+And IP_NF_MATCH_ECN we cannot hide without removing, but that is not
+a problem either.
