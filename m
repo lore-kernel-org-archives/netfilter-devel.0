@@ -1,27 +1,52 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 15/15] netfilter: ipset: Whitespace and coding fixes detected
- by checkpatch.pl
-Date: Thu, 16 Jun 2011 19:01:57 +0200
-Message-ID: <4DFA3705.6080501@trash.net>
-References: <1307465780-28980-1-git-send-email-kadlec@blackhole.kfki.hu> <1307465780-28980-2-git-send-email-kadlec@blackhole.kfki.hu> <1307465780-28980-3-git-send-email-kadlec@blackhole.kfki.hu> <1307465780-28980-4-git-send-email-kadlec@blackhole.kfki.hu> <1307465780-28980-5-git-send-email-kadlec@blackhole.kfki.hu> <1307465780-28980-6-git-send-email-kadlec@blackhole.kfki.hu> <1307465780-28980-7-git-send-email-kadlec@blackhole.kfki.hu> <1307465780-28980-8-git-send-email-kadlec@blackhole.kfki.hu> <1307465780-28980-9-git-send-email-kadlec@blackhole.kfki.hu> <1307465780-28980-10-git-send-email-kadlec@blackhole.kfki.hu> <1307465780-28980-11-git-send-email-kadlec@blackhole.kfki.hu> <1307465780-28980-12-git-send-email-kadlec@blackhole.kfki.hu> <1307465780-28980-13-git-send-email-kadlec@blackhole.
- kfki.hu> <1307465780-28980-14-git-send-email-kadlec@blackhole.kfki.hu> <1307465780-28980-15-git-send-email-kadlec@blackhole.kfki.hu> <1307465780-28980-16-git-send-email-kadlec@blackhole.kfki
- .hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: kaber@trash.net
+Subject: [PATCH 3/6] netfilter: ipt_ecn: fix protocol check in ecn_mt_check()
+Date: Thu, 16 Jun 2011 21:41:38 +0200
+Message-ID: <1308253301-29894-4-git-send-email-kaber@trash.net>
+References: <1308253301-29894-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:61795 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:64058 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753203Ab1FPRB7 (ORCPT
+	with ESMTP id S1757887Ab1FPTlp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jun 2011 13:01:59 -0400
-In-Reply-To: <1307465780-28980-16-git-send-email-kadlec@blackhole.kfki.hu>
+	Thu, 16 Jun 2011 15:41:45 -0400
+In-Reply-To: <1308253301-29894-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 07.06.2011 18:56, Jozsef Kadlecsik wrote:
+From: Patrick McHardy <kaber@trash.net>
 
-Applied, thanks.
+Check for protocol inversion in ecn_mt_check() and remove the
+unnecessary runtime check for IPPROTO_TCP in ecn_mt().
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ net/ipv4/netfilter/ipt_ecn.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ipt_ecn.c b/net/ipv4/netfilter/ipt_ecn.c
+index af6e9c7..aaa85be 100644
+--- a/net/ipv4/netfilter/ipt_ecn.c
++++ b/net/ipv4/netfilter/ipt_ecn.c
+@@ -76,8 +76,6 @@ static bool ecn_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 			return false;
+ 
+ 	if (info->operation & (IPT_ECN_OP_MATCH_ECE|IPT_ECN_OP_MATCH_CWR)) {
+-		if (ip_hdr(skb)->protocol != IPPROTO_TCP)
+-			return false;
+ 		if (!match_tcp(skb, info, &par->hotdrop))
+ 			return false;
+ 	}
+@@ -97,7 +95,7 @@ static int ecn_mt_check(const struct xt_mtchk_param *par)
+ 		return -EINVAL;
+ 
+ 	if (info->operation & (IPT_ECN_OP_MATCH_ECE|IPT_ECN_OP_MATCH_CWR) &&
+-	    ip->proto != IPPROTO_TCP) {
++	    (ip->proto != IPPROTO_TCP || ip->invflags & IPT_INV_PROTO)) {
+ 		pr_info("cannot match TCP bits in rule for non-tcp packets\n");
+ 		return -EINVAL;
+ 	}
+-- 
+1.7.2.3
+
