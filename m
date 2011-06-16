@@ -1,61 +1,25 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] iptables: document IPv6 TOS mangling bug in old Linux
- kernels
-Date: Thu, 16 Jun 2011 17:15:08 +0200
-Message-ID: <4DFA1DFC.3000804@trash.net>
-References: <1307320871-31770-1-git-send-email-pablo@netfilter.org>  <1307320871-31770-2-git-send-email-pablo@netfilter.org>  <BANLkTikAs7fN2JQJTUwQHAYPPGMf8i9uEA@mail.gmail.com>  <alpine.LNX.2.01.1106061618370.17430@frira.zrqbmnf.qr> <1308213411.4062.22.camel@nausicaa> <alpine.LNX.2.01.1106161705300.10015@frira.zrqbmnf.qr>
+Subject: Re: [PATCH] netfilter/ip_tables: fix compile with debug
+Date: Thu, 16 Jun 2011 17:17:19 +0200
+Message-ID: <4DFA1E7F.8000205@trash.net>
+References: <1308169381-10067-1-git-send-email-sebastian@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>,
-	Maciej <zenczykowski@gmail.com>,
-	Pablo Neira Aysuo <pablo@netfilter.org>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Linux Networking Developer Mailing List
-	<netdev@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59733 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:59800 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756617Ab1FPPPK (ORCPT
+	with ESMTP id S1755474Ab1FPPRU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jun 2011 11:15:10 -0400
-In-Reply-To: <alpine.LNX.2.01.1106161705300.10015@frira.zrqbmnf.qr>
+	Thu, 16 Jun 2011 11:17:20 -0400
+In-Reply-To: <1308169381-10067-1-git-send-email-sebastian@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 16.06.2011 17:06, Jan Engelhardt wrote:
-> On Thursday 2011-06-16 10:36, Fernando Luis Vazquez Cao wrote:
-> 
->> Jan, Patrick,
->>
->> I would like to get this bug in old Linux kernels documented in the
->> iptables man page, since it is pretty serious. The fix made into 2.6.39
->> and I would like to have it backported to 2.6.32-longterm and
->> 2.6.33-longterm. If you disagree with the backport to -longterm please
->> let me know, I would update the patch accordingly.
+On 15.06.2011 22:23, Sebastian Andrzej Siewior wrote:
+> Signed-off-by: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 
-That's fine with me.
-
->> .SH BUGS
->> Bugs?  What's this? ;-)
->> +.PP
->> Well... the counters are not reliable on sparc64.
->> +.PP
->> +In Linux kernels up to and including 2.6.38, with the exception of longterm
->> +releases 2.6.32.42 (or later) and 2.6.33.15 (or later), there is a bug whereby
->> +IPv6 TOS mangling does not behave as documented and differs from the IPv4
->> +version. The TOS mask indicates the bits one wants to zero out, so it needs to
->> +be inverted before applying it to the original TOS field. However, the
->> +aformentioned kernels forgo the inversion which breaks --set-tos and its
->> +mnemonics.
->> +.PP
->> +You might also want to have a look at http://bugzilla.netfilter.org/
->> .SH COMPATIBILITY WITH IPCHAINS
->> This \fBip6tables\fP
->> is very similar to ipchains by Rusty Russell.  The main difference is
-> 
-> I feel this should be listed in the TOS page, to avoid duplication.
-
-I agree with Jan, just the TOS man page seems fine.
+Applied, thanks. We should really convert this stuff to pr_debug to
+make sure these problems are found even without debugging enabled.
