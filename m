@@ -1,98 +1,39 @@
-From: kaber@trash.net
-Subject: [PATCH 04/20] IPVS: labels at pos 0
-Date: Thu, 16 Jun 2011 21:47:04 +0200
-Message-ID: <1308253640-29942-5-git-send-email-kaber@trash.net>
-References: <1308253640-29942-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: davem@davemloft.net
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [GIT PULL nf-2.6] IPVS
+Date: Fri, 17 Jun 2011 07:06:11 +0900
+Message-ID: <20110616220610.GD2434@verge.net.au>
+References: <1307954861-21592-1-git-send-email-horms@verge.net.au>
+ <4DFA1D0E.5070908@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64141 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932240Ab1FPTrY (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:40378 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422631Ab1FPWGU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jun 2011 15:47:24 -0400
-In-Reply-To: <1308253640-29942-1-git-send-email-kaber@trash.net>
+	Thu, 16 Jun 2011 18:06:20 -0400
+Content-Disposition: inline
+In-Reply-To: <4DFA1D0E.5070908@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Hans Schillstrom <hans.schillstrom@ericsson.com>
+On Thu, Jun 16, 2011 at 05:11:10PM +0200, Patrick McHardy wrote:
+> On 13.06.2011 10:47, Simon Horman wrote:
+> > Hi Pablo,
+> > 
+> > please consider pulling
+> > git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-2.6.git master
+> > to get the following fix from Hans.
+> > 
+> > I believe this change should be considered for -stable.
+> 
+> Just send it to the stable people once it hits upstream. I'll
+> send it to Dave tonight.
 
-Put goto labels at the beginig of row
-acording to coding style example.
-
-Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Signed-off-by: Simon Horman <horms@verge.net.au>
----
- net/netfilter/ipvs/ip_vs_core.c |   10 +++++-----
- net/netfilter/ipvs/ip_vs_ctl.c  |    8 ++++----
- 2 files changed, 9 insertions(+), 9 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 7c2c726..6cefe32 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1384,7 +1384,7 @@ ip_vs_in_icmp(struct sk_buff *skb, int *related, unsigned int hooknum)
- 		offset += 2 * sizeof(__u16);
- 	verdict = ip_vs_icmp_xmit(skb, cp, pp, offset, hooknum);
- 
--  out:
-+out:
- 	__ip_vs_conn_put(cp);
- 
- 	return verdict;
-@@ -2018,14 +2018,14 @@ cleanup_sub:
- 	unregister_pernet_subsys(&ipvs_core_ops);
- cleanup_sync:
- 	ip_vs_sync_cleanup();
--  cleanup_conn:
-+cleanup_conn:
- 	ip_vs_conn_cleanup();
--  cleanup_app:
-+cleanup_app:
- 	ip_vs_app_cleanup();
--  cleanup_protocol:
-+cleanup_protocol:
- 	ip_vs_protocol_cleanup();
- 	ip_vs_control_cleanup();
--  cleanup_estimator:
-+cleanup_estimator:
- 	ip_vs_estimator_cleanup();
- 	return ret;
- }
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 6bedea1..be43fd8 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1334,9 +1334,9 @@ ip_vs_edit_service(struct ip_vs_service *svc, struct ip_vs_service_user_kern *u)
- 		ip_vs_bind_pe(svc, pe);
- 	}
- 
--  out_unlock:
-+out_unlock:
- 	write_unlock_bh(&__ip_vs_svc_lock);
--  out:
-+out:
- 	ip_vs_scheduler_put(old_sched);
- 	ip_vs_pe_put(old_pe);
- 	return ret;
-@@ -2469,7 +2469,7 @@ __ip_vs_get_service_entries(struct net *net,
- 			count++;
- 		}
- 	}
--  out:
-+out:
- 	return ret;
- }
- 
-@@ -2707,7 +2707,7 @@ do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
- 		ret = -EINVAL;
- 	}
- 
--  out:
-+out:
- 	mutex_unlock(&__ip_vs_mutex);
- 	return ret;
- }
--- 
-1.7.2.3
-
+Understood, will do.
