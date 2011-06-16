@@ -1,55 +1,42 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 1/4] netfilter: xtables: move ipt_ecn to xt_ecn
-Date: Thu, 16 Jun 2011 17:43:28 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1106161743000.10544@frira.zrqbmnf.qr>
-References: <1307651037-20520-1-git-send-email-jengelh@medozas.de> <1307651037-20520-2-git-send-email-jengelh@medozas.de> <4DFA1F60.7080704@trash.net> <alpine.LNX.2.01.1106161730540.10380@frira.zrqbmnf.qr> <4DFA2276.8070305@trash.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 00/12] ipset patches against nf-next-2.6, updated again
+Date: Thu, 16 Jun 2011 18:15:59 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1106161815060.3616@blackhole.kfki.hu>
+References: <1306964151-4686-1-git-send-email-kadlec@blackhole.kfki.hu> <4DF0F05E.2090406@trash.net> <4DF113E7.20105@netfilter.org> <alpine.DEB.2.00.1106111655190.12913@blackhole.kfki.hu> <4DFA19E6.1030209@trash.net> <4DFA1B76.90009@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:32835 "EHLO seven.medozas.de"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:56179 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754585Ab1FPPna (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jun 2011 11:43:30 -0400
-In-Reply-To: <4DFA2276.8070305@trash.net>
+	id S1755640Ab1FPQQB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Jun 2011 12:16:01 -0400
+In-Reply-To: <4DFA1B76.90009@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2011-06-16 17:34, Patrick McHardy wrote:
+On Thu, 16 Jun 2011, Patrick McHardy wrote:
 
->On 16.06.2011 17:31, Jan Engelhardt wrote:
->> 
->> On Thursday 2011-06-16 17:21, Patrick McHardy wrote:
->>> On 09.06.2011 22:23, Jan Engelhardt wrote:
->>>> --- a/net/ipv4/netfilter/Kconfig
->>>> +++ b/net/ipv4/netfilter/Kconfig
->>>> @@ -76,11 +76,11 @@ config IP_NF_MATCH_AH
->>>>  config IP_NF_MATCH_ECN
->>>>  	tristate '"ecn" match support'
->>>>  	depends on NETFILTER_ADVANCED
->>>> -	help
->>>> -	  This option adds a `ECN' match, which allows you to match against
->>>> -	  the IPv4 and TCP header ECN fields.
->>>> -
->>>> -	  To compile it as a module, choose M here.  If unsure, say N.
->>>> +	select NETFILTER_XT_MATCH_ECN
->>>> +	---help---
->>>> +	This is a backwards-compat option for the user's convenience
->>>> +	(e.g. when running oldconfig). It selects
->>>> +	CONFIG_NETFILTER_XT_MATCH_ECN.
->>>>  
->>>
->>> Did this work? I've tried myself, but it would still show the new
->>> option.
->> 
->> What do you mean? Of course it is supposed to show NETFILTER_XT_MATCH_ECN.
->
->Well, ideally not, but fine as long as its still automatically
->selected.
->
->I'll pull your patches once the first two fixes are upstream.
+> On 16.06.2011 16:57, Patrick McHardy wrote:
+> > On 11.06.2011 16:57, Jozsef Kadlecsik wrote:
+> >>
+> >> Then please apply the patches I sent to netfilter-devel on 7, June titled 
+> >> "[PATCH 00/15] ipset patches against nf-next-2.6, next try". Thanks! Or 
+> >> shall I resend them?
+> > 
+> > I'll apply them, thanks.
+> 
+> These patches are missing Signed-off-by: lines. Should I simply add them
+> myself?
 
-We are doing the same thing with the old options for nfmark/ctmark
-(cf. Documentation/feature-removal-schedule.txt) so I guess that was ok.
-The old options are supposed to be gone in a few releases anyway.
+Ohh, yes please. I should have add the Signed-off-by: line.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
