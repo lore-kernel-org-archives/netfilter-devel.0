@@ -1,41 +1,36 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/4] netfilter: xtables: move ipt_ecn to xt_ecn
-Date: Thu, 16 Jun 2011 17:21:04 +0200
-Message-ID: <4DFA1F60.7080704@trash.net>
-References: <1307651037-20520-1-git-send-email-jengelh@medozas.de> <1307651037-20520-2-git-send-email-jengelh@medozas.de>
+Subject: Re: [PATCH] netfilter: fix looped (broad|multi)cast's MAC handling.
+Date: Thu, 16 Jun 2011 17:27:58 +0200
+Message-ID: <4DFA20FE.80708@trash.net>
+References: <4DF0EFE6.4010206@trash.net> <1307690440-18760-1-git-send-email-cavallar@lri.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: fw@strlen.de, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, Nicolas Cavallari <cavallar@lri.fr>
+To: Nicolas Cavallari <Nicolas.Cavallari@lri.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59884 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60013 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757208Ab1FPPVF (ORCPT
+	with ESMTP id S1756166Ab1FPP2C (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jun 2011 11:21:05 -0400
-In-Reply-To: <1307651037-20520-2-git-send-email-jengelh@medozas.de>
+	Thu, 16 Jun 2011 11:28:02 -0400
+In-Reply-To: <1307690440-18760-1-git-send-email-cavallar@lri.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 09.06.2011 22:23, Jan Engelhardt wrote:
-> --- a/net/ipv4/netfilter/Kconfig
-> +++ b/net/ipv4/netfilter/Kconfig
-> @@ -76,11 +76,11 @@ config IP_NF_MATCH_AH
->  config IP_NF_MATCH_ECN
->  	tristate '"ecn" match support'
->  	depends on NETFILTER_ADVANCED
-> -	help
-> -	  This option adds a `ECN' match, which allows you to match against
-> -	  the IPv4 and TCP header ECN fields.
-> -
-> -	  To compile it as a module, choose M here.  If unsure, say N.
-> +	select NETFILTER_XT_MATCH_ECN
-> +	---help---
-> +	This is a backwards-compat option for the user's convenience
-> +	(e.g. when running oldconfig). It selects
-> +	CONFIG_NETFILTER_XT_MATCH_ECN.
->  
+On 10.06.2011 09:20, Nicolas Cavallari wrote:
+> By default, when broadcast or multicast packet are sent from a local
+> application, they are sent to the interface then looped by the kernel
+> to other local applications, going throught netfilter hooks in the process.
+> 
+> These looped packet have their MAC header removed from the skb by the kernel
+> looping code.
+> This confuse various netfilter's netlink queue, netlink log and the
+> legacy ip_queue, because they try to extract a hardware
+> address from these packets, but extracts a part of the IP header instead.
+> 
+> This patch prevent NFQUEUE, NFLOG and ip_QUEUE to include a MAC header
+> if there is none in the packet.
 
-Did this work? I've tried myself, but it would still show the new
-option.
+Applied, thanks Nicolas.
