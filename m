@@ -1,61 +1,132 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: [PATCH 3rd revision] Add SELinux context support to AUDIT target
-Date: Thu, 16 Jun 2011 09:36:21 +0100
-Message-ID: <4DF9C085.3040306@googlemail.com>
-References: <4DEDEB99.4070601@netfilter.org>	<4DEFC6C9.5030004@googlemail.com>	<BANLkTikhbT7EVXcKM8vSHir=6Va+qWY19A@mail.gmail.com>	<201106081528.22926.sgrubb@redhat.com>	<BANLkTik9wXe+g4EXByUt3MrxGhuLKgTV3A@mail.gmail.com>	<4DF0BC5F.5040100@trash.net>	<BANLkTin-M-60LSTbvAdpzfio0suYj2WcqA@mail.gmail.com>	<4DF0D3C9.8030404@googlemail.com> <BANLkTim-d4bSqMKd_8Ef2gQCe37F1rY6dw@mail.gmail.com> <4DF0E3D3.1070002@googlemail.com>
+From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Subject: [PATCH] iptables: document IPv6 TOS mangling bug in old Linux
+ kernels
+Date: Thu, 16 Jun 2011 17:36:51 +0900
+Message-ID: <1308213411.4062.22.camel@nausicaa>
+References: <1307320871-31770-1-git-send-email-pablo@netfilter.org>
+	 <1307320871-31770-2-git-send-email-pablo@netfilter.org>
+	 <BANLkTikAs7fN2JQJTUwQHAYPPGMf8i9uEA@mail.gmail.com>
+	 <alpine.LNX.2.01.1106061618370.17430@frira.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, Steve Grubb <sgrubb@redhat.com>,
-	Casey Schaufler <casey@schaufler-ca.com>,
-	linux-audit@redhat.com, Thomas Graf <tgraf@redhat.com>,
-	netfilter-devel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Eric Paris <eparis@parisplace.org>
+Cc: Maciej <zenczykowski@gmail.com>, pablo@netfilter.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:40664 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751098Ab1FPIgg (ORCPT
+Received: from serv2.oss.ntt.co.jp ([222.151.198.100]:54185 "EHLO
+	serv2.oss.ntt.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751098Ab1FPIhK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jun 2011 04:36:36 -0400
-Received: by wwa36 with SMTP id 36so1294062wwa.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jun 2011 01:36:35 -0700 (PDT)
-In-Reply-To: <4DF0E3D3.1070002@googlemail.com>
+	Thu, 16 Jun 2011 04:37:10 -0400
+In-Reply-To: <alpine.LNX.2.01.1106061618370.17430@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan, Patrick,
 
->>> #ifdef CONFIG_NF_CONNTRACK_SECMARK
->>>   if (skb->secmark)
->>>               audit_log_secctx(ab,skb->secmark);
->>> #endif
->>>
->>> Thus, discarding the result (rc), unless we are interested in the error
->>> code, which I don't think is the case here. Would everyone be happy 
->>> with
->>> this?
->>>     
->>
->> Actually just make it a void function as I don't think anyone
->> would/could/should make use of the return value.
->>   
-> In other words (audit.c) - N.B. the change from "subj" to "obj" as per 
-> Steve's suggestion a while ago:
->
-> void audit_log_secctx(struct auditbuffer *ab, u32 secid)
-> {
->    int len;
->    char *ctx;
->
->    if (security_secid_to_secctx(sid, &ctx, &len)) {
->        audit_panic("Cannot convert secid to context");
->    } else {
->            audit_log_format(ab, " obj=%s", ctx);
->            security_release_secctx(ctx, len);
->    }
-> }
->
-> And xt_AUDIT.c stays as per my suggestion above. Should I assume that 
-> gets the "go" from everyone concerned?
-If there are no objections, I'll resubmit the patch at the weekend with 
-the above functionality implemented.
+I would like to get this bug in old Linux kernels documented in the
+iptables man page, since it is pretty serious. The fix made into 2.6.39
+and I would like to have it backported to 2.6.32-longterm and
+2.6.33-longterm. If you disagree with the backport to -longterm please
+let me know, I would update the patch accordingly.
+
+---
+
+In Linux kernels up to and including 2.6.38, with the exception of longterm
+releases 2.6.32.42 (or later) and 2.6.33.15 (or later), there is a bug (*) whereby
+IPv6 TOS mangling does not behave as documented and differs from the IPv4
+version. The TOS mask indicates the bits one wants to zero out, so it needs to
+be inverted before applying it to the original TOS field. However, the
+aformentioned kernels forgo the inversion which breaks --set-tos and its
+mnemonics.
+
+(*) Fixed by upstream commit:
+    1ed2f73d90fb49bcf5704aee7e9084adb882bfc5 (netfilter: IPv6: fix DSCP mangle code)
+
+Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+---
+
+diff -urNp iptables-1.4.11.1-orig/extensions/libxt_TOS.man iptables-1.4.11.1/extensions/libxt_TOS.man
+--- iptables-1.4.11.1-orig/extensions/libxt_TOS.man	2011-06-08 22:26:17.000000000 +0900
++++ iptables-1.4.11.1/extensions/libxt_TOS.man	2011-06-16 16:07:34.374062111 +0900
+@@ -4,24 +4,26 @@ shares the same bits as DSCP and ECN. Th
+ \fBmangle\fP table.
+ .TP
+ \fB\-\-set\-tos\fP \fIvalue\fP[\fB/\fP\fImask\fP]
+-Zeroes out the bits given by \fImask\fP and XORs \fIvalue\fP into the
+-TOS/Priority field. If \fImask\fP is omitted, 0xFF is assumed.
++Zeroes out the bits given by \fImask\fP (see \fBBUGS\fP below) and XORs
++\fIvalue\fP into the TOS/Priority field. If \fImask\fP is omitted, 0xFF is
++assumed.
+ .TP
+ \fB\-\-set\-tos\fP \fIsymbol\fP
+ You can specify a symbolic name when using the TOS target for IPv4. It implies
+-a mask of 0xFF. The list of recognized TOS names can be obtained by calling
+-iptables with \fB\-j TOS \-h\fP.
++a mask of 0xFF (see \fBBUGS\fP below). The list of recognized TOS names can be
++obtained by calling iptables with \fB\-j TOS \-h\fP.
+ .PP
+ The following mnemonics are available:
+ .TP
+ \fB\-\-and\-tos\fP \fIbits\fP
+ Binary AND the TOS value with \fIbits\fP. (Mnemonic for \fB\-\-set\-tos
+-0/\fP\fIinvbits\fP, where \fIinvbits\fP is the binary negation of \fIbits\fP.)
++0/\fP\fIinvbits\fP, where \fIinvbits\fP is the binary negation of \fIbits\fP.
++See \fBBUGS\fP below.)
+ .TP
+ \fB\-\-or\-tos\fP \fIbits\fP
+ Binary OR the TOS value with \fIbits\fP. (Mnemonic for \fB\-\-set\-tos\fP
+-\fIbits\fP\fB/\fP\fIbits\fP.)
++\fIbits\fP\fB/\fP\fIbits\fP. See \fBBUGS\fP below.)
+ .TP
+ \fB\-\-xor\-tos\fP \fIbits\fP
+ Binary XOR the TOS value with \fIbits\fP. (Mnemonic for \fB\-\-set\-tos\fP
+-\fIbits\fP\fB/0\fP.)
++\fIbits\fP\fB/0\fP. See \fBBUGS\fP below.)
+diff -urNp iptables-1.4.11.1-orig/iptables/ip6tables.8.in iptables-1.4.11.1/iptables/ip6tables.8.in
+--- iptables-1.4.11.1-orig/iptables/ip6tables.8.in	2011-06-08 22:26:17.000000000 +0900
++++ iptables-1.4.11.1/iptables/ip6tables.8.in	2011-06-16 17:08:42.222014375 +0900
+@@ -380,7 +380,18 @@ invalid or abused command line parameter
+ other errors cause an exit code of 1.
+ .SH BUGS
+ Bugs?  What's this? ;-)
++.PP
+ Well... the counters are not reliable on sparc64.
++.PP
++In Linux kernels up to and including 2.6.38, with the exception of longterm
++releases 2.6.32.42 (or later) and 2.6.33.15 (or later), there is a bug whereby
++IPv6 TOS mangling does not behave as documented and differs from the IPv4
++version. The TOS mask indicates the bits one wants to zero out, so it needs to
++be inverted before applying it to the original TOS field. However, the
++aformentioned kernels forgo the inversion which breaks --set-tos and its
++mnemonics.
++.PP
++You might also want to have a look at http://bugzilla.netfilter.org/
+ .SH COMPATIBILITY WITH IPCHAINS
+ This \fBip6tables\fP
+ is very similar to ipchains by Rusty Russell.  The main difference is
+diff -urNp iptables-1.4.11.1-orig/iptables/iptables.8.in iptables-1.4.11.1/iptables/iptables.8.in
+--- iptables-1.4.11.1-orig/iptables/iptables.8.in	2011-06-08 22:26:17.000000000 +0900
++++ iptables-1.4.11.1/iptables/iptables.8.in	2011-06-16 17:08:10.933614702 +0900
+@@ -379,7 +379,16 @@ invalid or abused command line parameter
+ other errors cause an exit code of 1.
+ .SH BUGS
+ Bugs?  What's this? ;-)
+-Well, you might want to have a look at http://bugzilla.netfilter.org/
++.PP
++In Linux kernels up to and including 2.6.38, with the exception of longterm
++releases 2.6.32.42 (or later) and 2.6.33.15 (or later), there is a bug whereby
++IPv6 TOS mangling does not behave as documented and differs from the IPv4
++version. The TOS mask indicates the bits one wants to zero out, so it needs to
++be inverted before applying it to the original TOS field. However, the
++aformentioned kernels forgo the inversion which breaks --set-tos and its
++mnemonics.
++.PP
++You might also want to have a look at http://bugzilla.netfilter.org/
+ .SH COMPATIBILITY WITH IPCHAINS
+ This \fBiptables\fP
+ is very similar to ipchains by Rusty Russell.  The main difference is
+
+
