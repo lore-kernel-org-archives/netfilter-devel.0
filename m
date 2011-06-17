@@ -1,28 +1,47 @@
-From: Dale Floer <dfloer@gmail.com>
-Subject: Does ip_conntrack_tcp_be_liberal have security or other issues when used?
-Date: Thu, 16 Jun 2011 15:32:36 -0700
-Message-ID: <BANLkTikuk870X_yBAvVez4_4qPo63su9HA@mail.gmail.com>
+From: Fernando Luis =?ISO-8859-1?Q?V=E1zquez?= Cao
+	<fernando@oss.ntt.co.jp>
+Subject: Re: [PATCH] iptables: document IPv6 TOS mangling bug in old Linux
+ kernels
+Date: Fri, 17 Jun 2011 10:11:36 +0900
+Message-ID: <1308273097.8612.1.camel@nexus.oss.ntt.co.jp>
+References: <1307320871-31770-1-git-send-email-pablo@netfilter.org>
+	 <1307320871-31770-2-git-send-email-pablo@netfilter.org>
+	 <BANLkTikAs7fN2JQJTUwQHAYPPGMf8i9uEA@mail.gmail.com>
+	 <alpine.LNX.2.01.1106061618370.17430@frira.zrqbmnf.qr>
+	 <1308213411.4062.22.camel@nausicaa>
+	 <alpine.LNX.2.01.1106161705300.10015@frira.zrqbmnf.qr>
+	 <4DFA1DFC.3000804@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Maciej <zenczykowski@gmail.com>,
+	Pablo Neira Aysuo <pablo@netfilter.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Linux Networking Developer Mailing List
+	<netdev@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:39797 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755934Ab1FPWch (ORCPT
+Received: from serv2.oss.ntt.co.jp ([222.151.198.100]:58375 "EHLO
+	serv2.oss.ntt.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753123Ab1FQBLi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jun 2011 18:32:37 -0400
-Received: by gxk21 with SMTP id 21so1010725gxk.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jun 2011 15:32:36 -0700 (PDT)
+	Thu, 16 Jun 2011 21:11:38 -0400
+In-Reply-To: <4DFA1DFC.3000804@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-A simple question (I hope), but I can't seem to find any official
-guidance on it while scouring the web.
-What I'm wondering is if there are any issues associated with enabling
-ip_conntrack_tcp_be_liberal, such as security (this is probably the
-biggest one for me), stability performance or other issues related to
-its usage. And if there currently aren't any issues, have there been
-issues in the past with older versions?
+Hi Jan, Patrick,
 
-Thanks, and I hope that this was the correct list,
--Dale Floer
+On Thu, 2011-06-16 at 17:15 +0200, Patrick McHardy wrote:
+> On 16.06.2011 17:06, Jan Engelhardt wrote:
+> > I feel this should be listed in the TOS page, to avoid duplication.
+> 
+> I agree with Jan, just the TOS man page seems fine.
+
+I will be replying to this email with the update patch.
+
+Thanks,
+Fernando
+
