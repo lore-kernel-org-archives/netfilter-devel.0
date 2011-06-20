@@ -1,83 +1,105 @@
-From: Eric Paris <eparis@parisplace.org>
-Subject: Re: [PATCH 4th revision] Add SELinux context support to AUDIT target
-Date: Mon, 20 Jun 2011 10:27:08 -0400
-Message-ID: <BANLkTi=Ls8Xnqa6ZF+Qwg_yyUH4Yxbgijg@mail.gmail.com>
-References: <4DF9C085.3040306@googlemail.com>
-	<4DFC9525.2080402@googlemail.com>
-	<201106200820.23127.sgrubb@redhat.com>
-	<4DFF5783.3070808@googlemail.com>
+From: Jesper Juhl <jj@chaosbits.net>
+Subject: [PATCH] Remove redundant linux/version.h includes from net/
+Date: Tue, 21 Jun 2011 00:13:10 +0200 (CEST)
+Message-ID: <alpine.LNX.2.00.1106210009520.27735@swampdragon.chaosbits.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Steve Grubb <sgrubb@redhat.com>, linux-audit@redhat.com,
-	netfilter-devel@vger.kernel.org, Thomas Graf <tgraf@redhat.com>,
-	Al Viro <viro@zeniv.linux.org.uk>,
-	Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Mr Dash Four <mr.dash.four@googlemail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:35478 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754216Ab1FTO1J convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Jun 2011 10:27:09 -0400
-Received: by iwn6 with SMTP id 6so1218642iwn.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Jun 2011 07:27:09 -0700 (PDT)
-In-Reply-To: <4DFF5783.3070808@googlemail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "David S. Miller" <davem@davemloft.net>, coreteam@netfilter.org,
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Dmitry Kozlov <xeb@mail.ru>
+To: netdev@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jun 20, 2011 at 10:21 AM, Mr Dash Four
-<mr.dash.four@googlemail.com> wrote:
->
->> Do you think this should be hardcoded to be obj? Would we ever log t=
-he
->> subj? Or should obj be part of the function name to make it clear wh=
-ich
->> piece is getting logged?
->>
->
-> I thought of that, though I don't know what variety of option names w=
-ould be
-> there to be used with that function.
->
-> If there is a need to use something other than "obj", like, "subj" or=
- even
-> "tcontext" or "scontext" for example, then I would favour passing the=
- option
-> name as function parameter - something like "void audit_log_secctx(st=
-ruct
-> audit_buffer *ab, char *secname, u32 secid)" or even "void
-> audit_log_secctx(struct audit_buffer *ab, int secname, u32 secid)" (s=
-ecname
-> here being one of 0, 1, 2 ... corresponding to "obj", "subj" etc).
->
-> Similar approach is already used in audit.c - in audit_log_config_cha=
-nge for
-> example:
->
-> static int audit_log_config_change(char *function_name, int new, int =
-old,
-> uid_t loginuid, u32 sessionid, u32 sid, int allow_changes)
-> {
-> =A0 struct audit_buffer *ab;
-> =A0 int rc =3D 0;
->
-> =A0 ab =3D audit_log_start(NULL, GFP_KERNEL, AUDIT_CONFIG_CHANGE);
-> =A0 audit_log_format(ab, "%s=3D%d old=3D%d auid=3D%u ses=3D%u", funct=
-ion_name, new,
-> old, loginuid, sessionid);
+It was suggested by "make versioncheck" that the follwing includes of
+linux/version.h are redundant:
 
-Hard code for now.  %s in audit record building is the devil since
-there is no enforcement of audit's rather 'special' string encoding
-rules.  If we need another name later we'll cross that bridge when we
-get there, possibly with another helper function and pushing the %s to
-a static function inside audit.  I will not willing expose %s to code
-outside of audit.c.
+  /home/jj/src/linux-2.6/net/caif/caif_dev.c: 14 linux/version.h not needed.
+  /home/jj/src/linux-2.6/net/caif/chnl_net.c: 10 linux/version.h not needed.
+  /home/jj/src/linux-2.6/net/ipv4/gre.c: 19 linux/version.h not needed.
+  /home/jj/src/linux-2.6/net/netfilter/ipset/ip_set_core.c: 20 linux/version.h not needed.
+  /home/jj/src/linux-2.6/net/netfilter/xt_set.c: 16 linux/version.h not needed.
 
-Acked-by: Eric Paris <eparis@redhat.com>
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+and it seems that it is right.
+
+Beyond manually inspecting the source files I also did a few build
+tests with various configs to confirm that including the header in
+those files is indeed not needed.
+
+Here's a patch to remove the pointless includes.
+
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+---
+ net/caif/caif_dev.c               |    1 -
+ net/caif/chnl_net.c               |    1 -
+ net/ipv4/gre.c                    |    1 -
+ net/netfilter/ipset/ip_set_core.c |    1 -
+ net/netfilter/xt_set.c            |    1 -
+ 5 files changed, 0 insertions(+), 5 deletions(-)
+
+diff --git a/net/caif/caif_dev.c b/net/caif/caif_dev.c
+index 682c0fe..7c2fa0a 100644
+--- a/net/caif/caif_dev.c
++++ b/net/caif/caif_dev.c
+@@ -11,7 +11,6 @@
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ":%s(): " fmt, __func__
+ 
+-#include <linux/version.h>
+ #include <linux/kernel.h>
+ #include <linux/if_arp.h>
+ #include <linux/net.h>
+diff --git a/net/caif/chnl_net.c b/net/caif/chnl_net.c
+index adbb424..8237766 100644
+--- a/net/caif/chnl_net.c
++++ b/net/caif/chnl_net.c
+@@ -7,7 +7,6 @@
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ":%s(): " fmt, __func__
+ 
+-#include <linux/version.h>
+ #include <linux/fs.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+diff --git a/net/ipv4/gre.c b/net/ipv4/gre.c
+index c6933f2..9dbe108 100644
+--- a/net/ipv4/gre.c
++++ b/net/ipv4/gre.c
+@@ -16,7 +16,6 @@
+ #include <linux/skbuff.h>
+ #include <linux/in.h>
+ #include <linux/netdevice.h>
+-#include <linux/version.h>
+ #include <linux/spinlock.h>
+ #include <net/protocol.h>
+ #include <net/gre.h>
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index 42aa64b..40c9645 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -17,7 +17,6 @@
+ #include <linux/spinlock.h>
+ #include <linux/netlink.h>
+ #include <linux/rculist.h>
+-#include <linux/version.h>
+ #include <net/netlink.h>
+ 
+ #include <linux/netfilter.h>
+diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
+index b3babae..5c23c44 100644
+--- a/net/netfilter/xt_set.c
++++ b/net/netfilter/xt_set.c
+@@ -13,7 +13,6 @@
+ 
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
+-#include <linux/version.h>
+ 
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_set.h>
+
+-- 
+Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
+Don't top-post http://www.catb.org/jargon/html/T/top-post.html
+Plain text mails only, please.
