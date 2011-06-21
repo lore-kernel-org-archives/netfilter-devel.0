@@ -1,97 +1,142 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 2/7] libipt_LOG: fix ignoring all but last flags
-Date: Tue, 21 Jun 2011 17:53:29 +0200
-Message-ID: <1308671615-17505-3-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 4/7] iptables: consolidate target/match init call
+Date: Tue, 21 Jun 2011 17:53:31 +0200
+Message-ID: <1308671615-17505-5-git-send-email-jengelh@medozas.de>
 References: <1308671615-17505-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:40642 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:40646 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756701Ab1FUPxj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Jun 2011 11:53:39 -0400
+	id S1756768Ab1FUPxl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Jun 2011 11:53:41 -0400
 In-Reply-To: <1308671615-17505-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This is useful for the upcoming patch about per-instance auxiliary
+data.
+
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libip6t_LOG.c |   10 +++++-----
- extensions/libipt_LOG.c  |   10 +++++-----
- tests/options-most.rules |    2 ++
- 3 files changed, 12 insertions(+), 10 deletions(-)
+ iptables/ip6tables.c |    9 +++------
+ iptables/iptables.c  |   10 ++++------
+ iptables/xshared.c   |   15 +++++++++++++--
+ iptables/xshared.h   |    2 ++
+ 4 files changed, 22 insertions(+), 14 deletions(-)
 
-diff --git a/extensions/libip6t_LOG.c b/extensions/libip6t_LOG.c
-index a419ec9..2b1ae28 100644
---- a/extensions/libip6t_LOG.c
-+++ b/extensions/libip6t_LOG.c
-@@ -87,19 +87,19 @@ static void LOG_parse(struct xt_option_call *cb)
- 				   "Newlines not allowed in --log-prefix");
- 		break;
- 	case O_LOG_TCPSEQ:
--		info->logflags = IP6T_LOG_TCPSEQ;
-+		info->logflags |= IP6T_LOG_TCPSEQ;
- 		break;
- 	case O_LOG_TCPOPTS:
--		info->logflags = IP6T_LOG_TCPOPT;
-+		info->logflags |= IP6T_LOG_TCPOPT;
- 		break;
- 	case O_LOG_IPOPTS:
--		info->logflags = IP6T_LOG_IPOPT;
-+		info->logflags |= IP6T_LOG_IPOPT;
- 		break;
- 	case O_LOG_UID:
--		info->logflags = IP6T_LOG_UID;
-+		info->logflags |= IP6T_LOG_UID;
- 		break;
- 	case O_LOG_MAC:
--		info->logflags = IP6T_LOG_MACDECODE;
-+		info->logflags |= IP6T_LOG_MACDECODE;
- 		break;
- 	}
+diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
+index 4037acf..d13744c 100644
+--- a/iptables/ip6tables.c
++++ b/iptables/ip6tables.c
+@@ -1288,8 +1288,7 @@ static void command_jump(struct iptables_command_state *cs)
+ 	cs->target->t->u.target_size = size;
+ 	strcpy(cs->target->t->u.user.name, cs->jumpto);
+ 	cs->target->t->u.user.revision = cs->target->revision;
+-	if (cs->target->init != NULL)
+-		cs->target->init(cs->target->t);
++	xs_init_target(cs->target);
+ 	if (cs->target->x6_options != NULL)
+ 		opts = xtables_options_xfrm(ip6tables_globals.orig_opts, opts,
+ 					    cs->target->x6_options,
+@@ -1317,8 +1316,7 @@ static void command_match(struct iptables_command_state *cs)
+ 	m->m->u.match_size = size;
+ 	strcpy(m->m->u.user.name, m->name);
+ 	m->m->u.user.revision = m->revision;
+-	if (m->init != NULL)
+-		m->init(m->m);
++	xs_init_match(m);
+ 	if (m == m->next)
+ 		return;
+ 	/* Merge options for non-cloned matches */
+@@ -1839,8 +1837,7 @@ int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **hand
+ 			cs.target->t = xtables_calloc(1, size);
+ 			cs.target->t->u.target_size = size;
+ 			strcpy(cs.target->t->u.user.name, cs.jumpto);
+-			if (cs.target->init != NULL)
+-				cs.target->init(cs.target->t);
++			xs_init_target(cs.target);
+ 		}
+ 
+ 		if (!cs.target) {
+diff --git a/iptables/iptables.c b/iptables/iptables.c
+index 4ae7541..477e8f1 100644
+--- a/iptables/iptables.c
++++ b/iptables/iptables.c
+@@ -1315,8 +1315,8 @@ static void command_jump(struct iptables_command_state *cs)
+ 	cs->target->t->u.target_size = size;
+ 	strcpy(cs->target->t->u.user.name, cs->jumpto);
+ 	cs->target->t->u.user.revision = cs->target->revision;
+-	if (cs->target->init != NULL)
+-		cs->target->init(cs->target->t);
++	xs_init_target(cs->target);
++
+ 	if (cs->target->x6_options != NULL)
+ 		opts = xtables_options_xfrm(iptables_globals.orig_opts, opts,
+ 					    cs->target->x6_options,
+@@ -1344,8 +1344,7 @@ static void command_match(struct iptables_command_state *cs)
+ 	m->m->u.match_size = size;
+ 	strcpy(m->m->u.user.name, m->name);
+ 	m->m->u.user.revision = m->revision;
+-	if (m->init != NULL)
+-		m->init(m->m);
++	xs_init_match(m);
+ 	if (m == m->next)
+ 		return;
+ 	/* Merge options for non-cloned matches */
+@@ -1871,8 +1870,7 @@ int do_command4(int argc, char *argv[], char **table, struct iptc_handle **handl
+ 			strcpy(cs.target->t->u.user.name, cs.jumpto);
+ 			if (!iptc_is_chain(cs.jumpto, *handle))
+ 				cs.target->t->u.user.revision = cs.target->revision;
+-			if (cs.target->init != NULL)
+-				cs.target->init(cs.target->t);
++			xs_init_target(cs.target);
+ 		}
+ 
+ 		if (!cs.target) {
+diff --git a/iptables/xshared.c b/iptables/xshared.c
+index 0e3857b..55ce550 100644
+--- a/iptables/xshared.c
++++ b/iptables/xshared.c
+@@ -145,8 +145,7 @@ int command_default(struct iptables_command_state *cs,
+ 		m->m->u.match_size = size;
+ 		strcpy(m->m->u.user.name, m->name);
+ 		m->m->u.user.revision = m->revision;
+-		if (m->init != NULL)
+-			m->init(m->m);
++		xs_init_match(m);
+ 
+ 		if (m->x6_options != NULL)
+ 			gl->opts = xtables_options_xfrm(gl->orig_opts,
+@@ -207,3 +206,15 @@ int subcmd_main(int argc, char **argv, const struct subcommand *cb)
+ 		fprintf(stderr, " * %s\n", cb->name);
+ 	exit(EXIT_FAILURE);
  }
-diff --git a/extensions/libipt_LOG.c b/extensions/libipt_LOG.c
-index b270bcf..77f16d1 100644
---- a/extensions/libipt_LOG.c
-+++ b/extensions/libipt_LOG.c
-@@ -87,19 +87,19 @@ static void LOG_parse(struct xt_option_call *cb)
- 				   "Newlines not allowed in --log-prefix");
- 		break;
- 	case O_LOG_TCPSEQ:
--		info->logflags = IPT_LOG_TCPSEQ;
-+		info->logflags |= IPT_LOG_TCPSEQ;
- 		break;
- 	case O_LOG_TCPOPTS:
--		info->logflags = IPT_LOG_TCPOPT;
-+		info->logflags |= IPT_LOG_TCPOPT;
- 		break;
- 	case O_LOG_IPOPTS:
--		info->logflags = IPT_LOG_IPOPT;
-+		info->logflags |= IPT_LOG_IPOPT;
- 		break;
- 	case O_LOG_UID:
--		info->logflags = IPT_LOG_UID;
-+		info->logflags |= IPT_LOG_UID;
- 		break;
- 	case O_LOG_MAC:
--		info->logflags = IPT_LOG_MACDECODE;
-+		info->logflags |= IPT_LOG_MACDECODE;
- 		break;
- 	}
- }
-diff --git a/tests/options-most.rules b/tests/options-most.rules
-index 6c4a831..13ee987 100644
---- a/tests/options-most.rules
-+++ b/tests/options-most.rules
-@@ -146,6 +146,8 @@
- -A matches
- -A matches -m rt --rt-segsleft 5:4294967295
- -A matches
-+-A ntarg -j LOG --log-tcp-sequence --log-tcp-options --log-ip-options
-+-A ntarg
- -A ntarg -j NFQUEUE --queue-num 1
- -A ntarg
- -A ntarg -j NFQUEUE --queue-balance 8:99
++
++void xs_init_target(struct xtables_target *target)
++{
++	if (target->init != NULL)
++		target->init(target->t);
++}
++
++void xs_init_match(struct xtables_match *match)
++{
++	if (match->init != NULL)
++		match->init(match->m);
++}
+diff --git a/iptables/xshared.h b/iptables/xshared.h
+index b44a3a3..b804aaf 100644
+--- a/iptables/xshared.h
++++ b/iptables/xshared.h
+@@ -81,6 +81,8 @@ extern int command_default(struct iptables_command_state *,
+ 	struct xtables_globals *);
+ extern struct xtables_match *load_proto(struct iptables_command_state *);
+ extern int subcmd_main(int, char **, const struct subcommand *);
++extern void xs_init_target(struct xtables_target *);
++extern void xs_init_match(struct xtables_match *);
+ 
+ extern const struct xtables_afinfo *afinfo;
+ 
 -- 
 1.7.3.4
 
