@@ -1,33 +1,45 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Issue with conntrack on machine start-up
-Date: Tue, 28 Jun 2011 17:09:04 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1106281708200.15721@frira.zrqbmnf.qr>
-References: <BANLkTi=0WdhRMoLPWWMrsxMdm0FFJQ8PGw@mail.gmail.com>
+From: =?ISO-8859-1?Q?S=E9bastien_LAVEZE?= <slaveze@gmail.com>
+Subject: [Ebtables configuration] CONFIG_BRIDGE_NETFILTER ebtables dependency
+Date: Wed, 29 Jun 2011 10:25:10 +0200
+Message-ID: <BANLkTinFeeEKrtUhMWXiKvCJ1UhR7Mf+1A@mail.gmail.com>
+References: <BANLkTik-boon=ACm9yEPaCV17jHQPLA01g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Hai-Long Nguyen <hlnguyen21@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:56813 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758543Ab1F1PJF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Jun 2011 11:09:05 -0400
-In-Reply-To: <BANLkTi=0WdhRMoLPWWMrsxMdm0FFJQ8PGw@mail.gmail.com>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:38213 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753671Ab1F2IZL convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 29 Jun 2011 04:25:11 -0400
+Received: by pwj7 with SMTP id 7so673978pwj.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jun 2011 01:25:10 -0700 (PDT)
+In-Reply-To: <BANLkTik-boon=ACm9yEPaCV17jHQPLA01g@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 2011-06-28 15:36, Hai-Long Nguyen wrote:
+Hi all,
+Since a while I noticed that ebtables configuration is dependent upon
+CONFIG_BRIDGE_NETFILTER.
+Is there any specific reason for this ? There was not this dependency
+in the past and on top of it the description of bridge-netfilter in
+net/KConfig says the opposite:
 
->Hi dev-team,
->
->I'm using conntrack for=C2=A0my project and have encountered an issue.
->
->When I turn on my machine for the first time, if I perform say
->"conntrack -L", no flow entries are ever shown.
+"=A0Enabling=A0this=A0option=A0will=A0let=A0arptables=A0resp.=A0iptable=
+s=A0see=A0bridged
+=A0=A0=A0=A0=A0=A0ARP=A0resp.=A0IP=A0traffic.=A0If=A0you=A0want=A0a=A0b=
+ridging=A0firewall,=A0you=A0probably
+=A0=A0=A0=A0=A0=A0want=A0this=A0option=A0enabled.
+=A0=A0=A0=A0=A0=A0Enabling=A0or=A0disabling=A0this=A0option=A0doesn't=A0=
+enable=A0or=A0disable
+=A0=A0=A0=A0=A0=A0ebtables.
 
-Because you do not have any tracking modules loaded that would receive
-packets. (e.g. nf_conntrack_ipv6)
+=A0=A0=A0=A0=A0=A0If=A0unsure,=A0say=A0N."
+
+
+Thanks,
+Sebastien
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
