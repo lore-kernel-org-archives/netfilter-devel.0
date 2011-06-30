@@ -1,87 +1,112 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [Ebtables configuration] CONFIG_BRIDGE_NETFILTER ebtables dependency
-Date: Wed, 29 Jun 2011 23:04:34 +0200
-Message-ID: <4E0B9362.4070808@pandora.be>
-References: <BANLkTik-boon=ACm9yEPaCV17jHQPLA01g@mail.gmail.com> <BANLkTinFeeEKrtUhMWXiKvCJ1UhR7Mf+1A@mail.gmail.com>
+From: Kuzin Andrey <kuzinandrey@yandex.ru>
+Subject: Re: netfilter queue throughput slowdown
+Date: Thu, 30 Jun 2011 10:20:19 +0400
+Message-ID: <4E0C15A3.9050609@yandex.ru>
+References: <BANLkTinVcuMCoctfuZbUdd_6m8hpbtbwFA@mail.gmail.com>	 <1309340843.2532.112.camel@edumazet-laptop>	 <BANLkTi=C7J0u_kn6UknFsGAx9Z5kHUUBrw@mail.gmail.com> <1309342096.2532.116.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------090604030408050406000204"
-Cc: netfilter-devel@vger.kernel.org
-To: =?ISO-8859-1?Q?S=E9bastien_LAVEZE?= <slaveze@gmail.com>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Anders Nilsson Plymoth <lanilsson@gmail.com>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from jacques.telenet-ops.be ([195.130.132.50]:56008 "EHLO
-	jacques.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753570Ab1F2VEh (ORCPT
+Received: from forward7.mail.yandex.net ([77.88.61.37]:35476 "EHLO
+	forward7.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751062Ab1F3G3N (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 Jun 2011 17:04:37 -0400
-In-Reply-To: <BANLkTinFeeEKrtUhMWXiKvCJ1UhR7Mf+1A@mail.gmail.com>
+	Thu, 30 Jun 2011 02:29:13 -0400
+In-Reply-To: <1309342096.2532.116.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------090604030408050406000204
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-
-This is indeed not the original intention. A fix to solve a build 
-problem slipped in that actually changed the dependency from the 
-original NETFILTER to BRIDGE_NETFILTER.
-The attached patch reverts this change.
-
-cheers,
-Bart
-
-Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
-
-
-On 29-06-11 10:25, Sébastien LAVEZE wrote:
-> Hi all,
-> Since a while I noticed that ebtables configuration is dependent upon
-> CONFIG_BRIDGE_NETFILTER.
-> Is there any specific reason for this ? There was not this dependency
-> in the past and on top of it the description of bridge-netfilter in
-> net/KConfig says the opposite:
+  On 29.06.2011 14:08, Eric Dumazet wrote:
+> Le mercredi 29 juin 2011 =C3=A0 11:55 +0200, Anders Nilsson Plymoth a=
+ =C3=A9crit :
+>> Hi Eric,
+>>
+>> Thanks for your reply.
+>> Yes, I am sure I set the verdict, as right now I do it on all packet=
+s
+>> by default.
+>> I will try upgrading and see if it works. Do you know if commit
+>> c463ac972315a0 solves the problem you mentioned?
+> No, it doesnt solve the problem, only make things faster.
 >
-> " Enabling this option will let arptables resp. iptables see bridged
->        ARP resp. IP traffic. If you want a bridging firewall, you probably
->        want this option enabled.
->        Enabling or disabling this option doesn't enable or disable
->        ebtables.
+> But if some packets are never dequeued (because something is wrong wi=
+th
+> your program, failing to give verdict), they stay forever in the list
+> and each dequeue is slower since it has to go past these packets...
 >
->        If unsure, say N."
+> 2.6.37 also contains commit 29b4433d991c88d86ca48a4c1cc33c671475be4b
+> (net: percpu net_device refcount) which helps a lot netfilter
+> queue/dequeue if your machine is SMP.
 >
 >
-> Thanks,
-> Sebastien
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
+evel" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
+>
+Hello.
+I'am using NFQUEUE several years on our main network router, and proble=
+m=20
+with packets stuck in the queue is still not resolved.
+But in the past when i use libipq, it not have this problem. I try to=20
+use simple program with ACCEPT verdict on all packets, and after some
+time queue has packets without any verdict, result is large (and=20
+increased) delays on every packet and waste CPU time.
 
+I'am write patch for this, but it doesn't apply by any netfilter=20
+developers. Today i'am not using any kernel without this NFQUEUE patch.
 
--- 
-Bart De Schuymer
-www.artinalgorithms.be
+diff --git a/net/netfilter/nfnetlink_queue.c=20
+b/net/netfilter/nfnetlink_queue.c
+index 8c86011..74fc322 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -169,17 +169,29 @@ __enqueue_entry(struct nfqnl_instance *queue,=20
+struct nf_queue_entry *entry)
+         queue->queue_total++;
+  }
 
++#define NFQNL_TIMEOUT_ENTRY_DROP 20
++
+  static struct nf_queue_entry *
+  find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id)
+  {
+-       struct nf_queue_entry *entry =3D NULL, *i;
++       struct nf_queue_entry *entry =3D NULL, *next, *i;
++       ktime_t kt =3D ktime_get_real();
 
---------------090604030408050406000204
-Content-Type: text/x-patch;
- name="Kconfig.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="Kconfig.diff"
+         spin_lock_bh(&queue->lock);
 
---- linux/net/bridge/netfilter/Kconfig.ori	2011-06-29 22:32:38.702734999 +0200
-+++ linux/net/bridge/netfilter/Kconfig	2011-06-29 22:33:33.702734999 +0200
-@@ -4,7 +4,7 @@
- 
- menuconfig BRIDGE_NF_EBTABLES
- 	tristate "Ethernet Bridge tables (ebtables) support"
--	depends on BRIDGE && BRIDGE_NETFILTER
-+	depends on BRIDGE && NETFILTER
- 	select NETFILTER_XTABLES
- 	help
- 	  ebtables is a general, extensible frame/packet identification
+-       list_for_each_entry(i, &queue->queue_list, list) {
++       list_for_each_entry_safe(i, next, &queue->queue_list, list) {
+                 if (i->id =3D=3D id) {
+                         entry =3D i;
+                         break;
++                } else {
++                       struct timeval tv =3D=20
+ktime_to_timeval(ktime_sub(kt, i->skb->tstamp));
++                       if (tv.tv_sec > NFQNL_TIMEOUT_ENTRY_DROP) {
++                               printk(KERN_ERR "nf_queue: drop=20
+timeouted packet "
++                                       "(queue_num=3D%d seq_id=3D%d)\n=
+",=20
+queue->queue_num, i->id);
++                               list_del(&i->list);
++                               queue->queue_total--;
++                               nf_reinject(i, NF_DROP);
++                       }
+                 }
+         }
 
---------------090604030408050406000204--
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
