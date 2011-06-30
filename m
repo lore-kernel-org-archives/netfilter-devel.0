@@ -1,51 +1,48 @@
-From: Sam Roberts <vieuxtech@gmail.com>
-Subject: Re: netfilter queue throughput slowdown
-Date: Thu, 30 Jun 2011 15:26:09 -0700
-Message-ID: <BANLkTiksYHMU7ojnKMJBj-EQjW8sxTO2Tw@mail.gmail.com>
-References: <BANLkTinVcuMCoctfuZbUdd_6m8hpbtbwFA@mail.gmail.com>
-	<1309340843.2532.112.camel@edumazet-laptop>
-	<BANLkTi=C7J0u_kn6UknFsGAx9Z5kHUUBrw@mail.gmail.com>
-	<1309342096.2532.116.camel@edumazet-laptop>
-	<4E0C15A3.9050609@yandex.ru>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
+Subject: xt_AUDIT additions
+Date: Thu, 30 Jun 2011 23:42:58 +0100
+Message-ID: <4E0CFBF2.9000500@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Anders Nilsson Plymoth <lanilsson@gmail.com>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Kuzin Andrey <kuzinandrey@yandex.ru>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:54435 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751933Ab1F3W0L convert rfc822-to-8bit (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:35231 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751407Ab1F3WnF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 Jun 2011 18:26:11 -0400
-Received: by wyg8 with SMTP id 8so1848577wyg.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 Jun 2011 15:26:09 -0700 (PDT)
-In-Reply-To: <4E0C15A3.9050609@yandex.ru>
+	Thu, 30 Jun 2011 18:43:05 -0400
+Received: by wwe5 with SMTP id 5so2685470wwe.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 30 Jun 2011 15:43:04 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 29, 2011 at 11:20 PM, Kuzin Andrey <kuzinandrey@yandex.ru> =
-wrote:
-> =A0On 29.06.2011 14:08, Eric Dumazet wrote:
->> But if some packets are never dequeued (because something is wrong w=
-ith
->> your program, failing to give verdict), they stay forever in the lis=
-t
->> and each dequeue is slower since it has to go past these packets...
+I would like to add 3 more pieces of information to the audit target to 
+be included in the audit logs:
 
-> I'am using NFQUEUE several years on our main network router, and prob=
-lem
-> with packets stuck in the queue is still not resolved.
+1. pid/uid -> auid + program path (auid and program path is retrievable 
+once the pid is known) - outgoing packets only, obviously;
+2. tcpflags, where applicable; and
+3. tos information, again, where applicable;
 
-Is there any way to see what the current queue is in the kernel? How
-deep, and what  the IDs are?
+The last two are more-or-less directly retrievable as they are included 
+in the tcphdr and iphdr structs respectively, but I am struggling to 
+find a reliable source for the first one - uid/pid information.
 
-Cheers,
-Sam
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I know this information *should* be available as outgoing packets are 
+bound to sockets and those are created by a process, but I am struggling 
+to find a reliable source which I could use. I looked at both ss and 
+netstat sources, but the approach there is very different as they both 
+use/scan "/proc" to retrieve this information and I am not sure this is 
+the best way to approach things for the kernel code of the audit target.
+
+Is there any other quicker/reliable way?
+
+Having pid/uid, the program path and auid in particular (i.e. the audit 
+id - the "master" session of the root process owning the process to 
+which the socket/outgoing packet is bound) included in the audit logs 
+would be invaluable piece of information as the source of the packets 
+could be easily traced to the process (or processes) which created it 
+and the user id used. It would also help with cross-referencing with 
+other uid/pid/auid information from the audit logs to discover patterns 
+of interest to the auditors/sys admins.
