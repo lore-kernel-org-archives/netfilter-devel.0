@@ -1,84 +1,60 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter queue throughput slowdown
-Date: Thu, 30 Jun 2011 16:51:43 +0200
-Message-ID: <4E0C8D7F.3000902@trash.net>
-References: <BANLkTinVcuMCoctfuZbUdd_6m8hpbtbwFA@mail.gmail.com>	 <1309340843.2532.112.camel@edumazet-laptop>	 <BANLkTi=C7J0u_kn6UknFsGAx9Z5kHUUBrw@mail.gmail.com>	 <1309342096.2532.116.camel@edumazet-laptop>  <4E0C15A3.9050609@yandex.ru>	 <1309416426.2532.119.camel@edumazet-laptop>  <4E0C278B.7010403@yandex.ru>	 <1309433652.1994.7.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>	 <4E0C651A.1000300@trash.net> <1309446900.1994.17.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC> <4E0C8902.8070303@earthlink.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 1/4] netfilter: xtables: move ipt_ecn to xt_ecn
+Date: Thu, 30 Jun 2011 17:38:57 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1106301738540.28446@frira.zrqbmnf.qr>
+References: <1307651037-20520-1-git-send-email-jengelh@medozas.de> <1307651037-20520-2-git-send-email-jengelh@medozas.de> <4DFA1F60.7080704@trash.net> <alpine.LNX.2.01.1106161730540.10380@frira.zrqbmnf.qr> <4DFA2276.8070305@trash.net>
+ <alpine.LNX.2.01.1106161743000.10544@frira.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Kuzin Andrey <kuzinandrey@yandex.ru>,
-	Anders Nilsson Plymoth <lanilsson@gmail.com>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: sclark46@earthlink.net
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46932 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751711Ab1F3Ovs (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 Jun 2011 10:51:48 -0400
-In-Reply-To: <4E0C8902.8070303@earthlink.net>
+Received: from seven.medozas.de ([188.40.89.202]:38632 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750881Ab1F3Pi6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 30 Jun 2011 11:38:58 -0400
+In-Reply-To: <alpine.LNX.2.01.1106161743000.10544@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 30.06.2011 16:32, Stephen Clark wrote:
-> On 06/30/2011 11:15 AM, Eric Dumazet wrote:
->> Le jeudi 30 juin 2011 =E0 13:59 +0200, Patrick McHardy a =E9crit :
->>
->>  =20
->>> Thanks Eric, I agree. Give us data and we'll fix it if really is a =
-bug.
->>>
->>> The fact that the timeout patch apparently helps indicates that som=
-e
->>> packets don't receive verdicts.
->>>     =20
->> My rough guess is that this user application gets an error in its
->> nfq_set_verdict() call ( maybe a transient out of memory indication)=
- and
->> packet never gets its verdict.
->>
->> libnetfilter_queue/utils/nfqnl_test.c is buggy in this regard : It
->> should at least log an error if nfq_set_verdict() fails, so that
->> programmer using nfqnl_test.c as a template is aware of a possible
->> problem here.
->>
->>
->>   utils/nfqnl_test.c |    7 ++++++-
->>   1 file changed, 6 insertions(+), 1 deletion(-)
->>
->> diff --git a/utils/nfqnl_test.c b/utils/nfqnl_test.c
->> index a554f2d..b7e0cf9 100644
->> --- a/utils/nfqnl_test.c
->> +++ b/utils/nfqnl_test.c
->> @@ -69,8 +69,13 @@ static int cb(struct nfq_q_handle *qh, struct
->> nfgenmsg *nfmsg,
->>             struct nfq_data *nfa, void *data)
->>   {
->>       u_int32_t id =3D print_pkt(nfa);
->> +    int res;
->> +
->>       printf("entering callback\n");
->> -    return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
->> +    res =3D nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
->> +    if (res =3D=3D -1)
->> +        printf("nfq_set_verdict() error %d (packet stuck in queue
->> !)\n", errno);
->> +    return res;
->>   }
->>
->>   int main(int argc, char **argv)
->>
->>   =20
->=20
-> So if you receive a -1 the proper recovery is to call nfq_set_verdict=
-()
-> again?
+On Thursday 2011-06-16 17:43, Jan Engelhardt wrote:
 
-Look at errno to see what's happening. But yes, this indicates the
-verdict wasn't issues successfully, so you need to retransmit.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>On Thursday 2011-06-16 17:34, Patrick McHardy wrote:
+>
+>>On 16.06.2011 17:31, Jan Engelhardt wrote:
+>>> 
+>>> On Thursday 2011-06-16 17:21, Patrick McHardy wrote:
+>>>> On 09.06.2011 22:23, Jan Engelhardt wrote:
+>>>>> --- a/net/ipv4/netfilter/Kconfig
+>>>>> +++ b/net/ipv4/netfilter/Kconfig
+>>>>> @@ -76,11 +76,11 @@ config IP_NF_MATCH_AH
+>>>>>  config IP_NF_MATCH_ECN
+>>>>>  	tristate '"ecn" match support'
+>>>>>  	depends on NETFILTER_ADVANCED
+>>>>> -	help
+>>>>> -	  This option adds a `ECN' match, which allows you to match against
+>>>>> -	  the IPv4 and TCP header ECN fields.
+>>>>> -
+>>>>> -	  To compile it as a module, choose M here.  If unsure, say N.
+>>>>> +	select NETFILTER_XT_MATCH_ECN
+>>>>> +	---help---
+>>>>> +	This is a backwards-compat option for the user's convenience
+>>>>> +	(e.g. when running oldconfig). It selects
+>>>>> +	CONFIG_NETFILTER_XT_MATCH_ECN.
+>>>>>  
+>>>>
+>>>> Did this work? I've tried myself, but it would still show the new
+>>>> option.
+>>> 
+>>> What do you mean? Of course it is supposed to show NETFILTER_XT_MATCH_ECN.
+>>
+>>Well, ideally not, but fine as long as its still automatically
+>>selected.
+>>
+>>I'll pull your patches once the first two fixes are upstream.
+>
+>We are doing the same thing with the old options for nfmark/ctmark
+>(cf. Documentation/feature-removal-schedule.txt) so I guess that was ok.
+>The old options are supposed to be gone in a few releases anyway.
+
+ping?
