@@ -1,62 +1,219 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: xt_AUDIT additions
-Date: Fri, 01 Jul 2011 12:31:52 +0100
-Message-ID: <4E0DB027.3000309@googlemail.com>
-References: <4E0CFBF2.9000500@googlemail.com> <alpine.LNX.2.01.1107011005060.7813@frira.zrqbmnf.qr>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH 1/2] nfnetlink: add RCU in nfnetlink_rcv_msg()
+Date: Fri, 01 Jul 2011 17:27:58 +0200
+Message-ID: <1309534078.2599.25.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+References: <1309416426.2532.119.camel@edumazet-laptop>
+	 <4E0C278B.7010403@yandex.ru>
+	 <1309433652.1994.7.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+	 <4E0C651A.1000300@trash.net>
+	 <1309446900.1994.17.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+	 <4E0C8902.8070303@earthlink.net> <4E0C8D7F.3000902@trash.net>
+	 <1309453730.5846.31.camel@tiger.regit.org>
+	 <1309455919.2515.3.camel@edumazet-laptop>
+	 <1309503610.2515.18.camel@edumazet-laptop>
+	 <20110701074936.GR16021@Chamillionaire.breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, hch@infradead.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Eric Leblond <eric@regit.org>, sclark46@earthlink.net,
+	Kuzin Andrey <kuzinandrey@yandex.ru>,
+	Anders Nilsson Plymoth <lanilsson@gmail.com>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	netdev <netdev@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:42222 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751793Ab1GALcB (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:32948 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754529Ab1GAN17 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Jul 2011 07:32:01 -0400
-Received: by wwe5 with SMTP id 5so3148025wwe.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 01 Jul 2011 04:32:00 -0700 (PDT)
-In-Reply-To: <alpine.LNX.2.01.1107011005060.7813@frira.zrqbmnf.qr>
+	Fri, 1 Jul 2011 09:27:59 -0400
+In-Reply-To: <20110701074936.GR16021@Chamillionaire.breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Le vendredi 01 juillet 2011 =C3=A0 09:49 +0200, Florian Westphal a =C3=A9=
+crit :
+> Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> > Number one offender is the nfnl_lock mutex hold each time we give a
+> > verdict.
+>=20
+> Yes, the nfnl mutex is fairly annoying for nfqueue.
+>=20
+> Unfortunately it is not possible to just remove it
+> completely since it also protects against module removal.
+>=20
 
-> xt_owner did the same - it scanned the process table. According to 
-> Christoph Hellwig, this was declared as some gross abuse, and, IIRC, the 
-> reason was something like the tasklist lock was held "quite long" (which 
-> makes sense).
-Yep, it is the reason I was very reluctant to use this approach and seek 
-to find another, more "efficient" way.
+I believe it can, just add appropriate synchronization points.
 
-> However, xt_owner did not held the tasklist [write] lock, 
-> just entered a RCU read section. hch: Was this RCU section also too 
-> long?
->
-> xt_owner had the bonus that it only had to check whether the socket was 
-> owned by a particular user/group/pid/sid, which means it can stop 
-> looping the tasklist as soon as it found a match.
->   
-I'll have a look at the xt_owner code later to see if there is something 
-I could use/learn.
+> But I guess even having to grab a refcount would be
+> a huge win as opposed to holding on to the nfnl mutex...
+>=20
+> We'd also need to audit all ->call implementations; most
+> of them assume the nfnl_mutex is being hold.
 
-> But with xt_AUDIT, you would have to traverse the entire list, because 
-> you would want to find all PIDs - since a socket may be shared between 
-> multiple threads/processes - which in itself may generate a huge list 
-> (=another problem) in the audit records.
->   
-Isn't there a more efficient solution to this? The thought of scanning 
-the task list to find ids for a single packet makes my head hurt!
+CC netdev
 
-> Also, the PID owner may not be the socket owner for the same reason.
->   
-That's where auid comes in - it determines, unequivocally, the "root" 
-process owner.
+We can do another way : Introduce a new ->call_rcu() implementation
+and convert places where we prefer not holding nfnf_mutex.
 
-For example: if I log in as root and start a process, which then uses 
-another id (say process squid using user id _squid), which spawns 
-further processes under the same id, the "normal" uid (i.e. the 
-information of the socket "owner") is probably going to show me uid = 
-_squid, but the auid will show "root" as this is the "root" session 
-which started all sub-processes and I suspect was one of the reasons 
-auid was introduced in the first place - to remove this ambiguity.
+If/when all places are converted, remove the ->call() field for good.
+
+With following two patches, I was able to reach more than 2.000.000 pps
+without losses on my setup (limited by my lab setup), instead of less
+than 500.000 pps
+
+Thanks
+
+[PATCH 1/2] nfnetlink: add RCU in nfnetlink_rcv_msg()
+
+Goal of this patch is to permit nfnetlink providers not mandate
+nfnl_mutex being held while nfnetlink_rcv_msg() calls them.
+
+If struct nfnl_callback contains a non NULL call_rcu(), then
+nfnetlink_rcv_msg() will use it instead of call() field, holding
+rcu_read_lock instead of nfnl_mutex
+
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+CC: Florian Westphal <fw@strlen.de>
+CC: Eric Leblond <eric@regit.org>
+CC: Patrick McHardy <kaber@trash.net>
+---
+ include/linux/netfilter/nfnetlink.h |    3 +
+ net/netfilter/nfnetlink.c           |   40 +++++++++++++++++++-------
+ 2 files changed, 33 insertions(+), 10 deletions(-)
+
+diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfil=
+ter/nfnetlink.h
+index 2b11fc1..74d3386 100644
+--- a/include/linux/netfilter/nfnetlink.h
++++ b/include/linux/netfilter/nfnetlink.h
+@@ -60,6 +60,9 @@ struct nfnl_callback {
+ 	int (*call)(struct sock *nl, struct sk_buff *skb,=20
+ 		    const struct nlmsghdr *nlh,
+ 		    const struct nlattr * const cda[]);
++	int (*call_rcu)(struct sock *nl, struct sk_buff *skb,=20
++		    const struct nlmsghdr *nlh,
++		    const struct nlattr * const cda[]);
+ 	const struct nla_policy *policy;	/* netlink attribute policy */
+ 	const u_int16_t attr_count;		/* number of nlattr's */
+ };
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index b4a4532..1905976 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -37,7 +37,7 @@ MODULE_ALIAS_NET_PF_PROTO(PF_NETLINK, NETLINK_NETFILT=
+ER);
+=20
+ static char __initdata nfversion[] =3D "0.30";
+=20
+-static const struct nfnetlink_subsystem *subsys_table[NFNL_SUBSYS_COUN=
+T];
++static const struct nfnetlink_subsystem __rcu *subsys_table[NFNL_SUBSY=
+S_COUNT];
+ static DEFINE_MUTEX(nfnl_mutex);
+=20
+ void nfnl_lock(void)
+@@ -59,7 +59,7 @@ int nfnetlink_subsys_register(const struct nfnetlink_=
+subsystem *n)
+ 		nfnl_unlock();
+ 		return -EBUSY;
+ 	}
+-	subsys_table[n->subsys_id] =3D n;
++	rcu_assign_pointer(subsys_table[n->subsys_id], n);
+ 	nfnl_unlock();
+=20
+ 	return 0;
+@@ -71,7 +71,7 @@ int nfnetlink_subsys_unregister(const struct nfnetlin=
+k_subsystem *n)
+ 	nfnl_lock();
+ 	subsys_table[n->subsys_id] =3D NULL;
+ 	nfnl_unlock();
+-
++	synchronize_rcu();
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(nfnetlink_subsys_unregister);
+@@ -83,7 +83,7 @@ static inline const struct nfnetlink_subsystem *nfnet=
+link_get_subsys(u_int16_t t
+ 	if (subsys_id >=3D NFNL_SUBSYS_COUNT)
+ 		return NULL;
+=20
+-	return subsys_table[subsys_id];
++	return rcu_dereference(subsys_table[subsys_id]);
+ }
+=20
+ static inline const struct nfnl_callback *
+@@ -139,21 +139,27 @@ static int nfnetlink_rcv_msg(struct sk_buff *skb,=
+ struct nlmsghdr *nlh)
+=20
+ 	type =3D nlh->nlmsg_type;
+ replay:
++	rcu_read_lock();
+ 	ss =3D nfnetlink_get_subsys(type);
+ 	if (!ss) {
+ #ifdef CONFIG_MODULES
+-		nfnl_unlock();
++		rcu_read_unlock();
+ 		request_module("nfnetlink-subsys-%d", NFNL_SUBSYS_ID(type));
+-		nfnl_lock();
++		rcu_read_lock();
+ 		ss =3D nfnetlink_get_subsys(type);
+ 		if (!ss)
+ #endif
++		{
++			rcu_read_unlock();
+ 			return -EINVAL;
++		}
+ 	}
+=20
+ 	nc =3D nfnetlink_find_client(type, ss);
+-	if (!nc)
++	if (!nc) {
++		rcu_read_unlock();
+ 		return -EINVAL;
++	}
+=20
+ 	{
+ 		int min_len =3D NLMSG_SPACE(sizeof(struct nfgenmsg));
+@@ -167,7 +173,23 @@ replay:
+ 		if (err < 0)
+ 			return err;
+=20
+-		err =3D nc->call(net->nfnl, skb, nlh, (const struct nlattr **)cda);
++		if (nc->call_rcu) {
++			err =3D nc->call_rcu(net->nfnl, skb, nlh,
++					   (const struct nlattr **)cda);
++			rcu_read_unlock();
++		} else {
++			rcu_read_unlock();
++			nfnl_lock();
++			if (rcu_dereference_protected(
++					subsys_table[NFNL_SUBSYS_ID(type)],
++					lockdep_is_held(&nfnl_mutex)) !=3D ss ||
++			    nfnetlink_find_client(type, ss) !=3D nc)
++				err =3D -EAGAIN;
++			else
++				err =3D nc->call(net->nfnl, skb, nlh,
++						   (const struct nlattr **)cda);
++			nfnl_unlock();
++		}
+ 		if (err =3D=3D -EAGAIN)
+ 			goto replay;
+ 		return err;
+@@ -176,9 +198,7 @@ replay:
+=20
+ static void nfnetlink_rcv(struct sk_buff *skb)
+ {
+-	nfnl_lock();
+ 	netlink_rcv_skb(skb, &nfnetlink_rcv_msg);
+-	nfnl_unlock();
+ }
+=20
+ static int __net_init nfnetlink_net_init(struct net *net)
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
