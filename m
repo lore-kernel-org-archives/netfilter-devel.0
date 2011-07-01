@@ -1,63 +1,67 @@
-From: Nader Al-Naji <nbal@princeton.edu>
-Subject: Send Packets In Prerouting?
-Date: Fri, 01 Jul 2011 12:33:18 -0400
-Message-ID: <38209.1309537998@princeton.edu>
-Reply-To: nbal@princeton.edu
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ppa04.Princeton.EDU ([128.112.128.215]:39126 "EHLO
-	ppa04.Princeton.EDU" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757255Ab1GAQmO convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Jul 2011 12:42:14 -0400
-Received: from csgsmtp200l.Princeton.EDU (csgsmtp200l.Princeton.EDU [128.112.130.131])
-	by ppa04.Princeton.EDU (8.14.4/8.14.4) with ESMTP id p61GXIlT007703
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
-	for <netfilter-devel@vger.kernel.org>; Fri, 1 Jul 2011 12:33:18 -0400
-Received: from webmail.princeton.edu (atmail01.Princeton.EDU [128.112.133.236])
-	by csgsmtp200l.Princeton.EDU (8.13.8/8.12.9) with ESMTP id p61GXIP0019562
-	for <netfilter-devel@vger.kernel.org>; Fri, 1 Jul 2011 12:33:18 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH 00/12] net switch/case reformatting
+Date: Fri,  1 Jul 2011 12:43:01 -0700
+Message-ID: <cover.1309549243.git.joe@perches.com>
+Cc: linux-kernel@vger.kernel.org
+To: linux-decnet-user@lists.sourceforge.net,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-x25@vger.kernel.org, linux-h
+Return-path: <linux-hams-owner@vger.kernel.org>
+Sender: linux-hams-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello, I'm writing a prerouting hook module that modifies packets and sends them back to the source without letting the higher layers know anything about it. Using tcpdump, I see that everything works fine except for the fact that the ethernet header is written incorrectly by dev_queue_xmit. Before I call dev_queue_xmit, the ethernet header is set to zero-- but then it goes writes in the same source/dest as were on it when the packet arrived, and it shouldn't because I manually change the IP's in my hook. I have no idea how macs are chosen even from close inspection of the code for dev_queue_xmit and friends. I thought it would inspect the packet's reversed IP addresses to see which macs to put in before sending it off but this isn't happening as I expect it to. Am I missing something here
- ? Are there some fields I should set in the sk_buff to let dev_queue_xmit know that it needs to inspect the IP addresses in the packet before choosing/finding MAC addresses? 
+Just whitespace cleanups with a couple trivial corrections
 
-Here is an abbreviation of the offending code:
+Joe Perches (12):
+  appletalk: Reduce switch/case indent
+  decnet: Reduce switch/case indent
+  econet: Reduce switch/case indent
+  ipconfig: Reduce switch/case indent
+  netfilter: Reduce switch/case indent
+  ipv4: Reduce switch/case indent
+  ipv6: Reduce switch/case indent
+  lapb: Reduce switch/case indent
+  netrom:  Reduce switch/case indent
+  sctp: Reduce switch/case indent
+  sunrpc: Reduce switch/case indent
+  x25: Reduce switch/case indent
 
-//The main hook function
-static unsigned int myhook_in_func(unsigned int hooknum,
-		struct sk_buff *skb,
-		const struct net_device *in,
-		const struct net_device *out,
-		int (*okfn)(struct sk_buff *))
-{
-                ......
-                MAKE MODIFICATIONS TO THE PACKET HERE INCLUDING CHANGING IP'S
-                ......		
+ net/appletalk/aarp.c                   |  138 +++---
+ net/appletalk/ddp.c                    |  398 +++++++-------
+ net/decnet/af_decnet.c                 |  697 +++++++++++++-------------
+ net/decnet/dn_dev.c                    |   70 ++--
+ net/decnet/dn_fib.c                    |   77 ++--
+ net/decnet/dn_neigh.c                  |   14 +-
+ net/decnet/dn_nsp_in.c                 |  182 ++++----
+ net/decnet/dn_route.c                  |  102 ++--
+ net/decnet/dn_table.c                  |   23 +-
+ net/decnet/netfilter/dn_rtmsg.c        |   18 +-
+ net/decnet/sysctl_net_decnet.c         |   17 +-
+ net/econet/af_econet.c                 |   23 +-
+ net/ipv4/ipconfig.c                    |   73 ++--
+ net/ipv4/netfilter/ipt_CLUSTERIP.c     |   26 +-
+ net/ipv4/netfilter/nf_nat_snmp_basic.c |  210 ++++----
+ net/ipv4/raw.c                         |   36 +-
+ net/ipv4/route.c                       |   28 +-
+ net/ipv6/raw.c                         |  145 +++---
+ net/lapb/lapb_iface.c                  |   30 +-
+ net/lapb/lapb_in.c                     |  881 ++++++++++++++++----------------
+ net/netfilter/xt_HL.c                  |   64 ++--
+ net/netfilter/xt_hl.c                  |   32 +-
+ net/netrom/nr_route.c                  |   22 +-
+ net/sctp/sm_statefuns.c                |   51 +-
+ net/sctp/socket.c                      |   10 +-
+ net/sunrpc/auth_gss/auth_gss.c         |   46 +-
+ net/sunrpc/clnt.c                      |   25 +-
+ net/sunrpc/rpc_pipe.c                  |   14 +-
+ net/x25/af_x25.c                       |  473 +++++++++---------
+ net/x25/x25_dev.c                      |   44 +-
+ net/x25/x25_in.c                       |  118 +++---
+ net/x25/x25_link.c                     |   87 ++--
+ net/x25/x25_subr.c                     |   78 ++--
+ 33 files changed, 2111 insertions(+), 2141 deletions(-)
 
-
-                //The ethernet header is zero at this point-- I checked.
-                skb_push(skb, ETH_HLEN);
-	
-                //Set the packet type to outgoing-- didn't help.
-	       skb->pkt_type = PACKET_OUTGOING;
-		
-                //Send the packet on the wire; ARP resolution is done somewhere in here..				
-		dev_queue_xmit(skb);
-
-                //NF_STOLEN because dev_queue_xmit consumes the skb
-                return NF_STOLEN;
-}
-
-The hook is registered in NF_IP_PRE_ROUTING. 
-
-Thanks in advance for your help!
---Nader Al-Naji
-
-PS: Wasn't sure whether to post this in the netfilter user list (instead of development) but after reading their questions, it seems to me that this is really more of a development-oriented issue. Please let me know if these kinds of questions actually belong more in the user list.
-
+-- 
+1.7.6.rc1
 
