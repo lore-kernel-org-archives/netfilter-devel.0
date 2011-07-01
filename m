@@ -1,93 +1,63 @@
-From: Anders Nilsson Plymoth <lanilsson@gmail.com>
-Subject: Re: netfilter queue throughput slowdown
-Date: Fri, 1 Jul 2011 17:08:08 +0200
-Message-ID: <BANLkTinAD2gDYQntH4QRXRciB3ssG-_t0g@mail.gmail.com>
-References: <BANLkTinVcuMCoctfuZbUdd_6m8hpbtbwFA@mail.gmail.com>
- <1309340843.2532.112.camel@edumazet-laptop> <BANLkTi=C7J0u_kn6UknFsGAx9Z5kHUUBrw@mail.gmail.com>
- <1309342096.2532.116.camel@edumazet-laptop> <4E0C15A3.9050609@yandex.ru>
- <1309416426.2532.119.camel@edumazet-laptop> <4E0C278B.7010403@yandex.ru>
- <1309433652.1994.7.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
- <4E0C651A.1000300@trash.net> <1309446900.1994.17.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
- <4E0C8902.8070303@earthlink.net> <4E0C8D7F.3000902@trash.net>
- <1309453730.5846.31.camel@tiger.regit.org> <1309455919.2515.3.camel@edumazet-laptop>
+From: Nader Al-Naji <nbal@princeton.edu>
+Subject: Send Packets In Prerouting?
+Date: Fri, 01 Jul 2011 12:33:18 -0400
+Message-ID: <38209.1309537998@princeton.edu>
+Reply-To: nbal@princeton.edu
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:52819 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751645Ab1GAPI3 convert rfc822-to-8bit (ORCPT
+Received: from ppa04.Princeton.EDU ([128.112.128.215]:39126 "EHLO
+	ppa04.Princeton.EDU" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757255Ab1GAQmO convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Jul 2011 11:08:29 -0400
-Received: by ewy4 with SMTP id 4so1158443ewy.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 01 Jul 2011 08:08:28 -0700 (PDT)
-In-Reply-To: <1309455919.2515.3.camel@edumazet-laptop>
+	Fri, 1 Jul 2011 12:42:14 -0400
+Received: from csgsmtp200l.Princeton.EDU (csgsmtp200l.Princeton.EDU [128.112.130.131])
+	by ppa04.Princeton.EDU (8.14.4/8.14.4) with ESMTP id p61GXIlT007703
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
+	for <netfilter-devel@vger.kernel.org>; Fri, 1 Jul 2011 12:33:18 -0400
+Received: from webmail.princeton.edu (atmail01.Princeton.EDU [128.112.133.236])
+	by csgsmtp200l.Princeton.EDU (8.13.8/8.12.9) with ESMTP id p61GXIP0019562
+	for <netfilter-devel@vger.kernel.org>; Fri, 1 Jul 2011 12:33:18 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hello, I'm writing a prerouting hook module that modifies packets and sends them back to the source without letting the higher layers know anything about it. Using tcpdump, I see that everything works fine except for the fact that the ethernet header is written incorrectly by dev_queue_xmit. Before I call dev_queue_xmit, the ethernet header is set to zero-- but then it goes writes in the same source/dest as were on it when the packet arrived, and it shouldn't because I manually change the IP's in my hook. I have no idea how macs are chosen even from close inspection of the code for dev_queue_xmit and friends. I thought it would inspect the packet's reversed IP addresses to see which macs to put in before sending it off but this isn't happening as I expect it to. Am I missing something here
+ ? Are there some fields I should set in the sk_buff to let dev_queue_xmit know that it needs to inspect the IP addresses in the packet before choosing/finding MAC addresses? 
 
-I upgraded the kernel and distro but some only a little improvent. I
-saw no failures to set the verdict, but many many packets drops in the
-netfilter queue proc entry.
+Here is an abbreviation of the offending code:
 
-I saw the two submitted patches today, and will try those.
+//The main hook function
+static unsigned int myhook_in_func(unsigned int hooknum,
+		struct sk_buff *skb,
+		const struct net_device *in,
+		const struct net_device *out,
+		int (*okfn)(struct sk_buff *))
+{
+                ......
+                MAKE MODIFICATIONS TO THE PACKET HERE INCLUDING CHANGING IP'S
+                ......		
 
-I think having an option on what to do with stuck packets makes a lot
-of sense. I can think of several ways to handle this, and each have
-different consequences depending on the type of packets in the queue.
-Having them stuck in the buffer is really bad though.
-If you do a massive ACCEPT, packets will probably arrive out of order,
-which may cause problems for some protocols and apps. If you do a
-massive DROP, TCP will deflate its window and TCP will cut down its
-rate significantly. Here it might be better to some RED type dropping,
-maybe successive single DROPs untill queue is empty of stuck packets.
 
-Thanks,
-Anders
+                //The ethernet header is zero at this point-- I checked.
+                skb_push(skb, ETH_HLEN);
+	
+                //Set the packet type to outgoing-- didn't help.
+	       skb->pkt_type = PACKET_OUTGOING;
+		
+                //Send the packet on the wire; ARP resolution is done somewhere in here..				
+		dev_queue_xmit(skb);
 
-On Thu, Jun 30, 2011 at 7:45 PM, Eric Dumazet <eric.dumazet@gmail.com> =
-wrote:
->
-> Le jeudi 30 juin 2011 =E0 19:07 +0200, Eric Leblond a =E9crit :
->
-> > As the verdict failure is bound to occur in a high load time,
-> > retransmission of the verdict (which is necessary) will not help th=
-e
-> > system to recover. Userspace has to deal with it but it has another
-> > consequences which is that userspace software may suffer of case wh=
-ere
-> > successive failures occurs.
-> >
-> > In this scope, Florian's patch "netfilter: nfqueue: batch verdict
-> > support" could be really useful. It could be used by userspace to
-> > trigger an decide on all stucked packets. Issuing a massive ACCEPT =
-could
-> > lead to dynosaurus packet coming from ancient time but it could be =
-ok if
-> > batch occurs enough often.
-> >
-> > Is there a plan to accept it in mainstream ?
->
-> Given that apparently some apps are not aware some of their verdicts =
-are
-> lost, I consider the BATCH idea would be a bad idea, unless DROP is
-> used.
->
-> If you have any doubt, only sane thing is to drop packets, not accept
-> them.
->
-> Maybe a single queue flag is needed : DROP_OLD_PACKETS, if user
-> application is handling packets in order.
->
-> Every time a verdict is given by application, automatically DROP all
-> previous un-verdicted packets.
->
->
->
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+                //NF_STOLEN because dev_queue_xmit consumes the skb
+                return NF_STOLEN;
+}
+
+The hook is registered in NF_IP_PRE_ROUTING. 
+
+Thanks in advance for your help!
+--Nader Al-Naji
+
+PS: Wasn't sure whether to post this in the netfilter user list (instead of development) but after reading their questions, it seems to me that this is really more of a development-oriented issue. Please let me know if these kinds of questions actually belong more in the user list.
+
+
