@@ -1,62 +1,17 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH next] netfilter: nfqueue: batch verdict support
-Date: Sun, 3 Jul 2011 21:23:26 +0200
-Message-ID: <20110703192326.GU16021@Chamillionaire.breakpoint.cc>
-References: <1307657659-30266-1-git-send-email-fw@strlen.de>
- <1309688655.2523.16.camel@edumazet-laptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netdev <netdev@vger.kernel.org>, Eric Leblond <eric@regit.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+From: torki@vger.kernel.org
+Subject: Too short harmony-maker? Desire BIG?!
+Date: 05 Jul 2011 19:19:44 +0800
+Message-ID: <871318$jlh5e@outbound.icp-osb-irony-out7.iinet.net.au>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:43411 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755964Ab1GCTX2 (ORCPT
+Received: from outbound.icp-osb-irony-out7.iinet.net.au ([203.59.1.108]:1585
+	"EHLO outbound.icp-osb-irony-out7.iinet.net.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932074Ab1GELTs (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Jul 2011 15:23:28 -0400
-Content-Disposition: inline
-In-Reply-To: <1309688655.2523.16.camel@edumazet-laptop>
+	Tue, 5 Jul 2011 07:19:48 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> > Introduces a new nfnetlink type that applies a given
-> > verdict to all queued packets with an id <= the id in the verdict
-> > message.
-> > 
-> > If a mark is provided it is applied to all matched packets.
-> > 
-> > This reduces the number of verdicts that have to be sent.
-> > Applications that make use of this feature need to maintain
-> > a timeout to send a batchverdict periodically to avoid starvation.
-> > 
-> > Signed-off-by: Florian Westphal <fw@strlen.de>
-> 
-> The real question hidden here is : "Should packet ids be monotonic" in
-> current implementation and all future ones ?
-> 
-> Before we accept this patch, we should make sure packets id are
-> monotonic, and I am afraid its not the case right now.
+The most excellent method to please your beloved one! http://simbatrack.com/signal.html
 
-You're right, good catch.
 
-I was fooled by atomic_inc being monotonically increasing, but since
-packet building is not protected by the queue spin lock
-reordering can indeed happen.
-
-> [PATCH] netfilter: nfqueue: assert monotonic packet ids
-> 
-> Packet identifier is currently setup in nfqnl_build_packet_message(),
-> using one atomic_inc_return().
-> 
-> Problem is that since several cpus might concurrently call
-> nfqnl_enqueue_packet() for the same queue, we can deliver packets to
-> consumer in non monotonic way (packet N+1 being delivered after packet
-> N)
-
-I would actually consider your patch a bug fix...
-
-Thanks a lot for spending time on this!
