@@ -1,28 +1,38 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH conntrack-tools] testsuite: add tests for --mark option
-Date: Fri, 08 Jul 2011 13:31:33 +0200
-Message-ID: <4E16EA95.8070003@netfilter.org>
-References: <1308169750-1509-1-git-send-email-fw@strlen.de>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] Byte order problem in libxt_conntrack.c
+Date: Sat, 9 Jul 2011 16:31:11 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1107091630200.17124@frira.zrqbmnf.qr>
+References: <1309992602.6466.41.camel@sami.shorewall.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Tom Eastep <teastep@shorewall.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47784 "EHLO mail.us.es"
+Received: from seven.medozas.de ([188.40.89.202]:58323 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752619Ab1GHLbj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 8 Jul 2011 07:31:39 -0400
-In-Reply-To: <1308169750-1509-1-git-send-email-fw@strlen.de>
+	id S1753509Ab1GIObN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 9 Jul 2011 10:31:13 -0400
+In-Reply-To: <1309992602.6466.41.camel@sami.shorewall.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 15/06/11 22:29, Florian Westphal wrote:
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  qa/testsuite/02filter |    3 +++
->  qa/testsuite/05mark   |   27 +++++++++++++++++++++++++++
->  2 files changed, 30 insertions(+), 0 deletions(-)
->  create mode 100644 qa/testsuite/05mark
+On Thursday 2011-07-07 00:50, Tom Eastep wrote:
 
-Thanks for taking the time to add these.
+>Using iptables 4.4.11.1, the following input:
+>
+>-A lan-dmz -p 6 --dport 80 -m conntrack --ctorigdstport 8080 -d 70.90.191.125 -m conntrack --ctorigdst 172.20.1.254 -j ACCEPT
+>
+>Results in this:
+>
+>Chain lan-dmz (1 references)
+> pkts bytes target     prot opt in     out     source               destination         
+>    0     0 ACCEPT     tcp  --  *      *       0.0.0.0/0            70.90.191.125        tcp dpt:80 ctorigdstport 36895 ctorigdst 172.20.1.254
+>
+>Note that 8080 == 0x1f90 while 36895 == 0x901f.
+>
+>The attached patch seems to resolve the issue.
+
+Thanks, taken it in.
+
+
+FTR, links to DUPLICATE candidates: http://bugs.debian.org/632804
