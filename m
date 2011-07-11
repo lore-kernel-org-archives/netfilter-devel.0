@@ -1,39 +1,41 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables patches 20110710
-Date: Mon, 11 Jul 2011 10:41:37 +0200
-Message-ID: <4E1AB741.6060103@trash.net>
-References: <1310322139-28505-1-git-send-email-jengelh@medozas.de>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [ANNOUNCE] ipset-6.8 released
+Date: Mon, 11 Jul 2011 11:28:36 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1107111120380.32664@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45249 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757414Ab1GKIlk (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Jul 2011 04:41:40 -0400
-In-Reply-To: <1310322139-28505-1-git-send-email-jengelh@medozas.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Am 10.07.2011 20:22, schrieb Jan Engelhardt:
-> The following changes since commit 795ea2e8d4d9f01a606d0d7aac22572801e06989:
-> 
->   Merge branch 'master' of git://dev.medozas.de/iptables (2011-07-05 15:16:05 +0200)
-> 
-> are available in the git repository at:
-> 
->   git://dev.medozas.de/iptables master
-> 
-> Jan Engelhardt (6):
->       libxtables: properly reject empty hostnames
->       libxtables: ignore whitespace in the multiaddress argument parser
->       option: remove last traces of intrapositional negation
->       libxtables: set clone's initial data to NULL
->       libxt_conntrack: restore network-byte order for v1,v2
->       libxt_conntrack: move more data into the xt_option_entry
+Hi,
 
+I'm happy to announce ipset-6.8. The new release contains an important fix
+of the hash:net,iface type, so if you use that hash type *and* store
+overlapping networks with different interfaces in the same set, then 
+please upgrade.
 
-Pulled, thanks Jan.
+Kernel part changes
+ - Fix compiler warnings "'hash_ip4_data_next' declared inline after
+   being called" (Chris Friesen)
+ - hash:net,iface fixed to handle overlapping nets behind different
+   interfaces
+ - Make possible to hash some part of the data element only.
+
+Userspace changes
+ - Update the manpage and document the limits in hash:net,iface.
+ - README file corrections from Richard Lucassen
+
+You can download the source code of ipset from:
+        http://ipset.netfilter.org
+        ftp://ftp.netfilter.org/pub/ipset/
+        git://git.netfilter.org/ipset.git
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
