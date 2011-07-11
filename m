@@ -1,28 +1,39 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [RELEASE] ebtables v2.0.10-1
-Date: Sun, 10 Jul 2011 21:53:40 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1107102141380.7932@frira.zrqbmnf.qr>
-References: <4E19EE09.8070602@pandora.be>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: iptables patches 20110710
+Date: Mon, 11 Jul 2011 10:41:37 +0200
+Message-ID: <4E1AB741.6060103@trash.net>
+References: <1310322139-28505-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:33385 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754352Ab1GJTxm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 10 Jul 2011 15:53:42 -0400
-In-Reply-To: <4E19EE09.8070602@pandora.be>
+Received: from stinky.trash.net ([213.144.137.162]:45249 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757414Ab1GKIlk (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 Jul 2011 04:41:40 -0400
+In-Reply-To: <1310322139-28505-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sunday 2011-07-10 20:23, Bart De Schuymer wrote:
+Am 10.07.2011 20:22, schrieb Jan Engelhardt:
+> The following changes since commit 795ea2e8d4d9f01a606d0d7aac22572801e06989:
+> 
+>   Merge branch 'master' of git://dev.medozas.de/iptables (2011-07-05 15:16:05 +0200)
+> 
+> are available in the git repository at:
+> 
+>   git://dev.medozas.de/iptables master
+> 
+> Jan Engelhardt (6):
+>       libxtables: properly reject empty hostnames
+>       libxtables: ignore whitespace in the multiaddress argument parser
+>       option: remove last traces of intrapositional negation
+>       libxtables: set clone's initial data to NULL
+>       libxt_conntrack: restore network-byte order for v1,v2
+>       libxt_conntrack: move more data into the xt_option_entry
 
-> Hi all,
->
-> I just released a new version of the ebtables tool.
 
-Oh BTW, please avoid release numbers (the -1 in 2.0.10-1) as they are 
-reserved for distributions. (And creating a 2.0.10-1-1, you can agree, 
-is weird in a distro. Just use 2.0.10.1 for example.)
+Pulled, thanks Jan.
