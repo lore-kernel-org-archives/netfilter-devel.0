@@ -1,36 +1,60 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/3] netfilter: ipset: Fix compiler warnings "'hash_ip4_data_next'
- declared inline after being called"
-Date: Mon, 11 Jul 2011 18:51:49 +0200
-Message-ID: <4E1B2A25.207@trash.net>
-References: <1310377975-993-1-git-send-email-kadlec@blackhole.kfki.hu> <1310377975-993-2-git-send-email-kadlec@blackhole.kfki.hu> <1310377975-993-3-git-send-email-kadlec@blackhole.kfki.hu> <1310377975-993-4-git-send-email-kadlec@blackhole.kfki.hu>
+From: Michal Soltys <soltys@ziu.info>
+Subject: Re: Bug#631945: HFSC warning issue
+Date: Wed, 13 Jul 2011 01:28:14 +0200
+Message-ID: <4E1CD88E.4030107@ziu.info>
+References: <1310376412.8036.134.camel@luna.madrid.commsmundi.com>	<4E1AE4F1.6030905@ziu.info>	<4E1AE88F.803@ziu.info> <CAAJ8s-RGocriAycZv4cjkKGd2mwGF1UH_-uyi+fbwdeUhvMk7g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Chris Friesen <chris.friesen@genband.com>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: 631945@bugs.debian.org, fdelawarde@wirelessmundi.com,
+	netfilter-devel@vger.kernel.org, kaber@trash.net
+To: 00bormoj@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:51890 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758177Ab1GKQvv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Jul 2011 12:51:51 -0400
-In-Reply-To: <1310377975-993-4-git-send-email-kadlec@blackhole.kfki.hu>
+Received: from drutsystem.com ([80.72.38.138]:3543 "EHLO drutsystem.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751203Ab1GMABE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Jul 2011 20:01:04 -0400
+In-Reply-To: <CAAJ8s-RGocriAycZv4cjkKGd2mwGF1UH_-uyi+fbwdeUhvMk7g@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 11.07.2011 11:52, schrieb Jozsef Kadlecsik:
-> Some gcc versions warn about prototypes without "inline" when the declaration
-> includes the "inline" keyword. The fix generates a false error message
-> "marked inline, but without a definition" with sparse below 0.4.2.
-> 
-> Signed-off-by: Chris Friesen <chris.friesen@genband.com>
-> Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+On 11-07-11 17:07, 00bormoj@gmail.com wrote:
+> Oops - my logs are again filled with the WARN_ON from
+> net/sched/sch_hfsc.c:1427. Sorry for the confusion, it looks like
+> "initialize parent's cl_cfmin properly in init_vf()" is not to blame.
+>
 
-Applied, thanks.
+Ah, ok then. It would be really weird if that was the actual cause. I
+have few patches stacked for later, so it made me feel a bit uneasy :)
 
-But please try to keep the subject lines to something like 72
-characters, if it exceeds that amount by a lot its better to
-put the exact warning inside the body.
+> This is an amd64 system. Vanilla kernel.org kernel except with fglrx
+> (the amd/ati radeon proprietary driver - yes it is a router and an
+> HTPC...) loaded. I should probably start bisecting then, but it's a
+> little tough when it can take more than two days to trigger :(
+>
+
+ From what I can see, and if I haven't missed or misread anything:
+
+That warning that gets triggered when next_time == 0 in
+hfsc_schedule_watchdog() implies, that hfsc_dequeue() tried to dequeue a
+packet, but no leaf had anything eligible for scheduling (realtime
+criterion) and linksharing was upperlimited.
+
+Now if there IS something to dequeue, then I don't see how next_time
+could possibly be zero - that would mean there's no packet to schedule
+at all. But if that happened, then hfsc_dequeue() would simply exit at
+the very beginning due to: if (sch->q.qlen == 0) .
+
+So it does look weird (like if something external messed with hfsc's
+qlen) ...
+
+Also note - the changes to sch_hfsc.c were pretty minimal since the last
+kernel that worked for you. You might be searching for something else ...
+
+
+ps.
+
+You don't have to upperlimit every single class (which will cripple
+linksharing between siblings) - if your aim is to match some interface's
+speed, just set it in the single top class of your class hierarchy.
+
