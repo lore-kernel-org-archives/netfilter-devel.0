@@ -1,59 +1,66 @@
-From: "Jeff Haran" <jharan@bytemobile.com>
-Subject: RE: NAT66 : A first implementation
-Date: Fri, 15 Jul 2011 15:12:47 -0700
-Message-ID: <6F5DE7538AFCDA45A114F5E7510424A7028D1CDC@hq-exchange01.bytemobile.com>
-References: <alpine.LNX.2.01.1107141818500.10490@frira.zrqbmnf.qr><4E1F1902.9020605@student.ulg.ac.be><alpine.LNX.2.01.1107141915580.10781@frira.zrqbmnf.qr> <20110714.161717.1387261665409519132.davem@davemloft.net> <6F5DE7538AFCDA45A114F5E7510424A7028D1BBE@hq-exchange01.bytemobile.com> <4E1FA5F9.3040006@nostrum.com>
+From: Adam Roach <adam@nostrum.com>
+Subject: Re: NAT66 : A first implementation
+Date: Fri, 15 Jul 2011 22:08:33 -0500
+Message-ID: <4E2100B1.60202@nostrum.com>
+References: <alpine.LNX.2.01.1107141818500.10490@frira.zrqbmnf.qr><4E1F1902.9020605@student.ulg.ac.be><alpine.LNX.2.01.1107141915580.10781@frira.zrqbmnf.qr> <20110714.161717.1387261665409519132.davem@davemloft.net> <6F5DE7538AFCDA45A114F5E7510424A7028D1BBE@hq-exchange01.bytemobile.com> <4E1FA5F9.3040006@nostrum.com> <6F5DE7538AFCDA45A114F5E7510424A7028D1CDC@hq-exchange01.bytemobile.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Cc: "David Miller" <davem@davemloft.net>, <jengelh@medozas.de>,
-	<T.Moes@student.ulg.ac.be>, <netfilter-devel@vger.kernel.org>
-To: "Adam Roach" <adam@nostrum.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: David Miller <davem@davemloft.net>, jengelh@medozas.de,
+	T.Moes@student.ulg.ac.be, netfilter-devel@vger.kernel.org
+To: Jeff Haran <jharan@bytemobile.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ironport.bytemobile.com ([12.153.136.13]:12444 "EHLO
-	ironport.bytemobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750926Ab1GOWNI convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Jul 2011 18:13:08 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <4E1FA5F9.3040006@nostrum.com>
+Received: from shaman.nostrum.com ([72.232.179.90]:49403 "EHLO nostrum.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751259Ab1GPDIo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Jul 2011 23:08:44 -0400
+In-Reply-To: <6F5DE7538AFCDA45A114F5E7510424A7028D1CDC@hq-exchange01.bytemobile.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> -----Original Message-----
-> From: Adam Roach [mailto:adam@nostrum.com]
-> Sent: Thursday, July 14, 2011 7:29 PM
-> To: Jeff Haran
-> Cc: David Miller; jengelh@medozas.de; T.Moes@student.ulg.ac.be;
-netfilter-
-> devel@vger.kernel.org
-> Subject: Re: NAT66 : A first implementation
-> 
-...
-> So, really, before we do the whole "NATS BAD!" dogpile again, I'd
-> encourage people take an unprejudiced look at the technique described
-in
-> RFC 6296. There may actually be a place for NPTv6 in netfilter after
-all.
+On 7/15/11 17:12, Jul 15, Jeff Haran wrote:
+>> I was unaware of the RFC. Thanks for the reference, however I have to
+>> point out the following quote from its introduction:
+>>
+>> "For reasons discussed in [RFC2993] and Section 5, the IETF does not
+>> recommend the use of Network Address Translation technology for IPv6."
 
-I was unaware of the RFC. Thanks for the reference, however I have to
-point out the following quote from its introduction:
+That statement is simple IETF politics. A substantial portion of RFC 
+2993 doesn't apply to the RFC 6296 mechanism. For example, of the seven 
+problems enumerated in section 7, only two -- 7.2 and 7.5 -- remain 
+applicable. And, to be fair, those two issues are very minor compared to 
+the other five.
 
-"For reasons discussed in [RFC2993] and Section 5, the IETF does not
-recommend the use of Network Address Translation technology for IPv6."
+>> I'm not saying nobody is going to use IPv6 NAT nor that the Linux world
+>> should somehow make it hard on them to do so. There may be a few cases
+>> where it makes sense.
+>>
 
-I'm not saying nobody is going to use IPv6 NAT nor that the Linux world
-should somehow make it hard on them to do so. There may be a few cases
-where it makes sense.
+Exactly. Even the most recent IAB statement on IPv6 NATs (RFC 5902) 
+concedes: "[I]n smaller managed networks that cannot get 
+provider-independent IP address blocks, renumbering remains a serious 
+issue.  Regional Internet Registries (RIRs) constantly receive requests 
+for PI address blocks; one main reason that they hesitate in assigning 
+PI address blocks to all users is the concern about the PI addresses' 
+impact on the routing system scalability."
 
-All I am saying is I think most will come to the conclusion that the
-benefits they get from it will not compensate for the hassle of dealing
-with it. And lacking popularity, many of the hassles will go
-unaddressed, further encouraging users to not use it. With IPv4, NAT
-quickly became a necessity because of the lack of address space. If your
-application or device broke IPv4 NAT, you had a lot of incentive to
-change it so it worked with NAT. I think it is unlikely that the same
-incentives will come into play with any form of IPv6 NAT.
+So, yes, IPv6 NAT remains inadvisable for most residential applications 
+(which can simply propagate their ISP's assigned prefix down to 
+devices), and some very large enterprise deployments (which can get PI 
+address blocks). But it does solve a very real problem for small to 
+medium (and even large, depending on where you want to draw the line) 
+enterprises -- basically, "everyone else."
 
+It seems a little silly to refuse _consideration_ of NAT technologies 
+when (1) a preponderance of the problems historically present in IPv4 
+NATs have been addressed, and (2) a small but nontrivial portion of 
+networks that will be using IPv6 soon will desire this technology for 
+operational cost reasons.
 
+What I'm saying is that this age-old policy statement: 
+<http://lists.netfilter.org/pipermail/netfilter/2005-March/059463.html> 
+needs to be revisited. The facts on the ground have changed. Adhering to 
+beliefs in the face of contrary evidence isn't principle -- it's 
+religion. And imposing religion on others doesn't help anyone.
 
+/a
