@@ -1,65 +1,47 @@
-From: =?UTF-8?B?S3J6eXN6dG9mIE9sxJlkemtp?= <ole@ans.pl>
-Subject: Re: NAT66 : A first implementation
-Date: Sun, 17 Jul 2011 07:09:17 +0200
-Message-ID: <4E226E7D.6050800@ans.pl>
-References: <alpine.LNX.2.01.1107141818500.10490@frira.zrqbmnf.qr> <4E1F1902.9020605@student.ulg.ac.be> <alpine.LNX.2.01.1107141915580.10781@frira.zrqbmnf.qr> <20110714.161717.1387261665409519132.davem@davemloft.net> <alpine.LNX.2.01.1107150151390.20658@frira.zrqbmnf.qr>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: [PATCH][RESEND] fix ebtables build dependency
+Date: Sun, 17 Jul 2011 18:04:49 +0200
+Message-ID: <4E230821.10807@pandora.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, T.Moes@student.ulg.ac.be,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bizon.gios.gov.pl ([195.187.34.71]:52563 "EHLO
-	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750984Ab1GQFaV (ORCPT
+Received: from brigitte.telenet-ops.be ([195.130.137.66]:41628 "EHLO
+	brigitte.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753674Ab1GQQEy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 17 Jul 2011 01:30:21 -0400
-In-Reply-To: <alpine.LNX.2.01.1107150151390.20658@frira.zrqbmnf.qr>
+	Sun, 17 Jul 2011 12:04:54 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2011-07-15 01:55, Jan Engelhardt wrote:
-> On Friday 2011-07-15 01:17, David Miller wrote:
->
->> From: Jan Engelhardt<jengelh@medozas.de>
->> Date: Fri, 15 Jul 2011 01:15:47 +0200 (CEST)
->>
->>> Of course yours is feature-richer. But the topic of IPv6 NAT has ha=
-d
->>> come up a number of unrecollectable times, and the response has bee=
-n the
->>> same everytime - NAT is still an ugly undesired hack whose recurren=
-ce
->>> wants to be avoided.
->>
->> People want to hide the details of the topology of their
->> internal networks,
->
-> And IPv6 Privacy w.r.t. random address selection, combined with a
-> firewall, won't do that?
+The configuration of ebtables shouldn't depend on
+CONFIG_BRIDGE_NETFILTER, only on CONFIG_NETFILTER.
 
-Be rational.
+Reported-by: S=E9bastien Laveze <slaveze@gmail.com>
+Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>=20
 
-How would you imagine managing and maintaining a typical corporate=20
-network (1K+ devices) of different devices and operating systems -=20
-workstations (Windows, Mac, Linux), servers (Windows, Linux, BSD)=20
-routers, switches (radius), firewalls, APs, etc; without static IP=20
-addresses? Static =3D not random.
 
-Also, how would you imagine readressing such network one day, when you=20
-decide to change your ISP?
+--- linux/net/bridge/netfilter/Kconfig.ori	2011-06-29 22:32:38.70273499=
+9 +0200
++++ linux/net/bridge/netfilter/Kconfig	2011-06-29 22:33:33.702734999 +0=
+200
+@@ -4,7 +4,7 @@
+=20
+ menuconfig BRIDGE_NF_EBTABLES
+ 	tristate "Ethernet Bridge tables (ebtables) support"
+-	depends on BRIDGE && BRIDGE_NETFILTER
++	depends on BRIDGE && NETFILTER
+ 	select NETFILTER_XTABLES
+ 	help
+ 	  ebtables is a general, extensible frame/packet identification
 
-Without NAT (and BTW without working and complete L3 security in=20
-switches) no one will consider IPv6 seriously nor dare to implement it=20
-in production. Of course NAT does not provide security but it provides =
-a=20
-real and useful privacy, opposite to annoying randomness.
 
-Best regards,
-
-				Krzysztof Ol=C4=99dzki
+--=20
+Bart De Schuymer
+www.artinalgorithms.be
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
