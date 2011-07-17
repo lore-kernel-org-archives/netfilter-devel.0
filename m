@@ -1,49 +1,101 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: [PATCH][RESEND] fix ebtables build dependency
-Date: Sun, 17 Jul 2011 18:04:49 +0200
-Message-ID: <4E230821.10807@pandora.be>
+From: Jesper Juhl <jj@chaosbits.net>
+Subject: [PATCH][RFC] netfilter: Fix small leak in
+ ipq_build_packet_message()
+Date: Sun, 17 Jul 2011 19:46:16 +0200 (CEST)
+Message-ID: <alpine.LNX.2.00.1107171942400.32359@swampdragon.chaosbits.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netdev@vger.kernel.org, coreteam@netfilter.org,
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	James Morris <jmorris@namei.org>,
+	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	"David S. Miller" <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>
+To: linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from brigitte.telenet-ops.be ([195.130.137.66]:41628 "EHLO
-	brigitte.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753674Ab1GQQEy (ORCPT
+Received: from swampdragon.chaosbits.net ([90.184.90.115]:20445 "EHLO
+	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753218Ab1GQRqS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 17 Jul 2011 12:04:54 -0400
+	Sun, 17 Jul 2011 13:46:18 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The configuration of ebtables shouldn't depend on
-CONFIG_BRIDGE_NETFILTER, only on CONFIG_NETFILTER.
+ipq_build_packet_message() in net/ipv4/netfilter/ip_queue.c and
+net/ipv6/netfilter/ip6_queue.c contain a small potential mem leak as
+far as I can tell.
 
-Reported-by: S=E9bastien Laveze <slaveze@gmail.com>
-Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>=20
+We allocate memory for 'skb' with alloc_skb() annd then call
+ nlh = NLMSG_PUT(skb, 0, 0, IPQM_PACKET, size - sizeof(*nlh));
+
+NLMSG_PUT is a macro
+ NLMSG_PUT(skb, pid, seq, type, len) \
+  		NLMSG_NEW(skb, pid, seq, type, len, 0)
+
+that expands to NLMSG_NEW, which is also a macro which expands to:
+ NLMSG_NEW(skb, pid, seq, type, len, flags) \
+  	({	if (unlikely(skb_tailroom(skb) < (int)NLMSG_SPACE(len))) \
+  			goto nlmsg_failure; \
+  		__nlmsg_put(skb, pid, seq, type, len, flags); })
+
+If we take the true branch of the 'if' statement and 'goto
+nlmsg_failure', then we'll, at that point, return from
+ipq_build_packet_message() without having assigned 'skb' to anything
+and we'll leak the memory we allocated for it when it goes out of
+scope.
+
+Fix this by placing a 'kfree(skb)' at 'nlmsg_failure'.
+
+I admit that I do not know how likely this to actually happen or even
+if there's something that guarantees that it will never happen - I'm
+not that familiar with this code, but if that is so, I've not been
+able to spot it.
+
+Please review and commit if you believe this is correct. Thanks.
+
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+---
+ net/ipv4/netfilter/ip_queue.c  |    1 +
+ net/ipv6/netfilter/ip6_queue.c |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
+
+  Disclaimer: Patch is compile tested only.
+
+diff --git a/net/ipv4/netfilter/ip_queue.c b/net/ipv4/netfilter/ip_queue.c
+index 5c9b9d9..48f7d5b 100644
+--- a/net/ipv4/netfilter/ip_queue.c
++++ b/net/ipv4/netfilter/ip_queue.c
+@@ -218,6 +218,7 @@ ipq_build_packet_message(struct nf_queue_entry *entry, int *errp)
+ 	return skb;
+ 
+ nlmsg_failure:
++	kfree_skb(skb);
+ 	*errp = -EINVAL;
+ 	printk(KERN_ERR "ip_queue: error creating packet message\n");
+ 	return NULL;
+diff --git a/net/ipv6/netfilter/ip6_queue.c b/net/ipv6/netfilter/ip6_queue.c
+index 2493948..87b243a 100644
+--- a/net/ipv6/netfilter/ip6_queue.c
++++ b/net/ipv6/netfilter/ip6_queue.c
+@@ -218,6 +218,7 @@ ipq_build_packet_message(struct nf_queue_entry *entry, int *errp)
+ 	return skb;
+ 
+ nlmsg_failure:
++	kfree_skb(skb);
+ 	*errp = -EINVAL;
+ 	printk(KERN_ERR "ip6_queue: error creating packet message\n");
+ 	return NULL;
+-- 
+1.7.6
 
 
---- linux/net/bridge/netfilter/Kconfig.ori	2011-06-29 22:32:38.70273499=
-9 +0200
-+++ linux/net/bridge/netfilter/Kconfig	2011-06-29 22:33:33.702734999 +0=
-200
-@@ -4,7 +4,7 @@
-=20
- menuconfig BRIDGE_NF_EBTABLES
- 	tristate "Ethernet Bridge tables (ebtables) support"
--	depends on BRIDGE && BRIDGE_NETFILTER
-+	depends on BRIDGE && NETFILTER
- 	select NETFILTER_XTABLES
- 	help
- 	  ebtables is a general, extensible frame/packet identification
+PS. Please CC me on replies since I'm not subscribed to all the lists 
+copied on this mail.
 
+-- 
+Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
+Don't top-post http://www.catb.org/jargon/html/T/top-post.html
+Plain text mails only, please.
 
---=20
-Bart De Schuymer
-www.artinalgorithms.be
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
