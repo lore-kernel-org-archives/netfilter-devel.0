@@ -1,42 +1,42 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] netfilter: add per-namespace logging to
- nfnetlink_log.c
-Date: Mon, 18 Jul 2011 22:28:25 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1107182218170.9579@frira.zrqbmnf.qr>
-References: <8739i3fp6s.fsf@sapphire.mobileactivedefense.com> <20110718191956.GA2489@p183.telecom.by> <87hb6je5nh.fsf@sapphire.mobileactivedefense.com> <20110718.124638.30010338187296272.davem@davemloft.net>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Re: [PATCH] netfilter: add per-namespace logging to nfnetlink_log.c
+Date: Mon, 18 Jul 2011 23:32:49 +0300
+Message-ID: <20110718203249.GC2489@p183.telecom.by>
+References: <87hb6je5nh.fsf@sapphire.mobileactivedefense.com>
+ <20110718.124638.30010338187296272.davem@davemloft.net>
  <87d3h7e43n.fsf@sapphire.mobileactivedefense.com>
+ <20110718.131943.1892150276130348431.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: David Miller <davem@davemloft.net>, adobriyan@gmail.com,
-	kaber@trash.net, netfilter-devel@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-To: Rainer Weikusat <rweikusat@mobileactivedefense.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:34235 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751094Ab1GRU21 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Jul 2011 16:28:27 -0400
-In-Reply-To: <87d3h7e43n.fsf@sapphire.mobileactivedefense.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: rweikusat@mobileactivedefense.com, kaber@trash.net,
+	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20110718.131943.1892150276130348431.davem@davemloft.net>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, Jul 18, 2011 at 01:19:43PM -0700, David Miller wrote:
+> From: Rainer Weikusat <rweikusat@mobileactivedefense.com>
+> Date: Mon, 18 Jul 2011 21:17:00 +0100
+> 
+> > David Miller <davem@davemloft.net> writes:
+> >> We're also specifically talking about namespace stuff, so you should have
+> >> at least refined your match criteria just a little bit.
+> > 
+> > The person I was replying to wrote 'We did whole networking without
+> > sprinkling ifdefs'.
+> 
+> He was talking specifically about namespace stuff.
 
-On Monday 2011-07-18 22:17, Rainer Weikusat wrote:
->David Miller <davem@davemloft.net> writes:
->>
->>> [rw@sapphire]~/work/linux-2-6/net/netfilter $find -name '*.c' | xargs grep '^#ifdef' | wc -l
->>> 239
->>
->> You've shown nothing.  Showing exceptions does not prove that the
->> general effort has been to keep ifdef crap out of *.c files.
->
->I've 'shown' that the networking code contains a fair amount of
->#ifdefs in .c files. Consequently, 'we did it without' is wrong. At
->best, 'we would like to do without in future' seems justified.
+Indeed.
 
-Your count of ifdefs is just telling that we use ifdef, not how we
-use it.
+Rainer, while your desire to keep CONFIG_NET_NS=n case equivalent
+to current code is understandable and kernel people share it at large,
+what you're fighting for is maybe one dereference on speed-uncritical
+code paths and one pointer in small amount of data structures.
+As such having common executable code matters more.
 
-There is a difference between #ifdefs sprinkled inside a function,
-and #ifdefs around functions or larger groups where possible,
-feasible and optically preferable (cf. security.h, xt_TEE.c).
+netns will be stubbed to &init_net at several places.
+See how e. g. xt_hashlimit is done.
