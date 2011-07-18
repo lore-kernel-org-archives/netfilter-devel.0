@@ -1,67 +1,119 @@
-From: Ed W <lists@wildgooses.com>
-Subject: Re: NAT66 : A first implementation
-Date: Mon, 18 Jul 2011 09:38:51 +0100
-Message-ID: <4E23F11B.7020804@wildgooses.com>
-References: <alpine.LNX.2.01.1107141818500.10490@frira.zrqbmnf.qr> <4E1F1902.9020605@student.ulg.ac.be> <alpine.LNX.2.01.1107141915580.10781@frira.zrqbmnf.qr> <20110714.161717.1387261665409519132.davem@davemloft.net> <alpine.LNX.2.01.1107150151390.20658@frira.zrqbmnf.qr> <4E226E7D.6050800@ans.pl> <4E2360C9.20304@wildgooses.com> <4E23764A.1080404@ans.pl>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Possible conntrack/kernel bug - not catching certain ICMP
+ packets
+Date: Mon, 18 Jul 2011 14:16:07 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1107181415500.13166@frira.zrqbmnf.qr>
+References: <4E202844.30602@wildgooses.com> <4E241AB0.5060603@wildgooses.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: =?UTF-8?B?S3J6eXN6dG9mIE9sxJlkemtp?= <ole@ans.pl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter <netfilter@vger.kernel.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Ed W <lists@wildgooses.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail1.nippynetworks.com ([91.220.24.129]:41873 "EHLO
-	mail1.nippynetworks.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752479Ab1GRIix convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Jul 2011 04:38:53 -0400
-In-Reply-To: <4E23764A.1080404@ans.pl>
+Received: from seven.medozas.de ([188.40.89.202]:58028 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753440Ab1GRMQJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Jul 2011 08:16:09 -0400
+In-Reply-To: <4E241AB0.5060603@wildgooses.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 18/07/2011 00:54, Krzysztof Ol=C4=99dzki wrote:
->>> Also, how would you imagine readressing such network one day, when =
-you
->>> decide to change your ISP?
->>
->> Aha.  This is a statement that you don't believe PI space will becom=
-e
->> easier to access when requesting IPV6 space?
->=20
-> IPv6 PI for everyone? Forget about it, we would shortly hit 1M or eve=
-n
-> 10M+ IPv6 prefixes and this way make BGP unreliable.
+On Monday 2011-07-18 13:36, Ed W wrote:
 
-Agree entirely, but I think it's clear that were this an option then a
-number of issues would disappear?
+>Hi, any chance I could get some of the netfilter gurus to have a look at
+>this?
 
-On a related note, plenty of people are pointing out that there are
-enough IPv6 addresses to give every atom an entire IPV4 space. However,
-the implementation of IPv6 appears to currently be to give out whacking
-great blocks of space on the grounds that giving out small chunks would
-lead to an unroutable situation..? Are we just heading for a repeat of
-IPV4 exhaustion at some future point?
+Sent it to nf-dev...
 
-My understanding of IPv6 is way too limited at present, but it would
-*appear* that IPV6 is really a kind of a 64bit address scheme (or
-perhaps more like a 64-70bit), given that many of the standards assume
-prefixes starting at /64 and getting shorter from there if you are a
-larger user?  My ISP (IDNet) gives every customer a /48 for example...
-It seems like DHCPv6 is needed to autoassign shorter prefixes than /64
-(so I presume that /64 will be the shortest prefix given to soho users
-for the time being?)
+>Essentially we have a reproducible situation where conntrack is
+>(apparently) relating a packet to a connection, but not incrementing the
+>connection counters?
+>
+>Thanks for any help figuring out a fix?
+>
+>Ed W
+>
+>
+>On 15/07/2011 12:45, Ed W wrote:
+>> Hi, This is related to a previous thread, but more complete problem
+>> statement below:
+>> 
+>> I notice that I can get an ICMP packet to bypass parts of conntrack
+>> under the following conditions
+>> 
+>> - Send a UDP packet that triggers some kind of UDP reply
+>> - Close the listening UDP socket before that reply arrives
+>> - Kernel generates an ICMP unreachable response which does not appear to
+>> be tracked (as expected) by conntrack
+>> 
+>> Tested with kernel 2.6.38.4 + iptables 1.4.11.1
+>> 
+>> Reproduce this easily like so:
+>> 
+>>     nslookup www.yahoo.co.uk 8.8.8.8 & sleep 0.001 && killall nslookup
+>> 
+>>     (where the sleep obviously needs to be smaller than your DNS RTT
+>> lookup time. Obviously substitute nslookup/dig as appropriate...)
+>> 
+>> My results
+>> 
+>> # conntrack -E
+>> 
+>>     [NEW] udp      17 30 src=10.141.86.7 dst=8.8.8.8 sport=60721
+>> dport=53 [UNREPLIED] src=8.8.8.8 dst=10.141.86.7 sport=53 dport=60721
+>>  [UPDATE] udp      17 29 src=10.141.86.7 dst=8.8.8.8 sport=60721
+>> dport=53 src=8.8.8.8 dst=10.141.86.7 sport=53 dport=60721
+>> [DESTROY] udp      17 src=10.141.86.7 dst=8.8.8.8 sport=60721 dport=53
+>> packets=1 bytes=66 src=8.8.8.8 dst=10.141.86.7 sport=53 dport=60721
+>> packets=1 bytes=110
+>> 
+>> # tcpdump
+>> 
+>> 11:26:35.072564 IP 10.141.86.7.60721 > 8.8.8.8.domain: 2+ PTR?
+>> 8.8.8.8.in-addr.arpa. (38)
+>> 11:26:35.351804 IP 8.8.8.8.domain > 10.141.86.7.60721: 2 1/0/0 PTR
+>> google-public-dns-a.google.com. (82)
+>> 11:26:35.352110 IP 10.141.86.7 > 8.8.8.8: ICMP 10.141.86.7 udp port
+>> 60721 unreachable, length 118
+>> 
+>> 
+>> # iptables -A OUTPUT -j LOGMARK
+>> # iptables -A OUTPUT -j LOG
+>> 
+>> Jul 15 11:26:35 localhost kern.warn kernel: [ 6676.964396] iif=0
+>> hook=OUTPUT nfmark=0x0 secmark=0x0 classify=0x0 ctdir=ORIGINAL
+>> ct=0xcf3d5060 ctmark=0x0 ctstate=NEW ctstatus= lifetime=6346s
+>> Jul 15 11:26:35 localhost kern.warn kernel: [ 6676.964396] IN= OUT=ppp1
+>> SRC=10.141.86.7 DST=8.8.8.8 LEN=66 TOS=0x00 PREC=0x00 TTL=64 ID=19971 DF
+>> PROTO=UDP SPT=60721 DPT=53 LEN=46
+>> Jul 15 11:26:35 localhost kern.warn kernel: [ 6677.249312] iif=0
+>> hook=OUTPUT nfmark=0x0 secmark=0x0 classify=0x0 ctdir=ORIGINAL
+>> ct=0xcf3d5060 ctmark=0x0 ctstate=RELATED ctstatus=SEEN_REPLY,CONFIRMED
+>> lifetime=4294937s
+>> Jul 15 11:26:35 localhost kern.warn kernel: [ 6677.249426] IN= OUT=ppp1
+>> SRC=10.141.86.7 DST=8.8.8.8 LEN=138 TOS=0x00 PREC=0xC0 TTL=64 ID=18412
+>> PROTO=ICMP TYPE=3 CODE=3 [SRC=8.8.8.8 DST=10.141.86.7 LEN=110 TOS=0x00
+>> PREC=0x00 TTL=46 ID=3897 PROTO=UDP SPT=53 DPT=60721 LEN=90
+>> 
+>> 
+>> Notice that logmark seems to show that the ctstatus on the ICMP packet 
+>> is SEEN_REPLY, but conntrack -E shows only packets=1?  tcpdump shows
+>> that the ICMP packet did indeed go out
+>> 
+>> Could someone with more knowledge of conntrack please investigate further? 
+>> 
+>> Thanks
+>> 
+>> Ed W
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe netfilter" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe netfilter" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Seems absolutely baffling that we created a standard for this gigantic
-address space and then we are scared to actually use it because it's
-unroutable with today's hardware and so instead we hand it out in globs
-large enough to make it only a tiny fraction of the size...
-
-Ahh well
-
-Ed W
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
