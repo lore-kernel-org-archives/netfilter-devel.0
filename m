@@ -1,44 +1,47 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [ANNOUNCE]: Call for sponsors for the 8th netfilter developer workshop
-Date: Mon, 18 Jul 2011 18:37:10 +0200
-Message-ID: <4E246136.2030307@trash.net>
+From: Sergei Zhirikov <sfzhi@yahoo.com>
+Subject: ebtables-2.0.10-1: a build problem
+Date: Mon, 18 Jul 2011 19:03:40 +0200
+Message-ID: <j01p1c$p9b$1@dough.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: "'netfilter@vger.kernel.org'" <netfilter@vger.kernel.org>
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:47221 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753184Ab1GRQhN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Jul 2011 12:37:13 -0400
+Received: from lo.gmane.org ([80.91.229.12]:56741 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752048Ab1GRRDz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Jul 2011 13:03:55 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
+	id 1QirEX-0004WT-Cg
+	for netfilter-devel@vger.kernel.org; Mon, 18 Jul 2011 19:03:53 +0200
+Received: from h75021.upc-h.chello.nl ([62.194.75.21])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Jul 2011 19:03:53 +0200
+Received: from sfzhi by h75021.upc-h.chello.nl with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Jul 2011 19:03:53 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The netfilter project is looking for sponsors for the 8th netfilter
-developer workshop, which will take place in Freiburg, Germany from
-August 22nd to August 26th. For futher information about the
-workshop please consult [1], though there's not much information
-on there yet, updates will follow shortly.
+Hi,
 
-If your company is using netfilter and always wanted to give something
-back, this is a great opportunity. Sponsorship money will be used for
-travel and accomodation expenses to get the developers to the workshop.
-Perks include your company name and logo on the workshop page,
-depending on the level of sponsorship an invitation for one or more of
-your own developers and a heartily thanks from the netfilter project.
+Just want to let you know that I've encountered a small problem while trying to build ebtables-2.0.10-1:
 
-If you are interested, please contact coreteam@netfilter.org for our
-sponsorship policy and further information. If you know of anyone who
-might be interested, please forward this email. If you'd like to
-participate to present a project of your own, please send a short
-abstract to coreteam@netfilter.org.
+cc1: warnings being treated as errors
+In file included from /usr/include/asm/sigcontext.h:5:0,
+                  from /usr/include/bits/sigcontext.h:28,
+                  from /usr/include/signal.h:339,
+                  from ebtables.c:29:
+include/linux/types.h:13:2: error: #warning "Attempt to use kernel headers from user space, see http://kernelnewbies.org/KernelHeaders"
+make: *** [ebtables.o] Error 1
 
-Thanks!
+The problem is that, even though "include/ebtables_u.h" defines __EXPORTED_HEADERS__ to prevent exactly this from happening, "include/linux/types.h" that throws the error is pulled in *before* that indirectly via "signal.h". (I'm using gcc-4.5.1, glibc-2.12.1, kernel headers 2.6.35.11.)
 
-Patrick,
-on behalf of the Netfilter core team
+To be able to proceed with the build I had to remove "#define __EXPORTED_HEADERS__" from "include/ebtables_u.h" and "getethertype.c" and add "-D__EXPORTED_HEADERS__" to CFLAGS instead, although i"m not sure that was the best solution.
 
-[1] http://workshop.netfilter.org/2011/
+--
+Regards,
+Sergei.
+
