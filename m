@@ -1,47 +1,102 @@
-From: Sergei Zhirikov <sfzhi@yahoo.com>
-Subject: ebtables-2.0.10-1: a build problem
-Date: Mon, 18 Jul 2011 19:03:40 +0200
-Message-ID: <j01p1c$p9b$1@dough.gmane.org>
+From: Rainer Weikusat <rweikusat@mobileactivedefense.com>
+Subject: Re: [PATCH] netfilter: add per-namespace logging to nfnetlink_log.c
+Date: Mon, 18 Jul 2011 18:56:11 +0100
+Message-ID: <8739i3fp6s.fsf@sapphire.mobileactivedefense.com>
+References: <87sjqqawmk.fsf@sapphire.mobileactivedefense.com>
+	<4E245D70.4030907@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Rainer Weikusat <rweikusat@mobileactivedefense.com>,
+	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:56741 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752048Ab1GRRDz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Jul 2011 13:03:55 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
-	id 1QirEX-0004WT-Cg
-	for netfilter-devel@vger.kernel.org; Mon, 18 Jul 2011 19:03:53 +0200
-Received: from h75021.upc-h.chello.nl ([62.194.75.21])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Jul 2011 19:03:53 +0200
-Received: from sfzhi by h75021.upc-h.chello.nl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Jul 2011 19:03:53 +0200
+Received: from mss-uk.mssgmbh.com ([217.174.251.109]:57696 "EHLO
+	mss-uk.mssgmbh.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751097Ab1GRR4W (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Jul 2011 13:56:22 -0400
+In-Reply-To: <4E245D70.4030907@trash.net> (Patrick McHardy's message of "Mon\, 18 Jul 2011 18\:21\:04 +0200")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Patrick McHardy <kaber@trash.net> writes:
+> On 01.07.2011 16:44, Rainer Weikusat wrote:
+>> From: Rainer Weikusat <rweikusat@mobileactivedefense.com>
+>> 
+>> Presently, the nfnetlink_log.c file contains only very nominal support
+>> for network namespaces: While it is possible to create sockets which
+>> should theoretically receive NFLOG originated messages in arbitrary
+>> network namespaces, there is only one table of nfulnl_instance
+>> structures in the kernel and all log messages sent via __nfulnl_send
+>> are forced into the init_net namespace so that only sockets created
+>> in this namespace will ever actually receive log data.
 
-Just want to let you know that I've encountered a small problem while trying to build ebtables-2.0.10-1:
+[...]
 
-cc1: warnings being treated as errors
-In file included from /usr/include/asm/sigcontext.h:5:0,
-                  from /usr/include/bits/sigcontext.h:28,
-                  from /usr/include/signal.h:339,
-                  from ebtables.c:29:
-include/linux/types.h:13:2: error: #warning "Attempt to use kernel headers from user space, see http://kernelnewbies.org/KernelHeaders"
-make: *** [ebtables.o] Error 1
+>> +#define INSTANCE_BUCKETS	16
+>> +
+>> +struct nfulnl_instances {
+>> +	spinlock_t lock;
+>> +	atomic_t global_seq;
+>> +	struct hlist_head table[INSTANCE_BUCKETS];
+>> +	unsigned hash_init;
+>> +#ifdef NET_NS
+>> +	struct net *net;
+>> +#endif
+>> +};
+>> +
+>>  struct nfulnl_instance {
+>>  	struct hlist_node hlist;	/* global list of instances */
+>>  	spinlock_t lock;
+>> @@ -67,14 +85,92 @@ struct nfulnl_instance {
+>>  	u_int16_t flags;
+>>  	u_int8_t copy_mode;
+>>  	struct rcu_head rcu;
+>> +#ifdef NET_NS
+>> +	struct nfulnl_instances *instances;
+>> +#endif
+>
+> This seems odd, the usual way is to add the global data to the
+> net-ns structure.
 
-The problem is that, even though "include/ebtables_u.h" defines __EXPORTED_HEADERS__ to prevent exactly this from happening, "include/linux/types.h" that throws the error is pulled in *before* that indirectly via "signal.h". (I'm using gcc-4.5.1, glibc-2.12.1, kernel headers 2.6.35.11.)
+Since a facility for having 'per subsystem' network namespace specific
+data exists, there seems to be little reason to not use it. The
+interface is defined in include/net/netns/generic.h and documented as
 
-To be able to proceed with the build I had to remove "#define __EXPORTED_HEADERS__" from "include/ebtables_u.h" and "getethertype.c" and add "-D__EXPORTED_HEADERS__" to CFLAGS instead, although i"m not sure that was the best solution.
+ * Generic net pointers are to be used by modules to put some private
+ * stuff on the struct net without explicit struct net modification
 
---
-Regards,
-Sergei.
+>> +#ifndef NET_NS
+>> +static struct nfulnl_instances instances;
+>>  
+>> -#define INSTANCE_BUCKETS	16
+>> -static struct hlist_head instance_table[INSTANCE_BUCKETS];
+>> -static unsigned int hash_init;
+>> +static inline struct nfulnl_instances *
+>> +instances_via_inst(struct nfulnl_instance *inst)
+>> +{
+>> +	(void)inst;
+>> +	return &instances;
+>> +}
+>
+> ... then you don't need all this because it will automatically
+> use the structures from init_net when CONFIG_NET_NS=n
+
+But then, the more complicated access method via struct net will
+always be used while anything resembling network namespace support
+will be removed at compile-time if the kernel is configured without
+network namespace support for this code. Which happened to be the
+point of this exercise.
+
+> Basically everything depending on CONFIG_NET_NS is wrong,
+> this is handled automatically if you're using the API the proper
+> way.
+
+There is no such thing as 'an API which can be used in the proper way'
+here for the simple reason that not even functional documentation on
+this exists (AFAIK), let alone documentation about usage policies
+someone would like to mandate.
+
+
+
 
