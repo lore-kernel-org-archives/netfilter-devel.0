@@ -1,212 +1,49 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2] netfilter: nfqueue: batch verdict support
-Date: Mon, 18 Jul 2011 23:18:44 +0200
-Message-ID: <1311023924-12806-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter: add per-namespace logging to nfnetlink_log.c
+Date: Tue, 19 Jul 2011 11:42:26 +0200
+Message-ID: <4E255182.8090009@trash.net>
+References: <87hb6je5nh.fsf@sapphire.mobileactivedefense.com> <20110718.124638.30010338187296272.davem@davemloft.net> <87d3h7e43n.fsf@sapphire.mobileactivedefense.com> <20110718.131943.1892150276130348431.davem@davemloft.net> <20110718203249.GC2489@p183.telecom.by>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: David Miller <davem@davemloft.net>,
+	rweikusat@mobileactivedefense.com, netfilter-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+To: Alexey Dobriyan <adobriyan@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:60809 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751337Ab1GRVTo (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:35477 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750882Ab1GSJm3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Jul 2011 17:19:44 -0400
+	Tue, 19 Jul 2011 05:42:29 -0400
+In-Reply-To: <20110718203249.GC2489@p183.telecom.by>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Introduces a new nfnetlink type that applies a given
-verdict to all queued packets with an id <= the id in the verdict
-message.
+On 18.07.2011 22:32, Alexey Dobriyan wrote:
+> On Mon, Jul 18, 2011 at 01:19:43PM -0700, David Miller wrote:
+>> From: Rainer Weikusat <rweikusat@mobileactivedefense.com>
+>> Date: Mon, 18 Jul 2011 21:17:00 +0100
+>>
+>>> David Miller <davem@davemloft.net> writes:
+>>>> We're also specifically talking about namespace stuff, so you should have
+>>>> at least refined your match criteria just a little bit.
+>>>
+>>> The person I was replying to wrote 'We did whole networking without
+>>> sprinkling ifdefs'.
+>>
+>> He was talking specifically about namespace stuff.
+> 
+> Indeed.
+> 
+> Rainer, while your desire to keep CONFIG_NET_NS=n case equivalent
+> to current code is understandable and kernel people share it at large,
+> what you're fighting for is maybe one dereference on speed-uncritical
+> code paths and one pointer in small amount of data structures.
+> As such having common executable code matters more.
+> 
+> netns will be stubbed to &init_net at several places.
+> See how e. g. xt_hashlimit is done.
 
-If a mark is provided it is applied to all matched packets.
-
-This reduces the number of verdicts that have to be sent.
-Applications that make use of this feature need to maintain
-a timeout to send a batchverdict periodically to avoid starvation.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- This patch depends on 'netfilter: nfqueue: assert monotonic packet ids'
- from Eric Dumazet.
-
- batch hook has been converted to call_rcu, all rcu read locks have
- thus been removed.
-
- include/linux/netfilter/nfnetlink_queue.h |    1 +
- net/netfilter/nfnetlink_queue.c           |  115 ++++++++++++++++++++++++++---
- 2 files changed, 104 insertions(+), 12 deletions(-)
-
-diff --git a/include/linux/netfilter/nfnetlink_queue.h b/include/linux/netfilter/nfnetlink_queue.h
-index af94e00..24b32e6 100644
---- a/include/linux/netfilter/nfnetlink_queue.h
-+++ b/include/linux/netfilter/nfnetlink_queue.h
-@@ -8,6 +8,7 @@ enum nfqnl_msg_types {
- 	NFQNL_MSG_PACKET,		/* packet from kernel to userspace */
- 	NFQNL_MSG_VERDICT,		/* verdict from userspace to kernel */
- 	NFQNL_MSG_CONFIG,		/* connect to a particular queue */
-+	NFQNL_MSG_VERDICT_BATCH,	/* batchv from userspace to kernel */
- 
- 	NFQNL_MSG_MAX
- };
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 3b2af8c..fbfcd83 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -171,6 +171,13 @@ __enqueue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
-        queue->queue_total++;
- }
- 
-+static void
-+__dequeue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
-+{
-+	list_del(&entry->list);
-+	queue->queue_total--;
-+}
-+
- static struct nf_queue_entry *
- find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id)
- {
-@@ -185,10 +192,8 @@ find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id)
- 		}
- 	}
- 
--	if (entry) {
--		list_del(&entry->list);
--		queue->queue_total--;
--	}
-+	if (entry)
-+		__dequeue_entry(queue, entry);
- 
- 	spin_unlock_bh(&queue->lock);
- 
-@@ -611,6 +616,92 @@ static const struct nla_policy nfqa_verdict_policy[NFQA_MAX+1] = {
- 	[NFQA_PAYLOAD]		= { .type = NLA_UNSPEC },
- };
- 
-+static const struct nla_policy nfqa_verdict_batch_policy[NFQA_MAX+1] = {
-+	[NFQA_VERDICT_HDR]	= { .len = sizeof(struct nfqnl_msg_verdict_hdr) },
-+	[NFQA_MARK]		= { .type = NLA_U32 },
-+};
-+
-+static struct nfqnl_instance *verdict_instance_lookup(u16 queue_num, int nlpid)
-+{
-+	struct nfqnl_instance *queue;
-+
-+	queue = instance_lookup(queue_num);
-+	if (!queue)
-+		return ERR_PTR(-ENODEV);
-+
-+	if (queue->peer_pid != nlpid)
-+		return ERR_PTR(-EPERM);
-+
-+	return queue;
-+}
-+
-+static struct nfqnl_msg_verdict_hdr*
-+verdicthdr_get(const struct nlattr * const nfqa[])
-+{
-+	struct nfqnl_msg_verdict_hdr *vhdr;
-+	unsigned int verdict;
-+
-+	if (!nfqa[NFQA_VERDICT_HDR])
-+		return NULL;
-+
-+	vhdr = nla_data(nfqa[NFQA_VERDICT_HDR]);
-+	verdict = ntohl(vhdr->verdict);
-+	if ((verdict & NF_VERDICT_MASK) > NF_MAX_VERDICT)
-+		return NULL;
-+	return vhdr;
-+}
-+
-+static int nfq_id_after(unsigned int id, unsigned int max)
-+{
-+	return (int)(id - max) > 0;
-+}
-+
-+static int
-+nfqnl_recv_verdict_batch(struct sock *ctnl, struct sk_buff *skb,
-+		   const struct nlmsghdr *nlh,
-+		   const struct nlattr * const nfqa[])
-+{
-+	struct nfgenmsg *nfmsg = NLMSG_DATA(nlh);
-+	struct nf_queue_entry *entry, *tmp;
-+	unsigned int verdict, maxid;
-+	struct nfqnl_msg_verdict_hdr *vhdr;
-+	struct nfqnl_instance *queue;
-+	LIST_HEAD(batch_list);
-+	u16 queue_num = ntohs(nfmsg->res_id);
-+
-+	queue = verdict_instance_lookup(queue_num, NETLINK_CB(skb).pid);
-+	if (IS_ERR(queue))
-+		return PTR_ERR(queue);
-+
-+	vhdr = verdicthdr_get(nfqa);
-+	if (!vhdr)
-+		return -EINVAL;
-+
-+	verdict = ntohl(vhdr->verdict);
-+	maxid = ntohl(vhdr->id);
-+
-+	spin_lock_bh(&queue->lock);
-+
-+	list_for_each_entry_safe(entry, tmp, &queue->queue_list, list) {
-+		if (nfq_id_after(entry->id, maxid))
-+			break;
-+		__dequeue_entry(queue, entry);
-+		list_add_tail(&entry->list, &batch_list);
-+	}
-+
-+	spin_unlock_bh(&queue->lock);
-+
-+	if (list_empty(&batch_list))
-+		return -ENOENT;
-+
-+	list_for_each_entry_safe(entry, tmp, &batch_list, list) {
-+		if (nfqa[NFQA_MARK])
-+			entry->skb->mark = ntohl(nla_get_be32(nfqa[NFQA_MARK]));
-+		nf_reinject(entry, verdict);
-+	}
-+	return 0;
-+}
-+
- static int
- nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
- 		   const struct nlmsghdr *nlh,
-@@ -626,20 +717,17 @@ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
- 
- 	queue = instance_lookup(queue_num);
- 	if (!queue)
--		return -ENODEV;
- 
--	if (queue->peer_pid != NETLINK_CB(skb).pid)
--		return -EPERM;
-+	queue = verdict_instance_lookup(queue_num, NETLINK_CB(skb).pid);
-+	if (IS_ERR(queue))
-+		return PTR_ERR(queue);
- 
--	if (!nfqa[NFQA_VERDICT_HDR])
-+	vhdr = verdicthdr_get(nfqa);
-+	if (!vhdr)
- 		return -EINVAL;
- 
--	vhdr = nla_data(nfqa[NFQA_VERDICT_HDR]);
- 	verdict = ntohl(vhdr->verdict);
- 
--	if ((verdict & NF_VERDICT_MASK) > NF_MAX_VERDICT)
--		return -EINVAL;
--
- 	entry = find_dequeue_entry(queue, ntohl(vhdr->id));
- 	if (entry == NULL)
- 		return -ENOENT;
-@@ -775,6 +863,9 @@ static const struct nfnl_callback nfqnl_cb[NFQNL_MSG_MAX] = {
- 	[NFQNL_MSG_CONFIG]	= { .call = nfqnl_recv_config,
- 				    .attr_count = NFQA_CFG_MAX,
- 				    .policy = nfqa_cfg_policy },
-+	[NFQNL_MSG_VERDICT_BATCH]={ .call_rcu = nfqnl_recv_verdict_batch,
-+				    .attr_count = NFQA_MAX,
-+				    .policy = nfqa_verdict_batch_policy },
- };
- 
- static const struct nfnetlink_subsystem nfqnl_subsys = {
--- 
-1.7.3.4
-
+Indeed, that's the alternative to putting it directly into struct
+netns, not using tons of ifdefs.
