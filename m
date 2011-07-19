@@ -1,52 +1,34 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH next] netfilter: nfqueue: batch verdict support
-Date: Tue, 19 Jul 2011 11:45:24 +0200
-Message-ID: <4E255234.3060408@trash.net>
-References: <1307657659-30266-1-git-send-email-fw@strlen.de> <1309688655.2523.16.camel@edumazet-laptop>
+Subject: Re: [PATCH v2] netfilter: nfqueue: batch verdict support
+Date: Tue, 19 Jul 2011 11:47:13 +0200
+Message-ID: <4E2552A1.3020501@trash.net>
+References: <1311023924-12806-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netdev <netdev@vger.kernel.org>, Eric Leblond <eric@regit.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35550 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:35603 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750882Ab1GSJp0 (ORCPT
+	with ESMTP id S1751080Ab1GSJrP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Jul 2011 05:45:26 -0400
-In-Reply-To: <1309688655.2523.16.camel@edumazet-laptop>
+	Tue, 19 Jul 2011 05:47:15 -0400
+In-Reply-To: <1311023924-12806-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 03.07.2011 12:24, Eric Dumazet wrote:
-> The real question hidden here is : "Should packet ids be monotonic" in
-> current implementation and all future ones ?
+On 18.07.2011 23:18, Florian Westphal wrote:
+> Introduces a new nfnetlink type that applies a given
+> verdict to all queued packets with an id <= the id in the verdict
+> message.
 > 
-> Before we accept this patch, we should make sure packets id are
-> monotonic, and I am afraid its not the case right now.
+> If a mark is provided it is applied to all matched packets.
 > 
-> I suggest following patch then.
+> This reduces the number of verdicts that have to be sent.
+> Applications that make use of this feature need to maintain
+> a timeout to send a batchverdict periodically to avoid starvation.
 > 
-> [PATCH] netfilter: nfqueue: assert monotonic packet ids
-> 
-> Packet identifier is currently setup in nfqnl_build_packet_message(),
-> using one atomic_inc_return().
-> 
-> Problem is that since several cpus might concurrently call
-> nfqnl_enqueue_packet() for the same queue, we can deliver packets to
-> consumer in non monotonic way (packet N+1 being delivered after packet
-> N)
-> 
-> This patch moves the packet id setup from nfqnl_build_packet_message()
-> to nfqnl_enqueue_packet() to guarantee correct delivery order.
-> 
-> This also removes one atomic operation.
-> 
-> Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-> CC: Florian Westphal <fw@strlen.de>
-> CC: Pablo Neira Ayuso <pablo@netfilter.org>
-> CC: Eric Leblond <eric@regit.org>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Applied, thanks Eric.
+Applied, thanks Florian.
