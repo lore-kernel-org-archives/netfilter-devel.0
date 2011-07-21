@@ -1,28 +1,46 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/8] netfilter: netfilter update for net-next
-Date: Thu, 21 Jul 2011 12:50:43 -0700 (PDT)
-Message-ID: <20110721.125043.1044194027957527420.davem@davemloft.net>
-References: <1311243476-18236-1-git-send-email-kaber@trash.net>
+From: "Jeff Haran" <jharan@bytemobile.com>
+Subject: cant specify -m mark and -m connmark in same rule
+Date: Thu, 21 Jul 2011 16:46:00 -0700
+Message-ID: <6F5DE7538AFCDA45A114F5E7510424A70295CBBC@hq-exchange01.bytemobile.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: kaber@trash.net
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:60979 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752313Ab1GUTvs (ORCPT
+Received: from ironport.bytemobile.com ([12.153.136.13]:47568 "EHLO
+	ironport.bytemobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751722Ab1GUXqB convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Jul 2011 15:51:48 -0400
-In-Reply-To: <1311243476-18236-1-git-send-email-kaber@trash.net>
+	Thu, 21 Jul 2011 19:46:01 -0400
+Content-class: urn:content-classes:message
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: kaber@trash.net
-Date: Thu, 21 Jul 2011 12:17:48 +0200
+Is this a bug?
 
-> Please apply or pull from:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
+ [root@cap-x2100m2-01 ~]# \
+> iptables -A FORWARD -i eth2.11 -o eth1.111 -p tcp -m mark --mark
+0x0/0xfff -m connmark --mark 0x0/0xfff -j NFQUEUE --queue-num 10
+iptables v1.4.7: mark: "--mark" option may only be specified once
+Try `iptables -h' or 'iptables --help' for more information.
+[root@cap-x2100m2-01 ~]#
 
-Pulled, thanks!
+Seems that other combinations of match extension can be combined in the
+same rule and if I specify the above with just -m mark or just -m
+connmark, it takes it just fine.
+
+Is the command line parser confusing the two different usages of --mark?
+
+If this is a bug, has it been fixed in a later version than what I have?
+This is from RHEL 6.0.
+
+[root@cap-x2100m2-01 ~]# iptables --version
+iptables v1.4.7
+[root@cap-x2100m2-01 ~]#
+
+Thanks,
+
+Jeff Haran
+
+
+
