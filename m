@@ -1,128 +1,206 @@
 From: kaber@trash.net
-Subject: [PATCH 4/8] netfilter: nfnetlink_queue: assert monotonic packet ids
-Date: Thu, 21 Jul 2011 12:17:52 +0200
-Message-ID: <1311243476-18236-5-git-send-email-kaber@trash.net>
+Subject: [PATCH 5/8] netfilter: nfnetlink_queue: batch verdict support
+Date: Thu, 21 Jul 2011 12:17:53 +0200
+Message-ID: <1311243476-18236-6-git-send-email-kaber@trash.net>
 References: <1311243476-18236-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: davem@davemloft.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34509 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751408Ab1GUKSB (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Jul 2011 06:18:01 -0400
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1311243476-18236-1-git-send-email-kaber@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Eric Dumazet <eric.dumazet@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-Packet identifier is currently setup in nfqnl_build_packet_message(),
-using one atomic_inc_return().
+Introduces a new nfnetlink type that applies a given
+verdict to all queued packets with an id <= the id in the verdict
+message.
 
-Problem is that since several cpus might concurrently call
-nfqnl_enqueue_packet() for the same queue, we can deliver packets to
-consumer in non monotonic way (packet N+1 being delivered after packet
-N)
+If a mark is provided it is applied to all matched packets.
 
-This patch moves the packet id setup from nfqnl_build_packet_message()
-to nfqnl_enqueue_packet() to guarantee correct delivery order.
+This reduces the number of verdicts that have to be sent.
+Applications that make use of this feature need to maintain
+a timeout to send a batchverdict periodically to avoid starvation.
 
-This also removes one atomic operation.
-
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-CC: Florian Westphal <fw@strlen.de>
-CC: Pablo Neira Ayuso <pablo@netfilter.org>
-CC: Eric Leblond <eric@regit.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- net/netfilter/nfnetlink_queue.c |   26 +++++++++++++++-----------
- 1 files changed, 15 insertions(+), 11 deletions(-)
+ include/linux/netfilter/nfnetlink_queue.h |    1 +
+ net/netfilter/nfnetlink_queue.c           |  115 ++++++++++++++++++++++++++---
+ 2 files changed, 104 insertions(+), 12 deletions(-)
 
+diff --git a/include/linux/netfilter/nfnetlink_queue.h b/include/linux/netfilter/nfnetlink_queue.h
+index af94e00..24b32e6 100644
+--- a/include/linux/netfilter/nfnetlink_queue.h
++++ b/include/linux/netfilter/nfnetlink_queue.h
+@@ -8,6 +8,7 @@ enum nfqnl_msg_types {
+ 	NFQNL_MSG_PACKET,		/* packet from kernel to userspace */
+ 	NFQNL_MSG_VERDICT,		/* verdict from userspace to kernel */
+ 	NFQNL_MSG_CONFIG,		/* connect to a particular queue */
++	NFQNL_MSG_VERDICT_BATCH,	/* batchv from userspace to kernel */
+ 
+ 	NFQNL_MSG_MAX
+ };
 diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index c645b87..3b2af8c 100644
+index 3b2af8c..fbfcd83 100644
 --- a/net/netfilter/nfnetlink_queue.c
 +++ b/net/netfilter/nfnetlink_queue.c
-@@ -58,7 +58,7 @@ struct nfqnl_instance {
-  */
- 	spinlock_t	lock;
- 	unsigned int	queue_total;
--	atomic_t	id_sequence;		/* 'sequence' of pkt ids */
-+	unsigned int	id_sequence;		/* 'sequence' of pkt ids */
- 	struct list_head queue_list;		/* packets in queue */
- };
- 
-@@ -213,13 +213,15 @@ nfqnl_flush(struct nfqnl_instance *queue, nfqnl_cmpfn cmpfn, unsigned long data)
- 
- static struct sk_buff *
- nfqnl_build_packet_message(struct nfqnl_instance *queue,
--			   struct nf_queue_entry *entry)
-+			   struct nf_queue_entry *entry,
-+			   __be32 **packet_id_ptr)
- {
- 	sk_buff_data_t old_tail;
- 	size_t size;
- 	size_t data_len = 0;
- 	struct sk_buff *skb;
--	struct nfqnl_msg_packet_hdr pmsg;
-+	struct nlattr *nla;
-+	struct nfqnl_msg_packet_hdr *pmsg;
- 	struct nlmsghdr *nlh;
- 	struct nfgenmsg *nfmsg;
- 	struct sk_buff *entskb = entry->skb;
-@@ -272,12 +274,11 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
- 	nfmsg->version = NFNETLINK_V0;
- 	nfmsg->res_id = htons(queue->queue_num);
- 
--	entry->id = atomic_inc_return(&queue->id_sequence);
--	pmsg.packet_id 		= htonl(entry->id);
--	pmsg.hw_protocol	= entskb->protocol;
--	pmsg.hook		= entry->hook;
--
--	NLA_PUT(skb, NFQA_PACKET_HDR, sizeof(pmsg), &pmsg);
-+	nla = __nla_reserve(skb, NFQA_PACKET_HDR, sizeof(*pmsg));
-+	pmsg = nla_data(nla);
-+	pmsg->hw_protocol	= entskb->protocol;
-+	pmsg->hook		= entry->hook;
-+	*packet_id_ptr		= &pmsg->packet_id;
- 
- 	indev = entry->indev;
- 	if (indev) {
-@@ -388,6 +389,7 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
- 	struct sk_buff *nskb;
- 	struct nfqnl_instance *queue;
- 	int err = -ENOBUFS;
-+	__be32 *packet_id_ptr;
- 
- 	/* rcu_read_lock()ed by nf_hook_slow() */
- 	queue = instance_lookup(queuenum);
-@@ -401,7 +403,7 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
- 		goto err_out;
- 	}
- 
--	nskb = nfqnl_build_packet_message(queue, entry);
-+	nskb = nfqnl_build_packet_message(queue, entry, &packet_id_ptr);
- 	if (nskb == NULL) {
- 		err = -ENOMEM;
- 		goto err_out;
-@@ -420,6 +422,8 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
- 				 queue->queue_total);
- 		goto err_out_free_nskb;
- 	}
-+	entry->id = ++queue->id_sequence;
-+	*packet_id_ptr = htonl(entry->id);
- 
- 	/* nfnetlink_unicast will either free the nskb or add it to a socket */
- 	err = nfnetlink_unicast(nskb, &init_net, queue->peer_pid, MSG_DONTWAIT);
-@@ -852,7 +856,7 @@ static int seq_show(struct seq_file *s, void *v)
- 			  inst->peer_pid, inst->queue_total,
- 			  inst->copy_mode, inst->copy_range,
- 			  inst->queue_dropped, inst->queue_user_dropped,
--			  atomic_read(&inst->id_sequence), 1);
-+			  inst->id_sequence, 1);
+@@ -171,6 +171,13 @@ __enqueue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
+        queue->queue_total++;
  }
  
- static const struct seq_operations nfqnl_seq_ops = {
++static void
++__dequeue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
++{
++	list_del(&entry->list);
++	queue->queue_total--;
++}
++
+ static struct nf_queue_entry *
+ find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id)
+ {
+@@ -185,10 +192,8 @@ find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id)
+ 		}
+ 	}
+ 
+-	if (entry) {
+-		list_del(&entry->list);
+-		queue->queue_total--;
+-	}
++	if (entry)
++		__dequeue_entry(queue, entry);
+ 
+ 	spin_unlock_bh(&queue->lock);
+ 
+@@ -611,6 +616,92 @@ static const struct nla_policy nfqa_verdict_policy[NFQA_MAX+1] = {
+ 	[NFQA_PAYLOAD]		= { .type = NLA_UNSPEC },
+ };
+ 
++static const struct nla_policy nfqa_verdict_batch_policy[NFQA_MAX+1] = {
++	[NFQA_VERDICT_HDR]	= { .len = sizeof(struct nfqnl_msg_verdict_hdr) },
++	[NFQA_MARK]		= { .type = NLA_U32 },
++};
++
++static struct nfqnl_instance *verdict_instance_lookup(u16 queue_num, int nlpid)
++{
++	struct nfqnl_instance *queue;
++
++	queue = instance_lookup(queue_num);
++	if (!queue)
++		return ERR_PTR(-ENODEV);
++
++	if (queue->peer_pid != nlpid)
++		return ERR_PTR(-EPERM);
++
++	return queue;
++}
++
++static struct nfqnl_msg_verdict_hdr*
++verdicthdr_get(const struct nlattr * const nfqa[])
++{
++	struct nfqnl_msg_verdict_hdr *vhdr;
++	unsigned int verdict;
++
++	if (!nfqa[NFQA_VERDICT_HDR])
++		return NULL;
++
++	vhdr = nla_data(nfqa[NFQA_VERDICT_HDR]);
++	verdict = ntohl(vhdr->verdict);
++	if ((verdict & NF_VERDICT_MASK) > NF_MAX_VERDICT)
++		return NULL;
++	return vhdr;
++}
++
++static int nfq_id_after(unsigned int id, unsigned int max)
++{
++	return (int)(id - max) > 0;
++}
++
++static int
++nfqnl_recv_verdict_batch(struct sock *ctnl, struct sk_buff *skb,
++		   const struct nlmsghdr *nlh,
++		   const struct nlattr * const nfqa[])
++{
++	struct nfgenmsg *nfmsg = NLMSG_DATA(nlh);
++	struct nf_queue_entry *entry, *tmp;
++	unsigned int verdict, maxid;
++	struct nfqnl_msg_verdict_hdr *vhdr;
++	struct nfqnl_instance *queue;
++	LIST_HEAD(batch_list);
++	u16 queue_num = ntohs(nfmsg->res_id);
++
++	queue = verdict_instance_lookup(queue_num, NETLINK_CB(skb).pid);
++	if (IS_ERR(queue))
++		return PTR_ERR(queue);
++
++	vhdr = verdicthdr_get(nfqa);
++	if (!vhdr)
++		return -EINVAL;
++
++	verdict = ntohl(vhdr->verdict);
++	maxid = ntohl(vhdr->id);
++
++	spin_lock_bh(&queue->lock);
++
++	list_for_each_entry_safe(entry, tmp, &queue->queue_list, list) {
++		if (nfq_id_after(entry->id, maxid))
++			break;
++		__dequeue_entry(queue, entry);
++		list_add_tail(&entry->list, &batch_list);
++	}
++
++	spin_unlock_bh(&queue->lock);
++
++	if (list_empty(&batch_list))
++		return -ENOENT;
++
++	list_for_each_entry_safe(entry, tmp, &batch_list, list) {
++		if (nfqa[NFQA_MARK])
++			entry->skb->mark = ntohl(nla_get_be32(nfqa[NFQA_MARK]));
++		nf_reinject(entry, verdict);
++	}
++	return 0;
++}
++
+ static int
+ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
+ 		   const struct nlmsghdr *nlh,
+@@ -626,20 +717,17 @@ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
+ 
+ 	queue = instance_lookup(queue_num);
+ 	if (!queue)
+-		return -ENODEV;
+ 
+-	if (queue->peer_pid != NETLINK_CB(skb).pid)
+-		return -EPERM;
++	queue = verdict_instance_lookup(queue_num, NETLINK_CB(skb).pid);
++	if (IS_ERR(queue))
++		return PTR_ERR(queue);
+ 
+-	if (!nfqa[NFQA_VERDICT_HDR])
++	vhdr = verdicthdr_get(nfqa);
++	if (!vhdr)
+ 		return -EINVAL;
+ 
+-	vhdr = nla_data(nfqa[NFQA_VERDICT_HDR]);
+ 	verdict = ntohl(vhdr->verdict);
+ 
+-	if ((verdict & NF_VERDICT_MASK) > NF_MAX_VERDICT)
+-		return -EINVAL;
+-
+ 	entry = find_dequeue_entry(queue, ntohl(vhdr->id));
+ 	if (entry == NULL)
+ 		return -ENOENT;
+@@ -775,6 +863,9 @@ static const struct nfnl_callback nfqnl_cb[NFQNL_MSG_MAX] = {
+ 	[NFQNL_MSG_CONFIG]	= { .call = nfqnl_recv_config,
+ 				    .attr_count = NFQA_CFG_MAX,
+ 				    .policy = nfqa_cfg_policy },
++	[NFQNL_MSG_VERDICT_BATCH]={ .call_rcu = nfqnl_recv_verdict_batch,
++				    .attr_count = NFQA_MAX,
++				    .policy = nfqa_verdict_batch_policy },
+ };
+ 
+ static const struct nfnetlink_subsystem nfqnl_subsys = {
 -- 
 1.7.2.3
 
