@@ -1,57 +1,80 @@
-From: kaber@trash.net
-Subject: [PATCH 6/8] netfilter: ipset: make possible to hash some part of the data element only
-Date: Thu, 21 Jul 2011 12:17:54 +0200
-Message-ID: <1311243476-18236-7-git-send-email-kaber@trash.net>
-References: <1311243476-18236-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: davem@davemloft.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1311243476-18236-1-git-send-email-kaber@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: NAT66 : A first implementation
+Date: Thu, 21 Jul 2011 09:15:58 +0200
+Message-ID: <20110721071558.GE30758@prithivi.gnumonks.org>
+References: <alpine.LNX.2.01.1107141818500.10490@frira.zrqbmnf.qr>
+ <4E1F1902.9020605@student.ulg.ac.be>
+ <alpine.LNX.2.01.1107141915580.10781@frira.zrqbmnf.qr>
+ <20110714.161717.1387261665409519132.davem@davemloft.net>
+ <4E245656.8020605@trash.net>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="JP+T4n/bALQSJXh8"
+Cc: David Miller <davem@davemloft.net>, jengelh@medozas.de,
+	T.Moes@student.ulg.ac.be, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:33773 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751099Ab1GUHSG (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 21 Jul 2011 03:18:06 -0400
+Content-Disposition: inline
+In-Reply-To: <4E245656.8020605@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- include/linux/netfilter/ipset/ip_set_ahash.h |   14 ++++++++++----
- 1 files changed, 10 insertions(+), 4 deletions(-)
+--JP+T4n/bALQSJXh8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/include/linux/netfilter/ipset/ip_set_ahash.h b/include/linux/netfilter/ipset/ip_set_ahash.h
-index c5b06aa..42b7d25 100644
---- a/include/linux/netfilter/ipset/ip_set_ahash.h
-+++ b/include/linux/netfilter/ipset/ip_set_ahash.h
-@@ -211,12 +211,16 @@ ip_set_hash_destroy(struct ip_set *set)
- 	set->data = NULL;
- }
- 
--#define HKEY(data, initval, htable_bits)				 \
--(jhash2((u32 *)(data), sizeof(struct type_pf_elem)/sizeof(u32), initval) \
--	& jhash_mask(htable_bits))
--
- #endif /* _IP_SET_AHASH_H */
- 
-+#ifndef HKEY_DATALEN
-+#define HKEY_DATALEN	sizeof(struct type_pf_elem)
-+#endif
-+
-+#define HKEY(data, initval, htable_bits)			\
-+(jhash2((u32 *)(data), HKEY_DATALEN/sizeof(u32), initval)	\
-+	& jhash_mask(htable_bits))
-+
- #define CONCAT(a, b, c)		a##b##c
- #define TOKEN(a, b, c)		CONCAT(a, b, c)
- 
-@@ -1054,6 +1058,8 @@ type_pf_gc_init(struct ip_set *set)
- 		 IPSET_GC_PERIOD(h->timeout));
- }
- 
-+#undef HKEY_DATALEN
-+#undef HKEY
- #undef type_pf_data_equal
- #undef type_pf_data_isnull
- #undef type_pf_data_copy
--- 
-1.7.2.3
+Hi all,
 
+just a few words out of the strange land that retired netfilter hackers
+go to:
+
+1) I am quite at ease not participating in netfilter/iptables anymore
+   while the discussion about IPv6 NAT becomes an issue again:  I always
+   indicated "over my dead body", and now that I am no longer in charge,
+   nobody will have to kill me ;)
+
+2) I agree that there has been a lot of improvement between the
+   abomination of what we are doing in IPv4 NAT and what is
+   described in RFC6296.
+
+3) For any netfilter integration, I would strongly suggest something
+   that does not carry aroudn with it the burden of connection tracking,
+   but rather something stateless.  Or at least have the conntrack
+   dependency optional.  If there's no need for sophisticated state
+   tracking as per the RFC, then don't make it a hard/mandatory
+   dependency.
+
+=2E.. and now I'll happily retire again to GSM land ...
+
+Regards,
+	Harald
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--JP+T4n/bALQSJXh8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iD8DBQFOJ9IuXaXGVTD0i/8RAjXlAJ9n65YoxHnfAO2X2huCP/RCoWBxZwCeOVux
+uZjL8XNuT9mX9Inl455X7U8=
+=J3h7
+-----END PGP SIGNATURE-----
+
+--JP+T4n/bALQSJXh8--
