@@ -1,46 +1,34 @@
-From: "Jeff Haran" <jharan@bytemobile.com>
-Subject: cant specify -m mark and -m connmark in same rule
-Date: Thu, 21 Jul 2011 16:46:00 -0700
-Message-ID: <6F5DE7538AFCDA45A114F5E7510424A70295CBBC@hq-exchange01.bytemobile.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ironport.bytemobile.com ([12.153.136.13]:47568 "EHLO
-	ironport.bytemobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751722Ab1GUXqB convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Jul 2011 19:46:01 -0400
-Content-class: urn:content-classes:message
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: [GIT PULL nf-2.6] IPVS
+Date: Fri, 22 Jul 2011 09:18:39 +0900
+Message-ID: <1311293920-1983-1-git-send-email-horms@verge.net.au>
+Cc: Wensong Zhang <wensong@linux-vs.org>, Julian Anastasov <ja@ssi.bg>,
+	Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Dave Jones <davej@redhat.com>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Huajun Li <huajun.li.lee@gmail.com>
+To: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Is this a bug?
+Hi Pablo, Hi Patrick,
 
- [root@cap-x2100m2-01 ~]# \
-> iptables -A FORWARD -i eth2.11 -o eth1.111 -p tcp -m mark --mark
-0x0/0xfff -m connmark --mark 0x0/0xfff -j NFQUEUE --queue-num 10
-iptables v1.4.7: mark: "--mark" option may only be specified once
-Try `iptables -h' or 'iptables --help' for more information.
-[root@cap-x2100m2-01 ~]#
+please consider pulling
 
-Seems that other combinations of match extension can be combined in the
-same rule and if I specify the above with just -m mark or just -m
-connmark, it takes it just fine.
+  git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-2.6.git master
 
-Is the command line parser confusing the two different usages of --mark?
+to get the following crash on module removal fix for IPVS.
 
-If this is a bug, has it been fixed in a later version than what I have?
-This is from RHEL 6.0.
+Sorry for sending this so very, very late in the release cycle.
+I had sent it earlier but it seems to have slipped through the cracks
+somehow.
 
-[root@cap-x2100m2-01 ~]# iptables --version
-iptables v1.4.7
-[root@cap-x2100m2-01 ~]#
+Simon Horman (1):
+      IPVS: Free resources on module removal
 
-Thanks,
-
-Jeff Haran
-
-
+ net/netfilter/ipvs/ip_vs_ctl.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
