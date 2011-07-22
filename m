@@ -1,33 +1,46 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] libxt_TCPMSS.c: unbreak build without ipv6 after
- ea2a02f7
-Date: Fri, 22 Jul 2011 11:59:38 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1107221157540.17453@frira.zrqbmnf.qr>
-References: <1311312260-16102-1-git-send-email-jacmet@sunsite.dk>
+From: Michal Pokrywka <wolfmoon@o2.pl>
+Subject: Bug#631945: HFSC warning issue
+Date: Fri, 22 Jul 2011 11:58:54 +0200
+Message-ID: <40cb21d3.13a4e2d8.4e2949de.1e1fc@o2.pl>
+Reply-To: Michal Pokrywka <wolfmoon@o2.pl>, 631945@bugs.debian.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Peter Korsgaard <jacmet@sunsite.dk>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:38097 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753564Ab1GVJ7j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 Jul 2011 05:59:39 -0400
-In-Reply-To: <1311312260-16102-1-git-send-email-jacmet@sunsite.dk>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Cc: 00bormoj@gmail.com,
+	soltys@ziu.info,
+	kaber@trash.net,
+	netfilter-devel@vger.kernel.org,
+	fdelawarde@wirelessmundi.com
+To: 631945@bugs.debian.org
+Return-path: <bounce-debian-bugs-dist=glddb-debian-bugs-dist=m.gmane.org@lists.debian.org>
+Resent-Message-ID: <handler.631945.B631945.131132877621134@bugs.debian.org>
+List-Post: <mailto:debian-bugs-dist@lists.debian.org>
+List-Help: <mailto:debian-bugs-dist-request@lists.debian.org?subject=help>
+List-Subscribe: <mailto:debian-bugs-dist-request@lists.debian.org?subject=subscribe>
+List-Unsubscribe: <mailto:debian-bugs-dist-request@lists.debian.org?subject=unsubscribe>
+List-Id: netfilter-devel.vger.kernel.org
 
-On Friday 2011-07-22 07:24, Peter Korsgaard wrote:
+After=20bisecting=202.6.39.1=20it=20turned=20out=20that=20the=20bug=20is=20=
+caused=20independently=20by=20two=20patches:
 
->ea2a02f7 (libxt_TCPMSS: use guided option parser) added an netinet/ip6.h
->include, which is not available on systems without ipv6.
+commit=09b262a5da755cc6ed0cb4fba230cd9bf4037e1096
+sch=5Fsfq:=20fix=20peek()=20implementation
 
-I can understand that some implementations omit symbols that are a 
-runtime dependency (such as in6addr_any) from the library, but structs 
-are for free, so what broken libc does forget those?
+and
 
->+#define IPHDRSIZE	20	/* sizeof(struct iphdr) */
->+#define IP6HDRSIZE	40	/* sizeof(struct ip6_hdr) */
+commit=099df49f2bfe862573911a080c75a6d81113c5c81d
+sch=5Fsfq:=20avoid=20giving=20spurious=20NET=5FXMIT=5FCN=20signals
 
-That would put a hard assumption on the implementation, which does not 
-seem the right thing to do.
+Reverting=20these=20patches=20makes=20HFSC=20work=20again.
+
+From:=2000bormoj@gmail.com
+>=20I=20had=20the=20same=20problem=20when=20I=20upgraded=20to=202.6.38=20=
+vanilla=20(and
+>=20currently=20at=202.6.39.1),=20but=20I=20can't=20remember=20what=20the=
+=20last=20successful
+>=20version=20was=20(probably=20greater=20than=202.6.32).=20My=20syslog=20=
+was=20full=20of=20the
+>=20WARN=5FON=20trace=20from=20sch=5Fhfsc.c:1427.
+
+Did=20you=20tested=202.6.38=20or=202.6.38.8?=20Because=20mentioned=20patc=
+hes=20was=20included=20in=202.6.38.8.
