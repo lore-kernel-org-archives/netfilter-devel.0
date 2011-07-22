@@ -1,33 +1,70 @@
-From: 00bormoj@gmail.com
-Subject: Re: Bug#631945: HFSC warning issue
-Date: Fri, 22 Jul 2011 07:23:37 -0700
-Message-ID: <CAAJ8s-QSoQFhd44KpCoY3wPNkPVh=3QzUM9B-Jbz-grF=V8H3g@mail.gmail.com>
-References: <40cb21d3.13a4e2d8.4e2949de.1e1fc@o2.pl>
+From: "Jeff Haran" <jharan@bytemobile.com>
+Subject: RE: cant specify -m mark and -m connmark in same rule
+Date: Fri, 22 Jul 2011 14:24:48 -0700
+Message-ID: <6F5DE7538AFCDA45A114F5E7510424A70295CCA9@hq-exchange01.bytemobile.com>
+References: <6F5DE7538AFCDA45A114F5E7510424A70295CBBC@hq-exchange01.bytemobile.com> <alpine.LNX.2.01.1107221116020.16357@frira.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: 631945@bugs.debian.org, soltys@ziu.info, kaber@trash.net,
-	netfilter-devel@vger.kernel.org, fdelawarde@wirelessmundi.com
-To: Michal Pokrywka <wolfmoon@o2.pl>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: <netfilter-devel@vger.kernel.org>
+To: "Jan Engelhardt" <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:53035 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751418Ab1GVOXi (ORCPT
+Received: from ironport.bytemobile.com ([12.153.136.13]:37344 "EHLO
+	ironport.bytemobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932244Ab1GVVYt convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 Jul 2011 10:23:38 -0400
-Received: by gwaa18 with SMTP id a18so1621396gwa.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 22 Jul 2011 07:23:37 -0700 (PDT)
-In-Reply-To: <40cb21d3.13a4e2d8.4e2949de.1e1fc@o2.pl>
+	Fri, 22 Jul 2011 17:24:49 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <alpine.LNX.2.01.1107221116020.16357@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jul 22, 2011 at 2:58 AM, Michal Pokrywka <wolfmoon@o2.pl> wrote:
->> I had the same problem when I upgraded to 2.6.38 vanilla (and
->> currently at 2.6.39.1), but I can't remember what the last successful
->> version was (probably greater than 2.6.32). My syslog was full of the
->> WARN_ON trace from sch_hfsc.c:1427.
->
-> Did you tested 2.6.38 or 2.6.38.8? Because mentioned patches was included in 2.6.38.8.
+> -----Original Message-----
+> From: Jan Engelhardt [mailto:jengelh@medozas.de]
+> Sent: Friday, July 22, 2011 2:19 AM
+> To: Jeff Haran
+> Cc: netfilter-devel@vger.kernel.org
+> Subject: Re: cant specify -m mark and -m connmark in same rule
+> 
+> On Friday 2011-07-22 01:46, Jeff Haran wrote:
+> 
+> >Is this a bug?
+> >
+> > [root@cap-x2100m2-01 ~]# \
+> >> iptables -A FORWARD -i eth2.11 -o eth1.111 -p tcp -m mark --mark
+> >0x0/0xfff -m connmark --mark 0x0/0xfff -j NFQUEUE --queue-num 10
+> >iptables v1.4.7: mark: "--mark" option may only be specified once
+> >Try `iptables -h' or 'iptables --help' for more information.
+> >[root@cap-x2100m2-01 ~]#
+> 
+> Fixed since iptables 1.4.11.
 
-Sorry, I don't remember for sure. I am only 100% sure that I currently
-have the issue on 2.6.39.1; anything else I may have remembered
-incorrectly.
+Indeed it was:
+
+[root@cap-x2100m2-01 iptables]# \
+> ./xtables-multi iptables -A FORWARD -i eth2.11 -o eth1.111 -p tcp -m
+mark --mark 0x0/0xfff -m connmark --mark 0x0/0xfff -j NFQUEUE
+--queue-num 10
+[root@cap-x2100m2-01 iptables]# ./xtables-multi iptables --version
+iptables v1.4.11.1
+[root@cap-x2100m2-01 iptables]# ./xtables-multi iptables -L -n -v
+Chain INPUT (policy ACCEPT 179 packets, 21269 bytes)
+ pkts bytes target     prot opt in     out     source
+destination
+
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source
+destination
+    0     0 NFQUEUE    tcp  --  eth2.11 eth1.111  0.0.0.0/0
+0.0.0.0/0            mark match 0x0/0xfff connmark match  0x0/0xfff
+NFQUEUE num 10
+
+Chain OUTPUT (policy ACCEPT 55 packets, 6088 bytes)
+ pkts bytes target     prot opt in     out     source
+destination
+[root@cap-x2100m2-01 iptables]#
+
+Thanks a bunch!
+
+
+
