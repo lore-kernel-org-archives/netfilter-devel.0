@@ -1,61 +1,43 @@
-From: "Julio A. Romero" <julioarr@fisica.uh.cu>
-Subject: about --source and --destination
-Date: Mon, 25 Jul 2011 14:59:24 -0400
-Message-ID: <95BB8A9157A549DB90DCE7AB0D03E4AD@poweredge1800>
+From: Ed W <lists@wildgooses.com>
+Subject: ipset "contains" question
+Date: Mon, 25 Jul 2011 23:25:29 +0100
+Message-ID: <4E2DED59.1030902@wildgooses.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>
-To: <netfilter@vger.kernel.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail1.nippynetworks.com ([91.220.24.129]:47169 "EHLO
+	mail1.nippynetworks.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751694Ab1GYWZa (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Jul 2011 18:25:30 -0400
+Received: from localhost (mail1.nippynetworks.com [127.0.0.1])
+	by mail1.nippynetworks.com (Postfix) with ESMTP id 0D4183402DC
+	for <netfilter-devel@vger.kernel.org>; Mon, 25 Jul 2011 23:25:30 +0100 (BST)
+Received: from mail1.nippynetworks.com ([127.0.0.1])
+	by localhost (mail1.nippynetworks.com [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id R4BLChtDnKES for <netfilter-devel@vger.kernel.org>;
+	Mon, 25 Jul 2011 23:25:29 +0100 (BST)
+Received: from Ed-Wildgooses-MacBook-Pro.local (office.nippynetworks.com [212.69.49.94])
+	(Authenticated sender: edward@wildgooses.com)
+	by mail1.nippynetworks.com (Postfix) with ESMTPSA id C222F3402D5
+	for <netfilter-devel@vger.kernel.org>; Mon, 25 Jul 2011 23:25:29 +0100 (BST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-At times I have needed to specify pairs of rules for the sources and the 
-destinations, even when sources and destinations are the same networks, i.e.
+Hi Jozsef,
 
+Many thanks for ipset.  Quick question please: I'm implementing a
+captive portal and I have an ipset (CP) containing bitmap:ip,mac.  How
+should I best implement rules to:
 
+- Drop packets from same IP, different MAC
 
-iptables -N netfilterup
+I might be missing the obvious, but how do I query to match on IP, then
+drop IP with a mismatching MAC (in the bitmap ipset)? Can this be done
+without a second ipset tracking only IP?
 
-iptables -A netfilterup -d $NETWORKS -j RETURN
+Thanks for any tips?
 
-iptables -A netfilterup -j DROP
-
-
-
-iptables -N netfilterin
-
-iptables -A netfilterin -s $NETWORKS -j RETURN
-
-iptables -A netfilterin -j DROP
-
-
-
-iptables -A FORWARD -i $INT_IFACEs -j netfilterup
-
-iptables -A FORWARD -i $EXT_IFACEs -j netfilterin
-
-
-
-Exists some way of writing something like that?
-
-
-
-iptables -N netfilter
-
-iptables -A netfilter -s/-d $NETWORKS -j RETURN
-
-iptables -A netfilter -j DROP
-
-iptables -A FORWARD -j netfilter
-
-
-
-thanks,
-
-julio
-
+Ed W
