@@ -1,7 +1,7 @@
 From: Rainer Weikusat <rweikusat@mobileactivedefense.com>
-Subject: Re: [PATCH] netfilter: add per-namespace logging to nfnetlink_log.c (updated)
-Date: Tue, 26 Jul 2011 12:22:15 +0100
-Message-ID: <8739hti8wo.fsf@sapphire.mobileactivedefense.com>
+Subject: Re: [PATCH] netfilter: add per-namespace logging to nfnetlink_log.c (updated again)
+Date: Tue, 26 Jul 2011 12:37:42 +0100
+Message-ID: <87y5zlgtmh.fsf_-_@sapphire.mobileactivedefense.com>
 References: <8739i3fp6s.fsf@sapphire.mobileactivedefense.com>
 	<20110718191956.GA2489@p183.telecom.by>
 	<87hb6je5nh.fsf@sapphire.mobileactivedefense.com>
@@ -15,42 +15,394 @@ Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mss-uk.mssgmbh.com ([217.174.251.109]:39785 "EHLO
+Received: from mss-uk.mssgmbh.com ([217.174.251.109]:42845 "EHLO
 	mss-uk.mssgmbh.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753190Ab1GZLW1 (ORCPT
+	with ESMTP id S1753299Ab1GZLhv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Jul 2011 07:22:27 -0400
+	Tue, 26 Jul 2011 07:37:51 -0400
 In-Reply-To: <87sjq1xab8.fsf_-_@sapphire.mobileactivedefense.com> (Rainer Weikusat's message of "Wed\, 20 Jul 2011 16\:04\:43 +0100")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Rainer Weikusat <rw@sapphire.mobileactivedefense.com> writes:
-> Presently, the nfnetlink_log.c file contains only very nominal support
-> for network namespaces:
+From: Rainer Weikusat <rweikusat@mobileactivedefense.com>
 
-I'm going to do a second 'updated' version of that which rectifies a
-couple of more-or-less minor issues with the first one (purpose of
-this mail is to document the changes). Specifically,
+Presently, the nfnetlink_log.c file contains only very nominal support
+for network namespaces: While it is possible to create sockets which
+should theoretically receive NFLOG originated messages in arbitrary
+network namespaces, there is only one table of nfulnl_instance
+structures in the kernel and all log messages sent via __nfulnl_send
+are forced into the init_net namespace so that only sockets created
+in this namespace will ever actually receive log data. Likewise, the
+nfulnl_rcv_nl_event notification callback won't destroy logging
+instances created by processes in other network namespace upon process
+death. The patch included below changes the code to use a logging
+instance table per network namespace, to send messages generated from
+within a specific namespace to sockets also belonging to this
+namespace and to destroy logging instances created from other network
+namespaces than init_net when cleaning up after a logging process
+terminated. It doesn't touch the code dealing with nfnetlink_log /proc
+files which thus remain restricted to the init_net namespace because
+this isn't really needed in order to get per-namespace logging and
+would require changes to other files, in particular, nf_log.c
 
-	- the instances_via_skb function should now also compile when
-          network namespace support is not supposed to be included in
-          a kernel and the compiler doesn't remove the 'dead code'
-          before compiling it (Some kernel data structures include a
-          struct net * unconditionally, some include it only
-          conditionally. In particular, struct sock and struct
-          net_device belong to the latter group)
+The patch also removes the hash_init file scope variable because
+that's not used for anything except that the existing init routine
+initializes it.
 
-	- the nfulnl_recv_config routine now gets the net namespace to
-          use by examining the ctnl argument since it is kind of
-          stupid to use the more complicated route via struct skbuff
-          if a simpler alternative is available
-
-	- the unregister_pernet_subsys call has been moved to the end
-          of nfnetlink_log_fini so that the init and fini codepaths
-          are again axis-symmetric to each other
-
-NB: Except in the fairly unlikely case that something like an actual
-error turns up in this code, I won't send this patch again (or over
-and over again :-) because I cannot possibly justify making more
-essentially cosmetic changes to something which is working code I need
-to solve a specifc problem I've encountered as part of my present job.
+Signed-Off-By: Rainer Weikusat <rweikusat@mobileactivedefense.com>
+---
+--- nf-2.6/net/netfilter/nfnetlink_log.c	2011-07-25 16:53:41.693829768 +0100
++++ nf-2.6.patched//net/netfilter/nfnetlink_log.c	2011-07-26 12:06:46.543418699 +0100
+@@ -39,6 +39,9 @@
+ #include "../bridge/br_private.h"
+ #endif
+ 
++#include <net/net_namespace.h>
++#include <net/netns/generic.h>
++
+ #define NFULNL_NLBUFSIZ_DEFAULT	NLMSG_GOODSIZE
+ #define NFULNL_TIMEOUT_DEFAULT 	100	/* every second */
+ #define NFULNL_QTHRESH_DEFAULT 	100	/* 100 packets */
+@@ -47,6 +50,15 @@
+ #define PRINTR(x, args...)	do { if (net_ratelimit()) \
+ 				     printk(x, ## args); } while (0);
+ 
++#define INSTANCE_BUCKETS	16
++
++struct nfulnl_instances {
++	spinlock_t lock;
++	atomic_t global_seq;
++	struct hlist_head table[INSTANCE_BUCKETS];
++	struct net *net;
++};
++
+ struct nfulnl_instance {
+ 	struct hlist_node hlist;	/* global list of instances */
+ 	spinlock_t lock;
+@@ -67,14 +79,39 @@ struct nfulnl_instance {
+ 	u_int16_t flags;
+ 	u_int8_t copy_mode;
+ 	struct rcu_head rcu;
++	struct nfulnl_instances *instances;
+ };
+ 
+-static DEFINE_SPINLOCK(instances_lock);
+-static atomic_t global_seq;
++static struct nfulnl_instances *instances;
++static int nfulnl_net_id;
+ 
+-#define INSTANCE_BUCKETS	16
+-static struct hlist_head instance_table[INSTANCE_BUCKETS];
+-static unsigned int hash_init;
++#ifdef CONFIG_NET_NS
++static inline struct nfulnl_instances *instances_for_net(struct net *net)
++{
++	return net_generic(net, nfulnl_net_id);
++}
++#else
++static inline struct nfulnl_instances *instances_for_net(struct net *net)
++{
++	return instances;
++}
++#endif
++
++static struct nfulnl_instances *instances_via_skb(struct sk_buff const *skb)
++{
++	struct net *net;
++
++	net = skb->sk ? sock_net(skb->sk) :
++		(skb->dev ? dev_net(skb->dev) : &init_net);
++
++	return instances_for_net(net);
++}
++
++static inline struct net *inst_net(struct nfulnl_instance *inst)
++{
++	return read_pnet(&inst->instances->net);
++
++}
+ 
+ static inline u_int8_t instance_hashfn(u_int16_t group_num)
+ {
+@@ -82,13 +119,13 @@ static inline u_int8_t instance_hashfn(u
+ }
+ 
+ static struct nfulnl_instance *
+-__instance_lookup(u_int16_t group_num)
++__instance_lookup(struct nfulnl_instances *instances, u_int16_t group_num)
+ {
+ 	struct hlist_head *head;
+ 	struct hlist_node *pos;
+ 	struct nfulnl_instance *inst;
+ 
+-	head = &instance_table[instance_hashfn(group_num)];
++	head = &instances->table[instance_hashfn(group_num)];
+ 	hlist_for_each_entry_rcu(inst, pos, head, hlist) {
+ 		if (inst->group_num == group_num)
+ 			return inst;
+@@ -103,12 +140,15 @@ instance_get(struct nfulnl_instance *ins
+ }
+ 
+ static struct nfulnl_instance *
+-instance_lookup_get(u_int16_t group_num)
++instance_lookup_get(struct nfulnl_instances *instances, u_int16_t group_num)
+ {
+ 	struct nfulnl_instance *inst;
+ 
++	if (!instances)
++		return NULL;
++
+ 	rcu_read_lock_bh();
+-	inst = __instance_lookup(group_num);
++	inst = __instance_lookup(instances, group_num);
+ 	if (inst && !atomic_inc_not_zero(&inst->use))
+ 		inst = NULL;
+ 	rcu_read_unlock_bh();
+@@ -132,13 +172,14 @@ instance_put(struct nfulnl_instance *ins
+ static void nfulnl_timer(unsigned long data);
+ 
+ static struct nfulnl_instance *
+-instance_create(u_int16_t group_num, int pid)
++instance_create(struct nfulnl_instances *instances,
++		u_int16_t group_num, int pid)
+ {
+ 	struct nfulnl_instance *inst;
+ 	int err;
+ 
+-	spin_lock_bh(&instances_lock);
+-	if (__instance_lookup(group_num)) {
++	spin_lock_bh(&instances->lock);
++	if (__instance_lookup(instances, group_num)) {
+ 		err = -EEXIST;
+ 		goto out_unlock;
+ 	}
+@@ -171,15 +212,16 @@ instance_create(u_int16_t group_num, int
+ 	inst->copy_mode 	= NFULNL_COPY_PACKET;
+ 	inst->copy_range 	= NFULNL_COPY_RANGE_MAX;
+ 
+-	hlist_add_head_rcu(&inst->hlist,
+-		       &instance_table[instance_hashfn(group_num)]);
++	inst->instances = instances;
+ 
+-	spin_unlock_bh(&instances_lock);
++	hlist_add_head_rcu(&inst->hlist,
++			&instances->table[instance_hashfn(group_num)]);
+ 
++	spin_unlock_bh(&instances->lock);
+ 	return inst;
+ 
+ out_unlock:
+-	spin_unlock_bh(&instances_lock);
++	spin_unlock_bh(&instances->lock);
+ 	return ERR_PTR(err);
+ }
+ 
+@@ -208,11 +250,12 @@ __instance_destroy(struct nfulnl_instanc
+ }
+ 
+ static inline void
+-instance_destroy(struct nfulnl_instance *inst)
++instance_destroy(struct nfulnl_instances *instances,
++		struct nfulnl_instance *inst)
+ {
+-	spin_lock_bh(&instances_lock);
++	spin_lock_bh(&instances->lock);
+ 	__instance_destroy(inst);
+-	spin_unlock_bh(&instances_lock);
++	spin_unlock_bh(&instances->lock);
+ }
+ 
+ static int
+@@ -334,7 +377,7 @@ __nfulnl_send(struct nfulnl_instance *in
+ 			  NLMSG_DONE,
+ 			  sizeof(struct nfgenmsg));
+ 
+-	status = nfnetlink_unicast(inst->skb, &init_net, inst->peer_pid,
++	status = nfnetlink_unicast(inst->skb, inst_net(inst), inst->peer_pid,
+ 				   MSG_DONTWAIT);
+ 
+ 	inst->qlen = 0;
+@@ -505,7 +548,8 @@ __build_packet_message(struct nfulnl_ins
+ 	/* global sequence number */
+ 	if (inst->flags & NFULNL_CFG_F_SEQ_GLOBAL)
+ 		NLA_PUT_BE32(inst->skb, NFULA_SEQ_GLOBAL,
+-			     htonl(atomic_inc_return(&global_seq)));
++			     htonl(atomic_inc_return(
++					     &inst->instances->global_seq)));
+ 
+ 	if (data_len) {
+ 		struct nlattr *nla;
+@@ -567,7 +611,8 @@ nfulnl_log_packet(u_int8_t pf,
+ 	else
+ 		li = &default_loginfo;
+ 
+-	inst = instance_lookup_get(li->u.ulog.group);
++	inst = instance_lookup_get(instances_via_skb(skb),
++				li->u.ulog.group);
+ 	if (!inst)
+ 		return;
+ 
+@@ -678,24 +723,26 @@ nfulnl_rcv_nl_event(struct notifier_bloc
+ 		   unsigned long event, void *ptr)
+ {
+ 	struct netlink_notify *n = ptr;
++	struct nfulnl_instances *instances;
+ 
+ 	if (event == NETLINK_URELEASE && n->protocol == NETLINK_NETFILTER) {
+ 		int i;
+ 
++		instances = instances_for_net(n->net);
++
+ 		/* destroy all instances for this pid */
+-		spin_lock_bh(&instances_lock);
++		spin_lock_bh(&instances->lock);
+ 		for  (i = 0; i < INSTANCE_BUCKETS; i++) {
+ 			struct hlist_node *tmp, *t2;
+ 			struct nfulnl_instance *inst;
+-			struct hlist_head *head = &instance_table[i];
++			struct hlist_head *head = &instances->table[i];
+ 
+ 			hlist_for_each_entry_safe(inst, tmp, t2, head, hlist) {
+-				if ((net_eq(n->net, &init_net)) &&
+-				    (n->pid == inst->peer_pid))
++				if (n->pid == inst->peer_pid)
+ 					__instance_destroy(inst);
+ 			}
+ 		}
+-		spin_unlock_bh(&instances_lock);
++		spin_unlock_bh(&instances->lock);
+ 	}
+ 	return NOTIFY_DONE;
+ }
+@@ -734,6 +781,7 @@ nfulnl_recv_config(struct sock *ctnl, st
+ {
+ 	struct nfgenmsg *nfmsg = NLMSG_DATA(nlh);
+ 	u_int16_t group_num = ntohs(nfmsg->res_id);
++	struct nfulnl_instances *instances;
+ 	struct nfulnl_instance *inst;
+ 	struct nfulnl_msg_config_cmd *cmd = NULL;
+ 	int ret = 0;
+@@ -752,7 +800,11 @@ nfulnl_recv_config(struct sock *ctnl, st
+ 		}
+ 	}
+ 
+-	inst = instance_lookup_get(group_num);
++	instances = instances_for_net(sock_net(ctnl));
++	if (!instances)
++		return -ENODEV;
++
++	inst = instance_lookup_get(instances, group_num);
+ 	if (inst && inst->peer_pid != NETLINK_CB(skb).pid) {
+ 		ret = -EPERM;
+ 		goto out_put;
+@@ -766,7 +818,7 @@ nfulnl_recv_config(struct sock *ctnl, st
+ 				goto out_put;
+ 			}
+ 
+-			inst = instance_create(group_num,
++			inst = instance_create(instances, group_num,
+ 					       NETLINK_CB(skb).pid);
+ 			if (IS_ERR(inst)) {
+ 				ret = PTR_ERR(inst);
+@@ -779,7 +831,7 @@ nfulnl_recv_config(struct sock *ctnl, st
+ 				goto out;
+ 			}
+ 
+-			instance_destroy(inst);
++			instance_destroy(instances, inst);
+ 			goto out_put;
+ 		default:
+ 			ret = -ENOTSUPP;
+@@ -862,17 +914,27 @@ static const struct nfnetlink_subsystem
+ 
+ #ifdef CONFIG_PROC_FS
+ struct iter_state {
++	struct nfulnl_instances *instances;
+ 	unsigned int bucket;
+ };
+ 
++static inline struct nfulnl_instances *instances_for_seq(void)
++{
++	return instances_for_net(&init_net);
++}
++
+ static struct hlist_node *get_first(struct iter_state *st)
+ {
+ 	if (!st)
+ 		return NULL;
+ 
++	st->instances = instances_for_seq();
++
+ 	for (st->bucket = 0; st->bucket < INSTANCE_BUCKETS; st->bucket++) {
+-		if (!hlist_empty(&instance_table[st->bucket]))
+-			return rcu_dereference_bh(hlist_first_rcu(&instance_table[st->bucket]));
++		if (!hlist_empty(&st->instances->table[st->bucket]))
++			return rcu_dereference_bh(
++				hlist_first_rcu(
++					&st->instances->table[st->bucket]));
+ 	}
+ 	return NULL;
+ }
+@@ -884,7 +946,8 @@ static struct hlist_node *get_next(struc
+ 		if (++st->bucket >= INSTANCE_BUCKETS)
+ 			return NULL;
+ 
+-		h = rcu_dereference_bh(hlist_first_rcu(&instance_table[st->bucket]));
++		h = rcu_dereference_bh(
++			hlist_first_rcu(&st->instances->table[st->bucket]));
+ 	}
+ 	return h;
+ }
+@@ -953,17 +1016,36 @@ static const struct file_operations nful
+ 
+ #endif /* PROC_FS */
+ 
+-static int __init nfnetlink_log_init(void)
++static int nfulnl_net_init(struct net *net)
+ {
+-	int i, status = -ENOMEM;
++	struct nfulnl_instances *insts;
++	int i;
+ 
+-	for (i = 0; i < INSTANCE_BUCKETS; i++)
+-		INIT_HLIST_HEAD(&instance_table[i]);
++	insts = net_generic(net, nfulnl_net_id);
++	insts->net = net;
++	spin_lock_init(&insts->lock);
++
++	i = INSTANCE_BUCKETS;
++	do INIT_HLIST_HEAD(insts->table + --i); while (i);
++
++	/* avoid 'runtime' net_generic for 'no netns' */
++	instances = insts;
++	return 0;
++}
++
++static struct pernet_operations nfulnl_net_ops = {
++	.init =		nfulnl_net_init,
++	.id =		&nfulnl_net_id,
++	.size =		sizeof(struct nfulnl_instances)
++};
++
++static int __init nfnetlink_log_init(void)
++{
++	int status;
+ 
+-	/* it's not really all that important to have a random value, so
+-	 * we can do this from the init function, even if there hasn't
+-	 * been that much entropy yet */
+-	get_random_bytes(&hash_init, sizeof(hash_init));
++	status = register_pernet_subsys(&nfulnl_net_ops);
++	if (status)
++		return status;
+ 
+ 	netlink_register_notifier(&nfulnl_rtnl_notifier);
+ 	status = nfnetlink_subsys_register(&nfulnl_subsys);
+@@ -1004,6 +1086,7 @@ static void __exit nfnetlink_log_fini(vo
+ #endif
+ 	nfnetlink_subsys_unregister(&nfulnl_subsys);
+ 	netlink_unregister_notifier(&nfulnl_rtnl_notifier);
++	unregister_pernet_subsys(&nfulnl_net_ops);
+ }
+ 
+ MODULE_DESCRIPTION("netfilter userspace logging");
