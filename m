@@ -1,44 +1,66 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: CONFIG_NF_CT_ACCT is deprecated
-Date: Wed, 27 Jul 2011 17:32:45 +0200
-Message-ID: <4E302F9D.10905@trash.net>
-References: <A8D937F560604292AD4B589CCF3D72BF@poweredge1800>
+From: Stig <stig@ubnt.com>
+Subject: ULOG and vlans
+Date: Wed, 27 Jul 2011 11:59:42 -0700
+Message-ID: <CAL-yc8_nbzJu8FxAVBycdeXtciz=FGYxXzQtT88xYQ3wX60hBQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: "Julio A. Romero" <julioarr@fisica.uh.cu>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43260 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752115Ab1G0Pcs (ORCPT
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:35601 "HELO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752030Ab1G0S7o (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Jul 2011 11:32:48 -0400
-In-Reply-To: <A8D937F560604292AD4B589CCF3D72BF@poweredge1800>
+	Wed, 27 Jul 2011 14:59:44 -0400
+Received: by mail-ew0-f45.google.com with SMTP id 24so1832072ewy.32
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Jul 2011 11:59:42 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 26.07.2011 19:55, Julio A. Romero wrote:
-> Messages produced during the boot sequence of my debian system
-> (squeeze, linux-image-2.6.32-5-amd64      2.6.32-35)
-> syslog:
-> 
-> 
-> Jul 26 11:47:16 firewall kernel: [   11.465366] ip6_tables: (C)
-> 2000-2006 Netfilter Core Team
-> Jul 26 11:47:16 firewall kernel: [   11.563280] ip_tables: (C) 2000-2006
-> Netfilter Core Team
-> Jul 26 11:47:16 firewall kernel: [   11.621776] nf_conntrack version
-> 0.5.0 (3846 buckets, 15384 max)
-> Jul 26 11:47:16 firewall kernel: [   11.622349] CONFIG_NF_CT_ACCT is
-> deprecated and will be removed soon. Please use
-> Jul 26 11:47:16 firewall kernel: [   11.622354] nf_conntrack.acct=1
-> kernel parameter, acct=1 nf_conntrack module option or
-> Jul 26 11:47:16 firewall kernel: [   11.622357] sysctl
-> net.netfilter.nf_conntrack_acct=1 to enable it.
-> 
-> 
-> What's that? and What should I do at respect?
+I'm using ULOG iptables target to capture packets for pmacct (a
+netflow exporter).  I noticed when ulog gets a packet from a vlan
+interface that the ulog header shows a mac_len of 18 bytes, but it
+appears that the vlan tag has already been stripped from the packet
+header:
 
-Exactly what it says in the message, use the module parameter or sysctl
-to enable conntrack accounting.
+(gdb) p/x *ulog_pkt
+$7 = {
+  mark = 0x0,
+  timestamp_sec = 0x4e2f6077,
+  timestamp_usec = 0x222f3,
+  hook = 0x0,
+  indev_name = {0x65, 0x74, 0x68, 0x31, 0x2e, 0x31, 0x30, 0x30, 0x0, 0x0, 0x0,
+    0x0, 0x0, 0x0, 0x0, 0x0},
+  outdev_name = {0x0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x5, 0xf, 0x0,
+    0x0, 0x5, 0xf, 0x0, 0x0},
+  data_len = 0x40,
+  prefix = {0x0, 0x0, 0x2, 0x0, 0x72, 0x60, 0x2f, 0x4e, 0xed, 0x6, 0x0, 0x0,
+    0xa, 0x40, 0x80, 0xfd, 0x2, 0x0, 0x0, 0x0, 0x14, 0x0, 0x1, 0x0, 0xfe,
+    0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
+  mac_len = 0x12,
+  mac = {0x0, 0xd, 0xb9, 0x15, 0x6d, 0x1, 0x0, 0xf, 0x30, 0x4, 0x35, 0x4f,
+    0x8, 0x0, 0x45, 0x0, 0x0, 0x54, 0xff, 0x21, 0x12, 0x0, 0x0, 0x21, 0x12,
+    0x0, 0x0, 0x40, 0x0, 0x0, 0x0, 0x14, 0x0, 0x2, 0x0, 0x72, 0x60, 0x2f,
+    0x4e, 0xed, 0x6, 0x0, 0x0, 0xa, 0x40, 0x80, 0xfd, 0x3, 0x0, 0x0, 0x0,
+    0x14, 0x0, 0x1, 0x0, 0xfe, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x2, 0xd,
+    0xb9, 0xff, 0xfe, 0x15, 0x6d, 0x1, 0x14, 0x0, 0x6, 0x0, 0xff, 0xff, 0xff,
+    0xff, 0xff},
+  payload = 0x941cc35
+}
+
+
+If the vlan has been remove, shouldn't the mac_len be reduced to 14?
+
+This causes parsing problems of the ip header for pmacct because it
+does the following:
+
+  if (ulog_pkt->mac_len) {
+     	memcpy(jumbo_container, ulog_pkt->mac, ulog_pkt->mac_len);
+	memcpy(jumbo_container+ulog_pkt->mac_len, ulog_pkt->payload, hdr.caplen);
+	hdr.caplen += ulog_pkt->mac_len;
+	hdr.len += ulog_pkt->mac_len;
+
+
+Obviously I can work around it, but I'm wondering if this is the
+expected behavior for ulog with vlans?
+
+stig
