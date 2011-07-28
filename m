@@ -1,72 +1,54 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ULOG and vlans
-Date: Thu, 28 Jul 2011 13:15:38 +0200
-Message-ID: <4E3144DA.7060009@trash.net>
-References: <CAL-yc8_nbzJu8FxAVBycdeXtciz=FGYxXzQtT88xYQ3wX60hBQ@mail.gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: xtables-addons: TEE extension fails to build
+Date: Thu, 28 Jul 2011 13:51:11 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1107281336540.15776@frira.zrqbmnf.qr>
+References: <1311849998.19605.2.camel@tablet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Stig <stig@ubnt.com>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Peter Volkov <pva@gentoo.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62847 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754481Ab1G1LPl (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Jul 2011 07:15:41 -0400
-In-Reply-To: <CAL-yc8_nbzJu8FxAVBycdeXtciz=FGYxXzQtT88xYQ3wX60hBQ@mail.gmail.com>
+Received: from seven.medozas.de ([188.40.89.202]:34735 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754481Ab1G1LvM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 28 Jul 2011 07:51:12 -0400
+In-Reply-To: <1311849998.19605.2.camel@tablet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 27.07.2011 20:59, Stig wrote:
-> I'm using ULOG iptables target to capture packets for pmacct (a
-> netflow exporter).  I noticed when ulog gets a packet from a vlan
-> interface that the ulog header shows a mac_len of 18 bytes, but it
-> appears that the vlan tag has already been stripped from the packet
-> header:
-> 
-> (gdb) p/x *ulog_pkt
-> $7 = {
->   mark = 0x0,
->   timestamp_sec = 0x4e2f6077,
->   timestamp_usec = 0x222f3,
->   hook = 0x0,
->   indev_name = {0x65, 0x74, 0x68, 0x31, 0x2e, 0x31, 0x30, 0x30, 0x0, 0x0, 0x0,
->     0x0, 0x0, 0x0, 0x0, 0x0},
->   outdev_name = {0x0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x5, 0xf, 0x0,
->     0x0, 0x5, 0xf, 0x0, 0x0},
->   data_len = 0x40,
->   prefix = {0x0, 0x0, 0x2, 0x0, 0x72, 0x60, 0x2f, 0x4e, 0xed, 0x6, 0x0, 0x0,
->     0xa, 0x40, 0x80, 0xfd, 0x2, 0x0, 0x0, 0x0, 0x14, 0x0, 0x1, 0x0, 0xfe,
->     0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
->   mac_len = 0x12,
->   mac = {0x0, 0xd, 0xb9, 0x15, 0x6d, 0x1, 0x0, 0xf, 0x30, 0x4, 0x35, 0x4f,
->     0x8, 0x0, 0x45, 0x0, 0x0, 0x54, 0xff, 0x21, 0x12, 0x0, 0x0, 0x21, 0x12,
->     0x0, 0x0, 0x40, 0x0, 0x0, 0x0, 0x14, 0x0, 0x2, 0x0, 0x72, 0x60, 0x2f,
->     0x4e, 0xed, 0x6, 0x0, 0x0, 0xa, 0x40, 0x80, 0xfd, 0x3, 0x0, 0x0, 0x0,
->     0x14, 0x0, 0x1, 0x0, 0xfe, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x2, 0xd,
->     0xb9, 0xff, 0xfe, 0x15, 0x6d, 0x1, 0x14, 0x0, 0x6, 0x0, 0xff, 0xff, 0xff,
->     0xff, 0xff},
->   payload = 0x941cc35
-> }
-> 
-> 
-> If the vlan has been remove, shouldn't the mac_len be reduced to 14?
+On Thursday 2011-07-28 12:46, Peter Volkov wrote:
 
-Yes. How is your vlan device configured (ip -s link show vlanX)?
+>Hi. TEE extension fails to build in xtables-addons. It fails with the =
+following error:
+>
+>  CC [M]  /vt/portage/tmp/portage/net-firewall/xtables-addons-1.37/wor=
+k/xtables-addons-1.37/extensions/xt_TEE.o
+>/vt/portage/tmp/portage/net-firewall/xtables-addons-1.37/work/xtables-=
+addons-1.37/extensions/xt_TEE.c: In function =E2=80=98tee_tg_route4=E2=80=
+=99:
+>/vt/portage/tmp/portage/net-firewall/xtables-addons-1.37/work/xtables-=
+addons-1.37/extensions/xt_TEE.c:46:4: error: =E2=80=98struct flowi=E2=80=
+=99 has no member named =E2=80=98nl_u=E2=80=99
+>/vt/portage/tmp/portage/net-firewall/xtables-addons-1.37/work/xtables-=
+addons-1.37/extensions/xt_TEE.c:47:4: error: =E2=80=98struct flowi=E2=80=
+=99 has no member named =E2=80=98nl_u=E2=80=99
+>/vt/portage/tmp/portage/net-firewall/xtables-addons-1.37/work/xtables-=
+addons-1.37/extensions/xt_TEE.c:48:4: error: =E2=80=98struct flowi=E2=80=
+=99 has no member named =E2=80=98nl_u=E2=80=99
+>/vt/portage/tmp/portage/net-firewall/xtables-addons-1.37/work/xtables-=
+addons-1.37/extensions/xt_TEE.c:50:2: warning: passing argument 2 of =E2=
+=80=98ip_route_output_key=E2=80=99 from incompatible pointer type
+>include/net/route.h:131:61: note: expected =E2=80=98struct flowi4 *=E2=
+=80=99 but argument is of type =E2=80=98struct rtable **=E2=80=99
 
-> 
-> This causes parsing problems of the ip header for pmacct because it
-> does the following:
-> 
->   if (ulog_pkt->mac_len) {
->      	memcpy(jumbo_container, ulog_pkt->mac, ulog_pkt->mac_len);
-> 	memcpy(jumbo_container+ulog_pkt->mac_len, ulog_pkt->payload, hdr.caplen);
-> 	hdr.caplen += ulog_pkt->mac_len;
-> 	hdr.len += ulog_pkt->mac_len;
-> 
-> 
-> Obviously I can work around it, but I'm wondering if this is the
-> expected behavior for ulog with vlans?
-
-No, if the tag is stripped, the length should reflect that.
+Because the mainline kernel already has xt_TEE (revision 1+) since vers=
+ion
+2.6.35, the xt_TEE (revision 0) copy in Xt-a is build-disabled by defau=
+lt.
+And now I added a big fat #error to emphase on that. :)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
