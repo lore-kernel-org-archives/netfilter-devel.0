@@ -1,66 +1,210 @@
-From: Stig <stig@ubnt.com>
-Subject: ULOG and vlans
-Date: Wed, 27 Jul 2011 11:59:42 -0700
-Message-ID: <CAL-yc8_nbzJu8FxAVBycdeXtciz=FGYxXzQtT88xYQ3wX60hBQ@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter: add per-namespace logging to nfnetlink_log.c
+ (updated again)
+Date: Thu, 28 Jul 2011 09:00:40 +0200
+Message-ID: <4E310918.2040504@trash.net>
+References: <8739i3fp6s.fsf@sapphire.mobileactivedefense.com>	<20110718191956.GA2489@p183.telecom.by>	<87hb6je5nh.fsf@sapphire.mobileactivedefense.com>	<20110718.124638.30010338187296272.davem@davemloft.net>	<87d3h7e43n.fsf@sapphire.mobileactivedefense.com>	<alpine.LNX.2.01.1107182218170.9579@frira.zrqbmnf.qr>	<878vruymq6.fsf@sapphire.mobileactivedefense.com>	<87sjq1xab8.fsf_-_@sapphire.mobileactivedefense.com> <87y5zlgtmh.fsf_-_@sapphire.mobileactivedefense.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Rainer Weikusat <rweikusat@mobileactivedefense.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:35601 "HELO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752030Ab1G0S7o (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:57814 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753814Ab1G1HAn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Jul 2011 14:59:44 -0400
-Received: by mail-ew0-f45.google.com with SMTP id 24so1832072ewy.32
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Jul 2011 11:59:42 -0700 (PDT)
+	Thu, 28 Jul 2011 03:00:43 -0400
+In-Reply-To: <87y5zlgtmh.fsf_-_@sapphire.mobileactivedefense.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I'm using ULOG iptables target to capture packets for pmacct (a
-netflow exporter).  I noticed when ulog gets a packet from a vlan
-interface that the ulog header shows a mac_len of 18 bytes, but it
-appears that the vlan tag has already been stripped from the packet
-header:
+On 26.07.2011 13:37, Rainer Weikusat wrote:
+> --- nf-2.6/net/netfilter/nfnetlink_log.c	2011-07-25 16:53:41.693829768 +0100
+> +++ nf-2.6.patched//net/netfilter/nfnetlink_log.c	2011-07-26 12:06:46.543418699 +0100
+> @@ -39,6 +39,9 @@
+>  #include "../bridge/br_private.h"
+>  #endif
+>  
+> +#include <net/net_namespace.h>
+> +#include <net/netns/generic.h>
+> +
+>  #define NFULNL_NLBUFSIZ_DEFAULT	NLMSG_GOODSIZE
+>  #define NFULNL_TIMEOUT_DEFAULT 	100	/* every second */
+>  #define NFULNL_QTHRESH_DEFAULT 	100	/* 100 packets */
+> @@ -47,6 +50,15 @@
+>  #define PRINTR(x, args...)	do { if (net_ratelimit()) \
+>  				     printk(x, ## args); } while (0);
+>  
+> +#define INSTANCE_BUCKETS	16
+> +
+> +struct nfulnl_instances {
+> +	spinlock_t lock;
+> +	atomic_t global_seq;
+> +	struct hlist_head table[INSTANCE_BUCKETS];
+> +	struct net *net;
+> +};
+> +
+>  struct nfulnl_instance {
+>  	struct hlist_node hlist;	/* global list of instances */
+>  	spinlock_t lock;
+> @@ -67,14 +79,39 @@ struct nfulnl_instance {
+>  	u_int16_t flags;
+>  	u_int8_t copy_mode;
+>  	struct rcu_head rcu;
+> +	struct nfulnl_instances *instances;
+>  };
+>  
+> -static DEFINE_SPINLOCK(instances_lock);
+> -static atomic_t global_seq;
+> +static struct nfulnl_instances *instances;
+> +static int nfulnl_net_id;
+>  
+> -#define INSTANCE_BUCKETS	16
+> -static struct hlist_head instance_table[INSTANCE_BUCKETS];
+> -static unsigned int hash_init;
+> +#ifdef CONFIG_NET_NS
+> +static inline struct nfulnl_instances *instances_for_net(struct net *net)
+> +{
+> +	return net_generic(net, nfulnl_net_id);
+> +}
+> +#else
+> +static inline struct nfulnl_instances *instances_for_net(struct net *net)
+> +{
+> +	return instances;
+> +}
+> +#endif
 
-(gdb) p/x *ulog_pkt
-$7 = {
-  mark = 0x0,
-  timestamp_sec = 0x4e2f6077,
-  timestamp_usec = 0x222f3,
-  hook = 0x0,
-  indev_name = {0x65, 0x74, 0x68, 0x31, 0x2e, 0x31, 0x30, 0x30, 0x0, 0x0, 0x0,
-    0x0, 0x0, 0x0, 0x0, 0x0},
-  outdev_name = {0x0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x5, 0xf, 0x0,
-    0x0, 0x5, 0xf, 0x0, 0x0},
-  data_len = 0x40,
-  prefix = {0x0, 0x0, 0x2, 0x0, 0x72, 0x60, 0x2f, 0x4e, 0xed, 0x6, 0x0, 0x0,
-    0xa, 0x40, 0x80, 0xfd, 0x2, 0x0, 0x0, 0x0, 0x14, 0x0, 0x1, 0x0, 0xfe,
-    0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
-  mac_len = 0x12,
-  mac = {0x0, 0xd, 0xb9, 0x15, 0x6d, 0x1, 0x0, 0xf, 0x30, 0x4, 0x35, 0x4f,
-    0x8, 0x0, 0x45, 0x0, 0x0, 0x54, 0xff, 0x21, 0x12, 0x0, 0x0, 0x21, 0x12,
-    0x0, 0x0, 0x40, 0x0, 0x0, 0x0, 0x14, 0x0, 0x2, 0x0, 0x72, 0x60, 0x2f,
-    0x4e, 0xed, 0x6, 0x0, 0x0, 0xa, 0x40, 0x80, 0xfd, 0x3, 0x0, 0x0, 0x0,
-    0x14, 0x0, 0x1, 0x0, 0xfe, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x2, 0xd,
-    0xb9, 0xff, 0xfe, 0x15, 0x6d, 0x1, 0x14, 0x0, 0x6, 0x0, 0xff, 0xff, 0xff,
-    0xff, 0xff},
-  payload = 0x941cc35
-}
+We use net_generic unconditionally everywhere else, there's no reason
+for nfnetlink_log not to.
+
+> +static struct nfulnl_instances *instances_via_skb(struct sk_buff const *skb)
+> +{
+> +	struct net *net;
+> +
+> +	net = skb->sk ? sock_net(skb->sk) :
+> +		(skb->dev ? dev_net(skb->dev) : &init_net);
+
+You don't need to manually handle init_net, the *_net functions will
+do the right thing. Also the common case is that skb->dev is non-NULL,
+I'd suggest to use dev_net(skb->dev ? skb->dev : skb_dst(skb)->dev).
+
+This function is also only used once and doesn't really make things
+easier to read, please get rid of it and open code.
+
+> +
+> +	return instances_for_net(net);
+> +}
+> +
+> +static inline struct net *inst_net(struct nfulnl_instance *inst)
+> +{
+> +	return read_pnet(&inst->instances->net);
+> +
+> +}
+
+Only used once, please get rid of it.
 
 
-If the vlan has been remove, shouldn't the mac_len be reduced to 14?
+>  static struct nfulnl_instance *
+> -instance_lookup_get(u_int16_t group_num)
+> +instance_lookup_get(struct nfulnl_instances *instances, u_int16_t group_num)
 
-This causes parsing problems of the ip header for pmacct because it
-does the following:
+I'd suggest to pass the net * pointer to this function instead of doing
+the lookup in the calling functions. Should save a bit of code and also
+is a more common pattern used with namespaces.
 
-  if (ulog_pkt->mac_len) {
-     	memcpy(jumbo_container, ulog_pkt->mac, ulog_pkt->mac_len);
-	memcpy(jumbo_container+ulog_pkt->mac_len, ulog_pkt->payload, hdr.caplen);
-	hdr.caplen += ulog_pkt->mac_len;
-	hdr.len += ulog_pkt->mac_len;
+>  {
+>  	struct nfulnl_instance *inst;
+>  
+> +	if (!instances)
+> +		return NULL;
+> +
+>  	rcu_read_lock_bh();
+> -	inst = __instance_lookup(group_num);
+> +	inst = __instance_lookup(instances, group_num);
+>  	if (inst && !atomic_inc_not_zero(&inst->use))
+>  		inst = NULL;
+>  	rcu_read_unlock_bh();
+> @@ -132,13 +172,14 @@ instance_put(struct nfulnl_instance *ins
+>  static void nfulnl_timer(unsigned long data);
+>  
+>  static struct nfulnl_instance *
+> -instance_create(u_int16_t group_num, int pid)
+> +instance_create(struct nfulnl_instances *instances,
+> +		u_int16_t group_num, int pid)
 
+Same here.
 
-Obviously I can work around it, but I'm wondering if this is the
-expected behavior for ulog with vlans?
+>  {
+>  	struct nfulnl_instance *inst;
+>  	int err;
+>  
+> -	spin_lock_bh(&instances_lock);
+> -	if (__instance_lookup(group_num)) {
+> +	spin_lock_bh(&instances->lock);
+> +	if (__instance_lookup(instances, group_num)) {
+>  		err = -EEXIST;
+>  		goto out_unlock;
+>  	}
+>  
+> @@ -208,11 +250,12 @@ __instance_destroy(struct nfulnl_instanc
+>  }
+>  
+>  static inline void
+> -instance_destroy(struct nfulnl_instance *inst)
+> +instance_destroy(struct nfulnl_instances *instances,
+> +		struct nfulnl_instance *inst)
 
-stig
+And here.
+
+>  {
+> -	spin_lock_bh(&instances_lock);
+> +	spin_lock_bh(&instances->lock);
+>  	__instance_destroy(inst);
+> -	spin_unlock_bh(&instances_lock);
+> +	spin_unlock_bh(&instances->lock);
+>  }
+>  
+>  static int
+
+> @@ -862,17 +914,27 @@ static const struct nfnetlink_subsystem
+>  
+>  #ifdef CONFIG_PROC_FS
+>  struct iter_state {
+> +	struct nfulnl_instances *instances;
+>  	unsigned int bucket;
+>  };
+>  
+> +static inline struct nfulnl_instances *instances_for_seq(void)
+> +{
+> +	return instances_for_net(&init_net);
+> +}
+
+Also used only once and hides the fact that we're only handling
+init_net. Please remove and open code.
+
+> -static int __init nfnetlink_log_init(void)
+> +static int nfulnl_net_init(struct net *net)
+>  {
+> -	int i, status = -ENOMEM;
+> +	struct nfulnl_instances *insts;
+> +	int i;
+>  
+> -	for (i = 0; i < INSTANCE_BUCKETS; i++)
+> -		INIT_HLIST_HEAD(&instance_table[i]);
+> +	insts = net_generic(net, nfulnl_net_id);
+> +	insts->net = net;
+> +	spin_lock_init(&insts->lock);
+> +
+> +	i = INSTANCE_BUCKETS;
+> +	do INIT_HLIST_HEAD(insts->table + --i); while (i);
+
+Don't put this on one line and please choose a slightly
+more readable construct than + --i while (i).
+
+> +
+> +	/* avoid 'runtime' net_generic for 'no netns' */
+> +	instances = insts;
+> +	return 0;
+> +}
+
