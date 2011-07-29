@@ -1,71 +1,44 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH] netfilter: xt_rateest: fix xt_rateest_mt_checkentry()
-Date: Fri, 29 Jul 2011 05:51:02 +0200
-Message-ID: <1311911462.7845.5.camel@edumazet-laptop>
+From: Peter Volkov <pva@gentoo.org>
+Subject: net/netfilter/nf_nat.h header instalation
+Date: Fri, 29 Jul 2011 13:37:40 +0400
+Message-ID: <1311932260.21981.11.camel@tablet>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>,
-	Jan Engelhardt <jengelh@medozas.de>
-To: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:54387 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752457Ab1G2DvI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Jul 2011 23:51:08 -0400
+Received: from smtp.gentoo.org ([140.211.166.183]:45423 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755804Ab1G2Jif (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 29 Jul 2011 05:38:35 -0400
+Received: from [192.168.1.2] (ap.ran.gpi.ru [195.209.218.156])
+	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: pva)
+	by smtp.gentoo.org (Postfix) with ESMTPSA id A37C91B401B
+	for <netfilter-devel@vger.kernel.org>; Fri, 29 Jul 2011 09:38:34 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 4a5a5c73b7cfee (slightly better error reporting) added some
-useless code in xt_rateest_mt_checkentry().
+Hi. Could you suggest solution for following problem:
 
-Fix this so that different error codes can really be returned.
+miniupnpd [1] uses net/netfilter/nf_nat.h header and fails to build as
+normally this header is not installed by kernel during header. But is
+this correct?
 
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-CC: Jan Engelhardt <jengelh@medozas.de>
----
- net/netfilter/xt_rateest.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+As I found, iptables itself copies this kernel headers and bundles
+together with sources for reasons outlined in [3]. Now for miniupnpd
+distributions started to install  net/netfilter/*.h [4] [5]. I'm not
+opposed to install this headers in Gentoo too, bug if this is user space
+header shouldn't kernel install it?
 
-diff --git a/net/netfilter/xt_rateest.c b/net/netfilter/xt_rateest.c
-index 76a0831..ed0db15 100644
---- a/net/netfilter/xt_rateest.c
-+++ b/net/netfilter/xt_rateest.c
-@@ -78,7 +78,7 @@ static int xt_rateest_mt_checkentry(const struct xt_mtchk_param *par)
- {
- 	struct xt_rateest_match_info *info = par->matchinfo;
- 	struct xt_rateest *est1, *est2;
--	int ret = false;
-+	int ret = -EINVAL;
- 
- 	if (hweight32(info->flags & (XT_RATEEST_MATCH_ABS |
- 				     XT_RATEEST_MATCH_REL)) != 1)
-@@ -101,13 +101,12 @@ static int xt_rateest_mt_checkentry(const struct xt_mtchk_param *par)
- 	if (!est1)
- 		goto err1;
- 
-+	est2 = NULL;
- 	if (info->flags & XT_RATEEST_MATCH_REL) {
- 		est2 = xt_rateest_lookup(info->name2);
- 		if (!est2)
- 			goto err2;
--	} else
--		est2 = NULL;
--
-+	}
- 
- 	info->est1 = est1;
- 	info->est2 = est2;
-@@ -116,7 +115,7 @@ static int xt_rateest_mt_checkentry(const struct xt_mtchk_param *par)
- err2:
- 	xt_rateest_put(est1);
- err1:
--	return -EINVAL;
-+	return ret;
- }
- 
- static void xt_rateest_mt_destroy(const struct xt_mtdtor_param *par)
+[1] http://miniupnp.free.fr/files
+[2] http://miniupnp.tuxfamily.org/forum/viewtopic.php?t=771&start=15
+[3]
+http://comments.gmane.org/gmane.comp.security.firewalls.netfilter.devel/36623
+[4] http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=541979
+[5] https://qa.mandriva.com/show_bug.cgi?id=58007
 
+--
+Peter.
 
