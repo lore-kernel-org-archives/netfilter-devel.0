@@ -1,44 +1,69 @@
-From: Peter Volkov <pva@gentoo.org>
-Subject: net/netfilter/nf_nat.h header instalation
-Date: Fri, 29 Jul 2011 13:37:40 +0400
-Message-ID: <1311932260.21981.11.camel@tablet>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: ULOG and vlans
+Date: Fri, 29 Jul 2011 16:23:24 +0200
+Message-ID: <4E32C25C.8080003@trash.net>
+References: <CAL-yc8_nbzJu8FxAVBycdeXtciz=FGYxXzQtT88xYQ3wX60hBQ@mail.gmail.com>	<4E3144DA.7060009@trash.net> <CAL-yc88wjr-0H1LF+x5FLf=h1XhswbQ78McHvZ4NL5+p08gUTw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Stig <stig@ubnt.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:45423 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755804Ab1G2Jif (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Jul 2011 05:38:35 -0400
-Received: from [192.168.1.2] (ap.ran.gpi.ru [195.209.218.156])
-	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: pva)
-	by smtp.gentoo.org (Postfix) with ESMTPSA id A37C91B401B
-	for <netfilter-devel@vger.kernel.org>; Fri, 29 Jul 2011 09:38:34 +0000 (UTC)
+Received: from stinky.trash.net ([213.144.137.162]:56287 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750861Ab1G2OX2 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 29 Jul 2011 10:23:28 -0400
+In-Reply-To: <CAL-yc88wjr-0H1LF+x5FLf=h1XhswbQ78McHvZ4NL5+p08gUTw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi. Could you suggest solution for following problem:
+On 28.07.2011 19:00, Stig wrote:
+> On Thu, Jul 28, 2011 at 4:15 AM, Patrick McHardy <kaber@trash.net> wrote:
+>> On 27.07.2011 20:59, Stig wrote:
+>>> I'm using ULOG iptables target to capture packets for pmacct (a
+>>> netflow exporter).  I noticed when ulog gets a packet from a vlan
+>>> interface that the ulog header shows a mac_len of 18 bytes, but it
+>>> appears that the vlan tag has already been stripped from the packet
+>>> header:
+>>>
+>>> (gdb) p/x *ulog_pkt
+>>> $7 = {
+>>>   mark = 0x0,
+>>>   timestamp_sec = 0x4e2f6077,
+>>>   timestamp_usec = 0x222f3,
+>>>   hook = 0x0,
+>>>   indev_name = {0x65, 0x74, 0x68, 0x31, 0x2e, 0x31, 0x30, 0x30, 0x0, 0x0, 0x0,
+>>>     0x0, 0x0, 0x0, 0x0, 0x0},
+>>>   outdev_name = {0x0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x5, 0xf, 0x0,
+>>>     0x0, 0x5, 0xf, 0x0, 0x0},
+>>>   data_len = 0x40,
+>>>   prefix = {0x0, 0x0, 0x2, 0x0, 0x72, 0x60, 0x2f, 0x4e, 0xed, 0x6, 0x0, 0x0,
+>>>     0xa, 0x40, 0x80, 0xfd, 0x2, 0x0, 0x0, 0x0, 0x14, 0x0, 0x1, 0x0, 0xfe,
+>>>     0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
+>>>   mac_len = 0x12,
+>>>   mac = {0x0, 0xd, 0xb9, 0x15, 0x6d, 0x1, 0x0, 0xf, 0x30, 0x4, 0x35, 0x4f,
+>>>     0x8, 0x0, 0x45, 0x0, 0x0, 0x54, 0xff, 0x21, 0x12, 0x0, 0x0, 0x21, 0x12,
+>>>     0x0, 0x0, 0x40, 0x0, 0x0, 0x0, 0x14, 0x0, 0x2, 0x0, 0x72, 0x60, 0x2f,
+>>>     0x4e, 0xed, 0x6, 0x0, 0x0, 0xa, 0x40, 0x80, 0xfd, 0x3, 0x0, 0x0, 0x0,
+>>>     0x14, 0x0, 0x1, 0x0, 0xfe, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x2, 0xd,
+>>>     0xb9, 0xff, 0xfe, 0x15, 0x6d, 0x1, 0x14, 0x0, 0x6, 0x0, 0xff, 0xff, 0xff,
+>>>     0xff, 0xff},
+>>>   payload = 0x941cc35
+>>> }
+>>>
+>>>
+>>> If the vlan has been remove, shouldn't the mac_len be reduced to 14?
+>>
+>> Yes. How is your vlan device configured (ip -s link show vlanX)?
+> 
+> vyatta@vyatta:~$ ip -s link show eth1.100
+> 4: eth1.100@eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue stat
+>     link/ether 00:0d:b9:15:6d:01 brd ff:ff:ff:ff:ff:ff
+>     RX: bytes  packets  errors  dropped overrun mcast
+>     296652     3372     0       0       0       0
+>     TX: bytes  packets  errors  dropped carrier collsns
+>     344216     3376     0       0       0       0
 
-miniupnpd [1] uses net/netfilter/nf_nat.h header and fails to build as
-normally this header is not installed by kernel during header. But is
-this correct?
-
-As I found, iptables itself copies this kernel headers and bundles
-together with sources for reasons outlined in [3]. Now for miniupnpd
-distributions started to install  net/netfilter/*.h [4] [5]. I'm not
-opposed to install this headers in Gentoo too, bug if this is user space
-header shouldn't kernel install it?
-
-[1] http://miniupnp.free.fr/files
-[2] http://miniupnp.tuxfamily.org/forum/viewtopic.php?t=771&start=15
-[3]
-http://comments.gmane.org/gmane.comp.security.firewalls.netfilter.devel/36623
-[4] http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=541979
-[5] https://qa.mandriva.com/show_bug.cgi?id=58007
-
---
-Peter.
-
+Sorry, I actually meant ip -d link show vlanX. Also, what driver are
+you using?
