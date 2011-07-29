@@ -1,30 +1,37 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: xt_rateest: fix xt_rateest_mt_checkentry()
-Date: Fri, 29 Jul 2011 16:25:28 +0200
-Message-ID: <4E32C2D8.1040103@trash.net>
-References: <1311911462.7845.5.camel@edumazet-laptop>
+Subject: Re: [GIT PULL nf-2.6] IPVS
+Date: Fri, 29 Jul 2011 16:26:33 +0200
+Message-ID: <4E32C319.5010602@trash.net>
+References: <1311293920-1983-1-git-send-email-horms@verge.net.au>	<20110729001203.GB31217@verge.net.au> <20110728.183917.885521460762207540.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>,
-	Jan Engelhardt <jengelh@medozas.de>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: horms@verge.net.au, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, wensong@linux-vs.org, ja@ssi.bg,
+	pablo@netfilter.org, davej@redhat.com, rdunlap@xenotime.net,
+	huajun.li.lee@gmail.com, davem@davmeloft.net
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:56326 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:56349 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751087Ab1G2OZb (ORCPT
+	with ESMTP id S1751092Ab1G2O0h (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Jul 2011 10:25:31 -0400
-In-Reply-To: <1311911462.7845.5.camel@edumazet-laptop>
+	Fri, 29 Jul 2011 10:26:37 -0400
+In-Reply-To: <20110728.183917.885521460762207540.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 29.07.2011 05:51, Eric Dumazet wrote:
-> commit 4a5a5c73b7cfee (slightly better error reporting) added some
-> useless code in xt_rateest_mt_checkentry().
+On 29.07.2011 03:39, David Miller wrote:
+> From: Simon Horman <horms@verge.net.au>
+> Date: Fri, 29 Jul 2011 09:12:06 +0900
 > 
-> Fix this so that different error codes can really be returned.
+>> What is the best way forward to get this both in 3.1 and 3.0 -stable?
+> 
+> I'll take this directly and do the -stable submission too.
 > 
 
-Applied, thanks Eric.
+Sorry, I seem to have missed this, also can't find the email in my
+inbox for some reason. Anyways, generally please do the stable
+submissions for IPVS yourself (after the patch went upstream of
+course).
