@@ -1,37 +1,37 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [GIT PULL nf-2.6] IPVS
-Date: Fri, 29 Jul 2011 16:26:33 +0200
-Message-ID: <4E32C319.5010602@trash.net>
-References: <1311293920-1983-1-git-send-email-horms@verge.net.au>	<20110729001203.GB31217@verge.net.au> <20110728.183917.885521460762207540.davem@davemloft.net>
+Subject: Re: net/netfilter/nf_nat.h header instalation
+Date: Fri, 29 Jul 2011 16:28:31 +0200
+Message-ID: <4E32C38F.5070301@trash.net>
+References: <1311932260.21981.11.camel@tablet>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: horms@verge.net.au, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, wensong@linux-vs.org, ja@ssi.bg,
-	pablo@netfilter.org, davej@redhat.com, rdunlap@xenotime.net,
-	huajun.li.lee@gmail.com, davem@davmeloft.net
-To: David Miller <davem@davemloft.net>
+Cc: netfilter-devel@vger.kernel.org
+To: Peter Volkov <pva@gentoo.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:56349 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:56389 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751092Ab1G2O0h (ORCPT
+	with ESMTP id S1751282Ab1G2O2e (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Jul 2011 10:26:37 -0400
-In-Reply-To: <20110728.183917.885521460762207540.davem@davemloft.net>
+	Fri, 29 Jul 2011 10:28:34 -0400
+In-Reply-To: <1311932260.21981.11.camel@tablet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 29.07.2011 03:39, David Miller wrote:
-> From: Simon Horman <horms@verge.net.au>
-> Date: Fri, 29 Jul 2011 09:12:06 +0900
+On 29.07.2011 11:37, Peter Volkov wrote:
+> Hi. Could you suggest solution for following problem:
 > 
->> What is the best way forward to get this both in 3.1 and 3.0 -stable?
+> miniupnpd [1] uses net/netfilter/nf_nat.h header and fails to build as
+> normally this header is not installed by kernel during header. But is
+> this correct?
 > 
-> I'll take this directly and do the -stable submission too.
-> 
+> As I found, iptables itself copies this kernel headers and bundles
+> together with sources for reasons outlined in [3]. Now for miniupnpd
+> distributions started to install  net/netfilter/*.h [4] [5]. I'm not
+> opposed to install this headers in Gentoo too, bug if this is user space
+> header shouldn't kernel install it?
 
-Sorry, I seem to have missed this, also can't find the email in my
-inbox for some reason. Anyways, generally please do the stable
-submissions for IPVS yourself (after the patch went upstream of
-course).
+iptables is actually wrong in copying that file, the userspace portions
+such as nf_nat_manip_types and nf_nat_*range need to be moved to a new
+file under include/linux/netfilter_ipv4/ which is installed and used
+by userspace.
