@@ -1,63 +1,67 @@
-From: Andrew Morton <akpm@linux-foundation.org>
+From: Mihai =?UTF-8?B?RG9uyJt1?= <mihai.dontu@gmail.com>
 Subject: Re: [Bug 40422] New: 3.0: kernel panic - not syncing: fatal
  exception in interrupt
-Date: Mon, 1 Aug 2011 14:04:18 -0700
-Message-ID: <20110801140418.510c5dc4.akpm@linux-foundation.org>
+Date: Tue, 2 Aug 2011 00:45:58 +0300
+Message-ID: <20110802004558.393e2a77@mdontu-dell>
 References: <bug-40422-27@https.bugzilla.kernel.org/>
+	<20110801140418.510c5dc4.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: bugzilla-daemon@bugzilla.kernel.org, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
-To: mihai.dontu@gmail.com
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60991 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751212Ab1HAVFP (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Aug 2011 17:05:15 -0400
-In-Reply-To: <bug-40422-27@https.bugzilla.kernel.org/>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20110801140418.510c5dc4.akpm@linux-foundation.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 1 Aug 2011 14:04:18 -0700 Andrew Morton wrote:
+> (switched to email.  Please respond via emailed reply-to-all, not via
+> the bugzilla web interface).
+>=20
+> On Mon, 1 Aug 2011 20:51:43 GMT
+> bugzilla-daemon@bugzilla.kernel.org wrote:
+>=20
+> > https://bugzilla.kernel.org/show_bug.cgi?id=3D40422
+> >=20
+> >            Summary: 3.0: kernel panic - not syncing: fatal
+> > exception in interrupt
+> >            Product: Memory Management
+> >            Version: 2.5
+> >           Platform: All
+> >         OS/Version: Linux
+> >               Tree: Mainline
+> >             Status: NEW
+> >           Severity: normal
+> >           Priority: P1
+> >          Component: Other
+> >         AssignedTo: akpm@linux-foundation.org
+> >         ReportedBy: mihai.dontu@gmail.com
+> >         Regression: No
+> >=20
+> >=20
+> > Upon resuming from suspend to disk, I got a kernel panic like it
+> > can be seen in the attached picture. I'm using 3.0 for less than a
+> > week and this is the first time this happens (after several
+> > successful suspend+resume-s).
+> >=20
+>=20
+> --- Comment #1 from Mihai Don#u <mihai.dontu@gmail.com>  2011-08-01
+> 20:55:23 --- Created an attachment (id=3D67322)
+>  --> (https://bugzilla.kernel.org/attachment.cgi?id=3D67322)
+> kernel panic camera shot
+>=20
+> drat, the first part of that crash scrolled off the screen or wasn't
+> in the photo.  I don't suppose it's possible to get that information?
 
-(switched to email.  Please respond via emailed reply-to-all, not via the
-bugzilla web interface).
+No, I'm afraid not. I'll disable the framebuffer decorations for the
+future. Should get me 4 or 5 more lines of backtrace when the crash
+reappears.
 
-On Mon, 1 Aug 2011 20:51:43 GMT
-bugzilla-daemon@bugzilla.kernel.org wrote:
+> Still, the oops is in netfilter code - a bad pointer dereference unde=
+r
+> devinet_ioctl->masq_device_event.
 
-> https://bugzilla.kernel.org/show_bug.cgi?id=40422
-> 
->            Summary: 3.0: kernel panic - not syncing: fatal exception in
->                     interrupt
->            Product: Memory Management
->            Version: 2.5
->           Platform: All
->         OS/Version: Linux
->               Tree: Mainline
->             Status: NEW
->           Severity: normal
->           Priority: P1
->          Component: Other
->         AssignedTo: akpm@linux-foundation.org
->         ReportedBy: mihai.dontu@gmail.com
->         Regression: No
-> 
-> 
-> Upon resuming from suspend to disk, I got a kernel panic like it can be seen in
-> the attached picture. I'm using 3.0 for less than a week and this is the first
-> time this happens (after several successful suspend+resume-s).
-> 
-
---- Comment #1 from Mihai Don#u <mihai.dontu@gmail.com>  2011-08-01 20:55:23 ---
-Created an attachment (id=67322)
- --> (https://bugzilla.kernel.org/attachment.cgi?id=67322)
-kernel panic camera shot
-
-drat, the first part of that crash scrolled off the screen or wasn't in
-the photo.  I don't suppose it's possible to get that information?
-
-Still, the oops is in netfilter code - a bad pointer dereference under
-devinet_ioctl->masq_device_event.
-
+--=20
+Mihai Don=C8=9Bu
