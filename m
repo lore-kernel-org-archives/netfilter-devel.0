@@ -1,45 +1,34 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 3/3] utils: resolve compiler warning
-Date: Sat, 30 Jul 2011 21:11:03 +0200
-Message-ID: <1312053064-2153-4-git-send-email-jengelh@medozas.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: libnfnetlink patches
+Date: Mon, 01 Aug 2011 11:30:13 +0200
+Message-ID: <4E367225.9090403@trash.net>
 References: <1312053064-2153-1-git-send-email-jengelh@medozas.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:36867 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752638Ab1G3TLJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 30 Jul 2011 15:11:09 -0400
+Received: from stinky.trash.net ([213.144.137.162]:49004 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752821Ab1HAJaY (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Aug 2011 05:30:24 -0400
 In-Reply-To: <1312053064-2153-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-iftest.c:36:1: warning: control reaches end of non-void function
+On 30.07.2011 21:11, Jan Engelhardt wrote:
+> The following changes since commit a82107933da41572428b8c882d77c10267cbcef9:
+> 
+>   src: BAD_SIZEOF (2011-06-13 19:53:17 +0200)
+> 
+> are available in the git repository at:
+>   git://dev.medozas.de/libnfnetlink master
+> 
+> Jan Engelhardt (3):
+>       build: remove unused LIBTOOL_DEPS
+>       build: use -Wall across the entire source
+>       utils: resolve compiler warning
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- utils/iftest.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
-
-diff --git a/utils/iftest.c b/utils/iftest.c
-index 2bbe3a3..523a17a 100644
---- a/utils/iftest.c
-+++ b/utils/iftest.c
-@@ -7,7 +7,7 @@
- 
- #include <libnfnetlink/libnfnetlink.h>
- 
--int main()
-+int main(void)
- {
- 	int i;
- 	struct nlif_handle *h;
-@@ -33,4 +33,5 @@ int main()
- 	}
- 
- 	nlif_close(h);
-+	return EXIT_SUCCESS;
- }
--- 
-1.7.3.4
-
+Pulled, thanks Jan.
