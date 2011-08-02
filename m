@@ -1,67 +1,57 @@
-From: Mihai =?UTF-8?B?RG9uyJt1?= <mihai.dontu@gmail.com>
-Subject: Re: [Bug 40422] New: 3.0: kernel panic - not syncing: fatal
- exception in interrupt
-Date: Tue, 2 Aug 2011 00:45:58 +0300
-Message-ID: <20110802004558.393e2a77@mdontu-dell>
-References: <bug-40422-27@https.bugzilla.kernel.org/>
-	<20110801140418.510c5dc4.akpm@linux-foundation.org>
+From: Fernando Luis =?ISO-8859-1?Q?V=E1zquez?= Cao
+	<fernando@oss.ntt.co.jp>
+Subject: [PATCH] iptables/man: IPv6 TOS mangling fix was backported to
+ 2.6.35-longterm too
+Date: Tue, 02 Aug 2011 10:00:40 +0900
+Message-ID: <1312246840.8407.2.camel@nexus.oss.ntt.co.jp>
+References: <1307320871-31770-1-git-send-email-pablo@netfilter.org>
+	 <1307320871-31770-2-git-send-email-pablo@netfilter.org>
+	 <BANLkTikAs7fN2JQJTUwQHAYPPGMf8i9uEA@mail.gmail.com>
+	 <alpine.LNX.2.01.1106061618370.17430@frira.zrqbmnf.qr>
+	 <1308213411.4062.22.camel@nausicaa>
+	 <alpine.LNX.2.01.1106161705300.10015@frira.zrqbmnf.qr>
+	 <4DFA1DFC.3000804@trash.net> <1308273097.8612.1.camel@nexus.oss.ntt.co.jp>
+	 <1308273246.8612.3.camel@nexus.oss.ntt.co.jp>  <4DFACE41.5010906@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: bugzilla-daemon@bugzilla.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20110801140418.510c5dc4.akpm@linux-foundation.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Linux Networking Developer Mailing List
+	<netdev@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from serv2.oss.ntt.co.jp ([222.151.198.100]:45046 "EHLO
+	serv2.oss.ntt.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753289Ab1HBBAw (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Aug 2011 21:00:52 -0400
+In-Reply-To: <4DFACE41.5010906@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 1 Aug 2011 14:04:18 -0700 Andrew Morton wrote:
-> (switched to email.  Please respond via emailed reply-to-all, not via
-> the bugzilla web interface).
->=20
-> On Mon, 1 Aug 2011 20:51:43 GMT
-> bugzilla-daemon@bugzilla.kernel.org wrote:
->=20
-> > https://bugzilla.kernel.org/show_bug.cgi?id=3D40422
-> >=20
-> >            Summary: 3.0: kernel panic - not syncing: fatal
-> > exception in interrupt
-> >            Product: Memory Management
-> >            Version: 2.5
-> >           Platform: All
-> >         OS/Version: Linux
-> >               Tree: Mainline
-> >             Status: NEW
-> >           Severity: normal
-> >           Priority: P1
-> >          Component: Other
-> >         AssignedTo: akpm@linux-foundation.org
-> >         ReportedBy: mihai.dontu@gmail.com
-> >         Regression: No
-> >=20
-> >=20
-> > Upon resuming from suspend to disk, I got a kernel panic like it
-> > can be seen in the attached picture. I'm using 3.0 for less than a
-> > week and this is the first time this happens (after several
-> > successful suspend+resume-s).
-> >=20
->=20
-> --- Comment #1 from Mihai Don#u <mihai.dontu@gmail.com>  2011-08-01
-> 20:55:23 --- Created an attachment (id=3D67322)
->  --> (https://bugzilla.kernel.org/attachment.cgi?id=3D67322)
-> kernel panic camera shot
->=20
-> drat, the first part of that crash scrolled off the screen or wasn't
-> in the photo.  I don't suppose it's possible to get that information?
+Update man page accordingly.
 
-No, I'm afraid not. I'll disable the framebuffer decorations for the
-future. Should get me 4 or 5 more lines of backtrace when the crash
-reappears.
+Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+---
 
-> Still, the oops is in netfilter code - a bad pointer dereference unde=
-r
-> devinet_ioctl->masq_device_event.
+diff -urNp iptables-orig/extensions/libxt_TOS.man iptables/extensions/libxt_TOS.man
+--- iptables-orig/extensions/libxt_TOS.man	2011-07-11 17:41:10.000000000 +0900
++++ iptables/extensions/libxt_TOS.man	2011-08-02 09:59:27.356614494 +0900
+@@ -28,9 +28,9 @@ Binary XOR the TOS value with \fIbits\fP
+ \fIbits\fP\fB/0\fP. See NOTE below.)
+ .PP
+ NOTE: In Linux kernels up to and including 2.6.38, with the exception of
+-longterm releases 2.6.32.42 (or later) and 2.6.33.15 (or later), there is a bug
+-whereby IPv6 TOS mangling does not behave as documented and differs from the
+-IPv4 version. The TOS mask indicates the bits one wants to zero out, so it needs
+-to be inverted before applying it to the original TOS field. However, the
++longterm releases 2.6.32 (>=.42), 2.6.33 (>=.15), and 2.6.35 (>=.14), there is
++a bug whereby IPv6 TOS mangling does not behave as documented and differs from
++the IPv4 version. The TOS mask indicates the bits one wants to zero out, so it
++needs to be inverted before applying it to the original TOS field. However, the
+ aformentioned kernels forgo the inversion which breaks --set-tos and its
+ mnemonics.
 
---=20
-Mihai Don=C8=9Bu
+
