@@ -1,24 +1,24 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: libnetfilter_conntrack: build fix
-Date: Wed,  3 Aug 2011 17:08:46 +0200
-Message-ID: <1312384128-26273-1-git-send-email-jengelh@medozas.de>
+Subject: libnetfilter_log: build fix
+Date: Wed,  3 Aug 2011 17:09:24 +0200
+Message-ID: <1312384166-26541-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:59500 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:59513 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754579Ab1HCPIu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Aug 2011 11:08:50 -0400
+	id S1754579Ab1HCPJ2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Aug 2011 11:09:28 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-The following changes since commit 75c69a3da6ae268f42aecca7e5ae79dacdd87414:
+The following changes since commit 353cc5f966912aa8d576f8a27daaee93f8bc29a0:
 
-  conntrack: objopt: NO_EFFECT (2011-06-13 19:52:49 +0200)
+  build: Linux kernel-style for compilation messages (2011-03-15 18:20:17 +0100)
 
 are available in the git repository at:
-  git://dev.medozas.de/libnetfilter_conntrack master
+  git://dev.medozas.de/libnetfilter_log master
 
 Jan Engelhardt (1):
       build: fix error with automake-1.9
