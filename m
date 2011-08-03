@@ -1,30 +1,44 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: libnfnetlink: build fixes
-Date: Wed,  3 Aug 2011 17:11:56 +0200
-Message-ID: <1312384319-29980-1-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 1/2] nfnl: avoid exit on large packet
+Date: Wed,  3 Aug 2011 17:11:57 +0200
+Message-ID: <1312384319-29980-2-git-send-email-jengelh@medozas.de>
+References: <1312384319-29980-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:59554 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:59556 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754859Ab1HCPMA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Aug 2011 11:12:00 -0400
+	id S1754882Ab1HCPMC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Aug 2011 11:12:02 -0400
+In-Reply-To: <1312384319-29980-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Using exit from shared libraries is unwelcome (automated build systems
+flag it) and one should rather return gracefully. Looking at this
+particular spot however, while a
 
-The following changes since commit 87eac438d72e8abfc05d9dc99ff80db8789ca5fd:
-
-  utils: resolve compiler warning (2011-07-30 20:57:13 +0200)
-
-are available in the git repository at:
-  git://dev.medozas.de/libnfnetlink master
-
-Jan Engelhardt (2):
-      nfnl: avoid exit on large packet
-      build: fix error with automake-1.9
-
- .gitignore         |    2 ++
- configure.ac       |    1 +
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
  src/libnfnetlink.c |    4 +---
- 3 files changed, 4 insertions(+), 3 deletions(-)
+ 1 files changed, 1 insertions(+), 3 deletions(-)
+
+diff --git a/src/libnfnetlink.c b/src/libnfnetlink.c
+index 2f962fc..0234e6f 100644
+--- a/src/libnfnetlink.c
++++ b/src/libnfnetlink.c
+@@ -779,10 +779,8 @@ cont:
+ 			nfnl_error("Messages truncated\n");
+ 			continue;
+ 		}
+-		if (status) {
++		if (status)
+ 			nfnl_error("Remnant of size %d\n", status);
+-			exit(1);
+-		}
+ 	}
+ }
+ 
+-- 
+1.7.3.4
+
