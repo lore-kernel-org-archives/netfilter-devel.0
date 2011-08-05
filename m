@@ -1,37 +1,34 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH] build: abort autogen on subcommand failure
-Date: Wed,  3 Aug 2011 17:37:19 +0200
-Message-ID: <1312385840-32490-2-git-send-email-jengelh@medozas.de>
-References: <1312385840-32490-1-git-send-email-jengelh@medozas.de>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:38449 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753712Ab1HCPhY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Aug 2011 11:37:24 -0400
-In-Reply-To: <1312385840-32490-1-git-send-email-jengelh@medozas.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: [PATCH] netfilter: avoid double free in nf_reinject
+Date: Fri, 5 Aug 2011 13:36:28 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1108051326300.1494@ja.ssi.bg>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Kumar Swamy <kswamy@barracuda.com>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Needed to stop an automated build process when automake requirements
-are not fulfilled.
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+	NF_STOLEN means skb was already freed
+
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
 ---
- autogen.sh |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/autogen.sh b/autogen.sh
-index 36b2a2a..f9c3a91 100755
---- a/autogen.sh
-+++ b/autogen.sh
-@@ -1,4 +1,4 @@
--#!/bin/sh
-+#!/bin/sh -e
- 
- autoreconf -fi;
- rm -Rf autom4te.cache;
--- 
-1.7.3.4
+	May be fixes IPVS+ip_queue problem reported by Kumar Swamy:
 
+	http://marc.info/?l=linux-virtual-server&m=131098073717449&w=2
+
+diff -urp v3.0/linux/net/netfilter/nf_queue.c linux/net/netfilter/nf_queue.c
+--- v3.0/linux/net/netfilter/nf_queue.c	2011-05-20 10:38:08.000000000 +0300
++++ linux/net/netfilter/nf_queue.c	2011-08-05 13:18:29.755962759 +0300
+@@ -312,6 +312,7 @@ void nf_reinject(struct nf_queue_entry *
+ 		}
+ 		break;
+ 	case NF_STOLEN:
++		break;
+ 	default:
+ 		kfree_skb(skb);
+ 	}
