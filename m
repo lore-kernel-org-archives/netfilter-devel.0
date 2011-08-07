@@ -1,71 +1,92 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: [PATCH] netfilter: TCP and raw fix for ip_route_me_harder
-Date: Sun, 7 Aug 2011 22:11:00 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1108072158050.1423@ja.ssi.bg>
+From: Frank Reppin <frank@undermydesk.org>
+Subject: [PATCH] fix compilation of xtables 1.37
+Date: Mon, 08 Aug 2011 01:03:58 +0200
+Message-ID: <4E3F19DE.9040302@undermydesk.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+Content-Type: multipart/mixed;
+ boundary="------------030002040705090707040909"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:34750 "EHLO ja.ssi.bg"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754635Ab1HGTGW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 7 Aug 2011 15:06:22 -0400
+Received: from amazone.undermydesk.org ([213.211.198.100]:14602 "EHLO
+	amazone.undermydesk.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751291Ab1HGXKT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 7 Aug 2011 19:10:19 -0400
+Received: from amazone.undermydesk.org (localhost [127.0.0.1])
+	by amazone.undermydesk.org (Postfix) with ESMTP id F38891D7FDB
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Aug 2011 01:04:08 +0200 (CEST)
+Received: from amazone.undermydesk.org ([213.211.198.100])
+	by amazone.undermydesk.org (amazone.undermydesk.org [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id PHpLtdrYzGOr for <netfilter-devel@vger.kernel.org>;
+	Mon,  8 Aug 2011 01:04:05 +0200 (CEST)
+Received: from [192.168.0.74] (p4FDDCD38.dip.t-dialin.net [79.221.205.56])
+	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
+	(Client did not present a certificate)
+	by amazone.undermydesk.org (Postfix) with ESMTPSA id 4C4111D7FBF
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Aug 2011 01:04:05 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This is a multi-part message in MIME format.
+--------------030002040705090707040909
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-	TCP in some cases uses different global (raw) socket
-to send RST and ACK. The transparent flag is not set there.
-Currently, it is a problem for rerouting after the previous
-change.
+Hi,
 
-	Fix it by simplifying the checks in ip_route_me_harder
-and use FLOWI_FLAG_ANYSRC even for sockets. It looks safe
-because the initial routing allowed this source address to
-be used and now we just have to make sure the packet is rerouted.
+the attached patch fixes compilation of xtables 1.37.
 
-	As a side effect this also allows rerouting for normal
-raw sockets that use spoofed source addresses which was not possible
-even before we eliminated the ip_route_input call.
+My scenario is:
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
----
+1) xtables.h is in /usr/local/iptables/include
+2) configure was done as:
+      export PKG_CONFIG_PATH=/usr/local/iptables/lib/pkgconfig
+      ./configure --with-xtlibdir=/usr/local/iptables/libexec/xtables
 
-diff -urp v3.0/linux/net/ipv4/netfilter.c linux/net/ipv4/netfilter.c
---- v3.0/linux/net/ipv4/netfilter.c	2011-07-22 09:43:32.862081622 +0300
-+++ linux/net/ipv4/netfilter.c	2011-08-07 19:22:05.772347388 +0300
-@@ -18,17 +18,15 @@ int ip_route_me_harder(struct sk_buff *s
- 	struct rtable *rt;
- 	struct flowi4 fl4 = {};
- 	__be32 saddr = iph->saddr;
--	__u8 flags = 0;
-+	__u8 flags = skb->sk ? inet_sk_flowi_flags(skb->sk) : 0;
- 	unsigned int hh_len;
- 
--	if (!skb->sk && addr_type != RTN_LOCAL) {
--		if (addr_type == RTN_UNSPEC)
--			addr_type = inet_addr_type(net, saddr);
--		if (addr_type == RTN_LOCAL || addr_type == RTN_UNICAST)
--			flags |= FLOWI_FLAG_ANYSRC;
--		else
--			saddr = 0;
--	}
-+	if (addr_type == RTN_UNSPEC)
-+		addr_type = inet_addr_type(net, saddr);
-+	if (addr_type == RTN_LOCAL || addr_type == RTN_UNICAST)
-+		flags |= FLOWI_FLAG_ANYSRC;
-+	else
-+		saddr = 0;
- 
- 	/* some non-standard hacks like ipt_REJECT.c:send_reset() can cause
- 	 * packets with foreign saddr to appear on the NF_INET_LOCAL_OUT hook.
-@@ -38,7 +36,7 @@ int ip_route_me_harder(struct sk_buff *s
- 	fl4.flowi4_tos = RT_TOS(iph->tos);
- 	fl4.flowi4_oif = skb->sk ? skb->sk->sk_bound_dev_if : 0;
- 	fl4.flowi4_mark = skb->mark;
--	fl4.flowi4_flags = skb->sk ? inet_sk_flowi_flags(skb->sk) : flags;
-+	fl4.flowi4_flags = flags;
- 	rt = ip_route_output_key(net, &fl4);
- 	if (IS_ERR(rt))
- 		return -1;
+The error was:
+
+libxt_ACCOUNT.c:13:21: warning: xtables.h: No such file or directory
+
+
+HTH
+cheers,
+Frank Reppin
+
+-- 
+43rd Law of Computing:
+         Anything that can go wr
+fortune: Segmentation violation -- Core dumped
+
+--------------030002040705090707040909
+Content-Type: text/plain;
+ name="patch-fix-xtables-addons-1.37-compilation.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="patch-fix-xtables-addons-1.37-compilation.diff"
+
+diff -Naur xtables-addons-1.37.dist/extensions/ACCOUNT/Makefile.in xtables-addons-1.37/extensions/ACCOUNT/Makefile.in
+--- xtables-addons-1.37.dist/extensions/ACCOUNT/Makefile.in	2011-06-25 11:24:37.000000000 +0200
++++ xtables-addons-1.37/extensions/ACCOUNT/Makefile.in	2011-08-08 00:43:21.000000000 +0200
+@@ -247,7 +247,7 @@
+ top_srcdir = @top_srcdir@
+ xtlibdir = @xtlibdir@
+ AM_CPPFLAGS = ${regular_CPPFLAGS} -I${abs_top_srcdir}/extensions
+-AM_CFLAGS = ${regular_CFLAGS}
++AM_CFLAGS = ${regular_CFLAGS} ${libxtables_CFLAGS}
+ XA_SRCDIR = ${srcdir}
+ XA_TOPSRCDIR = ${top_srcdir}
+ XA_ABSTOPSRCDIR = ${abs_top_srcdir}
+diff -Naur xtables-addons-1.37.dist/extensions/pknock/Makefile.in xtables-addons-1.37/extensions/pknock/Makefile.in
+--- xtables-addons-1.37.dist/extensions/pknock/Makefile.in	2011-06-25 11:24:37.000000000 +0200
++++ xtables-addons-1.37/extensions/pknock/Makefile.in	2011-08-08 00:44:03.000000000 +0200
+@@ -216,7 +216,7 @@
+ top_srcdir = @top_srcdir@
+ xtlibdir = @xtlibdir@
+ AM_CPPFLAGS = ${regular_CPPFLAGS} -I${abs_top_srcdir}/extensions
+-AM_CFLAGS = ${regular_CFLAGS}
++AM_CFLAGS = ${regular_CFLAGS} ${libxtables_CFLAGS}
+ XA_SRCDIR = ${srcdir}
+ XA_TOPSRCDIR = ${top_srcdir}
+ XA_ABSTOPSRCDIR = ${abs_top_srcdir}
+
+--------------030002040705090707040909--
