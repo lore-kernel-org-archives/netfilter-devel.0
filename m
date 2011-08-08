@@ -1,39 +1,36 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] netfilter: avoid double free in nf_reinject
-Date: Sun, 07 Aug 2011 22:11:58 -0700 (PDT)
-Message-ID: <20110807.221158.636741102851927559.davem@davemloft.net>
-References: <alpine.LFD.2.00.1108051326300.1494@ja.ssi.bg>
+Subject: Re: [PATCH] netfilter: TCP and raw fix for ip_route_me_harder
+Date: Sun, 07 Aug 2011 22:53:52 -0700 (PDT)
+Message-ID: <20110807.225352.1009726356333252181.davem@davemloft.net>
+References: <alpine.LFD.2.00.1108072158050.1423@ja.ssi.bg>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, kswamy@barracuda.com
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
 To: ja@ssi.bg
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:52315 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751023Ab1HHFNN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Aug 2011 01:13:13 -0400
-In-Reply-To: <alpine.LFD.2.00.1108051326300.1494@ja.ssi.bg>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.1108072158050.1423@ja.ssi.bg>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 From: Julian Anastasov <ja@ssi.bg>
-Date: Fri, 5 Aug 2011 13:36:28 +0300 (EEST)
+Date: Sun, 7 Aug 2011 22:11:00 +0300 (EEST)
 
 > 
-> 	NF_STOLEN means skb was already freed
+> 	TCP in some cases uses different global (raw) socket
+> to send RST and ACK. The transparent flag is not set there.
+> Currently, it is a problem for rerouting after the previous
+> change.
+> 
+> 	Fix it by simplifying the checks in ip_route_me_harder
+> and use FLOWI_FLAG_ANYSRC even for sockets. It looks safe
+> because the initial routing allowed this source address to
+> be used and now we just have to make sure the packet is rerouted.
+> 
+> 	As a side effect this also allows rerouting for normal
+> raw sockets that use spoofed source addresses which was not possible
+> even before we eliminated the ip_route_input call.
 > 
 > Signed-off-by: Julian Anastasov <ja@ssi.bg>
-> ---
-> 
-> 	May be fixes IPVS+ip_queue problem reported by Kumar Swamy:
-> 
-> 	http://marc.info/?l=linux-virtual-server&m=131098073717449&w=2
 
-Since the netfilter maintainers are taking too damn long to integrate
-bug fixes (and this has been happening for months), I'm going to apply
-this directly.
-
-Thanks Julian.
+Applied.
