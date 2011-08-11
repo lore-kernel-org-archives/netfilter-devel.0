@@ -1,27 +1,41 @@
-From: Dan McGee <dan@archlinux.org>
-Subject: iptables: libxt_statistic.so undefined symbol: lround
-Date: Tue, 9 Aug 2011 10:35:11 -0500
-Message-ID: <CAEik5nPmurYA8tysJ7+LRH-uM5Nx=Odr-YYwsrxUKGFivQu1BQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:45090 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753178Ab1HIPfL (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Aug 2011 11:35:11 -0400
-Received: by pzk37 with SMTP id 37so149040pzk.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 09 Aug 2011 08:35:11 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Julia Lawall <julia@diku.dk>
+Subject: [PATCH] net/bridge/netfilter/ebtables.c: use available error handling code
+Date: Thu, 11 Aug 2011 13:59:38 +0200
+Message-ID: <1313063978-29400-1-git-send-email-julia@diku.dk>
+Cc: kernel-janitors@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	Stephen Hemminger <shemminger@linux-foundation.org>,
+	davem@davemloft.net, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+To: Bart De Schuymer <bart.de.schuymer@pandora.be>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Arch Linux bug report: https://bugs.archlinux.org/task/25358
+From: Julia Lawall <julia@diku.dk>
 
-Looks like this is simply a case of not adding -libm to xt_statistic
-after this [1] commit, should be a quick fix.
+Free the locally allocated table and newinfo as done in adjacent error
+handling code.
 
-Thanks!
--Dan
+Signed-off-by: Julia Lawall <julia@diku.dk>
 
-[1] http://git.netfilter.org/cgi-bin/gitweb.cgi?p=iptables.git;a=commitdiff;h=39d3aa36ea38668a2c343b5af42b2d8d3616a9de
+---
+ net/bridge/netfilter/ebtables.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 2b5ca1a..5864cc4 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1198,7 +1198,8 @@ ebt_register_table(struct net *net, const struct ebt_table *input_table)
+ 
+ 	if (table->check && table->check(newinfo, table->valid_hooks)) {
+ 		BUGPRINT("The table doesn't like its own initial data, lol\n");
+-		return ERR_PTR(-EINVAL);
++		ret = -EINVAL;
++		goto free_chainstack;
+ 	}
+ 
+ 	table->private = newinfo;
+
