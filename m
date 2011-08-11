@@ -1,68 +1,57 @@
-From: Julian Anastasov <ja@ssi.bg>
+From: =?ISO-8859-2?Q?Micha=B3_Miros=B3aw?= <mirqus@gmail.com>
 Subject: Re: [PATCH] netfilter: nf_queue: fix NF_STOLEN skb leak redux
-Date: Fri, 12 Aug 2011 00:58:48 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1108120052050.1494@ja.ssi.bg>
+Date: Fri, 12 Aug 2011 00:12:07 +0200
+Message-ID: <CAHXqBFJ=Z=uhgyxUYJ=j1xp6NvhkY6wUYxjNCx6YTTnr_gDsbg@mail.gmail.com>
 References: <1313095621-2015-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org,
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, Julian Anastasov <ja@ssi.bg>,
 	Eric Dumazet <eric.dumazet@gmail.com>
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:48372 "EHLO ja.ssi.bg"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753563Ab1HKVxz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Aug 2011 17:53:55 -0400
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:54917 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752933Ab1HKWM2 convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Aug 2011 18:12:28 -0400
+Received: by qwk3 with SMTP id 3so1293013qwk.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Aug 2011 15:12:27 -0700 (PDT)
 In-Reply-To: <1313095621-2015-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-	Hello,
-
-On Thu, 11 Aug 2011, Florian Westphal wrote:
-
+2011/8/11 Florian Westphal <fw@strlen.de>:
 > A userspace listener may send (bogus) NF_STOLEN verdict, which causes
 > skb leak.
-> 
+>
 > This problem was previously fixed via
 > 64507fdbc29c3a622180378210ecea8659b14e40 (netfilter:
 > nf_queue: fix NF_STOLEN skb leak) but this had to be reverted
 > because NF_STOLEN can also be returned by a netfilter hook when
 > iterating the rules in nf_reinject.
-> 
-> This is complementary to commit fad54440438a7c231a6ae347738423cbabc936d9
+>
+> This is complementary to commit fad54440438a7c231a6ae347738423cbabc93=
+6d9
 > (netfilter: avoid double free in nf_reinject).
-> 
+>
 > Cc: Julian Anastasov <ja@ssi.bg>
 > Cc: Eric Dumazet <eric.dumazet@gmail.com>
 > Signed-off-by: Florian Westphal <fw@strlen.de>
 > ---
->  One alternative would be to change ip(6)queue and nfqueue
->  to fail with -EINVAL if userspace gives NF_STOLEN verdict.
->  Thoughts?
-> 
-> diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-> index 5b466cd..dd2d014 100644
-> --- a/net/netfilter/nf_queue.c
-> +++ b/net/netfilter/nf_queue.c
-> @@ -267,6 +267,10 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
->  	const struct nf_afinfo *afinfo;
->  	int err;
->  
-> +	/* NF_STOLEN from userspace makes no sense, we must free packet */
-> +	if (WARN_ONCE(verdict == NF_STOLEN, "bogus verdict NF_STOLEN\n"))
-> +		verdict = NF_DROP;
-> +
+> =C2=A0One alternative would be to change ip(6)queue and nfqueue
+> =C2=A0to fail with -EINVAL if userspace gives NF_STOLEN verdict.
+> =C2=A0Thoughts?
 
-	Good catch, thanks! Can you add some prefix to this
-message such as KERN_WARNING "nf_queue: " ?
+Since userspace is not supposed to pass NF_STOLEN, this would be the
+correct fix.
 
->  	rcu_read_lock();
->  
->  	nf_queue_entry_release_refs(entry);
+Just a hint, no guarantees attached. ;)
 
-Regards
-
+Best Regards,
+Micha=C5=82 Miros=C5=82aw
 --
-Julian Anastasov <ja@ssi.bg>
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
