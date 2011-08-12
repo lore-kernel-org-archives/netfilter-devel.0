@@ -1,61 +1,43 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] netfilter: nf_queue: fix NF_STOLEN skb leak redux
-Date: Fri, 12 Aug 2011 10:19:09 +0200
-Message-ID: <20110812081909.GC28510@Chamillionaire.breakpoint.cc>
-References: <1313095621-2015-1-git-send-email-fw@strlen.de>
- <CAHXqBFJ=Z=uhgyxUYJ=j1xp6NvhkY6wUYxjNCx6YTTnr_gDsbg@mail.gmail.com>
+From: Stephen Clark <sclark46@earthlink.net>
+Subject: Mark ESP packets
+Date: Fri, 12 Aug 2011 10:03:04 -0400
+Message-ID: <4E453298.7040304@earthlink.net>
+Reply-To: sclark46@earthlink.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	Julian Anastasov <ja@ssi.bg>,
-	Eric Dumazet <eric.dumazet@gmail.com>
-To: Micha? Miros?aw <mirqus@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:36307 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750890Ab1HLITK (ORCPT
+Received: from elasmtp-galgo.atl.sa.earthlink.net ([209.86.89.61]:40165 "EHLO
+	elasmtp-galgo.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753830Ab1HLODF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Aug 2011 04:19:10 -0400
-Content-Disposition: inline
-In-Reply-To: <CAHXqBFJ=Z=uhgyxUYJ=j1xp6NvhkY6wUYxjNCx6YTTnr_gDsbg@mail.gmail.com>
+	Fri, 12 Aug 2011 10:03:05 -0400
+Received: from [69.22.83.66] (helo=joker.seclark.com)
+	by elasmtp-galgo.atl.sa.earthlink.net with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.67)
+	(envelope-from <sclark46@earthlink.net>)
+	id 1QrsKH-0007Ux-Bf
+	for netfilter-devel@vger.kernel.org; Fri, 12 Aug 2011 10:03:05 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Micha? Miros?aw <mirqus@gmail.com> wrote:
-> 2011/8/11 Florian Westphal <fw@strlen.de>:
-> > A userspace listener may send (bogus) NF_STOLEN verdict, which caus=
-es
-> > skb leak.
-> >
-> > This problem was previously fixed via
-> > 64507fdbc29c3a622180378210ecea8659b14e40 (netfilter:
-> > nf_queue: fix NF_STOLEN skb leak) but this had to be reverted
-> > because NF_STOLEN can also be returned by a netfilter hook when
-> > iterating the rules in nf_reinject.
-> >
-> > This is complementary to commit fad54440438a7c231a6ae347738423cbabc=
-936d9
-> > (netfilter: avoid double free in nf_reinject).
-> >
-> > Cc: Julian Anastasov <ja@ssi.bg>
-> > Cc: Eric Dumazet <eric.dumazet@gmail.com>
-> > Signed-off-by: Florian Westphal <fw@strlen.de>
-> > ---
-> > =A0One alternative would be to change ip(6)queue and nfqueue
-> > =A0to fail with -EINVAL if userspace gives NF_STOLEN verdict.
-> > =A0Thoughts?
->=20
-> Since userspace is not supposed to pass NF_STOLEN, this would be the
-> correct fix.
->=20
-> Just a hint, no guarantees attached. ;)
+Hello,
 
-Agreed, it makes more sense to reject it.
+Is it possible to mark esp packets so they can be identified when the 
+re-traverse netfilter as unencrypted packets?
 
-I'll wait for a few hours before submitting a patch.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Thank,
+Steve
+
+-- 
+
+"They that give up essential liberty to obtain temporary safety,
+deserve neither liberty nor safety."  (Ben Franklin)
+
+"The course of history shows that as a government grows, liberty
+decreases."  (Thomas Jefferson)
+
+
+
