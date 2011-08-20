@@ -1,44 +1,37 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 3/6] libxt_tcp: always print the mask parts
-Date: Sat, 20 Aug 2011 21:24:50 +0200
-Message-ID: <1313868294-21471-4-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 4/6] doc: fix typo in libxt_TRACE
+Date: Sat, 20 Aug 2011 21:24:51 +0200
+Message-ID: <1313868294-21471-5-git-send-email-jengelh@medozas.de>
 References: <1313868294-21471-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:40060 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:40064 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755016Ab1HTTZB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Aug 2011 15:25:01 -0400
+	id S1755059Ab1HTTZC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 20 Aug 2011 15:25:02 -0400
 In-Reply-To: <1313868294-21471-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-0xFF is unlikely to happen (given that ALL translates to 0x3F at
-most), but assuming that through magic, 0xFF was put into memory,
-iptables -S/iptables-save would ignore printing it, practically
-outputting just one argument to --tcp-flags which currently wants two.
+From: Bernard Massot <bernard@massot.ath.cx>
 
+References: http://bugzilla.netfilter.org/show_bug.cgi?id=736
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libxt_tcp.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+ extensions/libxt_TRACE.man |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/extensions/libxt_tcp.c b/extensions/libxt_tcp.c
-index 3940d91..e849fa2 100644
---- a/extensions/libxt_tcp.c
-+++ b/extensions/libxt_tcp.c
-@@ -357,9 +357,7 @@ static void tcp_save(const void *ip, const struct xt_entry_match *match)
- 		if (tcpinfo->invflags & XT_TCP_INV_FLAGS)
- 			printf(" !");
- 		printf(" --tcp-flags ");
--		if (tcpinfo->flg_mask != 0xFF) {
--			print_tcpf(tcpinfo->flg_mask);
--		}
-+		print_tcpf(tcpinfo->flg_mask);
- 		printf(" ");
- 		print_tcpf(tcpinfo->flg_cmp);
- 	}
+diff --git a/extensions/libxt_TRACE.man b/extensions/libxt_TRACE.man
+index ea0ce0f..8d590a5 100644
+--- a/extensions/libxt_TRACE.man
++++ b/extensions/libxt_TRACE.man
+@@ -1,4 +1,4 @@
+-This target marks packes so that the kernel will log every rule which match 
++This target marks packets so that the kernel will log every rule which match 
+ the packets as those traverse the tables, chains, rules.
+ .PP
+ A logging backend, such as ip(6)t_LOG or nfnetlink_log, must be loaded for this
 -- 
 1.7.3.4
 
