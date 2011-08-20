@@ -1,51 +1,106 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 1/6] libxt_u32: fix missing allowance for inversion
-Date: Sat, 20 Aug 2011 21:24:48 +0200
-Message-ID: <1313868294-21471-2-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 5/6] libxt_set: put differing variable names in directly
+Date: Sat, 20 Aug 2011 21:24:52 +0200
+Message-ID: <1313868294-21471-6-git-send-email-jengelh@medozas.de>
 References: <1313868294-21471-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:40056 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:40069 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754844Ab1HTTY7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Aug 2011 15:24:59 -0400
+	id S1755016Ab1HTTZE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 20 Aug 2011 15:25:04 -0400
 In-Reply-To: <1313868294-21471-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libxt_u32.c   |    2 +-
- tests/options-most.rules |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ extensions/libxt_SET.c |   13 +++----------
+ extensions/libxt_set.c |   11 +++--------
+ 2 files changed, 6 insertions(+), 18 deletions(-)
 
-diff --git a/extensions/libxt_u32.c b/extensions/libxt_u32.c
-index 774d5ea..6d024fb 100644
---- a/extensions/libxt_u32.c
-+++ b/extensions/libxt_u32.c
-@@ -24,7 +24,7 @@ enum {
+diff --git a/extensions/libxt_SET.c b/extensions/libxt_SET.c
+index 0446603..a11db39 100644
+--- a/extensions/libxt_SET.c
++++ b/extensions/libxt_SET.c
+@@ -143,9 +143,6 @@ set_target_save_v0(const void *ip, const struct xt_entry_target *target)
+ }
  
- static const struct xt_option_entry u32_opts[] = {
- 	{.name = "u32", .id = O_U32, .type = XTTYPE_STRING,
--	 .flags = XTOPT_MAND},
-+	 .flags = XTOPT_MAND | XTOPT_INVERT},
- 	XTOPT_TABLEEND,
+ /* Revision 1 */
+-
+-#define set_target_help_v1	set_target_help_v0
+-
+ static void
+ set_target_init_v1(struct xt_entry_target *target)
+ {
+@@ -204,8 +201,6 @@ set_target_parse_v1(int c, char **argv, int invert, unsigned int *flags,
+ 	return 1;
+ }
+ 
+-#define set_target_check_v1	set_target_check_v0
+-
+ static void
+ print_target(const char *prefix, const struct xt_set_info *info)
+ {
+@@ -242,8 +237,6 @@ set_target_save_v1(const void *ip, const struct xt_entry_target *target)
+ 	print_target("--del-set", &info->del_set);
+ }
+ 
+-#define set_target_opts_v1	set_target_opts_v0
+-
+ /* Revision 2 */
+ 
+ static void
+@@ -376,13 +369,13 @@ static struct xtables_target set_tg_reg[] = {
+ 		.family		= NFPROTO_UNSPEC,
+ 		.size		= XT_ALIGN(sizeof(struct xt_set_info_target_v1)),
+ 		.userspacesize	= XT_ALIGN(sizeof(struct xt_set_info_target_v1)),
+-		.help		= set_target_help_v1,
++		.help		= set_target_help_v0,
+ 		.init		= set_target_init_v1,
+ 		.parse		= set_target_parse_v1,
+-		.final_check	= set_target_check_v1,
++		.final_check	= set_target_check_v0,
+ 		.print		= set_target_print_v1,
+ 		.save		= set_target_save_v1,
+-		.extra_opts	= set_target_opts_v1,
++		.extra_opts	= set_target_opts_v0,
+ 	},
+ 	{
+ 		.name		= "SET",
+diff --git a/extensions/libxt_set.c b/extensions/libxt_set.c
+index 6b39147..77e3f07 100644
+--- a/extensions/libxt_set.c
++++ b/extensions/libxt_set.c
+@@ -128,11 +128,6 @@ set_save_v0(const void *ip, const struct xt_entry_match *match)
+ }
+ 
+ /* Revision 1 */
+-
+-#define set_help_v1	set_help_v0
+-#define set_opts_v1	set_opts_v0
+-#define set_check_v1	set_check_v0
+-
+ static int
+ set_parse_v1(int c, char **argv, int invert, unsigned int *flags,
+ 	     const void *entry, struct xt_entry_match **match)
+@@ -232,12 +227,12 @@ static struct xtables_match set_mt_reg[] = {
+ 		.family		= NFPROTO_UNSPEC,
+ 		.size		= XT_ALIGN(sizeof(struct xt_set_info_match_v1)),
+ 		.userspacesize	= XT_ALIGN(sizeof(struct xt_set_info_match_v1)),
+-		.help		= set_help_v1,
++		.help		= set_help_v0,
+ 		.parse		= set_parse_v1,
+-		.final_check	= set_check_v1,
++		.final_check	= set_check_v0,
+ 		.print		= set_print_v1,
+ 		.save		= set_save_v1,
+-		.extra_opts	= set_opts_v1,
++		.extra_opts	= set_opts_v0,
+ 	},
  };
  
-diff --git a/tests/options-most.rules b/tests/options-most.rules
-index 7298a1f..c2e30f2 100644
---- a/tests/options-most.rules
-+++ b/tests/options-most.rules
-@@ -40,7 +40,7 @@
- -A INPUT -p tcp -m tcp ! --tcp-flags FIN,SYN,RST,ACK SYN
- -A INPUT -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN
- -A INPUT -p tcp -m tos --tos 0xff/0x01
---A INPUT -p tcp -m u32 --u32 "0x0=0x0" -m u32 --u32 "0x0=0x0"
-+-A INPUT -p tcp -m u32 ! --u32 "0x0=0x0" -m u32 ! --u32 "0x0=0x0"
- -A INPUT -p tcp -m hbh -m hbh -m hl --hl-eq 1 -m ipv6header --header hop-by-hop --soft
- -A INPUT -m ipv6header --header hop-by-hop --soft -m rt --rt-type 2 --rt-segsleft 2 --rt-len 5 -m rt --rt-type 0 --rt-segsleft 2 --rt-len 5 --rt-0-res --rt-0-addrs ::1 --rt-0-not-strict -m rt --rt-type 0 --rt-segsleft 2 --rt-len 5 --rt-0-res --rt-0-addrs ::1,::2 --rt-0-not-strict
- -A INPUT -p tcp -m cpu --cpu 1 -m tcp --sport 1:2 --dport 1:2 --tcp-option 1 --tcp-flags FIN,SYN,RST,ACK SYN -m cpu --cpu 1
 -- 
 1.7.3.4
 
