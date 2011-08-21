@@ -1,52 +1,79 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 14/21] libip6t_hbh: restore setting IP6T_OPTS_LEN flag
-Date: Sun, 21 Aug 2011 13:09:29 +0200
-Message-ID: <1313924977-8623-15-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 12/21] libip6t_frag: restore inversion support
+Date: Sun, 21 Aug 2011 13:09:27 +0200
+Message-ID: <1313924977-8623-13-git-send-email-jengelh@medozas.de>
 References: <1313924977-8623-1-git-send-email-jengelh@medozas.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:38762 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:38758 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754352Ab1HULJz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 21 Aug 2011 07:09:55 -0400
+	id S1754344Ab1HULJy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 21 Aug 2011 07:09:54 -0400
 In-Reply-To: <1313924977-8623-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Bug origin is in commit v1.4.11~26^2~17.
+--fraglen also was not printed since v1.4.11~26^2~22.
 
+References: Dave T=C3=A4ht via netfilter-devel on 2011-08-20 14:40:11 -=
+0700
+References: <CAA93jw6mpDL6rLXM+9SpAhafkDdKoSfhAxU8UM87vUqjuzjYJw@mail.g=
+mail.com>
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libip6t_hbh.c |    1 +
- tests/options-most.rules |    2 ++
- 2 files changed, 3 insertions(+), 0 deletions(-)
+ extensions/libip6t_frag.c |   16 ++++++++++++++++
+ tests/options-most.rules  |    2 ++
+ 2 files changed, 18 insertions(+), 0 deletions(-)
 
-diff --git a/extensions/libip6t_hbh.c b/extensions/libip6t_hbh.c
-index 809e80d..c0389ed 100644
---- a/extensions/libip6t_hbh.c
-+++ b/extensions/libip6t_hbh.c
-@@ -108,6 +108,7 @@ static void hbh_parse(struct xt_option_call *cb)
- 	case O_HBH_LEN:
- 		if (cb->invert)
- 			optinfo->invflags |= IP6T_OPTS_INV_LEN;
-+		optinfo->flags |= IP6T_OPTS_LEN;
+diff --git a/extensions/libip6t_frag.c b/extensions/libip6t_frag.c
+index 4779386..d8bcaee 100644
+--- a/extensions/libip6t_frag.c
++++ b/extensions/libip6t_frag.c
+@@ -50,6 +50,22 @@ static void frag_parse(struct xt_option_call *cb)
+ 	case O_FRAGID:
+ 		if (cb->nvals =3D=3D 1)
+ 			fraginfo->ids[1] =3D fraginfo->ids[0];
++		if (cb->invert)
++			fraginfo->invflags |=3D IP6T_FRAG_INV_IDS;
++		/*
++		 * Note however that IP6T_FRAG_IDS is not tested by anything,
++		 * so it is merely here for completeness.
++		 */
++		fraginfo->flags |=3D IP6T_FRAG_IDS;
++		break;
++	case O_FRAGLEN:
++		/*
++		 * As of Linux 3.0, the kernel does not check for
++		 * fraglen at all.
++		 */
++		if (cb->invert)
++			fraginfo->invflags |=3D IP6T_FRAG_INV_LEN;
++		fraginfo->flags |=3D IP6T_FRAG_LEN;
  		break;
- 	case O_HBH_OPTS:
- 		optinfo->optsnr = parse_options(cb->arg, optinfo->opts);
+ 	case O_FRAGRES:
+ 		fraginfo->flags |=3D IP6T_FRAG_RES;
 diff --git a/tests/options-most.rules b/tests/options-most.rules
-index 6839d89..1209091 100644
+index 4becc2a..6839d89 100644
 --- a/tests/options-most.rules
 +++ b/tests/options-most.rules
-@@ -94,6 +94,8 @@
- -A matches -m hashlimit --hashlimit-upto 1/hour --hashlimit-burst 1 --hashlimit-name mini3
- -A matches -m hashlimit --hashlimit-upto 1/day --hashlimit-burst 1 --hashlimit-name mini4
+@@ -144,6 +144,8 @@
  -A matches
-+-A matches -m hbh ! --hbh-len 5
+ -A matches -m frag --fragid 5:4294967295
+ -A matches
++-A matches -m frag ! --fragid 9:10 ! --fraglen 12
 +-A matches
- -A matches -m ipvs --vaddr fe80::/64 --vport 1 --vdir REPLY --vmethod GATE --vportctl 21
+ -A matches -m rt --rt-segsleft 1
  -A matches
- -A matches -m length --length 1
--- 
+ -A matches -m rt --rt-segsleft :2
+--=20
 1.7.3.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
