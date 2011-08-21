@@ -1,43 +1,38 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Fixes to iptables-1.4.12
-Date: Sun, 21 Aug 2011 11:31:19 +0200
-Message-ID: <4E50D067.3030102@trash.net>
-References: <1313868294-21471-1-git-send-email-jengelh@medozas.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: [PATCH 01/21] doc: clarify libxt_connlimit defaults
+Date: Sun, 21 Aug 2011 13:09:16 +0200
+Message-ID: <1313924977-8623-2-git-send-email-jengelh@medozas.de>
+References: <1313924977-8623-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38701 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751453Ab1HUJbY (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 21 Aug 2011 05:31:24 -0400
-In-Reply-To: <1313868294-21471-1-git-send-email-jengelh@medozas.de>
+Received: from seven.medozas.de ([188.40.89.202]:38719 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754083Ab1HULJl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 21 Aug 2011 07:09:41 -0400
+In-Reply-To: <1313924977-8623-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 20.08.2011 21:24, Jan Engelhardt wrote:
-> The following changes since commit 91ca4603f649a9b9fed4f2e31a8c005cdbdacd1e:
-> 
->   Merge branch 'master' of git://dev.medozas.de/iptables (2011-08-09 13:23:17 +0200)
-> 
-> are available in the git repository at:
-> 
->   git://dev.medozas.de/iptables master
-> 
-> Bernard Massot (1):
->       doc: fix typo in libxt_TRACE
-> 
-> Dwight Davis (1):
->       libxt_string: fix space around arguments
-> 
-> Jan Engelhardt (4):
->       libxt_u32: fix missing allowance for inversion
->       libxt_set: update man page about kernel support on the feature
->       libxt_tcp: always print the mask parts
->       libxt_set: put differing variable names in directly
-> 
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ extensions/libxt_connlimit.man |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-Pulled, thanks Jan.
+diff --git a/extensions/libxt_connlimit.man b/extensions/libxt_connlimit.man
+index bd369a6..ad9f40f 100644
+--- a/extensions/libxt_connlimit.man
++++ b/extensions/libxt_connlimit.man
+@@ -13,7 +13,8 @@ Group hosts using the prefix length. For IPv4, this must be a number between
+ maximum prefix length for the applicable protocol is used.
+ .TP
+ \fB\-\-connlimit\-saddr\fP
+-Apply the limit onto the source group.
++Apply the limit onto the source group. This is the default if
++\-\-connlimit\-daddr is not specified.
+ .TP
+ \fB\-\-connlimit\-daddr\fP
+ Apply the limit onto the destination group.
+-- 
+1.7.3.4
+
