@@ -1,58 +1,86 @@
-From: David Lamparter <equinox@diac24.net>
-Subject: Re: [RFC] bridge: add netfilter hook for forwarding 802.1D group
- addresses
-Date: Mon, 22 Aug 2011 15:59:29 +0200
-Message-ID: <20110822135929.GA611458@jupiter.n2.diac24.net>
-References: <CAF5U64CJTWDn8E9+XVLFsdaSbiu-4Rd9XmxZq7ReziRNZviO6Q@mail.gmail.com>
- <20110812154545.79d8313f@nehalam.ftrdhcpuser.net>
- <CAF5U64B_fb2tFMLHmK+zw3n6gmq+bYDyFnXhLE0ayssK5m+THA@mail.gmail.com>
- <20110815150501.3a6cc432@nehalam.ftrdhcpuser.net>
- <CAEJpZP0fOydMMbgquAud7dfwcO28BXAMzAwnMjSZO6TvEjxgpQ@mail.gmail.com>
- <20110818081019.4b9bb79e@nehalam.ftrdhcpuser.net>
- <CAEJpZP2FGhPmTi0+eS+QRhj4y+aqfQHnEUrjmOOLHUay1SuAKg@mail.gmail.com>
- <20110818093941.5ebf716b@nehalam.ftrdhcpuser.net>
- <20110819022731.GC180151@jupiter.n2.diac24.net>
- <20110819135810.1a529ab2@nehalam.ftrdhcpuser.net>
+From: Dave Taht <dave.taht@gmail.com>
+Subject: Re: [PATCH 1/6] libxt_u32: fix missing allowance for inversion
+Date: Mon, 22 Aug 2011 09:31:37 -0700
+Message-ID: <CAA93jw7sjY=QtBo=QDhG3Z3goHA1zAbVoD-JrqeuASQSzt2nwA@mail.gmail.com>
+References: <1313868294-21471-1-git-send-email-jengelh@medozas.de>
+	<1313868294-21471-2-git-send-email-jengelh@medozas.de>
+	<CAA93jw6mpDL6rLXM+9SpAhafkDdKoSfhAxU8UM87vUqjuzjYJw@mail.gmail.com>
+	<alpine.LNX.2.01.1108210917340.11614@frira.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: David Lamparter <equinox@diac24.net>,
-	Nick Carter <ncarter100@gmail.com>,
-	Ed Swierk <eswierk@bigswitch.com>, netdev@vger.kernel.org,
-	bridge@linux-foundation.org, netfilter-devel@vger.kernel.org,
-	David Miller <davem@davemloft.net>
-To: Stephen Hemminger <shemminger@vyatta.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110819135810.1a529ab2@nehalam.ftrdhcpuser.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:52241 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751048Ab1HVQbi convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 22 Aug 2011 12:31:38 -0400
+Received: by ywf7 with SMTP id 7so3628433ywf.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2011 09:31:38 -0700 (PDT)
+In-Reply-To: <alpine.LNX.2.01.1108210917340.11614@frira.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Aug 19, 2011 at 01:58:10PM -0700, Stephen Hemminger wrote:
-> The IEEE standard expects that link local multicast packets will not
-> be forwarded by a bridge. But there are cases like 802.1X which may
-> require that packets be forwarded. For maximum flexibilty implement
-> this via netfilter.
-> 
-> The netfilter chain is slightly different from other chains in that
-> if packet is ACCEPTED by the chain, it means it should be forwarded.
-> And if the packet verdict result is DROP, the packet is processed
-> as a local packet.
+On Sun, Aug 21, 2011 at 12:25 AM, Jan Engelhardt <jengelh@medozas.de> w=
+rote:
+>
+> [oh, the mailing list daemon seems unresponsive for I have not
+> received the 2nd copy, and neither did the web crawlers...]
+>
+>
 
-Exactly this functionality already exists by way of the BROUTING chain
-in the broute table. Currently, link-local packets are hardcodedly
-treated as local before they even reach that chain. Nick's patch, in
-conjunction with BROUTING, provides exactly what you're trying to do.
+No, I goofed and sent html, which it kicked back.
 
-Now, without bridge netfilter, your patch becomes rather useless while
-Nick's patch still allows per-group (and therefore per-protocol)
-control.
+> On Saturday 2011-08-20 23:40, Dave Taht wrote:
+>
+> >I keep seeing inversion match fixes go by on this version of iptable=
+s. I ran
+> >across one also, on the port to cerowrt of this version of iptables,=
+ in the
+> >"dscp" tables matches.
+> >
+> >http://www.bufferbloat.net/issues/216#note-48
+> >
+> >but have not poked into it further (am travelling). Fixed?
+>
+> This is unfortunate indeed, but somewhat owed to the fact that this w=
+as
+> not encoded reliably previously, in other words, negations were
+> sometimes erroneously allowed as each match checked for this themselv=
+es.
 
-Further, Nick's patch is considerably less intrusive.
 
-I would therefore ask for Nick's patch to be merged.
+>
+> With the move to the Guided Option Parser, negation became centrally
+> checked and thus needs to be explicit mentioned. With the initial
+> conversion to GOP, I may have missed adding XTOPT_INVERT in some case=
+s
+> because of that repetitive action.
+
+>
+> Yeah, there are other extensions (xt_dccp) that I have come across in=
+ my
+> audit sweep of all extensions so far.
+
+I saw the fixes to dccp go by today, but where I'd hit the problem was
+with the 'dscp' matches. I have a test implementation of diffserv (
+https://github.com/dtaht/Diffserv ) where a quick test against this
+release of iptables showed the inversion regression as per the above
+bug note...
+
+regrettably I'm away from a build machine, internet, etc for a few more=
+ days.
 
 
--David
-
-
-P.S.: this whole issue is starting to get rather annoying
+--
+Dave T=E4ht
+SKYPE: davetaht
+US Tel: 1-239-829-5608
+http://the-edge.blogspot.com
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
