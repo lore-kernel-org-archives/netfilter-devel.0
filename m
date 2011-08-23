@@ -1,33 +1,51 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 1/6] libxt_u32: fix missing allowance for inversion
-Date: Tue, 23 Aug 2011 09:34:00 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1108230933290.11455@frira.zrqbmnf.qr>
-References: <1313868294-21471-1-git-send-email-jengelh@medozas.de> <1313868294-21471-2-git-send-email-jengelh@medozas.de> <CAA93jw6mpDL6rLXM+9SpAhafkDdKoSfhAxU8UM87vUqjuzjYJw@mail.gmail.com> <alpine.LNX.2.01.1108210917340.11614@frira.zrqbmnf.qr>
- <CAA93jw7sjY=QtBo=QDhG3Z3goHA1zAbVoD-JrqeuASQSzt2nwA@mail.gmail.com>
+Subject: [PATCH] netfilter: better wording for table-full message
+Date: Tue, 23 Aug 2011 15:07:46 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1108231507040.24849@frira.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
-To: Dave Taht <dave.taht@gmail.com>
+Cc: hawk@diku.dk,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:41092 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:39711 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752068Ab1HWHeE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Aug 2011 03:34:04 -0400
-In-Reply-To: <CAA93jw7sjY=QtBo=QDhG3Z3goHA1zAbVoD-JrqeuASQSzt2nwA@mail.gmail.com>
+	id S1752890Ab1HWNHs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Aug 2011 09:07:48 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Monday 2011-08-22 18:31, Dave Taht wrote:
->>
->> Yeah, there are other extensions (xt_dccp) that I have come across in my
->> audit sweep of all extensions so far.
->
->I saw the fixes to dccp go by today, but where I'd hit the problem was
->with the 'dscp' matches. I have a test implementation of diffserv (
->https://github.com/dtaht/Diffserv ) where a quick test against this
->release of iptables showed the inversion regression as per the above
->bug note...
+Like this?
 
-The last sent batch contains fixes across the board, including
-dscp, dccp, and some others.
+parent ad146381889371c2d1b89b27d9dc70ae257fc1c8 (v3.1-rc2-2-gad14638)
+commit 51b33b93d4c2e6c63afb177158f660fd17daf47c
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Tue Aug 23 15:07:00 2011 +0200
+
+netfilter: better wording for table-full message
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ net/netfilter/nf_conntrack_core.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index f7af8b8..eb4be11 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -649,8 +649,9 @@ __nf_conntrack_alloc(struct net *net, u16 zone,
+ 			atomic_dec(&net->ct.count);
+ 			if (net_ratelimit())
+ 				printk(KERN_WARNING
+-				       "nf_conntrack: table full, dropping"
+-				       " packet.\n");
++				       "nf_conntrack: table full, no new "
++				       "CT created, packet will have "
++				       "classification INVALID.\n");
+ 			return ERR_PTR(-ENOMEM);
+ 		}
+ 	}
+-- 
+# Created with git-export-patch
