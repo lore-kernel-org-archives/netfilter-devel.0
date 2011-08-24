@@ -1,52 +1,54 @@
 From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: [ulogd2 PATCH] Fix bracket imbalance if IPPROTO_SCTP is defined
-Date: Wed, 24 Aug 2011 18:31:02 +0200
-Message-ID: <4E552746.4020000@intra2net.com>
+Subject: [libnl-nft PATCH] Fix the route object comparison using the wrong
+ pointer
+Date: Wed, 24 Aug 2011 18:22:55 +0200
+Message-ID: <4E55255F.1050901@intra2net.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from re04.intra2net.com ([82.165.46.26]:39948 "EHLO
+Received: from re04.intra2net.com ([82.165.46.26]:47979 "EHLO
 	re04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751305Ab1HXQbG (ORCPT
+	with ESMTP id S1751486Ab1HXQxl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Aug 2011 12:31:06 -0400
+	Wed, 24 Aug 2011 12:53:41 -0400
 Received: from intranator.m.i2n (unknown [172.16.1.99])
 	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by re04.intra2net.com (Postfix) with ESMTP id 49CCE30140
-	for <netfilter-devel@vger.kernel.org>; Wed, 24 Aug 2011 18:31:04 +0200 (CEST)
+	by re04.intra2net.com (Postfix) with ESMTP id 03F74300D3
+	for <netfilter-devel@vger.kernel.org>; Wed, 24 Aug 2011 18:22:56 +0200 (CEST)
 Received: from localhost (intranator.m.i2n [127.0.0.1])
-	by localhost (Postfix) with ESMTP id 13B7E2AC54
-	for <netfilter-devel@vger.kernel.org>; Wed, 24 Aug 2011 18:31:04 +0200 (CEST)
+	by localhost (Postfix) with ESMTP id C225F2AC54
+	for <netfilter-devel@vger.kernel.org>; Wed, 24 Aug 2011 18:22:56 +0200 (CEST)
 Received: from pikkukde.a.i2n (unknown [192.168.12.2])
 	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by intranator.m.i2n (Postfix) with ESMTPS id 01CAF2AC52
-	for <netfilter-devel@vger.kernel.org>; Wed, 24 Aug 2011 18:31:02 +0200 (CEST)
+	by intranator.m.i2n (Postfix) with ESMTPS id AD2682AC52
+	for <netfilter-devel@vger.kernel.org>; Wed, 24 Aug 2011 18:22:55 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Detected by cppcheck.
+Typo detected by cppcheck
 
 Signed-off-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
 ---
- output/ulogd_output_IPFIX.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ lib/route/route_obj.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/output/ulogd_output_IPFIX.c b/output/ulogd_output_IPFIX.c
-index 025faab..f7856d2 100644
---- a/output/ulogd_output_IPFIX.c
-+++ b/output/ulogd_output_IPFIX.c
-@@ -406,6 +406,7 @@ static int open_connect_socket(struct ulogd_pluginstance *pi)
- 				freeaddrinfo(resave);
- 				return ret;
- 			}
-+		}
- #endif
+diff --git a/lib/route/route_obj.c b/lib/route/route_obj.c
+index 4e14d6d..8f1d4d5 100644
+--- a/lib/route/route_obj.c
++++ b/lib/route/route_obj.c
+@@ -403,7 +403,7 @@ static int route_compare(struct nl_object *_a, struct nl_object *_b,
+ 		diff |= ROUTE_DIFF(FLAGS,
+ 			  (a->rt_flags ^ b->rt_flags) & b->rt_flag_mask);
+ 	} else {
+-		if (a->rt_nr_nh != a->rt_nr_nh)
++		if (a->rt_nr_nh != b->rt_nr_nh)
+ 			goto nh_mismatch;
  
- 		if (connect(ii->fd, res->ai_addr, res->ai_addrlen) != 0) {
+ 		/* search for a dup in each nh of a */
 -- 
 1.7.4.4
 
