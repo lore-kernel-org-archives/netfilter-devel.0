@@ -1,52 +1,77 @@
-From: Stephen Clark <sclark46@earthlink.net>
-Subject: Re: [PATCH] netfilter: better wording for table-full message
-Date: Tue, 23 Aug 2011 12:19:24 -0400
-Message-ID: <4E53D30C.8090702@earthlink.net>
-References: <alpine.LNX.2.01.1108231507040.24849@frira.zrqbmnf.qr> <20110823132503.GE25003@Chamillionaire.breakpoint.cc>
-Reply-To: sclark46@earthlink.net
+From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Subject: Re: [PATCH] iptables/man: IPv6 TOS mangling fix was backported to
+ 2.6.35-longterm too
+Date: Wed, 24 Aug 2011 11:55:54 +0900
+Message-ID: <1314154554.1878.7.camel@nausicaa>
+References: <1307320871-31770-1-git-send-email-pablo@netfilter.org>
+	 <1307320871-31770-2-git-send-email-pablo@netfilter.org>
+	 <BANLkTikAs7fN2JQJTUwQHAYPPGMf8i9uEA@mail.gmail.com>
+	 <alpine.LNX.2.01.1106061618370.17430@frira.zrqbmnf.qr>
+	 <1308213411.4062.22.camel@nausicaa>
+	 <alpine.LNX.2.01.1106161705300.10015@frira.zrqbmnf.qr>
+	 <4DFA1DFC.3000804@trash.net> <1308273097.8612.1.camel@nexus.oss.ntt.co.jp>
+	 <1308273246.8612.3.camel@nexus.oss.ntt.co.jp>  <4DFACE41.5010906@trash.net>
+	 <1312246840.8407.2.camel@nexus.oss.ntt.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Patrick McHardy <kaber@trash.net>, hawk@diku.dk,
 	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+	<netfilter-devel@vger.kernel.org>,
+	Linux Networking Developer Mailing List
+	<netdev@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from elasmtp-junco.atl.sa.earthlink.net ([209.86.89.63]:43114 "EHLO
-	elasmtp-junco.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753135Ab1HWQTd (ORCPT
+Received: from serv2.oss.ntt.co.jp ([222.151.198.100]:40967 "EHLO
+	serv2.oss.ntt.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755919Ab1HXCzz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Aug 2011 12:19:33 -0400
-In-Reply-To: <20110823132503.GE25003@Chamillionaire.breakpoint.cc>
+	Tue, 23 Aug 2011 22:55:55 -0400
+In-Reply-To: <1312246840.8407.2.camel@nexus.oss.ntt.co.jp>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 08/23/2011 09:25 AM, Florian Westphal wrote:
-> Jan Engelhardt<jengelh@medozas.de>  wrote:
->    
->> parent ad146381889371c2d1b89b27d9dc70ae257fc1c8 (v3.1-rc2-2-gad14638)
->> commit 51b33b93d4c2e6c63afb177158f660fd17daf47c
->> Author: Jan Engelhardt<jengelh@medozas.de>
->> Date:   Tue Aug 23 15:07:00 2011 +0200
->>
->> netfilter: better wording for table-full message
->> -				       "nf_conntrack: table full, dropping"
->> -				       " packet.\n");
->> +				       "nf_conntrack: table full, no new "
->> +				       "CT created, packet will have "
->> +				       "classification INVALID.\n");
->>      
-> packets seem to be dropped after all; call chain is:
->
-> nf_conntrack_in ->  resolve_normal_ct ->  init_conntrack ->  __nf_conntrack_alloc.
->
-> AFAICS, the -ENOMEM is propagated back to nf_conntrack_in, where ret
-> will be set to NF_DROP.
->
-> The important point is resolve_normal_ct() return value;
-> on NULL the packet would be untracked.
->
->    
-Should there be some kind of hint on how to increase the table size?
+=46ernando Luis V=C3=A1zquez Cao wrote:
+> Update man page accordingly.
+>=20
+> Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+> ---
+>=20
+> diff -urNp iptables-orig/extensions/libxt_TOS.man iptables/extensions=
+/libxt_TOS.man
+> --- iptables-orig/extensions/libxt_TOS.man	2011-07-11 17:41:10.000000=
+000 +0900
+> +++ iptables/extensions/libxt_TOS.man	2011-08-02 09:59:27.356614494 +=
+0900
+> @@ -28,9 +28,9 @@ Binary XOR the TOS value with \fIbits\fP
+>  \fIbits\fP\fB/0\fP. See NOTE below.)
+>  .PP
+>  NOTE: In Linux kernels up to and including 2.6.38, with the exceptio=
+n of
+> -longterm releases 2.6.32.42 (or later) and 2.6.33.15 (or later), the=
+re is a bug
+> -whereby IPv6 TOS mangling does not behave as documented and differs =
+from the
+> -IPv4 version. The TOS mask indicates the bits one wants to zero out,=
+ so it needs
+> -to be inverted before applying it to the original TOS field. However=
+, the
+> +longterm releases 2.6.32 (>=3D.42), 2.6.33 (>=3D.15), and 2.6.35 (>=3D=
+=2E14), there is
+> +a bug whereby IPv6 TOS mangling does not behave as documented and di=
+ffers from
+> +the IPv4 version. The TOS mask indicates the bits one wants to zero =
+out, so it
+> +needs to be inverted before applying it to the original TOS field. H=
+owever, the
+>  aformentioned kernels forgo the inversion which breaks --set-tos and=
+ its
+>  mnemonics.
 
+Ping?
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
