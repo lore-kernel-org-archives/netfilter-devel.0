@@ -1,47 +1,52 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: better wording for table-full message
-Date: Wed, 24 Aug 2011 09:28:55 +0200
-Message-ID: <4E54A837.1010305@trash.net>
-References: <alpine.LNX.2.01.1108231507040.24849@frira.zrqbmnf.qr> <20110823132503.GE25003@Chamillionaire.breakpoint.cc>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: [ulogd2 PATCH] Fix bracket imbalance if IPPROTO_SCTP is defined
+Date: Wed, 24 Aug 2011 18:31:02 +0200
+Message-ID: <4E552746.4020000@intra2net.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>, hawk@diku.dk,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40169 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750952Ab1HXH24 (ORCPT
+Received: from re04.intra2net.com ([82.165.46.26]:39948 "EHLO
+	re04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751305Ab1HXQbG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Aug 2011 03:28:56 -0400
-In-Reply-To: <20110823132503.GE25003@Chamillionaire.breakpoint.cc>
+	Wed, 24 Aug 2011 12:31:06 -0400
+Received: from intranator.m.i2n (unknown [172.16.1.99])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by re04.intra2net.com (Postfix) with ESMTP id 49CCE30140
+	for <netfilter-devel@vger.kernel.org>; Wed, 24 Aug 2011 18:31:04 +0200 (CEST)
+Received: from localhost (intranator.m.i2n [127.0.0.1])
+	by localhost (Postfix) with ESMTP id 13B7E2AC54
+	for <netfilter-devel@vger.kernel.org>; Wed, 24 Aug 2011 18:31:04 +0200 (CEST)
+Received: from pikkukde.a.i2n (unknown [192.168.12.2])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by intranator.m.i2n (Postfix) with ESMTPS id 01CAF2AC52
+	for <netfilter-devel@vger.kernel.org>; Wed, 24 Aug 2011 18:31:02 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 23.08.2011 15:25, schrieb Florian Westphal:
-> Jan Engelhardt <jengelh@medozas.de> wrote:
->> parent ad146381889371c2d1b89b27d9dc70ae257fc1c8 (v3.1-rc2-2-gad14638)
->> commit 51b33b93d4c2e6c63afb177158f660fd17daf47c
->> Author: Jan Engelhardt <jengelh@medozas.de>
->> Date:   Tue Aug 23 15:07:00 2011 +0200
->>
->> netfilter: better wording for table-full message
->> -				       "nf_conntrack: table full, dropping"
->> -				       " packet.\n");
->> +				       "nf_conntrack: table full, no new "
->> +				       "CT created, packet will have "
->> +				       "classification INVALID.\n");
-> 
-> packets seem to be dropped after all; call chain is:
-> 
-> nf_conntrack_in -> resolve_normal_ct -> init_conntrack -> __nf_conntrack_alloc.
-> 
-> AFAICS, the -ENOMEM is propagated back to nf_conntrack_in, where ret
-> will be set to NF_DROP.
+Detected by cppcheck.
 
-Right, I was following the !ct path.
+Signed-off-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
+---
+ output/ulogd_output_IPFIX.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-> The important point is resolve_normal_ct() return value;
-> on NULL the packet would be untracked.
+diff --git a/output/ulogd_output_IPFIX.c b/output/ulogd_output_IPFIX.c
+index 025faab..f7856d2 100644
+--- a/output/ulogd_output_IPFIX.c
++++ b/output/ulogd_output_IPFIX.c
+@@ -406,6 +406,7 @@ static int open_connect_socket(struct ulogd_pluginstance *pi)
+ 				freeaddrinfo(resave);
+ 				return ret;
+ 			}
++		}
+ #endif
+ 
+ 		if (connect(ii->fd, res->ai_addr, res->ai_addrlen) != 0) {
+-- 
+1.7.4.4
+
