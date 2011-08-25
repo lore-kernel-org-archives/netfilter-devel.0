@@ -1,32 +1,62 @@
-From: Amos Jeffries <squid3@treenet.co.nz>
-Subject: Re: ipset: use NFPROTO_ constants
-Date: Thu, 25 Aug 2011 23:52:31 +1200
-Message-ID: <4E56377F.3070501@treenet.co.nz>
-References: <1314264057-5681-1-git-send-email-jengelh@medozas.de>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: conntrack-tools: fscanf() call usage
+Date: Thu, 25 Aug 2011 14:22:58 +0200
+Message-ID: <201108251422.59027.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: kadlec@blackhole.kfki.hu, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ip-58-28-153-233.static-xdsl.xnet.co.nz ([58.28.153.233]:41227
-	"EHLO treenet.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753172Ab1HYL6D (ORCPT
+Received: from re04.intra2net.com ([82.165.46.26]:41352 "EHLO
+	re04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753321Ab1HYMXD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Aug 2011 07:58:03 -0400
-In-Reply-To: <1314264057-5681-1-git-send-email-jengelh@medozas.de>
+	Thu, 25 Aug 2011 08:23:03 -0400
+Received: from intranator.m.i2n (unknown [172.16.1.99])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by re04.intra2net.com (Postfix) with ESMTP id 2EB43300D3
+	for <netfilter-devel@vger.kernel.org>; Thu, 25 Aug 2011 14:23:01 +0200 (CEST)
+Received: from localhost (intranator.m.i2n [127.0.0.1])
+	by localhost (Postfix) with ESMTP id EED612AC54
+	for <netfilter-devel@vger.kernel.org>; Thu, 25 Aug 2011 14:23:00 +0200 (CEST)
+Received: from storm.localnet (storm.m.i2n [172.16.1.2])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: smtp-auth-user)
+	by intranator.m.i2n (Postfix) with ESMTPSA id 69EC82AC52
+	for <netfilter-devel@vger.kernel.org>; Thu, 25 Aug 2011 14:22:59 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 25/08/11 21:20, Jan Engelhardt wrote:
-> I have changed the special variant _INET46 to _X_INET46 in
-> line with the "X-Something"-style headers that HTTP and mail
-> use, and I hope that copying the constants into nfproto.h
-> was right (given that nf_inet_addr.h was also copied).
->
+Hi there,
 
-Just FYI on that. X-* headers are not great role models. The IETF 
-working groups are trying to get them eliminated from the mainstream 
-traffic.
+the conntrack-tools have an fscanf() call without a
+field width limit. There's a small issue with this:
 
-AYJ
+[conntrack-tools/src/conntrack.c:1875]: (warning) scanf
+without field width limits can crash with huge input data
+
+Simple PoC can be found here:
+http://marc.info/?l=gimp-developer&m=129567990905823&w=2
+
+The code currently looks like this:
+    "if (fscanf(fd, "%d", &count) != 1) {"
+
+
+A limit to uint32 number of digits should be sane, also on 64bit machines.
+That should still give us enough conntrack entries - even for Jesper.
+
+I goofed around with scanf() some more and discovered that basically any 
+field limit should do (even 2000+). Otherwise scanf() seems to use a fixed 
+default buffer if the size is not known in advance.
+
+
+Proposed change looks like this:
+    "if (fscanf(fd, "%10d", &count) != 1) {"
+
+Is that a sane thing to do or unnecessary?
+
+Cheers,
+Thomas
