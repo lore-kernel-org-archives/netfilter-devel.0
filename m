@@ -1,122 +1,63 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH RFC 3/3] ip6t_rpf: initial version
-Date: Fri, 26 Aug 2011 11:58:58 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1108261157120.19453@frira.zrqbmnf.qr>
-References: <1314350465-19598-1-git-send-email-fw@strlen.de> <1314350465-19598-4-git-send-email-fw@strlen.de>
+From: Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
+Subject: xtables-addons 1.38: libipset uses symbol that's not in library
+Date: Fri, 26 Aug 2011 13:25:09 +0200
+Message-ID: <201108261325.09143.a.miskiewicz@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:38538 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752803Ab1HZJ7B (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Aug 2011 05:59:01 -0400
-In-Reply-To: <1314350465-19598-4-git-send-email-fw@strlen.de>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:36697 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750774Ab1HZLZN convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Aug 2011 07:25:13 -0400
+Received: by fxh19 with SMTP id 19so2459607fxh.19
+        for <netfilter-devel@vger.kernel.org>; Fri, 26 Aug 2011 04:25:12 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 2011-08-26 11:21, Florian Westphal wrote:
+Unresolved symbols found in: /home/users/arekm/tmp/xtables-addons-1.38-=
+root-
+arekm/usr/lib64/libipset.so.1.0.0
+        ipset_errcode
 
->compile tested only.
->Differs significantly from ipv4 version, as the oif will
->not be used as flow key (we use the iif).
->
->Also, multicast probably needs special handling, too.
->---
-> net/ipv6/netfilter/Kconfig         |   10 +++
-> net/ipv6/netfilter/Makefile        |    1 +
-> net/ipv6/netfilter/ip6t_rpfilter.c |  116 ++++++++++++++++++++++++++++++++++++
-> 3 files changed, 127 insertions(+), 0 deletions(-)
-> create mode 100644 net/ipv6/netfilter/ip6t_rpfilter.c
->
->diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
->index 4484648..49ec98b 100644
->--- a/net/ipv6/netfilter/Kconfig
->+++ b/net/ipv6/netfilter/Kconfig
->@@ -125,6 +125,16 @@ config IP6_NF_MATCH_MH
-> 
-> 	  To compile it as a module, choose M here.  If unsure, say N.
-> 
->+config IP6_NF_MATCH_RPFILTER
->+	tristate '"rpfilter" reverse path filter match support'
->+	depends on NETFILTER_ADVANCED
->+	---help---
->+	  This option allows you to match packets whose replies would
->+	  go out via the interface the packet came in.
->+
->+	  To compile it as a module, choose M here.  If unsure, say N.
->+	  The module will be called ip6t_rpfilter.
->+
-> config IP6_NF_MATCH_RT
-> 	tristate '"rt" Routing header match support'
-> 	depends on NETFILTER_ADVANCED
->diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
->index abfee91..2eaed96 100644
->--- a/net/ipv6/netfilter/Makefile
->+++ b/net/ipv6/netfilter/Makefile
->@@ -27,6 +27,7 @@ obj-$(CONFIG_IP6_NF_MATCH_FRAG) += ip6t_frag.o
-> obj-$(CONFIG_IP6_NF_MATCH_IPV6HEADER) += ip6t_ipv6header.o
-> obj-$(CONFIG_IP6_NF_MATCH_MH) += ip6t_mh.o
-> obj-$(CONFIG_IP6_NF_MATCH_OPTS) += ip6t_hbh.o
->+obj-$(CONFIG_IP6_NF_MATCH_RPFILTER) += ip6t_rpfilter.o
-> obj-$(CONFIG_IP6_NF_MATCH_RT) += ip6t_rt.o
-> 
-> # targets
->diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
->new file mode 100644
->index 0000000..bc5075d
->--- /dev/null
->+++ b/net/ipv6/netfilter/ip6t_rpfilter.c
->@@ -0,0 +1,116 @@
->+/*
->+ *  Copyright (c) 2011 Florian Westphal <fw@strlen.de>
->+ *
->+ *  This program is free software; you can redistribute it and/or modify
->+ *  it under the terms of the GNU General Public License version 2 as
->+ *  published by the Free Software Foundation.
->+ */
->+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
->+#include <linux/module.h>
->+#include <linux/skbuff.h>
->+#include <linux/netdevice.h>
->+#include <linux/route.h>
->+#include <net/dsfield.h>
->+#include <net/ip6_fib.h>
->+#include <net/ip6_route.h>
->+
->+#include <linux/netfilter/xt_rpfilter.h>
->+#include <linux/netfilter/x_tables.h>
->+
->+MODULE_LICENSE("GPL");
->+MODULE_AUTHOR("Florian Westphal <fw@strlen.de>");
->+MODULE_DESCRIPTION("Xtables: IPv6 reverse path filter match");
->+
->+/* don't try to find route from mcast/bcast/zeronet */
->+static bool rpfilter_addr_unicast(const struct in6_addr *addr)
->+{
->+	int addr_type = ipv6_addr_type(addr);
->+	return addr_type & IPV6_ADDR_UNICAST;
->+}
->+
->+static bool rpfilter_lookup_reverse6(const struct sk_buff *skb,
->+				     const struct net_device *dev, u8 flags)
->+{
->+	struct rt6_info *rt;
->+	struct dst_entry *dst;
->+	bool ret = false;
->+	struct ipv6hdr *iph = ipv6_hdr(skb);
->+	struct flowi6 fl6 = {
->+		.flowi6_oif = dev->ifindex,
->+		.daddr = iph->daddr,
->+		.flowi6_proto = iph->nexthdr,
->+	};
->+
->+	fl6.flowlabel = ipv6_get_dsfield(iph);
->+	fl6.flowi6_mark = flags & XT_RPFILTER_VALID_MARK ? skb->mark : 0;
+so
 
-This looks weird. In xt_rpfilter, you used
+--- xtables-addons-1.38/extensions/ipset-6/Makefile.am~	2011-08-20=20
+17:02:31.000000000 +0200
++++ xtables-addons-1.38/extensions/ipset-6/Makefile.am	2011-08-26=20
+13:15:36.983190997 +0200
+@@ -8,12 +8,12 @@
+ lib_LTLIBRARIES =3D libipset.la
+ libipset_la_SOURCES =3D libipset/data.c libipset/icmp.c libipset/icmpv=
+6.c \
+                       libipset/mnl.c libipset/parse.c libipset/print.c=
+ \
+-                      libipset/session.c libipset/types.c
++                      libipset/session.c libipset/types.c src/errcode.=
+c
+ libipset_la_LIBADD  =3D ${libmnl_LIBS}
+ libipset_la_LDFLAGS =3D -version-info 1:0:0
+=20
+ sbin_PROGRAMS =3D ipset
+-ipset_SOURCES =3D src/ipset.c src/errcode.c src/ui.c src/ipset_bitmap_=
+ip.c \
++ipset_SOURCES =3D src/ipset.c src/ui.c src/ipset_bitmap_ip.c \
+                 src/ipset_bitmap_ipmac.c src/ipset_bitmap_port.c \
+                 src/ipset_hash_ip.c src/ipset_hash_ipport.c \
+                 src/ipset_hash_ipportip.c src/ipset_hash_ipportnet.c \
 
-+        .flowlabel = (* (__be32 *) iph) & IPV6_FLOWINFO_MASK,
 
-and now you are copying the traffic class into the flowlabel instead.
+--=20
+Arkadiusz Mi=C5=9Bkiewicz        PLD/Linux Team
+arekm / maven.pl            http://ftp.pld-linux.org/
+
+--=20
+Arkadiusz Mi=C5=9Bkiewicz        PLD/Linux Team
+arekm / maven.pl            http://ftp.pld-linux.org/
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
