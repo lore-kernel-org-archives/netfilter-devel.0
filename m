@@ -1,45 +1,33 @@
-From: Richard Weinberger <richard@nod.at>
-Subject: [PATCH] iptables: Simplify xtables_parse_interface()
-Date: Sat, 27 Aug 2011 15:32:31 +0200
-Message-ID: <1314451951-27722-1-git-send-email-richard@nod.at>
-Cc: Richard Weinberger <richard@nod.at>
-To: netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] Parsing bug in libxt_conntrack.c 1.4.12
+Date: Sat, 27 Aug 2011 18:12:20 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1108271808570.20178@frira.zrqbmnf.qr>
+References: <1313705476.819.29.camel@sami.shorewall.net>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Tom Eastep <teastep@shorewall.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a.ns.miles-group.at ([95.130.255.143]:36343 "EHLO radon.swed.at"
+Received: from seven.medozas.de ([188.40.89.202]:60985 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751610Ab1H0Nco (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 27 Aug 2011 09:32:44 -0400
+	id S1750908Ab1H0QMW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 27 Aug 2011 12:12:22 -0400
+In-Reply-To: <1313705476.819.29.camel@sami.shorewall.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-mask is already filled with zeros, there is no need to zero it again.
+On Friday 2011-08-19 00:11, Tom Eastep wrote:
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
----
- iptables/xtables.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+>Just discovered this little gem:
+>
+>sami:/home/teastep/iptables# iptables -N foo
+>sami:/home/teastep/iptables# iptables -A foo -m conntrack --ctorigdstport 22
+>iptables v1.4.12: conntrack rev 2 does not support port ranges
+>Try `iptables -h' or 'iptables --help' for more information.
+>sami:/home/teastep/iptables# 
 
-diff --git a/iptables/xtables.c b/iptables/xtables.c
-index 233efa3..e72aa28 100644
---- a/iptables/xtables.c
-+++ b/iptables/xtables.c
-@@ -515,15 +515,13 @@ void xtables_parse_interface(const char *arg, char *vianame,
- 
- 	strcpy(vianame, arg);
- 	if (vialen == 0)
--		memset(mask, 0, IFNAMSIZ);
-+		return;
- 	else if (vianame[vialen - 1] == '+') {
- 		memset(mask, 0xFF, vialen - 1);
--		memset(mask + vialen - 1, 0, IFNAMSIZ - vialen + 1);
- 		/* Don't remove `+' here! -HW */
- 	} else {
- 		/* Include nul-terminator in match */
- 		memset(mask, 0xFF, vialen + 1);
--		memset(mask + vialen + 1, 0, IFNAMSIZ - vialen - 1);
- 		for (i = 0; vianame[i]; i++) {
- 			if (vianame[i] == '/' ||
- 			    vianame[i] == ' ') {
--- 
-1.7.6.1
+Thanks for your reminder (via priv). I have taken your patch, but also 
+the liberty to fix the actual cause.
 
+Pending merge, you can see the tree/commits at 
+git://dev.medozas.de/iptables fixes-2
