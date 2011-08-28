@@ -1,34 +1,20 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] iptables: Simplify xtables_parse_interface()
-Date: Sat, 27 Aug 2011 18:37:06 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1108271836450.20178@frira.zrqbmnf.qr>
-References: <1314451951-27722-1-git-send-email-richard@nod.at>
+Subject: (unknown)
+Date: Sun, 28 Aug 2011 16:11:46 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1108281611060.31802@frira.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Richard Weinberger <richard@nod.at>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:47503 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:42045 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750971Ab1H0QhJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 27 Aug 2011 12:37:09 -0400
-In-Reply-To: <1314451951-27722-1-git-send-email-richard@nod.at>
+	id S1751220Ab1H1OLu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 28 Aug 2011 10:11:50 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Saturday 2011-08-27 15:32, Richard Weinberger wrote:
 
->mask is already filled with zeros, there is no need to zero it again.
->diff --git a/iptables/xtables.c b/iptables/xtables.c
->index 233efa3..e72aa28 100644
->--- a/iptables/xtables.c
->+++ b/iptables/xtables.c
->@@ -515,15 +515,13 @@ void xtables_parse_interface(const char *arg, char *vianame,
-> 
-> 	strcpy(vianame, arg);
-> 	if (vialen == 0)
->-		memset(mask, 0, IFNAMSIZ);
->+		return;
->...
-
-Patch taken.
+libxt_SET.c requires IPSET_INVALID_ID, but this constant has moved into 
+a #ifdef __KERNEL__ section lately and is thus absent from userspace. 
+(In linux-kernel/include/linux/netfilter/ipset/ip_set.h.)
