@@ -1,39 +1,31 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: conntrack-tools: fscanf() call usage
-Date: Mon, 29 Aug 2011 10:00:36 +0200
-Message-ID: <201108291000.36197.thomas.jarosch@intra2net.com>
-References: <201108251422.59027.thomas.jarosch@intra2net.com> <CAFpsybkfNj9DctsBkpEpOXd5Y0vGMVSC7nxKU7hWhNKZTNrTSQ@mail.gmail.com>
+From: ZOU YOUTAO <Youtao.Zou@alcatel-sbell.com.cn>
+Subject: can we use nfq_set_verdict to accept packets more than once with one packet_id?
+Date: Mon, 29 Aug 2011 22:03:41 +0800
+Message-ID: <D39C71B66797974C8687C6F5AC74A781069358FF@CNSHGSMBS01.ad4.ad.alcatel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Philip Craig <philipjcraig@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rs04.intra2net.com ([85.214.66.2]:56551 "EHLO
-	rs04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753074Ab1H2IAj (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Aug 2011 04:00:39 -0400
-In-Reply-To: <CAFpsybkfNj9DctsBkpEpOXd5Y0vGMVSC7nxKU7hWhNKZTNrTSQ@mail.gmail.com>
+Received: from cnshjsmin03.alcatel-sbell.com.cn ([211.144.215.47]:56742 "EHLO
+	cnshjsmin03.alcatel-sbell.com.cn" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751766Ab1H2OEU convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 29 Aug 2011 10:04:20 -0400
+Content-Class: urn:content-classes:message
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday, 26. August 2011 03:45:29 Philip Craig wrote:
-> > Simple PoC can be found here:
-> > http://marc.info/?l=gimp-developer&m=129567990905823&w=2
-> 
-> This looks like a bug in scanf, I suggest fixing it there. I don't know
-> why the cppcheck authors decided that all the users needed fixing.
->
-> ...
->
-> Working around the problem in every program that uses scanf is not the
-> right thing to do.
 
-Right. I'll contact the glibc maintainers this week, it looks like an issue
-with scanf(). One guy from cppcheck tried the same scanf() code
-on another platform and there was no crash detectable.
+I need to develop an user space routing applcation.
 
-Best regards,
-Thomas
+My question is that I need to split an incoming udp packet to several
+small ones and forward them to different servers.
+Can I implement the requirement by  using libnetfilter_queue?
+
+another requirement is that the incoming packet is not forwarded
+immediately. A timer is set instead. The packet forwarding is performed
+in the timeout handler. So we cannot invoke nfq_set_verdict in the end
+of libnetfilter_queue callback function. We have to hold the packet_id
+for the timeout handler for forwarding.
+Does this introduce performance issue?
