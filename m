@@ -1,143 +1,129 @@
-From: Jean-Philippe Menil <jean-philippe.menil@univ-nantes.fr>
-Subject: Re: kernel BUG at net/netfilter/ipset/ip_set_core.c:314
-Date: Tue, 30 Aug 2011 11:07:46 +0200
-Message-ID: <4E5CA862.2070004@univ-nantes.fr>
-References: <4E5CA623.9000402@univ-nantes.fr>
-Reply-To: jean-philippe.menil@univ-nantes.fr
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060001030209010108000607"
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH] bridge: netfilter: work around shared nfct struct
+Date: Tue, 30 Aug 2011 12:57:07 +0200
+Message-ID: <1314701827-21702-1-git-send-email-fw@strlen.de>
+Cc: netdev@vger.kernel.org, Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-tls2.univ-nantes.fr ([193.52.101.146]:43747 "EHLO
-	smtp-tls.univ-nantes.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753066Ab1H3JHs (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:54682 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753006Ab1H3KzO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Aug 2011 05:07:48 -0400
-In-Reply-To: <4E5CA623.9000402@univ-nantes.fr>
+	Tue, 30 Aug 2011 06:55:14 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------060001030209010108000607
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+When incoking iptables hooks from bridge netfilter, the assumption
+that non-confirmed skb->nfct is never shared does no longer hold,
+as bridge code clones skbs when e.g. forwarding packets to multiple
+bridge ports.
 
-Le 30/08/2011 10:58, Jean-Philippe Menil a écrit :
-> Hi,
->
-> With the set bitmap ipmac, if i had one, two hundred ip,mac in a set; 
-> and do an ipset list,
-> i get an:
-> ipset v6.8: Kernel error received: No buffer space available
-> followed by a kernel panic (trace attached).
->
-> Maybe, in ip_set_core.c, can we modify the line 435 to this one:
-> if (ip_set_list[index] != NULL && ip_set_list[index]->ref !=0)
->
-> This way, we avoid the kernel panic?
->
-> Regards.
->
-Sorry,
+When NFQUEUE is used, we can BUG because nf_nat_setup_info can be
+invoked simultaneously for the same conntrack:
 
-forgot to attached the kernel trace ...
+[ 3196.798768] kernel BUG at net/ipv4/netfilter/nf_nat_core.c:300!
+[..]
+[ 3196.798768]  [<ffffffff8120d73e>] ? nf_hook_slow+0x21a/0x282
+[ 3196.798768]  [<ffffffffa03207e4>] ? br_handle_frame_finish+0x0/0x13b [bridge]
+[ 3196.798768]  [<ffffffffa02a61a5>] ? alloc_null_binding+0x47/0x4c [iptable_nat]
+[ 3196.798768]  [<ffffffffa02a64eb>] ? nf_nat_fn+0x193/0x1fb [iptable_nat]
+[ 3196.798768]  [<ffffffff8120d4c5>] ? nf_iterate+0x40/0x9f
+[ 3196.798768]  [<ffffffff8120d73e>] ? nf_hook_slow+0x21a/0x282
+[ 3196.798768]  [<ffffffff81213c94>] ? ip_local_deliver_finish+0x0/0x1f1
+[ 3196.798768]  [<ffffffff81213c94>] ? ip_local_deliver_finish+0x0/0x1f1
+[ 3196.798768]  [<ffffffff8120d73e>] ? nf_hook_slow+0x21a/0x282
+[ 3196.798768]  [<ffffffff8121369c>] ? ip_rcv_finish+0x0/0x340
+[ 3196.798768]  [<ffffffff81213ed7>] ? ip_local_deliver+0x52/0x6c
+[ 3196.798768]  [<ffffffff812139c2>] ? ip_rcv_finish+0x326/0x340
+[ 3196.798768]  [<ffffffff81213c4f>] ? ip_rcv+0x273/0x2b8
+[ 3196.798768]  [<ffffffff811f1384>] ? process_backlog+0x8d/0xc6
+[ 3196.798768]  [<ffffffff811f2f85>] ? net_rx_action+0xa2/0x1cf
+[ 3196.798768]  [<ffffffff8103d3c2>] ? __do_softirq+0x8b/0x10b
+[ 3196.798768]  [<ffffffff8100c9dc>] ? call_softirq+0x1c/0x28
+[ 3196.798768]  [<ffffffff8100dd15>] ? do_softirq+0x31/0x66
+[ 3196.798768]  [<ffffffff8103d267>] ? irq_exit+0x36/0x78
+[ 3196.798768]  [<ffffffff8100d41a>] ? do_IRQ+0xa0/0xb6
+[ 3196.798768]  [<ffffffff8100c253>] ? ret_from_intr+0x0/0xa
+[..]
+[ 3196.798768] Code: be 2b 01 00 00 48 c7 c7 e8 cd 29 a0 e8 e8 d7 d9 e0 45 85 ff 49 8b 45 78 75 06 48 c1 e8 07 eb 04 48 c1 e8 08 83 e0 01 85 c0 74 04 <0f> 0b eb fe 49 8d 75 50 48 8d bc 24 80 00 00 00 e8 83 38 f7 ff
+[ 3196.798768] RIP  [<ffffffffa029b68f>] nf_nat_setup_info+0x8a/0x564 [nf_nat]
+[ 3196.798768]  RSP <ffff880001603bf0>
 
+Fix this by changing ->nfct of all clones to untracked.
+
+This should be OK, because if we do a full copy of ->nfct we'd
+end up trying to confirm the same tuples multiple times, which results in
+NF_DROP for the cloned skbs.
+
+Also, we only need to do this if the conntrack is unconfirmed.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/bridge/br_netfilter.c |   34 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 34 insertions(+), 0 deletions(-)
+
+ I have one alternate patch that changes nf_nat_setup_info
+ to detect conflicts by forcing serialization via ct->lock spinlock.
+
+ But it is silly to do this for the sake of bridge netfilter only...
+
+ Any other ideas?
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index 3fa1231..7d47f34 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -42,6 +42,10 @@
+ #include <linux/sysctl.h>
+ #endif
+ 
++#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
++#include <net/netfilter/nf_conntrack.h>
++#endif
++
+ #define skb_origaddr(skb)	 (((struct bridge_skb_cb *) \
+ 				 (skb->nf_bridge->data))->daddr.ipv4)
+ #define store_orig_dstaddr(skb)	 (skb_origaddr(skb) = ip_hdr(skb)->daddr)
+@@ -158,10 +162,40 @@ static inline struct nf_bridge_info *nf_bridge_alloc(struct sk_buff *skb)
+ 	return skb->nf_bridge;
+ }
+ 
++
++/* conntrack assumes exclusive ownership of skb->nfct
++ * if conntrack has not yet been confirmed.
++ *
++ * Without this, we may BUG because we might try to set up
++ * NAT bindings for the same conntrack struct simultaneously.
++ *
++ * Work around this by forcing untracked state.
++ */
++static inline void nf_bridge_unshare_nfct(struct sk_buff *skb)
++{
++#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
++	struct nf_conn *ct, *ct_orig = (void *) skb->nfct;
++
++	if (!ct_orig || nf_ct_is_untracked(ct_orig))
++		return;
++
++	if (likely(nf_ct_is_confirmed(ct_orig)) ||
++	    atomic_read(&ct_orig->ct_general.use) == 1)
++		return;
++
++	ct = nf_ct_untracked_get();
++	atomic_inc(&ct->ct_general.use);
++	nf_conntrack_put(skb->nfct);
++	skb->nfct = &ct->ct_general;
++#endif
++}
++
+ static inline struct nf_bridge_info *nf_bridge_unshare(struct sk_buff *skb)
+ {
+ 	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
+ 
++	nf_bridge_unshare_nfct(skb);
++
+ 	if (atomic_read(&nf_bridge->use) > 1) {
+ 		struct nf_bridge_info *tmp = nf_bridge_alloc(skb);
+ 
 -- 
-Jean-Philippe Menil - Pôle réseau Service IRTS
-DSI Université de Nantes
-jean-philippe.menil@univ-nantes.fr
-Tel : 02.53.48.49.27 - Fax : 02.53.48.49.09
+1.7.3.4
 
-
---------------060001030209010108000607
-Content-Type: text/plain;
- name="kernel-panic.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="kernel-panic.txt"
-
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.492008] ------------[ cut here ]------------
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.492505] kernel BUG at net/netfilter/ipset/ip_set_core.c:314!
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.492962] invalid opcode: 0000 [#1] SMP 
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.493472] CPU 0 
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.493590] Modules linked in: netconsole configfs ip6table_filter fuse ipt_LOG xt_TPROXY nf_tproxy_core xt_socket ip6_tables nf_defrag_ipv6 xt_set ip_set_bitmap_ipmac ip_set nfnetlink ipt_REDIRECT xt_mark xt_tcpudp xt_limit xt_state iptable_mangle iptable_filter nf_nat_ftp iptable_nat nf_nat nf_conntrack_irc nf_conntrack_ftp nf_conntrack_ipv4 nf_conntrack nf_defrag_ipv4 ip_tables x_tables ipv6 ext2 mbcache snd_pcm snd_timer snd soundcore snd_page_alloc tpm_tis tpm pcspkr tpm_bios psmouse virtio_balloon serio_raw evdev i2c_piix4 i2c_core processor button thermal_sys xfs exportfs dm_mod virtio_blk ata_generic ata_piix libata virtio_net scsi_mod ide_pci_generic floppy virtio_pci virtio_ring virtio uhci_hcd ehci_hcd piix ide_core [last unloa
- ded: scsi_wait_scan]
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336] 
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336] Pid: 2053, comm: ipset Not tainted 3.0.3-dsiun-110829-debug+ #16 Bochs Bochs
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336] RIP: 0010:[<ffffffffa03aec6a>]  [<ffffffffa03aec6a>] ip_set_put_byindex+0x4a/0x50 [ip_set]
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336] RSP: 0018:ffff88007a617a68  EFLAGS: 00010246
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336] RAX: ffff88007a6b7960 RBX: 0000000000000000 RCX: ffff88007a61a028
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336] RDX: 0000000000000000 RSI: ffff88007a617a34 RDI: ffffffffa03b24d4
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336] RBP: ffff88007adc1a00 R08: 0000000005000000 R09: 0000000000000004
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336] R10: ffff88007a61a1dc R11: 0000000000000000 R12: ffff88007a6b7960
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336] R13: ffff88007a61a000 R14: 0000000000000000 R15: ffff88007a6b7980
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336] FS:  00007f0995be4700(0000) GS:ffff88007fc00000(0000) knlGS:0000000000000000
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336] CR2: 00007f09954e7750 CR3: 000000003789e000 CR4: 00000000000006f0
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336] Process ipset (pid: 2053, threadinfo ffff88007a616000, task ffff880079240940)
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336] Stack:
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  ffff88007aec1780 ffffffffa03afa6a ffffffffa03aec70 ffff880000000000
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  0000000000000e80 00000000000000d0 00000000ffffffff 0000000000000000
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  0000000000000e80 ffffffff812f278f 00000000819f1540 ffff88007f802900
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336] Call Trace:
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  [<ffffffffa03afa6a>] ? ip_set_dump_start+0x29a/0x450 [ip_set]
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  [<ffffffffa03aec70>] ? ip_set_put_byindex+0x50/0x50 [ip_set]
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  [<ffffffff812f278f>] ? __alloc_skb+0x7f/0x180
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  [<ffffffff81323655>] ? netlink_dump+0x65/0x200
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  [<ffffffff81127a9c>] ? kfree+0x2c/0x110
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  [<ffffffff81126c12>] ? kmem_cache_free+0x12/0xe0
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  [<ffffffff81323d30>] ? netlink_recvmsg+0x320/0x480
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  [<ffffffff812e88a7>] ? sock_recvmsg+0x127/0x140
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  [<ffffffff812e8b50>] ? sock_sendmsg+0x110/0x130
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  [<ffffffff812e8308>] ? move_addr_to_user+0x88/0xa0
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  [<ffffffff812e8780>] ? sock_recvmsg_nosec+0x140/0x140
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  [<ffffffff812e8444>] ? __sys_recvmsg+0x124/0x2b0
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  [<ffffffff81101422>] ? handle_mm_fault+0x52/0x3f0
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  [<ffffffff812e92cc>] ? sys_sendto+0x13c/0x1a0
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  [<ffffffff812e8308>] ? move_addr_to_user+0x88/0xa0
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  [<ffffffff812e9d67>] ? sys_getsockname+0xe7/0x100
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  [<ffffffff812e9f7b>] ? sock_alloc_file+0xab/0x130
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  [<ffffffff812e8fa4>] ? sys_recvmsg+0x44/0x80
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  [<ffffffff813a4cd2>] ? system_call_fastpath+0x16/0x1b
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336] Code: 8b 05 83 3b 00 00 48 8b 04 d8 8b 50 24 85 d2 74 1a 83 ea 01 48 c7 c7 d4 24 3b a0 89 50 24 5b e9 bd 56 ff e0 0f 1f 44 00 00 5b c3 <0f> 0b eb fe 66 90 48 83 ec 08 48 83 7f 38 00 74 09 0f b7 7f 30 
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336] RIP  [<ffffffffa03aec6a>] ip_set_put_byindex+0x4a/0x50 [ip_set]
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.495336]  RSP <ffff88007a617a68>
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.529211] ---[ end trace c8ce909497081d18 ]---
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.529693] Kernel panic - not syncing: Fatal exception in interrupt
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.530187] Pid: 2053, comm: ipset Tainted: G      D     3.0.3-dsiun-110829-debug+ #16
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.530909] Call Trace:
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.531253]  [<ffffffff813a176d>] ? panic+0x92/0x19d
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.531690]  [<ffffffff810504c2>] ? kmsg_dump+0x42/0xf0
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.532171]  [<ffffffff81005e07>] ? oops_end+0xe7/0xf0
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.532607]  [<ffffffff810038c4>] ? do_invalid_op+0x84/0xa0
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.533042]  [<ffffffffa03aec6a>] ? ip_set_put_byindex+0x4a/0x50 [ip_set]
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.533520]  [<ffffffff813a4389>] ? _raw_write_lock_bh+0x9/0x20
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.533965]  [<ffffffffa03afa6a>] ? ip_set_dump_start+0x29a/0x450 [ip_set]
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.534458]  [<ffffffff8121026e>] ? __nla_reserve+0x4e/0x70
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.534906]  [<ffffffff813a5c5b>] ? invalid_op+0x1b/0x20
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.535368]  [<ffffffffa03aec6a>] ? ip_set_put_byindex+0x4a/0x50 [ip_set]
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.535847]  [<ffffffffa03aec3e>] ? ip_set_put_byindex+0x1e/0x50 [ip_set]
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.536373]  [<ffffffffa03afa6a>] ? ip_set_dump_start+0x29a/0x450 [ip_set]
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.536866]  [<ffffffffa03aec70>] ? ip_set_put_byindex+0x50/0x50 [ip_set]
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.537344]  [<ffffffff812f278f>] ? __alloc_skb+0x7f/0x180
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.537783]  [<ffffffff81323655>] ? netlink_dump+0x65/0x200
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.538222]  [<ffffffff81127a9c>] ? kfree+0x2c/0x110
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.538648]  [<ffffffff81126c12>] ? kmem_cache_free+0x12/0xe0
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.539088]  [<ffffffff81323d30>] ? netlink_recvmsg+0x320/0x480
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.539533]  [<ffffffff812e88a7>] ? sock_recvmsg+0x127/0x140
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.539973]  [<ffffffff812e8b50>] ? sock_sendmsg+0x110/0x130
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.540464]  [<ffffffff812e8308>] ? move_addr_to_user+0x88/0xa0
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.540953]  [<ffffffff812e8780>] ? sock_recvmsg_nosec+0x140/0x140
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.541410]  [<ffffffff812e8444>] ? __sys_recvmsg+0x124/0x2b0
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.541855]  [<ffffffff81101422>] ? handle_mm_fault+0x52/0x3f0
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.542299]  [<ffffffff812e92cc>] ? sys_sendto+0x13c/0x1a0
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.542736]  [<ffffffff812e8308>] ? move_addr_to_user+0x88/0xa0
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.543187]  [<ffffffff812e9d67>] ? sys_getsockname+0xe7/0x100
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.543635]  [<ffffffff812e9f7b>] ? sock_alloc_file+0xab/0x130
-Aug 30 11:09:28 test.wifi.univ-nantes.fr kernel: [  149.544116]  [<ffffffff812e8fa4>] ? sys_recvmsg+0x44/0x80
-
---------------060001030209010108000607--
