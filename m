@@ -1,50 +1,59 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Florian Westphal <fw@strlen.de>
 Subject: Re: [PATCH] bridge: netfilter: work around shared nfct struct
-Date: Tue, 30 Aug 2011 15:08:13 +0200
-Message-ID: <4E5CE0BD.7040103@trash.net>
-References: <1314701827-21702-1-git-send-email-fw@strlen.de> <4E5CDADC.7000902@trash.net> <20110830125453.GC7548@Chamillionaire.breakpoint.cc>
+Date: Tue, 30 Aug 2011 15:19:05 +0200
+Message-ID: <20110830131905.GE7548@Chamillionaire.breakpoint.cc>
+References: <1314701827-21702-1-git-send-email-fw@strlen.de>
+ <4E5CDADC.7000902@trash.net>
+ <20110830125453.GC7548@Chamillionaire.breakpoint.cc>
+ <4E5CE0BD.7040103@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55119 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752045Ab1H3NIO (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:52282 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752045Ab1H3NTG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Aug 2011 09:08:14 -0400
-In-Reply-To: <20110830125453.GC7548@Chamillionaire.breakpoint.cc>
+	Tue, 30 Aug 2011 09:19:06 -0400
+Content-Disposition: inline
+In-Reply-To: <4E5CE0BD.7040103@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 30.08.2011 14:54, Florian Westphal wrote:
-> Patrick McHardy <kaber@trash.net> wrote:
->> On 30.08.2011 12:57, Florian Westphal wrote:
->>> When incoking iptables hooks from bridge netfilter, the assumption
->>> that non-confirmed skb->nfct is never shared does no longer hold,
->>> as bridge code clones skbs when e.g. forwarding packets to multiple
->>> bridge ports.
->>>
->>> When NFQUEUE is used, we can BUG because nf_nat_setup_info can be
->>> invoked simultaneously for the same conntrack:
->>
->> I'm wondering how this can happen, when flooding packets to multiple
->> ports, they are still processed by the same CPU one after another,
->> so for the second and further packets, nf_nat should notice that
->> the mappings are already set up.
+Patrick McHardy <kaber@trash.net> wrote:
+> On 30.08.2011 14:54, Florian Westphal wrote:
+> > Patrick McHardy <kaber@trash.net> wrote:
+> >> On 30.08.2011 12:57, Florian Westphal wrote:
+> >>> When incoking iptables hooks from bridge netfilter, the assumption
+> >>> that non-confirmed skb->nfct is never shared does no longer hold,
+> >>> as bridge code clones skbs when e.g. forwarding packets to multiple
+> >>> bridge ports.
+> >>>
+> >>> When NFQUEUE is used, we can BUG because nf_nat_setup_info can be
+> >>> invoked simultaneously for the same conntrack:
+> >>
+> >> I'm wondering how this can happen, when flooding packets to multiple
+> >> ports, they are still processed by the same CPU one after another,
+> >> so for the second and further packets, nf_nat should notice that
+> >> the mappings are already set up.
+> > 
+> > Main problem is that we end up with same ->nfct in both
+> > INPUT and POSTROUTING (br_pass_frame_up vs. br_forward).
+> > 
+> > its extremely unlikely but reproduceable with something like
+> > hping2 -i u1200 -2 -p 138 -d 128 192.168.0.255
+> > 
+> > (assuming bridge interface has an address within that network).
+> > 
+> > Also, with recent change nf_reinject can be run in parallel.
+> > (the original problem was observed on 2.6.32.24, but i can
+> >  reproduce it with nf-next, too).
 > 
-> Main problem is that we end up with same ->nfct in both
-> INPUT and POSTROUTING (br_pass_frame_up vs. br_forward).
-> 
-> its extremely unlikely but reproduceable with something like
-> hping2 -i u1200 -2 -p 138 -d 128 192.168.0.255
-> 
-> (assuming bridge interface has an address within that network).
-> 
-> Also, with recent change nf_reinject can be run in parallel.
-> (the original problem was observed on 2.6.32.24, but i can
->  reproduce it with nf-next, too).
+> I see. We still need to avoid the module dependency on nf_conntrack
+> though, so I think this will have to be fixed in nf_nat_fn().
 
-I see. We still need to avoid the module dependency on nf_conntrack
-though, so I think this will have to be fixed in nf_nat_fn().
+Right, I failed to spot the call to the destroy hook 8-/
+
+I'll submit an alternate patch shortly.
