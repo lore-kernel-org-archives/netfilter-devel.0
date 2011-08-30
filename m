@@ -1,42 +1,43 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: kernel BUG at net/netfilter/ipset/ip_set_core.c:314
-Date: Tue, 30 Aug 2011 13:52:49 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1108301351070.26239@blackhole.kfki.hu>
-References: <4E5CA623.9000402@univ-nantes.fr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH RFC 2/3] netfilter: add ipv4 reverse path filter match
+Date: Tue, 30 Aug 2011 14:34:34 +0200
+Message-ID: <4E5CD8DA.1010204@trash.net>
+References: <1314350465-19598-1-git-send-email-fw@strlen.de> <1314350465-19598-3-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Jean-Philippe Menil <jean-philippe.menil@univ-nantes.fr>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:59304 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750768Ab1H3Lwv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Aug 2011 07:52:51 -0400
-In-Reply-To: <4E5CA623.9000402@univ-nantes.fr>
+Received: from stinky.trash.net ([213.144.137.162]:54405 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751658Ab1H3Mem (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 30 Aug 2011 08:34:42 -0400
+In-Reply-To: <1314350465-19598-3-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 30 Aug 2011, Jean-Philippe Menil wrote:
-
-> With the set bitmap ipmac, if i had one, two hundred ip,mac in a set; and do
-> an ipset list,
-> i get an:
-> ipset v6.8: Kernel error received: No buffer space available
-> followed by a kernel panic (trace attached).
-
-I'll check it, thanks the reporting.
- 
-> Maybe, in ip_set_core.c, can we modify the line 435 to this one:
-> if (ip_set_list[index] != NULL && ip_set_list[index]->ref !=0)
+On 26.08.2011 11:21, Florian Westphal wrote:
+> This tries to mimic behaviour of fib_validate_source.
 > 
-> This way, we avoid the kernel panic?
+> main drawback:
+> - additional fib lookup to get oif (used as flow key in reverse lookup)
 
-That'd be racy, so other solution is required.
+As discussed during the workshop, we could just perform input routing
+in the module to get the oif for free. That would require to take care
+of statistics as currently done in ip_rcv_finish() though.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+> - no result caching so far
+> 
+> Other issues:
+> - can't use FORWARD chain because by the time FORWARD is invoked
+>   ipv4 forward path may have already sent icmp messages is response
+>   to to-be-discarded-via-rpfilter packets
+> - using it in PREROUTING may do the wrong thing (e.g. when using
+>   policy routing via mangle PREROUTING)
+
+Not if you're setting up policy routing keys (marks) before doing
+rp_filter, right? Would require using it in the mangle table of
+course.
+
