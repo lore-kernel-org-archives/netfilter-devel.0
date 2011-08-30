@@ -1,48 +1,53 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] bridge: netfilter: work around shared nfct struct
-Date: Tue, 30 Aug 2011 14:54:53 +0200
-Message-ID: <20110830125453.GC7548@Chamillionaire.breakpoint.cc>
-References: <1314701827-21702-1-git-send-email-fw@strlen.de>
- <4E5CDADC.7000902@trash.net>
+Subject: Re: [PATCH RFC 2/3] netfilter: add ipv4 reverse path filter match
+Date: Tue, 30 Aug 2011 14:57:36 +0200
+Message-ID: <20110830125736.GD7548@Chamillionaire.breakpoint.cc>
+References: <1314350465-19598-1-git-send-email-fw@strlen.de>
+ <1314350465-19598-3-git-send-email-fw@strlen.de>
+ <4E5CD8DA.1010204@trash.net>
+ <20110830124119.GB7548@Chamillionaire.breakpoint.cc>
+ <4E5CDB71.9080504@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:59821 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:59841 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752045Ab1H3Myy (ORCPT
+	by vger.kernel.org with ESMTP id S1751423Ab1H3M5h (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Aug 2011 08:54:54 -0400
+	Tue, 30 Aug 2011 08:57:37 -0400
 Content-Disposition: inline
-In-Reply-To: <4E5CDADC.7000902@trash.net>
+In-Reply-To: <4E5CDB71.9080504@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Patrick McHardy <kaber@trash.net> wrote:
-> On 30.08.2011 12:57, Florian Westphal wrote:
-> > When incoking iptables hooks from bridge netfilter, the assumption
-> > that non-confirmed skb->nfct is never shared does no longer hold,
-> > as bridge code clones skbs when e.g. forwarding packets to multiple
-> > bridge ports.
+> On 30.08.2011 14:41, Florian Westphal wrote:
+> > Patrick McHardy <kaber@trash.net> wrote:
+> >>> main drawback:
+> >>> - additional fib lookup to get oif (used as flow key in reverse lookup)
+> >>
+> >> As discussed during the workshop, we could just perform input routing
+> >> in the module to get the oif for free. That would require to take care
+> >> of statistics as currently done in ip_rcv_finish() though.
 > > 
-> > When NFQUEUE is used, we can BUG because nf_nat_setup_info can be
-> > invoked simultaneously for the same conntrack:
+> > Right.
+> > Any idea on how to solve the 'struct sk_buff *' (ip_route_input) vs.
+> > 'const struct sk_buff *' (matches) problem?
+> > 
+> > We'd have to modify all the match signatures...
 > 
-> I'm wondering how this can happen, when flooding packets to multiple
-> ports, they are still processed by the same CPU one after another,
-> so for the second and further packets, nf_nat should notice that
-> the mappings are already set up.
+> Some modules already remove the const by casting it away, not
+> pretty, but works. Since the kernel doesn't assume strict aliasing
+> this also shouldn't cause any problems in the future. Alternatively
+> we can change the function signatures of course, although that would
+> be a bit unfortunate just for this special case.
 
-Main problem is that we end up with same ->nfct in both
-INPUT and POSTROUTING (br_pass_frame_up vs. br_forward).
+Agreed, modifying the match function signature for this case would be
+sad.
 
-its extremely unlikely but reproduceable with something like
-hping2 -i u1200 -2 -p 138 -d 128 192.168.0.255
+I'll wait a couple of days and will send an updated version
+that uses the ugly cast + ip_route_input.
 
-(assuming bridge interface has an address within that network).
-
-Also, with recent change nf_reinject can be run in parallel.
-(the original problem was observed on 2.6.32.24, but i can
- reproduce it with nf-next, too).
+Thanks for your input!
