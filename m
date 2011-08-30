@@ -1,59 +1,30 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] bridge: netfilter: work around shared nfct struct
-Date: Tue, 30 Aug 2011 15:19:05 +0200
-Message-ID: <20110830131905.GE7548@Chamillionaire.breakpoint.cc>
-References: <1314701827-21702-1-git-send-email-fw@strlen.de>
- <4E5CDADC.7000902@trash.net>
- <20110830125453.GC7548@Chamillionaire.breakpoint.cc>
- <4E5CE0BD.7040103@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: FYI: pending netfilter patches
+Date: Tue, 30 Aug 2011 15:26:58 +0200
+Message-ID: <4E5CE522.6000201@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:52282 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752045Ab1H3NTG (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:55519 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753778Ab1H3N1B (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Aug 2011 09:19:06 -0400
-Content-Disposition: inline
-In-Reply-To: <4E5CE0BD.7040103@trash.net>
+	Tue, 30 Aug 2011 09:27:01 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by stinky.trash.net (Postfix) with ESMTP id 8AE73B2C46
+	for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2011 15:26:58 +0200 (MEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy <kaber@trash.net> wrote:
-> On 30.08.2011 14:54, Florian Westphal wrote:
-> > Patrick McHardy <kaber@trash.net> wrote:
-> >> On 30.08.2011 12:57, Florian Westphal wrote:
-> >>> When incoking iptables hooks from bridge netfilter, the assumption
-> >>> that non-confirmed skb->nfct is never shared does no longer hold,
-> >>> as bridge code clones skbs when e.g. forwarding packets to multiple
-> >>> bridge ports.
-> >>>
-> >>> When NFQUEUE is used, we can BUG because nf_nat_setup_info can be
-> >>> invoked simultaneously for the same conntrack:
-> >>
-> >> I'm wondering how this can happen, when flooding packets to multiple
-> >> ports, they are still processed by the same CPU one after another,
-> >> so for the second and further packets, nf_nat should notice that
-> >> the mappings are already set up.
-> > 
-> > Main problem is that we end up with same ->nfct in both
-> > INPUT and POSTROUTING (br_pass_frame_up vs. br_forward).
-> > 
-> > its extremely unlikely but reproduceable with something like
-> > hping2 -i u1200 -2 -p 138 -d 128 192.168.0.255
-> > 
-> > (assuming bridge interface has an address within that network).
-> > 
-> > Also, with recent change nf_reinject can be run in parallel.
-> > (the original problem was observed on 2.6.32.24, but i can
-> >  reproduce it with nf-next, too).
-> 
-> I see. We still need to avoid the module dependency on nf_conntrack
-> though, so I think this will have to be fixed in nf_nat_fn().
+I'm slowly catching up with netfilter patches after last weeks
+developer workshop. You can expect some reaction to your patches
+today or tommorrow, after which I will send all pending patches
+to Dave.
 
-Right, I failed to spot the call to the destroy hook 8-/
-
-I'll submit an alternate patch shortly.
+We'll also be moving the netfilter git trees to a shared directory
+on git.kernel.org after that so Pablo and me can both apply patches
+to the same tree. I'll send another mail containing the new git URL
+once that has happened.
