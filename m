@@ -1,72 +1,47 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 1/1] netfilter: nat: work around shared nfct struct in
- bridge case
-Date: Tue, 30 Aug 2011 17:27:55 +0200
-Message-ID: <20110830152755.GG7548@Chamillionaire.breakpoint.cc>
-References: <1314710938-25342-1-git-send-email-fw@strlen.de>
- <4E5CE92B.2010006@trash.net>
- <20110830140013.GF7548@Chamillionaire.breakpoint.cc>
- <4E5CEEBC.8090305@trash.net>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH 06/24] netfilter: Remove unnecessary OOM logging
+ messages
+Date: Tue, 30 Aug 2011 09:13:38 -0700
+Message-ID: <1314720818.14422.1.camel@Joe-Laptop>
+References: <cover.1314650069.git.joe@perches.com>
+	 <13c1c12486cae409dfa5254b1435e660f2b17e05.1314650069.git.joe@perches.com>
+	 <4E5CDBAA.6040001@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Bart De Schuymer <bart.de.schuymer@pandora.be>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Julian Anastasov <ja@ssi.bg>,
+	Stephen Hemminger <shemminger@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, bridge@lists.linux-foundation.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	lvs-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:45815 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755033Ab1H3P14 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Aug 2011 11:27:56 -0400
-Content-Disposition: inline
-In-Reply-To: <4E5CEEBC.8090305@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <4E5CDBAA.6040001@trash.net>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy <kaber@trash.net> wrote:
-> Yes, when using your patch, otherwise (when handling this case in
-> nf_nat_setup_info() we might invoke it multiple times simultaneously
-> though.
-> 
-> > In case nf_ct_ext_add() we already return NF_ACCEPT, so I think this
-> > part is OK.
-> > 
-> >> I also fear this is not
-> >> going to be the only problem caused by breaking the "unconfirmed means
-> >> non-shared nfct" assumption.
-> > 
-> > Agreed. Perhaps we can solve the module dependeny issue of the "unshare"
-> > approach.  In fact, if invalid state for the clones would be acceptable
-> > then the dependency should go away; AFAICS nf_conntrack_untracked is the
-> > only nf-related symbol required by br_netfilter.o not in netfilter/core.c.
-> 
-> I don't think the clones should have invalid state, even untracked is
-> very questionable since all packets should have NAT applied to them in
-> the same way, connmarks might be used etc.
+On Tue, 2011-08-30 at 14:46 +0200, Patrick McHardy wrote:
+> On 29.08.2011 23:17, Joe Perches wrote:
+> > Removing unnecessary messages saves code and text.
+> > Site specific OOM messages are duplications of a generic MM
+> > out of memory message and aren't really useful, so just
+> > delete them.
+> Looks good to me. Do you want me to apply this patch or are you
+> intending to have the entire series go through Dave?
 
-Right, but this is probably only going to be fixable in a "try to do the
-best without crashing", because even without userspace queueing
-there are cases where this is not deterministic:
+It doesn't matter to me one way or another.
 
--m physdev --physdev-out eth1 -j SNAT ...
--m physdev --physdev-out eth2 -j SNAT ...
+If you pick this one up, when I redo these
+to separate vmalloc from the the other alloc
+cases, I'll won't send netfilter again.
 
-... will match whatever bridge port the packet will be sent out on
-first.
+cheers, Joe
 
-Also, before 87557c18ac36241b596984589a0889c5c4bf916c
-forward ran after pass_frame_up() in which case post_routing is
-not involved.
-
-I am afraid we might first need to find out what should happen in
-the "delivered locally and forwarded" case before we can figure
-out what a sane fix might look like.
-
-> We probably need to restore the above mentioned assumption somehow. One
-> way would be to serialize reinjection of packets belonging to
-> unconfirmed conntracks in nf_reinject or the queueing modules. Conntrack
-> related stuff doesn't really belong there, but it seems like the easiest
-> and safest fix to me.
-
-Only serializing reinject may not be enough, since some packets might not be
-queued (e.g. when queueing only in forward, or only when dealing with
-a particular bridge port); in which case we'd still race.
