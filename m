@@ -1,53 +1,48 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter: ipset: use NFPROTO_ constants
-Date: Tue, 30 Aug 2011 14:50:16 +0200
-Message-ID: <4E5CDC88.4000506@trash.net>
-References: <alpine.LNX.2.01.1108251046050.1457@frira.zrqbmnf.qr>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] bridge: netfilter: work around shared nfct struct
+Date: Tue, 30 Aug 2011 14:54:53 +0200
+Message-ID: <20110830125453.GC7548@Chamillionaire.breakpoint.cc>
+References: <1314701827-21702-1-git-send-email-fw@strlen.de>
+ <4E5CDADC.7000902@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54752 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753021Ab1H3MuR (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:59821 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752045Ab1H3Myy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Aug 2011 08:50:17 -0400
-In-Reply-To: <alpine.LNX.2.01.1108251046050.1457@frira.zrqbmnf.qr>
+	Tue, 30 Aug 2011 08:54:54 -0400
+Content-Disposition: inline
+In-Reply-To: <4E5CDADC.7000902@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 25.08.2011 10:46, Jan Engelhardt wrote:
-> parent 51b33b93d4c2e6c63afb177158f660fd17daf47c (v3.1-rc2-3-g51b33b9)
-> commit bf6e2b96ffe871285cd6e9d24c8d23fbf84386e0
-> Author: Jan Engelhardt <jengelh@medozas.de>
-> Date:   Thu Aug 25 10:18:44 2011 +0200
+Patrick McHardy <kaber@trash.net> wrote:
+> On 30.08.2011 12:57, Florian Westphal wrote:
+> > When incoking iptables hooks from bridge netfilter, the assumption
+> > that non-confirmed skb->nfct is never shared does no longer hold,
+> > as bridge code clones skbs when e.g. forwarding packets to multiple
+> > bridge ports.
+> > 
+> > When NFQUEUE is used, we can BUG because nf_nat_setup_info can be
+> > invoked simultaneously for the same conntrack:
 > 
-> netfilter: ipset: use NFPROTO_ constants
-> 
-> ipset is actually using NFPROTO values rather than AF (xt_set
-> passes that along).
-> 
-> Semantic patch for the change:
-> // <smpl>
-> @@
-> @@
-> -AF_UNSPEC
-> +NFPROTO_UNSPEC
-> @@
-> @@
-> -AF_INET
-> +NFPROTO_IPV4
-> @@
-> @@
-> -AF_INET6
-> +NFPROTO_IPV6
-> // </smpl>
-> 
-> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+> I'm wondering how this can happen, when flooding packets to multiple
+> ports, they are still processed by the same CPU one after another,
+> so for the second and further packets, nf_nat should notice that
+> the mappings are already set up.
 
-I'll wait for Jozsef to either Ack the patches or send them to me
-before applying them.
+Main problem is that we end up with same ->nfct in both
+INPUT and POSTROUTING (br_pass_frame_up vs. br_forward).
+
+its extremely unlikely but reproduceable with something like
+hping2 -i u1200 -2 -p 138 -d 128 192.168.0.255
+
+(assuming bridge interface has an address within that network).
+
+Also, with recent change nf_reinject can be run in parallel.
+(the original problem was observed on 2.6.32.24, but i can
+ reproduce it with nf-next, too).
