@@ -1,35 +1,46 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset 6.8 patches
-Date: Tue, 30 Aug 2011 09:47:47 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1108300942190.26239@blackhole.kfki.hu>
-References: <1314552769-19143-1-git-send-email-jengelh@medozas.de>
+From: Jean-Philippe Menil <jean-philippe.menil@univ-nantes.fr>
+Subject: kernel BUG at net/netfilter/ipset/ip_set_core.c:314
+Date: Tue, 30 Aug 2011 10:58:11 +0200
+Message-ID: <4E5CA623.9000402@univ-nantes.fr>
+Reply-To: jean-philippe.menil@univ-nantes.fr
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:52747 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751423Ab1H3Hrs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Aug 2011 03:47:48 -0400
-In-Reply-To: <1314552769-19143-1-git-send-email-jengelh@medozas.de>
+Received: from smtp-tls2.univ-nantes.fr ([193.52.101.146]:42581 "EHLO
+	smtp-tls.univ-nantes.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751841Ab1H3JDY (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 30 Aug 2011 05:03:24 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jan,
+Hi,
 
-On Sun, 28 Aug 2011, Jan Engelhardt wrote:
+With the set bitmap ipmac, if i had one, two hundred ip,mac in a set;=20
+and do an ipset list,
+i get an:
+ipset v6.8: Kernel error received: No buffer space available
+followed by a kernel panic (trace attached).
 
-> Jan Engelhardt (3):
->       ipset: use NFPROTO_ constants
+Maybe, in ip_set_core.c, can we modify the line 435 to this one:
+if (ip_set_list[index] !=3D NULL && ip_set_list[index]->ref !=3D0)
 
-I don't really like the NFPROTO_X_IPV46 identifier either. Could you name 
-it NFPROTO_IPSET_IPV46 or suggest a better one?
+This way, we avoid the kernel panic?
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Regards.
+
+--=20
+Jean-Philippe Menil - P=F4le r=E9seau Service IRTS
+DSI Universit=E9 de Nantes
+jean-philippe.menil@univ-nantes.fr
+Tel : 02.53.48.49.27 - Fax : 02.53.48.49.09
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
