@@ -1,42 +1,38 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 06/24] netfilter: Remove unnecessary OOM logging messages
-Date: Wed, 31 Aug 2011 12:13:02 +0200
-Message-ID: <4E5E092E.80507@trash.net>
-References: <cover.1314650069.git.joe@perches.com>	<13c1c12486cae409dfa5254b1435e660f2b17e05.1314650069.git.joe@perches.com>	<4E5CDBAA.6040001@trash.net> <20110830.135502.179848097213434762.davem@davemloft.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: your mail
+Date: Wed, 31 Aug 2011 13:56:35 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1108311352450.31028@blackhole.kfki.hu>
+References: <alpine.LNX.2.01.1108281611060.31802@frira.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: joe@perches.com, bart.de.schuymer@pandora.be, wensong@linux-vs.org,
-	horms@verge.net.au, ja@ssi.bg, shemminger@linux-foundation.org,
-	kuznet@ms2.inr.ac.ru, jmorris@namei.org, yoshfuji@linux-ipv6.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, bridge@lists.linux-foundation.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	lvs-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <20110830.135502.179848097213434762.davem@davemloft.net>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-in.kfki.hu ([148.6.0.26]:51535 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755161Ab1HaL4h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 31 Aug 2011 07:56:37 -0400
+In-Reply-To: <alpine.LNX.2.01.1108281611060.31802@frira.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 30.08.2011 19:55, David Miller wrote:
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Tue, 30 Aug 2011 14:46:34 +0200
-> 
->> On 29.08.2011 23:17, Joe Perches wrote:
->>> Removing unnecessary messages saves code and text.
->>>
->>> Site specific OOM messages are duplications of a generic MM
->>> out of memory message and aren't really useful, so just
->>> delete them.
->>
->> Looks good to me. Do you want me to apply this patch or are you
->> intending to have the entire series go through Dave?
-> 
-> I'm happy with subsystem folks taking things in if they want, the
-> B.A.T.M.A.N. guys did this earlier today for example.
+Hi Jan,
 
-OK, thanks.
+On Sun, 28 Aug 2011, Jan Engelhardt wrote:
 
-Applied after fixing up some minor rejects in nf_nat_snmp_basic.c,
-thanks Joe.
+> libxt_SET.c requires IPSET_INVALID_ID, but this constant has moved into 
+> a #ifdef __KERNEL__ section lately and is thus absent from userspace. 
+> (In linux-kernel/include/linux/netfilter/ipset/ip_set.h.)
+
+After rewieving your patches, I don't get it: what userspace tool would 
+use linux-kernel/include/linux/netfilter/ipset/ip_set.h? iptables does 
+definitely not use it and ipset either. So why your patches are 
+required?
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
