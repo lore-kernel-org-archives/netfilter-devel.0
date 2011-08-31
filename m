@@ -1,47 +1,54 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: your mail
-Date: Wed, 31 Aug 2011 14:16:44 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1108311414470.31028@blackhole.kfki.hu>
-References: <alpine.LNX.2.01.1108281611060.31802@frira.zrqbmnf.qr> <alpine.DEB.2.00.1108311352450.31028@blackhole.kfki.hu> <alpine.LNX.2.01.1108311409060.2589@frira.zrqbmnf.qr>
+From: Ulrich Weber <ulrich.weber@sophos.com>
+Subject: [PATCH] nf_nat: dont check for port change on ICMP tuples
+Date: Wed, 31 Aug 2011 14:13:52 +0200
+Message-ID: <20110831121352.GA7966@WS-uweber>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:37556 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755161Ab1HaMQp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 31 Aug 2011 08:16:45 -0400
-In-Reply-To: <alpine.LNX.2.01.1108311409060.2589@frira.zrqbmnf.qr>
+Received: from dhost002-18.dex002.intermedia.net ([64.78.21.84]:8192 "EHLO
+	dhost002-18.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755302Ab1HaMUN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 31 Aug 2011 08:20:13 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 31 Aug 2011, Jan Engelhardt wrote:
+ICMP tuples have id in src and type/code in dst.
+So comparing src.u.all with dst.u.all will always fail here
+and ip_xfrm_me_harder() is called for every ICMP packet,
+even if there was no NAT...
 
-> On Wednesday 2011-08-31 13:56, Jozsef Kadlecsik wrote:
-> 
-> >On Sun, 28 Aug 2011, Jan Engelhardt wrote:
-> >
-> >> libxt_SET.c requires IPSET_INVALID_ID, but this constant has moved into 
-> >> a #ifdef __KERNEL__ section lately and is thus absent from userspace. 
-> >> (In linux-kernel/include/linux/netfilter/ipset/ip_set.h.)
-> >
-> >After rewieving your patches, I don't get it: what userspace tool would 
-> >use linux-kernel/include/linux/netfilter/ipset/ip_set.h? iptables does 
-> >definitely not use it and ipset either. So why your patches are 
-> >required?
-> 
-> iptables/extensions/xt_SET.c #includes <netfilter/xt_set.h> which 
-> #includes ip_set.h to get at the definition of ip_set.h.
-> Patch will be resent.
+Signed-off-by: Ulrich Weber <ulrich.weber@sophos.com>
+---
+ net/ipv4/netfilter/nf_nat_standalone.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-iptables/extensions/libxt_SET.c includes <linux/netfilter/xt_set.h> and 
-xt_set.h includes nothing.
+diff --git a/net/ipv4/netfilter/nf_nat_standalone.c b/net/ipv4/netfilter/nf_nat_standalone.c
+index 9290048..e32b542 100644
+--- a/net/ipv4/netfilter/nf_nat_standalone.c
++++ b/net/ipv4/netfilter/nf_nat_standalone.c
+@@ -194,7 +194,8 @@ nf_nat_out(unsigned int hooknum,
+ 
+ 		if ((ct->tuplehash[dir].tuple.src.u3.ip !=
+ 		     ct->tuplehash[!dir].tuple.dst.u3.ip) ||
+-		    (ct->tuplehash[dir].tuple.src.u.all !=
++		    (ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMP &&
++		     ct->tuplehash[dir].tuple.src.u.all !=
+ 		     ct->tuplehash[!dir].tuple.dst.u.all)
+ 		   )
+ 			return ip_xfrm_me_harder(skb) == 0 ? ret : NF_DROP;
+@@ -230,7 +231,8 @@ nf_nat_local_fn(unsigned int hooknum,
+ 				ret = NF_DROP;
+ 		}
+ #ifdef CONFIG_XFRM
+-		else if (ct->tuplehash[dir].tuple.dst.u.all !=
++		else if (ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMP &&
++			 ct->tuplehash[dir].tuple.dst.u.all !=
+ 			 ct->tuplehash[!dir].tuple.src.u.all)
+ 			if (ip_xfrm_me_harder(skb))
+ 				ret = NF_DROP;
+-- 
+1.7.4.1
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
