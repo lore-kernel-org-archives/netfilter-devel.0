@@ -1,18 +1,18 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset: make header files usable from userspace (v2)
-Date: Wed, 31 Aug 2011 16:01:24 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1108311600580.31028@blackhole.kfki.hu>
-References: <1314792606-9930-1-git-send-email-jengelh@medozas.de>
+Subject: Re: ipset: use NFPROTO_ (v2)
+Date: Wed, 31 Aug 2011 21:13:59 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1108312109380.1611@blackhole.kfki.hu>
+References: <1314794637-30141-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:35891 "EHLO smtp2.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:51119 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751266Ab1HaOBZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 31 Aug 2011 10:01:25 -0400
-In-Reply-To: <1314792606-9930-1-git-send-email-jengelh@medozas.de>
+	id S1750847Ab1HaTOA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 31 Aug 2011 15:14:00 -0400
+In-Reply-To: <1314794637-30141-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -20,17 +20,22 @@ Hi Jan,
 
 On Wed, 31 Aug 2011, Jan Engelhardt wrote:
 
-> While refreshing iptables's header files with new ones from the
-> kernel, libxt_SET fails to compile because some definitions were
-> locked away in __KERNEL__ sections when they should not have been.
+> The following changes since commit cdb6bb6cf01909e84bae99af0d83946884f24611:
 > 
-> >In the second patch please move the type id and the ip_set_dim enum
-> >together outside of the __KERNEL__ section. Thus a single #ifdef
-> >section suffices. Thanks!
+>   ipset 6.8 released (2011-07-11 11:10:47 +0200)
 > 
-> done so now.
+> are available in the git repository at:
+>   git://dev.medozas.de/ipset master
+> 
+> Jan Engelhardt (3):
+>       ipset: use NFPROTO_ constants
+>       build: abort autogen on subcommand failure
+>       build: move ipset_errcode into library
 
-Thanks, the patches are applied.
+Please rebase these patches against commit
+20a52295775126d1bd5740b6543d1ea8ea239b1b and send them again: the 
+compatibility patch I had to wrote on top of your previous batch broke 
+them. Thanks!
 
 Best regards,
 Jozsef
