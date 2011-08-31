@@ -1,54 +1,68 @@
-From: Ulrich Weber <ulrich.weber@sophos.com>
-Subject: [PATCH] nf_nat: dont check for port change on ICMP tuples
-Date: Wed, 31 Aug 2011 14:13:52 +0200
-Message-ID: <20110831121352.GA7966@WS-uweber>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: ipset: use NFPROTO_ (v2)
+Date: Wed, 31 Aug 2011 14:43:53 +0200
+Message-ID: <1314794637-30141-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dhost002-18.dex002.intermedia.net ([64.78.21.84]:8192 "EHLO
-	dhost002-18.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755302Ab1HaMUN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 31 Aug 2011 08:20:13 -0400
-Content-Disposition: inline
+Received: from seven.medozas.de ([188.40.89.202]:53328 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755169Ab1HaMn7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 31 Aug 2011 08:43:59 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-ICMP tuples have id in src and type/code in dst.
-So comparing src.u.all with dst.u.all will always fail here
-and ip_xfrm_me_harder() is called for every ICMP packet,
-even if there was no NAT...
 
-Signed-off-by: Ulrich Weber <ulrich.weber@sophos.com>
----
- net/ipv4/netfilter/nf_nat_standalone.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+The following changes since commit cdb6bb6cf01909e84bae99af0d83946884f24611:
 
-diff --git a/net/ipv4/netfilter/nf_nat_standalone.c b/net/ipv4/netfilter/nf_nat_standalone.c
-index 9290048..e32b542 100644
---- a/net/ipv4/netfilter/nf_nat_standalone.c
-+++ b/net/ipv4/netfilter/nf_nat_standalone.c
-@@ -194,7 +194,8 @@ nf_nat_out(unsigned int hooknum,
- 
- 		if ((ct->tuplehash[dir].tuple.src.u3.ip !=
- 		     ct->tuplehash[!dir].tuple.dst.u3.ip) ||
--		    (ct->tuplehash[dir].tuple.src.u.all !=
-+		    (ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMP &&
-+		     ct->tuplehash[dir].tuple.src.u.all !=
- 		     ct->tuplehash[!dir].tuple.dst.u.all)
- 		   )
- 			return ip_xfrm_me_harder(skb) == 0 ? ret : NF_DROP;
-@@ -230,7 +231,8 @@ nf_nat_local_fn(unsigned int hooknum,
- 				ret = NF_DROP;
- 		}
- #ifdef CONFIG_XFRM
--		else if (ct->tuplehash[dir].tuple.dst.u.all !=
-+		else if (ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMP &&
-+			 ct->tuplehash[dir].tuple.dst.u.all !=
- 			 ct->tuplehash[!dir].tuple.src.u.all)
- 			if (ip_xfrm_me_harder(skb))
- 				ret = NF_DROP;
--- 
-1.7.4.1
+  ipset 6.8 released (2011-07-11 11:10:47 +0200)
 
+are available in the git repository at:
+  git://dev.medozas.de/ipset master
+
+Jan Engelhardt (3):
+      ipset: use NFPROTO_ constants
+      build: abort autogen on subcommand failure
+      build: move ipset_errcode into library
+
+ autogen.sh                                         |    2 +-
+ include/libipset/nfproto.h                         |   19 +++++++
+ include/libipset/types.h                           |   15 +++--
+ kernel/include/linux/netfilter/ipset/ip_set.h      |    5 ++-
+ kernel/net/netfilter/ipset/ip_set_bitmap_ip.c      |    4 +-
+ kernel/net/netfilter/ipset/ip_set_bitmap_ipmac.c   |    4 +-
+ kernel/net/netfilter/ipset/ip_set_bitmap_port.c    |    4 +-
+ kernel/net/netfilter/ipset/ip_set_core.c           |   16 +++---
+ kernel/net/netfilter/ipset/ip_set_getport.c        |    4 +-
+ kernel/net/netfilter/ipset/ip_set_hash_ip.c        |   18 +++---
+ kernel/net/netfilter/ipset/ip_set_hash_ipport.c    |   10 ++--
+ kernel/net/netfilter/ipset/ip_set_hash_ipportip.c  |   10 ++--
+ kernel/net/netfilter/ipset/ip_set_hash_ipportnet.c |   12 ++--
+ kernel/net/netfilter/ipset/ip_set_hash_net.c       |   12 ++--
+ kernel/net/netfilter/ipset/ip_set_hash_netiface.c  |   12 ++--
+ kernel/net/netfilter/ipset/ip_set_hash_netport.c   |   12 ++--
+ kernel/net/netfilter/ipset/ip_set_list_set.c       |    2 +-
+ lib/Makefile.am                                    |    1 +
+ lib/data.c                                         |   21 ++++----
+ lib/debug.c                                        |    4 +-
+ {src => lib}/errcode.c                             |    0
+ lib/parse.c                                        |   52 ++++++++++----------
+ lib/print.c                                        |   20 ++++----
+ lib/session.c                                      |   34 ++++++------
+ lib/types.c                                        |   29 ++++++-----
+ src/Makefile.am                                    |    1 -
+ src/ipset.c                                        |   10 ++--
+ src/ipset_bitmap_ip.c                              |    2 +-
+ src/ipset_bitmap_ipmac.c                           |    2 +-
+ src/ipset_bitmap_port.c                            |    2 +-
+ src/ipset_hash_ip.c                                |    2 +-
+ src/ipset_hash_ipport.c                            |    2 +-
+ src/ipset_hash_ipportip.c                          |    2 +-
+ src/ipset_hash_ipportnet.c                         |    4 +-
+ src/ipset_hash_net.c                               |    4 +-
+ src/ipset_hash_netiface.c                          |    2 +-
+ src/ipset_hash_netport.c                           |    4 +-
+ src/ipset_list_set.c                               |    2 +-
+ 38 files changed, 194 insertions(+), 167 deletions(-)
+ create mode 100644 include/libipset/nfproto.h
+ rename {src => lib}/errcode.c (100%)
