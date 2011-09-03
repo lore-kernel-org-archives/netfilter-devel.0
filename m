@@ -1,89 +1,87 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: iptables: libxt_statistic.so undefined symbol: lround
-Date: Sat, 3 Sep 2011 14:07:29 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1109031406430.26365@frira.zrqbmnf.qr>
-References: <CAEik5nPmurYA8tysJ7+LRH-uM5Nx=Odr-YYwsrxUKGFivQu1BQ@mail.gmail.com> <CAEik5nN4W3W-51Zj=Yd-33uATD1TLZg0K4+N7RfWhKr7=78fRw@mail.gmail.com>
+From: Tom Eastep <teastep@shorewall.net>
+Subject: [PATCH] Correct CONNSECMARK_save()
+Date: Sat, 03 Sep 2011 06:24:38 -0700
+Message-ID: <1315056278.2383.5.camel@sami.shorewall.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Dan McGee <dan@archlinux.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-rhjLyLopS5Q/eQXcEUL2"
+To: Netfilter Development <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:33225 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750702Ab1ICMHd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 3 Sep 2011 08:07:33 -0400
-In-Reply-To: <CAEik5nN4W3W-51Zj=Yd-33uATD1TLZg0K4+N7RfWhKr7=78fRw@mail.gmail.com>
+Received: from lists.shorewall.net ([70.90.191.124]:57098 "EHLO
+	lists.shorewall.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751435Ab1ICNYk (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 3 Sep 2011 09:24:40 -0400
+Received: from [IPv6:2001:470:b:227:222:3fff:fef6:7c0e] (sami.shorewall.net [IPv6:2001:470:b:227:222:3fff:fef6:7c0e])
+	(using TLSv1 with cipher AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by lists.shorewall.net (Postfix) with ESMTPSA id B3E55F4A896
+	for <netfilter-devel@vger.kernel.org>; Sat,  3 Sep 2011 06:24:38 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 2011-09-02 15:51, Dan McGee wrote:
 
->Ping? Do I need to report this somewhere else? Not fixed in the just
->released 1.4.12.1.
+--=-rhjLyLopS5Q/eQXcEUL2
+Content-Type: multipart/mixed; boundary="=-02XCVI9WxYYIU6ZWE6aG"
 
-After pondering how to go about this, I have now a patch for this, 
-which should appear sooner (or later..) in the tree.
 
-parent 2ca6273c73b42e8c74afd5f8b1fe10c5c93ce363 (v1.4.12-43-g2ca6273)
-commit d4e72dc1c684c2f8361d87e6bde2902cd2ee8efb
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Sat Sep 3 13:34:40 2011 +0200
+--=-02XCVI9WxYYIU6ZWE6aG
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-libxt_statistic: link with -lm
+Output is missing a space between 'CONNSECMARK' and '--'.
 
-$ ldd -r libxt_statistic.so
-undefined symbol: lround        (./libxt_statistic.so)
+        sami:~# iptables -N foo -t mangle
+        sami:~# iptables -A foo -t mangle -j CONNSECMARK --save
+        sami:~# iptables -S -t mangle
+        -P PREROUTING ACCEPT
+        -P INPUT ACCEPT
+        -P FORWARD ACCEPT
+        -P OUTPUT ACCEPT
+        -P POSTROUTING ACCEPT
+        -N foo
+        -A foo -j CONNSECMARK--save
+        sami:~#=20
 
-References: https://bugs.archlinux.org/task/25358
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- extensions/GNUmakefile.in |    5 ++++-
- iptables/Makefile.am      |    9 +++++++--
- 2 files changed, 11 insertions(+), 3 deletions(-)
+-Tom
+--=20
+Tom Eastep        \ When I die, I want to go like my Grandfather who
+Shoreline,         \ died peacefully in his sleep. Not screaming like
+Washington, USA     \ all of the passengers in his car
+http://shorewall.net \________________________________________________
 
-diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
-index 2b48d84..dbf210c 100644
---- a/extensions/GNUmakefile.in
-+++ b/extensions/GNUmakefile.in
-@@ -90,11 +90,14 @@ init%.o: init%.c
- #	Shared libraries
- #
- lib%.so: lib%.oo
--	${AM_VERBOSE_CCLD} ${CCLD} ${AM_LDFLAGS} -shared ${LDFLAGS} -o $@ $<;
-+	${AM_VERBOSE_CCLD} ${CCLD} ${AM_LDFLAGS} -shared ${LDFLAGS} -o $@ $< ${$*_LIBADD};
- 
- lib%.oo: ${srcdir}/lib%.c
- 	${AM_VERBOSE_CC} ${CC} ${AM_CPPFLAGS} ${AM_DEPFLAGS} ${AM_CFLAGS} -D_INIT=lib$*_init -DPIC -fPIC ${CFLAGS} -o $@ -c $<;
- 
-+# Need the LIBADDs in iptables/Makefile.am too for libxtables_la_LIBADD
-+xt_statistic_LIBADD = -lm
-+
- 
- #
- #	Static bits
-diff --git a/iptables/Makefile.am b/iptables/Makefile.am
-index addb159..f6db32d 100644
---- a/iptables/Makefile.am
-+++ b/iptables/Makefile.am
-@@ -6,12 +6,17 @@ AM_CPPFLAGS      = ${regular_CPPFLAGS} -I${top_builddir}/include -I${top_srcdir}
- lib_LTLIBRARIES       = libxtables.la
- libxtables_la_SOURCES = xtables.c xtoptions.c
- libxtables_la_LDFLAGS = -version-info ${libxtables_vcurrent}:0:${libxtables_vage}
-+libxtables_la_LIBADD  =
-+if ENABLE_STATIC
-+# With --enable-static, shipped extensions are linked into the main executable,
-+# so we need all the LIBADDs here too
-+libxtables_la_LIBADD += -lm
-+endif
- if ENABLE_SHARED
- libxtables_la_CFLAGS  = ${AM_CFLAGS}
--libxtables_la_LIBADD  = -ldl
-+libxtables_la_LIBADD += -ldl
- else
- libxtables_la_CFLAGS  = ${AM_CFLAGS} -DNO_SHARED_LIBS=1
--libxtables_la_LIBADD  =
- endif
- 
- xtables_multi_SOURCES  = xtables-multi.c iptables-xml.c
--- 
-# Created with git-export-patch
+
+--=-02XCVI9WxYYIU6ZWE6aG
+Content-Disposition: attachment; filename="commit-953ba77"
+Content-Type: text/plain; name="commit-953ba77"; charset="UTF-8"
+Content-Transfer-Encoding: base64
+
+Y29tbWl0IDk1M2JhNzdhZmZhYjE5ZjE2YmQ5MDY0ZDZiODM0NGMzZDEyYTliNTMNCkF1dGhvcjog
+VG9tIEVhc3RlcCA8dGVhc3RlcEBzaG9yZXdhbGwubmV0Pg0KRGF0ZTogICBGcmkgU2VwIDIgMTc6
+NDU6NTEgMjAxMSAtMDcwMA0KDQogICAgUmVzb2x2ZSAtUyBpc3N1ZSB3aXRoIENPTk5TRUNNQVJL
+DQoNCmRpZmYgLS1naXQgYS9leHRlbnNpb25zL2xpYnh0X0NPTk5TRUNNQVJLLmMgYi9leHRlbnNp
+b25zL2xpYnh0X0NPTk5TRUNNQVJLLmMNCmluZGV4IGRmMmU2YjguLjBiM2NkNzkgMTAwNjQ0DQot
+LS0gYS9leHRlbnNpb25zL2xpYnh0X0NPTk5TRUNNQVJLLmMNCisrKyBiL2V4dGVuc2lvbnMvbGli
+eHRfQ09OTlNFQ01BUksuYw0KQEAgLTg3LDcgKzg3LDcgQEAgQ09OTlNFQ01BUktfc2F2ZShjb25z
+dCB2b2lkICppcCwgY29uc3Qgc3RydWN0IHh0X2VudHJ5X3RhcmdldCAqdGFyZ2V0KQ0KIAljb25z
+dCBzdHJ1Y3QgeHRfY29ubnNlY21hcmtfdGFyZ2V0X2luZm8gKmluZm8gPQ0KIAkJKHN0cnVjdCB4
+dF9jb25uc2VjbWFya190YXJnZXRfaW5mbyopdGFyZ2V0LT5kYXRhOw0KIA0KLQlwcmludGYoIi0t
+Iik7DQorCXByaW50ZigiIC0tIik7DQogCXByaW50X2Nvbm5zZWNtYXJrKGluZm8pOw0KIH0NCiAN
+Cg==
+
+
+--=-02XCVI9WxYYIU6ZWE6aG--
+
+--=-rhjLyLopS5Q/eQXcEUL2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEABECAAYFAk5iKpEACgkQO/MAbZfjDLIb6wCfSCkCHrcDLyTXLwyWja2xD/dE
+o1YAoKcgT6b+AKkco2XVI6YANre73aOQ
+=Ytu7
+-----END PGP SIGNATURE-----
+
+--=-rhjLyLopS5Q/eQXcEUL2--
+
