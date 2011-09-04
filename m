@@ -1,54 +1,55 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 02/11] net: add function to allocate skbuff head
- without data area
-Date: Sun, 04 Sep 2011 10:12:18 +0200
-Message-ID: <1315123938.2635.1.camel@edumazet-laptop>
+From: =?iso-8859-2?Q?Micha=B3_Miros=B3aw?= <mirq@rere.qmqm.pl>
+Subject: Re: [PATCH 08/11] netlink: implement memory mapped sendmsg()
+Date: Sun, 4 Sep 2011 18:18:22 +0200
+Message-ID: <20110904161822.GA8176@rere.qmqm.pl>
 References: <1315070771-18576-1-git-send-email-kaber@trash.net>
-	 <1315070771-18576-3-git-send-email-kaber@trash.net>
+ <1315070771-18576-9-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-2
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
 	netdev@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:34854 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752548Ab1IDIMZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 4 Sep 2011 04:12:25 -0400
-In-Reply-To: <1315070771-18576-3-git-send-email-kaber@trash.net>
+Received: from rere.qmqm.pl ([89.167.52.164]:47183 "EHLO rere.qmqm.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751253Ab1IDQSZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 4 Sep 2011 12:18:25 -0400
+Content-Disposition: inline
+In-Reply-To: <1315070771-18576-9-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le samedi 03 septembre 2011 =C3=A0 19:26 +0200, kaber@trash.net a =C3=A9=
-crit :
+On Sat, Sep 03, 2011 at 07:26:08PM +0200, kaber@trash.net wrote:
+> From: Patrick McHardy <kaber@trash.net>
+>=20
+> Add support for memory mapped sendmsg() to netlink. Userspace queued =
+to
+> be processed frames into the TX ring and invokes sendmsg with
+> msg.iov.iov_base =3D NULL to trigger processing of all pending messag=
+es.
+>=20
+> Since the kernel usually performs full message validation before begi=
+nning
+> processing, userspace must be prevented from modifying the message
+> contents while the kernel is processing them. In order to do so, the
+> frames contents are copied to an allocated skb in case the the ring i=
+s
+> mapped more than once or the file descriptor is shared (f.i. through
+> AF_UNIX file descriptor passing).
+>=20
+> Otherwise an skb without a data area is allocated, the data pointer s=
+et
+> to point to the data area of the ring frame and the skb is processed.
+> Once the skb is freed, the destructor releases the frame back to user=
+space
+> by setting the status to NL_MMAP_STATUS_UNUSED.
 
-> +struct sk_buff *__alloc_skb_head(gfp_t gfp_mask, int node)
-> +{
-> +	struct sk_buff *skb;
-> +
-> +	/* Get the HEAD */
-> +	skb =3D kmem_cache_alloc_node(skbuff_head_cache,
-> +				    gfp_mask & ~__GFP_DMA, node);
-> +	if (!skb)
-> +		goto out;
-> +	prefetchw(skb);
+Is this protected from threads? Like: one thread waits on sendmsg() and
+another (same process) changes the buffer.
 
-Please remove this prefetchw(), since we have no delay between it and
-actual memset(skb).
-
-> +
-> +	/*
-> +	 * Only clear those fields we need to clear, not those that we will
-> +	 * actually initialise below. Hence, don't put any more fields afte=
-r
-> +	 * the tail pointer in struct sk_buff!
-> +	 */
-> +	memset(skb, 0, offsetof(struct sk_buff, tail));
-
-
-
+Best Regards,
+Micha=B3 Miros=B3aw
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
