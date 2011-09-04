@@ -1,46 +1,56 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] netfilter: install nf_nat.h and related headers to
- INSTALL_HDR_PATH
-Date: Sat, 3 Sep 2011 21:41:34 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1109032141040.30017@frira.zrqbmnf.qr>
-References: <1315075784-10163-1-git-send-email-basile@opensource.dyc.edu>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH 02/11] net: add function to allocate skbuff head
+ without data area
+Date: Sun, 04 Sep 2011 10:12:18 +0200
+Message-ID: <1315123938.2635.1.camel@edumazet-laptop>
+References: <1315070771-18576-1-git-send-email-kaber@trash.net>
+	 <1315070771-18576-3-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: davem@davemloft.net, kaber@trash.net, blueness@gentoo.org,
-	gurligebis@gentoo.org, base-system@gentoo.org, kernel@gentoo.org,
-	toolchain@gentoo.org, mchehab@redhat.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, arnd@arndb.de,
-	eparis@redhat.com, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, coreteam@netfilter.org
-To: "Anthony G. Basile" <basile@opensource.dyc.edu>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1315075784-10163-1-git-send-email-basile@opensource.dyc.edu>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: kaber@trash.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:34854 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752548Ab1IDIMZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 4 Sep 2011 04:12:25 -0400
+In-Reply-To: <1315070771-18576-3-git-send-email-kaber@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Saturday 2011-09-03 20:49, Anthony G. Basile wrote:
+Le samedi 03 septembre 2011 =C3=A0 19:26 +0200, kaber@trash.net a =C3=A9=
+crit :
 
->Currently nf_nat.h, nf_conntrack_tuple.h and related headers under
->include/net/netfilter are not installed as part of the public kernel
->headers.   However, there are userland applications, other than iptables
->which ships with its own headers, which need these to make use of NAT in
->the kernel's netfilter API.  For example, miniupnpd, requires them and is
->forced to search /usr/src/linux when building.
->
->This patch makes these headers public by installing them in
->INSTALL_HDR_PATH.
->
->See: https://bugs.gentoo.org/376873
->
->Signed-off-by: Anthony G. Basile <blueness@gentoo.org>
+> +struct sk_buff *__alloc_skb_head(gfp_t gfp_mask, int node)
+> +{
+> +	struct sk_buff *skb;
+> +
+> +	/* Get the HEAD */
+> +	skb =3D kmem_cache_alloc_node(skbuff_head_cache,
+> +				    gfp_mask & ~__GFP_DMA, node);
+> +	if (!skb)
+> +		goto out;
+> +	prefetchw(skb);
 
->@@ -0,0 +1,6 @@
->+header-y += nf_nat.h
->+header-y += nf_conntrack.h
->+header-y += nf_conntrack_tuple.h
->+header-y += nf_conntrack_extend.h
->+header-y += ipv4/
->+header-y += ipv6/
+Please remove this prefetchw(), since we have no delay between it and
+actual memset(skb).
 
-Should not the to-be-exported files better go into linux/ instead?
+> +
+> +	/*
+> +	 * Only clear those fields we need to clear, not those that we will
+> +	 * actually initialise below. Hence, don't put any more fields afte=
+r
+> +	 * the tail pointer in struct sk_buff!
+> +	 */
+> +	memset(skb, 0, offsetof(struct sk_buff, tail));
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
