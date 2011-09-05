@@ -1,25 +1,42 @@
-From: "Pongracic, Ivan" <Ivan.Pongracic@indwes.edu>
-Subject: Loan Offer.......Apply Now
-Date: Mon, 5 Sep 2011 05:25:21 -0400
-Message-ID: <E20AD1E8C4BAF140A87DAF6DE5D3BD841D795394@teal.iwunet.indwes.edu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: install nf_nat.h and related headers to
+ INSTALL_HDR_PATH
+Date: Mon, 5 Sep 2011 19:48:47 +0200
+Message-ID: <20110905174847.GB32733@1984>
+References: <1315075784-10163-1-git-send-email-basile@opensource.dyc.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: unlisted-recipients:; (no To-header on input)
+Content-Type: text/plain; charset=us-ascii
+Cc: davem@davemloft.net, kaber@trash.net, blueness@gentoo.org,
+	gurligebis@gentoo.org, base-system@gentoo.org, kernel@gentoo.org,
+	toolchain@gentoo.org, mchehab@redhat.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, arnd@arndb.de,
+	eparis@redhat.com, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org
+To: "Anthony G. Basile" <basile@opensource.dyc.edu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from delta.indwes.edu ([199.8.25.251]:19942 "EHLO
-	Orange.iwunet.indwes.edu" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750802Ab1IEJbJ convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Sep 2011 05:31:09 -0400
-Content-Class: urn:content-classes:message
+Received: from mail.us.es ([193.147.175.20]:51033 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752051Ab1IERsu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 Sep 2011 13:48:50 -0400
+Content-Disposition: inline
+In-Reply-To: <1315075784-10163-1-git-send-email-basile@opensource.dyc.edu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
- 
- 
-GBS Finance Loan Company,
-Tel: +91-886-054-9288 
-We offer loan at low interest rate of  3%. APPLY FOR LOAN NOW VIA EMAIL: (gbsfinanceloan.firm@gmail.com). Please be informed that we only give out loan in US Dollar, Euro  and Great British Pounds. 
-Regards,
-Mr.Pongracis Ivan. 
+On Sat, Sep 03, 2011 at 02:49:44PM -0400, Anthony G. Basile wrote:
+> Currently nf_nat.h, nf_conntrack_tuple.h and related headers under
+> include/net/netfilter are not installed as part of the public kernel
+> headers.   However, there are userland applications, other than iptables
+> which ships with its own headers, which need these to make use of NAT in
+> the kernel's netfilter API.  For example, miniupnpd, requires them and is
+> forced to search /usr/src/linux when building.
+
+Could anyone clarify why miniupnpd (or any other application) require
+this?
+
+Those headers contain structure layouts that may change along time
+without further notice, thus breaking backward compatibility.
+
+and BTW, no need to cross-post this message to such a huge list of CC.
+I guess you could simply use netfilter-devel for this.
