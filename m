@@ -1,38 +1,35 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: iptables branch management
-Date: Mon, 5 Sep 2011 19:54:25 +0200
-Message-ID: <20110905175425.GC32733@1984>
-References: <alpine.LNX.2.01.1109021604260.4532@frira.zrqbmnf.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] Correct CONNSECMARK_save()
+Date: Mon, 5 Sep 2011 20:19:54 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1109052019320.5150@frira.zrqbmnf.qr>
+References: <1315056278.2383.5.camel@sami.shorewall.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
+To: Tom Eastep <teastep@shorewall.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55026 "EHLO mail.us.es"
+Received: from seven.medozas.de ([188.40.89.202]:42086 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752469Ab1IERy3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Sep 2011 13:54:29 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.01.1109021604260.4532@frira.zrqbmnf.qr>
+	id S1751960Ab1IEST5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 Sep 2011 14:19:57 -0400
+In-Reply-To: <1315056278.2383.5.camel@sami.shorewall.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jan,
+On Saturday 2011-09-03 15:24, Tom Eastep wrote:
 
-On Fri, Sep 02, 2011 at 04:20:13PM +0200, Jan Engelhardt wrote:
-> Hei
-> 
-> I would like to propose a "stable" branch that would be rooted 
-> in the most recent tag and only receive fixes. Furtheremore, 
-> the branch is merged time and again into master, so that the 
-> fix is available in both without cherry-pick. 1.4.12.x releases be made 
-> from stable, and 1.4.y from master.
-> How about it?
+>Output is missing a space between 'CONNSECMARK' and '--'.
+>
+>        sami:~# iptables -N foo -t mangle
+>        sami:~# iptables -A foo -t mangle -j CONNSECMARK --save
+>        sami:~# iptables -S -t mangle
+>        -P PREROUTING ACCEPT
+>        -P INPUT ACCEPT
+>        -P FORWARD ACCEPT
+>        -P OUTPUT ACCEPT
+>        -P POSTROUTING ACCEPT
+>        -N foo
+>        -A foo -j CONNSECMARK--save
+>        sami:~# 
 
-Hm, I remember that we had this discussion before.
-
-I think it's probably too much overhead for it, looking at how other
-similar net-tools are maintained, the amount of contributions that
-er receive and amount of changes that get into every version.
+Taken.
