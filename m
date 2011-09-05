@@ -1,42 +1,38 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: install nf_nat.h and related headers to
- INSTALL_HDR_PATH
-Date: Mon, 5 Sep 2011 19:48:47 +0200
-Message-ID: <20110905174847.GB32733@1984>
-References: <1315075784-10163-1-git-send-email-basile@opensource.dyc.edu>
+Subject: Re: iptables branch management
+Date: Mon, 5 Sep 2011 19:54:25 +0200
+Message-ID: <20110905175425.GC32733@1984>
+References: <alpine.LNX.2.01.1109021604260.4532@frira.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: davem@davemloft.net, kaber@trash.net, blueness@gentoo.org,
-	gurligebis@gentoo.org, base-system@gentoo.org, kernel@gentoo.org,
-	toolchain@gentoo.org, mchehab@redhat.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, arnd@arndb.de,
-	eparis@redhat.com, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, coreteam@netfilter.org
-To: "Anthony G. Basile" <basile@opensource.dyc.edu>
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51033 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55026 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752051Ab1IERsu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Sep 2011 13:48:50 -0400
+	id S1752469Ab1IERy3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 Sep 2011 13:54:29 -0400
 Content-Disposition: inline
-In-Reply-To: <1315075784-10163-1-git-send-email-basile@opensource.dyc.edu>
+In-Reply-To: <alpine.LNX.2.01.1109021604260.4532@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Sep 03, 2011 at 02:49:44PM -0400, Anthony G. Basile wrote:
-> Currently nf_nat.h, nf_conntrack_tuple.h and related headers under
-> include/net/netfilter are not installed as part of the public kernel
-> headers.   However, there are userland applications, other than iptables
-> which ships with its own headers, which need these to make use of NAT in
-> the kernel's netfilter API.  For example, miniupnpd, requires them and is
-> forced to search /usr/src/linux when building.
+Hi Jan,
 
-Could anyone clarify why miniupnpd (or any other application) require
-this?
+On Fri, Sep 02, 2011 at 04:20:13PM +0200, Jan Engelhardt wrote:
+> Hei
+> 
+> I would like to propose a "stable" branch that would be rooted 
+> in the most recent tag and only receive fixes. Furtheremore, 
+> the branch is merged time and again into master, so that the 
+> fix is available in both without cherry-pick. 1.4.12.x releases be made 
+> from stable, and 1.4.y from master.
+> How about it?
 
-Those headers contain structure layouts that may change along time
-without further notice, thus breaking backward compatibility.
+Hm, I remember that we had this discussion before.
 
-and BTW, no need to cross-post this message to such a huge list of CC.
-I guess you could simply use netfilter-devel for this.
+I think it's probably too much overhead for it, looking at how other
+similar net-tools are maintained, the amount of contributions that
+er receive and amount of changes that get into every version.
