@@ -1,43 +1,54 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] netfilter: install nf_nat.h and related headers to
- INSTALL_HDR_PATH
-Date: Tue, 6 Sep 2011 20:11:30 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1109062001450.19110@frira.zrqbmnf.qr>
-References: <1315075784-10163-1-git-send-email-basile@opensource.dyc.edu> <20110905174847.GB32733@1984> <4E664E05.4090907@opensource.dyc.edu>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, davem@davemloft.net,
-	kaber@trash.net, blueness@gentoo.org, gurligebis@gentoo.org,
-	base-system@gentoo.org, kernel@gentoo.org, toolchain@gentoo.org,
-	mchehab@redhat.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, arnd@arndb.de,
-	eparis@redhat.com, netfilter-devel@vger.kernel.org
-To: "Anthony G. Basile" <basile@opensource.dyc.edu>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH] netfilter: ipv6: fix afinfo->route refcnt leak on error
+Date: Tue,  6 Sep 2011 20:59:11 +0200
+Message-ID: <1315335551-1659-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:60471 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753552Ab1IFSLf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Sep 2011 14:11:35 -0400
-In-Reply-To: <4E664E05.4090907@opensource.dyc.edu>
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:60945 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753173Ab1IFTBI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 6 Sep 2011 15:01:08 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Several callers (conntrack_h323, xt_addrtype) assume that the
+returned **dst only needs to be released if the function returns 0.
 
-On Tuesday 2011-09-06 18:44, Anthony G. Basile wrote:
->> 
->> Could anyone clarify why miniupnpd (or any other application) require
->> this?
->> 
->> Those headers contain structure layouts that may change along time
->> without further notice, thus breaking backward compatibility.
->
->It makes use of
->
->   union nf_conntrack_man_proto
->   struct nf_nat_range
->   struct nf_nat_multi_range_compat
+Instead of changing the callers, fix the ipv6 implementation
+to behave like the ipv4 version by only providing *dst result
+in the success case.
 
-miniupnpd is fiddling with the binary representation. Yes, classic
-case of "all the xt headers are exported, just DNAT/SNAT's structs are not".
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/ipv6/netfilter.c |   13 ++++++++++---
+ 1 files changed, 10 insertions(+), 3 deletions(-)
 
-Did miniupnpd consider using the text-based interface?
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index 30fcee4..8992cf6 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -100,9 +100,16 @@ static int nf_ip6_route(struct net *net, struct dst_entry **dst,
+ 		.pinet6 = (struct ipv6_pinfo *) &fake_pinfo,
+ 	};
+ 	const void *sk = strict ? &fake_sk : NULL;
+-
+-	*dst = ip6_route_output(net, sk, &fl->u.ip6);
+-	return (*dst)->error;
++	struct dst_entry *result;
++	int err;
++
++	result = ip6_route_output(net, sk, &fl->u.ip6);
++	err = result->error;
++	if (err)
++		dst_release(result);
++	else
++		*dst = result;
++	return err;
+ }
+ 
+ __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
+-- 
+1.7.3.4
+
