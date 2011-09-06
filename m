@@ -1,125 +1,53 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 1/6] netfilter: ipset: Autoload set type modules safely
-Date: Tue,  6 Sep 2011 21:59:02 +0200
-Message-ID: <1315339147-9617-2-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 4/6] netfilter: ipset: avoid use of kernel-only types
+Date: Tue,  6 Sep 2011 21:59:05 +0200
+Message-ID: <1315339147-9617-5-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1315339147-9617-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Patrick McHardy <kaber@trash.net>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jan Engelhardt <jengelh@medozas.de>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:44375 "EHLO smtp1.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:44384 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754751Ab1IFT7p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1754851Ab1IFT7p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Tue, 6 Sep 2011 15:59:45 -0400
 In-Reply-To: <1315339147-9617-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt noticed when userspace requests a set type unknown
-to the kernel, it can lead to a loop due to the unsafe type module
-loading. The issue is fixed in this patch.
+From: Jan Engelhardt <jengelh@medozas.de>
 
+When using the xt_set.h header in userspace, one will get these gcc
+reports:
+
+ipset/ip_set.h:184:1: error: unknown type name "u16"
+In file included from libxt_SET.c:21:0:
+netfilter/xt_set.h:61:2: error: unknown type name "u32"
+netfilter/xt_set.h:62:2: error: unknown type name "u32"
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/ipset/ip_set_core.c |   36 ++++++++++++++++++++++++++----------
- 1 files changed, 26 insertions(+), 10 deletions(-)
+ include/linux/netfilter/xt_set.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index c012985..5370fd8 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -78,35 +78,42 @@ find_set_type(const char *name, u8 family, u8 revision)
- }
+diff --git a/include/linux/netfilter/xt_set.h b/include/linux/netfilter/xt_set.h
+index c0405ac..e3a9978 100644
+--- a/include/linux/netfilter/xt_set.h
++++ b/include/linux/netfilter/xt_set.h
+@@ -58,8 +58,8 @@ struct xt_set_info_target_v1 {
+ struct xt_set_info_target_v2 {
+ 	struct xt_set_info add_set;
+ 	struct xt_set_info del_set;
+-	u32 flags;
+-	u32 timeout;
++	__u32 flags;
++	__u32 timeout;
+ };
  
- /* Unlock, try to load a set type module and lock again */
--static int
--try_to_load_type(const char *name)
-+static bool
-+load_settype(const char *name)
- {
- 	nfnl_unlock();
- 	pr_debug("try to load ip_set_%s\n", name);
- 	if (request_module("ip_set_%s", name) < 0) {
- 		pr_warning("Can't find ip_set type %s\n", name);
- 		nfnl_lock();
--		return -IPSET_ERR_FIND_TYPE;
-+		return false;
- 	}
- 	nfnl_lock();
--	return -EAGAIN;
-+	return true;
- }
- 
- /* Find a set type and reference it */
-+#define find_set_type_get(name, family, revision, found)	\
-+	__find_set_type_get(name, family, revision, found, false)
-+
- static int
--find_set_type_get(const char *name, u8 family, u8 revision,
--		  struct ip_set_type **found)
-+__find_set_type_get(const char *name, u8 family, u8 revision,
-+		    struct ip_set_type **found, bool retry)
- {
- 	struct ip_set_type *type;
- 	int err;
- 
-+	if (retry && !load_settype(name))
-+		return -IPSET_ERR_FIND_TYPE;
-+
- 	rcu_read_lock();
- 	*found = find_set_type(name, family, revision);
- 	if (*found) {
- 		err = !try_module_get((*found)->me) ? -EFAULT : 0;
- 		goto unlock;
- 	}
--	/* Make sure the type is loaded but we don't support the revision */
-+	/* Make sure the type is already loaded
-+	 * but we don't support the revision */
- 	list_for_each_entry_rcu(type, &ip_set_type_list, list)
- 		if (STREQ(type->name, name)) {
- 			err = -IPSET_ERR_FIND_TYPE;
-@@ -114,7 +121,8 @@ find_set_type_get(const char *name, u8 family, u8 revision,
- 		}
- 	rcu_read_unlock();
- 
--	return try_to_load_type(name);
-+	return retry ? -IPSET_ERR_FIND_TYPE :
-+		__find_set_type_get(name, family, revision, found, true);
- 
- unlock:
- 	rcu_read_unlock();
-@@ -125,12 +133,19 @@ unlock:
-  * If we succeeded, the supported minimal and maximum revisions are
-  * filled out.
-  */
-+#define find_set_type_minmax(name, family, min, max) \
-+	__find_set_type_minmax(name, family, min, max, false)
-+
- static int
--find_set_type_minmax(const char *name, u8 family, u8 *min, u8 *max)
-+__find_set_type_minmax(const char *name, u8 family, u8 *min, u8 *max,
-+		       bool retry)
- {
- 	struct ip_set_type *type;
- 	bool found = false;
- 
-+	if (retry && !load_settype(name))
-+		return -IPSET_ERR_FIND_TYPE;
-+
- 	*min = 255; *max = 0;
- 	rcu_read_lock();
- 	list_for_each_entry_rcu(type, &ip_set_type_list, list)
-@@ -146,7 +161,8 @@ find_set_type_minmax(const char *name, u8 family, u8 *min, u8 *max)
- 	if (found)
- 		return 0;
- 
--	return try_to_load_type(name);
-+	return retry ? -IPSET_ERR_FIND_TYPE :
-+		__find_set_type_minmax(name, family, min, max, true);
- }
- 
- #define family_name(f)	((f) == AF_INET ? "inet" : \
+ #endif /*_XT_SET_H*/
 -- 
 1.7.0.4
 
