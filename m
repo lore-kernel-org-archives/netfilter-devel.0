@@ -1,54 +1,52 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH] netfilter: ipv6: fix afinfo->route refcnt leak on error
-Date: Tue,  6 Sep 2011 20:59:11 +0200
-Message-ID: <1315335551-1659-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [ANNOUNCE] ipset 6.9.1 released
+Date: Tue, 6 Sep 2011 21:49:52 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1109062143300.9388@blackhole.kfki.hu>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:60945 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753173Ab1IFTBI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Sep 2011 15:01:08 -0400
+Received: from smtp-in.kfki.hu ([148.6.0.26]:34432 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754780Ab1IFTty (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 6 Sep 2011 15:49:54 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Several callers (conntrack_h323, xt_addrtype) assume that the
-returned **dst only needs to be released if the function returns 0.
+Hi,
 
-Instead of changing the callers, fix the ipv6 implementation
-to behave like the ipv4 version by only providing *dst result
-in the success case.
+I'm happy to announce ipset 6.9.1. It contains two important bugfixes: if 
+you use ipset on a hardware with tight memory usage, please upgrade.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/ipv6/netfilter.c |   13 ++++++++++---
- 1 files changed, 10 insertions(+), 3 deletions(-)
+Kernel part changes:
+ - Fix compiling ipset as external kernel modules (broken v6.9)
+ - Complete Kconfig with hash:net,iface type (standalone package)
+ - rtnetlink: Compute and store minimum ifinfo dump size (Greg Rose)
+ - Remove redundant linux/version.h includes from net/ (Jesper Juhl)
+ - ipset: use NFPROTO_ constants (Jan Engelhardt)
+ - netfilter: ipset: expose userspace-relevant parts in ip_set.h
+   (Jan Engelhardt)
+ - netfilter: ipset: avoid use of kernel-only types (Jan Engelhardt)
+ - netfilter: Remove unnecessary OOM logging messages (Joe Perches)
+ - Dumping error triggered removing references twice and lead to kernel 
+   BUG
+ - Autoload set type modules safely
 
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 30fcee4..8992cf6 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -100,9 +100,16 @@ static int nf_ip6_route(struct net *net, struct dst_entry **dst,
- 		.pinet6 = (struct ipv6_pinfo *) &fake_pinfo,
- 	};
- 	const void *sk = strict ? &fake_sk : NULL;
+Userspace changes:
+ - build: move ipset_errcode into library (Jan Engelhardt)
+ - build: abort autogen on subcommand failure (Jan Engelhardt)
+ - ipset: use NFPROTO_ constants (Jan Engelhardt)
+ - Propagate "expose userspace-relevant parts in ip_set.h" to ipset source
+
+You can download the source code of ipset from:
+        http://ipset.netfilter.org
+        ftp://ftp.netfilter.org/pub/ipset/
+        git://git.netfilter.org/ipset.git
+
+Best regards,
+Jozsef
 -
--	*dst = ip6_route_output(net, sk, &fl->u.ip6);
--	return (*dst)->error;
-+	struct dst_entry *result;
-+	int err;
-+
-+	result = ip6_route_output(net, sk, &fl->u.ip6);
-+	err = result->error;
-+	if (err)
-+		dst_release(result);
-+	else
-+		*dst = result;
-+	return err;
- }
- 
- __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
--- 
-1.7.3.4
-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
