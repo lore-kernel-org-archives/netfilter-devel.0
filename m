@@ -1,52 +1,53 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset 6.9.1 released
-Date: Tue, 6 Sep 2011 21:49:52 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1109062143300.9388@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: [PATCH 0/6] ipset patches
+Date: Tue,  6 Sep 2011 21:59:01 +0200
+Message-ID: <1315339147-9617-1-git-send-email-kadlec@blackhole.kfki.hu>
+Cc: Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:34432 "EHLO smtp1.kfki.hu"
+Received: from smtp1.kfki.hu ([148.6.0.26]:44373 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754780Ab1IFTty (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Sep 2011 15:49:54 -0400
+	id S1752691Ab1IFT7o (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 6 Sep 2011 15:59:44 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hi Patrick and Pablo,
 
-I'm happy to announce ipset 6.9.1. It contains two important bugfixes: if 
-you use ipset on a hardware with tight memory usage, please upgrade.
-
-Kernel part changes:
- - Fix compiling ipset as external kernel modules (broken v6.9)
- - Complete Kconfig with hash:net,iface type (standalone package)
- - rtnetlink: Compute and store minimum ifinfo dump size (Greg Rose)
- - Remove redundant linux/version.h includes from net/ (Jesper Juhl)
- - ipset: use NFPROTO_ constants (Jan Engelhardt)
- - netfilter: ipset: expose userspace-relevant parts in ip_set.h
-   (Jan Engelhardt)
- - netfilter: ipset: avoid use of kernel-only types (Jan Engelhardt)
- - netfilter: Remove unnecessary OOM logging messages (Joe Perches)
- - Dumping error triggered removing references twice and lead to kernel 
-   BUG
- - Autoload set type modules safely
-
-Userspace changes:
- - build: move ipset_errcode into library (Jan Engelhardt)
- - build: abort autogen on subcommand failure (Jan Engelhardt)
- - ipset: use NFPROTO_ constants (Jan Engelhardt)
- - Propagate "expose userspace-relevant parts in ip_set.h" to ipset source
-
-You can download the source code of ipset from:
-        http://ipset.netfilter.org
-        ftp://ftp.netfilter.org/pub/ipset/
-        git://git.netfilter.org/ipset.git
+Here follows the patches which brings the kernel sync with ipset 6.9.1.
+The first two are important bugfixes. Please consider applying them.
 
 Best regards,
 Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+
+Jan Engelhardt (3):
+  netfilter: ipset: avoid use of kernel-only types
+  netfilter: ipset: expose userspace-relevant parts in ip_set.h
+  netfilter: ipset: use NFPROTO_ constants
+
+Joe Perches (1):
+  netfilter: ipset: Remove unnecessary OOM logging messages
+
+Jozsef Kadlecsik (2):
+  netfilter: ipset: Autoload set type modules safely
+  netfilter: ipset: Dumping error could lead to kernel BUG
+
+ include/linux/netfilter/ipset/ip_set.h      |   31 ++++++++------
+ include/linux/netfilter/xt_set.h            |    4 +-
+ net/netfilter/ipset/ip_set_bitmap_ip.c      |    4 +-
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c   |    4 +-
+ net/netfilter/ipset/ip_set_bitmap_port.c    |    4 +-
+ net/netfilter/ipset/ip_set_core.c           |   57 +++++++++++++++++----------
+ net/netfilter/ipset/ip_set_getport.c        |    4 +-
+ net/netfilter/ipset/ip_set_hash_ip.c        |   18 ++++----
+ net/netfilter/ipset/ip_set_hash_ipport.c    |   10 ++--
+ net/netfilter/ipset/ip_set_hash_ipportip.c  |   10 ++--
+ net/netfilter/ipset/ip_set_hash_ipportnet.c |   12 +++---
+ net/netfilter/ipset/ip_set_hash_net.c       |   12 +++---
+ net/netfilter/ipset/ip_set_hash_netiface.c  |   12 +++---
+ net/netfilter/ipset/ip_set_hash_netport.c   |   12 +++---
+ net/netfilter/ipset/ip_set_list_set.c       |    2 +-
+ 15 files changed, 108 insertions(+), 88 deletions(-)
+
