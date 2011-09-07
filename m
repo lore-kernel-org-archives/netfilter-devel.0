@@ -1,54 +1,40 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: install nf_nat.h and related headers to INSTALL_HDR_PATH
-Date: Wed, 07 Sep 2011 16:50:43 +0200
-Message-ID: <4E6784C3.70906@trash.net>
-References: <1315075784-10163-1-git-send-email-basile@opensource.dyc.edu> <20110905174847.GB32733@1984> <4E664E05.4090907@opensource.dyc.edu> <alpine.LNX.2.01.1109062001450.19110@frira.zrqbmnf.qr> <20110907093104.GA9078@1984>
+Subject: Re: [PATCH 0/6] ipset patches
+Date: Wed, 07 Sep 2011 16:39:29 +0200
+Message-ID: <4E678221.2080409@trash.net>
+References: <1315339147-9617-1-git-send-email-kadlec@blackhole.kfki.hu> <20110907093230.GB9078@1984> <alpine.DEB.2.00.1109071402380.12167@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	"Anthony G. Basile" <basile@opensource.dyc.edu>,
-	davem@davemloft.net, blueness@gentoo.org, gurligebis@gentoo.org,
-	base-system@gentoo.org, kernel@gentoo.org, toolchain@gentoo.org,
-	mchehab@redhat.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, arnd@arndb.de,
-	eparis@redhat.com, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62315 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:62683 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753673Ab1IGQqa (ORCPT
+	with ESMTP id S1755122Ab1IGRG2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Sep 2011 12:46:30 -0400
-In-Reply-To: <20110907093104.GA9078@1984>
+	Wed, 7 Sep 2011 13:06:28 -0400
+In-Reply-To: <alpine.DEB.2.00.1109071402380.12167@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 07.09.2011 11:31, Pablo Neira Ayuso wrote:
-> On Tue, Sep 06, 2011 at 08:11:30PM +0200, Jan Engelhardt wrote:
->>
->> On Tuesday 2011-09-06 18:44, Anthony G. Basile wrote:
->>>>
->>>> Could anyone clarify why miniupnpd (or any other application) require
->>>> this?
->>>>
->>>> Those headers contain structure layouts that may change along time
->>>> without further notice, thus breaking backward compatibility.
->>>
->>> It makes use of
->>>
->>>   union nf_conntrack_man_proto
->>>   struct nf_nat_range
->>>   struct nf_nat_multi_range_compat
->>
->> miniupnpd is fiddling with the binary representation. Yes, classic
->> case of "all the xt headers are exported, just DNAT/SNAT's structs are not".
->>
->> Did miniupnpd consider using the text-based interface?
+On 07.09.2011 14:04, Jozsef Kadlecsik wrote:
+> On Wed, 7 Sep 2011, Pablo Neira Ayuso wrote:
 > 
-> The iptables NAT targets are using this binary representation, so we
-> should export those definitions. We gain nothing from keeping them
-> defined privately.
+>> On Tue, Sep 06, 2011 at 09:59:01PM +0200, Jozsef Kadlecsik wrote:
+>>> Hi Patrick and Pablo,
+>>>
+>>> Here follows the patches which brings the kernel sync with ipset 6.9.1.
+>>> The first two are important bugfixes. Please consider applying them.
+>>
+>> AFAIK, all trees are frozen in master.kernel.org due to the security
+>> issue. It seems we'll have to wait until we can apply these patches.
 > 
+> Yeah, I know. But with the new ipset release it seemed best to send the 
+> patches anyway and wait for the cleaning up and verifications at 
+> kernel.org.
 
-Agreed.
+I think for now I'll apply all patches to my local tree and will either
+push them out to kernel.org in case it is available again during the
+next days or temporarily move the tree to somewhere else.
