@@ -1,40 +1,80 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 0/6] ipset patches
-Date: Wed, 07 Sep 2011 16:39:29 +0200
-Message-ID: <4E678221.2080409@trash.net>
-References: <1315339147-9617-1-git-send-email-kadlec@blackhole.kfki.hu> <20110907093230.GB9078@1984> <alpine.DEB.2.00.1109071402380.12167@blackhole.kfki.hu>
+From: =?iso-8859-2?Q?Micha=B3_Miros=B3aw?= <mirq@rere.qmqm.pl>
+Subject: Re: [PATCH 08/11] netlink: implement memory mapped sendmsg()
+Date: Wed, 7 Sep 2011 22:03:19 +0200
+Message-ID: <20110907200319.GA29545@rere.qmqm.pl>
+References: <1315070771-18576-1-git-send-email-kaber@trash.net>
+ <1315070771-18576-9-git-send-email-kaber@trash.net>
+ <20110904161822.GA8176@rere.qmqm.pl>
+ <4E678C18.1010306@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62683 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755122Ab1IGRG2 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Sep 2011 13:06:28 -0400
-In-Reply-To: <alpine.DEB.2.00.1109071402380.12167@blackhole.kfki.hu>
+Received: from rere.qmqm.pl ([89.167.52.164]:56630 "EHLO rere.qmqm.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756774Ab1IGUDW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 7 Sep 2011 16:03:22 -0400
+Content-Disposition: inline
+In-Reply-To: <4E678C18.1010306@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 07.09.2011 14:04, Jozsef Kadlecsik wrote:
-> On Wed, 7 Sep 2011, Pablo Neira Ayuso wrote:
-> 
->> On Tue, Sep 06, 2011 at 09:59:01PM +0200, Jozsef Kadlecsik wrote:
->>> Hi Patrick and Pablo,
->>>
->>> Here follows the patches which brings the kernel sync with ipset 6.9.1.
->>> The first two are important bugfixes. Please consider applying them.
->>
->> AFAIK, all trees are frozen in master.kernel.org due to the security
->> issue. It seems we'll have to wait until we can apply these patches.
-> 
-> Yeah, I know. But with the new ipset release it seemed best to send the 
-> patches anyway and wait for the cleaning up and verifications at 
-> kernel.org.
+On Wed, Sep 07, 2011 at 05:22:00PM +0200, Patrick McHardy wrote:
+> On 04.09.2011 18:18, Micha=B3 Miros=B3aw wrote:
+> > On Sat, Sep 03, 2011 at 07:26:08PM +0200, kaber@trash.net wrote:
+> >> From: Patrick McHardy <kaber@trash.net>
+> >>
+> >> Add support for memory mapped sendmsg() to netlink. Userspace queu=
+ed to
+> >> be processed frames into the TX ring and invokes sendmsg with
+> >> msg.iov.iov_base =3D NULL to trigger processing of all pending mes=
+sages.
+> >>
+> >> Since the kernel usually performs full message validation before b=
+eginning
+> >> processing, userspace must be prevented from modifying the message
+> >> contents while the kernel is processing them. In order to do so, t=
+he
+> >> frames contents are copied to an allocated skb in case the the rin=
+g is
+> >> mapped more than once or the file descriptor is shared (f.i. throu=
+gh
+> >> AF_UNIX file descriptor passing).
+> >>
+> >> Otherwise an skb without a data area is allocated, the data pointe=
+r set
+> >> to point to the data area of the ring frame and the skb is process=
+ed.
+> >> Once the skb is freed, the destructor releases the frame back to u=
+serspace
+> >> by setting the status to NL_MMAP_STATUS_UNUSED.
+> >=20
+> > Is this protected from threads? Like: one thread waits on sendmsg()=
+ and
+> > another (same process) changes the buffer.
+> Yes, if the ring is mapped multiple times (or the file descriptor
+> is changed), the contents are copied to an allocated skb.
 
-I think for now I'll apply all patches to my local tree and will either
-push them out to kernel.org in case it is available again during the
-next days or temporarily move the tree to somewhere else.
+I mean:
+
+[1] mmap()
+[1] fill buffers
+[1] pthread_create() [creates: 2]
+[1] sendmsg() starts
+[2] modify buffers
+[1] sendmsg() returns
+
+So: no multiple mmaps, and no touching of the fd. I haven't dug into
+filesystem layer to see if threads affect file->f_count, but there
+sure are no multiple mappings here.
+
+Best Regards,
+Micha=B3 Miros=B3aw
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
