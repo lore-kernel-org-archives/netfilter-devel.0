@@ -1,49 +1,50 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 08/11] netlink: implement memory mapped sendmsg()
-Date: Wed, 07 Sep 2011 17:22:00 +0200
-Message-ID: <4E678C18.1010306@trash.net>
-References: <1315070771-18576-1-git-send-email-kaber@trash.net> <1315070771-18576-9-git-send-email-kaber@trash.net> <20110904161822.GA8176@rere.qmqm.pl>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 0/6] ipset patches
+Date: Wed, 7 Sep 2011 14:04:16 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1109071402380.12167@blackhole.kfki.hu>
+References: <1315339147-9617-1-git-send-email-kadlec@blackhole.kfki.hu> <20110907093230.GB9078@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq@rere.qmqm.pl>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20110904161822.GA8176@rere.qmqm.pl>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp2.kfki.hu ([148.6.0.28]:33447 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756121Ab1IGQSM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 7 Sep 2011 12:18:12 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by smtp2.kfki.hu (Postfix) with ESMTP id C4D871F40B8
+	for <netfilter-devel@vger.kernel.org>; Wed,  7 Sep 2011 18:18:10 +0200 (CEST)
+Received: from smtp2.kfki.hu ([127.0.0.1])
+	by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id lbmopTuofzWj for <netfilter-devel@vger.kernel.org>;
+	Wed,  7 Sep 2011 18:18:10 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.0.114])
+	by smtp2.kfki.hu (Postfix) with ESMTP id AE85F1F40AE
+	for <netfilter-devel@vger.kernel.org>; Wed,  7 Sep 2011 18:18:10 +0200 (CEST)
+In-Reply-To: <20110907093230.GB9078@1984>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 04.09.2011 18:18, Micha=C5=82 Miros=C5=82aw wrote:
-> On Sat, Sep 03, 2011 at 07:26:08PM +0200, kaber@trash.net wrote:
->> From: Patrick McHardy <kaber@trash.net>
->>
->> Add support for memory mapped sendmsg() to netlink. Userspace queued=
- to
->> be processed frames into the TX ring and invokes sendmsg with
->> msg.iov.iov_base =3D NULL to trigger processing of all pending messa=
-ges.
->>
->> Since the kernel usually performs full message validation before beg=
-inning
->> processing, userspace must be prevented from modifying the message
->> contents while the kernel is processing them. In order to do so, the
->> frames contents are copied to an allocated skb in case the the ring =
-is
->> mapped more than once or the file descriptor is shared (f.i. through
->> AF_UNIX file descriptor passing).
->>
->> Otherwise an skb without a data area is allocated, the data pointer =
-set
->> to point to the data area of the ring frame and the skb is processed=
-=2E
->> Once the skb is freed, the destructor releases the frame back to use=
-rspace
->> by setting the status to NL_MMAP_STATUS_UNUSED.
->=20
-> Is this protected from threads? Like: one thread waits on sendmsg() a=
-nd
-> another (same process) changes the buffer.
+On Wed, 7 Sep 2011, Pablo Neira Ayuso wrote:
 
-Yes, if the ring is mapped multiple times (or the file descriptor
-is changed), the contents are copied to an allocated skb.
+> On Tue, Sep 06, 2011 at 09:59:01PM +0200, Jozsef Kadlecsik wrote:
+> > Hi Patrick and Pablo,
+> > 
+> > Here follows the patches which brings the kernel sync with ipset 6.9.1.
+> > The first two are important bugfixes. Please consider applying them.
+> 
+> AFAIK, all trees are frozen in master.kernel.org due to the security
+> issue. It seems we'll have to wait until we can apply these patches.
+
+Yeah, I know. But with the new ipset release it seemed best to send the 
+patches anyway and wait for the cleaning up and verifications at 
+kernel.org.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
