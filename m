@@ -1,80 +1,115 @@
-From: =?iso-8859-2?Q?Micha=B3_Miros=B3aw?= <mirq@rere.qmqm.pl>
-Subject: Re: [PATCH 08/11] netlink: implement memory mapped sendmsg()
-Date: Wed, 7 Sep 2011 22:03:19 +0200
-Message-ID: <20110907200319.GA29545@rere.qmqm.pl>
-References: <1315070771-18576-1-git-send-email-kaber@trash.net>
- <1315070771-18576-9-git-send-email-kaber@trash.net>
- <20110904161822.GA8176@rere.qmqm.pl>
- <4E678C18.1010306@trash.net>
+From: Amos Jeffries <squid3@treenet.co.nz>
+Subject: Re: Passing data from user-space connections to Netfilter and back
+Date: Thu, 08 Sep 2011 17:32:56 +1200
+Message-ID: <4E685388.2040905@treenet.co.nz>
+References: <alpine.DEB.2.00.1109061359360.25876@lap-x201>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rere.qmqm.pl ([89.167.52.164]:56630 "EHLO rere.qmqm.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756774Ab1IGUDW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Sep 2011 16:03:22 -0400
-Content-Disposition: inline
-In-Reply-To: <4E678C18.1010306@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, Paolo Lucente <paolo@pmacct.net>,
+  Squid Developers <squid-dev@squid-cache.org>
+To: Chris Wilson <chris@aptivate.org>
+Return-path: <squid-dev-return-25289-gcwsd-squid-dev=m.gmane.org@squid-cache.org>
+List-Post: <mailto:squid-dev@squid-cache.org>
+List-Help: <mailto:squid-dev-help@squid-cache.org>
+List-Unsubscribe: <mailto:squid-dev-unsubscribe@squid-cache.org>
+List-Subscribe: <mailto:squid-dev-subscribe@squid-cache.org>
+In-Reply-To: <alpine.DEB.2.00.1109061359360.25876@lap-x201>
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Sep 07, 2011 at 05:22:00PM +0200, Patrick McHardy wrote:
-> On 04.09.2011 18:18, Micha=B3 Miros=B3aw wrote:
-> > On Sat, Sep 03, 2011 at 07:26:08PM +0200, kaber@trash.net wrote:
-> >> From: Patrick McHardy <kaber@trash.net>
-> >>
-> >> Add support for memory mapped sendmsg() to netlink. Userspace queu=
-ed to
-> >> be processed frames into the TX ring and invokes sendmsg with
-> >> msg.iov.iov_base =3D NULL to trigger processing of all pending mes=
-sages.
-> >>
-> >> Since the kernel usually performs full message validation before b=
-eginning
-> >> processing, userspace must be prevented from modifying the message
-> >> contents while the kernel is processing them. In order to do so, t=
-he
-> >> frames contents are copied to an allocated skb in case the the rin=
-g is
-> >> mapped more than once or the file descriptor is shared (f.i. throu=
-gh
-> >> AF_UNIX file descriptor passing).
-> >>
-> >> Otherwise an skb without a data area is allocated, the data pointe=
-r set
-> >> to point to the data area of the ring frame and the skb is process=
-ed.
-> >> Once the skb is freed, the destructor releases the frame back to u=
-serspace
-> >> by setting the status to NL_MMAP_STATUS_UNUSED.
-> >=20
-> > Is this protected from threads? Like: one thread waits on sendmsg()=
- and
-> > another (same process) changes the buffer.
-> Yes, if the ring is mapped multiple times (or the file descriptor
-> is changed), the contents are copied to an allocated skb.
+On 07/09/11 00:32, Chris Wilson wrote:
+> Dear Netfilter and Squid developers,
+>
+> I'm working on software to help network administrators with slow
+> Internet connections (e.g. in Africa) to monitor, understand and
+> optimise their network's Internet usage.
+>
+> Currently we are running pmacct (reading from pcap/ULOG and generating
+> flow records) and Squid (for caching and for recording the requested
+> URLs, since web traffic is pretty opaque without them).
+>
+> We'd like to be able to record the traffic flows coming out of Squid
+> towards the Internet, and associate the requested URL with a flow
+> record. Unfortunately this is quite difficult because of the limited
+> information available to match flow records to Squid logs:
+>
+> * flow accounting (pcap/ulog) sees: source IP+port (squid host+random
+> high port), destination IP+port (web host, port 80 or 443), packet time;
+>
+> * recorded in database by flow accounting: source IP+port (squid
+> host+random high port), destination IP+port (web host, port 80 or 443),
+> flow timestamp (rounded to the nearest minute, multiple flow records for
+> a long-lived connection);
+>
+> * squid sees and logs: source IP+port (squid host+random high port),
+> destination IP+port (web host, port 80 or 443), connection start time, URL.
+>
+> We could achieve something by matching on source and destination IP and
+> port, but this is not very reliable. In the case of a frequently
+> accessed website (e.g. google, facebook) only the source port changes
+> between connections, and this could be recycled quite quickly, leading
+> to ambiguous or false accounting. This is even more true of the reverse
+> proxy case (Squid in front of your web server).
 
-I mean:
+Why do you call that false accounting? It is all flows from Squid to 
+google, facebook, etc. Does it really matter if it was 1 flow or 10 when 
+there is Mbps going through to the same place?
 
-[1] mmap()
-[1] fill buffers
-[1] pthread_create() [creates: 2]
-[1] sendmsg() starts
-[2] modify buffers
-[1] sendmsg() returns
+The problems as described appear to be side effects directly related to 
+the 1 minute resolution in your database. Within any given minute 
+upwards of 1,000 unique HTTP transactions may have occurred over one TCP 
+flow.
 
-So: no multiple mmaps, and no touching of the fd. I haven't dug into
-filesystem layer to see if threads affect file->f_count, but there
-sure are no multiple mappings here.
+>
+> I think it would make sense for:
+>
+> * Squid to generate a (near) unique ID for the connection (or use the
+> TCP ISN? 32 bit ISN + 16 bit source port = 48 bit random ID);
+>
+> * Squid to pass that information to Netfilter (e.g. with an ioctl() on
+> the socket);
+>
+> * Netfilter to associate that ID with the connection (e.g. copy it into
+> the CONNMARK);
+>
+> * Netfilter to log it to user space along with the connection's packets
+> via ULOG;
+>
+> * pmacct to store it in the flow record in the database.
+>
+> Does this sound like a sensible plan? Is there any existing interface
+> for a user-space application like Squid to associate opaque information
+> with a connection that it makes, and for that information to make it
+> back to user space via ULOG or similar? If not, where would you add it,
+> and would the Netfilter and Squid teams in principle accept patches to
+> make it possible?
+>
+> Can it be done without touching any part of the kernel except Netfilter?
+> Is there already a way for a user-space application to query the ISN of
+> its own TCP connections from the kernel, or communicate with Netfilter
+> about them?
+>
+> Thanks in advance,
+>
+> Chris Wilson.
 
-Best Regards,
-Micha=B3 Miros=B3aw
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regarding Squid,
+
+  The logs contain time + duration, not just time, with a millisecond 
+resolution. Reported at the termination of each request. So port 
+rotation should not be relevant. For accuracy accounting needs only to 
+associate the URL and IP:port tuples for all matching flow records 
+across that specified duration.
+
+  You may also want to have a look at the capabilities which we are 
+currently stabilizing in squid 3.2.0.9 and later. They have more 
+reliable IP:port details able to be logged regarding the connections. 
+Along with flexible modules able to be added easily for realtime logging 
+to any API you want.
+  IPFIX logging has been requested, but not added yet. If you are 
+interested in sponsoring or doing that modules implementation please 
+contact me off-list.
+
+
+Amos Jeffries
+Squid HTTP Proxy Project
