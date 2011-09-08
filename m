@@ -1,45 +1,96 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH RFC] iptables-restore: new option to change the commit
- timing
-Date: Thu, 8 Sep 2011 17:22:03 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1109081716390.13219@frira.zrqbmnf.qr>
-References: <4E68C314.3070709@dump-Storage.net>  <alpine.LNX.2.01.1109081652310.13219@frira.zrqbmnf.qr> <1315494418.2456.23.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+From: =?iso-8859-2?Q?Micha=B3_Miros=B3aw?= <mirq@rere.qmqm.pl>
+Subject: Re: [PATCH 08/11] netlink: implement memory mapped sendmsg()
+Date: Thu, 8 Sep 2011 20:08:23 +0200
+Message-ID: <20110908180823.GA12536@rere.qmqm.pl>
+References: <1315070771-18576-1-git-send-email-kaber@trash.net>
+ <1315070771-18576-9-git-send-email-kaber@trash.net>
+ <20110904161822.GA8176@rere.qmqm.pl>
+ <4E678C18.1010306@trash.net>
+ <20110907200319.GA29545@rere.qmqm.pl>
+ <4E688BD5.5030909@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-2
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Hiroshi KIHIRA <hiro@dump-Storage.net>,
-	netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:51537 "EHLO seven.medozas.de"
+Received: from rere.qmqm.pl ([89.167.52.164]:50078 "EHLO rere.qmqm.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753388Ab1IHPWL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Sep 2011 11:22:11 -0400
-In-Reply-To: <1315494418.2456.23.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+	id S1752176Ab1IHW4g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Sep 2011 18:56:36 -0400
+Content-Disposition: inline
+In-Reply-To: <4E688BD5.5030909@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Thu, Sep 08, 2011 at 11:33:09AM +0200, Patrick McHardy wrote:
+> Am 07.09.2011 22:03, schrieb Micha=B3 Miros=B3aw:
+> > On Wed, Sep 07, 2011 at 05:22:00PM +0200, Patrick McHardy wrote:
+> >> On 04.09.2011 18:18, Micha=B3 Miros=B3aw wrote:
+> >>> On Sat, Sep 03, 2011 at 07:26:08PM +0200, kaber@trash.net wrote:
+> >>>> From: Patrick McHardy <kaber@trash.net>
+> >>>>
+> >>>> Add support for memory mapped sendmsg() to netlink. Userspace qu=
+eued to
+> >>>> be processed frames into the TX ring and invokes sendmsg with
+> >>>> msg.iov.iov_base =3D NULL to trigger processing of all pending m=
+essages.
+> >>>>
+> >>>> Since the kernel usually performs full message validation before=
+ beginning
+> >>>> processing, userspace must be prevented from modifying the messa=
+ge
+> >>>> contents while the kernel is processing them. In order to do so,=
+ the
+> >>>> frames contents are copied to an allocated skb in case the the r=
+ing is
+> >>>> mapped more than once or the file descriptor is shared (f.i. thr=
+ough
+> >>>> AF_UNIX file descriptor passing).
+> >>>>
+> >>>> Otherwise an skb without a data area is allocated, the data poin=
+ter set
+> >>>> to point to the data area of the ring frame and the skb is proce=
+ssed.
+> >>>> Once the skb is freed, the destructor releases the frame back to=
+ userspace
+> >>>> by setting the status to NL_MMAP_STATUS_UNUSED.
+> >>>
+> >>> Is this protected from threads? Like: one thread waits on sendmsg=
+() and
+> >>> another (same process) changes the buffer.
+> >> Yes, if the ring is mapped multiple times (or the file descriptor
+> >> is changed), the contents are copied to an allocated skb.
+> >=20
+> > I mean:
+> >=20
+> > [1] mmap()
+> > [1] fill buffers
+> > [1] pthread_create() [creates: 2]
+> > [1] sendmsg() starts
+> > [2] modify buffers
+> > [1] sendmsg() returns
+> >=20
+> > So: no multiple mmaps, and no touching of the fd. I haven't dug int=
+o
+> > filesystem layer to see if threads affect file->f_count, but there
+> > sure are no multiple mappings here.
+> If CLONE_VM is given to clone(), the mapping is visible in both
+> threads and thus we have multiple mappings (vma_ops->open() is
+> invoked through clone()). Without CLONE_VM, the second thread
+> can't access the ring unless it mmap()s it itself, in case we'd
+> also have multiple mappings.
 
-On Thursday 2011-09-08 17:06, Eric Dumazet wrote:
->>=20
->> I am in favor of that. Though, I have to add, it actually misses the
->> inconsistency case {syntax is accepted, but the options are rejected
->> by the kernel}.
->>=20
->> What would probably be most desirable is that iptables-restore keeps
->> copies in memory of each table it attempted to touch,
->> for the eventual case of a rollback.
->
->Unfortunately, keeping a copy into userland memory is not enough to
->guarantee a rollback is possible in kernel land.
->
->You might be in an OOM situation preveting new (large) memory
->allocations.
+I made a quick look into kernel/fork.c, and it looks to me that if CLON=
+E_VM
+is set, then vma->open() is actually avoided --- it's called via dup_mm=
+()
+and dup_mmap() only if CLONE_VM is not there and the VMA needs to be co=
+pied.
 
-If restoring the old table fails, no big deal, since we are already
-in an inconsistent state anyway=C2=A0=E2=80=94 caused by the rejection =
-of the new
-table=C2=A0=E2=80=94, so there is no additional loss AFAICS.
+Best Regards,
+Micha=B3 Miros=B3aw
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
