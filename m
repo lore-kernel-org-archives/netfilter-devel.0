@@ -1,30 +1,52 @@
-From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Subject: Re: [PATCH RFC] iptables-restore: new option to change the commit timing
-Date: Thu, 8 Sep 2011 22:26:47 -0700
-Message-ID: <CAHo-OoxL-RKrkhgPux4pt0oeCHDK6bR5zST9kiFhpyqUH6PuYw@mail.gmail.com>
-References: <4E68C314.3070709@dump-Storage.net>
-	<alpine.LNX.2.01.1109081652310.13219@frira.zrqbmnf.qr>
-	<1315494418.2456.23.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
-	<alpine.LNX.2.01.1109081716390.13219@frira.zrqbmnf.qr>
+From: Peter Volkov <pva@gentoo.org>
+Subject: Re: iptables branch management
+Date: Fri, 09 Sep 2011 13:31:45 +0400
+Message-ID: <1315560705.10959.3.camel@tablet>
+References: <alpine.LNX.2.01.1109021604260.4532@frira.zrqbmnf.qr>
+	 <20110905175425.GC32733@1984> <4E68935B.3000401@trash.net>
+	 <alpine.LNX.2.01.1109081243320.11934@frira.zrqbmnf.qr>
+	 <4E68BAA8.5010501@trash.net>
+	 <alpine.LNX.2.01.1109081610030.6362@frira.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Hiroshi KIHIRA <hiro@dump-storage.net>,
-	netfilter-devel@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-gw0-f42.google.com ([74.125.83.42]:47992 "EHLO
-	mail-gw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754578Ab1IIF0r (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 Sep 2011 01:26:47 -0400
-Received: by gwb17 with SMTP id 17so870010gwb.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 08 Sep 2011 22:26:47 -0700 (PDT)
-In-Reply-To: <alpine.LNX.2.01.1109081716390.13219@frira.zrqbmnf.qr>
+Received: from smtp.gentoo.org ([140.211.166.183]:46619 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753406Ab1IIJcx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 9 Sep 2011 05:32:53 -0400
+In-Reply-To: <alpine.LNX.2.01.1109081610030.6362@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Propose calling it -a --atomic instead of -d --delay and maybe
---sequence --sequential or --onebyone for the opposite.
-Either way doing all the parsing, then attempting to apply, and if it
-fails attempting to undo it is probably the right default behaviour.
+=D0=92 =D0=A7=D1=82=D0=B2, 08/09/2011 =D0=B2 16:41 +0200, Jan Engelhard=
+t =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+> Oh we are nicely accumulating fixes & trivials already - do not worry=
+=20
+> about that. Just let me pull this off, all it means is that
+> there is another branch head on iptables.git, and something convenien=
+t=20
+> for the release manager to tag should the need arise for a .y release=
+=2E=20
+> Users already seem to like the idea[1].
+> [1] http://marc.info/?l=3Dnetfilter-devel&m=3D131499886708085&w=3D2
+
+As the iptables maintainer in Gentoo I really appreciate such branch
+management. BTW, I'd like to know how long stable branch will be
+maintained? Or IOW how we'll find out that it's not maintained any more=
+?
+
+With best regards,
+--
+Peter.
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
