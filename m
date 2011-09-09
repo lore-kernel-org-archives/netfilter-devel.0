@@ -1,115 +1,228 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [RFC PATCH 12/11] netlink: improve flow control and speed up dumps
- with memory mapped I/O
-Date: Thu, 08 Sep 2011 18:36:41 +0200
-Message-ID: <4E68EF19.8070305@trash.net>
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080602030607010109080807"
-Cc: NetDev <netdev@vger.kernel.org>
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+From: "Anthony G. Basile" <basile@opensource.dyc.edu>
+Subject: [PATCH] netfilter: install nf_nat.h and nf_conntrack_tuple.h to INSTALL_HDR_PATH
+Date: Thu,  8 Sep 2011 20:16:17 -0400
+Message-ID: <1315527377-28528-1-git-send-email-basile@opensource.dyc.edu>
+Cc: kaber@trash.net, basile@opensource.dyc.edu, blueness@gentoo.org,
+	gurligebis@gentoo.org, base-system@gentoo.org, kernel@gentoo.org,
+	toolchain@gentoo.org, mchehab@redhat.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, arnd@arndb.de,
+	eparis@redhat.com, netfilter-devel@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59157 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524Ab1IHXLX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Sep 2011 19:11:23 -0400
+Received: from mail.ddl.dyc.edu ([67.151.215.230]:45629 "EHLO ddl.dyc.edu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753883Ab1IIAP1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Sep 2011 20:15:27 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------080602030607010109080807
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+From: "Anthony G. Basile" <basile@opensource.dyc.edu>
 
-This patch on top of the memory mapped netlink I/O series is
-meant to speed up dumps by dumping messages more aggressively.
+This exports sanitized versions of nf_nat.h, nf_conntrack_tuple.h for
+userland applications, like iptables and miniupnpd, which make use of
+binary representations of NAT in the kernel's netfilter API.
 
-Messages are dumped until half the ring is used, this is similar
-to flow-control used with regular I/O with the difference that
-all messages are constructed during a single poll call instead
-of multiple recvmsg() calls.
+This patch makes these headers public by installing them in
+INSTALL_HDR_PATH.
 
-The result is not as good as I expected, dumping 196611
-routes using rtnl-route-dump from libmnl show the following
-results (averaged over 10 runs):
+See: https://bugs.gentoo.org/376873
 
-user-time: -7.9%
-system-time: -10.4%
-real-time: +0.09%
-CPU: -7.45%
+Signed-off-by: Anthony G. Basile <blueness@gentoo.org>
+---
+ include/linux/netfilter/Kbuild               |    2 +
+ include/linux/netfilter/nf_conntrack_tuple.h |  110 ++++++++++++++++++++++++++
+ include/linux/netfilter/nf_nat.h             |   52 ++++++++++++
+ 3 files changed, 164 insertions(+), 0 deletions(-)
+ create mode 100644 include/linux/netfilter/nf_conntrack_tuple.h
+ create mode 100644 include/linux/netfilter/nf_nat.h
 
-Strangely the real time stays almost the same and CPU usage
-decreases by a few percent - I would have expected a reduction
-of real-time with identical CPU usage (99%). Not sure what
-the reason is, will try to investigate further.
-
-
---------------080602030607010109080807
-Content-Type: text/plain;
- name="nldump.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="nldump.diff"
-
-commit 1eadec60573240c2b6ee3ce942471b3e0656e4dc
-Author: Patrick McHardy <kaber@trash.net>
-Date:   Thu Sep 8 16:26:27 2011 +0200
-
-    netlink: improve flow control and speed up dumps with memory mapped I/O
-    
-    Improve dump flow control with memory mapped I/O: dumps are only continued
-    if at least half the ring is free, similar to regular I/O. This minimizes
-    the risk of receiving socket errors when the socket is also used for receiving
-    regular unicast messages.
-    
-    Additionally speed up dumps by dumping multiple messages at once until
-    the dump is either complete or less than half the ring is free.
-    
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
-
-diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
-index 2f4745d..fadf216 100644
---- a/net/netlink/af_netlink.c
-+++ b/net/netlink/af_netlink.c
-@@ -530,6 +530,24 @@ static void netlink_forward_ring(struct netlink_ring *ring)
- 	} while (ring->head != head);
- }
- 
-+static bool netlink_dump_space(struct netlink_sock *nlk)
-+{
-+	struct netlink_ring *ring = &nlk->rx_ring;
-+	struct nl_mmap_hdr *hdr;
-+	unsigned int n;
+diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/Kbuild
+index a1b410c..e9ee3eb 100644
+--- a/include/linux/netfilter/Kbuild
++++ b/include/linux/netfilter/Kbuild
+@@ -5,6 +5,8 @@ header-y += nf_conntrack_ftp.h
+ header-y += nf_conntrack_sctp.h
+ header-y += nf_conntrack_tcp.h
+ header-y += nf_conntrack_tuple_common.h
++header-y += nf_conntrack_tuple.h
++header-y += nf_nat.h
+ header-y += nfnetlink.h
+ header-y += nfnetlink_compat.h
+ header-y += nfnetlink_conntrack.h
+diff --git a/include/linux/netfilter/nf_conntrack_tuple.h b/include/linux/netfilter/nf_conntrack_tuple.h
+new file mode 100644
+index 0000000..5771622
+--- /dev/null
++++ b/include/linux/netfilter/nf_conntrack_tuple.h
+@@ -0,0 +1,110 @@
++/* This file was manually copied from the Linux kernel source
++ * and manually stripped from __KERNEL__ sections and unused functions.
++ */
 +
-+	hdr = netlink_current_frame(ring, NL_MMAP_STATUS_UNUSED);
-+	if (hdr == NULL)
-+		return false;
++/*
++ * Definitions and Declarations for tuple.
++ *
++ * 16 Dec 2003: Yasuyuki Kozakai @USAGI <yasuyuki.kozakai@toshiba.co.jp>
++ *	- generalize L3 protocol dependent part.
++ *
++ * Derived from include/linux/netfiter_ipv4/ip_conntrack_tuple.h
++ */
 +
-+	n = ring->head + ring->frame_max / 2;
-+	if (n > ring->frame_max)
-+		n -= ring->frame_max;
-+	hdr = __netlink_lookup_frame(ring, n);
++#ifndef _NF_CONNTRACK_TUPLE_H
++#define _NF_CONNTRACK_TUPLE_H
 +
-+	return hdr->nm_status == NL_MMAP_STATUS_UNUSED;
-+}
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/nf_conntrack_tuple_common.h>
 +
- static unsigned int netlink_poll(struct file *file, struct socket *sock,
- 				 poll_table *wait)
- {
-@@ -543,11 +561,12 @@ static unsigned int netlink_poll(struct file *file, struct socket *sock,
- 		 * is performed here under the assumption that the entire ring
- 		 * has been processed before invoking poll().
- 		 */
--		if (nlk->cb != NULL) {
-+		while (nlk->cb != NULL && netlink_dump_space(nlk)) {
- 			err = netlink_dump(sk);
- 			if (err < 0) {
- 				sk->sk_err = err;
- 				sk->sk_error_report(sk);
-+				break;
- 			}
- 		}
- 		netlink_rcv_wake(sk);
++/* A `tuple' is a structure containing the information to uniquely
++  identify a connection.  ie. if two packets have the same tuple, they
++  are in the same connection; if not, they are not.
++
++  We divide the structure along "manipulatable" and
++  "non-manipulatable" lines, for the benefit of the NAT code.
++*/
++
++#define NF_CT_TUPLE_L3SIZE	ARRAY_SIZE(((union nf_inet_addr *)NULL)->all)
++
++/* The protocol-specific manipulable parts of the tuple: always in
++   network order! */
++union nf_conntrack_man_proto {
++	/* Add other protocols here. */
++	__be16 all;
++
++	struct {
++		__be16 port;
++	} tcp;
++	struct {
++		__be16 port;
++	} udp;
++	struct {
++		__be16 id;
++	} icmp;
++	struct {
++		__be16 port;
++	} dccp;
++	struct {
++		__be16 port;
++	} sctp;
++	struct {
++		__be16 key;	/* GRE key is 32bit, PPtP only uses 16bit */
++	} gre;
++};
++
++/* The manipulable part of the tuple. */
++struct nf_conntrack_man {
++	union nf_inet_addr u3;
++	union nf_conntrack_man_proto u;
++	/* Layer 3 protocol */
++	u_int16_t l3num;
++};
++
++/* This contains the information to distinguish a connection. */
++struct nf_conntrack_tuple {
++	struct nf_conntrack_man src;
++
++	/* These are the parts of the tuple which are fixed. */
++	struct {
++		union nf_inet_addr u3;
++		union {
++			/* Add other protocols here. */
++			__be16 all;
++
++			struct {
++				__be16 port;
++			} tcp;
++			struct {
++				__be16 port;
++			} udp;
++			struct {
++				u_int8_t type, code;
++			} icmp;
++			struct {
++				__be16 port;
++			} dccp;
++			struct {
++				__be16 port;
++			} sctp;
++			struct {
++				__be16 key;
++			} gre;
++		} u;
++
++		/* The protocol. */
++		u_int8_t protonum;
++
++		/* The direction (for tuplehash) */
++		u_int8_t dir;
++	} dst;
++};
++
++struct nf_conntrack_tuple_mask {
++	struct {
++		union nf_inet_addr u3;
++		union nf_conntrack_man_proto u;
++	} src;
++};
++
++#endif /* _NF_CONNTRACK_TUPLE_H */
+diff --git a/include/linux/netfilter/nf_nat.h b/include/linux/netfilter/nf_nat.h
+new file mode 100644
+index 0000000..73c1946
+--- /dev/null
++++ b/include/linux/netfilter/nf_nat.h
+@@ -0,0 +1,52 @@
++#ifndef _NF_NAT_H
++#define _NF_NAT_H
++#include <linux/netfilter_ipv4.h>
++#include <linux/netfilter/nf_conntrack_tuple.h>
++
++#define NF_NAT_MAPPING_TYPE_MAX_NAMELEN 16
++
++enum nf_nat_manip_type {
++	IP_NAT_MANIP_SRC,
++	IP_NAT_MANIP_DST
++};
++
++/* SRC manip occurs POST_ROUTING or LOCAL_IN */
++#define HOOK2MANIP(hooknum) ((hooknum) != NF_INET_POST_ROUTING && \
++			     (hooknum) != NF_INET_LOCAL_IN)
++
++#define IP_NAT_RANGE_MAP_IPS 1
++#define IP_NAT_RANGE_PROTO_SPECIFIED 2
++#define IP_NAT_RANGE_PROTO_RANDOM 4
++#define IP_NAT_RANGE_PERSISTENT 8
++
++/* NAT sequence number modifications */
++struct nf_nat_seq {
++	/* position of the last TCP sequence number modification (if any) */
++	u_int32_t correction_pos;
++
++	/* sequence number offset before and after last modification */
++	int16_t offset_before, offset_after;
++};
++
++/* Single range specification. */
++struct nf_nat_range {
++	/* Set to OR of flags above. */
++	unsigned int flags;
++
++	/* Inclusive: network order. */
++	__be32 min_ip, max_ip;
++
++	/* Inclusive: network order */
++	union nf_conntrack_man_proto min, max;
++};
++
++/* For backwards compat: don't use in modern code. */
++struct nf_nat_multi_range_compat {
++	unsigned int rangesize; /* Must be 1. */
++
++	/* hangs off end. */
++	struct nf_nat_range range[1];
++};
++
++#define nf_nat_multi_range nf_nat_multi_range_compat
++#endif
+-- 
+1.7.6.1
 
---------------080602030607010109080807--
