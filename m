@@ -1,55 +1,60 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: iptables branch management
-Date: Fri, 9 Sep 2011 13:07:02 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1109091259340.4149@frira.zrqbmnf.qr>
-References: <alpine.LNX.2.01.1109021604260.4532@frira.zrqbmnf.qr>  <20110905175425.GC32733@1984> <4E68935B.3000401@trash.net>  <alpine.LNX.2.01.1109081243320.11934@frira.zrqbmnf.qr>  <4E68BAA8.5010501@trash.net>  <alpine.LNX.2.01.1109081610030.6362@frira.zrqbmnf.qr>
- <1315560705.10959.3.camel@tablet>
+From: Alexey Dobriyan <adobriyan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Repeatable OOPS with containers and netfilter
+Date: Fri, 9 Sep 2011 19:16:41 +0300
+Message-ID: <CACVxJT8rK9941N0MYOC8RQFSEXpPHL5XoTLJC2JU8269jkEbMQ@mail.gmail.com>
+References: <72F3F43BCA987119E04694FA@nimrod.local>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Peter Volkov <pva@gentoo.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:46949 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933307Ab1IILHF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 Sep 2011 07:07:05 -0400
-In-Reply-To: <1315560705.10959.3.camel@tablet>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Cc: containers-qjLDD68F18O7TbgM5vRIOg@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alex Bligh <alex-rWA27mgs/Jz10XsdtD+oqA@public.gmane.org>
+Return-path: <containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <72F3F43BCA987119E04694FA-PdXK6nMiYlGE+EvaaNYduQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/containers>,
+	<mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/containers>
+List-Post: <mailto:containers-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/containers>,
+	<mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Friday 2011-09-09 11:31, Peter Volkov wrote:
+net->nfnl =3D NULL
 
->=D0=92 =D0=A7=D1=82=D0=B2, 08/09/2011 =D0=B2 16:41 +0200, Jan Engelhar=
-dt =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
->> Oh we are nicely accumulating fixes & trivials already - do not worr=
-y=20
->> about that. Just let me pull this off, all it means is that
->> there is another branch head on iptables.git, and something convenie=
-nt=20
->> for the release manager to tag should the need arise for a .y releas=
-e.=20
->> Users already seem to like the idea[1].
->> [1] http://marc.info/?l=3Dnetfilter-devel&m=3D131499886708085&w=3D2
+On Fri, Sep 9, 2011 at 6:33 PM, Alex Bligh <alex-rWA27mgs/Jz10XsdtD+oqA@public.gmane.org> wrote:
+> We are seeing a repeatable kernel oops (quite a deadly one) when destroyi=
+ng
+> containers which are or have been passing forwarded IPv4 traffic and have
+> (or have had) a netfilter conntrack rule installed.
 >
->As the iptables maintainer in Gentoo I really appreciate such branch
->management. BTW, I'd like to know how long stable branch will be
->maintained? Or IOW how we'll find out that it's not maintained any mor=
-e?
+> To repeat, you need to have
+> a) a container
+> b) which is forwarding IPv4 traffic from one interface in the container to
+> =A0another (2 veth interfaces in this case) - one ping packet per second
+> =A0will do
+> c) iptables with an IP conntrack rule.
+> d) delete the container (it doesn't matter if you delete the iptables
+> =A0rule first and sleep for a couple of seconds).
+>
+> An OOPS like the one below results.
+>
+> This one is from Ubuntu kernel
+> 3.0.0-10-server #16-Ubuntu SMP Fri Sep 2 18:51:05 UTC 2011 x86_64 GNU/Lin=
+ux
 
-=46rom my point of understanding: like we always have done, in other=20
-words:
-
-All release numbers are strictly monotonically increasing. The=20
-appearance of a iptables-1.4.13 will close any iptables-1.4.12.x.
-
-[ This is, if you have not noticed, the same way the Linux kernel is=20
-done. Once linux-3.1 appears, the linux-3.0.x line usually ceases. ]
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> RIP: 0010:[<ffffffff81511959>] =A0[<ffffffff81511959>] netlink_has_listen=
+ers+0x9/0x50
+> [<ffffffffa048f145>] nfnetlink_has_listeners+0x15/0x20 [nfnetlink]
+> [<ffffffffa049943b>] ctnetlink_conntrack_event+0x5cb/0x890 [nf_conntrack_=
+netlink]
+> [<ffffffff814e34d0>] ? net_drop_ns+0x50/0x50
+> [<ffffffffa04062d8>] death_by_timeout+0xc8/0x1c0 [nf_conntrack]
+> [<ffffffffa0405270>] ? nf_conntrack_attach+0x50/0x50 [nf_conntrack]
+> [<ffffffffa0406448>] nf_ct_iterate_cleanup+0x78/0x90 [nf_conntrack]
+> [<ffffffffa0406491>] nf_conntrack_cleanup_net+0x31/0x100 [nf_conntrack]
+> [<ffffffffa0407f97>] nf_conntrack_cleanup+0x27/0x60 [nf_conntrack]
+> [<ffffffffa04081f0>] nf_conntrack_net_exit+0x60/0x80 [nf_conntrack]
+> [<ffffffff814e2d28>] ops_exit_list.isra.1+0x38/0x60
+> [<ffffffff814e35e2>] cleanup_net+0x112/0x1b0
