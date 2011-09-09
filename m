@@ -1,20 +1,66 @@
-From: Vincent Li <vincent.mc.li@gmail.com>
-Subject: (unknown)
-Date: Fri, 9 Sep 2011 09:26:24 -0700
-Message-ID: <CAK3+h2wH79wCtwAwMVmCpNtQX=h9K9JwJBmzLK_V4RH=6tskEg@mail.gmail.com>
+From: Alex Bligh <alex-rWA27mgs/Jz10XsdtD+oqA@public.gmane.org>
+Subject: Re: Repeatable OOPS with containers and netfilter
+Date: Fri, 09 Sep 2011 17:39:21 +0100
+Message-ID: <741FE3C10A343399D6F2A8BB@nimrod.local>
+References: <72F3F43BCA987119E04694FA@nimrod.local>
+	<CACVxJT8rK9941N0MYOC8RQFSEXpPHL5XoTLJC2JU8269jkEbMQ@mail.gmail.com>
+Reply-To: Alex Bligh <alex-rWA27mgs/Jz10XsdtD+oqA@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:44324 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758672Ab1IIQ0Z (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 Sep 2011 12:26:25 -0400
-Received: by qyk30 with SMTP id 30so363659qyk.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 09 Sep 2011 09:26:25 -0700 (PDT)
-Subject: 
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: containers-qjLDD68F18O7TbgM5vRIOg@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexey Dobriyan <adobriyan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Return-path: <containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <CACVxJT8rK9941N0MYOC8RQFSEXpPHL5XoTLJC2JU8269jkEbMQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/containers>,
+	<mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/containers>
+List-Post: <mailto:containers-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/containers>,
+	<mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-subscribe netfilter-devel
+QWxleGV5LAoKLS1PbiA5IFNlcHRlbWJlciAyMDExIDE5OjE2OjQxICswMzAwIEFsZXhleSBEb2Jy
+aXlhbiA8YWRvYnJpeWFuQGdtYWlsLmNvbT4gCndyb3RlOgoKPiBuZXQtPm5mbmwgPSBOVUxMCgpJ
+cyB0aGlzIGFzIHNpbXBsZSBhcyBpbiBjdG5ldGxpbmtfY29ubnRyYWNrX2V2ZW50LAoKICAgICAg
+ICBuZXQgPSBuZl9jdF9uZXQoY3QpOwogICAgICAgIGlmICghaXRlbS0+cmVwb3J0ICYmICFuZm5l
+dGxpbmtfaGFzX2xpc3RlbmVycyhuZXQsIGdyb3VwKSkKICAgICAgICAgICAgICAgIHJldHVybiAw
+OwoKdGhlIGlmIHNob3VsZCBhbHNvIGNoZWNrIG5ldC0+bmZubCBpcyBub24tTlVMTD8KCk9yIGRv
+ZXMgaXQgaW5kaWNhdGUgc29tZXRoaW5nIHdpZGVyIHdyb25nPwoKQWxleAoKPiBPbiBGcmksIFNl
+cCA5LCAyMDExIGF0IDY6MzMgUE0sIEFsZXggQmxpZ2ggPGFsZXhAYWxleC5vcmcudWs+IHdyb3Rl
+Ogo+PiBXZSBhcmUgc2VlaW5nIGEgcmVwZWF0YWJsZSBrZXJuZWwgb29wcyAocXVpdGUgYSBkZWFk
+bHkgb25lKSB3aGVuCj4+IGRlc3Ryb3lpbmcgY29udGFpbmVycyB3aGljaCBhcmUgb3IgaGF2ZSBi
+ZWVuIHBhc3NpbmcgZm9yd2FyZGVkIElQdjQKPj4gdHJhZmZpYyBhbmQgaGF2ZSAob3IgaGF2ZSBo
+YWQpIGEgbmV0ZmlsdGVyIGNvbm50cmFjayBydWxlIGluc3RhbGxlZC4KPj4KPj4gVG8gcmVwZWF0
+LCB5b3UgbmVlZCB0byBoYXZlCj4+IGEpIGEgY29udGFpbmVyCj4+IGIpIHdoaWNoIGlzIGZvcndh
+cmRpbmcgSVB2NCB0cmFmZmljIGZyb20gb25lIGludGVyZmFjZSBpbiB0aGUgY29udGFpbmVyCj4+
+IHRvIMKgYW5vdGhlciAoMiB2ZXRoIGludGVyZmFjZXMgaW4gdGhpcyBjYXNlKSAtIG9uZSBwaW5n
+IHBhY2tldCBwZXIKPj4gc2Vjb25kIMKgd2lsbCBkbwo+PiBjKSBpcHRhYmxlcyB3aXRoIGFuIElQ
+IGNvbm50cmFjayBydWxlLgo+PiBkKSBkZWxldGUgdGhlIGNvbnRhaW5lciAoaXQgZG9lc24ndCBt
+YXR0ZXIgaWYgeW91IGRlbGV0ZSB0aGUgaXB0YWJsZXMKPj4gwqBydWxlIGZpcnN0IGFuZCBzbGVl
+cCBmb3IgYSBjb3VwbGUgb2Ygc2Vjb25kcykuCj4+Cj4+IEFuIE9PUFMgbGlrZSB0aGUgb25lIGJl
+bG93IHJlc3VsdHMuCj4+Cj4+IFRoaXMgb25lIGlzIGZyb20gVWJ1bnR1IGtlcm5lbAo+PiAzLjAu
+MC0xMC1zZXJ2ZXIgIzE2LVVidW50dSBTTVAgRnJpIFNlcCAyIDE4OjUxOjA1IFVUQyAyMDExIHg4
+Nl82NAo+PiBHTlUvTGludXgKPgo+PiBSSVA6IDAwMTA6WzxmZmZmZmZmZjgxNTExOTU5Pl0gwqBb
+PGZmZmZmZmZmODE1MTE5NTk+XQo+PiBuZXRsaW5rX2hhc19saXN0ZW5lcnMrMHg5LzB4NTAgWzxm
+ZmZmZmZmZmEwNDhmMTQ1Pl0KPj4gbmZuZXRsaW5rX2hhc19saXN0ZW5lcnMrMHgxNS8weDIwIFtu
+Zm5ldGxpbmtdIFs8ZmZmZmZmZmZhMDQ5OTQzYj5dCj4+IGN0bmV0bGlua19jb25udHJhY2tfZXZl
+bnQrMHg1Y2IvMHg4OTAgW25mX2Nvbm50cmFja19uZXRsaW5rXQo+PiBbPGZmZmZmZmZmODE0ZTM0
+ZDA+XSA/IG5ldF9kcm9wX25zKzB4NTAvMHg1MAo+PiBbPGZmZmZmZmZmYTA0MDYyZDg+XSBkZWF0
+aF9ieV90aW1lb3V0KzB4YzgvMHgxYzAgW25mX2Nvbm50cmFja10KPj4gWzxmZmZmZmZmZmEwNDA1
+MjcwPl0gPyBuZl9jb25udHJhY2tfYXR0YWNoKzB4NTAvMHg1MCBbbmZfY29ubnRyYWNrXQo+PiBb
+PGZmZmZmZmZmYTA0MDY0NDg+XSBuZl9jdF9pdGVyYXRlX2NsZWFudXArMHg3OC8weDkwIFtuZl9j
+b25udHJhY2tdCj4+IFs8ZmZmZmZmZmZhMDQwNjQ5MT5dIG5mX2Nvbm50cmFja19jbGVhbnVwX25l
+dCsweDMxLzB4MTAwIFtuZl9jb25udHJhY2tdCj4+IFs8ZmZmZmZmZmZhMDQwN2Y5Nz5dIG5mX2Nv
+bm50cmFja19jbGVhbnVwKzB4MjcvMHg2MCBbbmZfY29ubnRyYWNrXQo+PiBbPGZmZmZmZmZmYTA0
+MDgxZjA+XSBuZl9jb25udHJhY2tfbmV0X2V4aXQrMHg2MC8weDgwIFtuZl9jb25udHJhY2tdCj4+
+IFs8ZmZmZmZmZmY4MTRlMmQyOD5dIG9wc19leGl0X2xpc3QuaXNyYS4xKzB4MzgvMHg2MAo+PiBb
+PGZmZmZmZmZmODE0ZTM1ZTI+XSBjbGVhbnVwX25ldCsweDExMi8weDFiMAo+Cj4KCgoKLS0gCkFs
+ZXggQmxpZ2gKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+Q29udGFpbmVycyBtYWlsaW5nIGxpc3QKQ29udGFpbmVyc0BsaXN0cy5saW51eC1mb3VuZGF0aW9u
+Lm9yZwpodHRwczovL2xpc3RzLmxpbnV4LWZvdW5kYXRpb24ub3JnL21haWxtYW4vbGlzdGluZm8v
+Y29udGFpbmVycw==
