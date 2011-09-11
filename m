@@ -1,83 +1,64 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 3/4] ip6tables-restore: implement missing -T option
-Date: Sun, 11 Sep 2011 12:38:45 +0200
-Message-ID: <1315737527-19595-4-git-send-email-jengelh@medozas.de>
-References: <1315737527-19595-1-git-send-email-jengelh@medozas.de>
+Subject: iptables: libiptc, cleanups
+Date: Sun, 11 Sep 2011 17:35:49 +0200
+Message-ID: <1315755359-7012-1-git-send-email-jengelh@medozas.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:56943 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:51842 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754020Ab1IKKiz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 11 Sep 2011 06:38:55 -0400
-In-Reply-To: <1315737527-19595-1-git-send-email-jengelh@medozas.de>
+	id S1754114Ab1IKPgD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 11 Sep 2011 11:36:03 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Commit v1.4.0-rc1-12-ge8665f8 forgot to port the change to the
-ip6tables part.
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- iptables/ip6tables-restore.c |   11 ++++++++++-
- 1 files changed, 10 insertions(+), 1 deletions(-)
+The following changes since commit 62fc25fd1625f0f65b9eed3e15fe929dd0aff2c5:
 
-diff --git a/iptables/ip6tables-restore.c b/iptables/ip6tables-restore.c
-index 985744d..1487504 100644
---- a/iptables/ip6tables-restore.c
-+++ b/iptables/ip6tables-restore.c
-@@ -36,6 +36,7 @@ static const struct option options[] = {
- 	{.name = "help",     .has_arg = false, .val = 'h'},
- 	{.name = "noflush",  .has_arg = false, .val = 'n'},
- 	{.name = "modprobe", .has_arg = true,  .val = 'M'},
-+	{.name = "table",    .has_arg = true,  .val = 'T'},
- 	{NULL},
- };
- 
-@@ -121,6 +122,7 @@ int ip6tables_restore_main(int argc, char *argv[])
- 	char curtable[IP6T_TABLE_MAXNAMELEN + 1];
- 	FILE *in;
- 	int in_table = 0, testing = 0;
-+	const char *tablename = NULL;
- 
- 	line = 0;
- 
-@@ -137,7 +139,7 @@ int ip6tables_restore_main(int argc, char *argv[])
- 	init_extensions6();
- #endif
- 
--	while ((c = getopt_long(argc, argv, "bcvthnM:", options, NULL)) != -1) {
-+	while ((c = getopt_long(argc, argv, "bcvthnM:T:", options, NULL)) != -1) {
- 		switch (c) {
- 			case 'b':
- 				binary = 1;
-@@ -161,6 +163,9 @@ int ip6tables_restore_main(int argc, char *argv[])
- 			case 'M':
- 				xtables_modprobe_program = optarg;
- 				break;
-+			case 'T':
-+				tablename = optarg;
-+				break;
- 		}
- 	}
- 
-@@ -216,6 +221,8 @@ int ip6tables_restore_main(int argc, char *argv[])
- 			strncpy(curtable, table, IP6T_TABLE_MAXNAMELEN);
- 			curtable[IP6T_TABLE_MAXNAMELEN] = '\0';
- 
-+			if (tablename != NULL && strcmp(tablename, table) != 0)
-+				continue;
- 			if (handle)
- 				ip6tc_free(handle);
- 
-@@ -442,6 +449,8 @@ int ip6tables_restore_main(int argc, char *argv[])
- 			free_argv();
- 			fflush(stdout);
- 		}
-+		if (tablename != NULL && strcmp(tablename, curtable) != 0)
-+			continue;
- 		if (!ret) {
- 			fprintf(stderr, "%s: line %u failed\n",
- 					ip6tables_globals.program_name,
--- 
-1.7.3.4
+  Merge branch 'master' of git://dev.medozas.de/iptables (2011-09-08 17:00:49 +0200)
 
+are available in the git repository at:
+
+  git://dev.medozas.de/iptables master
+
+Jan Engelhardt (14):
+      build: sort file list before build
+      doc: fix undesired newline in ip6tables-restore(8)
+      ip6tables-restore: implement missing -T option
+      doc: document iptables-restore's -T option
+      Merge branch 'stable'
+      libiptc: resolve compile failure
+      iptables-save: remove binary dumping dead code
+      libiptc: remove unused HOOK_DROPPING thing
+      libiptc: combine common types
+      libiptc: replace ipt_chainlabel by xt_chainlabel
+      libiptc: combine common types: _handle
+      src: resolve old macro names that are indirections
+      libiptc: use a family-invariant xtc_ops struct for code reduction
+      ip6tables-restore: make code look alike with iptables-restore
+
+ extensions/GNUmakefile.in       |   12 ++--
+ extensions/libipt_realm.c       |   10 ++--
+ include/Makefile.am             |    2 +-
+ include/ip6tables.h             |   10 ++--
+ include/iptables.h              |   16 +++---
+ include/libiptc/libip6tc.h      |  110 +++++++++++++++++++-------------------
+ include/libiptc/libiptc.h       |  110 +++++++++++++++++++-------------------
+ include/libiptc/xtcshared.h     |   20 +++++++
+ iptables/ip6tables-restore.8    |    4 +-
+ iptables/ip6tables-restore.c    |   64 ++++++++++++----------
+ iptables/ip6tables-save.c       |   84 ++++++++++++-----------------
+ iptables/ip6tables-standalone.c |    2 +-
+ iptables/ip6tables.c            |  112 +++++++++++++++++++-------------------
+ iptables/iptables-restore.8     |    5 ++-
+ iptables/iptables-restore.c     |   48 ++++++++--------
+ iptables/iptables-save.c        |   84 ++++++++++++-----------------
+ iptables/iptables-standalone.c  |    2 +-
+ iptables/iptables-xml.c         |   36 ++++++------
+ iptables/iptables.c             |  110 +++++++++++++++++++-------------------
+ iptables/xshared.c              |    2 +-
+ libiptc/Makefile.am             |    4 +-
+ libiptc/libip4tc.c              |   56 +++++++------------
+ libiptc/libip6tc.c              |   38 ++++++-------
+ libiptc/libiptc.c               |   54 ++++++++++---------
+ 24 files changed, 495 insertions(+), 500 deletions(-)
+ create mode 100644 include/libiptc/xtcshared.h
