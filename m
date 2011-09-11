@@ -1,64 +1,121 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: iptables: libiptc, cleanups
-Date: Sun, 11 Sep 2011 17:35:49 +0200
-Message-ID: <1315755359-7012-1-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 1/9] libiptc: resolve compile failure
+Date: Sun, 11 Sep 2011 17:35:50 +0200
+Message-ID: <1315755359-7012-2-git-send-email-jengelh@medozas.de>
+References: <1315755359-7012-1-git-send-email-jengelh@medozas.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:51842 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:51843 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754114Ab1IKPgD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1754791Ab1IKPgD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Sun, 11 Sep 2011 11:36:03 -0400
+In-Reply-To: <1315755359-7012-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+  CC     libip4tc.lo
+In file included from libip4tc.c:118:0:
+libiptc.c:70:8: error: redefinition of "struct xt_error_target"
+../include/linux/netfilter/x_tables.h:69:8: note: originally defined here
 
-The following changes since commit 62fc25fd1625f0f65b9eed3e15fe929dd0aff2c5:
+Remove libiptc's duplicate definition and substitute names.
 
-  Merge branch 'master' of git://dev.medozas.de/iptables (2011-09-08 17:00:49 +0200)
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ libiptc/libiptc.c |   34 ++++++++++++++--------------------
+ 1 files changed, 14 insertions(+), 20 deletions(-)
 
-are available in the git repository at:
+diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
+index 42d9784..2214077 100644
+--- a/libiptc/libiptc.c
++++ b/libiptc/libiptc.c
+@@ -67,12 +67,6 @@ static const char *hooknames[] = {
+ };
+ 
+ /* Convenience structures */
+-struct ipt_error_target
+-{
+-	STRUCT_ENTRY_TARGET t;
+-	char error[TABLE_MAXNAMELEN];
+-};
+-
+ struct chain_head;
+ struct rule_head;
+ 
+@@ -1092,10 +1086,10 @@ static int parse_table(struct xtc_handle *h)
+ /* Convenience structures */
+ struct iptcb_chain_start{
+ 	STRUCT_ENTRY e;
+-	struct ipt_error_target name;
++	struct xt_error_target name;
+ };
+ #define IPTCB_CHAIN_START_SIZE	(sizeof(STRUCT_ENTRY) +			\
+-				 ALIGN(sizeof(struct ipt_error_target)))
++				 ALIGN(sizeof(struct xt_error_target)))
+ 
+ struct iptcb_chain_foot {
+ 	STRUCT_ENTRY e;
+@@ -1106,10 +1100,10 @@ struct iptcb_chain_foot {
+ 
+ struct iptcb_chain_error {
+ 	STRUCT_ENTRY entry;
+-	struct ipt_error_target target;
++	struct xt_error_target target;
+ };
+ #define IPTCB_CHAIN_ERROR_SIZE	(sizeof(STRUCT_ENTRY) +			\
+-				 ALIGN(sizeof(struct ipt_error_target)))
++				 ALIGN(sizeof(struct xt_error_target)))
+ 
+ 
+ 
+@@ -1152,10 +1146,10 @@ static int iptcc_compile_chain(struct xtc_handle *h, STRUCT_REPLACE *repl, struc
+ 		head = (void *)repl->entries + c->head_offset;
+ 		head->e.target_offset = sizeof(STRUCT_ENTRY);
+ 		head->e.next_offset = IPTCB_CHAIN_START_SIZE;
+-		strcpy(head->name.t.u.user.name, ERROR_TARGET);
+-		head->name.t.u.target_size =
+-				ALIGN(sizeof(struct ipt_error_target));
+-		strcpy(head->name.error, c->name);
++		strcpy(head->name.target.u.user.name, ERROR_TARGET);
++		head->name.target.u.target_size =
++				ALIGN(sizeof(struct xt_error_target));
++		strcpy(head->name.errorname, c->name);
+ 	} else {
+ 		repl->hook_entry[c->hooknum-1] = c->head_offset;
+ 		repl->underflow[c->hooknum-1] = c->foot_offset;
+@@ -1198,7 +1192,7 @@ static int iptcc_compile_chain_offsets(struct xtc_handle *h, struct chain_head *
+ 	if (!iptcc_is_builtin(c))  {
+ 		/* Chain has header */
+ 		*offset += sizeof(STRUCT_ENTRY)
+-			     + ALIGN(sizeof(struct ipt_error_target));
++			     + ALIGN(sizeof(struct xt_error_target));
+ 		(*num)++;
+ 	}
+ 
+@@ -1238,7 +1232,7 @@ static int iptcc_compile_table_prep(struct xtc_handle *h, unsigned int *size)
+ 	/* Append one error rule at end of chain */
+ 	num++;
+ 	offset += sizeof(STRUCT_ENTRY)
+-		  + ALIGN(sizeof(struct ipt_error_target));
++		  + ALIGN(sizeof(struct xt_error_target));
+ 
+ 	/* ruleset size is now in offset */
+ 	*size = offset;
+@@ -1261,10 +1255,10 @@ static int iptcc_compile_table(struct xtc_handle *h, STRUCT_REPLACE *repl)
+ 	error = (void *)repl->entries + repl->size - IPTCB_CHAIN_ERROR_SIZE;
+ 	error->entry.target_offset = sizeof(STRUCT_ENTRY);
+ 	error->entry.next_offset = IPTCB_CHAIN_ERROR_SIZE;
+-	error->target.t.u.user.target_size =
+-		ALIGN(sizeof(struct ipt_error_target));
+-	strcpy((char *)&error->target.t.u.user.name, ERROR_TARGET);
+-	strcpy((char *)&error->target.error, "ERROR");
++	error->target.target.u.user.target_size =
++		ALIGN(sizeof(struct xt_error_target));
++	strcpy((char *)&error->target.target.u.user.name, ERROR_TARGET);
++	strcpy((char *)&error->target.errorname, "ERROR");
+ 
+ 	return 1;
+ }
+-- 
+1.7.3.4
 
-  git://dev.medozas.de/iptables master
-
-Jan Engelhardt (14):
-      build: sort file list before build
-      doc: fix undesired newline in ip6tables-restore(8)
-      ip6tables-restore: implement missing -T option
-      doc: document iptables-restore's -T option
-      Merge branch 'stable'
-      libiptc: resolve compile failure
-      iptables-save: remove binary dumping dead code
-      libiptc: remove unused HOOK_DROPPING thing
-      libiptc: combine common types
-      libiptc: replace ipt_chainlabel by xt_chainlabel
-      libiptc: combine common types: _handle
-      src: resolve old macro names that are indirections
-      libiptc: use a family-invariant xtc_ops struct for code reduction
-      ip6tables-restore: make code look alike with iptables-restore
-
- extensions/GNUmakefile.in       |   12 ++--
- extensions/libipt_realm.c       |   10 ++--
- include/Makefile.am             |    2 +-
- include/ip6tables.h             |   10 ++--
- include/iptables.h              |   16 +++---
- include/libiptc/libip6tc.h      |  110 +++++++++++++++++++-------------------
- include/libiptc/libiptc.h       |  110 +++++++++++++++++++-------------------
- include/libiptc/xtcshared.h     |   20 +++++++
- iptables/ip6tables-restore.8    |    4 +-
- iptables/ip6tables-restore.c    |   64 ++++++++++++----------
- iptables/ip6tables-save.c       |   84 ++++++++++++-----------------
- iptables/ip6tables-standalone.c |    2 +-
- iptables/ip6tables.c            |  112 +++++++++++++++++++-------------------
- iptables/iptables-restore.8     |    5 ++-
- iptables/iptables-restore.c     |   48 ++++++++--------
- iptables/iptables-save.c        |   84 ++++++++++++-----------------
- iptables/iptables-standalone.c  |    2 +-
- iptables/iptables-xml.c         |   36 ++++++------
- iptables/iptables.c             |  110 +++++++++++++++++++-------------------
- iptables/xshared.c              |    2 +-
- libiptc/Makefile.am             |    4 +-
- libiptc/libip4tc.c              |   56 +++++++------------
- libiptc/libip6tc.c              |   38 ++++++-------
- libiptc/libiptc.c               |   54 ++++++++++---------
- 24 files changed, 495 insertions(+), 500 deletions(-)
- create mode 100644 include/libiptc/xtcshared.h
