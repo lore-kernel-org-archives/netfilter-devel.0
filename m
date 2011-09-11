@@ -1,40 +1,60 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Building standalone xtable extension shared library
-Date: Sun, 11 Sep 2011 00:19:52 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1109110017100.1917@frira.zrqbmnf.qr>
-References: <CAFAca_AcCg3WRSC9jGpf-SHm6SGwVvQ2-7H=krE+sTGg-osOCg@mail.gmail.com> <CAFAca_ATOWczLJ33S1=QWX5j7K6LaA=mEpYgMvPE_p_rVH4vSw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Julien Lafaye <jlafaye@gmail.com>
+Subject: [PATCH 1/4] build: sort file list before build
+Date: Sun, 11 Sep 2011 12:38:43 +0200
+Message-ID: <1315737527-19595-2-git-send-email-jengelh@medozas.de>
+References: <1315737527-19595-1-git-send-email-jengelh@medozas.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:56401 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:56940 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933810Ab1IJWTx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 10 Sep 2011 18:19:53 -0400
-In-Reply-To: <CAFAca_ATOWczLJ33S1=QWX5j7K6LaA=mEpYgMvPE_p_rVH4vSw@mail.gmail.com>
+	id S1754020Ab1IKKiy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 11 Sep 2011 06:38:54 -0400
+In-Reply-To: <1315737527-19595-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Saturday 2011-09-10 23:38, Julien Lafaye wrote:
+Manpage subsections are already sorted for obvious reasons. Since
+$(wildcard) can actually return results unordered (just what the OS
+can do) do the sorting with the .o file list too, for developer
+comfort.
 
->Sorry, I send an incomplete email by mistake:
->
->The correct Makefile, working on my setup is:
->LAGS = -O2 -Wall
-> lib%.so: lib%.o
->     gcc -shared -o $@ $^;
-> lib%.o: lib%.c
->     gcc ${CFLAGS} -DPIC -fPIC -D_INIT=lib$*_init -c -o $@ $<;
->
->I guess this might seem obvious to many of you but the problem I had
->initially was a segfault when parsing command line arguments.
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ extensions/GNUmakefile.in |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-Segfaults are usually a sign of a flaw somewhere; the absence of PIC is 
-usually caught in the linker stage already. Therefore I highly suggest 
-that you also submit your code so that we can improve iptables's 
-robustness.
-And thanks for the hint, yes, -fPIC should indeed be specified.
+diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+index a9edb1e..60f28c0 100644
+--- a/extensions/GNUmakefile.in
++++ b/extensions/GNUmakefile.in
+@@ -37,9 +37,9 @@ endif
+ #
+ #	Wildcard module list
+ #
+-pfx_build_mod := $(patsubst ${srcdir}/libxt_%.c,%,$(wildcard ${srcdir}/libxt_*.c))
+-@ENABLE_IPV4_TRUE@ pf4_build_mod := $(patsubst ${srcdir}/libipt_%.c,%,$(wildcard ${srcdir}/libipt_*.c))
+-@ENABLE_IPV6_TRUE@ pf6_build_mod := $(patsubst ${srcdir}/libip6t_%.c,%,$(wildcard ${srcdir}/libip6t_*.c))
++pfx_build_mod := $(patsubst ${srcdir}/libxt_%.c,%,$(sort $(wildcard ${srcdir}/libxt_*.c)))
++@ENABLE_IPV4_TRUE@ pf4_build_mod := $(patsubst ${srcdir}/libipt_%.c,%,$(sort $(wildcard ${srcdir}/libipt_*.c)))
++@ENABLE_IPV6_TRUE@ pf6_build_mod := $(patsubst ${srcdir}/libip6t_%.c,%,$(sort $(wildcard ${srcdir}/libip6t_*.c)))
+ pfx_build_mod := $(filter-out @blacklist_modules@,${pfx_build_mod})
+ pf4_build_mod := $(filter-out @blacklist_modules@,${pf4_build_mod})
+ pf6_build_mod := $(filter-out @blacklist_modules@,${pf6_build_mod})
+@@ -198,11 +198,11 @@ initext6.c: .initext6.dd
+ #
+ #	Manual pages
+ #
+-ex_matches = $(sort $(shell echo $(1) | LC_ALL=POSIX grep -Eo '\b[[:lower:][:digit:]_]+\b'))
+-ex_targets = $(sort $(shell echo $(1) | LC_ALL=POSIX grep -Eo '\b[[:upper:][:digit:]_]+\b'))
++ex_matches = $(shell echo ${1} | LC_ALL=POSIX grep -Eo '\b[[:lower:][:digit:]_]+\b')
++ex_targets = $(shell echo ${1} | LC_ALL=POSIX grep -Eo '\b[[:upper:][:digit:]_]+\b')
+ man_run    = \
+ 	${AM_VERBOSE_GEN} \
+-	for ext in $(1); do \
++	for ext in $(sort ${1}); do \
+ 		f="${srcdir}/libxt_$$ext.man"; \
+ 		cf="${srcdir}/libxt_$$ext.c"; \
+ 		if [ -f "$$f" ] && grep -Eq "$(3)|NFPROTO_UNSPEC" "$$cf"; then \
+-- 
+1.7.3.4
 
-thanks,
-Jan
