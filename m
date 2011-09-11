@@ -1,954 +1,1022 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 6/9] libiptc: combine common types: _handle
-Date: Sun, 11 Sep 2011 17:35:55 +0200
-Message-ID: <1315755359-7012-7-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 7/9] src: resolve old macro names that are indirections
+Date: Sun, 11 Sep 2011 17:35:56 +0200
+Message-ID: <1315755359-7012-8-git-send-email-jengelh@medozas.de>
 References: <1315755359-7012-1-git-send-email-jengelh@medozas.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:51846 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:51845 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754819Ab1IKPgI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 11 Sep 2011 11:36:08 -0400
+	id S1754843Ab1IKPgJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 11 Sep 2011 11:36:09 -0400
 In-Reply-To: <1315755359-7012-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-No real API/ABI change incurred, since the definition of the structs'
-types is not visible anyhow.
+Command used:
+
+	git grep -f <(pcregrep -hior
+	'(?<=#define\s)IP6?(T_\w+)(?=\s+X\1)' include/)
+
+and then fix all occurrences.
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/ip6tables.h             |   10 +++---
- include/iptables.h              |   12 ++++----
- include/libiptc/libip6tc.h      |   61 +++++++++++++++++++--------------------
- include/libiptc/libiptc.h       |   61 +++++++++++++++++++--------------------
- include/libiptc/xtcshared.h     |    1 +
- iptables/ip6tables-restore.c    |    6 ++--
- iptables/ip6tables-save.c       |    2 +-
- iptables/ip6tables-standalone.c |    2 +-
- iptables/ip6tables.c            |   34 +++++++++++-----------
- iptables/iptables-restore.c     |    6 ++--
- iptables/iptables-save.c        |    2 +-
- iptables/iptables-standalone.c  |    2 +-
- iptables/iptables.c             |   34 +++++++++++-----------
- libiptc/libip4tc.c              |    9 ++----
- libiptc/libip6tc.c              |    5 +--
- libiptc/libiptc.c               |    5 +--
- 16 files changed, 122 insertions(+), 130 deletions(-)
+ extensions/libipt_realm.c    |   10 ++++----
+ include/libiptc/libip6tc.h   |    8 +++---
+ include/libiptc/libiptc.h    |    8 +++---
+ iptables/ip6tables-restore.c |   13 +++++------
+ iptables/ip6tables-save.c    |    4 +-
+ iptables/ip6tables.c         |   50 +++++++++++++++++++++---------------------
+ iptables/iptables-restore.c  |   13 +++++------
+ iptables/iptables-save.c     |    4 +-
+ iptables/iptables-xml.c      |   36 +++++++++++++++---------------
+ iptables/iptables.c          |   48 ++++++++++++++++++++--------------------
+ iptables/xshared.c           |    2 +-
+ libiptc/libip4tc.c           |   32 +++++++++++++-------------
+ libiptc/libip6tc.c           |   30 ++++++++++++------------
+ 13 files changed, 128 insertions(+), 130 deletions(-)
 
-diff --git a/include/ip6tables.h b/include/ip6tables.h
-index 1def393..37d2e0a 100644
---- a/include/ip6tables.h
-+++ b/include/ip6tables.h
-@@ -8,12 +8,12 @@
+diff --git a/extensions/libipt_realm.c b/extensions/libipt_realm.c
+index b60c57e..a8d9dda 100644
+--- a/extensions/libipt_realm.c
++++ b/extensions/libipt_realm.c
+@@ -41,7 +41,7 @@ static void realm_init(struct xt_entry_match *m)
  
- /* Your shared library should call one of these. */
- extern int do_command6(int argc, char *argv[], char **table,
--		       struct ip6tc_handle **handle);
-+		       struct xtc_handle **handle);
+ static void realm_parse(struct xt_option_call *cb)
+ {
+-	struct ipt_realm_info *realminfo = cb->data;
++	struct xt_realm_info *realminfo = cb->data;
+ 	int id;
+ 	char *end;
  
--extern int for_each_chain6(int (*fn)(const xt_chainlabel, int, struct ip6tc_handle *), int verbose, int builtinstoo, struct ip6tc_handle *handle);
--extern int flush_entries6(const xt_chainlabel chain, int verbose, struct ip6tc_handle *handle);
--extern int delete_chain6(const xt_chainlabel chain, int verbose, struct ip6tc_handle *handle);
--void print_rule6(const struct ip6t_entry *e, struct ip6tc_handle *h, const char *chain, int counters);
-+extern int for_each_chain6(int (*fn)(const xt_chainlabel, int, struct xtc_handle *), int verbose, int builtinstoo, struct xtc_handle *handle);
-+extern int flush_entries6(const xt_chainlabel chain, int verbose, struct xtc_handle *handle);
-+extern int delete_chain6(const xt_chainlabel chain, int verbose, struct xtc_handle *handle);
-+void print_rule6(const struct ip6t_entry *e, struct xtc_handle *h, const char *chain, int counters);
+@@ -87,7 +87,7 @@ print_realm(unsigned long id, unsigned long mask, int numeric)
+ static void realm_print(const void *ip, const struct xt_entry_match *match,
+                         int numeric)
+ {
+-	const struct ipt_realm_info *ri = (const void *)match->data;
++	const struct xt_realm_info *ri = (const void *)match->data;
  
- extern struct xtables_globals ip6tables_globals;
+ 	if (ri->invert)
+ 		printf(" !");
+@@ -98,7 +98,7 @@ static void realm_print(const void *ip, const struct xt_entry_match *match,
  
-diff --git a/include/iptables.h b/include/iptables.h
-index 6edd369..c42613c 100644
---- a/include/iptables.h
-+++ b/include/iptables.h
-@@ -8,15 +8,15 @@
+ static void realm_save(const void *ip, const struct xt_entry_match *match)
+ {
+-	const struct ipt_realm_info *ri = (const void *)match->data;
++	const struct xt_realm_info *ri = (const void *)match->data;
  
- /* Your shared library should call one of these. */
- extern int do_command4(int argc, char *argv[], char **table,
--		      struct iptc_handle **handle);
-+		      struct xtc_handle **handle);
- extern int delete_chain4(const xt_chainlabel chain, int verbose,
--			struct iptc_handle *handle);
-+			struct xtc_handle *handle);
- extern int flush_entries4(const xt_chainlabel chain, int verbose, 
--			struct iptc_handle *handle);
--extern int for_each_chain4(int (*fn)(const xt_chainlabel, int, struct iptc_handle *),
--		int verbose, int builtinstoo, struct iptc_handle *handle);
-+			struct xtc_handle *handle);
-+extern int for_each_chain4(int (*fn)(const xt_chainlabel, int, struct xtc_handle *),
-+		int verbose, int builtinstoo, struct xtc_handle *handle);
- extern void print_rule4(const struct ipt_entry *e,
--		struct iptc_handle *handle, const char *chain, int counters);
-+		struct xtc_handle *handle, const char *chain, int counters);
- 
- extern struct xtables_globals iptables_globals;
- 
+ 	if (ri->invert)
+ 		printf(" !");
+@@ -111,8 +111,8 @@ static struct xtables_match realm_mt_reg = {
+ 	.name		= "realm",
+ 	.version	= XTABLES_VERSION,
+ 	.family		= NFPROTO_IPV4,
+-	.size		= XT_ALIGN(sizeof(struct ipt_realm_info)),
+-	.userspacesize	= XT_ALIGN(sizeof(struct ipt_realm_info)),
++	.size		= XT_ALIGN(sizeof(struct xt_realm_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_realm_info)),
+ 	.help		= realm_help,
+ 	.init		= realm_init,
+ 	.print		= realm_print,
 diff --git a/include/libiptc/libip6tc.h b/include/libiptc/libip6tc.h
-index 6332073..f85dda7 100644
+index f85dda7..61c1e7f 100644
 --- a/include/libiptc/libip6tc.h
 +++ b/include/libiptc/libip6tc.h
-@@ -12,8 +12,7 @@
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <libiptc/xtcshared.h>
- 
--struct ip6tc_handle;
--
-+#define ip6tc_handle xtc_handle
- #define ip6t_chainlabel xt_chainlabel
- 
- #define IP6TC_LABEL_ACCEPT "ACCEPT"
-@@ -22,37 +21,37 @@ struct ip6tc_handle;
- #define IP6TC_LABEL_RETURN "RETURN"
- 
- /* Does this chain exist? */
--int ip6tc_is_chain(const char *chain, struct ip6tc_handle *const handle);
-+int ip6tc_is_chain(const char *chain, struct xtc_handle *const handle);
- 
- /* Take a snapshot of the rules. Returns NULL on error. */
--struct ip6tc_handle *ip6tc_init(const char *tablename);
-+struct xtc_handle *ip6tc_init(const char *tablename);
- 
- /* Cleanup after ip6tc_init(). */
--void ip6tc_free(struct ip6tc_handle *h);
-+void ip6tc_free(struct xtc_handle *h);
- 
- /* Iterator functions to run through the chains.  Returns NULL at end. */
--const char *ip6tc_first_chain(struct ip6tc_handle *handle);
--const char *ip6tc_next_chain(struct ip6tc_handle *handle);
-+const char *ip6tc_first_chain(struct xtc_handle *handle);
-+const char *ip6tc_next_chain(struct xtc_handle *handle);
- 
- /* Get first rule in the given chain: NULL for empty chain. */
- const struct ip6t_entry *ip6tc_first_rule(const char *chain,
--					  struct ip6tc_handle *handle);
-+					  struct xtc_handle *handle);
- 
- /* Returns NULL when rules run out. */
- const struct ip6t_entry *ip6tc_next_rule(const struct ip6t_entry *prev,
--					 struct ip6tc_handle *handle);
-+					 struct xtc_handle *handle);
- 
- /* Returns a pointer to the target name of this position. */
- const char *ip6tc_get_target(const struct ip6t_entry *e,
--			     struct ip6tc_handle *handle);
-+			     struct xtc_handle *handle);
- 
- /* Is this a built-in chain? */
--int ip6tc_builtin(const char *chain, struct ip6tc_handle *const handle);
-+int ip6tc_builtin(const char *chain, struct xtc_handle *const handle);
+@@ -50,7 +50,7 @@ int ip6tc_builtin(const char *chain, struct xtc_handle *const handle);
  
  /* Get the policy of a given built-in chain */
  const char *ip6tc_get_policy(const char *chain,
- 			     struct ip6t_counters *counters,
--			     struct ip6tc_handle *handle);
-+			     struct xtc_handle *handle);
+-			     struct ip6t_counters *counters,
++			     struct xt_counters *counters,
+ 			     struct xtc_handle *handle);
  
  /* These functions return TRUE for OK or 0 and set errno. If errno ==
-    0, it means there was a version error (ie. upgrade libiptc). */
-@@ -62,92 +61,92 @@ const char *ip6tc_get_policy(const char *chain,
- int ip6tc_insert_entry(const xt_chainlabel chain,
- 		       const struct ip6t_entry *e,
- 		       unsigned int rulenum,
--		       struct ip6tc_handle *handle);
-+		       struct xtc_handle *handle);
- 
- /* Atomically replace rule `rulenum' in `chain' with `fw'. */
- int ip6tc_replace_entry(const xt_chainlabel chain,
- 			const struct ip6t_entry *e,
- 			unsigned int rulenum,
--			struct ip6tc_handle *handle);
-+			struct xtc_handle *handle);
- 
- /* Append entry `fw' to chain `chain'. Equivalent to insert with
-    rulenum = length of chain. */
- int ip6tc_append_entry(const xt_chainlabel chain,
- 		       const struct ip6t_entry *e,
--		       struct ip6tc_handle *handle);
-+		       struct xtc_handle *handle);
- 
- /* Check whether a matching rule exists */
- int ip6tc_check_entry(const xt_chainlabel chain,
- 		       const struct ip6t_entry *origfw,
- 		       unsigned char *matchmask,
--		       struct ip6tc_handle *handle);
-+		       struct xtc_handle *handle);
- 
- /* Delete the first rule in `chain' which matches `fw'. */
- int ip6tc_delete_entry(const xt_chainlabel chain,
- 		       const struct ip6t_entry *origfw,
- 		       unsigned char *matchmask,
--		       struct ip6tc_handle *handle);
-+		       struct xtc_handle *handle);
- 
- /* Delete the rule in position `rulenum' in `chain'. */
- int ip6tc_delete_num_entry(const xt_chainlabel chain,
- 			   unsigned int rulenum,
--			   struct ip6tc_handle *handle);
-+			   struct xtc_handle *handle);
- 
- /* Check the packet `fw' on chain `chain'. Returns the verdict, or
-    NULL and sets errno. */
- const char *ip6tc_check_packet(const xt_chainlabel chain,
- 			       struct ip6t_entry *,
--			       struct ip6tc_handle *handle);
-+			       struct xtc_handle *handle);
- 
- /* Flushes the entries in the given chain (ie. empties chain). */
- int ip6tc_flush_entries(const xt_chainlabel chain,
--			struct ip6tc_handle *handle);
-+			struct xtc_handle *handle);
- 
- /* Zeroes the counters in a chain. */
- int ip6tc_zero_entries(const xt_chainlabel chain,
--		       struct ip6tc_handle *handle);
-+		       struct xtc_handle *handle);
- 
- /* Creates a new chain. */
- int ip6tc_create_chain(const xt_chainlabel chain,
--		       struct ip6tc_handle *handle);
-+		       struct xtc_handle *handle);
- 
- /* Deletes a chain. */
- int ip6tc_delete_chain(const xt_chainlabel chain,
--		       struct ip6tc_handle *handle);
-+		       struct xtc_handle *handle);
- 
- /* Renames a chain. */
- int ip6tc_rename_chain(const xt_chainlabel oldname,
- 		       const xt_chainlabel newname,
--		       struct ip6tc_handle *handle);
-+		       struct xtc_handle *handle);
- 
+@@ -122,7 +122,7 @@ int ip6tc_rename_chain(const xt_chainlabel oldname,
  /* Sets the policy on a built-in chain. */
  int ip6tc_set_policy(const xt_chainlabel chain,
  		     const xt_chainlabel policy,
- 		     struct ip6t_counters *counters,
--		     struct ip6tc_handle *handle);
-+		     struct xtc_handle *handle);
+-		     struct ip6t_counters *counters,
++		     struct xt_counters *counters,
+ 		     struct xtc_handle *handle);
  
  /* Get the number of references to this chain */
- int ip6tc_get_references(unsigned int *ref, const xt_chainlabel chain,
--			 struct ip6tc_handle *handle);
-+			 struct xtc_handle *handle);
+@@ -130,7 +130,7 @@ int ip6tc_get_references(unsigned int *ref, const xt_chainlabel chain,
+ 			 struct xtc_handle *handle);
  
  /* read packet and byte counters for a specific rule */
- struct ip6t_counters *ip6tc_read_counter(const xt_chainlabel chain,
+-struct ip6t_counters *ip6tc_read_counter(const xt_chainlabel chain,
++struct xt_counters *ip6tc_read_counter(const xt_chainlabel chain,
  					unsigned int rulenum,
--					struct ip6tc_handle *handle);
-+					struct xtc_handle *handle);
+ 					struct xtc_handle *handle);
  
- /* zero packet and byte counters for a specific rule */
- int ip6tc_zero_counter(const xt_chainlabel chain,
- 		       unsigned int rulenum,
--		       struct ip6tc_handle *handle);
-+		       struct xtc_handle *handle);
- 
+@@ -142,7 +142,7 @@ int ip6tc_zero_counter(const xt_chainlabel chain,
  /* set packet and byte counters for a specific rule */
  int ip6tc_set_counter(const xt_chainlabel chain,
  		      unsigned int rulenum,
- 		      struct ip6t_counters *counters,
--		      struct ip6tc_handle *handle);
-+		      struct xtc_handle *handle);
+-		      struct ip6t_counters *counters,
++		      struct xt_counters *counters,
+ 		      struct xtc_handle *handle);
  
  /* Makes the actual changes. */
--int ip6tc_commit(struct ip6tc_handle *handle);
-+int ip6tc_commit(struct xtc_handle *handle);
- 
- /* Get raw socket. */
- int ip6tc_get_raw_socket(void);
-@@ -158,6 +157,6 @@ const char *ip6tc_strerror(int err);
- /* Return prefix length, or -1 if not contiguous */
- int ipv6_prefix_length(const struct in6_addr *a);
- 
--extern void dump_entries6(struct ip6tc_handle *const);
-+extern void dump_entries6(struct xtc_handle *const);
- 
- #endif /* _LIBIP6TC_H */
 diff --git a/include/libiptc/libiptc.h b/include/libiptc/libiptc.h
-index ded4d97..cf91725 100644
+index cf91725..6f64f5a 100644
 --- a/include/libiptc/libiptc.h
 +++ b/include/libiptc/libiptc.h
-@@ -16,8 +16,7 @@
- extern "C" {
- #endif
- 
--struct iptc_handle;
--
-+#define iptc_handle xtc_handle
- #define ipt_chainlabel xt_chainlabel
- 
- #define IPTC_LABEL_ACCEPT  "ACCEPT"
-@@ -26,37 +25,37 @@ struct iptc_handle;
- #define IPTC_LABEL_RETURN  "RETURN"
- 
- /* Does this chain exist? */
--int iptc_is_chain(const char *chain, struct iptc_handle *const handle);
-+int iptc_is_chain(const char *chain, struct xtc_handle *const handle);
- 
- /* Take a snapshot of the rules.  Returns NULL on error. */
--struct iptc_handle *iptc_init(const char *tablename);
-+struct xtc_handle *iptc_init(const char *tablename);
- 
- /* Cleanup after iptc_init(). */
--void iptc_free(struct iptc_handle *h);
-+void iptc_free(struct xtc_handle *h);
- 
- /* Iterator functions to run through the chains.  Returns NULL at end. */
--const char *iptc_first_chain(struct iptc_handle *handle);
--const char *iptc_next_chain(struct iptc_handle *handle);
-+const char *iptc_first_chain(struct xtc_handle *handle);
-+const char *iptc_next_chain(struct xtc_handle *handle);
- 
- /* Get first rule in the given chain: NULL for empty chain. */
- const struct ipt_entry *iptc_first_rule(const char *chain,
--					struct iptc_handle *handle);
-+					struct xtc_handle *handle);
- 
- /* Returns NULL when rules run out. */
- const struct ipt_entry *iptc_next_rule(const struct ipt_entry *prev,
--				       struct iptc_handle *handle);
-+				       struct xtc_handle *handle);
- 
- /* Returns a pointer to the target name of this entry. */
- const char *iptc_get_target(const struct ipt_entry *e,
--			    struct iptc_handle *handle);
-+			    struct xtc_handle *handle);
- 
- /* Is this a built-in chain? */
--int iptc_builtin(const char *chain, struct iptc_handle *const handle);
-+int iptc_builtin(const char *chain, struct xtc_handle *const handle);
+@@ -54,7 +54,7 @@ int iptc_builtin(const char *chain, struct xtc_handle *const handle);
  
  /* Get the policy of a given built-in chain */
  const char *iptc_get_policy(const char *chain,
- 			    struct ipt_counters *counter,
--			    struct iptc_handle *handle);
-+			    struct xtc_handle *handle);
+-			    struct ipt_counters *counter,
++			    struct xt_counters *counter,
+ 			    struct xtc_handle *handle);
  
  /* These functions return TRUE for OK or 0 and set errno.  If errno ==
-    0, it means there was a version error (ie. upgrade libiptc). */
-@@ -66,94 +65,94 @@ const char *iptc_get_policy(const char *chain,
- int iptc_insert_entry(const xt_chainlabel chain,
- 		      const struct ipt_entry *e,
- 		      unsigned int rulenum,
--		      struct iptc_handle *handle);
-+		      struct xtc_handle *handle);
- 
- /* Atomically replace rule `rulenum' in `chain' with `e'. */
- int iptc_replace_entry(const xt_chainlabel chain,
- 		       const struct ipt_entry *e,
- 		       unsigned int rulenum,
--		       struct iptc_handle *handle);
-+		       struct xtc_handle *handle);
- 
- /* Append entry `e' to chain `chain'.  Equivalent to insert with
-    rulenum = length of chain. */
- int iptc_append_entry(const xt_chainlabel chain,
- 		      const struct ipt_entry *e,
--		      struct iptc_handle *handle);
-+		      struct xtc_handle *handle);
- 
- /* Check whether a mathching rule exists */
- int iptc_check_entry(const xt_chainlabel chain,
- 		      const struct ipt_entry *origfw,
- 		      unsigned char *matchmask,
--		      struct iptc_handle *handle);
-+		      struct xtc_handle *handle);
- 
- /* Delete the first rule in `chain' which matches `e', subject to
-    matchmask (array of length == origfw) */
- int iptc_delete_entry(const xt_chainlabel chain,
- 		      const struct ipt_entry *origfw,
- 		      unsigned char *matchmask,
--		      struct iptc_handle *handle);
-+		      struct xtc_handle *handle);
- 
- /* Delete the rule in position `rulenum' in `chain'. */
- int iptc_delete_num_entry(const xt_chainlabel chain,
- 			  unsigned int rulenum,
--			  struct iptc_handle *handle);
-+			  struct xtc_handle *handle);
- 
- /* Check the packet `e' on chain `chain'.  Returns the verdict, or
-    NULL and sets errno. */
- const char *iptc_check_packet(const xt_chainlabel chain,
- 			      struct ipt_entry *entry,
--			      struct iptc_handle *handle);
-+			      struct xtc_handle *handle);
- 
- /* Flushes the entries in the given chain (ie. empties chain). */
- int iptc_flush_entries(const xt_chainlabel chain,
--		       struct iptc_handle *handle);
-+		       struct xtc_handle *handle);
- 
- /* Zeroes the counters in a chain. */
- int iptc_zero_entries(const xt_chainlabel chain,
--		      struct iptc_handle *handle);
-+		      struct xtc_handle *handle);
- 
- /* Creates a new chain. */
- int iptc_create_chain(const xt_chainlabel chain,
--		      struct iptc_handle *handle);
-+		      struct xtc_handle *handle);
- 
- /* Deletes a chain. */
- int iptc_delete_chain(const xt_chainlabel chain,
--		      struct iptc_handle *handle);
-+		      struct xtc_handle *handle);
- 
- /* Renames a chain. */
- int iptc_rename_chain(const xt_chainlabel oldname,
- 		      const xt_chainlabel newname,
--		      struct iptc_handle *handle);
-+		      struct xtc_handle *handle);
- 
+@@ -127,7 +127,7 @@ int iptc_rename_chain(const xt_chainlabel oldname,
  /* Sets the policy on a built-in chain. */
  int iptc_set_policy(const xt_chainlabel chain,
  		    const xt_chainlabel policy,
- 		    struct ipt_counters *counters,
--		    struct iptc_handle *handle);
-+		    struct xtc_handle *handle);
+-		    struct ipt_counters *counters,
++		    struct xt_counters *counters,
+ 		    struct xtc_handle *handle);
  
  /* Get the number of references to this chain */
- int iptc_get_references(unsigned int *ref,
- 			const xt_chainlabel chain,
--			struct iptc_handle *handle);
-+			struct xtc_handle *handle);
+@@ -136,7 +136,7 @@ int iptc_get_references(unsigned int *ref,
+ 			struct xtc_handle *handle);
  
  /* read packet and byte counters for a specific rule */
- struct ipt_counters *iptc_read_counter(const xt_chainlabel chain,
+-struct ipt_counters *iptc_read_counter(const xt_chainlabel chain,
++struct xt_counters *iptc_read_counter(const xt_chainlabel chain,
  				       unsigned int rulenum,
--				       struct iptc_handle *handle);
-+				       struct xtc_handle *handle);
+ 				       struct xtc_handle *handle);
  
- /* zero packet and byte counters for a specific rule */
- int iptc_zero_counter(const xt_chainlabel chain,
- 		      unsigned int rulenum,
--		      struct iptc_handle *handle);
-+		      struct xtc_handle *handle);
- 
+@@ -148,7 +148,7 @@ int iptc_zero_counter(const xt_chainlabel chain,
  /* set packet and byte counters for a specific rule */
  int iptc_set_counter(const xt_chainlabel chain,
  		     unsigned int rulenum,
- 		     struct ipt_counters *counters,
--		     struct iptc_handle *handle);
-+		     struct xtc_handle *handle);
+-		     struct ipt_counters *counters,
++		     struct xt_counters *counters,
+ 		     struct xtc_handle *handle);
  
  /* Makes the actual changes. */
--int iptc_commit(struct iptc_handle *handle);
-+int iptc_commit(struct xtc_handle *handle);
- 
- /* Get raw socket. */
- int iptc_get_raw_socket(void);
-@@ -161,7 +160,7 @@ int iptc_get_raw_socket(void);
- /* Translates errno numbers into more human-readable form than strerror. */
- const char *iptc_strerror(int err);
- 
--extern void dump_entries(struct iptc_handle *const);
-+extern void dump_entries(struct xtc_handle *const);
- 
- #ifdef __cplusplus
- }
-diff --git a/include/libiptc/xtcshared.h b/include/libiptc/xtcshared.h
-index aaf87a4..89a5151 100644
---- a/include/libiptc/xtcshared.h
-+++ b/include/libiptc/xtcshared.h
-@@ -2,5 +2,6 @@
- #define _LIBXTC_SHARED_H 1
- 
- typedef char xt_chainlabel[32];
-+struct xtc_handle;
- 
- #endif /* _LIBXTC_SHARED_H */
 diff --git a/iptables/ip6tables-restore.c b/iptables/ip6tables-restore.c
-index 1487504..c5afe31 100644
+index c5afe31..073e42b 100644
 --- a/iptables/ip6tables-restore.c
 +++ b/iptables/ip6tables-restore.c
-@@ -56,9 +56,9 @@ static void print_usage(const char *name, const char *version)
- 	exit(1);
+@@ -77,7 +77,7 @@ static struct xtc_handle *create_handle(const char *tablename)
+ 	return handle;
  }
  
--static struct ip6tc_handle *create_handle(const char *tablename)
-+static struct xtc_handle *create_handle(const char *tablename)
+-static int parse_counters(char *string, struct ip6t_counters *ctr)
++static int parse_counters(char *string, struct xt_counters *ctr)
  {
--	struct ip6tc_handle *handle;
-+	struct xtc_handle *handle;
- 
- 	handle = ip6tc_init(tablename);
- 
-@@ -116,7 +116,7 @@ static void free_argv(void) {
- 
- int ip6tables_restore_main(int argc, char *argv[])
- {
--	struct ip6tc_handle *handle = NULL;
-+	struct xtc_handle *handle = NULL;
+ 	unsigned long long pcnt, bcnt;
+ 	int ret;
+@@ -119,7 +119,7 @@ int ip6tables_restore_main(int argc, char *argv[])
+ 	struct xtc_handle *handle = NULL;
  	char buffer[10240];
  	int c;
- 	char curtable[IP6T_TABLE_MAXNAMELEN + 1];
+-	char curtable[IP6T_TABLE_MAXNAMELEN + 1];
++	char curtable[XT_TABLE_MAXNAMELEN + 1];
+ 	FILE *in;
+ 	int in_table = 0, testing = 0;
+ 	const char *tablename = NULL;
+@@ -218,8 +218,8 @@ int ip6tables_restore_main(int argc, char *argv[])
+ 					line);
+ 				exit(1);
+ 			}
+-			strncpy(curtable, table, IP6T_TABLE_MAXNAMELEN);
+-			curtable[IP6T_TABLE_MAXNAMELEN] = '\0';
++			strncpy(curtable, table, XT_TABLE_MAXNAMELEN);
++			curtable[XT_TABLE_MAXNAMELEN] = '\0';
+ 
+ 			if (tablename != NULL && strcmp(tablename, table) != 0)
+ 				continue;
+@@ -291,7 +291,7 @@ int ip6tables_restore_main(int argc, char *argv[])
+ 			}
+ 
+ 			if (strcmp(policy, "-") != 0) {
+-				struct ip6t_counters count;
++				struct xt_counters count;
+ 
+ 				if (counters) {
+ 					char *ctrs;
+@@ -303,8 +303,7 @@ int ip6tables_restore_main(int argc, char *argv[])
+ 							  "for chain '%s'\n", chain);
+ 
+ 				} else {
+-					memset(&count, 0,
+-					       sizeof(struct ip6t_counters));
++					memset(&count, 0, sizeof(count));
+ 				}
+ 
+ 				DEBUGP("Setting policy of chain %s to %s\n",
 diff --git a/iptables/ip6tables-save.c b/iptables/ip6tables-save.c
-index 38b0c2f..fbfce78 100644
+index fbfce78..d819b30 100644
 --- a/iptables/ip6tables-save.c
 +++ b/iptables/ip6tables-save.c
-@@ -60,7 +60,7 @@ static int for_each_table(int (*func)(const char *tablename))
- 
- static int do_output(const char *tablename)
+@@ -38,7 +38,7 @@ static int for_each_table(int (*func)(const char *tablename))
  {
--	struct ip6tc_handle *h;
-+	struct xtc_handle *h;
- 	const char *chain = NULL;
+ 	int ret = 1;
+ 	FILE *procfile = NULL;
+-	char tablename[IP6T_TABLE_MAXNAMELEN+1];
++	char tablename[XT_TABLE_MAXNAMELEN+1];
  
- 	if (!tablename)
-diff --git a/iptables/ip6tables-standalone.c b/iptables/ip6tables-standalone.c
-index 6b82935..21b5811 100644
---- a/iptables/ip6tables-standalone.c
-+++ b/iptables/ip6tables-standalone.c
-@@ -42,7 +42,7 @@ ip6tables_main(int argc, char *argv[])
- {
- 	int ret;
- 	char *table = "filter";
--	struct ip6tc_handle *handle = NULL;
-+	struct xtc_handle *handle = NULL;
+ 	procfile = fopen("/proc/net/ip6_tables_names", "re");
+ 	if (!procfile)
+@@ -89,7 +89,7 @@ static int do_output(const char *tablename)
  
- 	ip6tables_globals.program_name = "ip6tables";
- 	ret = xtables_init_all(&ip6tables_globals, NFPROTO_IPV6);
+ 		printf(":%s ", chain);
+ 		if (ip6tc_builtin(chain, h)) {
+-			struct ip6t_counters count;
++			struct xt_counters count;
+ 			printf("%s ",
+ 			       ip6tc_get_policy(chain, &count, h));
+ 			printf("[%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned long long)count.bcnt);
 diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
-index c5d2a0b..7b12205 100644
+index 7b12205..b191d5d 100644
 --- a/iptables/ip6tables.c
 +++ b/iptables/ip6tables.c
-@@ -469,7 +469,7 @@ print_num(uint64_t number, unsigned int format)
- 
- 
+@@ -172,7 +172,7 @@ static const unsigned int inverse_for_options[NUMBER_OF_OPT] =
+ /* -n */ 0,
+ /* -s */ IP6T_INV_SRCIP,
+ /* -d */ IP6T_INV_DSTIP,
+-/* -p */ IP6T_INV_PROTO,
++/* -p */ XT_INV_PROTO,
+ /* -j */ 0,
+ /* -v */ 0,
+ /* -x */ 0,
+@@ -471,7 +471,7 @@ print_num(uint64_t number, unsigned int format)
  static void
--print_header(unsigned int format, const char *chain, struct ip6tc_handle *handle)
-+print_header(unsigned int format, const char *chain, struct xtc_handle *handle)
+ print_header(unsigned int format, const char *chain, struct xtc_handle *handle)
  {
- 	struct ip6t_counters counters;
+-	struct ip6t_counters counters;
++	struct xt_counters counters;
  	const char *pol = ip6tc_get_policy(chain, &counters, handle);
-@@ -545,7 +545,7 @@ print_firewall(const struct ip6t_entry *fw,
- 	       const char *targname,
- 	       unsigned int num,
- 	       unsigned int format,
--	       struct ip6tc_handle *const handle)
-+	       struct xtc_handle *const handle)
+ 	printf("Chain %s", chain);
+ 	if (pol) {
+@@ -519,7 +519,7 @@ print_header(unsigned int format, const char *chain, struct xtc_handle *handle)
+ 
+ 
+ static int
+-print_match(const struct ip6t_entry_match *m,
++print_match(const struct xt_entry_match *m,
+ 	    const struct ip6t_ip6 *ip,
+ 	    int numeric)
+ {
+@@ -548,13 +548,13 @@ print_firewall(const struct ip6t_entry *fw,
+ 	       struct xtc_handle *const handle)
  {
  	const struct xtables_target *target = NULL;
- 	const struct ip6t_entry_target *t;
-@@ -667,7 +667,7 @@ print_firewall(const struct ip6t_entry *fw,
+-	const struct ip6t_entry_target *t;
++	const struct xt_entry_target *t;
+ 	char buf[BUFSIZ];
  
- static void
+ 	if (!ip6tc_is_chain(targname, handle))
+ 		target = xtables_find_target(targname, XTF_TRY_LOAD);
+ 	else
+-		target = xtables_find_target(IP6T_STANDARD_TARGET,
++		target = xtables_find_target(XT_STANDARD_TARGET,
+ 		         XTF_LOAD_MUST_SUCCEED);
+ 
+ 	t = ip6t_get_target((struct ip6t_entry *)fw);
+@@ -570,7 +570,7 @@ print_firewall(const struct ip6t_entry *fw,
+ 	if (!(format & FMT_NOTARGET))
+ 		printf(FMT("%-9s ", "%s "), targname);
+ 
+-	fputc(fw->ipv6.invflags & IP6T_INV_PROTO ? '!' : ' ', stdout);
++	fputc(fw->ipv6.invflags & XT_INV_PROTO ? '!' : ' ', stdout);
+ 	{
+ 		const char *pname = proto_to_name(fw->ipv6.proto, format&FMT_NUMERIC);
+ 		if (pname)
+@@ -669,7 +669,7 @@ static void
  print_firewall_line(const struct ip6t_entry *fw,
--		    struct ip6tc_handle *const h)
-+		    struct xtc_handle *const h)
+ 		    struct xtc_handle *const h)
  {
- 	struct ip6t_entry_target *t;
+-	struct ip6t_entry_target *t;
++	struct xt_entry_target *t;
  
-@@ -685,7 +685,7 @@ append_entry(const xt_chainlabel chain,
- 	     const struct in6_addr daddrs[],
- 	     const struct in6_addr dmasks[],
- 	     int verbose,
--	     struct ip6tc_handle *handle)
-+	     struct xtc_handle *handle)
- {
- 	unsigned int i, j;
- 	int ret = 1;
-@@ -712,7 +712,7 @@ replace_entry(const xt_chainlabel chain,
- 	      const struct in6_addr *saddr, const struct in6_addr *smask,
- 	      const struct in6_addr *daddr, const struct in6_addr *dmask,
- 	      int verbose,
--	      struct ip6tc_handle *handle)
-+	      struct xtc_handle *handle)
- {
- 	fw->ipv6.src = *saddr;
- 	fw->ipv6.dst = *daddr;
-@@ -735,7 +735,7 @@ insert_entry(const xt_chainlabel chain,
- 	     const struct in6_addr daddrs[],
- 	     const struct in6_addr dmasks[],
- 	     int verbose,
--	     struct ip6tc_handle *handle)
-+	     struct xtc_handle *handle)
- {
- 	unsigned int i, j;
- 	int ret = 1;
-@@ -799,7 +799,7 @@ delete_entry(const xt_chainlabel chain,
- 	     const struct in6_addr daddrs[],
- 	     const struct in6_addr dmasks[],
- 	     int verbose,
--	     struct ip6tc_handle *handle,
-+	     struct xtc_handle *handle,
- 	     struct xtables_rule_match *matches,
- 	     const struct xtables_target *target)
- {
-@@ -829,7 +829,7 @@ check_entry(const xt_chainlabel chain, struct ip6t_entry *fw,
- 	    unsigned int nsaddrs, const struct in6_addr *saddrs,
- 	    const struct in6_addr *smasks, unsigned int ndaddrs,
- 	    const struct in6_addr *daddrs, const struct in6_addr *dmasks,
--	    bool verbose, struct ip6tc_handle *handle,
-+	    bool verbose, struct xtc_handle *handle,
- 	    struct xtables_rule_match *matches,
- 	    const struct xtables_target *target)
- {
-@@ -855,8 +855,8 @@ check_entry(const xt_chainlabel chain, struct ip6t_entry *fw,
+ 	t = ip6t_get_target((struct ip6t_entry *)fw);
+ 	print_firewall(fw, t->u.user.name, 0, FMT_PRINT_RULE, h);
+@@ -766,10 +766,10 @@ make_delete_mask(const struct xtables_rule_match *matches,
+ 
+ 	size = sizeof(struct ip6t_entry);
+ 	for (matchp = matches; matchp; matchp = matchp->next)
+-		size += XT_ALIGN(sizeof(struct ip6t_entry_match)) + matchp->match->size;
++		size += XT_ALIGN(sizeof(struct xt_entry_match)) + matchp->match->size;
+ 
+ 	mask = xtables_calloc(1, size
+-			 + XT_ALIGN(sizeof(struct ip6t_entry_target))
++			 + XT_ALIGN(sizeof(struct xt_entry_target))
+ 			 + target->size);
+ 
+ 	memset(mask, 0xFF, sizeof(struct ip6t_entry));
+@@ -777,13 +777,13 @@ make_delete_mask(const struct xtables_rule_match *matches,
+ 
+ 	for (matchp = matches; matchp; matchp = matchp->next) {
+ 		memset(mptr, 0xFF,
+-		       XT_ALIGN(sizeof(struct ip6t_entry_match))
++		       XT_ALIGN(sizeof(struct xt_entry_match))
+ 		       + matchp->match->userspacesize);
+-		mptr += XT_ALIGN(sizeof(struct ip6t_entry_match)) + matchp->match->size;
++		mptr += XT_ALIGN(sizeof(struct xt_entry_match)) + matchp->match->size;
+ 	}
+ 
+ 	memset(mptr, 0xFF,
+-	       XT_ALIGN(sizeof(struct ip6t_entry_target))
++	       XT_ALIGN(sizeof(struct xt_entry_target))
+ 	       + target->userspacesize);
+ 
+ 	return mask;
+@@ -1033,7 +1033,7 @@ static void print_proto(uint16_t proto, int invert)
+ 	}
  }
  
- int
--for_each_chain6(int (*fn)(const xt_chainlabel, int, struct ip6tc_handle *),
--	       int verbose, int builtinstoo, struct ip6tc_handle *handle)
-+for_each_chain6(int (*fn)(const xt_chainlabel, int, struct xtc_handle *),
-+	       int verbose, int builtinstoo, struct xtc_handle *handle)
+-static int print_match_save(const struct ip6t_entry_match *e,
++static int print_match_save(const struct xt_entry_match *e,
+ 			const struct ip6t_ip6 *ip)
  {
- 	int ret = 1;
- 	const char *chain;
-@@ -892,7 +892,7 @@ for_each_chain6(int (*fn)(const xt_chainlabel, int, struct ip6tc_handle *),
- 
- int
- flush_entries6(const xt_chainlabel chain, int verbose,
--	      struct ip6tc_handle *handle)
-+	      struct xtc_handle *handle)
- {
- 	if (!chain)
- 		return for_each_chain6(flush_entries6, verbose, 1, handle);
-@@ -904,7 +904,7 @@ flush_entries6(const xt_chainlabel chain, int verbose,
- 
- static int
- zero_entries(const xt_chainlabel chain, int verbose,
--	     struct ip6tc_handle *handle)
-+	     struct xtc_handle *handle)
- {
- 	if (!chain)
- 		return for_each_chain6(zero_entries, verbose, 1, handle);
-@@ -916,7 +916,7 @@ zero_entries(const xt_chainlabel chain, int verbose,
- 
- int
- delete_chain6(const xt_chainlabel chain, int verbose,
--	     struct ip6tc_handle *handle)
-+	     struct xtc_handle *handle)
- {
- 	if (!chain)
- 		return for_each_chain6(delete_chain6, verbose, 0, handle);
-@@ -928,7 +928,7 @@ delete_chain6(const xt_chainlabel chain, int verbose,
- 
- static int
- list_entries(const xt_chainlabel chain, int rulenum, int verbose, int numeric,
--	     int expanded, int linenumbers, struct ip6tc_handle *handle)
-+	     int expanded, int linenumbers, struct xtc_handle *handle)
- {
- 	int found = 0;
- 	unsigned int format;
-@@ -1080,7 +1080,7 @@ static void print_ip(const char *prefix, const struct in6_addr *ip,
- /* We want this to be readable, so only print out neccessary fields.
-  * Because that's the kind of world I want to live in.  */
+ 	const struct xtables_match *match =
+@@ -1082,7 +1082,7 @@ static void print_ip(const char *prefix, const struct in6_addr *ip,
  void print_rule6(const struct ip6t_entry *e,
--		       struct ip6tc_handle *h, const char *chain, int counters)
-+		       struct xtc_handle *h, const char *chain, int counters)
+ 		       struct xtc_handle *h, const char *chain, int counters)
  {
- 	const struct ip6t_entry_target *t;
+-	const struct ip6t_entry_target *t;
++	const struct xt_entry_target *t;
  	const char *target_name;
-@@ -1170,7 +1170,7 @@ void print_rule6(const struct ip6t_entry *e,
  
- static int
- list_rules(const xt_chainlabel chain, int rulenum, int counters,
--	     struct ip6tc_handle *handle)
-+	     struct xtc_handle *handle)
- {
- 	const char *this = NULL;
- 	int found = 0;
-@@ -1328,7 +1328,7 @@ static void command_match(struct iptables_command_state *cs)
- 					     m->extra_opts, &m->option_offset);
- }
+ 	/* print counters for iptables-save */
+@@ -1105,7 +1105,7 @@ void print_rule6(const struct ip6t_entry *e,
+ 	print_iface('o', e->ipv6.outiface, e->ipv6.outiface_mask,
+ 		    e->ipv6.invflags & IP6T_INV_VIA_OUT);
  
--int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **handle)
-+int do_command6(int argc, char *argv[], char **table, struct xtc_handle **handle)
+-	print_proto(e->ipv6.proto, e->ipv6.invflags & IP6T_INV_PROTO);
++	print_proto(e->ipv6.proto, e->ipv6.invflags & XT_INV_PROTO);
+ 
+ #if 0
+ 	/* not definied in ipv6
+@@ -1153,11 +1153,11 @@ void print_rule6(const struct ip6t_entry *e,
+ 		if (target->save)
+ 			target->save(&e->ipv6, t);
+ 		else {
+-			/* If the target size is greater than ip6t_entry_target
++			/* If the target size is greater than xt_entry_target
+ 			 * there is something to be saved, we just don't know
+ 			 * how to print it */
+ 			if (t->u.target_size !=
+-			    sizeof(struct ip6t_entry_target)) {
++			    sizeof(struct xt_entry_target)) {
+ 				fprintf(stderr, "Target `%s' is missing "
+ 						"save function\n",
+ 					t->u.user.name);
+@@ -1187,7 +1187,7 @@ list_rules(const xt_chainlabel chain, int rulenum, int counters,
+ 			continue;
+ 
+ 		if (ip6tc_builtin(this, handle)) {
+-			struct ip6t_counters count;
++			struct xt_counters count;
+ 			printf("-P %s %s", this, ip6tc_get_policy(this, &count, handle));
+ 			if (counters)
+ 			    printf(" -c %llu %llu", (unsigned long long)count.pcnt, (unsigned long long)count.bcnt);
+@@ -1224,7 +1224,7 @@ list_rules(const xt_chainlabel chain, int rulenum, int counters,
+ static struct ip6t_entry *
+ generate_entry(const struct ip6t_entry *fw,
+ 	       struct xtables_rule_match *matches,
+-	       struct ip6t_entry_target *target)
++	       struct xt_entry_target *target)
  {
- 	struct iptables_command_state cs;
- 	struct ip6t_entry *e = NULL;
+ 	unsigned int size;
+ 	struct xtables_rule_match *matchp;
+@@ -1282,7 +1282,7 @@ static void command_jump(struct iptables_command_state *cs)
+ 	if (cs->target == NULL)
+ 		return;
+ 
+-	size = XT_ALIGN(sizeof(struct ip6t_entry_target)) + cs->target->size;
++	size = XT_ALIGN(sizeof(struct xt_entry_target)) + cs->target->size;
+ 
+ 	cs->target->t = xtables_calloc(1, size);
+ 	cs->target->t->u.target_size = size;
+@@ -1311,7 +1311,7 @@ static void command_match(struct iptables_command_state *cs)
+ 			   "unexpected ! flag before --match");
+ 
+ 	m = xtables_find_match(optarg, XTF_LOAD_MUST_SUCCEED, &cs->matches);
+-	size = XT_ALIGN(sizeof(struct ip6t_entry_match)) + m->size;
++	size = XT_ALIGN(sizeof(struct xt_entry_match)) + m->size;
+ 	m->m = xtables_calloc(1, size);
+ 	m->m->u.match_size = size;
+ 	strcpy(m->m->u.user.name, m->name);
+@@ -1548,12 +1548,12 @@ int do_command6(int argc, char *argv[], char **table, struct xtc_handle **handle
+ 			cs.fw6.ipv6.flags |= IP6T_F_PROTO;
+ 
+ 			if (cs.fw6.ipv6.proto == 0
+-			    && (cs.fw6.ipv6.invflags & IP6T_INV_PROTO))
++			    && (cs.fw6.ipv6.invflags & XT_INV_PROTO))
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					   "rule would never match protocol");
+ 
+ 			if (is_exthdr(cs.fw6.ipv6.proto)
+-			    && (cs.fw6.ipv6.invflags & IP6T_INV_PROTO) == 0)
++			    && (cs.fw6.ipv6.invflags & XT_INV_PROTO) == 0)
+ 				fprintf(stderr,
+ 					"Warning: never matched protocol: %s. "
+ 					"use extension match instead.\n",
+@@ -1824,10 +1824,10 @@ int do_command6(int argc, char *argv[], char **table, struct xtc_handle **handle
+ 			|| ip6tc_is_chain(cs.jumpto, *handle))) {
+ 			size_t size;
+ 
+-			cs.target = xtables_find_target(IP6T_STANDARD_TARGET,
++			cs.target = xtables_find_target(XT_STANDARD_TARGET,
+ 					XTF_LOAD_MUST_SUCCEED);
+ 
+-			size = sizeof(struct ip6t_entry_target)
++			size = sizeof(struct xt_entry_target)
+ 				+ cs.target->size;
+ 			cs.target->t = xtables_calloc(1, size);
+ 			cs.target->t->u.target_size = size;
 diff --git a/iptables/iptables-restore.c b/iptables/iptables-restore.c
-index d0bd79a..7152d75 100644
+index 7152d75..001da73 100644
 --- a/iptables/iptables-restore.c
 +++ b/iptables/iptables-restore.c
-@@ -56,9 +56,9 @@ static void print_usage(const char *name, const char *version)
- 	exit(1);
+@@ -76,7 +76,7 @@ static struct xtc_handle *create_handle(const char *tablename)
+ 	return handle;
  }
  
--static struct iptc_handle *create_handle(const char *tablename)
-+static struct xtc_handle *create_handle(const char *tablename)
+-static int parse_counters(char *string, struct ipt_counters *ctr)
++static int parse_counters(char *string, struct xt_counters *ctr)
  {
--	struct iptc_handle *handle;
-+	struct xtc_handle *handle;
- 
- 	handle = iptc_init(tablename);
- 
-@@ -116,7 +116,7 @@ static void free_argv(void) {
- int
- iptables_restore_main(int argc, char *argv[])
- {
--	struct iptc_handle *handle = NULL;
-+	struct xtc_handle *handle = NULL;
+ 	unsigned long long pcnt, bcnt;
+ 	int ret;
+@@ -119,7 +119,7 @@ iptables_restore_main(int argc, char *argv[])
+ 	struct xtc_handle *handle = NULL;
  	char buffer[10240];
  	int c;
- 	char curtable[IPT_TABLE_MAXNAMELEN + 1];
+-	char curtable[IPT_TABLE_MAXNAMELEN + 1];
++	char curtable[XT_TABLE_MAXNAMELEN + 1];
+ 	FILE *in;
+ 	int in_table = 0, testing = 0;
+ 	const char *tablename = NULL;
+@@ -217,8 +217,8 @@ iptables_restore_main(int argc, char *argv[])
+ 					prog_name, line);
+ 				exit(1);
+ 			}
+-			strncpy(curtable, table, IPT_TABLE_MAXNAMELEN);
+-			curtable[IPT_TABLE_MAXNAMELEN] = '\0';
++			strncpy(curtable, table, XT_TABLE_MAXNAMELEN);
++			curtable[XT_TABLE_MAXNAMELEN] = '\0';
+ 
+ 			if (tablename && (strcmp(tablename, table) != 0))
+ 				continue;
+@@ -288,7 +288,7 @@ iptables_restore_main(int argc, char *argv[])
+ 			}
+ 
+ 			if (strcmp(policy, "-") != 0) {
+-				struct ipt_counters count;
++				struct xt_counters count;
+ 
+ 				if (counters) {
+ 					char *ctrs;
+@@ -300,8 +300,7 @@ iptables_restore_main(int argc, char *argv[])
+ 							   "for chain '%s'\n", chain);
+ 
+ 				} else {
+-					memset(&count, 0,
+-					       sizeof(struct ipt_counters));
++					memset(&count, 0, sizeof(count));
+ 				}
+ 
+ 				DEBUGP("Setting policy of chain %s to %s\n",
 diff --git a/iptables/iptables-save.c b/iptables/iptables-save.c
-index a25a186..ff42f88 100644
+index ff42f88..e599fce 100644
 --- a/iptables/iptables-save.c
 +++ b/iptables/iptables-save.c
-@@ -58,7 +58,7 @@ static int for_each_table(int (*func)(const char *tablename))
- 
- static int do_output(const char *tablename)
+@@ -36,7 +36,7 @@ static int for_each_table(int (*func)(const char *tablename))
  {
--	struct iptc_handle *h;
-+	struct xtc_handle *h;
- 	const char *chain = NULL;
- 
- 	if (!tablename)
-diff --git a/iptables/iptables-standalone.c b/iptables/iptables-standalone.c
-index 1ebec33..683a44a 100644
---- a/iptables/iptables-standalone.c
-+++ b/iptables/iptables-standalone.c
-@@ -43,7 +43,7 @@ iptables_main(int argc, char *argv[])
- {
- 	int ret;
- 	char *table = "filter";
--	struct iptc_handle *handle = NULL;
-+	struct xtc_handle *handle = NULL;
- 
- 	iptables_globals.program_name = "iptables";
- 	ret = xtables_init_all(&iptables_globals, NFPROTO_IPV4);
-diff --git a/iptables/iptables.c b/iptables/iptables.c
-index f5f47fa..d4a7ca1 100644
---- a/iptables/iptables.c
-+++ b/iptables/iptables.c
-@@ -471,7 +471,7 @@ print_num(uint64_t number, unsigned int format)
- 
- 
- static void
--print_header(unsigned int format, const char *chain, struct iptc_handle *handle)
-+print_header(unsigned int format, const char *chain, struct xtc_handle *handle)
- {
- 	struct ipt_counters counters;
- 	const char *pol = iptc_get_policy(chain, &counters, handle);
-@@ -547,7 +547,7 @@ print_firewall(const struct ipt_entry *fw,
- 	       const char *targname,
- 	       unsigned int num,
- 	       unsigned int format,
--	       struct iptc_handle *const handle)
-+	       struct xtc_handle *const handle)
- {
- 	const struct xtables_target *target = NULL;
- 	const struct ipt_entry_target *t;
-@@ -669,7 +669,7 @@ print_firewall(const struct ipt_entry *fw,
- 
- static void
- print_firewall_line(const struct ipt_entry *fw,
--		    struct iptc_handle *const h)
-+		    struct xtc_handle *const h)
- {
- 	struct ipt_entry_target *t;
- 
-@@ -687,7 +687,7 @@ append_entry(const xt_chainlabel chain,
- 	     const struct in_addr daddrs[],
- 	     const struct in_addr dmasks[],
- 	     int verbose,
--	     struct iptc_handle *handle)
-+	     struct xtc_handle *handle)
- {
- 	unsigned int i, j;
  	int ret = 1;
-@@ -714,7 +714,7 @@ replace_entry(const xt_chainlabel chain,
- 	      const struct in_addr *saddr, const struct in_addr *smask,
- 	      const struct in_addr *daddr, const struct in_addr *dmask,
- 	      int verbose,
--	      struct iptc_handle *handle)
-+	      struct xtc_handle *handle)
- {
- 	fw->ip.src.s_addr = saddr->s_addr;
- 	fw->ip.dst.s_addr = daddr->s_addr;
-@@ -737,7 +737,7 @@ insert_entry(const xt_chainlabel chain,
- 	     const struct in_addr daddrs[],
- 	     const struct in_addr dmasks[],
- 	     int verbose,
--	     struct iptc_handle *handle)
-+	     struct xtc_handle *handle)
- {
- 	unsigned int i, j;
- 	int ret = 1;
-@@ -801,7 +801,7 @@ delete_entry(const xt_chainlabel chain,
- 	     const struct in_addr daddrs[],
- 	     const struct in_addr dmasks[],
- 	     int verbose,
--	     struct iptc_handle *handle,
-+	     struct xtc_handle *handle,
- 	     struct xtables_rule_match *matches,
- 	     const struct xtables_target *target)
- {
-@@ -831,7 +831,7 @@ check_entry(const xt_chainlabel chain, struct ipt_entry *fw,
- 	    unsigned int nsaddrs, const struct in_addr *saddrs,
- 	    const struct in_addr *smasks, unsigned int ndaddrs,
- 	    const struct in_addr *daddrs, const struct in_addr *dmasks,
--	    bool verbose, struct iptc_handle *handle,
-+	    bool verbose, struct xtc_handle *handle,
- 	    struct xtables_rule_match *matches,
- 	    const struct xtables_target *target)
- {
-@@ -857,8 +857,8 @@ check_entry(const xt_chainlabel chain, struct ipt_entry *fw,
- }
+ 	FILE *procfile = NULL;
+-	char tablename[IPT_TABLE_MAXNAMELEN+1];
++	char tablename[XT_TABLE_MAXNAMELEN+1];
  
- int
--for_each_chain4(int (*fn)(const xt_chainlabel, int, struct iptc_handle *),
--	       int verbose, int builtinstoo, struct iptc_handle *handle)
-+for_each_chain4(int (*fn)(const xt_chainlabel, int, struct xtc_handle *),
-+	       int verbose, int builtinstoo, struct xtc_handle *handle)
- {
-         int ret = 1;
- 	const char *chain;
-@@ -894,7 +894,7 @@ for_each_chain4(int (*fn)(const xt_chainlabel, int, struct iptc_handle *),
+ 	procfile = fopen("/proc/net/ip_tables_names", "re");
+ 	if (!procfile)
+@@ -87,7 +87,7 @@ static int do_output(const char *tablename)
  
- int
- flush_entries4(const xt_chainlabel chain, int verbose,
--	      struct iptc_handle *handle)
-+	      struct xtc_handle *handle)
- {
- 	if (!chain)
- 		return for_each_chain4(flush_entries4, verbose, 1, handle);
-@@ -906,7 +906,7 @@ flush_entries4(const xt_chainlabel chain, int verbose,
- 
- static int
- zero_entries(const xt_chainlabel chain, int verbose,
--	     struct iptc_handle *handle)
-+	     struct xtc_handle *handle)
- {
- 	if (!chain)
- 		return for_each_chain4(zero_entries, verbose, 1, handle);
-@@ -918,7 +918,7 @@ zero_entries(const xt_chainlabel chain, int verbose,
- 
- int
- delete_chain4(const xt_chainlabel chain, int verbose,
--	     struct iptc_handle *handle)
-+	     struct xtc_handle *handle)
- {
- 	if (!chain)
- 		return for_each_chain4(delete_chain4, verbose, 0, handle);
-@@ -930,7 +930,7 @@ delete_chain4(const xt_chainlabel chain, int verbose,
- 
- static int
- list_entries(const xt_chainlabel chain, int rulenum, int verbose, int numeric,
--	     int expanded, int linenumbers, struct iptc_handle *handle)
-+	     int expanded, int linenumbers, struct xtc_handle *handle)
- {
- 	int found = 0;
- 	unsigned int format;
-@@ -1097,7 +1097,7 @@ static void print_ip(const char *prefix, uint32_t ip,
- /* We want this to be readable, so only print out neccessary fields.
-  * Because that's the kind of world I want to live in.  */
- void print_rule4(const struct ipt_entry *e,
--		struct iptc_handle *h, const char *chain, int counters)
-+		struct xtc_handle *h, const char *chain, int counters)
- {
- 	const struct ipt_entry_target *t;
- 	const char *target_name;
-@@ -1178,7 +1178,7 @@ void print_rule4(const struct ipt_entry *e,
- 
- static int
- list_rules(const xt_chainlabel chain, int rulenum, int counters,
--	     struct iptc_handle *handle)
-+	     struct xtc_handle *handle)
- {
- 	const char *this = NULL;
- 	int found = 0;
-@@ -1340,7 +1340,7 @@ static void command_match(struct iptables_command_state *cs)
- 		xtables_error(OTHER_PROBLEM, "can't alloc memory!");
- }
- 
--int do_command4(int argc, char *argv[], char **table, struct iptc_handle **handle)
-+int do_command4(int argc, char *argv[], char **table, struct xtc_handle **handle)
- {
- 	struct iptables_command_state cs;
- 	struct ipt_entry *e = NULL;
-diff --git a/libiptc/libip4tc.c b/libiptc/libip4tc.c
-index b9e50c5..cf29238 100644
---- a/libiptc/libip4tc.c
-+++ b/libiptc/libip4tc.c
-@@ -47,9 +47,6 @@ typedef unsigned int socklen_t;
- #define STRUCT_STANDARD_TARGET	struct ipt_standard_target
- #define STRUCT_REPLACE		struct ipt_replace
- 
--#define STRUCT_TC_HANDLE	struct iptc_handle
--#define xtc_handle		iptc_handle
--
- #define ENTRY_ITERATE		IPT_ENTRY_ITERATE
- #define TABLE_MAXNAMELEN	IPT_TABLE_MAXNAMELEN
- #define FUNCTION_MAXNAMELEN	IPT_FUNCTION_MAXNAMELEN
-@@ -123,7 +120,7 @@ typedef unsigned int socklen_t;
- #define IP_PARTS(n) IP_PARTS_NATIVE(ntohl(n))
- 
- static int
--dump_entry(struct ipt_entry *e, struct iptc_handle *const handle)
-+dump_entry(struct ipt_entry *e, struct xtc_handle *const handle)
- {
- 	size_t i;
- 	STRUCT_ENTRY_TARGET *t;
-@@ -238,7 +235,7 @@ check_match(const STRUCT_ENTRY_MATCH *m, unsigned int *off)
- static inline int
- check_entry(const STRUCT_ENTRY *e, unsigned int *i, unsigned int *off,
- 	    unsigned int user_offset, int *was_return,
--	    struct iptc_handle *h)
-+	    struct xtc_handle *h)
- {
- 	unsigned int toff;
- 	STRUCT_STANDARD_TARGET *t;
-@@ -314,7 +311,7 @@ check_entry(const STRUCT_ENTRY *e, unsigned int *i, unsigned int *off,
- #ifdef IPTC_DEBUG
- /* Do every conceivable sanity check on the handle */
- static void
--do_check(struct iptc_handle *h, unsigned int line)
-+do_check(struct xtc_handle *h, unsigned int line)
- {
- 	unsigned int i, n;
- 	unsigned int user_offset; /* Offset of first user chain */
-diff --git a/libiptc/libip6tc.c b/libiptc/libip6tc.c
-index 93366e2..636466f 100644
---- a/libiptc/libip6tc.c
-+++ b/libiptc/libip6tc.c
-@@ -45,9 +45,6 @@ typedef unsigned int socklen_t;
- #define STRUCT_STANDARD_TARGET	struct ip6t_standard_target
- #define STRUCT_REPLACE		struct ip6t_replace
- 
--#define STRUCT_TC_HANDLE	struct ip6tc_handle
--#define xtc_handle		ip6tc_handle
--
- #define ENTRY_ITERATE		IP6T_ENTRY_ITERATE
- #define TABLE_MAXNAMELEN	IP6T_TABLE_MAXNAMELEN
- #define FUNCTION_MAXNAMELEN	IP6T_FUNCTION_MAXNAMELEN
-@@ -131,7 +128,7 @@ ipv6_prefix_length(const struct in6_addr *a)
+ 		printf(":%s ", chain);
+ 		if (iptc_builtin(chain, h)) {
+-			struct ipt_counters count;
++			struct xt_counters count;
+ 			printf("%s ",
+ 			       iptc_get_policy(chain, &count, h));
+ 			printf("[%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned long long)count.bcnt);
+diff --git a/iptables/iptables-xml.c b/iptables/iptables-xml.c
+index 4ecddcb..4b12bd4 100644
+--- a/iptables/iptables-xml.c
++++ b/iptables/iptables-xml.c
+@@ -56,7 +56,7 @@ print_usage(const char *name, const char *version)
  }
  
  static int
--dump_entry(struct ip6t_entry *e, struct ip6tc_handle *const handle)
-+dump_entry(struct ip6t_entry *e, struct xtc_handle *const handle)
+-parse_counters(char *string, struct ipt_counters *ctr)
++parse_counters(char *string, struct xt_counters *ctr)
  {
- 	size_t i;
- 	char buf[40];
-diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
-index 0a29a69..593c5de 100644
---- a/libiptc/libiptc.c
-+++ b/libiptc/libiptc.c
-@@ -121,8 +121,7 @@ struct chain_head
- 	unsigned int foot_offset;	/* offset in rule blob */
+ 	__u64 *pcnt, *bcnt;
+ 
+@@ -81,16 +81,16 @@ static unsigned int oldargc = 0;
+ /* arg meta data, were they quoted, frinstance */
+ static int newargvattr[255];
+ 
+-#define IPT_CHAIN_MAXNAMELEN IPT_TABLE_MAXNAMELEN
+-static char closeActionTag[IPT_TABLE_MAXNAMELEN + 1];
+-static char closeRuleTag[IPT_TABLE_MAXNAMELEN + 1];
+-static char curTable[IPT_TABLE_MAXNAMELEN + 1];
+-static char curChain[IPT_CHAIN_MAXNAMELEN + 1];
++#define XT_CHAIN_MAXNAMELEN XT_TABLE_MAXNAMELEN
++static char closeActionTag[XT_TABLE_MAXNAMELEN + 1];
++static char closeRuleTag[XT_TABLE_MAXNAMELEN + 1];
++static char curTable[XT_TABLE_MAXNAMELEN + 1];
++static char curChain[XT_CHAIN_MAXNAMELEN + 1];
+ 
+ struct chain {
+ 	char *chain;
+ 	char *policy;
+-	struct ipt_counters count;
++	struct xt_counters count;
+ 	int created;
  };
  
--STRUCT_TC_HANDLE
--{
-+struct xtc_handle {
- 	int sockfd;
- 	int changed;			 /* Have changes been made? */
+@@ -233,12 +233,12 @@ closeChain(void)
+ }
  
-@@ -1270,7 +1269,7 @@ alloc_handle(const char *tablename, unsigned int size, unsigned int num_rules)
+ static void
+-openChain(char *chain, char *policy, struct ipt_counters *ctr, char close)
++openChain(char *chain, char *policy, struct xt_counters *ctr, char close)
  {
- 	struct xtc_handle *h;
+ 	closeChain();
  
--	h = malloc(sizeof(STRUCT_TC_HANDLE));
-+	h = malloc(sizeof(*h));
- 	if (!h) {
- 		errno = ENOMEM;
+-	strncpy(curChain, chain, IPT_CHAIN_MAXNAMELEN);
+-	curChain[IPT_CHAIN_MAXNAMELEN] = '\0';
++	strncpy(curChain, chain, XT_CHAIN_MAXNAMELEN);
++	curChain[XT_CHAIN_MAXNAMELEN] = '\0';
+ 
+ 	printf("    <chain ");
+ 	xmlAttrS("name", curChain);
+@@ -287,7 +287,7 @@ needChain(char *chain)
+ }
+ 
+ static void
+-saveChain(char *chain, char *policy, struct ipt_counters *ctr)
++saveChain(char *chain, char *policy, struct xt_counters *ctr)
+ {
+ 	if (nextChain >= maxChains) {
+ 		xtables_error(PARAMETER_PROBLEM,
+@@ -332,8 +332,8 @@ openTable(char *table)
+ {
+ 	closeTable();
+ 
+-	strncpy(curTable, table, IPT_TABLE_MAXNAMELEN);
+-	curTable[IPT_TABLE_MAXNAMELEN] = '\0';
++	strncpy(curTable, table, XT_TABLE_MAXNAMELEN);
++	curTable[XT_TABLE_MAXNAMELEN] = '\0';
+ 
+ 	printf("  <table ");
+ 	xmlAttrS("name", curTable);
+@@ -592,8 +592,8 @@ do_rule(char *pcnt, char *bcnt, int argc, char *argv[], int argvattr[])
+ 			xmlAttrS("byte-count", bcnt);
+ 		printf(">\n");
+ 
+-		strncpy(closeRuleTag, "      </rule>\n", IPT_TABLE_MAXNAMELEN);
+-		closeRuleTag[IPT_TABLE_MAXNAMELEN] = '\0';
++		strncpy(closeRuleTag, "      </rule>\n", XT_TABLE_MAXNAMELEN);
++		closeRuleTag[XT_TABLE_MAXNAMELEN] = '\0';
+ 
+ 		/* no point in writing out condition if there isn't one */
+ 		if (argc >= 3 && !isTarget(argv[2])) {
+@@ -607,8 +607,8 @@ do_rule(char *pcnt, char *bcnt, int argc, char *argv[], int argvattr[])
+ 	if (!closeActionTag[0]) {
+ 		printf("       <actions>\n");
+ 		strncpy(closeActionTag, "       </actions>\n",
+-			IPT_TABLE_MAXNAMELEN);
+-		closeActionTag[IPT_TABLE_MAXNAMELEN] = '\0';
++			XT_TABLE_MAXNAMELEN);
++		closeActionTag[XT_TABLE_MAXNAMELEN] = '\0';
+ 	}
+ 	do_rule_part(NULL, NULL, 1, argc, argv, argvattr);
+ }
+@@ -694,7 +694,7 @@ iptables_xml_main(int argc, char *argv[])
+ 		} else if ((buffer[0] == ':') && (curTable[0])) {
+ 			/* New chain. */
+ 			char *policy, *chain;
+-			struct ipt_counters count;
++			struct xt_counters count;
+ 			char *ctrs;
+ 
+ 			chain = strtok(buffer + 1, " \t\n");
+diff --git a/iptables/iptables.c b/iptables/iptables.c
+index d4a7ca1..03ac63b 100644
+--- a/iptables/iptables.c
++++ b/iptables/iptables.c
+@@ -171,7 +171,7 @@ static const int inverse_for_options[NUMBER_OF_OPT] =
+ /* -n */ 0,
+ /* -s */ IPT_INV_SRCIP,
+ /* -d */ IPT_INV_DSTIP,
+-/* -p */ IPT_INV_PROTO,
++/* -p */ XT_INV_PROTO,
+ /* -j */ 0,
+ /* -v */ 0,
+ /* -x */ 0,
+@@ -473,7 +473,7 @@ print_num(uint64_t number, unsigned int format)
+ static void
+ print_header(unsigned int format, const char *chain, struct xtc_handle *handle)
+ {
+-	struct ipt_counters counters;
++	struct xt_counters counters;
+ 	const char *pol = iptc_get_policy(chain, &counters, handle);
+ 	printf("Chain %s", chain);
+ 	if (pol) {
+@@ -521,7 +521,7 @@ print_header(unsigned int format, const char *chain, struct xtc_handle *handle)
+ 
+ 
+ static int
+-print_match(const struct ipt_entry_match *m,
++print_match(const struct xt_entry_match *m,
+ 	    const struct ipt_ip *ip,
+ 	    int numeric)
+ {
+@@ -550,14 +550,14 @@ print_firewall(const struct ipt_entry *fw,
+ 	       struct xtc_handle *const handle)
+ {
+ 	const struct xtables_target *target = NULL;
+-	const struct ipt_entry_target *t;
++	const struct xt_entry_target *t;
+ 	uint8_t flags;
+ 	char buf[BUFSIZ];
+ 
+ 	if (!iptc_is_chain(targname, handle))
+ 		target = xtables_find_target(targname, XTF_TRY_LOAD);
+ 	else
+-		target = xtables_find_target(IPT_STANDARD_TARGET,
++		target = xtables_find_target(XT_STANDARD_TARGET,
+ 		         XTF_LOAD_MUST_SUCCEED);
+ 
+ 	t = ipt_get_target((struct ipt_entry *)fw);
+@@ -574,7 +574,7 @@ print_firewall(const struct ipt_entry *fw,
+ 	if (!(format & FMT_NOTARGET))
+ 		printf(FMT("%-9s ", "%s "), targname);
+ 
+-	fputc(fw->ip.invflags & IPT_INV_PROTO ? '!' : ' ', stdout);
++	fputc(fw->ip.invflags & XT_INV_PROTO ? '!' : ' ', stdout);
+ 	{
+ 		const char *pname = proto_to_name(fw->ip.proto, format&FMT_NUMERIC);
+ 		if (pname)
+@@ -671,7 +671,7 @@ static void
+ print_firewall_line(const struct ipt_entry *fw,
+ 		    struct xtc_handle *const h)
+ {
+-	struct ipt_entry_target *t;
++	struct xt_entry_target *t;
+ 
+ 	t = ipt_get_target((struct ipt_entry *)fw);
+ 	print_firewall(fw, t->u.user.name, 0, FMT_PRINT_RULE, h);
+@@ -768,10 +768,10 @@ make_delete_mask(const struct xtables_rule_match *matches,
+ 
+ 	size = sizeof(struct ipt_entry);
+ 	for (matchp = matches; matchp; matchp = matchp->next)
+-		size += XT_ALIGN(sizeof(struct ipt_entry_match)) + matchp->match->size;
++		size += XT_ALIGN(sizeof(struct xt_entry_match)) + matchp->match->size;
+ 
+ 	mask = xtables_calloc(1, size
+-			 + XT_ALIGN(sizeof(struct ipt_entry_target))
++			 + XT_ALIGN(sizeof(struct xt_entry_target))
+ 			 + target->size);
+ 
+ 	memset(mask, 0xFF, sizeof(struct ipt_entry));
+@@ -779,13 +779,13 @@ make_delete_mask(const struct xtables_rule_match *matches,
+ 
+ 	for (matchp = matches; matchp; matchp = matchp->next) {
+ 		memset(mptr, 0xFF,
+-		       XT_ALIGN(sizeof(struct ipt_entry_match))
++		       XT_ALIGN(sizeof(struct xt_entry_match))
+ 		       + matchp->match->userspacesize);
+-		mptr += XT_ALIGN(sizeof(struct ipt_entry_match)) + matchp->match->size;
++		mptr += XT_ALIGN(sizeof(struct xt_entry_match)) + matchp->match->size;
+ 	}
+ 
+ 	memset(mptr, 0xFF,
+-	       XT_ALIGN(sizeof(struct ipt_entry_target))
++	       XT_ALIGN(sizeof(struct xt_entry_target))
+ 	       + target->userspacesize);
+ 
+ 	return mask;
+@@ -1041,7 +1041,7 @@ print_iface(char letter, const char *iface, const unsigned char *mask,
+ 	}
+ }
+ 
+-static int print_match_save(const struct ipt_entry_match *e,
++static int print_match_save(const struct xt_entry_match *e,
+ 			const struct ipt_ip *ip)
+ {
+ 	const struct xtables_match *match =
+@@ -1099,7 +1099,7 @@ static void print_ip(const char *prefix, uint32_t ip,
+ void print_rule4(const struct ipt_entry *e,
+ 		struct xtc_handle *h, const char *chain, int counters)
+ {
+-	const struct ipt_entry_target *t;
++	const struct xt_entry_target *t;
+ 	const char *target_name;
+ 
+ 	/* print counters for iptables-save */
+@@ -1122,7 +1122,7 @@ void print_rule4(const struct ipt_entry *e,
+ 	print_iface('o', e->ip.outiface, e->ip.outiface_mask,
+ 		    e->ip.invflags & IPT_INV_VIA_OUT);
+ 
+-	print_proto(e->ip.proto, e->ip.invflags & IPT_INV_PROTO);
++	print_proto(e->ip.proto, e->ip.invflags & XT_INV_PROTO);
+ 
+ 	if (e->ip.flags & IPT_F_FRAG)
+ 		printf("%s -f",
+@@ -1161,11 +1161,11 @@ void print_rule4(const struct ipt_entry *e,
+ 		if (target->save)
+ 			target->save(&e->ip, t);
+ 		else {
+-			/* If the target size is greater than ipt_entry_target
++			/* If the target size is greater than xt_entry_target
+ 			 * there is something to be saved, we just don't know
+ 			 * how to print it */
+ 			if (t->u.target_size !=
+-			    sizeof(struct ipt_entry_target)) {
++			    sizeof(struct xt_entry_target)) {
+ 				fprintf(stderr, "Target `%s' is missing "
+ 						"save function\n",
+ 					t->u.user.name);
+@@ -1195,7 +1195,7 @@ list_rules(const xt_chainlabel chain, int rulenum, int counters,
+ 			continue;
+ 
+ 		if (iptc_builtin(this, handle)) {
+-			struct ipt_counters count;
++			struct xt_counters count;
+ 			printf("-P %s %s", this, iptc_get_policy(this, &count, handle));
+ 			if (counters)
+ 			    printf(" -c %llu %llu", (unsigned long long)count.pcnt, (unsigned long long)count.bcnt);
+@@ -1232,7 +1232,7 @@ list_rules(const xt_chainlabel chain, int rulenum, int counters,
+ static struct ipt_entry *
+ generate_entry(const struct ipt_entry *fw,
+ 	       struct xtables_rule_match *matches,
+-	       struct ipt_entry_target *target)
++	       struct xt_entry_target *target)
+ {
+ 	unsigned int size;
+ 	struct xtables_rule_match *matchp;
+@@ -1290,7 +1290,7 @@ static void command_jump(struct iptables_command_state *cs)
+ 	if (cs->target == NULL)
+ 		return;
+ 
+-	size = XT_ALIGN(sizeof(struct ipt_entry_target))
++	size = XT_ALIGN(sizeof(struct xt_entry_target))
+ 		+ cs->target->size;
+ 
+ 	cs->target->t = xtables_calloc(1, size);
+@@ -1321,7 +1321,7 @@ static void command_match(struct iptables_command_state *cs)
+ 			   "unexpected ! flag before --match");
+ 
+ 	m = xtables_find_match(optarg, XTF_LOAD_MUST_SUCCEED, &cs->matches);
+-	size = XT_ALIGN(sizeof(struct ipt_entry_match)) + m->size;
++	size = XT_ALIGN(sizeof(struct xt_entry_match)) + m->size;
+ 	m->m = xtables_calloc(1, size);
+ 	m->m->u.match_size = size;
+ 	strcpy(m->m->u.user.name, m->name);
+@@ -1559,7 +1559,7 @@ int do_command4(int argc, char *argv[], char **table, struct xtc_handle **handle
+ 			cs.fw.ip.proto = xtables_parse_protocol(cs.protocol);
+ 
+ 			if (cs.fw.ip.proto == 0
+-			    && (cs.fw.ip.invflags & IPT_INV_PROTO))
++			    && (cs.fw.ip.invflags & XT_INV_PROTO))
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					   "rule would never match protocol");
+ 			break;
+@@ -1837,10 +1837,10 @@ int do_command4(int argc, char *argv[], char **table, struct xtc_handle **handle
+ 			|| iptc_is_chain(cs.jumpto, *handle))) {
+ 			size_t size;
+ 
+-			cs.target = xtables_find_target(IPT_STANDARD_TARGET,
++			cs.target = xtables_find_target(XT_STANDARD_TARGET,
+ 					 XTF_LOAD_MUST_SUCCEED);
+ 
+-			size = sizeof(struct ipt_entry_target)
++			size = sizeof(struct xt_entry_target)
+ 				+ cs.target->size;
+ 			cs.target->t = xtables_calloc(1, size);
+ 			cs.target->t->u.target_size = size;
+diff --git a/iptables/xshared.c b/iptables/xshared.c
+index 79da507..e61c28c 100644
+--- a/iptables/xshared.c
++++ b/iptables/xshared.c
+@@ -139,7 +139,7 @@ int command_default(struct iptables_command_state *cs,
+ 
+ 		cs->proto_used = 1;
+ 
+-		size = XT_ALIGN(sizeof(struct ip6t_entry_match)) + m->size;
++		size = XT_ALIGN(sizeof(struct xt_entry_match)) + m->size;
+ 
+ 		m->m = xtables_calloc(1, size);
+ 		m->m->u.match_size = size;
+diff --git a/libiptc/libip4tc.c b/libiptc/libip4tc.c
+index cf29238..c55cbc7 100644
+--- a/libiptc/libip4tc.c
++++ b/libiptc/libip4tc.c
+@@ -37,23 +37,23 @@ typedef unsigned int socklen_t;
+ #define HOOK_LOCAL_OUT		NF_IP_LOCAL_OUT
+ #define HOOK_POST_ROUTING	NF_IP_POST_ROUTING
+ 
+-#define STRUCT_ENTRY_TARGET	struct ipt_entry_target
++#define STRUCT_ENTRY_TARGET	struct xt_entry_target
+ #define STRUCT_ENTRY		struct ipt_entry
+-#define STRUCT_ENTRY_MATCH	struct ipt_entry_match
++#define STRUCT_ENTRY_MATCH	struct xt_entry_match
+ #define STRUCT_GETINFO		struct ipt_getinfo
+ #define STRUCT_GET_ENTRIES	struct ipt_get_entries
+-#define STRUCT_COUNTERS		struct ipt_counters
+-#define STRUCT_COUNTERS_INFO	struct ipt_counters_info
+-#define STRUCT_STANDARD_TARGET	struct ipt_standard_target
++#define STRUCT_COUNTERS		struct xt_counters
++#define STRUCT_COUNTERS_INFO	struct xt_counters_info
++#define STRUCT_STANDARD_TARGET	struct xt_standard_target
+ #define STRUCT_REPLACE		struct ipt_replace
+ 
+ #define ENTRY_ITERATE		IPT_ENTRY_ITERATE
+-#define TABLE_MAXNAMELEN	IPT_TABLE_MAXNAMELEN
+-#define FUNCTION_MAXNAMELEN	IPT_FUNCTION_MAXNAMELEN
++#define TABLE_MAXNAMELEN	XT_TABLE_MAXNAMELEN
++#define FUNCTION_MAXNAMELEN	XT_FUNCTION_MAXNAMELEN
+ 
+ #define GET_TARGET		ipt_get_target
+ 
+-#define ERROR_TARGET		IPT_ERROR_TARGET
++#define ERROR_TARGET		XT_ERROR_TARGET
+ #define NUMHOOKS		NF_IP_NUMHOOKS
+ 
+ #define IPT_CHAINLABEL		xt_chainlabel
+@@ -100,14 +100,14 @@ typedef unsigned int socklen_t;
+ #define SO_GET_ENTRIES		IPT_SO_GET_ENTRIES
+ #define SO_GET_VERSION		IPT_SO_GET_VERSION
+ 
+-#define STANDARD_TARGET		IPT_STANDARD_TARGET
++#define STANDARD_TARGET		XT_STANDARD_TARGET
+ #define LABEL_RETURN		IPTC_LABEL_RETURN
+ #define LABEL_ACCEPT		IPTC_LABEL_ACCEPT
+ #define LABEL_DROP		IPTC_LABEL_DROP
+ #define LABEL_QUEUE		IPTC_LABEL_QUEUE
+ 
+ #define ALIGN			XT_ALIGN
+-#define RETURN			IPT_RETURN
++#define RETURN			XT_RETURN
+ 
+ #include "libiptc.c"
+ 
+@@ -160,7 +160,7 @@ dump_entry(struct ipt_entry *e, struct xtc_handle *const handle)
+ 			       : "UNKNOWN");
+ 		else
+ 			printf("verdict=%u\n", pos);
+-	} else if (strcmp(t->u.user.name, IPT_ERROR_TARGET) == 0)
++	} else if (strcmp(t->u.user.name, XT_ERROR_TARGET) == 0)
+ 		printf("error=`%s'\n", t->data);
+ 
+ 	printf("\n");
+@@ -203,7 +203,7 @@ is_same(const STRUCT_ENTRY *a, const STRUCT_ENTRY *b, unsigned char *matchmask)
+ 	mptr = matchmask + sizeof(STRUCT_ENTRY);
+ 	if (IPT_MATCH_ITERATE(a, match_different, a->elems, b->elems, &mptr))
  		return NULL;
+-	mptr += XT_ALIGN(sizeof(struct ipt_entry_target));
++	mptr += XT_ALIGN(sizeof(struct xt_entry_target));
+ 
+ 	return mptr;
+ }
+@@ -271,14 +271,14 @@ check_entry(const STRUCT_ENTRY *e, unsigned int *i, unsigned int *off,
+ 
+ 			idx = iptcb_entry2index(h, te);
+ 			assert(strcmp(GET_TARGET(te)->u.user.name,
+-				      IPT_ERROR_TARGET)
++				      XT_ERROR_TARGET)
+ 			       != 0);
+ 			assert(te != e);
+ 
+ 			/* Prior node must be error node, or this node. */
+ 			assert(t->verdict == iptcb_entry2offset(h, e)+e->next_offset
+ 			       || strcmp(GET_TARGET(index2entry(h, idx-1))
+-					 ->u.user.name, IPT_ERROR_TARGET)
++					 ->u.user.name, XT_ERROR_TARGET)
+ 			       == 0);
+ 		}
+ 
+@@ -288,7 +288,7 @@ check_entry(const STRUCT_ENTRY *e, unsigned int *i, unsigned int *off,
+ 			*was_return = 1;
+ 		else
+ 			*was_return = 0;
+-	} else if (strcmp(t->target.u.user.name, IPT_ERROR_TARGET) == 0) {
++	} else if (strcmp(t->target.u.user.name, XT_ERROR_TARGET) == 0) {
+ 		assert(t->target.u.target_size
+ 		       == ALIGN(sizeof(struct ipt_error_target)));
+ 
+@@ -301,7 +301,7 @@ check_entry(const STRUCT_ENTRY *e, unsigned int *i, unsigned int *off,
+ 	else *was_return = 0;
+ 
+ 	if (*off == user_offset)
+-		assert(strcmp(t->target.u.user.name, IPT_ERROR_TARGET) == 0);
++		assert(strcmp(t->target.u.user.name, XT_ERROR_TARGET) == 0);
+ 
+ 	(*off) += e->next_offset;
+ 	(*i)++;
+diff --git a/libiptc/libip6tc.c b/libiptc/libip6tc.c
+index 636466f..9febee3 100644
+--- a/libiptc/libip6tc.c
++++ b/libiptc/libip6tc.c
+@@ -35,23 +35,23 @@ typedef unsigned int socklen_t;
+ #define HOOK_LOCAL_OUT		NF_IP6_LOCAL_OUT
+ #define HOOK_POST_ROUTING	NF_IP6_POST_ROUTING
+ 
+-#define STRUCT_ENTRY_TARGET	struct ip6t_entry_target
++#define STRUCT_ENTRY_TARGET	struct xt_entry_target
+ #define STRUCT_ENTRY		struct ip6t_entry
+-#define STRUCT_ENTRY_MATCH	struct ip6t_entry_match
++#define STRUCT_ENTRY_MATCH	struct xt_entry_match
+ #define STRUCT_GETINFO		struct ip6t_getinfo
+ #define STRUCT_GET_ENTRIES	struct ip6t_get_entries
+-#define STRUCT_COUNTERS		struct ip6t_counters
+-#define STRUCT_COUNTERS_INFO	struct ip6t_counters_info
+-#define STRUCT_STANDARD_TARGET	struct ip6t_standard_target
++#define STRUCT_COUNTERS		struct xt_counters
++#define STRUCT_COUNTERS_INFO	struct xt_counters_info
++#define STRUCT_STANDARD_TARGET	struct xt_standard_target
+ #define STRUCT_REPLACE		struct ip6t_replace
+ 
+ #define ENTRY_ITERATE		IP6T_ENTRY_ITERATE
+-#define TABLE_MAXNAMELEN	IP6T_TABLE_MAXNAMELEN
+-#define FUNCTION_MAXNAMELEN	IP6T_FUNCTION_MAXNAMELEN
++#define TABLE_MAXNAMELEN	XT_TABLE_MAXNAMELEN
++#define FUNCTION_MAXNAMELEN	XT_FUNCTION_MAXNAMELEN
+ 
+ #define GET_TARGET		ip6t_get_target
+ 
+-#define ERROR_TARGET		IP6T_ERROR_TARGET
++#define ERROR_TARGET		XT_ERROR_TARGET
+ #define NUMHOOKS		NF_IP6_NUMHOOKS
+ 
+ #define IPT_CHAINLABEL		xt_chainlabel
+@@ -98,14 +98,14 @@ typedef unsigned int socklen_t;
+ #define SO_GET_ENTRIES		IP6T_SO_GET_ENTRIES
+ #define SO_GET_VERSION		IP6T_SO_GET_VERSION
+ 
+-#define STANDARD_TARGET		IP6T_STANDARD_TARGET
++#define STANDARD_TARGET		XT_STANDARD_TARGET
+ #define LABEL_RETURN		IP6TC_LABEL_RETURN
+ #define LABEL_ACCEPT		IP6TC_LABEL_ACCEPT
+ #define LABEL_DROP		IP6TC_LABEL_DROP
+ #define LABEL_QUEUE		IP6TC_LABEL_QUEUE
+ 
+ #define ALIGN			XT_ALIGN
+-#define RETURN			IP6T_RETURN
++#define RETURN			XT_RETURN
+ 
+ #include "libiptc.c"
+ 
+@@ -133,7 +133,7 @@ dump_entry(struct ip6t_entry *e, struct xtc_handle *const handle)
+ 	size_t i;
+ 	char buf[40];
+ 	int len;
+-	struct ip6t_entry_target *t;
++	struct xt_entry_target *t;
+ 	
+ 	printf("Entry %u (%lu):\n", iptcb_entry2index(handle, e),
+ 	       iptcb_entry2offset(handle, e));
+@@ -182,18 +182,18 @@ dump_entry(struct ip6t_entry *e, struct xtc_handle *const handle)
+ 
+ 	t = ip6t_get_target(e);
+ 	printf("Target name: `%s' [%u]\n", t->u.user.name, t->u.target_size);
+-	if (strcmp(t->u.user.name, IP6T_STANDARD_TARGET) == 0) {
++	if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0) {
+ 		const unsigned char *data = t->data;
+ 		int pos = *(const int *)data;
+ 		if (pos < 0)
+ 			printf("verdict=%s\n",
+ 			       pos == -NF_ACCEPT-1 ? "NF_ACCEPT"
+ 			       : pos == -NF_DROP-1 ? "NF_DROP"
+-			       : pos == IP6T_RETURN ? "RETURN"
++			       : pos == XT_RETURN ? "RETURN"
+ 			       : "UNKNOWN");
+ 		else
+ 			printf("verdict=%u\n", pos);
+-	} else if (strcmp(t->u.user.name, IP6T_ERROR_TARGET) == 0)
++	} else if (strcmp(t->u.user.name, XT_ERROR_TARGET) == 0)
+ 		printf("error=`%s'\n", t->data);
+ 
+ 	printf("\n");
+@@ -238,7 +238,7 @@ is_same(const STRUCT_ENTRY *a, const STRUCT_ENTRY *b,
+ 	mptr = matchmask + sizeof(STRUCT_ENTRY);
+ 	if (IP6T_MATCH_ITERATE(a, match_different, a->elems, b->elems, &mptr))
+ 		return NULL;
+-	mptr += XT_ALIGN(sizeof(struct ip6t_entry_target));
++	mptr += XT_ALIGN(sizeof(struct xt_entry_target));
+ 
+ 	return mptr;
+ }
 -- 
 1.7.3.4
 
