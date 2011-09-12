@@ -1,100 +1,47 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 4/9] libiptc: combine common types
-Date: Mon, 12 Sep 2011 12:43:28 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1109121241590.32300@frira.zrqbmnf.qr>
-References: <1315755359-7012-1-git-send-email-jengelh@medozas.de> <1315755359-7012-5-git-send-email-jengelh@medozas.de> <20110912093603.GD2194@1984>
+Subject: Re: [PATCH 2/9] iptables-save: remove binary dumping dead code
+Date: Mon, 12 Sep 2011 12:48:36 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1109121244070.32300@frira.zrqbmnf.qr>
+References: <1315755359-7012-1-git-send-email-jengelh@medozas.de> <1315755359-7012-3-git-send-email-jengelh@medozas.de> <20110912093253.GC2194@1984>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:45320 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:56993 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751602Ab1ILKn3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Sep 2011 06:43:29 -0400
-In-Reply-To: <20110912093603.GD2194@1984>
+	id S1752915Ab1ILKsi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 Sep 2011 06:48:38 -0400
+In-Reply-To: <20110912093253.GC2194@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2011-09-12 11:36, Pablo Neira Ayuso wrote:
 
->On Sun, Sep 11, 2011 at 05:35:53PM +0200, Jan Engelhardt wrote:
->> Make an xt_chainlabel type out of ipt_chainlabel and ip6t_chainlabel,
->> and add backward-API #defines. The ABI naturally does not change
->> either, so no soversion bump.
->> 
->> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
->> ---
->>  include/Makefile.am         |    2 +-
->>  include/libiptc/libip6tc.h  |    3 ++-
->>  include/libiptc/libiptc.h   |    3 ++-
->>  include/libiptc/xtcshared.h |    6 ++++++
->>  4 files changed, 11 insertions(+), 3 deletions(-)
->>  create mode 100644 include/libiptc/xtcshared.h
->> 
->> diff --git a/include/Makefile.am b/include/Makefile.am
->> index 0a1abea..6f7da59 100644
->> --- a/include/Makefile.am
->> +++ b/include/Makefile.am
->> @@ -9,4 +9,4 @@ endif
+On Monday 2011-09-12 11:32, Pablo Neira Ayuso wrote:
 >>  
->>  nobase_include_HEADERS += \
->>  	libiptc/ipt_kernel_headers.h libiptc/libiptc.h \
->> -	libiptc/libip6tc.h libiptc/libxtc.h
->> +	libiptc/libip6tc.h libiptc/libxtc.h libiptc/xtcshared.h
->> diff --git a/include/libiptc/libip6tc.h b/include/libiptc/libip6tc.h
->> index 4f2d1f8..55e0bfc 100644
->> --- a/include/libiptc/libip6tc.h
->> +++ b/include/libiptc/libip6tc.h
->> @@ -10,10 +10,11 @@
->>  #	include <limits.h> /* INT_MAX in ip6_tables.h */
->>  #endif
->>  #include <linux/netfilter_ipv6/ip6_tables.h>
->> +#include <libiptc/xtcshared.h>
+>> -static int show_binary = 0, show_counters = 0;
+>> +static int show_counters = 0;
 >>  
->>  struct ip6tc_handle;
->>  
->> -typedef char ip6t_chainlabel[32];
->> +#define ip6t_chainlabel xt_chainlabel
->>  
->>  #define IP6TC_LABEL_ACCEPT "ACCEPT"
->>  #define IP6TC_LABEL_DROP "DROP"
->> diff --git a/include/libiptc/libiptc.h b/include/libiptc/libiptc.h
->> index 3497d6a..ccbf6bf 100644
->> --- a/include/libiptc/libiptc.h
->> +++ b/include/libiptc/libiptc.h
->> @@ -10,6 +10,7 @@
->>  #	include <limits.h> /* INT_MAX in ip_tables.h */
->>  #endif
->>  #include <linux/netfilter_ipv4/ip_tables.h>
->> +#include <libiptc/xtcshared.h>
->>  
->>  #ifdef __cplusplus
->>  extern "C" {
->> @@ -17,7 +18,7 @@ extern "C" {
->>  
->>  struct iptc_handle;
->>  
->> -typedef char ipt_chainlabel[32];
->> +#define ipt_chainlabel xt_chainlabel
->>  
->>  #define IPTC_LABEL_ACCEPT  "ACCEPT"
->>  #define IPTC_LABEL_DROP    "DROP"
->> diff --git a/include/libiptc/xtcshared.h b/include/libiptc/xtcshared.h
->> new file mode 100644
->> index 0000000..aaf87a4
->> --- /dev/null
->> +++ b/include/libiptc/xtcshared.h
->> @@ -0,0 +1,6 @@
->> +#ifndef _LIBXTC_SHARED_H
->> +#define _LIBXTC_SHARED_H 1
->> +
->> +typedef char xt_chainlabel[32];
->> +
->> +#endif /* _LIBXTC_SHARED_H */
+>>  static const struct option options[] = {
+>> -	{.name = "binary",   .has_arg = false, .val = 'b'},
 >
->I think this definition naturally belong to libxtc.h.
+>Please, better something less agressive like displaying a message
+>telling "-b option was never implemented, ignoring it".
+>
+>So if anyone, for some strange reason, is using it, their scripts will
+>not break.
+>
+>I know this may sound a bit nitpicking but I think it's good to make
+>sure that we don't break anything.
 
-libiptc.h and libip6tc.h do not happen to include libxtc.h.
-As I am checking this again, libxtc.h should probably not even be 
-exported (only iptables's .c uses it).
+I think we are not talking about the same thing. If you run
+`iptables-save -b`, the program will exit with status 1 without
+printing anything related to rules. (Outputs "binary NYI" which, if
+you happen to be able to resolve the acronym, expands to "not yet
+implemented")
+
+How would that be any better than getting "invalid option: -B"?
+
+It is "NYI". Given the issues with binary representations that have
+come up within the last 10 years so far, I doubt that we have a
+reason to offer wanting to dump the packed ruleset right now.
