@@ -1,47 +1,48 @@
-From: =?UTF-8?B?S3J6eXN6dG9mIE9sxJlkemtp?= <ole@ans.pl>
-Subject: Re: conntrack (nf_conn) locking question
-Date: Mon, 12 Sep 2011 21:12:05 +0200
-Message-ID: <4E6E5985.9080306@ans.pl>
-References: <CAOAcFN-fXwCrtDu1snSAH-O5ud92bcBS4Dh8fR2m38pc=5hbTA@mail.gmail.com> <20110912084557.GA2080@1984> <CAOAcFN8DeYAk_sv+f=DrDykEqxd7jQ-yBKCBnqieHOr=RofY5g@mail.gmail.com> <20110912185354.GB4018@1984>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Gidon Miller <gmiller@vasonanetworks.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH RFC v2 0/5] netfilter reverse path filter matches
+Date: Mon, 12 Sep 2011 21:42:27 +0200
+Message-ID: <1315856552-1422-1-git-send-email-fw@strlen.de>
+Cc: netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bizon.gios.gov.pl ([195.187.34.71]:41293 "EHLO
-	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753076Ab1ILTaY (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:58595 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751611Ab1ILToj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Sep 2011 15:30:24 -0400
-In-Reply-To: <20110912185354.GB4018@1984>
+	Mon, 12 Sep 2011 15:44:39 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2011-09-12 20:53, Pablo Neira Ayuso wrote:
-> On Mon, Sep 12, 2011 at 01:11:50PM +0300, Gidon Miller wrote:
->> Hi Pablo,
->> thanks for your reply. can you please refer me to any documentation =
-on
->> how to use ct extensions?
->
-> Only code, see net/netfilter/nf_conntrack_acct.c for instance.
+Version 2 of the ipv4/v6 reverse path filter matches discussed during
+nfws 2011.
 
-Plus:
-  include/net/netfilter/nf_conntrack_acct.h
-  include/net/netfilter/nf_conntrack_extend.h
+The ipv4 match (ipt_rpfilter) tries to do exactly what the current
+fib_validate_source does.  The main problem with this is that
+we need to do an additional fib lookup to get the oif in the match.
+[ delaying until FORWARD is invoked is not possible because by
+  that point the stack might have already sent icmp errors ].
 
-BTW: if nothing changed, extensions can be only attached to a conntrack=
-=20
-before it is confirmed.
+Patrick McHardy suggested to simply attach the result as the dst, so
+ipv4 input path doesn't have to do it again.
 
-Best regards,
+This works, but does have a few side effects wrt. route-by-mark and
+TPROXY, see patch changelog for details.
 
-				Krzysztof Ol=C4=99dzki
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The ipv6 version does a pure 'reverse' lookup instead.  This makes
+things a lot easier (e.g. when multiple route entries exist), but has
+the caveat that a real reply packet might be handled differently due to
+policy routing rules.
+
+Userspace part is stored in my iptables repository on
+http://git.breakpoint.cc/cgi-bin/gitweb.cgi?p=fw/iptables.git (branch 'rpfilter').
+
+Kernel patches are located in the 'xt_rpfilter_5' branch on
+http://git.breakpoint.cc/cgi-bin/gitweb.cgi?p=fw/nf-next.git
+(patches will be sent as followup to this email).
+
+[ in case you are wondering: the earlier xt_rpfilter version was
+  removed -- causes too many module  dependency issues and most of the
+  code cannot be shared anyway ].
+
+Thanks,
+Florian
