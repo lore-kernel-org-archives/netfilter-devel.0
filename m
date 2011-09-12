@@ -1,96 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 4/9] libiptc: combine common types
-Date: Mon, 12 Sep 2011 11:36:03 +0200
-Message-ID: <20110912093603.GD2194@1984>
-References: <1315755359-7012-1-git-send-email-jengelh@medozas.de>
- <1315755359-7012-5-git-send-email-jengelh@medozas.de>
+Subject: Re: [PATCH] Fix repeatable Oops on container destroy with conntrack
+Date: Mon, 12 Sep 2011 11:37:49 +0200
+Message-ID: <20110912093749.GE2194@1984>
+References: <2184C0CE5A5EDC94CDDA5053@Ximines.local>
+ <20110912072524.GA2996@p183.telecom.by>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: Alex Bligh <alex@alex.org.uk>, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	linux-kernel@vger.kernel.org,
+	containers@lists.linux-foundation.org,
+	Linux Containers <containers@lists.osdl.org>
+To: Alexey Dobriyan <adobriyan@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35112 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35611 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754210Ab1ILJgI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Sep 2011 05:36:08 -0400
+	id S1752443Ab1ILJhw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 Sep 2011 05:37:52 -0400
 Content-Disposition: inline
-In-Reply-To: <1315755359-7012-5-git-send-email-jengelh@medozas.de>
+In-Reply-To: <20110912072524.GA2996@p183.telecom.by>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Sep 11, 2011 at 05:35:53PM +0200, Jan Engelhardt wrote:
-> Make an xt_chainlabel type out of ipt_chainlabel and ip6t_chainlabel,
-> and add backward-API #defines. The ABI naturally does not change
-> either, so no soversion bump.
+On Mon, Sep 12, 2011 at 10:25:24AM +0300, Alexey Dobriyan wrote:
+> On Sat, Sep 10, 2011 at 07:48:43PM +0100, Alex Bligh wrote:
+> > --- a/net/netfilter/nf_conntrack_netlink.c
+> > +++ b/net/netfilter/nf_conntrack_netlink.c
+> > @@ -570,6 +570,11 @@ ctnetlink_conntrack_event(unsigned int events, struct nf_ct_event *item)
+> >  		return 0;
+> > 
+> >  	net = nf_ct_net(ct);
+> > +
+> > +	/* container deinit, netlink may have died before death_by_timeout */
+> > +	if (!net->nfnl)
+> > +		return 0;
+> > +
+> >  	if (!item->report && !nfnetlink_has_listeners(net, group))
+> >  		return 0;
 > 
-> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
-> ---
->  include/Makefile.am         |    2 +-
->  include/libiptc/libip6tc.h  |    3 ++-
->  include/libiptc/libiptc.h   |    3 ++-
->  include/libiptc/xtcshared.h |    6 ++++++
->  4 files changed, 11 insertions(+), 3 deletions(-)
->  create mode 100644 include/libiptc/xtcshared.h
-> 
-> diff --git a/include/Makefile.am b/include/Makefile.am
-> index 0a1abea..6f7da59 100644
-> --- a/include/Makefile.am
-> +++ b/include/Makefile.am
-> @@ -9,4 +9,4 @@ endif
->  
->  nobase_include_HEADERS += \
->  	libiptc/ipt_kernel_headers.h libiptc/libiptc.h \
-> -	libiptc/libip6tc.h libiptc/libxtc.h
-> +	libiptc/libip6tc.h libiptc/libxtc.h libiptc/xtcshared.h
-> diff --git a/include/libiptc/libip6tc.h b/include/libiptc/libip6tc.h
-> index 4f2d1f8..55e0bfc 100644
-> --- a/include/libiptc/libip6tc.h
-> +++ b/include/libiptc/libip6tc.h
-> @@ -10,10 +10,11 @@
->  #	include <limits.h> /* INT_MAX in ip6_tables.h */
->  #endif
->  #include <linux/netfilter_ipv6/ip6_tables.h>
-> +#include <libiptc/xtcshared.h>
->  
->  struct ip6tc_handle;
->  
-> -typedef char ip6t_chainlabel[32];
-> +#define ip6t_chainlabel xt_chainlabel
->  
->  #define IP6TC_LABEL_ACCEPT "ACCEPT"
->  #define IP6TC_LABEL_DROP "DROP"
-> diff --git a/include/libiptc/libiptc.h b/include/libiptc/libiptc.h
-> index 3497d6a..ccbf6bf 100644
-> --- a/include/libiptc/libiptc.h
-> +++ b/include/libiptc/libiptc.h
-> @@ -10,6 +10,7 @@
->  #	include <limits.h> /* INT_MAX in ip_tables.h */
->  #endif
->  #include <linux/netfilter_ipv4/ip_tables.h>
-> +#include <libiptc/xtcshared.h>
->  
->  #ifdef __cplusplus
->  extern "C" {
-> @@ -17,7 +18,7 @@ extern "C" {
->  
->  struct iptc_handle;
->  
-> -typedef char ipt_chainlabel[32];
-> +#define ipt_chainlabel xt_chainlabel
->  
->  #define IPTC_LABEL_ACCEPT  "ACCEPT"
->  #define IPTC_LABEL_DROP    "DROP"
-> diff --git a/include/libiptc/xtcshared.h b/include/libiptc/xtcshared.h
-> new file mode 100644
-> index 0000000..aaf87a4
-> --- /dev/null
-> +++ b/include/libiptc/xtcshared.h
-> @@ -0,0 +1,6 @@
-> +#ifndef _LIBXTC_SHARED_H
-> +#define _LIBXTC_SHARED_H 1
-> +
-> +typedef char xt_chainlabel[32];
-> +
-> +#endif /* _LIBXTC_SHARED_H */
+> If this is correct fix, ->nfnl check should be folded into
+> nfnetlink_has_listeners(), otherwise expectations aren't covered.
 
-I think this definition naturally belong to libxtc.h.
+Agreed.
