@@ -1,77 +1,47 @@
-From: Alex Bligh <alex@alex.org.uk>
-Subject: Re: [PATCH] Fix repeatable Oops on container destroy with conntrack
-Date: Mon, 12 Sep 2011 20:06:25 +0100
-Message-ID: <87A32B21CA99D62CE1AB7A4B@Ximines.local>
-References: <2184C0CE5A5EDC94CDDA5053@Ximines.local> <20110912072524.GA2996@p183.telecom.by> <20110912093749.GE2194@1984> <E0902A9541FD5D118EA02B31@Ximines.local> <20110912183357.GC3641@1984>
-Reply-To: Alex Bligh <alex@alex.org.uk>
+From: =?UTF-8?B?S3J6eXN6dG9mIE9sxJlkemtp?= <ole@ans.pl>
+Subject: Re: conntrack (nf_conn) locking question
+Date: Mon, 12 Sep 2011 21:12:05 +0200
+Message-ID: <4E6E5985.9080306@ans.pl>
+References: <CAOAcFN-fXwCrtDu1snSAH-O5ud92bcBS4Dh8fR2m38pc=5hbTA@mail.gmail.com> <20110912084557.GA2080@1984> <CAOAcFN8DeYAk_sv+f=DrDykEqxd7jQ-yBKCBnqieHOr=RofY5g@mail.gmail.com> <20110912185354.GB4018@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Alexey Dobriyan <adobriyan@gmail.com>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-	containers@lists.linux-foundation.org,
-	Linux Containers <containers@lists.osdl.org>,
-	Alex Bligh <alex@alex.org.uk>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Gidon Miller <gmiller@vasonanetworks.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.avalus.com ([89.16.176.221]:35938 "EHLO mail.avalus.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753689Ab1ILTG2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Sep 2011 15:06:28 -0400
-In-Reply-To: <20110912183357.GC3641@1984>
-Content-Disposition: inline
+Received: from bizon.gios.gov.pl ([195.187.34.71]:41293 "EHLO
+	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753076Ab1ILTaY (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 Sep 2011 15:30:24 -0400
+In-Reply-To: <20110912185354.GB4018@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo,
-
---On 12 September 2011 20:33:57 +0200 Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-
-> Yes, this is what Alexey was pointing out in the previous email and
-> why he suggested to move it to nfnetlink_has_listeners (to cover the
-> expectation case).
+On 2011-09-12 20:53, Pablo Neira Ayuso wrote:
+> On Mon, Sep 12, 2011 at 01:11:50PM +0300, Gidon Miller wrote:
+>> Hi Pablo,
+>> thanks for your reply. can you please refer me to any documentation =
+on
+>> how to use ct extensions?
 >
-> But you're right, we cannot move it to nfnetlink_has_listeners because
-> of the item->report case. Please, include the expectation part and
-> resend the patch.
+> Only code, see net/netfilter/nf_conntrack_acct.c for instance.
 
-Thanks - see below
+Plus:
+  include/net/netfilter/nf_conntrack_acct.h
+  include/net/netfilter/nf_conntrack_extend.h
 
--- 
-Alex Bligh
+BTW: if nothing changed, extensions can be only attached to a conntrack=
+=20
+before it is confirmed.
 
-Signed-off-by: Alex Bligh <alex@alex.org.uk>
----
- net/netfilter/nf_conntrack_netlink.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+Best regards,
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 482e90c..f44d571 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -570,6 +570,11 @@ ctnetlink_conntrack_event(unsigned int events, struct nf_ct_event *item)
-                return 0;
-
-        net = nf_ct_net(ct);
-+
-+       /* container deinit, netlink may have died before death_by_timeout */
-+       if (!net->nfnl)
-+               return 0;
-+
-        if (!item->report && !nfnetlink_has_listeners(net, group))
-                return 0;
-
-@@ -1723,6 +1728,10 @@ ctnetlink_expect_event(unsigned int events, struct nf_exp_event *item)
-        } else
-                return 0;
-
-+       /* container deinit, netlink may have died before death_by_timeout */
-+       if (!net->nfnl)
-+               return 0;
-+
-        if (!item->report && !nfnetlink_has_listeners(net, group))
-                return 0;
-
--- 
-1.7.5.4
+				Krzysztof Ol=C4=99dzki
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
