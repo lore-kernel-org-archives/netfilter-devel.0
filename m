@@ -1,70 +1,111 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] Fix repeatable Oops on container destroy with conntrack
-Date: Mon, 12 Sep 2011 20:33:57 +0200
-Message-ID: <20110912183357.GC3641@1984>
-References: <2184C0CE5A5EDC94CDDA5053@Ximines.local>
- <20110912072524.GA2996@p183.telecom.by>
- <20110912093749.GE2194@1984>
- <E0902A9541FD5D118EA02B31@Ximines.local>
+Subject: Re: [PATCH 4/9] libiptc: combine common types
+Date: Mon, 12 Sep 2011 20:38:17 +0200
+Message-ID: <20110912183817.GD3641@1984>
+References: <1315755359-7012-1-git-send-email-jengelh@medozas.de>
+ <1315755359-7012-5-git-send-email-jengelh@medozas.de>
+ <20110912093603.GD2194@1984>
+ <alpine.LNX.2.01.1109121241590.32300@frira.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Alexey Dobriyan <adobriyan@gmail.com>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-	containers@lists.linux-foundation.org,
-	Linux Containers <containers@lists.osdl.org>
-To: Alex Bligh <alex@alex.org.uk>
-Return-path: <netfilter-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:33062 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753386Ab1ILSiY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 Sep 2011 14:38:24 -0400
 Content-Disposition: inline
-In-Reply-To: <E0902A9541FD5D118EA02B31@Ximines.local>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <alpine.LNX.2.01.1109121241590.32300@frira.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Alex,
-
-On Mon, Sep 12, 2011 at 11:32:18AM +0100, Alex Bligh wrote:
-> I /think/ it is the correct fix, in that it certainly fixes the oops,
-> and it's relatively low overhead. I ran the torture test for 24 hours
-> without a problem.
+On Mon, Sep 12, 2011 at 12:43:28PM +0200, Jan Engelhardt wrote:
+> On Monday 2011-09-12 11:36, Pablo Neira Ayuso wrote:
 > 
-> My only concern is that eventually my torture test died as the
-> machine (512MB VM) had run out of memory - this was after about 30
-> hours. Save for having no free memory, the box is happy.
-> It looks like there is something (possibly something
-> entirely different) leaking memory. It does not appear to be
-> conntrack. Whatever, a slow memory leak causing death on a tiny
-> VM over 5,000 iterations is better than an oops after 5. Memory
-> stats below. I will leave the vm up in case anyone wants other
-> stats.
-
-Seems like a different issue.
-
-> On the suggestion to move the check for ->nfnl into
-> nfnetlink_has_listeners(), the problem with that is that
-> if item->report is non-NULL, nfnetlink_has_listeners()
-> will not be called, and the early return will not be made.
-> This will merely delay the oops until elsewhere (nfnetlink_send
-> for example). The check is currently as follows:
+> >On Sun, Sep 11, 2011 at 05:35:53PM +0200, Jan Engelhardt wrote:
+> >> Make an xt_chainlabel type out of ipt_chainlabel and ip6t_chainlabel,
+> >> and add backward-API #defines. The ABI naturally does not change
+> >> either, so no soversion bump.
+> >> 
+> >> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+> >> ---
+> >>  include/Makefile.am         |    2 +-
+> >>  include/libiptc/libip6tc.h  |    3 ++-
+> >>  include/libiptc/libiptc.h   |    3 ++-
+> >>  include/libiptc/xtcshared.h |    6 ++++++
+> >>  4 files changed, 11 insertions(+), 3 deletions(-)
+> >>  create mode 100644 include/libiptc/xtcshared.h
+> >> 
+> >> diff --git a/include/Makefile.am b/include/Makefile.am
+> >> index 0a1abea..6f7da59 100644
+> >> --- a/include/Makefile.am
+> >> +++ b/include/Makefile.am
+> >> @@ -9,4 +9,4 @@ endif
+> >>  
+> >>  nobase_include_HEADERS += \
+> >>  	libiptc/ipt_kernel_headers.h libiptc/libiptc.h \
+> >> -	libiptc/libip6tc.h libiptc/libxtc.h
+> >> +	libiptc/libip6tc.h libiptc/libxtc.h libiptc/xtcshared.h
+> >> diff --git a/include/libiptc/libip6tc.h b/include/libiptc/libip6tc.h
+> >> index 4f2d1f8..55e0bfc 100644
+> >> --- a/include/libiptc/libip6tc.h
+> >> +++ b/include/libiptc/libip6tc.h
+> >> @@ -10,10 +10,11 @@
+> >>  #	include <limits.h> /* INT_MAX in ip6_tables.h */
+> >>  #endif
+> >>  #include <linux/netfilter_ipv6/ip6_tables.h>
+> >> +#include <libiptc/xtcshared.h>
+> >>  
+> >>  struct ip6tc_handle;
+> >>  
+> >> -typedef char ip6t_chainlabel[32];
+> >> +#define ip6t_chainlabel xt_chainlabel
+> >>  
+> >>  #define IP6TC_LABEL_ACCEPT "ACCEPT"
+> >>  #define IP6TC_LABEL_DROP "DROP"
+> >> diff --git a/include/libiptc/libiptc.h b/include/libiptc/libiptc.h
+> >> index 3497d6a..ccbf6bf 100644
+> >> --- a/include/libiptc/libiptc.h
+> >> +++ b/include/libiptc/libiptc.h
+> >> @@ -10,6 +10,7 @@
+> >>  #	include <limits.h> /* INT_MAX in ip_tables.h */
+> >>  #endif
+> >>  #include <linux/netfilter_ipv4/ip_tables.h>
+> >> +#include <libiptc/xtcshared.h>
+> >>  
+> >>  #ifdef __cplusplus
+> >>  extern "C" {
+> >> @@ -17,7 +18,7 @@ extern "C" {
+> >>  
+> >>  struct iptc_handle;
+> >>  
+> >> -typedef char ipt_chainlabel[32];
+> >> +#define ipt_chainlabel xt_chainlabel
+> >>  
+> >>  #define IPTC_LABEL_ACCEPT  "ACCEPT"
+> >>  #define IPTC_LABEL_DROP    "DROP"
+> >> diff --git a/include/libiptc/xtcshared.h b/include/libiptc/xtcshared.h
+> >> new file mode 100644
+> >> index 0000000..aaf87a4
+> >> --- /dev/null
+> >> +++ b/include/libiptc/xtcshared.h
+> >> @@ -0,0 +1,6 @@
+> >> +#ifndef _LIBXTC_SHARED_H
+> >> +#define _LIBXTC_SHARED_H 1
+> >> +
+> >> +typedef char xt_chainlabel[32];
+> >> +
+> >> +#endif /* _LIBXTC_SHARED_H */
+> >
+> >I think this definition naturally belong to libxtc.h.
 > 
->        if (!item->report && !nfnetlink_has_listeners(net, group))
->                return 0;
-> 
-> I am a very long way from being a netlink expert, but I am not
-> entirely sure what the point of progressing further is if there
-> are no listeners if item->report is non-null. Certainly there is
-> no point in progressing if net->nfnl NULL (as this will oops
-> before item->report is meaningfully used - it's just passed
-> as a parametner to nfnetlink_send which will crash). It's
-> almost as if that test should be || not &&.
-> 
-> Perhaps we should check net->nfnl in both places.
-> 
-> I think there might be similar issues with ctnetlink_expect_event.
+> libiptc.h and libip6tc.h do not happen to include libxtc.h.
+> As I am checking this again, libxtc.h should probably not even be 
+> exported (only iptables's .c uses it).
 
-Yes, this is what Alexey was pointing out in the previous email and
-why he suggested to move it to nfnetlink_has_listeners (to cover the
-expectation case).
+My suggestion was becasue of the naming. libxtc.h sound like the
+generic version of libiptc.h and libip6tc.h, but this doesn't seem to
+be the case.
 
-But you're right, we cannot move it to nfnetlink_has_listeners because
-of the item->report case. Please, include the expectation part and
-resend the patch.
+It's fine then.
