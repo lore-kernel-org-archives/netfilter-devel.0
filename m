@@ -1,47 +1,35 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 2/9] iptables-save: remove binary dumping dead code
-Date: Mon, 12 Sep 2011 12:48:36 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1109121244070.32300@frira.zrqbmnf.qr>
-References: <1315755359-7012-1-git-send-email-jengelh@medozas.de> <1315755359-7012-3-git-send-email-jengelh@medozas.de> <20110912093253.GC2194@1984>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: conntrack-tools: fscanf() call usage
+Date: Mon, 12 Sep 2011 12:57:38 +0200
+Message-ID: <201109121257.38596.thomas.jarosch@intra2net.com>
+References: <201108251422.59027.thomas.jarosch@intra2net.com> <CAFpsybkfNj9DctsBkpEpOXd5Y0vGMVSC7nxKU7hWhNKZTNrTSQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Philip Craig <philipjcraig@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:56993 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752915Ab1ILKsi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Sep 2011 06:48:38 -0400
-In-Reply-To: <20110912093253.GC2194@1984>
+Received: from rs04.intra2net.com ([85.214.66.2]:59368 "EHLO
+	rs04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753978Ab1ILK5l (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 Sep 2011 06:57:41 -0400
+In-Reply-To: <CAFpsybkfNj9DctsBkpEpOXd5Y0vGMVSC7nxKU7hWhNKZTNrTSQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Friday, 26. August 2011 03:45:29 Philip Craig wrote:
+> > Proposed change looks like this:
+> >     "if (fscanf(fd, "%10d", &count) != 1) {"
+> > 
+> > Is that a sane thing to do or unnecessary?
+> 
+> Working around the problem in every program that uses scanf is not the
+> right thing to do.
 
-On Monday 2011-09-12 11:32, Pablo Neira Ayuso wrote:
->>  
->> -static int show_binary = 0, show_counters = 0;
->> +static int show_counters = 0;
->>  
->>  static const struct option options[] = {
->> -	{.name = "binary",   .has_arg = false, .val = 'b'},
->
->Please, better something less agressive like displaying a message
->telling "-b option was never implemented, ignoring it".
->
->So if anyone, for some strange reason, is using it, their scripts will
->not break.
->
->I know this may sound a bit nitpicking but I think it's good to make
->sure that we don't break anything.
+This issue has been resolved upstream in glibc.
+(http://sourceware.org/bugzilla/show_bug.cgi?id=13138)
 
-I think we are not talking about the same thing. If you run
-`iptables-save -b`, the program will exit with status 1 without
-printing anything related to rules. (Outputs "binary NYI" which, if
-you happen to be able to resolve the acronym, expands to "not yet
-implemented")
-
-How would that be any better than getting "invalid option: -B"?
-
-It is "NYI". Given the issues with binary representations that have
-come up within the last 10 years so far, I doubt that we have a
-reason to offer wanting to dump the packed ruleset right now.
+Cheers,
+Thomas
