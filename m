@@ -1,50 +1,33 @@
-From: Alex Bligh <alex@alex.org.uk>
-Subject: Re: [PATCH] Fix repeatable Oops on container destroy with conntrack
-Date: Wed, 14 Sep 2011 09:01:34 +0100
-Message-ID: <A51A04647674405AF6C39A4F@nimrod.local>
-References: <2184C0CE5A5EDC94CDDA5053@Ximines.local>
- <20110912072524.GA2996@p183.telecom.by> <20110912093749.GE2194@1984>
- <E0902A9541FD5D118EA02B31@Ximines.local> <20110912183357.GC3641@1984>
- <87A32B21CA99D62CE1AB7A4B@Ximines.local>
- <7631498AC7E7C0EAD641AC7D@nimrod.local> <20110914013500.GB17051@1984>
-Reply-To: Alex Bligh <alex@alex.org.uk>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] Check net->nfnl for NULL in ctnetlink_conntrack_event
+ to, avoid Oops on container destroy
+Date: Wed, 14 Sep 2011 14:31:38 +0200
+Message-ID: <20110914123138.GA19715@1984>
+References: <4E6E4961.9070802@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Alexey Dobriyan <adobriyan@gmail.com>,
+Content-Type: text/plain; charset=us-ascii
+Cc: kaber@trash.net, linux-kernel@vger.kernel.org,
+	David Miller <davem@davemloft.net>,
 	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-	containers@lists.linux-foundation.org,
-	Linux Containers <containers@lists.osdl.org>,
-	Alex Bligh <alex@alex.org.uk>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110914013500.GB17051@1984>
+	coreteam@netfilter.org, netdev@vger.kernel.org
+To: Tim Gardner <tim.gardner@canonical.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:52419 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756555Ab1INMbm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 Sep 2011 08:31:42 -0400
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <4E6E4961.9070802@canonical.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+On Mon, Sep 12, 2011 at 12:03:13PM -0600, Tim Gardner wrote:
+> Patrick,
+> 
+> I received this patch from a developer that uses lxc and network
+> name spaces. I don't know the locking semantics well enough for CT
+> to judge whether this fix is sufficient. Bug info can be found at
+> http://bugs.launchpad.net/bugs/843892 . See comment #7 for his
+> analysis.
 
-
---On 14 September 2011 03:35:00 +0200 Pablo Neira Ayuso 
-<pablo@netfilter.org> wrote:
-
->> Is this new version OK? I am happy to adjust if not.
->
-> Hm, I still think that this is a workaround.
-
-It is a bit of a workaround, that is true. But it is a workaround
-that will fix the bug in every kernel since 2.6.32 (and perhaps
-before - I haven't looked). It's thus reasonably easily applicable
-to stable kernel series.
-
-I'm not clued-up enough on Netfilter to know what the right fix is,
-but is applying the workaround in a commit which could be easily
-backported, then applying the 'right fix' (assuming that is different)
-a reasonable strategy?
-
-As you can probably tell, my interest here is to get something that
-doesn't oops into stable kernels.
-
--- 
-Alex Bligh
+We're still discussing a better solution for it.
