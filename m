@@ -1,44 +1,41 @@
-From: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Subject: Re: net GIT trees on github
-Date: Thu, 15 Sep 2011 20:01:23 -0700
-Message-ID: <CAL3LdT4CVqw7u4OS7hCiEQP0vjBW58CYUrdAGFnSs3oUYXsz8w@mail.gmail.com>
-References: <20110915.150552.93591736515744753.davem@davemloft.net>
+From: "U.Mutlu" <for-gmane@mutluit.com>
+Subject: Howto: filtering on a per process/program basis
+Date: Fri, 16 Sep 2011 12:49:11 +0200
+Message-ID: <j4v9j8$isk$1@dough.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20110915.150552.93591736515744753.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from lo.gmane.org ([80.91.229.12]:35407 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751126Ab1IPKzM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Sep 2011 06:55:12 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
+	id 1R4W4Z-00034j-Gs
+	for netfilter-devel@vger.kernel.org; Fri, 16 Sep 2011 12:55:07 +0200
+Received: from p4fdf574f.dip.t-dialin.net ([79.223.87.79])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Sep 2011 12:55:07 +0200
+Received: from for-gmane by p4fdf574f.dip.t-dialin.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Sep 2011 12:55:07 +0200
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 15, 2011 at 12:05, David Miller <davem@davemloft.net> wrote=
-:
->
-> I finally broke down and started putting some trees up on github.
->
-> The plain 'net' tree is up already:
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0git://github.com/davem330/net.git
->
-> And a "net-next.git" will be there shortly.
->
-> This is a temporary situation so that I can push out the backlog
-> a little bit until kernel.org is fully back in service. =C2=A0Once
-> kernel.org is back I will stop updating these trees.
->
+Hi,
+I need filtering on a per process (ie. program name) basis.
+Is this already possible in iptables/netfilter/xtables etc., or in an addon?
 
-I have forked your net-next tree for Intel Wired LAN Driver updates,
-here is the link
+Practically:
+   Normal filtering rules based on srcaddr, dstaddr, proto, srcport, dstport etc,
+   Allow only specified applications sending of packets,
+   Allow only specified applications reception of packets,
+   Optionally log anything else,
+   Discard anything else.
 
-    git://github.com/Jkirsher/net-next.git
+When I write and install a netfilter module then how would
+I go to get the process name from within the kernel module?
 
-My pull requests will use this tree (only while master.kernel.org is
-down).  This is meant as a FYI and will still send out a cover page
-with this info as well.
-
---=20
-Cheers,
-Jeff
