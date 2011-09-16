@@ -1,41 +1,45 @@
-From: "U.Mutlu" <for-gmane@mutluit.com>
-Subject: Howto: filtering on a per process/program basis
-Date: Fri, 16 Sep 2011 12:49:11 +0200
-Message-ID: <j4v9j8$isk$1@dough.gmane.org>
+From: "Jeff Haran" <jharan@bytemobile.com>
+Subject: RE: Howto: filtering on a per process/program basis
+Date: Fri, 16 Sep 2011 10:11:04 -0700
+Message-ID: <6F5DE7538AFCDA45A114F5E7510424A702AD4931@hq-exchange01.bytemobile.com>
+References: <j4v9j8$isk$1@dough.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+To: "U.Mutlu" <for-gmane@mutluit.com>,
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:35407 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751126Ab1IPKzM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Sep 2011 06:55:12 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
-	id 1R4W4Z-00034j-Gs
-	for netfilter-devel@vger.kernel.org; Fri, 16 Sep 2011 12:55:07 +0200
-Received: from p4fdf574f.dip.t-dialin.net ([79.223.87.79])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Fri, 16 Sep 2011 12:55:07 +0200
-Received: from for-gmane by p4fdf574f.dip.t-dialin.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Fri, 16 Sep 2011 12:55:07 +0200
+Received: from ironport.bytemobile.com ([12.153.136.13]:58290 "EHLO
+	ironport.bytemobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752566Ab1IPRZA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Sep 2011 13:25:00 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <j4v9j8$isk$1@dough.gmane.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-I need filtering on a per process (ie. program name) basis.
-Is this already possible in iptables/netfilter/xtables etc., or in an addon?
-
-Practically:
-   Normal filtering rules based on srcaddr, dstaddr, proto, srcport, dstport etc,
-   Allow only specified applications sending of packets,
-   Allow only specified applications reception of packets,
-   Optionally log anything else,
-   Discard anything else.
-
-When I write and install a netfilter module then how would
-I go to get the process name from within the kernel module?
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBuZXRmaWx0ZXItZGV2ZWwtb3du
+ZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bmV0ZmlsdGVyLWRldmVsLQ0KPiBvd25lckB2Z2Vy
+Lmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBVLk11dGx1DQo+IFNlbnQ6IEZyaWRheSwgU2VwdGVt
+YmVyIDE2LCAyMDExIDM6NDkgQU0NCj4gVG86IG5ldGZpbHRlci1kZXZlbEB2Z2VyLmtlcm5lbC5v
+cmcNCj4gU3ViamVjdDogSG93dG86IGZpbHRlcmluZyBvbiBhIHBlciBwcm9jZXNzL3Byb2dyYW0g
+YmFzaXMNCj4gDQo+IEhpLA0KPiBJIG5lZWQgZmlsdGVyaW5nIG9uIGEgcGVyIHByb2Nlc3MgKGll
+LiBwcm9ncmFtIG5hbWUpIGJhc2lzLg0KPiBJcyB0aGlzIGFscmVhZHkgcG9zc2libGUgaW4gaXB0
+YWJsZXMvbmV0ZmlsdGVyL3h0YWJsZXMgZXRjLiwgb3IgaW4gYW4gYWRkb24/DQo+IA0KPiBQcmFj
+dGljYWxseToNCj4gICAgTm9ybWFsIGZpbHRlcmluZyBydWxlcyBiYXNlZCBvbiBzcmNhZGRyLCBk
+c3RhZGRyLCBwcm90bywgc3JjcG9ydCwgZHN0cG9ydCBldGMsDQo+ICAgIEFsbG93IG9ubHkgc3Bl
+Y2lmaWVkIGFwcGxpY2F0aW9ucyBzZW5kaW5nIG9mIHBhY2tldHMsDQo+ICAgIEFsbG93IG9ubHkg
+c3BlY2lmaWVkIGFwcGxpY2F0aW9ucyByZWNlcHRpb24gb2YgcGFja2V0cywNCj4gICAgT3B0aW9u
+YWxseSBsb2cgYW55dGhpbmcgZWxzZSwNCj4gICAgRGlzY2FyZCBhbnl0aGluZyBlbHNlLg0KPiAN
+Cj4gV2hlbiBJIHdyaXRlIGFuZCBpbnN0YWxsIGEgbmV0ZmlsdGVyIG1vZHVsZSB0aGVuIGhvdyB3
+b3VsZA0KPiBJIGdvIHRvIGdldCB0aGUgcHJvY2VzcyBuYW1lIGZyb20gd2l0aGluIHRoZSBrZXJu
+ZWwgbW9kdWxlPw0KDQpJIGRvbid0IGtub3cgaG93IHlvdSdkIGdldCB0aGUgcHJvY2VzcyBuYW1l
+LCBidXQgYW4gYWx0ZXJuYXRpdmUgdGhhdCBtaWdodCB3b3JrIGZvciB5b3UgaWYgeW91IGhhdmUg
+Y29udHJvbCBvdmVyIHRoZSBhcHBsaWNhdGlvbnMnIGltcGxlbWVudGF0aW9uIHdvdWxkIGJlIHRv
+IGhhdmUgdGhvc2UgYXBwbGljYXRpb25zIHNldCB0aGUgU09fTUFSSyBzb2NrZXQgb3B0aW9uIG9u
+IHRoZSBzb2NrZXRzIHRoZXkgdXNlLiBZb3UgY291bGQgdGhlbiB1c2UgdGhlIHN0YW5kYXJkIGlw
+dGFibGVzIG1hcmsgbWF0Y2ggZXh0ZW5zaW9uIHRvIGZpbHRlciBvbiB0aGUgbWFyayBhbmQgc2F2
+ZSB5b3Vyc2VsZiB0aGUgYm90aGVyIG9mIHdyaXRpbmcgYSBrZXJuZWwgbW9kdWxlLg0KDQpKZWZm
+IEhhcmFuDQoNCgo=
 
