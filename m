@@ -1,45 +1,27 @@
-From: "Jeff Haran" <jharan@bytemobile.com>
-Subject: RE: Howto: filtering on a per process/program basis
-Date: Fri, 16 Sep 2011 10:11:04 -0700
-Message-ID: <6F5DE7538AFCDA45A114F5E7510424A702AD4931@hq-exchange01.bytemobile.com>
-References: <j4v9j8$isk$1@dough.gmane.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH RFC 0/11] netlink: memory mapped I/O
+Date: Sat, 17 Sep 2011 01:48:58 -0400 (EDT)
+Message-ID: <20110917.014858.380723775456321514.davem@davemloft.net>
+References: <1315070771-18576-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-To: "U.Mutlu" <for-gmane@mutluit.com>,
-	<netfilter-devel@vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ironport.bytemobile.com ([12.153.136.13]:58290 "EHLO
-	ironport.bytemobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752566Ab1IPRZA (ORCPT
+Received: from shards.monkeyblade.net ([198.137.202.13]:48407 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751058Ab1IQFuK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Sep 2011 13:25:00 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <j4v9j8$isk$1@dough.gmane.org>
+	Sat, 17 Sep 2011 01:50:10 -0400
+In-Reply-To: <1315070771-18576-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBuZXRmaWx0ZXItZGV2ZWwtb3du
-ZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bmV0ZmlsdGVyLWRldmVsLQ0KPiBvd25lckB2Z2Vy
-Lmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBVLk11dGx1DQo+IFNlbnQ6IEZyaWRheSwgU2VwdGVt
-YmVyIDE2LCAyMDExIDM6NDkgQU0NCj4gVG86IG5ldGZpbHRlci1kZXZlbEB2Z2VyLmtlcm5lbC5v
-cmcNCj4gU3ViamVjdDogSG93dG86IGZpbHRlcmluZyBvbiBhIHBlciBwcm9jZXNzL3Byb2dyYW0g
-YmFzaXMNCj4gDQo+IEhpLA0KPiBJIG5lZWQgZmlsdGVyaW5nIG9uIGEgcGVyIHByb2Nlc3MgKGll
-LiBwcm9ncmFtIG5hbWUpIGJhc2lzLg0KPiBJcyB0aGlzIGFscmVhZHkgcG9zc2libGUgaW4gaXB0
-YWJsZXMvbmV0ZmlsdGVyL3h0YWJsZXMgZXRjLiwgb3IgaW4gYW4gYWRkb24/DQo+IA0KPiBQcmFj
-dGljYWxseToNCj4gICAgTm9ybWFsIGZpbHRlcmluZyBydWxlcyBiYXNlZCBvbiBzcmNhZGRyLCBk
-c3RhZGRyLCBwcm90bywgc3JjcG9ydCwgZHN0cG9ydCBldGMsDQo+ICAgIEFsbG93IG9ubHkgc3Bl
-Y2lmaWVkIGFwcGxpY2F0aW9ucyBzZW5kaW5nIG9mIHBhY2tldHMsDQo+ICAgIEFsbG93IG9ubHkg
-c3BlY2lmaWVkIGFwcGxpY2F0aW9ucyByZWNlcHRpb24gb2YgcGFja2V0cywNCj4gICAgT3B0aW9u
-YWxseSBsb2cgYW55dGhpbmcgZWxzZSwNCj4gICAgRGlzY2FyZCBhbnl0aGluZyBlbHNlLg0KPiAN
-Cj4gV2hlbiBJIHdyaXRlIGFuZCBpbnN0YWxsIGEgbmV0ZmlsdGVyIG1vZHVsZSB0aGVuIGhvdyB3
-b3VsZA0KPiBJIGdvIHRvIGdldCB0aGUgcHJvY2VzcyBuYW1lIGZyb20gd2l0aGluIHRoZSBrZXJu
-ZWwgbW9kdWxlPw0KDQpJIGRvbid0IGtub3cgaG93IHlvdSdkIGdldCB0aGUgcHJvY2VzcyBuYW1l
-LCBidXQgYW4gYWx0ZXJuYXRpdmUgdGhhdCBtaWdodCB3b3JrIGZvciB5b3UgaWYgeW91IGhhdmUg
-Y29udHJvbCBvdmVyIHRoZSBhcHBsaWNhdGlvbnMnIGltcGxlbWVudGF0aW9uIHdvdWxkIGJlIHRv
-IGhhdmUgdGhvc2UgYXBwbGljYXRpb25zIHNldCB0aGUgU09fTUFSSyBzb2NrZXQgb3B0aW9uIG9u
-IHRoZSBzb2NrZXRzIHRoZXkgdXNlLiBZb3UgY291bGQgdGhlbiB1c2UgdGhlIHN0YW5kYXJkIGlw
-dGFibGVzIG1hcmsgbWF0Y2ggZXh0ZW5zaW9uIHRvIGZpbHRlciBvbiB0aGUgbWFyayBhbmQgc2F2
-ZSB5b3Vyc2VsZiB0aGUgYm90aGVyIG9mIHdyaXRpbmcgYSBrZXJuZWwgbW9kdWxlLg0KDQpKZWZm
-IEhhcmFuDQoNCgo=
+From: kaber@trash.net
+Date: Sat,  3 Sep 2011 19:26:00 +0200
 
+> Comments and rewiew highly welcome!
+
+Looks great to me, I look forward to integrating the final version
+of this stuff.
