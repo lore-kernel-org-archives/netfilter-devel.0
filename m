@@ -1,44 +1,37 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Can't build iptables (git as of today)
-Date: Sun, 18 Sep 2011 15:36:18 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1109181534440.20832@frira.zrqbmnf.qr>
-References: <4E75E21D.6050000@nod.at> <alpine.LNX.2.01.1109181509580.16287@frira.zrqbmnf.qr> <4E75F1B4.6080307@nod.at>
+From: Peter Volkov <pva@gentoo.org>
+Subject: ipset-6.9.1: 3.0.4 kernel tests failure
+Date: Mon, 19 Sep 2011 17:29:37 +0400
+Message-ID: <1316438977.7764.6.camel@tablet>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Richard Weinberger <richard@nod.at>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:57941 "EHLO seven.medozas.de"
+Received: from smtp.gentoo.org ([140.211.166.183]:48459 "EHLO smtp.gentoo.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753207Ab1IRNgT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 18 Sep 2011 09:36:19 -0400
-In-Reply-To: <4E75F1B4.6080307@nod.at>
+	id S1754688Ab1ISNa7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 19 Sep 2011 09:30:59 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sunday 2011-09-18 15:27, Richard Weinberger wrote:
+Hi. I've ran ipset-6.9.1 test suite on 3.0.4 kernel and it failed:
 
->Am 18.09.2011 15:12, schrieb Jan Engelhardt:
->> On Sunday 2011-09-18 14:20, Richard Weinberger wrote:
->> 
->>> Hi!
->>>
->>> I'm trying to build the most recent iptables version but the build fails
->>> with:
->>>
->>> make[2]: *** No rule to make target `../extensions/libext.a', needed by
->>> `xtables-multi'.  Stop.
->>>
->>> It this a known problem?
->> 
->> Now it is; and this is the fix
->
->Not really.
->
->  CHECK    unknown symbols in .so files
->/bin/sh: line 1: ../iptables/libxtables.la: No such file or directory
->make[2]: *** [check] Error 1
+bitmap:ip: Network: Create a set from a valid network with timeout:
+passed
+bitmap:ip: Network: Add lower boundary: FAILED
+Failed test: ../src/ipset 2>.foo.err add test 2.0.0.0 timeout 0
+ipset v6.9.1: Element is out of the range of the set
 
->Shouldn't it be ../libxtables/libxtables.la?
+Is this expected? ipset-6.8 has the same problem.
 
-Yeah, changed now. Thanks for testing.
+BTW, in general is it better to use in-kernel modules or kernel modules
+bundled with ipset? Personally I'd better pushed required patches into
+our kernels and suggested users to use them, but where it's better to
+pull such patches from?
+
+Thank you in advance.
+
+--
+Peter.
+
