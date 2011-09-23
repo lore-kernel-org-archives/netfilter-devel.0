@@ -1,20 +1,21 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: [GIT]: 'net' merged into 'net-next'
-Date: Thu, 22 Sep 2011 03:24:38 -0400 (EDT)
-Message-ID: <20110922.032438.1584025573860308353.davem@davemloft.net>
+From: "Mrs. Xue Chong" <xue_chong@citicbankintl.com>
+Subject: hi...
+Date: Fri, 23 Sep 2011 14:16:07 +0100 (IST)
+Message-ID: <9907365.62831316783767621.JavaMail.tomcat@iecsai20>
+Reply-To: mrs.xue_chong@9.cn
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain;charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+To: unlisted-recipients:; (no To-header on input)
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail3.vodafone.ie ([213.233.128.45]:25243 "EHLO
+	mail3.vodafone.ie" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753616Ab1IWN04 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Sep 2011 09:26:56 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+Is your email valid ? join me for a personal discussion
 
 
-I did the best I could with the various merge conflicts.
-
-Please double check my work.
-
-Thanks!
