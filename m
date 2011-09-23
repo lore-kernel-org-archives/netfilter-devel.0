@@ -1,46 +1,53 @@
-From: "U.Mutlu" <for-gmane@mutluit.com>
-Subject: Re: [libnetfilter_queue] extra data after payload
-Date: Fri, 23 Sep 2011 19:02:57 +0200
-Message-ID: <j5ie42$f7k$1@dough.gmane.org>
+From: "Jeff Haran" <jharan@bytemobile.com>
+Subject: RE: [libnetfilter_queue] extra data after payload
+Date: Fri, 23 Sep 2011 10:17:03 -0700
+Message-ID: <6F5DE7538AFCDA45A114F5E7510424A702B36A0B@hq-exchange01.bytemobile.com>
 References: <j5ibim$sen$1@dough.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+To: "U.Mutlu" <for-gmane@mutluit.com>,
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:49556 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753138Ab1IWRDM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Sep 2011 13:03:12 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
-	id 1R799b-0004ly-Ks
-	for netfilter-devel@vger.kernel.org; Fri, 23 Sep 2011 19:03:11 +0200
-Received: from p5dc8ef82.dip.t-dialin.net ([93.200.239.130])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Fri, 23 Sep 2011 19:03:11 +0200
-Received: from for-gmane by p5dc8ef82.dip.t-dialin.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Fri, 23 Sep 2011 19:03:11 +0200
+Received: from ironport.bytemobile.com ([12.153.136.13]:3164 "EHLO
+	ironport.bytemobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753850Ab1IWRRF (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Sep 2011 13:17:05 -0400
+Content-class: urn:content-classes:message
 In-Reply-To: <j5ibim$sen$1@dough.gmane.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-U.Mutlu wrote, On 2011-09-23 18:19:
-> Hi,
->
-> when reading queue data via the recv() function
-> then one gets a return value much longer than the payload data,
-> so there are some extra data after the payload.
-> What kind of extra data is it?
->
-> for example:
-> rv = recv(fd, buf, sizeof(buf), 0); // rv=84
-> ...
-> ret = nfq_get_payload(tb, &data); // ret=40 (ie. ip + tcp pkt, both w/o options, and tcp w/o user data)
->
-> So, here, what are the extra 44 bytes after the tcp data?
-
-Correction: the extra data is in front of the payload.
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBuZXRmaWx0ZXItZGV2ZWwtb3du
+ZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bmV0ZmlsdGVyLWRldmVsLQ0KPiBvd25lckB2Z2Vy
+Lmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBVLk11dGx1DQo+IFNlbnQ6IEZyaWRheSwgU2VwdGVt
+YmVyIDIzLCAyMDExIDk6MjAgQU0NCj4gVG86IG5ldGZpbHRlci1kZXZlbEB2Z2VyLmtlcm5lbC5v
+cmcNCj4gU3ViamVjdDogW2xpYm5ldGZpbHRlcl9xdWV1ZV0gZXh0cmEgZGF0YSBhZnRlciBwYXls
+b2FkDQo+IA0KPiBIaSwNCj4gDQo+IHdoZW4gcmVhZGluZyBxdWV1ZSBkYXRhIHZpYSB0aGUgcmVj
+digpIGZ1bmN0aW9uDQo+IHRoZW4gb25lIGdldHMgYSByZXR1cm4gdmFsdWUgbXVjaCBsb25nZXIg
+dGhhbiB0aGUgcGF5bG9hZCBkYXRhLA0KPiBzbyB0aGVyZSBhcmUgc29tZSBleHRyYSBkYXRhIGFm
+dGVyIHRoZSBwYXlsb2FkLg0KPiBXaGF0IGtpbmQgb2YgZXh0cmEgZGF0YSBpcyBpdD8NCj4gDQo+
+IGZvciBleGFtcGxlOg0KPiAgICBydiAgPSByZWN2KGZkLCBidWYsIHNpemVvZihidWYpLCAwKTsg
+ICAvLyBydj04NA0KPiAgICAuLi4NCj4gICAgcmV0ID0gbmZxX2dldF9wYXlsb2FkKHRiLCAmZGF0
+YSk7ICAgICAgLy8gcmV0PTQwIChpZS4gaXAgKyB0Y3AgcGt0LCBib3RoIHcvbw0KPiBvcHRpb25z
+LCBhbmQgdGNwIHcvbyB1c2VyIGRhdGEpDQo+IA0KPiBTbywgaGVyZSwgd2hhdCBhcmUgdGhlIGV4
+dHJhIDQ0IGJ5dGVzIGFmdGVyIHRoZSB0Y3AgZGF0YT8NCg0KSSBiZWxpZXZlIHlvdSB3aWxsIGZp
+bmQgdGhlcmUgaXMgYSBzdHJ1Y3Qgbmxtc2doZHIgYXQgIHRoZSBiZWdpbm5pbmcgb2YgdGhlIGRh
+dGEsIGJlZm9yZSB0aGUgSVAgaGVhZGVyLCBmb2xsb3dlZCBieSBvdGhlciBuZXRsaW5rIHN0cnVj
+dHVyZXMuIFRha2UgYSBsb29rIGF0IG5ldC9uZXRmaWx0ZXIvbmZuZXRsaW5rX3F1ZXVlLmM6bmZx
+bmxfYnVpbGRfcGFja2V0X21lc3NhZ2UoKSBpbiB5b3VyIGtlcm5lbCBzb3VyY2UgdHJlZSBmb3Ig
+dGhlIGRldGFpbHMuIFRoZSBtZXNzYWdlcyBjb250YWluaW5nIHBhY2tldHMgY29udGFpbiBhIDc2
+OCBpbiB0aGUgKHN0cnVjdCBubG1zZ2hkciAqKS0+bmxtc2dfdHlwZSBmaWVsZCBhdCB0aGUgYmVn
+aW5uaW5nIG9mIHRoZSBtZXNzYWdlLCB3aGljaCBjb3JyZXNwb25kcyB0byBORk5MX1NVQlNZU19R
+VUVVRSA8PCA4IHwgTkZRTkxfTVNHX1BBQ0tFVC4NCg0KTm90ZSB0aGVyZSBhcHBlYXIgdG8gYmUg
+b3RoZXIgbWVzc2FnZSB0eXBlcyBvbiB0aGVzZSBzb2NrZXRzLiBJJ3ZlIHNlZW4gbWVzc2FnZXMg
+d2l0aCBubG1zZ190eXBlID09IDAgY29taW5nIG9mZiB0aGVzZSBORlFVRVVFIHNvY2tldHMgdG9v
+LCB3aGljaCBhcHBhcmVudGx5IGNvbnRhaW4gc29tZXRoaW5nIG90aGVyIHRoYW4gSVAgcGFja2V0
+cyBhbmQgZm9yIHdoaWNoIHlvdSB3b24ndCBnZXQgYSBjYWxsYmFjayB3aGVuIHlvdSBjYWxsIG5m
+cV9oYW5kbGVfcGFja2V0KCkuIFNvIHlvdXIgY29kZSBzaG91bGRuJ3QgZGVwZW5kIG9uIGEgMSB0
+byAxIHJlbGF0aW9uc2hpcCBiZXR3ZWVuIGNhbGxzIHRvIG5mcV9oYW5kbGVfcGFja2V0KCkgYW5k
+IHRoZSBjYWxsYmFjayB5b3UgcmVnaXN0ZXIgdmlhIG5mcV9jcmVhdGVfcXVldWUoKS4NCg0KQXQg
+bGVhc3QgdGhhdCdzIHdoYXQgSSd2ZSBvYnNlcnZlZCBhZnRlciBoYXZpbmcgc3BlbnQgdGhlIGxh
+c3QgY291cGxlIG9mIGRheXMgcGxheWluZyB3aXRoIHRoaXMuDQoNCkplZmYgSGFyYW4NCg0KCg==
 
