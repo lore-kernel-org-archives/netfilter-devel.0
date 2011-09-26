@@ -1,42 +1,44 @@
-From: Julian Anastasov <ja@ssi.bg>
+From: Hans Schillstrom <hans@schillstrom.com>
 Subject: Re: [PATCH 0/4] IPVS: sysctl Documentation and Various Clean-Ups
-Date: Mon, 26 Sep 2011 08:39:02 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1109260829190.1530@ja.ssi.bg>
+Date: Mon, 26 Sep 2011 08:43:17 +0200
+Message-ID: <201109260843.18257.hans@schillstrom.com>
 References: <1317000233-11169-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
 	Wensong Zhang <wensong@linux-vs.org>,
-	Patrick McHardy <kaber@trash.net>
+	Julian Anastasov <ja@ssi.bg>, Patrick McHardy <kaber@trash.net>
 To: Simon Horman <horms@verge.net.au>
 Return-path: <lvs-devel-owner@vger.kernel.org>
 In-Reply-To: <1317000233-11169-1-git-send-email-horms@verge.net.au>
 Sender: lvs-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello Simon
 
-	Hello,
-
-On Mon, 26 Sep 2011, Simon Horman wrote:
-
+On Monday, September 26, 2011 03:23:49 Simon Horman wrote:
 > Hi,
 > 
 > patch one of this series adds some missing entries to the sysctl
 > documentation. Julian, I would appreciate a review of this change.
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-	for all changes, with one minor problem in patch 1
-for sync_version: 'sh[uo]ld be used [Use this ]when'
-
+> 
 > The remaining three patches are minor code clean-ups flagged
 > by gcc 4.6.1.
 > 
 > My intention for this post is to solicit review.
 > I intend to post a pull request separately at a later date.
+> 
+
+Your patches looks fine to me,
+you can have mine ack as well
+
+Acked-by Hans Schillstrom <hans@schillstrom.com>
+
+I have two small pending patches,  Deadlock and lockdep fixes. 
+Hopefully the patches will be ready this week. The deadlock is a tricky bastard to fix. 
 
 Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+Hans
