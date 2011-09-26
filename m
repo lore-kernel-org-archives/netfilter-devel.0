@@ -1,95 +1,87 @@
-From: "U.Mutlu" <for-gmane@mutluit.com>
-Subject: Re: [libnetfilter_queue] extra data after payload
-Date: Mon, 26 Sep 2011 22:22:47 +0200
-Message-ID: <j5qmun$8d4$1@dough.gmane.org>
-References: <j5ibim$sen$1@dough.gmane.org> <6F5DE7538AFCDA45A114F5E7510424A702B36A0B@hq-exchange01.bytemobile.com> <j5k36d$9ch$1@dough.gmane.org> <alpine.LNX.2.01.1109241018150.25073@frira.zrqbmnf.qr> <6F5DE7538AFCDA45A114F5E7510424A702B36BFD@hq-exchange01.bytemobile.com> <j5qhvu$4mc$1@dough.gmane.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH 1/4] IPVS: Add documentation for new sysctl entries
+Date: Tue, 27 Sep 2011 07:07:48 +0900
+Message-ID: <20110926220748.GB5314@verge.net.au>
+References: <1317000233-11169-1-git-send-email-horms@verge.net.au>
+ <1317000233-11169-2-git-send-email-horms@verge.net.au>
+ <4E80B379.2040701@xenotime.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:54461 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753029Ab1IZUXN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Sep 2011 16:23:13 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
-	id 1R8Hhh-00057s-Hz
-	for netfilter-devel@vger.kernel.org; Mon, 26 Sep 2011 22:23:05 +0200
-Received: from p5dc8f4a5.dip.t-dialin.net ([93.200.244.165])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Mon, 26 Sep 2011 22:23:05 +0200
-Received: from for-gmane by p5dc8f4a5.dip.t-dialin.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Mon, 26 Sep 2011 22:23:05 +0200
-In-Reply-To: <j5qhvu$4mc$1@dough.gmane.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>, Patrick McHardy <kaber@trash.net>
+To: Randy Dunlap <rdunlap@xenotime.net>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4E80B379.2040701@xenotime.net>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-U.Mutlu wrote, On 2011-09-26 20:58:
-> Jeff Haran wrote, On 2011-09-26 19:45:
->>> -----Original Message-----
->>> From: netfilter-devel-owner@vger.kernel.org [mailto:netfilter-devel-
->>> owner@vger.kernel.org] On Behalf Of Jan Engelhardt
->>> Sent: Saturday, September 24, 2011 1:24 AM
->>> To: U.Mutlu
->>> Cc: netfilter-devel@vger.kernel.org
->>> Subject: Re: [libnetfilter_queue] extra data after payload
->>>
->>> On Saturday 2011-09-24 10:08, U.Mutlu wrote:
->>>>>> for example:
->>>>>> rv = recv(fd, buf, sizeof(buf), 0); // rv=84
->>>>>> ...
->>>>>> ret = nfq_get_payload(tb,&data); // ret=40 (ie. ip + tcp
->> pkt, both
->>>>>> w/o
->>>>>> options, and tcp w/o user data)
->>>>>>
->>>>>> So, here, what are the extra 44 bytes after the tcp data?
->>>>>
->>>>> I believe you will find there is a struct nlmsghdr at the
->> beginning of the
->>>>> data, before the IP header
->>>>
->>>> nlmsghdr has size 16, I've not figured out yet what comes after it
->> before
->>> the
->>>> (optional) payload starts.
->>>
->>> (It's struct nlmsghdr, struct nfgenmsg, struct nfqnl_msg_packet_hdr.)
->>>
->>> Suffice to say that, what buf actually contains is
->> implementation-defined, and
->>> "uninteresting", since you chose to use a library to deal with it for
->> you,
->>> abstracting the whole thing.
->>
->> Well, not necessarily "uninteresting". Some people like to understand
->> how something they are using works.
->>
->> Plus, if you don't know how big these headers are, you can you know how
->> big a buffer you need to read the message off of the socket into without
->> truncating the IP packet at the end?
->>
->> The sample code at
->> http://www.netfilter.org/projects/libnetfilter_queue/doxygen/group__Queu
->> e.html shows a call to recv() made into an undeclared variable named
->> "buf" with the amount of data to be read specified as "sizeof(buf)".
->>
->> I don't see anything in the API to call to tell the user this and I
->> haven't seen it in the documentation either, though perhaps I've missed
->> it.
->
-> One can get the header size by subtracting the payload start from the
-> buffer start.
+On Mon, Sep 26, 2011 at 10:16:41AM -0700, Randy Dunlap wrote:
+> On 09/25/2011 06:23 PM, Simon Horman wrote:
+> > Add missing documentation for conntrack, snat_reroute and sync_version.
+> > 
+> > Also fix up a typo, IPVS_DEBUG should be IP_VS_DEBUG.
+> > 
+> > Signed-off-by: Simon Horman <horms@verge.net.au>
+> > 
+> > conntrack
+> > ---
+> >  Documentation/networking/ipvs-sysctl.txt |   53 +++++++++++++++++++++++++++++-
+> >  1 files changed, 52 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/Documentation/networking/ipvs-sysctl.txt b/Documentation/networking/ipvs-sysctl.txt
+> > index 4ccdbca..5214339 100644
+> > --- a/Documentation/networking/ipvs-sysctl.txt
+> > +++ b/Documentation/networking/ipvs-sysctl.txt
+> > @@ -15,6 +15,23 @@ amemthresh - INTEGER
+> >          enabled and the variable is automatically set to 2, otherwise
+> >          the strategy is disabled and the variable is  set  to 1.
+> >  
+> > +conntrack - BOOLEAN
+> > +	0 - disabled (default)
+> > +	not 0 - enabled
+> > +
+> > +	If set, maintain connection tracking entries for
+> > +	connections handled by IPVS.
+> > +
+> > +	This should be enabled if connections handled by IPVS are to be
+> > +	also handled by stateful firewall rules. That is, iptables rules
+> > +	that make use of connection tracking.  It is a performance
+> > +	optimisation to disable this setting otherwise.
+> > +
+> > +	Connections handled by the IPVS FTP application module
+> > +	will have connection tracking entries regardless of this setting.
+> > +
+> > +	Only available when IPVS is compiled with the CONFIG_IP_VS_NFCT
+> 
+> seems to be missing something.  Maybe
+> 
+> 	Only available when IPVS is compiled with CONFIG_IP_VS_NFCT enabled.
+> or
+> 	Only available when IPVS is compiled with the CONFIG_IP_VS_NFCT
+> 	symbol enabled.
+> 
+> > +
+> >  cache_bypass - BOOLEAN
+> >          0 - disabled (default)
+> >          not 0 - enabled
+> > @@ -39,7 +56,7 @@ debug_level - INTEGER
+> >  	11         - IPVS packet handling (ip_vs_in/ip_vs_out)
+> >  	12 or more - packet traversal
+> >  
+> > -	Only available when IPVS is compiled with the CONFIG_IPVS_DEBUG
+> > +	Only available when IPVS is compiled with the CONFIG_IP_VS_DEBUG
+> 
+> 	                                     with CONFIG_IP_VS_DEBUG enabled.
+> 
+> >  
+> >  	Higher debugging levels include the messages for lower debugging
+> >  	levels, so setting debug level 2, includes level 0, 1 and 2
 
-FIX: of course the other way around... :-)
+Thanks Randy,
 
-> So, the header(s) seems to have the mentioned total len
-> of 44 bytes, but not sure if that's true always.
->
-> BTW, since the sample above contains this func call:
-> nfq_set_mode(qh, NFQNL_COPY_PACKET, 0xffff)
-> it then practically means that buf must be >= 64k-1+hdrsize, ie. at least 65579 bytes...
+I was just blindly copying the existing language.
+I'll make a follow up patch which incorporates your suggestions.
 
