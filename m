@@ -1,23 +1,41 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [iptables PATCH 2/2] Improve readability of bitwise operation
-Date: Wed, 28 Sep 2011 20:54:52 +0200
-Message-ID: <20110928185452.GB2209@1984>
-References: <4E653043.7040008@intra2net.com>
+Subject: Re: [GIT PULL net-next] IPVS
+Date: Wed, 28 Sep 2011 21:13:52 +0200
+Message-ID: <20110928191352.GC2209@1984>
+References: <1317027938-22053-1-git-send-email-horms@verge.net.au>
+ <20110927081618.GA22655@1984>
+ <20110928132802.GC7661@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41468 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755116Ab1I1Syz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Sep 2011 14:54:55 -0400
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <netfilter-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4E653043.7040008@intra2net.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20110928132802.GC7661@verge.net.au>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Sep 05, 2011 at 10:25:39PM +0200, Thomas Jarosch wrote:
-> Signed-off-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
+On Wed, Sep 28, 2011 at 10:28:03PM +0900, Simon Horman wrote:
+> On Tue, Sep 27, 2011 at 10:16:18AM +0200, Pablo Neira Ayuso wrote:
+> > On Mon, Sep 26, 2011 at 06:05:33PM +0900, Simon Horman wrote:
+> > > Hi,
+> > > 
+> > > with all the excitement of kernel.org being offline and a bunch of trees
+> > > likewise being offline I am a little unsure who should take this pull
+> > > request which is based on the current net-next tree. But I guess it should
+> > > be Patrick, Pablo or Dave.
+> > 
+> > I'll try to set up one tree in one of my servers along today, I'll
+> > send you the URI. We can use it until kernel.org comes back.
+> 
+> Thanks. Would you like me to rebase my tree on yours?
 
-Also applied, thanks.
+http://1984.lsi.us.es/git/?p=net-next/.git;a=shortlog;h=refs/heads/nf-next
+
+I have added these five patches to the nf-next branch of our temporary
+tree.
