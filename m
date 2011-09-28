@@ -1,9 +1,10 @@
-From: Simon Horman <horms@verge.net.au>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [GIT PULL net-next] IPVS
-Date: Wed, 28 Sep 2011 22:28:03 +0900
-Message-ID: <20110928132802.GC7661@verge.net.au>
+Date: Wed, 28 Sep 2011 17:45:40 +0200
+Message-ID: <20110928154540.GA1158@1984>
 References: <1317027938-22053-1-git-send-email-horms@verge.net.au>
  <20110927081618.GA22655@1984>
+ <20110928132802.GC7661@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
@@ -12,29 +13,34 @@ Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
 	Julian Anastasov <ja@ssi.bg>,
 	Patrick McHardy <kaber@trash.net>,
 	"David S. Miller" <davem@davemloft.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:50677 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753028Ab1I1N2I (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Sep 2011 09:28:08 -0400
+To: Simon Horman <horms@verge.net.au>
+Return-path: <netfilter-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20110927081618.GA22655@1984>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20110928132802.GC7661@verge.net.au>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Sep 27, 2011 at 10:16:18AM +0200, Pablo Neira Ayuso wrote:
-> On Mon, Sep 26, 2011 at 06:05:33PM +0900, Simon Horman wrote:
-> > Hi,
+On Wed, Sep 28, 2011 at 10:28:03PM +0900, Simon Horman wrote:
+> On Tue, Sep 27, 2011 at 10:16:18AM +0200, Pablo Neira Ayuso wrote:
+> > On Mon, Sep 26, 2011 at 06:05:33PM +0900, Simon Horman wrote:
+> > > Hi,
+> > > 
+> > > with all the excitement of kernel.org being offline and a bunch of trees
+> > > likewise being offline I am a little unsure who should take this pull
+> > > request which is based on the current net-next tree. But I guess it should
+> > > be Patrick, Pablo or Dave.
 > > 
-> > with all the excitement of kernel.org being offline and a bunch of trees
-> > likewise being offline I am a little unsure who should take this pull
-> > request which is based on the current net-next tree. But I guess it should
-> > be Patrick, Pablo or Dave.
+> > I'll try to set up one tree in one of my servers along today, I'll
+> > send you the URI. We can use it until kernel.org comes back.
 > 
-> I'll try to set up one tree in one of my servers along today, I'll
-> send you the URI. We can use it until kernel.org comes back.
+> Thanks. Would you like me to rebase my tree on yours?
 
-Thanks. Would you like me to rebase my tree on yours?
+For your patches, I put them in one branch and will cherrypick them
+into master.
 
+BTW, the trees are here:
+
+http://1984.lsi.us.es/git/?p=net/.git;a=summary
+http://1984.lsi.us.es/git/?p=net-next/.git;a=summary
+
+I'll start iterating over the list collecting patches along today.
