@@ -1,31 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH RFC v2 0/5] netfilter reverse path filter matches
-Date: Wed, 28 Sep 2011 18:39:05 -0400 (EDT)
-Message-ID: <20110928.183905.592386022246253069.davem@davemloft.net>
-References: <1315856552-1422-1-git-send-email-fw@strlen.de>
-	<20110928211847.GC2761@1984>
-	<20110928212358.GA13047@Chamillionaire.breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: fw@strlen.de
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:42332 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932119Ab1I1WkT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Sep 2011 18:40:19 -0400
-In-Reply-To: <20110928212358.GA13047@Chamillionaire.breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: [RFC] IPVS: secure_tcp does provide alternate state timeouts
+Date: Thu, 29 Sep 2011 16:25:11 +0900
+Message-ID: <1317281111-23985-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, Simon Horman <horms@verge.net.au>
+To: Julian Anastasov <ja@ssi.bg>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
-Date: Wed, 28 Sep 2011 23:23:58 +0200
+* Also reword the test to make it read more easily (to me)
 
-> David, it would be nice if you could indicate how these patches
-> should be merged (ie. via net-next or netfilter-next).
+Signed-off-by: Simon Horman <horms@verge.net.au>
 
-I'm fine with them going into netfilter-next, I'll add my ACKs to the
-next version you post.
+---
+
+Julian, I don't see that IPVS currently implements alternate
+timeouts for secure_tcp. Am I missing something?
+---
+ Documentation/networking/ipvs-sysctl.txt |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/Documentation/networking/ipvs-sysctl.txt b/Documentation/networking/ipvs-sysctl.txt
+index 1dcdd49..13610e3 100644
+--- a/Documentation/networking/ipvs-sysctl.txt
++++ b/Documentation/networking/ipvs-sysctl.txt
+@@ -140,13 +140,11 @@ nat_icmp_send - BOOLEAN
+ secure_tcp - INTEGER
+         0  - disabled (default)
+ 
+-        The secure_tcp defense is to use a more complicated state
+-        transition table and some possible short timeouts of each
+-        state. In the VS/NAT, it delays the entering the ESTABLISHED
+-        until the real server starts to send data and ACK packet
+-        (after 3-way handshake).
++	The secure_tcp defense is to use a more complicated TCP state
++	transition table. For VS/NAT, it also delays entering the
++	TCP ESTABLISHED state until the three way handshake is completed.
+ 
+-        The value definition is the same as that of drop_entry or
++        The value definition is the same as that of drop_entry and
+         drop_packet.
+ 
+ sync_threshold - INTEGER
+-- 
+1.7.5.4
+
