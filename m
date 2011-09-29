@@ -1,84 +1,88 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [RFC] IPVS: secure_tcp does provide alternate state timeouts
-Date: Thu, 29 Sep 2011 18:01:56 +0900
-Message-ID: <20110929090152.GA14203@verge.net.au>
-References: <1317281111-23985-1-git-send-email-horms@verge.net.au>
- <alpine.LFD.2.00.1109291119420.1696@ja.ssi.bg>
+From: "Anthony G. Basile" <basile@opensource.dyc.edu>
+Subject: Re: [PATCH] netfilter: install nf_nat.h and nf_conntrack_tuple.h
+ to INSTALL_HDR_PATH
+Date: Thu, 29 Sep 2011 17:03:55 -0400
+Message-ID: <4E84DD3B.5030901@opensource.dyc.edu>
+References: <1315527377-28528-1-git-send-email-basile@opensource.dyc.edu> <20110912083839.GA2017@1984> <20110912091913.GA2194@1984> <4E78B253.7060502@opensource.dyc.edu> <20110928213754.GD2761@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1109291119420.1696@ja.ssi.bg>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: davem@davemloft.net, kaber@trash.net, blueness@gentoo.org,
+	gurligebis@gentoo.org, base-system@gentoo.org, kernel@gentoo.org,
+	toolchain@gentoo.org, mchehab@redhat.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, arnd@arndb.de,
+	eparis@redhat.com, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from virtual.dyc.edu ([67.222.116.22]:45061 "EHLO virtual.dyc.edu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757817Ab1I2VD6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Sep 2011 17:03:58 -0400
+In-Reply-To: <20110928213754.GD2761@1984>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 29, 2011 at 11:47:10AM +0300, Julian Anastasov wrote:
+On 09/28/2011 05:37 PM, Pablo Neira Ayuso wrote:
+> On Tue, Sep 20, 2011 at 11:33:39AM -0400, Anthony G. Basile wrote:
+>> Sorry for the delay in responding, real life.
+>>
+>> What I did in that last patch was just grab nf_nat.h and
+>> nf_contrack_tupple.h from iptables source tree at include/net/netfilter
+>> plus minor changes.  I didn't look for the minimum of what iptables and
+>> miniupnpd need.
+>>
+>> Here's a possibility that works, move nf_conntrack_man_proto to nf_nat.h
+>> and only export that header with:
 > 
-> 	Hello,
-> 
-> On Thu, 29 Sep 2011, Simon Horman wrote:
-> 
-> > * Also reword the test to make it read more easily (to me)
-> > 
-> > Signed-off-by: Simon Horman <horms@verge.net.au>
-> > 
-> > ---
-> > 
-> > Julian, I don't see that IPVS currently implements alternate
-> > timeouts for secure_tcp. Am I missing something?
-> 
-> 	Yes, only states are changed. What is missing is a
-> libipvs support to modify per-protocol timeouts because they
-> are not exported to /proc anymore. As the states have name,
-> may be we can implement timeout to be set as follows:
-> 
-> 	ipvsadm --set-state-timeout -p TCP SYN 10
-> 
-> 	Using 2 timeout tables just for secure_tcp is
-> complicated and with the above control it is not needed.
+> I guess, you mean the new include/linux/netfilter/nf_nat.h file, right?
 
-Yes, I agree there is room for improvement.
-I guess the best way forward is to use netlink
-to allow per-state per-protocol timeout adjustment.
-
-In the mean time, I'll queue this patch up as I think
-its good that the documentation reflects the implementation.
+Yes, that's what I meant.
 
 > 
-> > ---
-> >  Documentation/networking/ipvs-sysctl.txt |   10 ++++------
-> >  1 files changed, 4 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/Documentation/networking/ipvs-sysctl.txt b/Documentation/networking/ipvs-sysctl.txt
-> > index 1dcdd49..13610e3 100644
-> > --- a/Documentation/networking/ipvs-sysctl.txt
-> > +++ b/Documentation/networking/ipvs-sysctl.txt
-> > @@ -140,13 +140,11 @@ nat_icmp_send - BOOLEAN
-> >  secure_tcp - INTEGER
-> >          0  - disabled (default)
-> >  
-> > -        The secure_tcp defense is to use a more complicated state
-> > -        transition table and some possible short timeouts of each
-> > -        state. In the VS/NAT, it delays the entering the ESTABLISHED
-> > -        until the real server starts to send data and ACK packet
-> > -        (after 3-way handshake).
-> > +	The secure_tcp defense is to use a more complicated TCP state
-> > +	transition table. For VS/NAT, it also delays entering the
-> > +	TCP ESTABLISHED state until the three way handshake is completed.
-> >  
-> > -        The value definition is the same as that of drop_entry or
-> > +        The value definition is the same as that of drop_entry and
-> >          drop_packet.
-> >  
-> >  sync_threshold - INTEGER
-> > -- 
-> > 1.7.5.4
+>>     #define IP_NAT_RANGE_MAP_IPS 1
+>>     ...
+>>
+>>     union nf_conntrack_man_proto {
+>>         __be16 all;
+>>         struct { __be16 port } tcp;
+>>         ...
+>>     }
 > 
-> Regards
+> If you want to keep the "port" field, I'd prefer something like:
 > 
-> --
-> Julian Anastasov <ja@ssi.bg>
+> union nf_conntrack_man_proto {
+>         __be16 port;
+>         __be16 icmp_id;
+>         __be16 gre_key;
+> };
 > 
+> And propagate the changes to the corresponding .c files.
+> 
+
+Got it.
+
+>>     struct nf_nat_range {
+>>         ...
+>>         union nf_conntrack_man_proto min, max;
+>>     };
+>>
+>>     struct nf_nat_multi_range_compat { ... }
+>>
+>>     #define nf_nat_multi_range nf_nat_multi_range_compat
+>>
+>> This is the minimum that iptables and miniupnpd need to compile.
+>>
+>> Does this look like a workable solution?
+> 
+> Close to it, but please change union nf_conntrack_man_proto to what I
+> suggested.
+
+Yep.  I like it too.  I'll make the changes, make sure kernel land is
+okay, test iptables and miniupnpd against it and then resubmit.
+
+-- 
+Anthony G. Basile, Ph. D.
+Chair of Information Technology
+D'Youville College
+Buffalo, NY 14201
+(716) 829-8197
