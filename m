@@ -1,61 +1,71 @@
-From: Florian Westphal <fw@strlen.de>
+From: Denys Fedoryshchenko <denys@visp.net.lb>
 Subject: Re: conntrack events over netlink flood
-Date: Fri, 30 Sep 2011 14:59:56 +0200
-Message-ID: <20110930125956.GD13047@Chamillionaire.breakpoint.cc>
+Date: Fri, 30 Sep 2011 16:46:12 +0300
+Message-ID: <21804201a542b723ddc2bbfb8bcb570d@visp.net.lb>
 References: <069917f11e06f3cf2e1ce9715f435b61@visp.net.lb>
+ <20110930125956.GD13047@Chamillionaire.breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Denys Fedoryshchenko <denys@visp.net.lb>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:46019 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751717Ab1I3M76 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Sep 2011 08:59:58 -0400
-Content-Disposition: inline
-In-Reply-To: <069917f11e06f3cf2e1ce9715f435b61@visp.net.lb>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20110930125956.GD13047@Chamillionaire.breakpoint.cc>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Denys Fedoryshchenko <denys@visp.net.lb> wrote:
+ On Fri, 30 Sep 2011 14:59:56 +0200, Florian Westphal wrote:
+> Denys Fedoryshchenko <denys@visp.net.lb> wrote:
+>
+> [ cc: netfilter-devel ]
+>
+>>  After enabling events and running conntrack -E i notice flood in 
+>> output
+>>  of server that have PPPoE and PPTP connections. Here is the output:
+>>
+>>  OfficeNAT ~ # conntrack  -E
+>>   [UPDATE] gre      47 17999 src=192.168.0.140 dst=192.168.0.1
+>>  srckey=0x0 dstkey=0x3 src=192.168.0.1 dst=192.168.0.140 srckey=0x3
+>>  dstkey=0x0 [ASSURED]
+>>   [UPDATE] gre      47 17999 src=192.168.0.140 dst=192.168.0.1
+>>  srckey=0x0 dstkey=0x3 src=192.168.0.1 dst=192.168.0.140 srckey=0x3
+>>  dstkey=0x0 [ASSURED]
+>
+> [..]
+>
+>>  Is it considered as a bug? I think it should not send on each 
+>> packet
+>>  conntrack event.
+>
+> Bug. Update events should only be generated when something in the
+> conntrack has changed (e.g. the connmark).
+>
+> Could you please try this patch (untested)?
+>
+> Subject: [PATCH] netfilter: conntrack_gre: only create ct assured 
+> event once
+>
+> diff --git a/net/netfilter/nf_conntrack_proto_gre.c
+> b/net/netfilter/nf_conntrack_proto_gre.c
+> --- a/net/netfilter/nf_conntrack_proto_gre.c
+> +++ b/net/netfilter/nf_conntrack_proto_gre.c
+> @@ -241,8 +241,8 @@ static int gre_packet(struct nf_conn *ct,
+>  		nf_ct_refresh_acct(ct, ctinfo, skb,
+>  				   ct->proto.gre.stream_timeout);
+>  		/* Also, more likely to be important, and not a probe. */
+> -		set_bit(IPS_ASSURED_BIT, &ct->status);
+> -		nf_conntrack_event_cache(IPCT_ASSURED, ct);
+> +		if (!test_and_set_bit(IPS_ASSURED_BIT, &ct->status))
+> +			nf_conntrack_event_cache(IPCT_ASSURED, ct);
+>  	} else
+>  		nf_ct_refresh_acct(ct, ctinfo, skb,
+>  				   ct->proto.gre.timeout);
+ Fine now, patch fixed this bug.
 
-[ cc: netfilter-devel ]
+ Tested-by: Denys Fedoryshchenko <denys@visp.net.lb>
 
->  After enabling events and running conntrack -E i notice flood in output 
->  of server that have PPPoE and PPTP connections. Here is the output:
-> 
->  OfficeNAT ~ # conntrack  -E
->   [UPDATE] gre      47 17999 src=192.168.0.140 dst=192.168.0.1 
->  srckey=0x0 dstkey=0x3 src=192.168.0.1 dst=192.168.0.140 srckey=0x3 
->  dstkey=0x0 [ASSURED]
->   [UPDATE] gre      47 17999 src=192.168.0.140 dst=192.168.0.1 
->  srckey=0x0 dstkey=0x3 src=192.168.0.1 dst=192.168.0.140 srckey=0x3 
->  dstkey=0x0 [ASSURED]
-
-[..]
-
->  Is it considered as a bug? I think it should not send on each packet 
->  conntrack event.
-
-Bug. Update events should only be generated when something in the
-conntrack has changed (e.g. the connmark).
-
-Could you please try this patch (untested)?
-
-Subject: [PATCH] netfilter: conntrack_gre: only create ct assured event once
-
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -241,8 +241,8 @@ static int gre_packet(struct nf_conn *ct,
- 		nf_ct_refresh_acct(ct, ctinfo, skb,
- 				   ct->proto.gre.stream_timeout);
- 		/* Also, more likely to be important, and not a probe. */
--		set_bit(IPS_ASSURED_BIT, &ct->status);
--		nf_conntrack_event_cache(IPCT_ASSURED, ct);
-+		if (!test_and_set_bit(IPS_ASSURED_BIT, &ct->status))
-+			nf_conntrack_event_cache(IPCT_ASSURED, ct);
- 	} else
- 		nf_ct_refresh_acct(ct, ctinfo, skb,
- 				   ct->proto.gre.timeout);
+ ---
+ System administrator
+ Denys Fedoryshchenko
+ Virtual ISP S.A.L.
