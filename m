@@ -1,57 +1,47 @@
-From: JP Abgrall <jpa@google.com>
-Subject: [PATCH] netfilter: ipv6: let ipv6_find_hdr() fail when offset can't be found
-Date: Thu, 29 Sep 2011 16:52:08 -0700
-Message-ID: <1317340328-22751-1-git-send-email-jpa@google.com>
-Cc: JP Abgrall <jpa@google.com>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: [libnl-nft PATCH] Fix the route object comparison using the wrong pointer
+Date: Fri, 30 Sep 2011 13:26:28 +0200
+Message-ID: <201109301326.28941.thomas.jarosch@intra2net.com>
+References: <4E55255F.1050901@intra2net.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:46599 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751133Ab1I2Xw0 (ORCPT
+Received: from rs04.intra2net.com ([85.214.66.2]:45489 "EHLO
+	rs04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751390Ab1I3L0c (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Sep 2011 19:52:26 -0400
-Received: from wpaz13.hot.corp.google.com (wpaz13.hot.corp.google.com [172.24.198.77])
-	by smtp-out.google.com with ESMTP id p8TNqOPf016093
-	for <netfilter-devel@vger.kernel.org>; Thu, 29 Sep 2011 16:52:24 -0700
+	Fri, 30 Sep 2011 07:26:32 -0400
+In-Reply-To: <4E55255F.1050901@intra2net.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-There are some cases where the caller wants the last target and only
-the offset. But it turns out that there are cases with fragments where
-the final nexthdr is something like IPPROTO_UDP.
-This would lead the caller to believe the offset was valid.
-Before the "fragoff" days, any fragment would cause a negative return value.
-So return -ENOENT when fragoff is 0 and the offset can't be set.
+On Wednesday, 24. August 2011 18:22:55 you wrote:
+> Typo detected by cppcheck
+> 
+> Signed-off-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
+> ---
+>  lib/route/route_obj.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/lib/route/route_obj.c b/lib/route/route_obj.c
+> index 4e14d6d..8f1d4d5 100644
+> --- a/lib/route/route_obj.c
+> +++ b/lib/route/route_obj.c
+> @@ -403,7 +403,7 @@ static int route_compare(struct nl_object *_a, struct
+> nl_object *_b, diff |= ROUTE_DIFF(FLAGS,
+>  			  (a->rt_flags ^ b->rt_flags) & b->rt_flag_mask);
+>  	} else {
+> -		if (a->rt_nr_nh != a->rt_nr_nh)
+> +		if (a->rt_nr_nh != b->rt_nr_nh)
+>  			goto nh_mismatch;
+> 
+>  		/* search for a dup in each nh of a */
 
-Change-Id: Ib474e8a4267dd2b300feca325811330329684a88
-Signed-off-by: JP Abgrall <jpa@google.com>
----
-:100644 100644 94874b0... eda6703... M	net/ipv6/netfilter/ip6_tables.c
- net/ipv6/netfilter/ip6_tables.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+Just a short reminder: This patch is still pending.
 
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 94874b0..eda6703 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -2300,7 +2300,7 @@ static void __exit ip6_tables_fini(void)
-  * Note that non-1st fragment is special case that "the protocol number
-  * of last header" is "next header" field in Fragment header. In this case,
-  * *offset is meaningless and fragment offset is stored in *fragoff if fragoff
-- * isn't NULL.
-+ * isn't NULL. And if fragoff is NULL, function returns -1.
-  *
-  */
- int ipv6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
-@@ -2344,6 +2344,8 @@ int ipv6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
- 				     hp->nexthdr == NEXTHDR_NONE)) {
- 					if (fragoff)
- 						*fragoff = _frag_off;
-+					else
-+						return -ENOENT;
- 					return hp->nexthdr;
- 				}
- 				return -ENOENT;
--- 
-1.7.3.1
-
+Cheers,
+Thomas
