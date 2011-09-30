@@ -1,47 +1,61 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: [libnl-nft PATCH] Fix the route object comparison using the wrong pointer
-Date: Fri, 30 Sep 2011 13:26:28 +0200
-Message-ID: <201109301326.28941.thomas.jarosch@intra2net.com>
-References: <4E55255F.1050901@intra2net.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: conntrack events over netlink flood
+Date: Fri, 30 Sep 2011 14:59:56 +0200
+Message-ID: <20110930125956.GD13047@Chamillionaire.breakpoint.cc>
+References: <069917f11e06f3cf2e1ce9715f435b61@visp.net.lb>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Denys Fedoryshchenko <denys@visp.net.lb>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rs04.intra2net.com ([85.214.66.2]:45489 "EHLO
-	rs04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751390Ab1I3L0c (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:46019 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751717Ab1I3M76 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Sep 2011 07:26:32 -0400
-In-Reply-To: <4E55255F.1050901@intra2net.com>
+	Fri, 30 Sep 2011 08:59:58 -0400
+Content-Disposition: inline
+In-Reply-To: <069917f11e06f3cf2e1ce9715f435b61@visp.net.lb>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday, 24. August 2011 18:22:55 you wrote:
-> Typo detected by cppcheck
-> 
-> Signed-off-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
-> ---
->  lib/route/route_obj.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/lib/route/route_obj.c b/lib/route/route_obj.c
-> index 4e14d6d..8f1d4d5 100644
-> --- a/lib/route/route_obj.c
-> +++ b/lib/route/route_obj.c
-> @@ -403,7 +403,7 @@ static int route_compare(struct nl_object *_a, struct
-> nl_object *_b, diff |= ROUTE_DIFF(FLAGS,
->  			  (a->rt_flags ^ b->rt_flags) & b->rt_flag_mask);
->  	} else {
-> -		if (a->rt_nr_nh != a->rt_nr_nh)
-> +		if (a->rt_nr_nh != b->rt_nr_nh)
->  			goto nh_mismatch;
-> 
->  		/* search for a dup in each nh of a */
+Denys Fedoryshchenko <denys@visp.net.lb> wrote:
 
-Just a short reminder: This patch is still pending.
+[ cc: netfilter-devel ]
 
-Cheers,
-Thomas
+>  After enabling events and running conntrack -E i notice flood in output 
+>  of server that have PPPoE and PPTP connections. Here is the output:
+> 
+>  OfficeNAT ~ # conntrack  -E
+>   [UPDATE] gre      47 17999 src=192.168.0.140 dst=192.168.0.1 
+>  srckey=0x0 dstkey=0x3 src=192.168.0.1 dst=192.168.0.140 srckey=0x3 
+>  dstkey=0x0 [ASSURED]
+>   [UPDATE] gre      47 17999 src=192.168.0.140 dst=192.168.0.1 
+>  srckey=0x0 dstkey=0x3 src=192.168.0.1 dst=192.168.0.140 srckey=0x3 
+>  dstkey=0x0 [ASSURED]
+
+[..]
+
+>  Is it considered as a bug? I think it should not send on each packet 
+>  conntrack event.
+
+Bug. Update events should only be generated when something in the
+conntrack has changed (e.g. the connmark).
+
+Could you please try this patch (untested)?
+
+Subject: [PATCH] netfilter: conntrack_gre: only create ct assured event once
+
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -241,8 +241,8 @@ static int gre_packet(struct nf_conn *ct,
+ 		nf_ct_refresh_acct(ct, ctinfo, skb,
+ 				   ct->proto.gre.stream_timeout);
+ 		/* Also, more likely to be important, and not a probe. */
+-		set_bit(IPS_ASSURED_BIT, &ct->status);
+-		nf_conntrack_event_cache(IPCT_ASSURED, ct);
++		if (!test_and_set_bit(IPS_ASSURED_BIT, &ct->status))
++			nf_conntrack_event_cache(IPCT_ASSURED, ct);
+ 	} else
+ 		nf_ct_refresh_acct(ct, ctinfo, skb,
+ 				   ct->proto.gre.timeout);
