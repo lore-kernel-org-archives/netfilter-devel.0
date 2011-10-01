@@ -1,161 +1,96 @@
-From: Richard Weinberger <richard@nod.at>
-Subject: [PATCH 2/2] ip6tables-save: Allow chain selection
-Date: Sat,  1 Oct 2011 17:19:30 +0200
-Message-ID: <1317482370-14982-3-git-send-email-richard@nod.at>
-References: <1317482370-14982-1-git-send-email-richard@nod.at>
-Cc: Richard Weinberger <richard@nod.at>
-To: netfilter-devel@vger.kernel.org
+From: "Anthony G. Basile" <basile@opensource.dyc.edu>
+Subject: [PATCH] netfilter: export sanitized nf_nat.h to INSTALL_HDR_PATH
+Date: Sat,  1 Oct 2011 13:51:29 -0400
+Message-ID: <1317491489-23812-1-git-send-email-basile@opensource.dyc.edu>
+Cc: kaber@trash.net, basile@opensource.dyc.edu, blueness@gentoo.org,
+	gurligebis@gentoo.org, base-system@gentoo.org, kernel@gentoo.org,
+	toolchain@gentoo.org, mchehab@redhat.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, arnd@arndb.de,
+	eparis@redhat.com, netfilter-devel@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a.ns.miles-group.at ([95.130.255.143]:33113 "EHLO radon.swed.at"
+Received: from mail.ddl.dyc.edu ([67.151.215.230]:54599 "EHLO ddl.dyc.edu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753157Ab1JAPTh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 1 Oct 2011 11:19:37 -0400
-In-Reply-To: <1317482370-14982-1-git-send-email-richard@nod.at>
+	id S1751640Ab1JARsE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 1 Oct 2011 13:48:04 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch allows an user to select the chain he wants to save.
+From: "Anthony G. Basile" <basile@opensource.dyc.edu>
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
+This exports the sanitized version of nf_nat.h for userland
+applications, like iptables and miniupnpd, which make use of
+binary representations of NAT provided by netfilter.
+
+This patch makes the API header public by installing it in
+INSTALL_HDR_PATH.
+
+See: https://bugs.gentoo.org/376873
+
+Signed-off-by: Anthony G. Basile <blueness@gentoo.org>
 ---
- iptables/ip6tables-save.8 |    4 ++
- iptables/ip6tables-save.c |   75 +++++++++++++++++++++++++++-----------------
- 2 files changed, 50 insertions(+), 29 deletions(-)
+ include/linux/netfilter/Kbuild   |    1 +
+ include/linux/netfilter/nf_nat.h |   39 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 40 insertions(+), 0 deletions(-)
+ create mode 100644 include/linux/netfilter/nf_nat.h
 
-diff --git a/iptables/ip6tables-save.8 b/iptables/ip6tables-save.8
-index 457be82..420b10d 100644
---- a/iptables/ip6tables-save.8
-+++ b/iptables/ip6tables-save.8
-@@ -39,6 +39,10 @@ include the current values of all packet and byte counters in the output
- \fB\-t\fR, \fB\-\-table\fR \fItablename\fP
- restrict output to only one table. If not specified, output includes all
- available tables.
-+.TP
-+\fB\-C\fR, \fB\-\-chain\fR \fIchainname\fP
-+restrict output to only one chain. If not specified, output includes all
-+available chains.
- .SH BUGS
- None known as of iptables-1.2.1 release
- .SH AUTHORS
-diff --git a/iptables/ip6tables-save.c b/iptables/ip6tables-save.c
-index d819b30..1bc21c1 100644
---- a/iptables/ip6tables-save.c
-+++ b/iptables/ip6tables-save.c
-@@ -23,11 +23,13 @@
- #endif
- 
- static int show_counters = 0;
-+static char *selected_chain;
- 
- static const struct option options[] = {
- 	{.name = "counters", .has_arg = false, .val = 'c'},
- 	{.name = "dump",     .has_arg = false, .val = 'd'},
- 	{.name = "table",    .has_arg = true,  .val = 't'},
-+	{.name = "chain",    .has_arg = true,  .val = 'C'},
- 	{.name = "modprobe", .has_arg = true,  .val = 'M'},
- 	{NULL},
- };
-@@ -57,6 +59,30 @@ static int for_each_table(int (*func)(const char *tablename))
- 	return ret;
- }
- 
-+static void print_chain(const char *chain, struct xtc_handle *h)
-+{
-+	printf(":%s ", chain);
-+	if (ip6tc_builtin(chain, h)) {
-+		struct xt_counters count;
-+		printf("%s ",
-+		       ip6tc_get_policy(chain, &count, h));
-+		printf("[%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned long long)count.bcnt);
-+	} else {
-+		printf("- [0:0]\n");
-+	}
-+}
+diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/Kbuild
+index a1b410c..d81f771 100644
+--- a/include/linux/netfilter/Kbuild
++++ b/include/linux/netfilter/Kbuild
+@@ -5,6 +5,7 @@ header-y += nf_conntrack_ftp.h
+ header-y += nf_conntrack_sctp.h
+ header-y += nf_conntrack_tcp.h
+ header-y += nf_conntrack_tuple_common.h
++header-y += nf_nat.h
+ header-y += nfnetlink.h
+ header-y += nfnetlink_compat.h
+ header-y += nfnetlink_conntrack.h
+diff --git a/include/linux/netfilter/nf_nat.h b/include/linux/netfilter/nf_nat.h
+new file mode 100644
+index 0000000..3360f39
+--- /dev/null
++++ b/include/linux/netfilter/nf_nat.h
+@@ -0,0 +1,39 @@
++#ifndef _NF_NAT_H
++#define _NF_NAT_H
++#include <linux/types.h>
 +
-+static void print_chain_rules(const char *chain, struct xtc_handle *h)
-+{
-+	const struct ip6t_entry *e;
++#define IP_NAT_RANGE_MAP_IPS 1
++#define IP_NAT_RANGE_PROTO_SPECIFIED 2
++#define IP_NAT_RANGE_PROTO_RANDOM 4
++#define IP_NAT_RANGE_PERSISTENT 8
 +
-+	/* Dump out rules */
-+	e = ip6tc_first_rule(chain, h);
-+	while(e) {
-+		print_rule6(e, h, chain, show_counters);
-+		e = ip6tc_next_rule(e, h);
-+	}
-+}
- 
- static int do_output(const char *tablename)
- {
-@@ -81,34 +107,21 @@ static int do_output(const char *tablename)
- 	       IPTABLES_VERSION, ctime(&now));
- 	printf("*%s\n", tablename);
- 
--	/* Dump out chain names first,
--	 * thereby preventing dependency conflicts */
--	for (chain = ip6tc_first_chain(h);
--	     chain;
--	     chain = ip6tc_next_chain(h)) {
--
--		printf(":%s ", chain);
--		if (ip6tc_builtin(chain, h)) {
--			struct xt_counters count;
--			printf("%s ",
--			       ip6tc_get_policy(chain, &count, h));
--			printf("[%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned long long)count.bcnt);
--		} else {
--			printf("- [0:0]\n");
--		}
--	}
--
--	for (chain = ip6tc_first_chain(h);
--	     chain;
--	     chain = ip6tc_next_chain(h)) {
--		const struct ip6t_entry *e;
--
--		/* Dump out rules */
--		e = ip6tc_first_rule(chain, h);
--		while(e) {
--			print_rule6(e, h, chain, show_counters);
--			e = ip6tc_next_rule(e, h);
--		}
-+	if (selected_chain) {
-+		print_chain(selected_chain, h);
-+		print_chain_rules(selected_chain, h);
-+	} else {
-+		/* Dump out chain names first,
-+		 * thereby preventing dependency conflicts */
-+		for (chain = ip6tc_first_chain(h);
-+			chain;
-+			chain = ip6tc_next_chain(h))
-+			print_chain(chain, h);
++/* The protocol-specific manipulable parts of the tuple */
++union nf_conntrack_man_proto {
++	__be16 all;
++	__be16 port;
++	__be16 icmp_idnt;
++	__be16 gre_key;
++};
 +
-+		for (chain = ip6tc_first_chain(h);
-+			chain;
-+			chain = ip6tc_next_chain(h))
-+			print_chain_rules(chain, h);
- 	}
- 
- 	now = time(NULL);
-@@ -141,7 +154,7 @@ int ip6tables_save_main(int argc, char *argv[])
- 	init_extensions6();
- #endif
- 
--	while ((c = getopt_long(argc, argv, "bcdt:", options, NULL)) != -1) {
-+	while ((c = getopt_long(argc, argv, "bcdt:C:", options, NULL)) != -1) {
- 		switch (c) {
- 		case 'c':
- 			show_counters = 1;
-@@ -151,6 +164,10 @@ int ip6tables_save_main(int argc, char *argv[])
- 			/* Select specific table. */
- 			tablename = optarg;
- 			break;
-+		case 'C':
-+			/* Select specific chain. */
-+			selected_chain = optarg;
-+			break;
- 		case 'M':
- 			xtables_modprobe_program = optarg;
- 			break;
++/* Single range specification. */
++struct nf_nat_range {
++	/* Set to OR of flags above. */
++	unsigned int flags;
++
++	/* Inclusive: network order. */
++	__be32 min_ip, max_ip;
++
++	/* Inclusive: network order */
++	union nf_conntrack_man_proto min, max;
++};
++
++/* For backwards compat: don't use in modern code. */
++struct nf_nat_multi_range_compat {
++	unsigned int rangesize; /* Must be 1. */
++
++	/* hangs off end. */
++	struct nf_nat_range range[1];
++};
++
++#define nf_nat_multi_range nf_nat_multi_range_compat
++#endif
 -- 
-1.7.6.4
+1.7.6.1
 
