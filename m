@@ -1,42 +1,53 @@
-From: Alex Bligh <alex@alex.org.uk>
-Subject: Re: [PATCH] Fix repeatable Oops on container destroy with conntrack
-Date: Fri, 30 Sep 2011 16:54:21 +0100
-Message-ID: <EBB118BCDCB0BE733EF43F1E@Ximines.local>
-References: <2184C0CE5A5EDC94CDDA5053@Ximines.local>
- <20110912072524.GA2996@p183.telecom.by> <20110912093749.GE2194@1984>
- <E0902A9541FD5D118EA02B31@Ximines.local> <20110912183357.GC3641@1984>
- <87A32B21CA99D62CE1AB7A4B@Ximines.local>
- <7631498AC7E7C0EAD641AC7D@nimrod.local> <20110914013500.GB17051@1984>
- <A51A04647674405AF6C39A4F@nimrod.local> <20110928210851.GA2761@1984>
-Reply-To: Alex Bligh <alex@alex.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Alexey Dobriyan <adobriyan@gmail.com>,
-	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	containers@lists.linux-foundation.org,
-	Linux Containers <containers@lists.osdl.org>,
-	netdev@vger.kernel.org, Alex Bligh <alex@alex.org.uk>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110928210851.GA2761@1984>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
+From: Simon Horman <horms@verge.net.au>
+Subject: [PATCH 1/2] IPVS: secure_tcp does provide alternate state timeouts
+Date: Sat,  1 Oct 2011 12:34:18 +0900
+Message-ID: <1317440059-31112-2-git-send-email-horms@verge.net.au>
+References: <1317440059-31112-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
+To: Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1317440059-31112-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+* Also reword the test to make it read more easily (to me)
 
+Signed-off-by: Simon Horman <horms@verge.net.au>
 
---On 28 September 2011 23:08:51 +0200 Pablo Neira Ayuso 
-<pablo@netfilter.org> wrote:
+---
 
->> As you can probably tell, my interest here is to get something that
->> doesn't oops into stable kernels.
->
-> As said, I'm not sure that this can happen, given that the amount of
-> patches that we need to fix it fine, sorry.
+Julian, I don't see that IPVS currently implements alternate
+timeouts for secure_tcp. Am I missing something?
+---
+ Documentation/networking/ipvs-sysctl.txt |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
 
-This is why I was suggesting the 2 line "don't oops" patch in the
-interim.
-
+diff --git a/Documentation/networking/ipvs-sysctl.txt b/Documentation/networking/ipvs-sysctl.txt
+index 1dcdd49..13610e3 100644
+--- a/Documentation/networking/ipvs-sysctl.txt
++++ b/Documentation/networking/ipvs-sysctl.txt
+@@ -140,13 +140,11 @@ nat_icmp_send - BOOLEAN
+ secure_tcp - INTEGER
+         0  - disabled (default)
+ 
+-        The secure_tcp defense is to use a more complicated state
+-        transition table and some possible short timeouts of each
+-        state. In the VS/NAT, it delays the entering the ESTABLISHED
+-        until the real server starts to send data and ACK packet
+-        (after 3-way handshake).
++	The secure_tcp defense is to use a more complicated TCP state
++	transition table. For VS/NAT, it also delays entering the
++	TCP ESTABLISHED state until the three way handshake is completed.
+ 
+-        The value definition is the same as that of drop_entry or
++        The value definition is the same as that of drop_entry and
+         drop_packet.
+ 
+ sync_threshold - INTEGER
 -- 
-Alex Bligh
+1.7.5.4
+
