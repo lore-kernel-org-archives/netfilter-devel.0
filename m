@@ -1,36 +1,49 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: snet-tools: AM building
-Date: Mon,  3 Oct 2011 22:38:30 +0200
-Message-ID: <1317674312-20531-1-git-send-email-jengelh@medozas.de>
-Cc: netfilter-devel@vger.kernel.org
-To: sam@synack.fr
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH 2/2] IPVS netns shutdown/startup dead-lock (Take II)
+Date: Mon, 3 Oct 2011 23:55:02 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1110032350500.1868@ja.ssi.bg>
+References: <1317639399-4522-1-git-send-email-hans.schillstrom@ericsson.com> <1317639399-4522-2-git-send-email-hans.schillstrom@ericsson.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: horms@verge.net.au, wensong@linux-vs.org,
+	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, hans@schillstrom.com
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:58315 "EHLO seven.medozas.de"
+Received: from ja.ssi.bg ([178.16.129.10]:46868 "EHLO ja.ssi.bg"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932195Ab1JCUif (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Oct 2011 16:38:35 -0400
+	id S1756726Ab1JCUyd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Oct 2011 16:54:33 -0400
+In-Reply-To: <1317639399-4522-2-git-send-email-hans.schillstrom@ericsson.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-The following changes since commit 292938bd0764be0c5d24edceaa3a4081b0af16ad:
+	Hello,
 
-  Initial import from sam's source tarball (2011-10-03 22:35:41 +0200)
+On Mon, 3 Oct 2011, Hans Schillstrom wrote:
 
-are available in the git repository at:
-  git://dev.medozas.de/snet-tools master
+> From: Hans Schillstrom <hans@schillstrom.com>
+> 
+> ip_vs_mutext is used by both netns shutdown code and startup
+> and both implicit uses sk_lock-AF_INET mutex.
+> 
+> cleanup CPU-1         startup CPU-2
+> ip_vs_dst_event()     ip_vs_genl_set_cmd()
+>  sk_lock-AF_INET     __ip_vs_mutex
+>                      sk_lock-AF_INET
+> __ip_vs_mutex
+> * DEAD LOCK *
+> 
+> A new mutex placed in ip_vs netns struct called sync_mutex is added.
+> 
+> Comments from Julian and Simon added.
+> This patch has been running for more than 3 month now and it seems to work.
 
-Jan Engelhardt (1):
-      build: use automake for building
+	May be IP_VS_SO_GET_DAEMON in do_ip_vs_get_ctl
+must be protected by sync_mutex in a similar way.
 
- .gitignore   |   15 +++++++++++++++
- Makefile     |   24 ------------------------
- Makefile.am  |    7 +++++++
- autogen.sh   |    3 +++
- configure.ac |   10 ++++++++++
- 5 files changed, 35 insertions(+), 24 deletions(-)
- create mode 100644 .gitignore
- delete mode 100644 Makefile
- create mode 100644 Makefile.am
- create mode 100755 autogen.sh
- create mode 100644 configure.ac
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
