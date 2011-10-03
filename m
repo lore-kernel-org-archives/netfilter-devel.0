@@ -1,126 +1,121 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 3/3] src: put include files into their own directory
-Date: Mon,  3 Oct 2011 22:10:09 +0200
-Message-ID: <1317672610-29855-4-git-send-email-jengelh@medozas.de>
-References: <1317672610-29855-1-git-send-email-jengelh@medozas.de>
+Subject: [PATCH] build: use automake for building
+Date: Mon,  3 Oct 2011 22:38:31 +0200
+Message-ID: <1317674312-20531-2-git-send-email-jengelh@medozas.de>
+References: <1317674312-20531-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: sam@synack.fr
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:48176 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:58317 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755231Ab1JCUKp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Oct 2011 16:10:45 -0400
-In-Reply-To: <1317672610-29855-1-git-send-email-jengelh@medozas.de>
+	id S932195Ab1JCUig (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Oct 2011 16:38:36 -0400
+In-Reply-To: <1317674312-20531-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It is better when include files get their own directory, i.e. in this
-case, utils.h will go to /usr/include/libsnet, where it is less prone
-to clashes than in /usr/include.
 ---
- Makefile.am                      |    3 ++-
- include/{ => libsnet}/snet.h     |    0
- include/{ => libsnet}/snet_lib.h |    2 +-
- include/{ => libsnet}/sql.h      |    0
- include/{ => libsnet}/utils.h    |    0
- snet.c                           |    4 ++--
- snet_lib.c                       |    6 +++---
- utils.c                          |    4 ++--
- 8 files changed, 10 insertions(+), 9 deletions(-)
- rename include/{ => libsnet}/snet.h (100%)
- rename include/{ => libsnet}/snet_lib.h (95%)
- rename include/{ => libsnet}/sql.h (100%)
- rename include/{ => libsnet}/utils.h (100%)
+ .gitignore   |   15 +++++++++++++++
+ Makefile     |   24 ------------------------
+ Makefile.am  |    7 +++++++
+ autogen.sh   |    3 +++
+ configure.ac |   10 ++++++++++
+ 5 files changed, 35 insertions(+), 24 deletions(-)
+ create mode 100644 .gitignore
+ delete mode 100644 Makefile
+ create mode 100644 Makefile.am
+ create mode 100755 autogen.sh
+ create mode 100644 configure.ac
 
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..b4cffa0
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,15 @@
++.deps
++Makefile
++Makefile.in
++*.o
++
++/aclocal.m4
++/autom4te.cache
++/config.*
++/configure
++/depcomp
++/install-sh
++/missing
++/stamp-h1
++
++/snet
+diff --git a/Makefile b/Makefile
+deleted file mode 100644
+index 7da4961..0000000
+--- a/Makefile
++++ /dev/null
+@@ -1,24 +0,0 @@
+-NAME	:= snet
+-VERSION	:= 0.1
+-SRC	:= $(wildcard *.c)
+-
+-CC	:= gcc
+-RM	:= rm -f
+-LN	:= ln
+-
+-includedir = ../libsnet/include/
+-CFLAGS	 := -g -O2
+-INCLUDES := -I./$(includedir)
+-INCLIBS  := -L../libsnet/lib/
+-LIBS     := $$(pkg-config --libs libnl-1) -lsnet
+-
+-all: $(NAME)
+-
+-$(NAME): snet.c
+-	@echo " CC $@"; $(CC) $(CFLAGS) $(INCLUDES) $(INCLIBS) $(LIBS) -o $@ $<
+-
+-clean:
+-	@echo " RM *~ *.o"; $(RM) *~ *.o
+-
+-distclean: clean
+-	$(RM) $(NAME)
 diff --git a/Makefile.am b/Makefile.am
-index 143390a..81ac2d3 100644
---- a/Makefile.am
+new file mode 100644
+index 0000000..937cf35
+--- /dev/null
 +++ b/Makefile.am
-@@ -12,7 +12,8 @@ lib_LTLIBRARIES = libsnet.la
- libsnet_la_SOURCES = snet.c snet_lib.c utils.c
- libsnet_la_LIBADD  = ${libnl_LIBS}
- 
--include_HEADERS = include/snet.h include/snet_lib.h include/utils.h
-+pkginclude_HEADERS = include/libsnet/snet.h include/libsnet/snet_lib.h \
-+                     include/libsnet/utils.h
- 
- pkgconfig_DATA = libsnet.pc
- 
-diff --git a/include/snet.h b/include/libsnet/snet.h
-similarity index 100%
-rename from include/snet.h
-rename to include/libsnet/snet.h
-diff --git a/include/snet_lib.h b/include/libsnet/snet_lib.h
-similarity index 95%
-rename from include/snet_lib.h
-rename to include/libsnet/snet_lib.h
-index b01fffd..61ee09f 100644
---- a/include/snet_lib.h
-+++ b/include/libsnet/snet_lib.h
-@@ -1,7 +1,7 @@
- #ifndef _SNET_LIB_H
- #define _SNET_LIB_H
- 
--#include <snet.h>
-+#include <libsnet/snet.h>
- #include <netlink/netlink.h>
- 
- struct snet_lib {
-diff --git a/include/sql.h b/include/libsnet/sql.h
-similarity index 100%
-rename from include/sql.h
-rename to include/libsnet/sql.h
-diff --git a/include/utils.h b/include/libsnet/utils.h
-similarity index 100%
-rename from include/utils.h
-rename to include/libsnet/utils.h
-diff --git a/snet.c b/snet.c
-index ff5267a..5a4e4f0 100644
---- a/snet.c
-+++ b/snet.c
-@@ -20,12 +20,12 @@
- #include <netlink/genl/ctrl.h>
- #include <netlink/netlink.h>
- #include <netlink/utils.h>
--#include <snet.h>
-+#include <libsnet/snet.h>
- #include <sys/types.h>
- #include <sys/stat.h>
- #include <fcntl.h>
- #include <netdb.h>
--#include <utils.h>
-+#include <libsnet/utils.h>
- 
- extern int nl_debug;
- extern FILE *fout;
-diff --git a/snet_lib.c b/snet_lib.c
-index 97fd44c..5b5a6e9 100644
---- a/snet_lib.c
-+++ b/snet_lib.c
-@@ -1,7 +1,7 @@
- #include <stdio.h>
--#include <snet.h>
--#include <snet_lib.h>
--#include <utils.h>
-+#include <libsnet/snet.h>
-+#include <libsnet/snet_lib.h>
-+#include <libsnet/utils.h>
- 
- int snet_attach(struct snet_lib *sl,
- 		unsigned int (*snet_cb)(uint32_t, uint8_t, uint8_t,
-diff --git a/utils.c b/utils.c
-index 87572f6..cfca08f 100644
---- a/utils.c
-+++ b/utils.c
-@@ -1,6 +1,6 @@
- #include <stdio.h>
--#include <utils.h>
--#include <snet.h>
-+#include <libsnet/utils.h>
-+#include <libsnet/snet.h>
- #include <fcntl.h>
- #include <unistd.h>
- 
+@@ -0,0 +1,7 @@
++# -*- Makefile -*-
++
++AM_CFLAGS = ${libsnet_CFLAGS}
++
++sbin_PROGRAMS = snet
++
++snet_LDADD = ${libsnet_LIBS}
+diff --git a/autogen.sh b/autogen.sh
+new file mode 100755
+index 0000000..cb4930c
+--- /dev/null
++++ b/autogen.sh
+@@ -0,0 +1,3 @@
++#!/bin/sh -ex
++
++autoreconf -fi;
+diff --git a/configure.ac b/configure.ac
+new file mode 100644
+index 0000000..354a015
+--- /dev/null
++++ b/configure.ac
+@@ -0,0 +1,10 @@
++AC_INIT([snet-tools], [0.1])
++AC_CONFIG_HEADER([config.h])
++AM_INIT_AUTOMAKE([-Wall foreign])
++AC_PROG_CC
++AC_PROG_INSTALL
++
++PKG_CHECK_MODULES([libsnet], [libsnet])
++
++AC_CONFIG_FILES([Makefile])
++AC_OUTPUT
 -- 
 1.7.3.4
 
