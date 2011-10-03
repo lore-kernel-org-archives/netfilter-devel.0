@@ -1,53 +1,30 @@
-From: "Anthony G. Basile" <basile@opensource.dyc.edu>
-Subject: Re: [PATCH] netfilter: export sanitized nf_nat.h to INSTALL_HDR_PATH
-Date: Sun, 02 Oct 2011 09:01:18 -0400
-Message-ID: <4E88609E.2030404@opensource.dyc.edu>
-References: <1317491489-23812-1-git-send-email-basile@opensource.dyc.edu> <4E8753C6.1020304@opensource.dyc.edu> <alpine.LNX.2.01.1110021451540.12367@frira.zrqbmnf.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: nf_conntrack_proto_gre: only create ct
+ assured event once
+Date: Mon, 3 Oct 2011 12:47:57 +0200
+Message-ID: <20111003104757.GA16052@1984>
+References: <1317393509-11078-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: davem@davemloft.net, kaber@trash.net, blueness@gentoo.org,
-	gurligebis@gentoo.org, base-system@gentoo.org, kernel@gentoo.org,
-	toolchain@gentoo.org, mchehab@redhat.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, arnd@arndb.de,
-	eparis@redhat.com, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, denys@visp.net.lb
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from virtual.dyc.edu ([67.222.116.22]:41945 "EHLO virtual.dyc.edu"
+Received: from mail.us.es ([193.147.175.20]:55283 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750877Ab1JBNBV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 2 Oct 2011 09:01:21 -0400
-In-Reply-To: <alpine.LNX.2.01.1110021451540.12367@frira.zrqbmnf.qr>
+	id S1752515Ab1JCKsG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Oct 2011 06:48:06 -0400
+Content-Disposition: inline
+In-Reply-To: <1317393509-11078-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 10/02/2011 08:53 AM, Jan Engelhardt wrote:
-> On Saturday 2011-10-01 19:54, Anthony G. Basile wrote:
+On Fri, Sep 30, 2011 at 04:38:29PM +0200, Florian Westphal wrote:
+> GRE connections cause ctnetlink event flood due to ASSURED event
+> being created for every packet received.
 > 
->> As an appendix to this patch, let me add a couple of points:
->>
->> 1) In the union,
->>
->>> +union nf_conntrack_man_proto {
->>> +	__be16 all;
->>> +	__be16 port;
->>> +	__be16 icmp_idnt;
->>> +	__be16 gre_key;
->>> +};
->>
->> I named the one member icmp_idnt to avoid a name collision with "#define
->> icmp_id ..." in <netinet/ip_icmp.h>.  This causes problems in both
->> iptables and miniupnpd.
-> 
-> Wow that's a horrible thing to do of ip_icmp.h. Such #defines should die 
-> because their scope is way too broad.
+> Reported-and-tested-by: Denys Fedoryshchenko <denys@visp.net.lb>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-I know.  I hate it too, and it was not easy to catch.  But how else do
-we get around it?  We could do an undef, but that's just as ugly.
+http://1984.lsi.us.es/git/?p=net/.git;a=shortlog;h=refs/heads/nf
 
--- 
-Anthony G. Basile, Ph. D.
-Chair of Information Technology
-D'Youville College
-Buffalo, NY 14201
-(716) 829-8197
+Applied to my nf branch, thanks.
