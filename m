@@ -1,31 +1,60 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Packet statistics accounting module: request for comments
-Date: Tue, 4 Oct 2011 22:27:12 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1110042220390.10811@frira.zrqbmnf.qr>
-References: <CAFAca_CyLYGH+FyzyONsM7CiA6K3=BNdwY6PvTd+d1HEFKX6XQ@mail.gmail.com> <alpine.LNX.2.01.1110041256500.22180@frira.zrqbmnf.qr> <CAFAca_CH4QD-7XngGE=H_pTKo+gN3F_nf2RTf+1S8kbvPXkj-g@mail.gmail.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH 1/2] fix lockdep warning
+Date: Wed, 5 Oct 2011 06:14:23 +0900
+Message-ID: <20111004211420.GA11987@verge.net.au>
+References: <1317639399-4522-1-git-send-email-hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Julien Lafaye <jlafaye@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:34074 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933567Ab1JDU1O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Oct 2011 16:27:14 -0400
-In-Reply-To: <CAFAca_CH4QD-7XngGE=H_pTKo+gN3F_nf2RTf+1S8kbvPXkj-g@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: ja@ssi.bg, wensong@linux-vs.org, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	hans@schillstrom.com
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1317639399-4522-1-git-send-email-hans.schillstrom@ericsson.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 2011-10-04 21:03, Julien Lafaye wrote:
->
->My objective was to count incoming packets & bytes received during 
->short time frames,[...] So, I chose to build time buckets directly in 
->the softirq handler and export them with /proc. I agree that polling 
->the xt_quota2 counter and resetting at each poll will achieve the same 
->functionality but I would run tests to check that polling is actually 
->scheduled at regular enough intervals.
+On Mon, Oct 03, 2011 at 12:56:38PM +0200, Hans Schillstrom wrote:
+> From: Hans Schillstrom <hans@schillstrom.com>
+> 
+> rs_lock needs a key to make lock dep happy.
+> 
+> Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
 
-I still think this could be integrated, perhaps as an extra option to 
-choose a particular recording mode, to xt_quota2 (including the fifo).
-Speaking of which, your module seems to lack locking on the ctx, so it's 
-not very consistent on SMP as of yet.
+Hi Julian,
+
+can I get an Ack or otherwise from you on this patch?
+
+I already have one for
+[PATCH 2/2] IPVS netns shutdown/startup dead-lock (Take III)
+
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index 2b771dc..a1af72f 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> @@ -57,6 +57,7 @@ static DEFINE_MUTEX(__ip_vs_mutex);
+>  
+>  /* lock for service table */
+>  static DEFINE_RWLOCK(__ip_vs_svc_lock);
+> +static struct lock_class_key ip_vs_rs_key;
+>  
+>  /* sysctl variables */
+>  
+> @@ -3680,6 +3681,7 @@ int __net_init ip_vs_control_net_init(struct net *net)
+>  	struct netns_ipvs *ipvs = net_ipvs(net);
+>  
+>  	ipvs->rs_lock = __RW_LOCK_UNLOCKED(ipvs->rs_lock);
+> +	__rwlock_init(&ipvs->rs_lock, "ipvs->rs_lock", &ip_vs_rs_key);
+>  
+>  	/* Initialize rs_table */
+>  	for (idx = 0; idx < IP_VS_RTAB_SIZE; idx++)
+> -- 
+> 1.7.4.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe lvs-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
