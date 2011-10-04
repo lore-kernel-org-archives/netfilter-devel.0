@@ -1,42 +1,33 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Packet statistics accounting module: request for comments
-Date: Tue, 4 Oct 2011 13:02:06 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1110041256500.22180@frira.zrqbmnf.qr>
-References: <CAFAca_CyLYGH+FyzyONsM7CiA6K3=BNdwY6PvTd+d1HEFKX6XQ@mail.gmail.com>
+From: Manikandan R <mani.agape@gmail.com>
+Subject: Reg:Conntrack-tool for packet dropping?
+Date: Tue, 4 Oct 2011 19:39:03 +0530
+Message-ID: <CAAG0ft4=CaBsdVxKApmvaBhP06xr+1522=Xcwo9O_59zSWunBA@mail.gmail.com>
+References: <CAAG0ft6yyx+PzcvxpfsnCTok7U+cdx3mnsU4gyJMk=zqCOn45A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Julien Lafaye <jlafaye@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:41030 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756099Ab1JDLCI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Oct 2011 07:02:08 -0400
-In-Reply-To: <CAFAca_CyLYGH+FyzyONsM7CiA6K3=BNdwY6PvTd+d1HEFKX6XQ@mail.gmail.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:33749 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754194Ab1JDOJE (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 Oct 2011 10:09:04 -0400
+Received: by vcbfk10 with SMTP id fk10so370994vcb.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 04 Oct 2011 07:09:04 -0700 (PDT)
+In-Reply-To: <CAAG0ft6yyx+PzcvxpfsnCTok7U+cdx3mnsU4gyJMk=zqCOn45A@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 2011-10-04 06:50, Julien Lafaye wrote:
->
->I created a small packet statistics accounting module based on the 
->xtables framework. It is based on a FIFO that is filled in netfilter 
->hooks and emptied by a user program reading statistics through /proc 
->callbacks. The goal of the module is to be able to get maximum traffic 
->rate with an improved resolution compared to basic techniques. Typical 
->expected resolution is 100ms.
+ Hi,
+    I am developing application monitoring tool. When I gothru
+http://netfilter.org/, I come to know about the conntrack-tool which
+can be used for monitoring new connection.
+    I used "conntrackd"(conntrack deamon) for monitoring the packets.
+Using nfct_callback_register2() am able to handle new packets also,
+but I need to drop this packet if its related to particular
+pid/process. Is there is any way/api to drop packets?
 
-I am thinking of how xt_quota2 (in grow mode) could have been enhanced 
-to simply reset the counter when the procfs file is read. How would that 
-have compared to your module?
+   Hope am clear about my need, Thanks in advance.
 
->The code is currently stored in github: 
->https://github.com/jlafaye/xt_pktstat
->
->I would like the code to be considered for inclusion in the 
->xtables-addons framework. Nevertheless, the code might not be mature 
->enough as this is the first time I do kernel programming. Although 
->advised by knowledgeable persons, there are probably many issues in it.
-
-The .c files need a little license-mentioning header at the least, and 
-should in principle also use tab indents like LKCS.-See files from Xt-a 
-for examples.
+ Regards,
+ Manikandan R
