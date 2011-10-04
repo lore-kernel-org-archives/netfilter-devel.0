@@ -1,52 +1,45 @@
-From: Hans Schillstrom <hans@schillstrom.com>
-Subject: Re: [PATCH 2/2] IPVS netns shutdown/startup dead-lock (Take II)
-Date: Mon, 3 Oct 2011 23:12:13 +0200
-Message-ID: <201110032312.13966.hans@schillstrom.com>
-References: <1317639399-4522-1-git-send-email-hans.schillstrom@ericsson.com> <1317639399-4522-2-git-send-email-hans.schillstrom@ericsson.com> <alpine.LFD.2.00.1110032350500.1868@ja.ssi.bg>
+From: Julien Lafaye <jlafaye@gmail.com>
+Subject: Packet statistics accounting module: request for comments
+Date: Tue, 4 Oct 2011 06:50:24 +0200
+Message-ID: <CAFAca_CyLYGH+FyzyONsM7CiA6K3=BNdwY6PvTd+d1HEFKX6XQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	horms@verge.net.au, wensong@linux-vs.org,
-	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1110032350500.1868@ja.ssi.bg>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: jlafaye <jlafaye@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:42269 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752111Ab1JDEuZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 Oct 2011 00:50:25 -0400
+Received: by vcbfk10 with SMTP id fk10so66860vcb.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 03 Oct 2011 21:50:24 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Julian
-On Monday, October 03, 2011 22:55:02 Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Mon, 3 Oct 2011, Hans Schillstrom wrote:
-> 
-> > From: Hans Schillstrom <hans@schillstrom.com>
-> > 
-> > ip_vs_mutext is used by both netns shutdown code and startup
-> > and both implicit uses sk_lock-AF_INET mutex.
-> > 
-> > cleanup CPU-1         startup CPU-2
-> > ip_vs_dst_event()     ip_vs_genl_set_cmd()
-> >  sk_lock-AF_INET     __ip_vs_mutex
-> >                      sk_lock-AF_INET
-> > __ip_vs_mutex
-> > * DEAD LOCK *
-> > 
-> > A new mutex placed in ip_vs netns struct called sync_mutex is added.
-> > 
-> > Comments from Julian and Simon added.
-> > This patch has been running for more than 3 month now and it seems to work.
-> 
-> 	May be IP_VS_SO_GET_DAEMON in do_ip_vs_get_ctl
-> must be protected by sync_mutex in a similar way.
-> 
+Hello,
 
-That's right there is a small risk inconsistent data there...
-I will send a new patch tomorrow.
+I created a small packet statistics accounting module based on the
+xtables framework. It is based on a FIFO that is filled in netfilter
+hooks and emptied by a user program reading statistics through /proc
+callbacks. The goal of the module is to be able to get maximum traffic
+rate with an improved resolution compared to basic techniques. Typical
+expected resolution is 100ms.
 
-Thanks
-Hans
+The code is currently stored in github: https://github.com/jlafaye/xt_pktstat
+
+I would like the code to be considered for inclusion in the
+xtables-addons framework. Nevertheless, the code might not be mature
+enough as this is the first time I do kernel programming. Although
+advised by knowledgeable persons, there are probably many issues in
+it.
+
+I would greatly appreciate is somebody on this list is able to give me
+pointers and people to contact to actually improve my code and get it
+ready for xtables-addons inclusion.
+
+Regards,
+
+Julien
+
+PS: the guide 'How to write Netfilter modules' was great.
