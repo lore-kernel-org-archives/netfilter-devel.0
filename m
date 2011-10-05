@@ -1,38 +1,61 @@
-From: Hans Schillstrom <hans@schillstrom.com>
-Subject: Re: [PATCH 1/2] fix lockdep warning
-Date: Wed, 5 Oct 2011 08:31:26 +0200
-Message-ID: <201110050831.26652.hans@schillstrom.com>
-References: <1317639399-4522-1-git-send-email-hans.schillstrom@ericsson.com> <alpine.LFD.2.00.1110050133290.2388@ja.ssi.bg>
+From: Julien Lafaye <jlafaye@gmail.com>
+Subject: Re: Packet statistics accounting module: request for comments
+Date: Wed, 5 Oct 2011 21:27:34 +0200
+Message-ID: <CAFAca_C06BCQsovvjW8wUzAo=hR2tceAiTyEjGyU1e2D+b-EFQ@mail.gmail.com>
+References: <CAFAca_CyLYGH+FyzyONsM7CiA6K3=BNdwY6PvTd+d1HEFKX6XQ@mail.gmail.com>
+	<alpine.LNX.2.01.1110041256500.22180@frira.zrqbmnf.qr>
+	<CAFAca_CH4QD-7XngGE=H_pTKo+gN3F_nf2RTf+1S8kbvPXkj-g@mail.gmail.com>
+	<alpine.LNX.2.01.1110042220390.10811@frira.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	horms@verge.net.au, wensong@linux-vs.org,
-	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1110050133290.2388@ja.ssi.bg>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:59428 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934402Ab1JET1f (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 5 Oct 2011 15:27:35 -0400
+Received: by vws1 with SMTP id 1so1629142vws.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 05 Oct 2011 12:27:34 -0700 (PDT)
+In-Reply-To: <alpine.LNX.2.01.1110042220390.10811@frira.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday, October 05, 2011 00:51:31 Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Mon, 3 Oct 2011, Hans Schillstrom wrote:
-> 
-[snip]
-> 
-> 	ip_vs_rs_key remains unused without debugging. I don't
-> remember the reason why IPVS is the only place that calls
-> __rwlock_init instead of rwlock_init. Can we use rwlock_init?
+Jan
 
-I'm Sorry, this was not meant to go to the list :-(
-It should be rwlock_init() as you say 
-I'll send a new one row patch...
+> I still think this could be integrated, perhaps as an extra option to
+> choose a particular recording mode, to xt_quota2 (including the fifo).
+> Speaking of which, your module seems to lack locking on the ctx, so it's
+> not very consistent on SMP as of yet.
+>
 
+I will fix the usage of the fifo so that there is not any odd behavior
+in SMP context.
 
-Thanks
-Hans
+As for the inclusion into xt_quota2, I am bit skeptical, for three reasons:
+
+- the two modules, xt_quota2  and xt_pktstat, have different features:
+quota enforcement and poll-based network accounting for the first one,
+and event driven high resolution network accounting for the second
+one. Where I agree that the two modules could share portions of code,
+I don't see how the core parts can be merged. I fear that merging the
+modules would require putting the two codes side by side and not
+actually merging them. But you have more experience than me on
+netfilter modules, and obviously on xt_quota2, and you could give me
+some hints on how to merge them in a way that would benefit the two
+projects.
+
+- xt_quota2 is clearly not a good name for the feature I propose.
+
+- since the features provided by xt_quota2 and xt_pktstat are
+separated, why trying to join them into a swiss-army knife with two
+sets of parameters: one to be used for a first feature and the other
+one for a second feature. This could prove to be misleading for the
+user.
+
+What do you think ?
+
+Regards,
+
+Julien
