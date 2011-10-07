@@ -1,70 +1,130 @@
-From: Manikandan R <mani.agape@gmail.com>
-Subject: Re: Reg:Conntrack-tool for packet dropping?
-Date: Thu, 6 Oct 2011 13:37:38 +0530
-Message-ID: <CAAG0ft4fFLDA2qTNB5Fhqr7yjPnQEEC+qdNswFmob5j25Li+0w@mail.gmail.com>
-References: <CAAG0ft6yyx+PzcvxpfsnCTok7U+cdx3mnsU4gyJMk=zqCOn45A@mail.gmail.com>
-	<CAAG0ft4=CaBsdVxKApmvaBhP06xr+1522=Xcwo9O_59zSWunBA@mail.gmail.com>
-	<4E8B51AA.7030107@wildgooses.com>
+From: ratheesh kannoth <ratheesh.ksz@gmail.com>
+Subject: track the icmp packet.
+Date: Fri, 7 Oct 2011 12:43:31 +0530
+Message-ID: <CAGZFCEET5wkfC_W+8mHYt6W5YnyhWsM8OcXU60NsP4x9AGW49g@mail.gmail.com>
+References: <CAGZFCEH59K7gFs5uNVdY_XQrAea+DT5Mes4OzOaxCOdnCtTWKw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org
-To: Ed W <lists@wildgooses.com>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:41076 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932374Ab1JFIHk (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:38149 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751389Ab1JGHNd convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Oct 2011 04:07:40 -0400
-Received: by vcbfk10 with SMTP id fk10so1974972vcb.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 06 Oct 2011 01:07:39 -0700 (PDT)
-In-Reply-To: <4E8B51AA.7030107@wildgooses.com>
+	Fri, 7 Oct 2011 03:13:33 -0400
+Received: by iakk32 with SMTP id k32so3890925iak.19
+        for <netfilter-devel@vger.kernel.org>; Fri, 07 Oct 2011 00:13:32 -0700 (PDT)
+In-Reply-To: <CAGZFCEH59K7gFs5uNVdY_XQrAea+DT5Mes4OzOaxCOdnCtTWKw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Ed W,
+I have a =A0linux machine (2.6.32 kernel )
+ip address is 192.168.0.102 and default gw is 192.168.0.1
 
-   Thanks a lot for you reply. Do you mean userspace queues like
-libpcap, libnetfilter queue, if not please correct me.
 
-   All my need is to block the application before it establish a
-connection with net.
+I want to do some "printk " when an echo request is sent from the
+machine to the gateway
+ie ...
+# ping =A0192.168.0.1 =A0 =A0 =A0 // command should do some printk.
 
-   My initial idea is ,by using libpcap or libnetfilter queue do
-packet monitoring and form iptables and block them. But I need to
-monitor each and every packets, draw back is before I form iptables
-connection will be established by the application.  As we discussed
-before, then I go for conntrack, there also i failed.
+I found a program at
+http://www.netfilter.org/documentation/HOWTO/netfilter-hacking-HOWTO.tx=
+t.
+I modified a little for my purpose. But it is not working. Could you
+please guide me.
 
-   Can you please help me on this.
 
-Thanks and Regards,
-Manikandan R
 
-On 10/5/11, Ed W <lists@wildgooses.com> wrote:
-> On 04/10/2011 15:09, Manikandan R wrote:
->>  Hi,
->>     I am developing application monitoring tool. When I gothru
->> http://netfilter.org/, I come to know about the conntrack-tool which
->> can be used for monitoring new connection.
->>     I used "conntrackd"(conntrack deamon) for monitoring the packets.
->> Using nfct_callback_register2() am able to handle new packets also,
->> but I need to drop this packet if its related to particular
->> pid/process. Is there is any way/api to drop packets?
->>
->
-> Conntrack doesn't quite track all packets - see my previous questions
-> about this...
->
-> I think also if you need to examine all packets and decide their fate
-> ahead of allowing them through then you need to look at userspace queue
-> stuff?
->
-> Note you can setup some extremely clever filtering using iptables. That
-> has the ability to filter based on local user id, possibly process id
-> and also your app can set firewall marks on each packet that can be
-> easily filtered on later?
->
-> Good luck
->
-> Ed E
->
+@@@@@@@ =A0conn-track-01.c @@@@@@@@@@@@
+// copied from http://www.netfilter.org/documentation/HOWTO/netfilter-h=
+acking-HOWTO.txt
+// and modified
+
+#define FOO_PORT =A0 =A0 =A0 =A0111
+#include <linux/module.h>
+#include <linux/kernel.h>
+#include <net/netfilter/nf_conntrack.h>
+#include <net/netfilter/nf_conntrack_helper.h>
+#include <linux/ip.h>
+#include <net/netfilter/nf_conntrack_expect.h>
+
+
+static char * dst_ipaddress =3D "192.168.0.1" ; // my gateway ip addres=
+s
+is 192.168.0.1
+module_param(dst_ipaddress, charp, 0000);
+
+static const struct nf_conntrack_expect_policy my_expect_policy =3D {
+=A0 =A0 =A0 =A0.max_expected =A0 =A0 =A0 =A0 =A0 =3D 3,
+=A0 =A0 =A0 =A0.timeout =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D 180,
+};
+
+
+static int foo_expectfn(struct nf_conntrack *new)
+{
+
+=A0 =A0 =A0 =A0return 0;
+}
+
+static int foo_help(struct sk_buff *skb,
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned int protoff,
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct nf_conn *ct,
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0enum ip_conntrack_info conntrack=
+info)
+{
+=A0 =A0 =A0 =A0printk (KERN_INFO "RAT: called the =A0helper \n");
+=A0 =A0 =A0 =A0return NF_ACCEPT;
+}
+
+static struct nf_conntrack_helper foo;
+
+int init_conntrack_module(void)
+{
+=A0 =A0 =A0 =A0memset(&foo, 0, sizeof(struct nf_conntrack_helper));
+
+=A0 =A0 =A0 =A0foo.name =3D "foo";
+=A0 =A0 =A0 =A0foo.me =3D THIS_MODULE;
+
+=A0 =A0 =A0 =A0foo.tuple.dst.protonum =3D IPPROTO_ICMP;
+=A0 =A0 =A0 =A0foo.tuple.dst.u.icmp.type =3D 8;
+=A0 =A0 =A0 =A0foo.tuple.dst.u.icmp.code =A0=3D 0;
+=A0 =A0 =A0 =A0foo.tuple.src.l3num =3D AF_INET;
+=A0 =A0 =A0 =A0foo.help =3D foo_help;
+=A0 =A0 =A0 =A0foo.expect_policy =3D &my_expect_policy;
+=A0 =A0 =A0 =A0{
+=A0 =A0 =A0 =A0 =A0int i =3D 0;
+=A0 =A0 =A0 =A0 =A0int addr =3D 0;
+=A0 =A0 =A0 =A0 =A0char *p =3D (char *)&addr;
+=A0 =A0 =A0 =A0 =A0int a[4];
+=A0 =A0 =A0 =A0 =A0sscanf(dst_ipaddress, "%d.%d.%d.%d", &a[3], &a[2], &=
+a[1], &a[0]);
+=A0 =A0 =A0 =A0 =A0while(i !=3D 4 ) {
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *(p + i ) =3D a[i];
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0i++;
+=A0 =A0 =A0 =A0 =A0}
+=A0 =A0 =A0 =A0 =A0foo.tuple.dst.u3.ip =3D addr;
+=A0 =A0 =A0 =A0 =A0foo.tuple.src.u3.ip =3D 0xc0a80066; //my linux machi=
+ne =A0ip
+address is 192.168.0.102
+=A0 =A0 =A0 =A0}
+
+=A0 =A0 =A0 =A0return nf_conntrack_helper_register(&foo);
+}
+
+void =A0fini_conntrack_module(void)
+{
+=A0 =A0 =A0 =A0nf_conntrack_helper_unregister(&foo);
+}
+
+module_init(init_conntrack_module);
+module_exit(fini_conntrack_module);
+
+//end of program
+
+-Ratheesh
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
