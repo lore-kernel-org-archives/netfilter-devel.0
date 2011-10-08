@@ -1,68 +1,40 @@
-From: Yinglin Sun <yinglin.s@gmail.com>
-Subject: Re: moving GIT back to kernel.org...
-Date: Sat, 8 Oct 2011 00:09:24 -0700
-Message-ID: <CAN17JHUdg2aJmpMOD_hn61eramPPnTr0_tiy3c7w7cKa8FMtsQ@mail.gmail.com>
-References: <20111007.145703.842130763413648388.davem@davemloft.net>
-	<20111007.155902.916470368193047875.davem@davemloft.net>
-	<CAN17JHUGnAbHJmwybjJVdxq4JOgHfDxChw1P7q1yrkqH6Ci05w@mail.gmail.com>
-	<4E8FF54F.1080306@gmail.com>
+From: Michal Kubecek <mkubecek@suse.de>
+Subject: Re: SNAT before IPSEC - why?
+Date: Sat, 08 Oct 2011 11:13:07 +0200
+Message-ID: <20111008111307.yh6li19ypc8coog4@imap.suse.de>
+References: <4E8FB084.6030807@earthlink.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8;
+	DelSp=Yes	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	sfr@canb.auug.org.au, linux-wireless@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, sparclinux@vger.kernel.org,
-	linux-ide@vger.kernel.org
-To: jeffrey.t.kirsher@intel.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4E8FF54F.1080306@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: sclark46@earthlink.net
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:35452 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751282Ab1JHJNK convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 8 Oct 2011 05:13:10 -0400
+In-Reply-To: <4E8FB084.6030807@earthlink.net>
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Oct 8, 2011 at 12:01 AM, Jeff Kirsher <tarbal@gmail.com> wrote:
-> On 10/07/2011 11:55 PM, Yinglin Sun wrote:
->> On Fri, Oct 7, 2011 at 12:59 PM, David Miller <davem@davemloft.net> =
-wrote:
->>> From: David Miller <davem@davemloft.net>
->>> Date: Fri, 07 Oct 2011 14:57:03 -0400 (EDT)
->>>
->>>> I'm about to setup my GIT trees on kernel.org, once that is comple=
-te
->>>> I will be solely updating those trees again.
->>>>
->>>> I will notify everyone when this is ready to go.
->>>>
->>>> Just a heads up for everyone...
->>> Ok, they are now online, please update your URLs.
->>>
->>> git://git.kernel.org/pub/scm/linux/kernel/git/davem/net.git
->>> git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git
->>> git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git
->>> git://git.kernel.org/pub/scm/linux/kernel/git/davem/ide.git
->>>
->> I'm still new to net kernel development, so a little confused about =
-these trees.
->> So we should submit patches based on these trees, instead of Linus'?
->> About net and net-next, How to decide which one to use?
->>
->> Thanks!
->>
->> Yinglin
->>
+On Sat 2011-10-08,=C2=A004:08:04=C2=A0CEST Stephen Clark <sclark46@eart=
+hlink.net> wrote:
+> What is the reasoning for having SNAT happen before ipsec encryption?
 >
-> *If* you have change against the network core/drivers then, you would
-> want to use David Miller's net or net-next trees.
+> It forces one to add special rules in the NAT table to keep this from
+> happening and
+> I can't think of one reason why you would want it to be this way.
 >
-> As a general rule:
-> =C2=A0- net tree is only for fixes/critical fixes
-> =C2=A0- net-next tree is for everything else
->
-> There are always exceptions, but if you stick to the above general ru=
-le,
-> you will be fine.
->
->
+> Please someone enlighten me.
 
-Got it. Thanks Jeff!
-
-Yinglin
+IMHO the main reason is that addresses translation of IPsec =20
+encapsulated packet
+wouldn't work without something like NAT Traversal.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
