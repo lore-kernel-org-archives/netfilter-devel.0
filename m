@@ -1,47 +1,49 @@
-From: Stephen Clark <sclark46@earthlink.net>
-Subject: SNAT before IPSEC - why?
-Date: Fri, 07 Oct 2011 22:08:04 -0400
-Message-ID: <4E8FB084.6030807@earthlink.net>
-Reply-To: sclark46@earthlink.net
+From: Yinglin Sun <yinglin.s@gmail.com>
+Subject: Re: moving GIT back to kernel.org...
+Date: Fri, 7 Oct 2011 23:55:31 -0700
+Message-ID: <CAN17JHUGnAbHJmwybjJVdxq4JOgHfDxChw1P7q1yrkqH6Ci05w@mail.gmail.com>
+References: <20111007.145703.842130763413648388.davem@davemloft.net>
+	<20111007.155902.916470368193047875.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Cc: netdev@vger.kernel.org, sfr@canb.auug.org.au,
+	linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-ide@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from elasmtp-dupuy.atl.sa.earthlink.net ([209.86.89.62]:40527 "EHLO
-	elasmtp-dupuy.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751313Ab1JHCIG (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:64338 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751133Ab1JHGze (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Oct 2011 22:08:06 -0400
-Received: from [69.22.83.66] (helo=joker.seclark.com)
-	by elasmtp-dupuy.atl.sa.earthlink.net with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.67)
-	(envelope-from <sclark46@earthlink.net>)
-	id 1RCMKb-00006Z-3n
-	for netfilter-devel@vger.kernel.org; Fri, 07 Oct 2011 22:08:05 -0400
+	Sat, 8 Oct 2011 02:55:34 -0400
+In-Reply-To: <20111007.155902.916470368193047875.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Fri, Oct 7, 2011 at 12:59 PM, David Miller <davem@davemloft.net> wrote:
+> From: David Miller <davem@davemloft.net>
+> Date: Fri, 07 Oct 2011 14:57:03 -0400 (EDT)
+>
+>>
+>> I'm about to setup my GIT trees on kernel.org, once that is complete
+>> I will be solely updating those trees again.
+>>
+>> I will notify everyone when this is ready to go.
+>>
+>> Just a heads up for everyone...
+>
+> Ok, they are now online, please update your URLs.
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/davem/net.git
+> git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git
+> git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git
+> git://git.kernel.org/pub/scm/linux/kernel/git/davem/ide.git
+>
 
-What is the reasoning for having SNAT happen before ipsec encryption?
+I'm still new to net kernel development, so a little confused about these trees.
+So we should submit patches based on these trees, instead of Linus'?
+About net and net-next, How to decide which one to use?
 
-It forces one to add special rules in the NAT table to keep this from 
-happening and
-I can't think of one reason why you would want it to be this way.
+Thanks!
 
-Please someone enlighten me.
-
-Thanks,
-Steve
-
--- 
-
-"They that give up essential liberty to obtain temporary safety,
-deserve neither liberty nor safety."  (Ben Franklin)
-
-"The course of history shows that as a government grows, liberty
-decreases."  (Thomas Jefferson)
-
-
-
+Yinglin
