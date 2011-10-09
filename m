@@ -1,77 +1,47 @@
-From: Ajith Adapa <adapa.ajith@gmail.com>
-Subject: Re: doubt with NAPT on icmp packet
-Date: Sun, 9 Oct 2011 14:17:36 +0530
-Message-ID: <CADAe=+Jb-D-dJ++MuPLV5sfUHwj+4RCf2Sv7V2sVpPDPP20wJw@mail.gmail.com>
-References: <CADAe=+LWJQxnuMT2LW4Bm7pJAsHP_PHNpde0Vpue4ULMMj17Wg@mail.gmail.com>
- <CADAe=+LpSVuLUohYUXAV+RJh_p8CUmXhQmLLZ+SM5KQayYWaEg@mail.gmail.com>
+From: "\"Oleg A. Arkhangelsky\"" <sysoleg@yandex.ru>
+Subject: Interface match in POSTROUTING
+Date: Sun, 09 Oct 2011 13:05:45 +0400
+Message-ID: <13481318151145@web42.yandex.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:59854 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750975Ab1JIIsH convert rfc822-to-8bit (ORCPT
+Received: from forward2.mail.yandex.net ([77.88.46.7]:53523 "EHLO
+	forward2.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752037Ab1JIJMO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 9 Oct 2011 04:48:07 -0400
-Received: by bkbzt4 with SMTP id zt4so6980353bkb.19
-        for <netfilter-devel@vger.kernel.org>; Sun, 09 Oct 2011 01:48:06 -0700 (PDT)
-In-Reply-To: <CADAe=+LpSVuLUohYUXAV+RJh_p8CUmXhQmLLZ+SM5KQayYWaEg@mail.gmail.com>
+	Sun, 9 Oct 2011 05:12:14 -0400
+Received: from web42.yandex.ru (web42.yandex.ru [77.88.47.178])
+	by forward2.mail.yandex.net (Yandex) with ESMTP id 4843612A26A0
+	for <netfilter-devel@vger.kernel.org>; Sun,  9 Oct 2011 13:05:46 +0400 (MSD)
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by web42.yandex.ru (Yandex) with ESMTP id 2F36A3B005D
+	for <netfilter-devel@vger.kernel.org>; Sun,  9 Oct 2011 13:05:46 +0400 (MSK)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hello,
 
-It seems IP MASQUERADING is not working in the case of icmp packet
-same rules for a TCP and UDP packet are working without any issue..
+I have a question regarding this piece of code in iptables.c:
 
-Is there any way to debug in this case ?
+                if (strcmp(chain, "POSTROUTING") == 0
+                    || strcmp(chain, "OUTPUT") == 0) {
+                        /* -i not valid with outgoing packets */
+                        if (cs.options & OPT_VIANAMEIN)
+                                xtables_error(PARAMETER_PROBLEM,
+                                           "Can't use -%c with %s\n",
+                                           opt2char(OPT_VIANAMEIN),
+                                           chain);
+                }
 
-Regards,
-Ajith
+I agree that "-i" is not valid for locally generated packets
+(that is what OUTPUT chain for). But for forwarded packets
+going through POSTROUTING this is not true. As far as I
+understand we can match for both input and output interface
+here (as in FORWARD).
 
+So why we need this restriction?
 
-
-
-On Sun, Oct 9, 2011 at 12:24 PM, Ajith Adapa <adapa.ajith@gmail.com> wr=
-ote:
-> Hi,
->
-> I have a doubt regarding the NAPT mechanism part of netfilter in linu=
-x
-> kernel for a ICMP packet.=C2=A0I am using Redhat 5.7 64 bit OS.
->
-> In case of ICMP packets basically it is the echoid and source address
-> are used as a tuple or a key. So based on the NAPT rules present in
-> iptables the echo id
-> module in icmp packet has to be modified.
->
-> But its not happening so. Echoid in icmp packet remains same. My
-> iptable nat rules are shown below. Ideal case icmp echo id has to
-> modified to the range as shown below.
-> I am sorry if I am wrong .. anyway to debug such a scenarios ?
->
-> iptables -t nat -L -nv
-> Chain PREROUTING (policy ACCEPT 0 packets, 0 bytes)
-> =C2=A0pkts bytes target =C2=A0 =C2=A0 prot opt in =C2=A0 =C2=A0 out =C2=
-=A0 =C2=A0 source
-> destination
-> =C2=A0 =C2=A0 0 =C2=A0 =C2=A0 0 DNAT =C2=A0 =C2=A0 =C2=A0 all =C2=A0-=
-- =C2=A0eth1 =C2=A0 * =C2=A0 =C2=A0 =C2=A0 0.0.0.0/0
-> 0.0.0.0/0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 to:192.168.1.1
-> Chain POSTROUTING (policy ACCEPT 104 packets, 6628 bytes)
-> =C2=A0pkts bytes target =C2=A0 =C2=A0 prot opt in =C2=A0 =C2=A0 out =C2=
-=A0 =C2=A0 source
-> destination
-> =C2=A0 =C2=A0 0 =C2=A0 =C2=A0 0 MASQUERADE =C2=A0icmp -- =C2=A0* =C2=A0=
- =C2=A0 =C2=A0eth1 =C2=A0 =C2=A0192.168.1.0/24
-> 0.0.0.0/0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 masq ports: 63232-63359
->
-> Regards,
-> Ajith
->
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+wbr, Oleg.
