@@ -1,92 +1,62 @@
-From: Ajith Adapa <adapa.ajith@gmail.com>
-Subject: Re: doubt with NAPT on icmp packet
-Date: Mon, 10 Oct 2011 08:54:43 +0530
-Message-ID: <CADAe=+J+C608p1-p29+i9j-DQ=cQP45_tb-v8L=Pd-SB=P7j-w@mail.gmail.com>
-References: <CADAe=+LWJQxnuMT2LW4Bm7pJAsHP_PHNpde0Vpue4ULMMj17Wg@mail.gmail.com>
- <CADAe=+LpSVuLUohYUXAV+RJh_p8CUmXhQmLLZ+SM5KQayYWaEg@mail.gmail.com> <CADAe=+Jb-D-dJ++MuPLV5sfUHwj+4RCf2Sv7V2sVpPDPP20wJw@mail.gmail.com>
+From: <abirvalg@lavabit.com>
+Subject: conntrack EILSEQ followed by ENOBUFS
+Date: Mon, 10 Oct 2011 21:17:02 +0000
+Message-ID: <20111010211702.4a666dfc@wwwwww-701SD>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:35104 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750954Ab1JJDZO convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 9 Oct 2011 23:25:14 -0400
-Received: by bkbzt4 with SMTP id zt4so7918301bkb.19
-        for <netfilter-devel@vger.kernel.org>; Sun, 09 Oct 2011 20:25:13 -0700 (PDT)
-In-Reply-To: <CADAe=+Jb-D-dJ++MuPLV5sfUHwj+4RCf2Sv7V2sVpPDPP20wJw@mail.gmail.com>
+Received: from karen.lavabit.com ([72.249.41.33]:46185 "EHLO karen.lavabit.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751155Ab1JJSRM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 10 Oct 2011 14:17:12 -0400
+Received: from d.earth.lavabit.com (d.earth.lavabit.com [192.168.111.13])
+	by karen.lavabit.com (Postfix) with ESMTP id 7034211BC44
+	for <netfilter-devel@vger.kernel.org>; Mon, 10 Oct 2011 13:17:12 -0500 (CDT)
+Received: from wwwwww-701sd (46.109.128.58)
+	by lavabit.com with ESMTP id F4B4WV0F6TTU
+	for <netfilter-devel@vger.kernel.org>; Mon, 10 Oct 2011 13:17:12 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-In my case even log level wouldnt help me as the MASQUERADE rule is on
-postrouting chain of nat which is the last chain. Once it hits the
-rule with target as MASQUERADE is there a way to see the output of it
-?
+On Linux wwwwww-701SD 2.6.35-30-generic #59-Ubuntu SMP Tue Aug 30
+15:58:00 UTC 2011 i686 GNU/Linux
+with libnetfilter-conntrack3 Version: 0.0.101-1 
 
-But why does it happen so with an ICMP packet ?
+Hi, my application uses libnetfiler_conntrack. When I want to set a mark
+on a connection, I 
+nfct_set_attr_* all the necessary fields of struct nf_conntrack* and
+then do
+nfct_query(setmark_handle, NFCT_Q_GET, ct)
 
-Regards,
-Ajith
+setmark_handle has a callback registered thusly:
+   if ((nfct_callback_register(setmark_handle, NFCT_T_ALL, setmark,
+NULL) == -1)) {perror("cb_reg");}
 
+So ct object lands here:
 
-On Sun, Oct 9, 2011 at 2:17 PM, Ajith Adapa <adapa.ajith@gmail.com> wro=
-te:
-> Hi,
->
-> It seems IP MASQUERADING is not working in the case of icmp packet
-> same rules for a TCP and UDP packet are working without any issue..
->
-> Is there any way to debug in this case ?
->
-> Regards,
-> Ajith
->
->
->
->
-> On Sun, Oct 9, 2011 at 12:24 PM, Ajith Adapa <adapa.ajith@gmail.com> =
-wrote:
->> Hi,
->>
->> I have a doubt regarding the NAPT mechanism part of netfilter in lin=
-ux
->> kernel for a ICMP packet.=C2=A0I am using Redhat 5.7 64 bit OS.
->>
->> In case of ICMP packets basically it is the echoid and source addres=
-s
->> are used as a tuple or a key. So based on the NAPT rules present in
->> iptables the echo id
->> module in icmp packet has to be modified.
->>
->> But its not happening so. Echoid in icmp packet remains same. My
->> iptable nat rules are shown below. Ideal case icmp echo id has to
->> modified to the range as shown below.
->> I am sorry if I am wrong .. anyway to debug such a scenarios ?
->>
->> iptables -t nat -L -nv
->> Chain PREROUTING (policy ACCEPT 0 packets, 0 bytes)
->> =C2=A0pkts bytes target =C2=A0 =C2=A0 prot opt in =C2=A0 =C2=A0 out =
-=C2=A0 =C2=A0 source
->> destination
->> =C2=A0 =C2=A0 0 =C2=A0 =C2=A0 0 DNAT =C2=A0 =C2=A0 =C2=A0 all =C2=A0=
--- =C2=A0eth1 =C2=A0 * =C2=A0 =C2=A0 =C2=A0 0.0.0.0/0
->> 0.0.0.0/0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 to:192.168.1.1
->> Chain POSTROUTING (policy ACCEPT 104 packets, 6628 bytes)
->> =C2=A0pkts bytes target =C2=A0 =C2=A0 prot opt in =C2=A0 =C2=A0 out =
-=C2=A0 =C2=A0 source
->> destination
->> =C2=A0 =C2=A0 0 =C2=A0 =C2=A0 0 MASQUERADE =C2=A0icmp -- =C2=A0* =C2=
-=A0 =C2=A0 =C2=A0eth1 =C2=A0 =C2=A0192.168.1.0/24
->> 0.0.0.0/0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 masq ports: 63232-63359
->>
->> Regards,
->> Ajith
->>
->
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+int setmark (enum nf_conntrack_msg_type type, struct nf_conntrack
+*mct,void *data){
+  nfct_set_attr_u32(mct, ATTR_MARK, nfmark_to_set);
+  nfct_query(setmark_handle, NFCT_Q_UPDATE, mct);   ***
+  return NFCT_CB_CONTINUE;
+}
+
+All works fine and dandy and i can see with "conntrack -L" marks being
+set. At times I get EBUSY from nfct_query(...NFCT_Q_GET...) but I simply call nfct_query(...NFCT_Q_GET...) again and the query goes through.
+Until at a seemingly random point, I start getting:
+EILSEQ from nfct_query(...NFCT_Q_GET...) (Invalid or incomplete multibyte  or wide
+character). I don't resend this packet with nfct_query(...NFCT_Q_GET...), From then on every single nfct_query(...NFCT_Q_GET...) returns EILSEQ maybe for a 100 or so queries, until I finally get ENOBUFS and my app hangs.
+Even calling "conntrack -L" at that point hangs - no output displayed
+and prog doesn't return.
+
+I hope that the line in the code above with *** is not the offending
+one:NFCT_Q_UPDATE doesn't technically require a handle, yet the API says
+it should be there, so I put the handle of this very callback.
+
+Please let me know if there is any more info I could provide you with. I
+am also willing to install conntrack_dbg package and investigate the
+issue if need be.
+Thanks.
+
