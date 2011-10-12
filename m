@@ -1,46 +1,42 @@
+From: pablo@netfilter.org
+Subject: [PATCH 0/2] netfilter updates for davem's net tree
+Date: Wed, 12 Oct 2011 19:32:50 +0200
+Message-ID: <1318440772-21058-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:33742 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753491Ab1JLRjp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Oct 2011 13:39:45 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] IPVS netns shutdown/startup dead-lock
-Date: Wed, 12 Oct 2011 18:33:42 +0200
-Message-ID: <20111012163342.GB14338@1984>
-References: <1318298075-23501-1-git-send-email-horms@verge.net.au>
- <1318298075-23501-2-git-send-email-horms@verge.net.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	David Miller <davem@davemloft.net>,
-	Hans Schillstrom <hans@schillstrom.com>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1318298075-23501-2-git-send-email-horms@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Oct 11, 2011 at 10:54:35AM +0900, Simon Horman wrote:
-> From: Hans Schillstrom <hans@schillstrom.com>
-> 
-> ip_vs_mutext is used by both netns shutdown code and startup
-> and both implicit uses sk_lock-AF_INET mutex.
-> 
-> cleanup CPU-1         startup CPU-2
-> ip_vs_dst_event()     ip_vs_genl_set_cmd()
->  sk_lock-AF_INET     __ip_vs_mutex
->                      sk_lock-AF_INET
-> __ip_vs_mutex
-> * DEAD LOCK *
-> 
-> A new mutex placed in ip_vs netns struct called sync_mutex is added.
-> 
-> Comments from Julian and Simon added.
-> This patch has been running for more than 3 month now and it seems to work.
-> 
-> Ver. 3
->     IP_VS_SO_GET_DAEMON in do_ip_vs_get_ctl protected by sync_mutex
->     instead of __ip_vs_mutex as sugested by Julian.
+Hi Dave,
 
-Applied, thanks Simon.
+The following patches are two bugfixes for your net tree. One
+regarding the conntrack event infrastructure with GRE traffic
+and one fix to resolve one deadlock in the IPVS state
+synchronization.
 
-http://1984.lsi.us.es/git/?p=net/.git;a=shortlog;h=refs/heads/nf
+You can pull these changes from (my nf branch):
+
+git://1984.lsi.us.es/net nf
+
+Florian Westphal (1):
+  netfilter: nf_conntrack: fix event flooding in GRE protocol tracker
+
+Hans Schillstrom (1):
+  ipvs: netns shutdown/startup dead-lock
+
+ include/net/ip_vs.h                    |    1 +
+ net/netfilter/ipvs/ip_vs_ctl.c         |  131 +++++++++++++++++++------------
+ net/netfilter/ipvs/ip_vs_sync.c        |    6 ++
+ net/netfilter/nf_conntrack_proto_gre.c |    4 +-
+ 4 files changed, 89 insertions(+), 53 deletions(-)
+
+-- 
+1.7.2.5
+
