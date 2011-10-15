@@ -1,40 +1,51 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/2] netfilter updates for davem's net tree
-Date: Thu, 13 Oct 2011 16:41:26 -0400 (EDT)
-Message-ID: <20111013.164126.620193113278061001.davem@davemloft.net>
-References: <1318440772-21058-1-git-send-email-pablo@netfilter.org>
+From: "U.Mutlu" <for-gmane@mutluit.com>
+Subject: [libnetfilter_queue] setting verdict somewhere else than in the cb
+Date: Sat, 15 Oct 2011 13:04:21 +0200
+Message-ID: <j7bpbl$lr4$1@dough.gmane.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:41321 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751404Ab1JMUmd (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Oct 2011 16:42:33 -0400
-In-Reply-To: <1318440772-21058-1-git-send-email-pablo@netfilter.org>
+Received: from lo.gmane.org ([80.91.229.12]:41971 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752040Ab1JOLEh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 15 Oct 2011 07:04:37 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
+	id 1RF22c-0001BF-Lm
+	for netfilter-devel@vger.kernel.org; Sat, 15 Oct 2011 13:04:34 +0200
+Received: from p4fc33b9d.dip.t-dialin.net ([79.195.59.157])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Sat, 15 Oct 2011 13:04:34 +0200
+Received: from for-gmane by p4fc33b9d.dip.t-dialin.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Sat, 15 Oct 2011 13:04:34 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: pablo@netfilter.org
-Date: Wed, 12 Oct 2011 19:32:50 +0200
+Hi,
 
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> Hi Dave,
-> 
-> The following patches are two bugfixes for your net tree. One
-> regarding the conntrack event infrastructure with GRE traffic
-> and one fix to resolve one deadlock in the IPVS state
-> synchronization.
-> 
-> You can pull these changes from (my nf branch):
-> 
-> git://1984.lsi.us.es/net nf
+some questions regarding setting the verdict of queued pkts:
 
-Thanks Pablo, I'll pull this as soon as Linus takes in my most recent
-pull request.  I don't want new changes appearing in my tree outside
-of those I told him would be there in my pull request, that tends to
-upset him. :-)
+1) Is it neccessary/mandatory to set the verdict in the callback?
+    For performance reasons I rather would save the important data
+    (ie. h, id etc.) in my own queue, return as quickly as possible
+    with a 0 from the cb, and set the verdict when processing that
+    own queue by a different thread, but in the mean time the arrival
+    of new packets should not be blocked, is it?
+
+2) Is it ok to set the verdict not neccessarily in original
+    pkt rcv order? I mean is it mandatory to set the verdict
+    in the same order as the packet receive order?
+    (I guess not, but just wanted to be sure before starting coding)
+
+3) Somewhere I read stating "The callback is expected to call either
+    nfq_set_verdict() or nfq_set_verdict_mark() before returning"
+    ( --> http://lists.netfilter.org/pipermail/netfilter-devel/2007-March/027381.html )
+    I guess, and hope, that this info is not accurate b/c of my requirement in #1 above, is it?
+
+Thx
+
+
