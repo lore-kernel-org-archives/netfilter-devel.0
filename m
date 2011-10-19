@@ -1,63 +1,49 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH][RESEND] netfilter: ipv6: fix afinfo->route refcnt leak on
- error
-Date: Wed, 19 Oct 2011 13:23:06 +0200
-Message-ID: <20111019112305.GC10691@Chamillionaire.breakpoint.cc>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: kenel level packet capturing
+Date: Wed, 19 Oct 2011 14:30:25 +0200
+Message-ID: <20111019123025.GA9320@netboy.at.omicron.at>
+References: <CAKj1SsP+GE=QqN8nx7aaAxXE8BODKb=vns_=SnbyySQjZp3-pg@mail.gmail.com>
+ <CAKj1SsOnYsOXjRBKm+=hTnEiesXrC3h0Q-KN2b61nPSQud9wMA@mail.gmail.com>
+ <20111019.031314.1383303852454510720.davem@davemloft.net>
+ <CADAe=++9WYg6nGH1vZ0BZKP5CDHO30i-pNVhBzgO9C-6FQX6cQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Cc: David Miller <davem@davemloft.net>, raviraj.j1991@gmail.com,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org
+To: Ajith Adapa <adapa.ajith@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:35646 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750979Ab1JSLXH (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:43574 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754529Ab1JSMaW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Oct 2011 07:23:07 -0400
-Received: id: fw by Chamillionaire.breakpoint.cc with local
-	(easymta 1.00 BETA 1)
-	id 1RGUEk-0006Uc-6k
-	for netfilter-devel@vger.kernel.org; Wed, 19 Oct 2011 13:23:06 +0200
+	Wed, 19 Oct 2011 08:30:22 -0400
 Content-Disposition: inline
+In-Reply-To: <CADAe=++9WYg6nGH1vZ0BZKP5CDHO30i-pNVhBzgO9C-6FQX6cQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Several callers (h323 conntrack, xt_addrtype) assume that the
-returned **dst only needs to be released if the function returns 0.
+On Wed, Oct 19, 2011 at 02:22:35PM +0530, Ajith Adapa wrote:
+> Yeah you are right David. But ..
+> 
+> For a newbie who just know more about linux userspace level need to
+> know starting steps like where to start from and flow of packet might
+> be confusing because of the level of abstraction being used. I guess
+> it might take some time until you are really serious about making
+> hands dirty :)
 
-This is true for the ipv4 implementation, but not for the ipv6 one.
+For working with or just reading kernel sources I recommend getting to
+know the cscope tool. Do a "make cscope" and then use one of the front
+end browsers.
 
-Instead of changing the users, change the ipv6 implementation
-to behave like the ipv4 version by only providing the dst_entry result
-in the success case.
+If you use emacs, then you really should have this set
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/ipv6/netfilter.c |   13 ++++++++++---
- 1 files changed, 10 insertions(+), 3 deletions(-)
+	; When working on the kernel
+	(setq cscope-do-not-update-database t)
 
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 30fcee4..8992cf6 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -100,9 +100,16 @@ static int nf_ip6_route(struct net *net, struct dst_entry **dst,
- 		.pinet6 = (struct ipv6_pinfo *) &fake_pinfo,
- 	};
- 	const void *sk = strict ? &fake_sk : NULL;
--
--	*dst = ip6_route_output(net, sk, &fl->u.ip6);
--	return (*dst)->error;
-+	struct dst_entry *result;
-+	int err;
-+
-+	result = ip6_route_output(net, sk, &fl->u.ip6);
-+	err = result->error;
-+	if (err)
-+		dst_release(result);
-+	else
-+		*dst = result;
-+	return err;
- }
- 
- __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
--- 
-1.7.3.4
+otherwise it tries to re-index after every search.
+
+HTH,
+Richard
+
 
