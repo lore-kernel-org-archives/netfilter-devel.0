@@ -1,37 +1,23 @@
-From: Benjamin Poirier <benjamin.poirier@gmail.com>
-Subject: Re: kenel level packet capturing
-Date: Wed, 19 Oct 2011 08:37:33 -0400
-Message-ID: <20111019123733.GA21324@synalogic.ca>
-References: <CAKj1SsP+GE=QqN8nx7aaAxXE8BODKb=vns_=SnbyySQjZp3-pg@mail.gmail.com>
- <CAKj1SsOnYsOXjRBKm+=hTnEiesXrC3h0Q-KN2b61nPSQud9wMA@mail.gmail.com>
+From: hoangtam <tamnghoang@gmail.com>
+Subject: Netfilter data retransmit
+Date: Thu, 20 Oct 2011 09:33:18 +0200
+Message-ID: <4E9FCEBE.5000404@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org
-To: raviraj joshi <raviraj.j1991@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:60699 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754835Ab1JSMhk (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:45473 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752311Ab1JTHdU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Oct 2011 08:37:40 -0400
-Content-Disposition: inline
-In-Reply-To: <CAKj1SsOnYsOXjRBKm+=hTnEiesXrC3h0Q-KN2b61nPSQud9wMA@mail.gmail.com>
+	Thu, 20 Oct 2011 03:33:20 -0400
+Received: by wwe6 with SMTP id 6so3729253wwe.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2011 00:33:19 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11/10/19 12:24, raviraj joshi wrote:
-> Hi,
-> 
-> We are making a kernel level packet capture module as a part of our BE project .
-> We are finding it difficult to understand kenel networking code.
-> We studied structures and functions like sk_buff, netif_rx(),dev_alloc_skb.
-> 
-> However we were not able to trace the actual path a simple packet follows.
-
-You might find
-http://vger.kernel.org/netconf2011_slides/jesse_brandeburg_netconf2011.pdf
-interesting. It contains call chains of UDP processing at all levels in
-the stack (driver, below ip stack, above ip stack) for tx and rx.
-
--Ben
+I add to TCP option 4 bytes using Netfilter hooks ( LOCAL_OUT ) and then 
+recalculate the checksum correctly. When I send the packets using "wget 
+www.google.com" , I see that the packet "Http Get" can not reach to the 
+server, it re-transmits over time. Please help me with this.
