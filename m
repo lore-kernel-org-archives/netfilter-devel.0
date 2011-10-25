@@ -1,38 +1,71 @@
-From: Richard Weinberger <richard@nod.at>
-Subject: [PATCH] [TRIVIAL] netfilter: make physdev_mt more readable
-Date: Mon, 24 Oct 2011 14:06:41 +0200
-Message-ID: <1319458001-14958-1-git-send-email-richard@nod.at>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	trivial@kernel.org, davem@davemloft.net, kaber@trash.net,
-	Richard Weinberger <richard@nod.at>
+From: ratheesh kannoth <ratheesh.ksz@gmail.com>
+Subject: track dns udp packet
+Date: Tue, 25 Oct 2011 22:57:32 +0530
+Message-ID: <CAGZFCEH4eexuN36PDaacGPkAxZ2KW90g86Jh1dvmMubes-ntFA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 To: netfilter-devel@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:62108 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752299Ab1JYR1d (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Oct 2011 13:27:33 -0400
+Received: by faan17 with SMTP id n17so746813faa.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Oct 2011 10:27:32 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
----
- net/netfilter/xt_physdev.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+I wrote a  module to track the udp dns query. It is not working, what
+could be the problem ?
 
-diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
-index d7ca16b..eabb751 100644
---- a/net/netfilter/xt_physdev.c
-+++ b/net/netfilter/xt_physdev.c
-@@ -28,12 +28,12 @@ physdev_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	const struct xt_physdev_info *info = par->matchinfo;
- 	unsigned long ret;
- 	const char *indev, *outdev;
--	const struct nf_bridge_info *nf_bridge;
-+	const struct nf_bridge_info *nf_bridge = skb->nf_bridge;
- 
- 	/* Not a bridged IP packet or no info available yet:
- 	 * LOCAL_OUT/mangle and LOCAL_OUT/nat don't know if
- 	 * the destination device will be a bridge. */
--	if (!(nf_bridge = skb->nf_bridge)) {
-+	if (!nf_bridge) {
- 		/* Return MATCH if the invert flags of the used options are on */
- 		if ((info->bitmask & XT_PHYSDEV_OP_BRIDGED) &&
- 		    !(info->invert & XT_PHYSDEV_OP_BRIDGED))
--- 
-1.7.7
+#include <linux/module.h>
+#include <linux/kernel.h>
+#include <net/netfilter/nf_conntrack.h>
+#include <net/netfilter/nf_conntrack_helper.h>
+#include <linux/ip.h>
+#include <net/netfilter/nf_conntrack_expect.h>
+
+MODULE_LICENSE("GPL");
+
+
+static const struct nf_conntrack_expect_policy my_expect_policy = {
+        .max_expected           = 1,
+};
+
+static int foo_help(struct sk_buff *skb,
+                    unsigned int protoff,
+                   struct nf_conn *ct,
+                    enum ip_conntrack_info conntrackinfo)
+{
+
+        printk (KERN_ALERT "A dns query is sent out \n");
+        return NF_ACCEPT;
+}
+
+static struct nf_conntrack_helper foo;
+
+
+
+int init_conntrack_module(void)
+{
+        int ret = -1;
+        memset(&foo, 0, sizeof(struct nf_conntrack_helper));
+        foo.name = "foo";
+        foo.me = THIS_MODULE;
+        foo.tuple.dst.protonum = IPPROTO_UDP;
+        foo.tuple.dst.u.udp.port = htons(53);
+        foo.help = foo_help;
+        foo.expect_policy = &my_expect_policy;
+        ret = nf_conntrack_helper_register(&foo);
+        printk ("Registration ret = %d\n", ret);
+        return ret;
+}
+
+void  fini_conntrack_module(void)
+{
+        nf_conntrack_helper_unregister(&foo);
+}
+
+module_init(init_conntrack_module);
+module_exit(fini_conntrack_module);
