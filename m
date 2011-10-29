@@ -1,66 +1,24 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: Re: [PATCH] ipset: fix lookup of tcp port names
-Date: Sat, 29 Oct 2011 16:48:55 +0200
-Message-ID: <20111029164855.28a93cb6@s6510.linuxnetplumber.net>
-References: <20111028181613.6702aeb7@s6510.linuxnetplumber.net>
-	<alpine.DEB.2.00.1110282224490.3090@blackhole.kfki.hu>
+From: hoangtam <tamnghoang@gmail.com>
+Subject: nf_ip_local_out and internet connection
+Date: Sat, 29 Oct 2011 22:32:32 +0200
+Message-ID: <4EAC62E0.2000106@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:41747 "EHLO mail.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933273Ab1J2OtD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 29 Oct 2011 10:49:03 -0400
-In-Reply-To: <alpine.DEB.2.00.1110282224490.3090@blackhole.kfki.hu>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:45518 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754967Ab1J2Ucl (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 29 Oct 2011 16:32:41 -0400
+Received: by wwe6 with SMTP id 6so7289437wwe.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 29 Oct 2011 13:32:40 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 28 Oct 2011 22:26:36 +0200 (CEST)
-Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> wrote:
-
-> Hi Stephen,
-> 
-> On Fri, 28 Oct 2011, Stephen Hemminger wrote:
-> 
-> > The protocol argument to getservbyname() must be lowercase tcp not
-> > uppercase TCP. This fixes the bug observed by:
-> > 
-> >  # ipset add foo http
-> >  ipset v6.9.1: Syntax error: 'http' is invalid as number
-> >  Syntax error: cannot parse 'http' as a TCP port
-> > ---
-> >  lib/parse.c |    4 ++--
-> >  1 files changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/lib/parse.c b/lib/parse.c
-> > index 241d5ae..3ca702c 100644
-> > --- a/lib/parse.c
-> > +++ b/lib/parse.c
-> > @@ -307,7 +307,7 @@ int
-> >  ipset_parse_tcp_port(struct ipset_session *session,
-> >  		     enum ipset_opt opt, const char *str)
-> >  {
-> > -	return ipset_parse_tcpudp_port(session, opt, str, "TCP");
-> > +	return ipset_parse_tcpudp_port(session, opt, str, "tcp");
-> >  }
-> >  
-> >  /**
-> > @@ -330,7 +330,7 @@ ipset_parse_single_tcp_port(struct ipset_session *session,
-> >  	assert(opt == IPSET_OPT_PORT || opt == IPSET_OPT_PORT_TO);
-> >  	assert(str);
-> >  
-> > -	return ipset_parse_port(session, opt, str, "TCP");
-> > +	return ipset_parse_port(session, opt, str, "tcp");
-> >  }
-> >  
-> >  /**
-> > -- 
-> > 1.7.2.5
-> 
-> Ohh, thanks! Somehow port names haven't been tested by the testsuite....
-
-Luckly they were by our regression testsuite.
-
+Hi all,
+I write a netfilter module using NF_IP_LOCAL_OUT to change something in 
+packet. Everything is perfect when I test it by using iperf and wget but 
+if I open a website,the website can load some text and then PC stop 
+running. Any comment is appreciated !!!
