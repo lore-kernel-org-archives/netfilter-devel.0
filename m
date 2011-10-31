@@ -1,60 +1,52 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 1/1] netfilter: do not propagate nf_queue errors in nf_hook_slow
-Date: Mon, 31 Oct 2011 12:20:16 +0100
-Message-ID: <1320060016-9390-1-git-send-email-fw@strlen.de>
+Subject: [PATCH iptables] libxt_NFQUEUE: fix --queue-bypass ipt-save output
+Date: Mon, 31 Oct 2011 16:10:57 +0100
+Message-ID: <1320073857-15353-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:35881 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:46404 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932729Ab1JaLSc (ORCPT
+	by vger.kernel.org with ESMTP id S932449Ab1JaPJU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 31 Oct 2011 07:18:32 -0400
+	Mon, 31 Oct 2011 11:09:20 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit f15850861860636c905b33a9a5be3dcbc2b0d56a
-(netfilter: nfnetlink_queue: return error number to caller)
-erronously assigns the return value of nf_queue() to the "ret" value.
-
-This can cause bogus return values if we encounter QUEUE verdict
-when bypassing is enabled, the listener does not exist and the
-next hook returns NF_STOLEN.
-
-In this case nf_hook_slow returned -ESRCH instead of 0.
+else, this will print "--queue-num 0--queue-bypass ".
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/core.c |   11 +++++------
- 1 files changed, 5 insertions(+), 6 deletions(-)
+ extensions/libxt_NFQUEUE.c |    2 +-
+ tests/options-most.rules   |    2 ++
+ 2 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 3346829..afca6c7 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -180,17 +180,16 @@ next_hook:
- 		if (ret == 0)
- 			ret = -EPERM;
- 	} else if ((verdict & NF_VERDICT_MASK) == NF_QUEUE) {
--		ret = nf_queue(skb, elem, pf, hook, indev, outdev, okfn,
--			       verdict >> NF_VERDICT_QBITS);
--		if (ret < 0) {
--			if (ret == -ECANCELED)
-+		int err = nf_queue(skb, elem, pf, hook, indev, outdev, okfn,
-+						verdict >> NF_VERDICT_QBITS);
-+		if (err < 0) {
-+			if (err == -ECANCELED)
- 				goto next_hook;
--			if (ret == -ESRCH &&
-+			if (err == -ESRCH &&
- 			   (verdict & NF_VERDICT_FLAG_QUEUE_BYPASS))
- 				goto next_hook;
- 			kfree_skb(skb);
- 		}
--		ret = 0;
- 	}
- 	rcu_read_unlock();
- 	return ret;
+diff --git a/extensions/libxt_NFQUEUE.c b/extensions/libxt_NFQUEUE.c
+index e47b586..8c2f699 100644
+--- a/extensions/libxt_NFQUEUE.c
++++ b/extensions/libxt_NFQUEUE.c
+@@ -152,7 +152,7 @@ static void NFQUEUE_save_v2(const void *ip, const struct xt_entry_target *target
+ 	NFQUEUE_save_v1(ip, target);
+ 
+ 	if (info->bypass)
+-		printf("--queue-bypass ");
++		printf(" --queue-bypass");
+ }
+ 
+ static void NFQUEUE_init_v1(struct xt_entry_target *t)
+diff --git a/tests/options-most.rules b/tests/options-most.rules
+index ae28b82..7573361 100644
+--- a/tests/options-most.rules
++++ b/tests/options-most.rules
+@@ -178,6 +178,8 @@
+ -A ntarg
+ -A ntarg -j NFQUEUE --queue-balance 8:99
+ -A ntarg
++-A ntarg -j NFQUEUE --queue-num 0 --queue-bypass
++-A ntarg
+ -A ntarg -j RATEEST --rateest-name RE1 --rateest-interval 250.0ms --rateest-ewmalog 500.0ms
+ -A ntarg
+ -A ntarg -j RATEEST --rateest-name RE2 --rateest-interval 250.0ms --rateest-ewmalog 500.0ms
 -- 
 1.7.3.4
 
