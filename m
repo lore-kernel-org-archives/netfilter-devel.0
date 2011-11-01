@@ -1,59 +1,199 @@
 From: pablo@netfilter.org
-Subject: [PATCH 01/14] ipvs: Expose ip_vs_ftp module parameters via sysfs.
-Date: Tue,  1 Nov 2011 10:11:23 +0100
-Message-ID: <1320138696-28048-2-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 04/14] ipvs: Remove unused return value of protocol state transitions
+Date: Tue,  1 Nov 2011 10:11:26 +0100
+Message-ID: <1320138696-28048-5-git-send-email-pablo@netfilter.org>
 References: <1320138696-28048-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net,
-	Krzysztof Wilczynski <krzysztof.wilczynski@linux.com>,
-	Simon Horman <horms@verge.net.au>,
+Cc: davem@davemloft.net, Simon Horman <horms@verge.net.au>,
 	Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37212 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37220 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752744Ab1KAJL7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Nov 2011 05:11:59 -0400
+	id S1752744Ab1KAJMC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Nov 2011 05:12:02 -0400
 In-Reply-To: <1320138696-28048-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Krzysztof Wilczynski <krzysztof.wilczynski@linux.com>
+From: Simon Horman <horms@verge.net.au>
 
-This is to expose "ports" parameter via sysfs so it can be read
-at any time in order to determine what port or ports were passed
-to the module at the point when it was loaded.
-
-Signed-off-by: Krzysztof Wilczynski <krzysztof.wilczynski@linux.com>
+Acked-by: Julian Anastasov <ja@ssi.bg>
+Acked-by Hans Schillstrom <hans@schillstrom.com>
 Signed-off-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_ftp.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ include/net/ip_vs.h                   |    6 +++---
+ net/netfilter/ipvs/ip_vs_core.c       |   13 ++++++-------
+ net/netfilter/ipvs/ip_vs_proto_sctp.c |   14 ++++----------
+ net/netfilter/ipvs/ip_vs_proto_tcp.c  |    6 ++----
+ net/netfilter/ipvs/ip_vs_proto_udp.c  |    5 ++---
+ 5 files changed, 17 insertions(+), 27 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-index 4490a32..538d74e 100644
---- a/net/netfilter/ipvs/ip_vs_ftp.c
-+++ b/net/netfilter/ipvs/ip_vs_ftp.c
-@@ -52,8 +52,9 @@
-  * List of ports (up to IP_VS_APP_MAX_PORTS) to be handled by helper
-  * First port is set to the default port.
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index c4058bd..a6b8b47 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -425,9 +425,9 @@ struct ip_vs_protocol {
+ 
+ 	const char *(*state_name)(int state);
+ 
+-	int (*state_transition)(struct ip_vs_conn *cp, int direction,
+-				const struct sk_buff *skb,
+-				struct ip_vs_proto_data *pd);
++	void (*state_transition)(struct ip_vs_conn *cp, int direction,
++				 const struct sk_buff *skb,
++				 struct ip_vs_proto_data *pd);
+ 
+ 	int (*register_app)(struct net *net, struct ip_vs_app *inc);
+ 
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 4f77bb1..00ea1ad 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -188,14 +188,13 @@ ip_vs_conn_stats(struct ip_vs_conn *cp, struct ip_vs_service *svc)
+ }
+ 
+ 
+-static inline int
++static inline void
+ ip_vs_set_state(struct ip_vs_conn *cp, int direction,
+ 		const struct sk_buff *skb,
+ 		struct ip_vs_proto_data *pd)
+ {
+-	if (unlikely(!pd->pp->state_transition))
+-		return 0;
+-	return pd->pp->state_transition(cp, direction, skb, pd);
++	if (likely(pd->pp->state_transition))
++		pd->pp->state_transition(cp, direction, skb, pd);
+ }
+ 
+ static inline int
+@@ -557,7 +556,7 @@ int ip_vs_leave(struct ip_vs_service *svc, struct sk_buff *skb,
+ 		ip_vs_in_stats(cp, skb);
+ 
+ 		/* set state */
+-		cs = ip_vs_set_state(cp, IP_VS_DIR_INPUT, skb, pd);
++		ip_vs_set_state(cp, IP_VS_DIR_INPUT, skb, pd);
+ 
+ 		/* transmit the first SYN packet */
+ 		ret = cp->packet_xmit(skb, cp, pd->pp);
+@@ -1490,7 +1489,7 @@ ip_vs_in(unsigned int hooknum, struct sk_buff *skb, int af)
+ 	struct ip_vs_protocol *pp;
+ 	struct ip_vs_proto_data *pd;
+ 	struct ip_vs_conn *cp;
+-	int ret, restart, pkts;
++	int ret, pkts;
+ 	struct netns_ipvs *ipvs;
+ 
+ 	/* Already marked as IPVS request or reply? */
+@@ -1591,7 +1590,7 @@ ip_vs_in(unsigned int hooknum, struct sk_buff *skb, int af)
+ 	}
+ 
+ 	ip_vs_in_stats(cp, skb);
+-	restart = ip_vs_set_state(cp, IP_VS_DIR_INPUT, skb, pd);
++	ip_vs_set_state(cp, IP_VS_DIR_INPUT, skb, pd);
+ 	if (cp->packet_xmit)
+ 		ret = cp->packet_xmit(skb, cp, pp);
+ 		/* do not touch skb anymore */
+diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+index d12ed53..1fbf7a2 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+@@ -906,7 +906,7 @@ static const char *sctp_state_name(int state)
+ 	return "?";
+ }
+ 
+-static inline int
++static inline void
+ set_sctp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
+ 		int direction, const struct sk_buff *skb)
+ {
+@@ -924,7 +924,7 @@ set_sctp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
+ 	sch = skb_header_pointer(skb, ihl + sizeof(sctp_sctphdr_t),
+ 				sizeof(_sctpch), &_sctpch);
+ 	if (sch == NULL)
+-		return 0;
++		return;
+ 
+ 	chunk_type = sch->type;
+ 	/*
+@@ -993,21 +993,15 @@ set_sctp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
+ 		cp->timeout = pd->timeout_table[cp->state = next_state];
+ 	else	/* What to do ? */
+ 		cp->timeout = sctp_timeouts[cp->state = next_state];
+-
+-	return 1;
+ }
+ 
+-static int
++static void
+ sctp_state_transition(struct ip_vs_conn *cp, int direction,
+ 		const struct sk_buff *skb, struct ip_vs_proto_data *pd)
+ {
+-	int ret = 0;
+-
+ 	spin_lock(&cp->lock);
+-	ret = set_sctp_state(pd, cp, direction, skb);
++	set_sctp_state(pd, cp, direction, skb);
+ 	spin_unlock(&cp->lock);
+-
+-	return ret;
+ }
+ 
+ static inline __u16 sctp_app_hashkey(__be16 port)
+diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+index c0cc341..ef8641f 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+@@ -546,7 +546,7 @@ set_tcp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
+ /*
+  *	Handle state transitions
   */
-+static unsigned int ports_count = 1;
- static unsigned short ports[IP_VS_APP_MAX_PORTS] = {21, 0};
--module_param_array(ports, ushort, NULL, 0);
-+module_param_array(ports, ushort, &ports_count, 0444);
- MODULE_PARM_DESC(ports, "Ports to monitor for FTP control commands");
+-static int
++static void
+ tcp_state_transition(struct ip_vs_conn *cp, int direction,
+ 		     const struct sk_buff *skb,
+ 		     struct ip_vs_proto_data *pd)
+@@ -561,13 +561,11 @@ tcp_state_transition(struct ip_vs_conn *cp, int direction,
  
+ 	th = skb_header_pointer(skb, ihl, sizeof(_tcph), &_tcph);
+ 	if (th == NULL)
+-		return 0;
++		return;
  
-@@ -449,7 +450,7 @@ static int __net_init __ip_vs_ftp_init(struct net *net)
- 	if (ret)
- 		goto err_exit;
+ 	spin_lock(&cp->lock);
+ 	set_tcp_state(pd, cp, direction, th);
+ 	spin_unlock(&cp->lock);
+-
+-	return 1;
+ }
  
--	for (i=0; i<IP_VS_APP_MAX_PORTS; i++) {
-+	for (i = 0; i < ports_count; i++) {
- 		if (!ports[i])
- 			continue;
- 		ret = register_ip_vs_app_inc(net, app, app->protocol, ports[i]);
+ static inline __u16 tcp_app_hashkey(__be16 port)
+diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
+index f1282cb..f4b7262 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_udp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
+@@ -454,18 +454,17 @@ static const char * udp_state_name(int state)
+ 	return udp_state_name_table[state] ? udp_state_name_table[state] : "?";
+ }
+ 
+-static int
++static void
+ udp_state_transition(struct ip_vs_conn *cp, int direction,
+ 		     const struct sk_buff *skb,
+ 		     struct ip_vs_proto_data *pd)
+ {
+ 	if (unlikely(!pd)) {
+ 		pr_err("UDP no ns data\n");
+-		return 0;
++		return;
+ 	}
+ 
+ 	cp->timeout = pd->timeout_table[IP_VS_UDP_S_NORMAL];
+-	return 1;
+ }
+ 
+ static void __udp_init(struct net *net, struct ip_vs_proto_data *pd)
 -- 
 1.7.2.5
 
