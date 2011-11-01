@@ -1,16 +1,16 @@
 From: pablo@netfilter.org
-Subject: [PATCH 04/14] ipvs: Remove unused return value of protocol state transitions
-Date: Tue,  1 Nov 2011 10:11:26 +0100
-Message-ID: <1320138696-28048-5-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 03/14] ipvs: Remove unused parameter from ip_vs_confirm_conntrack()
+Date: Tue,  1 Nov 2011 10:11:25 +0100
+Message-ID: <1320138696-28048-4-git-send-email-pablo@netfilter.org>
 References: <1320138696-28048-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, Simon Horman <horms@verge.net.au>,
 	Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37220 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37239 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752744Ab1KAJMC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Nov 2011 05:12:02 -0400
+	id S1752781Ab1KAJMF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Nov 2011 05:12:05 -0400
 In-Reply-To: <1320138696-28048-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -22,178 +22,60 @@ Acked-by Hans Schillstrom <hans@schillstrom.com>
 Signed-off-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/ip_vs.h                   |    6 +++---
- net/netfilter/ipvs/ip_vs_core.c       |   13 ++++++-------
- net/netfilter/ipvs/ip_vs_proto_sctp.c |   14 ++++----------
- net/netfilter/ipvs/ip_vs_proto_tcp.c  |    6 ++----
- net/netfilter/ipvs/ip_vs_proto_udp.c  |    5 ++---
- 5 files changed, 17 insertions(+), 27 deletions(-)
+ include/net/ip_vs.h             |    5 ++---
+ net/netfilter/ipvs/ip_vs_nfct.c |    2 +-
+ net/netfilter/ipvs/ip_vs_xmit.c |    2 +-
+ 3 files changed, 4 insertions(+), 5 deletions(-)
 
 diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index c4058bd..a6b8b47 100644
+index 8fa4430..c4058bd 100644
 --- a/include/net/ip_vs.h
 +++ b/include/net/ip_vs.h
-@@ -425,9 +425,9 @@ struct ip_vs_protocol {
+@@ -1378,7 +1378,7 @@ static inline int ip_vs_conntrack_enabled(struct netns_ipvs *ipvs)
  
- 	const char *(*state_name)(int state);
- 
--	int (*state_transition)(struct ip_vs_conn *cp, int direction,
--				const struct sk_buff *skb,
--				struct ip_vs_proto_data *pd);
-+	void (*state_transition)(struct ip_vs_conn *cp, int direction,
-+				 const struct sk_buff *skb,
-+				 struct ip_vs_proto_data *pd);
- 
- 	int (*register_app)(struct net *net, struct ip_vs_app *inc);
- 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 4f77bb1..00ea1ad 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -188,14 +188,13 @@ ip_vs_conn_stats(struct ip_vs_conn *cp, struct ip_vs_service *svc)
- }
- 
- 
--static inline int
-+static inline void
- ip_vs_set_state(struct ip_vs_conn *cp, int direction,
- 		const struct sk_buff *skb,
- 		struct ip_vs_proto_data *pd)
+ extern void ip_vs_update_conntrack(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 				   int outin);
+-extern int ip_vs_confirm_conntrack(struct sk_buff *skb, struct ip_vs_conn *cp);
++extern int ip_vs_confirm_conntrack(struct sk_buff *skb);
+ extern void ip_vs_nfct_expect_related(struct sk_buff *skb, struct nf_conn *ct,
+ 				      struct ip_vs_conn *cp, u_int8_t proto,
+ 				      const __be16 port, int from_rs);
+@@ -1396,8 +1396,7 @@ static inline void ip_vs_update_conntrack(struct sk_buff *skb,
  {
--	if (unlikely(!pd->pp->state_transition))
--		return 0;
--	return pd->pp->state_transition(cp, direction, skb, pd);
-+	if (likely(pd->pp->state_transition))
-+		pd->pp->state_transition(cp, direction, skb, pd);
  }
  
- static inline int
-@@ -557,7 +556,7 @@ int ip_vs_leave(struct ip_vs_service *svc, struct sk_buff *skb,
- 		ip_vs_in_stats(cp, skb);
- 
- 		/* set state */
--		cs = ip_vs_set_state(cp, IP_VS_DIR_INPUT, skb, pd);
-+		ip_vs_set_state(cp, IP_VS_DIR_INPUT, skb, pd);
- 
- 		/* transmit the first SYN packet */
- 		ret = cp->packet_xmit(skb, cp, pd->pp);
-@@ -1490,7 +1489,7 @@ ip_vs_in(unsigned int hooknum, struct sk_buff *skb, int af)
- 	struct ip_vs_protocol *pp;
- 	struct ip_vs_proto_data *pd;
- 	struct ip_vs_conn *cp;
--	int ret, restart, pkts;
-+	int ret, pkts;
- 	struct netns_ipvs *ipvs;
- 
- 	/* Already marked as IPVS request or reply? */
-@@ -1591,7 +1590,7 @@ ip_vs_in(unsigned int hooknum, struct sk_buff *skb, int af)
- 	}
- 
- 	ip_vs_in_stats(cp, skb);
--	restart = ip_vs_set_state(cp, IP_VS_DIR_INPUT, skb, pd);
-+	ip_vs_set_state(cp, IP_VS_DIR_INPUT, skb, pd);
- 	if (cp->packet_xmit)
- 		ret = cp->packet_xmit(skb, cp, pp);
- 		/* do not touch skb anymore */
-diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-index d12ed53..1fbf7a2 100644
---- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-@@ -906,7 +906,7 @@ static const char *sctp_state_name(int state)
- 	return "?";
- }
- 
--static inline int
-+static inline void
- set_sctp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
- 		int direction, const struct sk_buff *skb)
+-static inline int ip_vs_confirm_conntrack(struct sk_buff *skb,
+-					  struct ip_vs_conn *cp)
++static inline int ip_vs_confirm_conntrack(struct sk_buff *skb);
  {
-@@ -924,7 +924,7 @@ set_sctp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
- 	sch = skb_header_pointer(skb, ihl + sizeof(sctp_sctphdr_t),
- 				sizeof(_sctpch), &_sctpch);
- 	if (sch == NULL)
--		return 0;
-+		return;
- 
- 	chunk_type = sch->type;
- 	/*
-@@ -993,21 +993,15 @@ set_sctp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
- 		cp->timeout = pd->timeout_table[cp->state = next_state];
- 	else	/* What to do ? */
- 		cp->timeout = sctp_timeouts[cp->state = next_state];
--
--	return 1;
+ 	return NF_ACCEPT;
+ }
+diff --git a/net/netfilter/ipvs/ip_vs_nfct.c b/net/netfilter/ipvs/ip_vs_nfct.c
+index f454c80..022e77e 100644
+--- a/net/netfilter/ipvs/ip_vs_nfct.c
++++ b/net/netfilter/ipvs/ip_vs_nfct.c
+@@ -127,7 +127,7 @@ ip_vs_update_conntrack(struct sk_buff *skb, struct ip_vs_conn *cp, int outin)
+ 	nf_conntrack_alter_reply(ct, &new_tuple);
  }
  
--static int
-+static void
- sctp_state_transition(struct ip_vs_conn *cp, int direction,
- 		const struct sk_buff *skb, struct ip_vs_proto_data *pd)
+-int ip_vs_confirm_conntrack(struct sk_buff *skb, struct ip_vs_conn *cp)
++int ip_vs_confirm_conntrack(struct sk_buff *skb)
  {
--	int ret = 0;
--
- 	spin_lock(&cp->lock);
--	ret = set_sctp_state(pd, cp, direction, skb);
-+	set_sctp_state(pd, cp, direction, skb);
- 	spin_unlock(&cp->lock);
--
--	return ret;
+ 	return nf_conntrack_confirm(skb);
  }
- 
- static inline __u16 sctp_app_hashkey(__be16 port)
-diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-index c0cc341..ef8641f 100644
---- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-@@ -546,7 +546,7 @@ set_tcp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
- /*
-  *	Handle state transitions
-  */
--static int
-+static void
- tcp_state_transition(struct ip_vs_conn *cp, int direction,
- 		     const struct sk_buff *skb,
- 		     struct ip_vs_proto_data *pd)
-@@ -561,13 +561,11 @@ tcp_state_transition(struct ip_vs_conn *cp, int direction,
- 
- 	th = skb_header_pointer(skb, ihl, sizeof(_tcph), &_tcph);
- 	if (th == NULL)
--		return 0;
-+		return;
- 
- 	spin_lock(&cp->lock);
- 	set_tcp_state(pd, cp, direction, th);
- 	spin_unlock(&cp->lock);
--
--	return 1;
- }
- 
- static inline __u16 tcp_app_hashkey(__be16 port)
-diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
-index f1282cb..f4b7262 100644
---- a/net/netfilter/ipvs/ip_vs_proto_udp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
-@@ -454,18 +454,17 @@ static const char * udp_state_name(int state)
- 	return udp_state_name_table[state] ? udp_state_name_table[state] : "?";
- }
- 
--static int
-+static void
- udp_state_transition(struct ip_vs_conn *cp, int direction,
- 		     const struct sk_buff *skb,
- 		     struct ip_vs_proto_data *pd)
- {
- 	if (unlikely(!pd)) {
- 		pr_err("UDP no ns data\n");
--		return 0;
-+		return;
- 	}
- 
- 	cp->timeout = pd->timeout_table[IP_VS_UDP_S_NORMAL];
--	return 1;
- }
- 
- static void __udp_init(struct net *net, struct ip_vs_proto_data *pd)
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index ee319a4..aa2d720 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -339,7 +339,7 @@ ip_vs_dst_reset(struct ip_vs_dest *dest)
+ 								\
+ 	(skb)->ipvs_property = 1;				\
+ 	if (unlikely((cp)->flags & IP_VS_CONN_F_NFCT))		\
+-		__ret = ip_vs_confirm_conntrack(skb, cp);	\
++		__ret = ip_vs_confirm_conntrack(skb);		\
+ 	if (__ret == NF_ACCEPT) {				\
+ 		nf_reset(skb);					\
+ 		skb_forward_csum(skb);				\
 -- 
 1.7.2.5
 
