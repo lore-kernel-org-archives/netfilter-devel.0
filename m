@@ -1,44 +1,34 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [patch 1/1] net/netfilter/nf_conntrack_netlink.c: fix Oops on
- container destroy
-Date: Tue, 1 Nov 2011 09:07:15 +0100
-Message-ID: <20111101080715.GA4268@1984>
-References: <201110312133.p9VLXDUu003535@hpaq6.eem.corp.google.com>
+Subject: Re: [PATCH 1/1] netfilter: do not propagate nf_queue errors in
+ nf_hook_slow
+Date: Tue, 1 Nov 2011 10:11:19 +0100
+Message-ID: <20111101091119.GA5545@1984>
+References: <1320060016-9390-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, davem@davemloft.net, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, alex@alex.org.uk,
-	stable@kernel.org, stable@vger.kernel.org
-To: akpm@linux-foundation.org
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60693 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37184 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752120Ab1KAIHY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Nov 2011 04:07:24 -0400
+	id S1752544Ab1KAJLe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Nov 2011 05:11:34 -0400
 Content-Disposition: inline
-In-Reply-To: <201110312133.p9VLXDUu003535@hpaq6.eem.corp.google.com>
+In-Reply-To: <1320060016-9390-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Oct 31, 2011 at 02:33:12PM -0700, akpm@linux-foundation.org wrote:
-> diff -puN net/netfilter/nf_conntrack_netlink.c~net-netfilter-nf_conntrack_netlinkc-fix-oops-on-container-destroy net/netfilter/nf_conntrack_netlink.c
-> --- a/net/netfilter/nf_conntrack_netlink.c~net-netfilter-nf_conntrack_netlinkc-fix-oops-on-container-destroy
-> +++ a/net/netfilter/nf_conntrack_netlink.c
-> @@ -570,6 +570,11 @@ ctnetlink_conntrack_event(unsigned int e
->  		return 0;
->  
->  	net = nf_ct_net(ct);
-> +
-> +	/* container deinit, netlink may have died before death_by_timeout */
-> +	if (!net->nfnl)
-> +		return 0;
-> +
+On Mon, Oct 31, 2011 at 12:20:16PM +0100, Florian Westphal wrote:
+> commit f15850861860636c905b33a9a5be3dcbc2b0d56a
+> (netfilter: nfnetlink_queue: return error number to caller)
+> erronously assigns the return value of nf_queue() to the "ret" value.
+> 
+> This can cause bogus return values if we encounter QUEUE verdict
+> when bypassing is enabled, the listener does not exist and the
+> next hook returns NF_STOLEN.
+> 
+> In this case nf_hook_slow returned -ESRCH instead of 0.
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-This patch is a workaround and it is incomplete (it doesn't include
-the expectation part). The correct fix requires to finish container
-support for nfnetlink, which seems incomplete.
-
-I was expecting some feedback from Alexey Dobriyan with no success.
-
-If we apply this, we'll have to apply similar workaround in other
-parts of the code.
+Applied, thanks.
