@@ -1,61 +1,50 @@
 From: pablo@netfilter.org
-Subject: [PATCH 12/14] netfilter: ipv6: fix afinfo->route refcnt leak on error
-Date: Tue,  1 Nov 2011 10:11:34 +0100
-Message-ID: <1320138696-28048-13-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 13/14] MAINTAINERS: update netfilter maintainers
+Date: Tue,  1 Nov 2011 10:11:35 +0100
+Message-ID: <1320138696-28048-14-git-send-email-pablo@netfilter.org>
 References: <1320138696-28048-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: davem@davemloft.net, Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37274 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37269 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752744Ab1KAJMO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Nov 2011 05:12:14 -0400
+	id S1752744Ab1KAJMM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Nov 2011 05:12:12 -0400
 In-Reply-To: <1320138696-28048-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Several callers (h323 conntrack, xt_addrtype) assume that the
-returned **dst only needs to be released if the function returns 0.
+Marc Boucher, James Morris and Rusty Russell were crucial in the
+early netfilter days. We thank them all!
 
-This is true for the ipv4 implementation, but not for the ipv6 one.
+However, they are not actively maintaining netfilter anymore.
 
-Instead of changing the users, change the ipv6 implementation
-to behave like the ipv4 version by only providing the dst_entry result
-in the success case.
+This patch adds myself as netfilter maintainer.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv6/netfilter.c |   13 ++++++++++---
- 1 files changed, 10 insertions(+), 3 deletions(-)
+ MAINTAINERS |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
 
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 30fcee4..8992cf6 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -100,9 +100,16 @@ static int nf_ip6_route(struct net *net, struct dst_entry **dst,
- 		.pinet6 = (struct ipv6_pinfo *) &fake_pinfo,
- 	};
- 	const void *sk = strict ? &fake_sk : NULL;
--
--	*dst = ip6_route_output(net, sk, &fl->u.ip6);
--	return (*dst)->error;
-+	struct dst_entry *result;
-+	int err;
-+
-+	result = ip6_route_output(net, sk, &fl->u.ip6);
-+	err = result->error;
-+	if (err)
-+		dst_release(result);
-+	else
-+		*dst = result;
-+	return err;
- }
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 4befa12..8edf72b 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -4452,11 +4452,9 @@ F:	Documentation/networking/vxge.txt
+ F:	drivers/net/ethernet/neterion/
  
- __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
+ NETFILTER/IPTABLES/IPCHAINS
+-P:	Rusty Russell
+-P:	Marc Boucher
+-P:	James Morris
+ P:	Harald Welte
+ P:	Jozsef Kadlecsik
++M:	Pablo Neira Ayuso <pablo@netfilter.org>
+ M:	Patrick McHardy <kaber@trash.net>
+ L:	netfilter-devel@vger.kernel.org
+ L:	netfilter@vger.kernel.org
 -- 
 1.7.2.5
 
