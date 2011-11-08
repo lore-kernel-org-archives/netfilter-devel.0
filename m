@@ -1,67 +1,88 @@
-From: "Hans Schillstrom" <hans@schillstrom.com>
-Subject: Re[2]:  [v2 PATCH 1/2] NETFILTER module xt_hmark new target
-	for HASH based fw
-Date: Tue, 8 Nov 2011 16:12:27 +0100 (CET)
-Message-ID: <b328f1j.5274a2398142147da04eb5e915d63283@obelix.schillstrom.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: unaligned ip header due to
+ ip_route_me_harder()->pskb_expand_head()
+Date: Tue, 08 Nov 2011 17:58:14 +0100
+Message-ID: <1320771494.3444.8.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+References: <4EB9449D.8020701@tilera.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Cc: "Hans Schillstrom" <hans.schillstrom@ericsson.com>,
-	kaber@trash.net, jengelh@medozas.de,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: "Pablo Neira Ayuso" <pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Paul Guo <ggang@tilera.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-gw11.han.skanova.net ([81.236.55.20]:34048 "EHLO
-	smtp-gw11.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754900Ab1KHPMb convert rfc822-to-8bit (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:43883 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751901Ab1KHQ6S (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Nov 2011 10:12:31 -0500
+	Tue, 8 Nov 2011 11:58:18 -0500
+Received: by wyh15 with SMTP id 15so704025wyh.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 08 Nov 2011 08:58:17 -0800 (PST)
+In-Reply-To: <4EB9449D.8020701@tilera.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->
->On Tue, Nov 08, 2011 at 12:29:53AM +0100, Hans Schillstrom wrote:
->> >We prefer skb_header_pointer instead. If conntrack is enabled, we can
->> >benefit from defragmention. 
->> 
->> In  our case conntrack will not be there
->
->Yes, but if conntrack is there, we benefit from fragment reassembly if
->you use skb_header_pointer.
->
->> >Please, replace all pskb_may_pull by skb_header_pointer in this code.
->> >
->> >We can assume that the IP header is linear (not fragmented).
->> 
->> I ran in to this issue in IPv6 testing so I got a little bit "paranoid".
->> Are you sure that the embedded IP and L4 header in the ICMP msg also is unfragmented.  
->> Is this true for both IPv6 & IPv4 ?
->
->No sorry. I was refering to normal IP header in one packet.
->
->> From what I remember  when I was testing IPv6  icmp and digged into the original header (on a 2.6.32 kernel)  
->> pskb_may_pull was needed.
->
->Yes, it is indeed needed.
->
->> [snip]
+Le mardi 08 novembre 2011 =C3=A0 23:02 +0800, Paul Guo a =C3=A9crit :
+> Hi,
+>=20
+> Recently on our chip (arch/tile), a panic caused by unaligned data ac=
+cess was observed. The stack looks like this:
+>=20
+>   frame 0: 0xfd247ef0 ipt_do_table+0x240/0x850 (sp 0xf6a6fb40)
+>   frame 1: 0xfd4a44a8 nf_iterate+0xe8/0x188 (sp 0xf6a6fbd0)
+>   frame 2: 0xfd4ab850 nf_hook_slow+0xa0/0x180 (sp 0xf6a6fbf8)
+>   frame 3: 0xfd0c02a8 ip_local_out+0x28/0x88 (sp 0xf6a6fc30)
+>   frame 4: 0xfd25b778 ip_push_pending_frames+0x4f8/0x798 (sp 0xf6a6fc=
+40)
+>   frame 5: 0xfd272298 icmp_send+0x670/0x700 (sp 0xf6a6fc60)
+>   frame 6: 0xfd593d28 ipv4_link_failure+0x28/0xa8 (sp 0xf6a6fd50)
+>   frame 7: 0xfd5aae90 arp_error_report+0x70/0x90 (sp 0xf6a6fd60)
+>   frame 8: 0xfd483f28 neigh_invalidate+0x128/0x1b0 (sp 0xf6a6fd70)
+>   frame 9: 0xfd3b5410 neigh_timer_handler.cold+0x2a0/0x2e0 (sp 0xf6a6=
+fd98)
+>   frame 10: 0xfd028cd8 run_timer_softirq+0x2d8/0x4a8 (sp 0xf6a6fdb0)
+>   frame 11: 0xfd02bfe0 __do_softirq+0x1e0/0x330 (sp 0xf6a6fe08)
+>   frame 12: 0xfd034808 do_softirq+0xc8/0x160 (sp 0xf6a6fe50)
+>   frame 13: 0xfd034658 irq_exit+0x98/0x130 (sp 0xf6a6fe60)
+>   frame 14: 0xfd031cc0 do_timer_interrupt+0xc0/0xf8 (sp 0xf6a6fe68)
+>   frame 15: 0xfd3b1da8 handle_interrupt+0x2d8/0x2e0 (sp 0xf6a6fe80)
+>   <interrupt 25 while in kernel mode>
+>   frame 16: 0xfd5cb350 _cpu_idle_nap+0x0/0x10 (sp 0xf6a6ffd0)
+>   frame 17: 0xfd06b020 cpu_idle+0x1a0/0x3b8 (sp 0xf6a6ffd0)
+>=20
+> int ip_route_me_harder(struct sk_buff *skb, unsigned addr_type)
+> {
+>         ......
+> 	/* Change in oif may mean change in hh_len. */
+> 	hh_len =3D skb_dst(skb)->dev->hard_header_len;
+> 	if (skb_headroom(skb) < hh_len &&
+> 	    pskb_expand_head(skb, hh_len - skb_headroom(skb), 0, GFP_ATOMIC)=
+)
+> 		return -1;
+> }
+>=20
+> During testing, our chip acts as NAT. the interface for internal host=
+s are configured with vlan. When we try to ping a unknown external host=
+ from internal hosts, it panic immediately due to unaligned data access=
+=2E In this case, hh_len is equal to 18 (vlan mac header length), headr=
+oom (skb_headroom(skb)) for this packet is 16 so after calling pskb_exp=
+and_head() the ip header becomes to be unaligned.  This seems to be a b=
+ug in netfilter. Modifying pskb_expand_head() like this can resolve thi=
+s issue.
+>=20
+> + pskb_expand_head(skb, LL_RESERVED_SPACE(skb_dst(skb)->dev)  - skb_h=
+eadroom(skb), 0, GFP_ATOMIC))
+> - pskb_expand_head(skb, hh_len - skb_headroom(skb), 0, GFP_ATOMIC))
+>=20
 
-[snip]
+or=20
 
-
->
->Welcome, let's see if we can get this into 3.3 since we cannot make it
->for 3.2.
->
->BTW, do you have some number of this running with and without
->conntrack? It would be interesting to have.
-
-I didn't save them,  but I can make a new benchmark later on.
-
-Regards
-Hans
+pskb_expand_head(skb, HH_DATA_ALIGN(hh_len - skb_headroom(skb)), 0, GFP=
+_ATOMIC))
 
 
 
-
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
