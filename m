@@ -1,149 +1,79 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [v2 PATCH 1/2] NETFILTER module xt_hmark new target for HASH
- based fw
-Date: Tue, 8 Nov 2011 11:51:10 +0100
-Message-ID: <20111108105110.GA15798@1984>
-References: <0hivdsb.f18682ec9367f08c76301d993553f1b8@obelix.schillstrom.com>
+From: Witold Baryluk <baryluk@smp.if.uj.edu.pl>
+Subject: Re: ipset: usage of unitialized variable ip_to in
+ ip_set_hash_ipportnet.c
+Date: Tue, 8 Nov 2011 13:00:00 +0100
+Message-ID: <20111108120000.GJ18221@smp.if.uj.edu.pl>
+References: <20111107221823.GH18221@smp.if.uj.edu.pl>
+ <alpine.DEB.2.00.1111080848040.29308@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>, kaber@trash.net,
-	jengelh@medozas.de, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Hans Schillstrom <hans@schillstrom.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smp.if.uj.edu.pl ([149.156.82.206]:41721 "EHLO smp.if.uj.edu.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751281Ab1KHMAH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Nov 2011 07:00:07 -0500
 Content-Disposition: inline
-In-Reply-To: <0hivdsb.f18682ec9367f08c76301d993553f1b8@obelix.schillstrom.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <alpine.DEB.2.00.1111080848040.29308@blackhole.kfki.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Nov 08, 2011 at 12:29:53AM +0100, Hans Schillstrom wrote:
-> >We prefer skb_header_pointer instead. If conntrack is enabled, we can
-> >benefit from defragmention. 
+On 11-08 08:56, Jozsef Kadlecsik wrote:
+> Hi,
 > 
-> In  our case conntrack will not be there
+> On Mon, 7 Nov 2011, Witold Baryluk wrote:
+> 
+> > in file et/netfilter/ipset/ip_set_hash_ipportnet.c
+> > in functionhash_ipportnet4_uadt(...)
+> > variable u32 ip_to, can be used uninitialized
+> > in line 283
+> > 	for (; !before(ip_to, ip); ip++) {
+> > 
+> > because, if both tb[IPSET_ATTR_IP_TO] and tb[IPSET_ATTR_CIDR]
+> > are false, then there is no initialization of ip_to.
+> > 
+> >   CC [M]  net/netfilter/ipset/ip_set_hash_ipportnet.o
+> > net/netfilter/ipset/ip_set_hash_ipportnet.c: In function ?hash_ipportnet4_uadt?:
+> > include/net/tcp.h:266:28: warning: ?ip_to? may be used uninitialized in this function [-Wuninitialized]
+> > net/netfilter/ipset/ip_set_hash_ipportnet.c:187:10: note: ?ip_to? was declared here
+> 
+> Which ipset version you are looking at? What gcc version are you running?
 
-Yes, but if conntrack is there, we benefit from fragment reassembly if
-you use skb_header_pointer.
+Hi,
 
-> >Please, replace all pskb_may_pull by skb_header_pointer in this code.
-> >
-> >We can assume that the IP header is linear (not fragmented).
-> 
-> I ran in to this issue in IPv6 testing so I got a little bit "paranoid".
-> Are you sure that the embedded IP and L4 header in the ICMP msg also is unfragmented.  
-> Is this true for both IPv6 & IPv4 ?
+sorry to not mention it.
 
-No sorry. I was refering to normal IP header in one packet.
+I'm compiling on 32-bit Intel x86, using gcc 4.6.2-4 with -march=pentium-m.
+I'm using current/today mainline Linus' tree.
+Last significant ipset change in this tree is from Jul 21, 2011.
 
-> From what I remember  when I was testing IPv6  icmp and digged into the original header (on a 2.6.32 kernel)  
-> pskb_may_pull was needed.
+> 
+> ip_to is explicitly initialized to zero in line 187 in the current ipset 
+> version.
+>  
+> > I think this should be fixed be properly initializing / using ip_to,
+> > or by telling compiler that some of paths will end in initialization.
+> >  
+> > Also why on earth a before(a,b) function is used
+> > to compare IP addresses? Shouldn't before(seq1,seq2) function
+> > be used only to compare TCP sequnce numbers?!
+> 
+> That's a quick way to avoid wraparound in the for loop.
+> 
 
-Yes, it is indeed needed.
+It's somehow ugly. I agree that same method should be used,
+but this just leaks a abstraction and who knows in the future
+if this will not make problems.
 
-> [snip]
-> 
-> >> +/*
-> >> + * Calc hash value, special casre is taken on icmp and fragmented messages
-> >> + * i.e. fragmented messages don't use ports.
-> >> + */
-> >> +static __u32 get_hash(struct sk_buff *skb, struct xt_hmark_info *info)
-> >
-> >This function seems to big to me, please, split it into smaller
-> >chunks, like get_hash_ipv4, get_hash_ipv6 and get_hash_ports.
-> >
-> 
-> Good catch I'll do that,
-> 
-> >> +{
-> >> +	int nhoff, hash = 0, poff, proto, frag = 0;
-> >> +	struct iphdr *ip;
-> >> +	u8 ip_proto;
-> >> +	u32 addr1, addr2, ihl;
-> >> +	u16 snatport = 0, dnatport = 0;
-> >> +	union {
-> >> +		u32 v32;
-> >> +		u16 v16[2];
-> >> +	} ports;
-> >> +
-> >> +	nhoff = skb_network_offset(skb);
-> >> +	proto = skb->protocol;
-> >> +
-> >> +	if (!proto && skb->sk) {
-> >> +		if (skb->sk->sk_family == AF_INET)
-> >> +			proto = __constant_htons(ETH_P_IP);
-> >> +		else if (skb->sk->sk_family == AF_INET6)
-> >> +			proto = __constant_htons(ETH_P_IPV6);
-> >
-> >You already have the layer3 protocol number in xt_action_param. No
-> >need to use the socket information then.
-> 
-> When splitting get_hash()  above  will  be removed,  xt_action_param ->family will be used for selection.
-> 
-> [snip]
-> >> +
-> >> +		if (!ct || !nf_ct_is_confirmed(ct))
-> >
-> >You seem to (ab)use nf_ct_is_confirmed to make sure you're not in the
-> >original direction. Better use the direction that you get by means of
-> >nf_ct_get.
-> >
-> I'm not sure I follow you here ?
 
-OK, why are you using nf_ct_is_confirmed here? :-)
+Regards,
+WItek
 
-> >> +			break;
-> >> +		otuple = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
-> >> +		/* On the "return flow", to get the original address
-> >> +		 * i,e, replace the source address.
-> >> +		 */
-> >> +		if (ct->status & IPS_DST_NAT &&
-> >> +		    info->flags & XT_HMARK_USE_DNAT) {
-> >> +			rtuple = &ct->tuplehash[IP_CT_DIR_REPLY].tuple;
-> >> +			addr1 = (__force u32) otuple->dst.u3.in.s_addr;
-> >> +			dnatport = otuple->dst.u.udp.port;
-> >> +		}
-> >> +		/* On the "return flow", to get the original address
-> >> +		 * i,e, replace the destination address.
-> >> +		 */
-> >> +		if (ct->status & IPS_SRC_NAT &&
-> >> +		    info->flags & XT_HMARK_USE_SNAT) {
-> >> +			rtuple = &ct->tuplehash[IP_CT_DIR_REPLY].tuple;
-> >> +			addr2 = (__force u32) otuple->src.u3.in.s_addr;
-> >> +			snatport = otuple->src.u.udp.port;
-> >> +		}
-> >> +		break;
-> >> +	}
-> 
-> [snip]
-> 
-> >> +			case NEXTHDR_NONE:
-> >> +				nhoff += hdrlen;
-> >> +				goto hdr_rdy;
-> >> +			default:
-> >> +				goto done;
-> >
-> >This goto doesn't make too much sense to me, better return 0.
-> 
-> hmmm 
-> kind of left overs,  Actually all "goto done" can be replaced by return 0
 
-no problem, just comestic change ;-)
-
-> [snip]
-> 
-> >> +done:
-> >> +	return 0;
-> >> +}
-> >
-> >I'll try to find more time to look into this. Specifically, I want to
-> >review the IPv6 bits more carefully.
-> 
-> The IPv6 header recursion is not obvious, and it's hard to test all cases :-)
-> 
-> I really appreciate you review
-
-Welcome, let's see if we can get this into 3.3 since we cannot make it
-for 3.2.
-
-BTW, do you have some number of this running with and without
-conntrack? It would be interesting to have.
+-- 
+Witold Baryluk
+JID: witold.baryluk // jabster.pl
