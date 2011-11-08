@@ -1,79 +1,58 @@
-From: Witold Baryluk <baryluk@smp.if.uj.edu.pl>
-Subject: Re: ipset: usage of unitialized variable ip_to in
- ip_set_hash_ipportnet.c
-Date: Tue, 8 Nov 2011 13:00:00 +0100
-Message-ID: <20111108120000.GJ18221@smp.if.uj.edu.pl>
-References: <20111107221823.GH18221@smp.if.uj.edu.pl>
- <alpine.DEB.2.00.1111080848040.29308@blackhole.kfki.hu>
+From: Paul Guo <ggang@tilera.com>
+Subject: unaligned ip header due to ip_route_me_harder()->pskb_expand_head()
+Date: Tue, 8 Nov 2011 23:02:53 +0800
+Message-ID: <4EB9449D.8020701@tilera.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="GB2312"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smp.if.uj.edu.pl ([149.156.82.206]:41721 "EHLO smp.if.uj.edu.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751281Ab1KHMAH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Nov 2011 07:00:07 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1111080848040.29308@blackhole.kfki.hu>
+Received: from usmamail.tilera.com ([206.83.70.75]:42244 "EHLO
+	USMAMAIL.TILERA.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753981Ab1KHPIT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Nov 2011 10:08:19 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11-08 08:56, Jozsef Kadlecsik wrote:
-> Hi,
-> 
-> On Mon, 7 Nov 2011, Witold Baryluk wrote:
-> 
-> > in file et/netfilter/ipset/ip_set_hash_ipportnet.c
-> > in functionhash_ipportnet4_uadt(...)
-> > variable u32 ip_to, can be used uninitialized
-> > in line 283
-> > 	for (; !before(ip_to, ip); ip++) {
-> > 
-> > because, if both tb[IPSET_ATTR_IP_TO] and tb[IPSET_ATTR_CIDR]
-> > are false, then there is no initialization of ip_to.
-> > 
-> >   CC [M]  net/netfilter/ipset/ip_set_hash_ipportnet.o
-> > net/netfilter/ipset/ip_set_hash_ipportnet.c: In function ?hash_ipportnet4_uadt?:
-> > include/net/tcp.h:266:28: warning: ?ip_to? may be used uninitialized in this function [-Wuninitialized]
-> > net/netfilter/ipset/ip_set_hash_ipportnet.c:187:10: note: ?ip_to? was declared here
-> 
-> Which ipset version you are looking at? What gcc version are you running?
-
 Hi,
 
-sorry to not mention it.
+Recently on our chip (arch/tile), a panic caused by unaligned data access was observed. The stack looks like this:
 
-I'm compiling on 32-bit Intel x86, using gcc 4.6.2-4 with -march=pentium-m.
-I'm using current/today mainline Linus' tree.
-Last significant ipset change in this tree is from Jul 21, 2011.
+  frame 0: 0xfd247ef0 ipt_do_table+0x240/0x850 (sp 0xf6a6fb40)
+  frame 1: 0xfd4a44a8 nf_iterate+0xe8/0x188 (sp 0xf6a6fbd0)
+  frame 2: 0xfd4ab850 nf_hook_slow+0xa0/0x180 (sp 0xf6a6fbf8)
+  frame 3: 0xfd0c02a8 ip_local_out+0x28/0x88 (sp 0xf6a6fc30)
+  frame 4: 0xfd25b778 ip_push_pending_frames+0x4f8/0x798 (sp 0xf6a6fc40)
+  frame 5: 0xfd272298 icmp_send+0x670/0x700 (sp 0xf6a6fc60)
+  frame 6: 0xfd593d28 ipv4_link_failure+0x28/0xa8 (sp 0xf6a6fd50)
+  frame 7: 0xfd5aae90 arp_error_report+0x70/0x90 (sp 0xf6a6fd60)
+  frame 8: 0xfd483f28 neigh_invalidate+0x128/0x1b0 (sp 0xf6a6fd70)
+  frame 9: 0xfd3b5410 neigh_timer_handler.cold+0x2a0/0x2e0 (sp 0xf6a6fd98)
+  frame 10: 0xfd028cd8 run_timer_softirq+0x2d8/0x4a8 (sp 0xf6a6fdb0)
+  frame 11: 0xfd02bfe0 __do_softirq+0x1e0/0x330 (sp 0xf6a6fe08)
+  frame 12: 0xfd034808 do_softirq+0xc8/0x160 (sp 0xf6a6fe50)
+  frame 13: 0xfd034658 irq_exit+0x98/0x130 (sp 0xf6a6fe60)
+  frame 14: 0xfd031cc0 do_timer_interrupt+0xc0/0xf8 (sp 0xf6a6fe68)
+  frame 15: 0xfd3b1da8 handle_interrupt+0x2d8/0x2e0 (sp 0xf6a6fe80)
+  <interrupt 25 while in kernel mode>
+  frame 16: 0xfd5cb350 _cpu_idle_nap+0x0/0x10 (sp 0xf6a6ffd0)
+  frame 17: 0xfd06b020 cpu_idle+0x1a0/0x3b8 (sp 0xf6a6ffd0)
 
-> 
-> ip_to is explicitly initialized to zero in line 187 in the current ipset 
-> version.
->  
-> > I think this should be fixed be properly initializing / using ip_to,
-> > or by telling compiler that some of paths will end in initialization.
-> >  
-> > Also why on earth a before(a,b) function is used
-> > to compare IP addresses? Shouldn't before(seq1,seq2) function
-> > be used only to compare TCP sequnce numbers?!
-> 
-> That's a quick way to avoid wraparound in the for loop.
-> 
+int ip_route_me_harder(struct sk_buff *skb, unsigned addr_type)
+{
+        ......
+	/* Change in oif may mean change in hh_len. */
+	hh_len = skb_dst(skb)->dev->hard_header_len;
+	if (skb_headroom(skb) < hh_len &&
+	    pskb_expand_head(skb, hh_len - skb_headroom(skb), 0, GFP_ATOMIC))
+		return -1;
+}
 
-It's somehow ugly. I agree that same method should be used,
-but this just leaks a abstraction and who knows in the future
-if this will not make problems.
+During testing, our chip acts as NAT. the interface for internal hosts are configured with vlan. When we try to ping a unknown external host from internal hosts, it panic immediately due to unaligned data access. In this case, hh_len is equal to 18 (vlan mac header length), headroom (skb_headroom(skb)) for this packet is 16 so after calling pskb_expand_head() the ip header becomes to be unaligned.  This seems to be a bug in netfilter. Modifying pskb_expand_head() like this can resolve this issue.
 
++ pskb_expand_head(skb, LL_RESERVED_SPACE(skb_dst(skb)->dev)  - skb_headroom(skb), 0, GFP_ATOMIC))
+- pskb_expand_head(skb, hh_len - skb_headroom(skb), 0, GFP_ATOMIC))
 
-Regards,
-WItek
-
-
--- 
-Witold Baryluk
-JID: witold.baryluk // jabster.pl
+Thanks,
+Paul
