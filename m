@@ -1,55 +1,75 @@
-From: Alex Bligh <alex@alex.org.uk>
-Subject: Re: [PATCH] netfilter: fix ->nfnl NULL oops
-Date: Wed, 09 Nov 2011 19:06:13 +0000
-Message-ID: <739793C1875DFFB8AD91547F@nimrod.local>
-References: <20111108221634.GA13261@p183.telecom.by>
- <20111109143423.GA24158@1984>
-Reply-To: Alex Bligh <alex@alex.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
-	Alex Bligh <alex@alex.org.uk>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Alexey Dobriyan <adobriyan@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH -next 0/4] netfilter reverse path filter matches
+Date: Wed,  9 Nov 2011 23:19:44 +0100
+Message-ID: <1320877188-1972-1-git-send-email-fw@strlen.de>
+Cc: netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.avalus.com ([89.16.176.221]:45159 "EHLO mail.avalus.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751217Ab1KITGP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Nov 2011 14:06:15 -0500
-In-Reply-To: <20111109143423.GA24158@1984>
-Content-Disposition: inline
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:58794 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751617Ab1KIWWj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Nov 2011 17:22:39 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Version 3 of the ipv4/v6 reverse path filter matches discussed
+during nfws 2011.
 
+Major change since v2 is that the ipv4 version no longer tries
+to determine the (likely) input interface for the reverse test.
 
---On 9 November 2011 15:34:23 +0100 Pablo Neira Ayuso <pablo@netfilter.org> 
-wrote:
+To obtain that information, an additional lookup would be
+required (first obtain oif, then use that oif as iif in the
+reversed lookup -- this is what the existing rpf in fib_validate_source()
+does).
+While its certainly possible to mimic fib_validate_source more closely,
+doing so has certain side effects:
+- either pay additonal rt lookup cost
+- or, attach the input route early on ourselves, so ipv4 stack does
+  not need to do it (which can then cause strange effects when using
+  policy routing, as marking in pre-routing has no effect when done
+  after -m rpfilter ...)
 
->> I recall myself writing that net->nfnl NULL check is racy or
->> something like that (but I can't find this email in archives).
->>
->> I've read the code once again, and I'm quite sure,
->> NULL ->nfnl check is correct if RCU precautions are made.
->>
->> Regarding ->report check, I think it's bogus.
->>
->> If there are no listeners, there are NO listeners
->> and whether to report back to userspace doesn't matter.
->>
->> I'm sure I'm missing something obvious here.
->>
->> Please, review.
->
-> Alexey. This is a workaround. We have to make ctnl_notifier
-> container-aware which is the real problem.
+2nd change is a new "--invert" flag to permit one-line dropping
+("-m rpfilter --invert -j DROP") of packets that failed the reverse
+path lookup test.
 
-It is indeed a workaround. However, until we have a real solution,
-we need a workaround, or we can trivially generate fatal oopses.
-I am all for fixing it properly, but please can we leave the workaround
-in place until we have the proper answer, as without this we see
-machines die frequently.
+Userspace part is stored in my iptables repository on
+http://git.breakpoint.cc/cgi-bin/gitweb.cgi?p=fw/iptables.git (branch 'xt_rpfilter_9').
 
--- 
-Alex Bligh
+Kernel patches are located in the 'xt_rpfilter_9' branch on
+http://git.breakpoint.cc/cgi-bin/gitweb.cgi?p=fw/nf-next.git.
+
+Patches will be sent as followup to this email.
+
+Summary of changes:
+
+The following changes since commit e56c57d0d3fdbbdf583d3af96bfb803b8dfa713e:
+
+net: rename sk_clone to sk_clone_lock (2011-11-08 17:07:07 -0500)
+
+are available in the git repository at:
+git://git.breakpoint.cc/fw/nf-next.git xt_rpfilter_9
+
+Florian Westphal (4):
+  net: ipv4: export fib_lookup and fib_table_lookup
+  netfilter: add ipv4 reverse path filter match
+  ipv6: add ip6_route_lookup
+  netfilter: add ipv6 reverse path filter match
+
+include/linux/netfilter/xt_rpfilter.h |   23 ++++++
+include/net/ip6_route.h               |    2 +
+net/ipv4/fib_rules.c                  |    1 +
+net/ipv4/fib_trie.c                   |    1 +
+net/ipv4/netfilter/Kconfig            |   10 +++
+net/ipv4/netfilter/Makefile           |    1 +
+net/ipv4/netfilter/ipt_rpfilter.c     |  141 +++++++++++++++++++++++++++++++++
+net/ipv6/netfilter/Kconfig            |   10 +++
+net/ipv6/netfilter/Makefile           |    1 +
+net/ipv6/netfilter/ip6t_rpfilter.c    |  133 +++++++++++++++++++++++++++++++
+net/ipv6/route.c                      |    7 ++
+11 files changed, 330 insertions(+), 0 deletions(-)
+create mode 100644 include/linux/netfilter/xt_rpfilter.h
+create mode 100644 net/ipv4/netfilter/ipt_rpfilter.c
+create mode 100644 net/ipv6/netfilter/ip6t_rpfilter.c
