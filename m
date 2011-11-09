@@ -1,39 +1,51 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [PATCH] netfilter: fix ->nfnl NULL oops
-Date: Wed, 9 Nov 2011 15:34:23 +0100
-Message-ID: <20111109143423.GA24158@1984>
+Date: Wed, 9 Nov 2011 15:35:10 +0100
+Message-ID: <20111109143510.GB24158@1984>
 References: <20111108221634.GA13261@p183.telecom.by>
+ <32FF200DF1281ACA19CF3807@nimrod.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: alex@alex.org.uk, kaber@trash.net, netfilter-devel@vger.kernel.org
-To: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>, kaber@trash.net,
+	netfilter-devel@vger.kernel.org
+To: Alex Bligh <alex@alex.org.uk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50801 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:50916 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751483Ab1KIOe3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Nov 2011 09:34:29 -0500
+	id S1752746Ab1KIOfM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Nov 2011 09:35:12 -0500
 Content-Disposition: inline
-In-Reply-To: <20111108221634.GA13261@p183.telecom.by>
+In-Reply-To: <32FF200DF1281ACA19CF3807@nimrod.local>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 09, 2011 at 01:16:35AM +0300, Alexey Dobriyan wrote:
-> Sorry for delay.
+On Tue, Nov 08, 2011 at 10:50:05PM +0000, Alex Bligh wrote:
+> --On 9 November 2011 01:16:35 +0300 Alexey Dobriyan
+> <adobriyan@gmail.com> wrote:
 > 
-> I recall myself writing that net->nfnl NULL check is racy or
-> something like that (but I can't find this email in archives).
+> >Sorry for delay.
+> >
+> >I recall myself writing that net->nfnl NULL check is racy or
+> >something like that (but I can't find this email in archives).
+> >
+> >I've read the code once again, and I'm quite sure,
+> >NULL ->nfnl check is correct if RCU precautions are made.
 > 
-> I've read the code once again, and I'm quite sure,
-> NULL ->nfnl check is correct if RCU precautions are made.
+> Your patch looks better than mine in this respect (as far as I
+> can tell from code reading rather than testing)
 > 
-> Regarding ->report check, I think it's bogus.
+> >Regarding ->report check, I think it's bogus.
 > 
-> If there are no listeners, there are NO listeners
-> and whether to report back to userspace doesn't matter.
+> All I can tell is that net->nfnl == NULL is a condition that happens
+> in practice. If that is read, race free, and treated as something
+> that causes nfnetlink_has_listeners to return 0 irrespective of
+> item_report, then the oops will not occur. So from my point of view
+> it seems right.
 > 
-> I'm sure I'm missing something obvious here.
-> 
-> Please, review.
+> Note that in the mean time I think my patch made -stable.
 
-Alexey. This is a workaround. We have to make ctnl_notifier
-container-aware which is the real problem.
+That's news.
+
+I personally NACKed that patch.
+
+Can you confirm that, please?
