@@ -1,90 +1,60 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset: usage of unitialized variable ip_to in
- ip_set_hash_ipportnet.c
-Date: Wed, 9 Nov 2011 00:47:05 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1111090040170.32599@blackhole.kfki.hu>
-References: <20111107221823.GH18221@smp.if.uj.edu.pl> <alpine.DEB.2.00.1111080848040.29308@blackhole.kfki.hu> <20111108120000.GJ18221@smp.if.uj.edu.pl>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [GIT PULL nf-next] IPVS
+Date: Wed, 9 Nov 2011 09:58:07 +0900
+Message-ID: <20111109005805.GA26937@verge.net.au>
+References: <1319160783-28422-1-git-send-email-horms@verge.net.au>
+ <20111021072715.GA842@1984>
+ <20111107030659.GA24405@verge.net.au>
+ <20111107082956.GA32329@1984>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Witold Baryluk <baryluk@smp.if.uj.edu.pl>
+Content-Type: text/plain; charset=us-ascii
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	Krzysztof Wilczynski <krzysztof.wilczynski@linux.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:37071 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755885Ab1KHXrI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Nov 2011 18:47:08 -0500
-In-Reply-To: <20111108120000.GJ18221@smp.if.uj.edu.pl>
+Received: from kirsty.vergenet.net ([202.4.237.240]:47911 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756061Ab1KIA6L (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Nov 2011 19:58:11 -0500
+Content-Disposition: inline
+In-Reply-To: <20111107082956.GA32329@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 8 Nov 2011, Witold Baryluk wrote:
+Hi Pablo,
 
-> On 11-08 08:56, Jozsef Kadlecsik wrote:
-> > 
-> > On Mon, 7 Nov 2011, Witold Baryluk wrote:
-> > 
-> > > in file et/netfilter/ipset/ip_set_hash_ipportnet.c
-> > > in functionhash_ipportnet4_uadt(...)
-> > > variable u32 ip_to, can be used uninitialized
-> > > in line 283
-> > > 	for (; !before(ip_to, ip); ip++) {
-> > > 
-> > > because, if both tb[IPSET_ATTR_IP_TO] and tb[IPSET_ATTR_CIDR]
-> > > are false, then there is no initialization of ip_to.
-> > > 
-> > >   CC [M]  net/netfilter/ipset/ip_set_hash_ipportnet.o
-> > > net/netfilter/ipset/ip_set_hash_ipportnet.c: In function ?hash_ipportnet4_uadt?:
-> > > include/net/tcp.h:266:28: warning: ?ip_to? may be used uninitialized in this function [-Wuninitialized]
-> > > net/netfilter/ipset/ip_set_hash_ipportnet.c:187:10: note: ?ip_to? was declared here
-> > 
-> > Which ipset version you are looking at? What gcc version are you running?
+On Mon, Nov 07, 2011 at 09:29:56AM +0100, Pablo Neira Ayuso wrote:
+> Hi Simon,
 > 
-> sorry to not mention it.
-> 
-> I'm compiling on 32-bit Intel x86, using gcc 4.6.2-4 with -march=pentium-m.
-> I'm using current/today mainline Linus' tree.
-> Last significant ipset change in this tree is from Jul 21, 2011.
-
-Oops, that patch was not submitted to kernel inclusion. The merge window 
-has just opened up, I'm going to send it in the next day.
-
-> > ip_to is explicitly initialized to zero in line 187 in the current ipset 
-> > version.
-> >  
-> > > I think this should be fixed be properly initializing / using ip_to,
-> > > or by telling compiler that some of paths will end in initialization.
-> > >  
-> > > Also why on earth a before(a,b) function is used
-> > > to compare IP addresses? Shouldn't before(seq1,seq2) function
-> > > be used only to compare TCP sequnce numbers?!
+> On Mon, Nov 07, 2011 at 12:07:01PM +0900, Simon Horman wrote:
+> > Hi Pablo,
 > > 
-> > That's a quick way to avoid wraparound in the for loop.
+> > I am a little confused. The nf-next branch seems to have disappeared.
+> > 
+> > Could you consider pulling git://github.com/horms/ipvs-next.git master
+> > to get the following changes that were in your nf-next branch.
 > 
-> It's somehow ugly. I agree that same method should be used,
-> but this just leaks a abstraction and who knows in the future
-> if this will not make problems.
+> I was late to get it into net-next. Since net-next became net after
+> the 3.1 release, my moved those changes to net to get it into 3.2
+> once Linus announced that the merge window was opened again.
+> 
+> > Or would
+> > you like me to rebase the ipvs patches (9 or the 11 changes below) on
+> > top of git://1984.lsi.us.es/net-next/.git master ?
+> 
+> They are already in net davem's tree, they will be included in the
+> upcoming 3.2 release.
+> 
+> http://git.kernel.org/?p=linux%2Fkernel%2Fgit%2Fdavem%2Fnet.git&a=search&h=HEAD&st=commit&s=Neira
 
-The net/tcp.h header file says
+Thanks, and sorry for missing that when I checked yesterday.
 
-/*
- * The next routines deal with comparing 32 bit unsigned ints
- * and worry about wraparound (automatic with unsigned arithmetic).
- */
+Could you suggest which tree and branch I should base the master branch of my
+ipvs and ipvs-next trees on? Their purposes are to provide a reference for
+people wishing to fix or enhance IPVS and a mechanism to send pull requests to
+you. As of now I am using the master branch of your net tree for both.
 
-static inline int before(__u32 seq1, __u32 seq2)
-...
-
-Neither the comment, nor the function names imply that the routines should 
-be used only for TCP sequence numbers.
-
-Maybe the routines should be relocated into a more generic header file.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
