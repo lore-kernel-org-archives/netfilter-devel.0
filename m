@@ -1,65 +1,59 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [GIT PULL nf-next] IPVS
-Date: Thu, 10 Nov 2011 10:22:24 +0900
-Message-ID: <20111110012222.GE9202@verge.net.au>
-References: <1319160783-28422-1-git-send-email-horms@verge.net.au>
- <20111021072715.GA842@1984>
- <20111107030659.GA24405@verge.net.au>
- <20111107082956.GA32329@1984>
- <20111109005805.GA26937@verge.net.au>
- <20111109143641.GA24174@1984>
+From: Paul Guo <ggang@tilera.com>
+Subject: Re: unaligned ip header due to ip_route_me_harder()->pskb_expand_head()
+Date: Thu, 10 Nov 2011 15:33:16 +0800
+Message-ID: <4EBB7E3C.9030402@tilera.com>
+References: <4EB9449D.8020701@tilera.com>  <1320771494.3444.8.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>  <4EBA48F3.8040906@tilera.com> <1320832102.2315.10.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Krzysztof Wilczynski <krzysztof.wilczynski@linux.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20111109143641.GA24174@1984>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: <netfilter-devel@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from usmamail.tilera.com ([206.83.70.75]:38937 "EHLO
+	USMAMAIL.TILERA.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752184Ab1KJHdX (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Nov 2011 02:33:23 -0500
+In-Reply-To: <1320832102.2315.10.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 09, 2011 at 03:36:41PM +0100, Pablo Neira Ayuso wrote:
-> On Wed, Nov 09, 2011 at 09:58:07AM +0900, Simon Horman wrote:
-> > Hi Pablo,
-> > 
-> > On Mon, Nov 07, 2011 at 09:29:56AM +0100, Pablo Neira Ayuso wrote:
-> > > Hi Simon,
-> > > 
-> > > On Mon, Nov 07, 2011 at 12:07:01PM +0900, Simon Horman wrote:
-> > > > Hi Pablo,
-> > > > 
-> > > > I am a little confused. The nf-next branch seems to have disappeared.
-> > > > 
-> > > > Could you consider pulling git://github.com/horms/ipvs-next.git master
-> > > > to get the following changes that were in your nf-next branch.
-> > > 
-> > > I was late to get it into net-next. Since net-next became net after
-> > > the 3.1 release, my moved those changes to net to get it into 3.2
-> > > once Linus announced that the merge window was opened again.
-> > > 
-> > > > Or would
-> > > > you like me to rebase the ipvs patches (9 or the 11 changes below) on
-> > > > top of git://1984.lsi.us.es/net-next/.git master ?
-> > > 
-> > > They are already in net davem's tree, they will be included in the
-> > > upcoming 3.2 release.
-> > > 
-> > > http://git.kernel.org/?p=linux%2Fkernel%2Fgit%2Fdavem%2Fnet.git&a=search&h=HEAD&st=commit&s=Neira
-> > 
-> > Thanks, and sorry for missing that when I checked yesterday.
-> > 
-> > Could you suggest which tree and branch I should base the master branch of my
-> > ipvs and ipvs-next trees on? Their purposes are to provide a reference for
-> > people wishing to fix or enhance IPVS and a mechanism to send pull requests to
-> > you. As of now I am using the master branch of your net tree for both.
-> 
-> The 1984.lsi.us.es trees are fine.
-> 
-> There are no branch yet because I have no patches queued for upstream
-> so far. You can use master if you don't see any nf branch, OK?
 
-Ok :)
+> Le mercredi 09 novembre 2011 =C3=A0 17:33 +0800, Paul Guo a =C3=A9cri=
+t :
+>=20
+>>> or=20
+>>>
+>>> pskb_expand_head(skb, HH_DATA_ALIGN(hh_len - skb_headroom(skb)), 0,=
+ GFP_ATOMIC))
+>>
+>> Thanks. This looks better.
+>=20
+> Could you submit an official patch ?
+>=20
+> Thanks !
+
+OK. I tried to clone a netfilter branch firstly, but failed. Cloning th=
+e network
+branch is OK. It looks there is something wrong with the netfilter git =
+branch,
+or am I doing something wrong? Thanks.
+
+# git clone git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-=
+2.6.git
+Initialized empty Git repository in /u/ggang/recent/netfilter-git/nf-2.=
+6/.git/
+fatal: The remote end hung up unexpectedly
+
+# git clone git://git.kernel.org/pub/scm/linux/kernel/git/davem/net.git
+Initialized empty Git repository in /u/ggang/recent/net-git/net/.git/
+remote: Counting objects: 2233147, done.
+remote: Compressing objects: 100% (354952/354952), done.
+Receiving objects:   4% (110532/2233147), 40.82 MiB | 343 KiB/s
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
