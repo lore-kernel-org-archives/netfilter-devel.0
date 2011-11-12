@@ -1,56 +1,46 @@
-From: Paul Guo <ggang@tilera.com>
-Subject: Re: unaligned ip header due to ip_route_me_harder()->pskb_expand_head()
-Date: Thu, 10 Nov 2011 15:33:16 +0800
-Message-ID: <4EBB7E3C.9030402@tilera.com>
-References: <4EB9449D.8020701@tilera.com>  <1320771494.3444.8.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>  <4EBA48F3.8040906@tilera.com> <1320832102.2315.10.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+From: Barrister Hans Fuchs <info@gmf.org>
+Subject: GOOD DAY
+Date: Sat, 12 Nov 2011 03:57:16 -1200
+Message-ID: <20111112155728.E2CF51837A6@posta.adiyaman.edu.tr>
+Reply-To: bhf_101@admin.in.th
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: <netfilter-devel@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+To: Recipients <info@gmf.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from usmamail.tilera.com ([206.83.70.75]:38937 "EHLO
-	USMAMAIL.TILERA.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752184Ab1KJHdX (ORCPT
+Received: from posta.adiyaman.edu.tr ([193.255.110.217]:55171 "EHLO
+	posta.adiyaman.edu.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751891Ab1KLSIZ convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Nov 2011 02:33:23 -0500
-In-Reply-To: <1320832102.2315.10.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+	Sat, 12 Nov 2011 13:08:25 -0500
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-> Le mercredi 09 novembre 2011 =C3=A0 17:33 +0800, Paul Guo a =C3=A9cri=
-t :
->=20
->>> or=20
->>>
->>> pskb_expand_head(skb, HH_DATA_ALIGN(hh_len - skb_headroom(skb)), 0,=
- GFP_ATOMIC))
->>
->> Thanks. This looks better.
->=20
-> Could you submit an official patch ?
->=20
-> Thanks !
-
-OK. I tried to clone a netfilter branch firstly, but failed. Cloning th=
-e network
-branch is OK. It looks there is something wrong with the netfilter git =
-branch,
-or am I doing something wrong? Thanks.
-
-# git clone git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-=
-2.6.git
-Initialized empty Git repository in /u/ggang/recent/netfilter-git/nf-2.=
-6/.git/
-fatal: The remote end hung up unexpectedly
-
-# git clone git://git.kernel.org/pub/scm/linux/kernel/git/davem/net.git
-Initialized empty Git repository in /u/ggang/recent/net-git/net/.git/
-remote: Counting objects: 2233147, done.
-remote: Compressing objects: 100% (354952/354952), done.
-Receiving objects:   4% (110532/2233147), 40.82 MiB | 343 KiB/s
-
+Barrister Hans Fuchs.
+London-Uk.
+=20
+I am Hans Fuchs Esq,  I have an immediate business proposal that involv=
+es =A342,000,000.00 Forty-Two Million Pounds which we will like to inve=
+st under your custody. Once I receive a message from you notifying me o=
+f your interest, the details of the transaction/the terms and condition=
+ of sharing regarding the business would then be brought to your knowle=
+dge.
+=20
+http://www.guardian.co.uk/world/2011/feb/27/gaddafi-family-assets-froze=
+n-queen
+=20
+Your urgent response will be highly appreciated and will swiftly bring =
+us to the commencement of the transaction. I hope to conclude. this tra=
+nsaction within 14 Business days Do not forget to contact me on the rec=
+eipt of this e-mail address. And please you have to maintain absolute c=
+onfidentiality as regards this pending transaction.=20
+=20
+I urgently await your response.
+=20
+Best Regards,
+bhf_101@admin.in.th
+Hans Fuchs Esq
 
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
