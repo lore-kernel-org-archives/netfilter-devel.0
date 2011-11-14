@@ -1,101 +1,33 @@
-From: Paul Guo <ggang@tilera.com>
-Subject: Re: [PATCH] possible unaligned packet header caused by ip_route_me_harder()->pskb_expand_head()
-Date: Mon, 14 Nov 2011 19:00:54 +0800
-Message-ID: <4EC0F4E6.50103@tilera.com>
-References: <4EB9449D.8020701@tilera.com>  <1320771494.3444.8.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>  <4EBA48F3.8040906@tilera.com>  <1320832102.2315.10.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>  <4EBB7E3C.9030402@tilera.com> <20111113170233.GA16851@1984>  <4EC0D254.7060503@tilera.com> <1321264000.2272.0.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [v2 PATCH 1/2] NETFILTER module xt_hmark new target for HASH
+ based fw
+Date: Mon, 14 Nov 2011 12:38:28 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1111141237410.26961@frira.zrqbmnf.qr>
+References: <0hivdsb.f18682ec9367f08c76301d993553f1b8@obelix.schillstrom.com> <20111108105110.GA15798@1984> <20111113170528.GB16851@1984> <201111141019.43423.hans@schillstrom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	<netfilter-devel@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from usmamail.tilera.com ([206.83.70.75]:56941 "EHLO
-	USMAMAIL.TILERA.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754448Ab1KNLBS (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Nov 2011 06:01:18 -0500
-In-Reply-To: <1321264000.2272.0.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+	Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	kaber@trash.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: Hans Schillstrom <hans@schillstrom.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <201111141019.43423.hans@schillstrom.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Monday 2011-11-14 10:19, Hans Schillstrom wrote:
 
-> Le lundi 14 novembre 2011 =C3=A0 16:33 +0800, Paul Guo a =C3=A9crit :
->>> git://1984.lsi.us.es/net/.git
+>
+>On Sunday, November 13, 2011 18:05:28 Pablo Neira Ayuso wrote:
+>> BTW, I think you should split xt_HMARK to ipt_HMARK and ip6t_HMARK
+>> (see recent Florian Westphal patches regarding reserve lookup for
+>> instance).
+>> 
+>> The IPv4 and IPv6 parts for HMARK look so different that I don't think
+>> it makes sense to keep them into one single xt_HMARK thing with all
+>> those conditional ifdefs for IPV6.
 >>
->> OK. Here is the patch based on above git tree.
->>
->>
->> Signed-off-by: Paul Guo <ggang@tilera.com>
->> ---
->>  net/ipv4/netfilter.c |    3 ++-
->>  1 files changed, 2 insertions(+), 1 deletions(-)
->>
->> diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
->> index 929b27b..0dcb0fa 100644
->> --- a/net/ipv4/netfilter.c
->> +++ b/net/ipv4/netfilter.c
->> @@ -63,7 +63,8 @@ int ip_route_me_harder(struct sk_buff *skb, unsign=
-ed addr_type)
->>  	/* Change in oif may mean change in hh_len. */
->>  	hh_len =3D skb_dst(skb)->dev->hard_header_len;
->>  	if (skb_headroom(skb) < hh_len &&
->> -	    pskb_expand_head(skb, hh_len - skb_headroom(skb), 0, GFP_ATOMI=
-C))
->> +	    pskb_expand_head(skb, HH_DATA_ALIGN(hh_len - skb_headroom(skb)=
-),
->> +	    		     0, GFP_ATOMIC))
->>  		return -1;
->> =20
->>  	return 0;
->=20
-> OK, but could you please add a changelog as well ?
->=20
-> Your initial message contained a lot of useful information that could
-> help future bug hunting ;)
+>Ok I'll do that, for some reason a thought it was better with one module.
 
-Sure.=20
-
-This patch tries to fix the following issue in netfilter:
-ip_route_me_harder()->pskb_expand_head() rellocates new header with
-additional head room which can break the alignment of the original
-packet header.
-
-In one of my NAT test case, the NIC port for internal hosts is
-configured with vlan and the port for external hosts is with
-general configuration. If we ping an external "unknown" hosts from an
-internal host, an icmp packet will be sent. We find that in
-icmp_send()->...->ip_route_me_harder()->pskb_expand_head(), hh_len=3D18
-and current headroom (skb_headroom(skb)) of the packet is 16. After
-calling pskb_expand_head() the packet header becomes to be unaligned
-and then our system (arch/tile) panics immediately.
-
-Here is the patch:
-
-Signed-off-by: Paul Guo <ggang@tilera.com>
----
- net/ipv4/netfilter.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
-
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index 929b27b..0dcb0fa 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -63,7 +63,8 @@ int ip_route_me_harder(struct sk_buff *skb, unsigned =
-addr_type)
- 	/* Change in oif may mean change in hh_len. */
- 	hh_len =3D skb_dst(skb)->dev->hard_header_len;
- 	if (skb_headroom(skb) < hh_len &&
--	    pskb_expand_head(skb, hh_len - skb_headroom(skb), 0, GFP_ATOMIC))
-+	    pskb_expand_head(skb, HH_DATA_ALIGN(hh_len - skb_headroom(skb)),
-+	    		     0, GFP_ATOMIC))
- 		return -1;
-=20
- 	return 0;
---=20
-1.6.5.2
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So do I. The module overhead is so much larger.
