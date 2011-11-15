@@ -1,35 +1,46 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH -next 0/4] netfilter reverse path filter matches
-Date: Tue, 15 Nov 2011 10:58:26 +0100
-Message-ID: <20111115095826.GA29506@1984>
-References: <1320877188-1972-1-git-send-email-fw@strlen.de>
- <20111114.004716.1099241210794134345.davem@davemloft.net>
+Subject: Re: [v2 PATCH 1/2] NETFILTER module xt_hmark new target for HASH
+ based fw
+Date: Tue, 15 Nov 2011 11:01:00 +0100
+Message-ID: <20111115100100.GB29506@1984>
+References: <0hivdsb.f18682ec9367f08c76301d993553f1b8@obelix.schillstrom.com>
+ <20111108105110.GA15798@1984>
+ <20111113170528.GB16851@1984>
+ <201111141019.43423.hans@schillstrom.com>
+ <alpine.LNX.2.01.1111141237410.26961@frira.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: fw@strlen.de, netfilter-devel@vger.kernel.org,
+Cc: Hans Schillstrom <hans@schillstrom.com>,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	kaber@trash.net, netfilter-devel@vger.kernel.org,
 	netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44367 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754606Ab1KOJ6n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Nov 2011 04:58:43 -0500
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20111114.004716.1099241210794134345.davem@davemloft.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <alpine.LNX.2.01.1111141237410.26961@frira.zrqbmnf.qr>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Nov 14, 2011 at 12:47:16AM -0500, David Miller wrote:
-> From: Florian Westphal <fw@strlen.de>
-> Date: Wed,  9 Nov 2011 23:19:44 +0100
+On Mon, Nov 14, 2011 at 12:38:28PM +0100, Jan Engelhardt wrote:
+> On Monday 2011-11-14 10:19, Hans Schillstrom wrote:
 > 
-> > Version 3 of the ipv4/v6 reverse path filter matches discussed
-> > during nfws 2011.
+> >
+> >On Sunday, November 13, 2011 18:05:28 Pablo Neira Ayuso wrote:
+> >> BTW, I think you should split xt_HMARK to ipt_HMARK and ip6t_HMARK
+> >> (see recent Florian Westphal patches regarding reserve lookup for
+> >> instance).
+> >> 
+> >> The IPv4 and IPv6 parts for HMARK look so different that I don't think
+> >> it makes sense to keep them into one single xt_HMARK thing with all
+> >> those conditional ifdefs for IPV6.
+> >>
+> >Ok I'll do that, for some reason a thought it was better with one module.
 > 
-> I fully support these changes, please feel free to merge them in
-> via the netfilter tree and to add my ack:
-> 
-> Acked-by: David S. Miller <davem@davemloft.net>
+> So do I. The module overhead is so much larger.
 
-Thanks for taking the time to review this, I need some time to test it
-here but I think we'll get it into net-next soon.
+Yes, it will if both modules are loaded.
+
+I think it depends, if you only load IPv4 support, the overhead will
+be smaller than having everything into one module.
+
+But I'm open to more discussion on this, of course.
