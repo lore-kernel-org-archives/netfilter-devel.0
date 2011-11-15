@@ -1,46 +1,74 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [v2 PATCH 1/2] NETFILTER module xt_hmark new target for HASH
- based fw
-Date: Tue, 15 Nov 2011 11:01:00 +0100
-Message-ID: <20111115100100.GB29506@1984>
-References: <0hivdsb.f18682ec9367f08c76301d993553f1b8@obelix.schillstrom.com>
- <20111108105110.GA15798@1984>
- <20111113170528.GB16851@1984>
- <201111141019.43423.hans@schillstrom.com>
- <alpine.LNX.2.01.1111141237410.26961@frira.zrqbmnf.qr>
+From: Alex Bligh <alex@alex.org.uk>
+Subject: Re: [PATCH] netfilter: fix ->nfnl NULL oops
+Date: Tue, 15 Nov 2011 10:13:58 +0000
+Message-ID: <61996646E807F2E67842E57F@nimrod.local>
+References: <20111108221634.GA13261@p183.telecom.by>
+ <20111109143423.GA24158@1984> <20111115095642.GA28944@1984>
+Reply-To: Alex Bligh <alex@alex.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Hans Schillstrom <hans@schillstrom.com>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	kaber@trash.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
+	Alex Bligh <alex@alex.org.uk>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Alexey Dobriyan <adobriyan@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.avalus.com ([89.16.176.221]:41658 "EHLO mail.avalus.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753959Ab1KOKOD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Nov 2011 05:14:03 -0500
+In-Reply-To: <20111115095642.GA28944@1984>
 Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.01.1111141237410.26961@frira.zrqbmnf.qr>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 14, 2011 at 12:38:28PM +0100, Jan Engelhardt wrote:
-> On Monday 2011-11-14 10:19, Hans Schillstrom wrote:
-> 
-> >
-> >On Sunday, November 13, 2011 18:05:28 Pablo Neira Ayuso wrote:
-> >> BTW, I think you should split xt_HMARK to ipt_HMARK and ip6t_HMARK
-> >> (see recent Florian Westphal patches regarding reserve lookup for
-> >> instance).
-> >> 
-> >> The IPv4 and IPv6 parts for HMARK look so different that I don't think
-> >> it makes sense to keep them into one single xt_HMARK thing with all
-> >> those conditional ifdefs for IPV6.
-> >>
-> >Ok I'll do that, for some reason a thought it was better with one module.
-> 
-> So do I. The module overhead is so much larger.
+Pablo,
 
-Yes, it will if both modules are loaded.
+Have you tried this patch (without the ->nfnl NULL check change) with
+the perl program I wrote that reliably replicates the original bug?
 
-I think it depends, if you only load IPv4 support, the overhead will
-be smaller than having everything into one module.
+https://bugs.launchpad.net/ubuntu/+source/linux-lts-backport-natty/+bug/843892
 
-But I'm open to more discussion on this, of course.
+specifically the attachment in comment #6:
+
+https://bugs.launchpad.net/ubuntu/+source/linux-lts-backport-natty/+bug/843892/+attachment/2382526/+files/testns.pl
+
+Alex
+
+--On 15 November 2011 10:56:42 +0100 Pablo Neira Ayuso 
+<pablo@netfilter.org> wrote:
+
+> On Wed, Nov 09, 2011 at 03:34:23PM +0100, Pablo Neira Ayuso wrote:
+>> On Wed, Nov 09, 2011 at 01:16:35AM +0300, Alexey Dobriyan wrote:
+>> > Sorry for delay.
+>> >
+>> > I recall myself writing that net->nfnl NULL check is racy or
+>> > something like that (but I can't find this email in archives).
+>> >
+>> > I've read the code once again, and I'm quite sure,
+>> > NULL ->nfnl check is correct if RCU precautions are made.
+>> >
+>> > Regarding ->report check, I think it's bogus.
+>> >
+>> > If there are no listeners, there are NO listeners
+>> > and whether to report back to userspace doesn't matter.
+>> >
+>> > I'm sure I'm missing something obvious here.
+>> >
+>> > Please, review.
+>>
+>> Alexey. This is a workaround. We have to make ctnl_notifier
+>> container-aware which is the real problem.
+>
+> I made this patch. It makes the ctnl_notifier container-aware.
+>
+> I'm trying to set some lxc container to test it (it's not that
+> straight forward in debian).
+>
+> btw: if it's fine, i'll add the credits (reported-by and other tags
+> before final submission, this is still a RFC).
+
+
+
+-- 
+Alex Bligh
