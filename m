@@ -1,37 +1,72 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: fix ->nfnl NULL oops
-Date: Tue, 15 Nov 2011 15:09:20 +0100
-Message-ID: <20111115140920.GA31321@1984>
-References: <20111108221634.GA13261@p183.telecom.by>
- <20111109143423.GA24158@1984>
- <20111115095642.GA28944@1984>
- <61996646E807F2E67842E57F@nimrod.local>
+From: Hans Schillstrom <hans@schillstrom.com>
+Subject: Re: [v2 PATCH 1/2] NETFILTER module xt_hmark new target for HASH based fw
+Date: Wed, 16 Nov 2011 10:28:42 +0100
+Message-ID: <201111161028.43078.hans@schillstrom.com>
+References: <b328f1j.5274a2398142147da04eb5e915d63283@obelix.schillstrom.com> <20111109143922.GC24174@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Alexey Dobriyan <adobriyan@gmail.com>, kaber@trash.net,
-	netfilter-devel@vger.kernel.org
-To: Alex Bligh <alex@alex.org.uk>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47248 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755850Ab1KOOJ1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Nov 2011 09:09:27 -0500
-Content-Disposition: inline
-In-Reply-To: <61996646E807F2E67842E57F@nimrod.local>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>, kaber@trash.net,
+	jengelh@medozas.de, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20111109143922.GC24174@1984>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Nov 15, 2011 at 10:13:58AM +0000, Alex Bligh wrote:
-> Pablo,
+Hello Pablo
+On Wednesday, November 09, 2011 15:39:22 Pablo Neira Ayuso wrote:
+> On Tue, Nov 08, 2011 at 04:12:27PM +0100, Hans Schillstrom wrote:
+> > >BTW, do you have some number of this running with and without
+> > >conntrack? It would be interesting to have.
+> > 
+> > I didn't save them,  but I can make a new benchmark later on.
 > 
-> Have you tried this patch (without the ->nfnl NULL check change) with
-> the perl program I wrote that reliably replicates the original bug?
+> Thanks, I'm interested in them. It can be just xt_HMARK with and
+> without conntrack enabled. Also make sure that you use stateful
+> rule-set if conntrack is enabled (thus, resulting in hashing only
+> once, not every packet). Otherwise, conntrack will not provide
+> any improvement.
 > 
-> https://bugs.launchpad.net/ubuntu/+source/linux-lts-backport-natty/+bug/843892
-> 
-> specifically the attachment in comment #6:
-> 
-> https://bugs.launchpad.net/ubuntu/+source/linux-lts-backport-natty/+bug/843892/+attachment/2382526/+files/testns.pl
 
-I didn't test my patch yet, I just wanted to ping you that I was
-looking into this.
+I have some problems with the generator..., 
+so I did some simple iperf tcp test with KVM:s i.e. standart tcp setup
+
+iptables just one rule 
+-A PREROUTING -d 10.0.0.10/32 -j HMARK --hmark-mod 0x2 --hmark-offs 0x64
+
+Some typical values shows ~8% degradation with conntrack loaded
+
+
+a) Without conntrack loaded
+
+ [  3]  0.0-10.0 sec  83.5 MBytes  70.0 Mbits/sec
+
+
+b) With conntrack loaded (no iptable rules in use --ctstate or -m conntrack)
+
+[  3]  0.0-10.0 sec  78.0 MBytes  65.4 Mbits/sec
+
+c) With iptables rule in use
+iptables -t mangle -A PREROUTING -d 10.0.0.10 -m conntrack --ctstate NEW -j HMARK --mod 2 --offs 100
+iptables -t mangle -A PREROUTING -d 10.0.0.10 -m conntrack --ctstate ESTABLISHED,RELATED  -j HMARK --mod 2 --offs 100
+iptables -t mangle -A PREROUTING -d 10.0.0.10 -m conntrack --ctstate INVALID -j DROP
+
+[  3]  0.0-10.0 sec  77.4 MBytes  64.9 Mbits/sec
+
+
+A clean KVM with 3.2.0-rc1 kernel with virt-io 
+Module                  Size  Used by    Not tainted
+nf_conntrack_ipv4      16731  1 
+nf_defrag_ipv4         12436  1 nf_conntrack_ipv4
+xt_conntrack           12390  1 
+xt_hmark               12390  1 
+iptable_mangle         12390  1 
+ip_tables              20755  1 iptable_mangle
+ipip                   16515  0 
+tunnel4                12484  1 ipip
+
+
+/Hans
