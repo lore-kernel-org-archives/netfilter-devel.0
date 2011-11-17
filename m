@@ -1,40 +1,58 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: Re: Question about tcp reopen in tcp_in_window
-Date: Thu, 17 Nov 2011 20:12:05 +0800
-Message-ID: <4EC4FA15.8000607@cn.fujitsu.com>
-References: <4EC4AF32.5050901@cn.fujitsu.com> <alpine.DEB.2.00.1111170904040.27634@blackhole.kfki.hu> <4EC4CE41.2060003@cn.fujitsu.com> <alpine.DEB.2.00.1111171035110.27950@blackhole.kfki.hu>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: RFC: Probably wrong code in nf_nat_snmp_basic.c
+Date: Thu, 17 Nov 2011 22:14:02 +0100
+Message-ID: <4EC5791A.1040005@intra2net.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, xiaosuo@gmail.com
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:50676 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1756972Ab1KQMLf convert rfc822-to-8bit (ORCPT
+Received: from re04.intra2net.com ([82.165.46.26]:33573 "EHLO
+	re04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751533Ab1KQVOF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Nov 2011 07:11:35 -0500
-In-Reply-To: <alpine.DEB.2.00.1111171035110.27950@blackhole.kfki.hu>
+	Thu, 17 Nov 2011 16:14:05 -0500
+Received: from intranator.m.i2n (unknown [172.16.1.99])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by re04.intra2net.com (Postfix) with ESMTP id 4F33730127
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Nov 2011 22:14:04 +0100 (CET)
+Received: from localhost (intranator.m.i2n [127.0.0.1])
+	by localhost (Postfix) with ESMTP id C48BF2AC54
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Nov 2011 22:14:03 +0100 (CET)
+Received: from pikkukde.a.i2n (unknown [192.168.12.2])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by intranator.m.i2n (Postfix) with ESMTPS id 9E5282AC52
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Nov 2011 22:14:02 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=E4=BA=8E 2011=E5=B9=B411=E6=9C=8817=E6=97=A5 17:41, Jozsef Kadlecsik =E5=
-=86=99=E9=81=93:
-> No, but I still don't get what's the problem with the code segment yo=
-u=20
-> cited. You left out the comment:
+Hi,
 
-Thanks Jozsef Kadlecsik.
-Actually there is no any problem,I just want to know wath's the use of =
-this code segment.
+consider this piece of code from
+net/ipv4/netfilter/nf_nat_snmp_basic.c:1198
 
-> We destroy the connection in the reopen case, and in that path the co=
-de=20
-> segment above won't be called as you noticed.
+---------------------------------------------
+/*
+    * Determine mappping for application layer addresses based
+    * on NAT manipulations for the packet.
+    */
+if (dir == IP_CT_DIR_ORIGINAL) {
+    /* SNAT traps */
+    map.from = NOCT1(&ct->tuplehash[dir].tuple.src.u3.ip);
+    map.to = NOCT1(&ct->tuplehash[!dir].tuple.dst.u3.ip);
+} else {
+    /* DNAT replies */
+    map.from = NOCT1(&ct->tuplehash[dir].tuple.src.u3.ip);
+    map.to = NOCT1(&ct->tuplehash[!dir].tuple.dst.u3.ip);
+}
+---------------------------------------------
 
-Maybe there is the other path?
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cppcheck reported: (style) Found duplicate branches for if and else.
+
+
+Either I need glasses or the code is exactly the same :)
+
+Cheers,
+Thomas
