@@ -1,75 +1,44 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] possible unaligned packet header caused by
- ip_route_me_harder()->pskb_expand_head()
-Date: Wed, 16 Nov 2011 17:54:38 +0100
-Message-ID: <20111116165438.GA16014@1984>
-References: <4EB9449D.8020701@tilera.com>
- <1320771494.3444.8.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
- <4EBA48F3.8040906@tilera.com>
- <1320832102.2315.10.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
- <4EBB7E3C.9030402@tilera.com>
- <20111113170233.GA16851@1984>
- <4EC0D254.7060503@tilera.com>
- <1321264000.2272.0.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Question about tcp reopen in tcp_in_window
+Date: Thu, 17 Nov 2011 14:52:34 +0800
+Message-ID: <4EC4AF32.5050901@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Paul Guo <ggang@tilera.com>, netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org, xiaosuo@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38408 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753113Ab1KPQym (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Nov 2011 11:54:42 -0500
-Content-Disposition: inline
-In-Reply-To: <1321264000.2272.0.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+Received: from cn.fujitsu.com ([222.73.24.84]:53888 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1754158Ab1KQGvy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Nov 2011 01:51:54 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Eric,
+Hi
 
-On Mon, Nov 14, 2011 at 10:46:40AM +0100, Eric Dumazet wrote:
-> Le lundi 14 novembre 2011 =E0 16:33 +0800, Paul Guo a =E9crit :
-> > > git://1984.lsi.us.es/net/.git
-> >=20
-> > OK. Here is the patch based on above git tree.
-> >=20
-> >=20
-> > Signed-off-by: Paul Guo <ggang@tilera.com>
-> > ---
-> >  net/ipv4/netfilter.c |    3 ++-
-> >  1 files changed, 2 insertions(+), 1 deletions(-)
-> >=20
-> > diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-> > index 929b27b..0dcb0fa 100644
-> > --- a/net/ipv4/netfilter.c
-> > +++ b/net/ipv4/netfilter.c
-> > @@ -63,7 +63,8 @@ int ip_route_me_harder(struct sk_buff *skb, unsig=
-ned addr_type)
-> >  	/* Change in oif may mean change in hh_len. */
-> >  	hh_len =3D skb_dst(skb)->dev->hard_header_len;
-> >  	if (skb_headroom(skb) < hh_len &&
-> > -	    pskb_expand_head(skb, hh_len - skb_headroom(skb), 0, GFP_ATOM=
-IC))
-> > +	    pskb_expand_head(skb, HH_DATA_ALIGN(hh_len - skb_headroom(skb=
-)),
-> > +	    		     0, GFP_ATOMIC))
-> >  		return -1;
-> > =20
-> >  	return 0;
->=20
-> OK, but could you please add a changelog as well ?
->=20
-> Your initial message contained a lot of useful information that could
-> help future bug hunting ;)
+I has a question about the tcp reopen request in func tcp_in_window.
+The code is below,what confuse me is that the var end is never after sender->td_end.
 
-BTW, did you acked this patch?
+static int tcp_in_window(struct ip_ct_tcp *state,
+		...
+	if (sender->td_end == 0) {
+		...
+	} else if (((state->state == TCP_CONNTRACK_SYN_SENT
+                     && dir == IP_CT_DIR_ORIGINAL)
+                   || (state->state == TCP_CONNTRACK_SYN_RECV
+                     && dir == IP_CT_DIR_REPLY))
+                   && after(end, sender->td_end)) {
 
-Let me know, to include it in the changelog.
+		...
+	}
+		...
+}
 
-Thanks!
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+When nf_conn rcv a syn request in TIME_WAIT state,the new_state is SYN_SNET.
+in func tcp_packet, this nf_conn will be kill by nf_ct_kill and the syn packet will repeat.
+So we will have a new nf_conn,whose sender->td_end is reset in func tcp_new.
+
+finally,when this syn packet arrive tcp_in_window,the var end is equal to sender->td_end.
+
+Maybe there is the other situation Or what I understand is totally wrong?
