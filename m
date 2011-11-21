@@ -1,75 +1,81 @@
 From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 10/17] netfilter: ipv6: expand skb head in
- ip6_route_me_harder after oif change
-Date: Mon, 21 Nov 2011 11:29:17 +0100
-Message-ID: <1321871357.2552.24.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
-References: <1321854369-3432-1-git-send-email-kaber@trash.net>
-	 <1321854369-3432-11-git-send-email-kaber@trash.net>
+Subject: Re: [PATCH] possible unaligned packet header caused by
+ ip_route_me_harder()->pskb_expand_head()
+Date: Mon, 21 Nov 2011 11:30:31 +0100
+Message-ID: <1321871431.2552.25.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+References: <4EB9449D.8020701@tilera.com>
+	 <1320771494.3444.8.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+	 <4EBA48F3.8040906@tilera.com>
+	 <1320832102.2315.10.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+	 <4EBB7E3C.9030402@tilera.com> <20111113170233.GA16851@1984>
+	 <4EC0D254.7060503@tilera.com>
+	 <1321264000.2272.0.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+	 <20111116165438.GA16014@1984>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	ulrich.weber@sophos.com
-To: kaber@trash.net
+Cc: Paul Guo <ggang@tilera.com>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:47793 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754035Ab1KUK3X (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:57068 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754035Ab1KUKag (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Nov 2011 05:29:23 -0500
-In-Reply-To: <1321854369-3432-11-git-send-email-kaber@trash.net>
+	Mon, 21 Nov 2011 05:30:36 -0500
+Received: by ghbz2 with SMTP id z2so2603520ghb.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Nov 2011 02:30:36 -0800 (PST)
+In-Reply-To: <20111116165438.GA16014@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le lundi 21 novembre 2011 =C3=A0 06:46 +0100, kaber@trash.net a =C3=A9c=
-rit :
-> From: Patrick McHardy <kaber@trash.net>
+Le mercredi 16 novembre 2011 =C3=A0 17:54 +0100, Pablo Neira Ayuso a =C3=
+=A9crit :
+> Hi Eric,
 >=20
-> Expand the skb headroom if the oif changed due to rerouting similar t=
-o
-> how IPv4 packets are handled.
+> On Mon, Nov 14, 2011 at 10:46:40AM +0100, Eric Dumazet wrote:
+> > Le lundi 14 novembre 2011 =C3=A0 16:33 +0800, Paul Guo a =C3=A9crit=
+ :
+> > > > git://1984.lsi.us.es/net/.git
+> > >=20
+> > > OK. Here is the patch based on above git tree.
+> > >=20
+> > >=20
+> > > Signed-off-by: Paul Guo <ggang@tilera.com>
+> > > ---
+> > >  net/ipv4/netfilter.c |    3 ++-
+> > >  1 files changed, 2 insertions(+), 1 deletions(-)
+> > >=20
+> > > diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
+> > > index 929b27b..0dcb0fa 100644
+> > > --- a/net/ipv4/netfilter.c
+> > > +++ b/net/ipv4/netfilter.c
+> > > @@ -63,7 +63,8 @@ int ip_route_me_harder(struct sk_buff *skb, uns=
+igned addr_type)
+> > >  	/* Change in oif may mean change in hh_len. */
+> > >  	hh_len =3D skb_dst(skb)->dev->hard_header_len;
+> > >  	if (skb_headroom(skb) < hh_len &&
+> > > -	    pskb_expand_head(skb, hh_len - skb_headroom(skb), 0, GFP_AT=
+OMIC))
+> > > +	    pskb_expand_head(skb, HH_DATA_ALIGN(hh_len - skb_headroom(s=
+kb)),
+> > > +	    		     0, GFP_ATOMIC))
+> > >  		return -1;
+> > > =20
+> > >  	return 0;
+> >=20
+> > OK, but could you please add a changelog as well ?
+> >=20
+> > Your initial message contained a lot of useful information that cou=
+ld
+> > help future bug hunting ;)
 >=20
-> Signed-off-by: Patrick McHardy <kaber@trash.net>
-> ---
->  net/ipv6/netfilter.c |    7 +++++++
->  1 files changed, 7 insertions(+), 0 deletions(-)
+> BTW, did you acked this patch?
 >=20
-> diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-> index 30fcee4..d39e954 100644
-> --- a/net/ipv6/netfilter.c
-> +++ b/net/ipv6/netfilter.c
-> @@ -14,6 +14,7 @@ int ip6_route_me_harder(struct sk_buff *skb)
->  {
->  	struct net *net =3D dev_net(skb_dst(skb)->dev);
->  	const struct ipv6hdr *iph =3D ipv6_hdr(skb);
-> +	unsigned int hh_len;
->  	struct dst_entry *dst;
->  	struct flowi6 fl6 =3D {
->  		.flowi6_oif =3D skb->sk ? skb->sk->sk_bound_dev_if : 0,
-> @@ -46,6 +47,12 @@ int ip6_route_me_harder(struct sk_buff *skb)
->  	}
->  #endif
-> =20
-> +	/* Change in oif may mean change in hh_len. */
-> +	hh_len =3D skb_dst(skb)->dev->hard_header_len;
-> +	if (skb_headroom(skb) < hh_len &&
-> +	    pskb_expand_head(skb, hh_len - skb_headroom(skb), 0, GFP_ATOMIC=
-))
-> +		return -1;
-> +
+> Let me know, to include it in the changelog.
 
-Hmm, We had a problem recently on Tile arches because of unaligned
-accesses.
+Sure, sorry I missed your mail
 
-Had you seen the bug report and proposed patch ?
-
-=46ix is to instead do :
-
-	pskb_expand_head(skb,
-			 HH_DATA_ALIGN(hh_len - skb_headroom(skb)),=20
-			 0,
-			 GFP_ATOMIC);
-
+Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
 
 
 --
