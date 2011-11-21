@@ -1,28 +1,79 @@
 From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 01/17] netfilter: nf_nat: use hash random for bysource
- hash
-Date: Mon, 21 Nov 2011 08:43:22 +0100
-Message-ID: <1321861402.17419.9.camel@edumazet-laptop>
+Subject: Re: [PATCH 10/17] netfilter: ipv6: expand skb head in
+ ip6_route_me_harder after oif change
+Date: Mon, 21 Nov 2011 11:29:17 +0100
+Message-ID: <1321871357.2552.24.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
 References: <1321854369-3432-1-git-send-email-kaber@trash.net>
-	 <1321854369-3432-2-git-send-email-kaber@trash.net>
+	 <1321854369-3432-11-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	ulrich.weber@sophos.com
 To: kaber@trash.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1321854369-3432-2-git-send-email-kaber@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:47793 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754035Ab1KUK3X (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Nov 2011 05:29:23 -0500
+In-Reply-To: <1321854369-3432-11-git-send-email-kaber@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Le lundi 21 novembre 2011 =C3=A0 06:45 +0100, kaber@trash.net a =C3=A9c=
+Le lundi 21 novembre 2011 =C3=A0 06:46 +0100, kaber@trash.net a =C3=A9c=
 rit :
 > From: Patrick McHardy <kaber@trash.net>
 >=20
-> Use nf_conntrack_hash_rnd in NAT bysource hash to avoid hash chain at=
-tacks.
+> Expand the skb headroom if the oif changed due to rerouting similar t=
+o
+> how IPv4 packets are handled.
 >=20
 > Signed-off-by: Patrick McHardy <kaber@trash.net>
+> ---
+>  net/ipv6/netfilter.c |    7 +++++++
+>  1 files changed, 7 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+> index 30fcee4..d39e954 100644
+> --- a/net/ipv6/netfilter.c
+> +++ b/net/ipv6/netfilter.c
+> @@ -14,6 +14,7 @@ int ip6_route_me_harder(struct sk_buff *skb)
+>  {
+>  	struct net *net =3D dev_net(skb_dst(skb)->dev);
+>  	const struct ipv6hdr *iph =3D ipv6_hdr(skb);
+> +	unsigned int hh_len;
+>  	struct dst_entry *dst;
+>  	struct flowi6 fl6 =3D {
+>  		.flowi6_oif =3D skb->sk ? skb->sk->sk_bound_dev_if : 0,
+> @@ -46,6 +47,12 @@ int ip6_route_me_harder(struct sk_buff *skb)
+>  	}
+>  #endif
+> =20
+> +	/* Change in oif may mean change in hh_len. */
+> +	hh_len =3D skb_dst(skb)->dev->hard_header_len;
+> +	if (skb_headroom(skb) < hh_len &&
+> +	    pskb_expand_head(skb, hh_len - skb_headroom(skb), 0, GFP_ATOMIC=
+))
+> +		return -1;
+> +
 
-Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
+Hmm, We had a problem recently on Tile arches because of unaligned
+accesses.
+
+Had you seen the bug report and proposed patch ?
+
+=46ix is to instead do :
+
+	pskb_expand_head(skb,
+			 HH_DATA_ALIGN(hh_len - skb_headroom(skb)),=20
+			 0,
+			 GFP_ATOMIC);
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
