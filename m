@@ -1,53 +1,50 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] possible unaligned packet header caused by
- ip_route_me_harder()->pskb_expand_head()
-Date: Mon, 21 Nov 2011 18:47:11 +0100
-Message-ID: <20111121174711.GB4193@1984>
-References: <4EB9449D.8020701@tilera.com>
- <1320771494.3444.8.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
- <4EBA48F3.8040906@tilera.com>
- <1320832102.2315.10.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
- <4EBB7E3C.9030402@tilera.com>
- <20111113170233.GA16851@1984>
- <4EC0D254.7060503@tilera.com>
- <1321264000.2272.0.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
- <4EC0F4E6.50103@tilera.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next] netfilter: use jump_label for nf_hooks
+Date: Mon, 21 Nov 2011 16:39:03 -0500 (EST)
+Message-ID: <20111121.163903.1188643166689254222.davem@davemloft.net>
+References: <1321673566.3157.14.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Paul Guo <ggang@tilera.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	kaber@trash.net, pablo@netfilter.org
+To: eric.dumazet@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60570 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751716Ab1KURrR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Nov 2011 12:47:17 -0500
-Content-Disposition: inline
-In-Reply-To: <4EC0F4E6.50103@tilera.com>
+Received: from shards.monkeyblade.net ([198.137.202.13]:41392 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752645Ab1KUVlQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Nov 2011 16:41:16 -0500
+In-Reply-To: <1321673566.3157.14.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 14, 2011 at 07:00:54PM +0800, Paul Guo wrote:
-> This patch tries to fix the following issue in netfilter:
-> ip_route_me_harder()->pskb_expand_head() rellocates new header with
-> additional head room which can break the alignment of the original
-> packet header.
-> 
-> In one of my NAT test case, the NIC port for internal hosts is
-> configured with vlan and the port for external hosts is with
-> general configuration. If we ping an external "unknown" hosts from an
-> internal host, an icmp packet will be sent. We find that in
-> icmp_send()->...->ip_route_me_harder()->pskb_expand_head(), hh_len=18
-> and current headroom (skb_headroom(skb)) of the packet is 16. After
-> calling pskb_expand_head() the packet header becomes to be unaligned
-> and then our system (arch/tile) panics immediately.
-> 
-> Here is the patch:
-> 
-> Signed-off-by: Paul Guo <ggang@tilera.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Date: Sat, 19 Nov 2011 04:32:46 +0100
 
-Applied to my nf branch:
+> On configs where CONFIG_JUMP_LABEL=y, we can replace in fast path a
+> load/compare/conditional jump by a single jump with no dcache reference.
+> 
+> Jump target is modified as soon as nf_hooks[pf][hook] switches from
+> empty state to non empty states. jump_label state is kept outside of
+> nf_hooks array so has no cost on cpu caches.
+> 
+> This patch removes the test on CONFIG_NETFILTER_DEBUG : No need to call
+> nf_hook_slow() at all if nf_hooks[pf][hook] is empty, this didnt give
+> useful information, but slowed down things a lot.
+> 
+> Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+> CC: Patrick McHardy <kaber@trash.net>
+> CC: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> This is obviously a netfilter patch, but since David committed two other
+> jump_label patches lately, maybe its better he takes this patch as well
+> directly ? Thanks !
 
-http://1984.lsi.us.es/git/?p=net/.git;a=summary
+I've applied this.
 
-Thanks everyone.
+Originally I was at first concerned because you changed the logic that
+forced nf_hook_slow() to be invoked when NETFILTER_DEBUG is enabled but
+these days that has no real purpose so that part of the change is fine.
+
+Someone might want to double-check this ;-)
