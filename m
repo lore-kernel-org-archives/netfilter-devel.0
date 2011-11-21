@@ -1,50 +1,50 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next] netfilter: use jump_label for nf_hooks
-Date: Mon, 21 Nov 2011 16:39:03 -0500 (EST)
-Message-ID: <20111121.163903.1188643166689254222.davem@davemloft.net>
-References: <1321673566.3157.14.camel@edumazet-laptop>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: ulog2-mysql-schema
+Date: Mon, 21 Nov 2011 22:49:07 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1111212247580.11993@frira.zrqbmnf.qr>
+References: <4EC9C0DA.8050705@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	kaber@trash.net, pablo@netfilter.org
-To: eric.dumazet@gmail.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, eric@regit.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: marty <martinbarrowcliff@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:41392 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752645Ab1KUVlQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Nov 2011 16:41:16 -0500
-In-Reply-To: <1321673566.3157.14.camel@edumazet-laptop>
+Received: from seven.medozas.de ([188.40.89.202]:44352 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757225Ab1KUVtJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Nov 2011 16:49:09 -0500
+In-Reply-To: <4EC9C0DA.8050705@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Date: Sat, 19 Nov 2011 04:32:46 +0100
+Cc-forwarding to nf-dev, and Eric and Pablo, who do ulogd2.
 
-> On configs where CONFIG_JUMP_LABEL=y, we can replace in fast path a
-> load/compare/conditional jump by a single jump with no dcache reference.
-> 
-> Jump target is modified as soon as nf_hooks[pf][hook] switches from
-> empty state to non empty states. jump_label state is kept outside of
-> nf_hooks array so has no cost on cpu caches.
-> 
-> This patch removes the test on CONFIG_NETFILTER_DEBUG : No need to call
-> nf_hook_slow() at all if nf_hooks[pf][hook] is empty, this didnt give
-> useful information, but slowed down things a lot.
-> 
-> Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-> CC: Patrick McHardy <kaber@trash.net>
-> CC: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> This is obviously a netfilter patch, but since David committed two other
-> jump_label patches lately, maybe its better he takes this patch as well
-> directly ? Thanks !
+On Monday 2011-11-21 04:09, marty wrote:
 
-I've applied this.
+> I use ulog2 to log syslog and packet data to mysql.
+> I parse the data for web display using cron scripts; mostly php.
+> All work very reliably and I really love ulog2 despite it's beta...
+> (but the latest beta was very broken for me. I use orig beta4.)
+>
+> The example MySQL schemas with ulog2 are very complex and problematic, plus
+> have errors and no guidance. Not being updated either...
+>
+> I wrote my own sql to handle logging tcp/udp packets.
+> My schema is quite simple and works fine for me on Linux-3, so I took the time
+> to add some complete tutorial stuff to that sql file.
+> Should make it easier to get ulog/mysql working.
+> I have attached my sql (zipped) to this message, as a donation.
+> Please take a look.
+> If you think this is useful in the ulog docs dir feel free to push
+> it with any filename you choose.
+> If you choose not, I won't feel hurt and you need not explain...
+>
+> Best wishes,
+>
+> Marty B.
+>
+>
+>
+>
 
-Originally I was at first concerned because you changed the logic that
-forced nf_hook_slow() to be invoked when NETFILTER_DEBUG is enabled but
-these days that has no real purpose so that part of the change is fine.
-
-Someone might want to double-check this ;-)
