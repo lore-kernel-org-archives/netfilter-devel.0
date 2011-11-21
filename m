@@ -1,54 +1,56 @@
-From: Alex Bligh <alex@alex.org.uk>
-Subject: Re: [PATCH] netfilter: fix ->nfnl NULL oops
-Date: Mon, 21 Nov 2011 23:50:36 +0000
-Message-ID: <20C4F518A396D69CC6A1B157@nimrod.local>
-References: <20111108221634.GA13261@p183.telecom.by>
- <20111109143423.GA24158@1984> <20111115095642.GA28944@1984>
- <61996646E807F2E67842E57F@nimrod.local> <20111121233942.GA13815@1984>
-Reply-To: Alex Bligh <alex@alex.org.uk>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: ulog2-mysql-schema
+Date: Tue, 22 Nov 2011 00:51:05 +0100
+Message-ID: <20111121235105.GA14605@1984>
+References: <4EC9C0DA.8050705@gmail.com>
+ <alpine.LNX.2.01.1111212247580.11993@frira.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Alexey Dobriyan <adobriyan@gmail.com>, kaber@trash.net,
-	netfilter-devel@vger.kernel.org, Alex Bligh <alex@alex.org.uk>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: marty <martinbarrowcliff@gmail.com>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, eric@regit.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.avalus.com ([89.16.176.221]:52133 "EHLO mail.avalus.com"
+Received: from mail.us.es ([193.147.175.20]:45853 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754174Ab1KUXuk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Nov 2011 18:50:40 -0500
-In-Reply-To: <20111121233942.GA13815@1984>
+	id S1752152Ab1KUXvJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Nov 2011 18:51:09 -0500
 Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.01.1111212247580.11993@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Mon, Nov 21, 2011 at 10:49:07PM +0100, Jan Engelhardt wrote:
+> Cc-forwarding to nf-dev, and Eric and Pablo, who do ulogd2.
+> 
+> On Monday 2011-11-21 04:09, marty wrote:
+> 
+> > I use ulog2 to log syslog and packet data to mysql.
+> > I parse the data for web display using cron scripts; mostly php.
+> > All work very reliably and I really love ulog2 despite it's beta...
+> > (but the latest beta was very broken for me. I use orig beta4.)
+> >
+> > The example MySQL schemas with ulog2 are very complex and problematic, plus
+> > have errors and no guidance. Not being updated either...
+> >
+> > I wrote my own sql to handle logging tcp/udp packets.
+> > My schema is quite simple and works fine for me on Linux-3, so I took the time
+> > to add some complete tutorial stuff to that sql file.
+> > Should make it easier to get ulog/mysql working.
+> > I have attached my sql (zipped) to this message, as a donation.
+> > Please take a look.
+> > If you think this is useful in the ulog docs dir feel free to push
+> > it with any filename you choose.
+> > If you choose not, I won't feel hurt and you need not explain...
 
+$ ls *.sql
+mysql-ulogd2-flat.sql  pgsql-ulogd2-flat.sql
+mysql-ulogd2.sql       pgsql-ulogd2.sql
 
---On 22 November 2011 00:39:42 +0100 Pablo Neira Ayuso 
-<pablo@netfilter.org> wrote:
+I think mysql-ulogd2-flat.sql is what you want.
 
-> I didn't try with this script, but the problem can be easily
-> triggered with:
->
-> 0) make sure nf_conntrack_netlink and nf_conntrack_ipv4 are loaded.
-> 1) container is started.
-> 2) connect to it via lxc-console.
-> 3) generate some traffic with the container to create some conntrack
->    entries in its table.
-> 4) stop the container: hit the oops.
->
-> I've been testing the patch that I proposed with this recipe, now it
-> works fine.
->
-> I'll pass my patch for 3.2-rc soon, in case you want to make further
-> testing of it.
+Please, use current ulogd2 git snapshot.
 
-I will try to, when I have a minute. Occasionally I was getting a
-double oops before. My theory at the time was that this was to do
-with passing traffic /as/ the container was being destroyed. I have
-little to substantiate that, but that was the reason for the perl
-script (which really just runs a ping as the container is being
-destroyed, which ensures there are conntrack entries).
-
--- 
-Alex Bligh
+I need to find some spare to release final ulogd 2.0, it's ready for
+prime time since quite some time, blame me for not having done so
+before. I'll try to make it before end of this year.
