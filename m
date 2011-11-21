@@ -1,50 +1,52 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: ulog2-mysql-schema
-Date: Mon, 21 Nov 2011 22:49:07 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1111212247580.11993@frira.zrqbmnf.qr>
-References: <4EC9C0DA.8050705@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: fix ->nfnl NULL oops
+Date: Tue, 22 Nov 2011 00:39:42 +0100
+Message-ID: <20111121233942.GA13815@1984>
+References: <20111108221634.GA13261@p183.telecom.by>
+ <20111109143423.GA24158@1984>
+ <20111115095642.GA28944@1984>
+ <61996646E807F2E67842E57F@nimrod.local>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, eric@regit.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: marty <martinbarrowcliff@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Alexey Dobriyan <adobriyan@gmail.com>, kaber@trash.net,
+	netfilter-devel@vger.kernel.org
+To: Alex Bligh <alex@alex.org.uk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:44352 "EHLO seven.medozas.de"
+Received: from mail.us.es ([193.147.175.20]:45113 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757225Ab1KUVtJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Nov 2011 16:49:09 -0500
-In-Reply-To: <4EC9C0DA.8050705@gmail.com>
+	id S1752368Ab1KUXjv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Nov 2011 18:39:51 -0500
+Content-Disposition: inline
+In-Reply-To: <61996646E807F2E67842E57F@nimrod.local>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Cc-forwarding to nf-dev, and Eric and Pablo, who do ulogd2.
+Hi Alex,
 
-On Monday 2011-11-21 04:09, marty wrote:
+On Tue, Nov 15, 2011 at 10:13:58AM +0000, Alex Bligh wrote:
+> Pablo,
+> 
+> Have you tried this patch (without the ->nfnl NULL check change) with
+> the perl program I wrote that reliably replicates the original bug?
+> 
+> https://bugs.launchpad.net/ubuntu/+source/linux-lts-backport-natty/+bug/843892
+> 
+> specifically the attachment in comment #6:
+> 
+> https://bugs.launchpad.net/ubuntu/+source/linux-lts-backport-natty/+bug/843892/+attachment/2382526/+files/testns.pl
 
-> I use ulog2 to log syslog and packet data to mysql.
-> I parse the data for web display using cron scripts; mostly php.
-> All work very reliably and I really love ulog2 despite it's beta...
-> (but the latest beta was very broken for me. I use orig beta4.)
->
-> The example MySQL schemas with ulog2 are very complex and problematic, plus
-> have errors and no guidance. Not being updated either...
->
-> I wrote my own sql to handle logging tcp/udp packets.
-> My schema is quite simple and works fine for me on Linux-3, so I took the time
-> to add some complete tutorial stuff to that sql file.
-> Should make it easier to get ulog/mysql working.
-> I have attached my sql (zipped) to this message, as a donation.
-> Please take a look.
-> If you think this is useful in the ulog docs dir feel free to push
-> it with any filename you choose.
-> If you choose not, I won't feel hurt and you need not explain...
->
-> Best wishes,
->
-> Marty B.
->
->
->
->
+I didn't try with this script, but the problem can be easily
+triggered with:
 
+0) make sure nf_conntrack_netlink and nf_conntrack_ipv4 are loaded.
+1) container is started.
+2) connect to it via lxc-console.
+3) generate some traffic with the container to create some conntrack
+   entries in its table.
+4) stop the container: hit the oops.
+
+I've been testing the patch that I proposed with this recipe, now it
+works fine.
+
+I'll pass my patch for 3.2-rc soon, in case you want to make further
+testing of it.
