@@ -1,31 +1,71 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [RFC PATCH 00/17] netfilter: IPv6 NAT
-Date: Mon, 21 Nov 2011 14:05:06 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1111211402350.25806@frira.zrqbmnf.qr>
-References: <1321854369-3432-1-git-send-email-kaber@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 02/17] netfilter: nat: remove module reference counting
+ from NAT protocols
+Date: Mon, 21 Nov 2011 15:59:14 +0100
+Message-ID: <4ECA6742.9080906@trash.net>
+References: <1321854369-3432-1-git-send-email-kaber@trash.net>	 <1321854369-3432-3-git-send-email-kaber@trash.net> <1321860997.17419.7.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	ulrich.weber@sophos.com
-To: kaber@trash.net
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:57909 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751299Ab1KUNFI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Nov 2011 08:05:08 -0500
-In-Reply-To: <1321854369-3432-1-git-send-email-kaber@trash.net>
+Received: from stinky.trash.net ([213.144.137.162]:39242 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752371Ab1KUO7S (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Nov 2011 09:59:18 -0500
+In-Reply-To: <1321860997.17419.7.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2011-11-21 06:45, kaber@trash.net wrote:
+On 11/21/2011 08:36 AM, Eric Dumazet wrote:
+> Le lundi 21 novembre 2011 =C3=A0 06:45 +0100, kaber@trash.net a =C3=A9=
+crit :
+>> From: Patrick McHardy<kaber@trash.net>
+>>
+>> The only remaining user of NAT protocol module reference counting is=
+ NAT
+>> ctnetlink support. Since this is a fairly short sequence of code, co=
+nvert
+>> over to use RCU and remove module reference counting.
+>>
+>> Signed-off-by: Patrick McHardy<kaber@trash.net>
+>> @@ -612,16 +592,18 @@ static int nfnetlink_parse_nat_proto(struct nl=
+attr *attr,
+>>   	if (err<  0)
+>>   		return err;
+>>
+>> -	npt =3D nf_nat_proto_find_get(nf_ct_protonum(ct));
+>> +	rcu_read_lock();
+>> +	npt =3D __nf_nat_proto_find(nf_ct_protonum(ct));
+>>   	if (npt->nlattr_to_range)
+>>   		err =3D npt->nlattr_to_range(tb, range);
+>> -	nf_nat_proto_put(npt);
+>> +	rcu_read_unlock();
+>>   	return err;
+>>   }
+> Seems good, but you should explain in changelog why its safe.
+>
+> (Using rcu also means special action must be taken in the write side,
+> here the module removal)
 
-> net/ipv4/netfilter/ipt_REDIRECT.c                  |   23 +-
-> .../{nf_nat_standalone.c => iptable_nat.c}         |  265 ++++-----
-> net/ipv4/netfilter/nf_nat_irc.c                    |    4 +-
-> net/netfilter/nf_conntrack_sip.c                   |  119 +++--
+I'll update the changelog for the next submission.
 
-Pablo once hinted that the patches (and not just the diffstat) should 
-also be produced using move semantics rather than the delete-add cycle, 
-for the reader's benefit. To do this, so I have found, one can use
+>>
+>>   static const struct nla_policy nat_nla_policy[CTA_NAT_MAX+1] =3D {
+>>   	[CTA_NAT_MINIP]		=3D { .type =3D NLA_U32 },
+>>   	[CTA_NAT_MAXIP]		=3D { .type =3D NLA_U32 },
+>> +	[CTA_NAT_PROTO]		=3D { .type =3D NLA_NESTED },
+>>   };
+> I just dont understand this part :-
 
- git send-email ... --format-patch -M
+Yeah, it doesn't belong into this patch.
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
