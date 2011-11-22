@@ -1,20 +1,21 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pierre Chifflier <chifflier@wzdftpd.net>
 Subject: Re: ulog2-mysql-schema
-Date: Tue, 22 Nov 2011 00:51:05 +0100
-Message-ID: <20111121235105.GA14605@1984>
+Date: Tue, 22 Nov 2011 10:25:29 +0100
+Message-ID: <20111122092528.GC2487@mail.wzdftpd.net>
 References: <4EC9C0DA.8050705@gmail.com>
  <alpine.LNX.2.01.1111212247580.11993@frira.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: marty <martinbarrowcliff@gmail.com>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, eric@regit.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, eric@regit.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jan Engelhardt <jengelh@medozas.de>
+To: marty <martinbarrowcliff@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45853 "EHLO mail.us.es"
+Received: from www.wzdftpd.net ([91.121.80.151]:37358 "EHLO mail.wzdftpd.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752152Ab1KUXvJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Nov 2011 18:51:09 -0500
+	id S1752583Ab1KVJdN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Nov 2011 04:33:13 -0500
 Content-Disposition: inline
 In-Reply-To: <alpine.LNX.2.01.1111212247580.11993@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -42,15 +43,16 @@ On Mon, Nov 21, 2011 at 10:49:07PM +0100, Jan Engelhardt wrote:
 > > If you think this is useful in the ulog docs dir feel free to push
 > > it with any filename you choose.
 > > If you choose not, I won't feel hurt and you need not explain...
+> >
+> > Best wishes,
+> >
 
-$ ls *.sql
-mysql-ulogd2-flat.sql  pgsql-ulogd2-flat.sql
-mysql-ulogd2.sql       pgsql-ulogd2.sql
+Hi,
 
-I think mysql-ulogd2-flat.sql is what you want.
+As Pablo said, I think the schema you want is the -flat one (with one
+table).
 
-Please, use current ulogd2 git snapshot.
+Your SQL schema was not attached in the forwarded mail from Jan, can you
+resend it (to the list, or directly to me if too big) ?
 
-I need to find some spare to release final ulogd 2.0, it's ready for
-prime time since quite some time, blame me for not having done so
-before. I'll try to make it before end of this year.
+Pierre
