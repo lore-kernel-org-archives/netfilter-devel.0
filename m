@@ -1,46 +1,94 @@
-From: richard -rw- weinberger <richard.weinberger@gmail.com>
+From: David Miller <davem@davemloft.net>
 Subject: Re: RAW netfilter - "advanced netfilter setting" or not?
-Date: Wed, 23 Nov 2011 21:51:48 +0100
-Message-ID: <CAFLxGvzQc4MqmPqjeviMuFtRTzH_LZDt6veO7Hk+yapjDvne1g@mail.gmail.com>
-References: <CA+55aFxtSgLppJQ8EbQEovdXsCNxQ1gT31FyP2cpyuvoBLajZw@mail.gmail.com>
-	<4ECD5069.4090106@trash.net>
-	<CA+55aFxy5iojY8AZfK+fK_OURLPsD_8Y6z9FXnHt88jYFMrimg@mail.gmail.com>
+Date: Wed, 23 Nov 2011 16:07:19 -0500 (EST)
+Message-ID: <20111123.160719.540568233963799514.davem@davemloft.net>
+References: <CA+55aFzvZowH1_bA66VZ5Aw0wF3KzdGSqiNZLw46J3u4gpKnxA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: richard.weinberger@gmail.com, pablo@netfilter.org,
+	netdev@vger.kernel.org, kaber@trash.net,
+	netfilter-devel@vger.kernel.org
+To: torvalds@linux-foundation.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:47909 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620Ab1KWUvt (ORCPT
+Received: from shards.monkeyblade.net ([198.137.202.13]:38839 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753398Ab1KWVJe (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Nov 2011 15:51:49 -0500
-In-Reply-To: <CA+55aFxy5iojY8AZfK+fK_OURLPsD_8Y6z9FXnHt88jYFMrimg@mail.gmail.com>
+	Wed, 23 Nov 2011 16:09:34 -0500
+In-Reply-To: <CA+55aFzvZowH1_bA66VZ5Aw0wF3KzdGSqiNZLw46J3u4gpKnxA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 23, 2011 at 9:17 PM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> On Wed, Nov 23, 2011 at 11:58 AM, Patrick McHardy <kaber@trash.net> wrote:
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Wed, 23 Nov 2011 12:58:20 -0800
+
+> On Nov 23, 2011 12:51 PM, "richard -rw- weinberger" <
+> richard.weinberger@gmail.com> wrote:
 >>
->> Most likely they're using NOTRACK to avoid connection tracking for
->> some traffic. Could you post the output of "iptables -t raw -vxnL"?
->
-> Hmm. That's actually empty for me. I only went by some error messages
-> during bootup. Or maybe I should boot the distro kernel to see that
-> there isn't something else I'm missing that makes the user setup
-> unhappy.
->
+>> SuSEfirewall2 is using NOTRACK for the lo interface.
+>>
+>> iptables -t raw -A PREROUTING -j NOTRACK -i lo
+>> iptables -t raw -A OUTPUT -j NOTRACK -o lo
+> 
+> Yeah, and that (NOTRACK) was another thing that was disabled due to
+> depending on advanced config... Which is probably why my raw table was
+> empty even after I enabled that one by hand.
+> 
+> So we'd need to unhide both raw and notrack, methinks.
 
-SuSEfirewall2 is using NOTRACK for the lo interface.
+I just tossed the following into my tree:
 
-iptables -t raw -A PREROUTING -j NOTRACK -i lo
-iptables -t raw -A OUTPUT -j NOTRACK -o lo
+--------------------
+[PATCH] netfilter: Remove NOTRACK/RAW dependency on NETFILTER_ADVANCED.
 
+Distributions are using this in their default scripts, so don't hide
+them behind the advanced setting.
 
+Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ net/ipv4/netfilter/Kconfig |    1 -
+ net/ipv6/netfilter/Kconfig |    1 -
+ net/netfilter/Kconfig      |    1 -
+ 3 files changed, 0 insertions(+), 3 deletions(-)
+
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 1dfc18a..f19f218 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -325,7 +325,6 @@ config IP_NF_TARGET_TTL
+ # raw + specific targets
+ config IP_NF_RAW
+ 	tristate  'raw table support (required for NOTRACK/TRACE)'
+-	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This option adds a `raw' table to iptables. This table is the very
+ 	  first in the netfilter framework and hooks in at the PREROUTING
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index 4484648..f792b34 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -186,7 +186,6 @@ config IP6_NF_MANGLE
+ 
+ config IP6_NF_RAW
+ 	tristate  'raw table support (required for TRACE)'
+-	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This option adds a `raw' table to ip6tables. This table is the very
+ 	  first in the netfilter framework and hooks in at the PREROUTING
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 8260b13..e8f3796 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -542,7 +542,6 @@ config NETFILTER_XT_TARGET_NOTRACK
+ 	tristate  '"NOTRACK" target support'
+ 	depends on IP_NF_RAW || IP6_NF_RAW
+ 	depends on NF_CONNTRACK
+-	depends on NETFILTER_ADVANCED
+ 	help
+ 	  The NOTRACK target allows a select rule to specify
+ 	  which packets *not* to enter the conntrack/NAT
 -- 
-Thanks,
-//richard
+1.7.6.4
+
