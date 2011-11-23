@@ -1,49 +1,33 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: RAW netfilter - "advanced netfilter setting" or not?
-Date: Wed, 23 Nov 2011 20:58:33 +0100
-Message-ID: <4ECD5069.4090106@trash.net>
+Date: Wed, 23 Nov 2011 12:17:38 -0800
+Message-ID: <CA+55aFxy5iojY8AZfK+fK_OURLPsD_8Y6z9FXnHt88jYFMrimg@mail.gmail.com>
 References: <CA+55aFxtSgLppJQ8EbQEovdXsCNxQ1gT31FyP2cpyuvoBLajZw@mail.gmail.com>
+ <4ECD5069.4090106@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Cc: David Miller <davem@davemloft.net>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59562 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750990Ab1KWT6h (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:62139 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751196Ab1KWU0J (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Nov 2011 14:58:37 -0500
-In-Reply-To: <CA+55aFxtSgLppJQ8EbQEovdXsCNxQ1gT31FyP2cpyuvoBLajZw@mail.gmail.com>
+	Wed, 23 Nov 2011 15:26:09 -0500
+In-Reply-To: <4ECD5069.4090106@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 23.11.2011 20:45, Linus Torvalds wrote:
-> So I'm the one who long ago asked for some of the more esoteric
-> netfilter configuration questions to be hidden behind some "advanced"
-> question, and thus the reason why a lot of them are behind that
-> NETFILTER_ADVANCED Kconfig setting.
-> 
-> However, I'm now trying OpenSUSE on one of my laptops, and it looks
-> like the RAW filter is used by the default OS iptables setup. The fact
-> that it is hidden behind NETFILTER_ADVANCED now means that I either
-> have to enable the advanced netfilter Kconfig questions, or we should
-> just remove the "depends on NETFILTER_ADVANCED" for the RAW case (or,
-> rather - caseS - since there's a separate raw filter for ipv4 and
-> ipv6, which sounds odd in itself, but that's another issue entirely)
-> 
-> My gut feel is that if it's one of the filters that a major distro
-> depends on by default, it should no longer be hidden.
+On Wed, Nov 23, 2011 at 11:58 AM, Patrick McHardy <kaber@trash.net> wrote:
+>
+> Most likely they're using NOTRACK to avoid connection tracking for
+> some traffic. Could you post the output of "iptables -t raw -vxnL"?
 
-Agreed, the main point was to enable everything used by major
-distributions by default (default m if NETFILTER_ADVANCED=n)
-and hide everything else.
+Hmm. That's actually empty for me. I only went by some error messages
+during bootup. Or maybe I should boot the distro kernel to see that
+there isn't something else I'm missing that makes the user setup
+unhappy.
 
-> But honestly, I
-> didn't look at *why* OpenSUSE uses that filter. Maybe it's just doing
-> something really odd and crazy.
-
-Most likely they're using NOTRACK to avoid connection tracking for
-some traffic. Could you post the output of "iptables -t raw -vxnL"?
+                     Linus
