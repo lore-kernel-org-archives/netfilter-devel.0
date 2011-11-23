@@ -1,33 +1,46 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: richard -rw- weinberger <richard.weinberger@gmail.com>
 Subject: Re: RAW netfilter - "advanced netfilter setting" or not?
-Date: Wed, 23 Nov 2011 12:17:38 -0800
-Message-ID: <CA+55aFxy5iojY8AZfK+fK_OURLPsD_8Y6z9FXnHt88jYFMrimg@mail.gmail.com>
+Date: Wed, 23 Nov 2011 21:51:48 +0100
+Message-ID: <CAFLxGvzQc4MqmPqjeviMuFtRTzH_LZDt6veO7Hk+yapjDvne1g@mail.gmail.com>
 References: <CA+55aFxtSgLppJQ8EbQEovdXsCNxQ1gT31FyP2cpyuvoBLajZw@mail.gmail.com>
- <4ECD5069.4090106@trash.net>
+	<4ECD5069.4090106@trash.net>
+	<CA+55aFxy5iojY8AZfK+fK_OURLPsD_8Y6z9FXnHt88jYFMrimg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Cc: David Miller <davem@davemloft.net>,
+Cc: Patrick McHardy <kaber@trash.net>,
+	David Miller <davem@davemloft.net>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Linus Torvalds <torvalds@linux-foundation.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:62139 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751196Ab1KWU0J (ORCPT
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:47909 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752620Ab1KWUvt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Nov 2011 15:26:09 -0500
-In-Reply-To: <4ECD5069.4090106@trash.net>
+	Wed, 23 Nov 2011 15:51:49 -0500
+In-Reply-To: <CA+55aFxy5iojY8AZfK+fK_OURLPsD_8Y6z9FXnHt88jYFMrimg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 23, 2011 at 11:58 AM, Patrick McHardy <kaber@trash.net> wrote:
+On Wed, Nov 23, 2011 at 9:17 PM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+> On Wed, Nov 23, 2011 at 11:58 AM, Patrick McHardy <kaber@trash.net> wrote:
+>>
+>> Most likely they're using NOTRACK to avoid connection tracking for
+>> some traffic. Could you post the output of "iptables -t raw -vxnL"?
 >
-> Most likely they're using NOTRACK to avoid connection tracking for
-> some traffic. Could you post the output of "iptables -t raw -vxnL"?
+> Hmm. That's actually empty for me. I only went by some error messages
+> during bootup. Or maybe I should boot the distro kernel to see that
+> there isn't something else I'm missing that makes the user setup
+> unhappy.
+>
 
-Hmm. That's actually empty for me. I only went by some error messages
-during bootup. Or maybe I should boot the distro kernel to see that
-there isn't something else I'm missing that makes the user setup
-unhappy.
+SuSEfirewall2 is using NOTRACK for the lo interface.
 
-                     Linus
+iptables -t raw -A PREROUTING -j NOTRACK -i lo
+iptables -t raw -A OUTPUT -j NOTRACK -o lo
+
+
+-- 
+Thanks,
+//richard
