@@ -1,279 +1,46 @@
 From: kaber@trash.net
-Subject: [PATCH 3/6] extensions: add IPv6 SNAT extension
-Date: Wed, 23 Nov 2011 17:12:27 +0100
-Message-ID: <1322064750-26744-4-git-send-email-kaber@trash.net>
-References: <1322064750-26744-1-git-send-email-kaber@trash.net>
+Subject: [PATCH 0/6] extensions: IPv6 NAT extensions
+Date: Wed, 23 Nov 2011 17:12:24 +0100
+Message-ID: <1322064750-26744-1-git-send-email-kaber@trash.net>
 Cc: kaber@trash.net, ulrich.weber@sophos.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55468 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:55465 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752802Ab1KWQMg (ORCPT
+	with ESMTP id S1752840Ab1KWQMh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Nov 2011 11:12:36 -0500
-In-Reply-To: <1322064750-26744-1-git-send-email-kaber@trash.net>
+	Wed, 23 Nov 2011 11:12:37 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
+The following patches contain the IPv6 NAT extensions for my IPv6
+NAT patchset posted on Monday. Nothing particulary interesting about
+the patches ...
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- extensions/libip6t_SNAT.c |  245 +++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 245 insertions(+), 0 deletions(-)
- create mode 100644 extensions/libip6t_SNAT.c
 
-diff --git a/extensions/libip6t_SNAT.c b/extensions/libip6t_SNAT.c
-new file mode 100644
-index 0000000..f1c56d7
---- /dev/null
-+++ b/extensions/libip6t_SNAT.c
-@@ -0,0 +1,245 @@
-+/*
-+ * Copyright (c) 2011 Patrick McHardy <kaber@trash.net>
-+ *
-+ * Based on Rusty Russell's IPv4 SNAT target. Development of IPv6 NAT
-+ * funded by Astaro.
-+ */
-+
-+#include <stdio.h>
-+#include <netdb.h>
-+#include <string.h>
-+#include <stdlib.h>
-+#include <xtables.h>
-+#include <iptables.h>
-+#include <limits.h> /* INT_MAX in ip_tables.h */
-+#include <linux/netfilter_ipv6/ip6_tables.h>
-+#include <linux/netfilter/nf_nat.h>
-+
-+enum {
-+	O_TO_SRC = 0,
-+	O_RANDOM,
-+	O_PERSISTENT,
-+	O_X_TO_SRC,
-+	F_TO_SRC   = 1 << O_TO_SRC,
-+	F_RANDOM   = 1 << O_RANDOM,
-+	F_X_TO_SRC = 1 << O_X_TO_SRC,
-+};
-+
-+static void SNAT_help(void)
-+{
-+	printf(
-+"SNAT target options:\n"
-+" --to-source [<ipaddr>[-<ipaddr>]][:port[-port]]\n"
-+"				Address to map source to.\n"
-+"[--random] [--persistent]\n");
-+}
-+
-+static const struct xt_option_entry SNAT_opts[] = {
-+	{.name = "to-source", .id = O_TO_SRC, .type = XTTYPE_STRING,
-+	 .flags = XTOPT_MAND | XTOPT_MULTI},
-+	{.name = "random", .id = O_RANDOM, .type = XTTYPE_NONE},
-+	{.name = "persistent", .id = O_PERSISTENT, .type = XTTYPE_NONE},
-+	XTOPT_TABLEEND,
-+};
-+
-+/* Ranges expected in network order. */
-+static void
-+parse_to(const char *orig_arg, int portok, struct nf_nat_range *range)
-+{
-+	char *arg, *start, *end = NULL, *colon = NULL, *dash, *error;
-+	const struct in6_addr *ip;
-+
-+	arg = strdup(orig_arg);
-+	if (arg == NULL)
-+		xtables_error(RESOURCE_PROBLEM, "strdup");
-+
-+	start = strchr(arg, '[');
-+	if (start == NULL)
-+		start = arg;
-+	else {
-+		start++;
-+		end = strchr(start, ']');
-+		if (end == NULL)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "Invalid address format");
-+
-+		*end = '\0';
-+		colon = strchr(end + 1, ':');
-+	}
-+
-+	if (colon) {
-+		int port;
-+
-+		if (!portok)
-+			xtables_error(PARAMETER_PROBLEM,
-+				   "Need TCP, UDP, SCTP or DCCP with port specification");
-+
-+		range->flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
-+
-+		port = atoi(colon+1);
-+		if (port <= 0 || port > 65535)
-+			xtables_error(PARAMETER_PROBLEM,
-+				   "Port `%s' not valid\n", colon+1);
-+
-+		error = strchr(colon+1, ':');
-+		if (error)
-+			xtables_error(PARAMETER_PROBLEM,
-+				   "Invalid port:port syntax - use dash\n");
-+
-+		dash = strchr(colon, '-');
-+		if (!dash) {
-+			range->min_proto.tcp.port
-+				= range->max_proto.tcp.port
-+				= htons(port);
-+		} else {
-+			int maxport;
-+
-+			maxport = atoi(dash + 1);
-+			if (maxport <= 0 || maxport > 65535)
-+				xtables_error(PARAMETER_PROBLEM,
-+					   "Port `%s' not valid\n", dash+1);
-+			if (maxport < port)
-+				/* People are stupid. */
-+				xtables_error(PARAMETER_PROBLEM,
-+					   "Port range `%s' funky\n", colon+1);
-+			range->min_proto.tcp.port = htons(port);
-+			range->max_proto.tcp.port = htons(maxport);
-+		}
-+		/* Starts with a colon? No IP info...*/
-+		if (colon == arg) {
-+			free(arg);
-+			return;
-+		}
-+		*colon = '\0';
-+	}
-+
-+	range->flags |= NF_NAT_RANGE_MAP_IPS;
-+	dash = strchr(start, '-');
-+	if (colon && dash && dash > colon)
-+		dash = NULL;
-+
-+	if (dash)
-+		*dash = '\0';
-+
-+	ip = xtables_numeric_to_ip6addr(start);
-+	if (!ip)
-+		xtables_error(PARAMETER_PROBLEM, "Bad IP address \"%s\"\n",
-+			      start);
-+	range->min_addr.in6 = *ip;
-+	if (dash) {
-+		ip = xtables_numeric_to_ip6addr(dash + 1);
-+		if (!ip)
-+			xtables_error(PARAMETER_PROBLEM, "Bad IP address \"%s\"\n",
-+				      dash+1);
-+		range->max_addr.in6 = *ip;
-+	} else
-+		range->max_addr = range->min_addr;
-+
-+	free(arg);
-+	return;
-+}
-+
-+static void SNAT_parse(struct xt_option_call *cb)
-+{
-+	const struct ip6t_entry *entry = cb->xt_entry;
-+	struct nf_nat_range *range = cb->data;
-+	int portok;
-+
-+	if (entry->ipv6.proto == IPPROTO_TCP ||
-+	    entry->ipv6.proto == IPPROTO_UDP ||
-+	    entry->ipv6.proto == IPPROTO_SCTP ||
-+	    entry->ipv6.proto == IPPROTO_DCCP ||
-+	    entry->ipv6.proto == IPPROTO_ICMP)
-+		portok = 1;
-+	else
-+		portok = 0;
-+
-+	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case O_TO_SRC:
-+		if (cb->xflags & F_X_TO_SRC) {
-+			if (!kernel_version)
-+				get_kernel_version();
-+			if (kernel_version > LINUX_VERSION(2, 6, 10))
-+				xtables_error(PARAMETER_PROBLEM,
-+					   "SNAT: Multiple --to-source not supported");
-+		}
-+		parse_to(cb->arg, portok, range);
-+		/* WTF do we need this for?? */
-+		if (cb->xflags & F_RANDOM)
-+			range->flags |= NF_NAT_RANGE_PROTO_RANDOM;
-+		cb->xflags |= F_X_TO_SRC;
-+		break;
-+	case O_RANDOM:
-+		if (cb->xflags & F_TO_SRC)
-+			range->flags |= NF_NAT_RANGE_PROTO_RANDOM;
-+		break;
-+	case O_PERSISTENT:
-+		range->flags |= NF_NAT_RANGE_PERSISTENT;
-+		break;
-+	}
-+}
-+
-+static void print_range(const struct nf_nat_range *range)
-+{
-+	if (range->flags & NF_NAT_RANGE_MAP_IPS) {
-+		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)
-+			printf("[");
-+		printf("%s", xtables_ip6addr_to_numeric(&range->min_addr.in6));
-+		if (memcmp(&range->min_addr, &range->max_addr,
-+			   sizeof(range->min_addr)))
-+			printf("-%s", xtables_ip6addr_to_numeric(&range->max_addr.in6));
-+		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)
-+			printf("]");
-+	}
-+	if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
-+		printf(":");
-+		printf("%hu", ntohs(range->min_proto.tcp.port));
-+		if (range->max_proto.tcp.port != range->min_proto.tcp.port)
-+			printf("-%hu", ntohs(range->max_proto.tcp.port));
-+	}
-+}
-+
-+static void SNAT_print(const void *ip, const struct xt_entry_target *target,
-+                       int numeric)
-+{
-+	const struct nf_nat_range *range = (const void *)target->data;
-+
-+	printf(" to:");
-+	print_range(range);
-+	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM)
-+		printf(" random");
-+	if (range->flags & NF_NAT_RANGE_PERSISTENT)
-+		printf(" persistent");
-+}
-+
-+static void SNAT_save(const void *ip, const struct xt_entry_target *target)
-+{
-+	const struct nf_nat_range *range = (const void *)target->data;
-+
-+	printf(" --to-source ");
-+	print_range(range);
-+	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM)
-+		printf(" --random");
-+	if (range->flags & NF_NAT_RANGE_PERSISTENT)
-+		printf(" --persistent");
-+}
-+
-+static struct xtables_target snat_tg_reg = {
-+	.name		= "SNAT",
-+	.version	= XTABLES_VERSION,
-+	.family		= NFPROTO_IPV6,
-+	.revision	= 1,
-+	.size		= XT_ALIGN(sizeof(struct nf_nat_range)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_range)),
-+	.help		= SNAT_help,
-+	.x6_parse	= SNAT_parse,
-+	.print		= SNAT_print,
-+	.save		= SNAT_save,
-+	.x6_options	= SNAT_opts,
-+};
-+
-+void _init(void)
-+{
-+	xtables_register_target(&snat_tg_reg);
-+}
--- 
-1.7.1
+Patrick McHardy (6):
+      extensions: convert NAT target to use nf_nat.h
+      extensions: add IPv6 MASQUERADE extension
+      extensions: add IPv6 SNAT extension
+      extensions: add IPv6 DNAT target
+      extensions: add IPv6 REDIRECT extension
+      extensions: add IPv6 NETMAP extension
+
+ extensions/libip6t_DNAT.c                          |  245 ++++++++++++++++++++
+ extensions/libip6t_MASQUERADE.c                    |  150 ++++++++++++
+ extensions/libip6t_NETMAP.c                        |   93 ++++++++
+ extensions/libip6t_REDIRECT.c                      |  151 ++++++++++++
+ extensions/libip6t_SNAT.c                          |  245 ++++++++++++++++++++
+ extensions/libipt_DNAT.c                           |   36 ++--
+ extensions/libipt_MASQUERADE.c                     |   32 ++--
+ extensions/libipt_NETMAP.c                         |   18 +-
+ extensions/libipt_REDIRECT.c                       |   34 ++--
+ extensions/libipt_SAME.c                           |   18 +-
+ extensions/libipt_SNAT.c                           |   36 ++--
+ .../linux/netfilter/nf_conntrack_tuple_common.h    |   27 +++
+ include/linux/netfilter/nf_nat.h                   |   33 +++
+ include/linux/netfilter_ipv4/ipt_SAME.h            |    2 +-
+ include/net/netfilter/nf_conntrack_tuple.h         |  114 ---------
+ include/net/netfilter/nf_nat.h                     |   55 -----
+ 16 files changed, 1032 insertions(+), 257 deletions(-)
 
