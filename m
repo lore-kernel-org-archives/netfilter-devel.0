@@ -1,56 +1,67 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: fix ->nfnl NULL oops
-Date: Tue, 22 Nov 2011 15:23:58 +0100
-Message-ID: <20111122142358.GC24496@1984>
-References: <20111108221634.GA13261@p183.telecom.by>
- <20111109143423.GA24158@1984>
- <20111115095642.GA28944@1984>
- <61996646E807F2E67842E57F@nimrod.local>
- <20111121233942.GA13815@1984>
- <20C4F518A396D69CC6A1B157@nimrod.local>
+From: marty <martinbarrowcliff@gmail.com>
+Subject: ulogd2 on valgrind
+Date: Wed, 23 Nov 2011 09:57:31 -0500
+Message-ID: <4ECD09DB.2060808@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Alexey Dobriyan <adobriyan@gmail.com>, kaber@trash.net,
-	netfilter-devel@vger.kernel.org
-To: Alex Bligh <alex@alex.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38109 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755547Ab1KVOYD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Nov 2011 09:24:03 -0500
-Content-Disposition: inline
-In-Reply-To: <20C4F518A396D69CC6A1B157@nimrod.local>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:40915 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756096Ab1KWO5e (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Nov 2011 09:57:34 -0500
+Received: by vbbfc26 with SMTP id fc26so515402vbb.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Nov 2011 06:57:34 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 21, 2011 at 11:50:36PM +0000, Alex Bligh wrote:
-> 
-> 
-> --On 22 November 2011 00:39:42 +0100 Pablo Neira Ayuso
-> <pablo@netfilter.org> wrote:
-> 
-> >I didn't try with this script, but the problem can be easily
-> >triggered with:
-> >
-> >0) make sure nf_conntrack_netlink and nf_conntrack_ipv4 are loaded.
-> >1) container is started.
-> >2) connect to it via lxc-console.
-> >3) generate some traffic with the container to create some conntrack
-> >   entries in its table.
-> >4) stop the container: hit the oops.
-> >
-> >I've been testing the patch that I proposed with this recipe, now it
-> >works fine.
-> >
-> >I'll pass my patch for 3.2-rc soon, in case you want to make further
-> >testing of it.
-> 
-> I will try to, when I have a minute. Occasionally I was getting a
-> double oops before. My theory at the time was that this was to do
-> with passing traffic /as/ the container was being destroyed. I have
-> little to substantiate that, but that was the reason for the perl
-> script (which really just runs a ping as the container is being
-> destroyed, which ensures there are conntrack entries).
+Ulogd2 was compiled from current Git using recent x86 toolchain.
 
-I think my fix is OK but more validation is always welcome, so I'd
-appreciate if you validate this with your script ;-).
+# valgrind --leak-check=yes  /usr/sbin/ulogd -d
+==22245== Memcheck, a memory error detector
+==22245== Copyright (C) 2002-2011, and GNU GPL'd, by Julian Seward et al.
+==22245== Using Valgrind-3.8.0.SVN and LibVEX; rerun with -h for 
+copyright info
+==22245== Command: /usr/sbin/ulogd -d
+==22245==
+==22245== Invalid read of size 4
+==22245==    at 0x804A012: create_stack (ulogd.c:536)
+==22245==    by 0x804C83D: config_parse_file (conffile.c:198)
+==22245==    by 0x804B4DC: main (ulogd.c:949)
+==22245==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==22245==
+==22245==
+==22245== Process terminating with default action of signal 11 (SIGSEGV)
+==22245==  Access not within mapped region at address 0x28
+==22245==    at 0x804A012: create_stack (ulogd.c:536)
+==22245==    by 0x804C83D: config_parse_file (conffile.c:198)
+==22245==    by 0x804B4DC: main (ulogd.c:949)
+==22245==  If you believe this happened as a result of a stack
+==22245==  overflow in your program's main thread (unlikely but
+==22245==  possible), you can try to increase the size of the
+==22245==  main thread stack using the --main-stacksize= flag.
+==22245==  The main thread stack size used in this run was 8388608.
+==22245==
+==22245== HEAP SUMMARY:
+==22245==     in use at exit: 15,888 bytes in 107 blocks
+==22245==   total heap usage: 129 allocs, 22 frees, 17,866 bytes allocated
+==22245==
+==22245== LEAK SUMMARY:
+==22245==    definitely lost: 0 bytes in 0 blocks
+==22245==    indirectly lost: 0 bytes in 0 blocks
+==22245==      possibly lost: 0 bytes in 0 blocks
+==22245==    still reachable: 15,888 bytes in 107 blocks
+==22245==         suppressed: 0 bytes in 0 blocks
+==22245== Reachable blocks (those to which a pointer was found) are not 
+shown.
+==22245== To see them, rerun with: --leak-check=full --show-reachable=yes
+==22245==
+==22245== For counts of detected and suppressed errors, rerun with: -v
+==22245== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 103 from 11)
+Segmentation fault
+
+If additional tests are desired please ask.
+
+Marty B.
