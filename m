@@ -1,39 +1,35 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: RAW netfilter - "advanced netfilter setting" or not?
-Date: Wed, 23 Nov 2011 23:32:23 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1111232325500.27025@frira.zrqbmnf.qr>
-References: <CA+55aFxtSgLppJQ8EbQEovdXsCNxQ1gT31FyP2cpyuvoBLajZw@mail.gmail.com> <alpine.LNX.2.01.1111232217220.27025@frira.zrqbmnf.qr> <CA+55aFyQGf4sFNOVsv4krddn3gxQ=roqVHpC98-Ynx8iBqpRaQ@mail.gmail.com>
+Date: Wed, 23 Nov 2011 14:58:25 -0800
+Message-ID: <CA+55aFxPHAf7DDD4cd3ZHNhwdbV4ijSZz83U5=5BzYqgiVKdtg@mail.gmail.com>
+References: <CA+55aFxtSgLppJQ8EbQEovdXsCNxQ1gT31FyP2cpyuvoBLajZw@mail.gmail.com>
+ <alpine.LNX.2.01.1111232217220.27025@frira.zrqbmnf.qr> <CA+55aFyQGf4sFNOVsv4krddn3gxQ=roqVHpC98-Ynx8iBqpRaQ@mail.gmail.com>
+ <alpine.LNX.2.01.1111232325500.27025@frira.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Cc: David Miller <davem@davemloft.net>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:53404 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756414Ab1KWWcY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Nov 2011 17:32:24 -0500
-In-Reply-To: <CA+55aFyQGf4sFNOVsv4krddn3gxQ=roqVHpC98-Ynx8iBqpRaQ@mail.gmail.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:41452 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756586Ab1KWW6s (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Nov 2011 17:58:48 -0500
+In-Reply-To: <alpine.LNX.2.01.1111232325500.27025@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Wednesday 2011-11-23 23:02, Linus Torvalds wrote:
->On Wed, Nov 23, 2011 at 1:27 PM, Jan Engelhardt <jengelh@medozas.de> wrote:
->>
->> In my opinion, NETFILTER_ADVANCED should be changed to only control
->> the visibility of all suboptions, i.e. I suggest that "default m if
->> NETFILTER_ADVANCED=n" be done for all non-deprecated modules.
->> (Similar to how CONFIG_EXPERT works.)
+On Wed, Nov 23, 2011 at 2:32 PM, Jan Engelhardt <jengelh@medozas.de> wrote:
 >
->No thank you. That makes the whole option pointless. [...]
->The whole point of NETFILTER_ADVANCED is for people like me who
->actually want a fairly *minimal* kernel config, and probably one that
->has no modules.
+> Right, but how would you decide what will be enabled/disabled by
+> default? It seems unlikely you will be adding a patch (like Dave's)
+> everytime a default distro installation throws certain errors once
+> you run your own kernel configs.
 
-Right, but how would you decide what will be enabled/disabled by
-default? It seems unlikely you will be adding a patch (like Dave's)
-everytime a default distro installation throws certain errors once
-you run your own kernel configs.
+I do think that "major distributions do this by default" should simply
+be the point for deciding it. Nothing more, nothing less.
+
+                      Linus
