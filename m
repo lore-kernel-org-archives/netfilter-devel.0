@@ -1,94 +1,58 @@
-From: David Miller <davem@davemloft.net>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: RAW netfilter - "advanced netfilter setting" or not?
-Date: Wed, 23 Nov 2011 16:07:19 -0500 (EST)
-Message-ID: <20111123.160719.540568233963799514.davem@davemloft.net>
-References: <CA+55aFzvZowH1_bA66VZ5Aw0wF3KzdGSqiNZLw46J3u4gpKnxA@mail.gmail.com>
+Date: Wed, 23 Nov 2011 22:27:46 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1111232217220.27025@frira.zrqbmnf.qr>
+References: <CA+55aFxtSgLppJQ8EbQEovdXsCNxQ1gT31FyP2cpyuvoBLajZw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: richard.weinberger@gmail.com, pablo@netfilter.org,
-	netdev@vger.kernel.org, kaber@trash.net,
-	netfilter-devel@vger.kernel.org
-To: torvalds@linux-foundation.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: David Miller <davem@davemloft.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:38839 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753398Ab1KWVJe (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Nov 2011 16:09:34 -0500
-In-Reply-To: <CA+55aFzvZowH1_bA66VZ5Aw0wF3KzdGSqiNZLw46J3u4gpKnxA@mail.gmail.com>
+Received: from seven.medozas.de ([188.40.89.202]:58095 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751616Ab1KWV1s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Nov 2011 16:27:48 -0500
+In-Reply-To: <CA+55aFxtSgLppJQ8EbQEovdXsCNxQ1gT31FyP2cpyuvoBLajZw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Wed, 23 Nov 2011 12:58:20 -0800
+On Wednesday 2011-11-23 20:45, Linus Torvalds wrote:
 
-> On Nov 23, 2011 12:51 PM, "richard -rw- weinberger" <
-> richard.weinberger@gmail.com> wrote:
->>
->> SuSEfirewall2 is using NOTRACK for the lo interface.
->>
->> iptables -t raw -A PREROUTING -j NOTRACK -i lo
->> iptables -t raw -A OUTPUT -j NOTRACK -o lo
-> 
-> Yeah, and that (NOTRACK) was another thing that was disabled due to
-> depending on advanced config... Which is probably why my raw table was
-> empty even after I enabled that one by hand.
-> 
-> So we'd need to unhide both raw and notrack, methinks.
+>So I'm the one who long ago asked for some of the more esoteric
+>netfilter configuration questions to be hidden behind some "advanced"
+>question, and thus the reason why a lot of them are behind that
+>NETFILTER_ADVANCED Kconfig setting.
+>
+>However, I'm now trying OpenSUSE on one of my laptops, and it looks
+>like the RAW filter is used by the default OS iptables setup. The fact
+>that it is hidden behind NETFILTER_ADVANCED now means that I either
+>have to enable the advanced netfilter Kconfig questions, or we should
+>just remove the "depends on NETFILTER_ADVANCED" for the RAW case (or,
+>rather - caseS - since there's a separate raw filter for ipv4 and
+>ipv6, which sounds odd in itself, but that's another issue entirely)
 
-I just tossed the following into my tree:
+Welcome to the green. You will find the most complete Netfilter stack
+here :)
 
---------------------
-[PATCH] netfilter: Remove NOTRACK/RAW dependency on NETFILTER_ADVANCED.
+>My gut feel is that if it's one of the filters that a major distro
+>depends on by default, it should no longer be hidden. But honestly, I
+>didn't look at *why* OpenSUSE uses that filter. Maybe it's just doing
+>something really odd and crazy.
 
-Distributions are using this in their default scripts, so don't hide
-them behind the advanced setting.
+The "raw" table is populated by SUSE SFW2 with rules to exempt all
+loopback packets from connection tracking since SFW2 at the same time
+unconditionally allows all lo transfers in the "filter" table.
 
-Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- net/ipv4/netfilter/Kconfig |    1 -
- net/ipv6/netfilter/Kconfig |    1 -
- net/netfilter/Kconfig      |    1 -
- 3 files changed, 0 insertions(+), 3 deletions(-)
+>Comments?
 
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 1dfc18a..f19f218 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -325,7 +325,6 @@ config IP_NF_TARGET_TTL
- # raw + specific targets
- config IP_NF_RAW
- 	tristate  'raw table support (required for NOTRACK/TRACE)'
--	depends on NETFILTER_ADVANCED
- 	help
- 	  This option adds a `raw' table to iptables. This table is the very
- 	  first in the netfilter framework and hooks in at the PREROUTING
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index 4484648..f792b34 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -186,7 +186,6 @@ config IP6_NF_MANGLE
- 
- config IP6_NF_RAW
- 	tristate  'raw table support (required for TRACE)'
--	depends on NETFILTER_ADVANCED
- 	help
- 	  This option adds a `raw' table to ip6tables. This table is the very
- 	  first in the netfilter framework and hooks in at the PREROUTING
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 8260b13..e8f3796 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -542,7 +542,6 @@ config NETFILTER_XT_TARGET_NOTRACK
- 	tristate  '"NOTRACK" target support'
- 	depends on IP_NF_RAW || IP6_NF_RAW
- 	depends on NF_CONNTRACK
--	depends on NETFILTER_ADVANCED
- 	help
- 	  The NOTRACK target allows a select rule to specify
- 	  which packets *not* to enter the conntrack/NAT
--- 
-1.7.6.4
+In my opinion, NETFILTER_ADVANCED should be changed to only control
+the visibility of all suboptions, i.e. I suggest that "default m if
+NETFILTER_ADVANCED=n" be done for all non-deprecated modules.
+(Similar to how CONFIG_EXPERT works.)
 
+Unless one wants to argue that "that's a detail left to the distro
+makers" and "people not compiling kernels would never run into this
+issue".
