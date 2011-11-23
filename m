@@ -1,58 +1,52 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: RAW netfilter - "advanced netfilter setting" or not?
-Date: Wed, 23 Nov 2011 22:27:46 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1111232217220.27025@frira.zrqbmnf.qr>
+Date: Wed, 23 Nov 2011 14:02:18 -0800
+Message-ID: <CA+55aFyQGf4sFNOVsv4krddn3gxQ=roqVHpC98-Ynx8iBqpRaQ@mail.gmail.com>
 References: <CA+55aFxtSgLppJQ8EbQEovdXsCNxQ1gT31FyP2cpyuvoBLajZw@mail.gmail.com>
+ <alpine.LNX.2.01.1111232217220.27025@frira.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Cc: David Miller <davem@davemloft.net>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:58095 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751616Ab1KWV1s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Nov 2011 16:27:48 -0500
-In-Reply-To: <CA+55aFxtSgLppJQ8EbQEovdXsCNxQ1gT31FyP2cpyuvoBLajZw@mail.gmail.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:64774 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753487Ab1KWWCk (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Nov 2011 17:02:40 -0500
+In-Reply-To: <alpine.LNX.2.01.1111232217220.27025@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 2011-11-23 20:45, Linus Torvalds wrote:
-
->So I'm the one who long ago asked for some of the more esoteric
->netfilter configuration questions to be hidden behind some "advanced"
->question, and thus the reason why a lot of them are behind that
->NETFILTER_ADVANCED Kconfig setting.
+On Wed, Nov 23, 2011 at 1:27 PM, Jan Engelhardt <jengelh@medozas.de> wrote:
 >
->However, I'm now trying OpenSUSE on one of my laptops, and it looks
->like the RAW filter is used by the default OS iptables setup. The fact
->that it is hidden behind NETFILTER_ADVANCED now means that I either
->have to enable the advanced netfilter Kconfig questions, or we should
->just remove the "depends on NETFILTER_ADVANCED" for the RAW case (or,
->rather - caseS - since there's a separate raw filter for ipv4 and
->ipv6, which sounds odd in itself, but that's another issue entirely)
+> In my opinion, NETFILTER_ADVANCED should be changed to only control
+> the visibility of all suboptions, i.e. I suggest that "default m if
+> NETFILTER_ADVANCED=n" be done for all non-deprecated modules.
+> (Similar to how CONFIG_EXPERT works.)
 
-Welcome to the green. You will find the most complete Netfilter stack
-here :)
+No thank you. That makes the whole option pointless.
 
->My gut feel is that if it's one of the filters that a major distro
->depends on by default, it should no longer be hidden. But honestly, I
->didn't look at *why* OpenSUSE uses that filter. Maybe it's just doing
->something really odd and crazy.
+If you want all the modules, just hold down the 'm' key, and be done
+with it. There's no skill needed, or need for NETFILTER_ADVANCED.
 
-The "raw" table is populated by SUSE SFW2 with rules to exempt all
-loopback packets from connection tracking since SFW2 at the same time
-unconditionally allows all lo transfers in the "filter" table.
+The whole point of NETFILTER_ADVANCED is for people like me who
+actually want a fairly *minimal* kernel config, and probably one that
+has no modules.
 
->Comments?
+Modules are evil. They are a security issue, and they encourage a
+"distro kernel" approach that takes forever to compile. Just say no.
+Build a lean and mean kernel that actually has what you need, and
+nothing more. And don't spend stupid time compiling modules you won't
+need.
 
-In my opinion, NETFILTER_ADVANCED should be changed to only control
-the visibility of all suboptions, i.e. I suggest that "default m if
-NETFILTER_ADVANCED=n" be done for all non-deprecated modules.
-(Similar to how CONFIG_EXPERT works.)
+I wish we had a better way of doing a sane localized kernel. "make
+localyesconfig" certainly isn't it, even if it tries. But options like
+NETFILTER_ADVANCED are at least meant to lessen the pain, and not have
+to wade through options that no sane person will know whether they
+would ever need.
 
-Unless one wants to argue that "that's a detail left to the distro
-makers" and "people not compiling kernels would never run into this
-issue".
+                      Linus
