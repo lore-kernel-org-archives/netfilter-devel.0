@@ -1,40 +1,35 @@
-From: marty <martinbarrowcliff@gmail.com>
-Subject: latency increased X 10 on update
-Date: Fri, 25 Nov 2011 16:45:54 -0500
-Message-ID: <4ED00C92.9030701@gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: ulogd2 on valgrind
+Date: Fri, 25 Nov 2011 22:47:57 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1111252247420.8862@frira.zrqbmnf.qr>
+References: <4ECD09DB.2060808@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: marty <martinbarrowcliff@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:38335 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752728Ab1KYVqA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Nov 2011 16:46:00 -0500
-Received: by vbbfc26 with SMTP id fc26so2479787vbb.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 25 Nov 2011 13:45:59 -0800 (PST)
+Received: from seven.medozas.de ([188.40.89.202]:45623 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752819Ab1KYVr6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Nov 2011 16:47:58 -0500
+In-Reply-To: <4ECD09DB.2060808@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Using ipset-6.9.1 on Linux-3.1.1
-Only managing ipv4 traffic on Intel Atom-330 firewall.
+On Wednesday 2011-11-23 15:57, marty wrote:
 
-Same iptables rules, however after updating from v4 code I see issues.
-Attacker sends a packet;
-I detect a unserved dest port and --add-set Blah src;
-LOG it, DROP it, and begone;
-But the set may not match for several further packets.
-Ouch. Buffers?
+> Ulogd2 was compiled from current Git using recent x86 toolchain.
+>
+> # valgrind --leak-check=yes  /usr/sbin/ulogd -d
+> ==22245== Memcheck, a memory error detector
+> ==22245== Copyright (C) 2002-2011, and GNU GPL'd, by Julian Seward et al.
+> ==22245== Using Valgrind-3.8.0.SVN and LibVEX; rerun with -h for copyright info
+> ==22245== Command: /usr/sbin/ulogd -d
+> ==22245==
+> ==22245== Invalid read of size 4
+> ==22245==    at 0x804A012: create_stack (ulogd.c:536)
+> ==22245==    by 0x804C83D: config_parse_file (conffile.c:198)
+> ==22245==    by 0x804B4DC: main (ulogd.c:949)
+> ==22245==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
 
-Blah is used as
-iptables -t raw -I PREROUTING  --match-set Blah src-j DROP
-This DROP is NEVER logged, but certainly counted.
-
-However I often continue to log multiple packets from blocked hosts, 
-despite I am supposedly blocking them on the first bad packet.
-I can confirm they are in the set but when packet_count exceeds 1 
-something is very wrong with that picture.
-
-
-Marty B.
+Can you provide the config file?
