@@ -1,62 +1,31 @@
-From: =?iso-8859-1?Q?Hans_Schillstr=F6m?= <hans.schillstrom@ericsson.com>
-Subject: RE: [v4 PATCH 2/2] NETFILTER userspace part for target HMARK
-Date: Fri, 25 Nov 2011 15:04:53 +0100
-Message-ID: <C8A6796DE7C66C4ABCBC18106CB6C1CC1641FB1D64@ESESSCMS0356.eemea.ericsson.se>
-References: <1322213787-25796-1-git-send-email-hans@schillstrom.com>
- <1322213787-25796-3-git-send-email-hans@schillstrom.com>,<alpine.LNX.2.01.1111251418440.6279@frira.zrqbmnf.qr>
+From: "David Laight" <David.Laight@ACULAB.COM>
+Subject: RE: [v4 PATCH 1/2] NETFILTER module xt_hmark, new target for HASH based fwmark
+Date: Fri, 25 Nov 2011 14:19:22 -0000
+Message-ID: <AE90C24D6B3A694183C094C60CF0A2F6D8AEE3@saturn3.aculab.com>
+References: <1322213787-25796-2-git-send-email-hans@schillstrom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Cc: "kaber@trash.net" <kaber@trash.net>,
-	"pablo@netfilter.org" <pablo@netfilter.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>,
-	Hans Schillstrom <hans@schillstrom.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailgw10.se.ericsson.net ([193.180.251.61]:56951 "EHLO
-	mailgw10.se.ericsson.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753368Ab1KYOE5 convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Nov 2011 09:04:57 -0500
-In-Reply-To: <alpine.LNX.2.01.1111251418440.6279@frira.zrqbmnf.qr>
-Content-Language: en-US
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: <hans.schillstrom@ericsson.com>
+To: "Hans Schillstrom" <hans@schillstrom.com>, <kaber@trash.net>,
+	<pablo@netfilter.org>, <jengelh@medozas.de>,
+	<netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-class: urn:content-classes:message
+In-Reply-To: <1322213787-25796-2-git-send-email-hans@schillstrom.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+ 
+> +	addr1 = (__force u32) ip6->saddr.s6_addr32[3];
+> +	addr2 = (__force u32) ip6->daddr.s6_addr32[3];
+...
+> +	ports.v32 = * (__force u32 *) (skb->data + nhoff);
 
->On Friday 2011-11-25 10:36, Hans Schillstrom wrote:
->
->>+Parameters:
->>+For all masks default is all "1:s", to disable a field use mask 0
->>+For IPv6 it's just the last 32 bits that is included in the hash
->
->Why limit IPv6 to 32?
+Is this code even vaguely portable??
+I suspect the 'ports' bit has serious endianness problems.
+I'm also not sure whether linux guarantees the alignment
+of skb->data here.
 
-Performance, and the gain of adding another 192 bits to jhash ain't much.
-However there is some cases when it hurts, i.e. when you can't mask of an subnet
-I'm not sure it it's a problem or not... 
-
->>diff --git a/include/linux/netfilter/xt_hmark.h b/include/linux/netfilter/xt_hmark.h
-[snip]
->
->This file does not match the kernel-side xt_hmark.h.
->Definitions only used within the userspace side should go into libxt_hmark.c
->anyhow.
-
-Oop,s just forgot to copy the file :-)
-
->>+union ports {
->>+      struct {
->>+              __u16   src;
->>+              __u16   dst;
->>+      } p16;
->>+      __u32   v32;
->>+};
->
->Bad name "ports", big clash potential.
-
-Yes, I'll change that..
-
-Thanks
-Hans
+	David
