@@ -1,232 +1,76 @@
-From: "Hans Schillstrom" <hans@schillstrom.com>
-Subject: Re[2]:  [v4 PATCH 1/2] NETFILTER module xt_hmark, new target
-	for HASH based fwmark
-Date: Mon, 28 Nov 2011 10:36:51 +0100 (CET)
-Message-ID: <hr62jai.42522fc2b4c8846204d05566f5c6b926@obelix.schillstrom.com>
+From: Fiedler Roman <Roman.Fiedler@ait.ac.at>
+Subject: Iptables ruleset modified somehow when performing "iptables-save"
+ followed by "iptables-restore"
+Date: Mon, 28 Nov 2011 12:47:23 +0100
+Message-ID: <9F69795E29C890408AC2DAF646C89BB379CBDCB231@MAILBOX.arc.local>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Cc: kaber@trash.net, jengelh@medozas.de,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	hans.schillstrom@ericsson.com
-To: "Pablo Neira Ayuso" <pablo@netfilter.org>
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-gw11.han.skanova.net ([81.236.55.20]:46428 "EHLO
-	smtp-gw11.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751434Ab1K1Jgy convert rfc822-to-8bit (ORCPT
+Received: from arcss01.ait.ac.at ([62.218.164.126]:50237 "EHLO mail.ait.ac.at"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751518Ab1K1LxN convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Nov 2011 04:36:54 -0500
+	Mon, 28 Nov 2011 06:53:13 -0500
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->
->On Fri, Nov 25, 2011 at 10:36:26AM +0100, Hans Schillstrom wrote:
->> diff --git a/include/net/ipv6.h b/include/net/ipv6.h
->> index 3f0258d..9e4d4f9 100644
->> --- a/include/net/ipv6.h
->> +++ b/include/net/ipv6.h
->> @@ -39,6 +39,7 @@
->>  #define NEXTHDR_ICMP		58	/* ICMP for IPv6. */
->>  #define NEXTHDR_NONE		59	/* No next header */
->>  #define NEXTHDR_DEST		60	/* Destination options header. */
->> +#define NEXTHDR_SCTP		132	/* Stream Control Transport Protocol */
->>  #define NEXTHDR_MOBILITY	135	/* Mobility header. */
->>  
->>  #define NEXTHDR_MAX		255
->
->This has to go in a separated patch. Please, send it to netdev. I
->think davem can pick that for 3.2-rc
+Hello List,
 
-I will send this tiny one to Dave
+I've observed failure in POSTROUTING in a way so strange, that I did not find any suitable keywords to search the web for solution. But I guess, that someone, who also observed that, will remember and perhaps could help me towards a solution.
 
-[snip]
+Setup and how to reproduce:
+===================
 
->> +static int get_inner_hdr(struct sk_buff *skb, int iphsz, int nhoff)
->> +{
->> +	const struct icmphdr *icmph;
->> +	struct icmphdr _ih;
->> +	struct iphdr *iph = NULL;
->> +
->> +	/* Not enough header? */
->> +	icmph = skb_header_pointer(skb, nhoff + iphsz, sizeof(_ih), &_ih);
->> +	if (icmph == NULL)
->> +		return nhoff;
->> +
->> +	if (icmph->type > NR_ICMP_TYPES)
->> +		return nhoff;
->> +
->> +	/* Error message? */
->> +	if (icmph->type != ICMP_DEST_UNREACH &&
->> +	    icmph->type != ICMP_SOURCE_QUENCH &&
->> +	    icmph->type != ICMP_TIME_EXCEEDED &&
->> +	    icmph->type != ICMP_PARAMETERPROB &&
->> +	    icmph->type != ICMP_REDIRECT)
->> +		return nhoff;
->> +	/* Checkin full IP header plus 8 bytes of protocol to
->> +	 * avoid additional coding at protocol handlers.
->> +	 */
->> +	if (!pskb_may_pull(skb, nhoff + iphsz + sizeof(_ih) + 8))
->> +		return nhoff;
->
->skb_header_pointer again here, if conntrack is enabled, we can benefit
->from handling fragments.
->
-Yes, but I can't asume that conntrack is there.
+X--->---
+          |--------- FW-----Net-Z
+Y----<---
 
-[snip]
+The firewall FW receives SYN from X for IP in Net-Z on eth0. Connection is DNATed to Y and forwarded via eth0. To avoid TCP-breakup by reply from Y->X, connection is also SNATed to IP of firewall, so Y receives SYN from FW-IP.
 
->> +/*
->> + * Calc hash value, special casre is taken on icmp and fragmented messages
->> + * i.e. fragmented messages don't use ports.
->> + */
->> +__u32 hmark_v6(struct sk_buff *skb, const struct xt_action_param *par)
->> +{
->> +	struct xt_hmark_info *info = (struct xt_hmark_info *)par->targinfo;
->> +	int nhoff, poff, hdrlen;
->> +	u32 addr1, addr2, hash;
->> +	struct ipv6hdr *ip6;
->> +	u8 nexthdr;
->> +	int frag = 0, ip6hdrlvl = 0;	/* Header level */
->> +	struct ipv6_opt_hdr _hdr, *hp;
->> +	union {
->> +		u32 v32;
->> +		u16 v16[2];
->> +	} ports;
->> +
->> +	ports.v32 = 0;
->> +	nhoff = skb_network_offset(skb);
->> +
->> +hdr_new:
->> +	/* Get header info */
->> +	ip6 = (struct ipv6hdr *) (skb->data + nhoff);
->> +	nexthdr = ip6->nexthdr;
->> +	hdrlen = sizeof(struct ipv6hdr);
->> +	hp = skb_header_pointer(skb, nhoff + hdrlen, sizeof(_hdr), &_hdr);
->
->you have to check return value of skb_header_pointer here.
+When building the iptables ruleset using various iptables [-t nat] -A ... commands, the setup works. Conntrack shows
 
-This  is actually where next header will start if any, not the current one that is processed. 
-It's not time for checking it now. The check is done before using it further down.
+# conntrack -L | grep YYYYYY.13
+tcp      6 431995 ESTABLISHED src=XXXXX.129 dst=NET-Z.252 sport=38231 dport=8080 packets=2 bytes=112 src=YYYYYY.13 dst=FW-IP.250 sport=8080 dport=38231 packets=1 bytes=60 [ASSURED] mark=0 secmark=0 use=2
 
->
->> +	while (nexthdr) {
->> +		switch (nexthdr) {
->> +		case IPPROTO_ICMPV6:
->> +			/* ICMP Error then move ptr to inner header */
->> +			if (get_inner6_hdr(skb, &nhoff, hdrlen)) {
->> +				ip6hdrlvl++;
->> +				if (!pskb_may_pull(skb, sizeof(_hdr) + nhoff))
->> +					return XT_CONTINUE;
->> +				goto hdr_new;
->> +			}
->> +			nhoff += hdrlen;
->> +			goto hdr_rdy;
->> +
->> +		case NEXTHDR_FRAGMENT:
->> +			if (!ip6hdrlvl) /* Do not use ports if fragmented */
->> +				frag = 1;
->> +			break;
->> +
->> +		/* End of hdr traversing cont. with ports and hash calc. */
->> +		case NEXTHDR_IPV6:	/* Do not process tunnels */
->> +		case NEXTHDR_TCP:
->> +		case NEXTHDR_UDP:
->> +		case NEXTHDR_ESP:
->> +		case NEXTHDR_AUTH:
->> +		case NEXTHDR_SCTP:
->> +		case NEXTHDR_NONE:	/* Last hdr of something unknown */
->> +			nhoff += hdrlen;
->> +			goto hdr_rdy;
->> +		default:
->> +			return XT_CONTINUE;
->> +		}
->> +		if (!hp)
->> +			return XT_CONTINUE;
->> +		nhoff += hdrlen;	/* eat current header */
->> +		nexthdr =  hp->nexthdr;	/* Next header */
->> +		hdrlen = ipv6_optlen(hp);
->> +		hp = skb_header_pointer(skb, nhoff + hdrlen, sizeof(_hdr),
->> +					&_hdr);
->
->same here.
->
->> +		if (!pskb_may_pull(skb, nhoff))
->
->why this after skb_header_pointer?
+After
 
-hp is used for next turn, but you got a point here  I'll swap them 
+# iptables-save > iptables.x 
+# iptables-restore < iptables.x
 
->
->[... trimmed off ...]
->>       poff = proto_ports_offset(ip_proto);
->>       nhoff += ip->ihl * 4 + poff;
->>       if (frag || poff < 0 || !pskb_may_pull(skb, nhoff + 4))
->>               goto noports;
->>
->>       ports.v32 = * (__force u32 *) (skb->data + nhoff);
->>       if (ip_proto == IPPROTO_ESP || ip_proto == IPPROTO_AH) {
->>               ports.v32 = (ports.v32 & info->spimask) | nfo->spiset;
->>       } else {
->>               if (snatport)   /* Replace nat'ed port(s) */
->>                       ports.v16[1] = snatport;
->>               if (dnatport)
->>                       ports.v16[0] = dnatport;
->>               ports.v32 = (ports.v32 & info->pmask.v32) |
->>                               info->pset.v32;
->>               if (ports.v16[1] < ports.v16[0])
->>                       swap(ports.v16[0], ports.v16[1]);
->>       }
->>
->>noports:
->>       ip_proto &= info->prmask;
->>       /* get a consistent hash (same value on both flow directions)/
->>       if (addr2 < addr1)
->>               swap(addr1, addr2);
->>
->>       hash = jhash_3words(addr1, addr2, ports.v32, info->hashrnd) ^ p_proto;
->>       if (info->hmod)
->>               skb->mark = (hash % info->hmod) + info->hoffs;
->>       return XT_CONTINUE;
->> }
->
->Hm, I think the fragmentation handling is broken.
->
->Say that the first fragment contains the transport header
->header, then the mark is calculated based on the address and ports.
->Then, later on fragments will receive the mark based on the network
->header only. They may have different marks.
+and sending SYN from X again conntrack is
+# conntrack -L | grep YYYYYY.13
+tcp      6 115 SYN_SENT src=XXXXXX.129 dst=NET-Z.252 sport=38234 dport=8080 packets=2 bytes=120 [UNREPLIED] src=YYYYYY.13 dst=XXXXXXXX.129 sport=8080 dport=38234 packets=0 bytes=0 mark=0 secmark=0 use=2
 
-I think the documentation need improvments :-)
-Fragments  never try to use ports.
-"    if (frag)
-         goto noports;"
+It seems that the POSTROUTING rule is not active, tcpdump really shows the SYN leaving the firewall with source-IP unmodified (still X).
 
->
->If you don't want to use conntrack in your setup and you want to handle
->fragments, then you have to configure HMARK to calculate the hashing
->based on the network addresses. If you want to fully support fragments,
->then enable conntrack and you can configure HMARK to calculate the
->hashing based on network address + transport bits.
->
->Fix this by removing the fragmentation handling, then assume that
->people can select between two hashing configuration for HMARK. One
->based for network address which is fragment-safe, one that uses the
->transport layer information, that requires conntrack. Otherwise, I
->don't see a sane way to handle this situation.
+Kernel version: 2.6.32-35-generic
+Iptables version: iptables-save v1.4.4 on Mon Nov 28 11:36:06 2011
 
-Correct me if I'm wrong here, 
-If conntrack is enabled hmark don't see the packet until it is reassembled and 
-in that case the fragmentation header is removed.
 
-So, with conntrack HMARK will operate on full packets not fragments
-without conntrack ports will not be used on any fragment.
+Questions:
+=======
 
->
->I think this has to be documented in the iptables manpage for HMARK.
+* Should a save-restore-sequence lead to the exact same iptables-setup before save or is the some other constraint to be met to guarantee save-restore to restore exactly what was saved? (There were no concurrent iptables table-modify activities on that machine during test except but active network traffic).
+* Why does the order of iptables rules created influence outcome?
+* Does this behavior correspond to a known bug?
+* If really bug, what are the exact effects? Could this be a security problem when affecting filter instead of nat?
 
-The documentation needs update here, this is not crystal clear.
+Thanks for your help,
 
-Thanks
-Hans
+DI Roman Fiedler
+Safety & Security Department
+Information Management & eHealth
 
+AIT Austrian Institute of Technology GmbH
+Reininghausstrae 13/1  |  8020 Graz  |  Austria
+T +43(0) 316 586570-63  |  M +43(0) 664 8561599  |  F +43(0) 316 586570-12
+roman.fiedler@ait.ac.at <mailto:roman.fiedler@ait.ac.at> | http://www.ait.ac.at <http://www.ait.ac.at/>
+http://www.ait.ac.at/eHealth/ <http://www.ait.ac.at/eHealth/>
+
+Kennen Sie die www.eHealth2011.at?
+
+FN: 115980 i HG Wien  |  UID: ATU14703506
+This email and any attachments thereto, is intended only for use by the addressee(s) named herein and may contain legally privileged and/or confidential information. If you are not the intended recipient, please notify the sender by return e-mail or by telephone and delete this message from your system and any printout thereof. Any unauthorized use, reproduction, or dissemination of this message is strictly prohibited. Please note that e-mails are susceptible to change. AIT Austrian Institute of Technology GmbH shall not be liable for the improper or incomplete transmission of the information contained in this communication, nor shall it be liable for any delay in its receipt.
