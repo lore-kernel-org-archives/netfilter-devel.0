@@ -1,52 +1,40 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re[2]:  [v4 PATCH 2/2] NETFILTER userspace part for target  HMARK
-Date: Mon, 28 Nov 2011 13:23:53 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1111281318310.20051@frira.zrqbmnf.qr>
-References: <hr62jai.f4f5223b83b31ae9b337edbf22b93bdf@obelix.schillstrom.com>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: RFC: Probably wrong code in nf_nat_snmp_basic.c
+Date: Mon, 28 Nov 2011 16:46:01 +0100
+Message-ID: <201111281646.01087.thomas.jarosch@intra2net.com>
+References: <4EC5791A.1040005@intra2net.com> <20111118003429.GA30271@1984> <201111180943.29443.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: =?UTF-8?Q?Hans_Schillstr=C3=B6m?= <hans.schillstrom@ericsson.com>,
-	"kaber@trash.net" <kaber@trash.net>,
-	"pablo@netfilter.org" <pablo@netfilter.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: Hans Schillstrom <hans@schillstrom.com>
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, James Morris <jmorris@namei.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:40661 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752843Ab1K1MXz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Nov 2011 07:23:55 -0500
-In-Reply-To: <hr62jai.f4f5223b83b31ae9b337edbf22b93bdf@obelix.schillstrom.com>
+Received: from re04.intra2net.com ([82.165.46.26]:48763 "EHLO
+	re04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753435Ab1K1PqD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Nov 2011 10:46:03 -0500
+In-Reply-To: <201111180943.29443.thomas.jarosch@intra2net.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2011-11-28 09:37, Hans Schillstrom wrote:
+Hi Pablo,
 
->>>>>+Parameters:
->>>>>+For all masks default is all "1:s", to disable a field use mask 0
->>>>>+For IPv6 it's just the last 32 bits that is included in the hash
->>>>
->>>>Why limit IPv6 to 32?
->>>
->>>Performance, and the gain of adding another 192 bits to jhash ain't much.
->>>However there is some cases when it hurts, i.e. when you can't mask of an subnet
->>>I'm not sure it it's a problem or not... 
->>
->>I was thinking about the case where two particular hosts have the same 
->>trailing 32 bits in their source address. For example, assuming IPv6 
->>starts to take a stronghold in the real world and home customers start 
->>assigning <myprefix>::1 to the little home server (i.e. the PPP 
->>endpoint) of theirs for remote login.
->
->Yes that's a good point,  I will have a look at this and see haw to speed-up the IPv6 calc.
->
->btw
->parsing by using xoption.c  is there a way to allow both hex format and mask length ?
->i.e. --smask 0xffff0000   or  --smask /16
+On Friday, 18. November 2011 09:43:29 Thomas Jarosch wrote:
+> > Indeed. I'll be happy to take a patch for this. If you don't make it
+> > in the following days, no problem, I'll take of this myself. Thanks
+> > for the report.
+> 
+> The if() statement is probably in there for a reason. I'm not familiar
+> with the internal details of the ct stuff, perhaps map.from/map.to
+> should be swapped or something like that.
+> 
+> James, any idea what's going on?
 
-That has never been used before, so no, you will need to use 
-XTTYPE_STRING and then parse it out.
+Hmm, James is probably busy.
 
-Having /n besides n looks like feature creep (for values up to 2^32-1). 
-xt_mark does not have a /n, just saying.
+Would be nice if you could take over this, Pablo.
 
+Thanks,
+Thomas
