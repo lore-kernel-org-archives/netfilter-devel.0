@@ -1,361 +1,57 @@
 From: pablo@netfilter.org
-Subject: [PATCH 3/3] netfilter: nf_conntrack: make event callback registration per-netns
-Date: Mon, 28 Nov 2011 04:31:00 +0100
-Message-ID: <1322451060-4883-4-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 2/3] netfilter: possible unaligned packet header in ip_route_me_harder
+Date: Mon, 28 Nov 2011 04:30:59 +0100
+Message-ID: <1322451060-4883-3-git-send-email-pablo@netfilter.org>
 References: <1322451060-4883-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, Alexey Dobriyan <adobriyan@gmail.com>,
+Cc: davem@davemloft.net, Paul Guo <ggang@tilera.com>,
 	Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57661 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:57658 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752889Ab1K1DbY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 27 Nov 2011 22:31:24 -0500
+	id S1753436Ab1K1DbW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 27 Nov 2011 22:31:22 -0500
 In-Reply-To: <1322451060-4883-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Paul Guo <ggang@tilera.com>
 
-This patch fixes an oops that can be triggered following this recipe:
+This patch tries to fix the following issue in netfilter:
+In ip_route_me_harder(), we invoke pskb_expand_head() that
+rellocates new header with additional head room which can break
+the alignment of the original packet header.
 
-0) make sure nf_conntrack_netlink and nf_conntrack_ipv4 are loaded.
-1) container is started.
-2) connect to it via lxc-console.
-3) generate some traffic with the container to create some conntrack
-   entries in its table.
-4) stop the container: you hit one oops because the conntrack table
-   cleanup tries to report the destroy event to user-space but the
-   per-netns nfnetlink socket has already gone (as the nfnetlink
-   socket is per-netns but event callback registration is global).
+In one of my NAT test case, the NIC port for internal hosts is
+configured with vlan and the port for external hosts is with
+general configuration. If we ping an external "unknown" hosts from an
+internal host, an icmp packet will be sent. We find that in
+icmp_send()->...->ip_route_me_harder()->pskb_expand_head(), hh_len=18
+and current headroom (skb_headroom(skb)) of the packet is 16. After
+calling pskb_expand_head() the packet header becomes to be unaligned
+and then our system (arch/tile) panics immediately.
 
-To fix this situation, we make the ctnl_notifier per-netns so the
-callback is registered/unregistered if the container is
-created/destroyed.
-
-Alex Bligh and Alexey Dobriyan originally proposed one small patch to
-check if the nfnetlink socket is gone in nfnetlink_has_listeners,
-but this is a very visited path for events, thus, it may reduce
-performance and it looks a bit hackish to check for the nfnetlink
-socket only to workaround this situation. As a result, I decided
-to follow the bigger path choice, which seems to look nicer to me.
-
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Reported-by: Alex Bligh <alex@alex.org.uk>
+Signed-off-by: Paul Guo <ggang@tilera.com>
+Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack_ecache.h |   19 ++++---
- include/net/netns/conntrack.h               |    2 +
- net/netfilter/nf_conntrack_ecache.c         |   37 +++++++-------
- net/netfilter/nf_conntrack_netlink.c        |   73 +++++++++++++++++++--------
- 4 files changed, 82 insertions(+), 49 deletions(-)
+ net/ipv4/netfilter.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
-index 4283508..a88fb69 100644
---- a/include/net/netfilter/nf_conntrack_ecache.h
-+++ b/include/net/netfilter/nf_conntrack_ecache.h
-@@ -67,18 +67,18 @@ struct nf_ct_event_notifier {
- 	int (*fcn)(unsigned int events, struct nf_ct_event *item);
- };
+diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
+index 9899619..4f47e06 100644
+--- a/net/ipv4/netfilter.c
++++ b/net/ipv4/netfilter.c
+@@ -64,7 +64,8 @@ int ip_route_me_harder(struct sk_buff *skb, unsigned addr_type)
+ 	/* Change in oif may mean change in hh_len. */
+ 	hh_len = skb_dst(skb)->dev->hard_header_len;
+ 	if (skb_headroom(skb) < hh_len &&
+-	    pskb_expand_head(skb, hh_len - skb_headroom(skb), 0, GFP_ATOMIC))
++	    pskb_expand_head(skb, HH_DATA_ALIGN(hh_len - skb_headroom(skb)),
++				0, GFP_ATOMIC))
+ 		return -1;
  
--extern struct nf_ct_event_notifier __rcu *nf_conntrack_event_cb;
--extern int nf_conntrack_register_notifier(struct nf_ct_event_notifier *nb);
--extern void nf_conntrack_unregister_notifier(struct nf_ct_event_notifier *nb);
-+extern int nf_conntrack_register_notifier(struct net *net, struct nf_ct_event_notifier *nb);
-+extern void nf_conntrack_unregister_notifier(struct net *net, struct nf_ct_event_notifier *nb);
- 
- extern void nf_ct_deliver_cached_events(struct nf_conn *ct);
- 
- static inline void
- nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
- {
-+	struct net *net = nf_ct_net(ct);
- 	struct nf_conntrack_ecache *e;
- 
--	if (nf_conntrack_event_cb == NULL)
-+	if (net->ct.nf_conntrack_event_cb == NULL)
- 		return;
- 
- 	e = nf_ct_ecache_find(ct);
-@@ -95,11 +95,12 @@ nf_conntrack_eventmask_report(unsigned int eventmask,
- 			      int report)
- {
- 	int ret = 0;
-+	struct net *net = nf_ct_net(ct);
- 	struct nf_ct_event_notifier *notify;
- 	struct nf_conntrack_ecache *e;
- 
- 	rcu_read_lock();
--	notify = rcu_dereference(nf_conntrack_event_cb);
-+	notify = rcu_dereference(net->ct.nf_conntrack_event_cb);
- 	if (notify == NULL)
- 		goto out_unlock;
- 
-@@ -164,9 +165,8 @@ struct nf_exp_event_notifier {
- 	int (*fcn)(unsigned int events, struct nf_exp_event *item);
- };
- 
--extern struct nf_exp_event_notifier __rcu *nf_expect_event_cb;
--extern int nf_ct_expect_register_notifier(struct nf_exp_event_notifier *nb);
--extern void nf_ct_expect_unregister_notifier(struct nf_exp_event_notifier *nb);
-+extern int nf_ct_expect_register_notifier(struct net *net, struct nf_exp_event_notifier *nb);
-+extern void nf_ct_expect_unregister_notifier(struct net *net, struct nf_exp_event_notifier *nb);
- 
- static inline void
- nf_ct_expect_event_report(enum ip_conntrack_expect_events event,
-@@ -174,11 +174,12 @@ nf_ct_expect_event_report(enum ip_conntrack_expect_events event,
- 			  u32 pid,
- 			  int report)
- {
-+	struct net *net = nf_ct_exp_net(exp);
- 	struct nf_exp_event_notifier *notify;
- 	struct nf_conntrack_ecache *e;
- 
- 	rcu_read_lock();
--	notify = rcu_dereference(nf_expect_event_cb);
-+	notify = rcu_dereference(net->ct.nf_expect_event_cb);
- 	if (notify == NULL)
- 		goto out_unlock;
- 
-diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
-index 0249399..7a911ec 100644
---- a/include/net/netns/conntrack.h
-+++ b/include/net/netns/conntrack.h
-@@ -18,6 +18,8 @@ struct netns_ct {
- 	struct hlist_nulls_head	unconfirmed;
- 	struct hlist_nulls_head	dying;
- 	struct ip_conntrack_stat __percpu *stat;
-+	struct nf_ct_event_notifier __rcu *nf_conntrack_event_cb;
-+	struct nf_exp_event_notifier __rcu *nf_expect_event_cb;
- 	int			sysctl_events;
- 	unsigned int		sysctl_events_retry_timeout;
- 	int			sysctl_acct;
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index 6b368be..b62c414 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -27,22 +27,17 @@
- 
- static DEFINE_MUTEX(nf_ct_ecache_mutex);
- 
--struct nf_ct_event_notifier __rcu *nf_conntrack_event_cb __read_mostly;
--EXPORT_SYMBOL_GPL(nf_conntrack_event_cb);
--
--struct nf_exp_event_notifier __rcu *nf_expect_event_cb __read_mostly;
--EXPORT_SYMBOL_GPL(nf_expect_event_cb);
--
- /* deliver cached events and clear cache entry - must be called with locally
-  * disabled softirqs */
- void nf_ct_deliver_cached_events(struct nf_conn *ct)
- {
-+	struct net *net = nf_ct_net(ct);
- 	unsigned long events;
- 	struct nf_ct_event_notifier *notify;
- 	struct nf_conntrack_ecache *e;
- 
- 	rcu_read_lock();
--	notify = rcu_dereference(nf_conntrack_event_cb);
-+	notify = rcu_dereference(net->ct.nf_conntrack_event_cb);
- 	if (notify == NULL)
- 		goto out_unlock;
- 
-@@ -83,19 +78,20 @@ out_unlock:
- }
- EXPORT_SYMBOL_GPL(nf_ct_deliver_cached_events);
- 
--int nf_conntrack_register_notifier(struct nf_ct_event_notifier *new)
-+int nf_conntrack_register_notifier(struct net *net,
-+				   struct nf_ct_event_notifier *new)
- {
- 	int ret = 0;
- 	struct nf_ct_event_notifier *notify;
- 
- 	mutex_lock(&nf_ct_ecache_mutex);
--	notify = rcu_dereference_protected(nf_conntrack_event_cb,
-+	notify = rcu_dereference_protected(net->ct.nf_conntrack_event_cb,
- 					   lockdep_is_held(&nf_ct_ecache_mutex));
- 	if (notify != NULL) {
- 		ret = -EBUSY;
- 		goto out_unlock;
- 	}
--	RCU_INIT_POINTER(nf_conntrack_event_cb, new);
-+	RCU_INIT_POINTER(net->ct.nf_conntrack_event_cb, new);
- 	mutex_unlock(&nf_ct_ecache_mutex);
- 	return ret;
- 
-@@ -105,32 +101,34 @@ out_unlock:
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_register_notifier);
- 
--void nf_conntrack_unregister_notifier(struct nf_ct_event_notifier *new)
-+void nf_conntrack_unregister_notifier(struct net *net,
-+				      struct nf_ct_event_notifier *new)
- {
- 	struct nf_ct_event_notifier *notify;
- 
- 	mutex_lock(&nf_ct_ecache_mutex);
--	notify = rcu_dereference_protected(nf_conntrack_event_cb,
-+	notify = rcu_dereference_protected(net->ct.nf_conntrack_event_cb,
- 					   lockdep_is_held(&nf_ct_ecache_mutex));
- 	BUG_ON(notify != new);
--	RCU_INIT_POINTER(nf_conntrack_event_cb, NULL);
-+	RCU_INIT_POINTER(net->ct.nf_conntrack_event_cb, NULL);
- 	mutex_unlock(&nf_ct_ecache_mutex);
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_unregister_notifier);
- 
--int nf_ct_expect_register_notifier(struct nf_exp_event_notifier *new)
-+int nf_ct_expect_register_notifier(struct net *net,
-+				   struct nf_exp_event_notifier *new)
- {
- 	int ret = 0;
- 	struct nf_exp_event_notifier *notify;
- 
- 	mutex_lock(&nf_ct_ecache_mutex);
--	notify = rcu_dereference_protected(nf_expect_event_cb,
-+	notify = rcu_dereference_protected(net->ct.nf_expect_event_cb,
- 					   lockdep_is_held(&nf_ct_ecache_mutex));
- 	if (notify != NULL) {
- 		ret = -EBUSY;
- 		goto out_unlock;
- 	}
--	RCU_INIT_POINTER(nf_expect_event_cb, new);
-+	RCU_INIT_POINTER(net->ct.nf_expect_event_cb, new);
- 	mutex_unlock(&nf_ct_ecache_mutex);
- 	return ret;
- 
-@@ -140,15 +138,16 @@ out_unlock:
- }
- EXPORT_SYMBOL_GPL(nf_ct_expect_register_notifier);
- 
--void nf_ct_expect_unregister_notifier(struct nf_exp_event_notifier *new)
-+void nf_ct_expect_unregister_notifier(struct net *net,
-+				      struct nf_exp_event_notifier *new)
- {
- 	struct nf_exp_event_notifier *notify;
- 
- 	mutex_lock(&nf_ct_ecache_mutex);
--	notify = rcu_dereference_protected(nf_expect_event_cb,
-+	notify = rcu_dereference_protected(net->ct.nf_expect_event_cb,
- 					   lockdep_is_held(&nf_ct_ecache_mutex));
- 	BUG_ON(notify != new);
--	RCU_INIT_POINTER(nf_expect_event_cb, NULL);
-+	RCU_INIT_POINTER(net->ct.nf_expect_event_cb, NULL);
- 	mutex_unlock(&nf_ct_ecache_mutex);
- }
- EXPORT_SYMBOL_GPL(nf_ct_expect_unregister_notifier);
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index e58aa9b..ef21b22 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -4,7 +4,7 @@
-  * (C) 2001 by Jay Schulist <jschlst@samba.org>
-  * (C) 2002-2006 by Harald Welte <laforge@gnumonks.org>
-  * (C) 2003 by Patrick Mchardy <kaber@trash.net>
-- * (C) 2005-2008 by Pablo Neira Ayuso <pablo@netfilter.org>
-+ * (C) 2005-2011 by Pablo Neira Ayuso <pablo@netfilter.org>
-  *
-  * Initial connection tracking via netlink development funded and
-  * generally made possible by Network Robots, Inc. (www.networkrobots.com)
-@@ -2163,6 +2163,54 @@ MODULE_ALIAS("ip_conntrack_netlink");
- MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_CTNETLINK);
- MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_CTNETLINK_EXP);
- 
-+static int __net_init ctnetlink_net_init(struct net *net)
-+{
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
-+	int ret;
-+
-+	ret = nf_conntrack_register_notifier(net, &ctnl_notifier);
-+	if (ret < 0) {
-+		pr_err("ctnetlink_init: cannot register notifier.\n");
-+		goto err_out;
-+	}
-+
-+	ret = nf_ct_expect_register_notifier(net, &ctnl_notifier_exp);
-+	if (ret < 0) {
-+		pr_err("ctnetlink_init: cannot expect register notifier.\n");
-+		goto err_unreg_notifier;
-+	}
-+#endif
-+	return 0;
-+
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
-+err_unreg_notifier:
-+	nf_conntrack_unregister_notifier(net, &ctnl_notifier);
-+err_out:
-+	return ret;
-+#endif
-+}
-+
-+static void ctnetlink_net_exit(struct net *net)
-+{
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
-+	nf_ct_expect_unregister_notifier(net, &ctnl_notifier_exp);
-+	nf_conntrack_unregister_notifier(net, &ctnl_notifier);
-+#endif
-+}
-+
-+static void __net_exit ctnetlink_net_exit_batch(struct list_head *net_exit_list)
-+{
-+	struct net *net;
-+
-+	list_for_each_entry(net, net_exit_list, exit_list)
-+		ctnetlink_net_exit(net);
-+}
-+
-+static struct pernet_operations ctnetlink_net_ops = {
-+	.init		= ctnetlink_net_init,
-+	.exit_batch	= ctnetlink_net_exit_batch,
-+};
-+
- static int __init ctnetlink_init(void)
- {
- 	int ret;
-@@ -2180,28 +2228,15 @@ static int __init ctnetlink_init(void)
- 		goto err_unreg_subsys;
- 	}
- 
--#ifdef CONFIG_NF_CONNTRACK_EVENTS
--	ret = nf_conntrack_register_notifier(&ctnl_notifier);
--	if (ret < 0) {
--		pr_err("ctnetlink_init: cannot register notifier.\n");
-+	if (register_pernet_subsys(&ctnetlink_net_ops)) {
-+		pr_err("ctnetlink_init: cannot register pernet operations\n");
- 		goto err_unreg_exp_subsys;
- 	}
- 
--	ret = nf_ct_expect_register_notifier(&ctnl_notifier_exp);
--	if (ret < 0) {
--		pr_err("ctnetlink_init: cannot expect register notifier.\n");
--		goto err_unreg_notifier;
--	}
--#endif
--
  	return 0;
- 
--#ifdef CONFIG_NF_CONNTRACK_EVENTS
--err_unreg_notifier:
--	nf_conntrack_unregister_notifier(&ctnl_notifier);
- err_unreg_exp_subsys:
- 	nfnetlink_subsys_unregister(&ctnl_exp_subsys);
--#endif
- err_unreg_subsys:
- 	nfnetlink_subsys_unregister(&ctnl_subsys);
- err_out:
-@@ -2213,11 +2248,7 @@ static void __exit ctnetlink_exit(void)
- 	pr_info("ctnetlink: unregistering from nfnetlink.\n");
- 
- 	nf_ct_remove_userspace_expectations();
--#ifdef CONFIG_NF_CONNTRACK_EVENTS
--	nf_ct_expect_unregister_notifier(&ctnl_notifier_exp);
--	nf_conntrack_unregister_notifier(&ctnl_notifier);
--#endif
--
-+	unregister_pernet_subsys(&ctnetlink_net_ops);
- 	nfnetlink_subsys_unregister(&ctnl_exp_subsys);
- 	nfnetlink_subsys_unregister(&ctnl_subsys);
- }
 -- 
 1.7.2.5
 
