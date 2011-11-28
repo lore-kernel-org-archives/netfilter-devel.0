@@ -1,35 +1,59 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: doc: Secure use of iptables and connection tracking helpers
-Date: Mon, 28 Nov 2011 21:19:16 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1111282118430.27238@frira.zrqbmnf.qr>
-References: <1322501576.20587.22.camel@tiger.regit.org>
+From: Ulrich Weber <Ulrich.Weber@Sophos.com>
+Subject: Re: [RFC PATCH 00/18] netfilter: IPv6 NAT
+Date: Mon, 28 Nov 2011 20:25:48 +0000
+Message-ID: <CAF9AA63.1622%ulrich.weber@sophos.com>
+References: <4ED3C174.9030302@earthlink.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	pablo@netfilter.org, kaber@trash.net
-To: Eric Leblond <eric@regit.org>
+Content-Type: text/plain; charset=Windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: "sclark46@earthlink.net" <sclark46@earthlink.net>,
+	"kaber@trash.net" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:36604 "EHLO seven.medozas.de"
+Received: from mx2.sophos.com ([145.253.124.138]:44325 "EHLO mx2.sophos.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753652Ab1K1UTS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Nov 2011 15:19:18 -0500
-In-Reply-To: <1322501576.20587.22.camel@tiger.regit.org>
+	id S1753150Ab1K1Uf5 convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Nov 2011 15:35:57 -0500
+In-Reply-To: <4ED3C174.9030302@earthlink.net>
+Content-Language: de-DE
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2011-11-28 18:32, Eric Leblond wrote:
+Am 28.11.11 18:14 schrieb "Stephen Clark" unter <sclark46@earthlink.net=
+>:
+=20
+>Probabably a dumb question but are these patches for natting ipv6 to
+>ipv6 or ipv4 to ipv6?
 
->Hello,
->
->Pablo Neira Ayuso, Patrick McHardy and I have worked on a document we've
->called "Secure use of iptables and connection tracking helpers".
->
->This is a guide describing how to use securely the connection tracking
->helpers. This is a recommended reading for all Netfilter/Iptables users.
->
->HTML version: http://home.regit.org/netfilter-en/secure-use-of-helpers/
->PDF version:
->http://home.regit.org/wp-content/uploads/2011/11/helper-recommandation.pdf
+These patches are for natting IPv6 addresses behind whole IPv6 subnets
+or just behind one IPv6 address.
 
-Is this available in a text/{latex,plain,etc.} source available, so one 
-can submit changes against?
+This is useful for multiple Internet uplinks, where you want full contr=
+ol
+on the router what connections are sent over which interface. Or its qu=
+ite
+easy to setup Load Balancing rules or create a DMZ. There a lots of use
+cases=8A
+
+
+If you are looking for IPv4->IPv6 or IPv6->IPv4, there are multiple
+implementations. Two examples:
+
+IPv6->IPv4:
+
+http://ecdysis.viagenie.ca
+
+IPv4->IPv6:
+http://www.ivi2.org
+
+
+Best regards
+ Ulrich
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
