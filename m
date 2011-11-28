@@ -1,52 +1,34 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: latency increased X 10 on update
-Date: Sat, 26 Nov 2011 00:04:52 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1111260001500.15815@blackhole.kfki.hu>
-References: <4ED00C92.9030701@gmail.com>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: nat drop the icmp redirect packet
+Date: Mon, 28 Nov 2011 09:12:43 +0800
+Message-ID: <4ED2E00B.3000006@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: marty <martinbarrowcliff@gmail.com>
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:60007 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752460Ab1KYXEy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Nov 2011 18:04:54 -0500
-In-Reply-To: <4ED00C92.9030701@gmail.com>
+Received: from cn.fujitsu.com ([222.73.24.84]:65312 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1755350Ab1K1BMe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 27 Nov 2011 20:12:34 -0500
+Received: from tang.cn.fujitsu.com (tang.cn.fujitsu.com [10.167.250.3])
+	by song.cn.fujitsu.com (Postfix) with ESMTP id CFE7B17010C
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2011 09:12:31 +0800 (CST)
+Received: from mailserver.fnst.cn.fujitsu.com (tang.cn.fujitsu.com [127.0.0.1])
+	by tang.cn.fujitsu.com (8.14.3/8.13.1) with ESMTP id pAS1CVUc004913
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2011 09:12:31 +0800
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 25 Nov 2011, marty wrote:
+Hi
 
-> Using ipset-6.9.1 on Linux-3.1.1
-> Only managing ipv4 traffic on Intel Atom-330 firewall.
-> 
-> Same iptables rules, however after updating from v4 code I see issues.
-> Attacker sends a packet;
-> I detect a unserved dest port and --add-set Blah src;
-> LOG it, DROP it, and begone;
-> But the set may not match for several further packets.
-> Ouch. Buffers?
-> 
-> Blah is used as
-> iptables -t raw -I PREROUTING  --match-set Blah src-j DROP
-> This DROP is NEVER logged, but certainly counted.
-> 
-> However I often continue to log multiple packets from blocked hosts, despite I
-> am supposedly blocking them on the first bad packet.
-> I can confirm they are in the set but when packet_count exceeds 1 something is
-> very wrong with that picture.
+In func nf_nat_icmp_reply_translation,the icmp packet will be droped when the nat is not finished.
+pc A(whose gateway is C) send a icmp request to pc B.
+When gw C receive this packet,it may return a icmp redirect packet to A.
+BUT now,the icmp request packet has not go to POSTROUTING,So the nat is not finished.
+Finally,the icmp redirect packet will be droped no matter the conn has nat or not.
 
-Please send exact data: the elements of the set at the given moment, the 
-iptables rules and the log/counters which proves that something is wrong.
+of course,the icmp redirect packet will be correct handled when nat is finished.
 
-I don't really get how your subject is related to the text in your message 
-body.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Can somebody will give me some suggestion,
+or should I just add a sysctl to let the user decide drop or receive this icmp redirect packet when nat is not finished?
