@@ -1,71 +1,48 @@
-From: pablo@netfilter.org
-Subject: [PATCH 1/3] netfilter: ipset: suppress compile-time warnings in ip_set_hash_ipport*.c
-Date: Mon, 28 Nov 2011 04:30:58 +0100
-Message-ID: <1322451060-4883-2-git-send-email-pablo@netfilter.org>
-References: <1322451060-4883-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: "Hans Schillstrom" <hans@schillstrom.com>
+Subject: Re[2]:  [v4 PATCH 2/2] NETFILTER userspace part for target
+	HMARK
+Date: Mon, 28 Nov 2011 09:37:38 +0100 (CET)
+Message-ID: <hr62jai.f4f5223b83b31ae9b337edbf22b93bdf@obelix.schillstrom.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Cc: "=?utf-8?Q?Hans_Schillstr=C3=B6m?=" <hans.schillstrom@ericsson.com>,
+	"kaber@trash.net" <kaber@trash.net>,
+	"pablo@netfilter.org" <pablo@netfilter.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: "Jan Engelhardt" <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57665 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753732Ab1K1Db0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 27 Nov 2011 22:31:26 -0500
-In-Reply-To: <1322451060-4883-1-git-send-email-pablo@netfilter.org>
+Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:50036 "EHLO
+	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751150Ab1K1Ihm convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Nov 2011 03:37:42 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+>>>>+Parameters:
+>>>>+For all masks default is all "1:s", to disable a field use mask 0
+>>>>+For IPv6 it's just the last 32 bits that is included in the hash
+>>>
+>>>Why limit IPv6 to 32?
+>>
+>>Performance, and the gain of adding another 192 bits to jhash ain't much.
+>>However there is some cases when it hurts, i.e. when you can't mask of an subnet
+>>I'm not sure it it's a problem or not... 
+>
+>I was thinking about the case where two particular hosts have the same 
+>trailing 32 bits in their source address. For example, assuming IPv6 
+>starts to take a stronghold in the real world and home customers start 
+>assigning <myprefix>::1 to the little home server (i.e. the PPP 
+>endpoint) of theirs for remote login.
 
-warning: 'ip_to' may be used uninitialized in this function
+Yes that's a good point,  I will have a look at this and see haw to speed-up the IPv6 calc.
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/ipset/ip_set_hash_ipport.c    |    2 +-
- net/netfilter/ipset/ip_set_hash_ipportip.c  |    2 +-
- net/netfilter/ipset/ip_set_hash_ipportnet.c |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+btw
+parsing by using xoption.c  is there a way to allow both hex format and mask length ?
+i.e. --smask 0xffff0000   or  --smask /16
 
-diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
-index 6ee10f5..37d667e 100644
---- a/net/netfilter/ipset/ip_set_hash_ipport.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipport.c
-@@ -158,7 +158,7 @@ hash_ipport4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	const struct ip_set_hash *h = set->data;
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_ipport4_elem data = { };
--	u32 ip, ip_to, p = 0, port, port_to;
-+	u32 ip, ip_to = 0, p = 0, port, port_to;
- 	u32 timeout = h->timeout;
- 	bool with_ports = false;
- 	int ret;
-diff --git a/net/netfilter/ipset/ip_set_hash_ipportip.c b/net/netfilter/ipset/ip_set_hash_ipportip.c
-index fb90e34..e69e271 100644
---- a/net/netfilter/ipset/ip_set_hash_ipportip.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipportip.c
-@@ -162,7 +162,7 @@ hash_ipportip4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	const struct ip_set_hash *h = set->data;
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_ipportip4_elem data = { };
--	u32 ip, ip_to, p = 0, port, port_to;
-+	u32 ip, ip_to = 0, p = 0, port, port_to;
- 	u32 timeout = h->timeout;
- 	bool with_ports = false;
- 	int ret;
-diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-index deb3e3d..64199b4 100644
---- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-@@ -184,7 +184,7 @@ hash_ipportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	const struct ip_set_hash *h = set->data;
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_ipportnet4_elem data = { .cidr = HOST_MASK };
--	u32 ip, ip_to, p = 0, port, port_to;
-+	u32 ip, ip_to = 0, p = 0, port, port_to;
- 	u32 ip2_from = 0, ip2_to, ip2_last, ip2;
- 	u32 timeout = h->timeout;
- 	bool with_ports = false;
--- 
-1.7.2.5
+/Hans
 
