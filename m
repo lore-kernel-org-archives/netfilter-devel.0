@@ -1,59 +1,34 @@
-From: Ulrich Weber <Ulrich.Weber@Sophos.com>
+From: richard -rw- weinberger <richard.weinberger@gmail.com>
 Subject: Re: [RFC PATCH 00/18] netfilter: IPv6 NAT
-Date: Mon, 28 Nov 2011 20:25:48 +0000
-Message-ID: <CAF9AA63.1622%ulrich.weber@sophos.com>
+Date: Mon, 28 Nov 2011 21:55:57 +0100
+Message-ID: <CAFLxGvwmsQOcOL2oO33_dvLgsA9Gsdtp5u=nCZFPV-ihNdCm3g@mail.gmail.com>
 References: <4ED3C174.9030302@earthlink.net>
+	<CAF9AA63.1622%ulrich.weber@sophos.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=Windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: "sclark46@earthlink.net" <sclark46@earthlink.net>,
+	"kaber@trash.net" <kaber@trash.net>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
 	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: "sclark46@earthlink.net" <sclark46@earthlink.net>,
-	"kaber@trash.net" <kaber@trash.net>
+To: Ulrich Weber <Ulrich.Weber@sophos.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx2.sophos.com ([145.253.124.138]:44325 "EHLO mx2.sophos.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753150Ab1K1Uf5 convert rfc822-to-8bit (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:37396 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753122Ab1K1U4A (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Nov 2011 15:35:57 -0500
-In-Reply-To: <4ED3C174.9030302@earthlink.net>
-Content-Language: de-DE
+	Mon, 28 Nov 2011 15:56:00 -0500
+In-Reply-To: <CAF9AA63.1622%ulrich.weber@sophos.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 28.11.11 18:14 schrieb "Stephen Clark" unter <sclark46@earthlink.net=
->:
-=20
->Probabably a dumb question but are these patches for natting ipv6 to
->ipv6 or ipv4 to ipv6?
+On Mon, Nov 28, 2011 at 9:25 PM, Ulrich Weber <Ulrich.Weber@sophos.com> wrote:
+> IPv6->IPv4:
+>
+> http://ecdysis.viagenie.ca
 
-These patches are for natting IPv6 addresses behind whole IPv6 subnets
-or just behind one IPv6 address.
+Is this solution stable?
+The last time I've tested it it had no SMP locking at all...
 
-This is useful for multiple Internet uplinks, where you want full contr=
-ol
-on the router what connections are sent over which interface. Or its qu=
-ite
-easy to setup Load Balancing rules or create a DMZ. There a lots of use
-cases=8A
-
-
-If you are looking for IPv4->IPv6 or IPv6->IPv4, there are multiple
-implementations. Two examples:
-
-IPv6->IPv4:
-
-http://ecdysis.viagenie.ca
-
-IPv4->IPv6:
-http://www.ivi2.org
-
-
-Best regards
- Ulrich
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Thanks,
+//richard
