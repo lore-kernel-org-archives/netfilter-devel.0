@@ -1,110 +1,39 @@
-From: Pete Holland <pholland27@gmail.com>
-Subject: Re: [PATCH 1/1] netfilter: conntrack: make call to nf_log_packet due
- to helper rejection conditional on LOG_INVALID
-Date: Wed, 30 Nov 2011 10:35:48 -0800
-Message-ID: <CANtneHJMLjvP_ZwzO8JmS7zn_xuWCoXOQs6jQzY_4V0+=Z+uYg@mail.gmail.com>
-References: <CANtneH+UUgXdk1UmHKR8JfN=jqsFZ+LFYGQZ_tHF_aZ_zCn3Dw@mail.gmail.com>
-	<CANtneHKob5AL=APFnLz0G3JwD97igVOr9eGpQ-mLd8p6XX5MdA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+From: "MailScanner" <postmaster@virt-infrastructure.com>
+Subject: {Spam not delivered} Animated Movie/TV Series - Cartoon Movie/TV Series - 3D/2D Animation Services
+Date: Wed, 30 Nov 2011 20:30:18 +0800 (SGT)
+Message-ID: <20111130123018.2312010E0C5@sgppnsmtp0002.virt-infrastructure.com>
+To: nesbit@investcapresources.com, netball@nel.sporttasman.org.nz,
+	netfilter-devel@vger.kernel.org, netherlands@fipjp.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:54521 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751151Ab1K3Sft convert rfc822-to-8bit (ORCPT
+Received: from bb116-15-49-156.singnet.com.sg ([116.15.49.156]:6601 "EHLO
+	sgppnsmtp0002.virt-infrastructure.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750923Ab1K3Shh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Nov 2011 13:35:49 -0500
-Received: by bkas6 with SMTP id s6so1228486bka.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Nov 2011 10:35:48 -0800 (PST)
-In-Reply-To: <CANtneHKob5AL=APFnLz0G3JwD97igVOr9eGpQ-mLd8p6XX5MdA@mail.gmail.com>
+	Wed, 30 Nov 2011 13:37:37 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-sorry that should be
-ct->tuplehash[IP_CT_ORIGINAL].tuple.src.l3num
 
-On Wed, Nov 30, 2011 at 10:33 AM, Pete Holland <pholland27@gmail.com> w=
-rote:
-> it occurred to me that I should be able to extract the protocol numbe=
-r
-> from the the tuplehash in struct nf_conn. =A0the original
-> direction tuple should always be there, and I could get it from there=
-=2E
->
-> so instead of using IPPROTO_RAW, I could use
-> ct->tuplehash[IP_CT_ORIGINAL].src.l3num
->
-> i'm still pretty new in the netfilter code, so any thoughts are
-> greatly appreciated
->
-> On Tue, Nov 29, 2011 at 12:08 PM, Pete Holland <pholland27@gmail.com>=
- wrote:
->> From: Peter Holland <pholland27@gmail.com>
->>
->> Make the logging of dropped packets due to ct helper rejection
->> conditional on LOG_INVALID.
->> This is consistent with the other uses of nf_log_packet.
->> Use the IPPROTO_RAW filter since it is unclear based on the caller
->> what protocol it actually is.
->> Without this check, there is a possible DoS based on traffic induced
->> log generation.
->> (specifically this was noted in the wild by an attacker against the =
-SIP helper)
->>
->> Signed-off-by: Peter Holland <pholland27@gmail.com>
->>
->> ---
->>
->> --- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c.orig 2011-11-29
->> 11:34:36.683717278 -0800
->> +++ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c =A0 =A0 =A02011-1=
-1-29
->> 11:41:55.031121908 -0800
->> @@ -116,8 +116,9 @@ static unsigned int ipv4_confirm(unsigne
->> =A0 =A0 =A0 =A0ret =3D helper->help(skb, skb_network_offset(skb) + i=
-p_hdrlen(skb),
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ct, ctinfo);
->> =A0 =A0 =A0 =A0if (ret !=3D NF_ACCEPT) {
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 nf_log_packet(NFPROTO_IPV4, hooknum, s=
-kb, in, out, NULL,
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "nf_ct_%s:=
- dropping packet", helper->name);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (LOG_INVALID(nf_ct_net(ct, IPPROTO_=
-RAW))
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 nf_log_packet(NFPROTO_=
-IPV4, hooknum, skb, in, out, NULL,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 "nf_ct_%s: dropping packet", helper->name);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return ret;
->> =A0 =A0 =A0 =A0}
->>
->> --- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c.orig 2011-11-29
->> 11:35:00.221028814 -0800
->> +++ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c =A0 =A0 =A02011-1=
-1-29
->> 11:38:49.541033773 -0800
->> @@ -180,8 +180,9 @@ static unsigned int ipv6_confirm(unsigne
->>
->> =A0 =A0 =A0 =A0ret =3D helper->help(skb, protoff, ct, ctinfo);
->> =A0 =A0 =A0 =A0if (ret !=3D NF_ACCEPT) {
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 nf_log_packet(NFPROTO_IPV6, hooknum, s=
-kb, in, out, NULL,
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "nf_ct_%s:=
- dropping packet", helper->name);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (LOG_INVALID(nf_ct_net(ct), IPPROTO=
-_RAW))
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 nf_log_packet(NFPROTO_=
-IPV6, hooknum, skb, in, out, NULL,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 "nf_ct_%s: dropping packet", helper->name);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return ret;
->> =A0 =A0 =A0 =A0}
->> =A0out:
->>
->
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Our UCE (spam) detectors have been triggered by a message you received:-
+
+  From: sallasmencve110aamg@yahoo.de
+  Subject: Animated Movie/TV Series - Cartoon Movie/TV Series - 3D/2D Animation Services
+  Date: Wed Nov 30 20:30:18 2011
+
+This message has not been delivered.
+
+The message to you has been detected as spam based on either its contents or
+the mail server which sent the message to us, or both.
+
+Your system administrators may need the following information:
+  Server name: sgppnsmtp0002.virt-infrastructure.com
+  Message id: 31E4E10E0AC.A511B
+
+If you are satisfied that this message is not spam, you can release it from quarantine 
+by clicking http://sgppnsmtp0002.virt-infrastructure.com/cgi-bin/release-msg.cgi?datenumber=20111130&id=31E4E10E0AC.A511B&to=nesbit@investcapresources.com, netball@nel.sporttasman.org.nz, netfilter-devel@vger.kernel.org, netherlands@fipjp.com
+
+-- 
+ESVA
+Email Security Virtual Appliance
+vInfrastructure Consultancy
+www.virt-infrastructure.com
