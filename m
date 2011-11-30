@@ -1,58 +1,50 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [RFC PATCH 00/18] netfilter: IPv6 NAT
-Date: Wed, 30 Nov 2011 11:07:17 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1111301004440.18890@frira.zrqbmnf.qr>
-References: <CAF9AA63.1622%ulrich.weber@sophos.com> <a2407c3b6405bd682cedad6db82cf225@treenet.co.nz> <4ED4A399.6090709@sophos.com> <alpine.LNX.2.01.1111291255200.20965@frira.zrqbmnf.qr> <4ED550E7.1090609@ans.pl> <alpine.LNX.2.01.1111292306460.18953@frira.zrqbmnf.qr>
- <4ED57724.4010204@ans.pl>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [v4 PATCH 1/2] NETFILTER module xt_hmark, new target 	for HASH
+ based fwmark
+Date: Wed, 30 Nov 2011 16:27:26 +0100
+Message-ID: <4ED64B5E.2030705@trash.net>
+References: <hr62jai.42522fc2b4c8846204d05566f5c6b926@obelix.schillstrom.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Ulrich Weber <ulrich.weber@sophos.com>,
-	Amos Jeffries <squid3@treenet.co.nz>,
-	"sclark46@earthlink.net" <sclark46@earthlink.net>,
-	"kaber@trash.net" <kaber@trash.net>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: =?UTF-8?Q?Krzysztof_Ol=C4=99dzki?= <ole@ans.pl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, jengelh@medozas.de,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	hans.schillstrom@ericsson.com
+To: Hans Schillstrom <hans@schillstrom.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:33632 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757490Ab1K3KHU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Nov 2011 05:07:20 -0500
-In-Reply-To: <4ED57724.4010204@ans.pl>
+Received: from stinky.trash.net ([213.144.137.162]:52379 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754456Ab1K3P12 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Nov 2011 10:27:28 -0500
+In-Reply-To: <hr62jai.42522fc2b4c8846204d05566f5c6b926@obelix.schillstrom.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Wednesday 2011-11-30 01:21, Krzysztof Ol=C4=99dzki wrote:
->>>
->>>>>However with NAT you could get some kind of anonymity.
->>>
->>>But without NAT you have pretty big chance to have the same IPv6=20
->>>*suffix* everywhere, based on you MAC address. without NAT you have=20
->>>pretty big chance to have the same IPv6 *suffix* everywhere, based o=
-n=20
->>>you MAC address.
+On 11/28/2011 10:36 AM, Hans Schillstrom wrote:
+>> If you don't want to use conntrack in your setup and you want to handle
+>> fragments, then you have to configure HMARK to calculate the hashing
+>> based on the network addresses. If you want to fully support fragments,
+>> then enable conntrack and you can configure HMARK to calculate the
+>> hashing based on network address + transport bits.
 >>
->>Same suffix? Certainly not with [PrivExt...]
+>> Fix this by removing the fragmentation handling, then assume that
+>> people can select between two hashing configuration for HMARK. One
+>> based for network address which is fragment-safe, one that uses the
+>> transport layer information, that requires conntrack. Otherwise, I
+>> don't see a sane way to handle this situation.
+> Correct me if I'm wrong here,
+> If conntrack is enabled hmark don't see the packet until it is reassembled and
+> in that case the fragmentation header is removed.
 >
->What if:
->
->1. You or your users don't have modern OS on your device so there is n=
-o=20
->DHCPv6 or rfc3041/4941 support?
+> So, with conntrack HMARK will operate on full packets not fragments
+> without conntrack ports will not be used on any fragment
 
-Dedicated separate program (that's what you would probably do on
-Windows XP which lacks DHCPv6, PrivExt and also does not even allow
-manually setting an address via GUI).
+Correct.
 
->3. You need to have static addresses in your network for access contro=
-l?
+You don't necessarily need conntrack for defragmentation though,
+we've moved defragmentation to a seperate module for TPROXY. You
+can depend on that and get defragmentation without full
+connection tracking.
 
-Access control can be done based on MAC within a broadcast domain so
-you don't have to eschew Privacy Extensions if you can do so.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
