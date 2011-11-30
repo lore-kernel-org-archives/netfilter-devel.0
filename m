@@ -1,113 +1,61 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [v4 PATCH 1/2] NETFILTER module xt_hmark, new target for HASH
- based fwmark
-Date: Wed, 30 Nov 2011 16:51:35 +0100
-Message-ID: <4ED65107.1040309@trash.net>
-References: <1322213787-25796-1-git-send-email-hans@schillstrom.com> <1322213787-25796-2-git-send-email-hans@schillstrom.com>
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: nfnetlink and conntrack extension question
+Date: Wed, 30 Nov 2011 16:54:13 +0100
+Message-ID: <1322668453.4443.24.camel@nessa.odu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, jengelh@medozas.de,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	hans.schillstrom@ericsson.com
-To: Hans Schillstrom <hans@schillstrom.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52790 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754651Ab1K3Pvh (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Nov 2011 10:51:37 -0500
-In-Reply-To: <1322213787-25796-2-git-send-email-hans@schillstrom.com>
+Received: from hq.balabit.com ([213.253.200.34]:50377 "EHLO mail.balabit.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753286Ab1K3QAP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Nov 2011 11:00:15 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11/25/2011 10:36 AM, Hans Schillstrom wrote:
-> +__u32 hmark_v6(struct sk_buff *skb, const struct xt_action_param *par)
-> +{
-> +	struct xt_hmark_info *info = (struct xt_hmark_info *)par->targinfo;
-> +	int nhoff, poff, hdrlen;
-> +	u32 addr1, addr2, hash;
-> +	struct ipv6hdr *ip6;
-> +	u8 nexthdr;
-> +	int frag = 0, ip6hdrlvl = 0;	/* Header level */
-> +	struct ipv6_opt_hdr _hdr, *hp;
-> +	union {
-> +		u32 v32;
-> +		u16 v16[2];
-> +	} ports;
-> +
-> +	ports.v32 = 0;
-> +	nhoff = skb_network_offset(skb);
-> +
-> +hdr_new:
-> +	/* Get header info */
-> +	ip6 = (struct ipv6hdr *) (skb->data + nhoff);
-> +	nexthdr = ip6->nexthdr;
-> +	hdrlen = sizeof(struct ipv6hdr);
-> +	hp = skb_header_pointer(skb, nhoff + hdrlen, sizeof(_hdr),&_hdr);
-> +
-> +	while (nexthdr) {
-> +		switch (nexthdr) {
-> +		case IPPROTO_ICMPV6:
-> +			/* ICMP Error then move ptr to inner header */
-> +			if (get_inner6_hdr(skb,&nhoff, hdrlen)) {
+Dear Netfilter developers,
 
-This doesn't look right. You assume the ICMPv6 header is following
-the IPv6 header with any other headers in between. If there are
-other headers, hdrlen will contain the length of the last header.
+We're working on releasing a GPL version of our modular proxy software
+again, this time complete with our custom iptables target and matcher
+modules that implement much of our policy evaluation in iptables. (Think
+something like being able to define sets of rules that are evaluated
+using a best-match algorithm instead of linear evaluation like iptables
+does.)
 
-> +				ip6hdrlvl++;
-> +				if (!pskb_may_pull(skb, sizeof(_hdr) + nhoff))
-> +					return XT_CONTINUE;
-> +				goto hdr_new;
-> +			}
-> +			nhoff += hdrlen;
-> +			goto hdr_rdy;
-> +
-> +		case NEXTHDR_FRAGMENT:
-> +			if (!ip6hdrlvl) /* Do not use ports if fragmented */
-> +				frag = 1;
+The kernel space is obviously under GPL, and we'd be very glad to make
+it as easy to install as possible -- having to apply kernel patches and
+recompile your distro kernel is out of question for most of the
+potential users.
 
-Shouldn't you also check for fragment offset == 0 here?
-The fragment header also doesn't include the length, so
-using ipv6_optlen() below is incorrect.
-> +			break;
-> +
-> +		/* End of hdr traversing cont. with ports and hash calc. */
-> +		case NEXTHDR_IPV6:	/* Do not process tunnels */
+Unfortunately upstream submission is not really an option, since the
+module itself is very much tied to the userspace and there's really no
+point in having it in the kernel unless you want to use Zorp. (I thought
+a lot about potential use cases without the userspace proxy, but really
+couldn't come up with anything meaningful.)
 
-That comment looks misleading, you do seem to process them?
+There are two things remaining that prevent us doing simple out-of-tree
+kernel module builds:
 
-> +		case NEXTHDR_TCP:
-> +		case NEXTHDR_UDP:
-> +		case NEXTHDR_ESP:
-> +		case NEXTHDR_AUTH:
+     1. We use nfnetlink for the userspace->kernelspace communication.
+        This works beautifully, however, since NFNL_SUBSYS_COUNT is a
+        compile-time constant there's no way of registering a subsystem
+        with an ID not known at compile time.
+     2. Pretty much the same happens with conntrack extensions: we use a
+        conntrack extension to store cached results of policy
+        evaluation. Unfortunatly here we have an NF_CT_EXT_NUM sized
+        static array storing the registered conntrack extensions.
 
-Don't you want to use the port numbers if only authentication
-without encryption is used?
+My question is whether or not removing those limitations and allowing
+runtime registration of both nfnetlink subsystems and conntrack
+extensions would be acceptable upstream? That way out-of-tree modules
+could possibly use those features without having to resort to patching
+and recompiling the kernel.
 
-> +		case NEXTHDR_SCTP:
-> +		case NEXTHDR_NONE:	/* Last hdr of something unknown */
-> +			nhoff += hdrlen;
-> +			goto hdr_rdy;
-> +		default:
-> +			return XT_CONTINUE;
-> +		}
-> +		if (!hp)
-> +			return XT_CONTINUE;
-> +		nhoff += hdrlen;	/* eat current header */
-> +		nexthdr =  hp->nexthdr;	/* Next header */
-> +		hdrlen = ipv6_optlen(hp);
-> +		hp = skb_header_pointer(skb, nhoff + hdrlen, sizeof(_hdr),
-> +					&_hdr);
-> +
-> +		if (!pskb_may_pull(skb, nhoff))
-> +			return XT_CONTINUE;
-> +	}
+TiA,
 
-And final question, why not simply use ipv6_skip_exthdr()?
+-- 
+KOVACS Krisztian
 
-> +hdr_rdy:
-> +...
 
 
