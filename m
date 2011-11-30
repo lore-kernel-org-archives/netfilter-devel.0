@@ -1,67 +1,73 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: nfnetlink and conntrack extension question
-Date: Wed, 30 Nov 2011 19:09:02 +0100
-Message-ID: <20111130180902.GA20336@1984>
+Date: Wed, 30 Nov 2011 19:22:09 +0100
+Message-ID: <20111130182209.GB20336@1984>
 References: <1322668453.4443.24.camel@nessa.odu>
+ <alpine.LNX.2.01.1111301756450.9557@frira.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: KOVACS Krisztian <hidden@balabit.hu>
+Cc: KOVACS Krisztian <hidden@balabit.hu>,
+	netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45397 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47469 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751104Ab1K3SJQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Nov 2011 13:09:16 -0500
+	id S1751278Ab1K3SWR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Nov 2011 13:22:17 -0500
 Content-Disposition: inline
-In-Reply-To: <1322668453.4443.24.camel@nessa.odu>
+In-Reply-To: <alpine.LNX.2.01.1111301756450.9557@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 30, 2011 at 04:54:13PM +0100, KOVACS Krisztian wrote:
-> Dear Netfilter developers,
+On Wed, Nov 30, 2011 at 06:05:13PM +0100, Jan Engelhardt wrote:
 > 
-> We're working on releasing a GPL version of our modular proxy software
-> again, this time complete with our custom iptables target and matcher
-> modules that implement much of our policy evaluation in iptables. (Think
-> something like being able to define sets of rules that are evaluated
-> using a best-match algorithm instead of linear evaluation like iptables
-> does.)
+> On Wednesday 2011-11-30 16:54, KOVACS Krisztian wrote:
+> >
+> >There are two things remaining that prevent us doing simple out-of-tree
+> >kernel module builds:
+> >
+> >     1. We use nfnetlink for the userspace->kernelspace communication.
+> >        This works beautifully, however, since NFNL_SUBSYS_COUNT is a
+> >        compile-time constant there's no way of registering a subsystem
+> >        with an ID not known at compile time.
 > 
-> The kernel space is obviously under GPL, and we'd be very glad to make
-> it as easy to install as possible -- having to apply kernel patches and
-> recompile your distro kernel is out of question for most of the
-> potential users.
+> You can't even snatch a number because the arrays are just sized
+> __foobar_max-ly, and those may all be used.
 > 
-> Unfortunately upstream submission is not really an option, since the
-> module itself is very much tied to the userspace and there's really no
-> point in having it in the kernel unless you want to use Zorp. (I thought
-> a lot about potential use cases without the userspace proxy, but really
-> couldn't come up with anything meaningful.)
+> >My question is whether or not removing those limitations and allowing
+> >runtime registration of both nfnetlink subsystems and conntrack
+> >extensions would be acceptable upstream? That way out-of-tree modules
+> >could possibly use those features without having to resort to patching
+> >and recompiling the kernel.
 > 
-> There are two things remaining that prevent us doing simple out-of-tree
-> kernel module builds:
-> 
->      1. We use nfnetlink for the userspace->kernelspace communication.
->         This works beautifully, however, since NFNL_SUBSYS_COUNT is a
->         compile-time constant there's no way of registering a subsystem
->         with an ID not known at compile time.
->      2. Pretty much the same happens with conntrack extensions: we use a
->         conntrack extension to store cached results of policy
->         evaluation. Unfortunatly here we have an NF_CT_EXT_NUM sized
->         static array storing the registered conntrack extensions.
-> 
-> My question is whether or not removing those limitations and allowing
-> runtime registration of both nfnetlink subsystems and conntrack
-> extensions would be acceptable upstream? That way out-of-tree modules
-> could possibly use those features without having to resort to patching
-> and recompiling the kernel.
+> As for 1, you can use genetlink, just as I do for the copy of ipset
+> in xtables-addons. Being forced to use nfnetlink has been point of
+> much discussion and ultimately, nobody was able to provide a
+> technical reason on why nfnetlink is better.
 
-My opinion: I think that it is hard to justify any sort of change in
-mainstream to make life easier to out-of-tree modules.
+Well, few differences. With genetlink:
 
-We want things in mainstream.
+* you have to send a message to look up for the ID first (to guess the
+  multicast group and subsystem IDs).
 
-P.S: Any chance to integrate your development with nfgrep? I didn't
-find any time to release the source code yet. I expect to find some
-spare time during the end of year holidays. If I have access to that
-GPL code we can think of some sort of integration nfgrep <-> zorp.
+* you don't know how many users will using the genetlink bus. You'll
+  have to share the bandwidth with them.
+
+And to finish, for netfilter, the policy is to use the NETLINK_NEFILTER
+bus which is where *all* netfilter subsystem reside.
+
+genetlink is a bit more bloated than nfnetlink IMO.
+
+I like the idea that you cannot register out-of-tree modules using
+nfnetlink. I like things in mainstream (or look for some alternative
+to get them it).
+
+> The last argument made by nfnl proponents was that NETLINK_NETFILTER
+> was free of multicast messages from other uninteresting subsystems
+> (e.g. block layer), but I am questioning on whether genl really
+> forces you to receive (and then ignore) uninteresting mcast messages,
+> given one has to explicitly subscribe to nlgroups in the first place
+> anyway.
+
+No, if you subscribe to mcast messages that you're interested, you
+won't get messages for other multicast groups.
