@@ -1,73 +1,55 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: nfnetlink and conntrack extension question
-Date: Wed, 30 Nov 2011 19:22:09 +0100
-Message-ID: <20111130182209.GB20336@1984>
-References: <1322668453.4443.24.camel@nessa.odu>
- <alpine.LNX.2.01.1111301756450.9557@frira.zrqbmnf.qr>
+Subject: Re: [v4 PATCH 1/2] NETFILTER module xt_hmark, new target for HASH
+ based fwmark
+Date: Wed, 30 Nov 2011 19:28:15 +0100
+Message-ID: <20111130182815.GC20336@1984>
+References: <hr62jai.42522fc2b4c8846204d05566f5c6b926@obelix.schillstrom.com>
+ <4ED64B5E.2030705@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: KOVACS Krisztian <hidden@balabit.hu>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: Hans Schillstrom <hans@schillstrom.com>, jengelh@medozas.de,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	hans.schillstrom@ericsson.com
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47469 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48358 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751278Ab1K3SWR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Nov 2011 13:22:17 -0500
+	id S1751151Ab1K3S2S (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Nov 2011 13:28:18 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.01.1111301756450.9557@frira.zrqbmnf.qr>
+In-Reply-To: <4ED64B5E.2030705@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 30, 2011 at 06:05:13PM +0100, Jan Engelhardt wrote:
-> 
-> On Wednesday 2011-11-30 16:54, KOVACS Krisztian wrote:
+On Wed, Nov 30, 2011 at 04:27:26PM +0100, Patrick McHardy wrote:
+> On 11/28/2011 10:36 AM, Hans Schillstrom wrote:
+> >>If you don't want to use conntrack in your setup and you want to handle
+> >>fragments, then you have to configure HMARK to calculate the hashing
+> >>based on the network addresses. If you want to fully support fragments,
+> >>then enable conntrack and you can configure HMARK to calculate the
+> >>hashing based on network address + transport bits.
+> >>
+> >>Fix this by removing the fragmentation handling, then assume that
+> >>people can select between two hashing configuration for HMARK. One
+> >>based for network address which is fragment-safe, one that uses the
+> >>transport layer information, that requires conntrack. Otherwise, I
+> >>don't see a sane way to handle this situation.
+> >Correct me if I'm wrong here,
+> >If conntrack is enabled hmark don't see the packet until it is reassembled and
+> >in that case the fragmentation header is removed.
 > >
-> >There are two things remaining that prevent us doing simple out-of-tree
-> >kernel module builds:
-> >
-> >     1. We use nfnetlink for the userspace->kernelspace communication.
-> >        This works beautifully, however, since NFNL_SUBSYS_COUNT is a
-> >        compile-time constant there's no way of registering a subsystem
-> >        with an ID not known at compile time.
+> >So, with conntrack HMARK will operate on full packets not fragments
+> >without conntrack ports will not be used on any fragment
 > 
-> You can't even snatch a number because the arrays are just sized
-> __foobar_max-ly, and those may all be used.
-> 
-> >My question is whether or not removing those limitations and allowing
-> >runtime registration of both nfnetlink subsystems and conntrack
-> >extensions would be acceptable upstream? That way out-of-tree modules
-> >could possibly use those features without having to resort to patching
-> >and recompiling the kernel.
-> 
-> As for 1, you can use genetlink, just as I do for the copy of ipset
-> in xtables-addons. Being forced to use nfnetlink has been point of
-> much discussion and ultimately, nobody was able to provide a
-> technical reason on why nfnetlink is better.
+> Correct.
 
-Well, few differences. With genetlink:
+To complete what Patrick said. They are collected but not linearized.
+That's why you have to use skb_header_pointer.
 
-* you have to send a message to look up for the ID first (to guess the
-  multicast group and subsystem IDs).
+> You don't necessarily need conntrack for defragmentation though,
+> we've moved defragmentation to a seperate module for TPROXY. You
+> can depend on that and get defragmentation without full
+> connection tracking.
 
-* you don't know how many users will using the genetlink bus. You'll
-  have to share the bandwidth with them.
-
-And to finish, for netfilter, the policy is to use the NETLINK_NEFILTER
-bus which is where *all* netfilter subsystem reside.
-
-genetlink is a bit more bloated than nfnetlink IMO.
-
-I like the idea that you cannot register out-of-tree modules using
-nfnetlink. I like things in mainstream (or look for some alternative
-to get them it).
-
-> The last argument made by nfnl proponents was that NETLINK_NETFILTER
-> was free of multicast messages from other uninteresting subsystems
-> (e.g. block layer), but I am questioning on whether genl really
-> forces you to receive (and then ignore) uninteresting mcast messages,
-> given one has to explicitly subscribe to nlgroups in the first place
-> anyway.
-
-No, if you subscribe to mcast messages that you're interested, you
-won't get messages for other multicast groups.
+Indeed, I missed this. That way you can skip conntrack but solving the
+broken fragments handling.
