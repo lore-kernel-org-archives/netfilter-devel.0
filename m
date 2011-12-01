@@ -1,81 +1,75 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: Re: nat drop the icmp redirect packet
-Date: Thu, 01 Dec 2011 08:59:56 +0800
-Message-ID: <4ED6D18C.7000802@cn.fujitsu.com>
-References: <4ED2E00B.3000006@cn.fujitsu.com> <4ED67BB1.8020808@trash.net>
+From: =?UTF-8?B?S3J6eXN6dG9mIE9sxJlkemtp?= <ole@ans.pl>
+Subject: Re: [RFC PATCH 00/18] netfilter: IPv6 NAT
+Date: Thu, 01 Dec 2011 08:01:54 +0100
+Message-ID: <4ED72662.6080800@ans.pl>
+References: <CAF9AA63.1622%ulrich.weber@sophos.com> <a2407c3b6405bd682cedad6db82cf225@treenet.co.nz> <4ED4A399.6090709@sophos.com> <alpine.LNX.2.01.1111291255200.20965@frira.zrqbmnf.qr> <4ED550E7.1090609@ans.pl> <alpine.LNX.2.01.1111292306460.18953@frira.zrqbmnf.qr> <4ED57724.4010204@ans.pl> <alpine.LNX.2.01.1111301004440.18890@frira.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=GB2312
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: Ulrich Weber <ulrich.weber@sophos.com>,
+	Amos Jeffries <squid3@treenet.co.nz>,
+	"sclark46@earthlink.net" <sclark46@earthlink.net>,
+	"kaber@trash.net" <kaber@trash.net>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:64563 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1753476Ab1LAA7O convert rfc822-to-8bit (ORCPT
+Received: from bizon.gios.gov.pl ([195.187.34.71]:36675 "EHLO
+	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751201Ab1LAHC3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Nov 2011 19:59:14 -0500
-In-Reply-To: <4ED67BB1.8020808@trash.net>
+	Thu, 1 Dec 2011 02:02:29 -0500
+In-Reply-To: <alpine.LNX.2.01.1111301004440.18890@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=D3=DA 2011=C4=EA12=D4=C201=C8=D5 02:53, Patrick McHardy =D0=B4=B5=C0:
-> On 11/28/2011 02:12 AM, Gao feng wrote:
->> Hi
+On 2011-11-30 11:07, Jan Engelhardt wrote:
+>
+> On Wednesday 2011-11-30 01:21, Krzysztof Ol=C4=99dzki wrote:
+>>>>
+>>>>>> However with NAT you could get some kind of anonymity.
+>>>>
+>>>> But without NAT you have pretty big chance to have the same IPv6
+>>>> *suffix* everywhere, based on you MAC address. without NAT you hav=
+e
+>>>> pretty big chance to have the same IPv6 *suffix* everywhere, based=
+ on
+>>>> you MAC address.
+>>>
+>>> Same suffix? Certainly not with [PrivExt...]
 >>
->> In func nf_nat_icmp_reply_translation,the icmp packet will be droped=
- when the nat is not finished.
->> pc A(whose gateway is C) send a icmp request to pc B.
->> When gw C receive this packet,it may return a icmp redirect packet t=
-o A.
->> BUT now,the icmp request packet has not go to POSTROUTING,So the nat=
- is not finished.
->> Finally,the icmp redirect packet will be droped no matter the conn h=
-as nat or not.
+>> What if:
 >>
->> of course,the icmp redirect packet will be correct handled when nat =
-is finished.
->>
->> Can somebody will give me some suggestion,
->> or should I just add a sysctl to let the user decide drop or receive=
- this icmp redirect packet when nat is not finished?
->=20
-> It doesn't matter whether the ICMP packet has gone through
-> POST_ROUTING, the conntrack associated with the packet is
-> that of the original packet causing the ICMP REDIRECT (or
-> any other kind of ICMP error).
->=20
-> Basically, we don't want hosts talking directly to each other
-> *if* NAT has been set up since that would obviously break
-> things. In the case you describe (only destination NAT setup
-> completed, but null mapping) instead of dropping the packet,
-> we could set up a null source mapping and let the packet
-> through under the assumption that the hosts will then start
-> communicating directly.
->=20
-> This will break if the host receiving the ICMP REDIRECT ignores
-> it though. What is the specific problem you're trying to solve?
->=20
+>> 1. You or your users don't have modern OS on your device so there is=
+ no
+>> DHCPv6 or rfc3041/4941 support?
+>
+> Dedicated separate program (that's what you would probably do on
+> Windows XP which lacks DHCPv6, PrivExt and also does not even allow
+> manually setting an address via GUI).
 
-Thanks Patrick!
+Too much effort. Really.
 
-As I said,in my case,the *first* ICMP REDIRECT packet will be dropped e=
-ven
-the system has no nat rules,because this REDIRECT packet is triggered
-by the original packet in FORWARD chain(ip_forward),and when this REDIR=
-ECT
-packet goto POSTROUTING chian(nf_nat_fn->nf_nat_icmp_reply_translation)=
-,the
-original packet is still in FORWARD chain.So the original packet's conn=
-track
-ONLY has IPS_DST_NAT_DONE.
+>> 3. You need to have static addresses in your network for access cont=
+rol?
+>
+> Access control can be done based on MAC within a broadcast domain so
+> you don't have to eschew Privacy Extensions if you can do so.
 
-I understand your mean,we should not let REDIRECT to take effect when t=
-his conntrack
-has nat rule.
+Maybe if you have a very small network - just one or two subnets, one=20
+router... Again - maybe. It is definitely not going to work on a large,=
+=20
+multisite network with many intermediate routers.
 
-I just want to know is there some idea to avoid the first ICMP_REDIRECT=
- packet being dropped?
+All you can do on edge devices is checking client's MAC, requring 802.1=
+X=20
+and making sure that IP matches MAC (and possibly DHCP lease) and=20
+similar things.
 
+Best regards,
+
+				Krzysztof Ol=C4=99dzki
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
