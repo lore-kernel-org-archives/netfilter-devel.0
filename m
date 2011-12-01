@@ -1,114 +1,46 @@
-From: "Hans Schillstrom" <hans@schillstrom.com>
-Subject: Re[2]:  [v4 PATCH 1/2] NETFILTER module xt_hmark, new target
-	for HASH based fwmark
-Date: Thu, 1 Dec 2011 12:05:14 +0100 (CET)
-Message-ID: <jec613b.4edd5c40857133156bf40cef475e9234@obelix.schillstrom.com>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: [libnl-nft PATCH resend] Fix the route object comparison using the wrong pointer
+Date: Thu, 1 Dec 2011 12:05:17 +0100
+Message-ID: <201112011205.18003.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Cc: pablo@netfilter.org, jengelh@medozas.de,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	hans.schillstrom@ericsson.com
-To: "Patrick McHardy" <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from re04.intra2net.com ([82.165.46.26]:38873 "EHLO
+	re04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752741Ab1LALFU (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 1 Dec 2011 06:05:20 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
->On 12/01/2011 01:25 AM, Hans Schillstrom wrote:
->> On Wednesday, November 30, 2011 16:51:35 Patrick McHardy wrote:
->>> On 11/25/2011 10:36 AM, Hans Schillstrom wrote:
->>>> +
->>>> +hdr_new:
->>>> +	/* Get header info */
->>>> +	ip6 = (struct ipv6hdr *) (skb->data + nhoff);
->>>> +	nexthdr = ip6->nexthdr;
->>>> +	hdrlen = sizeof(struct ipv6hdr);
->>>> +	hp = skb_header_pointer(skb, nhoff + hdrlen, sizeof(_hdr),&_hdr);
->>>> +
->>>> +	while (nexthdr) {
->>>> +		switch (nexthdr) {
->>>> +		case IPPROTO_ICMPV6:
->>>> +			/* ICMP Error then move ptr to inner header */
->>>> +			if (get_inner6_hdr(skb,&nhoff, hdrlen)) {
->>> This doesn't look right. You assume the ICMPv6 header is following
->>> the IPv6 header with any other headers in between. If there are
->>> other headers, hdrlen will contain the length of the last header.
->>
->> RFC-4443  "Every ICMPv6 message is preceded by an IPv6 header and zero or more IPv6 extension headers."
->> hdrlen is actually previous header length in bytes, to be correct.
->> nhoff is the sum of processed headers.
->> So in case of an icmp the nhoff will be updated, and hdrlen preset to ipv6hdr size
->
->Right, I missed that you're using nhoff + hdrlen in
->get_inner6_hdr().
->
->>>> +				ip6hdrlvl++;
->>>> +				if (!pskb_may_pull(skb, sizeof(_hdr) + nhoff))
->>>> +					return XT_CONTINUE;
->>>> +				goto hdr_new;
->>>> +			}
->>>> +			nhoff += hdrlen;
->>>> +			goto hdr_rdy;
->>>> +
->>>> +		case NEXTHDR_FRAGMENT:
->>>> +			if (!ip6hdrlvl) /* Do not use ports if fragmented */
->>>> +				frag = 1;
->>> Shouldn't you also check for fragment offset == 0 here?
->> According to the RFC "Initialized to zero for transmission; ignored on reception"
->
->No, what I meant is that for the first fragment, you do
->have the upper layer header available. But as we already
->discussed for a stable identifier you want to ignore it
->anyways.
->
->>>> +		case NEXTHDR_TCP:
->>>> +		case NEXTHDR_UDP:
->>>> +		case NEXTHDR_ESP:
->>>> +		case NEXTHDR_AUTH:
->>> Don't you want to use the port numbers if only authentication
->>> without encryption is used?
->> with esp or ah the SPI will be used instead of ports.
->> Useful or not I don't know since they are asymmetric in terms of a flow.
->
->Yes, but with AH you could either use the ESP SPI or if no ESP
->is used the port numbers of the upper layer protocol.
->
+Typo detected by cppcheck
 
-The intention was to treat ESP & AH in the same way,
-but as you say why not use the upper layer 
+Signed-off-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
+---
+ lib/route/route_obj.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/lib/route/route_obj.c b/lib/route/route_obj.c
+index 4e14d6d..8f1d4d5 100644
+--- a/lib/route/route_obj.c
++++ b/lib/route/route_obj.c
+@@ -403,7 +403,7 @@ static int route_compare(struct nl_object *_a, struct nl_object *_b,
+ 		diff |= ROUTE_DIFF(FLAGS,
+ 			  (a->rt_flags ^ b->rt_flags) & b->rt_flag_mask);
+ 	} else {
+-		if (a->rt_nr_nh != a->rt_nr_nh)
++		if (a->rt_nr_nh != b->rt_nr_nh)
+ 			goto nh_mismatch;
  
->>> And final question, why not simply use ipv6_skip_exthdr()?
->> problems with fragments...
->
->So the probem is that it will return the transport layer protocol
->header for fragments with frag_off == 0? We also have ipv6_find_hdr()
->which we could modify to indicate this in the frag_off pointer.
+ 		/* search for a dup in each nh of a */
+-- 
+1.7.4.4
 
-ipv6_find_hdr() will do the trick with a light modification
-What about a wrapper like:
-
-int __ipv6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
-		  int target, unsigned short *fragoff,  int *fragflg)
-{
-...
-		if (nexthdr == NEXTHDR_FRAGMENT) {
-			unsigned short _frag_off;
-			__be16 *fp;
-
-			if (fragflg)
-			        fragflg = 1;
-			fp = skb_header_pointer(skb,
-						start+offsetof(struct frag_hdr,
-							       frag_off),
-						sizeof(_frag_off),
-						&_frag_off);
-
-...
-}
-
-int ipv6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
-		  int target, unsigned short *fragoff) 
-{
-        return __ipv6_find_hdr(skb, offset, terget, fragoff, NULL);
-}
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
