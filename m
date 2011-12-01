@@ -1,67 +1,83 @@
-From: Hans Schillstrom <hans@schillstrom.com>
-Subject: Re: [v4 PATCH 1/2] NETFILTER module xt_hmark, new target for HASH based fwmark
-Date: Thu, 1 Dec 2011 01:52:36 +0100
-Message-ID: <201112010152.36659.hans@schillstrom.com>
-References: <hr62jai.42522fc2b4c8846204d05566f5c6b926@obelix.schillstrom.com> <4ED64B5E.2030705@trash.net> <20111130182815.GC20336@1984>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Re: nat drop the icmp redirect packet
+Date: Thu, 01 Dec 2011 08:59:56 +0800
+Message-ID: <4ED6D18C.7000802@cn.fujitsu.com>
+References: <4ED2E00B.3000006@cn.fujitsu.com> <4ED67BB1.8020808@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, jengelh@medozas.de,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	hans.schillstrom@ericsson.com
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20111130182815.GC20336@1984>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:64563 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1753476Ab1LAA7O convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Nov 2011 19:59:14 -0500
+In-Reply-To: <4ED67BB1.8020808@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+=D3=DA 2011=C4=EA12=D4=C201=C8=D5 02:53, Patrick McHardy =D0=B4=B5=C0:
+> On 11/28/2011 02:12 AM, Gao feng wrote:
+>> Hi
+>>
+>> In func nf_nat_icmp_reply_translation,the icmp packet will be droped=
+ when the nat is not finished.
+>> pc A(whose gateway is C) send a icmp request to pc B.
+>> When gw C receive this packet,it may return a icmp redirect packet t=
+o A.
+>> BUT now,the icmp request packet has not go to POSTROUTING,So the nat=
+ is not finished.
+>> Finally,the icmp redirect packet will be droped no matter the conn h=
+as nat or not.
+>>
+>> of course,the icmp redirect packet will be correct handled when nat =
+is finished.
+>>
+>> Can somebody will give me some suggestion,
+>> or should I just add a sysctl to let the user decide drop or receive=
+ this icmp redirect packet when nat is not finished?
+>=20
+> It doesn't matter whether the ICMP packet has gone through
+> POST_ROUTING, the conntrack associated with the packet is
+> that of the original packet causing the ICMP REDIRECT (or
+> any other kind of ICMP error).
+>=20
+> Basically, we don't want hosts talking directly to each other
+> *if* NAT has been set up since that would obviously break
+> things. In the case you describe (only destination NAT setup
+> completed, but null mapping) instead of dropping the packet,
+> we could set up a null source mapping and let the packet
+> through under the assumption that the hosts will then start
+> communicating directly.
+>=20
+> This will break if the host receiving the ICMP REDIRECT ignores
+> it though. What is the specific problem you're trying to solve?
+>=20
 
-On Wednesday, November 30, 2011 19:28:15 Pablo Neira Ayuso wrote:
-> On Wed, Nov 30, 2011 at 04:27:26PM +0100, Patrick McHardy wrote:
-> > On 11/28/2011 10:36 AM, Hans Schillstrom wrote:
-> > >>If you don't want to use conntrack in your setup and you want to handle
-> > >>fragments, then you have to configure HMARK to calculate the hashing
-> > >>based on the network addresses. If you want to fully support fragments,
-> > >>then enable conntrack and you can configure HMARK to calculate the
-> > >>hashing based on network address + transport bits.
-> > >>
-> > >>Fix this by removing the fragmentation handling, then assume that
-> > >>people can select between two hashing configuration for HMARK. One
-> > >>based for network address which is fragment-safe, one that uses the
-> > >>transport layer information, that requires conntrack. Otherwise, I
-> > >>don't see a sane way to handle this situation.
-> > >Correct me if I'm wrong here,
-> > >If conntrack is enabled hmark don't see the packet until it is reassembled and
-> > >in that case the fragmentation header is removed.
-> > >
-> > >So, with conntrack HMARK will operate on full packets not fragments
-> > >without conntrack ports will not be used on any fragment
-> > 
-> > Correct.
-> 
-> To complete what Patrick said. They are collected but not linearized.
-> That's why you have to use skb_header_pointer.
-OK, thanks
-I'll will do that.
+Thanks Patrick!
 
-> 
-> > You don't necessarily need conntrack for defragmentation though,
-> > we've moved defragmentation to a seperate module for TPROXY. You
-> > can depend on that and get defragmentation without full
-> > connection tracking.
-> 
-> Indeed, I missed this. That way you can skip conntrack but solving the
-> broken fragments handling.
+As I said,in my case,the *first* ICMP REDIRECT packet will be dropped e=
+ven
+the system has no nat rules,because this REDIRECT packet is triggered
+by the original packet in FORWARD chain(ip_forward),and when this REDIR=
+ECT
+packet goto POSTROUTING chian(nf_nat_fn->nf_nat_icmp_reply_translation)=
+,the
+original packet is still in FORWARD chain.So the original packet's conn=
+track
+ONLY has IPS_DST_NAT_DONE.
 
-In a cluster with inputs on many different blades (with a Virtual IP address) you can
-receive the fragments on different blades and in that case there should not be any
-defrag in that node. HMARK will just produce the same fw-mark for all fragments.
+I understand your mean,we should not let REDIRECT to take effect when t=
+his conntrack
+has nat rule.
 
-In our case defrag will happens in next hop i.e. before going into IPVS.
+I just want to know is there some idea to avoid the first ICMP_REDIRECT=
+ packet being dropped?
 
-As mention earlier, this needs to be documented better.
-I will add this to the man page.
-
-Thanks
-Hans
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
