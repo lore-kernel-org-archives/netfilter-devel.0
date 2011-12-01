@@ -1,77 +1,89 @@
-From: =?UTF-8?B?S3J6eXN6dG9mIE9sxJlkemtp?= <ole@ans.pl>
-Subject: Re: [RFC PATCH 00/18] netfilter: IPv6 NAT
-Date: Thu, 01 Dec 2011 08:01:54 +0100
-Message-ID: <4ED72662.6080800@ans.pl>
-References: <CAF9AA63.1622%ulrich.weber@sophos.com> <a2407c3b6405bd682cedad6db82cf225@treenet.co.nz> <4ED4A399.6090709@sophos.com> <alpine.LNX.2.01.1111291255200.20965@frira.zrqbmnf.qr> <4ED550E7.1090609@ans.pl> <alpine.LNX.2.01.1111292306460.18953@frira.zrqbmnf.qr> <4ED57724.4010204@ans.pl> <alpine.LNX.2.01.1111301004440.18890@frira.zrqbmnf.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [v4 PATCH 1/2] NETFILTER module xt_hmark, new target for HASH
+ based fwmark
+Date: Thu, 01 Dec 2011 11:05:13 +0100
+Message-ID: <4ED75159.5000604@trash.net>
+References: <1322213787-25796-1-git-send-email-hans@schillstrom.com> <1322213787-25796-2-git-send-email-hans@schillstrom.com> <4ED65107.1040309@trash.net> <201112010125.29627.hans@schillstrom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Ulrich Weber <ulrich.weber@sophos.com>,
-	Amos Jeffries <squid3@treenet.co.nz>,
-	"sclark46@earthlink.net" <sclark46@earthlink.net>,
-	"kaber@trash.net" <kaber@trash.net>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, jengelh@medozas.de,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	hans.schillstrom@ericsson.com
+To: Hans Schillstrom <hans@schillstrom.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bizon.gios.gov.pl ([195.187.34.71]:36675 "EHLO
-	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751201Ab1LAHC3 (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:39171 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751754Ab1LAKFT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Dec 2011 02:02:29 -0500
-In-Reply-To: <alpine.LNX.2.01.1111301004440.18890@frira.zrqbmnf.qr>
+	Thu, 1 Dec 2011 05:05:19 -0500
+In-Reply-To: <201112010125.29627.hans@schillstrom.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2011-11-30 11:07, Jan Engelhardt wrote:
+On 12/01/2011 01:25 AM, Hans Schillstrom wrote:
+> On Wednesday, November 30, 2011 16:51:35 Patrick McHardy wrote:
+>> On 11/25/2011 10:36 AM, Hans Schillstrom wrote:
+>>> +
+>>> +hdr_new:
+>>> +	/* Get header info */
+>>> +	ip6 = (struct ipv6hdr *) (skb->data + nhoff);
+>>> +	nexthdr = ip6->nexthdr;
+>>> +	hdrlen = sizeof(struct ipv6hdr);
+>>> +	hp = skb_header_pointer(skb, nhoff + hdrlen, sizeof(_hdr),&_hdr);
+>>> +
+>>> +	while (nexthdr) {
+>>> +		switch (nexthdr) {
+>>> +		case IPPROTO_ICMPV6:
+>>> +			/* ICMP Error then move ptr to inner header */
+>>> +			if (get_inner6_hdr(skb,&nhoff, hdrlen)) {
+>> This doesn't look right. You assume the ICMPv6 header is following
+>> the IPv6 header with any other headers in between. If there are
+>> other headers, hdrlen will contain the length of the last header.
 >
-> On Wednesday 2011-11-30 01:21, Krzysztof Ol=C4=99dzki wrote:
->>>>
->>>>>> However with NAT you could get some kind of anonymity.
->>>>
->>>> But without NAT you have pretty big chance to have the same IPv6
->>>> *suffix* everywhere, based on you MAC address. without NAT you hav=
-e
->>>> pretty big chance to have the same IPv6 *suffix* everywhere, based=
- on
->>>> you MAC address.
->>>
->>> Same suffix? Certainly not with [PrivExt...]
->>
->> What if:
->>
->> 1. You or your users don't have modern OS on your device so there is=
- no
->> DHCPv6 or rfc3041/4941 support?
->
-> Dedicated separate program (that's what you would probably do on
-> Windows XP which lacks DHCPv6, PrivExt and also does not even allow
-> manually setting an address via GUI).
+> RFC-4443  "Every ICMPv6 message is preceded by an IPv6 header and zero or more IPv6 extension headers."
+> hdrlen is actually previous header length in bytes, to be correct.
+> nhoff is the sum of processed headers.
+> So in case of an icmp the nhoff will be updated, and hdrlen preset to ipv6hdr size
 
-Too much effort. Really.
+Right, I missed that you're using nhoff + hdrlen in
+get_inner6_hdr().
 
->> 3. You need to have static addresses in your network for access cont=
-rol?
->
-> Access control can be done based on MAC within a broadcast domain so
-> you don't have to eschew Privacy Extensions if you can do so.
+>>> +				ip6hdrlvl++;
+>>> +				if (!pskb_may_pull(skb, sizeof(_hdr) + nhoff))
+>>> +					return XT_CONTINUE;
+>>> +				goto hdr_new;
+>>> +			}
+>>> +			nhoff += hdrlen;
+>>> +			goto hdr_rdy;
+>>> +
+>>> +		case NEXTHDR_FRAGMENT:
+>>> +			if (!ip6hdrlvl) /* Do not use ports if fragmented */
+>>> +				frag = 1;
+>> Shouldn't you also check for fragment offset == 0 here?
+> According to the RFC "Initialized to zero for transmission; ignored on reception"
 
-Maybe if you have a very small network - just one or two subnets, one=20
-router... Again - maybe. It is definitely not going to work on a large,=
-=20
-multisite network with many intermediate routers.
+No, what I meant is that for the first fragment, you do
+have the upper layer header available. But as we already
+discussed for a stable identifier you want to ignore it
+anyways.
 
-All you can do on edge devices is checking client's MAC, requring 802.1=
-X=20
-and making sure that IP matches MAC (and possibly DHCP lease) and=20
-similar things.
+>>> +		case NEXTHDR_TCP:
+>>> +		case NEXTHDR_UDP:
+>>> +		case NEXTHDR_ESP:
+>>> +		case NEXTHDR_AUTH:
+>> Don't you want to use the port numbers if only authentication
+>> without encryption is used?
+> with esp or ah the SPI will be used instead of ports.
+> Useful or not I don't know since they are asymmetric in terms of a flow.
 
-Best regards,
+Yes, but with AH you could either use the ESP SPI or if no ESP
+is used the port numbers of the upper layer protocol.
 
-				Krzysztof Ol=C4=99dzki
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> And final question, why not simply use ipv6_skip_exthdr()?
+> problems with fragments...
+
+So the probem is that it will return the transport layer protocol
+header for fragments with frag_off == 0? We also have ipv6_find_hdr()
+which we could modify to indicate this in the frag_off pointer.
+
