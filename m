@@ -1,74 +1,44 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [v4 PATCH 1/2] NETFILTER module xt_hmark, new target 	for HASH
- based fwmark
-Date: Thu, 01 Dec 2011 12:46:08 +0100
-Message-ID: <4ED76900.6000108@trash.net>
-References: <jec613b.2c905808e36d8b8192d285d691c5499b@obelix.schillstrom.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: RAW netfilter - "advanced netfilter setting" or not?
+Date: Thu, 1 Dec 2011 19:12:48 -0800
+Message-ID: <CA+55aFxwNbQd-SkFoeS2s18u0ZDto8DdZehJRouDQG-4XW-J_A@mail.gmail.com>
+References: <CA+55aFzvZowH1_bA66VZ5Aw0wF3KzdGSqiNZLw46J3u4gpKnxA@mail.gmail.com>
+ <20111123.160719.540568233963799514.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, jengelh@medozas.de,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	hans.schillstrom@ericsson.com
-To: Hans Schillstrom <hans@schillstrom.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: richard.weinberger@gmail.com, pablo@netfilter.org,
+	netdev@vger.kernel.org, kaber@trash.net,
+	netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41306 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752951Ab1LALqK (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:58807 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756475Ab1LBDNL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Dec 2011 06:46:10 -0500
-In-Reply-To: <jec613b.2c905808e36d8b8192d285d691c5499b@obelix.schillstrom.com>
+	Thu, 1 Dec 2011 22:13:11 -0500
+In-Reply-To: <20111123.160719.540568233963799514.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 12/01/2011 12:39 PM, Hans Schillstrom wrote:
-> t: Re: [v4 PATCH 1/2] NETFILTER module xt_hmark, new target for HASH based fwmark
->> On 12/01/2011 12:05 PM, Hans Schillstrom wrote:
->>>>>> And final question, why not simply use ipv6_skip_exthdr()?
->>>>> problems with fragments...
->>>> So the probem is that it will return the transport layer protocol
->>>> header for fragments with frag_off == 0? We also have ipv6_find_hdr()
->>>> which we could modify to indicate this in the frag_off pointer.
->>> ipv6_find_hdr() will do the trick with a light modification
->>> What about a wrapper like:
->>>
->>> int __ipv6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
->>> 		  int target, unsigned short *fragoff,  int *fragflg)
->>> {
->>> ...
->>> 		if (nexthdr == NEXTHDR_FRAGMENT) {
->>> 			unsigned short _frag_off;
->>> 			__be16 *fp;
->>>
->>> 			if (fragflg)
->>> 			        fragflg = 1;
->>> 			fp = skb_header_pointer(skb,
->>> 						start+offsetof(struct frag_hdr,
->>> 							       frag_off),
->>> 						sizeof(_frag_off),
->>> 						&_frag_off);
->>>
->>> ...
->>> }
->>>
->>> int ipv6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
->>> 		  int target, unsigned short *fragoff)
->>> {
->>>           return __ipv6_find_hdr(skb, offset, terget, fragoff, NULL);
->>> }
->> Hmm that would require to change all current callers.
-> Nope, ipv6_find_hdr()  looks the same,
-> __ipv6_find_hdr() have an extra param.
-
-Ah, right, apparently need more coffee :)
-
->> I was more thinking of unconditionally setting *frag_off in case of
->> fragments, then you can initialize it to some impossible value
->> like 0xffff and determine the presence of a fragment header
->> based on its value after calling ipv6_find_hdr().
-> That's another way  :-)
+On Wed, Nov 23, 2011 at 1:07 PM, David Miller <davem@davemloft.net> wrote:
+>>
+>> So we'd need to unhide both raw and notrack, methinks.
 >
-> Which one do you prefer ?
+> I just tossed the following into my tree:
 
-You way seems cleaner to me, lets do that.
+I found a new one: Fedora 16 needs NF_CONNTRACK_NETBIOS_NS (and thus
+NF_CONNTRACK_BROADCAST) for firewalld to work correctly - otherwise it
+fails when you try to find network printers.
 
+Yeah, it used to be enough to just use a regular firewall setting that
+let IPP through, but that was before firewalld "knew" that you need to
+also open up the samba port and netbios.
+
+Oh well.
+
+So can you remove the "depends on NETFILTER_ADVANCED" from
+NF_CONNTRACK_NETBIOS_NS too?
+
+Or should I just do it?
+
+                        Linus
