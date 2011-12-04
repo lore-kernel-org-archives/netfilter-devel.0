@@ -1,48 +1,49 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: nfnetlink and conntrack extension question
-Date: Sun, 4 Dec 2011 22:06:12 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1112042202420.5627@frira.zrqbmnf.qr>
-References: <1322668453.4443.24.camel@nessa.odu> <alpine.LNX.2.01.1111301756450.9557@frira.zrqbmnf.qr> <20111130182209.GB20336@1984>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH -next 0/4] netfilter reverse path filter matches
+Date: Sun, 4 Dec 2011 22:51:50 +0100
+Message-ID: <20111204215150.GA28125@1984>
+References: <1320877188-1972-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: KOVACS Krisztian <hidden@balabit.hu>,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	laforge@netfilter.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:47823 "EHLO seven.medozas.de"
+Received: from mail.us.es ([193.147.175.20]:44274 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754521Ab1LDVGO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 4 Dec 2011 16:06:14 -0500
-In-Reply-To: <20111130182209.GB20336@1984>
+	id S1755506Ab1LDVv4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 4 Dec 2011 16:51:56 -0500
+Content-Disposition: inline
+In-Reply-To: <1320877188-1972-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Florian,
 
-On Wednesday 2011-11-30 19:22, Pablo Neira Ayuso wrote:
->> 
->> As for 1, you can use genetlink, just as I do for the copy of ipset
->> in xtables-addons. Being forced to use nfnetlink has been point of
->> much discussion and ultimately, nobody was able to provide a
->> technical reason on why nfnetlink is better.
->
->Well, few differences. With genetlink:
->
->* you have to send a message to look up for the ID first (to guess the
->  multicast group and subsystem IDs).
+On Wed, Nov 09, 2011 at 11:19:44PM +0100, Florian Westphal wrote:
+> Userspace part is stored in my iptables repository on
+> http://git.breakpoint.cc/cgi-bin/gitweb.cgi?p=fw/iptables.git (branch 'xt_rpfilter_9').
 
-That is to be expected and rather ok (usernames<->UID mapping is
-the very same issue in many a program).
+I have taken this into iptables, now it is available in the rpfilter
+branch.
 
-Adding myself, from the previous discussions,
+One inquiry, I need to know copyright / license details for this
+extensions/libxt_rpfilter.c
 
-* one needs to listen for ID changes
+I remember that Harald insisted that having one copyright notice per
+.c file is a good practise (even if this doesn't seem to happen in
+other iptables extensions files).
 
-=> I hope that genetlink can be tuned so as to pin modules while
-any socket to them is open, so that there will be no change.
+No need to resend the patch, I can ammend the patch with the copyright
+/ licensing header.
 
->* you don't know how many users will using the genetlink bus. You'll
->  have to share the bandwidth with them.
+See extensions/libxt_cluster.c for reference.
 
-That is rather a non-argument - you won't know many nfnetlink users
-there will be either. But anyway, this would only apply to mcast
-messages, and then only when you actually subscribed, does it not?
+> Kernel patches are located in the 'xt_rpfilter_9' branch on
+> http://git.breakpoint.cc/cgi-bin/gitweb.cgi?p=fw/nf-next.git.
+
+Applied to my nf-next tree.
+
+http://1984.lsi.us.es/git/net-next/
+
+thanks Florian.
