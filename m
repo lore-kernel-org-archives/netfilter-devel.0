@@ -1,66 +1,40 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Problem with Linux networking in 3.X kernels
-Date: Sun, 4 Dec 2011 17:20:52 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1112041720180.30677@frira.zrqbmnf.qr>
-References: <CACD+8rMdSKLb85GX5RBRNv5L0KaYVaQYbYM184_wE5cyOo94Ng@mail.gmail.com>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
+Subject: Re: doc: Secure use of iptables and connection tracking helpers
+Date: Sun, 04 Dec 2011 17:19:38 +0000
+Message-ID: <4EDBABAA.3030107@googlemail.com>
+References: <1322501576.20587.22.camel@tiger.regit.org>     <1322906769.8042.4.camel@hakkenden.homenet>    <1322911416.603.2.camel@ice-age.regit.org>    <4EDA1BE9.4060703@googlemail.com>   <1322917503.2568.2.camel@ice-age.regit.org>   <4EDA2715.7030006@googlemail.com>  <1322919966.2568.5.camel@ice-age.regit.org>  <4EDA332F.2010409@googlemail.com> <1322996166.2568.9.camel@ice-age.regit.org> <4EDB62D0.3070404@googlemail.com> <alpine.LNX.2.01.1112041717010.30677@frira.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Bart De Schuymer <bdschuym@pandora.be>
-To: =?UTF-8?Q?Artur_Fija=C5=82kowski?= <wiki.warx@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:36760 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754595Ab1LDQUz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 4 Dec 2011 11:20:55 -0500
-In-Reply-To: <CACD+8rMdSKLb85GX5RBRNv5L0KaYVaQYbYM184_wE5cyOo94Ng@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Eric Leblond <eric@regit.org>,
+	"'netfilter@vger.kernel.org'" <netfilter@vger.kernel.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <alpine.LNX.2.01.1112041717010.30677@frira.zrqbmnf.qr>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Cc set.
 
-On Sunday 2011-12-04 15:09, Artur Fija=C5=82kowski wrote:
+>> Well, I have to tell my life story if you want to understand what's behind
+>> 'Mr-4' and somehow I don't think I will be doing that. If you really need to
+>> place me in the list of authors, just put me simply as 'Mr-4' (or Mr Dash Four
+>> - your choice) - that will suffice, thank you.
+>>     
+>
+> "Suggestion" usually means the striving to use real-world names, as 
+> are mandated in other places, e.g. kernel's DCO (Developer's 
+> Certificate of Origin).
+>   
+The decision whether to use my "real-world name", as you put it, is 
+solely mine and nobody else's. If I call myself "Mr John 'Crazy Horse' 
+Stockton" instead of "Mr Dash Four" would that make you feel better? 
+Besides, if you really, really must know - my alias *is* used in the 
+Linux kernel's contributions list and people happily accepted that.
 
->Hi!
->
->On friday I found very nasty bug in 3.X kernels - vlan device does not
->work on bridge port. I don't know where to report this bug so I ask
->you for helping ;) me with this report.
->
->Detailed problem:
->If ethernet device has vlans and is incorporated as bridge port it
->completely drops incoming vlan packets. I tested this with wireshark
->and I observed:
->* when device is not bridge port vlan works normally (there is network
->connectivity via vlan interface)
->* when device is added as bridge port it still sends packets via vlan
->interface, but does not recieve them - wireshark sees packets in both
->directions, but they are dropped somewhere in kernel, because in file
->/proc/net/vlan/DEVNAME counters on incoming packets does not
->increment.
->
->I observed this problem on 2 kernels:
->* 3.1.1-gentoo
->* 3.0.6-gentoo
->With two different ethernet devices:
->*  Broadcom Nextreme IIII (tg3 kernel driver)
->*  Broadcom BCM4401-B0 (b44 kernel driver)
->
->vlan devices were created with ip link add link ... command, with vlan=
- ID 3972.
->
->If you tell me where to report this problem and what additional info
->get I will do it.
->
->
->Thanks in advance
->AJF/WarX
->
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To conclude this, I haven't asked my name to be put in the co-authors 
+(or any other) list of Eric's work and I won't be upset/angry/whatever 
+if I am omitted from it. As I already indicated to him - I was happy to 
+help (it was a good mental exercise on a Saturday morning, not to 
+mention that it was educational for me too), so, for me, that's that.
