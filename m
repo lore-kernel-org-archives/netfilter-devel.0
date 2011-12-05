@@ -1,76 +1,51 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] netfilter: conntrack: make call to nf_log_packet
- due to helper rejection conditional on LOG_INVALID (resubmit)
-Date: Sun, 4 Dec 2011 23:49:46 +0100
-Message-ID: <20111204224946.GC28125@1984>
-References: <CANtneHLYOANXQ432me_htXrMcQkv-WVpNYTrwmxAjc2gV68iPA@mail.gmail.com>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Re: nat drop the icmp redirect packet
+Date: Mon, 05 Dec 2011 09:18:28 +0800
+Message-ID: <4EDC1BE4.4030701@cn.fujitsu.com>
+References: <4ED2E00B.3000006@cn.fujitsu.com> <4ED67BB1.8020808@trash.net> <4ED6D18C.7000802@cn.fujitsu.com> <4ED754EA.9060906@trash.net> <4ED862E6.6090104@cn.fujitsu.com> <4ED8CB82.40603@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pete Holland <pholland27@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46169 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754742Ab1LDWuH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 4 Dec 2011 17:50:07 -0500
-Content-Disposition: inline
-In-Reply-To: <CANtneHLYOANXQ432me_htXrMcQkv-WVpNYTrwmxAjc2gV68iPA@mail.gmail.com>
+Received: from cn.fujitsu.com ([222.73.24.84]:55547 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1755896Ab1LEBRj convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 4 Dec 2011 20:17:39 -0500
+In-Reply-To: <4ED8CB82.40603@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Peter,
+=E4=BA=8E 2011=E5=B9=B412=E6=9C=8802=E6=97=A5 20:58, Patrick McHardy =E5=
+=86=99=E9=81=93:
+> On 02.12.2011 06:32, Gao feng wrote:
+>> =E4=BA=8E 2011=E5=B9=B412=E6=9C=8801=E6=97=A5 18:20, Patrick McHardy=
+ =E5=86=99=E9=81=93:
+>>> Yes, as I said, we could set up a NULL source mapping on the
+>>> conntrack of the original packet and let the REDIRECT through.
+>>> The user might have configured a source NAT rule though which
+>>> would become ineffective by this.
+>>>
+>>
+>> Hi Patrick:
+>>
+>> Yes,you are right.
+>>
+>> You mean we have no idea of the ICMP REDIRECT packet being droppen
+>> when nat is not finished?
+>=20
+> We can't determine whether we could let it through at that point.
+> The safe choice is to drop it.
+> --
 
-On Fri, Dec 02, 2011 at 09:37:04AM -0800, Pete Holland wrote:
-> From: Peter Holland <pholland27@gmail.com>
-> 
-> Make the logging of dropped packets due to ct helper rejection
-> conditional on LOG_INVALID.
-> This is consistent with the other uses of nf_log_packet.
-> Use protocol from conntrack tuple (original direction).
-> Without this check, there is a possible DoS based on traffic induced
-> log generation.
-> (specifically this was noted in the wild by an attacker against the SIP helper)
-> 
-> Signed-off-by: Peter Holland <pholland27@gmail.com>
-> ---
-> --- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c.orig	2011-11-29
-> 11:34:36.683717278 -0800
-> +++ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c	2011-12-02
-> 09:32:00.727064563 -0800
-> @@ -116,8 +116,10 @@ static unsigned int ipv4_confirm(unsigne
->  	ret = helper->help(skb, skb_network_offset(skb) + ip_hdrlen(skb),
->  			   ct, ctinfo);
->  	if (ret != NF_ACCEPT) {
-> -		nf_log_packet(NFPROTO_IPV4, hooknum, skb, in, out, NULL,
-> -			      "nf_ct_%s: dropping packet", helper->name);
-> +		if (LOG_INVALID(nf_ct_net(ct),
-> +				ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum))
+Good Morning Patrick
 
-You can use nf_ct_protonum here.
+I got it,thank you very much.
 
-> +			nf_log_packet(NFPROTO_IPV4, hooknum, skb, in, out, NULL,
-> +				      "nf_ct_%s: dropping packet", helper->name);
->  		return ret;
->  	}
-
-Below you can find:
-
-/* adjust seqs for loopback traffic only in outgoing direction */
-if (test_bit(IPS_SEQ_ADJUST_BIT, &ct->status) &&
-    !nf_is_loopback_packet(skb)) {
-        typeof(nf_nat_seq_adjust_hook) seq_adjust;
-
-        seq_adjust = rcu_dereference(nf_nat_seq_adjust_hook);
-        if (!seq_adjust || !seq_adjust(skb, ct, ctinfo)) {
-                NF_CT_STAT_INC_ATOMIC(nf_ct_net(ct), drop);
-                                      ^^^^^^^^^^^^
-
-Please, declare in ipv4_confirm:
-
-struct net *net = nf_ct_net(ct);
-
-And use the net pointer in that function.
-
-Same thing for the IPv6 side.
-
-Thank you.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
