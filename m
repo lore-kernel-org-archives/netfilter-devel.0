@@ -1,51 +1,46 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: Re: nat drop the icmp redirect packet
-Date: Mon, 05 Dec 2011 09:18:28 +0800
-Message-ID: <4EDC1BE4.4030701@cn.fujitsu.com>
-References: <4ED2E00B.3000006@cn.fujitsu.com> <4ED67BB1.8020808@trash.net> <4ED6D18C.7000802@cn.fujitsu.com> <4ED754EA.9060906@trash.net> <4ED862E6.6090104@cn.fujitsu.com> <4ED8CB82.40603@trash.net>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH -next 0/4] netfilter reverse path filter matches
+Date: Mon, 5 Dec 2011 09:33:02 +0100
+Message-ID: <20111205083302.GA24483@Chamillionaire.breakpoint.cc>
+References: <1320877188-1972-1-git-send-email-fw@strlen.de>
+ <20111204215150.GA28125@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, laforge@netfilter.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:55547 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1755896Ab1LEBRj convert rfc822-to-8bit (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:41813 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752959Ab1LEIdD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 4 Dec 2011 20:17:39 -0500
-In-Reply-To: <4ED8CB82.40603@trash.net>
+	Mon, 5 Dec 2011 03:33:03 -0500
+Content-Disposition: inline
+In-Reply-To: <20111204215150.GA28125@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=E4=BA=8E 2011=E5=B9=B412=E6=9C=8802=E6=97=A5 20:58, Patrick McHardy =E5=
-=86=99=E9=81=93:
-> On 02.12.2011 06:32, Gao feng wrote:
->> =E4=BA=8E 2011=E5=B9=B412=E6=9C=8801=E6=97=A5 18:20, Patrick McHardy=
- =E5=86=99=E9=81=93:
->>> Yes, as I said, we could set up a NULL source mapping on the
->>> conntrack of the original packet and let the REDIRECT through.
->>> The user might have configured a source NAT rule though which
->>> would become ineffective by this.
->>>
->>
->> Hi Patrick:
->>
->> Yes,you are right.
->>
->> You mean we have no idea of the ICMP REDIRECT packet being droppen
->> when nat is not finished?
->=20
-> We can't determine whether we could let it through at that point.
-> The safe choice is to drop it.
-> --
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, Nov 09, 2011 at 11:19:44PM +0100, Florian Westphal wrote:
+> > Userspace part is stored in my iptables repository on
+> > http://git.breakpoint.cc/cgi-bin/gitweb.cgi?p=fw/iptables.git (branch 'xt_rpfilter_9').
+> 
+> I have taken this into iptables, now it is available in the rpfilter
+> branch.
 
-Good Morning Patrick
+Thanks Pablo.
 
-I got it,thank you very much.
+> One inquiry, I need to know copyright / license details for this
+> extensions/libxt_rpfilter.c
+> 
+[..]
+> No need to resend the patch, I can ammend the patch with the copyright
+> / licensing header.
+> 
+> See extensions/libxt_cluster.c for reference.
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In this case, please amend it to include the same GPL-2 boilerplate
+as libxt_cluster.c has.
+
+Thanks,
+Florian
