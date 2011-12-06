@@ -1,103 +1,45 @@
-From: Pete Holland <pholland27@gmail.com>
-Subject: [PATCH 1/1] netfilter: conntrack: make call to nf_log_packet due to
- helper rejection conditional on LOG_INVALID (resubmit #2)
-Date: Mon, 5 Dec 2011 15:42:07 -0800
-Message-ID: <CANtneH+fB4YU73inZaq1Ho_=uPmrY1oymiYVdZ8bibtKbZa5nA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Feng King <kinwin2008@gmail.com>
+Subject: [PATCH] conntrack: avoid unnecessary lock in tcp_packet
+Date: Tue,  6 Dec 2011 20:35:07 +0800
+Message-ID: <1323174907-2670-1-git-send-email-kinwin2008@gmail.com>
+Cc: kaber@trash.net, netdev@vger.kernel.org, davem@davemloft.net,
+	Feng King <kinwin2008@gmail.com>,
+	Feng Jin <ronyjin@tencent.com>
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:57296 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932481Ab1LEXmI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Dec 2011 18:42:08 -0500
-Received: by eeaq14 with SMTP id q14so2407929eea.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 05 Dec 2011 15:42:07 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Peter Holland <pholland27@gmail.com>
+    when IPS_SEQ_ADJUST_BIT is not set, there are no need to obtain
+net_offset in tcp_in_window from tcp_packet.
+    nat_offset will acquire global nf_nat_seqofs_lock spinlock,
+and on heavy load, there will be big contention. After 30 secs webbench
+stress testing, we can see from lockstat:
+                    nf_nat_seqofs_lock:        798200         798213
+		    1.01          57.37      216229.42        9943722
+		    10055712           0.61          60.70
+		    1909636.49
+ and from perf report, nf_nat_get_offset contributes 18.49% of our
+ overall spin_lock_bh cost, It's unnecessary.
 
-Make the logging of dropped packets due to ct helper rejection
-conditional on LOG_INVALID.
-This is consistent with the other uses of nf_log_packet.
-Use protocol from conntrack.
-Without this check, there is a possible DoS based on traffic induced
-log generation.
-(specifically this was noted in the wild by an attacker against the SIP helper)
-
-Signed-off-by: Peter Holland <pholland27@gmail.com>
+Signed-off-by: Feng Jin <ronyjin@tencent.com>
 ---
---- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c.orig	2011-11-29
-11:34:36.683717278 -0800
-+++ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c	2011-12-05
-15:29:32.363651787 -0800
-@@ -98,6 +98,7 @@ static unsigned int ipv4_confirm(unsigne
- 	const struct nf_conn_help *help;
- 	const struct nf_conntrack_helper *helper;
- 	unsigned int ret;
-+	struct net *net;
+ net/netfilter/nf_conntrack_proto_tcp.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
- 	/* This is where we call the helper: as the packet goes out. */
- 	ct = nf_ct_get(skb, &ctinfo);
-@@ -113,11 +114,14 @@ static unsigned int ipv4_confirm(unsigne
- 	if (!helper)
- 		goto out;
-
-+	net = nf_ct_net(ct);
-+
- 	ret = helper->help(skb, skb_network_offset(skb) + ip_hdrlen(skb),
- 			   ct, ctinfo);
- 	if (ret != NF_ACCEPT) {
--		nf_log_packet(NFPROTO_IPV4, hooknum, skb, in, out, NULL,
--			      "nf_ct_%s: dropping packet", helper->name);
-+		if (LOG_INVALID(net, nf_ct_protonum(ct)))
-+			nf_log_packet(NFPROTO_IPV4, hooknum, skb, in, out, NULL,
-+				      "nf_ct_%s: dropping packet", helper->name);
- 		return ret;
- 	}
-
-@@ -128,7 +132,7 @@ static unsigned int ipv4_confirm(unsigne
-
- 		seq_adjust = rcu_dereference(nf_nat_seq_adjust_hook);
- 		if (!seq_adjust || !seq_adjust(skb, ct, ctinfo)) {
--			NF_CT_STAT_INC_ATOMIC(nf_ct_net(ct), drop);
-+			NF_CT_STAT_INC_ATOMIC(net, drop);
- 			return NF_DROP;
- 		}
- 	}
---- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c.orig	2011-11-29
-11:35:00.221028814 -0800
-+++ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c	2011-12-05
-15:34:10.743771621 -0800
-@@ -156,7 +156,7 @@ static unsigned int ipv6_confirm(unsigne
- 	unsigned int ret, protoff;
- 	unsigned int extoff = (u8 *)(ipv6_hdr(skb) + 1) - skb->data;
- 	unsigned char pnum = ipv6_hdr(skb)->nexthdr;
--
-+	struct net *net;
-
- 	/* This is where we call the helper: as the packet goes out. */
- 	ct = nf_ct_get(skb, &ctinfo);
-@@ -171,6 +171,8 @@ static unsigned int ipv6_confirm(unsigne
- 	if (!helper)
- 		goto out;
-
-+	net = nf_ct_net(ct);
-+
- 	protoff = nf_ct_ipv6_skip_exthdr(skb, extoff, &pnum,
- 					 skb->len - extoff);
- 	if (protoff > skb->len || pnum == NEXTHDR_FRAGMENT) {
-@@ -180,8 +182,9 @@ static unsigned int ipv6_confirm(unsigne
-
- 	ret = helper->help(skb, protoff, ct, ctinfo);
- 	if (ret != NF_ACCEPT) {
--		nf_log_packet(NFPROTO_IPV6, hooknum, skb, in, out, NULL,
--			      "nf_ct_%s: dropping packet", helper->name);
-+		if (LOG_INVALID(net, nf_ct_protonum(ct)))
-+			nf_log_packet(NFPROTO_IPV6, hooknum, skb, in, out, NULL,
-+				      "nf_ct_%s: dropping packet", helper->name);
- 		return ret;
- 	}
- out:
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 8235b86..88c70f1 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -502,7 +502,8 @@ static inline s16 nat_offset(const struct nf_conn *ct,
+ 	return get_offset != NULL ? get_offset(ct, dir, seq) : 0;
+ }
+ #define NAT_OFFSET(pf, ct, dir, seq) \
+-	(pf == NFPROTO_IPV4 ? nat_offset(ct, dir, seq) : 0)
++	((pf == NFPROTO_IPV4) && test_bit(IPS_SEQ_ADJUST_BIT, &ct->status) \
++	    ? nat_offset(ct, dir, seq) : 0)
+ #else
+ #define NAT_OFFSET(pf, ct, dir, seq)	0
+ #endif
+-- 
+1.7.7.3
