@@ -1,42 +1,44 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: nfnetlink and conntrack extension question
-Date: Thu, 08 Dec 2011 11:06:31 +0100
-Message-ID: <4EE08C27.6080400@balabit.hu>
-References: <1322668453.4443.24.camel@nessa.odu> <20111130180902.GA20336@1984>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: IPv6 defrag question ?
+Date: Thu, 08 Dec 2011 12:10:49 +0100
+Message-ID: <4EE09B39.5070401@trash.net>
+References: <jec613b.4edd5c40857133156bf40cef475e9234@obelix.schillstrom.com> <4ED763EA.50307@trash.net> <201112081012.13065.hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Hans Schillstrom <hans@schillstrom.com>,
+	"pablo@netfilter.org" <pablo@netfilter.org>,
+	"jengelh@medozas.de" <jengelh@medozas.de>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from hq.balabit.com ([213.253.200.34]:50500 "EHLO mail.balabit.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753110Ab1LHKGe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Dec 2011 05:06:34 -0500
-In-Reply-To: <20111130180902.GA20336@1984>
+Received: from stinky.trash.net ([213.144.137.162]:51271 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751677Ab1LHLKv (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Dec 2011 06:10:51 -0500
+In-Reply-To: <201112081012.13065.hans.schillstrom@ericsson.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hey Pablo,
+On 12/08/2011 10:12 AM, Hans Schillstrom wrote:
+> Hi
+> While testing HMARK and IPv6 with nf_defrag_ipv6 (and nf_conntrack_ipv6 loaded) I can't see the defrag ?
+>
+>  From what I can see nf_conntrack_reasm goes into PREROUTING with prio -400
+> and HMARK in PREROUTING with prio -150
+>
+> I was expecting that the reasaembled packet whould reach HMARK not the fragments.
+>
+> (Debug print from hmark)
+> HMARK() mark:489, hash:4d04eaa1, frag:1, nhoffs:30 plen:1408 (2008::10 - 1000::1)
+> HMARK() mark:489, hash:4d04eaa1, frag:1, nhoffs:0  plen:86 (2008::10 - 1000::1)
+>
+> IPv4 do reassm. the packets not IPv6...
 
-On 11/30/2011 07:09 PM, Pablo Neira Ayuso wrote:
-> P.S: Any chance to integrate your development with nfgrep? I didn't
-> find any time to release the source code yet. I expect to find some
-> spare time during the end of year holidays. If I have access to that
-> GPL code we can think of some sort of integration nfgrep <-> zorp.
-
-Well, the code itself isn't really about doing content
-processing/filtering in kernel-space, but implementing a rule-based
-policy engine (think of something like iptables with best-match
-evaluation) that effectively makes decisions about which user-space
-proxies, if any, are used for processing a connection.
-
-So at the moment I think that while nfgrep matching could be integrated
-into the code and would provide some really nice additional features, it
-wouldn't be a replacement for the stuff we're doing.
-
-nfgrep's really cool, though, thanks for your work Pablo!
-
--- 
-KOVACS Krisztian
+Yeah, IPv6 currently only passes the defragmented packet through conntrack,
+then associates the conntrack information with the individual fragments and
+passes those on. I'll post patches for IPv6 NAT which will change this
+to behave similar to IPv4 soon.
 
