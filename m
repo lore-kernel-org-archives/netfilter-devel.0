@@ -1,89 +1,124 @@
-From: James Sinclair <james.sinclair@linode.com>
-Subject: Re: Rule counter update bug in ebtables-v2.0.10-2
-Date: Wed, 7 Dec 2011 12:18:39 -0500
-Message-ID: <6C700DDC-BEBB-4782-829F-24FC1F5EE0B7@linode.com>
-References: <6E506E1B-00FB-4900-8EE3-9C72F26B8CD0@linode.com> <4EDB3F3A.1000903@pandora.be> <741FF1D1-F173-4A08-A471-09A9BDFE5AB7@linode.com> <4EDD2ABC.6090205@pandora.be>
-Mime-Version: 1.0 (Apple Message framework v1084)
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH] IPVS: Modify the SH scheduler to use weights
+Date: Thu, 8 Dec 2011 09:37:04 +0900
+Message-ID: <20111208003702.GC4586@verge.net.au>
+References: <1323245223-13646-1-git-send-email-horms@verge.net.au>
+ <1323245223-13646-2-git-send-email-horms@verge.net.au>
+ <20111207113038.GA18166@1984>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Cc: netfilter-devel@vger.kernel.org
-To: Bart De Schuymer <bdschuym@pandora.be>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.linode.com ([67.18.92.99]:45269 "EHLO www.linode.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752638Ab1LGRSv convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Dec 2011 12:18:51 -0500
-In-Reply-To: <4EDD2ABC.6090205@pandora.be>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Patrick McHardy <kaber@trash.net>, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>, Michael Maxim <mike@okcupid.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20111207113038.GA18166@1984>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Dec 5, 2011, at 3:34 PM, Bart De Schuymer wrote:
+On Wed, Dec 07, 2011 at 12:30:38PM +0100, Pablo Neira Ayuso wrote:
+> On Wed, Dec 07, 2011 at 05:07:03PM +0900, Simon Horman wrote:
+> > From: Michael Maxim <mike@okcupid.com>
+> > 
+> > Modify the algorithm to build the source hashing hash table to add
+> > extra slots for destinations with higher weight. This has the effect
+> > of allowing an IPVS SH user to give more connections to hosts that
+> > have been configured to have a higher weight.
+> > 
+> > Signed-off-by: Michael Maxim <mike@okcupid.com>
+> > Signed-off-by: Simon Horman <horms@verge.net.au>
+> > ---
+> >  net/netfilter/ipvs/Kconfig    |   15 +++++++++++++++
+> >  net/netfilter/ipvs/ip_vs_sh.c |   20 ++++++++++++++++++--
+> >  2 files changed, 33 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
+> > index 70bd1d0..af4c0b8 100644
+> > --- a/net/netfilter/ipvs/Kconfig
+> > +++ b/net/netfilter/ipvs/Kconfig
+> > @@ -232,6 +232,21 @@ config	IP_VS_NQ
+> >  	  If you want to compile it in kernel, say Y. To compile it as a
+> >  	  module, choose M here. If unsure, say N.
+> >  
+> > +comment 'IPVS SH scheduler'
+> > +
+> > +config IP_VS_SH_TAB_BITS
+> > +	int "IPVS source hashing table size (the Nth power of 2)"
+> > +	range 4 20
+> > +	default 8
+> > +	---help---
+> > +	  The source hashing scheduler maps source IPs to destinations
+> > +	  stored in a hash table. This table is tiled by each destination
+> > +	  until all slots in the table are filled. When using weights to
+> > +	  allow destinations to receive more connections, the table is
+> > +	  tiled an amount proportional to the weights specified. The table
+> > +	  needs to be large enough to effectively fit all the destinations
+> > +	  multiplied by their respective weights.
+> 
+> Hm, does this really belong to this patch?
 
-> On 05-12-11 15:38, James Sinclair wrote:
->> On Dec 4, 2011, at 4:36 AM, Bart De Schuymer wrote:
->> 
->>> On 29-11-11 21:08, James Sinclair wrote:
->>>> I was doing some testing with the latest ebtables and I think I've found a bug in ebt_deliver_counters that was introduced in the following commit:
->>>> 
->>>> http://ebtables.cvs.sourceforge.net/viewvc/ebtables/ebtables2/userspace/ebtables2/communication.c?r1=1.40&r2=1.41
->>>> 
->>>> It seems that the chainnr++ on line 308 is only reached when entries is NULL, causing the code to repeatedly loop over the rules for the first non-empty chain. This manifests as every chain having its counters copied from the first non-empty chain instead of getting the counters assigned with -c:
->>> 
->>> Thanks for the bug report. I've applied the following fix instead.
->>> 
->>> --- ebtables-v2.0.10-2/communication.c	2011-08-11 19:56:16.000000000 +0100
->>> +++ ebtables-v2.0.10-3/communication.c	2011-12-04 09:29:23.000000000 +0000
->>> @@ -309,6 +309,7 @@ void ebt_deliver_counters(struct ebt_u_r
->>> 	new = newcounters;
->>> 	while (cc != u_repl->cc) {
->>> 		if (!next || next == entries->entries) {
->>> +			chainnr++;
->>> 			while (chainnr<  u_repl->num_chains&&  (!(entries = u_repl->chains[chainnr]) ||
->>> 			       (next = entries->entries->next) == entries->entries))
->>> 				chainnr++;
->>> 
->>> cheers,
->>> Bart
->>> 
->>> 
->>> 
->>> -- 
->>> Bart De Schuymer
->>> www.artinalgorithms.be
->> 
->> 
->> Thanks for taking the time to look at my patch, Bart.
->> 
->> It looks like the fix you applied introduces a new bug. It works in most cases, but when a rules is set in the first built-in chain (such as PREROUTING in the nat table) all counters get reset to zero.
-> 
-> Thanks for verifying this.
-> 
-> Please try the incremental patch below (patch -p1 < file). I'll wait for your verification this time before making another release :)
-> 
-> --- ebtables-v2.0.10-3/communication.c	2011-12-04 09:46:26.000000000 +0000
-> +++ ebtables-v2.0.10-4/communication.c	2011-12-05 20:29:17.864018957 +0000
-> @@ -295,7 +295,7 @@ void ebt_deliver_counters(struct ebt_u_r
-> 	struct ebt_cntchanges *cc = u_repl->cc->next, *cc2;
-> 	struct ebt_u_entries *entries = NULL;
-> 	struct ebt_u_entry *next = NULL;
-> -	int i, chainnr = 0;
-> +	int i, chainnr = -1;
-> 
-> 	if (u_repl->nentries == 0)
-> 		return;
-> 
-> 
-> Best regards,
-> Bart
-> 
-> 
-> -- 
-> Bart De Schuymer
-> www.artinalgorithms.be
-> 
+It seemed reasonable to me, as it is related to the main purpose of
+the patch. But I'm happy to split it out into a separate patch.
 
-It looks like that patch works with all of the tests I've been using. Thanks for taking care of this.
+> 
+> > +
+> >  comment 'IPVS application helper'
+> >  
+> >  config	IP_VS_FTP
+> > diff --git a/net/netfilter/ipvs/ip_vs_sh.c b/net/netfilter/ipvs/ip_vs_sh.c
+> > index 33815f4..e0ca520 100644
+> > --- a/net/netfilter/ipvs/ip_vs_sh.c
+> > +++ b/net/netfilter/ipvs/ip_vs_sh.c
+> > @@ -30,6 +30,11 @@
+> >   * server is dead or overloaded, the load balancer can bypass the cache
+> >   * server and send requests to the original server directly.
+> >   *
+> > + * The weight destination attribute can be used to control the
+> > + * distribution of connections to the destinations in servernode. The
+> > + * greater the weight, the more connections the destination
+> > + * will receive.
+> > + *
+> >   */
+> >  
+> >  #define KMSG_COMPONENT "IPVS"
+> > @@ -99,9 +104,11 @@ ip_vs_sh_assign(struct ip_vs_sh_bucket *tbl, struct ip_vs_service *svc)
+> >  	struct ip_vs_sh_bucket *b;
+> >  	struct list_head *p;
+> >  	struct ip_vs_dest *dest;
+> > +	int d_count;
+> >  
+> >  	b = tbl;
+> >  	p = &svc->destinations;
+> > +	d_count = 0;
+> >  	for (i=0; i<IP_VS_SH_TAB_SIZE; i++) {
+> >  		if (list_empty(p)) {
+> >  			b->dest = NULL;
+> > @@ -113,14 +120,23 @@ ip_vs_sh_assign(struct ip_vs_sh_bucket *tbl, struct ip_vs_service *svc)
+> >  			atomic_inc(&dest->refcnt);
+> >  			b->dest = dest;
+> >  
+> > -			p = p->next;
+> > +			IP_VS_DBG_BUF(6, "assigned i: %d dest: %s weight: %d\n",
+> > +				      i, IP_VS_DBG_ADDR(svc->af, &dest->addr),
+> > +				      atomic_read(&dest->weight));
+> > +
+> > +			/* Don't move to next dest until filling weight */
+> > +			if (++d_count >= atomic_read(&dest->weight)) {
+> > +				p = p->next;
+> > +				d_count = 0;
+> > +			}
+> > +
+> >  		}
+> >  		b++;
+> >  	}
+> > +
+> >  	return 0;
+> >  }
+> >  
+> > -
+> 
+> While at it, would you remove this unnecessary deletions/additions.
 
-James Sinclair
-Linode, LLC
+Sure.
