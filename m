@@ -1,58 +1,68 @@
-From: Mike Maxim <mike@okcupid.com>
-Subject: Re: [PATCH] IPVS: Modify the SH scheduler to use weights
-Date: Thu, 8 Dec 2011 10:50:54 -0500
-Message-ID: <CAOgH2dsd1Nsk-yAtcLJXKNcum4xF8onwHjN+kPWMS92ts0Fvfw@mail.gmail.com>
-References: <1323245223-13646-1-git-send-email-horms@verge.net.au>
-	<1323245223-13646-2-git-send-email-horms@verge.net.au>
-	<20111207113038.GA18166@1984>
-	<CAOgH2dsHepr7Dyx7pNOutFNRh5SoO-oC9mx1MLm6Ncai8Ma3rQ@mail.gmail.com>
-	<20111208004008.GD4586@verge.net.au>
-	<20111208011108.GL4586@verge.net.au>
+From: Tim Gardner <tim.gardner@canonical.com>
+Subject: Re: [PATCH v3] iptables: libxt_recent: Add support for --reap option
+Date: Thu, 08 Dec 2011 19:31:42 -0700
+Message-ID: <4EE1730E.90200@canonical.com>
+References: <1322789373-30474-1-git-send-email-tim.gardner@canonical.com> <alpine.LNX.2.01.1112021628190.5296@frira.zrqbmnf.qr> <4ED91CEF.1080006@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <20111208011108.GL4586@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.tpi.com ([70.99.223.143]:1439 "EHLO mail.tpi.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754029Ab1LICbw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Dec 2011 21:31:52 -0500
+In-Reply-To: <4ED91CEF.1080006@canonical.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-No problem, I'll send out the new patch now. Thanks!
-
-On Wed, Dec 7, 2011 at 8:11 PM, Simon Horman <horms@verge.net.au> wrote=
-:
-> On Thu, Dec 08, 2011 at 09:40:09AM +0900, Simon Horman wrote:
->> On Wed, Dec 07, 2011 at 10:24:09AM -0500, Mike Maxim wrote:
->> > The reason I put that in is because the size of that table becomes
->> > more relevant/important if you decide to use the weights in the ma=
-nner
->> > the patch lets you. It would be conceivable that someone might nee=
-d to
->> > increase the size of that table to accommodate their configuration=
-, so
->> > I thought it would be handy to be able to do that through the regu=
-lar
->> > configuration system instead of editing the source.
+On 12/02/2011 11:46 AM, Tim Gardner wrote:
+> On 12/02/2011 08:30 AM, Jan Engelhardt wrote:
 >>
->> Hi Mike,
+>> On Friday 2011-12-02 02:29, Tim Gardner wrote:
+>>> @@ -34,6 +36,8 @@ static const struct xt_option_entry recent_opts[] = {
+>>> .excl = F_ANY_OP, .flags = XTOPT_INVERT},
+>>> {.name = "seconds", .id = O_SECONDS, .type = XTTYPE_UINT32,
+>>> .flags = XTOPT_PUT, XTOPT_POINTER(s, seconds)},
+>>> + {.name = "reap", .id = O_REAP, .type = XTTYPE_NONE,
+>>> + .also = F_SECONDS },
+>>> {.name = "hitcount", .id = O_HITCOUNT, .type = XTTYPE_UINT32,
+>>> .flags = XTOPT_PUT, XTOPT_POINTER(s, hit_count)},
+>>> {.name = "rttl", .id = O_RTTL, .type = XTTYPE_NONE,
 >>
->> I agree, but I think its also reasonable to consider IP_VS_SH_TAB_BI=
-TS as
->> a separate change.
+>>> +
+>>> + if ((info->check_set& XT_RECENT_REAP)&& !info->seconds)
+>>> + xtables_error(PARAMETER_PROBLEM,
+>>> + "recent: you must specify `--seconds' with `--reap'");
+>>> }
 >>
->> Could you
->>
->> 1. Split the patch into a Kconfig patch and a ip_vs_sh.c patch
->> 2. Remove spurious line additions from the resulting patches?
+>> Well, I did mean that .also = F_SECONDS makes the extra
+>> "info->check_set& XT_RECENT_REAP)&& !info->seconds" test
+>> redundant. Or, the error message is wrong, because you are
+>> actually testing for seconds==0 rather than "reap was specified
+>> without seconds".
+>> Is seconds=0 even useful for non-reap cases?
 >
-> Scratch that, please follow Pablo's request.
-> --
-> To unsubscribe from this list: send the line "unsubscribe lvs-devel" =
-in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> Its not meaningful in that 0 is the default value in the kernel filter
+> and implies no timeout.
+>
+>> If not, we should probably consider using .min=1 on the --seconds
+>> parameter, in which case the test is also redundant.
+>>
+>
+> Done. Tested with the following combinations and received the expected
+> failures on the first 2:
+>
+> iptables -A FORWARD -m recent --rcheck --seconds 0 -j DROP
+> iptables -A FORWARD -m recent --rcheck --reap -j DROP
+> iptables -A FORWARD -m recent --rcheck --seconds 10 --reap -j DROP
+>
+> rtg
+
+Jan ? Is this v3 patch sufficient ?
+
+rtg
+-- 
+Tim Gardner tim.gardner@canonical.com
