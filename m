@@ -1,90 +1,48 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/2] [RFC] Extended accounting infrastructure for
- iptables
-Date: Wed, 14 Dec 2011 14:30:10 +0100
-Message-ID: <20111214133010.GA3155@1984>
-References: <1323860443-7129-1-git-send-email-pablo@netfilter.org>
- <CABa6K_Ffexe2SsaxyRPLBEjf1WOfSEgzJ4fa5L81QZs6JvXsVA@mail.gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: kenel level packet capturing
+Date: Wed, 14 Dec 2011 14:31:25 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1112141426450.16886@frira.zrqbmnf.qr>
+References: <CAKj1SsOnYsOXjRBKm+=hTnEiesXrC3h0Q-KN2b61nPSQud9wMA@mail.gmail.com> <20111019123733.GA21324@synalogic.ca> <CAKj1SsOra7u21u8Zq9rDLzv_Bhx8sPsah+SHByMYQbVc_j6LQA@mail.gmail.com> <20111213.133629.1213042365300662857.davem@davemloft.net>
+ <CAKj1SsNO_uJuVtKs_-tygcd=QDesKkYa=9DVeajhK73LFV-opA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: TEXT/PLAIN; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
-	kaber@trash.net, jengelh@medozas.de, thomas.jarosch@intra2net.com
-To: Changli Gao <xiaosuo@gmail.com>
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: raviraj joshi <raviraj.j1991@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34323 "EHLO mail.us.es"
+Received: from seven.medozas.de ([188.40.89.202]:39540 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751519Ab1LNNaY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Dec 2011 08:30:24 -0500
-Content-Disposition: inline
-In-Reply-To: <CABa6K_Ffexe2SsaxyRPLBEjf1WOfSEgzJ4fa5L81QZs6JvXsVA@mail.gmail.com>
+	id S1754615Ab1LNNb1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 Dec 2011 08:31:27 -0500
+In-Reply-To: <CAKj1SsNO_uJuVtKs_-tygcd=QDesKkYa=9DVeajhK73LFV-opA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Dec 14, 2011 at 09:12:52PM +0800, Changli Gao wrote:
-> On Wed, Dec 14, 2011 at 7:00 PM,  <pablo@netfilter.org> wrote:
-> > From: Pablo Neira Ayuso <pablo@netfilter.org>
-> >
-> > Hi!
-> >
-> > We currently have two ways to account traffic in netfilter:
-> >
-> > - iptables chain and rule counters:
-> >
-> > =A0# iptables -L -n -v
-> > Chain INPUT (policy DROP 3 packets, 867 bytes)
-> > =A0pkts bytes target =A0 =A0 prot opt in =A0 =A0 out =A0 =A0 source=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 destinat
-> > =A0 =A08 =A01104 ACCEPT =A0 =A0 all =A0-- =A0lo =A0 =A0 * =A0 =A0 =A0=
- 0.0.0.0/0 =A0 =A0 =A0 =A0 =A0 =A00.0.0.0/
-> >
-> > - use flow-based accounting provided by ctnetlink:
-> >
-> > =A0# conntrack -L
-> > tcp =A0 =A0 =A06 431999 ESTABLISHED src=3D192.168.1.130 dst=3D212.1=
-06.219.168 sport=3D58
-> >
-> > While trying to display real-time accounting statistics, we require
-> > to pool the kernel periodically to obtain this information. This is
-> > OK if the number of flows is relatively low. However, in case that
-> > the number of flows is huge, we can spend a considerable amount of
-> > cycles to iterate over the list of flows that have been obtained.
-> >
-> > Moreover, if we want to obtain the sum of the flow accounting resul=
-ts
-> > that match some criteria, we have to iterate over the whole list of
-> > existing flows, look for matchings and update the counters.
-> >
-> > This patchset adds the extended accounting infrastructure in
-> > kernel-space. It is composed of one nfnetlink interface that
-> > allows you to create, to update and to retrieve accounting objects.
-> > These objects can be used to account traffic with the flexibility
-> > that iptables rules provide (by means of the new NFACCT target).
-> >
-> > Quick example of use:
-> >
-> > 1) You create the accounting object:
-> >
-> > libnetfilter_acct/examples# ./nfacct-add http-traffic
-> >
-> > 2) Add the iptables rules for traffic you want to account:
-> >
-> > # iptables -I INPUT -p tcp --sport 80 -j NFACCT --nfacct-name http-=
-traffic
-> > # iptables -I OUTPUT -p tcp --dport 80 -j NFACCT --nfacct-name http=
--traffic
-> >
->=20
-> Why not use the counters of iptables instead?
->=20
-> iptables-save -c
 
-If you want to obtain the sum of the counters that match some criteria,
-you have to iterate over the whole list of existing rules, look for
-matchings and update the counters.
+On Wednesday 2011-12-14 11:46, raviraj joshi wrote:
+>On Wed, Dec 14, 2011 at 12:06 AM, David Miller wrote:
+>>
+>>>We have decided to use PF_RING(a kernel module to capture packets)
+>>>for the same due to the number of advantages.
+>>
+>>What "advantages"? =C2=A0The AF_PACKET socket layer already upstream =
+in
+>>the kernel supports every relevant performance feature PF_RING
+>>does, and then some.
+>
+>I refered to the document on "A Measurement Study of Packet
+>Reception using Linux"[1] which said pf_ring maintains a ring
+>buffer, so we dont have to issue a receive system call for each
+>packet in contrast to AF_PACKET which issues a system call for each
+>packet(pls correct me if i am wrong).
 
-Moreover, if you have a large rule-set, polling periodically
-iptables-save -c can be expensive.
+AF_PACKET has had mmap support for a loooong time. The initial code
+traces back to 2.3.15pre3 (1999-Aug-23).
+So much for $academia.
+
+>[1]
+>http://www.cs.wustl.edu/~jain/cse567-11/ftp/pkt_recp/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
