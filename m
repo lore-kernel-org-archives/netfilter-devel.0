@@ -1,191 +1,264 @@
-From: pablo@netfilter.org
-Subject: [PATCH 2/2] netfilter: xtables: add NFACCT target to support extended accounting
-Date: Wed, 14 Dec 2011 12:00:43 +0100
-Message-ID: <1323860443-7129-3-git-send-email-pablo@netfilter.org>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH 1/2] netfilter: add extended accounting infrastructure
+ over nfnetlink
+Date: Wed, 14 Dec 2011 12:16:48 +0100
+Message-ID: <1323861408.2334.10.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
 References: <1323860443-7129-1-git-send-email-pablo@netfilter.org>
-Cc: kadlec@blackhole.kfki.hu, kaber@trash.net, jengelh@medozas.de,
-	thomas.jarosch@intra2net.com
-To: netfilter-devel@vger.kernel.org
+	 <1323860443-7129-2-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
+	kaber@trash.net, jengelh@medozas.de, thomas.jarosch@intra2net.com
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56427 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754222Ab1LNLBY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Dec 2011 06:01:24 -0500
-In-Reply-To: <1323860443-7129-1-git-send-email-pablo@netfilter.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:41286 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754901Ab1LNLQw (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 Dec 2011 06:16:52 -0500
+Received: by wgbdr13 with SMTP id dr13so1624467wgb.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Dec 2011 03:16:51 -0800 (PST)
+In-Reply-To: <1323860443-7129-2-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Le mercredi 14 d=C3=A9cembre 2011 =C3=A0 12:00 +0100, pablo@netfilter.o=
+rg a
+=C3=A9crit :
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+>=20
+> We currently have two ways to account traffic in netfilter:
+>=20
+> - iptables chain and rule counters:
+>=20
+>  # iptables -L -n -v
+> Chain INPUT (policy DROP 3 packets, 867 bytes)
+>  pkts bytes target     prot opt in     out     source               d=
+estination
+>     8  1104 ACCEPT     all  --  lo     *       0.0.0.0/0            0=
+=2E0.0.0/0
+>=20
+> - use flow-based accounting provided by ctnetlink:
+>=20
+>  # conntrack -L
+> tcp      6 431999 ESTABLISHED src=3D192.168.1.130 dst=3D212.106.219.1=
+68 sport=3D58152 dport=3D80 packets=3D47 bytes=3D7654 src=3D212.106.219=
+=2E168 dst=3D192.168.1.130 sport=3D80 dport=3D58152 packets=3D49 bytes=3D=
+66340 [ASSURED] mark=3D0 use=3D1
+>=20
+> While trying to display real-time accounting statistics, we require
+> to pool the kernel periodically to obtain this information. This is
+> OK if the number of flows is relatively low. However, in case that
+> the number of flows is huge, we can spend a considerable amount of
+> cycles to iterate over the list of flows that have been obtained.
+>=20
+> Moreover, if we want to obtain the sum of the flow accounting results
+> that match some criteria, we have to iterate over the whole list of
+> existing flows, look for matchings and update the counters.
+>=20
+> This patch adds the extended accounting infrastructure for
+> nfnetlink which aims to allow displaying real-time traffic accounting
+> without the need of complicated and resource-consuming implementation
+> in user-space. Basically, this new infrastructure allows you to creat=
+e
+> accounting objects. One accounting object is composed of packet and
+> byte counters.
+>=20
+> In order to manipulate create accounting objects, you require the
+> new libnetfilter_acct library. It contains several examples of use:
+>=20
+> libnetfilter_acct/examples# ./nfacct-add http-traffic
+> libnetfilter_acct/examples# ./nfacct-get
+> http-traffic =3D { pkts =3D 000000000000,   bytes =3D 000000000000 };
+>=20
+> Then, you can use one of this accounting objects in several iptables
+> rules using the new NFACCT target (which comes in a follow-up patch):
+>=20
+>  # iptables -I INPUT -p tcp --sport 80 -j NFACCT --nfacct-name http-t=
+raffic
+>  # iptables -I OUTPUT -p tcp --dport 80 -j NFACCT --nfacct-name http-=
+traffic
+>=20
+> The idea is simple: if one packet matches the rule, the NFACCT target
+> updates the counters.
+>=20
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  include/linux/netfilter/Kbuild           |    1 +
+>  include/linux/netfilter/nfnetlink.h      |    3 +-
+>  include/linux/netfilter/nfnetlink_acct.h |   34 +++
+>  net/netfilter/Kconfig                    |    8 +
+>  net/netfilter/Makefile                   |    1 +
+>  net/netfilter/nfnetlink_acct.c           |  352 ++++++++++++++++++++=
+++++++++++
+>  6 files changed, 398 insertions(+), 1 deletions(-)
+>  create mode 100644 include/linux/netfilter/nfnetlink_acct.h
+>  create mode 100644 net/netfilter/nfnetlink_acct.c
+>=20
+> diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter=
+/Kbuild
+> index a1b410c..8995867 100644
+> --- a/include/linux/netfilter/Kbuild
+> +++ b/include/linux/netfilter/Kbuild
+> @@ -6,6 +6,7 @@ header-y +=3D nf_conntrack_sctp.h
+>  header-y +=3D nf_conntrack_tcp.h
+>  header-y +=3D nf_conntrack_tuple_common.h
+>  header-y +=3D nfnetlink.h
+> +header-y +=3D nfnetlink_acct.h
+>  header-y +=3D nfnetlink_compat.h
+>  header-y +=3D nfnetlink_conntrack.h
+>  header-y +=3D nfnetlink_log.h
+> diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netf=
+ilter/nfnetlink.h
+> index 74d3386..b64454c 100644
+> --- a/include/linux/netfilter/nfnetlink.h
+> +++ b/include/linux/netfilter/nfnetlink.h
+> @@ -48,7 +48,8 @@ struct nfgenmsg {
+>  #define NFNL_SUBSYS_ULOG		4
+>  #define NFNL_SUBSYS_OSF			5
+>  #define NFNL_SUBSYS_IPSET		6
+> -#define NFNL_SUBSYS_COUNT		7
+> +#define NFNL_SUBSYS_ACCT		7
+> +#define NFNL_SUBSYS_COUNT		8
+> =20
+>  #ifdef __KERNEL__
+> =20
+> diff --git a/include/linux/netfilter/nfnetlink_acct.h b/include/linux=
+/netfilter/nfnetlink_acct.h
+> new file mode 100644
+> index 0000000..9a1a119
+> --- /dev/null
+> +++ b/include/linux/netfilter/nfnetlink_acct.h
+> @@ -0,0 +1,34 @@
+> +#ifndef _NFNL_ACCT_H_
+> +#define _NFNL_ACCT_H_
+> +#include <linux/netfilter/nfnetlink.h>
+> +
+> +#define NFACCT_NAME_MAX		64
+> +
+> +enum nfnl_acct_msg_types {
+> +	NFNL_MSG_ACCT_NEW,
+> +	NFNL_MSG_ACCT_GET,
+> +	NFNL_MSG_ACCT_GET_CTRZERO,
+> +	NFNL_MSG_ACCT_DEL,
+> +	NFNL_MSG_ACCT_MAX
+> +};
+> +
+> +enum nfnl_acct_type {
+> +	NFACCT_UNSPEC,
+> +	NFACCT_NAME,
+> +	NFACCT_PKTS,
+> +	NFACCT_BYTES,
+> +	__NFACCT_MAX
+> +};
+> +#define NFACCT_MAX (__NFACCT_MAX - 1)
+> +
+> +#ifdef __KERNEL__
+> +
+> +struct nf_acct;
+> +
+> +extern struct nf_acct *nfnl_acct_find_get(const char *filter_name);
+> +extern void nfnl_acct_put(struct nf_acct *acct);
+> +extern void nfnl_acct_update(const struct sk_buff *skb, struct nf_ac=
+ct *nfacct);
+> +
+> +#endif /* __KERNEL__ */
+> +
+> +#endif /* _NFNL_ACCT_H */
+> diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+> index d5597b7..77326ac 100644
+> --- a/net/netfilter/Kconfig
+> +++ b/net/netfilter/Kconfig
+> @@ -4,6 +4,14 @@ menu "Core Netfilter Configuration"
+>  config NETFILTER_NETLINK
+>  	tristate
+> =20
+> +config NETFILTER_NETLINK_ACCT
+> +tristate "Netfilter NFACCT over NFNETLINK interface"
+> +	depends on NETFILTER_ADVANCED
+> +	select NETFILTER_NETLINK
+> +	help
+> +	  If this option is enabled, the kernel will include support
+> +	  for extended accounting via NFNETLINK.
+> +
+>  config NETFILTER_NETLINK_QUEUE
+>  	tristate "Netfilter NFQUEUE over NFNETLINK interface"
+>  	depends on NETFILTER_ADVANCED
+> diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+> index 1a02853..4da1c87 100644
+> --- a/net/netfilter/Makefile
+> +++ b/net/netfilter/Makefile
+> @@ -7,6 +7,7 @@ nf_conntrack-$(CONFIG_NF_CONNTRACK_EVENTS) +=3D nf_co=
+nntrack_ecache.o
+>  obj-$(CONFIG_NETFILTER) =3D netfilter.o
+> =20
+>  obj-$(CONFIG_NETFILTER_NETLINK) +=3D nfnetlink.o
+> +obj-$(CONFIG_NETFILTER_NETLINK_ACCT) +=3D nfnetlink_acct.o
+>  obj-$(CONFIG_NETFILTER_NETLINK_QUEUE) +=3D nfnetlink_queue.o
+>  obj-$(CONFIG_NETFILTER_NETLINK_LOG) +=3D nfnetlink_log.o
+> =20
+> diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink=
+_acct.c
+> new file mode 100644
+> index 0000000..3ec407f
+> --- /dev/null
+> +++ b/net/netfilter/nfnetlink_acct.c
+> @@ -0,0 +1,352 @@
+> +/*
+> + * (C) 2011 Pablo Neira Ayuso <pablo@netfilter.org>
+> + * (C) 2011 Intra2net AG <http://www.intra2net.com>
+> + *
+> + * This program is free software; you can redistribute it and/or mod=
+ify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation (or any later at your o=
+ption).
+> + */
+> +#include <linux/init.h>
+> +#include <linux/module.h>
+> +#include <linux/kernel.h>
+> +#include <linux/skbuff.h>
+> +#include <linux/netlink.h>
+> +#include <linux/rculist.h>
+> +#include <linux/slab.h>
+> +#include <linux/types.h>
+> +#include <linux/errno.h>
+> +#include <net/netlink.h>
+> +#include <net/sock.h>
+> +#include <asm/atomic.h>
+> +
+> +#include <linux/netfilter.h>
+> +#include <linux/netfilter/nfnetlink.h>
+> +#include <linux/netfilter/nfnetlink_acct.h>
+> +
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+> +MODULE_DESCRIPTION("nfacct: Extended Netfilter accounting infrastruc=
+ture");
+> +
+> +static LIST_HEAD(nfnl_acct_list);
+> +
+> +struct nf_acct {
+> +	struct rcu_head		rcu_head;
+> +	struct list_head	head;
+> +	spinlock_t		lock;	/* to update the counters. */
+> +	atomic_t		refcnt;
+> +
+> +	char			name[NFACCT_NAME_MAX];
+> +	__u64			pkts;
+> +	__u64			bytes;
 
-This patch adds the target that allows to perform extended
-accounting. It requires the new nfnetlink_acct infrastructure.
+atomic64_t ?
 
- # iptables -I INPUT -p tcp --sport 80 -j NFACCT --nfacct-name http-traffic
- # iptables -I OUTPUT -p tcp --dport 80 -j NFACCT --nfacct-name http-traffic
+This would remove use of spinlock in fast path
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/linux/netfilter/Kbuild      |    1 +
- include/linux/netfilter/xt_NFACCT.h |   17 ++++++++
- net/netfilter/Kconfig               |   10 ++++
- net/netfilter/Makefile              |    1 +
- net/netfilter/xt_NFACCT.c           |   78 +++++++++++++++++++++++++++++++++++
- 5 files changed, 107 insertions(+), 0 deletions(-)
- create mode 100644 include/linux/netfilter/xt_NFACCT.h
- create mode 100644 net/netfilter/xt_NFACCT.c
+Also, you put lock and pkts,bytes in different cache lines :(
 
-diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/Kbuild
-index 8995867..16473ff 100644
---- a/include/linux/netfilter/Kbuild
-+++ b/include/linux/netfilter/Kbuild
-@@ -22,6 +22,7 @@ header-y += xt_DSCP.h
- header-y += xt_IDLETIMER.h
- header-y += xt_LED.h
- header-y += xt_MARK.h
-+header-y += xt_NFACCT.h
- header-y += xt_NFLOG.h
- header-y += xt_NFQUEUE.h
- header-y += xt_RATEEST.h
-diff --git a/include/linux/netfilter/xt_NFACCT.h b/include/linux/netfilter/xt_NFACCT.h
-new file mode 100644
-index 0000000..63a2d55
---- /dev/null
-+++ b/include/linux/netfilter/xt_NFACCT.h
-@@ -0,0 +1,17 @@
-+#ifndef _XT_NFACCT_TARGET_H
-+#define _XT_NFACCT_TARGET_H
-+
-+#include <linux/types.h>
-+
-+#ifndef NFACCT_NAME_MAX
-+#define NFACCT_NAME_MAX 64
-+#endif
-+
-+struct nf_acct;
-+
-+struct xt_nfacct_target_info {
-+	char		name[NFACCT_NAME_MAX];
-+	struct nf_acct	*nfacct;
-+};
-+
-+#endif /* _XT_NFACCT_TARGET_H */
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 77326ac..8dfb5ac 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -523,6 +523,16 @@ config NETFILTER_XT_TARGET_MARK
- 	(e.g. when running oldconfig). It selects
- 	CONFIG_NETFILTER_XT_MARK (combined mark/MARK module).
- 
-+config NETFILTER_XT_TARGET_NFACCT
-+	tristate '"NFACCT" target support'
-+	default m if NETFILTER_ADVANCED=n
-+	select NETFILTER_NETLINK_ACCT
-+	help
-+	  This option enables the NFACCT target, which allows extended
-+	  accounting through nfnetlink_acct.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- config NETFILTER_XT_TARGET_NFLOG
- 	tristate '"NFLOG" target support'
- 	default m if NETFILTER_ADVANCED=n
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 4da1c87..af11b81 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -58,6 +58,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_CT) += xt_CT.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_DSCP) += xt_DSCP.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_HL) += xt_HL.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_LED) += xt_LED.o
-+obj-$(CONFIG_NETFILTER_XT_TARGET_NFACCT) += xt_NFACCT.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_NFLOG) += xt_NFLOG.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_NFQUEUE) += xt_NFQUEUE.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_NOTRACK) += xt_NOTRACK.o
-diff --git a/net/netfilter/xt_NFACCT.c b/net/netfilter/xt_NFACCT.c
-new file mode 100644
-index 0000000..7d26c5f
---- /dev/null
-+++ b/net/netfilter/xt_NFACCT.c
-@@ -0,0 +1,78 @@
-+/*
-+ * (C) 2011 Pablo Neira Ayuso <pablo@netfilter.org>
-+ * (C) 2011 Intra2net AG <http://www.intra2net.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 (or any
-+ * later at your option) as published by the Free Software Foundation.
-+ */
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/nfnetlink_acct.h>
-+#include <linux/netfilter/xt_NFACCT.h>
-+
-+MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
-+MODULE_DESCRIPTION("Xtables: area-based accouting target");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("ipt_NFACCT");
-+MODULE_ALIAS("ip6t_NFACCT");
-+
-+static unsigned int
-+nfacct_tg(struct sk_buff *skb, const struct xt_action_param *par)
-+{
-+	const struct xt_nfacct_target_info *info = par->targinfo;
-+
-+	/* This update function internally uses one spin lock. */
-+	nfnl_acct_update(skb, info->nfacct);
-+
-+	return XT_CONTINUE;
-+}
-+
-+static int
-+nfacct_tg_checkentry(const struct xt_tgchk_param *par)
-+{
-+	struct xt_nfacct_target_info *info = par->targinfo;
-+	struct nf_acct *nfacct;
-+
-+	nfacct = nfnl_acct_find_get(info->name);
-+	if (nfacct == NULL) {
-+		pr_info("accounting area with name `%s' does not exists\n",
-+			info->name);
-+		return -ENOENT;
-+	}
-+	info->nfacct = nfacct;
-+	return 0;
-+}
-+
-+static void
-+nfacct_tg_destroy(const struct xt_tgdtor_param *par)
-+{
-+	const struct xt_nfacct_target_info *info = par->targinfo;
-+
-+	nfnl_acct_put(info->nfacct);
-+}
-+
-+static struct xt_target nfacct_tg_reg __read_mostly = {
-+	.name       = "NFACCT",
-+	.family     = NFPROTO_UNSPEC,
-+	.checkentry = nfacct_tg_checkentry,
-+	.target     = nfacct_tg,
-+	.destroy    = nfacct_tg_destroy,
-+	.targetsize = sizeof(struct xt_nfacct_target_info),
-+	.me         = THIS_MODULE,
-+};
-+
-+static int __init nfacct_tg_init(void)
-+{
-+	return xt_register_target(&nfacct_tg_reg);
-+}
-+
-+static void __exit nfacct_tg_exit(void)
-+{
-+	xt_unregister_target(&nfacct_tg_reg);
-+}
-+
-+module_init(nfacct_tg_init);
-+module_exit(nfacct_tg_exit);
--- 
-1.7.2.5
 
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
