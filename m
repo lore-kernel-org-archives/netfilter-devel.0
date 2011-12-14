@@ -1,56 +1,48 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 1/2] netfilter: add extended accounting infrastructure
- over nfnetlink
-Date: Wed, 14 Dec 2011 14:54:28 +0100
-Message-ID: <1323870868.2334.26.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH 0/2] [RFC] Extended accounting infrastructure for iptables
+Date: Wed, 14 Dec 2011 22:52:04 +0800
+Message-ID: <CABa6K_HLc2w5K4taYmrNfhdXTPZsvE=OmdQtNnYBm32Erw8yBA@mail.gmail.com>
 References: <1323860443-7129-1-git-send-email-pablo@netfilter.org>
-	 <1323860443-7129-2-git-send-email-pablo@netfilter.org>
-	 <CAEyr1FREjhK=Y-A89GLictxLtw+Z5jixrVDa8J0BqJ6b0h_GOQ@mail.gmail.com>
+ <CABa6K_Ffexe2SsaxyRPLBEjf1WOfSEgzJ4fa5L81QZs6JvXsVA@mail.gmail.com> <20111214133010.GA3155@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	kadlec@blackhole.kfki.hu, kaber@trash.net, jengelh@medozas.de,
-	thomas.jarosch@intra2net.com
-To: Anand Raj Manickam <anandrm@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
+	kaber@trash.net, jengelh@medozas.de, thomas.jarosch@intra2net.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:39550 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752569Ab1LNNyc (ORCPT
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:42700 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755179Ab1LNOwZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Dec 2011 08:54:32 -0500
-Received: by faar15 with SMTP id r15so1173160faa.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Dec 2011 05:54:31 -0800 (PST)
-In-Reply-To: <CAEyr1FREjhK=Y-A89GLictxLtw+Z5jixrVDa8J0BqJ6b0h_GOQ@mail.gmail.com>
+	Wed, 14 Dec 2011 09:52:25 -0500
+Received: by vcbfk14 with SMTP id fk14so646719vcb.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Dec 2011 06:52:25 -0800 (PST)
+In-Reply-To: <20111214133010.GA3155@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le mercredi 14 d=C3=A9cembre 2011 =C3=A0 19:19 +0530, Anand Raj Manicka=
-m a =C3=A9crit :
-> A clarification :
-> If its about flow based accounting , wont the below rules double the =
-counter ?
-> # iptables -I INPUT -p tcp --sport 80 -j NFACCT --nfacct-name
-> http-traffic# iptables -I OUTPUT -p tcp --dport 80 -j NFACCT
-> --nfacct-name http-traffic
->=20
->=20
+On Wed, Dec 14, 2011 at 9:30 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, Dec 14, 2011 at 09:12:52PM +0800, Changli Gao wrote:
+>>
+>> Why not use the counters of iptables instead?
+>>
+>> iptables-save -c
+>
+> If you want to obtain the sum of the counters that match some criteria,
+> you have to iterate over the whole list of existing rules, look for
+> matchings and update the counters.
 
-Basically yes (if you want to account both input and output trafic)
+As I said in another thread, you can redirect the traffic to a
+separated chain, and use the counters of that chain.
 
-If you want to separate counters, use :
+>
+> Moreover, if you have a large rule-set, polling periodically
+> iptables-save -c can be expensive.
 
-# iptables -I INPUT -p tcp --sport 80 -j NFACCT --nfacct-name http-traf=
-fic-in
+I got it. Thanks. Maybe we can index the entries in the kernel, and
+add a new interface to get the counters of a special entry with a
+entry ID.
 
-# iptables -I OUTPUT -p tcp --dport 80 -j NFACCT --nfacct-name http-tra=
-ffic-out
-
-?
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Changli Gao(xiaosuo@gmail.com)
