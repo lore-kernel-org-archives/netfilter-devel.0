@@ -1,50 +1,59 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 0/2] [RFC] Extended accounting infrastructure for
- iptables
-Date: Wed, 14 Dec 2011 16:59:43 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1112141655510.26476@frira.zrqbmnf.qr>
-References: <1323860443-7129-1-git-send-email-pablo@netfilter.org> <CABa6K_Ffexe2SsaxyRPLBEjf1WOfSEgzJ4fa5L81QZs6JvXsVA@mail.gmail.com> <20111214133010.GA3155@1984> <CABa6K_HLc2w5K4taYmrNfhdXTPZsvE=OmdQtNnYBm32Erw8yBA@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: kenel level packet capturing
+Date: Wed, 14 Dec 2011 11:09:19 -0500 (EST)
+Message-ID: <20111214.110919.1286184647888114902.davem@davemloft.net>
+References: <CAKj1SsOra7u21u8Zq9rDLzv_Bhx8sPsah+SHByMYQbVc_j6LQA@mail.gmail.com>
+	<20111213.133629.1213042365300662857.davem@davemloft.net>
+	<CAKj1SsNO_uJuVtKs_-tygcd=QDesKkYa=9DVeajhK73LFV-opA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
-	kaber@trash.net, thomas.jarosch@intra2net.com
-To: Changli Gao <xiaosuo@gmail.com>
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org
+To: raviraj.j1991@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:35182 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752045Ab1LNP7p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Dec 2011 10:59:45 -0500
-In-Reply-To: <CABa6K_HLc2w5K4taYmrNfhdXTPZsvE=OmdQtNnYBm32Erw8yBA@mail.gmail.com>
+Received: from shards.monkeyblade.net ([198.137.202.13]:58701 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757368Ab1LNQJZ convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 Dec 2011 11:09:25 -0500
+In-Reply-To: <CAKj1SsNO_uJuVtKs_-tygcd=QDesKkYa=9DVeajhK73LFV-opA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 2011-12-14 15:52, Changli Gao wrote:
+=46rom: raviraj joshi <raviraj.j1991@gmail.com>
+Date: Wed, 14 Dec 2011 16:16:01 +0530
 
->On Wed, Dec 14, 2011 at 9:30 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> On Wed, Dec 14, 2011 at 09:12:52PM +0800, Changli Gao wrote:
->>>
->>> Why not use the counters of iptables instead?
->>>
->>> iptables-save -c
+> On Wed, Dec 14, 2011 at 12:06 AM, David Miller <davem@davemloft.net> =
+wrote:
+>> From: raviraj joshi <raviraj.j1991@gmail.com>
+>> Date: Tue, 13 Dec 2011 17:34:22 +0530
 >>
->> If you want to obtain the sum of the counters that match some criteria,
->> you have to iterate over the whole list of existing rules, look for
->> matchings and update the counters.
->
->As I said in another thread, you can redirect the traffic to a
->separated chain, and use the counters of that chain.
+>>> We have decided to use PF_RING(a kernel module to capture packets) =
+for
+>>> the same due to the number of advantages.
+>>
+>> What "advantages"? =A0The AF_PACKET socket layer already upstream in=
+ the
+>> kernel supports every relevant performance feature PF_RING does, and
+>> then some.
+> I refered to the document on "A Measurement Study of Packet Reception
+> using Linux"[1]  which said pf_ring maintains
+> a ring buffer, so we dont have to issue a receive system call for eac=
+h
+> packet in contrast to AF_PACKET which issues a system call for each
+> packet(pls correct me if i am wrong).
 
-UDCs (user defined chains) don't have counters, though.
+AF_PACKET supports mmap()'d packet rings, and even supports variable
+packet lengths within those rings.
 
->> Moreover, if you have a large rule-set, polling periodically
->> iptables-save -c can be expensive.
->
->I got it. Thanks. Maybe we can index the entries in the kernel, and
->add a new interface to get the counters of a special entry with a
->entry ID.
+AF_PACKET supports all the worthwhile performance features of PR_RING
+and it's upstream, stop kidding yourself.
 
-Relying on the rule number is a terrible idea (just like 
-iptables-save|head -n5|tail -n1 would be). Unique persistend IDs are 
-unfavorable as well; names, as used with xt_quota2/xt_NFACCT can be 
-remembered much more easily.
+I'm really sick and tired of people saying PF_RING is better than
+what we have upstream, it really isn't.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
