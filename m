@@ -1,241 +1,79 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH 1/2] netfilter: add extended accounting infrastructure
  over nfnetlink
-Date: Wed, 14 Dec 2011 12:16:48 +0100
-Message-ID: <1323861408.2334.10.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
-References: <1323860443-7129-1-git-send-email-pablo@netfilter.org>
-	 <1323860443-7129-2-git-send-email-pablo@netfilter.org>
+Date: Wed, 14 Dec 2011 12:23:21 +0100
+Message-ID: <4EE88729.7010507@trash.net>
+References: <1323860443-7129-1-git-send-email-pablo@netfilter.org> <1323860443-7129-2-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
-	kaber@trash.net, jengelh@medozas.de, thomas.jarosch@intra2net.com
+	jengelh@medozas.de, thomas.jarosch@intra2net.com
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:41286 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754901Ab1LNLQw (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:35027 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754973Ab1LNLXZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Dec 2011 06:16:52 -0500
-Received: by wgbdr13 with SMTP id dr13so1624467wgb.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Dec 2011 03:16:51 -0800 (PST)
+	Wed, 14 Dec 2011 06:23:25 -0500
 In-Reply-To: <1323860443-7129-2-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le mercredi 14 d=C3=A9cembre 2011 =C3=A0 12:00 +0100, pablo@netfilter.o=
-rg a
-=C3=A9crit :
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
->=20
-> We currently have two ways to account traffic in netfilter:
->=20
-> - iptables chain and rule counters:
->=20
->  # iptables -L -n -v
-> Chain INPUT (policy DROP 3 packets, 867 bytes)
->  pkts bytes target     prot opt in     out     source               d=
-estination
->     8  1104 ACCEPT     all  --  lo     *       0.0.0.0/0            0=
-=2E0.0.0/0
->=20
-> - use flow-based accounting provided by ctnetlink:
->=20
->  # conntrack -L
-> tcp      6 431999 ESTABLISHED src=3D192.168.1.130 dst=3D212.106.219.1=
-68 sport=3D58152 dport=3D80 packets=3D47 bytes=3D7654 src=3D212.106.219=
-=2E168 dst=3D192.168.1.130 sport=3D80 dport=3D58152 packets=3D49 bytes=3D=
-66340 [ASSURED] mark=3D0 use=3D1
->=20
-> While trying to display real-time accounting statistics, we require
-> to pool the kernel periodically to obtain this information. This is
-> OK if the number of flows is relatively low. However, in case that
-> the number of flows is huge, we can spend a considerable amount of
-> cycles to iterate over the list of flows that have been obtained.
->=20
-> Moreover, if we want to obtain the sum of the flow accounting results
-> that match some criteria, we have to iterate over the whole list of
-> existing flows, look for matchings and update the counters.
->=20
-> This patch adds the extended accounting infrastructure for
-> nfnetlink which aims to allow displaying real-time traffic accounting
-> without the need of complicated and resource-consuming implementation
-> in user-space. Basically, this new infrastructure allows you to creat=
-e
-> accounting objects. One accounting object is composed of packet and
-> byte counters.
->=20
+On 12/14/2011 12:00 PM, pablo@netfilter.org wrote:
+>
 > In order to manipulate create accounting objects, you require the
 > new libnetfilter_acct library. It contains several examples of use:
->=20
+>
 > libnetfilter_acct/examples# ./nfacct-add http-traffic
 > libnetfilter_acct/examples# ./nfacct-get
-> http-traffic =3D { pkts =3D 000000000000,   bytes =3D 000000000000 };
->=20
+> http-traffic = { pkts = 000000000000,   bytes = 000000000000 };
+>
 > Then, you can use one of this accounting objects in several iptables
 > rules using the new NFACCT target (which comes in a follow-up patch):
->=20
->  # iptables -I INPUT -p tcp --sport 80 -j NFACCT --nfacct-name http-t=
-raffic
->  # iptables -I OUTPUT -p tcp --dport 80 -j NFACCT --nfacct-name http-=
-traffic
->=20
+>
+>   # iptables -I INPUT -p tcp --sport 80 -j NFACCT --nfacct-name http-traffic
+>   # iptables -I OUTPUT -p tcp --dport 80 -j NFACCT --nfacct-name http-traffic
+>
 > The idea is simple: if one packet matches the rule, the NFACCT target
 > updates the counters.
->=20
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  include/linux/netfilter/Kbuild           |    1 +
->  include/linux/netfilter/nfnetlink.h      |    3 +-
->  include/linux/netfilter/nfnetlink_acct.h |   34 +++
->  net/netfilter/Kconfig                    |    8 +
->  net/netfilter/Makefile                   |    1 +
->  net/netfilter/nfnetlink_acct.c           |  352 ++++++++++++++++++++=
-++++++++++
->  6 files changed, 398 insertions(+), 1 deletions(-)
->  create mode 100644 include/linux/netfilter/nfnetlink_acct.h
->  create mode 100644 net/netfilter/nfnetlink_acct.c
->=20
-> diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter=
-/Kbuild
-> index a1b410c..8995867 100644
-> --- a/include/linux/netfilter/Kbuild
-> +++ b/include/linux/netfilter/Kbuild
-> @@ -6,6 +6,7 @@ header-y +=3D nf_conntrack_sctp.h
->  header-y +=3D nf_conntrack_tcp.h
->  header-y +=3D nf_conntrack_tuple_common.h
->  header-y +=3D nfnetlink.h
-> +header-y +=3D nfnetlink_acct.h
->  header-y +=3D nfnetlink_compat.h
->  header-y +=3D nfnetlink_conntrack.h
->  header-y +=3D nfnetlink_log.h
-> diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netf=
-ilter/nfnetlink.h
-> index 74d3386..b64454c 100644
-> --- a/include/linux/netfilter/nfnetlink.h
-> +++ b/include/linux/netfilter/nfnetlink.h
-> @@ -48,7 +48,8 @@ struct nfgenmsg {
->  #define NFNL_SUBSYS_ULOG		4
->  #define NFNL_SUBSYS_OSF			5
->  #define NFNL_SUBSYS_IPSET		6
-> -#define NFNL_SUBSYS_COUNT		7
-> +#define NFNL_SUBSYS_ACCT		7
-> +#define NFNL_SUBSYS_COUNT		8
-> =20
->  #ifdef __KERNEL__
-> =20
-> diff --git a/include/linux/netfilter/nfnetlink_acct.h b/include/linux=
-/netfilter/nfnetlink_acct.h
-> new file mode 100644
-> index 0000000..9a1a119
-> --- /dev/null
-> +++ b/include/linux/netfilter/nfnetlink_acct.h
-> @@ -0,0 +1,34 @@
-> +#ifndef _NFNL_ACCT_H_
-> +#define _NFNL_ACCT_H_
-> +#include <linux/netfilter/nfnetlink.h>
-> +
-> +#define NFACCT_NAME_MAX		64
-> +
-> +enum nfnl_acct_msg_types {
-> +	NFNL_MSG_ACCT_NEW,
-> +	NFNL_MSG_ACCT_GET,
-> +	NFNL_MSG_ACCT_GET_CTRZERO,
-> +	NFNL_MSG_ACCT_DEL,
-> +	NFNL_MSG_ACCT_MAX
-> +};
-> +
-> +enum nfnl_acct_type {
-> +	NFACCT_UNSPEC,
-> +	NFACCT_NAME,
-> +	NFACCT_PKTS,
-> +	NFACCT_BYTES,
-> +	__NFACCT_MAX
-> +};
-> +#define NFACCT_MAX (__NFACCT_MAX - 1)
-> +
-> +#ifdef __KERNEL__
-> +
-> +struct nf_acct;
-> +
-> +extern struct nf_acct *nfnl_acct_find_get(const char *filter_name);
-> +extern void nfnl_acct_put(struct nf_acct *acct);
-> +extern void nfnl_acct_update(const struct sk_buff *skb, struct nf_ac=
-ct *nfacct);
-> +
-> +#endif /* __KERNEL__ */
-> +
-> +#endif /* _NFNL_ACCT_H */
-> diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-> index d5597b7..77326ac 100644
-> --- a/net/netfilter/Kconfig
-> +++ b/net/netfilter/Kconfig
-> @@ -4,6 +4,14 @@ menu "Core Netfilter Configuration"
->  config NETFILTER_NETLINK
->  	tristate
-> =20
-> +config NETFILTER_NETLINK_ACCT
-> +tristate "Netfilter NFACCT over NFNETLINK interface"
-> +	depends on NETFILTER_ADVANCED
-> +	select NETFILTER_NETLINK
-> +	help
-> +	  If this option is enabled, the kernel will include support
-> +	  for extended accounting via NFNETLINK.
-> +
->  config NETFILTER_NETLINK_QUEUE
->  	tristate "Netfilter NFQUEUE over NFNETLINK interface"
->  	depends on NETFILTER_ADVANCED
-> diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-> index 1a02853..4da1c87 100644
-> --- a/net/netfilter/Makefile
-> +++ b/net/netfilter/Makefile
-> @@ -7,6 +7,7 @@ nf_conntrack-$(CONFIG_NF_CONNTRACK_EVENTS) +=3D nf_co=
-nntrack_ecache.o
->  obj-$(CONFIG_NETFILTER) =3D netfilter.o
-> =20
->  obj-$(CONFIG_NETFILTER_NETLINK) +=3D nfnetlink.o
-> +obj-$(CONFIG_NETFILTER_NETLINK_ACCT) +=3D nfnetlink_acct.o
->  obj-$(CONFIG_NETFILTER_NETLINK_QUEUE) +=3D nfnetlink_queue.o
->  obj-$(CONFIG_NETFILTER_NETLINK_LOG) +=3D nfnetlink_log.o
-> =20
-> diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink=
-_acct.c
+
+I like the idea.
+>
+> diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
 > new file mode 100644
 > index 0000000..3ec407f
 > --- /dev/null
 > +++ b/net/netfilter/nfnetlink_acct.c
 > @@ -0,0 +1,352 @@
 > +/*
-> + * (C) 2011 Pablo Neira Ayuso <pablo@netfilter.org>
-> + * (C) 2011 Intra2net AG <http://www.intra2net.com>
+> + * (C) 2011 Pablo Neira Ayuso<pablo@netfilter.org>
+> + * (C) 2011 Intra2net AG<http://www.intra2net.com>
 > + *
-> + * This program is free software; you can redistribute it and/or mod=
-ify
+> + * This program is free software; you can redistribute it and/or modify
 > + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation (or any later at your o=
-ption).
+> + * published by the Free Software Foundation (or any later at your option).
 > + */
-> +#include <linux/init.h>
-> +#include <linux/module.h>
-> +#include <linux/kernel.h>
-> +#include <linux/skbuff.h>
-> +#include <linux/netlink.h>
-> +#include <linux/rculist.h>
-> +#include <linux/slab.h>
-> +#include <linux/types.h>
-> +#include <linux/errno.h>
-> +#include <net/netlink.h>
-> +#include <net/sock.h>
-> +#include <asm/atomic.h>
+> +#include<linux/init.h>
+> +#include<linux/module.h>
+> +#include<linux/kernel.h>
+> +#include<linux/skbuff.h>
+> +#include<linux/netlink.h>
+> +#include<linux/rculist.h>
+> +#include<linux/slab.h>
+> +#include<linux/types.h>
+> +#include<linux/errno.h>
+> +#include<net/netlink.h>
+> +#include<net/sock.h>
+> +#include<asm/atomic.h>
 > +
-> +#include <linux/netfilter.h>
-> +#include <linux/netfilter/nfnetlink.h>
-> +#include <linux/netfilter/nfnetlink_acct.h>
+> +#include<linux/netfilter.h>
+> +#include<linux/netfilter/nfnetlink.h>
+> +#include<linux/netfilter/nfnetlink_acct.h>
 > +
 > +MODULE_LICENSE("GPL");
-> +MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
-> +MODULE_DESCRIPTION("nfacct: Extended Netfilter accounting infrastruc=
-ture");
+> +MODULE_AUTHOR("Pablo Neira Ayuso<pablo@netfilter.org>");
+> +MODULE_DESCRIPTION("nfacct: Extended Netfilter accounting infrastructure");
 > +
 > +static LIST_HEAD(nfnl_acct_list);
 > +
@@ -248,17 +86,342 @@ ture");
 > +	char			name[NFACCT_NAME_MAX];
 > +	__u64			pkts;
 > +	__u64			bytes;
+> +};
+> +
+> +static void nfnl_acct_free_rcu(struct rcu_head *rcu_head)
+> +{
+> +	struct nf_acct *acct = container_of(rcu_head, struct nf_acct, rcu_head);
+> +
+> +	kfree(acct);
+> +}
+> +
+> +static int
+> +nfnl_acct_new(struct sock *nfnl, struct sk_buff *skb,
+> +	     const struct nlmsghdr *nlh, const struct nlattr * const tb[])
+> +{
+> +	int ret;
+> +	struct nf_acct *acct, *matching = NULL;
+> +	char *acct_name;
+> +
+> +	if (!tb[NFACCT_NAME])
+> +		return -EINVAL;
+> +
+> +	acct_name = nla_data(tb[NFACCT_NAME]);
+> +
+> +	rcu_read_lock();
+> +	list_for_each_entry(acct,&nfnl_acct_list, head) {
 
-atomic64_t ?
+I don't really get the locking concept. All netlink operations happen under
+the nfnl mutex, so using RCU for the lookup shouldn't be necessary
+(applied to all netlink operations).
 
-This would remove use of spinlock in fast path
+> +		if (strncmp(acct->name, acct_name, NFACCT_NAME_MAX) != 0)
+> +			continue;
+> +
+> +                if (nlh->nlmsg_flags&  NLM_F_EXCL) {
+> +			rcu_read_unlock();
+> +			ret = -EEXIST;
+> +			goto err;
+> +		}
+> +		matching = acct;
 
-Also, you put lock and pkts,bytes in different cache lines :(
+break?
+> +        }
+> +	rcu_read_unlock();
+> +
+> +	acct = kzalloc(sizeof(struct nf_acct), GFP_KERNEL);
+> +	if (acct == NULL) {
+> +		ret = -ENOMEM;
+> +		goto err;
+> +	}
+> +	spin_lock_init(&acct->lock);
+> +	strncpy(acct->name, nla_data(tb[NFACCT_NAME]), NFACCT_NAME_MAX);
+> +	if (tb[NFACCT_BYTES])
+> +		acct->bytes = be64_to_cpu(nla_get_u64(tb[NFACCT_BYTES]));
+> +	if (tb[NFACCT_PKTS])
+> +		acct->pkts = be64_to_cpu(nla_get_u64(tb[NFACCT_PKTS]));
+> +
+> +	atomic_inc(&acct->refcnt);
+> +
+> +	/* We are protected by nfnl mutex. */
+> +	if (matching) {
 
+This seems to be a replace operation, so I think you should
+require NLM_F_REPLACE. Also it seems you could just
+reinitialize the existing counter instead of unconditionally
+allocating a new one.
 
+> +		list_del_rcu(&matching->head);
+> +		if (atomic_dec_and_test(&matching->refcnt))
+> +			call_rcu(&matching->rcu_head, nfnl_acct_free_rcu);
+> +
+> +	}
+> +	list_add_tail_rcu(&acct->head,&nfnl_acct_list);
+> +	return 0;
+> +err:
+> +	return ret;
+> +}
+> +
+> +static int
+> +nfnl_acct_fill_info(struct sk_buff *skb, u32 pid, u32 seq,
+> +		   int event, struct nf_acct *acct)
+> +{
+> +	struct nlmsghdr *nlh;
+> +	struct nfgenmsg *nfmsg;
+> +	unsigned int flags = pid ? NLM_F_MULTI : 0;
+> +
+> +	event |= NFNL_SUBSYS_ACCT<<  8;
+> +	nlh = nlmsg_put(skb, pid, seq, event, sizeof(*nfmsg), flags);
+> +	if (nlh == NULL)
+> +		goto nlmsg_failure;
+> +
+> +	nfmsg = nlmsg_data(nlh);
+> +	nfmsg->nfgen_family = AF_UNSPEC;
+> +	nfmsg->version = NFNETLINK_V0;
+> +	nfmsg->res_id = 0;
+> +
+> +	NLA_PUT_STRING(skb, NFACCT_NAME, acct->name);
+> +	NLA_PUT_BE64(skb, NFACCT_PKTS, cpu_to_be64(acct->pkts));
+> +	NLA_PUT_BE64(skb, NFACCT_BYTES, cpu_to_be64(acct->bytes));
+> +
+> +	nlmsg_end(skb, nlh);
+> +	return skb->len;
+> +
+> +nlmsg_failure:
+> +nla_put_failure:
+> +	nlmsg_cancel(skb, nlh);
+> +	return -1;
+> +}
+> +
+> +static int
+> +nfnl_acct_dump(struct sk_buff *skb, struct netlink_callback *cb)
+> +{
+> +	struct nf_acct *cur, *last;
+> +
+> +	if (cb->args[2])
+> +		return 0;
+> +
+> +	last = (struct nf_acct *)cb->args[1];
+> +	if (cb->args[1])
+> +		cb->args[1] = 0;
+> +
+> +	rcu_read_lock();
+> +	list_for_each_entry(cur,&nfnl_acct_list, head) {
+> +		if (last&&  cur != last)
+> +			continue;
+> +
+> +		if (nfnl_acct_fill_info(skb, NETLINK_CB(cb->skb).pid,
+> +				       cb->nlh->nlmsg_seq,
+> +				       NFNL_MSG_ACCT_NEW, cur)<  0) {
+> +			cb->args[1] = (unsigned long)cur;
+> +			break;
+> +		}
+> +
+> +		if (NFNL_MSG_TYPE(cb->nlh->nlmsg_type) ==
+> +						NFNL_MSG_ACCT_GET_CTRZERO) {
+> +			spin_lock_bh(&cur->lock);
+> +			cur->pkts = 0;
+> +			cur->bytes = 0;
+> +			spin_unlock_bh(&cur->lock);
+> +		}
+> +	}
+> +	if (!cb->args[1])
+> +		cb->args[2] = 1;
+> +	rcu_read_unlock();
+> +	return skb->len;
+> +}
+> +
+> +static int
+> +nfnl_acct_get(struct sock *nfnl, struct sk_buff *skb,
+> +	     const struct nlmsghdr *nlh, const struct nlattr * const tb[])
+> +{
+> +	int ret = 0;
+> +	struct nf_acct *cur;
+> +	char *acct_name;
+> +
+> +	if (nlh->nlmsg_flags&  NLM_F_DUMP) {
+> +		return netlink_dump_start(nfnl, skb, nlh, nfnl_acct_dump,
+> +					  NULL, 0);
+> +	}
+> +
+> +	if (!tb[NFACCT_NAME])
+> +		return -EINVAL;
+> +	acct_name = nla_data(tb[NFACCT_NAME]);
+> +
+> +	rcu_read_lock();
+> +	list_for_each_entry(cur,&nfnl_acct_list, head) {
+> +		struct sk_buff *skb2;
+> +
+> +		if (strncmp(cur->name, acct_name, NFACCT_NAME_MAX)!= 0)
+> +			continue;
+> +
+> +		skb2 = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_ATOMIC);
+> +		if (skb2 == NULL)
+> +			break;
+> +
+> +		ret = nfnl_acct_fill_info(skb2, NETLINK_CB(skb).pid,
+> +					 nlh->nlmsg_seq,
+> +					 NFNL_MSG_ACCT_NEW, cur);
+> +		if (ret<= 0)
+> +			kfree_skb(skb2);
+> +
+> +		if (NFNL_MSG_TYPE(nlh->nlmsg_type) ==
+> +						NFNL_MSG_ACCT_GET_CTRZERO) {
+> +			spin_lock_bh(&cur->lock);
+> +			cur->pkts = 0;
+> +			cur->bytes = 0;
+> +			spin_unlock_bh(&cur->lock);
+> +		}
+> +		break;
+> +	}
+> +	rcu_read_unlock();
+> +	return ret;
+> +}
+> +
+> +static int
+> +nfnl_acct_del(struct sock *nfnl, struct sk_buff *skb,
+> +	     const struct nlmsghdr *nlh, const struct nlattr * const tb[])
+> +{
+> +	char *acct_name;
+> +	struct nf_acct *cur;
+> +	int ret = -ENOENT;
+> +
+> +	if (!tb[NFACCT_NAME]) {
+> +		rcu_read_lock();
+> +		list_for_each_entry(cur,&nfnl_acct_list, head) {
+> +			/* We are protected by nfnl mutex. */
+> +			list_del_rcu(&cur->head);
+> +			if (atomic_dec_and_test(&cur->refcnt))
+> +				call_rcu(&cur->rcu_head, nfnl_acct_free_rcu);
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I think its strange to keep the object around after deletion if
+it is still in use. In case it is still in use, I'd return -EBUSY.
+
+> +		}
+> +		rcu_read_lock();
+> +		return 0;
+> +	}
+> +	acct_name = nla_data(tb[NFACCT_NAME]);
+> +
+> +	rcu_read_lock();
+> +	list_for_each_entry(cur,&nfnl_acct_list, head) {
+> +		if (strncmp(cur->name, acct_name, NFACCT_NAME_MAX) != 0)
+> +			continue;
+> +
+> +		/* We are protected by nfnl mutex. */
+> +		list_del_rcu(&cur->head);
+> +		if (atomic_dec_and_test(&cur->refcnt))
+> +			call_rcu(&cur->rcu_head, nfnl_acct_free_rcu);
+> +		ret = 0;
+> +		break;
+> +	}
+> +	rcu_read_lock();
+> +	return ret;
+> +}
+> +
+> +static const struct nla_policy nfnl_acct_policy[NFACCT_MAX+1] = {
+> +	[NFACCT_NAME] = { .type = NLA_NUL_STRING, .len = NFACCT_NAME_MAX-1 },
+> +	[NFACCT_BYTES] = { .type = NLA_U64 },
+> +	[NFACCT_PKTS] = { .type = NLA_U64 },
+> +};
+> +
+> +static const struct nfnl_callback nfnl_acct_cb[NFNL_MSG_ACCT_MAX] = {
+> +	[NFNL_MSG_ACCT_NEW]		= { .call = nfnl_acct_new,
+> +					    .attr_count = NFACCT_MAX,
+> +					    .policy = nfnl_acct_policy },
+> +	[NFNL_MSG_ACCT_GET] 		= { .call = nfnl_acct_get,
+> +					    .attr_count = NFACCT_MAX,
+> +					    .policy = nfnl_acct_policy },
+> +	[NFNL_MSG_ACCT_GET_CTRZERO] 	= { .call = nfnl_acct_get,
+> +					    .attr_count = NFACCT_MAX,
+> +					    .policy = nfnl_acct_policy },
+> +	[NFNL_MSG_ACCT_DEL]		= { .call = nfnl_acct_del,
+> +					    .attr_count = NFACCT_MAX,
+> +					    .policy = nfnl_acct_policy },
+> +};
+> +
+> +static const struct nfnetlink_subsystem nfnl_acct_subsys = {
+> +	.name				= "acct",
+> +	.subsys_id			= NFNL_SUBSYS_ACCT,
+> +	.cb_count			= NFNL_MSG_ACCT_MAX,
+> +	.cb				= nfnl_acct_cb,
+> +};
+> +
+> +MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_ACCT);
+> +
+> +struct nf_acct *nfnl_acct_find_get(const char *acct_name)
+> +{
+> +	struct nf_acct *cur, *acct = NULL;
+> +
+> +	rcu_read_lock();
+> +	list_for_each_entry(cur,&nfnl_acct_list, head) {
+> +		if (strncmp(cur->name, acct_name, NFACCT_NAME_MAX)!= 0)
+> +			continue;
+> +
+> +		acct = cur;
+> +		atomic_inc(&acct->refcnt);
+
+This probably needs atomic_inc_not_zero() since the
+lookup might race with deletion.
+
+> +		break;
+> +	}
+> +	rcu_read_unlock();
+> +	return acct;
+> +}
+> +EXPORT_SYMBOL_GPL(nfnl_acct_find_get);
+> +
+> +void nfnl_acct_put(struct nf_acct *acct)
+> +{
+> +	if (atomic_dec_and_test(&acct->refcnt))
+> +		call_rcu(&acct->rcu_head, nfnl_acct_free_rcu);
+> +}
+> +EXPORT_SYMBOL_GPL(nfnl_acct_put);
+> +
+> +void nfnl_acct_update(const struct sk_buff *skb, struct nf_acct *nfacct)
+> +{
+> +	spin_lock_bh(&nfacct->lock);
+> +	nfacct->pkts++;
+> +	nfacct->bytes += skb->len;
+> +	spin_unlock_bh(&nfacct->lock);
+> +}
+> +EXPORT_SYMBOL_GPL(nfnl_acct_update);
+> +
+> +static int __init nfnl_acct_init(void)
+> +{
+> +	int ret;
+> +
+> +	pr_info("nfnl_acct: registering with nfnetlink.\n");
+> +	ret = nfnetlink_subsys_register(&nfnl_acct_subsys);
+> +	if (ret<  0) {
+> +		pr_err("nfnl_acct_init: cannot register with nfnetlink.\n");
+> +		goto err_out;
+> +	}
+> +	return 0;
+> +err_out:
+> +	return ret;
+> +}
+> +
+> +static void __exit nfnl_acct_exit(void)
+> +{
+> +	struct nf_acct *cur, *tmp;
+> +
+> +	pr_info("nfnl_acct: unregistering from nfnetlink.\n");
+> +	nfnetlink_subsys_unregister(&nfnl_acct_subsys);
+> +
+> +	/* if we can remove this module, it means that it has no clients. */
+> +	list_for_each_entry_safe(cur, tmp,&nfnl_acct_list, head) {
+> +		list_del_rcu(&cur->head);
+> +		if (atomic_dec_and_test(&cur->refcnt))
+> +			kfree(cur);
+
+What happens if it is non-zero? The iptables target should
+take a module reference as long as its using objects that
+this module is responsible for managing.
+
+> +	}
+> +}
+> +
+> +module_init(nfnl_acct_init);
+> +module_exit(nfnl_acct_exit);
+
