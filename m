@@ -1,48 +1,50 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH 0/2] [RFC] Extended accounting infrastructure for iptables
-Date: Wed, 14 Dec 2011 22:52:04 +0800
-Message-ID: <CABa6K_HLc2w5K4taYmrNfhdXTPZsvE=OmdQtNnYBm32Erw8yBA@mail.gmail.com>
-References: <1323860443-7129-1-git-send-email-pablo@netfilter.org>
- <CABa6K_Ffexe2SsaxyRPLBEjf1WOfSEgzJ4fa5L81QZs6JvXsVA@mail.gmail.com> <20111214133010.GA3155@1984>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 0/2] [RFC] Extended accounting infrastructure for
+ iptables
+Date: Wed, 14 Dec 2011 16:59:43 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1112141655510.26476@frira.zrqbmnf.qr>
+References: <1323860443-7129-1-git-send-email-pablo@netfilter.org> <CABa6K_Ffexe2SsaxyRPLBEjf1WOfSEgzJ4fa5L81QZs6JvXsVA@mail.gmail.com> <20111214133010.GA3155@1984> <CABa6K_HLc2w5K4taYmrNfhdXTPZsvE=OmdQtNnYBm32Erw8yBA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
-	kaber@trash.net, jengelh@medozas.de, thomas.jarosch@intra2net.com
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
+	kaber@trash.net, thomas.jarosch@intra2net.com
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:42700 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755179Ab1LNOwZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Dec 2011 09:52:25 -0500
-Received: by vcbfk14 with SMTP id fk14so646719vcb.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Dec 2011 06:52:25 -0800 (PST)
-In-Reply-To: <20111214133010.GA3155@1984>
+Received: from seven.medozas.de ([188.40.89.202]:35182 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752045Ab1LNP7p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 Dec 2011 10:59:45 -0500
+In-Reply-To: <CABa6K_HLc2w5K4taYmrNfhdXTPZsvE=OmdQtNnYBm32Erw8yBA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Dec 14, 2011 at 9:30 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, Dec 14, 2011 at 09:12:52PM +0800, Changli Gao wrote:
+On Wednesday 2011-12-14 15:52, Changli Gao wrote:
+
+>On Wed, Dec 14, 2011 at 9:30 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>> On Wed, Dec 14, 2011 at 09:12:52PM +0800, Changli Gao wrote:
+>>>
+>>> Why not use the counters of iptables instead?
+>>>
+>>> iptables-save -c
 >>
->> Why not use the counters of iptables instead?
->>
->> iptables-save -c
+>> If you want to obtain the sum of the counters that match some criteria,
+>> you have to iterate over the whole list of existing rules, look for
+>> matchings and update the counters.
 >
-> If you want to obtain the sum of the counters that match some criteria,
-> you have to iterate over the whole list of existing rules, look for
-> matchings and update the counters.
+>As I said in another thread, you can redirect the traffic to a
+>separated chain, and use the counters of that chain.
 
-As I said in another thread, you can redirect the traffic to a
-separated chain, and use the counters of that chain.
+UDCs (user defined chains) don't have counters, though.
 
+>> Moreover, if you have a large rule-set, polling periodically
+>> iptables-save -c can be expensive.
 >
-> Moreover, if you have a large rule-set, polling periodically
-> iptables-save -c can be expensive.
+>I got it. Thanks. Maybe we can index the entries in the kernel, and
+>add a new interface to get the counters of a special entry with a
+>entry ID.
 
-I got it. Thanks. Maybe we can index the entries in the kernel, and
-add a new interface to get the counters of a special entry with a
-entry ID.
-
--- 
-Regards,
-Changli Gao(xiaosuo@gmail.com)
+Relying on the rule number is a terrible idea (just like 
+iptables-save|head -n5|tail -n1 would be). Unique persistend IDs are 
+unfavorable as well; names, as used with xt_quota2/xt_NFACCT can be 
+remembered much more easily.
