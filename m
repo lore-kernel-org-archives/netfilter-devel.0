@@ -1,59 +1,81 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: kenel level packet capturing
-Date: Wed, 14 Dec 2011 11:09:19 -0500 (EST)
-Message-ID: <20111214.110919.1286184647888114902.davem@davemloft.net>
-References: <CAKj1SsOra7u21u8Zq9rDLzv_Bhx8sPsah+SHByMYQbVc_j6LQA@mail.gmail.com>
-	<20111213.133629.1213042365300662857.davem@davemloft.net>
-	<CAKj1SsNO_uJuVtKs_-tygcd=QDesKkYa=9DVeajhK73LFV-opA@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 1/2] netfilter: add extended accounting infrastructure
+ over nfnetlink
+Date: Wed, 14 Dec 2011 17:31:07 +0100
+Message-ID: <4EE8CF4B.9010005@trash.net>
+References: <1323860443-7129-1-git-send-email-pablo@netfilter.org> <1323860443-7129-2-git-send-email-pablo@netfilter.org> <4EE88729.7010507@trash.net> <20111214131802.GB2749@1984>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org
-To: raviraj.j1991@gmail.com
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
+	jengelh@medozas.de, thomas.jarosch@intra2net.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:58701 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757368Ab1LNQJZ convert rfc822-to-8bit (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:40935 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755098Ab1LNQbQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Dec 2011 11:09:25 -0500
-In-Reply-To: <CAKj1SsNO_uJuVtKs_-tygcd=QDesKkYa=9DVeajhK73LFV-opA@mail.gmail.com>
+	Wed, 14 Dec 2011 11:31:16 -0500
+In-Reply-To: <20111214131802.GB2749@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: raviraj joshi <raviraj.j1991@gmail.com>
-Date: Wed, 14 Dec 2011 16:16:01 +0530
-
-> On Wed, Dec 14, 2011 at 12:06 AM, David Miller <davem@davemloft.net> =
-wrote:
->> From: raviraj joshi <raviraj.j1991@gmail.com>
->> Date: Tue, 13 Dec 2011 17:34:22 +0530
+On 14.12.2011 14:18, Pablo Neira Ayuso wrote:
+> On Wed, Dec 14, 2011 at 12:23:21PM +0100, Patrick McHardy wrote:
+> [...]
+>>> +nfnl_acct_new(struct sock *nfnl, struct sk_buff *skb,
+>>> +	     const struct nlmsghdr *nlh, const struct nlattr * const tb[])
+>>> +{
+>>> +	int ret;
+>>> +	struct nf_acct *acct, *matching = NULL;
+>>> +	char *acct_name;
+>>> +
+>>> +	if (!tb[NFACCT_NAME])
+>>> +		return -EINVAL;
+>>> +
+>>> +	acct_name = nla_data(tb[NFACCT_NAME]);
+>>> +
+>>> +	rcu_read_lock();
+>>> +	list_for_each_entry(acct,&nfnl_acct_list, head) {
 >>
->>> We have decided to use PF_RING(a kernel module to capture packets) =
-for
->>> the same due to the number of advantages.
+>> I don't really get the locking concept. All netlink operations happen under
+>> the nfnl mutex, so using RCU for the lookup shouldn't be necessary
+>> (applied to all netlink operations).
+> 
+> If you add one iptables rule with NFACCT, you have to iterate over the
+> list (without the mutex). Very unlikely, but we may delete one
+> accounting object via nfnetlink at the same time of adding the rule
+> that refers to it.
+
+Sure. But we don't need it for any of the netlink operations.
+
+> 
+>>> +        }
+>>> +	rcu_read_unlock();
+>>> +
+>>> +	acct = kzalloc(sizeof(struct nf_acct), GFP_KERNEL);
+>>> +	if (acct == NULL) {
+>>> +		ret = -ENOMEM;
+>>> +		goto err;
+>>> +	}
+>>> +	spin_lock_init(&acct->lock);
+>>> +	strncpy(acct->name, nla_data(tb[NFACCT_NAME]), NFACCT_NAME_MAX);
+>>> +	if (tb[NFACCT_BYTES])
+>>> +		acct->bytes = be64_to_cpu(nla_get_u64(tb[NFACCT_BYTES]));
+>>> +	if (tb[NFACCT_PKTS])
+>>> +		acct->pkts = be64_to_cpu(nla_get_u64(tb[NFACCT_PKTS]));
+>>> +
+>>> +	atomic_inc(&acct->refcnt);
+>>> +
+>>> +	/* We are protected by nfnl mutex. */
+>>> +	if (matching) {
 >>
->> What "advantages"? =A0The AF_PACKET socket layer already upstream in=
- the
->> kernel supports every relevant performance feature PF_RING does, and
->> then some.
-> I refered to the document on "A Measurement Study of Packet Reception
-> using Linux"[1]  which said pf_ring maintains
-> a ring buffer, so we dont have to issue a receive system call for eac=
-h
-> packet in contrast to AF_PACKET which issues a system call for each
-> packet(pls correct me if i am wrong).
+>> This seems to be a replace operation, so I think you should
+>> require NLM_F_REPLACE. Also it seems you could just
+>> reinitialize the existing counter instead of unconditionally
+>> allocating a new one.
+> 
+> I think it's easier to return -EBUSY as you suggested.
 
-AF_PACKET supports mmap()'d packet rings, and even supports variable
-packet lengths within those rings.
-
-AF_PACKET supports all the worthwhile performance features of PR_RING
-and it's upstream, stop kidding yourself.
-
-I'm really sick and tired of people saying PF_RING is better than
-what we have upstream, it really isn't.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That was for deletion. For addition supporting replace is fine, but
+we should use the correct netlink flags.
