@@ -1,49 +1,112 @@
-From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [PATCH 1/2] netfilter: add extended accounting infrastructure
  over nfnetlink
-Date: Wed, 14 Dec 2011 15:06:24 -0800
-Message-ID: <CAHo-OowrLG9Pij-66=5P4Tgrpcxc-hv9TzPyeTJL=qLL6g8TWQ@mail.gmail.com>
+Date: Thu, 15 Dec 2011 13:20:27 +0100
+Message-ID: <20111215122027.GA14246@1984>
 References: <1323860443-7129-1-git-send-email-pablo@netfilter.org>
-	<1323860443-7129-2-git-send-email-pablo@netfilter.org>
-	<alpine.LNX.2.01.1112141439180.16886@frira.zrqbmnf.qr>
-	<20111214165007.GA4765@1984>
-	<alpine.DEB.2.00.1112141926580.7277@blackhole.kfki.hu>
+ <1323860443-7129-2-git-send-email-pablo@netfilter.org>
+ <4EE88729.7010507@trash.net>
+ <20111214131802.GB2749@1984>
+ <4EE8CF4B.9010005@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org, kaber@trash.net,
-	thomas.jarosch@intra2net.com
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
+	jengelh@medozas.de, thomas.jarosch@intra2net.com
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:35644 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932199Ab1LNXGZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Dec 2011 18:06:25 -0500
-Received: by ggdk6 with SMTP id k6so1221749ggd.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Dec 2011 15:06:24 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1112141926580.7277@blackhole.kfki.hu>
+Received: from mail.us.es ([193.147.175.20]:35702 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756143Ab1LOMUu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Dec 2011 07:20:50 -0500
+Content-Disposition: inline
+In-Reply-To: <4EE8CF4B.9010005@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->> > I suggest to turn -j NFACCT into -m nfacct instead, so that we can add
->> > counting-down mode and matching capabilities, so as to replace
->> > xt_quota*.
->>
->> This makes sense.
->>
->> My only concern is that -m nfacct will not really match anything (not
->> by default at least).
->>
->> But with -m nfacct, we can use it in one single multi-match rule, which
->> comes in handy.
->
-> I second that turning it into a "match" makes it more flexible.
+On Wed, Dec 14, 2011 at 05:31:07PM +0100, Patrick McHardy wrote:
+> On 14.12.2011 14:18, Pablo Neira Ayuso wrote:
+> > On Wed, Dec 14, 2011 at 12:23:21PM +0100, Patrick McHardy wrote:
+> > [...]
+> >>> +nfnl_acct_new(struct sock *nfnl, struct sk_buff *skb,
+> >>> +	     const struct nlmsghdr *nlh, const struct nlattr * const tb[])
+> >>> +{
+> >>> +	int ret;
+> >>> +	struct nf_acct *acct, *matching = NULL;
+> >>> +	char *acct_name;
+> >>> +
+> >>> +	if (!tb[NFACCT_NAME])
+> >>> +		return -EINVAL;
+> >>> +
+> >>> +	acct_name = nla_data(tb[NFACCT_NAME]);
+> >>> +
+> >>> +	rcu_read_lock();
+> >>> +	list_for_each_entry(acct,&nfnl_acct_list, head) {
+> >>
+> >> I don't really get the locking concept. All netlink operations happen under
+> >> the nfnl mutex, so using RCU for the lookup shouldn't be necessary
+> >> (applied to all netlink operations).
+> > 
+> > If you add one iptables rule with NFACCT, you have to iterate over the
+> > list (without the mutex). Very unlikely, but we may delete one
+> > accounting object via nfnetlink at the same time of adding the rule
+> > that refers to it.
+> 
+> Sure. But we don't need it for any of the netlink operations.
 
-I've often wished I could apply multiple targets to a single rule, ie.
-mangle like so, and then ACCEPT, instead of having to create a
-separate chain...
-It sounds like there should be matches, targets, and non-decisive
-actions, which happen after the matches, don't affect matching, and
-before the targets...
+Indeed. I have removed all rcu_read_[un]lock in the list iterations of
+the netlink operations.
+
+> >>> +        }
+> >>> +	rcu_read_unlock();
+> >>> +
+> >>> +	acct = kzalloc(sizeof(struct nf_acct), GFP_KERNEL);
+> >>> +	if (acct == NULL) {
+> >>> +		ret = -ENOMEM;
+> >>> +		goto err;
+> >>> +	}
+> >>> +	spin_lock_init(&acct->lock);
+> >>> +	strncpy(acct->name, nla_data(tb[NFACCT_NAME]), NFACCT_NAME_MAX);
+> >>> +	if (tb[NFACCT_BYTES])
+> >>> +		acct->bytes = be64_to_cpu(nla_get_u64(tb[NFACCT_BYTES]));
+> >>> +	if (tb[NFACCT_PKTS])
+> >>> +		acct->pkts = be64_to_cpu(nla_get_u64(tb[NFACCT_PKTS]));
+> >>> +
+> >>> +	atomic_inc(&acct->refcnt);
+> >>> +
+> >>> +	/* We are protected by nfnl mutex. */
+> >>> +	if (matching) {
+> >>
+> >> This seems to be a replace operation, so I think you should
+> >> require NLM_F_REPLACE. Also it seems you could just
+> >> reinitialize the existing counter instead of unconditionally
+> >> allocating a new one.
+> > 
+> > I think it's easier to return -EBUSY as you suggested.
+> 
+> That was for deletion. For addition supporting replace is fine, but
+> we should use the correct netlink flags.
+
+This is what I'm doing now in this case:
+
+        if (matching) {
+                if (nlh->nlmsg_flags & NLM_F_REPLACE) {
+                        /* reset counters if you request a replacement. */
+                        atomic64_set(&cur->pkts, 0);
+                        atomic64_set(&cur->bytes, 0);
+                        return 0;
+                }
+                        return -EBUSY;
+        }
+
+before that code (in the lookup) you have:
+
+                if (nlh->nlmsg_flags & NLM_F_EXCL)
+                        return -EEXIST;
+
+So basically, if one object already exists and you try to create it:
+
+1) with NLM_F_EXCL, you hit EEXIST.
+
+1) with MLM_F_REPLACE, it sets counters to zero.
+
+2) without NLM_F_EXCL and NLM_F_REPLACE, you hit EBUSY.
