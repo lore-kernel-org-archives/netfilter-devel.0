@@ -1,102 +1,112 @@
-From: Ferenc Wagner <wferi@niif.hu>
-Subject: Re: [PATCH 0/2] [RFC] Extended accounting infrastructure for iptables
-Date: Fri, 16 Dec 2011 16:25:54 +0100
-Message-ID: <87ty504jy5.fsf@tac.ki.iif.hu>
-References: <1323860443-7129-1-git-send-email-pablo@netfilter.org>
-	<CABa6K_Ffexe2SsaxyRPLBEjf1WOfSEgzJ4fa5L81QZs6JvXsVA@mail.gmail.com>
-	<20111214133010.GA3155@1984>
-	<CABa6K_HLc2w5K4taYmrNfhdXTPZsvE=OmdQtNnYBm32Erw8yBA@mail.gmail.com>
-	<alpine.LNX.2.01.1112141655510.26476@frira.zrqbmnf.qr>
-	<871us5bn3t.fsf@tac.ki.iif.hu>
-	<alpine.LNX.2.01.1112152200410.2122@frira.zrqbmnf.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Changli Gao <xiaosuo@gmail.com>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
-	kaber@trash.net, thomas.jarosch@intra2net.com
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH] libxt_connbytes: fix handling of --connbytes FROM
+Date: Fri, 16 Dec 2011 18:34:06 +0100
+Message-ID: <1324056846-557-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from tac.ki.iif.hu ([193.6.222.43]:51580 "EHLO tac.ki.iif.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760010Ab1LPP0V (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Dec 2011 10:26:21 -0500
-In-Reply-To: <alpine.LNX.2.01.1112152200410.2122@frira.zrqbmnf.qr> (Jan
-	Engelhardt's message of "Thu, 15 Dec 2011 22:01:16 +0100 (CET)")
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:52257 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751955Ab1LPRcU (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Dec 2011 12:32:20 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt <jengelh@medozas.de> writes:
+quoting man page:
 
-> On Thursday 2011-12-15 21:23, Ferenc Wagner wrote:
->
->> Jan Engelhardt <jengelh@medozas.de> writes:
->>
->>> On Wednesday 2011-12-14 15:52, Changli Gao wrote:
->>>
->>>> On Wed, Dec 14, 2011 at 9:30 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->>>>
->>>>> On Wed, Dec 14, 2011 at 09:12:52PM +0800, Changli Gao wrote:
->>>>>>
->>>>>> Why not use the counters of iptables instead?
->>>>>>
->>>>>> iptables-save -c
->>>>>
->>>>> If you want to obtain the sum of the counters that match some criteria,
->>>>> you have to iterate over the whole list of existing rules, look for
->>>>> matchings and update the counters.
->>>>
->>>> As I said in another thread, you can redirect the traffic to a
->>>> separated chain, and use the counters of that chain.
->>>
->>> UDCs (user defined chains) don't have counters, though.
->>
->> So put an empty rule into them.  The ip_ plugin of Munin uses this
->> technique for quite some time.
->>
->>>>> Moreover, if you have a large rule-set, polling periodically
->>>>> iptables-save -c can be expensive.
->>>>
->>>> I got it. Thanks. Maybe we can index the entries in the kernel, and
->>>> add a new interface to get the counters of a special entry with a
->>>> entry ID.
->>>
->>> Relying on the rule number is a terrible idea (just like 
->>> iptables-save|head -n5|tail -n1 would be). Unique persistend IDs are 
->>> unfavorable as well; names, as used with xt_quota2/xt_NFACCT can be 
->>> remembered much more easily.
->>
->> Rule names could serve this, couldn't they?  And rules can be identified
->> by -m comment if batch processing is required.
->
-> Then you can just as well use nfacct's name.
+match packets  from  a  connection  whose packets/bytes/average
+packet size is more than FROM and less than TO bytes/packets. if
+TO is omitted only FROM check is done.
 
-Sorry, I didn't write what I wanted to.  I meant chain names, not rule
-names (which don't even exist).  Also, bringing up -m comment was a
-mistake, please disregard it.
+But, when TO was omitted, we did treat it like "x:x" which is not
+the same at all.
 
-Pablo Neira Ayuso <pablo@netfilter.org> writes:
+Before commit 09631dc60ce41bc484a42fcf4d4ddf7036820bd1
+(libxt_connbytes: use guided option parser), we failed to parse
+"--connbytes x" ('Bad range "x"'), but treated "x:" like "x:0xffffffff".
 
-> What you propose is hackish.
+Also, restore the "from must be smaller than to" check.
 
-Do you consider creating a new chain with a single empty rule hackish?
-I accept that nfacct is a more transparent solution.  But I don't think
-those single rule counter chains are that bad, either.  And they are
-potentially more flexible (which may be an advantage or a disadvantage
-as well).  And they don't require adding (and maintaining) new code.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ extensions/libxt_connbytes.c |   42 +++++++++++++++++++++++++-----------------
+ 1 files changed, 25 insertions(+), 17 deletions(-)
 
-> You parse text-based outputs, which is not the nice way to make
-> things.
-
-Agreed.  But I don't see the principal difference: just as you provide
-libnetfilter_acct, someone could provide a similar library for handling
-the rule counters (maybe such a library is already available, I don't
-know).  Also, I bet 98% of the uses would involve shell scripts anyway,
-using nfacct_get http-traffic or iptables -vL http-traffic for much the
-same effect. :)
-
-Please don't think I'm against your code.  My point was that there is a
-viable alternative already present in the kernel.  I will shut up now.
+diff --git a/extensions/libxt_connbytes.c b/extensions/libxt_connbytes.c
+index 46a7e4b..ed2ad25 100644
+--- a/extensions/libxt_connbytes.c
++++ b/extensions/libxt_connbytes.c
+@@ -37,9 +37,14 @@ static void connbytes_parse(struct xt_option_call *cb)
+ 	switch (cb->entry->id) {
+ 	case O_CONNBYTES:
+ 		sinfo->count.from = cb->val.u64_range[0];
+-		sinfo->count.to   = cb->val.u64_range[0];
++		sinfo->count.to   = UINT64_MAX;
+ 		if (cb->nvals == 2)
+ 			sinfo->count.to = cb->val.u64_range[1];
++
++		if (sinfo->count.to < sinfo->count.from)
++			xtables_error(PARAMETER_PROBLEM, "%llu should be less than %llu",
++					(unsigned long long)sinfo->count.from,
++					(unsigned long long)sinfo->count.to);
+ 		if (cb->invert) {
+ 			i = sinfo->count.from;
+ 			sinfo->count.from = sinfo->count.to;
+@@ -107,19 +112,29 @@ static void print_direction(const struct xt_connbytes_info *sinfo)
+ 	}
+ }
+ 
++static void print_from_to(const struct xt_connbytes_info *sinfo, const char *prefix)
++{
++	unsigned long long from, to;
++
++	if (sinfo->count.from > sinfo->count.to) {
++		fputs(" !", stdout);
++		from = sinfo->count.to;
++		to = sinfo->count.from;
++	} else {
++		to = sinfo->count.to;
++		from = sinfo->count.from;
++	}
++	printf(" %sconnbytes %llu", prefix, from);
++	if (to && to < UINT64_MAX)
++		printf(":%llu", to);
++}
++
+ static void
+ connbytes_print(const void *ip, const struct xt_entry_match *match, int numeric)
+ {
+ 	const struct xt_connbytes_info *sinfo = (const void *)match->data;
+ 
+-	if (sinfo->count.from > sinfo->count.to) 
+-		printf(" connbytes ! %llu:%llu",
+-			(unsigned long long)sinfo->count.to,
+-			(unsigned long long)sinfo->count.from);
+-	else
+-		printf(" connbytes %llu:%llu",
+-			(unsigned long long)sinfo->count.from,
+-			(unsigned long long)sinfo->count.to);
++	print_from_to(sinfo, "");
+ 
+ 	fputs(" connbytes mode", stdout);
+ 	print_mode(sinfo);
+@@ -132,14 +147,7 @@ static void connbytes_save(const void *ip, const struct xt_entry_match *match)
+ {
+ 	const struct xt_connbytes_info *sinfo = (const void *)match->data;
+ 
+-	if (sinfo->count.from > sinfo->count.to) 
+-		printf(" ! --connbytes %llu:%llu",
+-			(unsigned long long)sinfo->count.to,
+-			(unsigned long long)sinfo->count.from);
+-	else
+-		printf(" --connbytes %llu:%llu",
+-			(unsigned long long)sinfo->count.from,
+-			(unsigned long long)sinfo->count.to);
++	print_from_to(sinfo, "--");
+ 
+ 	fputs(" --connbytes-mode", stdout);
+ 	print_mode(sinfo);
 -- 
-Regards,
-Feri.
+1.7.3.4
+
