@@ -1,32 +1,56 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: libmnl: build updates
-Date: Sat, 17 Dec 2011 16:37:06 +0100
-Message-ID: <1324136231-25643-1-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 2/4] build: use AC_CONFIG_AUX_DIR and stash away tools
+Date: Sat, 17 Dec 2011 16:37:08 +0100
+Message-ID: <1324136231-25643-3-git-send-email-jengelh@medozas.de>
+References: <1324136231-25643-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:59764 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:59768 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751850Ab1LQPhN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 17 Dec 2011 10:37:13 -0500
+	id S1752352Ab1LQPhP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 17 Dec 2011 10:37:15 -0500
+In-Reply-To: <1324136231-25643-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+---
+ .gitignore   |    6 +-----
+ configure.ac |    1 +
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
-The following changes since commit bae830bbfc10b3892d48cde9bafc6f7356f0affc:
+diff --git a/.gitignore b/.gitignore
+index 44f7088..9a7d86c 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -9,14 +9,10 @@ Makefile.in
+ 
+ /aclocal.m4
+ /autom4te.cache/
+-/compile
++/build-aux/
+ /config.*
+ /configure
+-/depcomp
+-/install-sh
+ /libtool
+-/ltmain.sh
+-/missing
+ /stamp-h1
+ 
+ /doxygen.cfg
+diff --git a/configure.ac b/configure.ac
+index a9fde6c..130ca75 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1,6 +1,7 @@
+ dnl Process this file with autoconf to create configure.
+ 
+ AC_INIT([libmnl], [1.0.1])
++AC_CONFIG_AUX_DIR([build-aux])
+ AC_CANONICAL_HOST
+ AC_CONFIG_MACRO_DIR([m4])
+ AC_CONFIG_HEADERS([config.h])
+-- 
+1.7.3.4
 
-  build: abort autogen on subcommand failure (2011-08-09 14:28:49 +0200)
-
-are available in the git repository at:
-  git://dev.medozas.de/libmnl master
-
-Jan Engelhardt (4):
-      Update .gitignore
-      build: use AC_CONFIG_AUX_DIR and stash away tools
-      m4: resolve autoconf-2.68 warnings
-      build: disable implicit .tar.gz archive generation and use POSIX mode
-
- .gitignore            |   12 ++++--------
- configure.ac          |    3 ++-
- m4/gcc4_visibility.m4 |    4 ++--
- 3 files changed, 8 insertions(+), 11 deletions(-)
