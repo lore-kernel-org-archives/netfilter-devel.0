@@ -1,54 +1,62 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 2/3] build: use AC_CONFIG_AUX_DIR and stash away tools
-Date: Sat, 17 Dec 2011 16:39:20 +0100
-Message-ID: <1324136362-16840-3-git-send-email-jengelh@medozas.de>
-References: <1324136362-16840-1-git-send-email-jengelh@medozas.de>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/2] [RFC] Extended accounting infrastructure for
+ iptables
+Date: Sat, 17 Dec 2011 19:05:23 +0100
+Message-ID: <20111217180523.GA31261@1984>
+References: <1323860443-7129-1-git-send-email-pablo@netfilter.org>
+ <CABa6K_Ffexe2SsaxyRPLBEjf1WOfSEgzJ4fa5L81QZs6JvXsVA@mail.gmail.com>
+ <20111214133010.GA3155@1984>
+ <CABa6K_HLc2w5K4taYmrNfhdXTPZsvE=OmdQtNnYBm32Erw8yBA@mail.gmail.com>
+ <alpine.LNX.2.01.1112141655510.26476@frira.zrqbmnf.qr>
+ <871us5bn3t.fsf@tac.ki.iif.hu>
+ <alpine.LNX.2.01.1112152200410.2122@frira.zrqbmnf.qr>
+ <87ty504jy5.fsf@tac.ki.iif.hu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Changli Gao <xiaosuo@gmail.com>,
+	Jan Engelhardt <jengelh@medozas.de>,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
+	kaber@trash.net, thomas.jarosch@intra2net.com
+To: Ferenc Wagner <wferi@niif.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:59825 "EHLO seven.medozas.de"
+Received: from mail.us.es ([193.147.175.20]:50635 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752415Ab1LQPj0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 17 Dec 2011 10:39:26 -0500
-In-Reply-To: <1324136362-16840-1-git-send-email-jengelh@medozas.de>
+	id S1752118Ab1LQSFc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 17 Dec 2011 13:05:32 -0500
+Content-Disposition: inline
+In-Reply-To: <87ty504jy5.fsf@tac.ki.iif.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
----
- .gitignore   |    5 +----
- configure.ac |    2 +-
- 2 files changed, 2 insertions(+), 5 deletions(-)
+On Fri, Dec 16, 2011 at 04:25:54PM +0100, Ferenc Wagner wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> writes:
+> 
+> > What you propose is hackish.
+> 
+> Do you consider creating a new chain with a single empty rule hackish?
 
-diff --git a/.gitignore b/.gitignore
-index cf1c1da..f1348b4 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -14,11 +14,8 @@ Makefile.in
- # build system
- /aclocal.m4
- /autom4te.cache/
-+/build-aux/
- /config.*
- /configure
--/depcomp
--/install-sh
- /libtool
--/ltmain.sh
--/missing
- /stamp-h1
-diff --git a/configure.ac b/configure.ac
-index e8f8427..5bb032e 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -1,7 +1,7 @@
- dnl Process this file with autoconf to produce a configure script.
- AC_PREREQ([2.50])
- AC_INIT([ulogd], [2.0.0beta4])
--
-+AC_CONFIG_AUX_DIR([build-aux])
- AM_INIT_AUTOMAKE([-Wall foreign dist-bzip2 1.10b])
- AC_CONFIG_HEADER([config.h])
- AC_CONFIG_MACRO_DIR([m4])
--- 
-1.7.3.4
+No. What I consider hackish is to parse the output of iptables -Lnv,
+most likely looking for some pattern that -m comment displays to
+collect the counters.
 
+> I accept that nfacct is a more transparent solution.  But I don't think
+> those single rule counter chains are that bad, either.  And they are
+> potentially more flexible (which may be an advantage or a disadvantage
+> as well).  And they don't require adding (and maintaining) new code.
+>
+> > You parse text-based outputs, which is not the nice way to make
+> > things.
+> 
+> Agreed.  But I don't see the principal difference: just as you provide
+> libnetfilter_acct, someone could provide a similar library for handling
+> the rule counters (maybe such a library is already available, I don't
+> know). Also, I bet 98% of the uses would involve shell scripts anyway,
+> using nfacct_get http-traffic or iptables -vL http-traffic for much the
+> same effect. :)
+
+Bad betting, you owe me one beer ;-).
+
+With nfacct you will not need to make shell scripts at all for your
+applications. You've got one library that provides one netlink
+interface that you can use in your C programs (or whatever language
+that allows to make native calls to C functions).
