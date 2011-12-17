@@ -1,45 +1,37 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 1/3] Update .gitignore
-Date: Sat, 17 Dec 2011 16:36:09 +0100
-Message-ID: <1324136172-28320-2-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 3/3] build: disable implicit .tar.gz archive generation and use POSIX mode
+Date: Sat, 17 Dec 2011 16:36:11 +0100
+Message-ID: <1324136172-28320-4-git-send-email-jengelh@medozas.de>
 References: <1324136172-28320-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:59431 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:59438 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752211Ab1LQPgO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 17 Dec 2011 10:36:14 -0500
+	id S1752387Ab1LQPgR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 17 Dec 2011 10:36:17 -0500
 In-Reply-To: <1324136172-28320-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Only ignore these paths if they are a directory.
 ---
- .gitignore |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ configure.ac |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/.gitignore b/.gitignore
-index d0fb94d..522eba3 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -1,5 +1,5 @@
--.deps
--.libs
-+.deps/
-+.libs/
- Makefile
- Makefile.in
- *.o
-@@ -7,7 +7,7 @@ Makefile.in
- *.lo
+diff --git a/configure.ac b/configure.ac
+index 1b829a9..3bf07ab 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -5,7 +5,8 @@ AC_CONFIG_AUX_DIR([build-aux])
+ AC_CANONICAL_HOST
+ AC_CONFIG_MACRO_DIR([m4])
  
- /aclocal.m4
--/autom4te.cache
-+/autom4te.cache/
- /compile
- /config.*
- /configure
+-AM_INIT_AUTOMAKE([-Wall foreign subdir-objects dist-bzip2 1.6])
++AM_INIT_AUTOMAKE([-Wall foreign subdir-objects
++	tar-pax no-dist-gzip dist-bzip2 1.6])
+ 
+ dnl kernel style compile messages
+ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 -- 
 1.7.3.4
 
