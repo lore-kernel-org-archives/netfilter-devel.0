@@ -1,77 +1,72 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 3/6] build: process include/libipset/
-Date: Sat, 17 Dec 2011 16:35:05 +0100
-Message-ID: <1324136109-31504-4-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 6/6] build: make distcheck work and use POSIX mode for tarball generation
+Date: Sat, 17 Dec 2011 16:35:08 +0100
+Message-ID: <1324136109-31504-7-git-send-email-jengelh@medozas.de>
 References: <1324136109-31504-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:59370 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:59374 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751573Ab1LQPfS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 17 Dec 2011 10:35:18 -0500
+	id S1751850Ab1LQPfU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 17 Dec 2011 10:35:20 -0500
 In-Reply-To: <1324136109-31504-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We need to visit that directory, otherwise `make install` is
-incomplete and `make distcheck` fails.
 ---
- Makefile.am                  |    2 +-
+ Makefile.am                  |    2 ++
  configure.ac                 |    2 +-
- include/Makefile.am          |    1 -
- include/libipset/Makefile.am |    3 +--
- 4 files changed, 3 insertions(+), 5 deletions(-)
- delete mode 100644 include/Makefile.am
+ include/libipset/Makefile.am |    2 ++
+ src/Makefile.am              |    2 +-
+ 4 files changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/Makefile.am b/Makefile.am
-index 09ba4d9..513d641 100644
+index 513d641..c40f88e 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -20,7 +20,7 @@ else
- V=0
- endif
+@@ -75,3 +75,5 @@ tidy: distclean modules_clean
+ 	find . -name '*~' -delete
  
--SUBDIRS		= lib src
-+SUBDIRS		= include/libipset lib src
- 
- modules_sparse:
- if WITH_KMOD
+ .PHONY: modules modules_instal modules_clean update_includes tests
++
++DISTCHECK_CONFIGURE_FLAGS = --with-kmod=no
 diff --git a/configure.ac b/configure.ac
-index e277d05..acae162 100644
+index acae162..56a2dff 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -161,5 +161,5 @@ fi
- dnl Checks for library functions.
+@@ -4,7 +4,7 @@ AC_CONFIG_AUX_DIR([build-aux])
+ AC_CANONICAL_HOST
+ AC_CONFIG_MACRO_DIR([m4])
+ AC_CONFIG_HEADER([config.h])
+-AM_INIT_AUTOMAKE([foreign subdir-objects])
++AM_INIT_AUTOMAKE([foreign subdir-objects tar-pax])
  
- dnl Generate output
--AC_CONFIG_FILES([Makefile lib/Makefile src/Makefile])
-+AC_CONFIG_FILES([Makefile include/libipset/Makefile lib/Makefile src/Makefile])
- AC_OUTPUT
-diff --git a/include/Makefile.am b/include/Makefile.am
-deleted file mode 100644
-index 2c4eb5c..0000000
---- a/include/Makefile.am
-+++ /dev/null
-@@ -1 +0,0 @@
--SUBDIRS = libipset
+ dnl Shortcut: Linux supported alone
+ case "$host" in
 diff --git a/include/libipset/Makefile.am b/include/libipset/Makefile.am
-index b17293c..3c21d0f 100644
+index d15fedd..2bb353b 100644
 --- a/include/libipset/Makefile.am
 +++ b/include/libipset/Makefile.am
-@@ -6,11 +6,10 @@ pkginclude_HEADERS = \
- 	linux_ip_set_hash.h \
- 	mnl.h \
- 	nf_inet_addr.h \
--	nlattr.h \
- 	parse.h \
- 	pfxlen.h \
- 	print.h \
--	session.h
-+	session.h \
- 	transport.h \
+@@ -16,3 +16,5 @@ pkginclude_HEADERS = \
  	types.h \
  	ui.h \
+ 	utils.h
++
++EXTRA_DIST = debug.h icmp.h icmpv6.h
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 8ba441d..5296047 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -17,7 +17,7 @@ ipset_SOURCES	= ipset.c \
+ ipset_LDADD	= ../lib/libipset.la
+ AM_LDFLAGS	= -static
+ 
+-man_MANS = ipset.8
++dist_man_MANS = ipset.8
+ 
+ #%.o: %.c
+ #	${AM_VERBOSE_CC} ${CC} ${AM_DEPFLAGS} ${AM_CFLAGS} ${CFLAGS} -o $@ -c $<
 -- 
 1.7.3.4
 
