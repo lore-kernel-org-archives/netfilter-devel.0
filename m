@@ -1,57 +1,30 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 2/3] build: use AC_CONFIG_AUX_DIR and stash away tools
-Date: Sat, 17 Dec 2011 16:36:10 +0100
-Message-ID: <1324136172-28320-3-git-send-email-jengelh@medozas.de>
-References: <1324136172-28320-1-git-send-email-jengelh@medozas.de>
+Subject: libnetfilter_queue: build updates
+Date: Sat, 17 Dec 2011 16:36:31 +0100
+Message-ID: <1324136195-7784-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:59433 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:59447 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752211Ab1LQPgQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 17 Dec 2011 10:36:16 -0500
-In-Reply-To: <1324136172-28320-1-git-send-email-jengelh@medozas.de>
+	id S1752331Ab1LQPgh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 17 Dec 2011 10:36:37 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
----
- .gitignore   |    6 +-----
- configure.ac |    2 +-
- 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/.gitignore b/.gitignore
-index 522eba3..f4938e9 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -8,14 +8,10 @@ Makefile.in
- 
- /aclocal.m4
- /autom4te.cache/
--/compile
-+/build-aux/
- /config.*
- /configure
--/depcomp
--/install-sh
- /libtool
--/ltmain.sh
--/missing
- 
- /doxygen.cfg
- /*.pc
-diff --git a/configure.ac b/configure.ac
-index 6247629..1b829a9 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -1,7 +1,7 @@
- dnl Process this file with autoconf to create configure.
- 
- AC_INIT([libnetfilter_log], [1.0.0])
--
-+AC_CONFIG_AUX_DIR([build-aux])
- AC_CANONICAL_HOST
- AC_CONFIG_MACRO_DIR([m4])
- 
--- 
-1.7.3.4
+The following changes since commit 4b3d0a4763b440ef748d537d86f0869d09544ab2:
 
+  src: add notes on NF_STOLEN and NF_REPEAT to documentation (2011-09-06 13:48:25 +0200)
+
+are available in the git repository at:
+  git://dev.medozas.de/libnetfilter_queue master
+
+Jan Engelhardt (3):
+      Update .gitignore
+      build: use AC_CONFIG_AUX_DIR and stash away tools
+      build: disable implicit .tar.gz archive generation and use POSIX mode
+
+ .gitignore   |   12 ++++--------
+ configure.ac |    4 +++-
+ 2 files changed, 7 insertions(+), 9 deletions(-)
