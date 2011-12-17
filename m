@@ -1,67 +1,63 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 3/5] Selected corrections from Mr. Dash Four
-Date: Sat, 17 Dec 2011 22:02:20 +0100
-Message-ID: <1324155743-25999-4-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 4/5] Selected corrections from Mr. Dash Four
+Date: Sat, 17 Dec 2011 22:02:21 +0100
+Message-ID: <1324155743-25999-5-git-send-email-jengelh@medozas.de>
 References: <1324155743-25999-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: eric@regit.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:50758 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:50761 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751450Ab1LQVCb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1752134Ab1LQVCb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Sat, 17 Dec 2011 16:02:31 -0500
 In-Reply-To: <1324155743-25999-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-References: <4EDA2715.7030006@googlemail.com>
-Date: 2011-12-03 13:41:41 +0000
+References: <4EDA332F.2010409@googlemail.com>
+References: http://marc.info/?l=netfilter&m=132292290523592&w=2
+Date: 2011-12-03 14:33:19 +0000
 ---
- secure-conntrack-helpers.rst |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ secure-conntrack-helpers.rst |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/secure-conntrack-helpers.rst b/secure-conntrack-helpers.rst
-index 1acaf2e..13fc263 100644
+index 13fc263..18a7a81 100644
 --- a/secure-conntrack-helpers.rst
 +++ b/secure-conntrack-helpers.rst
-@@ -216,8 +216,8 @@ For example, if the option has been used for the ftp helper, one should use ::
+@@ -43,12 +43,12 @@ IRC helper creates expectations whose destination address is the client address
+ and source address is any address. This is due to the protocol: we do not know
+ the IP address of the person who is the target of the DCC.
+ 
+-The degree of freedom due to connection tracking helpers are thus dependent on
++The degree of freedom due to connection tracking helpers are therefore dependent on
+ the nature of the protocol. Some protocols have dangerous extensions, and these
+ are disabled by default by Netfilter. The user has to pass an option during
+ loading of the module to enable this dangerous protocol features. For example,
+ the FTP protocol can let the user choose to have the target server connect to
+-another arbitrary server. This could lead to a hole in the DMZ and it is thus
++another arbitrary server. This could lead to a hole in the DMZ and it is therefore
+ deactivated by default. To enable it, you've got to pass the `loose` option
+ with the `1` value.
+ 
+@@ -91,7 +91,7 @@ when setting parameters linked to a helper.
+ 
+ For each helper, you must carefully open the RELATED flow. All iptables statement 
+ using "-m conntrack --ctstate RELATED" should be used in conjunction with the
+-choice of a helper and of IP parameters.  Doing that, you will be able to describe
++choice of a helper and of IP parameters. By doing that, you will be able to describe
+ how the helper must be used with respect to your network and information system
+ architecture.
+ 
+@@ -144,7 +144,7 @@ Securing the signaling flow
+ 
+ You will also need to build carefully crafted rules for the authorization
+ of flows involving connection tracking helpers. In particular, you have
+-to do a strict anti-spoofing (as described below) to avoid traffic injection
++to do strict anti-spoofing (as described below) to avoid traffic injection
+ from other interfaces.
  
  
- 
--Antispoofing
--============
-+Anti-spoofing
-+=============
- Helpers and anti-spoofing
- -------------------------
- 
-@@ -232,7 +232,7 @@ Using rp_filter
- 
- Linux provides a routing-based implementation of reverse path filtering.
- This is available for IPv4.  To activate it, you need to ensure that
--`/proc/sys/net/ipv4/conf/*/rp_filter` files contain 1.  The complete
-+`/proc/sys/net/ipv4/conf/*/rp_filter` files contain 1.  Complete
- documentation about `rp_filter` is available in the file `ip-sysctl.txt`
- in the `Documentation/networking/` directory of the Linux tree.
- 
-@@ -265,7 +265,7 @@ The documentation at the time of the writing is reproduced here ::
-     Default value is 0. Note that some distributions
-     enable it in startup scripts.
- 
--At the time of the writing there is no routing-based implementation of
-+At the time of the writing, there is no routing-based implementation of
- `rp_filter` in the Linux kernel for IPv6. Manual anti-spoofing via Netfilter
- rules is thus needed.
- 
-@@ -276,7 +276,7 @@ The best way to do anti-spoofing is to use filtering rules in the RAW table.
- This has the great advantage of bypassing the connection tracking. This
- helps to reduce the load that could be created by some flooding.
- 
--The anti-spoofing must be done on a per-interface basis. For each interface,
-+Anti-spoofing must be done on a per-interface basis. For each interface,
- we must list the authorized network on the interface. There is exception,
- which is the interface with the default route where an inverted logic must
- be used. In our example, let's take eth1, which is a LAN interface, and have
 -- 
 1.7.3.4
 
