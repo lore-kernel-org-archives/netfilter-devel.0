@@ -1,51 +1,47 @@
 From: pablo@netfilter.org
-Subject: [PATCH 2/2] netfilter: ctnetlink: support individual atomic-get-and-reset of counters
-Date: Sun, 18 Dec 2011 01:34:29 +0100
-Message-ID: <1324168469-11204-2-git-send-email-pablo@netfilter.org>
-References: <1324168469-11204-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH] user-space expectation support updates
+Date: Sun, 18 Dec 2011 01:55:53 +0100
+Message-ID: <1324169754-20192-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net, jengelh@medozas.de, kadlec@blackhole.kfki.hu
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42771 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43636 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751085Ab1LRAel (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 17 Dec 2011 19:34:41 -0500
-In-Reply-To: <1324168469-11204-1-git-send-email-pablo@netfilter.org>
+	id S1751058Ab1LRA4K (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 17 Dec 2011 19:56:10 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-This allows to use the get operation to atomically get-and-reset
-counters.
+Hi!
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_netlink.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+This patch was posted in april 2011, it seem it got lost during
+the discussion:
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 81a0f11..4b6b570 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1011,6 +1011,17 @@ ctnetlink_get_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 	if (err < 0)
- 		goto out;
- 
-+	if (NFNL_MSG_TYPE(nlh->nlmsg_type) == IPCTNL_MSG_CT_GET_CTRZERO) {
-+		struct nf_conn_counter *acct;
-+
-+		acct = nf_conn_acct_find(ct);
-+		if (acct) {
-+			atomic64_set(&acct[IP_CT_DIR_ORIGINAL].bytes, 0);
-+			atomic64_set(&acct[IP_CT_DIR_ORIGINAL].packets, 0);
-+			atomic64_set(&acct[IP_CT_DIR_REPLY].bytes, 0);
-+			atomic64_set(&acct[IP_CT_DIR_REPLY].packets, 0);
-+		}
-+	}
- 	return 0;
- 
- free:
+http://www.spinics.net/lists/netfilter-devel/msg17992.html
+http://www.spinics.net/lists/netfilter-devel/msg17993.html
+
+This reworks the user-space expectation support.
+
+I'm resending this to get it into net-net.
+
+Nobody has been using this support so far. I plan to start
+working on some user-space daemon (or extension for conntrackd)
+to allow to implement helpers in user-space by beginning 2012.
+
+Pablo Neira Ayuso (1):
+  netfilter: rework user-space expectation helper support
+
+ include/linux/netfilter/nf_conntrack_common.h |    4 ++
+ include/linux/netfilter/xt_CT.h               |    3 +-
+ include/net/netfilter/nf_conntrack_expect.h   |    1 -
+ net/netfilter/nf_conntrack_expect.c           |   63 ++++++++----------------
+ net/netfilter/nf_conntrack_helper.c           |   12 +++++
+ net/netfilter/nf_conntrack_netlink.c          |    5 ++-
+ net/netfilter/xt_CT.c                         |    8 ++-
+ 7 files changed, 48 insertions(+), 48 deletions(-)
+
 -- 
 1.7.2.5
 
