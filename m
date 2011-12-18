@@ -1,111 +1,91 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 3/3] libiptc: provide separate pkgconfig files
-Date: Sun, 18 Dec 2011 03:06:48 +0100
-Message-ID: <1324174009-1559-4-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 2/3] doc: clarification on the meaning of -p 0
+Date: Sun, 18 Dec 2011 03:06:47 +0100
+Message-ID: <1324174009-1559-3-git-send-email-jengelh@medozas.de>
 References: <1324174009-1559-1-git-send-email-jengelh@medozas.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:55614 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:55613 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751139Ab1LRCIP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 17 Dec 2011 21:08:15 -0500
+	id S1751222Ab1LRCIO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 17 Dec 2011 21:08:14 -0500
 In-Reply-To: <1324174009-1559-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- configure.ac           |    4 +++-
- libiptc/.gitignore     |    2 +-
- libiptc/Makefile.am    |    2 +-
- libiptc/libip4tc.pc.in |   10 ++++++++++
- libiptc/libip6tc.pc.in |   10 ++++++++++
- libiptc/libiptc.pc.in  |    6 ++----
- 6 files changed, 27 insertions(+), 7 deletions(-)
- create mode 100644 libiptc/libip4tc.pc.in
- create mode 100644 libiptc/libip6tc.pc.in
+ iptables/ip6tables.8.in |   16 ++++++++++++----
+ iptables/iptables.8.in  |   10 +++++++---
+ 2 files changed, 19 insertions(+), 7 deletions(-)
 
-diff --git a/configure.ac b/configure.ac
-index 8afba8c..298d551 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -112,6 +112,8 @@ AC_SUBST([libxtables_vmajor])
- AC_CONFIG_FILES([Makefile extensions/GNUmakefile include/Makefile
- 	iptables/Makefile iptables/xtables.pc
- 	libipq/Makefile libipq/libipq.pc
--	libiptc/Makefile libiptc/libiptc.pc libxtables/Makefile utils/Makefile
-+	libiptc/Makefile libiptc/libiptc.pc
-+	libiptc/libip4tc.pc libiptc/libip6tc.pc
-+	libxtables/Makefile utils/Makefile
- 	include/xtables.h include/iptables/internal.h])
- AC_OUTPUT
-diff --git a/libiptc/.gitignore b/libiptc/.gitignore
-index 8767550..49ca83d 100644
---- a/libiptc/.gitignore
-+++ b/libiptc/.gitignore
-@@ -1 +1 @@
--/libiptc.pc
-+/*.pc
-diff --git a/libiptc/Makefile.am b/libiptc/Makefile.am
-index 22c920f..c170cb2 100644
---- a/libiptc/Makefile.am
-+++ b/libiptc/Makefile.am
-@@ -3,7 +3,7 @@
- AM_CFLAGS        = ${regular_CFLAGS}
- AM_CPPFLAGS      = ${regular_CPPFLAGS} -I${top_builddir}/include -I${top_srcdir}/include ${kinclude_CPPFLAGS}
- 
--pkgconfig_DATA      = libiptc.pc
-+pkgconfig_DATA      = libiptc.pc libip4tc.pc libip6tc.pc
- 
- lib_LTLIBRARIES     = libip4tc.la libip6tc.la libiptc.la
- libiptc_la_SOURCES  =
-diff --git a/libiptc/libip4tc.pc.in b/libiptc/libip4tc.pc.in
-new file mode 100644
-index 0000000..5efa1ca
---- /dev/null
-+++ b/libiptc/libip4tc.pc.in
-@@ -0,0 +1,10 @@
-+prefix=@prefix@
-+exec_prefix=@exec_prefix@
-+libdir=@libdir@
-+includedir=@includedir@
-+
-+Name:		libip4tc
-+Description:	iptables IPv4 ruleset ADT and kernel interface
-+Version:	@PACKAGE_VERSION@
-+Libs:		-L${libdir} -lip4tc
-+Cflags:		-I${includedir}
-diff --git a/libiptc/libip6tc.pc.in b/libiptc/libip6tc.pc.in
-new file mode 100644
-index 0000000..30a61b2
---- /dev/null
-+++ b/libiptc/libip6tc.pc.in
-@@ -0,0 +1,10 @@
-+prefix=@prefix@
-+exec_prefix=@exec_prefix@
-+libdir=@libdir@
-+includedir=@includedir@
-+
-+Name:		libip6tc
-+Description:	iptables IPv6 ruleset ADT and kernel interface
-+Version:	@PACKAGE_VERSION@
-+Libs:		-L${libdir} -lip6tc
-+Cflags:		-I${includedir}
-diff --git a/libiptc/libiptc.pc.in b/libiptc/libiptc.pc.in
-index 99a3544..0264bf0 100644
---- a/libiptc/libiptc.pc.in
-+++ b/libiptc/libiptc.pc.in
-@@ -5,8 +5,6 @@ libdir=@libdir@
- includedir=@includedir@
- 
- Name:		libiptc
--Description:	iptables ruleset ADT and kernel interface
-+Description:	iptables v4/v6 ruleset ADT and kernel interface
- Version:	@PACKAGE_VERSION@
--Libs:		-L${libdir} -liptc
--Libs.private:	-lip4tc -lip6tc
--Cflags:		-I${includedir}
-+Requires:	libip4tc libip6tc
+diff --git a/iptables/ip6tables.8.in b/iptables/ip6tables.8.in
+index 748cebb..65f3864 100644
+--- a/iptables/ip6tables.8.in
++++ b/iptables/ip6tables.8.in
+@@ -250,7 +250,11 @@ But IPv6 extension headers except \fBesp\fP are not allowed.
+ \fBesp\fP and \fBipv6\-nonext\fP
+ can be used with Kernel version 2.6.11 or later.
+ A "!" argument before the protocol inverts the
+-test.  The number zero is equivalent to \fBall\fP. "\fBall\fP"
++test.  The number zero is equivalent to \fBall\fP, which means that you cannot
++test the protocol field for the value 0 directly. To match on a HBH header,
++even if it were the last, you cannot use \fB\-p 0\fP, but always need
++\fB\-m hbh\fP.
++"\fBall\fP"
+ will match with all protocols and is taken as default when this
+ option is omitted.
+ .TP
+@@ -357,15 +361,19 @@ corresponding to that rule's position in the chain.
+ When adding or inserting rules into a chain, use \fIcommand\fP
+ to load any necessary modules (targets, match extensions, etc).
+ .SH MATCH EXTENSIONS
+-ip6tables can use extended packet matching modules.  These are loaded
+-in two ways: implicitly, when \fB\-p\fP or \fB\-\-protocol\fP
+-is specified, or with the \fB\-m\fP or \fB\-\-match\fP
++.PP
++ip6tables can use extended packet matching modules
++with the \fB\-m\fP or \fB\-\-match\fP
+ options, followed by the matching module name; after these, various
+ extra command line options become available, depending on the specific
+ module.  You can specify multiple extended match modules in one line,
+ and you can use the \fB\-h\fP or \fB\-\-help\fP
+ options after the module has been specified to receive help specific
+ to that module.
++.PP
++If the \fB\-p\fP or \fB\-\-protocol\fP was specified and if and only if an
++unknown option is encountered, ip6tables will try load a match module of the
++same name as the protocol, to try making the option available.
+ .\" @MATCH@
+ .SH TARGET EXTENSIONS
+ ip6tables can use extended target modules: the following are included
+diff --git a/iptables/iptables.8.in b/iptables/iptables.8.in
+index 24618b7..59d6e04 100644
+--- a/iptables/iptables.8.in
++++ b/iptables/iptables.8.in
+@@ -356,15 +356,19 @@ corresponding to that rule's position in the chain.
+ When adding or inserting rules into a chain, use \fIcommand\fP
+ to load any necessary modules (targets, match extensions, etc).
+ .SH MATCH EXTENSIONS
+-iptables can use extended packet matching modules.  These are loaded
+-in two ways: implicitly, when \fB\-p\fP or \fB\-\-protocol\fP
+-is specified, or with the \fB\-m\fP or \fB\-\-match\fP
++.PP
++iptables can use extended packet matching modules
++with the \fB\-m\fP or \fB\-\-match\fP
+ options, followed by the matching module name; after these, various
+ extra command line options become available, depending on the specific
+ module.  You can specify multiple extended match modules in one line,
+ and you can use the \fB\-h\fP or \fB\-\-help\fP
+ options after the module has been specified to receive help specific
+ to that module.
++.PP
++If the \fB\-p\fP or \fB\-\-protocol\fP was specified and if and only if an
++unknown option is encountered, iptables will try load a match module of the
++same name as the protocol, to try making the option available.
+ .\" @MATCH@
+ .SH TARGET EXTENSIONS
+ iptables can use extended target modules: the following are included
 -- 
 1.7.3.4
 
