@@ -1,38 +1,60 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] libxt_connbytes: fix handling of --connbytes FROM
-Date: Fri, 23 Dec 2011 14:57:32 +0100
-Message-ID: <20111223135731.GB10482@1984>
-References: <1324056846-557-1-git-send-email-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+From: pablo@netfilter.org
+Subject: [PATCH] netfilter: xt_connbytes: handle negation correctly
+Date: Fri, 23 Dec 2011 15:04:43 +0100
+Message-ID: <1324649083-6548-2-git-send-email-pablo@netfilter.org>
+References: <1324649083-6548-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42381 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44742 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757175Ab1LWN5f (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Dec 2011 08:57:35 -0500
-Content-Disposition: inline
-In-Reply-To: <1324056846-557-1-git-send-email-fw@strlen.de>
+	id S1752678Ab1LWOFA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Dec 2011 09:05:00 -0500
+In-Reply-To: <1324649083-6548-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Dec 16, 2011 at 06:34:06PM +0100, Florian Westphal wrote:
-> quoting man page:
-> 
-> match packets  from  a  connection  whose packets/bytes/average
-> packet size is more than FROM and less than TO bytes/packets. if
-> TO is omitted only FROM check is done.
-> 
-> But, when TO was omitted, we did treat it like "x:x" which is not
-> the same at all.
-> 
-> Before commit 09631dc60ce41bc484a42fcf4d4ddf7036820bd1
-> (libxt_connbytes: use guided option parser), we failed to parse
-> "--connbytes x" ('Bad range "x"'), but treated "x:" like "x:0xffffffff".
-> 
-> Also, restore the "from must be smaller than to" check.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+From: Florian Westphal <fw@strlen.de>
 
-Applied, thanks!
+"! --connbytes 23:42" should match if the packet/byte count is not in range.
+
+As there is no explict "invert match" toggle in the match structure,
+userspace swaps the from and to arguments
+(i.e., as if "--connbytes 42:23" were given).
+
+However, "what <= 23 && what >= 42" will always be false.
+
+Change things so we use "||" in case "from" is larger than "to".
+
+This change may look like it breaks backwards compatibility when "to" is 0.
+However, older iptables binaries will refuse "connbytes 42:0",
+and current releases treat it to mean "! --connbytes 0:42",
+so we should be fine.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/xt_connbytes.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/net/netfilter/xt_connbytes.c b/net/netfilter/xt_connbytes.c
+index 5b13850..9ddf1c3 100644
+--- a/net/netfilter/xt_connbytes.c
++++ b/net/netfilter/xt_connbytes.c
+@@ -87,10 +87,10 @@ connbytes_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 		break;
+ 	}
+ 
+-	if (sinfo->count.to)
++	if (sinfo->count.to >= sinfo->count.from)
+ 		return what <= sinfo->count.to && what >= sinfo->count.from;
+-	else
+-		return what >= sinfo->count.from;
++	else /* inverted */
++		return what < sinfo->count.to || what > sinfo->count.from;
+ }
+ 
+ static int connbytes_mt_check(const struct xt_mtchk_param *par)
+-- 
+1.7.2.5
+
