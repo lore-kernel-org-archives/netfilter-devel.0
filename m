@@ -1,70 +1,33 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: [PATCH 5/5] Plural forms
-Date: Thu, 22 Dec 2011 14:32:47 +0100
-Message-ID: <1324560767.17195.9.camel@tiger.regit.org>
-References: <1324155743-25999-1-git-send-email-jengelh@medozas.de>
-	 <1324155743-25999-6-git-send-email-jengelh@medozas.de>
-	 <4EEE0348.7060606@googlemail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFC PATCH 00/18] netfilter: IPv6 NAT
+Date: Fri, 23 Dec 2011 14:08:58 +0100
+Message-ID: <20111223130858.GA10150@1984>
+References: <1322153850-10533-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-aPbSCxmOoZXtnnGmzo3R"
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org
-To: Mr Dash Four <mr.dash.four@googlemail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	ulrich.weber@sophos.com
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:38027 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750909Ab1LVNdQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Dec 2011 08:33:16 -0500
-In-Reply-To: <4EEE0348.7060606@googlemail.com>
+Received: from mail.us.es ([193.147.175.20]:54665 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756849Ab1LWNJG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Dec 2011 08:09:06 -0500
+Content-Disposition: inline
+In-Reply-To: <1322153850-10533-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Patrick,
 
---=-aPbSCxmOoZXtnnGmzo3R
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On Thu, Nov 24, 2011 at 05:57:11PM +0100, kaber@trash.net wrote:
+> The following patches contain the updated IPv6 NAT patchset forward ported
+> to 3.2-rc3.
 
-Hello,
+I've applied patches from 1 to 7. They are independent of the
+IPv6 NAT support so they are safe to be applied.
 
-Jan, all patches have been applied.
+Please, rebase your tree once they have hit davem's tree. Make sure
+you rebase your tree before final submission of the IPv6 NAT support.
 
-Proposal by Mr Dash Four have been added to the document.
-
-Thanks a lot!
-
-On Sun, 2011-12-18 at 15:14 +0000, Mr Dash Four wrote:
-> > @@ -277,7 +277,7 @@ This has the great advantage of bypassing the conne=
-ction tracking. This
-> >  helps to reduce the load that could be created by some flooding.
-> >  =20
-> "This has the great advantage of bypassing the connection tracking and=
-=20
-> helps reducing the load that could be created by some flooding."
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel=
-" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---=20
-Eric Leblond=20
-Blog: http://home.regit.org/
-
---=-aPbSCxmOoZXtnnGmzo3R
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAk7zMX8ACgkQnxA7CdMWjzKwMgCfWeLZ0TeqkxBtgOxGJ7BtiyJW
-NbQAnR6oh2qbo23PcDnHELDzH4Vk5lvX
-=SnUm
------END PGP SIGNATURE-----
-
---=-aPbSCxmOoZXtnnGmzo3R--
-
+Thanks!
