@@ -1,55 +1,53 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset: build updates
-Date: Fri, 23 Dec 2011 21:31:28 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1112232130280.11694@blackhole.kfki.hu>
-References: <1324136109-31504-1-git-send-email-jengelh@medozas.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/2] netfilter: add extended accounting infrastructure
+ over nfnetlink
+Date: Sat, 24 Dec 2011 01:23:19 +0100
+Message-ID: <20111224002319.GA12560@1984>
+References: <1324647747-12646-1-git-send-email-pablo@netfilter.org>
+ <1324647747-12646-2-git-send-email-pablo@netfilter.org>
+ <1324649439.2223.21.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
+	jengelh@medozas.de, kadlec@blackhole.kfki.hu
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:48268 "EHLO smtp0.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:59177 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752880Ab1LWUba (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Dec 2011 15:31:30 -0500
-In-Reply-To: <1324136109-31504-1-git-send-email-jengelh@medozas.de>
+	id S1754558Ab1LXAX2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Dec 2011 19:23:28 -0500
+Content-Disposition: inline
+In-Reply-To: <1324649439.2223.21.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jan,
+On Fri, Dec 23, 2011 at 03:10:39PM +0100, Eric Dumazet wrote:
+> Le vendredi 23 d=E9cembre 2011 =E0 14:42 +0100, pablo@netfilter.org a
+> =E9crit :
+> > From: Pablo Neira Ayuso <pablo@netfilter.org>
+> >=20
+>=20
+>=20
+> > +struct nf_acct *nfnl_acct_find_get(const char *acct_name)
+> > +{
+> > +	struct nf_acct *cur, *acct =3D NULL;
+> > +
+> > +	rcu_read_lock();
+> > +	list_for_each_entry(cur, &nfnl_acct_list, head) {
+> > +		if (strncmp(cur->name, acct_name, NFACCT_NAME_MAX)!=3D 0)
+> > +			continue;
+> > +
+> > +		if (!try_module_get(THIS_MODULE))
+> > +			return NULL;
+> > +
+> > +		if (!atomic_inc_not_zero(&cur->refcnt))
+>=20
+> 	You leak the module reference here.
 
-On Sat, 17 Dec 2011, Jan Engelhardt wrote:
-
-> The following changes since commit 7c061f216ee04a8df5f49521b146f4a274b5f1ac:
-> 
->   ipset 6.10 released (2011-11-25 09:36:04 +0100)
-> 
-> are available in the git repository at:
->   git://dev.medozas.de/ipset master
-> 
-> Jan Engelhardt (6):
->       Update .gitignore
->       build: use AC_CONFIG_AUX_DIR and stash away tools
->       build: process include/libipset/
->       build: include libipset/nfproto.h
->       build: install libipset/linux_ip_set_list.h
->       build: make distcheck work and use POSIX mode for tarball generation
-> 
->  .gitignore                   |   12 ++++--------
->  Makefile.am                  |    4 +++-
->  configure.ac                 |    5 +++--
->  include/Makefile.am          |    1 -
->  include/libipset/Makefile.am |    7 +++++--
->  src/Makefile.am              |    2 +-
->  6 files changed, 16 insertions(+), 15 deletions(-)
->  delete mode 100644 include/Makefile.am
-
-Thanks, all patches are applied.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Indeed, thanks. I've fixed this.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
