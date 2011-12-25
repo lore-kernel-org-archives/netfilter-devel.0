@@ -1,48 +1,38 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/19] netfilter updates for net-next (upcoming 3.3)
-Date: Sun, 25 Dec 2011 03:12:43 -0500 (EST)
-Message-ID: <20111225.031243.1507750002843759659.davem@davemloft.net>
-References: <1324778255-2830-1-git-send-email-pablo@netfilter.org>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH] netfilter: ctnetlink: get and zero operations must be atomic
+Date: Sun, 25 Dec 2011 22:09:24 +0800
+Message-ID: <CABa6K_Ev77vYC7sFphT5CNAOMRMChVi-Lxoww_zODVBCCb-vdw@mail.gmail.com>
+References: <1324734508-15043-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
+	eric.dumazet@gmail.com
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:56854 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751218Ab1LYINv (ORCPT
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:48931 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752362Ab1LYOJq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 25 Dec 2011 03:13:51 -0500
-In-Reply-To: <1324778255-2830-1-git-send-email-pablo@netfilter.org>
+	Sun, 25 Dec 2011 09:09:46 -0500
+Received: by vcbfk14 with SMTP id fk14so8131974vcb.19
+        for <netfilter-devel@vger.kernel.org>; Sun, 25 Dec 2011 06:09:45 -0800 (PST)
+In-Reply-To: <1324734508-15043-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: pablo@netfilter.org
-Date: Sun, 25 Dec 2011 02:57:16 +0100
+On Sat, Dec 24, 2011 at 9:48 PM,  <pablo@netfilter.org> wrote:
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+>
+> The get and zero operations have to be done in an atomic context,
+> otherwise counters added between them will be lost.
+>
+> This problem was spotted by Changli Gao while discussing the
+> nfacct infrastructure.
+>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-> The following patchset includes the Netfilter updates for net-next.
-> It contains:
-> 
-> - New reverse path filter matches for xtables from Florian Westphal.
-> 
-> - Use of atomic64_t for the conntrack packet and bytes counters, instead
->   of using spinlock to protect counters updates from Eric Dumazet.
-> 
-> - One enhancement for the SH scheduler (IPVS) from Michael Maxim.
-> 
-> - Seven patches from Patrick McHardy to cleanup several aspects of the
->   existing NAT code.
-> 
-> - The rework of the user-space expectation support by myself.
-> 
-> - Several updates for ctnetlink by myself.
-> 
-> - The new nfacct infrastructure and the corresponding xtables match
->   by myself.
-> 
-> You can pull these changes from:
-> 
-> git://1984.lsi.us.es/net-next nf-next
+Reviewed-by: Changli Gao <xiaosuo@gmail.com>
 
-Pulled, thanks a lot.
+-- 
+Regards,
+Changli Gao(xiaosuo@gmail.com)
