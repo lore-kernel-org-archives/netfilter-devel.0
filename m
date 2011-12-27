@@ -1,43 +1,31 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: xt_ecn, with descriptions
-Date: Tue, 27 Dec 2011 20:33:53 +0100
-Message-ID: <20111227193353.GA29207@1984>
-References: <1325012273-11779-1-git-send-email-jengelh@medozas.de>
+Subject: Re: [patch] netfilter: provide config option to disable ancient
+ procfs parts
+Date: Tue, 27 Dec 2011 20:34:41 +0100
+Message-ID: <20111227193441.GB29207@1984>
+References: <alpine.LNX.2.01.1112261910070.4284@frira.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49666 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:49700 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752121Ab1L0Td6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Dec 2011 14:33:58 -0500
+	id S1752400Ab1L0Teo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Dec 2011 14:34:44 -0500
 Content-Disposition: inline
-In-Reply-To: <1325012273-11779-1-git-send-email-jengelh@medozas.de>
+In-Reply-To: <alpine.LNX.2.01.1112261910070.4284@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Dec 27, 2011 at 07:57:48PM +0100, Jan Engelhardt wrote:
+On Mon, Dec 26, 2011 at 07:10:24PM +0100, Jan Engelhardt wrote:
+> parent c5e1fd8ccae09f574d6f978c90c2b968ee29030c (v3.2-rc6-1783-gc5e1fd8)
+> commit 5c90b715139cc87ecd6f64a77118807776350144
+> Author: Jan Engelhardt <jengelh@medozas.de>
+> Date:   Thu Apr 21 09:32:45 2011 +0200
 > 
-> The following changes since commit c5e1fd8ccae09f574d6f978c90c2b968ee29030c:
-> 
->   Merge branch 'nf-next' of git://1984.lsi.us.es/net-next (2011-12-25 02:21:45 -0500)
-> 
-> are available in the git repository at:
-> 
->   git://dev.medozas.de/linux xtecn
-> 
-> Jan Engelhardt (3):
->       netfilter: xtables: move ipt_ecn to xt_ecn
->       netfilter: xtables: give xt_ecn its own name
->       netfilter: xtables: collapse conditions in xt_ecn
-> 
-> Patrick McHardy (1):
->       netfilter: xtables: add an IPv6 capable version of the ECN match
+> netfilter: provide config option to disable ancient procfs parts
 
-Applied, thanks.
+This one also applied. I have added some small description to it.
 
-http://1984.lsi.us.es/git/net-next/
-
-I'm compiling and testing this, I'll try to pass it to davem asap.
-Let's see if we reach the merge window.
+Thanks Jan.
