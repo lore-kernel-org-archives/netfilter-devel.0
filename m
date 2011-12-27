@@ -1,197 +1,59 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 3/4] netfilter: xtables: add an IPv6 capable version of the ECN match
-Date: Tue, 27 Dec 2011 16:27:59 +0100
-Message-ID: <1324999681-22479-4-git-send-email-jengelh@medozas.de>
+Subject: Re: xt_ecn revisited
+Date: Tue, 27 Dec 2011 17:08:59 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1112271707400.24481@frira.zrqbmnf.qr>
 References: <1324999681-22479-1-git-send-email-jengelh@medozas.de>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:32993 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:32809 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754532Ab1L0P2G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Dec 2011 10:28:06 -0500
+	id S1754047Ab1L0QJB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Dec 2011 11:09:01 -0500
 In-Reply-To: <1324999681-22479-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
+On Tuesday 2011-12-27 16:27, Jan Engelhardt wrote:
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- net/netfilter/xt_ecn.c |  106 ++++++++++++++++++++++++++++++++++++------------
- 1 files changed, 80 insertions(+), 26 deletions(-)
+>
+>fatal: Unable to look up  (port 9418) (No address associated with hostname)
+>warn: No branch of git://dev.medozas.de is at:
+>warn:   806e172: netfilter: xtables: collapse conditions in xt_ecn
+>warn: Are you sure you pushed HEAD there?
 
-diff --git a/net/netfilter/xt_ecn.c b/net/netfilter/xt_ecn.c
-index 3ebb3dc..6ccc35d 100644
---- a/net/netfilter/xt_ecn.c
-+++ b/net/netfilter/xt_ecn.c
-@@ -1,6 +1,8 @@
--/* IP tables module for matching the value of the IPv4 and TCP ECN bits
-+/*
-+ * Xtables module for matching the value of the IPv4/IPv6 and TCP ECN bits
-  *
-  * (C) 2002 by Harald Welte <laforge@gnumonks.org>
-+ * (C) 2011 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -17,32 +19,25 @@
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_ecn.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter_ipv6/ip6_tables.h>
- 
- MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
--MODULE_DESCRIPTION("Xtables: Explicit Congestion Notification (ECN) flag match for IPv4");
-+MODULE_DESCRIPTION("Xtables: Explicit Congestion Notification (ECN) flag match");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_ecn");
-+MODULE_ALIAS("ip6t_ecn");
- 
--static inline bool match_ip(const struct sk_buff *skb,
--			    const struct xt_ecn_info *einfo)
--{
--	return ((ip_hdr(skb)->tos & XT_ECN_IP_MASK) == einfo->ip_ect) ^
--	       !!(einfo->invert & XT_ECN_OP_MATCH_IP);
--}
--
--static inline bool match_tcp(const struct sk_buff *skb,
--			     const struct xt_ecn_info *einfo,
--			     bool *hotdrop)
-+static bool match_tcp(const struct sk_buff *skb, struct xt_action_param *par)
- {
-+	const struct xt_ecn_info *einfo = par->matchinfo;
- 	struct tcphdr _tcph;
- 	const struct tcphdr *th;
- 
- 	/* In practice, TCP match does this, so can't fail.  But let's
- 	 * be good citizens.
- 	 */
--	th = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(_tcph), &_tcph);
-+	th = skb_header_pointer(skb, par->thoff, sizeof(_tcph), &_tcph);
- 	if (th == NULL) {
--		*hotdrop = false;
- 		return false;
- 	}
- 
-@@ -69,7 +64,14 @@ static inline bool match_tcp(const struct sk_buff *skb,
- 	return true;
- }
- 
--static bool ecn_mt(const struct sk_buff *skb, struct xt_action_param *par)
-+static inline bool match_ip(const struct sk_buff *skb,
-+			    const struct xt_ecn_info *einfo)
-+{
-+	return ((ip_hdr(skb)->tos & XT_ECN_IP_MASK) == einfo->ip_ect) ^
-+	       !!(einfo->invert & XT_ECN_OP_MATCH_IP);
-+}
-+
-+static bool ecn_mt4(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	const struct xt_ecn_info *info = par->matchinfo;
- 
-@@ -78,14 +80,14 @@ static bool ecn_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 			return false;
- 
- 	if (info->operation & (XT_ECN_OP_MATCH_ECE | XT_ECN_OP_MATCH_CWR)) {
--		if (!match_tcp(skb, info, &par->hotdrop))
-+		if (!match_tcp(skb, par))
- 			return false;
- 	}
- 
- 	return true;
- }
- 
--static int ecn_mt_check(const struct xt_mtchk_param *par)
-+static int ecn_mt_check4(const struct xt_mtchk_param *par)
- {
- 	const struct xt_ecn_info *info = par->matchinfo;
- 	const struct ipt_ip *ip = par->entryinfo;
-@@ -105,23 +107,75 @@ static int ecn_mt_check(const struct xt_mtchk_param *par)
- 	return 0;
- }
- 
--static struct xt_match ecn_mt_reg __read_mostly = {
--	.name		= "ecn",
--	.family		= NFPROTO_IPV4,
--	.match		= ecn_mt,
--	.matchsize	= sizeof(struct xt_ecn_info),
--	.checkentry	= ecn_mt_check,
--	.me		= THIS_MODULE,
-+static inline bool match_ipv6(const struct sk_buff *skb,
-+			      const struct xt_ecn_info *einfo)
-+{
-+	return (((ipv6_hdr(skb)->flow_lbl[0] >> 4) & XT_ECN_IP_MASK) ==
-+	        einfo->ip_ect) ^
-+	       !!(einfo->invert & XT_ECN_OP_MATCH_IP);
-+}
-+
-+static bool ecn_mt6(const struct sk_buff *skb, struct xt_action_param *par)
-+{
-+	const struct xt_ecn_info *info = par->matchinfo;
-+
-+	if (info->operation & XT_ECN_OP_MATCH_IP && !match_ipv6(skb, info))
-+		return false;
-+
-+	if (info->operation & (XT_ECN_OP_MATCH_ECE | XT_ECN_OP_MATCH_CWR) &&
-+	    !match_tcp(skb, par))
-+		return false;
-+
-+	return true;
-+}
-+
-+static int ecn_mt_check6(const struct xt_mtchk_param *par)
-+{
-+	const struct xt_ecn_info *info = par->matchinfo;
-+	const struct ip6t_ip6 *ip = par->entryinfo;
-+
-+	if (info->operation & XT_ECN_OP_MATCH_MASK)
-+		return -EINVAL;
-+
-+	if (info->invert & XT_ECN_OP_MATCH_MASK)
-+		return -EINVAL;
-+
-+	if (info->operation & (XT_ECN_OP_MATCH_ECE | XT_ECN_OP_MATCH_CWR) &&
-+	    (ip->proto != IPPROTO_TCP || ip->invflags & IP6T_INV_PROTO)) {
-+		pr_info("cannot match TCP bits in rule for non-tcp packets\n");
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct xt_match ecn_mt_reg[] __read_mostly = {
-+	{
-+		.name		= "ecn",
-+		.family		= NFPROTO_IPV4,
-+		.match		= ecn_mt4,
-+		.matchsize	= sizeof(struct xt_ecn_info),
-+		.checkentry	= ecn_mt_check4,
-+		.me		= THIS_MODULE,
-+	},
-+	{
-+		.name		= "ecn",
-+		.family		= NFPROTO_IPV6,
-+		.match		= ecn_mt6,
-+		.matchsize	= sizeof(struct xt_ecn_info),
-+		.checkentry	= ecn_mt_check6,
-+		.me		= THIS_MODULE,
-+	},
- };
- 
- static int __init ecn_mt_init(void)
- {
--	return xt_register_match(&ecn_mt_reg);
-+	return xt_register_matches(ecn_mt_reg, ARRAY_SIZE(ecn_mt_reg));
- }
- 
- static void __exit ecn_mt_exit(void)
- {
--	xt_unregister_match(&ecn_mt_reg);
-+	xt_unregister_matches(ecn_mt_reg, ARRAY_SIZE(ecn_mt_reg));
- }
- 
- module_init(ecn_mt_init);
--- 
-1.7.3.4
+Grumble. It's just because I have url=/srv/git/... that it can't find 
+it.
 
+>The following changes since commit c5e1fd8ccae09f574d6f978c90c2b968ee29030c:
+>  Merge branch 'nf-next' of git://1984.lsi.us.es/net-next (2011-12-25 02:21:45 -0500)
+>are available in the git repository at:
+>
+>  git://dev.medozas.de ..BRANCH.NOT.VERIFIED..
+
+   git://dev.medozas.de  xtecn
+
+
+>Jan Engelhardt (3):
+>      netfilter: xtables: move ipt_ecn to xt_ecn
+>      netfilter: xtables: give xt_ecn its own name
+>      netfilter: xtables: collapse conditions in xt_ecn
+>
+>Patrick McHardy (1):
+>      netfilter: xtables: add an IPv6 capable version of the ECN match
+>
+> include/linux/netfilter/Kbuild         |    1 +
+> include/linux/netfilter/xt_ecn.h       |   35 ++++++
+> include/linux/netfilter_ipv4/ipt_ecn.h |   38 ++-----
+> net/ipv4/netfilter/Kconfig             |   10 +-
+> net/ipv4/netfilter/Makefile            |    1 -
+> net/ipv4/netfilter/ipt_ecn.c           |  127 ----------------------
+> net/netfilter/Kconfig                  |    9 ++
+> net/netfilter/Makefile                 |    1 +
+> net/netfilter/xt_ecn.c                 |  179 ++++++++++++++++++++++++++++++++
+> 9 files changed, 239 insertions(+), 162 deletions(-)
+> create mode 100644 include/linux/netfilter/xt_ecn.h
+> delete mode 100644 net/ipv4/netfilter/ipt_ecn.c
+> create mode 100644 net/netfilter/xt_ecn.c
