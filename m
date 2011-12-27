@@ -1,175 +1,197 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 2/4] netfilter: xtables: give xt_ecn its own name
-Date: Tue, 27 Dec 2011 16:27:58 +0100
-Message-ID: <1324999681-22479-3-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 3/4] netfilter: xtables: add an IPv6 capable version of the ECN match
+Date: Tue, 27 Dec 2011 16:27:59 +0100
+Message-ID: <1324999681-22479-4-git-send-email-jengelh@medozas.de>
 References: <1324999681-22479-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:32991 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:32993 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754517Ab1L0P2F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Dec 2011 10:28:05 -0500
+	id S1754532Ab1L0P2G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Dec 2011 10:28:06 -0500
 In-Reply-To: <1324999681-22479-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Patrick McHardy <kaber@trash.net>
+
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/xt_ecn.h       |   12 +++++-----
- include/linux/netfilter_ipv4/ipt_ecn.h |   11 +++++++++-
- net/netfilter/xt_ecn.c                 |   34 ++++++++++++++++----------------
- 3 files changed, 33 insertions(+), 24 deletions(-)
+ net/netfilter/xt_ecn.c |  106 ++++++++++++++++++++++++++++++++++++------------
+ 1 files changed, 80 insertions(+), 26 deletions(-)
 
-diff --git a/include/linux/netfilter/xt_ecn.h b/include/linux/netfilter/xt_ecn.h
-index 065c1a5..7158fca 100644
---- a/include/linux/netfilter/xt_ecn.h
-+++ b/include/linux/netfilter/xt_ecn.h
-@@ -12,16 +12,16 @@
- #include <linux/types.h>
- #include <linux/netfilter/xt_dscp.h>
- 
--#define IPT_ECN_IP_MASK	(~XT_DSCP_MASK)
-+#define XT_ECN_IP_MASK	(~XT_DSCP_MASK)
- 
--#define IPT_ECN_OP_MATCH_IP	0x01
--#define IPT_ECN_OP_MATCH_ECE	0x10
--#define IPT_ECN_OP_MATCH_CWR	0x20
-+#define XT_ECN_OP_MATCH_IP	0x01
-+#define XT_ECN_OP_MATCH_ECE	0x10
-+#define XT_ECN_OP_MATCH_CWR	0x20
- 
--#define IPT_ECN_OP_MATCH_MASK	0xce
-+#define XT_ECN_OP_MATCH_MASK	0xce
- 
- /* match info */
--struct ipt_ecn_info {
-+struct xt_ecn_info {
- 	__u8 operation;
- 	__u8 invert;
- 	__u8 ip_ect;
-diff --git a/include/linux/netfilter_ipv4/ipt_ecn.h b/include/linux/netfilter_ipv4/ipt_ecn.h
-index b1124ec..0e0c063 100644
---- a/include/linux/netfilter_ipv4/ipt_ecn.h
-+++ b/include/linux/netfilter_ipv4/ipt_ecn.h
-@@ -2,5 +2,14 @@
- #define _IPT_ECN_H
- 
- #include <linux/netfilter/xt_ecn.h>
-+#define ipt_ecn_info xt_ecn_info
- 
--#endif /* _IPT_ECN_H */
-+enum {
-+	IPT_ECN_IP_MASK       = XT_ECN_IP_MASK,
-+	IPT_ECN_OP_MATCH_IP   = XT_ECN_OP_MATCH_IP,
-+	IPT_ECN_OP_MATCH_ECE  = XT_ECN_OP_MATCH_ECE,
-+	IPT_ECN_OP_MATCH_CWR  = XT_ECN_OP_MATCH_CWR,
-+	IPT_ECN_OP_MATCH_MASK = XT_ECN_OP_MATCH_MASK,
-+};
-+
-+#endif /* IPT_ECN_H */
 diff --git a/net/netfilter/xt_ecn.c b/net/netfilter/xt_ecn.c
-index 2c198f5..3ebb3dc 100644
+index 3ebb3dc..6ccc35d 100644
 --- a/net/netfilter/xt_ecn.c
 +++ b/net/netfilter/xt_ecn.c
-@@ -15,8 +15,8 @@
- #include <linux/tcp.h>
- 
+@@ -1,6 +1,8 @@
+-/* IP tables module for matching the value of the IPv4 and TCP ECN bits
++/*
++ * Xtables module for matching the value of the IPv4/IPv6 and TCP ECN bits
+  *
+  * (C) 2002 by Harald Welte <laforge@gnumonks.org>
++ * (C) 2011 Patrick McHardy <kaber@trash.net>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -17,32 +19,25 @@
  #include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/xt_ecn.h>
+ #include <linux/netfilter/xt_ecn.h>
  #include <linux/netfilter_ipv4/ip_tables.h>
--#include <linux/netfilter_ipv4/ipt_ecn.h>
++#include <linux/netfilter_ipv6/ip6_tables.h>
  
  MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
- MODULE_DESCRIPTION("Xtables: Explicit Congestion Notification (ECN) flag match for IPv4");
-@@ -24,14 +24,14 @@ MODULE_LICENSE("GPL");
+-MODULE_DESCRIPTION("Xtables: Explicit Congestion Notification (ECN) flag match for IPv4");
++MODULE_DESCRIPTION("Xtables: Explicit Congestion Notification (ECN) flag match");
+ MODULE_LICENSE("GPL");
  MODULE_ALIAS("ipt_ecn");
++MODULE_ALIAS("ip6t_ecn");
  
- static inline bool match_ip(const struct sk_buff *skb,
--			    const struct ipt_ecn_info *einfo)
-+			    const struct xt_ecn_info *einfo)
+-static inline bool match_ip(const struct sk_buff *skb,
+-			    const struct xt_ecn_info *einfo)
+-{
+-	return ((ip_hdr(skb)->tos & XT_ECN_IP_MASK) == einfo->ip_ect) ^
+-	       !!(einfo->invert & XT_ECN_OP_MATCH_IP);
+-}
+-
+-static inline bool match_tcp(const struct sk_buff *skb,
+-			     const struct xt_ecn_info *einfo,
+-			     bool *hotdrop)
++static bool match_tcp(const struct sk_buff *skb, struct xt_action_param *par)
  {
--	return ((ip_hdr(skb)->tos & IPT_ECN_IP_MASK) == einfo->ip_ect) ^
--	       !!(einfo->invert & IPT_ECN_OP_MATCH_IP);
-+	return ((ip_hdr(skb)->tos & XT_ECN_IP_MASK) == einfo->ip_ect) ^
-+	       !!(einfo->invert & XT_ECN_OP_MATCH_IP);
- }
- 
- static inline bool match_tcp(const struct sk_buff *skb,
--			     const struct ipt_ecn_info *einfo,
-+			     const struct xt_ecn_info *einfo,
- 			     bool *hotdrop)
- {
++	const struct xt_ecn_info *einfo = par->matchinfo;
  	struct tcphdr _tcph;
-@@ -46,8 +46,8 @@ static inline bool match_tcp(const struct sk_buff *skb,
+ 	const struct tcphdr *th;
+ 
+ 	/* In practice, TCP match does this, so can't fail.  But let's
+ 	 * be good citizens.
+ 	 */
+-	th = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(_tcph), &_tcph);
++	th = skb_header_pointer(skb, par->thoff, sizeof(_tcph), &_tcph);
+ 	if (th == NULL) {
+-		*hotdrop = false;
  		return false;
  	}
  
--	if (einfo->operation & IPT_ECN_OP_MATCH_ECE) {
--		if (einfo->invert & IPT_ECN_OP_MATCH_ECE) {
-+	if (einfo->operation & XT_ECN_OP_MATCH_ECE) {
-+		if (einfo->invert & XT_ECN_OP_MATCH_ECE) {
- 			if (th->ece == 1)
- 				return false;
- 		} else {
-@@ -56,8 +56,8 @@ static inline bool match_tcp(const struct sk_buff *skb,
- 		}
- 	}
+@@ -69,7 +64,14 @@ static inline bool match_tcp(const struct sk_buff *skb,
+ 	return true;
+ }
  
--	if (einfo->operation & IPT_ECN_OP_MATCH_CWR) {
--		if (einfo->invert & IPT_ECN_OP_MATCH_CWR) {
-+	if (einfo->operation & XT_ECN_OP_MATCH_CWR) {
-+		if (einfo->invert & XT_ECN_OP_MATCH_CWR) {
- 			if (th->cwr == 1)
- 				return false;
- 		} else {
-@@ -71,13 +71,13 @@ static inline bool match_tcp(const struct sk_buff *skb,
- 
- static bool ecn_mt(const struct sk_buff *skb, struct xt_action_param *par)
+-static bool ecn_mt(const struct sk_buff *skb, struct xt_action_param *par)
++static inline bool match_ip(const struct sk_buff *skb,
++			    const struct xt_ecn_info *einfo)
++{
++	return ((ip_hdr(skb)->tos & XT_ECN_IP_MASK) == einfo->ip_ect) ^
++	       !!(einfo->invert & XT_ECN_OP_MATCH_IP);
++}
++
++static bool ecn_mt4(const struct sk_buff *skb, struct xt_action_param *par)
  {
--	const struct ipt_ecn_info *info = par->matchinfo;
-+	const struct xt_ecn_info *info = par->matchinfo;
+ 	const struct xt_ecn_info *info = par->matchinfo;
  
--	if (info->operation & IPT_ECN_OP_MATCH_IP)
-+	if (info->operation & XT_ECN_OP_MATCH_IP)
- 		if (!match_ip(skb, info))
+@@ -78,14 +80,14 @@ static bool ecn_mt(const struct sk_buff *skb, struct xt_action_param *par)
  			return false;
  
--	if (info->operation & (IPT_ECN_OP_MATCH_ECE|IPT_ECN_OP_MATCH_CWR)) {
-+	if (info->operation & (XT_ECN_OP_MATCH_ECE | XT_ECN_OP_MATCH_CWR)) {
- 		if (!match_tcp(skb, info, &par->hotdrop))
+ 	if (info->operation & (XT_ECN_OP_MATCH_ECE | XT_ECN_OP_MATCH_CWR)) {
+-		if (!match_tcp(skb, info, &par->hotdrop))
++		if (!match_tcp(skb, par))
  			return false;
  	}
-@@ -87,16 +87,16 @@ static bool ecn_mt(const struct sk_buff *skb, struct xt_action_param *par)
  
- static int ecn_mt_check(const struct xt_mtchk_param *par)
+ 	return true;
+ }
+ 
+-static int ecn_mt_check(const struct xt_mtchk_param *par)
++static int ecn_mt_check4(const struct xt_mtchk_param *par)
  {
--	const struct ipt_ecn_info *info = par->matchinfo;
-+	const struct xt_ecn_info *info = par->matchinfo;
+ 	const struct xt_ecn_info *info = par->matchinfo;
  	const struct ipt_ip *ip = par->entryinfo;
+@@ -105,23 +107,75 @@ static int ecn_mt_check(const struct xt_mtchk_param *par)
+ 	return 0;
+ }
  
--	if (info->operation & IPT_ECN_OP_MATCH_MASK)
-+	if (info->operation & XT_ECN_OP_MATCH_MASK)
- 		return -EINVAL;
- 
--	if (info->invert & IPT_ECN_OP_MATCH_MASK)
-+	if (info->invert & XT_ECN_OP_MATCH_MASK)
- 		return -EINVAL;
- 
--	if (info->operation & (IPT_ECN_OP_MATCH_ECE|IPT_ECN_OP_MATCH_CWR) &&
+-static struct xt_match ecn_mt_reg __read_mostly = {
+-	.name		= "ecn",
+-	.family		= NFPROTO_IPV4,
+-	.match		= ecn_mt,
+-	.matchsize	= sizeof(struct xt_ecn_info),
+-	.checkentry	= ecn_mt_check,
+-	.me		= THIS_MODULE,
++static inline bool match_ipv6(const struct sk_buff *skb,
++			      const struct xt_ecn_info *einfo)
++{
++	return (((ipv6_hdr(skb)->flow_lbl[0] >> 4) & XT_ECN_IP_MASK) ==
++	        einfo->ip_ect) ^
++	       !!(einfo->invert & XT_ECN_OP_MATCH_IP);
++}
++
++static bool ecn_mt6(const struct sk_buff *skb, struct xt_action_param *par)
++{
++	const struct xt_ecn_info *info = par->matchinfo;
++
++	if (info->operation & XT_ECN_OP_MATCH_IP && !match_ipv6(skb, info))
++		return false;
++
 +	if (info->operation & (XT_ECN_OP_MATCH_ECE | XT_ECN_OP_MATCH_CWR) &&
- 	    (ip->proto != IPPROTO_TCP || ip->invflags & IPT_INV_PROTO)) {
- 		pr_info("cannot match TCP bits in rule for non-tcp packets\n");
- 		return -EINVAL;
-@@ -109,7 +109,7 @@ static struct xt_match ecn_mt_reg __read_mostly = {
- 	.name		= "ecn",
- 	.family		= NFPROTO_IPV4,
- 	.match		= ecn_mt,
--	.matchsize	= sizeof(struct ipt_ecn_info),
-+	.matchsize	= sizeof(struct xt_ecn_info),
- 	.checkentry	= ecn_mt_check,
- 	.me		= THIS_MODULE,
++	    !match_tcp(skb, par))
++		return false;
++
++	return true;
++}
++
++static int ecn_mt_check6(const struct xt_mtchk_param *par)
++{
++	const struct xt_ecn_info *info = par->matchinfo;
++	const struct ip6t_ip6 *ip = par->entryinfo;
++
++	if (info->operation & XT_ECN_OP_MATCH_MASK)
++		return -EINVAL;
++
++	if (info->invert & XT_ECN_OP_MATCH_MASK)
++		return -EINVAL;
++
++	if (info->operation & (XT_ECN_OP_MATCH_ECE | XT_ECN_OP_MATCH_CWR) &&
++	    (ip->proto != IPPROTO_TCP || ip->invflags & IP6T_INV_PROTO)) {
++		pr_info("cannot match TCP bits in rule for non-tcp packets\n");
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static struct xt_match ecn_mt_reg[] __read_mostly = {
++	{
++		.name		= "ecn",
++		.family		= NFPROTO_IPV4,
++		.match		= ecn_mt4,
++		.matchsize	= sizeof(struct xt_ecn_info),
++		.checkentry	= ecn_mt_check4,
++		.me		= THIS_MODULE,
++	},
++	{
++		.name		= "ecn",
++		.family		= NFPROTO_IPV6,
++		.match		= ecn_mt6,
++		.matchsize	= sizeof(struct xt_ecn_info),
++		.checkentry	= ecn_mt_check6,
++		.me		= THIS_MODULE,
++	},
  };
+ 
+ static int __init ecn_mt_init(void)
+ {
+-	return xt_register_match(&ecn_mt_reg);
++	return xt_register_matches(ecn_mt_reg, ARRAY_SIZE(ecn_mt_reg));
+ }
+ 
+ static void __exit ecn_mt_exit(void)
+ {
+-	xt_unregister_match(&ecn_mt_reg);
++	xt_unregister_matches(ecn_mt_reg, ARRAY_SIZE(ecn_mt_reg));
+ }
+ 
+ module_init(ecn_mt_init);
 -- 
 1.7.3.4
 
