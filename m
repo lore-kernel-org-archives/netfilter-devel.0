@@ -1,36 +1,29 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 5/5] build: add missing LIBMNL_CFLAGS to compilation process
-Date: Thu, 29 Dec 2011 22:24:50 +0100
-Message-ID: <1325193891-20905-6-git-send-email-jengelh@medozas.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: libnetfilter_acct: build updates
+Date: Fri, 30 Dec 2011 00:39:03 +0100
+Message-ID: <20111229233903.GA7866@1984>
 References: <1325193891-20905-1-git-send-email-jengelh@medozas.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:59725 "EHLO seven.medozas.de"
+Received: from mail.us.es ([193.147.175.20]:52186 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753986Ab1L2VY6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Dec 2011 16:24:58 -0500
+	id S1754801Ab1L2XjS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Dec 2011 18:39:18 -0500
+Content-Disposition: inline
 In-Reply-To: <1325193891-20905-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Otherwise, the preprocessor may fail to find libmnl if it is not in a
-standard-searched directory.
----
- Make_global.am |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+On Thu, Dec 29, 2011 at 10:24:45PM +0100, Jan Engelhardt wrote:
+> 
+> The following changes since commit dc5ae69f1cff7f9001187f7c630597f670137f06:
+> 
+>   update .gitignore file (2011-12-29 19:37:47 +0100)
+> 
+> are available in the git repository at:
+>   git://dev.medozas.de/libnetfilter_acct master
 
-diff --git a/Make_global.am b/Make_global.am
-index caab49a..1654f10 100644
---- a/Make_global.am
-+++ b/Make_global.am
-@@ -20,5 +20,5 @@
- #
- LIBVERSION=0:0:0
- 
--AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_srcdir}/include
-+AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_srcdir}/include ${LIBMNL_CFLAGS}
- AM_CFLAGS = ${regular_CFLAGS} ${GCC_FVISIBILITY_HIDDEN}
--- 
-1.7.3.4
-
+Pulled, thanks Jan!
