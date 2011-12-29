@@ -1,36 +1,45 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 2/5] build: remove unnecessary AC_EXEEXT
-Date: Thu, 29 Dec 2011 22:24:47 +0100
-Message-ID: <1325193891-20905-3-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 3/5] Update .gitignore
+Date: Thu, 29 Dec 2011 22:24:48 +0100
+Message-ID: <1325193891-20905-4-git-send-email-jengelh@medozas.de>
 References: <1325193891-20905-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:59711 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:59715 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753986Ab1L2VYz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Dec 2011 16:24:55 -0500
+	id S1753986Ab1L2VY4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Dec 2011 16:24:56 -0500
 In-Reply-To: <1325193891-20905-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-${EXEEXT} is nowhere used in Makefiles.
+Only ignore these paths if they are a directory.
 ---
- configure.ac |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ .gitignore |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/configure.ac b/configure.ac
-index 98d163c..56c033b 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -17,7 +17,6 @@ PKG_CHECK_MODULES([LIBMNL], [libmnl >= 1.0.0])
+diff --git a/.gitignore b/.gitignore
+index 1c00b39..ddc214f 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -2,13 +2,13 @@
+ *.la
+ *.lo
+ *.o
+-.deps
+-.libs
++.deps/
++.libs/
+ Makefile
+ Makefile.in
  
- AC_PROG_CC
- AM_PROG_CC_C_O
--AC_EXEEXT
- AC_DISABLE_STATIC
- LT_INIT
- CHECK_GCC_FVISIBILITY
+ /aclocal.m4
+-/autom4te.cache
++/autom4te.cache/
+ /build-aux/
+ /config.*
+ /configure
 -- 
 1.7.3.4
 
