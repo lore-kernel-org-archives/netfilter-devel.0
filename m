@@ -1,31 +1,58 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: ebtables-2.0.9-2 libebetc PHONY
-Date: Thu, 29 Dec 2011 18:34:36 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1112291833550.2463@frira.zrqbmnf.qr>
-References: <20110609231131.GA6508@lemonhead.scabb>
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: Re: linux-next: Tree for Dec 28 (nfnetlink)
+Date: Thu, 29 Dec 2011 10:53:00 -0800
+Message-ID: <4EFCB70C.50409@xenotime.net>
+References: <20111228201806.d6de27fa2dbd9e3a3b7a2603@canb.auug.org.au> <4EFB87CC.6020105@xenotime.net> <20111228.153304.1267926241298522965.davem@davemloft.net> <20111229010330.GA2663@1984>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Bertrand Jacquin <beber@meleeweb.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: David Miller <davem@davemloft.net>, sfr@canb.auug.org.au,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:46276 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752204Ab1L2Rej (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Dec 2011 12:34:39 -0500
-In-Reply-To: <20110609231131.GA6508@lemonhead.scabb>
+Received: from oproxy4-pub.bluehost.com ([69.89.21.11]:43127 "HELO
+	oproxy4-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754450Ab1L2Rxt (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Dec 2011 12:53:49 -0500
+In-Reply-To: <20111229010330.GA2663@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 2011-06-10 01:11, Bertrand Jacquin wrote:
+On 12/28/2011 05:03 PM, Pablo Neira Ayuso wrote:
+> On Wed, Dec 28, 2011 at 03:33:04PM -0500, David Miller wrote:
+>> From: Randy Dunlap <rdunlap@xenotime.net>
+>> Date: Wed, 28 Dec 2011 13:19:08 -0800
+>>
+>>> On 12/28/2011 01:18 AM, Stephen Rothwell wrote:
+>>>> Hi all,
+>>>>
+>>>> I got bored :-(  I also hate tree wide, flag day changes :-(
+>>>>
+>>>> Changes since 20111222:
+>>>
+>>>
+>>>
+>>> warning: (NETFILTER_XT_MATCH_NFACCT) selects NETFILTER_NETLINK_ACCT which has unmet direct dependencies (NET && INET && NETFILTER && NETFILTER_ADVANCED)
+>>>
+>>> and then
+>>>
+>>> ERROR: "nfnetlink_subsys_unregister" [net/netfilter/nfnetlink_acct.ko] undefined!
+>>> ERROR: "nfnetlink_subsys_register" [net/netfilter/nfnetlink_acct.ko] undefined!
+>>>
+>>>
+>>> Full randconfig file is attached.
+>>
+>> Pablo please fix this, thanks.
+> 
+> Please, apply the following patch.
 
->Hi,
->
->ebtables-v2.0.9-2 declare libebetc.so as PHONY. I'm wondering why. In my
->case I'm cross-compiling it and define CC only for compilation. So when
->running "make install" libebtc.so is one more time builded without CC
->defined, so it failed :
+Acked-by: Randy Dunlap <rdunlap@xenotime.net>
 
-Indeed that does not make sense. Well, the PHONY mark is gone anyway in 
-v2.0.10, so all the better :)
+Thanks.
 
 
+-- 
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
