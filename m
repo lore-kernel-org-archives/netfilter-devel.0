@@ -1,98 +1,29 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: linux-next: Tree for Dec 28 (nfnetlink)
-Date: Thu, 29 Dec 2011 02:03:30 +0100
-Message-ID: <20111229010330.GA2663@1984>
-References: <20111228201806.d6de27fa2dbd9e3a3b7a2603@canb.auug.org.au>
- <4EFB87CC.6020105@xenotime.net>
- <20111228.153304.1267926241298522965.davem@davemloft.net>
+From: <abirvalg@lavabit.com>
+Subject: nfqueue library setup requires root
+Date: Thu, 29 Dec 2011 14:00:19 +0000
+Message-ID: <20111229140019.23841ead@wwwwww-701SD>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="fUYQa+Pmc3FrFX/N"
-Cc: rdunlap@xenotime.net, sfr@canb.auug.org.au,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49400 "EHLO mail.us.es"
+Received: from karen.lavabit.com ([72.249.41.33]:41566 "EHLO karen.lavabit.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754413Ab1L2BDs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Dec 2011 20:03:48 -0500
-Content-Disposition: inline
-In-Reply-To: <20111228.153304.1267926241298522965.davem@davemloft.net>
+	id S1752061Ab1L2KAq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Dec 2011 05:00:46 -0500
+Received: from b.earth.lavabit.com (b.earth.lavabit.com [192.168.111.11])
+	by karen.lavabit.com (Postfix) with ESMTP id 8555211BBD3
+	for <netfilter-devel@vger.kernel.org>; Thu, 29 Dec 2011 04:00:45 -0600 (CST)
+Received: from wwwwww-701sd (user-26.81.118.217.in-addr.arpa [217.118.81.26])
+	by lavabit.com with ESMTP id 20QQ3WQL18WM
+	for <netfilter-devel@vger.kernel.org>; Thu, 29 Dec 2011 04:00:45 -0600
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
+I launched my application with CAP_NET_ADMIN capability, yet both nfq_unbind_pf and nfq_bind_pf produce an error.
+When I setuid(0) no error is produced and everything works as expected.
+Could you please confirm that Library setup operations require root.
+Isn't it a bit misleading that libnetfilter_queue docu states that CAP_NET_ADMIN is required without mentioning root permissions.
+Would it be possible to do Library Setup with only CAP_NET_ADMIN and without root priviliges in future versions?
 
---fUYQa+Pmc3FrFX/N
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Dec 28, 2011 at 03:33:04PM -0500, David Miller wrote:
-> From: Randy Dunlap <rdunlap@xenotime.net>
-> Date: Wed, 28 Dec 2011 13:19:08 -0800
-> 
-> > On 12/28/2011 01:18 AM, Stephen Rothwell wrote:
-> >> Hi all,
-> >> 
-> >> I got bored :-(  I also hate tree wide, flag day changes :-(
-> >> 
-> >> Changes since 20111222:
-> > 
-> > 
-> > 
-> > warning: (NETFILTER_XT_MATCH_NFACCT) selects NETFILTER_NETLINK_ACCT which has unmet direct dependencies (NET && INET && NETFILTER && NETFILTER_ADVANCED)
-> > 
-> > and then
-> > 
-> > ERROR: "nfnetlink_subsys_unregister" [net/netfilter/nfnetlink_acct.ko] undefined!
-> > ERROR: "nfnetlink_subsys_register" [net/netfilter/nfnetlink_acct.ko] undefined!
-> > 
-> > 
-> > Full randconfig file is attached.
-> 
-> Pablo please fix this, thanks.
-
-Please, apply the following patch.
-
---fUYQa+Pmc3FrFX/N
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-netfilter-Kconfig-fix-unmet-xt_nfacct-dependencies.patch"
-
->From 3e52c20b633f9c829eaa9fe693a0cbef10ac4d02 Mon Sep 17 00:00:00 2001
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Thu, 29 Dec 2011 01:50:25 +0100
-Subject: [PATCH] netfilter: Kconfig: fix unmet xt_nfacct dependencies
-
-warning: (NETFILTER_XT_MATCH_NFACCT) selects NETFILTER_NETLINK_ACCT which has
-nmet direct dependencies (NET && INET && NETFILTER && NETFILTER_ADVANCED)
-
-and then
-
-ERROR: "nfnetlink_subsys_unregister" [net/netfilter/nfnetlink_acct.ko]
-ndefined!
-ERROR: "nfnetlink_subsys_register" [net/netfilter/nfnetlink_acct.ko]
-+undefined!
-
-Reported-by: Randy Dunlap <rdunlap@xenotime.net>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index f6275a0..f8ac4ef 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -908,7 +908,7 @@ config NETFILTER_XT_MATCH_MULTIPORT
- 
- config NETFILTER_XT_MATCH_NFACCT
- 	tristate '"nfacct" match support'
--	default m if NETFILTER_ADVANCED=n
-+	depends on NETFILTER_ADVANCED
- 	select NETFILTER_NETLINK_ACCT
- 	help
- 	  This option allows you to use the extended accounting through
--- 
-1.7.7.3
-
-
---fUYQa+Pmc3FrFX/N--
