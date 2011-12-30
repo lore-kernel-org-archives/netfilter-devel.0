@@ -1,90 +1,112 @@
-From: Lutz Jaenicke <ljaenicke@innominate.com>
-Subject: Re: [PATCH 1/1] netfilter: nf_ct_tcp: pack nf_ct_tcp_flags to
- match user space
-Date: Fri, 30 Dec 2011 12:43:39 +0100
-Message-ID: <20111230114339.GA15916@lutz.bln.innominate.local>
-References: <1268153297-4226-1-git-send-email-ljaenicke@innominate.com>
- <1268153297-4226-2-git-send-email-ljaenicke@innominate.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 2/3] libiptc: add symbol maps to libiptc
+Date: Fri, 30 Dec 2011 12:48:59 +0100
+Message-ID: <20111230114859.GA12204@1984>
+References: <1325209595-23244-1-git-send-email-jengelh@medozas.de>
+ <1325209595-23244-3-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from home.innominate.com ([77.245.32.75]:51952 "EHLO
-	home.innominate.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752987Ab1L3Lnk (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Dec 2011 06:43:40 -0500
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by home.innominate.com (Postfix) with ESMTP id C5FA52312E
-	for <netfilter-devel@vger.kernel.org>; Fri, 30 Dec 2011 12:43:39 +0100 (CET)
-Received: from home.innominate.com ([127.0.0.1])
-	by localhost (innominate.com [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id z7I4DpBbs26X for <netfilter-devel@vger.kernel.org>;
-	Fri, 30 Dec 2011 12:43:39 +0100 (CET)
-Received: from lutz.bln.innominate.local (lutz.bln.innominate.local [10.1.0.160])
-	by home.innominate.com (Postfix) with ESMTP id A8163230BF
-	for <netfilter-devel@vger.kernel.org>; Fri, 30 Dec 2011 12:43:39 +0100 (CET)
+Received: from mail.us.es ([193.147.175.20]:48936 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752997Ab1L3LtC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 30 Dec 2011 06:49:02 -0500
 Content-Disposition: inline
-In-Reply-To: <1268153297-4226-2-git-send-email-ljaenicke@innominate.com>
+In-Reply-To: <1325209595-23244-3-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Against which tree do I have to re-submit this patch to get it merged?
+Hi Jan,
 
-Best regards,
-	Lutz
-
-On Tue, Mar 09, 2010 at 05:48:17PM +0100, Lutz Jaenicke wrote:
-> On some platforms (here: Intel IXP4xx ARM big endian)
-> sizeof(struct nf_ct_tcp_flags) evaluates to 4 bytes while in the user
-> space code 2 bytes is hard coded.
-> Add "__attribute__ ((__packed__))" to enforce matching structure
-> sizes.
->=20
-> Signed-off-by: Lutz Jaenicke <ljaenicke@innominate.com>
+On Fri, Dec 30, 2011 at 02:46:33AM +0100, Jan Engelhardt wrote:
+> This is mostly cosmetic, as using a libxtables.so with a too old
+> libiptc should now say something about "version symbol LIBIP4TC_1.4.13
+> required" (or so) instead of just "unknown symbol: iptc_ops".
+> 
+> Reported-by: Pablo Neira Ayuso
+> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 > ---
->  include/linux/netfilter/nf_conntrack_tcp.h |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->=20
-> diff --git a/include/linux/netfilter/nf_conntrack_tcp.h b/include/lin=
-ux/netfilter/nf_conntrack_tcp.h
-> index 6e135f9..c7ee4ec 100644
-> --- a/include/linux/netfilter/nf_conntrack_tcp.h
-> +++ b/include/linux/netfilter/nf_conntrack_tcp.h
-> @@ -39,7 +39,7 @@ enum tcp_conntrack {
->  /* The field td_maxack has been set */
->  #define IP_CT_TCP_FLAG_MAXACK_SET		0x20
-> =20
-> -struct nf_ct_tcp_flags {
-> +struct __attribute__ ((packed)) nf_ct_tcp_flags {
->  	__u8 flags;
->  	__u8 mask;
->  };
-> --=20
-> 1.6.0.3
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
-evel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  libiptc/Makefile.am  |   10 +++++++-
+>  libiptc/libip4tc.map |   52 +++++++++++++++++++++++++++++++++++++++++++++++++
+>  libiptc/libip6tc.map |   53 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 113 insertions(+), 2 deletions(-)
+>  create mode 100644 libiptc/libip4tc.map
+>  create mode 100644 libiptc/libip6tc.map
+> 
+> diff --git a/libiptc/libip4tc.map b/libiptc/libip4tc.map
+> new file mode 100644
+> index 0000000..f978b50
+> --- /dev/null
+> +++ b/libiptc/libip4tc.map
+> @@ -0,0 +1,52 @@
+> +LIBIP4TC_1.0.0 {
+> +global:
+> +	iptc_builtin;
+> +	iptc_init;
+> +	iptc_is_chain;
+> +	iptc_strerror;
+> +local:
+> +	*;
+> +};
+> +
+> +LIBIP4TC_1.4.1 {
+> +global:
+> +	dump_entries;
+> +};
 
---=20
-Dr.-Ing. Lutz J=E4nicke
-CTO
-Innominate Security Technologies AG  /protecting industrial networks/
-tel: +49.30.921028-200
-fax: +49.30.921028-020
-Rudower Chaussee 13
-D-12489 Berlin, Germany
-www.innominate.com
+I think this can be done much simpler. You can with the current symbol
+list by the iptables version that includes the first symbol map, e.g:
 
-Register Court: AG Charlottenburg, HR B 81603
-Management Board: Dirk Seewald
-Chairman of the Supervisory Board: Christoph Leifer
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+LIBIP4TC_1.4.13 {
+... all exported symbols here ...
+}
+
+Then, if you add new symbols in the hypothetical 1.4.14 release, add:
+
+LIBIP4TC_1.4.14 {
+... new symbols here ...
+} LIBIPT4TC_1.4.13
+
+and so on.
+
+No old binaries will refer to old symbols that you have defined. See
+`nm' utility, e.g.:
+
+$ nm .libs/conntrack_dump
+[...]
+0000000000400930 T main
+                 U nfct_callback_register
+                 U nfct_close
+                 U nfct_open
+                 U nfct_query
+                 U nfct_snprintf
+
+No symbol maps in libnetfilter_conntrack. Thus, old binaries refer to
+them without requesting any specific version.
+
+In libmnl, we have symbol maps:
+
+$ nm .libs/genl-family-get
+[...]
+                 U mnl_attr_get_payload@@LIBMNL_1.0
+                 U mnl_attr_get_payload_len@@LIBMNL_1.0
+                 U mnl_attr_get_str@@LIBMNL_1.0
+                 U mnl_attr_get_type@@LIBMNL_1.0
+                 U mnl_attr_get_u16@@LIBMNL_1.0
+                 U mnl_attr_get_u32@@LIBMNL_1.0
+                 U mnl_attr_next@@LIBMNL_1.0
+                 U mnl_attr_ok@@LIBMNL_1.0
+
+So, binaries ask for specific version.
+
+Old iptables binaries will not benefit for such fine definition that
+you're proposing.
+
+Moreover, I remember to have read that once you start using symbol
+maps, you only bump the revision field of the c:r:a library version
+numbers.
+
+I looked into this time ago (and I'm telling you by heart), so please
+correct me if I'm wrong.
