@@ -1,42 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/3] libiptc: remove libiptc.so
-Date: Fri, 30 Dec 2011 12:54:44 +0100
-Message-ID: <20111230115444.GB12204@1984>
-References: <1325209595-23244-1-git-send-email-jengelh@medozas.de>
- <1325209595-23244-2-git-send-email-jengelh@medozas.de>
+Subject: Re: iptables: build updates and fixes
+Date: Fri, 30 Dec 2011 12:58:49 +0100
+Message-ID: <20111230115849.GC12204@1984>
+References: <1325208902-2014-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49721 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:50407 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753024Ab1L3Lyq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Dec 2011 06:54:46 -0500
+	id S1753063Ab1L3L6w (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 30 Dec 2011 06:58:52 -0500
 Content-Disposition: inline
-In-Reply-To: <1325209595-23244-2-git-send-email-jengelh@medozas.de>
+In-Reply-To: <1325208902-2014-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Dec 30, 2011 at 02:46:32AM +0100, Jan Engelhardt wrote:
-> When Linux distributions started to ship binutils-ld defaulting to
-> -Wl,--as-needed, we had to add a hack (-Wl,--no-as-needed) to the
-> iptables build such that libiptc.so continued to link to libip4tc.so
-> and libip6tc.so despite not requesting any symbols from there.
+On Fri, Dec 30, 2011 at 02:34:55AM +0100, Jan Engelhardt wrote:
 > 
-> Given that distros start shipping binutils-ld defaulting to
-> -Wl,--no-copy-dt-needed-entries, 3rd-party programs linking
-> to -liptc will ignore libiptc.so's DT_NEEDED entries by default and
-> not search for symbols there. So libiptc.so has finally become
-> useless, so remove it. Dependent programs should have been using the
-> pkg-config infrastructure, where quering for "iptc" returned "-lip4tc
-> -lip6tc" for long enough.
+> The following changes since commit b8c42eca0f224a00bf55b60ded81af14a1e07da1:
+>   libiptc: provide separate pkgconfig files (2011-12-18 02:52:32 +0100)
+> 
+> are available FOR REVIEW in the git repository at:
+>   git://dev.medozas.de/iptables stable
+> 
+> Jan Engelhardt (6):
+>       Update .gitignore
+>       build: use AC_CONFIG_AUX_DIR and stash away tools
+>       Update .gitignore
+>       build: use delayed expansion on the user-settable variables
+>       extensions: link on libxtables and check symbols
+>       nfnl_osf: add missing libnfnetlink_CFLAGS to compile process
 
-My only concern here, as usual, is if people with old distros (I know
-a handful of them that use it in productive environments as firewalls,
-with very basic package set, that only update necessary things
-like iptables and the Linux kernel) may experience problems.
+No objections regarding this patchset.
 
-So, my question is since how long do distros include this mechanism?
-Which replies to how many people will experience problems on using
-iptables since these changes are applied.
+Only thing is that I'd like to reduce the changes on the -stable branch
+to the strictly neccessary.
+
+This is the only way to reduce the chances that someone comes and say
+that we have broken something in -stable.
+
+Would you be OK if this goes to master instead?
