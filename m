@@ -1,57 +1,43 @@
-From: Xi Wang <xi.wang@gmail.com>
-Subject: [PATCH] netfilter: ctnetlink: fix timeout calculation
-Date: Fri, 30 Dec 2011 10:40:17 -0500
-Message-ID: <1325259617-22034-1-git-send-email-xi.wang@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Xi Wang <xi.wang@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: nfacct utility now available at git.netfilter.org
+Date: Fri, 30 Dec 2011 21:11:47 +0100
+Message-ID: <20111230201147.GA14014@1984>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+To: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:65196 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750899Ab1L3PmA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:42:00 -0500
+Received: from mail.us.es ([193.147.175.20]:33409 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751260Ab1L3ULv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 30 Dec 2011 15:11:51 -0500
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The sanity check (timeout < 0) never works; the dividend is unsigned
-and so is the division, which should have been a signed division.
+Hi!
 
-	long timeout = (ct->timeout.expires - jiffies) / HZ;
-	if (timeout < 0)
-		timeout = 0;
+The nfacct utility is now available at git.netfilter.org
 
-This patch converts the time values to signed for the division.
+http://git.netfilter.org/cgi-bin/gitweb.cgi?p=nfacct.git;a=summary
 
-Signed-off-by: Xi Wang <xi.wang@gmail.com>
----
- net/netfilter/nf_conntrack_netlink.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+This utility allows you to manipulate the extended accounting
+infrastructure.
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index b697777..257e772 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -135,7 +135,7 @@ nla_put_failure:
- static inline int
- ctnetlink_dump_timeout(struct sk_buff *skb, const struct nf_conn *ct)
- {
--	long timeout = (ct->timeout.expires - jiffies) / HZ;
-+	long timeout = ((long)ct->timeout.expires - (long)jiffies) / HZ;
- 
- 	if (timeout < 0)
- 		timeout = 0;
-@@ -1641,7 +1641,7 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
- 			  const struct nf_conntrack_expect *exp)
- {
- 	struct nf_conn *master = exp->master;
--	long timeout = (exp->timeout.expires - jiffies) / HZ;
-+	long timeout = ((long)exp->timeout.expires - (long)jiffies) / HZ;
- 	struct nf_conn_help *help;
- 
- 	if (timeout < 0)
--- 
-1.7.5.4
+# nfacct help
+nfacct v1.0.0-beta: utility for the Netfilter extended accounting
+infrastructure
+Usage: nfacct command [parameters]...
 
+Commands:
+  list [reset]          List the accounting object table (and reset)
+  add object-name       Add new accounting object to table
+  delete object-name    Delete existing accounting object
+  get object-name       Get existing accounting object
+  flush                 Flush accounting object table
+  version               Display version and disclaimer
+  help                  Display this help message
+
+This utility requires libmnl and libnetfilter_acct.
+
+Have fun with it!
