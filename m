@@ -1,45 +1,48 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: libnetfilter_acct now available at git.netfilter.org
-Date: Fri, 30 Dec 2011 02:09:11 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1112300205270.18357@frira.zrqbmnf.qr>
-References: <20111229184741.GA6405@1984> <alpine.LNX.2.01.1112292221210.29747@frira.zrqbmnf.qr> <20111230000546.GC7866@1984>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 1/6] Update .gitignore
+Date: Fri, 30 Dec 2011 02:34:56 +0100
+Message-ID: <1325208902-2014-2-git-send-email-jengelh@medozas.de>
+References: <1325208902-2014-1-git-send-email-jengelh@medozas.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:45363 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:40845 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751200Ab1L3BJN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Dec 2011 20:09:13 -0500
-In-Reply-To: <20111230000546.GC7866@1984>
+	id S1751221Ab1L3BfH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Dec 2011 20:35:07 -0500
+In-Reply-To: <1325208902-2014-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Only ignore these paths if they are a directory.
+---
+ .gitignore |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-On Friday 2011-12-30 01:05, Pablo Neira Ayuso wrote:
->>>I'm thinking about including this tool into the iptables tree, instead
->>>of distributing it separately, but I may change my mind. Let me know
->>>if you have any preference.
->> 
->>It would pose - just formally - the question how many more tools we 
->>intend to ship with iptables. For example, try to find an answer as to 
->>why conntrack-tools and ipset are separate instead of being included in 
->>iptables.
->
->Good question.
->
->From what I see (because the policy is not clear to me either), I can
->extract that it's a matter of how big (in terms of LOC) the project is
->and how many changes you expect from that code.
+diff --git a/.gitignore b/.gitignore
+index 3e7def5..deed221 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -6,9 +6,9 @@
+ *.oo
+ *.so
+ *.o
+-.deps
++.deps/
+ .dirstamp
+-.libs
++.libs/
+ Makefile
+ Makefile.in
+ 
+@@ -22,7 +22,7 @@ Makefile.in
+ /include/iptables/internal.h
+ 
+ /aclocal.m4
+-/autom4te*.cache
++/autom4te.cache/
+ /compile
+ /config.guess
+ /config.h*
+-- 
+1.7.3.4
 
-Well, do you expect nfacct to grow to proportions similar to ipset or
-conntrack-tools?
-
-As for nfnl_osf, it certainly has not reached that threshold (and
-is unlikely to do so in the near future), and therefore I move to keep it.
-
->For nfnl_osf, we can move it to one standalone tool.
->Probably it's better to avoid polluting iptables tree with other
->projects and provide standalone trees for everyone.
