@@ -1,103 +1,60 @@
-From: pablo@netfilter.org
-Subject: [PATCH 1/2] ipvs: try also real server with port 0 in backup server
-Date: Sat, 31 Dec 2011 17:22:46 +0100
-Message-ID: <1325348567-4251-2-git-send-email-pablo@netfilter.org>
-References: <1325348567-4251-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
+From: marty <martinbarrowcliff@gmail.com>
+Subject: Ulogd deadlocks on server crash.
+Date: Sat, 31 Dec 2011 11:34:52 -0500
+Message-ID: <4EFF39AC.9000701@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57047 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753236Ab1LaQW5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 31 Dec 2011 11:22:57 -0500
-In-Reply-To: <1325348567-4251-1-git-send-email-pablo@netfilter.org>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:51525 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753179Ab1LaQez (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 31 Dec 2011 11:34:55 -0500
+Received: by qadc12 with SMTP id c12so8736680qad.19
+        for <netfilter-devel@vger.kernel.org>; Sat, 31 Dec 2011 08:34:54 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Julian Anastasov <ja@ssi.bg>
+This is a critical situation with NFLOG logging to mysql.
+I cannot call this a bug, so lets call it a feature request.
+AFAIK this is specific to mysql.
+Please let me explain what I have observed...
 
-	We should not forget to try for real server with port 0
-in the backup server when processing the sync message. We should
-do it in all cases because the backup server can use different
-forwarding method.
+Lets assume our ulogd stored procedure does inserts and/or updates
+to multiple tables with every NFLOG target execution.
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/ip_vs.h             |    2 +-
- net/netfilter/ipvs/ip_vs_conn.c |    2 +-
- net/netfilter/ipvs/ip_vs_ctl.c  |   10 ++++++++--
- net/netfilter/ipvs/ip_vs_sync.c |    2 +-
- 4 files changed, 11 insertions(+), 5 deletions(-)
+Lets assume we are using an auto_increment column for an index number.
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 873d5be..e5a7b9a 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -1207,7 +1207,7 @@ extern void ip_vs_control_cleanup(void);
- extern struct ip_vs_dest *
- ip_vs_find_dest(struct net *net, int af, const union nf_inet_addr *daddr,
- 		__be16 dport, const union nf_inet_addr *vaddr, __be16 vport,
--		__u16 protocol, __u32 fwmark);
-+		__u16 protocol, __u32 fwmark, __u32 flags);
- extern struct ip_vs_dest *ip_vs_try_bind_dest(struct ip_vs_conn *cp);
- 
- 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 12571fb..29fa5ba 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -616,7 +616,7 @@ struct ip_vs_dest *ip_vs_try_bind_dest(struct ip_vs_conn *cp)
- 	if ((cp) && (!cp->dest)) {
- 		dest = ip_vs_find_dest(ip_vs_conn_net(cp), cp->af, &cp->daddr,
- 				       cp->dport, &cp->vaddr, cp->vport,
--				       cp->protocol, cp->fwmark);
-+				       cp->protocol, cp->fwmark, cp->flags);
- 		ip_vs_bind_dest(cp, dest);
- 		return dest;
- 	} else
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 008bf97..e1a66cf 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -619,15 +619,21 @@ struct ip_vs_dest *ip_vs_find_dest(struct net  *net, int af,
- 				   const union nf_inet_addr *daddr,
- 				   __be16 dport,
- 				   const union nf_inet_addr *vaddr,
--				   __be16 vport, __u16 protocol, __u32 fwmark)
-+				   __be16 vport, __u16 protocol, __u32 fwmark,
-+				   __u32 flags)
- {
- 	struct ip_vs_dest *dest;
- 	struct ip_vs_service *svc;
-+	__be16 port = dport;
- 
- 	svc = ip_vs_service_get(net, af, fwmark, protocol, vaddr, vport);
- 	if (!svc)
- 		return NULL;
--	dest = ip_vs_lookup_dest(svc, daddr, dport);
-+	if (fwmark && (flags & IP_VS_CONN_F_FWD_MASK) != IP_VS_CONN_F_MASQ)
-+		port = 0;
-+	dest = ip_vs_lookup_dest(svc, daddr, port);
-+	if (!dest)
-+		dest = ip_vs_lookup_dest(svc, daddr, port ^ dport);
- 	if (dest)
- 		atomic_inc(&dest->refcnt);
- 	ip_vs_service_put(svc);
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index 3cdd479..2b6678c0 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -740,7 +740,7 @@ static void ip_vs_proc_conn(struct net *net, struct ip_vs_conn_param *param,
- 		 * but still handled.
- 		 */
- 		dest = ip_vs_find_dest(net, type, daddr, dport, param->vaddr,
--				       param->vport, protocol, fwmark);
-+				       param->vport, protocol, fwmark, flags);
- 
- 		/*  Set the approprite ativity flag */
- 		if (protocol == IPPROTO_TCP) {
--- 
-1.7.7.3
+Now what happens if the machine crashes in the middle of
+an operation?
+
+Correct, we have used the index number, but it was never returned to
+ulogd, and possibly not all the tables were populated.
+That is a big problem, because from that point on,
+NOTHING more will be logged! We are dead in the water.
+And worse, no error was logged to tell us what is wrong!!!!
+
+So how can we correct that problem?
+
+We can manually remove all the entries that used that last index.
+Baa, that assumes we actually know what is wrong...
+
+Atomic transactions would be a perfect solution and at worst we
+would rollback and lose one data entry. But is it guaranteed?
+Ha. NOT always. Threads can be evil.
+The only guarantee that we cannot get deadlocked would come from ulogd.
+
+If, ulogd initiates an INSERT and does not get a returned index value
+it "MIGHT" increment the last insert_id it is holding and try again a
+limited number of times until it found a vacant row.
+This would at least break the deadlock on the semi-used index id.
+At the very least we could keep logging, even if one row was borked.
+That would be a much better solution to this problem, IMHO.
+
+Just a idea.
+Thank you,
+
+Marty B.
 
