@@ -1,39 +1,42 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: nfacct utility now available at git.netfilter.org
-Date: Sat, 31 Dec 2011 16:00:52 +0100
-Message-ID: <20111231150052.GA17062@1984>
-References: <20111230201147.GA14014@1984>
- <alpine.LNX.2.01.1112302137140.24638@frira.zrqbmnf.qr>
+Subject: Re: [GIT PULL net-next] IPVS
+Date: Sat, 31 Dec 2011 16:08:21 +0100
+Message-ID: <20111231150821.GB17062@1984>
+References: <1325222342-20240-1-git-send-email-horms@verge.net.au>
+ <20111230112419.GB12015@1984>
+ <20111231090603.GA30937@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53397 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753111Ab1LaPA7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 31 Dec 2011 10:00:59 -0500
+Cc: Patrick McHardy <kaber@trash.net>, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.01.1112302137140.24638@frira.zrqbmnf.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20111231090603.GA30937@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Dec 30, 2011 at 09:37:37PM +0100, Jan Engelhardt wrote:
-> On Friday 2011-12-30 21:11, Pablo Neira Ayuso wrote:
+On Sat, Dec 31, 2011 at 06:06:25PM +0900, Simon Horman wrote:
+> On Fri, Dec 30, 2011 at 12:24:19PM +0100, Pablo Neira Ayuso wrote:
+> > Hi Simon,
+> > 
+> > On Fri, Dec 30, 2011 at 02:19:01PM +0900, Simon Horman wrote:
+> > > Hi Pablo,
+> > > 
+> > > please consider pulling
+> > >   git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next
+> > >   master
+> > 
+> > Since this is a fix, I can try to pass this for 3.2-rc7 to davem. I
+> > read Linus will release 3.2 by new year, so we can still try to see if
+> > we can get it in time.
+> > 
+> > Let me know what you prefer.
 > 
-> >Hi!
-> >
-> >The nfacct utility is now available at git.netfilter.org
-> >
-> >http://git.netfilter.org/cgi-bin/gitweb.cgi?p=nfacct.git;a=summary
+> Hi Pablo,
 > 
-> So, not in ./iptables/utils/?
+> please try for 3.2-rc7 if possible.
 
-:-)
-
-Not sure that it's necessary to enforce the libmnl and libnetfilter_acct
-dependencies that iptables may require since then.
-
-Thinking it well, better not to pollute the iptables tree with extra
-utilities.
+OK, let's try!
