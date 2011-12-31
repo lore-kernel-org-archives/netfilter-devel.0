@@ -1,38 +1,34 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] netfilter: nf_ct_tcp: pack nf_ct_tcp_flags to
- match user space
-Date: Sat, 31 Dec 2011 16:45:18 +0100
-Message-ID: <20111231154518.GA17114@1984>
-References: <1268153297-4226-1-git-send-email-ljaenicke@innominate.com>
- <1268153297-4226-2-git-send-email-ljaenicke@innominate.com>
- <20111230114339.GA15916@lutz.bln.innominate.local>
+Subject: Re: [PATCH] netfilter: ctnetlink: fix timeout calculation
+Date: Sat, 31 Dec 2011 16:58:12 +0100
+Message-ID: <20111231155812.GB17114@1984>
+References: <1325259617-22034-1-git-send-email-xi.wang@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: ljaenicke@innominate.com
-To: netfilter-devel@vger.kernel.org
+Cc: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Xi Wang <xi.wang@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55121 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55564 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753179Ab1LaPpV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 31 Dec 2011 10:45:21 -0500
+	id S1753179Ab1LaP6Q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 31 Dec 2011 10:58:16 -0500
 Content-Disposition: inline
-In-Reply-To: <20111230114339.GA15916@lutz.bln.innominate.local>
+In-Reply-To: <1325259617-22034-1-git-send-email-xi.wang@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Dec 30, 2011 at 12:43:39PM +0100, Lutz Jaenicke wrote:
-> Against which tree do I have to re-submit this patch to get it merged?
+On Fri, Dec 30, 2011 at 10:40:17AM -0500, Xi Wang wrote:
+> The sanity check (timeout < 0) never works; the dividend is unsigned
+> and so is the division, which should have been a signed division.
+> 
+> 	long timeout = (ct->timeout.expires - jiffies) / HZ;
+> 	if (timeout < 0)
+> 		timeout = 0;
+> 
+> This patch converts the time values to signed for the division.
+> 
+> Signed-off-by: Xi Wang <xi.wang@gmail.com>
 
-You kidding me ;-), this was discussed more than one year ago.
-
-http://markmail.org/message/afhn66qzyebyf7cs#query:+page:1+mid:s3ji4qj74vkovbxi+state:results
-
-The fix was agreed to be done in user-space.
-
-I have pushed the following patch for libnetfilter_conntrack:
-
-http://git.netfilter.org/cgi-bin/gitweb.cgi?p=libnetfilter_conntrack.git;a=commitdiff;h=187c8099704d4616de9479104ba6560c03f90c39;hp=3c5b8711a83caad7d6e4525a823002cac0f593a4
-
-Please, confirm that it fixes the problem.
-
-Thank you.
+Applied, thanks.
