@@ -1,34 +1,41 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: ctnetlink: fix timeout calculation
-Date: Sat, 31 Dec 2011 16:58:12 +0100
-Message-ID: <20111231155812.GB17114@1984>
-References: <1325259617-22034-1-git-send-email-xi.wang@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Xi Wang <xi.wang@gmail.com>
+From: pablo@netfilter.org
+Subject: [PATCH 0/2] more Netfilter fixes for 3.2-rc7
+Date: Sat, 31 Dec 2011 17:22:45 +0100
+Message-ID: <1325348567-4251-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55564 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:57044 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753179Ab1LaP6Q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 31 Dec 2011 10:58:16 -0500
-Content-Disposition: inline
-In-Reply-To: <1325259617-22034-1-git-send-email-xi.wang@gmail.com>
+	id S1753179Ab1LaQWz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 31 Dec 2011 11:22:55 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Dec 30, 2011 at 10:40:17AM -0500, Xi Wang wrote:
-> The sanity check (timeout < 0) never works; the dividend is unsigned
-> and so is the division, which should have been a signed division.
-> 
-> 	long timeout = (ct->timeout.expires - jiffies) / HZ;
-> 	if (timeout < 0)
-> 		timeout = 0;
-> 
-> This patch converts the time values to signed for the division.
-> 
-> Signed-off-by: Xi Wang <xi.wang@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Applied, thanks.
+Hi Dave,
+
+The following patches are a couple of late fixes for Netfilter,
+one for IPVS and another for ctnetlink.
+
+You can pull them from:
+
+git://1984.lsi.us.es/net nf
+
+Julian Anastasov (1):
+  ipvs: try also real server with port 0 in backup server
+
+Xi Wang (1):
+  netfilter: ctnetlink: fix timeout calculation
+
+ include/net/ip_vs.h                  |    2 +-
+ net/netfilter/ipvs/ip_vs_conn.c      |    2 +-
+ net/netfilter/ipvs/ip_vs_ctl.c       |   10 ++++++++--
+ net/netfilter/ipvs/ip_vs_sync.c      |    2 +-
+ net/netfilter/nf_conntrack_netlink.c |    4 ++--
+ 5 files changed, 13 insertions(+), 7 deletions(-)
+
+-- 
+1.7.7.3
+
