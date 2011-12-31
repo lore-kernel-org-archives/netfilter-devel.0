@@ -1,31 +1,73 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/2] more Netfilter fixes for 3.2-rc7
-Date: Sat, 31 Dec 2011 12:46:21 -0500 (EST)
-Message-ID: <20111231.124621.2224603904383818831.davem@davemloft.net>
-References: <1325348567-4251-1-git-send-email-pablo@netfilter.org>
+From: marty <martinbarrowcliff@gmail.com>
+Subject: Re: Ulogd - mysql addresses are in network-byte order
+Date: Sat, 31 Dec 2011 13:28:42 -0500
+Message-ID: <4EFF545A.3030006@gmail.com>
+References: <4EFF3A14.10705@gmail.com> <20111231172745.GA17716@1984>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:50191 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753212Ab1LaRrb (ORCPT
+Received: from mail-qw0-f53.google.com ([209.85.216.53]:47404 "EHLO
+	mail-qw0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751211Ab1LaS2q (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 31 Dec 2011 12:47:31 -0500
-In-Reply-To: <1325348567-4251-1-git-send-email-pablo@netfilter.org>
+	Sat, 31 Dec 2011 13:28:46 -0500
+Received: by qadb15 with SMTP id b15so9780579qad.19
+        for <netfilter-devel@vger.kernel.org>; Sat, 31 Dec 2011 10:28:45 -0800 (PST)
+In-Reply-To: <20111231172745.GA17716@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: pablo@netfilter.org
-Date: Sat, 31 Dec 2011 17:22:45 +0100
+On 12/31/2011 12:27 PM, Pablo Neira Ayuso wrote:
+> On Sat, Dec 31, 2011 at 11:36:36AM -0500, marty wrote:
+>> This is NOT a bug,  but I believe it needs consideration for change.
+>> So lets call it a feature request to stay friendly.
+>>
+>> ulogd.c:733 assigning `ip.saddr(?)' as source for MYSQL(ip.saddr)
+>> ulogd.c:733 assigning `ip.daddr(?)' as source for MYSQL(ip.daddr)
+>>
+>> On a little-endian architecture these values are incompatable with
+>> the native math functions and totally unsuitable for making
+>> comparisons in mysql.
+>>
+>> eg:
+>> if (( ip.saddr>  nnnnnnnnn ) AND ( ip.saddr<  mmmmmmmm)) ...
+>> This simply will not work on a little endian machine.
+>>
+>> It is impractical to do a byte order conversion using a bunch
+>> of the high level routines within mysql, and it may not be
+>> timely to do it later using a scripting language.
+>>
+>> IMHO I believe it is appropriate for these values to be in
+>> host-byte order before they are ever assigned to mysql.
+>> This would then match the byte order of any machine.
+>> If there are compelling reasons to use network byte order,
+>> I suggest this be a configurable option, not the default.
+>>
+>> Thanks for a great piece of software,
+>
+> Thanks for the report.
+>
+> Would you be brave enough to send me a patch to address this?
+>
 
-> The following patches are a couple of late fixes for Netfilter,
-> one for IPVS and another for ctnetlink.
-> 
-> You can pull them from:
-> 
-> git://1984.lsi.us.es/net nf
+Sure, but would you be brave enough to accept my patch?
+Seriously, before I start, please get consensus on the issue of
+configuration options for network byte order addresses.
+That means I might need to work on more lib code, to be complete.
+I wouldn't want to break anything people needed and if that
+option is not necessary I can have a tested patch in a couple days.
+Let me know what is best.
 
-Pulled, thanks.
+Thanks,
+
+Marty B
+
+
+
+
+
+
+
+
