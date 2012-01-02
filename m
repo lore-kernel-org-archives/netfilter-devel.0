@@ -1,75 +1,81 @@
-From: marty <martinbarrowcliff@gmail.com>
-Subject: Re: Ulogd - mysql addresses are in network-byte order
-Date: Mon, 02 Jan 2012 15:02:21 -0500
-Message-ID: <4F020D4D.5060102@gmail.com>
-References: <4F013AB2.8030004@gmail.com> <20120102180811.GA26533@1984>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] libnetfilter_log 1.0.1 release
+Date: Mon, 2 Jan 2012 21:26:41 +0100
+Message-ID: <20120102202641.GA26980@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="3MwIy2ne0vdjdPXF"
+Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
+	netfilter-announce@lists.netfilter.org, lwn@lwn.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qw0-f53.google.com ([209.85.216.53]:46151 "EHLO
-	mail-qw0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753174Ab2ABUCZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Jan 2012 15:02:25 -0500
-Received: by qadb15 with SMTP id b15so10517694qad.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 02 Jan 2012 12:02:24 -0800 (PST)
-In-Reply-To: <20120102180811.GA26533@1984>
+Received: from mail.us.es ([193.147.175.20]:50405 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753237Ab2ABU0s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 2 Jan 2012 15:26:48 -0500
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 01/02/2012 01:08 PM, Pablo Neira Ayuso wrote:
-> On Mon, Jan 02, 2012 at 12:03:46AM -0500, marty wrote:
->>
->> Here, for your review is a patch to
->> address the issue that I reported.
->>
->> --- orig.ulogd_raw2packet_BASE.c	2011-12-08 11:55:09.000000000 -0500
->> +++ ulogd_raw2packet_BASE.c	2012-01-01 23:40:14.000000000 -0500
->> @@ -717,8 +717,8 @@
->>   		return ULOGD_IRET_OK;
->>   	len -= iph->ihl * 4;
->>
->> -	okey_set_u32(&ret[KEY_IP_SADDR], iph->saddr);
->> -	okey_set_u32(&ret[KEY_IP_DADDR], iph->daddr);
->> +	okey_set_u32(&ret[KEY_IP_SADDR], ntohl(iph->saddr));
->> +	okey_set_u32(&ret[KEY_IP_DADDR], ntohl(iph->daddr));
->>   	okey_set_u8(&ret[KEY_IP_PROTOCOL], iph->protocol);
->>   	okey_set_u8(&ret[KEY_IP_TOS], iph->tos);
->>   	okey_set_u8(&ret[KEY_IP_TTL], iph->ttl);
->
-> Many other plugins rely on the address in network byte order.
->
-> Can you fix this in the mysql plugin by adding some configurable
-> option?
 
-Seems like I already offered config options previously, no...
-And as I recall I gave fair warning, which you ignored.
-Simply put the host arch should determine IP format. That is a given.
-That is easily changed to network format where/when required.
+--3MwIy2ne0vdjdPXF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Personally I would write the BASE code as I have,
-and let the option for network byte order be available
-as a config option, as I suggested from the start.
+Hi!
 
-The mysql-plugin does not have the keys available directly.
-It pretty much passes data blindly.
-I am hesitant to change this because it works nice.
+The Netfilter project proudly presents:
 
-> more suggestions for your next patches, please:
->
-> * include short description before the patch.
-> * they have to apply with patch -p1<  file.patch
+        libnetfilter_log 1.0.1
 
-Agreed, I should submit patches with more info.
+libnetfilter_log is a userspace library providing interface to packets
+that have been logged by the kernel packet filter.
 
-> you can generate this with git diff HEAD (there are more advanced ways
-> to do this in git though)
+See ChangeLog that comes attached to this email for more details.
 
-Yes, I can do lots of things; even stand on my head.
-But I fixed the issue as requested and if that is not sufficient I am 
-terribly sorry, but I am a 60+ yr old man with a big schedule.
-The code works fine for my purposes and you are not inspiring me.
+You can download it from:
 
-Marty B.
+http://www.netfilter.org/projects/libnetfilter_log/downloads.html
+ftp://ftp.netfilter.org/pub/libnetfilter_log/
+
+Have fun!
+
+--3MwIy2ne0vdjdPXF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="changes-libnetfilter_log-1.0.1.txt"
+
+Jan Engelhardt (23):
+      build: use autoconf-suggested naming of files
+      build: use modern call syntax for AC_INIT, AM_INIT_AUTOMAKE
+      build: avoid use of deprecated INCLUDES
+      build: use simpler autoreconf in autogen
+      build: run AC_CANONICAL_HOST only
+      build: remove statements without effect
+      build: remove -fPIC flag
+      build: no need for error message in PKG_CHECK_MODULES
+      build: set Libs.private for pkgconfig file
+      Remove accidentally-added file "depcomp"
+      Add .gitignore files
+      build: default to not building static libraries
+      build: use AC_OUTPUT
+      src: remove redundant casts
+      src: declare non-modified data as const
+      build: remove unused LIBTOOL_DEPS
+      build: create a Make_global.am file
+      build: use -Wall across the entire source
+      utils: resolve compiler warnings
+      build: fix error with automake-1.9
+      Update .gitignore
+      build: use AC_CONFIG_AUX_DIR and stash away tools
+      build: disable implicit .tar.gz archive generation and use POSIX mode
+
+Pablo Neira Ayuso (7):
+      build: bump version to 1.0.0
+      license: upgrade to GPLv2+
+      doc: discourage the use of nflog_set_nlbufsiz()
+      Merge branch 'master' of git://dev.medozas.de/libnetfilter_log
+      build: fix `make distcheck'
+      build: Linux kernel-style for compilation messages
+      build: bump version to 1.0.1
+
+
+--3MwIy2ne0vdjdPXF--
