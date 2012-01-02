@@ -1,87 +1,75 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [ANNOUNCE] libnetfilter_queue 1.0.1 release
-Date: Mon, 2 Jan 2012 20:59:35 +0100
-Message-ID: <20120102195935.GB26867@1984>
-References: <20120102195845.GA26867@1984>
+From: marty <martinbarrowcliff@gmail.com>
+Subject: Re: Ulogd - mysql addresses are in network-byte order
+Date: Mon, 02 Jan 2012 15:02:21 -0500
+Message-ID: <4F020D4D.5060102@gmail.com>
+References: <4F013AB2.8030004@gmail.com> <20120102180811.GA26533@1984>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="n8g4imXOkfNTN/H1"
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter-announce@lists.netfilter.org, lwn@lwn.net
-To: netfilter@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48980 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752530Ab2ABT7m (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Jan 2012 14:59:42 -0500
-Content-Disposition: inline
-In-Reply-To: <20120102195845.GA26867@1984>
+Received: from mail-qw0-f53.google.com ([209.85.216.53]:46151 "EHLO
+	mail-qw0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753174Ab2ABUCZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 2 Jan 2012 15:02:25 -0500
+Received: by qadb15 with SMTP id b15so10517694qad.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 02 Jan 2012 12:02:24 -0800 (PST)
+In-Reply-To: <20120102180811.GA26533@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On 01/02/2012 01:08 PM, Pablo Neira Ayuso wrote:
+> On Mon, Jan 02, 2012 at 12:03:46AM -0500, marty wrote:
+>>
+>> Here, for your review is a patch to
+>> address the issue that I reported.
+>>
+>> --- orig.ulogd_raw2packet_BASE.c	2011-12-08 11:55:09.000000000 -0500
+>> +++ ulogd_raw2packet_BASE.c	2012-01-01 23:40:14.000000000 -0500
+>> @@ -717,8 +717,8 @@
+>>   		return ULOGD_IRET_OK;
+>>   	len -= iph->ihl * 4;
+>>
+>> -	okey_set_u32(&ret[KEY_IP_SADDR], iph->saddr);
+>> -	okey_set_u32(&ret[KEY_IP_DADDR], iph->daddr);
+>> +	okey_set_u32(&ret[KEY_IP_SADDR], ntohl(iph->saddr));
+>> +	okey_set_u32(&ret[KEY_IP_DADDR], ntohl(iph->daddr));
+>>   	okey_set_u8(&ret[KEY_IP_PROTOCOL], iph->protocol);
+>>   	okey_set_u8(&ret[KEY_IP_TOS], iph->tos);
+>>   	okey_set_u8(&ret[KEY_IP_TTL], iph->ttl);
+>
+> Many other plugins rely on the address in network byte order.
+>
+> Can you fix this in the mysql plugin by adding some configurable
+> option?
 
---n8g4imXOkfNTN/H1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Seems like I already offered config options previously, no...
+And as I recall I gave fair warning, which you ignored.
+Simply put the host arch should determine IP format. That is a given.
+That is easily changed to network format where/when required.
 
-On Mon, Jan 02, 2012 at 08:58:45PM +0100, Pablo Neira Ayuso wrote:
-> Hi!
-> 
-> The Netfilter project proudly presents:
-> 
->         libnetfilter_queue 1.0.1
-> 
-> libnetfilter_queue is a userspace library providing an API to packets
-> that have been queued by the kernel packet filter.
-> 
-> See ChangeLog that comes attached to this email for more details.
+Personally I would write the BASE code as I have,
+and let the option for network byte order be available
+as a config option, as I suggested from the start.
 
-Forgot to attach, find it here.
+The mysql-plugin does not have the keys available directly.
+It pretty much passes data blindly.
+I am hesitant to change this because it works nice.
 
---n8g4imXOkfNTN/H1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="changes-libnetfilter_queue-1.0.1.txt"
+> more suggestions for your next patches, please:
+>
+> * include short description before the patch.
+> * they have to apply with patch -p1<  file.patch
 
-Alessandro Vesely (1):
-      utils: document ENOBUFS in nfqnl_test.c
+Agreed, I should submit patches with more info.
 
-Florian Westphal (2):
-      src: add NFQNL_MSG_VERDICT_BATCH support
-      src: add notes on NF_STOLEN and NF_REPEAT to documentation
+> you can generate this with git diff HEAD (there are more advanced ways
+> to do this in git though)
 
-Jan Engelhardt (20):
-      build: build: use autoconf-suggested naming of files
-      build: use modern call syntax for AC_INIT, AM_INIT_AUTOMAKE
-      build: avoid use of deprecated INCLUDES
-      build: use simpler autoreconf in autogen
-      build: run AC_CANONICAL_HOST only
-      build: no need for error message in PKG_CHECK_MODULES
-      build: set Libs.private for pkgconfig file
-      build: remove statements without effect
-      build: remove -fPIC flag
-      Update .gitignore
-      build: default to not building static libraries
-      build: use AC_OUTPUT
-      build: remove unused LIBTOOL_DEPS
-      build: create a Make_global.am file
-      build: use -Wall across the entire source
-      build: fix error with automake-1.9
-      build: fix file list warning with automake-1.9
-      Update .gitignore
-      build: use AC_CONFIG_AUX_DIR and stash away tools
-      build: disable implicit .tar.gz archive generation and use POSIX mode
+Yes, I can do lots of things; even stand on my head.
+But I fixed the issue as requested and if that is not sufficient I am 
+terribly sorry, but I am a 60+ yr old man with a big schedule.
+The code works fine for my purposes and you are not inspiring me.
 
-Pablo Neira Ayuso (11):
-      nfq: add missing documentation on nfq_snprintf_xml()
-      nfq: add myself to the copyright notice
-      nfq: fix redundant LIBVERSION definition
-      license: upgrade to GPLv2+
-      Merge branch 'master' of git://dev.medozas.de/libnetfilter_queue
-      doc: document some performance tweaks for libnetfilter_queue
-      Merge branch 'master' of git://dev.medozas.de/libnetfilter_queue
-      doc: fix wrong documentation on NFQNL_COPY_NONE
-      build: fix `make distcheck'
-      build: Linux kernel-style for compilation messages
-      build: bump version to 1.0.1
-
-
---n8g4imXOkfNTN/H1--
+Marty B.
