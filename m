@@ -1,81 +1,54 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] libnetfilter_log 1.0.1 release
-Date: Mon, 2 Jan 2012 21:26:41 +0100
-Message-ID: <20120102202641.GA26980@1984>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [ANNOUNCE] libnetfilter_queue 1.0.1 release
+Date: Mon, 2 Jan 2012 22:22:28 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1201022221470.29809@frira.zrqbmnf.qr>
+References: <20120102195845.GA26867@1984>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="3MwIy2ne0vdjdPXF"
-Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
 	netfilter-announce@lists.netfilter.org, lwn@lwn.net
-To: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50405 "EHLO mail.us.es"
+Received: from seven.medozas.de ([188.40.89.202]:37087 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753237Ab2ABU0s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Jan 2012 15:26:48 -0500
-Content-Disposition: inline
+	id S1751349Ab2ABVW3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 2 Jan 2012 16:22:29 -0500
+In-Reply-To: <20120102195845.GA26867@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Monday 2012-01-02 20:58, Pablo Neira Ayuso wrote:
 
---3MwIy2ne0vdjdPXF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+>Hi!
+>
+>The Netfilter project proudly presents:
+>
+>        libnetfilter_queue 1.0.1
 
-Hi!
+In commit 390b0c0f45597c72fa93a40f4f7f9ffeec371f42
+Author: Pablo Neira Ayuso <pablo@netfilter.org>
+Date:   Mon Jan 2 20:28:45 2012 +0100
 
-The Netfilter project proudly presents:
+    build: bump version to 1.0.1
+    
+    Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-        libnetfilter_log 1.0.1
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 0bd037f..bc27625 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -18,7 +18,7 @@
+ # set age to 0.
+ # </snippet>
+ #
+-LIBVERSION=2:0:1
++LIBVERSION=2:0:2
+ 
+ include ${top_srcdir}/Make_global.am
+ 
 
-libnetfilter_log is a userspace library providing interface to packets
-that have been logged by the kernel packet filter.
+You wrongly changed LIBVERSION. It went from .so.1.1 to so.0.2, and that 
+just does not sound right. Perhaps you intended 2:1:1.
 
-See ChangeLog that comes attached to this email for more details.
-
-You can download it from:
-
-http://www.netfilter.org/projects/libnetfilter_log/downloads.html
-ftp://ftp.netfilter.org/pub/libnetfilter_log/
-
-Have fun!
-
---3MwIy2ne0vdjdPXF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="changes-libnetfilter_log-1.0.1.txt"
-
-Jan Engelhardt (23):
-      build: use autoconf-suggested naming of files
-      build: use modern call syntax for AC_INIT, AM_INIT_AUTOMAKE
-      build: avoid use of deprecated INCLUDES
-      build: use simpler autoreconf in autogen
-      build: run AC_CANONICAL_HOST only
-      build: remove statements without effect
-      build: remove -fPIC flag
-      build: no need for error message in PKG_CHECK_MODULES
-      build: set Libs.private for pkgconfig file
-      Remove accidentally-added file "depcomp"
-      Add .gitignore files
-      build: default to not building static libraries
-      build: use AC_OUTPUT
-      src: remove redundant casts
-      src: declare non-modified data as const
-      build: remove unused LIBTOOL_DEPS
-      build: create a Make_global.am file
-      build: use -Wall across the entire source
-      utils: resolve compiler warnings
-      build: fix error with automake-1.9
-      Update .gitignore
-      build: use AC_CONFIG_AUX_DIR and stash away tools
-      build: disable implicit .tar.gz archive generation and use POSIX mode
-
-Pablo Neira Ayuso (7):
-      build: bump version to 1.0.0
-      license: upgrade to GPLv2+
-      doc: discourage the use of nflog_set_nlbufsiz()
-      Merge branch 'master' of git://dev.medozas.de/libnetfilter_log
-      build: fix `make distcheck'
-      build: Linux kernel-style for compilation messages
-      build: bump version to 1.0.1
-
-
---3MwIy2ne0vdjdPXF--
+Or just leaving r alone, like proposed? :)
