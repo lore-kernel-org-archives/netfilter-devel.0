@@ -1,79 +1,52 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: iptables 1.4.12.2 released
-Date: Mon, 2 Jan 2012 18:52:42 +0100
-Message-ID: <20120102175242.GA26435@1984>
+Subject: Re: Ulogd - mysql addresses are in network-byte order
+Date: Mon, 2 Jan 2012 19:08:11 +0100
+Message-ID: <20120102180811.GA26533@1984>
+References: <4F013AB2.8030004@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="LZvS9be/3tNcYl/X"
-To: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: marty <martinbarrowcliff@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41401 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42672 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753371Ab2ABRwx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Jan 2012 12:52:53 -0500
+	id S1752747Ab2ABSIO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 2 Jan 2012 13:08:14 -0500
 Content-Disposition: inline
+In-Reply-To: <4F013AB2.8030004@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Mon, Jan 02, 2012 at 12:03:46AM -0500, marty wrote:
+> 
+> Here, for your review is a patch to
+> address the issue that I reported.
+> 
+> --- orig.ulogd_raw2packet_BASE.c	2011-12-08 11:55:09.000000000 -0500
+> +++ ulogd_raw2packet_BASE.c	2012-01-01 23:40:14.000000000 -0500
+> @@ -717,8 +717,8 @@
+>  		return ULOGD_IRET_OK;
+>  	len -= iph->ihl * 4;
+> 
+> -	okey_set_u32(&ret[KEY_IP_SADDR], iph->saddr);
+> -	okey_set_u32(&ret[KEY_IP_DADDR], iph->daddr);
+> +	okey_set_u32(&ret[KEY_IP_SADDR], ntohl(iph->saddr));
+> +	okey_set_u32(&ret[KEY_IP_DADDR], ntohl(iph->daddr));
+>  	okey_set_u8(&ret[KEY_IP_PROTOCOL], iph->protocol);
+>  	okey_set_u8(&ret[KEY_IP_TOS], iph->tos);
+>  	okey_set_u8(&ret[KEY_IP_TTL], iph->ttl);
 
---LZvS9be/3tNcYl/X
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Many other plugins rely on the address in network byte order.
 
-The netfilter coreteam presents:
+Can you fix this in the mysql plugin by adding some configurable
+option?
 
-    iptables version 1.4.12.2
+more suggestions for your next patches, please:
 
-This is a stable release, it only includes bugfixes.
+* include short description before the patch.
+* they have to apply with patch -p1 < file.patch
 
-Version 1.4.12.2 can be obtained from:
+you can generate this with git diff HEAD (there are more advanced ways
+to do this in git though).
 
-http://www.netfilter.org/projects/iptables/downloads.html
-ftp://ftp.netfilter.org/pub/iptables/
-git://git.netfilter.org/iptables.git
-
-On behalf of the Netfilter Core Team.
-Happy firewalling!
-
---LZvS9be/3tNcYl/X
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="changes-iptables-1.4.12.2.txt"
-
-Florian Westphal (2):
-      libxt_NFQUEUE: fix --queue-bypass ipt-save output
-      libxt_connbytes: fix handling of --connbytes FROM
-
-Jan Engelhardt (17):
-      xtoptions: fill in fallback value for nvals
-      libxt_statistic: link with -lm
-      libxt_RATEEST: link with -lm
-      build: scan for unreferenced symbols
-      iptables: move kernel version find routing into libxtables
-      Merge branch 'stable' of git://dev.medozas.de/iptables
-      Merge branch 'stable'
-      build: sort file list before build
-      doc: fix undesired newline in ip6tables-restore(8)
-      ip6tables-restore: implement missing -T option
-      doc: document iptables-restore's -T option
-      build: restore build order of modules
-      build: make check stage not fail when building statically
-      libipt_SAME: set PROTO_RANDOM on all ranges
-      doc: clarification on the meaning of -p 0
-      libiptc: provide separate pkgconfig files
-      nfnl_osf: add missing libnfnetlink_CFLAGS to compile process
-
-Pablo Neira Ayuso (1):
-      Bump version to 1.4.12.2
-
-Richard Weinberger (1):
-      xtoptions: simplify xtables_parse_interface
-
-Thomas Jarosch (1):
-      libxtables: Fix file descriptor leak in xtables_lmap_init on error
-
-Tom Eastep (2):
-      libxt_conntrack: improve error message on parsing violation
-      libxt_CONNSECMARK: fix spacing in output
-
-
---LZvS9be/3tNcYl/X--
+thanks.
