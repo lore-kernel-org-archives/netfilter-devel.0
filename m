@@ -1,40 +1,72 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: Re: [PATCH] netfilter: Fix br_nf_pre_routing() in conjunction with
- bridge-nf-call-ip(6)tables=0
-Date: Tue, 3 Jan 2012 08:15:21 -0800
-Message-ID: <20120103081521.2fec3a29@nehalam.linuxnetplumber.net>
-References: <4F025A07.2000304@nod.at>
-	<1325597164-13459-1-git-send-email-richard@nod.at>
-	<1325597164-13459-2-git-send-email-richard@nod.at>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: RE: [PATCH 06/19] netfilter: nf_conntrack: use atomic64 for
+ accounting counters
+Date: Tue, 03 Jan 2012 18:05:47 +0100
+Message-ID: <1325610347.2320.109.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+References: <AE90C24D6B3A694183C094C60CF0A2F6D8AF28@saturn3.aculab.com>
+	 <1325597490.2320.45.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+	 <1325597877.2320.47.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: davem@davemloft.net, bridge@lists.linux-foundation.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Richard Weinberger <richard@nod.at>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	davem@davemloft.net, netdev@vger.kernel.org
+To: David Laight <David.Laight@ACULAB.COM>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:45996 "EHLO mail.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753716Ab2ACQPY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 Jan 2012 11:15:24 -0500
-In-Reply-To: <1325597164-13459-2-git-send-email-richard@nod.at>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:33525 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753930Ab2ACRFw (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 3 Jan 2012 12:05:52 -0500
+In-Reply-To: <1325597877.2320.47.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue,  3 Jan 2012 14:26:04 +0100
-Richard Weinberger <richard@nod.at> wrote:
+Le mardi 03 janvier 2012 =C3=A0 14:37 +0100, Eric Dumazet a =C3=A9crit =
+:
+> Le mardi 03 janvier 2012 =C3=A0 14:31 +0100, Eric Dumazet a =C3=A9cri=
+t :
+> > Le mardi 03 janvier 2012 =C3=A0 12:01 +0000, David Laight a =C3=A9c=
+rit :
+> > > >  		if (acct) {
+> > > > -			spin_lock_bh(&ct->lock);
+> > > > -			acct[CTINFO2DIR(ctinfo)].packets++;
+> > > > -			acct[CTINFO2DIR(ctinfo)].bytes +=3D skb->len;
+> > > > -			spin_unlock_bh(&ct->lock);
+> > > > +			atomic64_inc(&acct[CTINFO2DIR(ctinfo)].packets);
+> > > > +			atomic64_add(skb->len,
+> > > &acct[CTINFO2DIR(ctinfo)].bytes);
+> > > >  		}
+> > >=20
+> > > On a 32bit arch the two atomic64 operations require a locked
+> > > bus cycle each. The spin_unlock_bh() may not need one - so
+> > > the code may now be slower (modulo lock contention etc).
+> > >=20
+> > > Probably worth caching &acct[CTINFO2DIR(ctinfo)] in a local,
+> > > the compiler probably can't do it itself.
+> >=20
+> > You're mistaken.
+> >=20
+> > Compile a UP kernel and check yourself before doing such claims.
+> >=20
+> >=20
+>=20
+> Oops sorry, I misread your mail, I thought you were speaking of UP
+> kernel.
+>=20
 
-> If net.bridge.bridge-nf-call-iptables or net.bridge.bridge-nf-call-ip6tables
-> are set to zero xt_physdev has no effect because skb->nf_bridge has not been set up.
-> 
-> Signed-off-by: Richard Weinberger <richard@nod.at>
+I got confused because your argument applies to 64bit platform as well
+(two atomic ops instead of one in spin_lock_bh())
 
-I am not sure if this is a valid configuration. The setting of sysctl is saying
-"don't do iptables on bridge (since I won't be using it)" and then you are later
-doing iptables and expecting the settings as if the iptables setup was being
-done.
+As a matter of fact, atomic64_[inc|add]() use two locked operations on
+32bit.
 
-Instead, you should just enable the net.bridge.bridge-nf-call-iptables sysctl.
-If a distro chooses to disable it then you may have to do it explicitly.
+Plus this code (atomic64_xxx_cx8()) seems very buggy since 2.6.35
+kernels ... Oh well...
 
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
