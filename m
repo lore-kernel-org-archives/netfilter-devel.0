@@ -1,57 +1,47 @@
-From: Richard Weinberger <richard@nod.at>
-Subject: xt_physdev has no effect if net.bridge.bridge-nf-call-iptables=0
-Date: Tue, 03 Jan 2012 02:29:43 +0100
-Message-ID: <4F025A07.2000304@nod.at>
+From: "David Laight" <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH 06/19] netfilter: nf_conntrack: use atomic64 for accounting counters
+Date: Tue, 3 Jan 2012 12:01:27 -0000
+Message-ID: <AE90C24D6B3A694183C094C60CF0A2F6D8AF28@saturn3.aculab.com>
+References: <1324778255-2830-7-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig82A5B17EB603B64ACD598FD0"
-To: netfilter-devel@vger.kernel.org, linux-netdev@vger.kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: <davem@davemloft.net>, <netdev@vger.kernel.org>
+To: <pablo@netfilter.org>, <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a.ns.miles-group.at ([95.130.255.143]:47834 "EHLO radon.swed.at"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750778Ab2ACB3r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Jan 2012 20:29:47 -0500
+Received: from mx0.aculab.com ([213.249.233.131]:40513 "HELO mx0.aculab.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752442Ab2ACMDM convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 3 Jan 2012 07:03:12 -0500
+Received: from mx0.aculab.com ([127.0.0.1])
+ by localhost (mx0.aculab.com [127.0.0.1]) (amavisd-new, port 10024) with SMTP
+ id 16930-01 for <netfilter-devel@vger.kernel.org>;
+ Tue,  3 Jan 2012 12:03:09 +0000 (GMT)
+Content-class: urn:content-classes:message
+In-Reply-To: <1324778255-2830-7-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig82A5B17EB603B64ACD598FD0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+ 
+>  		if (acct) {
+> -			spin_lock_bh(&ct->lock);
+> -			acct[CTINFO2DIR(ctinfo)].packets++;
+> -			acct[CTINFO2DIR(ctinfo)].bytes += skb->len;
+> -			spin_unlock_bh(&ct->lock);
+> +			atomic64_inc(&acct[CTINFO2DIR(ctinfo)].packets);
+> +			atomic64_add(skb->len,
+&acct[CTINFO2DIR(ctinfo)].bytes);
+>  		}
 
-Hi!
+On a 32bit arch the two atomic64 operations require a locked
+bus cycle each. The spin_unlock_bh() may not need one - so
+the code may now be slower (modulo lock contention etc).
 
-If net.bridge.bridge-nf-call-iptables is set to zero (which is the
-default setting in Fedroa and RHEL6) xt_physdev has no effect.
+Probably worth caching &acct[CTINFO2DIR(ctinfo)] in a local,
+the compiler probably can't do it itself.
 
-A rule like this one will never match:
-iptables -t nat -A PREROUTING -i bridge0 -m physdev --physdev-in eth0 -p
-tcp --dport 80 -j DNAT --to-destination :8080
-
-IMHO the cause of the problem is in net/bridge/br_netfilter.c,
-br_nf_pre_routing() returns NF_ACCEPT before skb->nf_bridge is allocated
-and skb->nf_bridge->physindev set to skb->dev.
-
-Thanks,
-//richard
+	David
 
 
---------------enig82A5B17EB603B64ACD598FD0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQEcBAEBAgAGBQJPAloHAAoJEN9758yqZn9eBV8H/0iPa+vfqRzkc7r9xXoJyC9t
-djqsm5l60ZKdIZSn6S/gujDSeIMmNhVBE4yXQET7BFhgP8Uwz06DUJOihmGBp+I+
-WSJC2ieIMXL/MKN0gdIEtuSorNBNzoCb7gJce9RSnLtRkRjmzx4ocJAOWCLnh8/q
-LRi8iOwp1QJ5xA2KdQ0WXvxfHySYhxV+EgPPiJKZMks6cTjN1sowqkCnu8WoRKJy
-fJwBzvlgP1ymoZ3i9DbcNQsJwyz2/aY18ylChZqxTE6+G/eKS7CoM4pyZydcu6Tg
-JxwjDpGtzlFhjUQK+R+jxhUTsZNbID9uXKaKY/Ar2yhqloqdG3lc/YfOlWpSmkc=
-=MWbi
------END PGP SIGNATURE-----
-
---------------enig82A5B17EB603B64ACD598FD0--
