@@ -1,45 +1,59 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [PATCH] netfilter: Fix br_nf_pre_routing() in conjunction with
- bridge-nf-call-ip(6)tables=0
-Date: Wed, 04 Jan 2012 18:55:28 +0100
-Message-ID: <4F049290.3090803@pandora.be>
-References: <4F025A07.2000304@nod.at> <1325597164-13459-1-git-send-email-richard@nod.at> <1325597164-13459-2-git-send-email-richard@nod.at> <20120103081521.2fec3a29@nehalam.linuxnetplumber.net> <4F033E11.5060707@nod.at> <4F0361D7.3000602@pandora.be> <4F03650D.8050200@nod.at>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 1/1] netfilter: Add possibility to turn off netfilters
+ defrag per netns
+Date: Wed, 4 Jan 2012 19:05:10 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1201041857350.3170@blackhole.kfki.hu>
+References: <1325664443-10320-1-git-send-email-hans.schillstrom@ericsson.com> <201201041118.18552.hans.schillstrom@ericsson.com> <alpine.LNX.2.01.1201041216010.2645@frira.zrqbmnf.qr> <201201041248.36881.hans.schillstrom@ericsson.com>
+ <20120104174035.GB3489@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Stephen Hemminger <shemminger@vyatta.com>, davem@davemloft.net,
-	bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Richard Weinberger <richard@nod.at>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4F03650D.8050200@nod.at>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	Jan Engelhardt <jengelh@medozas.de>,
+	Patrick McHardy <kaber@trash.net>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"hans@schillstrom.com" <hans@schillstrom.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20120104174035.GB3489@1984>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Op 3/01/2012 21:29, Richard Weinberger schreef:
-> Am 03.01.2012 21:15, schrieb Bart De Schuymer:
->> The documentation is probably not explicit enough, but I would keep the
->> behavior as it is now. Setting bridge-nf-call-iptables to 0 makes
->> iptables behave as if bridge-netfilter was not enabled at compilation.
->> Anyway, your patch is almost certainly flawed since the fact that
->> skb->nf_bridge can be NULL is used as part of the logic in
->> br_netfilter.c: it indicates that bridge-nf-call-iptables was 0 when the
->> packet was first processed by bridge-netfilter and should therefore not
->> be given to iptables in any other netfilter hook.
-> Thanks for the explanation!
->
-> Wouldn't it make sense to check for bridge-nf-call-iptables in xt_physdev?
-> So that the user gets warned that his iptables rule will never match...
+On Wed, 4 Jan 2012, Pablo Neira Ayuso wrote:
 
-We don't want to introduce module dependencies between the bridge module 
-and the iptables physdev match.
-We could add a message to the syslog whenever these proc settings are 
-changed (in br_netfilter.c::brnf_sysctl_call_tables()).
+> On Wed, Jan 04, 2012 at 12:48:35PM +0100, Hans Schillstrom wrote:
+> > I like that idea, an "early" table at prio -500 with PREROUTING.
+> > There is also a need for a new flag "--allfrags"
+> > i.e. all fragments needs to be sorted out and sent to same dest for defrag.
+> > 
+> > ex.
+> > iptables -t early -A PREROUTING -i eth0 --allfrags -j NOTRACK
+> 
+> New tables add too much overhead. We have discussed this before with
+> Patrick.
+> 
+> Since this still remains specific to your needs, I think you can
+> remove nf_conntrack module in your setup.
+> 
+> I don't come with one sane setup that may want selectively defragment
+> some traffic yes and other not.
+> 
+> Am I missing anything else?
 
-cheers,
-Bart
+I agree. If you don't want defragmentation at all, then make sure you 
+don't load the nf_conntrack module directly/indirectly. Conntrack doesn't 
+work without defragmentation anyway.
 
+The only thing what such a really-early table could buy at the moment is 
+to specify which flows not to defragment at layer 3 level.
 
--- 
-Bart De Schuymer
-www.artinalgorithms.be
+If we had dynamic hooks registration and hook priorities at table level, 
+that'd come handy now.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
