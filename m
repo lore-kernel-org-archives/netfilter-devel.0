@@ -1,42 +1,45 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] netfilter: Add possibility to turn off netfilters
- defrag per netns
-Date: Wed, 4 Jan 2012 18:40:35 +0100
-Message-ID: <20120104174035.GB3489@1984>
-References: <1325664443-10320-1-git-send-email-hans.schillstrom@ericsson.com>
- <201201041118.18552.hans.schillstrom@ericsson.com>
- <alpine.LNX.2.01.1201041216010.2645@frira.zrqbmnf.qr>
- <201201041248.36881.hans.schillstrom@ericsson.com>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: [PATCH] netfilter: Fix br_nf_pre_routing() in conjunction with
+ bridge-nf-call-ip(6)tables=0
+Date: Wed, 04 Jan 2012 18:55:28 +0100
+Message-ID: <4F049290.3090803@pandora.be>
+References: <4F025A07.2000304@nod.at> <1325597164-13459-1-git-send-email-richard@nod.at> <1325597164-13459-2-git-send-email-richard@nod.at> <20120103081521.2fec3a29@nehalam.linuxnetplumber.net> <4F033E11.5060707@nod.at> <4F0361D7.3000602@pandora.be> <4F03650D.8050200@nod.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Patrick McHardy <kaber@trash.net>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"hans@schillstrom.com" <hans@schillstrom.com>
-To: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201201041248.36881.hans.schillstrom@ericsson.com>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Stephen Hemminger <shemminger@vyatta.com>, davem@davemloft.net,
+	bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Richard Weinberger <richard@nod.at>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4F03650D.8050200@nod.at>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jan 04, 2012 at 12:48:35PM +0100, Hans Schillstrom wrote:
-> I like that idea, an "early" table at prio -500 with PREROUTING.
-> There is also a need for a new flag "--allfrags"
-> i.e. all fragments needs to be sorted out and sent to same dest for defrag.
-> 
-> ex.
-> iptables -t early -A PREROUTING -i eth0 --allfrags -j NOTRACK
+Op 3/01/2012 21:29, Richard Weinberger schreef:
+> Am 03.01.2012 21:15, schrieb Bart De Schuymer:
+>> The documentation is probably not explicit enough, but I would keep the
+>> behavior as it is now. Setting bridge-nf-call-iptables to 0 makes
+>> iptables behave as if bridge-netfilter was not enabled at compilation.
+>> Anyway, your patch is almost certainly flawed since the fact that
+>> skb->nf_bridge can be NULL is used as part of the logic in
+>> br_netfilter.c: it indicates that bridge-nf-call-iptables was 0 when the
+>> packet was first processed by bridge-netfilter and should therefore not
+>> be given to iptables in any other netfilter hook.
+> Thanks for the explanation!
+>
+> Wouldn't it make sense to check for bridge-nf-call-iptables in xt_physdev?
+> So that the user gets warned that his iptables rule will never match...
 
-New tables add too much overhead. We have discussed this before with
-Patrick.
+We don't want to introduce module dependencies between the bridge module 
+and the iptables physdev match.
+We could add a message to the syslog whenever these proc settings are 
+changed (in br_netfilter.c::brnf_sysctl_call_tables()).
 
-Since this still remains specific to your needs, I think you can
-remove nf_conntrack module in your setup.
+cheers,
+Bart
 
-I don't come with one sane setup that may want selectively defragment
-some traffic yes and other not.
 
-Am I missing anything else?
+-- 
+Bart De Schuymer
+www.artinalgorithms.be
