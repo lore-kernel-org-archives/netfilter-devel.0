@@ -1,77 +1,73 @@
-From: Hans Schillstrom <hans@schillstrom.com>
-Subject: Re: [PATCH 1/1] netfilter: Add possibility to turn off netfilters defrag per netns
-Date: Wed, 4 Jan 2012 22:15:10 +0100
-Message-ID: <201201042215.20290.hans@schillstrom.com>
-References: <1325664443-10320-1-git-send-email-hans.schillstrom@ericsson.com> <201201041248.36881.hans.schillstrom@ericsson.com> <20120104174035.GB3489@1984>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 1/1] netfilter: Add possibility to turn off netfilters
+ defrag per netns
+Date: Wed, 4 Jan 2012 22:40:09 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1201042232510.3934@blackhole.kfki.hu>
+References: <1325664443-10320-1-git-send-email-hans.schillstrom@ericsson.com> <20120104174035.GB3489@1984> <alpine.DEB.2.00.1201041857350.3170@blackhole.kfki.hu> <201201042156.05586.hans@schillstrom.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2694023.bmYndUduOG";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>,
 	Jan Engelhardt <jengelh@medozas.de>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	Patrick McHardy <kaber@trash.net>,
 	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
 	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Hans Schillstrom <hans@schillstrom.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:58859 "EHLO
-	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751581Ab2ADVPW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Jan 2012 16:15:22 -0500
-In-Reply-To: <20120104174035.GB3489@1984>
+Received: from smtp2.kfki.hu ([148.6.0.28]:37594 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756853Ab2ADVkL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Jan 2012 16:40:11 -0500
+In-Reply-To: <201201042156.05586.hans@schillstrom.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---nextPart2694023.bmYndUduOG
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+On Wed, 4 Jan 2012, Hans Schillstrom wrote:
 
-Hello Again
+> On Wednesday, January 04, 2012 19:05:10 Jozsef Kadlecsik wrote:
+> > On Wed, 4 Jan 2012, Pablo Neira Ayuso wrote:
+> > 
+> > > On Wed, Jan 04, 2012 at 12:48:35PM +0100, Hans Schillstrom wrote:
+> > > > I like that idea, an "early" table at prio -500 with PREROUTING.
+> > > > There is also a need for a new flag "--allfrags"
+> > > > i.e. all fragments needs to be sorted out and sent to same dest for defrag.
+> > > > 
+> > > > ex.
+> > > > iptables -t early -A PREROUTING -i eth0 --allfrags -j NOTRACK
+> > > 
+> > > New tables add too much overhead. We have discussed this before with
+> > > Patrick.
+> > > 
+> > > Since this still remains specific to your needs, I think you can
+> > > remove nf_conntrack module in your setup.
+> > > 
+> > > I don't come with one sane setup that may want selectively defragment
+> > > some traffic yes and other not.
+> > > 
+> > > Am I missing anything else?
+> > 
+> > I agree. If you don't want defragmentation at all, then make sure you 
+> > don't load the nf_conntrack module directly/indirectly. Conntrack doesn't 
+> > work without defragmentation anyway.
+> 
+> We are using LXC and it's only in the container that holds the external 
+> interface that can't have defragmentation.
+> The problem is if it's loaded you have it in all namespaces :-(
 
-On Wednesday, January 04, 2012 18:40:35 Pablo Neira Ayuso wrote:
-> On Wed, Jan 04, 2012 at 12:48:35PM +0100, Hans Schillstrom wrote:
-> > I like that idea, an "early" table at prio -500 with PREROUTING.
-> > There is also a need for a new flag "--allfrags"
-> > i.e. all fragments needs to be sorted out and sent to same dest for def=
-rag.
-> >=20
-> > ex.
-> > iptables -t early -A PREROUTING -i eth0 --allfrags -j NOTRACK
->=20
-> New tables add too much overhead. We have discussed this before with
-> Patrick.
->=20
-Only if loaded ..=20
-It would have been the perfect solution.
-Is the discussion about the overhead on the list (I can't find it)?
+Conntrack is per net namespaces. You may have one container with conntrack 
+enabled and another one without conntrack.
 
-I made a quick test with an "early" table
-and --allfrags fix (for IPv4) and it works really good.
+Moreover, if you may receive fragments of the same packet at different 
+interfaces in different blades, then you may receive different whole 
+packets of the same flow at different interfaces/blades. But stateful 
+firewalling relies on the assumption that all packets goes through of the 
+firewall. Because it's not assured, conntrack may not run in the 
+containers you denoted as FW LXC.
 
-iptables -t early -A PREROUTING -i eth0 -a -j NOTRACK
-iptables -t mangle -A PREROUTING -i eth0 -a -j HMARK --mod 3 --offs 100
-
-So your opinion is no more tables,
-even if it's rare that it is loaded?
-
-Regards
-Hans
-
---nextPart2694023.bmYndUduOG
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.14 (GNU/Linux)
-
-iEYEABECAAYFAk8EwWgACgkQsPw1jACzjGZZkwCcCWx6T4rBkmfJCnSaU0CtFxYk
-o+AAnRvAkWg3e32ua2oWi/5VaonoMM0p
-=Ked8
------END PGP SIGNATURE-----
-
---nextPart2694023.bmYndUduOG--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
