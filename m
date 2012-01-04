@@ -1,58 +1,76 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 1/3] doc: Linux 2.6.39 already has the defs
-Date: Wed, 4 Jan 2012 15:07:18 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1201041506410.925@blackhole.kfki.hu>
-References: <1325377535-11289-1-git-send-email-jengelh@medozas.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] libnetfilter_conntrack 1.0.0 release
+Date: Wed, 4 Jan 2012 17:42:57 +0100
+Message-ID: <20120104164257.GA3309@1984>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:40088 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753267Ab2ADOHU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Jan 2012 09:07:20 -0500
-In-Reply-To: <1325377535-11289-1-git-send-email-jengelh@medozas.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: multipart/mixed; boundary="+HP7ph2BbKc20aGI"
+Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
+	netfilter-announce@lists.netfilter.org, lwn@lwn.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jan,
 
-On Sun, 1 Jan 2012, Jan Engelhardt wrote:
+--+HP7ph2BbKc20aGI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-All patches are applied and pushed, thanks.
+Hi!
 
-Best regards,
-Jozsef
+The Netfilter project proudly presents:
 
-> ---
->  README |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/README b/README
-> index e5c0ddf..dd6e66b 100644
-> --- a/README
-> +++ b/README
-> @@ -4,7 +4,7 @@ instructions too.
->  
->  0. You need the source tree of your kernel (version >= 2.6.34)
->     and it have to be configured with ip6tables support enabled,
-> -   modules compiled. For kernel versions <= 2.6.39 please apply
-> +   modules compiled. For kernel versions < 2.6.39 please apply
->     the netlink.patch against your kernel tree, which adds the
->     new subsystem identifier for ipset.
->  
-> -- 
-> 1.7.7
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+        libnetfilter_conntrack-1.0.0
 
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+libnetfilter_conntrack is a userspace library providing a programming
+interface (API) to the in-kernel connection tracking state table.
+
+See ChangeLog that comes attached to this email for more details.
+
+You can download it from:
+
+http://www.netfilter.org/projects/libnetfilter_conntrack/downloads.html
+ftp://ftp.netfilter.org/pub/libnetfilter_conntrack/
+
+Have fun!
+
+--+HP7ph2BbKc20aGI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="changes-libnetfilter_conntrack-1.0.0.txt"
+
+Andrew Beverley (1):
+      utils: add nfct_destroy() to all examples in utils
+
+Jan Engelhardt (3):
+      Update .gitignore
+      build: use AC_CONFIG_AUX_DIR and stash away tools
+      build: disable implicit .tar.gz archive generation and use POSIX mode
+
+Jiri Popelka (1):
+      conntrack: objopt: NO_EFFECT
+
+Pablo Neira Ayuso (20):
+      build: Linux kernel-style for compilation messages
+      doc: fix missing nfct_copy function not included in doxygen report
+      expect: fix missing parsing of master tuple
+      expect: nfexp_snprintf prints expectation timeout if present
+      expect: nfexp_snprintf displays mask and master tuple information
+      expect: add nfexp_send()
+      expect: support CTA_EXPECT_HELP_NAME
+      expect: modify output by moving zone and flags to the end of the line
+      src: export NFCT_HELPER_NAME_MAX
+      utils: fix expect_get to work with expect_create
+      Merge branch 'master' of git://dev.medozas.de/libnetfilter_conntrack
+      src: clarify licensing terms of library (GPLv2+)
+      conntrack: fix size of CTA_PROTOINFO_TCP_FLAGS_ORIGINAL in ARM
+      include: remove reference to licensing terms from headers
+      src: put nf_expect and nf_conntrack into diet
+      qa: extend test_api to validate set API for conntrack objects
+      conntrack: fix set operation for master IPv6 src and dst
+      expect: extend test_api for the expectation API
+      expect: add nfexp_cmp
+      build: bump version to 1.0.0
+
+
+--+HP7ph2BbKc20aGI--
