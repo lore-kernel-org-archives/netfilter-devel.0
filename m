@@ -1,73 +1,58 @@
-From: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Subject: Re: [PATCH 1/1] netfilter: Add possibility to turn off netfilters defrag per netns
-Date: Wed, 4 Jan 2012 12:48:35 +0100
-Message-ID: <201201041248.36881.hans.schillstrom@ericsson.com>
-References: <1325664443-10320-1-git-send-email-hans.schillstrom@ericsson.com> <201201041118.18552.hans.schillstrom@ericsson.com> <alpine.LNX.2.01.1201041216010.2645@frira.zrqbmnf.qr>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 1/3] doc: Linux 2.6.39 already has the defs
+Date: Wed, 4 Jan 2012 15:07:18 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1201041506410.925@blackhole.kfki.hu>
+References: <1325377535-11289-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"hans@schillstrom.com" <hans@schillstrom.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.2.01.1201041216010.2645@frira.zrqbmnf.qr>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp1.kfki.hu ([148.6.0.26]:40088 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753267Ab2ADOHU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Jan 2012 09:07:20 -0500
+In-Reply-To: <1325377535-11289-1-git-send-email-jengelh@medozas.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 04 January 2012 12:17:18 Jan Engelhardt wrote:
-> On Wednesday 2012-01-04 11:18, Hans Schillstrom wrote:
+Hi Jan,
+
+On Sun, 1 Jan 2012, Jan Engelhardt wrote:
+
+All patches are applied and pushed, thanks.
+
+Best regards,
+Jozsef
+
+> ---
+>  README |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> >On Wednesday 04 January 2012 10:03:49 Jozsef Kadlecsik wrote:
-> >> On Wed, 4 Jan 2012, Hans Schillstrom wrote:
-> >> 
-> >> > On Wednesday 04 January 2012 09:28:05 Jozsef Kadlecsik wrote:
-> >> > > 
-> >> > > On Wed, 4 Jan 2012, Hans Schillstrom wrote:
-> >> > > 
-> >> > > > In some cases it not desirable to have auto defrag.
-> >> > > > Ex. in a cluster where packets can arrive on different blades.
-> >> > > > In that case it is possible to use containers (LXC) and send
-> >> > > > all fragments to one place where defrag is enabled.
-> >> > > > 
-> >> > > > This patch makes it possible to turn off the defrag per network name space,
-> >> > > > by setting net.netfilter.nf_conntrack_nodefrag to 1.
-> >> > > > Both IPv4 and IPv6 is effected by this sysctl.
-> >> > > > Default is 0 which is defrag.
-> >> > > 
-> >> > > Conntrack assumes that the packets are defragmented and will drop any 
-> >> > > unfragmented one. So your patch results packet drops.
-> >> > 
-> >> > Hmmm, more work...
-> >> > > 
-> >> > > Also, if you want to disable defragmentation then why don't you simply 
-> >> > > "mark" the packets with the NOTRACK target?
-> >> > 
-> >> > I don't think that will work since NF_IP_PRI_CONNTRACK_DEFRAG is -400
-> >> 
-> >> Then change NF_IP_PRI_RAW so that it precedes NF_IP_PRI_CONNTRACK_DEFRAG. 
-> >> The raw table should be made possible to completely override conntack and 
-> >> defrag is implicit part of the latter.
-> >> 
-> >
-> >An other idea, turn off both conntrack and defrag
-> >i.e. do like NOTRAC and rename the flag  ?
+> diff --git a/README b/README
+> index e5c0ddf..dd6e66b 100644
+> --- a/README
+> +++ b/README
+> @@ -4,7 +4,7 @@ instructions too.
+>  
+>  0. You need the source tree of your kernel (version >= 2.6.34)
+>     and it have to be configured with ip6tables support enabled,
+> -   modules compiled. For kernel versions <= 2.6.39 please apply
+> +   modules compiled. For kernel versions < 2.6.39 please apply
+>     the netlink.patch against your kernel tree, which adds the
+>     new subsystem identifier for ipset.
+>  
+> -- 
+> 1.7.7
 > 
-> Or just add a new table - that one we can remove/stash
-> when I get my xt2 patches out.
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-I like that idea, an "early" table at prio -500 with PREROUTING.
-There is also a need for a new flag "--allfrags"
-i.e. all fragments needs to be sorted out and sent to same dest for defrag.
 
-ex.
-iptables -t early -A PREROUTING -i eth0 --allfrags -j NOTRACK
-
-
--- 
-Regards
-Hans Schillstrom <hans.schillstrom@ericsson.com>
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
