@@ -1,70 +1,114 @@
-From: Richard Weinberger <richard@nod.at>
-Subject: Re: [PATCH] netfilter: Fix br_nf_pre_routing() in conjunction with
- bridge-nf-call-ip(6)tables=0
-Date: Tue, 03 Jan 2012 21:29:01 +0100
-Message-ID: <4F03650D.8050200@nod.at>
-References: <4F025A07.2000304@nod.at> <1325597164-13459-1-git-send-email-richard@nod.at> <1325597164-13459-2-git-send-email-richard@nod.at> <20120103081521.2fec3a29@nehalam.linuxnetplumber.net> <4F033E11.5060707@nod.at> <4F0361D7.3000602@pandora.be>
+From: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Subject: [PATCH 1/1] netfilter: Add possibility to turn off netfilters defrag per netns
+Date: Wed, 4 Jan 2012 09:07:23 +0100
+Message-ID: <1325664443-10320-1-git-send-email-hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig6E73FD4239D9CA1170A15979"
-Cc: Stephen Hemminger <shemminger@vyatta.com>, davem@davemloft.net,
-	bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Bart De Schuymer <bdschuym@pandora.be>
+Content-Type: text/plain
+Cc: <hans@schillstrom.com>,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>
+To: <kaber@trash.net>, <pablo@netfilter.org>, <jengelh@medozas.de>,
+	<netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a.ns.miles-group.at ([95.130.255.143]:47835 "EHLO radon.swed.at"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752502Ab2ACU3F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 Jan 2012 15:29:05 -0500
-In-Reply-To: <4F0361D7.3000602@pandora.be>
+Received: from mailgw9.se.ericsson.net ([193.180.251.57]:56281 "EHLO
+	mailgw9.se.ericsson.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752640Ab2ADIHZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Jan 2012 03:07:25 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig6E73FD4239D9CA1170A15979
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+In some cases it not desirable to have auto defrag.
+Ex. in a cluster where packets can arrive on different blades.
+In that case it is possible to use containers (LXC) and send
+all fragments to one place where defrag is enabled.
 
-Am 03.01.2012 21:15, schrieb Bart De Schuymer:
-> The documentation is probably not explicit enough, but I would keep the=
+This patch makes it possible to turn off the defrag per network name space,
+by setting net.netfilter.nf_conntrack_nodefrag to 1.
+Both IPv4 and IPv6 is effected by this sysctl.
+Default is 0 which is defrag.
 
-> behavior as it is now. Setting bridge-nf-call-iptables to 0 makes
-> iptables behave as if bridge-netfilter was not enabled at compilation.
-> Anyway, your patch is almost certainly flawed since the fact that
-> skb->nf_bridge can be NULL is used as part of the logic in
-> br_netfilter.c: it indicates that bridge-nf-call-iptables was 0 when th=
-e
-> packet was first processed by bridge-netfilter and should therefore not=
+Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
+---
+ include/net/netns/conntrack.h             |    1 +
+ net/ipv4/netfilter/nf_defrag_ipv4.c       |    8 ++++++++
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c |    6 ++++++
+ net/netfilter/nf_conntrack_standalone.c   |    8 ++++++++
+ 4 files changed, 23 insertions(+), 0 deletions(-)
 
-> be given to iptables in any other netfilter hook.
+diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
+index 7a911ec..059f7b5 100644
+--- a/include/net/netns/conntrack.h
++++ b/include/net/netns/conntrack.h
+@@ -26,6 +26,7 @@ struct netns_ct {
+ 	int			sysctl_tstamp;
+ 	int			sysctl_checksum;
+ 	unsigned int		sysctl_log_invalid; /* Log invalid packets */
++	int			sysctl_nodefrag;
+ #ifdef CONFIG_SYSCTL
+ 	struct ctl_table_header	*sysctl_header;
+ 	struct ctl_table_header	*acct_sysctl_header;
+diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
+index 9bb1b8a..f4908b3 100644
+--- a/net/ipv4/netfilter/nf_defrag_ipv4.c
++++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
+@@ -74,6 +74,14 @@ static unsigned int ipv4_conntrack_defrag(unsigned int hooknum,
+ 		return NF_ACCEPT;
+ 
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
++	/* Check for no defrag options */
++	{
++		const struct net_device *dev = (hooknum == NF_INET_LOCAL_OUT ?
++						out : in);
++
++		if (dev_net(dev)->ct.sysctl_nodefrag)
++			return NF_ACCEPT;
++	}
+ #if !defined(CONFIG_NF_NAT) && !defined(CONFIG_NF_NAT_MODULE)
+ 	/* Previously seen (loopback)?  Ignore.  Do this before
+ 	   fragment check. */
+diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+index cdd6d04..4b0a05b 100644
+--- a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
++++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+@@ -61,6 +61,12 @@ static unsigned int ipv6_defrag(unsigned int hooknum,
+ 	struct sk_buff *reasm;
+ 
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
++	/* Check for no defrag options */
++	const struct net_device *dev = (hooknum == NF_INET_LOCAL_OUT ?
++					out : in);
++
++	if (dev_net(dev)->ct.sysctl_nodefrag)
++		return NF_ACCEPT;
+ 	/* Previously seen (loopback)?	*/
+ 	if (skb->nfct && !nf_ct_is_template((struct nf_conn *)skb->nfct))
+ 		return NF_ACCEPT;
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 885f5ab..95c489f 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -446,6 +446,13 @@ static ctl_table nf_ct_sysctl_table[] = {
+ 		.extra2		= &log_invalid_proto_max,
+ 	},
+ 	{
++		.procname	= "nf_conntrack_nodefrag",
++		.data		= &init_net.ct.sysctl_nodefrag,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec,
++	},
++	{
+ 		.procname	= "nf_conntrack_expect_max",
+ 		.data		= &nf_ct_expect_max,
+ 		.maxlen		= sizeof(int),
+@@ -493,6 +500,7 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
+ 	table[2].data = &net->ct.htable_size;
+ 	table[3].data = &net->ct.sysctl_checksum;
+ 	table[4].data = &net->ct.sysctl_log_invalid;
++	table[5].data = &net->ct.sysctl_nodefrag;
+ 
+ 	net->ct.sysctl_header = register_net_sysctl_table(net,
+ 					nf_net_netfilter_sysctl_path, table);
+-- 
+1.7.2.3
 
-Thanks for the explanation!
-
-Wouldn't it make sense to check for bridge-nf-call-iptables in xt_physdev=
-?
-So that the user gets warned that his iptables rule will never match...
-
-Thanks,
-//richard
-
-
-
---------------enig6E73FD4239D9CA1170A15979
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQEcBAEBAgAGBQJPA2UNAAoJEN9758yqZn9esRYIAIk5GxS5s1dkDZwOKdvuUUCZ
-3AQddHjP1yAMsluheZCXjgZNJ6cItl0T+y+0iwKZow0oNHkjp8czgCfyF6W97xSm
-4fAKYDwAMfwiJsqunvOowVBo1+xFTVLBsOo9fAf/6zsRbKJrth2oNG3ijRa5iZuf
-mwbs1j3AdCWGUksF7vKVDemkO3eXFX8tdDbqfFKGfjdjPXRMo0AGzMkkNKZFfhJ8
-v1llsdO1y5+Z+G8fK3BOyHdUzaCUHqYtLJ4GEznF3IqyFXcSir51dhwkfnidAnUP
-rtKYds5Rd7WsbAnSseb0eJWMLHz4/XwqEdOJBpAG+TzLIZA48B8kST6DZdFoQCc=
-=LJRl
------END PGP SIGNATURE-----
-
---------------enig6E73FD4239D9CA1170A15979--
