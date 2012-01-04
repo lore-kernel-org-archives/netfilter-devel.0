@@ -1,26 +1,31 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 1/1] netfilter: Add possibility to turn off netfilters
- defrag per netns
-Date: Wed, 4 Jan 2012 19:05:10 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1201041857350.3170@blackhole.kfki.hu>
-References: <1325664443-10320-1-git-send-email-hans.schillstrom@ericsson.com> <201201041118.18552.hans.schillstrom@ericsson.com> <alpine.LNX.2.01.1201041216010.2645@frira.zrqbmnf.qr> <201201041248.36881.hans.schillstrom@ericsson.com>
- <20120104174035.GB3489@1984>
+From: Hans Schillstrom <hans@schillstrom.com>
+Subject: Re: [PATCH 1/1] netfilter: Add possibility to turn off netfilters defrag per netns
+Date: Wed, 4 Jan 2012 21:45:10 +0100
+Message-ID: <201201042145.10698.hans@schillstrom.com>
+References: <1325664443-10320-1-git-send-email-hans.schillstrom@ericsson.com> <201201041248.36881.hans.schillstrom@ericsson.com> <20120104174035.GB3489@1984>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
 	Jan Engelhardt <jengelh@medozas.de>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	Patrick McHardy <kaber@trash.net>,
 	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"hans@schillstrom.com" <hans@schillstrom.com>
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:52262 "EHLO
+	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755425Ab2ADUpP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Jan 2012 15:45:15 -0500
 In-Reply-To: <20120104174035.GB3489@1984>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 4 Jan 2012, Pablo Neira Ayuso wrote:
 
+On Wednesday, January 04, 2012 18:40:35 Pablo Neira Ayuso wrote:
 > On Wed, Jan 04, 2012 at 12:48:35PM +0100, Hans Schillstrom wrote:
 > > I like that idea, an "early" table at prio -500 with PREROUTING.
 > > There is also a need for a new flag "--allfrags"
@@ -39,21 +44,78 @@ On Wed, 4 Jan 2012, Pablo Neira Ayuso wrote:
 > some traffic yes and other not.
 > 
 > Am I missing anything else?
+>
 
-I agree. If you don't want defragmentation at all, then make sure you 
-don't load the nf_conntrack module directly/indirectly. Conntrack doesn't 
-work without defragmentation anyway.
+I might have been a little bit unclear, so I'll try the opposite :-)
 
-The only thing what such a really-early table could buy at the moment is 
-to specify which flows not to defragment at layer 3 level.
+Network namesapce i.e. Linux Containers (LXC) creates new possibilities,
+Linux moves to new domains - Large Clusters controllers.
 
-If we had dynamic hooks registration and hook priorities at table level, 
-that'd come handy now.
+When you have two or more interfaces (on different machines) that receives data
+from the Internet you will sooner or later end up with fragments on different
+interfaces.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+If you deal with Virtual IP:s in the cluster (which is very common)
+there must be some place where packet defrag occurs, before sending
+it to a load balancer.
+
+Hardware is cheap but space and power consumption is not, so
+no one wants extra hardware. If possible extra hops should also be avoided.
+
+With existing functionality an extra level of physical machines must be
+added between the (FW/GW) and the Load-Balancers to do the defrag,
+which is not very efficient.
+
+With a solution where it's possible to sort out fragments early
+(based on ex source address) and send them to the same Container for defragmentation
+no extra hardware is needed and only fragmented packet have an extra hop.
+
+
+A Simplified Example:
+(ASCII grapichs have some limitaions)
+
+            Blade 1
+         +------------+
+         |   +-----+  | Defrag/LB
+Inet A   |   | FW. |  |  Trafic                 VIP 11.1.1.1
+---------+-> | LXC |--|-->+                     Blade a
+         |   +-----+  |   |                    +-------+
+         |      |<----|---+                    | Appl. |
+         |   +-----+  |   |       +-------- >  | Serv. |
+         |   | LB. |__|___|_______|            +-------+
+         |   | IPVS|  |   |       |
+         |   +-----+  |   |       |
+         +------------+   |       |
+                          |       |
+            Blade 2       |       |
+         +------------+   |       |             VIP 11.1.1.1
+         |   +-----+  |   |       |             Blade b
+Inet B   |   | FW. |  |   |       |            +-------+
+---------+-> | LXC |--|-->|       |            | Appl. |
+         |   +-----+  |   |       +----------> | Serv. |
+         |      | <---|---+       |            +-------+
+         |   +-----+  |   |       |
+         |   | LB. |__|___|_______|
+         |   | IPVS|  |   |       |             VIP 11.1.1.1
+         |   +-----+  |   |       |             Blade c
+         +------------+   |       |            +-------+
+                          |       |            | Appl. |
+            Blade n       |       +--------->  | Serv. |
+         +------------+   |       |            +-------+
+         |   +-----+  |   |       |
+Inet N   |   | FW. |  |   |       |             VIP 11.1.1.1
+---------+-> | LXC |--|-->|       |             Blade x
+         |   +-----+  |   |       |            +-------+
+         |      |<----|---+       |            | Appl. |
+         |   +-----+  |           +--------->  | Serv. |
+         |   | LB. |__|___________|            +-------+
+         |   | IPVS|  |
+         |   +-----+  |
+         +------------+
+
+You might even co-locate the Appl on the FW/GW Blades.
+The ideal solution would be where you can sort out fragments based on interface
+and have defrag on others. (In this case even the first fragment)
+
+Regards
+Hans Schillstrom
