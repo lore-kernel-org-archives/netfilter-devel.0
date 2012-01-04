@@ -1,76 +1,69 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] libnetfilter_conntrack 1.0.0 release
-Date: Wed, 4 Jan 2012 17:42:57 +0100
-Message-ID: <20120104164257.GA3309@1984>
+Subject: Re: [PATCH 1/1] netfilter: Add possibility to turn off netfilters
+ defrag per netns
+Date: Wed, 4 Jan 2012 18:23:41 +0100
+Message-ID: <20120104172341.GA3489@1984>
+References: <1325664443-10320-1-git-send-email-hans.schillstrom@ericsson.com>
+ <alpine.DEB.2.00.1201041000150.925@blackhole.kfki.hu>
+ <alpine.LNX.2.01.1201041030450.23605@frira.zrqbmnf.qr>
+ <201201041047.54579.hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="+HP7ph2BbKc20aGI"
-Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
-	netfilter-announce@lists.netfilter.org, lwn@lwn.net
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Patrick McHardy <kaber@trash.net>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"hans@schillstrom.com" <hans@schillstrom.com>
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: netfilter-owner@vger.kernel.org
+In-Reply-To: <201201041047.54579.hans.schillstrom@ericsson.com>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, Jan 04, 2012 at 10:47:53AM +0100, Hans Schillstrom wrote:
+> On Wednesday 04 January 2012 10:32:14 Jan Engelhardt wrote:
+> > On Wednesday 2012-01-04 10:03, Jozsef Kadlecsik wrote:
+> > 
+> > >On Wed, 4 Jan 2012, Hans Schillstrom wrote:
+> > >
+> > >> On Wednesday 04 January 2012 09:28:05 Jozsef Kadlecsik wrote:
+> > >> > 
+> > >> > On Wed, 4 Jan 2012, Hans Schillstrom wrote:
+> > >> > 
+> > >> > > In some cases it not desirable to have auto defrag.
+> > >> > > Ex. in a cluster where packets can arrive on different blades.
+> > >> > > In that case it is possible to use containers (LXC) and send
+> > >> > > all fragments to one place where defrag is enabled.
+> > >> > > 
+> > >> > > This patch makes it possible to turn off the defrag per network name space,
+> > >> > > by setting net.netfilter.nf_conntrack_nodefrag to 1.
+> > >> > > Both IPv4 and IPv6 is effected by this sysctl.
+> > >> > > Default is 0 which is defrag.
+> > >> > 
+> > >> > Conntrack assumes that the packets are defragmented and will drop any 
+> > >> > unfragmented one. So your patch results packet drops.
+> > >> 
+> > >> Hmmm, more work...
+> > >> > 
+> > >> > Also, if you want to disable defragmentation then why don't you simply 
+> > >> > "mark" the packets with the NOTRACK target?
+> > >> 
+> > >> I don't think that will work since NF_IP_PRI_CONNTRACK_DEFRAG is -400
+> > >
+> > >Then change NF_IP_PRI_RAW so that it precedes NF_IP_PRI_CONNTRACK_DEFRAG. 
+> > >The raw table should be made possible to completely override conntack and 
+> > >defrag is implicit part of the latter.
+> > 
+> > We've been there (me in the thread even) - defrag is running before raw,
+> > because otherwise you could not select packets based upon L4 
+> > parameters for non-defrag in the first place:
+> > 
+> > 	-t raw ... -p udp --dport 53 -j CT --notrack
+> > 
+> > Not that I overly care about whether defrag is before/after raw..
+> > 
+> What about a mod param for ip{6}table_raw so it could be changed ?
 
---+HP7ph2BbKc20aGI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi!
-
-The Netfilter project proudly presents:
-
-        libnetfilter_conntrack-1.0.0
-
-libnetfilter_conntrack is a userspace library providing a programming
-interface (API) to the in-kernel connection tracking state table.
-
-See ChangeLog that comes attached to this email for more details.
-
-You can download it from:
-
-http://www.netfilter.org/projects/libnetfilter_conntrack/downloads.html
-ftp://ftp.netfilter.org/pub/libnetfilter_conntrack/
-
-Have fun!
-
---+HP7ph2BbKc20aGI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="changes-libnetfilter_conntrack-1.0.0.txt"
-
-Andrew Beverley (1):
-      utils: add nfct_destroy() to all examples in utils
-
-Jan Engelhardt (3):
-      Update .gitignore
-      build: use AC_CONFIG_AUX_DIR and stash away tools
-      build: disable implicit .tar.gz archive generation and use POSIX mode
-
-Jiri Popelka (1):
-      conntrack: objopt: NO_EFFECT
-
-Pablo Neira Ayuso (20):
-      build: Linux kernel-style for compilation messages
-      doc: fix missing nfct_copy function not included in doxygen report
-      expect: fix missing parsing of master tuple
-      expect: nfexp_snprintf prints expectation timeout if present
-      expect: nfexp_snprintf displays mask and master tuple information
-      expect: add nfexp_send()
-      expect: support CTA_EXPECT_HELP_NAME
-      expect: modify output by moving zone and flags to the end of the line
-      src: export NFCT_HELPER_NAME_MAX
-      utils: fix expect_get to work with expect_create
-      Merge branch 'master' of git://dev.medozas.de/libnetfilter_conntrack
-      src: clarify licensing terms of library (GPLv2+)
-      conntrack: fix size of CTA_PROTOINFO_TCP_FLAGS_ORIGINAL in ARM
-      include: remove reference to licensing terms from headers
-      src: put nf_expect and nf_conntrack into diet
-      qa: extend test_api to validate set API for conntrack objects
-      conntrack: fix set operation for master IPv6 src and dst
-      expect: extend test_api for the expectation API
-      expect: add nfexp_cmp
-      build: bump version to 1.0.0
-
-
---+HP7ph2BbKc20aGI--
+No obscure modparam tweaks, please.
