@@ -1,73 +1,87 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 1/1] netfilter: Add possibility to turn off netfilters
- defrag per netns
-Date: Wed, 4 Jan 2012 22:40:09 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1201042232510.3934@blackhole.kfki.hu>
-References: <1325664443-10320-1-git-send-email-hans.schillstrom@ericsson.com> <20120104174035.GB3489@1984> <alpine.DEB.2.00.1201041857350.3170@blackhole.kfki.hu> <201201042156.05586.hans@schillstrom.com>
+From: Richard Weinberger <richard@nod.at>
+Subject: Re: [PATCH] netfilter: Fix br_nf_pre_routing() in conjunction with
+ bridge-nf-call-ip(6)tables=0
+Date: Thu, 05 Jan 2012 00:13:29 +0100
+Message-ID: <4F04DD19.601@nod.at>
+References: <4F025A07.2000304@nod.at> <1325597164-13459-1-git-send-email-richard@nod.at> <1325597164-13459-2-git-send-email-richard@nod.at> <20120103081521.2fec3a29@nehalam.linuxnetplumber.net> <4F033E11.5060707@nod.at> <4F0361D7.3000602@pandora.be> <4F03650D.8050200@nod.at> <4F049290.3090803@pandora.be>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Patrick McHardy <kaber@trash.net>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: Hans Schillstrom <hans@schillstrom.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enigB4BE8FEDA6EBD4B15340840A"
+Cc: Stephen Hemminger <shemminger@vyatta.com>, davem@davemloft.net,
+	bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Bart De Schuymer <bdschuym@pandora.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:37594 "EHLO smtp2.kfki.hu"
+Received: from a.ns.miles-group.at ([95.130.255.143]:47835 "EHLO radon.swed.at"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756853Ab2ADVkL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Jan 2012 16:40:11 -0500
-In-Reply-To: <201201042156.05586.hans@schillstrom.com>
+	id S932073Ab2ADXNp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Jan 2012 18:13:45 -0500
+In-Reply-To: <4F049290.3090803@pandora.be>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 4 Jan 2012, Hans Schillstrom wrote:
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigB4BE8FEDA6EBD4B15340840A
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> On Wednesday, January 04, 2012 19:05:10 Jozsef Kadlecsik wrote:
-> > On Wed, 4 Jan 2012, Pablo Neira Ayuso wrote:
-> > 
-> > > On Wed, Jan 04, 2012 at 12:48:35PM +0100, Hans Schillstrom wrote:
-> > > > I like that idea, an "early" table at prio -500 with PREROUTING.
-> > > > There is also a need for a new flag "--allfrags"
-> > > > i.e. all fragments needs to be sorted out and sent to same dest for defrag.
-> > > > 
-> > > > ex.
-> > > > iptables -t early -A PREROUTING -i eth0 --allfrags -j NOTRACK
-> > > 
-> > > New tables add too much overhead. We have discussed this before with
-> > > Patrick.
-> > > 
-> > > Since this still remains specific to your needs, I think you can
-> > > remove nf_conntrack module in your setup.
-> > > 
-> > > I don't come with one sane setup that may want selectively defragment
-> > > some traffic yes and other not.
-> > > 
-> > > Am I missing anything else?
-> > 
-> > I agree. If you don't want defragmentation at all, then make sure you 
-> > don't load the nf_conntrack module directly/indirectly. Conntrack doesn't 
-> > work without defragmentation anyway.
-> 
-> We are using LXC and it's only in the container that holds the external 
-> interface that can't have defragmentation.
-> The problem is if it's loaded you have it in all namespaces :-(
+Am 04.01.2012 18:55, schrieb Bart De Schuymer:
+> Op 3/01/2012 21:29, Richard Weinberger schreef:
+>> Am 03.01.2012 21:15, schrieb Bart De Schuymer:
+>>> The documentation is probably not explicit enough, but I would keep t=
+he
+>>> behavior as it is now. Setting bridge-nf-call-iptables to 0 makes
+>>> iptables behave as if bridge-netfilter was not enabled at compilation=
+=2E
+>>> Anyway, your patch is almost certainly flawed since the fact that
+>>> skb->nf_bridge can be NULL is used as part of the logic in
+>>> br_netfilter.c: it indicates that bridge-nf-call-iptables was 0 when =
+the
+>>> packet was first processed by bridge-netfilter and should therefore n=
+ot
+>>> be given to iptables in any other netfilter hook.
+>> Thanks for the explanation!
+>>
+>> Wouldn't it make sense to check for bridge-nf-call-iptables in
+>> xt_physdev?
+>> So that the user gets warned that his iptables rule will never match..=
+=2E
+>=20
+> We don't want to introduce module dependencies between the bridge modul=
+e
+> and the iptables physdev match.
 
-Conntrack is per net namespaces. You may have one container with conntrack 
-enabled and another one without conntrack.
+CONFIG_NETFILTER_XT_MATCH_PHYSDEV depends anyway on
+CONFIG_BRIDGE_NETFILTER...
 
-Moreover, if you may receive fragments of the same packet at different 
-interfaces in different blades, then you may receive different whole 
-packets of the same flow at different interfaces/blades. But stateful 
-firewalling relies on the assumption that all packets goes through of the 
-firewall. Because it's not assured, conntrack may not run in the 
-containers you denoted as FW LXC.
+> We could add a message to the syslog whenever these proc settings are
+> changed (in br_netfilter.c::brnf_sysctl_call_tables()).
+>=20
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Let's export brnf_call_iptables and brnf_call_ip6tables, such that
+physdev_mt_check() can notify the user that his iptables rule will have
+no effect.
+
+Thanks,
+//richard
+
+
+--------------enigB4BE8FEDA6EBD4B15340840A
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQEcBAEBAgAGBQJPBN0eAAoJEN9758yqZn9eNVoIAKsFri6hfQdyZKl9FsCcHC4r
+kJGjdm2AWAocQb8/yYajPylhrJbS5WK103SjfUXFfRuPdTAr8VBiazo8zrqqy7Oy
++s7iLv1k/tQpS8GcSom67fZOIpRnjshRNMaFIw0IBk1A7CBbJU1HzQaqplSCMAJS
+NeiCVaJbWfOFafiKC8VZDv8gIro0WbroNPJwC+DhzhnDi8Zq2534K4nB1R53JR0W
+wMOJa+QWi5OslHas9a3ZCo7trLxcp+lYpAa9/Q/4u+A82GSMV9t2IRtvcDSAb72o
+cBhI9WTzi2rGUVmL6RBqsXiFFgbSVtCr8GW0n5c4s0OmyyOzAkC9gZqjQjnCVlM=
+=kali
+-----END PGP SIGNATURE-----
+
+--------------enigB4BE8FEDA6EBD4B15340840A--
