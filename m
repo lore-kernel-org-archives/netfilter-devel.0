@@ -1,90 +1,60 @@
-From: Shan Wei <shanwei88@gmail.com>
-Subject: Re: [PATCH 1/2] netfilter: xtables: inclusion of xt_SYSRQ
-Date: Thu, 05 Jan 2012 21:19:08 +0800
-Message-ID: <4F05A34C.10405@gmail.com>
-References: <1271845618-28569-1-git-send-email-jengelh@medozas.de> <1271845618-28569-2-git-send-email-jengelh@medozas.de> <4BCEF6B4.8090105@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/1] netfilter: Add possibility to turn off netfilters
+ defrag per netns
+Date: Thu, 5 Jan 2012 15:18:59 +0100
+Message-ID: <20120105141859.GA8210@1984>
+References: <1325664443-10320-1-git-send-email-hans.schillstrom@ericsson.com>
+ <201201042156.05586.hans@schillstrom.com>
+ <alpine.DEB.2.00.1201042232510.3934@blackhole.kfki.hu>
+ <201201050819.21363.hans.schillstrom@ericsson.com>
+ <alpine.DEB.2.00.1201050959030.5244@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>,
+Content-Type: text/plain; charset=us-ascii
+Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
 	Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	prarit@redhat.com, David Miller <davem@davemloft.net>
-To: john.haxby@oracle.com
+	Patrick McHardy <kaber@trash.net>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:40725 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754517Ab2AENTP (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Jan 2012 08:19:15 -0500
-In-Reply-To: <4BCEF6B4.8090105@trash.net>
+Received: from mail.us.es ([193.147.175.20]:49621 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932460Ab2AEOTE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Jan 2012 09:19:04 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1201050959030.5244@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote, at 2010/4/21 20:59:
-
-> I really think this is pushing what netfilter is meant for a bit
-> far. Its basically abusing the firewall ruleset to offer a network
-> service.
+On Thu, Jan 05, 2012 at 10:11:28AM +0100, Jozsef Kadlecsik wrote:
+> OK, I see. Conntrack is per net namespace but it's enabled globally.
+>  
+> So at the moment I think the best solution is something like your patch 
+> variant (but the condition is wrong, it should be "&& !skb->nfct"):
 > 
-> I can see that its useful to have this in the kernel instead of
-> userspace, but why isn't this implemented as a stand-alone module?
-> That seems like a better design to me and also makes it more useful
-> by not depending on netfilter.
+> --- a/net/ipv4/netfilter/nf_defrag_ipv4.c
+> +++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
+> @@ -74,6 +74,14 @@ static unsigned int ipv4_conntrack_defrag(unsigned int
+> hooknum,
+> ...
+> +       const struct net_device *dev = (hooknum == NF_INET_LOCAL_OUT ?
+> +                                       out : in);
+> +
+> +       /* No defrag and not Previously seen (loopback)? */
+> +       if (dev_net(dev)->ct.sysctl_notrac_defrag && skb->nfct) {
+> +               /* Attach fake conntrack entry. as in NOTRACK */
+> +               skb->nfct = &nf_ct_untracked_get()->ct_general;
+> +               skb->nfctinfo = IP_CT_NEW;
+> +               nf_conntrack_get(skb->nfct);
+> +               return NF_ACCEPT;
+> +       }
+> ...
 
+I prefer the sysctl option as well, the new table is too much and it
+remains too specific for this.
 
-It's very useful to remotely sysrq server machines in large data-center.
-Another solution by Prarit Bhargava is denied by David Miller,
-see discussion http://patchwork.ozlabs.org/patch/101284/.
+I wonder if we can conditionally register the sysctl only if we are
+inside one lxc container.
 
-xt_SYSRQ solution is more convenience for us to use in inner system.
-I hope this solution can be merged to main tree. :-)
-But before that, this code need to be fixed (may be need more hashing enhancement).
-
-> 
->> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
->> ---
->> +module_param_string(password, sysrq_password, sizeof(sysrq_password),
->> +	S_IRUSR | S_IWUSR);
->> +module_param_string(hash, sysrq_hash, sizeof(sysrq_hash), S_IRUSR);
-
-Read only.
-hash algorithm can be changed.
-
->> +module_param_named(seqno, sysrq_seqno, long, S_IRUSR | S_IWUSR);
-
-sysrq_seqno is set using current time in sysrq_crypto_init.
-Whatever we set, sysrq_seqno is not equal to what we set.
-
->> +	if (len == 0)
->> +		return NF_DROP;
-
-malformed packet should be delivered to udp protocol handing.
- 
-
-
->> +	if (i != 3) {
->> +		if (sysrq_debug)
->> +			pr_info("badly formatted request\n");
->> +		return NF_DROP;
-
-Is there 1% possibility for user to send x,x,x,x, type data in udp payload?
-
->> +	do_gettimeofday(&now);
->> +	sysrq_seqno = now.tv_sec;
->> +	ret = xt_register_targets(sysrq_tg_reg, ARRAY_SIZE(sysrq_tg_reg));
-
-register target.
-
->> +static int __init sysrq_tg_init(void)
->> +{
->> +	if (sysrq_crypto_init() < 0)
->> +		pr_info("starting without crypto\n");
->> +	return xt_register_targets(sysrq_tg_reg, ARRAY_SIZE(sysrq_tg_reg));
-
-register again. This will cause target list dead loop.
-
---
-Best Regards
-Shan Wei
+I'm telling this because this sysctl does not seem to make any sense
+to me outside of it.
