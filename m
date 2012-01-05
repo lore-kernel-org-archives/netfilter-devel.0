@@ -1,60 +1,53 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] netfilter: Add possibility to turn off netfilters
- defrag per netns
-Date: Thu, 5 Jan 2012 15:18:59 +0100
-Message-ID: <20120105141859.GA8210@1984>
-References: <1325664443-10320-1-git-send-email-hans.schillstrom@ericsson.com>
- <201201042156.05586.hans@schillstrom.com>
- <alpine.DEB.2.00.1201042232510.3934@blackhole.kfki.hu>
- <201201050819.21363.hans.schillstrom@ericsson.com>
- <alpine.DEB.2.00.1201050959030.5244@blackhole.kfki.hu>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: [PATCH] netfilter: Fix br_nf_pre_routing() in
+ conjunction with bridge-nf-call-ip(6)tables=0
+Date: Thu, 05 Jan 2012 20:50:45 +0100
+Message-ID: <4F05FF15.5010809@pandora.be>
+References: <4F025A07.2000304@nod.at>
+	<1325597164-13459-1-git-send-email-richard@nod.at>
+	<1325597164-13459-2-git-send-email-richard@nod.at>
+	<20120103081521.2fec3a29@nehalam.linuxnetplumber.net>
+	<4F033E11.5060707@nod.at> <4F0361D7.3000602@pandora.be>
+	<4F03650D.8050200@nod.at> <4F049290.3090803@pandora.be>
+	<4F04DD19.601@nod.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Patrick McHardy <kaber@trash.net>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49621 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932460Ab2AEOTE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Jan 2012 09:19:04 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1201050959030.5244@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Stephen Hemminger <shemminger@vyatta.com>, davem@davemloft.net
+To: Richard Weinberger <richard@nod.at>
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+In-Reply-To: <4F04DD19.601@nod.at>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Jan 05, 2012 at 10:11:28AM +0100, Jozsef Kadlecsik wrote:
-> OK, I see. Conntrack is per net namespace but it's enabled globally.
->  
-> So at the moment I think the best solution is something like your patch 
-> variant (but the condition is wrong, it should be "&& !skb->nfct"):
-> 
-> --- a/net/ipv4/netfilter/nf_defrag_ipv4.c
-> +++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
-> @@ -74,6 +74,14 @@ static unsigned int ipv4_conntrack_defrag(unsigned int
-> hooknum,
-> ...
-> +       const struct net_device *dev = (hooknum == NF_INET_LOCAL_OUT ?
-> +                                       out : in);
-> +
-> +       /* No defrag and not Previously seen (loopback)? */
-> +       if (dev_net(dev)->ct.sysctl_notrac_defrag && skb->nfct) {
-> +               /* Attach fake conntrack entry. as in NOTRACK */
-> +               skb->nfct = &nf_ct_untracked_get()->ct_general;
-> +               skb->nfctinfo = IP_CT_NEW;
-> +               nf_conntrack_get(skb->nfct);
-> +               return NF_ACCEPT;
-> +       }
-> ...
+Op 5/01/2012 0:13, Richard Weinberger schreef:
+>
+> Let's export brnf_call_iptables and brnf_call_ip6tables, such that
+> physdev_mt_check() can notify the user that his iptables rule will have
+> no effect.
+>
 
-I prefer the sysctl option as well, the new table is too much and it
-remains too specific for this.
+I don't want to introduce a runtime dependency between the iptables 
+physdev module and the bridge module.
+This should keep working:
+#modprobe bridge
+#modprobe xt_physdev
+#rmmod bridge
+It will stop working if you use exported symbols of the bridge module in 
+the physdev module.
 
-I wonder if we can conditionally register the sysctl only if we are
-inside one lxc container.
+Bart
 
-I'm telling this because this sysctl does not seem to make any sense
-to me outside of it.
+-- 
+Bart De Schuymer
+www.artinalgorithms.be
