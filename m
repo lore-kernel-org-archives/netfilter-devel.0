@@ -1,62 +1,34 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] netfilter: Add possibility to turn off netfilters
- defrag per netns
-Date: Tue, 10 Jan 2012 04:17:14 +0100
-Message-ID: <20120110031714.GA31483@1984>
-References: <1325664443-10320-1-git-send-email-hans.schillstrom@ericsson.com>
- <alpine.DEB.2.00.1201050959030.5244@blackhole.kfki.hu>
- <20120105141859.GA8210@1984>
- <201201090958.43017.hans.schillstrom@ericsson.com>
+From: Fernandez Flor <cajaves@contactosatelital.com.pe>
+Subject: Hi
+Date: Mon, 9 Jan 2012 21:54:06 -0500 (PET)
+Message-ID: <1454211.83059.1326164046420.JavaMail.root@mail>
+Reply-To: "fernanflor1@blumail.org" <fernanflor1@blumail.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Patrick McHardy <kaber@trash.net>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+To: undisclosed-recipients:;
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45253 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932177Ab2AJDRT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Jan 2012 22:17:19 -0500
-Content-Disposition: inline
-In-Reply-To: <201201090958.43017.hans.schillstrom@ericsson.com>
+Received: from mail.contactosatelital.com.pe ([190.41.107.130]:51063 "EHLO
+	mail.contactosatelital.com.pe" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755999Ab2AJDr1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Jan 2012 22:47:27 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Hans,
 
-On Mon, Jan 09, 2012 at 09:58:42AM +0100, Hans Schillstrom wrote:
-> > I wonder if we can conditionally register the sysctl only if we are
-> > inside one lxc container.
-> > 
-> Sure no problem, but the code will not be so nice ... 
 
-Indeed, ugly indeed.
+Hello,
 
-> > I'm telling this because this sysctl does not seem to make any sense
-> > to me outside of it.
-> 
-> I'm not so sure that we should make it asymetric,
-> but it's not a big deal.
-> 
-> Anyway here is a sample of the sysctl in a namespace.
-> It is the  "if (!net_eq(net, &init_net)) {..." that does the magic
+My name is Fernandez Flor, I am the branch manager of Banco pichincha Quito Ecuador.
+I have packaged a financial transaction that will benefit both of us, which
+involves three million seven hundred and fifty thousand dollar $3,750.000.00.
+Mean While you will have 35% of the total fund after the transaction.
 
-Hm, after having a look at it, I think I prefer to provide some
-inconditional sysctl.
+If you accept this offer to work with me i will give you details on how we can
+achieve it successfully. Please contact me with this email address:
+fernanflor1@blumail.org
 
-Better call it nf_conntrack_enable and set it to 1 by default. AFAICS,
-this will be a synonymous of:
+Best Regards
+Mr.Fernandez Flor
 
-iptables -I PREROUTING -t raw -j NOTRACK
-
-This option is disabling conntracking after all. I don't think we
-would ever support conntrack with fragments.
-
-Please, send a patch including in the description that we need this
-for lxc, I'll enqueue it for net-next unless someone raise the hand
-with a better solution.
-
-Thanks.
