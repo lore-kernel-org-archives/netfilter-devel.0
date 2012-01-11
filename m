@@ -1,148 +1,100 @@
-From: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Subject: [v6 PATCH 0/3] NETFILTER new target module, HMARK
-Date: Tue, 10 Jan 2012 14:20:03 +0100
-Message-ID: <1326201606-17241-1-git-send-email-hans.schillstrom@ericsson.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: [PATCH] netfilter: fix unused variable warning in xt_hashlimit.c
+Date: Wed, 11 Jan 2012 11:52:17 +1100
+Message-ID: <20120111115217.b5db064c4bf233a4e1df42b8@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: <hans@schillstrom.com>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>
-To: <kaber@trash.net>, <pablo@netfilter.org>, <jengelh@medozas.de>,
-	<netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailgw10.se.ericsson.net ([193.180.251.61]:62765 "EHLO
-	mailgw10.se.ericsson.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756248Ab2AJNUL (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Jan 2012 08:20:11 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Wed__11_Jan_2012_11_52_17_+1100_B.oiuv/7=ykjb1zD"
+Cc: "David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The target allows you to create rules in the "raw" and "mangle" tables
-which alter the netfilter mark (nfmark) field within a given range.
-First a 32 bit hash value is generated then modulus by <limit> and
-finally an offset is added before it's written to nfmark.
-Prior to routing, the nfmark can influence the routing method (see
-"Use netfilter MARK value as routing key") and can also be used by
-other subsystems to change their behavior.
+--Signature=_Wed__11_Jan_2012_11_52_17_+1100_B.oiuv/7=ykjb1zD
+Content-Type: text/plain; charset=UTF-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The mark match can also be used to match nfmark produced by this module.
-See the kernel module for more info.
+Fixes this warning when CONFIG_IP6_NF_IPTABLES is not enabled:
 
-REVISION
-Version 6
-        Removed ipv6_find_hdr() wrapper (Pablo)
-	NAT / Conntrack compilation switches.
+net/netfilter/xt_hashlimit.c: In function =E2=80=98hashlimit_init_dst=E2=80=
+=99:
+net/netfilter/xt_hashlimit.c:448:9: warning: unused variable =E2=80=98frag_=
+off=E2=80=99 [-Wunused-variable]
 
-Version 5
-	Use length of mask an smask and dmask and whole IPv6 addr (Jan E)
-	Modify ipv6_find_hdr() and use it while traversing the IPv6 header.
-        Manual changes.
-	More or less all comments implemented.
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+---
+ net/netfilter/xt_hashlimit.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-Version 4
-	Split of IPv6 and IPv4, use IP_CT_IS_REPLY, as Pablo suggested.
-	removed one pskb_may_pull()
-	xtoption parse used in the user space part.
+Sorry for the wide posting, but the MAINTAINERS file is not clear about
+which mailing lists are relevant.
 
-Version 3
-        Handling of SCTP for IPv6 added.
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 8e49921..d95f9c9 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -445,7 +445,6 @@ hashlimit_init_dst(const struct xt_hashlimit_htable *hi=
+nfo,
+ {
+ 	__be16 _ports[2], *ports;
+ 	u8 nexthdr;
+-	__be16 frag_off;
+ 	int poff;
+=20
+ 	memset(dst, 0, sizeof(*dst));
+@@ -466,6 +465,9 @@ hashlimit_init_dst(const struct xt_hashlimit_htable *hi=
+nfo,
+ 		break;
+ #if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+ 	case NFPROTO_IPV6:
++	{
++		__be16 frag_off;
++
+ 		if (hinfo->cfg.mode & XT_HASHLIMIT_HASH_DIP) {
+ 			memcpy(&dst->ip6.dst, &ipv6_hdr(skb)->daddr,
+ 			       sizeof(dst->ip6.dst));
+@@ -485,6 +487,7 @@ hashlimit_init_dst(const struct xt_hashlimit_htable *hi=
+nfo,
+ 		if ((int)protoff < 0)
+ 			return -1;
+ 		break;
++	}
+ #endif
+ 	default:
+ 		BUG();
+--=20
+1.7.8.197.g73c6b
 
-Version 2
-	NAT Added for IPv4
-	IPv6 ICMP handling enhanced.
-	Usage example added
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
 
-Version 1
-	Initial RFC
+--Signature=_Wed__11_Jan_2012_11_52_17_+1100_B.oiuv/7=ykjb1zD
+Content-Type: application/pgp-signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-We (Ericsson) use hmark in-front of ipvs as a pre-loadbalancer and
-handles up to 70 ipvs running in parallel in clusters.
-However hmark is not restricted to run in front of IPVS it can also be used as
-"poor mans" load balancer.
-With this version is also NAT supported as an option, with very high flows
-you might not want to use conntrack.
+iQIcBAEBCAAGBQJPDN1BAAoJEECxmPOUX5FEr0wP/3/an3mvFqpWxZe25LjlMpzT
+3qjaVWOX5zmelm8IU5MUcjLFw5ofMxy6vUAH6CUFnCqy0di0fIOUnIXkGhcDuMI1
+O8sXILErzoV/klu5vut6RMdtQvdKj6U2CBAvBqEcAacQ3Er2r3hUXM0D4JwXhZYq
+sf5DuA7RtFCNuscLXgHJKpkEXe1WJW7bnRVOpfT6ECzu+ZreLQkoVNyAs9pWb8oK
+Zl4tspaWztat74uyMhytSiTPD07tJycIEwd6Lw/214gvi86sDmXc7pzgi/wFQgSQ
+ZNcG+DuDrDrSjPk2TzX9xol+J9PZoOEQCgQDVzSWcDgV6bokEe6qlv/Vts1tyGxp
+6o/+Yz9MtQpqlZHDfCuofQVeayTe+t+X1MYF175B5G+vdc07itn5SFnKAuRfSB2s
+u6RjGBYPm3TbwIJbijvzrhPD+oZotY+a3hTX+kWFDPZKYoLv1PTPAnc/jM3a6i+p
+8THwbtnFMAmlPkI1zW1NYrHlR+UqUpm5rMck34RqM8P+ZI2s2dLgpxZnSxGd0n7v
+umQPWDNyW5vcygZEZMiTb1AlKvhVy9p12YhiHikb/HdnIWUf/hlu41we4mw9HORM
+qSwCwVRx2HN5+e0WDR31bxUpvjQ+U+nL8RSCwIRlhyzVB5JY+JDNCdWbvZ1xCziL
+QjRWKTP9z9645O7eHyZY
+=3ZMy
+-----END PGP SIGNATURE-----
 
-The idea is to generate a direction independent fw mark range to use as input to
-the routing (i.e. ip rule add fwmark ...).
-Pretty straight forward and simple.
-
-
-Example:
-                                      App Server (Real Server)
-
-                                           +---------+
-                                        -->| Service |
-     Gateway A                             +---------+
-                          /
-            +----------+ /     +----+      +---------+
---- if -A---| selector |---->  |ipvs|  --->| Service |
-            +----------+ \     +----+      +---------+
-                          \
-                               +----+      +---------+
-                               |ipvs|   -->| Service |
-                               +----+      +---------+
-      Gateway C
-            +----------+ /     +----+
---- if-B ---| selector | --->  |ipvs|
-            +----------+ \     +----+      +---------+
-                                           | Service |
-                                           +---------+
-                          /
-            +----------+ /     +----+     ..
---- if-B ---| selector | --->  |ipvs|      +---------+
-            +----------+ \     +----+      | Service |
-                          \                +---------+
-#
-# Example with four ipvs loadbalancers
-#
-iptables -t mangle -I PREROUTING -d $IPADDR -j HMARK --hmark-mod 4 --hmark-offs 100
-
-ip rule add fwmark 100 table 100
-ip rule add fwmark 101 table 101
-ip rule add fwmark 102 table 102
-ip rule add fwmark 103 table 103
-
-ip ro ad table 100 default via x.y.z.1 dev bond1
-ip ro ad table 101 default via x.y.z.2 dev bond1
-ip ro ad table 102 default via x.y.z.3 dev bond1
-ip ro ad table 103 default via x.y.z.4 dev bond1
-
-
-If conntrack doesn't handle the return path,
-do the oposite with HMARK and send it back right to ipvs.
-
-Another exmaple of usage could be if you have cluster originated connections
-and want to spread the connections over a number of interfaces
-(NAT will complpicate things for you in this case)
-
-
-
-                     \  Blade 1
-                      \ +----------+      +---------+
-                    <-- | selector | <--- | Service |
-                      / +----------+      +---------+
-                     /
-   +------+
--- | Gw-A |          \  Blade 2
-   +------+           \ +----------+      +---------+
-   +------+         <-- | selector | <--- | Service |
--- | Gw-B |           / +----------+      +---------+
-   +------+          /
-   +------+
--- | Gw-C |          \
-   +------+           \ +----------+      +---------+
-                    <-- | selector | <--- | Service |
-                      / +----------+      +---------+
-                     /
-
-                     \  Blande -n
-                      \ +----------+      +---------+
-                    <-- | selector | <--- | Service |
-                      / +----------+      +---------+
-                     /
-
-
-Regards
-Hans Schillstrom <hans.schillstrom@ericsson.com>
-
+--Signature=_Wed__11_Jan_2012_11_52_17_+1100_B.oiuv/7=ykjb1zD--
