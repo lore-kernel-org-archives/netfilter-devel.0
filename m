@@ -1,57 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: bridge: netfilter: Fix dependency for
- BRIDGE_NF_EBTABLES
-Date: Tue, 10 Jan 2012 22:32:05 -0800 (PST)
-Message-ID: <20120110.223205.265079469678742211.davem@davemloft.net>
-References: <1326246505-5038-1-git-send-email-festevam@gmail.com>
-	<20120110175251.4b6ad831@nehalam.linuxnetplumber.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: xt_target checkentry()/destroy() semantics
+Date: Wed, 11 Jan 2012 07:45:03 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1201110741110.27346@frira.zrqbmnf.qr>
+References: <4F0CE6C0.6080900@nod.at>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: festevam@gmail.com, netdev@vger.kernel.org,
-	bridge@lists.linux-foundation.org, fabio.estevam@freescale.com,
-	netfilter-devel@vger.kernel.org
-To: shemminger@vyatta.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Richard Weinberger <richard@nod.at>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:50050 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753159Ab2AKGcO (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Jan 2012 01:32:14 -0500
-In-Reply-To: <20120110175251.4b6ad831@nehalam.linuxnetplumber.net>
+Received: from seven.medozas.de ([188.40.89.202]:54014 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752055Ab2AKGpK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Jan 2012 01:45:10 -0500
+In-Reply-To: <4F0CE6C0.6080900@nod.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Stephen Hemminger <shemminger@vyatta.com>
-Date: Tue, 10 Jan 2012 17:52:51 -0800
+On Wednesday 2012-01-11 02:32, Richard Weinberger wrote:
 
-> On Tue, 10 Jan 2012 23:48:25 -0200
-> Fabio Estevam <festevam@gmail.com> wrote:
-> 
->> Fix the following build warning:
->> 
->> warning: (BRIDGE_NF_EBTABLES) selects NETFILTER_XTABLES which has unmet direct dependencies (NET && INET && NETFILTER)
->> 
->> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
->> ---
->>  net/bridge/netfilter/Kconfig |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->> 
->> diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
->> index a9aff9c..9ca621a 100644
->> --- a/net/bridge/netfilter/Kconfig
->> +++ b/net/bridge/netfilter/Kconfig
->> @@ -4,7 +4,7 @@
->>  
->>  menuconfig BRIDGE_NF_EBTABLES
->>  	tristate "Ethernet Bridge tables (ebtables) support"
->> -	depends on BRIDGE && NETFILTER
->> +	depends on BRIDGE && NETFILTER && INET
->>  	select NETFILTER_XTABLES
->>  	help
->>  	  ebtables is a general, extensible frame/packet identification
-> 
-> Almost everybody has INET defined... but still it should be possible to run ebtables
-> without INET layer. Looks like a but in XTABLES to me.
+>Hi!
+>
+>I always thought that checkentry()/destroy() are being called upon rule insertion/deletion.
+>So I assumed that this command sequence prints three times "test_tg_check" and then three times
+>"test_tg_destroy". But it's not the case.
 
-And this needs to be CC:'d to the netfilter folks meanwhile, added...
+One table-replace operation implies add-delete of all rules.
+
+>[90345.773073] test_tg_check
+>[90345.775691] test_tg_check
+>[90345.778330] test_tg_destroy
+>[90347.782798] test_tg_check
+>[90347.785417] test_tg_check
+>[90347.788044] test_tg_check
+>[90347.790663] test_tg_destroy
+>[90347.793454] test_tg_destroy
+>[90372.581020] test_tg_check
+>[90372.583639] test_tg_check
+>[90372.586275] test_tg_destroy
+>
+>Is there a way to detect the insertion/removal of a rule using my TEST target?
+
+test_tg_destroy.
