@@ -1,104 +1,49 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: conntrack, suspicious RCU usage
-Date: Wed, 11 Jan 2012 11:01:51 +0100
-Message-ID: <1326276111.2767.3.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
-References: <201201111025.50994.hans.schillstrom@ericsson.com>
+From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: Re: xt_target checkentry()/destroy() semantics
+Date: Wed, 11 Jan 2012 02:27:26 -0800
+Message-ID: <CAHo-Oow9fZg+O6jkmzN2cLooE6TwsFmOib+1gF5_VXtwXRt=Wg@mail.gmail.com>
+References: <4F0CE6C0.6080900@nod.at>
+	<alpine.LNX.2.01.1201110741110.27346@frira.zrqbmnf.qr>
+	<4F0D5BE4.3040509@nod.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	netfilter-devel@vger.kernel.org
+To: Richard Weinberger <richard@nod.at>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:50783 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932465Ab2AKKBz (ORCPT
+Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:50853 "EHLO
+	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755776Ab2AKK11 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Jan 2012 05:01:55 -0500
-Received: by qcsg13 with SMTP id g13so267401qcs.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Jan 2012 02:01:54 -0800 (PST)
-In-Reply-To: <201201111025.50994.hans.schillstrom@ericsson.com>
+	Wed, 11 Jan 2012 05:27:27 -0500
+Received: by obbup16 with SMTP id up16so652267obb.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Jan 2012 02:27:26 -0800 (PST)
+In-Reply-To: <4F0D5BE4.3040509@nod.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le mercredi 11 janvier 2012 =C3=A0 10:25 +0100, Hans Schillstrom a =C3=A9=
-crit :
-> Hello
-> I got this the first time using conntrack -L when there is a lot of t=
-raffic.
-> It doesn't result in any thing bad yet.
->=20
-> Is this a know thing ?
-> or should I dig into it..
->=20
-> I'm running the latest and greatest conntrack / netfilter tools and l=
-ibs.
->=20
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D
-> [ INFO: suspicious RCU usage. ]
-> -------------------------------
-> /home/hans/evip.git/kvm/net-next.git/include/net/netfilter/nf_conntra=
-ck_l3proto.h:92 suspicious rcu_dereference_check() usage!
->=20
-> other info that might help us debug this:
->=20
->=20
-> rcu_scheduler_active =3D 1, debug_locks =3D 0
-> 3 locks held by conntrack/2249:
->  #0:  (nfnl_mutex){+.+.+.}, at: [<ffffffff812cd29f>] nfnl_lock+0x17/0=
-x19
->  #1:  (nlk->cb_mutex){+.+.+.}, at: [<ffffffff812c7211>] netlink_dump+=
-0x27/0x1ec
->  #2:  (nf_conntrack_lock){+.-...}, at: [<ffffffffa00b8922>] 0xfffffff=
-fa00b8922
->=20
-> stack backtrace:
-> Pid: 2249, comm: conntrack Tainted: G        W    3.2.0+ #34
-> Call Trace:
->  [<ffffffff8102ee61>] ? console_unlock+0x164/0x20c
->  [<ffffffff81078542>] lockdep_rcu_suspicious+0xd8/0xe1
->  [<ffffffffa00b78aa>] 0xffffffffa00b78a9
->  [<ffffffffa00b819c>] 0xffffffffa00b819b
->  [<ffffffffa00b898f>] 0xffffffffa00b898e
->  [<ffffffff812c725e>] netlink_dump+0x74/0x1ec
->  [<ffffffffa00b88e4>] ? 0xffffffffa00b88e3
->  [<ffffffff812c7a43>] netlink_dump_start+0x103/0x135
->  [<ffffffffa00b77fa>] ? 0xffffffffa00b77f9
->  [<ffffffffa00b86a8>] 0xffffffffa00b86a7
->  [<ffffffff812cd29f>] ? nfnl_lock+0x17/0x19
->  [<ffffffff812cd734>] nfnetlink_rcv_msg+0x493/0x4cd
->  [<ffffffff812cd3bc>] ? nfnetlink_rcv_msg+0x11b/0x4cd
->  [<ffffffff812cd359>] ? nfnetlink_rcv_msg+0xb8/0x4cd
->  [<ffffffff812c6c51>] ? netlink_lookup+0xc4/0xcf
->  [<ffffffff812cd2a1>] ? nfnl_lock+0x19/0x19
->  [<ffffffff812c87d2>] netlink_rcv_skb+0x43/0x94
->  [<ffffffff812cd207>] nfnetlink_rcv+0x15/0x17
->  [<ffffffff812c853a>] netlink_unicast+0x13d/0x1b4
->  [<ffffffff812c8e32>] netlink_sendmsg+0x201/0x269
->  [<ffffffff812962ef>] sock_sendmsg+0xea/0x109
->  [<ffffffff81077fdf>] ? lock_release_holdtime+0xfd/0x102
->  [<ffffffff810e2755>] ? might_fault+0x40/0x90
->  [<ffffffff810e2755>] ? might_fault+0x40/0x90
->  [<ffffffff810e2755>] ? might_fault+0x40/0x90
->  [<ffffffff810e279e>] ? might_fault+0x89/0x90
->  [<ffffffff810e2755>] ? might_fault+0x40/0x90
->  [<ffffffff812948ec>] ? move_addr_to_kernel+0x3f/0x56
->  [<ffffffff81296a65>] sys_sendto+0x102/0x12a
->  [<ffffffff810faf10>] ? kmem_cache_free+0xc7/0x1b2
->  [<ffffffff81079651>] ? trace_hardirqs_on+0xd/0xf
->  [<ffffffff813ba612>] system_call_fastpath+0x16/0x1b
->=20
->=20
-
-Hmm, we either need to take rcu_read_lock() while calling
-__nf_ct_l3proto_find(), or define a variant using
-rcu_dereference_protected() in places we hold nf_conntrack_lock
+every change, whether addition or deletion is done via table-replacement.
+the only modification operation supported is table replacement.
+so you're making 6 table replecaments with those 6 commands.
 
 
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, Jan 11, 2012 at 01:52, Richard Weinberger <richard@nod.at> wrote:
+> Am 11.01.2012 07:45, schrieb Jan Engelhardt:
+>> On Wednesday 2012-01-11 02:32, Richard Weinberger wrote:
+>>
+>>> Hi!
+>>>
+>>> I always thought that checkentry()/destroy() are being called upon rule insertion/deletion.
+>>> So I assumed that this command sequence prints three times "test_tg_check" and then three times
+>>> "test_tg_destroy". But it's not the case.
+>>
+>> One table-replace operation implies add-delete of all rules.
+>
+> Okay, I did not know that my simple command sequence is causing a table-replacement.
+> Why?
+>
+> I thought it appends (-A) only...
+>
+> Thanks,
+> //richard
+>
