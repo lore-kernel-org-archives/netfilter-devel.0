@@ -1,100 +1,141 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: [PATCH] netfilter: fix unused variable warning in xt_hashlimit.c
-Date: Wed, 11 Jan 2012 11:52:17 +1100
-Message-ID: <20120111115217.b5db064c4bf233a4e1df42b8@canb.auug.org.au>
+From: Richard Weinberger <richard@nod.at>
+Subject: xt_target checkentry()/destroy() semantics
+Date: Wed, 11 Jan 2012 02:32:48 +0100
+Message-ID: <4F0CE6C0.6080900@nod.at>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Wed__11_Jan_2012_11_52_17_+1100_B.oiuv/7=ykjb1zD"
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig0322B81B7E3F56E67DCF899F"
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from a.ns.miles-group.at ([95.130.255.143]:47834 "EHLO radon.swed.at"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932623Ab2AKBcw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Jan 2012 20:32:52 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
---Signature=_Wed__11_Jan_2012_11_52_17_+1100_B.oiuv/7=ykjb1zD
-Content-Type: text/plain; charset=UTF-8
-Content-Disposition: inline
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig0322B81B7E3F56E67DCF899F
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: quoted-printable
 
-Fixes this warning when CONFIG_IP6_NF_IPTABLES is not enabled:
+Hi!
 
-net/netfilter/xt_hashlimit.c: In function =E2=80=98hashlimit_init_dst=E2=80=
-=99:
-net/netfilter/xt_hashlimit.c:448:9: warning: unused variable =E2=80=98frag_=
-off=E2=80=99 [-Wunused-variable]
+I always thought that checkentry()/destroy() are being called upon rule i=
+nsertion/deletion.
+So I assumed that this command sequence prints three times "test_tg_check=
+" and then three times
+"test_tg_destroy". But it's not the case.
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+$ iptables -A INPUT -j TEST
+$ iptables -A INPUT -j TEST
+$ iptables -A INPUT -j TEST
+$ iptables -D INPUT -j TEST
+$ iptables -D INPUT -j TEST
+$ iptables -D INPUT -j TEST
+
+This is the real output:
+(On 3.2.0-rc6)
+
+[90330.168306] test_tg_destroy
+[90330.171099] test_tg_destroy
+[90330.173901] test_tg_destroy
+[90343.768654] test_tg_check
+[90345.773073] test_tg_check
+[90345.775691] test_tg_check
+[90345.778330] test_tg_destroy
+[90347.782798] test_tg_check
+[90347.785417] test_tg_check
+[90347.788044] test_tg_check
+[90347.790663] test_tg_destroy
+[90347.793454] test_tg_destroy
+[90372.581020] test_tg_check
+[90372.583639] test_tg_check
+[90372.586275] test_tg_destroy
+[90372.589059] test_tg_destroy
+[90372.591843] test_tg_destroy
+[90374.596452] test_tg_check
+[90374.599080] test_tg_destroy
+[90374.601875] test_tg_destroy
+[90376.606409] test_tg_destroy
+
+How comes that?
+Is there a way to detect the insertion/removal of a rule using my TEST ta=
+rget?
+
+The comments in x_tables.h are not really helpful.
+        /* Called when user tries to insert an entry of this type:
+           hook_mask is a bitmask of hooks from which it can be
+           called. */
+        /* Should return 0 on success or an error code otherwise (-Exxxx)=
+=2E */
+        int (*checkentry)(const struct xt_tgchk_param *);
+
+        /* Called when entry of this type deleted. */
+        void (*destroy)(const struct xt_tgdtor_param *);
+
+Thanks,
+//richard
+
+P.s: The TEST target is attached.
+
 ---
- net/netfilter/xt_hashlimit.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+static unsigned int
+test_tg(struct sk_buff *skb, const struct xt_action_param *par)
+{
+        return XT_CONTINUE;
+}
 
-Sorry for the wide posting, but the MAINTAINERS file is not clear about
-which mailing lists are relevant.
+static int test_tg_check(const struct xt_tgchk_param *par)
+{
+        printk(KERN_ERR "test_tg_check\n");
+        return 0;
+}
 
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 8e49921..d95f9c9 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -445,7 +445,6 @@ hashlimit_init_dst(const struct xt_hashlimit_htable *hi=
-nfo,
- {
- 	__be16 _ports[2], *ports;
- 	u8 nexthdr;
--	__be16 frag_off;
- 	int poff;
-=20
- 	memset(dst, 0, sizeof(*dst));
-@@ -466,6 +465,9 @@ hashlimit_init_dst(const struct xt_hashlimit_htable *hi=
-nfo,
- 		break;
- #if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
- 	case NFPROTO_IPV6:
-+	{
-+		__be16 frag_off;
-+
- 		if (hinfo->cfg.mode & XT_HASHLIMIT_HASH_DIP) {
- 			memcpy(&dst->ip6.dst, &ipv6_hdr(skb)->daddr,
- 			       sizeof(dst->ip6.dst));
-@@ -485,6 +487,7 @@ hashlimit_init_dst(const struct xt_hashlimit_htable *hi=
-nfo,
- 		if ((int)protoff < 0)
- 			return -1;
- 		break;
-+	}
- #endif
- 	default:
- 		BUG();
---=20
-1.7.8.197.g73c6b
+static void test_tg_destroy(const struct xt_tgdtor_param *par)
+{
+        printk(KERN_ERR "test_tg_destroy\n");
+}
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
+static struct xt_target test_tg_reg __read_mostly =3D {
+        .name           =3D "TEST",
+        .family         =3D NFPROTO_IPV4,
+        .target         =3D test_tg,
+        .targetsize     =3D 0,
+        .checkentry     =3D test_tg_check,
+        .destroy        =3D test_tg_destroy,
+        .me             =3D THIS_MODULE,
+};
 
---Signature=_Wed__11_Jan_2012_11_52_17_+1100_B.oiuv/7=ykjb1zD
-Content-Type: application/pgp-signature
+static void __exit test_exit(void)
+{
+        xt_unregister_target(&test_tg_reg);
+}
+module_exit(test_exit);
+
+static int __init test_init(void)
+{
+        return xt_register_target(&test_tg_reg);
+}
+module_init(test_init);
+
+
+--------------enig0322B81B7E3F56E67DCF899F
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Version: GnuPG v2.0.18 (GNU/Linux)
 
-iQIcBAEBCAAGBQJPDN1BAAoJEECxmPOUX5FEr0wP/3/an3mvFqpWxZe25LjlMpzT
-3qjaVWOX5zmelm8IU5MUcjLFw5ofMxy6vUAH6CUFnCqy0di0fIOUnIXkGhcDuMI1
-O8sXILErzoV/klu5vut6RMdtQvdKj6U2CBAvBqEcAacQ3Er2r3hUXM0D4JwXhZYq
-sf5DuA7RtFCNuscLXgHJKpkEXe1WJW7bnRVOpfT6ECzu+ZreLQkoVNyAs9pWb8oK
-Zl4tspaWztat74uyMhytSiTPD07tJycIEwd6Lw/214gvi86sDmXc7pzgi/wFQgSQ
-ZNcG+DuDrDrSjPk2TzX9xol+J9PZoOEQCgQDVzSWcDgV6bokEe6qlv/Vts1tyGxp
-6o/+Yz9MtQpqlZHDfCuofQVeayTe+t+X1MYF175B5G+vdc07itn5SFnKAuRfSB2s
-u6RjGBYPm3TbwIJbijvzrhPD+oZotY+a3hTX+kWFDPZKYoLv1PTPAnc/jM3a6i+p
-8THwbtnFMAmlPkI1zW1NYrHlR+UqUpm5rMck34RqM8P+ZI2s2dLgpxZnSxGd0n7v
-umQPWDNyW5vcygZEZMiTb1AlKvhVy9p12YhiHikb/HdnIWUf/hlu41we4mw9HORM
-qSwCwVRx2HN5+e0WDR31bxUpvjQ+U+nL8RSCwIRlhyzVB5JY+JDNCdWbvZ1xCziL
-QjRWKTP9z9645O7eHyZY
-=3ZMy
+iQEcBAEBAgAGBQJPDObBAAoJEN9758yqZn9elDYIAJ7oST+tJdpyj1oQtXjt20yo
+1ACRfUT5xueTfozEt0znYdQhzZ929B8gcxBeNH3K60g+0RIZX3qDTh6wtJM6OwPz
+0yEh+y0IRywRxKO9lXaS1zQyZHmQpys0lMgOYUidWzUxpt0EAtrlfptuyjhPO80M
+DYc21ZWgRvrUiVq8Gh8CuUSZ80EJgbw/ChPdG9QSA2ik/NDmoCpdAelOUPgG7AFS
+WqHyrXfYZK3Ka0GSEvG8IaU+7f5u+x58YlSPqmRhxz0aflgsICriSREHpsLV2kXn
+7BjS3h+9tv+7YHFZOdnUzD4+SrUYSU9VXx3X+n7eewHZD70W7mJBctGr2PQ0iA8=
+=+w4m
 -----END PGP SIGNATURE-----
 
---Signature=_Wed__11_Jan_2012_11_52_17_+1100_B.oiuv/7=ykjb1zD--
+--------------enig0322B81B7E3F56E67DCF899F--
