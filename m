@@ -1,66 +1,41 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: conntrack, suspicious RCU usage
-Date: Thu, 12 Jan 2012 03:35:40 +0100
-Message-ID: <20120112023540.GC12255@1984>
-References: <201201111025.50994.hans.schillstrom@ericsson.com>
- <1326276111.2767.3.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
- <201201111424.27282.hans.schillstrom@ericsson.com>
- <1326288835.2767.26.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
- <1326293812.2767.37.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+Subject: Re: Ulog/filter device name does not match effective device name
+ of data flow: expected?
+Date: Thu, 12 Jan 2012 03:46:54 +0100
+Message-ID: <20120112024654.GD12255@1984>
+References: <9F69795E29C890408AC2DAF646C89BB379CF93964B@MAILBOX.arc.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Fiedler Roman <Roman.Fiedler@ait.ac.at>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:38752 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751958Ab2ALCq5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Jan 2012 21:46:57 -0500
 Content-Disposition: inline
-In-Reply-To: <1326293812.2767.37.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <9F69795E29C890408AC2DAF646C89BB379CF93964B@MAILBOX.arc.local>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jan 11, 2012 at 03:56:52PM +0100, Eric Dumazet wrote:
-> Le mercredi 11 janvier 2012 =E0 14:33 +0100, Eric Dumazet a =E9crit :
-> > Le mercredi 11 janvier 2012 =E0 14:24 +0100, Hans Schillstrom a =E9=
-crit :
-> > > On Wednesday 11 January 2012 11:01:51 Eric Dumazet wrote:
-> >=20
-> > > > Hmm, we either need to take rcu_read_lock() while calling
-> > > > __nf_ct_l3proto_find(), or define a variant using
-> > > > rcu_dereference_protected() in places we hold nf_conntrack_lock
-> > > >=20
-> > > I made a qick test with locks /unlocks in
-> > > __nf_ct_l3proto_find() and __nf_ct_l4proto_find()
-> > >=20
-> > > 	rcu_read_lock();
-> > > ...
-> > > 	rcu_read_unlock();
-> > > 	return retp;
-> > >=20
-> > > It seems to help, I cant see the dump anymore and everything else=
- that I run works ...
-> > >=20
-> > >=20
-> >=20
-> > You cant do that, its just a brown paper bag :)
-> >=20
-> > If "retp" is returned, then the caller must handle the rcu_read_unl=
-ock()
-> > itself, after all possible "retp" dereferences.
-> >=20
-> > But really adding rcu_read_lock() should not be necessary on paths =
-we
-> > own the conntrack lock. We should use rcu_dereference_protected()
-> > instead.
-> >=20
->=20
-> Well, __nf_ct_l4proto_find() being out of line and the way we already
-> use rcu_read_lock() in this code, it seems following patch is
-> the most natural way to cope with these lockdep warnings.
->=20
-> Thanks
->=20
-> [PATCH] netfilter: ctnetlink: fix lockep splats
+On Tue, Jan 10, 2012 at 02:04:12PM +0100, Fiedler Roman wrote:
+> Hi,
+> 
+> Just a question, if this is intended behavior in NAT/logging with ulog/filter, I know it should be some border case:
+> 
+> 
+> In test environment, all 10/8 IPs are routed via lo by default to avoid test data from 10/8 net leaving the host.
+> 
+> 10.0.0.0/8 dev lo  scope link  src 10.0.0.1
+> 
+> To allow some connections to reach machines outside, these connections are natted, e.g.
+> 
+> Iptables -t nat -A OUTPUT -o lo -d 10.0.0.5 -p tcp -m tcp --dport 80 -j DNAT --to-destination xxx.172:80
+> 
+> This allows to create the connection, but with two side effects:
+> 
+> Although the package leaves via eth0, ulog will report OUT=lo:
+> 
+> Jan 10 12:06:13 v3lsn1105 iptables:ACCEPT-INFO IN= OUT=lo MAC= SRC=10.xx.xx.3 DST=xxxx.172 LEN=60 TOS=00 PREC=0x00 TTL=64 ID=46425 CE DF PROTO=TCP SPT=48808 DPT=80 SEQ=1237479374 ACK=0 WINDOW=32792 SYN URGP=0
 
-Thanks Eric. I'll pass this to davem.
+You forgot to paste your NFLOG rule. Where is it?
