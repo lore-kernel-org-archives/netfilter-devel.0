@@ -1,48 +1,64 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: Re: skb_checksum_help() vs GSO
-Date: Thu, 12 Jan 2012 14:10:17 -0800
-Message-ID: <20120112141017.0a83e973@nehalam.linuxnetplumber.net>
-References: <1326400930.2740.10.camel@bwh-desktop>
+From: marty <martinbarrowcliff@gmail.com>
+Subject: ulogd2 suggest
+Date: Thu, 12 Jan 2012 18:05:59 -0500
+Message-ID: <4F0F6757.8090700@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Herbert Xu <herbert@gondor.apana.org.au>,
-	netdev <netdev@vger.kernel.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Ben Hutchings <bhutchings@solarflare.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:45659 "EHLO mail.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751129Ab2ALWKU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Jan 2012 17:10:20 -0500
-In-Reply-To: <1326400930.2740.10.camel@bwh-desktop>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:60670 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753513Ab2ALXGD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 12 Jan 2012 18:06:03 -0500
+Received: by qcsg13 with SMTP id g13so1350358qcs.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2012 15:06:02 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 12 Jan 2012 20:42:10 +0000
-Ben Hutchings <bhutchings@solarflare.com> wrote:
+Ulogd2 is NOT a prime-time candidate. Never has been.
+The API has been broken a long time.
+Too many issues unresolved.
 
-> skb_checksum_help() does:
-> 
-> 	if (unlikely(skb_shinfo(skb)->gso_size)) {
-> 		/* Let GSO fix up the checksum. */
-> 		goto out_set_summed;
-> 	}
-> ...
-> out_set_summed:
-> 	skb->ip_summed = CHECKSUM_NONE;
-> out:
-> 	return ret;
-> 
-> but skb_gso_segment() requires that skb->ip_summed == CHECKSUM_PARTIAL
-> and WARNs if not.  I don't think there's any case where it's valid to
-> call both.  Shouldn't skb_checksum_help() also WARN and return an error
-> code instead of muddling on?
-> 
-> Inspecting the callers of skb_checksum_help(), it looks like sch_netem's
-> 'corrupt' option and xt_CHECKSUM might trigger this case.
-> 
-> Ben.
+The wise way to fix the endian issues I documented are to use
+host byte order from the very beginning, as per my freely given patch.
+That leaves all math options open.
+That patch is absolutely correct. Won't break the core design.
 
-Netem needs to check for GSO manually segment before calling skb_checksum_help.
-I'll sort it out.
+NOW, to provide endian conversion simply write a tiny filter module
+that does endian conversion of addresses. Duh! How hard could that be?
+Then the user can add that mod to stack as needed for an instance,
+but it is not global and he can still enjoy both formats.
+Gaa, how simple can it get?
+
+Then of course remove every line in every other module that changes
+byte order. That is totally inconsistent behavior and wrong.
+
+Likewise IPV6 is NOT the default protocol yet so any and ALL IPv6
+conversions need to be done by a single module the user can add to
+the stack only when/where desired.
+It is stupid and redundant to hardwire that into every module.
+Get that out of the other modules and into a single filter.
+
+The database modules NEED to have more options in the config file,
+or a LOT of capabilities are unavailable. This is particular to
+each DBMS or DBI, so those need to be addressed individually.
+
+After that we should have a much more logical API to work with.
+
+I dare you to tell me I am wrong.
+
+Marty B.
+
+
+
+
+
+
+
+
+
+
+
+
