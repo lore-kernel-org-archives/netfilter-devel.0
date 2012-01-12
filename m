@@ -1,26 +1,27 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
+From: Stephen Hemminger <shemminger@vyatta.com>
 Subject: Re: skb_checksum_help() vs GSO
-Date: Fri, 13 Jan 2012 09:03:28 +1100
-Message-ID: <20120112220328.GA10813@gondor.apana.org.au>
+Date: Thu, 12 Jan 2012 14:10:17 -0800
+Message-ID: <20120112141017.0a83e973@nehalam.linuxnetplumber.net>
 References: <1326400930.2740.10.camel@bwh-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev <netdev@vger.kernel.org>,
-	Stephen Hemminger <shemminger@vyatta.com>,
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Herbert Xu <herbert@gondor.apana.org.au>,
+	netdev <netdev@vger.kernel.org>,
 	netfilter-devel <netfilter-devel@vger.kernel.org>
 To: Ben Hutchings <bhutchings@solarflare.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from helcar.apana.org.au ([209.40.204.226]:59034 "EHLO
-	fornost.hengli.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755888Ab2ALWDe (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Jan 2012 17:03:34 -0500
-Content-Disposition: inline
+Received: from mail.vyatta.com ([76.74.103.46]:45659 "EHLO mail.vyatta.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751129Ab2ALWKU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 12 Jan 2012 17:10:20 -0500
 In-Reply-To: <1326400930.2740.10.camel@bwh-desktop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jan 12, 2012 at 08:42:10PM +0000, Ben Hutchings wrote:
+On Thu, 12 Jan 2012 20:42:10 +0000
+Ben Hutchings <bhutchings@solarflare.com> wrote:
+
 > skb_checksum_help() does:
 > 
 > 	if (unlikely(skb_shinfo(skb)->gso_size)) {
@@ -37,11 +38,11 @@ On Thu, Jan 12, 2012 at 08:42:10PM +0000, Ben Hutchings wrote:
 > and WARNs if not.  I don't think there's any case where it's valid to
 > call both.  Shouldn't skb_checksum_help() also WARN and return an error
 > code instead of muddling on?
+> 
+> Inspecting the callers of skb_checksum_help(), it looks like sch_netem's
+> 'corrupt' option and xt_CHECKSUM might trigger this case.
+> 
+> Ben.
 
-I think so.
-
-Thanks,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Netem needs to check for GSO manually segment before calling skb_checksum_help.
+I'll sort it out.
