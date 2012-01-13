@@ -1,64 +1,100 @@
-From: marty <martinbarrowcliff@gmail.com>
-Subject: ulogd2 suggest
-Date: Thu, 12 Jan 2012 18:05:59 -0500
-Message-ID: <4F0F6757.8090700@gmail.com>
+From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: [RFC] netem:  de-GSO packets before enqueing
+Date: Thu, 12 Jan 2012 16:57:20 -0800
+Message-ID: <20120112165720.4545c670@nehalam.linuxnetplumber.net>
+References: <1326400930.2740.10.camel@bwh-desktop>
+	<20120112220328.GA10813@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Cc: Ben Hutchings <bhutchings@solarflare.com>,
+	netdev <netdev@vger.kernel.org>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Herbert Xu <herbert@gondor.apana.org.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:60670 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753513Ab2ALXGD (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Jan 2012 18:06:03 -0500
-Received: by qcsg13 with SMTP id g13so1350358qcs.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2012 15:06:02 -0800 (PST)
+Received: from mail.vyatta.com ([76.74.103.46]:36593 "EHLO mail.vyatta.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756426Ab2AMA5X (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 12 Jan 2012 19:57:23 -0500
+In-Reply-To: <20120112220328.GA10813@gondor.apana.org.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Ulogd2 is NOT a prime-time candidate. Never has been.
-The API has been broken a long time.
-Too many issues unresolved.
+Probably something like this is needed (untested).
 
-The wise way to fix the endian issues I documented are to use
-host byte order from the very beginning, as per my freely given patch.
-That leaves all math options open.
-That patch is absolutely correct. Won't break the core design.
+This issue was discovered when looking at the skb_checksum path for the
+netem corruption operation, but it is a general problem.
+Network emulation operations like corruption and drop want to operate
+on a per-packet (not per-segment) basis. This patch does GSO in software
+if necessary to break up packets.  Code is similar to logic in xfrm_output.
 
-NOW, to provide endian conversion simply write a tiny filter module
-that does endian conversion of addresses. Duh! How hard could that be?
-Then the user can add that mod to stack as needed for an instance,
-but it is not global and he can still enjoy both formats.
-Gaa, how simple can it get?
+Although it appears that the operation is not work conserving, it is okay
+because the higher level qdisc operations account for packets by incrementing
+by gso_size.
 
-Then of course remove every line in every other module that changes
-byte order. That is totally inconsistent behavior and wrong.
+Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
 
-Likewise IPV6 is NOT the default protocol yet so any and ALL IPv6
-conversions need to be done by a single module the user can add to
-the stack only when/where desired.
-It is stupid and redundant to hardwire that into every module.
-Get that out of the other modules and into a single filter.
-
-The database modules NEED to have more options in the config file,
-or a LOT of capabilities are unavailable. This is particular to
-each DBMS or DBI, so those need to be addressed individually.
-
-After that we should have a much more logical API to work with.
-
-I dare you to tell me I am wrong.
-
-Marty B.
-
-
-
-
-
-
-
-
-
-
-
-
+--- a/net/sched/sch_netem.c	2012-01-12 14:57:59.218796226 -0800
++++ b/net/sched/sch_netem.c	2012-01-12 15:21:07.614162912 -0800
+@@ -128,6 +128,8 @@ struct netem_skb_cb {
+ 	psched_time_t	time_to_send;
+ };
+ 
++static int netem_enqueue(struct sk_buff *skb, struct Qdisc *sch);
++
+ static inline struct netem_skb_cb *netem_skb_cb(struct sk_buff *skb)
+ {
+ 	BUILD_BUG_ON(sizeof(skb->cb) <
+@@ -355,6 +357,41 @@ static int tfifo_enqueue(struct sk_buff
+ 	return qdisc_reshape_fail(nskb, sch);
+ }
+ 
++static int netem_enqueue_gso(struct sk_buff *skb, struct Qdisc *sch)
++{
++	struct sk_buff *segs;
++	int rc;
++
++	segs = skb_gso_segment(skb, 0);
++	kfree_skb(skb);
++
++	if (IS_ERR(segs)) {
++		sch->qstats.drops++;
++		return NET_XMIT_DROP;
++	}
++
++	do {
++		struct sk_buff *nskb = segs->next;
++		int ret;
++
++		segs->next = NULL;
++		ret = netem_enqueue(segs, sch);
++		if (ret == NET_XMIT_DROP) {
++			while ((segs = nskb)) {
++				nskb = segs->next;
++				segs->next = NULL;
++				kfree_skb(segs);
++			}
++			return ret;
++		}
++
++		segs = nskb;
++	} while (segs);
++
++	return NET_XMIT_SUCCESS;
++}
++
++
+ /*
+  * Insert one skb into qdisc.
+  * Note: parent depends on return value to account for queue length.
+@@ -370,6 +407,10 @@ static int netem_enqueue(struct sk_buff
+ 	int ret;
+ 	int count = 1;
+ 
++	/* Want to operate on per-packet basis */
++	if (skb_is_gso(skb))
++		return netem_enqueue_gso(skb, sch);
++
+ 	/* Random duplication */
+ 	if (q->duplicate && q->duplicate >= get_crandom(&q->dup_cor))
+ 		++count;
