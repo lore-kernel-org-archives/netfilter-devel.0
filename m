@@ -1,54 +1,76 @@
-From: marty <martinbarrowcliff@gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: ulogd2 suggest
-Date: Fri, 13 Jan 2012 16:06:21 -0500
-Message-ID: <4F109CCD.1090405@gmail.com>
-References: <4F0F6757.8090700@gmail.com> <20120113142833.GA21240@1984> <4F105E2B.4050400@gmail.com> <20120113201456.GA23488@1984>
+Date: Fri, 13 Jan 2012 22:43:33 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1201132211040.24827@blackhole.kfki.hu>
+References: <4F0F6757.8090700@gmail.com> <20120113142833.GA21240@1984> <4F105E2B.4050400@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: marty <martinbarrowcliff@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:62647 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759181Ab2AMVGY (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 13 Jan 2012 16:06:24 -0500
-Received: by ggdk6 with SMTP id k6so1885990ggd.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Jan 2012 13:06:24 -0800 (PST)
-In-Reply-To: <20120113201456.GA23488@1984>
+Received: from smtp2.kfki.hu ([148.6.0.28]:60296 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754048Ab2AMVnf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 13 Jan 2012 16:43:35 -0500
+In-Reply-To: <4F105E2B.4050400@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 01/13/2012 03:14 PM, Pablo Neira Ayuso wrote:
-> [...]
->> >  I have fixed all my issues, making only 3 minor changes.
->> >  True enough, things I don't use are probably broken.
->> >  But it works for me.
-> This comment shows that you know nothing about how Free/OpenSource
-> community projects work.
->
-> You just want to grab the software and provide ZERO return to the
-> existing codebase. Very sad.
->
-> Please, stop trolling us.
->
+Hi Marty,
 
-Hardly true, and a very unprofessional reply I might add.
-You obviously have a very distorted picture of me in your mind.
+On Fri, 13 Jan 2012, marty wrote:
 
-I know how open source works, and have contributed to many projects 
-since 1975. I am happy to contribute where I am capable.
-But I am not always capable of the work that needs to be done.
-I can only test what I use, and I do it online at some risk.
-But I won't submit untested code due to ethics.
-I have a git repo fork, but it might take me over a year before I
-could fix all the things that are wrong with ulogd2.
+> 1. when ulogd logs to mysql, and a failure occurs, the last
+> auto_increment value may still contain a previous, used value.
+> So mysql will hang terminally. Transactions should prevent this.
 
-I may work for 2 weeks to fix something others might fix in minutes.
-I have been struggling with ulogd2 for a very long time...
-Now I have more understanding, and more capabilities.
-Wrong time for to start flinging insults amigo.
-Don't be a fool and alienate friends.
+You wrote about it earlier, but I still don't understand. As far as I see, 
+ulogd2 doesn't use any auto_increment value and doesn't expect such a 
+parameter to be returned when inserting entries to the database. So 
+where's this auto_increment value which may store a previous value after a 
+failure?
+ 
+> 2. transactions cannot be used in a mysql function, only a procedure.
+> 
+> 3. When you call a stored procedure from a function, that puts the sproc into
+> the same execution environment as the function, with the same restrictions,
+> e.g. transactions don't work.
+> 
+> 4. mysql provides a warning but ulogd2 ignores it.
+> mysql is not logging those warnings but they can be seen on command line
+> 
+> 5. You cannot execute a procedure with a select statement.
+>    Mysql will look for a function, not a procedure.
+> 
+> 6. Ulogd is hardwired to use SELECT statements for ALL DBMS in db.c.
+> So this breaks things and therfor I consider it wrong..
 
-Marty B.
+As we discussed, this is (partly) a documentation issue. In PostgresSQL 
+there's no real difference between a stored procedure and a stored 
+function. In mySQL the two things are quite different, as you described 
+above. The current doc is unfortunately quite misleading because it talks 
+about stored procedures but internally invokes SELECT, in which case only 
+stored functions are allowed in mySQL.
 
+It could be solved by querying first the database whether the named object 
+is a stored procedure or a function and issuing the proper SQL command 
+(which is, again, pgsql/mysql dependent).
+
+> 7. All key values, except "addresses" are in host byte order.
+> This inconsistency is problematic on little endian systems because
+> it breaks the native math processes for all client applications.
+> 
+> eg: You cannot do a SQL geo_ip lookup with wrong_endian numbers.
+> Converting a numeric address to host order is not practical in SQL.
+
+Your patch modified the current behaviour: the proper way is to add 
+supporting new table fields which the filled out with the host ordered 
+data.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
