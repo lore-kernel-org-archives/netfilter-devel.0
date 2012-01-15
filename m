@@ -1,74 +1,60 @@
-From: Sasha Levin <levinsasha928@gmail.com>
-Subject: Re: Hung task when calling clone() due to netfilter/slab
-Date: Sun, 15 Jan 2012 14:59:44 +0200
-Message-ID: <1326632384.11711.3.camel@lappy>
-References: <1326558605.19951.7.camel@lappy>
-	 <1326561043.5287.24.camel@edumazet-laptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Dave Jones <davej@redhat.com>, davem <davem@davemloft.net>,
-	Pekka Enberg <penberg@kernel.org>,
-	Christoph Lameter <cl@linux-foundation.org>,
-	Matt Mackall <mpm@selenic.com>, kaber@trash.net,
-	pablo@netfilter.org, linux-kernel <linux-kernel@vger.kernel.org>,
-	linux-mm <linux-mm@kvack.org>, netfilter-devel@vger.kernel.org,
-	netdev <netdev@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH 1/2] Support stored mysql procedures besides stored functions
+Date: Sun, 15 Jan 2012 16:04:48 +0100
+Message-ID: <1326639889-28836-2-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1326639889-28836-1-git-send-email-kadlec@blackhole.kfki.hu>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	marty <martinbarrowcliff@gmail.com>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:41706 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751152Ab2AOM7w (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 15 Jan 2012 07:59:52 -0500
-In-Reply-To: <1326561043.5287.24.camel@edumazet-laptop>
+Received: from smtp1.kfki.hu ([148.6.0.26]:43563 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751730Ab2AOPFA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 15 Jan 2012 10:05:00 -0500
+In-Reply-To: <1326639889-28836-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 2012-01-14 at 18:10 +0100, Eric Dumazet wrote:
-> Apparently SLUB calls sysfs_slab_add() from kmem_cache_create() while
-> still holding slub_lock.
-> 
-> So if the task launched needs to "cat /proc/slabinfo" or anything
-> needing slub_lock, its a deadlock.
+MySQL stored procedures must be invoked by the "CALL" SQL command and
+not by "SELECT". Add the convention that if the procedure name starts
+with "CALL", then the issued SQL command is "CALL procedurename(args)".
 
-I've made the following patch to test it, It doesn't look like it's the correct solution, but it verifies that the problem is there (it works well with the patch).
-
----------------
-
->From cc4874b491b8e5d9d1ea5bf2032413efdbddced8 Mon Sep 17 00:00:00 2001
-From: Sasha Levin <levinsasha928@gmail.com>
-Date: Sun, 15 Jan 2012 14:55:03 +0200
-Subject: [PATCH] slab: Fix hang when creating sysfs entries
-
-This patch fixes the hang which happens when we create a sysfs entry and call
-back to userspace. If the usermode helper tries to do anything which involves
-slub_lock we will hang since slub_lock is already held.
-
-Signed-off-by: Sasha Levin <levinsasha928@gmail.com>
+The stored procedure support in MySQL automatically brings transaction
+support too.
 ---
- mm/slub.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ doc/ulogd.sgml |    4 ++++
+ util/db.c      |    2 ++
+ 2 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/mm/slub.c b/mm/slub.c
-index 4907563..6948327 100644
---- a/mm/slub.c
-+++ b/mm/slub.c
-@@ -5283,7 +5283,9 @@ static int sysfs_slab_add(struct kmem_cache *s)
- 		kobject_put(&s->kobj);
- 		return err;
- 	}
-+	up_write(&slub_lock);
- 	kobject_uevent(&s->kobj, KOBJ_ADD);
-+	down_write(&slub_lock);
- 	if (!unmergeable) {
- 		/* Setup first alias */
- 		sysfs_slab_alias(s, s->name);
+diff --git a/doc/ulogd.sgml b/doc/ulogd.sgml
+index 547b56a..0f18611 100644
+--- a/doc/ulogd.sgml
++++ b/doc/ulogd.sgml
+@@ -471,6 +471,10 @@ If procedure name is:
+   "table" variable.</item>
+ <item>start with "INSERT ": Configuration has to specify the start of the INSERT query that will be used. For example,
+ a typical value is "INSERT INTO ulog2".</item>
++<item>start with "CALL": the named stored procedure is executed with
++the "CALL" MySQL command.</item>
++<item>Otherwise the named stored function is executed with
++the "SELECT" MySQL command.</item> 
+ </itemize>
+ <tag>db</tag>
+ Name of the mysql database.
+diff --git a/util/db.c b/util/db.c
+index 8d812c7..54f8882 100644
+--- a/util/db.c
++++ b/util/db.c
+@@ -122,6 +122,8 @@ static int sql_createstmt(struct ulogd_pluginstance *upi)
+ 		*(mi->stmt_val - 1) = ')';
+ 
+ 		sprintf(mi->stmt_val, " values (");
++	} else if (strncasecmp(procedure,"CALL", strlen("CALL")) == 0) {
++		sprintf(mi->stmt, "CALL %s(", procedure);
+ 	} else {
+ 		sprintf(mi->stmt, "SELECT %s(", procedure);
+ 
 -- 
-1.7.8.3
-
-
--- 
-
-Sasha.
+1.7.0.4
 
