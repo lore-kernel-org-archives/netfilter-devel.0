@@ -1,35 +1,75 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/4] netfilter updates for net tree
-Date: Tue, 17 Jan 2012 10:03:52 -0500 (EST)
-Message-ID: <20120117.100352.1895819264259825001.davem@davemloft.net>
-References: <1326798289-11592-1-git-send-email-pablo@netfilter.org>
+From: Christoph Lameter <cl@linux.com>
+Subject: Re: Hung task when calling clone() due to netfilter/slab
+Date: Tue, 17 Jan 2012 09:12:33 -0600 (CST)
+Message-ID: <alpine.DEB.2.00.1201170910130.4800@router.home>
+References: <1326558605.19951.7.camel@lappy>  <1326561043.5287.24.camel@edumazet-laptop> <1326632384.11711.3.camel@lappy> <1326648305.5287.78.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1326798289-11592-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Sasha Levin <levinsasha928@gmail.com>, Dave Jones <davej@redhat.com>,
+  davem <davem@davemloft.net>, Pekka Enberg <penberg@kernel.org>,
+  Matt Mackall <mpm@selenic.com>, kaber@trash.net, pablo@netfilter.org,
+  linux-kernel <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>,
+  netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1326648305.5287.78.camel@edumazet-laptop>
+Sender: owner-linux-mm@kvack.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: pablo@netfilter.org
-Date: Tue, 17 Jan 2012 12:04:45 +0100
+On Sun, 15 Jan 2012, Eric Dumazet wrote:
 
-> You can pull these changes from:
-> 
-> git://1984.lsi.us.es/net nf
-> 
-> Thanks.
-> 
-> Jozsef Kadlecsik (2):
->   netfilter: ipset: autoload set type modules safely
->   netfilter: ipset: dumping error triggered removing references twice
-> 
-> Pablo Neira Ayuso (1):
->   netfilter: revert user-space expectation helper support
-> 
-> Stephen Rothwell (1):
->   netfilter: xt_hashlimit: fix unused variable warning if IPv6 disabled
+> As soon as the slub_lock is released, another thread can come and find
+> the new kmem_cache.
 
-Pulled, thanks!
+Slabs are not looked up by name. A pointer to kmem_cache is passed to slab
+functions and that pointer is returned from kmem_cache_create(). The risk
+is someone traversing the kmem_cach list which is only done from within slub.
+
+
+Subject: slub: Do not hold slub_lock when calling sysfs_slab_add()
+
+sysfs_slab_add() calls various sysfs functions that actually may
+end up in userspace doing all sorts of things.
+
+Release the slub_lock after adding the kmem_cache structure to the list.
+At that point the address of the kmem_cache is not known so we are
+guaranteed exlusive access to the following modifications to the
+kmem_cache structure.
+
+If the sysfs_slab_add fails then reacquire the slub_lock to
+remove the kmem_cache structure from the list.
+
+Signed-off-by: Christoph Lameter <cl@linux.com>
+
+---
+ mm/slub.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+Index: linux-2.6/mm/slub.c
+===================================================================
+--- linux-2.6.orig/mm/slub.c	2012-01-17 03:07:11.140010438 -0600
++++ linux-2.6/mm/slub.c	2012-01-17 03:07:19.532010264 -0600
+@@ -3929,13 +3929,15 @@ struct kmem_cache *kmem_cache_create(con
+ 		if (kmem_cache_open(s, n,
+ 				size, align, flags, ctor)) {
+ 			list_add(&s->list, &slab_caches);
++			up_write(&slub_lock);
+ 			if (sysfs_slab_add(s)) {
++				down_write(&slub_lock);
+ 				list_del(&s->list);
++				up_write(&slub_lock);
+ 				kfree(n);
+ 				kfree(s);
+ 				goto err;
+ 			}
+-			up_write(&slub_lock);
+ 			return s;
+ 		}
+ 		kfree(n);
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
