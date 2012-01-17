@@ -1,47 +1,60 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/8] ipset patches
-Date: Tue, 17 Jan 2012 10:46:38 +0100
-Message-ID: <20120117094638.GA20246@1984>
-References: <1326559141-26783-1-git-send-email-kadlec@blackhole.kfki.hu>
- <20120116124559.GB13131@1984>
- <20120116231601.GA18087@1984>
- <alpine.DEB.2.00.1201170913450.2015@blackhole.kfki.hu>
+From: pablo@netfilter.org
+Subject: [PATCH 0/4] netfilter updates for net tree
+Date: Tue, 17 Jan 2012 12:04:45 +0100
+Message-ID: <1326798289-11592-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60239 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752152Ab2AQJqr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Jan 2012 04:46:47 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1201170913450.2015@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jan 17, 2012 at 09:18:51AM +0100, Jozsef Kadlecsik wrote:
-> On Tue, 17 Jan 2012, Pablo Neira Ayuso wrote:
-> 
-> > On Mon, Jan 16, 2012 at 01:45:59PM +0100, Pablo Neira Ayuso wrote:
-> > > > Jan Engelhardt (3):
-> > > >   netfilter: ipset: use NFPROTO_ constants
-> > > >   netfilter: ipset: avoid use of kernel-only types
-> > > >   netfilter: ipset: expose userspace-relevant parts in ip_set.h
-> > > > 
-> > > > Jozsef Kadlecsik (5):
-> > > >   netfilter: ipset: Autoload set type modules safely
-> > > >   netfilter: ipset: Dumping error triggered removing references twice
-> > > >   netfilter: ipset: Log warning when a hash type of set gets full
-> > > >   netfilter: ipset: Exceptions support added to hash:*net* types
-> > > >   netfilter: ipset: hash:net,iface timeout bug fixed
-> > 
-> > If you tell me what patches are bugfixes, we can still pass them to
-> > get them included into 3.3-rc.
-> 
-> Then please cherry-pick at least these two patches:
-> 
-> netfilter: ipset: Autoload set type modules safely
-> netfilter: ipset: Dumping error triggered removing references twice
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Thanks. I've scheduled these two for 3.2-rc.
+Hi Dave,
+
+The following patches contains updates for your current net tree:
+
+* A couple for bugfixes for ipset from Jozsef.
+
+* Revert the user-space expectation helper support from myself.
+  I decided to do this because I found problems specifically
+  regarding NAT setups. I didn't throw the towel though. I'm
+  working one new infrastructure. My plan is to submit it for
+  net-next once it's open and it passes developers scrutiny
+  (still work in progress):
+
+ http://1984.lsi.us.es/git/net-next/commit/?h=cthelper&id=4e690f548859eec5a3dad151dec9c12bac17c014
+
+* Fix one compilation warning if ip6tables is disabled in
+  xt_hashlimit.
+
+You can pull these changes from:
+
+git://1984.lsi.us.es/net nf
+
+Thanks.
+
+Jozsef Kadlecsik (2):
+  netfilter: ipset: autoload set type modules safely
+  netfilter: ipset: dumping error triggered removing references twice
+
+Pablo Neira Ayuso (1):
+  netfilter: revert user-space expectation helper support
+
+Stephen Rothwell (1):
+  netfilter: xt_hashlimit: fix unused variable warning if IPv6 disabled
+
+ include/linux/netfilter/nf_conntrack_common.h |    4 ---
+ include/linux/netfilter/xt_CT.h               |    3 +-
+ net/netfilter/ipset/ip_set_core.c             |   37 ++++++++++++++++++-------
+ net/netfilter/nf_conntrack_helper.c           |   12 --------
+ net/netfilter/nf_conntrack_netlink.c          |    4 ---
+ net/netfilter/xt_CT.c                         |    8 ++---
+ net/netfilter/xt_hashlimit.c                  |    5 +++-
+ 7 files changed, 35 insertions(+), 38 deletions(-)
+
+-- 
+1.7.7.3
