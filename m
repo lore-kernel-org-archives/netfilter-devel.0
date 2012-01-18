@@ -1,116 +1,73 @@
-From: Christoph Lameter <cl@linux.com>
-Subject: Re: Hung task when calling clone() due to netfilter/slab
-Date: Tue, 17 Jan 2012 16:22:09 -0600 (CST)
-Message-ID: <alpine.DEB.2.00.1201171620590.14697@router.home>
-References: <1326558605.19951.7.camel@lappy>    <1326561043.5287.24.camel@edumazet-laptop>   <1326632384.11711.3.camel@lappy>  <1326648305.5287.78.camel@edumazet-laptop>   <alpine.DEB.2.00.1201170910130.4800@router.home>  <1326813630.2259.19.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
-  <alpine.DEB.2.00.1201170927020.4800@router.home> <1326814208.2259.21.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC> <alpine.DEB.2.00.1201170942240.4800@router.home>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH v5.4 00/13] crc32c: Add faster algorithm and self-test
+ code
+Date: Wed, 18 Jan 2012 15:01:14 -0800
+Message-ID: <20120118150114.2e2dac2d.akpm@linux-foundation.org>
+References: <20120118222733.4079.13377.stgit@elm3c44.beaverton.ibm.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Sasha Levin <levinsasha928@gmail.com>,
-	Dave Jones <davej@redhat.com>, davem <davem@davemloft.net>,
-	Pekka Enberg <penberg@kernel.org>,
-	Matt Mackall <mpm@selenic.com>, kaber@trash.net,
-	pablo@netfilter.org, linux-kernel <linux-kernel@vger.kernel.org>,
-	linux-mm <linux-mm@kvack.org>, netfilter-devel@vger.kernel.org,
-	netdev <netdev@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp106.prem.mail.ac4.yahoo.com ([76.13.13.45]:23666 "HELO
-	smtp106.prem.mail.ac4.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756171Ab2AQXBY (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Jan 2012 18:01:24 -0500
-In-Reply-To: <alpine.DEB.2.00.1201170942240.4800@router.home>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Herbert Xu <herbert@gondor.hengli.com.au>,
+	Theodore Tso <tytso@mit.edu>,
+	Joakim Tjernlund <joakim.tjernlund@transmode.se>,
+	Bob Pearson <rpearson@systemfabricworks.com>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	Andreas Dilger <adilger.kernel@dilger.ca>,
+	linux-crypto <linux-crypto@vger.kernel.org>,
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+	Mingming Cao <cmm@us.ibm.com>, linux-ext4@vger.kernel.org,
+	linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: "Darrick J. Wong" <djwong@us.ibm.com>
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <20120118222733.4079.13377.stgit@elm3c44.beaverton.ibm.com>
+Sender: linux-crypto-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Another version that drops the slub lock for both invocations of sysfs
-functions from kmem_cache_create. The invocation from slab_sysfs_init
-is not a problem since user space is not active at that point.
+On Wed, 18 Jan 2012 14:27:33 -0800
+"Darrick J. Wong" <djwong@us.ibm.com> wrote:
 
+> This patchset (re)uses Bob Pearson's crc32 slice-by-8 code to stamp out a
+> software crc32c implementation.  It removes the crc32c implementation in
+> crypto/ in favor of using the stamped-out one in lib/.  There is also a change
+> to Kconfig so that the kernel builder can pick an implementation best suited
+> for the hardware.
+> 
+> The motivation for this patchset is that I am working on adding full metadata
+> checksumming to ext4.  As far as performance impact of adding checksumming
+> goes, I see nearly no change with a standard mail server ffsb simulation.  On a
+> test that involves only file creation and deletion and extent tree writes, I
+> see a drop of about 50 pcercent with the current kernel crc32c implementation;
+> this improves to a drop of about 20 percent with the enclosed crc32c code.
+> 
+> When metadata is usually a small fraction of total IO, this new implementation
+> doesn't help much because metadata is usually a small fraction of total IO.
+> However, when we are doing IO that is almost all metadata (such as rm -rf'ing a
+> tree), then this patch speeds up the operation substantially.
+> 
+> Incidentally, given that iscsi, sctp, and btrfs also use crc32c, this patchset
+> should improve their speed as well.  I have not yet quantified that, however.
+> This latest submission combines Bob's patches from late August 2011 with mine
+> so that they can be one coherent patch set.  Please excuse my inability to
+> combine some of the patches; I've been advised to leave Bob's patches alone and
+> build atop them instead. :/
+> 
+> Since the last posting, I've also collected some crc32c test results on a bunch
+> of different x86/powerpc/sparc platforms.  The results can be viewed here:
+> http://goo.gl/sgt3i ; the "crc32-kern-le" and "crc32c" columns describe the
+> performance of the kernel's current crc32 and crc32c software implementations.
+> The "crc32c-by8-le" column shows crc32c performance with this patchset applied.
+> I expect crc32 performance to be roughly the same.
+> 
+> The two _boost columns at the right side of the spreadsheet shows how much
+> faster the new implementation is over the old one.  As you can see, crc32 rises
+> substantially, and crc32c experiences a huge increase.
 
-Subject: slub: Do not take the slub lock while calling into sysfs
+I grabbed this lot, so it will turn up in linux-next soon.
 
-This patch avoids holding the slub_lock during kmem_cache_create()
-when calling sysfs. It is possible because kmem_cache_create()
-allocates the kmem_cache object and therefore is the only one context
-that can access the newly created object. It is therefore possible
-to drop the slub_lock early. We defer the adding of the new kmem_cache
-to the end of processing because the new kmem_cache structure would
-be reachable otherwise via scans over slabs. This allows sysfs_slab_add()
-to run without holding any locks.
+There are quite a lot of clients of the crc32 code.  net, netfilter and
+wireless are prominent, but there are others everywhere.
 
-The case is different if we are creating an alias instead of a new
-kmem_cache structure. In that case we can also drop the slub lock
-early because we have taken a refcount on the kmem_cache structure.
-It therefore cannot vanish from under us.
-But if the sysfs_slab_alias() call fails we can no longer simply
-decrement the refcount since the other references may have gone
-away in the meantime. Call kmem_cache_destroy() to cause the
-refcount to be decremented and the kmem_cache structure to be
-freed if all references are gone.
-
-Signed-off-by: Christoph Lameter <cl@linux.com>
-
-
----
- mm/slub.c |   25 +++++++++++--------------
- 1 file changed, 11 insertions(+), 14 deletions(-)
-
-Index: linux-2.6/mm/slub.c
-===================================================================
---- linux-2.6.orig/mm/slub.c	2012-01-17 09:53:26.599505365 -0600
-+++ linux-2.6/mm/slub.c	2012-01-17 09:59:57.131497273 -0600
-@@ -3912,13 +3912,14 @@ struct kmem_cache *kmem_cache_create(con
- 		s->objsize = max(s->objsize, (int)size);
- 		s->inuse = max_t(int, s->inuse, ALIGN(size, sizeof(void *)));
-
-+		up_write(&slub_lock);
- 		if (sysfs_slab_alias(s, name)) {
--			s->refcount--;
-+			kmem_cache_destroy(s);
- 			goto err;
- 		}
--		up_write(&slub_lock);
- 		return s;
- 	}
-+	up_write(&slub_lock);
-
- 	n = kstrdup(name, GFP_KERNEL);
- 	if (!n)
-@@ -3928,27 +3929,23 @@ struct kmem_cache *kmem_cache_create(con
- 	if (s) {
- 		if (kmem_cache_open(s, n,
- 				size, align, flags, ctor)) {
--			list_add(&s->list, &slab_caches);
--			if (sysfs_slab_add(s)) {
--				list_del(&s->list);
--				kfree(n);
--				kfree(s);
--				goto err;
-+
-+			if (sysfs_slab_add(s) == 0) {
-+				down_write(&slub_lock);
-+				list_add(&s->list, &slab_caches);
-+				up_write(&slub_lock);
-+				return s;
- 			}
--			up_write(&slub_lock);
--			return s;
- 		}
- 		kfree(n);
- 		kfree(s);
- 	}
- err:
--	up_write(&slub_lock);
-
- 	if (flags & SLAB_PANIC)
- 		panic("Cannot create slabcache %s\n", name);
--	else
--		s = NULL;
--	return s;
-+
-+	return NULL;
- }
- EXPORT_SYMBOL(kmem_cache_create);
-
+So I cc'ed various other mailing lists just as a heads-up that this
+work is inbound and will hopefully yield performance improvements.  But
+of course, it might also yield bugs.
