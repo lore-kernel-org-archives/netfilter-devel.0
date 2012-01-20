@@ -1,59 +1,45 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [ANNOUNCE] ipset 6.11 released
-Date: Fri, 20 Jan 2012 13:49:47 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1201201342400.11124@blackhole.kfki.hu>
-References: <alpine.DEB.2.00.1201141542490.26282@blackhole.kfki.hu> <4F130A03.7080208@googlemail.com> <alpine.DEB.2.00.1201151825570.29134@blackhole.kfki.hu> <4F131551.2090608@googlemail.com> <alpine.DEB.2.00.1201152100050.29766@blackhole.kfki.hu>
- <4F135552.4070804@googlemail.com> <alpine.DEB.2.00.1201160914550.30763@blackhole.kfki.hu> <4F175B94.60001@googlemail.com> <alpine.DEB.2.00.1201191154330.7547@blackhole.kfki.hu> <4F189283.4000401@googlemail.com>
+From: Christoph Lameter <cl@linux.com>
+Subject: Re: Hung task when calling clone() due to netfilter/slab
+Date: Fri, 20 Jan 2012 08:49:57 -0600 (CST)
+Message-ID: <alpine.DEB.2.00.1201200848040.25882@router.home>
+References: <1326558605.19951.7.camel@lappy> <1326561043.5287.24.camel@edumazet-laptop> <1326632384.11711.3.camel@lappy> <1326648305.5287.78.camel@edumazet-laptop> <alpine.DEB.2.00.1201170910130.4800@router.home> <1326813630.2259.19.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+ <alpine.DEB.2.00.1201170927020.4800@router.home> <1326814208.2259.21.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC> <alpine.DEB.2.00.1201170942240.4800@router.home> <alpine.DEB.2.00.1201171620590.14697@router.home> <m1bopz2ws3.fsf@fess.ebiederm.org>
+ <m14nvr2vbu.fsf@fess.ebiederm.org> <alpine.DEB.2.00.1201191959540.14480@router.home> <m1y5t3yuil.fsf@fess.ebiederm.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Mr Dash Four <mr.dash.four@googlemail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:41309 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751352Ab2ATMtt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Jan 2012 07:49:49 -0500
-In-Reply-To: <4F189283.4000401@googlemail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+  Sasha Levin <levinsasha928@gmail.com>, Dave Jones <davej@redhat.com>,
+  davem <davem@davemloft.net>, Pekka Enberg <penberg@kernel.org>,
+  Matt Mackall <mpm@selenic.com>, kaber@trash.net, pablo@netfilter.org,
+  linux-kernel <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>,
+  netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>
+To: "Eric W. Biederman" <ebiederm@xmission.com>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <m1y5t3yuil.fsf@fess.ebiederm.org>
+Sender: owner-linux-mm@kvack.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 19 Jan 2012, Mr Dash Four wrote:
+On Thu, 19 Jan 2012, Eric W. Biederman wrote:
 
-> > The userspace testing is passed to the kernel for execution. There's no
-> > shadow or backup or whatever set in userspace. The sets exist in kernel
-> > space and therefore all operations happen there.
-> >   
-> So, is the above doable in any shape or form or not?
+> On the flip side removing from sysfs with locks held must be done
+> carefully, and as a default I would recommend not to hold locks over
+> removing things from sysfs.  As removal blocks waiting for all of the
+> callers into sysfs those sysfs attributes to complete.
+>
+> It looks like you are ok on the removal because none of the sysfs
+> attributes appear to take the slub_lock, just /proc/slabinfo.  But
+> it does look like playing with fire.
 
-Doable, but needs time and would involve adding the logic to auto-merge 
-smaller subnets into larger ones and to make possible to delete subnets 
-from larger networks.
+Ok then I guess my last patch is needed to make sysfs operations safe.
 
-I'm sure you are aware, this is a free time project.
+It may be good to audit the kernel for locks being held while calling
+sysfs functions. Isnt there a lockdep check that ensures that no locks are
+held?
 
-> > Why do you need such tests at all?
-> >   
-> Various reasons. Two common uses (at least in my case) would be to test ip
-> range against quite a large set of registered subnets (taken from the geoip
-> database and sorted using my own criteria). The tested ip range is either
-> candidate to 1). ban that network, in which case I do not want duplicates if
-> the existing range is already there; or 2) include the ip range in a separate
-> set, making sure that it is not already in the 'banned' set and also that it
-> is not already included in the 'customer' set (which although limited, has
-> quite significant number of set members - usually small subnets).
-> 
-> Because the ip range in ipset is not working correctly, I had to first
-> manually go over the testing ranges. Later on I devised a small shell script
-> doing what I just described in my previous post (quoted above), but it is
-> quite ugly and inefficient - it would be much better if ip range testing in
-> ipset was functioning properly, saving me all this hassle.
 
-Sorry, for a while you have to use workarounds like you described.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
