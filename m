@@ -1,60 +1,34 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: Hung task when calling clone() due to netfilter/slab
-Date: Thu, 19 Jan 2012 18:31:30 -0800
-Message-ID: <m1y5t3yuil.fsf@fess.ebiederm.org>
-References: <1326558605.19951.7.camel@lappy>
-	<1326561043.5287.24.camel@edumazet-laptop>
-	<1326632384.11711.3.camel@lappy>
-	<1326648305.5287.78.camel@edumazet-laptop>
-	<alpine.DEB.2.00.1201170910130.4800@router.home>
-	<1326813630.2259.19.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
-	<alpine.DEB.2.00.1201170927020.4800@router.home>
-	<1326814208.2259.21.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
-	<alpine.DEB.2.00.1201170942240.4800@router.home>
-	<alpine.DEB.2.00.1201171620590.14697@router.home>
-	<m1bopz2ws3.fsf@fess.ebiederm.org> <m14nvr2vbu.fsf@fess.ebiederm.org>
-	<alpine.DEB.2.00.1201191959540.14480@router.home>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: xtables2 a8, netlink interface
+Date: Fri, 20 Jan 2012 09:33:12 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1201200931340.29049@frira.zrqbmnf.qr>
+References: <1326990381-14534-1-git-send-email-jengelh@medozas.de> <20120119165629.2f7c8112@nehalam.linuxnetplumber.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,  Sasha Levin <levinsasha928@gmail.com>,  Dave Jones <davej@redhat.com>,  davem <davem@davemloft.net>,  Pekka Enberg <penberg@kernel.org>,  Matt Mackall <mpm@selenic.com>,  kaber@trash.net,  pablo@netfilter.org,  linux-kernel <linux-kernel@vger.kernel.org>,  linux-mm <linux-mm@kvack.org>,  netfilter-devel@vger.kernel.org,  netdev <netdev@vger.kernel.org>
-To: Christoph Lameter <cl@linux.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <alpine.DEB.2.00.1201191959540.14480@router.home> (Christoph
-	Lameter's message of "Thu, 19 Jan 2012 20:03:51 -0600 (CST)")
-Sender: owner-linux-mm@kvack.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+To: Stephen Hemminger <shemminger@vyatta.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from seven.medozas.de ([188.40.89.202]:34043 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751953Ab2ATIdP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Jan 2012 03:33:15 -0500
+In-Reply-To: <20120119165629.2f7c8112@nehalam.linuxnetplumber.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Christoph Lameter <cl@linux.com> writes:
-
-> On Thu, 19 Jan 2012, Eric W. Biederman wrote:
+On Friday 2012-01-20 01:56, Stephen Hemminger wrote:
+>> 
+>> So here is the first set of patches implementing part of the xt2 core
+>> and nfnl interface. Please review, I am sure you will have something
+>> to say :)
+>> 
+>> The userspace part is at git://dev.medozas.de/libnetfilter_xtables,
+>> the xtnl-test program compiled as part of the default make target
+>> gives access to the kernel functions implemented by the patches.
 >
->> Oh.  I see.  The problem is calling kobject_uevent (which happens to
->> live in slabs sysfs_slab_add) with a lock held.  And kobject_uevent
->> makes a blocking call to userspace.
->>
->> No locks held seems to be a good policy on that one.
->
-> Well we can just remove that call to kobject_uevent instead then. Does it
-> do anything useful? Cannot remember why we put that in there.
+>Does it allow for watching for iptables changes (notifications),
+>similar to what is done for link, address, and qdisc changes?
 
-Empirically it sounds like something is listening for it and doing cat
-/proc/slabinfo.  Something like that would have to occur for their to be
-a deadlock that was observed.
-
-On the flip side removing from sysfs with locks held must be done
-carefully, and as a default I would recommend not to hold locks over
-removing things from sysfs.  As removal blocks waiting for all of the
-callers into sysfs those sysfs attributes to complete.
-
-It looks like you are ok on the removal because none of the sysfs
-attributes appear to take the slub_lock, just /proc/slabinfo.  But
-it does look like playing with fire.
-
-Eric
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+It certainly does not look like a big deal to write it, so yes, I 
+had that on my list of things to add. (Even though I could not come up 
+with a usecase for that feature myself yet.)
