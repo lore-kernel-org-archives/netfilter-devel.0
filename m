@@ -1,77 +1,102 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: Hung task when calling clone() due to netfilter/slab
-Date: Thu, 19 Jan 2012 14:15:01 -0800
-Message-ID: <m14nvr2vbu.fsf@fess.ebiederm.org>
-References: <1326558605.19951.7.camel@lappy>
-	<1326561043.5287.24.camel@edumazet-laptop>
-	<1326632384.11711.3.camel@lappy>
-	<1326648305.5287.78.camel@edumazet-laptop>
-	<alpine.DEB.2.00.1201170910130.4800@router.home>
-	<1326813630.2259.19.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
-	<alpine.DEB.2.00.1201170927020.4800@router.home>
-	<1326814208.2259.21.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
-	<alpine.DEB.2.00.1201170942240.4800@router.home>
-	<alpine.DEB.2.00.1201171620590.14697@router.home>
-	<m1bopz2ws3.fsf@fess.ebiederm.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/7] netfilter: xtables2: initial table skeletal
+ functions
+Date: Fri, 20 Jan 2012 01:23:29 +0100
+Message-ID: <20120120002329.GB3176@1984>
+References: <1326990381-14534-1-git-send-email-jengelh@medozas.de>
+ <1326990381-14534-2-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,  Sasha Levin <levinsasha928@gmail.com>,  Dave Jones <davej@redhat.com>,  davem <davem@davemloft.net>,  Pekka Enberg <penberg@kernel.org>,  Matt Mackall <mpm@selenic.com>,  kaber@trash.net,  pablo@netfilter.org,  linux-kernel <linux-kernel@vger.kernel.org>,  linux-mm <linux-mm@kvack.org>,  netfilter-devel@vger.kernel.org,  netdev <netdev@vger.kernel.org>
-To: Christoph Lameter <cl@linux.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <m1bopz2ws3.fsf@fess.ebiederm.org> (Eric W. Biederman's message
-	of "Thu, 19 Jan 2012 13:43:40 -0800")
-Sender: owner-linux-mm@kvack.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:44583 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756222Ab2ATAXc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 19 Jan 2012 19:23:32 -0500
+Content-Disposition: inline
+In-Reply-To: <1326990381-14534-2-git-send-email-jengelh@medozas.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-ebiederm@xmission.com (Eric W. Biederman) writes:
+Hi Jan,
 
-> Christoph Lameter <cl@linux.com> writes:
->
->> Another version that drops the slub lock for both invocations of sysfs
->> functions from kmem_cache_create. The invocation from slab_sysfs_init
->> is not a problem since user space is not active at that point.
->>
->>
->> Subject: slub: Do not take the slub lock while calling into sysfs
->>
->> This patch avoids holding the slub_lock during kmem_cache_create()
->> when calling sysfs. It is possible because kmem_cache_create()
->> allocates the kmem_cache object and therefore is the only one context
->> that can access the newly created object. It is therefore possible
->> to drop the slub_lock early. We defer the adding of the new kmem_cache
->> to the end of processing because the new kmem_cache structure would
->> be reachable otherwise via scans over slabs. This allows sysfs_slab_add()
->> to run without holding any locks.
->>
->> The case is different if we are creating an alias instead of a new
->> kmem_cache structure. In that case we can also drop the slub lock
->> early because we have taken a refcount on the kmem_cache structure.
->> It therefore cannot vanish from under us.
->> But if the sysfs_slab_alias() call fails we can no longer simply
->> decrement the refcount since the other references may have gone
->> away in the meantime. Call kmem_cache_destroy() to cause the
->> refcount to be decremented and the kmem_cache structure to be
->> freed if all references are gone.
->>
->> Signed-off-by: Christoph Lameter <cl@linux.com>
->
-> I am dense.  Is the deadlock here that you are fixing slub calling sysfs
-> with the slub_lock held but sysfs then calling kmem_cache_zalloc?
->
-> I don't see what sysfs is doing in the creation path that would cause
-> a deadlock except for using slab.
+On Thu, Jan 19, 2012 at 05:26:15PM +0100, Jan Engelhardt wrote:
+> This patch adds the xt2 table functions. Of course this does not do
+> anything useful yet, chain and rule support directly follow.
 
-Oh.  I see.  The problem is calling kobject_uevent (which happens to
-live in slabs sysfs_slab_add) with a lock held.  And kobject_uevent
-makes a blocking call to userspace.
+First off, I'm happy to see these patches.
 
-No locks held seems to be a good policy on that one.
+The netlink interface for iptables has been a missing feature for long
+time.
 
-Eric
+> ---
+>  include/net/netfilter/x_tables2.h |   17 +++++++
+>  net/netfilter/Kconfig             |    8 +++-
+>  net/netfilter/Makefile            |    1 +
+>  net/netfilter/xt2_core.c          |   85 +++++++++++++++++++++++++++++++++++++
+>  4 files changed, 110 insertions(+), 1 deletions(-)
+>  create mode 100644 include/net/netfilter/x_tables2.h
+>  create mode 100644 net/netfilter/xt2_core.c
+> 
+> diff --git a/include/net/netfilter/x_tables2.h b/include/net/netfilter/x_tables2.h
+> new file mode 100644
+> index 0000000..a219952
+> --- /dev/null
+> +++ b/include/net/netfilter/x_tables2.h
+> @@ -0,0 +1,17 @@
+> +#ifndef _NET_NETFILTER_XTABLES2_H
+> +#define _NET_NETFILTER_XTABLES2_H 1
+> +
+> +#define XTABLES2_VTAG "Xtables2 A8"
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+I don't want to center the discussion on naming, but I'd prefer if we
+stick to xtables without version 2 and A8 (what does it mean A8, btw?).
+
+At some point the old xtables infrastructure will be removed, then
+we'll have lots of references to xt2 in the tree.
+
+And, if we provide the netlink interface for xtables, we should
+be able to remove the old setsockopt/getsockopt interface quite fast
+(as soon as we provide user-space tools that can speak both netlink and
+setsockopt/getsockopt interface for some time).
+
+> +/**
+> + * @master:	the master table
+> + */
+> +struct xt2_pernet_data {
+> +	struct xt2_table __rcu *master;
+> +};
+> +
+> +struct xt2_table {
+> +	int _dummy;
+> +};
+> +
+> +#endif /* _NET_NETFILTER_XTABLES2_H */
+> diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+> index 32bff6d..5b3d9ca 100644
+> --- a/net/netfilter/Kconfig
+> +++ b/net/netfilter/Kconfig
+> @@ -321,7 +321,13 @@ config NETFILTER_XTABLES
+>  	  This is required if you intend to use any of ip_tables,
+>  	  ip6_tables or arp_tables.
+>  
+> -if NETFILTER_XTABLES
+> +config NETFILTER_XTABLES2
+> +	tristate "Netfilter Xtables2 packet filtering"
+> +	---help---
+> +	Xtables2 is a rework of the internal architecture of Xtables.
+> +	It supersedes iptables, ip6tables, arptables and ebtables.
+
+My idea is that this does not supersede any of these tools.
+
+Instead, these tools should be ported to the netlink interface.
+I prefer if users don't notice any change regarding tools in the
+short term.
+
+I still think there's valuable work in Patrick's nftables. IMO, the
+scope of this work should be limited to providing the netlink
+interface for iptables (ip6tables, arptables, and so on), not modifying
+the command line tool syntax (which is a different discussion, don't
+get me wrong I'm not telling that revisiting the syntax is bad, but
+it's a different discussion and I don't want to mix things).
