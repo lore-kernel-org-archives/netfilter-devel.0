@@ -1,56 +1,52 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: xtables2 a8, netlink interface
-Date: Sat, 21 Jan 2012 21:21:58 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1201212110100.13689@blackhole.kfki.hu>
-References: <1326990381-14534-1-git-send-email-jengelh@medozas.de> <alpine.DEB.2.00.1201201422230.11124@blackhole.kfki.hu> <alpine.LNX.2.01.1201211645300.28799@frira.zrqbmnf.qr>
+From: Richard Weinberger <richard@nod.at>
+Subject: ipt_LOG: No space after prefix
+Date: Sun, 22 Jan 2012 13:54:49 +0100
+Message-ID: <4F1C0719.1010609@nod.at>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:37917 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750846Ab2AUUWC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 21 Jan 2012 15:22:02 -0500
-In-Reply-To: <alpine.LNX.2.01.1201211645300.28799@frira.zrqbmnf.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enigC32B9631C6618A973A6C748B"
+To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 21 Jan 2012, Jan Engelhardt wrote:
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigC32B9631C6618A973A6C748B
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-> On Saturday 2012-01-21 15:10, Jozsef Kadlecsik wrote:
-> 
-> >On Thu, 19 Jan 2012, Jan Engelhardt wrote:
-> >
-> >> So here is the first set of patches implementing part of the xt2 core
-> >> and nfnl interface. Please review, I am sure you will have something
-> >> to say :)
-> >
-> >At a first glance I must say it looks very promising. Good job!
-> >What seems to be missing is some kind of protocol version negotiation 
-> >support between kernel and userspace. Or it'll come in the next batch of 
-> >patches? :-)
-> 
-> Can be an attribute returned with NFXTM_IDENTIFY messages.
+Hi!
 
-That attribute should be there from the very beginning.
+Is there no space after prefix for specific reason?
+ipt_log_packet() is using this format string:
+"<%d>%sIN=3D%s OUT=3D%s "
 
-> But I had not really given thought to that (ipset is also still at protocol 
-> 6, so..)
+Using a prefix leads to a broken log entry like this one (prefix is "foo"=
+):
+"fooIN=3Deth0 OUT=3D ..."
+I'm sure this breaks log analyzers.
+I've never noticed this because I'm using prefix very seldom.
 
-Yes, but anytime there would be a need for a protocol extension/new 
-protocol, that'd be added easily, with full transition support.
+Thanks,
+//richard
 
-Netlink makes too easy to add new attributes - and ignores unknown ones. 
-However, in our case both communicating parties must know the exact 
-capabilities of the other one: it's unacceptable that say a new flag is 
-introduced and sent from userspace and got silently discarded by the 
-(older) kernel.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+--------------enigC32B9631C6618A973A6C748B
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQEcBAEBAgAGBQJPHAceAAoJEN9758yqZn9euSEH/05iT13o46yEJG+yrz4ug2je
+qlBNhbi39h7bAoemdpq1zd7tOG0bZUdIlt2Rd0KzdlauFgKVwHRV8jE+NLaoDLGT
+hgKia+U/YV4lYrl/06ZgKlJ7gU1EF6zBKrAGqICv6Z6bJiSAWjp6054Wp8vlQIN2
+FW6wL1M2crPVGY+dRWJYYlI7e2FhaYqKxwc69WhT0rAGxQuAWA5PytxNr8QK7mZX
+sd21WGoxqzX17k3j9nLl/XfGdHe0esMLq/hYXx77A7KshXgNtDcfDT8ifl9EQa0d
+aIxjjrK9A0gxvfFEmzGPN7EWtPLYv7eKcw1wha8GYr8fv+2+S+jBDn+118EyrPk=
+=4Nb+
+-----END PGP SIGNATURE-----
+
+--------------enigC32B9631C6618A973A6C748B--
