@@ -1,55 +1,44 @@
-From: Richard Weinberger <richard@nod.at>
-Subject: Re: ipt_LOG: No space after prefix
-Date: Sun, 22 Jan 2012 15:26:05 +0100
-Message-ID: <4F1C1C7D.7040200@nod.at>
-References: <4F1C0719.1010609@nod.at> <alpine.LNX.2.01.1201221519200.10337@frira.zrqbmnf.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] conntrackd: basic TIPC implementation for NOTRACK mode
+Date: Sun, 22 Jan 2012 18:41:40 +0100
+Message-ID: <20120122174140.GA18764@1984>
+References: <20120121085217.4272940o8fmk4v80@www.usherbrooke.ca>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig45E59AFE910B10518DD83F8F"
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Quentin Aebischer <Quentin.Aebischer@USherbrooke.ca>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a.ns.miles-group.at ([95.130.255.143]:47834 "EHLO radon.swed.at"
+Received: from mail.us.es ([193.147.175.20]:52788 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751922Ab2AVO0J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 22 Jan 2012 09:26:09 -0500
-In-Reply-To: <alpine.LNX.2.01.1201221519200.10337@frira.zrqbmnf.qr>
+	id S1752047Ab2AVRlq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 22 Jan 2012 12:41:46 -0500
+Content-Disposition: inline
+In-Reply-To: <20120121085217.4272940o8fmk4v80@www.usherbrooke.ca>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig45E59AFE910B10518DD83F8F
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Quentin,
 
-Am 22.01.2012 15:20, schrieb Jan Engelhardt:
-> Changing it now will break log analyzers as well. So you are better off=
-=20
-> leaving it as-is, because everybody who has observed that before you=20
-> already knows about it.
+On Sat, Jan 21, 2012 at 08:52:17AM -0500, Quentin Aebischer wrote:
+> Edit : I first sent to user list, sorry about that :x.
+> 
+> Hi everyone,
+> 
+> I've implemented a very basic TIPC channel for the conntrackd daemon.
+> 
+> You can pull from here : git@github.com:Vauteck/Conntrack-tools.git master
 
-Very true.
+Thanks for sharing this with us. I cannot access your tree, I need the
+public way to clone it for read-only, you have sent the access to your
+tree read-write via SSH, this is wrong.
 
-Thanks,
-//richard
+However:
 
+It would great if you can send us your contribution in the form of one
+patch, which is the standard way to do things in FOSS projects.
 
---------------enig45E59AFE910B10518DD83F8F
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+http://lxr.linux.no/#linux+v3.2.1/Documentation/SubmittingPatches
+https://git.wiki.kernel.org/articles/g/i/t/GitSvnCrashCourse_512d.html
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQEcBAEBAgAGBQJPHBx+AAoJEN9758yqZn9enZEIAJuxw0fe6zIMRl2e8Lqezgso
-IL4VPauFFQywAnCfLyG+Hxpz75ylg8W0ejAD9w/dwREHb+ibyfVOdoeaCnTZ4hHF
-Z5e8B0SYUCcLGV3aEeh5awuPsxf4yrI5fiWh9FIhS9I+bPkNgb0UrIvgzFDqYRjL
-cGLzK25kvofTnvXRjnb02KT4ucBMPH0WujbgpNnN57UyMft0ByAKVLIGyzvmT39E
-i0gxydktwlm3siEr/w3ocxDXcRYfZtt24s0Plo1eaIV4MjjldxcyG8DNqf4eClYO
-mH9DCXQ0C2eNqCmkL6Cp38UCkvO3U9hWKpcu45faYL/YdVJKkJi0uLIUmVmIXlQ=
-=X1sX
------END PGP SIGNATURE-----
-
---------------enig45E59AFE910B10518DD83F8F--
+We can review the changes you made in my email client, that saves me
+time and makes my life way easier! ;-)
