@@ -1,69 +1,35 @@
-From: Mihai =?UTF-8?B?RG9uyJt1?= <mihai.dontu@gmail.com>
-Subject: Re: [Bug 40422] New: 3.0: kernel panic - not syncing: fatal
- exception in interrupt
-Date: Mon, 23 Jan 2012 16:53:58 +0200
-Message-ID: <20120123165358.60b1ba11@mdontu-l.dsd.ro>
-References: <bug-40422-27@https.bugzilla.kernel.org/>
-	<20110801140418.510c5dc4.akpm@linux-foundation.org>
-	<20110802004558.393e2a77@mdontu-dell>
-	<20110803045916.363b35fb@mdontu-dell>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: xtables2 a8, netlink interface
+Date: Mon, 23 Jan 2012 16:42:56 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1201231634330.9129@frira.zrqbmnf.qr>
+References: <1326990381-14534-1-git-send-email-jengelh@medozas.de> <alpine.DEB.2.00.1201201422230.11124@blackhole.kfki.hu> <alpine.LNX.2.01.1201211645300.28799@frira.zrqbmnf.qr> <alpine.DEB.2.00.1201212110100.13689@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: bugzilla-daemon@bugzilla.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.bitdefender.com ([91.199.104.2]:38336 "EHLO
-	mail.bitdefender.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752780Ab2AWPAm convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Jan 2012 10:00:42 -0500
-In-Reply-To: <20110803045916.363b35fb@mdontu-dell>
+Received: from seven.medozas.de ([188.40.89.202]:59696 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751629Ab2AWPm6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Jan 2012 10:42:58 -0500
+In-Reply-To: <alpine.DEB.2.00.1201212110100.13689@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 3 Aug 2011 04:59:16 +0300 Mihai Don=C8=9Bu wrote:
-> On Tuesday 02 August 2011 00:45:58 Mihai Don=C8=9Bu wrote:
-> > > drat, the first part of that crash scrolled off the screen or
-> > > wasn't in the photo.  I don't suppose it's possible to get that
-> > > information?
-> >=20
-> > No, I'm afraid not. I'll disable the framebuffer decorations for th=
-e
-> > future. Should get me 4 or 5 more lines of backtrace when the crash
-> > reappears.
-> >=20
-> > > Still, the oops is in netfilter code - a bad pointer dereference
-> > > under devinet_ioctl->masq_device_event.
->=20
-> I got another kernel panic, but it's in a different place and I've
-> somehow managed to take a crappy snapshot (missing some of the right
-> side info). Anyway, at the rate these tend to happen, I'm likely to b=
-e
-> able to submit a correct one pretty soon.
->=20
-> Is there any option you'll like me to turn on?
->=20
 
-This issue has not reproduced for me in quite some time, also I have
-updated my hardware a month ago, so I'm likely unable to test any fixes
-in this area.
+On Saturday 2012-01-21 21:21, Jozsef Kadlecsik wrote:
+>
+>Netlink makes too easy to add new attributes - and ignores unknown ones. 
+>However, in our case both communicating parties must know the exact 
+>capabilities of the other one: it's unacceptable that say a new flag is 
+>introduced and sent from userspace and got silently discarded by the 
+>(older) kernel.
 
-The strange thing however is that for a while I suffered from a
-"desynchronization" between "hard locked" and "soft locked" (as
-displayed by rfkill) and I had to manually run rfkill to enable WiFi.
-After that last kernel panic, things got back to normal. :-) But I
-assume that was a hardware issue ...
+I thought about exposing the revision window here, much like
+libtool's CURRENT and (CURRENT-AGE), rather than just a single rev
+like ipset currently does. Does that make sense to you?
 
-You can probably close this bug.
-
-Thanks,
-
---=20
-Mihai Don=C8=9Bu
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1. kern: 600--611, prog:    , 599 => prog too old
+2. kern: 600--611, prog: 600, 610 => can use some/all features
+3. kern: 600--611, prog: 611      => can use all features
+4. kern: 600--611, prog: 612,     => kernel too old
