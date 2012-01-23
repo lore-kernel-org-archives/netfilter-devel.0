@@ -1,35 +1,81 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: xtables2 a8, netlink interface
-Date: Mon, 23 Jan 2012 16:42:56 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1201231634330.9129@frira.zrqbmnf.qr>
-References: <1326990381-14534-1-git-send-email-jengelh@medozas.de> <alpine.DEB.2.00.1201201422230.11124@blackhole.kfki.hu> <alpine.LNX.2.01.1201211645300.28799@frira.zrqbmnf.qr> <alpine.DEB.2.00.1201212110100.13689@blackhole.kfki.hu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 2/3] NETFILTER module xt_hmark, new target for HASH
+ based fwmark
+Date: Mon, 23 Jan 2012 18:01:50 +0100
+Message-ID: <20120123170150.GA26351@1984>
+References: <1326448338-13416-1-git-send-email-hans.schillstrom@ericsson.com>
+ <201201230020.20857.hans@schillstrom.com>
+ <20120123091241.GA23374@1984>
+ <201201231049.17165.hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=us-ascii
+Cc: Hans Schillstrom <hans@schillstrom.com>,
+	"kaber@trash.net" <kaber@trash.net>,
+	"jengelh@medozas.de" <jengelh@medozas.de>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:59696 "EHLO seven.medozas.de"
+Received: from mail.us.es ([193.147.175.20]:41627 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751629Ab2AWPm6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Jan 2012 10:42:58 -0500
-In-Reply-To: <alpine.DEB.2.00.1201212110100.13689@blackhole.kfki.hu>
+	id S1752687Ab2AWRBx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Jan 2012 12:01:53 -0500
+Content-Disposition: inline
+In-Reply-To: <201201231049.17165.hans.schillstrom@ericsson.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Hans,
 
-On Saturday 2012-01-21 21:21, Jozsef Kadlecsik wrote:
->
->Netlink makes too easy to add new attributes - and ignores unknown ones. 
->However, in our case both communicating parties must know the exact 
->capabilities of the other one: it's unacceptable that say a new flag is 
->introduced and sent from userspace and got silently discarded by the 
->(older) kernel.
+On Mon, Jan 23, 2012 at 10:49:16AM +0100, Hans Schillstrom wrote:
+> On Monday 23 January 2012 10:12:41 Pablo Neira Ayuso wrote:
+> > On Mon, Jan 23, 2012 at 12:20:15AM +0100, Hans Schillstrom wrote:
+> > > The text should clarify that this is valid for the fragments not the "flow"
+> > > 
+> > > > I've got one scenario that may break with this assumption:
+> > > > 
+> > > > 1) your traffic follows one path over router A and B to reach your
+> > > >    firewall F which requires no fragmentation at all.
+> 
+> I missed the last part here  "requires no fragmentation at all"
+> 
+> > > > 2) path to router B becomes broken while there are established flows
+> > > >    with firewall F.
+> > > > 3) router A decides to forward packets to router C, which fragment
+> > > >    packets because it is using smaller MTU than router A.
+> > > > 4) packets arrive to firewall F, then hashing is calculated based on
+> > > >    addresses, not ports, and you load-sharing becomes inconsistent.
+> > > > 
+> > > > This can rarely happen, but it does, it would break.
+> > > > 
+> > > > To fix this, I think that HMARK requires that you have to specify the
+> > > > hashing strategy. If you want to support fragments, use only
+> > > > addresses. If you're sure you will not get fragments, use layer 3 and
+> > > > layer 4 information.
+> 
+> This can be acomplished by setting --hmark-sp-mask and --hmark-dp-mask to Zero
+> Then you don't use port in the hash calc.
 
-I thought about exposing the revision window here, much like
-libtool's CURRENT and (CURRENT-AGE), rather than just a single rev
-like ipset currently does. Does that make sense to you?
+OK, it would be great if we can provide a cleaner interface. The
+current behaviour uses layer3-layer4 tuple hashing plus defaulting to
+layer3 in case of fragments.
 
-1. kern: 600--611, prog:    , 599 => prog too old
-2. kern: 600--611, prog: 600, 610 => can use some/all features
-3. kern: 600--611, prog: 611      => can use all features
-4. kern: 600--611, prog: 612,     => kernel too old
+I'd prefer explicit configuration options:
+
+--hashmark-method layer3
+        use only address for hashing, this is fragment safe.
+
+--hashmark-method layer3-layer4
+        use addresses and ports for hashing, fragments not supported
+        unless defrag is enabled.
+
+Still, if you want to support the current behaviour, it should be
+something like:
+
+--hashmark-method layer3-layer4-fragments
+        use addresses and ports for hashing, for fragments default to
+        layer3 hashing. Document scenario in which hash consistency
+        may break.
+
+The behaviour of the target has to be specified by the configurations.
+Defaulting to internal assumptions seems obscure to me.
