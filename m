@@ -1,48 +1,33 @@
-From: Stephen Clark <sclark46@earthlink.net>
-Subject: NAT question
-Date: Wed, 25 Jan 2012 11:16:22 -0500
-Message-ID: <4F202AD6.9090802@earthlink.net>
-Reply-To: sclark46@earthlink.net
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: NAT question
+Date: Wed, 25 Jan 2012 18:30:51 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1201251830150.2852@frira.zrqbmnf.qr>
+References: <4F202AD6.9090802@earthlink.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Stephen Clark <sclark46@earthlink.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from elasmtp-galgo.atl.sa.earthlink.net ([209.86.89.61]:49898 "EHLO
-	elasmtp-galgo.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756008Ab2AYQyS (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Jan 2012 11:54:18 -0500
-Received: from [69.22.83.66] (helo=joker.seclark.com)
-	by elasmtp-galgo.atl.sa.earthlink.net with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.67)
-	(envelope-from <sclark46@earthlink.net>)
-	id 1Rq5WJ-0002k1-G2
-	for netfilter-devel@vger.kernel.org; Wed, 25 Jan 2012 11:16:23 -0500
+Received: from seven.medozas.de ([188.40.89.202]:49041 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756367Ab2AYRaz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 Jan 2012 12:30:55 -0500
+In-Reply-To: <4F202AD6.9090802@earthlink.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Can iptables do a network to network nat without having to write out a bunch of 
-nat rules.
-In other words translate  192.168.198.0/24 to 172.16.10.0/24 without having to 
-write out
-256 rules.
+On Wednesday 2012-01-25 17:16, Stephen Clark wrote:
 
-Also can iptables handle 1000 nat rules like above if they have to be written out on
-a 1.66ghz intel dual core atom with 1gb of mem.
+> Can iptables do a network to network nat without having to write out a bunch of
+> nat rules.
+> In other words translate  192.168.198.0/24 to 172.16.10.0/24 without having to
+> write out
+> 256 rules.
 
-I know this isn't appropriate question for devel list but I didn't find anything 
-googling.
+-> NETMAP.
 
-Thanks,
+> Also can iptables handle 1000 nat rules like above if they have to be written
+> out on
+> a 1.66ghz intel dual core atom with 1gb of mem.
 
--- 
-
-"They that give up essential liberty to obtain temporary safety,
-deserve neither liberty nor safety."  (Ben Franklin)
-
-"The course of history shows that as a government grows, liberty
-decreases."  (Thomas Jefferson)
-
-
-
+"It can. Can you?"
