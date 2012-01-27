@@ -1,10 +1,15 @@
 From: Simon Wunderlich <simon.wunderlich@s2003.tu-chemnitz.de>
 Subject: [PATCH] skbuff: Add new tc classify variable
 Date: Fri, 27 Jan 2012 17:19:50 +0100
-Message-ID: <1328639948-25232-1-git-send-email-siwu__22549.2701902569$1328646879$gmane$org@hrz.tu-chemnitz.de>
+Message-ID: <1328639948-25232-1-git-send-email-siwu__9361.66176475144$1328646882$gmane$org@hrz.tu-chemnitz.de>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netdev@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from nick.hrz.tu-chemnitz.de ([134.109.228.11]:42512 "EHLO
+	nick.hrz.tu-chemnitz.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753992Ab2BGUe2 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Feb 2012 15:34:28 -0500
 Cc: Patrick McHardy <kaber@trash.net>
 Cc: Jamal Hadi Salim <hadi@cyberus.ca>
 Cc: "David S. Miller" <davem@davemloft.net>
@@ -16,8 +21,8 @@ Cc: netfilter-devel@vger.kernel.org
 Cc: netfilter@vger.kernel.org
 Cc: coreteam@netfilter.org
 Cc: linux-wireless@vger.kernel.org
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 The linux traffic control mechanism has different ways to select the
 correct class of a qdisc. A common way to do this is to use tc filters
