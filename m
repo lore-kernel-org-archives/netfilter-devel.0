@@ -1,130 +1,275 @@
-From: Dave Taht <dave.taht@gmail.com>
-Subject: Re: [PATCH] skbuff: Add new tc classify variable
-Date: Tue, 7 Feb 2012 20:33:49 +0000
-Message-ID: <CAA93jw7NPVm_YUFdnM1aD6bzz5vbmuF3osaHS5xE+-xCutiAbw@mail.gmail.com>
-References: <1328639948-25232-1-git-send-email-siwu@hrz.tu-chemnitz.de>
-	<20120207.135841.1753473725075272902.davem@davemloft.net>
-	<20120207201633.GB26533@pandem0nium>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jamal Hadi Salim <hadi@cyberus.ca>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	"John W. Linville" <linville@tuxdriver.com>,
-	Marek Lindner <lindner_marek@yahoo.de>,
-	Sven Eckelmann <sven@narfation.org>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, linux-wireless@vger.kernel.org
-To: Simon Wunderlich <simon.wunderlich@s2003.tu-chemnitz.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20120207201633.GB26533@pandem0nium>
-Sender: netdev-owner@vger.kernel.org
+From: Simon Wunderlich <simon.wunderlich-Y4E02TeZ33kaBlGTGt4zH4SGEyLTKazZ@public.gmane.org>
+Subject: [PATCH] skbuff: Add new tc classify variable
+Date: Fri, 27 Jan 2012 17:19:50 +0100
+Message-ID: <1328639948-25232-1-git-send-email-siwu__16005.1002320417$1328646878$gmane$org@hrz.tu-chemnitz.de>
+Cc: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
+Cc: Jamal Hadi Salim <hadi-fAAogVwAN2Kw5LPnMra/2Q@public.gmane.org>
+Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
+Cc: "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>
+Cc: Marek Lindner <lindner_marek-LWAfsSFWpa4@public.gmane.org>
+Cc: Sven Eckelmann <sven-KaDOiPu9UxWEi8DpZVb4nw@public.gmane.org>
+Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org
+Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Feb 7, 2012 at 7:57 PM, Simon Wunderlich <
-simon.wunderlich@s2003.tu-chemnitz.de> wrote:
+The linux traffic control mechanism has different ways to select the
+correct class of a qdisc. A common way to do this is to use tc filters
+that are directly attached to a qdisc. Another approach is to use the
+iptables classify module. The latter one can reduce the amount of work
+necessary to process a packet when iptables is already involved in the
+packet classification.
 
-> On Tue, Feb 07, 2012 at 11:05:22AM -0800, Stephen Hemminger wrote:
-> > On Tue,  7 Feb 2012 19:39:08 +0100
-> > Simon Wunderlich <simon.wunderlich@s2003.tu-chemnitz.de> wrote:
-> >
-> > I don't understand why this is better, we already have mark to do t=
-his.
-> > Your method saves adding a tc filter to map mark to classid, but th=
-at i=3D
-s
-> hardly
-> > a huge burden.
->
-> Unfortunately, it is. We have previously built our trees by setting m=
-arks
-> with iptables
-> and matching the masks with tc and the u32 matcher, but we got a rath=
-er
-> big performance
-> impact as soon as the number of users grow. The target platform are W=
-iFi
-> access points.
-> By using the proposed patch, the performance stays nearly constant at=
- a
-> growing number
-> of users.
->
+The iptables module can be used in the postrouting chain of the mangle
+table.
 
-To put things in more general terms, the overspecialized behavior and u=
-se
-of magic numbers in the wireless stack
+# iptables -F -t mangle
+# iptables -X -t mangle
+# iptables -t mangle -I POSTROUTING -j CLASSIFY --set-class 1:1337
 
-=2E.. from net/wireless/util.c/*
+A simple qdisc with two classes will now route the traffic to 1:1337
 
-Given a data frame determine the 802.1p/1d tag to use. */
-unsigned int cfg80211_classify8021d(struct sk_buff *skb)
-{
-        unsigned int dscp;
+# tc qdisc del dev eth0 root
+# tc qdisc add dev eth0 root handle 1: htb default 1
+# tc class add dev eth0 parent 1: classid 1:1 htb rate 15kbit burst 0kbit
+# tc class add dev eth0 parent 1: classid 1:1337 htb rate 250kbit burst 0kbit
+# tc -s class show dev eth0
 
-        /* skb->priority values from 256->263 are magic values to
-         * directly indicate a specific 802.1d priority.  This is used
-         * to allow 802.1d priority to be passed directly in from VLAN
-         * tags, etc.
-         */
-        if (skb->priority >=3D3D 256 && skb->priority <=3D3D 263)
-                return skb->priority - 256;
+A similar test with an ath9k device will show a complete different
+behavior. The default class 1:1 will be used and data is sent through.
+This problem seems to be related to the fact that the shared member
+variable sk_buff::priority is used to store the tc class id of an
+outgoing packet. This variable is also used in other places for
+different purposes. An example is the ieee80211_select_queue function
+which always overwrites the priority of an outgoing skb.
 
-        switch (skb->protocol) {
-        case htons(ETH_P_IP):
-                dscp =3D3D ipv4_get_dsfield(ip_hdr(skb)) & 0xfc;
-                break;
-        case htons(ETH_P_IPV6):
-                dscp =3D3D ipv6_get_dsfield(ipv6_hdr(skb)) & 0xfc;
-                break;
-        default:
-                return 0;
-        }
+This conflict can be resolved by an additional member variable
+sk_buff::tc_class that is only used for the traffic control
+classification.
 
-        return dscp >> 5;
-}
+Signed-off-by: Simon Wunderlich <siwu-MaAgPAbsBIVS8oHt8HbXEIQuADTiUCJX@public.gmane.org>
+Cc: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
+Cc: Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
+Cc: Jamal Hadi Salim <hadi-fAAogVwAN2Kw5LPnMra/2Q@public.gmane.org>
+Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
+Cc: "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>
+Cc: Marek Lindner <lindner_marek-LWAfsSFWpa4@public.gmane.org>
+Cc: Sven Eckelmann <sven-KaDOiPu9UxWEi8DpZVb4nw@public.gmane.org>
+Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+---
+ include/linux/skbuff.h      |    2 ++
+ net/netfilter/xt_CLASSIFY.c |    4 ++--
+ net/sched/sch_atm.c         |    4 ++--
+ net/sched/sch_cbq.c         |    2 +-
+ net/sched/sch_drr.c         |    4 ++--
+ net/sched/sch_dsmark.c      |    4 ++--
+ net/sched/sch_generic.c     |    2 +-
+ net/sched/sch_hfsc.c        |    4 ++--
+ net/sched/sch_htb.c         |    6 +++---
+ net/sched/sch_prio.c        |    4 ++--
+ net/sched/sch_sfq.c         |    8 ++++----
+ 11 files changed, 23 insertions(+), 21 deletions(-)
 
-
-and the related select queue function calling this
-which maps the 4 hardware queues wireless has, onto 4 mq subqdiscs...
-
-overrides most anything you might want to do with iptables doing
-classification directly, especially if you want to put things
-into different hw queues.
-
-and furthermore makes using other qdiscs than mq, such as the htb rate
-limiter, problematic, as well as sch_mq has no ability to put in a top
-level filter, anyway because stuff ends up in the 1:1,1:2,1:3,1:4
-automagically...
-
-Reducing the namespace to 'marks' vs classes is ok for some uses, I gue=
-ss,
-but how to handle the hw queues and the select_queue problem?
-
-And while I'm at the problems that wireless has, having one (or 4) queu=
-es
-per actual end-point rather than 4 hardware queues would make it possib=
-le
-to address the bufferbloat problem with wireless and sanely calculating
-aggregation values....
-
-My thought on that was to be tossing a station identifier into the cb, =
-but
-that seems to alsobe a cross layer violation.
-
-I like the idea of separating "priority" from "classification" and from
-"hw queues" but a unifying metaphor and space in the skb seems
-to be THE problem.
-
-
-
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index 50db9b0..3ffc301 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -352,6 +352,7 @@ typedef unsigned char *sk_buff_data_t;
+  *	@nf_bridge: Saved data about a bridged frame - see br_netfilter.c
+  *	@skb_iif: ifindex of device we arrived on
+  *	@tc_index: Traffic control index
++ *	@tc_class: Classification index
+  *	@tc_verd: traffic control verdict
+  *	@rxhash: the packet hash computed on receive
+  *	@queue_mapping: Queue mapping for multiqueue devices
+@@ -439,6 +440,7 @@ struct sk_buff {
+ 
+ 	int			skb_iif;
+ #ifdef CONFIG_NET_SCHED
++	__u32			tc_class;	/* traffic control class */
+ 	__u16			tc_index;	/* traffic control index */
+ #ifdef CONFIG_NET_CLS_ACT
+ 	__u16			tc_verd;	/* traffic control verdict */
+diff --git a/net/netfilter/xt_CLASSIFY.c b/net/netfilter/xt_CLASSIFY.c
+index af9c4da..9b71957 100644
+--- a/net/netfilter/xt_CLASSIFY.c
++++ b/net/netfilter/xt_CLASSIFY.c
+@@ -1,5 +1,5 @@
+ /*
+- * This is a module which is used for setting the skb->priority field
++ * This is a module which is used for setting the skb->tc_class field
+  * of an skb for qdisc classification.
+  */
+ 
+@@ -33,7 +33,7 @@ classify_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+ 	const struct xt_classify_target_info *clinfo = par->targinfo;
+ 
+-	skb->priority = clinfo->priority;
++	skb->tc_class = clinfo->priority;
+ 	return XT_CONTINUE;
+ }
+ 
+diff --git a/net/sched/sch_atm.c b/net/sched/sch_atm.c
+index e25e490..003511a 100644
+--- a/net/sched/sch_atm.c
++++ b/net/sched/sch_atm.c
+@@ -369,8 +369,8 @@ static int atm_tc_enqueue(struct sk_buff *skb, struct Qdisc *sch)
+ 	pr_debug("atm_tc_enqueue(skb %p,sch %p,[qdisc %p])\n", skb, sch, p);
+ 	result = TC_POLICE_OK;	/* be nice to gcc */
+ 	flow = NULL;
+-	if (TC_H_MAJ(skb->priority) != sch->handle ||
+-	    !(flow = (struct atm_flow_data *)atm_tc_get(sch, skb->priority))) {
++	if (TC_H_MAJ(skb->tc_class) != sch->handle ||
++	    !(flow = (struct atm_flow_data *)atm_tc_get(sch, skb->tc_class))) {
+ 		list_for_each_entry(flow, &p->flows, list) {
+ 			if (flow->filter_list) {
+ 				result = tc_classify_compat(skb,
+diff --git a/net/sched/sch_cbq.c b/net/sched/sch_cbq.c
+index 24d94c0..b1321f9 100644
+--- a/net/sched/sch_cbq.c
++++ b/net/sched/sch_cbq.c
+@@ -221,7 +221,7 @@ cbq_classify(struct sk_buff *skb, struct Qdisc *sch, int *qerr)
+ 	struct cbq_class *head = &q->link;
+ 	struct cbq_class **defmap;
+ 	struct cbq_class *cl = NULL;
+-	u32 prio = skb->priority;
++	u32 prio = skb->tc_class;
+ 	struct tcf_result res;
+ 
+ 	/*
+diff --git a/net/sched/sch_drr.c b/net/sched/sch_drr.c
+index 6b7fe4a..57b1ca2 100644
+--- a/net/sched/sch_drr.c
++++ b/net/sched/sch_drr.c
+@@ -321,8 +321,8 @@ static struct drr_class *drr_classify(struct sk_buff *skb, struct Qdisc *sch,
+ 	struct tcf_result res;
+ 	int result;
+ 
+-	if (TC_H_MAJ(skb->priority ^ sch->handle) == 0) {
+-		cl = drr_find_class(sch, skb->priority);
++	if (TC_H_MAJ(skb->tc_class ^ sch->handle) == 0) {
++		cl = drr_find_class(sch, skb->tc_class);
+ 		if (cl != NULL)
+ 			return cl;
+ 	}
+diff --git a/net/sched/sch_dsmark.c b/net/sched/sch_dsmark.c
+index 2c79020..60cfe15 100644
+--- a/net/sched/sch_dsmark.c
++++ b/net/sched/sch_dsmark.c
+@@ -224,8 +224,8 @@ static int dsmark_enqueue(struct sk_buff *skb, struct Qdisc *sch)
+ 		}
+ 	}
+ 
+-	if (TC_H_MAJ(skb->priority) == sch->handle)
+-		skb->tc_index = TC_H_MIN(skb->priority);
++	if (TC_H_MAJ(skb->tc_class) == sch->handle)
++		skb->tc_index = TC_H_MIN(skb->tc_class);
+ 	else {
+ 		struct tcf_result res;
+ 		int result = tc_classify(skb, p->filter_list, &res);
+diff --git a/net/sched/sch_generic.c b/net/sched/sch_generic.c
+index 67fc573..c14779a 100644
+--- a/net/sched/sch_generic.c
++++ b/net/sched/sch_generic.c
+@@ -449,7 +449,7 @@ static inline struct sk_buff_head *band2list(struct pfifo_fast_priv *priv,
+ static int pfifo_fast_enqueue(struct sk_buff *skb, struct Qdisc *qdisc)
+ {
+ 	if (skb_queue_len(&qdisc->q) < qdisc_dev(qdisc)->tx_queue_len) {
+-		int band = prio2band[skb->priority & TC_PRIO_MAX];
++		int band = prio2band[skb->tc_class & TC_PRIO_MAX];
+ 		struct pfifo_fast_priv *priv = qdisc_priv(qdisc);
+ 		struct sk_buff_head *list = band2list(priv, band);
+ 
+diff --git a/net/sched/sch_hfsc.c b/net/sched/sch_hfsc.c
+index 9bdca2e..2fcc6ef 100644
+--- a/net/sched/sch_hfsc.c
++++ b/net/sched/sch_hfsc.c
+@@ -1154,8 +1154,8 @@ hfsc_classify(struct sk_buff *skb, struct Qdisc *sch, int *qerr)
+ 	struct tcf_proto *tcf;
+ 	int result;
+ 
+-	if (TC_H_MAJ(skb->priority ^ sch->handle) == 0 &&
+-	    (cl = hfsc_find_class(skb->priority, sch)) != NULL)
++	if (TC_H_MAJ(skb->tc_class ^ sch->handle) == 0 &&
++	    (cl = hfsc_find_class(skb->tc_class, sch)) != NULL)
+ 		if (cl->level == 0)
+ 			return cl;
+ 
+diff --git a/net/sched/sch_htb.c b/net/sched/sch_htb.c
+index 29b942c..ef8dd42 100644
+--- a/net/sched/sch_htb.c
++++ b/net/sched/sch_htb.c
+@@ -197,13 +197,13 @@ static struct htb_class *htb_classify(struct sk_buff *skb, struct Qdisc *sch,
+ 	struct tcf_proto *tcf;
+ 	int result;
+ 
+-	/* allow to select class by setting skb->priority to valid classid;
++	/* allow to select class by setting skb->tc_class to valid classid;
+ 	 * note that nfmark can be used too by attaching filter fw with no
+ 	 * rules in it
+ 	 */
+-	if (skb->priority == sch->handle)
++	if (skb->tc_class == sch->handle)
+ 		return HTB_DIRECT;	/* X:0 (direct flow) selected */
+-	cl = htb_find(skb->priority, sch);
++	cl = htb_find(skb->tc_class, sch);
+ 	if (cl && cl->level == 0)
+ 		return cl;
+ 
+diff --git a/net/sched/sch_prio.c b/net/sched/sch_prio.c
+index b5d56a2..f53a5b99 100644
+--- a/net/sched/sch_prio.c
++++ b/net/sched/sch_prio.c
+@@ -34,12 +34,12 @@ static struct Qdisc *
+ prio_classify(struct sk_buff *skb, struct Qdisc *sch, int *qerr)
+ {
+ 	struct prio_sched_data *q = qdisc_priv(sch);
+-	u32 band = skb->priority;
++	u32 band = skb->tc_class;
+ 	struct tcf_result res;
+ 	int err;
+ 
+ 	*qerr = NET_XMIT_SUCCESS | __NET_XMIT_BYPASS;
+-	if (TC_H_MAJ(skb->priority) != sch->handle) {
++	if (TC_H_MAJ(skb->tc_class) != sch->handle) {
+ 		err = tc_classify(skb, q->filter_list, &res);
+ #ifdef CONFIG_NET_CLS_ACT
+ 		switch (err) {
+diff --git a/net/sched/sch_sfq.c b/net/sched/sch_sfq.c
+index 67494ae..79bc0ac 100644
+--- a/net/sched/sch_sfq.c
++++ b/net/sched/sch_sfq.c
+@@ -190,10 +190,10 @@ static unsigned int sfq_classify(struct sk_buff *skb, struct Qdisc *sch,
+ 	struct tcf_result res;
+ 	int result;
+ 
+-	if (TC_H_MAJ(skb->priority) == sch->handle &&
+-	    TC_H_MIN(skb->priority) > 0 &&
+-	    TC_H_MIN(skb->priority) <= q->divisor)
+-		return TC_H_MIN(skb->priority);
++	if (TC_H_MAJ(skb->tc_class) == sch->handle &&
++	    TC_H_MIN(skb->tc_class) > 0 &&
++	    TC_H_MIN(skb->tc_class) <= q->divisor)
++		return TC_H_MIN(skb->tc_class);
+ 
+ 	if (!q->filter_list) {
+ 		skb_flow_dissect(skb, &sfq_skb_cb(skb)->keys);
+-- 
+1.7.8.3
 
 --
-Dave T=E4ht
-SKYPE: davetaht
-US Tel: 1-239-829-5608
-=46R Tel: 0638645374
-http://www.bufferbloat.net
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
