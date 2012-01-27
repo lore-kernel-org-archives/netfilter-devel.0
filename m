@@ -1,22 +1,22 @@
-From: Simon Wunderlich <simon.wunderlich-Y4E02TeZ33kaBlGTGt4zH4SGEyLTKazZ@public.gmane.org>
+From: Simon Wunderlich <simon.wunderlich@s2003.tu-chemnitz.de>
 Subject: [PATCH] skbuff: Add new tc classify variable
 Date: Fri, 27 Jan 2012 17:19:50 +0100
-Message-ID: <1328639948-25232-1-git-send-email-siwu__16005.1002320417$1328646878$gmane$org@hrz.tu-chemnitz.de>
-Cc: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
-To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
-Cc: Jamal Hadi Salim <hadi-fAAogVwAN2Kw5LPnMra/2Q@public.gmane.org>
-Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
-Cc: "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>
-Cc: Marek Lindner <lindner_marek-LWAfsSFWpa4@public.gmane.org>
-Cc: Sven Eckelmann <sven-KaDOiPu9UxWEi8DpZVb4nw@public.gmane.org>
-Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org
-Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <1328639948-25232-1-git-send-email-siwu__22549.2701902569$1328646879$gmane$org@hrz.tu-chemnitz.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netdev@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: Jamal Hadi Salim <hadi@cyberus.ca>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Marek Lindner <lindner_marek@yahoo.de>
+Cc: Sven Eckelmann <sven@narfation.org>
+Cc: netfilter-devel@vger.kernel.org
+Cc: netfilter@vger.kernel.org
+Cc: coreteam@netfilter.org
+Cc: linux-wireless@vger.kernel.org
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 The linux traffic control mechanism has different ways to select the
@@ -53,20 +53,20 @@ This conflict can be resolved by an additional member variable
 sk_buff::tc_class that is only used for the traffic control
 classification.
 
-Signed-off-by: Simon Wunderlich <siwu-MaAgPAbsBIVS8oHt8HbXEIQuADTiUCJX@public.gmane.org>
-Cc: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
-Cc: Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
-Cc: Jamal Hadi Salim <hadi-fAAogVwAN2Kw5LPnMra/2Q@public.gmane.org>
-Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
-Cc: "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>
-Cc: Marek Lindner <lindner_marek-LWAfsSFWpa4@public.gmane.org>
-Cc: Sven Eckelmann <sven-KaDOiPu9UxWEi8DpZVb4nw@public.gmane.org>
-Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Signed-off-by: Simon Wunderlich <siwu@hrz.tu-chemnitz.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: Jamal Hadi Salim <hadi@cyberus.ca>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Marek Lindner <lindner_marek@yahoo.de>
+Cc: Sven Eckelmann <sven@narfation.org>
+Cc: netfilter-devel@vger.kernel.org
+Cc: netfilter@vger.kernel.org
+Cc: coreteam@netfilter.org
+Cc: netdev@vger.kernel.org
+Cc: linux-wireless@vger.kernel.org
 ---
  include/linux/skbuff.h      |    2 ++
  net/netfilter/xt_CLASSIFY.c |    4 ++--
@@ -269,7 +269,3 @@ index 67494ae..79bc0ac 100644
 -- 
 1.7.8.3
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
