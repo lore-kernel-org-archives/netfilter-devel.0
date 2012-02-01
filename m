@@ -1,46 +1,43 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/6] Netfilter: Merge ipt_LOG and ip6_LOG into xt_LOG
-Date: Wed, 1 Feb 2012 03:53:19 +0100
-Message-ID: <20120201025319.GA28455@1984>
-References: <1327269381-20748-1-git-send-email-richard@nod.at>
- <1327269381-20748-2-git-send-email-richard@nod.at>
- <CAFLxGvzLvdyyaBvh7LCM2+tTmKobK6n8jTRoH8NXd=MVmN4ocA@mail.gmail.com>
- <alpine.LNX.2.01.1201310208370.7433@frira.zrqbmnf.qr>
+From: Pekka Enberg <penberg@kernel.org>
+Subject: Re: Hung task when calling clone() due to netfilter/slab
+Date: Wed, 1 Feb 2012 10:05:54 +0200
+Message-ID: <CAOJsxLFtvJbNUkXbesXdu39CwyrRrb0yT2jjWtj7m7R0GSr=YA@mail.gmail.com>
+References: <1326558605.19951.7.camel@lappy>
+	<1326561043.5287.24.camel@edumazet-laptop>
+	<1326632384.11711.3.camel@lappy>
+	<1326648305.5287.78.camel@edumazet-laptop>
+	<alpine.DEB.2.00.1201170910130.4800@router.home>
+	<1326813630.2259.19.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+	<alpine.DEB.2.00.1201170927020.4800@router.home>
+	<1326814208.2259.21.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+	<alpine.DEB.2.00.1201170942240.4800@router.home>
+	<alpine.DEB.2.00.1201171620590.14697@router.home>
+	<m1bopz2ws3.fsf@fess.ebiederm.org>
+	<m14nvr2vbu.fsf@fess.ebiederm.org>
+	<alpine.DEB.2.00.1201191959540.14480@router.home>
+	<m1y5t3yuil.fsf@fess.ebiederm.org>
+	<alpine.DEB.2.00.1201200848040.25882@router.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: richard -rw- weinberger <richard.weinberger@gmail.com>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Linux Networking Developer Mailing List
-	<netdev@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	eric.dumazet@gmail.com
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44167 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753595Ab2BACxY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 31 Jan 2012 21:53:24 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.01.1201310208370.7433@frira.zrqbmnf.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>, Eric Dumazet <eric.dumazet@gmail.com>,
+	Sasha Levin <levinsasha928@gmail.com>, Dave Jones <davej@redhat.com>, davem <davem@davemloft.net>,
+	Matt Mackall <mpm@selenic.com>, kaber@trash.net, pablo@netfilter.org,
+	linux-kernel <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>,
+	netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>
+To: Christoph Lameter <cl@linux.com>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <alpine.DEB.2.00.1201200848040.25882@router.home>
+Sender: owner-linux-mm@kvack.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Feb 01, 2012 at 02:24:11AM +0100, Jan Engelhardt wrote:
-> On Monday 2012-01-30 10:01, richard -rw- weinberger wrote:
-> 
-> >On Sun, Jan 22, 2012 at 10:56 PM, Richard Weinberger <richard@nod.at> wrote:
-> >> ipt_LOG and ip6_LOG have a lot of common code, merge them
-> >> to reduce duplicate code.
-> >>
-> >> Signed-off-by: Richard Weinberger <richard@nod.at>
-> >
-> >No comments?
-> 
-> Adding Pablo to Cc.
+On Fri, Jan 20, 2012 at 4:49 PM, Christoph Lameter <cl@linux.com> wrote:
+> Ok then I guess my last patch is needed to make sysfs operations safe.
 
-I expect to have some spare time to look into this soon.
+Hmm. So is the latter patch needed or not?
 
-Sorry for the silence, I need to unplug a bit from the mailing
-list to push some developments forward, it's hard to make everything
-at the same time ;-)
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
