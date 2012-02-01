@@ -1,92 +1,64 @@
-From: Pekka Enberg <penberg@kernel.org>
-Subject: Re: Hung task when calling clone() due to netfilter/slab
-Date: Wed, 1 Feb 2012 10:07:18 +0200
-Message-ID: <CAOJsxLFLkQDxYq9nuM91q8DB99gSuz9DBfXktNGpS4Ss63GHdA@mail.gmail.com>
-References: <1326558605.19951.7.camel@lappy>
-	<1326561043.5287.24.camel@edumazet-laptop>
-	<1326632384.11711.3.camel@lappy>
-	<1326648305.5287.78.camel@edumazet-laptop>
-	<alpine.DEB.2.00.1201170910130.4800@router.home>
-	<1326813630.2259.19.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
-	<alpine.DEB.2.00.1201170927020.4800@router.home>
-	<1326814208.2259.21.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+From: richard -rw- weinberger <richard.weinberger@gmail.com>
+Subject: Re: [PATCH 1/6] Netfilter: Merge ipt_LOG and ip6_LOG into xt_LOG
+Date: Wed, 1 Feb 2012 10:14:46 +0100
+Message-ID: <CAFLxGvwh5J=CR6OzST7ok6cEuHPWTziDN5TSbGxAiJOpANpAAQ@mail.gmail.com>
+References: <1327269381-20748-1-git-send-email-richard@nod.at>
+	<1327269381-20748-2-git-send-email-richard@nod.at>
+	<CAFLxGvzLvdyyaBvh7LCM2+tTmKobK6n8jTRoH8NXd=MVmN4ocA@mail.gmail.com>
+	<alpine.LNX.2.01.1201310208370.7433@frira.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: Christoph Lameter <cl@linux.com>, Sasha Levin <levinsasha928@gmail.com>, Dave Jones <davej@redhat.com>,
-	davem <davem@davemloft.net>, Matt Mackall <mpm@selenic.com>, kaber@trash.net,
-	pablo@netfilter.org, linux-kernel <linux-kernel@vger.kernel.org>,
-	linux-mm <linux-mm@kvack.org>, netfilter-devel@vger.kernel.org,
-	netdev <netdev@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1326814208.2259.21.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
-Sender: owner-linux-mm@kvack.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Linux Networking Developer Mailing List
+	<netdev@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	eric.dumazet@gmail.com, Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:52219 "EHLO
+	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753188Ab2BAJOr (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 1 Feb 2012 04:14:47 -0500
+In-Reply-To: <alpine.LNX.2.01.1201310208370.7433@frira.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 17, 2012 at 5:30 PM, Eric Dumazet <eric.dumazet@gmail.com> wrot=
-e:
-> Le mardi 17 janvier 2012 =E0 09:27 -0600, Christoph Lameter a =E9crit :
+On Wed, Feb 1, 2012 at 2:24 AM, Jan Engelhardt <jengelh@medozas.de> wrote:
+> On Monday 2012-01-30 10:01, richard -rw- weinberger wrote:
 >
->> Subject: slub: Do not hold slub_lock when calling sysfs_slab_add()
+>>On Sun, Jan 22, 2012 at 10:56 PM, Richard Weinberger <richard@nod.at> wrote:
+>>> ipt_LOG and ip6_LOG have a lot of common code, merge them
+>>> to reduce duplicate code.
+>>>
+>>> Signed-off-by: Richard Weinberger <richard@nod.at>
 >>
->> sysfs_slab_add() calls various sysfs functions that actually may
->> end up in userspace doing all sorts of things.
->>
->> Release the slub_lock after adding the kmem_cache structure to the list.
->> At that point the address of the kmem_cache is not known so we are
->> guaranteed exlusive access to the following modifications to the
->> kmem_cache structure.
->>
->> If the sysfs_slab_add fails then reacquire the slub_lock to
->> remove the kmem_cache structure from the list.
->>
->> Reported-by: Sasha Levin <levinsasha928@gmail.com>
->> Signed-off-by: Christoph Lameter <cl@linux.com>
->>
->> ---
->> =A0mm/slub.c | =A0 =A03 ++-
->> =A01 file changed, 2 insertions(+), 1 deletion(-)
->>
->> Index: linux-2.6/mm/slub.c
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> --- linux-2.6.orig/mm/slub.c =A02012-01-17 03:07:11.140010438 -0600
->> +++ linux-2.6/mm/slub.c =A0 =A0 =A0 2012-01-17 03:26:06.799986908 -0600
->> @@ -3929,13 +3929,14 @@ struct kmem_cache *kmem_cache_create(con
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (kmem_cache_open(s, n,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 size, align,=
- flags, ctor)) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 list_add(&s->list, &slab_cac=
-hes);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 up_write(&slub_lock);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (sysfs_slab_add(s)) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 down_write(&sl=
-ub_lock);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 list_del(&s-=
->list);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 kfree(n);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 kfree(s);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 up_write(&slub_lock);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return s;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 kfree(n);
+>>No comments?
 >
-> Thanks !
+> Adding Pablo to Cc.
 >
-> Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
+>
+> Do you have the patchset as a retrievable git tree, btw?
 
-I'm planning to queue this for v3.4 and tagging it for -stable for
-v3.3. Do we need this for older versions as well?
+Only for kernel stuff:
+git://git.kernel.org/pub/scm/linux/kernel/git/rw/misc.git xt_LOG
 
-                        Pekka
+If you want it for the user space part too, I can setup something...
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+>
+>>[PATCH 6/6] iptables: xt_LOG: Add ring buffer support
+>>
+>>in libxt_LOG.c:
+>>+.size = XT_ALIGN(sizeof(struct xt_log_info_v1) + sizeof(void *)),
+>
+> Why the extra void*?
+
+The kernel space part of  xt_log_info_v1 differs from the user space struct,
+it contains an extra pointer to the ring buffer context.
+
+Iptables must not see this extra pointer because the kernel writes to it.
+
+-- 
+Thanks,
+//richard
