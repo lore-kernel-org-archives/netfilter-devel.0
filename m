@@ -1,37 +1,41 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Alter TCP packet not work fine with netfilter hook
-Date: Tue, 31 Jan 2012 17:03:59 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1201311703080.5243@frira.zrqbmnf.qr>
-References: <CANopevWckbSuu2jys5BjCLLU6TF0FHZNgK8SgbY2PAEpRuxQmw@mail.gmail.com> <CANopevXXq8Moz2mM0+EExapCAv+va-Q6qv7=UMXpaQZV_AF3og@mail.gmail.com>
+Subject: Re: [PATCH 1/6] Netfilter: Merge ipt_LOG and ip6_LOG into xt_LOG
+Date: Wed, 1 Feb 2012 02:24:11 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1201310208370.7433@frira.zrqbmnf.qr>
+References: <1327269381-20748-1-git-send-email-richard@nod.at> <1327269381-20748-2-git-send-email-richard@nod.at> <CAFLxGvzLvdyyaBvh7LCM2+tTmKobK6n8jTRoH8NXd=MVmN4ocA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Cao Xuan Sang <sangkao@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:55855 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754650Ab2AaQEB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 31 Jan 2012 11:04:01 -0500
-In-Reply-To: <CANopevXXq8Moz2mM0+EExapCAv+va-Q6qv7=UMXpaQZV_AF3og@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Linux Networking Developer Mailing List
+	<netdev@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	eric.dumazet@gmail.com, Pablo Neira Ayuso <pablo@netfilter.org>
+To: richard -rw- weinberger <richard.weinberger@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAFLxGvzLvdyyaBvh7LCM2+tTmKobK6n8jTRoH8NXd=MVmN4ocA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 2012-01-31 05:46, Cao Xuan Sang wrote:
+On Monday 2012-01-30 10:01, richard -rw- weinberger wrote:
 
->> Hi netfilter family,
->> I'm a newbie to netfilter.
->> I have just developt a crypto module using netfilter hook.
->> In this module :
->> SENDER : IP payload will be encrypted at POST ROUTING hook
->> RECEIVE : IP payload wil be decrypted at PRE ROUTING hook.
+>On Sun, Jan 22, 2012 at 10:56 PM, Richard Weinberger <richard@nod.at> wrote:
+>> ipt_LOG and ip6_LOG have a lot of common code, merge them
+>> to reduce duplicate code.
 >>
->> The module work fine with ICMP & UDP but it NOT work fine with TCP: 2 machine still receive packet at hook but application not communicate together.
->>
->> I don't know whether any mystery in netfilter or linux network kernel at here?
->>
->> Thanks :)
->--
->To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+>> Signed-off-by: Richard Weinberger <richard@nod.at>
+>
+>No comments?
 
-I just wonder what's up with people that hit reply and send without 
-writing anything (or even adding to cc).
+Adding Pablo to Cc.
+
+
+Do you have the patchset as a retrievable git tree, btw?
+
+
+>[PATCH 6/6] iptables: xt_LOG: Add ring buffer support
+>
+>in libxt_LOG.c:
+>+.size = XT_ALIGN(sizeof(struct xt_log_info_v1) + sizeof(void *)),
+
+Why the extra void*?
