@@ -1,67 +1,30 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 1/6] Netfilter: Merge ipt_LOG and ip6_LOG into xt_LOG
-Date: Wed, 1 Feb 2012 16:19:55 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1202011616280.26332@frira.zrqbmnf.qr>
-References: <1327269381-20748-1-git-send-email-richard@nod.at> <1327269381-20748-2-git-send-email-richard@nod.at> <CAFLxGvzLvdyyaBvh7LCM2+tTmKobK6n8jTRoH8NXd=MVmN4ocA@mail.gmail.com> <alpine.LNX.2.01.1201310208370.7433@frira.zrqbmnf.qr>
- <CAFLxGvwh5J=CR6OzST7ok6cEuHPWTziDN5TSbGxAiJOpANpAAQ@mail.gmail.com> <alpine.LNX.2.01.1202011523590.18699@frira.zrqbmnf.qr> <CAFLxGvzgvvfkKQ7r2WWD6jOr+nLCTOE0MvXaMxfCR3HPAHivxg@mail.gmail.com>
+From: "U.Mutlu" <for-gmane@mutluit.com>
+Subject: libnetfilter_queue
+Date: Wed, 01 Feb 2012 16:58:29 +0100
+Message-ID: <jgbnf5$id5$1@dough.gmane.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Linux Networking Developer Mailing List
-	<netdev@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	eric.dumazet@gmail.com, Pablo Neira Ayuso <pablo@netfilter.org>
-To: richard -rw- weinberger <richard.weinberger@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:35593 "EHLO seven.medozas.de"
+Received: from plane.gmane.org ([80.91.229.3]:45505 "EHLO plane.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932122Ab2BAPT4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Feb 2012 10:19:56 -0500
-In-Reply-To: <CAFLxGvzgvvfkKQ7r2WWD6jOr+nLCTOE0MvXaMxfCR3HPAHivxg@mail.gmail.com>
+	id S1753310Ab2BAP6n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 1 Feb 2012 10:58:43 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
+	id 1RscZz-0004zn-M5
+	for netfilter-devel@vger.kernel.org; Wed, 01 Feb 2012 16:58:39 +0100
+Received: from p4fe8a3ee.dip.t-dialin.net ([79.232.163.238])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 Feb 2012 16:58:39 +0100
+Received: from for-gmane by p4fe8a3ee.dip.t-dialin.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 Feb 2012 16:58:39 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
+who is the current maintainer of libnetfilter_queue?
 
-On Wednesday 2012-02-01 16:08, richard -rw- weinberger wrote:
->> I don't see that extra pointer (outside xt_log_info_v1) that you tal=
-k about.
->> +struct xt_log_info_v1 {
->> + =C2=A0 =C2=A0 =C2=A0 unsigned char level;
->> + =C2=A0 =C2=A0 =C2=A0 unsigned char logflags;
->> + =C2=A0 =C2=A0 =C2=A0 char prefix[30];
->> +
->> + =C2=A0 =C2=A0 =C2=A0 char ring_name[30];
->> + =C2=A0 =C2=A0 =C2=A0 unsigned long ring_size;
->> + =C2=A0 =C2=A0 =C2=A0 struct xt_LOG_ring_ctx *rctx;
->> +};
->
->See:
->include/linux/netfilter/xt_LOG.h (user space part).
->
->+struct xt_log_info_v1 {
->+       unsigned char level;
->+       unsigned char logflags;
->+       char prefix[30];
->+
->+       char ring_name[30];
->+       unsigned long ring_siVs.ze;
->+};
->
->Here is no context pointer.
-
-Aw don't do that. That is not maintainer-friendly (since headers
-are more or less regularly updated by copying from kernel sources).
-Keep the structs the same on each side.
-
-That's why we have .userspacesize in the first place.
-See libxt_quota.c on how it's done.
-
-	.size =3D XT_ALIGN(sizeof(struct xt_log_info_v1)),
-	.userspacesize =3D offsetof(struct xt_log_info_v1, firstkernelmember),
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
