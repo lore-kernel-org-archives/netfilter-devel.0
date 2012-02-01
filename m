@@ -1,46 +1,46 @@
-From: "U.Mutlu" <for-gmane@mutluit.com>
-Subject: Re: nfqueue library setup requires root
-Date: Wed, 01 Feb 2012 17:26:07 +0100
-Message-ID: <4F29679F.6090704@mutluit.com>
-References: <20111229140019.23841ead@wwwwww-701SD>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: Hung task when calling clone() due to netfilter/slab
+Date: Wed, 01 Feb 2012 09:32:47 -0800
+Message-ID: <m1sjiuzcg0.fsf@fess.ebiederm.org>
+References: <1326558605.19951.7.camel@lappy>
+	<1326561043.5287.24.camel@edumazet-laptop>
+	<1326632384.11711.3.camel@lappy>
+	<1326648305.5287.78.camel@edumazet-laptop>
+	<alpine.DEB.2.00.1201170910130.4800@router.home>
+	<1326813630.2259.19.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+	<alpine.DEB.2.00.1201170927020.4800@router.home>
+	<1326814208.2259.21.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+	<alpine.DEB.2.00.1201170942240.4800@router.home>
+	<alpine.DEB.2.00.1201171620590.14697@router.home>
+	<m1bopz2ws3.fsf@fess.ebiederm.org> <m14nvr2vbu.fsf@fess.ebiederm.org>
+	<alpine.DEB.2.00.1201191959540.14480@router.home>
+	<m1y5t3yuil.fsf@fess.ebiederm.org>
+	<alpine.DEB.2.00.1201200848040.25882@router.home>
+	<CAOJsxLFtvJbNUkXbesXdu39CwyrRrb0yT2jjWtj7m7R0GSr=YA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: abirvalg@lavabit.com
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:51640 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755862Ab2BAQ01 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Feb 2012 11:26:27 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
-	id 1Rsd0m-00040s-Q5
-	for netfilter-devel@vger.kernel.org; Wed, 01 Feb 2012 17:26:20 +0100
-Received: from p4fe8a3ee.dip.t-dialin.net ([79.232.163.238])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Wed, 01 Feb 2012 17:26:20 +0100
-Received: from for-gmane by p4fe8a3ee.dip.t-dialin.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Wed, 01 Feb 2012 17:26:20 +0100
-In-Reply-To: <20111229140019.23841ead@wwwwww-701SD>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Christoph Lameter <cl@linux.com>,  Eric Dumazet <eric.dumazet@gmail.com>,  Sasha Levin <levinsasha928@gmail.com>,  Dave Jones <davej@redhat.com>,  davem <davem@davemloft.net>,  Matt Mackall <mpm@selenic.com>,  kaber@trash.net,  pablo@netfilter.org,  linux-kernel <linux-kernel@vger.kernel.org>,  linux-mm <linux-mm@kvack.org>,  netfilter-devel@vger.kernel.org,  netdev <netdev@vger.kernel.org>
+To: Pekka Enberg <penberg@kernel.org>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <CAOJsxLFtvJbNUkXbesXdu39CwyrRrb0yT2jjWtj7m7R0GSr=YA@mail.gmail.com>
+	(Pekka Enberg's message of "Wed, 1 Feb 2012 10:05:54 +0200")
+Sender: owner-linux-mm@kvack.org
+List-Id: netfilter-devel.vger.kernel.org
 
-abirvalg@lavabit.com wrote, On 12/29/11 15:00:
-> Hi,
-> I launched my application with CAP_NET_ADMIN capability, yet both nfq_unbind_pf and nfq_bind_pf produce an error.
-> When I setuid(0) no error is produced and everything works as expected.
-> Could you please confirm that Library setup operations require root.
-> Isn't it a bit misleading that libnetfilter_queue docu states that CAP_NET_ADMIN is required without mentioning root permissions.
-> Would it be possible to do Library Setup with only CAP_NET_ADMIN and without root priviliges in future versions?
+Pekka Enberg <penberg@kernel.org> writes:
 
-On a host node I didn't need CAP_NET_ADMIN when starting it as root
-(ie. maybe on my system root already has that cap by default; would make sense).
+> On Fri, Jan 20, 2012 at 4:49 PM, Christoph Lameter <cl@linux.com> wrote:
+>> Ok then I guess my last patch is needed to make sysfs operations safe.
+>
+> Hmm. So is the latter patch needed or not?
 
-But on a VPS on the same host node I couldn't get it working yet.
-It always gives errno=111 (ECONNREFUSED; "Connection refused").
+Imperfect changelog but yes.
 
-Does yours work in a virtual machine, ie. on a VPS ?
+Eric
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
