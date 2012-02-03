@@ -1,59 +1,96 @@
-From: "U.Mutlu" <for-gmane@mutluit.com>
-Subject: Re: nfqueue library setup requires root
-Date: Thu, 02 Feb 2012 22:52:40 +0100
-Message-ID: <4F2B05A8.4030803@mutluit.com>
-References: <20111229140019.23841ead@wwwwww-701SD> <4F29679F.6090704@mutluit.com> <20120202184905.GB5268@1984>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: [PATCH 1/2] netfilter: remove include/linux/netfilter_ipv4/ipt_addrtype.h
+Date: Fri,  3 Feb 2012 13:40:25 +0800
+Message-ID: <1328247626-7528-1-git-send-email-xiyou.wangcong@gmail.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Cong Wang <xiyou.wangcong@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Florian Westphal <fw@strlen.de>
+To: netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:59747 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751322Ab2BBVww (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Feb 2012 16:52:52 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
-	id 1Rt4aH-0003qC-Fg
-	for netfilter-devel@vger.kernel.org; Thu, 02 Feb 2012 22:52:49 +0100
-Received: from p4fe8b3b2.dip.t-dialin.net ([79.232.179.178])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Thu, 02 Feb 2012 22:52:49 +0100
-Received: from for-gmane by p4fe8b3b2.dip.t-dialin.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Thu, 02 Feb 2012 22:52:49 +0100
-In-Reply-To: <20120202184905.GB5268@1984>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:42822 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751276Ab2BCFk4 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Feb 2012 00:40:56 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote, On 02/02/12 19:49:
-> On Wed, Feb 01, 2012 at 05:26:07PM +0100, U.Mutlu wrote:
->> abirvalg@lavabit.com wrote, On 12/29/11 15:00:
->>> Hi,
->>> I launched my application with CAP_NET_ADMIN capability, yet both nfq_unbind_pf and nfq_bind_pf produce an error.
->>> When I setuid(0) no error is produced and everything works as expected.
->>> Could you please confirm that Library setup operations require root.
->>> Isn't it a bit misleading that libnetfilter_queue docu states that CAP_NET_ADMIN is required without mentioning root permissions.
->>> Would it be possible to do Library Setup with only CAP_NET_ADMIN and without root priviliges in future versions?
->>
->> On a host node I didn't need CAP_NET_ADMIN when starting it as root
->> (ie. maybe on my system root already has that cap by default; would make sense).
->
-> Yes, root is fine. You should also get it running with CAP_NET_ADMIN.
->
->> But on a VPS on the same host node I couldn't get it working yet.
->> It always gives errno=111 (ECONNREFUSED; "Connection refused").
->
-> This has nothing to do with permissions (in that case you'll hit
-> -EPERM).
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Florian Westphal <fw@strlen.de>
+Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
 
-So then why does it bring ECONNREFUSED in the VM,
-but works fine on the host node?
+---
+ Documentation/feature-removal-schedule.txt  |    8 --------
+ include/linux/netfilter_ipv4/Kbuild         |    1 -
+ include/linux/netfilter_ipv4/ipt_addrtype.h |   27 ---------------------------
+ 3 files changed, 0 insertions(+), 36 deletions(-)
+ delete mode 100644 include/linux/netfilter_ipv4/ipt_addrtype.h
 
->> Does yours work in a virtual machine, ie. on a VPS ?
->
-> By "virtual machine" you mean one linux container (lxc)?
-
-Yes, exactly. Have you tested it in such a container like LXC or openvz?
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+index a0ffac0..830a0b9 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -422,14 +422,6 @@ Files:	net/netfilter/xt_connlimit.c
+ 
+ ----------------------------
+ 
+-What:	ipt_addrtype match include file
+-When:	2012
+-Why:	superseded by xt_addrtype
+-Who:	Florian Westphal <fw@strlen.de>
+-Files:	include/linux/netfilter_ipv4/ipt_addrtype.h
+-
+-----------------------------
+-
+ What:	i2c_driver.attach_adapter
+ 	i2c_driver.detach_adapter
+ When:	September 2011
+diff --git a/include/linux/netfilter_ipv4/Kbuild b/include/linux/netfilter_ipv4/Kbuild
+index f9930c8..8e6362b 100644
+--- a/include/linux/netfilter_ipv4/Kbuild
++++ b/include/linux/netfilter_ipv4/Kbuild
+@@ -7,7 +7,6 @@ header-y += ipt_REJECT.h
+ header-y += ipt_SAME.h
+ header-y += ipt_TTL.h
+ header-y += ipt_ULOG.h
+-header-y += ipt_addrtype.h
+ header-y += ipt_ah.h
+ header-y += ipt_ecn.h
+ header-y += ipt_realm.h
+diff --git a/include/linux/netfilter_ipv4/ipt_addrtype.h b/include/linux/netfilter_ipv4/ipt_addrtype.h
+deleted file mode 100644
+index 0da4223..0000000
+--- a/include/linux/netfilter_ipv4/ipt_addrtype.h
++++ /dev/null
+@@ -1,27 +0,0 @@
+-#ifndef _IPT_ADDRTYPE_H
+-#define _IPT_ADDRTYPE_H
+-
+-#include <linux/types.h>
+-
+-enum {
+-	IPT_ADDRTYPE_INVERT_SOURCE	= 0x0001,
+-	IPT_ADDRTYPE_INVERT_DEST	= 0x0002,
+-	IPT_ADDRTYPE_LIMIT_IFACE_IN	= 0x0004,
+-	IPT_ADDRTYPE_LIMIT_IFACE_OUT	= 0x0008,
+-};
+-
+-struct ipt_addrtype_info_v1 {
+-	__u16	source;		/* source-type mask */
+-	__u16	dest;		/* dest-type mask */
+-	__u32	flags;
+-};
+-
+-/* revision 0 */
+-struct ipt_addrtype_info {
+-	__u16	source;		/* source-type mask */
+-	__u16	dest;		/* dest-type mask */
+-	__u32	invert_source;
+-	__u32	invert_dest;
+-};
+-
+-#endif
+-- 
+1.7.7.6
 
