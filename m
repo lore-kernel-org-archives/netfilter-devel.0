@@ -1,62 +1,51 @@
-From: Richard Weinberger <richard@nod.at>
-Subject: [PATCH 2/4] ring_buffer: Export for_each_buffer_cpu()
-Date: Sun,  5 Feb 2012 01:14:50 +0100
-Message-ID: <1328400892-22409-5-git-send-email-richard@nod.at>
-References: <1328400892-22409-1-git-send-email-richard@nod.at>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	eric.dumazet@gmail.com, jengelh@medozas.de, rostedt@goodmis.org,
-	Richard Weinberger <richard@nod.at>
+From: Ian Pilcher <arequipeno@gmail.com>
+Subject: Doc on writing conntrack module?
+Date: Sun, 05 Feb 2012 10:55:14 -0600
+Message-ID: <jgmc9i$mid$1@dough.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1328400892-22409-1-git-send-email-richard@nod.at>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from plane.gmane.org ([80.91.229.3]:32812 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753039Ab2BERAE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 5 Feb 2012 12:00:04 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
+	id 1Ru5Rb-0002DU-D6
+	for netfilter-devel@vger.kernel.org; Sun, 05 Feb 2012 18:00:03 +0100
+Received: from pool-71-252-228-112.dllstx.fios.verizon.net ([71.252.228.112])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Sun, 05 Feb 2012 18:00:03 +0100
+Received: from arequipeno by pool-71-252-228-112.dllstx.fios.verizon.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Sun, 05 Feb 2012 18:00:03 +0100
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-In order to make ring_buffer usable to other modules
-for_each_buffer_cpu() needs to be exported.
+I would like to write a conntrack module for the Simple Service
+Discovery Protocol (SSDP):
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
----
- include/linux/ring_buffer.h |    5 +++++
- kernel/trace/ring_buffer.c  |    7 +++++++
- 2 files changed, 12 insertions(+), 0 deletions(-)
+    http://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol
 
-diff --git a/include/linux/ring_buffer.h b/include/linux/ring_buffer.h
-index 67be037..5c1c29f 100644
---- a/include/linux/ring_buffer.h
-+++ b/include/linux/ring_buffer.h
-@@ -185,4 +185,9 @@ enum ring_buffer_flags {
- 	RB_FL_OVERWRITE		= 1 << 0,
- };
- 
-+cpumask_var_t *ring_buffer_mask(struct ring_buffer *buffer);
-+
-+#define for_each_buffer_cpu(buffer, cpu) \
-+	for_each_cpu(cpu, *(ring_buffer_mask(buffer)))
-+
- #endif /* _LINUX_RING_BUFFER_H */
-diff --git a/kernel/trace/ring_buffer.c b/kernel/trace/ring_buffer.c
-index f5b7b5c..a4117c5 100644
---- a/kernel/trace/ring_buffer.c
-+++ b/kernel/trace/ring_buffer.c
-@@ -348,6 +348,7 @@ void *ring_buffer_event_data(struct ring_buffer_event *event)
- }
- EXPORT_SYMBOL_GPL(ring_buffer_event_data);
- 
-+#undef for_each_buffer_cpu
- #define for_each_buffer_cpu(buffer, cpu)		\
- 	for_each_cpu(cpu, buffer->cpumask)
- 
-@@ -4139,3 +4140,9 @@ static int rb_cpu_notify(struct notifier_block *self,
- 	return NOTIFY_OK;
- }
- #endif
-+
-+cpumask_var_t *ring_buffer_mask(struct ring_buffer *buffer)
-+{
-+	return &buffer->cpumask;
-+}
-+EXPORT_SYMBOL_GPL(ring_buffer_mask);
+This certainly seems like it should be reasonably straightforward, but
+I'm having trouble relating the documentation in the Hacking HOWTO to
+what I see in the actual kernel (in nf_conntrack_snmp.c, for example).
+Hardly surprising, given the age of the HOWTO.
+
+Is there any more recent documentation?
+
+If not (i.e. there's only the kernel source), pointers to the particular
+headers, functions, and macros on which I should be focusing would be
+much appreciated.
+
+Thanks!
+
 -- 
-1.7.7.3
+========================================================================
+Ian Pilcher                                         arequipeno@gmail.com
+"If you're going to shift my paradigm ... at least buy me dinner first."
+========================================================================
+
