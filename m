@@ -1,81 +1,48 @@
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: [Patch] netfilter: remove ipt_SAME.h and ipt_realm.h too
-Date: Fri,  3 Feb 2012 18:02:31 +0800
-Message-ID: <1328263351-29363-1-git-send-email-xiyou.wangcong@gmail.com>
-References: <20120203081511.GD30546@Chamillionaire.breakpoint.cc>
-Cc: netfilter-devel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Florian Westphal <fw@strlen.de>,
-	WANG Cong <xiyou.wangcong@gmail.com>
-To: netdev@vger.kernel.org
+From: Richard Weinberger <richard@nod.at>
+Subject: [PATCH v3] Merge ipt_LOG and ip6t_LOG, add ring bufffer support
+Date: Sun,  5 Feb 2012 01:14:46 +0100
+Message-ID: <1328400892-22409-1-git-send-email-richard@nod.at>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	eric.dumazet@gmail.com, jengelh@medozas.de, rostedt@goodmis.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:64947 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755191Ab2BCKCz (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Feb 2012 05:02:55 -0500
-In-Reply-To: <20120203081511.GD30546@Chamillionaire.breakpoint.cc>
+Received: from a.ns.miles-group.at ([95.130.255.143]:47834 "EHLO radon.swed.at"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754542Ab2BEAPH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 4 Feb 2012 19:15:07 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-As Florian pointed out, these 2 headers can be removed too.
+This patch set merges ipt_LOG and ip6t_LOG and adds ring buffer support
+to xt_LOG.
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Florian Westphal <fw@strlen.de>
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Using "--ring" an user can create LOG rules which log messages into
+one or more ring buffers.
+Each ring buffer is represented as pipe-like file in
+/proc/net/netfilter/xt_LOG_ring/.
 
----
-diff --git a/include/linux/netfilter_ipv4/Kbuild b/include/linux/netfilter_ipv4/Kbuild
-index 8e6362b..5ec78b6 100644
---- a/include/linux/netfilter_ipv4/Kbuild
-+++ b/include/linux/netfilter_ipv4/Kbuild
-@@ -4,10 +4,8 @@ header-y += ipt_CLUSTERIP.h
- header-y += ipt_ECN.h
- header-y += ipt_LOG.h
- header-y += ipt_REJECT.h
--header-y += ipt_SAME.h
- header-y += ipt_TTL.h
- header-y += ipt_ULOG.h
- header-y += ipt_ah.h
- header-y += ipt_ecn.h
--header-y += ipt_realm.h
- header-y += ipt_ttl.h
-diff --git a/include/linux/netfilter_ipv4/ipt_SAME.h b/include/linux/netfilter_ipv4/ipt_SAME.h
-deleted file mode 100644
-index 5bca782..0000000
---- a/include/linux/netfilter_ipv4/ipt_SAME.h
-+++ /dev/null
-@@ -1,20 +0,0 @@
--#ifndef _IPT_SAME_H
--#define _IPT_SAME_H
--
--#include <linux/types.h>
--
--#define IPT_SAME_MAX_RANGE	10
--
--#define IPT_SAME_NODST		0x01
--
--struct ipt_same_info {
--	unsigned char info;
--	__u32 rangesize;
--	__u32 ipnum;
--	__u32 *iparray;
--
--	/* hangs off end. */
--	struct nf_nat_range range[IPT_SAME_MAX_RANGE];
--};
--
--#endif /*_IPT_SAME_H*/
-diff --git a/include/linux/netfilter_ipv4/ipt_realm.h b/include/linux/netfilter_ipv4/ipt_realm.h
-deleted file mode 100644
-index b3996ea..0000000
---- a/include/linux/netfilter_ipv4/ipt_realm.h
-+++ /dev/null
-@@ -1,7 +0,0 @@
--#ifndef _IPT_REALM_H
--#define _IPT_REALM_H
--
--#include <linux/netfilter/xt_realm.h>
--#define ipt_realm_info xt_realm_info
--
--#endif /* _IPT_REALM_H */
+Ring buffer support can be enabled/disabled using
+CONFIG_NETFILTER_XT_TARGET_LOG_RING.
+
+Changes since v1:
+ - Merged ipt_LOG and ip6t_LOG
+ - Implemented ring buffer support as part of xt_LOG.
+
+Changes since v2:
+ - Fixed struct xt_log_info_v1's data layout
+ - Removed the sizeof(void *) hack
+ - Replaced BUG() by WARN_ON_ONCE()
+
+
+git://git.kernel.org/pub/scm/linux/kernel/git/rw/misc.git xt_LOG
+[PATCH 1/4] Netfilter: Merge ipt_LOG and ip6_LOG into xt_LOG
+[PATCH 2/4] ring_buffer: Export for_each_buffer_cpu()
+[PATCH 3/4] xt_log: Make printk() in sb_close() optional
+[PATCH 4/4] Netfilter: xt_LOG: Implement ring buffer support
+
+git://git.kernel.org/pub/scm/linux/kernel/git/rw/iptables.git xt_LOG
+[PATCH 1/2] iptables: Merge libip6t_LOG and libipt_LOG into libxt_LOG
+[PATCH 2/2] iptables: xt_LOG: Add ring buffer support
+
+Thanks,
+//richard
