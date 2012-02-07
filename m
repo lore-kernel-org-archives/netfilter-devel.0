@@ -1,119 +1,85 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 1/1] netfilter: nf_queue: fix queueing of bridged gro skbs
-Date: Mon,  6 Feb 2012 13:23:10 +0100
-Message-ID: <1328530990-6782-1-git-send-email-fw@strlen.de>
-Cc: netdev <netdev@vger.kernel.org>, Florian Westphal <fw@strlen.de>
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:58578 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754193Ab2BFMkY (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Feb 2012 07:40:24 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Wunderlich <simon.wunderlich@s2003.tu-chemnitz.de>
+Subject: Re: [PATCH] skbuff: Add new tc classify variable
+Date: Tue, 7 Feb 2012 21:16:33 +0100
+Message-ID: <20120207201633.GB26533@pandem0nium>
+References: <1328639948-25232-1-git-send-email-siwu@hrz.tu-chemnitz.de>
+ <20120207.135841.1753473725075272902.davem@davemloft.net>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="aVD9QWMuhilNxW9f"
+Cc: simon.wunderlich@s2003.tu-chemnitz.de, netdev@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jamal Hadi Salim <hadi@cyberus.ca>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	"John W. Linville" <linville@tuxdriver.com>,
+	Marek Lindner <lindner_marek@yahoo.de>,
+	Sven Eckelmann <sven@narfation.org>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, linux-wireless@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120207.135841.1753473725075272902.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-When trying to nf_queue GRO/GSO skbs, nf_queue uses skb_gso_segment
-to split the skb.
 
-However, if nf_queue is called via bridge netfilter, the mac header
-won't be preserved -- packets will thus contain a bogus mac header.
+--aVD9QWMuhilNxW9f
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Fix this by setting skb->data to the mac header when skb->nf_bridge
-is set and restoring skb->data afterwards for all segments.
+Hello David,
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_queue.c |   40 ++++++++++++++++++++++++++++++++--------
- 1 files changed, 32 insertions(+), 8 deletions(-)
+On Tue, Feb 07, 2012 at 01:58:41PM -0500, David Miller wrote:
+> From: Simon Wunderlich <simon.wunderlich@s2003.tu-chemnitz.de>
+> Date: Tue,  7 Feb 2012 19:39:08 +0100
+>=20
+> > The linux traffic control mechanism has different ways to select the
+> > correct class of a qdisc. A common way to do this is to use tc filters
+> > that are directly attached to a qdisc. Another approach is to use the
+> > iptables classify module. The latter one can reduce the amount of work
+> > necessary to process a packet when iptables is already involved in the
+> > packet classification.
+>=20
+> Do not bloat up sk_buff any more.  Add this, and the other existing
+> tc_* members to the qdisc SKB control block instead.
+>=20
 
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index b3a7db6..ce60cf0 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -203,6 +203,27 @@ err:
- 	return status;
- }
- 
-+#ifdef CONFIG_BRIDGE_NETFILTER
-+/* When called from bridge netfilter, skb->data must point to MAC header
-+ * before calling skb_gso_segment(). Else, original MAC header is lost
-+ * and segmented skbs will be sent to wrong destination.
-+ */
-+static void nf_bridge_adjust_skb_data(struct sk_buff *skb)
-+{
-+	if (skb->nf_bridge)
-+		__skb_push(skb, skb->network_header - skb->mac_header);
-+}
-+
-+static void nf_bridge_adjust_segmented_data(struct sk_buff *skb)
-+{
-+	if (skb->nf_bridge)
-+		__skb_pull(skb, skb->network_header - skb->mac_header);
-+}
-+#else
-+#define nf_bridge_adjust_skb_data(s) do {} while (0)
-+#define nf_bridge_adjust_segmented_data(s) do {} while (0)
-+#endif
-+
- int nf_queue(struct sk_buff *skb,
- 	     struct list_head *elem,
- 	     u_int8_t pf, unsigned int hook,
-@@ -212,7 +233,7 @@ int nf_queue(struct sk_buff *skb,
- 	     unsigned int queuenum)
- {
- 	struct sk_buff *segs;
--	int err;
-+	int err = -EINVAL;
- 	unsigned int queued;
- 
- 	if (!skb_is_gso(skb))
-@@ -228,23 +249,25 @@ int nf_queue(struct sk_buff *skb,
- 		break;
- 	}
- 
-+	nf_bridge_adjust_skb_data(skb);
- 	segs = skb_gso_segment(skb, 0);
- 	/* Does not use PTR_ERR to limit the number of error codes that can be
- 	 * returned by nf_queue.  For instance, callers rely on -ECANCELED to mean
- 	 * 'ignore this hook'.
- 	 */
- 	if (IS_ERR(segs))
--		return -EINVAL;
--
-+		goto out_err;
- 	queued = 0;
- 	err = 0;
- 	do {
- 		struct sk_buff *nskb = segs->next;
- 
- 		segs->next = NULL;
--		if (err == 0)
-+		if (err == 0) {
-+			nf_bridge_adjust_segmented_data(segs);
- 			err = __nf_queue(segs, elem, pf, hook, indev,
- 					   outdev, okfn, queuenum);
-+		}
- 		if (err == 0)
- 			queued++;
- 		else
-@@ -252,11 +275,12 @@ int nf_queue(struct sk_buff *skb,
- 		segs = nskb;
- 	} while (segs);
- 
--	/* also free orig skb if only some segments were queued */
--	if (unlikely(err && queued))
--		err = 0;
--	if (err == 0)
-+	if (queued) {
- 		kfree_skb(skb);
-+		return 0;
-+	}
-+  out_err:
-+	nf_bridge_adjust_segmented_data(skb);
- 	return err;
- }
- 
--- 
-1.7.3.4
+Thanks for your feedback!
 
+I guess you mean skb->cb, but this is also used within mac80211 for various=
+ things
+(quoting include/net/mac80211.h):
+
+ * struct ieee80211_tx_info - skb transmit information
+ *
+ * This structure is placed in skb->cb for three uses:
+ *  (1) mac80211 TX control - mac80211 tells the driver what to do
+ *  (2) driver internal use (if applicable)
+ *  (3) TX status information - driver tells mac80211 what happened
+
+We could give it a try, but we most probably run into conflicts again.
+
+I've messed up the CCs in my initial mail (and just resent it) - sorry abou=
+t that.
+Maybe the mac80211 guys have a suggestion as well :)
+
+Cheers,
+	Simon
+
+--aVD9QWMuhilNxW9f
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAk8xhqEACgkQrzg/fFk7axbRoQCgxHGS8m8aSBvHs2Tyllbx/lmu
+Z+wAn1g2l77zpxyp4a1Slv0m8jl7cs1K
+=MyYW
+-----END PGP SIGNATURE-----
+
+--aVD9QWMuhilNxW9f--
