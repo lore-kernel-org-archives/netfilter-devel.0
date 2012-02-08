@@ -1,276 +1,467 @@
-From: Simon Wunderlich <simon.wunderlich@s2003.tu-chemnitz.de>
-Subject: [PATCH] skbuff: Add new tc classify variable
-Date: Fri, 27 Jan 2012 17:19:50 +0100
-Message-ID: <1328639948-25232-1-git-send-email-siwu__9361.66176475144$1328646882$gmane$org@hrz.tu-chemnitz.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netdev@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nick.hrz.tu-chemnitz.de ([134.109.228.11]:42512 "EHLO
-	nick.hrz.tu-chemnitz.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753992Ab2BGUe2 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Feb 2012 15:34:28 -0500
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: Jamal Hadi Salim <hadi@cyberus.ca>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Marek Lindner <lindner_marek@yahoo.de>
-Cc: Sven Eckelmann <sven@narfation.org>
-Cc: netfilter-devel@vger.kernel.org
-Cc: netfilter@vger.kernel.org
-Cc: coreteam@netfilter.org
-Cc: linux-wireless@vger.kernel.org
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [v8 PATCH 2/3] NETFILTER module xt_hmark, new target for HASH
+ based fwmark
+Date: Wed, 8 Feb 2012 01:27:43 +0100
+Message-ID: <20120208002743.GA29189@1984>
+References: <1327675303-9059-1-git-send-email-hans.schillstrom@ericsson.com>
+ <1327675303-9059-3-git-send-email-hans.schillstrom@ericsson.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: kaber@trash.net, jengelh@medozas.de,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	hans@schillstrom.com
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1327675303-9059-3-git-send-email-hans.schillstrom@ericsson.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The linux traffic control mechanism has different ways to select the
-correct class of a qdisc. A common way to do this is to use tc filters
-that are directly attached to a qdisc. Another approach is to use the
-iptables classify module. The latter one can reduce the amount of work
-necessary to process a packet when iptables is already involved in the
-packet classification.
+On Fri, Jan 27, 2012 at 03:41:42PM +0100, Hans Schillstrom wrote:
+> diff --git a/include/linux/netfilter/xt_hmark.h b/include/linux/netfilter/xt_hmark.h
+> new file mode 100644
+> index 0000000..f2ac47b
+> --- /dev/null
+> +++ b/include/linux/netfilter/xt_hmark.h
+> @@ -0,0 +1,71 @@
+> +#ifndef XT_HMARK_H_
+> +#define XT_HMARK_H_
+> +
+> +#include <linux/types.h>
+> +
+> +/*
+> + * Flags must not start at 0, since it's used as none.
 
-The iptables module can be used in the postrouting chain of the mangle
-table.
+Then, define XT_HMARK_NONE = 0.
 
-# iptables -F -t mangle
-# iptables -X -t mangle
-# iptables -t mangle -I POSTROUTING -j CLASSIFY --set-class 1:1337
+Please, once this is done, remove this comment.
 
-A simple qdisc with two classes will now route the traffic to 1:1337
+> + */
+> +enum {
+> +	XT_HMARK_SADR_AND = 1,	/* SNAT & DNAT are used by the kernel module */
+                                              ^^^^^
+I don't understand why that comment is there.
 
-# tc qdisc del dev eth0 root
-# tc qdisc add dev eth0 root handle 1: htb default 1
-# tc class add dev eth0 parent 1: classid 1:1 htb rate 15kbit burst 0kbit
-# tc class add dev eth0 parent 1: classid 1:1337 htb rate 250kbit burst 0kbit
-# tc -s class show dev eth0
+> +	XT_HMARK_DADR_AND,
+> +	XT_HMARK_SPI_AND,
+> +	XT_HMARK_SPI_OR,
+> +	XT_HMARK_SPORT_AND,
+> +	XT_HMARK_DPORT_AND,
+> +	XT_HMARK_SPORT_OR,
+> +	XT_HMARK_DPORT_OR,
+> +	XT_HMARK_PROTO_AND,
+> +	XT_HMARK_RND,
+> +	XT_HMARK_MODULUS,
+> +	XT_HMARK_OFFSET,
+> +	XT_HMARK_USE_SNAT,
+> +	XT_HMARK_USE_DNAT,
+> +	XT_HMARK_METHOD_L3,
+> +	XT_HMARK_METHOD_L3_4,
+> +	XT_F_HMARK_USE_SNAT = 1 << XT_HMARK_USE_SNAT,
 
-A similar test with an ath9k device will show a complete different
-behavior. The default class 1:1 will be used and data is sent through.
-This problem seems to be related to the fact that the shared member
-variable sk_buff::priority is used to store the tc class id of an
-outgoing packet. This variable is also used in other places for
-different purposes. An example is the ieee80211_select_queue function
-which always overwrites the priority of an outgoing skb.
+You can probably do something like this to beautify this defintion:
 
-This conflict can be resolved by an additional member variable
-sk_buff::tc_class that is only used for the traffic control
-classification.
+XT_F_HMARK_WHATEVER     = (1 << XT_HMARK_BLAH),
+XT_F_HMARK_BLOB         = (1 << XT_HMARK_BLAHBLAH),
 
-Signed-off-by: Simon Wunderlich <siwu@hrz.tu-chemnitz.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: Jamal Hadi Salim <hadi@cyberus.ca>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Marek Lindner <lindner_marek@yahoo.de>
-Cc: Sven Eckelmann <sven@narfation.org>
-Cc: netfilter-devel@vger.kernel.org
-Cc: netfilter@vger.kernel.org
-Cc: coreteam@netfilter.org
-Cc: netdev@vger.kernel.org
-Cc: linux-wireless@vger.kernel.org
----
- include/linux/skbuff.h      |    2 ++
- net/netfilter/xt_CLASSIFY.c |    4 ++--
- net/sched/sch_atm.c         |    4 ++--
- net/sched/sch_cbq.c         |    2 +-
- net/sched/sch_drr.c         |    4 ++--
- net/sched/sch_dsmark.c      |    4 ++--
- net/sched/sch_generic.c     |    2 +-
- net/sched/sch_hfsc.c        |    4 ++--
- net/sched/sch_htb.c         |    6 +++---
- net/sched/sch_prio.c        |    4 ++--
- net/sched/sch_sfq.c         |    8 ++++----
- 11 files changed, 23 insertions(+), 21 deletions(-)
+With some tabs, and so on.
 
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 50db9b0..3ffc301 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -352,6 +352,7 @@ typedef unsigned char *sk_buff_data_t;
-  *	@nf_bridge: Saved data about a bridged frame - see br_netfilter.c
-  *	@skb_iif: ifindex of device we arrived on
-  *	@tc_index: Traffic control index
-+ *	@tc_class: Classification index
-  *	@tc_verd: traffic control verdict
-  *	@rxhash: the packet hash computed on receive
-  *	@queue_mapping: Queue mapping for multiqueue devices
-@@ -439,6 +440,7 @@ struct sk_buff {
- 
- 	int			skb_iif;
- #ifdef CONFIG_NET_SCHED
-+	__u32			tc_class;	/* traffic control class */
- 	__u16			tc_index;	/* traffic control index */
- #ifdef CONFIG_NET_CLS_ACT
- 	__u16			tc_verd;	/* traffic control verdict */
-diff --git a/net/netfilter/xt_CLASSIFY.c b/net/netfilter/xt_CLASSIFY.c
-index af9c4da..9b71957 100644
---- a/net/netfilter/xt_CLASSIFY.c
-+++ b/net/netfilter/xt_CLASSIFY.c
-@@ -1,5 +1,5 @@
- /*
-- * This is a module which is used for setting the skb->priority field
-+ * This is a module which is used for setting the skb->tc_class field
-  * of an skb for qdisc classification.
-  */
- 
-@@ -33,7 +33,7 @@ classify_tg(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	const struct xt_classify_target_info *clinfo = par->targinfo;
- 
--	skb->priority = clinfo->priority;
-+	skb->tc_class = clinfo->priority;
- 	return XT_CONTINUE;
- }
- 
-diff --git a/net/sched/sch_atm.c b/net/sched/sch_atm.c
-index e25e490..003511a 100644
---- a/net/sched/sch_atm.c
-+++ b/net/sched/sch_atm.c
-@@ -369,8 +369,8 @@ static int atm_tc_enqueue(struct sk_buff *skb, struct Qdisc *sch)
- 	pr_debug("atm_tc_enqueue(skb %p,sch %p,[qdisc %p])\n", skb, sch, p);
- 	result = TC_POLICE_OK;	/* be nice to gcc */
- 	flow = NULL;
--	if (TC_H_MAJ(skb->priority) != sch->handle ||
--	    !(flow = (struct atm_flow_data *)atm_tc_get(sch, skb->priority))) {
-+	if (TC_H_MAJ(skb->tc_class) != sch->handle ||
-+	    !(flow = (struct atm_flow_data *)atm_tc_get(sch, skb->tc_class))) {
- 		list_for_each_entry(flow, &p->flows, list) {
- 			if (flow->filter_list) {
- 				result = tc_classify_compat(skb,
-diff --git a/net/sched/sch_cbq.c b/net/sched/sch_cbq.c
-index 24d94c0..b1321f9 100644
---- a/net/sched/sch_cbq.c
-+++ b/net/sched/sch_cbq.c
-@@ -221,7 +221,7 @@ cbq_classify(struct sk_buff *skb, struct Qdisc *sch, int *qerr)
- 	struct cbq_class *head = &q->link;
- 	struct cbq_class **defmap;
- 	struct cbq_class *cl = NULL;
--	u32 prio = skb->priority;
-+	u32 prio = skb->tc_class;
- 	struct tcf_result res;
- 
- 	/*
-diff --git a/net/sched/sch_drr.c b/net/sched/sch_drr.c
-index 6b7fe4a..57b1ca2 100644
---- a/net/sched/sch_drr.c
-+++ b/net/sched/sch_drr.c
-@@ -321,8 +321,8 @@ static struct drr_class *drr_classify(struct sk_buff *skb, struct Qdisc *sch,
- 	struct tcf_result res;
- 	int result;
- 
--	if (TC_H_MAJ(skb->priority ^ sch->handle) == 0) {
--		cl = drr_find_class(sch, skb->priority);
-+	if (TC_H_MAJ(skb->tc_class ^ sch->handle) == 0) {
-+		cl = drr_find_class(sch, skb->tc_class);
- 		if (cl != NULL)
- 			return cl;
- 	}
-diff --git a/net/sched/sch_dsmark.c b/net/sched/sch_dsmark.c
-index 2c79020..60cfe15 100644
---- a/net/sched/sch_dsmark.c
-+++ b/net/sched/sch_dsmark.c
-@@ -224,8 +224,8 @@ static int dsmark_enqueue(struct sk_buff *skb, struct Qdisc *sch)
- 		}
- 	}
- 
--	if (TC_H_MAJ(skb->priority) == sch->handle)
--		skb->tc_index = TC_H_MIN(skb->priority);
-+	if (TC_H_MAJ(skb->tc_class) == sch->handle)
-+		skb->tc_index = TC_H_MIN(skb->tc_class);
- 	else {
- 		struct tcf_result res;
- 		int result = tc_classify(skb, p->filter_list, &res);
-diff --git a/net/sched/sch_generic.c b/net/sched/sch_generic.c
-index 67fc573..c14779a 100644
---- a/net/sched/sch_generic.c
-+++ b/net/sched/sch_generic.c
-@@ -449,7 +449,7 @@ static inline struct sk_buff_head *band2list(struct pfifo_fast_priv *priv,
- static int pfifo_fast_enqueue(struct sk_buff *skb, struct Qdisc *qdisc)
- {
- 	if (skb_queue_len(&qdisc->q) < qdisc_dev(qdisc)->tx_queue_len) {
--		int band = prio2band[skb->priority & TC_PRIO_MAX];
-+		int band = prio2band[skb->tc_class & TC_PRIO_MAX];
- 		struct pfifo_fast_priv *priv = qdisc_priv(qdisc);
- 		struct sk_buff_head *list = band2list(priv, band);
- 
-diff --git a/net/sched/sch_hfsc.c b/net/sched/sch_hfsc.c
-index 9bdca2e..2fcc6ef 100644
---- a/net/sched/sch_hfsc.c
-+++ b/net/sched/sch_hfsc.c
-@@ -1154,8 +1154,8 @@ hfsc_classify(struct sk_buff *skb, struct Qdisc *sch, int *qerr)
- 	struct tcf_proto *tcf;
- 	int result;
- 
--	if (TC_H_MAJ(skb->priority ^ sch->handle) == 0 &&
--	    (cl = hfsc_find_class(skb->priority, sch)) != NULL)
-+	if (TC_H_MAJ(skb->tc_class ^ sch->handle) == 0 &&
-+	    (cl = hfsc_find_class(skb->tc_class, sch)) != NULL)
- 		if (cl->level == 0)
- 			return cl;
- 
-diff --git a/net/sched/sch_htb.c b/net/sched/sch_htb.c
-index 29b942c..ef8dd42 100644
---- a/net/sched/sch_htb.c
-+++ b/net/sched/sch_htb.c
-@@ -197,13 +197,13 @@ static struct htb_class *htb_classify(struct sk_buff *skb, struct Qdisc *sch,
- 	struct tcf_proto *tcf;
- 	int result;
- 
--	/* allow to select class by setting skb->priority to valid classid;
-+	/* allow to select class by setting skb->tc_class to valid classid;
- 	 * note that nfmark can be used too by attaching filter fw with no
- 	 * rules in it
- 	 */
--	if (skb->priority == sch->handle)
-+	if (skb->tc_class == sch->handle)
- 		return HTB_DIRECT;	/* X:0 (direct flow) selected */
--	cl = htb_find(skb->priority, sch);
-+	cl = htb_find(skb->tc_class, sch);
- 	if (cl && cl->level == 0)
- 		return cl;
- 
-diff --git a/net/sched/sch_prio.c b/net/sched/sch_prio.c
-index b5d56a2..f53a5b99 100644
---- a/net/sched/sch_prio.c
-+++ b/net/sched/sch_prio.c
-@@ -34,12 +34,12 @@ static struct Qdisc *
- prio_classify(struct sk_buff *skb, struct Qdisc *sch, int *qerr)
- {
- 	struct prio_sched_data *q = qdisc_priv(sch);
--	u32 band = skb->priority;
-+	u32 band = skb->tc_class;
- 	struct tcf_result res;
- 	int err;
- 
- 	*qerr = NET_XMIT_SUCCESS | __NET_XMIT_BYPASS;
--	if (TC_H_MAJ(skb->priority) != sch->handle) {
-+	if (TC_H_MAJ(skb->tc_class) != sch->handle) {
- 		err = tc_classify(skb, q->filter_list, &res);
- #ifdef CONFIG_NET_CLS_ACT
- 		switch (err) {
-diff --git a/net/sched/sch_sfq.c b/net/sched/sch_sfq.c
-index 67494ae..79bc0ac 100644
---- a/net/sched/sch_sfq.c
-+++ b/net/sched/sch_sfq.c
-@@ -190,10 +190,10 @@ static unsigned int sfq_classify(struct sk_buff *skb, struct Qdisc *sch,
- 	struct tcf_result res;
- 	int result;
- 
--	if (TC_H_MAJ(skb->priority) == sch->handle &&
--	    TC_H_MIN(skb->priority) > 0 &&
--	    TC_H_MIN(skb->priority) <= q->divisor)
--		return TC_H_MIN(skb->priority);
-+	if (TC_H_MAJ(skb->tc_class) == sch->handle &&
-+	    TC_H_MIN(skb->tc_class) > 0 &&
-+	    TC_H_MIN(skb->tc_class) <= q->divisor)
-+		return TC_H_MIN(skb->tc_class);
- 
- 	if (!q->filter_list) {
- 		skb_flow_dissect(skb, &sfq_skb_cb(skb)->keys);
--- 
-1.7.8.3
+> +	XT_F_HMARK_USE_DNAT = 1 << XT_HMARK_USE_DNAT,
+> +	XT_F_HMARK_SADR_AND = 1 << XT_HMARK_SADR_AND,
+> +	XT_F_HMARK_DADR_AND = 1 << XT_HMARK_DADR_AND,
+> +	XT_F_HMARK_SPI_AND = 1 << XT_HMARK_SPI_AND,
+> +	XT_F_HMARK_SPI_OR = 1 << XT_HMARK_SPI_OR,
+> +	XT_F_HMARK_SPORT_AND = 1 << XT_HMARK_SPORT_AND,
+> +	XT_F_HMARK_DPORT_AND = 1 << XT_HMARK_DPORT_AND,
+> +	XT_F_HMARK_SPORT_OR = 1 << XT_HMARK_SPORT_OR,
+> +	XT_F_HMARK_DPORT_OR = 1 << XT_HMARK_DPORT_OR,
+> +	XT_F_HMARK_PROTO_AND = 1 << XT_HMARK_PROTO_AND,
+> +	XT_F_HMARK_RND = 1 << XT_HMARK_RND,
+> +	XT_F_HMARK_MODULUS = 1 << XT_HMARK_MODULUS,
+> +	XT_F_HMARK_OFFSET = 1 << XT_HMARK_OFFSET,
+> +	XT_F_HMARK_METHOD_L3 = 1 << XT_HMARK_METHOD_L3,
+> +	XT_F_HMARK_METHOD_L3_4 = 1 << XT_HMARK_METHOD_L3_4,
+> +};
+> +
+> +#define XT_F_HMARK_L4_OPTS  (XT_F_HMARK_SPI_AND | XT_F_HMARK_SPI_OR\
+> +			     | XT_F_HMARK_SPORT_AND | XT_F_HMARK_SPORT_OR\
+> +			     | XT_F_HMARK_DPORT_AND | XT_F_HMARK_DPORT_OR\
+> +			     | XT_F_HMARK_PROTO_AND)
 
+I find nobody using this definition in the kernel. Please, move it
+where it belong. 
+
+> +
+> +union hports {
+
+this is exposed to user-space. Please, use xt_hmark_ports or something
+similar to make sure we don't have any clash in the name-space.
+
+Better. Define this structure inside xt_hmark_info since it only seems
+to be useful there, I'd say.
+
+> +	struct {
+> +		__u16	src;
+> +		__u16	dst;
+> +	} p16;
+> +	__u32	v32;
+> +};
+> +
+> +struct xt_hmark_info {
+> +	union nf_inet_addr	smask;		/* Source address mask */
+> +	union nf_inet_addr	dmask;		/* Dest address mask */
+> +	union hports		pmask;
+> +	union hports		pset;
+> +	__u32			spimask;
+> +	__u32			spiset;
+> +	__u16			flags;		/* Print out only */
+> +	__u16			prmask;		/* L4 Proto mask */
+> +	__u32			hashrnd;
+> +	__u32			hmod;		/* Modulus */
+> +	__u32			hoffs;		/* Offset */
+> +};
+> +
+> +#endif /* XT_HMARK_H_ */
+> diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+> index f8ac4ef..dfe84e1 100644
+> --- a/net/netfilter/Kconfig
+> +++ b/net/netfilter/Kconfig
+> @@ -488,6 +488,23 @@ config NETFILTER_XT_TARGET_HL
+>  	since you can easily create immortal packets that loop
+>  	forever on the network.
+>  
+> +config NETFILTER_XT_TARGET_HMARK
+> +	tristate '"HMARK" target support'
+> +	depends on NETFILTER_ADVANCED
+> +	---help---
+> +	This option adds the "HMARK" target.
+> +
+> +	The target allows you to create rules in the "raw" and "mangle" tables
+> +	which alter the netfilter mark (nfmark) field within a given range.
+> +	First a 32 bit hash value is generated then modulus by <limit> and
+> +	finally an offset is added before it's written to nfmark.
+> +
+> +	Prior to routing, the nfmark can influence the routing method (see
+> +	"Use netfilter MARK value as routing key") and can also be used by
+> +	other subsystems to change their behavior.
+> +
+> +	The mark match can also be used to match nfmark produced by this module.
+> +
+>  config NETFILTER_XT_TARGET_IDLETIMER
+>  	tristate  "IDLETIMER target support"
+>  	depends on NETFILTER_ADVANCED
+> diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+> index 40f4c3d..21bc5e8 100644
+> --- a/net/netfilter/Makefile
+> +++ b/net/netfilter/Makefile
+> @@ -57,6 +57,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_CONNSECMARK) += xt_CONNSECMARK.o
+>  obj-$(CONFIG_NETFILTER_XT_TARGET_CT) += xt_CT.o
+>  obj-$(CONFIG_NETFILTER_XT_TARGET_DSCP) += xt_DSCP.o
+>  obj-$(CONFIG_NETFILTER_XT_TARGET_HL) += xt_HL.o
+> +obj-$(CONFIG_NETFILTER_XT_TARGET_HMARK) += xt_hmark.o
+>  obj-$(CONFIG_NETFILTER_XT_TARGET_LED) += xt_LED.o
+>  obj-$(CONFIG_NETFILTER_XT_TARGET_NFLOG) += xt_NFLOG.o
+>  obj-$(CONFIG_NETFILTER_XT_TARGET_NFQUEUE) += xt_NFQUEUE.o
+> diff --git a/net/netfilter/xt_hmark.c b/net/netfilter/xt_hmark.c
+> new file mode 100644
+> index 0000000..c9d6654
+> --- /dev/null
+> +++ b/net/netfilter/xt_hmark.c
+> @@ -0,0 +1,334 @@
+> +/*
+> + * xt_hmark - Netfilter module to set mark as hash value
+> + *
+> + * (C) 2011 Hans Schillstrom <hans.schillstrom@ericsson.com>
+> + *
+> + *Description:
+> + *	This module calculates a hash value that can be modified by modulus
+> + *	and an offset, i.e. it is possible to produce a skb->mark within a range.
+> + *	The hash value is based on a direction independent five tuple:
+> + *	src & dst addr src & dst ports and protocol.
+
+This description above I think it's sufficient.
+
+I think you can remove this header below. The documentation will be
+available through the manpage.
+
+> + *	There is two distinct modes for hash calculation:
+> + *
+> + *	MODE_L3:
+> + *	In this mode ONLY src & dst addresses can be used in hash calc.
+> + *	src-mask & dst-mask is the only valid masks.
+> + *	In this mode no special care for fragments is necessary.
+> + *
+> + *	MODE_L3_4:
+> + *	All five fields L4-proto, ports and addresses can be used in calc.
+> + *	ESP and AH don't have ports so SPI will be used instead.
+> + *	AH will not use ports even if it might be possible.
+> + *	Tunnels - only the outer saddr and daddr will be used,
+> + *
+> + *	For ICMP error messages the hash mark values will be calculated on
+> + *	the source packet i.e. the packet caused the error (If sufficient
+> + *	amount of data exists).
+> + *
+> + *	Fragments is not handled in this mode, (if they reach us)
+> + *	i.e.  fw-mark will be updated.
+> + *
+> + *	This program is free software; you can redistribute it and/or modify
+> + *	it under the terms of the GNU General Public License version 2 as
+> + *	published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/skbuff.h>
+> +#include <net/ip.h>
+> +#include <linux/icmp.h>
+> +
+> +#include <linux/netfilter/xt_hmark.h>
+> +#include <linux/netfilter/x_tables.h>
+> +#if defined(CONFIG_NF_NAT)
+> +#include <net/netfilter/nf_nat.h>
+> +#endif
+> +#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
+> +#	define WITH_IPV6 1
+> +#include <net/ipv6.h>
+> +#include <linux/netfilter_ipv6/ip6_tables.h>
+> +#endif
+> +
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("Hans Schillstrom <hans.schillstrom@ericsson.com>");
+> +MODULE_DESCRIPTION("Xtables: Packet range mark operations by Hash value");
+> +MODULE_ALIAS("ipt_HMARK");
+> +MODULE_ALIAS("ip6t_HMARK");
+> +
+> +/*
+> + * ICMP, get header offset if icmp error
+> + */
+> +static int get_inner_hdr(struct sk_buff *skb, int iphsz, int nhoff)
+> +{
+> +	const struct icmphdr *icmph;
+> +	struct icmphdr _ih;
+> +
+> +	/* Not enough header? */
+> +	icmph = skb_header_pointer(skb, nhoff + iphsz, sizeof(_ih), &_ih);
+> +	if (icmph == NULL)
+> +		return nhoff;
+> +
+> +	if (icmph->type > NR_ICMP_TYPES)
+> +		return nhoff;
+> +
+> +	/* Error message? */
+> +	if (icmph->type != ICMP_DEST_UNREACH &&
+> +	    icmph->type != ICMP_SOURCE_QUENCH &&
+> +	    icmph->type != ICMP_TIME_EXCEEDED &&
+> +	    icmph->type != ICMP_PARAMETERPROB &&
+> +	    icmph->type != ICMP_REDIRECT)
+> +		return nhoff;
+> +
+> +	return nhoff + iphsz + sizeof(_ih);
+> +}
+> +
+> +#ifdef WITH_IPV6
+> +/*
+> + * Get ipv6 header offset if icmp error
+> + */
+> +static int get_inner6_hdr(struct sk_buff *skb, int *offset)
+> +{
+> +	struct icmp6hdr *icmp6h, _ih6;
+> +
+> +	icmp6h = skb_header_pointer(skb, *offset, sizeof(_ih6), &_ih6);
+> +	if (icmp6h == NULL)
+> +		return 0;
+> +
+> +	if (icmp6h->icmp6_type && icmp6h->icmp6_type < 128) {
+> +		*offset +=  sizeof(struct icmp6hdr);
+> +		return 1;
+> +	}
+> +	return 0;
+> +}
+> +/*
+> + * Calculate hash based fw-mark, on the five tuple if possible.
+> + * special cases :
+> + *  - Fragments do not use ports not even on the first fragment,
+> + *    nf_defrag_ipv6.ko don't defrag for us like it do in ipv4.
+> + *    This might be changed in the future.
+> + *  - On ICMP errors the inner header will be used.
+> + *  - Tunnels no ports
+> + *  - ESP & AH uses SPI
+> + * @returns XT_CONTINUE
+> + */
+> +static unsigned int
+> +hmark_v6(struct sk_buff *skb, const struct xt_action_param *par)
+> +{
+> +	struct xt_hmark_info *info = (struct xt_hmark_info *)par->targinfo;
+> +	struct ipv6hdr *ip6, _ip6;
+> +	int poff, flag = IP6T_FH_F_AUTH; /* Ports offset, find_hdr flags */
+> +	u32 addr1, addr2, hash, nhoffs = 0;
+> +	u8 nexthdr;
+> +	union hports uports = { .v32 = 0 };
+> +	unsigned short fragoff = 0;
+> +
+> +	ip6 = (struct ipv6hdr *) (skb->data + skb_network_offset(skb));
+> +
+> +	/* Try to get transport header */
+
+I like comments, but this is completely unnecessary, it's clear what
+the function below does. Please, use comments only when necessary, ie.
+in case that there's something which is not evident to the person that
+is reading the code.
+
+> +	nexthdr = ipv6_find_hdr(skb, &nhoffs, -1, &fragoff, &flag);
+> +	if (nexthdr < 0)
+> +		return XT_CONTINUE;
+> +	/* don't check for icmp on fragments */
+> +	if ((flag & IP6T_FH_F_FRAG) || (nexthdr != IPPROTO_ICMPV6))
+> +		goto noicmp;
+> +	/* ICMP: if an error then move ptr to inner header */
+> +	if (get_inner6_hdr(skb, &nhoffs)) {
+> +		/* Get IPv6 header ptr just to get the saddr & daddr later */
+> +		ip6 = skb_header_pointer(skb, nhoffs, sizeof(_ip6), &_ip6);
+> +		if (!ip6)
+> +			return XT_CONTINUE;
+> +		/* Treat AH as ESP */
+> +		flag = IP6T_FH_F_AUTH;
+> +		nexthdr = ipv6_find_hdr(skb, &nhoffs, -1, &fragoff, &flag);
+> +		if (nexthdr < 0)
+> +			return XT_CONTINUE;
+> +	}
+> +noicmp:
+> +	/* Mask of the address and xor it into a u32 */
+> +	addr1 = (__force u32)
+> +		(ip6->saddr.s6_addr32[0] & info->smask.in6.s6_addr32[0]) ^
+> +		(ip6->saddr.s6_addr32[1] & info->smask.in6.s6_addr32[1]) ^
+> +		(ip6->saddr.s6_addr32[2] & info->smask.in6.s6_addr32[2]) ^
+> +		(ip6->saddr.s6_addr32[3] & info->smask.in6.s6_addr32[3]);
+> +	addr2 = (__force u32)
+> +		(ip6->daddr.s6_addr32[0] & info->dmask.in6.s6_addr32[0]) ^
+> +		(ip6->daddr.s6_addr32[1] & info->dmask.in6.s6_addr32[1]) ^
+> +		(ip6->daddr.s6_addr32[2] & info->dmask.in6.s6_addr32[2]) ^
+> +		(ip6->daddr.s6_addr32[3] & info->dmask.in6.s6_addr32[3]);
+> +
+> +	/* user space tool ensures that prmask is zero when method is L3*/
+
+You can to double check this in checkentry.
+
+> +	if ((info->flags & XT_F_HMARK_METHOD_L3) ||
+> +	    (nexthdr == IPPROTO_ICMPV6))
+> +		goto no6ports;
+> +
+> +	/* Is next header valid for port or SPI calculation ? */
+> +	poff = proto_ports_offset(nexthdr);
+> +	if ((flag & IP6T_FH_F_FRAG) || poff < 0)
+> +		return XT_CONTINUE;
+> +
+> +	nhoffs += poff;
+> +	/* Since uports is modified, skb_header_pointer() can't be used */
+> +	if (!pskb_may_pull(skb, nhoffs + 4))
+> +		return XT_CONTINUE;
+> +	uports.v32 = * (__force u32 *) (skb->data + nhoffs);
+> +
+> +	if ((nexthdr == IPPROTO_ESP) || (nexthdr == IPPROTO_AH))
+> +		uports.v32 = (uports.v32 & info->spimask) | info->spiset;
+> +	else {
+> +		uports.v32 = (uports.v32 & info->pmask.v32) | info->pset.v32;
+> +		/* get a consistent hash (same value on both flow directions) */
+> +		if (uports.p16.dst < uports.p16.src)
+> +			swap(uports.p16.dst, uports.p16.src);
+> +	}
+> +
+> +no6ports:
+> +	nexthdr &= info->prmask;
+> +	/* get a consistent hash (same value on both flow directions) */
+> +	if (addr2 < addr1)
+> +		swap(addr1, addr2);
+> +
+> +	hash = jhash_3words(addr1, addr2, uports.v32, info->hashrnd) ^ nexthdr;
+> +	skb->mark = (hash % info->hmod) + info->hoffs;
+> +	return XT_CONTINUE;
+> +}
+> +#endif
+> +/*
+> + * Calculate hash based fw-mark, on the five tuple if possible.
+> + * special cases :
+> + *  - Fragments do not use ports not even on the first fragment,
+> + *    unless nf_defrag_xx.ko is used.
+> + *  - On ICMP errors the inner header will be used.
+> + *  - Tunnels no ports
+> + *  - ESP & AH uses SPI
+> + * @returns XT_CONTINUE
+> + */
+> +static unsigned int
+> +hmark_v4(struct sk_buff *skb, const struct xt_action_param *par)
+> +{
+> +	struct xt_hmark_info *info = (struct xt_hmark_info *)par->targinfo;
+> +	int nhoff, poff, frag = 0;
+> +	struct iphdr *ip, _ip;
+> +	u8 ip_proto;
+> +	u32 addr1, addr2, hash;
+> +	u16 snatport = 0, dnatport = 0;
+> +	union hports uports;
+> +#if defined(CONFIG_NF_NAT)
+
+remove this #if defined, not required at all.
+
+> +	enum ip_conntrack_info ctinfo;
+> +	struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
+
+                       ^^^^^^^^
+please, this is redundant, no need for it. Remove it.
+
+> +#endif
+> +
+> +	nhoff = skb_network_offset(skb);
+> +	uports.v32 = 0;
+> +
+> +	ip = (struct iphdr *) (skb->data + nhoff);
+> +	if (ip->protocol == IPPROTO_ICMP) {
+> +		/* calc hash on inner header if an icmp error */
+> +		nhoff = get_inner_hdr(skb, ip->ihl * 4, nhoff);
+> +		ip = skb_header_pointer(skb, nhoff, sizeof(_ip), &_ip);
+> +		if (!ip)
+> +			return XT_CONTINUE;
+> +	}
+> +
+> +	ip_proto = ip->protocol;
+> +	if (ip->frag_off & htons(IP_MF | IP_OFFSET))
+> +		frag = 1;
+> +
+> +	addr1 = (__force u32) ip->saddr & info->smask.ip;
+> +	addr2 = (__force u32) ip->daddr & info->dmask.ip;
+> +
+> +#if defined(CONFIG_NF_NAT)
+> +	if (ct && test_bit(IP_CT_IS_REPLY, &ct->status)) {
+> +		struct nf_conntrack_tuple *otuple;
+> +
+> +		otuple = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
+> +		/*
+> +		 * On the "return flow", to get the original address
+> +		 */
+> +		if ((ct->status & IPS_DST_NAT) &&
+> +			(info->flags & XT_HMARK_USE_DNAT)) {
+> +			addr1 = (__force u32) otuple->dst.u3.in.s_addr;
+> +			dnatport = otuple->dst.u.udp.port;
+> +		}
+> +		if ((ct->status & IPS_SRC_NAT) &&
+> +			(info->flags & XT_HMARK_USE_SNAT)) {
+> +			addr2 = (__force u32) otuple->src.u3.in.s_addr;
+> +			snatport = otuple->src.u.udp.port;
+> +		}
+
+You can make this much more simple.
+
+Allow the user to tell your HMARK target to use the conntrack
+information instead.
+
+My opinion is that the user must have total control on the target
+behaviour through the configuration options. The number of internal
+by-default decisions have to be kept up to the minimum, otherwise
+the behaviour of the target may seem obscure.
+
+> +	}
+> +#endif
+> +	/* user space tool ensures that prmask is zero when method is L3*/
+
+No, you have to double check this in checkentry() in kernel-space to
+make sure that user-space.
+
+I think we need another round for this.
