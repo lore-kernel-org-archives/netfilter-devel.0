@@ -1,93 +1,42 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] skbuff: Add new tc classify variable
-Date: Wed, 08 Feb 2012 10:21:56 +0100
-Message-ID: <1328692916.2284.5.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
-References: <1328639948-25232-1-git-send-email-siwu@hrz.tu-chemnitz.de>
-	 <20120207.135841.1753473725075272902.davem@davemloft.net>
-	 <20120207201633.GB26533@pandem0nium>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 4/4] Netfilter: xt_LOG: Implement ring buffer support
+Date: Wed, 8 Feb 2012 11:29:14 +0100
+Message-ID: <20120208102914.GA32092@1984>
+References: <1328400892-22409-1-git-send-email-richard@nod.at>
+ <1328400892-22409-7-git-send-email-richard@nod.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jamal Hadi Salim <hadi@cyberus.ca>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	"John W. Linville" <linville@tuxdriver.com>,
-	Marek Lindner <lindner_marek@yahoo.de>,
-	Sven Eckelmann <sven@narfation.org>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, linux-wireless@vger.kernel.org
-To: Simon Wunderlich <simon.wunderlich@s2003.tu-chemnitz.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, eric.dumazet@gmail.com,
+	jengelh@medozas.de, rostedt@goodmis.org
+To: Richard Weinberger <richard@nod.at>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:42993 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751107Ab2BHJWB (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Feb 2012 04:22:01 -0500
-In-Reply-To: <20120207201633.GB26533@pandem0nium>
+Received: from mail.us.es ([193.147.175.20]:45238 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755241Ab2BHK3W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Feb 2012 05:29:22 -0500
+Content-Disposition: inline
+In-Reply-To: <1328400892-22409-7-git-send-email-richard@nod.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le mardi 07 f=C3=A9vrier 2012 =C3=A0 21:16 +0100, Simon Wunderlich a =C3=
-=A9crit :
-> Hello David,
->=20
-> On Tue, Feb 07, 2012 at 01:58:41PM -0500, David Miller wrote:
-> > From: Simon Wunderlich <simon.wunderlich@s2003.tu-chemnitz.de>
-> > Date: Tue,  7 Feb 2012 19:39:08 +0100
-> >=20
-> > > The linux traffic control mechanism has different ways to select =
-the
-> > > correct class of a qdisc. A common way to do this is to use tc fi=
-lters
-> > > that are directly attached to a qdisc. Another approach is to use=
- the
-> > > iptables classify module. The latter one can reduce the amount of=
- work
-> > > necessary to process a packet when iptables is already involved i=
-n the
-> > > packet classification.
-> >=20
-> > Do not bloat up sk_buff any more.  Add this, and the other existing
-> > tc_* members to the qdisc SKB control block instead.
-> >=20
->=20
-> Thanks for your feedback!
->=20
-> I guess you mean skb->cb, but this is also used within mac80211 for v=
-arious things
-> (quoting include/net/mac80211.h):
->=20
->  * struct ieee80211_tx_info - skb transmit information
->  *
->  * This structure is placed in skb->cb for three uses:
->  *  (1) mac80211 TX control - mac80211 tells the driver what to do
->  *  (2) driver internal use (if applicable)
->  *  (3) TX status information - driver tells mac80211 what happened
->=20
-> We could give it a try, but we most probably run into conflicts again=
-=2E
->=20
-> I've messed up the CCs in my initial mail (and just resent it) - sorr=
-y about that.
-> Maybe the mac80211 guys have a suggestion as well :)
->=20
+On Sun, Feb 05, 2012 at 01:14:52AM +0100, Richard Weinberger wrote:
+> This patch introduces NETFILTER_XT_TARGET_LOG_RING.
+> It allows logging into various ring buffers which are
+> represented as pipe-like files in /proc/net/netfilter/xt_LOG_ring/.
+> 
+> Signed-off-by: Richard Weinberger <richard@nod.at>
+> ---
+>  include/linux/netfilter/xt_LOG.h    |   13 +-
+>  include/net/netfilter/nf_log.h      |    1 +
+>  include/net/netfilter/xt_log_ring.h |   24 +
+>  net/netfilter/Kconfig               |   13 +
+>  net/netfilter/Makefile              |    2 +
+>  net/netfilter/xt_LOG.c              |  921 -----------------------------
+>  net/netfilter/xt_LOG_core.c         | 1108 +++++++++++++++++++++++++++++++++++
+>  net/netfilter/xt_LOG_ring.c         |  430 ++++++++++++++
 
-I really dont understand what the conflict might be.
+Can you avoid this rename and splitting LOG into two files? I prefer
+having everything into the same file xt_LOG.c.
 
-As long as skb is in Qdisc layer, Qdisc owns skb->cb[] (a part of it
-actually, see current discussions about IB on netdev)
-
-As soon as packet is given to device (mac80211), cb[] can be reused.
-
-Or are you saying tc_class also might be needed by mac80211 in the
-future ?
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Apart from that, this looks fine to me.
