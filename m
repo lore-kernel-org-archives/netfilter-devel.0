@@ -1,66 +1,104 @@
-From: jamal <hadi@cyberus.ca>
-Subject: Re: [PATCH] skbuff: Add new tc classify variable
-Date: Wed, 08 Feb 2012 09:48:41 -0500
-Message-ID: <1328712521.2983.1.camel@mojatatu>
-References: <1328639948-25232-1-git-send-email-siwu@hrz.tu-chemnitz.de>
-	 <20120207.135841.1753473725075272902.davem@davemloft.net>
-	 <20120207201633.GB26533@pandem0nium>
-	 <1328692916.2284.5.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
-Reply-To: jhs@mojatatu.com
+From: Jean-Philippe Menil <jean-philippe.menil@univ-nantes.fr>
+Subject: BUG nf_conntrack_ffff880863c50000: Objects remaining on kmem_cache_close()
+Date: Wed, 08 Feb 2012 15:45:21 +0100
+Message-ID: <4F328A81.4050607@univ-nantes.fr>
+Reply-To: jean-philippe.menil@univ-nantes.fr
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Simon Wunderlich <simon.wunderlich@s2003.tu-chemnitz.de>,
-	David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	"John W. Linville" <linville@tuxdriver.com>,
-	Marek Lindner <lindner_marek@yahoo.de>,
-	Sven Eckelmann <sven@narfation.org>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, linux-wireless@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------080401060604080204060707"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:50974 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752188Ab2BHOsr (ORCPT
+Received: from smtp-tls1.univ-nantes.fr ([193.52.101.145]:38335 "EHLO
+	smtp-tls.univ-nantes.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752517Ab2BHOzK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Feb 2012 09:48:47 -0500
-In-Reply-To: <1328692916.2284.5.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+	Wed, 8 Feb 2012 09:55:10 -0500
+Received: from localhost (debian [127.0.0.1])
+	by smtp-tls.univ-nantes.fr (Postfix) with ESMTP id 3D94B94E1F
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Feb 2012 15:45:22 +0100 (CET)
+Received: from smtp-tls.univ-nantes.fr ([127.0.0.1])
+	by localhost (smtp-tls1.d101.univ-nantes.fr [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id 2i3BQ1ZXn3GO for <netfilter-devel@vger.kernel.org>;
+	Wed,  8 Feb 2012 15:45:22 +0100 (CET)
+Received: from [172.20.13.5] (antares.cri.univ-nantes.prive [172.20.13.5])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by smtp-tls.univ-nantes.fr (Postfix) with ESMTPSA id 1E4B194E10
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Feb 2012 15:45:22 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-skb->cb is the right scratch pad to use.
-The problem appears to be the wireless stack abusing some of these
-fields (prio for one). And we do have marks in place already which
-are 32 bit and global.
+This is a multi-part message in MIME format.
+--------------080401060604080204060707
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 
-=20
-cheers,
-jamal
+Hi,
 
-On Wed, 2012-02-08 at 10:21 +0100, Eric Dumazet wrote:
-> Le mardi 07 f=C3=A9vrier 2012 =C3=A0 21:16 +0100, Simon Wunderlich a =
-=C3=A9crit :
+I'm seeing bug in a host with a 3.2.1 kernel.
+This host is running both kvm and lxc guest.
+It seems that it happened just after the restart of a lxc guest.
 
->=20
-> I really dont understand what the conflict might be.
->=20
-> As long as skb is in Qdisc layer, Qdisc owns skb->cb[] (a part of it
-> actually, see current discussions about IB on netdev)
->=20
-> As soon as packet is given to device (mac80211), cb[] can be reused.
->=20
-> Or are you saying tc_class also might be needed by mac80211 in the
-> future ?
->=20
->=20
->=20
+However, it doesn't seem to affect any guest.
+
+I was just wondering if this was problematic, and if so, what should I 
+do to debug this further.
+
+Regards.
+
+-- 
+Jean-Philippe Menil - Pôle réseau Service IRTS
+DSI Université de Nantes
+jean-philippe.menil@univ-nantes.fr
+Tel : 02.53.48.49.27 - Fax : 02.53.48.49.09
 
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--------------080401060604080204060707
+Content-Type: text/plain;
+ name="bug.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="bug.txt"
+
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285125] =============================================================================
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285173] BUG nf_conntrack_ffff880863c50000: Objects remaining on kmem_cache_close()
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285223] -----------------------------------------------------------------------------
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285224] 
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285291] INFO: Slab 0xffffea000fecf280 objects=26 used=1 fp=0xffff8803fb3ca4e0 flags=0x200000000004080
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285339] Pid: 5, comm: kworker/u:0 Not tainted 3.2.1-dsiun-120113 #55
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285366] Call Trace:
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285393]  [<ffffffff811194c0>] ? slab_err+0x80/0x90
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285419]  [<ffffffff8111c6c9>] ? kmem_cache_destroy+0x169/0x3b0
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285449]  [<ffffffff8111c6ec>] ? kmem_cache_destroy+0x18c/0x3b0
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285487]  [<ffffffffa049f753>] ? nf_conntrack_cleanup+0xd3/0x130 [nf_conntrack]
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285545]  [<ffffffff812f7b48>] ? ops_exit_list.isra.1+0x38/0x70
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285574]  [<ffffffff812f8260>] ? net_drop_ns+0x40/0x40
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285600]  [<ffffffff812f8360>] ? cleanup_net+0x100/0x1a0
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285643]  [<ffffffff810635c6>] ? process_one_work+0x106/0x460
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285670]  [<ffffffff8106486c>] ? worker_thread+0x14c/0x330
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285697]  [<ffffffff81064720>] ? manage_workers.isra.30+0x210/0x210
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285736]  [<ffffffff8106905e>] ? kthread+0x7e/0x90
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285763]  [<ffffffff813aee34>] ? kernel_thread_helper+0x4/0x10
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285790]  [<ffffffff81068fe0>] ? kthread_worker_fn+0x190/0x190
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285817]  [<ffffffff813aee30>] ? gs_change+0x13/0x13
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285843] INFO: Object 0xffff8803fb3ca000 @offset=0
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285869] SLUB nf_conntrack_ffff880863c50000: kmem_cache_destroy called for cache that still has objects.
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285916] Pid: 5, comm: kworker/u:0 Not tainted 3.2.1-dsiun-120113 #55
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285943] Call Trace:
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285964]  [<ffffffff8111c7a8>] ? kmem_cache_destroy+0x248/0x3b0
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.285991]  [<ffffffff8111c863>] ? kmem_cache_destroy+0x303/0x3b0
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.286020]  [<ffffffffa049f753>] ? nf_conntrack_cleanup+0xd3/0x130 [nf_conntrack]
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.286064]  [<ffffffff812f7b48>] ? ops_exit_list.isra.1+0x38/0x70
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.286092]  [<ffffffff812f8260>] ? net_drop_ns+0x40/0x40
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.286117]  [<ffffffff812f8360>] ? cleanup_net+0x100/0x1a0
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.286144]  [<ffffffff810635c6>] ? process_one_work+0x106/0x460
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.286227]  [<ffffffff8106486c>] ? worker_thread+0x14c/0x330
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.286253]  [<ffffffff81064720>] ? manage_workers.isra.30+0x210/0x210
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.286281]  [<ffffffff8106905e>] ? kthread+0x7e/0x90
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.286306]  [<ffffffff813aee34>] ? kernel_thread_helper+0x4/0x10
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.286333]  [<ffffffff81068fe0>] ? kthread_worker_fn+0x190/0x190
+Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.286360]  [<ffffffff813aee30>] ? gs_change+0x13/0x13
+
+
+
+--------------080401060604080204060707--
