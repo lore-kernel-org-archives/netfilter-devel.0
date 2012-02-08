@@ -1,59 +1,93 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] conntrackd: basic TIPC implementation for NOTRACK mode
-Date: Wed, 8 Feb 2012 01:43:54 +0100
-Message-ID: <20120208004354.GD29189@1984>
-References: <20120121085217.4272940o8fmk4v80@www.usherbrooke.ca>
- <20120122174140.GA18764@1984>
- <20120122162720.10123t2longq3zac@www.usherbrooke.ca>
- <20120123100733.GB23857@1984>
- <20120123132537.198937ydqdx1n3gg@www.usherbrooke.ca>
- <20120124010145.GA28314@1984>
- <20120124120058.234342gq75ohof6s@www.usherbrooke.ca>
- <20120126001928.GA10554@1984>
- <20120126211344.33964cmak17akti0@www.usherbrooke.ca>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH] skbuff: Add new tc classify variable
+Date: Wed, 08 Feb 2012 10:21:56 +0100
+Message-ID: <1328692916.2284.5.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+References: <1328639948-25232-1-git-send-email-siwu@hrz.tu-chemnitz.de>
+	 <20120207.135841.1753473725075272902.davem@davemloft.net>
+	 <20120207201633.GB26533@pandem0nium>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Quentin Aebischer <Quentin.Aebischer@USherbrooke.ca>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jamal Hadi Salim <hadi@cyberus.ca>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	"John W. Linville" <linville@tuxdriver.com>,
+	Marek Lindner <lindner_marek@yahoo.de>,
+	Sven Eckelmann <sven@narfation.org>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, linux-wireless@vger.kernel.org
+To: Simon Wunderlich <simon.wunderlich@s2003.tu-chemnitz.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44977 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755748Ab2BHAn4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Feb 2012 19:43:56 -0500
-Content-Disposition: inline
-In-Reply-To: <20120126211344.33964cmak17akti0@www.usherbrooke.ca>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:42993 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751107Ab2BHJWB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Feb 2012 04:22:01 -0500
+In-Reply-To: <20120207201633.GB26533@pandem0nium>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jan 26, 2012 at 09:13:44PM -0500, Quentin Aebischer wrote:
-> Ok, time for an other try !
-> 
-> From : Quentin Aebischer <quentin.aebischer@usherbrooke.ca>
-> 
-> Basic implementation of a TIPC channel for the conntrackd daemon
-> (successfully tested in NOTRACK and FTFW modes).
-> 
-> TIPC is a protocol that allows applications in a cluster-based
-> environment to communicate quickly and reliably with other
-> applications in the cluster.
-> It allows both unicast and multicast, reliable/unreliable and
-> datagram/stream oriented communications.
-> 
-> One of its main feature's of interest here is to provide sockets
-> that communicates in a connectionless, yet reliable manner that
-> guarantees delivery of every message sent over the network.
-> This can be useful in the context of high-available, cluster-based
-> firewalls where states propagation has to be both fast and reliable.
-> 
-> So far, the results are encouraging, though more tests have to
-> performed on different setups to enhance the implementation and
-> track any bugs.
-> 
-> An example config file can be found in the doc/sync/tipc directory
-> of the conntrack-tools, along with a README file providing basic
-> installation instructions.
+Le mardi 07 f=C3=A9vrier 2012 =C3=A0 21:16 +0100, Simon Wunderlich a =C3=
+=A9crit :
+> Hello David,
+>=20
+> On Tue, Feb 07, 2012 at 01:58:41PM -0500, David Miller wrote:
+> > From: Simon Wunderlich <simon.wunderlich@s2003.tu-chemnitz.de>
+> > Date: Tue,  7 Feb 2012 19:39:08 +0100
+> >=20
+> > > The linux traffic control mechanism has different ways to select =
+the
+> > > correct class of a qdisc. A common way to do this is to use tc fi=
+lters
+> > > that are directly attached to a qdisc. Another approach is to use=
+ the
+> > > iptables classify module. The latter one can reduce the amount of=
+ work
+> > > necessary to process a packet when iptables is already involved i=
+n the
+> > > packet classification.
+> >=20
+> > Do not bloat up sk_buff any more.  Add this, and the other existing
+> > tc_* members to the qdisc SKB control block instead.
+> >=20
+>=20
+> Thanks for your feedback!
+>=20
+> I guess you mean skb->cb, but this is also used within mac80211 for v=
+arious things
+> (quoting include/net/mac80211.h):
+>=20
+>  * struct ieee80211_tx_info - skb transmit information
+>  *
+>  * This structure is placed in skb->cb for three uses:
+>  *  (1) mac80211 TX control - mac80211 tells the driver what to do
+>  *  (2) driver internal use (if applicable)
+>  *  (3) TX status information - driver tells mac80211 what happened
+>=20
+> We could give it a try, but we most probably run into conflicts again=
+=2E
+>=20
+> I've messed up the CCs in my initial mail (and just resent it) - sorr=
+y about that.
+> Maybe the mac80211 guys have a suggestion as well :)
+>=20
 
-Looks fine. I'm planning to add this to one git branch to test it and
-give it some spins before merging it to master.
+I really dont understand what the conflict might be.
 
-Let me know if you have any update in your patch before I do so.
+As long as skb is in Qdisc layer, Qdisc owns skb->cb[] (a part of it
+actually, see current discussions about IB on netdev)
+
+As soon as packet is given to device (mac80211), cb[] can be reused.
+
+Or are you saying tc_class also might be needed by mac80211 in the
+future ?
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
