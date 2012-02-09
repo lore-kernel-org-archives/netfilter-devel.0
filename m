@@ -1,64 +1,32 @@
-From: Hans Schillstrom <hans@schillstrom.com>
-Subject: Re: [v8 PATCH 2/3] NETFILTER module xt_hmark, new target for HASH based fwmark
-Date: Thu, 9 Feb 2012 19:32:03 +0100
-Message-ID: <201202091932.03785.hans@schillstrom.com>
-References: <1327675303-9059-1-git-send-email-hans.schillstrom@ericsson.com> <1327675303-9059-3-git-send-email-hans.schillstrom@ericsson.com> <20120208002743.GA29189@1984>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 1/1] netfilter: nf_queue: fix queueing of bridged gro
+ skbs
+Date: Thu, 09 Feb 2012 13:44:38 -0500 (EST)
+Message-ID: <20120209.134438.528614070160508984.davem@davemloft.net>
+References: <1328530990-6782-1-git-send-email-fw@strlen.de>
+	<20120209154421.GA5865@1984>
+	<20120209163701.GB14772@Chamillionaire.breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>, kaber@trash.net,
-	jengelh@medozas.de, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20120208002743.GA29189@1984>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, herbert@gondor.hengli.com.au
+To: fw@strlen.de
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([198.137.202.13]:57206 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753239Ab2BISpz (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Feb 2012 13:45:55 -0500
+In-Reply-To: <20120209163701.GB14772@Chamillionaire.breakpoint.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Florian Westphal <fw@strlen.de>
+Date: Thu, 9 Feb 2012 17:37:01 +0100
 
-On Wednesday, February 08, 2012 01:27:43 Pablo Neira Ayuso wrote:
-> On Fri, Jan 27, 2012 at 03:41:42PM +0100, Hans Schillstrom wrote:
-[snip]
+> It treats skb->data as the starting point of the
+> segmentation, so I think its the callers job to make skb->data
+> point at the right place (network header, mac header, ...)
 
-> > +#if defined(CONFIG_NF_NAT)
-> > +	if (ct && test_bit(IP_CT_IS_REPLY, &ct->status)) {
-> > +		struct nf_conntrack_tuple *otuple;
-> > +
-> > +		otuple = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
-> > +		/*
-> > +		 * On the "return flow", to get the original address
-> > +		 */
-> > +		if ((ct->status & IPS_DST_NAT) &&
-> > +			(info->flags & XT_HMARK_USE_DNAT)) {
-> > +			addr1 = (__force u32) otuple->dst.u3.in.s_addr;
-> > +			dnatport = otuple->dst.u.udp.port;
-> > +		}
-> > +		if ((ct->status & IPS_SRC_NAT) &&
-> > +			(info->flags & XT_HMARK_USE_SNAT)) {
-> > +			addr2 = (__force u32) otuple->src.u3.in.s_addr;
-> > +			snatport = otuple->src.u.udp.port;
-> > +		}
-> 
-> You can make this much more simple.
-> 
-> Allow the user to tell your HMARK target to use the conntrack
-> information instead.
-> 
-> My opinion is that the user must have total control on the target
-> behaviour through the configuration options. The number of internal
-> by-default decisions have to be kept up to the minimum, otherwise
-> the behaviour of the target may seem obscure.
-> 
-> > +	}
-> > +#endif
-> > +	/* user space tool ensures that prmask is zero when method is L3*/
-
-While dealing with fragmentation in ipvs, an idea run into my head...
-why not take care of fragments from nfct_reasm in L3_4 mode ?
-
-OK it might be an obscure behaviour but on the other hand
-people expect that fragments is handled by netfilter...
-
-
-/Hans
+Right.
