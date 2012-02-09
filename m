@@ -1,89 +1,160 @@
 From: pablo@netfilter.org
-Subject: [PATCH 2/6] netfilter: ctnetlink: allow to set expectation class
-Date: Thu,  9 Feb 2012 20:33:03 +0100
-Message-ID: <1328815987-28020-3-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 3/6] netfilter: ctnetlink: add NAT support for expectations
+Date: Thu,  9 Feb 2012 20:33:04 +0100
+Message-ID: <1328815987-28020-4-git-send-email-pablo@netfilter.org>
 References: <1328815987-28020-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57798 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:57805 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758422Ab2BITd0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Feb 2012 14:33:26 -0500
+	id S1758472Ab2BITd3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Feb 2012 14:33:29 -0500
 In-Reply-To: <1328815987-28020-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-This patch allows you to set the expectation class.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+This patch adds the missing bits to create expectations that
+are created in NAT setups.
 ---
- include/linux/netfilter/nfnetlink_conntrack.h |    1 +
- net/netfilter/nf_conntrack_netlink.c          |   10 +++++++++-
- 2 files changed, 10 insertions(+), 1 deletions(-)
+ include/linux/netfilter/nfnetlink_conntrack.h |    9 +++
+ net/netfilter/nf_conntrack_netlink.c          |   68 ++++++++++++++++++++++++-
+ 2 files changed, 75 insertions(+), 2 deletions(-)
 
 diff --git a/include/linux/netfilter/nfnetlink_conntrack.h b/include/linux/netfilter/nfnetlink_conntrack.h
-index debf1ae..40d7c19 100644
+index 40d7c19..f447779 100644
 --- a/include/linux/netfilter/nfnetlink_conntrack.h
 +++ b/include/linux/netfilter/nfnetlink_conntrack.h
-@@ -172,6 +172,7 @@ enum ctattr_expect {
- 	CTA_EXPECT_HELP_NAME,
+@@ -173,10 +173,19 @@ enum ctattr_expect {
  	CTA_EXPECT_ZONE,
  	CTA_EXPECT_FLAGS,
-+	CTA_EXPECT_CLASS,
+ 	CTA_EXPECT_CLASS,
++	CTA_EXPECT_NAT,
  	__CTA_EXPECT_MAX
  };
  #define CTA_EXPECT_MAX (__CTA_EXPECT_MAX - 1)
+ 
++enum ctattr_expect_nat {
++	CTA_EXPECT_NAT_UNSPEC,
++	CTA_EXPECT_NAT_DIR,
++	CTA_EXPECT_NAT_TUPLE,
++	__CTA_EXPECT_NAT_MAX
++};
++#define CTA_EXPECT_NAT_MAX (__CTA_EXPECT_NAT_MAX - 1)
++
+ enum ctattr_help {
+ 	CTA_HELP_UNSPEC,
+ 	CTA_HELP_NAME,
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 8338d67..f185301 100644
+index f185301..ca630b0 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1668,6 +1668,7 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
+@@ -1652,7 +1652,10 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
+ 	struct nf_conn *master = exp->master;
+ 	long timeout = ((long)exp->timeout.expires - (long)jiffies) / HZ;
+ 	struct nf_conn_help *help;
+-
++#ifdef CONFIG_NF_NAT_NEEDED
++	struct nlattr *nest_parms;
++	struct nf_conntrack_tuple nat_tuple = {};
++#endif
+ 	if (timeout < 0)
+ 		timeout = 0;
+ 
+@@ -1665,6 +1668,25 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
+ 				 CTA_EXPECT_MASTER) < 0)
+ 		goto nla_put_failure;
+ 
++#ifdef CONFIG_NF_NAT_NEEDED
++	if (exp->saved_ip || exp->saved_proto.all) {
++		nest_parms = nla_nest_start(skb, CTA_EXPECT_NAT | NLA_F_NESTED);
++		if (!nest_parms)
++			goto nla_put_failure;
++
++		NLA_PUT_BE32(skb, CTA_EXPECT_NAT_DIR, htonl(exp->dir));
++
++		nat_tuple.src.l3num = nf_ct_l3num(master);
++		nat_tuple.src.u3.ip = exp->saved_ip;
++		nat_tuple.dst.protonum = nf_ct_protonum(master);
++		nat_tuple.src.u = exp->saved_proto;
++
++		if (ctnetlink_exp_dump_tuple(skb, &nat_tuple,
++						CTA_EXPECT_NAT_TUPLE) < 0)
++	                goto nla_put_failure;
++	        nla_nest_end(skb, nest_parms);
++	}
++#endif
  	NLA_PUT_BE32(skb, CTA_EXPECT_TIMEOUT, htonl(timeout));
  	NLA_PUT_BE32(skb, CTA_EXPECT_ID, htonl((unsigned long)exp));
  	NLA_PUT_BE32(skb, CTA_EXPECT_FLAGS, htonl(exp->flags));
-+	NLA_PUT_BE32(skb, CTA_EXPECT_CLASS, htonl(exp->class));
- 	help = nfct_help(master);
- 	if (help) {
- 		struct nf_conntrack_helper *helper;
-@@ -1833,6 +1834,7 @@ static const struct nla_policy exp_nla_policy[CTA_EXPECT_MAX+1] = {
- 	[CTA_EXPECT_HELP_NAME]	= { .type = NLA_NUL_STRING },
+@@ -1835,6 +1857,7 @@ static const struct nla_policy exp_nla_policy[CTA_EXPECT_MAX+1] = {
  	[CTA_EXPECT_ZONE]	= { .type = NLA_U16 },
  	[CTA_EXPECT_FLAGS]	= { .type = NLA_U32 },
-+	[CTA_EXPECT_CLASS]	= { .type = NLA_U32 },
+ 	[CTA_EXPECT_CLASS]	= { .type = NLA_U32 },
++	[CTA_EXPECT_NAT]	= { .type = NLA_NESTED },
  };
  
  static int
-@@ -2018,6 +2020,7 @@ ctnetlink_create_expect(struct net *net, u16 zone,
- 	struct nf_conn *ct;
- 	struct nf_conn_help *help;
- 	struct nf_conntrack_helper *helper = NULL;
-+	u_int32_t class = 0;
- 	int err = 0;
+@@ -2008,6 +2031,41 @@ ctnetlink_change_expect(struct nf_conntrack_expect *x,
+ 	return -EOPNOTSUPP;
+ }
  
- 	/* caller guarantees that those three CTA_EXPECT_* exist */
-@@ -2058,6 +2061,11 @@ ctnetlink_create_expect(struct net *net, u16 zone,
- 		}
- 	}
++static const struct nla_policy exp_nat_nla_policy[CTA_EXPECT_NAT_MAX+1] = {
++	[CTA_EXPECT_NAT_DIR]	= { .type = NLA_U32 },
++	[CTA_EXPECT_NAT_TUPLE]	= { .type = NLA_NESTED },
++};
++
++static int
++ctnetlink_parse_expect_nat(const struct nlattr *attr,
++			   struct nf_conntrack_expect *exp,
++			   u_int8_t u3)
++{
++#ifdef CONFIG_NF_NAT_NEEDED
++	struct nlattr *tb[CTA_EXPECT_NAT_MAX+1];
++	struct nf_conntrack_tuple nat_tuple = {};
++	int err;
++
++	nla_parse_nested(tb, CTA_EXPECT_NAT_MAX, attr, exp_nat_nla_policy);
++
++	if (!tb[CTA_EXPECT_NAT_DIR] || !tb[CTA_EXPECT_NAT_TUPLE])
++		return -EINVAL;
++
++	err = ctnetlink_parse_tuple((const struct nlattr * const *)tb,
++					&nat_tuple, CTA_EXPECT_NAT_TUPLE, u3);
++	if (err < 0)
++		return err;
++
++	exp->saved_ip = nat_tuple.src.u3.ip;
++	exp->saved_proto = nat_tuple.src.u;
++	exp->dir = ntohl(nla_get_be32(tb[CTA_EXPECT_NAT_DIR]));
++
++	return 0;
++#else
++	return -EOPNOTSUPP;
++#endif
++}
++
+ static int
+ ctnetlink_create_expect(struct net *net, u16 zone,
+ 			const struct nlattr * const cda[],
+@@ -2101,9 +2159,15 @@ ctnetlink_create_expect(struct net *net, u16 zone,
+ 	memcpy(&exp->mask.src.u3, &mask.src.u3, sizeof(exp->mask.src.u3));
+ 	exp->mask.src.u.all = mask.src.u.all;
  
-+	if (cda[CTA_EXPECT_CLASS] && helper) {
-+		class = ntohl(nla_get_be32(cda[CTA_EXPECT_CLASS]));
-+		if (class > helper->expect_class_max)
-+			return -EINVAL;
++	if (cda[CTA_EXPECT_NAT]) {
++		err = ctnetlink_parse_expect_nat(cda[CTA_EXPECT_NAT],
++						 exp, u3);
++		if (err < 0)
++			goto err_out;
 +	}
- 	exp = nf_ct_expect_alloc(ct);
- 	if (!exp) {
- 		err = -ENOMEM;
-@@ -2085,7 +2093,7 @@ ctnetlink_create_expect(struct net *net, u16 zone,
- 			exp->flags = 0;
- 	}
- 
--	exp->class = 0;
-+	exp->class = class;
- 	exp->expectfn = NULL;
- 	exp->master = ct;
- 	exp->helper = helper;
+ 	err = nf_ct_expect_related_report(exp, pid, report);
++err_out:
+ 	nf_ct_expect_put(exp);
+-
+ out:
+ 	nf_ct_put(nf_ct_tuplehash_to_ctrack(h));
+ 	return err;
 -- 
 1.7.7.3
 
