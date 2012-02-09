@@ -1,237 +1,294 @@
 From: pablo@netfilter.org
-Subject: [PATCH 5/6] netlink: netlink_dump_start may take data pointer for callbacks
-Date: Thu,  9 Feb 2012 20:33:06 +0100
-Message-ID: <1328815987-28020-6-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 4/6] netfilter: ctnetlink: allow to set expectfn for expectations
+Date: Thu,  9 Feb 2012 20:33:05 +0100
+Message-ID: <1328815987-28020-5-git-send-email-pablo@netfilter.org>
 References: <1328815987-28020-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57822 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:57814 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758521Ab2BITdd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Feb 2012 14:33:33 -0500
+	id S1758476Ab2BITdb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Feb 2012 14:33:31 -0500
 In-Reply-To: <1328815987-28020-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-This patch modifies the netlink_dump_start function to take one
-generic pointer to data. This pointer can be used inside the
-dump() and done() callbacks via cb->data.
+This patch allows you to set expectfn which is specifically used
+by the NAT side of most of the existing conntrack helpers.
 
-Netfilter is going to use this patch to provide filtered dumps
-to user-space. This is specifically interesting in ctnetlink that
-may handle lots of conntrack entries. We can save precious
-cycles by skipping the conversion to TLV format of conntrack
-entries that are not interesting for user-space.
-
-More specifically, ctnetlink will include one operation to allow
-to filter the dumping of conntrack entries by ctmark values.
+I have added a symbol map that uses a string as key to look up for
+the function that is attached to the expectation object. This is
+the best solution I came out with to solve this issue.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- crypto/crypto_user.c                 |    2 +-
- drivers/infiniband/core/netlink.c    |    2 +-
- include/linux/netlink.h              |    2 ++
- net/core/rtnetlink.c                 |    2 +-
- net/ipv4/inet_diag.c                 |    4 ++--
- net/netfilter/ipset/ip_set_core.c    |    2 +-
- net/netfilter/nf_conntrack_netlink.c |    4 ++--
- net/netfilter/nfnetlink_acct.c       |    2 +-
- net/netlink/af_netlink.c             |    2 ++
- net/netlink/genetlink.c              |    2 +-
- net/unix/diag.c                      |    2 +-
- net/xfrm/xfrm_user.c                 |    2 +-
- 12 files changed, 16 insertions(+), 12 deletions(-)
+ include/linux/netfilter/nfnetlink_conntrack.h |    1 +
+ include/net/netfilter/nf_conntrack_helper.h   |   13 ++++++
+ net/ipv4/netfilter/nf_nat_core.c              |    8 ++++
+ net/ipv4/netfilter/nf_nat_h323.c              |   14 ++++++
+ net/ipv4/netfilter/nf_nat_sip.c               |    7 +++
+ net/netfilter/nf_conntrack_helper.c           |   54 +++++++++++++++++++++++++
+ net/netfilter/nf_conntrack_netlink.c          |   19 ++++++++-
+ 7 files changed, 115 insertions(+), 1 deletions(-)
 
-diff --git a/crypto/crypto_user.c b/crypto/crypto_user.c
-index 16f8693..231d28a 100644
---- a/crypto/crypto_user.c
-+++ b/crypto/crypto_user.c
-@@ -391,7 +391,7 @@ static int crypto_user_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
- 			return -EINVAL;
+diff --git a/include/linux/netfilter/nfnetlink_conntrack.h b/include/linux/netfilter/nfnetlink_conntrack.h
+index f447779..5ec1abc 100644
+--- a/include/linux/netfilter/nfnetlink_conntrack.h
++++ b/include/linux/netfilter/nfnetlink_conntrack.h
+@@ -174,6 +174,7 @@ enum ctattr_expect {
+ 	CTA_EXPECT_FLAGS,
+ 	CTA_EXPECT_CLASS,
+ 	CTA_EXPECT_NAT,
++	CTA_EXPECT_FN,
+ 	__CTA_EXPECT_MAX
+ };
+ #define CTA_EXPECT_MAX (__CTA_EXPECT_MAX - 1)
+diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+index f1c1311..5767dc2 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -69,4 +69,17 @@ extern int nf_conntrack_broadcast_help(struct sk_buff *skb,
+ 				       enum ip_conntrack_info ctinfo,
+ 				       unsigned int timeout);
  
- 		return netlink_dump_start(crypto_nlsk, skb, nlh,
--					  link->dump, link->done, 0);
-+					  link->dump, link->done, NULL, 0);
- 	}
++struct nf_ct_helper_expectfn {
++	struct list_head head;
++	const char *name;
++	void (*expectfn)(struct nf_conn *ct, struct nf_conntrack_expect *exp);
++};
++
++void nf_ct_helper_expectfn_register(struct nf_ct_helper_expectfn *n);
++void nf_ct_helper_expectfn_unregister(struct nf_ct_helper_expectfn *n);
++struct nf_ct_helper_expectfn *
++nf_ct_helper_expectfn_find_by_name(const char *name);
++struct nf_ct_helper_expectfn *
++nf_ct_helper_expectfn_find_by_symbol(const void *symbol);
++
+ #endif /*_NF_CONNTRACK_HELPER_H*/
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index a708933..abb52ad 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -686,6 +686,11 @@ static struct pernet_operations nf_nat_net_ops = {
+ 	.exit = nf_nat_net_exit,
+ };
  
- 	err = nlmsg_parse(nlh, crypto_msg_min[type], attrs, CRYPTOCFGA_MAX,
-diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index d1c8196..13e8098 100644
---- a/drivers/infiniband/core/netlink.c
-+++ b/drivers/infiniband/core/netlink.c
-@@ -149,7 +149,7 @@ static int ibnl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
- 				return -EINVAL;
- 			return netlink_dump_start(nls, skb, nlh,
- 						  client->cb_table[op].dump,
--						  NULL, 0);
-+						  NULL, NULL, 0);
- 		}
- 	}
++static struct nf_ct_helper_expectfn follow_master_nat = {
++	.name		= "nat-follow-master",
++	.expectfn	= nf_nat_follow_master,
++};
++
+ static int __init nf_nat_init(void)
+ {
+ 	size_t i;
+@@ -717,6 +722,8 @@ static int __init nf_nat_init(void)
  
-diff --git a/include/linux/netlink.h b/include/linux/netlink.h
-index 52e4895..ed764e4 100644
---- a/include/linux/netlink.h
-+++ b/include/linux/netlink.h
-@@ -225,6 +225,7 @@ struct netlink_callback {
- 	int			(*dump)(struct sk_buff * skb,
- 					struct netlink_callback *cb);
- 	int			(*done)(struct netlink_callback *cb);
-+	void			*data;
- 	u16			family;
- 	u16			min_dump_alloc;
- 	unsigned int		prev_seq, seq;
-@@ -266,6 +267,7 @@ extern int netlink_dump_start(struct sock *ssk, struct sk_buff *skb,
- 			      const struct nlmsghdr *nlh,
- 			      int (*dump)(struct sk_buff *skb, struct netlink_callback*),
- 			      int (*done)(struct netlink_callback*),
-+			      void *data,
- 			      u16 min_dump_alloc);
+ 	l3proto = nf_ct_l3proto_find_get((u_int16_t)AF_INET);
  
- 
-diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
-index f16444b..49f49b7 100644
---- a/net/core/rtnetlink.c
-+++ b/net/core/rtnetlink.c
-@@ -1979,7 +1979,7 @@ static int rtnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
- 		__rtnl_unlock();
- 		rtnl = net->rtnl;
- 		err = netlink_dump_start(rtnl, skb, nlh, dumpit,
--					 NULL, min_dump_alloc);
-+					 NULL, NULL, min_dump_alloc);
- 		rtnl_lock();
- 		return err;
- 	}
-diff --git a/net/ipv4/inet_diag.c b/net/ipv4/inet_diag.c
-index fcf2818..c1ff5dd 100644
---- a/net/ipv4/inet_diag.c
-+++ b/net/ipv4/inet_diag.c
-@@ -962,7 +962,7 @@ static int inet_diag_rcv_msg_compat(struct sk_buff *skb, struct nlmsghdr *nlh)
- 		}
- 
- 		return netlink_dump_start(sock_diag_nlsk, skb, nlh,
--					  inet_diag_dump_compat, NULL, 0);
-+					  inet_diag_dump_compat, NULL, NULL, 0);
- 	}
- 
- 	return inet_diag_get_exact_compat(skb, nlh);
-@@ -987,7 +987,7 @@ static int inet_diag_handler_dump(struct sk_buff *skb, struct nlmsghdr *h)
- 		}
- 
- 		return netlink_dump_start(sock_diag_nlsk, skb, h,
--					  inet_diag_dump, NULL, 0);
-+					  inet_diag_dump, NULL, NULL, 0);
- 	}
- 
- 	return inet_diag_get_exact(skb, h, (struct inet_diag_req_v2 *)NLMSG_DATA(h));
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 32dbf0f..8cfaa9c 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1164,7 +1164,7 @@ ip_set_dump(struct sock *ctnl, struct sk_buff *skb,
- 
- 	return netlink_dump_start(ctnl, skb, nlh,
- 				  ip_set_dump_start,
--				  ip_set_dump_done, 0);
-+				  ip_set_dump_done, NULL, 0);
++	nf_ct_helper_expectfn_register(&follow_master_nat);
++
+ 	BUG_ON(nf_nat_seq_adjust_hook != NULL);
+ 	RCU_INIT_POINTER(nf_nat_seq_adjust_hook, nf_nat_seq_adjust);
+ 	BUG_ON(nfnetlink_parse_nat_setup_hook != NULL);
+@@ -736,6 +743,7 @@ static void __exit nf_nat_cleanup(void)
+ 	unregister_pernet_subsys(&nf_nat_net_ops);
+ 	nf_ct_l3proto_put(l3proto);
+ 	nf_ct_extend_unregister(&nat_extend);
++	nf_ct_helper_expectfn_unregister(&follow_master_nat);
+ 	RCU_INIT_POINTER(nf_nat_seq_adjust_hook, NULL);
+ 	RCU_INIT_POINTER(nfnetlink_parse_nat_setup_hook, NULL);
+ 	RCU_INIT_POINTER(nf_ct_nat_offset, NULL);
+diff --git a/net/ipv4/netfilter/nf_nat_h323.c b/net/ipv4/netfilter/nf_nat_h323.c
+index dc1dd91..8253670 100644
+--- a/net/ipv4/netfilter/nf_nat_h323.c
++++ b/net/ipv4/netfilter/nf_nat_h323.c
+@@ -568,6 +568,16 @@ static int nat_callforwarding(struct sk_buff *skb, struct nf_conn *ct,
+ 	return 0;
  }
  
- /* Add, del and test */
++static struct nf_ct_helper_expectfn q931_nat = {
++	.name		= "Q.931",
++	.expectfn	= ip_nat_q931_expect,
++};
++
++static struct nf_ct_helper_expectfn callforwarding_nat = {
++	.name		= "callforwarding",
++	.expectfn	= ip_nat_callforwarding_expect,
++};
++
+ /****************************************************************************/
+ static int __init init(void)
+ {
+@@ -590,6 +600,8 @@ static int __init init(void)
+ 	RCU_INIT_POINTER(nat_h245_hook, nat_h245);
+ 	RCU_INIT_POINTER(nat_callforwarding_hook, nat_callforwarding);
+ 	RCU_INIT_POINTER(nat_q931_hook, nat_q931);
++	nf_ct_helper_expectfn_register(&q931_nat);
++	nf_ct_helper_expectfn_register(&callforwarding_nat);
+ 	return 0;
+ }
+ 
+@@ -605,6 +617,8 @@ static void __exit fini(void)
+ 	RCU_INIT_POINTER(nat_h245_hook, NULL);
+ 	RCU_INIT_POINTER(nat_callforwarding_hook, NULL);
+ 	RCU_INIT_POINTER(nat_q931_hook, NULL);
++	nf_ct_helper_expectfn_unregister(&q931_nat);
++	nf_ct_helper_expectfn_unregister(&callforwarding_nat);
+ 	synchronize_rcu();
+ }
+ 
+diff --git a/net/ipv4/netfilter/nf_nat_sip.c b/net/ipv4/netfilter/nf_nat_sip.c
+index d0319f9..57932c4 100644
+--- a/net/ipv4/netfilter/nf_nat_sip.c
++++ b/net/ipv4/netfilter/nf_nat_sip.c
+@@ -526,6 +526,11 @@ err1:
+ 	return NF_DROP;
+ }
+ 
++static struct nf_ct_helper_expectfn sip_nat = {
++        .name           = "sip",
++        .expectfn       = ip_nat_sip_expected,
++};
++
+ static void __exit nf_nat_sip_fini(void)
+ {
+ 	RCU_INIT_POINTER(nf_nat_sip_hook, NULL);
+@@ -535,6 +540,7 @@ static void __exit nf_nat_sip_fini(void)
+ 	RCU_INIT_POINTER(nf_nat_sdp_port_hook, NULL);
+ 	RCU_INIT_POINTER(nf_nat_sdp_session_hook, NULL);
+ 	RCU_INIT_POINTER(nf_nat_sdp_media_hook, NULL);
++	nf_ct_helper_expectfn_unregister(&sip_nat);
+ 	synchronize_rcu();
+ }
+ 
+@@ -554,6 +560,7 @@ static int __init nf_nat_sip_init(void)
+ 	RCU_INIT_POINTER(nf_nat_sdp_port_hook, ip_nat_sdp_port);
+ 	RCU_INIT_POINTER(nf_nat_sdp_session_hook, ip_nat_sdp_session);
+ 	RCU_INIT_POINTER(nf_nat_sdp_media_hook, ip_nat_sdp_media);
++	nf_ct_helper_expectfn_register(&sip_nat);
+ 	return 0;
+ }
+ 
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index bbe23ba..436b7cb 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -181,6 +181,60 @@ void nf_ct_helper_destroy(struct nf_conn *ct)
+ 	}
+ }
+ 
++static LIST_HEAD(nf_ct_helper_expectfn_list);
++
++void nf_ct_helper_expectfn_register(struct nf_ct_helper_expectfn *n)
++{
++	spin_lock_bh(&nf_conntrack_lock);
++	list_add_rcu(&n->head, &nf_ct_helper_expectfn_list);
++	spin_unlock_bh(&nf_conntrack_lock);
++}
++EXPORT_SYMBOL_GPL(nf_ct_helper_expectfn_register);
++
++void nf_ct_helper_expectfn_unregister(struct nf_ct_helper_expectfn *n)
++{
++	spin_lock_bh(&nf_conntrack_lock);
++	list_del_rcu(&n->head);
++	spin_unlock_bh(&nf_conntrack_lock);
++}
++EXPORT_SYMBOL_GPL(nf_ct_helper_expectfn_unregister);
++
++struct nf_ct_helper_expectfn *
++nf_ct_helper_expectfn_find_by_name(const char *name)
++{
++	struct nf_ct_helper_expectfn *cur;
++	bool found = false;
++
++	rcu_read_lock();
++	list_for_each_entry_rcu(cur, &nf_ct_helper_expectfn_list, head) {
++		if (!strcmp(cur->name, name)) {
++			found = true;
++			break;
++		}
++	}
++	rcu_read_unlock();
++	return found ? cur : NULL;
++}
++EXPORT_SYMBOL_GPL(nf_ct_helper_expectfn_find_by_name);
++
++struct nf_ct_helper_expectfn *
++nf_ct_helper_expectfn_find_by_symbol(const void *symbol)
++{
++	struct nf_ct_helper_expectfn *cur;
++	bool found = false;
++
++	rcu_read_lock();
++	list_for_each_entry_rcu(cur, &nf_ct_helper_expectfn_list, head) {
++		if (cur->expectfn == symbol) {
++			found = true;
++			break;
++		}
++	}
++	rcu_read_unlock();
++	return found ? cur : NULL;
++}
++EXPORT_SYMBOL_GPL(nf_ct_helper_expectfn_find_by_symbol);
++
+ int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
+ {
+ 	unsigned int h = helper_hash(&me->tuple);
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index e5d5d1c..d7301f7 100644
+index ca630b0..e5d5d1c 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -979,7 +979,7 @@ ctnetlink_get_conntrack(struct sock *ctnl, struct sk_buff *skb,
+@@ -1656,6 +1656,8 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
+ 	struct nlattr *nest_parms;
+ 	struct nf_conntrack_tuple nat_tuple = {};
+ #endif
++	struct nf_ct_helper_expectfn *expfn;
++
+ 	if (timeout < 0)
+ 		timeout = 0;
  
- 	if (nlh->nlmsg_flags & NLM_F_DUMP)
- 		return netlink_dump_start(ctnl, skb, nlh, ctnetlink_dump_table,
--					  ctnetlink_done, 0);
-+					  ctnetlink_done, NULL, 0);
- 
- 	err = ctnetlink_parse_zone(cda[CTA_ZONE], &zone);
- 	if (err < 0)
-@@ -1883,7 +1883,7 @@ ctnetlink_get_expect(struct sock *ctnl, struct sk_buff *skb,
- 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
- 		return netlink_dump_start(ctnl, skb, nlh,
- 					  ctnetlink_exp_dump_table,
--					  ctnetlink_exp_done, 0);
-+					  ctnetlink_exp_done, NULL, 0);
+@@ -1699,6 +1701,9 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
+ 		if (helper)
+ 			NLA_PUT_STRING(skb, CTA_EXPECT_HELP_NAME, helper->name);
  	}
++	expfn = nf_ct_helper_expectfn_find_by_symbol(exp->expectfn);
++	if (expfn != NULL)
++		NLA_PUT_STRING(skb, CTA_EXPECT_FN, expfn->name);
  
- 	err = ctnetlink_parse_zone(cda[CTA_EXPECT_ZONE], &zone);
-diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
-index 11ba013..b7ea475 100644
---- a/net/netfilter/nfnetlink_acct.c
-+++ b/net/netfilter/nfnetlink_acct.c
-@@ -172,7 +172,7 @@ nfnl_acct_get(struct sock *nfnl, struct sk_buff *skb,
+ 	return 0;
  
- 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
- 		return netlink_dump_start(nfnl, skb, nlh, nfnl_acct_dump,
--					  NULL, 0);
-+					  NULL, NULL, 0);
+@@ -1858,6 +1863,7 @@ static const struct nla_policy exp_nla_policy[CTA_EXPECT_MAX+1] = {
+ 	[CTA_EXPECT_FLAGS]	= { .type = NLA_U32 },
+ 	[CTA_EXPECT_CLASS]	= { .type = NLA_U32 },
+ 	[CTA_EXPECT_NAT]	= { .type = NLA_NESTED },
++	[CTA_EXPECT_FN]		= { .type = NLA_NUL_STRING },
+ };
+ 
+ static int
+@@ -2150,9 +2156,20 @@ ctnetlink_create_expect(struct net *net, u16 zone,
+ 		} else
+ 			exp->flags = 0;
  	}
++	if (cda[CTA_EXPECT_FN]) {
++		const char *name = nla_data(cda[CTA_EXPECT_FN]);
++		struct nf_ct_helper_expectfn *expfn;
++
++		expfn = nf_ct_helper_expectfn_find_by_name(name);
++		if (expfn == NULL) {
++			err = -EINVAL;
++			goto err_out;
++		}
++		exp->expectfn = expfn->expectfn;
++	} else
++		exp->expectfn = NULL;
  
- 	if (!tb[NFACCT_NAME])
-diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
-index 629b061..19446e8 100644
---- a/net/netlink/af_netlink.c
-+++ b/net/netlink/af_netlink.c
-@@ -1721,6 +1721,7 @@ int netlink_dump_start(struct sock *ssk, struct sk_buff *skb,
- 		       int (*dump)(struct sk_buff *skb,
- 				   struct netlink_callback *),
- 		       int (*done)(struct netlink_callback *),
-+		       void *data,
- 		       u16 min_dump_alloc)
- {
- 	struct netlink_callback *cb;
-@@ -1736,6 +1737,7 @@ int netlink_dump_start(struct sock *ssk, struct sk_buff *skb,
- 	cb->done = done;
- 	cb->nlh = nlh;
- 	cb->min_dump_alloc = min_dump_alloc;
-+	cb->data = data;
- 	atomic_inc(&skb->users);
- 	cb->skb = skb;
- 
-diff --git a/net/netlink/genetlink.c b/net/netlink/genetlink.c
-index c29d256..1ec141c 100644
---- a/net/netlink/genetlink.c
-+++ b/net/netlink/genetlink.c
-@@ -533,7 +533,7 @@ static int genl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
- 
- 		genl_unlock();
- 		err = netlink_dump_start(net->genl_sock, skb, nlh,
--					 ops->dumpit, ops->done, 0);
-+					 ops->dumpit, ops->done, NULL, 0);
- 		genl_lock();
- 		return err;
- 	}
-diff --git a/net/unix/diag.c b/net/unix/diag.c
-index 6b7697f..8ad0962 100644
---- a/net/unix/diag.c
-+++ b/net/unix/diag.c
-@@ -303,7 +303,7 @@ static int unix_diag_handler_dump(struct sk_buff *skb, struct nlmsghdr *h)
- 
- 	if (h->nlmsg_flags & NLM_F_DUMP)
- 		return netlink_dump_start(sock_diag_nlsk, skb, h,
--					  unix_diag_dump, NULL, 0);
-+					  unix_diag_dump, NULL, NULL, 0);
- 	else
- 		return unix_diag_get_exact(skb, h, (struct unix_diag_req *)NLMSG_DATA(h));
- }
-diff --git a/net/xfrm/xfrm_user.c b/net/xfrm/xfrm_user.c
-index 66b84fb..eb86719 100644
---- a/net/xfrm/xfrm_user.c
-+++ b/net/xfrm/xfrm_user.c
-@@ -2300,7 +2300,7 @@ static int xfrm_user_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
- 			return -EINVAL;
- 
- 		return netlink_dump_start(net->xfrm.nlsk, skb, nlh,
--					  link->dump, link->done, 0);
-+					  link->dump, link->done, NULL, 0);
- 	}
- 
- 	err = nlmsg_parse(nlh, xfrm_msg_min[type], attrs, XFRMA_MAX,
+ 	exp->class = class;
+-	exp->expectfn = NULL;
+ 	exp->master = ct;
+ 	exp->helper = helper;
+ 	memcpy(&exp->tuple, &tuple, sizeof(struct nf_conntrack_tuple));
 -- 
 1.7.7.3
 
