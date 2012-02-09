@@ -1,79 +1,89 @@
 From: pablo@netfilter.org
-Subject: [PATCH 1/6] netfilter: ctnetlink: allow to set helper for new expectations
-Date: Thu,  9 Feb 2012 20:33:02 +0100
-Message-ID: <1328815987-28020-2-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 2/6] netfilter: ctnetlink: allow to set expectation class
+Date: Thu,  9 Feb 2012 20:33:03 +0100
+Message-ID: <1328815987-28020-3-git-send-email-pablo@netfilter.org>
 References: <1328815987-28020-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57795 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:57798 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758422Ab2BITdY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Feb 2012 14:33:24 -0500
+	id S1758422Ab2BITd0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Feb 2012 14:33:26 -0500
 In-Reply-To: <1328815987-28020-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-This patch allow you to set the helper for newly created
-expectations based of the CTA_EXPECT_HELP_NAME attribute.
-Before this, the helper set was NULL.
+This patch allows you to set the expectation class.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_netlink.c |   25 ++++++++++++++++++++++++-
- 1 files changed, 24 insertions(+), 1 deletions(-)
+ include/linux/netfilter/nfnetlink_conntrack.h |    1 +
+ net/netfilter/nf_conntrack_netlink.c          |   10 +++++++++-
+ 2 files changed, 10 insertions(+), 1 deletions(-)
 
+diff --git a/include/linux/netfilter/nfnetlink_conntrack.h b/include/linux/netfilter/nfnetlink_conntrack.h
+index debf1ae..40d7c19 100644
+--- a/include/linux/netfilter/nfnetlink_conntrack.h
++++ b/include/linux/netfilter/nfnetlink_conntrack.h
+@@ -172,6 +172,7 @@ enum ctattr_expect {
+ 	CTA_EXPECT_HELP_NAME,
+ 	CTA_EXPECT_ZONE,
+ 	CTA_EXPECT_FLAGS,
++	CTA_EXPECT_CLASS,
+ 	__CTA_EXPECT_MAX
+ };
+ #define CTA_EXPECT_MAX (__CTA_EXPECT_MAX - 1)
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 9307b03..8338d67 100644
+index 8338d67..f185301 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2017,6 +2017,7 @@ ctnetlink_create_expect(struct net *net, u16 zone,
- 	struct nf_conntrack_expect *exp;
+@@ -1668,6 +1668,7 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
+ 	NLA_PUT_BE32(skb, CTA_EXPECT_TIMEOUT, htonl(timeout));
+ 	NLA_PUT_BE32(skb, CTA_EXPECT_ID, htonl((unsigned long)exp));
+ 	NLA_PUT_BE32(skb, CTA_EXPECT_FLAGS, htonl(exp->flags));
++	NLA_PUT_BE32(skb, CTA_EXPECT_CLASS, htonl(exp->class));
+ 	help = nfct_help(master);
+ 	if (help) {
+ 		struct nf_conntrack_helper *helper;
+@@ -1833,6 +1834,7 @@ static const struct nla_policy exp_nla_policy[CTA_EXPECT_MAX+1] = {
+ 	[CTA_EXPECT_HELP_NAME]	= { .type = NLA_NUL_STRING },
+ 	[CTA_EXPECT_ZONE]	= { .type = NLA_U16 },
+ 	[CTA_EXPECT_FLAGS]	= { .type = NLA_U32 },
++	[CTA_EXPECT_CLASS]	= { .type = NLA_U32 },
+ };
+ 
+ static int
+@@ -2018,6 +2020,7 @@ ctnetlink_create_expect(struct net *net, u16 zone,
  	struct nf_conn *ct;
  	struct nf_conn_help *help;
-+	struct nf_conntrack_helper *helper = NULL;
+ 	struct nf_conntrack_helper *helper = NULL;
++	u_int32_t class = 0;
  	int err = 0;
  
  	/* caller guarantees that those three CTA_EXPECT_* exist */
-@@ -2035,6 +2036,28 @@ ctnetlink_create_expect(struct net *net, u16 zone,
- 	if (!h)
- 		return -ENOENT;
- 	ct = nf_ct_tuplehash_to_ctrack(h);
-+
-+	/* Look for helper of this expectation */
-+	if (cda[CTA_EXPECT_HELP_NAME]) {
-+		const char *helpname = nla_data(cda[CTA_EXPECT_HELP_NAME]);
-+
-+		helper = __nf_conntrack_helper_find(helpname, nf_ct_l3num(ct),
-+						    nf_ct_protonum(ct));
-+		if (helper == NULL) {
-+#ifdef CONFIG_MODULES
-+			if (request_module("nfct-helper-%s", helpname) < 0)
-+				return -EOPNOTSUPP;
-+
-+			helper = __nf_conntrack_helper_find(helpname,
-+							    nf_ct_l3num(ct),
-+							    nf_ct_protonum(ct));
-+			if (helper)
-+				return -EAGAIN;
-+#endif
-+			return -EOPNOTSUPP;
-+		}
+@@ -2058,6 +2061,11 @@ ctnetlink_create_expect(struct net *net, u16 zone,
+ 		}
+ 	}
+ 
++	if (cda[CTA_EXPECT_CLASS] && helper) {
++		class = ntohl(nla_get_be32(cda[CTA_EXPECT_CLASS]));
++		if (class > helper->expect_class_max)
++			return -EINVAL;
 +	}
-+
  	exp = nf_ct_expect_alloc(ct);
  	if (!exp) {
  		err = -ENOMEM;
-@@ -2065,7 +2088,7 @@ ctnetlink_create_expect(struct net *net, u16 zone,
- 	exp->class = 0;
+@@ -2085,7 +2093,7 @@ ctnetlink_create_expect(struct net *net, u16 zone,
+ 			exp->flags = 0;
+ 	}
+ 
+-	exp->class = 0;
++	exp->class = class;
  	exp->expectfn = NULL;
  	exp->master = ct;
--	exp->helper = NULL;
-+	exp->helper = helper;
- 	memcpy(&exp->tuple, &tuple, sizeof(struct nf_conntrack_tuple));
- 	memcpy(&exp->mask.src.u3, &mask.src.u3, sizeof(exp->mask.src.u3));
- 	exp->mask.src.u.all = mask.src.u.all;
+ 	exp->helper = helper;
 -- 
 1.7.7.3
 
