@@ -1,89 +1,51 @@
-From: Quentin Aebischer <Quentin.Aebischer@USherbrooke.ca>
-Subject: Re: [PATCH] conntrackd: basic TIPC implementation for NOTRACK mode
-Date: Thu, 09 Feb 2012 15:45:34 -0500
-Message-ID: <20120209154534.138455pkg6vo4wco@www.usherbrooke.ca>
-References: <20120121085217.4272940o8fmk4v80@www.usherbrooke.ca>
- <20120122174140.GA18764@1984>
- <20120122162720.10123t2longq3zac@www.usherbrooke.ca>
- <20120123100733.GB23857@1984>
- <20120123132537.198937ydqdx1n3gg@www.usherbrooke.ca>
- <20120124010145.GA28314@1984>
- <20120124120058.234342gq75ohof6s@www.usherbrooke.ca>
- <20120126001928.GA10554@1984>
- <20120126211344.33964cmak17akti0@www.usherbrooke.ca>
- <20120208004354.GD29189@1984>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	DelSp=Yes	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Richard Weinberger <richard@nod.at>
+Subject: [PATCH v4] Merge ipt_LOG and ip6t_LOG, add ring bufffer support
+Date: Thu,  9 Feb 2012 22:54:47 +0100
+Message-ID: <1328824493-4136-1-git-send-email-richard@nod.at>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	eric.dumazet@gmail.com, jengelh@medozas.de, rostedt@goodmis.org,
+	pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpi4.USherbrooke.ca ([132.210.236.3]:32765 "EHLO
-	smtpi4.usherbrooke.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757814Ab2BIUpq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Feb 2012 15:45:46 -0500
-In-Reply-To: <20120208004354.GD29189@1984>
-Content-Disposition: inline
+Received: from a.ns.miles-group.at ([95.130.255.143]:47834 "EHLO radon.swed.at"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757894Ab2BIVzJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Feb 2012 16:55:09 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> a =C3=A9crit=C2=A0:
+This patch set merges ipt_LOG and ip6t_LOG and adds ring buffer support
+to xt_LOG.
 
-> On Thu, Jan 26, 2012 at 09:13:44PM -0500, Quentin Aebischer wrote:
->> Ok, time for an other try !
->>
->> From : Quentin Aebischer <quentin.aebischer@usherbrooke.ca>
->>
->> Basic implementation of a TIPC channel for the conntrackd daemon
->> (successfully tested in NOTRACK and FTFW modes).
->>
->> TIPC is a protocol that allows applications in a cluster-based
->> environment to communicate quickly and reliably with other
->> applications in the cluster.
->> It allows both unicast and multicast, reliable/unreliable and
->> datagram/stream oriented communications.
->>
->> One of its main feature's of interest here is to provide sockets
->> that communicates in a connectionless, yet reliable manner that
->> guarantees delivery of every message sent over the network.
->> This can be useful in the context of high-available, cluster-based
->> firewalls where states propagation has to be both fast and reliable.
->>
->> So far, the results are encouraging, though more tests have to
->> performed on different setups to enhance the implementation and
->> track any bugs.
->>
->> An example config file can be found in the doc/sync/tipc directory
->> of the conntrack-tools, along with a README file providing basic
->> installation instructions.
->
-> Looks fine. I'm planning to add this to one git branch to test it and
-> give it some spins before merging it to master.
->
-> Let me know if you have any update in your patch before I do so.
+Using "--ring" a user can create LOG rules which log messages into
+one or more ring buffers.
+Each ring buffer is represented as pipe-like file in
+/proc/net/netfilter/xt_LOG_ring/.
 
-Please use the configuration file from the last patch I sent (previous =
-=20
-one was an older version that would give you parsing errors, sorry =20
-about that).
+Ring buffer support can be enabled/disabled using
+CONFIG_NETFILTER_XT_TARGET_LOG_RING.
 
-Regards,
+Changes since v1:
+ - Merged ipt_LOG and ip6t_LOG
+ - Implemented ring buffer support as part of xt_LOG.
 
-Quentin
+Changes since v2:
+ - Fixed struct xt_log_info_v1's data layout
+ - Removed the sizeof(void *) hack
+ - Replaced BUG() by WARN_ON_ONCE()
 
-> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
-evel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
+Changes since v3:
+ - Merged xt_LOG_core.c and xt_LOG_ring.c into xt_LOG.c
+ - Made checkpatch.pl happy
 
+All patches can also be found at:
+git://git.kernel.org/pub/scm/linux/kernel/git/rw/misc.git xt_LOG
+git://git.kernel.org/pub/scm/linux/kernel/git/rw/iptables.git xt_LOG
 
+[PATCH 1/2] iptables: Merge libip6t_LOG and libipt_LOG into
+[PATCH 2/2] iptables: xt_LOG: Add ring buffer support
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[PATCH 1/4] Netfilter: Merge ipt_LOG and ip6_LOG into xt_LOG
+[PATCH 2/4] ring_buffer: Export for_each_buffer_cpu()
+[PATCH 3/4] xt_log: Make printk() in sb_close() optional
+[PATCH 4/4] Netfilter: xt_LOG: Implement ring buffer support
