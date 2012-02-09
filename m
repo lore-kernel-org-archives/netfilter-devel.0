@@ -1,88 +1,140 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: EILSEQ with libnetfilter_conntrack on multi-threaded app
-Date: Thu, 9 Feb 2012 16:54:45 +0100
-Message-ID: <20120209155445.GA5951@1984>
-References: <20120208132736.0f893b57@wwwwww-701SD>
+Subject: Re: BUG nf_conntrack_ffff880863c50000: Objects remaining on
+ kmem_cache_close()
+Date: Thu, 9 Feb 2012 16:57:53 +0100
+Message-ID: <20120209155753.GB5951@1984>
+References: <4F328A81.4050607@univ-nantes.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
-To: abirvalg@lavabit.com
+To: Jean-Philippe Menil <jean-philippe.menil@univ-nantes.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46643 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47145 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752828Ab2BIPyw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Feb 2012 10:54:52 -0500
+	id S1752843Ab2BIP57 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Feb 2012 10:57:59 -0500
 Content-Disposition: inline
-In-Reply-To: <20120208132736.0f893b57@wwwwww-701SD>
+In-Reply-To: <4F328A81.4050607@univ-nantes.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Feb 08, 2012 at 01:27:36PM +0000, abirvalg@lavabit.com wrote:
-> My multi-threaded app makes heavy use of libnetfilter_conntrack.
-> After running properly for a number of hours, at a certain point which I am not able to reproduce a call to conntrack function does not return for good 10 secs, CPU usage of my process spikes to 80% and running conntrack -L from terminal freezes. When the conntrack function returns with retval EILSEQ,  CPU usage drops, conntrack -L unfreezes an dumps the output.
-> 
-> The code in question does:
-> 
-> nfct_query(setmark_handle_out, NFCT_Q_GET, ct_out_udp)
-> 
-> where setmark_handle_out was previously linked to this function
-> 
-> int setmark_out (enum nf_conntrack_msg_type type, struct nf_conntrack *mct,void *data)
-> {
->   nfct_set_attr_u32(mct, ATTR_MARK, nfmark_to_set_out);
->   nfct_query(setmark_handle_out, NFCT_Q_UPDATE, mct);  ***
->   return NFCT_CB_CONTINUE;
-> }
->  
-> nfmark_to_set_out is a global variable
-> 
-> ***Could this line be the offending one? As I understand, when issuing NFCT_Q_UPDATE, indicating an nfct_handle is just a formality - any handle can be given as an argument, so I'm simply reusing an existing handle.
-> 
-> I really want to get to the bottom of this issue. Please let me know what other actions I can perform to produce some valuable debuginfo.
-> I'm actually right now keeping the process suspended in gdb, because the issue takes many hours to reproduce.
-> 
-> Here's the link to the offending line 3514 in my project's webgit:
-> http://leopardflower.git.sourceforge.net/git/gitweb.cgi?p=leopardflower/leopardflower;a=blob;f=lpfw.c;h=c7af69c1def30d1a18e1bf839acbb60064ee3ba2;hb=709b1e87cf17e6e6e9d8a908ad8a6b77359f1d69#l3514
-> 
-> Thanks.
-> 
-> P.S.
-> Please CC me when responding to this
-> 
-> P.P.S.
-> I already posted a similar issue on this mailing list
-> http://marc.info/?t=131827063700008&r=1&w=2	
-> 
-> Back then Pablo responded with:
-> /quote
-> Regarding the EILSEQ error:
-> 
-> The second parameter of nfct_open must be 0. However, if you use the
-> same socket for sending commands and receiving events, then you have
-> to disable sequence tracking, there is a function in libnfnetlink to
-> do that.
-> /unquote
-> 
-> My code does call nfct_open with 0.
+On Wed, Feb 08, 2012 at 03:45:21PM +0100, Jean-Philippe Menil wrote:
+> Hi,
+>=20
+> I'm seeing bug in a host with a 3.2.1 kernel.
+> This host is running both kvm and lxc guest.
+> It seems that it happened just after the restart of a lxc guest.
+>=20
+> However, it doesn't seem to affect any guest.
+>=20
+> I was just wondering if this was problematic, and if so, what should
+> I do to debug this further.
 
-OK.
+Could you provide more information on your setup? Is it using
+conntrackd or anything you think it can be relevant to this bug.
 
-> Is the note above that I marked with *** a case of using the same socket for sending commands and receiving events?
+It can make it easier for us to know what's wrong with this.
 
-Let me make this more generic:
+> Regards.
+>=20
+> --=20
+> Jean-Philippe Menil - P=F4le r=E9seau Service IRTS
+> DSI Universit=E9 de Nantes
+> jean-philippe.menil@univ-nantes.fr
+> Tel : 02.53.48.49.27 - Fax : 02.53.48.49.09
+>=20
 
-If you use the same netlink socket to send and to receive data using
-multiple thread/processes, then you have to disable sequence tracking.
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28512=
+5] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28517=
+3] BUG nf_conntrack_ffff880863c50000: Objects remaining on kmem_cache_c=
+lose()
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28522=
+3] --------------------------------------------------------------------=
+---------
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28522=
+4]=20
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28529=
+1] INFO: Slab 0xffffea000fecf280 objects=3D26 used=3D1 fp=3D0xffff8803f=
+b3ca4e0 flags=3D0x200000000004080
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28533=
+9] Pid: 5, comm: kworker/u:0 Not tainted 3.2.1-dsiun-120113 #55
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28536=
+6] Call Trace:
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28539=
+3]  [<ffffffff811194c0>] ? slab_err+0x80/0x90
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28541=
+9]  [<ffffffff8111c6c9>] ? kmem_cache_destroy+0x169/0x3b0
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28544=
+9]  [<ffffffff8111c6ec>] ? kmem_cache_destroy+0x18c/0x3b0
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28548=
+7]  [<ffffffffa049f753>] ? nf_conntrack_cleanup+0xd3/0x130 [nf_conntrac=
+k]
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28554=
+5]  [<ffffffff812f7b48>] ? ops_exit_list.isra.1+0x38/0x70
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28557=
+4]  [<ffffffff812f8260>] ? net_drop_ns+0x40/0x40
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28560=
+0]  [<ffffffff812f8360>] ? cleanup_net+0x100/0x1a0
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28564=
+3]  [<ffffffff810635c6>] ? process_one_work+0x106/0x460
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28567=
+0]  [<ffffffff8106486c>] ? worker_thread+0x14c/0x330
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28569=
+7]  [<ffffffff81064720>] ? manage_workers.isra.30+0x210/0x210
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28573=
+6]  [<ffffffff8106905e>] ? kthread+0x7e/0x90
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28576=
+3]  [<ffffffff813aee34>] ? kernel_thread_helper+0x4/0x10
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28579=
+0]  [<ffffffff81068fe0>] ? kthread_worker_fn+0x190/0x190
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28581=
+7]  [<ffffffff813aee30>] ? gs_change+0x13/0x13
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28584=
+3] INFO: Object 0xffff8803fb3ca000 @offset=3D0
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28586=
+9] SLUB nf_conntrack_ffff880863c50000: kmem_cache_destroy called for ca=
+che that still has objects.
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28591=
+6] Pid: 5, comm: kworker/u:0 Not tainted 3.2.1-dsiun-120113 #55
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28594=
+3] Call Trace:
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28596=
+4]  [<ffffffff8111c7a8>] ? kmem_cache_destroy+0x248/0x3b0
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28599=
+1]  [<ffffffff8111c863>] ? kmem_cache_destroy+0x303/0x3b0
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28602=
+0]  [<ffffffffa049f753>] ? nf_conntrack_cleanup+0xd3/0x130 [nf_conntrac=
+k]
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28606=
+4]  [<ffffffff812f7b48>] ? ops_exit_list.isra.1+0x38/0x70
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28609=
+2]  [<ffffffff812f8260>] ? net_drop_ns+0x40/0x40
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28611=
+7]  [<ffffffff812f8360>] ? cleanup_net+0x100/0x1a0
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28614=
+4]  [<ffffffff810635c6>] ? process_one_work+0x106/0x460
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28622=
+7]  [<ffffffff8106486c>] ? worker_thread+0x14c/0x330
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28625=
+3]  [<ffffffff81064720>] ? manage_workers.isra.30+0x210/0x210
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28628=
+1]  [<ffffffff8106905e>] ? kthread+0x7e/0x90
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28630=
+6]  [<ffffffff813aee34>] ? kernel_thread_helper+0x4/0x10
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28633=
+3]  [<ffffffff81068fe0>] ? kthread_worker_fn+0x190/0x190
+> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28636=
+0]  [<ffffffff813aee30>] ? gs_change+0x13/0x13
+>=20
+>=20
 
-This seems to be your case. Basically, a race condition may occur
-following this steps:
-
-1) you send a get command from process/thread h1 with seqnum S1.
-2) you send an update command from process/thread h2 with seqnum S2.
-3) you get the reply for get command, libnfnetlink sequence checks for
-S2 but it gets S1. So it hits EILSEQ.
-
-libnfnetlink sequence tracking is not thread safe. This is fixed by
-libmnl. I'm still porting libnetfilter_* friends to libmnl, but this
-will take time. So your solution is to disable sequence tracking in
-libnfnetlink.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
