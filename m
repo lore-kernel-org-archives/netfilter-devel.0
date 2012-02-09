@@ -1,222 +1,148 @@
-From: Jean-Philippe Menil <jean-philippe.menil@univ-nantes.fr>
-Subject: Re: BUG nf_conntrack_ffff880863c50000: Objects remaining on kmem_cache_close()
-Date: Thu, 09 Feb 2012 17:11:40 +0100
-Message-ID: <4F33F03C.5030805@univ-nantes.fr>
-References: <4F328A81.4050607@univ-nantes.fr> <20120209155753.GB5951@1984>
-Reply-To: jean-philippe.menil@univ-nantes.fr
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH 1/1] netfilter: nf_queue: fix queueing of bridged gro skbs
+Date: Thu, 9 Feb 2012 17:37:01 +0100
+Message-ID: <20120209163701.GB14772@Chamillionaire.breakpoint.cc>
+References: <1328530990-6782-1-git-send-email-fw@strlen.de>
+ <20120209154421.GA5865@1984>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------090806040004070709020606"
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	netdev <netdev@vger.kernel.org>,
+	Herbert Xu <herbert@gondor.apana.org.au>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-tls2.univ-nantes.fr ([193.52.101.146]:58801 "EHLO
-	smtp-tls.univ-nantes.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753752Ab2BIQLm (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:50664 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758058Ab2BIQhD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Feb 2012 11:11:42 -0500
-In-Reply-To: <20120209155753.GB5951@1984>
+	Thu, 9 Feb 2012 11:37:03 -0500
+Content-Disposition: inline
+In-Reply-To: <20120209154421.GA5865@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------090806040004070709020606
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-Le 09/02/2012 16:57, Pablo Neira Ayuso a écrit :
-> On Wed, Feb 08, 2012 at 03:45:21PM +0100, Jean-Philippe Menil wrote:
->> Hi,
->>
->> I'm seeing bug in a host with a 3.2.1 kernel.
->> This host is running both kvm and lxc guest.
->> It seems that it happened just after the restart of a lxc guest.
->>
->> However, it doesn't seem to affect any guest.
->>
->> I was just wondering if this was problematic, and if so, what should
->> I do to debug this further.
-> Could you provide more information on your setup? Is it using
-> conntrackd or anything you think it can be relevant to this bug.
->
-> It can make it easier for us to know what's wrong with this.
->
-Hi,
+[ CC'd Herbert ]
 
-the server hosts two kvm guest (one firewall running contrackd, one 
-captive portal) and a lxc guest (running squid).
-This setup remain unchanged for month, except the kernel (reboot with a 
-3.2.1 one week ago).
+> On Mon, Feb 06, 2012 at 01:23:10PM +0100, Florian Westphal wrote:
+> > When trying to nf_queue GRO/GSO skbs, nf_queue uses skb_gso_segment
+> > to split the skb.
+> > 
+> > However, if nf_queue is called via bridge netfilter, the mac header
+> > won't be preserved -- packets will thus contain a bogus mac header.
+> > 
+> > Fix this by setting skb->data to the mac header when skb->nf_bridge
+> > is set and restoring skb->data afterwards for all segments.
+> 
+> Better fix skb_gso_segment to handle this case?
 
-Attached rules are applied on the host.
-For the lxc guest, filtering is done on the host, for the two kvm, 
-filtering is done inside.
+I don't see how -- is skb_gso_segment broken?
 
-For information, the firewall is in passive mode.
+It treats skb->data as the starting point of the
+segmentation, so I think its the callers job to make skb->data
+point at the right place (network header, mac header, ...)
 
-As this bug appears only one time, just after restart the lxc guest, i 
-think it's related to containers.
-But it semmes to be a non-blocking bug.
+How would skb_gso_segment know where it should start?
+Changing skb_gso_segment to use skb_mac_header() as starting
+point doesn't really help: What if you don't want to copy the mac header/no
+mac header exists (yet)?
 
-Hope this help.
+Also, br_netfilter skb_pull()s the MAC header (and also the vlan header if
+brnf_filter_vlan_tagged sysctl is on), so skb->len has been reduced.
 
-Regards
+Herbert, dou you have any opionion on this?
 
--- 
-Jean-Philippe Menil - Pôle réseau Service IRTS
-DSI Université de Nantes
-jean-philippe.menil@univ-nantes.fr
-Tel : 02.53.48.49.27 - Fax : 02.53.48.49.09
+The only other alternative that I see is to declare
+'GRO + bridge + NF_QUEUE as unsupported' and just tell people to
+turn GRO off (ie., add a printk_once warning in nf_queue).
 
+For reference, the discussed patch is below:
 
---------------090806040004070709020606
-Content-Type: text/plain;
- name="rules"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="rules"
-
-# Generated by iptables-save v1.4.8 on Thu Feb  9 17:07:09 2012
-*filter
-:INPUT DROP [10417510:1703902887]
-:FORWARD DROP [0:0]
-:OUTPUT DROP [5:300]
-:GENERAL-IN - [0:0]
-:GENERAL-OUT - [0:0]
-:GUEST-IN - [0:0]
-:GUEST-IN_cache2-crous - [0:0]
-:GUEST-IN_cache2-crous_LO - [0:0]
-:GUEST-OUT - [0:0]
-:GUEST-OUT_cache2-crous - [0:0]
-:GUEST-OUT_cache2-crous_LO - [0:0]
-:LOCAL-IN - [0:0]
-:LOCAL-OUT - [0:0]
--A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT 
--A INPUT -j GENERAL-IN 
--A INPUT -j LOCAL-IN 
--A INPUT -m limit --limit 20/sec --limit-burst 30 -j LOG --log-prefix "INPUT ayrshire " --log-level 7 
--A FORWARD -m physdev --physdev-out fwcnec -j ACCEPT 
--A FORWARD -m physdev --physdev-in fwcnec -j ACCEPT 
--A FORWARD -m physdev --physdev-out fwcnec-ren -j ACCEPT 
--A FORWARD -m physdev --physdev-in fwcnec-ren -j ACCEPT 
--A FORWARD -m physdev --physdev-out pcrous-v2037 -j ACCEPT 
--A FORWARD -m physdev --physdev-in pcrous-v2037 -j ACCEPT 
--A FORWARD -m physdev --physdev-out pcrous-v2036 -j ACCEPT 
--A FORWARD -m physdev --physdev-in pcrous-v2036 -j ACCEPT 
--A FORWARD -m physdev --physdev-out pcrous-v2035 -j ACCEPT 
--A FORWARD -m physdev --physdev-in pcrous-v2035 -j ACCEPT 
--A FORWARD -m physdev --physdev-out pcrous-v2033 -j ACCEPT 
--A FORWARD -m physdev --physdev-in pcrous-v2033 -j ACCEPT 
--A FORWARD -m physdev --physdev-out pcrous-v2032 -j ACCEPT 
--A FORWARD -m physdev --physdev-in pcrous-v2032 -j ACCEPT 
--A FORWARD -m physdev --physdev-out pcrous-v2031 -j ACCEPT 
--A FORWARD -m physdev --physdev-in pcrous-v2031 -j ACCEPT 
--A FORWARD -m physdev --physdev-out pcrous-v2030 -j ACCEPT 
--A FORWARD -m physdev --physdev-in pcrous-v2030 -j ACCEPT 
--A FORWARD -m physdev --physdev-out pcrous-v197 -j ACCEPT 
--A FORWARD -m physdev --physdev-in pcrous-v197 -j ACCEPT 
--A FORWARD -m physdev --physdev-out pcrous-v196 -j ACCEPT 
--A FORWARD -m physdev --physdev-in pcrous-v196 -j ACCEPT 
--A FORWARD -m physdev --physdev-out pcrous-v195 -j ACCEPT 
--A FORWARD -m physdev --physdev-in pcrous-v195 -j ACCEPT 
--A FORWARD -m physdev --physdev-out pcrous-v194 -j ACCEPT 
--A FORWARD -m physdev --physdev-in pcrous-v194 -j ACCEPT 
--A FORWARD -m physdev --physdev-out pcrous-v193 -j ACCEPT 
--A FORWARD -m physdev --physdev-in pcrous-v193 -j ACCEPT 
--A FORWARD -m physdev --physdev-out pcrous-v192 -j ACCEPT 
--A FORWARD -m physdev --physdev-in pcrous-v192 -j ACCEPT 
--A FORWARD -m physdev --physdev-out pcrous-dmz -j ACCEPT 
--A FORWARD -m physdev --physdev-in pcrous-dmz -j ACCEPT 
--A FORWARD -m physdev --physdev-out fwcite-ren -j ACCEPT 
--A FORWARD -m physdev --physdev-in fwcite-ren -j ACCEPT 
--A FORWARD -m physdev --physdev-out fwcite-dmz -j ACCEPT 
--A FORWARD -m physdev --physdev-in fwcite-dmz -j ACCEPT 
--A FORWARD -j GUEST-IN 
--A FORWARD -j GUEST-OUT 
--A FORWARD -m limit --limit 20/sec --limit-burst 30 -j LOG --log-prefix "FORWARD ayrshire " --log-level 7 
--A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT 
--A OUTPUT -j GENERAL-OUT 
--A OUTPUT -j LOCAL-OUT 
--A OUTPUT -m limit --limit 20/sec --limit-burst 30 -j LOG --log-prefix "OUTPUT ayrshire " --log-level 7 
--A GENERAL-IN -i lo -j ACCEPT 
--A GENERAL-IN -s 172.20.13.0/24 -p tcp -m tcp --dport 22 -j ACCEPT 
--A GENERAL-IN -s 193.52.101.133/32 -p tcp -m tcp --dport 22 -j ACCEPT 
--A GENERAL-IN -p icmp -m limit --limit 30/sec --limit-burst 30 -j ACCEPT 
--A GENERAL-IN -p icmp -j DROP 
--A GENERAL-IN -s 172.20.12.96/32 -p tcp -m tcp --dport 22 -j ACCEPT 
--A GENERAL-IN -s 172.20.12.35/32 -p udp -m multiport --dports 20030:20070 -j ACCEPT 
--A GENERAL-IN -s 172.20.12.35/32 -p tcp -m multiport --dports 20030:20070 -j ACCEPT 
--A GENERAL-IN -s 172.20.11.91/32 -p udp -m multiport --dports 20030:20070 -j ACCEPT 
--A GENERAL-IN -s 172.20.11.91/32 -p tcp -m multiport --dports 20030:20070 -j ACCEPT 
--A GENERAL-IN -s 172.20.12.160/32 -p tcp -m tcp --dport 22 -j ACCEPT 
--A GENERAL-IN -s 172.20.12.135/32 -p tcp -m tcp --dport 5308 -j ACCEPT 
--A GENERAL-IN -s 172.20.12.116/32 -p udp -m udp --dport 161 -j ACCEPT 
--A GENERAL-IN -s 172.20.12.71/32 -p udp -m udp --dport 161 -j ACCEPT 
--A GENERAL-IN -s 172.20.12.14/32 -p udp -m udp --dport 161 -j ACCEPT 
--A GENERAL-OUT -o lo -j ACCEPT 
--A GENERAL-OUT -p icmp -m limit --limit 30/sec --limit-burst 30 -j ACCEPT 
--A GENERAL-OUT -p icmp -j DROP 
--A GENERAL-OUT -d 172.26.4.20/32 -p udp -m udp --dport 53 -j ACCEPT 
--A GENERAL-OUT -d 172.26.4.20/32 -p tcp -m tcp --dport 53 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.22/32 -p udp -m udp --dport 53 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.23/32 -p udp -m udp --dport 53 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.11/32 -p udp -m udp --dport 53 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.11/32 -p tcp -m tcp --dport 53 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.22/32 -p tcp -m tcp --dport 53 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.23/32 -p tcp -m tcp --dport 53 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.96/32 -p tcp -m tcp --dport 22 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.56/32 -p tcp -m tcp --dport 25 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.55/32 -p tcp -m tcp --dport 25 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.88/32 -p tcp -m tcp --dport 389 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.89/32 -p tcp -m tcp --dport 389 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.90/32 -p tcp -m tcp --dport 389 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.240/32 -p tcp -m tcp --dport 389 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.90/32 -p tcp -m tcp --dport 636 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.88/32 -p tcp -m tcp --dport 636 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.89/32 -p tcp -m tcp --dport 636 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.240/32 -p tcp -m tcp --dport 636 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.31/32 -p udp -m udp --dport 123 -j ACCEPT 
--A GENERAL-OUT -d 193.52.101.123/32 -p udp -m udp --dport 123 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.35/32 -p udp -m multiport --dports 20030:20070 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.35/32 -p tcp -m multiport --dports 20030:20070 -j ACCEPT 
--A GENERAL-OUT -d 172.20.11.91/32 -p udp -m multiport --dports 20030:20070 -j ACCEPT 
--A GENERAL-OUT -d 172.20.11.91/32 -p tcp -m multiport --dports 20030:20070 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.48/32 -p tcp -m tcp --dport 873 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.135/32 -p tcp -m tcp --dport 5308 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.34/32 -p tcp -m tcp --dport 21 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.74/32 -p tcp -m tcp --dport 3128 -j ACCEPT 
--A GENERAL-OUT -d 172.20.11.67/32 -p tcp -m tcp --dport 22 -j ACCEPT 
--A GENERAL-OUT -d 172.20.12.14/32 -p udp -m udp --dport 514 -j ACCEPT 
--A GUEST-IN -m physdev --physdev-out cache2-crous -j GUEST-IN_cache2-crous 
--A GUEST-IN_cache2-crous -m state --state RELATED,ESTABLISHED -j ACCEPT 
--A GUEST-IN_cache2-crous -j GENERAL-IN 
--A GUEST-IN_cache2-crous -j GUEST-IN_cache2-crous_LO 
--A GUEST-IN_cache2-crous -m limit --limit 20/sec --limit-burst 30 -j LOG --log-prefix "INBOUND cache2-crous " --log-level 7 
--A GUEST-IN_cache2-crous -j DROP 
--A GUEST-IN_cache2-crous_LO -d 224.0.0.18/32 -p vrrp -j ACCEPT 
--A GUEST-IN_cache2-crous_LO -d 224.0.0.18/32 -p ah -j ACCEPT 
--A GUEST-IN_cache2-crous_LO -d 193.52.102.11/32 -p udp -m udp --dport 5001 -j ACCEPT 
--A GUEST-IN_cache2-crous_LO -d 193.52.102.12/32 -p tcp -m tcp --dport 5001 -j ACCEPT 
--A GUEST-IN_cache2-crous_LO -d 225.0.0.50/32 -j DROP 
--A GUEST-IN_cache2-crous_LO -d 224.0.0.111/32 -j DROP 
--A GUEST-IN_cache2-crous_LO -p tcp -m tcp --dport 3128 -j ACCEPT 
--A GUEST-IN_cache2-crous_LO -s 172.20.12.116/32 -p tcp -m tcp --dport 22 -j ACCEPT 
--A GUEST-IN_cache2-crous_LO -s 172.20.12.160/32 -p tcp -m tcp --dport 22 -j ACCEPT 
--A GUEST-IN_cache2-crous_LO -s 172.20.12.160/32 -p tcp -m tcp --dport 873 -j ACCEPT 
--A GUEST-OUT -m physdev --physdev-in cache2-crous -j GUEST-OUT_cache2-crous 
--A GUEST-OUT_cache2-crous -m state --state RELATED,ESTABLISHED -j ACCEPT 
--A GUEST-OUT_cache2-crous -j GENERAL-OUT 
--A GUEST-OUT_cache2-crous -j GUEST-OUT_cache2-crous_LO 
--A GUEST-OUT_cache2-crous -m limit --limit 20/sec --limit-burst 30 -j LOG --log-prefix "OUTBOUND cache2-crous " --log-level 7 
--A GUEST-OUT_cache2-crous -j DROP 
--A GUEST-OUT_cache2-crous_LO -d 224.0.0.18/32 -p vrrp -j ACCEPT 
--A GUEST-OUT_cache2-crous_LO -d 224.0.0.18/32 -p ah -j ACCEPT 
--A GUEST-OUT_cache2-crous_LO -p tcp -m tcp --dport 80 -j ACCEPT 
--A GUEST-OUT_cache2-crous_LO -p tcp -m tcp --dport 443 -j ACCEPT 
--A GUEST-OUT_cache2-crous_LO -p tcp -m tcp --dport 21 -j ACCEPT 
--A GUEST-OUT_cache2-crous_LO -d 172.20.12.116/32 -p udp -m udp --dport 162 -j ACCEPT 
--A LOCAL-IN -s 172.20.13.0/24 -p tcp -m multiport --dports 5900:5999 -j ACCEPT 
-COMMIT
-# Completed on Thu Feb  9 17:07:09 2012
-
---------------090806040004070709020606--
+index b3a7db6..ce60cf0 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -203,6 +203,27 @@ err:
+ 	return status;
+ }
+ 
++#ifdef CONFIG_BRIDGE_NETFILTER
++/* When called from bridge netfilter, skb->data must point to MAC header
++ * before calling skb_gso_segment(). Else, original MAC header is lost
++ * and segmented skbs will be sent to wrong destination.
++ */
++static void nf_bridge_adjust_skb_data(struct sk_buff *skb)
++{
++	if (skb->nf_bridge)
++		__skb_push(skb, skb->network_header - skb->mac_header);
++}
++
++static void nf_bridge_adjust_segmented_data(struct sk_buff *skb)
++{
++	if (skb->nf_bridge)
++		__skb_pull(skb, skb->network_header - skb->mac_header);
++}
++#else
++#define nf_bridge_adjust_skb_data(s) do {} while (0)
++#define nf_bridge_adjust_segmented_data(s) do {} while (0)
++#endif
++
+ int nf_queue(struct sk_buff *skb,
+ 	     struct list_head *elem,
+ 	     u_int8_t pf, unsigned int hook,
+@@ -212,7 +233,7 @@ int nf_queue(struct sk_buff *skb,
+ 	     unsigned int queuenum)
+ {
+ 	struct sk_buff *segs;
+-	int err;
++	int err = -EINVAL;
+ 	unsigned int queued;
+ 
+ 	if (!skb_is_gso(skb))
+@@ -228,23 +249,25 @@ int nf_queue(struct sk_buff *skb,
+ 		break;
+ 	}
+ 
++	nf_bridge_adjust_skb_data(skb);
+ 	segs = skb_gso_segment(skb, 0);
+ 	/* Does not use PTR_ERR to limit the number of error codes that can be
+ 	 * returned by nf_queue.  For instance, callers rely on -ECANCELED to mean
+ 	 * 'ignore this hook'.
+ 	 */
+ 	if (IS_ERR(segs))
+-		return -EINVAL;
+-
++		goto out_err;
+ 	queued = 0;
+ 	err = 0;
+ 	do {
+ 		struct sk_buff *nskb = segs->next;
+ 
+ 		segs->next = NULL;
+-		if (err == 0)
++		if (err == 0) {
++			nf_bridge_adjust_segmented_data(segs);
+ 			err = __nf_queue(segs, elem, pf, hook, indev,
+ 					   outdev, okfn, queuenum);
++		}
+ 		if (err == 0)
+ 			queued++;
+ 		else
+@@ -252,11 +275,12 @@ int nf_queue(struct sk_buff *skb,
+ 		segs = nskb;
+ 	} while (segs);
+ 
+-	/* also free orig skb if only some segments were queued */
+-	if (unlikely(err && queued))
+-		err = 0;
+-	if (err == 0)
++	if (queued) {
+ 		kfree_skb(skb);
++		return 0;
++	}
++  out_err:
++	nf_bridge_adjust_segmented_data(skb);
+ 	return err;
+ }
+ 
