@@ -1,140 +1,222 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: BUG nf_conntrack_ffff880863c50000: Objects remaining on
- kmem_cache_close()
-Date: Thu, 9 Feb 2012 16:57:53 +0100
-Message-ID: <20120209155753.GB5951@1984>
-References: <4F328A81.4050607@univ-nantes.fr>
+From: Jean-Philippe Menil <jean-philippe.menil@univ-nantes.fr>
+Subject: Re: BUG nf_conntrack_ffff880863c50000: Objects remaining on kmem_cache_close()
+Date: Thu, 09 Feb 2012 17:11:40 +0100
+Message-ID: <4F33F03C.5030805@univ-nantes.fr>
+References: <4F328A81.4050607@univ-nantes.fr> <20120209155753.GB5951@1984>
+Reply-To: jean-philippe.menil@univ-nantes.fr
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed;
+ boundary="------------090806040004070709020606"
 Cc: netfilter-devel@vger.kernel.org
-To: Jean-Philippe Menil <jean-philippe.menil@univ-nantes.fr>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47145 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752843Ab2BIP57 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Feb 2012 10:57:59 -0500
-Content-Disposition: inline
-In-Reply-To: <4F328A81.4050607@univ-nantes.fr>
+Received: from smtp-tls2.univ-nantes.fr ([193.52.101.146]:58801 "EHLO
+	smtp-tls.univ-nantes.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753752Ab2BIQLm (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Feb 2012 11:11:42 -0500
+In-Reply-To: <20120209155753.GB5951@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Feb 08, 2012 at 03:45:21PM +0100, Jean-Philippe Menil wrote:
-> Hi,
->=20
-> I'm seeing bug in a host with a 3.2.1 kernel.
-> This host is running both kvm and lxc guest.
-> It seems that it happened just after the restart of a lxc guest.
->=20
-> However, it doesn't seem to affect any guest.
->=20
-> I was just wondering if this was problematic, and if so, what should
-> I do to debug this further.
+This is a multi-part message in MIME format.
+--------------090806040004070709020606
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 
-Could you provide more information on your setup? Is it using
-conntrackd or anything you think it can be relevant to this bug.
+Le 09/02/2012 16:57, Pablo Neira Ayuso a écrit :
+> On Wed, Feb 08, 2012 at 03:45:21PM +0100, Jean-Philippe Menil wrote:
+>> Hi,
+>>
+>> I'm seeing bug in a host with a 3.2.1 kernel.
+>> This host is running both kvm and lxc guest.
+>> It seems that it happened just after the restart of a lxc guest.
+>>
+>> However, it doesn't seem to affect any guest.
+>>
+>> I was just wondering if this was problematic, and if so, what should
+>> I do to debug this further.
+> Could you provide more information on your setup? Is it using
+> conntrackd or anything you think it can be relevant to this bug.
+>
+> It can make it easier for us to know what's wrong with this.
+>
+Hi,
 
-It can make it easier for us to know what's wrong with this.
+the server hosts two kvm guest (one firewall running contrackd, one 
+captive portal) and a lxc guest (running squid).
+This setup remain unchanged for month, except the kernel (reboot with a 
+3.2.1 one week ago).
 
-> Regards.
->=20
-> --=20
-> Jean-Philippe Menil - P=F4le r=E9seau Service IRTS
-> DSI Universit=E9 de Nantes
-> jean-philippe.menil@univ-nantes.fr
-> Tel : 02.53.48.49.27 - Fax : 02.53.48.49.09
->=20
+Attached rules are applied on the host.
+For the lxc guest, filtering is done on the host, for the two kvm, 
+filtering is done inside.
 
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28512=
-5] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28517=
-3] BUG nf_conntrack_ffff880863c50000: Objects remaining on kmem_cache_c=
-lose()
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28522=
-3] --------------------------------------------------------------------=
----------
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28522=
-4]=20
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28529=
-1] INFO: Slab 0xffffea000fecf280 objects=3D26 used=3D1 fp=3D0xffff8803f=
-b3ca4e0 flags=3D0x200000000004080
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28533=
-9] Pid: 5, comm: kworker/u:0 Not tainted 3.2.1-dsiun-120113 #55
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28536=
-6] Call Trace:
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28539=
-3]  [<ffffffff811194c0>] ? slab_err+0x80/0x90
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28541=
-9]  [<ffffffff8111c6c9>] ? kmem_cache_destroy+0x169/0x3b0
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28544=
-9]  [<ffffffff8111c6ec>] ? kmem_cache_destroy+0x18c/0x3b0
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28548=
-7]  [<ffffffffa049f753>] ? nf_conntrack_cleanup+0xd3/0x130 [nf_conntrac=
-k]
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28554=
-5]  [<ffffffff812f7b48>] ? ops_exit_list.isra.1+0x38/0x70
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28557=
-4]  [<ffffffff812f8260>] ? net_drop_ns+0x40/0x40
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28560=
-0]  [<ffffffff812f8360>] ? cleanup_net+0x100/0x1a0
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28564=
-3]  [<ffffffff810635c6>] ? process_one_work+0x106/0x460
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28567=
-0]  [<ffffffff8106486c>] ? worker_thread+0x14c/0x330
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28569=
-7]  [<ffffffff81064720>] ? manage_workers.isra.30+0x210/0x210
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28573=
-6]  [<ffffffff8106905e>] ? kthread+0x7e/0x90
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28576=
-3]  [<ffffffff813aee34>] ? kernel_thread_helper+0x4/0x10
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28579=
-0]  [<ffffffff81068fe0>] ? kthread_worker_fn+0x190/0x190
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28581=
-7]  [<ffffffff813aee30>] ? gs_change+0x13/0x13
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28584=
-3] INFO: Object 0xffff8803fb3ca000 @offset=3D0
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28586=
-9] SLUB nf_conntrack_ffff880863c50000: kmem_cache_destroy called for ca=
-che that still has objects.
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28591=
-6] Pid: 5, comm: kworker/u:0 Not tainted 3.2.1-dsiun-120113 #55
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28594=
-3] Call Trace:
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28596=
-4]  [<ffffffff8111c7a8>] ? kmem_cache_destroy+0x248/0x3b0
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28599=
-1]  [<ffffffff8111c863>] ? kmem_cache_destroy+0x303/0x3b0
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28602=
-0]  [<ffffffffa049f753>] ? nf_conntrack_cleanup+0xd3/0x130 [nf_conntrac=
-k]
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28606=
-4]  [<ffffffff812f7b48>] ? ops_exit_list.isra.1+0x38/0x70
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28609=
-2]  [<ffffffff812f8260>] ? net_drop_ns+0x40/0x40
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28611=
-7]  [<ffffffff812f8360>] ? cleanup_net+0x100/0x1a0
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28614=
-4]  [<ffffffff810635c6>] ? process_one_work+0x106/0x460
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28622=
-7]  [<ffffffff8106486c>] ? worker_thread+0x14c/0x330
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28625=
-3]  [<ffffffff81064720>] ? manage_workers.isra.30+0x210/0x210
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28628=
-1]  [<ffffffff8106905e>] ? kthread+0x7e/0x90
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28630=
-6]  [<ffffffff813aee34>] ? kernel_thread_helper+0x4/0x10
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28633=
-3]  [<ffffffff81068fe0>] ? kthread_worker_fn+0x190/0x190
-> Feb  8 13:31:38 ayrshire.u06.univ-nantes.prive kernel: [1133137.28636=
-0]  [<ffffffff813aee30>] ? gs_change+0x13/0x13
->=20
->=20
+For information, the firewall is in passive mode.
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+As this bug appears only one time, just after restart the lxc guest, i 
+think it's related to containers.
+But it semmes to be a non-blocking bug.
+
+Hope this help.
+
+Regards
+
+-- 
+Jean-Philippe Menil - Pôle réseau Service IRTS
+DSI Université de Nantes
+jean-philippe.menil@univ-nantes.fr
+Tel : 02.53.48.49.27 - Fax : 02.53.48.49.09
+
+
+--------------090806040004070709020606
+Content-Type: text/plain;
+ name="rules"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="rules"
+
+# Generated by iptables-save v1.4.8 on Thu Feb  9 17:07:09 2012
+*filter
+:INPUT DROP [10417510:1703902887]
+:FORWARD DROP [0:0]
+:OUTPUT DROP [5:300]
+:GENERAL-IN - [0:0]
+:GENERAL-OUT - [0:0]
+:GUEST-IN - [0:0]
+:GUEST-IN_cache2-crous - [0:0]
+:GUEST-IN_cache2-crous_LO - [0:0]
+:GUEST-OUT - [0:0]
+:GUEST-OUT_cache2-crous - [0:0]
+:GUEST-OUT_cache2-crous_LO - [0:0]
+:LOCAL-IN - [0:0]
+:LOCAL-OUT - [0:0]
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT 
+-A INPUT -j GENERAL-IN 
+-A INPUT -j LOCAL-IN 
+-A INPUT -m limit --limit 20/sec --limit-burst 30 -j LOG --log-prefix "INPUT ayrshire " --log-level 7 
+-A FORWARD -m physdev --physdev-out fwcnec -j ACCEPT 
+-A FORWARD -m physdev --physdev-in fwcnec -j ACCEPT 
+-A FORWARD -m physdev --physdev-out fwcnec-ren -j ACCEPT 
+-A FORWARD -m physdev --physdev-in fwcnec-ren -j ACCEPT 
+-A FORWARD -m physdev --physdev-out pcrous-v2037 -j ACCEPT 
+-A FORWARD -m physdev --physdev-in pcrous-v2037 -j ACCEPT 
+-A FORWARD -m physdev --physdev-out pcrous-v2036 -j ACCEPT 
+-A FORWARD -m physdev --physdev-in pcrous-v2036 -j ACCEPT 
+-A FORWARD -m physdev --physdev-out pcrous-v2035 -j ACCEPT 
+-A FORWARD -m physdev --physdev-in pcrous-v2035 -j ACCEPT 
+-A FORWARD -m physdev --physdev-out pcrous-v2033 -j ACCEPT 
+-A FORWARD -m physdev --physdev-in pcrous-v2033 -j ACCEPT 
+-A FORWARD -m physdev --physdev-out pcrous-v2032 -j ACCEPT 
+-A FORWARD -m physdev --physdev-in pcrous-v2032 -j ACCEPT 
+-A FORWARD -m physdev --physdev-out pcrous-v2031 -j ACCEPT 
+-A FORWARD -m physdev --physdev-in pcrous-v2031 -j ACCEPT 
+-A FORWARD -m physdev --physdev-out pcrous-v2030 -j ACCEPT 
+-A FORWARD -m physdev --physdev-in pcrous-v2030 -j ACCEPT 
+-A FORWARD -m physdev --physdev-out pcrous-v197 -j ACCEPT 
+-A FORWARD -m physdev --physdev-in pcrous-v197 -j ACCEPT 
+-A FORWARD -m physdev --physdev-out pcrous-v196 -j ACCEPT 
+-A FORWARD -m physdev --physdev-in pcrous-v196 -j ACCEPT 
+-A FORWARD -m physdev --physdev-out pcrous-v195 -j ACCEPT 
+-A FORWARD -m physdev --physdev-in pcrous-v195 -j ACCEPT 
+-A FORWARD -m physdev --physdev-out pcrous-v194 -j ACCEPT 
+-A FORWARD -m physdev --physdev-in pcrous-v194 -j ACCEPT 
+-A FORWARD -m physdev --physdev-out pcrous-v193 -j ACCEPT 
+-A FORWARD -m physdev --physdev-in pcrous-v193 -j ACCEPT 
+-A FORWARD -m physdev --physdev-out pcrous-v192 -j ACCEPT 
+-A FORWARD -m physdev --physdev-in pcrous-v192 -j ACCEPT 
+-A FORWARD -m physdev --physdev-out pcrous-dmz -j ACCEPT 
+-A FORWARD -m physdev --physdev-in pcrous-dmz -j ACCEPT 
+-A FORWARD -m physdev --physdev-out fwcite-ren -j ACCEPT 
+-A FORWARD -m physdev --physdev-in fwcite-ren -j ACCEPT 
+-A FORWARD -m physdev --physdev-out fwcite-dmz -j ACCEPT 
+-A FORWARD -m physdev --physdev-in fwcite-dmz -j ACCEPT 
+-A FORWARD -j GUEST-IN 
+-A FORWARD -j GUEST-OUT 
+-A FORWARD -m limit --limit 20/sec --limit-burst 30 -j LOG --log-prefix "FORWARD ayrshire " --log-level 7 
+-A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT 
+-A OUTPUT -j GENERAL-OUT 
+-A OUTPUT -j LOCAL-OUT 
+-A OUTPUT -m limit --limit 20/sec --limit-burst 30 -j LOG --log-prefix "OUTPUT ayrshire " --log-level 7 
+-A GENERAL-IN -i lo -j ACCEPT 
+-A GENERAL-IN -s 172.20.13.0/24 -p tcp -m tcp --dport 22 -j ACCEPT 
+-A GENERAL-IN -s 193.52.101.133/32 -p tcp -m tcp --dport 22 -j ACCEPT 
+-A GENERAL-IN -p icmp -m limit --limit 30/sec --limit-burst 30 -j ACCEPT 
+-A GENERAL-IN -p icmp -j DROP 
+-A GENERAL-IN -s 172.20.12.96/32 -p tcp -m tcp --dport 22 -j ACCEPT 
+-A GENERAL-IN -s 172.20.12.35/32 -p udp -m multiport --dports 20030:20070 -j ACCEPT 
+-A GENERAL-IN -s 172.20.12.35/32 -p tcp -m multiport --dports 20030:20070 -j ACCEPT 
+-A GENERAL-IN -s 172.20.11.91/32 -p udp -m multiport --dports 20030:20070 -j ACCEPT 
+-A GENERAL-IN -s 172.20.11.91/32 -p tcp -m multiport --dports 20030:20070 -j ACCEPT 
+-A GENERAL-IN -s 172.20.12.160/32 -p tcp -m tcp --dport 22 -j ACCEPT 
+-A GENERAL-IN -s 172.20.12.135/32 -p tcp -m tcp --dport 5308 -j ACCEPT 
+-A GENERAL-IN -s 172.20.12.116/32 -p udp -m udp --dport 161 -j ACCEPT 
+-A GENERAL-IN -s 172.20.12.71/32 -p udp -m udp --dport 161 -j ACCEPT 
+-A GENERAL-IN -s 172.20.12.14/32 -p udp -m udp --dport 161 -j ACCEPT 
+-A GENERAL-OUT -o lo -j ACCEPT 
+-A GENERAL-OUT -p icmp -m limit --limit 30/sec --limit-burst 30 -j ACCEPT 
+-A GENERAL-OUT -p icmp -j DROP 
+-A GENERAL-OUT -d 172.26.4.20/32 -p udp -m udp --dport 53 -j ACCEPT 
+-A GENERAL-OUT -d 172.26.4.20/32 -p tcp -m tcp --dport 53 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.22/32 -p udp -m udp --dport 53 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.23/32 -p udp -m udp --dport 53 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.11/32 -p udp -m udp --dport 53 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.11/32 -p tcp -m tcp --dport 53 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.22/32 -p tcp -m tcp --dport 53 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.23/32 -p tcp -m tcp --dport 53 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.96/32 -p tcp -m tcp --dport 22 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.56/32 -p tcp -m tcp --dport 25 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.55/32 -p tcp -m tcp --dport 25 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.88/32 -p tcp -m tcp --dport 389 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.89/32 -p tcp -m tcp --dport 389 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.90/32 -p tcp -m tcp --dport 389 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.240/32 -p tcp -m tcp --dport 389 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.90/32 -p tcp -m tcp --dport 636 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.88/32 -p tcp -m tcp --dport 636 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.89/32 -p tcp -m tcp --dport 636 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.240/32 -p tcp -m tcp --dport 636 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.31/32 -p udp -m udp --dport 123 -j ACCEPT 
+-A GENERAL-OUT -d 193.52.101.123/32 -p udp -m udp --dport 123 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.35/32 -p udp -m multiport --dports 20030:20070 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.35/32 -p tcp -m multiport --dports 20030:20070 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.11.91/32 -p udp -m multiport --dports 20030:20070 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.11.91/32 -p tcp -m multiport --dports 20030:20070 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.48/32 -p tcp -m tcp --dport 873 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.135/32 -p tcp -m tcp --dport 5308 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.34/32 -p tcp -m tcp --dport 21 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.74/32 -p tcp -m tcp --dport 3128 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.11.67/32 -p tcp -m tcp --dport 22 -j ACCEPT 
+-A GENERAL-OUT -d 172.20.12.14/32 -p udp -m udp --dport 514 -j ACCEPT 
+-A GUEST-IN -m physdev --physdev-out cache2-crous -j GUEST-IN_cache2-crous 
+-A GUEST-IN_cache2-crous -m state --state RELATED,ESTABLISHED -j ACCEPT 
+-A GUEST-IN_cache2-crous -j GENERAL-IN 
+-A GUEST-IN_cache2-crous -j GUEST-IN_cache2-crous_LO 
+-A GUEST-IN_cache2-crous -m limit --limit 20/sec --limit-burst 30 -j LOG --log-prefix "INBOUND cache2-crous " --log-level 7 
+-A GUEST-IN_cache2-crous -j DROP 
+-A GUEST-IN_cache2-crous_LO -d 224.0.0.18/32 -p vrrp -j ACCEPT 
+-A GUEST-IN_cache2-crous_LO -d 224.0.0.18/32 -p ah -j ACCEPT 
+-A GUEST-IN_cache2-crous_LO -d 193.52.102.11/32 -p udp -m udp --dport 5001 -j ACCEPT 
+-A GUEST-IN_cache2-crous_LO -d 193.52.102.12/32 -p tcp -m tcp --dport 5001 -j ACCEPT 
+-A GUEST-IN_cache2-crous_LO -d 225.0.0.50/32 -j DROP 
+-A GUEST-IN_cache2-crous_LO -d 224.0.0.111/32 -j DROP 
+-A GUEST-IN_cache2-crous_LO -p tcp -m tcp --dport 3128 -j ACCEPT 
+-A GUEST-IN_cache2-crous_LO -s 172.20.12.116/32 -p tcp -m tcp --dport 22 -j ACCEPT 
+-A GUEST-IN_cache2-crous_LO -s 172.20.12.160/32 -p tcp -m tcp --dport 22 -j ACCEPT 
+-A GUEST-IN_cache2-crous_LO -s 172.20.12.160/32 -p tcp -m tcp --dport 873 -j ACCEPT 
+-A GUEST-OUT -m physdev --physdev-in cache2-crous -j GUEST-OUT_cache2-crous 
+-A GUEST-OUT_cache2-crous -m state --state RELATED,ESTABLISHED -j ACCEPT 
+-A GUEST-OUT_cache2-crous -j GENERAL-OUT 
+-A GUEST-OUT_cache2-crous -j GUEST-OUT_cache2-crous_LO 
+-A GUEST-OUT_cache2-crous -m limit --limit 20/sec --limit-burst 30 -j LOG --log-prefix "OUTBOUND cache2-crous " --log-level 7 
+-A GUEST-OUT_cache2-crous -j DROP 
+-A GUEST-OUT_cache2-crous_LO -d 224.0.0.18/32 -p vrrp -j ACCEPT 
+-A GUEST-OUT_cache2-crous_LO -d 224.0.0.18/32 -p ah -j ACCEPT 
+-A GUEST-OUT_cache2-crous_LO -p tcp -m tcp --dport 80 -j ACCEPT 
+-A GUEST-OUT_cache2-crous_LO -p tcp -m tcp --dport 443 -j ACCEPT 
+-A GUEST-OUT_cache2-crous_LO -p tcp -m tcp --dport 21 -j ACCEPT 
+-A GUEST-OUT_cache2-crous_LO -d 172.20.12.116/32 -p udp -m udp --dport 162 -j ACCEPT 
+-A LOCAL-IN -s 172.20.13.0/24 -p tcp -m multiport --dports 5900:5999 -j ACCEPT 
+COMMIT
+# Completed on Thu Feb  9 17:07:09 2012
+
+--------------090806040004070709020606--
