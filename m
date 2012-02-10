@@ -1,61 +1,55 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: alignment problem with ebt_among on ppc
-Date: Fri, 10 Feb 2012 18:39:18 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1202101838280.4760@frira.zrqbmnf.qr>
-References: <Pine.LNX.4.64.1202030819151.17732@brian.int.clnt.de> <4F341D0E.3020209@pandora.be> <Pine.LNX.4.64.1202101314380.17215@brian.int.clnt.de>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Bart De Schuymer <bdschuym@pandora.be>,
-	netfilter-devel@vger.kernel.org
-To: Joerg Willmann <joe@clnt.de>
+From: Richard Weinberger <richard@nod.at>
+Subject: [PATCH v5] Merge ipt_LOG and ip6t_LOG, add ring bufffer support
+Date: Fri, 10 Feb 2012 23:10:50 +0100
+Message-ID: <1328911856-19260-1-git-send-email-richard@nod.at>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	eric.dumazet@gmail.com, jengelh@medozas.de, rostedt@goodmis.org,
+	pablo@netfilter.org, basti@b-bl.de
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:54837 "EHLO seven.medozas.de"
+Received: from a.ns.miles-group.at ([95.130.255.143]:47834 "EHLO radon.swed.at"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750893Ab2BJRjT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Feb 2012 12:39:19 -0500
-In-Reply-To: <Pine.LNX.4.64.1202101314380.17215@brian.int.clnt.de>
+	id S1752075Ab2BJWLG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Feb 2012 17:11:06 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 2012-02-10 13:17, Joerg Willmann wrote:
+This patch set merges ipt_LOG and ip6t_LOG and adds ring buffer support
+to xt_LOG.
 
-> On Thu, 9 Feb 2012, Bart De Schuymer wrote:
->
->> Op 3/02/2012 8:21, joe@clnt.de schreef:
->>> What I've seen is that ebt_among extension of ebtables uses
->>> __alignof__(_xt_align) while the corresponding kernel module uses
->>> __alignof__(ebt_replace) to determin the alignment in EBT_ALIGN().
->>>
->>> These are the results of these values on different platforms:
->>>
->>> x86 x86_64 ppc
->>> __alignof__(_xt_align) 4 8 8
->>> __alignof__(ebt_replace) 4 8 4
->>>
->>> So I assume here we can see why ebtales fails to add rules which use the
->>> among extension.
->>>
->>> I'm using kernel 2.6.33 and ebtables 2.0.10-4
->>>
->>> Is this a known issue or are there any suggestions how to circumvent this
->>> problem?
->>> Thankyou very much.
->>
->> The userspace alignment was changed to _xt_align to fix an alignment issue on
->> a userspace32-kernel64 system (I think it was for an ARM device). So userspace
->> must be right. The kernel alignment macro needs to change so it also uses
->> _xt_align instead of ebt_replace. The userspace changes date back from June
->> 29, 2009.
->> Can you do these changes and provide a patch?
->>
-> Thank you very much for the input. I did the proposed changes which solved my
-> problem.
-> See below for the patch (hopefully it's the way you expect it...)
->
-> -#define EBT_ALIGN(s) (((s) + (__alignof__(struct ebt_replace)-1)) & \
-> -		     ~(__alignof__(struct ebt_replace)-1))
-> +#define EBT_ALIGN(s) (((s) + (__alignof__(struct _xt_align)-1)) & \
-> +		     ~(__alignof__(struct _xt_align)-1))
+Using "--ring" a user can create LOG rules which log messages into
+one or more ring buffers.
+Each ring buffer is represented as pipe-like file in
+/proc/net/netfilter/xt_LOG_ring/.
 
-I think we had such a patch before (and the fact that it was not apply
-probably tells some story), let me check the history books..
+Ring buffer support can be enabled/disabled using
+CONFIG_NETFILTER_XT_TARGET_LOG_RING.
+
+Changes since v1:
+ - Merged ipt_LOG and ip6t_LOG
+ - Implemented ring buffer support as part of xt_LOG.
+
+Changes since v2:
+ - Fixed struct xt_log_info_v1's data layout
+ - Removed the sizeof(void *) hack
+ - Replaced BUG() by WARN_ON_ONCE()
+
+Changes since v3:
+ - Merged xt_LOG_core.c and xt_LOG_ring.c into xt_LOG.c
+ - Made checkpatch.pl happy
+
+Changes since v4:
+ - Fixed a typo in include/linux/netfilter/Kbuild
+   (Thanks Bastian!)
+
+All patches can also be found at:
+git://git.kernel.org/pub/scm/linux/kernel/git/rw/misc.git xt_LOG
+git://git.kernel.org/pub/scm/linux/kernel/git/rw/iptables.git xt_LOG
+
+[PATCH 1/2] iptables: Merge libip6t_LOG and libipt_LOG into
+[PATCH 2/2] iptables: xt_LOG: Add ring buffer support
+
+[PATCH 1/4] Netfilter: Merge ipt_LOG and ip6_LOG into xt_LOG
+[PATCH 2/4] ring_buffer: Export for_each_buffer_cpu()
+[PATCH 3/4] xt_log: Make printk() in sb_close() optional
+[PATCH 4/4] Netfilter: xt_LOG: Implement ring buffer support
