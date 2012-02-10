@@ -1,76 +1,63 @@
-From: Jean-Philippe Menil <jean-philippe.menil@univ-nantes.fr>
-Subject: Re: BUG nf_conntrack_ffff880863c50000: Objects remaining on kmem_cache_close()
-Date: Fri, 10 Feb 2012 09:13:58 +0100
-Message-ID: <4F34D1C6.4000507@univ-nantes.fr>
-References: <4F328A81.4050607@univ-nantes.fr> <20120209155753.GB5951@1984>  <4F33F03C.5030805@univ-nantes.fr> <20120209193917.GB6881@1984>  <4F34CAC0.7060800@univ-nantes.fr> <1328860499.4030.2.camel@edumazet-laptop> <4F34CE31.7030404@univ-nantes.fr>
-Reply-To: jean-philippe.menil@univ-nantes.fr
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] conntrackd: basic TIPC implementation for NOTRACK mode
+Date: Fri, 10 Feb 2012 11:26:53 +0100
+Message-ID: <20120210102653.GA9617@1984>
+References: <20120121085217.4272940o8fmk4v80@www.usherbrooke.ca>
+ <20120122174140.GA18764@1984>
+ <20120122162720.10123t2longq3zac@www.usherbrooke.ca>
+ <20120123100733.GB23857@1984>
+ <20120123132537.198937ydqdx1n3gg@www.usherbrooke.ca>
+ <20120124010145.GA28314@1984>
+ <20120124120058.234342gq75ohof6s@www.usherbrooke.ca>
+ <20120126001928.GA10554@1984>
+ <20120126211344.33964cmak17akti0@www.usherbrooke.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Quentin Aebischer <Quentin.Aebischer@USherbrooke.ca>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-tls2.univ-nantes.fr ([193.52.101.146]:41652 "EHLO
-	smtp-tls.univ-nantes.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754026Ab2BJIN7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Feb 2012 03:13:59 -0500
-In-Reply-To: <4F34CE31.7030404@univ-nantes.fr>
+Received: from mail.us.es ([193.147.175.20]:54976 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758930Ab2BJK04 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Feb 2012 05:26:56 -0500
+Content-Disposition: inline
+In-Reply-To: <20120126211344.33964cmak17akti0@www.usherbrooke.ca>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le 10/02/2012 08:58, Jean-Philippe Menil a =C3=A9crit :
-> Le 10/02/2012 08:54, Eric Dumazet a =C3=A9crit :
->> Le vendredi 10 f=C3=A9vrier 2012 =C3=A0 08:44 +0100, Jean-Philippe M=
-enil a =C3=A9crit :
->>
->>> No, the NetlinkEventsReliable is commented in the configuration fil=
-e.
->>>
->>> However, on the same hosts, i see strange things:
->>> ths host boot with the following parameter:
->>> net.netfilter.nf_conntrack_max=3D262144
->>> net.netfilter.nf_conntrack_tcp_timeout_established=3D10800
->>>
->>> nf_conntrack is loaded with the following parameter:
->>> options nf_conntrack hashsize=3D262144
->>>
->>> But it seems that the nf_conntrack_max reset to his default value
->>> (65536) periodically.
->>> Three days ago, i manually increase the nf_conntrack_max to 262144,
->>> yesterday i see plenty of "nf_conntrack: table full, dropping packe=
-t".
->>> checking the value, is fall down to 65536.
->>>
->>> It's maybe not related, but i can't understand how the value can=20
->>> change?
->>>
->> 65536 is the default value when module is loaded.
->>
->> Something unloads it and loads it again, and sysctl is not run after
->> this module load.
->>
->>
->>
->>
-> Yes, that's what i'm thinking.
-> And i found the culprit:
-> my lxc guest start with the default value (65536), and it seems to=20
-> reset the value on the hosts ...
->
-Dropt the capabilites in the container isn't sufficiant.
-I need to mount the /proc as read-only ...
+Hi Quentin,
 
---=20
-Jean-Philippe Menil - P=C3=B4le r=C3=A9seau Service IRTS
-DSI Universit=C3=A9 de Nantes
-jean-philippe.menil@univ-nantes.fr
-Tel : 02.53.48.49.27 - Fax : 02.53.48.49.09
+On Thu, Jan 26, 2012 at 09:13:44PM -0500, Quentin Aebischer wrote:
+> Ok, time for an other try !
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm trying to apply this patch but it seems you mail client has
+mangled the patch.
+
+$ patch -p1 < tipc.patch
+patching file include/Makefile.am
+Hunk #1 FAILED at 1.
+1 out of 1 hunk FAILED -- saving rejects to file
+include/Makefile.am.rej
+patching file include/channel.h
+Hunk #1 FAILED at 4.
+Hunk #2 FAILED at 13.
+Hunk #3 FAILED at 31.
+Hunk #4 FAILED at 41.
+Hunk #5 FAILED at 97.
+
+If I display the file it shows:
+
+diff --git a/include/channel.h b/include/channel.h
+index 9b5fad8..704d384 100644
+--- a/include/channel.h
++++ b/include/channel.h
+@@ -4,6 +4,7 @@
+  #include "mcast.h"
+  #include "udp.h"
+  #include "tcp.h"
++#include "tipc.h"
+
+Note the strange extra space.
+
+Can you resend it to me, please? I'd like to apply them to
+git.netfilter.org. Thanks.
