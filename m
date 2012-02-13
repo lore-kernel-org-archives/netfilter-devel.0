@@ -1,47 +1,95 @@
-From: Darren Willis <djw@google.com>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: [PATCH] DHCPv6 connection tracker helper
-Date: Mon, 13 Feb 2012 13:07:18 +0900
-Message-ID: <CAFntDkzUvtyKZ1in3tKE4jUyhL5C4p3HmMSCGhMVORxxqJEGGA@mail.gmail.com>
+Date: Mon, 13 Feb 2012 10:55:58 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1202130940390.30851@frira.zrqbmnf.qr>
 References: <CAFntDkx2SUkCkSbU7sO4OrWqypWQpY-KNgrD-_DgqRSXAGvJZQ@mail.gmail.com>
-	<20120210111801.GA9827@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Darren Willis <djw@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:41320 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754292Ab2BMEHS (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 12 Feb 2012 23:07:18 -0500
-Received: by vcge1 with SMTP id e1so2875637vcg.19
-        for <netfilter-devel@vger.kernel.org>; Sun, 12 Feb 2012 20:07:18 -0800 (PST)
-In-Reply-To: <20120210111801.GA9827@1984>
+Received: from seven.medozas.de ([188.40.89.202]:58439 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751062Ab2BMJ4C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Feb 2012 04:56:02 -0500
+In-Reply-To: <CAFntDkx2SUkCkSbU7sO4OrWqypWQpY-KNgrD-_DgqRSXAGvJZQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+On Friday 2012-02-10 03:30, Darren Willis wrote:
 
-On Fri, Feb 10, 2012 at 20:18, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> why not just adding the rule that allows udp traffic for this?
+>+MODULE_ALIAS("ipv6_conntrack_dhcpv6");
 
-Distros don't seem to want to (see the bug I linked where some red hat
-people have decided a module is the way to go). Possibly people are
-concerned that such a firewall rule leaves a port open on the local
-link permanently (and possibly with an /sbin/dhclient binary, or
-similar, listening on it).
-DHCPv4 seems to get away with it because, IIRC, it uses raw sockets
-and bypasses netfilter completely. So it's still open, but people
-don't tend to think/know about it (this isn't really a good thing...)
+I see no use for this one.
 
-> I still don't see the need for this extra module if you can get it
-> done with iptables itself.
+>+static int dhcpv6_help(struct sk_buff *skb,
+>+		       unsigned int protoff,
+>+		       struct nf_conn *ct,
+>+		       enum ip_conntrack_info ctinfo)
+>+{
+>+	struct nf_conntrack_expect *exp;
+>+	struct iphdr *iph = ip_hdr(skb);
+>+	if (iph->version == 6) {
+>+		struct ipv6hdr *ip6h = ipv6_hdr(skb);
+>+		if (skb->sk == NULL)
+>+			goto out;
+>+		if (ipv6_addr_is_multicast(&ip6h->daddr)) {
+>+			exp = nf_ct_expect_alloc(ct);
+>+			if (exp == NULL)
+>+				goto out;
+>+			exp->tuple = ct->tuplehash[IP_CT_DIR_REPLY].tuple;
 
-I think it's nice to firewall things as much as is feasible, and this
-particular case isn't really complex at all. All this module does (and
-all that needs doing) is lets through the first reply to the right
-port, and after that normal connection tracking takes care of it.
+This reeks of http://stackoverflow.com/a/57611/1091587 :)
+And an ip(v4)hdr is not very fruitful in the realm of IPv6.
+How about getting rid of the goto as well, as in
 
-Possibly in the future conntrack should have some kind of extendable
-broadcast/multicast helpers module that can set up simple helpers like
-this for various different protocols (mDNS, etc)
+	struct nf_conntrack_expect *exp;
+	const struct ipv6hdr *iph = ipv6_hdr(skb);
+	if (iph->version == 6 || skb->sk == NULL ||
+	    !ipv6_addr_is_multicast(&iph->daddr))
+		return NF_ACCEPT;
+	exp = nf_ct_expect_alloc(ct);
+	if (exp == NULL)
+		return NF_ACCEPT;
+	exp->tuple = ...
+	...
+	return NF_ACCEPT;
+
+
+
+Something for further separate patches on top:
+
+You probably want to add a test for the skb actually being a
+DHCP message type that desires a reply (DHCPOFFER, etc.)
+before creating the exp.
+
+>+	nf_ct_refresh(ct, skb, timeout * HZ);
+>	return NF_ACCEPT;
+>+}
+
+In all cases, NF_ACCEPT is returned - makes some eyebrows raise.
+Upon looking for it, nf_conntrack_ftp.c returns NF_DROP on exp==NULL, so 
+should you.
+It is probably a sane thing to also check that the DHCP packet is 
+looking valid (packet size, flag combinations, etc.)
+
+Thirdly, your module does not seem to make any attempt (yet) to handle 
+the DHCP v6 RECONFIGURE message.
+
+The timeout value for the exp could depend on the message type; RFC 
+3315 defines different timeouts for different message types, up to 600 
+seconds for RENEW/REBOUND. (Is 600 seconds a wise thing?)
+
+>+static struct nf_conntrack_helper helper __read_mostly = {
+>+	.name                   = "dhcpv6",
+>+	.tuple.src.l3num        = AF_INET6,
+>+	.tuple.src.u.udp.port   = htons(DHCPV6_SERVER_PORT),
+>+	.tuple.dst.protonum     = IPPROTO_UDP,
+>+	.me                     = THIS_MODULE,
+>+	.help                   = dhcpv6_help,
+>+	.expect_policy          = &exp_policy,
+>+};
+
+Would you know whether somebody is using UDPLITE for DHCP?
