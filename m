@@ -1,335 +1,220 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/7] netfilter: xtables2: initial Netlink interface
-Date: Tue, 14 Feb 2012 11:47:16 +0100
-Message-ID: <20120214104716.GA26628@1984>
+Subject: Re: [PATCH 3/7] netfilter: xtables2: chain creation and deletion
+Date: Tue, 14 Feb 2012 12:07:12 +0100
+Message-ID: <20120214110712.GA27221@1984>
 References: <1326990381-14534-1-git-send-email-jengelh@medozas.de>
- <1326990381-14534-3-git-send-email-jengelh@medozas.de>
+ <1326990381-14534-4-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41159 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48889 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751387Ab2BNKrV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Feb 2012 05:47:21 -0500
+	id S1755072Ab2BNLHT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Feb 2012 06:07:19 -0500
 Content-Disposition: inline
-In-Reply-To: <1326990381-14534-3-git-send-email-jengelh@medozas.de>
+In-Reply-To: <1326990381-14534-4-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jan 19, 2012 at 05:26:16PM +0100, Jan Engelhardt wrote:
-> This populates xt2_nfnetlink.c with support for NFXTM_IDENTIFY. Right
-> now that just returns a freeform string but eventually shall dump all
-> the match and target modules' info.
->
-> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
-> ---
->  include/linux/netfilter/Kbuild              |    1 +
->  include/linux/netfilter/nfnetlink.h         |    3 +-
->  include/linux/netfilter/nfnetlink_xtables.h |   20 ++++
->  net/netfilter/Kconfig                       |    8 ++
->  net/netfilter/Makefile                      |    1 +
->  net/netfilter/xt2_nfnetlink.c               |  153 +++++++++++++++++=
-++++++++++
-
-I prefer if you call this nfnetlink_xtables.c following the same
-naming convention.
-
-nf_conntrack_netlink may seems one exception but I have a patch here
-to integrate ctnetlink with nf_queue (to allow delivering conntrack
-events over netlink unicast using iptables) and, then, we'll have
-nfnetlink_conntrack.c as well.
-
->  6 files changed, 185 insertions(+), 1 deletions(-)
->  create mode 100644 include/linux/netfilter/nfnetlink_xtables.h
->  create mode 100644 net/netfilter/xt2_nfnetlink.c
->=20
-> diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter=
-/Kbuild
-> index a1b410c..6e568c9 100644
-> --- a/include/linux/netfilter/Kbuild
-> +++ b/include/linux/netfilter/Kbuild
-> @@ -10,6 +10,7 @@ header-y +=3D nfnetlink_compat.h
->  header-y +=3D nfnetlink_conntrack.h
->  header-y +=3D nfnetlink_log.h
->  header-y +=3D nfnetlink_queue.h
-> +header-y +=3D nfnetlink_xtables.h
->  header-y +=3D x_tables.h
->  header-y +=3D xt_AUDIT.h
->  header-y +=3D xt_CHECKSUM.h
-> diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netf=
-ilter/nfnetlink.h
-> index 74d3386..93228b4 100644
-> --- a/include/linux/netfilter/nfnetlink.h
-> +++ b/include/linux/netfilter/nfnetlink.h
-> @@ -48,7 +48,8 @@ struct nfgenmsg {
->  #define NFNL_SUBSYS_ULOG		4
->  #define NFNL_SUBSYS_OSF			5
->  #define NFNL_SUBSYS_IPSET		6
-> -#define NFNL_SUBSYS_COUNT		7
-> +#define NFNL_SUBSYS_XTABLES		8
-> +#define NFNL_SUBSYS_COUNT		9
-> =20
->  #ifdef __KERNEL__
-> =20
-> diff --git a/include/linux/netfilter/nfnetlink_xtables.h b/include/li=
-nux/netfilter/nfnetlink_xtables.h
-> new file mode 100644
-> index 0000000..4c53042
-> --- /dev/null
-> +++ b/include/linux/netfilter/nfnetlink_xtables.h
-> @@ -0,0 +1,20 @@
-> +#ifndef _LINUX_NFNETLINK_XTABLES_H
-> +#define _LINUX_NFNETLINK_XTABLES_H 1
-> +
-> +enum nfxt_msg_type {
-> +	NFXTM_IDENTIFY =3D 1,
-
-I'd suggest:
-
-NFXT_MSG_NEW,
-NFXT_MSG_GET,
-=2E..
-
-and so on.
-
-> +};
-> +
-> +/**
-> + * %NFXTA_NAME:			name of the object being operated on
-> + */
-> +enum nfxt_attr_type {
-> +	NFXTA_UNSPEC =3D 0,
-> +	NFXTA_NAME,
-> +};
-> +
-> +enum nfxt_errno {
-> +	NFXTE_SUCCESS =3D 0,
-> +};
-> +
-> +#endif /* _LINUX_NFNETLINK_XTABLES_H */
-> diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-> index 5b3d9ca..6237a30 100644
-> --- a/net/netfilter/Kconfig
-> +++ b/net/netfilter/Kconfig
-> @@ -327,6 +327,14 @@ config NETFILTER_XTABLES2
->  	Xtables2 is a rework of the internal architecture of Xtables.
->  	It supersedes iptables, ip6tables, arptables and ebtables.
-> =20
-> +if NETFILTER_XTABLES2
-> +
-> +config NETFILTER_XTNFNETLINK
-> +	tristate "Configuration interface over nfnetlink"
-> +	default m if NETFILTER_ADVANCED=3Dn
-> +
-> +endif # NETFILTER_XTABLES2
-> +
->  if NETFILTER_XTABLES || NETFILTER_XTABLES2
-> =20
->  comment "Xtables combined modules"
-> diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-> index 8504ebd..634e6a8 100644
-> --- a/net/netfilter/Makefile
-> +++ b/net/netfilter/Makefile
-> @@ -43,6 +43,7 @@ obj-$(CONFIG_NETFILTER_TPROXY) +=3D nf_tproxy_core.=
-o
->  # generic X tables=20
->  obj-$(CONFIG_NETFILTER_XTABLES) +=3D x_tables.o xt_tcpudp.o
->  obj-$(CONFIG_NETFILTER_XTABLES2) +=3D xt2_core.o
-> +obj-$(CONFIG_NETFILTER_XTNFNETLINK) +=3D xt2_nfnetlink.o
-> =20
->  # combos
->  obj-$(CONFIG_NETFILTER_XT_MARK) +=3D xt_mark.o
-> diff --git a/net/netfilter/xt2_nfnetlink.c b/net/netfilter/xt2_nfnetl=
-ink.c
-> new file mode 100644
-> index 0000000..3dc241f
-> --- /dev/null
+On Thu, Jan 19, 2012 at 05:26:17PM +0100, Jan Engelhardt wrote:
+[...]
+> diff --git a/net/netfilter/xt2_nfnetlink.c b/net/netfilter/xt2_nfnetlink.c
+> index 3dc241f..b50e468d 100644
+> --- a/net/netfilter/xt2_nfnetlink.c
 > +++ b/net/netfilter/xt2_nfnetlink.c
-> @@ -0,0 +1,153 @@
-> +/*
-> + *	Xtables2 nfnetlink interface
-> + *	Copyright =A9 Jan Engelhardt, 2010-2012
-> + *
-> + *	This program is free software: you can redistribute it and/or mod=
-ify
-> + *	it under the terms of the GNU General Public License as published=
- by
-> + *	the Free Software Foundation, either version 2 of the License, or
-> + *	(at your option) any later version.
-> + */
-> +#include <linux/err.h>
-> +#include <linux/errno.h>
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/netlink.h>
-> +#include <linux/skbuff.h>
-> +#include <linux/netfilter.h>
-> +#include <linux/netfilter/nfnetlink.h>
-> +#include <linux/netfilter/nfnetlink_xtables.h>
-> +#include <net/netlink.h>
-> +#include <net/netfilter/x_tables2.h>
-> +
-> +MODULE_DESCRIPTION("Xtables2 nfnetlink interface");
-> +MODULE_AUTHOR("Jan Engelhardt");
-> +MODULE_LICENSE("GPL");
-> +
-> +/**
-> + * Something to keep all the pointers that NL gives us in one place.
-> + */
-> +struct xtnetlink_pktref {
-> +	union {
-> +		struct sk_buff *skb;
-> +		const struct sk_buff *c_skb;
-> +	};
-> +	union {
-> +		struct nlmsghdr *msg;
-> +		const struct nlmsghdr *c_msg;
-> +	};
-> +};
-> +
-> +/**
-> + * @skb:	outgoing skb
+> @@ -17,6 +17,7 @@
+>  #include <linux/netfilter/nfnetlink.h>
+>  #include <linux/netfilter/nfnetlink_xtables.h>
+>  #include <net/netlink.h>
+> +#include <net/sock.h>
+>  #include <net/netfilter/x_tables2.h>
+>  
+>  MODULE_DESCRIPTION("Xtables2 nfnetlink interface");
+> @@ -69,6 +70,66 @@ xtnetlink_fill(struct sk_buff *skb, const struct xtnetlink_pktref *old,
+>  }
+>  
+>  /**
+> + * @ref:	skb/nl pointers that will be filled in (secondary return values)
 > + * @old:	pointers to the original incoming skb/nl headers
-> + * @flags:	extra flags to set in nlmsg
 > + *
-> + * Fill an skb (for outgoing direction) with NL and NFNL headers, us=
-ing data
-> + * from the original skb for initialization.
-> + */
-> +static struct nlmsghdr *
-> +xtnetlink_fill(struct sk_buff *skb, const struct xtnetlink_pktref *o=
-ld,
-> +	       unsigned int flags)
-> +{
-> +	uint16_t nlmsg_type =3D NFNL_MSG_TYPE(old->msg->nlmsg_type);
-> +	struct nlmsghdr *nlmsg;
-> +	struct nfgenmsg *hdr;
-> +
-> +	nlmsg_type |=3D NFNL_SUBSYS_XTABLES << 8;
-> +	nlmsg =3D nlmsg_put(skb, NETLINK_CB(old->skb).pid, old->msg->nlmsg_=
-seq,
-> +			  nlmsg_type, sizeof(*hdr), flags);
-> +	if (nlmsg =3D=3D NULL) {
-> +		nlmsg_cancel(skb, nlmsg);
-> +		return ERR_PTR(-ENOBUFS);
-
-my experience is that it's better to use goto to handle errors.
-
-> +	}
-> +
-> +	hdr               =3D nlmsg_data(nlmsg);
-> +	hdr->nfgen_family =3D NFPROTO_UNSPEC;
-> +	hdr->version      =3D NFNETLINK_V0;
-> +	hdr->res_id       =3D 0;
-> +	return nlmsg;
-> +}
-> +
-> +/**
-> + * Ran too often into NULL derefs. Now there is a dummy function for=
- unused
-> + * message type 0.
+> + * xtnetlink_fill can be used when the outgoing skb already exists (e.g. in
+> + * case of a dump operation), but for non-dump responses, we have to create it
+> + * ourselves.
 > + */
 > +static int
-> +xtnetlink_ignore(struct sock *k, struct sk_buff *s,
-> +		 const struct nlmsghdr *n, const struct nlattr *const *a)
+> +xtnetlink_new_fill(struct xtnetlink_pktref *ref,
+> +		   const struct xtnetlink_pktref *old)
 > +{
-> +	return -ENXIO;
-> +}
-> +
-> +/**
-> + * Respond to a %NFXTM_IDENTIFY inquiry. Reports the Xtables2 versio=
-n (for
-> + * now), and in future the extension info.
-> + */
-> +static int
-> +xtnetlink_identify2(struct sk_buff *skb, struct netlink_callback *nl=
-_cb)
-
-I'd add the infix _dump_ so you can notice this is the callback that
-netlink_dump_start uses.
-
-> +{
-> +	struct xtnetlink_pktref ref =3D {.c_skb =3D skb, .c_msg =3D nl_cb->=
-nlh};
-> +	struct nlmsghdr *nlmsg =3D NULL;
-> +
-> +	switch (nl_cb->args[0]) {
-> +	case 0:
-> +		nlmsg =3D xtnetlink_fill(skb, &ref, NLM_F_MULTI);
-> +		if (IS_ERR(nlmsg))
-> +			return 0;
-> +		NLA_PUT_STRING(skb, NFXTA_NAME, XTABLES2_VTAG);
-> +		++nl_cb->args[0];
-> +		break;
+> +	ref->skb = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
+> +	if (ref->skb == NULL)
+> +		return -ENOMEM;
+> +	ref->msg = xtnetlink_fill(ref->skb, old, 0);
+> +	if (IS_ERR(ref->msg)) {
+> +		kfree_skb(ref->skb);
+> +		return PTR_ERR(ref->msg);
 > +	}
-> +	if (nlmsg !=3D NULL)
-> +		nlmsg_end(skb, nlmsg);
-> +	return skb->len;
-> + nla_put_failure:
 > +	return 0;
 > +}
 > +
-> +static int
-> +xtnetlink_identify(struct sock *xtnl, struct sk_buff *iskb,
-> +		   const struct nlmsghdr *imsg, const struct nlattr *const *ad)
-> +{
-> +	return netlink_dump_start(xtnl, iskb, imsg, xtnetlink_identify2,
-> +				  NULL, 0);
-
-you have to check for NLM_F_DUMP. Otherwise, you are requesting one
-single table. Please, see ctnetlink or nfnetlink_acct for reference.
-
-> +}
-> +
-> +static const struct nla_policy xtnetlink_policy[] =3D {
-> +	[NFXTA_NAME] =3D {.type =3D NLA_NUL_STRING},
-> +};
-> +
-> +/*
-> + * Use the same policy for all messages. I do not want to see EINVAL=
- anytime
-> + * soon again just because I forgot sending an attribute from usersp=
-ace.
-> + * (If such occurs, it will be dealt with %NFXTE_ATTRSET_INCOMPLETE,=
- tbd.)
+> +/**
+> + * @xtnl:	socket to send the error packet out on
+> + * @old:	pointers to the original incoming skb/nl headers
+> + * @errcode:	last error code
+> + *
+> + * Create and send out an NFXT error packet. If @errcode is < 0, it indicates
+> + * a system-level error (such as %-ENOMEM), reported back using %NFXTA_ERRNO.
+> + * If @errcode is >= 0, it indicates an NFXT-specific error codes (%NFXTE_*),
+> + * which is more fine grained than the dreaded %EINVAL, and which is reported
+> + * back using %NFXTA_XTERRNO.
 > + */
-> +#define pol \
-> +	.policy =3D xtnetlink_policy, \
-> +	.attr_count =3D ARRAY_SIZE(xtnetlink_policy)
-> +static const struct nfnl_callback xtnetlink_callback[] =3D {
-> +	[0] =3D {.call =3D xtnetlink_ignore},
-> +	[NFXTM_IDENTIFY] =3D {.call =3D xtnetlink_identify, pol},
-> +};
-> +#undef pol
-> +
-> +static const struct nfnetlink_subsystem xtnetlink_subsys =3D {
-> +	.name      =3D "xtables",
-> +	.subsys_id =3D NFNL_SUBSYS_XTABLES,
-> +	.cb        =3D xtnetlink_callback,
-> +	.cb_count  =3D ARRAY_SIZE(xtnetlink_callback),
-> +};
-> +
-> +static int __init xtnetlink_init(void)
+> +static int
+> +xtnetlink_error(struct sock *xtnl, const struct xtnetlink_pktref *old,
+> +		int errcode)
 > +{
-> +	return nfnetlink_subsys_register(&xtnetlink_subsys);
+> +	struct xtnetlink_pktref ref;
+> +	int ret;
+> +
+> +	ret = xtnetlink_new_fill(&ref, old);
+> +	if (ret < 0)
+> +		return ret;
+> +	if (errcode < 0)
+> +		/* Prefer positive numbers on the wire */
+> +		NLA_PUT_U32(ref.skb, NFXTA_ERRNO, -errcode);
+> +	else
+> +		NLA_PUT_U32(ref.skb, NFXTA_XTERRNO, errcode);
+> +	nlmsg_end(ref.skb, ref.msg);
+> +	ret = netlink_unicast(xtnl, ref.skb, NETLINK_CB(old->skb).pid,
+> +			      MSG_DONTWAIT);
+> +	if (ret < 0)
+> +		return ret;
+> +	/* ret is skb->len, but values >0 mean error to the caller -.- */
+> +	return 0;
+> + nla_put_failure:
+> +	return -ENOBUFS;
+> +}
+
+You seem to be using some similar approach that ipset uses for error
+handling. I like the idea of having fine grain error handling indeed,
+but I think we can extend the Netlink framework to integrate as part
+of NLMSG_ERR message types.
+
+My idea is to attach the specific error at the end of the NLMSG_ERR,
+IIRC we need to allow passing one callback to netlink_ack to add the
+specific error message after the generic netlink error message.
+
+I think this will be also backward compatible with existing netlink
+library since they will ignore the trailing part of the error message
+that they don't know how to interpret.
+
+> +static int
+> +xtnetlink_chain_new(struct sock *xtnl, struct sk_buff *iskb,
+> +		    const struct nlmsghdr *imsg, const struct nlattr *const *ad)
+> +{
+> +	struct xt2_pernet_data *pnet = xtables2_pernet(sock_net(xtnl));
+> +	struct xtnetlink_pktref ref = {.c_skb = iskb, .c_msg = imsg};
+> +	const struct nlattr *attr;
+> +	struct xt2_table *table;
+> +	struct xt2_chain *chain;
+> +	const char *name;
+> +	int ret = 0;
+> +
+> +	attr = nlmsg_find_attr(imsg, sizeof(struct nfgenmsg), NFXTA_NAME);
+> +	if (attr == NULL)
+> +		return xtnetlink_error(xtnl, &ref, NFXTE_ATTRSET_INCOMPLETE);
+> +	name = nla_data(attr);
+> +	if (*name == '\0')
+
+I think you may better identify this special chains with some flags?
+You end up defining flags for objects sooner or later instead of using
+this special name.
+
+> +		/* Anonymous chains are internal. */
+> +		return xtnetlink_error(xtnl, &ref, NFXTE_CHAIN_INVALID_NAME);
+> +	/*
+> +	 * The table needs to stay, but note that rcu_read_lock cannot be used,
+> +	 * since we might sleep.
+> +	 */
+> +	mutex_lock(&pnet->master_lock);
+> +	table = pnet->master;
+> +	mutex_lock(&table->lock);
+> +	if (xt2_chain_lookup(table, name) != NULL) {
+> +		ret = xtnetlink_error(xtnl, &ref, NFXTE_CHAIN_EXISTS);
+> +	} else {
+> +		chain = xt2_chain_new(table, name);
+> +		if (IS_ERR(chain))
+> +			ret = PTR_ERR(chain);
+> +		/* Use NFXTE error codes whenever possible. */
+> +		if (ret == -ENAMETOOLONG)
+> +			ret = NFXTE_CHAIN_NAMETOOLONG;
+> +		ret = xtnetlink_error(xtnl, &ref, ret);
+> +	}
+> +	mutex_unlock(&table->lock);
+> +	mutex_unlock(&pnet->master_lock);
+> +	return ret;
 > +}
 > +
-> +static void __exit xtnetlink_exit(void)
+> +/**
+> + * Act on a %NFXTM_CHAIN_DEL message.
+> + */
+> +static int
+> +xtnetlink_chain_del(struct sock *xtnl, struct sk_buff *iskb,
+> +		    const struct nlmsghdr *imsg,
+> +		    const struct nlattr *const *ad)
 > +{
-> +	nfnetlink_subsys_unregister(&xtnetlink_subsys);
+> +	struct xt2_pernet_data *pnet = xtables2_pernet(sock_net(xtnl));
+> +	struct xtnetlink_pktref ref = {.c_skb = iskb, .c_msg = imsg};
+> +	const struct nlattr *name_attr;
+> +	struct xt2_table *table;
+> +	struct xt2_chain *chain;
+> +	const char *name;
+> +	int ret = 0;
+> +
+> +	name_attr = nlmsg_find_attr(imsg, sizeof(struct nfgenmsg), NFXTA_NAME);
+> +	if (name_attr == NULL)
+> +		return xtnetlink_error(xtnl, &ref, NFXTE_ATTRSET_INCOMPLETE);
+> +	name = nla_data(name_attr);
+> +	if (*name == '\0')
+> +		return xtnetlink_error(xtnl, &ref, NFXTE_CHAIN_NOENT);
+> +
+> +	mutex_lock(&pnet->master_lock);
+> +	table = pnet->master;
+> +	mutex_lock(&table->lock);
+> +	chain = xt2_chain_lookup(table, name);
+> +	if (chain != NULL)
+> +		xt2_chain_free(chain);
+> +	else
+> +		ret = NFXTE_CHAIN_NOENT;
+> +	ret = xtnetlink_error(xtnl, &ref, ret);
+> +	mutex_unlock(&table->lock);
+> +	mutex_unlock(&pnet->master_lock);
+> +	return ret;
 > +}
 > +
-> +module_init(xtnetlink_init);
-> +module_exit(xtnetlink_exit);
-> +MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_XTABLES);
-> --=20
+>  static const struct nla_policy xtnetlink_policy[] = {
+>  	[NFXTA_NAME] = {.type = NLA_NUL_STRING},
+> +	[NFXTA_ERRNO] = {.type = NLA_U32},
+> +	[NFXTA_XTERRNO] = {.type = NLA_U32},
+>  };
+>  
+>  /*
+>   * Use the same policy for all messages. I do not want to see EINVAL anytime
+>   * soon again just because I forgot sending an attribute from userspace.
+> - * (If such occurs, it will be dealt with %NFXTE_ATTRSET_INCOMPLETE, tbd.)
+> + * (If such occurs, it will be dealt with %NFXTE_ATTRSET_INCOMPLETE.)
+>   */
+>  #define pol \
+>  	.policy = xtnetlink_policy, \
+> @@ -128,6 +270,8 @@ static const struct nla_policy xtnetlink_policy[] = {
+>  static const struct nfnl_callback xtnetlink_callback[] = {
+>  	[0] = {.call = xtnetlink_ignore},
+>  	[NFXTM_IDENTIFY] = {.call = xtnetlink_identify, pol},
+> +	[NFXTM_CHAIN_NEW] = {.call = xtnetlink_chain_new, pol},
+> +	[NFXTM_CHAIN_DEL] = {.call = xtnetlink_chain_del, pol},
+>  };
+>  #undef pol
+>  
+> -- 
 > 1.7.7
->=20
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
