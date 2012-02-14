@@ -1,57 +1,40 @@
-From: Richard Weinberger <richard@nod.at>
-Subject: Re: [PATCH 4/4] Netfilter: xt_LOG: Implement ring buffer support
-Date: Tue, 14 Feb 2012 01:12:53 +0100
-Message-ID: <4F39A705.9050207@nod.at>
-References: <1328911856-19260-1-git-send-email-richard@nod.at> <1328911856-19260-7-git-send-email-richard@nod.at> <20120214001123.GA24194@1984>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: new netfilter.org style
+Date: Tue, 14 Feb 2012 01:25:54 +0100
+Message-ID: <20120214002554.GF24194@1984>
+References: <20120210105338.GA9783@1984>
+ <alpine.LNX.2.01.1202101838050.4760@frira.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, eric.dumazet@gmail.com,
-	jengelh@medozas.de, rostedt@goodmis.org, basti@b-bl.de
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120214001123.GA24194@1984>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Daniel Garcia Moreno <danigm@wadobo.com>,
+	netfilter@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:43938 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750726Ab2BNAZ6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Feb 2012 19:25:58 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.01.1202101838050.4760@frira.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 14.02.2012 01:11, schrieb Pablo Neira Ayuso:
-> On Fri, Feb 10, 2012 at 11:10:56PM +0100, Richard Weinberger wrote:
->> This patch introduces NETFILTER_XT_TARGET_LOG_RING.
->> It allows logging into various ring buffers which are
->> represented as pipe-like files in /proc/net/netfilter/xt_LOG_ring/.
->>
->> Signed-off-by: Richard Weinberger<richard@nod.at>
->> ---
->>   include/linux/netfilter/xt_LOG.h    |   13 +-
->>   include/net/netfilter/nf_log.h      |    1 +
->>   include/net/netfilter/xt_log_ring.h |   24 ++
->
-> Could merge xt_log_ring.h with xt_log.h?
+On Fri, Feb 10, 2012 at 06:38:12PM +0100, Jan Engelhardt wrote:
+> On Friday 2012-02-10 11:53, Pablo Neira Ayuso wrote:
+>=20
+> >Hi all!
+> >
+> >Daniel Garc=EDa Moreno has contributed a new design for the
+> >netfilter.org website that I have applied:
+>=20
+> And somebody finally updated the bugzilla ;)
 
-Sure.
-
->>   net/netfilter/Kconfig               |   13 +
->>   net/netfilter/xt_LOG.c              |  642 ++++++++++++++++++++++++++++++++++-
->>   5 files changed, 674 insertions(+), 19 deletions(-)
->>   create mode 100644 include/net/netfilter/xt_log_ring.h
->>
->> diff --git a/include/linux/netfilter/xt_LOG.h b/include/linux/netfilter/xt_LOG.h
->> index cac0790..d84710c 100644
->> --- a/include/linux/netfilter/xt_LOG.h
->> +++ b/include/linux/netfilter/xt_LOG.h
->> @@ -8,7 +8,8 @@
->>   #define XT_LOG_UID		0x08	/* Log UID owning local socket */
->>   #define XT_LOG_NFLOG		0x10	/* Unsupported, don't reuse */
->>   #define XT_LOG_MACDECODE	0x20	/* Decode MAC header */
->> -#define XT_LOG_MASK		0x2f
->> +#define XT_LOG_ADD_TIMESTAMP	0x40	/* Add a timestamp */
->
-> Please, I'd appreciate if you can split this timestamp support in a
-> separated patch.
->
-
-Will do.
-
-Thanks,
-//richard
+Jesper Dangaard Brouer did that. Thanks Jesper.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
