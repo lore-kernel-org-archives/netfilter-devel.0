@@ -1,100 +1,79 @@
-From: Stephen Clark <sclark46@earthlink.net>
-Subject: Re: conntrack
-Date: Wed, 15 Feb 2012 09:00:38 -0500
-Message-ID: <4F3BBA86.2010208@earthlink.net>
-References: <4F3A580A.2070105@earthlink.net> <20120214195429.GD29165@1984>
-Reply-To: sclark46@earthlink.net
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH 2/2] Netfilter: xt_LOG: Add timestamp support
+Date: Wed, 15 Feb 2012 15:01:32 +0100
+Message-ID: <1329314492.2437.32.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+References: <1329314115-6899-1-git-send-email-richard@nod.at>
+	 <1329314115-6899-2-git-send-email-richard@nod.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, jengelh@medozas.de,
+	rostedt@goodmis.org, pablo@netfilter.org, basti@b-bl.de
+To: Richard Weinberger <richard@nod.at>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from elasmtp-junco.atl.sa.earthlink.net ([209.86.89.63]:49433 "EHLO
-	elasmtp-junco.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755106Ab2BOOAk (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:37856 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752967Ab2BOOBh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Feb 2012 09:00:40 -0500
-In-Reply-To: <20120214195429.GD29165@1984>
+	Wed, 15 Feb 2012 09:01:37 -0500
+In-Reply-To: <1329314115-6899-2-git-send-email-richard@nod.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 02/14/2012 02:54 PM, Pablo Neira Ayuso wrote:
-> On Tue, Feb 14, 2012 at 07:48:10AM -0500, Stephen Clark wrote:
->    
->> Hi,
->>
->> Does connection tracking keep any counters on number of packets/and
->> or bytes that are
->> associated with a connection? If so how does one access them?
->>      
-> echo 1>  /proc/sys/net/netfilter/nf_conntrack_acct
->
-> Then, you can access them via:
->
-> conntrack -L
->
->    
-Hi Pablo,
+Le mercredi 15 f=C3=A9vrier 2012 =C3=A0 14:55 +0100, Richard Weinberger=
+ a =C3=A9crit :
+> Using XT_LOG_ADD_TIMESTAMP it is possible to have a timestamp
+> directly in the log message.
+>=20
+> Signed-off-by: Richard Weinberger <richard@nod.at>
+> ---
+>  include/linux/netfilter/xt_LOG.h |    1 +
+>  net/netfilter/xt_LOG.c           |    9 +++++++++
+>  2 files changed, 10 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/include/linux/netfilter/xt_LOG.h b/include/linux/netfilt=
+er/xt_LOG.h
+> index e4b1177..d84710c 100644
+> --- a/include/linux/netfilter/xt_LOG.h
+> +++ b/include/linux/netfilter/xt_LOG.h
+> @@ -8,6 +8,7 @@
+>  #define XT_LOG_UID		0x08	/* Log UID owning local socket */
+>  #define XT_LOG_NFLOG		0x10	/* Unsupported, don't reuse */
+>  #define XT_LOG_MACDECODE	0x20	/* Decode MAC header */
+> +#define XT_LOG_ADD_TIMESTAMP	0x40	/* Add a timestamp */
+>  #define XT_LOG_MASK		0x6f
+> =20
+>  struct xt_log_info {
+> diff --git a/net/netfilter/xt_LOG.c b/net/netfilter/xt_LOG.c
+> index 211d341..2af2621 100644
+> --- a/net/netfilter/xt_LOG.c
+> +++ b/net/netfilter/xt_LOG.c
+> @@ -490,6 +490,15 @@ log_packet_common(struct sbuff *m,
+>  	if (loginfo->type =3D=3D NF_LOG_TYPE_LOG)
+>  		sb_add(m, "<%d>", loginfo->u.log.level);
+> =20
+> +	if (loginfo->u.log.logflags & XT_LOG_ADD_TIMESTAMP) {
+> +		struct timespec tv;
+> +		unsigned int msec;
+> +
+> +		getnstimeofday(&tv);
+> +		msec =3D tv.tv_nsec / NSEC_PER_MSEC;
+> +		sb_add(m, "TIMESTAMP=3D%li.%03li ", tv.tv_sec, msec);
 
-I have been working with FreeBSD for about 10 years and using ipfilter. 
-It has a neat tool ipfstat -t which show the state table
-sort of like top. It is very useful if someone is hogging the network 
-because it is sorted by the highest user first. We are switching
-our systems to Linux and would like to know fs there anything like this 
-for conntrack?
+Since you want to use this temp variable "unsigned int msec" (I have no
+idea why...), you must change printf format accordingly : %03u instead
+of %03li
 
-Src: 0.0.0.0, Dest: 0.0.0.0, Proto: any, Sorted by: # bytes
-
-Source IP             Destination IP         ST   PR   #pkts    
-#bytes       ttl
-192.168.198.105,5353  224.0.0.251,5353      0/0  udp   22598   
-3736235      1:57
-10.0.254.32,631       10.0.255.255,631      0/0  udp   11872   
-2623712      1:29
-192.168.198.103,5353  224.0.0.251,5353      0/0  udp   10608   
-1720665      1:56
-192.168.198.103,5353  224.0.0.251,5353      0/0  udp   10608   
-1720665      1:56
-10.0.254.32,5353      224.0.0.251,5353      0/0  udp    9807   
-1680621      1:56
-10.0.254.32,5353      224.0.0.251,5353      0/0  udp    9806   
-1680485      1:56
-192.168.198.166,50676 192.168.198.75,8181   4/4  tcp    2412   1548504  
-81:09:04
-192.168.198.148,137   192.168.198.255,137   0/0  udp   18625   
-1452750      1:51
-10.0.254.32,631       10.0.255.255,631      0/0  udp    6082   
-1344122      1:29
-192.168.198.148,137   192.168.198.255,137   0/0  udp   14186   
-1107048      1:51
-10.0.129.11,5353      224.0.0.251,5353      0/0  udp    5841   
-1016739      1:56
-10.0.129.11,5353      224.0.0.251,5353      0/0  udp    5840   
-1016566      1:56
-192.168.198.148,137   192.168.198.255,137   0/0  udp   12427    
-969306      1:51
-10.0.133.2,34114      216.17.35.103,143     4/4  tcp   13118    852888 
-119:59:36
-192.168.198.105,5353  224.0.0.251,5353      0/0  udp    3790    
-828335      1:57
-192.168.198.8,5353    224.0.0.251,5353      0/0  udp    5856    
-826713      1:57
-192.168.198.8,5353    224.0.0.251,5353      0/0  udp    5856    
-826713      1:57
-192.168.198.108,5353  224.0.0.251,5353      0/0  udp    5850    
-813786      1:56
-192.168.198.108,5353  224.0.0.251,5353      0/0  udp    5850    
-813786      1:56
+> +	}
+> +
+>  	sb_add(m, "%sIN=3D%s OUT=3D%s ", prefix, in ? in->name : "",
+>  	       out ? out->name : "");
+>  #ifdef CONFIG_BRIDGE_NETFILTER
 
 
--- 
-
-"They that give up essential liberty to obtain temporary safety,
-deserve neither liberty nor safety."  (Ben Franklin)
-
-"The course of history shows that as a government grows, liberty
-decreases."  (Thomas Jefferson)
-
-
-
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
