@@ -1,81 +1,50 @@
-From: Richard Weinberger <richard@nod.at>
-Subject: Re: [PATCH 2/2] Netfilter: xt_LOG: Add timestamp support
-Date: Wed, 15 Feb 2012 15:07:13 +0100
-Message-ID: <4F3BBC11.1030308@nod.at>
-References: <1329314115-6899-1-git-send-email-richard@nod.at>  <1329314115-6899-2-git-send-email-richard@nod.at> <1329314492.2437.32.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+From: Chris Wilson <chris-netfilter-110904@aptivate.org>
+Subject: Re: conntrack
+Date: Wed, 15 Feb 2012 14:27:37 +0000 (GMT)
+Message-ID: <alpine.DEB.2.02.1202151426470.32480@lap-x201>
+References: <4F3A580A.2070105@earthlink.net> <20120214195429.GD29165@1984> <4F3BBA86.2010208@earthlink.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, jengelh@medozas.de,
-	rostedt@goodmis.org, pablo@netfilter.org, basti@b-bl.de
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Stephen Clark <sclark46@earthlink.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a.ns.miles-group.at ([95.130.255.143]:47834 "EHLO radon.swed.at"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751555Ab2BOOHR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Feb 2012 09:07:17 -0500
-In-Reply-To: <1329314492.2437.32.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
+Received: from one-mail.aptivate.org ([87.106.150.205]:58113 "EHLO
+	one-mail.aptivate.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750845Ab2BOOtj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Feb 2012 09:49:39 -0500
+In-Reply-To: <4F3BBA86.2010208@earthlink.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 15.02.2012 15:01, Eric Dumazet wrote:
-> Le mercredi 15 f=C3=A9vrier 2012 =C3=A0 14:55 +0100, Richard Weinberg=
-er a =C3=A9crit :
->> Using XT_LOG_ADD_TIMESTAMP it is possible to have a timestamp
->> directly in the log message.
->>
->> Signed-off-by: Richard Weinberger<richard@nod.at>
->> ---
->>   include/linux/netfilter/xt_LOG.h |    1 +
->>   net/netfilter/xt_LOG.c           |    9 +++++++++
->>   2 files changed, 10 insertions(+), 0 deletions(-)
->>
->> diff --git a/include/linux/netfilter/xt_LOG.h b/include/linux/netfil=
-ter/xt_LOG.h
->> index e4b1177..d84710c 100644
->> --- a/include/linux/netfilter/xt_LOG.h
->> +++ b/include/linux/netfilter/xt_LOG.h
->> @@ -8,6 +8,7 @@
->>   #define XT_LOG_UID		0x08	/* Log UID owning local socket */
->>   #define XT_LOG_NFLOG		0x10	/* Unsupported, don't reuse */
->>   #define XT_LOG_MACDECODE	0x20	/* Decode MAC header */
->> +#define XT_LOG_ADD_TIMESTAMP	0x40	/* Add a timestamp */
->>   #define XT_LOG_MASK		0x6f
->>
->>   struct xt_log_info {
->> diff --git a/net/netfilter/xt_LOG.c b/net/netfilter/xt_LOG.c
->> index 211d341..2af2621 100644
->> --- a/net/netfilter/xt_LOG.c
->> +++ b/net/netfilter/xt_LOG.c
->> @@ -490,6 +490,15 @@ log_packet_common(struct sbuff *m,
->>   	if (loginfo->type =3D=3D NF_LOG_TYPE_LOG)
->>   		sb_add(m, "<%d>", loginfo->u.log.level);
->>
->> +	if (loginfo->u.log.logflags&  XT_LOG_ADD_TIMESTAMP) {
->> +		struct timespec tv;
->> +		unsigned int msec;
->> +
->> +		getnstimeofday(&tv);
->> +		msec =3D tv.tv_nsec / NSEC_PER_MSEC;
->> +		sb_add(m, "TIMESTAMP=3D%li.%03li ", tv.tv_sec, msec);
+Hi Stephen,
+
+On Wed, 15 Feb 2012, Stephen Clark wrote:
+
+> I have been working with FreeBSD for about 10 years and using ipfilter. It 
+> has a neat tool ipfstat -t which show the state table
+> sort of like top. It is very useful if someone is hogging the network because 
+> it is sorted by the highest user first. We are switching
+> our systems to Linux and would like to know fs there anything like this for 
+> conntrack?
 >
-> Since you want to use this temp variable "unsigned int msec" (I have =
-no
-> idea why...), you must change printf format accordingly : %03u instea=
-d
-> of %03li
+> Src: 0.0.0.0, Dest: 0.0.0.0, Proto: any, Sorted by: # bytes
+>
+> Source IP             Destination IP         ST   PR   #pkts    #bytes 
+> ttl
+> 192.168.198.105,5353  224.0.0.251,5353      0/0  udp   22598   3736235 
+> 1:57
 
-*grml*.
-I'll remove the temp variable and use %03u.
-The temp variable is a left over from another (not submitted) timestamp
-implementation.
+iftop does something like this, not looking at the conntrack table but it 
+may help.
 
-Thanks for spotting this!
-//richard
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cheers, Chris.
+-- 
+Aptivate | http://www.aptivate.org | Phone: +44 1223 760887
+The Humanitarian Centre, Fenner's, Gresham Road, Cambridge CB1 2ES
+
+Aptivate is a not-for-profit company registered in England and Wales
+with company number 04980791.
+
