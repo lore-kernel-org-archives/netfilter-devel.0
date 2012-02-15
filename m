@@ -1,65 +1,38 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] DHCPv6 connection tracker helper
-Date: Wed, 15 Feb 2012 18:13:12 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1202151758290.15357@frira.zrqbmnf.qr>
-References: <CAFntDkx2SUkCkSbU7sO4OrWqypWQpY-KNgrD-_DgqRSXAGvJZQ@mail.gmail.com> <alpine.LNX.2.01.1202130940390.30851@frira.zrqbmnf.qr> <CAFntDkw0sN=j+mKm0s=kac+mMWnQqdyUviGj0_puj0bqSobR=Q@mail.gmail.com>
+Subject: Re: [PATCH 2/2] Netfilter: xt_LOG: Add timestamp support
+Date: Wed, 15 Feb 2012 18:16:12 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1202151815270.15357@frira.zrqbmnf.qr>
+References: <1329314115-6899-1-git-send-email-richard@nod.at>  <1329314115-6899-2-git-send-email-richard@nod.at> <1329314492.2437.32.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC> <4F3BBC11.1030308@nod.at>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Darren Willis <djw@google.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, rostedt@goodmis.org,
+	pablo@netfilter.org, basti@b-bl.de
+To: Richard Weinberger <richard@nod.at>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:39945 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:39990 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753103Ab2BORNS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Feb 2012 12:13:18 -0500
-In-Reply-To: <CAFntDkw0sN=j+mKm0s=kac+mMWnQqdyUviGj0_puj0bqSobR=Q@mail.gmail.com>
+	id S1752229Ab2BORQN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Feb 2012 12:16:13 -0500
+In-Reply-To: <4F3BBC11.1030308@nod.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Wednesday 2012-02-15 10:00, Darren Willis wrote:
+On Wednesday 2012-02-15 15:07, Richard Weinberger wrote:
+>>> +		struct timespec tv;
+>>> +		unsigned int msec;
+>>> +
+>>> +		getnstimeofday(&tv);
+>>> +		msec = tv.tv_nsec / NSEC_PER_MSEC;
+>>> +		sb_add(m, "TIMESTAMP=%li.%03li ", tv.tv_sec, msec);
+>>
+>> Since you want to use this temp variable "unsigned int msec" (I have no
+>> idea why...), you must change printf format accordingly : %03u instead
+>> of %03li
 >
->For checking the validity of a DHCP packet, there's not really very
->much that can be done without parsing the DHCPv6 options. I've added a
->length check to make sure the outgoing message has at least a message
->type and transaction ID, and the timeout setting-code implicitly
->checks that the message has a known DHCPv6 message type.
+> *grml*.
+> I'll remove the temp variable and use %03u.
 
-Seems sufficient indeed.
-
->It would be possible to capture outgoing messages' transaction IDs and
->require that incoming advertise/reply responses match it, but I'm not
->sure that's really going to be a big help (the clients are surely
->doing this already).
-
-Certainly would be on my wishlist if such an extension does not look
-too ugly.
-
->> Thirdly, your module does not seem to make any attempt (yet) to handle
->> the DHCP v6 RECONFIGURE message.
->
->Right. I'm not sure of a good way to handle this; I suppose I could
->check initial ADVERTISE messages for the 'accept reconfigure' option,
->and allow the source of that advertise to have access to port 546.
->There's no time limit on reconfigure messages,[...]
-
-Irk. I would suggest doing like the ICMPv6 tracker does,
-marking it unconditionally as INVALID to indicate that the
-implementation chose to not track RECONFIGURE on purpose.
-
->+static int dhcpv6_help(struct sk_buff *skb,
->+		       unsigned int protoff,
->+		       struct nf_conn *ct,
->+		       enum ip_conntrack_info ctinfo)
->+{
->...
->+	unsigned char *type = 0;
-= NULL.
-
->+static struct nf_conntrack_helper helper __read_mostly = {
->+	.name                   = "dhcpv6",
->+	.tuple.src.l3num        = AF_INET6,
-
-This should be NFPROTO_IPV6 actually.
+Why not just print the nsecs directly (with %09 of course)?
