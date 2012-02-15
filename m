@@ -1,59 +1,49 @@
-From: Richard Weinberger <richard@nod.at>
-Subject: [PATCH 2/2] Netfilter: xt_LOG: Add timestamp support
-Date: Wed, 15 Feb 2012 00:36:13 +0100
-Message-ID: <1329262573-22048-2-git-send-email-richard@nod.at>
-References: <1329262573-22048-1-git-send-email-richard@nod.at>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	eric.dumazet@gmail.com, jengelh@medozas.de, rostedt@goodmis.org,
-	pablo@netfilter.org, basti@b-bl.de,
-	Richard Weinberger <richard@nod.at>
-To: netfilter-devel@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1329262573-22048-1-git-send-email-richard@nod.at>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Stephen Clark <sclark46@earthlink.net>
+Subject: Re: conntrack
+Date: Tue, 14 Feb 2012 22:41:38 -0500
+Message-ID: <4F3B2972.8020704@earthlink.net>
+References: <4F3A580A.2070105@earthlink.net> <20120214195429.GD29165@1984>
+Reply-To: sclark46@earthlink.net
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from elasmtp-curtail.atl.sa.earthlink.net ([209.86.89.64]:40244 "EHLO
+	elasmtp-curtail.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750814Ab2BODlk (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Feb 2012 22:41:40 -0500
+In-Reply-To: <20120214195429.GD29165@1984>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Using XT_LOG_ADD_TIMESTAMP it is possible to have a timestamp
-directly in the log message.
+On 02/14/2012 02:54 PM, Pablo Neira Ayuso wrote:
+> On Tue, Feb 14, 2012 at 07:48:10AM -0500, Stephen Clark wrote:
+>    
+>> Hi,
+>>
+>> Does connection tracking keep any counters on number of packets/and
+>> or bytes that are
+>> associated with a connection? If so how does one access them?
+>>      
+> echo 1>  /proc/sys/net/netfilter/nf_conntrack_acct
+>
+> Then, you can access them via:
+>
+> conntrack -L
+>
+>    
+Thanks
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
----
- include/linux/netfilter/xt_LOG.h |    1 +
- net/netfilter/xt_LOG.c           |   10 ++++++++++
- 2 files changed, 11 insertions(+), 0 deletions(-)
-
-diff --git a/include/linux/netfilter/xt_LOG.h b/include/linux/netfilter/xt_LOG.h
-index e4b1177..d84710c 100644
---- a/include/linux/netfilter/xt_LOG.h
-+++ b/include/linux/netfilter/xt_LOG.h
-@@ -8,6 +8,7 @@
- #define XT_LOG_UID		0x08	/* Log UID owning local socket */
- #define XT_LOG_NFLOG		0x10	/* Unsupported, don't reuse */
- #define XT_LOG_MACDECODE	0x20	/* Decode MAC header */
-+#define XT_LOG_ADD_TIMESTAMP	0x40	/* Add a timestamp */
- #define XT_LOG_MASK		0x6f
- 
- struct xt_log_info {
-diff --git a/net/netfilter/xt_LOG.c b/net/netfilter/xt_LOG.c
-index 211d341..bd59dfd 100644
---- a/net/netfilter/xt_LOG.c
-+++ b/net/netfilter/xt_LOG.c
-@@ -490,6 +490,16 @@ log_packet_common(struct sbuff *m,
- 	if (loginfo->type == NF_LOG_TYPE_LOG)
- 		sb_add(m, "<%d>", loginfo->u.log.level);
- 
-+	if (loginfo->u.log.logflags & XT_LOG_ADD_TIMESTAMP) {
-+		static struct timespec tv;
-+		unsigned int msec;
-+
-+		getnstimeofday(&tv);
-+		msec = tv.tv_nsec;
-+		do_div(msec, 1000000);
-+		sb_add(m, "TIMESTAMP=%li.%03li ", tv.tv_sec, msec);
-+	}
-+
- 	sb_add(m, "%sIN=%s OUT=%s ", prefix, in ? in->name : "",
- 	       out ? out->name : "");
- #ifdef CONFIG_BRIDGE_NETFILTER
 -- 
-1.7.7.3
+
+"They that give up essential liberty to obtain temporary safety,
+deserve neither liberty nor safety."  (Ben Franklin)
+
+"The course of history shows that as a government grows, liberty
+decreases."  (Thomas Jefferson)
+
+
+
