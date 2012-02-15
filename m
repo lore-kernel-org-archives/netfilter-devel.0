@@ -1,50 +1,65 @@
-From: Chris Wilson <chris-netfilter-110904@aptivate.org>
-Subject: Re: conntrack
-Date: Wed, 15 Feb 2012 14:27:37 +0000 (GMT)
-Message-ID: <alpine.DEB.2.02.1202151426470.32480@lap-x201>
-References: <4F3A580A.2070105@earthlink.net> <20120214195429.GD29165@1984> <4F3BBA86.2010208@earthlink.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] DHCPv6 connection tracker helper
+Date: Wed, 15 Feb 2012 18:13:12 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1202151758290.15357@frira.zrqbmnf.qr>
+References: <CAFntDkx2SUkCkSbU7sO4OrWqypWQpY-KNgrD-_DgqRSXAGvJZQ@mail.gmail.com> <alpine.LNX.2.01.1202130940390.30851@frira.zrqbmnf.qr> <CAFntDkw0sN=j+mKm0s=kac+mMWnQqdyUviGj0_puj0bqSobR=Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Stephen Clark <sclark46@earthlink.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Darren Willis <djw@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from one-mail.aptivate.org ([87.106.150.205]:58113 "EHLO
-	one-mail.aptivate.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750845Ab2BOOtj (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Feb 2012 09:49:39 -0500
-In-Reply-To: <4F3BBA86.2010208@earthlink.net>
+Received: from seven.medozas.de ([188.40.89.202]:39945 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753103Ab2BORNS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Feb 2012 12:13:18 -0500
+In-Reply-To: <CAFntDkw0sN=j+mKm0s=kac+mMWnQqdyUviGj0_puj0bqSobR=Q@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Stephen,
 
-On Wed, 15 Feb 2012, Stephen Clark wrote:
-
-> I have been working with FreeBSD for about 10 years and using ipfilter. It 
-> has a neat tool ipfstat -t which show the state table
-> sort of like top. It is very useful if someone is hogging the network because 
-> it is sorted by the highest user first. We are switching
-> our systems to Linux and would like to know fs there anything like this for 
-> conntrack?
+On Wednesday 2012-02-15 10:00, Darren Willis wrote:
 >
-> Src: 0.0.0.0, Dest: 0.0.0.0, Proto: any, Sorted by: # bytes
+>For checking the validity of a DHCP packet, there's not really very
+>much that can be done without parsing the DHCPv6 options. I've added a
+>length check to make sure the outgoing message has at least a message
+>type and transaction ID, and the timeout setting-code implicitly
+>checks that the message has a known DHCPv6 message type.
+
+Seems sufficient indeed.
+
+>It would be possible to capture outgoing messages' transaction IDs and
+>require that incoming advertise/reply responses match it, but I'm not
+>sure that's really going to be a big help (the clients are surely
+>doing this already).
+
+Certainly would be on my wishlist if such an extension does not look
+too ugly.
+
+>> Thirdly, your module does not seem to make any attempt (yet) to handle
+>> the DHCP v6 RECONFIGURE message.
 >
-> Source IP             Destination IP         ST   PR   #pkts    #bytes 
-> ttl
-> 192.168.198.105,5353  224.0.0.251,5353      0/0  udp   22598   3736235 
-> 1:57
+>Right. I'm not sure of a good way to handle this; I suppose I could
+>check initial ADVERTISE messages for the 'accept reconfigure' option,
+>and allow the source of that advertise to have access to port 546.
+>There's no time limit on reconfigure messages,[...]
 
-iftop does something like this, not looking at the conntrack table but it 
-may help.
+Irk. I would suggest doing like the ICMPv6 tracker does,
+marking it unconditionally as INVALID to indicate that the
+implementation chose to not track RECONFIGURE on purpose.
 
-Cheers, Chris.
--- 
-Aptivate | http://www.aptivate.org | Phone: +44 1223 760887
-The Humanitarian Centre, Fenner's, Gresham Road, Cambridge CB1 2ES
+>+static int dhcpv6_help(struct sk_buff *skb,
+>+		       unsigned int protoff,
+>+		       struct nf_conn *ct,
+>+		       enum ip_conntrack_info ctinfo)
+>+{
+>...
+>+	unsigned char *type = 0;
+= NULL.
 
-Aptivate is a not-for-profit company registered in England and Wales
-with company number 04980791.
+>+static struct nf_conntrack_helper helper __read_mostly = {
+>+	.name                   = "dhcpv6",
+>+	.tuple.src.l3num        = AF_INET6,
 
+This should be NFPROTO_IPV6 actually.
