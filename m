@@ -1,41 +1,53 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Question about nfnl_handle_packet/nfnl_process error handling
-Date: Thu, 16 Feb 2012 15:15:46 +0100
-Message-ID: <20120216141546.GC11798@Chamillionaire.breakpoint.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Question about nfnl_handle_packet/nfnl_process error handling
+Date: Thu, 16 Feb 2012 18:41:42 +0100
+Message-ID: <20120216174142.GA5591@1984>
+References: <20120216141546.GC11798@Chamillionaire.breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:46635 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751133Ab2BPOPs (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Feb 2012 09:15:48 -0500
-Received: id: fw by Chamillionaire.breakpoint.cc with local
-	(easymta 1.00 BETA 1)
-	id 1Ry27e-0000Ys-Vp
-	for netfilter-devel@vger.kernel.org; Thu, 16 Feb 2012 15:15:47 +0100
+Received: from mail.us.es ([193.147.175.20]:47422 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752967Ab2BPRly (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Feb 2012 12:41:54 -0500
 Content-Disposition: inline
+In-Reply-To: <20120216141546.GC11798@Chamillionaire.breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-libnetfilter_queue has:
+Hi Florian,
 
-int nfq_handle_packet(struct nfq_handle *h, char *buf, int len)
-{
-   return nfnl_handle_packet(h->nfnlh, buf, len);
-}
+On Thu, Feb 16, 2012 at 03:15:46PM +0100, Florian Westphal wrote:
+> libnetfilter_queue has:
+> 
+> int nfq_handle_packet(struct nfq_handle *h, char *buf, int len)
+> {
+>    return nfnl_handle_packet(h->nfnlh, buf, len);
+> }
+> 
+> When an error occurs, for example because a verdict for a bogus packet id was
+> sent, nfq_handle_packet/nfnl_handle_packet returns -1 with errno == 0.
+> 
+> Using nfnl_process() instead of nfq_handle_packet() sets errno to the expected
+> ENOENT.
+> 
+> Does anyone know if nfq_handle_packet() "errno 0" behaviour is intentional?
 
-When an error occurs, for example because a verdict for a bogus packet id was
-sent, nfq_handle_packet/nfnl_handle_packet returns -1 with errno == 0.
+The initial libnfnetlink API did not set errno, nfnl_handle_packet is
+part of that old API.
 
-Using nfnl_process() instead of nfq_handle_packet() sets errno to the expected
-ENOENT.
+nfnl_process was added later to try to resolve some limitations by
+2006 IIRC.
 
-Does anyone know if nfq_handle_packet() "errno 0" behaviour is intentional?
-Should I just ignore nfq_handle_packet() return value?
-What about deprecating nfnl_handle_packet() and using nfnl_process()
-instead?
+libmnl provide a neat new API. We have to move to it.
 
-Thanks,
-Florian
+> Should I just ignore nfq_handle_packet() return value?
+> What about deprecating nfnl_handle_packet() and using nfnl_process()
+> instead?
+
+I have ported libnetfilter_queue to libmnl, I need some spare time to
+push the new API to the repository. I'll be happy if you spend some
+time looking at it to find some possible issues, the idea is that the
+new API resolves the existing API limitations.
