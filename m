@@ -1,49 +1,55 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFT] nf_contrack_udp: handle packets with padding and
- hwchecksum
-Date: Tue, 21 Feb 2012 13:19:11 +0100
-Message-ID: <20120221121911.GA25258@1984>
-References: <20120130155816.GA1400@phenom.dumpdata.com>
- <20120130083843.160ffe5e@nehalam.linuxnetplumber.net>
- <1327944148.3303.1.camel@edumazet-HP-Compaq-6005-Pro-SFF-PC>
- <20120217101648.01f31fcd@nehalam.linuxnetplumber.net>
+Subject: Re: alignment problem with ebt_among on ppc
+Date: Tue, 21 Feb 2012 13:32:19 +0100
+Message-ID: <20120221123219.GA25271@1984>
+References: <Pine.LNX.4.64.1202030819151.17732@brian.int.clnt.de>
+ <4F341D0E.3020209@pandora.be>
+ <Pine.LNX.4.64.1202101314380.17215@brian.int.clnt.de>
+ <4F3AA867.7030108@pandora.be>
+ <20120214195615.GE29165@1984>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Patrick McHardy <kaber@trash.net>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	netdev@vger.kernel.org, davem@davemloft.net,
-	netfilter-devel@vger.kernel.org
-To: Stephen Hemminger <shemminger@vyatta.com>
+Cc: Joerg Willmann <joe@clnt.de>, netfilter-devel@vger.kernel.org
+To: Bart De Schuymer <bdschuym@pandora.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43863 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:50055 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755199Ab2BUMTP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Feb 2012 07:19:15 -0500
+	id S1753678Ab2BUMc1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Feb 2012 07:32:27 -0500
 Content-Disposition: inline
-In-Reply-To: <20120217101648.01f31fcd@nehalam.linuxnetplumber.net>
+In-Reply-To: <20120214195615.GE29165@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Stephen,
-
-On Fri, Feb 17, 2012 at 10:16:48AM -0800, Stephen Hemminger wrote:
-> If UDP packet with extra padding is received on a device that
-> does hardware checksumming (but not checking) is processed
-> by netfilter conntrack, it would generate a bogus warning
-> about the checksum being incorrect.
+On Tue, Feb 14, 2012 at 08:56:15PM +0100, Pablo Neira Ayuso wrote:
+> > This patch is fine by me... Please apply.
+> > 
+> > Signed-off by: Bart De Schuymer <bdschuym@pandora.be>
 > 
-> There were two possible solutions. The netfilter conntrack
-> code could trim the packet, discarding the extra padding
-> and adjusting the checksum. Or it can force regular
-> non-offloaded checksum. This patch implements the latter
-> on the principal that is better for firewall code to not
-> modify the packet.
+> I'd appreciate if you can send me a well-formed patch that I can
+> easily apply, it's composed of:
+> 
+> 1) title
+> 
+> 2) description
+> 
+> 3) signed-off-by section
+> 
+> 4) patch
+> 
+> Thank you!
 
-I like this approach.
+OK, you don't seem to make my life easy :-(
 
-> Compile tested only; haven't been able to reproduce the
-> problem yet.
+I have enqueued the following patch for the net tree:
 
-Let me know if I should pass this to davem once you confirm this fixes
-the problem you're noticing.
+commit 88ba136d6635b262f77cc418d536115fb8e4d4ab
+Author: Joerg Willmann <joe@clnt.de>
+Date:   Tue Feb 21 13:26:14 2012 +0100
+
+    netfilter: ebtables: fix alignment problem in ppc
+
+http://1984.lsi.us.es/git/net/log/?h=nf
+
+Please, rise your hand if you find any problem with it. I'll pass it
+soon to davem.
