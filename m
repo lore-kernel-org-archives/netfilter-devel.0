@@ -1,55 +1,44 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH] bridge: netfilter: fix module autoload in compat case
-Date: Wed, 22 Feb 2012 16:14:32 +0100
-Message-ID: <1329923672-20054-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+From: Philip Prindeville <philipp@redfish-solutions.com>
+Subject: Issues with 1.4.10 build of iptables/extensions
+Date: Wed, 22 Feb 2012 15:05:59 -0700
+Message-ID: <4F4566C7.2030401@redfish-solutions.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:55975 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752120Ab2BVPMg (ORCPT
+Received: from mail.redfish-solutions.com ([66.232.79.143]:56667 "EHLO
+	mail.redfish-solutions.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755387Ab2BVWGA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Feb 2012 10:12:36 -0500
+	Wed, 22 Feb 2012 17:06:00 -0500
+Received: from macbook.redfish-solutions.com (macbook.redfish-solutions.com [192.168.1.17])
+	(authenticated bits=0)
+	by mail.redfish-solutions.com (8.14.5/8.14.5) with ESMTP id q1MM5xfB019878
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Wed, 22 Feb 2012 15:05:59 -0700
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We expected 0 if module doesn't exist, which is no longer the case
-(42046e2e45c109ba703993c510401a11f716c8df,
-netfilter: x_tables: return -ENOENT for non-existant matches/targets).
+Seeing the following:
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- xt_find_match/target could be made static now, but that should
- happen in -next.
+make[5]: Entering directory `/home/philipp/openwrt-alix/build_dir/linux-x86_alix2/iptables-1.4.10/extensions'
+if test -n "   "; then install -pm0755  "/home/philipp/openwrt-alix/build_dir/linux-x86_alix2/iptables-1.4.10/ipkg-install/usr/lib/iptables/"; fi;
+install: missing destination file operand after `/home/philipp/openwrt-alix/build_dir/linux-x86_alix2/iptables-1.4.10/ipkg-install/usr/lib/iptables/'
+Try `install --help' for more information.
+make[5]: *** [install] Error 1
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 5864cc4..8aa4ad0 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -1893,10 +1893,7 @@ static int compat_mtw_from_user(struct compat_ebt_entry_mwt *mwt,
- 
- 	switch (compat_mwt) {
- 	case EBT_COMPAT_MATCH:
--		match = try_then_request_module(xt_find_match(NFPROTO_BRIDGE,
--						name, 0), "ebt_%s", name);
--		if (match == NULL)
--			return -ENOENT;
-+		match = xt_request_find_match(NFPROTO_BRIDGE, name, 0);
- 		if (IS_ERR(match))
- 			return PTR_ERR(match);
- 
-@@ -1915,10 +1912,7 @@ static int compat_mtw_from_user(struct compat_ebt_entry_mwt *mwt,
- 		break;
- 	case EBT_COMPAT_WATCHER: /* fallthrough */
- 	case EBT_COMPAT_TARGET:
--		wt = try_then_request_module(xt_find_target(NFPROTO_BRIDGE,
--						name, 0), "ebt_%s", name);
--		if (wt == NULL)
--			return -ENOENT;
-+		wt = xt_request_find_target(NFPROTO_BRIDGE, name, 0);
- 		if (IS_ERR(wt))
- 			return PTR_ERR(wt);
- 		off = xt_compat_target_offset(wt);
--- 
-1.7.3.4
+The problem is here:
+
+targets_install += ${pfx_solibs} ${pf4_solibs} ${pf6_solibs}
+...
+install: ${targets_install}
+        @mkdir -p "${DESTDIR}${xtlibdir}";
+        if test -n "${targets_install}"; then install -pm0755 $^ "${DESTDIR}${xtlibdir}/"; fi;
+
+that should read:
+
+install: ${targets_install}
+        @mkdir -p "${DESTDIR}${xtlibdir}";
+        if test -n "$(strip ${targets_install})"; then install -pm0755 $^ "${DESTDIR}${xtlibdir}/"; fi;
 
