@@ -1,65 +1,55 @@
-From: pablo@netfilter.org
-Subject: [PATCH 3/3] src: add example use of GPRINT to ulogd.conf.in configuration file
-Date: Wed, 22 Feb 2012 13:33:33 +0100
-Message-ID: <1329914013-2132-4-git-send-email-pablo@netfilter.org>
-References: <1329914013-2132-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH] bridge: netfilter: fix module autoload in compat case
+Date: Wed, 22 Feb 2012 16:14:32 +0100
+Message-ID: <1329923672-20054-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50070 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751749Ab2BVMdx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Feb 2012 07:33:53 -0500
-In-Reply-To: <1329914013-2132-1-git-send-email-pablo@netfilter.org>
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:55975 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752120Ab2BVPMg (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Feb 2012 10:12:36 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+We expected 0 if module doesn't exist, which is no longer the case
+(42046e2e45c109ba703993c510401a11f716c8df,
+netfilter: x_tables: return -ENOENT for non-existant matches/targets).
 
-Example on how this display one conntrack:
-
-timestamp=2012/02/22-13:16:54,orig.ip.saddr=192.168.1.129,orig.ip.daddr=173.194.34.235,orig.ip.protocol=6,orig.l4.sport=58221,orig.l4.dport=80,orig.raw.pktlen=1206,orig.raw.pktcount=4,reply.ip.saddr=173.194.34.235,reply.ip.daddr=192.168.1.129,reply.ip.protocol=6,reply.l4.sport=80,reply.l4.dport=58221,reply.raw.pktlen=1104,reply.raw.pktcount=3,ct.mark=0,ct.id=846180008,ct.event=4,flow.end.sec=1329913014,flow.end.usec=413771,oob.family=2,oob.protocol=0
-
-and one NFLOG line look like this
-
-timestamp=2012/02/22-13:21:24,raw.pktlen=40,raw.pktcount=1,oob.prefix=test,oob.time.sec=1329913284,oob.time.usec=226795,oob.mark=0,oob.ifindex_in=3,oob.hook=1,raw.mac_len=14,oob.family=2,oob.protocol=2048,raw.label=0,raw.type=1,raw.mac.addrlen=6
-
-People that like parsing comma-separated key-value files will
-like this.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- ulogd.conf.in |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+ xt_find_match/target could be made static now, but that should
+ happen in -next.
 
-diff --git a/ulogd.conf.in b/ulogd.conf.in
-index 71e8255..b33e69c 100644
---- a/ulogd.conf.in
-+++ b/ulogd.conf.in
-@@ -41,7 +41,6 @@ plugin="@pkglibexecdir@/ulogd_output_LOGEMU.so"
- plugin="@pkglibexecdir@/ulogd_output_SYSLOG.so"
- plugin="@pkglibexecdir@/ulogd_output_XML.so"
- #plugin="@pkglibexecdir@/ulogd_output_SQLITE3.so"
--#plugin="@pkglibexecdir@/ulogd_output_OPRINT.so"
- plugin="@pkglibexecdir@/ulogd_output_GPRINT.so"
- #plugin="@pkglibexecdir@/ulogd_output_NACCT.so"
- #plugin="@pkglibexecdir@/ulogd_output_PCAP.so"
-@@ -63,11 +62,14 @@ plugin="@pkglibexecdir@/ulogd_inpflow_NFACCT.so"
- # this is a stack for packet-based logging via LOGEMU with filtering on MARK
- #stack=log2:NFLOG,mark1:MARK,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,print1:PRINTPKT,emu1:LOGEMU
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 5864cc4..8aa4ad0 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1893,10 +1893,7 @@ static int compat_mtw_from_user(struct compat_ebt_entry_mwt *mwt,
  
-+# this is a stack for packet-based logging via GPRINT
-+#stack=log1:NFLOG,gp1:GPRINT
-+
- # this is a stack for flow-based logging via LOGEMU
- #stack=ct1:NFCT,ip2str1:IP2STR,print1:PRINTFLOW,emu1:LOGEMU
+ 	switch (compat_mwt) {
+ 	case EBT_COMPAT_MATCH:
+-		match = try_then_request_module(xt_find_match(NFPROTO_BRIDGE,
+-						name, 0), "ebt_%s", name);
+-		if (match == NULL)
+-			return -ENOENT;
++		match = xt_request_find_match(NFPROTO_BRIDGE, name, 0);
+ 		if (IS_ERR(match))
+ 			return PTR_ERR(match);
  
--# this is a stack for flow-based logging via OPRINT
--#stack=ct1:NFCT,op1:OPRINT
-+# this is a stack for flow-based logging via GPRINT
-+#stack=ct1:NFCT,gp1:GPRINT
- 
- # this is a stack for flow-based logging via XML
- #stack=ct1:NFCT,xml1:XML
+@@ -1915,10 +1912,7 @@ static int compat_mtw_from_user(struct compat_ebt_entry_mwt *mwt,
+ 		break;
+ 	case EBT_COMPAT_WATCHER: /* fallthrough */
+ 	case EBT_COMPAT_TARGET:
+-		wt = try_then_request_module(xt_find_target(NFPROTO_BRIDGE,
+-						name, 0), "ebt_%s", name);
+-		if (wt == NULL)
+-			return -ENOENT;
++		wt = xt_request_find_target(NFPROTO_BRIDGE, name, 0);
+ 		if (IS_ERR(wt))
+ 			return PTR_ERR(wt);
+ 		off = xt_compat_target_offset(wt);
 -- 
-1.7.7.3
+1.7.3.4
 
