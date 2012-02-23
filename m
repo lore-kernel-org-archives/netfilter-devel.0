@@ -1,35 +1,106 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/4] netfilter updates for net tree
-Date: Thu, 23 Feb 2012 00:20:47 -0500 (EST)
-Message-ID: <20120223.002047.1508425424024898432.davem@davemloft.net>
-References: <1329955346-2615-1-git-send-email-pablo@netfilter.org>
+From: Ganesh Kumar <ganeshkumarnm@gmail.com>
+Subject: nfulnl_test doesn't work on Ubuntu
+Date: Thu, 23 Feb 2012 12:00:59 +0530
+Message-ID: <CAHS57vUULJmJZuaR3-e2Lzx24Jj-gkg2t5qu_oa9vVdwfjOv-w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1329955346-2615-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: multipart/mixed; boundary=001636c92cd98e31dc04b99bc952
+Cc: Ganesh Kumar <gkumarnm@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:53793 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752202Ab2BWGa7 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Feb 2012 01:30:59 -0500
+Received: by yhoo21 with SMTP id o21so441798yho.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Feb 2012 22:30:59 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: pablo@netfilter.org
-Date: Thu, 23 Feb 2012 01:02:22 +0100
+--001636c92cd98e31dc04b99bc952
+Content-Type: text/plain; charset=ISO-8859-1
 
-> The following are four fixes for your net tree:
-> 
-> * One fix for NFQUEUE if used in bridge mode when GRO/GSO skbs
->   are enqueued from Florian Westphal.
-> 
-> * One fix from Joerg Willmann to fix wrong alignment in ebtables
->   on PPC.
-> 
-> * One fix for soft lockup for ctnetlink from Jozsef Kadlecsik.
-> 
-> * One fix for IPVS from Simon Horman.
-> 
-> Please, pull these changes from:
-> 
-> 	git://1984.lsi.us.es/net nf
+dear all,
 
-Pulled, thanks Pablo.
+ I'm trying my hand on the NFLOG target of iptables, so I setup
+the below ones on my ubuntu machine 10.4  :
+
+
+libnetfilter_log-1.0.0
+libnfnetlink-dev_1.0.0
+
+
+$ uname -a
+Linux ubuntu 2.6.32.21 #2 SMP Wed Jul 6 22:03:07 PDT 2011 i686 GNU/Linux
+
+
+but when I try to build and run the utils nfulnl_test.c this is what
+I'm getting using the below command
+gcc -o nfulnl_test nfulnl_test.c -L /usr/local/lib/ -lnetfilter_log
+
+$ ./nfulnl_test
+binding nfnetlink_log to AF_INET
+error during nflog_bind_pf()
+
+Am I missing something, any help is appreciated.
+
+Many thanks,
+GK
+
+--001636c92cd98e31dc04b99bc952
+Content-Type: text/x-csrc; charset=US-ASCII; name="nfulnl_test.c"
+Content-Disposition: attachment; filename="nfulnl_test.c"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
+
+CiNpbmNsdWRlIDxzdGRpby5oPgojaW5jbHVkZSA8c3RkbGliLmg+CiNpbmNsdWRlIDx1bmlzdGQu
+aD4KI2luY2x1ZGUgPG5ldGluZXQvaW4uaD4KCiNpbmNsdWRlIDxsaWJuZXRmaWx0ZXJfbG9nL2xp
+Ym5ldGZpbHRlcl9sb2cuaD4KCnN0YXRpYyBpbnQgcHJpbnRfcGt0KHN0cnVjdCBuZmxvZ19kYXRh
+ICpsZGF0YSkKewoJc3RydWN0IG5mdWxubF9tc2dfcGFja2V0X2hkciAqcGggPSBuZmxvZ19nZXRf
+bXNnX3BhY2tldF9oZHIobGRhdGEpOwoJdV9pbnQzMl90IG1hcmsgPSBuZmxvZ19nZXRfbmZtYXJr
+KGxkYXRhKTsKCXVfaW50MzJfdCBpbmRldiA9IG5mbG9nX2dldF9pbmRldihsZGF0YSk7Cgl1X2lu
+dDMyX3Qgb3V0ZGV2ID0gbmZsb2dfZ2V0X291dGRldihsZGF0YSk7CgljaGFyICpwcmVmaXggPSBu
+ZmxvZ19nZXRfcHJlZml4KGxkYXRhKTsKCWNoYXIgKnBheWxvYWQ7CglpbnQgcGF5bG9hZF9sZW4g
+PSBuZmxvZ19nZXRfcGF5bG9hZChsZGF0YSwgJnBheWxvYWQpOwoJCglpZiAocGgpIHsKCQlwcmlu
+dGYoImh3X3Byb3RvY29sPTB4JTA0eCBob29rPSV1ICIsIAoJCQludG9ocyhwaC0+aHdfcHJvdG9j
+b2wpLCBwaC0+aG9vayk7Cgl9CgoJcHJpbnRmKCJtYXJrPSV1ICIsIG1hcmspOwoKCWlmIChpbmRl
+diA+IDApCgkJcHJpbnRmKCJpbmRldj0ldSAiLCBpbmRldik7CgoJaWYgKG91dGRldiA+IDApCgkJ
+cHJpbnRmKCJvdXRkZXY9JXUgIiwgb3V0ZGV2KTsKCgoJaWYgKHByZWZpeCkgewoJCXByaW50Zigi
+cHJlZml4PVwiJXNcIiAiLCBwcmVmaXgpOwoJfQoJaWYgKHBheWxvYWRfbGVuID49IDApCgkJcHJp
+bnRmKCJwYXlsb2FkX2xlbj0lZCAiLCBwYXlsb2FkX2xlbik7CgoJZnB1dGMoJ1xuJywgc3Rkb3V0
+KTsKCXJldHVybiAwOwp9CgpzdGF0aWMgaW50IGNiKHN0cnVjdCBuZmxvZ19nX2hhbmRsZSAqZ2gs
+IHN0cnVjdCBuZmdlbm1zZyAqbmZtc2csCgkJc3RydWN0IG5mbG9nX2RhdGEgKm5mYSwgdm9pZCAq
+ZGF0YSkKewoJcHJpbnRfcGt0KG5mYSk7Cn0KCgppbnQgbWFpbihpbnQgYXJnYywgY2hhciAqKmFy
+Z3YpCnsKCXN0cnVjdCBuZmxvZ19oYW5kbGUgKmg7CglzdHJ1Y3QgbmZsb2dfZ19oYW5kbGUgKnFo
+OwoJc3RydWN0IG5mbG9nX2dfaGFuZGxlICpxaDEwMDsKCWludCBydiwgZmQ7CgljaGFyIGJ1Zls0
+MDk2XTsKCgloID0gbmZsb2dfb3BlbigpOwoJaWYgKCFoKSB7CgkJZnByaW50ZihzdGRlcnIsICJl
+cnJvciBkdXJpbmcgbmZsb2dfb3BlbigpXG4iKTsKCQlleGl0KDEpOwoJfQoKCXByaW50ZigidW5i
+aW5kaW5nIGV4aXN0aW5nIG5mX2xvZyBoYW5kbGVyIGZvciBBRl9JTkVUIChpZiBhbnkpXG4iKTsK
+CWlmIChuZmxvZ191bmJpbmRfcGYoaCwgQUZfSU5FVCkgPCAwKSB7CgkJZnByaW50ZihzdGRlcnIs
+ICJlcnJvciBuZmxvZ191bmJpbmRfcGYoKVxuIik7CgkJZXhpdCgxKTsKCX0KCglwcmludGYoImJp
+bmRpbmcgbmZuZXRsaW5rX2xvZyB0byBBRl9JTkVUXG4iKTsKCWlmIChuZmxvZ19iaW5kX3BmKGgs
+IEFGX0lORVQpIDwgMCkgewoJCWZwcmludGYoc3RkZXJyLCAiZXJyb3IgZHVyaW5nIG5mbG9nX2Jp
+bmRfcGYoKVxuIik7CgkJZXhpdCgxKTsKCX0KCXByaW50ZigiYmluZGluZyB0aGlzIHNvY2tldCB0
+byBncm91cCAwXG4iKTsKCXFoID0gbmZsb2dfYmluZF9ncm91cChoLCAwKTsKCWlmICghcWgpIHsK
+CQlmcHJpbnRmKHN0ZGVyciwgIm5vIGhhbmRsZSBmb3IgZ3J1cCAwXG4iKTsKCQlleGl0KDEpOwoJ
+fQoKCXByaW50ZigiYmluZGluZyB0aGlzIHNvY2tldCB0byBncm91cCAxMDBcbiIpOwoJcWgxMDAg
+PSBuZmxvZ19iaW5kX2dyb3VwKGgsIDEwMCk7CglpZiAoIXFoMTAwKSB7CgkJZnByaW50ZihzdGRl
+cnIsICJubyBoYW5kbGUgZm9yIGdyb3VwIDEwMFxuIik7CgkJZXhpdCgxKTsKCX0KCglwcmludGYo
+InNldHRpbmcgY29weV9wYWNrZXQgbW9kZVxuIik7CglpZiAobmZsb2dfc2V0X21vZGUocWgsIE5G
+VUxOTF9DT1BZX1BBQ0tFVCwgMHhmZmZmKSA8IDApIHsKCQlmcHJpbnRmKHN0ZGVyciwgImNhbid0
+IHNldCBwYWNrZXQgY29weSBtb2RlXG4iKTsKCQlleGl0KDEpOwoJfQoKCWZkID0gbmZsb2dfZmQo
+aCk7CgoJcHJpbnRmKCJyZWdpc3RlcmluZyBjYWxsYmFjayBmb3IgZ3JvdXAgMFxuIik7CgluZmxv
+Z19jYWxsYmFja19yZWdpc3RlcihxaCwgJmNiLCBOVUxMKTsKCglwcmludGYoImdvaW5nIGludG8g
+bWFpbiBsb29wXG4iKTsKCXdoaWxlICgocnYgPSByZWN2KGZkLCBidWYsIHNpemVvZihidWYpLCAw
+KSkgJiYgcnYgPj0gMCkgewoJCXN0cnVjdCBubG1zZ2hkciAqbmxoOwoJCXByaW50ZigicGt0IHJl
+Y2VpdmVkIChsZW49JXUpXG4iLCBydik7CgoJCS8qIGhhbmRsZSBtZXNzYWdlcyBpbiBqdXN0LXJl
+Y2VpdmVkIHBhY2tldCAqLwoJCW5mbG9nX2hhbmRsZV9wYWNrZXQoaCwgYnVmLCBydik7Cgl9CgoJ
+cHJpbnRmKCJ1bmJpbmRpbmcgZnJvbSBncm91cCAxMDBcbiIpOwoJbmZsb2dfdW5iaW5kX2dyb3Vw
+KHFoMTAwKTsKCXByaW50ZigidW5iaW5kaW5nIGZyb20gZ3JvdXAgMFxuIik7CgluZmxvZ191bmJp
+bmRfZ3JvdXAocWgpOwoKI2lmZGVmIElOU0FORQoJLyogbm9yYWxseSwgYXBwbGljYXRpb25zIFNI
+T1VMRCBOT1QgaXNzdWUgdGhpcyBjb21tYW5kLAoJICogc2luY2UgaXQgZGV0YWNoZXMgb3RoZXIg
+cHJvZ3JhbXMvc29ja2V0cyBmcm9tIEFGX0lORVQsIHRvbyAhICovCglwcmludGYoInVuYmluZGlu
+ZyBmcm9tIEFGX0lORVRcbiIpOwoJbmZsb2dfdW5iaW5kX3BmKGgsIEFGX0lORVQpOwojZW5kaWYK
+CglwcmludGYoImNsb3NpbmcgaGFuZGxlXG4iKTsKCW5mbG9nX2Nsb3NlKGgpOwoKCWV4aXQoMCk7
+Cn0K
+--001636c92cd98e31dc04b99bc952--
