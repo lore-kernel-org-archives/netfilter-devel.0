@@ -1,113 +1,128 @@
-From: Ganesh Kumar <ganeshkumarnm@gmail.com>
-Subject: Re: nfulnl_test doesn't work on Ubuntu
-Date: Thu, 23 Feb 2012 13:35:53 +0530
-Message-ID: <CAHS57vVTPUxhvKu3iUEs=f8KPpdxy2yomAs+9ZqMYp9xs1UpBA@mail.gmail.com>
-References: <CAHS57vUULJmJZuaR3-e2Lzx24Jj-gkg2t5qu_oa9vVdwfjOv-w@mail.gmail.com>
-	<1329981861.15610.10.camel@edumazet-laptop>
-	<CAHS57vVYyO+yES9CSk8Fbmdwc-S8g_p9QCT=kkOK2A-RmwzFJg@mail.gmail.com>
-	<1329983898.15610.11.camel@edumazet-laptop>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH 1/2] IPVS Bug IPv6 extension header handling faulty.
+Date: Thu, 23 Feb 2012 11:03:52 +0200 (EET)
+Message-ID: <alpine.LFD.2.00.1202231012260.1481@ja.ssi.bg>
+References: <1329223689-19792-1-git-send-email-hans.schillstrom@ericsson.com> <201202220846.58599.hans@schillstrom.com> <alpine.LFD.2.00.1202222347030.1603@ja.ssi.bg> <201202230834.24254.hans@schillstrom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, Ganesh Kumar <gkumarnm@gmail.com>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	horms@verge.net.au, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	kaber@trash.net, pablo@netfilter.org
+To: Hans Schillstrom <hans@schillstrom.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:48427 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752271Ab2BWIFy convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Feb 2012 03:05:54 -0500
-Received: by yhoo21 with SMTP id o21so455576yho.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Feb 2012 00:05:53 -0800 (PST)
-In-Reply-To: <1329983898.15610.11.camel@edumazet-laptop>
+Received: from ja.ssi.bg ([178.16.129.10]:47688 "EHLO ja.ssi.bg"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751729Ab2BWJCm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Feb 2012 04:02:42 -0500
+In-Reply-To: <201202230834.24254.hans@schillstrom.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Eric,
 
-  Thanks, now did  sudo, this is what I get;
+	Hello,
 
- gakumar@krishna-desktop:~/PacketFilter/libnetfilter_log-1.0.0/utils$
-sudo ./nfulnl_test
-[sudo] password for gakumar:
-/home/gakumar/PacketFilter/libnetfilter_log-1.0.0/utils/.libs/lt-nfulnl=
-_test:
-error while loading shared libraries: libnfnetlink.so.0: cannot open
-shared object file: No such file or directory
-gakumar@krishna-desktop:~/PacketFilter/libnetfilter_log-1.0.0/utils$
-echo $LD_LIBRARY_PATH
-/opt/qnx641/host/linux/x86/usr/lib:/opt/qnx650/host/linux/x86/usr/lib:/=
-usr/local/lib/
-gakumar@krishna-desktop:~/PacketFilter/libnetfilter_log-1.0.0/utils$
+On Thu, 23 Feb 2012, Hans Schillstrom wrote:
 
-gakumar@krishna-desktop:~/PacketFilter/libnetfilter_log-1.0.0/utils$
-ls /usr/local/lib/
-libnetfilter_log.a                   libnetfilter_log_libipulog.so.1
-   libnfnetlink.a                       pkgconfig/
-libnetfilter_log.la
-libnetfilter_log_libipulog.so.1.0.0  libnfnetlink.la
-   python2.6/
-libnetfilter_log_libipulog.a         libnetfilter_log.so
-   libnfnetlink.so
-libnetfilter_log_libipulog.la        libnetfilter_log.so.1
-   libnfnetlink.so.0
-libnetfilter_log_libipulog.so        libnetfilter_log.so.1.1.0
-   libnfnetlink.so.0.2.0
-gakumar@krishna-desktop:~/PacketFilter/libnetfilter_log-1.0.0/utils$
+> > 	This is not going to work. You are trying to track
+> > any locally delivered fragments. If cp is NULL it will crash.
+> > There is no need to add check for !iph.fragoffs because
+> > for iph.fragoffs != 0 we find cp with data from reasm,
+> > I mean with ip_vs_skb_hdr_ptr.
+> > 
+> 	cp = pp->conn_in_get(af, skb, &iph, 0);
+> 	if (unlikely(!cp) && !iph.fragoffs) {
 
+	OK, then let's just keep the !cp check and
+later if cp is NULL just to NF_ACCEPT packets with
+iph.fragoffs != 0, the check should be before calling
+conn_schedule.
 
-wondering why its not able to locate the .so
+	In the case after calling ip_vs_lookup_real_service
+is it correct to reject non-first fragment with
+ICMPV6_PORT_UNREACH, is that allowed? May be we should
+avoid sending ICMP errors to non-first fragment, what
+is the right thing to do?
 
-Thanks,
-Ganesh
+> No it is working pretty well, because conn_in_get() is fragment aware.
+> if cp is null it's a new connection and in that case only the first frag will do
+> a schedule.
+> For the following fragments reasm will be used by conn_in_get()
+> so it should normaly return a valid "cp".
 
+	I worry that cp can be expired by force at that
+time, so lets add the above check before scheduling.
 
-On 2/23/12, Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> Le jeudi 23 f=E9vrier 2012 =E0 13:05 +0530, Ganesh Kumar a =E9crit :
->> Hi Eric,
->>
->>    Thanks for a fast reply.
->> I tried modprobe nfnetlink_log
->>
->> this is what I get in dmesg
->>
->> [2054919.049919] Netfilter messages via NETLINK v0.30.
->>
->> gakumar@krishna-desktop:~/PacketFilter/libnetfilter_log-1.0.0/utils$
->> ./nfulnl_test
->> binding nfnetlink_log to AF_INET
->> error during nflog_bind_pf()
->> gakumar@krishna-desktop:~/PacketFilter/libnetfilter_log-1.0.0/utils$
->>
->> These are the contents of
->> gakumar@krishna-desktop:~/PacketFilter/libnetfilter_log-1.0.0/utils$
->> ls /usr/local/lib/
->> libnetfilter_log.a                   libnetfilter_log_libipulog.so.1
->>    libnfnetlink.a                       pkgconfig/
->> libnetfilter_log.la
->> libnetfilter_log_libipulog.so.1.0.0  libnfnetlink.la
->>    python2.6/
->> libnetfilter_log_libipulog.a         libnetfilter_log.so
->>    libnfnetlink.so
->> libnetfilter_log_libipulog.la        libnetfilter_log.so.1
->>    libnfnetlink.so.0
->> libnetfilter_log_libipulog.so        libnetfilter_log.so.1.1.0
->>    libnfnetlink.so.0.2.0
->> gakumar@krishna-desktop:~/PacketFilter/libnetfilter_log-1.0.0/utils$
->>
->> Hope its installed properly.
->> anything else I need to fix/check
->>
->
-> You have to be root
->
-> sudo ./nfulnl_test
->
->
->
->
+> > 	But IPVS is working in LOCAL_IN, even fragments will
+> > come with dst because they will be delivered locally after
+> > input routing. 
+> 
+> Well in the case when you have the VIP at the loopback that is true.
+> If you have rules based on fw mark that force packets to IPVS,
+> you will miss all fragments, i.e. the will go to the FORWARD chain
+> 
+> So that is why skb_dst_copy() is needed.
+
+	You mean, only the first fragment has correct
+mark, the following fragments can not be marked correctly
+because we can not match the ports. And CONNMARK can not help
+us because it depends on conntrack support?
+
+> > So, there is no need to assign dst. In
+> > PREROUTING there will be dst for loopback traffic. The
+> > other traffic will get input route before reaching IPVS.
+> > And it is dangerous to replace dst for the reason that
+> > ip_vs_preroute_frag6 does not know if reasm was tracked
+> > by IPVS, it can be just some netfilter packet. 
+> 
+> That's a side effect. 
+> But I'm working on a solution for ip6tables to keep track on the fragments
+> most people isn't aware of that you must take care of fragemnts your self 
+> in your ip6tables rule-set....
+
+	skb_dst_copy before PREROUTING is wrong even if
+we do it for IPVS traffic, ip6_rcv_finish is going to
+call dst_input. And all transmitters check the skb dst
+to decide how to route the packet, so we have to leave
+this job to transmitters, even for the fragments.
+
+> > May be it is a good idea to set reasm->ipvs_property at
+> > some place, so that we know the packets are tracked
+> > by IPVS. Then we can restrict ip_vs_preroute_frag6 to
+> > work only for IPVS traffic.
+> 
+> Good idea, thanks !!!
+> I'll will do that
+
+	Yes, it seems it will be needed to copy mark,
+so that all IPVS fragments are forced to have same mark.
+
+> > 	Hm, I have to check what happens if we decide to
+> > mangle payload. Also, note that now ip_vs_nat_xmit_v6
+> > should try to NAT ports only for first fragment, is that
+> > handled? 
+> Yes in xnat_handler(..)
+> 
+> #ifdef CONFIG_IP_VS_IPV6
+> 	if (cp->af == AF_INET6 && iph->fragoffs)
+> 		return 1;
+> #endif
+
+	Yes, there must be checks for fragoffs at some
+places. May be it is a good idea to rename ip_vs_skb_hdr_ptr
+to ip_vs_first_skb_hdr_ptr and to use it only at places
+that need data from first fragment. Places that work
+with current fragment will continue to use skb_header_pointer.
+By this way we will know correctly which skb is accessed.
+May be that is what you do but at least lets have a proper
+func name.
+
+> BTW, I have not test ESP & AH but on the other hand the are not subjects for fragmentation.
+> The sending of ICMPV6_PKT_TOOBIG seems to be generic so...
+
+	ok
+
+Regards
+
 --
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Julian Anastasov <ja@ssi.bg>
