@@ -1,57 +1,35 @@
-From: pablo@netfilter.org
-Subject: [PATCH 1/4] ipvs: fix matching of fwmark templates during scheduling
-Date: Thu, 23 Feb 2012 01:02:23 +0100
-Message-ID: <1329955346-2615-2-git-send-email-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/4] netfilter updates for net tree
+Date: Thu, 23 Feb 2012 00:20:47 -0500 (EST)
+Message-ID: <20120223.002047.1508425424024898432.davem@davemloft.net>
 References: <1329955346-2615-1-git-send-email-pablo@netfilter.org>
-Cc: netdev@vger.kernel.org, davem@davemloft.net
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48644 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753080Ab2BWACm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Feb 2012 19:02:42 -0500
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1329955346-2615-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Simon Horman <horms@verge.net.au>
+From: pablo@netfilter.org
+Date: Thu, 23 Feb 2012 01:02:22 +0100
 
-	Commit f11017ec2d1859c661f4e2b12c4a8d250e1f47cf (2.6.37)
-moved the fwmark variable in subcontext that is invalidated before
-reaching the ip_vs_ct_in_get call. As vaddr is provided as pointer
-in the param structure make sure the fwmark variable is in
-same context. As the fwmark templates can not be matched,
-more and more template connections are created and the
-controlled connections can not go to single real server.
+> The following are four fixes for your net tree:
+> 
+> * One fix for NFQUEUE if used in bridge mode when GRO/GSO skbs
+>   are enqueued from Florian Westphal.
+> 
+> * One fix from Joerg Willmann to fix wrong alignment in ebtables
+>   on PPC.
+> 
+> * One fix for soft lockup for ctnetlink from Jozsef Kadlecsik.
+> 
+> * One fix for IPVS from Simon Horman.
+> 
+> Please, pull these changes from:
+> 
+> 	git://1984.lsi.us.es/net nf
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Cc: stable@vger.kernel.org
-Signed-off-by: Simon Horman <horms@verge.net.au>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/ipvs/ip_vs_core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 611c335..2555816 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -232,6 +232,7 @@ ip_vs_sched_persist(struct ip_vs_service *svc,
- 	__be16 dport = 0;		/* destination port to forward */
- 	unsigned int flags;
- 	struct ip_vs_conn_param param;
-+	const union nf_inet_addr fwmark = { .ip = htonl(svc->fwmark) };
- 	union nf_inet_addr snet;	/* source network of the client,
- 					   after masking */
- 
-@@ -267,7 +268,6 @@ ip_vs_sched_persist(struct ip_vs_service *svc,
- 	{
- 		int protocol = iph.protocol;
- 		const union nf_inet_addr *vaddr = &iph.daddr;
--		const union nf_inet_addr fwmark = { .ip = htonl(svc->fwmark) };
- 		__be16 vport = 0;
- 
- 		if (dst_port == svc->port) {
--- 
-1.7.7.3
-
+Pulled, thanks Pablo.
