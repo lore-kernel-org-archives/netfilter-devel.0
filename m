@@ -1,34 +1,58 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] ulogd2 / DBI / table name
-Date: Fri, 24 Feb 2012 18:59:30 +0100
-Message-ID: <20120224175930.GA11837@1984>
-References: <20120212225627.GH3216@prithivi.gnumonks.org>
+From: Ian Pilcher <arequipeno@gmail.com>
+Subject: Re: [RFC] SSDP (UPnP) conntrack helper
+Date: Fri, 24 Feb 2012 14:13:54 -0600
+Message-ID: <ji8r22$om2$1@dough.gmane.org>
+References: <jhkpju$dsp$1@dough.gmane.org> <20120224165359.GB11488@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Harald Welte <laforge@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44609 "EHLO mail.us.es"
+Received: from plane.gmane.org ([80.91.229.3]:52995 "EHLO plane.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932095Ab2BXR7u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 24 Feb 2012 12:59:50 -0500
-Content-Disposition: inline
-In-Reply-To: <20120212225627.GH3216@prithivi.gnumonks.org>
+	id S1755195Ab2BXUOG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 24 Feb 2012 15:14:06 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
+	id 1S11Wl-0006GV-Hg
+	for netfilter-devel@vger.kernel.org; Fri, 24 Feb 2012 21:14:03 +0100
+Received: from pool-71-252-228-112.dllstx.fios.verizon.net ([71.252.228.112])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Feb 2012 21:14:03 +0100
+Received: from arequipeno by pool-71-252-228-112.dllstx.fios.verizon.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Feb 2012 21:14:03 +0100
+In-Reply-To: <20120224165359.GB11488@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Feb 12, 2012 at 11:56:27PM +0100, Harald Welte wrote:
-> Hi!
+On 02/24/2012 10:53 AM, Pablo Neira Ayuso wrote:
+> We're targeting to have this helper and others in user-space in the
+> short tun.
 > 
-> I've tried to use the DBI plugin of ulogd2 for NFCT based accounting,
-> and despite using table="conntrack", it always insisted in using the
-> table "ulog" for deriving the keys/columns to be stored.
+> I have a patch to add user-space helper infrastructure. I expect to
+> have it done soon.
 > 
-> I've hacked up a quick fix, and it seems to work as expected (though no
-> proper null temrmination after strncpy).
-> 
-> As I've been absent from ulogd and netfilter hacking for some time, I
-> tohught I'd post it here rather than pushing something to the git
-> repo...
+> I think it's time to think about having helpers in user-space.
 
-Applied, thanks Harald!
+Thanks for the response.
+
+Assuming the user-space connection tracking thing pans out, it sounds
+like there isn't much possibility of this making it upstream.
+
+I'd still like to get it the module finished up.  It's a useful learning
+exercise, and I think it could be useful for anyone who stays on an
+older kernel, "enterprise" distribution users for example.
+
+I would *really* appreciate some feedback on the various questions that
+I've posed in this thread.
+
+Thanks!
+
+-- 
+========================================================================
+Ian Pilcher                                         arequipeno@gmail.com
+"If you're going to shift my paradigm ... at least buy me dinner first."
+========================================================================
+
