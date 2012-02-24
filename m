@@ -1,58 +1,54 @@
-From: Ian Pilcher <arequipeno@gmail.com>
-Subject: Re: [RFC] SSDP (UPnP) conntrack helper
-Date: Fri, 24 Feb 2012 14:13:54 -0600
-Message-ID: <ji8r22$om2$1@dough.gmane.org>
-References: <jhkpju$dsp$1@dough.gmane.org> <20120224165359.GB11488@1984>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+From: pablo@netfilter.org
+Subject: [PATCH 0/2] netlink: netlink_dump_start takes pointer to data
+Date: Fri, 24 Feb 2012 23:14:06 +0100
+Message-ID: <1330121648-2956-1-git-send-email-pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net
+To: netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:52995 "EHLO plane.gmane.org"
+Received: from mail.us.es ([193.147.175.20]:35644 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755195Ab2BXUOG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 24 Feb 2012 15:14:06 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
-	id 1S11Wl-0006GV-Hg
-	for netfilter-devel@vger.kernel.org; Fri, 24 Feb 2012 21:14:03 +0100
-Received: from pool-71-252-228-112.dllstx.fios.verizon.net ([71.252.228.112])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Feb 2012 21:14:03 +0100
-Received: from arequipeno by pool-71-252-228-112.dllstx.fios.verizon.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Feb 2012 21:14:03 +0100
-In-Reply-To: <20120224165359.GB11488@1984>
+	id S1756044Ab2BXWOX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 24 Feb 2012 17:14:23 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 02/24/2012 10:53 AM, Pablo Neira Ayuso wrote:
-> We're targeting to have this helper and others in user-space in the
-> short tun.
-> 
-> I have a patch to add user-space helper infrastructure. I expect to
-> have it done soon.
-> 
-> I think it's time to think about having helpers in user-space.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Thanks for the response.
+Hi,
 
-Assuming the user-space connection tracking thing pans out, it sounds
-like there isn't much possibility of this making it upstream.
+This patch modifies netlink_dump_start to take a pointer to data.
+All caller are modified to use the new interface. This pointer can
+be accessed via cb->data from the callback.
 
-I'd still like to get it the module finished up.  It's a useful learning
-exercise, and I think it could be useful for anyone who stays on an
-older kernel, "enterprise" distribution users for example.
+The follow-up patch for ctnetlink uses this change to pass the
+filter structure, which allows filtering the dump by the ct
+mark/mask.
 
-I would *really* appreciate some feedback on the various questions that
-I've posed in this thread.
+Let me know if you are OK with this change, I can included it
+in the next netfilter update or you may want to directly apply
+it.
 
 Thanks!
 
+Pablo Neira Ayuso (2):
+  netlink: netlink_dump_start may take data pointer for callbacks
+  netfilter: ctnetlink: support kernel-space dump filterings
+
+ crypto/crypto_user.c                          |    2 +-
+ drivers/infiniband/core/netlink.c             |    2 +-
+ include/linux/netfilter/nfnetlink_conntrack.h |    1 +
+ include/linux/netlink.h                       |    2 +
+ net/core/rtnetlink.c                          |    2 +-
+ net/ipv4/inet_diag.c                          |    4 +-
+ net/netfilter/ipset/ip_set_core.c             |    2 +-
+ net/netfilter/nf_conntrack_netlink.c          |   37 +++++++++++++++++++++++--
+ net/netfilter/nfnetlink_acct.c                |    2 +-
+ net/netlink/af_netlink.c                      |    2 +
+ net/netlink/genetlink.c                       |    2 +-
+ net/unix/diag.c                               |    2 +-
+ net/xfrm/xfrm_user.c                          |    2 +-
+ 13 files changed, 49 insertions(+), 13 deletions(-)
+
 -- 
-========================================================================
-Ian Pilcher                                         arequipeno@gmail.com
-"If you're going to shift my paradigm ... at least buy me dinner first."
-========================================================================
+1.7.7.3
 
