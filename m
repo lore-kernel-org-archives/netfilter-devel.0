@@ -1,50 +1,34 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC] SSDP (UPnP) conntrack helper
-Date: Sat, 25 Feb 2012 14:32:29 +0100
-Message-ID: <20120225133229.GE15774@1984>
-References: <jhkpju$dsp$1@dough.gmane.org>
- <20120224165359.GB11488@1984>
- <ji8r22$om2$1@dough.gmane.org>
+Subject: Re: [PATCH 1/2] iptables: Merge libip6t_LOG and libipt_LOG into
+ libxt_LOG
+Date: Sat, 25 Feb 2012 14:38:16 +0100
+Message-ID: <20120225133816.GA15864@1984>
+References: <1328911856-19260-1-git-send-email-richard@nod.at>
+ <1328911856-19260-2-git-send-email-richard@nod.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Ian Pilcher <arequipeno@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, eric.dumazet@gmail.com,
+	jengelh@medozas.de, rostedt@goodmis.org, basti@b-bl.de
+To: Richard Weinberger <richard@nod.at>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58612 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58845 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754038Ab2BYNcb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 25 Feb 2012 08:32:31 -0500
+	id S1755805Ab2BYNiS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 25 Feb 2012 08:38:18 -0500
 Content-Disposition: inline
-In-Reply-To: <ji8r22$om2$1@dough.gmane.org>
+In-Reply-To: <1328911856-19260-2-git-send-email-richard@nod.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Feb 24, 2012 at 02:13:54PM -0600, Ian Pilcher wrote:
-> On 02/24/2012 10:53 AM, Pablo Neira Ayuso wrote:
-> > We're targeting to have this helper and others in user-space in the
-> > short tun.
-> > 
-> > I have a patch to add user-space helper infrastructure. I expect to
-> > have it done soon.
-> > 
-> > I think it's time to think about having helpers in user-space.
-> 
-> Thanks for the response.
-> 
-> Assuming the user-space connection tracking thing pans out, it sounds
-> like there isn't much possibility of this making it upstream.
-> 
-> I'd still like to get it the module finished up.  It's a useful learning
-> exercise, and I think it could be useful for anyone who stays on an
-> older kernel, "enterprise" distribution users for example.
+On Fri, Feb 10, 2012 at 11:10:51PM +0100, Richard Weinberger wrote:
+> libip6t_LOG and libipt_LOG share a lot of common code, merge them
+> to recude duplicate code.
 
-I'll be very happy if you work on the user-space version. The
-user-space cthelper infrastructure will be ready in two months
-or so.
+I have applied this to the net-next branch of iptables.
 
-> I would *really* appreciate some feedback on the various questions that
-> I've posed in this thread.
+See git.netfilter.org
 
-I think most of the questions can be replied by looking and
-nf_conntrack_expect.c. I'll try to find some spare time to reply some
-of those questions, but I don't promise anything.
+I'll merge it to master once linux kernel 3.3 is released.
+
+Please, send follow up patches if you find any issue. Thanks.
