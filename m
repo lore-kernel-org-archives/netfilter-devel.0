@@ -1,86 +1,48 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 2/2] netfilter: ctnetlink: support kernel-space dump
- filterings
-Date: Sat, 25 Feb 2012 02:09:09 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1202250153440.17151@frira.zrqbmnf.qr>
-References: <1330121648-2956-1-git-send-email-pablo@netfilter.org> <1330121648-2956-3-git-send-email-pablo@netfilter.org>
+Subject: Re: [PATCH 1/3] netlink: add netlink_dump_control structure for
+ netlink_dump_start()
+Date: Sat, 25 Feb 2012 02:12:22 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1202250210240.17151@frira.zrqbmnf.qr>
+References: <1330129817-28199-1-git-send-email-pablo@netfilter.org> <1330129817-28199-2-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	davem@davemloft.net
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:46151 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:46179 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756055Ab2BYBJN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 24 Feb 2012 20:09:13 -0500
-In-Reply-To: <1330121648-2956-3-git-send-email-pablo@netfilter.org>
+	id S1753258Ab2BYBMX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 24 Feb 2012 20:12:23 -0500
+In-Reply-To: <1330129817-28199-2-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Saturday 2012-02-25 01:30, pablo@netfilter.org wrote:
 
-On Friday 2012-02-24 23:14, pablo@netfilter.org wrote:
->@@ -977,9 +992,25 @@ ctnetlink_get_conntrack(struct sock *ctnl, struct sk_buff *skb,
-> 	u16 zone;
-> 	int err;
-> 
->-	if (nlh->nlmsg_flags & NLM_F_DUMP)
->+	if (nlh->nlmsg_flags & NLM_F_DUMP) {
->+		struct ctnetlink_dump_filter *filter = NULL;
->+
->+#if defined(CONFIG_NF_CONNTRACK_MARK)
->+		filter = kzalloc(sizeof(struct ctnetlink_dump_filter),
->+				 GFP_KERNEL);
->+		if (filter == NULL)
->+			return -ENOMEM;
->+
->+		if (cda[CTA_MARK])
->+			filter->mark.value = ntohl(nla_get_be32(cda[CTA_MARK]));
->+		if (cda[CTA_MARK_MASK]) {
->+			filter->mark.mask =
->+				ntohl(nla_get_be32(cda[CTA_MARK_MASK]));
+>From: Pablo Neira Ayuso <pablo@netfilter.org>
+>
+>Davem considers that the argument list of this interface is getting
+>out of control. This patch tries to address this issue following
+>his proposal:
+>
+>struct netlink_dump_control c = { .dump = dump, .done = done, ... };
+>
+>netlink_dump_start(..., &c);
+
+What about adding skb and nlh into c as well? After all, skb
+is not nearly as much {used directly} as it is in Xtables.
+
+>+		{
+>+			struct netlink_dump_control c = {
+>+				.dump = link->dump,
+>+				.done = link->done,
+>+			};
+>+			return netlink_dump_start(crypto_nlsk, skb, nlh, &c);
 >+		}
->+#endif
-> 		return netlink_dump_start(ctnl, skb, nlh, ctnetlink_dump_table,
->-					  ctnetlink_done, NULL, 0);
->+					  ctnetlink_done, filter, 0);
->+	}
 
-I had thought of the following before your patch came up:
+You can also use
 
-ctnl_dump_any(skb,cb)
-{
-	...loop over CTs...
-}
-ctnl_dump_foo(skb,cb)
-{
-	if (cb->args[0] == NULL) {
-		cb->args[0] = filter = kzalloc(sizeof(struct ctnl_dump_filter));
-		if (cb->nlh has CTA_MARK) /* [1] */
-			filter->mark.value = ...
-	}
-	return ctnl_dump_any(skb,cb);
-}
-ctnl_dump_bar(skb,cb)
-{
-	if (cb->args[0] == NULL) {
-		cb->args[0] = somethingelse;
-	}
-	return ctnl_dump_any(skb,cb);
-}
-ctnetlink_get_foo(ctnl,skb,...)
-{
-	netlink_dump_start(ctnl,skb,nlh,ctnl_dump_foo,ctnl_done,0);
-}
-ctnetlink_get_bar(ctnl,skb,...)
-{
-	netlink_dump_start(ctnl,skb,nlh,ctnl_dump_bar,ctnl_done,0);
-}
-
-[1]: Arguably needs a way to put cda into cb.
-
-==
-
-Either way, netlink is gathering up a lot of arguments and has come
-to the point where I would suggest to put it all into a struct,
-like we have done for struct xt_action_param.
+		return netlink_dump_start(crypto_nlsk, skb,
+		       &(const struct netlink_dump_control)
+		       {.dump = link->dump, .done = link->done}));
