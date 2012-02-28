@@ -1,56 +1,75 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/2] iptables: Merge libip6t_LOG and libipt_LOG into
- libxt_LOG
-Date: Tue, 28 Feb 2012 23:54:46 +0100
-Message-ID: <20120228225446.GA30124@1984>
-References: <1328911856-19260-1-git-send-email-richard@nod.at>
- <1328911856-19260-2-git-send-email-richard@nod.at>
- <20120225133816.GA15864@1984>
- <4F4CFB6D.4000403@nod.at>
- <CAA93jw5AfWbU8Gsx1WtJSkTox7bMAjkeuojaMXgwWgdAyROMGw@mail.gmail.com>
+Subject: Re: [PATCH] DHCPv6 connection tracker helper
+Date: Wed, 29 Feb 2012 00:54:56 +0100
+Message-ID: <20120228235456.GA30286@1984>
+References: <CAFntDkx2SUkCkSbU7sO4OrWqypWQpY-KNgrD-_DgqRSXAGvJZQ@mail.gmail.com>
+ <alpine.LNX.2.01.1202130940390.30851@frira.zrqbmnf.qr>
+ <CAFntDkw0sN=j+mKm0s=kac+mMWnQqdyUviGj0_puj0bqSobR=Q@mail.gmail.com>
+ <alpine.LNX.2.01.1202151758290.15357@frira.zrqbmnf.qr>
+ <CAFntDkx_aZ4Pvfg21yHUDYWcaG=pwk28xwjpv1Sh9q0B4N+TRw@mail.gmail.com>
+ <20120224175420.GA11587@1984>
+ <CAFntDkz4QtCrgHNFNp6Bn1dGco3HCWthYaFLN_-bUVb2q0wPjQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Richard Weinberger <richard@nod.at>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, eric.dumazet@gmail.com,
-	jengelh@medozas.de, rostedt@goodmis.org, basti@b-bl.de
-To: Dave Taht <dave.taht@gmail.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Darren Willis <djw@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54755 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:32819 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756172Ab2B1Wy7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Feb 2012 17:54:59 -0500
+	id S932249Ab2B1Xy7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Feb 2012 18:54:59 -0500
 Content-Disposition: inline
-In-Reply-To: <CAA93jw5AfWbU8Gsx1WtJSkTox7bMAjkeuojaMXgwWgdAyROMGw@mail.gmail.com>
+In-Reply-To: <CAFntDkz4QtCrgHNFNp6Bn1dGco3HCWthYaFLN_-bUVb2q0wPjQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Feb 28, 2012 at 05:15:59PM +0100, Dave Taht wrote:
-> On Tue, Feb 28, 2012 at 5:06 PM, Richard Weinberger <richard@nod.at> wrote:
-> > Am 25.02.2012 14:38, schrieb Pablo Neira Ayuso:
-> >> On Fri, Feb 10, 2012 at 11:10:51PM +0100, Richard Weinberger wrote:
-> >>> libip6t_LOG and libipt_LOG share a lot of common code, merge them
-> >>> to recude duplicate code.
-> >>
-> >> I have applied this to the net-next branch of iptables.
-> >>
-> >> See git.netfilter.org
-> >>
-> >> I'll merge it to master once linux kernel 3.3 is released.
+On Mon, Feb 27, 2012 at 01:18:58PM +0900, Darren Willis wrote:
+> > 1) In the last Netfilter workshop, we decided that we're targeting
+> > towards explicit helper configuration via iptables, ie. something
+> > like:
 > >
-> > Okay. What about the ring buffer feature?
-> > Is there anything missing?
-> 
-> I'm under the impression that the ecn related changes didn't make it
-> as yet. I'm in a position to test that stuff this month, if it needs
-> further testing and hasn't actually made it in.
+> > ip6tables -I OUTPUT -t raw -s $SRC -d $DST \
+> > =A0 =A0 =A0 =A0-p udp --dport 547 -j CT --helper dhcpv6
+> >
+> > According to your report, this is exactly what distributors don't
+> > want to do.
+>=20
+> Interesting. Well, my impression is that distributions don't wan't to
+> add rules, but if they can't avoid it, they'll just have to cope.
+> Is this changeover coming in the immediate future?
 
-You mean this?
+Yes. I'd like to send a patch for RFC to the mailing list any time
+soon. I'll include you in the CC.
 
-commit af0d29cd2a732f70882e6122b9f9df8b0d84515e
-Author: Patrick McHardy <kaber@trash.net>
-Date:   Thu Jun 9 15:20:27 2011 +0200
+> > 2) The helper infrastructure is allowing us to filter broadcast
+> > traffic but I think that it's =A0been designed for a different purp=
+ose.
+> > I know, we don't have any better by now. But in the meanwhile, we'r=
+e
+> > adding specific helpers to support each broadcast protocol.
+>=20
+> Agreed, while I think for now this helper is fine, I think it'd be
+> nice to have a more generic multicast/broadcast helper, although it'd
+> still need to have specific protocols baked into it to work (maybe
+> netbios, dhcpv6, mDNS, LLMNR, SSDP, neighbour discovery, other
+> things).
 
-    netfilter: xtables: add an IPv6 capable version of the ECN match
+This is exactly what scares me. I don't like the idea of bloating the
+kernel with lots of helpers for each single protocol.
 
-It's already 3.3-rc.
+I'm currently working on one user-space helper infrastructure. We can
+use that infrastructure to implement this helper and many others.
+
+I've got the patch in one branch of my kernel tree, it's still
+experimental stuff, but I expect to have it done soon.
+
+Would you be OK with we make this (and other helpers that will surely
+follow up) in user-space?
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
