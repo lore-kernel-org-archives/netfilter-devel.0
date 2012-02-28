@@ -1,31 +1,64 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: patch in bugzilla
-Date: Tue, 28 Feb 2012 16:20:10 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1202281409020.10284@frira.zrqbmnf.qr>
-References: <CAO88JF9FcBkjEs345hK4bOhQa1q-RuckkrLN9SKUUt3cWaLJKw@mail.gmail.com>
+From: Richard Weinberger <richard@nod.at>
+Subject: Re: [PATCH 1/2] iptables: Merge libip6t_LOG and libipt_LOG into libxt_LOG
+Date: Tue, 28 Feb 2012 17:06:05 +0100
+Message-ID: <4F4CFB6D.4000403@nod.at>
+References: <1328911856-19260-1-git-send-email-richard@nod.at> <1328911856-19260-2-git-send-email-richard@nod.at> <20120225133816.GA15864@1984>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Jonh Wendell <jonh.wendell@vexcorp.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig02FA765F188DF0053A95F999"
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, eric.dumazet@gmail.com,
+	jengelh@medozas.de, rostedt@goodmis.org, basti@b-bl.de
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:43342 "EHLO seven.medozas.de"
+Received: from a.ns.miles-group.at ([95.130.255.143]:47834 "EHLO radon.swed.at"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964962Ab2B1PUN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Feb 2012 10:20:13 -0500
-In-Reply-To: <CAO88JF9FcBkjEs345hK4bOhQa1q-RuckkrLN9SKUUt3cWaLJKw@mail.gmail.com>
+	id S965662Ab2B1QGP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Feb 2012 11:06:15 -0500
+In-Reply-To: <20120225133816.GA15864@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 2012-02-28 13:48, Jonh Wendell wrote:
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig02FA765F188DF0053A95F999
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
->hi, folks. a while ago I filled a bug with a simple patch attached:
->http://bugzilla.netfilter.org/show_bug.cgi?id=768
->
->what's the right place to post things like that? here in this mailing
->list or the bugzilla?
+Am 25.02.2012 14:38, schrieb Pablo Neira Ayuso:
+> On Fri, Feb 10, 2012 at 11:10:51PM +0100, Richard Weinberger wrote:
+>> libip6t_LOG and libipt_LOG share a lot of common code, merge them
+>> to recude duplicate code.
+>=20
+> I have applied this to the net-next branch of iptables.
+>=20
+> See git.netfilter.org
+>=20
+> I'll merge it to master once linux kernel 3.3 is released.
 
-[Someone still has not pointed the bugzilla automatic notification to 
-post to the netfilter-devel mailing list :) ]
+Okay. What about the ring buffer feature?
+Is there anything missing?
 
-Certainly the choice of mailing list makes it more visible. No 
-objections to the patch.
+Thanks,
+//richard
+
+
+
+--------------enig02FA765F188DF0053A95F999
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQEcBAEBAgAGBQJPTPtuAAoJEN9758yqZn9eH4EH/140Y4gT/nM0K9OSRZoQXEPO
+qwJipEcXcJPa0LVD2NxWntxSEwj9pgvpxZBQBAX4H4KvMmVkAiEEcg34HXrEt/5D
+pkJA+A9nn1Sw3Fjit+L5WX+J0SVrki/GTbHcCg+4vY2r/nI8KVfw1xY+H/otx1dQ
+i7NWNTDwzfjFdnQfwh6UdAZ9X23CMd6gmn4elUEYDlGJ5HuQ1Qe7lyAAm6WZt7qg
+hN9qmeq8avzXKQRTfESAgPGDeqbERSy1IF7d5JqYS8sBdPfVseRF6TdyQcxwx4Ht
+l0Pr2Mx3c3oLl0n3XjJiN+ElmgiCtyu7CnPXAsAShdU2s/gSu556FRSk46AEBLo=
+=RL9t
+-----END PGP SIGNATURE-----
+
+--------------enig02FA765F188DF0053A95F999--
