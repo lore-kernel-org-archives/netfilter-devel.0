@@ -1,30 +1,28 @@
-From: Jan Ceuleers <jan.ceuleers@computer.org>
-Subject: Re: [Patch] netfilter: remove ipt_SAME.h and ipt_realm.h too
-Date: Mon, 27 Feb 2012 18:40:54 +0100
-Message-ID: <4F4BC026.8010409@computer.org>
-References: <20120203081511.GD30546@Chamillionaire.breakpoint.cc> <1328263351-29363-1-git-send-email-xiyou.wangcong@gmail.com> <jif76l$ith$1@dough.gmane.org>
+From: Jonh Wendell <jonh.wendell@vexcorp.com>
+Subject: patch in bugzilla
+Date: Tue, 28 Feb 2012 09:48:47 -0300
+Message-ID: <CAO88JF9FcBkjEs345hK4bOhQa1q-RuckkrLN9SKUUt3cWaLJKw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Cong Wang <xiyou.wangcong@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <jif76l$ith$1@dough.gmane.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:52016 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932638Ab2B1Mst (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Feb 2012 07:48:49 -0500
+Received: by lahj13 with SMTP id j13so2176363lah.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Feb 2012 04:48:48 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 02/27/2012 07:17 AM, Cong Wang wrote:
-> On Fri, 03 Feb 2012 at 10:02 GMT, Cong Wang<xiyou.wangcong@gmail.com>  wrote:
->> As Florian pointed out, these 2 headers can be removed too.
->>
->> Cc: "David S. Miller"<davem@davemloft.net>
->> Cc: Florian Westphal<fw@strlen.de>
->> Signed-off-by: WANG Cong<xiyou.wangcong@gmail.com>
->>
-> Ping...
->
-> What is the status of this patch?
->
-It has been marked Not Applicable:
+hi, folks. a while ago I filled a bug with a simple patch attached:
+http://bugzilla.netfilter.org/show_bug.cgi?id=768
 
-http://patchwork.ozlabs.org/patch/139337/
+what's the right place to post things like that? here in this mailing
+list or the bugzilla?
+
+thanks,
+-- 
+Jonh Wendell
+www.vexcorp.com
