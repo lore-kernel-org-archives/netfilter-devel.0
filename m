@@ -1,64 +1,63 @@
-From: Richard Weinberger <richard@nod.at>
+From: Dave Taht <dave.taht@gmail.com>
 Subject: Re: [PATCH 1/2] iptables: Merge libip6t_LOG and libipt_LOG into libxt_LOG
-Date: Tue, 28 Feb 2012 17:06:05 +0100
-Message-ID: <4F4CFB6D.4000403@nod.at>
-References: <1328911856-19260-1-git-send-email-richard@nod.at> <1328911856-19260-2-git-send-email-richard@nod.at> <20120225133816.GA15864@1984>
+Date: Tue, 28 Feb 2012 17:15:59 +0100
+Message-ID: <CAA93jw5AfWbU8Gsx1WtJSkTox7bMAjkeuojaMXgwWgdAyROMGw@mail.gmail.com>
+References: <1328911856-19260-1-git-send-email-richard@nod.at>
+	<1328911856-19260-2-git-send-email-richard@nod.at>
+	<20120225133816.GA15864@1984>
+	<4F4CFB6D.4000403@nod.at>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig02FA765F188DF0053A95F999"
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org, eric.dumazet@gmail.com,
 	jengelh@medozas.de, rostedt@goodmis.org, basti@b-bl.de
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Richard Weinberger <richard@nod.at>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a.ns.miles-group.at ([95.130.255.143]:47834 "EHLO radon.swed.at"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965662Ab2B1QGP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Feb 2012 11:06:15 -0500
-In-Reply-To: <20120225133816.GA15864@1984>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:41851 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753524Ab2B1QQC convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Feb 2012 11:16:02 -0500
+In-Reply-To: <4F4CFB6D.4000403@nod.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig02FA765F188DF0053A95F999
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Tue, Feb 28, 2012 at 5:06 PM, Richard Weinberger <richard@nod.at> wr=
+ote:
+> Am 25.02.2012 14:38, schrieb Pablo Neira Ayuso:
+>> On Fri, Feb 10, 2012 at 11:10:51PM +0100, Richard Weinberger wrote:
+>>> libip6t_LOG and libipt_LOG share a lot of common code, merge them
+>>> to recude duplicate code.
+>>
+>> I have applied this to the net-next branch of iptables.
+>>
+>> See git.netfilter.org
+>>
+>> I'll merge it to master once linux kernel 3.3 is released.
+>
+> Okay. What about the ring buffer feature?
+> Is there anything missing?
 
-Am 25.02.2012 14:38, schrieb Pablo Neira Ayuso:
-> On Fri, Feb 10, 2012 at 11:10:51PM +0100, Richard Weinberger wrote:
->> libip6t_LOG and libipt_LOG share a lot of common code, merge them
->> to recude duplicate code.
->=20
-> I have applied this to the net-next branch of iptables.
->=20
-> See git.netfilter.org
->=20
-> I'll merge it to master once linux kernel 3.3 is released.
+I'm under the impression that the ecn related changes didn't make it
+as yet. I'm in a position to test that stuff this month, if it needs
+further testing and hasn't actually made it in.
 
-Okay. What about the ring buffer feature?
-Is there anything missing?
-
-Thanks,
-//richard
+> Thanks,
+> //richard
+>
+>
 
 
 
---------------enig02FA765F188DF0053A95F999
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQEcBAEBAgAGBQJPTPtuAAoJEN9758yqZn9eH4EH/140Y4gT/nM0K9OSRZoQXEPO
-qwJipEcXcJPa0LVD2NxWntxSEwj9pgvpxZBQBAX4H4KvMmVkAiEEcg34HXrEt/5D
-pkJA+A9nn1Sw3Fjit+L5WX+J0SVrki/GTbHcCg+4vY2r/nI8KVfw1xY+H/otx1dQ
-i7NWNTDwzfjFdnQfwh6UdAZ9X23CMd6gmn4elUEYDlGJ5HuQ1Qe7lyAAm6WZt7qg
-hN9qmeq8avzXKQRTfESAgPGDeqbERSy1IF7d5JqYS8sBdPfVseRF6TdyQcxwx4Ht
-l0Pr2Mx3c3oLl0n3XjJiN+ElmgiCtyu7CnPXAsAShdU2s/gSu556FRSk46AEBLo=
-=RL9t
------END PGP SIGNATURE-----
-
---------------enig02FA765F188DF0053A95F999--
+--=20
+Dave T=E4ht
+SKYPE: davetaht
+US Tel: 1-239-829-5608
+http://www.bufferbloat.net
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
