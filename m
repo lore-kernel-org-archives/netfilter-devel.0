@@ -1,63 +1,56 @@
-From: Dave Taht <dave.taht@gmail.com>
-Subject: Re: [PATCH 1/2] iptables: Merge libip6t_LOG and libipt_LOG into libxt_LOG
-Date: Tue, 28 Feb 2012 17:15:59 +0100
-Message-ID: <CAA93jw5AfWbU8Gsx1WtJSkTox7bMAjkeuojaMXgwWgdAyROMGw@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/2] iptables: Merge libip6t_LOG and libipt_LOG into
+ libxt_LOG
+Date: Tue, 28 Feb 2012 23:54:46 +0100
+Message-ID: <20120228225446.GA30124@1984>
 References: <1328911856-19260-1-git-send-email-richard@nod.at>
-	<1328911856-19260-2-git-send-email-richard@nod.at>
-	<20120225133816.GA15864@1984>
-	<4F4CFB6D.4000403@nod.at>
+ <1328911856-19260-2-git-send-email-richard@nod.at>
+ <20120225133816.GA15864@1984>
+ <4F4CFB6D.4000403@nod.at>
+ <CAA93jw5AfWbU8Gsx1WtJSkTox7bMAjkeuojaMXgwWgdAyROMGw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+Content-Type: text/plain; charset=us-ascii
+Cc: Richard Weinberger <richard@nod.at>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org, eric.dumazet@gmail.com,
 	jengelh@medozas.de, rostedt@goodmis.org, basti@b-bl.de
-To: Richard Weinberger <richard@nod.at>
+To: Dave Taht <dave.taht@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:41851 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753524Ab2B1QQC convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Feb 2012 11:16:02 -0500
-In-Reply-To: <4F4CFB6D.4000403@nod.at>
+Received: from mail.us.es ([193.147.175.20]:54755 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756172Ab2B1Wy7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Feb 2012 17:54:59 -0500
+Content-Disposition: inline
+In-Reply-To: <CAA93jw5AfWbU8Gsx1WtJSkTox7bMAjkeuojaMXgwWgdAyROMGw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Feb 28, 2012 at 5:06 PM, Richard Weinberger <richard@nod.at> wr=
-ote:
-> Am 25.02.2012 14:38, schrieb Pablo Neira Ayuso:
->> On Fri, Feb 10, 2012 at 11:10:51PM +0100, Richard Weinberger wrote:
->>> libip6t_LOG and libipt_LOG share a lot of common code, merge them
->>> to recude duplicate code.
->>
->> I have applied this to the net-next branch of iptables.
->>
->> See git.netfilter.org
->>
->> I'll merge it to master once linux kernel 3.3 is released.
->
-> Okay. What about the ring buffer feature?
-> Is there anything missing?
+On Tue, Feb 28, 2012 at 05:15:59PM +0100, Dave Taht wrote:
+> On Tue, Feb 28, 2012 at 5:06 PM, Richard Weinberger <richard@nod.at> wrote:
+> > Am 25.02.2012 14:38, schrieb Pablo Neira Ayuso:
+> >> On Fri, Feb 10, 2012 at 11:10:51PM +0100, Richard Weinberger wrote:
+> >>> libip6t_LOG and libipt_LOG share a lot of common code, merge them
+> >>> to recude duplicate code.
+> >>
+> >> I have applied this to the net-next branch of iptables.
+> >>
+> >> See git.netfilter.org
+> >>
+> >> I'll merge it to master once linux kernel 3.3 is released.
+> >
+> > Okay. What about the ring buffer feature?
+> > Is there anything missing?
+> 
+> I'm under the impression that the ecn related changes didn't make it
+> as yet. I'm in a position to test that stuff this month, if it needs
+> further testing and hasn't actually made it in.
 
-I'm under the impression that the ecn related changes didn't make it
-as yet. I'm in a position to test that stuff this month, if it needs
-further testing and hasn't actually made it in.
+You mean this?
 
-> Thanks,
-> //richard
->
->
+commit af0d29cd2a732f70882e6122b9f9df8b0d84515e
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Thu Jun 9 15:20:27 2011 +0200
 
+    netfilter: xtables: add an IPv6 capable version of the ECN match
 
-
---=20
-Dave T=E4ht
-SKYPE: davetaht
-US Tel: 1-239-829-5608
-http://www.bufferbloat.net
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It's already 3.3-rc.
