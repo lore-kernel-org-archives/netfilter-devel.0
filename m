@@ -1,45 +1,91 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: libnetfilter_cttimeout: misc cleanup
-Date: Wed, 29 Feb 2012 10:40:30 +0100
-Message-ID: <20120229094030.GA32689@1984>
-References: <1330499742-28091-1-git-send-email-jengelh@medozas.de>
+From: "Maria Colgate" <henrkk@www1.beka-hospitec.de>
+Subject: Attention! Attention!! Attention!!! (READ ATTACHED MAIL FOR DETAILS)
+Date: Wed, 29 Feb 2012 02:56:42 -0800
+Message-ID: <o01c6do1TAAmdM.RZmta@mo-p00-ob.rzone.de>
+Reply-To: <officeunited@e-mail.ua>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0034_01C2A9A6.3154ABB4"
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48550 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964940Ab2B2Jki (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 Feb 2012 04:40:38 -0500
-Content-Disposition: inline
-In-Reply-To: <1330499742-28091-1-git-send-email-jengelh@medozas.de>
+Received: from mo-p00-ob.rzone.de ([81.169.146.161]:28794 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756921Ab2B2MGz (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 29 Feb 2012 07:06:55 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Feb 29, 2012 at 08:15:36AM +0100, Jan Engelhardt wrote:
-> 
-> 
-> Note that src/*.c reads "GPL-2.0+" while the COPYING file shows
-> an LGPL-2.1 text. Clarification would be welcome.
+This is a multi-part message in MIME format.
 
-This is GPLv2+ stuff. I just pushed a patch to fix this, thanks for
-spotting this.
+------=_NextPart_000_0034_01C2A9A6.3154ABB4
+Content-Type: text/plain;
+	charset="Windows-1251"
+Content-Transfer-Encoding: 7bit
 
-> ===
-> The following changes since commit eb9385b594bbd463fdc0704c33ca88e4d2e4cbb1:
-> 
->   add README file (2012-02-29 03:33:44 +0100)
-> 
-> are available in the git repository at:
->   git://dev.medozas.de/libnetfilter_cttimeout master
-> 
-> Jan Engelhardt (6):
->       Add .gitignore
->       const-ify static data objects
->       Add stdint header and type corrections
->       Properly NUL-terminate name in nfct_timeout_attr_set
->       const-ify arguments of functions
->       Add extern "C" guard for C++ compilation mode
 
-And this bunch applied, thanks Jan!
+------=_NextPart_000_0034_01C2A9A6.3154ABB4
+Content-Type: application/octet-stream;
+	name="Attention! Attention!! Attention!!!.rtf"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="Attention! Attention!! Attention!!!.rtf"
+
+e1xydGYxXGFuc2lcYW5zaWNwZzEyNTJcZGVmZjBcZGVmbGFuZzEwMzN7XGZv
+bnR0Ymx7XGYwXGZzd2lzc1xmY2hhcnNldDAgQXJpYWw7fX0NCntcKlxnZW5l
+cmF0b3IgTXNmdGVkaXQgNS40MS4yMS4yNTA5O31cdmlld2tpbmQ0XHVjMVxw
+YXJkXGYwXGZzMjAgQXR0ZW50aW9uISBBdHRlbnRpb24hISBBdHRlbnRpb24h
+ISEgIFxwYXINCiBccGFyDQpUaGUgb2ZmaWNlIG9mIHRoZSBFdXJvcGVhbiBV
+bmlvbiwgdGhlIFByZXNpZGVudCBGZWRlcmFsIFJlcHVibGljIG9mIE5pZ2Vy
+aWFuIFxwYXINCihEci4gR29vZGx1Y2sgRS4gSm9uYXRoYW4pLCB0aGUgQ0lB
+LCBGQkksIEVGQ0MsIEJyaXRpc2ggR292ZXJubWVudCwgQW1lcmljYW4gXHBh
+cg0KR292ZXJubWVudCBhbmQgVW5pdGVkIE5hdGlvbnMgT3JnYW5pemF0aW9u
+IGluIEJlbmluIFJlcHVibGljLCBHaGFuYSwgQnVya2luYSBccGFyDQpGYXNv
+LCBNYWxheXNpYSwgU291dGggQWZyaWNhLCBUb2dvLCBTZW5lZ2FsIGluIGNv
+bGxhYm9yYXRpb24gd2l0aCBVSyAoTG9uZG9uKSBccGFyDQpccGFyDQpccGFy
+DQpccGFyDQpBbnRpLUNyaW1lIFNxdWFkIHJlY2VpdmVkIGEgcmVwb3J0IG9m
+IGZ1bmQgdHJhbnNhY3Rpb24vc2NhbSBhZ2FpbnN0IHlvdSBhbmQgXHBhcg0K
+b3RoZXIgQnJpdGlzaCwgVVMgYW5kIEFzaWFuIGNpdGl6ZW5zIGluY2x1ZGlu
+ZyBvdGhlciBjb3VudHJpZXMgd2hvbSB0aGUgXHBhcg0KYWZvcmVtZW50aW9u
+ZWQgY291bnRyaWVzIHZpdGFsIG9mZmljZXMvYXV0aG9yaXRpZXMgaGF2ZSBy
+ZWNvbXBlbnNlZCB5b3UgXHBhcg0KZHVlIHRvIG1lZXRpbmcgaGVsZCB3aXRo
+IHRoZSBJbnRlcm5hdGlvbmFsIEZpbmFuY2lhbCBBZ2VuY3ksIHRoZSBJTUYs
+XHBhcg0KXHBhcg0KXHBhcg0KXHBhcg0KIFxwYXINCmZvdXIgY291bnRyaWVz
+IEdvdmVybm1lbnQgYW5kIHRoZSBXb3JsZCBIaWdoIENvbW1pc3Npb24gYWdh
+aW5zdCBmcmF1ZCBccGFyDQphbmQgb3RoZXIgaW50ZXJuYXRpb25hbCBmdW5k
+IHRyYW5zYWN0aW9uIGFjdGl2aXRpZXMgYnkgdGhlIGZvdXIgY291bnRyeSBc
+cGFyDQpDaXRpemVucyBkdXJpbmcgdGhlIHJlY2VudCBHMjAgYW5kIEFDU1Ag
+bWVldGluZy4gXHBhcg0KXHBhcg0KXHBhcg0KXHBhcg0KXHBhcg0KWW91ciBu
+YW1lIHdhcyBhbW9uZyB0aG9zZSBccGFyDQphcHByb3ZlZCBsaXN0ZWQgYmVu
+ZWZpY2lhcnkgdG8gYmUgcGFpZCBieSB0aGUgSW50ZXJuYXRpb25hbCBGaW5h
+bmNpYWwgXHBhcg0KSW50ZWxsaWdlbnQgVW5pdCAoTkZJVSkgdGhyb3VnaCB0
+aGUgVW5pdGVkIE5hdGlvbnMgYWNjb3VudCBob2xkZXIgYmFuay4gXHBhcg0K
+XHBhcg0KXHBhcg0KXHBhcg0KXHBhcg0KXHBhcg0KIFxwYXINCllvdSBhcmUg
+dG8gY29udGFjdCB0aGUgVU4gYXBwb2ludGVkIG9mZmljZXIgaW1tZWRpYXRl
+bHkgZm9yIHRoZSByZWxlYXNlL3RyYW5zZmVyIFxwYXINCm9mIHlvdXIgYXBw
+cm92ZWQgY29tcGVuc2F0aW9uIGZ1bmQgdmFsdWVkICQ3NTAsMDAwLjAwIFVu
+aXRlZCBTdGF0ZXMgRG9sbGFycyBvbmx5LiBccGFyDQpccGFyDQpccGFyDQpX
+aXRoIG1hdHRlciBvZiB1cmdlbmN5LCB5b3UgYXJlIHRvIHJlY29uZmlybSB0
+byB0aGUgVU4gYXBwb2ludGVkIG9mZmljZXIgeW91ciBccGFyDQpmdWxsIGRh
+dGEgYXMgZm9sbG93czogQSkgWW91ciBGdWxsIE5hbWUsIEIpIFByZXNlbnQg
+QWRkcmVzcywgQykgSG9tZSBhbmQgTW9iaWxlIFxwYXINClRlbGVwaG9uZSBO
+dW1iZXJzLCBEKSBPY2N1cGF0aW9uLCBFKSBDb21wYW55IE5hbWUgYW5kIFBv
+c2l0aW9uLiBccGFyDQogXHBhcg0KXHBhcg0KXHBhcg0KQXMgc29vbiBhcyB5
+b3Ugc2VuZCB0aGlzIGluZm9ybWF0aW9uIHRvIHRoZSBvZmZpY2VyIGhlIHdp
+bGwgZGlyZWN0IHlvdSBhY2NvcmRpbmdseSBccGFyDQpvbiB0aGUgcmVsZWFz
+ZSBvZiB5b3VyIEZ1bmQuIFlvdSBhcmUgdG8gY29udGFjdCBNci5NZW5zaGEg
+QmFhaCBIZWFkIHN1cGVydmlzb3IgXHBhcg0Kd2l0aCB0aGUgaW5mb3JtYXRp
+b24gYmVsb3csIGZvciB0aGUgcmVsZWFzZSBvZiB5b3VyIGZ1bmQgbm93LiBc
+cGFyDQpccGFyDQpccGFyDQogXHBhcg0KQ29udGFjdCBQZXJzb246IE1yLk1l
+bnNoYSBCYWFoLiBccGFyDQpDLzg4MTUgb2ZmIFJpbmcgUm9hZCwgUC5PLkJv
+eCAyNTE1IFxwYXINCkNhZGFzdHJhbCwgWm9uZSBBLCBDZW50cmFsIEJ1c2lu
+ZXNzIERpc3RyaWN0IFxwYXINCkFjY3JhLUdoYW5hLiBccGFyDQpccGFyDQpc
+cGFyDQpFbWFpbDogb2ZmaWNldW5pdGVkQGUtbWFpbC51YVxwYXINCm1lbnNo
+YWJhYWgyQGdsb2JvbWFpbC5jb21ccGFyDQpZb3VycyBpbiBTZXJ2aWNlLCBc
+cGFyDQogXHBhcg0KXHBhcg0KXHBhcg0KTWFyaWEgQ29sZ2F0ZSAoU2VjcmV0
+YXJ5IEZvcmVpZ24gQWZmYWlyKSBccGFyDQpXb3JsZCBCYW5rIFBheW1lbnQg
+TW9uaXRvcmluZyBVbml0LlxwYXINCjE4MTggSCBTdHJlZXQsIE4uVy5XYXNo
+aW5ndG9uLCBEQyAyMDQzMyBccGFyDQpVbml0ZWQgU3RhdGVzIG9mIEFtZXJp
+Y2EuIFxwYXINCn0NCgA=
+
+------=_NextPart_000_0034_01C2A9A6.3154ABB4--
