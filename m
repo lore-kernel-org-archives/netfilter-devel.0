@@ -1,91 +1,37 @@
-From: "Maria Colgate" <henrkk@www1.beka-hospitec.de>
-Subject: Attention! Attention!! Attention!!! (READ ATTACHED MAIL FOR DETAILS)
-Date: Wed, 29 Feb 2012 02:56:42 -0800
-Message-ID: <o01c6do1TAAmdM.RZmta@mo-p00-ob.rzone.de>
-Reply-To: <officeunited@e-mail.ua>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: patch in bugzilla
+Date: Wed, 29 Feb 2012 13:50:52 +0100
+Message-ID: <20120229125052.GA1115@1984>
+References: <CAO88JF9FcBkjEs345hK4bOhQa1q-RuckkrLN9SKUUt3cWaLJKw@mail.gmail.com>
+ <alpine.LNX.2.01.1202281409020.10284@frira.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0034_01C2A9A6.3154ABB4"
-To: unlisted-recipients:; (no To-header on input)
+Content-Type: text/plain; charset=us-ascii
+Cc: Jonh Wendell <jonh.wendell@vexcorp.com>,
+	netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.161]:28794 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756921Ab2B2MGz (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 Feb 2012 07:06:55 -0500
+Received: from mail.us.es ([193.147.175.20]:58354 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754351Ab2B2MvF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 29 Feb 2012 07:51:05 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.01.1202281409020.10284@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
+On Tue, Feb 28, 2012 at 04:20:10PM +0100, Jan Engelhardt wrote:
+> On Tuesday 2012-02-28 13:48, Jonh Wendell wrote:
+> 
+> >hi, folks. a while ago I filled a bug with a simple patch attached:
+> >http://bugzilla.netfilter.org/show_bug.cgi?id=768
+> >
+> >what's the right place to post things like that? here in this mailing
+> >list or the bugzilla?
+> 
+> [Someone still has not pointed the bugzilla automatic notification to 
+> post to the netfilter-devel mailing list :) ]
+> 
+> Certainly the choice of mailing list makes it more visible. No 
+> objections to the patch.
 
-------=_NextPart_000_0034_01C2A9A6.3154ABB4
-Content-Type: text/plain;
-	charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
-
-
-------=_NextPart_000_0034_01C2A9A6.3154ABB4
-Content-Type: application/octet-stream;
-	name="Attention! Attention!! Attention!!!.rtf"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="Attention! Attention!! Attention!!!.rtf"
-
-e1xydGYxXGFuc2lcYW5zaWNwZzEyNTJcZGVmZjBcZGVmbGFuZzEwMzN7XGZv
-bnR0Ymx7XGYwXGZzd2lzc1xmY2hhcnNldDAgQXJpYWw7fX0NCntcKlxnZW5l
-cmF0b3IgTXNmdGVkaXQgNS40MS4yMS4yNTA5O31cdmlld2tpbmQ0XHVjMVxw
-YXJkXGYwXGZzMjAgQXR0ZW50aW9uISBBdHRlbnRpb24hISBBdHRlbnRpb24h
-ISEgIFxwYXINCiBccGFyDQpUaGUgb2ZmaWNlIG9mIHRoZSBFdXJvcGVhbiBV
-bmlvbiwgdGhlIFByZXNpZGVudCBGZWRlcmFsIFJlcHVibGljIG9mIE5pZ2Vy
-aWFuIFxwYXINCihEci4gR29vZGx1Y2sgRS4gSm9uYXRoYW4pLCB0aGUgQ0lB
-LCBGQkksIEVGQ0MsIEJyaXRpc2ggR292ZXJubWVudCwgQW1lcmljYW4gXHBh
-cg0KR292ZXJubWVudCBhbmQgVW5pdGVkIE5hdGlvbnMgT3JnYW5pemF0aW9u
-IGluIEJlbmluIFJlcHVibGljLCBHaGFuYSwgQnVya2luYSBccGFyDQpGYXNv
-LCBNYWxheXNpYSwgU291dGggQWZyaWNhLCBUb2dvLCBTZW5lZ2FsIGluIGNv
-bGxhYm9yYXRpb24gd2l0aCBVSyAoTG9uZG9uKSBccGFyDQpccGFyDQpccGFy
-DQpccGFyDQpBbnRpLUNyaW1lIFNxdWFkIHJlY2VpdmVkIGEgcmVwb3J0IG9m
-IGZ1bmQgdHJhbnNhY3Rpb24vc2NhbSBhZ2FpbnN0IHlvdSBhbmQgXHBhcg0K
-b3RoZXIgQnJpdGlzaCwgVVMgYW5kIEFzaWFuIGNpdGl6ZW5zIGluY2x1ZGlu
-ZyBvdGhlciBjb3VudHJpZXMgd2hvbSB0aGUgXHBhcg0KYWZvcmVtZW50aW9u
-ZWQgY291bnRyaWVzIHZpdGFsIG9mZmljZXMvYXV0aG9yaXRpZXMgaGF2ZSBy
-ZWNvbXBlbnNlZCB5b3UgXHBhcg0KZHVlIHRvIG1lZXRpbmcgaGVsZCB3aXRo
-IHRoZSBJbnRlcm5hdGlvbmFsIEZpbmFuY2lhbCBBZ2VuY3ksIHRoZSBJTUYs
-XHBhcg0KXHBhcg0KXHBhcg0KXHBhcg0KIFxwYXINCmZvdXIgY291bnRyaWVz
-IEdvdmVybm1lbnQgYW5kIHRoZSBXb3JsZCBIaWdoIENvbW1pc3Npb24gYWdh
-aW5zdCBmcmF1ZCBccGFyDQphbmQgb3RoZXIgaW50ZXJuYXRpb25hbCBmdW5k
-IHRyYW5zYWN0aW9uIGFjdGl2aXRpZXMgYnkgdGhlIGZvdXIgY291bnRyeSBc
-cGFyDQpDaXRpemVucyBkdXJpbmcgdGhlIHJlY2VudCBHMjAgYW5kIEFDU1Ag
-bWVldGluZy4gXHBhcg0KXHBhcg0KXHBhcg0KXHBhcg0KXHBhcg0KWW91ciBu
-YW1lIHdhcyBhbW9uZyB0aG9zZSBccGFyDQphcHByb3ZlZCBsaXN0ZWQgYmVu
-ZWZpY2lhcnkgdG8gYmUgcGFpZCBieSB0aGUgSW50ZXJuYXRpb25hbCBGaW5h
-bmNpYWwgXHBhcg0KSW50ZWxsaWdlbnQgVW5pdCAoTkZJVSkgdGhyb3VnaCB0
-aGUgVW5pdGVkIE5hdGlvbnMgYWNjb3VudCBob2xkZXIgYmFuay4gXHBhcg0K
-XHBhcg0KXHBhcg0KXHBhcg0KXHBhcg0KXHBhcg0KIFxwYXINCllvdSBhcmUg
-dG8gY29udGFjdCB0aGUgVU4gYXBwb2ludGVkIG9mZmljZXIgaW1tZWRpYXRl
-bHkgZm9yIHRoZSByZWxlYXNlL3RyYW5zZmVyIFxwYXINCm9mIHlvdXIgYXBw
-cm92ZWQgY29tcGVuc2F0aW9uIGZ1bmQgdmFsdWVkICQ3NTAsMDAwLjAwIFVu
-aXRlZCBTdGF0ZXMgRG9sbGFycyBvbmx5LiBccGFyDQpccGFyDQpccGFyDQpX
-aXRoIG1hdHRlciBvZiB1cmdlbmN5LCB5b3UgYXJlIHRvIHJlY29uZmlybSB0
-byB0aGUgVU4gYXBwb2ludGVkIG9mZmljZXIgeW91ciBccGFyDQpmdWxsIGRh
-dGEgYXMgZm9sbG93czogQSkgWW91ciBGdWxsIE5hbWUsIEIpIFByZXNlbnQg
-QWRkcmVzcywgQykgSG9tZSBhbmQgTW9iaWxlIFxwYXINClRlbGVwaG9uZSBO
-dW1iZXJzLCBEKSBPY2N1cGF0aW9uLCBFKSBDb21wYW55IE5hbWUgYW5kIFBv
-c2l0aW9uLiBccGFyDQogXHBhcg0KXHBhcg0KXHBhcg0KQXMgc29vbiBhcyB5
-b3Ugc2VuZCB0aGlzIGluZm9ybWF0aW9uIHRvIHRoZSBvZmZpY2VyIGhlIHdp
-bGwgZGlyZWN0IHlvdSBhY2NvcmRpbmdseSBccGFyDQpvbiB0aGUgcmVsZWFz
-ZSBvZiB5b3VyIEZ1bmQuIFlvdSBhcmUgdG8gY29udGFjdCBNci5NZW5zaGEg
-QmFhaCBIZWFkIHN1cGVydmlzb3IgXHBhcg0Kd2l0aCB0aGUgaW5mb3JtYXRp
-b24gYmVsb3csIGZvciB0aGUgcmVsZWFzZSBvZiB5b3VyIGZ1bmQgbm93LiBc
-cGFyDQpccGFyDQpccGFyDQogXHBhcg0KQ29udGFjdCBQZXJzb246IE1yLk1l
-bnNoYSBCYWFoLiBccGFyDQpDLzg4MTUgb2ZmIFJpbmcgUm9hZCwgUC5PLkJv
-eCAyNTE1IFxwYXINCkNhZGFzdHJhbCwgWm9uZSBBLCBDZW50cmFsIEJ1c2lu
-ZXNzIERpc3RyaWN0IFxwYXINCkFjY3JhLUdoYW5hLiBccGFyDQpccGFyDQpc
-cGFyDQpFbWFpbDogb2ZmaWNldW5pdGVkQGUtbWFpbC51YVxwYXINCm1lbnNo
-YWJhYWgyQGdsb2JvbWFpbC5jb21ccGFyDQpZb3VycyBpbiBTZXJ2aWNlLCBc
-cGFyDQogXHBhcg0KXHBhcg0KXHBhcg0KTWFyaWEgQ29sZ2F0ZSAoU2VjcmV0
-YXJ5IEZvcmVpZ24gQWZmYWlyKSBccGFyDQpXb3JsZCBCYW5rIFBheW1lbnQg
-TW9uaXRvcmluZyBVbml0LlxwYXINCjE4MTggSCBTdHJlZXQsIE4uVy5XYXNo
-aW5ndG9uLCBEQyAyMDQzMyBccGFyDQpVbml0ZWQgU3RhdGVzIG9mIEFtZXJp
-Y2EuIFxwYXINCn0NCgA=
-
-------=_NextPart_000_0034_01C2A9A6.3154ABB4--
+Applied, thanks.
