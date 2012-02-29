@@ -1,64 +1,45 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 5/6] const-ify arguments of functions
-Date: Wed, 29 Feb 2012 08:15:41 +0100
-Message-ID: <1330499742-28091-6-git-send-email-jengelh@medozas.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: libnetfilter_cttimeout: misc cleanup
+Date: Wed, 29 Feb 2012 10:40:30 +0100
+Message-ID: <20120229094030.GA32689@1984>
 References: <1330499742-28091-1-git-send-email-jengelh@medozas.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:48518 "EHLO seven.medozas.de"
+Received: from mail.us.es ([193.147.175.20]:48550 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966123Ab2B2HPu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 Feb 2012 02:15:50 -0500
+	id S964940Ab2B2Jki (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 29 Feb 2012 04:40:38 -0500
+Content-Disposition: inline
 In-Reply-To: <1330499742-28091-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- .../libnetfilter_cttimeout.h                       |    4 ++--
- src/libnetfilter_cttimeout.c                       |    5 +++--
- 2 files changed, 5 insertions(+), 4 deletions(-)
+On Wed, Feb 29, 2012 at 08:15:36AM +0100, Jan Engelhardt wrote:
+> 
+> 
+> Note that src/*.c reads "GPL-2.0+" while the COPYING file shows
+> an LGPL-2.1 text. Clarification would be welcome.
 
-diff --git a/include/libnetfilter_cttimeout/libnetfilter_cttimeout.h b/include/libnetfilter_cttimeout/libnetfilter_cttimeout.h
-index 89e00b6..172e7f9 100644
---- a/include/libnetfilter_cttimeout/libnetfilter_cttimeout.h
-+++ b/include/libnetfilter_cttimeout/libnetfilter_cttimeout.h
-@@ -99,9 +99,9 @@ void nfct_timeout_policy_attr_unset(struct nfct_timeout *t, uint32_t type);
- struct nlmsghdr;
- 
- struct nlmsghdr *nfct_timeout_nlmsg_build_hdr(char *buf, uint8_t cmd, uint16_t flags, uint32_t seq);
--void nfct_timeout_nlmsg_build_payload(struct nlmsghdr *, struct nfct_timeout *);
-+void nfct_timeout_nlmsg_build_payload(struct nlmsghdr *, const struct nfct_timeout *);
- int nfct_timeout_nlmsg_parse_payload(const struct nlmsghdr *nlh, struct nfct_timeout *);
- 
--int nfct_timeout_snprintf(char *buf, size_t size, struct nfct_timeout *, unsigned int flags);
-+int nfct_timeout_snprintf(char *buf, size_t size, const struct nfct_timeout *, unsigned int flags);
- 
- #endif
-diff --git a/src/libnetfilter_cttimeout.c b/src/libnetfilter_cttimeout.c
-index 1f7c63e..c7060ff 100644
---- a/src/libnetfilter_cttimeout.c
-+++ b/src/libnetfilter_cttimeout.c
-@@ -292,7 +292,7 @@ EXPORT_SYMBOL(nfct_timeout_policy_attr_unset);
-  * This function returns -1 in case that some mandatory attributes are
-  * missing. On sucess, it returns 0.
-  */
--int nfct_timeout_snprintf(char *buf, size_t size, struct nfct_timeout *t,
-+int nfct_timeout_snprintf(char *buf, size_t size, const struct nfct_timeout *t,
- 			  unsigned int flags)
- {
- 	int ret = 0;
-@@ -401,7 +401,8 @@ EXPORT_SYMBOL(nfct_timeout_nlmsg_build_hdr);
-  * \param t: pointer to a conntrack timeout object
-  */
- void
--nfct_timeout_nlmsg_build_payload(struct nlmsghdr *nlh, struct nfct_timeout *t)
-+nfct_timeout_nlmsg_build_payload(struct nlmsghdr *nlh,
-+				 const struct nfct_timeout *t)
- {
- 	int i;
- 	struct nlattr *nest;
--- 
-1.7.7
+This is GPLv2+ stuff. I just pushed a patch to fix this, thanks for
+spotting this.
 
+> ===
+> The following changes since commit eb9385b594bbd463fdc0704c33ca88e4d2e4cbb1:
+> 
+>   add README file (2012-02-29 03:33:44 +0100)
+> 
+> are available in the git repository at:
+>   git://dev.medozas.de/libnetfilter_cttimeout master
+> 
+> Jan Engelhardt (6):
+>       Add .gitignore
+>       const-ify static data objects
+>       Add stdint header and type corrections
+>       Properly NUL-terminate name in nfct_timeout_attr_set
+>       const-ify arguments of functions
+>       Add extern "C" guard for C++ compilation mode
+
+And this bunch applied, thanks Jan!
