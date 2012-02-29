@@ -1,36 +1,83 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [Patch] netfilter: remove ipt_SAME.h and ipt_realm.h too
-Date: Wed, 29 Feb 2012 04:08:56 +0100
-Message-ID: <20120229030855.GA31309@1984>
-References: <20120203081511.GD30546@Chamillionaire.breakpoint.cc>
- <1328263351-29363-1-git-send-email-xiyou.wangcong@gmail.com>
- <jif76l$ith$1@dough.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Cong Wang <xiyou.wangcong@gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: [PATCH 2/6] const-ify static data objects
+Date: Wed, 29 Feb 2012 08:15:38 +0100
+Message-ID: <1330499742-28091-3-git-send-email-jengelh@medozas.de>
+References: <1330499742-28091-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46134 "EHLO mail.us.es"
+Received: from seven.medozas.de ([188.40.89.202]:48517 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756170Ab2B2DI7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Feb 2012 22:08:59 -0500
-Content-Disposition: inline
-In-Reply-To: <jif76l$ith$1@dough.gmane.org>
+	id S966113Ab2B2HPu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 29 Feb 2012 02:15:50 -0500
+In-Reply-To: <1330499742-28091-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Feb 27, 2012 at 06:17:57AM +0000, Cong Wang wrote:
-> On Fri, 03 Feb 2012 at 10:02 GMT, Cong Wang <xiyou.wangcong@gmail.com> wrote:
-> > As Florian pointed out, these 2 headers can be removed too.
-> >
-> > Cc: "David S. Miller" <davem@davemloft.net>
-> > Cc: Florian Westphal <fw@strlen.de>
-> > Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-> >
-> 
-> Ping...
-> 
-> What is the status of this patch?
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ src/libnetfilter_cttimeout.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-applied, thanks. Please, elaborate the description better next time
-btw.
+diff --git a/src/libnetfilter_cttimeout.c b/src/libnetfilter_cttimeout.c
+index 2f1ba79..6050514 100644
+--- a/src/libnetfilter_cttimeout.c
++++ b/src/libnetfilter_cttimeout.c
+@@ -21,7 +21,7 @@
+ 
+ #include <libnetfilter_cttimeout/libnetfilter_cttimeout.h>
+ 
+-static char *tcp_state_to_name[] = {
++static const char *const tcp_state_to_name[] = {
+ 	[NFCT_TIMEOUT_ATTR_TCP_SYN_SENT]	= "SYN_SENT",
+ 	[NFCT_TIMEOUT_ATTR_TCP_SYN_RECV]	= "SYN_RECV",
+ 	[NFCT_TIMEOUT_ATTR_TCP_ESTABLISHED]	= "ESTABLISHED",
+@@ -35,16 +35,16 @@ static char *tcp_state_to_name[] = {
+ 	[NFCT_TIMEOUT_ATTR_TCP_UNACK]		= "UNACKNOWLEDGED",
+ };
+ 
+-static char *generic_state_to_name[] = {
++static const char *const generic_state_to_name[] = {
+ 	[NFCT_TIMEOUT_ATTR_GENERIC]		= "TIMEOUT",
+ };
+ 
+-static char *udp_state_to_name[] = {
++static const char *const udp_state_to_name[] = {
+ 	[NFCT_TIMEOUT_ATTR_UDP_UNREPLIED]	= "UNREPLIED",
+ 	[NFCT_TIMEOUT_ATTR_UDP_REPLIED]		= "REPLIED",
+ };
+ 
+-static char *sctp_state_to_name[] = {
++static const char *const sctp_state_to_name[] = {
+ 	[NFCT_TIMEOUT_ATTR_SCTP_CLOSED]			= "CLOSED",
+ 	[NFCT_TIMEOUT_ATTR_SCTP_COOKIE_WAIT]		= "COOKIE_WAIT",
+ 	[NFCT_TIMEOUT_ATTR_SCTP_COOKIE_ECHOED]		= "COOKIE_ECHOED",
+@@ -54,7 +54,7 @@ static char *sctp_state_to_name[] = {
+ 	[NFCT_TIMEOUT_ATTR_SCTP_SHUTDOWN_ACK_SENT]	= "SHUTDOWN_ACK_SENT",
+ };
+ 
+-static char *dccp_state_to_name[] = {
++static const char *const dccp_state_to_name[] = {
+ 	[NFCT_TIMEOUT_ATTR_DCCP_REQUEST]	= "REQUEST",
+ 	[NFCT_TIMEOUT_ATTR_DCCP_RESPOND]	= "RESPOND",
+ 	[NFCT_TIMEOUT_ATTR_DCCP_PARTOPEN]	= "PARTOPEN",
+@@ -64,14 +64,14 @@ static char *dccp_state_to_name[] = {
+ 	[NFCT_TIMEOUT_ATTR_DCCP_TIMEWAIT]	= "TIMEWAIT",
+ };
+ 
+-static char *icmp_state_to_name[] = {
++static const char *const icmp_state_to_name[] = {
+ 	[NFCT_TIMEOUT_ATTR_ICMP]		= "TIMEOUT",
+ };
+ 
+ static struct {
+ 	uint32_t nlattr_max;
+ 	uint32_t attr_max;
+-	char **state_to_name;
++	const char *const *state_to_name;
+ } timeout_protocol[IPPROTO_MAX] = {
+ 	[IPPROTO_ICMP]	= {
+ 		.nlattr_max	= __CTA_TIMEOUT_ICMP_MAX,
+-- 
+1.7.7
+
