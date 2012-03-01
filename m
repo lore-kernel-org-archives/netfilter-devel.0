@@ -1,35 +1,43 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH 0/7] [RFC] new cttimeout infrastructure
-Date: Thu, 1 Mar 2012 20:51:56 +0800
-Message-ID: <CABa6K_GKpkAiC7ae+-OwGG_b1iXyYD9+_xzF095XGTJ+e1aBWw@mail.gmail.com>
-References: <1330483172-19159-1-git-send-email-pablo@netfilter.org>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH] netfilter: ipt_LOG: add __printf() to sb_add()
+Date: Thu, 01 Mar 2012 04:56:59 -0800
+Message-ID: <1330606619.2465.54.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>,
+	David Laight <David.Laight@ACULAB.COM>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:47248 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759189Ab2CAMwR (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:51534 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755800Ab2CAM5H (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Mar 2012 07:52:17 -0500
-Received: by vbbff1 with SMTP id ff1so398044vbb.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 01 Mar 2012 04:52:16 -0800 (PST)
-In-Reply-To: <1330483172-19159-1-git-send-email-pablo@netfilter.org>
+	Thu, 1 Mar 2012 07:57:07 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Feb 29, 2012 at 10:39 AM,  <pablo@netfilter.org> wrote:
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
->
-> You can find the user-space library:
->
-> http://git.netfilter.org/cgi-bin/gitweb.cgi?p=libnetfilter_cttimeout.git;a=summary
->
+Helps to find format mismatches at compile time
 
-IMHO we have too many such libraries. Why not combine all the library
-into one named after libnf or libnetfilter?
+Suggested-by: David Laight <David.Laight@ACULAB.COM>
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+---
+ include/net/netfilter/xt_log.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
--- 
-Regards,
-Changli Gao(xiaosuo@gmail.com)
+diff --git a/include/net/netfilter/xt_log.h b/include/net/netfilter/xt_log.h
+index 0dfb34a..7e1544e 100644
+--- a/include/net/netfilter/xt_log.h
++++ b/include/net/netfilter/xt_log.h
+@@ -6,7 +6,7 @@ struct sbuff {
+ };
+ static struct sbuff emergency, *emergency_ptr = &emergency;
+ 
+-static int sb_add(struct sbuff *m, const char *f, ...)
++static __printf(2, 3) int sb_add(struct sbuff *m, const char *f, ...)
+ {
+ 	va_list args;
+ 	int len;
+
+
