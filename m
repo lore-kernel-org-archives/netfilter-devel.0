@@ -1,80 +1,35 @@
-From: Richard Weinberger <richard@nod.at>
-Subject: Re: [PATCH 1/4] Netfilter: Merge ipt_LOG and ip6_LOG into xt_LOG
-Date: Thu, 01 Mar 2012 12:41:42 +0100
-Message-ID: <4F4F6076.5050903@nod.at>
-References: <1328400892-22409-1-git-send-email-richard@nod.at> <1328400892-22409-3-git-send-email-richard@nod.at> <20120301112732.GA6806@1984>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 2/3] netfilter: potential null derefence.
+Date: Thu, 1 Mar 2012 13:30:04 +0100
+Message-ID: <20120301123004.GA7250@1984>
+References: <1330593434-19275-1-git-send-email-santoshprasadnayak@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig895AD0FC53FA46E1B9B5B8ED"
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, eric.dumazet@gmail.com,
-	jengelh@medozas.de, rostedt@goodmis.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a.ns.miles-group.at ([95.130.255.143]:47834 "EHLO radon.swed.at"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932245Ab2CALlu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Mar 2012 06:41:50 -0500
-In-Reply-To: <20120301112732.GA6806@1984>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: bart.de.schuymer@pandora.be, kaber@trash.net,
+	shemminger@vyatta.com, davem@davemloft.net,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, bridge@lists.linux-foundation.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+To: santosh nayak <santoshprasadnayak@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1330593434-19275-1-git-send-email-santoshprasadnayak@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig895AD0FC53FA46E1B9B5B8ED
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Thu, Mar 01, 2012 at 02:47:14PM +0530, santosh nayak wrote:
+> From: Santosh Nayak <santoshprasadnayak@gmail.com>
+> 
+> I am getting following error.
+> " net/bridge/netfilter/ebtables.c:269 ebt_do_table()
+>   error: potential null derefence 'cs'"
+> 
+>     i = cs[sp].n;  // If cs == Null then this will cause problem.
 
-Am 01.03.2012 12:27, schrieb Pablo Neira Ayuso:
-> On Sun, Feb 05, 2012 at 01:14:48AM +0100, Richard Weinberger wrote:
->> ipt_LOG and ip6_LOG have a lot of common code, merge them
->> to reduce duplicate code.
->>
->> Signed-off-by: Richard Weinberger <richard@nod.at>
->=20
-> While testing this in my master branch I noticed one problem:
->=20
-> IN=3Dwlan0 OUT=3D MAC=3Dxx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx
-> SRC=3D213.150.61.61 DST=3D192.168.1.133 LEN=3D40 TOS=3D0x00 PREC=3D0x00=
- TTL=3D117
-> ID=3D10539 DF PROTO=3DTCP SPT=3D80 DPT=3D49013 WINDOW=3D0 RES=3D0x00 AC=
-K RST
-> URGP=3D0 PROTO=3DUDPLITE SPT=3D80 DPT=3D49013 LEN=3D45843 PROTO=3DICMP =
-TYPE=3D0
-> CODE=3D80 ID=3D45843 SEQ=3D48576
->=20
-> While merging ipt_LOG and ip6t_LOG, you introduced some bug that
-> corrupts the log line. Note the extra PROTO=3D, I don't have any UDPLIT=
-E
-> traffic here.
->=20
-> Looks like a missing break in one switch.
->=20
-> Would you send me a patch to fix this?
->=20
+Very sorry, I didn't see the out label.
 
-Sure. Do I have 48h to fix this?
-I'm currently very busy.
+I'll apply this to my nf [1] once David takes my previous request for
+pulling.
 
-Thanks,
-//richard
-
-
---------------enig895AD0FC53FA46E1B9B5B8ED
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQEcBAEBAgAGBQJPT2B6AAoJEN9758yqZn9esF0H/iBZcy3Bs0JroQxUxSl5JNjU
-L/jj9/1Y1+8Madw8nVRoCkNXflwZrqUnLW8hIZeanon8U1a6rx+UK+5UkkfaNXxL
-9A3HifXg+GeG5VYb0LgIPmyyR8ZD/rZHNhwP8Xp1kVfQywhoBqOSFPnLQHhlvoQq
-8m3wNU+C+BIor9Ksa8DXXqlv/GVg1rTIULfyBTp6lECxEtsUzIUIZ8Ljg1hq5d9p
-ziDZ1xulBCtuRD+ODlxzEV5aeestO9ke7dwz+49pI2VA3wDwbJclYeSFFxesU9/r
-YO/6mSULkbRNGB4BvOirI6hxTrBwnUgOaYk3OEYgca8tNcUo4xbcXYAbcEVeoXM=
-=Penx
------END PGP SIGNATURE-----
-
---------------enig895AD0FC53FA46E1B9B5B8ED--
+[1] http://1984.lsi.us.es/git/net
