@@ -1,43 +1,54 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH] netfilter: ipt_LOG: add __printf() to sb_add()
-Date: Thu, 01 Mar 2012 04:56:59 -0800
-Message-ID: <1330606619.2465.54.camel@edumazet-laptop>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/3] netfilter: Fix copy_to_user too small size
+ parametre.
+Date: Thu, 1 Mar 2012 14:03:11 +0100
+Message-ID: <20120301130311.GA7429@1984>
+References: <1330593390-19233-1-git-send-email-santoshprasadnayak@gmail.com>
+ <20120301101809.GA6488@1984>
+ <CAOD=uF6yqCETUG8jMCmjYDM+L1DsM91OiRveONJkNxMf=skTSg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>,
-	David Laight <David.Laight@ACULAB.COM>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:51534 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755800Ab2CAM5H (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Mar 2012 07:57:07 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: bart.de.schuymer@pandora.be, kaber@trash.net,
+	shemminger@vyatta.com, davem@davemloft.net,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, bridge@lists.linux-foundation.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org,
+	Dan Carpenter <dan.carpenter@oracle.com>
+To: santosh prasad nayak <santoshprasadnayak@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAOD=uF6yqCETUG8jMCmjYDM+L1DsM91OiRveONJkNxMf=skTSg@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Helps to find format mismatches at compile time
+On Thu, Mar 01, 2012 at 04:15:05PM +0530, santosh prasad nayak wrote:
+> Hi Pablo.
+> 
+> copy_to_user( dest, source, length)
+> 
+> Normally,  'length'  is equal to  'sizeof (source) '.
+> 
+> In this case "length"   =   32
+>        "sizeof(source)"  =   29.
+> 
+> Is it intentional ?
 
-Suggested-by: David Laight <David.Laight@ACULAB.COM>
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
----
- include/net/netfilter/xt_log.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ebtables expects 32 bytes names.
 
-diff --git a/include/net/netfilter/xt_log.h b/include/net/netfilter/xt_log.h
-index 0dfb34a..7e1544e 100644
---- a/include/net/netfilter/xt_log.h
-+++ b/include/net/netfilter/xt_log.h
-@@ -6,7 +6,7 @@ struct sbuff {
- };
- static struct sbuff emergency, *emergency_ptr = &emergency;
- 
--static int sb_add(struct sbuff *m, const char *f, ...)
-+static __printf(2, 3) int sb_add(struct sbuff *m, const char *f, ...)
- {
- 	va_list args;
- 	int len;
+> Won't it copy extra 3 bytes of kernel data to userspace ?
 
+You're right. We have to copy 29 bytes but we have to fill the
+remaining bytes with zeroes. I think something like:
 
+char name[EBT_FUNCTION_MAXNAMELEN] = {};
+
+/* user-space ebtables expects 32 bytes-long names, but xt_match uses
+ * 29 bytes for that. */
+sprintf(name, "%s", m->u.match->name);
+if (copy_to_user(hlp, name, EBT_FUNCTION_MAXNAMELEN))
+...
+
+will resolve this issue.
+
+Would you resend a new patch?
