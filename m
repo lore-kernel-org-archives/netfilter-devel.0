@@ -1,134 +1,100 @@
-From: Hans Schillstrom <hans@schillstrom.com>
-Subject: Re: [PATCH 1/2] IPVS Bug IPv6 extension header handling faulty.
-Date: Fri, 2 Mar 2012 13:18:17 +0100
-Message-ID: <201203021318.18715.hans@schillstrom.com>
-References: <1329223689-19792-1-git-send-email-hans.schillstrom@ericsson.com> <201202230834.24254.hans@schillstrom.com> <alpine.LFD.2.00.1202231012260.1481@ja.ssi.bg>
+From: Kerin Millar <kerframil@gmail.com>
+Subject: scheduling while atomic followed by oops upon conntrackd -c execution
+Date: Fri, 02 Mar 2012 15:11:07 +0000
+Message-ID: <4F50E30B.6000704@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	horms@verge.net.au, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1202231012260.1481@ja.ssi.bg>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:54023 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030183Ab2CBPLY (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 2 Mar 2012 10:11:24 -0500
+Received: by bkcik5 with SMTP id ik5so1561741bkc.19
+        for <netfilter-devel@vger.kernel.org>; Fri, 02 Mar 2012 07:11:23 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello Julian
-On Thursday, February 23, 2012 10:03:52 Julian Anastasov wrote:
-> 
-> 	In the case after calling ip_vs_lookup_real_service
-> is it correct to reject non-first fragment with
-> ICMPV6_PORT_UNREACH, is that allowed? May be we should
-> avoid sending ICMP errors to non-first fragment, what
-> is the right thing to do?
-> 
+Hello,
 
-I have big problems with some "corner cases" with ICMPv6
-the localhost thing makes it real hard to determine where to send ...
+I have recently set up a pair of Dell PowerEdge R610 servers (Xeon 
+X5650, 8GB RAM) for active-backup firewall duty. I've installed 
+conntrack-tools-1.0.1 and libnetfilter_conntrack-1.0.0 and am using the 
+FTFW mode for synchronization across a dedicated gigabit interface. The 
+active firewall has to contend with fairly heavy traffic, much of which 
+is in the form of long-lived TCP connections to an internal (LVS) load 
+balancer, behind which a bunch of application servers sit.
 
->From a good source I've heard that this is your thing :-)
+The number of active, concurrent connections to this service peaks at 
+around 480,000. At last count, the number of conntrack states was 
+785,785 which is typical. I have net.nf_conntrack_max set to 1048576 and 
+the nf_conntrack module is loaded with hashsize=262144. The firewall is 
+fully stateful in that new connections must match on -ctstate NEW. I'm 
+also using "-t raw -A PREROUTING -j CT --ctevents assured" as mentioned 
+in the docs.
 
-I'm testing ICMPv6 packet to big right now. 
-mtu 1500 on incoming iface eth0  and mtu 1460 on outgoing (eth0)
+This is my current test case for the backup:-
 
-For some reason the mtu check in ip_vs_nat_xmit_v6() does not hit,
-	/* MTU checking */
-	mtu = dst_mtu(&rt->dst);
-	if (skb->len > mtu && !skb_is_gso(skb)) {
+1) Boot the system and start conntrackd
+2) Run conntrackd -n to sync with the active firewall
+3) Run conntrackd -c to commit the states from the external cache
 
-instead we got an ICMP from the stack that hits hook "NF_INET_LOCAL_OUT"
--> IPVS: Incoming ICMPv6 hooknr:3 (2,0) 1001::1->2003::3:0:13
-And then everything get screwed up 
+Originally, while conntrackd -c was performing its work, I would 
+experience protracted soft lockups. After some investigation, I noticed 
+that conntrackd was trying to more states than net.nf_conntrack_max 
+which, in turn, led me to this patch:-
 
-It works if you got a tunnel, and with some tricks to localhost  VS/DR and VS/TUN
+https://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=af14cca
 
-I don't really know how to solve this issue,
-- should we force a pmtu discovery for new dst:s ?
-- try do fix every possible combination in ip_vs_in_icmp_v6() ?
+Although Jozsef's patch was helpful, I'm still experiencing a nasty 
+kernel oops after conntrackd -c has finished executing. This always 
+occurs within 15 seconds or so - sometimes immediately. Here's a recent 
+netconsole trace from 3.3-rc5 + patch:-
 
-ip_vs_in_icmp_v6() will be a monster if we try to solve every thing there
-But if we can set a localhost flag in the cp it would help a lot.
+http://paste.pocoo.org/raw/559736/
 
-I started with the "local RS" VS/DR and VS/TUN case and made some hack in it
+Though I ultimately intend to use the 3.0 kernel, I tried various other 
+versions going as far back as 2.6.32. In each case, an oops is 
+reproducible - though the details do vary. Using 3.3-rc5, I even noticed 
+a null ptr deref on one occcasion. Alas, I was unable to capture it at 
+the time.
 
-	/*
-	 * The embedded headers contain source and dest in reverse order
-	 * if not from localhost
-	 */
-	cp = pp->conn_in_get(AF_INET6, skb, &ciph,
-			     (hooknum == NF_INET_LOCAL_OUT) ? 0 :1);
+Here's some other configuration information which may be useful ...
 
-	if (!cp)
-		return NF_ACCEPT;
-	/* VS/TUN, VS/DR and LOCALNODE just let it go */
-	if (hooknum == NF_INET_LOCAL_OUT && IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ)
-		return NF_ACCEPT;
+conntrackd.conf: http://paste.pocoo.org/raw/559727/
+sysctl.conf: http://paste.pocoo.org/raw/559726/
+kernel .config: http://paste.pocoo.org/raw/559725/
 
+It's perhaps worth noting that I followed the advice to set HashLimit in 
+conntrackd.conf to at least double that of net.nf_conntrack_max 
+(commented in my config because I was experimenting with the issue that 
+Jozef's patch rectifies). One thing that puzzles me is why conntrackd 
+always tries to commit more state entries than can be accommodated. On 
+the master, the internal cache grows to the maximum size and, afaict, 
+nothing is ever expired. This is from the master which has been up for a 
+while ...
 
---- Here is some logs etc. ---
+# conntrackd -s | head -n 5
+cache internal:
+current active connections:          2097152
+connections created:                31649757    failed:    234788761
+connections updated:               105516073    failed:            0
+connections destroyed:              29552605    failed:            0
 
-With this plain setup:
-Tester 2003::3:0:13  --> router --> (eth1)-ipvs-(eth0) <--> RS-nat at 2003::1:0:5
+# conntrack -S | head -n1
+entries                 792495
 
-IPVS details 
+It seems that the cache usage grows to the maximum, at which point the 
+creation failed counter starts going skyward. On the backup, it seems 
+that conntrackd -n && conntrackd -c tries to commit all of this, but I 
+don't really understand why.
 
-UDP  [1001::1]:5001 rr
-  -> [2003::1:0:5]:5001           Masq    1      0          0         
+Any advice would be most welcome. I can't tinker too much with the 
+active firewall at this point but, if it helps, I can conduct any number 
+of tests with the backup.
 
+Cheers,
 
-~ # ifconfig 
-eth0      Link encap:Ethernet  HWaddr 00:00:00:01:01:01  
-          inet addr:192.168.0.1  Bcast:192.168.0.255  Mask:255.255.255.0
-          inet6 addr: fe80::200:ff:fe01:101/64 Scope:Link
-          inet6 addr: 2003::1:0:1/96 Scope:Global
-          UP BROADCAST RUNNING MULTICAST  MTU:1460  Metric:1
-
-eth1      Link encap:Ethernet  HWaddr 00:00:02:01:01:01  
-          inet addr:192.168.1.1  Bcast:192.168.1.255  Mask:255.255.255.0
-          inet6 addr: fe80::200:2ff:fe01:101/64 Scope:Link
-          inet6 addr: 2003::2:0:1/96 Scope:Global
-          inet6 addr: 1001::1/128 Scope:Global
-          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
-
-
-Packet from tester to ipvs 
-12:28:20.157968 00:00:02:01:01:11 > 00:00:02:01:01:01, ethertype IPv6 (0x86dd), length 1510: 2003::3:0:13 > 1001::1: frag (0|1448) 38668 > commplex-link: UDP, length 1470
-12:28:20.157975 00:00:02:01:01:11 > 00:00:02:01:01:01, ethertype IPv6 (0x86dd), length 92: 2003::3:0:13 > 1001::1: frag (1448|30)
-
-As you can see ICMP goes to the RS and not as expected to the "tester"
-12:28:20.354056 00:00:00:01:01:01 > 00:00:00:01:01:05, ethertype IPv6 (0x86dd), length 1294: 1001::1 > 2003::1:0:5: ICMP6, packet too big, mtu 1460, length 1240
-
-
-[  264.644538] IPVS: Fragment recv prop:0
-[  264.644538] IPVS: Enter: ip_vs_out, /opt/src/ericsson/Evip/kvm/net-next.git/net/netfilter/ipvs/ip_vs_core.c line 1095
-[  264.648538] IPVS: lookup/out UDP [2003::3:0:13]:38668->[1001::1]:5001 not hit
-[  264.652538] ip_vs_out: packet continues traversal as normal: UDP [2003::3:0:13]:38668->[1001::1]:5001 next-hdr=17 frag.id=0xf8fbd64a
-[  264.652539] IPVS: lookup/in UDP [2003::3:0:13]:38668->[1001::1]:5001 not hit
-[  264.656539] IPVS: lookup service: fwm 0 UDP [1001::1]:5001 hit
-[  264.656539] IPVS: ip_vs_rr_schedule(): Scheduling...
-[  264.656539] IPVS: RR: server [2003::1:0:5]:5001 activeconns 0 refcnt 1 weight 1
-[  264.660539] IPVS: Bind-dest UDP c:[2003::3:0:13]:38668 v:[1001::1]:5001 d:[2003::1:0:5]:5001 fwd:M s:0 conn->flags:100 conn->refcnt:1 dest->refcnt:2
-[  264.660539] IPVS: Schedule fwd:M c:[2003::3:0:13]:38668 v:[1001::1]:5001 d:[2003::1:0:5]:5001 conn->flags:140 conn->refcnt:2
-[  264.664539] Incoming packet: UDP [2003::3:0:13]:38668->[1001::1]:5001 next-hdr=17 frag.id=0xf8fbd64a
-[  264.668540] IPVS: Enter: ip_vs_nat_xmit_v6, /opt/src/ericsson/Evip/kvm/net-next.git/net/netfilter/ipvs/ip_vs_xmit.c line 640
-[  264.668540] IPVS: new dst 2003:0000:0000:0000:0000:0001:0000:0005, src 2003:0000:0000:0000:0000:0001:0000:0001, refcnt=2
-Here it goes wrong
-[  264.672540] IPVS: Incoming ICMPv6 3(2,0) 1001::1->2003::3:0:13
-[  264.672540] IPVS: ICMPv6 [2003::3:0:13]:38668->[1001::1]:5001 pr:17  io:48 len:96
-[  264.676540] Checking incoming ICMPv6 for: UDP [2003::3:0:13]:38668->[1001::1]:5001 next-hdr=17 frag.id=0xf8fbd64a
-[  264.704542] IPVS: lookup/in UDP [2003::3:0:13]:38668->[1001::1]:5001 hit
-[  264.704542] IPVS: Enter: ip_vs_icmp_xmit_v6, /opt/src/ericsson/Evip/kvm/net-next.git/net/netfilter/ipvs/ip_vs_xmit.c line 1273
-[  264.708542] IPVS: *** 1001::1->2003::3:0:13 nh:58 type/code:2/0
-[  264.708542] IPVS: *** 2003::3:0:13->1001::1 nh:44 proto:17 offs:40/96
-[  264.712542] IPVS: *** spprt:38668 -> dport:5001
-[  264.712542] IPVS: ip_vs_nat_icmp_v6() changed port 38668 to 5001
-[  264.712542] Forwarding altered incoming ICMPv6: UDP [2003::1:0:5]:5001->[1001::1]:5001 next-hdr=17 frag.id=0xf8fbd64a
-[  264.716542] IPVS: Incoming ICMPv6 3(135,0) fe80::200:ff:fe01:101->ff02::1:ff00:5
-[  264.716543] IPVS: Leave: ip_vs_icmp_xmit_v6, /opt/src/ericsson/Evip/kvm/net-next.git/net/netfilter/ipvs/ip_vs_xmit.c line 1375
-[  264.720543] ip_vs_nat_xmit_v6(): frag needed for: UDP [2003::3:0:13]:38668->[1001::1]:5001 next-hdr=17 frag.id=0xf8fbd64a
-[  264.724543] IPVS: Leave: ip_vs_nat_xmit_v6, /opt/src/ericsson/Evip/kvm/net-next.git/net/netfilter/ipvs/ip_vs_xmit.c line 739
-
-Regards
-Hans Schillstrom
+--Kerin
