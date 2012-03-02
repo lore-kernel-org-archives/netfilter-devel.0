@@ -1,63 +1,53 @@
 From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [PATCH] bridge: netfilter: don't call iptables on vlan packets
- if sysctl is off
-Date: Fri, 02 Mar 2012 22:11:11 +0100
-Message-ID: <4F51376F.3050704@pandora.be>
-References: <1330638154-1142-1-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH 2/3] netfilter: potential null derefence.
+Date: Fri, 02 Mar 2012 22:31:23 +0100
+Message-ID: <4F513C2B.6030604@pandora.be>
+References: <1330593434-19275-1-git-send-email-santoshprasadnayak@gmail.com>
+	<20120301123004.GA7250@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, Jiri Pirko <jpirko@redhat.com>,
-	Jesse Gross <jesse@nicira.com>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from juliette.telenet-ops.be ([195.130.137.74]:37545 "EHLO
-	juliette.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756152Ab2CBVLR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 2 Mar 2012 16:11:17 -0500
-In-Reply-To: <1330638154-1142-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: santosh nayak <santoshprasadnayak@gmail.com>, coreteam@netfilter.org,
+	netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
+	kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netfilter@vger.kernel.org, bart.de.schuymer@pandora.be,
+	netfilter-devel@vger.kernel.org, shemminger@vyatta.com, davem@davemloft.net
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+In-Reply-To: <20120301123004.GA7250@1984>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Op 1/03/2012 22:42, Florian Westphal schreef:
-> When net.bridge.bridge-nf-filter-vlan-tagged is 0 (default), vlan packets
-> arriving should not be sent to ip(6)tables by bridge netfilter.
+Op 1/03/2012 13:30, Pablo Neira Ayuso schreef:
+> On Thu, Mar 01, 2012 at 02:47:14PM +0530, santosh nayak wrote:
+>> From: Santosh Nayak<santoshprasadnayak@gmail.com>
+>>
+>> I am getting following error.
+>> " net/bridge/netfilter/ebtables.c:269 ebt_do_table()
+>>    error: potential null derefence 'cs'"
+>>
+>>      i = cs[sp].n;  // If cs == Null then this will cause problem.
 >
-> However, it turns out that we currently always send VLAN packets to
-> netfilter, if ..
-> a), CONFIG_VLAN_8021Q is enabled ; or
-> b), CONFIG_VLAN_8021Q is not set but rx vlan offload is enabled
->     on the bridge port.
+> Very sorry, I didn't see the out label.
 >
-> This is because bridge netfilter treats skb with
-> skb->protocol == ETH_P_IP{V6} as "non-vlan packet".
+> I'll apply this to my nf [1] once David takes my previous request for
+> pulling.
+>
 
-> -	else if (skb->protocol == htons(ETH_P_IPV6) || IS_VLAN_IPV6(skb) ||
-> -		 IS_PPPOE_IPV6(skb))
-> +	else if (IS_IPV6(skb) || IS_PPPOE_IPV6(skb))
+Hi,
 
-> -	if (skb->protocol != htons(ETH_P_ARP)) {
-> -		if (!IS_VLAN_ARP(skb))
-> -			return NF_ACCEPT;
-> -		nf_bridge_pull_encap_header(skb);
-> -	}
-> +	if (!IS_ARP(skb))
-> +		return NF_ACCEPT;
-> +	nf_bridge_pull_encap_header(skb);
-
-> -	if (skb->protocol == htons(ETH_P_IP) || IS_VLAN_IP(skb) ||
-> -	    IS_PPPOE_IP(skb))
-> +	if (IS_IP(skb) || IS_PPPOE_IP(skb))
-
-I think the above is quite unclear to read. I would prefer something 
-like this:
-if (IS_IP(skb) || IS_VLAN_IP(skb) || IS_PPPOE_IP(skb))
-The compiler should easily remove any redundant checks that this would 
-produce. The same idea goes for the IS_ARP and IS_IPV6 macros you define...
-Apart from that the patch looks fine to me.
-
-cheers,
+Has this patch been tested? Really, that code in the core firewall 
+function is there for a reason, wouldn't you think?
+The chainstack is only allocated when user-defined chains are used (see 
+translate_table).
+Never blindly trust a tool.
 
 Bart
-
