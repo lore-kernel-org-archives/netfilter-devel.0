@@ -1,69 +1,56 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/3] netfilter: potential null derefence.
-Date: Fri, 2 Mar 2012 02:22:08 +0100
-Message-ID: <20120302012208.GA10185@1984>
-References: <1330593434-19275-1-git-send-email-santoshprasadnayak@gmail.com>
+From: Darren Willis <djw@google.com>
+Subject: Re: [PATCH] DHCPv6 connection tracker helper
+Date: Fri, 2 Mar 2012 12:59:15 +0900
+Message-ID: <CAFntDkzLUzL3S6BBhYXMy67gNyCi-xEAUg=eEkaS0WsAgdaz6Q@mail.gmail.com>
+References: <CAFntDkx2SUkCkSbU7sO4OrWqypWQpY-KNgrD-_DgqRSXAGvJZQ@mail.gmail.com>
+	<alpine.LNX.2.01.1202130940390.30851@frira.zrqbmnf.qr>
+	<CAFntDkw0sN=j+mKm0s=kac+mMWnQqdyUviGj0_puj0bqSobR=Q@mail.gmail.com>
+	<alpine.LNX.2.01.1202151758290.15357@frira.zrqbmnf.qr>
+	<CAFntDkx_aZ4Pvfg21yHUDYWcaG=pwk28xwjpv1Sh9q0B4N+TRw@mail.gmail.com>
+	<20120224175420.GA11587@1984>
+	<CAFntDkz4QtCrgHNFNp6Bn1dGco3HCWthYaFLN_-bUVb2q0wPjQ@mail.gmail.com>
+	<20120228235456.GA30286@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: bart.de.schuymer@pandora.be, kaber@trash.net,
-	shemminger@vyatta.com, davem@davemloft.net,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, bridge@lists.linux-foundation.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-To: santosh nayak <santoshprasadnayak@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1330593434-19275-1-git-send-email-santoshprasadnayak@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:42198 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753641Ab2CBD7Q (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 1 Mar 2012 22:59:16 -0500
+Received: by vbbff1 with SMTP id ff1so1159144vbb.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 01 Mar 2012 19:59:16 -0800 (PST)
+In-Reply-To: <20120228235456.GA30286@1984>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Mar 01, 2012 at 02:47:14PM +0530, santosh nayak wrote:
-> From: Santosh Nayak <santoshprasadnayak@gmail.com>
-> 
-> I am getting following error.
-> " net/bridge/netfilter/ebtables.c:269 ebt_do_table()
->   error: potential null derefence 'cs'"
-> 
->     i = cs[sp].n;  // If cs == Null then this will cause problem.
-> 
-> Signed-off-by: Santosh Nayak <santoshprasadnayak@gmail.com>
-> ---
->  net/bridge/netfilter/ebtables.c |    5 ++++-
->  1 files changed, 4 insertions(+), 1 deletions(-)
-> 
-> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-> index f3fcbd9..9c0f177 100644
-> --- a/net/bridge/netfilter/ebtables.c
-> +++ b/net/bridge/netfilter/ebtables.c
-> @@ -209,8 +209,10 @@ unsigned int ebt_do_table (unsigned int hook, struct sk_buff *skb,
->  	   smp_processor_id());
->  	if (private->chainstack)
->  		cs = private->chainstack[smp_processor_id()];
-> -	else
-> +	else {
->  		cs = NULL;
+On Wed, Feb 29, 2012 at 08:54, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Yes. I'd like to send a patch for RFC to the mailing list any time
+> soon. I'll include you in the CC.
 
-I just noticed we can remove this cs = NULL. No need to resend, I'll
-mangle it myself.
+Thanks, sounds interesting.
 
-> +		goto out;
-> +	}
->  	chaininfo = private->hook_entry[hook];
->  	nentries = private->hook_entry[hook]->nentries;
->  	point = (struct ebt_entry *)(private->hook_entry[hook]->data);
-> @@ -313,6 +315,7 @@ letscontinue:
->  		read_unlock_bh(&table->lock);
->  		return NF_ACCEPT;
->  	}
-> +out:
->  	read_unlock_bh(&table->lock);
->  	return NF_DROP;
->  }
-> -- 
-> 1.7.4.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I'm currently working on one user-space helper infrastructure. We can
+> use that infrastructure to implement this helper and many others.
+>
+> I've got the patch in one branch of my kernel tree, it's still
+> experimental stuff, but I expect to have it done soon.
+>
+> Would you be OK with we make this (and other helpers that will surely
+> follow up) in user-space?
+
+Well, I think long-term that's the way to go. I'd still like to get
+this in its current form, if possible, since it's a simple thing in a
+pretty OK state right now, so it could be ready to go quite quickly.
+Whereas, although I think your helper framework sounds great and is
+the right thing to do, it's also an unknown amount of time away.
+Unless it's going to be landing in the next few weeks?
+
+Of course, I don't want to make a lot of work for you - I'll be more
+than happy to revisit this, remove the dhcpv6 helper and re-implement
+it for your new helper framework when it's ready for external
+contributions.
