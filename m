@@ -1,57 +1,50 @@
+From: pablo@netfilter.org
+Subject: netfilter: ctnetlink: remove incorrect spin_[un]lock_bh  on NAT module autoload
+Date: Sat,  3 Mar 2012 10:17:18 +0100
+Message-ID: <1330766238-2512-1-git-send-email-pablo@netfilter.org>
+Cc: kadlec@blackhole.kfki.hu
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:39637 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752612Ab2CCJRa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 3 Mar 2012 04:17:30 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/3] netfilter: potential null derefence.
-Date: Sat, 3 Mar 2012 10:11:53 +0100
-Message-ID: <20120303091153.GA17253@1984>
-References: <1330593434-19275-1-git-send-email-santoshprasadnayak@gmail.com>
-	<20120301123004.GA7250@1984> <4F513C2B.6030604@pandora.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: santosh nayak <santoshprasadnayak@gmail.com>, coreteam@netfilter.org,
-	netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
-	kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netfilter@vger.kernel.org, bart.de.schuymer@pandora.be,
-	netfilter-devel@vger.kernel.org, shemminger@vyatta.com, davem@davemloft.net
-To: Bart De Schuymer <bdschuym@pandora.be>
-Return-path: <bridge-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <4F513C2B.6030604@pandora.be>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
-List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Mar 02, 2012 at 10:31:23PM +0100, Bart De Schuymer wrote:
-> Op 1/03/2012 13:30, Pablo Neira Ayuso schreef:
-> >On Thu, Mar 01, 2012 at 02:47:14PM +0530, santosh nayak wrote:
-> >>From: Santosh Nayak<santoshprasadnayak@gmail.com>
-> >>
-> >>I am getting following error.
-> >>" net/bridge/netfilter/ebtables.c:269 ebt_do_table()
-> >>   error: potential null derefence 'cs'"
-> >>
-> >>     i = cs[sp].n;  // If cs == Null then this will cause problem.
-> >
-> >Very sorry, I didn't see the out label.
-> >
-> >I'll apply this to my nf [1] once David takes my previous request for
-> >pulling.
-> >
-> 
-> Hi,
-> 
-> Has this patch been tested? Really, that code in the core firewall
-> function is there for a reason, wouldn't you think?
-> The chainstack is only allocated when user-defined chains are used
-> (see translate_table).
-> Never blindly trust a tool.
+Since 7d367e0, ctnetlink_new_conntrack is called without holding
+the nf_conntrack_lock spinlock. Thus, ctnetlink_parse_nat_setup
+does not require to release that spinlock anymore in the NAT module
+autoload case.
 
-I see, then that cs NULL dereference never happens.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_netlink.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-Thanks Bart, I'll drop this patch.
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 30c9d4c..1068769 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1041,16 +1041,13 @@ ctnetlink_parse_nat_setup(struct nf_conn *ct,
+ 	if (!parse_nat_setup) {
+ #ifdef CONFIG_MODULES
+ 		rcu_read_unlock();
+-		spin_unlock_bh(&nf_conntrack_lock);
+ 		nfnl_unlock();
+ 		if (request_module("nf-nat-ipv4") < 0) {
+ 			nfnl_lock();
+-			spin_lock_bh(&nf_conntrack_lock);
+ 			rcu_read_lock();
+ 			return -EOPNOTSUPP;
+ 		}
+ 		nfnl_lock();
+-		spin_lock_bh(&nf_conntrack_lock);
+ 		rcu_read_lock();
+ 		if (nfnetlink_parse_nat_setup_hook)
+ 			return -EAGAIN;
+-- 
+1.7.7.3
+
