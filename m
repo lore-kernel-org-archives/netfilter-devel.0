@@ -1,34 +1,40 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/7] [RFC] new cttimeout infrastructure
-Date: Sat, 3 Mar 2012 14:40:24 +0100
-Message-ID: <20120303134024.GB18857@1984>
-References: <1330483172-19159-1-git-send-email-pablo@netfilter.org>
- <CABa6K_GKpkAiC7ae+-OwGG_b1iXyYD9+_xzF095XGTJ+e1aBWw@mail.gmail.com>
+Subject: Re: Current state of nftables
+Date: Sat, 3 Mar 2012 14:41:58 +0100
+Message-ID: <20120303134158.GC18857@1984>
+References: <4BA4C069.8050804@gmail.com>
+ <1269352353.4717.143.camel@luna.tc.commsmundi.com>
+ <4BA8CD2E.1020206@trash.net>
+ <1289560775.7664.277.camel@luna.tc.commsmundi.com>
+ <4CDD5663.6020703@trash.net>
+ <1330014705.26512.46.camel@luna.madrid.commsmundi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: =?iso-8859-1?Q?Fran=E7ois?= Delawarde
+	<fdelawarde@wirelessmundi.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58776 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58940 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752465Ab2CCNk1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 3 Mar 2012 08:40:27 -0500
+	id S1752465Ab2CCNmB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 3 Mar 2012 08:42:01 -0500
 Content-Disposition: inline
-In-Reply-To: <CABa6K_GKpkAiC7ae+-OwGG_b1iXyYD9+_xzF095XGTJ+e1aBWw@mail.gmail.com>
+In-Reply-To: <1330014705.26512.46.camel@luna.madrid.commsmundi.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Mar 01, 2012 at 08:51:56PM +0800, Changli Gao wrote:
-> On Wed, Feb 29, 2012 at 10:39 AM,  <pablo@netfilter.org> wrote:
-> > From: Pablo Neira Ayuso <pablo@netfilter.org>
-> >
-> > You can find the user-space library:
-> >
-> > http://git.netfilter.org/cgi-bin/gitweb.cgi?p=libnetfilter_cttimeout.git;a=summary
-> >
-> 
-> IMHO we have too many such libraries. Why not combine all the library
-> into one named after libnf or libnetfilter?
+On Thu, Feb 23, 2012 at 05:31:45PM +0100, Fran=E7ois Delawarde wrote:
+> Hello Patrick and list,
+>=20
+> Just a quick check on the status of nftables.
+>=20
+> Is a release planned in short or medium-term?
 
-We discussed this before. We can release independent libraries in case
-of bugs.
+No major updates but I really would like to find time to take over
+this development.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
