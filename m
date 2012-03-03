@@ -1,71 +1,128 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] bridge: netfilter: don't call iptables on vlan packets
- if sysctl is off
-Date: Sat, 3 Mar 2012 11:20:21 +0100
-Message-ID: <20120303102021.GE11311@Chamillionaire.breakpoint.cc>
-References: <1330638154-1142-1-git-send-email-fw@strlen.de>
- <4F51376F.3050704@pandora.be>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: scheduling while atomic followed by oops upon conntrackd -c
+ execution
+Date: Sat, 3 Mar 2012 14:30:02 +0100
+Message-ID: <20120303133002.GA18802@1984>
+References: <4F50E30B.6000704@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	Jiri Pirko <jpirko@redhat.com>, Jesse Gross <jesse@nicira.com>
-To: Bart De Schuymer <bdschuym@pandora.be>
+Cc: netfilter-devel@vger.kernel.org
+To: Kerin Millar <kerframil@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:36006 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752136Ab2CCKUW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 3 Mar 2012 05:20:22 -0500
+Received: from mail.us.es ([193.147.175.20]:58299 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751104Ab2CCNaN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 3 Mar 2012 08:30:13 -0500
 Content-Disposition: inline
-In-Reply-To: <4F51376F.3050704@pandora.be>
+In-Reply-To: <4F50E30B.6000704@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Bart De Schuymer <bdschuym@pandora.be> wrote:
-> Op 1/03/2012 22:42, Florian Westphal schreef:
-> > When net.bridge.bridge-nf-filter-vlan-tagged is 0 (default), vlan packets
-> > arriving should not be sent to ip(6)tables by bridge netfilter.
-> >
-> > However, it turns out that we currently always send VLAN packets to
-> > netfilter, if ..
-> > a), CONFIG_VLAN_8021Q is enabled ; or
-> > b), CONFIG_VLAN_8021Q is not set but rx vlan offload is enabled
-> >     on the bridge port.
-> >
-> > This is because bridge netfilter treats skb with
-> > skb->protocol == ETH_P_IP{V6} as "non-vlan packet".
+Hi,
+
+On Fri, Mar 02, 2012 at 03:11:07PM +0000, Kerin Millar wrote:
+> Hello,
 > 
-> > -	else if (skb->protocol == htons(ETH_P_IPV6) || IS_VLAN_IPV6(skb) ||
-> > -		 IS_PPPOE_IPV6(skb))
-> > +	else if (IS_IPV6(skb) || IS_PPPOE_IPV6(skb))
+> I have recently set up a pair of Dell PowerEdge R610 servers (Xeon
+> X5650, 8GB RAM) for active-backup firewall duty. I've installed
+> conntrack-tools-1.0.1 and libnetfilter_conntrack-1.0.0 and am using
+> the FTFW mode for synchronization across a dedicated gigabit
+> interface. The active firewall has to contend with fairly heavy
+> traffic, much of which is in the form of long-lived TCP connections
+> to an internal (LVS) load balancer, behind which a bunch of
+> application servers sit.
 > 
-> > -	if (skb->protocol != htons(ETH_P_ARP)) {
-> > -		if (!IS_VLAN_ARP(skb))
-> > -			return NF_ACCEPT;
-> > -		nf_bridge_pull_encap_header(skb);
-> > -	}
-> > +	if (!IS_ARP(skb))
-> > +		return NF_ACCEPT;
-> > +	nf_bridge_pull_encap_header(skb);
+> The number of active, concurrent connections to this service peaks
+> at around 480,000. At last count, the number of conntrack states was
+> 785,785 which is typical. I have net.nf_conntrack_max set to 1048576
+> and the nf_conntrack module is loaded with hashsize=262144. The
+> firewall is fully stateful in that new connections must match on
+> -ctstate NEW. I'm also using "-t raw -A PREROUTING -j CT --ctevents
+> assured" as mentioned in the docs.
+
+Docs explictly says that you require Linux kernel >= 2.6.38 to use
+this filtering. You seem to be using 2.6.32.
+
+> This is my current test case for the backup:-
 > 
-> > -	if (skb->protocol == htons(ETH_P_IP) || IS_VLAN_IP(skb) ||
-> > -	    IS_PPPOE_IP(skb))
-> > +	if (IS_IP(skb) || IS_PPPOE_IP(skb))
+> 1) Boot the system and start conntrackd
+> 2) Run conntrackd -n to sync with the active firewall
+> 3) Run conntrackd -c to commit the states from the external cache
 > 
-> I think the above is quite unclear to read. I would prefer something 
-> like this:
-> if (IS_IP(skb) || IS_VLAN_IP(skb) || IS_PPPOE_IP(skb))
+> Originally, while conntrackd -c was performing its work, I would
+> experience protracted soft lockups. After some investigation, I
+> noticed that conntrackd was trying to more states than
+> net.nf_conntrack_max which, in turn, led me to this patch:-
+> 
+> https://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=af14cca
 
-I disagree.  But fair enough, I'll change it & respin on monday, if...
+I just posted another patch to the ML that is a relative fix to
+Jozsef's patch. You have to apply that as well.
 
-> The compiler should easily remove any redundant checks that this would 
-> produce.
+> Although Jozsef's patch was helpful, I'm still experiencing a nasty
+> kernel oops after conntrackd -c has finished executing. This always
+> occurs within 15 seconds or so - sometimes immediately. Here's a
+> recent netconsole trace from 3.3-rc5 + patch:-
+> 
+> http://paste.pocoo.org/raw/559736/
 
-... gcc removes the redundant checks (I expect it to).
+It seems ctnetlink is trying to load nf_nat over and over again, but
+it doesn't seem to find it. One of the firewalls seem to be performing
+NAT but the other doesn't have access to the NAT module. This is
+strange, I guess you have the same rule-set loaded in both firewalls
+correctly.
 
-> Apart from that the patch looks fine to me.
+> Though I ultimately intend to use the 3.0 kernel, I tried various
+> other versions going as far back as 2.6.32. In each case, an oops is
+> reproducible - though the details do vary. Using 3.3-rc5, I even
+> noticed a null ptr deref on one occcasion. Alas, I was unable to
+> capture it at the time.
 
-Thanks for reviewing!
+For reporting problems, you have to stick latest Linux kernel version.
+2.6.32 is rather old kernel.
 
-Regards,
-Florian
+> Here's some other configuration information which may be useful ...
+> 
+> conntrackd.conf: http://paste.pocoo.org/raw/559727/
+
+        Options {
+                TCPWindowTracking On
+        }
+
+You cannot use this with 2.6.32 either. It's also documented in the
+user manual and the example config file (it requires 2.6.36). Please,
+take the time to read the docs.
+
+> sysctl.conf: http://paste.pocoo.org/raw/559726/
+> kernel .config: http://paste.pocoo.org/raw/559725/
+> 
+> It's perhaps worth noting that I followed the advice to set
+> HashLimit in conntrackd.conf to at least double that of
+> net.nf_conntrack_max (commented in my config because I was
+> experimenting with the issue that Jozef's patch rectifies). One
+> thing that puzzles me is why conntrackd always tries to commit more
+> state entries than can be accommodated. On the master, the internal
+> cache grows to the maximum size and, afaict, nothing is ever
+> expired. This is from the master which has been up for a while ...
+> 
+> # conntrackd -s | head -n 5
+> cache internal:
+> current active connections:          2097152
+> connections created:                31649757    failed:    234788761
+> connections updated:               105516073    failed:            0
+> connections destroyed:              29552605    failed:            0
+> 
+> # conntrack -S | head -n1
+> entries                 792495
+>
+> It seems that the cache usage grows to the maximum, at which point
+> the creation failed counter starts going skyward. On the backup, it
+> seems that conntrackd -n && conntrackd -c tries to commit all of
+> this, but I don't really understand why.
+> 
+> Any advice would be most welcome. I can't tinker too much with the
+> active firewall at this point but, if it helps, I can conduct any
+> number of tests with the backup.
+
+I need that you stick to a reasonable configuration to help you. Then,
+we can fix issues, if any shows up.
