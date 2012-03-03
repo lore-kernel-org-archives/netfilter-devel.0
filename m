@@ -1,50 +1,71 @@
-From: pablo@netfilter.org
-Subject: netfilter: ctnetlink: remove incorrect spin_[un]lock_bh  on NAT module autoload
-Date: Sat,  3 Mar 2012 10:17:18 +0100
-Message-ID: <1330766238-2512-1-git-send-email-pablo@netfilter.org>
-Cc: kadlec@blackhole.kfki.hu
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] bridge: netfilter: don't call iptables on vlan packets
+ if sysctl is off
+Date: Sat, 3 Mar 2012 11:20:21 +0100
+Message-ID: <20120303102021.GE11311@Chamillionaire.breakpoint.cc>
+References: <1330638154-1142-1-git-send-email-fw@strlen.de>
+ <4F51376F.3050704@pandora.be>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	Jiri Pirko <jpirko@redhat.com>, Jesse Gross <jesse@nicira.com>
+To: Bart De Schuymer <bdschuym@pandora.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39637 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752612Ab2CCJRa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 3 Mar 2012 04:17:30 -0500
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:36006 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752136Ab2CCKUW (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 3 Mar 2012 05:20:22 -0500
+Content-Disposition: inline
+In-Reply-To: <4F51376F.3050704@pandora.be>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Bart De Schuymer <bdschuym@pandora.be> wrote:
+> Op 1/03/2012 22:42, Florian Westphal schreef:
+> > When net.bridge.bridge-nf-filter-vlan-tagged is 0 (default), vlan packets
+> > arriving should not be sent to ip(6)tables by bridge netfilter.
+> >
+> > However, it turns out that we currently always send VLAN packets to
+> > netfilter, if ..
+> > a), CONFIG_VLAN_8021Q is enabled ; or
+> > b), CONFIG_VLAN_8021Q is not set but rx vlan offload is enabled
+> >     on the bridge port.
+> >
+> > This is because bridge netfilter treats skb with
+> > skb->protocol == ETH_P_IP{V6} as "non-vlan packet".
+> 
+> > -	else if (skb->protocol == htons(ETH_P_IPV6) || IS_VLAN_IPV6(skb) ||
+> > -		 IS_PPPOE_IPV6(skb))
+> > +	else if (IS_IPV6(skb) || IS_PPPOE_IPV6(skb))
+> 
+> > -	if (skb->protocol != htons(ETH_P_ARP)) {
+> > -		if (!IS_VLAN_ARP(skb))
+> > -			return NF_ACCEPT;
+> > -		nf_bridge_pull_encap_header(skb);
+> > -	}
+> > +	if (!IS_ARP(skb))
+> > +		return NF_ACCEPT;
+> > +	nf_bridge_pull_encap_header(skb);
+> 
+> > -	if (skb->protocol == htons(ETH_P_IP) || IS_VLAN_IP(skb) ||
+> > -	    IS_PPPOE_IP(skb))
+> > +	if (IS_IP(skb) || IS_PPPOE_IP(skb))
+> 
+> I think the above is quite unclear to read. I would prefer something 
+> like this:
+> if (IS_IP(skb) || IS_VLAN_IP(skb) || IS_PPPOE_IP(skb))
 
-Since 7d367e0, ctnetlink_new_conntrack is called without holding
-the nf_conntrack_lock spinlock. Thus, ctnetlink_parse_nat_setup
-does not require to release that spinlock anymore in the NAT module
-autoload case.
+I disagree.  But fair enough, I'll change it & respin on monday, if...
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_netlink.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+> The compiler should easily remove any redundant checks that this would 
+> produce.
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 30c9d4c..1068769 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1041,16 +1041,13 @@ ctnetlink_parse_nat_setup(struct nf_conn *ct,
- 	if (!parse_nat_setup) {
- #ifdef CONFIG_MODULES
- 		rcu_read_unlock();
--		spin_unlock_bh(&nf_conntrack_lock);
- 		nfnl_unlock();
- 		if (request_module("nf-nat-ipv4") < 0) {
- 			nfnl_lock();
--			spin_lock_bh(&nf_conntrack_lock);
- 			rcu_read_lock();
- 			return -EOPNOTSUPP;
- 		}
- 		nfnl_lock();
--		spin_lock_bh(&nf_conntrack_lock);
- 		rcu_read_lock();
- 		if (nfnetlink_parse_nat_setup_hook)
- 			return -EAGAIN;
--- 
-1.7.7.3
+... gcc removes the redundant checks (I expect it to).
 
+> Apart from that the patch looks fine to me.
+
+Thanks for reviewing!
+
+Regards,
+Florian
