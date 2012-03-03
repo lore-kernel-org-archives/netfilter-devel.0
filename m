@@ -1,77 +1,57 @@
-From: santosh prasad nayak <santoshprasadnayak@gmail.com>
-Subject: Re: [Bridge] [PATCH 2/3] netfilter: potential null derefence.
-Date: Sat, 3 Mar 2012 14:34:43 +0530
-Message-ID: <CAOD=uF4qvMZ3aa+x_aXS+SvxYQ46HnQEjkvO7Mwh=sHdhoHM1A@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 2/3] netfilter: potential null derefence.
+Date: Sat, 3 Mar 2012 10:11:53 +0100
+Message-ID: <20120303091153.GA17253@1984>
 References: <1330593434-19275-1-git-send-email-santoshprasadnayak@gmail.com>
-	<20120301123004.GA7250@1984>
-	<4F513C2B.6030604@pandora.be>
+	<20120301123004.GA7250@1984> <4F513C2B.6030604@pandora.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, kernel-janitors@vger.kernel.org,
-	davem@davemloft.net, bart.de.schuymer@pandora.be,
-	netfilter-devel@vger.kernel.org, shemminger@vyatta.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: santosh nayak <santoshprasadnayak@gmail.com>, coreteam@netfilter.org,
+	netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
+	kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netfilter@vger.kernel.org, bart.de.schuymer@pandora.be,
+	netfilter-devel@vger.kernel.org, shemminger@vyatta.com, davem@davemloft.net
 To: Bart De Schuymer <bdschuym@pandora.be>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pz0-f52.google.com ([209.85.210.52]:47086 "EHLO
-	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751046Ab2CCJEo convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 3 Mar 2012 04:04:44 -0500
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
 In-Reply-To: <4F513C2B.6030604@pandora.be>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Bart,
-         Its good to do the testing before rolling up the patch
-but code analysis shows there is a potential bug.
-
-=46or cs=3DNULL the following statement will cause crash.
-       i =3D cs[sp].n
-
-The aim of this patch is to avoid possible null dereference.
-
-
-Regards
-Santosh
-
-On Sat, Mar 3, 2012 at 3:01 AM, Bart De Schuymer <bdschuym@pandora.be> =
-wrote:
+On Fri, Mar 02, 2012 at 10:31:23PM +0100, Bart De Schuymer wrote:
 > Op 1/03/2012 13:30, Pablo Neira Ayuso schreef:
->
->> On Thu, Mar 01, 2012 at 02:47:14PM +0530, santosh nayak wrote:
->>>
->>> From: Santosh Nayak<santoshprasadnayak@gmail.com>
->>>
->>> I am getting following error.
->>> " net/bridge/netfilter/ebtables.c:269 ebt_do_table()
->>> =A0 error: potential null derefence 'cs'"
->>>
->>> =A0 =A0 i =3D cs[sp].n; =A0// If cs =3D=3D Null then this will caus=
-e problem.
->>
->>
->> Very sorry, I didn't see the out label.
->>
->> I'll apply this to my nf [1] once David takes my previous request fo=
-r
->> pulling.
->>
->
+> >On Thu, Mar 01, 2012 at 02:47:14PM +0530, santosh nayak wrote:
+> >>From: Santosh Nayak<santoshprasadnayak@gmail.com>
+> >>
+> >>I am getting following error.
+> >>" net/bridge/netfilter/ebtables.c:269 ebt_do_table()
+> >>   error: potential null derefence 'cs'"
+> >>
+> >>     i = cs[sp].n;  // If cs == Null then this will cause problem.
+> >
+> >Very sorry, I didn't see the out label.
+> >
+> >I'll apply this to my nf [1] once David takes my previous request for
+> >pulling.
+> >
+> 
 > Hi,
->
-> Has this patch been tested? Really, that code in the core firewall fu=
-nction
-> is there for a reason, wouldn't you think?
-> The chainstack is only allocated when user-defined chains are used (s=
-ee
-> translate_table).
+> 
+> Has this patch been tested? Really, that code in the core firewall
+> function is there for a reason, wouldn't you think?
+> The chainstack is only allocated when user-defined chains are used
+> (see translate_table).
 > Never blindly trust a tool.
->
-> Bart
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+I see, then that cs NULL dereference never happens.
+
+Thanks Bart, I'll drop this patch.
