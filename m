@@ -1,128 +1,67 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: scheduling while atomic followed by oops upon conntrackd -c
- execution
-Date: Sat, 3 Mar 2012 14:30:02 +0100
-Message-ID: <20120303133002.GA18802@1984>
-References: <4F50E30B.6000704@gmail.com>
+Subject: Re: [PATCH] DHCPv6 connection tracker helper
+Date: Sat, 3 Mar 2012 14:35:10 +0100
+Message-ID: <20120303133510.GB18802@1984>
+References: <CAFntDkx2SUkCkSbU7sO4OrWqypWQpY-KNgrD-_DgqRSXAGvJZQ@mail.gmail.com>
+ <alpine.LNX.2.01.1202130940390.30851@frira.zrqbmnf.qr>
+ <CAFntDkw0sN=j+mKm0s=kac+mMWnQqdyUviGj0_puj0bqSobR=Q@mail.gmail.com>
+ <alpine.LNX.2.01.1202151758290.15357@frira.zrqbmnf.qr>
+ <CAFntDkx_aZ4Pvfg21yHUDYWcaG=pwk28xwjpv1Sh9q0B4N+TRw@mail.gmail.com>
+ <20120224175420.GA11587@1984>
+ <CAFntDkz4QtCrgHNFNp6Bn1dGco3HCWthYaFLN_-bUVb2q0wPjQ@mail.gmail.com>
+ <20120228235456.GA30286@1984>
+ <CAFntDkzLUzL3S6BBhYXMy67gNyCi-xEAUg=eEkaS0WsAgdaz6Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Kerin Millar <kerframil@gmail.com>
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Darren Willis <djw@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58299 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58549 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751104Ab2CCNaN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 3 Mar 2012 08:30:13 -0500
+	id S1751104Ab2CCNfO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 3 Mar 2012 08:35:14 -0500
 Content-Disposition: inline
-In-Reply-To: <4F50E30B.6000704@gmail.com>
+In-Reply-To: <CAFntDkzLUzL3S6BBhYXMy67gNyCi-xEAUg=eEkaS0WsAgdaz6Q@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-
-On Fri, Mar 02, 2012 at 03:11:07PM +0000, Kerin Millar wrote:
-> Hello,
+On Fri, Mar 02, 2012 at 12:59:15PM +0900, Darren Willis wrote:
+> On Wed, Feb 29, 2012 at 08:54, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > Yes. I'd like to send a patch for RFC to the mailing list any time
+> > soon. I'll include you in the CC.
 > 
-> I have recently set up a pair of Dell PowerEdge R610 servers (Xeon
-> X5650, 8GB RAM) for active-backup firewall duty. I've installed
-> conntrack-tools-1.0.1 and libnetfilter_conntrack-1.0.0 and am using
-> the FTFW mode for synchronization across a dedicated gigabit
-> interface. The active firewall has to contend with fairly heavy
-> traffic, much of which is in the form of long-lived TCP connections
-> to an internal (LVS) load balancer, behind which a bunch of
-> application servers sit.
+> Thanks, sounds interesting.
 > 
-> The number of active, concurrent connections to this service peaks
-> at around 480,000. At last count, the number of conntrack states was
-> 785,785 which is typical. I have net.nf_conntrack_max set to 1048576
-> and the nf_conntrack module is loaded with hashsize=262144. The
-> firewall is fully stateful in that new connections must match on
-> -ctstate NEW. I'm also using "-t raw -A PREROUTING -j CT --ctevents
-> assured" as mentioned in the docs.
-
-Docs explictly says that you require Linux kernel >= 2.6.38 to use
-this filtering. You seem to be using 2.6.32.
-
-> This is my current test case for the backup:-
+> > I'm currently working on one user-space helper infrastructure. We can
+> > use that infrastructure to implement this helper and many others.
+> >
+> > I've got the patch in one branch of my kernel tree, it's still
+> > experimental stuff, but I expect to have it done soon.
+> >
+> > Would you be OK with we make this (and other helpers that will surely
+> > follow up) in user-space?
 > 
-> 1) Boot the system and start conntrackd
-> 2) Run conntrackd -n to sync with the active firewall
-> 3) Run conntrackd -c to commit the states from the external cache
-> 
-> Originally, while conntrackd -c was performing its work, I would
-> experience protracted soft lockups. After some investigation, I
-> noticed that conntrackd was trying to more states than
-> net.nf_conntrack_max which, in turn, led me to this patch:-
-> 
-> https://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=af14cca
+> Well, I think long-term that's the way to go. I'd still like to get
+> this in its current form, if possible, since it's a simple thing in a
+> pretty OK state right now, so it could be ready to go quite quickly.
+> Whereas, although I think your helper framework sounds great and is
+> the right thing to do, it's also an unknown amount of time away.
+> Unless it's going to be landing in the next few weeks?
 
-I just posted another patch to the ML that is a relative fix to
-Jozsef's patch. You have to apply that as well.
+If we apply this, we'll have to live with it for long time until we
+can remove. It's easy to get something it, but not evident to get it
+out because somebody will be using it.
 
-> Although Jozsef's patch was helpful, I'm still experiencing a nasty
-> kernel oops after conntrackd -c has finished executing. This always
-> occurs within 15 seconds or so - sometimes immediately. Here's a
-> recent netconsole trace from 3.3-rc5 + patch:-
-> 
-> http://paste.pocoo.org/raw/559736/
+> Of course, I don't want to make a lot of work for you - I'll be more
+> than happy to revisit this, remove the dhcpv6 helper and re-implement
+> it for your new helper framework when it's ready for external
+> contributions.
 
-It seems ctnetlink is trying to load nf_nat over and over again, but
-it doesn't seem to find it. One of the firewalls seem to be performing
-NAT but the other doesn't have access to the NAT module. This is
-strange, I guess you have the same rule-set loaded in both firewalls
-correctly.
+One firewall vendor is supporting the development of this helper
+user-space infrastructure, so we'll have the infrastructure soon (by
+next kernel release cycle).
 
-> Though I ultimately intend to use the 3.0 kernel, I tried various
-> other versions going as far back as 2.6.32. In each case, an oops is
-> reproducible - though the details do vary. Using 3.3-rc5, I even
-> noticed a null ptr deref on one occcasion. Alas, I was unable to
-> capture it at the time.
-
-For reporting problems, you have to stick latest Linux kernel version.
-2.6.32 is rather old kernel.
-
-> Here's some other configuration information which may be useful ...
-> 
-> conntrackd.conf: http://paste.pocoo.org/raw/559727/
-
-        Options {
-                TCPWindowTracking On
-        }
-
-You cannot use this with 2.6.32 either. It's also documented in the
-user manual and the example config file (it requires 2.6.36). Please,
-take the time to read the docs.
-
-> sysctl.conf: http://paste.pocoo.org/raw/559726/
-> kernel .config: http://paste.pocoo.org/raw/559725/
-> 
-> It's perhaps worth noting that I followed the advice to set
-> HashLimit in conntrackd.conf to at least double that of
-> net.nf_conntrack_max (commented in my config because I was
-> experimenting with the issue that Jozef's patch rectifies). One
-> thing that puzzles me is why conntrackd always tries to commit more
-> state entries than can be accommodated. On the master, the internal
-> cache grows to the maximum size and, afaict, nothing is ever
-> expired. This is from the master which has been up for a while ...
-> 
-> # conntrackd -s | head -n 5
-> cache internal:
-> current active connections:          2097152
-> connections created:                31649757    failed:    234788761
-> connections updated:               105516073    failed:            0
-> connections destroyed:              29552605    failed:            0
-> 
-> # conntrack -S | head -n1
-> entries                 792495
->
-> It seems that the cache usage grows to the maximum, at which point
-> the creation failed counter starts going skyward. On the backup, it
-> seems that conntrackd -n && conntrackd -c tries to commit all of
-> this, but I don't really understand why.
-> 
-> Any advice would be most welcome. I can't tinker too much with the
-> active firewall at this point but, if it helps, I can conduct any
-> number of tests with the backup.
-
-I need that you stick to a reasonable configuration to help you. Then,
-we can fix issues, if any shows up.
+Please, ping me in three months or so if you see no advances in this
+regard.
