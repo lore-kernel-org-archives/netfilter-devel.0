@@ -1,67 +1,47 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] DHCPv6 connection tracker helper
-Date: Sat, 3 Mar 2012 14:35:10 +0100
-Message-ID: <20120303133510.GB18802@1984>
-References: <CAFntDkx2SUkCkSbU7sO4OrWqypWQpY-KNgrD-_DgqRSXAGvJZQ@mail.gmail.com>
- <alpine.LNX.2.01.1202130940390.30851@frira.zrqbmnf.qr>
- <CAFntDkw0sN=j+mKm0s=kac+mMWnQqdyUviGj0_puj0bqSobR=Q@mail.gmail.com>
- <alpine.LNX.2.01.1202151758290.15357@frira.zrqbmnf.qr>
- <CAFntDkx_aZ4Pvfg21yHUDYWcaG=pwk28xwjpv1Sh9q0B4N+TRw@mail.gmail.com>
- <20120224175420.GA11587@1984>
- <CAFntDkz4QtCrgHNFNp6Bn1dGco3HCWthYaFLN_-bUVb2q0wPjQ@mail.gmail.com>
- <20120228235456.GA30286@1984>
- <CAFntDkzLUzL3S6BBhYXMy67gNyCi-xEAUg=eEkaS0WsAgdaz6Q@mail.gmail.com>
+Subject: Re: patch in bugzilla
+Date: Sat, 3 Mar 2012 14:39:15 +0100
+Message-ID: <20120303133915.GA18857@1984>
+References: <CAO88JF9FcBkjEs345hK4bOhQa1q-RuckkrLN9SKUUt3cWaLJKw@mail.gmail.com>
+ <alpine.LNX.2.01.1202281409020.10284@frira.zrqbmnf.qr>
+ <20120229125052.GA1115@1984>
+ <20120229232739.GB3817@1984>
+ <CAO88JF-=PTq2ZXaNWhE6mLKZY96y_fqCqxetNy-6h-Dwv3Ph3Q@mail.gmail.com>
+ <20120302164209.GA13687@1984>
+ <alpine.LNX.2.01.1203022123440.6223@frira.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Darren Willis <djw@google.com>
+Cc: Jonh Wendell <jonh.wendell@vexcorp.com>,
+	netfilter-devel@vger.kernel.org,
+	Jesper Sander Lindgren <jsp@comx.dk>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58549 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58708 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751104Ab2CCNfO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 3 Mar 2012 08:35:14 -0500
+	id S1752172Ab2CCNjR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 3 Mar 2012 08:39:17 -0500
 Content-Disposition: inline
-In-Reply-To: <CAFntDkzLUzL3S6BBhYXMy67gNyCi-xEAUg=eEkaS0WsAgdaz6Q@mail.gmail.com>
+In-Reply-To: <alpine.LNX.2.01.1203022123440.6223@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Mar 02, 2012 at 12:59:15PM +0900, Darren Willis wrote:
-> On Wed, Feb 29, 2012 at 08:54, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Yes. I'd like to send a patch for RFC to the mailing list any time
-> > soon. I'll include you in the CC.
-> 
-> Thanks, sounds interesting.
-> 
-> > I'm currently working on one user-space helper infrastructure. We can
-> > use that infrastructure to implement this helper and many others.
+On Fri, Mar 02, 2012 at 09:28:10PM +0100, Jan Engelhardt wrote:
+> >Your patch will break other programs made by people like you that use
+> >libiptc.
 > >
-> > I've got the patch in one branch of my kernel tree, it's still
-> > experimental stuff, but I expect to have it done soon.
-> >
-> > Would you be OK with we make this (and other helpers that will surely
-> > follow up) in user-space?
+> >Jan?
 > 
-> Well, I think long-term that's the way to go. I'd still like to get
-> this in its current form, if possible, since it's a simple thing in a
-> pretty OK state right now, so it could be ready to go quite quickly.
-> Whereas, although I think your helper framework sounds great and is
-> the right thing to do, it's also an unknown amount of time away.
-> Unless it's going to be landing in the next few weeks?
+> iptc is the last thing I want on my todo list :)
 
-If we apply this, we'll have to live with it for long time until we
-can remove. It's easy to get something it, but not evident to get it
-out because somebody will be using it.
+Me too :-)
 
-> Of course, I don't want to make a lot of work for you - I'll be more
-> than happy to revisit this, remove the dhcpv6 helper and re-implement
-> it for your new helper framework when it's ready for external
-> contributions.
+> Talk to Jasper, who has more or less an actual overview about
+> what is and could be using libiptc externally.
+> Meanwhile see this untested proposal of mine..
 
-One firewall vendor is supporting the development of this helper
-user-space infrastructure, so we'll have the infrastructure soon (by
-next kernel release cycle).
+Jesper, we're having this discussion again. I don't mind about
+applying this patch as a workaround for this case but I don't like the
+idea of keep adding function2() things in the future. libiptc has been
+broken many times in the past.
 
-Please, ping me in three months or so if you see no advances in this
-regard.
+Let us know.
