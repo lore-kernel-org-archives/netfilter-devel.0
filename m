@@ -1,45 +1,37 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] bridge: netfilter: don't call iptables on vlan
- packets if sysctl is off
-Date: Mon, 5 Mar 2012 23:35:58 +0100
-Message-ID: <20120305223558.GA30357@1984>
-References: <1330946020-25748-1-git-send-email-fw@strlen.de>
- <4F54F19C.2050507@pandora.be>
- <20120305210235.GF11311@Chamillionaire.breakpoint.cc>
+Subject: Re: [PATCH 1/1] conntrack, suspicious RCU usage
+Date: Mon, 5 Mar 2012 23:38:15 +0100
+Message-ID: <20120305223815.GA30456@1984>
+References: <1330950269-32668-1-git-send-email-hans.schillstrom@ericsson.com>
+ <20120305170548.GA28986@1984>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Bart De Schuymer <bdschuym@pandora.be>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+Cc: eric.dumazet@gmail.com, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, hans@schillstrom.com
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48680 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48849 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757024Ab2CEWgB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Mar 2012 17:36:01 -0500
+	id S1757149Ab2CEWiS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 Mar 2012 17:38:18 -0500
 Content-Disposition: inline
-In-Reply-To: <20120305210235.GF11311@Chamillionaire.breakpoint.cc>
+In-Reply-To: <20120305170548.GA28986@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 05, 2012 at 10:02:35PM +0100, Florian Westphal wrote:
-> Bart De Schuymer <bdschuym@pandora.be> wrote:
-> > Op 5/03/2012 12:13, Florian Westphal schreef:
-> > > When net.bridge.bridge-nf-filter-vlan-tagged is 0 (default), vlan packets
-> > > arriving should not be sent to ip(6)tables by bridge netfilter.
+On Mon, Mar 05, 2012 at 06:05:48PM +0100, Pablo Neira Ayuso wrote:
+> On Mon, Mar 05, 2012 at 01:24:29PM +0100, Hans Schillstrom wrote:
+> > From: Hans Schillstrom <hans@schillstrom.com>
 > > 
-> > > +#define IS_ARP(skb) \
-> > > +	(!vlan_tx_tag_present(skb)&&  skb->protocol == htons(ETH_P_ARP))
-> > > +
+> > Hello Pablo
+> > I think you lost this patch from Eric, I updated the patch for the 
+> > latest nf_conntrack_netlink.c 
 > > 
-> > I could nitpick on the lack of a space before the && (it's also in other 
-> > places in your patch). Is that intentional?
+> > Well, __nf_ct_l4proto_find() being out of line and the way we already
+> > use rcu_read_lock() in this code, it seems following patch is
+> > the most natural way to cope with these lockdep warnings.
 > 
-> No; but I can't see where this is coming from.  The space shows up
-> at the right place here.  It also seems to be correct in marc.info
-> archives.
-> 
-> Pablo, please yell at me if the patch doesn't work for you.
+> I'll take the previous patch to pass it to current -rc. Thanks Hans.
 
-Interesting, that space doesn't show up here.
-
-Applied, thanks guys.
+I'll pass it to net-next, otherwise this will result in one conflict
+with one patch already in net-next if I pass it to net.
