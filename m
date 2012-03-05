@@ -1,113 +1,406 @@
-From: Kerin Millar <kerframil@gmail.com>
-Subject: Re: scheduling while atomic followed by oops upon conntrackd -c execution
-Date: Mon, 05 Mar 2012 17:19:49 +0000
-Message-ID: <jj2sjo$i8a$1@dough.gmane.org>
-References: <4F50E30B.6000704@gmail.com> <20120303133002.GA18802@1984> <jitp0d$4lv$1@dough.gmane.org> <20120304110151.GA22404@1984>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [v9 PATCH 2/3] NETFILTER module xt_hmark, new target for HASH
+ based fwmark
+Date: Mon, 5 Mar 2012 19:22:48 +0100
+Message-ID: <20120305182248.GA29022@1984>
+References: <1329387672-23683-1-git-send-email-hans.schillstrom@ericsson.com>
+ <1329387672-23683-3-git-send-email-hans.schillstrom@ericsson.com>
+ <20120304184459.GA24338@1984>
+ <201203051109.48817.hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: "kaber@trash.net" <kaber@trash.net>,
+	"jengelh@medozas.de" <jengelh@medozas.de>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"hans@schillstrom.com" <hans@schillstrom.com>
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:34593 "EHLO plane.gmane.org"
+Received: from mail.us.es ([193.147.175.20]:48073 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757049Ab2CERUD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Mar 2012 12:20:03 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
-	id 1S4bZp-0006gQ-Oh
-	for netfilter-devel@vger.kernel.org; Mon, 05 Mar 2012 18:20:01 +0100
-Received: from cpc2-enfi16-2-0-cust659.hari.cable.virginmedia.com ([94.170.82.148])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Mon, 05 Mar 2012 18:20:01 +0100
-Received: from kerframil by cpc2-enfi16-2-0-cust659.hari.cable.virginmedia.com with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Mon, 05 Mar 2012 18:20:01 +0100
-In-Reply-To: <20120304110151.GA22404@1984>
+	id S1757082Ab2CESW4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 Mar 2012 13:22:56 -0500
+Content-Disposition: inline
+In-Reply-To: <201203051109.48817.hans.schillstrom@ericsson.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Let me trim off parts that have been already discussed.
 
-On 04/03/2012 11:01, Pablo Neira Ayuso wrote:
-> Hi Kerin,
+On Mon, Mar 05, 2012 at 11:09:46AM +0100, Hans Schillstrom wrote:
+[...]
+> ...
+> > > +
+> > > +/*
+> > > + * ICMP, get header offset if icmp error
+> > > + */
+> > > +static int get_inner_hdr(struct sk_buff *skb, int iphsz, int nhoff)
+> > > +{
+> > > +     const struct icmphdr *icmph;
+> > > +     struct icmphdr _ih;
+> > > +
+> > > +     /* Not enough header? */
+> > > +     icmph = skb_header_pointer(skb, nhoff + iphsz, sizeof(_ih), &_ih);
+> > > +     if (icmph == NULL)
+> > > +             return nhoff;
+> > 
+> > I think this has to return -1 in this case.
+> 
+> No, it must return the unchanged value of nhoffs.
+> Unless I change the usge of it as described later.
+
+I see, you're defaulting on the original header if you cannot get the
+ICMP header (eg. fragment case).
+
+> > > +
+> > > +     if (icmph->type > NR_ICMP_TYPES)
+> > > +             return nhoff;
+> > 
+> > Same thing.
+> 
+> Same comment.
+
+So if you get an unsupportted ICMP message, you rely on the original
+IP header.
+
+> > > +
+> > > +     /* Error message? */
+> > > +     if (icmph->type != ICMP_DEST_UNREACH &&
+> > > +         icmph->type != ICMP_SOURCE_QUENCH &&
+> > > +         icmph->type != ICMP_TIME_EXCEEDED &&
+> > > +         icmph->type != ICMP_PARAMETERPROB &&
+> > > +         icmph->type != ICMP_REDIRECT)
+> > > +             return nhoff;
+> > > +
+> > > +     return nhoff + iphsz + sizeof(_ih);
+> > > +}
+> > > +
+> > > +#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+> > > +/*
+> > > + * Get ipv6 header offset if icmp error
+> > > + */
+> > > +static int get_inner6_hdr(struct sk_buff *skb, int *offset)
+> > 
+> > I'd suggest to return the offset like in get_inner_hdr, not need for
+> > one extra parameter then.
+> 
+> get_inner6_hdr() must return true/false not an offset
+> 
+> It's hard to make IPv4 & IPv6 the same due to the more complex header finding in IPv6,
+> Maybe IPv4 can get more like IPv6,
 >
-> On Sat, Mar 03, 2012 at 06:47:27PM +0000, Kerin Millar wrote:
->> Hi,
->>
->> On 03/03/2012 13:30, Pablo Neira Ayuso wrote:
->>> I just posted another patch to the ML that is a relative fix to
->>> Jozsef's patch. You have to apply that as well.
->>
->> I've now tested 3.3-rc5 with the addition of the above mentioned
->> follow-on patch. The behaviour during conntrackd -c execution is
->> clearly much improved - in so far as it doesn't generate much noise
->> - but the crash that follows remains. Here's a netconsole capture:-
->>
->> http://paste.pocoo.org/raw/560439/
+> static int get_inner_hdr(struct sk_buff *skb, int *nhoff)
+> {
+> 	const struct icmphdr *icmph;
+> 	struct icmphdr _ih;
+> 	int iphz = ((struct iphdr *)skb_network_header(skb))->ihl * 4;
+> 
+> 	/* Not enough header? */
+> 	icmph = skb_header_pointer(skb, *nhoff + iphsz, sizeof(_ih), &_ih);
+> 	if (icmph == NULL || icmph->type > NR_ICMP_TYPES)
+> 		return 0;
 >
-> Great to know :-).
+> 	/* Error message? */
+> 	if (icmph->type != ICMP_DEST_UNREACH &&
+> 	    icmph->type != ICMP_SOURCE_QUENCH &&
+> 	    icmph->type != ICMP_TIME_EXCEEDED &&
+> 	    icmph->type != ICMP_PARAMETERPROB &&
+> 	    icmph->type != ICMP_REDIRECT)
+> 		return 0
+> 
+> 	    *nhoff += iphsz + sizeof(_ih);
+> 		return 1;
 
-I apologize but I think I may have led you astray on the nf_nat issue. 
-At the time of submitting my original report, I now believe that the 
-nf_nat module wasn't loaded prior to starting conntrackd, although it 
-was definitely available. For all tests that followed, however, I am 
-entirely certain the the nf_nat module was loaded in advance. The upshot 
-is that my claim that things had improved may have been premature; I 
-need to specifically test under both circumstances to be sure that 
-things are improving. That is, both with and without the module loaded 
-in advance.
+I only suggested to change the return value, no need to modify the
+function, I liked how it was.
 
-Following my own advice then, I first tried going through my test case 
-*without* loading nf_nat in advance. Alas, conntrackd -c triggered hard 
-lockups and didn't return to prompt. Here are the results:-
-
-http://paste.pocoo.org/raw/561350/
-
-In case it matters, the existing ssh session continued to respond to 
-input but I was no longer able to initiate any new sessions.
-
+> }
 >
-> Regarding your previous email, I'm sorry, by reading your email I
-> thought you were using 2.6.32 which was not the case, your
-> configuration is perfectly reasonable.
+> 
+> ...
+> 
+> 	if (ip->protocol == IPPROTO_ICMP) {
+> 		/* calc hash on inner header if an icmp error */
+> 		if (get_inner_hdr(skb, &nhoff)) {
+> 			ip = skb_header_pointer(skb, nhoff, sizeof(_ip), &_ip);
+
+I prefer this chunk.
+
+> 			if (!ip)
+> 				return XT_CONTINUE;
+> 		}
+> 	}
 >
-> It seems we still have problems regarding early_drop, but this time
-> with reliable event delivery enabled (15 seconds is the time that
-> is required to retry sending the destroy event).
->
-> If you can test the following patch, I'll appreciate.
+> 
+> instead of :
+> 
+> 	if (ip->protocol == IPPROTO_ICMP) {
+> 		/* calc hash on inner header if an icmp error */
+> 		nhoff = get_inner_hdr(skb, ip->ihl * 4, nhoff);
+> 		ip = skb_header_pointer(skb, nhoff, sizeof(_ip), &_ip);
+> 		if (!ip)
+> 			return XT_CONTINUE;
+> 	}
+> 
+> I don't see why this should be done, maintenance ?
 
-Gladly. I applied the patch to my 3.3-rc5 tree, which is still carrying 
-the two patches discussed earlier in the thread. I then went through my 
-test case under normal circumstances i.e. all firewall rules in place, 
-nf_nat confirmed present before conntrackd etc. Again, conntrackd -c did 
-not return to prompt. Here are the results:-
+It seems more readable to me.
 
-http://paste.pocoo.org/raw/561354/
+> > 
+> > > +{
+> > > +     struct icmp6hdr *icmp6h, _ih6;
+> > > +
+> > > +     icmp6h = skb_header_pointer(skb, *offset, sizeof(_ih6), &_ih6);
+> > > +     if (icmp6h == NULL)
+> > > +             return 0;
+> > > +
+> > > +     if (icmp6h->icmp6_type && icmp6h->icmp6_type < 128) {
+> > > +             *offset +=  sizeof(struct icmp6hdr);
+> >                           ^^
+> > extra space there.
+> > 
+> > > +             return 1;
+> > > +     }
+> > > +     return 0;
+> > > +}
+> > > +/*
+> > > + * Calculate hash based fw-mark, on the five tuple if possible.
+> > > + * special cases :
+> > > + *  - Fragments do not use ports not even on the first fragment,
+> > > + *    nf_defrag_ipv6.ko don't defrag for us like it do in ipv4.
+> > > + *    This might be changed in the future.
+> > > + *  - On ICMP errors the inner header will be used.
+> > > + *  - Tunnels no ports
+> > > + *  - ESP & AH uses SPI
+> > > + * @returns XT_CONTINUE
+> > > + */
+> > > +static unsigned int
+> > > +hmark_v6(struct sk_buff *skb, const struct xt_action_param *par)
+> > > +{
+> > > +     struct xt_hmark_info *info = (struct xt_hmark_info *)par->targinfo;
+> > > +     struct ipv6hdr *ip6, _ip6;
+> > > +     int poff, flag = IP6T_FH_F_AUTH; /* Ports offset, find_hdr flags */
+> > > +     u32 addr1, addr2, hash, nhoffs = 0;
+> > > +     u8 nexthdr;
+> > > +     union hmark_ports uports = { .v32 = 0 };
+> > 
+> > I think that this can be: union hmark_ports uports = {};
+> 
+> I think moving the init further down is better, since there is a couple of returns before.
 
-Well, at least there was no oops this time. I should also add that the 
-patch was present for both of the tests mentioned in this email.
+I don't mind. It was just one suggestion.
 
----
-Incidentally, I found out why the internal cache on the master was 
-filling up to capacity. It was apparently due to the use of "iptables -I 
-PREROUTING -t raw -j CT --ctevents assured". Perhaps I'm missing 
-something but doesn't this stop events such as new and destroy from 
-being propagated? An inspection with conntrack -E suggests so. Once I 
-removed the above rule, I could see destroy events being propagated and 
-the number of active connections in the cache no longer exceeded my 
-chosen limit of 2097152 ...
+> 
+>  +     uport.v32 = 0;
+>  +     if ((info->flags & XT_F_HMARK_METHOD_L3) ||
+>  +         (nexthdr == IPPROTO_ICMPV6))
+>  +             goto no6ports;
+> 
+> > 
+> > > +     unsigned short fragoff = 0;
+> > > +
+> > > +     ip6 = (struct ipv6hdr *) (skb->data + skb_network_offset(skb));
+> > > +
+> > > +     nexthdr = ipv6_find_hdr(skb, &nhoffs, -1, &fragoff, &flag);
+> > > +     if (nexthdr < 0)
+> > > +             return XT_CONTINUE;
+> > > +     /* No need to check for icmp errors on fragments */
+> > > +     if ((flag & IP6T_FH_F_FRAG) || (nexthdr != IPPROTO_ICMPV6))
+> > > +             goto noicmp;
+> > > +     /* if an icmp error, use the inner header */
+> > > +     if (get_inner6_hdr(skb, &nhoffs)) {
+> > 
+> > I think you have to check that nexthdr == IPPROTO_ICMPV6 here,
+> > otherwise non-icmp packets will be passed to get_inner6_hdr.
+> > 
+> 
+> I do, (4 lines up)
+>  +     if ((flag & IP6T_FH_F_FRAG) || (nexthdr != IPPROTO_ICMPV6))
+>  +             goto noicmp;
 
-# conntrack -S | head -n1; conntrackd -s | head -n2
-entries                 725826
-cache internal:
-current active connections:          1409472
+Right.
 
-Whatever the case, I'm quite happy to go without this rule as these 
-systems are coping fine with the load incurred by conntrackd.
+> 
+> > > +             ip6 = skb_header_pointer(skb, nhoffs, sizeof(_ip6), &_ip6);
+> > > +             if (!ip6)
+> > > +                     return XT_CONTINUE;
+> > > +             /* Treat AH as ESP */
+> > 
+> > This comments means: try to find auth headers if possible, right?
+> No, It might be a litle bit unclean but earlier Patric, you and I brought it up,
+> - the descending into AH and port searching.
+> 
+> I think the comment should be some thing like,
+>   /* Treat AH as ESP, use SPI nothing else. */
 
-Cheers,
+It's fine.
 
---Kerin
+> > 
+> > > +             flag = IP6T_FH_F_AUTH;
+> > > +             nexthdr = ipv6_find_hdr(skb, &nhoffs, -1, &fragoff, &flag);
+> > > +             if (nexthdr < 0)
+> > > +                     return XT_CONTINUE;
+> > > +     }
+> > > +noicmp:
+> > > +     addr1 = (__force u32)
+> > > +             (ip6->saddr.s6_addr32[0] & info->smask.in6.s6_addr32[0]) ^
+> > > +             (ip6->saddr.s6_addr32[1] & info->smask.in6.s6_addr32[1]) ^
+> > > +             (ip6->saddr.s6_addr32[2] & info->smask.in6.s6_addr32[2]) ^
+> > > +             (ip6->saddr.s6_addr32[3] & info->smask.in6.s6_addr32[3]);
+> > > +     addr2 = (__force u32)
+> > > +             (ip6->daddr.s6_addr32[0] & info->dmask.in6.s6_addr32[0]) ^
+> > > +             (ip6->daddr.s6_addr32[1] & info->dmask.in6.s6_addr32[1]) ^
+> > > +             (ip6->daddr.s6_addr32[2] & info->dmask.in6.s6_addr32[2]) ^
+> > > +             (ip6->daddr.s6_addr32[3] & info->dmask.in6.s6_addr32[3]);
+> > > +
+> > > +     if ((info->flags & XT_F_HMARK_METHOD_L3) ||
+> > > +         (nexthdr == IPPROTO_ICMPV6))
+> > > +             goto no6ports;
+> > > +     /* Is next header valid for port or SPI calculation ? */
+> > > +     poff = proto_ports_offset(nexthdr);
+> > > +     if ((flag & IP6T_FH_F_FRAG) || poff < 0)
+> > > +             return XT_CONTINUE;
+> > > +
+> > > +     nhoffs += poff;
+> > > +     /* Since uports is modified, skb_header_pointer() can't be used */
+> > 
+> > Why not? You can pass &uports to skb_header_pointer, it takes a
+> > generic pointer.
+> 
+> uports is a local var that will written into later (swap and mask),
+> The comment is there becuse of that.
+> 
+> > 
+> > > +     if (!pskb_may_pull(skb, nhoffs + 4))
+> > > +             return XT_CONTINUE;
+> > > +     uports.v32 = * (__force u32 *) (skb->data + nhoffs);
 
+I think you can do like in other parts of netfilter:
+
+union hmark_ports _uports = { ... };
+union hmark_ports *uports;
+
+uports = skb_header_pointer(skb, nhoffs + poff, sizeof(_uports), &_uports);
+if (uports == NULL)
+        return XT_CONTINUE;
+
+Then use uports->v32 in the rest of the code.
+
+> > > +
+> > > +     if ((nexthdr == IPPROTO_ESP) || (nexthdr == IPPROTO_AH))
+> > > +             uports.v32 = (uports.v32 & info->spimask) | info->spiset;
+> > > +     else {
+> > > +             uports.v32 = (uports.v32 & info->pmask.v32) | info->pset.v32;
+> > > +             /* get a consistent hash (same value on both flow directions) */
+> > > +             if (uports.p16.dst < uports.p16.src)
+> > > +                     swap(uports.p16.dst, uports.p16.src);
+> > > +     }
+> > > +
+> > > +no6ports:
+> > > +     nexthdr &= info->prmask;
+> > > +     /* get a consistent hash (same value on both flow directions) */
+> > > +     if (addr2 < addr1)
+> > > +             swap(addr1, addr2);
+> > > +
+> > > +     hash = jhash_3words(addr1, addr2, uports.v32, info->hashrnd) ^ nexthdr;
+> > > +     skb->mark = (hash % info->hmod) + info->hoffs;
+> > > +     return XT_CONTINUE;
+> > > +}
+> > > +#endif
+> > > +/*
+> > > + * Calculate hash based fw-mark, on the five tuple if possible.
+> > > + * special cases :
+> > > + *  - Fragments do not use ports not even on the first fragment,
+> > > + *    unless nf_defrag_xx.ko is used.
+> > > + *  - On ICMP errors the inner header will be used.
+> > > + *  - Tunnels no ports
+> > > + *  - ESP & AH uses SPI
+> > > + * @returns XT_CONTINUE
+> > > + */
+> > > +static unsigned int
+> > > +hmark_v4(struct sk_buff *skb, const struct xt_action_param *par)
+> > > +{
+> > > +     struct xt_hmark_info *info = (struct xt_hmark_info *)par->targinfo;
+> > > +     int nhoff, poff, frag = 0;
+> > > +     struct iphdr *ip, _ip;
+> > > +     u8 ip_proto;
+> > > +     u32 addr1, addr2, hash;
+> > > +     u16 snatport = 0, dnatport = 0;
+> > > +     union hmark_ports uports;
+> > > +     enum ip_conntrack_info ctinfo;
+> > > +     struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+> > 
+> > You spend cycles initializing this variable, but you may not use it.
+> 
+> Yes, it can be improved ...
+> 
+> > For the conntrack case, you can make in the very beginning:
+> > 
+> > if (info->flags & XT_HMARK_CT) {
+> >         struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+> > 
+> >         if (ct && !nf_ct_is_untracked(ct)) {
+> >                 struct nf_conntrack_tuple *otuple =
+> >                         &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
+> >                 struct nf_conntrack_tuple *rtuple =
+> >                         &ct->tuplehash[IP_CT_DIR_REPLY].tuple;
+> > 
+> >                 addr_src = (__force u32) otuple->src.u3.in.s_addr;
+> >                 port_src = otuple->src.u.all;
+> >                 addr_dst = (__force u32) rtuple->src.u3.in.s_addr;
+> >                 port_dst = rtuple->src.u.all;
+> >         } else
+> >                 return XT_CONTINUE;
+> > }
+> > 
+> > With SNAT/masquerade:
+> > original: A -> B
+> > reply: B -> FW
+> > 
+> > With DNAT:
+> > original: A -> FW
+> > reply: B -> A
+> > 
+> > So real addresses are always source for the original tuple and source
+> > for the reply tuple.
+> > 
+> > I think it's better just to tell HMARK to use CT, no need to specify
+> > what part of it, it's simple and the user will not get confused
+> > selecting wrong configurations.
+> > 
+> We discussed that and you wrote:
+> 
+> "My opinion is that the user must have total control on the target
+>  behaviour through the configuration options."
+> ...
+> "I'm fine if you allow to select what tuple you want to use to hash."
+> 
+> Have you changed you opinion ?
+> From my point of view it doesn't matter.
+
+To add what I've already said, I think it's also good if we can avoid
+that users make wrong decisions.
+
+> > Note that if you didn't not select to use conntrack, we default on the
+> > packet-based version for HMARK which makes all the fragmentation
+> > handling and so on.
+> > 
+> > Again, I'm proposing you to use addr_src and addr_dst instead of addr1
+> > and addr2 for readability.
+> > 
+> > And remove the extra white extra line here below.
+> > 
+> > > +
+> > > +
+> > > +     nhoff = skb_network_offset(skb);
+> > > +     uports.v32 = 0;
+> > 
+> > Better initialize this in the variable definition.
+> 
+> or beter,  move it to just before:
+> 
+>  +     uports.v32 = 0;
+>  +     if ((info->flags & XT_F_HMARK_METHOD_L3) || (ip_proto == IPPROTO_ICMP))
+>  +             goto noports;
+
+OK.
