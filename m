@@ -1,93 +1,45 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [v9 PATCH 2/3] NETFILTER module xt_hmark, new target for HASH
- based fwmark
-Date: Mon, 5 Mar 2012 22:37:38 +0100
-Message-ID: <20120305213738.GA30032@1984>
-References: <1329387672-23683-1-git-send-email-hans.schillstrom@ericsson.com>
- <201203051109.48817.hans.schillstrom@ericsson.com>
- <20120305182248.GA29022@1984>
- <201203052133.54604.hans@schillstrom.com>
+Subject: Re: [PATCH v2] bridge: netfilter: don't call iptables on vlan
+ packets if sysctl is off
+Date: Mon, 5 Mar 2012 23:35:58 +0100
+Message-ID: <20120305223558.GA30357@1984>
+References: <1330946020-25748-1-git-send-email-fw@strlen.de>
+ <4F54F19C.2050507@pandora.be>
+ <20120305210235.GF11311@Chamillionaire.breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	"kaber@trash.net" <kaber@trash.net>,
-	"jengelh@medozas.de" <jengelh@medozas.de>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: Hans Schillstrom <hans@schillstrom.com>
+Cc: Bart De Schuymer <bdschuym@pandora.be>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43391 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48680 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751693Ab2CEVhm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Mar 2012 16:37:42 -0500
+	id S1757024Ab2CEWgB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 Mar 2012 17:36:01 -0500
 Content-Disposition: inline
-In-Reply-To: <201203052133.54604.hans@schillstrom.com>
+In-Reply-To: <20120305210235.GF11311@Chamillionaire.breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 05, 2012 at 09:33:54PM +0100, Hans Schillstrom wrote:
-> Hello,
-> On Monday, March 05, 2012 19:22:48 Pablo Neira Ayuso wrote:
-> > Let me trim off parts that have been already discussed.
+On Mon, Mar 05, 2012 at 10:02:35PM +0100, Florian Westphal wrote:
+> Bart De Schuymer <bdschuym@pandora.be> wrote:
+> > Op 5/03/2012 12:13, Florian Westphal schreef:
+> > > When net.bridge.bridge-nf-filter-vlan-tagged is 0 (default), vlan packets
+> > > arriving should not be sent to ip(6)tables by bridge netfilter.
 > > 
-> > On Mon, Mar 05, 2012 at 11:09:46AM +0100, Hans Schillstrom wrote:
-> > [...]
-> > > ...
-> > > > > +
-> > > > > +/*
-> > > > > + * ICMP, get header offset if icmp error
-> > > > > + */
-> > > > > +static int get_inner_hdr(struct sk_buff *skb, int iphsz, int nhoff)
-> > > > > +{
-> > > > > +     const struct icmphdr *icmph;
-> > > > > +     struct icmphdr _ih;
-> > > > > +
-> > > > > +     /* Not enough header? */
-> > > > > +     icmph = skb_header_pointer(skb, nhoff + iphsz, sizeof(_ih), &_ih);
-> > > > > +     if (icmph == NULL)
-> > > > > +             return nhoff;
-> > > > 
-> > > > I think this has to return -1 in this case.
-> > > 
-> > > No, it must return the unchanged value of nhoffs.
-> > > Unless I change the usge of it as described later.
+> > > +#define IS_ARP(skb) \
+> > > +	(!vlan_tx_tag_present(skb)&&  skb->protocol == htons(ETH_P_ARP))
+> > > +
 > > 
-> > I see, you're defaulting on the original header if you cannot get the
-> > ICMP header (eg. fragment case).
-> > 
-> > > > > +
-> > > > > +     if (icmph->type > NR_ICMP_TYPES)
-> > > > > +             return nhoff;
-> > > > 
-> > > > Same thing.
-> > > 
-> > > Same comment.
-> > 
-> > So if you get an unsupportted ICMP message, you rely on the original
-> > IP header.
-> >
+> > I could nitpick on the lack of a space before the && (it's also in other 
+> > places in your patch). Is that intentional?
 > 
-> Yes, thats right.
+> No; but I can't see where this is coming from.  The space shows up
+> at the right place here.  It also seems to be correct in marc.info
+> archives.
 > 
-> >
-> [snip]
-> > 
-> > I think you can do like in other parts of netfilter:
-> > 
-> > union hmark_ports _uports = { ... };
-> > union hmark_ports *uports;
-> > 
-> > uports = skb_header_pointer(skb, nhoffs + poff, sizeof(_uports), &_uports);
-> > if (uports == NULL)
-> >         return XT_CONTINUE;
-> > 
-> > Then use uports->v32 in the rest of the code.
-> 
-> If I do so, the original packet might be altered which is very bad.
-> i.e. if skb_header_pointer() return skb->data + offset; then I will write
-> right into the skb :-(
+> Pablo, please yell at me if the patch doesn't work for you.
 
-I see, then use skb_copy_bits(skb, offset, buffer, len) instead of
-skb_header_pointer.
+Interesting, that space doesn't show up here.
 
-Thanks Hans. 
+Applied, thanks guys.
