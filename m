@@ -1,52 +1,43 @@
-From: Hans Schillstrom <hans@schillstrom.com>
-Subject: Re: [v9 PATCH 2/3] NETFILTER module xt_hmark, new target for HASH based fwmark
-Date: Mon, 5 Mar 2012 21:38:19 +0100
-Message-ID: <201203052138.19963.hans@schillstrom.com>
-References: <1329387672-23683-1-git-send-email-hans.schillstrom@ericsson.com> <alpine.LNX.2.01.1203051140470.19304@frira.zrqbmnf.qr> <20120305165024.GA28940@1984>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v2] bridge: netfilter: don't call iptables on vlan
+ packets if sysctl is off
+Date: Mon, 5 Mar 2012 22:02:35 +0100
+Message-ID: <20120305210235.GF11311@Chamillionaire.breakpoint.cc>
+References: <1330946020-25748-1-git-send-email-fw@strlen.de>
+ <4F54F19C.2050507@pandora.be>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	"kaber@trash.net" <kaber@trash.net>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20120305165024.GA28940@1984>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Bart De Schuymer <bdschuym@pandora.be>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:33482 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750993Ab2CEVCg (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 Mar 2012 16:02:36 -0500
+Content-Disposition: inline
+In-Reply-To: <4F54F19C.2050507@pandora.be>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Monday, March 05, 2012 17:50:24 Pablo Neira Ayuso wrote:
-> On Mon, Mar 05, 2012 at 11:48:16AM +0100, Jan Engelhardt wrote:
-> > 
-> > On Monday 2012-03-05 11:09, Hans Schillstrom wrote:
-> > >> > diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-> > >> > index 40f4c3d..21bc5e8 100644
-> > >> > --- a/net/netfilter/Makefile
-> > >> > +++ b/net/netfilter/Makefile
-> > >> > @@ -57,6 +57,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_CONNSECMARK) += xt_CONNSECMARK.o
-> > >> >  obj-$(CONFIG_NETFILTER_XT_TARGET_CT) += xt_CT.o
-> > >> >  obj-$(CONFIG_NETFILTER_XT_TARGET_DSCP) += xt_DSCP.o
-> > >> >  obj-$(CONFIG_NETFILTER_XT_TARGET_HL) += xt_HL.o
-> > >> > +obj-$(CONFIG_NETFILTER_XT_TARGET_HMARK) += xt_hmark.o
-> > >> 
-> > >> Netfilter's naming policy requires that targets are in upper case.
-> > >
-> > >I asked netfilter team about that, and got the answer
-> > >that it should be lower case for new modules.
-> > >Have that been changed ?
-> > 
-> > The name of the file is pretty much irrelevant (because loading
-> > solely depends on MODULE_ALIAS), so I share that only lowercase
-> > should be used for new things. It's not that the linux kernel would
-> > currently be storable on a case-insensitive filesystem, but that does
-> > not mean we can't latently work towards it.
+Bart De Schuymer <bdschuym@pandora.be> wrote:
+> Op 5/03/2012 12:13, Florian Westphal schreef:
+> > When net.bridge.bridge-nf-filter-vlan-tagged is 0 (default), vlan packets
+> > arriving should not be sent to ip(6)tables by bridge netfilter.
 > 
-> Sorry, I want to stick to that naming policy.
+> > +#define IS_ARP(skb) \
+> > +	(!vlan_tx_tag_present(skb)&&  skb->protocol == htons(ETH_P_ARP))
+> > +
 > 
-OK, renaming in progress ..
+> I could nitpick on the lack of a space before the && (it's also in other 
+> places in your patch). Is that intentional?
 
-/Hans
+No; but I can't see where this is coming from.  The space shows up
+at the right place here.  It also seems to be correct in marc.info
+archives.
+
+Pablo, please yell at me if the patch doesn't work for you.
+
+Thanks,
+Florian
