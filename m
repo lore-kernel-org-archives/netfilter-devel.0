@@ -1,38 +1,69 @@
-From: Derick Winkworth <ccie15672@gmail.com>
-Subject: Generic NAT helper module using NetPDL
-Date: Mon, 5 Mar 2012 16:56:40 -0600
-Message-ID: <CANavrTPs1TH121sC5K+8OBLXBJ+Y6JMMpJ2EKgpvzPZQ75gtyw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:42676 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754202Ab2CEW4l (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Mar 2012 17:56:41 -0500
-Received: by bkcik5 with SMTP id ik5so3705580bkc.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 05 Mar 2012 14:56:40 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Richard Weinberger <richard@nod.at>
+Subject: [PATCH 2/6] netfilter: xt_LOG: fix bogus extra layer-4 logging information
+Date: Tue,  6 Mar 2012 00:19:44 +0100
+Message-ID: <1330989588-26833-3-git-send-email-richard@nod.at>
+References: <1330989588-26833-1-git-send-email-richard@nod.at>
+Cc: jengelh@medozas.de, eric.dumazet@gmail.com,
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, rostedt@goodmis.org,
+	Richard Weinberger <richard@nod.at>
+To: pablo@netfilter.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1330989588-26833-1-git-send-email-richard@nod.at>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-All:
+In 16059b5 netfilter: merge ipt_LOG and ip6_LOG into xt_LOG, we have
+merged ipt_LOG and ip6t_LOG.
 
-I was wondering if anyone has tried do something like this before.
-Given a way to describe the payload of a TCP or UDP packet for a given
-protocol using XML, and I'm specifically thinking of NetPDL, could a
-generic NAT helper module be built that could read in those
-descriptions to perform the requisite NAT?
+However:
 
-I'm thinking this could even be done live.  Place the xml file into a
-directory and within 5 minutes or whatever, it could be read in and
-the traffic for that protocol could potentially be processed as
-required for NAT...
+IN=wlan0 OUT= MAC=xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx
+SRC=213.150.61.61 DST=192.168.1.133 LEN=40 TOS=0x00 PREC=0x00 TTL=117
+ID=10539 DF PROTO=TCP SPT=80 DPT=49013 WINDOW=0 RES=0x00 ACK RST
+URGP=0 PROTO=UDPLITE SPT=80 DPT=49013 LEN=45843 PROTO=ICMP TYPE=0
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-It would be easier I think going forward to add ALG support in general
-(could be used for connection tracking as well).  No need to code the
-module in C.
+Several missing break in the code led to including bogus layer-4
+information. This patch fixes this problem.
 
-I'm not saying it would be "easy" but I think its possible...
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/xt_LOG.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-Derick
+diff --git a/net/netfilter/xt_LOG.c b/net/netfilter/xt_LOG.c
+index 1595608..f99f8de 100644
+--- a/net/netfilter/xt_LOG.c
++++ b/net/netfilter/xt_LOG.c
+@@ -216,12 +216,14 @@ static void dump_ipv4_packet(struct sbuff *m,
+ 				    ntohs(ih->frag_off) & IP_OFFSET,
+ 				    iphoff+ih->ihl*4, logflags))
+ 			return;
++		break;
+ 	case IPPROTO_UDP:
+ 	case IPPROTO_UDPLITE:
+ 		if (dump_udp_header(m, skb, ih->protocol,
+ 				    ntohs(ih->frag_off) & IP_OFFSET,
+ 				    iphoff+ih->ihl*4))
+ 			return;
++		break;
+ 	case IPPROTO_ICMP: {
+ 		struct icmphdr _icmph;
+ 		const struct icmphdr *ich;
+@@ -649,10 +651,12 @@ static void dump_ipv6_packet(struct sbuff *m,
+ 		if (dump_tcp_header(m, skb, currenthdr, fragment, ptr,
+ 		    logflags))
+ 			return;
++		break;
+ 	case IPPROTO_UDP:
+ 	case IPPROTO_UDPLITE:
+ 		if (dump_udp_header(m, skb, currenthdr, fragment, ptr))
+ 			return;
++		break;
+ 	case IPPROTO_ICMPV6: {
+ 		struct icmp6hdr _icmp6h;
+ 		const struct icmp6hdr *ic;
+-- 
+1.7.7.3
