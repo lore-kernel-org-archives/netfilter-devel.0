@@ -1,291 +1,162 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH 1/2] Netfilter: xt_LOG: Implement ring buffer support
-Date: Mon, 05 Mar 2012 13:58:47 -0500
-Message-ID: <1330973927.25686.338.camel@gandalf.stny.rr.com>
-References: <1329348480-11147-1-git-send-email-richard@nod.at>
+From: Hans Schillstrom <hans@schillstrom.com>
+Subject: Re: [v9 PATCH 2/3] NETFILTER module xt_hmark, new target for HASH based fwmark
+Date: Mon, 5 Mar 2012 21:33:54 +0100
+Message-ID: <201203052133.54604.hans@schillstrom.com>
+References: <1329387672-23683-1-git-send-email-hans.schillstrom@ericsson.com> <201203051109.48817.hans.schillstrom@ericsson.com> <20120305182248.GA29022@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, eric.dumazet@gmail.com,
-	jengelh@medozas.de, pablo@netfilter.org, basti@b-bl.de
-To: Richard Weinberger <richard@nod.at>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1329348480-11147-1-git-send-email-richard@nod.at>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	"kaber@trash.net" <kaber@trash.net>,
+	"jengelh@medozas.de" <jengelh@medozas.de>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:39078 "EHLO
+	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932332Ab2CEUd6 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 Mar 2012 15:33:58 -0500
+In-Reply-To: <20120305182248.GA29022@1984>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2012-02-16 at 00:27 +0100, Richard Weinberger wrote:
+Hello,
+On Monday, March 05, 2012 19:22:48 Pablo Neira Ayuso wrote:
+> Let me trim off parts that have been already discussed.
+> 
+> On Mon, Mar 05, 2012 at 11:09:46AM +0100, Hans Schillstrom wrote:
+> [...]
+> > ...
+> > > > +
+> > > > +/*
+> > > > + * ICMP, get header offset if icmp error
+> > > > + */
+> > > > +static int get_inner_hdr(struct sk_buff *skb, int iphsz, int nhoff)
+> > > > +{
+> > > > +     const struct icmphdr *icmph;
+> > > > +     struct icmphdr _ih;
+> > > > +
+> > > > +     /* Not enough header? */
+> > > > +     icmph = skb_header_pointer(skb, nhoff + iphsz, sizeof(_ih), &_ih);
+> > > > +     if (icmph == NULL)
+> > > > +             return nhoff;
+> > > 
+> > > I think this has to return -1 in this case.
+> > 
+> > No, it must return the unchanged value of nhoffs.
+> > Unless I change the usge of it as described later.
+> 
+> I see, you're defaulting on the original header if you cannot get the
+> ICMP header (eg. fragment case).
+> 
+> > > > +
+> > > > +     if (icmph->type > NR_ICMP_TYPES)
+> > > > +             return nhoff;
+> > > 
+> > > Same thing.
+> > 
+> > Same comment.
+> 
+> So if you get an unsupportted ICMP message, you rely on the original
+> IP header.
+>
 
-> +int xt_LOG_ring_add_record(const struct xt_LOG_ring_ctx *rctx,
-> +			   const char *buf, unsigned int len)
-> +{
-> +	struct rlog_entry *entry;
-> +	struct ring_buffer_event *event;
-> +
-> +	event = ring_buffer_lock_reserve(rctx->buffer, sizeof(*entry) + len);
-> +	if (!event)
-> +		return 1;
-> +
-> +	entry = ring_buffer_event_data(event);
-> +	memcpy(entry->msg, buf, len);
-> +	entry->count = len;
-> +
-> +	ring_buffer_unlock_commit(rctx->buffer, event);
-> +	rlog_wake_up();
-> +
-> +	return 0;
-> +}
-> +
-> +static struct rlog_entry *peek_next_entry(struct rlog_iter *iter, int cpu,
-> +					  unsigned long long *ts)
-> +{
-> +	struct ring_buffer_event *event;
-> +
-> +	event = ring_buffer_peek(iter->buffer, cpu, ts, &iter->lost_events);
-> +
-> +	if (event)
-> +		return ring_buffer_event_data(event);
-> +
-> +	return NULL;
-> +}
-> +
-> +static struct rlog_entry *find_next_entry(struct rlog_iter *iter)
-> +{
-> +	struct rlog_entry *ent, *next = NULL;
-> +	unsigned long long next_ts = 0, ts;
-> +	int cpu, next_cpu = -1;
-> +
-> +	for_each_buffer_cpu (iter->buffer, cpu) {
-> +		if (ring_buffer_empty_cpu(iter->buffer, cpu))
-> +			continue;
-> +
-> +		ent = peek_next_entry(iter, cpu, &ts);
-> +
-> +		if (ent && (!next || ts < next_ts)) {
-> +			next = ent;
-> +			next_cpu = cpu;
-> +			next_ts = ts;
-> +		}
-> +	}
-> +
-> +	iter->cpu = next_cpu;
-> +
-> +	return next;
-> +}
-> +
-> +static struct rlog_iter *find_next_entry_inc(struct rlog_iter *iter)
-> +{
-> +	iter->ent = find_next_entry(iter);
-> +
-> +	if (iter->ent)
-> +		return iter;
+Yes, thats right.
 
-I know you used the name from trace.c, but I hate that name too :-)
+>
+[snip]
+> 
+> I think you can do like in other parts of netfilter:
+> 
+> union hmark_ports _uports = { ... };
+> union hmark_ports *uports;
+> 
+> uports = skb_header_pointer(skb, nhoffs + poff, sizeof(_uports), &_uports);
+> if (uports == NULL)
+>         return XT_CONTINUE;
+> 
+> Then use uports->v32 in the rest of the code.
 
-No big deal, but perhaps we should rename this to find_next_iter_entry()
-or something. The "_inc" is very misleading.
+If I do so, the original packet might be altered which is very bad.
+i.e. if skb_header_pointer() return skb->data + offset; then I will write
+right into the skb :-(
 
-The _inc() part of trace.c is because when it uses the ring buffer
-iterator (non consuming read) it does increment the iterator. But on the
-consuming read (like you implemented) it does not. But the name is
-incorrect for that case.
+> 
+> > > > +
+[snip]
 
-Lets not spread this falsehood around.
+> > > > +static unsigned int
+> > > > +hmark_v4(struct sk_buff *skb, const struct xt_action_param *par)
+> > > > +{
+> > > > +     struct xt_hmark_info *info = (struct xt_hmark_info *)par->targinfo;
+> > > > +     int nhoff, poff, frag = 0;
+> > > > +     struct iphdr *ip, _ip;
+> > > > +     u8 ip_proto;
+> > > > +     u32 addr1, addr2, hash;
+> > > > +     u16 snatport = 0, dnatport = 0;
+> > > > +     union hmark_ports uports;
+> > > > +     enum ip_conntrack_info ctinfo;
+> > > > +     struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+> > > 
+> > > You spend cycles initializing this variable, but you may not use it.
+> > 
+> > Yes, it can be improved ...
+> > 
+> > > For the conntrack case, you can make in the very beginning:
+> > > 
+> > > if (info->flags & XT_HMARK_CT) {
+> > >         struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+> > > 
+> > >         if (ct && !nf_ct_is_untracked(ct)) {
+> > >                 struct nf_conntrack_tuple *otuple =
+> > >                         &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
+> > >                 struct nf_conntrack_tuple *rtuple =
+> > >                         &ct->tuplehash[IP_CT_DIR_REPLY].tuple;
+> > > 
+> > >                 addr_src = (__force u32) otuple->src.u3.in.s_addr;
+> > >                 port_src = otuple->src.u.all;
+> > >                 addr_dst = (__force u32) rtuple->src.u3.in.s_addr;
+> > >                 port_dst = rtuple->src.u.all;
+> > >         } else
+> > >                 return XT_CONTINUE;
+> > > }
+> > > 
+> > > With SNAT/masquerade:
+> > > original: A -> B
+> > > reply: B -> FW
+> > > 
+> > > With DNAT:
+> > > original: A -> FW
+> > > reply: B -> A
+> > > 
+> > > So real addresses are always source for the original tuple and source
+> > > for the reply tuple.
+> > > 
+> > > I think it's better just to tell HMARK to use CT, no need to specify
+> > > what part of it, it's simple and the user will not get confused
+> > > selecting wrong configurations.
+> > > 
+> > We discussed that and you wrote:
+> > 
+> > "My opinion is that the user must have total control on the target
+> >  behaviour through the configuration options."
+> > ...
+> > "I'm fine if you allow to select what tuple you want to use to hash."
+> > 
+> > Have you changed you opinion ?
+> > From my point of view it doesn't matter.
+> 
+> To add what I've already said, I think it's also good if we can avoid
+> that users make wrong decisions.
+>
 
+OK, I'll do that, this needs to be documented. I will write some new lines 
+in the man page and see if my colleagues can understand it before poting it...
+  
+[snip]
 
-> +
-> +	return NULL;
-> +}
-> +
-> +static int buffer_empty(struct rlog_iter *iter)
-> +{
-> +	int cpu;
-> +
-> +	for_each_buffer_cpu (iter->buffer, cpu) {
-> +		if (!ring_buffer_empty_cpu(iter->buffer, cpu))
-> +			return 0;
-> +	}
-> +
-> +	return 1;
-> +}
-> +
-> +static ssize_t rlog_to_user(struct rlog_iter *iter, char __user *ubuf,
-> +			    size_t cnt)
-> +{
-> +	int ret;
-> +	int len;
-> +
-> +	if (!cnt)
-> +		goto out;
-> +
-> +	len = iter->print_buf_len - iter->print_buf_pos;
-> +	if (len < 1)
-> +		return -EBUSY;
-> +
-> +	if (cnt > len)
-> +		cnt = len;
-> +
-> +	ret = copy_to_user(ubuf, iter->print_buf + iter->print_buf_pos, cnt);
-> +	if (ret == cnt)
-> +		return -EFAULT;
-> +
-> +	cnt -= ret;
-> +	iter->print_buf_pos += cnt;
-> +
-> +out:
-> +	return cnt;
-> +}
-> +
-> +static int rlog_open_pipe(struct inode *inode, struct file *file)
-> +{
-> +	struct rlog_iter *iter;
-> +	struct xt_LOG_ring_ctx *tgt = PDE(inode)->data;
-> +	int ret = 0;
-> +
-> +	/* only one consuming reader is allowed */
-> +	if (atomic_cmpxchg(&tgt->pipe_in_use, 0, 1)) {
-> +		ret = -EBUSY;
-> +		goto out;
-> +	}
-> +
-> +	iter = kzalloc(sizeof(*iter), GFP_KERNEL);
-> +	if (!iter) {
-> +		ret = -ENOMEM;
-
-If we fail here, we just blocked all new users with -EBUSY.
-
--- Steve
-
-
-> +		goto out;
-> +	}
-> +
-> +	mutex_init(&iter->lock);
-> +	iter->buffer = tgt->buffer;
-> +	iter->buffer_name = tgt->name;
-> +
-> +	file->private_data = iter;
-> +out:
-> +	return ret;
-> +}
-> +
-> +static unsigned int rlog_poll_pipe(struct file *file, poll_table *poll_table)
-> +{
-> +	struct rlog_iter *iter = file->private_data;
-> +
-> +	if (!buffer_empty(iter))
-> +		return POLLIN | POLLRDNORM;
-> +
-> +	poll_wait(file, &rlog_wait, poll_table);
-> +
-> +	if (!buffer_empty(iter))
-> +		return POLLIN | POLLRDNORM;
-> +
-> +	return 0;
-> +}
-> +
-> +static int rlog_release_pipe(struct inode *inode, struct file *file)
-> +{
-> +	struct rlog_iter *iter = file->private_data;
-> +	struct xt_LOG_ring_ctx *tgt = PDE(inode)->data;
-> +
-> +	mutex_destroy(&iter->lock);
-> +	kfree(iter);
-> +	atomic_set(&tgt->pipe_in_use, 0);
-> +
-> +	return 0;
-> +}
-> +
-> +static void wait_pipe(struct rlog_iter *iter)
-> +{
-> +	DEFINE_WAIT(wait);
-> +
-> +	prepare_to_wait(&rlog_wait, &wait, TASK_INTERRUPTIBLE);
-> +
-> +	if (buffer_empty(iter))
-> +		schedule();
-> +
-> +	finish_wait(&rlog_wait, &wait);
-> +}
-> +
-> +static int rlog_wait_pipe(struct file *file)
-> +{
-> +	struct rlog_iter *iter = file->private_data;
-> +
-> +	while (buffer_empty(iter)) {
-> +		if (file->f_flags & O_NONBLOCK)
-> +			return -EAGAIN;
-> +
-> +		mutex_unlock(&iter->lock);
-> +
-> +		wait_pipe(iter);
-> +
-> +		mutex_lock(&iter->lock);
-> +
-> +		if (signal_pending(current))
-> +			return -EINTR;
-> +	}
-> +
-> +	return 1;
-> +}
-> +
-> +static ssize_t rlog_read_pipe(struct file *file, char __user *ubuf,
-> +			      size_t cnt, loff_t *ppos)
-> +{
-> +	struct rlog_iter *iter = file->private_data;
-> +	ssize_t ret;
-> +
-> +	ret = rlog_to_user(iter, ubuf, cnt);
-> +	if (ret != -EBUSY)
-> +		goto out;
-> +
-> +	iter->print_buf_pos = 0;
-> +	iter->print_buf_len = 0;
-> +
-> +	if (cnt >= PAGE_SIZE)
-> +		cnt = PAGE_SIZE - 1;
-> +
-> +	mutex_lock(&iter->lock);
-> +again:
-> +	ret = rlog_wait_pipe(file);
-> +	if (ret <= 0)
-> +		goto out_unlock;
-> +
-> +	while (find_next_entry_inc(iter) != NULL) {
-> +		struct rlog_entry *ent;
-> +		ent = iter->ent;
-> +
-> +		if (ent->count >= PAGE_SIZE - iter->print_buf_len)
-> +			break;
-> +
-> +		memcpy(iter->print_buf + iter->print_buf_len, ent->msg,
-> +			ent->count);
-> +		iter->print_buf_len += ent->count;
-> +
-> +		ring_buffer_consume(iter->buffer, iter->cpu, NULL,
-> +			&iter->lost_events);
-> +		if (iter->lost_events)
-> +			printk(KERN_WARNING KBUILD_MODNAME ": Ring %s "
-> +				"lost %lu events\n", iter->buffer_name,
-> +				iter->lost_events);
-> +
-> +		if (iter->print_buf_len >= cnt)
-> +			break;
-> +	}
-> +
-> +	ret = rlog_to_user(iter, ubuf, cnt);
-> +
-> +	if (iter->print_buf_pos >= iter->print_buf_len) {
-> +		iter->print_buf_pos = 0;
-> +		iter->print_buf_len = 0;
-> +	}
-> +
-> +	if (ret == -EBUSY)
-> +		goto again;
-> +out_unlock:
-> +	mutex_unlock(&iter->lock);
-> +out:
-> +	return ret;
-> +}
-> +
+Thanks
+/Hans 
