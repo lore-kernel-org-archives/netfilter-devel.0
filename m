@@ -1,63 +1,56 @@
-From: Richard Weinberger <richard@nod.at>
-Subject: [PATCH 3/6] ring_buffer: Export for_each_buffer_cpu()
-Date: Tue,  6 Mar 2012 00:19:45 +0100
-Message-ID: <1330989588-26833-4-git-send-email-richard@nod.at>
-References: <1330989588-26833-1-git-send-email-richard@nod.at>
-Cc: jengelh@medozas.de, eric.dumazet@gmail.com,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, rostedt@goodmis.org,
-	Richard Weinberger <richard@nod.at>
-To: pablo@netfilter.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1330989588-26833-1-git-send-email-richard@nod.at>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: akpm@linux-foundation.org
+Subject: [patch 1/1] net/netfilter/nfnetlink_acct.c: use linux/atomic.h
+Date: Mon, 05 Mar 2012 15:12:35 -0800
+Message-ID: <20120305231236.00A45A02EB@akpm.mtv.corp.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ASCII
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@vger.kernel.org, akpm@linux-foundation.org,
+	davem@davemloft.net, pablo@netfilter.org
+To: kaber@trash.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:44785 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756678Ab2CEXmn (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 Mar 2012 18:42:43 -0500
+Received: by faaa19 with SMTP id a19so168564faa.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 05 Mar 2012 15:42:42 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-In order to make ring_buffer usable to other modules
-for_each_buffer_cpu() needs to be exported.
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: net/netfilter/nfnetlink_acct.c: use linux/atomic.h
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
+There's no known problem here, but this is one of only two non-arch files
+in the kernel which use asm/atomic.h instead of linux/atomic.h.
+
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
- include/linux/ring_buffer.h |    5 +++++
- kernel/trace/ring_buffer.c  |    7 +++++++
- 2 files changed, 12 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/ring_buffer.h b/include/linux/ring_buffer.h
-index 67be037..5c1c29f 100644
---- a/include/linux/ring_buffer.h
-+++ b/include/linux/ring_buffer.h
-@@ -185,4 +185,9 @@ enum ring_buffer_flags {
- 	RB_FL_OVERWRITE		= 1 << 0,
- };
+ net/netfilter/nfnetlink_acct.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff -puN net/netfilter/nfnetlink_acct.c~net-netfilter-nfnetlink_acctc-use-linux-atomich net/netfilter/nfnetlink_acct.c
+--- a/net/netfilter/nfnetlink_acct.c~net-netfilter-nfnetlink_acctc-use-linux-atomich
++++ a/net/netfilter/nfnetlink_acct.c
+@@ -10,6 +10,7 @@
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/skbuff.h>
++#include <linux/atomic.h>
+ #include <linux/netlink.h>
+ #include <linux/rculist.h>
+ #include <linux/slab.h>
+@@ -17,7 +18,6 @@
+ #include <linux/errno.h>
+ #include <net/netlink.h>
+ #include <net/sock.h>
+-#include <asm/atomic.h>
  
-+cpumask_var_t *ring_buffer_mask(struct ring_buffer *buffer);
-+
-+#define for_each_buffer_cpu(buffer, cpu) \
-+	for_each_cpu(cpu, *(ring_buffer_mask(buffer)))
-+
- #endif /* _LINUX_RING_BUFFER_H */
-diff --git a/kernel/trace/ring_buffer.c b/kernel/trace/ring_buffer.c
-index f5b7b5c..a4117c5 100644
---- a/kernel/trace/ring_buffer.c
-+++ b/kernel/trace/ring_buffer.c
-@@ -348,6 +348,7 @@ void *ring_buffer_event_data(struct ring_buffer_event *event)
- }
- EXPORT_SYMBOL_GPL(ring_buffer_event_data);
- 
-+#undef for_each_buffer_cpu
- #define for_each_buffer_cpu(buffer, cpu)		\
- 	for_each_cpu(cpu, buffer->cpumask)
- 
-@@ -4139,3 +4140,9 @@ static int rb_cpu_notify(struct notifier_block *self,
- 	return NOTIFY_OK;
- }
- #endif
-+
-+cpumask_var_t *ring_buffer_mask(struct ring_buffer *buffer)
-+{
-+	return &buffer->cpumask;
-+}
-+EXPORT_SYMBOL_GPL(ring_buffer_mask);
--- 
-1.7.7.3
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nfnetlink.h>
+_
