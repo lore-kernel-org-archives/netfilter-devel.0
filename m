@@ -1,30 +1,52 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 3/6] netfilter: ctnetlink: use GFP_ATOMIC in all
- allocations
-Date: Tue, 06 Mar 2012 15:20:33 -0500 (EST)
-Message-ID: <20120306.152033.705109948612764345.davem@davemloft.net>
-References: <1331032975-5303-4-git-send-email-pablo@netfilter.org>
-	<1331038221.9504.9.camel@edumazet-glaptop>
-	<20120306144838.GA1527@1984>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: NFQUEUE in bridge mode performance poor in the last kernels
+Date: Tue, 6 Mar 2012 22:23:37 +0100
+Message-ID: <20120306212337.GA19133@Chamillionaire.breakpoint.cc>
+References: <CA+qZnSTG+_5y=6dGFqoJwRj0LxMvr2qtmyvykFjfnVgaYgbNPA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: eric.dumazet@gmail.com, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: tingwei liu <tingw.liu@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:39231 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030950Ab2CFUVk (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:55984 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755634Ab2CFVXi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Mar 2012 15:21:40 -0500
-In-Reply-To: <20120306144838.GA1527@1984>
+	Tue, 6 Mar 2012 16:23:38 -0500
+Content-Disposition: inline
+In-Reply-To: <CA+qZnSTG+_5y=6dGFqoJwRj0LxMvr2qtmyvykFjfnVgaYgbNPA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue, 6 Mar 2012 15:48:38 +0100
+tingwei liu <tingw.liu@gmail.com> wrote:
+> In the past few days, I have puzzled by NFQUEUE in bridge mode.
+> I have take some test with five kernels.
+> 2.6.24.4
+> 2.6.36.4
+> 2.6.38
+> 3.0.8
+> 3.1.10
+>=20
+> The result is : 2.6.24.4,2.6.26.4,2.6.38 have a goog performance;
+> 3.0.8 and 3.1.10 have a poor performance.
+> Next is copy from suricata maillist(=A0eric@regit.org=A0)
+>=20
+> I'm having a look at it. There has been some changes between the two
+> kernel versions (bringing more performances) but it seems there is so=
+me
+> side effects with bridge.
 
-> David, can you take all patches except this one?
+Might be the 'gro+nfqueue eats MAC header' problem, you could try
+commit a8db7b2d197a0d624baab83f0c810b0edbc4ffd0 (netfilter: nf_queue: f=
+ix
+queueing of bridged gro skbs). Or, disable gro on all bridge ports via
+ethtool -K $device gro off
 
-That's what I did, thanks.
+If its not gro related, please provide more information about your
+machine, setup, ... etc.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
