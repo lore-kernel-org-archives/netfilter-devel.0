@@ -1,28 +1,45 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH 5/6] Netfilter: xt_LOG: Implement ring buffer support
-Date: Mon, 05 Mar 2012 21:47:28 -0500
-Message-ID: <1331002048.25686.354.camel@gandalf.stny.rr.com>
-References: <1330989588-26833-1-git-send-email-richard@nod.at>
-	 <1330989588-26833-6-git-send-email-richard@nod.at>
+From: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Subject: Re: [PATCH 1/1] conntrack, suspicious RCU usage
+Date: Tue, 6 Mar 2012 06:58:15 +0100
+Message-ID: <201203060658.16156.hans.schillstrom@ericsson.com>
+References: <1330950269-32668-1-git-send-email-hans.schillstrom@ericsson.com> <20120305170548.GA28986@1984> <20120305223815.GA30456@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, jengelh@medozas.de, eric.dumazet@gmail.com,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Richard Weinberger <richard@nod.at>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1330989588-26833-6-git-send-email-richard@nod.at>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: "eric.dumazet@gmail.com" <eric.dumazet@gmail.com>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"hans@schillstrom.com" <hans@schillstrom.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mailgw10.se.ericsson.net ([193.180.251.61]:62114 "EHLO
+	mailgw10.se.ericsson.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751881Ab2CFF6T (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 6 Mar 2012 00:58:19 -0500
+In-Reply-To: <20120305223815.GA30456@1984>
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2012-03-06 at 00:19 +0100, Richard Weinberger wrote:
-> This patch introduces NETFILTER_XT_TARGET_LOG_RING.
-> It allows logging into various ring buffers which are
-> represented as pipe-like files in /proc/net/netfilter/nf_log_ring/.
+On Monday 05 March 2012 23:38:15 Pablo Neira Ayuso wrote:
+> On Mon, Mar 05, 2012 at 06:05:48PM +0100, Pablo Neira Ayuso wrote:
+> > On Mon, Mar 05, 2012 at 01:24:29PM +0100, Hans Schillstrom wrote:
+> > > From: Hans Schillstrom <hans@schillstrom.com>
+> > > 
+> > > Hello Pablo
+> > > I think you lost this patch from Eric, I updated the patch for the 
+> > > latest nf_conntrack_netlink.c 
+> > > 
+> > > Well, __nf_ct_l4proto_find() being out of line and the way we already
+> > > use rcu_read_lock() in this code, it seems following patch is
+> > > the most natural way to cope with these lockdep warnings.
+> > 
+> > I'll take the previous patch to pass it to current -rc. Thanks Hans.
 > 
-> Signed-off-by: Richard Weinberger <richard@nod.at> 
-
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
-
--- Steve
+> I'll pass it to net-next, otherwise this will result in one conflict
+> with one patch already in net-next if I pass it to net.
+>
+ 
+Thanks a lot
+/Hans
