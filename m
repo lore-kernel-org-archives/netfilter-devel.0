@@ -1,56 +1,40 @@
-From: akpm@linux-foundation.org
-Subject: [patch 1/1] net/netfilter/nfnetlink_acct.c: use linux/atomic.h
-Date: Mon, 05 Mar 2012 15:12:35 -0800
-Message-ID: <20120305231236.00A45A02EB@akpm.mtv.corp.google.com>
+From: tingwei liu <tingw.liu@gmail.com>
+Subject: NFQUEUE in bridge mode performance poor in the last kernels
+Date: Tue, 6 Mar 2012 10:05:19 +0800
+Message-ID: <CA+qZnSTG+_5y=6dGFqoJwRj0LxMvr2qtmyvykFjfnVgaYgbNPA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ASCII
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org, akpm@linux-foundation.org,
-	davem@davemloft.net, pablo@netfilter.org
-To: kaber@trash.net
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:44785 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756678Ab2CEXmn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Mar 2012 18:42:43 -0500
-Received: by faaa19 with SMTP id a19so168564faa.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 05 Mar 2012 15:42:42 -0800 (PST)
+Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:39760 "EHLO
+	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758204Ab2CFCFU convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 Mar 2012 21:05:20 -0500
+Received: by obbuo6 with SMTP id uo6so4856698obb.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 05 Mar 2012 18:05:19 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: net/netfilter/nfnetlink_acct.c: use linux/atomic.h
+In the past few days, I have puzzled by NFQUEUE in bridge mode.
+I have take some test with five kernels.
+2.6.24.4
+2.6.36.4
+2.6.38
+3.0.8
+3.1.10
 
-There's no known problem here, but this is one of only two non-arch files
-in the kernel which use asm/atomic.h instead of linux/atomic.h.
+The result is : 2.6.24.4,2.6.26.4,2.6.38 have a goog performance;
+3.0.8 and 3.1.10 have a poor performance.
+Next is copy from suricata maillist(=C2=A0eric@regit.org=C2=A0)
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: "David S. Miller" <davem@davemloft.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- net/netfilter/nfnetlink_acct.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff -puN net/netfilter/nfnetlink_acct.c~net-netfilter-nfnetlink_acctc-use-linux-atomich net/netfilter/nfnetlink_acct.c
---- a/net/netfilter/nfnetlink_acct.c~net-netfilter-nfnetlink_acctc-use-linux-atomich
-+++ a/net/netfilter/nfnetlink_acct.c
-@@ -10,6 +10,7 @@
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/skbuff.h>
-+#include <linux/atomic.h>
- #include <linux/netlink.h>
- #include <linux/rculist.h>
- #include <linux/slab.h>
-@@ -17,7 +18,6 @@
- #include <linux/errno.h>
- #include <net/netlink.h>
- #include <net/sock.h>
--#include <asm/atomic.h>
- 
- #include <linux/netfilter.h>
- #include <linux/netfilter/nfnetlink.h>
-_
+I'm having a look at it. There has been some changes between the two
+kernel versions (bringing more performances) but it seems there is some
+side effects with bridge.
+Thanks!
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
