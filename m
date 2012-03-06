@@ -1,52 +1,77 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: NFQUEUE in bridge mode performance poor in the last kernels
-Date: Tue, 6 Mar 2012 22:23:37 +0100
-Message-ID: <20120306212337.GA19133@Chamillionaire.breakpoint.cc>
-References: <CA+qZnSTG+_5y=6dGFqoJwRj0LxMvr2qtmyvykFjfnVgaYgbNPA@mail.gmail.com>
+Subject: Re: netfilter_queue : use --queue-balance in multithreaded
+ environment
+Date: Tue, 6 Mar 2012 22:45:18 +0100
+Message-ID: <20120306214518.GB19133@Chamillionaire.breakpoint.cc>
+References: <1330681120.2106.14.camel@arifLaptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: tingwei liu <tingw.liu@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Arif Hossain <freefall1986@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:55984 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:54683 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755634Ab2CFVXi (ORCPT
+	by vger.kernel.org with ESMTP id S1758314Ab2CFVpU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Mar 2012 16:23:38 -0500
+	Tue, 6 Mar 2012 16:45:20 -0500
 Content-Disposition: inline
-In-Reply-To: <CA+qZnSTG+_5y=6dGFqoJwRj0LxMvr2qtmyvykFjfnVgaYgbNPA@mail.gmail.com>
+In-Reply-To: <1330681120.2106.14.camel@arifLaptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-tingwei liu <tingw.liu@gmail.com> wrote:
-> In the past few days, I have puzzled by NFQUEUE in bridge mode.
-> I have take some test with five kernels.
-> 2.6.24.4
-> 2.6.36.4
-> 2.6.38
-> 3.0.8
-> 3.1.10
->=20
-> The result is : 2.6.24.4,2.6.26.4,2.6.38 have a goog performance;
-> 3.0.8 and 3.1.10 have a poor performance.
-> Next is copy from suricata maillist(=A0eric@regit.org=A0)
->=20
-> I'm having a look at it. There has been some changes between the two
-> kernel versions (bringing more performances) but it seems there is so=
-me
-> side effects with bridge.
+Arif Hossain <freefall1986@gmail.com> wrote:
+> I'm using libnetfilter_queue for userspace modification of
+> incoming/outgoing packets. I have been using a single threaded model.
+> But i've found out that from 2.6.31 kernel, its possible to have
+> different queues for different connection. so i was wandering if its
+> possible to manage each queues in different threads.
 
-Might be the 'gro+nfqueue eats MAC header' problem, you could try
-commit a8db7b2d197a0d624baab83f0c810b0edbc4ffd0 (netfilter: nf_queue: f=
-ix
-queueing of bridged gro skbs). Or, disable gro on all bridge ports via
-ethtool -K $device gro off
+Its usually simpler to just run several instances of the same program,
+easier to maintain/debug and avoids locking/race conditions...
 
-If its not gro related, please provide more information about your
-machine, setup, ... etc.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If you have requirements that make this a bad choice (e.g. memory
+usage), then yes, you can use threads.
+
+See
+http://git.breakpoint.cc/cgi-bin/gitweb.cgi?p=fw/afcd.git;a=blob;f=src/in/in_nl.c;h=e298bd073f3c7e0c62432510c2b3f7de953df1ec;hb=74a2df00cdee5f3ff8360b32d711d5db086b5355#l351
+
+for a program that does this.
+
+> if i initialize above in the main thread and want to run the callbacks
+> in threads, is it enough to run infinite loop in a function which will
+> be given to pthread_create()? Will it run the callbacks in threads? 
+
+Yes.
+
+> i'm not sure, but my understanding tells me, a packet is popped from the
+> queues when nfq_set_verdict is returned. so i need to run
+> nfq_set_verdict in separate threads so that i packets can be popped from
+> queues parallel.
+
+I don't understand this part.  Basically all the processing do this
+(see url above for full example):
+
+ static int nfnl_queue_cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
+               struct nfq_data *nfa, void *data) {
+        [..]
+        ret = nfq_get_payload(nfa, &pkt);
+	do_something(pkt);
+        return nfq_set_verdict2( .. )
+}
+
+static void *_thread_main(void *arg) {
+	[..]
+        while (!thread_should_stop) {
+                ssize_t rv = read(fd, buf, nfq_buf_len);
+                if (rv > 0)
+                        nfq_handle_packet(nfq_h, buf, (int) rv);
+                else
+                        /* error ... */
+        }
+	/* cleanup */
+        return NULL;
+}
+
+All the threads then run nfnl_queue_cb() independently.
+Of course, you'll need to add proper locking if they need to
+access shared data structures...
