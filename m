@@ -1,99 +1,43 @@
 From: "Jan Beulich" <JBeulich@suse.com>
-Subject: [PATCH] adjust __net_exit
-Date: Thu, 08 Mar 2012 09:37:32 +0000
-Message-ID: <4F588BEC020000780007710A@nat28.tlf.novell.com>
+Subject: [PATCH] xt_log.h: don't use xchg() for simple assignment
+Date: Thu, 08 Mar 2012 09:45:44 +0000
+Message-ID: <4F588DD8020000780007711C@nat28.tlf.novell.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 8BIT
-Cc: <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>
-To: <davem@davemloft.net>
+Cc: <netfilter-devel@vger.kernel.org>
+To: <pablo@netfilter.org>, <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nat28.tlf.novell.com ([130.57.49.28]:57204 "EHLO
+Received: from nat28.tlf.novell.com ([130.57.49.28]:63628 "EHLO
 	nat28.tlf.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753324Ab2CHJgq convert rfc822-to-8bit (ORCPT
-	<rfc822;groupwise-netfilter-devel@vger.kernel.org:2:2>);
-	Thu, 8 Mar 2012 04:36:46 -0500
+	with ESMTP id S1752094Ab2CHJo7 convert rfc822-to-8bit (ORCPT
+	<rfc822;groupwise-netfilter-devel@vger.kernel.org:3:1>);
+	Thu, 8 Mar 2012 04:44:59 -0500
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-__net_exit, judging by the majority of its uses, was intended to serve
-as an abstraction to allow calling such annotated functions from both
-__init and __exit functions. Using the (bogus and unused elsewhere)
-__exit_refok to implement this is inefficient - any non-modular code
-really can reside in __init (as non-modular __exit code is never used).
-
-Therefore, adjust __net_exit to resolve to nothing (i.e. normal .text)
-in modules, and __init in the core kernel.
-
-A few other adjustments are necessary/possible with this done - those
-were likely just oversights when added originally.
+At least on ia64 the (bogus) use of xchg() here results in the compiler
+warning about an unused expression result. As only an assignment is
+intended here, convert it to such.
 
 Signed-off-by: Jan Beulich <jbeulich@suse.com>
 
 ---
- include/net/net_namespace.h    |    6 +++++-
- net/ipv4/fib_frontend.c        |    2 +-
- net/netfilter/ipvs/ip_vs_ctl.c |    8 ++++----
- 3 files changed, 10 insertions(+), 6 deletions(-)
+ include/net/netfilter/xt_log.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- 3.3-rc6/include/net/net_namespace.h
-+++ 3.3-rc6-net-exit/include/net/net_namespace.h
-@@ -242,7 +242,11 @@ static inline struct net *read_pnet(stru
- #define __net_initdata
- #else
- #define __net_init	__init
--#define __net_exit	__exit_refok
-+#ifdef MODULE
-+#define __net_exit
-+#else
-+#define __net_exit	__init
-+#endif
- #define __net_initdata	__initdata
- #endif
- 
---- 3.3-rc6/net/ipv4/fib_frontend.c
-+++ 3.3-rc6-net-exit/net/ipv4/fib_frontend.c
-@@ -1062,7 +1062,7 @@ fail:
- 	return err;
+--- 3.3-rc6/include/net/netfilter/xt_log.h
++++ 3.3-rc6-netfilter-xt_log-no-xchg/include/net/netfilter/xt_log.h
+@@ -47,7 +47,7 @@ static void sb_close(struct sbuff *m)
+ 	if (likely(m != &emergency))
+ 		kfree(m);
+ 	else {
+-		xchg(&emergency_ptr, m);
++		emergency_ptr = m;
+ 		local_bh_enable();
+ 	}
  }
- 
--static void ip_fib_net_exit(struct net *net)
-+static void __net_exit ip_fib_net_exit(struct net *net)
- {
- 	unsigned int i;
- 
---- 3.3-rc6/net/netfilter/ipvs/ip_vs_ctl.c
-+++ 3.3-rc6-net-exit/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -3621,7 +3621,7 @@ static void ip_vs_genl_unregister(void)
-  * per netns intit/exit func.
-  */
- #ifdef CONFIG_SYSCTL
--int __net_init ip_vs_control_net_init_sysctl(struct net *net)
-+static int __net_init ip_vs_control_net_init_sysctl(struct net *net)
- {
- 	int idx;
- 	struct netns_ipvs *ipvs = net_ipvs(net);
-@@ -3680,7 +3680,7 @@ int __net_init ip_vs_control_net_init_sy
- 	return 0;
- }
- 
--void __net_init ip_vs_control_net_cleanup_sysctl(struct net *net)
-+static void __net_exit ip_vs_control_net_cleanup_sysctl(struct net *net)
- {
- 	struct netns_ipvs *ipvs = net_ipvs(net);
- 
-@@ -3691,8 +3691,8 @@ void __net_init ip_vs_control_net_cleanu
- 
- #else
- 
--int __net_init ip_vs_control_net_init_sysctl(struct net *net) { return 0; }
--void __net_init ip_vs_control_net_cleanup_sysctl(struct net *net) { }
-+static int __net_init ip_vs_control_net_init_sysctl(struct net *net) { return 0; }
-+static void __net_exit ip_vs_control_net_cleanup_sysctl(struct net *net) { }
- 
- #endif
- 
 
 
 
