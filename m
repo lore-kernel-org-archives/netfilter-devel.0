@@ -1,96 +1,99 @@
-From: Richard Weinberger <richard@nod.at>
-Subject: Re: [PATCH v6] Netfilter ring buffer support
-Date: Thu, 08 Mar 2012 10:02:45 +0100
-Message-ID: <4F5875B5.1090802@nod.at>
-References: <1330989588-26833-1-git-send-email-richard@nod.at> <20120308012849.GA9164@1984>
+From: "Jan Beulich" <JBeulich@suse.com>
+Subject: [PATCH] adjust __net_exit
+Date: Thu, 08 Mar 2012 09:37:32 +0000
+Message-ID: <4F588BEC020000780007710A@nat28.tlf.novell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: jengelh@medozas.de, eric.dumazet@gmail.com,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, rostedt@goodmis.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
+Cc: <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>
+To: <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a.ns.miles-group.at ([95.130.255.143]:47835 "EHLO radon.swed.at"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755093Ab2CHJCu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Mar 2012 04:02:50 -0500
-In-Reply-To: <20120308012849.GA9164@1984>
+Received: from nat28.tlf.novell.com ([130.57.49.28]:57204 "EHLO
+	nat28.tlf.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753324Ab2CHJgq convert rfc822-to-8bit (ORCPT
+	<rfc822;groupwise-netfilter-devel@vger.kernel.org:2:2>);
+	Thu, 8 Mar 2012 04:36:46 -0500
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 08.03.2012 02:28, Pablo Neira Ayuso wrote:
-> On Tue, Mar 06, 2012 at 12:19:42AM +0100, Richard Weinberger wrote:
->> This patch set merges ipt_LOG and ip6t_LOG and adds ring buffer support
->> to xt_LOG.
->>
->> Using "--ring" an user can create LOG rules which log messages into
->> one or more ring buffers.
->> Each ring buffer is represented as pipe-like file in
->> /proc/net/netfilter/nf_log_ring/.
->
-> I've spent part of the evening testing this and checking its
-> possibilities, the drawbacks that I see for this contribution are:
->
-> * it uses the /proc entry, we have rejected similar add-ons in the
->    past that have used these interfaces.
+__net_exit, judging by the majority of its uses, was intended to serve
+as an abstraction to allow calling such annotated functions from both
+__init and __exit functions. Using the (bogus and unused elsewhere)
+__exit_refok to implement this is inefficient - any non-modular code
+really can reside in __init (as non-modular __exit code is never used).
 
-My fist implementation used sysfs/debug.
-I've switched to /proc/net/netfilter/ to make it consistent to the other
-netfilter stuff...
-Moving back to sysfs/debug/whatever can be done within minutes.
+Therefore, adjust __net_exit to resolve to nothing (i.e. normal .text)
+in modules, and __init in the core kernel.
 
-> * one single reader can be reading at a time.
+A few other adjustments are necessary/possible with this done - those
+were likely just oversights when added originally.
 
-In which use-cache you need two _consuming_ readers?
-Steve's ring_buffer supports also concurrent non-consuming reads.
-I can add support for this...
+Signed-off-by: Jan Beulich <jbeulich@suse.com>
 
-> Having said that, I still think that the feature that this provides
-> is useful, but I think that implementing this in user-space over
-> nfnetlink_log results in a much more flexible solution.
->
-> I have made proof-of-concept daemon (it's a quick hack of several
-> hours) that implements the similar feature over nfnetlink_log,
-> advantages are:
->
-> * You don't need to upgrade your kernel / iptables.
-> * You only need to install libnfnetlink, libnetfilter_log and the
->    daemon.
-> * It can be extended to support multiple readers.
->
-> So my conclusion is that you can make this in userspace in a much more
-> flexible way.
->
-> You can find it here:
->
-> http://1984.lsi.us.es/git/rlogd/
->
-> The initial commit provides some description on how to use it:
->
-> http://1984.lsi.us.es/git/rlogd/commit/?id=ccb88a8dc8ad674b860f2d3edabf07fe4830baf3
->
-> I don't plan to develop / maintain that software. The last thing I
-> want in my todo list is yet another thing to maintain. If someone is
-> interested, please, feel free to grab it, make a nice website for it
-> and maintain it.
->
-> The repository also contains an unfinished patch to add LOG format
-> support to libnetfilter_log.
+---
+ include/net/net_namespace.h    |    6 +++++-
+ net/ipv4/fib_frontend.c        |    2 +-
+ net/netfilter/ipvs/ip_vs_ctl.c |    8 ++++----
+ 3 files changed, 10 insertions(+), 6 deletions(-)
 
-I really don't like this rlogd thing.
+--- 3.3-rc6/include/net/net_namespace.h
++++ 3.3-rc6-net-exit/include/net/net_namespace.h
+@@ -242,7 +242,11 @@ static inline struct net *read_pnet(stru
+ #define __net_initdata
+ #else
+ #define __net_init	__init
+-#define __net_exit	__exit_refok
++#ifdef MODULE
++#define __net_exit
++#else
++#define __net_exit	__init
++#endif
+ #define __net_initdata	__initdata
+ #endif
+ 
+--- 3.3-rc6/net/ipv4/fib_frontend.c
++++ 3.3-rc6-net-exit/net/ipv4/fib_frontend.c
+@@ -1062,7 +1062,7 @@ fail:
+ 	return err;
+ }
+ 
+-static void ip_fib_net_exit(struct net *net)
++static void __net_exit ip_fib_net_exit(struct net *net)
+ {
+ 	unsigned int i;
+ 
+--- 3.3-rc6/net/netfilter/ipvs/ip_vs_ctl.c
++++ 3.3-rc6-net-exit/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -3621,7 +3621,7 @@ static void ip_vs_genl_unregister(void)
+  * per netns intit/exit func.
+  */
+ #ifdef CONFIG_SYSCTL
+-int __net_init ip_vs_control_net_init_sysctl(struct net *net)
++static int __net_init ip_vs_control_net_init_sysctl(struct net *net)
+ {
+ 	int idx;
+ 	struct netns_ipvs *ipvs = net_ipvs(net);
+@@ -3680,7 +3680,7 @@ int __net_init ip_vs_control_net_init_sy
+ 	return 0;
+ }
+ 
+-void __net_init ip_vs_control_net_cleanup_sysctl(struct net *net)
++static void __net_exit ip_vs_control_net_cleanup_sysctl(struct net *net)
+ {
+ 	struct netns_ipvs *ipvs = net_ipvs(net);
+ 
+@@ -3691,8 +3691,8 @@ void __net_init ip_vs_control_net_cleanu
+ 
+ #else
+ 
+-int __net_init ip_vs_control_net_init_sysctl(struct net *net) { return 0; }
+-void __net_init ip_vs_control_net_cleanup_sysctl(struct net *net) { }
++static int __net_init ip_vs_control_net_init_sysctl(struct net *net) { return 0; }
++static void __net_exit ip_vs_control_net_cleanup_sysctl(struct net *net) { }
+ 
+ #endif
+ 
 
-1. It's yet another random netfilter userspace component.
-Please don't fragment it more.
-Installing iptables/conntrack/ulogd/etc... is already enough PITA 
-because not all distros ship all this clustered components.
 
-2. As I described in my very fist RLOG patch, NFLOG does not include the 
-same information.
-You cannot derive "PHYSIN" and "PHYSOUT" from the packet header.
 
-3. rlogd needs NFLOG which copies every packet (header) to userspace.
-What about performance...?
-
-Thanks,
-//richard
