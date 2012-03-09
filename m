@@ -1,41 +1,72 @@
-From: Christian Engelmayer <christian.engelmayer@frequentis.com>
-Subject: [PATCH] iptables: missing free() in function delete_entry()
-Date: Thu, 8 Mar 2012 15:20:41 +0100
-Message-ID: <20120308152041.7a789c4f@frequentis.com>
+From: Tony Zelenoff <antonz@parallels.com>
+Subject: [PATCH v2] net/netfilter: refactor notifier registration
+Date: Fri, 9 Mar 2012 13:35:39 +0400
+Message-ID: <1331285739-487343-1-git-send-email-antonz@parallels.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Cc: <christian.engelmayer@frequentis.com>,
-	<franz.flasch@frequentis.com>
+Content-Type: text/plain
+Cc: <antonz@parallels.com>, <pablo@netfilter.org>,
+	<eric.dumazet@gmail.com>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail1.frequentis.com ([212.186.194.131]:26179 "EHLO
-	mail1.frequentis.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755997Ab2CHOaL (ORCPT
+Received: from relay.parallels.com ([195.214.232.42]:32956 "EHLO
+	relay.parallels.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752527Ab2CIJfo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Mar 2012 09:30:11 -0500
+	Fri, 9 Mar 2012 04:35:44 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Franz Flasch <franz.flasch@frequentis.com>
+* ret variable initialization removed as useless
+* similar code strings concatenated and functions code
+  flow became more plain
 
-Fixed a memory leak in the dry run path of function delete_entry().
-
-Signed-off-by: Franz Flasch <franz.flasch@frequentis.com>
-Signed-off-by: Christian Engelmayer <christian.engelmayer@frequentis.com>
+Signed-off-by: Tony Zelenoff <antonz@parallels.com>
 ---
+ net/netfilter/nf_conntrack_ecache.c |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
 
---- iptables-1.4.12.2/libiptc/libiptc.c	2012-01-02 18:19:09.000000000 +0100
-+++ iptables-1.4.12.2-modified/libiptc/libiptc.c	2012-03-08 14:27:24.000000000 +0100
-@@ -2001,8 +2001,10 @@ static int delete_entry(const IPT_CHAINL
- 			continue;
+diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
+index 5bd3047..3a3409f 100644
+--- a/net/netfilter/nf_conntrack_ecache.c
++++ b/net/netfilter/nf_conntrack_ecache.c
+@@ -84,7 +84,7 @@ EXPORT_SYMBOL_GPL(nf_ct_deliver_cached_events);
+ int nf_conntrack_register_notifier(struct net *net,
+ 				   struct nf_ct_event_notifier *new)
+ {
+-	int ret = 0;
++	int ret;
+ 	struct nf_ct_event_notifier *notify;
  
- 		/* if we are just doing a dry run, we simply skip the rest */
--		if (dry_run)
-+		if (dry_run){
-+			free(r);
- 			return 1;
-+		}
+ 	mutex_lock(&nf_ct_ecache_mutex);
+@@ -95,8 +95,7 @@ int nf_conntrack_register_notifier(struct net *net,
+ 		goto out_unlock;
+ 	}
+ 	rcu_assign_pointer(net->ct.nf_conntrack_event_cb, new);
+-	mutex_unlock(&nf_ct_ecache_mutex);
+-	return ret;
++	ret = 0;
  
- 		/* If we are about to delete the rule that is the
- 		 * current iterator, move rule iterator back.  next
+ out_unlock:
+ 	mutex_unlock(&nf_ct_ecache_mutex);
+@@ -121,7 +120,7 @@ EXPORT_SYMBOL_GPL(nf_conntrack_unregister_notifier);
+ int nf_ct_expect_register_notifier(struct net *net,
+ 				   struct nf_exp_event_notifier *new)
+ {
+-	int ret = 0;
++	int ret;
+ 	struct nf_exp_event_notifier *notify;
+ 
+ 	mutex_lock(&nf_ct_ecache_mutex);
+@@ -132,8 +131,7 @@ int nf_ct_expect_register_notifier(struct net *net,
+ 		goto out_unlock;
+ 	}
+ 	rcu_assign_pointer(net->ct.nf_expect_event_cb, new);
+-	mutex_unlock(&nf_ct_ecache_mutex);
+-	return ret;
++	ret = 0;
+ 
+ out_unlock:
+ 	mutex_unlock(&nf_ct_ecache_mutex);
+-- 
+1.7.1
+
