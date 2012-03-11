@@ -1,42 +1,66 @@
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: Re: linux-next: Tree for Mar 9 (netfilter)
-Date: Sat, 10 Mar 2012 08:45:22 -0800
-Message-ID: <4F5B8522.8050707@xenotime.net>
-References: <20120309191101.8634973f7d9988c602143f7c@canb.auug.org.au> <4F5A6872.3050502@xenotime.net> <20120310112154.GA22478@1984>
+From: "Hans Schillstrom" <hans@schillstrom.com>
+Subject: Re[2]:  linux-next: Tree for Mar 9 (netfilter)
+Date: Sun, 11 Mar 2012 13:37:25 +0100 (CET)
+Message-ID: <giupeu1.ee21a87813f836d9f587ea0b0e19a695@obelix.schillstrom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Cc: "Randy Dunlap" <rdunlap@xenotime.net>,
+	"Stephen Rothwell" <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, "LKML" <linux-kernel@vger.kernel.org>,
 	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20120310112154.GA22478@1984>
-Sender: linux-next-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: "Pablo Neira Ayuso" <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:33840 "EHLO
+	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752583Ab2CKMhb convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 11 Mar 2012 08:37:31 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 03/10/2012 03:21 AM, Pablo Neira Ayuso wrote:
-
-> On Fri, Mar 09, 2012 at 12:30:42PM -0800, Randy Dunlap wrote:
+Hello
+>On Fri, Mar 09, 2012 at 12:30:42PM -0800, Randy Dunlap wrote:
 >> On 03/09/2012 12:11 AM, Stephen Rothwell wrote:
->>
->>> Hi all,
->>>
->>> There will be no linux-next release on March 12 due to a public holiday.
->>>
->>> Changes since 20120308:
->>
->>
+>> 
+>> > Hi all,
+>> > 
+>> > There will be no linux-next release on March 12 due to a public holiday.
+>> > 
+>> > Changes since 20120308:
+>> 
+>> 
 >> xt_LOG.c:(.text+0x789b1): undefined reference to `ip6t_ext_hdr'
->>
+>> 
 >> Full randconfig file is attached.
-> 
-> The patch attached fixes this problem, thanks!
+>
+>The patch attached fixes this problem, thanks!
 
 
-Acked-by: Randy Dunlap <rdunlap@xenotime.net>
+This one is needed as well,
 
-Thanks.
+To force xt_LOG  to be configured as a module if ipv6 is a module,
+otherwise you end up in the same linking problem
 
+Signed-off-by: Hans Schillstrom <hans@schillstrom.com>
+---
+ net/netfilter/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 0c6f67e..4ef9c80 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -547,6 +547,7 @@ config NETFILTER_XT_TARGET_LED
+ 
+ config NETFILTER_XT_TARGET_LOG
+ 	tristate "LOG target support"
++	depends on (IPV6 || IPV6=n)
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  This option adds a `LOG' target, which allows you to create rules in
 -- 
-~Randy
+1.7.3.4
+
+
