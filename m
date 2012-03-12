@@ -1,72 +1,170 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v6] Netfilter ring buffer support
-Date: Mon, 12 Mar 2012 15:12:30 +0100
-Message-ID: <20120312141230.GA32616@1984>
-References: <1330989588-26833-1-git-send-email-richard@nod.at>
- <20120308012849.GA9164@1984>
- <4F5875B5.1090802@nod.at>
- <20120312130803.GA31865@1984>
- <4F5DF9B1.6050703@nod.at>
+From: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Subject: [v10 PATCH 0/3] NETFILTER new target module, HMARK
+Date: Mon, 12 Mar 2012 17:31:37 +0100
+Message-ID: <1331569900-2032-1-git-send-email-hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: jengelh@medozas.de, eric.dumazet@gmail.com,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, rostedt@goodmis.org
-To: Richard Weinberger <richard@nod.at>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4F5DF9B1.6050703@nod.at>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain
+Cc: <hans@schillstrom.com>,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>
+To: <kaber@trash.net>, <pablo@netfilter.org>, <jengelh@medozas.de>,
+	<netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mailgw10.se.ericsson.net ([193.180.251.61]:58837 "EHLO
+	mailgw10.se.ericsson.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752606Ab2CLQbo (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 Mar 2012 12:31:44 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 12, 2012 at 02:27:13PM +0100, Richard Weinberger wrote:
-[...]
-> >Looking at the code, those are included if bridging is enabled.
-> >Otherwise, I'll be happy to take a patch for this.
-> 
-> Doesn't NFLOG just pass the packet header to userspace?
+The target allows you to create rules in the "raw" and "mangle" tables
+which alter the netfilter mark (nfmark) field within a given range.
+First a 32 bit hash value is generated then modulus by <limit> and
+finally an offset is added before it's written to nfmark.
+Prior to routing, the nfmark can influence the routing method (see
+"Use netfilter MARK value as routing key") and can also be used by
+other subsystems to change their behavior.
 
-It also passes several interesting metainformation regarding the
-packet to user-space as well. And it can be easily extended to add
-more metainformation without breaking backward compatibility.
+The mark match can also be used to match nfmark produced by this module.
+See the kernel module for more info.
 
-> How can you derive meta-information like "PHYSIN" and "PHYSOUT" from
-> the packet header?
+REVISION
+Version 10
+        Even more simplified NAT handling just one switch --hmark-ct
+        some renaming and some minor changes.
+        Renaming of vars in xt_hmark_info
+        Adding helptext and updated man due to --hmark-ct switch
+        Changes are based on Pablos review.
 
-See nflog_get_physindev and nflog_get_physoutdev in libnetfilter_log.
+Version 9
+        Simpliefied nat handling in IPv4, some formating
+        checkentry() used in kernel. 
+        Most changes are based on Pablos review.
 
-> Iff NFLOG is able to produce same log string like LOG does I'm fine.
+Version 8
+        method L3 / L3-4 added i.e. Fragment handling changed to:
+        - don't handle in "method L3-4"
+        Syntax change in user mode to be more NF compatible.
+        Most changes are based on Pablos review.
 
-This is a patch yet incomplete for libnetfilter_log:
+Version 7
+	ahuum, IPv6 descending into icmp error hdr didn't work as expected
+        with ipv6_find_hdr() Now it works as expected.
 
-http://1984.lsi.us.es/git/rlogd/tree/libnflog.patch
+Version 6
+        Removed ipv6_find_hdr() wrapper (Pablo)
+	NAT / Conntrack compilation switches.
 
-It allows you to print in LOG output format. It still need to add
-support for UDP, UDPlite, and so on, but that shouldn't be hard to
-make.
+Version 5
+	Use length of mask an smask and dmask and whole IPv6 addr (Jan E)
+	Modify ipv6_find_hdr() and use it while traversing the IPv6 header.
+        Manual changes.
+	More or less all comments implemented.
 
-I'd be happy if someone takes it over and finish it.
+Version 4
+	Split of IPv6 and IPv4, use IP_CT_IS_REPLY, as Pablo suggested.
+	removed one pskb_may_pull()
+	xtoption parse used in the user space part.
 
-> >>3. rlogd needs NFLOG which copies every packet (header) to userspace.
-> >>What about performance...?
-> >
-> >Reliability is also important, running things in user-space means that
-> >bugs will no crash your system. Instead, they may crash your logging
-> >daemon.
-> >
-> >What I find hard to justify is that this feature can be implemented in
-> >user-space with the existing netfilter logging interface.
-> 
-> I understand that I have no chance to fight against the "this can be
-> done in userspace"-argument. :-)
+Version 3
+        Handling of SCTP for IPv6 added.
 
-Regarding Netfilter in general, I'd specifically would like to
-move towards making as many things in user-space as we can (while
-evaluting performance impact, of course). We're getting a nice set of
-netlink interfaces that are allowing us this. Thus, the idea is to
-follow hybrid architecture: provide generic infrastructure in
-kernel-space (by means of netlink), then develop specific features in
-user-space.
+Version 2
+	NAT Added for IPv4
+	IPv6 ICMP handling enhanced.
+	Usage example added
 
-In that direction, I expect to come up with a user-space cthelper
-infrastructure soon so we can also implement helpers in user-space.
+Version 1
+	Initial RFC
+
+
+We (Ericsson) use hmark in-front of ipvs as a pre-loadbalancer and
+handles up to 70 ipvs running in parallel in clusters.
+However hmark is not restricted to run in front of IPVS it can also be used as
+"poor mans" load balancer.
+With this version is also NAT supported as an option, with very high flows
+you might not want to use conntrack.
+
+The idea is to generate a direction independent fw mark range to use as input to
+the routing (i.e. ip rule add fwmark ...).
+Pretty straight forward and simple.
+
+
+Example:
+                                      App Server (Real Server)
+
+                                           +---------+
+                                        -->| Service |
+     Gateway A                             +---------+
+                          /
+            +----------+ /     +----+      +---------+
+--- if -A---| selector |---->  |ipvs|  --->| Service |
+            +----------+ \     +----+      +---------+
+                          \
+                               +----+      +---------+
+                               |ipvs|   -->| Service |
+                               +----+      +---------+
+      Gateway C
+            +----------+ /     +----+
+--- if-B ---| selector | --->  |ipvs|
+            +----------+ \     +----+      +---------+
+                                           | Service |
+                                           +---------+
+                          /
+            +----------+ /     +----+     ..
+--- if-B ---| selector | --->  |ipvs|      +---------+
+            +----------+ \     +----+      | Service |
+                          \                +---------+
+#
+# Example with four ipvs loadbalancers
+#
+iptables -t mangle -I PREROUTING -d $IPADDR -j HMARK --hmark-mod 4 --hmark-offs 100
+
+ip rule add fwmark 100 table 100
+ip rule add fwmark 101 table 101
+ip rule add fwmark 102 table 102
+ip rule add fwmark 103 table 103
+
+ip ro ad table 100 default via x.y.z.1 dev bond1
+ip ro ad table 101 default via x.y.z.2 dev bond1
+ip ro ad table 102 default via x.y.z.3 dev bond1
+ip ro ad table 103 default via x.y.z.4 dev bond1
+
+
+If conntrack doesn't handle the return path,
+do the oposite with HMARK and send it back right to ipvs.
+
+Another exmaple of usage could be if you have cluster originated connections
+and want to spread the connections over a number of interfaces
+(NAT will complpicate things for you in this case)
+
+
+
+                     \  Blade 1
+                      \ +----------+      +---------+
+                    <-- | selector | <--- | Service |
+                      / +----------+      +---------+
+                     /
+   +------+
+-- | Gw-A |          \  Blade 2
+   +------+           \ +----------+      +---------+
+   +------+         <-- | selector | <--- | Service |
+-- | Gw-B |           / +----------+      +---------+
+   +------+          /
+   +------+
+-- | Gw-C |          \
+   +------+           \ +----------+      +---------+
+                    <-- | selector | <--- | Service |
+                      / +----------+      +---------+
+                     /
+
+                     \  Blande -n
+                      \ +----------+      +---------+
+                    <-- | selector | <--- | Service |
+                      / +----------+      +---------+
+                     /
+
+
+Regards
+Hans Schillstrom <hans.schillstrom@ericsson.com>
+
