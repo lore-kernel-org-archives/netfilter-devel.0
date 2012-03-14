@@ -1,34 +1,41 @@
-From: Abhi Devireddy <abhi.devireddy@thnkslc.com>
-Subject: Re: Re[5]:
-Date: Tue, 13 Mar 2012 20:46:19 -0500
-Message-ID: <1898358980155815704@unknownmsgid>
-References: <1331689520.40368.yint-ygo-j2me@web125601.mail.ne1.yahoo.com>
-Mime-Version: 1.0 (1.0)
-Content-Type: text/plain; charset=ISO-8859-1
+From: Tarkan Erimer <tarkan.erimer@f-secure.com>
+Subject: Re: 10GbE Connectivity & Netfilter
+Date: Wed, 14 Mar 2012 09:21:25 +0200
+Message-ID: <4F6046F5.3030106@f-secure.com>
+References: <4F5F49FC.1080207@f-secure.com> <alpine.LNX.2.01.1203131458170.5880@frira.zrqbmnf.qr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: gopi bhimavarapu <gopimallikharjun@yahoo.com>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:55645 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932321Ab2CNBqZ (ORCPT
+Received: from fsmail-out.f-secure.com ([193.110.108.171]:56586 "EHLO
+	fsmail-out.f-secure.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751717Ab2CNHV1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Mar 2012 21:46:25 -0400
-Received: by lahj13 with SMTP id j13so1038794lah.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Mar 2012 18:46:23 -0700 (PDT)
-In-Reply-To: <1331689520.40368.yint-ygo-j2me@web125601.mail.ne1.yahoo.com>
+	Wed, 14 Mar 2012 03:21:27 -0400
+In-Reply-To: <alpine.LNX.2.01.1203131458170.5880@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Is there a way to block this address please?
-
-Abhi Devireddy
-
-On Mar 13, 2012, at 8:45 PM, gopi bhimavarapu
-<gopimallikharjun@yahoo.com> wrote:
-
+On 03/13/2012 04:02 PM, Jan Engelhardt wrote:
+> On Tuesday 2012-03-13 14:22, Tarkan Erimer wrote:
+>> 1- Is netfilter subsystem multi-threaded/multi-core enabled ? So that, it can
+>> spread the loads across the CPUs/Cores.
+> Like most kernel subsystems, it is.
 >
-> Welcome, friend!  http://prieux.org/response.php?diwihiqowepow=21&etywjfjhj=823&vokitjnom=32
+>> 2- Can it handle such loads consistently (without any issues/bottlenecks) as
+>> I've mentioned above ?
+> Question is more like, can your hardware handle it.
+>
+>> 4- What kind of netfilter/kernel configs recommended for such a load ?
+> Does not really matter.
 > --
 > To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks very much for your answers.
+
+Cheers,
+
+Tarkan
