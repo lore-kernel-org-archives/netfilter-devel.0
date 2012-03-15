@@ -1,43 +1,25 @@
-From: Tarkan Erimer <tarkan.erimer@f-secure.com>
-Subject: Re: 10GbE Connectivity & Netfilter
-Date: Wed, 14 Mar 2012 09:22:58 +0200
-Message-ID: <4F604752.3020608@f-secure.com>
-References: <4F5F49FC.1080207@f-secure.com> <alpine.LNX.2.01.1203131458170.5880@frira.zrqbmnf.qr> <201203131510.32083.thomas.jarosch@intra2net.com>
+From: "Mr. Richard Tang" <tagnrichard@yahoo.com.hk>
+Subject: MAIL 11.03.2012
+Date: Thu, 15 Mar 2012 08:54:18 +0100
+Message-ID: <201203150754.q2F7sd4o024284__21314.0448126525$1331798584$gmane$org@mail.ucla.edu>
+Reply-To: tangricad@yahoo.co.jp
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: Recipients <tagnrichard@yahoo.com.hk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fsmail-out.f-secure.com ([193.110.108.171]:56601 "EHLO
-	fsmail-out.f-secure.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751758Ab2CNHXA (ORCPT
+Received: from out-58.smtp.ucla.edu ([169.232.46.177]:57265 "EHLO
+	out-58.smtp.ucla.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759389Ab2COICm convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Mar 2012 03:23:00 -0400
-In-Reply-To: <201203131510.32083.thomas.jarosch@intra2net.com>
+	Thu, 15 Mar 2012 04:02:42 -0400
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 03/13/2012 04:10 PM, Thomas Jarosch wrote:
-> On Tuesday, 13. March 2012 15:02:13 Jan Engelhardt wrote:
->>> 1- Is netfilter subsystem multi-threaded/multi-core enabled ? So that,
->>> it can spread the loads across the CPUs/Cores.
->> Like most kernel subsystems, it is.
->>
->>> 2- Can it handle such loads consistently (without any
->>> issues/bottlenecks) as I've mentioned above ?
->> Question is more like, can your hardware handle it.
-> On that note, Holger Eitzenberger's irqd might be worth a look:
-> https://github.com/vaesoo/irqd#readme
->
-> http://workshop.netfilter.org/2011/wiki/images/6/69/Nfws2011-multiqueue-and-rps.pdf
->
-> Thomas
->
-Hmmm... Really interesting documents. Definitely, what I was looking for!
-Thanks a lot!
+Mail From Tang.
 
+I work with the hang seng Bank Hong Kong.I have a business proposition for you involving a trade in my bank which I know we will be of mutual benefit to both of us, If interested mail me at:tangricad@yahoo.co.jp
 
-Cheers,
-
-Tarkan
+Regards,
+Richard Tang.
