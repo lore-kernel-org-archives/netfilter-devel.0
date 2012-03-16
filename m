@@ -1,71 +1,68 @@
-From: pablo@netfilter.org
-Subject: [PATCH] netfilter: ctnetlink: fix race between delete and timeout expiration
-Date: Fri, 16 Mar 2012 13:00:34 +0100
-Message-ID: <1331899234-3123-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+From: Arif Hossain <freefall1986@gmail.com>
+Subject: How to get notified if packets are dropped because of checksum
+ mismatch error
+Date: Fri, 16 Mar 2012 18:18:00 +0600
+Message-ID: <1331900280.4147.15.camel@arifLaptop>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-ANOmd0vkFsJ0qtCTRVoQ"
+To: netfilter <netfilter@vger.kernel.org>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:32852 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1031420Ab2CPMAs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Mar 2012 08:00:48 -0400
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:47768 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761740Ab2CPMSL (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Mar 2012 08:18:11 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Kerin Millar reported hardlockups while running `conntrackd -c'
-in a busy firewall. That system (with several processors) was
-acting as backup in a primary-backup setup.
+--=-ANOmd0vkFsJ0qtCTRVoQ
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-After several tries, I found a race condition between the deletion
-operation of ctnetlink and timeout expiration. This patch fixes
-this problem.
+Hi all,
 
-Tested-by: Kerin Millar <kerframil@gmail.com>
-Reported-by: Kerin Millar <kerframil@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_netlink.c |   23 ++++++++++++-----------
- 1 files changed, 12 insertions(+), 11 deletions(-)
+I have a netfilter_queue app which de-obfuscates a already obfuscated
+udp packets. de-obfuscation process ends successfully but somehow packet
+is not reaching to the udp daemon. i'm suspecting this is happening
+because of a udp checksum mismatch. so i'm wondering how can i get logs
+of packets which are dropped because of udp checksum mismatch?
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 1068769..b49da6c 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -943,20 +943,21 @@ ctnetlink_del_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 		}
- 	}
- 
--	if (nf_conntrack_event_report(IPCT_DESTROY, ct,
--				      NETLINK_CB(skb).pid,
--				      nlmsg_report(nlh)) < 0) {
-+	if (del_timer(&ct->timeout)) {
-+		if (nf_conntrack_event_report(IPCT_DESTROY, ct,
-+					      NETLINK_CB(skb).pid,
-+					      nlmsg_report(nlh)) < 0) {
-+			nf_ct_delete_from_lists(ct);
-+			/* we failed to report the event, try later */
-+			nf_ct_insert_dying_list(ct);
-+			nf_ct_put(ct);
-+			return 0;
-+		}
-+		/* death_by_timeout would report the event again */
-+		set_bit(IPS_DYING_BIT, &ct->status);
- 		nf_ct_delete_from_lists(ct);
--		/* we failed to report the event, try later */
--		nf_ct_insert_dying_list(ct);
- 		nf_ct_put(ct);
--		return 0;
- 	}
--
--	/* death_by_timeout would report the event again */
--	set_bit(IPS_DYING_BIT, &ct->status);
--
--	nf_ct_kill(ct);
- 	nf_ct_put(ct);
- 
- 	return 0;
--- 
-1.7.2.5
+I'm receiving the packets ok in my netfilter_queue app. and when i issue
+set_nfq_verdict() it also returns a positive value. problem is packet is
+not delivered to the udp daemon i'm expecting. i've straced my
+netfilter_queue app. it shows that it issues a sendmsg() to the udp
+socket which is listening for this. I've also straced my  udp daemon.
+its stuck in poll() for receiving udp packet. but it does not return
+from this poll meaning that something is wrong. packet is lost in
+oblivion after set_nfq_verdict(). how can i debug it?
+
+i've heard linux by default dropps a packet if it does not have correct
+checksum if checksum is present, this behavior can be modified by
+recompiling the kernel. using a custom kernel is not in our agenda.
+
+my platform :
+Linux <hostname> 2.6.32-220.7.1.el6.x86_64 #1 SMP Wed Mar 7 00:52:02 GMT
+2012 x86_64 x86_64 x86_64 GNU/Linux
+
+--=-ANOmd0vkFsJ0qtCTRVoQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAABAgAGBQJPYy94AAoJEDcRh2vIjPwjVrsH/0NETQjmR4XwyCzClhgCGG4y
+PKrnkfrI1+/5PtklqeUet3IbMKw6iza/Eiqixk0b87NnIyffoazGk6dIHaPgFNUU
+uIU3uAgflSX49gBStSW+R9oJfzWRK/qQKJ4bSmR0W6aYoMHGGK1+fHhBrghvAQxP
+iNFVXgDMvFKEPGnAAjDp2lNSJoV18RXdyj5iOY7YuuTaGIeWOi6B6HOOVw3ctBF5
+Yz0Bel159mpT/QKXBRaLFNBa84jx2S8M04MYLgtI3vb8Zu06gZ/+WQjjMDO6zGwa
+WWPBBktWdKXn2zyWkVS5shB5VcdwyOeRbglUsDx8JuoKrgezM6Z22lKadtahrSg=
+=8FCv
+-----END PGP SIGNATURE-----
+
+--=-ANOmd0vkFsJ0qtCTRVoQ--
 
