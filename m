@@ -1,39 +1,83 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] netfilter: ctnetlink: fix race between delete and
- timeout expiration
-Date: Sat, 17 Mar 2012 01:47:39 -0700 (PDT)
-Message-ID: <20120317.014739.1582874215726456340.davem@davemloft.net>
-References: <1331899234-3123-1-git-send-email-pablo@netfilter.org>
+From: Sam Ravnborg <sam@ravnborg.org>
+Subject: Re: [PATCH] adjust __net_exit
+Date: Sun, 18 Mar 2012 00:03:18 +0100
+Message-ID: <20120317230318.GA19460@merkur.ravnborg.org>
+References: <4F588BEC020000780007710A@nat28.tlf.novell.com> <20120316.221813.236130733754848615.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:40645 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752070Ab2CQIsr (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 17 Mar 2012 04:48:47 -0400
-In-Reply-To: <1331899234-3123-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: JBeulich@suse.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, xemul@openvz.org,
+	ebiederm@xmission.com
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120316.221813.236130733754848615.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: pablo@netfilter.org
-Date: Fri, 16 Mar 2012 13:00:34 +0100
+On Fri, Mar 16, 2012 at 10:18:13PM -0700, David Miller wrote:
+> From: "Jan Beulich" <JBeulich@suse.com>
+> Date: Thu, 08 Mar 2012 09:37:32 +0000
+> 
+> > __net_exit, judging by the majority of its uses, was intended to serve
+> > as an abstraction to allow calling such annotated functions from both
+> > __init and __exit functions. Using the (bogus and unused elsewhere)
+> > __exit_refok to implement this is inefficient - any non-modular code
+> > really can reside in __init (as non-modular __exit code is never used).
+> > 
+> > Therefore, adjust __net_exit to resolve to nothing (i.e. normal .text)
+> > in modules, and __init in the core kernel.
+> > 
+> > A few other adjustments are necessary/possible with this done - those
+> > were likely just oversights when added originally.
+> > 
+> > Signed-off-by: Jan Beulich <jbeulich@suse.com>
+> 
+> [ I have been waiting for more than a week for a netns developer
+>   to review this patch, I guess I'm too optimistic these days. :-( ]
+> 
+> The only reason you think __exit_refok is "bogus" is because it's
+> semantics got changed by Sam Ravnborg in commit
+> 312b1485fb509c9bc32eda28ad29537896658cb8 ("Introduce new section
+> reference annotations tags: __ref, __refdata, __refconst")
+> 
+> Beforehand the __exit_refok was a real .exit section, so it got
+> completely discarded AT LINK TIME.  Now it sits together with
+> __init_refok which is an unremovable kernel image section, which
+> neither gets removed at compile time nor boot time.
 
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> Kerin Millar reported hardlockups while running `conntrackd -c'
-> in a busy firewall. That system (with several processors) was
-> acting as backup in a primary-backup setup.
-> 
-> After several tries, I found a race condition between the deletion
-> operation of ctnetlink and timeout expiration. This patch fixes
-> this problem.
-> 
-> Tested-by: Kerin Millar <kerframil@gmail.com>
-> Reported-by: Kerin Millar <kerframil@gmail.com>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Some misunderstanding is going on here.
 
-Applied, thanks.
+The *ref* annotation is used to teach modpost that this function (or data)
+may reference functions (or data) which is annotated __init*.
+And the *ref* annotation never caused the annotated code to be discarded.
+
+This was true before the above mentioned patch - and it is still true.
+
+Before the path ("Introduce new section reference ....") the __exit_refok
+annotation moved functions to the section named ".exit.text.refok"
+which was explicit part of .text (TEXT_TEXT in vmlinux).
+
+So __exit_refok does exactly what it is intended to do:
+It puts the function in a section so modpost does not warn about
+references to __init or __exit sections.
+
+As Jan points out there is only a single user left - so
+this would be a good time to kill it. It is even documented
+in init.h that this is a backward compatibility define.
+
+The intention with Jan's patch is to move functions annotated
+__net_exit to a discardable section in the core kernel.
+Then at least __exit should be used - there is no logic
+using __init for exit code.
+
+I suggest to:
+1) fix the patch to use __exit
+2) fix up the bogus commit message
+
+Then it should be OK - iff the assumption hold that the functions
+can be discarded in the core kernel.
+I have grepped a little and saw no uses where this did not hold true.
+So based on this I assume the assumption is OK.
+
+	Sam
