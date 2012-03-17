@@ -1,63 +1,59 @@
-From: =?ISO-8859-2?Q?=A3ukasz_Czy=BF?= <lukasz.czyzz@gmail.com>
-Subject: Re: NAT IPv6/IPv4 translator - request for review, plus two questions
- regarding code
-Date: Fri, 16 Mar 2012 20:52:56 +0100
-Message-ID: <CALJVcJHUD=M-PnNAUYo0x8kMmBrt06kEBFXEGM2_5ZnA2ePaBA@mail.gmail.com>
-References: <CALJVcJFZ_qk_qdNFnfveQx+GJF3iXLmMBe=ezgphUiY2uiFpng@mail.gmail.com>
-	<CAHo-Ooy2Rmu=gwgoAcKfVoYbHfABkJkjK2_MSDu1j7Eq0Sac_g@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] adjust __net_exit
+Date: Fri, 16 Mar 2012 22:18:13 -0700 (PDT)
+Message-ID: <20120316.221813.236130733754848615.davem@davemloft.net>
+References: <4F588BEC020000780007710A@nat28.tlf.novell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org
-To: =?ISO-8859-2?Q?Maciej_=AFenczykowski?= <zenczykowski@gmail.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	sam@ravnborg.org, xemul@openvz.org, ebiederm@xmission.com
+To: JBeulich@suse.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:52307 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754307Ab2CPTw5 (ORCPT
+Received: from shards.monkeyblade.net ([198.137.202.13]:39506 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751397Ab2CQFSZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Mar 2012 15:52:57 -0400
-Received: by vcqp1 with SMTP id p1so4618879vcq.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 16 Mar 2012 12:52:56 -0700 (PDT)
-In-Reply-To: <CAHo-Ooy2Rmu=gwgoAcKfVoYbHfABkJkjK2_MSDu1j7Eq0Sac_g@mail.gmail.com>
+	Sat, 17 Mar 2012 01:18:25 -0400
+In-Reply-To: <4F588BEC020000780007710A@nat28.tlf.novell.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->
-> I would probably suggest implementing this not as netfilter hooks,
-> but rather as a virtual device (tun/tap/veth/dummy like).
->
+From: "Jan Beulich" <JBeulich@suse.com>
+Date: Thu, 08 Mar 2012 09:37:32 +0000
 
-This exactly how I implemented it in early version of my module. I
-changed to netfilter-hook solution, because it seemed to me that
-translation process gets faster by doing so. At the other hand
-netfilter way generates some additional processing (really small) for
-every received packet, even if it is not dedicated to translation - so
-it is some kind of trade off.
+> __net_exit, judging by the majority of its uses, was intended to serve
+> as an abstraction to allow calling such annotated functions from both
+> __init and __exit functions. Using the (bogus and unused elsewhere)
+> __exit_refok to implement this is inefficient - any non-modular code
+> really can reside in __init (as non-modular __exit code is never used).
+> 
+> Therefore, adjust __net_exit to resolve to nothing (i.e. normal .text)
+> in modules, and __init in the core kernel.
+> 
+> A few other adjustments are necessary/possible with this done - those
+> were likely just oversights when added originally.
+> 
+> Signed-off-by: Jan Beulich <jbeulich@suse.com>
 
->
-> From the web page it doesn't sound like there's any actual netfilter
-> interaction...
->
+[ I have been waiting for more than a week for a netns developer
+  to review this patch, I guess I'm too optimistic these days. :-( ]
 
-Yes , as I wrote in my previous message - my module only registers its
-functions in netfilter hooks, it doesn't use any other netfilter
-functionality.
+The only reason you think __exit_refok is "bogus" is because it's
+semantics got changed by Sam Ravnborg in commit
+312b1485fb509c9bc32eda28ad29537896658cb8 ("Introduce new section
+reference annotations tags: __ref, __refdata, __refconst")
 
-> Furthermore, I would hazard a guess that requiring an IPv4 address for
-> every IPv6 host desiring to connect to an IPv4 address makes
-> this a little uninteresting.... to quote:
->
+Beforehand the __exit_refok was a real .exit section, so it got
+completely discarded AT LINK TIME.  Now it sits together with
+__init_refok which is an unremovable kernel image section, which
+neither gets removed at compile time nor boot time.
 
-Yes, I agree that it is big constraint, despite that such
-configuration can be useful in some environment, when one needs to
-have IPv6 host which should be able to reach IPv4 network from static
-IPv4 address, reserved to this host only, without port forwarding. It
-is similar to one of Cisco NAT translation schemes, called Static NAT.
+So __exit_refok did exactly what you say it should do before Sam's
+change.
 
-I am aware that I would have to implement port forwarding option to
-make translator more functional. But it is big topic and I do not have
-time to code it at this moment. I am just looking for review of my
-kernel module.
+It's just completely stupid to change the netns section defines,
+and instead we should revert __exit_refok to mean what it always
+meant previously.
 
-
-
-Lukasz
+I'm not applying this patch.
