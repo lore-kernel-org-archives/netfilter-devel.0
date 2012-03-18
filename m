@@ -1,83 +1,132 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Subject: Re: [PATCH] adjust __net_exit
-Date: Sun, 18 Mar 2012 00:03:18 +0100
-Message-ID: <20120317230318.GA19460@merkur.ravnborg.org>
-References: <4F588BEC020000780007710A@nat28.tlf.novell.com> <20120316.221813.236130733754848615.davem@davemloft.net>
+From: Sasha Levin <levinsasha928@gmail.com>
+Subject: netfilter: Hung task
+Date: Sun, 18 Mar 2012 12:55:13 +0200
+Message-ID: <CA+1xoqfCTXxXsbfUjttuOVutyD_FzYS8PoOoAOOtB72P8SwdVg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: JBeulich@suse.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, xemul@openvz.org,
-	ebiederm@xmission.com
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120316.221813.236130733754848615.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: Dave Jones <davej@redhat.com>, netfilter-devel@vger.kernel.org,
+	"linux-kernel@vger.kernel.org List" <linux-kernel@vger.kernel.org>,
+	netdev@vger.kernel.org
+To: pablo@netfilter.org, kaber@trash.net, davem@davemloft.net
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Mar 16, 2012 at 10:18:13PM -0700, David Miller wrote:
-> From: "Jan Beulich" <JBeulich@suse.com>
-> Date: Thu, 08 Mar 2012 09:37:32 +0000
-> 
-> > __net_exit, judging by the majority of its uses, was intended to serve
-> > as an abstraction to allow calling such annotated functions from both
-> > __init and __exit functions. Using the (bogus and unused elsewhere)
-> > __exit_refok to implement this is inefficient - any non-modular code
-> > really can reside in __init (as non-modular __exit code is never used).
-> > 
-> > Therefore, adjust __net_exit to resolve to nothing (i.e. normal .text)
-> > in modules, and __init in the core kernel.
-> > 
-> > A few other adjustments are necessary/possible with this done - those
-> > were likely just oversights when added originally.
-> > 
-> > Signed-off-by: Jan Beulich <jbeulich@suse.com>
-> 
-> [ I have been waiting for more than a week for a netns developer
->   to review this patch, I guess I'm too optimistic these days. :-( ]
-> 
-> The only reason you think __exit_refok is "bogus" is because it's
-> semantics got changed by Sam Ravnborg in commit
-> 312b1485fb509c9bc32eda28ad29537896658cb8 ("Introduce new section
-> reference annotations tags: __ref, __refdata, __refconst")
-> 
-> Beforehand the __exit_refok was a real .exit section, so it got
-> completely discarded AT LINK TIME.  Now it sits together with
-> __init_refok which is an unremovable kernel image section, which
-> neither gets removed at compile time nor boot time.
+Hi all,
 
-Some misunderstanding is going on here.
+I got the following spew after fuzzing using trinity on a KVM tools
+guest, using the latest linux-next.
 
-The *ref* annotation is used to teach modpost that this function (or data)
-may reference functions (or data) which is annotated __init*.
-And the *ref* annotation never caused the annotated code to be discarded.
+It reminds me a lot of https://lkml.org/lkml/2012/3/14/375 and
+https://lkml.org/lkml/2012/1/14/45 .
 
-This was true before the above mentioned patch - and it is still true.
-
-Before the path ("Introduce new section reference ....") the __exit_refok
-annotation moved functions to the section named ".exit.text.refok"
-which was explicit part of .text (TEXT_TEXT in vmlinux).
-
-So __exit_refok does exactly what it is intended to do:
-It puts the function in a section so modpost does not warn about
-references to __init or __exit sections.
-
-As Jan points out there is only a single user left - so
-this would be a good time to kill it. It is even documented
-in init.h that this is a backward compatibility define.
-
-The intention with Jan's patch is to move functions annotated
-__net_exit to a discardable section in the core kernel.
-Then at least __exit should be used - there is no logic
-using __init for exit code.
-
-I suggest to:
-1) fix the patch to use __exit
-2) fix up the bogus commit message
-
-Then it should be OK - iff the assumption hold that the functions
-can be discarded in the core kernel.
-I have grepped a little and saw no uses where this did not hold true.
-So based on this I assume the assumption is OK.
-
-	Sam
+[ 6841.034447] INFO: task kworker/u:2:12563 blocked for more than 120 seconds.
+[ 6841.035431] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+disables this message.
+[ 6841.036477] kworker/u:2     D 0000000000000000  4088 12563      2 0x00000000
+[ 6841.037463]  ffff88002f8918b0 0000000000000082 0000000000000002
+ffff88002f891fd8
+[ 6841.038978]  00000000001d45c0 ffff88002f890000 00000000001d45c0
+00000000001d45c0
+[ 6841.039966]  00000000001d45c0 00000000001d45c0 ffff88002f891fd8
+00000000001d45c0
+[ 6841.041002] Call Trace:
+[ 6841.041658]  [<ffffffff82708744>] schedule+0x24/0x70
+[ 6841.042204]  [<ffffffff827069f5>] schedule_timeout+0x245/0x2c0
+[ 6841.042731]  [<ffffffff8270ac34>] ? retint_restore_args+0x13/0x13
+[ 6841.043334]  [<ffffffff810e7b51>] ? get_parent_ip+0x11/0x50
+[ 6841.043963]  [<ffffffff82708f30>] wait_for_common+0x120/0x170
+[ 6841.044468]  [<ffffffff810e6440>] ? try_to_wake_up+0x250/0x250
+[ 6841.045162]  [<ffffffff82709028>] wait_for_completion+0x18/0x20
+[ 6841.045858]  [<ffffffff810cd0f8>] call_usermodehelper_exec+0x228/0x230
+[ 6841.046536]  [<ffffffff82708e54>] ? wait_for_common+0x44/0x170
+[ 6841.047072]  [<ffffffff8187b1ab>] kobject_uevent_env+0x61b/0x650
+[ 6841.047915]  [<ffffffff8187b1eb>] kobject_uevent+0xb/0x10
+[ 6841.048757]  [<ffffffff811ca745>] kmem_cache_destroy+0x185/0x1f0
+[ 6841.049565]  [<ffffffff822b3559>] nf_conntrack_cleanup_net+0xd9/0x100
+[ 6841.050275]  [<ffffffff822b35c2>] nf_conntrack_cleanup+0x22/0x60
+[ 6841.051154]  [<ffffffff822b3d05>] nf_conntrack_net_exit+0x45/0x60
+[ 6841.052061]  [<ffffffff82235458>] ops_exit_list.clone.0+0x38/0x60
+[ 6841.052582]  [<ffffffff82235e60>] cleanup_net+0x100/0x1a0
+[ 6841.053126]  [<ffffffff810cdba7>] process_one_work+0x1c7/0x460
+[ 6841.053560]  [<ffffffff810cdb46>] ? process_one_work+0x166/0x460
+[ 6841.054065]  [<ffffffff82235d60>] ? net_drop_ns+0x40/0x40
+[ 6841.054649]  [<ffffffff810cf112>] worker_thread+0x162/0x340
+[ 6841.055201]  [<ffffffff810cefb0>] ? manage_workers.clone.13+0x130/0x130
+[ 6841.055691]  [<ffffffff810d5e3e>] kthread+0xbe/0xd0
+[ 6841.056166]  [<ffffffff8270cab4>] kernel_thread_helper+0x4/0x10
+[ 6841.056627]  [<ffffffff810e1bb8>] ? finish_task_switch+0x78/0x100
+[ 6841.057120]  [<ffffffff8270ac34>] ? retint_restore_args+0x13/0x13
+[ 6841.057611]  [<ffffffff810d5d80>] ? kthread_flush_work_fn+0x10/0x10
+[ 6841.058426]  [<ffffffff8270cab0>] ? gs_change+0x13/0x13
+[ 6841.059006] 3 locks held by kworker/u:2/12563:
+[ 6841.059387]  #0:  (netns){.+.+.+}, at: [<ffffffff810cdb46>]
+process_one_work+0x166/0x460
+[ 6841.060153]  #1:  (net_cleanup_work){+.+.+.}, at:
+[<ffffffff810cdb46>] process_one_work+0x166/0x460
+[ 6841.061304]  #2:  (net_mutex){+.+.+.}, at: [<ffffffff82235de0>]
+cleanup_net+0x80/0x1a0
+[ 6841.062069] sending NMI to all CPUs:
+[ 6841.062354] NMI backtrace for cpu 0
+[ 6841.062647] CPU 0
+[ 6841.062813] Pid: 1167, comm: khungtaskd Tainted: G        W
+3.3.0-rc7-next-20120316-sasha-00003-g06bb741 #54
+[ 6841.063055] RIP: 0010:[<ffffffff81075f90>]  [<ffffffff81075f90>]
+flat_send_IPI_all+0xd0/0x120
+[ 6841.063055] RSP: 0018:ffff88003b945dc0  EFLAGS: 00010006
+[ 6841.063055] RAX: 0000000000000000 RBX: 0000000000000282 RCX: 0000000000000000
+[ 6841.063055] RDX: ffff88003b948000 RSI: 0000000000000000 RDI: 0000000000000300
+[ 6841.063055] RBP: ffff88003b945de0 R08: 0000000000000001 R09: 0000000000000000
+[ 6841.063055] R10: 0000000000000000 R11: 0000000000000001 R12: 0000000000000c00
+[ 6841.063055] R13: 0000000001000000 R14: 000000000000037b R15: ffff88003b945e38
+[ 6841.063055] FS:  0000000000000000(0000) GS:ffff88003fc00000(0000)
+knlGS:0000000000000000
+[ 6841.063055] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[ 6841.063055] CR2: 000000000115b668 CR3: 000000000321d000 CR4: 00000000000406f0
+[ 6841.063055] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[ 6841.063055] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+[ 6841.063055] Process khungtaskd (pid: 1167, threadinfo
+ffff88003b944000, task ffff88003b948000)
+[ 6841.063055] Stack:
+[ 6841.063055]  0000000000000000 0000000000002710 ffff880033fc8000
+00000000003fff7c
+[ 6841.063055]  ffff88003b945e00 ffffffff81072aea ffff880033fc8000
+ffff880033fc8000
+[ 6841.063055]  ffff88003b945e70 ffffffff8114f28e ffffffff8114efb8
+000000003fffffff
+[ 6841.063055] Call Trace:
+[ 6841.063055]  [<ffffffff81072aea>] arch_trigger_all_cpu_backtrace+0x6a/0xb0
+[ 6841.063055]  [<ffffffff8114f28e>]
+check_hung_uninterruptible_tasks+0x31e/0x470
+[ 6841.063055]  [<ffffffff8114efb8>] ?
+check_hung_uninterruptible_tasks+0x48/0x470
+[ 6841.063055]  [<ffffffff8114f3e0>] ?
+check_hung_uninterruptible_tasks+0x470/0x470
+[ 6841.063055]  [<ffffffff8114f42f>] watchdog+0x4f/0x60
+[ 6841.063055]  [<ffffffff810d5e3e>] kthread+0xbe/0xd0
+[ 6841.063055]  [<ffffffff8270cab4>] kernel_thread_helper+0x4/0x10
+[ 6841.063055]  [<ffffffff810e1bb8>] ? finish_task_switch+0x78/0x100
+[ 6841.063055]  [<ffffffff8270ac34>] ? retint_restore_args+0x13/0x13
+[ 6841.063055]  [<ffffffff810d5d80>] ? kthread_flush_work_fn+0x10/0x10
+[ 6841.063055]  [<ffffffff8270cab0>] ? gs_change+0x13/0x13
+[ 6841.063055] Code: c1 e5 18 48 8b 05 a9 16 6c 02 44 8b 60 3c ff 90
+50 01 00 00 44 89 2c 25 10 a3 5f ff 41 81 cc 00 04 00 00 44 89 24 25
+00 a3 5f ff <f6> c7 02 74 24 e8 56 0c 0a 00 48 83 3d a6 f1 1b 02 00 74
+33 48
+[ 6841.063055] Call Trace:
+[ 6841.063055]  [<ffffffff81072aea>] arch_trigger_all_cpu_backtrace+0x6a/0xb0
+[ 6841.063055]  [<ffffffff8114f28e>]
+check_hung_uninterruptible_tasks+0x31e/0x470
+[ 6841.063055]  [<ffffffff8114efb8>] ?
+check_hung_uninterruptible_tasks+0x48/0x470
+[ 6841.063055]  [<ffffffff8114f3e0>] ?
+check_hung_uninterruptible_tasks+0x470/0x470
+[ 6841.063055]  [<ffffffff8114f42f>] watchdog+0x4f/0x60
+[ 6841.063055]  [<ffffffff810d5e3e>] kthread+0xbe/0xd0
+[ 6841.063055]  [<ffffffff8270cab4>] kernel_thread_helper+0x4/0x10
+[ 6841.063055]  [<ffffffff810e1bb8>] ? finish_task_switch+0x78/0x100
+[ 6841.063055]  [<ffffffff8270ac34>] ? retint_restore_args+0x13/0x13
+[ 6841.063055]  [<ffffffff810d5d80>] ? kthread_flush_work_fn+0x10/0x10
+[ 6841.063055]  [<ffffffff8270cab0>] ? gs_change+0x13/0x13
+[ 6841.089248] Kernel panic - not syncing: hung_task: blocked tasks
+[ 6841.090009] Rebooting in 1 seconds..
