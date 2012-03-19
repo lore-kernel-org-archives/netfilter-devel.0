@@ -1,54 +1,50 @@
-From: "Jan Beulich" <JBeulich@suse.com>
-Subject: Re: [PATCH] adjust __net_exit
-Date: Mon, 19 Mar 2012 09:09:49 +0000
-Message-ID: <4F6705ED0200007800079343@nat28.tlf.novell.com>
-References: <4F588BEC020000780007710A@nat28.tlf.novell.com>
- <20120316.221813.236130733754848615.davem@davemloft.net>
- <20120317230318.GA19460@merkur.ravnborg.org>
- <4F66F8F70200007800079305@nat28.tlf.novell.com>
- <20120319084703.GA20897@merkur.ravnborg.org>
+From: Christoph Lameter <cl@linux.com>
+Subject: Re: netfilter: Hung task
+Date: Mon, 19 Mar 2012 08:56:04 -0500 (CDT)
+Message-ID: <alpine.DEB.2.00.1203190854560.16879@router.home>
+References: <CA+1xoqfCTXxXsbfUjttuOVutyD_FzYS8PoOoAOOtB72P8SwdVg@mail.gmail.com> <20120318141943.GA28850@1984> <CA+1xoqcQYqCgQb=1M5PVkm=6SBhV2oJxJ2CtBp=gAvZM36Kc2Q@mail.gmail.com> <20120319002811.GA30408@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
-Cc: "David Miller" <davem@davemloft.net>, <xemul@openvz.org>,
-	<netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
-	<ebiederm@xmission.com>
-To: "Sam Ravnborg" <sam@ravnborg.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nat28.tlf.novell.com ([130.57.49.28]:22855 "EHLO
-	nat28.tlf.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754726Ab2CSJJy convert rfc822-to-8bit (ORCPT
-	<rfc822;groupwise-netfilter-devel@vger.kernel.org:4:2>);
-	Mon, 19 Mar 2012 05:09:54 -0400
-In-Reply-To: <20120319084703.GA20897@merkur.ravnborg.org>
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Sasha Levin <levinsasha928@gmail.com>, kaber@trash.net,
+	davem@davemloft.net, Dave Jones <davej@redhat.com>,
+	netfilter-devel@vger.kernel.org,
+	"linux-kernel@vger.kernel.org List" <linux-kernel@vger.kernel.org>,
+	netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120319002811.GA30408@1984>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
->>> On 19.03.12 at 09:47, Sam Ravnborg <sam@ravnborg.org> wrote:
->> >> > Using the (bogus and unused elsewhere)
->> >> > __exit_refok to implement this is inefficient - any non-modular code
->> >> > really can reside in __init (as non-modular __exit code is never used).
-> 
->> > 2) fix up the bogus commit message
->> 
->> Bogus in what way?
-> 
-> I fail to see that __exit_refok is bogus.
+On Mon, 19 Mar 2012, Pablo Neira Ayuso wrote:
 
-Either an exit function references only permitted code (in which case
-it is legitimately using __exit), or it references non-__exit code, in
-which case it shouldn't have an override at all. Permitting an exit
-function to reference e.g. __init code is suspicious (at best) in all
-cases I can think of (in contrast to allowing a non-init function to
-reference __init code on a code path that can be proven to be taken
-only during system startup).
-
-Jan
-
-> The name is not optimal - which is why is is deprecated.
-> 
-> 	Sam
+> On Sun, Mar 18, 2012 at 10:52:55PM +0200, Sasha Levin wrote:
+> > On Sun, Mar 18, 2012 at 4:19 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > On Sun, Mar 18, 2012 at 12:55:13PM +0200, Sasha Levin wrote:
+> > >> Hi all,
+> > >>
+> > >> I got the following spew after fuzzing using trinity on a KVM tools
+> > >> guest, using the latest linux-next.
+> > >>
+> > >> It reminds me a lot of https://lkml.org/lkml/2012/3/14/375 and
+> > >> https://lkml.org/lkml/2012/1/14/45
+> > >
+> > > You mention neither Linux kernel version nor the way you trigger this.
+> > >
+> > > With that little information it's really hard to really know.
+> >
+> > Hum? I've mentioned it happened with "the latest linux-next" (which is
+> > currently two days old), and using the trinity fuzzer - which means
+> > that I don't have a specific method to reproduce the problem.
+>
+> Sorry, I should not read my email diagonally, really.
+>
+> Looking at the trace, I'd point to some problem in the slub memory
+> allocator. Please, correct me if I'm wrong.
+>
+> Christoph?
 
 
-
+This is sually something causing memory corruption. Please enable
+debugging to get backtrace that help to debutg this. CONFIG_SLUB_DEBUG_ON
+will do the trick or passing "slub_debug" on the kernel command line.
