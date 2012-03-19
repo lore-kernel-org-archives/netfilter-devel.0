@@ -1,41 +1,49 @@
-From: Sasha Levin <levinsasha928@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: netfilter: Hung task
-Date: Sun, 18 Mar 2012 22:52:55 +0200
-Message-ID: <CA+1xoqcQYqCgQb=1M5PVkm=6SBhV2oJxJ2CtBp=gAvZM36Kc2Q@mail.gmail.com>
+Date: Mon, 19 Mar 2012 01:28:11 +0100
+Message-ID: <20120319002811.GA30408@1984>
 References: <CA+1xoqfCTXxXsbfUjttuOVutyD_FzYS8PoOoAOOtB72P8SwdVg@mail.gmail.com>
  <20120318141943.GA28850@1984>
+ <CA+1xoqcQYqCgQb=1M5PVkm=6SBhV2oJxJ2CtBp=gAvZM36Kc2Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Cc: kaber@trash.net, davem@davemloft.net,
 	Dave Jones <davej@redhat.com>, netfilter-devel@vger.kernel.org,
 	"linux-kernel@vger.kernel.org List" <linux-kernel@vger.kernel.org>,
-	netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120318141943.GA28850@1984>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	netdev@vger.kernel.org, Christoph Lameter <cl@linux.com>
+To: Sasha Levin <levinsasha928@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:49408 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756458Ab2CSA2T (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 18 Mar 2012 20:28:19 -0400
+Content-Disposition: inline
+In-Reply-To: <CA+1xoqcQYqCgQb=1M5PVkm=6SBhV2oJxJ2CtBp=gAvZM36Kc2Q@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Mar 18, 2012 at 4:19 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Sun, Mar 18, 2012 at 12:55:13PM +0200, Sasha Levin wrote:
->> Hi all,
->>
->> I got the following spew after fuzzing using trinity on a KVM tools
->> guest, using the latest linux-next.
->>
->> It reminds me a lot of https://lkml.org/lkml/2012/3/14/375 and
->> https://lkml.org/lkml/2012/1/14/45
->
-> You mention neither Linux kernel version nor the way you trigger this.
->
-> With that little information it's really hard to really know.
+On Sun, Mar 18, 2012 at 10:52:55PM +0200, Sasha Levin wrote:
+> On Sun, Mar 18, 2012 at 4:19 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Sun, Mar 18, 2012 at 12:55:13PM +0200, Sasha Levin wrote:
+> >> Hi all,
+> >>
+> >> I got the following spew after fuzzing using trinity on a KVM tools
+> >> guest, using the latest linux-next.
+> >>
+> >> It reminds me a lot of https://lkml.org/lkml/2012/3/14/375 and
+> >> https://lkml.org/lkml/2012/1/14/45
+> >
+> > You mention neither Linux kernel version nor the way you trigger this.
+> >
+> > With that little information it's really hard to really know.
+> 
+> Hum? I've mentioned it happened with "the latest linux-next" (which is
+> currently two days old), and using the trinity fuzzer - which means
+> that I don't have a specific method to reproduce the problem.
 
-Hum? I've mentioned it happened with "the latest linux-next" (which is
-currently two days old), and using the trinity fuzzer - which means
-that I don't have a specific method to reproduce the problem.
+Sorry, I should not read my email diagonally, really.
 
-> Time ago we applied this to Netfilter which is already in mainline:
->
-> http://git.kernel.org/?p=linux/kernel/git/davem/net.git;a=commit;h=70e9942f17a6193e9172a804e6569a8806633d6b
+Looking at the trace, I'd point to some problem in the slub memory
+allocator. Please, correct me if I'm wrong.
 
-FWIW, that patch is part of linux-next.
+Christoph?
