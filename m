@@ -1,49 +1,110 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: netfilter: Hung task
-Date: Mon, 19 Mar 2012 01:28:11 +0100
-Message-ID: <20120319002811.GA30408@1984>
-References: <CA+1xoqfCTXxXsbfUjttuOVutyD_FzYS8PoOoAOOtB72P8SwdVg@mail.gmail.com>
- <20120318141943.GA28850@1984>
- <CA+1xoqcQYqCgQb=1M5PVkm=6SBhV2oJxJ2CtBp=gAvZM36Kc2Q@mail.gmail.com>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH] adjust __net_exit
+Date: Sun, 18 Mar 2012 17:41:28 -0700
+Message-ID: <m1vcm1777r.fsf@fess.ebiederm.org>
+References: <4F588BEC020000780007710A@nat28.tlf.novell.com>
+	<20120316.221813.236130733754848615.davem@davemloft.net>
+	<20120317230318.GA19460@merkur.ravnborg.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, davem@davemloft.net,
-	Dave Jones <davej@redhat.com>, netfilter-devel@vger.kernel.org,
-	"linux-kernel@vger.kernel.org List" <linux-kernel@vger.kernel.org>,
-	netdev@vger.kernel.org, Christoph Lameter <cl@linux.com>
-To: Sasha Levin <levinsasha928@gmail.com>
+Cc: David Miller <davem@davemloft.net>, JBeulich@suse.com,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	xemul@openvz.org
+To: Sam Ravnborg <sam@ravnborg.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49408 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756458Ab2CSA2T (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 18 Mar 2012 20:28:19 -0400
-Content-Disposition: inline
-In-Reply-To: <CA+1xoqcQYqCgQb=1M5PVkm=6SBhV2oJxJ2CtBp=gAvZM36Kc2Q@mail.gmail.com>
+Received: from out03.mta.xmission.com ([166.70.13.233]:40205 "EHLO
+	out03.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756036Ab2CSAiF (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 18 Mar 2012 20:38:05 -0400
+In-Reply-To: <20120317230318.GA19460@merkur.ravnborg.org> (Sam Ravnborg's
+	message of "Sun, 18 Mar 2012 00:03:18 +0100")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Mar 18, 2012 at 10:52:55PM +0200, Sasha Levin wrote:
-> On Sun, Mar 18, 2012 at 4:19 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Sun, Mar 18, 2012 at 12:55:13PM +0200, Sasha Levin wrote:
-> >> Hi all,
-> >>
-> >> I got the following spew after fuzzing using trinity on a KVM tools
-> >> guest, using the latest linux-next.
-> >>
-> >> It reminds me a lot of https://lkml.org/lkml/2012/3/14/375 and
-> >> https://lkml.org/lkml/2012/1/14/45
-> >
-> > You mention neither Linux kernel version nor the way you trigger this.
-> >
-> > With that little information it's really hard to really know.
-> 
-> Hum? I've mentioned it happened with "the latest linux-next" (which is
-> currently two days old), and using the trinity fuzzer - which means
-> that I don't have a specific method to reproduce the problem.
+Sam Ravnborg <sam@ravnborg.org> writes:
 
-Sorry, I should not read my email diagonally, really.
+> On Fri, Mar 16, 2012 at 10:18:13PM -0700, David Miller wrote:
+>> From: "Jan Beulich" <JBeulich@suse.com>
+>> Date: Thu, 08 Mar 2012 09:37:32 +0000
+>> 
+>> > __net_exit, judging by the majority of its uses, was intended to serve
+>> > as an abstraction to allow calling such annotated functions from both
+>> > __init and __exit functions. Using the (bogus and unused elsewhere)
+>> > __exit_refok to implement this is inefficient - any non-modular code
+>> > really can reside in __init (as non-modular __exit code is never used).
+>> > 
+>> > Therefore, adjust __net_exit to resolve to nothing (i.e. normal .text)
+>> > in modules, and __init in the core kernel.
+>> > 
+>> > A few other adjustments are necessary/possible with this done - those
+>> > were likely just oversights when added originally.
+>> > 
+>> > Signed-off-by: Jan Beulich <jbeulich@suse.com>
+>> 
+>> [ I have been waiting for more than a week for a netns developer
+>>   to review this patch, I guess I'm too optimistic these days. :-( ]
+>> 
+>> The only reason you think __exit_refok is "bogus" is because it's
+>> semantics got changed by Sam Ravnborg in commit
+>> 312b1485fb509c9bc32eda28ad29537896658cb8 ("Introduce new section
+>> reference annotations tags: __ref, __refdata, __refconst")
+>> 
+>> Beforehand the __exit_refok was a real .exit section, so it got
+>> completely discarded AT LINK TIME.  Now it sits together with
+>> __init_refok which is an unremovable kernel image section, which
+>> neither gets removed at compile time nor boot time.
+>
+> Some misunderstanding is going on here.
+>
+> The *ref* annotation is used to teach modpost that this function (or data)
+> may reference functions (or data) which is annotated __init*.
+> And the *ref* annotation never caused the annotated code to be discarded.
+>
+> This was true before the above mentioned patch - and it is still true.
+>
+> Before the path ("Introduce new section reference ....") the __exit_refok
+> annotation moved functions to the section named ".exit.text.refok"
+> which was explicit part of .text (TEXT_TEXT in vmlinux).
+>
+> So __exit_refok does exactly what it is intended to do:
+> It puts the function in a section so modpost does not warn about
+> references to __init or __exit sections.
+>
+> As Jan points out there is only a single user left - so
+> this would be a good time to kill it. It is even documented
+> in init.h that this is a backward compatibility define.
 
-Looking at the trace, I'd point to some problem in the slub memory
-allocator. Please, correct me if I'm wrong.
+Strange.
 
-Christoph?
+>
+> The intention with Jan's patch is to move functions annotated
+> __net_exit to a discardable section in the core kernel.
+> Then at least __exit should be used - there is no logic
+> using __init for exit code.
+>
+> I suggest to:
+> 1) fix the patch to use __exit
+> 2) fix up the bogus commit message
+
+Those two sound reasonable to me.
+
+The purpose of __net_exit is to mark code that can be __exit if we don't
+enable network namespace support.
+
+Looking at the original code it appears that __exit was wrong because
+we had __init sections referring to the __exit code and that was
+causing modpost to complain.
+
+Now that the definition of __exit_refok has changed half a dozen times
+since it was introduced I don't know what will happen.
+
+Since this really isn't about network namespaces but what to do when
+the network namespace code is disabled I'm going to bow out now.
+
+> Then it should be OK - iff the assumption hold that the functions
+> can be discarded in the core kernel.
+> I have grepped a little and saw no uses where this did not hold true.
+> So based on this I assume the assumption is OK.
+
+Eric
