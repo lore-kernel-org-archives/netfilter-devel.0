@@ -1,150 +1,92 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH 4/9] ipvs: always update some of the flags bits in backup
-Date: Wed, 21 Mar 2012 17:56:19 +0900
-Message-ID: <1332320185-27157-5-git-send-email-horms@verge.net.au>
-References: <1332320185-27157-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <1332320185-27157-1-git-send-email-horms@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: [PATCH] mark newly opened fds as FD_CLOEXEC (close on exec) [part 2]
+Date: Wed, 21 Mar 2012 03:52:00 -0700
+Message-ID: <1332327120-22444-1-git-send-email-zenczykowski@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: =?UTF-8?q?Maciej=20=C5=BBenczykowski?= <maze@google.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pz0-f51.google.com ([209.85.210.51]:56499 "EHLO
+	mail-pz0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752980Ab2CUKwX (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 21 Mar 2012 06:52:23 -0400
+Received: by dady9 with SMTP id y9so1358620dad.10
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 Mar 2012 03:52:23 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Julian Anastasov <ja@ssi.bg>
+=46rom: Maciej =C5=BBenczykowski <maze@google.com>
 
-	As the goal is to mirror the inactconns/activeconns
-counters in the backup server, make sure the cp->flags are
-updated even if cp is still not bound to dest. If cp->flags
-are not updated ip_vs_bind_dest will rely only on the initial
-flags when updating the counters. To avoid mistakes and
-complicated checks for protocol state rely only on the
-IP_VS_CONN_F_INACTIVE bit when updating the counters.
+This is iptables-1.4.11-cloexec.patch from Fedora 18 iptables source
+rpm, in particular:
+  http://kojipkgs.fedoraproject.org/packages/iptables/1.4.12.2/4.fc18/s=
+rc/iptables-1.4.12.2-4.fc18.src.rpm
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Tested-by: Aleksey Chudov <aleksey.chudov@gmail.com>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Maciej =C5=BBenczykowski <maze@google.com>
 ---
- include/linux/ip_vs.h           |    5 +++
- net/netfilter/ipvs/ip_vs_sync.c |   65 ++++++++++++++-------------------------
- 2 files changed, 28 insertions(+), 42 deletions(-)
+ extensions/libxt_set.h |    7 +++++++
+ libiptc/libiptc.c      |    8 ++++++++
+ 2 files changed, 15 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/ip_vs.h b/include/linux/ip_vs.h
-index 4deb383..ac31ef2 100644
---- a/include/linux/ip_vs.h
-+++ b/include/linux/ip_vs.h
-@@ -89,6 +89,7 @@
- #define IP_VS_CONN_F_TEMPLATE	0x1000		/* template, not connection */
- #define IP_VS_CONN_F_ONE_PACKET	0x2000		/* forward only one packet */
- 
-+/* Initial bits allowed in backup server */
- #define IP_VS_CONN_F_BACKUP_MASK (IP_VS_CONN_F_FWD_MASK | \
- 				  IP_VS_CONN_F_NOOUTPUT | \
- 				  IP_VS_CONN_F_INACTIVE | \
-@@ -97,6 +98,10 @@
- 				  IP_VS_CONN_F_TEMPLATE \
- 				 )
- 
-+/* Bits allowed to update in backup server */
-+#define IP_VS_CONN_F_BACKUP_UPD_MASK (IP_VS_CONN_F_INACTIVE | \
-+				      IP_VS_CONN_F_SEQ_MASK)
+diff --git a/extensions/libxt_set.h b/extensions/libxt_set.h
+index 4ac84fa9c022..47c3f5b6f5d4 100644
+--- a/extensions/libxt_set.h
++++ b/extensions/libxt_set.h
+@@ -2,6 +2,7 @@
+ #define _LIBXT_SET_H
+=20
+ #include <unistd.h>
++#include <fcntl.h>
+ #include <sys/types.h>
+ #include <sys/socket.h>
+ #include <errno.h>
+@@ -23,6 +24,12 @@ get_version(unsigned *version)
+ 		xtables_error(OTHER_PROBLEM,
+ 			      "Can't open socket to ipset.\n");
+=20
++	if (fcntl(sockfd, F_SETFD, FD_CLOEXEC) =3D=3D -1) {
++		xtables_error(OTHER_PROBLEM,
++			      "Could not set close on exec: %s\n",
++			      strerror(errno));
++	}
 +
- /* Flags that are not sent to backup server start from bit 16 */
- #define IP_VS_CONN_F_NFCT	(1 << 16)	/* use netfilter conntrack */
- 
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index 8a0d6d6..0e36679 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -731,9 +731,30 @@ static void ip_vs_proc_conn(struct net *net, struct ip_vs_conn_param *param,
- 	else
- 		cp = ip_vs_ct_in_get(param);
- 
--	if (cp && param->pe_data) 	/* Free pe_data */
-+	if (cp) {
-+		/* Free pe_data */
- 		kfree(param->pe_data);
--	if (!cp) {
+ 	req_version.op =3D IP_SET_OP_VERSION;
+ 	res =3D getsockopt(sockfd, SOL_IP, SO_IP_SET, &req_version, &size);
+ 	if (res !=3D 0)
+diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
+index 13e41d525f28..63965e738596 100644
+--- a/libiptc/libiptc.c
++++ b/libiptc/libiptc.c
+@@ -29,6 +29,8 @@
+  * 	- performance work: speedup initial ruleset parsing.
+  * 	- sponsored by ComX Networks A/S (http://www.comx.dk/)
+  */
++#include <unistd.h>
++#include <fcntl.h>
+ #include <sys/types.h>
+ #include <sys/socket.h>
+ #include <stdbool.h>
+@@ -1316,6 +1318,12 @@ TC_INIT(const char *tablename)
+ 	if (sockfd < 0)
+ 		return NULL;
+=20
++	if (fcntl(sockfd, F_SETFD, FD_CLOEXEC) =3D=3D -1) {
++		fprintf(stderr, "Could not set close on exec: %s\n",
++			strerror(errno));
++		abort();
++	}
 +
-+		dest = cp->dest;
-+		if ((cp->flags ^ flags) & IP_VS_CONN_F_INACTIVE &&
-+		    !(flags & IP_VS_CONN_F_TEMPLATE) && dest) {
-+			if (flags & IP_VS_CONN_F_INACTIVE) {
-+				atomic_dec(&dest->activeconns);
-+				atomic_inc(&dest->inactconns);
-+			} else {
-+				atomic_inc(&dest->activeconns);
-+				atomic_dec(&dest->inactconns);
-+			}
-+		}
-+		flags &= IP_VS_CONN_F_BACKUP_UPD_MASK;
-+		flags |= cp->flags & ~IP_VS_CONN_F_BACKUP_UPD_MASK;
-+		cp->flags = flags;
-+		if (!dest) {
-+			dest = ip_vs_try_bind_dest(cp);
-+			if (dest)
-+				atomic_dec(&dest->refcnt);
-+		}
-+	} else {
- 		/*
- 		 * Find the appropriate destination for the connection.
- 		 * If it is not found the connection will remain unbound
-@@ -742,18 +763,6 @@ static void ip_vs_proc_conn(struct net *net, struct ip_vs_conn_param *param,
- 		dest = ip_vs_find_dest(net, type, daddr, dport, param->vaddr,
- 				       param->vport, protocol, fwmark, flags);
- 
--		/*  Set the approprite ativity flag */
--		if (protocol == IPPROTO_TCP) {
--			if (state != IP_VS_TCP_S_ESTABLISHED)
--				flags |= IP_VS_CONN_F_INACTIVE;
--			else
--				flags &= ~IP_VS_CONN_F_INACTIVE;
--		} else if (protocol == IPPROTO_SCTP) {
--			if (state != IP_VS_SCTP_S_ESTABLISHED)
--				flags |= IP_VS_CONN_F_INACTIVE;
--			else
--				flags &= ~IP_VS_CONN_F_INACTIVE;
--		}
- 		cp = ip_vs_conn_new(param, daddr, dport, flags, dest, fwmark);
- 		if (dest)
- 			atomic_dec(&dest->refcnt);
-@@ -763,34 +772,6 @@ static void ip_vs_proc_conn(struct net *net, struct ip_vs_conn_param *param,
- 			IP_VS_DBG(2, "BACKUP, add new conn. failed\n");
- 			return;
- 		}
--	} else if (!cp->dest) {
--		dest = ip_vs_try_bind_dest(cp);
--		if (dest)
--			atomic_dec(&dest->refcnt);
--	} else if ((cp->dest) && (cp->protocol == IPPROTO_TCP) &&
--		(cp->state != state)) {
--		/* update active/inactive flag for the connection */
--		dest = cp->dest;
--		if (!(cp->flags & IP_VS_CONN_F_INACTIVE) &&
--			(state != IP_VS_TCP_S_ESTABLISHED)) {
--			atomic_dec(&dest->activeconns);
--			atomic_inc(&dest->inactconns);
--			cp->flags |= IP_VS_CONN_F_INACTIVE;
--		} else if ((cp->flags & IP_VS_CONN_F_INACTIVE) &&
--			(state == IP_VS_TCP_S_ESTABLISHED)) {
--			atomic_inc(&dest->activeconns);
--			atomic_dec(&dest->inactconns);
--			cp->flags &= ~IP_VS_CONN_F_INACTIVE;
--		}
--	} else if ((cp->dest) && (cp->protocol == IPPROTO_SCTP) &&
--		(cp->state != state)) {
--		dest = cp->dest;
--		if (!(cp->flags & IP_VS_CONN_F_INACTIVE) &&
--		(state != IP_VS_SCTP_S_ESTABLISHED)) {
--			atomic_dec(&dest->activeconns);
--			atomic_inc(&dest->inactconns);
--			cp->flags &= ~IP_VS_CONN_F_INACTIVE;
--		}
- 	}
- 
- 	if (opt)
--- 
-1.7.6.3
+ retry:
+ 	s =3D sizeof(info);
+=20
+--=20
+1.7.7.3
 
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
