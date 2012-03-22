@@ -1,47 +1,56 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: linux-next: Tree for Mar 21 (netfilter: xt_LOG.c)
-Date: Thu, 22 Mar 2012 12:18:12 +0100
-Message-ID: <20120322111812.GA16632@1984>
-References: <20120321183906.b901645a8e4b68fdf1ad8754@canb.auug.org.au>
- <4F6A7824.50606@xenotime.net>
+Subject: Re: [PATCH] mark newly opened fds as FD_CLOEXEC (close on exec)
+ [part 2]
+Date: Thu, 22 Mar 2012 12:21:20 +0100
+Message-ID: <20120322112120.GA16645@1984>
+References: <1332327120-22444-1-git-send-email-zenczykowski@gmail.com>
+ <1332361663.9433.8.camel@edumazet-glaptop>
+ <CANP3RGdUHYzLKaGR2APoWzbV2LSquujXoNdsTN-yYs8=bT=5kw@mail.gmail.com>
+ <1332362670.9433.9.camel@edumazet-glaptop>
+ <CAHo-OozsBkyQ-hq0Hkuef3uohemnHCh1qBo02By-kE5Rpt92Lg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Randy Dunlap <rdunlap@xenotime.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	netfilter-devel@vger.kernel.org
+To: Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59461 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:60154 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751253Ab2CVLST (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Mar 2012 07:18:19 -0400
+	id S1751250Ab2CVLV0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 Mar 2012 07:21:26 -0400
 Content-Disposition: inline
-In-Reply-To: <4F6A7824.50606@xenotime.net>
+In-Reply-To: <CAHo-OozsBkyQ-hq0Hkuef3uohemnHCh1qBo02By-kE5Rpt92Lg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Randy,
+Hi Maciej,
 
-On Wed, Mar 21, 2012 at 05:53:56PM -0700, Randy Dunlap wrote:
-> On 03/21/2012 12:39 AM, Stephen Rothwell wrote:
-> 
-> > Hi all,
-> > 
-> > Reminder: please do not add stuff destined for v3.5 to linux-next
-> > included trees/branches until after v3.4-rc1 has been released.
-> > 
-> > Changes since 20120320:
-> 
-> on x86_64:
-> 
-> xt_LOG.c:(.text+0x6962e): undefined reference to `ip6t_ext_hdr'
-> 
-> Full randconfig file is attached.
+On Wed, Mar 21, 2012 at 01:50:59PM -0700, Maciej =C5=BBenczykowski wrot=
+e:
+> > True, but CLOEXEC on iptables... I mean... how is it mandatory ?
+>=20
+> I'm not sure what you mean by mandatory.
 
-I'll push this to mainstream asap.
+If this patch is needed, I think we have to stick to fcntl for
+backward compatibility reasons as well.
 
-https://lkml.org/lkml/2012/3/10/68
+> iptables does potentially fork/exec modprobe to load modules.
+> That can cause a selinux 'domain'/'role'/whatever-it-is-called crossi=
+ng.
+> You can do automated inspection of what gets carried across such
+> privilege changes and any unexpected open file descriptors flag
+> problems, patches like this cut down on the noise.
 
-Sorry, I forgot to make it.
+Could you resend the patch including the description of the precise
+problem that this fixes in selinux?
+
+IMO, if the patch description would have include since the beginnging
+why that CLOEXEC is needed, we would have save a couple of emails.
 
 Thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
