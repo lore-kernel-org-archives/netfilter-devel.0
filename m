@@ -1,56 +1,173 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] mark newly opened fds as FD_CLOEXEC (close on exec)
- [part 2]
-Date: Thu, 22 Mar 2012 12:21:20 +0100
-Message-ID: <20120322112120.GA16645@1984>
-References: <1332327120-22444-1-git-send-email-zenczykowski@gmail.com>
- <1332361663.9433.8.camel@edumazet-glaptop>
- <CANP3RGdUHYzLKaGR2APoWzbV2LSquujXoNdsTN-yYs8=bT=5kw@mail.gmail.com>
- <1332362670.9433.9.camel@edumazet-glaptop>
- <CAHo-OozsBkyQ-hq0Hkuef3uohemnHCh1qBo02By-kE5Rpt92Lg@mail.gmail.com>
+From: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Subject: [v11 PATCH 0/3] NETFILTER new target module, HMARK
+Date: Thu, 22 Mar 2012 12:59:50 +0100
+Message-ID: <1332417593-26232-1-git-send-email-hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Content-Type: text/plain
+Cc: <hans@schillstrom.com>,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>
+To: <kaber@trash.net>, <pablo@netfilter.org>, <jengelh@medozas.de>,
+	<netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60154 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751250Ab2CVLV0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Mar 2012 07:21:26 -0400
-Content-Disposition: inline
-In-Reply-To: <CAHo-OozsBkyQ-hq0Hkuef3uohemnHCh1qBo02By-kE5Rpt92Lg@mail.gmail.com>
+Received: from mailgw10.se.ericsson.net ([193.180.251.61]:59237 "EHLO
+	mailgw10.se.ericsson.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753217Ab2CVL74 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 Mar 2012 07:59:56 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Maciej,
+The target allows you to create rules in the "raw" and "mangle" tables
+which alter the netfilter mark (nfmark) field within a given range.
+First a 32 bit hash value is generated then modulus by <limit> and
+finally an offset is added before it's written to nfmark.
+Prior to routing, the nfmark can influence the routing method (see
+"Use netfilter MARK value as routing key") and can also be used by
+other subsystems to change their behavior.
 
-On Wed, Mar 21, 2012 at 01:50:59PM -0700, Maciej =C5=BBenczykowski wrot=
-e:
-> > True, but CLOEXEC on iptables... I mean... how is it mandatory ?
->=20
-> I'm not sure what you mean by mandatory.
+The mark match can also be used to match nfmark produced by this module.
+See the kernel module for more info.
 
-If this patch is needed, I think we have to stick to fcntl for
-backward compatibility reasons as well.
+REVISION
+Version 11
+	Changed two comments
 
-> iptables does potentially fork/exec modprobe to load modules.
-> That can cause a selinux 'domain'/'role'/whatever-it-is-called crossi=
-ng.
-> You can do automated inspection of what gets carried across such
-> privilege changes and any unexpected open file descriptors flag
-> problems, patches like this cut down on the noise.
+Version 10
+        Even more simplified NAT handling just one switch --hmark-ct
+        some renaming and some minor changes.
+        Renaming of vars in xt_hmark_info
+        Adding helptext and updated man due to --hmark-ct switch
+        Changes are based on Pablos review.
 
-Could you resend the patch including the description of the precise
-problem that this fixes in selinux?
+Version 9
+        Simpliefied nat handling in IPv4, some formating
+        checkentry() used in kernel. 
+        Most changes are based on Pablos review.
 
-IMO, if the patch description would have include since the beginnging
-why that CLOEXEC is needed, we would have save a couple of emails.
+Version 8
+        method L3 / L3-4 added i.e. Fragment handling changed to:
+        - don't handle in "method L3-4"
+        Syntax change in user mode to be more NF compatible.
+        Most changes are based on Pablos review.
 
-Thanks.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Version 7
+	ahuum, IPv6 descending into icmp error hdr didn't work as expected
+        with ipv6_find_hdr() Now it works as expected.
+
+Version 6
+        Removed ipv6_find_hdr() wrapper (Pablo)
+	NAT / Conntrack compilation switches.
+
+Version 5
+	Use length of mask an smask and dmask and whole IPv6 addr (Jan E)
+	Modify ipv6_find_hdr() and use it while traversing the IPv6 header.
+        Manual changes.
+	More or less all comments implemented.
+
+Version 4
+	Split of IPv6 and IPv4, use IP_CT_IS_REPLY, as Pablo suggested.
+	removed one pskb_may_pull()
+	xtoption parse used in the user space part.
+
+Version 3
+        Handling of SCTP for IPv6 added.
+
+Version 2
+	NAT Added for IPv4
+	IPv6 ICMP handling enhanced.
+	Usage example added
+
+Version 1
+	Initial RFC
+
+
+We (Ericsson) use hmark in-front of ipvs as a pre-loadbalancer and
+handles up to 70 ipvs running in parallel in clusters.
+However hmark is not restricted to run in front of IPVS it can also be used as
+"poor mans" load balancer.
+With this version is also NAT supported as an option, with very high flows
+you might not want to use conntrack.
+
+The idea is to generate a direction independent fw mark range to use as input to
+the routing (i.e. ip rule add fwmark ...).
+Pretty straight forward and simple.
+
+
+Example:
+                                      App Server (Real Server)
+
+                                           +---------+
+                                        -->| Service |
+     Gateway A                             +---------+
+                          /
+            +----------+ /     +----+      +---------+
+--- if -A---| selector |---->  |ipvs|  --->| Service |
+            +----------+ \     +----+      +---------+
+                          \
+                               +----+      +---------+
+                               |ipvs|   -->| Service |
+                               +----+      +---------+
+      Gateway C
+            +----------+ /     +----+
+--- if-B ---| selector | --->  |ipvs|
+            +----------+ \     +----+      +---------+
+                                           | Service |
+                                           +---------+
+                          /
+            +----------+ /     +----+     ..
+--- if-B ---| selector | --->  |ipvs|      +---------+
+            +----------+ \     +----+      | Service |
+                          \                +---------+
+#
+# Example with four ipvs loadbalancers
+#
+iptables -t mangle -I PREROUTING -d $IPADDR -j HMARK --hmark-mod 4 --hmark-offs 100
+
+ip rule add fwmark 100 table 100
+ip rule add fwmark 101 table 101
+ip rule add fwmark 102 table 102
+ip rule add fwmark 103 table 103
+
+ip ro ad table 100 default via x.y.z.1 dev bond1
+ip ro ad table 101 default via x.y.z.2 dev bond1
+ip ro ad table 102 default via x.y.z.3 dev bond1
+ip ro ad table 103 default via x.y.z.4 dev bond1
+
+
+If conntrack doesn't handle the return path,
+do the oposite with HMARK and send it back right to ipvs.
+
+Another exmaple of usage could be if you have cluster originated connections
+and want to spread the connections over a number of interfaces
+(NAT will complpicate things for you in this case)
+
+
+
+                     \  Blade 1
+                      \ +----------+      +---------+
+                    <-- | selector | <--- | Service |
+                      / +----------+      +---------+
+                     /
+   +------+
+-- | Gw-A |          \  Blade 2
+   +------+           \ +----------+      +---------+
+   +------+         <-- | selector | <--- | Service |
+-- | Gw-B |           / +----------+      +---------+
+   +------+          /
+   +------+
+-- | Gw-C |          \
+   +------+           \ +----------+      +---------+
+                    <-- | selector | <--- | Service |
+                      / +----------+      +---------+
+                     /
+
+                     \  Blande -n
+                      \ +----------+      +---------+
+                    <-- | selector | <--- | Service |
+                      / +----------+      +---------+
+                     /
+
+
+Regards
+Hans Schillstrom <hans.schillstrom@ericsson.com>
+
