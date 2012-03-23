@@ -1,50 +1,35 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: conntrack can't update mark on icmp connection
-Date: Fri, 23 Mar 2012 02:11:43 +0100
-Message-ID: <20120323011143.GA20298@1984>
-References: <20120214001644.2e3a0d4c@wwwwww-701SD>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] netfilter: remove forward module param confusion.
+Date: Thu, 22 Mar 2012 22:36:41 -0400 (EDT)
+Message-ID: <20120322.223641.2119502285314364845.davem@davemloft.net>
+References: <20120322182623.GA29859@elgon.mountain>
+	<8762dw9to2.fsf@rustcorp.com.au>
+	<8739909sqt.fsf@rustcorp.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: abirvalg@lavabit.com
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: dan.carpenter@oracle.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: rusty@rustcorp.com.au
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46679 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754590Ab2CWBLs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Mar 2012 21:11:48 -0400
-Content-Disposition: inline
-In-Reply-To: <20120214001644.2e3a0d4c@wwwwww-701SD>
+Received: from shards.monkeyblade.net ([198.137.202.13]:59854 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754447Ab2CWCgu (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 Mar 2012 22:36:50 -0400
+In-Reply-To: <8739909sqt.fsf@rustcorp.com.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Feb 14, 2012 at 12:16:44AM +0200, abirvalg@lavabit.com wrote:
-> Hello,
-> As root I try to set marks on all packets originating from my machine with
-> 
-> conntrack -U -s 192.168.1.114 --mark 10
-> 
-> It does set marks on some udp connections but ignores the icmp one.
-> Upon the issue of this command it lists all updated udp connections with mark=10 and \
->                 eventually gives
-> ...
-> conntrack v0.9.14 (conntrack-tools): Operation failed: invalid parameters
-> 
-> After that conntrack -L shows that all udp connections that preceed in the list the icmp one \
-> where updated, but the icmp connection and all udp connections following it in the \
-> list were not updated. Seems like conntrack choked on icmp.
-> 
-> Could you please help me.
-> uname -a
-> Linux 2.6.35-30-generic #60-Ubuntu SMP Mon Sep 19 20:45:08 UTC 2011 i686 \
-> GNU/Linux
+From: Rusty Russell <rusty@rustcorp.com.au>
+Date: Fri, 23 Mar 2012 08:57:06 +1030
 
-The problem seems to be in libnetfilter_conntrack.
+> It used to be an int, and it got changed to a bool parameter at least
+> 7 years ago.  It happens that NF_ACCEPT and NF_DROP are 0 and 1, so
+> this works, but it's unclear, and the check that it's in range is not
+> required.
+> 
+> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+> Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 
-I have pushed the following patch, it seems to resolve the issue here
-for me.
-
-commit 3a39278a56d12ad13a41973cd0b50238206f11ef
-Author: Pablo Neira Ayuso <pablo@netfilter.org>
-Date:   Fri Mar 23 02:07:41 2012 +0100
-
-    conntrack: fix wrong building of ICMP reply tuple
+Applied.
