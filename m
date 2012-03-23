@@ -1,55 +1,69 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] mark newly opened fds as FD_CLOEXEC (close on exec)
- [part 2]
-Date: Fri, 23 Mar 2012 11:26:23 +0100
-Message-ID: <20120323102623.GA22440@1984>
-References: <1332327120-22444-1-git-send-email-zenczykowski@gmail.com>
- <1332361663.9433.8.camel@edumazet-glaptop>
- <CANP3RGdUHYzLKaGR2APoWzbV2LSquujXoNdsTN-yYs8=bT=5kw@mail.gmail.com>
- <1332362670.9433.9.camel@edumazet-glaptop>
- <CAHo-OozsBkyQ-hq0Hkuef3uohemnHCh1qBo02By-kE5Rpt92Lg@mail.gmail.com>
- <20120322112120.GA16645@1984>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH] xt_log.h: don't use xchg() for simple assignment
+Date: Fri, 23 Mar 2012 04:51:45 -0700
+Message-ID: <1332503505.4858.2.camel@edumazet-laptop>
+References: <4F588DD8020000780007711C@nat28.tlf.novell.com>
+	 <20120323100705.GA22309@1984>
+	 <4F6C5B03020000780007A7ED@nat28.tlf.novell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, kaber@trash.net,
 	netfilter-devel@vger.kernel.org
-To: Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
+To: Jan Beulich <JBeulich@suse.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35701 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756211Ab2CWK0g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Mar 2012 06:26:36 -0400
-Content-Disposition: inline
-In-Reply-To: <20120322112120.GA16645@1984>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:59332 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758193Ab2CWLvt (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Mar 2012 07:51:49 -0400
+Received: by ghrr11 with SMTP id r11so2633105ghr.19
+        for <netfilter-devel@vger.kernel.org>; Fri, 23 Mar 2012 04:51:48 -0700 (PDT)
+In-Reply-To: <4F6C5B03020000780007A7ED@nat28.tlf.novell.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Mar 22, 2012 at 12:21:20PM +0100, Pablo Neira Ayuso wrote:
-> Hi Maciej,
->=20
-> On Wed, Mar 21, 2012 at 01:50:59PM -0700, Maciej =C5=BBenczykowski wr=
-ote:
-> > > True, but CLOEXEC on iptables... I mean... how is it mandatory ?
+Le vendredi 23 mars 2012 =C3=A0 10:14 +0000, Jan Beulich a =C3=A9crit :
+> >>> On 23.03.12 at 11:07, Pablo Neira Ayuso <pablo@netfilter.org> wro=
+te:
+> > On Thu, Mar 08, 2012 at 09:45:44AM +0000, Jan Beulich wrote:
+> >> At least on ia64 the (bogus) use of xchg() here results in the com=
+piler
+> >> warning about an unused expression result. As only an assignment i=
+s
+> >> intended here, convert it to such.
+> >>=20
+> >> Signed-off-by: Jan Beulich <jbeulich@suse.com>
+> >>=20
+> >> ---
+> >>  include/net/netfilter/xt_log.h |    2 +-
+> >>  1 file changed, 1 insertion(+), 1 deletion(-)
+> >>=20
+> >> --- 3.3-rc6/include/net/netfilter/xt_log.h
+> >> +++ 3.3-rc6-netfilter-xt_log-no-xchg/include/net/netfilter/xt_log.=
+h
+> >> @@ -47,7 +47,7 @@ static void sb_close(struct sbuff *m)
+> >>  	if (likely(m !=3D &emergency))
+> >>  		kfree(m);
+> >>  	else {
+> >> -		xchg(&emergency_ptr, m);
+> >> +		emergency_ptr =3D m;
 > >=20
-> > I'm not sure what you mean by mandatory.
+> > That xchg is there for some reason. I think it's better if you just
+> > cast it to void.
 >=20
-> If this patch is needed, I think we have to stick to fcntl for
-> backward compatibility reasons as well.
+> If I knew the reason, I wouldn't mind doing so. But with no code
+> comment and nothing said in the corresponding commit message
+> I'm of the opinion that it is there just as a copy-and-paste result.
 >=20
-> > iptables does potentially fork/exec modprobe to load modules.
-> > That can cause a selinux 'domain'/'role'/whatever-it-is-called cros=
-sing.
-> > You can do automated inspection of what gets carried across such
-> > privilege changes and any unexpected open file descriptors flag
-> > problems, patches like this cut down on the noise.
->=20
-> Could you resend the patch including the description of the precise
-> problem that this fixes in selinux?
 
-No need to do it. I've applied this to git.netfilter.org.
+Hmm I missed your patch Jan, and you're right, a plain write is OK here=
+=2E
 
-Thanks.
+Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
