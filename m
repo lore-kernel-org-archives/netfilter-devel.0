@@ -1,52 +1,57 @@
-From: "Jan Beulich" <JBeulich@suse.com>
-Subject: Re: [PATCH] xt_log.h: don't use xchg() for simple assignment
-Date: Fri, 23 Mar 2012 10:14:11 +0000
-Message-ID: <4F6C5B03020000780007A7ED@nat28.tlf.novell.com>
-References: <4F588DD8020000780007711C@nat28.tlf.novell.com>
- <20120323100705.GA22309@1984>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] mark newly opened fds as FD_CLOEXEC (close on exec)
+ [part 2]
+Date: Fri, 23 Mar 2012 11:26:23 +0100
+Message-ID: <20120323102623.GA22440@1984>
+References: <1332327120-22444-1-git-send-email-zenczykowski@gmail.com>
+ <1332361663.9433.8.camel@edumazet-glaptop>
+ <CANP3RGdUHYzLKaGR2APoWzbV2LSquujXoNdsTN-yYs8=bT=5kw@mail.gmail.com>
+ <1332362670.9433.9.camel@edumazet-glaptop>
+ <CAHo-OozsBkyQ-hq0Hkuef3uohemnHCh1qBo02By-kE5Rpt92Lg@mail.gmail.com>
+ <20120322112120.GA16645@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
-Cc: <kaber@trash.net>, <netfilter-devel@vger.kernel.org>
-To: "Pablo Neira Ayuso" <pablo@netfilter.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	netfilter-devel@vger.kernel.org
+To: Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nat28.tlf.novell.com ([130.57.49.28]:15379 "EHLO
-	nat28.tlf.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753493Ab2CWKNQ convert rfc822-to-8bit (ORCPT
-	<rfc822;groupwise-netfilter-devel@vger.kernel.org:3:1>);
-	Fri, 23 Mar 2012 06:13:16 -0400
-In-Reply-To: <20120323100705.GA22309@1984>
+Received: from mail.us.es ([193.147.175.20]:35701 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756211Ab2CWK0g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Mar 2012 06:26:36 -0400
 Content-Disposition: inline
+In-Reply-To: <20120322112120.GA16645@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->>> On 23.03.12 at 11:07, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Thu, Mar 08, 2012 at 09:45:44AM +0000, Jan Beulich wrote:
->> At least on ia64 the (bogus) use of xchg() here results in the compiler
->> warning about an unused expression result. As only an assignment is
->> intended here, convert it to such.
->> 
->> Signed-off-by: Jan Beulich <jbeulich@suse.com>
->> 
->> ---
->>  include/net/netfilter/xt_log.h |    2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->> 
->> --- 3.3-rc6/include/net/netfilter/xt_log.h
->> +++ 3.3-rc6-netfilter-xt_log-no-xchg/include/net/netfilter/xt_log.h
->> @@ -47,7 +47,7 @@ static void sb_close(struct sbuff *m)
->>  	if (likely(m != &emergency))
->>  		kfree(m);
->>  	else {
->> -		xchg(&emergency_ptr, m);
->> +		emergency_ptr = m;
-> 
-> That xchg is there for some reason. I think it's better if you just
-> cast it to void.
+On Thu, Mar 22, 2012 at 12:21:20PM +0100, Pablo Neira Ayuso wrote:
+> Hi Maciej,
+>=20
+> On Wed, Mar 21, 2012 at 01:50:59PM -0700, Maciej =C5=BBenczykowski wr=
+ote:
+> > > True, but CLOEXEC on iptables... I mean... how is it mandatory ?
+> >=20
+> > I'm not sure what you mean by mandatory.
+>=20
+> If this patch is needed, I think we have to stick to fcntl for
+> backward compatibility reasons as well.
+>=20
+> > iptables does potentially fork/exec modprobe to load modules.
+> > That can cause a selinux 'domain'/'role'/whatever-it-is-called cros=
+sing.
+> > You can do automated inspection of what gets carried across such
+> > privilege changes and any unexpected open file descriptors flag
+> > problems, patches like this cut down on the noise.
+>=20
+> Could you resend the patch including the description of the precise
+> problem that this fixes in selinux?
 
-If I knew the reason, I wouldn't mind doing so. But with no code
-comment and nothing said in the corresponding commit message
-I'm of the opinion that it is there just as a copy-and-paste result.
+No need to do it. I've applied this to git.netfilter.org.
 
-Jan
-
+Thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
