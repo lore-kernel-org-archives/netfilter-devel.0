@@ -1,66 +1,41 @@
-From: pablo@netfilter.org
-Subject: [PATCH 4/5] netfilter: xt_CT: fix assignation of the generic protocol tracker
-Date: Fri, 23 Mar 2012 10:34:16 +0100
-Message-ID: <1332495257-3149-5-git-send-email-pablo@netfilter.org>
-References: <1332495257-3149-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1332495257-3149-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
 From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] xt_log.h: don't use xchg() for simple assignment
+Date: Fri, 23 Mar 2012 11:07:05 +0100
+Message-ID: <20120323100705.GA22309@1984>
+References: <4F588DD8020000780007711C@nat28.tlf.novell.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
+To: Jan Beulich <JBeulich@suse.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:57116 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752022Ab2CWKHL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Mar 2012 06:07:11 -0400
+Content-Disposition: inline
+In-Reply-To: <4F588DD8020000780007711C@nat28.tlf.novell.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-`iptables -p all' uses 0 to match all protocols, while the conntrack
-subsystem uses 255. We still need `-p all' to attach the custom
-timeout policies for the generic protocol tracker.
+On Thu, Mar 08, 2012 at 09:45:44AM +0000, Jan Beulich wrote:
+> At least on ia64 the (bogus) use of xchg() here results in the compiler
+> warning about an unused expression result. As only an assignment is
+> intended here, convert it to such.
+> 
+> Signed-off-by: Jan Beulich <jbeulich@suse.com>
+> 
+> ---
+>  include/net/netfilter/xt_log.h |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> --- 3.3-rc6/include/net/netfilter/xt_log.h
+> +++ 3.3-rc6-netfilter-xt_log-no-xchg/include/net/netfilter/xt_log.h
+> @@ -47,7 +47,7 @@ static void sb_close(struct sbuff *m)
+>  	if (likely(m != &emergency))
+>  		kfree(m);
+>  	else {
+> -		xchg(&emergency_ptr, m);
+> +		emergency_ptr = m;
 
-Moreover, we may use `iptables -p sctp' while the SCTP tracker is
-not loaded. In that case, we have to default on the generic protocol
-tracker.
-
-Another possibility is `iptables -p ip' that should be supported
-as well. This patch makes sure we validate all possible scenarios.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/xt_CT.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletions(-)
-
-diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
-index 33a02b4..0c8e438 100644
---- a/net/netfilter/xt_CT.c
-+++ b/net/netfilter/xt_CT.c
-@@ -14,6 +14,7 @@
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_CT.h>
- #include <net/netfilter/nf_conntrack.h>
-+#include <net/netfilter/nf_conntrack_l4proto.h>
- #include <net/netfilter/nf_conntrack_helper.h>
- #include <net/netfilter/nf_conntrack_ecache.h>
- #include <net/netfilter/nf_conntrack_l4proto.h>
-@@ -224,6 +225,7 @@ static int xt_ct_tg_check_v1(const struct xt_tgchk_param *par)
- 
- 		if (timeout_find_get) {
- 			const struct ipt_entry *e = par->entryinfo;
-+			struct nf_conntrack_l4proto *l4proto;
- 
- 			if (e->ip.invflags & IPT_INV_PROTO) {
- 				ret = -EINVAL;
-@@ -245,7 +247,12 @@ static int xt_ct_tg_check_v1(const struct xt_tgchk_param *par)
- 					info->timeout, timeout->l3num);
- 				goto err4;
- 			}
--			if (timeout->l4proto->l4proto != e->ip.proto) {
-+			/* Make sure the timeout policy matches any existing
-+			 * protocol tracker, otherwise default to generic.
-+			 */
-+			l4proto = __nf_ct_l4proto_find(par->family,
-+						       e->ip.proto);
-+			if (timeout->l4proto->l4proto != l4proto->l4proto) {
- 				ret = -EINVAL;
- 				pr_info("Timeout policy `%s' can only be "
- 					"used by L4 protocol number %d\n",
--- 
-1.7.2.5
+That xchg is there for some reason. I think it's better if you just
+cast it to void.
