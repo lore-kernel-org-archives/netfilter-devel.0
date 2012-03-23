@@ -1,98 +1,50 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [PATCH] netfilter: remove forward module param confusion.
-Date: Fri, 23 Mar 2012 08:57:06 +1030
-Message-ID: <8739909sqt.fsf@rustcorp.com.au>
-References: <20120322182623.GA29859@elgon.mountain> <8762dw9to2.fsf@rustcorp.com.au>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: conntrack can't update mark on icmp connection
+Date: Fri, 23 Mar 2012 02:11:43 +0100
+Message-ID: <20120323011143.GA20298@1984>
+References: <20120214001644.2e3a0d4c@wwwwww-701SD>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: netfilter-devel@vger.kernel.org
+To: abirvalg@lavabit.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ozlabs.org ([203.10.76.45]:54622 "EHLO ozlabs.org"
+Received: from mail.us.es ([193.147.175.20]:46679 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752637Ab2CWAfJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Mar 2012 20:35:09 -0400
-In-Reply-To: <8762dw9to2.fsf@rustcorp.com.au>
+	id S1754590Ab2CWBLs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 Mar 2012 21:11:48 -0400
+Content-Disposition: inline
+In-Reply-To: <20120214001644.2e3a0d4c@wwwwww-701SD>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It used to be an int, and it got changed to a bool parameter at least
-7 years ago.  It happens that NF_ACCEPT and NF_DROP are 0 and 1, so
-this works, but it's unclear, and the check that it's in range is not
-required.
+On Tue, Feb 14, 2012 at 12:16:44AM +0200, abirvalg@lavabit.com wrote:
+> Hello,
+> As root I try to set marks on all packets originating from my machine with
+> 
+> conntrack -U -s 192.168.1.114 --mark 10
+> 
+> It does set marks on some udp connections but ignores the icmp one.
+> Upon the issue of this command it lists all updated udp connections with mark=10 and \
+>                 eventually gives
+> ...
+> conntrack v0.9.14 (conntrack-tools): Operation failed: invalid parameters
+> 
+> After that conntrack -L shows that all udp connections that preceed in the list the icmp one \
+> where updated, but the icmp connection and all udp connections following it in the \
+> list were not updated. Seems like conntrack choked on icmp.
+> 
+> Could you please help me.
+> uname -a
+> Linux 2.6.35-30-generic #60-Ubuntu SMP Mon Sep 19 20:45:08 UTC 2011 i686 \
+> GNU/Linux
 
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
----
- net/ipv4/netfilter/iptable_filter.c  |    9 ++-------
- net/ipv6/netfilter/ip6table_filter.c |    9 ++-------
- 2 files changed, 4 insertions(+), 14 deletions(-)
+The problem seems to be in libnetfilter_conntrack.
 
-diff --git a/net/ipv4/netfilter/iptable_filter.c b/net/ipv4/netfilter/iptable_filter.c
---- a/net/ipv4/netfilter/iptable_filter.c
-+++ b/net/ipv4/netfilter/iptable_filter.c
-@@ -52,7 +52,7 @@ iptable_filter_hook(unsigned int hook, s
- static struct nf_hook_ops *filter_ops __read_mostly;
- 
- /* Default to forward because I got too much mail already. */
--static bool forward = NF_ACCEPT;
-+static bool forward = true;
- module_param(forward, bool, 0000);
- 
- static int __net_init iptable_filter_net_init(struct net *net)
-@@ -64,7 +64,7 @@ static int __net_init iptable_filter_net
- 		return -ENOMEM;
- 	/* Entry 1 is the FORWARD hook */
- 	((struct ipt_standard *)repl->entries)[1].target.verdict =
--		-forward - 1;
-+		forward ? -NF_ACCEPT - 1 : -NF_DROP - 1;
- 
- 	net->ipv4.iptable_filter =
- 		ipt_register_table(net, &packet_filter, repl);
-@@ -88,11 +88,6 @@ static int __init iptable_filter_init(vo
- {
- 	int ret;
- 
--	if (forward < 0 || forward > NF_MAX_VERDICT) {
--		pr_err("iptables forward must be 0 or 1\n");
--		return -EINVAL;
--	}
--
- 	ret = register_pernet_subsys(&iptable_filter_net_ops);
- 	if (ret < 0)
- 		return ret;
-diff --git a/net/ipv6/netfilter/ip6table_filter.c b/net/ipv6/netfilter/ip6table_filter.c
---- a/net/ipv6/netfilter/ip6table_filter.c
-+++ b/net/ipv6/netfilter/ip6table_filter.c
-@@ -44,7 +44,7 @@ ip6table_filter_hook(unsigned int hook, 
- static struct nf_hook_ops *filter_ops __read_mostly;
- 
- /* Default to forward because I got too much mail already. */
--static bool forward = NF_ACCEPT;
-+static bool forward = true;
- module_param(forward, bool, 0000);
- 
- static int __net_init ip6table_filter_net_init(struct net *net)
-@@ -56,7 +56,7 @@ static int __net_init ip6table_filter_ne
- 		return -ENOMEM;
- 	/* Entry 1 is the FORWARD hook */
- 	((struct ip6t_standard *)repl->entries)[1].target.verdict =
--		-forward - 1;
-+		forward ? -NF_ACCEPT - 1 : -NF_DROP - 1;
- 
- 	net->ipv6.ip6table_filter =
- 		ip6t_register_table(net, &packet_filter, repl);
-@@ -80,11 +80,6 @@ static int __init ip6table_filter_init(v
- {
- 	int ret;
- 
--	if (forward < 0 || forward > NF_MAX_VERDICT) {
--		pr_err("iptables forward must be 0 or 1\n");
--		return -EINVAL;
--	}
--
- 	ret = register_pernet_subsys(&ip6table_filter_net_ops);
- 	if (ret < 0)
- 		return ret;
--- 
-  How could I marry someone with more hair than me?  http://baldalex.org
+I have pushed the following patch, it seems to resolve the issue here
+for me.
+
+commit 3a39278a56d12ad13a41973cd0b50238206f11ef
+Author: Pablo Neira Ayuso <pablo@netfilter.org>
+Date:   Fri Mar 23 02:07:41 2012 +0100
+
+    conntrack: fix wrong building of ICMP reply tuple
