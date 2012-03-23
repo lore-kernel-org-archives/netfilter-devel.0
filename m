@@ -1,35 +1,66 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] netfilter: remove forward module param confusion.
-Date: Thu, 22 Mar 2012 22:36:41 -0400 (EDT)
-Message-ID: <20120322.223641.2119502285314364845.davem@davemloft.net>
-References: <20120322182623.GA29859@elgon.mountain>
-	<8762dw9to2.fsf@rustcorp.com.au>
-	<8739909sqt.fsf@rustcorp.com.au>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: dan.carpenter@oracle.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: rusty@rustcorp.com.au
+From: pablo@netfilter.org
+Subject: [PATCH 0/5] netfilter updates for net (3.4) tree
+Date: Fri, 23 Mar 2012 10:34:12 +0100
+Message-ID: <1332495257-3149-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:59854 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754447Ab2CWCgu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Mar 2012 22:36:50 -0400
-In-Reply-To: <8739909sqt.fsf@rustcorp.com.au>
+Received: from mail.us.es ([193.147.175.20]:47814 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756718Ab2CWJee (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Mar 2012 05:34:34 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Rusty Russell <rusty@rustcorp.com.au>
-Date: Fri, 23 Mar 2012 08:57:06 +1030
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-> It used to be an int, and it got changed to a bool parameter at least
-> 7 years ago.  It happens that NF_ACCEPT and NF_DROP are 0 and 1, so
-> this works, but it's unclear, and the check that it's in range is not
-> required.
-> 
-> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-> Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Hi David,
 
-Applied.
+The following are five fixes for xt_LOG and the cttimeout
+infrastructure that got into your tree in the previous development
+cycle. This contains:
+
+* One fix for missing symbol in xt_LOG reported by Randy Dunlap.
+
+* Fix module dependency between cttimeout and nf_conntrack_proto_*
+  friends from me. Now, we make sure that protocol trackers modules
+  cannot be unloaded if there's any cttimeout object refering to
+  them.
+
+* Fix missing rcu_read_lock section in xt_CT while dereferencing
+  a RCU pointer.
+
+* Fix the assignation of a custom timeout policy for the generic
+  protocol tracker.
+
+* Fix possible inconsistencies in the application of the cttimeout
+  policy by permanently attaching it to the conntrack entry. Before
+  this patch, the timeout policy was attached per packet which may
+  result in applying the timeout policy only in one traffic
+  direction.
+
+You can pull this changes from:
+
+git://1984.lsi.us.es/net master
+
+Thanks!
+
+Pablo Neira Ayuso (5):
+  netfilter: xt_LOG: use CONFIG_IP6_NF_IPTABLES instead of CONFIG_IPV6
+  netfilter: cttimeout: fix dependency with l4protocol conntrack module
+  netfilter: xt_CT: missing rcu_read_lock section in timeout assignment
+  netfilter: xt_CT: fix assignation of the generic protocol tracker
+  netfilter: nf_conntrack: permanently attach timeout policy to conntrack
+
+ include/net/netfilter/nf_conntrack_l4proto.h |    4 ++
+ include/net/netfilter/nf_conntrack_timeout.h |    2 +-
+ net/netfilter/nf_conntrack_core.c            |   39 ++++++++++++----------
+ net/netfilter/nf_conntrack_proto.c           |   21 ++++++++++++
+ net/netfilter/nfnetlink_cttimeout.c          |   45 +++++++++++++------------
+ net/netfilter/xt_CT.c                        |   31 +++++++++++++----
+ net/netfilter/xt_LOG.c                       |   12 +++---
+ 7 files changed, 100 insertions(+), 54 deletions(-)
+
+-- 
+1.7.2.5
+
