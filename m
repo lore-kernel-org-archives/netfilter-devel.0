@@ -1,126 +1,217 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [RFC PATCH] netfilter: bridge: change indev name to vlan if vlan tag
- present
-Date: Mon, 26 Mar 2012 22:23:26 +0200
-Message-ID: <20120326202326.GB15638@Chamillionaire.breakpoint.cc>
-References: <20120326202124.GA15638@Chamillionaire.breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+From: Eric Leblond <eric@regit.org>
+Subject: [PATCH] conntrack: add /proc entry to disable helper by default
+Date: Tue, 27 Mar 2012 00:05:02 +0200
+Message-ID: <1332799502-11623-2-git-send-email-eric@regit.org>
+References: <1332799502-11623-1-git-send-email-eric@regit.org>
+Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:60572 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755709Ab2CZUX1 (ORCPT
+Received: from ks28632.kimsufi.com ([91.121.96.152]:45397 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752302Ab2CZWqI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Mar 2012 16:23:27 -0400
-Received: id: fw by Chamillionaire.breakpoint.cc with local
-	(easymta 1.00 BETA 1)
-	id 1SCGRq-0004bz-8m
-	for netfilter-devel@vger.kernel.org; Mon, 26 Mar 2012 22:23:26 +0200
-Content-Disposition: inline
-In-Reply-To: <20120326202124.GA15638@Chamillionaire.breakpoint.cc>
+	Mon, 26 Mar 2012 18:46:08 -0400
+In-Reply-To: <1332799502-11623-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If net.bridge.bridge-nf-filter-vlan-tagged is on, bridge
-netfilter will remove skbs vlan header, then feeds the packet
-to ip(6)tables.
+This patch give the user different methods to disable
+the attachment of helper to all connections on a given
+port. The idea is to allow the user to choose with the CT target
+the helper assignement he wants to have.
 
-This changes the in/out interface to the vlan interface; if such
-an interface has been configured, to allow iptables rules to
-determine the original vlan the packet arrived on (e.g.
--i br0.1 will now work if a br0.1 vlan exists on top of br0 bridge
-interface).
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+First method it to use the 'no_helper_assign' option on the
+nf_conntrack module. As this is a constraint to do this at the time
+of the loading, a /proc entry is also available.
+Setting sys/net/netfilter/nf_conntrack_no_helper_assign to 1 will
+disable the automatic assignement of the helper. The user will
 ---
- net/bridge/br_netfilter.c |   31 +++++++++++++++++++++++--------
- 1 files changed, 23 insertions(+), 8 deletions(-)
+ include/net/netfilter/nf_conntrack_helper.h |    3 +
+ include/net/netns/conntrack.h               |    2 +
+ net/netfilter/nf_conntrack_core.c           |    6 ++
+ net/netfilter/nf_conntrack_helper.c         |   79 ++++++++++++++++++++++++++-
+ 4 files changed, 88 insertions(+), 2 deletions(-)
 
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index dec4f38..087fbd1 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -503,6 +503,19 @@ bridged_dnat:
- 	return 0;
- }
+diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+index f1c1311..abd2fc83 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -63,6 +63,9 @@ static inline struct nf_conn_help *nfct_help(const struct nf_conn *ct)
+ extern int nf_conntrack_helper_init(void);
+ extern void nf_conntrack_helper_fini(void);
  
-+static struct net_device *brnf_find_logical_dev(struct sk_buff *skb, const struct net_device *dev)
++extern int nf_conntrack_helper_init_net(struct net *net);
++extern void nf_conntrack_helper_fini_net(struct net *net);
++
+ extern int nf_conntrack_broadcast_help(struct sk_buff *skb,
+ 				       unsigned int protoff,
+ 				       struct nf_conn *ct,
+diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
+index 7a911ec..2395288 100644
+--- a/include/net/netns/conntrack.h
++++ b/include/net/netns/conntrack.h
+@@ -26,11 +26,13 @@ struct netns_ct {
+ 	int			sysctl_tstamp;
+ 	int			sysctl_checksum;
+ 	unsigned int		sysctl_log_invalid; /* Log invalid packets */
++	int			sysctl_no_helper_assign;
+ #ifdef CONFIG_SYSCTL
+ 	struct ctl_table_header	*sysctl_header;
+ 	struct ctl_table_header	*acct_sysctl_header;
+ 	struct ctl_table_header	*tstamp_sysctl_header;
+ 	struct ctl_table_header	*event_sysctl_header;
++	struct ctl_table_header	*helper_sysctl_header;
+ #endif
+ 	char			*slabname;
+ };
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 76613f5..5faeb75 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1301,6 +1301,7 @@ static void nf_conntrack_cleanup_net(struct net *net)
+ 	nf_conntrack_tstamp_fini(net);
+ 	nf_conntrack_acct_fini(net);
+ 	nf_conntrack_expect_fini(net);
++	nf_conntrack_helper_fini_net(net);
+ 	kmem_cache_destroy(net->ct.nf_conntrack_cachep);
+ 	kfree(net->ct.slabname);
+ 	free_percpu(net->ct.stat);
+@@ -1528,9 +1529,14 @@ static int nf_conntrack_init_net(struct net *net)
+ 	ret = nf_conntrack_ecache_init(net);
+ 	if (ret < 0)
+ 		goto err_ecache;
++	ret = nf_conntrack_helper_init_net(net);
++	if (ret < 0)
++		goto err_helper;
+ 
+ 	return 0;
+ 
++err_helper:
++	nf_conntrack_helper_fini_net(net);
+ err_ecache:
+ 	nf_conntrack_tstamp_fini(net);
+ err_tstamp:
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index bbe23ba..9663494 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -34,6 +34,67 @@ static struct hlist_head *nf_ct_helper_hash __read_mostly;
+ static unsigned int nf_ct_helper_hsize __read_mostly;
+ static unsigned int nf_ct_helper_count __read_mostly;
+ 
++static bool nf_ct_no_helper_assign __read_mostly;
++module_param_named(no_helper_assign, nf_ct_no_helper_assign, bool, 0644);
++MODULE_PARM_DESC(no_helper_assign, "Do not assign helper to connection based on port.");
++
++#ifdef CONFIG_SYSCTL
++static struct ctl_table helper_sysctl_table[] = {
++	{
++		.procname	= "nf_conntrack_no_helper_assign",
++		.data		= &init_net.ct.sysctl_no_helper_assign,
++		.maxlen		= sizeof(unsigned int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec,
++	},
++	{}
++};
++
++static int nf_conntrack_helper_init_sysctl(struct net *net)
 +{
-+	struct net_device *vlan, *br;
++	struct ctl_table *table;
 +
-+	br = bridge_parent(dev);
-+	if (!vlan_tx_tag_present(skb))
-+		return br;
++	table = kmemdup(helper_sysctl_table, sizeof(helper_sysctl_table),
++			GFP_KERNEL);
++	if (!table)
++		goto out;
 +
-+	vlan = __vlan_find_dev_deep(br, vlan_tx_tag_get(skb) & VLAN_VID_MASK);
++	table[0].data = &net->ct.sysctl_no_helper_assign;
 +
-+	return vlan ? vlan : br;
++	net->ct.helper_sysctl_header = register_net_sysctl_table(net,
++			nf_net_netfilter_sysctl_path, table);
++	if (!net->ct.helper_sysctl_header) {
++		printk(KERN_ERR "nf_conntrack_helper: can't register to sysctl.\n");
++		goto out_register;
++	}
++	return 0;
++
++out_register:
++	kfree(table);
++out:
++	return -ENOMEM;
 +}
 +
- /* Some common code for IPv4/IPv6 */
- static struct net_device *setup_pre_routing(struct sk_buff *skb)
++static void nf_conntrack_helper_fini_sysctl(struct net *net)
++{
++	struct ctl_table *table;
++
++	table = net->ct.helper_sysctl_header->ctl_table_arg;
++	unregister_net_sysctl_table(net->ct.helper_sysctl_header);
++	kfree(table);
++}
++#else
++static int nf_conntrack_helper_init_sysctl(struct net *net)
++{
++	return 0;
++}
++
++static void nf_conntrack_helper_fini_sysctl(struct net *net)
++{
++}
++#endif /* CONFIG_SYSCTL */
++
++
+ 
+ /* Stupid hash, but collision free for the default registrations of the
+  * helpers currently in the kernel. */
+@@ -118,6 +179,7 @@ int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
  {
-@@ -515,7 +528,7 @@ static struct net_device *setup_pre_routing(struct sk_buff *skb)
+ 	struct nf_conntrack_helper *helper = NULL;
+ 	struct nf_conn_help *help;
++	struct net *net = nf_ct_net(ct);
+ 	int ret = 0;
  
- 	nf_bridge->mask |= BRNF_NF_BRIDGE_PREROUTING;
- 	nf_bridge->physindev = skb->dev;
--	skb->dev = bridge_parent(skb->dev);
-+	skb->dev = brnf_find_logical_dev(skb, skb->dev);
- 	if (skb->protocol == htons(ETH_P_8021Q))
- 		nf_bridge->mask |= BRNF_8021Q;
- 	else if (skb->protocol == htons(ETH_P_PPP_SES))
-@@ -737,7 +750,7 @@ static unsigned int br_nf_forward_ip(unsigned int hook, struct sk_buff *skb,
- 				     int (*okfn)(struct sk_buff *))
- {
- 	struct nf_bridge_info *nf_bridge;
--	struct net_device *parent;
-+	struct net_device *parent, *indev;
- 	u_int8_t pf;
+ 	if (tmpl != NULL) {
+@@ -127,8 +189,10 @@ int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
+ 	}
  
- 	if (!skb->nf_bridge)
-@@ -748,10 +761,6 @@ static unsigned int br_nf_forward_ip(unsigned int hook, struct sk_buff *skb,
- 	if (!nf_bridge_unshare(skb))
- 		return NF_DROP;
- 
--	parent = bridge_parent(out);
--	if (!parent)
--		return NF_DROP;
+ 	help = nfct_help(ct);
+-	if (helper == NULL)
++
++	if ((helper == NULL) && !net->ct.sysctl_no_helper_assign)
+ 		helper = __nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
++
+ 	if (helper == NULL) {
+ 		if (help)
+ 			RCU_INIT_POINTER(help->helper, NULL);
+@@ -273,7 +337,6 @@ int nf_conntrack_helper_init(void)
+ 	err = nf_ct_extend_register(&helper_extend);
+ 	if (err < 0)
+ 		goto err1;
 -
- 	if (IS_IP(skb) || IS_VLAN_IP(skb) || IS_PPPOE_IP(skb))
- 		pf = PF_INET;
- 	else if (IS_IPV6(skb) || IS_VLAN_IPV6(skb) || IS_PPPOE_IPV6(skb))
-@@ -759,6 +768,10 @@ static unsigned int br_nf_forward_ip(unsigned int hook, struct sk_buff *skb,
- 	else
- 		return NF_ACCEPT;
+ 	return 0;
  
-+	parent = brnf_find_logical_dev(skb, out);
-+	if (!parent)
-+		return NF_DROP;
+ err1:
+@@ -281,8 +344,20 @@ err1:
+ 	return err;
+ }
+ 
++int nf_conntrack_helper_init_net(struct net *net)
++{
++	net->ct.sysctl_no_helper_assign = nf_ct_no_helper_assign;
 +
- 	nf_bridge_pull_encap_header(skb);
- 
- 	nf_bridge = skb->nf_bridge;
-@@ -778,7 +791,9 @@ static unsigned int br_nf_forward_ip(unsigned int hook, struct sk_buff *skb,
- 	else
- 		skb->protocol = htons(ETH_P_IPV6);
- 
--	NF_HOOK(pf, NF_INET_FORWARD, skb, bridge_parent(in), parent,
-+	indev = brnf_find_logical_dev(skb, in);
++	return nf_conntrack_helper_init_sysctl(net);
++}
 +
-+	NF_HOOK(pf, NF_INET_FORWARD, skb, indev, parent,
- 		br_nf_forward_finish);
- 
- 	return NF_STOLEN;
-@@ -850,7 +865,7 @@ static unsigned int br_nf_post_routing(unsigned int hook, struct sk_buff *skb,
- 				       int (*okfn)(struct sk_buff *))
+ void nf_conntrack_helper_fini(void)
  {
- 	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
--	struct net_device *realoutdev = bridge_parent(skb->dev);
-+	struct net_device *realoutdev = brnf_find_logical_dev(skb, out);
- 	u_int8_t pf;
- 
- 	if (!nf_bridge || !(nf_bridge->mask & BRNF_BRIDGED))
+ 	nf_ct_extend_unregister(&helper_extend);
+ 	nf_ct_free_hashtable(nf_ct_helper_hash, nf_ct_helper_hsize);
+ }
++
++void nf_conntrack_helper_fini_net(struct net *net)
++{
++	nf_conntrack_helper_fini_sysctl(net);
++}
 -- 
-1.7.3.4
+1.7.9.1
 
