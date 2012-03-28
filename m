@@ -1,221 +1,54 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [PATCH v2.1] conntrack: add /proc entry to disable helper by default
-Date: Wed, 28 Mar 2012 15:19:50 +0200
-Message-ID: <1332940790-18337-2-git-send-email-eric@regit.org>
-References: <1332917824-4839-1-git-send-email-eric@regit.org>
- <1332940790-18337-1-git-send-email-eric@regit.org>
-Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
-To: pablo@netfilter.org
+From: akpm@linux-foundation.org
+Subject: [patch 1/1] net/netfilter/nfnetlink_acct.c: use linux/atomic.h
+Date: Wed, 28 Mar 2012 15:10:57 -0700
+Message-ID: <20120328221057.9A6DAA001B@akpm.mtv.corp.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ASCII
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	akpm@linux-foundation.org, kaber@trash.net, pablo@netfilter.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:60344 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757834Ab2C1NU5 (ORCPT
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:52753 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753679Ab2C1WK6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Mar 2012 09:20:57 -0400
-In-Reply-To: <1332940790-18337-1-git-send-email-eric@regit.org>
+	Wed, 28 Mar 2012 18:10:58 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch gives the user different methods to disable
-the attachment of helper to all connections on a given
-port. The idea is to allow the user to choose with the CT target
-the helper assignement he wants to have.
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: net/netfilter/nfnetlink_acct.c: use linux/atomic.h
 
-First method it to use the 'nf_conntrack_helper' option on the
-nf_conntrack module and set it to 0. As this is a constraint to do
-this at the time of the loading, a /proc entry is also available.
-Setting sys/net/netfilter/nf_conntrack_auto_assign_helper to 0 will
-disable the automatic assignement of the helper.
+There's no known problem here, but this is one of only two non-arch files
+in the kernel which use asm/atomic.h instead of linux/atomic.h.
+
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
- include/net/netfilter/nf_conntrack_helper.h |    3 +
- include/net/netns/conntrack.h               |    2 +
- net/netfilter/nf_conntrack_core.c           |    6 ++
- net/netfilter/nf_conntrack_helper.c         |   82 ++++++++++++++++++++++++++-
- 4 files changed, 92 insertions(+), 1 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index 5767dc2..a1f9955 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -63,6 +63,9 @@ static inline struct nf_conn_help *nfct_help(const struct nf_conn *ct)
- extern int nf_conntrack_helper_init(void);
- extern void nf_conntrack_helper_fini(void);
- 
-+extern int nf_conntrack_helper_init_net(struct net *net);
-+extern void nf_conntrack_helper_fini_net(struct net *net);
-+
- extern int nf_conntrack_broadcast_help(struct sk_buff *skb,
- 				       unsigned int protoff,
- 				       struct nf_conn *ct,
-diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
-index 7a911ec..7e21aec 100644
---- a/include/net/netns/conntrack.h
-+++ b/include/net/netns/conntrack.h
-@@ -26,11 +26,13 @@ struct netns_ct {
- 	int			sysctl_tstamp;
- 	int			sysctl_checksum;
- 	unsigned int		sysctl_log_invalid; /* Log invalid packets */
-+	int			sysctl_auto_assign_helper;
- #ifdef CONFIG_SYSCTL
- 	struct ctl_table_header	*sysctl_header;
- 	struct ctl_table_header	*acct_sysctl_header;
- 	struct ctl_table_header	*tstamp_sysctl_header;
- 	struct ctl_table_header	*event_sysctl_header;
-+	struct ctl_table_header	*helper_sysctl_header;
- #endif
- 	char			*slabname;
- };
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index cbdb754..b30d845 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1357,6 +1357,7 @@ static void nf_conntrack_cleanup_net(struct net *net)
- 	nf_conntrack_tstamp_fini(net);
- 	nf_conntrack_acct_fini(net);
- 	nf_conntrack_expect_fini(net);
-+	nf_conntrack_helper_fini_net(net);
- 	kmem_cache_destroy(net->ct.nf_conntrack_cachep);
- 	kfree(net->ct.slabname);
- 	free_percpu(net->ct.stat);
-@@ -1587,9 +1588,14 @@ static int nf_conntrack_init_net(struct net *net)
- 	ret = nf_conntrack_timeout_init(net);
- 	if (ret < 0)
- 		goto err_timeout;
-+	ret = nf_conntrack_helper_init_net(net);
-+	if (ret < 0)
-+		goto err_helper;
- 
- 	return 0;
- 
-+err_helper:
-+	nf_conntrack_helper_fini_net(net);
- err_timeout:
- 	nf_conntrack_timeout_fini(net);
- err_ecache:
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 436b7cb..d27252e 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -34,6 +34,67 @@ static struct hlist_head *nf_ct_helper_hash __read_mostly;
- static unsigned int nf_ct_helper_hsize __read_mostly;
- static unsigned int nf_ct_helper_count __read_mostly;
- 
-+static bool nf_ct_auto_assign_helper __read_mostly = 1;
-+module_param_named(nf_conntrack_helper, nf_ct_auto_assign_helper, bool, 0644);
-+MODULE_PARM_DESC(nf_conntrack_helper, "Assign helper to connection based on port (default 1)");
-+
-+#ifdef CONFIG_SYSCTL
-+static struct ctl_table helper_sysctl_table[] = {
-+	{
-+		.procname	= "nf_conntrack_auto_assign_helper",
-+		.data		= &init_net.ct.sysctl_auto_assign_helper,
-+		.maxlen		= sizeof(unsigned int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec,
-+	},
-+	{}
-+};
-+
-+static int nf_conntrack_helper_init_sysctl(struct net *net)
-+{
-+	struct ctl_table *table;
-+
-+	table = kmemdup(helper_sysctl_table, sizeof(helper_sysctl_table),
-+			GFP_KERNEL);
-+	if (!table)
-+		goto out;
-+
-+	table[0].data = &net->ct.sysctl_auto_assign_helper;
-+
-+	net->ct.helper_sysctl_header = register_net_sysctl_table(net,
-+			nf_net_netfilter_sysctl_path, table);
-+	if (!net->ct.helper_sysctl_header) {
-+		printk(KERN_ERR "nf_conntrack_helper: can't register to sysctl.\n");
-+		goto out_register;
-+	}
-+	return 0;
-+
-+out_register:
-+	kfree(table);
-+out:
-+	return -ENOMEM;
-+}
-+
-+static void nf_conntrack_helper_fini_sysctl(struct net *net)
-+{
-+	struct ctl_table *table;
-+
-+	table = net->ct.helper_sysctl_header->ctl_table_arg;
-+	unregister_net_sysctl_table(net->ct.helper_sysctl_header);
-+	kfree(table);
-+}
-+#else
-+static int nf_conntrack_helper_init_sysctl(struct net *net)
-+{
-+	return 0;
-+}
-+
-+static void nf_conntrack_helper_fini_sysctl(struct net *net)
-+{
-+}
-+#endif /* CONFIG_SYSCTL */
-+
-+
- 
- /* Stupid hash, but collision free for the default registrations of the
-  * helpers currently in the kernel. */
-@@ -118,6 +179,7 @@ int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
- {
- 	struct nf_conntrack_helper *helper = NULL;
- 	struct nf_conn_help *help;
-+	struct net *net = nf_ct_net(ct);
- 	int ret = 0;
- 
- 	if (tmpl != NULL) {
-@@ -127,8 +189,10 @@ int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
- 	}
- 
- 	help = nfct_help(ct);
--	if (helper == NULL)
-+
-+	if (net->ct.sysctl_auto_assign_helper && helper == NULL)
- 		helper = __nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
-+
- 	if (helper == NULL) {
- 		if (help)
- 			RCU_INIT_POINTER(help->helper, NULL);
-@@ -324,6 +388,10 @@ int nf_conntrack_helper_init(void)
- 	if (!nf_ct_helper_hash)
- 		return -ENOMEM;
- 
-+	printk(KERN_INFO "nf_conntrack: automatic assignation of helper to"
-+	       " connection will be disabled soon. Set nf_conntrack_helper"
-+	       " option to 1 to keep old behavior.\n");
-+
- 	err = nf_ct_extend_register(&helper_extend);
- 	if (err < 0)
- 		goto err1;
-@@ -335,8 +403,20 @@ err1:
- 	return err;
- }
- 
-+int nf_conntrack_helper_init_net(struct net *net)
-+{
-+	net->ct.sysctl_auto_assign_helper = nf_ct_auto_assign_helper;
-+
-+	return nf_conntrack_helper_init_sysctl(net);
-+}
-+
- void nf_conntrack_helper_fini(void)
- {
- 	nf_ct_extend_unregister(&helper_extend);
- 	nf_ct_free_hashtable(nf_ct_helper_hash, nf_ct_helper_hsize);
- }
-+
-+void nf_conntrack_helper_fini_net(struct net *net)
-+{
-+	nf_conntrack_helper_fini_sysctl(net);
-+}
--- 
-1.7.9.1
+ net/netfilter/nfnetlink_acct.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff -puN net/netfilter/nfnetlink_acct.c~net-netfilter-nfnetlink_acctc-use-linux-atomich net/netfilter/nfnetlink_acct.c
+--- a/net/netfilter/nfnetlink_acct.c~net-netfilter-nfnetlink_acctc-use-linux-atomich
++++ a/net/netfilter/nfnetlink_acct.c
+@@ -10,6 +10,7 @@
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/skbuff.h>
++#include <linux/atomic.h>
+ #include <linux/netlink.h>
+ #include <linux/rculist.h>
+ #include <linux/slab.h>
+@@ -17,7 +18,6 @@
+ #include <linux/errno.h>
+ #include <net/netlink.h>
+ #include <net/sock.h>
+-#include <asm/atomic.h>
+ 
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nfnetlink.h>
+_
