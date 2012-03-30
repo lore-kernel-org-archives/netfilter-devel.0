@@ -1,54 +1,50 @@
-From: akpm@linux-foundation.org
-Subject: [patch 1/1] net/netfilter/nfnetlink_acct.c: use linux/atomic.h
-Date: Wed, 28 Mar 2012 15:10:57 -0700
-Message-ID: <20120328221057.9A6DAA001B@akpm.mtv.corp.google.com>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
+Subject: Re: ipset nomatch not showing
+Date: Fri, 30 Mar 2012 17:09:39 +0100
+Message-ID: <4F75DAC3.8050903@googlemail.com>
+References: <4F6C7368.3040905@googlemail.com> <alpine.DEB.2.00.1203232057030.20864@blackhole.kfki.hu> <4F6CD7DA.1080301@googlemail.com> <alpine.DEB.2.00.1203261055350.24242@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ASCII
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	akpm@linux-foundation.org, kaber@trash.net, pablo@netfilter.org
-To: davem@davemloft.net
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:52753 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753679Ab2C1WK6 (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:50776 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761065Ab2C3QJu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Mar 2012 18:10:58 -0400
+	Fri, 30 Mar 2012 12:09:50 -0400
+Received: by wgbdr13 with SMTP id dr13so743265wgb.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Mar 2012 09:09:49 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1203261055350.24242@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: net/netfilter/nfnetlink_acct.c: use linux/atomic.h
 
-There's no known problem here, but this is one of only two non-arch files
-in the kernel which use asm/atomic.h instead of linux/atomic.h.
+> Could you send me then the patch?
+>   
+OK, I am posting this for future reference - as it turned out, for some 
+reason the method I used to compile/build the kernel modules which form 
+part of ipset was not up to scratch ("cp -al" has a lot to answer for!) 
+and, apparently, 2 vital files/patches were missed: 
+kernel/include/linux/netfilter/ipset/ip_set_ahash.h as well as a hunk in 
+net/netfilter/ipset/pfxlen.c.
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: "David S. Miller" <davem@davemloft.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+The kernel compilation miraculously succeeded, but I was not able to use 
+the nomatch option, until I fixed the error thanks to Jozsef's help and 
+assistance.
 
- net/netfilter/nfnetlink_acct.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+-bash-4.1# ipset a test-net 10.1.2.7 timeout 0 nomatch
+-bash-4.1# ipset l test-net
+Name: test-net
+Type: hash:net
+Header: family inet hashsize 64 maxelem 5 timeout 0
+Size in memory: 924
+References: 18
+Members:
+10.1.2.7 timeout 0 nomatch
+10.1.2.0/24 timeout 0
+-bash-4.1# ipset t test-net 10.1.2.7
+10.1.2.7 is NOT in set test-net.
 
-diff -puN net/netfilter/nfnetlink_acct.c~net-netfilter-nfnetlink_acctc-use-linux-atomich net/netfilter/nfnetlink_acct.c
---- a/net/netfilter/nfnetlink_acct.c~net-netfilter-nfnetlink_acctc-use-linux-atomich
-+++ a/net/netfilter/nfnetlink_acct.c
-@@ -10,6 +10,7 @@
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/skbuff.h>
-+#include <linux/atomic.h>
- #include <linux/netlink.h>
- #include <linux/rculist.h>
- #include <linux/slab.h>
-@@ -17,7 +18,6 @@
- #include <linux/errno.h>
- #include <net/netlink.h>
- #include <net/sock.h>
--#include <asm/atomic.h>
- 
- #include <linux/netfilter.h>
- #include <linux/netfilter/nfnetlink.h>
-_
+So, it all works now!
