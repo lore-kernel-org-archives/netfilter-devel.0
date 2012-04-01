@@ -1,45 +1,36 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: `iptables -m tcp --syn` doesn't do what the man says
-Date: Sun, 01 Apr 2012 19:53:31 +0200
-Message-ID: <1333302811.2325.5397.camel@edumazet-glaptop>
-References: <4F761E8E.9000708@gmail.com>  <20120401174240.GA11306@1984>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [patch 1/1] net/netfilter/nfnetlink_acct.c: use linux/atomic.h
+Date: Sun, 01 Apr 2012 16:17:03 -0400 (EDT)
+Message-ID: <20120401.161703.814745867737769975.davem@davemloft.net>
+References: <20120328221057.9A6DAA001B@akpm.mtv.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Artyom Gavrichenkov <ximaera@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	kaber@trash.net, pablo@netfilter.org
+To: akpm@linux-foundation.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:49599 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751769Ab2DARxf (ORCPT
+Received: from shards.monkeyblade.net ([198.137.202.13]:44447 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752448Ab2DAUTO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Apr 2012 13:53:35 -0400
-Received: by wejx9 with SMTP id x9so1297207wej.19
-        for <netfilter-devel@vger.kernel.org>; Sun, 01 Apr 2012 10:53:34 -0700 (PDT)
-In-Reply-To: <20120401174240.GA11306@1984>
+	Sun, 1 Apr 2012 16:19:14 -0400
+In-Reply-To: <20120328221057.9A6DAA001B@akpm.mtv.corp.google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, 2012-04-01 at 19:42 +0200, Pablo Neira Ayuso wrote:
+From: akpm@linux-foundation.org
+Date: Wed, 28 Mar 2012 15:10:57 -0700
 
-> I understand your concern, but the info in the manpage is correct:
-> basically, it can be extracted from it that --syn will not match
-> SYN+FIN packets.
+> From: Andrew Morton <akpm@linux-foundation.org>
+> Subject: net/netfilter/nfnetlink_acct.c: use linux/atomic.h
 > 
-> As you point in your patch, you have to use:
+> There's no known problem here, but this is one of only two non-arch files
+> in the kernel which use asm/atomic.h instead of linux/atomic.h.
 > 
-> --tcp-flags  SYN,RST,ACK  SYN
-> 
-> in your rule-set for the situation that you describe.
-> 
-> Changing the default behaviour of --syn to catch this case is
-> delicate, I don't want to break backward compatibility.
+> Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Cc: Patrick McHardy <kaber@trash.net>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-Agreed.
-
-With TCP Fast Open, it might be possible to send a SYN+FIN+cookies+DATA
-in a single frame.
-
-
-
+Applied.
