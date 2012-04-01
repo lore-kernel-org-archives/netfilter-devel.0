@@ -1,36 +1,27 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [patch 1/1] net/netfilter/nfnetlink_acct.c: use linux/atomic.h
-Date: Sun, 01 Apr 2012 16:17:03 -0400 (EDT)
-Message-ID: <20120401.161703.814745867737769975.davem@davemloft.net>
-References: <20120328221057.9A6DAA001B@akpm.mtv.corp.google.com>
+From: alan furlong <alan250985@gmail.com>
+Subject: Netfilter + TSO/GSO
+Date: Sun, 1 Apr 2012 14:56:41 -0700
+Message-ID: <CAAqR2YaeJxHfE4pMbSEntkPhoHk_0cBsDtN++chG4zcz305iwA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	kaber@trash.net, pablo@netfilter.org
-To: akpm@linux-foundation.org
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:44447 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752448Ab2DAUTO (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:34271 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752713Ab2DAV4m (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Apr 2012 16:19:14 -0400
-In-Reply-To: <20120328221057.9A6DAA001B@akpm.mtv.corp.google.com>
+	Sun, 1 Apr 2012 17:56:42 -0400
+Received: by iagz16 with SMTP id z16so3311509iag.19
+        for <netfilter-devel@vger.kernel.org>; Sun, 01 Apr 2012 14:56:42 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: akpm@linux-foundation.org
-Date: Wed, 28 Mar 2012 15:10:57 -0700
+Hi,
 
-> From: Andrew Morton <akpm@linux-foundation.org>
-> Subject: net/netfilter/nfnetlink_acct.c: use linux/atomic.h
-> 
-> There's no known problem here, but this is one of only two non-arch files
-> in the kernel which use asm/atomic.h instead of linux/atomic.h.
-> 
-> Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> Cc: Patrick McHardy <kaber@trash.net>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Are there any guidelines on how to implement netfilter hooks when TCP
+or Generic Segmentation offloading is enabled and is supported by the
+NIC? I'm trying to implement pre-routing netfilter hook that intends
+to change the IP header and payload.
 
-Applied.
+Thanks
+- Alan F.
