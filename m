@@ -1,42 +1,48 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH] netfilter: don't scale the size of the window up twice
-Date: Mon,  2 Apr 2012 11:25:06 +0800
-Message-ID: <1333337106-8279-1-git-send-email-xiaosuo@gmail.com>
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Changli Gao <xiaosuo@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net: check the length of the data before dereferencing
+ it
+Date: Sun, 01 Apr 2012 23:29:42 -0400 (EDT)
+Message-ID: <20120401.232942.1829187970291547571.davem@davemloft.net>
+References: <1333336250-4110-1-git-send-email-xiaosuo@gmail.com>
+	<1333336773.2325.6531.camel@edumazet-glaptop>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: xiaosuo@gmail.com, kaber@trash.net, pablo@netfilter.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: eric.dumazet@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:33328 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754034Ab2DBD1o (ORCPT
+Received: from shards.monkeyblade.net ([198.137.202.13]:47197 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754259Ab2DBDbx (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Apr 2012 23:27:44 -0400
+	Sun, 1 Apr 2012 23:31:53 -0400
+In-Reply-To: <1333336773.2325.6531.camel@edumazet-glaptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-For a picked up connection, the window win is scaled twice: one is by the
-initialization code, and the other is by the sender updating code.
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Date: Mon, 02 Apr 2012 05:19:33 +0200
 
-I use the temporary variable swin instead of modifying the variable win.
+>> @@ -3845,6 +3845,8 @@ void tcp_parse_options(const struct sk_buff *skb, struct tcp_options_received *o
+>>  			length--;
+>>  			continue;
+>>  		default:
+>> +			if (length < 2)
+>> +				return;
+>>  			opsize = *ptr++;
+>>  			if (opsize < 2) /* "silly options" */
+>>  				return;
+> 
+> Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
----
- net/netfilter/nf_conntrack_proto_tcp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 361eade..0d07a1d 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -584,8 +584,8 @@ static bool tcp_in_window(const struct nf_conn *ct,
- 			 * Let's try to use the data from the packet.
- 			 */
- 			sender->td_end = end;
--			win <<= sender->td_scale;
--			sender->td_maxwin = (win == 0 ? 1 : win);
-+			swin = win << sender->td_scale;
-+			sender->td_maxwin = (swin == 0 ? 1 : swin);
- 			sender->td_maxend = end + sender->td_maxwin;
- 			/*
- 			 * We haven't seen traffic in the other direction yet
+Tag Eric, you're it.
+
+You ACK'd this patch, so you get to show how this is actually able
+to cause some kind of problem.
+
+I assert that this is adding a useless test, that doesn't fix any kind
+of possible crash or misbehavior.  If length == 1 at the default:, the
+code will absolutely do the right thing.
+
+Prove me wrong.
