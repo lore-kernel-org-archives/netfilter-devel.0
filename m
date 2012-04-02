@@ -1,48 +1,52 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: check the length of the data before dereferencing
- it
-Date: Sun, 01 Apr 2012 23:29:42 -0400 (EDT)
-Message-ID: <20120401.232942.1829187970291547571.davem@davemloft.net>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH] net: check the length of the data before dereferencing it
+Date: Mon, 2 Apr 2012 11:45:05 +0800
+Message-ID: <CABa6K_HfWckb=sv7oQatv2ZJm3EKJE0mutQQ-OiddXiR6E7eHg@mail.gmail.com>
 References: <1333336250-4110-1-git-send-email-xiaosuo@gmail.com>
-	<1333336773.2325.6531.camel@edumazet-glaptop>
+ <1333336773.2325.6531.camel@edumazet-glaptop> <20120401.232942.1829187970291547571.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: xiaosuo@gmail.com, kaber@trash.net, pablo@netfilter.org,
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: eric.dumazet@gmail.com, kaber@trash.net, pablo@netfilter.org,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: eric.dumazet@gmail.com
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:47197 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754259Ab2DBDbx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Apr 2012 23:31:53 -0400
-In-Reply-To: <1333336773.2325.6531.camel@edumazet-glaptop>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:49009 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751070Ab2DBDp1 convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 1 Apr 2012 23:45:27 -0400
+In-Reply-To: <20120401.232942.1829187970291547571.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Date: Mon, 02 Apr 2012 05:19:33 +0200
+On Mon, Apr 2, 2012 at 11:29 AM, David Miller <davem@davemloft.net> wro=
+te:
+>
+> Tag Eric, you're it.
+>
+> You ACK'd this patch, so you get to show how this is actually able
+> to cause some kind of problem.
+>
+> I assert that this is adding a useless test, that doesn't fix any kin=
+d
+> of possible crash or misbehavior. =A0If length =3D=3D 1 at the defaul=
+t:, the
+> code will absolutely do the right thing.
+>
+> Prove me wrong.
 
->> @@ -3845,6 +3845,8 @@ void tcp_parse_options(const struct sk_buff *skb, struct tcp_options_received *o
->>  			length--;
->>  			continue;
->>  		default:
->> +			if (length < 2)
->> +				return;
->>  			opsize = *ptr++;
->>  			if (opsize < 2) /* "silly options" */
->>  				return;
-> 
-> Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
+Thinking about a malformed tcp segment, which has no data but silly
+options, and whose last byte is neither TCPOPT_EOL or TCPOPT_NOP, we
+will try to dereference one byte over the boundary when parsing the
+options. I know we have skb_shared_info at the end and it won't cause
+any crash, but should we rely on this fact?
 
-Tag Eric, you're it.
-
-You ACK'd this patch, so you get to show how this is actually able
-to cause some kind of problem.
-
-I assert that this is adding a useless test, that doesn't fix any kind
-of possible crash or misbehavior.  If length == 1 at the default:, the
-code will absolutely do the right thing.
-
-Prove me wrong.
+--=20
+Regards,
+Changli Gao(xiaosuo@gmail.com)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
