@@ -1,27 +1,34 @@
-From: alan furlong <alan250985@gmail.com>
-Subject: Netfilter + TSO/GSO
-Date: Sun, 1 Apr 2012 14:56:41 -0700
-Message-ID: <CAAqR2YaeJxHfE4pMbSEntkPhoHk_0cBsDtN++chG4zcz305iwA@mail.gmail.com>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH] netfilter: check the length of the data before
+ dereferencing it
+Date: Mon, 2 Apr 2012 11:05:21 +0800
+Message-ID: <CABa6K_GZJ-uCsfz63O9t_dZ2o9DvYHHraW297esOSqZn2Ejnzg@mail.gmail.com>
+References: <1333290170-26898-1-git-send-email-xiaosuo@gmail.com>
+ <20120401164325.GB10861@1984> <1333299322.2325.5277.camel@edumazet-glaptop> <20120401170226.GA11101@1984>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:34271 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752713Ab2DAV4m (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:45914 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753994Ab2DBDFn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Apr 2012 17:56:42 -0400
-Received: by iagz16 with SMTP id z16so3311509iag.19
-        for <netfilter-devel@vger.kernel.org>; Sun, 01 Apr 2012 14:56:42 -0700 (PDT)
+	Sun, 1 Apr 2012 23:05:43 -0400
+In-Reply-To: <20120401170226.GA11101@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Mon, Apr 2, 2012 at 1:02 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>
+> Indeed, then I think we need a similar patch for tcp_parse_options()
+> in net/ipv4/tcp_input.c
 
-Are there any guidelines on how to implement netfilter hooks when TCP
-or Generic Segmentation offloading is enabled and is supported by the
-NIC? I'm trying to implement pre-routing netfilter hook that intends
-to change the IP header and payload.
+I'll send a separated patch for it. Thanks.
 
-Thanks
-- Alan F.
+-- 
+Regards,
+Changli Gao(xiaosuo@gmail.com)
