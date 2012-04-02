@@ -1,49 +1,65 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] net: check the length of the data before dereferencing
- it
-Date: Mon, 02 Apr 2012 06:54:27 +0200
-Message-ID: <1333342467.2325.6739.camel@edumazet-glaptop>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH] net: check the length of the data before dereferencing it
+Date: Mon, 2 Apr 2012 14:27:27 +0800
+Message-ID: <CABa6K_GUMGC-cWPJyG_EcX_J3+w3cq4eZhuYqZYFgbcHHaXCNQ@mail.gmail.com>
 References: <1333336250-4110-1-git-send-email-xiaosuo@gmail.com>
-	 <1333336773.2325.6531.camel@edumazet-glaptop>
-	 <20120401.232942.1829187970291547571.davem@davemloft.net>
-	 <CABa6K_HfWckb=sv7oQatv2ZJm3EKJE0mutQQ-OiddXiR6E7eHg@mail.gmail.com>
-	 <1333338797.2325.6610.camel@edumazet-glaptop>
-	 <CABa6K_Hc7ZVVR6XvhEXKHNf_YNnrMNQLBTbxksvAJwAV9fer6w@mail.gmail.com>
+ <1333336773.2325.6531.camel@edumazet-glaptop> <20120401.232942.1829187970291547571.davem@davemloft.net>
+ <CABa6K_HfWckb=sv7oQatv2ZJm3EKJE0mutQQ-OiddXiR6E7eHg@mail.gmail.com>
+ <1333338797.2325.6610.camel@edumazet-glaptop> <CABa6K_Hc7ZVVR6XvhEXKHNf_YNnrMNQLBTbxksvAJwAV9fer6w@mail.gmail.com>
+ <1333342467.2325.6739.camel@edumazet-glaptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Cc: David Miller <davem@davemloft.net>, kaber@trash.net,
 	pablo@netfilter.org, netfilter-devel@vger.kernel.org,
 	netdev@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:37624 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750911Ab2DBEyb (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:45091 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752183Ab2DBG1t (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Apr 2012 00:54:31 -0400
-In-Reply-To: <CABa6K_Hc7ZVVR6XvhEXKHNf_YNnrMNQLBTbxksvAJwAV9fer6w@mail.gmail.com>
+	Mon, 2 Apr 2012 02:27:49 -0400
+In-Reply-To: <1333342467.2325.6739.camel@edumazet-glaptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 2012-04-02 at 12:47 +0800, Changli Gao wrote:
+On Mon, Apr 2, 2012 at 12:54 PM, Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> On Mon, 2012-04-02 at 12:47 +0800, Changli Gao wrote:
+>
+>> Got it. Thanks. FYI, the tcp options are copied to the stack before
+>> being parsed.
+>>
+>
+> What do you mean ?
+>
+> code looks like :
+>
+> const struct tcphdr *th = tcp_hdr(skb);
+> int length = (th->doff * 4) - sizeof(struct tcphdr);
+>
+> ptr = (const unsigned char *)(th + 1);
+>
+>
+>
+> Therefore ptr points somewhere in skb->head ...
+>
+>
+>
 
-> Got it. Thanks. FYI, the tcp options are copied to the stack before
-> being parsed.
-> 
+Oh, sorry. I forgot to add the condition when I wrote it down. I mean
+the code in netfilter.
 
-What do you mean ?
+        unsigned char buff[(15 * 4) - sizeof(struct tcphdr)];
+        const unsigned char *ptr;
+        int length = (tcph->doff*4) - sizeof(struct tcphdr);
 
-code looks like :
+        if (!length)
+                return;
 
-const struct tcphdr *th = tcp_hdr(skb);
-int length = (th->doff * 4) - sizeof(struct tcphdr);
+        ptr = skb_header_pointer(skb, dataoff + sizeof(struct tcphdr),
+                                 length, buff);
+        BUG_ON(ptr == NULL);
 
-ptr = (const unsigned char *)(th + 1);
-
-
-
-Therefore ptr points somewhere in skb->head ... 
-
-
-
+-- 
+Regards,
+Changli Gao(xiaosuo@gmail.com)
