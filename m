@@ -1,34 +1,34 @@
 From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH] netfilter: check the length of the data before
- dereferencing it
-Date: Mon, 2 Apr 2012 11:05:21 +0800
-Message-ID: <CABa6K_GZJ-uCsfz63O9t_dZ2o9DvYHHraW297esOSqZn2Ejnzg@mail.gmail.com>
-References: <1333290170-26898-1-git-send-email-xiaosuo@gmail.com>
- <20120401164325.GB10861@1984> <1333299322.2325.5277.camel@edumazet-glaptop> <20120401170226.GA11101@1984>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:45914 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753994Ab2DBDFn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Apr 2012 23:05:43 -0400
-In-Reply-To: <20120401170226.GA11101@1984>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: [PATCH] net: check the length of the data before dereferencing it
+Date: Mon,  2 Apr 2012 11:10:50 +0800
+Message-ID: <1333336250-4110-1-git-send-email-xiaosuo@gmail.com>
+Cc: Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Changli Gao <xiaosuo@gmail.com>
+To: "David S. Miller" <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Apr 2, 2012 at 1:02 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->
-> Indeed, then I think we need a similar patch for tcp_parse_options()
-> in net/ipv4/tcp_input.c
+We should check the length of the data before dereferencing it when parsing
+the TCP options.
 
-I'll send a separated patch for it. Thanks.
-
--- 
-Regards,
-Changli Gao(xiaosuo@gmail.com)
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+---
+ net/ipv4/tcp_input.c |    2 ++
+ 1 file changed, 2 insertions(+)
+diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
+index e886e2f..5099f08 100644
+--- a/net/ipv4/tcp_input.c
++++ b/net/ipv4/tcp_input.c
+@@ -3845,6 +3845,8 @@ void tcp_parse_options(const struct sk_buff *skb, struct tcp_options_received *o
+ 			length--;
+ 			continue;
+ 		default:
++			if (length < 2)
++				return;
+ 			opsize = *ptr++;
+ 			if (opsize < 2) /* "silly options" */
+ 				return;
