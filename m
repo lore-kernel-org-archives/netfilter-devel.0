@@ -1,39 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: check the length of the data before dereferencing
- it
-Date: Sun, 01 Apr 2012 23:19:54 -0400 (EDT)
-Message-ID: <20120401.231954.992963391252108626.davem@davemloft.net>
-References: <1333336250-4110-1-git-send-email-xiaosuo@gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, pablo@netfilter.org, eric.dumazet@gmail.com,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: xiaosuo@gmail.com
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: [PATCH] netfilter: don't scale the size of the window up twice
+Date: Mon,  2 Apr 2012 11:25:06 +0800
+Message-ID: <1333337106-8279-1-git-send-email-xiaosuo@gmail.com>
+Cc: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Changli Gao <xiaosuo@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:47137 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754204Ab2DBDWD (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:33328 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754034Ab2DBD1o (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Apr 2012 23:22:03 -0400
-In-Reply-To: <1333336250-4110-1-git-send-email-xiaosuo@gmail.com>
+	Sun, 1 Apr 2012 23:27:44 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Changli Gao <xiaosuo@gmail.com>
-Date: Mon,  2 Apr 2012 11:10:50 +0800
+For a picked up connection, the window win is scaled twice: one is by the
+initialization code, and the other is by the sender updating code.
 
-> We should check the length of the data before dereferencing it when parsing
-> the TCP options.
-> 
-> Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+I use the temporary variable swin instead of modifying the variable win.
 
-Proper Subject prefix here would be "tcp: ", not "net: "
-and maybe adjust the subject line to also mention the
-specific function being fixed, which in this case would
-be tcp_parse_options().  So:
-
-	tcp: Validate length of data before dereference in tcp_parse_options().
-
-and then you can make the commit message just be your signoff.
-
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+---
+ net/netfilter/nf_conntrack_proto_tcp.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 361eade..0d07a1d 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -584,8 +584,8 @@ static bool tcp_in_window(const struct nf_conn *ct,
+ 			 * Let's try to use the data from the packet.
+ 			 */
+ 			sender->td_end = end;
+-			win <<= sender->td_scale;
+-			sender->td_maxwin = (win == 0 ? 1 : win);
++			swin = win << sender->td_scale;
++			sender->td_maxwin = (swin == 0 ? 1 : swin);
+ 			sender->td_maxend = end + sender->td_maxwin;
+ 			/*
+ 			 * We haven't seen traffic in the other direction yet
