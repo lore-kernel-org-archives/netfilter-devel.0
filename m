@@ -1,62 +1,171 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: RFC: bridge netfilter vlan device name resolution
-Date: Mon, 2 Apr 2012 11:25:16 +0200
-Message-ID: <20120402092516.GA24416@Chamillionaire.breakpoint.cc>
-References: <20120326202124.GA15638@Chamillionaire.breakpoint.cc>
- <4F71FA0A.9010503@pandora.be>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 5/9] ipvs: use adaptive pause in master thread
+Date: Mon, 2 Apr 2012 13:11:45 +0200
+Message-ID: <20120402111145.GA15181@1984>
+References: <1332320185-27157-1-git-send-email-horms@verge.net.au>
+ <1332320185-27157-6-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Bart De Schuymer <bdschuym@pandora.be>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:35988 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751056Ab2DBJZR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Apr 2012 05:25:17 -0400
+Received: from mail.us.es ([193.147.175.20]:53153 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751827Ab2DBLMD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 2 Apr 2012 07:12:03 -0400
 Content-Disposition: inline
-In-Reply-To: <4F71FA0A.9010503@pandora.be>
+In-Reply-To: <1332320185-27157-6-git-send-email-horms@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Bart De Schuymer <bdschuym@pandora.be> wrote:
-> Op 26/03/2012 22:21, Florian Westphal schreef:
-> > When using a bridge with a management vlan on top (e.g. br0.1), you
-> > cannot use iptables to match the input vlan device, because the vlan
-> > device isn't resolved yet, i.e.  "-i br0" matches, while "-i br0.1"
-> > does not, unless "net.bridge.bridge-nf-filter-vlan-tagged" (or
-> > "net.bridge.bridge-nf-call-iptables") is turned off.
-> >
-> > This happens because bridge netfilter runs before
-> > vlan device lookup, so skb->dev is set to the bridge; not
-> > the vlan device on top of the bridge.
-> >
-> > I'd like to use iptables -t nat ... -j REDIRECT only for one particular vlan.
-> >
-> > Two possible solutions come to mind:
-> >
-> > - #1, add the vlan tag to nf_bridge info for use with physdev match:
-> >    "... -m physdev --vlan-id 42 ..."
-> > - #2, change bridge netfilter so that it passes in the vlan instead of
-> >    the bridge as input device.
-> >
-> > Any other ideas on how to handle this?
+Hi Simon et al.
+
+On Wed, Mar 21, 2012 at 05:56:20PM +0900, Simon Horman wrote:
+> From: Julian Anastasov <ja@ssi.bg>
 > 
-> I don't like approach #2: it will break existing firewall configurations 
-> and I really don't see a reason why we would change the network device 
-> to a non-bridge device (br0.1 isn't a bridge). Approach #1 can be 
-> achieved without code changes with the nfmark field as shown below.
+> 	High rate of sync messages in master can lead to
+> overflowing the socket buffer and dropping the messages.
+> Instead of using fixed pause try to adapt to the sync
+> rate, so that we do not wakeup too often while at the same
+> time staying below the socket buffer limit.
+
+I see. You are avoiding the congestion in the socket queue by putting
+the pressure in your sync_buff queue  (I don't find any limit in
+the code for the amount of memory that it may consume btw).
+
+Please, correct me if I'm wrong, but from this I can se you're
+assuming that there's always room in the syn_buff queue to store
+messages. This is valid if the high peak of traffic lasts for short
+time. However, if it lasts long, the worker thread may not be able to
+consume all the messages in time under high stress situation that
+lasts long and the sync_buffer may keep growing more and more.
+
+Moreover, the backup may receive sync messages talking about old
+states that are not useful anymore to recover the load-balancing in
+case of failover.
+
+One more concern, please see below.
+
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> Tested-by: Aleksey Chudov <aleksey.chudov@gmail.com>
+> Signed-off-by: Simon Horman <horms@verge.net.au>
+> ---
+>  net/netfilter/ipvs/ip_vs_sync.c |   60 +++++++++++++++++++++++++++++---------
+>  1 files changed, 46 insertions(+), 14 deletions(-)
 > 
-> You can filter on the vlan id in iptables by using the nfmark field 
-> intelligently, see e.g.
-> http://ebtables.sourceforge.net/examples/basic.html#ex_network_separation
+> diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
+> index 0e36679..9201c43 100644
+> --- a/net/netfilter/ipvs/ip_vs_sync.c
+> +++ b/net/netfilter/ipvs/ip_vs_sync.c
+> @@ -1392,18 +1392,22 @@ ip_vs_send_async(struct socket *sock, const char *buffer, const size_t length)
+>  	return len;
+>  }
+>  
+> -static void
+> +static int
+>  ip_vs_send_sync_msg(struct socket *sock, struct ip_vs_sync_mesg *msg)
+>  {
+>  	int msize;
+> +	int ret;
+>  
+>  	msize = msg->size;
+>  
+>  	/* Put size in network byte order */
+>  	msg->size = htons(msg->size);
+>  
+> -	if (ip_vs_send_async(sock, (char *)msg, msize) != msize)
+> -		pr_err("ip_vs_send_async error\n");
+> +	ret = ip_vs_send_async(sock, (char *)msg, msize);
+> +	if (ret >= 0 || ret == -EAGAIN)
+> +		return ret;
+> +	pr_err("ip_vs_send_async error %d\n", ret);
+> +	return 0;
+>  }
+>  
+>  static int
+> @@ -1428,33 +1432,61 @@ ip_vs_receive(struct socket *sock, char *buffer, const size_t buflen)
+>  	return len;
+>  }
+>  
+> +/* Get next buffer to send */
+> +static inline struct ip_vs_sync_buff *
+> +next_sync_buff(struct netns_ipvs *ipvs)
+> +{
+> +	struct ip_vs_sync_buff *sb;
+> +
+> +	sb = sb_dequeue(ipvs);
+> +	if (sb)
+> +		return sb;
+> +	/* Do not delay entries in buffer for more than 2 seconds */
+> +	return get_curr_sync_buff(ipvs, 2 * HZ);
+> +}
+>  
+>  static int sync_thread_master(void *data)
+>  {
+>  	struct ip_vs_sync_thread_data *tinfo = data;
+>  	struct netns_ipvs *ipvs = net_ipvs(tinfo->net);
+> -	struct ip_vs_sync_buff *sb;
+> +	struct ip_vs_sync_buff *sb = NULL;
+> +	int pause = HZ / 10;
+>  
+>  	pr_info("sync thread started: state = MASTER, mcast_ifn = %s, "
+>  		"syncid = %d\n",
+>  		ipvs->master_mcast_ifn, ipvs->master_syncid);
+>  
+>  	while (!kthread_should_stop()) {
+> -		while ((sb = sb_dequeue(ipvs))) {
+> -			ip_vs_send_sync_msg(tinfo->sock, sb->mesg);
+> -			ip_vs_sync_buff_release(sb);
+> -		}
+> +		int count = 0;
+>  
+> -		/* check if entries stay in ipvs->sync_buff for 2 seconds */
+> -		sb = get_curr_sync_buff(ipvs, 2 * HZ);
+> -		if (sb) {
+> -			ip_vs_send_sync_msg(tinfo->sock, sb->mesg);
+> -			ip_vs_sync_buff_release(sb);
+> +		for (;;) {
+> +			if (!sb) {
+> +				sb = next_sync_buff(ipvs);
+> +				if (!sb)
+> +					break;
+> +			}
+> +			if (ip_vs_send_sync_msg(tinfo->sock, sb->mesg) >= 0 ||
+> +			    pause == 1) {
+> +				ip_vs_sync_buff_release(sb);
+> +				sb = NULL;
+> +				count++;
+> +			} else {
+> +				pause = max(1, (pause >> 1));
+> +				break;
+> +			}
+>  		}
+>  
+> -		schedule_timeout_interruptible(HZ);
+> +		/* Max packets to send at once */
+> +		if (count > 200)
+> +			pause = max(1, (pause - HZ / 20));
+> +		else if (count < 20)
+> +			pause = min(HZ / 4, (pause + HZ / 20));
+> +		schedule_timeout_interruptible(sb ? 1 : pause);
 
-However, the REDIRECT target won't work with vlans on the bridge,
-because skb->dev points to the bridge instead of the vlan, and thus
-the REDIRECT target fails to get the ip address.
+This rate-limits the amount of times the worker is woken up.
 
-Would at least the PRE_ROUTING part of my patch be acceptable to make
-REDIRECT work?
+Still, this seems to me like an ad-hoc congestion solution. There's no
+justification why those numbers has been chosed, eg. why do we assume
+that we're congested if we've reached 200 packets in one single loop?
 
-Thanks,
-Florian
+To me, congestion control is a complicated thing (there is plenty of
+literature for TCP avoid it). I'm not sure how many patches will
+follow after this one to try to improve your congestion control
+solution.
+
+So, my question is, are you sure you want to enter this domain?
+
+IMO, better to stick to some simple solution, ie. just drop messages
+if the worker thread receives a high peak of work, than trying to
+define some sort of rate-limit solution based on assumptions that are
+not generic enough for every setup.
