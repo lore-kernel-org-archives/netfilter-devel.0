@@ -1,55 +1,37 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: RFC: bridge netfilter vlan device name resolution
-Date: Tue, 03 Apr 2012 14:18:12 +0200
-Message-ID: <4F7AEA84.3070004@pandora.be>
-References: <20120326202124.GA15638@Chamillionaire.breakpoint.cc> <4F71FA0A.9010503@pandora.be> <20120402092516.GA24416@Chamillionaire.breakpoint.cc>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: NFQUEUE target with --treat-accept-as-continue?
+Date: Tue, 3 Apr 2012 14:25:34 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1204031424550.15235@frira.zrqbmnf.qr>
+References: <1333202982.55963.YahooMailNeo@web193402.mail.sg3.yahoo.com> <20120401175159.GA11401@1984> <1333336294.99244.YahooMailNeo@web193406.mail.sg3.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Amm Snort <ammdispose-snort@yahoo.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from georges.telenet-ops.be ([195.130.137.68]:38164 "EHLO
-	georges.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751769Ab2DCMSR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 Apr 2012 08:18:17 -0400
-In-Reply-To: <20120402092516.GA24416@Chamillionaire.breakpoint.cc>
+Received: from seven.medozas.de ([188.40.89.202]:45232 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751656Ab2DCMZf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 3 Apr 2012 08:25:35 -0400
+In-Reply-To: <1333336294.99244.YahooMailNeo@web193406.mail.sg3.yahoo.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Op 2/04/2012 11:25, Florian Westphal schreef:
-> Bart De Schuymer<bdschuym@pandora.be>  wrote:
->> I don't like approach #2: it will break existing firewall 
->> configurations and I really don't see a reason why we would change 
->> the network device to a non-bridge device (br0.1 isn't a bridge). 
->> Approach #1 can be achieved without code changes with the nfmark 
->> field as shown below. You can filter on the vlan id in iptables by 
->> using the nfmark field intelligently, see e.g. 
->> http://ebtables.sourceforge.net/examples/basic.html#ex_network_separation 
+
+On Monday 2012-04-02 05:11, Amm Snort wrote:
 >
-> However, the REDIRECT target won't work with vlans on the bridge,
-> because skb->dev points to the bridge instead of the vlan, and thus
-> the REDIRECT target fails to get the ip address.
+>>From man page: (for NFLOG)
+>
+>=C2=A0=C2=A0=C2=A0 Like LOG, this is=C2=A0 a=C2=A0 non-terminating=C2=A0=
+ target, i.e. rule
+>traversal continues at the next rule.
 
-Can't you use the DNAT target instead? If you have multiple vlan devices 
-on top with multiple IP addresses, you can use the nfmark value to 
-determine the destination IP address.
-> Would at least the PRE_ROUTING part of my patch be acceptable to make
-> REDIRECT work?
-
-No, for the same reasons as stated before... What would be acceptable is 
-an extension that allows to specify which input device to give to 
-iptables. Perhaps for your use case, another flag in 
-|/proc/sys/net/bridge/ |that allows turning this feature on (off by 
-default) would be nice. The behaviour should then be like your original 
-idea and not restricted to only the PREROUTING case described above. A 
-name for the flag that comes to mind is |bridge-nf-pass-vlan-input-device.|
-
-Best regards,
-Bart
-
--- 
-Bart De Schuymer
-www.artinalgorithms.be
-
+Traversal continues after a copy of the packet has been queued
+for userspace. It does not mean traversal continues after
+userspace has rendered a verdict.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
