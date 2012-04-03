@@ -1,51 +1,55 @@
-From: pablo@netfilter.org
-Subject: [PATCH 2/3] netfilter: ipset: avoid use of kernel-only types
-Date: Tue,  3 Apr 2012 11:50:57 +0200
-Message-ID: <1333446658-2335-3-git-send-email-pablo@netfilter.org>
-References: <1333446658-2335-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net
-To: netfilter-devel@vger.kernel.org
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: RFC: bridge netfilter vlan device name resolution
+Date: Tue, 03 Apr 2012 14:18:12 +0200
+Message-ID: <4F7AEA84.3070004@pandora.be>
+References: <20120326202124.GA15638@Chamillionaire.breakpoint.cc> <4F71FA0A.9010503@pandora.be> <20120402092516.GA24416@Chamillionaire.breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55630 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753204Ab2DCJvo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 Apr 2012 05:51:44 -0400
-In-Reply-To: <1333446658-2335-1-git-send-email-pablo@netfilter.org>
+Received: from georges.telenet-ops.be ([195.130.137.68]:38164 "EHLO
+	georges.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751769Ab2DCMSR (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 3 Apr 2012 08:18:17 -0400
+In-Reply-To: <20120402092516.GA24416@Chamillionaire.breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jan Engelhardt <jengelh@medozas.de>
+Op 2/04/2012 11:25, Florian Westphal schreef:
+> Bart De Schuymer<bdschuym@pandora.be>  wrote:
+>> I don't like approach #2: it will break existing firewall 
+>> configurations and I really don't see a reason why we would change 
+>> the network device to a non-bridge device (br0.1 isn't a bridge). 
+>> Approach #1 can be achieved without code changes with the nfmark 
+>> field as shown below. You can filter on the vlan id in iptables by 
+>> using the nfmark field intelligently, see e.g. 
+>> http://ebtables.sourceforge.net/examples/basic.html#ex_network_separation 
+>
+> However, the REDIRECT target won't work with vlans on the bridge,
+> because skb->dev points to the bridge instead of the vlan, and thus
+> the REDIRECT target fails to get the ip address.
 
-When using the xt_set.h header in userspace, one will get these gcc
-reports:
+Can't you use the DNAT target instead? If you have multiple vlan devices 
+on top with multiple IP addresses, you can use the nfmark value to 
+determine the destination IP address.
+> Would at least the PRE_ROUTING part of my patch be acceptable to make
+> REDIRECT work?
 
-ipset/ip_set.h:184:1: error: unknown type name "u16"
-In file included from libxt_SET.c:21:0:
-netfilter/xt_set.h:61:2: error: unknown type name "u32"
-netfilter/xt_set.h:62:2: error: unknown type name "u32"
+No, for the same reasons as stated before... What would be acceptable is 
+an extension that allows to specify which input device to give to 
+iptables. Perhaps for your use case, another flag in 
+|/proc/sys/net/bridge/ |that allows turning this feature on (off by 
+default) would be nice. The behaviour should then be like your original 
+idea and not restricted to only the PREROUTING case described above. A 
+name for the flag that comes to mind is |bridge-nf-pass-vlan-input-device.|
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/linux/netfilter/xt_set.h |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Best regards,
+Bart
 
-diff --git a/include/linux/netfilter/xt_set.h b/include/linux/netfilter/xt_set.h
-index c0405ac..e3a9978 100644
---- a/include/linux/netfilter/xt_set.h
-+++ b/include/linux/netfilter/xt_set.h
-@@ -58,8 +58,8 @@ struct xt_set_info_target_v1 {
- struct xt_set_info_target_v2 {
- 	struct xt_set_info add_set;
- 	struct xt_set_info del_set;
--	u32 flags;
--	u32 timeout;
-+	__u32 flags;
-+	__u32 timeout;
- };
- 
- #endif /*_XT_SET_H*/
 -- 
-1.7.2.5
+Bart De Schuymer
+www.artinalgorithms.be
 
