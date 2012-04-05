@@ -1,25 +1,29 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: xtables-addons compile error
-Date: Thu, 05 Apr 2012 12:01:35 +0100
-Message-ID: <4F7D7B8F.3000705@googlemail.com>
-References: <4F7BB331.7000808@googlemail.com> <alpine.LNX.2.01.1204050724100.6040@frira.zrqbmnf.qr>
+From: Gorik Van Steenberge <gorik.vansteenberge@gmail.com>
+Subject: ipsets and network namespaces
+Date: Thu, 5 Apr 2012 13:04:48 +0200
+Message-ID: <CAFJYBU3q9au5qS0_CC4kp_jsRo-r08hejhQb_nvMqXGt57WdSw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:34925 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752983Ab2DELBp (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:60092 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750962Ab2DELEt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Apr 2012 07:01:45 -0400
-Received: by wibhj6 with SMTP id hj6so1502782wib.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 05 Apr 2012 04:01:43 -0700 (PDT)
-In-Reply-To: <alpine.LNX.2.01.1204050724100.6040@frira.zrqbmnf.qr>
+	Thu, 5 Apr 2012 07:04:49 -0400
+Received: by lahj13 with SMTP id j13so1366059lah.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 05 Apr 2012 04:04:48 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello,
 
-> This is resolved in the now-new xtables-addons 1.42.
->   
-Thanks, I'll deploy it later on today.
+I've noticed that when creating a new network namespace (using the lxc
+tools) that ipsets (userspace v6.11 on kernel 3.3.1) are still global,
+i.e. an ipset created in the container is visible in the host and vice
+versa. Iptables rulesets, however, are isolated.
+
+Is this an as of yet unimplemented feature or a conscious design decision?
+
+Thanks,
+gvs
