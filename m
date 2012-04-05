@@ -1,45 +1,25 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH -next] netfilter: bridge: optionally set indev to vlan
-Date: Thu, 5 Apr 2012 09:30:59 +0200
-Message-ID: <20120405073059.GD23461@Chamillionaire.breakpoint.cc>
-References: <20120404195729.GC23461@Chamillionaire.breakpoint.cc>
- <20120405010909.GA6081@1984>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
+Subject: Re: xtables-addons compile error
+Date: Thu, 05 Apr 2012 12:01:35 +0100
+Message-ID: <4F7D7B8F.3000705@googlemail.com>
+References: <4F7BB331.7000808@googlemail.com> <alpine.LNX.2.01.1204050724100.6040@frira.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:53187 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752329Ab2DEHbA (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:34925 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752983Ab2DELBp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Apr 2012 03:31:00 -0400
-Content-Disposition: inline
-In-Reply-To: <20120405010909.GA6081@1984>
+	Thu, 5 Apr 2012 07:01:45 -0400
+Received: by wibhj6 with SMTP id hj6so1502782wib.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 05 Apr 2012 04:01:43 -0700 (PDT)
+In-Reply-To: <alpine.LNX.2.01.1204050724100.6040@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, Apr 04, 2012 at 09:57:29PM +0200, Florian Westphal wrote:
-> > if net.bridge.bridge-nf-filter-vlan-tagged sysctl is enabled, bridge
-> > netfilter removes the vlan header temporarily and then feeds the packet
-> > to ip(6)tables.
-> > 
-> > When the new "bridge-nf-pass-vlan-input-device" sysctl is on
-> > (default off), then bridge netfilter will also change the in/out
-> > interface to the vlan interface; if such an interface exists.
-> > 
-> > This is needed to make iptables REDIRECT target work with
-> > "vlan-on-top-of-bridge" setups. Also, 'iptables -i' can then be used
-> > to match the vlan device name.
-> > 
-> > Also update Documentation with current brnf default settings.
-> 
-> Better to implement a vlan device match for iptables?
 
-That would mean that REDIRECT target is unsupported in vlan-on-bridge
-case.
-If so, would you accept a man page update that documents this?
-
-Thanks,
-Florian
+> This is resolved in the now-new xtables-addons 1.42.
+>   
+Thanks, I'll deploy it later on today.
