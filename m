@@ -1,35 +1,27 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH -next] netfilter: bridge: optionally set indev to vlan
-Date: Thu, 5 Apr 2012 03:09:09 +0200
-Message-ID: <20120405010909.GA6081@1984>
-References: <20120404195729.GC23461@Chamillionaire.breakpoint.cc>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: xtables-addons compile error
+Date: Thu, 5 Apr 2012 07:24:42 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1204050724100.6040@frira.zrqbmnf.qr>
+References: <4F7BB331.7000808@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+To: Mr Dash Four <mr.dash.four@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52579 "EHLO mail.us.es"
+Received: from seven.medozas.de ([188.40.89.202]:45322 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751823Ab2DEBJX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Apr 2012 21:09:23 -0400
-Content-Disposition: inline
-In-Reply-To: <20120404195729.GC23461@Chamillionaire.breakpoint.cc>
+	id S1750817Ab2DEFYu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Apr 2012 01:24:50 -0400
+In-Reply-To: <4F7BB331.7000808@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 04, 2012 at 09:57:29PM +0200, Florian Westphal wrote:
-> if net.bridge.bridge-nf-filter-vlan-tagged sysctl is enabled, bridge
-> netfilter removes the vlan header temporarily and then feeds the packet
-> to ip(6)tables.
-> 
-> When the new "bridge-nf-pass-vlan-input-device" sysctl is on
-> (default off), then bridge netfilter will also change the in/out
-> interface to the vlan interface; if such an interface exists.
-> 
-> This is needed to make iptables REDIRECT target work with
-> "vlan-on-top-of-bridge" setups. Also, 'iptables -i' can then be used
-> to match the vlan device name.
-> 
-> Also update Documentation with current brnf default settings.
+On Wednesday 2012-04-04 04:34, Mr Dash Four wrote:
 
-Better to implement a vlan device match for iptables?
+>gcc -Wp,-MMD,./.libxt_DNETMAP.oo.d,-MT,libxt_DNETMAP.oo -D_LARGEFILE_SOURCE=1 -D_LARGE_FILES -D_FILE_OFFSET_BITS=64 	-D_REENTRANT -I../include -I/builddir/build/BUILD/xtables-addons-1.41/extensions -Wall -Waggregate-return -Wmissing-declarations 	-Wmissing-prototypes -Wredundant-decls -Wshadow -Wstrict-prototypes 	-Winline -pipe  -DPIC -fPIC  -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m32 -march=i686 -mtune=pentium2 -fasynchronous-unwind-tables -o libxt_DNETMAP.oo -c libxt_DNETMAP.c;
+>In file included from ../include/net/netfilter/nf_nat.h:5,
+>                 from libxt_DNETMAP.c:15:
+>../include/net/netfilter/nf_conntrack_tuple.h:29: error: redefinition of 'union nf_conntrack_man_proto'
+>I am using/compiling against kernel version 3.3. With v3.2 that doesn't happen. Am I missing something?
+
+This is resolved in the now-new xtables-addons 1.42.
