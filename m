@@ -1,33 +1,35 @@
-From: Simon Kirby <sim@netnation.com>
-Subject: xt_LOG depends on ip6t_ext_hdr
-Date: Wed, 4 Apr 2012 14:28:50 -0700
-Message-ID: <20120404212850.GC21505@hostway.ca>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH -next] netfilter: bridge: optionally set indev to vlan
+Date: Thu, 5 Apr 2012 03:09:09 +0200
+Message-ID: <20120405010909.GA6081@1984>
+References: <20120404195729.GC23461@Chamillionaire.breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from peace.netnation.com ([204.174.223.2]:45168 "EHLO
-	peace.netnation.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757117Ab2DDVqq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Apr 2012 17:46:46 -0400
-Received: from sim by peace.netnation.com with local (Exim 4.72)
-	(envelope-from <sim@netnation.com>)
-	id 1SFXl4-0005sT-QS
-	for netfilter-devel@vger.kernel.org; Wed, 04 Apr 2012 14:28:50 -0700
+Received: from mail.us.es ([193.147.175.20]:52579 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751823Ab2DEBJX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Apr 2012 21:09:23 -0400
 Content-Disposition: inline
+In-Reply-To: <20120404195729.GC23461@Chamillionaire.breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-'lo!
+On Wed, Apr 04, 2012 at 09:57:29PM +0200, Florian Westphal wrote:
+> if net.bridge.bridge-nf-filter-vlan-tagged sysctl is enabled, bridge
+> netfilter removes the vlan header temporarily and then feeds the packet
+> to ip(6)tables.
+> 
+> When the new "bridge-nf-pass-vlan-input-device" sysctl is on
+> (default off), then bridge netfilter will also change the in/out
+> interface to the vlan interface; if such an interface exists.
+> 
+> This is needed to make iptables REDIRECT target work with
+> "vlan-on-top-of-bridge" setups. Also, 'iptables -i' can then be used
+> to match the vlan device name.
+> 
+> Also update Documentation with current brnf default settings.
 
-In current Linus head, this build failure:
-
-net/built-in.o:xt_LOG.c:function dump_ipv6_packet: error: undefined reference to 'ip6t_ext_hdr'
-
-happens with these config options:
-
-CONFIG_NETFILTER_XT_TARGET_LOG=y
-CONFIG_IP6_NF_IPTABLES=m
-
-Simon-
+Better to implement a vlan device match for iptables?
