@@ -1,29 +1,50 @@
-From: Gorik Van Steenberge <gorik.vansteenberge@gmail.com>
-Subject: ipsets and network namespaces
-Date: Thu, 5 Apr 2012 13:04:48 +0200
-Message-ID: <CAFJYBU3q9au5qS0_CC4kp_jsRo-r08hejhQb_nvMqXGt57WdSw@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH -next] netfilter: bridge: optionally set indev to vlan
+Date: Thu, 5 Apr 2012 13:09:36 +0200
+Message-ID: <20120405110936.GA8098@1984>
+References: <20120404195729.GC23461@Chamillionaire.breakpoint.cc>
+ <20120405010909.GA6081@1984>
+ <20120405073059.GD23461@Chamillionaire.breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:60092 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750962Ab2DELEt (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Apr 2012 07:04:49 -0400
-Received: by lahj13 with SMTP id j13so1366059lah.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 05 Apr 2012 04:04:48 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:40643 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751287Ab2DELJn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Apr 2012 07:09:43 -0400
+Content-Disposition: inline
+In-Reply-To: <20120405073059.GD23461@Chamillionaire.breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+On Thu, Apr 05, 2012 at 09:30:59AM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Wed, Apr 04, 2012 at 09:57:29PM +0200, Florian Westphal wrote:
+> > > if net.bridge.bridge-nf-filter-vlan-tagged sysctl is enabled, bridge
+> > > netfilter removes the vlan header temporarily and then feeds the packet
+> > > to ip(6)tables.
+> > > 
+> > > When the new "bridge-nf-pass-vlan-input-device" sysctl is on
+> > > (default off), then bridge netfilter will also change the in/out
+> > > interface to the vlan interface; if such an interface exists.
+> > > 
+> > > This is needed to make iptables REDIRECT target work with
+> > > "vlan-on-top-of-bridge" setups. Also, 'iptables -i' can then be used
+> > > to match the vlan device name.
+> > > 
+> > > Also update Documentation with current brnf default settings.
+> > 
+> > Better to implement a vlan device match for iptables?
+> 
+> That would mean that REDIRECT target is unsupported in vlan-on-bridge
+> case.
 
-I've noticed that when creating a new network namespace (using the lxc
-tools) that ipsets (userspace v6.11 on kernel 3.3.1) are still global,
-i.e. an ipset created in the container is visible in the host and vice
-versa. Iptables rulesets, however, are isolated.
+I see, it would not support any other targets that relies on skb->dev
+either.
 
-Is this an as of yet unimplemented feature or a conscious design decision?
+Let me think if I can come with a better solution. If not, I'll take
+your patch.
 
-Thanks,
-gvs
+Thanks Florian.
