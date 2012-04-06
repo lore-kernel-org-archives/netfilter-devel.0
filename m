@@ -1,36 +1,29 @@
-From: Fr3DBr <fr3dbr@gmail.com>
-Subject: About Netmap
-Date: Fri, 6 Apr 2012 12:29:09 -0300
-Message-ID: <CAMpo4z0gZ6B4tjfSgGCmpyAYcPxQ8pL00w_mHGWLc4o2WNwA6Q@mail.gmail.com>
+From: netfilter@wim.email.be
+Subject: IPv6 NAT - yes or no ?
+Date: Sat, 7 Apr 2012 01:10:13 +0200
+Message-ID: <b9fd6edc2f61891ddcf8e3a5f07cf4ae.squirrel@mail.godden.net>
+Reply-To: netfilter@wim.email.be
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:40560 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754851Ab2DFP3K (ORCPT
+Received: from brussels3.firstlinknetworks.com ([217.71.118.164]:38470 "EHLO
+	brussels3.firstlinknetworks.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753106Ab2DFXQ4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Apr 2012 11:29:10 -0400
-Received: by pbcun15 with SMTP id un15so2744498pbc.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 06 Apr 2012 08:29:10 -0700 (PDT)
+	Fri, 6 Apr 2012 19:16:56 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+Hi,
 
-I know this is a bit 'off topic'.
+I've been seeing patches for NAT on IPv6 in the past few months, but no
+final word on whether or not this will be included or not.
+What's the latest word on it ?
 
-But the question is, does anyone knows about the propably/possible
-implementation of netmap :
+Kind regards,
 
-http://info.iet.unipi.it/~luigi/netmap/
+Wim
 
-To be natively implemented in linux / kernel so we would get a way
-better packet i/o ?
 
-I've been trying to gather information on this, but i almost found
-nothing or close to nothing.
-
-Thanks !
-
-Fred
