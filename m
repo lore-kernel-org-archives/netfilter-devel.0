@@ -1,43 +1,28 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipsets and network namespaces
-Date: Sun, 8 Apr 2012 20:06:15 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1204082001370.4765@blackhole.kfki.hu>
-References: <CAFJYBU3q9au5qS0_CC4kp_jsRo-r08hejhQb_nvMqXGt57WdSw@mail.gmail.com> <alpine.DEB.2.00.1204051324190.23192@blackhole.kfki.hu> <4F8149A3.1080607@cn.fujitsu.com>
+Subject: Re: nomatch in bitmap:* sets
+Date: Sun, 8 Apr 2012 20:08:03 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1204082006190.4765@blackhole.kfki.hu>
+References: <4F81A7E5.3040400@googlemail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Gorik Van Steenberge <gorik.vansteenberge@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Gao feng <gaofeng@cn.fujitsu.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Mr Dash Four <mr.dash.four@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:36494 "EHLO smtp2.kfki.hu"
+Received: from smtp2.kfki.hu ([148.6.0.28]:36511 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754197Ab2DHSGT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 8 Apr 2012 14:06:19 -0400
-In-Reply-To: <4F8149A3.1080607@cn.fujitsu.com>
+	id S1755590Ab2DHSIF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 8 Apr 2012 14:08:05 -0400
+In-Reply-To: <4F81A7E5.3040400@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, 8 Apr 2012, Gao feng wrote:
+On Sun, 8 Apr 2012, Mr Dash Four wrote:
 
-> ? 2012?04?05? 19:24, Jozsef Kadlecsik ??:
-> > On Thu, 5 Apr 2012, Gorik Van Steenberge wrote:
-> > 
-> >> I've noticed that when creating a new network namespace (using the lxc
-> >> tools) that ipsets (userspace v6.11 on kernel 3.3.1) are still global,
-> >> i.e. an ipset created in the container is visible in the host and vice
-> >> versa. Iptables rulesets, however, are isolated.
-> >>
-> >> Is this an as of yet unimplemented feature or a conscious design decision?
-> > 
-> > It's an unimplemented feature - no one requested it yet ;-).
-> 
-> And I see there are a lot of /proc/sys/entries are not isolated.
-> is this an unimplemented feature too?
+> Currently only hash:* sets have the "nomatch" feature. Could this be 
+> extended to bitmap:* sets as well?
 
-I don't know what you mean here. There's nothing under /proc/sys which is 
-related to ip_set* modules.
- 
-> If so,I want to implement it. How do you think about this?
+Actually, hash:*net* types have the "nomatch" feature. How would it make 
+sense to add it to the bitmap:* types too?
 
 Best regards,
 Jozsef
