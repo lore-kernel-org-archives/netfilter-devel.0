@@ -1,228 +1,140 @@
-From: Adel Kodmani <mpcadel@gmail.com>
-Subject: I fail to correctly modify ICMP traffic in a kernel module
-Date: Mon, 9 Apr 2012 12:42:22 +0300
-Message-ID: <CA+=80Ci+m88m+833dUX4_1T8WspMbk4vJ2fUbnZMLo7KheL0cw@mail.gmail.com>
+From: Gregory Nietsky <gregory@distrotech.co.za>
+Subject: Proposed new target SESSION allow for session/accounting management
+ [RADIUS/802.1x]
+Date: Mon, 09 Apr 2012 14:14:49 +0200
+Message-ID: <4F82D2B9.9050709@distrotech.co.za>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter Dev List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:52853 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755073Ab2DIJmW convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Apr 2012 05:42:22 -0400
-Received: by iagz16 with SMTP id z16so5661271iag.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 09 Apr 2012 02:42:22 -0700 (PDT)
+Received: from smtp01.isdsl.net ([196.26.208.190]:59840 "EHLO smtp01.isdsl.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753943Ab2DIMrF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Apr 2012 08:47:05 -0400
+Received: from 196-209-227-124.dynamic.isadsl.co.za ([196.209.227.124]:56058)
+	by smtp01.isdsl.net with esmtp (Exim 4.77 #0)
+	(envelope-from <gregory@distrotech.co.za>)
+	id 1SHDW2-000Kqu-Hm
+	for <netfilter-devel@vger.kernel.org>; Mon, 09 Apr 2012 14:16:16 +0200
+Received: from [10.0.0.4] (41-132-209-253.dsl.mweb.co.za [41.132.209.253])
+	(authenticated bits=0)
+	by 196-209-227-124.dynamic.isadsl.co.za (8.14.3/8.14.3) with ESMTP id q39CEs5m013248
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Mon, 9 Apr 2012 14:15:03 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-So here's what I am trying to do(trivial, I know; I am doing this to
-learn something for a project): I've built this module to catch all
-outgoing traffic, check if it's ICMP echo message traffic. If it is,
-it simply re-calculates the checksum of the ICMP packet and then let
-it go on its way.
 
-Every time I insmod this module, all PING traffic fails >.< Can you
-please tell me what I am doing wrong here?
+Ive got a requirement for disabling / enabling IP based on the following 
+criteria
 
+- Only allow pre authenticated traffic [hostapd/wired 802.1x for example]
+- Limit this to a predetermined session limit by duration or throughput
+- Disable traffic once idle for a predetermined duration
+- Ability to read the information / reset sessions from user space
 
-/*
-        Coder: Adel *. *******
-    Creation Date: April/7th/2012
-    Last Modification Date: April/9th/2012
-    Purpose: This module is merely a prototype on how to change the
-IP/ICMP pakcet information and still let it go without problems
-    Testing: This module is being tested on a machine running the
-Linux kernel 2.6.32-33 on a 64bits Intel Processor
-    Notes: N/A
- */
+the application in mind is to deliver small micro servers running our 
+linux distro
+for remote office / SOHO VPN connectivity with out the need for mid to 
+high end
+switches control and monitor the usage on the VPN and or other points after
+authenticating to the Remote site.
 
+i have a embryonic framework of this that is coming together nicely and 
+consists of the following
 
-#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/init.h>
+a table structure consisting of 2 list head pointers [arrays] one for 
+mac one for ipaddr the
+list data is linked to each based on jhash of mac address [only 
+information available from userland pre dhcp]
+and the IP[4/6] addr set latter by the target [ideally based on DHCP  i 
+may add a DHCP protocol
+based match target] this allows for quick lookups and access based on 
+IP/MAC pair.
 
-#include <linux/inet.h>
-#include <linux/ip.h>
-#include <linux/icmp.h>
-#include <linux/tcp.h>
-#include <linux/in.h>
+the block of memory used for this is  (2 + 2 * num_buckets)  *  
+sizeof(struct list_head).
+struct list_head consists of 2 pointers [next/prev].
 
-#include <linux/netfilter.h>
-#include <linux/netfilter_ipv4.h>
+this is similar to the method borrowed from the xt_recent match.
 
-static struct nf_hook_ops nfho;
-static void printICMPHeader(struct icmphdr *icmph);
+the userland interface is done via a char dev with sysfs/udev support
 
-/*
- * in_cksum --
- * Checksum routine for Internet Protocol
- * family headers (C Version)
- */
-unsigned short in_cksum(unsigned short *addr, int len)
-{
-    register int sum =3D 0;
-        u_short answer =3D 0;
-        register u_short *w =3D addr;
-        register int nleft =3D len;
-        /*
-        * Our algorithm is simple, using a 32 bit accumulator (sum), we=
- add
-        * sequential 16 bit words to it, and at the end, fold back all =
-the
-        * carry bits from the top 16 bits into the lower 16 bits.
-        */
-        while (nleft > 1)
-        {
-          sum +=3D *w++;
-          nleft -=3D 2;
-        }
-        /* mop up an odd byte, if necessary */
-        if (nleft =3D=3D 1)
-        {
-          *(u_char *) (&answer) =3D *(u_char *) w;
-          sum +=3D answer;
-        }
-        /* add back carry outs from top 16 bits to low 16 bits */
-        sum =3D (sum >> 16) + (sum & 0xffff);     /* add hi 16 to low 1=
-6 */
-        sum +=3D (sum >> 16);             /* add carry */
-        answer =3D ~sum;              /* truncate to 16 bits */
-        return (answer);
-}
+- /proc/net/ interface using seq operations for listing all sessions
 
-static unsigned int icmp_check(unsigned int hooknum,
-                   struct sk_buff *skb,
-                   const struct net_device *in,
-                   const struct net_device *out,
-                   int (*okfn)(struct sk_buff *))
-{
-    struct iphdr *iph;
-    struct icmphdr *icmph;
-    struct tcphdr *tcph;
+- /dev/ char dev for reading / writing session information memory is 
+allocated
+   for each access and a buffer used for reading / writing userland will 
+write a
+   action [add/delete/view/....] the output will be placed in a buffer 
+to be read
 
-    if(skb =3D=3D NULL)
-        return -1;
-    iph =3D ip_hdr(skb);
-    if(iph->protocol =3D=3D IPPROTO_ICMP){
-        printk(KERN_DEBUG"ICMP traffic!\n");
-        icmph =3D icmp_hdr(skb);
-        if(icmph->type =3D=3D ICMP_ECHO){
-            printICMPHeader(icmph);
-            icmph->checksum =3D in_cksum((unsigned short *)icmph,
-sizeof(struct icmphdr));
-            printICMPHeader(icmph);
-        }
-    }/* If IPPROTO_ICMP */
-    return NF_ACCEPT;
-}
+- netfilter target and iptables extension that will restrict traffic
+   im currently busy with this. it at the moment passes traffic has no check
+   and allows 2 flags --use-dest [should not be needed] --save-ip [to 
+assosiate the
+   ip with MAC this should ideally be done based on the IP assigned via 
+DHCP] this
+   will only be done if there is no IP set. as the MAC is only available 
+on INPUT traffic
+   we need to have the IP for accounting of traffic from dest.
 
+using the incoming packet look up the session by mac addr and store the 
+source IP
+to match returning traffic latter if there is no session traffic is 
+DROPED if the ip
+is set and the IP/MAC is mismatched drop the packet
 
-static void printICMPHeader(struct icmphdr *icmph)
-{
-    printk(KERN_DEBUG "ICMP print function begin \n");
-    printk(KERN_DEBUG "ICMP type =3D %d\n", icmph->type);
-    printk(KERN_DEBUG "ICMP code =3D %d\n", icmph->code);
-    printk(KERN_DEBUG "ICMP checksum =3D %d\n", icmph->checksum);
-    printk(KERN_DEBUG "ICMP id =3D %d\n", icmph->un.echo.id);
-    printk(KERN_DEBUG "ICMP sequence =3D %d\n", icmph->un.echo.sequence=
-);
-    printk(KERN_DEBUG "ICMP print function exit \n");
-}
+iptables -A [INPUT/FORWARD/PREROUTING] -j SESSION --save-ip
 
+once the IP has been set returning packets will be allowed as the IP 
+will be
+looked up and if assosiated to a valid session it will be allowed to 
+continue
 
-static int __init startup(void)
-{
-        printk(KERN_INFO "Loading Test module...\n");
-        printk(KERN_ALERT "Hello world\n");
+iptables -A [ANY] -j SESSION [--use-dest]
 
-        /* Fill in our hook structure */
-        nfho.hook =3D icmp_check;         /* Handler function */
-        nfho.hooknum  =3D NF_INET_POST_ROUTING; /* Just before it hits =
-the wire */
-        nfho.pf       =3D PF_INET;
-        nfho.priority =3D NF_IP_PRI_FILTER;
-        nf_register_hook(&nfho);
-    //pinger();
-    return 0;
-}
+for every packet that is allowd the len / time will be updated in the 
+session.
 
-static void __exit cleanup(void)
-{
-    nf_unregister_hook(&nfho);
-    printk(KERN_ALERT "Goodbye Mr.\n");
-}
+a session is only valid when a MAC[if avail]/IP match or the session 
+timer has not
+expired or the last packet seen and current packet do not differ by more 
+than optional
+idle time.
 
-module_init(startup);
-module_exit(cleanup);
+the current code is available here
+http://pbx.distrotech.co.za/svn/netfilter_session/
 
+please note work is been done on the actual target and what is written 
+here is a proposal
+the current target passes all traffic.
 
-=A0To debug the code a little bit, I've made my own user-space ping
-utility and I've filled all of its IP and ICMP headers using
-RAW_SOCKETS
+once the module is loaded the following works
+echo "[6 char]" > /dev/8021x
+cat /proc/net/8021x
 
-icmp->type         =3D ICMP_ECHO;
-    icmp->code          =3D 0;
-    icmp->un.echo.id        =3D 0;
-    icmp->un.echo.sequence  =3D 0;
-    icmp-> checksum     =3D in_cksum((unsigned short *)icmp,
-sizeof(struct icmphdr));
+ie
+echo "abcdef" > /dev/8021x
+cat /proc/net/8021x
+61:62:63:64:65:66       1333973169
 
+this creates the session for MAC 61:62:63:64:65:66 @ timestamp there is 
+no session limit or time out so all traffic will pass once the ip
+is registered.
 
-This utility works perfectly fine as long as my Module is not loaded.
-Weirdly enough, when I load my module and check the Kernel Debug file,
-look at what I get:
+Hope this is found to be potentially useful something that is suitable 
+for inclusion once complete.
 
-Apr  9 10:42:10 DHS-1022CYB kernel: [ 2521.862356] ICMP traffic!
-Apr  9 10:42:58 DHS-1022CYB kernel: [ 2569.572346] ICMP traffic!
-Apr  9 10:43:22 DHS-1022CYB kernel: [ 2593.317201] ICMP traffic!
-Apr  9 10:43:56 DHS-1022CYB kernel: [ 2627.331320] ICMP traffic!
-Apr  9 10:44:05 DHS-1022CYB kernel: [ 2636.802236] ICMP traffic!
-Apr  9 10:44:08 DHS-1022CYB kernel: [ 2639.876490] ICMP traffic!
-Apr  9 10:45:27 DHS-1022CYB kernel: [ 2718.422229] ICMP traffic!
+all comments are welcomed
 
-This basically means that I, for some odd reason, am not even able to
-catch the ECHO traffic in my module! (When I cannot catch it, it
-simply goes out and works perfectly fine) P.S I tried to change the
-hook to LOCAL_OUT and got the same result
+Regards Greg
 
-Note however that this is the result of the Linux utility ping, not my
-hand-written PING(Which I still for some reason cannot intercept). And
-the Linux ping is not working as long as my Module is loaded.
-
-Apr  9 10:57:24 DHS-1022CYB kernel: [ 3435.916336] ICMP print function =
-exit
-Apr  9 10:57:25 DHS-1022CYB kernel: [ 3436.922656] ICMP traffic!
-Apr  9 10:57:25 DHS-1022CYB kernel: [ 3436.922665] ICMP print function =
-begin
-Apr  9 10:57:25 DHS-1022CYB kernel: [ 3436.922670] ICMP type =3D 8
-Apr  9 10:57:25 DHS-1022CYB kernel: [ 3436.922674] ICMP code =3D 0
-Apr  9 10:57:25 DHS-1022CYB kernel: [ 3436.922677] ICMP checksum =3D 50=
-252
-Apr  9 10:57:25 DHS-1022CYB kernel: [ 3436.922681] ICMP id =3D 3673
-Apr  9 10:57:25 DHS-1022CYB kernel: [ 3436.922685] ICMP sequence =3D 51=
-2
-Apr  9 10:57:25 DHS-1022CYB kernel: [ 3436.922688] ICMP print function =
-exit
-Apr  9 10:57:25 DHS-1022CYB kernel: [ 3436.922691] ICMP print function =
-begin
-Apr  9 10:57:25 DHS-1022CYB kernel: [ 3436.922695] ICMP type =3D 8
-Apr  9 10:57:25 DHS-1022CYB kernel: [ 3436.922698] ICMP code =3D 0
-Apr  9 10:57:25 DHS-1022CYB kernel: [ 3436.922702] ICMP checksum =3D 11=
-090
-Apr  9 10:57:25 DHS-1022CYB kernel: [ 3436.922705] ICMP id =3D 3673
-Apr  9 10:57:25 DHS-1022CYB kernel: [ 3436.922709] ICMP sequence =3D 51=
-2
-Apr  9 10:57:25 DHS-1022CYB kernel: [ 3436.922712] ICMP print function =
-exit
-
-And no, my hand-written PING is not broken, I've tested its reply and
-it's ECHO_REPLY, the checksum function in that program is exactly =A0th=
-e
-same as the one I have in the module
 --
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This message has been scanned for viruses and
+dangerous content by Distrotech Solutions, 
+it is believed to be clean.
+
+http://www.distrotech.co.za
+
