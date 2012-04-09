@@ -1,72 +1,74 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: nomatch in bitmap:* sets
-Date: Sun, 08 Apr 2012 23:28:30 +0100
-Message-ID: <4F82110E.70100@googlemail.com>
-References: <4F81A7E5.3040400@googlemail.com> <alpine.DEB.2.00.1204082006190.4765@blackhole.kfki.hu>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Re: ipsets and network namespaces
+Date: Mon, 09 Apr 2012 08:50:32 +0800
+Message-ID: <4F823258.9070902@cn.fujitsu.com>
+References: <CAFJYBU3q9au5qS0_CC4kp_jsRo-r08hejhQb_nvMqXGt57WdSw@mail.gmail.com> <alpine.DEB.2.00.1204051324190.23192@blackhole.kfki.hu> <4F8149A3.1080607@cn.fujitsu.com> <alpine.DEB.2.00.1204082001370.4765@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Gorik Van Steenberge <gorik.vansteenberge@gmail.com>,
+	netfilter-devel@vger.kernel.org
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:52162 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755479Ab2DHW2g (ORCPT
+Received: from cn.fujitsu.com ([222.73.24.84]:1701 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1750968Ab2DIBdz convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 8 Apr 2012 18:28:36 -0400
-Received: by wejx9 with SMTP id x9so2343724wej.19
-        for <netfilter-devel@vger.kernel.org>; Sun, 08 Apr 2012 15:28:35 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1204082006190.4765@blackhole.kfki.hu>
+	Sun, 8 Apr 2012 21:33:55 -0400
+In-Reply-To: <alpine.DEB.2.00.1204082001370.4765@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+=E4=BA=8E 2012=E5=B9=B404=E6=9C=8809=E6=97=A5 02:06, Jozsef Kadlecsik =E5=
+=86=99=E9=81=93:
+> On Sun, 8 Apr 2012, Gao feng wrote:
+>=20
+>> ? 2012?04?05? 19:24, Jozsef Kadlecsik ??:
+>>> On Thu, 5 Apr 2012, Gorik Van Steenberge wrote:
+>>>
+>>>> I've noticed that when creating a new network namespace (using the=
+ lxc
+>>>> tools) that ipsets (userspace v6.11 on kernel 3.3.1) are still glo=
+bal,
+>>>> i.e. an ipset created in the container is visible in the host and =
+vice
+>>>> versa. Iptables rulesets, however, are isolated.
+>>>>
+>>>> Is this an as of yet unimplemented feature or a conscious design d=
+ecision?
+>>>
+>>> It's an unimplemented feature - no one requested it yet ;-).
+>>
+>> And I see there are a lot of /proc/sys/entries are not isolated.
+>> is this an unimplemented feature too?
+>=20
+> I don't know what you mean here. There's nothing under /proc/sys whic=
+h is=20
+> related to ip_set* modules.
+> =20
 
->> Currently only hash:* sets have the "nomatch" feature. Could this be 
->> extended to bitmap:* sets as well?
->>     
->
-> Actually, hash:*net* types have the "nomatch" feature. How would it make 
-> sense to add it to the bitmap:* types too?
->   
-I was thinking along the lines of this:
+I mean proc files such /proc/sys/net/netfilter/nf_conntrack_udp_timeout=
+ are not isolated.
 
-1. bitmap:port - currently, if I want to exclude specific ports from a 
-given range (say ports 21,80,119,443 from ports range 1-1023) then I 
-have to do the following:
-n test-ports bitmap:port range 1-1023 timeout 0
-a test-ports 1-20
-a test-ports 22-79
-a test-ports 81-118
-a test-ports 120-442
-a test-ports 444-1023
+>> If so,I want to implement it. How do you think about this?
+>=20
+> Best regards,
+> Jozsef
+> -
+> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+> Address : Wigner Research Centre for Physics, Hungarian Academy of Sc=
+iences
+>           H-1525 Budapest 114, POB. 49, Hungary
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
+evel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
 
-Very inconvenient and it is not immediately obvious which ports have 
-been excluded from that range. By doing something like this:
-n test-ports bitmap:port range 1-1023 timeout 0
-a test-ports 1-1023
-a test-ports 21 nomatch
-a test-ports 80 nomatch
-a test-ports 119 nomatch
-a test-ports 443 nomatch
-
-it is much more clearer what is going on.
-
-2. bitmap:ip - same as above really: If I want to exclude a particular 
-IP addresses from a given range (say 10.1.1.3, 10.1.1.9 and 10.1.1.14 
-from 10.1.1.0/24) I have to do almost the same as with bitmap:port set 
-above:
-n test-bitmap-net bitmap:ip range 10.1.1.0/24 timeout 0
-a test-bitmap-net 10.1.1.0-10.1.1.2
-a test-bitmap-net 10.1.1.4-10.1.1.8
-a test-bitmap-net 10.1.1.10-10.1.1.13
-a test-bitmap-net 10.1.1.15-10.1.1.255
-
-Again, it is not immediately obvious what has been excluded. By doing 
-something like the following:
-n test-bitmap-net bitmap:ip range 10.1.1.0/24 timeout 0
-a test-bitmap-net 10.1.1.0/24
-a test-bitmap-net 10.1.1.3 nomatch
-a test-bitmap-net 10.1.1.9 nomatch
-a test-bitmap-net 10.1.1.14 nomatch
-
-that it is much more clearer.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
