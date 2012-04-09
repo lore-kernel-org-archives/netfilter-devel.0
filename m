@@ -1,158 +1,119 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/2] Handle invalid packets in conntrack consistently
-Date: Tue, 10 Apr 2012 00:42:47 +0200
-Message-ID: <20120409224247.GA27514@1984>
-References: <1333724253-32261-1-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 5/9] ipvs: use adaptive pause in master thread
+Date: Tue, 10 Apr 2012 01:08:03 +0200
+Message-ID: <20120409230803.GB27514@1984>
+References: <1332320185-27157-1-git-send-email-horms@verge.net.au>
+ <1332320185-27157-6-git-send-email-horms@verge.net.au>
+ <20120402111145.GA15181@1984>
+ <alpine.LFD.2.00.1204032258540.1995@ja.ssi.bg>
+ <20120405150553.GA8144@1984>
+ <alpine.LFD.2.00.1204082221440.6964@ja.ssi.bg>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="huq684BweRXVnRxX"
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58664 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752507Ab2DIWmx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Apr 2012 18:42:53 -0400
-Content-Disposition: inline
-In-Reply-To: <1333724253-32261-1-git-send-email-kadlec@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
-
---huq684BweRXVnRxX
 Content-Type: text/plain; charset=us-ascii
+Cc: Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>
+To: Julian Anastasov <ja@ssi.bg>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1204082221440.6964@ja.ssi.bg>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jozsef,
+Hi Julian,
 
-On Fri, Apr 06, 2012 at 04:57:31PM +0200, Jozsef Kadlecsik wrote:
-> Hi Pablo,
+On Sun, Apr 08, 2012 at 11:12:53PM +0300, Julian Anastasov wrote:
 > 
-> As it was discussed, at the moment conntrack handles invalid packets
-> differently: IPv6 conntrack marks the packets as INVALID and lets
-> the user to drop them by an explicit rule, while IPv4 conntrack
-> simply drops such packets.
+> 	Hello,
 > 
-> The next two patches bring conntrack in sync by changing IPv4 conntrack
-> behaviour to follow IPv6 conntrack. Invalid packet logging support is
-> also added.
+> On Thu, 5 Apr 2012, Pablo Neira Ayuso wrote:
 > 
-> The patches are follow-up of the second version of the patch I sent on
-> Tuesday, with the cover letter subject "Drop malformed IPv4 packets in
-> conntrack, 2nd try".
+> > I think you can control when the kernel thread is woken up with a
+> > counting semaphore. The counter of that semaphore will be initially
+> > set to zero. Then, you can up() the semaphore once per new buffer
+> > that you enqueue to the sender.
+> > 
+> > feeder:
+> >         add message to sync buffer
+> >         if buffer full:
+> >                 enqueue buffer to sender_thread
+> >                 up(s)
+> > 
+> > sender_thread:
+> >         while (1) {
+> >                 down(s)
+> >                 retrieve message from queue
+> >                 send message
+> >         }
+> > 
+> > It seems to me like the classical producer/consumer problem that you
+> > can resolve with semaphores.
+> 
+> 	May be it is possible to use up/down but we
+> have to handle the kthread_should_stop check and also
+> I prefer to reduce the wakeup events. So, I'm trying
+> another solution which is appended just for review.
 
-If you don't mind, I'll submit the following reworked patches.
-Basically, it initially fixes the inconsistency in the handling of bad
-packets between IPv4 and IPv6, then the packets with wrong ihl.
+You can still use kthread_should_stop inside a wrapper function
+that calls kthread_stop and up() the semaphore.
 
-I have left the change to add logging out, I think that belongs to
-net-next. I'll recover that once I start collecting patches for it
-(that will happen along this week).
+sync_stop:
+        kthread_stop(k)
+        up(s)
 
-I have kept you as author, they are basically yours with little
-changes, I hope that you don't mind.
+kthread_routine:
+        while(1) {
+                down(s)
+                if (kthread_should_stop(k))
+                        break;
 
---huq684BweRXVnRxX
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-netfilter-nf_ct_ipv4-handle-invalid-IPv4-and-IPv6-pa.patch"
+                get sync msg
+                send sync msg
+        }
 
->From 8430eac2f6a3c2adce22d490e2ab8bb50d59077a Mon Sep 17 00:00:00 2001
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Date: Mon, 9 Apr 2012 16:32:16 +0200
-Subject: [PATCH 1/2] netfilter: nf_ct_ipv4: handle invalid IPv4 and IPv6 packets consistently
+BTW, each up() does not necessarily mean one wakeup event. up() will
+delivery only one wakeup event for one process that has been already
+awaken.
 
-IPv6 conntrack marked invalid packets as INVALID and let the user
-drop those by an explicit rule, while IPv4 conntrack dropped such
-packets itself.
+> > Under congestion the situation is complicated. At some point you'll
+> > end up dropping messages.
+> > 
+> > You may want to increase the socket queue to delay the moment at which
+> > we start dropping messages. You can expose the socke buffer length via
+> > /proc interface I guess (not sure if you're already doing that or
+> > suggesting to use the global socket buffer length).
+> 
+> 	I'm still thinking if sndbuf value should be exported,
+> currently users have to modify the global default/max value.
 
-IPv4 conntrack is changed so that it marks INVALID packets and let
-the user to drop them.
+I think it's a good idea.
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+> But in below version I'm trying to handle the sndbuf overflow
+> by blocking for write_space event. By this way we should work
+> with any sndbuf configuration.
 
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index de9da21..750b06a 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -74,12 +74,12 @@ static int ipv4_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
- 
- 	iph = skb_header_pointer(skb, nhoff, sizeof(_iph), &_iph);
- 	if (iph == NULL)
--		return -NF_DROP;
-+		return -NF_ACCEPT;
- 
- 	/* Conntrack defragments packets, we might still see fragments
- 	 * inside ICMP packets though. */
- 	if (iph->frag_off & htons(IP_OFFSET))
--		return -NF_DROP;
-+		return -NF_ACCEPT;
- 
- 	*dataoff = nhoff + (iph->ihl << 2);
- 	*protonum = iph->protocol;
--- 
-1.7.2.5
+You seem to be defering the overrun problem by using a longer
+intermediate queue than the socket buffer. Then, that queue can be
+tuned by the user via sysctl. It may happen under heavy stress that
+your intermediate queue gets full again, then you'll have to drop
+packets at some point.
 
+> > You also can define some mechanism to reduce the amount of events,
+> > some state filtering so you only propagate important states.
+> > 
+> > Some partially reliable protocol, so the backup can request messages
+> > that got lost in a smart way would can also in handy. Basically, the
+> > master only retransmits the current state, not the whole sequence of
+> > messages (this is good under congestion, since you save messages).
+> > I implement that in conntrackd, but that's more complex solution,
+> > of course. I'd start with something simple.
+> 
+> 	The patch "reduce sync rate with time thresholds"
+> that follows the discussed one in the changeset has such
+> purpose to reduce the events, in tests the sync traffic is
+> reduced ~10 times. But it does not modify the current
+> protocol, it adds a very limited logic for retransmissions.
 
---huq684BweRXVnRxX
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0002-netfilter-nf_ct_ipv4-packets-with-wrong-ihl-are-inva.patch"
-
->From 22c6a3f87f4c36866269af66f26dd640ff2adc16 Mon Sep 17 00:00:00 2001
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Date: Tue, 3 Apr 2012 22:02:01 +0200
-Subject: [PATCH 2/2] netfilter: nf_ct_ipv4: packets with wrong ihl are invalid
-
-It was reported that the Linux kernel sometimes logs:
-
-klogd: [2629147.402413] kernel BUG at net / netfilter /
-nf_conntrack_proto_tcp.c: 447!
-klogd: [1072212.887368] kernel BUG at net / netfilter /
-nf_conntrack_proto_tcp.c: 392
-
-ipv4_get_l4proto() in nf_conntrack_l3proto_ipv4.c and tcp_error() in
-nf_conntrack_proto_tcp.c should catch malformed packets, so the errors
-at the indicated lines - TCP options parsing - should not happen.
-However, tcp_error() relies on the "dataoff" offset to the TCP header,
-calculated by ipv4_get_l4proto().  But ipv4_get_l4proto() does not check
-bogus ihl values in IPv4 packets, which then can slip through tcp_error()
-and get caught at the TCP options parsing routines.
-
-The patch fixes ipv4_get_l4proto() by dropping packets with bogus
-ihl value.
-
-The patch closes netfilter bugzilla id 771.
-
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
-
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 750b06a..7437832 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -84,6 +84,14 @@ static int ipv4_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
- 	*dataoff = nhoff + (iph->ihl << 2);
- 	*protonum = iph->protocol;
- 
-+	/* Check bogus IP headers */
-+	if (*dataoff > skb->len) {
-+		pr_debug("nf_conntrack_ipv4: drop bogus IPv4 packet: "
-+			 "nhoff %u, ihl %u, skblen %u\n",
-+			 nhoff, iph->ihl << 2, skb->len);
-+		return -NF_ACCEPT;
-+	}
-+
- 	return NF_ACCEPT;
- }
- 
--- 
-1.7.2.5
-
-
---huq684BweRXVnRxX--
+Not directly related to this, but I'd prefer if any retransmission
+support (or any new feature) gets added in follow-up patches. So we
+can things separated in logic pieces. Thanks.
