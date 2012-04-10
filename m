@@ -1,119 +1,142 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 5/9] ipvs: use adaptive pause in master thread
-Date: Tue, 10 Apr 2012 01:08:03 +0200
-Message-ID: <20120409230803.GB27514@1984>
-References: <1332320185-27157-1-git-send-email-horms@verge.net.au>
- <1332320185-27157-6-git-send-email-horms@verge.net.au>
- <20120402111145.GA15181@1984>
- <alpine.LFD.2.00.1204032258540.1995@ja.ssi.bg>
- <20120405150553.GA8144@1984>
- <alpine.LFD.2.00.1204082221440.6964@ja.ssi.bg>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1204082221440.6964@ja.ssi.bg>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 next] netfilter: bridge: optionally set indev to vlan
+Date: Tue, 10 Apr 2012 10:42:16 +0200
+Message-ID: <1334047336-31143-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:43203 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757856Ab2DJIkV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Apr 2012 04:40:21 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Julian,
+if net.bridge.bridge-nf-filter-vlan-tagged sysctl is enabled, bridge
+netfilter removes the vlan header temporarily and then feeds the packet
+to ip(6)tables.
 
-On Sun, Apr 08, 2012 at 11:12:53PM +0300, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Thu, 5 Apr 2012, Pablo Neira Ayuso wrote:
-> 
-> > I think you can control when the kernel thread is woken up with a
-> > counting semaphore. The counter of that semaphore will be initially
-> > set to zero. Then, you can up() the semaphore once per new buffer
-> > that you enqueue to the sender.
-> > 
-> > feeder:
-> >         add message to sync buffer
-> >         if buffer full:
-> >                 enqueue buffer to sender_thread
-> >                 up(s)
-> > 
-> > sender_thread:
-> >         while (1) {
-> >                 down(s)
-> >                 retrieve message from queue
-> >                 send message
-> >         }
-> > 
-> > It seems to me like the classical producer/consumer problem that you
-> > can resolve with semaphores.
-> 
-> 	May be it is possible to use up/down but we
-> have to handle the kthread_should_stop check and also
-> I prefer to reduce the wakeup events. So, I'm trying
-> another solution which is appended just for review.
+When the new "bridge-nf-pass-vlan-input-device" sysctl is on
+(default off), then bridge netfilter will also set the
+in-interface to the vlan interface; if such an interface exists.
 
-You can still use kthread_should_stop inside a wrapper function
-that calls kthread_stop and up() the semaphore.
+This is needed to make iptables REDIRECT target work with
+"vlan-on-top-of-bridge" setups and to allow use of "iptables -i" to
+match the vlan device name.
 
-sync_stop:
-        kthread_stop(k)
-        up(s)
+Also update Documentation with current brnf default settings.
 
-kthread_routine:
-        while(1) {
-                down(s)
-                if (kthread_should_stop(k))
-                        break;
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Changes since last version:
+  - leave outinterface alone
+  - fix SYSCTL=n case
 
-                get sync msg
-                send sync msg
-        }
+ Documentation/networking/ip-sysctl.txt |   13 +++++++++++--
+ net/bridge/br_netfilter.c              |   26 ++++++++++++++++++++++++--
+ 2 files changed, 35 insertions(+), 4 deletions(-)
 
-BTW, each up() does not necessarily mean one wakeup event. up() will
-delivery only one wakeup event for one process that has been already
-awaken.
+diff --git a/Documentation/networking/ip-sysctl.txt b/Documentation/networking/ip-sysctl.txt
+index ad3e80e..ee0374a 100644
+--- a/Documentation/networking/ip-sysctl.txt
++++ b/Documentation/networking/ip-sysctl.txt
+@@ -1294,13 +1294,22 @@ bridge-nf-call-ip6tables - BOOLEAN
+ bridge-nf-filter-vlan-tagged - BOOLEAN
+ 	1 : pass bridged vlan-tagged ARP/IP/IPv6 traffic to {arp,ip,ip6}tables.
+ 	0 : disable this.
+-	Default: 1
++	Default: 0
+ 
+ bridge-nf-filter-pppoe-tagged - BOOLEAN
+ 	1 : pass bridged pppoe-tagged IP/IPv6 traffic to {ip,ip6}tables.
+ 	0 : disable this.
+-	Default: 1
++	Default: 0
+ 
++bridge-nf-pass-vlan-input-dev - BOOLEAN
++	1: if bridge-nf-filter-vlan-tagged is enabled, try to find a vlan
++	interface on the bridge and set the netfilter input device to the vlan.
++	This allows use of e.g. "iptables -i br0.1" and makes the REDIRECT
++	target work with vlan-on-top-of-bridge interfaces.  When no matching
++	vlan interface is found, or this switch is off, the input device is
++	set to the bridge interface.
++	0: disable bridge netfilter vlan interface lookup.
++	Default: 0
+ 
+ proc/sys/net/sctp/* Variables:
+ 
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index dec4f38..2dca7fb 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -54,12 +54,14 @@ static int brnf_call_ip6tables __read_mostly = 1;
+ static int brnf_call_arptables __read_mostly = 1;
+ static int brnf_filter_vlan_tagged __read_mostly = 0;
+ static int brnf_filter_pppoe_tagged __read_mostly = 0;
++static int brnf_pass_vlan_indev __read_mostly = 0;
+ #else
+ #define brnf_call_iptables 1
+ #define brnf_call_ip6tables 1
+ #define brnf_call_arptables 1
+ #define brnf_filter_vlan_tagged 0
+ #define brnf_filter_pppoe_tagged 0
++#define brnf_pass_vlan_indev 0
+ #endif
+ 
+ #define IS_IP(skb) \
+@@ -503,6 +505,19 @@ bridged_dnat:
+ 	return 0;
+ }
+ 
++static struct net_device *brnf_get_logical_dev(struct sk_buff *skb, const struct net_device *dev)
++{
++	struct net_device *vlan, *br;
++
++	br = bridge_parent(dev);
++	if (brnf_pass_vlan_indev == 0 || !vlan_tx_tag_present(skb))
++		return br;
++
++	vlan = __vlan_find_dev_deep(br, vlan_tx_tag_get(skb) & VLAN_VID_MASK);
++
++	return vlan ? vlan : br;
++}
++
+ /* Some common code for IPv4/IPv6 */
+ static struct net_device *setup_pre_routing(struct sk_buff *skb)
+ {
+@@ -515,7 +530,7 @@ static struct net_device *setup_pre_routing(struct sk_buff *skb)
+ 
+ 	nf_bridge->mask |= BRNF_NF_BRIDGE_PREROUTING;
+ 	nf_bridge->physindev = skb->dev;
+-	skb->dev = bridge_parent(skb->dev);
++	skb->dev = brnf_get_logical_dev(skb, skb->dev);
+ 	if (skb->protocol == htons(ETH_P_8021Q))
+ 		nf_bridge->mask |= BRNF_8021Q;
+ 	else if (skb->protocol == htons(ETH_P_PPP_SES))
+@@ -778,7 +793,7 @@ static unsigned int br_nf_forward_ip(unsigned int hook, struct sk_buff *skb,
+ 	else
+ 		skb->protocol = htons(ETH_P_IPV6);
+ 
+-	NF_HOOK(pf, NF_INET_FORWARD, skb, bridge_parent(in), parent,
++	NF_HOOK(pf, NF_INET_FORWARD, skb, brnf_get_logical_dev(skb, in), parent,
+ 		br_nf_forward_finish);
+ 
+ 	return NF_STOLEN;
+@@ -1006,6 +1021,13 @@ static ctl_table brnf_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= brnf_sysctl_call_tables,
+ 	},
++	{
++		.procname	= "bridge-nf-pass-vlan-input-dev",
++		.data		= &brnf_pass_vlan_indev,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= brnf_sysctl_call_tables,
++	},
+ 	{ }
+ };
+ 
+-- 
+1.7.3.4
 
-> > Under congestion the situation is complicated. At some point you'll
-> > end up dropping messages.
-> > 
-> > You may want to increase the socket queue to delay the moment at which
-> > we start dropping messages. You can expose the socke buffer length via
-> > /proc interface I guess (not sure if you're already doing that or
-> > suggesting to use the global socket buffer length).
-> 
-> 	I'm still thinking if sndbuf value should be exported,
-> currently users have to modify the global default/max value.
-
-I think it's a good idea.
-
-> But in below version I'm trying to handle the sndbuf overflow
-> by blocking for write_space event. By this way we should work
-> with any sndbuf configuration.
-
-You seem to be defering the overrun problem by using a longer
-intermediate queue than the socket buffer. Then, that queue can be
-tuned by the user via sysctl. It may happen under heavy stress that
-your intermediate queue gets full again, then you'll have to drop
-packets at some point.
-
-> > You also can define some mechanism to reduce the amount of events,
-> > some state filtering so you only propagate important states.
-> > 
-> > Some partially reliable protocol, so the backup can request messages
-> > that got lost in a smart way would can also in handy. Basically, the
-> > master only retransmits the current state, not the whole sequence of
-> > messages (this is good under congestion, since you save messages).
-> > I implement that in conntrackd, but that's more complex solution,
-> > of course. I'd start with something simple.
-> 
-> 	The patch "reduce sync rate with time thresholds"
-> that follows the discussed one in the changeset has such
-> purpose to reduce the events, in tests the sync traffic is
-> reduced ~10 times. But it does not modify the current
-> protocol, it adds a very limited logic for retransmissions.
-
-Not directly related to this, but I'd prefer if any retransmission
-support (or any new feature) gets added in follow-up patches. So we
-can things separated in logic pieces. Thanks.
