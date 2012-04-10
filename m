@@ -1,66 +1,30 @@
-From: pablo@netfilter.org
-Subject: [PATCH 4/5] netfilter: nf_ct_ipv4: packets with wrong ihl are invalid
-Date: Tue, 10 Apr 2012 14:49:00 +0200
-Message-ID: <1334062141-3962-5-git-send-email-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/5] netfilter fixes for 3.4-rc2
+Date: Tue, 10 Apr 2012 14:43:10 -0400 (EDT)
+Message-ID: <20120410.144310.1043242172243915835.davem@davemloft.net>
 References: <1334062141-3962-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44989 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758692Ab2DJMt0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Apr 2012 08:49:26 -0400
+Received: from shards.monkeyblade.net ([198.137.202.13]:46860 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758369Ab2DJSoT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Apr 2012 14:44:19 -0400
 In-Reply-To: <1334062141-3962-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: pablo@netfilter.org
+Date: Tue, 10 Apr 2012 14:48:56 +0200
 
-It was reported that the Linux kernel sometimes logs:
+> The following patchset includes netfilter fixes for 3.4-rc2, they are:
+ ...
+> You can pull changes these from:
+> 
+> git://1984.lsi.us.es/net master
 
-klogd: [2629147.402413] kernel BUG at net / netfilter /
-nf_conntrack_proto_tcp.c: 447!
-klogd: [1072212.887368] kernel BUG at net / netfilter /
-nf_conntrack_proto_tcp.c: 392
-
-ipv4_get_l4proto() in nf_conntrack_l3proto_ipv4.c and tcp_error() in
-nf_conntrack_proto_tcp.c should catch malformed packets, so the errors
-at the indicated lines - TCP options parsing - should not happen.
-However, tcp_error() relies on the "dataoff" offset to the TCP header,
-calculated by ipv4_get_l4proto().  But ipv4_get_l4proto() does not check
-bogus ihl values in IPv4 packets, which then can slip through tcp_error()
-and get caught at the TCP options parsing routines.
-
-The patch fixes ipv4_get_l4proto() by invalidating packets with bogus
-ihl value.
-
-The patch closes netfilter bugzilla id 771.
-
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
-
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 750b06a..cf73cc7 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -84,6 +84,14 @@ static int ipv4_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
- 	*dataoff = nhoff + (iph->ihl << 2);
- 	*protonum = iph->protocol;
- 
-+	/* Check bogus IP headers */
-+	if (*dataoff > skb->len) {
-+		pr_debug("nf_conntrack_ipv4: bogus IPv4 packet: "
-+			 "nhoff %u, ihl %u, skblen %u\n",
-+			 nhoff, iph->ihl << 2, skb->len);
-+		return -NF_ACCEPT;
-+	}
-+
- 	return NF_ACCEPT;
- }
- 
--- 
-1.7.2.5
-
+Pulled, thanks a lot Pablo.
