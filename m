@@ -1,60 +1,46 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: don't scale the size of the window up twice
-Date: Tue, 10 Apr 2012 14:35:52 +0200
-Message-ID: <20120410123552.GA30763@1984>
-References: <1333337106-8279-1-git-send-email-xiaosuo@gmail.com>
- <20120404150854.GA4148@1984>
- <alpine.DEB.2.00.1204042100390.21828@blackhole.kfki.hu>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: nomatch in bitmap:* sets
+Date: Tue, 10 Apr 2012 14:36:20 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1204101434360.7730@blackhole.kfki.hu>
+References: <4F81A7E5.3040400@googlemail.com> <alpine.DEB.2.00.1204082006190.4765@blackhole.kfki.hu> <4F82110E.70100@googlemail.com> <alpine.DEB.2.00.1204092031110.6233@blackhole.kfki.hu> <4F835B99.8060901@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Changli Gao <xiaosuo@gmail.com>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Mr Dash Four <mr.dash.four@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40769 "EHLO mail.us.es"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:60812 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753714Ab2DJMf6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Apr 2012 08:35:58 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1204042100390.21828@blackhole.kfki.hu>
+	id S1758374Ab2DJMgW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Apr 2012 08:36:22 -0400
+In-Reply-To: <4F835B99.8060901@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 04, 2012 at 09:05:26PM +0200, Jozsef Kadlecsik wrote:
-> On Wed, 4 Apr 2012, Pablo Neira Ayuso wrote:
-> 
-> > On Mon, Apr 02, 2012 at 11:25:06AM +0800, Changli Gao wrote:
-> > > For a picked up connection, the window win is scaled twice: one is by the
-> > > initialization code, and the other is by the sender updating code.
-> > > 
-> > > I use the temporary variable swin instead of modifying the variable win.
-> > > 
-> > > Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-> > > ---
-> > >  net/netfilter/nf_conntrack_proto_tcp.c |    4 ++--
-> > >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > > diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-> > > index 361eade..0d07a1d 100644
-> > > --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> > > +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> > > @@ -584,8 +584,8 @@ static bool tcp_in_window(const struct nf_conn *ct,
-> > >  			 * Let's try to use the data from the packet.
-> > >  			 */
-> > >  			sender->td_end = end;
-> > > -			win <<= sender->td_scale;
-> > > -			sender->td_maxwin = (win == 0 ? 1 : win);
-> > > +			swin = win << sender->td_scale;
-> > > +			sender->td_maxwin = (swin == 0 ? 1 : swin);
-> > >  			sender->td_maxend = end + sender->td_maxwin;
-> > >  			/*
-> > >  			 * We haven't seen traffic in the other direction yet
-> > 
-> > Jozsef, do you remember if this is intentional?
-> 
-> No, it's a good spotting.
-> 
-> Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+On Mon, 9 Apr 2012, Mr Dash Four wrote:
 
-Applied, thanks.
+> > That's equivalent with
+> > 
+> > n test-ports bitmap:port range 1-1023 timeout 0
+> > a test-ports 1-1023
+> > d test-ports 21
+> > d test-ports 80
+> > d test-ports 119
+> > d test-ports 443
+> >   
+> It is indeed! That's something I did not know about! The "delete" command
+> wasn't acceptable in ipset restore file before (in all honesty I did try this
+> back in 4.x and gave up after it was rejected). Which version of ipset was
+> this introduced into?
+
+That was introduced in 6.x (actually, in 5.x).
+
+Every command is accepted in a restore file, except the information ones 
+(help, list).
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
