@@ -1,126 +1,109 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Proposed new target SESSION allow for session/accounting
- management [RADIUS/802.1x]
-Date: Thu, 12 Apr 2012 01:39:06 +0200
-Message-ID: <20120411233906.GA7143@1984>
-References: <4F82D2B9.9050709@distrotech.co.za>
+Subject: Re: [PATCH] netfilter: ipvs: Verify that IP_VS protocol has been
+ registered
+Date: Thu, 12 Apr 2012 01:22:43 +0200
+Message-ID: <20120411232243.GB7038@1984>
+References: <1333668273-8873-1-git-send-email-levinsasha928@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter Dev List <netfilter-devel@vger.kernel.org>
-To: Gregory Nietsky <gregory@distrotech.co.za>
+Cc: wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
+	kaber@trash.net, davem@davemloft.net, davej@redhat.com,
+	netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Sasha Levin <levinsasha928@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47127 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:46182 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965410Ab2DKXjK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Apr 2012 19:39:10 -0400
+	id S965215Ab2DKXWz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Apr 2012 19:22:55 -0400
 Content-Disposition: inline
-In-Reply-To: <4F82D2B9.9050709@distrotech.co.za>
+In-Reply-To: <1333668273-8873-1-git-send-email-levinsasha928@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Apr 09, 2012 at 02:14:49PM +0200, Gregory Nietsky wrote:
+On Thu, Apr 05, 2012 at 07:24:33PM -0400, Sasha Levin wrote:
+> The registration of a protocol might fail, there were no checks
+> and all registrations were assumed to be correct. This lead to
+> NULL ptr dereferences when apps tried registering.
 > 
-> Ive got a requirement for disabling / enabling IP based on the
-> following criteria
+> For example:
 > 
-> - Only allow pre authenticated traffic [hostapd/wired 802.1x for example]
-> - Limit this to a predetermined session limit by duration or throughput
-> - Disable traffic once idle for a predetermined duration
-> - Ability to read the information / reset sessions from user space
+> [ 1293.226051] BUG: unable to handle kernel NULL pointer dereference at 0000000000000018
+> [ 1293.227038] IP: [<ffffffff822aacb0>] tcp_register_app+0x60/0xb0
+> [ 1293.227038] PGD 391de067 PUD 6c20b067 PMD 0
+> [ 1293.227038] Oops: 0000 [#1] PREEMPT SMP
+> [ 1293.227038] CPU 1
+> [ 1293.227038] Pid: 19609, comm: trinity Tainted: G        W    3.4.0-rc1-next-20120405-sasha-dirty #57
+> [ 1293.227038] RIP: 0010:[<ffffffff822aacb0>]  [<ffffffff822aacb0>] tcp_register_app+0x60/0xb0
+> [ 1293.227038] RSP: 0018:ffff880038c1dd18  EFLAGS: 00010286
+> [ 1293.227038] RAX: ffffffffffffffc0 RBX: 0000000000001500 RCX: 0000000000010000
+> [ 1293.227038] RDX: 0000000000000000 RSI: ffff88003a2d5888 RDI: 0000000000000282
+> [ 1293.227038] RBP: ffff880038c1dd48 R08: 0000000000000000 R09: 0000000000000000
+> [ 1293.227038] R10: 0000000000000000 R11: 0000000000000000 R12: ffff88003a2d5668
+> [ 1293.227038] R13: ffff88003a2d5988 R14: ffff8800696a8ff8 R15: 0000000000000000
+> [ 1293.227038] FS:  00007f01930d9700(0000) GS:ffff88007ce00000(0000) knlGS:0000000000000000
+> [ 1293.227038] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+> [ 1293.227038] CR2: 0000000000000018 CR3: 0000000065dfc000 CR4: 00000000000406e0
+> [ 1293.227038] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> [ 1293.227038] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> [ 1293.227038] Process trinity (pid: 19609, threadinfo ffff880038c1c000, task ffff88002dc73000)
+> [ 1293.227038] Stack:
+> [ 1293.227038]  ffff880038c1dd48 00000000fffffff4 ffff8800696aada0 ffff8800694f5580
+> [ 1293.227038]  ffffffff8369f1e0 0000000000001500 ffff880038c1dd98 ffffffff822a716b
+> [ 1293.227038]  0000000000000000 ffff8800696a8ff8 0000000000000015 ffff8800694f5580
+> [ 1293.227038] Call Trace:
+> [ 1293.227038]  [<ffffffff822a716b>] ip_vs_app_inc_new+0xdb/0x180
+> [ 1293.227038]  [<ffffffff822a7258>] register_ip_vs_app_inc+0x48/0x70
+> [ 1293.227038]  [<ffffffff822b2fea>] __ip_vs_ftp_init+0xba/0x140
+> [ 1293.227038]  [<ffffffff821c9060>] ops_init+0x80/0x90
+> [ 1293.227038]  [<ffffffff821c90cb>] setup_net+0x5b/0xe0
+> [ 1293.227038]  [<ffffffff821c9416>] copy_net_ns+0x76/0x100
+> [ 1293.227038]  [<ffffffff810dc92b>] create_new_namespaces+0xfb/0x190
+> [ 1293.227038]  [<ffffffff810dca21>] unshare_nsproxy_namespaces+0x61/0x80
+> [ 1293.227038]  [<ffffffff810afd1f>] sys_unshare+0xff/0x290
+> [ 1293.227038]  [<ffffffff8187622e>] ? trace_hardirqs_on_thunk+0x3a/0x3f
+> [ 1293.227038]  [<ffffffff82665539>] system_call_fastpath+0x16/0x1b
+> [ 1293.227038] Code: 89 c7 e8 34 91 3b 00 89 de 66 c1 ee 04 31 de 83 e6 0f 48 83 c6 22 48 c1 e6 04 4a 8b 14 26 49 8d 34 34 48 8d 42 c0 48 39 d6 74 13 <66> 39 58 58 74 22 48 8b 48 40 48 8d 41 c0 48 39 ce 75 ed 49 8d
+> [ 1293.227038] RIP  [<ffffffff822aacb0>] tcp_register_app+0x60/0xb0
+> [ 1293.227038]  RSP <ffff880038c1dd18>
+> [ 1293.227038] CR2: 0000000000000018
+> [ 1293.379284] ---[ end trace 364ab40c7011a009 ]---
+> [ 1293.381182] Kernel panic - not syncing: Fatal exception in interrupt
 > 
-> the application in mind is to deliver small micro servers running
-> our linux distro
-> for remote office / SOHO VPN connectivity with out the need for mid
-> to high end
-> switches control and monitor the usage on the VPN and or other points after
-> authenticating to the Remote site.
+> Signed-off-by: Sasha Levin <levinsasha928@gmail.com>
+> ---
+>  net/netfilter/ipvs/ip_vs_proto.c |   21 ++++++++++++++++-----
+>  1 files changed, 16 insertions(+), 5 deletions(-)
 > 
-> i have a embryonic framework of this that is coming together nicely
-> and consists of the following
-> 
-> a table structure consisting of 2 list head pointers [arrays] one
-> for mac one for ipaddr the
-> list data is linked to each based on jhash of mac address [only
-> information available from userland pre dhcp]
-> and the IP[4/6] addr set latter by the target [ideally based on DHCP
-> i may add a DHCP protocol
-> based match target] this allows for quick lookups and access based
-> on IP/MAC pair.
-> 
-> the block of memory used for this is  (2 + 2 * num_buckets)  *
-> sizeof(struct list_head).
-> struct list_head consists of 2 pointers [next/prev].
-> 
-> this is similar to the method borrowed from the xt_recent match.
-> 
-> the userland interface is done via a char dev with sysfs/udev support
-> 
-> - /proc/net/ interface using seq operations for listing all sessions
-> 
-> - /dev/ char dev for reading / writing session information memory is
-> allocated
->   for each access and a buffer used for reading / writing userland
-> will write a
->   action [add/delete/view/....] the output will be placed in a
-> buffer to be read
-> 
-> - netfilter target and iptables extension that will restrict traffic
->   im currently busy with this. it at the moment passes traffic has no check
->   and allows 2 flags --use-dest [should not be needed] --save-ip [to
-> assosiate the
->   ip with MAC this should ideally be done based on the IP assigned
-> via DHCP] this
->   will only be done if there is no IP set. as the MAC is only
-> available on INPUT traffic
->   we need to have the IP for accounting of traffic from dest.
-> 
-> using the incoming packet look up the session by mac addr and store
-> the source IP
-> to match returning traffic latter if there is no session traffic is
-> DROPED if the ip
-> is set and the IP/MAC is mismatched drop the packet
-> 
-> iptables -A [INPUT/FORWARD/PREROUTING] -j SESSION --save-ip
-> 
-> once the IP has been set returning packets will be allowed as the IP
-> will be
-> looked up and if assosiated to a valid session it will be allowed to
-> continue
-> 
-> iptables -A [ANY] -j SESSION [--use-dest]
-> 
-> for every packet that is allowd the len / time will be updated in
-> the session.
-> 
-> a session is only valid when a MAC[if avail]/IP match or the session
-> timer has not
-> expired or the last packet seen and current packet do not differ by
-> more than optional
-> idle time.
-> 
-> the current code is available here
-> http://pbx.distrotech.co.za/svn/netfilter_session/
-> 
-> please note work is been done on the actual target and what is
-> written here is a proposal
-> the current target passes all traffic.
-> 
-> once the module is loaded the following works
-> echo "[6 char]" > /dev/8021x
-> cat /proc/net/8021x
-> 
-> ie
-> echo "abcdef" > /dev/8021x
-> cat /proc/net/8021x
-> 61:62:63:64:65:66       1333973169
-> 
-> this creates the session for MAC 61:62:63:64:65:66 @ timestamp there
-> is no session limit or time out so all traffic will pass once the ip
-> is registered.
-> 
-> Hope this is found to be potentially useful something that is
-> suitable for inclusion once complete.
+> diff --git a/net/netfilter/ipvs/ip_vs_proto.c b/net/netfilter/ipvs/ip_vs_proto.c
+> index f843a88..43893ba 100644
+> --- a/net/netfilter/ipvs/ip_vs_proto.c
+> +++ b/net/netfilter/ipvs/ip_vs_proto.c
+> @@ -316,20 +316,31 @@ ip_vs_tcpudp_debug_packet(int af, struct ip_vs_protocol *pp,
+>   */
+>  int __net_init ip_vs_protocol_net_init(struct net *net)
+>  {
+> +	int ret;
+>  #ifdef CONFIG_IP_VS_PROTO_TCP
+> -	register_ip_vs_proto_netns(net, &ip_vs_protocol_tcp);
+> +	ret = register_ip_vs_proto_netns(net, &ip_vs_protocol_tcp);
+> +	if (ret < 0)
+> +		return ret;
+>  #endif
+>  #ifdef CONFIG_IP_VS_PROTO_UDP
+> -	register_ip_vs_proto_netns(net, &ip_vs_protocol_udp);
+> +	ret = register_ip_vs_proto_netns(net, &ip_vs_protocol_udp);
+> +	if (ret < 0)
+> +		return ret;
 
-This looks to me like an ad-hoc all-in-one target. I'm not telling
-that this is not useful for you, but there's no room for this in
-mainline, sorry.
+If you return here, I think you'll leave things in inconsistent state,
+ie. the tcp protocol is registered. You have to unregister it before
+leaving.
+
+ret = register_ip_vs_proto_netns(net, &ip_vs_protocol_tcp);
+if (ret < 0)
+        goto err_tcp;
+
+...
+err_tcp:
+        unregister_ip_vs_proto_netns(net, &ip_vs_protocol_tcp);
