@@ -1,81 +1,135 @@
-From: Denys Fedoryshchenko <denys@visp.net.lb>
-Subject: Re: [PATCH 1/1] netfilter: =?UTF-8?Q?xt=5Frecent=3A=20Add=20optio?=
- =?UTF-8?Q?nal=20mask=20option=20for=20xt=5Frecent?=
-Date: Thu, 12 Apr 2012 12:00:03 +0300
-Message-ID: <d8de90a8f08a092730109e72827264fe@visp.net.lb>
-References: <1331033084-23803-1-git-send-email-denys@visp.net.lb>
- <20120411231421.GA7038@1984>
+From: James Morris <jmorris@namei.org>
+Subject: [ANN] Linux Security Summit 2012 - Announcement and CFP
+Date: Thu, 12 Apr 2012 23:36:08 +1000 (EST)
+Message-ID: <alpine.LRH.2.02.1204122333400.17266@tundra.namei.org>
+References: <alpine.LRH.2.00.1104041833360.354@tundra.namei.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	<netfilter-devel@vger.kernel.org>, <netfilter@vger.kernel.org>,
-	<coreteam@netfilter.org>, <linux-kernel@vger.kernel.org>,
-	<netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <20120411231421.GA7038@1984>
-Sender: netfilter-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: linux-kernel@vger.kernel.org, lwn@lwn.net,
+	fedora-selinux-list@redhat.com, selinux@tycho.nsa.gov,
+	ubuntu-hardened@lists.ubuntu.com,
+	tomoyo-users-en@lists.sourceforge.jp,
+	netfilter-devel@vger.kernel.org, linux-crypto@vger.kernel.org,
+	Audit-ML <linux-audit@redhat.com>,
+	Linux Security Summit Program Committee
+	<lss-pc@ext.namei.org>, gentoo-hardened@gentoo.org,
+	David Howells <dhowells@redhat.com>
+To: linux-security-module@vger.kernel.org
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <alpine.LRH.2.00.1104041833360.354@tundra.namei.org>
+Sender: linux-crypto-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo
+==========================================================================
+                 ANNOUNCEMENT AND CALL FOR PARTICIPATION
 
-On 2012-04-12 02:14, Pablo Neira Ayuso wrote:
-> Hi Denys,
->
-> On Tue, Mar 06, 2012 at 01:24:44PM +0200, Denys Fedoryshchenko wrote:
->> Use case for this feature:
->> 1)In some occasions if you need to allow,block,match specific 
->> subnet.
->> 2)I can use recent as a trigger when netfilter rule matches, with 
->> mask 0.0.0.0
->>
->> Example:
->>
->> If you ping 8.8.8.8, after that you can't ping 2.2.2.10
->
-> Could you provide an useful example for this new feature?
->
-> I also think you can make this with hashlimit, that allows you to
-> set the network mask.
+                       LINUX SECURITY SUMMIT 2012
+                           SAN DIEGO, CA, USA
+==========================================================================
 
-Yes, technically hashlimit can do a lot, but not everything. Especially 
-because xt_recent can be "fine-grained" in steps, depends on timeline of 
-event, and can be updated accordingly to time of reoccurred event. It is 
-generally not related to mask option, but mask gives power to block 
-subnets.
-Why for example /24? Well, it is minimal mask for BGP announce :) It is 
-very often, that requesting ip has more ip's in same subnet 
-(load-balancing, or multiple ip's on dedicated server), and mask will be 
-highly useful for that, to reduce number of entries and to tighten weak 
-points (usually after ip blocked, they try from neighbor ip to check, if 
-destination just blocked single ip). Plus rttl and hitcount another 
-sweet things that are available in xt_recent, but aren't in hashlimit.
 
-iptables -t mangle -N SIP
-# If someone abuse our SIP, block him completely at least for 10 
-seconds, if he try again, update and block for new 120 seconds
-iptables -t mangle -A SIP -m recent --name X --update --seconds 10 
---mask 255.255.255.0 -j MARK --set-mark 0x1
-# 120 - 600 seconds handle him over special relay (that will log his 
-query, but wont pass him to real SIP server)
-iptables -t mangle -A SIP -m recent --name X --rcheck --seconds 600 
---mask 255.255.255.0 -j MARK --set-mark 0x2
+DESCRIPTION
 
-In this case i will log only invalid queries, but for example some DDoS 
-or scanners that flood servers by packets will be silently ignored. 
-Maybe if hitcount really bad, i will add them to ipset, and block 
-permanently, by -m set --add-set.
+  The Linux Security Summit (LSS) is a technical forum for collaboration
+  between Linux developers, researchers, and end users.  Its primary aim
+  is to foster community efforts in analyzing and solving Linux security
+  challenges.
 
-For me personally it is useful, because i have around 140 NAS servers, 
-and i give each of them /24 "gray" subnets, and in some cases i need to 
-handle bad users, that are changing dynamic ip and attacking from new ip 
-each time. I just block non-critical service for whole subnet then, till 
-technician on duty will solve issue completely. And sure if attack are 
-stopped, subnet will be unblocked "automagically".
+  The format of the summit will be:
+  
+    * Refereed presentations
+    * Short talks
+    * Roundtable discussions
+    * Breakout development sessions 
 
-Sure this feature not critical, or "a must", and if code are not good, 
-it is up to you, if it should be added or not.
 
+WEB SITE
+
+  http://kernsec.org/wiki/index.php/Linux_Security_Summit_2012
+
+
+DATES / LOCATION
+
+  The Linux Security Summit for 2012 will be held across 30 and 31 August
+  in San Diego, CA, USA.  It will be co-located with LinuxCon[1], as well
+  as Linux Plumbers and the Kernel Summit.
+ 
+  Note that Linux Security Summit attendees and speakers must be registered
+  to attend LinuxCon.  See the LinuxCon site for details on registration,
+  travel, and accommodation:
+  
+    https://events.linuxfoundation.org/events/linuxcon
+
+  The Linux Security Summit CFP is now open, and will close on 23rd of May.
+  
+  Accepted speakers will be notified by 1st of June.
+
+
+WHO SHOULD ATTEND
+
+  The event is open to all registered LinuxCon attendees.
+  
+  You do not have to be a "security person" to attend -- we're seeking a
+  diverse range of attendees, and welcome the participation of general
+  developers, researchers, operations, and end-users.
+
+
+CALL FOR PARTICIPATION
+
+  The program committee currently seeks proposals for:
+
+  * Refereed Presentations:
+      45 minutes in length, including at least 10 minutes of discussion.
+      Papers are encouraged.
+  
+  * Short Talks:
+      30 minutes in length, discussion-oriented.  Slides should be minimal.
+
+  * Roundtable Discussion Topics
+
+   
+  Topic areas include, but are not limited to:
+  
+    * System hardening
+    * Access control
+    * Cryptography
+    * Integrity control
+    * Hardware security
+    * Networking
+    * Storage
+    * Virtualization
+    * Desktop
+    * Tools
+    * Management
+    * Case studies
+    * Emerging technologies, threats & techniques 
+    
+  Proposals should be submitted in plain text via email to the program
+  committee at:  lss-pc (_at_) ext.namei.org
+
+  Abstracts should be approximately 150 words in total.
+
+
+PROGRAM COMMITTEE
+
+  The Linux Security Summit for 2012 is organized by:
+
+    * James Morris, Oracle
+    * Serge Hallyn, Canonical
+    * Paul Moore, Red Hat
+    * Stephen Smalley, NSA
+    * Joshua Brindle, Tresys
+    * Tetsuo Handa, NTT Data
+    * Herbert Xu, Red Hat
+    * John Johansen, Canonical
+    * Kees Cook, Google
+    * Casey Schaufler, Intel
+
+  The program committee may be contacted as a group via email:
+
+     lss-pc (_at_) ext.namei.org
+   
+
+REFERENCES  
+
+  [1] https://events.linuxfoundation.org/events/linuxcon
