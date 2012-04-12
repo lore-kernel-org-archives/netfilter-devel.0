@@ -1,127 +1,81 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 5/9] ipvs: use adaptive pause in master thread
-Date: Thu, 12 Apr 2012 02:13:09 +0200
-Message-ID: <20120412001309.GA7294@1984>
-References: <1332320185-27157-1-git-send-email-horms@verge.net.au>
- <1332320185-27157-6-git-send-email-horms@verge.net.au>
- <20120402111145.GA15181@1984>
- <alpine.LFD.2.00.1204032258540.1995@ja.ssi.bg>
- <20120405150553.GA8144@1984>
- <alpine.LFD.2.00.1204082221440.6964@ja.ssi.bg>
- <20120409230803.GB27514@1984>
- <alpine.LFD.2.00.1204112221250.2000@ja.ssi.bg>
+From: Denys Fedoryshchenko <denys@visp.net.lb>
+Subject: Re: [PATCH 1/1] netfilter: =?UTF-8?Q?xt=5Frecent=3A=20Add=20optio?=
+ =?UTF-8?Q?nal=20mask=20option=20for=20xt=5Frecent?=
+Date: Thu, 12 Apr 2012 12:00:03 +0300
+Message-ID: <d8de90a8f08a092730109e72827264fe@visp.net.lb>
+References: <1331033084-23803-1-git-send-email-denys@visp.net.lb>
+ <20120411231421.GA7038@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1204112221250.2000@ja.ssi.bg>
-Sender: lvs-devel-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	<netfilter-devel@vger.kernel.org>, <netfilter@vger.kernel.org>,
+	<coreteam@netfilter.org>, <linux-kernel@vger.kernel.org>,
+	<netdev@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <20120411231421.GA7038@1984>
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Julian,
+Hi Pablo
 
-On Wed, Apr 11, 2012 at 11:02:39PM +0300, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Tue, 10 Apr 2012, Pablo Neira Ayuso wrote:
-> 
-> > You can still use kthread_should_stop inside a wrapper function
-> > that calls kthread_stop and up() the semaphore.
-> > 
-> > sync_stop:
-> >         kthread_stop(k)
-> >         up(s)
-> > 
-> > kthread_routine:
-> >         while(1) {
-> >                 down(s)
-> >                 if (kthread_should_stop(k))
-> >                         break;
-> > 
-> >                 get sync msg
-> >                 send sync msg
-> >         }
-> > 
-> > BTW, each up() does not necessarily mean one wakeup event. up() will
-> > delivery only one wakeup event for one process that has been already
-> > awaken.
-> 
-> 	OK, now I added up(). It will be called when
-> 32 messages are queued after last sent by thread.
-
-Why 32?
-
-If you do up() once per message, you will still get an arbitrary
-number of messages in the queue until the scheduler selects your
-thread to enter the running state.
-
-In other works, if you do up() once per 32 messages, your thread will
-get N+32 messages in its queue by the time the scheduler makes it
-enter the running state. Being N that amount of arbitrary messages.
-This seems to me like more chances to overrun the socket buffer under
-high stress.
-
-> > > 	I'm still thinking if sndbuf value should be exported,
-> > > currently users have to modify the global default/max value.
-> > 
-> > I think it's a good idea.
-> 
-> 	Done, used same value both for rcvbuf and sndbuf.
-> 
-> > > But in below version I'm trying to handle the sndbuf overflow
-> > > by blocking for write_space event. By this way we should work
-> > > with any sndbuf configuration.
-> > 
-> > You seem to be defering the overrun problem by using a longer
-> > intermediate queue than the socket buffer. Then, that queue can be
-> > tuned by the user via sysctl. It may happen under heavy stress that
-> > your intermediate queue gets full again, then you'll have to drop
-> > packets at some point.
-> 
-> 	Yes, both values are for same thing, the problem is
-> that queue size is in messages while socket buffer is in bytes.
-> And as sndbuf config is optional, I'm not trying to derive
-> sync_qlen_max from sndbuf. May be we can do it after
-> socket is created but it will cause problem for systems
-> that do not configure sync_sock_size, they before now used
-> unlimited queue and may be default socket size, so using
-> some small default sndbuf as sync_qlen_max can cause message
-> drops. They will use reduced limits. So, now we provide
-> some large sync_qlen_max as default configuration
-> which probably exceeds the default socket buffer.
+On 2012-04-12 02:14, Pablo Neira Ayuso wrote:
+> Hi Denys,
 >
-> 	Still, I think the down/up idea is not better.
-> We are adding two new vars: master_stopped and
-> master_sem.
+> On Tue, Mar 06, 2012 at 01:24:44PM +0200, Denys Fedoryshchenko wrote:
+>> Use case for this feature:
+>> 1)In some occasions if you need to allow,block,match specific 
+>> subnet.
+>> 2)I can use recent as a trigger when netfilter rule matches, with 
+>> mask 0.0.0.0
+>>
+>> Example:
+>>
+>> If you ping 8.8.8.8, after that you can't ping 2.2.2.10
+>
+> Could you provide an useful example for this new feature?
+>
+> I also think you can make this with hashlimit, that allows you to
+> set the network mask.
 
-Well, this is not exactly the idea I had in mind.
+Yes, technically hashlimit can do a lot, but not everything. Especially 
+because xt_recent can be "fine-grained" in steps, depends on timeline of 
+event, and can be updated accordingly to time of reoccurred event. It is 
+generally not related to mask option, but mask gives power to block 
+subnets.
+Why for example /24? Well, it is minimal mask for BGP announce :) It is 
+very often, that requesting ip has more ip's in same subnet 
+(load-balancing, or multiple ip's on dedicated server), and mask will be 
+highly useful for that, to reduce number of entries and to tighten weak 
+points (usually after ip blocked, they try from neighbor ip to check, if 
+destination just blocked single ip). Plus rttl and hitcount another 
+sweet things that are available in xt_recent, but aren't in hashlimit.
 
-> 	The problem is that kthread_stop() is a blocking
-> function. It waits thread to terminate. It can not wakeup
-> thread blocked in down(), so we add master_stopped flag
-> that will unblock the down() loop while kthread_stop() will also
-> unblock thread if waiting for write_space. I.e. up()+kthread_stop()
-> is racy without additional flag while kthread_stop()+up()
-> is not possible to work.
+iptables -t mangle -N SIP
+# If someone abuse our SIP, block him completely at least for 10 
+seconds, if he try again, update and block for new 120 seconds
+iptables -t mangle -A SIP -m recent --name X --update --seconds 10 
+--mask 255.255.255.0 -j MARK --set-mark 0x1
+# 120 - 600 seconds handle him over special relay (that will log his 
+query, but wont pass him to real SIP server)
+iptables -t mangle -A SIP -m recent --name X --rcheck --seconds 600 
+--mask 255.255.255.0 -j MARK --set-mark 0x2
 
-I don't see the up+kthread_stop() race you mention.
+In this case i will log only invalid queries, but for example some DDoS 
+or scanners that flood servers by packets will be silently ignored. 
+Maybe if hitcount really bad, i will add them to ipset, and block 
+permanently, by -m set --add-set.
 
-> 	I'm appending untested version with up+down but I think
-> we should use wake_up_process and schedule_timeout instead,
-> as in previous version.
+For me personally it is useful, because i have around 140 NAS servers, 
+and i give each of them /24 "gray" subnets, and in some cases i need to 
+handle bad users, that are changing dynamic ip and attacking from new ip 
+each time. I just block non-critical service for whole subnet then, till 
+technician on duty will solve issue completely. And sure if attack are 
+stopped, subnet will be unblocked "automagically".
 
-OK.
+Sure this feature not critical, or "a must", and if code are not good, 
+it is up to you, if it should be added or not.
 
-I still think that using an intermediate queue is *not* the way
-to achieve reliability and congestion control, sorry.
-
-But, you seem to persist on the idea and I don't want to block your
-developments, I just wanted to show my point and provide some ideas.
-After all, you maintain that part of the code.
-
-Please, tell me what patch you want me to apply and I'll take it.
