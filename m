@@ -1,665 +1,336 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [v11 PATCH 2/3] NETFILTER module xt_hmark, new target for HASH
- based fwmark
-Date: Thu, 12 Apr 2012 17:54:42 +0200
-Message-ID: <20120412155442.GA10767@1984>
-References: <1332417593-26232-1-git-send-email-hans.schillstrom@ericsson.com>
- <1332417593-26232-3-git-send-email-hans.schillstrom@ericsson.com>
+From: Eric Leblond <eric@regit.org>
+Subject: Re: [PATCH v2.1] conntrack: add /proc entry to disable helper by
+ default
+Date: Thu, 12 Apr 2012 18:06:11 +0200
+Message-ID: <1334246771.6042.13.camel@tiger.regit.org>
+References: <1332917824-4839-1-git-send-email-eric@regit.org>
+	 <1332940790-18337-1-git-send-email-eric@regit.org>
+	 <1332940790-18337-2-git-send-email-eric@regit.org>
+	 <20120412152651.GA10677@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, jengelh@medozas.de,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	hans@schillstrom.com
-To: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1332417593-26232-3-git-send-email-hans.schillstrom@ericsson.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-h88qCwnLpHw7qhZPbwPK"
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ks28632.kimsufi.com ([91.121.96.152]:58474 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932965Ab2DLQHY (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 12 Apr 2012 12:07:24 -0400
+In-Reply-To: <20120412152651.GA10677@1984>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Hans,
 
-On Thu, Mar 22, 2012 at 12:59:52PM +0100, Hans Schillstrom wrote:
-> The target allows you to create rules in the "raw" and "mangle" tables
-> which alter the netfilter mark (nfmark) field within a given range.
-> First a 32 bit hash value is generated then modulus by <limit> and
-> finally an offset is added before it's written to nfmark.
-> Prior to routing, the nfmark can influence the routing method (see
-> "Use netfilter MARK value as routing key") and can also be used by
-> other subsystems to change their behavior.
-> 
-> man page
->    HMARK
->        This  module  does  the  same  as MARK, i.e. set an fwmark, but the mark
->        is based on a hash value.  The hash is based on saddr, daddr, sport,
->        dport and proto. The same mark will be produced independent of direction
->        if no masks is set or the same masks is used for src and dest.
->        The hash mark could be adjusted by modulus and finally an offset could
->        be added, i.e the final mark will be within a range. ICMP error will use
->        the the original message for hash calculation not the icmp it self.
-> 
->        Note: IPv4 packets with nf_defrag_ipv4 loaded will be defragmented before they reach hmark,
->              IPv6 nf_defrag is not implemented this way, hence fragmented ipv6 packets will reach hmark.
->              Default behavior is to completely ignore any fragment if it reach hmark.
->              --hmark-method L3 is fragment safe since neither ports or L4 protocol field is used.
->              None of the parameters effect the packet it self only the calculated hash value.
-> 
->        Parameters: Short hand methods
-> 
->        --hmark-method L3
->               Do not use L4 protocol field, ports or spi, only Layer 3 addresses,
->               mask length of L3 addresses can still be used. Fragment or not
->               does not matter in this case since only L3 address can be used in
->               calc. of hash value.
-> 
->        --hmark-method L3-4 (Default)
->               Include  L4  in  calculation. of hash value i.e. all masks below are valid.
->               Fragments will be ignored. (i.e no hash value produced)
-> 
->        For all masks default is all "1:s", to disable a field use mask 0
-> 
->        --hmark-src-mask length
->               The length of the mask to AND the source address with (saddr & value).
-> 
->        --hmark-dst-mask length
->               The length of the mask to AND the dest. address with (daddr & value).
-> 
->        --hmark-sport-mask value
->               A 16 bit value to AND the src port with (sport & value).
-> 
->        --hmark-dport-mask value
->               A 16 bit value to AND the dest port with (dport & value).
-> 
->        --hmark-sport-set value
->               A 16 bit value to OR the src port with (sport | value).
-> 
->        --hmark-dport-set value
->               A 16 bit value to OR the dest port with (dport | value).
-> 
->        --hmark-spi-mask value
->               Value to AND the spi field with (spi & value) valid for proto esp or ah.
-> 
->        --hmark-spi-set value
->               Value to OR the spi field with (spi | value) valid for proto esp or ah.
-> 
->        --hmark-proto-mask value
->               An 8 bit value to AND the L4 proto field with (proto & value).
-> 
->        --hmark-ct
->               When flag is set, conntrack data should be used. Useful when NAT internal
->               addressed should be used in calculation.  Be careful when using DNAT
->               since mangle table is handled before nat table. I.e it will not work as
->               expected to put HMARK in table mangle and PREROUTING chain. The  initial
->               packet will have it's hash based on the original address,
->               while the rest of the flow will use the NAT:ed address.
-> 
->        --hmark-rnd value
->               A 32 bit initial value for hash calc, default is 0xc175a3b8.
-> 
->        Final processing of the mark in order of execution.
-> 
->        --hmark-mod value (must be > 0)
->               The easiest way to describe this is:  hash = hash mod <value>
-> 
->        --hmark-offset value
->               The easiest way to describe this is:  hash = hash + <value>
-> 
->        Examples:
-> 
->        Default rule handles all TCP, UDP, SCTP, ESP & AH
-> 
->               iptables -t mangle -A PREROUTING -m state --state NEW,ESTABLISHED,RELATED
->                -j HMARK --hmark-offset 10000 --hmark-mod 10
-> 
->        Handle SCTP and hash dest port only and produce a nfmark between 100-119.
-> 
->               iptables -t mangle -A PREROUTING -p SCTP -j HMARK --src-mask 0 --dst-mask 0
->                --sp-mask 0 --offset 100 --mod 20
-> 
->        Fragment safe Layer 3 only, that keep a class C network flow together
-> 
->               iptables -t mangle -A PREROUTING -j HMARK --method L3 --src-mask 24 --mod 20 --offset 100
-> 
-> Rev 11
->     Two comments changed
-> Rev 10
->      Even more simplified NAT handling just one switch --hmark-ct
->      some renaming and some minor changes.
->      Changes are based on Pablos review.
-> 
-> Rev 9
->       Simplified NAT selections, cleanup of comments, added checkentry()
->       change of #ifdef to #if IS_ENABLED and dependency.
->       Some minor formating.
->       Most changes are based on Pablos review.
-> 
-> Rev 8
->       method L3 / L3-4 added i.e. Fragment handling changed to
->       don't handle in "method L3-4"
->       Syntax change in user mode more NF compatible.
->       Most changes are based on Pablos review.
-> 
-> Rev 7
->       IPv6 descending into icmp error hdr didn't work as expected
->       with ipv6_find_hdr() Now it works as expected.
-> 
-> Rev 6
->       Compile options with or without conntrack fixed.
->       __ipv6_find_hdr() replaced by ipv6_find_hdr()
-> 
-> Rev 5
->       IPv6 rewritten uses __ipv6_find_hdr() (P. Mc Hardy)
->       Full mask and address used for IPv6 smask and dmask (J.Engelhart)
->       Changes due to comments by Pablo Neira Ayuso  and Eric Dumazet
->       i.e uses of skb_header_pointer() and Null check of info->hmod
->       Man page changes
-> 
-> Rev 4
->       different targets for IPv4 and IPv6
->       Changes based on review by Pablo.
-> 
-> Rev 3
->       Support added to SCTP for IPv6
-> Rev 2
->       IPv6 header scan changed to follow RFC 2640
->       IPv4 icmp echo fragmented does now use proto as ipv6
->       IPv6 pskb_may_pull() check is done in every time in header loop.
->       IPv4 nat support added.
->       default added in IPv6 loop and null check of hp
-> 
-> Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
-> ---
->  include/linux/netfilter/xt_HMARK.h |   62 +++++++
->  net/netfilter/Kconfig              |   18 ++
->  net/netfilter/Makefile             |    1 +
->  net/netfilter/xt_HMARK.c           |  319 ++++++++++++++++++++++++++++++++++++
->  4 files changed, 400 insertions(+), 0 deletions(-)
->  create mode 100644 include/linux/netfilter/xt_HMARK.h
->  create mode 100644 net/netfilter/xt_HMARK.c
-> 
-> diff --git a/include/linux/netfilter/xt_HMARK.h b/include/linux/netfilter/xt_HMARK.h
-> new file mode 100644
-> index 0000000..cdf4a8f
-> --- /dev/null
-> +++ b/include/linux/netfilter/xt_HMARK.h
-> @@ -0,0 +1,62 @@
-> +#ifndef XT_HMARK_H_
-> +#define XT_HMARK_H_
-> +
-> +#include <linux/types.h>
-> +
-> +enum {
-> +	XT_HMARK_NONE,
-> +	XT_HMARK_SADR_AND,
-> +	XT_HMARK_DADR_AND,
-> +	XT_HMARK_SPI_AND,
-> +	XT_HMARK_SPI_OR,
-> +	XT_HMARK_SPORT_AND,
-> +	XT_HMARK_DPORT_AND,
-> +	XT_HMARK_SPORT_OR,
-> +	XT_HMARK_DPORT_OR,
-> +	XT_HMARK_PROTO_AND,
-> +	XT_HMARK_RND,
-> +	XT_HMARK_MODULUS,
-> +	XT_HMARK_OFFSET,
-> +	XT_HMARK_CT,
-> +	XT_HMARK_METHOD_L3,
-> +	XT_HMARK_METHOD_L3_4,
-> +	XT_F_HMARK_SADR_AND    = 1 << XT_HMARK_SADR_AND,
-> +	XT_F_HMARK_DADR_AND    = 1 << XT_HMARK_DADR_AND,
-> +	XT_F_HMARK_SPI_AND     = 1 << XT_HMARK_SPI_AND,
-> +	XT_F_HMARK_SPI_OR      = 1 << XT_HMARK_SPI_OR,
-> +	XT_F_HMARK_SPORT_AND   = 1 << XT_HMARK_SPORT_AND,
-> +	XT_F_HMARK_DPORT_AND   = 1 << XT_HMARK_DPORT_AND,
-> +	XT_F_HMARK_SPORT_OR    = 1 << XT_HMARK_SPORT_OR,
-> +	XT_F_HMARK_DPORT_OR    = 1 << XT_HMARK_DPORT_OR,
-> +	XT_F_HMARK_PROTO_AND   = 1 << XT_HMARK_PROTO_AND,
-> +	XT_F_HMARK_RND         = 1 << XT_HMARK_RND,
-> +	XT_F_HMARK_MODULUS     = 1 << XT_HMARK_MODULUS,
-> +	XT_F_HMARK_OFFSET      = 1 << XT_HMARK_OFFSET,
-> +	XT_F_HMARK_CT          = 1 << XT_HMARK_CT,
-> +	XT_F_HMARK_METHOD_L3   = 1 << XT_HMARK_METHOD_L3,
-> +	XT_F_HMARK_METHOD_L3_4 = 1 << XT_HMARK_METHOD_L3_4,
-> +};
-> +
-> +union hmark_ports {
-> +	struct {
-> +		__u16	src;
-> +		__u16	dst;
-> +	} p16;
-> +	__u32	v32;
-> +};
-> +
-> +struct xt_hmark_info {
-> +	union nf_inet_addr	src_mask;	/* Source address mask */
-> +	union nf_inet_addr	dst_mask;	/* Dest address mask */
-> +	union hmark_ports	port_mask;
-> +	union hmark_ports	port_set;
-> +	__u32			spi_mask;
-> +	__u32			spi_set;
-> +	__u32			flags;		/* Print out only */
-> +	__u16			proto_mask;	/* L4 Proto mask */
-> +	__u32			hashrnd;
-> +	__u32			hmodulus;	/* Modulus */
-> +	__u32			hoffset;	/* Offset */
-> +};
-> +
-> +#endif /* XT_HMARK_H_ */
-> diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-> index f8ac4ef..a775804 100644
-> --- a/net/netfilter/Kconfig
-> +++ b/net/netfilter/Kconfig
-> @@ -488,6 +488,24 @@ config NETFILTER_XT_TARGET_HL
->  	since you can easily create immortal packets that loop
->  	forever on the network.
->  
-> +config NETFILTER_XT_TARGET_HMARK
-> +	tristate '"HMARK" target support'
-> +	depends on (IP6_NF_IPTABLES || IP6_NF_IPTABLES=n)
+--=-h88qCwnLpHw7qhZPbwPK
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-do we really need this dependency above?
+Hello,
 
-> +	depends on NETFILTER_ADVANCED
-> +	---help---
-> +	This option adds the "HMARK" target.
-> +
-> +	The target allows you to create rules in the "raw" and "mangle" tables
-> +	which alter the netfilter mark (nfmark) field within a given range.
-> +	First a 32 bit hash value is generated then modulus by <limit> and
-> +	finally an offset is added before it's written to nfmark.
-> +
-> +	Prior to routing, the nfmark can influence the routing method (see
-> +	"Use netfilter MARK value as routing key") and can also be used by
-> +	other subsystems to change their behavior.
-> +
-> +	The mark match can also be used to match nfmark produced by this module.
-> +
->  config NETFILTER_XT_TARGET_IDLETIMER
->  	tristate  "IDLETIMER target support"
->  	depends on NETFILTER_ADVANCED
-> diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-> index 40f4c3d..2712ba0 100644
-> --- a/net/netfilter/Makefile
-> +++ b/net/netfilter/Makefile
-> @@ -57,6 +57,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_CONNSECMARK) += xt_CONNSECMARK.o
->  obj-$(CONFIG_NETFILTER_XT_TARGET_CT) += xt_CT.o
->  obj-$(CONFIG_NETFILTER_XT_TARGET_DSCP) += xt_DSCP.o
->  obj-$(CONFIG_NETFILTER_XT_TARGET_HL) += xt_HL.o
-> +obj-$(CONFIG_NETFILTER_XT_TARGET_HMARK) += xt_HMARK.o
->  obj-$(CONFIG_NETFILTER_XT_TARGET_LED) += xt_LED.o
->  obj-$(CONFIG_NETFILTER_XT_TARGET_NFLOG) += xt_NFLOG.o
->  obj-$(CONFIG_NETFILTER_XT_TARGET_NFQUEUE) += xt_NFQUEUE.o
-> diff --git a/net/netfilter/xt_HMARK.c b/net/netfilter/xt_HMARK.c
-> new file mode 100644
-> index 0000000..d90549d
-> --- /dev/null
-> +++ b/net/netfilter/xt_HMARK.c
-> @@ -0,0 +1,319 @@
-> +/*
-> + * xt_hmark - Netfilter module to set mark as hash value
-> + *
-> + * (C) 2012 Hans Schillstrom <hans.schillstrom@ericsson.com>
-> + *
-> + *Description:
-> + *	This module calculates a hash value that can be modified by modulus
-> + *	and an offset, i.e. it is possible to produce a skb->mark within a range
-> + *	The hash value is based on a direction independent five tuple:
-> + *	src & dst addr src & dst ports and protocol.
-> + *	There is two distinct modes for hash calculation:
-> + *
-> + *	This program is free software; you can redistribute it and/or modify
-> + *	it under the terms of the GNU General Public License version 2 as
-> + *	published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/skbuff.h>
-> +#include <net/ip.h>
-> +#include <linux/icmp.h>
-> +
-> +#include <linux/netfilter/xt_HMARK.h>
-> +#include <linux/netfilter/x_tables.h>
-> +#include <net/netfilter/nf_conntrack.h>
-> +#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
-> +#include <net/ipv6.h>
-> +#include <linux/netfilter_ipv6/ip6_tables.h>
-> +#endif
-> +
-> +MODULE_LICENSE("GPL");
-> +MODULE_AUTHOR("Hans Schillstrom <hans.schillstrom@ericsson.com>");
-> +MODULE_DESCRIPTION("Xtables: Packet range mark operations by Hash value");
-> +MODULE_ALIAS("ipt_HMARK");
-> +MODULE_ALIAS("ip6t_HMARK");
-> +
-> +/*
-> + * ICMP, get header offset if icmp error
-> + */
-> +static int get_inner_hdr(struct sk_buff *skb, int iphsz, int *nhoff)
-> +{
-> +	const struct icmphdr *icmph;
-> +	struct icmphdr _ih;
-> +
-> +	/* Not enough header? */
-> +	icmph = skb_header_pointer(skb, *nhoff + iphsz, sizeof(_ih), &_ih);
-> +	if (icmph == NULL && icmph->type > NR_ICMP_TYPES)
-> +		return 0;
-> +
-> +	/* Error message? */
-> +	if (icmph->type != ICMP_DEST_UNREACH &&
-> +	    icmph->type != ICMP_SOURCE_QUENCH &&
-> +	    icmph->type != ICMP_TIME_EXCEEDED &&
-> +	    icmph->type != ICMP_PARAMETERPROB &&
-> +	    icmph->type != ICMP_REDIRECT)
-> +		return 0;
-> +
-> +	*nhoff += iphsz + sizeof(_ih);
-> +	return 1;
-> +}
-> +
-> +#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
-> +/*
-> + * Get ipv6 header offset if icmp error
-> + */
-> +static int get_inner6_hdr(struct sk_buff *skb, int *offset)
-> +{
-> +	struct icmp6hdr *icmp6h, _ih6;
-> +
-> +	icmp6h = skb_header_pointer(skb, *offset, sizeof(_ih6), &_ih6);
-> +	if (icmp6h == NULL)
-> +		return 0;
-> +
-> +	if (icmp6h->icmp6_type && icmp6h->icmp6_type < 128) {
-> +		*offset += sizeof(struct icmp6hdr);
-> +		return 1;
-> +	}
-> +	return 0;
-> +}
-> +/*
-> + * Calculate hash based fw-mark, on the five tuple if possible.
-> + * special cases :
-> + *  - Fragments do not use ports not even on the first fragment,
-> + *    nf_defrag_ipv6.ko don't defrag for us like it do in ipv4.
-> + *    This might be changed in the future.
-> + *  - On ICMP errors the inner header will be used.
-> + *  - Tunnels no ports
-> + *  - ESP & AH uses SPI
-> + * @returns XT_CONTINUE
-> + */
-> +static unsigned int
-> +hmark_v6(struct sk_buff *skb, const struct xt_action_param *par)
-> +{
-> +	const struct xt_hmark_info *info = par->targinfo;
-> +	struct ipv6hdr *ip6, _ip6;
-> +	int poff, flag = IP6T_FH_F_AUTH; /* Ports offset, find_hdr flags */
-> +	union hmark_ports uports;
-> +	u32 addr_src, addr_dst, hash, nhoffs = 0;
-> +	u16 fragoff = 0;
-> +	u8 nexthdr;
-> +
-> +	ip6 = (struct ipv6hdr *) (skb->data + skb_network_offset(skb));
-> +	nexthdr = ipv6_find_hdr(skb, &nhoffs, -1, &fragoff, &flag);
-> +	if (nexthdr < 0)
-> +		return XT_CONTINUE;
-> +	/* No need to check for icmp errors on fragments */
-> +	if ((flag & IP6T_FH_F_FRAG) || (nexthdr != IPPROTO_ICMPV6))
-> +		goto noicmp;
-> +	/* if an icmp error, use the inner header */
-> +	if (get_inner6_hdr(skb, &nhoffs)) {
-> +		ip6 = skb_header_pointer(skb, nhoffs, sizeof(_ip6), &_ip6);
-> +		if (!ip6)
-> +			return XT_CONTINUE;
-> +		/* Treat AH as ESP, use SPI nothing else. */
-> +		flag = IP6T_FH_F_AUTH;
-> +		nexthdr = ipv6_find_hdr(skb, &nhoffs, -1, &fragoff, &flag);
-> +		if (nexthdr < 0)
-> +			return XT_CONTINUE;
-> +	}
-> +noicmp:
-> +	addr_src = (__force u32)
-> +		(ip6->saddr.s6_addr32[0] & info->src_mask.in6.s6_addr32[0]) ^
-> +		(ip6->saddr.s6_addr32[1] & info->src_mask.in6.s6_addr32[1]) ^
-> +		(ip6->saddr.s6_addr32[2] & info->src_mask.in6.s6_addr32[2]) ^
-> +		(ip6->saddr.s6_addr32[3] & info->src_mask.in6.s6_addr32[3]);
-> +	addr_dst = (__force u32)
-> +		(ip6->daddr.s6_addr32[0] & info->dst_mask.in6.s6_addr32[0]) ^
-> +		(ip6->daddr.s6_addr32[1] & info->dst_mask.in6.s6_addr32[1]) ^
-> +		(ip6->daddr.s6_addr32[2] & info->dst_mask.in6.s6_addr32[2]) ^
-> +		(ip6->daddr.s6_addr32[3] & info->dst_mask.in6.s6_addr32[3]);
-> +
-> +	uports.v32 = 0;
-> +	if ((info->flags & XT_F_HMARK_METHOD_L3) ||
-> +	    (nexthdr == IPPROTO_ICMPV6))
-> +		goto no_ports;
-> +	/* Is next header valid for port or SPI calculation ? */
-> +	poff = proto_ports_offset(nexthdr);
-> +	if ((flag & IP6T_FH_F_FRAG) || poff < 0)
-> +		return XT_CONTINUE;
-> +
-> +	nhoffs += poff;
-> +	if (skb_copy_bits(skb, nhoffs, &uports, sizeof(uports)) < 0)
-> +		return XT_CONTINUE;
-> +
-> +	if ((nexthdr == IPPROTO_ESP) || (nexthdr == IPPROTO_AH))
-> +		uports.v32 = (uports.v32 & info->spi_mask) | info->spi_set;
-> +	else {
-> +		uports.v32 = (uports.v32 & info->port_mask.v32) |
-> +			      info->port_set.v32;
-> +		/* get a consistent hash (same value in any flow dirs.) */
-> +		if (uports.p16.dst < uports.p16.src)
-> +			swap(uports.p16.dst, uports.p16.src);
-> +	}
-> +
-> +no_ports:
-> +	nexthdr &= info->proto_mask;
-> +	/* get a consistent hash (same value in any flow direction) */
-> +	if (addr_dst < addr_src)
-> +		swap(addr_src, addr_dst);
-> +
-> +	hash = jhash_3words(addr_src, addr_dst, uports.v32, info->hashrnd) ^ nexthdr;
-> +	skb->mark = (hash % info->hmodulus) + info->hoffset;
-> +	return XT_CONTINUE;
-> +}
-> +#endif
-> +/*
-> + * Calculate hash based fw-mark, on the five tuple if possible.
-> + * special cases :
-> + *  - Fragments do not use ports not even on the first fragment,
-> + *    unless nf_defrag_xx.ko is used.
-> + *  - On ICMP errors the inner header will be used.
-> + *  - Tunnels no ports
-> + *  - ESP & AH uses SPI
-> + * @returns XT_CONTINUE
-> + */
-> +static unsigned int
-> +hmark_v4(struct sk_buff *skb, const struct xt_action_param *par)
-> +{
-> +	const struct xt_hmark_info *info = par->targinfo;
-> +	struct iphdr *ip, _ip;
-> +	int nhoff, poff, frag = 0;
-> +	union hmark_ports uports;
-> +	u32 addr_src, addr_dst, hash;
-> +	u8 ip_proto;
-> +
-> +	nhoff = skb_network_offset(skb);
-> +	ip = (struct iphdr *) (skb->data + nhoff);
-> +	if (ip->protocol == IPPROTO_ICMP) {
-> +		/* if an icmp error, calc hash on inner header */
-> +		if (get_inner_hdr(skb, ip->ihl * 4, &nhoff)) {
-> +			ip = skb_header_pointer(skb, nhoff, sizeof(_ip), &_ip);
-> +			if (!ip)
-> +				return XT_CONTINUE;
-> +		}
-> +	}
-> +
-> +	ip_proto = ip->protocol;
-> +	if (ip->frag_off & htons(IP_MF | IP_OFFSET))
-> +		frag = 1;
-> +
-> +	addr_src = (__force u32) ip->saddr;
-> +	addr_dst = (__force u32) ip->daddr;
-> +	uports.v32 = 0;
-> +/* conntrack take care of ICMP relation */
-> +#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-> +	if (info->flags & XT_F_HMARK_CT) {
-> +		struct nf_conntrack_tuple *otuple;
-> +		struct nf_conntrack_tuple *rtuple;
-> +		enum ip_conntrack_info ctinfo;
-> +		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
-> +
-> +		if (!ct || nf_ct_is_untracked(ct))
-> +			return XT_CONTINUE;
-> +
-> +		otuple = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
-> +		rtuple = &ct->tuplehash[IP_CT_DIR_REPLY].tuple;
-> +
-> +		addr_src       = (__force u32)otuple->src.u3.in.s_addr;
-> +		uports.p16.src = otuple->src.u.udp.port;
-> +		addr_dst       = (__force u32)rtuple->src.u3.in.s_addr;
-> +		uports.p16.dst = rtuple->src.u.udp.port;
-> +	}
+On Thu, 2012-04-12 at 17:26 +0200, Pablo Neira Ayuso wrote:
+> Hi Eric,
+>=20
+> On Wed, Mar 28, 2012 at 03:19:50PM +0200, Eric Leblond wrote:
+> > This patch gives the user different methods to disable
+> > the attachment of helper to all connections on a given
+> > port. The idea is to allow the user to choose with the CT target
+> > the helper assignement he wants to have.
+> >=20
+> > First method it to use the 'nf_conntrack_helper' option on the
+> > nf_conntrack module and set it to 0. As this is a constraint to do
+> > this at the time of the loading, a /proc entry is also available.
+> > Setting sys/net/netfilter/nf_conntrack_auto_assign_helper to 0 will
+> > disable the automatic assignement of the helper.
+>=20
+> I have modified your patch a bit, please find the one I plan to apply
+> enclosed to this email.
+>=20
+> I have also heavily rewritten the description. I decided to keep you
+> as author, if you're OK with it.
 
-There's an inconsistency here. No conntrack support for IPv6.
+OK for authoring. I really like more the new description :)
 
-I'd suggest to split hmark_v4 into two functions by checking:
+>=20
+> Regarding this:
+> http://www.netfilter.org/news.html#2012-04-03
+>=20
+> I'll expand those news to be a bit more verbose, as it will be the
+> reference the patch will point to.
 
-... hmark_v4(...)
-{
-        if (info->flags & XT_F_HMARK_CT)
-                ret = hmark_tg_ct_v4(...)
-        else
-                ret = hmark_tg_v4(...)
+Seems a good idea.
 
-        return ret;
-}
+>=20
+> You can find the list of changes below.
+>=20
+> > ---
+> >  include/net/netfilter/nf_conntrack_helper.h |    3 +
+> >  include/net/netns/conntrack.h               |    2 +
+> >  net/netfilter/nf_conntrack_core.c           |    6 ++
+> >  net/netfilter/nf_conntrack_helper.c         |   82 +++++++++++++++++++=
++++++++-
+> >  4 files changed, 92 insertions(+), 1 deletions(-)
+> >=20
+> > diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/=
+netfilter/nf_conntrack_helper.h
+> > index 5767dc2..a1f9955 100644
+> > --- a/include/net/netfilter/nf_conntrack_helper.h
+> > +++ b/include/net/netfilter/nf_conntrack_helper.h
+> > @@ -63,6 +63,9 @@ static inline struct nf_conn_help *nfct_help(const st=
+ruct nf_conn *ct)
+> >  extern int nf_conntrack_helper_init(void);
+> >  extern void nf_conntrack_helper_fini(void);
+> > =20
+> > +extern int nf_conntrack_helper_init_net(struct net *net);
+> > +extern void nf_conntrack_helper_fini_net(struct net *net);
+>=20
+> I have modified this, so now nf_conntrack_helper_[init|fini] take
+> struct net instead. Thus, we don't need these new functions.
 
-Same thing for IPv6. Those function will look smaller, and that's good
-to make the code more maintainable.
+Really fine, I did not want to change existing things in my version to
+avoid to break something but the change you propose brind some
+homogeneity with other Netfilter subsystem.
 
-You can define some hmark_hash_v4 and hmark_hash_v6 function that you
-may want to inline.
+>=20
+> > +
+> >  extern int nf_conntrack_broadcast_help(struct sk_buff *skb,
+> >  				       unsigned int protoff,
+> >  				       struct nf_conn *ct,
+> > diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrac=
+k.h
+> > index 7a911ec..7e21aec 100644
+> > --- a/include/net/netns/conntrack.h
+> > +++ b/include/net/netns/conntrack.h
+> > @@ -26,11 +26,13 @@ struct netns_ct {
+> >  	int			sysctl_tstamp;
+> >  	int			sysctl_checksum;
+> >  	unsigned int		sysctl_log_invalid; /* Log invalid packets */
+> > +	int			sysctl_auto_assign_helper;
+> >  #ifdef CONFIG_SYSCTL
+> >  	struct ctl_table_header	*sysctl_header;
+> >  	struct ctl_table_header	*acct_sysctl_header;
+> >  	struct ctl_table_header	*tstamp_sysctl_header;
+> >  	struct ctl_table_header	*event_sysctl_header;
+> > +	struct ctl_table_header	*helper_sysctl_header;
+> >  #endif
+> >  	char			*slabname;
+> >  };
+> > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_connt=
+rack_core.c
+> > index cbdb754..b30d845 100644
+> > --- a/net/netfilter/nf_conntrack_core.c
+> > +++ b/net/netfilter/nf_conntrack_core.c
+> > @@ -1357,6 +1357,7 @@ static void nf_conntrack_cleanup_net(struct net *=
+net)
+> >  	nf_conntrack_tstamp_fini(net);
+> >  	nf_conntrack_acct_fini(net);
+> >  	nf_conntrack_expect_fini(net);
+> > +	nf_conntrack_helper_fini_net(net);
+> >  	kmem_cache_destroy(net->ct.nf_conntrack_cachep);
+> >  	kfree(net->ct.slabname);
+> >  	free_percpu(net->ct.stat);
+> > @@ -1587,9 +1588,14 @@ static int nf_conntrack_init_net(struct net *net=
+)
+> >  	ret =3D nf_conntrack_timeout_init(net);
+> >  	if (ret < 0)
+> >  		goto err_timeout;
+> > +	ret =3D nf_conntrack_helper_init_net(net);
+> > +	if (ret < 0)
+> > +		goto err_helper;
+> > =20
+> >  	return 0;
+> > =20
+> > +err_helper:
+> > +	nf_conntrack_helper_fini_net(net);
+> >  err_timeout:
+> >  	nf_conntrack_timeout_fini(net);
+> >  err_ecache:
+> > diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_con=
+ntrack_helper.c
+> > index 436b7cb..d27252e 100644
+> > --- a/net/netfilter/nf_conntrack_helper.c
+> > +++ b/net/netfilter/nf_conntrack_helper.c
+> > @@ -34,6 +34,67 @@ static struct hlist_head *nf_ct_helper_hash __read_m=
+ostly;
+> >  static unsigned int nf_ct_helper_hsize __read_mostly;
+> >  static unsigned int nf_ct_helper_count __read_mostly;
+> > =20
+> > +static bool nf_ct_auto_assign_helper __read_mostly =3D 1;
+> > +module_param_named(nf_conntrack_helper, nf_ct_auto_assign_helper, bool=
+, 0644);
+> > +MODULE_PARM_DESC(nf_conntrack_helper, "Assign helper to connection bas=
+ed on port (default 1)");
+>=20
+> I have modified the description.
 
-Another suggestion in case you may need to extend HMARK in
-the future. I think some info->type field to specify the 
+This one is fine for me.
 
-info->type can be HMARK_T_PKT or HMARK_T_CT.
+>=20
+> > +
+> > +#ifdef CONFIG_SYSCTL
+> > +static struct ctl_table helper_sysctl_table[] =3D {
+> > +	{
+> > +		.procname	=3D "nf_conntrack_auto_assign_helper",
+>=20
+> I have renamed this to "nf_conntrack_helper"
 
-Thus, the code above would look like:
+OK, it was a little long and now it is homogenous with module option.
 
-... hmark_v4(...)
-{
-        switch(info->type) {
-        case HMARK_T_PKT:
-                ret = hmark_tg_ct_v4(...)
-                break;
-        case HMARK_T_CT:
-                ret = hmark_tg_v4(...)
-                break;
-        }
-}
+>=20
+> > +		.data		=3D &init_net.ct.sysctl_auto_assign_helper,
+> > +		.maxlen		=3D sizeof(unsigned int),
+> > +		.mode		=3D 0644,
+> > +		.proc_handler	=3D proc_dointvec,
+> > +	},
+> > +	{}
+> > +};
+> > +
+> > +static int nf_conntrack_helper_init_sysctl(struct net *net)
+> > +{
+> > +	struct ctl_table *table;
+> > +
+> > +	table =3D kmemdup(helper_sysctl_table, sizeof(helper_sysctl_table),
+> > +			GFP_KERNEL);
+> > +	if (!table)
+> > +		goto out;
+> > +
+> > +	table[0].data =3D &net->ct.sysctl_auto_assign_helper;
+> > +
+> > +	net->ct.helper_sysctl_header =3D register_net_sysctl_table(net,
+> > +			nf_net_netfilter_sysctl_path, table);
+> > +	if (!net->ct.helper_sysctl_header) {
+> > +		printk(KERN_ERR "nf_conntrack_helper: can't register to sysctl.\n");
+> > +		goto out_register;
+> > +	}
+> > +	return 0;
+> > +
+> > +out_register:
+> > +	kfree(table);
+> > +out:
+> > +	return -ENOMEM;
+> > +}
+> > +
+> > +static void nf_conntrack_helper_fini_sysctl(struct net *net)
+> > +{
+> > +	struct ctl_table *table;
+> > +
+> > +	table =3D net->ct.helper_sysctl_header->ctl_table_arg;
+> > +	unregister_net_sysctl_table(net->ct.helper_sysctl_header);
+> > +	kfree(table);
+> > +}
+> > +#else
+> > +static int nf_conntrack_helper_init_sysctl(struct net *net)
+> > +{
+> > +	return 0;
+> > +}
+> > +
+> > +static void nf_conntrack_helper_fini_sysctl(struct net *net)
+> > +{
+> > +}
+> > +#endif /* CONFIG_SYSCTL */
+> > +
+> > +
+> > =20
+>=20
+> I removed these extra empty lines.
 
-But *this is only a suggestion*, of course.
+OK, and sorry for that.
+>=20
+> >  /* Stupid hash, but collision free for the default registrations of th=
+e
+> >   * helpers currently in the kernel. */
+> > @@ -118,6 +179,7 @@ int __nf_ct_try_assign_helper(struct nf_conn *ct, s=
+truct nf_conn *tmpl,
+> >  {
+> >  	struct nf_conntrack_helper *helper =3D NULL;
+> >  	struct nf_conn_help *help;
+> > +	struct net *net =3D nf_ct_net(ct);
+> >  	int ret =3D 0;
+> > =20
+> >  	if (tmpl !=3D NULL) {
+> > @@ -127,8 +189,10 @@ int __nf_ct_try_assign_helper(struct nf_conn *ct, =
+struct nf_conn *tmpl,
+> >  	}
+> > =20
+> >  	help =3D nfct_help(ct);
+> > -	if (helper =3D=3D NULL)
+> > +
+> > +	if (net->ct.sysctl_auto_assign_helper && helper =3D=3D NULL)
+> >  		helper =3D __nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple=
+);
+> > +
+> >  	if (helper =3D=3D NULL) {
+> >  		if (help)
+> >  			RCU_INIT_POINTER(help->helper, NULL);
+> > @@ -324,6 +388,10 @@ int nf_conntrack_helper_init(void)
+> >  	if (!nf_ct_helper_hash)
+> >  		return -ENOMEM;
+> > =20
+> > +	printk(KERN_INFO "nf_conntrack: automatic assignation of helper to"
+> > +	       " connection will be disabled soon. Set nf_conntrack_helper"
+> > +	       " option to 1 to keep old behavior.\n");
+>=20
+> We spot this message only once now. So we don't disturb all Linux
+> kernel users with this message, only those using conntrack helpers.
 
-> +#endif
-> +	addr_src &= info->src_mask.ip;
-> +	addr_dst &= info->dst_mask.ip;
-> +
-> +	if ((info->flags & XT_F_HMARK_METHOD_L3) ||
-> +	    (ip_proto == IPPROTO_ICMP)) {
-> +		uports.v32 = 0;
-> +		goto noports;
-> +	}
-> +	/* Check if ports can be used in hash calculation. */
-> +	poff = proto_ports_offset(ip_proto);
-> +	if (frag || poff < 0)
-> +		return XT_CONTINUE;
-> +
-> +	/* if --ct not given, get ports from skb */
-> +	if (!uports.v32) {
-> +		nhoff += (ip->ihl * 4) + poff;
-> +		if (skb_copy_bits(skb, nhoff, &uports, sizeof(uports)) < 0)
-> +			return XT_CONTINUE;
-> +	}
-> +
-> +	if (ip_proto == IPPROTO_ESP || ip_proto == IPPROTO_AH)
-> +		uports.v32 = (uports.v32 & info->spi_mask) | info->spi_set;
-> +	else {
-> +		uports.v32 = (uports.v32 & info->port_mask.v32) |
-> +				info->port_set.v32;
-> +		/* get a consistent hash (same value in any flow dirs.) */
-> +		if (uports.p16.dst < uports.p16.src)
-> +			swap(uports.p16.src, uports.p16.dst);
-> +	}
-> +
-> +noports:
-> +	/* get a consistent hash (same value in any flow direction) */
-> +	if (addr_dst < addr_src)
-> +		swap(addr_src, addr_dst);
-> +
-> +	hash = jhash_3words(addr_src, addr_dst, uports.v32, info->hashrnd);
-> +	hash = hash ^ (ip_proto & info->proto_mask);
-> +	skb->mark = (hash % info->hmodulus) + info->hoffset;
-> +	return XT_CONTINUE;
-> +}
-> +
-> +static int hmark_check(const struct xt_tgchk_param *par)
-> +{
-> +	const struct xt_hmark_info *info = par->targinfo;
-> +
-> +	if (!info->hmodulus) {
-> +		pr_info("HMARK: hmark-mod can't be zero\n");
-> +		return -EINVAL;
-> +	}
-> +	if (info->proto_mask && (info->flags & XT_F_HMARK_METHOD_L3)) {
-> +		pr_info("HMARK: When method L3 proto mask must be zero\n");
-> +		return -EINVAL;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static struct xt_target hmark_tg_reg[] __read_mostly = {
-> +	{
-> +		.name           = "HMARK",
-> +		.revision       = 0,
-> +		.family         = NFPROTO_IPV4,
-> +		.target         = hmark_v4,
-> +		.targetsize     = sizeof(struct xt_hmark_info),
-> +		.checkentry     = hmark_check,
-> +		.me             = THIS_MODULE,
-> +	},
-> +#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
-> +	{
-> +		.name           = "HMARK",
-> +		.revision       = 0,
-> +		.family         = NFPROTO_IPV6,
-> +		.target         = hmark_v6,
-> +		.targetsize     = sizeof(struct xt_hmark_info),
-> +		.checkentry     = hmark_check,
-> +		.me             = THIS_MODULE,
-> +	},
-> +#endif
-> +};
-> +
-> +static int __init hmark_mt_init(void)
-> +{
-> +	int ret;
-> +
-> +	ret = xt_register_targets(hmark_tg_reg, ARRAY_SIZE(hmark_tg_reg));
-> +	if (ret < 0)
-> +		return ret;
-> +	return 0;
-> +}
-> +
-> +static void __exit hmark_mt_exit(void)
-> +{
-> +	xt_unregister_targets(hmark_tg_reg, ARRAY_SIZE(hmark_tg_reg));
-> +}
-> +
-> +module_init(hmark_mt_init);
-> +module_exit(hmark_mt_exit);
-> -- 
-> 1.7.2.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+OK.
+
+> > +
+> >  	err =3D nf_ct_extend_register(&helper_extend);
+> >  	if (err < 0)
+> >  		goto err1;
+> > @@ -335,8 +403,20 @@ err1:
+> >  	return err;
+> >  }
+> > =20
+> > +int nf_conntrack_helper_init_net(struct net *net)
+> > +{
+> > +	net->ct.sysctl_auto_assign_helper =3D nf_ct_auto_assign_helper;
+> > +
+> > +	return nf_conntrack_helper_init_sysctl(net);
+> > +}
+> > +
+> >  void nf_conntrack_helper_fini(void)
+> >  {
+> >  	nf_ct_extend_unregister(&helper_extend);
+> >  	nf_ct_free_hashtable(nf_ct_helper_hash, nf_ct_helper_hsize);
+> >  }
+> > +
+> > +void nf_conntrack_helper_fini_net(struct net *net)
+> > +{
+> > +	nf_conntrack_helper_fini_sysctl(net);
+> > +}
+> > --=20
+> > 1.7.9.1
+> >=20
+>=20
+> BTW, you may notice a glitch in my patch. There's two
+> nf_conntrack_timeout_fini() invocation in the error path of
+> nf_conntrack_init_net. That's already corrected in davem's tree but it
+> didn't reached linux-next tree yet.
+
+Good you mention it, I was going to do a remark ;)
+
+Thanks a lot for the improvements!
+
+BR,
+--=20
+Eric Leblond=20
+Blog: http://home.regit.org/ - Portfolio: http://regit.500px.com/
+
+--=-h88qCwnLpHw7qhZPbwPK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iEYEABECAAYFAk+G/XMACgkQnxA7CdMWjzLSugCdEredaMOL6Hog1Nzl0sI1pcu4
+uEgAn1MrhWKPON/E97gaSV7XuF24Yicn
+=TbHN
+-----END PGP SIGNATURE-----
+
+--=-h88qCwnLpHw7qhZPbwPK--
+
