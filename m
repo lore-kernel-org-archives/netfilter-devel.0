@@ -1,74 +1,186 @@
 From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: [PATCH 00/12] add namespace support for netfilter protos
-Date: Tue, 17 Apr 2012 10:56:11 +0800
-Message-ID: <1334631383-12326-1-git-send-email-gaofeng@cn.fujitsu.com>
+Subject: [PATCH 11/12] netfilter: udplite proto sysctl support for net
+Date: Tue, 17 Apr 2012 10:56:22 +0800
+Message-ID: <1334631383-12326-12-git-send-email-gaofeng@cn.fujitsu.com>
+References: <1334631383-12326-1-git-send-email-gaofeng@cn.fujitsu.com>
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	ebiederm@xmission.com, serge.hallyn@canonical.com,
 	dlezcano@fr.ibm.com, Gao feng <gaofeng@cn.fujitsu.com>
 To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:25292 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752626Ab2DQDui (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Apr 2012 23:50:38 -0400
+In-Reply-To: <1334631383-12326-1-git-send-email-gaofeng@cn.fujitsu.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently the sysctl of netfilter proto is not isolated, so when 
-changing proto's sysctl in container will cause the host's sysctl 
-be changed too. it's not expected.
+register pernet_operations nf_conntrack_net_proto_udplite_ops
+when loading nf_conntrack_proto_udplite module,and unregister
+it when removing.
 
-This patch set adds the namespace support for netfilter protos.
+It makes no senes to register subsys for udplite and udplite6,because
+the nf_conntrack_l4proto_udplite4 and nf_conntrack_l4proto_udplite6 are
+register or unregister together.
 
-impletement four pernet_operations to register sysctl,and disable 
-register sysctl when protos are registered.
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+---
+ net/netfilter/nf_conntrack_proto_udplite.c |   83 +++++++++++++++++++++------
+ 1 files changed, 64 insertions(+), 19 deletions(-)
 
-nf_conntrack_net_proto_ipv4_ops is used to register tcp4(compat),
-udp4(compat),icmp(compat),ipv4(compat).
-nf_conntrack_net_proto_ipv6_ops is used to register tcp6,udp6 and 
-icmpv6.
-nf_conntrack_net_proto_sctp_ops is used to register sctp4(compat) 
-and sctp6.
-nf_conntrack_net_proto_udplite_ops is used to register udplite4
-and udplite6
-
-these operations will be registered when module be loaded.
-
-And this will break the cttimeout, because timeout_nlattr_to_obj
-function use the orig timeout(such as tcp_timeouts) to set timeouts.
-
-I will fix this in my next patch.
-
-Gao feng (12):
-  netfilter: add struct netns_ct_proto to support netfilter namespace
-  netfilter: don't register sysctl when register proto
-  netfilter: generic proto sysctl support for net namespace
-  netfilter: tcp proto sysctl support for net namespace
-  netfilter: udp proto sysctl support for net namespace
-  netfilter: icmp proto sysctl support for net namespace
-  netfilter: icmpv6 proto sysctl support for net
-  netfilter: ipv4 sysctl support for net namespace
-  netfilter: ipv6 sysctl support for net namespace
-  netfilter: sctp proto sysctl support for net namespace
-  netfilter: udplite proto sysctl support for net
-  netfilter: export necessary function for generic proto
-
- include/linux/netfilter/nf_conntrack_udp.h     |   10 +
- include/linux/netfilter/nf_conntrack_udplite.h |   10 +
- include/net/netfilter/nf_conntrack_core.h      |    3 +
- include/net/netfilter/nf_conntrack_l3proto.h   |    6 -
- include/net/netfilter/nf_conntrack_l4proto.h   |   38 +++-
- include/net/netns/conntrack.h                  |   37 ++++
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |   96 ++++++++-
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |  116 +++++++++-
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |   48 ++++
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |   54 ++++-
- net/netfilter/nf_conntrack_core.c              |    6 +
- net/netfilter/nf_conntrack_proto.c             |  109 ++--------
- net/netfilter/nf_conntrack_proto_generic.c     |   93 ++++++++-
- net/netfilter/nf_conntrack_proto_sctp.c        |  205 +++++++++++++++---
- net/netfilter/nf_conntrack_proto_tcp.c         |  275 ++++++++++++++++++++----
- net/netfilter/nf_conntrack_proto_udp.c         |  160 ++++++++++++--
- net/netfilter/nf_conntrack_proto_udplite.c     |   83 ++++++--
- 17 files changed, 1096 insertions(+), 253 deletions(-)
- create mode 100644 include/linux/netfilter/nf_conntrack_udp.h
- create mode 100644 include/linux/netfilter/nf_conntrack_udplite.h
-
+diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
+index e060639..61881bc 100644
+--- a/net/netfilter/nf_conntrack_proto_udplite.c
++++ b/net/netfilter/nf_conntrack_proto_udplite.c
+@@ -20,16 +20,11 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter_ipv4.h>
+ #include <linux/netfilter_ipv6.h>
++#include <linux/netfilter/nf_conntrack_udplite.h>
+ #include <net/netfilter/nf_conntrack_l4proto.h>
+ #include <net/netfilter/nf_conntrack_ecache.h>
+ #include <net/netfilter/nf_log.h>
+ 
+-enum udplite_conntrack {
+-	UDPLITE_CT_UNREPLIED,
+-	UDPLITE_CT_REPLIED,
+-	UDPLITE_CT_MAX
+-};
+-
+ static unsigned int udplite_timeouts[UDPLITE_CT_MAX] = {
+ 	[UDPLITE_CT_UNREPLIED]	= 30*HZ,
+ 	[UDPLITE_CT_REPLIED]	= 180*HZ,
+@@ -70,7 +65,7 @@ static int udplite_print_tuple(struct seq_file *s,
+ 
+ static unsigned int *udplite_get_timeouts(struct net *net)
+ {
+-	return udplite_timeouts;
++	return net->ct.proto.sysctl_udplite_timeouts;
+ }
+ 
+ /* Returns verdict for packet, and may modify conntracktype */
+@@ -203,19 +198,19 @@ udplite_timeout_nla_policy[CTA_TIMEOUT_UDPLITE_MAX+1] = {
+ #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
+ 
+ #ifdef CONFIG_SYSCTL
+-static unsigned int udplite_sysctl_table_users;
+-static struct ctl_table_header *udplite_sysctl_header;
+ static struct ctl_table udplite_sysctl_table[] = {
+ 	{
+ 		.procname	= "nf_conntrack_udplite_timeout",
+-		.data		= &udplite_timeouts[UDPLITE_CT_UNREPLIED],
++		.data		= &init_net.ct.proto.
++				sysctl_udplite_timeouts[UDPLITE_CT_UNREPLIED],
+ 		.maxlen		= sizeof(unsigned int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_jiffies,
+ 	},
+ 	{
+ 		.procname	= "nf_conntrack_udplite_timeout_stream",
+-		.data		= &udplite_timeouts[UDPLITE_CT_REPLIED],
++		.data		= &init_net.ct.proto.
++				sysctl_udplite_timeouts[UDPLITE_CT_REPLIED],
+ 		.maxlen		= sizeof(unsigned int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_jiffies,
+@@ -252,11 +247,6 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 __read_mostly =
+ 		.nla_policy	= udplite_timeout_nla_policy,
+ 	},
+ #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
+-#ifdef CONFIG_SYSCTL
+-	.ctl_table_users	= &udplite_sysctl_table_users,
+-	.ctl_table_header	= &udplite_sysctl_header,
+-	.ctl_table		= udplite_sysctl_table,
+-#endif
+ };
+ 
+ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 __read_mostly =
+@@ -287,11 +277,60 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 __read_mostly =
+ 		.nla_policy	= udplite_timeout_nla_policy,
+ 	},
+ #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
++};
++
++static int nf_conntrack_proto_udplite_net_init(struct net *net)
++{
++	struct ctl_table *table;
++	int i, ret = 0;
++	for (i = 0; i < UDPLITE_CT_MAX; i++)
++		net->ct.proto.sysctl_udplite_timeouts[i] = udplite_timeouts[i];
++
++#ifdef CONFIG_SYSCTL
++	table = kmemdup(udplite_sysctl_table,
++			sizeof(udplite_sysctl_table),
++			GFP_KERNEL);
++	if (!table)
++		return -ENOMEM;
++
++	table[0].data = &net->ct.proto.
++			sysctl_udplite_timeouts[UDPLITE_CT_UNREPLIED];
++	table[1].data = &net->ct.proto.
++			sysctl_udplite_timeouts[UDPLITE_CT_REPLIED];
++
++	ret = nf_ct_register_net_sysctl(net,
++					&net->ct.proto.udplite_sysctl_header,
++					nf_net_netfilter_sysctl_path,
++					table,
++					NULL);
++	if (ret < 0) {
++		printk(KERN_ERR
++			"nf_conntrack_proto_udplite:"
++			" can't register to sysctl.\n");
++		goto out_register;
++	}
++	return 0;
++out_register:
++	kfree(table);
++#endif
++	return ret;
++}
++
++static void nf_conntrack_proto_udplite_net_fini(struct net *net)
++{
+ #ifdef CONFIG_SYSCTL
+-	.ctl_table_users	= &udplite_sysctl_table_users,
+-	.ctl_table_header	= &udplite_sysctl_header,
+-	.ctl_table		= udplite_sysctl_table,
++	struct ctl_table *table;
++	table = net->ct.proto.udplite_sysctl_header->ctl_table_arg;
++
++	nf_ct_unregister_net_sysctl(&net->ct.proto.udplite_sysctl_header,
++				    table,
++				    NULL);
+ #endif
++}
++
++static struct pernet_operations nf_conntrack_net_proto_udplite_ops = {
++	.init = nf_conntrack_proto_udplite_net_init,
++	.exit = nf_conntrack_proto_udplite_net_fini,
+ };
+ 
+ static int __init nf_conntrack_proto_udplite_init(void)
+@@ -304,7 +343,12 @@ static int __init nf_conntrack_proto_udplite_init(void)
+ 	err = nf_conntrack_l4proto_register(&nf_conntrack_l4proto_udplite6);
+ 	if (err < 0)
+ 		goto err2;
++	err = register_pernet_subsys(&nf_conntrack_net_proto_udplite_ops);
++	if (err < 0)
++		goto err3;
+ 	return 0;
++err3:
++	nf_conntrack_l4proto_unregister(&nf_conntrack_l4proto_udplite6);
+ err2:
+ 	nf_conntrack_l4proto_unregister(&nf_conntrack_l4proto_udplite4);
+ err1:
+@@ -313,6 +357,7 @@ err1:
+ 
+ static void __exit nf_conntrack_proto_udplite_exit(void)
+ {
++	unregister_pernet_subsys(&nf_conntrack_net_proto_udplite_ops);
+ 	nf_conntrack_l4proto_unregister(&nf_conntrack_l4proto_udplite6);
+ 	nf_conntrack_l4proto_unregister(&nf_conntrack_l4proto_udplite4);
+ }
 -- 
 1.7.7.6
+
