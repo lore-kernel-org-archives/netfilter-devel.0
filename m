@@ -1,43 +1,57 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 00/12] add namespace support for netfilter protos
-Date: Tue, 17 Apr 2012 12:59:00 +0200
-Message-ID: <20120417105900.GA2765@1984>
-References: <1334631383-12326-1-git-send-email-gaofeng@cn.fujitsu.com>
- <alpine.LNX.2.01.1204171233590.31683@frira.zrqbmnf.qr>
+From: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Subject: Re: [PATCH 2/2] IPVS: make failure of netns init more stable
+Date: Tue, 17 Apr 2012 13:15:10 +0200
+Message-ID: <201204171315.12686.hans.schillstrom@ericsson.com>
+References: <1334576378-2034-1-git-send-email-hans.schillstrom@ericsson.com> <1334576378-2034-2-git-send-email-hans.schillstrom@ericsson.com> <alpine.LFD.2.00.1204161621080.1711@ja.ssi.bg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Gao feng <gaofeng@cn.fujitsu.com>, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, ebiederm@xmission.com,
-	serge.hallyn@canonical.com, dlezcano@fr.ibm.com
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: "horms@verge.net.au" <horms@verge.net.au>,
+	"wensong@linux-vs.org" <wensong@linux-vs.org>,
+	"lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"hans@schillstrom.com" <hans@schillstrom.com>
+To: Julian Anastasov <ja@ssi.bg>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.1204161621080.1711@ja.ssi.bg>
 Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.01.1204171233590.31683@frira.zrqbmnf.qr>
-Sender: netdev-owner@vger.kernel.org
+Sender: lvs-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Apr 17, 2012 at 12:34:48PM +0200, Jan Engelhardt wrote:
+Hello Julian
+On Monday 16 April 2012 16:25:23 Julian Anastasov wrote:
 > 
-> On Tuesday 2012-04-17 04:56, Gao feng wrote:
+> 	Hello,
+[snip]
 > 
-> >Currently the sysctl of netfilter proto is not isolated, so when 
-> >changing proto's sysctl in container will cause the host's sysctl 
-> >be changed too. it's not expected.
+> 	Note that net_generic() and net->ipvs can not be
+> used after ops_exit/ops_free and failed ops_init.
 > 
-> I wonder if it made sense to do the configuration of NFCT via
-> netlink as well, and deprecate the sysctl interface.
 
-Good point Jan.
+I wonder if we are chasing ghosts...
 
-However, we're in inconsistent state now and removing interfaces is
-not easy / fast.
+With proper fault handling I can't even see a case when it (net->ipvs) can be used.
+Can you see a case when it could happen?
+Still we can set it to NULL on error exit and cleanup as you suggested, that doesn't harm I think.
 
-So I think we have to fix it first and then, if we decide to do so,
-deprecate them.
+A. If you add a netns and it fails the entire ns will be rolled back, 
+   and no access to that ns can occur.
+   That ns does not exist
 
-It seems to me like a good idea to target to providing netlink
-interfaces for all netfilter tweaks and use iptables (or whatsoever.
-command line tool we'll have in the future) to attach specific
-configurations to flow.
+B. If you insert ip_vs.ko when having one or more name spaces and 
+   __ip_vs_init() returns an error the module will be unloaded.
+   All ready loaded ns will not be affected.
 
-Thus, having no more sysctl stuff and module parameters tweaks.
+C. insmod of ex. ip_vs_ftp only affects loaded name spaces
+   and if the load of ip_vs_ftp fails it will be unloaded without affecting ip_vs(.ko)
+   (If ip_vs.ko is not loaded then it has to be loaded first case B...)
+
+With a "compiled in" ip_vs case B doesn't exist.
+
+With proper fault handling i.e. all ways returning fault codes to the netns init,
+there is no need for checking for  "if (!net->ipvs)" or any other action.
+
+-- 
+Regards
+Hans Schillstrom <hans.schillstrom@ericsson.com>
