@@ -1,68 +1,69 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH 2/2] IPVS: make failure of netns init more stable
-Date: Tue, 17 Apr 2012 23:57:13 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1204172242430.1984@ja.ssi.bg>
-References: <1334576378-2034-1-git-send-email-hans.schillstrom@ericsson.com> <1334576378-2034-2-git-send-email-hans.schillstrom@ericsson.com> <alpine.LFD.2.00.1204161621080.1711@ja.ssi.bg> <201204171315.12686.hans.schillstrom@ericsson.com>
+From: Serge Leschinsky <serge.leschinsky@gmail.com>
+Subject: Re: a possible bug in netfilter
+Date: Tue, 17 Apr 2012 15:20:42 -0700
+Message-ID: <4F8DECBA.4080302@gmail.com>
+References: <4F7E6D32.9060109@gmail.com> <alpine.LNX.2.01.1204061444170.19371@frira.zrqbmnf.qr> <20120407155847.GB28425@Chamillionaire.breakpoint.cc> <4F810EF1.1030209@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "horms@verge.net.au" <horms@verge.net.au>,
-	"wensong@linux-vs.org" <wensong@linux-vs.org>,
-	"lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"hans@schillstrom.com" <hans@schillstrom.com>
-To: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <201204171315.12686.hans.schillstrom@ericsson.com>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pz0-f52.google.com ([209.85.210.52]:39993 "EHLO
+	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751589Ab2DQWUp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 Apr 2012 18:20:45 -0400
+Received: by dake40 with SMTP id e40so8938264dak.11
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Apr 2012 15:20:45 -0700 (PDT)
+In-Reply-To: <4F810EF1.1030209@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+=46lorian,
+
+I think the problem is fixed - the boxes work fine, I didn=92t notice p=
+anics from=20
+the update.
+
+Thanks a lot!
+
+Serge
 
 
-	Hello,
-
-On Tue, 17 Apr 2012, Hans Schillstrom wrote:
-
-> I wonder if we are chasing ghosts...
-> 
-> With proper fault handling I can't even see a case when it (net->ipvs) can be used.
-> Can you see a case when it could happen?
-> Still we can set it to NULL on error exit and cleanup as you suggested, that doesn't harm I think.
-> 
-> A. If you add a netns and it fails the entire ns will be rolled back, 
->    and no access to that ns can occur.
->    That ns does not exist
-
-	Agreed
-
-> B. If you insert ip_vs.ko when having one or more name spaces and 
->    __ip_vs_init() returns an error the module will be unloaded.
->    All ready loaded ns will not be affected.
-
-	Yes, ip_vs_init fails.
-
-> C. insmod of ex. ip_vs_ftp only affects loaded name spaces
->    and if the load of ip_vs_ftp fails it will be unloaded without affecting ip_vs(.ko)
->    (If ip_vs.ko is not loaded then it has to be loaded first case B...)
-> 
-> With a "compiled in" ip_vs case B doesn't exist.
-
-	It is this case that can happen, we can only guess how
-difficult is to get ENOMEM here. IIRC, we can generate only
-ENOMEM error on IPVS core load.
-
-	I assume Simon has such setup and changes code to
-trigger load error. When I generate ENOMEM on IPVS core init
-for such case I get ENOENT from register_ip_vs_app when
-patch 1 and 2 for apps are applied, i.e. net->ipvs is NULL.
-You can check it with NF_CONNTRACK=y, IP_VS=y and
-IP_VS_FTP=m. You only need to trigger ENOMEM in __ip_vs_init.
-
-> With proper fault handling i.e. all ways returning fault codes to the netns init,
-> there is no need for checking for  "if (!net->ipvs)" or any other action.
-
-	Probably but one check on load does not hurt much.
-
-Regards
+On 04/07/2012 09:07 PM, Serge Leschinsky wrote:
+> On 04/07/2012 08:58 AM, Florian Westphal wrote:
+> ....
+>> Serge, could you try this patch?
+>>
+>> diff --git a/extensions/xt_psd.c b/extensions/xt_psd.c
+>> index 46b2831..acb5e8e 100644
+>> --- a/extensions/xt_psd.c
+>> +++ b/extensions/xt_psd.c
+>> @@ -227,7 +227,7 @@ xt_psd_match(const struct sk_buff *pskb, struct
+>> xt_action_param *match)
+>> goto out_match;
+>>
+>> /* Remember the new port */
+>> - if (curr->count< SCAN_MAX_COUNT) {
+>> + if (curr->count< ARRAY_SIZE(curr->ports)) {
+>> curr->ports[curr->count].number =3D dest_port;
+>> curr->ports[curr->count].proto =3D proto;
+>> curr->ports[curr->count].and_flags =3D tcp_flags;
+>>
+>
+> The patch is applied. I'll monitor logs for about a week to make sure=
+ there are
+> no more panics.
+>
+> Thank you!
+> Serge
 
 --
-Julian Anastasov <ja@ssi.bg>
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
