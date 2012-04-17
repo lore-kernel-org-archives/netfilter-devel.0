@@ -1,34 +1,68 @@
-From: Serge Hallyn <serge.hallyn@canonical.com>
-Subject: Re: [PATCH 00/12] add namespace support for netfilter protos
-Date: Tue, 17 Apr 2012 09:35:26 -0500
-Message-ID: <20120417143526.GB3213@sergelap>
-References: <1334631383-12326-1-git-send-email-gaofeng@cn.fujitsu.com>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH 2/2] IPVS: make failure of netns init more stable
+Date: Tue, 17 Apr 2012 23:57:13 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1204172242430.1984@ja.ssi.bg>
+References: <1334576378-2034-1-git-send-email-hans.schillstrom@ericsson.com> <1334576378-2034-2-git-send-email-hans.schillstrom@ericsson.com> <alpine.LFD.2.00.1204161621080.1711@ja.ssi.bg> <201204171315.12686.hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, ebiederm@xmission.com, dlezcano@fr.ibm.com
-To: Gao feng <gaofeng@cn.fujitsu.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:44816 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754131Ab2DQOfe (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Apr 2012 10:35:34 -0400
-Content-Disposition: inline
-In-Reply-To: <1334631383-12326-1-git-send-email-gaofeng@cn.fujitsu.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "horms@verge.net.au" <horms@verge.net.au>,
+	"wensong@linux-vs.org" <wensong@linux-vs.org>,
+	"lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"hans@schillstrom.com" <hans@schillstrom.com>
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <201204171315.12686.hans.schillstrom@ericsson.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Quoting Gao feng (gaofeng@cn.fujitsu.com):
-> Currently the sysctl of netfilter proto is not isolated, so when 
-> changing proto's sysctl in container will cause the host's sysctl 
-> be changed too. it's not expected.
+
+	Hello,
+
+On Tue, 17 Apr 2012, Hans Schillstrom wrote:
+
+> I wonder if we are chasing ghosts...
 > 
-> This patch set adds the namespace support for netfilter protos.
+> With proper fault handling I can't even see a case when it (net->ipvs) can be used.
+> Can you see a case when it could happen?
+> Still we can set it to NULL on error exit and cleanup as you suggested, that doesn't harm I think.
+> 
+> A. If you add a netns and it fails the entire ns will be rolled back, 
+>    and no access to that ns can occur.
+>    That ns does not exist
 
-Thanks for doing this, Gao, sounds good.
+	Agreed
 
-(The set has gotten better scrutiny than I could give it, so I'll
-wait until at least the next submission to attempt a review)
+> B. If you insert ip_vs.ko when having one or more name spaces and 
+>    __ip_vs_init() returns an error the module will be unloaded.
+>    All ready loaded ns will not be affected.
 
--serge
+	Yes, ip_vs_init fails.
+
+> C. insmod of ex. ip_vs_ftp only affects loaded name spaces
+>    and if the load of ip_vs_ftp fails it will be unloaded without affecting ip_vs(.ko)
+>    (If ip_vs.ko is not loaded then it has to be loaded first case B...)
+> 
+> With a "compiled in" ip_vs case B doesn't exist.
+
+	It is this case that can happen, we can only guess how
+difficult is to get ENOMEM here. IIRC, we can generate only
+ENOMEM error on IPVS core load.
+
+	I assume Simon has such setup and changes code to
+trigger load error. When I generate ENOMEM on IPVS core init
+for such case I get ENOENT from register_ip_vs_app when
+patch 1 and 2 for apps are applied, i.e. net->ipvs is NULL.
+You can check it with NF_CONNTRACK=y, IP_VS=y and
+IP_VS_FTP=m. You only need to trigger ENOMEM in __ip_vs_init.
+
+> With proper fault handling i.e. all ways returning fault codes to the netns init,
+> there is no need for checking for  "if (!net->ipvs)" or any other action.
+
+	Probably but one check on load does not hurt much.
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
