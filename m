@@ -1,76 +1,43 @@
-From: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Subject: Re: [PATCH 2/2] IPVS: make failure of netns init more stable
-Date: Mon, 16 Apr 2012 19:45:15 +0200
-Message-ID: <201204161945.16182.hans.schillstrom@ericsson.com>
-References: <1334576378-2034-1-git-send-email-hans.schillstrom@ericsson.com> <201204161916.33621.hans.schillstrom@ericsson.com> <alpine.LFD.2.00.1204162026480.6225@ja.ssi.bg>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: "horms@verge.net.au" <horms@verge.net.au>,
-	"wensong@linux-vs.org" <wensong@linux-vs.org>,
-	"lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"hans@schillstrom.com" <hans@schillstrom.com>
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1204162026480.6225@ja.ssi.bg>
-Content-Disposition: inline
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: [PATCH 12/12] netfilter: export necessary function for generic proto
+Date: Tue, 17 Apr 2012 10:56:23 +0800
+Message-ID: <1334631383-12326-13-git-send-email-gaofeng@cn.fujitsu.com>
+References: <1334631383-12326-1-git-send-email-gaofeng@cn.fujitsu.com>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	ebiederm@xmission.com, serge.hallyn@canonical.com,
+	dlezcano@fr.ibm.com, Gao feng <gaofeng@cn.fujitsu.com>
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:44696 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1754806Ab2DQDfE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Apr 2012 23:35:04 -0400
+In-Reply-To: <1334631383-12326-1-git-send-email-gaofeng@cn.fujitsu.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 16 April 2012 19:31:40 Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Mon, 16 Apr 2012, Hans Schillstrom wrote:
-> 
-> > > 	But I see some inconsistency in net/core/net_namespace.c:
-> > > __register_pernet_operations when CONFIG_NET_NS is enabled
-> > > does not call ops_free after failed ops_init while when
-> > > CONFIG_NET_NS is not enabled ops_free is called. The 
-> > > problem is that we leak the ops->size data allocated for the
-> > > failed net. I think, the fix should be ops_init to free the data.
-> > 
-> > Are you sure ?
-> > In my code it does... 
-> > 
-> > static int __register_pernet_operations(struct list_head *list,
-> > 					struct pernet_operations *ops)
-> > at line 417
-> > ..
-> > 		for_each_net(net) {
-> > 			error = ops_init(ops, net);
-> > 			if (error)
-> > 				goto out_undo;
-> 
-> 	There is line here that registers current net for
-> cleanup only after ops_init success:
-> 
-> 	list_add_tail(&net->exit_list, &net_exit_list);
-> 
-> 	If ops_init fails for first net then net_exit_list will
-> be empty.
+export two functions nf_conntrack_proto_generic_net_init and
+nf_conntrack_proto_generic_net_fini.
 
-Yes, you are right as allways :-)
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+---
+ include/net/netfilter/nf_conntrack_core.h |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-> 
-> > ...
-> > line 426
-> > out_undo:
-> > 	/* If I have an error cleanup all namespaces I initialized */
-> > 	list_del(&ops->list);
-> > 	ops_exit_list(ops, &net_exit_list);
-> > 	ops_free_list(ops, &net_exit_list);
-> > 	return error;
-> > }
-> 
-> Regards
-> 
-> --
-> Julian Anastasov <ja@ssi.bg>
-> 
-
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index aced085..3c3fabe 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -31,6 +31,9 @@ extern void nf_conntrack_cleanup(struct net *net);
+ extern int nf_conntrack_proto_init(void);
+ extern void nf_conntrack_proto_fini(void);
+ 
++extern int nf_conntrack_proto_generic_net_init(struct net *net);
++extern void nf_conntrack_proto_generic_net_fini(struct net *net);
++
+ extern bool
+ nf_ct_get_tuple(const struct sk_buff *skb,
+ 		unsigned int nhoff,
 -- 
-Regards
-Hans Schillstrom <hans.schillstrom@ericsson.com>
+1.7.7.6
+
