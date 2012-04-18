@@ -1,66 +1,156 @@
-From: Serge Leschinsky <serge.leschinsky@gmail.com>
-Subject: Re: a possible bug in netfilter
-Date: Tue, 17 Apr 2012 15:20:42 -0700
-Message-ID: <4F8DECBA.4080302@gmail.com>
-References: <4F7E6D32.9060109@gmail.com> <alpine.LNX.2.01.1204061444170.19371@frira.zrqbmnf.qr> <20120407155847.GB28425@Chamillionaire.breakpoint.cc> <4F810EF1.1030209@gmail.com>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Re: [PATCH 03/12] netfilter: generic proto sysctl support for net
+ namespace
+Date: Wed, 18 Apr 2012 08:20:41 +0800
+Message-ID: <4F8E08D9.2060304@cn.fujitsu.com>
+References: <1334631383-12326-1-git-send-email-gaofeng@cn.fujitsu.com> <1334631383-12326-4-git-send-email-gaofeng@cn.fujitsu.com> <20120417085813.GD2100@1984> <4F8D4472.6080606@cn.fujitsu.com> <20120417113541.GB2956@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	ebiederm@xmission.com, serge.hallyn@canonical.com,
+	dlezcano@fr.ibm.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pz0-f52.google.com ([209.85.210.52]:39993 "EHLO
-	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751589Ab2DQWUp (ORCPT
+Received: from cn.fujitsu.com ([222.73.24.84]:62538 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751816Ab2DRAUO convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Apr 2012 18:20:45 -0400
-Received: by dake40 with SMTP id e40so8938264dak.11
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Apr 2012 15:20:45 -0700 (PDT)
-In-Reply-To: <4F810EF1.1030209@gmail.com>
+	Tue, 17 Apr 2012 20:20:14 -0400
+In-Reply-To: <20120417113541.GB2956@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46lorian,
-
-I think the problem is fixed - the boxes work fine, I didn=92t notice p=
-anics from=20
-the update.
-
-Thanks a lot!
-
-Serge
-
-
-On 04/07/2012 09:07 PM, Serge Leschinsky wrote:
-> On 04/07/2012 08:58 AM, Florian Westphal wrote:
-> ....
->> Serge, could you try this patch?
+=E4=BA=8E 2012=E5=B9=B404=E6=9C=8817=E6=97=A5 19:35, Pablo Neira Ayuso =
+=E5=86=99=E9=81=93:
+> On Tue, Apr 17, 2012 at 06:22:42PM +0800, Gao feng wrote:
+>> =E4=BA=8E 2012=E5=B9=B404=E6=9C=8817=E6=97=A5 16:58, Pablo Neira Ayu=
+so =E5=86=99=E9=81=93:
+>>> On Tue, Apr 17, 2012 at 10:56:14AM +0800, Gao feng wrote:
+>>>> register the generic proto's sysctl in pernet_operations.init.
+>>>> and use net->ct.proto.sysctl_generic_timeout replaces nf_ct_generi=
+c_timeout.
+>>>>
+>>>> in the after patch,the timeout_nlattr_to_obj will be modified too.
+>>>>
+>>>> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+>>>> ---
+>>>>  net/netfilter/nf_conntrack_core.c          |    6 ++
+>>>>  net/netfilter/nf_conntrack_proto_generic.c |   93 +++++++++++++++=
+++++++++++---
+>>>>  2 files changed, 91 insertions(+), 8 deletions(-)
+>>>>
+>>>> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_=
+conntrack_core.c
+>>>> index 729f157..bf11dd6 100644
+>>>> --- a/net/netfilter/nf_conntrack_core.c
+>>>> +++ b/net/netfilter/nf_conntrack_core.c
+>>>> @@ -1358,6 +1358,7 @@ static void nf_conntrack_cleanup_net(struct =
+net *net)
+>>>>  	nf_conntrack_tstamp_fini(net);
+>>>>  	nf_conntrack_acct_fini(net);
+>>>>  	nf_conntrack_expect_fini(net);
+>>>> +	nf_conntrack_proto_generic_net_fini(net);
+>>>>  	kmem_cache_destroy(net->ct.nf_conntrack_cachep);
+>>>>  	kfree(net->ct.slabname);
+>>>>  	free_percpu(net->ct.stat);
+>>>> @@ -1573,6 +1574,9 @@ static int nf_conntrack_init_net(struct net =
+*net)
+>>>>  		printk(KERN_ERR "Unable to create nf_conntrack_hash\n");
+>>>>  		goto err_hash;
+>>>>  	}
+>>>> +	ret =3D nf_conntrack_proto_generic_net_init(net);
+>>>> +	if (ret < 0)
+>>>> +		goto err_generic;
+>>>>  	ret =3D nf_conntrack_expect_init(net);
+>>>>  	if (ret < 0)
+>>>>  		goto err_expect;
+>>>> @@ -1600,6 +1604,8 @@ err_tstamp:
+>>>>  err_acct:
+>>>>  	nf_conntrack_expect_fini(net);
+>>>>  err_expect:
+>>>> +	nf_conntrack_proto_generic_net_fini(net);
+>>>> +err_generic:
+>>>>  	nf_ct_free_hashtable(net->ct.hash, net->ct.htable_size);
+>>>>  err_hash:
+>>>>  	kmem_cache_destroy(net->ct.nf_conntrack_cachep);
+>>>> diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netf=
+ilter/nf_conntrack_proto_generic.c
+>>>> index 835e24c..0d4545b 100644
+>>>> --- a/net/netfilter/nf_conntrack_proto_generic.c
+>>>> +++ b/net/netfilter/nf_conntrack_proto_generic.c
+>>>> @@ -42,7 +42,7 @@ static int generic_print_tuple(struct seq_file *=
+s,
+>>>> =20
+>>>>  static unsigned int *generic_get_timeouts(struct net *net)
+>>>>  {
+>>>> -	return &nf_ct_generic_timeout;
+>>>> +	return &(net->ct.proto.sysctl_generic_timeout);
+>>>>  }
+>>>> =20
+>>>>  /* Returns verdict for packet, or -1 for invalid. */
+>>>> @@ -105,11 +105,10 @@ generic_timeout_nla_policy[CTA_TIMEOUT_GENER=
+IC_MAX+1] =3D {
+>>>>  #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
+>>>> =20
+>>>>  #ifdef CONFIG_SYSCTL
+>>>> -static struct ctl_table_header *generic_sysctl_header;
+>>>>  static struct ctl_table generic_sysctl_table[] =3D {
+>>>>  	{
+>>>>  		.procname	=3D "nf_conntrack_generic_timeout",
+>>>> -		.data		=3D &nf_ct_generic_timeout,
+>>>> +		.data		=3D &init_net.ct.proto.sysctl_generic_timeout,
+>>>>  		.maxlen		=3D sizeof(unsigned int),
+>>>>  		.mode		=3D 0644,
+>>>>  		.proc_handler	=3D proc_dointvec_jiffies,
+>>>> @@ -120,7 +119,7 @@ static struct ctl_table generic_sysctl_table[]=
+ =3D {
+>>>>  static struct ctl_table generic_compat_sysctl_table[] =3D {
+>>>>  	{
+>>>>  		.procname	=3D "ip_conntrack_generic_timeout",
+>>>> -		.data		=3D &nf_ct_generic_timeout,
+>>>> +		.data		=3D &init_net.ct.proto.sysctl_generic_timeout,
+>>>>  		.maxlen		=3D sizeof(unsigned int),
+>>>>  		.mode		=3D 0644,
+>>>>  		.proc_handler	=3D proc_dointvec_jiffies,
+>>>> @@ -150,11 +149,89 @@ struct nf_conntrack_l4proto nf_conntrack_l4p=
+roto_generic __read_mostly =3D
+>>>>  		.nla_policy	=3D generic_timeout_nla_policy,
+>>>>  	},
+>>>>  #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
+>>>> +};
+>>>> +
+>>>> +int nf_conntrack_proto_generic_net_init(struct net *net)
+>>>
+>>> Please, check int nf_conntrack_ecache_init(struct net *net) for
+>>> instance on how we're doing the per-net registration of netfilter
+>>> modules.
 >>
->> diff --git a/extensions/xt_psd.c b/extensions/xt_psd.c
->> index 46b2831..acb5e8e 100644
->> --- a/extensions/xt_psd.c
->> +++ b/extensions/xt_psd.c
->> @@ -227,7 +227,7 @@ xt_psd_match(const struct sk_buff *pskb, struct
->> xt_action_param *match)
->> goto out_match;
+>> nf_conntrack_l4proto_generic is registered when loading nf_conntrack=
+ module.
+>> so we should register sysctl in nf_conntrack_init_net.
 >>
->> /* Remember the new port */
->> - if (curr->count< SCAN_MAX_COUNT) {
->> + if (curr->count< ARRAY_SIZE(curr->ports)) {
->> curr->ports[curr->count].number =3D dest_port;
->> curr->ports[curr->count].proto =3D proto;
->> curr->ports[curr->count].and_flags =3D tcp_flags;
->>
->
-> The patch is applied. I'll monitor logs for about a week to make sure=
- there are
-> no more panics.
->
-> Thank you!
-> Serge
+>> I don't know what's wrong here...
+>=20
+> Nothing wrong, just a comestic change.
+>=20
+> I'd like that the protocol and sysctl registration happen in the same
+> function, like in other part of the code, for consistency.
+
+I got it,maybe we can add a field pernet_operations for nf_conntrack_l[=
+3,4]proto,
+and change nf_ct_l[3,4]proto_register_sysctl to register the pernet_ope=
+rations.
+
+I think it will work well. ;)
+>=20
+> Probably, you can use http://patchwork.ozlabs.org/patch/152096/ as
+> reference.
+> --
+> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
 
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
