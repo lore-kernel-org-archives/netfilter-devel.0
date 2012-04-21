@@ -1,92 +1,53 @@
 From: Arif Hossain <aftnix@gmail.com>
 Subject: Re: concatenate udp payloads of multiple packet
-Date: Fri, 20 Apr 2012 17:43:19 +0600
-Message-ID: <CAGuaRCv927U1=XoucxxSnRk44q76F7ayLAkQRc9BMpohF8Yv8g@mail.gmail.com>
+Date: Sat, 21 Apr 2012 15:12:47 +0600
+Message-ID: <CAGuaRCsyjc53pKrWWKhfLSPczZQtif4zRPqwuAvYN2fdZBhV2Q@mail.gmail.com>
 References: <CAGuaRCt0Jmj4_prCZVvXi2oijOTprTqUntphjx_9cQqk-nqhCQ@mail.gmail.com>
-	<4F90555B.7070306@hp.com>
+	<471DE477E2B1F549A58F3A14A27180BE01687C@HQ-EX01.bytemobile.com>
+	<CAGuaRCs6iYTL-Teci4GpOPD8Cm-6CbLUh2gYbDQMteA=nF29ug@mail.gmail.com>
+	<471DE477E2B1F549A58F3A14A27180BE0169BE@HQ-EX01.bytemobile.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Rick Jones <rick.jones2@hp.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:53179 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752259Ab2DTLnU convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Apr 2012 07:43:20 -0400
-In-Reply-To: <4F90555B.7070306@hp.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: Jeff Haran <jharan@bytemobile.com>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <471DE477E2B1F549A58F3A14A27180BE0169BE@HQ-EX01.bytemobile.com>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-> It isn't clear you can. =A0An application using UDP is expecting mess=
-age
-> boundaries to be preserved. =A0That is a fundamental part of the sema=
-ntics of
-> UDP. =A0So if an application has sent three, 128 byte messages via UD=
-P, the
-> receiving side is expecting to receive three, 128 byte messages, not =
-one 384
-> byte message. =A0If the receiver can indeed deal with just one, 384 b=
-yte
-> message, that is what the sending side should have sent in the first =
-place.
+On Fri, Apr 20, 2012 at 11:17 PM, Jeff Haran <jharan@bytemobile.com> wrote:
+> Nothing prevents you from having multiple NFQUEUEs using the queue-balance option to the NFQUEUE target. From the iptables man page:
+>
+> "NFQUEUE
+>
+> This target is an extension of the QUEUE target. As opposed to QUEUE, it allows you to put a packet into any specific queue, identified by its 16-bit queue number. It can only be used with Kernel versions 2.6.14 or later, since it requires the nfnetlink_queue kernel support. The queue-balance option was added in Linux 2.6.31.
+> --queue-num value
+> This specifies the QUEUE number to use. Valid queue numbers are 0 to 65535. The default value is 0.
+> --queue-balance value:value
+> This specifies a range of queues to use. Packets are then balanced across the given queues. This is useful for multicore systems: start multiple instances of the userspace program on queues x, x+1, .. x+n and use "--queue-balance x:x+n". Packets belonging to the same connection are put into the same nfqueue."
+>
+> However, on each of those queues, when you read a packet from the socket to the queue you have to return a verdict on that packet before you get any more packets off that socket. At least that's what I've observed.
+>
+> Jeff Haran
 >
 
-Ok i'm explaining it a bit more so no confusion about what i'm trying
-to achieve.
+I do use the queue-balance option to use multiple cores of the
+machines by means of separate application.
 
-In our application, we are send
-RTP(http://en.wikipedia.org/wiki/Real-time_Transport_Protocol)
-packets. These RTP packets have encoded voice data as their payload.
-When a voice communication
-occurs its quiet bandwidth consuming. Thousands of udp packets are
-transmitted in a matter of seconds.
-So when a client is in low bandwidth area, its more logical to send
-large udp packts with multiple rtp packets
-concatenated.
+But for my purpose, concatenation of udp payload this does not help.
+What i've come to understand that there is no straight forward way to
+achieve this.
 
-Take for instance G729 codec has a 10ms frame. which is encoded as 10
-bytes of voice data. every rtp packets has
-12 bytes of header. its totally wasteful of bandwidth that to send
-only 10 bytes of voice data as a payload of 12 bytes of header.
-If 5 RTP frames are concatenated then we are transmitting 50 bytes
-with a single 12 byte header. then payload to header ratio
-is 50/12 which far less than 10/12. The more bigger packet we send the
-more this ratio increase and so our bandwidth
-consumption reduced. But there is also a trade off. the more frames we
-send in packet the quality of voice decreases slightly.
+But if i do this in following way would that work:
 
-After some testing we have come to conclusion that sending 10 packets
-in a single udp datagram is a optimum choice.
+I will save the udp payload in a user   managed queue and set the
+verdict as NF_DROP to every packet. after creating the concatenated
+packet, i will forward the message to the udp daemon.
 
-We use our existing netfilter_queue app to encryption/obfuscation of
-voice data to escape certain firewall and telecom operators
-malpractices. For improving our service we have decided that we will
-increase our payload size.
-
-Problem is different SIP servers vary in their capability of repack
-RTP packets.  some can do a lot but other's do not. we do not want to
-select a
-telephony  server based on this property because lot of other
-variables are involved in the selection process. And for different
-services we use several
-Telephony platform.
-
-So we want our application to be capable of repack rtp packets so that
-we can use whatever telephony platforms we want without thinking about
-this.
-This way our service implementation will be more robust and will not
-create unnecessary dependencies.
-
-Thank you for your reply
+What are difficulties i may face if i chose to do it in this way?
 
 
 
---=20
+-- 
 -aft
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
