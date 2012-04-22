@@ -1,46 +1,36 @@
-From: "alois.klingler@chello.at" <alois.klingler@chello.at>
-Subject: wrong order of received packets/bytes and sent packets/bytes with
- local incoming connections
-Date: Sat, 21 Apr 2012 20:33:03 +0200
-Message-ID: <4F92FD5F.5010204@chello.at>
-Reply-To: alois.klingler@chello.at
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: wrong order of received packets/bytes and sent packets/bytes
+ with local incoming connections
+Date: Sun, 22 Apr 2012 17:55:35 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1204221749230.24779@frira.zrqbmnf.qr>
+References: <4F92FD5F.5010204@chello.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: "alois.klingler@chello.at" <alois.klingler@chello.at>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fep21.mx.upcmail.net ([62.179.121.41]:45236 "EHLO
-	fep21.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751359Ab2DUSt0 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 21 Apr 2012 14:49:26 -0400
-Received: from edge03.upcmail.net ([192.168.13.238])
-          by viefep12-int.chello.at
-          (InterMail vM.8.01.05.04 201-2260-151-105-20111014) with ESMTP
-          id <20120421183304.WKJT29183.viefep12-int.chello.at@edge03.upcmail.net>
-          for <netfilter-devel@vger.kernel.org>;
-          Sat, 21 Apr 2012 20:33:04 +0200
+Received: from seven.medozas.de ([188.40.89.202]:53109 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752088Ab2DVPzk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 22 Apr 2012 11:55:40 -0400
+In-Reply-To: <4F92FD5F.5010204@chello.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-hi,
+On Saturday 2012-04-21 20:33, alois.klingler@chello.at wrote:
 
-in /proc/net/nf_conntrack (and also in conntrack -L) i can see received
-packets/bytes and sent packets/bytes.
-with connections, which are local incoming connections (i.e. a
-ssh-connection from anywhere to my machine) these fields are mixed,
-means that the received packets/bytes are the sent packets/bytes and vice versa.
+> in /proc/net/nf_conntrack (and also in conntrack -L) i can see received
+> packets/bytes and sent packets/bytes.
+> with connections, which are local incoming connections (i.e. a
+> ssh-connection from anywhere to my machine) these fields are mixed,
+> means that the received packets/bytes are the sent packets/bytes and vice
+> versa.
+>
+> with local outbound connections or forwarding connections these fields
+> are correct filled.
+>
+> is there anywhere a configuation option to fix this?
 
-with local outbound connections or forwarding connections these fields
-are correct filled.
-
-is there anywhere a configuation option to fix this?
-
-I am using kernel 3.3.2 (I can see this issue already very long, not
-since this kernel) and conntrack 0.9.14 (debian squeeze).
-
-Thanks!
-
-Best regards
-Alois
-
+I do not see any error here. The first bytes/packet= field shows
+bytes flowing in the "original direction", and the other
+is the reply direction.
