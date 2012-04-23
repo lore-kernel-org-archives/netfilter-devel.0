@@ -1,43 +1,31 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH 2/2] netfilter: ipvs: use GFP_KERNEL allocation where
- possible
-Date: Mon, 23 Apr 2012 23:29:36 +0900
-Message-ID: <20120423142935.GC19734@verge.net.au>
-References: <1335183428-2585-1-git-send-email-horms@verge.net.au>
- <1335183428-2585-3-git-send-email-horms@verge.net.au>
- <20120423142327.GB32269@kroah.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: RE: concatenate udp payloads of multiple packet
+Date: Mon, 23 Apr 2012 16:38:04 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1204231636590.8481@frira.zrqbmnf.qr>
+References: <CAGuaRCt0Jmj4_prCZVvXi2oijOTprTqUntphjx_9cQqk-nqhCQ@mail.gmail.com> <471DE477E2B1F549A58F3A14A27180BE01687C@HQ-EX01.bytemobile.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Sasha Levin <levinsasha928@gmail.com>, stable@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120423142327.GB32269@kroah.com>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Arif Hossain <aftnix@gmail.com>,
+	"netfilter@vger.kernel.org" <netfilter@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Jeff Haran <jharan@bytemobile.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from seven.medozas.de ([188.40.89.202]:60375 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755328Ab2DWOiJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Apr 2012 10:38:09 -0400
+In-Reply-To: <471DE477E2B1F549A58F3A14A27180BE01687C@HQ-EX01.bytemobile.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Apr 23, 2012 at 07:23:27AM -0700, Greg KH wrote:
-> On Mon, Apr 23, 2012 at 09:17:08PM +0900, Simon Horman wrote:
-> > From: Sasha Levin <levinsasha928@gmail.com>
-> > 
-> > Use GFP_KERNEL instead of GFP_ATOMIC when registering an ipvs protocol.
-> > 
-> > This is safe since it will always run from a process context.
-> > 
-> > Cc: stable@vger.kernel.org
-> > Signed-off-by: Sasha Levin <levinsasha928@gmail.com>
-> > Acked-by: Julian Anastasov <ja@ssi.bg>
-> > Signed-off-by: Simon Horman <horms@verge.net.au>
-> > ---
-> >  net/netfilter/ipvs/ip_vs_proto.c |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> How does this patch meet the Documentation/stable_kernel_rules.txt
-> requirements?
 
-Sorry about that, I would like to withdraw this change from
-consideration for stable.
+On Thursday 2012-04-19 19:58, Jeff Haran wrote:
+>
+>I'm not an expert in this interface, but what I've observed is when user space
+>reads a packet off of a socket to an NFQUEUE, a subsequent read on that socket
+>will block if the first packet is not returned via nfq_set_verdict(), even if
+>further packets have been queued from the kernel.
+
+So simply set the verdict to NF_DROP for every input frame and send out
+combined frames that are not linked to any prior packet.
+So far the theory.
