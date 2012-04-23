@@ -1,30 +1,38 @@
-From: "Flink, Mollie" <MollieFlink@juf.org>
-Subject: Re-Validate your Email Account!
-Date: Mon, 23 Apr 2012 01:19:14 +0000
-Message-ID: <02E037382450A1478A8293A4DCC666D1D98819__678.432806353335$1335144333$gmane$org@30SWL-MB-01.JUF.NET>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: Undisclosed recipients:;
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx.juf.org ([38.115.144.33]:36393 "EHLO MX.juf.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753062Ab2DWBYm convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 22 Apr 2012 21:24:42 -0400
-Content-Language: en-US
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: [GIT PULL net] IPVS
+Date: Mon, 23 Apr 2012 21:17:06 +0900
+Message-ID: <1335183428-2585-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	Sasha Levin <levinsasha928@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Re-Validate your Email Account!
+Hi Pablo,
 
-Your mailbox has exceeded one or more size limits set by the administrator.
-You can not send or receive new mail until size of your mail box is reduced.
-For more space, Please click the link below and fill in the details of correct account.
-================>
+please consider the following two changes for 3.4.  They are from Sasha
+Levin and  resolve bugs on initialisation failure in IPVS.
 
-http://xoutlootvali.moy.su/Microsoft-Outlook-WebAccess.htm
-Thanks and sorry for the inconvenience.
-System Manager.
+The following changes since commit 6ba900676bec8baaf61aa2f85b7345c0e65774d9:
 
+  netfilter: nf_conntrack: fix incorrect logic in nf_conntrack_init_net (2012-04-10 13:00:38 +0200)
 
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git master
+
+for you to fetch changes up to eb93daa9396acdcb9aea47ef125a60228f174deb:
+
+  netfilter: ipvs: use GFP_KERNEL allocation where possible (2012-04-23 17:00:52 +0900)
+
+----------------------------------------------------------------
+Sasha Levin (2):
+      netfilter: ipvs: Verify that IP_VS protocol has been registered
+      netfilter: ipvs: use GFP_KERNEL allocation where possible
+
+ net/netfilter/ipvs/ip_vs_proto.c |   29 +++++++++++++++++++----------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
