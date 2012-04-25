@@ -1,22 +1,52 @@
-From: jobhunts02@aol.com
-Subject: (unknown)
-Date: Wed, 25 Apr 2012 02:57:47 -0400 (EDT)
-Message-ID: <8CEF0C7DB346FD5-4F8-2A0F3@webmail-d146.sysops.aol.com>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH 2/4] ipvs: take care of return value from protocol
+ init_netns
+Date: Wed, 25 Apr 2012 11:35:28 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1204251126420.1895@ja.ssi.bg>
+References: <1335339821-29684-1-git-send-email-hans.schillstrom@ericsson.com> <1335339821-29684-3-git-send-email-hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
-Content-Transfer-Encoding: 8BIT
-To: kadlec@blackhole.kfki.hu, johnrothmann@kgoradio.com,
-	autoanswer@vger.kernel.org, linux-pci@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, geneburns@abc-sf.com,
-	jobhunts02@aol.com, cramerj@intel.com, barry8332@earthlink.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from imr-da01.mx.aol.com ([205.188.105.143]:58693 "EHLO
-	imr-da01.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752151Ab2DYHvy convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Apr 2012 03:51:54 -0400
-Subject: 
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: horms@verge.net.au, wensong@linux-vs.org,
+	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, hans@schillstrom.com
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1335339821-29684-3-git-send-email-hans.schillstrom@ericsson.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-http://www.brasiltemjeito.org/secao/wp-content/themes/BrasilTemJeito/easyJob14.html
+
+	Hello,
+
+On Wed, 25 Apr 2012, Hans Schillstrom wrote:
+
+> ip_vs_create_timeout_table() can return NULL
+> All functions protocol init_netns is affected of this patch.
+> 
+> Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
+> ---
+
+> diff --git a/net/netfilter/ipvs/ip_vs_proto.c b/net/netfilter/ipvs/ip_vs_proto.c
+> index 6a8d176..0b74795 100644
+> --- a/net/netfilter/ipvs/ip_vs_proto.c
+> +++ b/net/netfilter/ipvs/ip_vs_proto.c
+> @@ -79,7 +79,7 @@ register_ip_vs_proto_netns(struct net *net, struct ip_vs_protocol *pp)
+>  	atomic_set(&pd->appcnt, 0);	/* Init app counter */
+>  
+>  	if (pp->init_netns != NULL)
+> -		pp->init_netns(net, pd);
+> +		return pp->init_netns(net, pd);
+
+	May be it is better to unlink and free the pd here
+if init_netns fails. Currently, protocols attach only
+allocated pointer (pd->timeout_table) and it is not a
+big problem to call exit_netns on failure but lets do
+it safely, every init handler should release its data on
+failure and then we should not call exit_netns.
+
+	Patch 1 looks ok and I'll ack it next time.
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
