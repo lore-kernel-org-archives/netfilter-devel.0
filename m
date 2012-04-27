@@ -1,147 +1,97 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH 4/5] ipvs: take care of return value from protocol init_netns
-Date: Fri, 27 Apr 2012 09:53:58 +0900
-Message-ID: <1335488039-13471-5-git-send-email-horms@verge.net.au>
-References: <1335488039-13471-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	Jesper Dangaard Brouer <brouer@redhat.com>,
-	Simon Horman <horms@verge.net.au>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:58369 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754041Ab2D0AyZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Apr 2012 20:54:25 -0400
-In-Reply-To: <1335488039-13471-1-git-send-email-horms@verge.net.au>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: [PATCH 01/17] netfilter: add struct nf_proto_net for register l4proto sysctl
+Date: Fri, 27 Apr 2012 17:37:48 +0800
+Message-ID: <1335519484-6089-2-git-send-email-gaofeng@cn.fujitsu.com>
+References: <1335519484-6089-1-git-send-email-gaofeng@cn.fujitsu.com>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	serge.hallyn@canonical.com, ebiederm@xmission.com,
+	dlezcano@fr.ibm.com, Gao feng <gaofeng@cn.fujitus.com>
+To: pablo@netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1335519484-6089-1-git-send-email-gaofeng@cn.fujitsu.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Hans Schillstrom <hans.schillstrom@ericsson.com>
+From: Gao feng <gaofeng@cn.fujitus.com>
 
-ip_vs_create_timeout_table() can return NULL
-All functions protocol init_netns is affected of this patch.
+the struct nf_proto_net stroes proto's ctl_table_header and ctl_table,
+nf_ct_l4proto_(un)register_sysctl use it to register sysctl.
 
-Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+there are some changes for struct nf_conntrack_l4proto:
+- add field compat to identify if this proto should do compat.
+- the net_id field is used to store the pernet_operations id
+  that belones to l4proto.
+- init_net will be used to initial the proto's pernet data
+
+and add init_net for struct nf_conntrack_l3proto too.
+
+Signed-off-by: Gao feng <gaofeng@cn.fujitus.com>
 ---
- include/net/ip_vs.h                   |    2 +-
- net/netfilter/ipvs/ip_vs_proto.c      |   11 +++++++++--
- net/netfilter/ipvs/ip_vs_proto_sctp.c |    5 ++++-
- net/netfilter/ipvs/ip_vs_proto_tcp.c  |    5 ++++-
- net/netfilter/ipvs/ip_vs_proto_udp.c  |    5 ++++-
- 5 files changed, 22 insertions(+), 6 deletions(-)
+ include/net/netfilter/nf_conntrack_l3proto.h |    3 +++
+ include/net/netfilter/nf_conntrack_l4proto.h |    6 ++++++
+ include/net/netns/conntrack.h                |   12 ++++++++++++
+ 3 files changed, 21 insertions(+), 0 deletions(-)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 2bdee51..6d90dda 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -393,7 +393,7 @@ struct ip_vs_protocol {
+diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
+index 9699c02..9766005 100644
+--- a/include/net/netfilter/nf_conntrack_l3proto.h
++++ b/include/net/netfilter/nf_conntrack_l3proto.h
+@@ -69,6 +69,9 @@ struct nf_conntrack_l3proto {
+ 	struct ctl_table	*ctl_table;
+ #endif /* CONFIG_SYSCTL */
  
- 	void (*exit)(struct ip_vs_protocol *pp);
++	/* Init l3proto pernet data */
++	int (*init_net)(struct net *net);
++
+ 	/* Module (if any) which this is connected to. */
+ 	struct module *me;
+ };
+diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+index 3b572bb..ad8ff89 100644
+--- a/include/net/netfilter/nf_conntrack_l4proto.h
++++ b/include/net/netfilter/nf_conntrack_l4proto.h
+@@ -21,6 +21,8 @@ struct nf_conntrack_l4proto {
  
--	void (*init_netns)(struct net *net, struct ip_vs_proto_data *pd);
-+	int (*init_netns)(struct net *net, struct ip_vs_proto_data *pd);
+ 	/* L4 Protocol number. */
+ 	u_int8_t l4proto;
++
++	u_int8_t compat;
  
- 	void (*exit_netns)(struct net *net, struct ip_vs_proto_data *pd);
+ 	/* Try to fill in the third arg: dataoff is offset past network protocol
+            hdr.  Return true if possible. */
+@@ -103,6 +105,10 @@ struct nf_conntrack_l4proto {
+ 	struct ctl_table	*ctl_compat_table;
+ #endif
+ #endif
++	int	*net_id;
++	/* Init l4proto pernet data */
++	int (*init_net)(struct net *net, u_int8_t compat);
++
+ 	/* Protocol name */
+ 	const char *name;
  
-diff --git a/net/netfilter/ipvs/ip_vs_proto.c b/net/netfilter/ipvs/ip_vs_proto.c
-index a62360e..ed835e6 100644
---- a/net/netfilter/ipvs/ip_vs_proto.c
-+++ b/net/netfilter/ipvs/ip_vs_proto.c
-@@ -78,8 +78,15 @@ register_ip_vs_proto_netns(struct net *net, struct ip_vs_protocol *pp)
- 	ipvs->proto_data_table[hash] = pd;
- 	atomic_set(&pd->appcnt, 0);	/* Init app counter */
+diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
+index 7a911ec..59afb87 100644
+--- a/include/net/netns/conntrack.h
++++ b/include/net/netns/conntrack.h
+@@ -8,6 +8,18 @@
+ struct ctl_table_header;
+ struct nf_conntrack_ecache;
  
--	if (pp->init_netns != NULL)
--		pp->init_netns(net, pd);
-+	if (pp->init_netns != NULL) {
-+		int ret = pp->init_netns(net, pd);
-+		if (ret) {
-+			/* unlink an free proto data */
-+			ipvs->proto_data_table[hash] = pd->next;
-+			kfree(pd);
-+			return ret;
-+		}
-+	}
- 
- 	return 0;
- }
-diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-index 1fbf7a2..9f3fb75 100644
---- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-@@ -1090,7 +1090,7 @@ out:
-  *   timeouts is netns related now.
-  * ---------------------------------------------
-  */
--static void __ip_vs_sctp_init(struct net *net, struct ip_vs_proto_data *pd)
-+static int __ip_vs_sctp_init(struct net *net, struct ip_vs_proto_data *pd)
- {
- 	struct netns_ipvs *ipvs = net_ipvs(net);
- 
-@@ -1098,6 +1098,9 @@ static void __ip_vs_sctp_init(struct net *net, struct ip_vs_proto_data *pd)
- 	spin_lock_init(&ipvs->sctp_app_lock);
- 	pd->timeout_table = ip_vs_create_timeout_table((int *)sctp_timeouts,
- 							sizeof(sctp_timeouts));
-+	if (!pd->timeout_table)
-+		return -ENOMEM;
-+	return 0;
- }
- 
- static void __ip_vs_sctp_exit(struct net *net, struct ip_vs_proto_data *pd)
-diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-index ef8641f..cd609cc 100644
---- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-@@ -677,7 +677,7 @@ void ip_vs_tcp_conn_listen(struct net *net, struct ip_vs_conn *cp)
-  *   timeouts is netns related now.
-  * ---------------------------------------------
-  */
--static void __ip_vs_tcp_init(struct net *net, struct ip_vs_proto_data *pd)
-+static int __ip_vs_tcp_init(struct net *net, struct ip_vs_proto_data *pd)
- {
- 	struct netns_ipvs *ipvs = net_ipvs(net);
- 
-@@ -685,7 +685,10 @@ static void __ip_vs_tcp_init(struct net *net, struct ip_vs_proto_data *pd)
- 	spin_lock_init(&ipvs->tcp_app_lock);
- 	pd->timeout_table = ip_vs_create_timeout_table((int *)tcp_timeouts,
- 							sizeof(tcp_timeouts));
-+	if (!pd->timeout_table)
-+		return -ENOMEM;
- 	pd->tcp_state_table =  tcp_states;
-+	return 0;
- }
- 
- static void __ip_vs_tcp_exit(struct net *net, struct ip_vs_proto_data *pd)
-diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
-index f4b7262..2fedb2d 100644
---- a/net/netfilter/ipvs/ip_vs_proto_udp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
-@@ -467,7 +467,7 @@ udp_state_transition(struct ip_vs_conn *cp, int direction,
- 	cp->timeout = pd->timeout_table[IP_VS_UDP_S_NORMAL];
- }
- 
--static void __udp_init(struct net *net, struct ip_vs_proto_data *pd)
-+static int __udp_init(struct net *net, struct ip_vs_proto_data *pd)
- {
- 	struct netns_ipvs *ipvs = net_ipvs(net);
- 
-@@ -475,6 +475,9 @@ static void __udp_init(struct net *net, struct ip_vs_proto_data *pd)
- 	spin_lock_init(&ipvs->udp_app_lock);
- 	pd->timeout_table = ip_vs_create_timeout_table((int *)udp_timeouts,
- 							sizeof(udp_timeouts));
-+	if (!pd->timeout_table)
-+		return -ENOMEM;
-+	return 0;
- }
- 
- static void __udp_exit(struct net *net, struct ip_vs_proto_data *pd)
++struct nf_proto_net {
++#ifdef CONFIG_SYSCTL
++	struct ctl_table_header *ctl_table_header;
++	struct ctl_table        *ctl_table;
++#ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
++	struct ctl_table_header *ctl_compat_header;
++	struct ctl_table        *ctl_compat_table;
++#endif
++#endif
++	unsigned int		users;
++};
++
+ struct netns_ct {
+ 	atomic_t		count;
+ 	unsigned int		expect_count;
 -- 
-1.7.9.5
-
+1.7.7.6
