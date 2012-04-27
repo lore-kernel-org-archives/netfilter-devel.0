@@ -1,110 +1,51 @@
-From: Benjamin Poirier <bpoirier@suse.de>
-Subject: [PATCH RFC 2/2] netfilter: conntrack: replace mutex with cmpxchg
-Date: Fri, 27 Apr 2012 14:28:53 -0400
-Message-ID: <1335551333-6103-2-git-send-email-bpoirier@suse.de>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH RFC 1/2] netfilter: conntrack: remove RCU usage in
+ conntrack notifier
+Date: Fri, 27 Apr 2012 20:58:51 +0200
+Message-ID: <1335553131.2775.252.camel@edumazet-glaptop>
 References: <1335551333-6103-1-git-send-email-bpoirier@suse.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>,
 	"David S. Miller" <davem@davemloft.net>,
 	Andrew Morton <akpm@linux-foundation.org>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
 	Mike Frysinger <vapier@gentoo.org>,
 	Arun Sharma <asharma@fb.com>, netfilter-devel@vger.kernel.org,
 	netfilter@vger.kernel.org, coreteam@netfilter.org,
 	linux-kernel@vger.kernel.org,
 	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-To: netdev@vger.kernel.org
+To: Benjamin Poirier <bpoirier@suse.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:53226 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761122Ab2D0SaC (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:42015 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760475Ab2D0S7A (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Apr 2012 14:30:02 -0400
+	Fri, 27 Apr 2012 14:59:00 -0400
 In-Reply-To: <1335551333-6103-1-git-send-email-bpoirier@suse.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This mutex protects a single pointer.
----
- net/netfilter/nf_conntrack_ecache.c |   38 +++++++++-------------------------
- 1 files changed, 10 insertions(+), 28 deletions(-)
+On Fri, 2012-04-27 at 14:28 -0400, Benjamin Poirier wrote:
+> I think that the rcu usage in this code is pointless. It should either be
+> removed or, if it was intended to protect against something, it ought to make
+> that clear.
+> 
+> 1) The code does not make use of the deferred deletion/wait for completion rcu
+> api (ie. synchronize_rcu(), call_rcu()).
+> 2) It does not benefit from the barriers implied by the rcu primitives used.
+> The code deals with callback pointers. There's no need to order writes to the
+> function code (!) before writes to the function pointers here.
+> ---
 
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index 0134009..603eb69 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -25,8 +25,6 @@
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/nf_conntrack_extend.h>
- 
--static DEFINE_MUTEX(nf_ct_ecache_mutex);
--
- /* deliver cached events and clear cache entry - must be called with locally
-  * disabled softirqs */
- void nf_ct_deliver_cached_events(struct nf_conn *ct)
-@@ -80,52 +78,36 @@ EXPORT_SYMBOL_GPL(nf_ct_deliver_cached_events);
- int nf_conntrack_register_notifier(struct net *net,
- 				   struct nf_ct_event_notifier *new)
- {
--	int ret = 0;
--
--	mutex_lock(&nf_ct_ecache_mutex);
--	if (net->ct.nf_conntrack_event_cb != NULL)
--		ret = -EBUSY;
-+	if (cmpxchg(&net->ct.nf_conntrack_event_cb, NULL, new) != NULL)
-+		return -EBUSY;
- 	else
--		net->ct.nf_conntrack_event_cb = new;
--	mutex_unlock(&nf_ct_ecache_mutex);
--
--	return ret;
-+		return 0;
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_register_notifier);
- 
- void nf_conntrack_unregister_notifier(struct net *net,
- 				      struct nf_ct_event_notifier *new)
- {
--	mutex_lock(&nf_ct_ecache_mutex);
--	BUG_ON(net->ct.nf_conntrack_event_cb != new);
--	net->ct.nf_conntrack_event_cb = NULL;
--	mutex_unlock(&nf_ct_ecache_mutex);
-+	if (xchg(&net->ct.nf_conntrack_event_cb, NULL) != new)
-+		BUG();
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_unregister_notifier);
- 
- int nf_ct_expect_register_notifier(struct net *net,
- 				   struct nf_exp_event_notifier *new)
- {
--	int ret = 0;
--
--	mutex_lock(&nf_ct_ecache_mutex);
--	if (net->ct.nf_expect_event_cb != NULL)
--		ret = -EBUSY;
-+	if (cmpxchg(&net->ct.nf_expect_event_cb, NULL, new) != NULL)
-+		return -EBUSY;
- 	else
--		net->ct.nf_expect_event_cb = new;
--	mutex_unlock(&nf_ct_ecache_mutex);
--
--	return ret;
-+		return 0;
- }
- EXPORT_SYMBOL_GPL(nf_ct_expect_register_notifier);
- 
- void nf_ct_expect_unregister_notifier(struct net *net,
- 				      struct nf_exp_event_notifier *new)
- {
--	mutex_lock(&nf_ct_ecache_mutex);
--	BUG_ON(net->ct.nf_expect_event_cb != new);
--	net->ct.nf_expect_event_cb = NULL;
--	mutex_unlock(&nf_ct_ecache_mutex);
-+	if (xchg(&net->ct.nf_expect_event_cb, NULL) != new)
-+		BUG();
- }
- EXPORT_SYMBOL_GPL(nf_ct_expect_unregister_notifier);
- 
--- 
-1.7.7
+At a first glance, this seems pretty wrong.
+
+code can disappear under you, thats for sure.
+
+CONFIG_NF_CT_NETLINK=m
+
+hint : module unload contains an rcu barrier.
+
+
 
