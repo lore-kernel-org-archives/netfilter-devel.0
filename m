@@ -1,258 +1,262 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: [PATCH 03/17] netfilter: add namespace support for l3proto
-Date: Fri, 27 Apr 2012 17:37:50 +0800
-Message-ID: <1335519484-6089-4-git-send-email-gaofeng@cn.fujitsu.com>
-References: <1335519484-6089-1-git-send-email-gaofeng@cn.fujitsu.com>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	serge.hallyn@canonical.com, ebiederm@xmission.com,
-	dlezcano@fr.ibm.com, Gao feng <gaofeng@cn.fujitus.com>
-To: pablo@netfilter.org
+From: Benjamin Poirier <bpoirier@suse.de>
+Subject: [PATCH RFC 1/2] netfilter: conntrack: remove RCU usage in conntrack notifier
+Date: Fri, 27 Apr 2012 14:28:52 -0400
+Message-ID: <1335551333-6103-1-git-send-email-bpoirier@suse.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	Mike Frysinger <vapier@gentoo.org>,
+	Arun Sharma <asharma@fb.com>, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	linux-kernel@vger.kernel.org,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+To: netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:1624 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1759938Ab2D0Jht (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Apr 2012 05:37:49 -0400
-In-Reply-To: <1335519484-6089-1-git-send-email-gaofeng@cn.fujitsu.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:36744 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761022Ab2D0S3n (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Apr 2012 14:29:43 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao feng <gaofeng@cn.fujitus.com>
+I think that the rcu usage in this code is pointless. It should either be
+removed or, if it was intended to protect against something, it ought to make
+that clear.
 
--Add the struct net as param of nf_conntrack_l3proto_(un)register.
- register or unregister the l3proto only when the net is init_net.
-
--The new struct nf_ip_net is used to store the sysctl header and data
- of l3proto_ipv4,l4proto_tcp(6),l4proto_udp(6),l4proto_icmp(v6).
- because the protos such tcp and tcp6 use the same data,so making
- nf_ip_net as a field of netns_ct is the easiest way to manager it.
-
--nf_ct_l3proto_register_sysctl call init_net to initial the pernet data
- of l3proto.
-
--nf_ct_l3proto_net is used to get the pernet data of l3proto.
-
--export nf_conntrack_l3proto_(un)register
-
-Signed-off-by: Gao feng <gaofeng@cn.fujitus.com>
+1) The code does not make use of the deferred deletion/wait for completion rcu
+api (ie. synchronize_rcu(), call_rcu()).
+2) It does not benefit from the barriers implied by the rcu primitives used.
+The code deals with callback pointers. There's no need to order writes to the
+function code (!) before writes to the function pointers here.
 ---
- include/net/netfilter/nf_conntrack_l3proto.h |    6 +-
- include/net/netns/conntrack.h                |    8 ++
- net/netfilter/nf_conntrack_proto.c           |  130 ++++++++++++++++----------
- 3 files changed, 93 insertions(+), 51 deletions(-)
+ include/net/netfilter/nf_conntrack_ecache.h |   20 +++------
+ include/net/netns/conntrack.h               |    4 +-
+ net/netfilter/nf_conntrack_ecache.c         |   58 +++++++-------------------
+ 3 files changed, 25 insertions(+), 57 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
-index 9766005..d6df8c7 100644
---- a/include/net/netfilter/nf_conntrack_l3proto.h
-+++ b/include/net/netfilter/nf_conntrack_l3proto.h
-@@ -79,8 +79,10 @@ struct nf_conntrack_l3proto {
- extern struct nf_conntrack_l3proto __rcu *nf_ct_l3protos[AF_MAX];
+diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
+index a88fb69..ac5b8d2 100644
+--- a/include/net/netfilter/nf_conntrack_ecache.h
++++ b/include/net/netfilter/nf_conntrack_ecache.h
+@@ -99,14 +99,13 @@ nf_conntrack_eventmask_report(unsigned int eventmask,
+ 	struct nf_ct_event_notifier *notify;
+ 	struct nf_conntrack_ecache *e;
  
- /* Protocol registration. */
--extern int nf_conntrack_l3proto_register(struct nf_conntrack_l3proto *proto);
--extern void nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto);
-+extern int nf_conntrack_l3proto_register(struct net *net,
-+					 struct nf_conntrack_l3proto *proto);
-+extern void nf_conntrack_l3proto_unregister(struct net *net,
-+					    struct nf_conntrack_l3proto *proto);
- extern struct nf_conntrack_l3proto *nf_ct_l3proto_find_get(u_int16_t l3proto);
- extern void nf_ct_l3proto_put(struct nf_conntrack_l3proto *p);
+-	rcu_read_lock();
+-	notify = rcu_dereference(net->ct.nf_conntrack_event_cb);
++	notify = net->ct.nf_conntrack_event_cb;
+ 	if (notify == NULL)
+-		goto out_unlock;
++		return ret;
  
+ 	e = nf_ct_ecache_find(ct);
+ 	if (e == NULL)
+-		goto out_unlock;
++		return ret;
+ 
+ 	if (nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct)) {
+ 		struct nf_ct_event item = {
+@@ -118,7 +117,7 @@ nf_conntrack_eventmask_report(unsigned int eventmask,
+ 		unsigned long missed = e->pid ? 0 : e->missed;
+ 
+ 		if (!((eventmask | missed) & e->ctmask))
+-			goto out_unlock;
++			return ret;
+ 
+ 		ret = notify->fcn(eventmask | missed, &item);
+ 		if (unlikely(ret < 0 || missed)) {
+@@ -137,8 +136,6 @@ nf_conntrack_eventmask_report(unsigned int eventmask,
+ 			spin_unlock_bh(&ct->lock);
+ 		}
+ 	}
+-out_unlock:
+-	rcu_read_unlock();
+ 	return ret;
+ }
+ 
+@@ -178,14 +175,13 @@ nf_ct_expect_event_report(enum ip_conntrack_expect_events event,
+ 	struct nf_exp_event_notifier *notify;
+ 	struct nf_conntrack_ecache *e;
+ 
+-	rcu_read_lock();
+-	notify = rcu_dereference(net->ct.nf_expect_event_cb);
++	notify = net->ct.nf_expect_event_cb;
+ 	if (notify == NULL)
+-		goto out_unlock;
++		return;
+ 
+ 	e = nf_ct_ecache_find(exp->master);
+ 	if (e == NULL)
+-		goto out_unlock;
++		return;
+ 
+ 	if (e->expmask & (1 << event)) {
+ 		struct nf_exp_event item = {
+@@ -195,8 +191,6 @@ nf_ct_expect_event_report(enum ip_conntrack_expect_events event,
+ 		};
+ 		notify->fcn(1 << event, &item);
+ 	}
+-out_unlock:
+-	rcu_read_unlock();
+ }
+ 
+ static inline void
 diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
-index 59afb87..c329aad 100644
+index 7a911ec..c96fd8c 100644
 --- a/include/net/netns/conntrack.h
 +++ b/include/net/netns/conntrack.h
-@@ -20,6 +20,13 @@ struct nf_proto_net {
- 	unsigned int		users;
- };
+@@ -18,8 +18,8 @@ struct netns_ct {
+ 	struct hlist_nulls_head	unconfirmed;
+ 	struct hlist_nulls_head	dying;
+ 	struct ip_conntrack_stat __percpu *stat;
+-	struct nf_ct_event_notifier __rcu *nf_conntrack_event_cb;
+-	struct nf_exp_event_notifier __rcu *nf_expect_event_cb;
++	struct nf_ct_event_notifier *nf_conntrack_event_cb;
++	struct nf_exp_event_notifier *nf_expect_event_cb;
+ 	int			sysctl_events;
+ 	unsigned int		sysctl_events_retry_timeout;
+ 	int			sysctl_acct;
+diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
+index b924f3a..0134009 100644
+--- a/net/netfilter/nf_conntrack_ecache.c
++++ b/net/netfilter/nf_conntrack_ecache.c
+@@ -38,19 +38,18 @@ void nf_ct_deliver_cached_events(struct nf_conn *ct)
+ 	struct nf_ct_event item;
+ 	int ret;
  
-+struct nf_ip_net {
-+#if defined(CONFIG_SYSCTL) && defined(CONFIG_NF_CONNTRACK_PROC_COMPAT)
-+	struct ctl_table_header *ctl_table_header;
-+	struct ctl_table        *ctl_table;
-+#endif
-+};
-+
- struct netns_ct {
- 	atomic_t		count;
- 	unsigned int		expect_count;
-@@ -38,6 +45,7 @@ struct netns_ct {
- 	int			sysctl_tstamp;
- 	int			sysctl_checksum;
- 	unsigned int		sysctl_log_invalid; /* Log invalid packets */
-+	struct nf_ip_net	proto;
- #ifdef CONFIG_SYSCTL
- 	struct ctl_table_header	*sysctl_header;
- 	struct ctl_table_header	*acct_sysctl_header;
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index 85d71e0..065bff8 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -170,84 +170,116 @@ static int kill_l4proto(struct nf_conn *i, void *data)
- 	       nf_ct_l3num(i) == l4proto->l3proto;
- }
- 
--static int nf_ct_l3proto_register_sysctl(struct nf_conntrack_l3proto *l3proto)
-+static struct nf_ip_net *nf_ct_l3proto_net(struct net *net,
-+					   struct nf_conntrack_l3proto *l3proto)
-+{
-+	if (l3proto->l3proto == PF_INET)
-+		return &net->ct.proto;
-+	else
-+		return NULL;
-+}
-+
-+static int nf_ct_l3proto_register_sysctl(struct net *net,
-+					 struct nf_conntrack_l3proto *l3proto)
- {
- 	int err = 0;
-+	struct nf_ip_net *in = nf_ct_l3proto_net(net, l3proto);
- 
--#ifdef CONFIG_SYSCTL
--	if (l3proto->ctl_table != NULL) {
--		err = nf_ct_register_sysctl(&l3proto->ctl_table_header,
-+	if (in == NULL)
-+		return 0;
-+
-+#if defined(CONFIG_SYSCTL) && defined(CONFIG_NF_CONNTRACK_PROC_COMPAT)
-+	if (in->ctl_table != NULL) {
-+		err = nf_ct_register_sysctl(net,
-+					    &in->ctl_table_header,
- 					    l3proto->ctl_table_path,
--					    l3proto->ctl_table, NULL);
-+					    in->ctl_table,
-+					    NULL);
-+		if (err < 0) {
-+			kfree(in->ctl_table);
-+			in->ctl_table = NULL;
-+		}
- 	}
- #endif
- 	return err;
- }
- 
--static void nf_ct_l3proto_unregister_sysctl(struct nf_conntrack_l3proto *l3proto)
-+static void nf_ct_l3proto_unregister_sysctl(struct net *net,
-+					    struct nf_conntrack_l3proto *l3proto)
- {
--#ifdef CONFIG_SYSCTL
--	if (l3proto->ctl_table_header != NULL)
--		nf_ct_unregister_sysctl(&l3proto->ctl_table_header,
--					l3proto->ctl_table, NULL);
-+	struct nf_ip_net *in = nf_ct_l3proto_net(net, l3proto);
-+
-+	if (in == NULL)
+-	rcu_read_lock();
+-	notify = rcu_dereference(net->ct.nf_conntrack_event_cb);
++	notify = net->ct.nf_conntrack_event_cb;
+ 	if (notify == NULL)
+-		goto out_unlock;
 +		return;
-+#if defined(CONFIG_SYSCTL) && defined(CONFIG_NF_CONNTRACK_PROC_COMPAT)
-+	if (in->ctl_table_header != NULL)
-+		nf_ct_unregister_sysctl(&in->ctl_table_header,
-+					&in->ctl_table,
-+					NULL);
- #endif
- }
  
--int nf_conntrack_l3proto_register(struct nf_conntrack_l3proto *proto)
-+int nf_conntrack_l3proto_register(struct net *net,
-+				  struct nf_conntrack_l3proto *proto)
+ 	e = nf_ct_ecache_find(ct);
+ 	if (e == NULL)
+-		goto out_unlock;
++		return;
+ 
+ 	events = xchg(&e->cache, 0);
+ 
+ 	if (!nf_ct_is_confirmed(ct) || nf_ct_is_dying(ct) || !events)
+-		goto out_unlock;
++		return;
+ 
+ 	/* We make a copy of the missed event cache without taking
+ 	 * the lock, thus we may send missed events twice. However,
+@@ -58,7 +57,7 @@ void nf_ct_deliver_cached_events(struct nf_conn *ct)
+ 	missed = e->missed;
+ 
+ 	if (!((events | missed) & e->ctmask))
+-		goto out_unlock;
++		return;
+ 
+ 	item.ct = ct;
+ 	item.pid = 0;
+@@ -67,7 +66,7 @@ void nf_ct_deliver_cached_events(struct nf_conn *ct)
+ 	ret = notify->fcn(events | missed, &item);
+ 
+ 	if (likely(ret >= 0 && !missed))
+-		goto out_unlock;
++		return;
+ 
+ 	spin_lock_bh(&ct->lock);
+ 	if (ret < 0)
+@@ -75,9 +74,6 @@ void nf_ct_deliver_cached_events(struct nf_conn *ct)
+ 	else
+ 		e->missed &= ~missed;
+ 	spin_unlock_bh(&ct->lock);
+-
+-out_unlock:
+-	rcu_read_unlock();
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_deliver_cached_events);
+ 
+@@ -85,21 +81,14 @@ int nf_conntrack_register_notifier(struct net *net,
+ 				   struct nf_ct_event_notifier *new)
  {
  	int ret = 0;
--	struct nf_conntrack_l3proto *old;
+-	struct nf_ct_event_notifier *notify;
  
--	if (proto->l3proto >= AF_MAX)
--		return -EBUSY;
--
--	if (proto->tuple_to_nlattr && !proto->nlattr_tuple_size)
--		return -EINVAL;
--
--	mutex_lock(&nf_ct_proto_mutex);
--	old = rcu_dereference_protected(nf_ct_l3protos[proto->l3proto],
--					lockdep_is_held(&nf_ct_proto_mutex));
--	if (old != &nf_conntrack_l3proto_generic) {
--		ret = -EBUSY;
+ 	mutex_lock(&nf_ct_ecache_mutex);
+-	notify = rcu_dereference_protected(net->ct.nf_conntrack_event_cb,
+-					   lockdep_is_held(&nf_ct_ecache_mutex));
+-	if (notify != NULL) {
++	if (net->ct.nf_conntrack_event_cb != NULL)
+ 		ret = -EBUSY;
 -		goto out_unlock;
 -	}
-+	if (net == &init_net) {
-+		struct nf_conntrack_l3proto *old;
- 
--	ret = nf_ct_l3proto_register_sysctl(proto);
--	if (ret < 0)
--		goto out_unlock;
-+		if (proto->l3proto >= AF_MAX)
-+			return -EBUSY;
-+
-+		if (proto->tuple_to_nlattr && !proto->nlattr_tuple_size)
-+			return -EINVAL;
- 
--	if (proto->nlattr_tuple_size)
--		proto->nla_size = 3 * proto->nlattr_tuple_size();
-+		mutex_lock(&nf_ct_proto_mutex);
-+		old = rcu_dereference_protected(nf_ct_l3protos[proto->l3proto],
-+						lockdep_is_held(&nf_ct_proto_mutex));
-+		if (old != &nf_conntrack_l3proto_generic) {
-+			ret = -EBUSY;
-+			goto out_unlock;
-+		}
- 
--	rcu_assign_pointer(nf_ct_l3protos[proto->l3proto], proto);
-+		if (proto->nlattr_tuple_size)
-+			proto->nla_size = 3 * proto->nlattr_tuple_size();
- 
-+		rcu_assign_pointer(nf_ct_l3protos[proto->l3proto], proto);
- out_unlock:
--	mutex_unlock(&nf_ct_proto_mutex);
+-	rcu_assign_pointer(net->ct.nf_conntrack_event_cb, new);
++	else
++		net->ct.nf_conntrack_event_cb = new;
+ 	mutex_unlock(&nf_ct_ecache_mutex);
 -	return ret;
-+		mutex_unlock(&nf_ct_proto_mutex);
-+		if (ret < 0)
-+			return ret;
-+	}
-+	if (proto->init_net) {
-+		ret = proto->init_net(net);
-+		if (ret < 0)
-+			return ret;
-+	}
-+	return nf_ct_l3proto_register_sysctl(net, proto);
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_register);
  
--void nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto)
-+void nf_conntrack_l3proto_unregister(struct net *net,
-+				     struct nf_conntrack_l3proto *proto)
+-out_unlock:
+-	mutex_unlock(&nf_ct_ecache_mutex);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_register_notifier);
+@@ -107,13 +96,9 @@ EXPORT_SYMBOL_GPL(nf_conntrack_register_notifier);
+ void nf_conntrack_unregister_notifier(struct net *net,
+ 				      struct nf_ct_event_notifier *new)
  {
--	struct net *net;
+-	struct nf_ct_event_notifier *notify;
 -
--	BUG_ON(proto->l3proto >= AF_MAX);
--
--	mutex_lock(&nf_ct_proto_mutex);
--	BUG_ON(rcu_dereference_protected(nf_ct_l3protos[proto->l3proto],
--					 lockdep_is_held(&nf_ct_proto_mutex)
--					 ) != proto);
--	rcu_assign_pointer(nf_ct_l3protos[proto->l3proto],
--			   &nf_conntrack_l3proto_generic);
--	nf_ct_l3proto_unregister_sysctl(proto);
--	mutex_unlock(&nf_ct_proto_mutex);
-+	if (net == &init_net) {
-+		BUG_ON(proto->l3proto >= AF_MAX);
-+
-+		mutex_lock(&nf_ct_proto_mutex);
-+		BUG_ON(rcu_dereference_protected(nf_ct_l3protos[proto->l3proto],
-+						 lockdep_is_held(&nf_ct_proto_mutex)
-+						 ) != proto);
-+		rcu_assign_pointer(nf_ct_l3protos[proto->l3proto],
-+				   &nf_conntrack_l3proto_generic);
-+		mutex_unlock(&nf_ct_proto_mutex);
- 
--	synchronize_rcu();
-+		synchronize_rcu();
-+	}
-+	nf_ct_l3proto_unregister_sysctl(net, proto);
- 
- 	/* Remove all contrack entries for this protocol */
- 	rtnl_lock();
--	for_each_net(net)
--		nf_ct_iterate_cleanup(net, kill_l3proto, proto);
-+	nf_ct_iterate_cleanup(net, kill_l3proto, proto);
- 	rtnl_unlock();
+ 	mutex_lock(&nf_ct_ecache_mutex);
+-	notify = rcu_dereference_protected(net->ct.nf_conntrack_event_cb,
+-					   lockdep_is_held(&nf_ct_ecache_mutex));
+-	BUG_ON(notify != new);
+-	RCU_INIT_POINTER(net->ct.nf_conntrack_event_cb, NULL);
++	BUG_ON(net->ct.nf_conntrack_event_cb != new);
++	net->ct.nf_conntrack_event_cb = NULL;
+ 	mutex_unlock(&nf_ct_ecache_mutex);
  }
- EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_unregister);
+ EXPORT_SYMBOL_GPL(nf_conntrack_unregister_notifier);
+@@ -122,21 +107,14 @@ int nf_ct_expect_register_notifier(struct net *net,
+ 				   struct nf_exp_event_notifier *new)
+ {
+ 	int ret = 0;
+-	struct nf_exp_event_notifier *notify;
+ 
+ 	mutex_lock(&nf_ct_ecache_mutex);
+-	notify = rcu_dereference_protected(net->ct.nf_expect_event_cb,
+-					   lockdep_is_held(&nf_ct_ecache_mutex));
+-	if (notify != NULL) {
++	if (net->ct.nf_expect_event_cb != NULL)
+ 		ret = -EBUSY;
+-		goto out_unlock;
+-	}
+-	rcu_assign_pointer(net->ct.nf_expect_event_cb, new);
++	else
++		net->ct.nf_expect_event_cb = new;
+ 	mutex_unlock(&nf_ct_ecache_mutex);
+-	return ret;
+ 
+-out_unlock:
+-	mutex_unlock(&nf_ct_ecache_mutex);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_expect_register_notifier);
+@@ -144,13 +122,9 @@ EXPORT_SYMBOL_GPL(nf_ct_expect_register_notifier);
+ void nf_ct_expect_unregister_notifier(struct net *net,
+ 				      struct nf_exp_event_notifier *new)
+ {
+-	struct nf_exp_event_notifier *notify;
+-
+ 	mutex_lock(&nf_ct_ecache_mutex);
+-	notify = rcu_dereference_protected(net->ct.nf_expect_event_cb,
+-					   lockdep_is_held(&nf_ct_ecache_mutex));
+-	BUG_ON(notify != new);
+-	RCU_INIT_POINTER(net->ct.nf_expect_event_cb, NULL);
++	BUG_ON(net->ct.nf_expect_event_cb != new);
++	net->ct.nf_expect_event_cb = NULL;
+ 	mutex_unlock(&nf_ct_ecache_mutex);
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_expect_unregister_notifier);
 -- 
-1.7.7.6
+1.7.7
 
