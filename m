@@ -1,52 +1,61 @@
 From: pablo@netfilter.org
-Subject: [PATCH 4/8] ipvs: reset ipvs pointer in netns
-Date: Mon, 30 Apr 2012 17:16:51 +0200
-Message-ID: <1335799015-2003-5-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 5/8] ipvs: null check of net->ipvs in lblc(r) shedulers
+Date: Mon, 30 Apr 2012 17:16:52 +0200
+Message-ID: <1335799015-2003-6-git-send-email-pablo@netfilter.org>
 References: <1335799015-2003-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34533 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34539 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753653Ab2D3PR1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Apr 2012 11:17:27 -0400
+	id S1753703Ab2D3PR2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 Apr 2012 11:17:28 -0400
 In-Reply-To: <1335799015-2003-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Julian Anastasov <ja@ssi.bg>
+From: Hans Schillstrom <hans.schillstrom@ericsson.com>
 
-	Make sure net->ipvs is reset on netns cleanup or failed
-initialization. It is needed for IPVS applications to know that
-IPVS core is not loaded in netns.
+Avoid crash when registering shedulers after
+the IPVS core initialization for netns fails. Do this by
+checking for present core (net->ipvs).
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Acked-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Simon Horman <horms@verge.net.au>
 ---
- net/netfilter/ipvs/ip_vs_core.c |    2 ++
- 1 file changed, 2 insertions(+)
+ net/netfilter/ipvs/ip_vs_lblc.c  |    3 +++
+ net/netfilter/ipvs/ip_vs_lblcr.c |    3 +++
+ 2 files changed, 6 insertions(+)
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 2555816..260b9ef 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1924,6 +1924,7 @@ protocol_fail:
- control_fail:
- 	ip_vs_estimator_net_cleanup(net);
- estimator_fail:
-+	net->ipvs = NULL;
- 	return -ENOMEM;
- }
+diff --git a/net/netfilter/ipvs/ip_vs_lblc.c b/net/netfilter/ipvs/ip_vs_lblc.c
+index 0f16283..caa4370 100644
+--- a/net/netfilter/ipvs/ip_vs_lblc.c
++++ b/net/netfilter/ipvs/ip_vs_lblc.c
+@@ -551,6 +551,9 @@ static int __net_init __ip_vs_lblc_init(struct net *net)
+ {
+ 	struct netns_ipvs *ipvs = net_ipvs(net);
  
-@@ -1936,6 +1937,7 @@ static void __net_exit __ip_vs_cleanup(struct net *net)
- 	ip_vs_control_net_cleanup(net);
- 	ip_vs_estimator_net_cleanup(net);
- 	IP_VS_DBG(2, "ipvs netns %d released\n", net_ipvs(net)->gen);
-+	net->ipvs = NULL;
- }
++	if (!ipvs)
++		return -ENOENT;
++
+ 	if (!net_eq(net, &init_net)) {
+ 		ipvs->lblc_ctl_table = kmemdup(vs_vars_table,
+ 						sizeof(vs_vars_table),
+diff --git a/net/netfilter/ipvs/ip_vs_lblcr.c b/net/netfilter/ipvs/ip_vs_lblcr.c
+index eec797f..548bf37 100644
+--- a/net/netfilter/ipvs/ip_vs_lblcr.c
++++ b/net/netfilter/ipvs/ip_vs_lblcr.c
+@@ -745,6 +745,9 @@ static int __net_init __ip_vs_lblcr_init(struct net *net)
+ {
+ 	struct netns_ipvs *ipvs = net_ipvs(net);
  
- static void __net_exit __ip_vs_dev_cleanup(struct net *net)
++	if (!ipvs)
++		return -ENOENT;
++
+ 	if (!net_eq(net, &init_net)) {
+ 		ipvs->lblcr_ctl_table = kmemdup(vs_vars_table,
+ 						sizeof(vs_vars_table),
 -- 
 1.7.9.5
 
