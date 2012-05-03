@@ -1,40 +1,33 @@
-From: "Jeremy/starcraft.man" <starcraft.man@ubuntu.com>
-Subject: Re: Make nfct_catch return control to original thread
-Date: Wed, 2 May 2012 14:34:41 -0400
-Message-ID: <CA+DcbdfXLQ2ugNO2iO2hX9Bo25r9Z8_55e7XKRpq-UEV+NV6og@mail.gmail.com>
-References: <CA+DcbdcTggNHJS3rCbnVNHejU5Zdb3+fukK_03qB+Y30K7XhxA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Kelvie Wong <kelvie@ieee.org>
+Subject: [RFC] Patches to allow updates of timeouts in expectations
+Date: Wed,  2 May 2012 17:39:22 -0700
+Message-ID: <1336005564-23171-1-git-send-email-kelvie@ieee.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:55724 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755606Ab2EBSem (ORCPT
+Received: from mail-qa0-f42.google.com ([209.85.216.42]:40408 "EHLO
+	mail-qa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754409Ab2ECAjd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 May 2012 14:34:42 -0400
-Received: by vcqp1 with SMTP id p1so687689vcq.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 02 May 2012 11:34:41 -0700 (PDT)
-In-Reply-To: <CA+DcbdcTggNHJS3rCbnVNHejU5Zdb3+fukK_03qB+Y30K7XhxA@mail.gmail.com>
+	Wed, 2 May 2012 20:39:33 -0400
+Received: by qafi31 with SMTP id i31so3951156qaf.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 02 May 2012 17:39:32 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hello all,
 
-Quick question regarding conntrack.
+These are a couple of patches that I will be using in order to solve a problem
+I am having with (permanent) expectation timeouts not being able to be updated.
 
-Is there a way for me to generate an NFCT_T_DESTROY event artificially
-(i.e. avoiding usual mechanism tied to connection close). To further
-qualify, I'd like to be able to do this in a situation I can't
-guarantee any connectivity. I tried a localhost connection/termination
-it didn't seem to trigger a callback.
+Initial testing tells me that these work; when I call NFCT_Q_CREATE_UPDATE with
+an existing permanent expectation, it updates it correctly with the new timeout
+value. I use nfexp_query directly (rather than through conntrack-tools).
 
-I want to force a return on a callback that is set on destroy events
-if you are wondering.
+Anyway, this is something that was useful to me, so I'm not sure if you guys
+would like these patches upstream but also, am I doing this correctly 
+(especially with respect to locking), or is there any other thing I may have
+overlooked?
 
-Thanks for the time.
+Thanks,
+Kelvie
 
---
-Jeremy Pallats/starcraft.man
-
-Beginners Team/Wiki FG Member - https://wiki.ubuntu.com/BeginnersTeam
-Wiki Homepage - https://wiki.ubuntu.com/starcraft.man
