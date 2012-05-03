@@ -1,33 +1,45 @@
 From: Kelvie Wong <kelvie@ieee.org>
-Subject: [RFC] Patches to allow updates of timeouts in expectations
-Date: Wed,  2 May 2012 17:39:22 -0700
-Message-ID: <1336005564-23171-1-git-send-email-kelvie@ieee.org>
+Subject: [PATCH] expect: support NFCT_Q_CREATE_UPDATE in nfexp_query
+Date: Wed,  2 May 2012 17:39:23 -0700
+Message-ID: <1336005564-23171-2-git-send-email-kelvie@ieee.org>
+References: <1336005564-23171-1-git-send-email-kelvie@ieee.org>
+Cc: Kelvie Wong <kelvie@ieee.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qa0-f42.google.com ([209.85.216.42]:40408 "EHLO
-	mail-qa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754409Ab2ECAjd (ORCPT
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:57556 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754409Ab2ECAjj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 May 2012 20:39:33 -0400
-Received: by qafi31 with SMTP id i31so3951156qaf.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 02 May 2012 17:39:32 -0700 (PDT)
+	Wed, 2 May 2012 20:39:39 -0400
+Received: by qcro28 with SMTP id o28so807896qcr.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 02 May 2012 17:39:39 -0700 (PDT)
+In-Reply-To: <1336005564-23171-1-git-send-email-kelvie@ieee.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello all,
+This will work as it does in conntrack; it won't pass NLM_F_ACK into
+ctnetlink_new_expect in the kernel, and will thus invoke
+ctnetlink_change_expect if the expectation already exists.
 
-These are a couple of patches that I will be using in order to solve a problem
-I am having with (permanent) expectation timeouts not being able to be updated.
+Signed-off-by: Kelvie Wong <kelvie@ieee.org>
+---
+ src/expect/api.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-Initial testing tells me that these work; when I call NFCT_Q_CREATE_UPDATE with
-an existing permanent expectation, it updates it correctly with the new timeout
-value. I use nfexp_query directly (rather than through conntrack-tools).
-
-Anyway, this is something that was useful to me, so I'm not sure if you guys
-would like these patches upstream but also, am I doing this correctly 
-(especially with respect to locking), or is there any other thing I may have
-overlooked?
-
-Thanks,
-Kelvie
+diff --git a/src/expect/api.c b/src/expect/api.c
+index 4da44a0..a101042 100644
+--- a/src/expect/api.c
++++ b/src/expect/api.c
+@@ -533,6 +533,9 @@ __build_query_exp(struct nfnl_subsys_handle *ssh,
+ 	case NFCT_Q_CREATE:
+ 		__build_expect(ssh, req, size, IPCTNL_MSG_EXP_NEW, NLM_F_REQUEST|NLM_F_CREATE|NLM_F_ACK|NLM_F_EXCL, data);
+ 		break;
++	case NFCT_Q_CREATE_UPDATE:
++		__build_expect(ssh, req, size, IPCTNL_MSG_EXP_NEW, NLM_F_REQUEST|NLM_F_CREATE|NLM_F_ACK, data);
++		break;
+ 	case NFCT_Q_GET:
+ 		__build_expect(ssh, req, size, IPCTNL_MSG_EXP_GET, NLM_F_REQUEST|NLM_F_ACK, data);
+ 		break;
+-- 
+1.7.9.5
 
