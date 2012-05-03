@@ -1,90 +1,48 @@
-From: pablo@netfilter.org
-Subject: [PATCH] netfilter: nf_conntrack: fix explicit helper attachment and NAT
-Date: Thu,  3 May 2012 14:17:45 +0200
-Message-ID: <1336047465-1562-1-git-send-email-pablo@netfilter.org>
+From: Flo Wohlfart <wohlfart@in.tum.de>
+Subject: ICMP packet filter policy
+Date: Thu, 03 May 2012 18:32:13 +0200
+Message-ID: <4FA2B30D.7000403@in.tum.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40868 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753196Ab2ECMSO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 May 2012 08:18:14 -0400
+Received: from mail-out1.informatik.tu-muenchen.de ([131.159.0.8]:38331 "EHLO
+	mail-out1.informatik.tu-muenchen.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752286Ab2ECQlB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 May 2012 12:41:01 -0400
+Received: from [192.168.1.194] (r029088.stusta.swh.mhn.de [10.150.29.88])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.in.tum.de (Postfix) with ESMTPSA id C10402401D8
+	for <netfilter-devel@vger.kernel.org>; Thu,  3 May 2012 18:32:12 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Hi,
 
-Explicit helper attachment via the CT target is broken with NAT.
-Basically, nf_conntrack_alter_reply asks for looking the helper
-up again. Unfortunately, we don't have the conntrack template
-at that point anymore.
+due to a bug in a home-router, I had to deal with ICMP packets with a 
+wrong checksum. I discovered that netfilter does not drop ICMP packets 
+with a wrong checksum in the ICMP header.
 
-Since we don't want to rely on the automatic helper assignment,
-we can skip the second look-up and rely on the helper that was
-attached by iptables. Since now the user is in full control of
-helper attachment, we can assume he/she is making consistent
-configurations.
+I have set up IP forwarding and NAT on a Debian host using iptables. On 
+this host iptables/netfilter allows outgoing "ICMP destination 
+unreachable" packets with a wrong ICMP checksum. These ICMP packets are 
+translated by NAT and forwarded to the public network interface.
 
-Interestingly, this bug was hidden by the automatic helper look-up
-code. But it can be easily trigger if you attach the helper in
-a non-standard port, eg.
+When I replace the Debian host with an OpenWRT router, outgoing "ICMP 
+destination unreachable" packets need to have a correct checksum. 
+Otherwise they are dropped. OpenWRT also uses iptables/netfilter for 
+packet filtering and NAT. However, there is no iptables-rule that could 
+explain this behavior.
 
-iptables -I PREROUTING -t raw -p tcp --dport 8888 \
-	-j CT --helper ftp
+I would like to know why these two versions of netfilter behave 
+differently. Is there a configuration option to tell netfilter to filter 
+these messages? Should NAT implementations filter these ICMP messages 
+with a wrong checksum?
 
-Without this patch, if NAT is in use, this will not work.
+I know this is a rather special issue, but maybe someone can help :)
 
-I added the IPS_HELPER_BIT that allows us to differenciate between
-a helper that has been explicitly attached and those that have been
-automatically assigned. I didn't come up with a better solution.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/linux/netfilter/nf_conntrack_common.h |    4 ++++
- net/netfilter/nf_conntrack_helper.c           |   13 ++++++++++++-
- 2 files changed, 16 insertions(+), 1 deletion(-)
-
-diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
-index 0d3dd66..d146872 100644
---- a/include/linux/netfilter/nf_conntrack_common.h
-+++ b/include/linux/netfilter/nf_conntrack_common.h
-@@ -83,6 +83,10 @@ enum ip_conntrack_status {
- 	/* Conntrack is a fake untracked entry */
- 	IPS_UNTRACKED_BIT = 12,
- 	IPS_UNTRACKED = (1 << IPS_UNTRACKED_BIT),
-+
-+	/* Conntrack got a helper explicitly attached via CT target. */
-+	IPS_HELPER_BIT = 13,
-+	IPS_HELPER = (1 << IPS_HELPER_BIT),
- };
- 
- /* Connection tracking event types */
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index f76481e..b851333 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -188,10 +188,21 @@ int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
- 	struct net *net = nf_ct_net(ct);
- 	int ret = 0;
- 
-+	/* We already got a helper explicitly attached. The function
-+	 * nf_conntrack_alter_reply - in case NAT is in use - asks for looking
-+	 * the helper up again. Since now the user is in full control of
-+	 * making consistent helper configurations, skip this automatic
-+	 * re-lookup, otherwise we'll lose the helper.
-+	 */
-+	if (test_bit(IPS_HELPER_BIT, &ct->status))
-+		return 0;
-+
- 	if (tmpl != NULL) {
- 		help = nfct_help(tmpl);
--		if (help != NULL)
-+		if (help != NULL) {
- 			helper = help->helper;
-+			set_bit(IPS_HELPER_BIT, &ct->status);
-+		}
- 	}
- 
- 	help = nfct_help(ct);
--- 
-1.7.9.5
-
+Regards
+Florian Wohlfart
