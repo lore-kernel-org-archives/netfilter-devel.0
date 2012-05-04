@@ -1,48 +1,40 @@
-From: Flo Wohlfart <wohlfart@in.tum.de>
-Subject: ICMP packet filter policy
-Date: Thu, 03 May 2012 18:32:13 +0200
-Message-ID: <4FA2B30D.7000403@in.tum.de>
+From: Andrew Beverley <andy@andybev.com>
+Subject: Re: facing problem with iptables nat rules and traffic flow scnerios
+Date: Fri, 04 May 2012 18:09:23 +0100
+Message-ID: <1336151363.1912.97.camel@andrew-desktop>
+References: <CAE1WnGdo1O0AyS0Q=00m3vou0nQnE0FzSR3-NWi-YMr3zwn8dA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-out1.informatik.tu-muenchen.de ([131.159.0.8]:38331 "EHLO
-	mail-out1.informatik.tu-muenchen.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752286Ab2ECQlB (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 May 2012 12:41:01 -0400
-Received: from [192.168.1.194] (r029088.stusta.swh.mhn.de [10.150.29.88])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mail.in.tum.de (Postfix) with ESMTPSA id C10402401D8
-	for <netfilter-devel@vger.kernel.org>; Thu,  3 May 2012 18:32:12 +0200 (CEST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: rahul shrivastava <shrivastavaone@gmail.com>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <CAE1WnGdo1O0AyS0Q=00m3vou0nQnE0FzSR3-NWi-YMr3zwn8dA@mail.gmail.com>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+[ Please use the netfilter not netfilter-devel list for this sort of
+question ]
 
-due to a bug in a home-router, I had to deal with ICMP packets with a 
-wrong checksum. I discovered that netfilter does not drop ICMP packets 
-with a wrong checksum in the ICMP header.
+On Thu, 2012-05-03 at 14:25 +0530, rahul shrivastava wrote:
+> I am using iptables for nat
+> kernel version is 2.6.35+
+> working on powerpc target
+> 
+> case 1) traffic is already flowing and we apply a rule, that rule will
+> become effective only when we stop traffic and start again.
+> 
+> case 2) traffic is already flowing and we delete a rule, this rule
+> will still be effective unless we stop and start traffic again.
+> 
+> observation: /proc/net/ip_conntrack file is updated only after stoping
+> and starting traffic again.
 
-I have set up IP forwarding and NAT on a Debian host using iptables. On 
-this host iptables/netfilter allows outgoing "ICMP destination 
-unreachable" packets with a wrong ICMP checksum. These ICMP packets are 
-translated by NAT and forwarded to the public network interface.
+Depending what you are doing, this shouldn't happen. How are you
+applying the rules? Directly with iptables commands? If so, what are the
+commands? For some rules, such as port redirection, I have found that
+the conntrack cache needs to be cleared.
 
-When I replace the Debian host with an OpenWRT router, outgoing "ICMP 
-destination unreachable" packets need to have a correct checksum. 
-Otherwise they are dropped. OpenWRT also uses iptables/netfilter for 
-packet filtering and NAT. However, there is no iptables-rule that could 
-explain this behavior.
+Andy
 
-I would like to know why these two versions of netfilter behave 
-differently. Is there a configuration option to tell netfilter to filter 
-these messages? Should NAT implementations filter these ICMP messages 
-with a wrong checksum?
 
-I know this is a rather special issue, but maybe someone can help :)
-
-Regards
-Florian Wohlfart
