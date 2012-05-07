@@ -1,10 +1,10 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC] [PATCH 4/4] netfilter: Enable fail-open
-Date: Mon, 7 May 2012 11:04:51 +0200
-Message-ID: <20120507090451.GB27650@1984>
+Subject: Re: [RFC] [PATCH 0/4] netfilter: "fail-open" feature support for
+ NFQUEUE
+Date: Mon, 7 May 2012 11:14:14 +0200
+Message-ID: <20120507091414.GC27650@1984>
 References: <20120507060338.19528.29403.sendpatchset@localhost.localdomain>
- <20120507060422.19528.20723.sendpatchset@localhost.localdomain>
- <20120507075647.GA5015@breakpoint.cc>
+ <20120507081029.GB5015@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Krishna Kumar <krkumar2@in.ibm.com>,
@@ -12,43 +12,48 @@ Cc: Krishna Kumar <krkumar2@in.ibm.com>,
 	vivk@us.ibm.com, sri@us.ibm.com
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33823 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36759 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755939Ab2EGJE6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 May 2012 05:04:58 -0400
+	id S1755497Ab2EGJOR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 May 2012 05:14:17 -0400
 Content-Disposition: inline
-In-Reply-To: <20120507075647.GA5015@breakpoint.cc>
+In-Reply-To: <20120507081029.GB5015@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, May 07, 2012 at 09:56:47AM +0200, Florian Westphal wrote:
+On Mon, May 07, 2012 at 10:10:29AM +0200, Florian Westphal wrote:
 > Krishna Kumar <krkumar2@in.ibm.com> wrote:
-> > Define xt_NFQ_info_v3 to get fail-open argument from iptables. Also
-> > enable FAIL_OPEN.
+> > Many users of an IBM security product, which uses netfilter's NFQUEUE
+> > target to process packets in userspace, face a problem of dropped
+> > connections during heavy load. Incoming packets are queued and
+> > processed by the security module, which does deep packet analysis to
+> > decide whether to accept or reject them. However during heavy load,
+> > NFQUEUE queue (default 1024 entries) fills up and connections fail
+> > after large number of packets drop during enqueue. Increasing the
+> > queue size delays the problem and also worsens latency.
 > > 
-> > Signed-off-by: Krishna Kumar <krkumar2@in.ibm.com>
-> > diff -ruNp org/include/linux/netfilter/xt_NFQUEUE.h new/include/linux/netfilter/xt_NFQUEUE.h
-> > --- org/include/linux/netfilter/xt_NFQUEUE.h	2012-05-07 10:17:28.117870787 +0530
-> > +++ new/include/linux/netfilter/xt_NFQUEUE.h	2012-05-07 09:20:53.783813702 +0530
-> > @@ -26,4 +26,11 @@ struct xt_NFQ_info_v2 {
-> >  	__u16 bypass;
-> >  };
-> >  
-> > +struct xt_NFQ_info_v3 {
-> > +	__u16 queuenum;
-> > +	__u16 queues_total;
-> > +	__u16 bypass;
-> > +	__u16 fail_open;
-> > +};
+> > This patch set implements a "failopen" support to help keep connections
+> > open during such failures. This is achieved by allowing acceptance of
+> > packets temporarily when the queue is full, which enables existing
+> > connections to be kept alive. Customers prefer this option as similar
+> > feature is available on other systems.
+> > 
+> > This patch set implements failopen for NFQUEUE (though a similar patch
+> > for IPQUEUE is also implemented but not submitted at this time). I will
+> > submit the iptables changes which controls turning failopen mode on/off
+> > later. The original requirement for sysctl option is not implemented -
+> > please let me know whether that is acceptable/preferable.
 > 
-> Minor nit:
-> 
-> This shouldn't be necessary; bypass is always 0 or 1.
-> You could just rename it to "options" or something
-> like that.  Would also mean that you could have the v2 target
-> revision use the same target callback as v3 (since struct layout would
-> be the same).
+> I think that exposing this feature as userspace-changeable via netlink
+> (eg. by adding "NFQA_CFG_FAILOPEN" attribute) rather than via ruleset
+> would make most sense, as only the application can know wheter it
+> can cope with missing packets.
 
-Yes, something like "flags" can make it.
+Agreed.
 
-Where flag (1 << 0) is bypass to ensure backward compatibility.
+I have a patch here to add NFAQ_CFG_FLAGS attribute, we can add some
+new flag to specify this behaviour.
+
+I'm using that with NFQNL_F_CONNTRACK flag to integrate
+nfnetlink_queue with conntrack so it sends the conntrack together with
+the packet via nfnetlink_queue.
