@@ -1,69 +1,36 @@
-From: "Hans Schillstrom" <hans@schillstrom.com>
-Subject: Re[2]:  [v12 PATCH 2/3] NETFILTER module xt_hmark, new
-	target for HASH based fwmark
-Date: Mon, 7 May 2012 21:09:05 +0200 (CEST)
-Message-ID: <0k0r53l.c3371735fb25ebebfdc229b1e397a36f@obelix.schillstrom.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/2] ipset related bugfixes
+Date: Mon, 7 May 2012 21:13:17 +0200
+Message-ID: <20120507191317.GA4175@1984>
+References: <1336394145-10078-1-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Cc: "Hans Schillstrom" <hans.schillstrom@ericsson.com>,
-	"kaber@trash.net" <kaber@trash.net>,
-	"jengelh@medozas.de" <jengelh@medozas.de>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: "Pablo Neira Ayuso" <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:54166 "EHLO
-	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757602Ab2EGTJK convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 May 2012 15:09:10 -0400
+Received: from mail.us.es ([193.147.175.20]:48418 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757572Ab2EGTNU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 May 2012 15:13:20 -0400
+Content-Disposition: inline
+In-Reply-To: <1336394145-10078-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->On Mon, May 07, 2012 at 02:57:30PM +0200, Hans Schillstrom wrote:
->> On Monday 07 May 2012 14:22:32 Pablo Neira Ayuso wrote:
->> > On Mon, May 07, 2012 at 02:09:46PM +0200, Hans Schillstrom wrote:
->> > > On Monday 07 May 2012 13:56:12 Pablo Neira Ayuso wrote:
->> > > > On Mon, May 07, 2012 at 11:14:34AM +0200, Hans Schillstrom wrote:
->> > > > > > > We have plenty of rules where just source port mask is zero.
->> > > > > > > and the dest-port-mask is 0xfffc (or 0xffff)
->> > > > > > 
->> > > > > > 0xffff and 0x0000 means on/off respectively.
->> > > > > > 
->> > > > > > Still curious, how can 0xfffc be useful?
->> > > > > 
->> > > > > That's a special case where an appl is using 4 ports.
->> > > > > But in general, have not seen other than "on/off" except for above.
->> > > > 
->> > > > I see. Well I'm fine with this way to switch on/off things, just
->> > > > wanted some clafication.
->> > > > 
->> > > > Still one final thing I'd like to remove before inclusion:
->> > > > 
->> > > > +       union hmark_ports       port_mask;
->> > > > +       union hmark_ports       port_set;
->> > > > +       __u32                   spi_mask;
->> > > > +       __u32                   spi_set;
->> > > > 
->> > > > the spi_mask seems redundant. The port_mask already provides u32 for
->> > > > it.
->> > > 
->> > > No problems, I'll remove it.
->> > 
->> > OK. As a nice side-effect, this will lead to removing the branch that
->> > tests ESP/AH in hmark_set_tuple_ports.
->> >
->> Yes, only check if not ESP or AH to swap src/dst
->
->Do you really that branch? I mean, unless I'm missing anything, swapping
->them shouldn't be a problem.
+On Mon, May 07, 2012 at 02:35:43PM +0200, Jozsef Kadlecsik wrote:
+> Hi Pablo,
+> 
+> Please apply the next two bugfixes and push forward for kernel inclusion.
+> The patches can be pulled from git://blackhole.kfki.hu/git/net. Thanks!
 
-Well, 
-that was just to keep backward compatibility and make my tests happy.
-I'll remove them and change my test setup.
+I overlooked that you provide a tree to pull. Sorry. I have manually
+applied them.
 
+> Best regards,
+> Jozsef
+> 
+> Jozsef Kadlecsik (2):
+>   netfilter: ipset: Fix timeout value overflow bug
+>   netfilter: ipset: Fix hash size checking in kernel
 
-
-
+Thanks Jozsef, I'll pass them to 3.4-rc6
