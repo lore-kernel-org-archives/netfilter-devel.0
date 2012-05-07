@@ -1,104 +1,80 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [v12 PATCH 2/3] NETFILTER module xt_hmark, new target for HASH
- based fwmark
-Date: Mon, 7 May 2012 14:22:32 +0200
-Message-ID: <20120507122232.GA32146@1984>
-References: <1335188128-23645-1-git-send-email-hans.schillstrom@ericsson.com>
- <201205071114.35324.hans.schillstrom@ericsson.com>
- <20120507115612.GA31110@1984>
- <201205071409.47945.hans.schillstrom@ericsson.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "kaber@trash.net" <kaber@trash.net>,
-	"jengelh@medozas.de" <jengelh@medozas.de>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"hans@schillstrom.com" <hans@schillstrom.com>
-To: Hans Schillstrom <hans.schillstrom@ericsson.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201205071409.47945.hans.schillstrom@ericsson.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH 1/2] netfilter: ipset: Fix timeout value overflow bug
+Date: Mon,  7 May 2012 14:35:44 +0200
+Message-ID: <1336394145-10078-2-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1336394145-10078-1-git-send-email-kadlec@blackhole.kfki.hu>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-in.kfki.hu ([148.6.0.26]:36077 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756353Ab2EGMfq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 May 2012 08:35:46 -0400
+In-Reply-To: <1336394145-10078-1-git-send-email-kadlec@blackhole.kfki.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, May 07, 2012 at 02:09:46PM +0200, Hans Schillstrom wrote:
-> On Monday 07 May 2012 13:56:12 Pablo Neira Ayuso wrote:
-> > On Mon, May 07, 2012 at 11:14:34AM +0200, Hans Schillstrom wrote:
-> > > > > We have plenty of rules where just source port mask is zero.
-> > > > > and the dest-port-mask is 0xfffc (or 0xffff)
-> > > > 
-> > > > 0xffff and 0x0000 means on/off respectively.
-> > > > 
-> > > > Still curious, how can 0xfffc be useful?
-> > > 
-> > > That's a special case where an appl is using 4 ports.
-> > > But in general, have not seen other than "on/off" except for above.
-> > 
-> > I see. Well I'm fine with this way to switch on/off things, just
-> > wanted some clafication.
-> > 
-> > Still one final thing I'd like to remove before inclusion:
-> > 
-> > +       union hmark_ports       port_mask;
-> > +       union hmark_ports       port_set;
-> > +       __u32                   spi_mask;
-> > +       __u32                   spi_set;
-> > 
-> > the spi_mask seems redundant. The port_mask already provides u32 for
-> > it.
-> 
-> No problems, I'll remove it.
+Large timeout parameters could result wrong timeout values due to
+an overflow at msec to jiffies conversion (reported by Andreas Herz)
 
-OK. As a nice side-effect, this will lead to removing the branch that
-tests ESP/AH in hmark_set_tuple_ports.
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ include/linux/netfilter/ipset/ip_set_timeout.h |    4 ++++
+ net/netfilter/xt_set.c                         |   15 +++++++++++++--
+ 2 files changed, 17 insertions(+), 2 deletions(-)
 
-Please, use the patch that I sent you yesterday. Recover the swap
-behaviour that you need, I'll mangle the patch myself to add the
-little comment to explain why we do this with CT as well.
+diff --git a/include/linux/netfilter/ipset/ip_set_timeout.h b/include/linux/netfilter/ipset/ip_set_timeout.h
+index 4792320..9fba34f 100644
+--- a/include/linux/netfilter/ipset/ip_set_timeout.h
++++ b/include/linux/netfilter/ipset/ip_set_timeout.h
+@@ -30,6 +30,10 @@ ip_set_timeout_uget(struct nlattr *tb)
+ {
+ 	unsigned int timeout = ip_set_get_h32(tb);
+ 
++	/* Normalize to fit into jiffies */
++	if (timeout > UINT_MAX/1000)
++		timeout = UINT_MAX/1000;
++
+ 	/* Userspace supplied TIMEOUT parameter: adjust crazy size */
+ 	return timeout == IPSET_NO_TIMEOUT ? IPSET_NO_TIMEOUT - 1 : timeout;
+ }
+diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
+index 0ec8138..e97a31b 100644
+--- a/net/netfilter/xt_set.c
++++ b/net/netfilter/xt_set.c
+@@ -44,6 +44,14 @@ const struct ip_set_adt_opt n = {	\
+ 	.cmdflags = cfs,		\
+ 	.timeout = t,			\
+ }
++#define ADT_MOPT(n, f, d, fs, cfs, t)	\
++struct ip_set_adt_opt n = {		\
++	.family	= f,			\
++	.dim = d,			\
++	.flags = fs,			\
++	.cmdflags = cfs,		\
++	.timeout = t,			\
++}
+ 
+ /* Revision 0 interface: backward compatible with netfilter/iptables */
+ 
+@@ -296,11 +304,14 @@ static unsigned int
+ set_target_v2(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+ 	const struct xt_set_info_target_v2 *info = par->targinfo;
+-	ADT_OPT(add_opt, par->family, info->add_set.dim,
+-		info->add_set.flags, info->flags, info->timeout);
++	ADT_MOPT(add_opt, par->family, info->add_set.dim,
++		 info->add_set.flags, info->flags, info->timeout);
+ 	ADT_OPT(del_opt, par->family, info->del_set.dim,
+ 		info->del_set.flags, 0, UINT_MAX);
+ 
++	/* Normalize to fit into jiffies */
++	if (add_opt.timeout > UINT_MAX/1000)
++		add_opt.timeout = UINT_MAX/1000;
+ 	if (info->add_set.index != IPSET_INVALID_ID)
+ 		ip_set_add(info->add_set.index, skb, par, &add_opt);
+ 	if (info->del_set.index != IPSET_INVALID_ID)
+-- 
+1.7.0.4
 
-BTW, note that you do *not* have to remove the XT_HMARK_SPI flags, we
-still need those for iptables-save.
-
-While at it:
-
-+enum {                      
-+       XT_HMARK_NONE,       
-+       XT_HMARK_SADR_AND,   
-+       XT_HMARK_DADR_AND,   
-+       XT_HMARK_SPI_AND,    
-+       XT_HMARK_SPI_OR,    
-
-remove all trailing _OR
-
-+       XT_HMARK_SPORT_AND,  
-+       XT_HMARK_DPORT_AND,  
-+       XT_HMARK_SPORT_OR,   
-+       XT_HMARK_DPORT_OR,   
-+       XT_HMARK_PROTO_AND,
-
-rename all _AND by _MASK.
-
-+       XT_HMARK_RND,        
-+       XT_HMARK_MODULUS,    
-+       XT_HMARK_OFFSET,     
-+       XT_HMARK_CT,         
-+       XT_HMARK_METHOD_L3,  
-+       XT_HMARK_METHOD_L3_4,
-};
-
-What I'm asking should require very little changes in the kernel-code.
-
-> > In case you want to support different masks for AH/ESP and TCP, you
-> > could do the following:
-> > 
-> > iptables -I PREROUTING -t mangle -p esp -j HARK --spi-mask 0xffff0000
-> > iptables -I PREROUTING -t mangle -p tcp -j HARK --port-mask 0xfffc
-> > 
-> > Any objection?
-> 
-> I don't think this is a problem, but it should be written in the man page
-> that ports and spi share mask so they can't be used at the same time.
-
-documentation is fine.
-
-iptables can stop this by spotting a warning message from user-space.
