@@ -1,102 +1,54 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [v12 PATCH 2/3] NETFILTER module xt_hmark, new target for HASH
- based fwmark
-Date: Mon, 7 May 2012 11:03:28 +0200
-Message-ID: <20120507090328.GA27650@1984>
-References: <1335188128-23645-1-git-send-email-hans.schillstrom@ericsson.com>
- <201205021949.48741.hans.schillstrom@ericsson.com>
- <20120506225738.GA23009@1984>
- <201205071020.44449.hans.schillstrom@ericsson.com>
+Subject: Re: [RFC] [PATCH 4/4] netfilter: Enable fail-open
+Date: Mon, 7 May 2012 11:04:51 +0200
+Message-ID: <20120507090451.GB27650@1984>
+References: <20120507060338.19528.29403.sendpatchset@localhost.localdomain>
+ <20120507060422.19528.20723.sendpatchset@localhost.localdomain>
+ <20120507075647.GA5015@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: "kaber@trash.net" <kaber@trash.net>,
-	"jengelh@medozas.de" <jengelh@medozas.de>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"hans@schillstrom.com" <hans@schillstrom.com>
-To: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Cc: Krishna Kumar <krkumar2@in.ibm.com>,
+	netfilter-devel@vger.kernel.org, svajipay@in.ibm.com,
+	vivk@us.ibm.com, sri@us.ibm.com
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60808 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:33823 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755696Ab2EGJDf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 May 2012 05:03:35 -0400
+	id S1755939Ab2EGJE6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 May 2012 05:04:58 -0400
 Content-Disposition: inline
-In-Reply-To: <201205071020.44449.hans.schillstrom@ericsson.com>
+In-Reply-To: <20120507075647.GA5015@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, May 07, 2012 at 10:20:42AM +0200, Hans Schillstrom wrote:
-> On Monday 07 May 2012 00:57:38 Pablo Neira Ayuso wrote:
-> > Hi Hans,
+On Mon, May 07, 2012 at 09:56:47AM +0200, Florian Westphal wrote:
+> Krishna Kumar <krkumar2@in.ibm.com> wrote:
+> > Define xt_NFQ_info_v3 to get fail-open argument from iptables. Also
+> > enable FAIL_OPEN.
 > > 
-> > [...]
-> > > > > > Regarding ICMP traffic, I think we can use the ID field for the
-> > > > > > hashing as well. Thus, we handle ICMP like other protocols.
-> > > > >
-> > > > > Yes why not, I can give it a try.
-> > > > >
-> > >
-> > > I think we wait with this one..
-> > 
-> > I see. This is easy to add for the conntrack side, but it will require
-> > some extra code for the packet-based solution.
+> > Signed-off-by: Krishna Kumar <krkumar2@in.ibm.com>
+> > diff -ruNp org/include/linux/netfilter/xt_NFQUEUE.h new/include/linux/netfilter/xt_NFQUEUE.h
+> > --- org/include/linux/netfilter/xt_NFQUEUE.h	2012-05-07 10:17:28.117870787 +0530
+> > +++ new/include/linux/netfilter/xt_NFQUEUE.h	2012-05-07 09:20:53.783813702 +0530
+> > @@ -26,4 +26,11 @@ struct xt_NFQ_info_v2 {
+> >  	__u16 bypass;
+> >  };
+> >  
+> > +struct xt_NFQ_info_v3 {
+> > +	__u16 queuenum;
+> > +	__u16 queues_total;
+> > +	__u16 bypass;
+> > +	__u16 fail_open;
+> > +};
 > 
-> Actually I think there is very little gain to spread with type 
-> and then we must add a user mode possibility to turn it off 
-> i.e. a --hmark-icmp-type-mask 
+> Minor nit:
 > 
-> > Not directly related to this but, I know that your intention is to
-> > make this as flexible as possible. However, I still don't find how I
-> > would use the port mask feature in any of my setups.  Basically, I
-> > don't come up with any useful example for this situation.
-> 
-> We have plenty of rules where just source port mask is zero.
-> and the dest-port-mask is 0xfffc (or 0xffff)
+> This shouldn't be necessary; bypass is always 0 or 1.
+> You could just rename it to "options" or something
+> like that.  Would also mean that you could have the v2 target
+> revision use the same target callback as v3 (since struct layout would
+> be the same).
 
-0xffff and 0x0000 means on/off respectively.
+Yes, something like "flags" can make it.
 
-Still curious, how can 0xfffc be useful?
-
-> > I'm also telling this because I think that ICMP support will be
-> > easier to add if port masking is removed.
-> > 
-> > [...]
-> > > This is what I have done.
-> > >
-> > > - I reduced the code size a little bit by combining the hmark_ct_set_htuple_ipvX into one func.
-> > >   by adding a hmark_addr6_mask() and hmark_addr_any_mask()
-> > >   Note that using "otuple->src.l3num" as param 1 in both src and dst is not a typo.
-> > >   (it's not set in the rtuple)
-> > 
-> > Good one, this made the code even smaller.
-> > 
-> > > - Made the if (dst < src) swap() in the hmark_hash() since it should be used by every caller.
-> > 
-> > Not really, you don't need for the conntrack part. The original tuple
-> > is always the same, not matter where the packet is coming from. I have
-> > removed this again so it only affects packet-based hashing.
-> 
-> Yes original tuple is always the same but not always less than the rtuple.
-> If you have two nodes that should produce the same hmark,
-> one with conntrack an one without you must make a compare to make it consistent.
-
-I see, for consistency still makes sense although this seems to me
-like still strange configuration. In what scenario would you use two
-different approaches?
-
-> > > - Moved the L3 check a little bit earlier.
-> > 
-> > good.
-> > 
-> > > - changed return values for fragments.
-> > 
-> > With this, you're giving up on trying to classify fragments. Do you
-> > really want this?
-> > 
-> > From my point of view, if your firewalls (assuming they are the HMARK
-> > classification) are stateless, it still makes sense to me to classify
-> > fragments using the XT_HMARK_METHOD_L3_4.
-> 
-> I do agree, it is back to "return 0" again.
-
-OK.
+Where flag (1 << 0) is bypass to ensure backward compatibility.
