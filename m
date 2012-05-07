@@ -1,59 +1,116 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC] [PATCH 0/4] netfilter: "fail-open" feature support for
- NFQUEUE
-Date: Mon, 7 May 2012 11:14:14 +0200
-Message-ID: <20120507091414.GC27650@1984>
-References: <20120507060338.19528.29403.sendpatchset@localhost.localdomain>
- <20120507081029.GB5015@breakpoint.cc>
+From: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Subject: Re: [v12 PATCH 2/3] NETFILTER module xt_hmark, new target for HASH based fwmark
+Date: Mon, 7 May 2012 11:14:34 +0200
+Message-ID: <201205071114.35324.hans.schillstrom@ericsson.com>
+References: <1335188128-23645-1-git-send-email-hans.schillstrom@ericsson.com> <201205071020.44449.hans.schillstrom@ericsson.com> <20120507090328.GA27650@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Krishna Kumar <krkumar2@in.ibm.com>,
-	netfilter-devel@vger.kernel.org, svajipay@in.ibm.com,
-	vivk@us.ibm.com, sri@us.ibm.com
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: "kaber@trash.net" <kaber@trash.net>,
+	"jengelh@medozas.de" <jengelh@medozas.de>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"hans@schillstrom.com" <hans@schillstrom.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36759 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755497Ab2EGJOR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 May 2012 05:14:17 -0400
+Received: from mailgw7.ericsson.se ([193.180.251.48]:55914 "EHLO
+	mailgw7.ericsson.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755497Ab2EGJOj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 May 2012 05:14:39 -0400
+In-Reply-To: <20120507090328.GA27650@1984>
 Content-Disposition: inline
-In-Reply-To: <20120507081029.GB5015@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, May 07, 2012 at 10:10:29AM +0200, Florian Westphal wrote:
-> Krishna Kumar <krkumar2@in.ibm.com> wrote:
-> > Many users of an IBM security product, which uses netfilter's NFQUEUE
-> > target to process packets in userspace, face a problem of dropped
-> > connections during heavy load. Incoming packets are queued and
-> > processed by the security module, which does deep packet analysis to
-> > decide whether to accept or reject them. However during heavy load,
-> > NFQUEUE queue (default 1024 entries) fills up and connections fail
-> > after large number of packets drop during enqueue. Increasing the
-> > queue size delays the problem and also worsens latency.
+On Monday 07 May 2012 11:03:28 Pablo Neira Ayuso wrote:
+> On Mon, May 07, 2012 at 10:20:42AM +0200, Hans Schillstrom wrote:
+> > On Monday 07 May 2012 00:57:38 Pablo Neira Ayuso wrote:
+> > > Hi Hans,
+> > > 
+> > > [...]
+> > > > > > > Regarding ICMP traffic, I think we can use the ID field for the
+> > > > > > > hashing as well. Thus, we handle ICMP like other protocols.
+> > > > > >
+> > > > > > Yes why not, I can give it a try.
+> > > > > >
+> > > >
+> > > > I think we wait with this one..
+> > > 
+> > > I see. This is easy to add for the conntrack side, but it will require
+> > > some extra code for the packet-based solution.
 > > 
-> > This patch set implements a "failopen" support to help keep connections
-> > open during such failures. This is achieved by allowing acceptance of
-> > packets temporarily when the queue is full, which enables existing
-> > connections to be kept alive. Customers prefer this option as similar
-> > feature is available on other systems.
+> > Actually I think there is very little gain to spread with type 
+> > and then we must add a user mode possibility to turn it off 
+> > i.e. a --hmark-icmp-type-mask 
 > > 
-> > This patch set implements failopen for NFQUEUE (though a similar patch
-> > for IPQUEUE is also implemented but not submitted at this time). I will
-> > submit the iptables changes which controls turning failopen mode on/off
-> > later. The original requirement for sysctl option is not implemented -
-> > please let me know whether that is acceptable/preferable.
+> > > Not directly related to this but, I know that your intention is to
+> > > make this as flexible as possible. However, I still don't find how I
+> > > would use the port mask feature in any of my setups.  Basically, I
+> > > don't come up with any useful example for this situation.
+> > 
+> > We have plenty of rules where just source port mask is zero.
+> > and the dest-port-mask is 0xfffc (or 0xffff)
 > 
-> I think that exposing this feature as userspace-changeable via netlink
-> (eg. by adding "NFQA_CFG_FAILOPEN" attribute) rather than via ruleset
-> would make most sense, as only the application can know wheter it
-> can cope with missing packets.
+> 0xffff and 0x0000 means on/off respectively.
+> 
+> Still curious, how can 0xfffc be useful?
 
-Agreed.
+That's a special case where an appl is using 4 ports.
+But in general, have not seen other than "on/off" except for above.
 
-I have a patch here to add NFAQ_CFG_FLAGS attribute, we can add some
-new flag to specify this behaviour.
+> 
+> > > I'm also telling this because I think that ICMP support will be
+> > > easier to add if port masking is removed.
+> > > 
+> > > [...]
+> > > > This is what I have done.
+> > > >
+> > > > - I reduced the code size a little bit by combining the hmark_ct_set_htuple_ipvX into one func.
+> > > >   by adding a hmark_addr6_mask() and hmark_addr_any_mask()
+> > > >   Note that using "otuple->src.l3num" as param 1 in both src and dst is not a typo.
+> > > >   (it's not set in the rtuple)
+> > > 
+> > > Good one, this made the code even smaller.
+> > > 
+> > > > - Made the if (dst < src) swap() in the hmark_hash() since it should be used by every caller.
+> > > 
+> > > Not really, you don't need for the conntrack part. The original tuple
+> > > is always the same, not matter where the packet is coming from. I have
+> > > removed this again so it only affects packet-based hashing.
+> > 
+> > Yes original tuple is always the same but not always less than the rtuple.
+> > If you have two nodes that should produce the same hmark,
+> > one with conntrack an one without you must make a compare to make it consistent.
+> 
+> I see, for consistency still makes sense although this seems to me
+> like still strange configuration. In what scenario would you use two
+> different approaches?
 
-I'm using that with NFQNL_F_CONNTRACK flag to integrate
-nfnetlink_queue with conntrack so it sends the conntrack together with
-the packet via nfnetlink_queue.
+In the way that we use HMARK,
+in the incomming path there is conntrack disabled in the contrainer, 
+for the outgoing patch i.e. at the payloads there is conntrack used.
+In that case the --hmark-ct makes life easier.
+
+> 
+> > > > - Moved the L3 check a little bit earlier.
+> > > 
+> > > good.
+> > > 
+> > > > - changed return values for fragments.
+> > > 
+> > > With this, you're giving up on trying to classify fragments. Do you
+> > > really want this?
+> > > 
+> > > From my point of view, if your firewalls (assuming they are the HMARK
+> > > classification) are stateless, it still makes sense to me to classify
+> > > fragments using the XT_HMARK_METHOD_L3_4.
+> > 
+> > I do agree, it is back to "return 0" again.
+> 
+> OK.
+> 
+
+-- 
+Regards
+Hans Schillstrom <hans.schillstrom@ericsson.com>
