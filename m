@@ -1,80 +1,259 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 1/2] netfilter: ipset: Fix timeout value overflow bug
-Date: Mon,  7 May 2012 14:35:44 +0200
-Message-ID: <1336394145-10078-2-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 2/2] netfilter: ipset: Fix hash size checking in kernel
+Date: Mon,  7 May 2012 14:35:45 +0200
+Message-ID: <1336394145-10078-3-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1336394145-10078-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:36077 "EHLO smtp1.kfki.hu"
+Received: from smtp2.kfki.hu ([148.6.0.28]:34187 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756353Ab2EGMfq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 May 2012 08:35:46 -0400
+	id S1756268Ab2EGMfr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 May 2012 08:35:47 -0400
 In-Reply-To: <1336394145-10078-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Large timeout parameters could result wrong timeout values due to
-an overflow at msec to jiffies conversion (reported by Andreas Herz)
+The hash size must fit both into u32 (jhash) and the max value of
+size_t. The missing checking could lead to kernel crash, bug reported
+by Seblu.
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/linux/netfilter/ipset/ip_set_timeout.h |    4 ++++
- net/netfilter/xt_set.c                         |   15 +++++++++++++--
- 2 files changed, 17 insertions(+), 2 deletions(-)
+ include/linux/netfilter/ipset/ip_set_ahash.h |   16 ++++++++++++++++
+ net/netfilter/ipset/ip_set_hash_ip.c         |   10 +++++++---
+ net/netfilter/ipset/ip_set_hash_ipport.c     |   10 +++++++---
+ net/netfilter/ipset/ip_set_hash_ipportip.c   |   10 +++++++---
+ net/netfilter/ipset/ip_set_hash_ipportnet.c  |   10 +++++++---
+ net/netfilter/ipset/ip_set_hash_net.c        |   10 +++++++---
+ net/netfilter/ipset/ip_set_hash_netiface.c   |   10 +++++++---
+ net/netfilter/ipset/ip_set_hash_netport.c    |   10 +++++++---
+ 8 files changed, 65 insertions(+), 21 deletions(-)
 
-diff --git a/include/linux/netfilter/ipset/ip_set_timeout.h b/include/linux/netfilter/ipset/ip_set_timeout.h
-index 4792320..9fba34f 100644
---- a/include/linux/netfilter/ipset/ip_set_timeout.h
-+++ b/include/linux/netfilter/ipset/ip_set_timeout.h
-@@ -30,6 +30,10 @@ ip_set_timeout_uget(struct nlattr *tb)
- {
- 	unsigned int timeout = ip_set_get_h32(tb);
+diff --git a/include/linux/netfilter/ipset/ip_set_ahash.h b/include/linux/netfilter/ipset/ip_set_ahash.h
+index 05a5d72..230a290 100644
+--- a/include/linux/netfilter/ipset/ip_set_ahash.h
++++ b/include/linux/netfilter/ipset/ip_set_ahash.h
+@@ -99,6 +99,22 @@ struct ip_set_hash {
+ #endif
+ };
  
-+	/* Normalize to fit into jiffies */
-+	if (timeout > UINT_MAX/1000)
-+		timeout = UINT_MAX/1000;
++static size_t
++htable_size(u8 hbits)
++{
++	size_t hsize;
 +
- 	/* Userspace supplied TIMEOUT parameter: adjust crazy size */
- 	return timeout == IPSET_NO_TIMEOUT ? IPSET_NO_TIMEOUT - 1 : timeout;
- }
-diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
-index 0ec8138..e97a31b 100644
---- a/net/netfilter/xt_set.c
-+++ b/net/netfilter/xt_set.c
-@@ -44,6 +44,14 @@ const struct ip_set_adt_opt n = {	\
- 	.cmdflags = cfs,		\
- 	.timeout = t,			\
- }
-+#define ADT_MOPT(n, f, d, fs, cfs, t)	\
-+struct ip_set_adt_opt n = {		\
-+	.family	= f,			\
-+	.dim = d,			\
-+	.flags = fs,			\
-+	.cmdflags = cfs,		\
-+	.timeout = t,			\
++	/* We must fit both into u32 in jhash and size_t */
++	if (hbits > 31)
++		return 0;
++	hsize = jhash_size(hbits);
++	if ((((size_t)-1) - sizeof(struct htable))/sizeof(struct hbucket)
++	    < hsize)
++		return 0;
++
++	return hsize * sizeof(struct hbucket) + sizeof(struct htable);
 +}
- 
- /* Revision 0 interface: backward compatible with netfilter/iptables */
- 
-@@ -296,11 +304,14 @@ static unsigned int
- set_target_v2(struct sk_buff *skb, const struct xt_action_param *par)
++
+ /* Compute htable_bits from the user input parameter hashsize */
+ static u8
+ htable_bits(u32 hashsize)
+diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
+index 5139dea..828ce46 100644
+--- a/net/netfilter/ipset/ip_set_hash_ip.c
++++ b/net/netfilter/ipset/ip_set_hash_ip.c
+@@ -364,6 +364,7 @@ hash_ip_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
  {
- 	const struct xt_set_info_target_v2 *info = par->targinfo;
--	ADT_OPT(add_opt, par->family, info->add_set.dim,
--		info->add_set.flags, info->flags, info->timeout);
-+	ADT_MOPT(add_opt, par->family, info->add_set.dim,
-+		 info->add_set.flags, info->flags, info->timeout);
- 	ADT_OPT(del_opt, par->family, info->del_set.dim,
- 		info->del_set.flags, 0, UINT_MAX);
+ 	u32 hashsize = IPSET_DEFAULT_HASHSIZE, maxelem = IPSET_DEFAULT_MAXELEM;
+ 	u8 netmask, hbits;
++	size_t hsize;
+ 	struct ip_set_hash *h;
  
-+	/* Normalize to fit into jiffies */
-+	if (add_opt.timeout > UINT_MAX/1000)
-+		add_opt.timeout = UINT_MAX/1000;
- 	if (info->add_set.index != IPSET_INVALID_ID)
- 		ip_set_add(info->add_set.index, skb, par, &add_opt);
- 	if (info->del_set.index != IPSET_INVALID_ID)
+ 	if (!(set->family == NFPROTO_IPV4 || set->family == NFPROTO_IPV6))
+@@ -405,9 +406,12 @@ hash_ip_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 	h->timeout = IPSET_NO_TIMEOUT;
+ 
+ 	hbits = htable_bits(hashsize);
+-	h->table = ip_set_alloc(
+-			sizeof(struct htable)
+-			+ jhash_size(hbits) * sizeof(struct hbucket));
++	hsize = htable_size(hbits);
++	if (hsize == 0) {
++		kfree(h);
++		return -ENOMEM;
++	}
++	h->table = ip_set_alloc(hsize);
+ 	if (!h->table) {
+ 		kfree(h);
+ 		return -ENOMEM;
+diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
+index 9c27e24..e8dbb49 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipport.c
++++ b/net/netfilter/ipset/ip_set_hash_ipport.c
+@@ -449,6 +449,7 @@ hash_ipport_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 	struct ip_set_hash *h;
+ 	u32 hashsize = IPSET_DEFAULT_HASHSIZE, maxelem = IPSET_DEFAULT_MAXELEM;
+ 	u8 hbits;
++	size_t hsize;
+ 
+ 	if (!(set->family == NFPROTO_IPV4 || set->family == NFPROTO_IPV6))
+ 		return -IPSET_ERR_INVALID_FAMILY;
+@@ -476,9 +477,12 @@ hash_ipport_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 	h->timeout = IPSET_NO_TIMEOUT;
+ 
+ 	hbits = htable_bits(hashsize);
+-	h->table = ip_set_alloc(
+-			sizeof(struct htable)
+-			+ jhash_size(hbits) * sizeof(struct hbucket));
++	hsize = htable_size(hbits);
++	if (hsize == 0) {
++		kfree(h);
++		return -ENOMEM;
++	}
++	h->table = ip_set_alloc(hsize);
+ 	if (!h->table) {
+ 		kfree(h);
+ 		return -ENOMEM;
+diff --git a/net/netfilter/ipset/ip_set_hash_ipportip.c b/net/netfilter/ipset/ip_set_hash_ipportip.c
+index 9134057..52f79d8 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipportip.c
++++ b/net/netfilter/ipset/ip_set_hash_ipportip.c
+@@ -467,6 +467,7 @@ hash_ipportip_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 	struct ip_set_hash *h;
+ 	u32 hashsize = IPSET_DEFAULT_HASHSIZE, maxelem = IPSET_DEFAULT_MAXELEM;
+ 	u8 hbits;
++	size_t hsize;
+ 
+ 	if (!(set->family == NFPROTO_IPV4 || set->family == NFPROTO_IPV6))
+ 		return -IPSET_ERR_INVALID_FAMILY;
+@@ -494,9 +495,12 @@ hash_ipportip_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 	h->timeout = IPSET_NO_TIMEOUT;
+ 
+ 	hbits = htable_bits(hashsize);
+-	h->table = ip_set_alloc(
+-			sizeof(struct htable)
+-			+ jhash_size(hbits) * sizeof(struct hbucket));
++	hsize = htable_size(hbits);
++	if (hsize == 0) {
++		kfree(h);
++		return -ENOMEM;
++	}
++	h->table = ip_set_alloc(hsize);
+ 	if (!h->table) {
+ 		kfree(h);
+ 		return -ENOMEM;
+diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+index 5d05e69..97583f5 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+@@ -616,6 +616,7 @@ hash_ipportnet_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 	struct ip_set_hash *h;
+ 	u32 hashsize = IPSET_DEFAULT_HASHSIZE, maxelem = IPSET_DEFAULT_MAXELEM;
+ 	u8 hbits;
++	size_t hsize;
+ 
+ 	if (!(set->family == NFPROTO_IPV4 || set->family == NFPROTO_IPV6))
+ 		return -IPSET_ERR_INVALID_FAMILY;
+@@ -645,9 +646,12 @@ hash_ipportnet_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 	h->timeout = IPSET_NO_TIMEOUT;
+ 
+ 	hbits = htable_bits(hashsize);
+-	h->table = ip_set_alloc(
+-			sizeof(struct htable)
+-			+ jhash_size(hbits) * sizeof(struct hbucket));
++	hsize = htable_size(hbits);
++	if (hsize == 0) {
++		kfree(h);
++		return -ENOMEM;
++	}
++	h->table = ip_set_alloc(hsize);
+ 	if (!h->table) {
+ 		kfree(h);
+ 		return -ENOMEM;
+diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/ip_set_hash_net.c
+index 7c3d945..1721cde 100644
+--- a/net/netfilter/ipset/ip_set_hash_net.c
++++ b/net/netfilter/ipset/ip_set_hash_net.c
+@@ -460,6 +460,7 @@ hash_net_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 	u32 hashsize = IPSET_DEFAULT_HASHSIZE, maxelem = IPSET_DEFAULT_MAXELEM;
+ 	struct ip_set_hash *h;
+ 	u8 hbits;
++	size_t hsize;
+ 
+ 	if (!(set->family == NFPROTO_IPV4 || set->family == NFPROTO_IPV6))
+ 		return -IPSET_ERR_INVALID_FAMILY;
+@@ -489,9 +490,12 @@ hash_net_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 	h->timeout = IPSET_NO_TIMEOUT;
+ 
+ 	hbits = htable_bits(hashsize);
+-	h->table = ip_set_alloc(
+-			sizeof(struct htable)
+-			+ jhash_size(hbits) * sizeof(struct hbucket));
++	hsize = htable_size(hbits);
++	if (hsize == 0) {
++		kfree(h);
++		return -ENOMEM;
++	}
++	h->table = ip_set_alloc(hsize);
+ 	if (!h->table) {
+ 		kfree(h);
+ 		return -ENOMEM;
+diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
+index f24037f..33bafc9 100644
+--- a/net/netfilter/ipset/ip_set_hash_netiface.c
++++ b/net/netfilter/ipset/ip_set_hash_netiface.c
+@@ -722,6 +722,7 @@ hash_netiface_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 	struct ip_set_hash *h;
+ 	u32 hashsize = IPSET_DEFAULT_HASHSIZE, maxelem = IPSET_DEFAULT_MAXELEM;
+ 	u8 hbits;
++	size_t hsize;
+ 
+ 	if (!(set->family == NFPROTO_IPV4 || set->family == NFPROTO_IPV6))
+ 		return -IPSET_ERR_INVALID_FAMILY;
+@@ -752,9 +753,12 @@ hash_netiface_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 	h->ahash_max = AHASH_MAX_SIZE;
+ 
+ 	hbits = htable_bits(hashsize);
+-	h->table = ip_set_alloc(
+-			sizeof(struct htable)
+-			+ jhash_size(hbits) * sizeof(struct hbucket));
++	hsize = htable_size(hbits);
++	if (hsize == 0) {
++		kfree(h);
++		return -ENOMEM;
++	}
++	h->table = ip_set_alloc(hsize);
+ 	if (!h->table) {
+ 		kfree(h);
+ 		return -ENOMEM;
+diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ipset/ip_set_hash_netport.c
+index ce2e771..3a5e198 100644
+--- a/net/netfilter/ipset/ip_set_hash_netport.c
++++ b/net/netfilter/ipset/ip_set_hash_netport.c
+@@ -572,6 +572,7 @@ hash_netport_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 	struct ip_set_hash *h;
+ 	u32 hashsize = IPSET_DEFAULT_HASHSIZE, maxelem = IPSET_DEFAULT_MAXELEM;
+ 	u8 hbits;
++	size_t hsize;
+ 
+ 	if (!(set->family == NFPROTO_IPV4 || set->family == NFPROTO_IPV6))
+ 		return -IPSET_ERR_INVALID_FAMILY;
+@@ -601,9 +602,12 @@ hash_netport_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ 	h->timeout = IPSET_NO_TIMEOUT;
+ 
+ 	hbits = htable_bits(hashsize);
+-	h->table = ip_set_alloc(
+-			sizeof(struct htable)
+-			+ jhash_size(hbits) * sizeof(struct hbucket));
++	hsize = htable_size(hbits);
++	if (hsize == 0) {
++		kfree(h);
++		return -ENOMEM;
++	}
++	h->table = ip_set_alloc(hsize);
+ 	if (!h->table) {
+ 		kfree(h);
+ 		return -ENOMEM;
 -- 
 1.7.0.4
 
