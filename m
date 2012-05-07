@@ -1,41 +1,60 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [RFC] [PATCH 0/4] netfilter: "fail-open" feature support for
- NFQUEUE
-Date: Mon, 7 May 2012 16:52:28 +0200
-Message-ID: <20120507145228.GC5015@breakpoint.cc>
-References: <20120507060338.19528.29403.sendpatchset@localhost.localdomain>
- <20120507081029.GB5015@breakpoint.cc>
- <OF72EDDD93.E0BF0FC1-ON652579F7.002FC182-652579F7.004C26E2@in.ibm.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [v12 PATCH 2/3] NETFILTER module xt_hmark, new target for HASH
+ based fwmark
+Date: Mon, 7 May 2012 16:54:45 +0200
+Message-ID: <20120507145445.GB1301@1984>
+References: <1335188128-23645-1-git-send-email-hans.schillstrom@ericsson.com>
+ <201205071409.47945.hans.schillstrom@ericsson.com>
+ <20120507122232.GA32146@1984>
+ <201205071457.32127.hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	sri@us.ibm.com, Sulakshan Vajipayajula <svajipay@in.ibm.com>,
-	vivk@us.ibm.com
-To: Krishna Kumar2 <krkumar2@in.ibm.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49724 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756467Ab2EGOwd (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 May 2012 10:52:33 -0400
+Cc: "kaber@trash.net" <kaber@trash.net>,
+	"jengelh@medozas.de" <jengelh@medozas.de>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"hans@schillstrom.com" <hans@schillstrom.com>
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <OF72EDDD93.E0BF0FC1-ON652579F7.002FC182-652579F7.004C26E2@in.ibm.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <201205071457.32127.hans.schillstrom@ericsson.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Krishna Kumar2 <krkumar2@in.ibm.com> wrote:
-> Florian Westphal <fw@strlen.de> wrote on 05/07/2012 01:40:29 PM:
-> > I think that exposing this feature as userspace-changeable via netlink
-> > (eg. by adding "NFQA_CFG_FAILOPEN" attribute) rather than via ruleset
-> > would make most sense, as only the application can know wheter it
-> > can cope with missing packets.
-> 
-> Thanks for your review. With this change, is there any reason to
-> modify xt_NFQ_info_v2's bypass field, since app can specify this
-> option directly? I tested without this for now and it works.
+On Mon, May 07, 2012 at 02:57:30PM +0200, Hans Schillstrom wrote:
+> On Monday 07 May 2012 14:22:32 Pablo Neira Ayuso wrote:
+> > On Mon, May 07, 2012 at 02:09:46PM +0200, Hans Schillstrom wrote:
+> > > On Monday 07 May 2012 13:56:12 Pablo Neira Ayuso wrote:
+> > > > On Mon, May 07, 2012 at 11:14:34AM +0200, Hans Schillstrom wrote:
+> > > > > > > We have plenty of rules where just source port mask is zero.
+> > > > > > > and the dest-port-mask is 0xfffc (or 0xffff)
+> > > > > > 
+> > > > > > 0xffff and 0x0000 means on/off respectively.
+> > > > > > 
+> > > > > > Still curious, how can 0xfffc be useful?
+> > > > > 
+> > > > > That's a special case where an appl is using 4 ports.
+> > > > > But in general, have not seen other than "on/off" except for above.
+> > > > 
+> > > > I see. Well I'm fine with this way to switch on/off things, just
+> > > > wanted some clafication.
+> > > > 
+> > > > Still one final thing I'd like to remove before inclusion:
+> > > > 
+> > > > +       union hmark_ports       port_mask;
+> > > > +       union hmark_ports       port_set;
+> > > > +       __u32                   spi_mask;
+> > > > +       __u32                   spi_set;
+> > > > 
+> > > > the spi_mask seems redundant. The port_mask already provides u32 for
+> > > > it.
+> > > 
+> > > No problems, I'll remove it.
+> > 
+> > OK. As a nice side-effect, this will lead to removing the branch that
+> > tests ESP/AH in hmark_set_tuple_ports.
+> >
+> Yes, only check if not ESP or AH to swap src/dst
 
-I don't think so. If the netlink attribute works for you we should
-leave xt_NFQUEUE as-is.
-
-Regards,
-Florian
+Do you really that branch? I mean, unless I'm missing anything, swapping
+them shouldn't be a problem.
