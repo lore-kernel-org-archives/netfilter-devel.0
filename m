@@ -1,7 +1,7 @@
 From: pablo@netfilter.org
-Subject: [PATCH 06/25] ipvs: LBLC scheduler does not need GFP_ATOMIC allocation on init
-Date: Tue,  8 May 2012 02:22:00 +0200
-Message-ID: <1336436539-5880-7-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 09/25] ipvs: LBLCR scheduler does not need GFP_ATOMIC allocation on init
+Date: Tue,  8 May 2012 02:22:03 +0200
+Message-ID: <1336436539-5880-10-git-send-email-pablo@netfilter.org>
 References: <1336436539-5880-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -19,16 +19,16 @@ Signed-off-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Hans Schillstrom <hans@schillstrom.com>
 Signed-off-by: Simon Horman <horms@verge.net.au>
 ---
- net/netfilter/ipvs/ip_vs_lblc.c |    2 +-
+ net/netfilter/ipvs/ip_vs_lblcr.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_lblc.c b/net/netfilter/ipvs/ip_vs_lblc.c
-index 27c24f1..7ba1672 100644
---- a/net/netfilter/ipvs/ip_vs_lblc.c
-+++ b/net/netfilter/ipvs/ip_vs_lblc.c
-@@ -342,7 +342,7 @@ static int ip_vs_lblc_init_svc(struct ip_vs_service *svc)
+diff --git a/net/netfilter/ipvs/ip_vs_lblcr.c b/net/netfilter/ipvs/ip_vs_lblcr.c
+index 7498756..00906ea 100644
+--- a/net/netfilter/ipvs/ip_vs_lblcr.c
++++ b/net/netfilter/ipvs/ip_vs_lblcr.c
+@@ -511,7 +511,7 @@ static int ip_vs_lblcr_init_svc(struct ip_vs_service *svc)
  	/*
- 	 *    Allocate the ip_vs_lblc_table for this service
+ 	 *    Allocate the ip_vs_lblcr_table for this service
  	 */
 -	tbl = kmalloc(sizeof(*tbl), GFP_ATOMIC);
 +	tbl = kmalloc(sizeof(*tbl), GFP_KERNEL);
