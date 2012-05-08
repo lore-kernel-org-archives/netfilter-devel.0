@@ -1,7 +1,7 @@
 From: pablo@netfilter.org
 Subject: [PATCH 04/25] netfilter: bridge: optionally set indev to vlan
-Date: Tue,  8 May 2012 09:49:33 +0200
-Message-ID: <1336463394-3119-5-git-send-email-pablo@netfilter.org>
+Date: Tue,  8 May 2012 09:49:34 +0200
+Message-ID: <1336463394-3119-6-git-send-email-pablo@netfilter.org>
 References: <1336463394-3119-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
