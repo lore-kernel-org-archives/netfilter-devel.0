@@ -1,29 +1,57 @@
-From: David Miller <davem@davemloft.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [PATCH 00/25] [v2] netfilter updates for net-next (upcoming
  3.5)
-Date: Tue, 08 May 2012 12:49:26 -0400 (EDT)
-Message-ID: <20120508.124926.2241646617733136639.davem@davemloft.net>
+Date: Tue, 8 May 2012 19:10:49 +0200
+Message-ID: <20120508171049.GA16205@1984>
 References: <1336463394-3119-1-git-send-email-pablo@netfilter.org>
+ <20120508.124926.2241646617733136639.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-7
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1336463394-3119-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:52600 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756328Ab2EHRKv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 May 2012 13:10:51 -0400
+Content-Disposition: inline
+In-Reply-To: <20120508.124926.2241646617733136639.davem@davemloft.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-RnJvbTogcGFibG9AbmV0ZmlsdGVyLm9yZw0KRGF0ZTogVHVlLCAgOCBNYXkgMjAxMiAwOTo0OToy
-OSArMDIwMA0KDQo+IFNlY29uZCB2ZXJzaW9uIGluY2x1ZGluZyByZXF1ZXN0ZWQgdXBkYXRlcy4N
-Cg0KVGhlcmUgd2VyZSBsb3RzIG9mIGNvbmZsaWN0cywgZHVlIHRvIG15IG1lcmdlIG9mIG5ldCBp
-bnRvIG5ldC1uZXh0Lg0KDQpUaG9zZSB3ZXJlIGVhc3kgZW5vdWdoLCBidXQgdGhlIHJlc3VsdCBk
-b2Vzbid0IGJ1aWxkLg0KDQpuZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19oZWxwZXIuYzogSW4g
-ZnVuY3Rpb24goW5mX2Nvbm50cmFja19oZWxwZXJfaW5pdF9zeXNjdGyiOg0KbmV0L25ldGZpbHRl
-ci9uZl9jb25udHJhY2tfaGVscGVyLmM6NjU6MjogZXJyb3I6IGltcGxpY2l0IGRlY2xhcmF0aW9u
-IG9mIGZ1bmN0aW9uIKFyZWdpc3Rlcl9uZXRfc3lzY3RsX3RhYmxloiBbLVdlcnJvcj1pbXBsaWNp
-dC1mdW5jdGlvbi1kZWNsYXJhdGlvbl0NCm5ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2hlbHBl
-ci5jOjY2OjQ6IGVycm9yOiChbmZfbmV0X25ldGZpbHRlcl9zeXNjdGxfcGF0aKIgdW5kZWNsYXJl
-ZCAoZmlyc3QgdXNlIGluIHRoaXMgZnVuY3Rpb24pDQpuZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFj
-a19oZWxwZXIuYzo2Njo0OiBub3RlOiBlYWNoIHVuZGVjbGFyZWQgaWRlbnRpZmllciBpcyByZXBv
-cnRlZCBvbmx5IG9uY2UgZm9yIGVhY2ggZnVuY3Rpb24gaXQgYXBwZWFycyBpbg0K
+On Tue, May 08, 2012 at 12:49:26PM -0400, David Miller wrote:
+> From: pablo@netfilter.org
+> Date: Tue,  8 May 2012 09:49:29 +0200
+>=20
+> > Second version including requested updates.
+>=20
+> There were lots of conflicts, due to my merge of net into net-next.
+>=20
+> Those were easy enough, but the result doesn't build.
+>=20
+> net/netfilter/nf_conntrack_helper.c: In function =E2=80=98nf_conntrac=
+k_helper_init_sysctl=E2=80=99:
+> net/netfilter/nf_conntrack_helper.c:65:2: error: implicit declaration=
+ of function =E2=80=98register_net_sysctl_table=E2=80=99 [-Werror=3Dimp=
+licit-function-declaration]
+> net/netfilter/nf_conntrack_helper.c:66:4: error: =E2=80=98nf_net_netf=
+ilter_sysctl_path=E2=80=99 undeclared (first use in this function)
+> net/netfilter/nf_conntrack_helper.c:66:4: note: each undeclared ident=
+ifier is reported only once for each function it appears in
+
+Strange, this compiles here. Probably you have to add the following
+include to net/netfilter/nf_conntrack_helper.c:
+
+#include <net/net_namespace.h>
+
+I can rebase all my patches on top of fresh tree, fix all conflicts
+myself and send you another patchset that will apply to your current
+tree.
+
+Please, let me know how to proceed.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
