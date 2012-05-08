@@ -1,47 +1,40 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 02/25] netfilter: nf_ct_helper: allow to disable
- automatic helper assignment
-Date: Tue, 8 May 2012 09:31:51 +0200
-Message-ID: <20120508073151.GA8465@1984>
-References: <1336436539-5880-1-git-send-email-pablo@netfilter.org>
- <1336436539-5880-3-git-send-email-pablo@netfilter.org>
- <20120507.213418.1633667612399402231.davem@davemloft.net>
+Subject: Re: [PATCH 13/25] ipvs: remove check for IP_VS_CONN_F_SYNC from
+ ip_vs_bind_dest
+Date: Tue, 8 May 2012 09:32:23 +0200
+Message-ID: <20120508073223.GB8465@1984>
+References: <1336436539-5880-14-git-send-email-pablo@netfilter.org>
+ <20120507.213607.2054696052002528963.davem@davemloft.net>
+ <20120508020843.GA9027@verge.net.au>
+ <20120507.221617.296952751857969791.davem@davemloft.net>
+ <20120508031545.GB9027@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+Cc: David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36881 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36968 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753814Ab2EHHbz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 May 2012 03:31:55 -0400
+	id S1754583Ab2EHHcd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 May 2012 03:32:33 -0400
 Content-Disposition: inline
-In-Reply-To: <20120507.213418.1633667612399402231.davem@davemloft.net>
+In-Reply-To: <20120508031545.GB9027@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, May 07, 2012 at 09:34:18PM -0400, David Miller wrote:
-> From: pablo@netfilter.org
-> Date: Tue,  8 May 2012 02:21:56 +0200
+On Tue, May 08, 2012 at 12:15:47PM +0900, Simon Horman wrote:
+> On Mon, May 07, 2012 at 10:16:17PM -0400, David Miller wrote:
+> > From: Simon Horman <horms@verge.net.au>
+> > Date: Tue, 8 May 2012 11:08:44 +0900
+> > 
+> > > can I fix this up as a subsequent patch?
+> > 
+> > Pablo's tree needs to get respun to address the other feedback
+> > I gave, so no reason for him or you to not fix this as well.
 > 
-> > +	if (!net->ct.helper_sysctl_header) {
-> > +		printk(KERN_ERR "nf_conntrack_helper: can't register to sysctl.\n");
-> > +		goto out_register;
-> > +	}
-> 
-> Please use pr_err().
-> 
-> > +			printk(KERN_INFO "nf_conntrack: automatic helper "
-> > +				"assignment is deprecated. Please, read "
-> > +				"http://www.netfilter.org/news.html#2012-04-03\n");
-> > +			net->ct.auto_assign_helper_warned = true;
-> 
-> Please use pr_info().
-> 
-> Pointers to web sites to explain a problem is absolutely not
-> appropriate in kernel log messages, nor commit messages.
-> 
-> Either add a document to the kernel tree, or explain things
-> fully both in the kernel log message and the commit message.
+> Understood.
 
-I'll fix those. Thanks for spotting this issue.
+Yes, I'll fix it myself.
+
+Expect a new batch in a couple of minutes.
