@@ -1,47 +1,35 @@
-From: David Miller <davem@davemloft.net>
+From: Simon Horman <horms@verge.net.au>
 Subject: Re: [PATCH 13/25] ipvs: remove check for IP_VS_CONN_F_SYNC from
  ip_vs_bind_dest
-Date: Mon, 07 May 2012 22:17:42 -0400 (EDT)
-Message-ID: <20120507.221742.778683822772023608.davem@davemloft.net>
+Date: Tue, 8 May 2012 12:15:47 +0900
+Message-ID: <20120508031545.GB9027@verge.net.au>
 References: <1336436539-5880-14-git-send-email-pablo@netfilter.org>
-	<20120507.213607.2054696052002528963.davem@davemloft.net>
-	<alpine.LNX.2.01.1205080414470.19642@frira.vanv.qr>
+ <20120507.213607.2054696052002528963.davem@davemloft.net>
+ <20120508020843.GA9027@verge.net.au>
+ <20120507.221617.296952751857969791.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
 	netdev@vger.kernel.org
-To: jengelh@inai.de
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:53518 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756778Ab2EHCUu (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:49265 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751053Ab2EHDPw (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 May 2012 22:20:50 -0400
-In-Reply-To: <alpine.LNX.2.01.1205080414470.19642@frira.vanv.qr>
+	Mon, 7 May 2012 23:15:52 -0400
+Content-Disposition: inline
+In-Reply-To: <20120507.221617.296952751857969791.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jan Engelhardt <jengelh@inai.de>
-Date: Tue, 8 May 2012 04:15:15 +0200 (CEST)
-
-> On Tuesday 2012-05-08 03:36, David Miller wrote:
+On Mon, May 07, 2012 at 10:16:17PM -0400, David Miller wrote:
+> From: Simon Horman <horms@verge.net.au>
+> Date: Tue, 8 May 2012 11:08:44 +0900
 > 
->>From: pablo@netfilter.org
->>Date: Tue,  8 May 2012 02:22:07 +0200
->>
->>> +		/* It is a normal connection, so modify the counters
->>> +		 * according to the flags, later the protocol can
->>> +		 * update them on state change */
->>
->>Rather:
->>
->>		/* It is a normal connection, so modify the counters
->>		 * according to the flags, later the protocol can
->>		 * update them on state change
->>		 */
+> > can I fix this up as a subsequent patch?
 > 
-> Well, CodingStyle even says
+> Pablo's tree needs to get respun to address the other feedback
+> I gave, so no reason for him or you to not fix this as well.
 
-We've discussed this to death, subsystem maintainers can ask
-for whatever they want and this is what I've asked for for years.
+Understood.
