@@ -1,150 +1,137 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [v12 PATCH 2/3] NETFILTER module xt_hmark, new target for HASH
- based fwmark
-Date: Wed, 9 May 2012 12:38:20 +0200
-Message-ID: <20120509103820.GA22608@1984>
+Subject: Re: [v12 PATCH 1/3] NETFILTER added flags to ipv6_find_hdr()
+Date: Wed, 9 May 2012 13:01:08 +0200
+Message-ID: <20120509110108.GA22776@1984>
 References: <1335188128-23645-1-git-send-email-hans.schillstrom@ericsson.com>
- <201205071409.47945.hans.schillstrom@ericsson.com>
- <20120507122232.GA32146@1984>
- <201205080937.36853.hans.schillstrom@ericsson.com>
+ <1335188128-23645-2-git-send-email-hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: "kaber@trash.net" <kaber@trash.net>,
-	"jengelh@medozas.de" <jengelh@medozas.de>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"hans@schillstrom.com" <hans@schillstrom.com>
+Cc: kaber@trash.net, jengelh@medozas.de,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	hans@schillstrom.com
 To: Hans Schillstrom <hans.schillstrom@ericsson.com>
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <201205080937.36853.hans.schillstrom@ericsson.com>
+In-Reply-To: <1335188128-23645-2-git-send-email-hans.schillstrom@ericsson.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, May 08, 2012 at 09:37:35AM +0200, Hans Schillstrom wrote:
-> From d5065af3988cc7561a02f30bae8342e1a89126a4 Mon Sep 17 00:00:00 2001
-> From: Hans Schillstrom <hans.schillstrom@ericsson.com>
-> Date: Wed, 2 May 2012 07:49:47 +0000
-> Subject: netfilter: add xt_hmark target for hash-based skb
->  marking
-> 
-> The target allows you to create rules in the "raw" and "mangle" tables
-> which set the skbuff mark by means of hash calculation within a given
-> range. The nfmark can influence the routing method (see "Use netfilter
-> MARK value as routing key") and can also be used by other subsystems to
-> change their behaviour.
-> 
-> Some examples:
-> 
-> * Default rule handles all TCP, UDP, SCTP, ESP & AH
-> 
->  iptables -t mangle -A PREROUTING -m state --state NEW,ESTABLISHED,RELATED \
-> 	-j HMARK --hmark-offset 10000 --hmark-mod 10
-> 
-> * Handle SCTP and hash dest port only and produce a nfmark between 100-119.
-> 
->  iptables -t mangle -A PREROUTING -p SCTP -j HMARK --src-mask 0 --dst-mask 0 \
-> 	--sp-mask 0 --offset 100 --mod 20
-> 
-> * Fragment safe Layer 3 only, that keep a class C network flow together
-> 
->  iptables -t mangle -A PREROUTING -j HMARK --method L3 \
-> 	--src-mask 24 --mod 20 --offset 100
+I have applied this with minor changes.
 
-I have removed these examples. Just in case we make changes to the
-user-space part. We'll have the time for this (the entire 3.5 cycle).
+BTW, please use the following patch tagging next time, I'll save time:
 
-Some minor glitches I made on this patch:
+netfilter: ip6_tables: add flags parameter to ipv6_find_hdr()
 
->  include/linux/netfilter/xt_HMARK.h |   48 +++++
->  net/netfilter/Kconfig              |   15 ++
->  net/netfilter/Makefile             |    1 +
->  net/netfilter/xt_HMARK.c           |  358 ++++++++++++++++++++++++++++++++++++
->  4 files changed, 422 insertions(+)
->  create mode 100644 include/linux/netfilter/xt_HMARK.h
->  create mode 100644 net/netfilter/xt_HMARK.c
+note the initial netfilter, then ip6_tables, then the description.
+
+This is useful for grepping.
+
+More minor glitches:
+
+On Mon, Apr 23, 2012 at 03:35:26PM +0200, Hans Schillstrom wrote:
+> Two new flags to ipv6_find_hdr,
+> One that tells us that this is a fragment.
+> One that stops at AH if any i.e. treat it like a transport header.
+> i.e. make handling of ESP and AH the same.
+> Param offset can now point to an inner icmp ipv5 header.
 > 
-> diff --git a/include/linux/netfilter/xt_HMARK.h b/include/linux/netfilter/xt_HMARK.h
-> new file mode 100644
-> index 0000000..05e43ba
-> --- /dev/null
-> +++ b/include/linux/netfilter/xt_HMARK.h
-> @@ -0,0 +1,46 @@
-> +#ifndef XT_HMARK_H_
-> +#define XT_HMARK_H_
+> Version 3:
+>     offset param into ipv6_find_hdr set to zero.
+> 
+> Version 2:
+>     wrapper removed and changes made at every call.
+> 
+> Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
+> ---
+>  include/linux/netfilter_ipv6/ip6_tables.h |   12 +++++++++-
+>  net/ipv6/netfilter/ip6_tables.c           |   35 ++++++++++++++++++++++++----
+>  net/ipv6/netfilter/ip6t_ah.c              |    4 +-
+>  net/ipv6/netfilter/ip6t_frag.c            |    4 +-
+>  net/ipv6/netfilter/ip6t_hbh.c             |    4 +-
+>  net/ipv6/netfilter/ip6t_rt.c              |    4 +-
+>  net/netfilter/xt_TPROXY.c                 |    4 +-
+>  net/netfilter/xt_socket.c                 |    4 +-
+>  8 files changed, 53 insertions(+), 18 deletions(-)
+> 
+> diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
+> index 1bc898b..d96a39d 100644
+> --- a/include/linux/netfilter_ipv6/ip6_tables.h
+> +++ b/include/linux/netfilter_ipv6/ip6_tables.h
+> @@ -287,6 +287,7 @@ extern unsigned int ip6t_do_table(struct sk_buff *skb,
+>  				  struct xt_table *table);
+>  
+>  /* Check for an extension */
 > +
-> +#include <linux/types.h>
+
+removed this extra line.
+
+>  static inline int
+>  ip6t_ext_hdr(u8 nexthdr)
+>  {	return (nexthdr == IPPROTO_HOPOPTS) ||
+> @@ -298,9 +299,18 @@ ip6t_ext_hdr(u8 nexthdr)
+>  	       (nexthdr == IPPROTO_DSTOPTS);
+>  }
+>  
 > +
+
+removed double extra line.
+
+> +extern int ip6t_ext_hdr(u8 nexthdr);
 > +enum {
-> +	XT_HMARK_NONE,
+> +	IP6T_FH_FRAG,
+> +	IP6T_FH_AUTH,
 
-this means (1 << 0) is unused. I have removed this _NONE.
+removed these two above, the are not used anywhere in the code.
 
-> +	XT_HMARK_SADR_MASK,
-> +	XT_HMARK_DADR_MASK,
-> +	XT_HMARK_SPI_MASK,
-> +	XT_HMARK_SPI,
-> +	XT_HMARK_SPORT_MASK,
-> +	XT_HMARK_DPORT_MASK,
-> +	XT_HMARK_SPORT,
-> +	XT_HMARK_DPORT,
-> +	XT_HMARK_PROTO_MASK,
-> +	XT_HMARK_RND,
-> +	XT_HMARK_MODULUS,
-> +	XT_HMARK_OFFSET,
-> +	XT_HMARK_CT,
-> +	XT_HMARK_METHOD_L3,
-> +	XT_HMARK_METHOD_L3_4,
-
-I have also rearrange the order of the flags:
-
-enum {
-        XT_HMARK_SADDR_MASK,
-        XT_HMARK_DADDR_MASK,
-        XT_HMARK_SPI,       
-        XT_HMARK_SPI_MASK,  
-        XT_HMARK_SPORT,     
-        XT_HMARK_DPORT,     
-        XT_HMARK_SPORT_MASK,
-        XT_HMARK_DPORT_MASK,
-        XT_HMARK_PROTO_MASK,
-        XT_HMARK_RND,       
-        XT_HMARK_MODULUS,   
-        XT_HMARK_OFFSET,    
-        XT_HMARK_CT,        
-        XT_HMARK_METHOD_L3, 
-        XT_HMARK_METHOD_L3_4,
-};
-
-I don't want people to ask me why we where using some strange order in
-the flag definition in the future (yes, you'll have to recompile your
-iptables HMARK support in your setups, sorry)
-
-> +};
-> +#define XT_HMARK_FLAG(flag)	(1 << flag)
-> +
-> +union hmark_ports {
-> +	struct {
-> +		__u16	src;
-> +		__u16	dst;
-> +	} p16;
-> +	__u32	v32;
+> +	IP6T_FH_F_FRAG = 1 << IP6T_FH_FRAG,
+> +	IP6T_FH_F_AUTH = 1 << IP6T_FH_AUTH,
 > +};
 > +
-> +struct xt_hmark_info {
-> +	union nf_inet_addr	src_mask;	/* Source address mask */
-> +	union nf_inet_addr	dst_mask;	/* Dest address mask */
-> +	union hmark_ports	port_mask;
-> +	union hmark_ports	port_set;
-> +	__u32			flags;		/* Print out only */
-> +	__u16			proto_mask;	/* L4 Proto mask */
-> +	__u32			hashrnd;
-> +	__u32			hmodulus;	/* Modulus */
-> +	__u32			hoffset;	/* Offset */
+>  /* find specified header and get offset to it */
+>  extern int ipv6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
+> -			 int target, unsigned short *fragoff);
+> +			 int target, unsigned short *fragoff, int *fragflg);
+>  
+>  #ifdef CONFIG_COMPAT
+>  #include <net/compat.h>
+> diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+> index d4e350f..1f18662 100644
+> --- a/net/ipv6/netfilter/ip6_tables.c
+> +++ b/net/ipv6/netfilter/ip6_tables.c
+> @@ -133,7 +133,7 @@ ip6_packet_match(const struct sk_buff *skb,
+>  		int protohdr;
+>  		unsigned short _frag_off;
+>  
+> -		protohdr = ipv6_find_hdr(skb, protoff, -1, &_frag_off);
+> +		protohdr = ipv6_find_hdr(skb, protoff, -1, &_frag_off, NULL);
+>  		if (protohdr < 0) {
+>  			if (_frag_off == 0)
+>  				*hotdrop = true;
+> @@ -362,6 +362,7 @@ ip6t_do_table(struct sk_buff *skb,
+>  		const struct xt_entry_match *ematch;
+>  
+>  		IP_NF_ASSERT(e);
+> +		acpar.thoff = 0;
+>  		if (!ip6_packet_match(skb, indev, outdev, &e->ipv6,
+>  		    &acpar.thoff, &acpar.fragoff, &acpar.hotdrop)) {
+>   no_match:
+> @@ -2277,6 +2278,8 @@ static void __exit ip6_tables_fini(void)
+>   * find the offset to specified header or the protocol number of last header
+>   * if target < 0. "last header" is transport protocol header, ESP, or
+>   * "No next header".
+> + * Note, *offset is used as input param. an if != 0
+> + * it must be an offset to an inner ipv6 header ex. icmp error
+>   *
+>   * If target header is found, its offset is set in *offset and return protocol
+>   * number. Otherwise, return -1.
+> @@ -2289,17 +2292,34 @@ static void __exit ip6_tables_fini(void)
+>   * *offset is meaningless and fragment offset is stored in *fragoff if fragoff
+>   * isn't NULL.
+>   *
+> + * if flags != NULL AND
+> + *    it's a fragment the frag flag "IP6T_FH_F_FRAG" will be set
+> + *    it's an AH header and IP6T_FH_F_AUTH is set and target < 0
+> + *      stop at AH (i.e. treat is as a transport header)
 
-I've removed these comments, they provide no extra information. Still
-I left the one that described hoffset, that may seem not obvious.
-
-> +#endif /* XT_HMARK_H_ */
-
-I have applied this, I'm going to pass it to davem.
+I've cleaned up these comments. The format does not look very orthodox
+(I'm not blaming your English, but the way the text is organized).
