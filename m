@@ -1,53 +1,150 @@
-From: Gaurav Sinha <vgsinha@gmail.com>
-Subject: Re: iptables ulog-cprange
-Date: Wed, 09 May 2012 00:13:50 -0700
-Message-ID: <4FAA192E.80703@gmail.com>
-References: <4FA98904.3070008@gmail.com> <20120508223611.GA18723@1984>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [v12 PATCH 2/3] NETFILTER module xt_hmark, new target for HASH
+ based fwmark
+Date: Wed, 9 May 2012 12:38:20 +0200
+Message-ID: <20120509103820.GA22608@1984>
+References: <1335188128-23645-1-git-send-email-hans.schillstrom@ericsson.com>
+ <201205071409.47945.hans.schillstrom@ericsson.com>
+ <20120507122232.GA32146@1984>
+ <201205080937.36853.hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:57262 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752574Ab2EIHNw (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 May 2012 03:13:52 -0400
-Received: by pbbrp8 with SMTP id rp8so133907pbb.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 May 2012 00:13:52 -0700 (PDT)
-In-Reply-To: <20120508223611.GA18723@1984>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: "kaber@trash.net" <kaber@trash.net>,
+	"jengelh@medozas.de" <jengelh@medozas.de>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"hans@schillstrom.com" <hans@schillstrom.com>
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201205080937.36853.hans.schillstrom@ericsson.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 5/8/12 3:36 PM, Pablo Neira Ayuso wrote:
-> Hi Gaurav,
->
-> On Tue, May 08, 2012 at 01:58:44PM -0700, Gaurav Sinha wrote:
->> Hi All,
->>
->> I am getting this error which points out the ulog-cprange that I am
->> using is incorrect. It
->> should be a value in between 1-50. The man page says 0 is allowed
->> too, i.e. any number of
->> bytes. But, I cannot configure zero as well.
->>
->> Is zero no longer supported? Probably the man page is not updated
->> with this information.
->>
->> iptables v1.4.12.2: ULOG: bad value for option "--ulog-cprange", or out of
->> range (1-50).
->>
->> Try `iptables -h' or 'iptables --help' for more information.
->> Error: [iptables -t raw -I MY_PREROUTING_HOOK 1 -i eth0 -j ULOG
->> --ulog-nlgroup 2 --ulog-cprange 64 --ulog-qthreshold 10] failed - 512
-> A bug was accidentally introduced in:
->
-> 1f2474a libipt_ULOG: use guided option parser
->
-> I have applied the following patch to resolve this issue:
->
-> http://git.netfilter.org/cgi-bin/gitweb.cgi?p=iptables.git;a=commitdiff;h=6111382a6c27e73c1cef1777c1253be0453a9dbb;hp=8db1044ba608a78035bbf89007aab6b6d8ff6f68
->
-> Thanks for reporting the problem.
-Thank you Pablo
+On Tue, May 08, 2012 at 09:37:35AM +0200, Hans Schillstrom wrote:
+> From d5065af3988cc7561a02f30bae8342e1a89126a4 Mon Sep 17 00:00:00 2001
+> From: Hans Schillstrom <hans.schillstrom@ericsson.com>
+> Date: Wed, 2 May 2012 07:49:47 +0000
+> Subject: netfilter: add xt_hmark target for hash-based skb
+>  marking
+> 
+> The target allows you to create rules in the "raw" and "mangle" tables
+> which set the skbuff mark by means of hash calculation within a given
+> range. The nfmark can influence the routing method (see "Use netfilter
+> MARK value as routing key") and can also be used by other subsystems to
+> change their behaviour.
+> 
+> Some examples:
+> 
+> * Default rule handles all TCP, UDP, SCTP, ESP & AH
+> 
+>  iptables -t mangle -A PREROUTING -m state --state NEW,ESTABLISHED,RELATED \
+> 	-j HMARK --hmark-offset 10000 --hmark-mod 10
+> 
+> * Handle SCTP and hash dest port only and produce a nfmark between 100-119.
+> 
+>  iptables -t mangle -A PREROUTING -p SCTP -j HMARK --src-mask 0 --dst-mask 0 \
+> 	--sp-mask 0 --offset 100 --mod 20
+> 
+> * Fragment safe Layer 3 only, that keep a class C network flow together
+> 
+>  iptables -t mangle -A PREROUTING -j HMARK --method L3 \
+> 	--src-mask 24 --mod 20 --offset 100
+
+I have removed these examples. Just in case we make changes to the
+user-space part. We'll have the time for this (the entire 3.5 cycle).
+
+Some minor glitches I made on this patch:
+
+>  include/linux/netfilter/xt_HMARK.h |   48 +++++
+>  net/netfilter/Kconfig              |   15 ++
+>  net/netfilter/Makefile             |    1 +
+>  net/netfilter/xt_HMARK.c           |  358 ++++++++++++++++++++++++++++++++++++
+>  4 files changed, 422 insertions(+)
+>  create mode 100644 include/linux/netfilter/xt_HMARK.h
+>  create mode 100644 net/netfilter/xt_HMARK.c
+> 
+> diff --git a/include/linux/netfilter/xt_HMARK.h b/include/linux/netfilter/xt_HMARK.h
+> new file mode 100644
+> index 0000000..05e43ba
+> --- /dev/null
+> +++ b/include/linux/netfilter/xt_HMARK.h
+> @@ -0,0 +1,46 @@
+> +#ifndef XT_HMARK_H_
+> +#define XT_HMARK_H_
+> +
+> +#include <linux/types.h>
+> +
+> +enum {
+> +	XT_HMARK_NONE,
+
+this means (1 << 0) is unused. I have removed this _NONE.
+
+> +	XT_HMARK_SADR_MASK,
+> +	XT_HMARK_DADR_MASK,
+> +	XT_HMARK_SPI_MASK,
+> +	XT_HMARK_SPI,
+> +	XT_HMARK_SPORT_MASK,
+> +	XT_HMARK_DPORT_MASK,
+> +	XT_HMARK_SPORT,
+> +	XT_HMARK_DPORT,
+> +	XT_HMARK_PROTO_MASK,
+> +	XT_HMARK_RND,
+> +	XT_HMARK_MODULUS,
+> +	XT_HMARK_OFFSET,
+> +	XT_HMARK_CT,
+> +	XT_HMARK_METHOD_L3,
+> +	XT_HMARK_METHOD_L3_4,
+
+I have also rearrange the order of the flags:
+
+enum {
+        XT_HMARK_SADDR_MASK,
+        XT_HMARK_DADDR_MASK,
+        XT_HMARK_SPI,       
+        XT_HMARK_SPI_MASK,  
+        XT_HMARK_SPORT,     
+        XT_HMARK_DPORT,     
+        XT_HMARK_SPORT_MASK,
+        XT_HMARK_DPORT_MASK,
+        XT_HMARK_PROTO_MASK,
+        XT_HMARK_RND,       
+        XT_HMARK_MODULUS,   
+        XT_HMARK_OFFSET,    
+        XT_HMARK_CT,        
+        XT_HMARK_METHOD_L3, 
+        XT_HMARK_METHOD_L3_4,
+};
+
+I don't want people to ask me why we where using some strange order in
+the flag definition in the future (yes, you'll have to recompile your
+iptables HMARK support in your setups, sorry)
+
+> +};
+> +#define XT_HMARK_FLAG(flag)	(1 << flag)
+> +
+> +union hmark_ports {
+> +	struct {
+> +		__u16	src;
+> +		__u16	dst;
+> +	} p16;
+> +	__u32	v32;
+> +};
+> +
+> +struct xt_hmark_info {
+> +	union nf_inet_addr	src_mask;	/* Source address mask */
+> +	union nf_inet_addr	dst_mask;	/* Dest address mask */
+> +	union hmark_ports	port_mask;
+> +	union hmark_ports	port_set;
+> +	__u32			flags;		/* Print out only */
+> +	__u16			proto_mask;	/* L4 Proto mask */
+> +	__u32			hashrnd;
+> +	__u32			hmodulus;	/* Modulus */
+> +	__u32			hoffset;	/* Offset */
+
+I've removed these comments, they provide no extra information. Still
+I left the one that described hoffset, that may seem not obvious.
+
+> +#endif /* XT_HMARK_H_ */
+
+I have applied this, I'm going to pass it to davem.
