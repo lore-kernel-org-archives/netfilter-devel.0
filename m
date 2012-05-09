@@ -1,109 +1,53 @@
-From: Joe Perches <joe@perches.com>
-Subject: [PATCH 10/13] netfilter: Convert compare_ether_addr to ether_addr_equal
-Date: Tue,  8 May 2012 21:56:54 -0700
-Message-ID: <6fc964a05b125385dc75798c24226bf20e16aa5d.1336538938.git.joe@perches.com>
-References: <cover.1336538937.git.joe@perches.com>
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <cover.1336538937.git.joe@perches.com>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Gaurav Sinha <vgsinha@gmail.com>
+Subject: Re: iptables ulog-cprange
+Date: Wed, 09 May 2012 00:13:50 -0700
+Message-ID: <4FAA192E.80703@gmail.com>
+References: <4FA98904.3070008@gmail.com> <20120508223611.GA18723@1984>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:57262 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752574Ab2EIHNw (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 May 2012 03:13:52 -0400
+Received: by pbbrp8 with SMTP id rp8so133907pbb.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 09 May 2012 00:13:52 -0700 (PDT)
+In-Reply-To: <20120508223611.GA18723@1984>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Use the new bool function ether_addr_equal to add
-some clarity and reduce the likelihood for misuse
-of compare_ether_addr for sorting.
-
-Done via cocci script:
-
-$ cat compare_ether_addr.cocci
-@@
-expression a,b;
-@@
--	!compare_ether_addr(a, b)
-+	ether_addr_equal(a, b)
-
-@@
-expression a,b;
-@@
--	compare_ether_addr(a, b)
-+	!ether_addr_equal(a, b)
-
-@@
-expression a,b;
-@@
--	!ether_addr_equal(a, b) == 0
-+	ether_addr_equal(a, b)
-
-@@
-expression a,b;
-@@
--	!ether_addr_equal(a, b) != 0
-+	!ether_addr_equal(a, b)
-
-@@
-expression a,b;
-@@
--	ether_addr_equal(a, b) == 0
-+	!ether_addr_equal(a, b)
-
-@@
-expression a,b;
-@@
--	ether_addr_equal(a, b) != 0
-+	ether_addr_equal(a, b)
-
-@@
-expression a,b;
-@@
--	!!ether_addr_equal(a, b)
-+	ether_addr_equal(a, b)
-
-Signed-off-by: Joe Perches <joe@perches.com>
----
- net/netfilter/ipset/ip_set_bitmap_ipmac.c |    4 ++--
- net/netfilter/xt_mac.c                    |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-index 0bb16c4..d7eaf10 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-@@ -111,7 +111,7 @@ bitmap_ipmac_test(struct ip_set *set, void *value, u32 timeout, u32 flags)
- 		return -EAGAIN;
- 	case MAC_FILLED:
- 		return data->ether == NULL ||
--		       compare_ether_addr(data->ether, elem->ether) == 0;
-+		       ether_addr_equal(data->ether, elem->ether);
- 	}
- 	return 0;
- }
-@@ -225,7 +225,7 @@ bitmap_ipmac_ttest(struct ip_set *set, void *value, u32 timeout, u32 flags)
- 		return -EAGAIN;
- 	case MAC_FILLED:
- 		return (data->ether == NULL ||
--			compare_ether_addr(data->ether, elem->ether) == 0) &&
-+			ether_addr_equal(data->ether, elem->ether)) &&
- 		       !bitmap_expired(map, data->id);
- 	}
- 	return 0;
-diff --git a/net/netfilter/xt_mac.c b/net/netfilter/xt_mac.c
-index 8160f6b..d5b4fd4 100644
---- a/net/netfilter/xt_mac.c
-+++ b/net/netfilter/xt_mac.c
-@@ -36,7 +36,7 @@ static bool mac_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 		return false;
- 	if (skb_mac_header(skb) + ETH_HLEN > skb->data)
- 		return false;
--	ret  = compare_ether_addr(eth_hdr(skb)->h_source, info->srcaddr) == 0;
-+	ret  = ether_addr_equal(eth_hdr(skb)->h_source, info->srcaddr);
- 	ret ^= info->invert;
- 	return ret;
- }
--- 
-1.7.8.111.gad25c.dirty
-
+On 5/8/12 3:36 PM, Pablo Neira Ayuso wrote:
+> Hi Gaurav,
+>
+> On Tue, May 08, 2012 at 01:58:44PM -0700, Gaurav Sinha wrote:
+>> Hi All,
+>>
+>> I am getting this error which points out the ulog-cprange that I am
+>> using is incorrect. It
+>> should be a value in between 1-50. The man page says 0 is allowed
+>> too, i.e. any number of
+>> bytes. But, I cannot configure zero as well.
+>>
+>> Is zero no longer supported? Probably the man page is not updated
+>> with this information.
+>>
+>> iptables v1.4.12.2: ULOG: bad value for option "--ulog-cprange", or out of
+>> range (1-50).
+>>
+>> Try `iptables -h' or 'iptables --help' for more information.
+>> Error: [iptables -t raw -I MY_PREROUTING_HOOK 1 -i eth0 -j ULOG
+>> --ulog-nlgroup 2 --ulog-cprange 64 --ulog-qthreshold 10] failed - 512
+> A bug was accidentally introduced in:
+>
+> 1f2474a libipt_ULOG: use guided option parser
+>
+> I have applied the following patch to resolve this issue:
+>
+> http://git.netfilter.org/cgi-bin/gitweb.cgi?p=iptables.git;a=commitdiff;h=6111382a6c27e73c1cef1777c1253be0453a9dbb;hp=8db1044ba608a78035bbf89007aab6b6d8ff6f68
+>
+> Thanks for reporting the problem.
+Thank you Pablo
