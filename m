@@ -1,96 +1,59 @@
-From: Neutron Soutmun <neo.neutron@gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: [ANNOUNCE] ipset 6.12 released
-Date: Thu, 10 May 2012 22:13:53 +0700
-Message-ID: <CAMQP0s=uSzOn-o7jwKLyhTaZud4d04hMN=JXrCQLrFD+6Zinkw@mail.gmail.com>
-References: <alpine.DEB.2.00.1205101211080.18562@blackhole.kfki.hu>
-	<alpine.LNX.2.01.1205101238020.20012@frira.vanv.qr>
-	<alpine.DEB.2.00.1205101316470.18862@blackhole.kfki.hu>
-	<alpine.LNX.2.01.1205101327310.12733@frira.vanv.qr>
-	<alpine.DEB.2.00.1205101337160.19028@blackhole.kfki.hu>
-	<CAMQP0sn=2jKYzoiUVu+oTRYj-niL84Lg2Z1UoO0UnFXJjV8Ggw@mail.gmail.com>
+Date: Thu, 10 May 2012 17:27:16 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1205101724370.19418@blackhole.kfki.hu>
+References: <alpine.DEB.2.00.1205101211080.18562@blackhole.kfki.hu> <alpine.LNX.2.01.1205101238020.20012@frira.vanv.qr> <alpine.DEB.2.00.1205101316470.18862@blackhole.kfki.hu> <alpine.LNX.2.01.1205101327310.12733@frira.vanv.qr> <alpine.DEB.2.00.1205101337160.19028@blackhole.kfki.hu>
+ <CAMQP0sn=2jKYzoiUVu+oTRYj-niL84Lg2Z1UoO0UnFXJjV8Ggw@mail.gmail.com> <CAMQP0s=uSzOn-o7jwKLyhTaZud4d04hMN=JXrCQLrFD+6Zinkw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=047d7b2eda7562ee5a04bfb011b6
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Jan Engelhardt <jengelh@inai.de>, netfilter@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Neutron Soutmun <neo.neutron@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:63513 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759848Ab2EJPNy (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 May 2012 11:13:54 -0400
-In-Reply-To: <CAMQP0sn=2jKYzoiUVu+oTRYj-niL84Lg2Z1UoO0UnFXJjV8Ggw@mail.gmail.com>
+Received: from smtp-in.kfki.hu ([148.6.0.26]:45953 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758575Ab2EJP1S (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 May 2012 11:27:18 -0400
+In-Reply-To: <CAMQP0s=uSzOn-o7jwKLyhTaZud4d04hMN=JXrCQLrFD+6Zinkw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---047d7b2eda7562ee5a04bfb011b6
-Content-Type: text/plain; charset=ISO-8859-1
-
 Hi,
 
-> However, I'll find the solution for the build system when the
-> --disable-dependency-tracking is being parse.
+On Thu, 10 May 2012, Neutron Soutmun wrote:
 
-The attached file is a patch to solve the
---disable-dependency-tracking is being parse issue and also fixes the
-ipset does not build out of the source tree as the configure script
-could not check for the lib/ipset_*.c.
+> > However, I'll find the solution for the build system when the
+> > --disable-dependency-tracking is being parse.
+> 
+> The attached file is a patch to solve the
+> --disable-dependency-tracking is being parse issue and also fixes the
+> ipset does not build out of the source tree as the configure script
+> could not check for the lib/ipset_*.c.
 
-Please review.
+What about the next much simpler patch to force dependency tracking?
+
+diff --git a/configure.ac b/configure.ac
+index d9a71d3..af8fe0b 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -145,6 +145,9 @@ AM_CONDITIONAL([ENABLE_SHARED], [test 
+"x$enable_shared" = xyes])
+ dnl Checks for programs
+ : ${CFLAGS=""}
+ 
++dnl Enable dependency tracking unconditionally
++: ${enable_dependency_tracking=yes}
++
+ AC_PROG_CC
+ AM_PROG_CC_C_O
+ AC_PROG_LIBTOOL
+
+It seems to solve the issue just fine.
 
 Best regards,
-Neutron Soutmun
-
---047d7b2eda7562ee5a04bfb011b6
-Content-Type: application/octet-stream;
-	name="0001-build-fix-build-failed-on-disable-dependency-trackin.patch"
-Content-Disposition: attachment;
-	filename="0001-build-fix-build-failed-on-disable-dependency-trackin.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h21ye1b30
-
-RnJvbSBmMWZkYWE2OTFiYjlhMDQyMDg2NWUwMTdiNTQ3OTljNzAxMjUzM2Q0IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBOZXV0cm9uIFNvdXRtdW4gPG5lby5uZXV0cm9uQGdtYWlsLmNv
-bT4KRGF0ZTogVGh1LCAxMCBNYXkgMjAxMiAyMTo1Mzo1NSArMDcwMApTdWJqZWN0OiBbUEFUQ0hd
-IGJ1aWxkOiBmaXggYnVpbGQgZmFpbGVkIG9uIC0tZGlzYWJsZS1kZXBlbmRlbmN5LXRyYWNraW5n
-CgoqIGxpYi9NYWtlX2V4dHJhLmFtOgogIC0gQWRkIG1hY3JvIGZsYWdzIHRvIGVuYWJsZS9kaXNh
-YmxlIHRoZSBkZXBlbmRlbmN5IHRyYWNraW5nIGJ1aWxkCiAgICBkZXBlbmRzIG9uIHRoZSBjb25m
-aWd1cmF0aW9uLgoqIGNvbmZpZ3VyZS5hYzoKICAtIEZpeCB0aGUgdXNlcnNwYWNlIHRvb2wgY29u
-ZmlndXJhdGlvbiBzZWN0aW9uIGVycm9yIHdoZW4gYnVpbGQKICAgIG91dCBvZiBzb3VyY2UgdHJl
-ZS4KLS0tCiBjb25maWd1cmUuYWMgICAgICB8ICAgIDIgKy0KIGxpYi9NYWtlX2V4dHJhLmFtIHwg
-ICAxNSArKysrKysrKysrLS0tLS0KIDIgZmlsZXMgY2hhbmdlZCwgMTEgaW5zZXJ0aW9ucygrKSwg
-NiBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9jb25maWd1cmUuYWMgYi9jb25maWd1cmUuYWMK
-aW5kZXggZDlhNzFkMy4uYWYxOWJmNCAxMDA2NDQKLS0tIGEvY29uZmlndXJlLmFjCisrKyBiL2Nv
-bmZpZ3VyZS5hYwpAQCAtMjIyLDcgKzIyMiw3IEBAIGlmIHRlc3QgIngkZW5hYmxlX3NldHR5cGVf
-bW9kdWxlcyIgIT0gInh5ZXMiOyB0aGVuCiBlbHNlCiAJQUNfTVNHX1JFU1VMVChbICAgIER5bmFt
-aWMgbW9kdWxlIGxvYWRpbmc6IGVuYWJsZWRdKQogZmkKLUlQU0VUX0FMTF9NT0RVTEVTPSJgbHMg
-bGliL2lwc2V0XyouY3xzZWQgLWUgJ3MvbGliXC8vLycgLWUgJ3MvXC5jJC8vJ2AiCitJUFNFVF9B
-TExfTU9EVUxFUz0iYGxzICR7c3JjZGlyfS9saWIvaXBzZXRfKi5jfHNlZCAtZSAncy9eLipsaWJc
-Ly8vJyAtZSAncy9cLmMkLy8nYCIKIEFDX01TR19SRVNVTFQoWyAgICBTdGF0aWMgbW9kdWxlczpd
-KQogaWYgdGVzdCAieCRTRVRUWVBFX01PRExJU1QiID0gIngiOyB0aGVuCiAJZm9yIG1vZCBpbiAk
-SVBTRVRfQUxMX01PRFVMRVM7IGRvCmRpZmYgLS1naXQgYS9saWIvTWFrZV9leHRyYS5hbSBiL2xp
-Yi9NYWtlX2V4dHJhLmFtCmluZGV4IGU1ZTQ5OGMuLjQ3ZGE3MDEgMTAwNjQ0Ci0tLSBhL2xpYi9N
-YWtlX2V4dHJhLmFtCisrKyBiL2xpYi9NYWtlX2V4dHJhLmFtCkBAIC0yNiwxMSArMjYsMTYgQEAg
-QlVJTFRfU09VUkNFUyA9IGlwc2V0X3NldHR5cGVfY2hlY2sgdHlwZXNfaW5pdC5jIGlwc2V0X3Nl
-dHR5cGVfbW9kdWxlcwogQ0xFQU5GSUxFUyA9IGlwc2V0X3NldHR5cGVfY2hlY2sgdHlwZXNfaW5p
-dC5jICQoSVBTRVRfU0VUVFlQRV9BTExfTU9EVUxFUykKIAogaXBzZXRfJS5sbzogaXBzZXRfJS5j
-Ci0JZGVwYmFzZT1gZWNobyAkQCB8IHNlZCAnc3xbXi9dKiQkfCQoREVQRElSKS8mfDtzfFwubG8k
-JHx8J2A7IFwKLQkkKExUQ09NUElMRSkgLURfSU5JVD1pcHNldF8kKl9pbml0IFwKLQkgICQoaWYg
-JChmaW5kc3RyaW5nIGlwc2V0XyQqLmMsJChJUFNFVF9TRVRUWVBFX1NUQVRJQykpLCAtRFRZUEVf
-SU5DTFVTSVZFLClcCi0JICAtTVQgJEAgLU1EIC1NUCAtTUYgJCRkZXBiYXNlLlRwbyAtYyAtbyAk
-QCAkPCAmJiBcCi0JJChhbV9fbXYpICQkZGVwYmFzZS5UcG8gJCRkZXBiYXNlLlBsbworQGFtX19m
-YXN0ZGVwQ0NfVFJVRUAJZGVwYmFzZT1gZWNobyAkQCB8IHNlZCAnc3xbXi9dKiQkfCQoREVQRElS
-KS8mfDtzfFwubG8kJHx8J2A7IFwKK0BhbV9fZmFzdGRlcENDX1RSVUVACSQoTFRDT01QSUxFKSAt
-RF9JTklUPWlwc2V0XyQqX2luaXQgXAorCQkkKGlmICQoZmluZHN0cmluZyBpcHNldF8kKi5jLCQo
-SVBTRVRfU0VUVFlQRV9TVEFUSUMpKSwgLURUWVBFX0lOQ0xVU0lWRSwpXAorCQktTVQgJEAgLU1E
-IC1NUCAtTUYgJCRkZXBiYXNlLlRwbyAtYyAtbyAkQCAkPCAmJiBcCitAYW1fX2Zhc3RkZXBDQ19U
-UlVFQAkkKGFtX19tdikgJCRkZXBiYXNlLlRwbyAkJGRlcGJhc2UuUGxvCitAQU1ERVBfVFJVRUBA
-YW1fX2Zhc3RkZXBDQ19GQUxTRUAJc291cmNlPSckPCcgb2JqZWN0PSckQCcgbGlidG9vbD15ZXMg
-QEFNREVQQkFDS1NMQVNIQAorQEFNREVQX1RSVUVAQGFtX19mYXN0ZGVwQ0NfRkFMU0VACURFUERJ
-Uj0kKERFUERJUikgJChDQ0RFUE1PREUpICQoZGVwY29tcCkgQEFNREVQQkFDS1NMQVNIQAorQGFt
-X19mYXN0ZGVwQ0NfRkFMU0VACSQoTFRDT01QSUxFKSAtRF9JTklUPWlwc2V0XyQqX2luaXQgXAor
-CQkkKGlmICQoZmluZHN0cmluZyBpcHNldF8kKi5jLCQoSVBTRVRfU0VUVFlQRV9TVEFUSUMpKSwg
-LURUWVBFX0lOQ0xVU0lWRSwpXAorCQktYyAtbyAkQCAkPAogCiBpcHNldF8lLmxhOiAkKGxpYl9M
-VExJQlJBUklFUykgaXBzZXRfJS5sbwogCWxvYmo9IiQocGF0c3Vic3QgJS5sYSwgJS5sbywgJEAp
-IjsgXAotLSAKMS43LjEwCgo=
---047d7b2eda7562ee5a04bfb011b6--
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
