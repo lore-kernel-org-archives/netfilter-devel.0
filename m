@@ -1,42 +1,67 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/13] net: Add and use ether_addr_equal
-Date: Wed, 09 May 2012 21:53:30 -0400 (EDT)
-Message-ID: <20120509.215330.1797609915710094377.davem@davemloft.net>
-References: <cover.1336538937.git.joe@perches.com>
-	<20120509.212110.437114897180819434.davem@davemloft.net>
-	<1336614484.1905.19.camel@joe2Laptop>
+From: "Hans Schillstrom" <hans@schillstrom.com>
+Subject: Re[2]:  [PATCH 0/5] netfilter updates for net-next (upcoming
+	3.5), batch 2
+Date: Thu, 10 May 2012 06:00:00 +0200 (CEST)
+Message-ID: <p9l17hj.bb22250845107efca259c380861808ee@obelix.schillstrom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: coreteam@netfilter.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
-	linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org,
-	julia.lawall@lip6.fr, netfilter@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: joe@perches.com
-Return-path: <bridge-bounces@lists.linux-foundation.org>
-In-Reply-To: <1336614484.1905.19.camel@joe2Laptop>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: "David Miller" <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Joe Perches <joe@perches.com>
-Date: Wed, 09 May 2012 18:48:04 -0700
 
-> Maybe just a single patch?
+>
+>From: pablo@netfilter.org
+>Date: Wed,  9 May 2012 13:33:03 +0200
+>
+>> This is a second batch of netfilter updates for net-next, they contain:
+>> 
+>> * The new HMARK target from Hans Schillstrom. It took lots of spins
+>>   to get this into shape. This target provides a hash-based packet / flow
+>>   pre-classifier for iptables that can be used to distribute packets
+>>   / flows between uplinks and backend servers. It provides to modes, one
+>>   that relies on conntrack, and one that is stateless per-packet.
+>> 
+>> * Byte-based cost calculation for the hashlimit match, to detect when
+>>   a host consumes more bandwidth than expected. This patch from Florian
+>>   Westphal.
+>> 
+>> You can pull these changes from:
+>> 
+>> git://1984.lsi.us.es/net-next
+>
+>Pulled.
+>
+>Two suggested improvements:
+>
+>1) The HMARK hash is quite expensive, because it uses a modulus.
+>
+>   Consider adjusting it to use the usual trick:
+>
+>	((u64)(HASH_VAL * HASH_SIZE)) >> 32
+>
+>   so that this can be a multiply instead of a modulus.
 
-Yes, I think high density on this one, it's extremely
-mechanical.
+That's true 
 
-> Also the compare_ether_addr_64bits function is
-> still used a couple dozen times.  Maybe another
-> patch for those?  ether_addr_equal_64bits?
+>2) XT_HASHLIMIT_MAX is cumbersome.
+>
+>   The canonical way to validate if the set bits are in	a
+>   valid range is to have a "_ALL" macro, and test:
+>
+>	if (val & ~XT_HASHLIMIT_ALL)
+>		goto err;
+>
+>   or similar.
+>
 
-Use your best judgment.
+Thanks David  
+I'll fix it
+
+Regards 
+Hans Schillstrom
