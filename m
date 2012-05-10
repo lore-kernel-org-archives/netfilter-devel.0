@@ -1,95 +1,66 @@
-From: Nicolas CARRIER <nicolas.carrier.ext@parrot.com>
-Subject: [PATCH]iptables-save: fix don't show counters by default
-Date: Thu, 10 May 2012 11:40:33 +0200
-Message-ID: <4FAB8D11.4040704@parrot.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [ANNOUNCE] ipset 6.12 released
+Date: Thu, 10 May 2012 12:18:59 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1205101211080.18562@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="------------050004040107060502030802"
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from co202.xi-lite.net ([149.6.83.202]:33017 "EHLO co202.xi-lite.net"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:37623 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758128Ab2EJJmM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 May 2012 05:42:12 -0400
-Received: from ONYX.xi-lite.lan (unknown [193.34.35.244])
-	by co202.xi-lite.net (Postfix) with ESMTPS id C6C232602D6
-	for <netfilter-devel@vger.kernel.org>; Thu, 10 May 2012 11:42:10 +0200 (CEST)
+	id S1758861Ab2EJKTB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 May 2012 06:19:01 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---------------050004040107060502030802
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi,
 
-When one issue an iptables-save command, counters are always shown in front of policies, which doesn't seem to be the desired result.
-The attached patch tries to fix this. It uses the global show_counters flag to decide if counters will be shown.
+I'm happy to announce ipset 6.12. This release contains a few important 
+bugfixes, dynamic module support in the ipset tool by Neutron Soutmun
+and several backports and compatibility fixes.
 
--- 
-Nicolas CARRIER - Parrot France - Software Engineer
+Please note: if you compile ipset with gcc 4.7 or above, you must use this 
+release. The bug reported by Seblu in previous releases results a broken 
+binary when compiled with gcc 4.7 or above.
 
---------------050004040107060502030802
-Content-Type: text/x-diff;
-	name="0001-iptables-save-fix-don-t-show-counters-by-default.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="0001-iptables-save-fix-don-t-show-counters-by-default.patch"
+Userspace changes:
+ - Cleanup generated files by make tidy
+ - Add more CC warning option to debug mode
+ - Report syntax error messages immediately
+ - Suppress false syntax error messages
+ - Add configure summary for the ipset userspace tool
+ - Add dynamic module support to ipset userspace tool
+   (Neutron Soutmun)
+ - Move ipset_port_usage() into lib (Neutron Soutmun)
+ - Fix invalid assignment to const void pointer (bug reported by Seblu)
+ - Remove unused variables (warnings fixed)
+ - Fix timeout value overflow bug at large timeout parameters
+   (bug reported by Andreas Herz)
+ - Improve ipset help text messages (Mr Dash Four)
 
->From 8ccc08a6b0fde5544145f6831b7f80d1bf8bbdf0 Mon Sep 17 00:00:00 2001
-From: Nicolas CARRIER <nicolas.carrier.ext@parrot.com>
-Date: Thu, 10 May 2012 11:25:53 +0200
-Subject: [PATCH] iptables-save: fix don't show counters by default
+Kernel part changes:
+ - Backport nla_put_net* functions as NLA_PUT* were removed
+ - netlink: add netlink_dump_control structure for netlink_dump_start()
+ - ipset: Stop using NLA_PUT*().
+ - Fix hash size checking in kernel (bug reported by Seblu)
+ - Correct README file about minimal required iptables version
+   (Oskar Berggren)
+ - Sparse warnings "incorrect type in assignment" fixed
+ - Fix timeout value overflow bug at large timeout parameters
+   (bug reported by Andreas Herz)
+ - ipv6: Add fragment reporting to ipv6_skip_exthdr().
+ - net: remove ipv6_addr_copy()
+ - Fix the inclusion of linux/export.h (Henry Culver)
 
----
- iptables/ip6tables-save.c |    9 ++++++---
- iptables/iptables-save.c  |    9 ++++++---
- 2 files changed, 12 insertions(+), 6 deletions(-)
+You can download the source code of ipset from:
+        http://ipset.netfilter.org
+        ftp://ftp.netfilter.org/pub/ipset/
+        git://git.netfilter.org/ipset.git
 
-diff --git a/iptables/ip6tables-save.c b/iptables/ip6tables-save.c
-index d819b30..4e7e4e8 100644
---- a/iptables/ip6tables-save.c
-+++ b/iptables/ip6tables-save.c
-@@ -90,11 +90,14 @@ static int do_output(const char *tablename)
- 		printf(":%s ", chain);
- 		if (ip6tc_builtin(chain, h)) {
- 			struct xt_counters count;
--			printf("%s ",
-+			printf("%s",
- 			       ip6tc_get_policy(chain, &count, h));
--			printf("[%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned long long)count.bcnt);
-+			if (show_counters)
-+				printf(" [%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned long long)count.bcnt);
-+			else
-+				printf("\n");
- 		} else {
--			printf("- [0:0]\n");
-+			printf("-%s\n", show_counters ? " [0:0]" : "");
- 		}
- 	}
- 
-diff --git a/iptables/iptables-save.c b/iptables/iptables-save.c
-index e599fce..6322c51 100644
---- a/iptables/iptables-save.c
-+++ b/iptables/iptables-save.c
-@@ -88,11 +88,14 @@ static int do_output(const char *tablename)
- 		printf(":%s ", chain);
- 		if (iptc_builtin(chain, h)) {
- 			struct xt_counters count;
--			printf("%s ",
-+			printf("%s",
- 			       iptc_get_policy(chain, &count, h));
--			printf("[%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned long long)count.bcnt);
-+			if (show_counters)
-+				printf(" [%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned long long)count.bcnt);
-+			else
-+				printf("\n");
- 		} else {
--			printf("- [0:0]\n");
-+			printf("-%s\n", show_counters ? " [0:0]" : "");
- 		}
- 	}
- 
--- 
-1.7.10
-
-
---------------050004040107060502030802--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
