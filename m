@@ -1,66 +1,27 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset 6.12 released
-Date: Thu, 10 May 2012 12:18:59 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1205101211080.18562@blackhole.kfki.hu>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [ANNOUNCE] ipset 6.12 released
+Date: Thu, 10 May 2012 12:39:01 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1205101238020.20012@frira.vanv.qr>
+References: <alpine.DEB.2.00.1205101211080.18562@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:37623 "EHLO smtp2.kfki.hu"
+Received: from seven.medozas.de ([188.40.89.202]:36497 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758861Ab2EJKTB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 May 2012 06:19:01 -0400
+	id S1758405Ab2EJKjD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 May 2012 06:39:03 -0400
+In-Reply-To: <alpine.DEB.2.00.1205101211080.18562@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
 
-I'm happy to announce ipset 6.12. This release contains a few important 
-bugfixes, dynamic module support in the ipset tool by Neutron Soutmun
-and several backports and compatibility fixes.
+On Thursday 2012-05-10 12:18, Jozsef Kadlecsik wrote:
 
-Please note: if you compile ipset with gcc 4.7 or above, you must use this 
-release. The bug reported by Seblu in previous releases results a broken 
-binary when compiled with gcc 4.7 or above.
+>I'm happy to announce ipset 6.12. This release contains a few important 
+>bugfixes, dynamic module support in the ipset tool by Neutron Soutmun
+>and several backports and compatibility fixes.
 
-Userspace changes:
- - Cleanup generated files by make tidy
- - Add more CC warning option to debug mode
- - Report syntax error messages immediately
- - Suppress false syntax error messages
- - Add configure summary for the ipset userspace tool
- - Add dynamic module support to ipset userspace tool
-   (Neutron Soutmun)
- - Move ipset_port_usage() into lib (Neutron Soutmun)
- - Fix invalid assignment to const void pointer (bug reported by Seblu)
- - Remove unused variables (warnings fixed)
- - Fix timeout value overflow bug at large timeout parameters
-   (bug reported by Andreas Herz)
- - Improve ipset help text messages (Mr Dash Four)
-
-Kernel part changes:
- - Backport nla_put_net* functions as NLA_PUT* were removed
- - netlink: add netlink_dump_control structure for netlink_dump_start()
- - ipset: Stop using NLA_PUT*().
- - Fix hash size checking in kernel (bug reported by Seblu)
- - Correct README file about minimal required iptables version
-   (Oskar Berggren)
- - Sparse warnings "incorrect type in assignment" fixed
- - Fix timeout value overflow bug at large timeout parameters
-   (bug reported by Andreas Herz)
- - ipv6: Add fragment reporting to ipv6_skip_exthdr().
- - net: remove ipv6_addr_copy()
- - Fix the inclusion of linux/export.h (Henry Culver)
-
-You can download the source code of ipset from:
-        http://ipset.netfilter.org
-        ftp://ftp.netfilter.org/pub/ipset/
-        git://git.netfilter.org/ipset.git
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+There is no configure script in the current 6.12 tarball,
+i.e. autogen has not been run before packing up.
