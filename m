@@ -1,59 +1,55 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [ANNOUNCE] ipset 6.12 released
-Date: Thu, 10 May 2012 17:27:16 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1205101724370.19418@blackhole.kfki.hu>
-References: <alpine.DEB.2.00.1205101211080.18562@blackhole.kfki.hu> <alpine.LNX.2.01.1205101238020.20012@frira.vanv.qr> <alpine.DEB.2.00.1205101316470.18862@blackhole.kfki.hu> <alpine.LNX.2.01.1205101327310.12733@frira.vanv.qr> <alpine.DEB.2.00.1205101337160.19028@blackhole.kfki.hu>
- <CAMQP0sn=2jKYzoiUVu+oTRYj-niL84Lg2Z1UoO0UnFXJjV8Ggw@mail.gmail.com> <CAMQP0s=uSzOn-o7jwKLyhTaZud4d04hMN=JXrCQLrFD+6Zinkw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Jan Engelhardt <jengelh@inai.de>, netfilter@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Neutron Soutmun <neo.neutron@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH 1/1] ip(6)tables-restore: make sure argv is NULL terminated
+Date: Thu, 10 May 2012 17:42:47 +0200
+Message-ID: <1336664567-4593-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:45953 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758575Ab2EJP1S (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 May 2012 11:27:18 -0400
-In-Reply-To: <CAMQP0s=uSzOn-o7jwKLyhTaZud4d04hMN=JXrCQLrFD+6Zinkw@mail.gmail.com>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:58172 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753102Ab2EJPk6 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 May 2012 11:40:58 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Else, argv[argc] may point to free'd memory.
 
-On Thu, 10 May 2012, Neutron Soutmun wrote:
+Some extensions, e.g. rateest, may fail to parse valid input
+because argv[optind] (with optind == argc) is not NULL.
 
-> > However, I'll find the solution for the build system when the
-> > --disable-dependency-tracking is being parse.
-> 
-> The attached file is a patch to solve the
-> --disable-dependency-tracking is being parse issue and also fixes the
-> ipset does not build out of the source tree as the configure script
-> could not check for the lib/ipset_*.c.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ iptables/ip6tables-restore.c |    2 +-
+ iptables/iptables-restore.c  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-What about the next much simpler patch to force dependency tracking?
+diff --git a/iptables/ip6tables-restore.c b/iptables/ip6tables-restore.c
+index 92bdc30..3894d68 100644
+--- a/iptables/ip6tables-restore.c
++++ b/iptables/ip6tables-restore.c
+@@ -98,7 +98,7 @@ static int add_argv(char *what) {
+ 	DEBUGP("add_argv: %s\n", what);
+ 	if (what && newargc + 1 < ARRAY_SIZE(newargv)) {
+ 		newargv[newargc] = strdup(what);
+-		newargc++;
++		newargv[++newargc] = NULL;
+ 		return 1;
+ 	} else {
+ 		xtables_error(PARAMETER_PROBLEM,
+diff --git a/iptables/iptables-restore.c b/iptables/iptables-restore.c
+index 6b1c792..034f960 100644
+--- a/iptables/iptables-restore.c
++++ b/iptables/iptables-restore.c
+@@ -97,7 +97,7 @@ static int add_argv(char *what) {
+ 	DEBUGP("add_argv: %s\n", what);
+ 	if (what && newargc + 1 < ARRAY_SIZE(newargv)) {
+ 		newargv[newargc] = strdup(what);
+-		newargc++;
++		newargv[++newargc] = NULL;
+ 		return 1;
+ 	} else {
+ 		xtables_error(PARAMETER_PROBLEM,
+-- 
+1.7.3.4
 
-diff --git a/configure.ac b/configure.ac
-index d9a71d3..af8fe0b 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -145,6 +145,9 @@ AM_CONDITIONAL([ENABLE_SHARED], [test 
-"x$enable_shared" = xyes])
- dnl Checks for programs
- : ${CFLAGS=""}
- 
-+dnl Enable dependency tracking unconditionally
-+: ${enable_dependency_tracking=yes}
-+
- AC_PROG_CC
- AM_PROG_CC_C_O
- AC_PROG_LIBTOOL
-
-It seems to solve the issue just fine.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
