@@ -1,114 +1,96 @@
 From: Neutron Soutmun <neo.neutron@gmail.com>
 Subject: Re: [ANNOUNCE] ipset 6.12 released
-Date: Thu, 10 May 2012 19:12:04 +0700
-Message-ID: <CAMQP0sn=2jKYzoiUVu+oTRYj-niL84Lg2Z1UoO0UnFXJjV8Ggw@mail.gmail.com>
+Date: Thu, 10 May 2012 22:13:53 +0700
+Message-ID: <CAMQP0s=uSzOn-o7jwKLyhTaZud4d04hMN=JXrCQLrFD+6Zinkw@mail.gmail.com>
 References: <alpine.DEB.2.00.1205101211080.18562@blackhole.kfki.hu>
 	<alpine.LNX.2.01.1205101238020.20012@frira.vanv.qr>
 	<alpine.DEB.2.00.1205101316470.18862@blackhole.kfki.hu>
 	<alpine.LNX.2.01.1205101327310.12733@frira.vanv.qr>
 	<alpine.DEB.2.00.1205101337160.19028@blackhole.kfki.hu>
+	<CAMQP0sn=2jKYzoiUVu+oTRYj-niL84Lg2Z1UoO0UnFXJjV8Ggw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed; boundary=047d7b2eda7562ee5a04bfb011b6
 Cc: Jan Engelhardt <jengelh@inai.de>, netfilter@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:61307 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932675Ab2EJMMF convert rfc822-to-8bit (ORCPT
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:63513 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759848Ab2EJPNy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 May 2012 08:12:05 -0400
-In-Reply-To: <alpine.DEB.2.00.1205101337160.19028@blackhole.kfki.hu>
+	Thu, 10 May 2012 11:13:54 -0400
+In-Reply-To: <CAMQP0sn=2jKYzoiUVu+oTRYj-niL84Lg2Z1UoO0UnFXJjV8Ggw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+--047d7b2eda7562ee5a04bfb011b6
+Content-Type: text/plain; charset=ISO-8859-1
+
 Hi,
 
-On Thu, May 10, 2012 at 6:41 PM, Jozsef Kadlecsik
-<kadlec@blackhole.kfki.hu> wrote:
-> On Thu, 10 May 2012, Jan Engelhardt wrote:
->
->> On Thursday 2012-05-10 13:17, Jozsef Kadlecsik wrote:
->>
->> >On Thu, 10 May 2012, Jan Engelhardt wrote:
->> >
->> >> On Thursday 2012-05-10 12:18, Jozsef Kadlecsik wrote:
->> >>
->> >> >I'm happy to announce ipset 6.12. This release contains a few im=
-portant
->> >> >bugfixes, dynamic module support in the ipset tool by Neutron So=
-utmun
->> >> >and several backports and compatibility fixes.
->> >>
->> >> There is no configure script in the current 6.12 tarball,
->> >> i.e. autogen has not been run before packing up.
->> >
->> >I have updated the tarball at the webpage, thanks for notifying.
->>
->> It does not really build either. The new module split at fault?
->>
->> seven:~/rpmbuild/BUILD/ipset-default-6.12> make
->> make =A0all-recursive
->> make[1]: Entering directory `/home/abuild/rpmbuild/BUILD/ipset-defau=
-lt-6.12'
->> Making all in include/libipset
->> make[2]: Entering directory `/home/abuild/rpmbuild/BUILD/ipset-defau=
-lt-6.12/include/libipset'
->> make[2]: Nothing to be done for `all'.
->> make[2]: Leaving directory `/home/abuild/rpmbuild/BUILD/ipset-defaul=
-t-6.12/include/libipset'
->> Making all in lib
->> make[2]: Entering directory `/home/abuild/rpmbuild/BUILD/ipset-defau=
-lt-6.12/lib'
->> depbase=3D`echo ipset_bitmap_ip.lo | sed 's|[^/]*$|.deps/&|;s|\.lo$|=
-|'`; \
->> /bin/sh ../libtool --tag=3DCC =A0 --mode=3Dcompile gcc -DHAVE_CONFIG=
-_H -I. -I.. =A0 =A0-I../include -I/usr/local/include =A0-std=3Dgnu99 =A0=
--O2 -DNDEBUG -I/usr/include/libmnl-1.0.2 =A0 =A0-g -O2 -D_INIT=3Dipset_=
-bitmap_ip_init \
->> =A0 =A0-DTYPE_INCLUSIVE\
->> =A0 -MT ipset_bitmap_ip.lo -MD -MP -MF $depbase.Tpo -c -o ipset_bitm=
-ap_ip.lo ipset_bitmap_ip.c && \
->> mv -f $depbase.Tpo $depbase.Plo
->> libtool: compile: =A0gcc -DHAVE_CONFIG_H -I. -I.. -I../include -I/us=
-r/local/include -std=3Dgnu99 -O2 -DNDEBUG -I/usr/include/libmnl-1.0.2 -=
-g -O2 -D_INIT=3Dipset_bitmap_ip_init -DTYPE_INCLUSIVE -MT ipset_bitmap_=
-ip.lo -MD -MP -MF .deps/ipset_bitmap_ip.Tpo -c ipset_bitmap_ip.c =A0-fP=
-IC -DPIC -o .libs/ipset_bitmap_ip.o
->> ipset_bitmap_ip.c:103:1: fatal error: opening dependency file .deps/=
-ipset_bitmap_ip.Tpo: No such file or directory
->> compilation terminated.
->> make[2]: *** [ipset_bitmap_ip.lo] Error 1
->> make[2]: Leaving directory `/home/abuild/rpmbuild/BUILD/ipset-defaul=
-t-6.12/lib'
->> make[1]: *** [all-recursive] Error 1
->> make[1]: Leaving directory `/home/abuild/rpmbuild/BUILD/ipset-defaul=
-t-6.12'
->> make: *** [all] Error 2
->>
->> Seems the split plugins was only ever tested while .deps existed
->> from prior the split.
->
-> Yes, your're right. I applied the patch, tested it but not with a cle=
-an
-> tree. I'm not so good in autoconf/automake/... What would be the best
-> fix to generate the dependencies?
+> However, I'll find the solution for the build system when the
+> --disable-dependency-tracking is being parse.
 
-I found this when I was preparing the debian package for my patch
-testing on Monday which the debhelper calls the configure script with
-the --disable-dependency-tracking by default. Hence, I just parse the
---enable-dependency-tracking to workaround this.
+The attached file is a patch to solve the
+--disable-dependency-tracking is being parse issue and also fixes the
+ipset does not build out of the source tree as the configure script
+could not check for the lib/ipset_*.c.
 
-However, I'll find the solution for the build system when the
---disable-dependency-tracking is being parse.
-
-Any suggestions are welcome.
+Please review.
 
 Best regards,
 Neutron Soutmun
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--047d7b2eda7562ee5a04bfb011b6
+Content-Type: application/octet-stream;
+	name="0001-build-fix-build-failed-on-disable-dependency-trackin.patch"
+Content-Disposition: attachment;
+	filename="0001-build-fix-build-failed-on-disable-dependency-trackin.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_h21ye1b30
+
+RnJvbSBmMWZkYWE2OTFiYjlhMDQyMDg2NWUwMTdiNTQ3OTljNzAxMjUzM2Q0IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBOZXV0cm9uIFNvdXRtdW4gPG5lby5uZXV0cm9uQGdtYWlsLmNv
+bT4KRGF0ZTogVGh1LCAxMCBNYXkgMjAxMiAyMTo1Mzo1NSArMDcwMApTdWJqZWN0OiBbUEFUQ0hd
+IGJ1aWxkOiBmaXggYnVpbGQgZmFpbGVkIG9uIC0tZGlzYWJsZS1kZXBlbmRlbmN5LXRyYWNraW5n
+CgoqIGxpYi9NYWtlX2V4dHJhLmFtOgogIC0gQWRkIG1hY3JvIGZsYWdzIHRvIGVuYWJsZS9kaXNh
+YmxlIHRoZSBkZXBlbmRlbmN5IHRyYWNraW5nIGJ1aWxkCiAgICBkZXBlbmRzIG9uIHRoZSBjb25m
+aWd1cmF0aW9uLgoqIGNvbmZpZ3VyZS5hYzoKICAtIEZpeCB0aGUgdXNlcnNwYWNlIHRvb2wgY29u
+ZmlndXJhdGlvbiBzZWN0aW9uIGVycm9yIHdoZW4gYnVpbGQKICAgIG91dCBvZiBzb3VyY2UgdHJl
+ZS4KLS0tCiBjb25maWd1cmUuYWMgICAgICB8ICAgIDIgKy0KIGxpYi9NYWtlX2V4dHJhLmFtIHwg
+ICAxNSArKysrKysrKysrLS0tLS0KIDIgZmlsZXMgY2hhbmdlZCwgMTEgaW5zZXJ0aW9ucygrKSwg
+NiBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9jb25maWd1cmUuYWMgYi9jb25maWd1cmUuYWMK
+aW5kZXggZDlhNzFkMy4uYWYxOWJmNCAxMDA2NDQKLS0tIGEvY29uZmlndXJlLmFjCisrKyBiL2Nv
+bmZpZ3VyZS5hYwpAQCAtMjIyLDcgKzIyMiw3IEBAIGlmIHRlc3QgIngkZW5hYmxlX3NldHR5cGVf
+bW9kdWxlcyIgIT0gInh5ZXMiOyB0aGVuCiBlbHNlCiAJQUNfTVNHX1JFU1VMVChbICAgIER5bmFt
+aWMgbW9kdWxlIGxvYWRpbmc6IGVuYWJsZWRdKQogZmkKLUlQU0VUX0FMTF9NT0RVTEVTPSJgbHMg
+bGliL2lwc2V0XyouY3xzZWQgLWUgJ3MvbGliXC8vLycgLWUgJ3MvXC5jJC8vJ2AiCitJUFNFVF9B
+TExfTU9EVUxFUz0iYGxzICR7c3JjZGlyfS9saWIvaXBzZXRfKi5jfHNlZCAtZSAncy9eLipsaWJc
+Ly8vJyAtZSAncy9cLmMkLy8nYCIKIEFDX01TR19SRVNVTFQoWyAgICBTdGF0aWMgbW9kdWxlczpd
+KQogaWYgdGVzdCAieCRTRVRUWVBFX01PRExJU1QiID0gIngiOyB0aGVuCiAJZm9yIG1vZCBpbiAk
+SVBTRVRfQUxMX01PRFVMRVM7IGRvCmRpZmYgLS1naXQgYS9saWIvTWFrZV9leHRyYS5hbSBiL2xp
+Yi9NYWtlX2V4dHJhLmFtCmluZGV4IGU1ZTQ5OGMuLjQ3ZGE3MDEgMTAwNjQ0Ci0tLSBhL2xpYi9N
+YWtlX2V4dHJhLmFtCisrKyBiL2xpYi9NYWtlX2V4dHJhLmFtCkBAIC0yNiwxMSArMjYsMTYgQEAg
+QlVJTFRfU09VUkNFUyA9IGlwc2V0X3NldHR5cGVfY2hlY2sgdHlwZXNfaW5pdC5jIGlwc2V0X3Nl
+dHR5cGVfbW9kdWxlcwogQ0xFQU5GSUxFUyA9IGlwc2V0X3NldHR5cGVfY2hlY2sgdHlwZXNfaW5p
+dC5jICQoSVBTRVRfU0VUVFlQRV9BTExfTU9EVUxFUykKIAogaXBzZXRfJS5sbzogaXBzZXRfJS5j
+Ci0JZGVwYmFzZT1gZWNobyAkQCB8IHNlZCAnc3xbXi9dKiQkfCQoREVQRElSKS8mfDtzfFwubG8k
+JHx8J2A7IFwKLQkkKExUQ09NUElMRSkgLURfSU5JVD1pcHNldF8kKl9pbml0IFwKLQkgICQoaWYg
+JChmaW5kc3RyaW5nIGlwc2V0XyQqLmMsJChJUFNFVF9TRVRUWVBFX1NUQVRJQykpLCAtRFRZUEVf
+SU5DTFVTSVZFLClcCi0JICAtTVQgJEAgLU1EIC1NUCAtTUYgJCRkZXBiYXNlLlRwbyAtYyAtbyAk
+QCAkPCAmJiBcCi0JJChhbV9fbXYpICQkZGVwYmFzZS5UcG8gJCRkZXBiYXNlLlBsbworQGFtX19m
+YXN0ZGVwQ0NfVFJVRUAJZGVwYmFzZT1gZWNobyAkQCB8IHNlZCAnc3xbXi9dKiQkfCQoREVQRElS
+KS8mfDtzfFwubG8kJHx8J2A7IFwKK0BhbV9fZmFzdGRlcENDX1RSVUVACSQoTFRDT01QSUxFKSAt
+RF9JTklUPWlwc2V0XyQqX2luaXQgXAorCQkkKGlmICQoZmluZHN0cmluZyBpcHNldF8kKi5jLCQo
+SVBTRVRfU0VUVFlQRV9TVEFUSUMpKSwgLURUWVBFX0lOQ0xVU0lWRSwpXAorCQktTVQgJEAgLU1E
+IC1NUCAtTUYgJCRkZXBiYXNlLlRwbyAtYyAtbyAkQCAkPCAmJiBcCitAYW1fX2Zhc3RkZXBDQ19U
+UlVFQAkkKGFtX19tdikgJCRkZXBiYXNlLlRwbyAkJGRlcGJhc2UuUGxvCitAQU1ERVBfVFJVRUBA
+YW1fX2Zhc3RkZXBDQ19GQUxTRUAJc291cmNlPSckPCcgb2JqZWN0PSckQCcgbGlidG9vbD15ZXMg
+QEFNREVQQkFDS1NMQVNIQAorQEFNREVQX1RSVUVAQGFtX19mYXN0ZGVwQ0NfRkFMU0VACURFUERJ
+Uj0kKERFUERJUikgJChDQ0RFUE1PREUpICQoZGVwY29tcCkgQEFNREVQQkFDS1NMQVNIQAorQGFt
+X19mYXN0ZGVwQ0NfRkFMU0VACSQoTFRDT01QSUxFKSAtRF9JTklUPWlwc2V0XyQqX2luaXQgXAor
+CQkkKGlmICQoZmluZHN0cmluZyBpcHNldF8kKi5jLCQoSVBTRVRfU0VUVFlQRV9TVEFUSUMpKSwg
+LURUWVBFX0lOQ0xVU0lWRSwpXAorCQktYyAtbyAkQCAkPAogCiBpcHNldF8lLmxhOiAkKGxpYl9M
+VExJQlJBUklFUykgaXBzZXRfJS5sbwogCWxvYmo9IiQocGF0c3Vic3QgJS5sYSwgJS5sbywgJEAp
+IjsgXAotLSAKMS43LjEwCgo=
+--047d7b2eda7562ee5a04bfb011b6--
