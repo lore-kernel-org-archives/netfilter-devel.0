@@ -1,64 +1,49 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH next] netfilter: xt_hashlimit: use _ALL macro to reject unknown flag bits
-Date: Fri, 11 May 2012 10:11:54 +0200
-Message-ID: <1336723914-3074-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [ANNOUNCE] ipset 6.12 released
+Date: Fri, 11 May 2012 10:40:54 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1205111034100.20558@blackhole.kfki.hu>
+References: <alpine.DEB.2.00.1205101211080.18562@blackhole.kfki.hu> <alpine.LNX.2.01.1205101238020.20012@frira.vanv.qr> <alpine.DEB.2.00.1205101316470.18862@blackhole.kfki.hu> <alpine.LNX.2.01.1205101327310.12733@frira.vanv.qr> <alpine.DEB.2.00.1205101337160.19028@blackhole.kfki.hu>
+ <CAMQP0sn=2jKYzoiUVu+oTRYj-niL84Lg2Z1UoO0UnFXJjV8Ggw@mail.gmail.com> <CAMQP0s=uSzOn-o7jwKLyhTaZud4d04hMN=JXrCQLrFD+6Zinkw@mail.gmail.com> <alpine.DEB.2.00.1205101724370.19418@blackhole.kfki.hu> <CAMQP0sm+_8FytQxQHCgk44DVesxMycYQbMW9z+XR0-09NniT9Q@mail.gmail.com>
+ <CAMQP0snnXgGCJqN1iuN+y9_rgpa7HMrRuM0akhCa-NtxmBz_QA@mail.gmail.com> <CAMQP0s=DvvYL9SKURz2nm9WuWHQEXBQv9UEQ487GQMwhqa_rgg@mail.gmail.com> <4FAC3A87.3010500@googlemail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Mr Dash Four <mr.dash.four@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:60108 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751952Ab2EKIKA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 May 2012 04:10:00 -0400
+Received: from smtp1.kfki.hu ([148.6.0.26]:53782 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757940Ab2EKIk5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 11 May 2012 04:40:57 -0400
+In-Reply-To: <4FAC3A87.3010500@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-David Miller says:
-     The canonical way to validate if the set bits are in a valid
-     range is to have a "_ALL" macro, and test:
-     if (val & ~XT_HASHLIMIT_ALL)
-         goto err;"
+On Thu, 10 May 2012, Mr Dash Four wrote:
 
-make it so.
+> > the point of this feature is providing the easy way that the
+> > third-party or the experimental modules
+> > plug into the existing ipset userspace binary without recompile.
+> > 
+> > You could build the experimental ipset "FOO" kernel module and build
+> > the shared-lib of "FOO" userspace tool module and
+> > plug into the system without recompile the ipset userspace tool at
+> > all. It's inspired by iptables (kernel/userspace module).
+> >   
+> Is there a documentation on how to do that? For example, if I wish to 
+> add my own ipset type/matching (as a separate module), where do I start 
+> looking?
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/linux/netfilter/xt_hashlimit.h |    6 ++++--
- net/netfilter/xt_hashlimit.c           |    2 +-
- 2 files changed, 5 insertions(+), 3 deletions(-)
+As documentation, there's nothing yet.
 
-diff --git a/include/linux/netfilter/xt_hashlimit.h b/include/linux/netfilter/xt_hashlimit.h
-index 05fe799..c42e52f 100644
---- a/include/linux/netfilter/xt_hashlimit.h
-+++ b/include/linux/netfilter/xt_hashlimit.h
-@@ -22,10 +22,12 @@ enum {
- 	XT_HASHLIMIT_HASH_SPT = 1 << 3,
- 	XT_HASHLIMIT_INVERT   = 1 << 4,
- 	XT_HASHLIMIT_BYTES    = 1 << 5,
-+};
- #ifdef __KERNEL__
--	XT_HASHLIMIT_MAX      = 1 << 6,
-+#define XT_HASHLIMIT_ALL (XT_HASHLIMIT_HASH_DIP | XT_HASHLIMIT_HASH_DPT | \
-+			  XT_HASHLIMIT_HASH_SIP | XT_HASHLIMIT_HASH_SPT | \
-+			  XT_HASHLIMIT_INVERT | XT_HASHLIMIT_BYTES)
- #endif
--};
- 
- struct hashlimit_cfg {
- 	__u32 mode;	  /* bitmask of XT_HASHLIMIT_HASH_* */
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index d0424f9..f0e8839 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -648,7 +648,7 @@ static int hashlimit_mt_check(const struct xt_mtchk_param *par)
- 			return -EINVAL;
- 	}
- 
--	if (info->cfg.mode >= XT_HASHLIMIT_MAX) {
-+	if (info->cfg.mode & ~XT_HASHLIMIT_ALL) {
- 		pr_info("Unknown mode mask %X, kernel too old?\n",
- 						info->cfg.mode);
- 		return -EINVAL;
--- 
-1.7.3.4
+The userspace part of a set type is quite simple: just the 
+parsing, printing, dimension, supported families have to be definied.
+The kernel part is, well, another matter. Of course all the existing 
+types can be used as examples.
 
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
