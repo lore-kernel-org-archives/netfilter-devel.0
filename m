@@ -1,69 +1,65 @@
-From: Neutron Soutmun <neo.neutron@gmail.com>
-Subject: [ipset] fix typo in libipset
-Date: Mon, 14 May 2012 09:02:41 +0700
-Message-ID: <CAMQP0sk3Axqfh_4i1qBm-X48KpZYyOg+hVaCiO=EeGvSqFkAbQ@mail.gmail.com>
+From: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Subject: Re: [patch] netfilter: potential NULL dereference in get_inner_hdr()
+Date: Mon, 14 May 2012 09:36:55 +0200
+Message-ID: <201205140936.56960.hans.schillstrom@ericsson.com>
+References: <20120512110003.GB19472@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=047d7b2eda75350c2d04bff57bb9
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netfilter@vger.kernel.org" <netfilter@vger.kernel.org>,
+	"coreteam@netfilter.org" <coreteam@netfilter.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
+To: Dan Carpenter <dan.carpenter@oracle.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:37447 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753814Ab2ENCCm (ORCPT
+Received: from mailgw1.ericsson.se ([193.180.251.45]:52302 "EHLO
+	mailgw1.ericsson.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754483Ab2ENHhA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 13 May 2012 22:02:42 -0400
-Received: by pbbrp8 with SMTP id rp8so5475356pbb.19
-        for <netfilter-devel@vger.kernel.org>; Sun, 13 May 2012 19:02:41 -0700 (PDT)
+	Mon, 14 May 2012 03:37:00 -0400
+In-Reply-To: <20120512110003.GB19472@elgon.mountain>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---047d7b2eda75350c2d04bff57bb9
-Content-Type: text/plain; charset=ISO-8859-1
+On Saturday 12 May 2012 13:00:03 Dan Carpenter wrote:
+> There is a typo in the error checking and "&&" was used instead of "||".
+> If skb_header_pointer() returns NULL then it leads to a NULL
+> dereference.
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Ack-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
+ 
+> ---
+> Btw, this is new code and Sparse complains about endian bugs.
 
-Hello,
+Can you give me some hints here, arch , compiler version etc.
+I guess it was input to hmark_addr_mask() that complains ?
 
-During the preparation of the ipset Debian package, the "lintian" -
-Static analysis tool for Debian packages, has warned me that
-there are some typos in the libipset.
+> 
+> diff --git a/net/netfilter/xt_HMARK.c b/net/netfilter/xt_HMARK.c
+> index 32fbd73..5817d03 100644
+> --- a/net/netfilter/xt_HMARK.c
+> +++ b/net/netfilter/xt_HMARK.c
+> @@ -223,7 +223,7 @@ static int get_inner_hdr(const struct sk_buff *skb, int iphsz, int *nhoff)
+>  
+>  	/* Not enough header? */
+>  	icmph = skb_header_pointer(skb, *nhoff + iphsz, sizeof(_ih), &_ih);
+> -	if (icmph == NULL && icmph->type > NR_ICMP_TYPES)
+> +	if (icmph == NULL || icmph->type > NR_ICMP_TYPES)
+>  		return 0;
+>  
+>  	/* Error message? */
+> --
+> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Therefore, the attached patch is for those typo fix.
-
-Best regards,
-Neutron Soutmun
-
---047d7b2eda75350c2d04bff57bb9
-Content-Type: application/octet-stream; name="0001-Fix-typo.patch"
-Content-Disposition: attachment; filename="0001-Fix-typo.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h26vx6400
-
-RnJvbSAwMjgzZTVhNDdiOTAwYWNkNjRiOGNiN2RlMzAyZTlhNDZhZGU1ODA4IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBOZXV0cm9uIFNvdXRtdW4gPG5lby5uZXV0cm9uQGdtYWlsLmNv
-bT4KRGF0ZTogTW9uLCAxNCBNYXkgMjAxMiAwODo1NzozMyArMDcwMApTdWJqZWN0OiBbUEFUQ0hd
-IEZpeCB0eXBvCgoqIGxpYi97ZGF0YS5jLCBwYXJzZS5jfToKICAtIEZpeCB0eXBvIG9mIHdvcmQg
-InVua293biIgdG8gInVua25vd24iLgotLS0KIGxpYi9kYXRhLmMgIHwgICAgMiArLQogbGliL3Bh
-cnNlLmMgfCAgICA0ICsrLS0KIDIgZmlsZXMgY2hhbmdlZCwgMyBpbnNlcnRpb25zKCspLCAzIGRl
-bGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2xpYi9kYXRhLmMgYi9saWIvZGF0YS5jCmluZGV4IGQ3
-NGJlNGQuLmQ2ZDI5YzIgMTAwNjQ0Ci0tLSBhL2xpYi9kYXRhLmMKKysrIGIvbGliL2RhdGEuYwpA
-QCAtMzY0LDcgKzM2NCw3IEBAIGlwc2V0X2RhdGFfc2V0KHN0cnVjdCBpcHNldF9kYXRhICpkYXRh
-LCBlbnVtIGlwc2V0X29wdCBvcHQsIGNvbnN0IHZvaWQgKnZhbHVlKQogICogQG9wdDogb3B0aW9u
-IGtpbmQgb2YgdGhlIHJlcXVlc3RlZCBkYXRhCiAgKgogICogUmV0dXJucyB0aGUgcG9pbnRlciB0
-byB0aGUgcmVxdWVzdGVkIGtpbmQgb2YgZGF0YSBmcm9tIHRoZSBkYXRhIGJsb2IKLSAqIGlmIGl0
-IGlzIHNldC4gSWYgdGhlIG9wdGlvbiBraW5kIGlzIG5vdCBzZXQgb3IgaXMgYW4gdW5rb3duIHR5
-cGUsCisgKiBpZiBpdCBpcyBzZXQuIElmIHRoZSBvcHRpb24ga2luZCBpcyBub3Qgc2V0IG9yIGlz
-IGFuIHVua25vd24gdHlwZSwKICAqIE5VTEwgaXMgcmV0dXJuZWQuCiAgKi8KIGNvbnN0IHZvaWQg
-KgpkaWZmIC0tZ2l0IGEvbGliL3BhcnNlLmMgYi9saWIvcGFyc2UuYwppbmRleCBiYzExZWJiLi44
-YzY3YzU4IDEwMDY0NAotLS0gYS9saWIvcGFyc2UuYworKysgYi9saWIvcGFyc2UuYwpAQCAtMTUx
-OSw3ICsxNTE5LDcgQEAgaXBzZXRfcGFyc2VfdHlwZW5hbWUoc3RydWN0IGlwc2V0X3Nlc3Npb24g
-KnNlc3Npb24sCiAJLyogRmluZCB0aGUgY29ycmVzcG9uZGluZyB0eXBlICovCiAJdHlwZW5hbWUg
-PSBpcHNldF90eXBlbmFtZV9yZXNvbHZlKHN0cik7CiAJaWYgKHR5cGVuYW1lID09IE5VTEwpCi0J
-CXJldHVybiBzeW50YXhfZXJyKCJ0eXBlbmFtZSAnJXMnIGlzIHVua293biIsIHN0cik7CisJCXJl
-dHVybiBzeW50YXhfZXJyKCJ0eXBlbmFtZSAnJXMnIGlzIHVua25vd24iLCBzdHIpOwogCWlwc2V0
-X3Nlc3Npb25fZGF0YV9zZXQoc2Vzc2lvbiwgSVBTRVRfT1BUX1RZUEVOQU1FLCB0eXBlbmFtZSk7
-CiAJdHlwZSA9IGlwc2V0X3R5cGVfZ2V0KHNlc3Npb24sIElQU0VUX0NNRF9DUkVBVEUpOwogCkBA
-IC0xNTkxLDcgKzE1OTEsNyBAQCBpcHNldF9wYXJzZV9vdXRwdXQoc3RydWN0IGlwc2V0X3Nlc3Np
-b24gKnNlc3Npb24sCiAJZWxzZSBpZiAoU1RSRVEoc3RyLCAic2F2ZSIpKQogCQlyZXR1cm4gaXBz
-ZXRfc2Vzc2lvbl9vdXRwdXQoc2Vzc2lvbiwgSVBTRVRfTElTVF9TQVZFKTsKIAotCXJldHVybiBz
-eW50YXhfZXJyKCJ1bmtvd24gb3V0cHV0IG1vZGUgJyVzJyIsIHN0cik7CisJcmV0dXJuIHN5bnRh
-eF9lcnIoInVua25vd24gb3V0cHV0IG1vZGUgJyVzJyIsIHN0cik7CiB9CiAKIC8qKgotLSAKMS43
-LjEwCgo=
---047d7b2eda75350c2d04bff57bb9--
+-- 
+Regards
+Hans Schillstrom <hans.schillstrom@ericsson.com>
