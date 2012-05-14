@@ -1,57 +1,61 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 1/4] netfilter: ipset: fix timeout value overflow bug
-Date: Mon, 14 May 2012 19:45:07 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1205141943240.28291@blackhole.kfki.hu>
-References: <1336996023-20249-2-git-send-email-pablo@netfilter.org>  <AE90C24D6B3A694183C094C60CF0A2F6026B6F0B@saturn3.aculab.com>  <20120514143635.GA12992@1984> <1337006844.8512.491.camel@edumazet-glaptop>
+From: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Subject: Re: [PATCH] netfilter: xt_HMARK: endian bugs
+Date: Mon, 14 May 2012 19:51:34 +0200
+Message-ID: <201205141951.36692.hans.schillstrom@ericsson.com>
+References: <1337002943-16374-1-git-send-email-hans.schillstrom@ericsson.com> <201205141809.18174.hans.schillstrom@ericsson.com> <1337012674.8512.589.camel@edumazet-glaptop>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	David Laight <David.Laight@ACULAB.COM>,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@inai.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	"kaber@trash.net" <kaber@trash.net>,
+	"jengelh@medozas.de" <jengelh@medozas.de>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"dan.carpenter@oracle.com" <dan.carpenter@oracle.com>,
+	"hans@schillstrom.com" <hans@schillstrom.com>
 To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:37699 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757398Ab2ENRpK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 May 2012 13:45:10 -0400
-In-Reply-To: <1337006844.8512.491.camel@edumazet-glaptop>
+Received: from mailgw7.ericsson.se ([193.180.251.48]:47468 "EHLO
+	mailgw7.ericsson.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755197Ab2ENRvk (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 May 2012 13:51:40 -0400
+In-Reply-To: <1337012674.8512.589.camel@edumazet-glaptop>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 14 May 2012, Eric Dumazet wrote:
-
-> On Mon, 2012-05-14 at 16:36 +0200, Pablo Neira Ayuso wrote:
-> > On Mon, May 14, 2012 at 03:19:49PM +0100, David Laight wrote:
-> > >  
-> > > > --- a/include/linux/netfilter/ipset/ip_set_timeout.h
-> > > > +++ b/include/linux/netfilter/ipset/ip_set_timeout.h
-> > > > @@ -30,6 +30,10 @@ ip_set_timeout_uget(struct nlattr *tb)
-> > > >  {
-> > > >  	unsigned int timeout = ip_set_get_h32(tb);
-> > > >  
-> > > > +	/* Normalize to fit into jiffies */
-> > > > +	if (timeout > UINT_MAX/1000)
-> > > > +		timeout = UINT_MAX/1000;
-> > > > +
-> > > 
-> > > Doesn't that rather assume that HZ is 1000 ?
-> > 
-> > Indeed. I overlooked that. Thanks David.
+On Monday 14 May 2012 18:24:34 Eric Dumazet wrote:
+> On Mon, 2012-05-14 at 18:09 +0200, Hans Schillstrom wrote:
 > 
-> I dont think so.
+> > This context can contain both le & be machines,
+> > so at least in hmark it make sense
 > 
-> 1000 here is really MSEC_PER_SEC
+> Before jhash() and its shuffle ? What do you mean ?
+
+I want that a Big endian machine should produce the same
+hash value independent of flow direction as a Little endian.
+
+OK, I missed ntohl() before calling jhash_3words()
+
+Correct me if I'm wrong here (have no big endian machine available for test)
+jhash_3words() and __jhash_final() seems to be "endian" safe.
+
+So by doing the expensive ntohl on addresses and ports into jhash_3words()
+it will produce the same value on both be and le.
+
+That's why I want to have the ntohs() / ntohl() when comparing.
+
 > 
-> (All occurrences should be changed in this file)
-
-Yes, exactly. Pablo, shall I produce a little patch or could you change 
-1000 to MSEC_PER_SEC?
-
-Best regards, 
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+> Please respin your patch using (__force u16/u32) instead of
+> useless/expensive ntohs() / ntohl() (in _this_ context of hashing)
+> 
+> If you compare two 32bits values, of course they must have same
+> ordering, but seeding jhash() is another matter.
+> 
+> (Granted all calls use the same ordering of course)
+> 
+> sparse is great tool, but if you add useless ntohl() calls to make
+> sparse silent, then its probably better to not use sparse.
+> 
