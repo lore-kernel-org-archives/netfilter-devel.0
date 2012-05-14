@@ -1,46 +1,30 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [patch] netfilter: potential NULL dereference in
- get_inner_hdr()
-Date: Mon, 14 May 2012 10:22:50 +0200
-Message-ID: <20120514082250.GB9524@1984>
-References: <20120512110003.GB19472@elgon.mountain>
- <20120514.033853.1089019132135043947.davem@davemloft.net>
- <1336981995.8512.56.camel@edumazet-glaptop>
- <201205141000.12140.hans.schillstrom@ericsson.com>
+Subject: Re: [PATCH next] netfilter: xt_hashlimit: use _ALL macro to reject
+ unknown flag bits
+Date: Mon, 14 May 2012 10:23:40 +0200
+Message-ID: <20120514082340.GA9577@1984>
+References: <1336723914-3074-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	David Miller <davem@davemloft.net>,
-	"dan.carpenter@oracle.com" <dan.carpenter@oracle.com>,
-	"kaber@trash.net" <kaber@trash.net>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netfilter@vger.kernel.org" <netfilter@vger.kernel.org>,
-	"coreteam@netfilter.org" <coreteam@netfilter.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
-To: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38496 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:38788 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754469Ab2ENIW6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 May 2012 04:22:58 -0400
+	id S1754447Ab2ENIXm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 May 2012 04:23:42 -0400
 Content-Disposition: inline
-In-Reply-To: <201205141000.12140.hans.schillstrom@ericsson.com>
+In-Reply-To: <1336723914-3074-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, May 14, 2012 at 10:00:00AM +0200, Hans Schillstrom wrote:
-> > 
-> > http://lwn.net/Articles/205624/
-> > 
-> > make C=2 CF=-D__CHECK_ENDIAN__ net/netfilter/xt_HMARK.o
-> >   CHECK   net/netfilter/xt_HMARK.c
-> > net/netfilter/xt_HMARK.c:87:21: warning: incorrect type in assignment (different base types)
-> > net/netfilter/xt_HMARK.c:87:21:    expected unsigned short [unsigned] [usertype] src
-> > net/netfilter/xt_HMARK.c:87:21:    got restricted __be16 [usertype] all
-[...]
+On Fri, May 11, 2012 at 10:11:54AM +0200, Florian Westphal wrote:
+> David Miller says:
+>      The canonical way to validate if the set bits are in a valid
+>      range is to have a "_ALL" macro, and test:
+>      if (val & ~XT_HASHLIMIT_ALL)
+>          goto err;"
 > 
-> Thanks 
-> I'll try to fix the warnings
+> make it so.
 
-Ok, wait for that patch, thanks.
+Applied, thanks Florian.
