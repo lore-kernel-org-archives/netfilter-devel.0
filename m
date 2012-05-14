@@ -1,58 +1,109 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: xt_HMARK: endian bugs
-Date: Mon, 14 May 2012 21:02:11 +0200
-Message-ID: <20120514190211.GC14897@1984>
-References: <1337002943-16374-1-git-send-email-hans.schillstrom@ericsson.com>
- <201205141809.18174.hans.schillstrom@ericsson.com>
- <1337012674.8512.589.camel@edumazet-glaptop>
- <201205141951.36692.hans.schillstrom@ericsson.com>
- <alpine.DEB.2.00.1205142032570.28548@blackhole.kfki.hu>
+Subject: Re: [PATCH v2 1/6] netfilter: sanity checks on NFPROTO_NUMPROTO
+Date: Mon, 14 May 2012 21:04:16 +0200
+Message-ID: <20120514190416.GD14897@1984>
+References: <1337003799-2517-1-git-send-email-alban.crequy@collabora.co.uk>
+ <20120514144235.GE12992@1984>
+ <20120514163949.37e614f4@rainbow.cbg.collabora.co.uk>
+ <20120514170410.6c2f1c5b@rainbow.cbg.collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	Jan Engelhardt <jengelh@inai.de>,
-	"kaber@trash.net" <kaber@trash.net>,
-	"jengelh@medozas.de" <jengelh@medozas.de>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"dan.carpenter@oracle.com" <dan.carpenter@oracle.com>,
-	"hans@schillstrom.com" <hans@schillstrom.com>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43600 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757208Ab2ENTCO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 May 2012 15:02:14 -0400
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Patrick McHardy <kaber@trash.net>,
+	Vincent Sanders <vincent.sanders@collabora.co.uk>,
+	Javier Martinez Canillas <javier.martinez@collabora.co.uk>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Alban Crequy <alban.crequy@collabora.co.uk>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1205142032570.28548@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20120514170410.6c2f1c5b@rainbow.cbg.collabora.co.uk>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, May 14, 2012 at 08:35:26PM +0200, Jozsef Kadlecsik wrote:
-> On Mon, 14 May 2012, Hans Schillstrom wrote:
-> 
-> > On Monday 14 May 2012 18:24:34 Eric Dumazet wrote:
-> > > On Mon, 2012-05-14 at 18:09 +0200, Hans Schillstrom wrote:
-> > > 
-> > > > This context can contain both le & be machines,
-> > > > so at least in hmark it make sense
-> > > 
-> > > Before jhash() and its shuffle ? What do you mean ?
-> > 
-> > I want that a Big endian machine should produce the same
-> > hash value independent of flow direction as a Little endian.
-> > 
-> > OK, I missed ntohl() before calling jhash_3words()
-> > 
-> > Correct me if I'm wrong here (have no big endian machine available for test)
-> > jhash_3words() and __jhash_final() seems to be "endian" safe.
-> 
-> No, but as Eric wrote: what is the point in forcing the same hash value 
-> for the same input on big endian and little endian machines? Are you going 
-> to transfer the hash value between machines?
+On Mon, May 14, 2012 at 05:04:10PM +0100, Alban Crequy wrote:
+> Le Mon, 14 May 2012 16:39:49 +0100,
+> Alban Crequy <alban.crequy@collabora.co.uk> a =E9crit :
+>=20
+> > Le Mon, 14 May 2012 16:42:35 +0200,
+> > Pablo Neira Ayuso <pablo@netfilter.org> a =E9crit :
+> >=20
+> > > On Mon, May 14, 2012 at 02:56:34PM +0100, Alban Crequy wrote:
+> > > > With the NFPROTO_* constants introduced by commit 7e9c6e
+> > > > ("netfilter: Introduce NFPROTO_* constants"), it is too easy to
+> > > > confuse PF_* and NFPROTO_* constants in new protocols.
+> > > >=20
+> > > > Signed-off-by: Alban Crequy <alban.crequy@collabora.co.uk>
+> > > > Reviewed-by: Javier Martinez Canillas
+> > > > <javier.martinez@collabora.co.uk> Reviewed-by: Vincent Sanders
+> > > > <vincent.sanders@collabora.co.uk> ---
+> > > >  net/netfilter/core.c |    5 +++++
+> > > >  1 files changed, 5 insertions(+), 0 deletions(-)
+> > > >=20
+> > > > diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+> > > > index e1b7e05..4f16552 100644
+> > > > --- a/net/netfilter/core.c
+> > > > +++ b/net/netfilter/core.c
+> > > > @@ -67,6 +67,11 @@ int nf_register_hook(struct nf_hook_ops *reg=
+)
+> > > >  	struct nf_hook_ops *elem;
+> > > >  	int err;
+> > > > =20
+> > > > +	if (reg->pf >=3D NFPROTO_NUMPROTO || reg->hooknum >=3D
+> > > > NF_MAX_HOOKS) {
+> > > > +		BUG();
+> > > > +		return 1;
+> > >=20
+> > > nf_register_hook returns a negative value on error. -EINVAL can b=
+e
+> > > fine.
+> >=20
+> > Is it the patch you mean? Do you want me to do a series repost?
+>=20
+> Please disregard the previous patch, this is the correct one.
+>=20
+>=20
+> From: Alban Crequy <alban.crequy@collabora.co.uk>
+>=20
+> netfilter: sanity checks on NFPROTO_NUMPROTO
+>=20
+> With the NFPROTO_* constants introduced by commit 7e9c6e ("netfilter:=
+ Introduce
+> NFPROTO_* constants"), it is too easy to confuse PF_* and NFPROTO_* c=
+onstants
+> in new protocols.
+>=20
+> Signed-off-by: Alban Crequy <alban.crequy@collabora.co.uk>
+> ---
+>  net/netfilter/core.c |    8 ++++++++
+>  1 files changed, 8 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+> index e1b7e05..7422989 100644
+> --- a/net/netfilter/core.c
+> +++ b/net/netfilter/core.c
+> @@ -67,6 +67,14 @@ int nf_register_hook(struct nf_hook_ops *reg)
+>  	struct nf_hook_ops *elem;
+>  	int err;
+> =20
+> +	if (reg->pf >=3D NFPROTO_NUMPROTO || reg->hooknum >=3D NF_MAX_HOOKS=
+) {
+> +		WARN(reg->pf >=3D NFPROTO_NUMPROTO,
+> +		     "netfilter: Invalid nfproto %d\n", reg->pf);
+> +		WARN(reg->hooknum >=3D NF_MAX_HOOKS,
+> +		     "netfilter: Invalid hooknum %d\n", reg->hooknum);
 
-IIRC, Hans wants that, in case you have a cluster composed of system
-with different endianess, the hash mark calculated will be the same
-in both systems. To ensure that the distribution is consistent with
-independency of the endianess.
+Then, better add two checkings. One to spot the first warning, and
+another to spot the second.
+
+I havent seen such a code in any netfilter code and I like that things
+remain consistent.
+
+> +		return -EINVAL;
+> +	}
+> +
+>  	err =3D mutex_lock_interruptible(&nf_hook_mutex);
+>  	if (err < 0)
+>  		return err;
+> --=20
+> 1.7.2.5
+>=20
