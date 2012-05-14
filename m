@@ -1,67 +1,43 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 1/4] netfilter: ipset: fix timeout value overflow bug
-Date: Mon, 14 May 2012 23:45:14 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1205142344470.29179@blackhole.kfki.hu>
-References: <1336996023-20249-2-git-send-email-pablo@netfilter.org> <AE90C24D6B3A694183C094C60CF0A2F6026B6F0B@saturn3.aculab.com> <20120514143635.GA12992@1984> <1337006844.8512.491.camel@edumazet-glaptop> <alpine.DEB.2.00.1205141943240.28291@blackhole.kfki.hu>
- <20120514201043.GA15485@1984>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/4] netfilter fixes for 3.4-rc7
+Date: Mon, 14 May 2012 18:56:07 -0400 (EDT)
+Message-ID: <20120514.185607.1967456974676336550.davem@davemloft.net>
+References: <1336996023-20249-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	David Laight <David.Laight@ACULAB.COM>,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:56800 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932394Ab2ENVpQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 May 2012 17:45:16 -0400
-In-Reply-To: <20120514201043.GA15485@1984>
+Received: from shards.monkeyblade.net ([198.137.202.13]:60370 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757297Ab2ENW5M (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 May 2012 18:57:12 -0400
+In-Reply-To: <1336996023-20249-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 14 May 2012, Pablo Neira Ayuso wrote:
+From: pablo@netfilter.org
+Date: Mon, 14 May 2012 13:46:59 +0200
 
-> On Mon, May 14, 2012 at 07:45:07PM +0200, Jozsef Kadlecsik wrote:
-> > On Mon, 14 May 2012, Eric Dumazet wrote:
-> > 
-> > > On Mon, 2012-05-14 at 16:36 +0200, Pablo Neira Ayuso wrote:
-> > > > On Mon, May 14, 2012 at 03:19:49PM +0100, David Laight wrote:
-> > > > >  
-> > > > > > --- a/include/linux/netfilter/ipset/ip_set_timeout.h
-> > > > > > +++ b/include/linux/netfilter/ipset/ip_set_timeout.h
-> > > > > > @@ -30,6 +30,10 @@ ip_set_timeout_uget(struct nlattr *tb)
-> > > > > >  {
-> > > > > >  	unsigned int timeout = ip_set_get_h32(tb);
-> > > > > >  
-> > > > > > +	/* Normalize to fit into jiffies */
-> > > > > > +	if (timeout > UINT_MAX/1000)
-> > > > > > +		timeout = UINT_MAX/1000;
-> > > > > > +
-> > > > > 
-> > > > > Doesn't that rather assume that HZ is 1000 ?
-> > > > 
-> > > > Indeed. I overlooked that. Thanks David.
-> > > 
-> > > I dont think so.
-> > > 
-> > > 1000 here is really MSEC_PER_SEC
-> > > 
-> > > (All occurrences should be changed in this file)
-> > 
-> > Yes, exactly. Pablo, shall I produce a little patch or could you change 
-> > 1000 to MSEC_PER_SEC?
+> * One fix for possible timeout overflow for ipset, from Jozsef
+>   Kadlecsik.
 > 
-> New patch attached.
+> * One fix to ensure that hash size is correct, again for ipset
+>   from Jozsef Kadlecsik.
 > 
-> I have rebase my tree again.
+> * Removal of redundant include in xt_CT from Eldad Zack.
+> 
+> * Fix for wrong usage of MODULE_ALIAS_NFCT_HELPER in nf_ct_h323
+>   helper from myself.
 
-Thanks Pablo, indeed!
+I don't consider any of these appropriate this late in the -RC
+series.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+They don't fix major regressions seen by many users.
+
+And the duplicate header include is extremely out-of-scope and
+inappropriate.
+
+Sorry.
