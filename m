@@ -1,8 +1,7 @@
 From: Alban Crequy <alban.crequy@collabora.co.uk>
-Subject: [PATCH 6/6] netfilter: selinux: switch hook PFs to nfproto
-Date: Mon, 14 May 2012 14:56:39 +0100
-Message-ID: <1337003799-2517-6-git-send-email-alban.crequy@collabora.co.uk>
-References: <1337003799-2517-1-git-send-email-alban.crequy@collabora.co.uk>
+Subject: [PATCH] [RFC] netfilter: don't assume NFPROTO_* are like PF_*
+Date: Mon, 14 May 2012 14:58:29 +0100
+Message-ID: <1337003909-2582-1-git-send-email-alban.crequy@collabora.co.uk>
 Cc: Vincent Sanders <vincent.sanders@collabora.co.uk>,
 	Javier Martinez Canillas <javier.martinez@collabora.co.uk>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
@@ -10,66 +9,47 @@ Cc: Vincent Sanders <vincent.sanders@collabora.co.uk>,
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1337003799-2517-1-git-send-email-alban.crequy@collabora.co.uk>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-NFPROTO_* constants were usually equal to PF_* constants but it is not
-necessary and it will waste less memory if we don't do so (see commit 7e9c6e
-"netfilter: Introduce NFPROTO_* constants")
+With this patch, NFPROTO_* constants don't have the same values as PF_*
+constants.
+
+Benefit: it makes NFPROTO_NUMPROTO smaller and saves space as arrays are
+smaller.
+
+Issues: might have missed a conversion. I grepped NF_HOOK, nf_register_hook,
+nf_register_hooks, and xt_hook_link. So it is probably fine.
+
+NFPROTO_* constants were introduced by commit 7e9c6e.
 
 Signed-off-by: Alban Crequy <alban.crequy@collabora.co.uk>
 Reviewed-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 Reviewed-by: Vincent Sanders <vincent.sanders@collabora.co.uk>
 ---
- security/selinux/hooks.c |   10 +++++-----
+ include/linux/netfilter.h |   10 +++++-----
  1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-index d85b793..1ab4d6b 100644
---- a/security/selinux/hooks.c
-+++ b/security/selinux/hooks.c
-@@ -5776,21 +5776,21 @@ static struct nf_hook_ops selinux_ipv4_ops[] = {
- 	{
- 		.hook =		selinux_ipv4_postroute,
- 		.owner =	THIS_MODULE,
--		.pf =		PF_INET,
-+		.pf =		NFPROTO_IPV4,
- 		.hooknum =	NF_INET_POST_ROUTING,
- 		.priority =	NF_IP_PRI_SELINUX_LAST,
- 	},
- 	{
- 		.hook =		selinux_ipv4_forward,
- 		.owner =	THIS_MODULE,
--		.pf =		PF_INET,
-+		.pf =		NFPROTO_IPV4,
- 		.hooknum =	NF_INET_FORWARD,
- 		.priority =	NF_IP_PRI_SELINUX_FIRST,
- 	},
- 	{
- 		.hook =		selinux_ipv4_output,
- 		.owner =	THIS_MODULE,
--		.pf =		PF_INET,
-+		.pf =		NFPROTO_IPV4,
- 		.hooknum =	NF_INET_LOCAL_OUT,
- 		.priority =	NF_IP_PRI_SELINUX_FIRST,
- 	}
-@@ -5802,14 +5802,14 @@ static struct nf_hook_ops selinux_ipv6_ops[] = {
- 	{
- 		.hook =		selinux_ipv6_postroute,
- 		.owner =	THIS_MODULE,
--		.pf =		PF_INET6,
-+		.pf =		NFPROTO_IPV6,
- 		.hooknum =	NF_INET_POST_ROUTING,
- 		.priority =	NF_IP6_PRI_SELINUX_LAST,
- 	},
- 	{
- 		.hook =		selinux_ipv6_forward,
- 		.owner =	THIS_MODULE,
--		.pf =		PF_INET6,
-+		.pf =		NFPROTO_IPV6,
- 		.hooknum =	NF_INET_FORWARD,
- 		.priority =	NF_IP6_PRI_SELINUX_FIRST,
- 	}
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 29734be..89afadb 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -62,11 +62,11 @@ enum nf_inet_hooks {
+ 
+ enum {
+ 	NFPROTO_UNSPEC =  0,
+-	NFPROTO_IPV4   =  2,
+-	NFPROTO_ARP    =  3,
+-	NFPROTO_BRIDGE =  7,
+-	NFPROTO_IPV6   = 10,
+-	NFPROTO_DECNET = 12,
++	NFPROTO_IPV4,
++	NFPROTO_ARP,
++	NFPROTO_BRIDGE,
++	NFPROTO_IPV6,
++	NFPROTO_DECNET,
+ 	NFPROTO_NUMPROTO,
+ };
+ 
 -- 
 1.7.2.5
