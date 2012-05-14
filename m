@@ -1,27 +1,39 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter/xt_CT.c: remove redundant header include
-Date: Mon, 14 May 2012 10:25:04 +0200
-Message-ID: <20120514082504.GC9577@1984>
-References: <1336601016-19495-1-git-send-email-eldad@fogrefinery.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-To: Eldad Zack <eldad@fogrefinery.com>
+From: pablo@netfilter.org
+Subject: [PATCH] netfilter: nf_ct_h323: fix usage of MODULE_ALIAS_NFCT_HELPER
+Date: Mon, 14 May 2012 10:27:00 +0200
+Message-ID: <1336984020-2984-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39191 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39888 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754448Ab2ENIZM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 May 2012 04:25:12 -0400
-Content-Disposition: inline
-In-Reply-To: <1336601016-19495-1-git-send-email-eldad@fogrefinery.com>
+	id S1751313Ab2ENI1g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 May 2012 04:27:36 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 10, 2012 at 12:03:35AM +0200, Eldad Zack wrote:
-> nf_conntrack_l4proto.h is included twice.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Applied, thanks.
+ctnetlink uses the aliases that are created by MODULE_ALIAS_NFCT_HELPER
+to auto-load the module based on the helper name. Thus, we have to use
+RAS, Q.931 and H.245, not H.323.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_h323_main.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+index 722291f..b7bf187 100644
+--- a/net/netfilter/nf_conntrack_h323_main.c
++++ b/net/netfilter/nf_conntrack_h323_main.c
+@@ -1833,4 +1833,6 @@ MODULE_AUTHOR("Jing Min Zhao <zhaojingmin@users.sourceforge.net>");
+ MODULE_DESCRIPTION("H.323 connection tracking helper");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ip_conntrack_h323");
+-MODULE_ALIAS_NFCT_HELPER("h323");
++MODULE_ALIAS_NFCT_HELPER("RAS");
++MODULE_ALIAS_NFCT_HELPER("Q.931");
++MODULE_ALIAS_NFCT_HELPER("H.245");
+-- 
+1.7.10
+
