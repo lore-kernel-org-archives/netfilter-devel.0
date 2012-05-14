@@ -1,10 +1,13 @@
-From: Hans Schillstrom <hans.schillstrom@ericsson.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: [PATCH] netfilter: xt_HMARK: endian bugs
-Date: Mon, 14 May 2012 18:09:16 +0200
-Message-ID: <201205141809.18174.hans.schillstrom@ericsson.com>
-References: <1337002943-16374-1-git-send-email-hans.schillstrom@ericsson.com> <alpine.LNX.2.01.1205141702110.11548@frira.vanv.qr> <1337009079.8512.535.camel@edumazet-glaptop>
+Date: Mon, 14 May 2012 18:24:34 +0200
+Message-ID: <1337012674.8512.589.camel@edumazet-glaptop>
+References: <1337002943-16374-1-git-send-email-hans.schillstrom@ericsson.com>
+	 <alpine.LNX.2.01.1205141702110.11548@frira.vanv.qr>
+	 <1337009079.8512.535.camel@edumazet-glaptop>
+	 <201205141809.18174.hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Cc: Jan Engelhardt <jengelh@inai.de>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
@@ -14,55 +17,34 @@ Cc: Jan Engelhardt <jengelh@inai.de>,
 	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
 	"dan.carpenter@oracle.com" <dan.carpenter@oracle.com>,
 	"hans@schillstrom.com" <hans@schillstrom.com>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailgw1.ericsson.se ([193.180.251.45]:53181 "EHLO
-	mailgw1.ericsson.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755433Ab2ENQJV (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:50458 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756607Ab2ENQYk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 May 2012 12:09:21 -0400
-In-Reply-To: <1337009079.8512.535.camel@edumazet-glaptop>
-Content-Disposition: inline
+	Mon, 14 May 2012 12:24:40 -0400
+In-Reply-To: <201205141809.18174.hans.schillstrom@ericsson.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 14 May 2012 17:24:39 Eric Dumazet wrote:
-> On Mon, 2012-05-14 at 17:05 +0200, Jan Engelhardt wrote:
-> > On Monday 2012-05-14 16:40, Pablo Neira Ayuso wrote:
-> > 
-> > >> -		if (t->uports.p16.dst < t->uports.p16.src)
-> > >> +		if (ntohs(t->uports.p16.dst) < ntohs(t->uports.p16.src))
-> > >
-> > >Do we really need this to make sparse happy?
-> > 
-> > You need it to make *maths* happy.
-> > 
-> > Consider
-> > 
-> > 	384 < 65407
-> > 
-> > but
-> > 
-> > 	    ntohs(384) > ntohs(65407)
-> > 	<=> 32769 > 32767
-> > --
-> 
-> Doesnt matter at all in this context.
+On Mon, 2012-05-14 at 18:09 +0200, Hans Schillstrom wrote:
 
-This context can contain both le & be machines,
-so at least in hmark it make sense
+> This context can contain both le & be machines,
+> so at least in hmark it make sense
 
-> Take a look at 
-> 
-> void __skb_get_rxhash(struct sk_buff *skb)
-> 
-> if ((__force u16)keys.port16[1] < (__force u16)keys.port16[0])
-> 	swap(...)
-> 
-> 
+Before jhash() and its shuffle ? What do you mean ?
+
+Please respin your patch using (__force u16/u32) instead of
+useless/expensive ntohs() / ntohl() (in _this_ context of hashing)
+
+If you compare two 32bits values, of course they must have same
+ordering, but seeding jhash() is another matter.
+
+(Granted all calls use the same ordering of course)
+
+sparse is great tool, but if you add useless ntohl() calls to make
+sparse silent, then its probably better to not use sparse.
 
 
 
--- 
-Regards
-Hans Schillstrom <hans.schillstrom@ericsson.com>
