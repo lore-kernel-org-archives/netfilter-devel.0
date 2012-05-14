@@ -1,30 +1,99 @@
-From: "Tomm Frank" <ABEHRENS49@AOL.COM>
-Subject: WAIT YOUR URGENT REPLY
-Date: Mon, 14 May 2012 09:17:34 +0100
-Message-ID: <201205140818.q4E8Ij5c008989@ims-m11.mx.aol.com>
-Reply-To: <femi-ajayi360@live.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/5] netfilter updates for net-next (upcoming 3.5),
+ batch 2
+Date: Mon, 14 May 2012 10:21:31 +0200
+Message-ID: <20120514082131.GA9524@1984>
+References: <1336563188-6720-1-git-send-email-pablo@netfilter.org>
+ <20120509.181119.549113304045405166.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)
+Content-Type: multipart/mixed; boundary="+HP7ph2BbKc20aGI"
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ims-m11.mx.aol.com ([64.12.207.144]:64691 "EHLO
-	ims-m11.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754264Ab2ENISq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 May 2012 04:18:46 -0400
+Received: from mail.us.es ([193.147.175.20]:38086 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753336Ab2ENIVf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 May 2012 04:21:35 -0400
+Content-Disposition: inline
+In-Reply-To: <20120509.181119.549113304045405166.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am really sorry i wrote so late about my inquiry i actually traveled to china to meet with some suppliers and i just came back into town few days ago. I was able to meet with some companies and also got to see what they have for me but i was surprised because the prices are much.
+
+--+HP7ph2BbKc20aGI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Wed, May 09, 2012 at 06:11:19PM -0400, David Miller wrote:
+> From: pablo@netfilter.org
+> Date: Wed,  9 May 2012 13:33:03 +0200
+> 
+> > This is a second batch of netfilter updates for net-next, they contain:
+> > 
+> > * The new HMARK target from Hans Schillstrom. It took lots of spins
+> >   to get this into shape. This target provides a hash-based packet / flow
+> >   pre-classifier for iptables that can be used to distribute packets
+> >   / flows between uplinks and backend servers. It provides to modes, one
+> >   that relies on conntrack, and one that is stateless per-packet.
+> > 
+> > * Byte-based cost calculation for the hashlimit match, to detect when
+> >   a host consumes more bandwidth than expected. This patch from Florian
+> >   Westphal.
+> > 
+> > You can pull these changes from:
+> > 
+> > git://1984.lsi.us.es/net-next
+> 
+> Pulled.
+> 
+> Two suggested improvements:
+> 
+> 1) The HMARK hash is quite expensive, because it uses a modulus.
+> 
+>    Consider adjusting it to use the usual trick:
+> 
+> 	((u64)(HASH_VAL * HASH_SIZE)) >> 32
+> 
+>    so that this can be a multiply instead of a modulus.
+
+I'll enqueue the patch attached for this. Thanks for spotting this.
+
+--+HP7ph2BbKc20aGI
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0001-netfilter-xt_HMARK-modulus-is-expensive-for-hash-cal.patch"
+
+>From 3b81af711d639cdcf820836bad6b4ac0f5a761fa Mon Sep 17 00:00:00 2001
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon, 14 May 2012 02:01:46 +0200
+Subject: [PATCH] netfilter: xt_HMARK: modulus is expensive for hash
+ calculation
+
+Use:
+
+((u64)(HASH_VAL * HASH_SIZE)) >> 32
+
+as suggested by David S. Miller.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/xt_HMARK.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/xt_HMARK.c b/net/netfilter/xt_HMARK.c
+index 5817d03..0a96a43 100644
+--- a/net/netfilter/xt_HMARK.c
++++ b/net/netfilter/xt_HMARK.c
+@@ -109,7 +109,7 @@ hmark_hash(struct hmark_tuple *t, const struct xt_hmark_info *info)
+ 	hash = jhash_3words(t->src, t->dst, t->uports.v32, info->hashrnd);
+ 	hash = hash ^ (t->proto & info->proto_mask);
+ 
+-	return (hash % info->hmodulus) + info->hoffset;
++	return (((u64)hash * info->hmodulus) >> 32) + info->hoffset;
+ }
+ 
+ static void
+-- 
+1.7.10
 
 
-We saw a similar product on Alibaba Shopping/Business page so please confirm to us if you/your company can make provision of the exact product as shown on Alibaba Shopping/Business page which you can view by clicking the link below and login with you email address together with your password to download the attachment page to view the product. 
-
-Bellow is the link.
-
-http://sollanicsltd.ucoz.com/plasltd.html
-
-
-We will await your response with details, date of delivery and send quotation for large qty urgently prize and quantity that can be made available.
+--+HP7ph2BbKc20aGI--
