@@ -1,70 +1,92 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [patch] netfilter: potential NULL dereference in get_inner_hdr()
-Date: Mon, 14 May 2012 11:39:12 +0300
-Message-ID: <20120514083912.GB16999@mwanda>
-References: <20120512110003.GB19472@elgon.mountain>
- <201205140936.56960.hans.schillstrom@ericsson.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH]iptables-save: fix don't show counters by default
+Date: Mon, 14 May 2012 10:39:25 +0200
+Message-ID: <20120514083925.GE9577@1984>
+References: <4FAB8D11.4040704@parrot.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netfilter@vger.kernel.org" <netfilter@vger.kernel.org>,
-	"coreteam@netfilter.org" <coreteam@netfilter.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
-To: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Nicolas CARRIER <nicolas.carrier.ext@parrot.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:21002 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753685Ab2ENIf6 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 May 2012 04:35:58 -0400
+Received: from mail.us.es ([193.147.175.20]:44271 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754331Ab2ENIj1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 May 2012 04:39:27 -0400
 Content-Disposition: inline
-In-Reply-To: <201205140936.56960.hans.schillstrom@ericsson.com>
+In-Reply-To: <4FAB8D11.4040704@parrot.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, May 14, 2012 at 09:36:55AM +0200, Hans Schillstrom wrote:
-> On Saturday 12 May 2012 13:00:03 Dan Carpenter wrote:
-> > There is a typo in the error checking and "&&" was used instead of "||".
-> > If skb_header_pointer() returns NULL then it leads to a NULL
-> > dereference.
-> > 
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> Ack-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
+Hi Nicolas,
+
+On Thu, May 10, 2012 at 11:40:33AM +0200, Nicolas CARRIER wrote:
+> When one issue an iptables-save command, counters are always shown in front of policies, which doesn't seem to be the desired result.
+> The attached patch tries to fix this. It uses the global show_counters flag to decide if counters will be shown.
+
+This changes the behaviour of default iptables-save (that has been to
+include the global counters by default for years).
+
+I don't want to break backward compatibility. People expect to get
+them without the -c option.
+
+> -- 
+> Nicolas CARRIER - Parrot France - Software Engineer
+
+> From 8ccc08a6b0fde5544145f6831b7f80d1bf8bbdf0 Mon Sep 17 00:00:00 2001
+> From: Nicolas CARRIER <nicolas.carrier.ext@parrot.com>
+> Date: Thu, 10 May 2012 11:25:53 +0200
+> Subject: [PATCH] iptables-save: fix don't show counters by default
+> 
+> ---
+>  iptables/ip6tables-save.c |    9 ++++++---
+>  iptables/iptables-save.c  |    9 ++++++---
+>  2 files changed, 12 insertions(+), 6 deletions(-)
+> 
+> diff --git a/iptables/ip6tables-save.c b/iptables/ip6tables-save.c
+> index d819b30..4e7e4e8 100644
+> --- a/iptables/ip6tables-save.c
+> +++ b/iptables/ip6tables-save.c
+> @@ -90,11 +90,14 @@ static int do_output(const char *tablename)
+>  		printf(":%s ", chain);
+>  		if (ip6tc_builtin(chain, h)) {
+>  			struct xt_counters count;
+> -			printf("%s ",
+> +			printf("%s",
+>  			       ip6tc_get_policy(chain, &count, h));
+> -			printf("[%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned long long)count.bcnt);
+> +			if (show_counters)
+> +				printf(" [%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned long long)count.bcnt);
+> +			else
+> +				printf("\n");
+>  		} else {
+> -			printf("- [0:0]\n");
+> +			printf("-%s\n", show_counters ? " [0:0]" : "");
+>  		}
+>  	}
 >  
-> > ---
-> > Btw, this is new code and Sparse complains about endian bugs.
+> diff --git a/iptables/iptables-save.c b/iptables/iptables-save.c
+> index e599fce..6322c51 100644
+> --- a/iptables/iptables-save.c
+> +++ b/iptables/iptables-save.c
+> @@ -88,11 +88,14 @@ static int do_output(const char *tablename)
+>  		printf(":%s ", chain);
+>  		if (iptc_builtin(chain, h)) {
+>  			struct xt_counters count;
+> -			printf("%s ",
+> +			printf("%s",
+>  			       iptc_get_policy(chain, &count, h));
+> -			printf("[%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned long long)count.bcnt);
+> +			if (show_counters)
+> +				printf(" [%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned long long)count.bcnt);
+> +			else
+> +				printf("\n");
+>  		} else {
+> -			printf("- [0:0]\n");
+> +			printf("-%s\n", show_counters ? " [0:0]" : "");
+>  		}
+>  	}
+>  
+> -- 
+> 1.7.10
 > 
-> Can you give me some hints here, arch , compiler version etc.
-> I guess it was input to hmark_addr_mask() that complains ?
-> 
-
-Yes.  That was one of the warnings.
-
-http://lwn.net/Articles/205624/
-
-net/netfilter/xt_HMARK.c:87:35: warning: incorrect type in assignment (different base types)
-net/netfilter/xt_HMARK.c:87:35:    expected unsigned short [unsigned] [usertype] src
-net/netfilter/xt_HMARK.c:87:35:    got restricted __be16 [usertype] all
-net/netfilter/xt_HMARK.c:88:35: warning: incorrect type in assignment (different base types)
-net/netfilter/xt_HMARK.c:88:35:    expected unsigned short [unsigned] [usertype] dst
-net/netfilter/xt_HMARK.c:88:35:    got restricted __be16 [usertype] all
-net/netfilter/xt_HMARK.c:181:35: warning: incorrect type in argument 1 (different base types)
-net/netfilter/xt_HMARK.c:181:35:    expected unsigned int const [usertype] *addr32
-net/netfilter/xt_HMARK.c:181:35:    got restricted __be32 *<noident>
-net/netfilter/xt_HMARK.c:182:35: warning: incorrect type in argument 1 (different base types)
-net/netfilter/xt_HMARK.c:182:35:    expected unsigned int const [usertype] *addr32
-net/netfilter/xt_HMARK.c:182:35:    got restricted __be32 *<noident>
-net/netfilter/xt_HMARK.c:261:16: warning: invalid assignment: &=
-net/netfilter/xt_HMARK.c:261:16:    left side has type unsigned int
-net/netfilter/xt_HMARK.c:261:16:    right side has type restricted __be32
-net/netfilter/xt_HMARK.c:262:16: warning: invalid assignment: &=
-net/netfilter/xt_HMARK.c:262:16:    left side has type unsigned int
-net/netfilter/xt_HMARK.c:262:16:    right side has type restricted __be32
-
-regards,
-dan carpenter
 
