@@ -1,27 +1,70 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] libxt_hashlimit: add support for byte-based operation
-Date: Mon, 14 May 2012 10:33:50 +0200
-Message-ID: <20120514083350.GD9577@1984>
-References: <1336483012-12169-1-git-send-email-fw@strlen.de>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [patch] netfilter: potential NULL dereference in get_inner_hdr()
+Date: Mon, 14 May 2012 11:39:12 +0300
+Message-ID: <20120514083912.GB16999@mwanda>
+References: <20120512110003.GB19472@elgon.mountain>
+ <201205140936.56960.hans.schillstrom@ericsson.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netfilter@vger.kernel.org" <netfilter@vger.kernel.org>,
+	"coreteam@netfilter.org" <coreteam@netfilter.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
+To: Hans Schillstrom <hans.schillstrom@ericsson.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42239 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751027Ab2ENIed (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 May 2012 04:34:33 -0400
+Received: from acsinet15.oracle.com ([141.146.126.227]:21002 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753685Ab2ENIf6 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 May 2012 04:35:58 -0400
 Content-Disposition: inline
-In-Reply-To: <1336483012-12169-1-git-send-email-fw@strlen.de>
+In-Reply-To: <201205140936.56960.hans.schillstrom@ericsson.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 08, 2012 at 03:16:52PM +0200, Florian Westphal wrote:
-> allows --hashlimit-(upto|above) Xb/s [ --hashlimit-burst Yb ]
-> to make hashlimit match when X bytes/second are exceeded;
-> optionally, Y bytes will not be matched (i.e. bursted).
+On Mon, May 14, 2012 at 09:36:55AM +0200, Hans Schillstrom wrote:
+> On Saturday 12 May 2012 13:00:03 Dan Carpenter wrote:
+> > There is a typo in the error checking and "&&" was used instead of "||".
+> > If skb_header_pointer() returns NULL then it leads to a NULL
+> > dereference.
+> > 
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> Ack-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
+>  
+> > ---
+> > Btw, this is new code and Sparse complains about endian bugs.
+> 
+> Can you give me some hints here, arch , compiler version etc.
+> I guess it was input to hmark_addr_mask() that complains ?
+> 
 
-I have put this in a branch (see iptables git tree).
+Yes.  That was one of the warnings.
 
-I'll merge it once we reach with 3.5-rc1.
+http://lwn.net/Articles/205624/
+
+net/netfilter/xt_HMARK.c:87:35: warning: incorrect type in assignment (different base types)
+net/netfilter/xt_HMARK.c:87:35:    expected unsigned short [unsigned] [usertype] src
+net/netfilter/xt_HMARK.c:87:35:    got restricted __be16 [usertype] all
+net/netfilter/xt_HMARK.c:88:35: warning: incorrect type in assignment (different base types)
+net/netfilter/xt_HMARK.c:88:35:    expected unsigned short [unsigned] [usertype] dst
+net/netfilter/xt_HMARK.c:88:35:    got restricted __be16 [usertype] all
+net/netfilter/xt_HMARK.c:181:35: warning: incorrect type in argument 1 (different base types)
+net/netfilter/xt_HMARK.c:181:35:    expected unsigned int const [usertype] *addr32
+net/netfilter/xt_HMARK.c:181:35:    got restricted __be32 *<noident>
+net/netfilter/xt_HMARK.c:182:35: warning: incorrect type in argument 1 (different base types)
+net/netfilter/xt_HMARK.c:182:35:    expected unsigned int const [usertype] *addr32
+net/netfilter/xt_HMARK.c:182:35:    got restricted __be32 *<noident>
+net/netfilter/xt_HMARK.c:261:16: warning: invalid assignment: &=
+net/netfilter/xt_HMARK.c:261:16:    left side has type unsigned int
+net/netfilter/xt_HMARK.c:261:16:    right side has type restricted __be32
+net/netfilter/xt_HMARK.c:262:16: warning: invalid assignment: &=
+net/netfilter/xt_HMARK.c:262:16:    left side has type unsigned int
+net/netfilter/xt_HMARK.c:262:16:    right side has type restricted __be32
+
+regards,
+dan carpenter
+
