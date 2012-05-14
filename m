@@ -1,48 +1,51 @@
-From: Devendra Naga <devendra.aaru@gmail.com>
-Subject: [PATCH] net/bridge/netfilter: Fix the randconfig warning
-Date: Tue, 15 May 2012 01:00:17 +0530
-Message-ID: <1337023817-26132-1-git-send-email-devendra.aaru@gmail.com>
-Cc: Devendra Naga <devendra.aaru@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, bridge@lists.linux-foundation.org,
-	netdev@vger.kernel.org
+From: "Hans Schillstrom" <hans@schillstrom.com>
+Subject: Re[2]:  [PATCH] netfilter: xt_HMARK: endian bugs
+Date: Mon, 14 May 2012 21:32:35 +0200 (CEST)
+Message-ID: <dri38gk.79a7b56a47f5dacef2458a1ca42c6deb@obelix.schillstrom.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Cc: "Pablo Neira Ayuso" <pablo@netfilter.org>,
+	"Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>,
+	"Hans Schillstrom" <hans.schillstrom@ericsson.com>,
+	"Jan Engelhardt" <jengelh@inai.de>,
+	"kaber@trash.net" <kaber@trash.net>,
+	"jengelh@medozas.de" <jengelh@medozas.de>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"dan.carpenter@oracle.com" <dan.carpenter@oracle.com>
+To: "Eric Dumazet" <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:44432 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757581Ab2ENTa1 (ORCPT
+Received: from smtp-gw11.han.skanova.net ([81.236.55.20]:37827 "EHLO
+	smtp-gw11.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756803Ab2ENTcm convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 May 2012 15:30:27 -0400
+	Mon, 14 May 2012 15:32:42 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-when ran with make randconfig got
 
-warning: (BRIDGE_NF_EBTABLES) selects NETFILTER_XTABLES which has unmet direct dependencies (NET && INET && NETFILTER)
 
-added NET && INET && NETFILTER dependency to the BRIDGE_NF_EBTABLES
 
-Signed-off-by: Devendra Naga <devendra.aaru@gmail.com>
----
- net/bridge/netfilter/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+>---- Original Message ----
+>From: Eric Dumazet <eric.dumazet@gmail.com>
+>To: "Pablo Neira Ayuso" <pablo@netfilter.org>
+>Cc: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>, "Hans Schillstrom" <hans.schillstrom@ericsson.com>, "Jan Engelhardt" <jengelh@inai.de>, "kaber@trash.net" <kaber@trash.net>, "jengelh@medozas.de" <jengelh@medozas.de>, "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "dan.carpenter@oracle.com" <dan.carpenter@oracle.com>, "hans@schillstrom.com" <hans@schillstrom.com>
+>Sent: Mon, May 14, 2012, 9:14 PM
+>Subject: Re: [PATCH] netfilter: xt_HMARK: endian bugs
+>
+>On Mon, 2012-05-14 at 21:02 +0200, Pablo Neira Ayuso wrote:
+>
+>> IIRC, Hans wants that, in case you have a cluster composed of system
+>> with different endianess, the hash mark calculated will be the same
+>> in both systems. To ensure that the distribution is consistent with
+>> independency of the endianess.
+>
+>Then jhash() must be audited to make sure its output is OK with this
+>requirement.
 
-diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
-index a9aff9c..34f6d9d 100644
---- a/net/bridge/netfilter/Kconfig
-+++ b/net/bridge/netfilter/Kconfig
-@@ -4,7 +4,7 @@
+I'm preparing test on mips & ppc right now to verify that as a first step.
+
  
- menuconfig BRIDGE_NF_EBTABLES
- 	tristate "Ethernet Bridge tables (ebtables) support"
--	depends on BRIDGE && NETFILTER
-+	depends on NET && INET && BRIDGE && NETFILTER
- 	select NETFILTER_XTABLES
- 	help
- 	  ebtables is a general, extensible frame/packet identification
--- 
-1.7.9.5
 
