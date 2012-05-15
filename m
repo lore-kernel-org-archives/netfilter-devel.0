@@ -1,35 +1,43 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [ipset] fix typo in libipset
-Date: Tue, 15 May 2012 15:28:24 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1205151528010.29922@blackhole.kfki.hu>
-References: <CAMQP0sk3Axqfh_4i1qBm-X48KpZYyOg+hVaCiO=EeGvSqFkAbQ@mail.gmail.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [RFC net-next 0/2] net: Use net_<level>_ratelimit
+Date: Tue, 15 May 2012 13:45:31 -0400 (EDT)
+Message-ID: <20120515.134531.530903973750646107.davem@davemloft.net>
+References: <cover.1336981915.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Neutron Soutmun <neo.neutron@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:54487 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752409Ab2EON20 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 May 2012 09:28:26 -0400
-In-Reply-To: <CAMQP0sk3Axqfh_4i1qBm-X48KpZYyOg+hVaCiO=EeGvSqFkAbQ@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
+	netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-decnet-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
+	linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <cover.1336981915.git.joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+	<mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+	<mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Sender: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 14 May 2012, Neutron Soutmun wrote:
+From: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Date: Mon, 14 May 2012 00:56:24 -0700
 
-> During the preparation of the ipset Debian package, the "lintian" -
-> Static analysis tool for Debian packages, has warned me that
-> there are some typos in the libipset.
+> net_ratelimit() like __ratelimit() is too easy to misuse.
 > 
-> Therefore, the attached patch is for those typo fix.
+> Add simplifying macros similar to pr_<level>_ratelimited
+> that combines the test of net_ratelimit and logging.
+> 
+> Joe Perches (2):
+>   net: Add net_ratelimited_function and net_<level>_ratelimited macros
+>   net: Convert net_ratelimit uses to net_<level>_ratelimited
 
-Thanks, patch applied in git.
+These look fine to me so I've applied them to net-next and am
+sanity checking the build right now.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Thanks Joe.
