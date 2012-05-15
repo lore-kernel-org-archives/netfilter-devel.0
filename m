@@ -1,60 +1,35 @@
-From: Alban Crequy <alban.crequy@collabora.co.uk>
-Subject: [PATCH v3 1/6] netfilter: sanity checks on NFPROTO_NUMPROTO
-Date: Tue, 15 May 2012 13:32:51 +0100
-Message-ID: <1337085171-1907-1-git-send-email-alban.crequy@collabora.co.uk>
-References: <20120514190416.GD14897@1984>
-Cc: Alban Crequy <alban.crequy@collabora.co.uk>,
-	Javier Martinez Canillas <javier.martinez@collabora.co.uk>,
-	Vincent Sanders <vincent.sanders@collabora.co.uk>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [ipset] fix typo in libipset
+Date: Tue, 15 May 2012 15:28:24 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1205151528010.29922@blackhole.kfki.hu>
+References: <CAMQP0sk3Axqfh_4i1qBm-X48KpZYyOg+hVaCiO=EeGvSqFkAbQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Neutron Soutmun <neo.neutron@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:50230 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758666Ab2EOMdW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 May 2012 08:33:22 -0400
-In-Reply-To: <20120514190416.GD14897@1984>
+Received: from smtp0.kfki.hu ([148.6.0.25]:54487 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752409Ab2EON20 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 May 2012 09:28:26 -0400
+In-Reply-To: <CAMQP0sk3Axqfh_4i1qBm-X48KpZYyOg+hVaCiO=EeGvSqFkAbQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-With the NFPROTO_* constants introduced by commit 7e9c6e ("netfilter: Introduce
-NFPROTO_* constants"), it is too easy to confuse PF_* and NFPROTO_* constants
-in new protocols.
+On Mon, 14 May 2012, Neutron Soutmun wrote:
 
-Signed-off-by: Alban Crequy <alban.crequy@collabora.co.uk>
----
-v2:
- - use WARN
- - return -EINVAL
-v3:
- - two checkings
+> During the preparation of the ipset Debian package, the "lintian" -
+> Static analysis tool for Debian packages, has warned me that
+> there are some typos in the libipset.
+> 
+> Therefore, the attached patch is for those typo fix.
 
- net/netfilter/core.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+Thanks, patch applied in git.
 
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index e1b7e05..448b531 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -67,6 +67,16 @@ int nf_register_hook(struct nf_hook_ops *reg)
- 	struct nf_hook_ops *elem;
- 	int err;
- 
-+	if (reg->pf >= NFPROTO_NUMPROTO) {
-+		WARN(1, "netfilter: Invalid nfproto %d\n", reg->pf);
-+		return -EINVAL;
-+	}
-+
-+	if (reg->hooknum >= NF_MAX_HOOKS) {
-+		WARN(1, "netfilter: Invalid hooknum %d\n", reg->hooknum);
-+		return -EINVAL;
-+	}
-+
- 	err = mutex_lock_interruptible(&nf_hook_mutex);
- 	if (err < 0)
- 		return err;
--- 
-1.7.2.5
-
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
