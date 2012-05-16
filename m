@@ -1,49 +1,49 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: David Miller <davem@davemloft.net>
 Subject: Re: [PATCH 0/4] netfilter fixes for 3.4-rc7
-Date: Wed, 16 May 2012 21:34:55 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1205162130090.2742@blackhole.kfki.hu>
-References: <1336996023-20249-1-git-send-email-pablo@netfilter.org> <20120514.185607.1967456974676336550.davem@davemloft.net> <alpine.DEB.2.00.1205162037110.2742@blackhole.kfki.hu> <20120516.151836.786389543745557157.davem@davemloft.net>
+Date: Wed, 16 May 2012 15:39:13 -0400 (EDT)
+Message-ID: <20120516.153913.686915759183202821.davem@davemloft.net>
+References: <alpine.DEB.2.00.1205162037110.2742@blackhole.kfki.hu>
+	<20120516.151836.786389543745557157.davem@davemloft.net>
+	<alpine.DEB.2.00.1205162130090.2742@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
 	netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+To: kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:50855 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932760Ab2EPTe5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 May 2012 15:34:57 -0400
-In-Reply-To: <20120516.151836.786389543745557157.davem@davemloft.net>
+Received: from shards.monkeyblade.net ([198.137.202.13]:52829 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756036Ab2EPTmV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 May 2012 15:42:21 -0400
+In-Reply-To: <alpine.DEB.2.00.1205162130090.2742@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 16 May 2012, David Miller wrote:
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Date: Wed, 16 May 2012 21:34:55 +0200 (CEST)
 
-> > Could at least the patch with the subject
-> > 
-> >    netfilter: ipset: fix hash size checking in kernel
-> > 
-> >    The hash size must fit both into u32 (jhash) and the max value of
-> >    size_t. The missing checking could lead to kernel crash, bug reported
-> >    by Seblu.
-> > 
-> > be submitted into 3.4-rc7? Any non most-recent ipset package compiled with 
-> > gcc-4.7 or above can trigger the bug.
+> On Wed, 16 May 2012, David Miller wrote:
 > 
-> And only root can trigger it if he gives bogus parameters right?
+>> > Could at least the patch with the subject
+>> > 
+>> >    netfilter: ipset: fix hash size checking in kernel
+>> > 
+>> >    The hash size must fit both into u32 (jhash) and the max value of
+>> >    size_t. The missing checking could lead to kernel crash, bug reported
+>> >    by Seblu.
+>> > 
+>> > be submitted into 3.4-rc7? Any non most-recent ipset package compiled with 
+>> > gcc-4.7 or above can trigger the bug.
+>> 
+>> And only root can trigger it if he gives bogus parameters right?
+> 
+> Yes, root can trigger it only, however it's a two sided bug: ipset < 6.12 
+> compiled with gcc >= 4.7 is broken and sends bogus data to the kernel, 
+> even when normal input parameters are supplied. And unpatched kernel can 
+> crash when acting on the bogus data. :-(
 
-Yes, root can trigger it only, however it's a two sided bug: ipset < 6.12 
-compiled with gcc >= 4.7 is broken and sends bogus data to the kernel, 
-even when normal input parameters are supplied. And unpatched kernel can 
-crash when acting on the bogus data. :-(
- 
-> If that's the case, the exposure is to privileged users committing an
-> operator error, so I don't see it as so important.
+Ok, that's a more convincing argument.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+I've applied the hash size validation patch to 'net'.
