@@ -1,58 +1,68 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 0/4] netfilter fixes for 3.4-rc7
-Date: Wed, 16 May 2012 21:48:40 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1205162145520.2742@blackhole.kfki.hu>
-References: <alpine.DEB.2.00.1205162037110.2742@blackhole.kfki.hu> <20120516.151836.786389543745557157.davem@davemloft.net> <alpine.DEB.2.00.1205162130090.2742@blackhole.kfki.hu> <20120516.153913.686915759183202821.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+From: pablo@netfilter.org
+Subject: [PATCH 1/7] netfilter: xt_hashlimit: use _ALL macro to reject unknown flag bits
+Date: Thu, 17 May 2012 01:06:38 +0200
+Message-ID: <1337209604-3412-2-git-send-email-pablo@netfilter.org>
+References: <1337209604-3412-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:38854 "EHLO smtp2.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:39153 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964842Ab2EPTsm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 May 2012 15:48:42 -0400
-In-Reply-To: <20120516.153913.686915759183202821.davem@davemloft.net>
+	id S1760723Ab2EPXHV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 May 2012 19:07:21 -0400
+In-Reply-To: <1337209604-3412-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 16 May 2012, David Miller wrote:
+From: Florian Westphal <fw@strlen.de>
 
-> From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> Date: Wed, 16 May 2012 21:34:55 +0200 (CEST)
-> 
-> > On Wed, 16 May 2012, David Miller wrote:
-> > 
-> >> > Could at least the patch with the subject
-> >> > 
-> >> >    netfilter: ipset: fix hash size checking in kernel
-> >> > 
-> >> >    The hash size must fit both into u32 (jhash) and the max value of
-> >> >    size_t. The missing checking could lead to kernel crash, bug reported
-> >> >    by Seblu.
-> >> > 
-> >> > be submitted into 3.4-rc7? Any non most-recent ipset package compiled with 
-> >> > gcc-4.7 or above can trigger the bug.
-> >> 
-> >> And only root can trigger it if he gives bogus parameters right?
-> > 
-> > Yes, root can trigger it only, however it's a two sided bug: ipset < 6.12 
-> > compiled with gcc >= 4.7 is broken and sends bogus data to the kernel, 
-> > even when normal input parameters are supplied. And unpatched kernel can 
-> > crash when acting on the bogus data. :-(
-> 
-> Ok, that's a more convincing argument.
-> 
-> I've applied the hash size validation patch to 'net'.
+David Miller says:
+     The canonical way to validate if the set bits are in a valid
+     range is to have a "_ALL" macro, and test:
+     if (val & ~XT_HASHLIMIT_ALL)
+         goto err;"
 
-Thank you indeed - I received multiple reports of the crash, so the 
-conditions are not uncommon.
+make it so.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/linux/netfilter/xt_hashlimit.h |    6 ++++--
+ net/netfilter/xt_hashlimit.c           |    2 +-
+ 2 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/include/linux/netfilter/xt_hashlimit.h b/include/linux/netfilter/xt_hashlimit.h
+index 05fe799..c42e52f 100644
+--- a/include/linux/netfilter/xt_hashlimit.h
++++ b/include/linux/netfilter/xt_hashlimit.h
+@@ -22,10 +22,12 @@ enum {
+ 	XT_HASHLIMIT_HASH_SPT = 1 << 3,
+ 	XT_HASHLIMIT_INVERT   = 1 << 4,
+ 	XT_HASHLIMIT_BYTES    = 1 << 5,
++};
+ #ifdef __KERNEL__
+-	XT_HASHLIMIT_MAX      = 1 << 6,
++#define XT_HASHLIMIT_ALL (XT_HASHLIMIT_HASH_DIP | XT_HASHLIMIT_HASH_DPT | \
++			  XT_HASHLIMIT_HASH_SIP | XT_HASHLIMIT_HASH_SPT | \
++			  XT_HASHLIMIT_INVERT | XT_HASHLIMIT_BYTES)
+ #endif
+-};
+ 
+ struct hashlimit_cfg {
+ 	__u32 mode;	  /* bitmask of XT_HASHLIMIT_HASH_* */
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 5d5af1d..26a668a 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -647,7 +647,7 @@ static int hashlimit_mt_check(const struct xt_mtchk_param *par)
+ 			return -EINVAL;
+ 	}
+ 
+-	if (info->cfg.mode >= XT_HASHLIMIT_MAX) {
++	if (info->cfg.mode & ~XT_HASHLIMIT_ALL) {
+ 		pr_info("Unknown mode mask %X, kernel too old?\n",
+ 						info->cfg.mode);
+ 		return -EINVAL;
+-- 
+1.7.10
+
