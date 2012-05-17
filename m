@@ -1,40 +1,36 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/7] netfilter updates for net-next (batch 3)
-Date: Wed, 16 May 2012 20:00:29 -0400 (EDT)
-Message-ID: <20120516.200029.92801957434659335.davem@davemloft.net>
-References: <1337209604-3412-1-git-send-email-pablo@netfilter.org>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: [Bridge] [PATCH] net/bridge/netfilter: Fix the randconfig warning
+Date: Thu, 17 May 2012 09:21:41 +0200
+Message-ID: <4FB4A705.6040906@pandora.be>
+References: <1337023817-26132-1-git-send-email-devendra.aaru@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:54666 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751613Ab2EQABe (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 May 2012 20:01:34 -0400
-In-Reply-To: <1337209604-3412-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, bridge@lists.linux-foundation.org,
+	netdev@vger.kernel.org
+To: Devendra Naga <devendra.aaru@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1337023817-26132-1-git-send-email-devendra.aaru@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: pablo@netfilter.org
-Date: Thu, 17 May 2012 01:06:37 +0200
+Op 14/05/2012 21:30, Devendra Naga schreef:
+> when ran with make randconfig got
+>
+> warning: (BRIDGE_NF_EBTABLES) selects NETFILTER_XTABLES which has unmet direct dependencies (NET&&  INET&&  NETFILTER)
+>
+> added NET&&  INET&&  NETFILTER dependency to the BRIDGE_NF_EBTABLES
 
-> The following patchset contains small updates for net-next, more relevantly:
-> 
-> * One fix for potential NULL dereference in xt_HMARK by Dan Carpenter.
-> 
-> * Conversion to use _ALL macro in xt_hashlimit as you suggested by
->   Florian Westphal.
-> 
-> * One fix for timeout overflow from Jozsef Kadlecsik.
-> 
-> * Replace usage of modulus for hash calculation in xt_HMARK as you suggested
->   from myself.
-> 
-> You can pull these changes from:
-> 
-> git://1984.lsi.us.es/net-next master
+I really don't see why ebtables should depend on INET. To me the issue 
+lies in the fact that xtables depends on INET.
 
-Pulled, thanks a lot!
+Bart
+
+-- 
+Bart De Schuymer
+www.artinalgorithms.be
