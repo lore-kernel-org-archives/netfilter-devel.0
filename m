@@ -1,72 +1,44 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 2/2] tests: add rateest match rules
-Date: Thu, 17 May 2012 13:03:09 +0200
-Message-ID: <1337252589-1363-2-git-send-email-fw@strlen.de>
-References: <1337252589-1363-1-git-send-email-fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 3/7] netfilter: xt_HMARK: modulus is expensive for hash
+ calculation
+Date: Thu, 17 May 2012 16:55:50 +0200
+Message-ID: <20120517145550.GA6501@1984>
+References: <AE90C24D6B3A694183C094C60CF0A2F6026B6F10@saturn3.aculab.com>
+ <1337243968.3403.3.camel@edumazet-glaptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: David Laight <David.Laight@ACULAB.COM>,
+	netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:46589 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761607Ab2EQLDx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 May 2012 07:03:53 -0400
-In-Reply-To: <1337252589-1363-1-git-send-email-fw@strlen.de>
+Received: from mail.us.es ([193.147.175.20]:44572 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966647Ab2EQOz5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 May 2012 10:55:57 -0400
+Content-Disposition: inline
+In-Reply-To: <1337243968.3403.3.camel@edumazet-glaptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-also, -p mobility gets us EINVAL from kernel, use -p ipv6-mh instead.
+On Thu, May 17, 2012 at 10:39:28AM +0200, Eric Dumazet wrote:
+> On Thu, 2012-05-17 at 09:16 +0100, David Laight wrote:
+> > > From: Pablo Neira Ayuso <pablo@netfilter.org>
+> > > 
+> > > Use:
+> > > 
+> > > ((u64)(HASH_VAL * HASH_SIZE)) >> 32
+> > > 
+> > > as suggested by David S. Miller.
+> > 
+> > That (u64) cast is very unlikely to have any effect.
+> > If you want a 64 bit result from the product of two
+> > 32 bit values, you have to cast one of the 32 bit values
+> > prior to the multiply - as in the patch below.
+> 
+> Hey, Changelog is a bit wrong (for several reasons) but code is correct.
+> 
+> return (((u64)hash * info->hmodulus) >> 32) + info->hoffset;
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- tests/options-most.rules |   28 ++++++++++++----------------
- 1 files changed, 12 insertions(+), 16 deletions(-)
-
-diff --git a/tests/options-most.rules b/tests/options-most.rules
-index 7573361..30dac16 100644
---- a/tests/options-most.rules
-+++ b/tests/options-most.rules
-@@ -54,8 +54,7 @@
- -A INPUT -p tcp -m tcpmss --mss 1:2 -m tcp --tcp-flags FIN,SYN,RST,ACK SYN
- -A INPUT -p ipv6-icmp -m icmp6 --icmpv6-type 4/0
- -A INPUT
---A INPUT -p mobility
---A INPUT -p mobility -m mh --mh-type 3
-+-A INPUT -p ipv6-mh -m mh --mh-type 3
- -A OUTPUT -m owner --socket-exists --uid-owner 1-2 --gid-owner 2-3
- -A OUTPUT -m owner ! --socket-exists ! --uid-owner 0 ! --gid-owner 0
- -A matches -m connbytes --connbytes 1 --connbytes-mode bytes --connbytes-dir both
-@@ -184,20 +183,17 @@
- -A ntarg
- -A ntarg -j RATEEST --rateest-name RE2 --rateest-interval 250.0ms --rateest-ewmalog 500.0ms
- -A ntarg
--#-A zmatches -m rateest --rateest RE1 --rateest-lt --rateest-bps 8bit
--#-A zmatches -m rateest --rateest RE1 --rateest-eq --rateest-bps 8bit
--#-A zmatches -m rateest --rateest RE1 --rateest-gt --rateest-bps 8bit
--#-A zmatches -m rateest --rateest RE1 --rateest-lt --rateest-pps 5
--#-A zmatches -m rateest --rateest RE1 --rateest-eq --rateest-pps 5
--#-A zmatches -m rateest --rateest RE1 --rateest-gt --rateest-pps 5
--#-A zmatches -m rateest --rateest-delta --rateest RE1 --rateest-bps1 8bit --rateest-lt --rateest-bps2 16bit
--#-A zmatches -m rateest --rateest1 RE1 --rateest-lt --rateest2 RE2 --bytes
--#-A zmatches -m rateest --rateest1 RE1 --rateest-lt --rateest2 RE2 --packets
--#-A zmatches -m rateest --rateest-delta --rateest RE1 --rateest-bps1 8bit --rateest-eq --rateest-bps2 16bit
--#-A zmatches -m rateest --rateest-delta --rateest RE1 --rateest-bps1 8bit --rateest-gt --rateest-bps2 16bit
--#-A zmatches -m rateest --rateest-delta --rateest RE1 --rateest-pps1 8 --rateest-lt --rateest-pps2 9
--#-A zmatches -m rateest --rateest-delta --rateest RE1 --rateest-pps1 8 --rateest-eq --rateest-pps2 9
--#-A zmatches -m rateest --rateest-delta --rateest RE1 --rateest-pps1 8 --rateest-gt --rateest-pps2 9
-+-A zmatches -m rateest --rateest RE1 --rateest-lt --rateest-bps 8bit
-+-A zmatches -m rateest --rateest RE1 --rateest-eq --rateest-pps 5
-+-A zmatches -m rateest --rateest RE1 --rateest-gt --rateest-bps 5kbit
-+-A zmatches -m rateest --rateest-delta --rateest RE1 --rateest-bps1 8bit --rateest-lt --rateest-bps2 16bit
-+-A zmatches -m rateest --rateest1 RE1 --rateest-lt --rateest-bps --rateest2 RE2
-+-A zmatches -m rateest --rateest-delta --rateest1 RE1 --rateest-lt --rateest2 RE2 --rateest-pps2 42
-+-A zmatches -m rateest --rateest-delta --rateest RE1 --rateest-bps1 8bit --rateest-eq --rateest-bps2 16bit
-+-A zmatches -m rateest --rateest-delta --rateest RE1 --rateest-bps1 8bit --rateest-gt --rateest-bps2 16bit
-+-A zmatches -m rateest --rateest-delta --rateest RE1 --rateest-pps1 8 --rateest-lt --rateest-pps2 9
-+-A zmatches -m rateest --rateest-delta --rateest RE1 --rateest-pps1 8 --rateest-eq --rateest-pps2 9
-+-A zmatches -m rateest --rateest-delta --rateest RE1 --rateest-pps1 8 --rateest-gt --rateest-pps2 9
- COMMIT
- *mangle
- :PREROUTING ACCEPT [0:0]
--- 
-1.7.3.4
-
+Sorry, for the mistake in the changelog. I copied & pasted it from the
+mailing list discussion.
