@@ -1,34 +1,121 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: RE: [PATCH 3/7] netfilter: xt_HMARK: modulus is expensive for hash
- calculation
-Date: Thu, 17 May 2012 10:39:28 +0200
-Message-ID: <1337243968.3403.3.camel@edumazet-glaptop>
-References: <AE90C24D6B3A694183C094C60CF0A2F6026B6F10@saturn3.aculab.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	davem@davemloft.net, netdev@vger.kernel.org
-To: David Laight <David.Laight@ACULAB.COM>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <AE90C24D6B3A694183C094C60CF0A2F6026B6F10@saturn3.aculab.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH 1/2] extensions: libxt_rateest: output all options in save hook
+Date: Thu, 17 May 2012 13:03:08 +0200
+Message-ID: <1337252589-1363-1-git-send-email-fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:46588 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1761607Ab2EQLDv (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 May 2012 07:03:51 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2012-05-17 at 09:16 +0100, David Laight wrote:
-> > From: Pablo Neira Ayuso <pablo@netfilter.org>
-> > 
-> > Use:
-> > 
-> > ((u64)(HASH_VAL * HASH_SIZE)) >> 32
-> > 
-> > as suggested by David S. Miller.
-> 
-> That (u64) cast is very unlikely to have any effect.
-> If you want a 64 bit result from the product of two
-> 32 bit values, you have to cast one of the 32 bit values
-> prior to the multiply - as in the patch below.
+ipt-restore fails to parse the ipt-save output:
+zmatches -m rateest --rateest RE1 --rateest-pps --rateest-lt 5
+(should be "--rateest-pps 5 --rateest-lt").  Also, the "delta" option
+was never shown in -save output, but twice in some cases when using
+"iptables -L".
 
-Hey, Changelog is a bit wrong (for several reasons) but code is correct.
+Also, the "b/pps1" option must be shown when "delta" option is used with
+relative mode.
 
-return (((u64)hash * info->hmodulus) >> 32) + info->hoffset;
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ extensions/libxt_rateest.c |   55 +++++++++++++++++++++++++++----------------
+ 1 files changed, 34 insertions(+), 21 deletions(-)
+
+diff --git a/extensions/libxt_rateest.c b/extensions/libxt_rateest.c
+index 86bbb06..185a813 100644
+--- a/extensions/libxt_rateest.c
++++ b/extensions/libxt_rateest.c
+@@ -348,8 +348,8 @@ rateest_print(const void *ip, const struct xt_entry_match *match, int numeric)
+ 		if (info->flags & XT_RATEEST_MATCH_DELTA)
+ 			rateest_print_rate(info->bps1, numeric);
+ 		if (info->flags & XT_RATEEST_MATCH_ABS) {
+-			rateest_print_mode(info, "");
+ 			rateest_print_rate(info->bps2, numeric);
++			rateest_print_mode(info, "");
+ 		}
+ 	}
+ 	if (info->flags & XT_RATEEST_MATCH_PPS) {
+@@ -366,8 +366,6 @@ rateest_print(const void *ip, const struct xt_entry_match *match, int numeric)
+ 		rateest_print_mode(info, "");
+ 
+ 		printf(" %s", info->name2);
+-		if (info->flags & XT_RATEEST_MATCH_DELTA)
+-			printf(" delta");
+ 
+ 		if (info->flags & XT_RATEEST_MATCH_BPS) {
+ 			printf(" bps");
+@@ -382,33 +380,48 @@ rateest_print(const void *ip, const struct xt_entry_match *match, int numeric)
+ 	}
+ }
+ 
++static void __rateest_save_rate(const struct xt_rateest_match_info *info,
++                                const char *name, uint32_t r1, uint32_t r2,
++                                int numeric)
++{
++	if (info->flags & XT_RATEEST_MATCH_DELTA) {
++		printf(" --rateest-%s1", name);
++		rateest_print_rate(r1, numeric);
++		rateest_print_mode(info, "--rateest-");
++		printf(" --rateest-%s2", name);
++	} else {
++		rateest_print_mode(info, "--rateest-");
++		printf(" --rateest-%s", name);
++	}
++
++	if (info->flags & (XT_RATEEST_MATCH_ABS|XT_RATEEST_MATCH_DELTA))
++		rateest_print_rate(r2, numeric);
++}
++
++static void rateest_save_rates(const struct xt_rateest_match_info *info)
++{
++	if (info->flags & XT_RATEEST_MATCH_BPS)
++		__rateest_save_rate(info, "bps", info->bps1, info->bps2, 0);
++	if (info->flags & XT_RATEEST_MATCH_PPS)
++		__rateest_save_rate(info, "pps", info->pps1, info->pps2, 1);
++}
++
++
+ static void
+ rateest_save(const void *ip, const struct xt_entry_match *match)
+ {
+ 	const struct xt_rateest_match_info *info = (const void *)match->data;
+ 
++	if (info->flags & XT_RATEEST_MATCH_DELTA)
++		printf(" --rateest-delta");
++
+ 	if (info->flags & XT_RATEEST_MATCH_REL) {
+ 		printf(" --rateest1 %s", info->name1);
+-		if (info->flags & XT_RATEEST_MATCH_BPS)
+-			printf(" --rateest-bps");
+-		if (info->flags & XT_RATEEST_MATCH_PPS)
+-			printf(" --rateest-pps");
+-		rateest_print_mode(info, " --rateest-");
++		rateest_save_rates(info);
+ 		printf(" --rateest2 %s", info->name2);
+-	} else {
++	} else { /* XT_RATEEST_MATCH_ABS */
+ 		printf(" --rateest %s", info->name1);
+-		if (info->flags & XT_RATEEST_MATCH_BPS) {
+-			printf(" --rateest-bps1");
+-			rateest_print_rate(info->bps1, 0);
+-			printf(" --rateest-bps2");
+-			rateest_print_rate(info->bps2, 0);
+-			rateest_print_mode(info, "--rateest-");
+-		}
+-		if (info->flags & XT_RATEEST_MATCH_PPS) {
+-			printf(" --rateest-pps");
+-			rateest_print_mode(info, "--rateest-");
+-			printf(" %u", info->pps2);
+-		}
++		rateest_save_rates(info);
+ 	}
+ }
+ 
+-- 
+1.7.3.4
+
