@@ -1,29 +1,26 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: libnetfilter_conntrack updates
-Date: Sun, 20 May 2012 22:17:26 +0200
-Message-ID: <20120520201726.GA2750@1984>
-References: <1337465292-28924-1-git-send-email-jengelh@inai.de>
+Subject: Re: [PATCH][conntrack-tools] conntrack: flush stdout for each
+ expectation event, too
+Date: Sun, 20 May 2012 22:21:11 +0200
+Message-ID: <20120520202111.GC2750@1984>
+References: <1337341009-15287-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37766 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:38470 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752174Ab2ETURb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 20 May 2012 16:17:31 -0400
+	id S1752400Ab2ETUVS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 20 May 2012 16:21:18 -0400
 Content-Disposition: inline
-In-Reply-To: <1337465292-28924-1-git-send-email-jengelh@inai.de>
+In-Reply-To: <1337341009-15287-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, May 20, 2012 at 12:08:08AM +0200, Jan Engelhardt wrote:
-> 
-> The following changes since commit 6fdd30fe6de1311022ae9e17304dd72f4958bbb8:
-> 
->   build: bump version to 1.0.1 (2012-05-18 01:24:29 +0200)
-> 
-> are available in the git repository at:
->   git://git.inai.de/libnetfilter_conntrack master
+On Fri, May 18, 2012 at 01:36:49PM +0200, Florian Westphal wrote:
+> else, piping "conntrack -E expect" output will be buffered/delayed,
+> which is not what users expect. Normal conntrack events are already
+> flushed.
 
-Pulled, thanks a lot Jan.
+applied, thanks Florian.
