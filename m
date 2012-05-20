@@ -1,48 +1,29 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 4/4] Update .gitignore
-Date: Sun, 20 May 2012 00:08:12 +0200
-Message-ID: <1337465292-28924-5-git-send-email-jengelh@inai.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: libnetfilter_conntrack updates
+Date: Sun, 20 May 2012 22:17:26 +0200
+Message-ID: <20120520201726.GA2750@1984>
 References: <1337465292-28924-1-git-send-email-jengelh@inai.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:38053 "EHLO seven.medozas.de"
+Received: from mail.us.es ([193.147.175.20]:37766 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753779Ab2ESWIT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 19 May 2012 18:08:19 -0400
+	id S1752174Ab2ETURb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 20 May 2012 16:17:31 -0400
+Content-Disposition: inline
 In-Reply-To: <1337465292-28924-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jan Engelhardt <jengelh@medozas.de>
+On Sun, May 20, 2012 at 12:08:08AM +0200, Jan Engelhardt wrote:
+> 
+> The following changes since commit 6fdd30fe6de1311022ae9e17304dd72f4958bbb8:
+> 
+>   build: bump version to 1.0.1 (2012-05-18 01:24:29 +0200)
+> 
+> are available in the git repository at:
+>   git://git.inai.de/libnetfilter_conntrack master
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- qa/.gitignore    |    2 ++
- utils/.gitignore |    1 +
- 2 files changed, 3 insertions(+), 0 deletions(-)
-
-diff --git a/qa/.gitignore b/qa/.gitignore
-index c6d43bb..5e22175 100644
---- a/qa/.gitignore
-+++ b/qa/.gitignore
-@@ -1,2 +1,4 @@
-+/ct_events_reliable
-+/ct_stress
- /test_api
- /test_filter
-diff --git a/utils/.gitignore b/utils/.gitignore
-index 04897ba..63dfcb2 100644
---- a/utils/.gitignore
-+++ b/utils/.gitignore
-@@ -2,6 +2,7 @@
- /conntrack_create_nat
- /conntrack_delete
- /conntrack_dump
-+/conntrack_dump_filter
- /conntrack_events
- /conntrack_filter
- /conntrack_flush
--- 
-1.7.7
-
+Pulled, thanks a lot Jan.
