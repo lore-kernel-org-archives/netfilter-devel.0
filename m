@@ -1,95 +1,104 @@
-From: Jagdish Motwani <jagdish.motwani@elitecore.com>
-Subject: Re: [PATCH] netfilter conntrack helper: nf_ct_h323: fix bug in rtcp
- natting
-Date: Tue, 22 May 2012 14:14:09 +0530
-Message-ID: <4FBB51D9.1020602@elitecore.com>
-References: <4FBB2B7B.6060907@elitecore.com> <1337668101.3361.54.camel@edumazet-glaptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: 'Patrick McHardy' <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+From: Krishna Kumar <krkumar2@in.ibm.com>
+Subject: [v3 PATCH 0/1] netfilter: "fail-open" feature support for NFQUEUE
+Date: Tue, 22 May 2012 17:40:37 +0530
+Message-ID: <20120522121037.880.44203.sendpatchset@localhost.localdomain>
+Cc: vivk@us.ibm.com, svajipay@in.ibm.com, fw@strlen.de,
+	netfilter-devel@vger.kernel.org,
+	Krishna Kumar <krkumar2@in.ibm.com>, sri@us.ibm.com
+To: kaber@trash.net, pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailhost.elitecore.com ([203.88.135.194]:37988 "EHLO
-	elitecore.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753572Ab2EVIig (ORCPT
+Received: from e28smtp03.in.ibm.com ([122.248.162.3]:44192 "EHLO
+	e28smtp03.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751163Ab2EVMOt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 May 2012 04:38:36 -0400
-In-Reply-To: <1337668101.3361.54.camel@edumazet-glaptop>
+	Tue, 22 May 2012 08:14:49 -0400
+Received: from /spool/local
+	by e28smtp03.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <netfilter-devel@vger.kernel.org> from <krkumar2@in.ibm.com>;
+	Tue, 22 May 2012 17:42:51 +0530
+Received: from d28av04.in.ibm.com (d28av04.in.ibm.com [9.184.220.66])
+	by d28relay05.in.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id q4MCAdiJ32309312
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 May 2012 17:40:39 +0530
+Received: from d28av04.in.ibm.com (loopback [127.0.0.1])
+	by d28av04.in.ibm.com (8.14.4/8.13.1/NCO v10.0 AVout) with ESMTP id q4MHeQ9a004018
+	for <netfilter-devel@vger.kernel.org>; Wed, 23 May 2012 03:40:26 +1000
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 05/22/2012 11:58 AM, Eric Dumazet wrote:
-> On Tue, 2012-05-22 at 11:30 +0530, Jagdish Motwani wrote:
->> The nat_rtp_rtcp hook takes two separate parameters port and rtp_port.
->>
->> port is expected to be the real h245 address(found inside the packet).
->> rtp_port is the even number closest to port  (RTP ports are even and
->> RTCP ports are odd)
->>
->> However currently, both port and rtp_port are having same value(both are
->> rounded to nearest even numbers).
->>
->> This works well in case of openlogicalchannel with media (RTP/even) port.
->>
->> But in case of openlogicalchannel for media control (RTCP/odd) port,
->> h245 address in the packet is wrongly modified to have an even port.
->>
->> I am attaching a pcap demonstrating the problem, for any further analysis.
->>
->> This behavior was introduced around v2.6.19 while rewriting the helper.
->>
->>
->>
->> Signed-off-by: Jagdish Motwani<jagdish.motwani@elitecore.com>
->> Signed-off-by: Sanket Shah<sanket.shah@elitecore.com>
->>
->> --
->> diff --git a/net/netfilter/nf_conntrack_h323_main.c
->> b/net/netfilter/nf_conntrack_h323_main.c
->> index 46d69d7..7f0de36 100644
->> --- a/net/netfilter/nf_conntrack_h323_main.c
->> +++ b/net/netfilter/nf_conntrack_h323_main.c
->> @@ -270,9 +270,8 @@ static int expect_rtp_rtcp(struct sk_buff *skb,
->> struct nf_conn *ct,
->>                   return 0;
->>
->>           /* RTP port is even */
->> -       port&= htons(~1);
->> -       rtp_port = port;
->> -       rtcp_port = htons(ntohs(port) + 1);
->> +       rtp_port = port&  htons(~1);
->> +       rtcp_port = htons(ntohs(rtp_port) + 1);
-> seems better to use :
->
-> rtp_port = port&  ~htons(1);
-> rtcp_port = port | htons(1);
->
->
->
+Many users of an IBM security product, which uses netfilter's NFQUEUE
+target to process packets in userspace, face a problem of dropped
+connections during heavy load. Incoming packets are queued and
+processed by the security module, which does deep packet analysis to
+decide whether to accept or reject them. However during heavy load,
+NFQUEUE queue (default 1024 entries) fills up and connections fail
+after large number of packets drop during enqueue.
 
-Thanks. Updating the patch
+This patch implements a "failopen" support for NFQUEUE to help keep
+connections open during such failures. This is achieved by allowing
+acceptance of packets temporarily when the queue is full, which enables
+existing connections to be kept open.
 
---
+Failopen is enabled/disabled using a new call - nfq_set_flags(qh, mask,
+flags), which makes use of two new netlink attributes:
+	1. NFQA_CFG_MASK:  Specifies which flags are being modified.
+	2. NFQA_CFG_FLAGS: Set/reset the value for each of those flags.
 
-diff --git a/net/netfilter/nf_conntrack_h323_main.c 
-b/net/netfilter/nf_conntrack_h323_main.c
-index 46d69d7..31f50bc 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -270,9 +270,8 @@ static int expect_rtp_rtcp(struct sk_buff *skb, 
-struct nf_conn *ct,
-                 return 0;
 
-         /* RTP port is even */
--       port &= htons(~1);
--       rtp_port = port;
--       rtcp_port = htons(ntohs(port) + 1);
-+       rtp_port = port & ~htons(1);
-+       rtcp_port = port | htons(1);
+		Tests done:
+		------------
+- netperf TCP_STREAM
+- 64 netperf stress testing to ensure there are no memory leaks
+- icmp (ping)
+- enabling/disabling failopen in the middle of existing connections
+- checksum verification of transferred files (scp)
+- different flag/mask values to check that code handling NFQA_CFG_MASK
+  works as expected
 
-         /* Create expect for RTP */
-         if ((rtp_exp = nf_ct_expect_alloc(ct)) == NULL)
 
+		Test results:
+		-------------
+Server:
+-------
+# iptables -A INPUT -p tcp -m mac --mac-source 00:00:C9:C6:4F:22 \
+	-j NFQUEUE --queue-num 0
+# Run interceptor program with 50ms delay between packet processing, and also
+sets qlen to 16. After every read system call, this program tests and read's a
+config file's contents (0 or 1) and calls nfq_set_flags(qh, mask, flags).
+
+Client:
+-------
+	---> failopen is disabled on server at this time
+# netperf -v0 -H 10.0.4.1
+TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to 10.0.4.1 (10.0.4.1) port 0 AF_INET
+0.16   
+	---> failopen is enabled on server at this time
+# netperf -v0 -H 10.0.4.1
+TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to 10.0.4.1 (10.0.4.1) port 0 AF_INET
+2292.82 
+
+	---> failopen is disabled on server at this time
+# scp FILE 10.0.4.1:/tmp
+FILE                             0% 2960KB  88.4KB/s 12:19:37 ETA
+	---> Enable failopen on server at this time
+FILE                             21%  809MB  44.2MB/s   01:08 ETA
+	---> Disable failopen on server at this time
+FILE                             23%  903MB 157.4KB/s 5:18:01 ETA
+	---> Enable failopen on server at this time
+FILE                             100% 3835MB  24.1MB/s   02:39    
+
+
+Changes from rev2:
+------------------
+
+1. Changed NFQA_CFG_FAIL_OPEN to generic NFAQ_CFG_FLAGS and NFAQ_CFG_MASK
+2. Enqueue handler now returns -ENOSPC upon "fail-open".
+3. Do not invoke okfn on ENOSPC, but process all hooks first. nf_hook_slow
+   has code to handle failopen.
+
+Please review.
+
+Signed-off-by: Krishna Kumar <krkumar2@in.ibm.com>
+Signed-off-by: Vivek Kashyap <vivk@us.ibm.com>
+Signed-off-by: Sridhar Samudrala <samudrala@us.ibm.com>
+---
 
