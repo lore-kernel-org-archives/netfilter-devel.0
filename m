@@ -1,39 +1,35 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: [README] Two merges pending...
-Date: Tue, 22 May 2012 15:28:40 -0400 (EDT)
-Message-ID: <20120522.152840.815291543305899477.davem@davemloft.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 2/2] tests: add rateest match rules
+Date: Tue, 22 May 2012 22:36:31 +0200
+Message-ID: <20120522203631.GB30077@1984>
+References: <1337252589-1363-1-git-send-email-fw@strlen.de>
+ <1337252589-1363-2-git-send-email-fw@strlen.de>
+ <20120522183558.GA28870@1984>
+ <20120522191003.GA11818@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:58729 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932849Ab2EVUgf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 May 2012 16:36:35 -0400
+Content-Disposition: inline
+In-Reply-To: <20120522191003.GA11818@breakpoint.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+On Tue, May 22, 2012 at 09:10:03PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Thu, May 17, 2012 at 01:03:09PM +0200, Florian Westphal wrote:
+> > > also, -p mobility gets us EINVAL from kernel, use -p ipv6-mh instead.
+> > 
+> > /etc/services in debian uses mobility-header instead mobility.
+> 
+> Should still work, iptables has ipv6-mh hardwired as fallback,
+> see xtables_parse_protocol() in libxtables/xtables.c .
+> 
+> Do you still want me to resend it with -p 135?
 
-After some discussion with John Linville I'm going to let him do
-one more wireless merge to me.
-
-I only decided to do this because the changes in his tree were in
-his tree before he went away for a week, and therefore have gotten
-lots of exposure in -next before the merge window even openned.
-
-Which is more than I can say for some of this shit landing in Linus's
-tree the past few days.
-
-Pablo also has a prearranged netfilter merge pending.
-
-DO NOT use this as some sort of sign that if you have some last minute
-thing you want merged I can be coaxed into allowing it too.  I very
-nearly told John no, and I'm going to tell you no too.
-
-The rest of you stick to bug fixes and maybe a few device ID
-additions.
-
-Thanks.
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+No, as long as it still works. No need to resend, thanks.
