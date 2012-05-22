@@ -1,33 +1,32 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/2] extensions: libxt_rateest: output all options in
- save hook
-Date: Tue, 22 May 2012 20:41:17 +0200
-Message-ID: <20120522184117.GB28870@1984>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH 2/2] tests: add rateest match rules
+Date: Tue, 22 May 2012 21:10:03 +0200
+Message-ID: <20120522191003.GA11818@breakpoint.cc>
 References: <1337252589-1363-1-git-send-email-fw@strlen.de>
+ <1337252589-1363-2-git-send-email-fw@strlen.de>
+ <20120522183558.GA28870@1984>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47002 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754905Ab2EVSlU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 May 2012 14:41:20 -0400
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:56484 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760186Ab2EVTKF (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 May 2012 15:10:05 -0400
 Content-Disposition: inline
-In-Reply-To: <1337252589-1363-1-git-send-email-fw@strlen.de>
+In-Reply-To: <20120522183558.GA28870@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 17, 2012 at 01:03:08PM +0200, Florian Westphal wrote:
-> ipt-restore fails to parse the ipt-save output:
-> zmatches -m rateest --rateest RE1 --rateest-pps --rateest-lt 5
-> (should be "--rateest-pps 5 --rateest-lt").  Also, the "delta" option
-> was never shown in -save output, but twice in some cases when using
-> "iptables -L".
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Thu, May 17, 2012 at 01:03:09PM +0200, Florian Westphal wrote:
+> > also, -p mobility gets us EINVAL from kernel, use -p ipv6-mh instead.
 > 
-> Also, the "b/pps1" option must be shown when "delta" option is used with
-> relative mode.
+> /etc/services in debian uses mobility-header instead mobility.
 
-Applied, thanks.
+Should still work, iptables has ipv6-mh hardwired as fallback,
+see xtables_parse_protocol() in libxtables/xtables.c .
 
-iptables release will follow-up soon, including this fix.
+Do you still want me to resend it with -p 135?
