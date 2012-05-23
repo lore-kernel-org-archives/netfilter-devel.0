@@ -1,38 +1,36 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [README] Two merges pending...
-Date: Wed, 23 May 2012 12:45:47 +0200
-Message-ID: <20120523104547.GA3312@1984>
-References: <20120522.152840.815291543305899477.davem@davemloft.net>
+Subject: [README] patches that did not reach net-next (upcoming 3.5)
+Date: Wed, 23 May 2012 13:00:23 +0200
+Message-ID: <20120523110023.GA3537@1984>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, linville@tuxdriver.com,
-	netfilter-devel@vger.kernel.org, linux-wireless@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+To: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43228 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:49355 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752728Ab2EWKqW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 May 2012 06:46:22 -0400
+	id S1750759Ab2EWLAb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 May 2012 07:00:31 -0400
 Content-Disposition: inline
-In-Reply-To: <20120522.152840.815291543305899477.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi David,
+Hi!
 
-On Tue, May 22, 2012 at 03:28:40PM -0400, David Miller wrote:
-[...]
-> Pablo also has a prearranged netfilter merge pending.
+David has closed net-next merge window.
 
-I give up on that merge that I requested.
+I know there are several patches still on the table, you can see the
+list here:
 
-I thought that some namespace changes for conntrack that have been
-lying on the table for one week could be merged. But they are not ready
-yet, they require another spin.
+http://patchwork.ozlabs.org/project/netfilter-devel/list/
 
-That means they'll have to wait until window opens again, they need
-some extra time.
+Some of them are small enough that I did not feel like pushing hard
+for them to David, like the one from Amerigo Wang, Alban Crequy and
+Denys Fedoryshchenko. My plan is to include them once merge window
+opens again.
 
-I'll stick to one pull request for bugfixes then.
+Gao Feng's namespace ct timeout requires another spin.
 
-Thanks!
+For bugfixes, I'll start collecting them to pass them asap.
+
+Thanks for your work!
