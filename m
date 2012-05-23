@@ -1,134 +1,146 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Using RELATED for a level4 protocol (MPTCP)
-Date: Wed, 23 May 2012 10:52:20 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1205231016140.31407@blackhole.kfki.hu>
-References: <CACd4Q01Hg2TC=_5Kk+MhZUoP9swUJKGFEvQgSbbtcXi=_4BZTQ@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 01/17] netfilter: add struct nf_proto_net for register
+ l4proto sysctl
+Date: Wed, 23 May 2012 12:12:00 +0200
+Message-ID: <20120523101200.GA2836@1984>
+References: <1336985547-31960-1-git-send-email-gaofeng@cn.fujitsu.com>
+ <1336985547-31960-2-git-send-email-gaofeng@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="110391812-1534195209-1337763140=:31407"
-Cc: netfilter-devel@vger.kernel.org
-To: =?ISO-8859-15?Q?Nicolas_Ma=EEtre?= <nimai@skynet.be>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	serge.hallyn@canonical.com, ebiederm@xmission.com,
+	dlezcano@fr.ibm.com, Gao feng <gaofeng@cn.fujitus.com>
+To: Gao feng <gaofeng@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:47949 "EHLO smtp0.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:59109 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751805Ab2EWIwX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 May 2012 04:52:23 -0400
-In-Reply-To: <CACd4Q01Hg2TC=_5Kk+MhZUoP9swUJKGFEvQgSbbtcXi=_4BZTQ@mail.gmail.com>
+	id S1751409Ab2EWKMK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 May 2012 06:12:10 -0400
+Content-Disposition: inline
+In-Reply-To: <1336985547-31960-2-git-send-email-gaofeng@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Mon, May 14, 2012 at 04:52:11PM +0800, Gao feng wrote:
+> From: Gao feng <gaofeng@cn.fujitus.com>
+> 
+> the struct nf_proto_net stroes proto's ctl_table_header and ctl_table,
+> nf_ct_l4proto_(un)register_sysctl use it to register sysctl.
+> 
+> there are some changes for struct nf_conntrack_l4proto:
+> - add field compat to identify if this proto should do compat.
+> - the net_id field is used to store the pernet_operations id
+>   that belones to l4proto.
+> - init_net will be used to initial the proto's pernet data
+> 
+> and add init_net for struct nf_conntrack_l3proto too.
 
---110391812-1534195209-1337763140=:31407
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+This patchset looks bette but there are still things that we have to
+resolve.
 
-On Tue, 22 May 2012, Nicolas Ma=C3=AEtre wrote:
+The first one (regarding this patch 1/17) changes in:
+* include/net/netfilter/nf_conntrack_l4proto.h
+* include/net/netns/conntrack.h
 
-> I'm a complete newbie in netfilter hacking and I'm trying to implement
-> the support of MPTCP [0] (standing for MultiPath TCP) in netfilter in
-> the context of a master's thesis.
->=20
-> I'll just summarize some points of MPTCP here to get a chance to be
-> understood with my request.
-> MPTCP is an extension of TCP which enables it to use multiple paths as
-> part of a single "MPTCP connection", answering to a multihoming and
-> performance demand. It acts as a higher-level, using TCP connections
-> as subflows and it has been designed to be backward-compatible with
-> regular TCP.
-> It exposes a similar interface to TCP to the application layer. A
-> figure might help to get the whole thing:
->=20
->        +-------------------------------+
->        |           Application         |
->        +-------------------------------+
->        |             MPTCP             |
->        + - - - - - - - + - - - - - - - +
->        | Subflow (TCP) | Subflow (TCP) |
->        +-------------------------------+
->        |       IP      |      IP       |
->        +-------------------------------+
-> (If you cannot read it properly, the 2 figures in this mail are taken
-> from [0] where they are displayed correctly with a monospace font).
->=20
-> It's currently being standardized by the IETF.
-> Furthermore, a Linux implementation is already available and working fine=
- [1].
->=20
-> Now, what I'd like some help with is for the handling of additional
-> subflows.  Here is a figure to illustrate the setup of an additional
-> subflow.
->=20
->               Host A                                  Host B
->      ------------------------                       ----------
->      Address A1    Address A2                       Address B1
->      ----------    ----------                       ----------
->          |             |                                |
->          |             | SYN + MP_CAPABLE               |
-> Initial subflow negotiation
->          |--------------------------------------------->|
->          |<---------------------------------------------|
->          |          SYN/ACK + MP_CAPABLE(Key-B)         |
->          |             |                                |
->          |        ACK + MP_CAPABLE(Key-A, Key-B)        |
->          |--------------------------------------------->|
->          |             |                                |
->          |             |   SYN + MP_JOIN(Token-B, R-A)  |
-> Additional subflow
->          |             |------------------------------->|
->          |             |<-------------------------------|
->          |             |  SYN/ACK + MP_JOIN(MAC-B, R-B) |
->          |             |                                |
->          |             |      ACK + MP_JOIN(MAC-A)      |
->          |             |------------------------------->|
->          |             |                                |
->=20
-> As subflows are negotiated (and authenticated) with an option in a
-> regular TCP handshake, I'd like to know if there is currently a simple
-> way of accepting new subflow packets with netfilter.
-> Specifically, I thought of handling the MP_JOIN with a kind of
-> conntrack's RELATED state. Indeed, the first packet of the MP_JOIN
-> step can be "expected" and verified to be originating from the same
-> host than the initial subflow.
+should be included in:
+[PATCH] netfilter: add namespace support for l4proto
 
-As far as I see, after the hosts advertised their addresses (which can=20
-later be updated) any one of them may initiate a subflow to the possible=20
-advertised addresses/ports of the other side.
+And changes in:
+* include/net/netfilter/nf_conntrack_l3proto.h
 
-There are two possibilities:
+should be included in:
+[PATCH] netfilter: add namespace support for l3proto
 
-a. conntrack helper: Whenever an address advertisement is detected,
-   a corresponding expectation is created. It's not very nice that
-   the expectation may never be used and thus created unnecessarily.
-b. mptcp target and match: The target keeps record of=20
-   the ids/addresses/ports from the advertisements. New subflows
-   can be allowed by the match, which searches for a match in the
-   pool of the id/address/port entries.
+I already told you. A patch that adds a structure without using it,
+is not good. The structure has to go together with the code uses it.
 
-The target/match looks nicer and thus one could have a little bit firmer=20
-grasp on the protocol - it looks quite easy to force opening up any=20
-address/port by the firewall if MPTCP is blindly accepted.
-=20
-> After inspection of the code, I doubt that this would be possible as
-> the expectation setup takes the ip addresses and ports as parameters.
-> I therefore assume that the whole expectation system is only usable
-> for protocols on the application level?
-> Could you confirm that it's not the good way to go?
-> But then, do you see any tool in the framework that would be helpful
-> to me? Or give me some advices/pointers to integrate this in an
-> elegant way into netfilter ?
->=20
-> In advance, thank you!
->=20
->=20
-> [0] http://tools.ietf.org/html/draft-ietf-mptcp-multiaddressed-07
-> [1] http://mptcp.info.ucl.ac.be/
+More comments below.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
---110391812-1534195209-1337763140=:31407--
+> Acked-by: Eric W. Biederman <ebiederm@xmission.com>
+> Signed-off-by: Gao feng <gaofeng@cn.fujitus.com>
+> ---
+>  include/net/netfilter/nf_conntrack_l3proto.h |    3 +++
+>  include/net/netfilter/nf_conntrack_l4proto.h |    6 ++++++
+>  include/net/netns/conntrack.h                |   12 ++++++++++++
+>  3 files changed, 21 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
+> index 9699c02..9766005 100644
+> --- a/include/net/netfilter/nf_conntrack_l3proto.h
+> +++ b/include/net/netfilter/nf_conntrack_l3proto.h
+> @@ -69,6 +69,9 @@ struct nf_conntrack_l3proto {
+>  	struct ctl_table	*ctl_table;
+>  #endif /* CONFIG_SYSCTL */
+>  
+> +	/* Init l3proto pernet data */
+> +	int (*init_net)(struct net *net);
+> +
+>  	/* Module (if any) which this is connected to. */
+>  	struct module *me;
+>  };
+> diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+> index 3b572bb..a90eab5 100644
+> --- a/include/net/netfilter/nf_conntrack_l4proto.h
+> +++ b/include/net/netfilter/nf_conntrack_l4proto.h
+> @@ -22,6 +22,8 @@ struct nf_conntrack_l4proto {
+>  	/* L4 Protocol number. */
+>  	u_int8_t l4proto;
+>  
+> +	u_int8_t compat;
+
+I don't see why we need this new field.
+
+It seems to be set to 1 in each structure that has set:
+
+.ctl_compat_table
+
+to non-NULL. So, it's redundant.
+
+Moreover, you already know from the protocol tracker itself if you
+have to allocate the compat ctl table or not.
+
+In other words: You set compat to 1 for nf_conntrack_l4proto_generic.
+Then, you pass that compat value to generic_init_net via ->inet_net
+again, but this information (that determines if the compat has to be
+done or not) is already in the scope of the protocol tracker.
+
+You have to fix this.
+
+> +
+>  	/* Try to fill in the third arg: dataoff is offset past network protocol
+>             hdr.  Return true if possible. */
+>  	bool (*pkt_to_tuple)(const struct sk_buff *skb, unsigned int dataoff,
+> @@ -103,6 +105,10 @@ struct nf_conntrack_l4proto {
+>  	struct ctl_table	*ctl_compat_table;
+>  #endif
+>  #endif
+> +	int	*net_id;
+> +	/* Init l4proto pernet data */
+> +	int (*init_net)(struct net *net, u_int8_t compat);
+> +
+>  	/* Protocol name */
+>  	const char *name;
+>  
+> diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
+> index a053a19..1f53038 100644
+> --- a/include/net/netns/conntrack.h
+> +++ b/include/net/netns/conntrack.h
+> @@ -8,6 +8,18 @@
+>  struct ctl_table_header;
+>  struct nf_conntrack_ecache;
+>  
+> +struct nf_proto_net {
+> +#ifdef CONFIG_SYSCTL
+> +	struct ctl_table_header *ctl_table_header;
+> +	struct ctl_table        *ctl_table;
+> +#ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
+> +	struct ctl_table_header *ctl_compat_header;
+> +	struct ctl_table        *ctl_compat_table;
+> +#endif
+> +#endif
+> +	unsigned int		users;
+> +};
+> +
+>  struct netns_ct {
+>  	atomic_t		count;
+>  	unsigned int		expect_count;
