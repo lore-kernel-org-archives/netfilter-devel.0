@@ -1,38 +1,62 @@
-From: Krishna Kumar2 <krkumar2@in.ibm.com>
+From: Florian Westphal <fw@strlen.de>
 Subject: Re: [v4 PATCH 1/1] netfilter: Add fail-open support
-Date: Thu, 24 May 2012 16:19:07 +0530
-Message-ID: <OF40A553D6.951AAA8B-ON65257A08.003B5B83-65257A08.003B7B3A@in.ibm.com>
-References: <20120524082518.13146.25740.sendpatchset@localhost.localdomain> <20120524082531.13146.347.sendpatchset@localhost.localdomain> <20120524101755.GF13091@1984> <20120524104156.GA13785@1984>
+Date: Thu, 24 May 2012 12:53:14 +0200
+Message-ID: <20120524105314.GB30569@breakpoint.cc>
+References: <20120524082518.13146.25740.sendpatchset@localhost.localdomain>
+ <20120524082531.13146.347.sendpatchset@localhost.localdomain>
+ <20120524093043.GA30569@breakpoint.cc>
+ <OF029AE6DA.E5969DF9-ON65257A08.003984EF-65257A08.0039E951@in.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: davem <davem@davemloft.net>, Eric Dumazet <eric.dumazet@gmail.com>,
-	fw@strlen.de, kaber@trash.net, netdev <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org, sri@us.ibm.com,
-	Sulakshan Vajipayajula <svajipay@in.ibm.com>, vivk@us.ibm.com
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20120524104156.GA13785@1984>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, kaber@trash.net,
+	netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+	sri@us.ibm.com, Sulakshan Vajipayajula <svajipay@in.ibm.com>,
+	vivk@us.ibm.com
+To: Krishna Kumar2 <krkumar2@in.ibm.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:59965 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754837Ab2EXKxR (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 May 2012 06:53:17 -0400
+Content-Disposition: inline
+In-Reply-To: <OF029AE6DA.E5969DF9-ON65257A08.003984EF-65257A08.0039E951@in.ibm.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote on 05/24/2012 04:11:56 PM:
-
-> On Thu, May 24, 2012 at 12:17:55PM +0200, Pablo Neira Ayuso wrote:
-> > My main objection with this patch is that it adds more code out of the
-> > scope of the nf_queue handling to nf_hook_slow. And this is done for
-> > very specific purpose.
+Krishna Kumar2 <krkumar2@in.ibm.com> wrote:
+> > if (queue->queue_total >= queue->queue_maxlen) {
+> >    if (queue->flags & NFQA_CFG_F_FAIL_OPEN) {
+> >       nf_reinject(entry, NF_ACCEPT);
+> >       err = 0;
+> >       goto err_out_free_nskb;
+> >    }
+> >    queue->queue_dropped++;
+> >    net_warn_ratelimited("nf_queue: full at %d entries, dropping packets
+> (s)\n",
 > >
-> > @David, @Eric: Krishna aims to provide a mechanism that can be enabled
-> > to accept packets if the nfqueue becomes full, ie. it changes the
-> > default behaviour under congestion from drop to accept. It seems some
-> > users prefer not to block traffic under nfqueue congestion.
->
-> Florian Westphal just proposed some possible interesting solution for
-> this.
+> > [..]
+> >
+> > Do you see any problems with that?
+> 
+> No, I think it should work fine. Do this after dropping the lock?
 
-Yes, and I have just finished testing this and it works fine. With
-this, all the changes are localized to nfnetlink_queue.c. I am doing
-some more tests before resubmitting this.
+Good catch.  Yes, the lock should be dropped, else we
+deadlock when same queue is hit in next table/chain.
 
-thanks,
-- KK
+> > > +   if (nfqa[NFQA_CFG_FLAGS]) {
+> > > +      __be32 flags, mask;
+> >
+> > [..]
+> >
+> > > +      flags = ntohl(nla_get_be32(nfqa[NFQA_CFG_FLAGS]));
+> > > +      mask = ntohl(nla_get_be32(nfqa[NFQA_CFG_MASK]));
+> >
+> > ntohl returns __u32 type.
+> 
+> Maybe just use __u32 type for flags/mask?
+
+Yes.
+
+Thanks,
+Florian
