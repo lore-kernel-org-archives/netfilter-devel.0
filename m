@@ -1,169 +1,189 @@
 From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: Re: [PATCH 04/17] netfilter: add namespace support for l4proto_generic
-Date: Thu, 24 May 2012 09:13:36 +0800
-Message-ID: <4FBD8B40.4020303@cn.fujitsu.com>
-References: <1336985547-31960-1-git-send-email-gaofeng@cn.fujitsu.com> <1336985547-31960-5-git-send-email-gaofeng@cn.fujitsu.com> <20120523103232.GD2836@1984>
+Subject: Re: [PATCH 01/17] netfilter: add struct nf_proto_net for register
+ l4proto sysctl
+Date: Thu, 24 May 2012 09:35:50 +0800
+Message-ID: <4FBD9076.6060309@cn.fujitsu.com>
+References: <1336985547-31960-1-git-send-email-gaofeng@cn.fujitsu.com> <1336985547-31960-2-git-send-email-gaofeng@cn.fujitsu.com> <20120523101200.GA2836@1984>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	serge.hallyn@canonical.com, ebiederm@xmission.com,
-	dlezcano@fr.ibm.com
+	dlezcano@fr.ibm.com, Gao feng <gaofeng@cn.fujitus.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:27756 "EHLO song.cn.fujitsu.com"
+Received: from cn.fujitsu.com ([222.73.24.84]:12900 "EHLO song.cn.fujitsu.com"
 	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1754834Ab2EXBNG convert rfc822-to-8bit (ORCPT
+	id S1755036Ab2EXBfX convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 May 2012 21:13:06 -0400
-In-Reply-To: <20120523103232.GD2836@1984>
+	Wed, 23 May 2012 21:35:23 -0400
+In-Reply-To: <20120523101200.GA2836@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=E4=BA=8E 2012=E5=B9=B405=E6=9C=8823=E6=97=A5 18:32, Pablo Neira Ayuso =
+Hi pablo:
+
+=E4=BA=8E 2012=E5=B9=B405=E6=9C=8823=E6=97=A5 18:12, Pablo Neira Ayuso =
 =E5=86=99=E9=81=93:
-> On Mon, May 14, 2012 at 04:52:14PM +0800, Gao feng wrote:
->> implement and export nf_conntrack_proto_generic_[init,fini],
->> nf_conntrack_[init,cleanup]_net call them to register or unregister
->> the sysctl of generic proto.
+> On Mon, May 14, 2012 at 04:52:11PM +0800, Gao feng wrote:
+>> From: Gao feng <gaofeng@cn.fujitus.com>
 >>
->> implement generic_net_init,it's used to initial the pernet
->> data for generic proto.
+>> the struct nf_proto_net stroes proto's ctl_table_header and ctl_tabl=
+e,
+>> nf_ct_l4proto_(un)register_sysctl use it to register sysctl.
 >>
->> and use nf_generic_net.timeout to replace nf_ct_generic_timeout in
->> get_timeouts function.
+>> there are some changes for struct nf_conntrack_l4proto:
+>> - add field compat to identify if this proto should do compat.
+>> - the net_id field is used to store the pernet_operations id
+>>   that belones to l4proto.
+>> - init_net will be used to initial the proto's pernet data
 >>
+>> and add init_net for struct nf_conntrack_l3proto too.
+>=20
+> This patchset looks bette but there are still things that we have to
+> resolve.
+>=20
+> The first one (regarding this patch 1/17) changes in:
+> * include/net/netfilter/nf_conntrack_l4proto.h
+> * include/net/netns/conntrack.h
+>=20
+> should be included in:
+> [PATCH] netfilter: add namespace support for l4proto
+>=20
+> And changes in:
+> * include/net/netfilter/nf_conntrack_l3proto.h
+>=20
+> should be included in:
+> [PATCH] netfilter: add namespace support for l3proto
+>=20
+> I already told you. A patch that adds a structure without using it,
+> is not good. The structure has to go together with the code uses it.
+>=20
+
+It seams this patch should be merged to "netfilter: add namespace suppo=
+rt for l4proto"
+the struct nf_proto_net is first used there.
+
+> More comments below.
+>=20
 >> Acked-by: Eric W. Biederman <ebiederm@xmission.com>
->> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+>> Signed-off-by: Gao feng <gaofeng@cn.fujitus.com>
 >> ---
->>  include/net/netfilter/nf_conntrack_l4proto.h |    2 +
->>  include/net/netns/conntrack.h                |    6 +++
->>  net/netfilter/nf_conntrack_core.c            |    8 +++-
->>  net/netfilter/nf_conntrack_proto.c           |   21 +++++-----
->>  net/netfilter/nf_conntrack_proto_generic.c   |   55 +++++++++++++++=
-+++++++++-
->>  5 files changed, 76 insertions(+), 16 deletions(-)
+>>  include/net/netfilter/nf_conntrack_l3proto.h |    3 +++
+>>  include/net/netfilter/nf_conntrack_l4proto.h |    6 ++++++
+>>  include/net/netns/conntrack.h                |   12 ++++++++++++
+>>  3 files changed, 21 insertions(+), 0 deletions(-)
 >>
+>> diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/=
+net/netfilter/nf_conntrack_l3proto.h
+>> index 9699c02..9766005 100644
+>> --- a/include/net/netfilter/nf_conntrack_l3proto.h
+>> +++ b/include/net/netfilter/nf_conntrack_l3proto.h
+>> @@ -69,6 +69,9 @@ struct nf_conntrack_l3proto {
+>>  	struct ctl_table	*ctl_table;
+>>  #endif /* CONFIG_SYSCTL */
+>> =20
+>> +	/* Init l3proto pernet data */
+>> +	int (*init_net)(struct net *net);
+>> +
+>>  	/* Module (if any) which this is connected to. */
+>>  	struct module *me;
+>>  };
 >> diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/=
 net/netfilter/nf_conntrack_l4proto.h
->> index a93dcd5..0d329b9 100644
+>> index 3b572bb..a90eab5 100644
 >> --- a/include/net/netfilter/nf_conntrack_l4proto.h
 >> +++ b/include/net/netfilter/nf_conntrack_l4proto.h
->> @@ -118,6 +118,8 @@ struct nf_conntrack_l4proto {
+>> @@ -22,6 +22,8 @@ struct nf_conntrack_l4proto {
+>>  	/* L4 Protocol number. */
+>>  	u_int8_t l4proto;
 >> =20
->>  /* Existing built-in generic protocol */
->>  extern struct nf_conntrack_l4proto nf_conntrack_l4proto_generic;
->> +extern int nf_conntrack_proto_generic_init(struct net *net);
->> +extern void nf_conntrack_proto_generic_fini(struct net *net);
->> =20
->>  #define MAX_NF_CT_PROTO 256
+>> +	u_int8_t compat;
+>=20
+> I don't see why we need this new field.
+>=20
+> It seems to be set to 1 in each structure that has set:
+>=20
+> .ctl_compat_table
+>=20
+> to non-NULL. So, it's redundant.
+>=20
+> Moreover, you already know from the protocol tracker itself if you
+> have to allocate the compat ctl table or not.
+>=20
+> In other words: You set compat to 1 for nf_conntrack_l4proto_generic.
+> Then, you pass that compat value to generic_init_net via ->inet_net
+> again, but this information (that determines if the compat has to be
+> done or not) is already in the scope of the protocol tracker.
+>=20
+
+because some protocols such l4proto_tcp6 and l4proto_tcp use the same i=
+nit_net
+function. the l4proto_tcp6 doesn't need compat sysctl, so we should use=
+ this new
+field to identify if we should kmemdup compat_sysctl_table.
+
+and beacuse protocols will have pernet ctl_compat_table and ctl_table,t=
+he .ctl_compat_table
+field will be deleted in patch 15/17. so we should the new field compat=
+=2E
+
+actually, we don't need to pass compat value for generic_init_net,beacu=
+se
+we know l4proto_generic need compat. But consider there are l4proto_tcp=
+(6), and in order to keep
+code readable,I prefer to add compat field and pass it to init_net.
+
+> You have to fix this.
+>=20
+>> +
+>>  	/* Try to fill in the third arg: dataoff is offset past network pr=
+otocol
+>>             hdr.  Return true if possible. */
+>>  	bool (*pkt_to_tuple)(const struct sk_buff *skb, unsigned int datao=
+ff,
+>> @@ -103,6 +105,10 @@ struct nf_conntrack_l4proto {
+>>  	struct ctl_table	*ctl_compat_table;
+>>  #endif
+>>  #endif
+>> +	int	*net_id;
+>> +	/* Init l4proto pernet data */
+>> +	int (*init_net)(struct net *net, u_int8_t compat);
+>> +
+>>  	/* Protocol name */
+>>  	const char *name;
 >> =20
 >> diff --git a/include/net/netns/conntrack.h b/include/net/netns/connt=
 rack.h
->> index 94992e9..3381b80 100644
+>> index a053a19..1f53038 100644
 >> --- a/include/net/netns/conntrack.h
 >> +++ b/include/net/netns/conntrack.h
->> @@ -20,7 +20,13 @@ struct nf_proto_net {
->>  	unsigned int		users;
->>  };
+>> @@ -8,6 +8,18 @@
+>>  struct ctl_table_header;
+>>  struct nf_conntrack_ecache;
 >> =20
->> +struct nf_generic_net {
->> +	struct nf_proto_net pn;
->> +	unsigned int timeout;
+>> +struct nf_proto_net {
+>> +#ifdef CONFIG_SYSCTL
+>> +	struct ctl_table_header *ctl_table_header;
+>> +	struct ctl_table        *ctl_table;
+>> +#ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
+>> +	struct ctl_table_header *ctl_compat_header;
+>> +	struct ctl_table        *ctl_compat_table;
+>> +#endif
+>> +#endif
+>> +	unsigned int		users;
 >> +};
 >> +
->>  struct nf_ip_net {
->> +	struct nf_generic_net   generic;
->>  #if defined(CONFIG_SYSCTL) && defined(CONFIG_NF_CONNTRACK_PROC_COMP=
-AT)
->>  	struct ctl_table_header *ctl_table_header;
->>  	struct ctl_table	*ctl_table;
->> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_co=
-nntrack_core.c
->> index 32c5909..fd33e91 100644
->> --- a/net/netfilter/nf_conntrack_core.c
->> +++ b/net/netfilter/nf_conntrack_core.c
->> @@ -1353,6 +1353,7 @@ static void nf_conntrack_cleanup_net(struct ne=
-t *net)
->>  	}
->> =20
->>  	nf_ct_free_hashtable(net->ct.hash, net->ct.htable_size);
->> +	nf_conntrack_proto_generic_fini(net);
->>  	nf_conntrack_helper_fini(net);
->>  	nf_conntrack_timeout_fini(net);
->>  	nf_conntrack_ecache_fini(net);
->> @@ -1586,9 +1587,12 @@ static int nf_conntrack_init_net(struct net *=
-net)
->>  	ret =3D nf_conntrack_helper_init(net);
->>  	if (ret < 0)
->>  		goto err_helper;
->> -
->> +	ret =3D nf_conntrack_proto_generic_init(net);
->> +	if (ret < 0)
->> +		goto err_generic;
->>  	return 0;
->> -
->> +err_generic:
->> +	nf_conntrack_helper_fini(net);
->>  err_helper:
->>  	nf_conntrack_timeout_fini(net);
->>  err_timeout:
->> diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_c=
-onntrack_proto.c
->> index 7ee6653..9b4bf6d 100644
->> --- a/net/netfilter/nf_conntrack_proto.c
->> +++ b/net/netfilter/nf_conntrack_proto.c
->> @@ -287,10 +287,16 @@ EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_unregis=
-ter);
->>  static struct nf_proto_net *nf_ct_l4proto_net(struct net *net,
->>  					      struct nf_conntrack_l4proto *l4proto)
->>  {
->> -	if (l4proto->net_id)
->> -		return net_generic(net, *l4proto->net_id);
->> -	else
->> -		return NULL;
->> +	switch (l4proto->l4proto) {
->> +	case 255: /* l4proto_generic */
->> +		return (struct nf_proto_net *)&net->ct.proto.generic;
->> +	default:
->> +		if (l4proto->net_id)
->> +			return net_generic(net, *l4proto->net_id);
->> +		else
->> +			return NULL;
->> +	}
->> +	return NULL;
->>  }
->> =20
->>  int nf_ct_l4proto_register_sysctl(struct net *net,
->> @@ -457,11 +463,6 @@ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_unregist=
-er);
->>  int nf_conntrack_proto_init(void)
->>  {
->>  	unsigned int i;
->> -	int err;
->> -
->> -	err =3D nf_ct_l4proto_register_sysctl(&init_net, &nf_conntrack_l4p=
-roto_generic);
->> -	if (err < 0)
->> -		return err;
+>>  struct netns_ct {
+>>  	atomic_t		count;
+>>  	unsigned int		expect_count;
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
+evel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >=20
-> I like that all protocols sysctl are registered by
-> nf_conntrack_proto_init. Can you keep using that?
 
-you mean per-net's generic_proto sysctl are registered by
-nf_conntrack_proto_init?
-
-such as
-
-int nf_conntrack_proto_init(struct net *net)
-{
-	...
-	err =3D nf_ct_l4proto_register_sysctl(net, &nf_conntrack_l4proto_gener=
-ic);
-	...
-}
-
-if my understanding is right,my answer is yes we can ;)
 
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
