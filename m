@@ -1,120 +1,137 @@
 From: Krishna Kumar <krkumar2@in.ibm.com>
-Subject: [v5 PATCH 0/1] netfilter: "fail-open" feature support for NFQUEUE
-Date: Thu, 24 May 2012 19:26:31 +0530
-Message-ID: <20120524135631.24345.60254.sendpatchset@localhost.localdomain>
+Subject: [v5 PATCH 1/1] netfilter: Add fail-open support
+Date: Thu, 24 May 2012 19:26:44 +0530
+Message-ID: <20120524135644.24345.694.sendpatchset@localhost.localdomain>
+References: <20120524135631.24345.60254.sendpatchset@localhost.localdomain>
 Cc: vivk@us.ibm.com, svajipay@in.ibm.com, fw@strlen.de,
 	netfilter-devel@vger.kernel.org,
 	Krishna Kumar <krkumar2@in.ibm.com>, sri@us.ibm.com
 To: kaber@trash.net, pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from e23smtp09.au.ibm.com ([202.81.31.142]:43799 "EHLO
-	e23smtp09.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752445Ab2EXN4m (ORCPT
+Received: from e28smtp09.in.ibm.com ([122.248.162.9]:49354 "EHLO
+	e28smtp09.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754233Ab2EXOCl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 May 2012 09:56:42 -0400
+	Thu, 24 May 2012 10:02:41 -0400
 Received: from /spool/local
-	by e23smtp09.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	by e28smtp09.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
 	for <netfilter-devel@vger.kernel.org> from <krkumar2@in.ibm.com>;
-	Thu, 24 May 2012 14:44:44 +1000
-Received: from d23av02.au.ibm.com (d23av02.au.ibm.com [9.190.235.138])
-	by d23relay05.au.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id q4ODnVor23789642
-	for <netfilter-devel@vger.kernel.org>; Thu, 24 May 2012 23:49:32 +1000
-Received: from d23av02.au.ibm.com (loopback [127.0.0.1])
-	by d23av02.au.ibm.com (8.14.4/8.13.1/NCO v10.0 AVout) with ESMTP id q4ODuYmo020170
-	for <netfilter-devel@vger.kernel.org>; Thu, 24 May 2012 23:56:36 +1000
+	Thu, 24 May 2012 19:32:00 +0530
+Received: from d28av02.in.ibm.com (d28av02.in.ibm.com [9.184.220.64])
+	by d28relay01.in.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id q4ODukBg3211678
+	for <netfilter-devel@vger.kernel.org>; Thu, 24 May 2012 19:26:46 +0530
+Received: from d28av02.in.ibm.com (loopback [127.0.0.1])
+	by d28av02.in.ibm.com (8.14.4/8.13.1/NCO v10.0 AVout) with ESMTP id q4OJRNbU001972
+	for <netfilter-devel@vger.kernel.org>; Fri, 25 May 2012 05:27:24 +1000
+In-Reply-To: <20120524135631.24345.60254.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Many users of an IBM security product, which uses netfilter's NFQUEUE
-target to process packets in userspace, face a problem of dropped
-connections during heavy load. Incoming packets are queued and
-processed by the security module, which does deep packet analysis to
-decide whether to accept or reject them. However during heavy load,
-the queue fills up and connections fail when large number of packets
-get dropped.
-
-This patch implements a "failopen" support for NFQUEUE to help keep
-connections open during such failures. This is achieved by allowing
-acceptance of packets temporarily when the queue is full, which
-enables existing connections to be kept open.
-
-Failopen is enabled/disabled using a new call - nfq_set_flags(qh,
-mask, flags), which makes use of two new netlink attributes:
-	NFQA_CFG_MASK -  Specifies which flags are being modified.
-	NFQA_CFG_FLAGS - Set/reset the bits for each of those flags.
-
-
-		Tests done:
-		------------
-- netperf TCP_STREAM.
-- 64 netperf stress testing to ensure there are no memory leaks.
-- icmp ping.
-- enabling/disabling failopen in the middle of existing connections.
-- checksum verification of transferred files using scp.
-- different flag/mask values to check that code handling NFQA_CFG_MASK
-  works as expected.
-
-
-		Test results:
-		-------------
-Server:
--------
-# iptables -A INPUT -p tcp -m mac --mac-source 00:00:C9:C6:4F:22 \
-	-j NFQUEUE --queue-num 0
-# Run interceptor program with 50ms delay between packet processing,
-  and also sets qlen to 16. After every read system call, this program
-  tests and read's a config file's contents and calls
-  nfq_set_flags(qh, mask, flags).
-
-Client:
--------
-	---> failopen is disabled on server at this time
-# netperf -v0 -H 10.0.4.1
-TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to 10.0.4.1 (10.0.4.1) port 0 AF_INET
-0.16   
-	---> failopen is enabled on server at this time
-# netperf -v0 -H 10.0.4.1
-TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to 10.0.4.1 (10.0.4.1) port 0 AF_INET
-2292.82 
-
-	---> failopen is disabled on server at this time
-# scp FILE 10.0.4.1:/tmp
-FILE                             0% 2960KB  88.4KB/s 12:19:37 ETA
-	---> Enable failopen on server at this time
-FILE                             21%  809MB  44.2MB/s   01:08 ETA
-	---> Disable failopen on server at this time
-FILE                             23%  903MB 157.4KB/s 5:18:01 ETA
-	---> Enable failopen on server at this time
-FILE                             100% 3835MB  24.1MB/s   02:39    
-
-Changes from rev4:
-------------------
-
-1. Localize all changes to net/netfilter/nfnetlink_queue.c, which
-	helps remove GSO handling and other code in core.
-
-
-Changes from rev3:
-------------------
-
-1. Changed flags/mask to big-endian.
-2. Use nla_get_be32 instead of nla_data to access flags/masks.
-3. Cleaned up some comments.
-
-
-Changes from rev2:
-------------------
-
-1. Changed NFQA_CFG_FAIL_OPEN to generic NFQA_CFG_FLAGS and NFQA_CFG_MASK to
-	support new flags/options in future.
-2. Enqueue handler changed to return -ENOSPC on queue-full condition.
-3. Do not invoke okfn on -ENOSPC, but process all hooks first. nf_hook_slow
-   has code to handle failopen.
-
-Please review.
+Implement a new "fail-open" mode where packets are not dropped
+upon queue-full condition. This mode can be enabled/disabled per
+queue using netlink NFQA_CFG_FLAGS & NFQA_CFG_MASK attributes.
 
 Signed-off-by: Krishna Kumar <krkumar2@in.ibm.com>
 Signed-off-by: Vivek Kashyap <vivk@us.ibm.com>
 Signed-off-by: Sridhar Samudrala <samudrala@us.ibm.com>
 ---
+ include/linux/netfilter/nfnetlink_queue.h |    5 ++
+ net/netfilter/nfnetlink_queue.c           |   40 ++++++++++++++++++--
+ 2 files changed, 42 insertions(+), 3 deletions(-)
+
+diff -ruNp org/include/linux/netfilter/nfnetlink_queue.h new/include/linux/netfilter/nfnetlink_queue.h
+--- org/include/linux/netfilter/nfnetlink_queue.h	2012-05-24 15:47:52.361984483 +0530
++++ new/include/linux/netfilter/nfnetlink_queue.h	2012-05-24 16:06:29.123911109 +0530
+@@ -84,8 +84,13 @@ enum nfqnl_attr_config {
+ 	NFQA_CFG_CMD,			/* nfqnl_msg_config_cmd */
+ 	NFQA_CFG_PARAMS,		/* nfqnl_msg_config_params */
+ 	NFQA_CFG_QUEUE_MAXLEN,		/* __u32 */
++	NFQA_CFG_MASK,			/* identify which flags to change */
++	NFQA_CFG_FLAGS,			/* value of these flags (__u32) */
+ 	__NFQA_CFG_MAX
+ };
+ #define NFQA_CFG_MAX (__NFQA_CFG_MAX-1)
+ 
++/* Flags for NFQA_CFG_FLAGS */
++#define NFQA_CFG_F_FAIL_OPEN			(1 << 0)
++
+ #endif /* _NFNETLINK_QUEUE_H */
+diff -ruNp org/net/netfilter/nfnetlink_queue.c new/net/netfilter/nfnetlink_queue.c
+--- org/net/netfilter/nfnetlink_queue.c	2012-05-24 15:47:52.366985562 +0530
++++ new/net/netfilter/nfnetlink_queue.c	2012-05-24 18:12:04.695509859 +0530
+@@ -52,6 +52,7 @@ struct nfqnl_instance {
+ 
+ 	u_int16_t queue_num;			/* number of this queue */
+ 	u_int8_t copy_mode;
++	u_int32_t flags;			/* Set using NFQA_CFG_FLAGS */
+ /*
+  * Following fields are dirtied for each queued packet,
+  * keep them in same cache line if possible.
+@@ -406,6 +407,7 @@ nfqnl_enqueue_packet(struct nf_queue_ent
+ 	struct nfqnl_instance *queue;
+ 	int err = -ENOBUFS;
+ 	__be32 *packet_id_ptr;
++	int failopen = 0;
+ 
+ 	/* rcu_read_lock()ed by nf_hook_slow() */
+ 	queue = instance_lookup(queuenum);
+@@ -431,9 +433,14 @@ nfqnl_enqueue_packet(struct nf_queue_ent
+ 		goto err_out_free_nskb;
+ 	}
+ 	if (queue->queue_total >= queue->queue_maxlen) {
+-		queue->queue_dropped++;
+-		net_warn_ratelimited("nf_queue: full at %d entries, dropping packets(s)\n",
+-				     queue->queue_total);
++		if (queue->flags & NFQA_CFG_F_FAIL_OPEN) {
++			failopen = 1;
++			err = 0;
++		} else {
++			queue->queue_dropped++;
++			net_warn_ratelimited("nf_queue: full at %d entries, dropping packets(s)\n",
++					     queue->queue_total);
++		}
+ 		goto err_out_free_nskb;
+ 	}
+ 	entry->id = ++queue->id_sequence;
+@@ -455,6 +462,8 @@ err_out_free_nskb:
+ 	kfree_skb(nskb);
+ err_out_unlock:
+ 	spin_unlock_bh(&queue->lock);
++	if (failopen)
++		nf_reinject(entry, NF_ACCEPT);
+ err_out:
+ 	return err;
+ }
+@@ -858,6 +867,31 @@ nfqnl_recv_config(struct sock *ctnl, str
+ 		spin_unlock_bh(&queue->lock);
+ 	}
+ 
++	if (nfqa[NFQA_CFG_FLAGS]) {
++		__u32 flags, mask;
++
++		if (!queue) {
++			ret = -ENODEV;
++			goto err_out_unlock;
++		}
++
++		if (!nfqa[NFQA_CFG_MASK]) {
++			/* A mask is needed to specify which flags are being
++			 * changed.
++			 */
++			ret = -EINVAL;
++			goto err_out_unlock;
++		}
++
++		flags = ntohl(nla_get_be32(nfqa[NFQA_CFG_FLAGS]));
++		mask = ntohl(nla_get_be32(nfqa[NFQA_CFG_MASK]));
++
++		spin_lock_bh(&queue->lock);
++		queue->flags &= ~mask;
++		queue->flags |= flags & mask;
++		spin_unlock_bh(&queue->lock);
++	}
++
+ err_out_unlock:
+ 	rcu_read_unlock();
+ 	return ret;
 
