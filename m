@@ -1,62 +1,80 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [v4 PATCH 1/1] netfilter: Add fail-open support
-Date: Thu, 24 May 2012 12:53:14 +0200
-Message-ID: <20120524105314.GB30569@breakpoint.cc>
-References: <20120524082518.13146.25740.sendpatchset@localhost.localdomain>
- <20120524082531.13146.347.sendpatchset@localhost.localdomain>
- <20120524093043.GA30569@breakpoint.cc>
- <OF029AE6DA.E5969DF9-ON65257A08.003984EF-65257A08.0039E951@in.ibm.com>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Re: [PATCH 03/17] netfilter: add namespace support for l3proto
+Date: Thu, 24 May 2012 18:57:16 +0800
+Message-ID: <4FBE140C.2030805@cn.fujitsu.com>
+References: <1336985547-31960-1-git-send-email-gaofeng@cn.fujitsu.com> <1336985547-31960-4-git-send-email-gaofeng@cn.fujitsu.com> <20120523102910.GC2836@1984> <4FBD95AA.8070301@cn.fujitsu.com> <20120524100412.GE13091@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, kaber@trash.net,
-	netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-	sri@us.ibm.com, Sulakshan Vajipayajula <svajipay@in.ibm.com>,
-	vivk@us.ibm.com
-To: Krishna Kumar2 <krkumar2@in.ibm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	serge.hallyn@canonical.com, ebiederm@xmission.com,
+	dlezcano@fr.ibm.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:59965 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754837Ab2EXKxR (ORCPT
+Received: from cn.fujitsu.com ([222.73.24.84]:17666 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1755202Ab2EXK4q convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 May 2012 06:53:17 -0400
-Content-Disposition: inline
-In-Reply-To: <OF029AE6DA.E5969DF9-ON65257A08.003984EF-65257A08.0039E951@in.ibm.com>
+	Thu, 24 May 2012 06:56:46 -0400
+In-Reply-To: <20120524100412.GE13091@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Krishna Kumar2 <krkumar2@in.ibm.com> wrote:
-> > if (queue->queue_total >= queue->queue_maxlen) {
-> >    if (queue->flags & NFQA_CFG_F_FAIL_OPEN) {
-> >       nf_reinject(entry, NF_ACCEPT);
-> >       err = 0;
-> >       goto err_out_free_nskb;
-> >    }
-> >    queue->queue_dropped++;
-> >    net_warn_ratelimited("nf_queue: full at %d entries, dropping packets
-> (s)\n",
-> >
-> > [..]
-> >
-> > Do you see any problems with that?
-> 
-> No, I think it should work fine. Do this after dropping the lock?
+=E4=BA=8E 2012=E5=B9=B405=E6=9C=8824=E6=97=A5 18:04, Pablo Neira Ayuso =
+=E5=86=99=E9=81=93:
+> On Thu, May 24, 2012 at 09:58:02AM +0800, Gao feng wrote:
+>> =E4=BA=8E 2012=E5=B9=B405=E6=9C=8823=E6=97=A5 18:29, Pablo Neira Ayu=
+so =E5=86=99=E9=81=93:
+>>> On Mon, May 14, 2012 at 04:52:13PM +0800, Gao feng wrote:
+> [...]
+>>>> diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf=
+_conntrack_proto.c
+>>>> index 6d68727..7ee6653 100644
+>>>> --- a/net/netfilter/nf_conntrack_proto.c
+>>>> +++ b/net/netfilter/nf_conntrack_proto.c
+>>>> @@ -170,85 +170,116 @@ static int kill_l4proto(struct nf_conn *i, =
+void *data)
+>>>>  	       nf_ct_l3num(i) =3D=3D l4proto->l3proto;
+>>>>  }
+>>>> =20
+>>>> -static int nf_ct_l3proto_register_sysctl(struct nf_conntrack_l3pr=
+oto *l3proto)
+>>>> +static struct nf_ip_net *nf_ct_l3proto_net(struct net *net,
+>>>> +					   struct nf_conntrack_l3proto *l3proto)
+>>>> +{
+>>>> +	if (l3proto->l3proto =3D=3D PF_INET)
+>>>> +		return &net->ct.proto;
+>>>> +	else
+>>>> +		return NULL;
+>>>> +}
+>>>> +
+>>>> +static int nf_ct_l3proto_register_sysctl(struct net *net,
+>>>> +					 struct nf_conntrack_l3proto *l3proto)
+>>>>  {
+>>>>  	int err =3D 0;
+>>>> +	struct nf_ip_net *in =3D nf_ct_l3proto_net(net, l3proto);
+>>>> =20
+>>>> -#ifdef CONFIG_SYSCTL
+>>>> -	if (l3proto->ctl_table !=3D NULL) {
+>>>> -		err =3D nf_ct_register_sysctl(&init_net,
+>>>> -					    &l3proto->ctl_table_header,
+>>>> +	if (in =3D=3D NULL)
+>>>> +		return 0;
+>>>
+>>> Under what circunstances that in be NULL?
+>>
+>> Because l3proto_ipv6 doesn't need sysctl,so l3proto_ipv6's nf_ip_net=
+ is NULL,
+>> please see function nf_ct_l3proto_net above.
+>=20
+> Then, please add a comment there to explain that some per-net protoco=
+l
+> information may missing since no sysctl is supported.
 
-Good catch.  Yes, the lock should be dropped, else we
-deadlock when same queue is hit in next table/chain.
+Yes, I will add a comment to make it more clearer ;)
 
-> > > +   if (nfqa[NFQA_CFG_FLAGS]) {
-> > > +      __be32 flags, mask;
-> >
-> > [..]
-> >
-> > > +      flags = ntohl(nla_get_be32(nfqa[NFQA_CFG_FLAGS]));
-> > > +      mask = ntohl(nla_get_be32(nfqa[NFQA_CFG_MASK]));
-> >
-> > ntohl returns __u32 type.
-> 
-> Maybe just use __u32 type for flags/mask?
-
-Yes.
-
-Thanks,
-Florian
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
