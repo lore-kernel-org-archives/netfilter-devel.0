@@ -1,8 +1,8 @@
 From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: Re: [PATCH 05/17] netfilter: add namespace support for l4proto_tcp
-Date: Fri, 25 May 2012 14:05:40 +0800
-Message-ID: <4FBF2134.1020903@cn.fujitsu.com>
-References: <1336985547-31960-1-git-send-email-gaofeng@cn.fujitsu.com> <1336985547-31960-6-git-send-email-gaofeng@cn.fujitsu.com> <20120525030015.GB21076@1984>
+Subject: Re: [PATCH 04/17] netfilter: add namespace support for l4proto_generic
+Date: Sat, 26 May 2012 10:36:36 +0800
+Message-ID: <4FC041B4.6080501@cn.fujitsu.com>
+References: <1336985547-31960-1-git-send-email-gaofeng@cn.fujitsu.com> <1336985547-31960-5-git-send-email-gaofeng@cn.fujitsu.com> <20120523103232.GD2836@1984> <4FBD8B40.4020303@cn.fujitsu.com> <20120524095222.GA13091@1984> <4FBE1678.7050903@cn.fujitsu.com> <20120524144038.GB15898@1984>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
@@ -11,130 +11,191 @@ Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	dlezcano@fr.ibm.com
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:48050 "EHLO song.cn.fujitsu.com"
+Received: from cn.fujitsu.com ([222.73.24.84]:34576 "EHLO song.cn.fujitsu.com"
 	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751898Ab2EYGFN convert rfc822-to-8bit (ORCPT
+	id S1752379Ab2EZDAP convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 May 2012 02:05:13 -0400
-In-Reply-To: <20120525030015.GB21076@1984>
+	Fri, 25 May 2012 23:00:15 -0400
+In-Reply-To: <20120524144038.GB15898@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=E4=BA=8E 2012=E5=B9=B405=E6=9C=8825=E6=97=A5 11:00, Pablo Neira Ayuso =
+=E4=BA=8E 2012=E5=B9=B405=E6=9C=8824=E6=97=A5 22:40, Pablo Neira Ayuso =
 =E5=86=99=E9=81=93:
-> Hi Gao,
->=20
-> While having a look at this again, I have two new requests:
->=20
-> On Mon, May 14, 2012 at 04:52:15PM +0800, Gao feng wrote:
-> [...]
->> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/=
-nf_conntrack_proto_tcp.c
->> index 4dfbfa8..dd19350 100644
->> --- a/net/netfilter/nf_conntrack_proto_tcp.c
->> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> [...]
->> @@ -1549,10 +1532,80 @@ static struct ctl_table tcp_compat_sysctl_ta=
-ble[] =3D {
->>  #endif /* CONFIG_NF_CONNTRACK_PROC_COMPAT */
->>  #endif /* CONFIG_SYSCTL */
->>
->> +static int tcp_init_net(struct net *net, u_int8_t compat)
->> +{
->> +	int i;
->> +	struct nf_tcp_net *tn =3D tcp_pernet(net);
->> +	struct nf_proto_net *pn =3D (struct nf_proto_net *)tn;
->> +#ifdef CONFIG_SYSCTL
->> +#ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
->> +	if (compat) {
->> +		pn->ctl_compat_table =3D kmemdup(tcp_compat_sysctl_table,
->> +					       sizeof(tcp_compat_sysctl_table),
->> +					       GFP_KERNEL);
->> +		if (!pn->ctl_compat_table)
->> +			return -ENOMEM;
->> +
->> +		pn->ctl_compat_table[0].data =3D &tn->timeouts[TCP_CONNTRACK_SYN_=
-SENT];
->> +		pn->ctl_compat_table[1].data =3D &tn->timeouts[TCP_CONNTRACK_SYN_=
-SENT2];
->> +		pn->ctl_compat_table[2].data =3D &tn->timeouts[TCP_CONNTRACK_SYN_=
-RECV];
->> +		pn->ctl_compat_table[3].data =3D &tn->timeouts[TCP_CONNTRACK_ESTA=
-BLISHED];
->> +		pn->ctl_compat_table[4].data =3D &tn->timeouts[TCP_CONNTRACK_FIN_=
-WAIT];
->> +		pn->ctl_compat_table[5].data =3D &tn->timeouts[TCP_CONNTRACK_CLOS=
-E_WAIT];
->> +		pn->ctl_compat_table[6].data =3D &tn->timeouts[TCP_CONNTRACK_LAST=
-_ACK];
->> +		pn->ctl_compat_table[7].data =3D &tn->timeouts[TCP_CONNTRACK_TIME=
-_WAIT];
->> +		pn->ctl_compat_table[8].data =3D &tn->timeouts[TCP_CONNTRACK_CLOS=
-E];
->> +		pn->ctl_compat_table[9].data =3D &tn->timeouts[TCP_CONNTRACK_RETR=
-ANS];
->> +		pn->ctl_compat_table[10].data =3D &tn->tcp_loose;
->> +		pn->ctl_compat_table[11].data =3D &tn->tcp_be_liberal;
->> +		pn->ctl_compat_table[12].data =3D &tn->tcp_max_retrans;
->=20
-> You can make a generic function to set the ctl_data that you can
-> reuse for this code above and the one below.
->=20
-
-Actually I want reuse this code too,
-But Unfortunately the ctl_data has different order or different size.
-ctl_compat_table[1].data =3D &tn->timeouts[TCP_CONNTRACK_SYN_SENT2]
-but
-ctl_table[1].data =3D &tn->timeouts[TCP_CONNTRACK_SYN_RECV];
-
-
->> +	}
->> +#endif
->> +	if (!pn->ctl_table) {
->> +#else
->> +	if (!pn->user++) {
->> +#endif
->> +		for (i =3D 0; i < TCP_CONNTRACK_TIMEOUT_MAX; i++)
->> +			tn->timeouts[i] =3D tcp_timeouts[i];
->> +		tn->tcp_loose =3D nf_ct_tcp_loose;
->> +		tn->tcp_be_liberal =3D nf_ct_tcp_be_liberal;
->> +		tn->tcp_max_retrans =3D nf_ct_tcp_max_retrans;
->> +#ifdef CONFIG_SYSCTL
->> +		pn->ctl_table =3D kmemdup(tcp_sysctl_table,
->> +					sizeof(tcp_sysctl_table),
->> +					GFP_KERNEL);
->> +		if (!pn->ctl_table) {
->> +#ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
->> +			if (compat) {
->> +				kfree(pn->ctl_compat_table);
->> +				pn->ctl_compat_table =3D NULL;
->> +			}
->> +#endif
->> +			return -ENOMEM;
->> +		}
->> +		pn->ctl_table[0].data =3D &tn->timeouts[TCP_CONNTRACK_SYN_SENT];
->> +		pn->ctl_table[1].data =3D &tn->timeouts[TCP_CONNTRACK_SYN_RECV];
->> +		pn->ctl_table[2].data =3D &tn->timeouts[TCP_CONNTRACK_ESTABLISHED=
-];
->> +		pn->ctl_table[3].data =3D &tn->timeouts[TCP_CONNTRACK_FIN_WAIT];
->> +		pn->ctl_table[4].data =3D &tn->timeouts[TCP_CONNTRACK_CLOSE_WAIT]=
+> On Thu, May 24, 2012 at 07:07:36PM +0800, Gao feng wrote:
+>> =E4=BA=8E 2012=E5=B9=B405=E6=9C=8824=E6=97=A5 17:52, Pablo Neira Ayu=
+so =E5=86=99=E9=81=93:
+>>> On Thu, May 24, 2012 at 09:13:36AM +0800, Gao feng wrote:
+>>>> =E4=BA=8E 2012=E5=B9=B405=E6=9C=8823=E6=97=A5 18:32, Pablo Neira A=
+yuso =E5=86=99=E9=81=93:
+>>>>> On Mon, May 14, 2012 at 04:52:14PM +0800, Gao feng wrote:
+>>>>>> implement and export nf_conntrack_proto_generic_[init,fini],
+>>>>>> nf_conntrack_[init,cleanup]_net call them to register or unregis=
+ter
+>>>>>> the sysctl of generic proto.
+>>>>>>
+>>>>>> implement generic_net_init,it's used to initial the pernet
+>>>>>> data for generic proto.
+>>>>>>
+>>>>>> and use nf_generic_net.timeout to replace nf_ct_generic_timeout =
+in
+>>>>>> get_timeouts function.
+>>>>>>
+>>>>>> Acked-by: Eric W. Biederman <ebiederm@xmission.com>
+>>>>>> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+>>>>>> ---
+>>>>>>  include/net/netfilter/nf_conntrack_l4proto.h |    2 +
+>>>>>>  include/net/netns/conntrack.h                |    6 +++
+>>>>>>  net/netfilter/nf_conntrack_core.c            |    8 +++-
+>>>>>>  net/netfilter/nf_conntrack_proto.c           |   21 +++++-----
+>>>>>>  net/netfilter/nf_conntrack_proto_generic.c   |   55 +++++++++++=
++++++++++++++-
+>>>>>>  5 files changed, 76 insertions(+), 16 deletions(-)
+>>>>>>
+>>>>>> diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/incl=
+ude/net/netfilter/nf_conntrack_l4proto.h
+>>>>>> index a93dcd5..0d329b9 100644
+>>>>>> --- a/include/net/netfilter/nf_conntrack_l4proto.h
+>>>>>> +++ b/include/net/netfilter/nf_conntrack_l4proto.h
+>>>>>> @@ -118,6 +118,8 @@ struct nf_conntrack_l4proto {
+>>>>>> =20
+>>>>>>  /* Existing built-in generic protocol */
+>>>>>>  extern struct nf_conntrack_l4proto nf_conntrack_l4proto_generic=
 ;
->> +		pn->ctl_table[5].data =3D &tn->timeouts[TCP_CONNTRACK_LAST_ACK];
->> +		pn->ctl_table[6].data =3D &tn->timeouts[TCP_CONNTRACK_TIME_WAIT];
->> +		pn->ctl_table[7].data =3D &tn->timeouts[TCP_CONNTRACK_CLOSE];
->> +		pn->ctl_table[8].data =3D &tn->timeouts[TCP_CONNTRACK_RETRANS];
->> +		pn->ctl_table[9].data =3D &tn->timeouts[TCP_CONNTRACK_UNACK];
->> +		pn->ctl_table[10].data =3D &tn->tcp_loose;
->> +		pn->ctl_table[11].data =3D &tn->tcp_be_liberal;
->> +		pn->ctl_table[12].data =3D &tn->tcp_max_retrans;
->> +#endif
+>>>>>> +extern int nf_conntrack_proto_generic_init(struct net *net);
+>>>>>> +extern void nf_conntrack_proto_generic_fini(struct net *net);
+>>>>>> =20
+>>>>>>  #define MAX_NF_CT_PROTO 256
+>>>>>> =20
+>>>>>> diff --git a/include/net/netns/conntrack.h b/include/net/netns/c=
+onntrack.h
+>>>>>> index 94992e9..3381b80 100644
+>>>>>> --- a/include/net/netns/conntrack.h
+>>>>>> +++ b/include/net/netns/conntrack.h
+>>>>>> @@ -20,7 +20,13 @@ struct nf_proto_net {
+>>>>>>  	unsigned int		users;
+>>>>>>  };
+>>>>>> =20
+>>>>>> +struct nf_generic_net {
+>>>>>> +	struct nf_proto_net pn;
+>>>>>> +	unsigned int timeout;
+>>>>>> +};
+>>>>>> +
+>>>>>>  struct nf_ip_net {
+>>>>>> +	struct nf_generic_net   generic;
+>>>>>>  #if defined(CONFIG_SYSCTL) && defined(CONFIG_NF_CONNTRACK_PROC_=
+COMPAT)
+>>>>>>  	struct ctl_table_header *ctl_table_header;
+>>>>>>  	struct ctl_table	*ctl_table;
+>>>>>> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/n=
+f_conntrack_core.c
+>>>>>> index 32c5909..fd33e91 100644
+>>>>>> --- a/net/netfilter/nf_conntrack_core.c
+>>>>>> +++ b/net/netfilter/nf_conntrack_core.c
+>>>>>> @@ -1353,6 +1353,7 @@ static void nf_conntrack_cleanup_net(struc=
+t net *net)
+>>>>>>  	}
+>>>>>> =20
+>>>>>>  	nf_ct_free_hashtable(net->ct.hash, net->ct.htable_size);
+>>>>>> +	nf_conntrack_proto_generic_fini(net);
+>>>>>>  	nf_conntrack_helper_fini(net);
+>>>>>>  	nf_conntrack_timeout_fini(net);
+>>>>>>  	nf_conntrack_ecache_fini(net);
+>>>>>> @@ -1586,9 +1587,12 @@ static int nf_conntrack_init_net(struct n=
+et *net)
+>>>>>>  	ret =3D nf_conntrack_helper_init(net);
+>>>>>>  	if (ret < 0)
+>>>>>>  		goto err_helper;
+>>>>>> -
+>>>>>> +	ret =3D nf_conntrack_proto_generic_init(net);
+>>>>>> +	if (ret < 0)
+>>>>>> +		goto err_generic;
+>>>>>>  	return 0;
+>>>>>> -
+>>>>>> +err_generic:
+>>>>>> +	nf_conntrack_helper_fini(net);
+>>>>>>  err_helper:
+>>>>>>  	nf_conntrack_timeout_fini(net);
+>>>>>>  err_timeout:
+>>>>>> diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/=
+nf_conntrack_proto.c
+>>>>>> index 7ee6653..9b4bf6d 100644
+>>>>>> --- a/net/netfilter/nf_conntrack_proto.c
+>>>>>> +++ b/net/netfilter/nf_conntrack_proto.c
+>>>>>> @@ -287,10 +287,16 @@ EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_unr=
+egister);
+>>>>>>  static struct nf_proto_net *nf_ct_l4proto_net(struct net *net,
+>>>>>>  					      struct nf_conntrack_l4proto *l4proto)
+>>>>>>  {
+>>>>>> -	if (l4proto->net_id)
+>>>>>> -		return net_generic(net, *l4proto->net_id);
+>>>>>> -	else
+>>>>>> -		return NULL;
+>>>>>> +	switch (l4proto->l4proto) {
+>>>>>> +	case 255: /* l4proto_generic */
+>>>>>> +		return (struct nf_proto_net *)&net->ct.proto.generic;
+>>>>>> +	default:
+>>>>>> +		if (l4proto->net_id)
+>>>>>> +			return net_generic(net, *l4proto->net_id);
+>>>>>> +		else
+>>>>>> +			return NULL;
+>>>>>> +	}
+>>>>>> +	return NULL;
+>>>>>>  }
+>>>>>> =20
+>>>>>>  int nf_ct_l4proto_register_sysctl(struct net *net,
+>>>>>> @@ -457,11 +463,6 @@ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_unre=
+gister);
+>>>>>>  int nf_conntrack_proto_init(void)
+>>>>>>  {
+>>>>>>  	unsigned int i;
+>>>>>> -	int err;
+>>>>>> -
+>>>>>> -	err =3D nf_ct_l4proto_register_sysctl(&init_net, &nf_conntrack=
+_l4proto_generic);
+>>>>>> -	if (err < 0)
+>>>>>> -		return err;
+>>>>>
+>>>>> I like that all protocols sysctl are registered by
+>>>>> nf_conntrack_proto_init. Can you keep using that?
+>>>>
+>>>> you mean per-net's generic_proto sysctl are registered by
+>>>> nf_conntrack_proto_init?
+>>>>
+>>>> such as
+>>>>
+>>>> int nf_conntrack_proto_init(struct net *net)
+>>>> {
+>>>> 	...
+>>>> 	err =3D nf_ct_l4proto_register_sysctl(net, &nf_conntrack_l4proto_=
+generic);
+>>>
+>>> Yes, all protocol trackers included in nf_conntrack_proto_init:
+>>>
+>>>         err =3D nf_conntrack_proto_generic_init(net);
+>>>         ...
+>>>         err =3D nf_conntrack_proto_tcp_init(net);
+>>>         ...
+>>>
+>>> and so on.
+>>
+>> sounds good,but the l4protos except l4proto_generic are enabled by
+>> insmod modules(such as nf_conntrack_ipv4,nf_conntrack_proto_udplite)=
+=2E
+>>
+>> So I think it makes no sense to init all protocol here, unless we de=
+cide
+>> to put those protos into module nf_conntrack.
 >=20
-> I have bad experience with code that has lots of #ifdef's.
+> Sorry, I meant to say all protocols that are built-in.
 >=20
-> Please, split all *_init_net into smaller functions.
+> So, just put there those that are built-in, like TCP, UDP and generic
 
-It did look ugly,I will try my best to make code clear. ;)
+AFAIK l4proto_generic is registered when install module nf_conntrack,
+BUT l4proto_tcp,l4proto_udp,l4proto_icmp are registered when install mo=
+dule nf_conntrack_ipv4.
 
+So we can only register generic proto here.
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
