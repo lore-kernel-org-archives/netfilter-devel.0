@@ -1,118 +1,196 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 04/17] netfilter: add namespace support for
- l4proto_generic
-Date: Mon, 28 May 2012 11:54:00 +0200
-Message-ID: <20120528095400.GB10379@1984>
-References: <1336985547-31960-1-git-send-email-gaofeng@cn.fujitsu.com>
- <1336985547-31960-5-git-send-email-gaofeng@cn.fujitsu.com>
- <20120523103232.GD2836@1984>
- <4FBD8B40.4020303@cn.fujitsu.com>
- <20120524095222.GA13091@1984>
- <4FBE1678.7050903@cn.fujitsu.com>
- <20120524144038.GB15898@1984>
- <4FC041B4.6080501@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: [PATCH 11/15] netfilter: add namespace support for l4proto_udplite
+Date: Tue, 29 May 2012 15:04:19 +0800
+Message-ID: <1338275063-11711-12-git-send-email-gaofeng@cn.fujitsu.com>
+References: <1338275063-11711-1-git-send-email-gaofeng@cn.fujitsu.com>
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	serge.hallyn@canonical.com, ebiederm@xmission.com,
-	dlezcano@fr.ibm.com
-To: Gao feng <gaofeng@cn.fujitsu.com>
+	dlezcano@fr.ibm.com, Gao feng <gaofeng@cn.fujitsu.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56208 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753260Ab2E1JyC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 May 2012 05:54:02 -0400
-Content-Disposition: inline
-In-Reply-To: <4FC041B4.6080501@cn.fujitsu.com>
+Received: from cn.fujitsu.com ([222.73.24.84]:18604 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1753196Ab2E2HiC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 May 2012 03:38:02 -0400
+In-Reply-To: <1338275063-11711-1-git-send-email-gaofeng@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, May 26, 2012 at 10:36:36AM +0800, Gao feng wrote:
-> >>>>>> @@ -1586,9 +1587,12 @@ static int nf_conntrack_init_net(struct net *net)
-> >>>>>>  	ret = nf_conntrack_helper_init(net);
-> >>>>>>  	if (ret < 0)
-> >>>>>>  		goto err_helper;
-> >>>>>> -
-> >>>>>> +	ret = nf_conntrack_proto_generic_init(net);
-> >>>>>> +	if (ret < 0)
-> >>>>>> +		goto err_generic;
-> >>>>>>  	return 0;
-> >>>>>> -
-> >>>>>> +err_generic:
-> >>>>>> +	nf_conntrack_helper_fini(net);
-> >>>>>>  err_helper:
-> >>>>>>  	nf_conntrack_timeout_fini(net);
-> >>>>>>  err_timeout:
-> >>>>>> diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-> >>>>>> index 7ee6653..9b4bf6d 100644
-> >>>>>> --- a/net/netfilter/nf_conntrack_proto.c
-> >>>>>> +++ b/net/netfilter/nf_conntrack_proto.c
-> >>>>>> @@ -287,10 +287,16 @@ EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_unregister);
-> >>>>>>  static struct nf_proto_net *nf_ct_l4proto_net(struct net *net,
-> >>>>>>  					      struct nf_conntrack_l4proto *l4proto)
-> >>>>>>  {
-> >>>>>> -	if (l4proto->net_id)
-> >>>>>> -		return net_generic(net, *l4proto->net_id);
-> >>>>>> -	else
-> >>>>>> -		return NULL;
-> >>>>>> +	switch (l4proto->l4proto) {
-> >>>>>> +	case 255: /* l4proto_generic */
-> >>>>>> +		return (struct nf_proto_net *)&net->ct.proto.generic;
-> >>>>>> +	default:
-> >>>>>> +		if (l4proto->net_id)
-> >>>>>> +			return net_generic(net, *l4proto->net_id);
-> >>>>>> +		else
-> >>>>>> +			return NULL;
-> >>>>>> +	}
-> >>>>>> +	return NULL;
-> >>>>>>  }
-> >>>>>>  
-> >>>>>>  int nf_ct_l4proto_register_sysctl(struct net *net,
-> >>>>>> @@ -457,11 +463,6 @@ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_unregister);
-> >>>>>>  int nf_conntrack_proto_init(void)
-> >>>>>>  {
-> >>>>>>  	unsigned int i;
-> >>>>>> -	int err;
-> >>>>>> -
-> >>>>>> -	err = nf_ct_l4proto_register_sysctl(&init_net, &nf_conntrack_l4proto_generic);
-> >>>>>> -	if (err < 0)
-> >>>>>> -		return err;
-> >>>>>
-> >>>>> I like that all protocols sysctl are registered by
-> >>>>> nf_conntrack_proto_init. Can you keep using that?
-> >>>>
-> >>>> you mean per-net's generic_proto sysctl are registered by
-> >>>> nf_conntrack_proto_init?
-> >>>>
-> >>>> such as
-> >>>>
-> >>>> int nf_conntrack_proto_init(struct net *net)
-> >>>> {
-> >>>> 	...
-> >>>> 	err = nf_ct_l4proto_register_sysctl(net, &nf_conntrack_l4proto_generic);
-> >>>
-> >>> Yes, all protocol trackers included in nf_conntrack_proto_init:
-> >>>
-> >>>         err = nf_conntrack_proto_generic_init(net);
-> >>>         ...
-> >>>         err = nf_conntrack_proto_tcp_init(net);
-> >>>         ...
-> >>>
-> >>> and so on.
-> >>
-> >> sounds good,but the l4protos except l4proto_generic are enabled by
-> >> insmod modules(such as nf_conntrack_ipv4,nf_conntrack_proto_udplite).
-> >>
-> >> So I think it makes no sense to init all protocol here, unless we decide
-> >> to put those protos into module nf_conntrack.
-> > 
-> > Sorry, I meant to say all protocols that are built-in.
-> > 
-> > So, just put there those that are built-in, like TCP, UDP and generic
-> 
-> AFAIK l4proto_generic is registered when install module nf_conntrack,
-> BUT l4proto_tcp,l4proto_udp,l4proto_icmp are registered when install module nf_conntrack_ipv4.
-> 
-> So we can only register generic proto here.
+add pernet_operations udplite_net_ops and register it when
+module nf_conntrack_proto_udplite is loaded.
+move the l4proto_register from module_init function to
+udplite_net_ops.init.
 
-You are all right.
+and implement udplite_init_net to initial the pernet sysctl
+table for udplite[4,6] protos.
+
+Acked-by: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+---
+ net/netfilter/nf_conntrack_proto_udplite.c |  101 +++++++++++++++++++++++-----
+ 1 files changed, 83 insertions(+), 18 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
+index fa142a8..ee8c168 100644
+--- a/net/netfilter/nf_conntrack_proto_udplite.c
++++ b/net/netfilter/nf_conntrack_proto_udplite.c
+@@ -35,6 +35,17 @@ static unsigned int udplite_timeouts[UDPLITE_CT_MAX] = {
+ 	[UDPLITE_CT_REPLIED]	= 180*HZ,
+ };
+ 
++static int udplite_net_id __read_mostly;
++struct udplite_net {
++	struct nf_proto_net pn;
++	unsigned int timeouts[UDPLITE_CT_MAX];
++};
++
++static inline struct udplite_net *udplite_pernet(struct net *net)
++{
++	return net_generic(net, udplite_net_id);
++}
++
+ static bool udplite_pkt_to_tuple(const struct sk_buff *skb,
+ 				 unsigned int dataoff,
+ 				 struct nf_conntrack_tuple *tuple)
+@@ -70,7 +81,7 @@ static int udplite_print_tuple(struct seq_file *s,
+ 
+ static unsigned int *udplite_get_timeouts(struct net *net)
+ {
+-	return udplite_timeouts;
++	return udplite_pernet(net)->timeouts;
+ }
+ 
+ /* Returns verdict for packet, and may modify conntracktype */
+@@ -209,14 +220,12 @@ static struct ctl_table_header *udplite_sysctl_header;
+ static struct ctl_table udplite_sysctl_table[] = {
+ 	{
+ 		.procname	= "nf_conntrack_udplite_timeout",
+-		.data		= &udplite_timeouts[UDPLITE_CT_UNREPLIED],
+ 		.maxlen		= sizeof(unsigned int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_jiffies,
+ 	},
+ 	{
+ 		.procname	= "nf_conntrack_udplite_timeout_stream",
+-		.data		= &udplite_timeouts[UDPLITE_CT_REPLIED],
+ 		.maxlen		= sizeof(unsigned int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_jiffies,
+@@ -225,6 +234,31 @@ static struct ctl_table udplite_sysctl_table[] = {
+ };
+ #endif /* CONFIG_SYSCTL */
+ 
++static int udplite_init_net(struct net *net)
++{
++	int i;
++	struct udplite_net *un = udplite_pernet(net);
++	struct nf_proto_net *pn = (struct nf_proto_net *)un;
++#ifdef CONFIG_SYSCTL
++	if (!pn->ctl_table) {
++#else
++	if (!pn->users++) {
++#endif
++		for (i = 0 ; i < UDPLITE_CT_MAX; i++)
++			un->timeouts[i] = udplite_timeouts[i];
++#ifdef CONFIG_SYSCTL
++		pn->ctl_table = kmemdup(udplite_sysctl_table,
++					sizeof(udplite_sysctl_table),
++					GFP_KERNEL);
++		if (!pn->ctl_table)
++			return -ENOMEM;
++		pn->ctl_table[0].data = &un->timeouts[UDPLITE_CT_UNREPLIED];
++		pn->ctl_table[1].data = &un->timeouts[UDPLITE_CT_REPLIED];
++#endif
++	}
++	return 0;
++}
++
+ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 __read_mostly =
+ {
+ 	.l3proto		= PF_INET,
+@@ -258,6 +292,8 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 __read_mostly =
+ 	.ctl_table_header	= &udplite_sysctl_header,
+ 	.ctl_table		= udplite_sysctl_table,
+ #endif
++	.net_id			= &udplite_net_id,
++	.init_net		= udplite_init_net,
+ };
+ 
+ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 __read_mostly =
+@@ -293,29 +329,58 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 __read_mostly =
+ 	.ctl_table_header	= &udplite_sysctl_header,
+ 	.ctl_table		= udplite_sysctl_table,
+ #endif
++	.net_id			= &udplite_net_id,
++	.init_net		= udplite_init_net,
+ };
+ 
+-static int __init nf_conntrack_proto_udplite_init(void)
++static int udplite_net_init(struct net *net)
+ {
+-	int err;
+-
+-	err = nf_conntrack_l4proto_register(&init_net, &nf_conntrack_l4proto_udplite4);
+-	if (err < 0)
+-		goto err1;
+-	err = nf_conntrack_l4proto_register(&init_net, &nf_conntrack_l4proto_udplite6);
+-	if (err < 0)
+-		goto err2;
++	int ret = 0;
++
++	ret = nf_conntrack_l4proto_register(net,
++					    &nf_conntrack_l4proto_udplite4);
++	if (ret < 0) {
++		pr_err("nf_conntrack_l4proto_udplite4 :protocol register failed.\n");
++		goto out;
++	}
++	ret = nf_conntrack_l4proto_register(net,
++					    &nf_conntrack_l4proto_udplite6);
++	if (ret < 0) {
++		pr_err("nf_conntrack_l4proto_udplite4 :protocol register failed.\n");
++		goto cleanup_udplite4;
++	}
+ 	return 0;
+-err2:
+-	nf_conntrack_l4proto_unregister(&init_net, &nf_conntrack_l4proto_udplite4);
+-err1:
+-	return err;
++
++cleanup_udplite4:
++	nf_conntrack_l4proto_unregister(net,
++					&nf_conntrack_l4proto_udplite4);
++out:
++	return ret;
++}
++
++static void udplite_net_exit(struct net *net)
++{
++	nf_conntrack_l4proto_unregister(net,
++					&nf_conntrack_l4proto_udplite6);
++	nf_conntrack_l4proto_unregister(net,
++					&nf_conntrack_l4proto_udplite4);
++}
++
++static struct pernet_operations udplite_net_ops = {
++	.init = udplite_net_init,
++	.exit = udplite_net_exit,
++	.id   = &udplite_net_id,
++	.size = sizeof(struct udplite_net),
++};
++
++static int __init nf_conntrack_proto_udplite_init(void)
++{
++	return register_pernet_subsys(&udplite_net_ops);
+ }
+ 
+ static void __exit nf_conntrack_proto_udplite_exit(void)
+ {
+-	nf_conntrack_l4proto_unregister(&init_net, &nf_conntrack_l4proto_udplite6);
+-	nf_conntrack_l4proto_unregister(&init_net, &nf_conntrack_l4proto_udplite4);
++	unregister_pernet_subsys(&udplite_net_ops);
+ }
+ 
+ module_init(nf_conntrack_proto_udplite_init);
+-- 
+1.7.7.6
+
