@@ -1,35 +1,44 @@
-From: miao hongbing <miao_hb@hotmail.com>
-Subject: Ask an issue about how can I let netfilter-nat work normally, thanks
-Date: Wed, 30 May 2012 07:51:56 +0000
-Message-ID: <BAY146-W20D67378F0897FC44EC694900A0@phx.gbl>
-References: <BAY146-W327D42337C6D284F3060A6900A0@phx.gbl>
+From: jay patel <jaypatel150@gmail.com>
+Subject: netfilter bridging and enqueue_to_backlog
+Date: Wed, 30 May 2012 08:46:29 -0600
+Message-ID: <CAADX0Ry5tg54324VM_eDXRHxSOxrwoVA0_N+YZbuJ3c3PTN25Q@mail.gmail.com>
+References: <CAADX0RzKAijpiU7_MpUfziyhzD+CTb6oxgXeqb==XoNSVMKk7Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bay0-omc1-s8.bay0.hotmail.com ([65.54.190.19]:60770 "EHLO
-	bay0-omc1-s8.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756105Ab2E3H6H convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 May 2012 03:58:07 -0400
-In-Reply-To: <BAY146-W327D42337C6D284F3060A6900A0@phx.gbl>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:44555 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752998Ab2E3Oq3 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 May 2012 10:46:29 -0400
+Received: by pbbrp8 with SMTP id rp8so50626pbb.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 30 May 2012 07:46:29 -0700 (PDT)
+In-Reply-To: <CAADX0RzKAijpiU7_MpUfziyhzD+CTb6oxgXeqb==XoNSVMKk7Q@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi all,
 
+We are trying to move an skb from cpu 0 to cpu1 using enqueue to backlog. We
+have gotten this to work when bridging is turned off. However, with bridging
+turned on it is proving to be a little more difficult.
 
->
->
-> Hi Sirs,
->
-> I am Steve Miao from China, currently we use broadcom's WiFi chipset, the chipset version is 5356 the software version is linux-2.6-router-5.70.48.10.
->
-> We meet an issue about fast-nat, we plan to remove fast-nat and use common netfilter-nat base some reasons, when we removed fastnat by disabling CONFIG_BCM_NAT(the option of kernle's menuconfig) or let "ipv4_conntrack_fastnat=0", fast-nat is disabled succesfully, but netfilter-NAT can not work normally, the phenomenon is: we can ping any website, can not surf it. that means ICMP can work normally but TCP/UDP can not.
->
-> Could anyone pls tell me how I can let netfilter-NAT work normally? if you know it pls kindly let me know.
->
-> Thank you very much!!!
->
-> Regards,
-> Steve 		 	   		  
+After bridging is turned on, we try to do an enqueue_to_backlog in the
+netfilter/core.c/nf_iterate function. We do this after pre routing is
+completed for NF_BR_PRE_ROUTING and NF_INET_PRE_ROUTING hooks.
+
+However, it seems after the enqueue_to_backlog happens, the packet is
+dropped at some point (it seems the packet is processed as a local in packet
+after it moves to cpu 1, and thus is dropped by the kernel). We see that in
+__netif_receive_skb, that the skb->dev,skb->protocol (along with some other
+fields in the skb are changed) when the skb is processed on cpu1. We can see
+that in br_nf_pre_routing function call there are some modifications to some
+of the same fields mentioned.
+
+So our question is what needs to happen to the skb in order for the skb to
+process as normal when it is put on cpu1? Is this possible with bridging
+turned on?
+
+Thanks,
+~Jay
