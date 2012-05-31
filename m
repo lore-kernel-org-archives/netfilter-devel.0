@@ -1,71 +1,59 @@
 From: Bernd Kohler <kohler@umic.rwth-aachen.de>
 Subject: Re: filter IP protocol with ip6tables
-Date: Thu, 31 May 2012 11:19:00 +0200
-Message-ID: <4FC73784.4030206@umic.rwth-aachen.de>
+Date: Thu, 31 May 2012 12:05:37 +0200
+Message-ID: <4FC74271.3030006@umic.rwth-aachen.de>
 References: <856i5i0.8d94641ae92b968dc968d4a2d41e077f@obelix.schillstrom.com>
+ <4FC73784.4030206@umic.rwth-aachen.de>
 Reply-To: kohler@umic.rwth-aachen.de
 Mime-Version: 1.0
 Content-Type: multipart/signed; protocol="application/pkcs7-signature";
- micalg=sha1; boundary=------------ms050208050006020906090004
-Cc: netfilter-devel@vger.kernel.org
-To: Hans Schillstrom <hans@schillstrom.com>
+ micalg=sha1; boundary=------------ms050702060206090202060009
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mta-1.ms.rz.rwth-aachen.de ([134.130.7.72]:46463 "EHLO
-	mta-1.ms.rz.rwth-aachen.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751876Ab2EaJTC (ORCPT
+Received: from mta-2.ms.rz.rwth-aachen.de ([134.130.7.73]:56882 "EHLO
+	mta-2.ms.rz.rwth-aachen.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751680Ab2EaKFi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 May 2012 05:19:02 -0400
+	Thu, 31 May 2012 06:05:38 -0400
 Received: from mx-out-1.rwth-aachen.de ([134.130.5.186])
- by mta-1.ms.rz.RWTH-Aachen.de
+ by mta-2.ms.rz.RWTH-Aachen.de
  (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008))
- with ESMTP id <0M4V00CNMR7OI600@mta-1.ms.rz.RWTH-Aachen.de> for
- netfilter-devel@vger.kernel.org; Thu, 31 May 2012 11:19:00 +0200 (CEST)
+ with ESMTP id <0M4V00ILQTDDA060@mta-2.ms.rz.RWTH-Aachen.de> for
+ netfilter-devel@vger.kernel.org; Thu, 31 May 2012 12:05:37 +0200 (CEST)
 Received: from [137.226.154.136] ([unknown] [137.226.154.136])
  by relay-auth-2.ms.rz.rwth-aachen.de
  (Sun Java(tm) System Messaging Server 7.0-3.01 64bit (built Dec  9 2008))
- with ESMTPA id <0M4V003VZR7O0290@relay-auth-2.ms.rz.rwth-aachen.de> for
- netfilter-devel@vger.kernel.org; Thu, 31 May 2012 11:19:00 +0200 (CEST)
-In-reply-to: <856i5i0.8d94641ae92b968dc968d4a2d41e077f@obelix.schillstrom.com>
+ with ESMTPA id <0M4V001XYTDDIE00@relay-auth-2.ms.rz.rwth-aachen.de> for
+ netfilter-devel@vger.kernel.org; Thu, 31 May 2012 12:05:37 +0200 (CEST)
+In-reply-to: <4FC73784.4030206@umic.rwth-aachen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 This is a cryptographically signed message in MIME format.
 
---------------ms050208050006020906090004
+--------------ms050702060206090202060009
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-Hi.
-On 05/30/2012 06:59 PM, Hans Schillstrom wrote:
-> ..
-> Btw read you uploaded file,
->=20
-> Next header   0 is Hop-by-hop option header=20
-> Next header 41 is IPv6 in IPv6
+Hi,
+
+just one more question.
+
+On 05/31/2012 11:19 AM, Bernd Kohler wrote:
+>>...
+>> Next header   0 is Hop-by-hop option header=20
+>> Next header 41 is IPv6 in IPv6
 > ...
 
-my fault :(
+as Hans Schillstrom and Jan Engelhardt referred right to "0" being
+proto-# for Hop-by-Hop not classic IP(v4) , shouldn't netfilter indicate
+"0" as hop-by-hop and not "all"?
 
-Tried "-p ip" first and ip6tables -nvL listed "all", so I tried "0" as
-listed in /etc/protocols (though I should have know better, should have
-trust my knowing).
+best
 
-In case I use "-p 4" my icmpv6 etc. works just fine.
-
-Thx for the helpful hint but sorry for this "stupid" questions.
-
-Regards
-
-Bernd Kohler
+Bernd
 
 
-p.s.: "0" ist listed in /etc/protocosl on Debian and Ubuntu but not on
-       webpage [1]
-
-
-
-[1]
-https://www.iana.org/assignments/protocol-numbers/protocol-numbers.txt
 --=20
 UMIC - RWTH Aachen
 http://www.umic.rwth-aachen.de
@@ -81,7 +69,7 @@ RIP Dennis Ritchie (*09.09.1941 =E2=80=A009.10.2011)
 Thx 4 UNIX and all the ><(((('>
 
 
---------------ms050208050006020906090004
+--------------ms050702060206090202060009
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -158,17 +146,17 @@ onMvosdZCilqQ7Jdu0PZ0+kDzI/WDEzXuhIO4pyZfIHS9EHjrDbPqWE89y9DMYIDSDCCA0QC
 AQEwaTBeMQswCQYDVQQGEwJERTEUMBIGA1UEChMLUldUSCBBYWNoZW4xFzAVBgNVBAMTDlJX
 VEggQWFjaGVuIENBMSAwHgYJKoZIhvcNAQkBFhFjYUByd3RoLWFhY2hlbi5kZQIHEsixbM/z
 MDAJBgUrDgMCGgUAoIIBtDAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJ
-BTEPFw0xMjA1MzEwOTE5MDBaMCMGCSqGSIb3DQEJBDEWBBTIx2JndIl3Ul6qx2gRjqkXYi2h
-lDBfBgkqhkiG9w0BCQ8xUjBQMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzAOBggqhkiG9w0D
+BTEPFw0xMjA1MzExMDA1MzdaMCMGCSqGSIb3DQEJBDEWBBTq0xRwcBdKH6FiO93dwVqlJyvW
+yTBfBgkqhkiG9w0BCQ8xUjBQMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzAOBggqhkiG9w0D
 AgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgweAYJKwYBBAGC
 NxAEMWswaTBeMQswCQYDVQQGEwJERTEUMBIGA1UEChMLUldUSCBBYWNoZW4xFzAVBgNVBAMT
 DlJXVEggQWFjaGVuIENBMSAwHgYJKoZIhvcNAQkBFhFjYUByd3RoLWFhY2hlbi5kZQIHEsix
 bM/zMDB6BgsqhkiG9w0BCRACCzFroGkwXjELMAkGA1UEBhMCREUxFDASBgNVBAoTC1JXVEgg
 QWFjaGVuMRcwFQYDVQQDEw5SV1RIIEFhY2hlbiBDQTEgMB4GCSqGSIb3DQEJARYRY2FAcnd0
-aC1hYWNoZW4uZGUCBxLIsWzP8zAwDQYJKoZIhvcNAQEBBQAEggEAtSIiz8LY4nnq40BVEOdS
-+y+NGgCxz9S3vzt54wcIJoI9nfxW2vnhpsRW5fFOCu30PQdx8awT9KhODC5vp77s0UDzVjWu
-x6IrjZUJKDeNZZRNIEod5TATqnuuEBpuCElyAB0Hmm8S4QixV78dTKeRCG/p2drh4c/GiWRh
-Uny0zYcQr3LCqtqUFG1Z/hfGKCV829rdy3juWvTSrACuoQ9cNf6eSOETPPbdS6CXrvbPWxiA
-6460WDnvajm5wMNq6wiLF7OjG4hvmP6mIfW4V7L8kuWexlUddFHS4quG1UQ37oYkBvHffX+N
-9QEdbd8J4y9XcWYYBu+kG5SNgLu7WZ8U0gAAAAAAAA==
---------------ms050208050006020906090004--
+aC1hYWNoZW4uZGUCBxLIsWzP8zAwDQYJKoZIhvcNAQEBBQAEggEAm1VZr9p+rCqYv9ljG42v
+4HXwZ4ONqXqMLx+lfpjSy8CsVBssdx3s0xgtePpRuQ/Vq+FsfzXe27Cdagkiz7+5HHzZ69Vh
+nFMG0mlR5Q6SCYh5W748g7KdAb/9m5S21K6vsiGIqNdGc9Gl9OEw4Vg+zk5eb0f+ZI/u1/XH
+5wAszpf0fL/RuhONH33rPrKCqaY5MFATIF2P3t1oxg6x7/hZ17dY0+lf8KOFcB8YRci9Blrk
+sep6AlftjLRNr0kOpHY5REBW5fgpNHbRiMHpVQzJUsaJU65NCpj3ZDjhNA3ePod3YZwvOg6b
+El+/FxwNcsdExmjZiXho/RFfJJf1S4wsVQAAAAAAAA==
+--------------ms050702060206090202060009--
