@@ -1,27 +1,39 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: conntrack-tools: 1 pending fix
-Date: Thu, 31 May 2012 14:03:16 +0200
-Message-ID: <1338465797-9797-1-git-send-email-jengelh@inai.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] conntrackd: resolve a compiler error
+Date: Thu, 31 May 2012 15:19:45 +0200
+Message-ID: <20120531131945.GA961@1984>
+References: <1338465797-9797-1-git-send-email-jengelh@inai.de>
+ <1338465797-9797-2-git-send-email-jengelh@inai.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:36328 "EHLO seven.medozas.de"
+Received: from mail.us.es ([193.147.175.20]:48697 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756895Ab2EaMDr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 May 2012 08:03:47 -0400
+	id S1757948Ab2EaNTu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 31 May 2012 09:19:50 -0400
+Content-Disposition: inline
+In-Reply-To: <1338465797-9797-2-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Jan,
 
-The following changes since commit d44489648c1a56d543a84bbebe455227bb25cf34:
+On Thu, May 31, 2012 at 02:03:17PM +0200, Jan Engelhardt wrote:
+> Observed with gcc-4.7/glibc-2.15 and conntrack-tools-1.2.1:
+> 
+>   CC     parse.o
+> parse.c: In function 'msg2ct':
+> parse.c:258:34: error: 'NULL' undeclared (first use in this function)
+> parse.c:258:34: note: each undeclared identifier is reported only once for each function it appears in
+> parse.c: In function 'msg2exp':
+> parse.c:438:16: error: 'NULL' undeclared (first use in this function)
 
-  conntrackd: fix compilation in src/parse.c (2012-05-28 14:06:48 +0200)
+Similar patch was already applied.
 
-are available in the git repository at:
-  git://git.inai.de/conntrack-tools fix
+http://git.netfilter.org/cgi-bin/gitweb.cgi?p=conntrack-tools.git;a=commit;h=d44489648c1a56d543a84bbebe455227bb25cf34
 
-Jan Engelhardt (1):
-      conntrackd: resolve a compiler error
+This was spotted a couple of days ago by Mandriva people.
 
- src/parse.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Thanks anyway!
