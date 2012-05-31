@@ -1,34 +1,45 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: filter IP protocol with ip6tables
-Date: Thu, 31 May 2012 12:17:00 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1205311216370.30809@frira.zrqbmnf.qr>
-References: <856i5i0.8d94641ae92b968dc968d4a2d41e077f@obelix.schillstrom.com> <4FC73784.4030206@umic.rwth-aachen.de> <4FC74271.3030006@umic.rwth-aachen.de>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: [PATCH] conntrackd: resolve a compiler error
+Date: Thu, 31 May 2012 14:03:17 +0200
+Message-ID: <1338465797-9797-2-git-send-email-jengelh@inai.de>
+References: <1338465797-9797-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
-To: Bernd Kohler <kohler@umic.rwth-aachen.de>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:35252 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([188.40.89.202]:36327 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755123Ab2EaKRD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 May 2012 06:17:03 -0400
-In-Reply-To: <4FC74271.3030006@umic.rwth-aachen.de>
+	id S1757290Ab2EaMDr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 31 May 2012 08:03:47 -0400
+In-Reply-To: <1338465797-9797-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2012-05-31 12:05, Bernd Kohler wrote:
+Observed with gcc-4.7/glibc-2.15 and conntrack-tools-1.2.1:
 
->just one more question.
->
->On 05/31/2012 11:19 AM, Bernd Kohler wrote:
->>>...
->>> Next header   0 is Hop-by-hop option header 
->>> Next header 41 is IPv6 in IPv6
->> ...
->
->as Hans Schillstrom and Jan Engelhardt referred right to "0" being
->proto-# for Hop-by-Hop not classic IP(v4) , shouldn't netfilter indicate
->"0" as hop-by-hop and not "all"?
+  CC     parse.o
+parse.c: In function 'msg2ct':
+parse.c:258:34: error: 'NULL' undeclared (first use in this function)
+parse.c:258:34: note: each undeclared identifier is reported only once for each function it appears in
+parse.c: In function 'msg2exp':
+parse.c:438:16: error: 'NULL' undeclared (first use in this function)
 
-iptables only uses what your system ships. If it ships nonsensical 
-and/or outdated files, you should complain to Debian.
+NULL is in stdio.h.
+---
+ src/parse.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/src/parse.c b/src/parse.c
+index 1b83f81..391bf38 100644
+--- a/src/parse.c
++++ b/src/parse.c
+@@ -17,6 +17,7 @@
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
++#include <stdio.h>
+ #include "network.h"
+ 
+ #include <stdlib.h>
+-- 
+1.7.7
+
