@@ -1,40 +1,72 @@
-From: Webmail Helpdesk Support =?iso-8859-1?b?Q2VudHJlrg==?=
-	<info@web.com>
-Subject: Warning Yourmailbox Is Almost Full.
-Date: Mon,  4 Jun 2012 08:11:05 -0300
-Message-ID: <1338808265.4fcc97c911f43@calchaqui.secyt.gov.ar>
-Reply-To: webhelpdesk3@gmail.com
+From: Nikola Ciprich <nikola.ciprich@linuxbox.cz>
+Subject: Re: status of ulogd2 package
+Date: Mon, 4 Jun 2012 14:58:11 +0200
+Message-ID: <20120604125811.GL13093@pcnci2.linuxbox.cz>
+References: <20120604122514.GI13093@pcnci2.linuxbox.cz> <20120604124255.GA16034@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: unlisted-recipients:; (no To-header on input)
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="BFVE2HhgxTpCzM8t"
+Cc: netfilter-devel@vger.kernel.org,
+	Stanislav Schattke <schattke@linuxbox.cz>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from calchaqui1.secyt.gov.ar ([200.9.244.15]:39771 "EHLO
-	calchaqui.secyt.gov.ar" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753531Ab2FDMyD (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Jun 2012 08:54:03 -0400
+Received: from gwu.lbox.cz ([62.245.111.132]:40884 "EHLO gwu.lbox.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753026Ab2FDM6Q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 4 Jun 2012 08:58:16 -0400
+Content-Disposition: inline
+In-Reply-To: <20120604124255.GA16034@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-You have exceeded your email limit quota of 450MB. You need to upgrade
-your email limit quota to 2GB within the next 48 hours. Use the below w=
-eb
-link to upgrade your email account:
 
-click link below and fill:
-https://docs.google.com/spreadsheet/viewform?formkey=3DdHZvVkIweWl4aDFV=
-YlJfYVdjVUxHRVE6MQ
+--BFVE2HhgxTpCzM8t
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thank you for using our email.
-Copyright =A92012 Email Helpdesk Centre.
+> Yes, I need to find time to make the final realease.
+>=20
+> > I see beta4 was tagged in git almost 2 years ago, since then, there's b=
+een some
+> > activity but code seems quite stable to me.
+>=20
+> Agreed.
+>=20
+> Let me see if I can make it this week.
+Great! thanks for the info!
+
+n.
 
 
 
-------------------------------------------------------------
-Servicio de WebMail REDCyT - IMP: http://horde.org/imp/
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
+
+--=20
+-------------------------------------
+Ing. Nikola CIPRICH
+LinuxBox.cz, s.r.o.
+28.rijna 168, 709 00 Ostrava
+
+tel.:   +420 591 166 214
+fax:    +420 596 621 273
+mobil:  +420 777 093 799
+www.linuxbox.cz
+
+mobil servis: +420 737 238 656
+email servis: servis@linuxbox.cz
+-------------------------------------
+
+--BFVE2HhgxTpCzM8t
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.14 (GNU/Linux)
+
+iEYEARECAAYFAk/MsOMACgkQ3xdJJrLygV4OHgCfQmY0b7upoUPDceNkCwoLK9Y1
++ZYAoKeCARvZeheepr3upC4t6zBDipKG
+=rsCp
+-----END PGP SIGNATURE-----
+
+--BFVE2HhgxTpCzM8t--
