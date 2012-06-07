@@ -1,21 +1,31 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [GIT] heads up: rebase my Netfilter net-next tree
-Date: Thu, 7 Jun 2012 16:31:51 +0200
-Message-ID: <20120607143151.GA4433@1984>
+From: Kelvie Wong <kelvie@ieee.org>
+Subject: Having expectations live past the master connection's lifetime
+Date: Thu, 7 Jun 2012 10:34:13 -0700
+Message-ID: <CAK2bC5qkHXMzSQg6v6DNb0ou7KWj+sTXibyLv=53zxe236M9pw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33917 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753395Ab2FGObz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Jun 2012 10:31:55 -0400
-Content-Disposition: inline
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:41853 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754479Ab2FGReP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 7 Jun 2012 13:34:15 -0400
+Received: by bkcji2 with SMTP id ji2so808277bkc.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 07 Jun 2012 10:34:13 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi!
+Hello all,
 
-I needed to rebase my git tree.
+I have noticed that expectations seem to get deleted as soon as their
+master connection finishes their TIME_WAIT. Is there any way to have
+expectations outlive their masters?
 
-Just in case you're preparing some patchset, you'll have to rebase.
+I need to have a dynamic port open (for DCERPC), and the initial
+connection to the endpoint mapper is typically short-lived.
+
+The way I was going to do this was to just add a rule with iptables
+using a userspace helper; is there a better way to do this?
+-- 
+Kelvie Wong
