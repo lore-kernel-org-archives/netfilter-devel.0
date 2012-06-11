@@ -1,86 +1,130 @@
 From: pablo@netfilter.org
-Subject: [PATCH 19/25] netfilter: NFQUEUE: don't xor src/dst ip address for load distribution
-Date: Mon, 11 Jun 2012 16:43:55 +0200
-Message-ID: <1339425841-24171-20-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 03/25] netfilter: Add fail-open support
+Date: Mon, 11 Jun 2012 16:43:39 +0200
+Message-ID: <1339425841-24171-4-git-send-email-pablo@netfilter.org>
 References: <1339425841-24171-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:32888 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:32828 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755318Ab2FKOpE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Jun 2012 10:45:04 -0400
+	id S1755325Ab2FKOow (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 Jun 2012 10:44:52 -0400
 In-Reply-To: <1339425841-24171-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
+From: Krishna Kumar <krkumar2@in.ibm.com>
 
-because reply packets need to go to the same nfqueue, src/dst ip
-address were xor'd prior to jhash().
+Implement a new "fail-open" mode where packets are not dropped
+upon queue-full condition. This mode can be enabled/disabled per
+queue using netlink NFQA_CFG_FLAGS & NFQA_CFG_MASK attributes.
 
-However, this causes bad distribution for some workloads, e.g.
-flows a.b.1.{1,n} -> a.b.2.{1,n} all share the same hash value.
-
-Avoid this by hashing both. To get same hash for replies,
-first argument is the smaller address.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Krishna Kumar <krkumar2@in.ibm.com>
+Signed-off-by: Vivek Kashyap <vivk@us.ibm.com>
+Signed-off-by: Sridhar Samudrala <samudrala@us.ibm.com>
 ---
- net/netfilter/xt_NFQUEUE.c |   28 +++++++++++++++++++---------
- 1 file changed, 19 insertions(+), 9 deletions(-)
+ include/linux/netfilter/nfnetlink_queue.h |    5 ++++
+ net/netfilter/nfnetlink_queue.c           |   40 ++++++++++++++++++++++++++---
+ 2 files changed, 42 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
-index 95237c8..7babe7d 100644
---- a/net/netfilter/xt_NFQUEUE.c
-+++ b/net/netfilter/xt_NFQUEUE.c
-@@ -41,26 +41,36 @@ nfqueue_tg(struct sk_buff *skb, const struct xt_action_param *par)
- static u32 hash_v4(const struct sk_buff *skb)
- {
- 	const struct iphdr *iph = ip_hdr(skb);
--	__be32 ipaddr;
+diff --git a/include/linux/netfilter/nfnetlink_queue.h b/include/linux/netfilter/nfnetlink_queue.h
+index 24b32e6..a6c1dda 100644
+--- a/include/linux/netfilter/nfnetlink_queue.h
++++ b/include/linux/netfilter/nfnetlink_queue.h
+@@ -84,8 +84,13 @@ enum nfqnl_attr_config {
+ 	NFQA_CFG_CMD,			/* nfqnl_msg_config_cmd */
+ 	NFQA_CFG_PARAMS,		/* nfqnl_msg_config_params */
+ 	NFQA_CFG_QUEUE_MAXLEN,		/* __u32 */
++	NFQA_CFG_MASK,			/* identify which flags to change */
++	NFQA_CFG_FLAGS,			/* value of these flags (__u32) */
+ 	__NFQA_CFG_MAX
+ };
+ #define NFQA_CFG_MAX (__NFQA_CFG_MAX-1)
  
- 	/* packets in either direction go into same queue */
--	ipaddr = iph->saddr ^ iph->daddr;
-+	if (iph->saddr < iph->daddr)
-+		return jhash_3words((__force u32)iph->saddr,
-+			(__force u32)iph->daddr, iph->protocol, jhash_initval);
- 
--	return jhash_2words((__force u32)ipaddr, iph->protocol, jhash_initval);
-+	return jhash_3words((__force u32)iph->daddr,
-+			(__force u32)iph->saddr, iph->protocol, jhash_initval);
- }
- 
- #if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
- static u32 hash_v6(const struct sk_buff *skb)
- {
- 	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
--	__be32 addr[4];
-+	u32 a, b, c;
++/* Flags for NFQA_CFG_FLAGS */
++#define NFQA_CFG_F_FAIL_OPEN			(1 << 0)
 +
-+	if (ip6h->saddr.s6_addr32[3] < ip6h->daddr.s6_addr32[3]) {
-+		a = (__force u32) ip6h->saddr.s6_addr32[3];
-+		b = (__force u32) ip6h->daddr.s6_addr32[3];
-+	} else {
-+		b = (__force u32) ip6h->saddr.s6_addr32[3];
-+		a = (__force u32) ip6h->daddr.s6_addr32[3];
-+	}
+ #endif /* _NFNETLINK_QUEUE_H */
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 4162437..630da3d 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -52,6 +52,7 @@ struct nfqnl_instance {
  
--	addr[0] = ip6h->saddr.s6_addr32[0] ^ ip6h->daddr.s6_addr32[0];
--	addr[1] = ip6h->saddr.s6_addr32[1] ^ ip6h->daddr.s6_addr32[1];
--	addr[2] = ip6h->saddr.s6_addr32[2] ^ ip6h->daddr.s6_addr32[2];
--	addr[3] = ip6h->saddr.s6_addr32[3] ^ ip6h->daddr.s6_addr32[3];
-+	if (ip6h->saddr.s6_addr32[1] < ip6h->daddr.s6_addr32[1])
-+		c = (__force u32) ip6h->saddr.s6_addr32[1];
-+	else
-+		c = (__force u32) ip6h->daddr.s6_addr32[1];
+ 	u_int16_t queue_num;			/* number of this queue */
+ 	u_int8_t copy_mode;
++	u_int32_t flags;			/* Set using NFQA_CFG_FLAGS */
+ /*
+  * Following fields are dirtied for each queued packet,
+  * keep them in same cache line if possible.
+@@ -406,6 +407,7 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
+ 	struct nfqnl_instance *queue;
+ 	int err = -ENOBUFS;
+ 	__be32 *packet_id_ptr;
++	int failopen = 0;
  
--	return jhash2((__force u32 *)addr, ARRAY_SIZE(addr), jhash_initval);
-+	return jhash_3words(a, b, c, jhash_initval);
+ 	/* rcu_read_lock()ed by nf_hook_slow() */
+ 	queue = instance_lookup(queuenum);
+@@ -431,9 +433,14 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
+ 		goto err_out_free_nskb;
+ 	}
+ 	if (queue->queue_total >= queue->queue_maxlen) {
+-		queue->queue_dropped++;
+-		net_warn_ratelimited("nf_queue: full at %d entries, dropping packets(s)\n",
+-				     queue->queue_total);
++		if (queue->flags & NFQA_CFG_F_FAIL_OPEN) {
++			failopen = 1;
++			err = 0;
++		} else {
++			queue->queue_dropped++;
++			net_warn_ratelimited("nf_queue: full at %d entries, dropping packets(s)\n",
++					     queue->queue_total);
++		}
+ 		goto err_out_free_nskb;
+ 	}
+ 	entry->id = ++queue->id_sequence;
+@@ -455,6 +462,8 @@ err_out_free_nskb:
+ 	kfree_skb(nskb);
+ err_out_unlock:
+ 	spin_unlock_bh(&queue->lock);
++	if (failopen)
++		nf_reinject(entry, NF_ACCEPT);
+ err_out:
+ 	return err;
  }
- #endif
+@@ -858,6 +867,31 @@ nfqnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+ 		spin_unlock_bh(&queue->lock);
+ 	}
  
++	if (nfqa[NFQA_CFG_FLAGS]) {
++		__u32 flags, mask;
++
++		if (!queue) {
++			ret = -ENODEV;
++			goto err_out_unlock;
++		}
++
++		if (!nfqa[NFQA_CFG_MASK]) {
++			/* A mask is needed to specify which flags are being
++			 * changed.
++			 */
++			ret = -EINVAL;
++			goto err_out_unlock;
++		}
++
++		flags = ntohl(nla_get_be32(nfqa[NFQA_CFG_FLAGS]));
++		mask = ntohl(nla_get_be32(nfqa[NFQA_CFG_MASK]));
++
++		spin_lock_bh(&queue->lock);
++		queue->flags &= ~mask;
++		queue->flags |= flags & mask;
++		spin_unlock_bh(&queue->lock);
++	}
++
+ err_out_unlock:
+ 	rcu_read_unlock();
+ 	return ret;
 -- 
 1.7.10
 
