@@ -1,28 +1,38 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/2] netfilter updates for net tree (3.5-rc2)
-Date: Tue, 12 Jun 2012 15:20:44 -0700 (PDT)
-Message-ID: <20120612.152044.901780224973005776.davem@davemloft.net>
-References: <1339522563-9227-1-git-send-email-pablo@netfilter.org>
+Subject: Re: [PATCH 2/7] netfilter: nf_ct_ext: support variable length
+ extensions
+Date: Tue, 12 Jun 2012 15:35:15 -0700 (PDT)
+Message-ID: <20120612.153515.283446551239473288.davem@davemloft.net>
+References: <1339524380-2707-1-git-send-email-pablo@netfilter.org>
+	<1339524380-2707-3-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:55103 "EHLO
+Received: from shards.monkeyblade.net ([149.20.54.216]:55173 "EHLO
 	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751116Ab2FLWUp (ORCPT
+	with ESMTP id S1751116Ab2FLWfP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Jun 2012 18:20:45 -0400
-In-Reply-To: <1339522563-9227-1-git-send-email-pablo@netfilter.org>
+	Tue, 12 Jun 2012 18:35:15 -0400
+In-Reply-To: <1339524380-2707-3-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: pablo@netfilter.org
-Date: Tue, 12 Jun 2012 19:36:01 +0200
+Date: Tue, 12 Jun 2012 20:06:15 +0200
 
-> You can pull these two changes from:
-> 
-> git://1984.lsi.us.es/net master
+> @@ -79,11 +79,16 @@ static inline void nf_ct_ext_free(struct nf_conn *ct)
+>  		kfree(ct->ext);
+>  }
+>  
+> +void *__nf_ct_ext_add_length(struct nf_conn *ct, enum nf_ct_ext_id id,
+> +			     size_t var_alloc_len, gfp_t gfp);
+> +
+>  /* Add this type, returns pointer to data or NULL. */
+>  void *
+>  __nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp);
 
-Pulled, thanks Pablo.
+You should remove this extern declaration for __nf_ct_ext_add() since you
+are removing, or rather renaming, it in this patch.
