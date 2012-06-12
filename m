@@ -1,39 +1,118 @@
-From: Kelvie Wong <kelvie@ieee.org>
-Subject: Re: Having expectations live past the master connection's lifetime
-Date: Tue, 12 Jun 2012 11:04:53 -0700
-Message-ID: <CAK2bC5oaEECgm7SRv7aiL9Lj3V9LgFQN1xtg=Em+pLfwnk6ipw@mail.gmail.com>
-References: <CAK2bC5qkHXMzSQg6v6DNb0ou7KWj+sTXibyLv=53zxe236M9pw@mail.gmail.com>
-	<20120612175656.GA32542@1984>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: pablo@netfilter.org
+Subject: [PATCH 2/7] netfilter: nf_ct_ext: support variable length extensions
+Date: Tue, 12 Jun 2012 20:06:15 +0200
+Message-ID: <1339524380-2707-3-git-send-email-pablo@netfilter.org>
+References: <1339524380-2707-1-git-send-email-pablo@netfilter.org>
+Cc: netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:38095 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751424Ab2FLSEz (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Jun 2012 14:04:55 -0400
-Received: by bkcji2 with SMTP id ji2so4758828bkc.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Jun 2012 11:04:54 -0700 (PDT)
-In-Reply-To: <20120612175656.GA32542@1984>
+Received: from mail.us.es ([193.147.175.20]:53637 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753720Ab2FLSHM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Jun 2012 14:07:12 -0400
+In-Reply-To: <1339524380-2707-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jun 12, 2012 at 10:56 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> We can skip removing these expectations by setting some flag in the
-> expectation. Still, we'll have to insert those expectations in some
-> list so we make sure that they are removed on module removal.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Ah, I see. I think it would be easier to just insert an iptables rule
-for what I want.
+We can now define conntrack extensions of variable size. This
+patch is useful to get rid of these unions:
 
-> Another problem is that I cannot take that kernel patch if there's no
-> publicitly available Netfilter code using it.
+union nf_conntrack_help
+union nf_conntrack_proto
+union nf_conntrack_nat_help
 
-That needn't be a problem, as I could probably add something, but I
-think I'll just use iptables for this purpose.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_conntrack_extend.h |    7 ++++++-
+ net/netfilter/nf_conntrack_extend.c         |   16 +++++++++-------
+ 2 files changed, 15 insertions(+), 8 deletions(-)
 
-Thanks for the reply, though.
+diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
+index 96755c3..ecedd5f 100644
+--- a/include/net/netfilter/nf_conntrack_extend.h
++++ b/include/net/netfilter/nf_conntrack_extend.h
+@@ -79,11 +79,16 @@ static inline void nf_ct_ext_free(struct nf_conn *ct)
+ 		kfree(ct->ext);
+ }
+ 
++void *__nf_ct_ext_add_length(struct nf_conn *ct, enum nf_ct_ext_id id,
++			     size_t var_alloc_len, gfp_t gfp);
++
+ /* Add this type, returns pointer to data or NULL. */
+ void *
+ __nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp);
+ #define nf_ct_ext_add(ct, id, gfp) \
+-	((id##_TYPE *)__nf_ct_ext_add((ct), (id), (gfp)))
++	((id##_TYPE *)__nf_ct_ext_add_length((ct), (id), 0, (gfp)))
++#define nf_ct_ext_add_length(ct, id, len, gfp) \
++	((id##_TYPE *)__nf_ct_ext_add_length((ct), (id), (len), (gfp)))
+ 
+ #define NF_CT_EXT_F_PREALLOC	0x0001
+ 
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+index 641ff5f..1a95459 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -44,7 +44,8 @@ void __nf_ct_ext_destroy(struct nf_conn *ct)
+ EXPORT_SYMBOL(__nf_ct_ext_destroy);
+ 
+ static void *
+-nf_ct_ext_create(struct nf_ct_ext **ext, enum nf_ct_ext_id id, gfp_t gfp)
++nf_ct_ext_create(struct nf_ct_ext **ext, enum nf_ct_ext_id id,
++		 size_t var_alloc_len, gfp_t gfp)
+ {
+ 	unsigned int off, len;
+ 	struct nf_ct_ext_type *t;
+@@ -54,8 +55,8 @@ nf_ct_ext_create(struct nf_ct_ext **ext, enum nf_ct_ext_id id, gfp_t gfp)
+ 	t = rcu_dereference(nf_ct_ext_types[id]);
+ 	BUG_ON(t == NULL);
+ 	off = ALIGN(sizeof(struct nf_ct_ext), t->align);
+-	len = off + t->len;
+-	alloc_size = t->alloc_size;
++	len = off + t->len + var_alloc_len;
++	alloc_size = t->alloc_size + var_alloc_len;
+ 	rcu_read_unlock();
+ 
+ 	*ext = kzalloc(alloc_size, gfp);
+@@ -68,7 +69,8 @@ nf_ct_ext_create(struct nf_ct_ext **ext, enum nf_ct_ext_id id, gfp_t gfp)
+ 	return (void *)(*ext) + off;
+ }
+ 
+-void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
++void *__nf_ct_ext_add_length(struct nf_conn *ct, enum nf_ct_ext_id id,
++			     size_t var_alloc_len, gfp_t gfp)
+ {
+ 	struct nf_ct_ext *old, *new;
+ 	int i, newlen, newoff;
+@@ -79,7 +81,7 @@ void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ 
+ 	old = ct->ext;
+ 	if (!old)
+-		return nf_ct_ext_create(&ct->ext, id, gfp);
++		return nf_ct_ext_create(&ct->ext, id, var_alloc_len, gfp);
+ 
+ 	if (__nf_ct_ext_exist(old, id))
+ 		return NULL;
+@@ -89,7 +91,7 @@ void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ 	BUG_ON(t == NULL);
+ 
+ 	newoff = ALIGN(old->len, t->align);
+-	newlen = newoff + t->len;
++	newlen = newoff + t->len + var_alloc_len;
+ 	rcu_read_unlock();
+ 
+ 	new = __krealloc(old, newlen, gfp);
+@@ -117,7 +119,7 @@ void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ 	memset((void *)new + newoff, 0, newlen - newoff);
+ 	return (void *)new + newoff;
+ }
+-EXPORT_SYMBOL(__nf_ct_ext_add);
++EXPORT_SYMBOL(__nf_ct_ext_add_length);
+ 
+ static void update_alloc_size(struct nf_ct_ext_type *type)
+ {
 -- 
-Kelvie Wong
+1.7.10
+
