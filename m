@@ -1,57 +1,40 @@
-From: pablo@netfilter.org
-Subject: [PATCH 2/2] netfilter: nf_ct_h323: fix bug in rtcp natting
-Date: Tue, 12 Jun 2012 19:36:03 +0200
-Message-ID: <1339522563-9227-3-git-send-email-pablo@netfilter.org>
-References: <1339522563-9227-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1339522563-9227-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
 From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Having expectations live past the master connection's lifetime
+Date: Tue, 12 Jun 2012 19:56:56 +0200
+Message-ID: <20120612175656.GA32542@1984>
+References: <CAK2bC5qkHXMzSQg6v6DNb0ou7KWj+sTXibyLv=53zxe236M9pw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Kelvie Wong <kelvie@ieee.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:52125 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752330Ab2FLR47 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Jun 2012 13:56:59 -0400
+Content-Disposition: inline
+In-Reply-To: <CAK2bC5qkHXMzSQg6v6DNb0ou7KWj+sTXibyLv=53zxe236M9pw@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-The nat_rtp_rtcp hook takes two separate parameters port and rtp_port.
+On Thu, Jun 07, 2012 at 10:34:13AM -0700, Kelvie Wong wrote:
+> Hello all,
+> 
+> I have noticed that expectations seem to get deleted as soon as their
+> master connection finishes their TIME_WAIT. Is there any way to have
+> expectations outlive their masters?
 
-port is expected to be the real h245 address (found inside the packet).
-rtp_port is the even number closest to port (RTP ports are even and
-RTCP ports are odd).
+Not yet.
 
-However currently, both port and rtp_port are having same value (both are
-rounded to nearest even numbers).
+> I need to have a dynamic port open (for DCERPC), and the initial
+> connection to the endpoint mapper is typically short-lived.
+> 
+> The way I was going to do this was to just add a rule with iptables
+> using a userspace helper; is there a better way to do this?
 
-This works well in case of openlogicalchannel with media (RTP/even) port.
+We can skip removing these expectations by setting some flag in the
+expectation. Still, we'll have to insert those expectations in some
+list so we make sure that they are removed on module removal.
 
-But in case of openlogicalchannel for media control (RTCP/odd) port,
-h245 address in the packet is wrongly modified to have an even port.
-
-I am attaching a pcap demonstrating the problem, for any further analysis.
-
-This behavior was introduced around v2.6.19 while rewriting the helper.
-
-Signed-off-by: Jagdish Motwani <jagdish.motwani@elitecore.com>
-Signed-off-by: Sanket Shah <sanket.shah@elitecore.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_h323_main.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index 46d69d7..31f50bc 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -270,9 +270,8 @@ static int expect_rtp_rtcp(struct sk_buff *skb, struct nf_conn *ct,
- 		return 0;
- 
- 	/* RTP port is even */
--	port &= htons(~1);
--	rtp_port = port;
--	rtcp_port = htons(ntohs(port) + 1);
-+	rtp_port = port & ~htons(1);
-+	rtcp_port = port | htons(1);
- 
- 	/* Create expect for RTP */
- 	if ((rtp_exp = nf_ct_expect_alloc(ct)) == NULL)
--- 
-1.7.10
+Another problem is that I cannot take that kernel patch if there's no
+publicitly available Netfilter code using it.
