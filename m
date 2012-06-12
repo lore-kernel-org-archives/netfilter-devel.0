@@ -1,43 +1,44 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/25] netfilter updates from net-next (upcoming 3.6)
-Date: Mon, 11 Jun 2012 13:08:40 -0700 (PDT)
-Message-ID: <20120611.130840.1053126708259432739.davem@davemloft.net>
-References: <1339425841-24171-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:45745 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750885Ab2FKUIl (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Jun 2012 16:08:41 -0400
-In-Reply-To: <1339425841-24171-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
 From: pablo@netfilter.org
-Date: Mon, 11 Jun 2012 16:43:36 +0200
+Subject: [PATCH 0/2] netfilter updates for net tree (3.5-rc2)
+Date: Tue, 12 Jun 2012 19:36:01 +0200
+Message-ID: <1339522563-9227-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-> * Netns support for all our nf_conntrack sysctl tweaks, including global
->   timeout adjustment from Gao Feng.
-> 
-> * Add fail-open support to NFQUEUE, ie. don't drop packets if the kernel-space
->   nfqueue gets full, instead we allow packets to go through, from Krishna Kumar.
-> 
-> * Remove support for connlimit revision 0, as we already scheduled, from
->   Cong Wang.
-> 
-> * Improve load distribution in NFQUEUE if multi-queue is used from Florian
->   Westphal.
-> 
-> * Minor cleanups from Alban Crequy to use NFPROTO_* constants instead of
->   PF_* as we do in other parts of the Netfilter code.
-> 
-> You can pull these changes from:
-> 
-> git://1984.lsi.us.es/net-next master
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Pulled, thanks Pablo!
+Hi David,
+
+The following two patches are netfilter fixes for your net tree, they
+provide:
+
+* endianess fixes to calm down warnings spotted by the sparse utility for
+  xt_HMARK from Hans Schillstrom.
+
+* One fix for h323 conntrack helper from Sanket Shah and Jagdish Motwani.
+  The log says it's been me instead because they sent an incomplete patch
+  without header, so I had to manually include all the information, but
+  forgot to change the GIT_AUTHOR thing.
+
+You can pull these two changes from:
+
+git://1984.lsi.us.es/net master
+
+Thanks!
+
+Hans Schillstrom (1):
+  netfilter: xt_HMARK: fix endianness and provide consistent hashing
+
+Pablo Neira Ayuso (1):
+  netfilter: nf_ct_h323: fix bug in rtcp natting
+
+ include/linux/netfilter/xt_HMARK.h     |    5 +++
+ net/netfilter/nf_conntrack_h323_main.c |    5 +--
+ net/netfilter/xt_HMARK.c               |   72 ++++++++++++++++++--------------
+ 3 files changed, 48 insertions(+), 34 deletions(-)
+
+-- 
+1.7.10
