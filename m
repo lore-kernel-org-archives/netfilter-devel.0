@@ -1,93 +1,99 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 2/4] psd: add basic validation of userspace matchinfo data
-Date: Thu, 14 Jun 2012 22:13:32 +0200
-Message-ID: <1339704814-1605-3-git-send-email-fw@strlen.de>
+Subject: [PATCH 3/4] psd: reduce size of struct host
+Date: Thu, 14 Jun 2012 22:13:33 +0200
+Message-ID: <1339704814-1605-4-git-send-email-fw@strlen.de>
 References: <1339704814-1605-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41692 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41694 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756347Ab2FNUOv (ORCPT
+	by vger.kernel.org with ESMTP id S1756173Ab2FNUOx (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Jun 2012 16:14:51 -0400
+	Thu, 14 Jun 2012 16:14:53 -0400
 In-Reply-To: <1339704814-1605-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-psd multiplies weight_thresh by HZ, so it could overflow.
+We can use u16, saving 8 bytes total (weight cant't exceed PSD_MAX_RATE,
+10000).  Also re-format comments & struct initializers.
 
-Userspace libxt_psd refuses values exceeding PSD_MAX_RATE,
-so check that on kernel side, too.
-
-Also, setting 0 weight for both privileged and highports
-will cause psd to never match at all.
-
-Reject 0 weight threshold, too because it makes no sense
-(triggers match for every initial packet).
+no functional changes.
 ---
- doc/changelog.txt   |    3 ++-
- extensions/xt_psd.c |   32 ++++++++++++++++++++++++++------
- 2 files changed, 28 insertions(+), 7 deletions(-)
+ extensions/libxt_psd.c |   24 ++++++++++++------------
+ extensions/xt_psd.c    |   16 ++++++++--------
+ 2 files changed, 20 insertions(+), 20 deletions(-)
 
-diff --git a/doc/changelog.txt b/doc/changelog.txt
-index 2fe752b..d266550 100644
---- a/doc/changelog.txt
-+++ b/doc/changelog.txt
-@@ -3,7 +3,8 @@ HEAD
- ====
- Fixes:
- - xt_psd: avoid crash due to curr->next corruption
--
-+Changes:
-+- xt_psd: reject invalid match options
- 
- v1.42 (2012-04-05)
- ==================
-diff --git a/extensions/xt_psd.c b/extensions/xt_psd.c
-index c044c25..f3fa336 100644
---- a/extensions/xt_psd.c
-+++ b/extensions/xt_psd.c
-@@ -278,13 +278,33 @@ out_match:
- 	return true;
+diff --git a/extensions/libxt_psd.c b/extensions/libxt_psd.c
+index e60178b..483c69a 100644
+--- a/extensions/libxt_psd.c
++++ b/extensions/libxt_psd.c
+@@ -137,19 +137,19 @@ static void psd_mt_save(const void *ip, const struct xt_entry_match *match)
  }
  
-+static int psd_mt_check(const struct xt_mtchk_param *par)
-+{
-+	const struct xt_psd_info *info = par->matchinfo;
-+
-+	if (info->weight_threshold == 0) /* 0 would match on every 1st packet */
-+		return -EINVAL;
-+
-+	if ((info->lo_ports_weight|info->hi_ports_weight) == 0) /* would never match */
-+		return -EINVAL;
-+
-+	if (info->delay_threshold > PSD_MAX_RATE ||
-+	    info->weight_threshold > PSD_MAX_RATE ||
-+	    info->lo_ports_weight > PSD_MAX_RATE ||
-+	    info->hi_ports_weight > PSD_MAX_RATE)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- static struct xt_match xt_psd_reg __read_mostly = {
--	.name		= "psd",
--	.family    = NFPROTO_IPV4,
--	.revision  = 1,
--	.match		= xt_psd_match,
--	.matchsize	= sizeof(struct xt_psd_info),
--	.me			= THIS_MODULE,
-+	.name       = "psd",
-+	.family     = NFPROTO_IPV4,
-+	.revision   = 1,
-+	.checkentry = psd_mt_check,
-+	.match      = xt_psd_match,
-+	.matchsize  = sizeof(struct xt_psd_info),
-+	.me         = THIS_MODULE,
+ static struct xtables_match psd_mt_reg = {
+-	.name			= "psd",
+-	.version		= XTABLES_VERSION,
+-	.revision   	= 1,
+-	.family        = NFPROTO_IPV4,
+-	.size			= XT_ALIGN(sizeof(struct xt_psd_info)),
++	.name           = "psd",
++	.version        = XTABLES_VERSION,
++	.revision       = 1,
++	.family         = NFPROTO_IPV4,
++	.size           = XT_ALIGN(sizeof(struct xt_psd_info)),
+ 	.userspacesize	= XT_ALIGN(sizeof(struct xt_psd_info)),
+-	.help			= psd_mt_help,
+-	.init			= psd_mt_init,
+-	.parse			= psd_mt_parse,
+-	.final_check	= psd_mt_final_check,
+-	.print			= psd_mt_print,
+-	.save			= psd_mt_save,
+-	.extra_opts		= psd_mt_opts,
++	.help           = psd_mt_help,
++	.init           = psd_mt_init,
++	.parse          = psd_mt_parse,
++	.final_check    = psd_mt_final_check,
++	.print          = psd_mt_print,
++	.save           = psd_mt_save,
++	.extra_opts     = psd_mt_opts,
  };
  
- static int __init xt_psd_init(void)
+ static __attribute__((constructor)) void psd_mt_ldr(void)
+diff --git a/extensions/xt_psd.c b/extensions/xt_psd.c
+index f3fa336..00ff1d4 100644
+--- a/extensions/xt_psd.c
++++ b/extensions/xt_psd.c
+@@ -53,13 +53,13 @@ struct port {
+  * Information we keep per each source address.
+  */
+ struct host {
+-	struct host *next;						/* Next entry with the same hash */
+-	unsigned long timestamp;					/* Last update time */
+-	struct in_addr src_addr;				/* Source address */
+-	struct in_addr dest_addr;				/* Destination address */
+-	unsigned short src_port;				/* Source port */
+-	int count;								/* Number of ports in the list */
+-	int weight;								/* Total weight of ports in the list */
++	struct host *next;			/* Next entry with the same hash */
++	unsigned long timestamp;		/* Last update time */
++	struct in_addr src_addr;		/* Source address */
++	struct in_addr dest_addr;		/* Destination address */
++	__be16 src_port;			/* Source port */
++	u16 weight;				/* Total weight of ports in the list */
++	u8 count;				/* Number of ports in the list */
+ 	struct port ports[SCAN_MAX_COUNT - 1];	/* List of ports */
+ };
+ 
+@@ -70,7 +70,7 @@ static struct {
+ 	spinlock_t lock;
+ 	struct host list[LIST_SIZE];	/* List of source addresses */
+ 	struct host *hash[HASH_SIZE];	/* Hash: pointers into the list */
+-	int index;						/* Oldest entry to be replaced */
++	int index;			/* Oldest entry to be replaced */
+ } state;
+ 
+ /*
 -- 
 1.7.3.4
 
