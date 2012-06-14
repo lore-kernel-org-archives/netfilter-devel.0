@@ -1,48 +1,63 @@
-From: Deepak Jangid <deepak_jangid1987@yahoo.co.in>
-Subject: Regarding connection mappings to module data structures
-Date: Thu, 14 Jun 2012 14:18:33 +0800 (SGT)
-Message-ID: <1339654713.58676.YahooMailNeo@web193406.mail.sg3.yahoo.com>
-Reply-To: Deepak Jangid <deepak_jangid1987@yahoo.co.in>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: [PATCH 03/10] netfilter: add nf_ct_kfree_compat_sysctl_table to make codes clear
+Date: Thu, 14 Jun 2012 18:07:18 +0800
+Message-ID: <1339668445-23848-3-git-send-email-gaofeng@cn.fujitsu.com>
+References: <1339668445-23848-1-git-send-email-gaofeng@cn.fujitsu.com>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Gao feng <gaofeng@cn.fujitsu.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nm19-vm8.bullet.mail.sg3.yahoo.com ([106.10.149.119]:28887 "HELO
-	nm19-vm8.bullet.mail.sg3.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752015Ab2FNGSf convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Jun 2012 02:18:35 -0400
+Received: from cn.fujitsu.com ([222.73.24.84]:34571 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1754981Ab2FNKjH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 14 Jun 2012 06:39:07 -0400
+In-Reply-To: <1339668445-23848-1-git-send-email-gaofeng@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello Netfilter team,
-=A0
-I am seeking an infrastructure for mapping
-conntrack(struct nf_conn) to a module private data structure as a conte=
-xt for
-every connection.
-I could not find any such.
-=A0
-I can add the private info when I see a new connection.
-conntrack destroy events can be caught to destroy the
-private structure.
-But the thing is there is no mechanism to store the
-private info mapped to a connection. Either I will have to maintain
-hash-tables, which is highly irrelevant, or edit the nf_conn which seem=
-s a
-better way.
-=A0
-What I was thinking is to have a list_head or a pointer
-to a structure in nf_conn which can handle such scenarios.
-=A0
-Does this seems generic ? Well yes there is
-conntrack_extend, but it is not generic to be usable by other modules.
-=A0
-Best Regards,
-Deepak Jangid
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+add function nf_ct_kfree_compat_sysctl_table to kfree l4proto's
+compat sysctl table and set the sysctl table point to NULL.
+
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+---
+ include/net/netfilter/nf_conntrack_l4proto.h |    8 ++++++++
+ net/netfilter/nf_conntrack_proto.c           |    4 +---
+ 2 files changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+index 5dd60f2..889b717 100644
+--- a/include/net/netfilter/nf_conntrack_l4proto.h
++++ b/include/net/netfilter/nf_conntrack_l4proto.h
+@@ -132,6 +132,14 @@ extern int nf_ct_port_nlattr_to_tuple(struct nlattr *tb[],
+ extern int nf_ct_port_nlattr_tuple_size(void);
+ extern const struct nla_policy nf_ct_port_nla_policy[];
+ 
++static inline void nf_ct_kfree_compat_sysctl_table(struct nf_proto_net *pn)
++{
++#if defined(CONFIG_SYSCTL) && defined(CONFIG_NF_CONNTRACK_PROC_COMPAT)
++	kfree(pn->ctl_compat_table);
++	pn->ctl_compat_table = NULL;
++#endif
++}
++
+ #ifdef CONFIG_SYSCTL
+ #ifdef DEBUG_INVALID_PACKETS
+ #define LOG_INVALID(net, proto)				\
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 8fc0332..c9df1b4 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -361,9 +361,7 @@ int nf_ct_l4proto_register_sysctl(struct net *net,
+ 					    NULL);
+ 		if (err == 0)
+ 			goto out;
+-
+-		kfree(pn->ctl_compat_table);
+-		pn->ctl_compat_table = NULL;
++		nf_ct_kfree_compat_sysctl_table(pn);
+ 		nf_ct_unregister_sysctl(&pn->ctl_table_header,
+ 					&pn->ctl_table,
+ 					&pn->users);
+-- 
+1.7.7.6
+
