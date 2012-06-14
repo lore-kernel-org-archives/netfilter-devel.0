@@ -1,67 +1,48 @@
-From: "Hans Schillstrom" <hans@schillstrom.com>
-Subject: [RFC] netfilter: xt_TEE:  IPv4 Don't Fragmet options
-Date: Thu, 14 Jun 2012 08:17:35 +0200 (CEST)
-Message-ID: <rvd97lb.cb16bfe930b2100854041c0a3d714500@obelix.schillstrom.com>
+From: Deepak Jangid <deepak_jangid1987@yahoo.co.in>
+Subject: Regarding connection mappings to module data structures
+Date: Thu, 14 Jun 2012 14:18:33 +0800 (SGT)
+Message-ID: <1339654713.58676.YahooMailNeo@web193406.mail.sg3.yahoo.com>
+Reply-To: Deepak Jangid <deepak_jangid1987@yahoo.co.in>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "Jan Engelhardt" <jengelh@medozas.de>,
-	"Pablo Neira Ayuso" <pablo@netfilter.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:60272 "EHLO
-	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751191Ab2FNGRk convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Jun 2012 02:17:40 -0400
+Received: from nm19-vm8.bullet.mail.sg3.yahoo.com ([106.10.149.119]:28887 "HELO
+	nm19-vm8.bullet.mail.sg3.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752015Ab2FNGSf convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 14 Jun 2012 02:18:35 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
-
-I  think it is wrong to always force the DF bit in IPv4, it's better to have an option
-If an application don't set the DF bit, usually it doesn't expect to get an icmp back either.
-The result is that the packet will be dropped...
-
-To retain backwards compatibility I suggest adding a new option like
-
---ipv4-df-copy  Do not force "Don't Fragment" on the copied packet just copy the bit.
-
-In IPv6 we don't have that option, so nothing has to be done there.
-
-
-diff --git a/include/linux/netfilter/xt_TEE.h b/include/linux/netfilter/xt_TEE.h
-index 5c21d5c..e5fca8a 100644
---- a/include/linux/netfilter/xt_TEE.h
-+++ b/include/linux/netfilter/xt_TEE.h
-@@ -4,6 +4,7 @@
- struct xt_tee_tginfo {
-        union nf_inet_addr gw;
-        char oif[16];
-+       int df_copy;
-
-        /* used internally by the kernel */
-        struct xt_tee_priv *priv __attribute__((aligned(8)));
-diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
-index ee2e5bc..e9a1ca7 100644
---- a/net/netfilter/xt_TEE.c
-+++ b/net/netfilter/xt_TEE.c
-@@ -117,7 +117,8 @@ tee_tg4(struct sk_buff *skb, const struct xt_action_param *par)
-         * decreased MTU on the clone route. IPv6 does this too.
-         */
-        iph = ip_hdr(skb);
--       iph->frag_off |= htons(IP_DF);
-+       if (!info->df_copy)
-+               iph->frag_off |= htons(IP_DF);
-        if (par->hooknum == NF_INET_PRE_ROUTING ||
-            par->hooknum == NF_INET_LOCAL_IN)
-                --iph->ttl;
-
-
+Hello Netfilter team,
+=A0
+I am seeking an infrastructure for mapping
+conntrack(struct nf_conn) to a module private data structure as a conte=
+xt for
+every connection.
+I could not find any such.
+=A0
+I can add the private info when I see a new connection.
+conntrack destroy events can be caught to destroy the
+private structure.
+But the thing is there is no mechanism to store the
+private info mapped to a connection. Either I will have to maintain
+hash-tables, which is highly irrelevant, or edit the nf_conn which seem=
+s a
+better way.
+=A0
+What I was thinking is to have a list_head or a pointer
+to a structure in nf_conn which can handle such scenarios.
+=A0
+Does this seems generic ? Well yes there is
+conntrack_extend, but it is not generic to be usable by other modules.
+=A0
+Best Regards,
+Deepak Jangid
 --
-Regards 
-Hans Schillstrom
-+46 70 699 7150
-
-
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
