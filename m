@@ -1,113 +1,50 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: Re: [PATCH 05/10] netfilter: merge tcpv[4,6]_net_init into tcp_net_init
-Date: Fri, 15 Jun 2012 20:30:33 +0800
-Message-ID: <4FDB2AE9.1060506@cn.fujitsu.com>
-References: <1339668445-23848-1-git-send-email-gaofeng@cn.fujitsu.com> <1339668445-23848-5-git-send-email-gaofeng@cn.fujitsu.com> <20120615114425.GA14449@1984>
+From: "Hans Schillstrom" <hans@schillstrom.com>
+Subject: Re[3]: [RFC] netfilter: xt_TEE: IPv4 Don't Fragmet options
+Date: Fri, 15 Jun 2012 14:51:41 +0200 (CEST)
+Message-ID: <8oegugq.b2a4d43e41f924be4614ef9ef41297fa@obelix.schillstrom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Cc: "Pablo Neira Ayuso" <pablo@netfilter.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	fw@strlen.de
+To: "Jan Engelhardt" <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:50090 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1756621Ab2FOMaG convert rfc822-to-8bit (ORCPT
+Received: from smtp-gw11.han.skanova.net ([81.236.55.20]:51645 "EHLO
+	smtp-gw11.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756811Ab2FOMvu convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Jun 2012 08:30:06 -0400
-In-Reply-To: <20120615114425.GA14449@1984>
+	Fri, 15 Jun 2012 08:51:50 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=E4=BA=8E 2012=E5=B9=B406=E6=9C=8815=E6=97=A5 19:44, Pablo Neira Ayuso =
-=E5=86=99=E9=81=93:
-> On Thu, Jun 14, 2012 at 06:07:20PM +0800, Gao feng wrote:
->> merge tcpv4_net_init and tcpv6_net_init into tcp_net_init to
->> reduce the redundancy codes.
+>On Friday 2012-06-15 08:37, Hans Schillstrom wrote:
+>>>
+>>>Applications often don't have the means to set DF, think SOCK_STREAM.
 >>
->> and use nf_proto_net.users to identify if it's the first time
->> we use the nf_proto_net. when it's the first time,we will
->> initialized it.
+>>Yeah I do, and TCP usually set the DF bit and if you inherit that it should
+>>not be a problem. BTW, I don't see any real use case for TCP except for a
+>>"remote" tcpdump
+>
+>Remote dumping is the point of TEE. At least that is what people
+>have blogged about so far :)
+>
+>>Inherit - don't force, it's a better idea
+>>if you don't set it you don't expect an ICMP either.
+>
+>So what does syslogd do in the IPv6-UDP case?
+
+As I wrote in my first mail IPv6 is a different story, you don't have any options there
+since you are not allowed to "re-frag" the packet
+
+>>>As Pablo mentioned, you cannot touch this structure.
 >>
->> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
->> ---
->>  net/netfilter/nf_conntrack_proto_tcp.c |   57 ++++++++-------------=
------------
->>  1 files changed, 14 insertions(+), 43 deletions(-)
->>
->> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/=
-nf_conntrack_proto_tcp.c
->> index 6db9d3c..e3d5427 100644
->> --- a/net/netfilter/nf_conntrack_proto_tcp.c
->> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
->> @@ -1593,18 +1593,14 @@ static int tcp_kmemdup_compat_sysctl_table(s=
-truct nf_proto_net *pn)
->>  	return 0;
->>  }
->> =20
->> -static int tcpv4_init_net(struct net *net, u_int16_t proto)
->> +static int tcp_init_net(struct net *net, u_int16_t proto)
->>  {
->> -	int i;
->>  	int ret =3D 0;
->>  	struct nf_tcp_net *tn =3D tcp_pernet(net);
->>  	struct nf_proto_net *pn =3D (struct nf_proto_net *)tn;
->=20
-> while at it, it would be fine if you use &tn->pn instead. I know this
-> cast is making the trick, but what I propose is better practise.
->=20
+>>I know this was just a RFC,  I  should have made a note about that :-)
+>
+>Then I'll await your new patch.
 
-OK, I will change it.
+To make things clear :
+I'll send a patch that keep the current behaviour, so it doesn't break things for people.
 
->> -#ifdef CONFIG_SYSCTL
->> -	if (!pn->ctl_table) {
->> -#else
->> -	if (!pn->users++) {
->> -#endif
->> +	if (!pn->users) {
->> +		int i =3D 0;
->>  		for (i =3D 0; i < TCP_CONNTRACK_TIMEOUT_MAX; i++)
->>  			tn->timeouts[i] =3D tcp_timeouts[i];
->> =20
->> @@ -1613,45 +1609,20 @@ static int tcpv4_init_net(struct net *net, u=
-_int16_t proto)
->>  		tn->tcp_max_retrans =3D nf_ct_tcp_max_retrans;
->>  	}
->> =20
->> -	ret =3D tcp_kmemdup_compat_sysctl_table(pn);
->> +	if (proto =3D=3D AF_INET) {
->> +		ret =3D tcp_kmemdup_compat_sysctl_table(pn);
->> +		if (ret < 0)
->> +			return ret;
->> =20
->> -	if (ret < 0)
->> -		return ret;
->> +		ret =3D tcp_kmemdup_sysctl_table(pn);
->=20
-> One thing I noticed: This kmemdup will happen twice, once for IPv4 an=
-d
-> once for IPv6. I think this should happen only once, as both TCP
-> tracker for IPv4 and IPv6 are sharing the same nf_proto_net.
->=20
-> So it should happen inside the if (!pn->users) thing.
->=20
-> AFAICS, then this should look like the following:
->=20
-> if (pn->users)
->         return 0;
 
-maybe we register IPv6's l4proto first, it will only kmemdup the sysctl=
- table.
-if we return here, when we register Ipv4's l4proto,the compat sysctl ta=
-ble will
-not be allocated, so the netfilter will have no compat sysctl entries.
-
->=20
-> /*
->  * here comes all per-net initialization
->  */
->=20
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
