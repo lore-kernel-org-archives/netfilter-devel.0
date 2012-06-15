@@ -1,43 +1,91 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re[2]:  [RFC] netfilter: xt_TEE: IPv4 Don't Fragmet options
-Date: Fri, 15 Jun 2012 12:00:40 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1206151157510.29044@frira.zrqbmnf.qr>
-References: <8oegugq.fb5f47534daac35954f4ab92cf50648f@obelix.schillstrom.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 03/10] netfilter: add nf_ct_kfree_compat_sysctl_table
+ to make codes clear
+Date: Fri, 15 Jun 2012 12:08:06 +0200
+Message-ID: <20120615100806.GB13867@1984>
+References: <1339668445-23848-1-git-send-email-gaofeng@cn.fujitsu.com>
+ <1339668445-23848-3-git-send-email-gaofeng@cn.fujitsu.com>
+ <20120614180632.GD10633@1984>
+ <4FDA9186.408@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	fw@strlen.de
-To: Hans Schillstrom <hans@schillstrom.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:42638 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756615Ab2FOKAn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Jun 2012 06:00:43 -0400
-In-Reply-To: <8oegugq.fb5f47534daac35954f4ab92cf50648f@obelix.schillstrom.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Gao feng <gaofeng@cn.fujitsu.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4FDA9186.408@cn.fujitsu.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Fri, Jun 15, 2012 at 09:36:06AM +0800, Gao feng wrote:
+> Hi Pablo:
+>=20
+> =E4=BA=8E 2012=E5=B9=B406=E6=9C=8815=E6=97=A5 02:06, Pablo Neira Ayus=
+o =E5=86=99=E9=81=93:
+> > On Thu, Jun 14, 2012 at 06:07:18PM +0800, Gao feng wrote:
+> >> add function nf_ct_kfree_compat_sysctl_table to kfree l4proto's
+> >> compat sysctl table and set the sysctl table point to NULL.
+> >>
+> >> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+> >> ---
+> >>  include/net/netfilter/nf_conntrack_l4proto.h |    8 ++++++++
+> >>  net/netfilter/nf_conntrack_proto.c           |    4 +---
+> >>  2 files changed, 9 insertions(+), 3 deletions(-)
+> >>
+> >> diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/includ=
+e/net/netfilter/nf_conntrack_l4proto.h
+> >> index 5dd60f2..889b717 100644
+> >> --- a/include/net/netfilter/nf_conntrack_l4proto.h
+> >> +++ b/include/net/netfilter/nf_conntrack_l4proto.h
+> >> @@ -132,6 +132,14 @@ extern int nf_ct_port_nlattr_to_tuple(struct =
+nlattr *tb[],
+> >>  extern int nf_ct_port_nlattr_tuple_size(void);
+> >>  extern const struct nla_policy nf_ct_port_nla_policy[];
+> >> =20
+> >> +static inline void nf_ct_kfree_compat_sysctl_table(struct nf_prot=
+o_net *pn)
+> >> +{
+> >> +#if defined(CONFIG_SYSCTL) && defined(CONFIG_NF_CONNTRACK_PROC_CO=
+MPAT)
+> >> +	kfree(pn->ctl_compat_table);
+> >> +	pn->ctl_compat_table =3D NULL;
+> >> +#endif
+> >> +}
 
-On Friday 2012-06-15 08:37, Hans Schillstrom wrote:
->>
->>Applications often don't have the means to set DF, think SOCK_STREAM.
->
->Yeah I do, and TCP usually set the DF bit and if you inherit that it should
->not be a problem. BTW, I don't see any real use case for TCP except for a
->"remote" tcpdump
+inline is usually reserved for fast path, not initialization path.
 
-Remote dumping is the point of TEE. At least that is what people
-have blogged about so far :)
+Although this function is fairly small, I think I prefer that this
+function is defined in nf_conntrack_proto.c and exported.
 
->Inherit - don't force, it's a better idea
->if you don't set it you don't expect an ICMP either.
-
-So what does syslogd do in the IPv6-UDP case?
-
-
->>As Pablo mentioned, you cannot touch this structure.
->
->I know this was just a RFC,  I  should have made a note about that :-)
-
-Then I'll await your new patch.
+> >> +
+> >>  #ifdef CONFIG_SYSCTL
+> >>  #ifdef DEBUG_INVALID_PACKETS
+> >>  #define LOG_INVALID(net, proto)				\
+> >> diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf=
+_conntrack_proto.c
+> >> index 8fc0332..c9df1b4 100644
+> >> --- a/net/netfilter/nf_conntrack_proto.c
+> >> +++ b/net/netfilter/nf_conntrack_proto.c
+> >> @@ -361,9 +361,7 @@ int nf_ct_l4proto_register_sysctl(struct net *=
+net,
+> >>  					    NULL);
+> >>  		if (err =3D=3D 0)
+> >>  			goto out;
+> >> -
+> >> -		kfree(pn->ctl_compat_table);
+> >> -		pn->ctl_compat_table =3D NULL;
+> >> +		nf_ct_kfree_compat_sysctl_table(pn);
+> >=20
+> > if this is the only client of this function, then make it static an=
+d
+> > define it inside nf_conntrack_proto.c
+> >=20
+>=20
+> tcp_init_net,udp_init_net use this function too.
+>=20
+> Thanks
+> --
+> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
