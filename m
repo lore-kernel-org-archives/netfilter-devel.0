@@ -1,35 +1,38 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re[3]: [RFC] netfilter: xt_TEE: IPv4 Don't Fragmet options
-Date: Fri, 15 Jun 2012 15:04:44 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1206151500260.12865@frira.zrqbmnf.qr>
-References: <8oegugq.b2a4d43e41f924be4614ef9ef41297fa@obelix.schillstrom.com>
+From: AFT <aftnix@gmail.com>
+Subject: Netfilter Debugging tips
+Date: Fri, 15 Jun 2012 20:08:34 +0600
+Message-ID: <aa04pt0d.fsf@s1.test.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	fw@strlen.de
-To: Hans Schillstrom <hans@schillstrom.com>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:43590 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756840Ab2FONEp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Jun 2012 09:04:45 -0400
-In-Reply-To: <8oegugq.b2a4d43e41f924be4614ef9ef41297fa@obelix.schillstrom.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:54675 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752849Ab2FOOSK (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Jun 2012 10:18:10 -0400
+Received: by pbbrp8 with SMTP id rp8so5340716pbb.19
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Jun 2012 07:18:09 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Friday 2012-06-15 14:51, Hans Schillstrom wrote:
->
->As I wrote in my first mail IPv6 is a different story, you don't
->have any options there since you are not allowed to "re-frag" the
->packet
+Hi,
 
-Here's another point I remember why we forced IP_DF: we want to keep
-the packet as-is. The receiver of the cloned packet (often a logger)
-has no way of autonomously knowing whether the packet was already
-fragmented originally as it came into the cloner, or whether
-fragmentation is a doing of the cloner.
+I have a working kernel dev setup with KGDB/KDB. Now as i'm going to
+develop a netfilte module, i need a good strategy to debug netfilter
+modules. During configuring the kernel i've bumped into a kernel config
+like following :
 
-Maybe should just add that as a comment for completeness of the
-history. :)
+CONFIG_NETFILTER_DEBUG
+
+But i've found no documentaion describing what actually this
+configuration will enable me to do.
+
+So anything regarding this config variable or any other general
+debugging strategy will be helpfull.
+
+Cheers.
+
+------
+-aft 
