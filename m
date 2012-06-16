@@ -1,39 +1,86 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [RFC] netfilter: xt_TEE: IPv4 Don't Fragmet options
-Date: Sat, 16 Jun 2012 15:57:29 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1206161557180.19053@frira.zrqbmnf.qr>
-References: <8oegugq.b2a4d43e41f924be4614ef9ef41297fa@obelix.schillstrom.com> <alpine.LNX.2.01.1206151500260.12865@frira.zrqbmnf.qr> <20120616131838.GB22939@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Hans Schillstrom <hans@schillstrom.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([188.40.89.202]:51133 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756660Ab2FPN5b (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 Jun 2012 09:57:31 -0400
-In-Reply-To: <20120616131838.GB22939@breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: pablo@netfilter.org
+Subject: [PATCH 0/7] netfilter updates for net-next (upcoming 3.6), batch 2
+Date: Sat, 16 Jun 2012 17:49:49 +0200
+Message-ID: <1339861796-2676-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Saturday 2012-06-16 15:18, Florian Westphal wrote:
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
->Jan Engelhardt <jengelh@inai.de> wrote:
->> On Friday 2012-06-15 14:51, Hans Schillstrom wrote:
->> >
->> Here's another point I remember why we forced IP_DF: we want to keep
->> the packet as-is. The receiver of the cloned packet (often a logger)
->> has no way of autonomously knowing whether the packet was already
->> fragmented originally as it came into the cloner, or whether
->> fragmentation is a doing of the cloner.
->
->Except that, if the path mtu was too low, it doesn't even
->receive that packet.  If the sender does PMTUD, that might be ok
->since future packets will be reduced in size.
->
->But if the sender doesn't do PMTUD (and 'DF not set' indicates that)
->your 'clone receiver' will never get any data at all...
+Hi David,
 
-Good thing IPv4 is being phased out ;-)
+This is the second batch of Netfilter updates for net-next. It contains the
+kernel changes for the new user-space connection tracking helper
+infrastructure.
+
+More details on this infrastructure are provides here:
+http://lwn.net/Articles/500196/
+
+Still, I plan to provide some official documentation through the
+conntrack-tools user manual on how to setup user-space utilities for this.
+So far, it provides two helper in user-space, one for NFSv3 and another for
+Oracle/SQLnet/TNS. Yet in my TODO list.
+
+You can pull these changes from:
+
+git://1984.lsi.us.es/nf-next master
+
+Thanks!
+
+Pablo Neira Ayuso (7):
+  netfilter: nf_ct_helper: allocate 16 bytes for the helper and policy names
+  netfilter: nf_ct_ext: support variable length extensions
+  netfilter: nf_ct_helper: implement variable length helper private  data
+  netfilter: add glue code to integrate nfnetlink_queue and ctnetlink
+  netfilter: nfnetlink_queue: add NAT TCP sequence adjustment if packet mangled
+  netfilter: ctnetlink: add CTA_HELP_INFO attribute
+  netfilter: add user-space connection tracking helper infrastructure
+
+ include/linux/netfilter.h                      |   12 +
+ include/linux/netfilter/Kbuild                 |    1 +
+ include/linux/netfilter/nf_conntrack_sip.h     |    2 +
+ include/linux/netfilter/nfnetlink.h            |    3 +-
+ include/linux/netfilter/nfnetlink_conntrack.h  |    1 +
+ include/linux/netfilter/nfnetlink_cthelper.h   |   55 ++
+ include/linux/netfilter/nfnetlink_queue.h      |    3 +
+ include/linux/netfilter_ipv4.h                 |    1 +
+ include/linux/netfilter_ipv6.h                 |    1 +
+ include/net/netfilter/nf_conntrack.h           |   35 +-
+ include/net/netfilter/nf_conntrack_expect.h    |    4 +-
+ include/net/netfilter/nf_conntrack_extend.h    |    9 +-
+ include/net/netfilter/nf_conntrack_helper.h    |   29 +-
+ include/net/netfilter/nf_nat_helper.h          |    4 +
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |   48 +-
+ net/ipv4/netfilter/nf_nat_amanda.c             |    4 +-
+ net/ipv4/netfilter/nf_nat_h323.c               |    8 +-
+ net/ipv4/netfilter/nf_nat_helper.c             |   13 +
+ net/ipv4/netfilter/nf_nat_pptp.c               |    6 +-
+ net/ipv4/netfilter/nf_nat_tftp.c               |    4 +-
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |   43 +-
+ net/netfilter/Kconfig                          |    8 +
+ net/netfilter/Makefile                         |    1 +
+ net/netfilter/core.c                           |    4 +
+ net/netfilter/nf_conntrack_core.c              |    3 +-
+ net/netfilter/nf_conntrack_extend.c            |   16 +-
+ net/netfilter/nf_conntrack_ftp.c               |   11 +-
+ net/netfilter/nf_conntrack_h323_main.c         |   16 +-
+ net/netfilter/nf_conntrack_helper.c            |   32 +-
+ net/netfilter/nf_conntrack_irc.c               |    8 +-
+ net/netfilter/nf_conntrack_netlink.c           |  175 +++++-
+ net/netfilter/nf_conntrack_pptp.c              |   17 +-
+ net/netfilter/nf_conntrack_proto_gre.c         |   16 +-
+ net/netfilter/nf_conntrack_sane.c              |   12 +-
+ net/netfilter/nf_conntrack_sip.c               |   32 +-
+ net/netfilter/nf_conntrack_tftp.c              |    8 +-
+ net/netfilter/nfnetlink_cthelper.c             |  672 ++++++++++++++++++++++++
+ net/netfilter/nfnetlink_queue.c                |   59 ++-
+ net/netfilter/xt_CT.c                          |   44 +-
+ 39 files changed, 1237 insertions(+), 183 deletions(-)
+ create mode 100644 include/linux/netfilter/nfnetlink_cthelper.h
+ create mode 100644 net/netfilter/nfnetlink_cthelper.c
+
+-- 
+1.7.10
