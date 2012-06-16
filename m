@@ -1,44 +1,111 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Netfilter Debugging tips
-Date: Sat, 16 Jun 2012 11:55:59 +0200
-Message-ID: <20120616095559.GA18022@1984>
-References: <aa04pt0d.fsf@s1.test.com>
+Subject: Re: [PATCH net-next v2 01/12] netfilter: fix problem with proto
+ register
+Date: Sat, 16 Jun 2012 12:50:37 +0200
+Message-ID: <20120616105037.GA18251@1984>
+References: <1339818083-31356-1-git-send-email-gaofeng@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: AFT <aftnix@gmail.com>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Gao feng <gaofeng@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36525 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41914 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754809Ab2FPJ4J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 Jun 2012 05:56:09 -0400
+	id S1756660Ab2FPKul (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 16 Jun 2012 06:50:41 -0400
 Content-Disposition: inline
-In-Reply-To: <aa04pt0d.fsf@s1.test.com>
+In-Reply-To: <1339818083-31356-1-git-send-email-gaofeng@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 15, 2012 at 08:08:34PM +0600, AFT wrote:
+On Sat, Jun 16, 2012 at 11:41:12AM +0800, Gao feng wrote:
+> commit 2c352f444ccfa966a1aa4fd8e9ee29381c467448
+> (netfilter: nf_conntrack: prepare namespace support for
+> l4 protocol trackers) register proto before register sysctl.
 > 
-> Hi,
+> it changes the behavior that when register sysctl failed, the
+> proto should not be registered too.
 > 
-> I have a working kernel dev setup with KGDB/KDB. Now as i'm going to
-> develop a netfilte module, i need a good strategy to debug netfilter
-> modules. During configuring the kernel i've bumped into a kernel config
-> like following :
-> 
-> CONFIG_NETFILTER_DEBUG
-> 
-> But i've found no documentaion describing what actually this
-> configuration will enable me to do.
-> 
-> So anything regarding this config variable or any other general
-> debugging strategy will be helpfull.
+> so change to register sysctl before register protos.
 
-With this, the kernel will print debugging information on what the
-Netfilter core infrastructure is doing. It also includes some
-debugging messages from x_tables instances, ie. ebtables, arp_tables,
-and so on.
+Could you explain why we need to change the order in the registration?
+ie. now first proto->init_net then sysctl things.
 
-It's been ages since I haven't used this for any useful purpose
-(rather than making sure the kernel compilation does not break with it
-enabled).
+> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+> ---
+>  net/netfilter/nf_conntrack_proto.c |   37 ++++++++++++++++++++++-------------
+>  1 files changed, 23 insertions(+), 14 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+> index 1ea9194..a434dd7 100644
+> --- a/net/netfilter/nf_conntrack_proto.c
+> +++ b/net/netfilter/nf_conntrack_proto.c
+> @@ -253,18 +253,23 @@ int nf_conntrack_l3proto_register(struct net *net,
+>  {
+>  	int ret = 0;
+>  
+> -	if (net == &init_net)
+> -		ret = nf_conntrack_l3proto_register_net(proto);
+> +	if (proto->init_net) {
+> +		ret = proto->init_net(net);
+> +		if (ret < 0)
+> +			return ret;
+> +	}
+>  
+> +	ret = nf_ct_l3proto_register_sysctl(net, proto);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	if (proto->init_net) {
+> -		ret = proto->init_net(net);
+> +	if (net == &init_net) {
+> +		ret = nf_conntrack_l3proto_register_net(proto);
+>  		if (ret < 0)
+> -			return ret;
+> +			nf_ct_l3proto_unregister_sysctl(net, proto);
+>  	}
+> -	return nf_ct_l3proto_register_sysctl(net, proto);
+> +
+> +	return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_register);
+>  
+> @@ -454,19 +459,23 @@ int nf_conntrack_l4proto_register(struct net *net,
+>  				  struct nf_conntrack_l4proto *l4proto)
+>  {
+>  	int ret = 0;
+> -	if (net == &init_net)
+> -		ret = nf_conntrack_l4proto_register_net(l4proto);
+> -
+> -	if (ret < 0)
+> -		return ret;
+> -
+> -	if (l4proto->init_net)
+> +	if (l4proto->init_net) {
+>  		ret = l4proto->init_net(net);
+> +		if (ret < 0)
+> +			return ret;
+> +	}
+>  
+> +	ret = nf_ct_l4proto_register_sysctl(net, l4proto);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	return nf_ct_l4proto_register_sysctl(net, l4proto);
+> +	if (net == &init_net) {
+> +		ret = nf_conntrack_l4proto_register_net(l4proto);
+> +		if (ret < 0)
+> +			nf_ct_l4proto_unregister_sysctl(net, l4proto);
+> +	}
+> +
+> +	return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_register);
+>  
+> -- 
+> 1.7.7.6
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
