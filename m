@@ -1,161 +1,105 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] ulogd 2.0.0 release
-Date: Sun, 17 Jun 2012 14:07:23 +0200
-Message-ID: <20120617120723.GA23082@1984>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="G4iJoqBmSsgzjUCe"
-Content-Transfer-Encoding: 8bit
-Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
-	netfilter-announce@lists.netfilter.org, lwn@lwn.net
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH] netfilter: ipset: hash:net,iface: fix interface comparision
+Date: Sun, 17 Jun 2012 21:56:46 +0200
+Message-ID: <1339963006-15296-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42127 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757170Ab2FQMHd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 17 Jun 2012 08:07:33 -0400
-Content-Disposition: inline
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45450 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750872Ab2FQT6A (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 17 Jun 2012 15:58:00 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+ifname_compare() assumes that skb->dev is zero-padded,
+e.g 'eth1\0\0\0\0\0...'. This isn't always the case. e1000 driver does
 
---G4iJoqBmSsgzjUCe
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+strncpy(netdev->name, pci_name(pdev), sizeof(netdev->name) - 1);
 
-Hi!
+in e1000_probe(), so once device is registered dev->name memory contains
+'eth1\0:0:3\0\0\0' (or something like that), which makes eth1 compare
+fail.
 
-The Netfilter project proudly presents:
+Use plain strcmp() instead.
 
-        ulogd 2.0.0
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/ipset/ip_set_hash_netiface.c |   32 +++------------------------
+ 1 files changed, 4 insertions(+), 28 deletions(-)
 
-ulogd is a userspace logging daemon for netfilter/iptables related
-logging. This includes per-packet logging of security violations,
-per-packet logging for accounting, per-flow logging and flexible
-user-defined accounting.
+diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
+index ee86394..d5d3607 100644
+--- a/net/netfilter/ipset/ip_set_hash_netiface.c
++++ b/net/netfilter/ipset/ip_set_hash_netiface.c
+@@ -38,30 +38,6 @@ struct iface_node {
+ 
+ #define iface_data(n)	(rb_entry(n, struct iface_node, node)->iface)
+ 
+-static inline long
+-ifname_compare(const char *_a, const char *_b)
+-{
+-	const long *a = (const long *)_a;
+-	const long *b = (const long *)_b;
+-
+-	BUILD_BUG_ON(IFNAMSIZ > 4 * sizeof(unsigned long));
+-	if (a[0] != b[0])
+-		return a[0] - b[0];
+-	if (IFNAMSIZ > sizeof(long)) {
+-		if (a[1] != b[1])
+-			return a[1] - b[1];
+-	}
+-	if (IFNAMSIZ > 2 * sizeof(long)) {
+-		if (a[2] != b[2])
+-			return a[2] - b[2];
+-	}
+-	if (IFNAMSIZ > 3 * sizeof(long)) {
+-		if (a[3] != b[3])
+-			return a[3] - b[3];
+-	}
+-	return 0;
+-}
+-
+ static void
+ rbtree_destroy(struct rb_root *root)
+ {
+@@ -99,7 +75,7 @@ iface_test(struct rb_root *root, const char **iface)
+ 
+ 	while (n) {
+ 		const char *d = iface_data(n);
+-		long res = ifname_compare(*iface, d);
++		int res = strcmp(*iface, d);
+ 
+ 		if (res < 0)
+ 			n = n->rb_left;
+@@ -121,7 +97,7 @@ iface_add(struct rb_root *root, const char **iface)
+ 
+ 	while (*n) {
+ 		char *ifname = iface_data(*n);
+-		long res = ifname_compare(*iface, ifname);
++		int res = strcmp(*iface, ifname);
+ 
+ 		p = *n;
+ 		if (res < 0)
+@@ -366,7 +342,7 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	struct hash_netiface4_elem data = { .cidr = HOST_MASK };
+ 	u32 ip = 0, ip_to, last;
+ 	u32 timeout = h->timeout;
+-	char iface[IFNAMSIZ] = {};
++	char iface[IFNAMSIZ];
+ 	int ret;
+ 
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+@@ -663,7 +639,7 @@ hash_netiface6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_netiface6_elem data = { .cidr = HOST_MASK };
+ 	u32 timeout = h->timeout;
+-	char iface[IFNAMSIZ] = {};
++	char iface[IFNAMSIZ];
+ 	int ret;
+ 
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+-- 
+1.7.3.4
 
-ulogd was almost entirely written by Harald Welte, with contributions
-from fellow hackers such as Pablo Neira Ayuso, Eric Leblond and Pierre
-Chifflier.
-
-ulogd-2.x requires several libraries:
-
-* libnfnetlink that provides basic communication infrastructure via
-  Netlink.
-
-* libmnl that provides basic communication infrastructure via
-  Netlink, this library will supersede libnfnetlink. Still, we require
-  both libraries as we are still in transition to entirely replace
-  libnfnetlink by libmnl.
-
-* libnetfilter_log for stateless packet-based logging via nfnetlink_queue.
-
-* libnetfilter_conntrack for stateful flow-based via nf_conntrack_netlink.
-
-* libnetfilter_acct for flexible traffic accounting via nfnetlink_acct
-  and iptables nfacct match (it requires Linux kernel >= 3.3.x).
-
-This requires a Linux kernel >= 2.6.14, but Linux kernel >= 2.6.18 is
-strongly recommended. Note that if you need SQL database output
-suport, you will need the header files of the respective libraries.
-
-Main features are:
-
-* Packet and flow-based traffic accounting
-* Flexible user-defined traffic accounting via nfacct infrastructure
-* SQL database back-end support: SQLite3, MySQL and PostgreSQL
-* Text-based output formats: CSV, XML, Netfilter's LOG, Netfilter's
-  conntrack.
-
-This releases supersedes 1.x series. Please, upgrade to 2.x series!
-
-See ChangeLog that comes attached to this email for more details.
-
-You can download it from:
-
-http://www.netfilter.org/projects/ulogd/downloads.html
-ftp://ftp.netfilter.org/pub/ulogd/
-
-Have fun!
-
---G4iJoqBmSsgzjUCe
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: attachment; filename="changes-ulogd-2.0.0.txt"
-Content-Transfer-Encoding: 8bit
-
-Björn Lässig (2):
-      build: use pkglibdir instead of pkglibexecdir for automake
-      doc: add documentation for SIGUSR2
-
-Eric Leblond (8):
-      Mysql schema: fix delimiter
-      Mysql schema: fix procedure declaration
-      ulogd.conf: fix mysql definition for NFCT
-      autoconf: fix sqlite configure description message.
-      HWHDR: Fix various crashes
-      DB output: fix crash in SIGHUP handling
-      pcap: fix build on some recent x86_64 platform
-      pcap: add file option to configuration file
-
-Harald Welte (1):
-      ulogd2 / DBI / table name
-
-Jan Andres (1):
-      pcap: fix packet length handling
-
-Jan Engelhardt (20):
-      build: move global automake options into configure.ac
-      build: remove statements without obvious effect
-      build: remove -fPIC flag
-      build: remove unused $(all_includes)
-      output/LOGEMU: resolve build warning
-      build: default to not building static libraries
-      build: propagate global CFLAGS
-      build: no need for error message in PKG_CHECK_MODULES
-      filter/HWHDR: remove redundant sizeof(char)
-      build: avoid use of LIBS variable
-      build: use appropriate location for program modules
-      build: use compile/link information from pkgconfig
-      build: simplify sqlite3 check
-      build: abort autogen on subcommand failure
-      Update .gitignore
-      build: use AC_CONFIG_AUX_DIR and stash away tools
-      build: disable implicit .tar.gz archive generation and use POSIX mode
-      sqlite: resolve compiler warnings
-      nfacct: resolve build failure
-      pcap: resolve unreliable detection
-
-Jozsef Kadlecsik (2):
-      Support stored mysql procedures besides stored functions
-      A simple filter plugin called IP2HBIN added
-
-Pablo Neira Ayuso (20):
-      NFCT: fix bug in polling mode
-      ulogd: fix double call of stop for reused input plugins
-      config: add file option for NACCT pluging to the example config file
-      sqlite3: initial support extracted from Holger Eitzenberger's work
-      sqlite3: add configuration examples and new tables layout
-      NFCT: use nfct_copy() instead of deprecated nfct_sizeof() function
-      NFLOG: don't display overrun message once we have reach the buffer limit
-      sqlite3: use continue instead of goto in sqlite3_interp()
-      sqlite3: cleanup error handling of sqlite3_bind_int() in sqlite3_interp()
-      sqlite3: fix warning during compilation
-      sqlite3: remove automatic creation of table `daily'
-      build: Linux kernel-style for compilation messages
-      ulogd: add okey_set_u64
-      OPRINT: display u64 fields
-      output: add GPRINT plugin
-      input: add nfacct plugin
-      src: add example use of GPRINT to ulogd.conf.in configuration file
-      NFCT: add `reliable' config option to enable reliable flow-based logging
-      build: bump release version to 2.0.0
-      build: require 1.0.0 of all libraries
-
-Pierre Chifflier (2):
-      Add new input plugin UNIXSOCK
-      Add helper script pcap2ulog
-
-Salih Gonullu (1):
-      ulogd: fix segfault if syslog and SIGTERM is received
-
-
---G4iJoqBmSsgzjUCe--
