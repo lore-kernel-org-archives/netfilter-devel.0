@@ -1,54 +1,48 @@
-From: Yang Yang <kormny@gmail.com>
-Subject: Re: How to fix 'undefined symbol: ip6tc_ops'
-Date: Mon, 18 Jun 2012 14:45:14 +0800
-Message-ID: <CAMOvP7ec28fqR+H_tWUnhf3zDePLg6sQ1ajh+aLQPSYK-oVODw@mail.gmail.com>
-References: <CAMOvP7fEFDofXnWHMnOtCV+1hB4H=rxJo6BYE5PtndK+Uc1KFg@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH net-next v2 01/12] netfilter: fix problem with proto
+ register
+Date: Mon, 18 Jun 2012 11:06:31 +0200
+Message-ID: <20120618090631.GA27067@1984>
+References: <1339818083-31356-1-git-send-email-gaofeng@cn.fujitsu.com>
+ <20120616105037.GA18251@1984>
+ <4FDE7D5F.5080703@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:62403 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752281Ab2FRGpR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Jun 2012 02:45:17 -0400
-Received: by vcbf11 with SMTP id f11so2485044vcb.19
-        for <netfilter-devel@vger.kernel.org>; Sun, 17 Jun 2012 23:45:14 -0700 (PDT)
-In-Reply-To: <CAMOvP7fEFDofXnWHMnOtCV+1hB4H=rxJo6BYE5PtndK+Uc1KFg@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Gao feng <gaofeng@cn.fujitsu.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4FDE7D5F.5080703@cn.fujitsu.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Mon, Jun 18, 2012 at 08:59:11AM +0800, Gao feng wrote:
+> =E4=BA=8E 2012=E5=B9=B406=E6=9C=8816=E6=97=A5 18:50, Pablo Neira Ayus=
+o =E5=86=99=E9=81=93:
+> > On Sat, Jun 16, 2012 at 11:41:12AM +0800, Gao feng wrote:
+> >> commit 2c352f444ccfa966a1aa4fd8e9ee29381c467448
+> >> (netfilter: nf_conntrack: prepare namespace support for
+> >> l4 protocol trackers) register proto before register sysctl.
+> >>
+> >> it changes the behavior that when register sysctl failed, the
+> >> proto should not be registered too.
+> >>
+> >> so change to register sysctl before register protos.
+> >=20
+> > Could you explain why we need to change the order in the registrati=
+on?
+> > ie. now first proto->init_net then sysctl things.
+>=20
+> before commit 2c352f444ccfa966a1aa4fd8e9ee29381c467448, we register s=
+ysctl before
+> register protos, so if sysctl is registered faild, the protos will no=
+t be registered.
+>=20
+> but now, we register protos first, and when register sysctl failed, w=
+e can use protos
+> too, it's different from before.
 
-2012/6/18 Yang Yang <kormny@gmail.com>:
-> Hi,
->
-> Actually I've posted this question to 'netfilter@vger.kernel.org', but
-> I didn't get an answer. So I'm looking for help here.
->
-> I just have cross compiled iptables for my ARM-Linux board, but when I
-> tried run it, the error 'iptables: symbol lookup error: iptables:
-> undefined symbol: ip6tc_ops' occurred.
->
-> I have no idea how to fix it, is there anyone can help?
->
-> here're the details:
->
-> s3c6410 (ARM11)
-> Linux-3.0.1
-> iptables-1.4.14
-> commad: iptables
-> Error : iptables: symbol lookup error: iptables: undefined symbol: ip6tc_ops
->
-> Thanks.
-> --------
-> Regards,
-> Yang Yang
+That makes sense.
 
-This time I've tried to use iptables-1.4.3.1, and it works. I believe
-there is some bug in some latest version of iptables. (
-iptables-1.4.13 didn't work either )
-
---------
-Regards,
-Yang Yang
+IMO, this is the thing that should be included in the description.
