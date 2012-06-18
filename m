@@ -1,20 +1,41 @@
-From: jef62udh@gmail.com
-Subject: (unknown)
-Date: Mon, 18 Jun 2012 07:13:26 +0430
-Message-ID: <g0blno7ybo1wet0lsl20n37s.1339987406724@email.android.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+From: Yang Yang <kormny@gmail.com>
+Subject: How to fix 'undefined symbol: ip6tc_ops'
+Date: Mon, 18 Jun 2012 10:46:45 +0800
+Message-ID: <CAMOvP7fEFDofXnWHMnOtCV+1hB4H=rxJo6BYE5PtndK+Uc1KFg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:58039 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753529Ab2FRCnW (ORCPT
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:49865 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752843Ab2FRCqq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 17 Jun 2012 22:43:22 -0400
-Received: by wgbdr13 with SMTP id dr13so5094372wgb.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 17 Jun 2012 19:43:21 -0700 (PDT)
+	Sun, 17 Jun 2012 22:46:46 -0400
+Received: by vcbf11 with SMTP id f11so2431553vcb.19
+        for <netfilter-devel@vger.kernel.org>; Sun, 17 Jun 2012 19:46:45 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-c2VuZCBtaWFs
+Hi,
 
+Actually I've posted this question to 'netfilter@vger.kernel.org', but
+I didn't get an answer. So I'm looking for help here.
+
+I just have cross compiled iptables for my ARM-Linux board, but when I
+tried run it, the error 'iptables: symbol lookup error: iptables:
+undefined symbol: ip6tc_ops' occurred.
+
+I have no idea how to fix it, is there anyone can help?
+
+here're the details:
+
+s3c6410 (ARM11)
+Linux-3.0.1
+iptables-1.4.14
+commad: iptables
+Error : iptables: symbol lookup error: iptables: undefined symbol: ip6tc_ops
+
+Thanks.
+--------
+Regards,
+Yang Yang
