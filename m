@@ -1,48 +1,48 @@
-From: "Jan Beulich" <JBeulich@suse.com>
-Subject: [PATCH] properly annotate ipv4_netfilter_{init,fini}()
-Date: Mon, 18 Jun 2012 11:18:31 +0100
-Message-ID: <4FDF1C97020000780008A64E@nat28.tlf.novell.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: re: netfilter: nf_ct_helper: implement variable length helper
+ private data
+Date: Mon, 18 Jun 2012 16:13:27 +0300
+Message-ID: <20120618131327.GB24400@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
-Cc: <netfilter-devel@vger.kernel.org>
-To: <pablo@netfilter.org>, <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nat28.tlf.novell.com ([130.57.49.28]:60624 "EHLO
-	nat28.tlf.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751864Ab2FRKSf convert rfc822-to-8bit (ORCPT
-	<rfc822;groupwise-netfilter-devel@vger.kernel.org:3:1>);
-	Mon, 18 Jun 2012 06:18:35 -0400
+Received: from rcsinet15.oracle.com ([148.87.113.117]:51099 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751178Ab2FRNNp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Jun 2012 09:13:45 -0400
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Despite being just a few bytes of code, they should still have proper
-annotations.
+Hello Pablo Neira Ayuso,
 
-Signed-off-by: Jan Beulich <jbeulich@suse.com>
+This is a semi-automatic email about new static checker warnings.
 
----
- net/ipv4/netfilter.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+The patch 1afc56794e03: "netfilter: nf_ct_helper: implement variable 
+length helper private data" from Jun 7, 2012, leads to the following 
+Smatch complaint:
 
---- 3.5-rc3/net/ipv4/netfilter.c
-+++ 3.5-rc3-ipv4-netfilter-sections/net/ipv4/netfilter.c
-@@ -225,12 +225,12 @@ static const struct nf_afinfo nf_ip_afin
- 	.route_key_size		= sizeof(struct ip_rt_info),
- };
- 
--static int ipv4_netfilter_init(void)
-+static int __init ipv4_netfilter_init(void)
- {
- 	return nf_register_afinfo(&nf_ip_afinfo);
- }
- 
--static void ipv4_netfilter_fini(void)
-+static void __exit ipv4_netfilter_fini(void)
- {
- 	nf_unregister_afinfo(&nf_ip_afinfo);
- }
+net/netfilter/nf_conntrack_netlink.c:1231 ctnetlink_change_helper()
+	 error: we previously assumed 'help->helper' could be null (see line 1228)
 
+net/netfilter/nf_conntrack_netlink.c
+  1227			}
+  1228			if (help->helper)
+                            ^^^^^^^^^^^^
+If help->helper is non-NULL we return here.
 
+  1229				return -EBUSY;
+  1230			/* need to zero data of old helper */
+  1231			memset(help->data, 0, help->helper->data_len);
+                                              ^^^^^^^^^^^^^^^^^^^^^^
+This is always lead to a NULL dereference here.
+
+  1232		} else {
+  1233			/* we cannot set a helper for an existing conntrack */
+
+regards,
+dan carpenter
 
