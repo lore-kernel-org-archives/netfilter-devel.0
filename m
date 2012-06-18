@@ -1,105 +1,141 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH] netfilter: ipset: hash:net,iface: fix interface comparision
-Date: Sun, 17 Jun 2012 21:56:46 +0200
-Message-ID: <1339963006-15296-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Re: [PATCH net-next v2 01/12] netfilter: fix problem with proto register
+Date: Mon, 18 Jun 2012 08:59:11 +0800
+Message-ID: <4FDE7D5F.5080703@cn.fujitsu.com>
+References: <1339818083-31356-1-git-send-email-gaofeng@cn.fujitsu.com> <20120616105037.GA18251@1984>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45450 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750872Ab2FQT6A (ORCPT
+Received: from cn.fujitsu.com ([222.73.24.84]:19803 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752827Ab2FRA6o convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 17 Jun 2012 15:58:00 -0400
+	Sun, 17 Jun 2012 20:58:44 -0400
+In-Reply-To: <20120616105037.GA18251@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-ifname_compare() assumes that skb->dev is zero-padded,
-e.g 'eth1\0\0\0\0\0...'. This isn't always the case. e1000 driver does
+=E4=BA=8E 2012=E5=B9=B406=E6=9C=8816=E6=97=A5 18:50, Pablo Neira Ayuso =
+=E5=86=99=E9=81=93:
+> On Sat, Jun 16, 2012 at 11:41:12AM +0800, Gao feng wrote:
+>> commit 2c352f444ccfa966a1aa4fd8e9ee29381c467448
+>> (netfilter: nf_conntrack: prepare namespace support for
+>> l4 protocol trackers) register proto before register sysctl.
+>>
+>> it changes the behavior that when register sysctl failed, the
+>> proto should not be registered too.
+>>
+>> so change to register sysctl before register protos.
+>=20
+> Could you explain why we need to change the order in the registration=
+?
+> ie. now first proto->init_net then sysctl things.
 
-strncpy(netdev->name, pci_name(pdev), sizeof(netdev->name) - 1);
+before commit 2c352f444ccfa966a1aa4fd8e9ee29381c467448, we register sys=
+ctl before
+register protos, so if sysctl is registered faild, the protos will not =
+be registered.
 
-in e1000_probe(), so once device is registered dev->name memory contains
-'eth1\0:0:3\0\0\0' (or something like that), which makes eth1 compare
-fail.
+but now, we register protos first, and when register sysctl failed, we =
+can use protos
+too, it's different from before.
 
-Use plain strcmp() instead.
+>=20
+>> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+>> ---
+>>  net/netfilter/nf_conntrack_proto.c |   37 ++++++++++++++++++++++---=
+----------
+>>  1 files changed, 23 insertions(+), 14 deletions(-)
+>>
+>> diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_c=
+onntrack_proto.c
+>> index 1ea9194..a434dd7 100644
+>> --- a/net/netfilter/nf_conntrack_proto.c
+>> +++ b/net/netfilter/nf_conntrack_proto.c
+>> @@ -253,18 +253,23 @@ int nf_conntrack_l3proto_register(struct net *=
+net,
+>>  {
+>>  	int ret =3D 0;
+>> =20
+>> -	if (net =3D=3D &init_net)
+>> -		ret =3D nf_conntrack_l3proto_register_net(proto);
+>> +	if (proto->init_net) {
+>> +		ret =3D proto->init_net(net);
+>> +		if (ret < 0)
+>> +			return ret;
+>> +	}
+>> =20
+>> +	ret =3D nf_ct_l3proto_register_sysctl(net, proto);
+>>  	if (ret < 0)
+>>  		return ret;
+>> =20
+>> -	if (proto->init_net) {
+>> -		ret =3D proto->init_net(net);
+>> +	if (net =3D=3D &init_net) {
+>> +		ret =3D nf_conntrack_l3proto_register_net(proto);
+>>  		if (ret < 0)
+>> -			return ret;
+>> +			nf_ct_l3proto_unregister_sysctl(net, proto);
+>>  	}
+>> -	return nf_ct_l3proto_register_sysctl(net, proto);
+>> +
+>> +	return ret;
+>>  }
+>>  EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_register);
+>> =20
+>> @@ -454,19 +459,23 @@ int nf_conntrack_l4proto_register(struct net *=
+net,
+>>  				  struct nf_conntrack_l4proto *l4proto)
+>>  {
+>>  	int ret =3D 0;
+>> -	if (net =3D=3D &init_net)
+>> -		ret =3D nf_conntrack_l4proto_register_net(l4proto);
+>> -
+>> -	if (ret < 0)
+>> -		return ret;
+>> -
+>> -	if (l4proto->init_net)
+>> +	if (l4proto->init_net) {
+>>  		ret =3D l4proto->init_net(net);
+>> +		if (ret < 0)
+>> +			return ret;
+>> +	}
+>> =20
+>> +	ret =3D nf_ct_l4proto_register_sysctl(net, l4proto);
+>>  	if (ret < 0)
+>>  		return ret;
+>> =20
+>> -	return nf_ct_l4proto_register_sysctl(net, l4proto);
+>> +	if (net =3D=3D &init_net) {
+>> +		ret =3D nf_conntrack_l4proto_register_net(l4proto);
+>> +		if (ret < 0)
+>> +			nf_ct_l4proto_unregister_sysctl(net, l4proto);
+>> +	}
+>> +
+>> +	return ret;
+>>  }
+>>  EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_register);
+>> =20
+>> --=20
+>> 1.7.7.6
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe netfilter-=
+devel" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
+evel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/ipset/ip_set_hash_netiface.c |   32 +++------------------------
- 1 files changed, 4 insertions(+), 28 deletions(-)
-
-diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
-index ee86394..d5d3607 100644
---- a/net/netfilter/ipset/ip_set_hash_netiface.c
-+++ b/net/netfilter/ipset/ip_set_hash_netiface.c
-@@ -38,30 +38,6 @@ struct iface_node {
- 
- #define iface_data(n)	(rb_entry(n, struct iface_node, node)->iface)
- 
--static inline long
--ifname_compare(const char *_a, const char *_b)
--{
--	const long *a = (const long *)_a;
--	const long *b = (const long *)_b;
--
--	BUILD_BUG_ON(IFNAMSIZ > 4 * sizeof(unsigned long));
--	if (a[0] != b[0])
--		return a[0] - b[0];
--	if (IFNAMSIZ > sizeof(long)) {
--		if (a[1] != b[1])
--			return a[1] - b[1];
--	}
--	if (IFNAMSIZ > 2 * sizeof(long)) {
--		if (a[2] != b[2])
--			return a[2] - b[2];
--	}
--	if (IFNAMSIZ > 3 * sizeof(long)) {
--		if (a[3] != b[3])
--			return a[3] - b[3];
--	}
--	return 0;
--}
--
- static void
- rbtree_destroy(struct rb_root *root)
- {
-@@ -99,7 +75,7 @@ iface_test(struct rb_root *root, const char **iface)
- 
- 	while (n) {
- 		const char *d = iface_data(n);
--		long res = ifname_compare(*iface, d);
-+		int res = strcmp(*iface, d);
- 
- 		if (res < 0)
- 			n = n->rb_left;
-@@ -121,7 +97,7 @@ iface_add(struct rb_root *root, const char **iface)
- 
- 	while (*n) {
- 		char *ifname = iface_data(*n);
--		long res = ifname_compare(*iface, ifname);
-+		int res = strcmp(*iface, ifname);
- 
- 		p = *n;
- 		if (res < 0)
-@@ -366,7 +342,7 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	struct hash_netiface4_elem data = { .cidr = HOST_MASK };
- 	u32 ip = 0, ip_to, last;
- 	u32 timeout = h->timeout;
--	char iface[IFNAMSIZ] = {};
-+	char iface[IFNAMSIZ];
- 	int ret;
- 
- 	if (unlikely(!tb[IPSET_ATTR_IP] ||
-@@ -663,7 +639,7 @@ hash_netiface6_uadt(struct ip_set *set, struct nlattr *tb[],
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_netiface6_elem data = { .cidr = HOST_MASK };
- 	u32 timeout = h->timeout;
--	char iface[IFNAMSIZ] = {};
-+	char iface[IFNAMSIZ];
- 	int ret;
- 
- 	if (unlikely(!tb[IPSET_ATTR_IP] ||
--- 
-1.7.3.4
-
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
