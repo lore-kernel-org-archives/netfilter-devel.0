@@ -1,77 +1,37 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
 Subject: Re: [PATCH 0/4] netfilter updates for net-next (batch 3)
-Date: Tue, 19 Jun 2012 05:37:45 +0200
-Message-ID: <20120619033745.GA31405@1984>
+Date: Mon, 18 Jun 2012 21:09:29 -0700 (PDT)
+Message-ID: <20120618.210929.1851699162115600043.davem@davemloft.net>
 References: <1340075789-6196-1-git-send-email-pablo@netfilter.org>
+	<20120619033745.GA31405@1984>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="J/dobhs11T7y2rNN"
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54813 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753994Ab2FSDhs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Jun 2012 23:37:48 -0400
-Content-Disposition: inline
-In-Reply-To: <1340075789-6196-1-git-send-email-pablo@netfilter.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:50342 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751097Ab2FSEJs (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Jun 2012 00:09:48 -0400
+In-Reply-To: <20120619033745.GA31405@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
---J/dobhs11T7y2rNN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Jun 19, 2012 at 05:16:25AM +0200, pablo@netfilter.org wrote:
-[...]
-> You can pull these changes from:
-> 
-> git://1984.lsi.us.es/nf-next master
-
-Please, also take the small patch attached after this 4 patch series. It
-fixes one linking issue.
-
-Sorry, I'll put more care next time testing compilation options more
-extensively.
-
---J/dobhs11T7y2rNN
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-netfilter-fix-missing-symbols-if-CONFIG_NETFILTER_NE.patch"
-
->From af6b248c22759fb7448668bbe495f1cbe0a9109d Mon Sep 17 00:00:00 2001
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue, 19 Jun 2012 05:25:46 +0200
-Subject: [PATCH] netfilter: fix missing symbols if
- CONFIG_NETFILTER_NETLINK_QUEUE_CT unset
+Date: Tue, 19 Jun 2012 05:37:45 +0200
 
-ERROR: "nfqnl_ct_parse" [net/netfilter/nfnetlink_queue.ko] undefined!
-ERROR: "nfqnl_ct_seq_adjust" [net/netfilter/nfnetlink_queue.ko] undefined!
-ERROR: "nfqnl_ct_put" [net/netfilter/nfnetlink_queue.ko] undefined!
-ERROR: "nfqnl_ct_get" [net/netfilter/nfnetlink_queue.ko] undefined!
+> On Tue, Jun 19, 2012 at 05:16:25AM +0200, pablo@netfilter.org wrote:
+> [...]
+>> You can pull these changes from:
+>> 
+>> git://1984.lsi.us.es/nf-next master
+> 
+> Please, also take the small patch attached after this 4 patch series. It
+> fixes one linking issue.
+> 
+> Sorry, I'll put more care next time testing compilation options more
+> extensively.
 
-We have to use CONFIG_NETFILTER_NETLINK_QUEUE_CT in
-include/net/netfilter/nfnetlink_queue.h, not CONFIG_NF_CONNTRACK.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nfnetlink_queue.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/include/net/netfilter/nfnetlink_queue.h b/include/net/netfilter/nfnetlink_queue.h
-index 9f8095c..86267a5 100644
---- a/include/net/netfilter/nfnetlink_queue.h
-+++ b/include/net/netfilter/nfnetlink_queue.h
-@@ -5,7 +5,7 @@
- 
- struct nf_conn;
- 
--#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
-+#ifdef CONFIG_NETFILTER_NETLINK_QUEUE_CT
- struct nf_conn *nfqnl_ct_get(struct sk_buff *entskb, size_t *size,
- 			     enum ip_conntrack_info *ctinfo);
- struct nf_conn *nfqnl_ct_parse(const struct sk_buff *skb,
--- 
-1.7.10
-
-
---J/dobhs11T7y2rNN--
+Done.
