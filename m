@@ -1,49 +1,44 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: linux-next borked with CONFIG_NF_CONNTRACK=n
-Date: Tue, 19 Jun 2012 05:21:02 +0200
-Message-ID: <20120619032102.GB31266@1984>
-References: <20120618153116.c38e879c.akpm@linux-foundation.org>
- <20120618231136.GA30223@1984>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/4] netfilter updates for net-next (batch 3)
+Date: Mon, 18 Jun 2012 20:28:43 -0700 (PDT)
+Message-ID: <20120618.202843.1377755046459413169.davem@davemloft.net>
+References: <1340075789-6196-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54072 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752301Ab2FSDVG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Jun 2012 23:21:06 -0400
-Content-Disposition: inline
-In-Reply-To: <20120618231136.GA30223@1984>
+Received: from shards.monkeyblade.net ([149.20.54.216]:50011 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753110Ab2FSD2r (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Jun 2012 23:28:47 -0400
+In-Reply-To: <1340075789-6196-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jun 19, 2012 at 01:11:36AM +0200, Pablo Neira Ayuso wrote:
-> On Mon, Jun 18, 2012 at 03:31:16PM -0700, Andrew Morton wrote:
-> > 
-> > If you didn't already know this...
-> > 
-> > I hacked with it for a few minutes but gave up.  Sample config attached.
-> > 
-> > include/net/netfilter/nf_conntrack.h: In function 'nf_ct_get':
-> > include/net/netfilter/nf_conntrack.h:157: error: 'const struct sk_buff' has no member named 'nfct'
-> > 
-> > after "fixing" that,
-> > 
-> > include/net/netfilter/nf_conntrack.h: In function 'nf_ct_get':
-> > include/net/netfilter/nf_conntrack.h:157: error: 'const struct sk_buff' has no member named 'nfct'
-> > 
-> > give up.
-> 
-> I think this is similar to what Randy Dunlap reported:
-> 
-> http://www.spinics.net/lists/netfilter-devel/msg22211.html
-> 
-> I'm going to send patches to David to fix this asap.
+From: pablo@netfilter.org
+Date: Tue, 19 Jun 2012 05:16:25 +0200
 
-This is a different issue than Randy's. I send this patch to solve it:
+> The patches provide:
+> 
+> * compilation fixes if CONFIG_NF_CONNTRACK is disabled: I moved all the
+>   conntrack code from nfnetlink_queue.c to nfnetlink_queue_ct.c to avoid
+>   peppering the entire code with lots of ifdefs. I needed to rename
+>   nfnetlink_queue.c to nfnetlink_queue_core.c to get it working with the
+>   Makefile tweaks I've added.
+> 
+> * fix NULL pointer dereference via ctnetlink while trying to change the helper
+>   for an existing conntrack entry. I don't find any reasonable use case for
+>   changing the helper from one to another in run-time. Thus, now ctnetlink
+>   returns -EOPNOTSUPP for this operation.
+> 
+> * fix possible out-of-bound zeroing of the conntrack extension area due to
+>   the helper automatic assignation routine.
+> 
+> You can pull these changes from:
+> 
+> git://1984.lsi.us.es/nf-next master
 
- netfilter: nfnetlink_queue: fix compilation with NF_CONNTRACK disabled
-
-I have pass it to David. If he agrees to pull from my tree, this fixes
-compilation here with NF_CONNTRACK disabled.
+Pulled, thanks.
