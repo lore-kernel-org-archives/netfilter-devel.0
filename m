@@ -1,68 +1,118 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH] netfilter: ipvs: fix dst leak in __ip_vs_addr_is_local_v6
-Date: Mon, 25 Jun 2012 09:58:23 +0200
-Message-ID: <1340611103.10893.14.camel@edumazet-glaptop>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 01/13] netfilter: fix problem with proto register
+Date: Mon, 25 Jun 2012 13:12:53 +0200
+Message-ID: <20120625111253.GA4607@1984>
+References: <1340289410-17642-1-git-send-email-gaofeng@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	David Miller <davem@davemloft.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Gao feng <gaofeng@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:35326 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751808Ab2FYH6a (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Jun 2012 03:58:30 -0400
+Received: from mail.us.es ([193.147.175.20]:47755 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755921Ab2FYLNE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Jun 2012 07:13:04 -0400
+Content-Disposition: inline
+In-Reply-To: <1340289410-17642-1-git-send-email-gaofeng@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Eric Dumazet <edumazet@google.com>
+On Thu, Jun 21, 2012 at 10:36:38PM +0800, Gao feng wrote:
+> before commit 2c352f444ccfa966a1aa4fd8e9ee29381c467448
+> (netfilter: nf_conntrack: prepare namespace support for
+> l4 protocol trackers), we register sysctl before register
+> protos, so if sysctl is registered faild, the protos will
+> not be registered.
+> 
+> but now, we register protos first, and when register
+> sysctl failed, we can use protos too, it's different
+> from before.
 
-After call to ip6_route_output() we must release dst or we leak it.
+No, this has to be an all-or-nothing game. If one fails, everything
+else that you've registered has to be unregistered.
 
-Also should test dst->error, as ip6_route_output() never returns NULL.
+> so change to register sysctl before register protos.
+> 
+> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+> ---
+>  net/netfilter/nf_conntrack_proto.c |   36 +++++++++++++++++++++++-------------
+>  1 files changed, 23 insertions(+), 13 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+> index 1ea9194..9bd88aa 100644
+> --- a/net/netfilter/nf_conntrack_proto.c
+> +++ b/net/netfilter/nf_conntrack_proto.c
+> @@ -253,18 +253,23 @@ int nf_conntrack_l3proto_register(struct net *net,
+>  {
+>  	int ret = 0;
+>  
+> -	if (net == &init_net)
+> -		ret = nf_conntrack_l3proto_register_net(proto);
+> +	if (proto->init_net) {
+> +		ret = proto->init_net(net);
+> +		if (ret < 0)
+> +			return ret;
+> +	}
+>  
+> +	ret = nf_ct_l3proto_register_sysctl(net, proto);
+>  	if (ret < 0)
+>  		return ret;
 
-Use boolean while we are at it.
+This is still wrong.
 
-Signed-off-by: Eric Dumazet <edumazet@google.com>
----
- net/netfilter/ipvs/ip_vs_ctl.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+If nf_ct_l3proto_register_sysctl fails, we'll leak the memory that has
+been reserved by proto->init_net.
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index dd811b8..d43e3c1 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -76,19 +76,19 @@ static void __ip_vs_del_service(struct ip_vs_service *svc);
- 
- #ifdef CONFIG_IP_VS_IPV6
- /* Taken from rt6_fill_node() in net/ipv6/route.c, is there a better way? */
--static int __ip_vs_addr_is_local_v6(struct net *net,
--				    const struct in6_addr *addr)
-+static bool __ip_vs_addr_is_local_v6(struct net *net,
-+				     const struct in6_addr *addr)
- {
--	struct rt6_info *rt;
- 	struct flowi6 fl6 = {
- 		.daddr = *addr,
- 	};
-+	struct dst_entry *dst = ip6_route_output(net, NULL, &fl6);
-+	bool is_local;
- 
--	rt = (struct rt6_info *)ip6_route_output(net, NULL, &fl6);
--	if (rt && rt->dst.dev && (rt->dst.dev->flags & IFF_LOOPBACK))
--		return 1;
-+	is_local = !dst->error && dst->dev && (dst->dev->flags & IFF_LOOPBACK);
- 
--	return 0;
-+	dst_release(dst);
-+	return is_local;
- }
- #endif
- 
-
-
+> -	if (proto->init_net) {
+> -		ret = proto->init_net(net);
+> +	if (net == &init_net) {
+> +		ret = nf_conntrack_l3proto_register_net(proto);
+>  		if (ret < 0)
+> -			return ret;
+> +			nf_ct_l3proto_unregister_sysctl(net, proto);
+>  	}
+> -	return nf_ct_l3proto_register_sysctl(net, proto);
+> +
+> +	return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_register);
+>  
+> @@ -454,19 +459,24 @@ int nf_conntrack_l4proto_register(struct net *net,
+>  				  struct nf_conntrack_l4proto *l4proto)
+>  {
+>  	int ret = 0;
+> -	if (net == &init_net)
+> -		ret = nf_conntrack_l4proto_register_net(l4proto);
+>  
+> -	if (ret < 0)
+> -		return ret;
+> -
+> -	if (l4proto->init_net)
+> +	if (l4proto->init_net) {
+>  		ret = l4proto->init_net(net);
+> +		if (ret < 0)
+> +			return ret;
+> +	}
+>  
+> +	ret = nf_ct_l4proto_register_sysctl(net, l4proto);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	return nf_ct_l4proto_register_sysctl(net, l4proto);
+> +	if (net == &init_net) {
+> +		ret = nf_conntrack_l4proto_register_net(l4proto);
+> +		if (ret < 0)
+> +			nf_ct_l4proto_unregister_sysctl(net, l4proto);
+> +	}
+> +
+> +	return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_register);
+>  
+> -- 
+> 1.7.7.6
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
