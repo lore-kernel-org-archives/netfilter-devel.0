@@ -1,33 +1,30 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: ipset: hash:net,iface: fix interface
- comparision
-Date: Mon, 25 Jun 2012 15:11:09 +0200
-Message-ID: <20120625131109.GA12597@1984>
-References: <1339963006-15296-1-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH] netfilter: ipvs: fix dst leak in
+ __ip_vs_addr_is_local_v6
+Date: Mon, 25 Jun 2012 15:11:30 +0200
+Message-ID: <20120625131130.GB12597@1984>
+References: <1340611103.10893.14.camel@edumazet-glaptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55860 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756744Ab2FYNLQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Jun 2012 09:11:16 -0400
+Cc: netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Julian Anastasov <ja@ssi.bg>,
+	David Miller <davem@davemloft.net>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1339963006-15296-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1340611103.10893.14.camel@edumazet-glaptop>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Jun 17, 2012 at 09:56:46PM +0200, Florian Westphal wrote:
-> ifname_compare() assumes that skb->dev is zero-padded,
-> e.g 'eth1\0\0\0\0\0...'. This isn't always the case. e1000 driver does
+On Mon, Jun 25, 2012 at 09:58:23AM +0200, Eric Dumazet wrote:
+> From: Eric Dumazet <edumazet@google.com>
 > 
-> strncpy(netdev->name, pci_name(pdev), sizeof(netdev->name) - 1);
+> After call to ip6_route_output() we must release dst or we leak it.
 > 
-> in e1000_probe(), so once device is registered dev->name memory contains
-> 'eth1\0:0:3\0\0\0' (or something like that), which makes eth1 compare
-> fail.
+> Also should test dst->error, as ip6_route_output() never returns NULL.
 > 
-> Use plain strcmp() instead.
+> Use boolean while we are at it.
 
-Applied, thanks Florian.
+Applied, thanks Eric.
