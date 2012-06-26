@@ -1,29 +1,29 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: libnetfilter_conntrack: build updates
-Date: Tue, 26 Jun 2012 16:48:56 +0200
-Message-ID: <20120626144856.GD11165@1984>
-References: <1340648721-16435-1-git-send-email-jengelh@inai.de>
+Subject: Re: libnetfilter_cttimeout: build updates
+Date: Tue, 26 Jun 2012 16:50:07 +0200
+Message-ID: <20120626145007.GE11165@1984>
+References: <1340649119-17014-1-git-send-email-jengelh@inai.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60546 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:60739 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757914Ab2FZOtE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Jun 2012 10:49:04 -0400
+	id S1757756Ab2FZOuM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Jun 2012 10:50:12 -0400
 Content-Disposition: inline
-In-Reply-To: <1340648721-16435-1-git-send-email-jengelh@inai.de>
+In-Reply-To: <1340649119-17014-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jun 25, 2012 at 08:25:20PM +0200, Jan Engelhardt wrote:
+On Mon, Jun 25, 2012 at 08:31:58PM +0200, Jan Engelhardt wrote:
 > 
-> The following changes since commit 7ea731b0e8582ff67ef2703e05c4a45220da538c:
+> The following changes since commit 329652bef21c831dae1a9a79084b999d40b4eb5b:
 > 
->   examples: add example using libmnl and the new low-level API (expectation) (2012-05-26 17:24:45 +0200)
+>   build: fix broken Makefile.am in include/linux/ (2012-05-26 15:18:17 +0200)
 > 
 > are available in the git repository at:
->   git://git.inai.de/libnetfilter_conntrack master
+>   git://git.inai.de/libnetfilter_cttimeout master
 
-pulled, thanks.
+Pulled, thanks.
