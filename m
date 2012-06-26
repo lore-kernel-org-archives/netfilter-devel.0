@@ -1,57 +1,89 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: ipset: hash:net,iface: fix interface
- comparision
-Date: Tue, 26 Jun 2012 15:35:01 +0200
-Message-ID: <20120626133501.GA8050@1984>
-References: <1339963006-15296-1-git-send-email-fw@strlen.de>
- <20120625131109.GA12597@1984>
- <alpine.DEB.2.00.1206260904520.8075@blackhole.kfki.hu>
+Subject: Re: [PATCH 01/13] netfilter: fix problem with proto register
+Date: Tue, 26 Jun 2012 16:36:20 +0200
+Message-ID: <20120626143620.GA11165@1984>
+References: <1340289410-17642-1-git-send-email-gaofeng@cn.fujitsu.com>
+ <20120625111253.GA4607@1984>
+ <4FE92F1E.9020901@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Gao feng <gaofeng@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48923 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58596 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756718Ab2FZNfL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Jun 2012 09:35:11 -0400
+	id S1757553Ab2FZOgW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Jun 2012 10:36:22 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1206260904520.8075@blackhole.kfki.hu>
+In-Reply-To: <4FE92F1E.9020901@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jun 26, 2012 at 09:08:31AM +0200, Jozsef Kadlecsik wrote:
-> On Mon, 25 Jun 2012, Pablo Neira Ayuso wrote:
-> 
-> > On Sun, Jun 17, 2012 at 09:56:46PM +0200, Florian Westphal wrote:
-> > > ifname_compare() assumes that skb->dev is zero-padded,
-> > > e.g 'eth1\0\0\0\0\0...'. This isn't always the case. e1000 driver does
-> > > 
-> > > strncpy(netdev->name, pci_name(pdev), sizeof(netdev->name) - 1);
-> > > 
-> > > in e1000_probe(), so once device is registered dev->name memory contains
-> > > 'eth1\0:0:3\0\0\0' (or something like that), which makes eth1 compare
-> > > fail.
-> > > 
-> > > Use plain strcmp() instead.
-> > 
-> > Applied, thanks Florian.
-> 
-> Thanks, Pablo! I had commited the patch in my ipset git tree, just haven't 
-> time yet to send/ack to you.
+On Tue, Jun 26, 2012 at 11:40:14AM +0800, Gao feng wrote:
+> Hi Pablo:
+>=20
+> =E4=BA=8E 2012=E5=B9=B406=E6=9C=8825=E6=97=A5 19:12, Pablo Neira Ayus=
+o =E5=86=99=E9=81=93:
+> > On Thu, Jun 21, 2012 at 10:36:38PM +0800, Gao feng wrote:
+> >> before commit 2c352f444ccfa966a1aa4fd8e9ee29381c467448
+> >> (netfilter: nf_conntrack: prepare namespace support for
+> >> l4 protocol trackers), we register sysctl before register
+> >> protos, so if sysctl is registered faild, the protos will
+> >> not be registered.
+> >>
+> >> but now, we register protos first, and when register
+> >> sysctl failed, we can use protos too, it's different
+> >> from before.
+> >=20
+> > No, this has to be an all-or-nothing game. If one fails, everything
+> > else that you've registered has to be unregistered.
+>=20
+> indeed,this is an all-or-nothing game right now,please look at the ip=
+v4_net_init,
+> when we register nf_conntrack_l3proto_ipv4 failed,we will unregister =
+the already
+> registered l4protoes, and in nf_conntrack_l4proto_unregister,we will =
+call
+> nf_ct_l4proto_unregister_sysctl to free the sysctl table.
 
-No problem. Please, rebase your tree to remove it:
+I see proto->init_net allocates in->ctl_table, then
+nf_ct_l3proto_register_sysctl release it if it fails. I got confused
+because I did not see where that memory was being freed. Then, it's
+good.
 
-git rebase -i COMMIT_YOU_WANT_TO_REMOVE^
-# then, write "e" in the patch you want to remove on the list that it shows
-git reset HEAD^
-git reset --hard
-git rebase --continue
+Still one more thing:
 
-Not sure if there's a smarter way to do it. This is how I make it
-though.
+> >> so change to register sysctl before register protos.
+> >>
+> >> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+> >> ---
+> >>  net/netfilter/nf_conntrack_proto.c |   36 +++++++++++++++++++++++=
+-------------
+> >>  1 files changed, 23 insertions(+), 13 deletions(-)
+> >>
+> >> diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf=
+_conntrack_proto.c
+> >> index 1ea9194..9bd88aa 100644
+> >> --- a/net/netfilter/nf_conntrack_proto.c
+> >> +++ b/net/netfilter/nf_conntrack_proto.c
+> >> @@ -253,18 +253,23 @@ int nf_conntrack_l3proto_register(struct net=
+ *net,
+> >>  {
+> >>  	int ret =3D 0;
+> >> =20
+> >> -	if (net =3D=3D &init_net)
+> >> -		ret =3D nf_conntrack_l3proto_register_net(proto);
+> >> +	if (proto->init_net) {
 
-Note that we're on -rc4, so please send me important fixes that you
-want me to pass to David first, after that those to net-next.
+I think proto->init_net has to be mandatory since all protocol support
+pernet already. We can add BUG_ON at the beginning of the function if
+proto->init_net is not defined.
 
-Thanks Jozsef.
+I can manually add that to the patch if you see no inconvenience with
+it.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
