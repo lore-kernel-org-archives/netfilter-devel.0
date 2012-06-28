@@ -1,47 +1,54 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [PATCH 0/3] Nfnetlink and ipset fixes
-Date: Thu, 28 Jun 2012 15:57:46 +0300
-Message-ID: <1340888269-4926-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+Subject: [PATCH 2/3] ipset: Handle properly an IPSET_CMD_NONE
+Date: Thu, 28 Jun 2012 15:57:48 +0300
+Message-ID: <1340888269-4926-3-git-send-email-tomasz.bursztyka@linux.intel.com>
+References: <1340888269-4926-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from mga11.intel.com ([192.55.52.93]:4181 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754757Ab2F1M6D (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Jun 2012 08:58:03 -0400
+	id S1755442Ab2F1M6E (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 28 Jun 2012 08:58:04 -0400
+In-Reply-To: <1340888269-4926-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-
-The 2 first patches fixes the same issue, but in 2 different place.
-
-Patch 1:
-
-So here is how the issue can be reprocuced:
-Create a netlink message, targeting ipset subsystem. And send a command on id 0 (IPSET_CMD_NONE):
-This will lead to a crash on line 188 of nfnetlink.c since nc->call is NULL (so you get a NULL dereference).
-
-Or Patch 2:
-
-Same issue.
-It fixes ipset to handle the IPSET_CMD_NONE, return -EOPNOTSUPP.
-
-Patch 3:
-
-While doing patch 1 I figured out rcu_read_unlock() is not called in case nla_parse() error, so it fixes it.
-
-Br,
-
-Tomasz Bursztyka (3):
-  nfnetlink: Check callbacks before using those in nfnetlink_rcv_msg
-  ipset: Handle properly an IPSET_CMD_NONE
-  nfnetlink: Unlock a previously locked rcu_read in nfnetlink_rcv_msg
-
+Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+---
  net/netfilter/ipset/ip_set_core.c |   12 ++++++++++++
- net/netfilter/nfnetlink.c         |    8 ++++++--
- 2 files changed, 18 insertions(+), 2 deletions(-)
+ 1 files changed, 12 insertions(+), 0 deletions(-)
 
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index 819c342..9730882 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -640,6 +640,14 @@ find_free_id(const char *name, ip_set_id_t *index, struct ip_set **set)
+ }
+ 
+ static int
++ip_set_none(struct sock *ctnl, struct sk_buff *skb,
++	    const struct nlmsghdr *nlh,
++	    const struct nlattr * const attr[])
++{
++	return -EOPNOTSUPP;
++}
++
++static int
+ ip_set_create(struct sock *ctnl, struct sk_buff *skb,
+ 	      const struct nlmsghdr *nlh,
+ 	      const struct nlattr * const attr[])
+@@ -1539,6 +1547,10 @@ nlmsg_failure:
+ }
+ 
+ static const struct nfnl_callback ip_set_netlink_subsys_cb[IPSET_MSG_MAX] = {
++	[IPSET_CMD_NONE]	= {
++		.call		= ip_set_none,
++		.attr_count	= IPSET_ATTR_CMD_MAX,
++	},
+ 	[IPSET_CMD_CREATE]	= {
+ 		.call		= ip_set_create,
+ 		.attr_count	= IPSET_ATTR_CMD_MAX,
 -- 
 1.7.8.6
 
