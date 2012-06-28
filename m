@@ -1,34 +1,76 @@
-From: Josh Hunt <johunt@akamai.com>
-Subject: ipv6 tarpitting
-Date: Thu, 28 Jun 2012 10:16:32 -0500
-Message-ID: <4FEC7550.5020206@akamai.com>
+From: Kristof Provost <kristof@sigsegv.be>
+Subject: IPv6 fragment packet handling
+Date: Thu, 28 Jun 2012 17:50:50 +0200
+Message-ID: <20120628155050.GK9423@thebe.jupiter.sigsegv.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from prod-mail-xrelay05.akamai.com ([96.6.114.97]:40156 "EHLO
-	prod-mail-xrelay05.akamai.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755284Ab2F1PZC (ORCPT
+Received: from mercury.codepro.be ([95.142.164.132]:59147 "EHLO
+	mercury.codepro.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751293Ab2F1QAs (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Jun 2012 11:25:02 -0400
-Received: from prod-mail-xrelay05.akamai.com (localhost.localdomain [127.0.0.1])
-	by postfix.imss70 (Postfix) with ESMTP id 92A5F1C48CD
-	for <netfilter-devel@vger.kernel.org>; Thu, 28 Jun 2012 15:16:33 +0000 (GMT)
-Received: from prod-mail-relay03.akamai.com (prod-mail-relay03.akamai.com [172.27.8.26])
-	by prod-mail-xrelay05.akamai.com (Postfix) with ESMTP id 87A331C48CB
-	for <netfilter-devel@vger.kernel.org>; Thu, 28 Jun 2012 15:16:33 +0000 (GMT)
-Received: from [172.19.64.220] (johunt-desktop.sanmateo.corp.akamai.com [172.19.64.220])
-	by prod-mail-relay03.akamai.com (Postfix) with ESMTP id 42B782FD62
-	for <netfilter-devel@vger.kernel.org>; Thu, 28 Jun 2012 15:16:33 +0000 (GMT)
+	Thu, 28 Jun 2012 12:00:48 -0400
+Received: from adrastea.jupiter.sigsegv.be (adrastea.jupiter.sigsegv.be [IPv6:2001:6f8:1498:1::3])
+	by mercury.codepro.be (Postfix) with ESMTP id D4EF211F
+	for <netfilter-devel@vger.kernel.org>; Thu, 28 Jun 2012 17:51:20 +0200 (CEST)
+Received: from thebe.jupiter.sigsegv.be (thebe.jupiter.sigsegv.be [172.16.1.5])
+	by adrastea.jupiter.sigsegv.be (Postfix) with ESMTP id 9EA6499DD
+	for <netfilter-devel@vger.kernel.org>; Thu, 28 Jun 2012 17:50:50 +0200 (CEST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I was looking to extend the xt_TARPIT module to support IPv6, but wanted
-to see if any work had already been done in this area before I spend
-some time on it. I did not see support for it in the latest git or on
-the module list link on xtables-addons.sourceforge.net. Is anyone aware
-if this work has already been done?
+I've noticed an annoying difference between IPv4 and IPv6 regarding
+fragmented packet handling.
+The IPv4 netfilter code defragments packets before the hit the filter
+table, but the IPv6 code does not.
 
-Thanks
-Josh
+As a result the following means that the host won't receive fragmented 
+ICMPv6 echo packets (for example ping6 -s 3000 <host>):
+
+ip6tables -F INPUT
+ip6tables -I INPUT -p icmpv6 -m icmp6 --icmpv6-type 128 -j ACCEPT
+ip6tables -P INPUT DROP
+
+The first fragment makes it through (hitting the icmpv6 rule), but
+subsequent fragments are dropped.
+In the IPv4 case the packet does make it through. 'iptables -L INPUT
+-vn' then shows that the ICMP rule hit one packet for about 3000 bytes.
+
+Am I missing something obvious? Is there a reason for this difference?
+
+The following proof-of-concept patch changes the IPv6 behavior to match
+that of IPv4:
+
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index c9c78c2..5bb44eb 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -593,6 +593,11 @@ void nf_ct_frag6_output(unsigned int hooknum, struct sk_buff *skb,
+ {
+ 	struct sk_buff *s, *s2;
+ 
++	nf_conntrack_get_reasm(skb);
++
++	NF_HOOK_THRESH(NFPROTO_IPV6, hooknum, skb, in, out, okfn,
++		       NF_IP6_PRI_CONNTRACK_DEFRAG + 1);
++
+ 	for (s = NFCT_FRAG6_CB(skb)->orig; s;) {
+ 		nf_conntrack_put_reasm(s->nfct_reasm);
+ 		nf_conntrack_get_reasm(skb);
+@@ -601,8 +606,8 @@ void nf_ct_frag6_output(unsigned int hooknum, struct sk_buff *skb,
+ 		s2 = s->next;
+ 		s->next = NULL;
+ 
+-		NF_HOOK_THRESH(NFPROTO_IPV6, hooknum, s, in, out, okfn,
+-			       NF_IP6_PRI_CONNTRACK_DEFRAG + 1);
++		nf_conntrack_put_reasm(s);
++
+ 		s = s2;
+ 	}
+ 	nf_conntrack_put_reasm(skb);
+
+Regards,
+Kristof
+
