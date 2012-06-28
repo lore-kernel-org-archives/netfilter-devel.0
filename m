@@ -1,54 +1,33 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [PATCH 2/3] ipset: Handle properly an IPSET_CMD_NONE
-Date: Thu, 28 Jun 2012 15:57:48 +0300
-Message-ID: <1340888269-4926-3-git-send-email-tomasz.bursztyka@linux.intel.com>
-References: <1340888269-4926-1-git-send-email-tomasz.bursztyka@linux.intel.com>
-Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+From: Joerg Schumacher <schuma@gaertner.de>
+Subject: [feature request] IPv6 match the second and further fragments
+Date: Thu, 28 Jun 2012 15:16:56 +0200
+Message-ID: <4FEC5948.2020807@gaertner.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:4181 "EHLO mga11.intel.com"
+Received: from kenny.gaertner.de ([217.13.66.99]:37703 "EHLO kenny.gaertner.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755442Ab2F1M6E (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Jun 2012 08:58:04 -0400
-In-Reply-To: <1340888269-4926-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+	id S1751079Ab2F1N3x (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 28 Jun 2012 09:29:53 -0400
+Received: from [217.13.66.99] (kenny.gaertner.de [217.13.66.99])
+	(authenticated bits=0)
+	by kenny.gaertner.de (8.14.3/8.14.3/Debian-9.4) with ESMTP id q5SDGuhM000676
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
+	for <netfilter-devel@vger.kernel.org>; Thu, 28 Jun 2012 15:16:56 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
----
- net/netfilter/ipset/ip_set_core.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+Hi,
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 819c342..9730882 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -640,6 +640,14 @@ find_free_id(const char *name, ip_set_id_t *index, struct ip_set **set)
- }
- 
- static int
-+ip_set_none(struct sock *ctnl, struct sk_buff *skb,
-+	    const struct nlmsghdr *nlh,
-+	    const struct nlattr * const attr[])
-+{
-+	return -EOPNOTSUPP;
-+}
-+
-+static int
- ip_set_create(struct sock *ctnl, struct sk_buff *skb,
- 	      const struct nlmsghdr *nlh,
- 	      const struct nlattr * const attr[])
-@@ -1539,6 +1547,10 @@ nlmsg_failure:
- }
- 
- static const struct nfnl_callback ip_set_netlink_subsys_cb[IPSET_MSG_MAX] = {
-+	[IPSET_CMD_NONE]	= {
-+		.call		= ip_set_none,
-+		.attr_count	= IPSET_ATTR_CMD_MAX,
-+	},
- 	[IPSET_CMD_CREATE]	= {
- 		.call		= ip_set_create,
- 		.attr_count	= IPSET_ATTR_CMD_MAX,
--- 
-1.7.8.6
+I'd like to match only the second and further fragments of
+fragmented ipv6 packets.  The frag extension currently doesn't
+facilitate this.  Could you please add this feature as perhaps
 
+	! -- fragfirst
+
+?
+
+Thanks in advance,
+Joerg
