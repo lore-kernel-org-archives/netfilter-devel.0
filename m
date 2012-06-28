@@ -1,87 +1,76 @@
-From: Xiaotian Feng <xtfeng@gmail.com>
-Subject: [RFC PATCH net-next] ipvs: add missing lock in ip_vs_ftp_init_conn()
-Date: Thu, 28 Jun 2012 21:36:27 +0800
-Message-ID: <1340890587-8169-1-git-send-email-xtfeng@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Xiaotian Feng <xtfeng@gmail.com>,
-	Xiaotian Feng <dannyfeng@tencent.com>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>
-To: netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 2/3] ipset: Handle properly an IPSET_CMD_NONE
+Date: Thu, 28 Jun 2012 16:40:30 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1206281639040.14774@blackhole.kfki.hu>
+References: <1340888269-4926-1-git-send-email-tomasz.bursztyka@linux.intel.com> <1340888269-4926-3-git-send-email-tomasz.bursztyka@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp2.kfki.hu ([148.6.0.28]:44447 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752557Ab2F1Okc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 28 Jun 2012 10:40:32 -0400
+In-Reply-To: <1340888269-4926-3-git-send-email-tomasz.bursztyka@linux.intel.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-We met a kernel panic in 2.6.32.43 kernel:
+On Thu, 28 Jun 2012, Tomasz Bursztyka wrote:
 
-[2680191.848044] IPVS: ip_vs_conn_hash(): request for already hashed, called from run_timer_softirq+0x175/0x1d0
-<snip>
-[2680311.849009] general protection fault: 0000 [#1] SMP
-[2680311.853001] RIP: 0010:[<ffffffff815f155c>]  [<ffffffff815f155c>] ip_vs_conn_expire+0xdc/0x2f0
-[2680311.853001] RSP: 0018:ffff880028303e70  EFLAGS: 00010202
-[2680311.853001] RAX: dead000000200200 RBX: ffff8801aad00b80 RCX: 0000000000001d90
-[2680311.853001] RDX: dead000000100100 RSI: 000000004fd59800 RDI: ffff8801aad00c08
-<snip>
-[2680311.853001] Call Trace:
-[2680311.853001]  <IRQ>
-[2680311.853001]  [<ffffffff815f1480>] ? ip_vs_conn_expire+0x0/0x2f0
-[2680311.853001]  [<ffffffff8104e2a5>] run_timer_softirq+0x175/0x1d0
-[2680311.853001]  [<ffffffff81021a48>] ? lapic_next_event+0x18/0x20
-[2680311.853001]  [<ffffffff81049a13>] __do_softirq+0xb3/0x150
-[2680311.853001]  [<ffffffff8100cc5c>] call_softirq+0x1c/0x30
-[2680311.853001]  [<ffffffff8100ea9a>] do_softirq+0x4a/0x80
-[2680311.853001]  [<ffffffff81049957>] irq_exit+0x77/0x80
-[2680311.853001]  [<ffffffff81021f2c>] smp_apic_timer_interrupt+0x6c/0xa0
-[2680311.853001]  [<ffffffff8100c633>] apic_timer_interrupt+0x13/0x20
-[2680311.853001]  <EOI>
-[2680311.853001]  [<ffffffff81013b52>] ? mwait_idle+0x52/0x70
-[2680311.853001]  [<ffffffff8100a7b0>] ? enter_idle+0x20/0x30
-[2680311.853001]  [<ffffffff8100ac62>] ? cpu_idle+0x52/0x80
-[2680311.853001]  [<ffffffff816d504d>] ? start_secondary+0x19d/0x280
+> Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 
-rax and rdx is LIST_POISON1 and LIST_POISON2, so kernel is list_del() on an already deleted
-connection and result the general protect fault.
+Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-The "request for already hashed" warning, told us someone might change the connection flags
-incorrectly, like described in commit aea9d711, it changes the connection flags, but doesn't
-put the connection back to the list. So ip_vs_conn_hash() throw a warning and return.
-Later, when ip_vs_conn_expire fire again, ip_vs_conn_unhash() will find the HASHED connection
-and list_del() it, then kernel panic happened.
+Never occured to me to send IPSET_CMD_NONE :-).
 
-After code review, the only chance that kernel change connection flag without protection is
-in ip_vs_ftp_init_conn().
+Best regards,
+Jozsef
+> ---
+>  net/netfilter/ipset/ip_set_core.c |   12 ++++++++++++
+>  1 files changed, 12 insertions(+), 0 deletions(-)
+> 
+> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+> index 819c342..9730882 100644
+> --- a/net/netfilter/ipset/ip_set_core.c
+> +++ b/net/netfilter/ipset/ip_set_core.c
+> @@ -640,6 +640,14 @@ find_free_id(const char *name, ip_set_id_t *index, struct ip_set **set)
+>  }
+>  
+>  static int
+> +ip_set_none(struct sock *ctnl, struct sk_buff *skb,
+> +	    const struct nlmsghdr *nlh,
+> +	    const struct nlattr * const attr[])
+> +{
+> +	return -EOPNOTSUPP;
+> +}
+> +
+> +static int
+>  ip_set_create(struct sock *ctnl, struct sk_buff *skb,
+>  	      const struct nlmsghdr *nlh,
+>  	      const struct nlattr * const attr[])
+> @@ -1539,6 +1547,10 @@ nlmsg_failure:
+>  }
+>  
+>  static const struct nfnl_callback ip_set_netlink_subsys_cb[IPSET_MSG_MAX] = {
+> +	[IPSET_CMD_NONE]	= {
+> +		.call		= ip_set_none,
+> +		.attr_count	= IPSET_ATTR_CMD_MAX,
+> +	},
+>  	[IPSET_CMD_CREATE]	= {
+>  		.call		= ip_set_create,
+>  		.attr_count	= IPSET_ATTR_CMD_MAX,
+> -- 
+> 1.7.8.6
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Signed-off-by: Xiaotian Feng <dannyfeng@tencent.com>
-Cc: Wensong Zhang <wensong@linux-vs.org>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: Julian Anastasov <ja@ssi.bg>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: "David S. Miller" <davem@davemloft.net> 
----
- net/netfilter/ipvs/ip_vs_ftp.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-index b20b29c..c2bc264 100644
---- a/net/netfilter/ipvs/ip_vs_ftp.c
-+++ b/net/netfilter/ipvs/ip_vs_ftp.c
-@@ -65,8 +65,10 @@ static int ip_vs_ftp_pasv;
- static int
- ip_vs_ftp_init_conn(struct ip_vs_app *app, struct ip_vs_conn *cp)
- {
-+	spin_lock(&cp->lock);
- 	/* We use connection tracking for the command connection */
- 	cp->flags |= IP_VS_CONN_F_NFCT;
-+	spin_unlock(&cp->lock);
- 	return 0;
- }
- 
--- 
-1.7.1
-
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
