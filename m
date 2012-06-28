@@ -1,57 +1,87 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 3/3] nfnetlink: Unlock a previously locked rcu_read in
- nfnetlink_rcv_msg
-Date: Thu, 28 Jun 2012 15:30:10 +0200
-Message-ID: <1340890210.13187.100.camel@edumazet-glaptop>
-References: <1340888269-4926-1-git-send-email-tomasz.bursztyka@linux.intel.com>
-	 <1340888269-4926-4-git-send-email-tomasz.bursztyka@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:52371 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751567Ab2F1NaS (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Jun 2012 09:30:18 -0400
-Received: by eaak11 with SMTP id k11so791401eaa.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Jun 2012 06:30:16 -0700 (PDT)
-In-Reply-To: <1340888269-4926-4-git-send-email-tomasz.bursztyka@linux.intel.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Xiaotian Feng <xtfeng@gmail.com>
+Subject: [RFC PATCH net-next] ipvs: add missing lock in ip_vs_ftp_init_conn()
+Date: Thu, 28 Jun 2012 21:36:27 +0800
+Message-ID: <1340890587-8169-1-git-send-email-xtfeng@gmail.com>
+Cc: linux-kernel@vger.kernel.org, Xiaotian Feng <xtfeng@gmail.com>,
+	Xiaotian Feng <dannyfeng@tencent.com>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Julian Anastasov <ja@ssi.bg>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>
+To: netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2012-06-28 at 15:57 +0300, Tomasz Bursztyka wrote:
-> Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-> ---
->  net/netfilter/nfnetlink.c |    4 +++-
->  1 files changed, 3 insertions(+), 1 deletions(-)
-> 
-> diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-> index 4acdd76..a6366ae 100644
-> --- a/net/netfilter/nfnetlink.c
-> +++ b/net/netfilter/nfnetlink.c
-> @@ -169,8 +169,10 @@ replay:
->  
->  		err = nla_parse(cda, ss->cb[cb_id].attr_count,
->  				attr, attrlen, ss->cb[cb_id].policy);
-> -		if (err < 0)
-> +		if (err < 0) {
-> +			rcu_read_unlock();
->  			return err;
-> +		}
->  
->  		if (nc->call_rcu) {
->  			err = nc->call_rcu(net->nfnl, skb, nlh,
+We met a kernel panic in 2.6.32.43 kernel:
 
-Nice catch, thanks.
+[2680191.848044] IPVS: ip_vs_conn_hash(): request for already hashed, called from run_timer_softirq+0x175/0x1d0
+<snip>
+[2680311.849009] general protection fault: 0000 [#1] SMP
+[2680311.853001] RIP: 0010:[<ffffffff815f155c>]  [<ffffffff815f155c>] ip_vs_conn_expire+0xdc/0x2f0
+[2680311.853001] RSP: 0018:ffff880028303e70  EFLAGS: 00010202
+[2680311.853001] RAX: dead000000200200 RBX: ffff8801aad00b80 RCX: 0000000000001d90
+[2680311.853001] RDX: dead000000100100 RSI: 000000004fd59800 RDI: ffff8801aad00c08
+<snip>
+[2680311.853001] Call Trace:
+[2680311.853001]  <IRQ>
+[2680311.853001]  [<ffffffff815f1480>] ? ip_vs_conn_expire+0x0/0x2f0
+[2680311.853001]  [<ffffffff8104e2a5>] run_timer_softirq+0x175/0x1d0
+[2680311.853001]  [<ffffffff81021a48>] ? lapic_next_event+0x18/0x20
+[2680311.853001]  [<ffffffff81049a13>] __do_softirq+0xb3/0x150
+[2680311.853001]  [<ffffffff8100cc5c>] call_softirq+0x1c/0x30
+[2680311.853001]  [<ffffffff8100ea9a>] do_softirq+0x4a/0x80
+[2680311.853001]  [<ffffffff81049957>] irq_exit+0x77/0x80
+[2680311.853001]  [<ffffffff81021f2c>] smp_apic_timer_interrupt+0x6c/0xa0
+[2680311.853001]  [<ffffffff8100c633>] apic_timer_interrupt+0x13/0x20
+[2680311.853001]  <EOI>
+[2680311.853001]  [<ffffffff81013b52>] ? mwait_idle+0x52/0x70
+[2680311.853001]  [<ffffffff8100a7b0>] ? enter_idle+0x20/0x30
+[2680311.853001]  [<ffffffff8100ac62>] ? cpu_idle+0x52/0x80
+[2680311.853001]  [<ffffffff816d504d>] ? start_secondary+0x19d/0x280
 
-Please someone add in changelog to ease stable team work :
+rax and rdx is LIST_POISON1 and LIST_POISON2, so kernel is list_del() on an already deleted
+connection and result the general protect fault.
 
-Bug added in commit 6b75e3e8d664a9a (netfilter: nfnetlink: add RCU in
-nfnetlink_rcv_msg())
+The "request for already hashed" warning, told us someone might change the connection flags
+incorrectly, like described in commit aea9d711, it changes the connection flags, but doesn't
+put the connection back to the list. So ip_vs_conn_hash() throw a warning and return.
+Later, when ip_vs_conn_expire fire again, ip_vs_conn_unhash() will find the HASHED connection
+and list_del() it, then kernel panic happened.
 
-Acked-by: Eric Dumazet <edumazet@google.com>
+After code review, the only chance that kernel change connection flag without protection is
+in ip_vs_ftp_init_conn().
 
+Signed-off-by: Xiaotian Feng <dannyfeng@tencent.com>
+Cc: Wensong Zhang <wensong@linux-vs.org>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Julian Anastasov <ja@ssi.bg>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: "David S. Miller" <davem@davemloft.net> 
+---
+ net/netfilter/ipvs/ip_vs_ftp.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
+index b20b29c..c2bc264 100644
+--- a/net/netfilter/ipvs/ip_vs_ftp.c
++++ b/net/netfilter/ipvs/ip_vs_ftp.c
+@@ -65,8 +65,10 @@ static int ip_vs_ftp_pasv;
+ static int
+ ip_vs_ftp_init_conn(struct ip_vs_app *app, struct ip_vs_conn *cp)
+ {
++	spin_lock(&cp->lock);
+ 	/* We use connection tracking for the command connection */
+ 	cp->flags |= IP_VS_CONN_F_NFCT;
++	spin_unlock(&cp->lock);
+ 	return 0;
+ }
+ 
+-- 
+1.7.1
 
