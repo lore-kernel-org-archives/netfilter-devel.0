@@ -1,43 +1,49 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 1/5] netfilter: ipset: fix interface comparision in
- hash-netiface sets
-Date: Fri, 29 Jun 2012 20:24:23 +0200
-Message-ID: <20120629182423.GD13074@breakpoint.cc>
-References: <1340984255-738-2-git-send-email-pablo@netfilter.org>
- <AE90C24D6B3A694183C094C60CF0A2F6026B6F6E@saturn3.aculab.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH 1/3] nfnetlink: Check callbacks before using those in
+ nfnetlink_rcv_msg
+Date: Fri, 29 Jun 2012 21:03:40 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1206292100210.20094@frira.zrqbmnf.qr>
+References: <1340888269-4926-1-git-send-email-tomasz.bursztyka@linux.intel.com> <1340888269-4926-2-git-send-email-tomasz.bursztyka@linux.intel.com> <20120629111505.GC15598@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	davem@davemloft.net, netdev@vger.kernel.org
-To: David Laight <David.Laight@ACULAB.COM>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:40628 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754512Ab2F2SYa (ORCPT
+Received: from static.206.24.9.5.clients.your-server.de ([5.9.24.206]:53249
+	"EHLO seven.medozas.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932486Ab2F2TNA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Jun 2012 14:24:30 -0400
-Content-Disposition: inline
-In-Reply-To: <AE90C24D6B3A694183C094C60CF0A2F6026B6F6E@saturn3.aculab.com>
+	Fri, 29 Jun 2012 15:13:00 -0400
+In-Reply-To: <20120629111505.GC15598@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-David Laight <David.Laight@ACULAB.COM> wrote:
-> > From: Florian Westphal <fw@strlen.de>
-> > 
-> > ifname_compare() assumes that skb->dev is zero-padded,
-> > e.g 'eth1\0\0\0\0\0...'. This isn't always the case. e1000 driver does
-> > 
-> > strncpy(netdev->name, pci_name(pdev), sizeof(netdev->name) - 1);
-> > 
-> > in e1000_probe(), so once device is registered dev->name memory
-> contains
-> > 'eth1\0:0:3\0\0\0' (or something like that), which makes eth1 compare
-> fail.
-> 
-> strncpy() would normally zero-fill the destination buffer
-> (at least the libc version does).
-> 
-> So something else must be wrong.
 
-No. driver .probe() runs before the device name is filled in, and no
-explict zeroing happens there.
+On Friday 2012-06-29 13:15, Pablo Neira Ayuso wrote:
+>On Thu, Jun 28, 2012 at 03:57:47PM +0300, Tomasz Bursztyka wrote:
+>> nfnetlink_rcv_msg() might call a NULL callback which will cause NULL pointer
+>> dereference.
+>> 
+>> Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+>> ---
+>> @@ -184,9 +184,11 @@ replay:
+>>  					lockdep_is_held(&nfnl_mutex)) != ss ||
+>>  			    nfnetlink_find_client(type, ss) != nc)
+>>  				err = -EAGAIN;
+>> -			else
+>> +			else if (nc->call)
+>>  				err = nc->call(net->nfnl, skb, nlh,
+>>  						   (const struct nlattr **)cda);
+>> +			else
+>> +				err = -EINVAL;
+>
+>Hm, I think this is redundant. We got the ipset problem fixed with
+>2/3. I think we can add some BUG_ON instead as all nc->call needs to
+>be defined. Otherwise, spot a bug message so it is fixed.
+
+Seriously, we have run into NULL dereferences at this place so often
+that it should not be discarded as a PEBKAC issue. Yes, it is the
+programmer's responsibility to fill in .call, but error handling is
+anytime better than driving one's machine into the pit stop due to a
+NULL deref or BUG_ON.
