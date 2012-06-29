@@ -1,123 +1,211 @@
-From: "Hans Schillstrom" <hans@schillstrom.com>
-Subject: BUG: NULL pointer in ctnetlink_conntrack_event
-Date: Fri, 29 Jun 2012 14:29:37 +0200 (CEST)
-Message-ID: <mdaatbj.9730f14767bb2419ed11e14ac50382b8@obelix.schillstrom.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-To: "Pablo Neira Ayuso" <pablo@netfilter.org>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
+From: pablo@netfilter.org
+Subject: [PATCH 1/2] netfilter: nf_conntrack: generalize nf_ct_l4proto_net
+Date: Fri, 29 Jun 2012 17:23:24 +0200
+Message-ID: <1340983405-32118-1-git-send-email-pablo@netfilter.org>
+Cc: gaofeng@cn.fujitsu.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:52451 "EHLO
-	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752588Ab2F2M3l convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Jun 2012 08:29:41 -0400
+Received: from mail.us.es ([193.147.175.20]:37291 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756018Ab2F2PXi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 29 Jun 2012 11:23:38 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-There is a "hard to find" problem in ctnetlink_conntrack_event() when calling
-netlink_has_listeners() net->nfnl is NULL.
+This patch generalizes nf_ct_l4proto_net by splitting it into chunks and
+moving the corresponding protocol part to where it really belongs to.
 
-The rcu stuff seems to be right at a first look but who knows...
+To clarify, note that we follow two different approaches to support per-net
+depending if it's built-in or run-time loadable protocol tracker.
 
-The line below fix the problem, but that is not the root cause.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_conntrack_l4proto.h   |    3 +++
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |    6 ++++++
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    6 ++++++
+ net/netfilter/nf_conntrack_proto.c             |   22 ++++++----------------
+ net/netfilter/nf_conntrack_proto_generic.c     |    6 ++++++
+ net/netfilter/nf_conntrack_proto_tcp.c         |    7 +++++++
+ net/netfilter/nf_conntrack_proto_udp.c         |    7 +++++++
+ 7 files changed, 41 insertions(+), 16 deletions(-)
 
- int nfnetlink_has_listeners(struct net *net, unsigned int group)
- {
--       return netlink_has_listeners(net->nfnl, group);
-+       return net->nfnl ? netlink_has_listeners(net->nfnl, group) : 0 ;
+diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+index 08bb571..c3be4ae 100644
+--- a/include/net/netfilter/nf_conntrack_l4proto.h
++++ b/include/net/netfilter/nf_conntrack_l4proto.h
+@@ -99,6 +99,9 @@ struct nf_conntrack_l4proto {
+ 	/* Init l4proto pernet data */
+ 	int (*init_net)(struct net *net, u_int16_t proto);
+ 
++	/* Return the per-net protocol part. */
++	struct nf_proto_net *(*get_net_proto)(struct net *net);
++
+ 	/* Protocol name */
+ 	const char *name;
+ 
+diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+index 9c2095c..5241d99 100644
+--- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+@@ -388,6 +388,11 @@ static int icmp_init_net(struct net *net, u_int16_t proto)
+ 	return ret;
  }
-
-Yes it is a 3.0.26 kernel but this patch is applied
-netfilter: nf_conntrack: make event callback registration per-netns
-
-It happens when adding a number of containers with does a "nfct_query(h, NFCT_Q_CREATE, ct);"
-and most likely one namespace shuts down.
-
-Any idea why the timer is running at this point ?
-
-
-BUG: unable to handle kernel NULL pointer dereference at 000000000000027c
-IP: [<ffffffff813615db>] netlink_has_listeners+0xb/0x60
-PGD 0
-Oops: 0000 [#3] PREEMPT SMP
-CPU 0
-Modules linked in: ip6table_raw(N) xt_NOTRACK(N) iptable_raw(N) ipt_REJECT(N) xt_sctp(N) xt_multiport(N) xt_connmark(N) xt_mark(N) xt_conntrack(N) ip6table_mangle(N) ip_vs(N) nf_conntrack_netlink(N) nfnetlink(N) ip6_tunnel(N) tunnel6(N) macvlan(N) xt_HMARK(N) ipv6_find_hdr(N) iptable_mangle(N) nf_conntrack_ipv6(N) nf_defrag_ipv6(N) ip6t_LOG(N) ip6table_filter(N) ip6_tables(N) nf_conntrack_ipv4(N) nf_defrag_ipv4(N) xt_state(N) xt_tcpudp(N) xt_u32(N) xt_comment(N) xt_length(N) xt_hashlimit(N) ipt_LOG(N) xt_limit(N) iptable_filter(N) ip_tables(N) x_tables(N) nf_conntrack_ftp(N) nf_conntrack_tftp(N) nf_conntrack(N) mptsas(N) mptscsih(N) mptbase(N) sg(N) scsi_transport_sas(N) i2c_i801(N) i2c_core(N) button(N) pcspkr(N) ahci(N) libahci(N) processor(N) serio_raw(N) thermal_sys(N) hwmon(N) iTCO_wd
- t(N) iTCO_vendor_support(N) libata(N) ioatdma(N) ixgbe(N) mdio(N) nfs(N) lockd(N) fscache(N) auth_rpcgss(N) nfs_acl(N) sunrpc(N) af_packet(N) ipv6(N) ipv6_lib(N) bonding(N) e1000e(N) igb(N) dca(N) mii(N) 8021q(N) garp(N) stp(N) llc(N) softdog(N) xfs(N) exportfs(N) sd_mod(N) crc_t10dif(N) usb_storage(N) scsi_mod(N) ehci_hcd(N) uhci_hcd(N) usbcore(N) usb_common(N)
-Supported: Yes
-
-Pid: 0, comm: swapper Tainted: G      D    N  3.0.26-0.2-default
-RIP: 0010:[<ffffffff813615db>]  [<ffffffff813615db>] netlink_has_listeners+0xb/0x60
-RSP: 0018:ffff88063f203da0  EFLAGS: 00010286
-RAX: ffff88063f203e30 RBX: 0000000000000000 RCX: ffffffffa04c60f0
-RDX: 0000000000000004 RSI: 0000000000000003 RDI: 0000000000000000
-RBP: 0000000000000003 R08: 0000000000000000 R09: ffff88063f2114a0
-R10: 0000000000000000 R11: ffffffff8101e760 R12: ffff8805e2a45788
-R13: 0000000000000000 R14: 0000000000000002 R15: 0000000000000004
-FS:  0000000000000000(0000) GS:ffff88063f200000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 000000000000027c CR3: 0000000001a03000 CR4: 00000000000006f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process swapper (pid: 0, threadinfo ffffffff81a00000, task ffffffff81a0b020)
-Stack:
- 0000000000000000 0000000000000000 ffff8805e2a45800 ffffffffa04c453e
- ffff88063f203e30 0000000400000001 ffff8805e24e6c80 0000000300000000
- 0000000000000000 ffff880610044000 ffff880610044800 ffff8805e2a45788
-Call Trace:
- [<ffffffffa04c453e>] ctnetlink_conntrack_event+0x51e/0x570 [nf_conntrack_netlink]
- [<ffffffffa042a27b>] death_by_timeout+0x12b/0x190 [nf_conntrack]
- [<ffffffff810608ec>] run_timer_softirq+0x14c/0x270
- [<ffffffff81059d25>] __do_softirq+0xa5/0x180
- [<ffffffff813ff43c>] call_softirq+0x1c/0x30
- [<ffffffff810043f5>] do_softirq+0x65/0xa0
- [<ffffffff81059b15>] irq_exit+0xc5/0x100
- [<ffffffff8101f5a9>] smp_apic_timer_interrupt+0x69/0xa0
- [<ffffffff813febf3>] apic_timer_interrupt+0x13/0x20
- [<ffffffffa0230806>] acpi_idle_enter_bm+0x255/0x28f [processor]
- [<ffffffff813179e2>] cpuidle_idle_call+0xd2/0x120
- [<ffffffff810019f3>] cpu_idle+0x63/0xd0
- [<ffffffff81bf0f65>] start_kernel+0x3e4/0x4bf
- [<ffffffff81bf03c3>] x86_64_start_kernel+0x114/0x12f
-Code: ff 66 66 66 66 66 66 2e 0f 1f 84 00 00 00 00 00 e9 cb c5 fc ff 66 66 2e 0f 1f 84 00 00 00 00 00 55 89 f5 53 48 89 fb 48 83 ec 08 <f6> 87 7c 02 00 00 01 74 41 e8 47 50 d5 ff 0f b6 83 21 01 00 00
-RIP  [<ffffffff813615db>] netlink_has_listeners+0xb/0x60
- RSP <ffff88063f203da0>
-CR2: 000000000000027c
----[ end trace a057af0b3004c67a ]---
-Kernel panic - not syncing: Fatal exception in interrupt
-Pid: 0, comm: swapper Tainted: G      D    N  3.0.26-0.2-default #1
-Call Trace:
- [<ffffffff81004672>] dump_trace+0x82/0x380
- [<ffffffff813f4fa2>] dump_stack+0x69/0x6f
- [<ffffffff813f5050>] panic+0xa8/0x20c
- [<ffffffff813f9b21>] oops_end+0xe1/0xf0
- [<ffffffff81030e50>] no_context+0x100/0x270
- [<ffffffff81031135>] __bad_area_nosemaphore+0x175/0x220
- [<ffffffff813fbb36>] do_page_fault+0x3a6/0x590
- [<ffffffff813f8d15>] page_fault+0x25/0x30
- [<ffffffff813615db>] netlink_has_listeners+0xb/0x60
- [<ffffffffa04c453e>] ctnetlink_conntrack_event+0x51e/0x570 [nf_conntrack_netlink]
- [<ffffffffa042a27b>] death_by_timeout+0x12b/0x190 [nf_conntrack]
- [<ffffffff810608ec>] run_timer_softirq+0x14c/0x270
- [<ffffffff81059d25>] __do_softirq+0xa5/0x180
- [<ffffffff813ff43c>] call_softirq+0x1c/0x30
- [<ffffffff810043f5>] do_softirq+0x65/0xa0
- [<ffffffff81059b15>] irq_exit+0xc5/0x100
- [<ffffffff8101f5a9>] smp_apic_timer_interrupt+0x69/0xa0
- [<ffffffff813febf3>] apic_timer_interrupt+0x13/0x20
- [<ffffffffa0230806>] acpi_idle_enter_bm+0x255/0x28f [processor]
- [<ffffffff813179e2>] cpuidle_idle_call+0xd2/0x120
- [<ffffffff810019f3>] cpu_idle+0x63/0xd0
- [<ffffffff81bf0f65>] start_kernel+0x3e4/0x4bf
- [<ffffffff81bf03c3>] x86_64_start_kernel+0x114/0x12f
-Rebooting in 1 seconds..
---
-Regards 
-Hans Schillstrom
-
-
+ 
++static struct nf_proto_net *icmp_get_net_proto(struct net *net)
++{
++	return &net->ct.nf_ct_proto.icmp.pn;
++}
++
+ struct nf_conntrack_l4proto nf_conntrack_l4proto_icmp __read_mostly =
+ {
+ 	.l3proto		= PF_INET,
+@@ -418,4 +423,5 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_icmp __read_mostly =
+ 	},
+ #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
+ 	.init_net		= icmp_init_net,
++	.get_net_proto		= icmp_get_net_proto,
+ };
+diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+index 9fc5cf5..2d54b20 100644
+--- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -358,6 +358,11 @@ static int icmpv6_init_net(struct net *net, u_int16_t proto)
+ 	return icmpv6_kmemdup_sysctl_table(pn, in);
+ }
+ 
++static struct nf_proto_net *icmpv6_get_net_proto(struct net *net)
++{
++	return &net->ct.nf_ct_proto.icmpv6.pn;
++}
++
+ struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6 __read_mostly =
+ {
+ 	.l3proto		= PF_INET6,
+@@ -386,4 +391,5 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6 __read_mostly =
+ 	},
+ #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
+ 	.init_net		= icmpv6_init_net,
++	.get_net_proto		= icmpv6_get_net_proto,
+ };
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 21b850c..0dc6385 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -303,22 +303,12 @@ EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_unregister);
+ static struct nf_proto_net *nf_ct_l4proto_net(struct net *net,
+ 					      struct nf_conntrack_l4proto *l4proto)
+ {
+-	switch (l4proto->l4proto) {
+-	case IPPROTO_TCP:
+-		return (struct nf_proto_net *)&net->ct.nf_ct_proto.tcp;
+-	case IPPROTO_UDP:
+-		return (struct nf_proto_net *)&net->ct.nf_ct_proto.udp;
+-	case IPPROTO_ICMP:
+-		return (struct nf_proto_net *)&net->ct.nf_ct_proto.icmp;
+-	case IPPROTO_ICMPV6:
+-		return (struct nf_proto_net *)&net->ct.nf_ct_proto.icmpv6;
+-	case 255: /* l4proto_generic */
+-		return (struct nf_proto_net *)&net->ct.nf_ct_proto.generic;
+-	default:
+-		if (l4proto->net_id)
+-			return net_generic(net, *l4proto->net_id);
+-		else
+-			return NULL;
++	if (l4proto->get_net_proto) {
++		/* statically built-in protocols use static per-net */
++		return l4proto->get_net_proto(net);
++	} else if (l4proto->net_id) {
++		/* ... and loadable protocols use dynamic per-net */
++		return net_generic(net, *l4proto->net_id);
+ 	}
+ 	return NULL;
+ }
+diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
+index 7c11c54..d25f293 100644
+--- a/net/netfilter/nf_conntrack_proto_generic.c
++++ b/net/netfilter/nf_conntrack_proto_generic.c
+@@ -186,6 +186,11 @@ static int generic_init_net(struct net *net, u_int16_t proto)
+ 	return ret;
+ }
+ 
++static struct nf_proto_net *generic_get_net_proto(struct net *net)
++{
++	return &net->ct.nf_ct_proto.generic.pn;
++}
++
+ struct nf_conntrack_l4proto nf_conntrack_l4proto_generic __read_mostly =
+ {
+ 	.l3proto		= PF_UNSPEC,
+@@ -207,4 +212,5 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_generic __read_mostly =
+ 	},
+ #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
+ 	.init_net		= generic_init_net,
++	.get_net_proto		= generic_get_net_proto,
+ };
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 44f0da8..07e56ea 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1623,6 +1623,11 @@ static int tcp_init_net(struct net *net, u_int16_t proto)
+ 	return ret;
+ }
+ 
++static struct nf_proto_net *tcp_get_net_proto(struct net *net)
++{
++	return &net->ct.nf_ct_proto.tcp.pn;
++}
++
+ struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4 __read_mostly =
+ {
+ 	.l3proto		= PF_INET,
+@@ -1656,6 +1661,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4 __read_mostly =
+ 	},
+ #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
+ 	.init_net		= tcp_init_net,
++	.get_net_proto		= tcp_get_net_proto,
+ };
+ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_tcp4);
+ 
+@@ -1692,5 +1698,6 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6 __read_mostly =
+ 	},
+ #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
+ 	.init_net		= tcp_init_net,
++	.get_net_proto		= tcp_get_net_proto,
+ };
+ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_tcp6);
+diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
+index e7e0434..59623cc 100644
+--- a/net/netfilter/nf_conntrack_proto_udp.c
++++ b/net/netfilter/nf_conntrack_proto_udp.c
+@@ -297,6 +297,11 @@ static int udp_init_net(struct net *net, u_int16_t proto)
+ 	return ret;
+ }
+ 
++static struct nf_proto_net *udp_get_net_proto(struct net *net)
++{
++	return &net->ct.nf_ct_proto.udp.pn;
++}
++
+ struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4 __read_mostly =
+ {
+ 	.l3proto		= PF_INET,
+@@ -325,6 +330,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4 __read_mostly =
+ 	},
+ #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
+ 	.init_net		= udp_init_net,
++	.get_net_proto		= udp_get_net_proto,
+ };
+ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_udp4);
+ 
+@@ -356,5 +362,6 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6 __read_mostly =
+ 	},
+ #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
+ 	.init_net		= udp_init_net,
++	.get_net_proto		= udp_get_net_proto,
+ };
+ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_udp6);
+-- 
+1.7.10
 
