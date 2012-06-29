@@ -1,58 +1,90 @@
-From: "Hans Schillstrom" <hans@schillstrom.com>
-Subject: Re: IPv6 fragment packet handling
-Date: Fri, 29 Jun 2012 07:39:33 +0200 (CEST)
-Message-ID: <mdaatbj.bdeb64c148150d7fd1aaac58d00da780@obelix.schillstrom.com>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [RFC PATCH net-next] ipvs: add missing lock in
+ ip_vs_ftp_init_conn()
+Date: Fri, 29 Jun 2012 12:04:55 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1206291125270.1690@ja.ssi.bg>
+References: <1340890587-8169-1-git-send-email-xtfeng@gmail.com> <alpine.LFD.2.00.1206290225490.1722@ja.ssi.bg> <CAJn8CcFy=K+Aizpi0pvnpXCOYXhgyq12oBgVaPvMthW_fwn4Pg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
+Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811672-1915040808-1340960702=:1690"
+Cc: netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+	Xiaotian Feng <dannyfeng@tencent.com>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>
+To: Xiaotian Feng <xtfeng@gmail.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <CAJn8CcFy=K+Aizpi0pvnpXCOYXhgyq12oBgVaPvMthW_fwn4Pg@mail.gmail.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+---1463811672-1915040808-1340960702=:1690
+Content-Type: TEXT/PLAIN; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
-Cc: netfilter-devel@vger.kernel.org
-To: "Kristof Provost" <kristof@sigsegv.be>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:56289 "EHLO
-	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750840Ab2F2Fjg convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Jun 2012 01:39:36 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
->
->I've noticed an annoying difference between IPv4 and IPv6 regarding
->fragmented packet handling.
->The IPv4 netfilter code defragments packets before the hit the filter
->table, but the IPv6 code does not.
->
->As a result the following means that the host won't receive fragmented 
->ICMPv6 echo packets (for example ping6 -s 3000 <host>):
->
->ip6tables -F INPUT
->ip6tables -I INPUT -p icmpv6 -m icmp6 --icmpv6-type 128 -j ACCEPT
->ip6tables -P INPUT DROP
->
->The first fragment makes it through (hitting the icmpv6 rule), but
->subsequent fragments are dropped.
->In the IPv4 case the packet does make it through. 'iptables -L INPUT
->-vn' then shows that the ICMP rule hit one packet for about 3000 bytes.
->
->Am I missing something obvious? Is there a reason for this difference?
-
-There is a big difference between IPv4 & IPv6 
-RFC2460 ch 4.5
-"(Note: unlike IPv4, fragmentation in IPv6 is performed only by source nodes, 
-   not by routers along a packet's delivery path -- see section 5.)"
-
-This creates some limitations of what we can do...
-
-I have played around with this for a while by using nfct_reasm.
-ex in ipvs for handling frag (not ready yet)
-
-I have made some patches (not submitted yet) for tcp & udp that
-looks for "nfct_reasm" and if it's there use it.
-
-Maybe it's time for a  RFC ...
-In general:
-Fragments and ip6tables don't do what people think it does.
 
 
+	Hello,
 
+On Fri, 29 Jun 2012, Xiaotian Feng wrote:
+
+> > On Thu, 28 Jun 2012, Xiaotian Feng wrote:
+> >
+> >> We met a kernel panic in 2.6.32.43 kernel:
+> >>
+> >> [2680191.848044] IPVS: ip_vs_conn_hash(): request for already hashed, called from run_timer_softirq+0x175/0x1d0
+> >> <snip>
+> >> [2680311.849009] general protection fault: 0000 [#1] SMP
+
+	What we see here is 120 seconds between 2680191 and
+2680311. It can mean 2 things:
+
+- some state timeout, it depends on your forwarding method.
+What is it? NAT? DR?
+
+- 60 seconds for ip_vs_conn_expire retries
+
+> >> After code review, the only chance that kernel change connection flag without protection is
+> >> in ip_vs_ftp_init_conn().
+> >
+> >        Hm, ip_vs_ftp_init_conn is called before 1st hashing,
+> > from ip_vs_bind_app() in ip_vs_conn_new() before
+> > ip_vs_conn_hash(). It should be another problem with
+> > the flags. How different is IPVS in 2.6.32.43 compared to
+> > recent kernels? If commit aea9d711 is present, I'm not
+> > aware of other similar problems.
+> 
+> ip_vs_bind_app() is also called by ip_vs_try_bind_dest(), which can be
+> traced to ip_vs_proc_conn().
+> I've checked the changes in upstream, but nothing helps since aea9d711
+> has been taken into 2.6.32.28 kernel.
+
+	OK, this fix should make it safe for master-backup
+sync and it should be applied but I suspect you are not
+using sync, right? And then this fix will not solve the oops.
+
+	There are no many places that rehash conn:
+
+ip_vs_conn_fill_cport
+	- used for FTP
+
+ip_vs_check_template:
+	- do you have persistence configured?
+
+	After you provide details for the used forwarding
+method, persistence and sync we should think how such races
+with rehashing can lead to double hlist_del. May be
+you can modify the debug message in ip_vs_conn_hash, so
+that we can see cp->flags and ntohs of cp->cport, cp->dport
+and cp->vport when oops happens again.
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
+---1463811672-1915040808-1340960702=:1690--
