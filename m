@@ -1,90 +1,32 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [RFC PATCH net-next] ipvs: add missing lock in
- ip_vs_ftp_init_conn()
-Date: Fri, 29 Jun 2012 12:04:55 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1206291125270.1690@ja.ssi.bg>
-References: <1340890587-8169-1-git-send-email-xtfeng@gmail.com> <alpine.LFD.2.00.1206290225490.1722@ja.ssi.bg> <CAJn8CcFy=K+Aizpi0pvnpXCOYXhgyq12oBgVaPvMthW_fwn4Pg@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 2/3] ipset: Handle properly an IPSET_CMD_NONE
+Date: Fri, 29 Jun 2012 13:13:26 +0200
+Message-ID: <20120629111326.GA15598@1984>
+References: <1340888269-4926-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+ <1340888269-4926-3-git-send-email-tomasz.bursztyka@linux.intel.com>
+ <alpine.DEB.2.00.1206281639040.14774@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811672-1915040808-1340960702=:1690"
-Cc: netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-	Xiaotian Feng <dannyfeng@tencent.com>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>
-To: Xiaotian Feng <xtfeng@gmail.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <CAJn8CcFy=K+Aizpi0pvnpXCOYXhgyq12oBgVaPvMthW_fwn4Pg@mail.gmail.com>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>,
+	netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:33402 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750879Ab2F2LNb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 29 Jun 2012 07:13:31 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1206281639040.14774@blackhole.kfki.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
----1463811672-1915040808-1340960702=:1690
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-
-
-	Hello,
-
-On Fri, 29 Jun 2012, Xiaotian Feng wrote:
-
-> > On Thu, 28 Jun 2012, Xiaotian Feng wrote:
-> >
-> >> We met a kernel panic in 2.6.32.43 kernel:
-> >>
-> >> [2680191.848044] IPVS: ip_vs_conn_hash(): request for already hashed, called from run_timer_softirq+0x175/0x1d0
-> >> <snip>
-> >> [2680311.849009] general protection fault: 0000 [#1] SMP
-
-	What we see here is 120 seconds between 2680191 and
-2680311. It can mean 2 things:
-
-- some state timeout, it depends on your forwarding method.
-What is it? NAT? DR?
-
-- 60 seconds for ip_vs_conn_expire retries
-
-> >> After code review, the only chance that kernel change connection flag without protection is
-> >> in ip_vs_ftp_init_conn().
-> >
-> >        Hm, ip_vs_ftp_init_conn is called before 1st hashing,
-> > from ip_vs_bind_app() in ip_vs_conn_new() before
-> > ip_vs_conn_hash(). It should be another problem with
-> > the flags. How different is IPVS in 2.6.32.43 compared to
-> > recent kernels? If commit aea9d711 is present, I'm not
-> > aware of other similar problems.
+On Thu, Jun 28, 2012 at 04:40:30PM +0200, Jozsef Kadlecsik wrote:
+> On Thu, 28 Jun 2012, Tomasz Bursztyka wrote:
 > 
-> ip_vs_bind_app() is also called by ip_vs_try_bind_dest(), which can be
-> traced to ip_vs_proc_conn().
-> I've checked the changes in upstream, but nothing helps since aea9d711
-> has been taken into 2.6.32.28 kernel.
+> > Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+> 
+> Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> 
+> Never occured to me to send IPSET_CMD_NONE :-).
 
-	OK, this fix should make it safe for master-backup
-sync and it should be applied but I suspect you are not
-using sync, right? And then this fix will not solve the oops.
-
-	There are no many places that rehash conn:
-
-ip_vs_conn_fill_cport
-	- used for FTP
-
-ip_vs_check_template:
-	- do you have persistence configured?
-
-	After you provide details for the used forwarding
-method, persistence and sync we should think how such races
-with rehashing can lead to double hlist_del. May be
-you can modify the debug message in ip_vs_conn_hash, so
-that we can see cp->flags and ntohs of cp->cport, cp->dport
-and cp->vport when oops happens again.
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
----1463811672-1915040808-1340960702=:1690--
+Applied, thanks.
