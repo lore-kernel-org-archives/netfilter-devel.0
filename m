@@ -1,49 +1,51 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH 1/3] nfnetlink: Check callbacks before using those in
- nfnetlink_rcv_msg
-Date: Fri, 29 Jun 2012 21:03:40 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1206292100210.20094@frira.zrqbmnf.qr>
-References: <1340888269-4926-1-git-send-email-tomasz.bursztyka@linux.intel.com> <1340888269-4926-2-git-send-email-tomasz.bursztyka@linux.intel.com> <20120629111505.GC15598@1984>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH 1/1] Timeout fixing bug broke SET target special timeout value, fixed
+Date: Fri, 29 Jun 2012 21:42:28 +0200
+Message-ID: <1340998948-29672-2-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1340998948-29672-1-git-send-email-kadlec@blackhole.kfki.hu>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from static.206.24.9.5.clients.your-server.de ([5.9.24.206]:53249
-	"EHLO seven.medozas.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932486Ab2F2TNA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Jun 2012 15:13:00 -0400
-In-Reply-To: <20120629111505.GC15598@1984>
+Received: from smtp-in.kfki.hu ([148.6.0.28]:54332 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754671Ab2F2Tma (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 29 Jun 2012 15:42:30 -0400
+In-Reply-To: <1340998948-29672-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+The patch "Fix timeout value overflow bug at large timeout parameters"
+broke the SET target when no timeout was specified (reported by
+Jean-Philippe Menil).
 
-On Friday 2012-06-29 13:15, Pablo Neira Ayuso wrote:
->On Thu, Jun 28, 2012 at 03:57:47PM +0300, Tomasz Bursztyka wrote:
->> nfnetlink_rcv_msg() might call a NULL callback which will cause NULL pointer
->> dereference.
->> 
->> Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
->> ---
->> @@ -184,9 +184,11 @@ replay:
->>  					lockdep_is_held(&nfnl_mutex)) != ss ||
->>  			    nfnetlink_find_client(type, ss) != nc)
->>  				err = -EAGAIN;
->> -			else
->> +			else if (nc->call)
->>  				err = nc->call(net->nfnl, skb, nlh,
->>  						   (const struct nlattr **)cda);
->> +			else
->> +				err = -EINVAL;
->
->Hm, I think this is redundant. We got the ipset problem fixed with
->2/3. I think we can add some BUG_ON instead as all nc->call needs to
->be defined. Otherwise, spot a bug message so it is fixed.
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ net/netfilter/xt_set.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-Seriously, we have run into NULL dereferences at this place so often
-that it should not be discarded as a PEBKAC issue. Yes, it is the
-programmer's responsibility to fill in .call, but error handling is
-anytime better than driving one's machine into the pit stop due to a
-NULL deref or BUG_ON.
+diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
+index 035960e..b172cbc 100644
+--- a/net/netfilter/xt_set.c
++++ b/net/netfilter/xt_set.c
+@@ -16,6 +16,7 @@
+ 
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_set.h>
++#include <linux/netfilter/ipset/ip_set_timeout.h>
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+@@ -310,7 +311,8 @@ set_target_v2(struct sk_buff *skb, const struct xt_action_param *par)
+ 		info->del_set.flags, 0, UINT_MAX);
+ 
+ 	/* Normalize to fit into jiffies */
+-	if (add_opt.timeout > UINT_MAX/MSEC_PER_SEC)
++	if (add_opt.timeout != IPSET_NO_TIMEOUT
++	    && add_opt.timeout > UINT_MAX/MSEC_PER_SEC)
+ 		add_opt.timeout = UINT_MAX/MSEC_PER_SEC;
+ 	if (info->add_set.index != IPSET_INVALID_ID)
+ 		ip_set_add(info->add_set.index, skb, par, &add_opt);
+-- 
+1.7.0.4
+
