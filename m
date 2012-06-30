@@ -1,33 +1,32 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/2] [net-next] Netlink updates
-Date: Fri, 29 Jun 2012 16:42:33 -0700 (PDT)
-Message-ID: <20120629.164233.882534874218646662.davem@davemloft.net>
-References: <1340986522-3442-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: libnetfilter_queue build fix
+Date: Sat, 30 Jun 2012 03:07:53 +0200
+Message-ID: <1341018474-1274-1-git-send-email-jengelh@inai.de>
+Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:39060 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751664Ab2F2Xme (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Jun 2012 19:42:34 -0400
-In-Reply-To: <1340986522-3442-1-git-send-email-pablo@netfilter.org>
+Received: from seven.medozas.de ([5.9.24.206]:57307 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753393Ab2F3BSE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 29 Jun 2012 21:18:04 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: pablo@netfilter.org
-Date: Fri, 29 Jun 2012 18:15:20 +0200
 
-> If you like them, please manually apply. I wanted to know if you are
-> happy with these before pushing them into my tree, as they include
-> netlink changes.
+This was a fun one... I knew it pays off to build the openSUSE distro
+packages with `./configure --includedir=SomethingNonStandard`
+throughout! :)
 
-Looks great, both applied.
 
-The interface can probably be extended further, if you notice all
-callers pass in THIS_MODULE.  So you can have an inline wrapper
-"netlink_kernel_create()" and passes the THIS_MODULE value down
-into "__netlink_kernel_create()"
+The following changes since commit 7bd9edfe7849d8d1bc35f9ac28e949409da0bf10:
+
+  build: remove unused lines in Makefile.am (2012-06-24 14:58:28 +0200)
+
+are available in the git repository at:
+  git://git.inai.de/libnetfilter_queue master
+
+Jan Engelhardt (1):
+      build: remove stray empty variable
+
+ Make_global.am |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
