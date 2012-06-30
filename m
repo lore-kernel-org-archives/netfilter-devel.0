@@ -1,44 +1,57 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH] build: remove stray empty variable
-Date: Sat, 30 Jun 2012 03:07:54 +0200
-Message-ID: <1341018474-1274-2-git-send-email-jengelh@inai.de>
-References: <1341018474-1274-1-git-send-email-jengelh@inai.de>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH 1/3] nfnetlink: Check callbacks before using those in
+ nfnetlink_rcv_msg
+Date: Sat, 30 Jun 2012 10:54:25 +0200
+Message-ID: <20120630085425.GE13074@breakpoint.cc>
+References: <1340888269-4926-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+ <1340888269-4926-2-git-send-email-tomasz.bursztyka@linux.intel.com>
+ <20120629111505.GC15598@1984>
+ <alpine.LNX.2.01.1206292100210.20094@frira.zrqbmnf.qr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>,
+	netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([5.9.24.206]:57308 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752778Ab2F3BSE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Jun 2012 21:18:04 -0400
-In-Reply-To: <1341018474-1274-1-git-send-email-jengelh@inai.de>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41919 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752516Ab2F3Iy2 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 30 Jun 2012 04:54:28 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.01.1206292100210.20094@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Compilation can fail when libnfnetlink is not in a directory searched
-by default. Reason is the empty KERNELDIR variable which makes for a
-gcc command like:
+Jan Engelhardt <jengelh@inai.de> wrote:
+> On Friday 2012-06-29 13:15, Pablo Neira Ayuso wrote:
+> >On Thu, Jun 28, 2012 at 03:57:47PM +0300, Tomasz Bursztyka wrote:
+> >> ---
+> >> @@ -184,9 +184,11 @@ replay:
+> >>  					lockdep_is_held(&nfnl_mutex)) != ss ||
+> >>  			    nfnetlink_find_client(type, ss) != nc)
+> >>  				err = -EAGAIN;
+> >> -			else
+> >> +			else if (nc->call)
+> >>  				err = nc->call(net->nfnl, skb, nlh,
+> >>  						   (const struct nlattr **)cda);
+> >> +			else
+> >> +				err = -EINVAL;
+> >
+> >Hm, I think this is redundant. We got the ipset problem fixed with
+> >2/3. I think we can add some BUG_ON instead as all nc->call needs to
+> >be defined. Otherwise, spot a bug message so it is fixed.
+> 
+> Seriously, we have run into NULL dereferences at this place so often
+> that it should not be discarded as a PEBKAC issue. Yes, it is the
+> programmer's responsibility to fill in .call, but error handling is
+> anytime better than driving one's machine into the pit stop due to a
+> NULL deref or BUG_ON.
 
-	gcc -I. -I../include -I -Wall -I/usr/include/libnfnetlink-1.0.0+git28
-	-Wall -c libnetfilter_queue.c
-
-What one would expect is that gcc would search in the (non-existent)
-directory "-Wall" and just continue as usual, since -Wall is specified
-again. Instead, gcc versions before 4.6 attempt to search the
-(similarly non-existent) directory "-I/usr/[...]" and thus miss.
-
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
----
- Make_global.am |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/Make_global.am b/Make_global.am
-index c16cb09..a4e9bd9 100644
---- a/Make_global.am
-+++ b/Make_global.am
-@@ -1,2 +1,2 @@
--AM_CPPFLAGS = -I${top_srcdir}/include -I${KERNELDIR} ${LIBNFNETLINK_CFLAGS}
-+AM_CPPFLAGS = -I${top_srcdir}/include ${LIBNFNETLINK_CFLAGS}
- AM_CFLAGS = -Wall
--- 
-1.7.7
-
+Agreed.  I think this should be WARN_ON_ONCE + ret EINVAL.
+We also do this with various places that e.g. fill netlink
+messages so that adding new attributes without bumping allocation
+sizes is reported without crashes.  Since we've started to move
+the performance-critical nfnetlink stuff over to ->call_rcu
+the extra NULL test should not harm fastpath either.
