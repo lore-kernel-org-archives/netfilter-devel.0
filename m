@@ -1,79 +1,51 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [ANNOUNCE] ipset 6.13 released
-Date: Sun, 1 Jul 2012 17:21:51 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1207011646110.2749@blackhole.kfki.hu>
-References: <alpine.DEB.2.00.1206292201340.29738@blackhole.kfki.hu> <4FF02A93.8080603@googlemail.com> <alpine.DEB.2.00.1207011405160.2289@blackhole.kfki.hu> <4FF04038.4080306@googlemail.com> <alpine.DEB.2.00.1207011434010.2486@blackhole.kfki.hu>
- <4FF04647.7060807@googlemail.com> <alpine.DEB.2.00.1207011446260.2486@blackhole.kfki.hu> <4FF04DDA.3020609@googlemail.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH] build: restore -version-info
+Date: Sun, 1 Jul 2012 18:03:23 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1207011754110.17716@frira.zrqbmnf.qr>
+References: <alpine.DEB.2.00.1206292201340.29738@blackhole.kfki.hu> <1341082043-26584-1-git-send-email-jengelh@inai.de> <1341082043-26584-2-git-send-email-jengelh@inai.de> <alpine.DEB.2.00.1206302357430.1075@blackhole.kfki.hu> <alpine.LNX.2.01.1207010013340.4459@frira.zrqbmnf.qr>
+ <alpine.DEB.2.00.1207010029300.1245@blackhole.kfki.hu> <alpine.LNX.2.01.1207010048210.6863@frira.zrqbmnf.qr> <alpine.DEB.2.00.1207011409470.2289@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Patrick McHardy <kaber@trash.net>
-To: Mr Dash Four <mr.dash.four@googlemail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:39643 "EHLO smtp1.kfki.hu"
+Received: from seven.medozas.de ([5.9.24.206]:55207 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750918Ab2GAPVx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Jul 2012 11:21:53 -0400
-In-Reply-To: <4FF04DDA.3020609@googlemail.com>
+	id S1752233Ab2GAQDY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 1 Jul 2012 12:03:24 -0400
+In-Reply-To: <alpine.DEB.2.00.1207011409470.2289@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, 1 Jul 2012, Mr Dash Four wrote:
 
-> > the manpage, but it's totally counter-intuitive for you. Changing the
-> > meaning might break working firewalls. Therefore the meaning won't be
-> > changed.
-> >   
-> This isn't simply a question of "meaning" - it is an issue caused by the 
-> fact that you have introduced something which, it seems, wasn't properly 
-> checked initially for whatever reason and that is causing a great deal 
-> of inconsistency and inconvenience for people, like myself, who use 
-> ipset on a daily basis.
+On Sunday 2012-07-01 14:11, Jozsef Kadlecsik wrote:
+>> >> 
+>> >> Correct -- if you had stayed with "-version-info", which you did not.
+>> >
+>> >So if it's reverted back (second part of your patch), the the first part 
+>> >is to be skipped.
+>> 
+>> Since you already have made a release (ipset-6.13) emitting an .so.3
+>> file, I don't think you should go back to .so.2. Hence I am using 3:0:0.
+>
+>What I meant is to keep LIBVERSION = 3:0:1, because that's right from 
+>backward compatibility view, and restore back -version-info.
 
-I have to weight the "great deal of inconsistency and inconvenience" 
-caused to you against breaking firewall setups out there. I really 
-appreciate your comments, but in this case you should adapt.
- 
-> When I match an incoming packet destined to an IP address for example, I 
-> have to use, quite rightly, a "dst" designation, but when I match 
-> against the interface to which this same IP address belongs to, 
-> according to your man page, I have to use "src" instead - all this, 
-> simply because you didn't check this properly when hash:net,iface was 
-> first released and you can't be bothered, for one reason or another, to 
-> change it simply because "this has been out for a long time"?
-> 
-> Do you think that all the network admins out there will have to remember 
-> to use "dst" when matching on destination IP addresses, port numbers 
-> etc, but use exactly the opposite designation - "src" - when matching on 
-> the same destination interface that same IP address belongs to? Do you 
-> not see how inconvenient and downright misleading this is? If you can't, 
-> you are beyond hope, I am afraid.
+What part was unclear?
 
-Do you think all admins constantly read all changelogs, mailing lists 
-about all the software they use to catch backward incompatible changes? 
-You are aware of the "inconveniece", and you could adapt yourself to it 
-anytime. I'm responsible for every user, for those who never read these 
-mailing lists as well.
- 
-> Right, I am going to include Patrick in this as this whole saga is becoming
-> something of a monologue and I need a bit of clarity on this.
+* 6.13 uses -version-number 3:0:1
+* that causes production of .so.3
+* it's set in stone
+* next incompatible change requires use of .so.4
 
-Feel free to involve anyone. Just to sum up: in the case of the 
-net:hash,iface type of ipset, the manpage says
+* going back to .so.2 not a good idea
+* humans are prone to errors and
+  would reuse .so.3 in error
 
-"The second direction parameter of the set match and SET target modules 
-corresponds to the incoming/outgoing interface: src to the incoming one 
-(similar to the -i flag of iptables), while dst to the outgoing one 
-(similar to the -o flag of iptables)."
+* therefore the patch makes a clean restart,
+  using -version-info 3:0:0, to continue using .so.3
+  starting from ipset-6.13 until the next *real*
+  incompatible change.
 
-You argue that the meaning of src/dst for the interface part is 
-counter-intuitieve and therefore must be reversed - regardless of the 
-backward compatibility issue and the possible breaking of existing setups.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+(If you care about the uninteresting third digit,
+-version-info 3:1:0 would be wanted.)
