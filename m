@@ -1,38 +1,30 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
 Subject: Re: [ANNOUNCE] ipset 6.13 released
-Date: Sun, 1 Jul 2012 14:37:01 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1207011434010.2486@blackhole.kfki.hu>
-References: <alpine.DEB.2.00.1206292201340.29738@blackhole.kfki.hu> <4FF02A93.8080603@googlemail.com> <alpine.DEB.2.00.1207011405160.2289@blackhole.kfki.hu> <4FF04038.4080306@googlemail.com>
+Date: Sun, 01 Jul 2012 13:44:55 +0100
+Message-ID: <4FF04647.7060807@googlemail.com>
+References: <alpine.DEB.2.00.1206292201340.29738@blackhole.kfki.hu> <4FF02A93.8080603@googlemail.com> <alpine.DEB.2.00.1207011405160.2289@blackhole.kfki.hu> <4FF04038.4080306@googlemail.com> <alpine.DEB.2.00.1207011434010.2486@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Mr Dash Four <mr.dash.four@googlemail.com>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <4FF04038.4080306@googlemail.com>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:53920 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752510Ab2GAMpG (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 1 Jul 2012 08:45:06 -0400
+In-Reply-To: <alpine.DEB.2.00.1207011434010.2486@blackhole.kfki.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, 1 Jul 2012, Mr Dash Four wrote:
 
-> 
-> > The hash:net,iface type is out for a long time. It is not possible to change
-> > the meaning of src/dst without breaking backward compatibility, therefore I
-> > won't do it.
-> It has nothing to do with "backward compatibility" at all, but everything to
-> do with something which was done wrong initially and needs to be fixed. The
-> fact that this "has been out for a long time" is not an excuse - if anything,
-> it reflects pretty badly that this wasn't spotted earlier. Besides, when a bug
-> is discovered do you write a man page documenting it or do you fix that
-> particular bug?
-
-Call it a bug, whatever. I won't change the meaning of src/dst for 
-hash:net,iface which then will break someone's working firewall after an 
-upgrade.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+> Call it a bug, whatever. I won't change the meaning of src/dst for 
+> hash:net,iface which then will break someone's working firewall after an 
+> upgrade.
+>   
+In other words, you are not only intent on keeping this bug in the 
+netfilter/kernel code, but willing to document it in a man page simply 
+because of the remote possibility that someone somewhere may have been 
+using hash:net,iface and decided to upgrade while not willing to change 
+its configuration to put right something which was wrong in the first place?
