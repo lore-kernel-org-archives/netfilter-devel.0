@@ -1,59 +1,54 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [ANNOUNCE] ipset 6.13 released
-Date: Sun, 1 Jul 2012 14:09:32 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1207011405160.2289@blackhole.kfki.hu>
-References: <alpine.DEB.2.00.1206292201340.29738@blackhole.kfki.hu> <4FF02A93.8080603@googlemail.com>
+Subject: Re: [PATCH] build: restore -version-info
+Date: Sun, 1 Jul 2012 14:11:28 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1207011409470.2289@blackhole.kfki.hu>
+References: <alpine.DEB.2.00.1206292201340.29738@blackhole.kfki.hu> <1341082043-26584-1-git-send-email-jengelh@inai.de> <1341082043-26584-2-git-send-email-jengelh@inai.de> <alpine.DEB.2.00.1206302357430.1075@blackhole.kfki.hu> <alpine.LNX.2.01.1207010013340.4459@frira.zrqbmnf.qr>
+ <alpine.DEB.2.00.1207010029300.1245@blackhole.kfki.hu> <alpine.LNX.2.01.1207010048210.6863@frira.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Mr Dash Four <mr.dash.four@googlemail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:53474 "EHLO smtp0.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:53495 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932253Ab2GAMJe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Jul 2012 08:09:34 -0400
-In-Reply-To: <4FF02A93.8080603@googlemail.com>
+	id S932295Ab2GAML3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 1 Jul 2012 08:11:29 -0400
+In-Reply-To: <alpine.LNX.2.01.1207010048210.6863@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, 1 Jul 2012, Mr Dash Four wrote:
+On Sun, 1 Jul 2012, Jan Engelhardt wrote:
 
-> > I have just released ipset 6.13 with a few bugfixes and some new features.
-> > 
-> > Userspace changes:
-> >  - Explain in more detail src/dst for hash:net,iface
-> >   
-> Assuming this is what you've had in mind (taken from "man ipset"):
+> On Sunday 2012-07-01 00:31, Jozsef Kadlecsik wrote:
 > 
-> The second direction parameter of the set match and
-> SET target modules corresponds to the incoming/outgoing interface:
-> src to the incoming one (similar to the -i flag of iptables), while
-> dst to the outgoing one (similar to the -o flag of iptables). When
-> the interface is flagged with physdev:, the interface is interpreted
-> as the incoming/outgoing bridge port.
+> >On Sun, 1 Jul 2012, Jan Engelhardt wrote:
+> >
+> >> On Sunday 2012-07-01 00:05, Jozsef Kadlecsik wrote:
+> >> >> 
+> >> >> diff --git a/Make_global.am b/Make_global.am
+> >> >> index 4a8f61a..446c4de 100644
+> >> >> --- a/Make_global.am
+> >> >> +++ b/Make_global.am
+> >> >> @@ -69,7 +69,7 @@
+> >> >>  # interface. 
+> >> >>  
+> >> >>  #            curr:rev:age
+> >> >> -LIBVERSION = 3:0:1
+> >> >> +LIBVERSION = 3:0:0
+> >> >
+> >> >The new library release is backward compatible with the previous one, so 
+> >> >age must be incremented. That's why I set LIBVERSION to 3:0:1 from 2:1:0. 
+> >> 
+> >> Correct -- if you had stayed with "-version-info", which you did not.
+> >
+> >So if it's reverted back (second part of your patch), the the first part 
+> >is to be skipped.
 > 
-> I think that is plain wrong!
-> 
-> You refer to the incoming interface (interface on which packets arrive) as the
-> "source". That cannot be right. To me, it should be a "destination", not
-> "source" as the very definition of a "destination" is where something ends,
-> this is where a packet arrives and where the journey of the packet "stops" (or
-> where the packet is "destined" to arrive anyway). It should definitely not be
-> a "source" as the packet does not originate there, nor does it start its
-> journey there.
-> 
-> Similarly for the outgoing interface - this isn't a "destination" interface as
-> the packet doesn't arrive there - it is where it starts its journey from!
-> 
-> So, I think you should reverse both definitions and match "src" with the
-> outgoing interface and "dst" with the incoming interface - exactly the
-> opposite of what you have now. Documenting something which was done wrong in
-> the first place doesn't make it right.
+> Since you already have made a release (ipset-6.13) emitting an .so.3
+> file, I don't think you should go back to .so.2. Hence I am using 3:0:0.
 
-The hash:net,iface type is out for a long time. It is not possible to 
-change the meaning of src/dst without breaking backward compatibility, 
-therefore I won't do it. As a "workaround" I tried to explain the meaning 
-of src/dst for iface as clearly as possible.
+What I meant is to keep LIBVERSION = 3:0:1, because that's right from 
+backward compatibility view, and restore back -version-info.
 
 Best regards,
 Jozsef
