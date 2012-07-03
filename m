@@ -1,64 +1,30 @@
-From: Stig <stig@ubnt.com>
-Subject: broadcast filling up conntrack table
-Date: Tue, 3 Jul 2012 15:45:11 -0700
-Message-ID: <CAL-yc89aqg0HSgCpkrTRmGx5DXVFbMgo0oOZPWA6JLEfvyH0PA@mail.gmail.com>
+From: Kevin Locke <kevin@kevinlocke.name>
+Subject: Re: [PATCH] Include <net/ip6_checksum.h> for csum_ipv6_magic
+Date: Tue, 03 Jul 2012 17:02:13 -0600
+Message-ID: <4FF379F5.7020803@kevinlocke.name>
+References: <20120703183345.GA14043@kevinzilla> <alpine.LNX.2.01.1207032254200.26577@frira.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:38253 "HELO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756395Ab2GCWpM (ORCPT
+Received: from praxis.kevinlocke.name ([205.185.125.39]:54311 "EHLO
+	praxis.kevinlocke.name" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933476Ab2GCXCR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 Jul 2012 18:45:12 -0400
-Received: by qchj9 with SMTP id j9so4681848qch.37
-        for <netfilter-devel@vger.kernel.org>; Tue, 03 Jul 2012 15:45:11 -0700 (PDT)
+	Tue, 3 Jul 2012 19:02:17 -0400
+In-Reply-To: <alpine.LNX.2.01.1207032254200.26577@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-My LAN has a lots of broadcast traffic which causes my router to waste
-a lot of conntrack entries on those broadcasts.  I can workaround it
-with a NOTRACK for -d 255.255.255.255 in the raw table, but I'm
-wondering if there is ever a good reason to create a conntrack entry
-for broadcasts?
+On 07/03/2012 02:54 PM, Jan Engelhardt wrote:
+> On Tuesday 2012-07-03 20:33, Kevin Locke wrote:
+>> xt_ECHO fails to build on PPC because csum_ipv6_magic is declared in
+>> <net/ip6_checksum.h>, which is not implicitly included from other
+>> headers on PPC causing build failures due to this function being
+>> undefined.  So, include this header explicitly.
+>
+> Fixed.
 
-stig
-
-
-root@ubnt:/home/ubnt# conntrack -L | grep 255.255.255.255
-udp      17 12 src=10.1.0.159 dst=255.255.255.255 sport=57567
-dport=46451 [UNREPLIED] src=255.255.255.255 dst=10.1.0.159 sport=46451
-dport=57567 mark=0 use=1
-udp      17 11 src=10.1.1.185 dst=255.255.255.255 sport=58876
-dport=52360 [UNREPLIED] src=255.255.255.255 dst=10.1.1.185 sport=52360
-dport=58876 mark=0 use=1
-udp      17 10 src=10.1.1.27 dst=255.255.255.255 sport=37317
-dport=38269 [UNREPLIED] src=255.255.255.255 dst=10.1.1.27 sport=38269
-dport=37317 mark=0 use=1
-udp      17 25 src=10.1.0.217 dst=255.255.255.255 sport=2048
-dport=48950 [UNREPLIED] src=255.255.255.255 dst=10.1.0.217 sport=48950
-dport=2048 mark=0 use=1
-udp      17 13 src=10.1.0.180 dst=255.255.255.255 sport=2049
-dport=48092 [UNREPLIED] src=255.255.255.255 dst=10.1.0.180 sport=48092
-dport=2049 mark=0 use=1
-udp      17 11 src=10.1.1.171 dst=255.255.255.255 sport=48784
-dport=40378 [UNREPLIED] src=255.255.255.255 dst=10.1.1.171 sport=40378
-dport=48784 mark=0 use=1
-udp      17 24 src=10.1.1.83 dst=255.255.255.255 sport=54152
-dport=53820 [UNREPLIED] src=255.255.255.255 dst=10.1.1.83 sport=53820
-dport=54152 mark=0 use=1
-udp      17 12 src=10.1.1.81 dst=255.255.255.255 sport=46501
-dport=39773 [UNREPLIED] src=255.255.255.255 dst=10.1.1.81 sport=39773
-dport=46501 mark=0 use=1
-udp      17 12 src=10.1.0.146 dst=255.255.255.255 sport=37086
-dport=51417 [UNREPLIED] src=255.255.255.255 dst=10.1.0.146 sport=51417
-dport=37086 mark=0 use=1
-udp      17 24 src=10.1.1.43 dst=255.255.255.255 sport=35070
-dport=57905 [UNREPLIED] src=255.255.255.255 dst=10.1.1.43 sport=57905
-dport=35070 mark=0 use=1
-[SNIP]
-
-root@ubnt:/home/ubnt# conntrack -V
-conntrack v1.0.1 (conntrack-tools)
-root@ubnt:/home/ubnt# iptables -V
-iptables v1.4.10
+Great.  Thanks!
