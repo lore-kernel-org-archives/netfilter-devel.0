@@ -1,38 +1,28 @@
-From: AFT <aftnix@gmail.com>
-Subject: Building xtables-addons
-Date: Wed, 04 Jul 2012 19:20:45 +0600
-Message-ID: <a9zfirwy.fsf@s1.test.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: Building xtables-addons
+Date: Wed, 4 Jul 2012 16:51:41 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1207041651190.19493@frira.zrqbmnf.qr>
+References: <a9zfirwy.fsf@s1.test.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: AFT <aftnix@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:47118 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751497Ab2GDNau (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Jul 2012 09:30:50 -0400
-Received: by pbbrp8 with SMTP id rp8so11045475pbb.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 04 Jul 2012 06:30:50 -0700 (PDT)
+Received: from seven.medozas.de ([5.9.24.206]:54401 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750923Ab2GDOvn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Jul 2012 10:51:43 -0400
+In-Reply-To: <a9zfirwy.fsf@s1.test.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Wednesday 2012-07-04 15:20, AFT wrote:
+>
+>I have cloned xtables-addons git repo from SF. It has a "autogen.sh" to
+>create the configure script. ./autogen.sh is failing with following
+>message:
+>
+>/usr/bin/m4:configure.ac:33: Warning: excess arguments to builtin `m4_if' ignored
 
-
-Hi,
-
-I have cloned xtables-addons git repo from SF. It has a "autogen.sh" to
-create the configure script. ./autogen.sh is failing with following
-message:
-
-/usr/bin/m4:configure.ac:33: Warning: excess arguments to builtin `m4_if' ignored
-autom4te: /usr/bin/m4 failed with exit status: 1
-aclocal: autom4te failed with exit status: 1
-autoreconf: aclocal failed with exit status: 1
-
-
-I'm not experienced in autotools, so i'm clueless about what's actually
-going on there.
-
-
-Cheers,
-aft
+Can you ask your system which versions of autoconf, automake, libtool 
+and m4 you have installed?
