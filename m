@@ -1,57 +1,36 @@
-From: Aft nix <aftnix@gmail.com>
-Subject: Re: Building xtables-addons
-Date: Wed, 4 Jul 2012 21:09:22 +0600
-Message-ID: <CAGuaRCu6vPxPY03rH3kZCEWUoG2dr4Mb+k2cJZLNqzAFbNnWXg@mail.gmail.com>
-References: <a9zfirwy.fsf@s1.test.com>
-	<alpine.LNX.2.01.1207041651190.19493@frira.zrqbmnf.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: libnetfilter_queue build fix
+Date: Wed, 4 Jul 2012 19:56:43 +0200
+Message-ID: <20120704175643.GB9808@1984>
+References: <1341018474-1274-1-git-send-email-jengelh@inai.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:57411 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751450Ab2GDPJW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Jul 2012 11:09:22 -0400
-Received: by ghrr11 with SMTP id r11so6547890ghr.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 04 Jul 2012 08:09:22 -0700 (PDT)
-In-Reply-To: <alpine.LNX.2.01.1207041651190.19493@frira.zrqbmnf.qr>
+Received: from mail.us.es ([193.147.175.20]:45415 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755634Ab2GDR4q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Jul 2012 13:56:46 -0400
+Content-Disposition: inline
+In-Reply-To: <1341018474-1274-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jul 4, 2012 at 8:51 PM, Jan Engelhardt <jengelh@inai.de> wrote:
-> On Wednesday 2012-07-04 15:20, AFT wrote:
->>
->>I have cloned xtables-addons git repo from SF. It has a "autogen.sh" to
->>create the configure script. ./autogen.sh is failing with following
->>message:
->>
->>/usr/bin/m4:configure.ac:33: Warning: excess arguments to builtin `m4_if' ignored
->
-> Can you ask your system which versions of autoconf, automake, libtool
-> and m4 you have installed?
+On Sat, Jun 30, 2012 at 03:07:53AM +0200, Jan Engelhardt wrote:
+> 
+> This was a fun one... I knew it pays off to build the openSUSE distro
+> packages with `./configure --includedir=SomethingNonStandard`
+> throughout! :)
 
-Hi Jan,
+this seems to be a pretty old left-over in libnetfilter_queue. I'm
+surprised nobody noticed so far.
 
-i have the following versions for autotools in my system
+> The following changes since commit 7bd9edfe7849d8d1bc35f9ac28e949409da0bf10:
+> 
+>   build: remove unused lines in Makefile.am (2012-06-24 14:58:28 +0200)
+> 
+> are available in the git repository at:
+>   git://git.inai.de/libnetfilter_queue master
 
-[root@s1 xtables-addons]# m4 --version
-m4 (GNU M4) 1.4.13
-
-[root@s1 xtables-addons]# autoconf --version
-autoconf (GNU Autoconf) 2.63
-
-[root@s1 xtables-addons]# automake --version
-automake (GNU automake) 1.11.1
-
-[root@s1 xtables-addons]# libtool --version
-ltmain.sh (GNU libtool) 2.2.6b
-
-cheers
-aft
-
-
-
--- 
--aft
+pulled, thanks.
