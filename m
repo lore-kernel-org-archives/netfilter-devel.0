@@ -1,60 +1,82 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/3] nfnetlink: Check callbacks before using those in
- nfnetlink_rcv_msg
-Date: Wed, 4 Jul 2012 22:54:03 +0200
-Message-ID: <20120704205403.GA22228@1984>
-References: <1340888269-4926-1-git-send-email-tomasz.bursztyka@linux.intel.com>
- <1340888269-4926-2-git-send-email-tomasz.bursztyka@linux.intel.com>
- <20120629111505.GC15598@1984>
- <alpine.LNX.2.01.1206292100210.20094@frira.zrqbmnf.qr>
- <20120630085425.GE13074@breakpoint.cc>
+Subject: Re: [RFC] [PATCH] netfilter: nfnetlink_queue: Don't set random
+ flag bits
+Date: Wed, 4 Jul 2012 22:57:29 +0200
+Message-ID: <20120704205729.GB22228@1984>
+References: <20120627105956.26473.95573.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jan Engelhardt <jengelh@inai.de>,
-	Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>,
-	netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: fw@strlen.de, netfilter-devel@vger.kernel.org
+To: Krishna Kumar <krkumar2@in.ibm.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35840 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36995 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753951Ab2GDUyI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Jul 2012 16:54:08 -0400
+	id S1752938Ab2GDU5b (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Jul 2012 16:57:31 -0400
 Content-Disposition: inline
-In-Reply-To: <20120630085425.GE13074@breakpoint.cc>
+In-Reply-To: <20120627105956.26473.95573.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Jun 30, 2012 at 10:54:25AM +0200, Florian Westphal wrote:
-> Jan Engelhardt <jengelh@inai.de> wrote:
-> > On Friday 2012-06-29 13:15, Pablo Neira Ayuso wrote:
-> > >On Thu, Jun 28, 2012 at 03:57:47PM +0300, Tomasz Bursztyka wrote:
-> > >> ---
-> > >> @@ -184,9 +184,11 @@ replay:
-> > >>  					lockdep_is_held(&nfnl_mutex)) != ss ||
-> > >>  			    nfnetlink_find_client(type, ss) != nc)
-> > >>  				err = -EAGAIN;
-> > >> -			else
-> > >> +			else if (nc->call)
-> > >>  				err = nc->call(net->nfnl, skb, nlh,
-> > >>  						   (const struct nlattr **)cda);
-> > >> +			else
-> > >> +				err = -EINVAL;
-> > >
-> > >Hm, I think this is redundant. We got the ipset problem fixed with
-> > >2/3. I think we can add some BUG_ON instead as all nc->call needs to
-> > >be defined. Otherwise, spot a bug message so it is fixed.
-> > 
-> > Seriously, we have run into NULL dereferences at this place so often
-> > that it should not be discarded as a PEBKAC issue. Yes, it is the
-> > programmer's responsibility to fill in .call, but error handling is
-> > anytime better than driving one's machine into the pit stop due to a
-> > NULL deref or BUG_ON.
-> 
-> Agreed.  I think this should be WARN_ON_ONCE + ret EINVAL.
-> We also do this with various places that e.g. fill netlink
-> messages so that adding new attributes without bumping allocation
-> sizes is reported without crashes.  Since we've started to move
-> the performance-critical nfnetlink stuff over to ->call_rcu
-> the extra NULL test should not harm fastpath either.
+On Wed, Jun 27, 2012 at 04:29:56PM +0530, Krishna Kumar wrote:
+> Allow setting of only supported flag bits in queue->flags.
 
-OK, fair enough. I've enqueued this to nf-next.
+I have applied this with minor glitches, see below.
+
+> If this is OK, I can send a patch to add this flag to
+> libnetfilter_queue too.
+
+Not sure what you mean with the patch for libnetfilter_queue. If you
+consider adding some checking in user-space, no need to do it. We have
+to fail back on the kernel to report this. So we don't need to update
+libnetfilter_queue if we get new flags supported.
+
+Back to your patch...
+
+> Signed-off-by: Krishna Kumar <krkumar2@in.ibm.com>
+> ---
+>  include/linux/netfilter/nfnetlink_queue.h |    2 ++
+>  net/netfilter/nfnetlink_queue_core.c      |    6 ++++++
+>  2 files changed, 8 insertions(+)
+> 
+> diff -ruNp org/include/linux/netfilter/nfnetlink_queue.h new/include/linux/netfilter/nfnetlink_queue.h
+> --- org/include/linux/netfilter/nfnetlink_queue.h	2012-06-18 08:36:53.000000000 +0530
+> +++ new/include/linux/netfilter/nfnetlink_queue.h	2012-06-27 16:25:54.297619352 +0530
+> @@ -96,4 +96,6 @@ enum nfqnl_attr_config {
+>  #define NFQA_CFG_F_FAIL_OPEN			(1 << 0)
+>  #define NFQA_CFG_F_CONNTRACK			(1 << 1)
+>  
+
+removed this extra space above.
+
+> +#define NFQA_CFG_F_FLAGS_MAX			(1 << 2)
+
+removed _FLAGS, it seems redundant to _F.
+
+> +
+>  #endif /* _NFNETLINK_QUEUE_H */
+> diff -ruNp org/net/netfilter/nfnetlink_queue_core.c new/net/netfilter/nfnetlink_queue_core.c
+> --- org/net/netfilter/nfnetlink_queue_core.c	2012-06-27 12:34:02.000000000 +0530
+> +++ new/net/netfilter/nfnetlink_queue_core.c	2012-06-27 14:00:46.153670918 +0530
+> @@ -910,6 +910,12 @@ nfqnl_recv_config(struct sock *ctnl, str
+>  		flags = ntohl(nla_get_be32(nfqa[NFQA_CFG_FLAGS]));
+>  		mask = ntohl(nla_get_be32(nfqa[NFQA_CFG_MASK]));
+>  
+> +		if (flags >= NFQA_CFG_F_FLAGS_MAX) {
+> +			/* flags has more bits than what is supported */
+
+removed this comment, I think it's more or less evinder to the source
+code reader what this does.
+
+> +			ret = -EOPNOTSUPP;
+> +			goto err_out_unlock;
+> +		}
+> +
+>  		spin_lock_bh(&queue->lock);
+>  		queue->flags &= ~mask;
+>  		queue->flags |= flags & mask;
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
