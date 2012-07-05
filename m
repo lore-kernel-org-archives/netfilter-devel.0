@@ -1,7 +1,7 @@
 From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: [PATCH 3/3] ipset: change 'iface' part in hash:net,iface set
-Date: Thu,  5 Jul 2012 23:34:32 +0100
-Message-ID: <1341527720-10125-2-git-send-email-mr.dash.four@googlemail.com>
+Subject: [PATCH 1/3] iptables: change 'iface' part in hash:net,iface set
+Date: Thu,  5 Jul 2012 23:34:30 +0100
+Message-ID: <24722657a8c6d7c7fc536edf2dfe59a04e67e4cd.1341525006.git.mr.dash.four@googlemail.com>
 References: <cover.1341525006.git.mr.dash.four@googlemail.com>
 Cc: Mr Dash Four <mr.dash.four@googlemail.com>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
@@ -9,37 +9,221 @@ Cc: Mr Dash Four <mr.dash.four@googlemail.com>,
 	Patrick McHardy <kaber@trash.net>
 To: Netfilter Core Team <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:44300 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932975Ab2GEWfX (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:54484 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932197Ab2GEWfV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Jul 2012 18:35:23 -0400
-Received: by werb14 with SMTP id b14so5722007wer.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 05 Jul 2012 15:35:22 -0700 (PDT)
+	Thu, 5 Jul 2012 18:35:21 -0400
+Received: by wgbdr13 with SMTP id dr13so8732611wgb.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 05 Jul 2012 15:35:20 -0700 (PDT)
 In-Reply-To: <cover.1341525006.git.mr.dash.four@googlemail.com>
 In-Reply-To: <cover.1341525006.git.mr.dash.four@googlemail.com>
 References: <cover.1341525006.git.mr.dash.four@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Kernel changes to ipset, allowing 'in' and 'out' values to be
+Userspace changes to iptables, allowing 'in' and 'out' values to be
 specified for the 'iface' part of hash:net,iface type sets.
+
+Man pages updated accordingly. This patch also makes some minor
+corrections to the syntax of some console messages produced by
+the set match and SET target.
 
 Signed-off-by: Mr Dash Four <mr.dash.four@googlemail.com>
 ---
- include/linux/netfilter/ipset/ip_set.h      |    5 +++++
- net/netfilter/ipset/ip_set_bitmap_ipmac.c   |    4 ++++
- net/netfilter/ipset/ip_set_hash_ipport.c    |    6 ++++--
- net/netfilter/ipset/ip_set_hash_ipportip.c  |    6 ++++--
- net/netfilter/ipset/ip_set_hash_ipportnet.c |    6 ++++--
- net/netfilter/ipset/ip_set_hash_netport.c   |    6 ++++--
- 6 files changed, 25 insertions(+), 8 deletions(-)
+ extensions/libxt_SET.c                 |    7 ++++++-
+ extensions/libxt_SET.man               |   23 ++++++++++++-----------
+ extensions/libxt_set.c                 |   11 ++++++++---
+ extensions/libxt_set.h                 |   10 +++++++---
+ extensions/libxt_set.man               |   20 +++++++++-----------
+ include/linux/netfilter/ipset/ip_set.h |    5 +++++
+ 6 files changed, 47 insertions(+), 29 deletions(-)
 
+diff --git a/extensions/libxt_SET.c b/extensions/libxt_SET.c
+index a11db39..d9f60c9 100644
+--- a/extensions/libxt_SET.c
++++ b/extensions/libxt_SET.c
+@@ -206,15 +206,20 @@ print_target(const char *prefix, const struct xt_set_info *info)
+ {
+ 	int i;
+ 	char setname[IPSET_MAXNAMELEN];
++	char *ptr;
+ 
+ 	if (info->index == IPSET_INVALID_ID)
+ 		return;
+ 	get_set_byid(setname, info->index);
+ 	printf(" %s %s", prefix, setname);
+ 	for (i = 1; i <= info->dim; i++) {
++		if ((info->flags & IPSET_DIM_IFACE_INOUT) && i == IPSET_DIM_TWO)
++			ptr = (info->flags & (1 << i) ? "in" : "out");
++		else
++			ptr = (info->flags & (1 << i) ? "src" : "dst");
+ 		printf("%s%s",
+ 		       i == 1 ? " " : ",",
+-		       info->flags & (1 << i) ? "src" : "dst");
++			ptr);
+ 	}
+ }
+ 
+diff --git a/extensions/libxt_SET.man b/extensions/libxt_SET.man
+index 63eb383..747235f 100644
+--- a/extensions/libxt_SET.man
++++ b/extensions/libxt_SET.man
+@@ -1,25 +1,26 @@
+-This modules adds and/or deletes entries from IP sets which can be defined 
++This module adds and/or deletes entries from IP sets which can be defined 
+ by ipset(8).
+ .TP
+ \fB\-\-add\-set\fP \fIsetname\fP \fIflag\fP[\fB,\fP\fIflag\fP...]
+-add the address(es)/port(s) of the packet to the sets
++add the address(es)/port(s) of the packet to the set
+ .TP
+ \fB\-\-del\-set\fP \fIsetname\fP \fIflag\fP[\fB,\fP\fIflag\fP...]
+-delete the address(es)/port(s) of the packet from the sets
++delete the address(es)/port(s) of the packet from the set
+ .IP
+-where flags are
++where 'flag' above is comma separated list of
+ .BR "src"
+ and/or
+ .BR "dst"
+-specifications and there can be no more than six of them.
++with the exception of hash:ip,iface where in addition to the above flags, the following is also allowed for the 'iface' part of that set:
++.BR "in"
++or
++.BR "out" 
++corresponding to the incoming or outgoing network interface. The above flags cannot exceed six in total for a given set.
+ .TP
+ \fB\-\-timeout\fP \fIvalue\fP
+-when adding entry, the timeout value to use instead of the default
+-one from the set definition
++when adding an entry, the timeout value to use instead of the default one from the set definition.
+ .TP
+ \fB\-\-exist\fP
+-when adding entry if it already exists, reset the timeout value
+-to the specified one or to the default from the set definition
++when adding an entry, if such entry already exists, reset the timeout value to the specified one or to the default from the set definition.
+ .PP
+-Use of -j SET requires that ipset kernel support is provided, which, for
+-standard kernels, is the case since Linux 2.6.39.
++Use of -j SET requires that ipset kernel support is provided, which, for standard kernels, is the case since Linux 2.6.39.
+diff --git a/extensions/libxt_set.c b/extensions/libxt_set.c
+index 77e3f07..ba478ed 100644
+--- a/extensions/libxt_set.c
++++ b/extensions/libxt_set.c
+@@ -60,7 +60,7 @@ set_parse_v0(int c, char **argv, int invert, unsigned int *flags,
+ 	case '2':
+ 		fprintf(stderr,
+ 			"--set option deprecated, please use --match-set\n");
+-	case '1':		/* --match-set <set> <flag>[,<flag> */
++	case '1':		/* --match-set <set> <flag>[,<flag>] */
+ 		if (info->u.flags[0])
+ 			xtables_error(PARAMETER_PROBLEM,
+ 				      "--match-set can be specified only once");
+@@ -140,7 +140,7 @@ set_parse_v1(int c, char **argv, int invert, unsigned int *flags,
+ 	case '2':
+ 		fprintf(stderr,
+ 			"--set option deprecated, please use --match-set\n");
+-	case '1':		/* --match-set <set> <flag>[,<flag> */
++	case '1':		/* --match-set <set> <flag>[,<flag>] */
+ 		if (info->dim)
+ 			xtables_error(PARAMETER_PROBLEM,
+ 				      "--match-set can be specified only once");
+@@ -175,6 +175,7 @@ print_match(const char *prefix, const struct xt_set_info *info)
+ {
+ 	int i;
+ 	char setname[IPSET_MAXNAMELEN];
++	char *ptr;
+ 
+ 	get_set_byid(setname, info->index);
+ 	printf("%s %s %s",
+@@ -182,9 +183,13 @@ print_match(const char *prefix, const struct xt_set_info *info)
+ 	       prefix,
+ 	       setname); 
+ 	for (i = 1; i <= info->dim; i++) {		
++		if ((info->flags & IPSET_DIM_IFACE_INOUT) && i == IPSET_DIM_TWO)
++			ptr = (info->flags & (1 << i) ? "in" : "out");
++		else
++			ptr = (info->flags & (1 << i) ? "src" : "dst");
+ 		printf("%s%s",
+ 		       i == 1 ? " " : ",",
+-		       info->flags & (1 << i) ? "src" : "dst");
++		       ptr);
+ 	}
+ }
+ 
+diff --git a/extensions/libxt_set.h b/extensions/libxt_set.h
+index 47c3f5b..23830b2 100644
+--- a/extensions/libxt_set.h
++++ b/extensions/libxt_set.h
+@@ -115,7 +115,7 @@ parse_dirs_v0(const char *opt_arg, struct xt_set_info_v0 *info)
+ 			info->u.flags[i++] |= IPSET_DST;
+ 		else
+ 			xtables_error(PARAMETER_PROBLEM,
+-				"You must spefify (the comma separated list of) 'src' or 'dst'.");
++				"You must specify (comma separated list of) 'src' or 'dst'.");
+ 	}
+ 
+ 	if (tmp)
+@@ -135,11 +135,15 @@ parse_dirs(const char *opt_arg, struct xt_set_info *info)
+ 	while (info->dim < IPSET_DIM_MAX && tmp != NULL) {
+ 		info->dim++;
+ 		ptr = strsep(&tmp, ",");
+-		if (strncmp(ptr, "src", 3) == 0)
++		if (strncmp(ptr, "in", 2) == 0 && info->dim == IPSET_DIM_TWO)
++			info->flags |= (1 << info->dim | IPSET_DIM_IFACE_INOUT);
++		else if (strncmp(ptr, "out", 3) == 0 && info->dim == IPSET_DIM_TWO)
++			info->flags |= IPSET_DIM_IFACE_INOUT;
++		else if (strncmp(ptr, "src", 3) == 0)
+ 			info->flags |= (1 << info->dim);
+ 		else if (strncmp(ptr, "dst", 3) != 0)
+ 			xtables_error(PARAMETER_PROBLEM,
+-				"You must spefify (the comma separated list of) 'src' or 'dst'.");
++				"You must specify (comma separated list of) 'src' or 'dst' with the addition of 'in' or 'out' for the interface part of hash:net,iface set, if used.");
+ 	}
+ 
+ 	if (tmp)
+diff --git a/extensions/libxt_set.man b/extensions/libxt_set.man
+index 1ad9085..31be0eb 100644
+--- a/extensions/libxt_set.man
++++ b/extensions/libxt_set.man
+@@ -1,22 +1,20 @@
+ This module matches IP sets which can be defined by ipset(8).
+ .TP
+ [\fB!\fP] \fB\-\-match\-set\fP \fIsetname\fP \fIflag\fP[\fB,\fP\fIflag\fP]...
+-where flags are the comma separated list of
++where 'flag' above is comma separated list of
+ .BR "src"
+ and/or
+ .BR "dst" 
+-specifications and there can be no more than six of them. Hence the command
++with the exception of hash:ip,iface where, in addition to these two options, the following is also allowed for the 'iface' part:
++.BR "in" 
++or
++.BR "out" 
++corresponding to the incoming or outgoing network interface. The above options cannot exceed six in total for a given set. The command
+ .IP
+  iptables \-A FORWARD \-m set \-\-match\-set test src,dst
+ .IP
+-will match packets, for which (if the set type is ipportmap) the source
+-address and destination port pair can be found in the specified set. If
+-the set type of the specified set is single dimension (for example ipmap),
+-then the command will match packets for which the source address can be
+-found in the specified set. 
++will match packets for which, if the set is of type hash:ip,port for example, the source IP address and destination port pair can be found and matched successfully. If the specified set is one dimensional (i.e. bitmap:ip), then the command will match packets for which the source address can be found in the set specified.
+ .PP
+-The option \fB\-\-match\-set\fP can be replaced by \fB\-\-set\fP if that does 
+-not clash with an option of other extensions.
++The option \fB\-\-match\-set\fP can be replaced by \fB\-\-set\fP if that does not clash with an option from other extensions.
+ .PP
+-Use of -m set requires that ipset kernel support is provided, which, for
+-standard kernels, is the case since Linux 2.6.39.
++Use of -m set requires that ipset kernel support is provided, which, for standard kernels, is the case since Linux 2.6.39.
 diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index 2edc64c..a9fc982 100644
+index 79cb077..901ec2f 100644
 --- a/include/linux/netfilter/ipset/ip_set.h
 +++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -190,6 +190,10 @@ enum ip_set_dim {
+@@ -186,6 +186,10 @@ enum ip_set_dim {
  	 * If changed, new revision of iptables match/target is required.
  	 */
  	IPSET_DIM_MAX = 6,
@@ -50,124 +234,13 @@ index 2edc64c..a9fc982 100644
  };
  
  /* Option flags for kernel operations */
-@@ -198,6 +202,7 @@ enum ip_set_kopt {
+@@ -194,6 +198,7 @@ enum ip_set_kopt {
  	IPSET_DIM_ONE_SRC = (1 << IPSET_DIM_ONE),
  	IPSET_DIM_TWO_SRC = (1 << IPSET_DIM_TWO),
  	IPSET_DIM_THREE_SRC = (1 << IPSET_DIM_THREE),
 +	IPSET_DIM_IFACE_INOUT = (1 << IPSET_DIM_IFACE),
  };
  
- #ifdef __KERNEL__
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-index d7eaf10..1d8d754 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-@@ -348,6 +348,10 @@ bitmap_ipmac_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct ipmac data;
- 
-+	/* in|out not allowed in this set type, only src|dst */
-+	if (opt->flags & IPSET_DIM_IFACE_INOUT)
-+		return -EINVAL;
-+
- 	/* MAC can be src only */
- 	if (!(opt->flags & IPSET_DIM_TWO_SRC))
- 		return 0;
-diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
-index 92722bb..615a6e3 100644
---- a/net/netfilter/ipset/ip_set_hash_ipport.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipport.c
-@@ -143,7 +143,8 @@ hash_ipport4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_ipport4_elem data = { };
- 
--	if (!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
-+	if ((opt->flags & IPSET_DIM_IFACE_INOUT) || /* in|out not allowed in this set type, only src|dst */
-+		!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
- 				 &data.port, &data.proto))
- 		return -EINVAL;
- 
-@@ -361,7 +362,8 @@ hash_ipport6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_ipport6_elem data = { };
- 
--	if (!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
-+	if ((opt->flags & IPSET_DIM_IFACE_INOUT) || /* in|out not allowed in this set type, only src|dst */
-+		!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
- 				 &data.port, &data.proto))
- 		return -EINVAL;
- 
-diff --git a/net/netfilter/ipset/ip_set_hash_ipportip.c b/net/netfilter/ipset/ip_set_hash_ipportip.c
-index 0637ce0..732fe63 100644
---- a/net/netfilter/ipset/ip_set_hash_ipportip.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipportip.c
-@@ -146,7 +146,8 @@ hash_ipportip4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_ipportip4_elem data = { };
- 
--	if (!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
-+	if ((opt->flags & IPSET_DIM_IFACE_INOUT) || /* in|out not allowed in this set type, only src|dst */
-+		!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
- 				 &data.port, &data.proto))
- 		return -EINVAL;
- 
-@@ -374,7 +375,8 @@ hash_ipportip6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	ipset_adtfn adtfn = set->variant->adt[adt];
- 	struct hash_ipportip6_elem data = { };
- 
--	if (!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
-+	if ((opt->flags & IPSET_DIM_IFACE_INOUT) || /* in|out not allowed in this set type, only src|dst */
-+		!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
- 				 &data.port, &data.proto))
- 		return -EINVAL;
- 
-diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-index 1ce21ca..4a01705 100644
---- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-@@ -192,7 +192,8 @@ hash_ipportnet4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	if (adt == IPSET_TEST)
- 		data.cidr = HOST_MASK - 1;
- 
--	if (!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
-+	if ((opt->flags & IPSET_DIM_IFACE_INOUT) || /* in|out not allowed in this set type, only src|dst */
-+		!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
- 				 &data.port, &data.proto))
- 		return -EINVAL;
- 
-@@ -503,7 +504,8 @@ hash_ipportnet6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	if (adt == IPSET_TEST)
- 		data.cidr = HOST_MASK - 1;
- 
--	if (!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
-+	if ((opt->flags & IPSET_DIM_IFACE_INOUT) || /* in|out not allowed in this set type, only src|dst */
-+		!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
- 				 &data.port, &data.proto))
- 		return -EINVAL;
- 
-diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ipset/ip_set_hash_netport.c
-index fc3143a..554a468 100644
---- a/net/netfilter/ipset/ip_set_hash_netport.c
-+++ b/net/netfilter/ipset/ip_set_hash_netport.c
-@@ -189,7 +189,8 @@ hash_netport4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	if (adt == IPSET_TEST)
- 		data.cidr = HOST_MASK - 1;
- 
--	if (!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
-+	if ((opt->flags & IPSET_DIM_IFACE_INOUT) || /* in|out not allowed in this set type, only src|dst */
-+		!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
- 				 &data.port, &data.proto))
- 		return -EINVAL;
- 
-@@ -467,7 +468,8 @@ hash_netport6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	if (adt == IPSET_TEST)
- 		data.cidr = HOST_MASK - 1;
- 
--	if (!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
-+	if ((opt->flags & IPSET_DIM_IFACE_INOUT) || /* in|out not allowed in this set type, only src|dst */
-+		!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
- 				 &data.port, &data.proto))
- 		return -EINVAL;
  
 -- 
 1.7.10.4
