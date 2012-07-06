@@ -1,53 +1,86 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 0/3] ipset: change 'iface' part in hash:net,iface set
-Date: Fri, 6 Jul 2012 10:35:05 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1207060947530.14535@blackhole.kfki.hu>
-References: <cover.1341525006.git.mr.dash.four@googlemail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Core Team <netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Mr Dash Four <mr.dash.four@googlemail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:34415 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751141Ab2GFJM3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Jul 2012 05:12:29 -0400
-In-Reply-To: <cover.1341525006.git.mr.dash.four@googlemail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: pablo@netfilter.org
+Subject: [PATCH 00/18] netfilter updates for net-next (upcoming 3.6), batch 5
+Date: Fri,  6 Jul 2012 13:16:50 +0200
+Message-ID: <1341573428-3204-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 5 Jul 2012, Mr Dash Four wrote:
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-> The following series of 3 patches included in this set allow 'in' or 
-> 'out' values to be specified for the 'iface' part of hash:net,iface set, 
-> corresponding to the incoming and outgoing interface accordingly, thus 
-> eliminating the discrepancy which, up until now, existed with the 'old' 
-> format and also reinforcing much-needed consistency with the rest of the 
-> netfilter/iptables terminology.
-> 
-> For backwards compatibility, the 'old' format, comprising of 'src' 
-> (incoming) and 'dst' (outgoing) direction parameter for the 'iface' part 
-> of hash:net,iface is also supported.
+Hi David,
 
-You have to introduce a new set type version whenever a new feature is 
-added: in your patches there is no protection against mixed cases, when 
-only the kernel or just the userspace is upgraded. Or one side is 
-downgraded for whatever reason.
+The following patchset includes Netfilter updates for your net-next tree,
+more specifically:
 
-You must handle the case of the list:set type: how should then the new 
-"in", "out" be interpreted? Or should those be rejected? But then it'd 
-mean that if someone used a hash:net,iface type as a member of list:set, 
-then he is forced to use "src", "dst" only.
+* Updates to clean-up the sysctl namespace support for nf_conntrack
+  from Gao Feng and a couple of patches from myself. After these, we
+  can prepare follow-up patches to reduce ifdef pollution regarding
+  sysctl support in nf_conntrack_proto_*.c files.
 
-It'd be much simpler to introduce the keywords as aliases, all over:
-"in" as "dst" and "out" as "src", and print them with hash:net,iface only.
+* Check for invalid flags set via NFQA_CFG_FLAGS in nfnetlink_queue
+  from Krishna Kumar.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+* Allow to obtain conntrack statistics via ctnetlink from mysqlf. This
+  supersedes /proc/net/stat/nf_conntrack and
+  /proc/sys/net/netfilter/nf_conntrack_count.
+
+* Don't crash if we send a message to nfnetlink and there is not defined
+  callback to handle such message. Instead, nfnetlink returns -EINVAL from
+  Tomasz Bursztyka. This one does not really fix anything now, that's
+  why I'm passing this via net-next.
+
+You can pull these changes from:
+
+git://1984.lsi.us.es/nf-next master
+
+Thanks!
+
+Gao feng (13):
+  netfilter: nf_conntrack: fix nf_conntrack_l3proto_register
+  netfilter: nf_conntrack: prepare l4proto->init_net cleanup
+  netfilter: nf_conntrack: add nf_ct_kfree_compat_sysctl_table
+  netfilter: nf_conntrack: use l4proto->users as refcount for per-net data
+  netfilter: nf_conntrack: fix memory leak if sysctl registration fails
+  netfilter: nf_ct_tcp: merge tcpv[4,6]_net_init into tcp_net_init
+  netfilter: nf_ct_udp: merge udpv[4,6]_net_init into udp_net_init
+  netfilter: nf_ct_udplite: add udplite_kmemdup_sysctl_table function
+  netfilter: nf_ct_sctp: merge sctpv[4,6]_net_init into sctp_net_init
+  netfilter: nf_ct_generic: add generic_kmemdup_sysctl_table function
+  netfilter: nf_ct_dccp: add dccp_kmemdup_sysctl_table function
+  netfilter: nf_ct_icmp: add icmp_kmemdup[_compat]_sysctl_table function
+  netfilter: nf_ct_icmpv6: add icmpv6_kmemdup_sysctl_table function
+
+Krishna Kumar (1):
+  netfilter: nfnetlink_queue: do not allow to set unsupported flag bits
+
+Pablo Neira Ayuso (3):
+  netfilter: ctnetlink: add new messages to obtain statistics
+  netfilter: nf_conntrack: generalize nf_ct_l4proto_net
+  netfilter: nf_ct_tcp: missing per-net support for cttimeout
+
+Tomasz Bursztyka (1):
+  netfilter: nfnetlink: check callbacks before using those in nfnetlink_rcv_msg
+
+ include/linux/netfilter/nfnetlink_conntrack.h  |   38 ++++
+ include/linux/netfilter/nfnetlink_queue.h      |    1 +
+ include/net/netfilter/nf_conntrack_l4proto.h   |   13 +-
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |   47 ++++-
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |   23 ++-
+ net/netfilter/nf_conntrack_netlink.c           |  227 +++++++++++++++++++++++-
+ net/netfilter/nf_conntrack_proto.c             |  139 ++++++++-------
+ net/netfilter/nf_conntrack_proto_dccp.c        |   56 +++---
+ net/netfilter/nf_conntrack_proto_generic.c     |   45 ++++-
+ net/netfilter/nf_conntrack_proto_gre.c         |    2 +-
+ net/netfilter/nf_conntrack_proto_sctp.c        |   65 +++----
+ net/netfilter/nf_conntrack_proto_tcp.c         |   74 +++-----
+ net/netfilter/nf_conntrack_proto_udp.c         |   66 +++----
+ net/netfilter/nf_conntrack_proto_udplite.c     |   43 +++--
+ net/netfilter/nfnetlink.c                      |    4 +-
+ net/netfilter/nfnetlink_queue_core.c           |    5 +
+ 16 files changed, 591 insertions(+), 257 deletions(-)
+
+-- 
+1.7.10
