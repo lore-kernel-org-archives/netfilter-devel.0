@@ -1,38 +1,46 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 0/3] ipset: change 'iface' part in hash:net,iface set
-Date: Sat, 7 Jul 2012 18:23:32 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1207071821560.17542@blackhole.kfki.hu>
-References: <cover.1341525006.git.mr.dash.four@googlemail.com> <alpine.DEB.2.00.1207060947530.14535@blackhole.kfki.hu> <4FF736FE.8030109@googlemail.com> <alpine.DEB.2.00.1207062138140.16055@blackhole.kfki.hu> <4FF74868.3070303@googlemail.com>
- <CAHo-OowHXH9f526QQc4Ln5_P_Osdm1Q_RrBkw83hSGj=oES5ww@mail.gmail.com> <4FF74D5C.6060909@googlemail.com> <alpine.DEB.2.00.1207062243080.16055@blackhole.kfki.hu> <4FF752F0.3010007@googlemail.com> <alpine.DEB.2.00.1207062319130.16055@blackhole.kfki.hu>
- <4FF765E7.6020809@googlemail.com> <alpine.DEB.2.00.1207071646130.17386@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Core Team <netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Mr Dash Four <mr.dash.four@googlemail.com>
+From: Josh Hunt <johunt@akamai.com>
+Subject: [PATCH 3/3] xtables: libxt_TARPIT: Enable IPv6 support
+Date: Sat,  7 Jul 2012 14:21:01 -0700
+Message-ID: <1341696061-21863-4-git-send-email-johunt@akamai.com>
+References: <1341696061-21863-1-git-send-email-johunt@akamai.com>
+Cc: Josh Hunt <johunt@akamai.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:54656 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751429Ab2GGQXf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 7 Jul 2012 12:23:35 -0400
-In-Reply-To: <alpine.DEB.2.00.1207071646130.17386@blackhole.kfki.hu>
+Received: from prod-mail-xrelay06.akamai.com ([96.6.114.98]:54398 "EHLO
+	prod-mail-xrelay06.akamai.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751010Ab2GGVVC (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 7 Jul 2012 17:21:02 -0400
+Received: from prod-mail-xrelay06.akamai.com (localhost.localdomain [127.0.0.1])
+	by postfix.imss70 (Postfix) with ESMTP id 9AAD6165494
+	for <netfilter-devel@vger.kernel.org>; Sat,  7 Jul 2012 21:21:01 +0000 (GMT)
+Received: from prod-mail-relay03.akamai.com (prod-mail-relay03.akamai.com [172.27.8.26])
+	by prod-mail-xrelay06.akamai.com (Postfix) with ESMTP id 8FB921653F6
+	for <netfilter-devel@vger.kernel.org>; Sat,  7 Jul 2012 21:21:01 +0000 (GMT)
+In-Reply-To: <1341696061-21863-1-git-send-email-johunt@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 7 Jul 2012, Jozsef Kadlecsik wrote:
+Enables userspace IPv6 tarpit support.
 
-> I wait for a better solution, which does not produce different results 
-> depending on the "in/out" or "src/dst" syntax, for all set types, 
-> including the list of sets.
+Signed-off-by: Josh Hunt <johunt@akamai.com>
+---
+ extensions/libxt_TARPIT.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-To make sure I'm not misunderstood, I have to add to the last sentence: 
-"...and where both syntax is accepted".
+diff --git a/extensions/libxt_TARPIT.c b/extensions/libxt_TARPIT.c
+index 59c190f..6b65b09 100644
+--- a/extensions/libxt_TARPIT.c
++++ b/extensions/libxt_TARPIT.c
+@@ -106,7 +106,7 @@ static void tarpit_tg_save(const void *ip,
+ static struct xtables_target tarpit_tg_reg = {
+ 	.version       = XTABLES_VERSION,
+ 	.name          = "TARPIT",
+-	.family        = NFPROTO_IPV4,
++	.family        = NFPROTO_UNSPEC,
+ 	.size          = XT_ALIGN(sizeof(struct xt_tarpit_tginfo)),
+ 	.userspacesize = XT_ALIGN(sizeof(struct xt_tarpit_tginfo)),
+ 	.help          = tarpit_tg_help,
+-- 
+1.7.0.4
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
