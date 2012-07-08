@@ -1,45 +1,39 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
 Subject: Re: [PATCH 0/3] ipset: change 'iface' part in hash:net,iface set
-Date: Sun, 8 Jul 2012 21:07:10 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1207082104290.19776@blackhole.kfki.hu>
-References: <cover.1341525006.git.mr.dash.four@googlemail.com> <alpine.DEB.2.00.1207060947530.14535@blackhole.kfki.hu> <4FF736FE.8030109@googlemail.com> <alpine.DEB.2.00.1207062138140.16055@blackhole.kfki.hu> <4FF74868.3070303@googlemail.com>
- <CAHo-OowHXH9f526QQc4Ln5_P_Osdm1Q_RrBkw83hSGj=oES5ww@mail.gmail.com> <4FF74D5C.6060909@googlemail.com> <alpine.DEB.2.00.1207062243080.16055@blackhole.kfki.hu> <4FF752F0.3010007@googlemail.com> <alpine.DEB.2.00.1207062319130.16055@blackhole.kfki.hu>
- <4FF765E7.6020809@googlemail.com> <alpine.DEB.2.00.1207071646130.17386@blackhole.kfki.hu> <alpine.DEB.2.00.1207071821560.17542@blackhole.kfki.hu> <4FF9852C.7080201@googlemail.com> <alpine.DEB.2.00.1207082051150.19776@blackhole.kfki.hu>
- <4FF9D97D.7040309@googlemail.com>
+Date: Sun, 08 Jul 2012 20:11:02 +0100
+Message-ID: <4FF9DB46.5000302@googlemail.com>
+References: <cover.1341525006.git.mr.dash.four@googlemail.com> <alpine.DEB.2.00.1207060947530.14535@blackhole.kfki.hu> <4FF736FE.8030109@googlemail.com> <alpine.DEB.2.00.1207062138140.16055@blackhole.kfki.hu> <4FF74868.3070303@googlemail.com> <CAHo-OowHXH9f526QQc4Ln5_P_Osdm1Q_RrBkw83hSGj=oES5ww@mail.gmail.com> <4FF74D5C.6060909@googlemail.com> <alpine.DEB.2.00.1207062243080.16055@blackhole.kfki.hu> <4FF752F0.3010007@googlemail.com> <alpine.DEB.2.00.1207062319130.16055@blackhole.kfki.hu> <4FF765E7.6020809@googlemail.com> <alpine.DEB.2.00.1207071646130.17386@blackhole.kfki.hu> <alpine.DEB.2.00.1207071821560.17542@blackhole.kfki.hu> <4FF9852C.7080201@googlemail.com> <alpine.DEB.2.00.1207082051150.19776@blackhole.kfki.hu> <4FF9D97D.7040309@googlemail.com> <alpine.DEB.2.00.1207082104290.19776@b
+ lackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Core Team <netfilter-devel@vger.kernel.org>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>
-To: Mr Dash Four <mr.dash.four@googlemail.com>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:54769 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751916Ab2GHTHM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 8 Jul 2012 15:07:12 -0400
-In-Reply-To: <4FF9D97D.7040309@googlemail.com>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:33258 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751893Ab2GHTLM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 8 Jul 2012 15:11:12 -0400
+Received: by wgbdr13 with SMTP id dr13so10783813wgb.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 08 Jul 2012 12:11:11 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1207082104290.19776@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, 8 Jul 2012, Mr Dash Four wrote:
 
-> > I repeat it as many times it's required. The rules
-> > 
-> > iptables -A INPUT -m set --match-set list1 src,src -j ACCEPT
-> > iptables -A INPUT -m set --match-set list1 src,in -j ACCEPT
-> > 
-> > would produce different results and that's unacceptable.
-> >   
-> Why not?
+> Because that's too subtle, error prone and hard to catch if not used 
+> really intentionally.
+If I use 'src,dst' instead of 'src,src' would you consider this "error 
+prone", "hard to catch" or not?
 
-Because that's too subtle, error prone and hard to catch if not used 
-really intentionally. Because that's illogical. Because there are a couple 
-of ways to avoid it.
+>  Because that's illogical.
+Please explain - what do you see as "illogical"?
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+>  Because there are a couple 
+> of ways to avoid it.
+>   
+Avoid what exactly? Using 'in' or 'out' in list:set types?
+
