@@ -1,148 +1,50 @@
-From: Josh Hunt <johunt@akamai.com>
-Subject: [PATCH v2 2/6] netfilter: tarpit: Move XTTARPIT_HONEYPOT mode into its own function
-Date: Sun,  8 Jul 2012 11:11:21 -0700
-Message-ID: <1341771085-5771-3-git-send-email-johunt@akamai.com>
-References: <1341771085-5771-1-git-send-email-johunt@akamai.com>
-Cc: Josh Hunt <johunt@akamai.com>
-To: jengelh@inai.de, netfilter-devel@vger.kernel.org
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 0/3] ipset: change 'iface' part in hash:net,iface set
+Date: Sun, 8 Jul 2012 20:55:32 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1207082051150.19776@blackhole.kfki.hu>
+References: <cover.1341525006.git.mr.dash.four@googlemail.com> <alpine.DEB.2.00.1207060947530.14535@blackhole.kfki.hu> <4FF736FE.8030109@googlemail.com> <alpine.DEB.2.00.1207062138140.16055@blackhole.kfki.hu> <4FF74868.3070303@googlemail.com>
+ <CAHo-OowHXH9f526QQc4Ln5_P_Osdm1Q_RrBkw83hSGj=oES5ww@mail.gmail.com> <4FF74D5C.6060909@googlemail.com> <alpine.DEB.2.00.1207062243080.16055@blackhole.kfki.hu> <4FF752F0.3010007@googlemail.com> <alpine.DEB.2.00.1207062319130.16055@blackhole.kfki.hu>
+ <4FF765E7.6020809@googlemail.com> <alpine.DEB.2.00.1207071646130.17386@blackhole.kfki.hu> <alpine.DEB.2.00.1207071821560.17542@blackhole.kfki.hu> <4FF9852C.7080201@googlemail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Core Team <netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Mr Dash Four <mr.dash.four@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from prod-mail-xrelay06.akamai.com ([96.6.114.98]:41155 "EHLO
-	prod-mail-xrelay06.akamai.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751618Ab2GHSL0 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 8 Jul 2012 14:11:26 -0400
-In-Reply-To: <1341771085-5771-1-git-send-email-johunt@akamai.com>
+Received: from smtp-in.kfki.hu ([148.6.0.28]:57002 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751980Ab2GHSzf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 8 Jul 2012 14:55:35 -0400
+In-Reply-To: <4FF9852C.7080201@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Moves XTTARPIT_HONEYPOT into its own function.
+On Sun, 8 Jul 2012, Mr Dash Four wrote:
 
-Signed-off-by: Josh Hunt <johunt@akamai.com>
----
- extensions/xt_TARPIT.c |  102 ++++++++++++++++++++++++++---------------------
- 1 files changed, 56 insertions(+), 46 deletions(-)
+> > > I wait for a better solution, which does not produce different results
+> > > depending on the "in/out" or "src/dst" syntax, for all set types,
+> > > including the list of sets.
+> > 
+> > To make sure I'm not misunderstood, I have to add to the last sentence:
+> > "...and where both syntax is accepted".
+> >   
+> If you know of a case where 'in' or 'out' direction parameters "are accepted"
+> and produce "different results" (by "different results" I mean different from
+> their own definition - match on incoming/outgoing interfaces only), then, by
+> all means, let me know.
 
-diff --git a/extensions/xt_TARPIT.c b/extensions/xt_TARPIT.c
-index 3cb61ac..6c75184 100644
---- a/extensions/xt_TARPIT.c
-+++ b/extensions/xt_TARPIT.c
-@@ -78,6 +78,61 @@ static bool xttarpit_tarpit(struct tcphdr *oth, struct tcphdr *tcph) {
- 	return true;
- }
- 
-+static bool xttarpit_honeypot(struct tcphdr *oth, struct tcphdr *tcph,
-+	uint16_t payload)
-+{
-+
-+	/* Do not answer any resets regardless of combination */
-+	if (oth->rst || oth->seq == 0xDEADBEEF)
-+		return false;
-+	/* Send a reset to scanners. They like that. */
-+	if (oth->syn && oth->ack) {
-+		tcph->window  = 0;
-+		tcph->ack     = false;
-+		tcph->psh     = true;
-+		tcph->ack_seq = 0xdeadbeef; /* see if they ack it */
-+		tcph->seq     = oth->ack_seq;
-+		tcph->rst     = true;
-+	}
-+
-+	/* SYN > SYN-ACK */
-+	if (oth->syn && !oth->ack) {
-+		tcph->syn     = true;
-+		tcph->ack     = true;
-+		tcph->window  = oth->window &
-+			((net_random() & 0x1f) - 0xf);
-+		tcph->seq     = htonl(net_random() & ~oth->seq);
-+		tcph->ack_seq = htonl(ntohl(oth->seq) + oth->syn);
-+	}
-+
-+	/* ACK > ACK */
-+	if (oth->ack && (!(oth->fin || oth->syn))) {
-+		tcph->syn     = false;
-+		tcph->ack     = true;
-+		tcph->window  = oth->window &
-+			((net_random() & 0x1f) - 0xf);
-+		tcph->ack_seq = payload > 100 ?
-+			htonl(ntohl(oth->seq) + payload) :
-+			oth->seq;
-+		tcph->seq     = oth->ack_seq;
-+	}
-+
-+	/*
-+	* FIN > RST.
-+	* We cannot terminate gracefully so just be abrupt.
-+	*/
-+	if (oth->fin) {
-+		tcph->window  = 0;
-+		tcph->seq     = oth->ack_seq;
-+		tcph->ack_seq = oth->ack_seq;
-+		tcph->fin     = false;
-+		tcph->ack     = false;
-+		tcph->rst     = true;
-+	}
-+
-+	return true;
-+}
-+
- static void tarpit_tcp(struct sk_buff *oldskb, unsigned int hook,
-     unsigned int mode)
- {
-@@ -147,53 +202,8 @@ static void tarpit_tcp(struct sk_buff *oldskb, unsigned int hook,
- 		if (!xttarpit_tarpit(oth, tcph))
- 			return;
- 	} else if (mode == XTTARPIT_HONEYPOT) {
--		/* Do not answer any resets regardless of combination */
--		if (oth->rst || oth->seq == 0xDEADBEEF)
-+		if (!xttarpit_honeypot(oth, tcph, payload))
- 			return;
--		/* Send a reset to scanners. They like that. */
--		if (oth->syn && oth->ack) {
--			tcph->window  = 0;
--			tcph->ack     = false;
--			tcph->psh     = true;
--			tcph->ack_seq = 0xdeadbeef; /* see if they ack it */
--			tcph->seq     = oth->ack_seq;
--			tcph->rst     = true;
--		}
--
--		/* SYN > SYN-ACK */
--		if (oth->syn && !oth->ack) {
--			tcph->syn     = true;
--			tcph->ack     = true;
--			tcph->window  = oth->window &
--			                ((net_random() & 0x1f) - 0xf);
--			tcph->seq     = htonl(net_random() & ~oth->seq);
--			tcph->ack_seq = htonl(ntohl(oth->seq) + oth->syn);
--		}
--
--		/* ACK > ACK */
--		if (oth->ack && (!(oth->fin || oth->syn))) {
--			tcph->syn     = false;
--			tcph->ack     = true;
--			tcph->window  = oth->window &
--			                ((net_random() & 0x1f) - 0xf);
--			tcph->ack_seq = payload > 100 ?
--			                htonl(ntohl(oth->seq) + payload) :
--			                oth->seq;
--			tcph->seq     = oth->ack_seq;
--		}
--
--		/*
--		 * FIN > RST.
--		 * We cannot terminate gracefully so just be abrupt.
--		 */
--		if (oth->fin) {
--			tcph->window  = 0;
--			tcph->seq     = oth->ack_seq;
--			tcph->ack_seq = oth->ack_seq;
--			tcph->fin     = false;
--			tcph->ack     = false;
--			tcph->rst     = true;
--		}
- 	} else if (mode == XTTARPIT_RESET) {
- 		tcph->window  = 0;
- 		tcph->ack     = false;
--- 
-1.7.0.4
+I repeat it as many times it's required. The rules
 
+iptables -A INPUT -m set --match-set list1 src,src -j ACCEPT
+iptables -A INPUT -m set --match-set list1 src,in -j ACCEPT
+
+would produce different results and that's unacceptable.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
