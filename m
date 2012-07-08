@@ -1,45 +1,72 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/18] netfilter updates for net-next (upcoming 3.6),
- batch 5
-Date: Sat, 07 Jul 2012 16:23:25 -0700 (PDT)
-Message-ID: <20120707.162325.1303254492632445927.davem@davemloft.net>
-References: <1341573428-3204-1-git-send-email-pablo@netfilter.org>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH 1/3] xtables: tarpit: Make tarpit code generic
+Date: Sun, 8 Jul 2012 14:58:21 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1207081448340.29827@frira.zrqbmnf.qr>
+References: <1341696061-21863-1-git-send-email-johunt@akamai.com> <1341696061-21863-2-git-send-email-johunt@akamai.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1341573428-3204-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Josh Hunt <johunt@akamai.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from seven.medozas.de ([5.9.24.206]:55811 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750798Ab2GHM6X (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 8 Jul 2012 08:58:23 -0400
+In-Reply-To: <1341696061-21863-2-git-send-email-johunt@akamai.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: pablo@netfilter.org
-Date: Fri,  6 Jul 2012 13:16:50 +0200
 
-> The following patchset includes Netfilter updates for your net-next tree,
-> more specifically:
-> 
-> * Updates to clean-up the sysctl namespace support for nf_conntrack
->   from Gao Feng and a couple of patches from myself. After these, we
->   can prepare follow-up patches to reduce ifdef pollution regarding
->   sysctl support in nf_conntrack_proto_*.c files.
-> 
-> * Check for invalid flags set via NFQA_CFG_FLAGS in nfnetlink_queue
->   from Krishna Kumar.
-> 
-> * Allow to obtain conntrack statistics via ctnetlink from mysqlf. This
->   supersedes /proc/net/stat/nf_conntrack and
->   /proc/sys/net/netfilter/nf_conntrack_count.
-> 
-> * Don't crash if we send a message to nfnetlink and there is not defined
->   callback to handle such message. Instead, nfnetlink returns -EINVAL from
->   Tomasz Bursztyka. This one does not really fix anything now, that's
->   why I'm passing this via net-next.
-> 
-> You can pull these changes from:
-> 
-> git://1984.lsi.us.es/nf-next master
-> 
+On Saturday 2012-07-07 23:20, Josh Hunt wrote:
 
-Pulled, thanks Pablo.
+>Moves TCP header manipulation into a separate function to allow code-sharing for
+>IPv6 support.
+
+Hi Josh,
+
+
+in your patch, you seem to oversee that the tarpit_generic block that
+you are moving into a new function had "return;"s to exit from
+the tarpit_tcp function. With your change,
+
+>+	niph->tot_len = htons(nskb->len);
+>+	tcph->urg_ptr = 0;
+>+	/* Reset flags */
+>+	((u_int8_t *)tcph)[13] = 0;
+>+
+>+	tarpit_generic(oth, tcph, payload, mode);
+> 
+> 	/* Adjust TCP checksum */
+> 	tcph->check = 0;
+
+The checksum code (and what follows) it will be executed in all cases,
+even though TCP RST are supposed not to get any reply per the comment.
+
+tarpit_generic would have to return a bool value propagating this
+exit style. In other words,
+
+
+static bool tarpit_generic
+{
+	if (mode == XTTARPIT_TARPIT)
+		/* No replies for RST, FIN , ... */
+		if (oth->rst ...)
+			return false;
+	}
+	...
+	return true;
+}
+
+static void tarpit_tcp
+{
+	...
+	if (!tarpit_generic())
+		return;
+	tcph->check = 0;
+	...
+}
+
+It would also be appreciated if you could move each case
+(XTTARPIT_{TARPIT,HONEYPOT,RESET}) into their own functions in three
+patches added to the front of the set.
+(Reduces indent and makes the diffs simpler.)
