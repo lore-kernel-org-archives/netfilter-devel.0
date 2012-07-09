@@ -1,57 +1,33 @@
-From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Subject: Re: [PATCH v2 5/6] netfilter: tarpit: Add IPv6 support
-Date: Mon, 9 Jul 2012 13:22:25 -0700
-Message-ID: <CAHo-OoxAFPmriPChrzqVOELi4JgNrwu7PfhHcV31e6s-RgGRZw@mail.gmail.com>
-References: <1341771085-5771-1-git-send-email-johunt@akamai.com>
-	<1341771085-5771-6-git-send-email-johunt@akamai.com>
-	<alpine.LNX.2.01.1207082125590.11837@frira.zrqbmnf.qr>
-	<4FFAE45D.6070603@akamai.com>
-	<alpine.LNX.2.01.1207091855540.1876@frira.zrqbmnf.qr>
-	<4FFB14B4.6040801@akamai.com>
-	<alpine.LNX.2.01.1207092016370.5417@frira.zrqbmnf.qr>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
+Subject: Re: [PATCH 0/3] ipset: change 'iface' part in hash:net,iface set
+Date: Mon, 09 Jul 2012 23:05:08 +0100
+Message-ID: <4FFB5594.9040700@googlemail.com>
+References: <cover.1341525006.git.mr.dash.four@googlemail.com> <4FF74868.3070303@googlemail.com> <CAHo-OowHXH9f526QQc4Ln5_P_Osdm1Q_RrBkw83hSGj=oES5ww@mail.gmail.com> <4FF74D5C.6060909@googlemail.com> <alpine.DEB.2.00.1207062243080.16055@blackhole.kfki.hu> <4FF752F0.3010007@googlemail.com> <alpine.DEB.2.00.1207062319130.16055@blackhole.kfki.hu> <4FF765E7.6020809@googlemail.com> <alpine.DEB.2.00.1207071646130.17386@blackhole.kfki.hu> <alpine.DEB.2.00.1207071821560.17542@blackhole.kfki.hu> <4FF9852C.7080201@googlemail.com> <alpine.DEB.2.00.1207082051150.19776@blackhole.kfki.hu> <4FF9D97D.7040309@googlemail.com> <alpine.DEB.2.00.1207082104290.19776@blackhole.kfki.hu> <4FF9DB46.5000302@googlemail.com> <alpine.DEB.2.00.1207082225250.20080@blackhole.kfki.hu> <4FFA056C.8000709@googlemail.com> <alp
+ ine.DEB.2.00.1207090014450.20627@blackhole.k fki.hu> <4FFA08CE.1090406@googlemail.com> <alpine.DEB.2.00.1207090035050.20788@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Josh Hunt <johunt@akamai.com>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@inai.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Core Team <netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:36133 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753073Ab2GIUWZ (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:44090 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752499Ab2GIWFL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Jul 2012 16:22:25 -0400
-Received: by obbuo13 with SMTP id uo13so21030066obb.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 09 Jul 2012 13:22:25 -0700 (PDT)
-In-Reply-To: <alpine.LNX.2.01.1207092016370.5417@frira.zrqbmnf.qr>
+	Mon, 9 Jul 2012 18:05:11 -0400
+Received: by wgbdr13 with SMTP id dr13so11845738wgb.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 09 Jul 2012 15:05:10 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1207090035050.20788@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We want this ;-)
-
-On Mon, Jul 9, 2012 at 11:46 AM, Jan Engelhardt <jengelh@inai.de> wrote:
->
-> On Monday 2012-07-09 19:28, Josh Hunt wrote:
->>> I held it off; this is now all merged.
->>
->> Awesome, thanks!
->>
->> I know this just got accepted to xtables-addons, but I was wondering what the
->> process is to possibly get this merged into Linus' tree?
->
-> You send the files that are in xtables-addons to whoever is taking care
-> of the Linux kernel business (currently that seems to be Pablo), of course
-> in a form that is acceptable for the Linux kernel (i.e. minus xtables-addons
-> lines).
->
->>I know I've seen some things go from xtables-addons to his tree,
->>xt_TEE comes to mind. Is tarpitting (the concept) something that
->>would be accepted?
->
-> It certainly seems well-desired by $users. And normally, inclusion
-> is to follow demand (that's how squashfs got in, IIRC). Expect
-> to defend your case when making it upstream. Solicit more "we want
-> this opinions" :)
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> In other words:
+>> 1. For hash:net,iface the possible options should be 'in', 'out', 'src' and
+>> 'dst'; and
+>> 2. For all other sets, including list:set the only available options should be
+>> 'src' and 'dst'. Have I understood this correctly then?
+> 
+> Yes, that looks OK.
+I'll submit an alternative version of the patches soon, with the above restrictions applied to see if that makes you happy.
