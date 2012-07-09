@@ -1,73 +1,51 @@
 From: Josh Hunt <johunt@akamai.com>
-Subject: [PATCH] TARPIT: Fix build problem with newer kernels
-Date: Mon,  9 Jul 2012 07:00:02 -0700
-Message-ID: <1341842402-25128-1-git-send-email-johunt@akamai.com>
-Cc: Josh Hunt <johunt@akamai.com>
-To: jengelh@inai.de, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v2 5/6] netfilter: tarpit: Add IPv6 support
+Date: Mon, 09 Jul 2012 09:02:05 -0500
+Message-ID: <4FFAE45D.6070603@akamai.com>
+References: <1341771085-5771-1-git-send-email-johunt@akamai.com> <1341771085-5771-6-git-send-email-johunt@akamai.com> <alpine.LNX.2.01.1207082125590.11837@frira.zrqbmnf.qr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from prod-mail-xrelay05.akamai.com ([96.6.114.97]:40747 "EHLO
-	prod-mail-xrelay05.akamai.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753527Ab2GIOAD (ORCPT
+Received: from prod-mail-xrelay06.akamai.com ([96.6.114.98]:47174 "EHLO
+	prod-mail-xrelay06.akamai.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753369Ab2GIOCI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Jul 2012 10:00:03 -0400
+	Mon, 9 Jul 2012 10:02:08 -0400
+In-Reply-To: <alpine.LNX.2.01.1207082125590.11837@frira.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Adds fragment offset arg to ipv6_skip_exthdr() and also removes usage
-of ipv6_addr_copy() in favor or direct assignment.
+On 07/08/2012 02:36 PM, Jan Engelhardt wrote:
+> On Sunday 2012-07-08 20:11, Josh Hunt wrote:
+>
+>> This adds IPv6 support for the tarpit target. It performs the same
+>> functionality as the v4 version, but with IPv6 connections.
+>
+> I have applied the rest so far; see the "tarpit6" branch of the git
+> repository,
+>
+> I have applied the rest so far, with minor modifications regarding
+> style. See the "tarpit6" branch of the git repository.
+>
+> This patch 5 does not compile for Linuxes >= v3.3 due to new arguments
+> to ipv6_skip_exthdr and the removal of ipv6_addr_copy. Please send an
+> additional patch on top to make it work with Linux 3.5(-rc). There will
+> be no need to add #ifdefs for 3.3ish, because compat_xtables* already
+> takes care of that mostly.
+>
+>
+Jan
 
-Signed-off-by: Josh Hunt <johunt@akamai.com>
----
- extensions/xt_TARPIT.c |   12 +++++++-----
- 1 files changed, 7 insertions(+), 5 deletions(-)
+I just sent a patch doing what you've requested above against the 
+tarpit6 branch, and it builds fine now with Linus' latest git. However, 
+I did not see the compat layer stuff to keep me from neededing #ifdefs. 
+Perhaps I wasn't looking in the right spot.
 
-diff --git a/extensions/xt_TARPIT.c b/extensions/xt_TARPIT.c
-index cdd0f5a..ac69364 100644
---- a/extensions/xt_TARPIT.c
-+++ b/extensions/xt_TARPIT.c
-@@ -310,10 +310,11 @@ static void tarpit_tcp6(struct sk_buff *oldskb, unsigned int hook,
- 	const uint8_t tclass = 0;
- 	uint8_t proto;
- 	uint16_t payload;
-+	__be16 frag_off;
- 
- 	proto   = oip6h->nexthdr;
- 	tcphoff = ipv6_skip_exthdr(oldskb,
--	          (uint8_t *)(oip6h + 1) - oldskb->data, &proto);
-+	          (uint8_t *)(oip6h + 1) - oldskb->data, &proto, &frag_off);
- 
- 	if (tcphoff < 0 || tcphoff > oldskb->len) {
- 		pr_debug("Cannot get TCP header.\n");
-@@ -365,8 +366,8 @@ static void tarpit_tcp6(struct sk_buff *oldskb, unsigned int hook,
- 	ip6h = ipv6_hdr(nskb);
- 	*(__be32 *)ip6h =  htonl(0x60000000 | (tclass << 20));
- 	ip6h->nexthdr = IPPROTO_TCP;
--	ipv6_addr_copy(&ip6h->saddr, &oip6h->daddr);
--	ipv6_addr_copy(&ip6h->daddr, &oip6h->saddr);
-+	ip6h->saddr = oip6h->daddr;
-+	ip6h->daddr = oip6h->saddr;
- 
- 	/* Adjust IP TTL */
- 	if (mode == XTTARPIT_HONEYPOT)
-@@ -464,6 +465,7 @@ tarpit_tg6(struct sk_buff **pskb, const struct xt_action_param *par)
- 	const struct rt6_info *rt = (struct rt6_info *)skb_dst(skb);
- 	const struct xt_tarpit_tginfo *info = par->targinfo;
- 	uint8_t proto;
-+	__be16 frag_off;
- 
- 	/* Do we have an input route cache entry? (Not in PREROUTING.) */
- 	if (rt == NULL) {
-@@ -483,8 +485,8 @@ tarpit_tg6(struct sk_buff **pskb, const struct xt_action_param *par)
- 	 * options, and probably should not try.
- 	 */
- 	proto = iph->nexthdr;
--	if (ipv6_skip_exthdr(skb, skb_network_header_len(skb), &proto) !=
--	    sizeof(struct ipv6hdr))
-+	if (ipv6_skip_exthdr(skb, skb_network_header_len(skb), &proto,
-+	    &frag_off) != sizeof(struct ipv6hdr))
- 		return NF_DROP;
- 
- 	if ((!(ipv6_addr_type(&iph->saddr) & IPV6_ADDR_UNICAST)) ||
--- 
-1.7.0.4
+Also, please let me know if there are any issues with the libxt patch. I 
+did not see it in the tarpit6 branch.
+
+Josh
 
