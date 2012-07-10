@@ -1,403 +1,60 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH v2 1/3] iptables: change 'iface' part in hash:net,iface
- set
-Date: Tue, 10 Jul 2012 17:54:05 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1207101735540.24998@blackhole.kfki.hu>
-References: <cover.1341871199.git.mr.dash.four@googlemail.com> <09f86300bb1913aa4c6063618fbbcd84fac2e608.1341871200.git.mr.dash.four@googlemail.com>
+From: Alex Bligh <alex@alex.org.uk>
+Subject: Re: [ANNOUNCE] ipset 6.13 released
+Date: Tue, 10 Jul 2012 17:27:59 +0100
+Message-ID: <E33FE2CD2A549167CCF7D2E9@Ximines.local>
+References: <alpine.DEB.2.00.1206292201340.29738@blackhole.kfki.hu>
+ <4FF02A93.8080603@googlemail.com>
+ <alpine.DEB.2.00.1207011405160.2289@blackhole.kfki.hu>
+ <4FF04038.4080306@googlemail.com>
+ <alpine.DEB.2.00.1207011434010.2486@blackhole.kfki.hu>
+ <4FF04647.7060807@googlemail.com>
+ <alpine.DEB.2.00.1207011446260.2486@blackhole.kfki.hu>
+ <4FF04DDA.3020609@googlemail.com>
+ <alpine.DEB.2.00.1207011646110.2749@blackhole.kfki.hu>
+ <f1ffdaf291ae86a1e111d3edbae4cfa3@treenet.co.nz>
+ <alpine.DEB.2.00.1207020916030.4335@blackhole.kfki.hu>
+Reply-To: Alex Bligh <alex@alex.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Core Team <netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Mr Dash Four <mr.dash.four@googlemail.com>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Mr Dash Four <mr.dash.four@googlemail.com>,
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>,
+	Alex Bligh <alex@alex.org.uk>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Amos Jeffries <squid3@treenet.co.nz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:59521 "EHLO smtp2.kfki.hu"
+Received: from mail.avalus.com ([89.16.176.221]:50185 "EHLO mail.avalus.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752455Ab2GJPyI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Jul 2012 11:54:08 -0400
-In-Reply-To: <09f86300bb1913aa4c6063618fbbcd84fac2e608.1341871200.git.mr.dash.four@googlemail.com>
+	id S1754057Ab2GJQeU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Jul 2012 12:34:20 -0400
+In-Reply-To: <alpine.DEB.2.00.1207020916030.4335@blackhole.kfki.hu>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 9 Jul 2012, Mr Dash Four wrote:
 
-> Userspace changes to iptables, allowing 'in' and 'out' values to be
-> specified for the 'iface' part of hash:net,iface type sets only.
-> 
-> Man pages updated accordingly. This patch also makes some minor
-> corrections to the syntax of some console messages produced by
-> the set match and SET target.
-> 
-> Signed-off-by: Mr Dash Four <mr.dash.four@googlemail.com>
-> ---
->  extensions/libxt_SET.c                 |    9 +++--
->  extensions/libxt_SET.man               |   23 +++++++------
->  extensions/libxt_set.c                 |   15 ++++++---
->  extensions/libxt_set.h                 |   58 +++++++++++++++++++++++++++++---
->  extensions/libxt_set.man               |   20 +++++------
->  include/linux/netfilter/ipset/ip_set.h |   32 ++++++++++++++++++
->  6 files changed, 123 insertions(+), 34 deletions(-)
-> 
-> diff --git a/extensions/libxt_SET.c b/extensions/libxt_SET.c
-> index a11db39..967d905 100644
-> --- a/extensions/libxt_SET.c
-> +++ b/extensions/libxt_SET.c
-> @@ -176,7 +176,7 @@ parse_target(char **argv, int invert, struct xt_set_info *info,
->  			      "setname `%s' too long, max %d characters.",
->  			      optarg, IPSET_MAXNAMELEN - 1);
->  
-> -	get_set_byname(optarg, info);
-> +	get_set_byname_with_features(optarg, info);
->  	parse_dirs(argv[optind], info);
->  	optind++;
->  }
-> @@ -206,15 +206,20 @@ print_target(const char *prefix, const struct xt_set_info *info)
->  {
->  	int i;
->  	char setname[IPSET_MAXNAMELEN];
-> +	char *ptr;
->  
->  	if (info->index == IPSET_INVALID_ID)
->  		return;
->  	get_set_byid(setname, info->index);
->  	printf(" %s %s", prefix, setname);
->  	for (i = 1; i <= info->dim; i++) {
-> +		if ((info->flags & IPSET_DIM_IFACE_INOUT) && i == IPSET_DIM_TWO)
-> +			ptr = (info->flags & (1 << i) ? "in" : "out");
-> +		else
-> +			ptr = (info->flags & (1 << i) ? "src" : "dst");
->  		printf("%s%s",
->  		       i == 1 ? " " : ",",
-> -		       info->flags & (1 << i) ? "src" : "dst");
-> +			ptr);
->  	}
->  }
 
-Introduce a new, revision 3 target with its own parse, print functions.
-Don't forget to add it to the kernel part.
-  
-> diff --git a/extensions/libxt_SET.man b/extensions/libxt_SET.man
-> index 63eb383..747235f 100644
-> --- a/extensions/libxt_SET.man
-> +++ b/extensions/libxt_SET.man
-> @@ -1,25 +1,26 @@
-> -This modules adds and/or deletes entries from IP sets which can be defined 
-> +This module adds and/or deletes entries from IP sets which can be defined 
->  by ipset(8).
->  .TP
->  \fB\-\-add\-set\fP \fIsetname\fP \fIflag\fP[\fB,\fP\fIflag\fP...]
-> -add the address(es)/port(s) of the packet to the sets
-> +add the address(es)/port(s) of the packet to the set
->  .TP
->  \fB\-\-del\-set\fP \fIsetname\fP \fIflag\fP[\fB,\fP\fIflag\fP...]
-> -delete the address(es)/port(s) of the packet from the sets
-> +delete the address(es)/port(s) of the packet from the set
->  .IP
-> -where flags are
-> +where 'flag' above is comma separated list of
->  .BR "src"
->  and/or
->  .BR "dst"
-> -specifications and there can be no more than six of them.
-> +with the exception of hash:ip,iface where in addition to the above flags, the following is also allowed for the 'iface' part of that set:
+--On 2 July 2012 09:54:20 +0200 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> 
+wrote:
 
-Too long line, please break these up.
+> - my view follows how the subsytem sees the interfaces
+>
+>                              ------------------
+>   pkt comes in --- interface | ipset subsytem | interface --- pkt goes out
+>                            ^ ------------------ ^
+>                        source               destination
 
-> +.BR "in"
-> +or
-> +.BR "out" 
-> +corresponding to the incoming or outgoing network interface. The above flags cannot exceed six in total for a given set.
->  .TP
->  \fB\-\-timeout\fP \fIvalue\fP
-> -when adding entry, the timeout value to use instead of the default
-> -one from the set definition
-> +when adding an entry, the timeout value to use instead of the default one from the set definition.
->  .TP
->  \fB\-\-exist\fP
-> -when adding entry if it already exists, reset the timeout value
-> -to the specified one or to the default from the set definition
-> +when adding an entry, if such entry already exists, reset the timeout value to the specified one or to the default from the set definition.
->  .PP
-> -Use of -j SET requires that ipset kernel support is provided, which, for
-> -standard kernels, is the case since Linux 2.6.39.
-> +Use of -j SET requires that ipset kernel support is provided, which, for standard kernels, is the case since Linux 2.6.39.
-> diff --git a/extensions/libxt_set.c b/extensions/libxt_set.c
-> index 77e3f07..dfc311a 100644
-> --- a/extensions/libxt_set.c
-> +++ b/extensions/libxt_set.c
-> @@ -60,7 +60,7 @@ set_parse_v0(int c, char **argv, int invert, unsigned int *flags,
->  	case '2':
->  		fprintf(stderr,
->  			"--set option deprecated, please use --match-set\n");
-> -	case '1':		/* --match-set <set> <flag>[,<flag> */
-> +	case '1':		/* --match-set <set> <flag>[,<flag>] */
->  		if (info->u.flags[0])
->  			xtables_error(PARAMETER_PROBLEM,
->  				      "--match-set can be specified only once");
-> @@ -140,7 +140,7 @@ set_parse_v1(int c, char **argv, int invert, unsigned int *flags,
->  	case '2':
->  		fprintf(stderr,
->  			"--set option deprecated, please use --match-set\n");
-> -	case '1':		/* --match-set <set> <flag>[,<flag> */
-> +	case '1':		/* --match-set <set> <flag>[,<flag>] */
->  		if (info->dim)
->  			xtables_error(PARAMETER_PROBLEM,
->  				      "--match-set can be specified only once");
-> @@ -158,9 +158,9 @@ set_parse_v1(int c, char **argv, int invert, unsigned int *flags,
->  				      "setname `%s' too long, max %d characters.",
->  				      optarg, IPSET_MAXNAMELEN - 1);
->  
-> -		get_set_byname(optarg, info);
-> +		get_set_byname_with_features(optarg, info);
->  		parse_dirs(argv[optind], info);
-> -		DEBUGP("parse: set index %u\n", info->index);
-> +		DEBUGP("parse: set index %u, set flags %u\n", info->index, info->flags);
->  		optind++;
->  		
->  		*flags = 1;
-> @@ -175,6 +175,7 @@ print_match(const char *prefix, const struct xt_set_info *info)
->  {
->  	int i;
->  	char setname[IPSET_MAXNAMELEN];
-> +	char *ptr;
->  
->  	get_set_byid(setname, info->index);
->  	printf("%s %s %s",
-> @@ -182,9 +183,13 @@ print_match(const char *prefix, const struct xt_set_info *info)
->  	       prefix,
->  	       setname); 
->  	for (i = 1; i <= info->dim; i++) {		
-> +		if ((info->flags & IPSET_DIM_IFACE_INOUT) && i == IPSET_DIM_TWO)
-> +			ptr = (info->flags & (1 << i) ? "in" : "out");
-> +		else
-> +			ptr = (info->flags & (1 << i) ? "src" : "dst");
->  		printf("%s%s",
->  		       i == 1 ? " " : ",",
-> -		       info->flags & (1 << i) ? "src" : "dst");
-> +		       ptr);
->  	}
->  }
+I have no comment on the back compatibility issue, but from a clean sheet
+these interfaces should probably be called "ingress" and "egress"
+interfaces (or, if you must 'input' and 'output' but those are ripe for
+confusion with iptables rules). If those aren't the terms in the RFCs, they
+are certainly terms of art commonly used by router vendors.
 
-Introduce a new, revision 2 match with its own parse, print functions and 
-add it to the kernel part as well.
-  
-> diff --git a/extensions/libxt_set.h b/extensions/libxt_set.h
-> index 47c3f5b..d47e263 100644
-> --- a/extensions/libxt_set.h
-> +++ b/extensions/libxt_set.h
-> @@ -101,6 +101,39 @@ get_set_byname(const char *setname, struct xt_set_info *info)
->  }
->  
->  static void
-> +get_set_byname_with_features(const char *setname, struct xt_set_info *info)
-> +{
-> +	struct ip_set_req_get_features req;
-> +	socklen_t size = sizeof(struct ip_set_req_get_features);
-> +	int res, sockfd;
-> +
-> +	sockfd = get_version(&req.version);
-> +	req.op = IP_SET_OP_GET_FEATURES;
-> +	strncpy(req.set.name, setname, IPSET_MAXNAMELEN);
-> +	req.set.name[IPSET_MAXNAMELEN - 1] = '\0';
-> +	res = getsockopt(sockfd, SOL_IP, SO_IP_SET, &req, &size);
-> +	close(sockfd);
-> +	if (res != 0 && errno== EBADMSG) { /* IP_SET_OP_GET_FEATURES not supported, revert back to IP_SET_OP_GET_BYNAME */
-> +		get_set_byname(setname, info);
+>From my point of view, the current nomenclature is better than reversing
+them (as I think is being proposed), but they are confusing in the case of
+forwarded traffic where neither interface might be the 'source' or
+'destination' in an IP sense. Swapping them would cause more confusion.
 
-With the new target/match revisions, there's no need to call the old 
-interface.
-
-> +	} else {
-> +		if (res != 0)
-> +			xtables_error(OTHER_PROBLEM,
-> +				"Problem when communicating with ipset, errno=%d.\n",
-> +				errno);
-> +		if (size != sizeof(struct ip_set_req_get_features))
-> +			xtables_error(OTHER_PROBLEM,
-> +				"Incorrect return size from kernel during ipset lookup, "
-> +				"(want %zu, got %zu)\n",
-> +				sizeof(struct ip_set_req_get_features), (size_t)size);
-> +		if (req.set.index == IPSET_INVALID_ID)
-> +			xtables_error(PARAMETER_PROBLEM,
-> +				      "Set %s doesn't exist.\n", setname);
-> +		info->index = req.set.index;
-> +		info->flags |= req.features;
-
-Better do not mix the received features with the info flags. Make 
-get_set_byname_with_features non-void and just return the value to the 
-caller.
-
-> +	}
-> +}
-> +
-> +static void
->  parse_dirs_v0(const char *opt_arg, struct xt_set_info_v0 *info)
->  {
->  	char *saved = strdup(opt_arg);
-> @@ -115,7 +148,7 @@ parse_dirs_v0(const char *opt_arg, struct xt_set_info_v0 *info)
->  			info->u.flags[i++] |= IPSET_DST;
->  		else
->  			xtables_error(PARAMETER_PROBLEM,
-> -				"You must spefify (the comma separated list of) 'src' or 'dst'.");
-> +				"You must specify (comma separated list of) 'src' or 'dst'.");
->  	}
->  
->  	if (tmp)
-> @@ -130,16 +163,31 @@ static void
->  parse_dirs(const char *opt_arg, struct xt_set_info *info)
->  {
->  	char *saved = strdup(opt_arg);
-> +	__u8 saved_flags = info->flags;
->  	char *ptr, *tmp = saved;
-> -	
-> +
-> +	/* clear everything else, but IPSET_INV_MATCH */
-> +	info->flags &= IPSET_INV_MATCH;
-> +
->  	while (info->dim < IPSET_DIM_MAX && tmp != NULL) {
->  		info->dim++;
->  		ptr = strsep(&tmp, ",");
-> -		if (strncmp(ptr, "src", 3) == 0)
-> -			info->flags |= (1 << info->dim);
-> +		if (strncmp(ptr, "in", 2) == 0 && 	/* 'in' */
-> +			info->dim == IPSET_DIM_TWO && 	/* x,'in' */
-> +			saved_flags & IPSET_TYPE_IFACE)	/* hash:net,iface type set */
-> +				info->flags |= (1 << info->dim | IPSET_DIM_IFACE_INOUT);
-> +
-> +		else if (strncmp(ptr, "out", 3) == 0 && /* 'out' */
-> +			info->dim == IPSET_DIM_TWO && 	/* x,'out' */
-> +			saved_flags & IPSET_TYPE_IFACE)	/* hash:net,iface type set */
-> +				info->flags |= IPSET_DIM_IFACE_INOUT;
-> +
-> +		else if (strncmp(ptr, "src", 3) == 0)
-> +				info->flags |= (1 << info->dim);
-> +
->  		else if (strncmp(ptr, "dst", 3) != 0)
->  			xtables_error(PARAMETER_PROBLEM,
-> -				"You must spefify (the comma separated list of) 'src' or 'dst'.");
-> +				"You must specify (comma separated list of) 'src'|'dst' or 'in'|'out' just for the interface part of hash:net,iface set, if used.");
->  	}
-
-Keep the old parse_dir (rename to parse_dirs_v1) and introduce a new one. 
-Isn't there a comma missing from the error message, i.e:
-
-You must specify (comma separated list of) src'|'dst',
-or 'in'|'out' just for the interface part of hash:net,iface set, if used.
-
-And maybe it'd be good to print it in two lines, like here.
-  
->  	if (tmp)
-> diff --git a/extensions/libxt_set.man b/extensions/libxt_set.man
-> index 1ad9085..31be0eb 100644
-> --- a/extensions/libxt_set.man
-> +++ b/extensions/libxt_set.man
-> @@ -1,22 +1,20 @@
->  This module matches IP sets which can be defined by ipset(8).
->  .TP
->  [\fB!\fP] \fB\-\-match\-set\fP \fIsetname\fP \fIflag\fP[\fB,\fP\fIflag\fP]...
-> -where flags are the comma separated list of
-> +where 'flag' above is comma separated list of
->  .BR "src"
->  and/or
->  .BR "dst" 
-> -specifications and there can be no more than six of them. Hence the command
-> +with the exception of hash:ip,iface where, in addition to these two options, the following is also allowed for the 'iface' part:
-> +.BR "in" 
-> +or
-> +.BR "out" 
-> +corresponding to the incoming or outgoing network interface. The above options cannot exceed six in total for a given set. The command
->  .IP
->   iptables \-A FORWARD \-m set \-\-match\-set test src,dst
->  .IP
-> -will match packets, for which (if the set type is ipportmap) the source
-> -address and destination port pair can be found in the specified set. If
-> -the set type of the specified set is single dimension (for example ipmap),
-> -then the command will match packets for which the source address can be
-> -found in the specified set. 
-> +will match packets for which, if the set is of type hash:ip,port for example, the source IP address and destination port pair can be found and matched successfully. If the specified set is one dimensional (i.e. bitmap:ip), then the command will match packets for which the source address can be found in the set specified.
->  .PP
-> -The option \fB\-\-match\-set\fP can be replaced by \fB\-\-set\fP if that does 
-> -not clash with an option of other extensions.
-> +The option \fB\-\-match\-set\fP can be replaced by \fB\-\-set\fP if that does not clash with an option from other extensions.
->  .PP
-> -Use of -m set requires that ipset kernel support is provided, which, for
-> -standard kernels, is the case since Linux 2.6.39.
-> +Use of -m set requires that ipset kernel support is provided, which, for standard kernels, is the case since Linux 2.6.39.
-> diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-> index 79cb077..f2a038c 100644
-> --- a/include/linux/netfilter/ipset/ip_set.h
-> +++ b/include/linux/netfilter/ipset/ip_set.h
-> @@ -186,6 +186,10 @@ enum ip_set_dim {
->  	 * If changed, new revision of iptables match/target is required.
->  	 */
->  	IPSET_DIM_MAX = 6,
-> +	/* 
-> +	 * Indicates whether the new 'iface' format (in/out) has been used.
-> +	 */
-> +	IPSET_DIM_IFACE = 7, 
->  };
-
-Rename here and below.
-  
->  /* Option flags for kernel operations */
-> @@ -194,8 +198,28 @@ enum ip_set_kopt {
->  	IPSET_DIM_ONE_SRC = (1 << IPSET_DIM_ONE),
->  	IPSET_DIM_TWO_SRC = (1 << IPSET_DIM_TWO),
->  	IPSET_DIM_THREE_SRC = (1 << IPSET_DIM_THREE),
-> +	IPSET_DIM_IFACE_INOUT = (1 << IPSET_DIM_IFACE),
->  };
->  
-> +/* Set features */
-> +enum ip_set_feature {
-> +	IPSET_TYPE_IP_FLAG = 0,
-> +	IPSET_TYPE_IP = (1 << IPSET_TYPE_IP_FLAG),
-> +	IPSET_TYPE_PORT_FLAG = 1,
-> +	IPSET_TYPE_PORT = (1 << IPSET_TYPE_PORT_FLAG),
-> +	IPSET_TYPE_MAC_FLAG = 2,
-> +	IPSET_TYPE_MAC = (1 << IPSET_TYPE_MAC_FLAG),
-> +	IPSET_TYPE_IP2_FLAG = 3,
-> +	IPSET_TYPE_IP2 = (1 << IPSET_TYPE_IP2_FLAG),
-> +	IPSET_TYPE_NAME_FLAG = 4,
-> +	IPSET_TYPE_NAME = (1 << IPSET_TYPE_NAME_FLAG),
-> +	IPSET_TYPE_IFACE_FLAG = 5,
-> +	IPSET_TYPE_IFACE = (1 << IPSET_TYPE_IFACE_FLAG),
-> +	/* Strictly speaking not a feature, but a flag for dumping:
-> +	 * this settype must be dumped last */
-> +	IPSET_DUMP_LAST_FLAG = 7,
-> +	IPSET_DUMP_LAST = (1 << IPSET_DUMP_LAST_FLAG),
-> +};
-
-The header files in include/linux/netfilter are the same as the kernel 
-ones with the parts protected by "#ifdef __KERNEL__" ripped out. So please
-move this enum definition in the kernel include file outside of the kernel 
-specific part, according to the placement here. 
-  
->  /* Interface to iptables/ip6tables */
->  
-> @@ -216,6 +240,14 @@ struct ip_set_req_get_set {
->  #define IP_SET_OP_GET_BYINDEX	0x00000007	/* Get set name by index */
->  /* Uses ip_set_req_get_set */
->  
-> +#define IP_SET_OP_GET_FEATURES	0x00000008	/* Get set features by name */
-> +struct ip_set_req_get_features {
-> +	unsigned int op;
-> +	unsigned int version;
-> +	__u8 features;
-> +	union ip_set_name_index set;
-> +};
-
-Let features be unsigned int here too.
-
->  #define IP_SET_OP_VERSION	0x00000100	/* Ask kernel version */
->  struct ip_set_req_version {
->  	unsigned op;
-> -- 
-> 1.7.10.4
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+-- 
+Alex Bligh
