@@ -1,60 +1,56 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 4/4] netfilter: xtables: inclusion of xt_SYSRQ
-Date: Fri, 13 Jul 2012 11:16:48 +0200
-Message-ID: <20120713091648.GA20796@1984>
-References: <1341964350-13809-1-git-send-email-jengelh@inai.de>
- <1341964350-13809-5-git-send-email-jengelh@inai.de>
- <20120712154957.GE18793@1984>
- <alpine.LNX.2.01.1207121822430.13237@frira.zrqbmnf.qr>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
+Subject: Re: [PATCH v2 1/3] iptables: change 'iface' part in hash:net,iface
+ set
+Date: Fri, 13 Jul 2012 14:56:52 +0100
+Message-ID: <50002924.5040404@googlemail.com>
+References: <cover.1341871199.git.mr.dash.four@googlemail.com> <09f86300bb1913aa4c6063618fbbcd84fac2e608.1341871200.git.mr.dash.four@googlemail.com> <alpine.DEB.2.00.1207101735540.24998@blackhole.kfki.hu> <4FFCBDAD.5010206@googlemail.com> <alpine.DEB.2.00.1207112119460.26540@blackhole.kfki.hu> <4FFF6EC8.60300@googlemail.com> <alpine.DEB.2.00.1207131003540.31126@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Core Team <netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33740 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756580Ab2GMJQv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 13 Jul 2012 05:16:51 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.01.1207121822430.13237@frira.zrqbmnf.qr>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:42207 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750776Ab2GMN5A (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 13 Jul 2012 09:57:00 -0400
+Received: by eaak11 with SMTP id k11so1081011eaa.19
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Jul 2012 06:56:58 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1207131003540.31126@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jul 12, 2012 at 06:25:13PM +0200, Jan Engelhardt wrote:
-> 
-> On Thursday 2012-07-12 17:49, Pablo Neira Ayuso wrote:
-> >> +config NETFILTER_XT_TARGET_SYSRQ
-> >> +	tristate '"SYSRQ" - remote sysrq invocation'
-> >
-> >I guess this is useful for user, eg. you can reboot your crashed
-> >system from your office in case that cheap comodity hardware without
-> >remote management tools (eg. HP's ILO or Dell's iDRAC).
-> >
-> >Still, I think that including this in Netfilter is a bit of abuse
-> >since this is out of the scope of providing some firewalling feature.
-> 
-> David Miller has stated his opinion already last year, and he's
-> for the Netfilter variant:
-> http://markmail.org/message/d7kpczdbtpcxwli6
+  
 
-I think that affirmation is true in the context of:
+>> OK, that's good because I intend to change the parse_dirs function in 
+>> the new "version" and introduce additional parameter called "features" 
+>> so that these are used directly and not rely on the info->flags to store 
+>> these (as was the case up until now). That would also allow for 
+>> additional features to be added in the future, if needed (u8 is almost 
+>> exhausted - you have one spare bit left there!).
+>>     
+>
+> The almost exhausted u8 is an additional reason why it's better to use 
+> unsigned int in the *protocol* between the kernel-userspace 
+> (struct ip_set_req_get_features).
+>   
+Yeah, I got it Jozsef - I'll alter ip_set_req_get_features to use 
+unsigned in instead of u8. Jesus!
 
-[PATCH]: Add Network Sysrq Support
+Are you happy for the extra parameter called "features" to be included 
+in the print function (iptables - userspace) as this is where I will 
+store the features, not by using info->flags anymore?
 
-but not sure it's out of it.
+>> Yep, just saw that too, so I'll just move the ip_set_feature enum just 
+>> above the #ifdef __KERNEL__ part and I assume it would be picked up 
+>> "automatically", is that right?
+>>     
+>
+> No, let the patchset be complete in itself, i.e. include the patches both 
+> for the kernel and iptables header files.
+>   
+Fair enough.
 
-He probably prefered the Netfilter option because, comparing it to the
-Netfilter approach, it looks nicer. Well, just look at all those sysfs
-and proc interfaces he was proposing for that approach (it seems quite
-ugly to me).
-
-You can use the udp_encap hook (that Florian mentioned) plus some
-genetlink interface and little user-space tool to make it out of
-netfilter. Most of the xt_SYSRQ code can be reused and the genetlink
-interface plus one library can be added with little extra work.
-
-@David: just to put you into context. Jan is proposing to merge
-xt_SYSRQ into mainstream, we are discussing if it would be better to
-make it out of it (so people do not depend on the firewalling
-utilities to get it working) based on a different proposal described
-above.
