@@ -1,45 +1,74 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH 4/4] netfilter: xtables: inclusion of xt_SYSRQ
-Date: Thu, 12 Jul 2012 23:25:28 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1207122252070.29206@frira.zrqbmnf.qr>
-References: <1341964350-13809-1-git-send-email-jengelh@inai.de> <1341964350-13809-5-git-send-email-jengelh@inai.de> <20120712154957.GE18793@1984> <alpine.LNX.2.01.1207121822430.13237@frira.zrqbmnf.qr> <20120712202608.GA9927@breakpoint.cc>
- <alpine.LNX.2.01.1207122229420.27546@frira.zrqbmnf.qr> <20120712203541.GB9927@breakpoint.cc>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
+Subject: Re: [PATCH v2 1/3] iptables: change 'iface' part in hash:net,iface
+ set
+Date: Fri, 13 Jul 2012 01:41:44 +0100
+Message-ID: <4FFF6EC8.60300@googlemail.com>
+References: <cover.1341871199.git.mr.dash.four@googlemail.com> <09f86300bb1913aa4c6063618fbbcd84fac2e608.1341871200.git.mr.dash.four@googlemail.com> <alpine.DEB.2.00.1207101735540.24998@blackhole.kfki.hu> <4FFCBDAD.5010206@googlemail.com> <alpine.DEB.2.00.1207112119460.26540@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Core Team <netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([5.9.24.206]:43811 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932987Ab2GLVZ3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Jul 2012 17:25:29 -0400
-In-Reply-To: <20120712203541.GB9927@breakpoint.cc>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:58016 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755297Ab2GMAlv (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 12 Jul 2012 20:41:51 -0400
+Received: by weyx8 with SMTP id x8so2114595wey.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jul 2012 17:41:49 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1207112119460.26540@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2012-07-12 22:35, Florian Westphal wrote:
 
->Jan Engelhardt <jengelh@inai.de> wrote:
->> >Jan Engelhardt <jengelh@inai.de> wrote:
->> >> David Miller has stated his opinion already last year, and he's
->> >> for the Netfilter variant:
->> >> http://markmail.org/message/d7kpczdbtpcxwli6
->> >
->> >We now have udp encap support also for ipv6, so this could now
->> >be solved outside of netfilter without impacting the ability to
->> >filter sysreq packets.
->> 
->> How does xt_SYSRQ inhibit filtering sysrq packets?
+> A userspace match/target "works" with the corresponding kernel 
+> match/target only when their revision numbers match. The new revisions are 
+> our standard way to introduce new features in matches/targets so that it 
+> won't break anything and work fine in any old-new kernel-iptables 
+> combinations: the system uses (falls back to) the highest revision which 
+> is avaliable at both sides.
 >
->Not at all.  But the last 'do it outside of netfilter' approaches
->suffered from that.  With encap sockets this should no longer be a
->problem.
+> The new match/target revision in userspace just need the new 
+> parse/print/save functions, the matching new match/target revision in 
+> kernel space differ from the current one just in revision number.
+>   
+All noted and tested - that is exactly how it works. Thanks.
 
-People like using Xtables because it's simple and they know how to
-use it (or at least, the frontend). The biggest strength is that
-users can _combine it with existing extensions_. All that seems
-impossible with the sysrq-ping patch.
+>> Similarly, if I rename the new functions to something else, won't that 
+>> cause compatibility issues where other programs are going to look for 
+>> these functions (from what I remember these functions are defined in the 
+>> C header files, so, potentially, after this change they are bound to 
+>> break something!). Could you elaborate a bit more please?
+>>     
+>
+> These functions are static. Nothing else uses them.
+>   
+OK, that's good because I intend to change the parse_dirs function in 
+the new "version" and introduce additional parameter called "features" 
+so that these are used directly and not rely on the info->flags to store 
+these (as was the case up until now). That would also allow for 
+additional features to be added in the future, if needed (u8 is almost 
+exhausted - you have one spare bit left there!).
 
-(You know how they hate it when they have to cross a "boundary" like
-iptables-nfmark-tc and iptables-nfmark-iproute).
+> Let there be long spaces, I'll fix those. But with so long lines, it's 
+> hard to see the changes.
+>   
+Noted, will do.
+
+> The header files in include/linux/netfilter in the iptables source are 
+> usually not maintained manually. They are generated from the kernel header 
+> files by filtering out the kernel specific parts protected by the ifdefs.
+>
+> At the moment, the enum ip_set_feature definition is kernel specific in 
+> the kernel header file. Next time Pablo regenerates the header files for 
+> iptables from the kernel ones, your modification above will be lost. 
+> Therefore the enum definition must be moved out from the "#ifdef 
+> __KERNEL__" region in the kernel header file.
+>   
+Yep, just saw that too, so I'll just move the ip_set_feature enum just 
+above the #ifdef __KERNEL__ part and I assume it would be picked up 
+"automatically", is that right?
+
