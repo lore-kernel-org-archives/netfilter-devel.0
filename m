@@ -1,79 +1,55 @@
-From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Subject: Re: [PATCH 4/4] netfilter: xtables: inclusion of xt_SYSRQ
-Date: Fri, 13 Jul 2012 18:43:36 -0700
-Message-ID: <CAHo-OowA3Tc4DF_OGMOQxiqriqOu-63FM8pbaHwdJx4D0ww7gA@mail.gmail.com>
-References: <1341964350-13809-1-git-send-email-jengelh@inai.de>
-	<1341964350-13809-5-git-send-email-jengelh@inai.de>
-	<20120712154957.GE18793@1984>
-	<alpine.LNX.2.01.1207121822430.13237@frira.zrqbmnf.qr>
-	<20120713091648.GA20796@1984>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH v2 3/3] ipset: change 'iface' part in hash:net,iface
+ set
+Date: Sat, 14 Jul 2012 10:45:51 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1207141009340.1031@blackhole.kfki.hu>
+References: <cover.1341871199.git.mr.dash.four@googlemail.com> <1341872622-5015-2-git-send-email-mr.dash.four@googlemail.com> <alpine.DEB.2.00.1207101721510.24998@blackhole.kfki.hu> <4FFCBDB8.9080101@googlemail.com> <alpine.DEB.2.00.1207112154070.26540@blackhole.kfki.hu>
+ <4FFF6EF2.6010108@googlemail.com> <alpine.DEB.2.00.1207130857480.31126@blackhole.kfki.hu> <5000293F.4030901@googlemail.com> <alpine.DEB.2.00.1207131608230.32475@blackhole.kfki.hu> <50002F3F.5020408@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Jan Engelhardt <jengelh@inai.de>,
-	David Miller <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Core Team <netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Mr Dash Four <mr.dash.four@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:63170 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756578Ab2GNBnh (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 13 Jul 2012 21:43:37 -0400
-Received: by obbuo13 with SMTP id uo13so5727734obb.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Jul 2012 18:43:36 -0700 (PDT)
-In-Reply-To: <20120713091648.GA20796@1984>
+Received: from smtp-in.kfki.hu ([148.6.0.26]:59311 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757878Ab2GNIp4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 14 Jul 2012 04:45:56 -0400
+In-Reply-To: <50002F3F.5020408@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jul 13, 2012 at 2:16 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Thu, Jul 12, 2012 at 06:25:13PM +0200, Jan Engelhardt wrote:
->>
->> On Thursday 2012-07-12 17:49, Pablo Neira Ayuso wrote:
->> >> +config NETFILTER_XT_TARGET_SYSRQ
->> >> +  tristate '"SYSRQ" - remote sysrq invocation'
->> >
->> >I guess this is useful for user, eg. you can reboot your crashed
->> >system from your office in case that cheap comodity hardware without
->> >remote management tools (eg. HP's ILO or Dell's iDRAC).
->> >
->> >Still, I think that including this in Netfilter is a bit of abuse
->> >since this is out of the scope of providing some firewalling feature.
->>
->> David Miller has stated his opinion already last year, and he's
->> for the Netfilter variant:
->> http://markmail.org/message/d7kpczdbtpcxwli6
->
-> I think that affirmation is true in the context of:
->
-> [PATCH]: Add Network Sysrq Support
->
-> but not sure it's out of it.
->
-> He probably prefered the Netfilter option because, comparing it to the
-> Netfilter approach, it looks nicer. Well, just look at all those sysfs
-> and proc interfaces he was proposing for that approach (it seems quite
-> ugly to me).
->
-> You can use the udp_encap hook (that Florian mentioned) plus some
-> genetlink interface and little user-space tool to make it out of
-> netfilter. Most of the xt_SYSRQ code can be reused and the genetlink
-> interface plus one library can be added with little extra work.
->
-> @David: just to put you into context. Jan is proposing to merge
-> xt_SYSRQ into mainstream, we are discussing if it would be better to
-> make it out of it (so people do not depend on the firewalling
-> utilities to get it working) based on a different proposal described
-> above.
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Fri, 13 Jul 2012, Mr Dash Four wrote:
 
-For this to be truly useful, it has to work when all of userspace is
-dead and unresponsive (oom hell, swap hell, hdd disconnected, etc),
-and as such from the moment the magic packet gets received, to the
-command (reboot/etc) being executed it has to be a fully kernel based
-solution - preferably within the network softirq.
+> Let me ask you a question then - if I send you the patches where in/out is
+> allowed in list:set and produces "consistent" (by your own high-standards)
+> result would that be OK with you (if not, why not)?
 
-Anything relying on userspace (outside of initial configuration) is
-not acceptable.
+I can see two possible solutions with "in/out" notation and list:set type:
+
+a. The keywords are not permitted at all.
+b. "in/out" is permitted but "converted" to "src/dst" wherever needed for
+   the member sets, that is all types but hash:net,iface.
+
+Solution a. is completely acceptable for me. It can nicely be documented, 
+there's no chance for misunderstanding.
+
+Solution b. is also acceptable but it's more controversial: if "in/out" is 
+accepted with list:set type, then it's very hard to explain why it's *not* 
+allowed with every type, when actually "in/out" is allowed then for every 
+type of member sets of list:set type of sets. So solution b. implies that 
+"in/out" is then a general synonym of "src/dst" and should be allowed 
+everywhere. Therefore I'm not really happy with solution b. but I can 
+stomach it.
+
+Do you see other possibilities, which produce result independent of the 
+allowed syntax?
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
