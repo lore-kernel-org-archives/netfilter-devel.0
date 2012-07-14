@@ -1,40 +1,45 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] iptables: xt_recent: Add optional mask option for
- xt_recent
-Date: Sat, 14 Jul 2012 17:05:27 +0200
-Message-ID: <20120714150527.GA6271@1984>
-References: <1337285337-13619-1-git-send-email-denys@visp.net.lb>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH 4/4] netfilter: xtables: inclusion of xt_SYSRQ
+Date: Sat, 14 Jul 2012 17:24:55 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1207141723001.21350@frira.zrqbmnf.qr>
+References: <1341964350-13809-1-git-send-email-jengelh@inai.de> <1341964350-13809-5-git-send-email-jengelh@inai.de> <20120712154957.GE18793@1984> <alpine.LNX.2.01.1207121822430.13237@frira.zrqbmnf.qr> <20120713091648.GA20796@1984>
+ <CAHo-OowA3Tc4DF_OGMOQxiqriqOu-63FM8pbaHwdJx4D0ww7gA@mail.gmail.com> <20120714131111.GB31130@1984> <CAGuaRCuu0LcRDdOFESppq5TNSbBhm9p2w1yZkorw3yTshLecMA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Linux netdev <netdev@vger.kernel.org>
-To: Denys Fedoryshchenko <denys@visp.net.lb>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	=?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>,
+	David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org
+To: Aft nix <aftnix@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51551 "EHLO mail.us.es"
+Received: from seven.medozas.de ([5.9.24.206]:60237 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753694Ab2GNPFb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 14 Jul 2012 11:05:31 -0400
-Content-Disposition: inline
-In-Reply-To: <1337285337-13619-1-git-send-email-denys@visp.net.lb>
+	id S1751086Ab2GNPY6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 14 Jul 2012 11:24:58 -0400
+In-Reply-To: <CAGuaRCuu0LcRDdOFESppq5TNSbBhm9p2w1yZkorw3yTshLecMA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Denys,
 
-On Thu, May 17, 2012 at 11:08:57PM +0300, Denys Fedoryshchenko wrote:
-> Use case for this feature:
-> 1)In some occasions if you need to allow,block,match specific subnet.
-> 2)I can use recent as a trigger when netfilter rule matches, with mask 0.0.0.0
-> 
-> Tested for backward compatibility:
-> )old (userspace) iptables, new kernel
-> )old kernel, new iptables
-> )new kernel, new iptables
+On Saturday 2012-07-14 16:49, Aft nix wrote:
+>>> > @David: just to put you into context. Jan is proposing to merge
+>>> > xt_SYSRQ into mainstream, we are discussing if it would be better to
+>>> > make it out of it (so people do not depend on the firewalling
+>>> > utilities to get it working) based on a different proposal described
+>>> > above.
+>
+>Hi Jan,
+>
+>I don't know if it goes to main line kernel eventually, i want this feature
+>right now. Right now i have to physically go the office rack to reboot in a
+>case of kernel crash. Office IT people don't provide IPKVM stuffs in development
+>servers, they only give it to "production" severs.
+>
+>I really think its nice touch. Is it available in xtable-addons, or i
+>just apply your patch directly?
 
-I've cleaned up this patch:
+It is in Xt-a, and I try to upstream it.
 
-http://git.netfilter.org/cgi-bin/gitweb.cgi?p=iptables.git;a=commit;h=73bf03981dfaee48ac1d6da380d46501a96cc83e
-
-It's not yet in master. Please, check that this is correct.
-
-BTW, the man page update is still missing.
+Again, I emphasize that xt_SYSRQ can be combined with other matches
+of Xtables, and that why it should be merged rather than a separate
+subsystem of some kind.
