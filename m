@@ -1,105 +1,65 @@
-From: "Hans Schillstrom" <hans@schillstrom.com>
-Subject: Re[2]:  [PATCH 2/2] extensions: add HMARK target
-Date: Sun, 15 Jul 2012 00:53:46 +0200 (CEST)
-Message-ID: <tqndgm6.1b88e2552b09f599e7127d46418a73b3@obelix.schillstrom.com>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
+Subject: Re: [PATCH v2 3/3] ipset: change 'iface' part in hash:net,iface set
+Date: Sun, 15 Jul 2012 12:54:16 +0100
+Message-ID: <5002AF68.9070204@googlemail.com>
+References: <cover.1341871199.git.mr.dash.four@googlemail.com> <1341872622-5015-2-git-send-email-mr.dash.four@googlemail.com> <alpine.DEB.2.00.1207101721510.24998@blackhole.kfki.hu> <4FFCBDB8.9080101@googlemail.com> <alpine.DEB.2.00.1207112154070.26540@blackhole.kfki.hu> <4FFF6EF2.6010108@googlemail.com> <alpine.DEB.2.00.1207130857480.31126@blackhole.kfki.hu> <5000293F.4030901@googlemail.com> <alpine.DEB.2.00.1207131608230.32475@blackhole.kfki.hu> <50002F3F.5020408@googlemail.com> <alpine.DEB.2.00.1207141009340.1031@blackhole.kfki.hu> <5001678C.6000505@googlemail.com> <alpine.DEB.2.00.1207141816580.1593@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Cc: netfilter-devel@vger.kernel.org
-To: "Pablo Neira Ayuso" <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Core Team <netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:49521 "EHLO
-	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752296Ab2GNWxu convert rfc822-to-8bit (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:38767 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751727Ab2GOLy2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 14 Jul 2012 18:53:50 -0400
+	Sun, 15 Jul 2012 07:54:28 -0400
+Received: by wibhm11 with SMTP id hm11so1940960wib.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 15 Jul 2012 04:54:26 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1207141816580.1593@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+  
+
+>> There is a flip side to that particular coin - I could argue that since 
+>> in/out *is* allowed to be used in hash:net,iface, why can't it be used 
+>> in list:set where I could have hash:net,iface type sets accepted as 
+>> members? You are imposing an unnecessary restriction where none is 
+>> needed.
+>>     
 >
->On Thu, Jul 12, 2012 at 09:34:45AM +0200, Hans Schillstrom wrote:
->> Hi Pablo
->> [snip]
->> +static void HMARK_check(struct xt_fcheck_call *cb)
->> >+{
->> >+	if (!(cb->xflags & (1 << O_HMARK_MODULUS)))
->> >+		xtables_error(PARAMETER_PROBLEM, "--hmark-mod is mandatory");
->> >+	if (!(cb->xflags & (1 << O_HMARK_RND)))
->> >+		xtables_error(PARAMETER_PROBLEM, "--hmark-rnd is mandatory");
->> 
->> I don't think rnd should be mandatory, a default value is enough.
->> offset however should be mandatory.
->
->As I said, parameters that are not set will likely not be set by
->users. If default value for random, the easier it will be for an
->attacker to direct all flows to the same target.
+> Both a. and b. must satisfy that the result must not depend on the syntax. 
+> If "in/out" is allowed in a rule then replacing by "src/dst" the result of 
+> the iptables rule must remain the same. Whatever sets are in a list:set.
+>   
+I fail to see how your answer addresses my point above, which I raised 
+in response to the restriction imposed by "solution a." of not allowing 
+in/out in a list:set where there could be hash:net,iface members 
+registered.
 
-If he knows the modulo, and assume that default rand.value  is used....
-I still don't think rnd should be mandatory, but I can live with it.
+You know very well that by allowing in/out alongside src/dst in a 
+list:set this *will* produce the same members match - that was your 
+previous objection for not allowing in/out to be used alongside src/dst 
+in list:set, until I found you this solution and then you swiftly moved 
+the goalposts, again!
 
->
->I'll be OK to make --hmark-offset mandatory, BTW.
-Well,  if people use it to other things than PBR it will be bad to have it mandatory
-so I think we leave it as it is.
+> I don't favour b. Ugly like hell, a. were much cleaner.
+>   
+You couldn't make this up! I mean, really Jozsef?
 
-I don't like is that MODE_L3 is gone 
-L3 can be substituted by using --hamrk-tuple src, dst. so that might be OK
-but there is no flag set. (causing a lot of extra cpu cycles)
+In a couple of hours yesterday, you went from:
 
-All masks have gone from set to  zero, (due to hmark-tuple ?)
-If it's more clear or not , I don't know  but the man page needs to be updated
- --hmark-tuple ct alone doesn't do much.
+"Solution b. is also acceptable but it's more controversial", then
 
-iptables \-t mangle \-A PREROUTING \-m state \-\-state NEW
-- \-j HMARK \-\-hmark-tuple ct \-\-hmark-offset 10000 \-\-hmark\-mod 10
-change to
-+ \-j HMARK \-\-hmark-tuple ct,src,dst \-\-hmark-offset 10000 \-\-hmark\-mod 10
-\-\-hmark\-rnd 0xfeedcafe
+"Therefore I'm not really happy with solution b. but I can stomach it", 
+and finally, the above answer, not to mention that you started all of 
+this with you being "unhappy" with users being "forced" to use src/dst 
+only on list:set types.
 
-Some faults found during my first sanity check.
-(I have not run any real tests so far, just some manual command  tests
-Due to the new behaviour and syntax the test suite needs some update)
-
-diff --git a/extensions/libxt_HMARK.c b/extensions/libxt_HMARK.c
-index ee2629d..053bc10 100644
---- a/extensions/libxt_HMARK.c
-+++ b/extensions/libxt_HMARK.c
-@@ -280,15 +280,15 @@ static void HMARK_check(struct xt_fcheck_call *cb)
- 
- static void HMARK_print(const struct xt_hmark_info *info)
- {
--       if (info->flags & XT_HMARK_FLAG(XT_HMARK_SPORT))
-+       if (info->flags & XT_HMARK_FLAG(XT_HMARK_SPORT_MASK))
-                printf("sport-mask 0x%x ", htons(info->port_mask.p16.src));
--       if (info->flags & XT_HMARK_FLAG(XT_HMARK_DPORT))
-+       if (info->flags & XT_HMARK_FLAG(XT_HMARK_DPORT_MASK))
-                printf("dport-mask 0x%x ", htons(info->port_mask.p16.dst));
-        if (info->flags & XT_HMARK_FLAG(XT_HMARK_SPI))
-                printf("spi-mask 0x%x ", htonl(info->port_mask.v32));
--       if (info->flags & XT_HMARK_FLAG(XT_HMARK_SPORT_MASK))
-+       if (info->flags & XT_HMARK_FLAG(XT_HMARK_SPORT))
-                printf("sport-set 0x%x ", htons(info->port_set.p16.src));
--       if (info->flags & XT_HMARK_FLAG(XT_HMARK_DPORT_MASK))
-+       if (info->flags & XT_HMARK_FLAG(XT_HMARK_DPORT))
-                printf("dport-set 0x%x ", htons(info->port_set.p16.dst));
-        if (info->flags & XT_HMARK_FLAG(XT_HMARK_SPI_MASK))
-                printf("spi-set 0x%x ", htonl(info->port_set.v32));
-@@ -333,11 +333,11 @@ static void HMARK_ip4_print(const void *ip,
-        if (info->flags & XT_HMARK_FLAG(XT_HMARK_CT))
-                printf("ct, ");
-        if (info->flags & XT_HMARK_FLAG(XT_HMARK_SADDR_MASK))
--               printf("src-prefix %s ",
--                      xtables_ipmask_to_numeric(&info->src_mask.in) + 1);
-+               printf("src-prefix %d ",
-+                      xtables_ipmask_to_cidr(&info->src_mask.in));
-        if (info->flags & XT_HMARK_FLAG(XT_HMARK_DADDR_MASK))
--               printf("dst-prefix %s ",
--                      xtables_ipmask_to_numeric(&info->dst_mask.in) + 1);
-+               printf("dst-prefix %d ",
-+                      xtables_ipmask_to_cidr(&info->dst_mask.in));
-        HMARK_print(info);
- }
-
-
+In other words - you have gone full circle - twice - in a space of just 
+a couple of days. I see that "debating" with you is becoming a bit of a 
+pointless exercise.
 
