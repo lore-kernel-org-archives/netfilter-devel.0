@@ -1,65 +1,97 @@
 From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: [PATCH v2 3/3] ipset: change 'iface' part in hash:net,iface set
-Date: Sun, 15 Jul 2012 12:54:16 +0100
-Message-ID: <5002AF68.9070204@googlemail.com>
-References: <cover.1341871199.git.mr.dash.four@googlemail.com> <1341872622-5015-2-git-send-email-mr.dash.four@googlemail.com> <alpine.DEB.2.00.1207101721510.24998@blackhole.kfki.hu> <4FFCBDB8.9080101@googlemail.com> <alpine.DEB.2.00.1207112154070.26540@blackhole.kfki.hu> <4FFF6EF2.6010108@googlemail.com> <alpine.DEB.2.00.1207130857480.31126@blackhole.kfki.hu> <5000293F.4030901@googlemail.com> <alpine.DEB.2.00.1207131608230.32475@blackhole.kfki.hu> <50002F3F.5020408@googlemail.com> <alpine.DEB.2.00.1207141009340.1031@blackhole.kfki.hu> <5001678C.6000505@googlemail.com> <alpine.DEB.2.00.1207141816580.1593@blackhole.kfki.hu>
+Subject: Re: pgsql-ulogd2
+Date: Sun, 15 Jul 2012 13:24:40 +0100
+Message-ID: <5002B688.4070907@googlemail.com>
+References: <50002CEF.508@googlemail.com>	 <1342194935.11019.12.camel@tiger.regit.org>	 <50016D84.5080207@googlemail.com> <1342300959.6098.8.camel@tiger.regit.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Core Team <netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:38767 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751727Ab2GOLy2 (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:40834 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751534Ab2GOMYv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 15 Jul 2012 07:54:28 -0400
-Received: by wibhm11 with SMTP id hm11so1940960wib.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 Jul 2012 04:54:26 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1207141816580.1593@blackhole.kfki.hu>
+	Sun, 15 Jul 2012 08:24:51 -0400
+Received: by wgbdr13 with SMTP id dr13so160930wgb.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 15 Jul 2012 05:24:49 -0700 (PDT)
+In-Reply-To: <1342300959.6098.8.camel@tiger.regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-  
 
->> There is a flip side to that particular coin - I could argue that since 
->> in/out *is* allowed to be used in hash:net,iface, why can't it be used 
->> in list:set where I could have hash:net,iface type sets accepted as 
->> members? You are imposing an unnecessary restriction where none is 
->> needed.
+> For NFCT, you simply need to have nfnetlink_conntrack loaded.
+>   
+I did, but I also made the mistake of including a few filters in that 
+stack, which were incompatible and that was the reason I did not get any 
+NFCT logs. Once that was corrected I started seeing connection tracking 
+logged.
+
+I have another question with regards to this: Is it possible to limit 
+(by a separate filter or otherwise) the reporting and restrict it, to 
+say, a specific set of interfaces or specific source/destination IP 
+addresses/subnets?
+
+Currently, NFCT reports absolutely everything, which is not what I 
+really want as I have to sift through thousands of logs, not to mention 
+that by reporting everything the system load is much higher.
+
+So, is there a way for me to do that, somehow?
+
+> Things are more complicated for NFACCT and I've just wrote a page
+> dedicated to this point:
+> https://home.regit.org/2012/07/flow-accounting-with-netfilter-and-ulogd2/
+>   
+Very helpful, thanks! I don't see it as complicated at all, certainly no 
+more complicated than the existing accounting techniques.
+
+>> Is there a description on the purpose of these and their configuration 
+>> parameters, if any?
 >>     
 >
-> Both a. and b. must satisfy that the result must not depend on the syntax. 
-> If "in/out" is allowed in a rule then replacing by "src/dst" the result of 
-> the iptables rule must remain the same. Whatever sets are in a list:set.
+> To now which keys are used and whch config var are available, you can
+> use the -i option of ulogd:
+>
+> ulogd -i libexec/ulogd/ulogd_filter_MARK.so 
+> Name: MARK
+> Config options:
+>         Var: mark (Integer, Default: 0)
+>         Var: mask (Integer, Default: -1)
+> Input keys:
+>         Key: ct.mark (unsigned int 32, optional)
+>         Key: oob.mark (unsigned int 32, optional)
+> Output keys:
+>         No statically defined keys
 >   
-I fail to see how your answer addresses my point above, which I raised 
-in response to the restriction imposed by "solution a." of not allowing 
-in/out in a list:set where there could be hash:net,iface members 
-registered.
+Or look at the source code, which is what I did at the end.
 
-You know very well that by allowing in/out alongside src/dst in a 
-list:set this *will* produce the same members match - that was your 
-previous objection for not allowing in/out to be used alongside src/dst 
-in list:set, until I found you this solution and then you swiftly moved 
-the goalposts, again!
-
-> I don't favour b. Ugly like hell, a. were much cleaner.
+>> I will dig much more deeper into this once I know how ulogd works as my 
+>> knowledge of ulogd2 is not that great (yet!). My initial instinct is 
+>> that I may have to alter this script slightly, because from what I 
+>> gather ulogd2 is "sensing" the structure of the logging table by reading 
+>> the "description" of it in PostgreSQL. That particular operation usually 
+>> requires higher-than-needed privileges and in order to avoid that I 
+>> might need to find other ways to impose the "insert-only" restriction, 
+>> which, lets be clear, is what ulogd needs. Again, I might be wrong with 
+>> this, but that is what my initial observations with the script and ulogd 
+>> suggest.
+>>     
+>
+> Yes, there's a discovery system that may require some tuning. But it can
+> be made on a separate table use for the only purpose of describing the
+> variables.
 >   
-You couldn't make this up! I mean, really Jozsef?
+Yep, the pgsql plugin makes extensive use of pg_namespace, pg_class and 
+pg_attribute which are system tables. These contain definitions of every 
+single object registered on that database server and is a major security 
+risk (as I pointed out, if that ulogd connection to the database server 
+is hijacked, then the attacker could find out what is on that database 
+without any problems, which is not good).
 
-In a couple of hours yesterday, you went from:
-
-"Solution b. is also acceptable but it's more controversial", then
-
-"Therefore I'm not really happy with solution b. but I can stomach it", 
-and finally, the above answer, not to mention that you started all of 
-this with you being "unhappy" with users being "forced" to use src/dst 
-only on list:set types.
-
-In other words - you have gone full circle - twice - in a space of just 
-a couple of days. I see that "debating" with you is becoming a bit of a 
-pointless exercise.
+I had in mind exactly what you've suggested above - use a separate, 
+manually-registered table containing the table columns and their mapping 
+to ulogd2 parameters - much less risk and everything is configurable, 
+though the downside is that the two tables need to be synchronised if 
+the structure of the main ulogd table changes (columns renamed or added).
 
