@@ -1,69 +1,36 @@
 From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: pgsql-ulogd2
-Date: Sun, 15 Jul 2012 23:36:33 +0100
-Message-ID: <500345F1.3050407@googlemail.com>
-References: <50002CEF.508@googlemail.com>		 <1342194935.11019.12.camel@tiger.regit.org>		 <50016D84.5080207@googlemail.com>	 <1342300959.6098.8.camel@tiger.regit.org> <5002B688.4070907@googlemail.com> <1342385528.8476.2.camel@tiger.regit.org>
+Subject: Re: [PATCH v2 3/3] ipset: change 'iface' part in hash:net,iface set
+Date: Sun, 15 Jul 2012 23:48:48 +0100
+Message-ID: <500348D0.8030005@googlemail.com>
+References: <cover.1341871199.git.mr.dash.four@googlemail.com> <1341872622-5015-2-git-send-email-mr.dash.four@googlemail.com> <alpine.DEB.2.00.1207101721510.24998@blackhole.kfki.hu> <4FFCBDB8.9080101@googlemail.com> <alpine.DEB.2.00.1207112154070.26540@blackhole.kfki.hu> <4FFF6EF2.6010108@googlemail.com> <alpine.DEB.2.00.1207130857480.31126@blackhole.kfki.hu> <5000293F.4030901@googlemail.com> <alpine.DEB.2.00.1207131608230.32475@blackhole.kfki.hu> <50002F3F.5020408@googlemail.com> <alpine.DEB.2.00.1207141009340.1031@blackhole.kfki.hu> <5001678C.6000505@googlemail.com> <alpine.DEB.2.00.1207141816580.1593@blackhole.kfki.hu> <5002AF68.9070204@googlemail.com> <alpine.DEB.2.00.1207151552140.3610@blackhole.kfki.hu> <5002F0AF.4000502@googlemail.com> <alpine.DEB.2.00.1207152041270.4159@blackhole.k
+ fki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Eric Leblond <eric@regit.org>
+Cc: Netfilter Core Team <netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:60368 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751434Ab2GOWgn (ORCPT
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:52741 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750955Ab2GOWs6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 15 Jul 2012 18:36:43 -0400
-Received: by weyx8 with SMTP id x8so3597135wey.19
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 Jul 2012 15:36:42 -0700 (PDT)
-In-Reply-To: <1342385528.8476.2.camel@tiger.regit.org>
+	Sun, 15 Jul 2012 18:48:58 -0400
+Received: by wgbfm10 with SMTP id fm10so1942475wgb.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 15 Jul 2012 15:48:57 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1207152041270.4159@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
->> Currently, NFCT reports absolutely everything, which is not what I 
->> really want as I have to sift through thousands of logs, not to mention 
->> that by reporting everything the system load is much higher.
->>
->> So, is there a way for me to do that, somehow?
->>     
->
-> Not now but I'm working on it: Pablo has made a filter system in
-> libnetfilter_conntrack. I will used it to filter.
->   
-This would be some awesome feature. I think this new filter which 
-implements "custom" restrictions should not be for a particular input 
-filter, but rather be universal. In other words, to be able to 
-customise, say, certain IP addresses/subnets, certain ethernet 
-interfaces etc, and then used anywhere in stack statements - NFCT, NFLOG 
-and so on.
+> Because this or that way, someone would scratch his/her head. For example 
+> if the rule contains "in/out" and the list:set is a mixed one, contains 
+> both hash:net,iface and other types of sets. They'll ask: "What the heck 
+> is "in/out" for say hash:ip type of set?"
+I've just read that again, so decided to clarify (a bit like you :-) ) 
+what was meant in my previous email:
 
-If this is implemented, it will certainly make ulogd2 very powerful and 
-flexible at the same time - a bit like what syslog-ng is to the old 
-syslog ;-)
-
-The specific reason I raised this issue is because on the main firewall 
-we have here, if I deploy ulogd2 and use NFCT at its present form, I 
-will get the logs from all 7 interfaces, and it would make it an 
-absolutely huge task to sift through all these logs and "match" the 
-various entries (OK, doing it through the database will help up a bit, 
-but not a lot).
-
-If I am able to place a "custom" filter with different "filter" values 
-in each separate stack, redirecting input to different places, then I 
-would be able to track down what I want quite easily.
-
->> I had in mind exactly what you've suggested above - use a separate, 
->> manually-registered table containing the table columns and their mapping 
->> to ulogd2 parameters - much less risk and everything is configurable, 
->> though the downside is that the two tables need to be synchronised if 
->> the structure of the main ulogd table changes (columns renamed or added).
->>     
->
-> It seems the safest way.
->   
-It looks that way, doesn't it? In the coming days I'll look at the PGSQL 
-implementation code to see whether SSL connection to the database server 
-is a possibility with this plug in - it will be another good security 
-feature if that is possible to be implemented.
-
+I am discussing the issue of in/out <-> src/dst *only* for list:set type 
+sets and *only* for the second dimension parameter of that set - 
+everything else is "as is" and as we agreed before, OK?
