@@ -1,36 +1,66 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: [PATCH v2 3/3] ipset: change 'iface' part in hash:net,iface set
-Date: Sun, 15 Jul 2012 23:48:48 +0100
-Message-ID: <500348D0.8030005@googlemail.com>
-References: <cover.1341871199.git.mr.dash.four@googlemail.com> <1341872622-5015-2-git-send-email-mr.dash.four@googlemail.com> <alpine.DEB.2.00.1207101721510.24998@blackhole.kfki.hu> <4FFCBDB8.9080101@googlemail.com> <alpine.DEB.2.00.1207112154070.26540@blackhole.kfki.hu> <4FFF6EF2.6010108@googlemail.com> <alpine.DEB.2.00.1207130857480.31126@blackhole.kfki.hu> <5000293F.4030901@googlemail.com> <alpine.DEB.2.00.1207131608230.32475@blackhole.kfki.hu> <50002F3F.5020408@googlemail.com> <alpine.DEB.2.00.1207141009340.1031@blackhole.kfki.hu> <5001678C.6000505@googlemail.com> <alpine.DEB.2.00.1207141816580.1593@blackhole.kfki.hu> <5002AF68.9070204@googlemail.com> <alpine.DEB.2.00.1207151552140.3610@blackhole.kfki.hu> <5002F0AF.4000502@googlemail.com> <alpine.DEB.2.00.1207152041270.4159@blackhole.k
- fki.hu>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH] ipvs: fixed sparse warning
+Date: Mon, 16 Jul 2012 10:39:46 +0900
+Message-ID: <20120716013946.GG16151@verge.net.au>
+References: <1342198642-22741-1-git-send-email-claudiu.ghioc@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Core Team <netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:52741 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750955Ab2GOWs6 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 15 Jul 2012 18:48:58 -0400
-Received: by wgbfm10 with SMTP id fm10so1942475wgb.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 Jul 2012 15:48:57 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1207152041270.4159@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, davem@davemloft.net,
+	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+	wensong@linux-vs.org, ja@ssi.bg, pablo@netfilter.org,
+	kaber@trash.net, Claudiu Ghioc <claudiu.ghioc@gmail.com>
+To: Claudiu Ghioc <claudiughioc@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1342198642-22741-1-git-send-email-claudiu.ghioc@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Fri, Jul 13, 2012 at 07:57:22PM +0300, Claudiu Ghioc wrote:
+> Removed the following sparse warnings:
+> *	warning: symbol 'ip_vs_control_net_init_sysctl' was not declared. Should
+> 	it be static?
+> *	warning: symbol 'ip_vs_control_net_cleanup_sysctl' was not
+> 	declared. Should it be static?
 
-> Because this or that way, someone would scratch his/her head. For example 
-> if the rule contains "in/out" and the list:set is a mixed one, contains 
-> both hash:net,iface and other types of sets. They'll ask: "What the heck 
-> is "in/out" for say hash:ip type of set?"
-I've just read that again, so decided to clarify (a bit like you :-) ) 
-what was meant in my previous email:
+Thanks.
 
-I am discussing the issue of in/out <-> src/dst *only* for list:set type 
-sets and *only* for the second dimension parameter of that set - 
-everything else is "as is" and as we agreed before, OK?
+I wonder if you could post a version of this patch which also fixes the
+alternate implementation of ip_vs_control_net_init_sysctl around line 3757 and
+the alternate implementation of ip_vs_control_net_cleanup_sysctl that
+appears around line 3758.
+
+I believe that you will see sparse warnings for these if
+you disable CONFIG_SYSCTL by disabling CONFIG_PROC_SYSCTL.
+
+> 
+> Signed-off-by: Claudiu Ghioc <claudiu.ghioc@gmail.com>
+> ---
+>  net/netfilter/ipvs/ip_vs_ctl.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index d43e3c1..3542c6b1 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> @@ -3674,7 +3674,7 @@ static void ip_vs_genl_unregister(void)
+>   * per netns intit/exit func.
+>   */
+>  #ifdef CONFIG_SYSCTL
+> -int __net_init ip_vs_control_net_init_sysctl(struct net *net)
+> +static int __net_init ip_vs_control_net_init_sysctl(struct net *net)
+>  {
+>  	int idx;
+>  	struct netns_ipvs *ipvs = net_ipvs(net);
+> @@ -3742,7 +3742,7 @@ int __net_init ip_vs_control_net_init_sysctl(struct net *net)
+>  	return 0;
+>  }
+>  
+> -void __net_exit ip_vs_control_net_cleanup_sysctl(struct net *net)
+> +static void __net_exit ip_vs_control_net_cleanup_sysctl(struct net *net)
+>  {
+>  	struct netns_ipvs *ipvs = net_ipvs(net);
+>  
+> -- 
+> 1.7.10.4
+> 
