@@ -1,66 +1,47 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: pgsql-ulogd2
-Date: Mon, 16 Jul 2012 12:49:43 +0200
-Message-ID: <20120716104943.GA11172@1984>
+Date: Mon, 16 Jul 2012 12:51:00 +0200
+Message-ID: <20120716105100.GB11172@1984>
 References: <50002CEF.508@googlemail.com>
  <1342194935.11019.12.camel@tiger.regit.org>
  <50016D84.5080207@googlemail.com>
  <1342300959.6098.8.camel@tiger.regit.org>
  <5002B688.4070907@googlemail.com>
  <1342385528.8476.2.camel@tiger.regit.org>
+ <500345F1.3050407@googlemail.com>
+ <20120716080013.GA522@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Cc: Mr Dash Four <mr.dash.four@googlemail.com>,
+	Eric Leblond <eric@regit.org>,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
-To: Eric Leblond <eric@regit.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60772 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:32837 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751262Ab2GPKtv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Jul 2012 06:49:51 -0400
+	id S1751703Ab2GPKvC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Jul 2012 06:51:02 -0400
 Content-Disposition: inline
-In-Reply-To: <1342385528.8476.2.camel@tiger.regit.org>
+In-Reply-To: <20120716080013.GA522@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Jul 15, 2012 at 10:52:08PM +0200, Eric Leblond wrote:
-> Hello,
->=20
-> Le dimanche 15 juillet 2012 =E0 13:24 +0100, Mr Dash Four a =E9crit :
-> > > For NFCT, you simply need to have nfnetlink_conntrack loaded.
-> > >  =20
-> > I did, but I also made the mistake of including a few filters in th=
-at=20
-> > stack, which were incompatible and that was the reason I did not ge=
-t any=20
-> > NFCT logs. Once that was corrected I started seeing connection trac=
-king=20
-> > logged.
-> >=20
-> > I have another question with regards to this: Is it possible to lim=
-it=20
-> > (by a separate filter or otherwise) the reporting and restrict it, =
-to=20
-> > say, a specific set of interfaces or specific source/destination IP=
-=20
-> > addresses/subnets?
-> >=20
-> > Currently, NFCT reports absolutely everything, which is not what I=20
-> > really want as I have to sift through thousands of logs, not to men=
-tion=20
-> > that by reporting everything the system load is much higher.
-> >=20
-> > So, is there a way for me to do that, somehow?
->=20
-> Not now but I'm working on it: Pablo has made a filter system in
-> libnetfilter_conntrack. I will used it to filter.
+On Mon, Jul 16, 2012 at 10:00:13AM +0200, Florian Westphal wrote:
+> Mr Dash Four <mr.dash.four@googlemail.com> wrote:
+> > The specific reason I raised this issue is because on the main
+> > firewall we have here, if I deploy ulogd2 and use NFCT at its
+> > present form, I will get the logs from all 7 interfaces, and it
+> > would make it an absolutely huge task to sift through all these logs
+> > and "match" the various entries (OK, doing it through the database
+> > will help up a bit, but not a lot).
+> 
+> Try something like
+> iptables -t raw -A PREROUTING (thingsyoudontwant) -j CT --ctevents related
+> 
+> (i don't think its possible to disable event delivery completely
+>  at the moment without disabling conntrack ).
 
-You can also use the CT target to filter conntrack events. It's a
-global configurable parameter though, but it's easy.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+You can do it via:
+
+/proc/sys/net/netfilter/nf_conntrack_events
