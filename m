@@ -1,30 +1,32 @@
-From: David Miller <davem@davemloft.net>
-Subject: That's pretty much it for 3.5.0
-Date: Tue, 17 Jul 2012 09:01:42 -0700 (PDT)
-Message-ID: <20120717.090142.125145009944045241.davem@davemloft.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/1] libxt_HMARK: remove -set fix spi syntax and add
+ hton{s,l}
+Date: Tue, 17 Jul 2012 18:30:12 +0200
+Message-ID: <20120717163012.GA28247@1984>
+References: <1342527949-17589-1-git-send-email-hans@schillstrom.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: netdev@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Hans Schillstrom <hans@schillstrom.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:51115 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755760Ab2GQQBn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Jul 2012 12:01:43 -0400
+Received: from mail.us.es ([193.147.175.20]:45751 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752280Ab2GQQaQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 Jul 2012 12:30:16 -0400
+Content-Disposition: inline
+In-Reply-To: <1342527949-17589-1-git-send-email-hans@schillstrom.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Tue, Jul 17, 2012 at 02:25:49PM +0200, Hans Schillstrom wrote:
+> Correct a number of errors introduced by Pablos rework
+> 
+> -set removed in all commands, iptables-save syntax must be valid.
+> xxx-set also removed in print commands.
+> Mix of spi and spi-mask fixed.
+> Added ntohX again for all ports and spi values.
+> Restore of spi / port  validation.
+> 
+> Remove --hmark-offset as mandatory.
 
-Linus was _extremely_ generous and took in all the stuff that was
-pending in the net tree just now.
-
-Besides very serious issues, I'm not willing to consider any more bug
-fixes for the 'net' tree at this time.
-
-Only one pending known bug qualifies, and that's the CIPSO ip option
-processing OOPS'er.  And I'll work on that myself if Paul Moore
-doesn't show a sign of life in the next day.
-
-Thanks.
+Applied, thanks Hans.
