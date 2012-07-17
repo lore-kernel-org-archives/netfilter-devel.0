@@ -1,44 +1,30 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [GIT PULL nf] IPVS
-Date: Tue, 17 Jul 2012 22:50:18 +0900
-Message-ID: <20120717135018.GH17325@verge.net.au>
-References: <1341965963-7275-1-git-send-email-horms@verge.net.au>
- <20120717101406.GC3812@1984>
+From: David Miller <davem@davemloft.net>
+Subject: That's pretty much it for 3.5.0
+Date: Tue, 17 Jul 2012 09:01:42 -0700 (PDT)
+Message-ID: <20120717.090142.125145009944045241.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	Jesper Dangaard Brouer <brouer@redhat.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120717101406.GC3812@1984>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: netdev@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:51115 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755760Ab2GQQBn (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 Jul 2012 12:01:43 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jul 17, 2012 at 12:14:06PM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Jul 11, 2012 at 09:19:20AM +0900, Simon Horman wrote:
-> > 
-> > Hi Pablo,
-> > 
-> > this pull request consists of three bug fixes for IPVS.
-> > Please consider for inclusion in 3.5 and stable.
-> > 
-> > The bug fix from Julian, "ipvs: fix oops in ip_vs_dst_event on rmmod"
-> > fixes a regression introduced in 3.4 and thus I believe it is
-> > only relevant to 3.5 and 3.4-stable.
-> > 
-> > The other two fixes appear to have been present since at least 2.6.37
-> > (there were a lot of changes to IPVS around that time).
-> 
-> I have passed the two of these patches to David. The one for the FTP
-> needs a consistent description.
-> 
-> It's fairly late in the development cycle (-rc7), but these are small.
-> Let's see if David is still in time to accept them. Otherwise, they go
-> to net-next and we will ask for -stable submission.
 
-Thanks, it seems that David was in an accepting mood.
+Linus was _extremely_ generous and took in all the stuff that was
+pending in the net tree just now.
+
+Besides very serious issues, I'm not willing to consider any more bug
+fixes for the 'net' tree at this time.
+
+Only one pending known bug qualifies, and that's the CIPSO ip option
+processing OOPS'er.  And I'll work on that myself if Paul Moore
+doesn't show a sign of life in the next day.
+
+Thanks.
