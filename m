@@ -1,206 +1,215 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: pgsql-ulogd2
-Date: Wed, 18 Jul 2012 00:29:47 +0100
-Message-ID: <5005F56B.6000109@googlemail.com>
-References: <50002CEF.508@googlemail.com>			 <1342194935.11019.12.camel@tiger.regit.org>			 <50016D84.5080207@googlemail.com>		 <1342300959.6098.8.camel@tiger.regit.org>	 <5002B688.4070907@googlemail.com> <1342385528.8476.2.camel@tiger.regit.org>	 <500345F1.3050407@googlemail.com> <1342420387.8476.20.camel@tiger.regit.org> <50040C8B.6010302@googlemail.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [GIT PULL net] IPVS
+Date: Wed, 18 Jul 2012 09:01:33 +0900
+Message-ID: <20120718000132.GC10971@verge.net.au>
+References: <1335488039-13471-1-git-send-email-horms@verge.net.au>
+ <20120430092722.GA6866@1984>
+ <20120710092002.GE12776@verge.net.au>
+ <20120710130503.GA21118@1984>
+ <20120717101531.GD3812@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Eric Leblond <eric@regit.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	Jesper Dangaard Brouer <brouer@redhat.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:40855 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756346Ab2GQX3w (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:54288 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753930Ab2GRABi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Jul 2012 19:29:52 -0400
-Received: by wibhr14 with SMTP id hr14so845604wib.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Jul 2012 16:29:51 -0700 (PDT)
-In-Reply-To: <50040C8B.6010302@googlemail.com>
+	Tue, 17 Jul 2012 20:01:38 -0400
+Content-Disposition: inline
+In-Reply-To: <20120717101531.GD3812@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Tue, Jul 17, 2012 at 12:15:31PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Jul 10, 2012 at 03:05:03PM +0200, Pablo Neira Ayuso wrote:
+> > Hi Simon,
+> > 
+> > On Tue, Jul 10, 2012 at 06:20:03PM +0900, Simon Horman wrote:
+> > > On Mon, Apr 30, 2012 at 11:27:22AM +0200, Pablo Neira Ayuso wrote:
+> > > > On Fri, Apr 27, 2012 at 09:53:54AM +0900, Simon Horman wrote:
+> > > > > Hi Pablo,
+> > > > > 
+> > > > > please consider the following 5 changes for 3.4, they are all bug fixes.
+> > > > > I would also like these changes considered for stable.
+> > > > 
+> > > > Please, ping me again once these have hit Linus tree to ask for
+> > > > -stable submission.
+> > > 
+> > > Sorry for letting this slip through the cracks.
+> > > 
+> > > Please consider the following commits which are in Linus's tree for stable.
+> > > Or I can submit them directly if that is easier.
+> > > 
+> > > There are 7 patches listed below. The first 5 were the patches in this
+> > > pull request. The last two were patches in a git pull request
+> > > a few days earlier.
+> > 
+> > That's fine, I can make it, but you have to include what stable
+> > releases this will be applied, eg. patch 1 to releases 3.4 and 3.2.
+> > 
+> > I think -stable maintainers will ask for that.
+> 
+> Ping?
 
-> I managed to get some preliminary code working yesterday and later=20
-> today when I get home I'll get the chance to test it with the real=20
-> plug in to see whether SSL works. If it does, I'll propose some=20
-> changes to include SSL capability to the PGSQL plugin.
-OK, I've just done some testing using the PGSQL plugin with hard-coded=20
-values to create a secure (SSL) connection and verify how that plugin=20
-works. In short - it is absolutely flawless!
+Sorry, I haven't got to this yet.
 
-I am able to establish 4 types of SSL connections between ulogd and my=20
-PostgreSQL database server and conducted tests on various (known)=20
-attacks to see how it behaves - it passes with flying colours!
-
-In the mean time, I found a bug and a "maybe" bug:
-
-1. pgsql-ulogd2 script:
-
-CREATE TABLE ulog2 (
-  [...]
-timestamp timestamp NOT NULL default 'now'
-
-The above will insert a string, equivalent to the current timestamp whe=
-n=20
-the table was created as a default value (which PostgreSQL will=20
-automatically convert to timestamp) and *not* when a record is inserted=
-=20
-into the table. The correct syntax is:
-
-"timestamp" timestamp NOT NULL default now()
-
-
-2. When I start using NFCT and it does the logging to the database, I a=
-m=20
-getting endless sequences of the following statement in the main=20
-ulogd.log file:
-
-<5> ulogd_inpflow_NFCT.c:697 unsupported message type
-
-I don't know whether there is something I am doing wrong or whether=20
-there is a message which ulogd cannot interpret. Maybe a bug, maybe not=
-,=20
-I don't know.
-
-So, for SSL implementation in the PGSQL plugin, this is how I see it:=20
-PostgreSQL (the server) allows for 6 different types of SSL connections=
-=20
-to be established between it and a client [1]:
-
-Option          Description
-~~~~~~        ~~~~~~~~~~~
-disable          only try a non-SSL connection
-allow          first try a non-SSL connection; if that fails, try an SS=
-L=20
-connection
-prefer        (default) first try an SSL connection; if that fails, try=
-=20
-a non-SSL connection
-require          only try an SSL connection
-verify-ca     only try an SSL connection, and verify that the server=20
-certificate is issued by a trusted CA
-verify-full   only try an SSL connection, verify that the server=20
-certificate is issued by a trusted CA and that the server host name=20
-matches that in the certificate
-
-The above option is configured with the "sslmode" connection option=20
-("sslmode=3Dverfify-full" for example). In earlier PostgreSQL versions=20
-(below 8, I think), there was only one possible option and that was=20
-"requiressl" ("requiressl=3D1" is equivalent to "sslmode=3Drequire" abo=
-ve,=20
-while "requiressl=3D0" is the equivalent to "sslmode=3Dprefer").
-
-As far as verification goes, there is one additional parameter which=20
-could also be deployed on the PostgreSQL server to check request and=20
-check the client certificate as well. So verification and checking coul=
-d=20
-be a dual process on both the client and the server.
-
-In addition to the above parameter, 4 other connection options can be=20
-specified:
-
-sslcert - This parameter specifies the file name of the client SSL=20
-certificate, replacing the default =E2=80=98~/.postgresql/postgresql.cr=
-t=E2=80=99. This=20
-parameter is ignored if an SSL connection is not made.
-
-sslkey - This parameter specifies the location for the secret key used=20
-for the client certificate. It can either specify a file name that will=
-=20
-be used instead of the default =E2=80=98~/.postgresql/postgresql.key=E2=
-=80=99, or it can=20
-specify a key obtained from an external =E2=80=9Cengine=E2=80=9D (engin=
-es are OpenSSL=20
-loadable modules). An external engine specification should consist of a=
-=20
-colon-separated engine name and an engine-specific key identifier. This=
-=20
-parameter is ignored if an SSL connection is not made. If this key is=20
-protected with a password, this will be asked when the connection is=20
-made. On the server side, it is stored internally and asked once when=20
-the server starts up. on the client side it is asked every time an=20
-attempt for a connection is made.
-
-sslrootcert - This parameter specifies the name of a file containing SS=
-L=20
-certificate authority (CA) certificate(s). If the file exists, the=20
-server's certificate will be verified to be signed by one of these=20
-authorities. The default is =E2=80=98~/.postgresql/root.crt=E2=80=99.
-
-sslcrl - This parameter specifies the file name of the SSL certificate=20
-revocation list (CRL). Certificates listed in this file, if it exists,=20
-will be rejected while attempting to authenticate the server's=20
-certificate. The default is =E2=80=98~/.postgresql/root.crl=E2=80=99.
-
-So, the way I see it, we can mirror all of the above 5 options,=20
-including their default values quite easily and let PGconn do the rest=20
-(please note that the PG .so object library takes care of opening the=20
-certificate files as well as checking and validating the various=20
-certificates contained within - this is done transparently to the clien=
-t=20
-- PGSQL plugin in this case). The modifications to the PGSQL plugin=20
-would be minimal and will consists of little more than adding the above=
-=20
-parameters and then passing their values as connection options to PGcon=
-n.
-
-As far as hardening the access to the system tables goes, the way I see=
-=20
-it there are 2 possible options:
-
-1. Change the meaning of the "table" plugin parameter to point to a=20
-user-defined table, which contains a single row where all column names=20
-of the main ulogd table are stored. This option *will* brake backward=20
-compatibility!
-
-2. Keep the existing "table" option and add a separate parameter=20
-(probably called "columns" or "table_columns" or something like that),=20
-which will contain a single row with the description of all usable=20
-columns in the "table" table where the main ulogd logging will take pla=
-ce.
-
-I think option 2 is better, though at the expense of adding an extra=20
-configuration parameter, in addition to the 5 new ones for SSL support =
-I=20
-listed above.
-
-A few other observations and a query: Currently, there isn't a=20
-"user-friendly" NCFT view implemented in the PGSQL plugin, similar to=20
-the one designed for NFLOG (the one implemented for NFLOG is called=20
-ulog, I think) where the various numeric and raw values are "deciphered=
-"=20
-for the end user and presented in a nice format to be understood more=20
-easily.
-
-All NFCT logs are currently dumped, quite literally, in the ulogd2_ct=20
-table. Such a view would be very easy to create - I could do it and=20
-submit it together with the above changes if there is interest.
-
-One last question - is there a way where I could get *all* possible=20
-values which a given filter plugin interprets, like source/destination=20
-IP address/subnet, interface names etc?
-
-The reason I am asking this is because if I could use or implement a=20
-command line parameter (similar to "ulogd -i"), which asks every filter=
-=20
-plugin to list the names of the parameters it processes from the input=20
-plugin, then I could build a reliable set of parameters which are then=20
-used to build a complete database script to be used in the creating the=
-=20
-database schema which is then used by ulogd2.
-
-Currently, I am only guessing what each plugin processes - it is like a=
-=20
-black box, which isn't good-enough for me.
-
-
-[1] - PostgreSQL v9.0 Programmer's Manual -=20
-http://www.network-theory.co.uk/docs/postgresql9/vol2/DatabaseConnectio=
-nControlFunctions.html
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > commit 8537de8a7ab6681cc72fb0411ab1ba7fdba62dd0
+> > > Author: Hans Schillstrom <hans.schillstrom@ericsson.com>
+> > > Date:   Thu Apr 26 07:47:44 2012 +0200
+> > > 
+> > >     ipvs: kernel oops - do_ip_vs_get_ctl
+> > >     
+> > >     Change order of init so netns init is ready
+> > >     when register ioctl and netlink.
+> > >     
+> > >     Ver2
+> > >     	Whitespace fixes and __init added.
+> > >     
+> > >     Reported-by: "Ryan O'Hara" <rohara@redhat.com>
+> > >     Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
+> > >     Acked-by: Julian Anastasov <ja@ssi.bg>
+> > >     Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+> > >     Signed-off-by: Simon Horman <horms@verge.net.au>
+> > > 
+> > > commit 582b8e3eadaec77788c1aa188081a8d5059c42a6
+> > > Author: Hans Schillstrom <hans.schillstrom@ericsson.com>
+> > > Date:   Thu Apr 26 09:45:35 2012 +0200
+> > > 
+> > >     ipvs: take care of return value from protocol init_netns
+> > >     
+> > >     ip_vs_create_timeout_table() can return NULL
+> > >     All functions protocol init_netns is affected of this patch.
+> > >     
+> > >     Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
+> > >     Acked-by: Julian Anastasov <ja@ssi.bg>
+> > >     Signed-off-by: Simon Horman <horms@verge.net.au>
+> > > 
+> > > commit 4b984cd50bc1b6d492175cd77bfabb78e76ffa67
+> > > Author: Hans Schillstrom <hans.schillstrom@ericsson.com>
+> > > Date:   Thu Apr 26 09:45:34 2012 +0200
+> > > 
+> > >     ipvs: null check of net->ipvs in lblc(r) shedulers
+> > >     
+> > >     Avoid crash when registering shedulers after
+> > >     the IPVS core initialization for netns fails. Do this by
+> > >     checking for present core (net->ipvs).
+> > >     
+> > >     Signed-off-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
+> > >     Acked-by: Julian Anastasov <ja@ssi.bg>
+> > >     Signed-off-by: Simon Horman <horms@verge.net.au>
+> > > 
+> > > commit 39f618b4fd95ae243d940ec64c961009c74e3333
+> > > Author: Julian Anastasov <ja@ssi.bg>
+> > > Date:   Wed Apr 25 00:29:58 2012 +0300
+> > > 
+> > >     ipvs: reset ipvs pointer in netns
+> > >     
+> > >     	Make sure net->ipvs is reset on netns cleanup or failed
+> > >     initialization. It is needed for IPVS applications to know that
+> > >     IPVS core is not loaded in netns.
+> > >     
+> > >     Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> > >     Acked-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
+> > >     Signed-off-by: Simon Horman <horms@verge.net.au>
+> > > 
+> > > commit 8d08d71ce59438a6ef06be5db07966e0c144b74e
+> > > Author: Julian Anastasov <ja@ssi.bg>
+> > > Date:   Wed Apr 25 00:29:59 2012 +0300
+> > > 
+> > >     ipvs: add check in ftp for initialized core
+> > >     
+> > >     	Avoid crash when registering ip_vs_ftp after
+> > >     the IPVS core initialization for netns fails. Do this by
+> > >     checking for present core (net->ipvs).
+> > >     
+> > >     Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> > >     Acked-by: Hans Schillstrom <hans.schillstrom@ericsson.com>
+> > >     Signed-off-by: Simon Horman <horms@verge.net.au>
+> > > 
+> > > commit 8f9b9a2fad47af27e14b037395e03cd8278d96d7
+> > > Author: Julian Anastasov <ja@ssi.bg>
+> > > Date:   Fri Apr 13 18:08:43 2012 +0300
+> > > 
+> > >     ipvs: fix crash in ip_vs_control_net_cleanup on unload
+> > >     
+> > >     	commit 14e405461e664b777e2a5636e10b2ebf36a686ec (2.6.39)
+> > >     ("Add __ip_vs_control_{init,cleanup}_sysctl()")
+> > >     introduced regression due to wrong __net_init for
+> > >     __ip_vs_control_cleanup_sysctl. This leads to crash when
+> > >     the ip_vs module is unloaded.
+> > >     
+> > >     	Fix it by changing __net_init to __net_exit for
+> > >     the function that is already renamed to ip_vs_control_net_cleanup_sysctl.
+> > >     
+> > >     Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> > >     Signed-off-by: Hans Schillstrom <hans@schillstrom.com>
+> > >     Signed-off-by: Simon Horman <horms@verge.net.au>
+> > >     Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > > 
+> > > commit 7118c07a844d367560ee91adb2071bde2fabcdbf
+> > > Author: Sasha Levin <levinsasha928@gmail.com>
+> > > Date:   Sat Apr 14 12:37:46 2012 -0400
+> > > 
+> > >     ipvs: Verify that IP_VS protocol has been registered
+> > >     
+> > >     The registration of a protocol might fail, there were no checks
+> > >     and all registrations were assumed to be correct. This lead to
+> > >     NULL ptr dereferences when apps tried registering.
+> > >     
+> > >     For example:
+> > >     
+> > >     [ 1293.226051] BUG: unable to handle kernel NULL pointer dereference at 0000000000000018
+> > >     [ 1293.227038] IP: [<ffffffff822aacb0>] tcp_register_app+0x60/0xb0
+> > >     [ 1293.227038] PGD 391de067 PUD 6c20b067 PMD 0
+> > >     [ 1293.227038] Oops: 0000 [#1] PREEMPT SMP
+> > >     [ 1293.227038] CPU 1
+> > >     [ 1293.227038] Pid: 19609, comm: trinity Tainted: G        W    3.4.0-rc1-next-20120405-sasha-dirty #57
+> > >     [ 1293.227038] RIP: 0010:[<ffffffff822aacb0>]  [<ffffffff822aacb0>] tcp_register_app+0x60/0xb0
+> > >     [ 1293.227038] RSP: 0018:ffff880038c1dd18  EFLAGS: 00010286
+> > >     [ 1293.227038] RAX: ffffffffffffffc0 RBX: 0000000000001500 RCX: 0000000000010000
+> > >     [ 1293.227038] RDX: 0000000000000000 RSI: ffff88003a2d5888 RDI: 0000000000000282
+> > >     [ 1293.227038] RBP: ffff880038c1dd48 R08: 0000000000000000 R09: 0000000000000000
+> > >     [ 1293.227038] R10: 0000000000000000 R11: 0000000000000000 R12: ffff88003a2d5668
+> > >     [ 1293.227038] R13: ffff88003a2d5988 R14: ffff8800696a8ff8 R15: 0000000000000000
+> > >     [ 1293.227038] FS:  00007f01930d9700(0000) GS:ffff88007ce00000(0000) knlGS:0000000000000000
+> > >     [ 1293.227038] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+> > >     [ 1293.227038] CR2: 0000000000000018 CR3: 0000000065dfc000 CR4: 00000000000406e0
+> > >     [ 1293.227038] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> > >     [ 1293.227038] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> > >     [ 1293.227038] Process trinity (pid: 19609, threadinfo ffff880038c1c000, task ffff88002dc73000)
+> > >     [ 1293.227038] Stack:
+> > >     [ 1293.227038]  ffff880038c1dd48 00000000fffffff4 ffff8800696aada0 ffff8800694f5580
+> > >     [ 1293.227038]  ffffffff8369f1e0 0000000000001500 ffff880038c1dd98 ffffffff822a716b
+> > >     [ 1293.227038]  0000000000000000 ffff8800696a8ff8 0000000000000015 ffff8800694f5580
+> > >     [ 1293.227038] Call Trace:
+> > >     [ 1293.227038]  [<ffffffff822a716b>] ip_vs_app_inc_new+0xdb/0x180
+> > >     [ 1293.227038]  [<ffffffff822a7258>] register_ip_vs_app_inc+0x48/0x70
+> > >     [ 1293.227038]  [<ffffffff822b2fea>] __ip_vs_ftp_init+0xba/0x140
+> > >     [ 1293.227038]  [<ffffffff821c9060>] ops_init+0x80/0x90
+> > >     [ 1293.227038]  [<ffffffff821c90cb>] setup_net+0x5b/0xe0
+> > >     [ 1293.227038]  [<ffffffff821c9416>] copy_net_ns+0x76/0x100
+> > >     [ 1293.227038]  [<ffffffff810dc92b>] create_new_namespaces+0xfb/0x190
+> > >     [ 1293.227038]  [<ffffffff810dca21>] unshare_nsproxy_namespaces+0x61/0x80
+> > >     [ 1293.227038]  [<ffffffff810afd1f>] sys_unshare+0xff/0x290
+> > >     [ 1293.227038]  [<ffffffff8187622e>] ? trace_hardirqs_on_thunk+0x3a/0x3f
+> > >     [ 1293.227038]  [<ffffffff82665539>] system_call_fastpath+0x16/0x1b
+> > >     [ 1293.227038] Code: 89 c7 e8 34 91 3b 00 89 de 66 c1 ee 04 31 de 83 e6 0f 48 83 c6 22 48 c1 e6 04 4a 8b 14 26 49 8d 34 34 48 8d 42 c0 48 39 d6 74 13 <66> 39 58 58 74 22 48 8b 48 40 48 8d 41 c0 48 39 ce 75 ed 49 8d
+> > >     [ 1293.227038] RIP  [<ffffffff822aacb0>] tcp_register_app+0x60/0xb0
+> > >     [ 1293.227038]  RSP <ffff880038c1dd18>
+> > >     [ 1293.227038] CR2: 0000000000000018
+> > >     [ 1293.379284] ---[ end trace 364ab40c7011a009 ]---
+> > >     [ 1293.381182] Kernel panic - not syncing: Fatal exception in interrupt
+> > >     
+> > >     Signed-off-by: Sasha Levin <levinsasha928@gmail.com>
+> > >     Acked-by: Julian Anastasov <ja@ssi.bg>
+> > >     Signed-off-by: Simon Horman <horms@verge.net.au>
+> > >     Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > > 
+> 
