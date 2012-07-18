@@ -1,64 +1,111 @@
-From: Gomathivinayagam Muthuvinayagam <sankarmail@gmail.com>
-Subject: Ulogd crashes - NFCT polling mode + NACCT
-Date: Wed, 18 Jul 2012 08:21:26 -0700
-Message-ID: <CAAJpzgZdfV3_r4ymFLvWroRjJkaQVtUdwb4P-vf57fyGJL7bzw@mail.gmail.com>
+From: "Rustad, Mark D" <mark.d.rustad@intel.com>
+Subject: Re: That's pretty much it for 3.5.0
+Date: Wed, 18 Jul 2012 17:36:35 +0000
+Message-ID: <205259E8-A99F-4573-96C9-7A394235B338@intel.com>
+References: <5005D008.6060103@intel.com>
+ <20120717.140241.1599386555723262095.davem@davemloft.net>
+ <5005E390.7020706@intel.com>
+ <20120717.151832.1306978935355646723.davem@davemloft.net>
+ <5005F4F9.6010208@intel.com>
+ <20120718130430.GE25563@hmsreliant.think-freely.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:49811 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754676Ab2GRPVr (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Jul 2012 11:21:47 -0400
-Received: by obbuo13 with SMTP id uo13so2262299obb.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Jul 2012 08:21:46 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: "Fastabend, John R" <john.r.fastabend@intel.com>,
+	"<h@hmsreliant.think-freely.org>" <h@hmsreliant.think-freely.org>,
+	David Miller <davem@davemloft.net>,
+	"<netdev@vger.kernel.org>" <netdev@vger.kernel.org>,
+	"<linux-wireless@vger.kernel.org>" <linux-wireless@vger.kernel.org>,
+	"<netfilter-devel@vger.kernel.org>" <netfilter-devel@vger.kernel.org>
+To: Neil Horman <nhorman@tuxdriver.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20120718130430.GE25563@hmsreliant.think-freely.org>
+Content-Language: en-US
+Content-ID: <F50CA5A78A1BD946AA5009E2141B20FD@intel.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Jul 18, 2012, at 6:04 AM, Neil Horman wrote:
 
-I try to use ulogd with NFCT polling mode and NACCT output. Ulogd
-crashes with this options, and stacktrace is given as below
-Could someone help me the reason for this failure?
+> John, can you post the backtrace you got for this?  I replied to the patch that
+> you posted for this fix.  the cgroup subsystem has an early_init flag thats
+> supposed to prevent the initialization of cgroups that don't need initialization
+> until later (like via module_init() calls).
 
-== Stacktrace =================================
-#0  0x00007fe46c334445 in raise () from /lib/x86_64-linux-gnu/libc.so.6
-No symbol table info available.
-#1  0x00007fe46c337bab in abort () from /lib/x86_64-linux-gnu/libc.so.6
-No symbol table info available.
-#2  0x00007fe46c32d10e in ?? () from /lib/x86_64-linux-gnu/libc.so.6
-No symbol table info available.
-#3  0x00007fe46c32d1b2 in __assert_fail () from /lib/x86_64-linux-gnu/libc.so.6
-No symbol table info available.
-#4  0x00007fe46b8d6274 in nfct_query (h=0x0, qt=<optimized out>,
-data=<optimized out>) at api.c:942
-        u = {buffer = 0x7fffa7a06bd0
-"\377\377\377\377\377\377\377\377", req = {nlh = {nlmsg_len = 0,
-nlmsg_type = 0, nlmsg_flags = 0, nlmsg_seq = 0, nlmsg_pid = 0}, nfmsg
-= {nfgen_family = 0 '\000', version = 0 '\000', res_id = 0}}}
-        __PRETTY_FUNCTION__ = "nfct_query"
-#5  0x00007fe46bae8615 in polling_timer_cb (t=<optimized out>,
-data=0xe5c8a0) at ulogd_inpflow_NFCT.c:999
-        upi = 0xe5c8a0
-        family = 0
-#6  0x00000000004047d8 in ulogd_do_timer_run (next_run=0x7fffa7a07c80)
-at timer.c:162
-        alarm_run_queue = {next = 0xe5c998, prev = 0xe5a408}
-        node = <optimized out>
-        this = <optimized out>
-        tv = {tv_sec = 1342590477, tv_usec = 250967}
-#7  0x000000000040214a in ulogd_main_loop () at ulogd.c:907
-        ret = <optimized out>
-        next_alarm = {tv_sec = 0, tv_usec = 0}
-        next = 0x7fffa7a07c80
-#8  main (argc=<optimized out>, argv=<optimized out>) at ulogd.c:1248
-        argch = <optimized out>
-        daemonize = 1
-        change_uid = 0
-        user = 0x0
-        pw = <optimized out>
-        uid = 0
-        gid = 0
+Here is the backtrace that I get and below a patch that fixes it:
 
-Thanks & Regards,
+[    0.010958] Initializing cgroup subsys net_prio
+[    0.011040] BUG: unable to handle kernel NULL pointer dereference at 0000000000000828
+[    0.011998] IP: [<ffffffff814202c8>] update_netdev_tables+0x68/0xe0
+[    0.011998] PGD 0 
+[    0.011998] Oops: 0000 [#1] SMP 
+[    0.011998] CPU 0 
+[    0.011998] Modules linked in:
+[    0.011998] 
+[    0.011998] Pid: 0, comm: swapper/0 Not tainted 3.5.0-rc7-mdrlinux+ #10 Bochs Bochs
+[    0.011998] RIP: 0010:[<ffffffff814202c8>]  [<ffffffff814202c8>] update_netdev_tables+0x68/0xe0
+[    0.011998] RSP: 0000:ffffffff81a01e68  EFLAGS: 00010246
+[    0.011998] RAX: 0000000000000000 RBX: fffffffffffffed0 RCX: 0000000000000000
+[    0.011998] RDX: 0000000000000006 RSI: 2222222222222222 RDI: 2222222222222222
+[    0.011998] RBP: ffffffff81a01e88 R08: 2222222222222222 R09: 2222222222222222
+[    0.011998] R10: 0000000000000000 R11: 0000000000000001 R12: 0000000000000001
+[    0.011998] R13: 0000000000000000 R14: ffff88007ff608c0 R15: 00000000000143d0
+[    0.011998] FS:  0000000000000000(0000) GS:ffff88007fc00000(0000) knlGS:0000000000000000
+[    0.011998] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[    0.011998] CR2: 0000000000000828 CR3: 0000000001a0b000 CR4: 00000000000006b0
+[    0.011998] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[    0.011998] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+[    0.011998] Process swapper/0 (pid: 0, threadinfo ffffffff81a00000, task ffffffff81a13420)
+[    0.011998] Stack:
+[    0.011998]  ffffffff81a88020 0000000000000000 ffff88007d3a38f0 fffffffffffffff4
+[    0.011998]  ffffffff81a01ec8 ffffffff814203cd ffff88007ff608c0 ffffffff817d8e9a
+[    0.011998]  ffffffff81a88cd8 ffffffff81a88020 ffffffff81a88020 ffffffff81b010a0
+[    0.011998] Call Trace:
+[    0.011998]  [<ffffffff814203cd>] cgrp_create+0x8d/0xc0
+[    0.011998]  [<ffffffff81ade14a>] cgroup_init_subsys+0x80/0x126
+[    0.011998]  [<ffffffff81ade380>] cgroup_init+0x36/0x117
+[    0.011998]  [<ffffffff81acab71>] start_kernel+0x32e/0x34f
+[    0.011998]  [<ffffffff81aca6d5>] ? repair_env_string+0x5a/0x5a
+[    0.011998]  [<ffffffff81aca346>] x86_64_start_reservations+0x101/0x105
+[    0.011998]  [<ffffffff81aca120>] ? early_idt_handlers+0x120/0x120
+[    0.011998]  [<ffffffff81aca417>] x86_64_start_kernel+0xcd/0xdc
+[    0.011998] Code: 0f 1f 00 48 8b 83 30 01 00 00 48 8d 98 d0 fe ff ff 48 3d a8 e8 52 82 74 3a e8 25 db c3 ff 85 c0 74 09 80 3d bb 3d 68 00 00 74 40 <48> 8b 83 58 09 00 00 48 85 c0 74 cc 44 3b 60 10 76 c6 44 89 e6 
+[    0.011998] RIP  [<ffffffff814202c8>] update_netdev_tables+0x68/0xe0
+[    0.011998]  RSP <ffffffff81a01e68>
+[    0.011998] CR2: 0000000000000828
+[    0.012009] ---[ end trace a7919e7f17c0a725 ]---
+[    0.012601] Kernel panic - not syncing: Attempted to kill the idle task!
+
+The following change simply statically initializes init_net.dev_base_head. I copied and pasted it into the email, so this rendering may not work, but I can send it if this approach looks reasonable. I have verified that it resolves the issue above.
+
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 0f28a9e..db1ba61 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -6283,8 +6283,6 @@ static struct hlist_head *netdev_create_hash(void)
+ /* Initialize per network namespace state */
+ static int __net_init netdev_init(struct net *net)
+ {
+-       INIT_LIST_HEAD(&net->dev_base_head);
+-
+        net->dev_name_head = netdev_create_hash();
+        if (net->dev_name_head == NULL)
+                goto err_name;
+diff --git a/net/core/net_namespace.c b/net/core/net_namespace.c
+index dddbacb..42f1e1c 100644
+--- a/net/core/net_namespace.c
++++ b/net/core/net_namespace.c
+@@ -27,7 +27,9 @@ static DEFINE_MUTEX(net_mutex);
+ LIST_HEAD(net_namespace_list);
+ EXPORT_SYMBOL_GPL(net_namespace_list);
+ 
+-struct net init_net;
++struct net init_net = {
++       .dev_base_head = LIST_HEAD_INIT(init_net.dev_base_head),
++};
+ EXPORT_SYMBOL(init_net);
+ 
+ #define INITIAL_NET_GEN_PTRS   13 /* +1 for len +2 for rcu_head */
+
+-- 
+Mark Rustad, LAN Access Division, Intel Corporation
