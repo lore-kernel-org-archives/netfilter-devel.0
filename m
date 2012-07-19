@@ -1,28 +1,32 @@
-From: Gomathivinayagam Muthuvinayagam <sankarmail@gmail.com>
-Subject: ulogd - rpm file generation
-Date: Thu, 19 Jul 2012 10:57:18 -0700
-Message-ID: <CAAJpzga1LexHUgL5aqF26ukUEsGy0AojRYqLO5ONqv71nLUedg@mail.gmail.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: ulogd - rpm file generation
+Date: Thu, 19 Jul 2012 21:23:08 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1207192122200.5668@frira.zrqbmnf.qr>
+References: <CAAJpzga1LexHUgL5aqF26ukUEsGy0AojRYqLO5ONqv71nLUedg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Gomathivinayagam Muthuvinayagam <sankarmail@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:64748 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752915Ab2GSR5j (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Jul 2012 13:57:39 -0400
-Received: by qadb17 with SMTP id b17so3885475qad.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Jul 2012 10:57:39 -0700 (PDT)
+Received: from seven.medozas.de ([5.9.24.206]:59238 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750882Ab2GSTXK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 19 Jul 2012 15:23:10 -0400
+In-Reply-To: <CAAJpzga1LexHUgL5aqF26ukUEsGy0AojRYqLO5ONqv71nLUedg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Thursday 2012-07-19 19:57, Gomathivinayagam Muthuvinayagam wrote:
 
-I'm trying to build ulogd rpm file for a system x86_64 architecture.
-There is a spec file provided in ulogd tar file.
-Can I use that and build it? Is it updated one? Or still I have to go
-through Makefile and find out if anything is missing?
+>Hi,
+>
+>I'm trying to build ulogd rpm file for a system x86_64 architecture.
+>There is a spec file provided in ulogd tar file.
+>Can I use that and build it? Is it updated one? Or still I have to go
+>through Makefile and find out if anything is missing?
+>
+>Please bear with me, I'm trying to build rpm for the first time.
 
-Please bear with me, I'm trying to build rpm for the first time.
-
-Thanks & Regards,
+Doubtful that it is still current.
+What is current though, is
+http://build.opensuse.org/package/show?package=ulogd&project=security:netfilter
