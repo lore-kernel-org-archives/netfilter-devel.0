@@ -1,29 +1,28 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH v2] ipvs: fixed sparse warning
-Date: Thu, 19 Jul 2012 10:43:42 +0900
-Message-ID: <20120719014341.GI29894@verge.net.au>
-References: <1342602622-2728-1-git-send-email-claudiu.ghioc@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, davem@davemloft.net,
-	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	wensong@linux-vs.org, ja@ssi.bg, pablo@netfilter.org,
-	kaber@trash.net, claudiu.ghioc@gmail.com, daniel.baluta@gmail.com
-To: Claudiu Ghioc <claudiughioc@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1342602622-2728-1-git-send-email-claudiu.ghioc@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Eric Leblond <eric@regit.org>
+Subject: [PATCH 0/1] Fix NFCT crash
+Date: Thu, 19 Jul 2012 08:56:03 +0200
+Message-ID: <1342680964-1250-1-git-send-email-eric@regit.org>
+References: <CAAJpzgYGxVgazp74qck_Diacp7SJCjMOZFhw7cX0_k6B-4Qw9Q@mail.gmail.com>
+Cc: Gomathivinayagam Muthuvinayagam <sankarmail@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ks28632.kimsufi.com ([91.121.96.152]:39810 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750917Ab2GSG5B (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 19 Jul 2012 02:57:01 -0400
+In-Reply-To: <CAAJpzgYGxVgazp74qck_Diacp7SJCjMOZFhw7cX0_k6B-4Qw9Q@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jul 18, 2012 at 12:10:22PM +0300, Claudiu Ghioc wrote:
-> Removed the following sparse warnings, wether CONFIG_SYSCTL
-> is defined or not:
-> *       warning: symbol 'ip_vs_control_net_init_sysctl' was not
-> 	declared. Should it be static?
-> *       warning: symbol 'ip_vs_control_net_cleanup_sysctl' was
-> 	not declared. Should it be static?
-> 
-> Signed-off-by: Claudiu Ghioc <claudiu.ghioc@gmail.com>
+Hello,
 
-Thanks, I have queued this up for 3.6.
+Great diagnostic! it was in fact polling mode and the same NFCT
+instance on two stacks.
+
+Can you try the following patch. It fixes the problem for on my
+test setup.
+
+BR,
+--
+Eric
