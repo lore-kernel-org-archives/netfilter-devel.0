@@ -1,30 +1,28 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] Fix crash when the same NFCT is used by two stacks.
-Date: Fri, 20 Jul 2012 10:09:50 +0200
-Message-ID: <20120720080950.GB13680@1984>
-References: <CAAJpzgYGxVgazp74qck_Diacp7SJCjMOZFhw7cX0_k6B-4Qw9Q@mail.gmail.com>
- <1342680964-1250-1-git-send-email-eric@regit.org>
- <1342680964-1250-2-git-send-email-eric@regit.org>
+From: Arif Hossain <aftnix@gmail.com>
+Subject: What happened to NIPQUAD and friends?
+Date: Fri, 20 Jul 2012 17:38:15 +0600
+Message-ID: <1342784295.15462.3.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Gomathivinayagam Muthuvinayagam <sankarmail@gmail.com>
-To: Eric Leblond <eric@regit.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40859 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751217Ab2GTIJ7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Jul 2012 04:09:59 -0400
-Content-Disposition: inline
-In-Reply-To: <1342680964-1250-2-git-send-email-eric@regit.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:54552 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751559Ab2GTLsi (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Jul 2012 07:48:38 -0400
+Received: by pbbrp8 with SMTP id rp8so6050211pbb.19
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Jul 2012 04:48:38 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jul 19, 2012 at 08:56:04AM +0200, Eric Leblond wrote:
-> The polling timer initialisation code was put in the configurator
-> code. It was then created for all instances. But only first one has
-> a valid NFCT handle. This was resulting in a crash.
-> This patch moves the timer initialisation in the constructor which
-> is called only once on the main NFCT instance.
+Hi,
 
-Applied, thanks Eric!
+NIPQUAD has nothing in 3.4 kernel. What happened to it?
+
+Any alternative?
+
+cheers
+aft 
+
