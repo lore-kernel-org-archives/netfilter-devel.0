@@ -1,28 +1,31 @@
-From: Arif Hossain <aftnix@gmail.com>
-Subject: What happened to NIPQUAD and friends?
-Date: Fri, 20 Jul 2012 17:38:15 +0600
-Message-ID: <1342784295.15462.3.camel@localhost>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: What happened to NIPQUAD and friends?
+Date: Fri, 20 Jul 2012 14:23:53 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1207201422120.4231@frira.zrqbmnf.qr>
+References: <1342784295.15462.3.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Arif Hossain <aftnix@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:54552 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751559Ab2GTLsi (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Jul 2012 07:48:38 -0400
-Received: by pbbrp8 with SMTP id rp8so6050211pbb.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Jul 2012 04:48:38 -0700 (PDT)
+Received: from seven.medozas.de ([5.9.24.206]:37602 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752298Ab2GTMXy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Jul 2012 08:23:54 -0400
+In-Reply-To: <1342784295.15462.3.camel@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Friday 2012-07-20 13:38, Arif Hossain wrote:
 
-NIPQUAD has nothing in 3.4 kernel. What happened to it?
+>Hi,
+>
+>NIPQUAD has nothing in 3.4 kernel. What happened to it?
 
-Any alternative?
+NIPQUAD never had any possessions.
 
-cheers
-aft 
 
+>Any alternative?
+
+const struct in_addr *foo;
+printf("%pI4\n", foo);
