@@ -1,72 +1,22 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/2] ipvs: ip_vs_ftp depends on nf_conntrack_ftp helper
-Date: Mon, 23 Jul 2012 19:39:06 +0200
-Message-ID: <20120723173906.GA1430@1984>
-References: <1341966327-16606-1-git-send-email-horms@verge.net.au>
- <1341966327-16606-2-git-send-email-horms@verge.net.au>
- <20120712153937.GB18793@1984>
- <alpine.LFD.2.00.1207122238220.1831@ja.ssi.bg>
- <20120723064818.GK6603@verge.net.au>
+From: Gomathivinayagam Muthuvinayagam <sankarmail@gmail.com>
+Subject: nf_conntrack and nf_conntrack_ipv4 for RHEL5
+Date: Mon, 23 Jul 2012 12:17:19 -0700
+Message-ID: <CAAJpzgZH-x73UMtWTaHA=nRMQ1GE1wy451q5APNzi5UaxY4How@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Julian Anastasov <ja@ssi.bg>, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	Jesper Dangaard Brouer <brouer@redhat.com>
-To: Simon Horman <horms@verge.net.au>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53926 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754369Ab2GWRjS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Jul 2012 13:39:18 -0400
-Content-Disposition: inline
-In-Reply-To: <20120723064818.GK6603@verge.net.au>
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:62315 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754487Ab2GWTRj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Jul 2012 15:17:39 -0400
+Received: by ghrr11 with SMTP id r11so5847802ghr.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 23 Jul 2012 12:17:39 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jul 23, 2012 at 03:48:18PM +0900, Simon Horman wrote:
-> On Thu, Jul 12, 2012 at 10:43:22PM +0300, Julian Anastasov wrote:
-> > 
-> > 	Hello,
-> > 
-> > On Thu, 12 Jul 2012, Pablo Neira Ayuso wrote:
-> > 
-> > > On Wed, Jul 11, 2012 at 09:25:26AM +0900, Simon Horman wrote:
-> > > > From: Julian Anastasov <ja@ssi.bg>
-> > > > 
-> > > > 	The FTP application indirectly depends on the
-> > > > nf_conntrack_ftp helper for proper NAT support. If the
-> > > > module is not loaded, IPVS can resize the packets for the
-> > > > command connection, eg. PASV response but the SEQ adjustment
-> > > > logic in ipv4_confirm is not called without helper.
-> > > > 
-> > > > Signed-off-by: Julian Anastasov <ja@ssi.bg>
-> > > > Signed-off-by: Simon Horman <horms@verge.net.au>
-> > > > ---
-> > > >  net/netfilter/ipvs/Kconfig | 3 ++-
-> > > >  1 file changed, 2 insertions(+), 1 deletion(-)
-> > > > 
-> > > > diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
-> > > > index f987138..8b2cffd 100644
-> > > > --- a/net/netfilter/ipvs/Kconfig
-> > > > +++ b/net/netfilter/ipvs/Kconfig
-> > > > @@ -250,7 +250,8 @@ comment 'IPVS application helper'
-> > > >  
-> > > >  config	IP_VS_FTP
-> > > >    	tristate "FTP protocol helper"
-> > > > -        depends on IP_VS_PROTO_TCP && NF_CONNTRACK && NF_NAT
-> > > > +	depends on IP_VS_PROTO_TCP && NF_CONNTRACK && NF_NAT && \
-> > > > +		NF_CONNTRACK_FTP
-> > > 
-> > > If you require FTP NAT support, then this depends on NF_NAT_FTP
-> > > instead of NF_CONNTRACK_FTP.
-> > 
-> > 	No, I just checked again, it works without nf_nat_ftp,
-> > only nf_nat, nf_conntrack_ftp and iptable_nat are needed.
-> > We use packet mangling part from nf_nat (nf_nat_mangle_tcp_packet).
-> 
-> Is there a consensus on this?
+I hope nf_conntrack and nf_conntrack_ipv4 are not available on RHEL5.
+Is it correct?
 
-Fine with me, just wanted to make sure this what you wanted. Thanks
-Simon.
+Thanks & Regards,
