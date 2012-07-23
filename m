@@ -1,40 +1,66 @@
-From: Gomathivinayagam Muthuvinayagam <sankarmail@gmail.com>
-Subject: Re: nf_conntrack and nf_conntrack_ipv4 for RHEL5
-Date: Mon, 23 Jul 2012 13:28:28 -0700
-Message-ID: <CAAJpzgaKDoF3JePvbNC=G61LG0m+TUDj2SwPR_LfdAFjFTP6Mw@mail.gmail.com>
-References: <CAAJpzgZH-x73UMtWTaHA=nRMQ1GE1wy451q5APNzi5UaxY4How@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+From: Arif <aftnix@gmail.com>
+Subject: Re: Hash table implementation
+Date: Tue, 24 Jul 2012 03:06:45 +0700
+Message-ID: <F3C0D461-9E04-4605-A681-10D681A5E85C@gmail.com>
+References: <1f2ikbu.dcd9f8508a506924131bf976a787522f@obelix.schillstrom.com>
+Mime-Version: 1.0 (Apple Message framework v1075.2)
+Content-Type: text/plain; charset=us-ascii; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
+Cc: "kernelnewbies" <kernelnewbies@kernelnewbies.org>,
+	"netfilter-devel" <netfilter-devel@vger.kernel.org>
+To: "Hans Schillstrom" <hans@schillstrom.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:43350 "EHLO
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:37237 "EHLO
 	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754371Ab2GWU2t (ORCPT
+	with ESMTP id S1754576Ab2GWVGs (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Jul 2012 16:28:49 -0400
-Received: by yenl2 with SMTP id l2so5932574yen.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 23 Jul 2012 13:28:48 -0700 (PDT)
-In-Reply-To: <CAAJpzgZH-x73UMtWTaHA=nRMQ1GE1wy451q5APNzi5UaxY4How@mail.gmail.com>
+	Mon, 23 Jul 2012 17:06:48 -0400
+Received: by yenl2 with SMTP id l2so5977773yen.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 23 Jul 2012 14:06:48 -0700 (PDT)
+In-Reply-To: <1f2ikbu.dcd9f8508a506924131bf976a787522f@obelix.schillstrom.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On ubuntu system, I set up net.netfilter.nf_conntrack_acct = 1 . This
-variable became available after I loaded the module nf_conntrack.
-After that I got packet count and packet size in the nacct file.
-(nacct file generated through nacct plugin from ulogd)
-To set the above variable available in RHEL5, I have to load the
-module. But it seems RHEL5 does not come with nf_conntrack module
-along with the kernel. Is there any way I can get the nacct data in
-RHEL5 version?
 
-Thanks & Regards,
+On Jul 23, 2012, at 11:31 PM, Hans Schillstrom wrote:
 
-
-
-
-On Mon, Jul 23, 2012 at 12:17 PM, Gomathivinayagam Muthuvinayagam
-<sankarmail@gmail.com> wrote:
-> I hope nf_conntrack and nf_conntrack_ipv4 are not available on RHEL5.
-> Is it correct?
+>> Subject: Hash table implementation
+>>
+>> Hi,
+>>
+>> This commit shows that jenkins hash
+>> function(http://en.wikipedia.org/wiki/Jenkins_hash_function) is
+>> implemented in kernel :
+>>
+>> commit 60d509c823cca21e77d537bd356785f7cfe8f0d1
+>> Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+>> Date:   Fri Dec 3 02:39:01 2010 +0000
+>>
+>>   The new jhash implementation
+>> <snip>
+>>
+>> I could not find any good documentation describing how to use it.  
+>> Only
+>> thing i could do is to read codes which uses it, like
 >
-> Thanks & Regards,
+> Have a look in the include file it self  linux-3.5.0/include/linux/ 
+> jhash.h
+> every function is well documented there.
+>
+
+Thanks for the reply. I have looked through it. I guess the file  
+serves well. I should pay attentions to comments more. Its just the  
+guys i develop with, they put horrible comments, and i developed a  
+habit of overlooking them.
+
+
+
+
+> /Hans
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter- 
+> devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
