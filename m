@@ -1,66 +1,74 @@
-From: Arif <aftnix@gmail.com>
-Subject: Re: Hash table implementation
-Date: Tue, 24 Jul 2012 03:06:45 +0700
-Message-ID: <F3C0D461-9E04-4605-A681-10D681A5E85C@gmail.com>
-References: <1f2ikbu.dcd9f8508a506924131bf976a787522f@obelix.schillstrom.com>
-Mime-Version: 1.0 (Apple Message framework v1075.2)
-Content-Type: text/plain; charset=us-ascii; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
-Cc: "kernelnewbies" <kernelnewbies@kernelnewbies.org>,
-	"netfilter-devel" <netfilter-devel@vger.kernel.org>
-To: "Hans Schillstrom" <hans@schillstrom.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:37237 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754576Ab2GWVGs (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Jul 2012 17:06:48 -0400
-Received: by yenl2 with SMTP id l2so5977773yen.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 23 Jul 2012 14:06:48 -0700 (PDT)
-In-Reply-To: <1f2ikbu.dcd9f8508a506924131bf976a787522f@obelix.schillstrom.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH 1/2] ipvs: ip_vs_ftp depends on nf_conntrack_ftp helper
+Date: Tue, 24 Jul 2012 08:11:26 +0900
+Message-ID: <20120723231124.GL2966@verge.net.au>
+References: <1341966327-16606-1-git-send-email-horms@verge.net.au>
+ <1341966327-16606-2-git-send-email-horms@verge.net.au>
+ <20120712153937.GB18793@1984>
+ <alpine.LFD.2.00.1207122238220.1831@ja.ssi.bg>
+ <20120723064818.GK6603@verge.net.au>
+ <20120723173906.GA1430@1984>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Julian Anastasov <ja@ssi.bg>, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	Jesper Dangaard Brouer <brouer@redhat.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120723173906.GA1430@1984>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, Jul 23, 2012 at 07:39:06PM +0200, Pablo Neira Ayuso wrote:
+> On Mon, Jul 23, 2012 at 03:48:18PM +0900, Simon Horman wrote:
+> > On Thu, Jul 12, 2012 at 10:43:22PM +0300, Julian Anastasov wrote:
+> > > 
+> > > 	Hello,
+> > > 
+> > > On Thu, 12 Jul 2012, Pablo Neira Ayuso wrote:
+> > > 
+> > > > On Wed, Jul 11, 2012 at 09:25:26AM +0900, Simon Horman wrote:
+> > > > > From: Julian Anastasov <ja@ssi.bg>
+> > > > > 
+> > > > > 	The FTP application indirectly depends on the
+> > > > > nf_conntrack_ftp helper for proper NAT support. If the
+> > > > > module is not loaded, IPVS can resize the packets for the
+> > > > > command connection, eg. PASV response but the SEQ adjustment
+> > > > > logic in ipv4_confirm is not called without helper.
+> > > > > 
+> > > > > Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> > > > > Signed-off-by: Simon Horman <horms@verge.net.au>
+> > > > > ---
+> > > > >  net/netfilter/ipvs/Kconfig | 3 ++-
+> > > > >  1 file changed, 2 insertions(+), 1 deletion(-)
+> > > > > 
+> > > > > diff --git a/net/netfilter/ipvs/Kconfig b/net/netfilter/ipvs/Kconfig
+> > > > > index f987138..8b2cffd 100644
+> > > > > --- a/net/netfilter/ipvs/Kconfig
+> > > > > +++ b/net/netfilter/ipvs/Kconfig
+> > > > > @@ -250,7 +250,8 @@ comment 'IPVS application helper'
+> > > > >  
+> > > > >  config	IP_VS_FTP
+> > > > >    	tristate "FTP protocol helper"
+> > > > > -        depends on IP_VS_PROTO_TCP && NF_CONNTRACK && NF_NAT
+> > > > > +	depends on IP_VS_PROTO_TCP && NF_CONNTRACK && NF_NAT && \
+> > > > > +		NF_CONNTRACK_FTP
+> > > > 
+> > > > If you require FTP NAT support, then this depends on NF_NAT_FTP
+> > > > instead of NF_CONNTRACK_FTP.
+> > > 
+> > > 	No, I just checked again, it works without nf_nat_ftp,
+> > > only nf_nat, nf_conntrack_ftp and iptable_nat are needed.
+> > > We use packet mangling part from nf_nat (nf_nat_mangle_tcp_packet).
+> > 
+> > Is there a consensus on this?
+> 
+> Fine with me, just wanted to make sure this what you wanted. Thanks
+> Simon.
 
-On Jul 23, 2012, at 11:31 PM, Hans Schillstrom wrote:
-
->> Subject: Hash table implementation
->>
->> Hi,
->>
->> This commit shows that jenkins hash
->> function(http://en.wikipedia.org/wiki/Jenkins_hash_function) is
->> implemented in kernel :
->>
->> commit 60d509c823cca21e77d537bd356785f7cfe8f0d1
->> Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
->> Date:   Fri Dec 3 02:39:01 2010 +0000
->>
->>   The new jhash implementation
->> <snip>
->>
->> I could not find any good documentation describing how to use it.  
->> Only
->> thing i could do is to read codes which uses it, like
->
-> Have a look in the include file it self  linux-3.5.0/include/linux/ 
-> jhash.h
-> every function is well documented there.
->
-
-Thanks for the reply. I have looked through it. I guess the file  
-serves well. I should pay attentions to comments more. Its just the  
-guys i develop with, they put horrible comments, and i developed a  
-habit of overlooking them.
-
-
-
-
-> /Hans
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter- 
-> devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks. I'll include this in a pull request after rebasing ipvs-next.
+I plan to do that today.
 
