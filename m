@@ -1,40 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [GIT PULL nf-next] IPVS
-Date: Mon, 23 Jul 2012 18:11:33 -0700 (PDT)
-Message-ID: <20120723.181133.1368147989656525639.davem@davemloft.net>
-References: <1343086141-9086-1-git-send-email-horms@verge.net.au>
-	<20120723.163508.1145167951335987230.davem@davemloft.net>
-	<20120724010105.GH22631@verge.net.au>
+From: Arif Hossain <aftnix@gmail.com>
+Subject: KGDB over ethernet
+Date: Tue, 24 Jul 2012 18:09:41 +0600
+Message-ID: <1343131781.26223.41.camel@localhost>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	wensong@linux-vs.org, ja@ssi.bg
-To: horms@verge.net.au
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:51202 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755593Ab2GXBLe (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:64211 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753336Ab2GXMUJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Jul 2012 21:11:34 -0400
-In-Reply-To: <20120724010105.GH22631@verge.net.au>
+	Tue, 24 Jul 2012 08:20:09 -0400
+Received: by pbbrp8 with SMTP id rp8so12604461pbb.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Jul 2012 05:20:09 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Simon Horman <horms@verge.net.au>
-Date: Tue, 24 Jul 2012 10:01:05 +0900
+Hi,
 
-> On Mon, Jul 23, 2012 at 04:35:08PM -0700, David Miller wrote:
->> From: Simon Horman <horms@verge.net.au>
->> Date: Tue, 24 Jul 2012 08:28:55 +0900
->> 
->> > please consider the following enhancements to IPVS for inclusion in 3.6.
->> 
->> The merge window has just openned, therefore any new work should have
->> been submitted and queued up already.
-> 
-> Sorry for my lateness. I can hold these changes for 3.7 if that is the
-> best option at this point.
+I've found this patch :
+http://www.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.0-test7/2.6.0-test7-mm1/broken-out/kgdb-over-ethernet.patch
 
-No worries, there is always the next merge window :-)
+It looks old. So i was thinking if its merged with mainline. I also
+found this discussion :
+
+http://lkml.indiana.edu/hypermail/linux/kernel/0804.3/0790.html
+
+So what's the state now? Is kgdb over ethernet is available in main line
+kernel?
+
+
+-- 
+Cheers
+
+aft
+aftnix@gmail.com
+
