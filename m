@@ -1,39 +1,28 @@
-From: Arif Hossain <aftnix@gmail.com>
-Subject: KGDB over ethernet
-Date: Tue, 24 Jul 2012 18:09:41 +0600
-Message-ID: <1343131781.26223.41.camel@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: nf_conntrack and nf_conntrack_ipv4 for RHEL5
+Date: Tue, 24 Jul 2012 19:22:00 +0200
+Message-ID: <20120724172200.GA26982@1984>
+References: <CAAJpzgZH-x73UMtWTaHA=nRMQ1GE1wy451q5APNzi5UaxY4How@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Gomathivinayagam Muthuvinayagam <sankarmail@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:64211 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753336Ab2GXMUJ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Jul 2012 08:20:09 -0400
-Received: by pbbrp8 with SMTP id rp8so12604461pbb.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Jul 2012 05:20:09 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:45234 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754237Ab2GXRWG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Jul 2012 13:22:06 -0400
+Content-Disposition: inline
+In-Reply-To: <CAAJpzgZH-x73UMtWTaHA=nRMQ1GE1wy451q5APNzi5UaxY4How@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Mon, Jul 23, 2012 at 12:17:19PM -0700, Gomathivinayagam Muthuvinayagam wrote:
+> I hope nf_conntrack and nf_conntrack_ipv4 are not available on RHEL5.
+> Is it correct?
 
-I've found this patch :
-http://www.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.0-test7/2.6.0-test7-mm1/broken-out/kgdb-over-ethernet.patch
+This question has nothing to do with development.
 
-It looks old. So i was thinking if its merged with mainline. I also
-found this discussion :
+*Please* use netfilter users mailing list instead for this.
 
-http://lkml.indiana.edu/hypermail/linux/kernel/0804.3/0790.html
-
-So what's the state now? Is kgdb over ethernet is available in main line
-kernel?
-
-
--- 
-Cheers
-
-aft
-aftnix@gmail.com
-
+Thank you.
