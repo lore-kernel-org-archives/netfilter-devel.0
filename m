@@ -1,32 +1,30 @@
-From: webmaster <Zdenek.Halata@lf1.cuni.cz>
-Subject: Your  webmail quota has exceeded
-Date: Thu, 26 Jul 2012 20:27:15 -0400
-Message-ID: <fef3f455de1bef58af95e00166c652ac__9339.23389898173$1343349264$gmane$org@dec52.lf1.cuni.cz>
+From: Gomathivinayagam Muthuvinayagam <sankarmail@gmail.com>
+Subject: ulogd - does it work with ip_conntrack_netlink?
+Date: Fri, 27 Jul 2012 13:26:42 -0700
+Message-ID: <CAAJpzgbyuKzb6cPA-TcEu48nJcoUaPJcUkijVB7D88U7SeZh2w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 7bit
-To: undisclosed-recipients:;
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dec52.lf1.cuni.cz ([195.113.48.2]:49790 "HELO dec52.lf1.cuni.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752856Ab2G0Ad5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Jul 2012 20:33:57 -0400
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:44739 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751259Ab2G0U1D (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Jul 2012 16:27:03 -0400
+Received: by gglu4 with SMTP id u4so3625209ggl.19
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Jul 2012 13:27:03 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
 
+ulogd requires nf_conntrack_netlink for flow based logging. The linux
+version that I have, does not have that. Instead it has
+ip_conntrack_netlink.
+Because of this reason, I think I'm not getting flow based logs. Is
+there any way I can include nf_conntrack_netlink in my system? I'm not
+able to find the packages for that.
 
--- 
-Your webmail quota has exceeded the set quota which is 2GB. you are 
-currently running on 2.3GB.To re-activate and increase your webmail 
-quota please verify and update your webmail Account
-In order re-activate and increase your webmail quota click the link 
-below.
+Your help would be much appreciated.
 
-https://docs.google.com/spreadsheet/viewform?formkey=dGNMaWg1R1BKU2lWXzB0VlpEMnJYclE6MQ
-
-Failure to do so may result in the cancellation of your webmail 
-account.
-Thanks, and sorry for the inconvenience
-Admin/ Webmaster/ Local host
+Thanks & Regards,
