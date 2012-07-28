@@ -1,43 +1,61 @@
-From: Gomathivinayagam Muthuvinayagam <sankarmail@gmail.com>
-Subject: Re: ulogd - does it work with ip_conntrack_netlink?
-Date: Fri, 27 Jul 2012 17:22:06 -0700
-Message-ID: <CAAJpzgb+nyZSnQvJQzPwhY3KL9O3p0ie0P-Goac=rLfQ5Ts+cA@mail.gmail.com>
-References: <CAAJpzgbyuKzb6cPA-TcEu48nJcoUaPJcUkijVB7D88U7SeZh2w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: [PATCH 2/7] doc: grammatical updates to libxt_SET
+Date: Sat, 28 Jul 2012 19:21:04 +0200
+Message-ID: <1343496069-5442-3-git-send-email-jengelh@inai.de>
+References: <1343496069-5442-1-git-send-email-jengelh@inai.de>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:35208 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751197Ab2G1AW1 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Jul 2012 20:22:27 -0400
-Received: by obbuo13 with SMTP id uo13so5039460obb.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 27 Jul 2012 17:22:26 -0700 (PDT)
-In-Reply-To: <CAAJpzgbyuKzb6cPA-TcEu48nJcoUaPJcUkijVB7D88U7SeZh2w@mail.gmail.com>
+Received: from seven.medozas.de ([5.9.24.206]:34339 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752933Ab2G1RVQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 28 Jul 2012 13:21:16 -0400
+In-Reply-To: <1343496069-5442-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If ulogd does not work without nf_conntrack_netlink, is that possible
-I can write my own code that interacts ip_conntrack_netlink, and get
-the flow based logging? Your advice would be much appreciated.
+Cherry-picked these from recent patches from Mr Dash Four.
 
-Thanks & Regards,
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+---
+ extensions/libxt_SET.man |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
+diff --git a/extensions/libxt_SET.man b/extensions/libxt_SET.man
+index 63eb383..c35ba93 100644
+--- a/extensions/libxt_SET.man
++++ b/extensions/libxt_SET.man
+@@ -1,24 +1,24 @@
+-This modules adds and/or deletes entries from IP sets which can be defined 
++This module adds and/or deletes entries from IP sets which can be defined
+ by ipset(8).
+ .TP
+ \fB\-\-add\-set\fP \fIsetname\fP \fIflag\fP[\fB,\fP\fIflag\fP...]
+-add the address(es)/port(s) of the packet to the sets
++add the address(es)/port(s) of the packet to the set
+ .TP
+ \fB\-\-del\-set\fP \fIsetname\fP \fIflag\fP[\fB,\fP\fIflag\fP...]
+-delete the address(es)/port(s) of the packet from the sets
++delete the address(es)/port(s) of the packet from the set
+ .IP
+-where flags are
++where \fIflag\fP(s) are
+ .BR "src"
+ and/or
+ .BR "dst"
+ specifications and there can be no more than six of them.
+ .TP
+ \fB\-\-timeout\fP \fIvalue\fP
+-when adding entry, the timeout value to use instead of the default
++when adding an entry, the timeout value to use instead of the default
+ one from the set definition
+ .TP
+ \fB\-\-exist\fP
+-when adding entry if it already exists, reset the timeout value
++when adding an entry if it already exists, reset the timeout value
+ to the specified one or to the default from the set definition
+ .PP
+ Use of -j SET requires that ipset kernel support is provided, which, for
+-- 
+1.7.7
 
-
-
-On Fri, Jul 27, 2012 at 1:26 PM, Gomathivinayagam Muthuvinayagam
-<sankarmail@gmail.com> wrote:
-> Hi,
->
-> ulogd requires nf_conntrack_netlink for flow based logging. The linux
-> version that I have, does not have that. Instead it has
-> ip_conntrack_netlink.
-> Because of this reason, I think I'm not getting flow based logs. Is
-> there any way I can include nf_conntrack_netlink in my system? I'm not
-> able to find the packages for that.
->
-> Your help would be much appreciated.
->
-> Thanks & Regards,
