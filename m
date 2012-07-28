@@ -1,51 +1,49 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 5/7] libxt_devgroup: guard against negative numbers
-Date: Sat, 28 Jul 2012 19:21:07 +0200
-Message-ID: <1343496069-5442-6-git-send-email-jengelh@inai.de>
+Subject: [PATCH 6/7] libxt_LED: guard against negative numbers
+Date: Sat, 28 Jul 2012 19:21:08 +0200
+Message-ID: <1343496069-5442-7-git-send-email-jengelh@inai.de>
 References: <1343496069-5442-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([5.9.24.206]:34337 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([5.9.24.206]:34350 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752943Ab2G1RVQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 28 Jul 2012 13:21:16 -0400
+	id S1752989Ab2G1RVR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 28 Jul 2012 13:21:17 -0400
 In-Reply-To: <1343496069-5442-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-More corrections of the strtoul kind.
-
 Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- extensions/libxt_devgroup.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ extensions/libxt_LED.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/extensions/libxt_devgroup.c b/extensions/libxt_devgroup.c
-index 69ae279..4a69c82 100644
---- a/extensions/libxt_devgroup.c
-+++ b/extensions/libxt_devgroup.c
-@@ -46,14 +46,16 @@ static void devgroup_parse_groupspec(const char *arg, unsigned int *group,
- 				     unsigned int *mask)
+diff --git a/extensions/libxt_LED.c b/extensions/libxt_LED.c
+index 9d68fa2..e6cf849 100644
+--- a/extensions/libxt_LED.c
++++ b/extensions/libxt_LED.c
+@@ -49,6 +49,7 @@ static void LED_help(void)
+ static void LED_parse(struct xt_option_call *cb)
  {
- 	char *end;
-+	bool ok;
+ 	struct xt_led_info *led = cb->data;
++	unsigned int delay;
  
--	*group = strtoul(arg, &end, 0);
--	if (end != arg && (*end == '/' || *end == '\0')) {
-+	ok = xtables_strtoui(arg, &end, group, 0, UINT32_MAX);
-+	if (ok && (*end == '/' || *end == '\0')) {
- 		if (*end == '/')
--			*mask = strtoul(end + 1, &end, 0);
-+			ok = xtables_strtoui(end + 1, NULL, mask,
-+			                     0, UINT32_MAX);
- 		else
- 			*mask = ~0U;
--		if (*end != '\0' || end == arg)
-+		if (!ok)
- 			xtables_error(PARAMETER_PROBLEM,
- 				      "Bad group value \"%s\"", arg);
- 	} else {
+ 	xtables_option_parse(cb);
+ 	switch (cb->entry->id) {
+@@ -59,8 +60,10 @@ static void LED_parse(struct xt_option_call *cb)
+ 	case O_LED_DELAY:
+ 		if (strncasecmp(cb->arg, "inf", 3) == 0)
+ 			led->delay = -1;
+-		else
+-			led->delay = strtoul(cb->arg, NULL, 0);
++		else if (!xtables_strtoui(cb->arg, NULL, &delay, 0, UINT32_MAX))
++			xtables_error(PARAMETER_PROBLEM,
++				"Delay value must be within range 0..%u",
++				UINT32_MAX);
+ 		break;
+ 	case O_LED_ALWAYS_BLINK:
+ 		led->always_blink = 1;
 -- 
 1.7.7
 
