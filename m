@@ -1,61 +1,55 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 2/7] doc: grammatical updates to libxt_SET
-Date: Sat, 28 Jul 2012 19:21:04 +0200
-Message-ID: <1343496069-5442-3-git-send-email-jengelh@inai.de>
+Subject: [PATCH 1/7] iptables-restore: warn about -t in rule lines
+Date: Sat, 28 Jul 2012 19:21:03 +0200
+Message-ID: <1343496069-5442-2-git-send-email-jengelh@inai.de>
 References: <1343496069-5442-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([5.9.24.206]:34339 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([5.9.24.206]:34338 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752933Ab2G1RVQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1752948Ab2G1RVQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Sat, 28 Jul 2012 13:21:16 -0400
 In-Reply-To: <1343496069-5442-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Cherry-picked these from recent patches from Mr Dash Four.
+save-restore syntax uses *table, not -t table.
 
 Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- extensions/libxt_SET.man |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ iptables/ip6tables-restore.c |    3 +--
+ iptables/iptables-restore.c  |    3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/extensions/libxt_SET.man b/extensions/libxt_SET.man
-index 63eb383..c35ba93 100644
---- a/extensions/libxt_SET.man
-+++ b/extensions/libxt_SET.man
-@@ -1,24 +1,24 @@
--This modules adds and/or deletes entries from IP sets which can be defined 
-+This module adds and/or deletes entries from IP sets which can be defined
- by ipset(8).
- .TP
- \fB\-\-add\-set\fP \fIsetname\fP \fIflag\fP[\fB,\fP\fIflag\fP...]
--add the address(es)/port(s) of the packet to the sets
-+add the address(es)/port(s) of the packet to the set
- .TP
- \fB\-\-del\-set\fP \fIsetname\fP \fIflag\fP[\fB,\fP\fIflag\fP...]
--delete the address(es)/port(s) of the packet from the sets
-+delete the address(es)/port(s) of the packet from the set
- .IP
--where flags are
-+where \fIflag\fP(s) are
- .BR "src"
- and/or
- .BR "dst"
- specifications and there can be no more than six of them.
- .TP
- \fB\-\-timeout\fP \fIvalue\fP
--when adding entry, the timeout value to use instead of the default
-+when adding an entry, the timeout value to use instead of the default
- one from the set definition
- .TP
- \fB\-\-exist\fP
--when adding entry if it already exists, reset the timeout value
-+when adding an entry if it already exists, reset the timeout value
- to the specified one or to the default from the set definition
- .PP
- Use of -j SET requires that ipset kernel support is provided, which, for
+diff --git a/iptables/ip6tables-restore.c b/iptables/ip6tables-restore.c
+index 3894d68..614ff0f 100644
+--- a/iptables/ip6tables-restore.c
++++ b/iptables/ip6tables-restore.c
+@@ -417,8 +417,7 @@ int ip6tables_restore_main(int argc, char *argv[])
+ 					if (!strncmp(param_buffer, "-t", 2)
+                                             || !strncmp(param_buffer, "--table", 8)) {
+ 						xtables_error(PARAMETER_PROBLEM,
+-						   "Line %u seems to have a "
+-						   "-t table option.\n", line);
++						   "The -t option (seen in line %u) cannot be used in ip6tables-restore.\n", line);
+ 						exit(1);
+ 					}
+ 
+diff --git a/iptables/iptables-restore.c b/iptables/iptables-restore.c
+index 034f960..294e4b8 100644
+--- a/iptables/iptables-restore.c
++++ b/iptables/iptables-restore.c
+@@ -417,8 +417,7 @@ iptables_restore_main(int argc, char *argv[])
+ 					if (!strncmp(param_buffer, "-t", 2)
+ 					    || !strncmp(param_buffer, "--table", 8)) {
+ 						xtables_error(PARAMETER_PROBLEM,
+-						   "Line %u seems to have a "
+-						   "-t table option.\n", line);
++						   "The -t option (seen in line %u) cannot be used in iptables-restore.\n", line);
+ 						exit(1);
+ 					}
+ 
 -- 
 1.7.7
 
