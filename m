@@ -1,55 +1,46 @@
-From: Gomathivinayagam Muthuvinayagam <sankarmail@gmail.com>
-Subject: ulogd - polling handler - code clarification
-Date: Mon, 30 Jul 2012 15:18:32 -0700
-Message-ID: <CAAJpzgbKeTz2=Qsf035TSDQ19rvbLxnA2AcwFLHKDSXzZYZtkQ@mail.gmail.com>
+From: rajesh <rajesh.modhwadiya@elitecore.com>
+Subject: replace nf_nat_seqofs_lock with spin_lock of nf_conn
+Date: Tue, 31 Jul 2012 12:33:25 +0530
+Message-ID: <5017833D.9050107@elitecore.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:51218 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755120Ab2G3WSx (ORCPT
+Received: from mailhost.elitecore.com ([203.88.135.194]:36827 "EHLO
+	elitecore.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752818Ab2GaHEU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Jul 2012 18:18:53 -0400
-Received: by yhmm54 with SMTP id m54so5429762yhm.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Jul 2012 15:18:52 -0700 (PDT)
+	Tue, 31 Jul 2012 03:04:20 -0400
+Received: from unknown (HELO [10.103.6.166]) (rajesh.modhwadiya@[10.103.6.166])
+          (envelope-sender <rajesh.modhwadiya@elitecore.com>)
+          by elitecore.com (qmail-ldap-1.03) with SMTP
+          for <netfilter-devel@vger.kernel.org>; 31 Jul 2012 07:04:17 -0000
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi,
 
-I was going through the ulogd_inpflow_NFCT.c : polling_handler code. I
-need few clarifications.
-If someone can answer for that, that will be great.
+     My kernel version is 2.6.32.
+     I have verify that same lock is also used in 3.4.6.
+     there is global spin lock at net/ipv4/netfilter/nf_nat_helper.c
+     static DEFINE_SPINLOCK(nf_nat_seqofs_lock);
 
+     this is used in following functions:
+     adjust_tcp_sequence();
+     nf_nat_get_offset();
 
- 725         case NFCT_T_UPDATE:
- 726                 id = hashtable_hash(cpi->ct_active, ct);
- 727                 ts = (struct ct_timestamp *)
- 728                         hashtable_find(cpi->ct_active, ct, id);
- 729                 if (ts)
- 730                         nfct_copy(ts->ct, ct, NFCT_CP_META);
- 731                 else {
- 732                         ts = calloc(sizeof(struct ct_timestamp), 1);
- 733                         if (ts == NULL)
- 734                                 return NFCT_CB_CONTINUE;
- 735
- 736                         ts->ct = ct;
- 737                         gettimeofday(&ts->time[START], NULL);
- 738
- 739                         ret = hashtable_add(cpi->ct_active,
-&ts->hashnode, id);
- 740                         if (ret < 0) {
- 741                                 free(ts);
- 742                                 return NFCT_CB_CONTINUE;
- 743                         }
- 744                         return NFCT_CB_STOLEN; // Here, why not
-NFCT_CB_CONTINUE is used?
- 745                 }
- 746                 break;
+     This lock will reduce performance in case of multicore machines.
+     There is a spin_lock in nf_conn structure itself, which is used by
+     tcp_packet() at
+     net/netfilter/nf_conntrack_proto_tcp.c
+     and other places.
 
-Here in Line no 744, why NFCT_CB_STOLEN is used instead of
-NFCT_CB_CONTINUE ? I am not able to understand the reason.
+     So can we replace
+     spin_lock_bh(&nf_nat_seqofs_lock);
+     with
+     spin_lock_bh(&ct->lock);
 
+     regards
+     rajesh
 
-Thanks & Regards,
