@@ -1,70 +1,60 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] iptables 1.4.15 release
-Date: Tue, 31 Jul 2012 13:25:31 +0200
-Message-ID: <20120731112531.GA3493@1984>
+Subject: Re: ulogd - polling handler - code clarification
+Date: Tue, 31 Jul 2012 13:27:56 +0200
+Message-ID: <20120731112756.GA3698@1984>
+References: <CAAJpzgbKeTz2=Qsf035TSDQ19rvbLxnA2AcwFLHKDSXzZYZtkQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="dDRMvlgZJXvWKvBx"
-Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
-	netfilter-announce@lists.netfilter.org, lwn@lwn.net
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Gomathivinayagam Muthuvinayagam <sankarmail@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43164 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43584 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755860Ab2GaLZf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 31 Jul 2012 07:25:35 -0400
+	id S1755715Ab2GaL16 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 31 Jul 2012 07:27:58 -0400
 Content-Disposition: inline
+In-Reply-To: <CAAJpzgbKeTz2=Qsf035TSDQ19rvbLxnA2AcwFLHKDSXzZYZtkQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Mon, Jul 30, 2012 at 03:18:32PM -0700, Gomathivinayagam Muthuvinayagam wrote:
+> Hi,
+> 
+> I was going through the ulogd_inpflow_NFCT.c : polling_handler code. I
+> need few clarifications.
+> If someone can answer for that, that will be great.
+> 
+> 
+>  725         case NFCT_T_UPDATE:
+>  726                 id = hashtable_hash(cpi->ct_active, ct);
+>  727                 ts = (struct ct_timestamp *)
+>  728                         hashtable_find(cpi->ct_active, ct, id);
+>  729                 if (ts)
+>  730                         nfct_copy(ts->ct, ct, NFCT_CP_META);
+>  731                 else {
+>  732                         ts = calloc(sizeof(struct ct_timestamp), 1);
+>  733                         if (ts == NULL)
+>  734                                 return NFCT_CB_CONTINUE;
+>  735
+>  736                         ts->ct = ct;
+>  737                         gettimeofday(&ts->time[START], NULL);
+>  738
+>  739                         ret = hashtable_add(cpi->ct_active,
+> &ts->hashnode, id);
+>  740                         if (ret < 0) {
+>  741                                 free(ts);
+>  742                                 return NFCT_CB_CONTINUE;
+>  743                         }
+>  744                         return NFCT_CB_STOLEN; // Here, why not
+> NFCT_CB_CONTINUE is used?
+>  745                 }
+>  746                 break;
+> 
+> Here in Line no 744, why NFCT_CB_STOLEN is used instead of
+> NFCT_CB_CONTINUE ? I am not able to understand the reason.
 
---dDRMvlgZJXvWKvBx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+NFCT_CB_STOLEN means that the object is not released once the callback
+code is done.
 
-Hi!
-
-The Netfilter project proudly presents:
-
-        iptables 1.4.15
-
-This release includes support for new features now present in the
-Linux kernel 3.5 and one major bugfix (that shows up with gcc-4.7).
-
-See ChangeLog that comes attached to this email for more details.
-
-You can download it from:
-
-http://www.netfilter.org/projects/iptables/downloads.html
-ftp://ftp.netfilter.org/pub/iptables/
-
-Have fun!
-
---dDRMvlgZJXvWKvBx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="changes-iptables-1.4.15.txt"
-
-Denys Fedoryshchenko (1):
-      libxt_recent: add --mask netmask
-
-Eldad Zack (1):
-      libxt_recent: remove unused variable
-
-Florian Westphal (2):
-      libxt_devgroup: add man page snippet
-      libxt_hashlimit: add support for byte-based operation
-
-Hans Schillstrom (3):
-      extensions: add HMARK target
-      libxt_HMARK: fix output of iptables -L
-      libxt_HMARK: correct a number of errors introduced by Pablo's rework
-
-Pablo Neira Ayuso (6):
-      libxtables: add xtables_ip[6]mask_to_cidr
-      libxt_HMARK: fix ct case example
-      iptables-restore: move code to add_param_to_argv, cleanup (fix gcc-4.7)
-      Revert "iptables-restore: move code to add_param_to_argv, cleanup (fix gcc-4.7)"
-      iptables-restore: fix parameter parsing (shows up with gcc-4.7)
-      bump version to 1.4.15
-
-
---dDRMvlgZJXvWKvBx--
+That object is released once we notice that the entry is not there in
+the kernel anymore.
