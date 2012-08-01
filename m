@@ -1,111 +1,93 @@
 From: Eric Leblond <eric@regit.org>
-Subject: [PATCH 1/5] nfacct: add variable to not zero counter after read
-Date: Wed,  1 Aug 2012 23:27:12 +0200
-Message-ID: <1343856436-11129-2-git-send-email-eric@regit.org>
+Subject: [PATCH 2/5] pgsql schema: add nfacct table
+Date: Wed,  1 Aug 2012 23:27:13 +0200
+Message-ID: <1343856436-11129-3-git-send-email-eric@regit.org>
 References: <1343856436-11129-1-git-send-email-eric@regit.org>
 Cc: Eric Leblond <eric@regit.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:49515 "EHLO
+Received: from ks28632.kimsufi.com ([91.121.96.152]:49517 "EHLO
 	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755421Ab2HAV2c (ORCPT
+	with ESMTP id S1755421Ab2HAV2f (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Aug 2012 17:28:32 -0400
+	Wed, 1 Aug 2012 17:28:35 -0400
 In-Reply-To: <1343856436-11129-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The default nfacct input plugin zeroes counter after each read. This
-is a limitation as other software can't use the counter at the same
-time as ulogd2.
-This patch adds the zerocounter variable to the NFACCT input plugin.
-If set to zero, the counters are not zeroed.
+This patch adds a nfacct table to the postgresql schema. It enables
+the storage of all counters at each poll.
 ---
- input/sum/ulogd_inpflow_NFACCT.c |   29 +++++++++++++++++++++--------
- ulogd.conf.in                    |    2 ++
- 2 files changed, 23 insertions(+), 8 deletions(-)
+ doc/pgsql-ulogd2.sql |   22 ++++++++++++++++++++++
+ ulogd.conf.in        |    8 ++++++++
+ 2 files changed, 30 insertions(+)
 
-diff --git a/input/sum/ulogd_inpflow_NFACCT.c b/input/sum/ulogd_inpflow_NFACCT.c
-index f3b936f..a3bcc72 100644
---- a/input/sum/ulogd_inpflow_NFACCT.c
-+++ b/input/sum/ulogd_inpflow_NFACCT.c
-@@ -40,10 +40,17 @@ static struct config_keyset nfacct_kset = {
- 			.options = CONFIG_OPT_NONE,
- 			.u.value = 0,
- 		},
-+		{
-+			.key	 = "zerocounter",
-+			.type	 = CONFIG_TYPE_INT,
-+			.options = CONFIG_OPT_NONE,
-+			.u.value = 1,
-+		}
- 	},
--	.num_ces = 1,
-+	.num_ces = 2,
- };
- #define pollint_ce(x)	(x->ces[0])
-+#define zerocounter_ce(x) (x->ces[1])
+diff --git a/doc/pgsql-ulogd2.sql b/doc/pgsql-ulogd2.sql
+index 8f47bf9..0fc2b45 100644
+--- a/doc/pgsql-ulogd2.sql
++++ b/doc/pgsql-ulogd2.sql
+@@ -33,6 +33,7 @@ DROP TABLE IF EXISTS sctp CASCADE;
+ DROP TABLE IF EXISTS icmp CASCADE;
+ DROP TABLE IF EXISTS icmpv6 CASCADE;
+ DROP TABLE IF EXISTS nufw CASCADE;
++DROP TABLE IF EXISTS nfacct CASCADE;
+ DROP TABLE IF EXISTS ulog2_ct CASCADE;
+ DROP TABLE IF EXISTS ulog2 CASCADE;
  
- enum ulogd_nfacct_keys {
- 	ULOGD_NFACCT_NAME,
-@@ -145,13 +152,22 @@ static int nfacct_read_cb(int fd, unsigned int what, void *param)
- 	return ret;
- }
+@@ -149,6 +150,16 @@ CREATE TABLE icmpv6 (
+   icmpv6_csum integer default NULL
+ ) WITH (OIDS=FALSE);
  
--static int nfacct_send_request(struct nfacct_pluginstance *cpi)
-+static int nfacct_send_request(struct ulogd_pluginstance *upi)
- {
++CREATE TABLE nfacct (
++  sum_name varchar(128),
++  sum_pkts integer default 0,
++  sum_bytes integer default 0,
++  oob_time_sec integer default NULL,
++  oob_time_usec integer default NULL
++) WITH (OIDS=FALSE);
 +
-+	struct nfacct_pluginstance *cpi =
-+		(struct nfacct_pluginstance *)upi->private;
- 	struct nlmsghdr *nlh;
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	int flushctr;
++CREATE UNIQUE INDEX unique_acct ON nfacct(sum_name, oob_time_sec, oob_time_usec);
++
+ -- 
+ -- VIEWS
+ -- 
+@@ -696,6 +707,17 @@ END
+ $$ LANGUAGE plpgsql SECURITY INVOKER;
  
-+	if (zerocounter_ce(upi->config_kset).u.value != 0) {
-+		flushctr = NFNL_MSG_ACCT_GET_CTRZERO;
-+	} else {
-+		flushctr = NFNL_MSG_ACCT_GET;
-+	}
- 	cpi->seq = time(NULL);
--	nlh = nfacct_nlmsg_build_hdr(buf, NFNL_MSG_ACCT_GET_CTRZERO,
-+	nlh = nfacct_nlmsg_build_hdr(buf, flushctr,
- 				     NLM_F_DUMP, cpi->seq);
  
- 	if (mnl_socket_sendto(cpi->nl, nlh, nlh->nlmsg_len) < 0) {
-@@ -167,7 +183,7 @@ static void polling_timer_cb(struct ulogd_timer *t, void *data)
- 	struct nfacct_pluginstance *cpi =
- 		(struct nfacct_pluginstance *)upi->private;
++CREATE OR REPLACE FUNCTION INSERT_NFACCT(
++                IN sum_name varchar(128),
++                IN sum_pkts integer,
++                IN sum_bytes integer,
++                IN oob_time_sec integer,
++                IN oob_time_usec integer
++        )
++RETURNS void AS $$
++        INSERT INTO nfacct (sum_name,sum_pkts,sum_bytes,oob_time_sec,oob_time_usec)
++                VALUES ($1,$2,$3,$4,$5);
++$$ LANGUAGE SQL SECURITY INVOKER;
  
--	nfacct_send_request(cpi);
-+	nfacct_send_request(upi);
  
- 	ulogd_add_timer(&cpi->timer, pollint_ce(upi->config_kset).u.value);
- }
-@@ -234,12 +250,9 @@ static int destructor_nfacct(struct ulogd_pluginstance *upi)
- 
- static void signal_nfacct(struct ulogd_pluginstance *upi, int signal)
- {
--	struct nfacct_pluginstance *cpi =
--		(struct nfacct_pluginstance *)upi->private;
--
- 	switch (signal) {
- 	case SIGUSR2:
--		nfacct_send_request(cpi);
-+		nfacct_send_request(upi);
- 		break;
- 	}
- }
+ CREATE OR REPLACE FUNCTION DELETE_PACKET(
 diff --git a/ulogd.conf.in b/ulogd.conf.in
-index 5f19cae..879ab3c 100644
+index 879ab3c..0e45714 100644
 --- a/ulogd.conf.in
 +++ b/ulogd.conf.in
-@@ -263,3 +263,5 @@ mark = 1
+@@ -232,6 +232,14 @@ table="ulog2_ct"
+ pass="changeme"
+ procedure="INSERT_OR_REPLACE_CT"
  
- [acct1]
- pollinterval = 2
-+# Set to zero to avoid zeroing counters after read
-+#zerocounter = 0
++[pgsql4]
++db="nulog"
++host="localhost"
++user="nupik"
++table="nfacct"
++pass="changeme"
++procedure="INSERT_NFACCT"
++
+ [dbi1]
+ db="ulog2"
+ dbtype="pgsql"
 -- 
 1.7.10.4
 
