@@ -1,56 +1,40 @@
-From: Yann Dupont <Yann.Dupont@univ-nantes.fr>
-Subject: Re: skb_warn_bad_offload with kernel 3.5 (maybe gso/bridge related
- ?)
-Date: Thu, 02 Aug 2012 17:08:07 +0200
-Message-ID: <501A97D7.1090206@univ-nantes.fr>
-References: <50194875.5030009@univ-nantes.fr>
+From: Arif Hossain <aftnix@gmail.com>
+Subject: [PATCH] fixed configure.ac. Now autogen.sh will work
+Date: Thu, 02 Aug 2012 21:35:55 +0600
+Message-ID: <1343921755.12174.2.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtptls1-loi.cpub.univ-nantes.fr ([193.52.103.112]:53879 "EHLO
-	smtp-tls.univ-nantes.fr" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750810Ab2HBPIN (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:44569 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752533Ab2HBPqq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Aug 2012 11:08:13 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by smtp-tls.univ-nantes.fr (Postfix) with ESMTP id 262FC43A040
-	for <netfilter-devel@vger.kernel.org>; Thu,  2 Aug 2012 17:08:12 +0200 (CEST)
-Received: from smtp-tls.univ-nantes.fr ([127.0.0.1])
-	by localhost (smtptls1-loi.cpub.univ-nantes.fr [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id tyYZjYcNDtwH for <netfilter-devel@vger.kernel.org>;
-	Thu,  2 Aug 2012 17:08:07 +0200 (CEST)
-Received: from [IPv6:2001:660:7220:0:1d8c:883b:e0c:970b] (unknown [IPv6:2001:660:7220:0:1d8c:883b:e0c:970b])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by smtp-tls.univ-nantes.fr (Postfix) with ESMTPSA id C57EC403818
-	for <netfilter-devel@vger.kernel.org>; Thu,  2 Aug 2012 17:08:07 +0200 (CEST)
-In-Reply-To: <50194875.5030009@univ-nantes.fr>
+	Thu, 2 Aug 2012 11:46:46 -0400
+Received: by yenl2 with SMTP id l2so8861252yen.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 02 Aug 2012 08:46:46 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le 01/08/2012 17:17, Yann Dupont a =E9crit :
-> Hello everybody,
->
-Just a quick follow up :
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-[..]
-> As the problem seems more or less gso related, I've deactivated gso=20
-> for the moment. I'll see in the night if we still have errors reporte=
-d.
+diff --git a/configure.ac b/configure.ac
+index 20158d2..4c2a6ac 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -31,7 +31,7 @@ xtlibdir="$(pkg-config --variable=xtlibdir xtables)"
+ 
+ AC_ARG_WITH([xtlibdir],
+ 	AS_HELP_STRING([--with-xtlibdir=PATH],
+-	[Path where to install Xtables extensions [[autodetect]]]]),
++	[Path where to install Xtables extensions [[autodetect]]]),
+ 	[xtlibdir="$withval"])
+ AC_MSG_CHECKING([Xtables module directory])
+ AC_MSG_RESULT([$xtlibdir])
+-- 
+1.7.11.1
 
-Indeed, deactivating gso on the network interfaces cure the symptom,=20
-running ok since yesterday.
-Cheers,
 
---=20
-Yann Dupont - Service IRTS, DSI Universit=E9 de Nantes
-Tel : 02.53.48.49.20 - Mail/Jabber : Yann.Dupont@univ-nantes.fr
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
