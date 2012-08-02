@@ -1,29 +1,38 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH] fixed configure.ac. Now autogen.sh will work
-Date: Thu, 2 Aug 2012 17:50:23 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1208021750000.10019@frira.zrqbmnf.qr>
-References: <1343921755.12174.2.camel@localhost>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Arif Hossain <aftnix@gmail.com>
+From: Vincent Bernat <bernat@luffy.cx>
+Subject: [PATCH] conntrackd: don't resync expectations if such sync has been disabled
+Date: Thu,  2 Aug 2012 17:33:56 +0200
+Message-ID: <1343921636-6527-1-git-send-email-bernat@luffy.cx>
+Cc: Vincent Bernat <bernat@luffy.cx>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([5.9.24.206]:53319 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751427Ab2HBPuZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Aug 2012 11:50:25 -0400
-In-Reply-To: <1343921755.12174.2.camel@localhost>
+Received: from ftmxout01ba.infra.b2.fti.net ([193.252.121.124]:50576 "EHLO
+	ftmxout01ba.infra.b2.fti.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752181Ab2HBP6N (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 2 Aug 2012 11:58:13 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2012-08-02 17:35, Arif Hossain wrote:
+conntrackd was segfaulting with `ExpectationSync` set to `Off`.
 
-> AC_ARG_WITH([xtlibdir],
-> 	AS_HELP_STRING([--with-xtlibdir=PATH],
->-	[Path where to install Xtables extensions [[autodetect]]]]),
->+	[Path where to install Xtables extensions [[autodetect]]]),
-> 	[xtlibdir="$withval"])
-> AC_MSG_CHECKING([Xtables module directory])
-> AC_MSG_RESULT([$xtlibdir])
+Signed-off-by: Vincent Bernat <bernat@luffy.cx>
+---
+ src/ctnl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Applied.
+diff --git a/src/ctnl.c b/src/ctnl.c
+index 107cd5d..154b612 100644
+--- a/src/ctnl.c
++++ b/src/ctnl.c
+@@ -164,7 +164,7 @@ static void do_polling_alarm(struct alarm_block *a, void *data)
+ 		STATE(mode)->internal->exp.purge();
+ 
+ 	nl_send_resync(STATE(resync));
+-	nl_send_expect_resync(STATE(resync));
++	if (CONFIG(flags) & CTD_EXPECT) nl_send_expect_resync(STATE(resync));
+ 	add_alarm(&STATE(polling_alarm), CONFIG(poll_kernel_secs), 0);
+ }
+ 
+-- 
+1.7.10.4
+
