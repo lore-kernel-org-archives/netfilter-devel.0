@@ -1,32 +1,35 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: Building xt_LOGMARK from xtables-addons fails
-Date: Fri, 3 Aug 2012 16:46:25 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1208031644080.3676@frira.zrqbmnf.qr>
-References: <1344000014.1765.4.camel@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 5/5] nfacct: add timestamp option
+Date: Fri, 3 Aug 2012 16:54:00 +0200
+Message-ID: <20120803145400.GA1454@1984>
+References: <1343856436-11129-1-git-send-email-eric@regit.org>
+ <1343856436-11129-6-git-send-email-eric@regit.org>
+ <20120803093533.GE12107@1984>
+ <1343987038.3284.6.camel@tiger.regit.org>
+ <20120803112449.GA19641@1984>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Arif Hossain <aftnix@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([5.9.24.206]:33998 "EHLO seven.medozas.de"
+Received: from mail.us.es ([193.147.175.20]:60607 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754069Ab2HCOq0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Aug 2012 10:46:26 -0400
-In-Reply-To: <1344000014.1765.4.camel@localhost>
+	id S1753052Ab2HCOyF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Aug 2012 10:54:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20120803112449.GA19641@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 2012-08-03 15:20, Arif Hossain wrote:
+On Fri, Aug 03, 2012 at 01:24:49PM +0200, Pablo Neira Ayuso wrote:
+[...]
+> I'm still undecided, but it seems to me we provide more fine-grain
+> control if timestamp is calculated in the output for the nfacct case.
 
->I've configured with "./configure --with-kbuild=<my_kernel's source>
->In file included
->from /usr/local/src/xtables-addons/extensions/xt_LOGMARK.c:18:
->/usr/local/src/xtables-addons/extensions/compat_xtables.h:17:4: warning:
->#warning You have CONFIG_NF_CONNTRACK enabled, but
->CONFIG_NF_CONNTRACK_MARK is not (please enable).
->
->[root@s1 linux]# grep 'NF_CONNTRACK_MARK' .config
->CONFIG_NF_CONNTRACK_MARK=y
+Well, most input plugins already provide timestamp calculation. GPRINT
+seems to be the exception for the output plugin case.
 
-Only thing I can think of is that you are looking at the wrong .config
-and/or that you changed your .config without building a kernel with it.
+I have applied the patch expanding the documentation on the example
+file a bit.
+
+Thanks Eric.
