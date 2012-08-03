@@ -1,49 +1,130 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] iptables-restore: move code to add_param_to_argv,
- cleanup (fix gcc-4.7)
-Date: Fri, 3 Aug 2012 11:15:35 +0200
-Message-ID: <20120803091535.GA11165@1984>
-References: <1343039903-7230-1-git-send-email-pablo@netfilter.org>
- <1343042946.2626.10727.camel@edumazet-glaptop>
- <1343043528.2626.10755.camel@edumazet-glaptop>
- <20120730013707.GA2350@1984>
- <alpine.LNX.2.01.1208022136350.21772@frira.zrqbmnf.qr>
+Subject: Re: [PATCH 1/5] nfacct: add variable to not zero counter after read
+Date: Fri, 3 Aug 2012 11:24:11 +0200
+Message-ID: <20120803092411.GA12107@1984>
+References: <1343856436-11129-1-git-send-email-eric@regit.org>
+ <1343856436-11129-2-git-send-email-eric@regit.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53475 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:54758 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751987Ab2HCJPi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Aug 2012 05:15:38 -0400
+	id S1752788Ab2HCJYV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Aug 2012 05:24:21 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.01.1208022136350.21772@frira.zrqbmnf.qr>
+In-Reply-To: <1343856436-11129-2-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Aug 02, 2012 at 09:37:10PM +0200, Jan Engelhardt wrote:
-> 
-> On Monday 2012-07-30 03:37, Pablo Neira Ayuso wrote:
-> >> > // here param_buffer[1024] is lost, so any var pointing 
-> >> > // to it can mess stack
-> >> > 
-> >> > previous gcc were probably not so aggressive.
-> >> 
-> >> Oh well, add_argv() does a strdup(), so iptables code seems fine.
-> >
-> >I thought the same, but one contributor has put some on light on this.
-> >
-> >I'm going to revert the patch that I applied to fix this and apply
-> >the one that comes with this email instead.
-> >
-> >It contains a simple description of the problem, I think it's good for
-> >the record (distro maintainers will likely google for this).
-> 
-> Your code cleanup, by moving the code into a separate function,
-> is however still desired :)
+On Wed, Aug 01, 2012 at 11:27:12PM +0200, Eric Leblond wrote:
+> The default nfacct input plugin zeroes counter after each read. This
+> is a limitation as other software can't use the counter at the same
+> time as ulogd2.
+> This patch adds the zerocounter variable to the NFACCT input plugin.
+> If set to zero, the counters are not zeroed.
 
-OK, it's back:
+Applied with minor glitches. Thanks Eric.
 
-http://git.netfilter.org/cgi-bin/gitweb.cgi?p=iptables.git;a=commit;h=23a98b56935c42ef460020e37a9ff8006eee58e2
+> ---
+>  input/sum/ulogd_inpflow_NFACCT.c |   29 +++++++++++++++++++++--------
+>  ulogd.conf.in                    |    2 ++
+>  2 files changed, 23 insertions(+), 8 deletions(-)
+> 
+> diff --git a/input/sum/ulogd_inpflow_NFACCT.c b/input/sum/ulogd_inpflow_NFACCT.c
+> index f3b936f..a3bcc72 100644
+> --- a/input/sum/ulogd_inpflow_NFACCT.c
+> +++ b/input/sum/ulogd_inpflow_NFACCT.c
+> @@ -40,10 +40,17 @@ static struct config_keyset nfacct_kset = {
+>  			.options = CONFIG_OPT_NONE,
+>  			.u.value = 0,
+>  		},
+> +		{
+> +			.key	 = "zerocounter",
+> +			.type	 = CONFIG_TYPE_INT,
+> +			.options = CONFIG_OPT_NONE,
+> +			.u.value = 1,
+> +		}
+>  	},
+> -	.num_ces = 1,
+> +	.num_ces = 2,
+>  };
+>  #define pollint_ce(x)	(x->ces[0])
+> +#define zerocounter_ce(x) (x->ces[1])
+>  
+>  enum ulogd_nfacct_keys {
+>  	ULOGD_NFACCT_NAME,
+> @@ -145,13 +152,22 @@ static int nfacct_read_cb(int fd, unsigned int what, void *param)
+>  	return ret;
+>  }
+>  
+> -static int nfacct_send_request(struct nfacct_pluginstance *cpi)
+> +static int nfacct_send_request(struct ulogd_pluginstance *upi)
+>  {
+> +
+
+Removed extra white line.
+
+> +	struct nfacct_pluginstance *cpi =
+> +		(struct nfacct_pluginstance *)upi->private;
+>  	struct nlmsghdr *nlh;
+>  	char buf[MNL_SOCKET_BUFFER_SIZE];
+> +	int flushctr;
+>  
+> +	if (zerocounter_ce(upi->config_kset).u.value != 0) {
+> +		flushctr = NFNL_MSG_ACCT_GET_CTRZERO;
+> +	} else {
+> +		flushctr = NFNL_MSG_ACCT_GET;
+> +	}
+
+No need for brackets in this case, removed.
+
+>  	cpi->seq = time(NULL);
+> -	nlh = nfacct_nlmsg_build_hdr(buf, NFNL_MSG_ACCT_GET_CTRZERO,
+> +	nlh = nfacct_nlmsg_build_hdr(buf, flushctr,
+>  				     NLM_F_DUMP, cpi->seq);
+
+This line above doesn't need the line break to fit into 80-chars.
+
+>  	if (mnl_socket_sendto(cpi->nl, nlh, nlh->nlmsg_len) < 0) {
+> @@ -167,7 +183,7 @@ static void polling_timer_cb(struct ulogd_timer *t, void *data)
+>  	struct nfacct_pluginstance *cpi =
+>  		(struct nfacct_pluginstance *)upi->private;
+>  
+> -	nfacct_send_request(cpi);
+> +	nfacct_send_request(upi);
+>  
+>  	ulogd_add_timer(&cpi->timer, pollint_ce(upi->config_kset).u.value);
+>  }
+> @@ -234,12 +250,9 @@ static int destructor_nfacct(struct ulogd_pluginstance *upi)
+>  
+>  static void signal_nfacct(struct ulogd_pluginstance *upi, int signal)
+>  {
+> -	struct nfacct_pluginstance *cpi =
+> -		(struct nfacct_pluginstance *)upi->private;
+> -
+>  	switch (signal) {
+>  	case SIGUSR2:
+> -		nfacct_send_request(cpi);
+> +		nfacct_send_request(upi);
+>  		break;
+>  	}
+>  }
+> diff --git a/ulogd.conf.in b/ulogd.conf.in
+> index 5f19cae..879ab3c 100644
+> --- a/ulogd.conf.in
+> +++ b/ulogd.conf.in
+> @@ -263,3 +263,5 @@ mark = 1
+>  
+>  [acct1]
+>  pollinterval = 2
+> +# Set to zero to avoid zeroing counters after read
+> +#zerocounter = 0
+> -- 
+> 1.7.10.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
