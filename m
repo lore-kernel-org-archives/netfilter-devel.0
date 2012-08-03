@@ -1,65 +1,51 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 5/5] nfacct: add timestamp option
-Date: Fri, 3 Aug 2012 13:24:49 +0200
-Message-ID: <20120803112449.GA19641@1984>
-References: <1343856436-11129-1-git-send-email-eric@regit.org>
- <1343856436-11129-6-git-send-email-eric@regit.org>
- <20120803093533.GE12107@1984>
- <1343987038.3284.6.camel@tiger.regit.org>
+From: Arif Hossain <aftnix@gmail.com>
+Subject: Building xt_LOGMARK from xtables-addons fails
+Date: Fri, 03 Aug 2012 19:20:14 +0600
+Message-ID: <1344000014.1765.4.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@regit.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41706 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753230Ab2HCLYz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Aug 2012 07:24:55 -0400
-Content-Disposition: inline
-In-Reply-To: <1343987038.3284.6.camel@tiger.regit.org>
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:57490 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753049Ab2HCNbD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Aug 2012 09:31:03 -0400
+Received: by ggnl2 with SMTP id l2so820640ggn.19
+        for <netfilter-devel@vger.kernel.org>; Fri, 03 Aug 2012 06:31:02 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Aug 03, 2012 at 11:43:58AM +0200, Eric Leblond wrote:
-> Hello,
->=20
-> Le vendredi 03 ao=FBt 2012 =E0 11:35 +0200, Pablo Neira Ayuso a =E9cr=
-it :
-> > On Wed, Aug 01, 2012 at 11:27:16PM +0200, Eric Leblond wrote:
-> > > This patch adds a timestamp option to the nfacct plugin.
-> > > If activated, nfacct output a timestamp which is computed just
-> > > after sending the nfacct request.
-> >=20
-> > I think it makes sense to make it unconditionally.
-> >=20
-> > The dump of the counters without the time doesn't make too much sen=
-se
-> > to me?
-> >=20
-> > Let me know.
->=20
-> I think it was not originally added because some output format did no=
-t
-> need it.
+Hi,
 
-I guess you refer to GPRINT.
+I'm trying to build my modules with xtables_addons. I'm not using
+distribution's kernel-header package.
 
-> Maybe we can make output of a timestamp by default and let
-> people who want to spare the cycles of gettimeofday() set it to 0.
+I've configured with "./configure --with-kbuild=<my_kernel's source>
 
-Hm, that means that we'll have two gettimeofday in case that GPRINT is
-used (specifically if people configure this wrong, ie. setting on
-timestamp both in GPRINT and NFACCT, that's likely to happen IMO).
+After issuing "make", it reports:
 
-I'm still undecided, but it seems to me we provide more fine-grain
-control if timestamp is calculated in the output for the nfacct case.
+In file included
+from /usr/local/src/xtables-addons/extensions/xt_LOGMARK.c:18:
+/usr/local/src/xtables-addons/extensions/compat_xtables.h:17:4: warning:
+#warning You have CONFIG_NF_CONNTRACK enabled, but
+CONFIG_NF_CONNTRACK_MARK is not (please enable).
 
-I think we have to agree where to calculate the timestamp (input or
-output plugins?) for consistency, or at least agreed on some policy
-for this.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 
+but i've enabled CONFIG_NF_CONNTRACK_MARK :
+
+[root@s1 linux]# grep 'NF_CONNTRACK_MARK' .config
+CONFIG_NF_CONNTRACK_MARK=y
+
+What's it i'm missing?
+
+
+
+
+-- 
+Cheers
+
+aft
+aftnix@gmail.com
+
