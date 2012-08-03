@@ -1,31 +1,55 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: Local port forwarding and IP_NF_NAT_LOCAL
-Date: Thu, 2 Aug 2012 23:15:10 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1208022314340.20545@frira.zrqbmnf.qr>
-References: <CAKZGBhjfz1cXH1SFH__HhN23z8e11Zs=ip_naUXbz4EVQV8ckw@mail.gmail.com>
+From: Yann Dupont <Yann.Dupont@univ-nantes.fr>
+Subject: Re: skb_warn_bad_offload with kernel 3.5 (maybe gso/bridge related
+ ?)
+Date: Fri, 03 Aug 2012 10:00:45 +0200
+Message-ID: <501B852D.508@univ-nantes.fr>
+References: <50194875.5030009@univ-nantes.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Fergal Meath <fergalme@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([5.9.24.206]:55540 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752773Ab2HBVPM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Aug 2012 17:15:12 -0400
-In-Reply-To: <CAKZGBhjfz1cXH1SFH__HhN23z8e11Zs=ip_naUXbz4EVQV8ckw@mail.gmail.com>
+Received: from smtptls1-loi.cpub.univ-nantes.fr ([193.52.103.112]:35522 "EHLO
+	smtp-tls.univ-nantes.fr" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752787Ab2HCIAv (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Aug 2012 04:00:51 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by smtp-tls.univ-nantes.fr (Postfix) with ESMTP id F189943A05E
+	for <netfilter-devel@vger.kernel.org>; Fri,  3 Aug 2012 10:00:49 +0200 (CEST)
+Received: from smtp-tls.univ-nantes.fr ([127.0.0.1])
+	by localhost (smtptls1-loi.cpub.univ-nantes.fr [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id b3vZPnmwazd0 for <netfilter-devel@vger.kernel.org>;
+	Fri,  3 Aug 2012 10:00:46 +0200 (CEST)
+Received: from [IPv6:2001:660:7220:0:8020:f15a:e55f:984e] (unknown [IPv6:2001:660:7220:0:8020:f15a:e55f:984e])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by smtp-tls.univ-nantes.fr (Postfix) with ESMTPSA id E998743A041
+	for <netfilter-devel@vger.kernel.org>; Fri,  3 Aug 2012 10:00:45 +0200 (CEST)
+In-Reply-To: <50194875.5030009@univ-nantes.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2012-08-02 13:58, Fergal Meath wrote:
+Le 01/08/2012 17:17, Yann Dupont a =E9crit :
+> Hello everybody,
 
->Hi,
->
->I have an SSH tunnel from my office to my home linux server box.
->On my linux server box, I am trying to forward all port 80 traffic to
->another device on my home network 192.168.1.1.
->This is to allow me to remotely configure the other device on my home network.
 
-Then you should use
-  ssh -L 8000:192.168.1.1:80 user@homebox
+ooooops !!!
+I Goofed... I just saw I used the wrong list. My Intention was to post=20
+to netdev, not netfilter.
 
-and access it via http://localhost:8000/
+Time to take holidays, I think!
+
+I'm very sorry for the annoyance,
+Cheers
+
+--=20
+Yann Dupont - Service IRTS, DSI Universit=E9 de Nantes
+Tel : 02.53.48.49.20 - Mail/Jabber : Yann.Dupont@univ-nantes.fr
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
