@@ -1,50 +1,29 @@
-From: Arif Hossain <aftnix@gmail.com>
+From: Jan Engelhardt <jengelh@inai.de>
 Subject: Re: CRYPT target patch for newer kernel ?
-Date: Wed, 08 Aug 2012 21:41:58 +0600
-Message-ID: <1344440518.4763.42.camel@localhost>
-References: <1344428741.4763.21.camel@localhost>
-	 <alpine.LNX.2.01.1208081535440.857@frira.zrqbmnf.qr>
-	 <1344433984.4763.28.camel@localhost>
-	 <alpine.LNX.2.01.1208081613060.1203@frira.zrqbmnf.qr>
-	 <1344435326.4763.36.camel@localhost>
-	 <alpine.LNX.2.01.1208081733550.2908@frira.zrqbmnf.qr>
+Date: Wed, 8 Aug 2012 18:06:06 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1208081758420.2908@frira.zrqbmnf.qr>
+References: <1344428741.4763.21.camel@localhost>  <alpine.LNX.2.01.1208081535440.857@frira.zrqbmnf.qr>  <1344433984.4763.28.camel@localhost>  <alpine.LNX.2.01.1208081613060.1203@frira.zrqbmnf.qr>  <1344435326.4763.36.camel@localhost>
+ <alpine.LNX.2.01.1208081733550.2908@frira.zrqbmnf.qr> <1344440518.4763.42.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
 	nefilter@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+To: Arif Hossain <aftnix@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:50599 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932773Ab2HHPwt (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Aug 2012 11:52:49 -0400
-In-Reply-To: <alpine.LNX.2.01.1208081733550.2908@frira.zrqbmnf.qr>
+Received: from seven.medozas.de ([5.9.24.206]:52066 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758763Ab2HHQGI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Aug 2012 12:06:08 -0400
+In-Reply-To: <1344440518.4763.42.camel@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 2012-08-08 at 17:34 +0200, Jan Engelhardt wrote:
-<snip>
-> If it is not linux, it's pretty much irrelevant for this discussion 
-> group.
+On Wednesday 2012-08-08 17:41, Arif Hossain wrote:
+>
+>client(simple encryption)------------------>(server equipped with
+>ENCRYPT extension which will do decryption for client to server path and
+>encryption for server to client path) ----> encryption agnostic local
+>process
 
-How so :)
-
-the client is not linux does not mean the the server (for which i'm
-developing) is not linux :)
-
-
-client(simple encryption)------------------>(server equipped with
-ENCRYPT extension which will do decryption for client to server path and
-encryption for server to client path) ----> encryption agnostic local
-process
-
-I'm developing for server, which runs on linux, so i don't see how its
-irrelevant here:)
--- 
-Cheers
-
-aft
-aftnix@gmail.com
-
+If your client cannot handle a workload like TLS, it is likely also too 
+weak for any other, reasonable, implementation.
