@@ -1,51 +1,39 @@
-From: Arif Hossain <aftnix@gmail.com>
+From: Jan Engelhardt <jengelh@inai.de>
 Subject: Re: CRYPT target patch for newer kernel ?
-Date: Wed, 08 Aug 2012 19:53:04 +0600
-Message-ID: <1344433984.4763.28.camel@localhost>
-References: <1344428741.4763.21.camel@localhost>
-	 <alpine.LNX.2.01.1208081535440.857@frira.zrqbmnf.qr>
+Date: Wed, 8 Aug 2012 16:15:23 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1208081613060.1203@frira.zrqbmnf.qr>
+References: <1344428741.4763.21.camel@localhost>  <alpine.LNX.2.01.1208081535440.857@frira.zrqbmnf.qr> <1344433984.4763.28.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
 	nefilter@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+To: Arif Hossain <aftnix@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:61890 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757006Ab2HHODz (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Aug 2012 10:03:55 -0400
-In-Reply-To: <alpine.LNX.2.01.1208081535440.857@frira.zrqbmnf.qr>
+Received: from seven.medozas.de ([5.9.24.206]:51220 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751932Ab2HHOPY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Aug 2012 10:15:24 -0400
+In-Reply-To: <1344433984.4763.28.camel@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 2012-08-08 at 15:41 +0200, Jan Engelhardt wrote:
-> On Wednesday 2012-08-08 14:25, Arif Hossain wrote:
-<snip>
-> Complicated? No, not at all. http://inai.de/2008/02/24
-> Heavyweight? Neither. The RSS is ~5 MB, most of which is pretty much
-> glibc anyway.
-> 
+On Wednesday 2012-08-08 15:53, Arif Hossain wrote:
+>On Wed, 2012-08-08 at 15:41 +0200, Jan Engelhardt wrote:
+>> On Wednesday 2012-08-08 14:25, Arif Hossain wrote:
+><snip>
+>> Complicated? No, not at all. http://inai.de/2008/02/24
+>> Heavyweight? Neither. The RSS is ~5 MB, most of which is pretty much
+>> glibc anyway.
+>
+>If clients are mainly embedded devices, and most of the time, all we can
+>do is to install a software on them, then is it feasible to use IPSEC?
 
-If clients are mainly embedded devices, and most of the time, all we can
-do is to install a software on them, then is it feasible to use IPSEC? 
-
-At this moment we are including the cryptography in the software we
-provide for them, and many low end mobile devices has severe memory
-limitation. 
-
-Just for an example, we used tls for only the initial session
-establishment, not the original data, and it proved very inefficient so
-we had to abandon the thing completely.
-
-The limitations of clinet devices forces us to use a very lightweight
-and easy to implement (so that we can implement it in the limited
-environment present in client devices) algorithms.
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+You can probably even use IPsec without StrongSWAN, if you manage to 
+knit together the pieces using `ip xfrm state` and `ip xfrm policy`.
 
 
+>Just for an example, we used tls for only the initial session
+>establishment, not the original data, and it proved very inefficient so
+>we had to abandon the thing completely.
+
+So perhaps you did something really wrong?
