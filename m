@@ -1,283 +1,35 @@
-From: kaber@trash.net
-Subject: [PATCH 4/7] extensions: add IPv6 DNAT target
-Date: Thu,  9 Aug 2012 22:11:10 +0200
-Message-ID: <1344543073-11660-5-git-send-email-kaber@trash.net>
-References: <1344543073-11660-1-git-send-email-kaber@trash.net>
-To: netfilter-devel@vger.kernel.org
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH 00/19] netfilter: IPv6 NAT
+Date: Thu, 09 Aug 2012 13:56:32 -0700
+Message-ID: <87a9y3n5rz.fsf@xmission.com>
+References: <1344542943-11588-1-git-send-email-kaber@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:65358 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754723Ab2HIUXg (ORCPT
+Received: from out01.mta.xmission.com ([166.70.13.231]:34808 "EHLO
+	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750962Ab2HIU5G (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Aug 2012 16:23:36 -0400
-Received: from gw.localnet (localhost [127.0.0.1])
-	by stinky.trash.net (Postfix) with ESMTP id 67501B2C62
-	for <netfilter-devel@vger.kernel.org>; Thu,  9 Aug 2012 22:11:16 +0200 (MEST)
-In-Reply-To: <1344543073-11660-1-git-send-email-kaber@trash.net>
+	Thu, 9 Aug 2012 16:57:06 -0400
+In-Reply-To: <1344542943-11588-1-git-send-email-kaber@trash.net>
+	(kaber@trash.net's message of "Thu, 9 Aug 2012 22:08:44 +0200")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
+kaber@trash.net writes:
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- extensions/libip6t_DNAT.c |  247 +++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 247 insertions(+), 0 deletions(-)
- create mode 100644 extensions/libip6t_DNAT.c
+> The following patches contain an updated version of IPv6 NAT against
+> Linus' current tree.
+>
+> The series is organized as follows:
+>
+> - Patches 01-03 contain bugfixes for SIP helper bugs/regressions
+>   present in the current kernel
 
-diff --git a/extensions/libip6t_DNAT.c b/extensions/libip6t_DNAT.c
-new file mode 100644
-index 0000000..a5969c3
---- /dev/null
-+++ b/extensions/libip6t_DNAT.c
-@@ -0,0 +1,247 @@
-+/*
-+ * Copyright (c) 2011 Patrick McHardy <kaber@trash.net>
-+ *
-+ * Based on Rusty Russell's IPv4 DNAT target. Development of IPv6 NAT
-+ * funded by Astaro.
-+ */
-+
-+#include <stdio.h>
-+#include <netdb.h>
-+#include <string.h>
-+#include <stdlib.h>
-+#include <xtables.h>
-+#include <iptables.h>
-+#include <limits.h> /* INT_MAX in ip_tables.h */
-+#include <linux/netfilter_ipv6/ip6_tables.h>
-+#include <linux/netfilter/nf_nat.h>
-+
-+enum {
-+	O_TO_DEST = 0,
-+	O_RANDOM,
-+	O_PERSISTENT,
-+	O_X_TO_DEST,
-+	F_TO_DEST   = 1 << O_TO_DEST,
-+	F_RANDOM   = 1 << O_RANDOM,
-+	F_X_TO_DEST = 1 << O_X_TO_DEST,
-+};
-+
-+static void DNAT_help(void)
-+{
-+	printf(
-+"DNAT target options:\n"
-+" --to-dest [<ipaddr>[-<ipaddr>]][:port[-port]]\n"
-+"				Address to map source to.\n"
-+"[--random] [--persistent]\n");
-+}
-+
-+static const struct xt_option_entry DNAT_opts[] = {
-+	{.name = "to-dest", .id = O_TO_DEST, .type = XTTYPE_STRING,
-+	 .flags = XTOPT_MAND | XTOPT_MULTI},
-+	{.name = "random", .id = O_RANDOM, .type = XTTYPE_NONE},
-+	{.name = "persistent", .id = O_PERSISTENT, .type = XTTYPE_NONE},
-+	XTOPT_TABLEEND,
-+};
-+
-+/* Ranges expected in network order. */
-+static void
-+parse_to(const char *orig_arg, int portok, struct nf_nat_range *range)
-+{
-+	char *arg, *start, *end = NULL, *colon = NULL, *dash, *error;
-+	const struct in6_addr *ip;
-+
-+	arg = strdup(orig_arg);
-+	if (arg == NULL)
-+		xtables_error(RESOURCE_PROBLEM, "strdup");
-+
-+	start = strchr(arg, '[');
-+	if (start == NULL)
-+		start = arg;
-+	else {
-+		start++;
-+		end = strchr(start, ']');
-+		if (end == NULL)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "Invalid address format");
-+
-+		*end = '\0';
-+		colon = strchr(end + 1, ':');
-+	}
-+
-+	if (colon) {
-+		int port;
-+
-+		if (!portok)
-+			xtables_error(PARAMETER_PROBLEM,
-+				   "Need TCP, UDP, SCTP or DCCP with port specification");
-+
-+		range->flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
-+
-+		port = atoi(colon+1);
-+		if (port <= 0 || port > 65535)
-+			xtables_error(PARAMETER_PROBLEM,
-+				   "Port `%s' not valid\n", colon+1);
-+
-+		error = strchr(colon+1, ':');
-+		if (error)
-+			xtables_error(PARAMETER_PROBLEM,
-+				   "Invalid port:port syntax - use dash\n");
-+
-+		dash = strchr(colon, '-');
-+		if (!dash) {
-+			range->min_proto.tcp.port
-+				= range->max_proto.tcp.port
-+				= htons(port);
-+		} else {
-+			int maxport;
-+
-+			maxport = atoi(dash + 1);
-+			if (maxport <= 0 || maxport > 65535)
-+				xtables_error(PARAMETER_PROBLEM,
-+					   "Port `%s' not valid\n", dash+1);
-+			if (maxport < port)
-+				/* People are stupid. */
-+				xtables_error(PARAMETER_PROBLEM,
-+					   "Port range `%s' funky\n", colon+1);
-+			range->min_proto.tcp.port = htons(port);
-+			range->max_proto.tcp.port = htons(maxport);
-+		}
-+		/* Starts with a colon? No IP info...*/
-+		if (colon == arg) {
-+			free(arg);
-+			return;
-+		}
-+		*colon = '\0';
-+	}
-+
-+	range->flags |= NF_NAT_RANGE_MAP_IPS;
-+	dash = strchr(start, '-');
-+	if (colon && dash && dash > colon)
-+		dash = NULL;
-+
-+	if (dash)
-+		*dash = '\0';
-+
-+	ip = xtables_numeric_to_ip6addr(start);
-+	if (!ip)
-+		xtables_error(PARAMETER_PROBLEM, "Bad IP address \"%s\"\n",
-+			      start);
-+	range->min_addr.in6 = *ip;
-+	if (dash) {
-+		ip = xtables_numeric_to_ip6addr(dash + 1);
-+		if (!ip)
-+			xtables_error(PARAMETER_PROBLEM, "Bad IP address \"%s\"\n",
-+				      dash+1);
-+		range->max_addr.in6 = *ip;
-+	} else
-+		range->max_addr = range->min_addr;
-+
-+	free(arg);
-+	return;
-+}
-+
-+static void DNAT_parse(struct xt_option_call *cb)
-+{
-+	const struct ip6t_entry *entry = cb->xt_entry;
-+	struct nf_nat_range *range = cb->data;
-+	int portok;
-+
-+	if (entry->ipv6.proto == IPPROTO_TCP ||
-+	    entry->ipv6.proto == IPPROTO_UDP ||
-+	    entry->ipv6.proto == IPPROTO_SCTP ||
-+	    entry->ipv6.proto == IPPROTO_DCCP ||
-+	    entry->ipv6.proto == IPPROTO_ICMP)
-+		portok = 1;
-+	else
-+		portok = 0;
-+
-+	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case O_TO_DEST:
-+		if (cb->xflags & F_X_TO_DEST) {
-+			if (!kernel_version)
-+				get_kernel_version();
-+			if (kernel_version > LINUX_VERSION(2, 6, 10))
-+				xtables_error(PARAMETER_PROBLEM,
-+					   "DNAT: Multiple --to-source not supported");
-+		}
-+		parse_to(cb->arg, portok, range);
-+		break;
-+	case O_PERSISTENT:
-+		range->flags |= NF_NAT_RANGE_PERSISTENT;
-+		break;
-+	}
-+}
-+
-+static void DNAT_fcheck(struct xt_fcheck_call *cb)
-+{
-+	static const unsigned int f = F_TO_DEST | F_RANDOM;
-+	struct nf_nat_range *mr = cb->data;
-+
-+	if ((cb->xflags & f) == f)
-+		mr->flags |= NF_NAT_RANGE_PROTO_RANDOM;
-+}
-+
-+static void print_range(const struct nf_nat_range *range)
-+{
-+	if (range->flags & NF_NAT_RANGE_MAP_IPS) {
-+		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)
-+			printf("[");
-+		printf("%s", xtables_ip6addr_to_numeric(&range->min_addr.in6));
-+		if (memcmp(&range->min_addr, &range->max_addr,
-+			   sizeof(range->min_addr)))
-+			printf("-%s", xtables_ip6addr_to_numeric(&range->max_addr.in6));
-+		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)
-+			printf("]");
-+	}
-+	if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
-+		printf(":");
-+		printf("%hu", ntohs(range->min_proto.tcp.port));
-+		if (range->max_proto.tcp.port != range->min_proto.tcp.port)
-+			printf("-%hu", ntohs(range->max_proto.tcp.port));
-+	}
-+}
-+
-+static void DNAT_print(const void *ip, const struct xt_entry_target *target,
-+                       int numeric)
-+{
-+	const struct nf_nat_range *range = (const void *)target->data;
-+
-+	printf(" to:");
-+	print_range(range);
-+	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM)
-+		printf(" random");
-+	if (range->flags & NF_NAT_RANGE_PERSISTENT)
-+		printf(" persistent");
-+}
-+
-+static void DNAT_save(const void *ip, const struct xt_entry_target *target)
-+{
-+	const struct nf_nat_range *range = (const void *)target->data;
-+
-+	printf(" --to-source ");
-+	print_range(range);
-+	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM)
-+		printf(" --random");
-+	if (range->flags & NF_NAT_RANGE_PERSISTENT)
-+		printf(" --persistent");
-+}
-+
-+static struct xtables_target snat_tg_reg = {
-+	.name		= "DNAT",
-+	.version	= XTABLES_VERSION,
-+	.family		= NFPROTO_IPV6,
-+	.revision	= 1,
-+	.size		= XT_ALIGN(sizeof(struct nf_nat_range)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_range)),
-+	.help		= DNAT_help,
-+	.x6_parse	= DNAT_parse,
-+	.x6_fcheck	= DNAT_fcheck,
-+	.print		= DNAT_print,
-+	.save		= DNAT_save,
-+	.x6_options	= DNAT_opts,
-+};
-+
-+void _init(void)
-+{
-+	xtables_register_target(&snat_tg_reg);
-+}
--- 
-1.7.1
+Why not just delete this code?  The current best practices are to
+disable ALGs for SIP.  To the point in some circles people recommend
+running SIP over TLS to avoid over helpful NAT ALGs.
 
+Eric
