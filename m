@@ -1,17 +1,19 @@
 From: kaber@trash.net
-Subject: [PATCH 19/19] netfilter: ip6tables: add stateless IPv6-to-IPv6 Network Prefix Translation target
-Date: Thu,  9 Aug 2012 22:09:03 +0200
-Message-ID: <1344542943-11588-20-git-send-email-kaber@trash.net>
-References: <1344542943-11588-1-git-send-email-kaber@trash.net>
-Cc: netdev@vger.kernel.org
+Subject: [PATCH 2/7] extensions: add IPv6 MASQUERADE extension
+Date: Thu,  9 Aug 2012 22:11:08 +0200
+Message-ID: <1344543073-11660-3-git-send-email-kaber@trash.net>
+References: <1344543073-11660-1-git-send-email-kaber@trash.net>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:65363 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:65366 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755002Ab2HIUXh (ORCPT
+	with ESMTP id S1754512Ab2HIUXi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Aug 2012 16:23:37 -0400
-In-Reply-To: <1344542943-11588-1-git-send-email-kaber@trash.net>
+	Thu, 9 Aug 2012 16:23:38 -0400
+Received: from gw.localnet (localhost [127.0.0.1])
+	by stinky.trash.net (Postfix) with ESMTP id EAE93B2C60
+	for <netfilter-devel@vger.kernel.org>; Thu,  9 Aug 2012 22:11:15 +0200 (MEST)
+In-Reply-To: <1344543073-11660-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -19,251 +21,222 @@ From: Patrick McHardy <kaber@trash.net>
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- include/linux/netfilter_ipv6/Kbuild     |    1 +
- include/linux/netfilter_ipv6/ip6t_NPT.h |   16 +++
- net/ipv6/netfilter/Kconfig              |    9 ++
- net/ipv6/netfilter/Makefile             |    1 +
- net/ipv6/netfilter/ip6t_NPT.c           |  165 +++++++++++++++++++++++++++++++
- 5 files changed, 192 insertions(+), 0 deletions(-)
- create mode 100644 include/linux/netfilter_ipv6/ip6t_NPT.h
- create mode 100644 net/ipv6/netfilter/ip6t_NPT.c
+ extensions/libip6t_MASQUERADE.c   |  150 +++++++++++++++++++++++++++++++++++++
+ extensions/libip6t_MASQUERADE.man |   30 ++++++++
+ include/linux/netfilter/nf_nat.h  |    8 ++
+ 3 files changed, 188 insertions(+), 0 deletions(-)
+ create mode 100644 extensions/libip6t_MASQUERADE.c
+ create mode 100644 extensions/libip6t_MASQUERADE.man
 
-diff --git a/include/linux/netfilter_ipv6/Kbuild b/include/linux/netfilter_ipv6/Kbuild
-index bd095bc..b88c005 100644
---- a/include/linux/netfilter_ipv6/Kbuild
-+++ b/include/linux/netfilter_ipv6/Kbuild
-@@ -1,6 +1,7 @@
- header-y += ip6_tables.h
- header-y += ip6t_HL.h
- header-y += ip6t_LOG.h
-+header-y += ip6t_NPT.h
- header-y += ip6t_REJECT.h
- header-y += ip6t_ah.h
- header-y += ip6t_frag.h
-diff --git a/include/linux/netfilter_ipv6/ip6t_NPT.h b/include/linux/netfilter_ipv6/ip6t_NPT.h
+diff --git a/extensions/libip6t_MASQUERADE.c b/extensions/libip6t_MASQUERADE.c
 new file mode 100644
-index 0000000..f763355
+index 0000000..eb9213e
 --- /dev/null
-+++ b/include/linux/netfilter_ipv6/ip6t_NPT.h
-@@ -0,0 +1,16 @@
-+#ifndef __NETFILTER_IP6T_NPT
-+#define __NETFILTER_IP6T_NPT
-+
-+#include <linux/types.h>
-+#include <linux/netfilter.h>
-+
-+struct ip6t_npt_tginfo {
-+	union nf_inet_addr	src_pfx;
-+	union nf_inet_addr	dst_pfx;
-+	__u8			src_pfx_len;
-+	__u8			dst_pfx_len;
-+	/* Used internally by the kernel */
-+	__sum16			adjustment;
-+};
-+
-+#endif /* __NETFILTER_IP6T_NPT */
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index 7bdf73b..44ae1bf 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -177,6 +177,15 @@ config IP6_NF_TARGET_REDIRECT
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+config IP6_NF_TARGET_NPT
-+	tristate "NPT (Network Prefix translation) target support"
-+	depends on NETFILTER_ADVANCED
-+	help
-+	  This option adda `SNPT' and `DNPT' target, which perform stateless
-+	  IPv6-to-IPv6 Network Prefix Translation (RFC 6296).
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- config IP6_NF_FILTER
- 	tristate "Packet filtering"
- 	default m if NETFILTER_ADVANCED=n
-diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
-index 0864ce6..5752132 100644
---- a/net/ipv6/netfilter/Makefile
-+++ b/net/ipv6/netfilter/Makefile
-@@ -36,5 +36,6 @@ obj-$(CONFIG_IP6_NF_MATCH_RT) += ip6t_rt.o
- # targets
- obj-$(CONFIG_IP6_NF_TARGET_MASQUERADE) += ip6t_MASQUERADE.o
- obj-$(CONFIG_IP6_NF_TARGET_NETMAP) += ip6t_NETMAP.o
-+obj-$(CONFIG_IP6_NF_TARGET_NPT) += ip6t_NPT.o
- obj-$(CONFIG_IP6_NF_TARGET_REDIRECT) += ip6t_REDIRECT.o
- obj-$(CONFIG_IP6_NF_TARGET_REJECT) += ip6t_REJECT.o
-diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
-new file mode 100644
-index 0000000..e948691
---- /dev/null
-+++ b/net/ipv6/netfilter/ip6t_NPT.c
-@@ -0,0 +1,165 @@
++++ b/extensions/libip6t_MASQUERADE.c
+@@ -0,0 +1,150 @@
 +/*
-+ * Copyright (c) 2011, 2012 Patrick McHardy <kaber@trash.net>
++ * Copyright (c) 2011 Patrick McHardy <kaber@trash.net>
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * Based on Rusty Russell's IPv4 MASQUERADE target. Development of IPv6 NAT
++ * funded by Astaro.
 + */
 +
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/ipv6.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter_ipv6.h>
-+#include <linux/netfilter_ipv6/ip6t_NPT.h>
-+#include <linux/netfilter/x_tables.h>
++#include <stdio.h>
++#include <netdb.h>
++#include <string.h>
++#include <stdlib.h>
++#include <getopt.h>
++#include <xtables.h>
++#include <limits.h> /* INT_MAX in ip_tables.h */
++#include <linux/netfilter_ipv6/ip6_tables.h>
++#include <linux/netfilter/nf_nat.h>
 +
-+static __sum16 csum16_complement(__sum16 a)
-+{
-+	return (__force __sum16)(0xffff - (__force u16)a);
-+}
-+
-+static __sum16 csum16_add(__sum16 a, __sum16 b)
-+{
-+	u16 sum;
-+
-+	sum = (__force u16)a + (__force u16)b;
-+	sum += (__force u16)a < (__force u16)b;
-+	return (__force __sum16)sum;
-+}
-+
-+static __sum16 csum16_sub(__sum16 a, __sum16 b)
-+{
-+	return csum16_add(a, csum16_complement(b));
-+}
-+
-+static int ip6t_npt_checkentry(const struct xt_tgchk_param *par)
-+{
-+	struct ip6t_npt_tginfo *npt = par->targinfo;
-+	__sum16 src_sum = 0, dst_sum = 0;
-+	unsigned int i;
-+
-+	if (npt->src_pfx_len > 64 || npt->dst_pfx_len > 64)
-+		return -EINVAL;
-+
-+	for (i = 0; i < ARRAY_SIZE(npt->src_pfx.in6.s6_addr16); i++) {
-+		src_sum = csum16_add(src_sum,
-+				(__force __sum16)npt->src_pfx.in6.s6_addr16[i]);
-+		dst_sum = csum16_add(dst_sum,
-+				(__force __sum16)npt->dst_pfx.in6.s6_addr16[i]);
-+	}
-+
-+	npt->adjustment = csum16_sub(src_sum, dst_sum);
-+	return 0;
-+}
-+
-+static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
-+			     struct in6_addr *addr)
-+{
-+	unsigned int pfx_len;
-+	unsigned int i, idx;
-+	__be32 mask;
-+	__sum16 sum;
-+
-+	pfx_len = max(npt->src_pfx_len, npt->dst_pfx_len);
-+	for (i = 0; i < pfx_len; i += 32) {
-+		if (pfx_len - i >= 32)
-+			mask = 0;
-+		else
-+			mask = htonl(~((1 << (pfx_len - i)) - 1));
-+
-+		idx = i / 32;
-+		addr->s6_addr32[idx] &= mask;
-+		addr->s6_addr32[idx] |= npt->dst_pfx.in6.s6_addr32[idx];
-+	}
-+
-+	if (pfx_len <= 48)
-+		idx = 3;
-+	else {
-+		for (idx = 4; idx < ARRAY_SIZE(addr->s6_addr16); idx++) {
-+			if ((__force __sum16)addr->s6_addr16[idx] !=
-+			    CSUM_MANGLED_0)
-+				break;
-+		}
-+		if (idx == ARRAY_SIZE(addr->s6_addr16))
-+			return false;
-+	}
-+
-+	sum = csum16_add((__force __sum16)addr->s6_addr16[idx],
-+			 npt->adjustment);
-+	if (sum == CSUM_MANGLED_0)
-+		sum = 0;
-+	*(__force __sum16 *)&addr->s6_addr16[idx] = sum;
-+
-+	return true;
-+}
-+
-+static unsigned int
-+ip6t_snpt_tg(struct sk_buff *skb, const struct xt_action_param *par)
-+{
-+	const struct ip6t_npt_tginfo *npt = par->targinfo;
-+
-+	if (!ip6t_npt_map_pfx(npt, &ipv6_hdr(skb)->saddr)) {
-+		icmpv6_send(skb, ICMPV6_PARAMPROB, ICMPV6_HDR_FIELD,
-+			    offsetof(struct ipv6hdr, saddr));
-+		return NF_DROP;
-+	}
-+	return XT_CONTINUE;
-+}
-+
-+static unsigned int
-+ip6t_dnpt_tg(struct sk_buff *skb, const struct xt_action_param *par)
-+{
-+	const struct ip6t_npt_tginfo *npt = par->targinfo;
-+
-+	if (!ip6t_npt_map_pfx(npt, &ipv6_hdr(skb)->daddr)) {
-+		icmpv6_send(skb, ICMPV6_PARAMPROB, ICMPV6_HDR_FIELD,
-+			    offsetof(struct ipv6hdr, daddr));
-+		return NF_DROP;
-+	}
-+	return XT_CONTINUE;
-+}
-+
-+static struct xt_target ip6t_npt_target_reg[] __read_mostly = {
-+	{
-+		.name		= "SNPT",
-+		.target		= ip6t_snpt_tg,
-+		.targetsize	= sizeof(struct ip6t_npt_tginfo),
-+		.checkentry	= ip6t_npt_checkentry,
-+		.family		= NFPROTO_IPV6,
-+		.hooks		= (1 << NF_INET_LOCAL_IN) |
-+				  (1 << NF_INET_POST_ROUTING),
-+		.me		= THIS_MODULE,
-+	},
-+	{
-+		.name		= "DNPT",
-+		.target		= ip6t_dnpt_tg,
-+		.targetsize	= sizeof(struct ip6t_npt_tginfo),
-+		.checkentry	= ip6t_npt_checkentry,
-+		.family		= NFPROTO_IPV6,
-+		.hooks		= (1 << NF_INET_PRE_ROUTING) |
-+				  (1 << NF_INET_LOCAL_OUT),
-+		.me		= THIS_MODULE,
-+	},
++enum {
++	O_TO_PORTS = 0,
++	O_RANDOM,
 +};
 +
-+static int __init ip6t_npt_init(void)
++static void MASQUERADE_help(void)
 +{
-+	return xt_register_targets(ip6t_npt_target_reg,
-+				   ARRAY_SIZE(ip6t_npt_target_reg));
++	printf(
++"MASQUERADE target options:\n"
++" --to-ports <port>[-<port>]\n"
++"				Port (range) to map to.\n"
++" --random\n"
++"				Randomize source port.\n");
 +}
 +
-+static void __exit ip6t_npt_exit(void)
++static const struct xt_option_entry MASQUERADE_opts[] = {
++	{.name = "to-ports", .id = O_TO_PORTS, .type = XTTYPE_STRING},
++	{.name = "random", .id = O_RANDOM, .type = XTTYPE_NONE},
++	XTOPT_TABLEEND,
++};
++
++/* Parses ports */
++static void
++parse_ports(const char *arg, struct nf_nat_range *r)
 +{
-+	xt_unregister_targets(ip6t_npt_target_reg,
-+			      ARRAY_SIZE(ip6t_npt_target_reg));
++	char *end;
++	unsigned int port, maxport;
++
++	r->flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
++
++	if (!xtables_strtoui(arg, &end, &port, 0, UINT16_MAX))
++		xtables_param_act(XTF_BAD_VALUE, "MASQUERADE", "--to-ports", arg);
++
++	switch (*end) {
++	case '\0':
++		r->min_proto.tcp.port
++			= r->max_proto.tcp.port
++			= htons(port);
++		return;
++	case '-':
++		if (!xtables_strtoui(end + 1, NULL, &maxport, 0, UINT16_MAX))
++			break;
++
++		if (maxport < port)
++			break;
++
++		r->min_proto.tcp.port = htons(port);
++		r->max_proto.tcp.port = htons(maxport);
++		return;
++	default:
++		break;
++	}
++	xtables_param_act(XTF_BAD_VALUE, "MASQUERADE", "--to-ports", arg);
 +}
 +
-+module_init(ip6t_npt_init);
-+module_exit(ip6t_npt_exit);
++static void MASQUERADE_parse(struct xt_option_call *cb)
++{
++	const struct ip6t_entry *entry = cb->xt_entry;
++	struct nf_nat_range *r = cb->data;
++	int portok;
 +
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("IPv6-to-IPv6 Network Prefix Translation (RFC 6296)");
-+MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
-+MODULE_ALIAS("ip6t_SNPT");
-+MODULE_ALIAS("ip6t_DNPT");
++	if (entry->ipv6.proto == IPPROTO_TCP ||
++	    entry->ipv6.proto == IPPROTO_UDP ||
++	    entry->ipv6.proto == IPPROTO_SCTP ||
++	    entry->ipv6.proto == IPPROTO_DCCP ||
++	    entry->ipv6.proto == IPPROTO_ICMP)
++		portok = 1;
++	else
++		portok = 0;
++
++	xtables_option_parse(cb);
++	switch (cb->entry->id) {
++	case O_TO_PORTS:
++		if (!portok)
++			xtables_error(PARAMETER_PROBLEM,
++				   "Need TCP, UDP, SCTP or DCCP with port specification");
++		parse_ports(cb->arg, r);
++		break;
++	case O_RANDOM:
++		r->flags |=  NF_NAT_RANGE_PROTO_RANDOM;
++		break;
++	}
++}
++
++static void
++MASQUERADE_print(const void *ip, const struct xt_entry_target *target,
++                 int numeric)
++{
++	const struct nf_nat_range *r = (const void *)target->data;
++
++	if (r->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
++		printf(" masq ports: ");
++		printf("%hu", ntohs(r->min_proto.tcp.port));
++		if (r->max_proto.tcp.port != r->min_proto.tcp.port)
++			printf("-%hu", ntohs(r->max_proto.tcp.port));
++	}
++
++	if (r->flags & NF_NAT_RANGE_PROTO_RANDOM)
++		printf(" random");
++}
++
++static void
++MASQUERADE_save(const void *ip, const struct xt_entry_target *target)
++{
++	const struct nf_nat_range *r = (const void *)target->data;
++
++	if (r->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
++		printf(" --to-ports %hu", ntohs(r->min_proto.tcp.port));
++		if (r->max_proto.tcp.port != r->min_proto.tcp.port)
++			printf("-%hu", ntohs(r->max_proto.tcp.port));
++	}
++
++	if (r->flags & NF_NAT_RANGE_PROTO_RANDOM)
++		printf(" --random");
++}
++
++static struct xtables_target masquerade_tg_reg = {
++	.name		= "MASQUERADE",
++	.version	= XTABLES_VERSION,
++	.family		= NFPROTO_IPV6,
++	.size		= XT_ALIGN(sizeof(struct nf_nat_range)),
++	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_range)),
++	.help		= MASQUERADE_help,
++	.x6_parse	= MASQUERADE_parse,
++	.print		= MASQUERADE_print,
++	.save		= MASQUERADE_save,
++	.x6_options	= MASQUERADE_opts,
++};
++
++void _init(void)
++{
++	xtables_register_target(&masquerade_tg_reg);
++}
+diff --git a/extensions/libip6t_MASQUERADE.man b/extensions/libip6t_MASQUERADE.man
+new file mode 100644
+index 0000000..c63d826
+--- /dev/null
++++ b/extensions/libip6t_MASQUERADE.man
+@@ -0,0 +1,30 @@
++This target is only valid in the
++.B nat
++table, in the
++.B POSTROUTING
++chain.  It should only be used with dynamically assigned IPv6 (dialup)
++connections: if you have a static IP address, you should use the SNAT
++target.  Masquerading is equivalent to specifying a mapping to the IP
++address of the interface the packet is going out, but also has the
++effect that connections are
++.I forgotten
++when the interface goes down.  This is the correct behavior when the
++next dialup is unlikely to have the same interface address (and hence
++any established connections are lost anyway).
++.TP
++\fB\-\-to\-ports\fP \fIport\fP[\fB\-\fP\fIport\fP]
++This specifies a range of source ports to use, overriding the default
++.B SNAT
++source port-selection heuristics (see above).  This is only valid
++if the rule also specifies
++\fB\-p tcp\fP
++or
++\fB\-p udp\fP.
++.TP
++\fB\-\-random\fP
++Randomize source port mapping
++If option
++\fB\-\-random\fP
++is used then port mapping will be randomized.
++.RS
++.PP
+diff --git a/include/linux/netfilter/nf_nat.h b/include/linux/netfilter/nf_nat.h
+index 8df2d13..bf0cc37 100644
+--- a/include/linux/netfilter/nf_nat.h
++++ b/include/linux/netfilter/nf_nat.h
+@@ -22,4 +22,12 @@ struct nf_nat_ipv4_multi_range_compat {
+ 	struct nf_nat_ipv4_range	range[1];
+ };
+ 
++struct nf_nat_range {
++	unsigned int			flags;
++	union nf_inet_addr		min_addr;
++	union nf_inet_addr		max_addr;
++	union nf_conntrack_man_proto	min_proto;
++	union nf_conntrack_man_proto	max_proto;
++};
++
+ #endif /* _NETFILTER_NF_NAT_H */
 -- 
 1.7.1
 
