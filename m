@@ -1,35 +1,62 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH 00/19] netfilter: IPv6 NAT
-Date: Thu, 09 Aug 2012 13:56:32 -0700
-Message-ID: <87a9y3n5rz.fsf@xmission.com>
-References: <1344542943-11588-1-git-send-email-kaber@trash.net>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH 2/7] extensions: add IPv6 MASQUERADE extension
+Date: Thu, 9 Aug 2012 23:18:05 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1208092310250.10514@frira.zrqbmnf.qr>
+References: <1344543073-11660-1-git-send-email-kaber@trash.net> <1344543073-11660-3-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:34808 "EHLO
-	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750962Ab2HIU5G (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Aug 2012 16:57:06 -0400
-In-Reply-To: <1344542943-11588-1-git-send-email-kaber@trash.net>
-	(kaber@trash.net's message of "Thu, 9 Aug 2012 22:08:44 +0200")
+Received: from seven.medozas.de ([5.9.24.206]:35645 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750791Ab2HIVSG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Aug 2012 17:18:06 -0400
+In-Reply-To: <1344543073-11660-3-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-kaber@trash.net writes:
 
-> The following patches contain an updated version of IPv6 NAT against
-> Linus' current tree.
->
-> The series is organized as follows:
->
-> - Patches 01-03 contain bugfixes for SIP helper bugs/regressions
->   present in the current kernel
+On Thursday 2012-08-09 22:11, kaber@trash.net wrote:
+>+static void MASQUERADE_help(void)
+>+{
+>+	printf(
+>+"MASQUERADE target options:\n"
+>+" --to-ports <port>[-<port>]\n"
+>+"				Port (range) to map to.\n"
+>+" --random\n"
+>+"				Randomize source port.\n");
+>+}
+>+
+>+static const struct xt_option_entry MASQUERADE_opts[] = {
+>+	{.name = "to-ports", .id = O_TO_PORTS, .type = XTTYPE_STRING},
+>+	{.name = "random", .id = O_RANDOM, .type = XTTYPE_NONE},
+>+	XTOPT_TABLEEND,
+>+};
 
-Why not just delete this code?  The current best practices are to
-disable ALGs for SIP.  To the point in some circles people recommend
-running SIP over TLS to avoid over helpful NAT ALGs.
+You could use .type = XTTYPE_PORTRC (port range)...
+though arguably iptables already did a bad job at selecting
+a suitable syntax for ranges.
 
-Eric
+
+>+/* Parses ports */
+
+I don't think such a comment is needed ;)
+
+>+static struct xtables_target masquerade_tg_reg = {
+>+	.name		= "MASQUERADE",
+>+	.version	= XTABLES_VERSION,
+>+	.family		= NFPROTO_IPV6,
+>+	.size		= XT_ALIGN(sizeof(struct nf_nat_range)),
+>+	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_range)),
+>+	.help		= MASQUERADE_help,
+>+	.x6_parse	= MASQUERADE_parse,
+>+	.print		= MASQUERADE_print,
+>+	.save		= MASQUERADE_save,
+>+	.x6_options	= MASQUERADE_opts,
+>+};
+
+Is it perhaps feasible to rename libipt_DNAT.c to libxt_DNAT.c
+and thus have the v4 and v6 parts in the same file? In userspace
+we do not have to fear depending on ipv6.ko like for kernel modules.
+
