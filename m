@@ -1,46 +1,46 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/7] extensions: add IPv6 SNAT extension
-Date: Thu, 9 Aug 2012 23:31:46 +0200 (MEST)
-Message-ID: <Pine.GSO.4.63.1208092330500.26308@stinky-local.trash.net>
-References: <1344543073-11660-1-git-send-email-kaber@trash.net>
- <1344543073-11660-4-git-send-email-kaber@trash.net>
- <alpine.LNX.2.01.1208092326130.10514@frira.zrqbmnf.qr>
+Subject: Re: [PATCH 00/19] netfilter: IPv6 NAT
+Date: Thu, 9 Aug 2012 23:52:14 +0200 (MEST)
+Message-ID: <Pine.GSO.4.63.1208092347080.26308@stinky-local.trash.net>
+References: <1344542943-11588-1-git-send-email-kaber@trash.net>
+ <87a9y3n5rz.fsf@xmission.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33060 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755470Ab2HIVbr (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Aug 2012 17:31:47 -0400
-In-Reply-To: <alpine.LNX.2.01.1208092326130.10514@frira.zrqbmnf.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: "Eric W. Biederman" <ebiederm@xmission.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <87a9y3n5rz.fsf@xmission.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 9 Aug 2012, Jan Engelhardt wrote:
+On Thu, 9 Aug 2012, Eric W. Biederman wrote:
 
+> kaber@trash.net writes:
 >
-> On Thursday 2012-08-09 22:11, kaber@trash.net wrote:
->> +
->> +static const struct xt_option_entry SNAT_opts[] = {
->> +	{.name = "to-source", .id = O_TO_SRC, .type = XTTYPE_STRING,
->> +	 .flags = XTOPT_MAND | XTOPT_MULTI},
+>> The following patches contain an updated version of IPv6 NAT against
+>> Linus' current tree.
+>>
+>> The series is organized as follows:
+>>
+>> - Patches 01-03 contain bugfixes for SIP helper bugs/regressions
+>>   present in the current kernel
 >
-> According to the IPv4 SNAT/DNAT manpage, support for multiple ranges
-> was removed after 2.6.10. Has this changed?
-> If not, XTOPT_MULTI seems misplaced.
->
->> +	case O_TO_SRC:
->> +		if (cb->xflags & F_X_TO_SRC) {
->> +			if (!kernel_version)
->> +				get_kernel_version();
->> +			if (kernel_version > LINUX_VERSION(2, 6, 10))
->> +				xtables_error(PARAMETER_PROBLEM,
->> +					   "SNAT: Multiple --to-source not supported");
->
-> It certainly is misplaced. IPv6 S/DNAT did not exist in any form in 2.6.10,
-> so we do not need to do the version check here.
+> Why not just delete this code?  The current best practices are to
+> disable ALGs for SIP.  To the point in some circles people recommend
+> running SIP over TLS to avoid over helpful NAT ALGs.
 
-Right, I'm going to delete all this.
+And where can I read up on these best practices and how well they work?
+
+In any case, these patches are all for the connection tracking helper,
+which is needed unless you want to open up your firewall for every 
+possible RTP source, in which case you can simply disable it. Some people 
+are also using it to proritize RTP streams without any filtering.
+
+Also, even if the NAT helper would not mangle packets, it is still needed 
+to adjust expectations. so incoming connections can go to the correct
+destination. That is, direct RTP connections between two endpoints
+that didn't have any direct signalling communication before
+
+You can of course also proxy everything through your SIP provider 
+(including internal calls) and/or use STUN (which is unreliable under
+Linux). I prefer not to.
