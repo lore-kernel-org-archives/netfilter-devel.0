@@ -1,213 +1,107 @@
 From: kaber@trash.net
-Subject: [PATCH 7/7] extensions: add NPT extension
-Date: Thu,  9 Aug 2012 22:11:13 +0200
-Message-ID: <1344543073-11660-8-git-send-email-kaber@trash.net>
-References: <1344543073-11660-1-git-send-email-kaber@trash.net>
+Subject: [PATCH 17/19] netfilter: nf_nat: support IPv6 in amanda NAT helper
+Date: Thu,  9 Aug 2012 22:09:01 +0200
+Message-ID: <1344542943-11588-18-git-send-email-kaber@trash.net>
+References: <1344542943-11588-1-git-send-email-kaber@trash.net>
+Cc: netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:65354 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:65356 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753486Ab2HIUXf (ORCPT
+	with ESMTP id S1754480Ab2HIUXg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Aug 2012 16:23:35 -0400
-Received: from gw.localnet (localhost [127.0.0.1])
-	by stinky.trash.net (Postfix) with ESMTP id 1B0A2B2C65
-	for <netfilter-devel@vger.kernel.org>; Thu,  9 Aug 2012 22:11:17 +0200 (MEST)
-In-Reply-To: <1344543073-11660-1-git-send-email-kaber@trash.net>
+	Thu, 9 Aug 2012 16:23:36 -0400
+In-Reply-To: <1344542943-11588-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Patrick McHardy <kaber@trash.net>
 
-Add extensions for the SNPT and DNPT stateless IPv6-to-IPv6 Network Prefix
-Translation targets.
-
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- extensions/libip6t_DNPT.c               |   71 +++++++++++++++++++++++++++++++
- extensions/libip6t_SNPT.c               |   71 +++++++++++++++++++++++++++++++
- include/linux/netfilter_ipv6/ip6t_NPT.h |   16 +++++++
- 3 files changed, 158 insertions(+), 0 deletions(-)
- create mode 100644 extensions/libip6t_DNPT.c
- create mode 100644 extensions/libip6t_SNPT.c
- create mode 100644 include/linux/netfilter_ipv6/ip6t_NPT.h
+ net/ipv4/netfilter/Kconfig               |    5 -----
+ net/ipv4/netfilter/Makefile              |    1 -
+ net/netfilter/Kconfig                    |    5 +++++
+ net/netfilter/Makefile                   |    1 +
+ net/netfilter/nf_conntrack_amanda.c      |    3 +--
+ net/{ipv4 => }/netfilter/nf_nat_amanda.c |    0
+ 6 files changed, 7 insertions(+), 8 deletions(-)
+ rename net/{ipv4 => }/netfilter/nf_nat_amanda.c (100%)
 
-diff --git a/extensions/libip6t_DNPT.c b/extensions/libip6t_DNPT.c
-new file mode 100644
-index 0000000..9e4dc5c
---- /dev/null
-+++ b/extensions/libip6t_DNPT.c
-@@ -0,0 +1,71 @@
-+#include <stdio.h>
-+#include <xtables.h>
-+#include <linux/netfilter_ipv6/ip6_tables.h>
-+#include <linux/netfilter_ipv6/ip6t_NPT.h>
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 80272e7..df42031 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -230,11 +230,6 @@ config NF_NAT_TFTP
+ 	depends on NF_CONNTRACK && NF_NAT_IPV4
+ 	default NF_NAT_IPV4 && NF_CONNTRACK_TFTP
+ 
+-config NF_NAT_AMANDA
+-	tristate
+-	depends on NF_CONNTRACK && NF_NAT_IPV4
+-	default NF_NAT_IPV4 && NF_CONNTRACK_AMANDA
+-
+ config NF_NAT_PPTP
+ 	tristate
+ 	depends on NF_CONNTRACK && NF_NAT_IPV4
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 4d8a4ad..8baa496 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -20,7 +20,6 @@ obj-$(CONFIG_NF_NAT_IPV4) += nf_nat_ipv4.o
+ obj-$(CONFIG_NF_DEFRAG_IPV4) += nf_defrag_ipv4.o
+ 
+ # NAT helpers (nf_conntrack)
+-obj-$(CONFIG_NF_NAT_AMANDA) += nf_nat_amanda.o
+ obj-$(CONFIG_NF_NAT_H323) += nf_nat_h323.o
+ obj-$(CONFIG_NF_NAT_IRC) += nf_nat_irc.o
+ obj-$(CONFIG_NF_NAT_PPTP) += nf_nat_pptp.o
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 3104494..2eee9f1 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -380,6 +380,11 @@ config NF_NAT_PROTO_SCTP
+ 	depends on NF_NAT && NF_CT_PROTO_SCTP
+ 	select LIBCRC32C
+ 
++config NF_NAT_AMANDA
++	tristate
++	depends on NF_CONNTRACK && NF_NAT
++	default NF_NAT && NF_CONNTRACK_AMANDA
 +
-+enum {
-+	O_SRC_PFX	= 1 << 0,
-+	O_DST_PFX	= 1 << 1,
-+};
-+
-+static const struct xt_option_entry SNPT_options[] = {
-+	{ .name = "src-pfx", .id = O_SRC_PFX, .type = XTTYPE_HOSTMASK,
-+	  .flags = XTOPT_MAND },
-+	{ .name = "dst-pfx", .id = O_DST_PFX, .type = XTTYPE_HOSTMASK,
-+	  .flags = XTOPT_MAND },
-+	{ }
-+};
-+
-+static void SNPT_help(void)
-+{
-+	printf("SNPT target options:"
-+	       "\n"
-+	       " --src-pfx prefix/length\n"
-+	       " --dst-pfx prefix/length\n"
-+	       "\n");
-+}
-+
-+static void SNPT_parse(struct xt_option_call *cb)
-+{
-+	struct ip6t_npt_tginfo *npt = cb->data;
-+
-+	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case O_SRC_PFX:
-+		npt->src_pfx = cb->val.haddr;
-+		npt->src_pfx_len = cb->val.hlen;
-+		break;
-+	case O_DST_PFX:
-+		npt->dst_pfx = cb->val.haddr;
-+		npt->dst_pfx_len = cb->val.hlen;
-+		break;
-+	}
-+}
-+
-+static void SNPT_print(const void *ip, const struct xt_entry_target *target,
-+		       int numeric)
-+{
-+	const struct ip6t_npt_tginfo *npt = (const void *)target->data;
-+
-+	printf("src-pfx %s/%u ", xtables_ip6addr_to_numeric(&npt->src_pfx.in6),
-+				 npt->src_pfx_len);
-+	printf("dst-pfx %s/%u ", xtables_ip6addr_to_numeric(&npt->dst_pfx.in6),
-+				 npt->dst_pfx_len);
-+}
-+
-+static struct xtables_target snpt_tg_reg = {
-+	.name		= "DNPT",
-+	.version	= XTABLES_VERSION,
-+	.family		= NFPROTO_IPV6,
-+	.size		= XT_ALIGN(sizeof(struct ip6t_npt_tginfo)),
-+	.userspacesize	= offsetof(struct ip6t_npt_tginfo, adjustment),
-+	.help		= SNPT_help,
-+	.x6_parse	= SNPT_parse,
-+	.print		= SNPT_print,
-+	.x6_options	= SNPT_options,
-+};
-+
-+void _init(void)
-+{
-+	xtables_register_target(&snpt_tg_reg);
-+}
-diff --git a/extensions/libip6t_SNPT.c b/extensions/libip6t_SNPT.c
-new file mode 100644
-index 0000000..26a86c5
---- /dev/null
-+++ b/extensions/libip6t_SNPT.c
-@@ -0,0 +1,71 @@
-+#include <stdio.h>
-+#include <xtables.h>
-+#include <linux/netfilter_ipv6/ip6_tables.h>
-+#include <linux/netfilter_ipv6/ip6t_NPT.h>
-+
-+enum {
-+	O_SRC_PFX	= 1 << 0,
-+	O_DST_PFX	= 1 << 1,
-+};
-+
-+static const struct xt_option_entry SNPT_options[] = {
-+	{ .name = "src-pfx", .id = O_SRC_PFX, .type = XTTYPE_HOSTMASK,
-+	  .flags = XTOPT_MAND },
-+	{ .name = "dst-pfx", .id = O_DST_PFX, .type = XTTYPE_HOSTMASK,
-+	  .flags = XTOPT_MAND },
-+	{ }
-+};
-+
-+static void SNPT_help(void)
-+{
-+	printf("SNPT target options:"
-+	       "\n"
-+	       " --src-pfx prefix/length\n"
-+	       " --dst-pfx prefix/length\n"
-+	       "\n");
-+}
-+
-+static void SNPT_parse(struct xt_option_call *cb)
-+{
-+	struct ip6t_npt_tginfo *npt = cb->data;
-+
-+	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case O_SRC_PFX:
-+		npt->src_pfx = cb->val.haddr;
-+		npt->src_pfx_len = cb->val.hlen;
-+		break;
-+	case O_DST_PFX:
-+		npt->dst_pfx = cb->val.haddr;
-+		npt->dst_pfx_len = cb->val.hlen;
-+		break;
-+	}
-+}
-+
-+static void SNPT_print(const void *ip, const struct xt_entry_target *target,
-+		       int numeric)
-+{
-+	const struct ip6t_npt_tginfo *npt = (const void *)target->data;
-+
-+	printf("src-pfx %s/%u ", xtables_ip6addr_to_numeric(&npt->src_pfx.in6),
-+				 npt->src_pfx_len);
-+	printf("dst-pfx %s/%u ", xtables_ip6addr_to_numeric(&npt->dst_pfx.in6),
-+				 npt->dst_pfx_len);
-+}
-+
-+static struct xtables_target snpt_tg_reg = {
-+	.name		= "SNPT",
-+	.version	= XTABLES_VERSION,
-+	.family		= NFPROTO_IPV6,
-+	.size		= XT_ALIGN(sizeof(struct ip6t_npt_tginfo)),
-+	.userspacesize	= offsetof(struct ip6t_npt_tginfo, adjustment),
-+	.help		= SNPT_help,
-+	.x6_parse	= SNPT_parse,
-+	.print		= SNPT_print,
-+	.x6_options	= SNPT_options,
-+};
-+
-+void _init(void)
-+{
-+	xtables_register_target(&snpt_tg_reg);
-+}
-diff --git a/include/linux/netfilter_ipv6/ip6t_NPT.h b/include/linux/netfilter_ipv6/ip6t_NPT.h
-new file mode 100644
-index 0000000..f763355
---- /dev/null
-+++ b/include/linux/netfilter_ipv6/ip6t_NPT.h
-@@ -0,0 +1,16 @@
-+#ifndef __NETFILTER_IP6T_NPT
-+#define __NETFILTER_IP6T_NPT
-+
-+#include <linux/types.h>
-+#include <linux/netfilter.h>
-+
-+struct ip6t_npt_tginfo {
-+	union nf_inet_addr	src_pfx;
-+	union nf_inet_addr	dst_pfx;
-+	__u8			src_pfx_len;
-+	__u8			dst_pfx_len;
-+	/* Used internally by the kernel */
-+	__sum16			adjustment;
-+};
-+
-+#endif /* __NETFILTER_IP6T_NPT */
+ config NF_NAT_FTP
+ 	tristate
+ 	depends on NF_CONNTRACK && NF_NAT
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 16592b1..7d6e1ea 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -55,6 +55,7 @@ obj-$(CONFIG_NF_NAT_PROTO_UDPLITE) += nf_nat_proto_udplite.o
+ obj-$(CONFIG_NF_NAT_PROTO_SCTP) += nf_nat_proto_sctp.o
+ 
+ # NAT helpers
++obj-$(CONFIG_NF_NAT_AMANDA) += nf_nat_amanda.o
+ obj-$(CONFIG_NF_NAT_FTP) += nf_nat_ftp.o
+ 
+ # transparent proxy support
+diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
+index e0212b5..c514fe6 100644
+--- a/net/netfilter/nf_conntrack_amanda.c
++++ b/net/netfilter/nf_conntrack_amanda.c
+@@ -155,8 +155,7 @@ static int amanda_help(struct sk_buff *skb,
+ 				  IPPROTO_TCP, NULL, &port);
+ 
+ 		nf_nat_amanda = rcu_dereference(nf_nat_amanda_hook);
+-		if (nf_nat_amanda && nf_ct_l3num(ct) == NFPROTO_IPV4 &&
+-		    ct->status & IPS_NAT_MASK)
++		if (nf_nat_amanda && ct->status & IPS_NAT_MASK)
+ 			ret = nf_nat_amanda(skb, ctinfo, protoff,
+ 					    off - dataoff, len, exp);
+ 		else if (nf_ct_expect_related(exp) != 0)
+diff --git a/net/ipv4/netfilter/nf_nat_amanda.c b/net/netfilter/nf_nat_amanda.c
+similarity index 100%
+rename from net/ipv4/netfilter/nf_nat_amanda.c
+rename to net/netfilter/nf_nat_amanda.c
 -- 
 1.7.1
 
