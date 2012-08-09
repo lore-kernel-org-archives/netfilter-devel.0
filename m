@@ -1,941 +1,706 @@
 From: kaber@trash.net
-Subject: [PATCH 1/7] extensions: convert NAT target to use nf_nat.h
-Date: Thu,  9 Aug 2012 22:11:07 +0200
-Message-ID: <1344543073-11660-2-git-send-email-kaber@trash.net>
-References: <1344543073-11660-1-git-send-email-kaber@trash.net>
+Subject: [PATCH 18/19] netfilter: nf_nat: support IPv6 in SIP NAT helper
+Date: Thu,  9 Aug 2012 22:09:02 +0200
+Message-ID: <1344542943-11588-19-git-send-email-kaber@trash.net>
+References: <1344542943-11588-1-git-send-email-kaber@trash.net>
+Cc: netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:65360 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754849Ab2HIUXh (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Aug 2012 16:23:37 -0400
-Received: from gw.localnet (localhost [127.0.0.1])
-	by stinky.trash.net (Postfix) with ESMTP id 9D657B2C5F
-	for <netfilter-devel@vger.kernel.org>; Thu,  9 Aug 2012 22:11:15 +0200 (MEST)
-In-Reply-To: <1344543073-11660-1-git-send-email-kaber@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1344542943-11588-1-git-send-email-kaber@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 From: Patrick McHardy <kaber@trash.net>
 
-Convert the NAT targets to use the kernel supplied nf_nat.h header.
+Add IPv6 support to the SIP NAT helper. There are no functional differences
+to IPv4 NAT, just different formats for addresses.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- extensions/libipt_DNAT.c                           |   36 +++---
- extensions/libipt_MASQUERADE.c                     |   32 +++---
- extensions/libipt_NETMAP.c                         |   18 ++--
- extensions/libipt_REDIRECT.c                       |   34 +++---
- extensions/libipt_SAME.c                           |   21 +++--
- extensions/libipt_SNAT.c                           |   36 +++---
- .../linux/netfilter/nf_conntrack_tuple_common.h    |   27 +++++
- include/linux/netfilter/nf_nat.h                   |   25 +++++
- include/linux/netfilter_ipv4/ipt_SAME.h            |    2 +-
- include/net/netfilter/nf_conntrack_tuple.h         |  114 --------------------
- include/net/netfilter/nf_nat.h                     |   55 ----------
- 11 files changed, 144 insertions(+), 256 deletions(-)
- create mode 100644 include/linux/netfilter/nf_nat.h
- delete mode 100644 include/net/netfilter/nf_conntrack_tuple.h
- delete mode 100644 include/net/netfilter/nf_nat.h
+ include/linux/netfilter/nf_conntrack_sip.h |    9 +-
+ net/ipv4/netfilter/Kconfig                 |    5 -
+ net/ipv4/netfilter/Makefile                |    1 -
+ net/netfilter/Kconfig                      |    5 +
+ net/netfilter/Makefile                     |    1 +
+ net/netfilter/nf_conntrack_sip.c           |   68 ++++++------
+ net/{ipv4 => }/netfilter/nf_nat_sip.c      |  172 ++++++++++++++++------------
+ 7 files changed, 145 insertions(+), 116 deletions(-)
+ rename net/{ipv4 => }/netfilter/nf_nat_sip.c (76%)
 
-diff --git a/extensions/libipt_DNAT.c b/extensions/libipt_DNAT.c
-index 466c9de..ff18799 100644
---- a/extensions/libipt_DNAT.c
-+++ b/extensions/libipt_DNAT.c
-@@ -6,7 +6,7 @@
- #include <iptables.h> /* get_kernel_version */
- #include <limits.h> /* INT_MAX in ip_tables.h */
- #include <linux/netfilter_ipv4/ip_tables.h>
--#include <net/netfilter/nf_nat.h>
-+#include <linux/netfilter/nf_nat.h>
- 
- enum {
- 	O_TO_DEST = 0,
-@@ -23,7 +23,7 @@ enum {
- struct ipt_natinfo
- {
- 	struct xt_entry_target t;
--	struct nf_nat_multi_range mr;
-+	struct nf_nat_ipv4_multi_range_compat mr;
+diff --git a/include/linux/netfilter/nf_conntrack_sip.h b/include/linux/netfilter/nf_conntrack_sip.h
+index 1afc669..387bdd0 100644
+--- a/include/linux/netfilter/nf_conntrack_sip.h
++++ b/include/linux/netfilter/nf_conntrack_sip.h
+@@ -99,10 +99,8 @@ enum sip_header_types {
+ enum sdp_header_types {
+ 	SDP_HDR_UNSPEC,
+ 	SDP_HDR_VERSION,
+-	SDP_HDR_OWNER_IP4,
+-	SDP_HDR_CONNECTION_IP4,
+-	SDP_HDR_OWNER_IP6,
+-	SDP_HDR_CONNECTION_IP6,
++	SDP_HDR_OWNER,
++	SDP_HDR_CONNECTION,
+ 	SDP_HDR_MEDIA,
  };
  
- static void DNAT_help(void)
-@@ -44,7 +44,7 @@ static const struct xt_option_entry DNAT_opts[] = {
+@@ -111,7 +109,8 @@ extern unsigned int (*nf_nat_sip_hook)(struct sk_buff *skb,
+ 				       unsigned int dataoff,
+ 				       const char **dptr,
+ 				       unsigned int *datalen);
+-extern void (*nf_nat_sip_seq_adjust_hook)(struct sk_buff *skb, s16 off);
++extern void (*nf_nat_sip_seq_adjust_hook)(struct sk_buff *skb,
++					  unsigned int protoff, s16 off);
+ extern unsigned int (*nf_nat_sip_expect_hook)(struct sk_buff *skb,
+ 					      unsigned int protoff,
+ 					      unsigned int dataoff,
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index df42031..27f9574 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -241,11 +241,6 @@ config NF_NAT_H323
+ 	depends on NF_CONNTRACK && NF_NAT_IPV4
+ 	default NF_NAT_IPV4 && NF_CONNTRACK_H323
+ 
+-config NF_NAT_SIP
+-	tristate
+-	depends on NF_CONNTRACK && NF_NAT_IPV4
+-	default NF_NAT_IPV4 && NF_CONNTRACK_SIP
+-
+ # mangle + specific targets
+ config IP_NF_MANGLE
+ 	tristate "Packet mangling"
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 8baa496..8914abf 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -23,7 +23,6 @@ obj-$(CONFIG_NF_DEFRAG_IPV4) += nf_defrag_ipv4.o
+ obj-$(CONFIG_NF_NAT_H323) += nf_nat_h323.o
+ obj-$(CONFIG_NF_NAT_IRC) += nf_nat_irc.o
+ obj-$(CONFIG_NF_NAT_PPTP) += nf_nat_pptp.o
+-obj-$(CONFIG_NF_NAT_SIP) += nf_nat_sip.o
+ obj-$(CONFIG_NF_NAT_SNMP_BASIC) += nf_nat_snmp_basic.o
+ obj-$(CONFIG_NF_NAT_TFTP) += nf_nat_tftp.o
+ 
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 2eee9f1..bf3e464 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -390,6 +390,11 @@ config NF_NAT_FTP
+ 	depends on NF_CONNTRACK && NF_NAT
+ 	default NF_NAT && NF_CONNTRACK_FTP
+ 
++config NF_NAT_SIP
++	tristate
++	depends on NF_CONNTRACK && NF_NAT
++	default NF_NAT && NF_CONNTRACK_SIP
++
+ endif # NF_CONNTRACK
+ 
+ # transparent proxy support
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 7d6e1ea..7d6d1a0 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -57,6 +57,7 @@ obj-$(CONFIG_NF_NAT_PROTO_SCTP) += nf_nat_proto_sctp.o
+ # NAT helpers
+ obj-$(CONFIG_NF_NAT_AMANDA) += nf_nat_amanda.o
+ obj-$(CONFIG_NF_NAT_FTP) += nf_nat_ftp.o
++obj-$(CONFIG_NF_NAT_SIP) += nf_nat_sip.o
+ 
+ # transparent proxy support
+ obj-$(CONFIG_NETFILTER_TPROXY) += nf_tproxy_core.o
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index d517490..df8f4f2 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -57,7 +57,8 @@ unsigned int (*nf_nat_sip_hook)(struct sk_buff *skb, unsigned int protoff,
+ 				unsigned int *datalen) __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_nat_sip_hook);
+ 
+-void (*nf_nat_sip_seq_adjust_hook)(struct sk_buff *skb, s16 off) __read_mostly;
++void (*nf_nat_sip_seq_adjust_hook)(struct sk_buff *skb, unsigned int protoff,
++				   s16 off) __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_nat_sip_seq_adjust_hook);
+ 
+ unsigned int (*nf_nat_sip_expect_hook)(struct sk_buff *skb,
+@@ -742,13 +743,18 @@ static int sdp_addr_len(const struct nf_conn *ct, const char *dptr,
+  * be tolerant and also accept records terminated with a single newline
+  * character". We handle both cases.
+  */
+-static const struct sip_header ct_sdp_hdrs[] = {
+-	[SDP_HDR_VERSION]		= SDP_HDR("v=", NULL, digits_len),
+-	[SDP_HDR_OWNER_IP4]		= SDP_HDR("o=", "IN IP4 ", sdp_addr_len),
+-	[SDP_HDR_CONNECTION_IP4]	= SDP_HDR("c=", "IN IP4 ", sdp_addr_len),
+-	[SDP_HDR_OWNER_IP6]		= SDP_HDR("o=", "IN IP6 ", sdp_addr_len),
+-	[SDP_HDR_CONNECTION_IP6]	= SDP_HDR("c=", "IN IP6 ", sdp_addr_len),
+-	[SDP_HDR_MEDIA]			= SDP_HDR("m=", NULL, media_len),
++static const struct sip_header ct_sdp_hdrs_v4[] = {
++	[SDP_HDR_VERSION]	= SDP_HDR("v=", NULL, digits_len),
++	[SDP_HDR_OWNER]		= SDP_HDR("o=", "IN IP4 ", sdp_addr_len),
++	[SDP_HDR_CONNECTION]	= SDP_HDR("c=", "IN IP4 ", sdp_addr_len),
++	[SDP_HDR_MEDIA]		= SDP_HDR("m=", NULL, media_len),
++};
++
++static const struct sip_header ct_sdp_hdrs_v6[] = {
++	[SDP_HDR_VERSION]	= SDP_HDR("v=", NULL, digits_len),
++	[SDP_HDR_OWNER]		= SDP_HDR("o=", "IN IP6 ", sdp_addr_len),
++	[SDP_HDR_CONNECTION]	= SDP_HDR("c=", "IN IP6 ", sdp_addr_len),
++	[SDP_HDR_MEDIA]		= SDP_HDR("m=", NULL, media_len),
  };
  
- static struct ipt_natinfo *
--append_range(struct ipt_natinfo *info, const struct nf_nat_range *range)
-+append_range(struct ipt_natinfo *info, const struct nf_nat_ipv4_range *range)
+ /* Linear string search within SDP header values */
+@@ -774,11 +780,14 @@ int ct_sip_get_sdp_header(const struct nf_conn *ct, const char *dptr,
+ 			  enum sdp_header_types term,
+ 			  unsigned int *matchoff, unsigned int *matchlen)
  {
- 	unsigned int size;
+-	const struct sip_header *hdr = &ct_sdp_hdrs[type];
+-	const struct sip_header *thdr = &ct_sdp_hdrs[term];
++	const struct sip_header *hdrs, *hdr, *thdr;
+ 	const char *start = dptr, *limit = dptr + datalen;
+ 	int shift = 0;
  
-@@ -66,7 +66,7 @@ append_range(struct ipt_natinfo *info, const struct nf_nat_range *range)
- static struct xt_entry_target *
- parse_to(const char *orig_arg, int portok, struct ipt_natinfo *info)
- {
--	struct nf_nat_range range;
-+	struct nf_nat_ipv4_range range;
- 	char *arg, *colon, *dash, *error;
- 	const struct in_addr *ip;
++	hdrs = nf_ct_l3num(ct) == NFPROTO_IPV4 ? ct_sdp_hdrs_v4 : ct_sdp_hdrs_v6;
++	hdr = &hdrs[type];
++	thdr = &hdrs[term];
++
+ 	for (dptr += dataoff; dptr < limit; dptr++) {
+ 		/* Find beginning of line */
+ 		if (*dptr != '\r' && *dptr != '\n')
+@@ -945,12 +954,12 @@ static int set_expected_rtp_rtcp(struct sk_buff *skb, unsigned int protoff,
+ 		    exp->class != class)
+ 			break;
+ #ifdef CONFIG_NF_NAT_NEEDED
+-		if (exp->tuple.src.l3num == AF_INET && !direct_rtp &&
+-		    (exp->saved_addr.ip != exp->tuple.dst.u3.ip ||
++		if (!direct_rtp &&
++		    (!nf_inet_addr_cmp(&exp->saved_addr, &exp->tuple.dst.u3) ||
+ 		     exp->saved_proto.udp.port != exp->tuple.dst.u.udp.port) &&
+ 		    ct->status & IPS_NAT_MASK) {
+-			daddr->ip		= exp->saved_addr.ip;
+-			tuple.dst.u3.ip		= exp->saved_addr.ip;
++			*daddr			= exp->saved_addr;
++			tuple.dst.u3		= exp->saved_addr;
+ 			tuple.dst.u.udp.port	= exp->saved_proto.udp.port;
+ 			direct_rtp = 1;
+ 		} else
+@@ -987,8 +996,7 @@ static int set_expected_rtp_rtcp(struct sk_buff *skb, unsigned int protoff,
+ 			  IPPROTO_UDP, NULL, &rtcp_port);
  
-@@ -83,7 +83,7 @@ parse_to(const char *orig_arg, int portok, struct ipt_natinfo *info)
- 			xtables_error(PARAMETER_PROBLEM,
- 				   "Need TCP, UDP, SCTP or DCCP with port specification");
+ 	nf_nat_sdp_media = rcu_dereference(nf_nat_sdp_media_hook);
+-	if (nf_nat_sdp_media && nf_ct_l3num(ct) == NFPROTO_IPV4 &&
+-	    ct->status & IPS_NAT_MASK && !direct_rtp)
++	if (nf_nat_sdp_media && ct->status & IPS_NAT_MASK && !direct_rtp)
+ 		ret = nf_nat_sdp_media(skb, protoff, dataoff, dptr, datalen,
+ 				       rtp_exp, rtcp_exp,
+ 				       mediaoff, medialen, daddr);
+@@ -1044,15 +1052,12 @@ static int process_sdp(struct sk_buff *skb, unsigned int protoff,
+ 	unsigned int i;
+ 	union nf_inet_addr caddr, maddr, rtp_addr;
+ 	unsigned int port;
+-	enum sdp_header_types c_hdr;
+ 	const struct sdp_media_type *t;
+ 	int ret = NF_ACCEPT;
+ 	typeof(nf_nat_sdp_addr_hook) nf_nat_sdp_addr;
+ 	typeof(nf_nat_sdp_session_hook) nf_nat_sdp_session;
  
--		range.flags |= IP_NAT_RANGE_PROTO_SPECIFIED;
-+		range.flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
+ 	nf_nat_sdp_addr = rcu_dereference(nf_nat_sdp_addr_hook);
+-	c_hdr = nf_ct_l3num(ct) == AF_INET ? SDP_HDR_CONNECTION_IP4 :
+-					     SDP_HDR_CONNECTION_IP6;
  
- 		port = atoi(colon+1);
- 		if (port <= 0 || port > 65535)
-@@ -122,7 +122,7 @@ parse_to(const char *orig_arg, int portok, struct ipt_natinfo *info)
- 		*colon = '\0';
+ 	/* Find beginning of session description */
+ 	if (ct_sip_get_sdp_header(ct, *dptr, 0, *datalen,
+@@ -1066,7 +1071,7 @@ static int process_sdp(struct sk_buff *skb, unsigned int protoff,
+ 	 * the end of the session description. */
+ 	caddr_len = 0;
+ 	if (ct_sip_parse_sdp_addr(ct, *dptr, sdpoff, *datalen,
+-				  c_hdr, SDP_HDR_MEDIA,
++				  SDP_HDR_CONNECTION, SDP_HDR_MEDIA,
+ 				  &matchoff, &matchlen, &caddr) > 0)
+ 		caddr_len = matchlen;
+ 
+@@ -1096,7 +1101,7 @@ static int process_sdp(struct sk_buff *skb, unsigned int protoff,
+ 		/* The media description overrides the session description. */
+ 		maddr_len = 0;
+ 		if (ct_sip_parse_sdp_addr(ct, *dptr, mediaoff, *datalen,
+-					  c_hdr, SDP_HDR_MEDIA,
++					  SDP_HDR_CONNECTION, SDP_HDR_MEDIA,
+ 					  &matchoff, &matchlen, &maddr) > 0) {
+ 			maddr_len = matchlen;
+ 			memcpy(&rtp_addr, &maddr, sizeof(rtp_addr));
+@@ -1113,11 +1118,10 @@ static int process_sdp(struct sk_buff *skb, unsigned int protoff,
+ 			return ret;
+ 
+ 		/* Update media connection address if present */
+-		if (maddr_len && nf_nat_sdp_addr &&
+-		    nf_ct_l3num(ct) == NFPROTO_IPV4 && ct->status & IPS_NAT_MASK) {
++		if (maddr_len && nf_nat_sdp_addr && ct->status & IPS_NAT_MASK) {
+ 			ret = nf_nat_sdp_addr(skb, protoff, dataoff,
+-					      dptr, datalen,
+-					      mediaoff, c_hdr, SDP_HDR_MEDIA,
++					      dptr, datalen, mediaoff,
++					      SDP_HDR_CONNECTION, SDP_HDR_MEDIA,
+ 					      &rtp_addr);
+ 			if (ret != NF_ACCEPT)
+ 				return ret;
+@@ -1127,8 +1131,7 @@ static int process_sdp(struct sk_buff *skb, unsigned int protoff,
+ 
+ 	/* Update session connection and owner addresses */
+ 	nf_nat_sdp_session = rcu_dereference(nf_nat_sdp_session_hook);
+-	if (nf_nat_sdp_session && nf_ct_l3num(ct) == NFPROTO_IPV4 &&
+-	    ct->status & IPS_NAT_MASK)
++	if (nf_nat_sdp_session && ct->status & IPS_NAT_MASK)
+ 		ret = nf_nat_sdp_session(skb, protoff, dataoff,
+ 					 dptr, datalen, sdpoff, &rtp_addr);
+ 
+@@ -1293,8 +1296,7 @@ static int process_register_request(struct sk_buff *skb, unsigned int protoff,
+ 	exp->flags = NF_CT_EXPECT_PERMANENT | NF_CT_EXPECT_INACTIVE;
+ 
+ 	nf_nat_sip_expect = rcu_dereference(nf_nat_sip_expect_hook);
+-	if (nf_nat_sip_expect && nf_ct_l3num(ct) == NFPROTO_IPV4 &&
+-	    ct->status & IPS_NAT_MASK)
++	if (nf_nat_sip_expect && ct->status & IPS_NAT_MASK)
+ 		ret = nf_nat_sip_expect(skb, protoff, dataoff, dptr, datalen,
+ 					exp, matchoff, matchlen);
+ 	else {
+@@ -1476,8 +1478,7 @@ static int process_sip_msg(struct sk_buff *skb, struct nf_conn *ct,
+ 	else
+ 		ret = process_sip_response(skb, protoff, dataoff, dptr, datalen);
+ 
+-	if (ret == NF_ACCEPT && nf_ct_l3num(ct) == NFPROTO_IPV4 &&
+-	    ct->status & IPS_NAT_MASK) {
++	if (ret == NF_ACCEPT && ct->status & IPS_NAT_MASK) {
+ 		nf_nat_sip = rcu_dereference(nf_nat_sip_hook);
+ 		if (nf_nat_sip && !nf_nat_sip(skb, protoff, dataoff,
+ 					      dptr, datalen))
+@@ -1560,11 +1561,10 @@ static int sip_help_tcp(struct sk_buff *skb, unsigned int protoff,
+ 		datalen  = datalen + diff - msglen;
  	}
  
--	range.flags |= IP_NAT_RANGE_MAP_IPS;
-+	range.flags |= NF_NAT_RANGE_MAP_IPS;
- 	dash = strchr(arg, '-');
- 	if (colon && dash && dash > colon)
- 		dash = NULL;
-@@ -177,7 +177,7 @@ static void DNAT_parse(struct xt_option_call *cb)
- 		cb->xflags |= F_X_TO_DEST;
- 		break;
- 	case O_PERSISTENT:
--		info->mr.range[0].flags |= IP_NAT_RANGE_PERSISTENT;
-+		info->mr.range[0].flags |= NF_NAT_RANGE_PERSISTENT;
- 		break;
+-	if (ret == NF_ACCEPT && nf_ct_l3num(ct) == NFPROTO_IPV4 &&
+-	    ct->status & IPS_NAT_MASK) {
++	if (ret == NF_ACCEPT && ct->status & IPS_NAT_MASK) {
+ 		nf_nat_sip_seq_adjust = rcu_dereference(nf_nat_sip_seq_adjust_hook);
+ 		if (nf_nat_sip_seq_adjust)
+-			nf_nat_sip_seq_adjust(skb, tdiff);
++			nf_nat_sip_seq_adjust(skb, protoff, tdiff);
  	}
+ 
+ 	return ret;
+diff --git a/net/ipv4/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c
+similarity index 76%
+rename from net/ipv4/netfilter/nf_nat_sip.c
+rename to net/netfilter/nf_nat_sip.c
+index 47a4718..6c69b2b 100644
+--- a/net/ipv4/netfilter/nf_nat_sip.c
++++ b/net/netfilter/nf_nat_sip.c
+@@ -3,7 +3,7 @@
+  * (C) 2005 by Christian Hentschel <chentschel@arnet.com.ar>
+  * based on RR's ip_nat_ftp.c and other modules.
+  * (C) 2007 United Security Providers
+- * (C) 2007, 2008 Patrick McHardy <kaber@trash.net>
++ * (C) 2007, 2008, 2011, 2012 Patrick McHardy <kaber@trash.net>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -12,8 +12,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
+-#include <linux/ip.h>
+-#include <net/ip.h>
++#include <linux/inet.h>
+ #include <linux/udp.h>
+ #include <linux/tcp.h>
+ 
+@@ -41,8 +40,8 @@ static unsigned int mangle_packet(struct sk_buff *skb, unsigned int protoff,
+ 	unsigned int baseoff;
+ 
+ 	if (nf_ct_protonum(ct) == IPPROTO_TCP) {
+-		th = (struct tcphdr *)(skb->data + ip_hdrlen(skb));
+-		baseoff = ip_hdrlen(skb) + th->doff * 4;
++		th = (struct tcphdr *)(skb->data + protoff);
++		baseoff = protoff + th->doff * 4;
+ 		matchoff += dataoff - baseoff;
+ 
+ 		if (!__nf_nat_mangle_tcp_packet(skb, ct, ctinfo,
+@@ -50,7 +49,7 @@ static unsigned int mangle_packet(struct sk_buff *skb, unsigned int protoff,
+ 						buffer, buflen, false))
+ 			return 0;
+ 	} else {
+-		baseoff = ip_hdrlen(skb) + sizeof(struct udphdr);
++		baseoff = protoff + sizeof(struct udphdr);
+ 		matchoff += dataoff - baseoff;
+ 
+ 		if (!nf_nat_mangle_udp_packet(skb, ct, ctinfo,
+@@ -65,6 +64,29 @@ static unsigned int mangle_packet(struct sk_buff *skb, unsigned int protoff,
+ 	return 1;
  }
-@@ -185,15 +185,15 @@ static void DNAT_parse(struct xt_option_call *cb)
- static void DNAT_fcheck(struct xt_fcheck_call *cb)
- {
- 	static const unsigned int f = F_TO_DEST | F_RANDOM;
--	struct nf_nat_multi_range *mr = cb->data;
-+	struct nf_nat_ipv4_multi_range_compat *mr = cb->data;
  
- 	if ((cb->xflags & f) == f)
--		mr->range[0].flags |= IP_NAT_RANGE_PROTO_RANDOM;
-+		mr->range[0].flags |= NF_NAT_RANGE_PROTO_RANDOM;
++static int sip_sprintf_addr(const struct nf_conn *ct, char *buffer,
++			    const union nf_inet_addr *addr, bool delim)
++{
++	if (nf_ct_l3num(ct) == NFPROTO_IPV4)
++		return sprintf(buffer, "%pI4", &addr->ip);
++	else {
++		if (delim)
++			return sprintf(buffer, "[%pI6c]", &addr->ip6);
++		else
++			return sprintf(buffer, "%pI6c", &addr->ip6);
++	}
++
++}
++
++static int sip_sprintf_addr_port(const struct nf_conn *ct, char *buffer,
++				 const union nf_inet_addr *addr, u16 port)
++{
++	if (nf_ct_l3num(ct) == NFPROTO_IPV4)
++		return sprintf(buffer, "%pI4:%u", &addr->ip, port);
++	else
++		return sprintf(buffer, "[%pI6c]:%u", &addr->ip6, port);
++}
++
+ static int map_addr(struct sk_buff *skb, unsigned int protoff,
+ 		    unsigned int dataoff,
+ 		    const char **dptr, unsigned int *datalen,
+@@ -74,27 +96,26 @@ static int map_addr(struct sk_buff *skb, unsigned int protoff,
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
+-	char buffer[sizeof("nnn.nnn.nnn.nnn:nnnnn")];
++	char buffer[INET6_ADDRSTRLEN + sizeof("[]:nnnnn")];
+ 	unsigned int buflen;
+-	__be32 newaddr;
++	union nf_inet_addr newaddr;
+ 	__be16 newport;
+ 
+-	if (ct->tuplehash[dir].tuple.src.u3.ip == addr->ip &&
++	if (nf_inet_addr_cmp(&ct->tuplehash[dir].tuple.src.u3, addr) &&
+ 	    ct->tuplehash[dir].tuple.src.u.udp.port == port) {
+-		newaddr = ct->tuplehash[!dir].tuple.dst.u3.ip;
++		newaddr = ct->tuplehash[!dir].tuple.dst.u3;
+ 		newport = ct->tuplehash[!dir].tuple.dst.u.udp.port;
+-	} else if (ct->tuplehash[dir].tuple.dst.u3.ip == addr->ip &&
++	} else if (nf_inet_addr_cmp(&ct->tuplehash[dir].tuple.dst.u3, addr) &&
+ 		   ct->tuplehash[dir].tuple.dst.u.udp.port == port) {
+-		newaddr = ct->tuplehash[!dir].tuple.src.u3.ip;
++		newaddr = ct->tuplehash[!dir].tuple.src.u3;
+ 		newport = ct->tuplehash[!dir].tuple.src.u.udp.port;
+ 	} else
+ 		return 1;
+ 
+-	if (newaddr == addr->ip && newport == port)
++	if (nf_inet_addr_cmp(&newaddr, addr) && newport == port)
+ 		return 1;
+ 
+-	buflen = sprintf(buffer, "%pI4:%u", &newaddr, ntohs(newport));
+-
++	buflen = sip_sprintf_addr_port(ct, buffer, &newaddr, ntohs(newport));
+ 	return mangle_packet(skb, protoff, dataoff, dptr, datalen,
+ 			     matchoff, matchlen, buffer, buflen);
+ }
+@@ -117,7 +138,7 @@ static int map_sip_addr(struct sk_buff *skb, unsigned int protoff,
+ 			matchoff, matchlen, &addr, port);
  }
  
--static void print_range(const struct nf_nat_range *r)
-+static void print_range(const struct nf_nat_ipv4_range *r)
+-static unsigned int ip_nat_sip(struct sk_buff *skb, unsigned int protoff,
++static unsigned int nf_nat_sip(struct sk_buff *skb, unsigned int protoff,
+ 			       unsigned int dataoff,
+ 			       const char **dptr, unsigned int *datalen)
  {
--	if (r->flags & IP_NAT_RANGE_MAP_IPS) {
-+	if (r->flags & NF_NAT_RANGE_MAP_IPS) {
- 		struct in_addr a;
+@@ -152,16 +173,18 @@ static unsigned int ip_nat_sip(struct sk_buff *skb, unsigned int protoff,
+ 				    hdr, NULL, &matchoff, &matchlen,
+ 				    &addr, &port) > 0) {
+ 		unsigned int olen, matchend, poff, plen, buflen, n;
+-		char buffer[sizeof("nnn.nnn.nnn.nnn:nnnnn")];
++		char buffer[INET6_ADDRSTRLEN + sizeof("[]:nnnnn")];
  
- 		a.s_addr = r->min_ip;
-@@ -203,7 +203,7 @@ static void print_range(const struct nf_nat_range *r)
- 			printf("-%s", xtables_ipaddr_to_numeric(&a));
+ 		/* We're only interested in headers related to this
+ 		 * connection */
+ 		if (request) {
+-			if (addr.ip != ct->tuplehash[dir].tuple.src.u3.ip ||
++			if (!nf_inet_addr_cmp(&addr,
++					&ct->tuplehash[dir].tuple.src.u3) ||
+ 			    port != ct->tuplehash[dir].tuple.src.u.udp.port)
+ 				goto next;
+ 		} else {
+-			if (addr.ip != ct->tuplehash[dir].tuple.dst.u3.ip ||
++			if (!nf_inet_addr_cmp(&addr,
++					&ct->tuplehash[dir].tuple.dst.u3) ||
+ 			    port != ct->tuplehash[dir].tuple.dst.u.udp.port)
+ 				goto next;
  		}
- 	}
--	if (r->flags & IP_NAT_RANGE_PROTO_SPECIFIED) {
-+	if (r->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
- 		printf(":");
- 		printf("%hu", ntohs(r->min.tcp.port));
- 		if (r->max.tcp.port != r->min.tcp.port)
-@@ -220,9 +220,9 @@ static void DNAT_print(const void *ip, const struct xt_entry_target *target,
- 	printf(" to:");
- 	for (i = 0; i < info->mr.rangesize; i++) {
- 		print_range(&info->mr.range[i]);
--		if (info->mr.range[i].flags & IP_NAT_RANGE_PROTO_RANDOM)
-+		if (info->mr.range[i].flags & NF_NAT_RANGE_PROTO_RANDOM)
- 			printf(" random");
--		if (info->mr.range[i].flags & IP_NAT_RANGE_PERSISTENT)
-+		if (info->mr.range[i].flags & NF_NAT_RANGE_PERSISTENT)
- 			printf(" persistent");
- 	}
- }
-@@ -235,9 +235,9 @@ static void DNAT_save(const void *ip, const struct xt_entry_target *target)
- 	for (i = 0; i < info->mr.rangesize; i++) {
- 		printf(" --to-destination ");
- 		print_range(&info->mr.range[i]);
--		if (info->mr.range[i].flags & IP_NAT_RANGE_PROTO_RANDOM)
-+		if (info->mr.range[i].flags & NF_NAT_RANGE_PROTO_RANDOM)
- 			printf(" --random");
--		if (info->mr.range[i].flags & IP_NAT_RANGE_PERSISTENT)
-+		if (info->mr.range[i].flags & NF_NAT_RANGE_PERSISTENT)
- 			printf(" --persistent");
- 	}
- }
-@@ -246,8 +246,8 @@ static struct xtables_target dnat_tg_reg = {
- 	.name		= "DNAT",
- 	.version	= XTABLES_VERSION,
- 	.family		= NFPROTO_IPV4,
--	.size		= XT_ALIGN(sizeof(struct nf_nat_multi_range)),
--	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_multi_range)),
-+	.size		= XT_ALIGN(sizeof(struct nf_nat_ipv4_multi_range_compat)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_ipv4_multi_range_compat)),
- 	.help		= DNAT_help,
- 	.x6_parse	= DNAT_parse,
- 	.x6_fcheck	= DNAT_fcheck,
-diff --git a/extensions/libipt_MASQUERADE.c b/extensions/libipt_MASQUERADE.c
-index 7ba42df..ea07445 100644
---- a/extensions/libipt_MASQUERADE.c
-+++ b/extensions/libipt_MASQUERADE.c
-@@ -6,7 +6,7 @@
- #include <xtables.h>
- #include <limits.h> /* INT_MAX in ip_tables.h */
- #include <linux/netfilter_ipv4/ip_tables.h>
--#include <net/netfilter/nf_nat.h>
-+#include <linux/netfilter/nf_nat.h>
- 
- enum {
- 	O_TO_PORTS = 0,
-@@ -31,7 +31,7 @@ static const struct xt_option_entry MASQUERADE_opts[] = {
- 
- static void MASQUERADE_init(struct xt_entry_target *t)
- {
--	struct nf_nat_multi_range *mr = (struct nf_nat_multi_range *)t->data;
-+	struct nf_nat_ipv4_multi_range_compat *mr = (struct nf_nat_ipv4_multi_range_compat *)t->data;
- 
- 	/* Actually, it's 0, but it's ignored at the moment. */
- 	mr->rangesize = 1;
-@@ -39,12 +39,12 @@ static void MASQUERADE_init(struct xt_entry_target *t)
- 
- /* Parses ports */
- static void
--parse_ports(const char *arg, struct nf_nat_multi_range *mr)
-+parse_ports(const char *arg, struct nf_nat_ipv4_multi_range_compat *mr)
- {
- 	char *end;
- 	unsigned int port, maxport;
- 
--	mr->range[0].flags |= IP_NAT_RANGE_PROTO_SPECIFIED;
-+	mr->range[0].flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
- 
- 	if (!xtables_strtoui(arg, &end, &port, 0, UINT16_MAX))
- 		xtables_param_act(XTF_BAD_VALUE, "MASQUERADE", "--to-ports", arg);
-@@ -75,7 +75,7 @@ static void MASQUERADE_parse(struct xt_option_call *cb)
- {
- 	const struct ipt_entry *entry = cb->xt_entry;
- 	int portok;
--	struct nf_nat_multi_range *mr = cb->data;
-+	struct nf_nat_ipv4_multi_range_compat *mr = cb->data;
- 
- 	if (entry->ip.proto == IPPROTO_TCP
- 	    || entry->ip.proto == IPPROTO_UDP
-@@ -95,7 +95,7 @@ static void MASQUERADE_parse(struct xt_option_call *cb)
- 		parse_ports(cb->arg, mr);
- 		break;
- 	case O_RANDOM:
--		mr->range[0].flags |=  IP_NAT_RANGE_PROTO_RANDOM;
-+		mr->range[0].flags |=  NF_NAT_RANGE_PROTO_RANDOM;
- 		break;
- 	}
- }
-@@ -104,33 +104,33 @@ static void
- MASQUERADE_print(const void *ip, const struct xt_entry_target *target,
-                  int numeric)
- {
--	const struct nf_nat_multi_range *mr = (const void *)target->data;
--	const struct nf_nat_range *r = &mr->range[0];
-+	const struct nf_nat_ipv4_multi_range_compat *mr = (const void *)target->data;
-+	const struct nf_nat_ipv4_range *r = &mr->range[0];
- 
--	if (r->flags & IP_NAT_RANGE_PROTO_SPECIFIED) {
-+	if (r->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
- 		printf(" masq ports: ");
- 		printf("%hu", ntohs(r->min.tcp.port));
- 		if (r->max.tcp.port != r->min.tcp.port)
- 			printf("-%hu", ntohs(r->max.tcp.port));
- 	}
- 
--	if (r->flags & IP_NAT_RANGE_PROTO_RANDOM)
-+	if (r->flags & NF_NAT_RANGE_PROTO_RANDOM)
- 		printf(" random");
+@@ -178,10 +201,11 @@ static unsigned int ip_nat_sip(struct sk_buff *skb, unsigned int protoff,
+ 		if (ct_sip_parse_address_param(ct, *dptr, matchend, *datalen,
+ 					       "maddr=", &poff, &plen,
+ 					       &addr, true) > 0 &&
+-		    addr.ip == ct->tuplehash[dir].tuple.src.u3.ip &&
+-		    addr.ip != ct->tuplehash[!dir].tuple.dst.u3.ip) {
+-			buflen = sprintf(buffer, "%pI4",
+-					&ct->tuplehash[!dir].tuple.dst.u3.ip);
++		    nf_inet_addr_cmp(&addr, &ct->tuplehash[dir].tuple.src.u3) &&
++		    !nf_inet_addr_cmp(&addr, &ct->tuplehash[!dir].tuple.dst.u3)) {
++			buflen = sip_sprintf_addr(ct, buffer,
++					&ct->tuplehash[!dir].tuple.dst.u3,
++					true);
+ 			if (!mangle_packet(skb, protoff, dataoff, dptr, datalen,
+ 					   poff, plen, buffer, buflen))
+ 				return NF_DROP;
+@@ -192,10 +216,11 @@ static unsigned int ip_nat_sip(struct sk_buff *skb, unsigned int protoff,
+ 		if (ct_sip_parse_address_param(ct, *dptr, matchend, *datalen,
+ 					       "received=", &poff, &plen,
+ 					       &addr, false) > 0 &&
+-		    addr.ip == ct->tuplehash[dir].tuple.dst.u3.ip &&
+-		    addr.ip != ct->tuplehash[!dir].tuple.src.u3.ip) {
+-			buflen = sprintf(buffer, "%pI4",
+-					&ct->tuplehash[!dir].tuple.src.u3.ip);
++		    nf_inet_addr_cmp(&addr, &ct->tuplehash[dir].tuple.dst.u3) &&
++		    !nf_inet_addr_cmp(&addr, &ct->tuplehash[!dir].tuple.src.u3)) {
++			buflen = sip_sprintf_addr(ct, buffer,
++					&ct->tuplehash[!dir].tuple.src.u3,
++					false);
+ 			if (!mangle_packet(skb, protoff, dataoff, dptr, datalen,
+ 					   poff, plen, buffer, buflen))
+ 				return NF_DROP;
+@@ -237,7 +262,8 @@ next:
+ 	return NF_ACCEPT;
  }
  
- static void
- MASQUERADE_save(const void *ip, const struct xt_entry_target *target)
+-static void ip_nat_sip_seq_adjust(struct sk_buff *skb, s16 off)
++static void nf_nat_sip_seq_adjust(struct sk_buff *skb, unsigned int protoff,
++				  s16 off)
  {
--	const struct nf_nat_multi_range *mr = (const void *)target->data;
--	const struct nf_nat_range *r = &mr->range[0];
-+	const struct nf_nat_ipv4_multi_range_compat *mr = (const void *)target->data;
-+	const struct nf_nat_ipv4_range *r = &mr->range[0];
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+@@ -246,12 +272,12 @@ static void ip_nat_sip_seq_adjust(struct sk_buff *skb, s16 off)
+ 	if (nf_ct_protonum(ct) != IPPROTO_TCP || off == 0)
+ 		return;
  
--	if (r->flags & IP_NAT_RANGE_PROTO_SPECIFIED) {
-+	if (r->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
- 		printf(" --to-ports %hu", ntohs(r->min.tcp.port));
- 		if (r->max.tcp.port != r->min.tcp.port)
- 			printf("-%hu", ntohs(r->max.tcp.port));
- 	}
- 
--	if (r->flags & IP_NAT_RANGE_PROTO_RANDOM)
-+	if (r->flags & NF_NAT_RANGE_PROTO_RANDOM)
- 		printf(" --random");
+-	th = (struct tcphdr *)(skb->data + ip_hdrlen(skb));
++	th = (struct tcphdr *)(skb->data + protoff);
+ 	nf_nat_set_seq_adjust(ct, ctinfo, th->seq, off);
  }
  
-@@ -138,8 +138,8 @@ static struct xtables_target masquerade_tg_reg = {
- 	.name		= "MASQUERADE",
- 	.version	= XTABLES_VERSION,
- 	.family		= NFPROTO_IPV4,
--	.size		= XT_ALIGN(sizeof(struct nf_nat_multi_range)),
--	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_multi_range)),
-+	.size		= XT_ALIGN(sizeof(struct nf_nat_ipv4_multi_range_compat)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_ipv4_multi_range_compat)),
- 	.help		= MASQUERADE_help,
- 	.init		= MASQUERADE_init,
- 	.x6_parse	= MASQUERADE_parse,
-diff --git a/extensions/libipt_NETMAP.c b/extensions/libipt_NETMAP.c
-index 5c4471a..dee7b01 100644
---- a/extensions/libipt_NETMAP.c
-+++ b/extensions/libipt_NETMAP.c
-@@ -7,7 +7,7 @@
- #include <stdlib.h>
- #include <getopt.h>
- #include <xtables.h>
--#include <net/netfilter/nf_nat.h>
-+#include <linux/netfilter/nf_nat.h>
- 
- #define MODULENAME "NETMAP"
- 
-@@ -45,7 +45,7 @@ netmask2bits(uint32_t netmask)
- 
- static void NETMAP_init(struct xt_entry_target *t)
+ /* Handles expected signalling connections and media streams */
+-static void ip_nat_sip_expected(struct nf_conn *ct,
++static void nf_nat_sip_expected(struct nf_conn *ct,
+ 				struct nf_conntrack_expect *exp)
  {
--	struct nf_nat_multi_range *mr = (struct nf_nat_multi_range *)t->data;
-+	struct nf_nat_ipv4_multi_range_compat *mr = (struct nf_nat_ipv4_multi_range_compat *)t->data;
+ 	struct nf_nat_range range;
+@@ -267,8 +293,8 @@ static void ip_nat_sip_expected(struct nf_conn *ct,
  
- 	/* Actually, it's 0, but it's ignored at the moment. */
- 	mr->rangesize = 1;
-@@ -53,11 +53,11 @@ static void NETMAP_init(struct xt_entry_target *t)
- 
- static void NETMAP_parse(struct xt_option_call *cb)
- {
--	struct nf_nat_multi_range *mr = cb->data;
--	struct nf_nat_range *range = &mr->range[0];
-+	struct nf_nat_ipv4_multi_range_compat *mr = cb->data;
-+	struct nf_nat_ipv4_range *range = &mr->range[0];
- 
- 	xtables_option_parse(cb);
--	range->flags |= IP_NAT_RANGE_MAP_IPS;
-+	range->flags |= NF_NAT_RANGE_MAP_IPS;
- 	range->min_ip = cb->val.haddr.ip & cb->val.hmask.ip;
- 	range->max_ip = range->min_ip | ~cb->val.hmask.ip;
- }
-@@ -65,8 +65,8 @@ static void NETMAP_parse(struct xt_option_call *cb)
- static void NETMAP_print(const void *ip, const struct xt_entry_target *target,
-                          int numeric)
- {
--	const struct nf_nat_multi_range *mr = (const void *)target->data;
--	const struct nf_nat_range *r = &mr->range[0];
-+	const struct nf_nat_ipv4_multi_range_compat *mr = (const void *)target->data;
-+	const struct nf_nat_ipv4_range *r = &mr->range[0];
- 	struct in_addr a;
- 	int bits;
- 
-@@ -90,8 +90,8 @@ static struct xtables_target netmap_tg_reg = {
- 	.name		= MODULENAME,
- 	.version	= XTABLES_VERSION,
- 	.family		= NFPROTO_IPV4,
--	.size		= XT_ALIGN(sizeof(struct nf_nat_multi_range)),
--	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_multi_range)),
-+	.size		= XT_ALIGN(sizeof(struct nf_nat_ipv4_multi_range_compat)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_ipv4_multi_range_compat)),
- 	.help		= NETMAP_help,
- 	.init		= NETMAP_init,
- 	.x6_parse	= NETMAP_parse,
-diff --git a/extensions/libipt_REDIRECT.c b/extensions/libipt_REDIRECT.c
-index e67360a..610a949 100644
---- a/extensions/libipt_REDIRECT.c
-+++ b/extensions/libipt_REDIRECT.c
-@@ -4,7 +4,7 @@
- #include <xtables.h>
- #include <limits.h> /* INT_MAX in ip_tables.h */
- #include <linux/netfilter_ipv4/ip_tables.h>
--#include <net/netfilter/nf_nat.h>
-+#include <linux/netfilter/nf_nat.h>
- 
- enum {
- 	O_TO_PORTS = 0,
-@@ -30,7 +30,7 @@ static const struct xt_option_entry REDIRECT_opts[] = {
- 
- static void REDIRECT_init(struct xt_entry_target *t)
- {
--	struct nf_nat_multi_range *mr = (struct nf_nat_multi_range *)t->data;
-+	struct nf_nat_ipv4_multi_range_compat *mr = (struct nf_nat_ipv4_multi_range_compat *)t->data;
- 
- 	/* Actually, it's 0, but it's ignored at the moment. */
- 	mr->rangesize = 1;
-@@ -38,12 +38,12 @@ static void REDIRECT_init(struct xt_entry_target *t)
- 
- /* Parses ports */
- static void
--parse_ports(const char *arg, struct nf_nat_multi_range *mr)
-+parse_ports(const char *arg, struct nf_nat_ipv4_multi_range_compat *mr)
- {
- 	char *end = "";
- 	unsigned int port, maxport;
- 
--	mr->range[0].flags |= IP_NAT_RANGE_PROTO_SPECIFIED;
-+	mr->range[0].flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
- 
- 	if (!xtables_strtoui(arg, &end, &port, 0, UINT16_MAX) &&
- 	    (port = xtables_service_to_port(arg, NULL)) == (unsigned)-1)
-@@ -75,7 +75,7 @@ parse_ports(const char *arg, struct nf_nat_multi_range *mr)
- static void REDIRECT_parse(struct xt_option_call *cb)
- {
- 	const struct ipt_entry *entry = cb->xt_entry;
--	struct nf_nat_multi_range *mr = (void *)(*cb->target)->data;
-+	struct nf_nat_ipv4_multi_range_compat *mr = (void *)(*cb->target)->data;
- 	int portok;
- 
- 	if (entry->ip.proto == IPPROTO_TCP
-@@ -95,11 +95,11 @@ static void REDIRECT_parse(struct xt_option_call *cb)
- 				   "Need TCP, UDP, SCTP or DCCP with port specification");
- 		parse_ports(cb->arg, mr);
- 		if (cb->xflags & F_RANDOM)
--			mr->range[0].flags |= IP_NAT_RANGE_PROTO_RANDOM;
-+			mr->range[0].flags |= NF_NAT_RANGE_PROTO_RANDOM;
- 		break;
- 	case O_RANDOM:
- 		if (cb->xflags & F_TO_PORTS)
--			mr->range[0].flags |= IP_NAT_RANGE_PROTO_RANDOM;
-+			mr->range[0].flags |= NF_NAT_RANGE_PROTO_RANDOM;
- 		break;
- 	}
- }
-@@ -107,30 +107,30 @@ static void REDIRECT_parse(struct xt_option_call *cb)
- static void REDIRECT_print(const void *ip, const struct xt_entry_target *target,
-                            int numeric)
- {
--	const struct nf_nat_multi_range *mr = (const void *)target->data;
--	const struct nf_nat_range *r = &mr->range[0];
-+	const struct nf_nat_ipv4_multi_range_compat *mr = (const void *)target->data;
-+	const struct nf_nat_ipv4_range *r = &mr->range[0];
- 
--	if (r->flags & IP_NAT_RANGE_PROTO_SPECIFIED) {
-+	if (r->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
- 		printf(" redir ports ");
- 		printf("%hu", ntohs(r->min.tcp.port));
- 		if (r->max.tcp.port != r->min.tcp.port)
- 			printf("-%hu", ntohs(r->max.tcp.port));
--		if (mr->range[0].flags & IP_NAT_RANGE_PROTO_RANDOM)
-+		if (mr->range[0].flags & NF_NAT_RANGE_PROTO_RANDOM)
- 			printf(" random");
+ 	/* Change src to where master sends to, but only if the connection
+ 	 * actually came from the same source. */
+-	if (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3.ip ==
+-	    ct->master->tuplehash[exp->dir].tuple.src.u3.ip) {
++	if (nf_inet_addr_cmp(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3,
++			     &ct->master->tuplehash[exp->dir].tuple.src.u3)) {
+ 		range.flags = NF_NAT_RANGE_MAP_IPS;
+ 		range.min_addr = range.max_addr
+ 			= ct->master->tuplehash[!exp->dir].tuple.dst.u3;
+@@ -276,7 +302,7 @@ static void ip_nat_sip_expected(struct nf_conn *ct,
  	}
  }
  
- static void REDIRECT_save(const void *ip, const struct xt_entry_target *target)
- {
--	const struct nf_nat_multi_range *mr = (const void *)target->data;
--	const struct nf_nat_range *r = &mr->range[0];
-+	const struct nf_nat_ipv4_multi_range_compat *mr = (const void *)target->data;
-+	const struct nf_nat_ipv4_range *r = &mr->range[0];
+-static unsigned int ip_nat_sip_expect(struct sk_buff *skb, unsigned int protoff,
++static unsigned int nf_nat_sip_expect(struct sk_buff *skb, unsigned int protoff,
+ 				      unsigned int dataoff,
+ 				      const char **dptr, unsigned int *datalen,
+ 				      struct nf_conntrack_expect *exp,
+@@ -286,16 +312,17 @@ static unsigned int ip_nat_sip_expect(struct sk_buff *skb, unsigned int protoff,
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
+-	__be32 newip;
++	union nf_inet_addr newaddr;
+ 	u_int16_t port;
+-	char buffer[sizeof("nnn.nnn.nnn.nnn:nnnnn")];
++	char buffer[INET6_ADDRSTRLEN + sizeof("[]:nnnnn")];
+ 	unsigned int buflen;
  
--	if (r->flags & IP_NAT_RANGE_PROTO_SPECIFIED) {
-+	if (r->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
- 		printf(" --to-ports ");
- 		printf("%hu", ntohs(r->min.tcp.port));
- 		if (r->max.tcp.port != r->min.tcp.port)
- 			printf("-%hu", ntohs(r->max.tcp.port));
--		if (mr->range[0].flags & IP_NAT_RANGE_PROTO_RANDOM)
-+		if (mr->range[0].flags & NF_NAT_RANGE_PROTO_RANDOM)
- 			printf(" --random");
- 	}
+ 	/* Connection will come from reply */
+-	if (ct->tuplehash[dir].tuple.src.u3.ip == ct->tuplehash[!dir].tuple.dst.u3.ip)
+-		newip = exp->tuple.dst.u3.ip;
++	if (nf_inet_addr_cmp(&ct->tuplehash[dir].tuple.src.u3,
++			     &ct->tuplehash[!dir].tuple.dst.u3))
++		newaddr = exp->tuple.dst.u3;
+ 	else
+-		newip = ct->tuplehash[!dir].tuple.dst.u3.ip;
++		newaddr = ct->tuplehash[!dir].tuple.dst.u3;
+ 
+ 	/* If the signalling port matches the connection's source port in the
+ 	 * original direction, try to use the destination port in the opposite
+@@ -307,10 +334,10 @@ static unsigned int ip_nat_sip_expect(struct sk_buff *skb, unsigned int protoff,
+ 		port = ntohs(exp->tuple.dst.u.udp.port);
+ 
+ 	exp->saved_addr = exp->tuple.dst.u3;
+-	exp->tuple.dst.u3.ip = newip;
++	exp->tuple.dst.u3 = newaddr;
+ 	exp->saved_proto.udp.port = exp->tuple.dst.u.udp.port;
+ 	exp->dir = !dir;
+-	exp->expectfn = ip_nat_sip_expected;
++	exp->expectfn = nf_nat_sip_expected;
+ 
+ 	for (; port != 0; port++) {
+ 		int ret;
+@@ -328,9 +355,9 @@ static unsigned int ip_nat_sip_expect(struct sk_buff *skb, unsigned int protoff,
+ 	if (port == 0)
+ 		return NF_DROP;
+ 
+-	if (exp->tuple.dst.u3.ip != exp->saved_addr.ip ||
++	if (!nf_inet_addr_cmp(&exp->tuple.dst.u3, &exp->saved_addr) ||
+ 	    exp->tuple.dst.u.udp.port != exp->saved_proto.udp.port) {
+-		buflen = sprintf(buffer, "%pI4:%u", &newip, port);
++		buflen = sip_sprintf_addr_port(ct, buffer, &newaddr, port);
+ 		if (!mangle_packet(skb, protoff, dataoff, dptr, datalen,
+ 				   matchoff, matchlen, buffer, buflen))
+ 			goto err;
+@@ -388,7 +415,7 @@ static int mangle_sdp_packet(struct sk_buff *skb, unsigned int protoff,
+ 			     matchoff, matchlen, buffer, buflen) ? 0 : -EINVAL;
  }
-@@ -139,8 +139,8 @@ static struct xtables_target redirect_tg_reg = {
- 	.name		= "REDIRECT",
- 	.version	= XTABLES_VERSION,
- 	.family		= NFPROTO_IPV4,
--	.size		= XT_ALIGN(sizeof(struct nf_nat_multi_range)),
--	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_multi_range)),
-+	.size		= XT_ALIGN(sizeof(struct nf_nat_ipv4_multi_range_compat)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_ipv4_multi_range_compat)),
- 	.help		= REDIRECT_help,
- 	.init		= REDIRECT_init,
-  	.x6_parse	= REDIRECT_parse,
-diff --git a/extensions/libipt_SAME.c b/extensions/libipt_SAME.c
-index e603ef6..5d5bf63 100644
---- a/extensions/libipt_SAME.c
-+++ b/extensions/libipt_SAME.c
-@@ -2,7 +2,7 @@
- #include <string.h>
- #include <stdlib.h>
- #include <xtables.h>
--#include <net/netfilter/nf_nat.h>
-+#include <linux/netfilter/nf_nat.h>
- #include <linux/netfilter_ipv4/ipt_SAME.h>
  
- enum {
-@@ -37,7 +37,7 @@ static const struct xt_option_entry SAME_opts[] = {
+-static unsigned int ip_nat_sdp_addr(struct sk_buff *skb, unsigned int protoff,
++static unsigned int nf_nat_sdp_addr(struct sk_buff *skb, unsigned int protoff,
+ 				    unsigned int dataoff,
+ 				    const char **dptr, unsigned int *datalen,
+ 				    unsigned int sdpoff,
+@@ -396,10 +423,12 @@ static unsigned int ip_nat_sdp_addr(struct sk_buff *skb, unsigned int protoff,
+ 				    enum sdp_header_types term,
+ 				    const union nf_inet_addr *addr)
+ {
+-	char buffer[sizeof("nnn.nnn.nnn.nnn")];
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
++	char buffer[INET6_ADDRSTRLEN];
+ 	unsigned int buflen;
+ 
+-	buflen = sprintf(buffer, "%pI4", &addr->ip);
++	buflen = sip_sprintf_addr(ct, buffer, addr, false);
+ 	if (mangle_sdp_packet(skb, protoff, dataoff, dptr, datalen,
+ 			      sdpoff, type, term, buffer, buflen))
+ 		return 0;
+@@ -407,7 +436,7 @@ static unsigned int ip_nat_sdp_addr(struct sk_buff *skb, unsigned int protoff,
+ 	return mangle_content_len(skb, protoff, dataoff, dptr, datalen);
+ }
+ 
+-static unsigned int ip_nat_sdp_port(struct sk_buff *skb, unsigned int protoff,
++static unsigned int nf_nat_sdp_port(struct sk_buff *skb, unsigned int protoff,
+ 				    unsigned int dataoff,
+ 				    const char **dptr, unsigned int *datalen,
+ 				    unsigned int matchoff,
+@@ -425,24 +454,25 @@ static unsigned int ip_nat_sdp_port(struct sk_buff *skb, unsigned int protoff,
+ 	return mangle_content_len(skb, protoff, dataoff, dptr, datalen);
+ }
+ 
+-static unsigned int ip_nat_sdp_session(struct sk_buff *skb, unsigned int protoff,
++static unsigned int nf_nat_sdp_session(struct sk_buff *skb, unsigned int protoff,
+ 				       unsigned int dataoff,
+ 				       const char **dptr, unsigned int *datalen,
+ 				       unsigned int sdpoff,
+ 				       const union nf_inet_addr *addr)
+ {
+-	char buffer[sizeof("nnn.nnn.nnn.nnn")];
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
++	char buffer[INET6_ADDRSTRLEN];
+ 	unsigned int buflen;
+ 
+ 	/* Mangle session description owner and contact addresses */
+-	buflen = sprintf(buffer, "%pI4", &addr->ip);
++	buflen = sip_sprintf_addr(ct, buffer, addr, false);
+ 	if (mangle_sdp_packet(skb, protoff, dataoff, dptr, datalen, sdpoff,
+-			       SDP_HDR_OWNER_IP4, SDP_HDR_MEDIA,
+-			       buffer, buflen))
++			      SDP_HDR_OWNER, SDP_HDR_MEDIA, buffer, buflen))
+ 		return 0;
+ 
+ 	switch (mangle_sdp_packet(skb, protoff, dataoff, dptr, datalen, sdpoff,
+-				  SDP_HDR_CONNECTION_IP4, SDP_HDR_MEDIA,
++				  SDP_HDR_CONNECTION, SDP_HDR_MEDIA,
+ 				  buffer, buflen)) {
+ 	case 0:
+ 	/*
+@@ -463,7 +493,7 @@ static unsigned int ip_nat_sdp_session(struct sk_buff *skb, unsigned int protoff
+ 
+ /* So, this packet has hit the connection tracking matching code.
+    Mangle it, and change the expectation to match the new version. */
+-static unsigned int ip_nat_sdp_media(struct sk_buff *skb, unsigned int protoff,
++static unsigned int nf_nat_sdp_media(struct sk_buff *skb, unsigned int protoff,
+ 				     unsigned int dataoff,
+ 				     const char **dptr, unsigned int *datalen,
+ 				     struct nf_conntrack_expect *rtp_exp,
+@@ -478,23 +508,23 @@ static unsigned int ip_nat_sdp_media(struct sk_buff *skb, unsigned int protoff,
+ 	u_int16_t port;
+ 
+ 	/* Connection will come from reply */
+-	if (ct->tuplehash[dir].tuple.src.u3.ip ==
+-	    ct->tuplehash[!dir].tuple.dst.u3.ip)
+-		rtp_addr->ip = rtp_exp->tuple.dst.u3.ip;
++	if (nf_inet_addr_cmp(&ct->tuplehash[dir].tuple.src.u3,
++			     &ct->tuplehash[!dir].tuple.dst.u3))
++		*rtp_addr = rtp_exp->tuple.dst.u3;
+ 	else
+-		rtp_addr->ip = ct->tuplehash[!dir].tuple.dst.u3.ip;
++		*rtp_addr = ct->tuplehash[!dir].tuple.dst.u3;
+ 
+ 	rtp_exp->saved_addr = rtp_exp->tuple.dst.u3;
+-	rtp_exp->tuple.dst.u3.ip = rtp_addr->ip;
++	rtp_exp->tuple.dst.u3 = *rtp_addr;
+ 	rtp_exp->saved_proto.udp.port = rtp_exp->tuple.dst.u.udp.port;
+ 	rtp_exp->dir = !dir;
+-	rtp_exp->expectfn = ip_nat_sip_expected;
++	rtp_exp->expectfn = nf_nat_sip_expected;
+ 
+ 	rtcp_exp->saved_addr = rtcp_exp->tuple.dst.u3;
+-	rtcp_exp->tuple.dst.u3.ip = rtp_addr->ip;
++	rtcp_exp->tuple.dst.u3 = *rtp_addr;
+ 	rtcp_exp->saved_proto.udp.port = rtcp_exp->tuple.dst.u.udp.port;
+ 	rtcp_exp->dir = !dir;
+-	rtcp_exp->expectfn = ip_nat_sip_expected;
++	rtcp_exp->expectfn = nf_nat_sip_expected;
+ 
+ 	/* Try to get same pair of ports: if not, try to change them. */
+ 	for (port = ntohs(rtp_exp->tuple.dst.u.udp.port);
+@@ -525,7 +555,7 @@ static unsigned int ip_nat_sdp_media(struct sk_buff *skb, unsigned int protoff,
+ 
+ 	/* Update media port. */
+ 	if (rtp_exp->tuple.dst.u.udp.port != rtp_exp->saved_proto.udp.port &&
+-	    !ip_nat_sdp_port(skb, protoff, dataoff, dptr, datalen,
++	    !nf_nat_sdp_port(skb, protoff, dataoff, dptr, datalen,
+ 			     mediaoff, medialen, port))
+ 		goto err2;
+ 
+@@ -539,8 +569,8 @@ err1:
+ }
+ 
+ static struct nf_ct_helper_expectfn sip_nat = {
+-        .name           = "sip",
+-        .expectfn       = ip_nat_sip_expected,
++	.name		= "sip",
++	.expectfn	= nf_nat_sip_expected,
  };
  
- /* Parses range of IPs */
--static void parse_to(const char *orig_arg, struct nf_nat_range *range)
-+static void parse_to(const char *orig_arg, struct nf_nat_ipv4_range *range)
- {
- 	char *dash, *arg;
- 	const struct in_addr *ip;
-@@ -45,7 +45,7 @@ static void parse_to(const char *orig_arg, struct nf_nat_range *range)
- 	arg = strdup(orig_arg);
- 	if (arg == NULL)
- 		xtables_error(RESOURCE_PROBLEM, "strdup");
--	range->flags |= IP_NAT_RANGE_MAP_IPS;
-+	range->flags |= NF_NAT_RANGE_MAP_IPS;
- 	dash = strchr(arg, '-');
- 
- 	if (dash)
-@@ -74,6 +74,7 @@ static void parse_to(const char *orig_arg, struct nf_nat_range *range)
- static void SAME_parse(struct xt_option_call *cb)
- {
- 	struct ipt_same_info *mr = cb->data;
-+	unsigned int count;
- 
- 	xtables_option_parse(cb);
- 	switch (cb->entry->id) {
-@@ -89,6 +90,10 @@ static void SAME_parse(struct xt_option_call *cb)
- 	case O_NODST:
- 		mr->info |= IPT_SAME_NODST;
- 		break;
-+	case O_RANDOM:
-+		for (count=0; count < mr->rangesize; count++)
-+			mr->range[count].flags |= NF_NAT_RANGE_PROTO_RANDOM;
-+		break;
- 	}
+ static void __exit nf_nat_sip_fini(void)
+@@ -565,13 +595,13 @@ static int __init nf_nat_sip_init(void)
+ 	BUG_ON(nf_nat_sdp_port_hook != NULL);
+ 	BUG_ON(nf_nat_sdp_session_hook != NULL);
+ 	BUG_ON(nf_nat_sdp_media_hook != NULL);
+-	RCU_INIT_POINTER(nf_nat_sip_hook, ip_nat_sip);
+-	RCU_INIT_POINTER(nf_nat_sip_seq_adjust_hook, ip_nat_sip_seq_adjust);
+-	RCU_INIT_POINTER(nf_nat_sip_expect_hook, ip_nat_sip_expect);
+-	RCU_INIT_POINTER(nf_nat_sdp_addr_hook, ip_nat_sdp_addr);
+-	RCU_INIT_POINTER(nf_nat_sdp_port_hook, ip_nat_sdp_port);
+-	RCU_INIT_POINTER(nf_nat_sdp_session_hook, ip_nat_sdp_session);
+-	RCU_INIT_POINTER(nf_nat_sdp_media_hook, ip_nat_sdp_media);
++	RCU_INIT_POINTER(nf_nat_sip_hook, nf_nat_sip);
++	RCU_INIT_POINTER(nf_nat_sip_seq_adjust_hook, nf_nat_sip_seq_adjust);
++	RCU_INIT_POINTER(nf_nat_sip_expect_hook, nf_nat_sip_expect);
++	RCU_INIT_POINTER(nf_nat_sdp_addr_hook, nf_nat_sdp_addr);
++	RCU_INIT_POINTER(nf_nat_sdp_port_hook, nf_nat_sdp_port);
++	RCU_INIT_POINTER(nf_nat_sdp_session_hook, nf_nat_sdp_session);
++	RCU_INIT_POINTER(nf_nat_sdp_media_hook, nf_nat_sdp_media);
+ 	nf_ct_helper_expectfn_register(&sip_nat);
+ 	return 0;
  }
- 
-@@ -100,7 +105,7 @@ static void SAME_fcheck(struct xt_fcheck_call *cb)
- 
- 	if ((cb->xflags & f) == f)
- 		for (count = 0; count < mr->rangesize; ++count)
--			mr->range[count].flags |= IP_NAT_RANGE_PROTO_RANDOM;
-+			mr->range[count].flags |= NF_NAT_RANGE_PROTO_RANDOM;
- }
- 
- static void SAME_print(const void *ip, const struct xt_entry_target *target,
-@@ -113,7 +118,7 @@ static void SAME_print(const void *ip, const struct xt_entry_target *target,
- 	printf(" same:");
- 
- 	for (count = 0; count < mr->rangesize; count++) {
--		const struct nf_nat_range *r = &mr->range[count];
-+		const struct nf_nat_ipv4_range *r = &mr->range[count];
- 		struct in_addr a;
- 
- 		a.s_addr = r->min_ip;
-@@ -123,7 +128,7 @@ static void SAME_print(const void *ip, const struct xt_entry_target *target,
- 		
- 		if (r->min_ip != r->max_ip)
- 			printf("-%s", xtables_ipaddr_to_numeric(&a));
--		if (r->flags & IP_NAT_RANGE_PROTO_RANDOM) 
-+		if (r->flags & NF_NAT_RANGE_PROTO_RANDOM)
- 			random_selection = 1;
- 	}
- 	
-@@ -141,7 +146,7 @@ static void SAME_save(const void *ip, const struct xt_entry_target *target)
- 	int random_selection = 0;
- 
- 	for (count = 0; count < mr->rangesize; count++) {
--		const struct nf_nat_range *r = &mr->range[count];
-+		const struct nf_nat_ipv4_range *r = &mr->range[count];
- 		struct in_addr a;
- 
- 		a.s_addr = r->min_ip;
-@@ -150,7 +155,7 @@ static void SAME_save(const void *ip, const struct xt_entry_target *target)
- 
- 		if (r->min_ip != r->max_ip)
- 			printf("-%s", xtables_ipaddr_to_numeric(&a));
--		if (r->flags & IP_NAT_RANGE_PROTO_RANDOM) 
-+		if (r->flags & NF_NAT_RANGE_PROTO_RANDOM)
- 			random_selection = 1;
- 	}
- 	
-diff --git a/extensions/libipt_SNAT.c b/extensions/libipt_SNAT.c
-index c8cb26d..1a24f3d 100644
---- a/extensions/libipt_SNAT.c
-+++ b/extensions/libipt_SNAT.c
-@@ -6,7 +6,7 @@
- #include <iptables.h>
- #include <limits.h> /* INT_MAX in ip_tables.h */
- #include <linux/netfilter_ipv4/ip_tables.h>
--#include <net/netfilter/nf_nat.h>
-+#include <linux/netfilter/nf_nat.h>
- 
- enum {
- 	O_TO_SRC = 0,
-@@ -23,7 +23,7 @@ enum {
- struct ipt_natinfo
- {
- 	struct xt_entry_target t;
--	struct nf_nat_multi_range mr;
-+	struct nf_nat_ipv4_multi_range_compat mr;
- };
- 
- static void SNAT_help(void)
-@@ -44,7 +44,7 @@ static const struct xt_option_entry SNAT_opts[] = {
- };
- 
- static struct ipt_natinfo *
--append_range(struct ipt_natinfo *info, const struct nf_nat_range *range)
-+append_range(struct ipt_natinfo *info, const struct nf_nat_ipv4_range *range)
- {
- 	unsigned int size;
- 
-@@ -66,7 +66,7 @@ append_range(struct ipt_natinfo *info, const struct nf_nat_range *range)
- static struct xt_entry_target *
- parse_to(const char *orig_arg, int portok, struct ipt_natinfo *info)
- {
--	struct nf_nat_range range;
-+	struct nf_nat_ipv4_range range;
- 	char *arg, *colon, *dash, *error;
- 	const struct in_addr *ip;
- 
-@@ -83,7 +83,7 @@ parse_to(const char *orig_arg, int portok, struct ipt_natinfo *info)
- 			xtables_error(PARAMETER_PROBLEM,
- 				   "Need TCP, UDP, SCTP or DCCP with port specification");
- 
--		range.flags |= IP_NAT_RANGE_PROTO_SPECIFIED;
-+		range.flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
- 
- 		port = atoi(colon+1);
- 		if (port <= 0 || port > 65535)
-@@ -122,7 +122,7 @@ parse_to(const char *orig_arg, int portok, struct ipt_natinfo *info)
- 		*colon = '\0';
- 	}
- 
--	range.flags |= IP_NAT_RANGE_MAP_IPS;
-+	range.flags |= NF_NAT_RANGE_MAP_IPS;
- 	dash = strchr(arg, '-');
- 	if (colon && dash && dash > colon)
- 		dash = NULL;
-@@ -177,7 +177,7 @@ static void SNAT_parse(struct xt_option_call *cb)
- 		cb->xflags |= F_X_TO_SRC;
- 		break;
- 	case O_PERSISTENT:
--		info->mr.range[0].flags |= IP_NAT_RANGE_PERSISTENT;
-+		info->mr.range[0].flags |= NF_NAT_RANGE_PERSISTENT;
- 		break;
- 	}
- }
-@@ -185,15 +185,15 @@ static void SNAT_parse(struct xt_option_call *cb)
- static void SNAT_fcheck(struct xt_fcheck_call *cb)
- {
- 	static const unsigned int f = F_TO_SRC | F_RANDOM;
--	struct nf_nat_multi_range *mr = cb->data;
-+	struct nf_nat_ipv4_multi_range_compat *mr = cb->data;
- 
- 	if ((cb->xflags & f) == f)
--		mr->range[0].flags |= IP_NAT_RANGE_PROTO_RANDOM;
-+		mr->range[0].flags |= NF_NAT_RANGE_PROTO_RANDOM;
- }
- 
--static void print_range(const struct nf_nat_range *r)
-+static void print_range(const struct nf_nat_ipv4_range *r)
- {
--	if (r->flags & IP_NAT_RANGE_MAP_IPS) {
-+	if (r->flags & NF_NAT_RANGE_MAP_IPS) {
- 		struct in_addr a;
- 
- 		a.s_addr = r->min_ip;
-@@ -203,7 +203,7 @@ static void print_range(const struct nf_nat_range *r)
- 			printf("-%s", xtables_ipaddr_to_numeric(&a));
- 		}
- 	}
--	if (r->flags & IP_NAT_RANGE_PROTO_SPECIFIED) {
-+	if (r->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
- 		printf(":");
- 		printf("%hu", ntohs(r->min.tcp.port));
- 		if (r->max.tcp.port != r->min.tcp.port)
-@@ -220,9 +220,9 @@ static void SNAT_print(const void *ip, const struct xt_entry_target *target,
- 	printf(" to:");
- 	for (i = 0; i < info->mr.rangesize; i++) {
- 		print_range(&info->mr.range[i]);
--		if (info->mr.range[i].flags & IP_NAT_RANGE_PROTO_RANDOM)
-+		if (info->mr.range[i].flags & NF_NAT_RANGE_PROTO_RANDOM)
- 			printf(" random");
--		if (info->mr.range[i].flags & IP_NAT_RANGE_PERSISTENT)
-+		if (info->mr.range[i].flags & NF_NAT_RANGE_PERSISTENT)
- 			printf(" persistent");
- 	}
- }
-@@ -235,9 +235,9 @@ static void SNAT_save(const void *ip, const struct xt_entry_target *target)
- 	for (i = 0; i < info->mr.rangesize; i++) {
- 		printf(" --to-source ");
- 		print_range(&info->mr.range[i]);
--		if (info->mr.range[i].flags & IP_NAT_RANGE_PROTO_RANDOM)
-+		if (info->mr.range[i].flags & NF_NAT_RANGE_PROTO_RANDOM)
- 			printf(" --random");
--		if (info->mr.range[i].flags & IP_NAT_RANGE_PERSISTENT)
-+		if (info->mr.range[i].flags & NF_NAT_RANGE_PERSISTENT)
- 			printf(" --persistent");
- 	}
- }
-@@ -246,8 +246,8 @@ static struct xtables_target snat_tg_reg = {
- 	.name		= "SNAT",
- 	.version	= XTABLES_VERSION,
- 	.family		= NFPROTO_IPV4,
--	.size		= XT_ALIGN(sizeof(struct nf_nat_multi_range)),
--	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_multi_range)),
-+	.size		= XT_ALIGN(sizeof(struct nf_nat_ipv4_multi_range_compat)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_ipv4_multi_range_compat)),
- 	.help		= SNAT_help,
- 	.x6_parse	= SNAT_parse,
- 	.x6_fcheck	= SNAT_fcheck,
-diff --git a/include/linux/netfilter/nf_conntrack_tuple_common.h b/include/linux/netfilter/nf_conntrack_tuple_common.h
-index 2ea22b0..2f6bbc5 100644
---- a/include/linux/netfilter/nf_conntrack_tuple_common.h
-+++ b/include/linux/netfilter/nf_conntrack_tuple_common.h
-@@ -7,6 +7,33 @@ enum ip_conntrack_dir {
- 	IP_CT_DIR_MAX
- };
- 
-+/* The protocol-specific manipulable parts of the tuple: always in
-+ * network order
-+ */
-+union nf_conntrack_man_proto {
-+	/* Add other protocols here. */
-+	__be16 all;
-+
-+	struct {
-+		__be16 port;
-+	} tcp;
-+	struct {
-+		__be16 port;
-+	} udp;
-+	struct {
-+		__be16 id;
-+	} icmp;
-+	struct {
-+		__be16 port;
-+	} dccp;
-+	struct {
-+		__be16 port;
-+	} sctp;
-+	struct {
-+		__be16 key;	/* GRE key is 32bit, PPtP only uses 16bit */
-+	} gre;
-+};
-+
- #define CTINFO2DIR(ctinfo) ((ctinfo) >= IP_CT_IS_REPLY ? IP_CT_DIR_REPLY : IP_CT_DIR_ORIGINAL)
- 
- #endif /* _NF_CONNTRACK_TUPLE_COMMON_H */
-diff --git a/include/linux/netfilter/nf_nat.h b/include/linux/netfilter/nf_nat.h
-new file mode 100644
-index 0000000..8df2d13
---- /dev/null
-+++ b/include/linux/netfilter/nf_nat.h
-@@ -0,0 +1,25 @@
-+#ifndef _NETFILTER_NF_NAT_H
-+#define _NETFILTER_NF_NAT_H
-+
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/nf_conntrack_tuple_common.h>
-+
-+#define NF_NAT_RANGE_MAP_IPS		1
-+#define NF_NAT_RANGE_PROTO_SPECIFIED	2
-+#define NF_NAT_RANGE_PROTO_RANDOM	4
-+#define NF_NAT_RANGE_PERSISTENT		8
-+
-+struct nf_nat_ipv4_range {
-+	unsigned int			flags;
-+	__be32				min_ip;
-+	__be32				max_ip;
-+	union nf_conntrack_man_proto	min;
-+	union nf_conntrack_man_proto	max;
-+};
-+
-+struct nf_nat_ipv4_multi_range_compat {
-+	unsigned int			rangesize;
-+	struct nf_nat_ipv4_range	range[1];
-+};
-+
-+#endif /* _NETFILTER_NF_NAT_H */
-diff --git a/include/linux/netfilter_ipv4/ipt_SAME.h b/include/linux/netfilter_ipv4/ipt_SAME.h
-index 5bca782..a855167 100644
---- a/include/linux/netfilter_ipv4/ipt_SAME.h
-+++ b/include/linux/netfilter_ipv4/ipt_SAME.h
-@@ -14,7 +14,7 @@ struct ipt_same_info {
- 	__u32 *iparray;
- 
- 	/* hangs off end. */
--	struct nf_nat_range range[IPT_SAME_MAX_RANGE];
-+	struct nf_nat_ipv4_range range[IPT_SAME_MAX_RANGE];
- };
- 
- #endif /*_IPT_SAME_H*/
-diff --git a/include/net/netfilter/nf_conntrack_tuple.h b/include/net/netfilter/nf_conntrack_tuple.h
-deleted file mode 100644
-index c40e0b4..0000000
---- a/include/net/netfilter/nf_conntrack_tuple.h
-+++ /dev/null
-@@ -1,114 +0,0 @@
--/* This file was manually copied from the Linux kernel source
-- * and manually stripped from __KERNEL__ sections and unused functions.
-- */
--
--/*
-- * Definitions and Declarations for tuple.
-- *
-- * 16 Dec 2003: Yasuyuki Kozakai @USAGI <yasuyuki.kozakai@toshiba.co.jp>
-- *	- generalize L3 protocol dependent part.
-- *
-- * Derived from include/linux/netfiter_ipv4/ip_conntrack_tuple.h
-- */
--
--#ifndef _NF_CONNTRACK_TUPLE_H
--#define _NF_CONNTRACK_TUPLE_H
--
--#include <linux/netfilter/x_tables.h>
--#include <linux/netfilter/nf_conntrack_tuple_common.h>
--
--/* A `tuple' is a structure containing the information to uniquely
--  identify a connection.  ie. if two packets have the same tuple, they
--  are in the same connection; if not, they are not.
--
--  We divide the structure along "manipulatable" and
--  "non-manipulatable" lines, for the benefit of the NAT code.
--*/
--
--#define NF_CT_TUPLE_L3SIZE	ARRAY_SIZE(((union nf_inet_addr *)NULL)->all)
--
--/* The protocol-specific manipulable parts of the tuple: always in
--   network order! */
--union nf_conntrack_man_proto
--{
--	/* Add other protocols here. */
--	__be16 all;
--
--	struct {
--		__be16 port;
--	} tcp;
--	struct {
--		__be16 port;
--	} udp;
--	struct {
--		__be16 id;
--	} icmp;
--	struct {
--		__be16 port;
--	} dccp;
--	struct {
--		__be16 port;
--	} sctp;
--	struct {
--		__be16 key;	/* GRE key is 32bit, PPtP only uses 16bit */
--	} gre;
--};
--
--/* The manipulable part of the tuple. */
--struct nf_conntrack_man
--{
--	union nf_inet_addr u3;
--	union nf_conntrack_man_proto u;
--	/* Layer 3 protocol */
--	u_int16_t l3num;
--};
--
--/* This contains the information to distinguish a connection. */
--struct nf_conntrack_tuple
--{
--	struct nf_conntrack_man src;
--
--	/* These are the parts of the tuple which are fixed. */
--	struct {
--		union nf_inet_addr u3;
--		union {
--			/* Add other protocols here. */
--			__be16 all;
--
--			struct {
--				__be16 port;
--			} tcp;
--			struct {
--				__be16 port;
--			} udp;
--			struct {
--				u_int8_t type, code;
--			} icmp;
--			struct {
--				__be16 port;
--			} dccp;
--			struct {
--				__be16 port;
--			} sctp;
--			struct {
--				__be16 key;
--			} gre;
--		} u;
--
--		/* The protocol. */
--		u_int8_t protonum;
--
--		/* The direction (for tuplehash) */
--		u_int8_t dir;
--	} dst;
--};
--
--struct nf_conntrack_tuple_mask
--{
--	struct {
--		union nf_inet_addr u3;
--		union nf_conntrack_man_proto u;
--	} src;
--};
--
--#endif /* _NF_CONNTRACK_TUPLE_H */
-diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
-deleted file mode 100644
-index c3e2060..0000000
---- a/include/net/netfilter/nf_nat.h
-+++ /dev/null
-@@ -1,55 +0,0 @@
--#ifndef _NF_NAT_H
--#define _NF_NAT_H
--#include <linux/netfilter_ipv4.h>
--#include <net/netfilter/nf_conntrack_tuple.h>
--
--#define NF_NAT_MAPPING_TYPE_MAX_NAMELEN 16
--
--enum nf_nat_manip_type
--{
--	IP_NAT_MANIP_SRC,
--	IP_NAT_MANIP_DST
--};
--
--/* SRC manip occurs POST_ROUTING or LOCAL_IN */
--#define HOOK2MANIP(hooknum) ((hooknum) != NF_INET_POST_ROUTING && \
--			     (hooknum) != NF_INET_LOCAL_IN)
--
--#define IP_NAT_RANGE_MAP_IPS 1
--#define IP_NAT_RANGE_PROTO_SPECIFIED 2
--#define IP_NAT_RANGE_PROTO_RANDOM 4
--#define IP_NAT_RANGE_PERSISTENT 8
--
--/* NAT sequence number modifications */
--struct nf_nat_seq {
--	/* position of the last TCP sequence number modification (if any) */
--	u_int32_t correction_pos;
--
--	/* sequence number offset before and after last modification */
--	int16_t offset_before, offset_after;
--};
--
--/* Single range specification. */
--struct nf_nat_range
--{
--	/* Set to OR of flags above. */
--	unsigned int flags;
--
--	/* Inclusive: network order. */
--	__be32 min_ip, max_ip;
--
--	/* Inclusive: network order */
--	union nf_conntrack_man_proto min, max;
--};
--
--/* For backwards compat: don't use in modern code. */
--struct nf_nat_multi_range_compat
--{
--	unsigned int rangesize; /* Must be 1. */
--
--	/* hangs off end. */
--	struct nf_nat_range range[1];
--};
--
--#define nf_nat_multi_range nf_nat_multi_range_compat
--#endif
 -- 
 1.7.1
-
