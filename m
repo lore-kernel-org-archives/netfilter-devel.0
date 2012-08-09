@@ -1,17 +1,19 @@
 From: kaber@trash.net
-Subject: [PATCH 16/19] netfilter: nf_nat: support IPv6 in FTP NAT helper
-Date: Thu,  9 Aug 2012 22:09:00 +0200
-Message-ID: <1344542943-11588-17-git-send-email-kaber@trash.net>
-References: <1344542943-11588-1-git-send-email-kaber@trash.net>
-Cc: netdev@vger.kernel.org
+Subject: [PATCH 6/7] extensions: add IPv6 NETMAP extension
+Date: Thu,  9 Aug 2012 22:11:12 +0200
+Message-ID: <1344543073-11660-7-git-send-email-kaber@trash.net>
+References: <1344543073-11660-1-git-send-email-kaber@trash.net>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:65367 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:65364 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759604Ab2HIUXi (ORCPT
+	with ESMTP id S1755369Ab2HIUXh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Aug 2012 16:23:38 -0400
-In-Reply-To: <1344542943-11588-1-git-send-email-kaber@trash.net>
+	Thu, 9 Aug 2012 16:23:37 -0400
+Received: from gw.localnet (localhost [127.0.0.1])
+	by stinky.trash.net (Postfix) with ESMTP id DA822B2C64
+	for <netfilter-devel@vger.kernel.org>; Thu,  9 Aug 2012 22:11:16 +0200 (MEST)
+In-Reply-To: <1344543073-11660-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -19,169 +21,126 @@ From: Patrick McHardy <kaber@trash.net>
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- net/ipv4/netfilter/Kconfig            |    5 -----
- net/ipv4/netfilter/Makefile           |    1 -
- net/netfilter/Kconfig                 |    5 +++++
- net/netfilter/Makefile                |    3 +++
- net/netfilter/nf_conntrack_ftp.c      |    3 +--
- net/{ipv4 => }/netfilter/nf_nat_ftp.c |   30 ++++++++++++++++++------------
- 6 files changed, 27 insertions(+), 20 deletions(-)
- rename net/{ipv4 => }/netfilter/nf_nat_ftp.c (82%)
+ extensions/GNUmakefile.in   |    2 +-
+ extensions/libip6t_NETMAP.c |   93 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 94 insertions(+), 1 deletions(-)
+ create mode 100644 extensions/libip6t_NETMAP.c
 
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 33372a1..80272e7 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -220,11 +220,6 @@ config NF_NAT_PROTO_GRE
- 	tristate
- 	depends on NF_NAT_IPV4 && NF_CT_PROTO_GRE
+diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+index 218dc3a..2492d18 100644
+--- a/extensions/GNUmakefile.in
++++ b/extensions/GNUmakefile.in
+@@ -97,10 +97,10 @@ lib%.oo: ${srcdir}/lib%.c
+ 	${AM_VERBOSE_CC} ${CC} ${AM_CPPFLAGS} ${AM_DEPFLAGS} ${AM_CFLAGS} -D_INIT=lib$*_init -DPIC -fPIC ${CFLAGS} -o $@ -c $<;
  
--config NF_NAT_FTP
--	tristate
--	depends on NF_CONNTRACK && NF_NAT_IPV4
--	default NF_NAT_IPV4 && NF_CONNTRACK_FTP
+ # Need the LIBADDs in iptables/Makefile.am too for libxtables_la_LIBADD
++ip6t_NETMAP_LIBADD  = -lip6tc
+ xt_RATEEST_LIBADD   = -lm
+ xt_statistic_LIBADD = -lm
+ 
 -
- config NF_NAT_IRC
- 	tristate
- 	depends on NF_CONNTRACK && NF_NAT_IPV4
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index 0ea3acc..4d8a4ad 100644
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -21,7 +21,6 @@ obj-$(CONFIG_NF_DEFRAG_IPV4) += nf_defrag_ipv4.o
- 
- # NAT helpers (nf_conntrack)
- obj-$(CONFIG_NF_NAT_AMANDA) += nf_nat_amanda.o
--obj-$(CONFIG_NF_NAT_FTP) += nf_nat_ftp.o
- obj-$(CONFIG_NF_NAT_H323) += nf_nat_h323.o
- obj-$(CONFIG_NF_NAT_IRC) += nf_nat_irc.o
- obj-$(CONFIG_NF_NAT_PPTP) += nf_nat_pptp.o
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 91addda..3104494 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -380,6 +380,11 @@ config NF_NAT_PROTO_SCTP
- 	depends on NF_NAT && NF_CT_PROTO_SCTP
- 	select LIBCRC32C
- 
-+config NF_NAT_FTP
-+	tristate
-+	depends on NF_CONNTRACK && NF_NAT
-+	default NF_NAT && NF_CONNTRACK_FTP
+ #
+ #	Static bits
+ #
+diff --git a/extensions/libip6t_NETMAP.c b/extensions/libip6t_NETMAP.c
+new file mode 100644
+index 0000000..d14dece
+--- /dev/null
++++ b/extensions/libip6t_NETMAP.c
+@@ -0,0 +1,93 @@
++/*
++ * Copyright (c) 2011 Patrick McHardy <kaber@trash.net>
++ *
++ * Based on Svenning Soerensen's IPv4 NETMAP target. Development of IPv6 NAT
++ * funded by Astaro.
++ */
 +
- endif # NF_CONNTRACK
- 
- # transparent proxy support
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 09c9451..16592b1 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -54,6 +54,9 @@ obj-$(CONFIG_NF_NAT_PROTO_DCCP) += nf_nat_proto_dccp.o
- obj-$(CONFIG_NF_NAT_PROTO_UDPLITE) += nf_nat_proto_udplite.o
- obj-$(CONFIG_NF_NAT_PROTO_SCTP) += nf_nat_proto_sctp.o
- 
-+# NAT helpers
-+obj-$(CONFIG_NF_NAT_FTP) += nf_nat_ftp.o
++#include <stdio.h>
++#include <netdb.h>
++#include <string.h>
++#include <stdlib.h>
++#include <getopt.h>
++#include <xtables.h>
++#include <libiptc/libip6tc.h>
++#include <linux/netfilter/nf_nat.h>
 +
- # transparent proxy support
- obj-$(CONFIG_NETFILTER_TPROXY) += nf_tproxy_core.o
- 
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index c0f4a5b..f8cc26a 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -488,8 +488,7 @@ static int help(struct sk_buff *skb,
- 	/* Now, NAT might want to mangle the packet, and register the
- 	 * (possibly changed) expectation itself. */
- 	nf_nat_ftp = rcu_dereference(nf_nat_ftp_hook);
--	if (nf_nat_ftp && nf_ct_l3num(ct) == NFPROTO_IPV4 &&
--	    ct->status & IPS_NAT_MASK)
-+	if (nf_nat_ftp && ct->status & IPS_NAT_MASK)
- 		ret = nf_nat_ftp(skb, ctinfo, search[dir][i].ftptype,
- 				 protoff, matchoff, matchlen, exp);
- 	else {
-diff --git a/net/ipv4/netfilter/nf_nat_ftp.c b/net/netfilter/nf_nat_ftp.c
-similarity index 82%
-rename from net/ipv4/netfilter/nf_nat_ftp.c
-rename to net/netfilter/nf_nat_ftp.c
-index dd5e387..e839b97 100644
---- a/net/ipv4/netfilter/nf_nat_ftp.c
-+++ b/net/netfilter/nf_nat_ftp.c
-@@ -10,7 +10,7 @@
- 
- #include <linux/module.h>
- #include <linux/moduleparam.h>
--#include <linux/ip.h>
-+#include <linux/inet.h>
- #include <linux/tcp.h>
- #include <linux/netfilter_ipv4.h>
- #include <net/netfilter/nf_nat.h>
-@@ -26,22 +26,27 @@ MODULE_ALIAS("ip_nat_ftp");
- 
- /* FIXME: Time out? --RR */
- 
--static int nf_nat_ftp_fmt_cmd(enum nf_ct_ftp_type type,
-+static int nf_nat_ftp_fmt_cmd(struct nf_conn *ct, enum nf_ct_ftp_type type,
- 			      char *buffer, size_t buflen,
--			      __be32 addr, u16 port)
-+			      union nf_inet_addr *addr, u16 port)
- {
- 	switch (type) {
- 	case NF_CT_FTP_PORT:
- 	case NF_CT_FTP_PASV:
- 		return snprintf(buffer, buflen, "%u,%u,%u,%u,%u,%u",
--				((unsigned char *)&addr)[0],
--				((unsigned char *)&addr)[1],
--				((unsigned char *)&addr)[2],
--				((unsigned char *)&addr)[3],
-+				((unsigned char *)&addr->ip)[0],
-+				((unsigned char *)&addr->ip)[1],
-+				((unsigned char *)&addr->ip)[2],
-+				((unsigned char *)&addr->ip)[3],
- 				port >> 8,
- 				port & 0xFF);
- 	case NF_CT_FTP_EPRT:
--		return snprintf(buffer, buflen, "|1|%pI4|%u|", &addr, port);
-+		if (nf_ct_l3num(ct) == NFPROTO_IPV4)
-+			return snprintf(buffer, buflen, "|1|%pI4|%u|",
-+					&addr->ip, port);
-+		else
-+			return snprintf(buffer, buflen, "|2|%pI6|%u|",
-+					&addr->ip6, port);
- 	case NF_CT_FTP_EPSV:
- 		return snprintf(buffer, buflen, "|||%u|", port);
- 	}
-@@ -59,17 +64,17 @@ static unsigned int nf_nat_ftp(struct sk_buff *skb,
- 			       unsigned int matchlen,
- 			       struct nf_conntrack_expect *exp)
- {
--	__be32 newip;
-+	union nf_inet_addr newaddr;
- 	u_int16_t port;
- 	int dir = CTINFO2DIR(ctinfo);
- 	struct nf_conn *ct = exp->master;
--	char buffer[sizeof("|1|255.255.255.255|65535|")];
-+	char buffer[sizeof("|1||65535|") + INET6_ADDRSTRLEN];
- 	unsigned int buflen;
- 
- 	pr_debug("FTP_NAT: type %i, off %u len %u\n", type, matchoff, matchlen);
- 
- 	/* Connection will come from wherever this packet goes, hence !dir */
--	newip = ct->tuplehash[!dir].tuple.dst.u3.ip;
-+	newaddr = ct->tuplehash[!dir].tuple.dst.u3;
- 	exp->saved_proto.tcp.port = exp->tuple.dst.u.tcp.port;
- 	exp->dir = !dir;
- 
-@@ -94,7 +99,8 @@ static unsigned int nf_nat_ftp(struct sk_buff *skb,
- 	if (port == 0)
- 		return NF_DROP;
- 
--	buflen = nf_nat_ftp_fmt_cmd(type, buffer, sizeof(buffer), newip, port);
-+	buflen = nf_nat_ftp_fmt_cmd(ct, type, buffer, sizeof(buffer),
-+				    &newaddr, port);
- 	if (!buflen)
- 		goto out;
- 
++#define MODULENAME "NETMAP"
++
++enum {
++	O_TO = 0,
++};
++
++static const struct xt_option_entry NETMAP_opts[] = {
++	{.name = "to", .id = O_TO, .type = XTTYPE_HOSTMASK,
++	 .flags = XTOPT_MAND},
++	XTOPT_TABLEEND,
++};
++
++static void NETMAP_help(void)
++{
++	printf(MODULENAME" target options:\n"
++	       "  --%s address[/mask]\n"
++	       "				Network address to map to.\n\n",
++	       NETMAP_opts[0].name);
++}
++
++static void NETMAP_parse(struct xt_option_call *cb)
++{
++	struct nf_nat_range *range = cb->data;
++	unsigned int i;
++
++	xtables_option_parse(cb);
++	range->flags |= NF_NAT_RANGE_MAP_IPS;
++	for (i = 0; i < 4; i++) {
++		range->min_addr.ip6[i] = cb->val.haddr.ip6[i] &
++					 cb->val.hmask.ip6[i];
++		range->max_addr.ip6[i] = range->min_addr.ip6[i] |
++					 ~cb->val.hmask.ip6[i];
++	}
++}
++
++static void NETMAP_print(const void *ip, const struct xt_entry_target *target,
++                         int numeric)
++{
++	const struct nf_nat_range *r = (const void *)target->data;
++	struct in6_addr a;
++	unsigned int i;
++	int bits;
++
++	a = r->min_addr.in6;
++	printf("%s", xtables_ip6addr_to_numeric(&a));
++	for (i = 0; i < 4; i++)
++		a.s6_addr32[i] = ~(r->min_addr.ip6[i] ^ r->max_addr.ip6[i]);
++	bits = ipv6_prefix_length(&a);
++	if (bits < 0)
++		printf("/%s", xtables_ip6addr_to_numeric(&a));
++	else
++		printf("/%d", bits);
++}
++
++static void NETMAP_save(const void *ip, const struct xt_entry_target *target)
++{
++	printf(" --%s ", NETMAP_opts[0].name);
++	NETMAP_print(ip, target, 0);
++}
++
++static struct xtables_target netmap_tg_reg = {
++	.name		= MODULENAME,
++	.version	= XTABLES_VERSION,
++	.family		= NFPROTO_IPV6,
++	.size		= XT_ALIGN(sizeof(struct nf_nat_range)),
++	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_range)),
++	.help		= NETMAP_help,
++	.x6_parse	= NETMAP_parse,
++	.print		= NETMAP_print,
++	.save		= NETMAP_save,
++	.x6_options	= NETMAP_opts,
++};
++
++void _init(void)
++{
++	xtables_register_target(&netmap_tg_reg);
++}
 -- 
 1.7.1
 
