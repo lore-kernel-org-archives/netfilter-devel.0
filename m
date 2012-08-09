@@ -1,46 +1,97 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 00/19] netfilter: IPv6 NAT
-Date: Thu, 9 Aug 2012 23:52:14 +0200 (MEST)
-Message-ID: <Pine.GSO.4.63.1208092347080.26308@stinky-local.trash.net>
-References: <1344542943-11588-1-git-send-email-kaber@trash.net>
- <87a9y3n5rz.fsf@xmission.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH 19/19] netfilter: ip6tables: add stateless IPv6-to-IPv6
+ Network Prefix Translation target
+Date: Thu, 9 Aug 2012 23:55:03 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1208092337220.10514@frira.zrqbmnf.qr>
+References: <1344542943-11588-1-git-send-email-kaber@trash.net> <1344542943-11588-20-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>
+To: kaber@trash.net
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <87a9y3n5rz.fsf@xmission.com>
+In-Reply-To: <1344542943-11588-20-git-send-email-kaber@trash.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 9 Aug 2012, Eric W. Biederman wrote:
 
-> kaber@trash.net writes:
->
->> The following patches contain an updated version of IPv6 NAT against
->> Linus' current tree.
->>
->> The series is organized as follows:
->>
->> - Patches 01-03 contain bugfixes for SIP helper bugs/regressions
->>   present in the current kernel
->
-> Why not just delete this code?  The current best practices are to
-> disable ALGs for SIP.  To the point in some circles people recommend
-> running SIP over TLS to avoid over helpful NAT ALGs.
+On Thursday 2012-08-09 22:09, kaber@trash.net wrote:
+>+config IP6_NF_TARGET_NPT
+>+	tristate "NPT (Network Prefix translation) target support"
+>+	depends on NETFILTER_ADVANCED
+>+	help
+>+	  This option adda `SNPT' and `DNPT' target, which perform stateless
+>+	  IPv6-to-IPv6 Network Prefix Translation (RFC 6296).
 
-And where can I read up on these best practices and how well they work?
+Fixes/suggestion in the help text (near "adda" and subsequent).
 
-In any case, these patches are all for the connection tracking helper,
-which is needed unless you want to open up your firewall for every 
-possible RTP source, in which case you can simply disable it. Some people 
-are also using it to proritize RTP streams without any filtering.
+config IP6_NF_TARGET_NPT
+	tristate "NPT (Network Prefix translation) target support"
+	depends on NETFILTER_ADVANCED
+	---help---
+	This option adds the "SNPT" and "DNPT" targets, which perform stateless
+	IPv6-to-IPv6 Network Prefix Translation per RFC 6296.
 
-Also, even if the NAT helper would not mangle packets, it is still needed 
-to adjust expectations. so incoming connections can go to the correct
-destination. That is, direct RTP connections between two endpoints
-that didn't have any direct signalling communication before
+>+/*
+>+ * Copyright (c) 2011, 2012 Patrick McHardy <kaber@trash.net>
+>+ *
+>+ * This program is free software; you can redistribute it and/or modify
+>+ * it under the terms of the GNU General Public License version 2 as
+>+ * published by the Free Software Foundation.
+>+ */
 
-You can of course also proxy everything through your SIP provider 
-(including internal calls) and/or use STUN (which is unreliable under
-Linux). I prefer not to.
+GNU sometimes has a strange way of expressing their (C) lines,
+listing all years separately, as if "1989-1991,1994-1999,2001-2005" was not
+sufficient. In your case, would "2011-2012" work?
+
+Any objection to adding a "(or later)" clause to the set?
+
+>+static int ip6t_npt_checkentry(const struct xt_tgchk_param *par)
+>+{
+>+	struct ip6t_npt_tginfo *npt = par->targinfo;
+>+	__sum16 src_sum = 0, dst_sum = 0;
+>+	unsigned int i;
+>+
+>+	if (npt->src_pfx_len > 64 || npt->dst_pfx_len > 64)
+>+		return -EINVAL;
+
+While the RFC probably only specifies masks up to /64,
+the general algorithm is sustainable up to at least /96.
+
+Extending the RFC's section 3.6 ("/48 Prefix Mapping") example,
+fd01:0203:0405:0001:0000:0000:0000:1234/112 (specification per `ip
+addr`) would become 2001:0db8:0001:0000:0000:0000:d550:1234.
+
+Not everybody runs exclusively on EUI64-SLAAC / PRIVACY addresses :)
+
+
+>+static struct xt_target ip6t_npt_target_reg[] __read_mostly = {
+>+	{
+>+		.name		= "SNPT",
+
+IETF did quite a job again... NPT as an acronym is quite
+close to NAPT - too close.
+Since it's essentially NETMAP, having something in that ballpark
+may seem more fitting. NPMAP? (Translation is mapping -
+henceforh "Network Prefix Mapping")
+
+
+
+I would hint towards choosing a different name; the P in NPT
+may be (mis)understood as port (due to the common "NAPT")
+keyword.
+
+>+		.target		= ip6t_snpt_tg,
+>+		.targetsize	= sizeof(struct ip6t_npt_tginfo),
+>+		.checkentry	= ip6t_npt_checkentry,
+>+		.family		= NFPROTO_IPV6,
+>+		.hooks		= (1 << NF_INET_LOCAL_IN) |
+>+				  (1 << NF_INET_POST_ROUTING),
+>+		.me		= THIS_MODULE,
+
+Should perhaps a  .table = "mangle"  be added?
+
+
+Are any tricks on the userspace side needed to use SNPT/SNPMAP?
+Since I spot no code telling conntrack about the address mingling,
+one would have to use -j CT --notrack or the rawpost table, like
+it's done for RAWSNAT in xtables-addons, would he not?
