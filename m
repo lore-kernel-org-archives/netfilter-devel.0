@@ -1,88 +1,83 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset : ip range insertion to hash:net list does not work
-Date: Mon, 13 Aug 2012 14:03:27 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1208131401350.14727@blackhole.kfki.hu>
-References: <CAK6Qs9nVL6hzcjdaF98RkPhvH-sf+KUYnoeNxMyDvf92O9bK3A@mail.gmail.com> <alpine.DEB.2.00.1208102253290.12102@blackhole.kfki.hu> <alpine.DEB.2.00.1208102313300.12235@blackhole.kfki.hu>
- <CAK6Qs9mHoV9GSNmDpA_3feR=x-aNOWAGHH9+0DcPsCYCyiOrNg@mail.gmail.com>
+From: Stephen Clark <sclark46@earthlink.net>
+Subject: nat not working as expected
+Date: Mon, 13 Aug 2012 13:50:25 -0400
+Message-ID: <50293E61.8080308@earthlink.net>
+Reply-To: sclark46@earthlink.net
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: =?UTF-8?Q?=C4=B0brahim_Ercan?= <ibrahim.ercan@engineer.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:52597 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751497Ab2HMMD3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Aug 2012 08:03:29 -0400
-In-Reply-To: <CAK6Qs9mHoV9GSNmDpA_3feR=x-aNOWAGHH9+0DcPsCYCyiOrNg@mail.gmail.com>
+Received: from elasmtp-spurfowl.atl.sa.earthlink.net ([209.86.89.66]:58994
+	"EHLO elasmtp-spurfowl.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750861Ab2HMRu1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Aug 2012 13:50:27 -0400
+Received: from [69.22.83.100] (helo=joker.seclark.com)
+	by elasmtp-spurfowl.atl.sa.earthlink.net with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.67)
+	(envelope-from <sclark46@earthlink.net>)
+	id 1T0ymY-0000iH-Ja
+	for netfilter-devel@vger.kernel.org; Mon, 13 Aug 2012 13:50:26 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 13 Aug 2012, ?brahim Ercan wrote:
+Hello,
 
-> On 11 August 2012 00:16, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> wrote:
-> > On Fri, 10 Aug 2012, Jozsef Kadlecsik wrote:
-> >
-> >> On Fri, 10 Aug 2012, ?brahim Ercan wrote:
-> >>
-> >> > Hi. This is my first post. Sorry if there is impropriety. Here is the story.
-> >> >
-> >> >  I made rpm packet 6.13 for centos 5. While compilation, I got these errors:
-> >> >
-> >> > ipset v6.13: Syntax error: IP address or IP/cidr must be specified:
-> >> > 1.2.3.4-1.2.3.10
-> >> > print.c:675: error: ?IPPROTO_UDPLITE? undeclared (first use in this function)
-> >> >
-> >> > Then I added below lines to needed files(print.c , parse.c) and
-> >> > problem solved and I installed rpm.
-> >> >
-> >> > #ifndef IPPROTO_UDPLITE
-> >> > #define IPPROTO_UDPLITE 136 /* from IANA */
-> >> > #endif
-> >> >
-> >> >
-> >> > Now I need to use hash:net and insert ip range. When I call following
-> >> > commands, I get error.
-> >> >
-> >> > # ipset create foo hash:net family inet
-> >> > # ipset add foo 192.168.0.1-192.168.0.20
-> >> > ipset v6.13: Syntax error: IP address or IP/cidr must be specified:
-> >> > 192.168.0.1-192.168.0.20
-> >> >
-> >> > Here is some information
-> >> > kernel 3.0.4
-> >> > ipset 6.13
-> >> > iptables 1.4.14
-> >>
-> >> I'm unable to reproduce this.
-> >
-> > Ohh, you need the kernel modules from the ipset package itself.
-> 
-> I checked all modules, there is no missing. Here is kernel config
-> CONFIG_IP_SET=m
-> CONFIG_IP_SET_MAX=2560
-> CONFIG_IP_SET_BITMAP_IP=m
-> CONFIG_IP_SET_BITMAP_IPMAC=m
-> CONFIG_IP_SET_BITMAP_PORT=m
-> CONFIG_IP_SET_HASH_IP=m
-> CONFIG_IP_SET_HASH_IPPORT=m
-> CONFIG_IP_SET_HASH_IPPORTIP=m
-> CONFIG_IP_SET_HASH_IPPORTNET=m
-> CONFIG_IP_SET_HASH_NET=m
-> CONFIG_IP_SET_HASH_NETPORT=m
-> CONFIG_IP_SET_LIST_SET=m
-> 
-> By the way gcc version I used is 4.1.2 if you need.
+I have a problem I am trying to solve and nat doesn't seem to be 
+working. I have a set of ip addresses I don't
+want to go thru my transparent proxy so I have the following:
 
-The kernel modules in 3.0.4 are behind of the modules from the ipset 
-package.
+  Chain PREROUTING (policy ACCEPT 1413 packets, 206K bytes)
+  pkts bytes target     prot opt in     out     source               
+destination
+     0     0 ACCEPT     tcp  --  eth0   *       10.254.150.0/24      
+10.0.0.0/8          tcp dpt:80
+...
+     0     0 ACCEPT     tcp  --  eth0   *       10.254.150.0/24      
+8.15.7.123          tcp dpt:80
+     2   120 ACCEPT     tcp  --  eth0   *       10.254.150.0/24      
+216.16.243.121      tcp dpt:80
+     0     0 ACCEPT     tcp  --  eth0   *       10.254.150.0/24      
+216.16.242.222      tcp dpt:80
+  ...
+     0     0 ACCEPT     tcp  --  eth0   *       10.254.150.0/24      
+216.171.106.210     tcp dpt:80
+     0     0 DNAT       tcp  --  eth0   *       10.254.150.0/24      
+0.0.0.0/0           tcp dpt:80 to:10.254.150.1:8080
 
-You need the kernel modules from the ipset package if you want the range 
-support in the hash:*net* types.
+Chain POSTROUTING (policy ACCEPT 922 packets, 81534 bytes)
+  pkts bytes target     prot opt in     out     source               
+destination
+     0     0 ACCEPT     all  --  *      eth1    10.254.150.0/24      
+10.0.0.0/8
+     0     0 ACCEPT     all  --  *      eth1    10.254.150.0/24      
+172.16.0.0/12
+     0     0 ACCEPT     all  --  *      eth1    10.254.150.0/24      
+192.168.0.0/16
+     0     0 SNAT       all  --  *      eth1    10.254.150.0/24      
+0.0.0.0/0           to:xxx.xxx.149.209
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+My packet hits the pre-routing chain and is accepted but then seems to 
+get lost, it doesn't get
+natted and go out my external interface.
+
+tcpdump on internal interface:
+13:33:03.157163 IP 10.254.150.91.53169 > 216.16.243.121.http: Flags [S], 
+seq 1127713574, win 5840, options [mss 1460,sackOK,TS val 2344806144 ecr 
+0,nop,wscale 6], length 0
+
+nothing shows on external interface:
+
+The routing looks correct.
+$ ip r g 216.16.243.121
+216.16.243.121 via xxx.xxx.149.1 dev eth1  src xxx.xxx.149.209
+
+
+What am I missing?
+
+Thanks for your indulgence,
+Steve
+
+
+
