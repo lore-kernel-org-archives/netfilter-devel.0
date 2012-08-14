@@ -1,40 +1,76 @@
-From: Jan Krcmar <honza801@gmail.com>
-Subject: Xtables-addons: man/SYSRQ sample script
-Date: Tue, 14 Aug 2012 11:48:24 +0200
-Message-ID: <CAKneAXmP=_xR5UQzawtiN-9pRvTnX00fRP6num6=Q7RtCKzJxw@mail.gmail.com>
+From: Florian Weimer <fweimer@redhat.com>
+Subject: [PATCH] mnl_attr_get_str: document that the result is not NUL-terminated
+Date: Tue, 14 Aug 2012 12:19:16 +0200
+Message-ID: <502A2624.6050701@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/mixed;
+ boundary="------------070407050204050505010108"
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:59250 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753519Ab2HNJsZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Aug 2012 05:48:25 -0400
-Received: by eaac11 with SMTP id c11so70330eaa.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Aug 2012 02:48:24 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:13146 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755844Ab2HNKTS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Aug 2012 06:19:18 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q7EAJIKw005442
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Aug 2012 06:19:18 -0400
+Received: from dhcp-5-241.str.redhat.com (dhcp-5-241.str.redhat.com [10.32.5.241])
+	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id q7EAJGve010760
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Aug 2012 06:19:18 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-hi,
+This is a multi-part message in MIME format.
+--------------070407050204050505010108
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-please add the information to the man page of xtables-addons section SYSRQ
+Hi,
 
-using ipv6 one must use non-shortened format, otherwise it does not work
+while reviewing from libmnl-using code, I discovered that the result of 
+mnl_attr_get_str was used as a NUL-terminated string, although in 
+reality the string wasn't.  I think this should be mentioned in the 
+documentation.
 
-eg.
-2001:0db8:0000:0000:0000:ff00:0042:8329
+Florian
+-- 
+Florian Weimer / Red Hat Product Security Team
 
-not
-2001:0db8::ff00:0042:8329
-the xt_SYSRQ module logs "Bad digest, expected..."
+--------------070407050204050505010108
+Content-Type: text/x-patch;
+ name="0001-mnl_attr_get_str-document-that-the-result-is-not-NUL.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0001-mnl_attr_get_str-document-that-the-result-is-not-NUL.pa";
+ filename*1="tch"
 
-as the man page says "IPv6 adress should be in the form recommended by
-RFC 5952".
-this rfc recommends "4.2.1.  Shorten as Much as Possible" but this
-does not correct for this module
+>From 1e4b192907eb15f4fbfd581c8c0fa8359aa9439f Mon Sep 17 00:00:00 2001
+From: Florian Weimer <fweimer@redhat.com>
+Date: Tue, 14 Aug 2012 12:16:32 +0200
+Subject: [PATCH] mnl_attr_get_str: document that the result is not
+ NUL-terminated
 
-i'm using xtables-addons v1.45, archlinux, kernel 3.4.8-1
+Signed-off-by: Florian Weimer <fweimer@redhat.com>
+---
+ src/attr.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-thanks
-fous
+diff --git a/src/attr.c b/src/attr.c
+index 1136c50..c890bf2 100644
+--- a/src/attr.c
++++ b/src/attr.c
+@@ -393,6 +393,7 @@ EXPORT_SYMBOL(mnl_attr_get_u64);
+  * \param attr pointer to netlink attribute
+  *
+  * This function returns the payload of string attribute value.
++ * Note that the string is not necessarily NUL-terminated.
+  */
+ const char *mnl_attr_get_str(const struct nlattr *attr)
+ {
+-- 
+1.7.7.6
+
+
+--------------070407050204050505010108--
