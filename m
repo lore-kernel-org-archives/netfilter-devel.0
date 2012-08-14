@@ -1,66 +1,30 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: Re: [PATCH] [NETFILTER] bridge: rcu_deref outside read-lock section
-Date: Mon, 13 Aug 2012 16:36:41 -0700
-Message-ID: <20120813163641.69a8388a@nehalam.linuxnetplumber.net>
-References: <1344898062-23633-1-git-send-email-yefremov.denis@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 01/19] netfilter: nf_ct_sip: fix helper name
+Date: Tue, 14 Aug 2012 02:00:56 +0200
+Message-ID: <20120814000056.GA14483@1984>
+References: <1344542943-11588-1-git-send-email-kaber@trash.net>
+ <1344542943-11588-2-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-	ldv-project@ispras.ru
-To: Denis Efremov <yefremov.denis@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1344898062-23633-1-git-send-email-yefremov.denis@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: kaber@trash.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:33570 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755221Ab2HNABD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Aug 2012 20:01:03 -0400
+Content-Disposition: inline
+In-Reply-To: <1344542943-11588-2-git-send-email-kaber@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 14 Aug 2012 02:47:42 +0400
-Denis Efremov <yefremov.denis@gmail.com> wrote:
+On Thu, Aug 09, 2012 at 10:08:45PM +0200, kaber@trash.net wrote:
+> From: Patrick McHardy <kaber@trash.net>
+> 
+> Commit 3a8fc53a (netfilter: nf_ct_helper: allocate 16 bytes for the helper
+> and policy names) introduced a bug in the SIP helper, the helper name is
+> sprinted to the sip_names array instead of instead of into the helper
+> structure. This breaks the helper match and the /proc/net/nf_conntrack_expect
+> output.
 
-> As it noted in the comment before the br_handle_frame_finish
-> function, this function should be called under rcu_read_lock.
-> 
-> The problem callgraph:
-> br_dev_xmit -> br_nf_pre_routing_finish_bridge_slow ->
-> -> br_handle_frame_finish -> br_port_get_rcu -> rcu_dereference
-> 
-> And in this case there is no read-lock section.
-> I have put lock/unlock in br_nf_pre_routing_finish_bridge_slow,
-> as the only function that calls it(for now) - is br_dev_xmit.
-> 
-> Found by Linux Driver Verification project (linuxtesting.org).
-> 
-> Signed-off-by: Denis Efremov <yefremov.denis@gmail.com>
-> ---
->  include/linux/netfilter_bridge.h |    6 +++++-
->  1 files changed, 5 insertions(+), 1 deletions(-)
-> 
-> diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
-> index 31d2844..ceb048e 100644
-> --- a/include/linux/netfilter_bridge.h
-> +++ b/include/linux/netfilter_bridge.h
-> @@ -79,6 +79,7 @@ extern int br_handle_frame_finish(struct sk_buff *skb);
->  /* Only used in br_device.c */
->  static inline int br_nf_pre_routing_finish_bridge_slow(struct sk_buff *skb)
->  {
-> +	int res;
->  	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
->  
->  	skb_pull(skb, ETH_HLEN);
-> @@ -86,7 +87,10 @@ static inline int br_nf_pre_routing_finish_bridge_slow(struct sk_buff *skb)
->  	skb_copy_to_linear_data_offset(skb, -(ETH_HLEN-ETH_ALEN),
->  				       skb->nf_bridge->data, ETH_HLEN-ETH_ALEN);
->  	skb->dev = nf_bridge->physindev;
-> -	return br_handle_frame_finish(skb);
-> +	rcu_read_lock();
-> +	res = br_handle_frame_finish(skb);
-> +	rcu_read_unlock();
-> +	return res;
->  }
->  
->  /* This is called by the IP fragmenting code and it ensures there is
-
-Why not just move the rcu_read_lock() in br_dev_xmit earlier?
+Applied, thanks Patrick.
