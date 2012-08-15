@@ -1,45 +1,49 @@
-From: John <contact@bestnycwebdesign.com>
-Subject: routerwired.com
-Date: Wed, 15 Aug 2012 15:30:22 -0400
-Message-ID: <d898f82eb6099f66ad1f4b5cf59c3f68@static.newdomain10.com>
-Reply-To: contact@bestnycwebdesign.com
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] bridge: fix rcu dereference outside of rcu_read_lock
+Date: Wed, 15 Aug 2012 15:10:25 -0700 (PDT)
+Message-ID: <20120815.151025.1185439989487730645.davem@davemloft.net>
+References: <1344898062-23633-1-git-send-email-yefremov.denis@gmail.com>
+	<1344931732-1858-1-git-send-email-yefremov.denis@gmail.com>
+	<20120814081933.30f3e868@nehalam.linuxnetplumber.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: netfilter-devel@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: yefremov.denis@gmail.com, pablo@netfilter.org, kaber@trash.net,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+	ldv-project@ispras.ru
+To: shemminger@vyatta.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from newdomain10.com ([209.173.135.146]:50852 "EHLO
-	centos.newdomain10.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751785Ab2HOTac (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:52405 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751287Ab2HOWK2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Aug 2012 15:30:32 -0400
-Received: from localhost ([127.0.0.1]:46108 helo=static.newdomain10.com)
-	by centos.newdomain10.com with esmtpa (Exim 4.77)
-	(envelope-from <contact@bestnycwebdesign.com>)
-	id 1T1jIM-0006eW-TX
-	for netfilter-devel@vger.kernel.org; Wed, 15 Aug 2012 15:30:22 -0400
+	Wed, 15 Aug 2012 18:10:28 -0400
+In-Reply-To: <20120814081933.30f3e868@nehalam.linuxnetplumber.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-I would like to know if you would have an interest in purchasing routerwired.com.
+From: Stephen Hemminger <shemminger@vyatta.com>
+Date: Tue, 14 Aug 2012 08:19:33 -0700
 
-routerwired.com can provide a SEO boost in this market, which can provide lead generation and
-increase your overall traffic. It can also help improve, secure, and protect your web branding
-identity.
+> Alternative solution for problem found by Linux Driver Verification
+> project (linuxtesting.org).
+> 
+> As it noted in the comment before the br_handle_frame_finish
+> function, this function should be called under rcu_read_lock.
+> 
+> The problem callgraph:
+> br_dev_xmit -> br_nf_pre_routing_finish_bridge_slow ->
+>  -> br_handle_frame_finish -> br_port_get_rcu -> rcu_dereference
+> 
+> And in this case there is no read-lock section.
+> 
+> Reported-by: Denis Efremov <yefremov.denis@gmail.com>
+> Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
 
-The price for this domain is just $275.  I am reaching out to other related businesses in the next
-few days, and this domain will go to the first company who replies.
+Applied, thanks Stephen.
 
-Once payment is received, your domain will be transferred by the end of the business day.
-
-Thank you,
-John
-1-513-386-9808
-1040 Hosbrook Dr. Cincinnati, OH 45236
-I do my best to only send very targeted emails to people who I think will benefit from them.
-If you feel that you received this email in error or would not like to receive any future
-opportunities:
-Unsubscribe: http://webdevelopmentincincinnati.com/unsubscribe.php?id=3643338&h=4d7eec
-
+Please CC: this to netdev next time.  It's in a grey area whether I or
+the netfilter folks should apply this one, and here I'm deciding to
+take care of it.
 
