@@ -1,63 +1,84 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: [PATCH] bridge: fix rcu dereference outside of rcu_read_lock
-Date: Tue, 14 Aug 2012 08:19:33 -0700
-Message-ID: <20120814081933.30f3e868@nehalam.linuxnetplumber.net>
-References: <1344898062-23633-1-git-send-email-yefremov.denis@gmail.com>
-	<1344931732-1858-1-git-send-email-yefremov.denis@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: "David S. Miller" <davem@davemloft.net>, pablo@netfilter.org,
-	kaber@trash.net, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, coreteam@netfilter.org,
-	linux-kernel@vger.kernel.org, ldv-project@ispras.ru
-To: Denis Efremov <yefremov.denis@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1344931732-1858-1-git-send-email-yefremov.denis@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: pablo@netfilter.org
+Subject: [PATCH] netfilter: nf_ct_expect: fix possible access to uninitialized timer
+Date: Wed, 15 Aug 2012 02:43:42 +0200
+Message-ID: <1344991422-2514-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:47544 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751288Ab2HOAon (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Aug 2012 20:44:43 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Alternative solution for problem found by Linux Driver Verification
-project (linuxtesting.org).
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-As it noted in the comment before the br_handle_frame_finish
-function, this function should be called under rcu_read_lock.
+In __nf_ct_expect_check, the function refresh_timer returns 1
+if a matching expectation is found and its timer is successfully
+refreshed. This results in nf_ct_expect_related returning 0.
+Note that at this point:
 
-The problem callgraph:
-br_dev_xmit -> br_nf_pre_routing_finish_bridge_slow ->
- -> br_handle_frame_finish -> br_port_get_rcu -> rcu_dereference
+- the passed expectation is not inserted in the expectation table
+  and its timer was not initialized, since we have refreshed one
+  matching/existing expectation.
 
-And in this case there is no read-lock section.
+- nf_ct_expect_alloc uses kmem_cache_alloc, so the expectation
+  timer is in some undefined state just after the allocation,
+  until it is appropriately initialized.
 
-Reported-by: Denis Efremov <yefremov.denis@gmail.com>
-Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+This can be a problem for the SIP helper during the expectation
+addition:
+
+ ...
+ if (nf_ct_expect_related(rtp_exp) == 0) {
+         if (nf_ct_expect_related(rtcp_exp) != 0)
+                 nf_ct_unexpect_related(rtp_exp);
+ ...
+
+Note that nf_ct_expect_related(rtp_exp) may return 0 for the timer refresh
+case that is detailed above. Then, if nf_ct_unexpect_related(rtcp_exp)
+returns != 0, nf_ct_unexpect_related(rtp_exp) is called, which does:
+
+ spin_lock_bh(&nf_conntrack_lock);
+ if (del_timer(&exp->timeout)) {
+         nf_ct_unlink_expect(exp);
+         nf_ct_expect_put(exp);
+ }
+ spin_unlock_bh(&nf_conntrack_lock);
+
+Note that del_timer always returns false if the timer has been
+initialized.  However, the timer was not initialized since setup_timer
+was not called, therefore, the expectation timer remains in some
+undefined state. If I'm not missing anything, this may lead to the
+removal an unexistent expectation.
+
+I think this can be the source of the problem described by:
+http://marc.info/?l=netfilter-devel&m=134073514719421&w=2
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/br_device.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_expect.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/net/bridge/br_device.c b/net/bridge/br_device.c
-index 3334845..8a3b50f 100644
---- a/net/bridge/br_device.c
-+++ b/net/bridge/br_device.c
-@@ -31,9 +31,11 @@ netdev_tx_t br_dev_xmit(struct sk_buff *skb, struct net_device *dev)
- 	struct net_bridge_mdb_entry *mdst;
- 	struct br_cpu_netstats *brstats = this_cpu_ptr(br->stats);
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 45cf602..b16e70d 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -436,6 +436,13 @@ int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
+ {
+ 	int ret;
  
-+	rcu_read_lock();
- #ifdef CONFIG_BRIDGE_NETFILTER
- 	if (skb->nf_bridge && (skb->nf_bridge->mask & BRNF_BRIDGED_DNAT)) {
- 		br_nf_pre_routing_finish_bridge_slow(skb);
-+		rcu_read_unlock();
- 		return NETDEV_TX_OK;
- 	}
- #endif
-@@ -48,7 +50,6 @@ netdev_tx_t br_dev_xmit(struct sk_buff *skb, struct net_device *dev)
- 	skb_reset_mac_header(skb);
- 	skb_pull(skb, ETH_HLEN);
- 
--	rcu_read_lock();
- 	if (is_broadcast_ether_addr(dest))
- 		br_flood_deliver(br, skb);
- 	else if (is_multicast_ether_addr(dest)) {
++	/* Make sure that nf_ct_unexpect_related always gets an initialized
++	 * timer for the case in which one matching expectation is refreshed
++	 * (and thus, this expectation is not inserted).
++	 */
++	setup_timer(&exp->timeout, nf_ct_expectation_timed_out,
++		    (unsigned long)exp);
++
+ 	spin_lock_bh(&nf_conntrack_lock);
+ 	ret = __nf_ct_expect_check(expect);
+ 	if (ret <= 0)
 -- 
 1.7.10.4
+
