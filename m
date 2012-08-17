@@ -1,52 +1,50 @@
-From: pablo@netfilter.org
-Subject: [PATCH 4/5] netfilter: ctnetlink: fix missing locking while changing conntrack from nfqueue
-Date: Fri, 17 Aug 2012 16:09:32 +0200
-Message-ID: <1345212573-3076-5-git-send-email-pablo@netfilter.org>
-References: <1345212573-3076-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+From: Michal =?utf-8?B?S3ViZcSNZWs=?= <mkubecek@suse.cz>
+Subject: Re: [RFC Patch net-next] ipv6: unify conntrack reassembly expire code with standard one
+Date: Fri, 17 Aug 2012 19:05:57 +0200
+Message-ID: <1826853.rak2U42CMU@alaris>
+References: <1345190565-21689-1-git-send-email-amwang@redhat.com>
+Reply-To: Michal =?utf-8?B?S3ViZcSNZWs=?= <mkubecek@suse.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Cc: netdev@vger.kernel.org, Herbert Xu <herbert@gondor.hengli.com.au>,
+	"David S. Miller" <davem@davemloft.net>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Shan Wei <shanwei@cn.fujitsu.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: Cong Wang <amwang@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48157 "EHLO mail.us.es"
+Received: from cantor2.suse.de ([195.135.220.15]:44413 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756261Ab2HQOKt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 Aug 2012 10:10:49 -0400
-In-Reply-To: <1345212573-3076-1-git-send-email-pablo@netfilter.org>
+	id S1751938Ab2HQRGB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 17 Aug 2012 13:06:01 -0400
+In-Reply-To: <1345190565-21689-1-git-send-email-amwang@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+On Friday 17 of August 2012 16:02EN, Cong Wang wrote:
+> Two years ago, Shan Wei tried to fix this:
+> http://patchwork.ozlabs.org/patch/43905/
+> 
+...
+>
+> As Herbert suggested, we could actually use the standard IPv6
+> reassembly code which follows RFC2460.
 
-Since 9cb017665 netfilter: add glue code to integrate nfnetlink_queue and
-ctnetlink, we can modify the conntrack entry via nfnl_queue. However, the
-change of the conntrack entry via nfnetlink_queue requires appropriate
-locking to avoid concurrent updates.
+I tested the patch and I ran into a problem in this place in 
+ip6_expire_frag_queue():
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_netlink.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+>  	net = container_of(fq->q.net, struct net, ipv6.frags);
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 14f67a2..da4fc37 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1896,10 +1896,15 @@ static int
- ctnetlink_nfqueue_parse(const struct nlattr *attr, struct nf_conn *ct)
- {
- 	struct nlattr *cda[CTA_MAX+1];
-+	int ret;
- 
- 	nla_parse_nested(cda, CTA_MAX, attr, ct_nla_policy);
- 
--	return ctnetlink_nfqueue_parse_ct((const struct nlattr **)cda, ct);
-+	spin_lock_bh(&nf_conntrack_lock);
-+	ret = ctnetlink_nfqueue_parse_ct((const struct nlattr **)cda, ct);
-+	spin_unlock_bh(&nf_conntrack_lock);
-+
-+	return ret;
- }
- 
- static struct nfq_ct_hook ctnetlink_nfqueue_hook = {
--- 
-1.7.10.4
+For frag queues coming from IPv6 conntrack, fq->q.net points to 
+nf_init_frags which is not embedded into struct net so that the 
+following device lookup leads to reading from an invalid address.
+The same problem has been discussed on the page linked above.
+
+I didn't test with current net-next source but as far as I can tell, 
+this hasn't changed. Did I miss something?
+
+                                                     Michal Kubecek
 
