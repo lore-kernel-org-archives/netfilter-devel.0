@@ -1,125 +1,45 @@
-From: Jesper Dangaard Brouer <jbrouer@redhat.com>
-Subject: Re: [PATCH 05/19] netfilter: nf_conntrack_ipv6: improve
- fragmentation handling
-Date: Fri, 17 Aug 2012 10:06:35 +0200
-Message-ID: <1345190795.3069.228.camel@localhost>
-References: <1344542943-11588-1-git-send-email-kaber@trash.net>
-	 <1344542943-11588-6-git-send-email-kaber@trash.net>
+From: Florian Westphal <fw@strlen.de>
+Subject: nfqueue max copy_range broken, how to fix/mitigate?
+Date: Fri, 17 Aug 2012 11:12:07 +0200
+Message-ID: <20120817091207.GA12344@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: kaber@trash.net
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20057 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030893Ab2HQIGj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 Aug 2012 04:06:39 -0400
-In-Reply-To: <1344542943-11588-6-git-send-email-kaber@trash.net>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:33351 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752698Ab2HQJMI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 17 Aug 2012 05:12:08 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.72)
+	(envelope-from <fw@strlen.de>)
+	id 1T2Ib9-0001YS-6H
+	for netfilter-devel@vger.kernel.org; Fri, 17 Aug 2012 11:12:07 +0200
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2012-08-09 at 22:08 +0200, kaber@trash.net wrote:
-> From: Patrick McHardy <kaber@trash.net>
-> 
-> The IPv6 conntrack fragmentation currently has a couple of shortcomings.
-> Fragmentes are collected in PREROUTING/OUTPUT, are defragmented, the
-> defragmented packet is then passed to conntrack, the resulting conntrack
-> information is attached to each original fragment and the fragments then
-> continue their way through the stack.
-> 
-> Helper invocation occurs in the POSTROUTING hook, at which point only
-> the original fragments are available. The result of this is that
-> fragmented packets are never passed to helpers.
-> 
-> This patch improves the situation in the following way:
-> 
-> - If a reassembled packet belongs to a connection that has a helper
->   assigned, the reassembled packet is passed through the stack instead
->   of the original fragments.
+nf_queue claims to support copy size of up to 0xffff:
 
-I'm working on IPv6 fragment handling for IPVS, and are taking advantage
-of the "replay" by nf_ct_frag6_output() at hook prio -399
-(NF_IP6_PRI_CONNTRACK_DEFRAG + 1).
-By making a hook at NF_INET_PRE_ROUTING at prio -99 (NF_IP6_PRI_NAT_DST
-+ 1).
+case NFQNL_COPY_PACKET:
+        /* we're using struct nlattr which has 16bit nla_len */
+        if (range > 0xffff)
+               queue->copy_range = 0xffff;
 
-I can see that the code path can be changed (with this patch), if a
-helper is assigned.  Then the "replay" starts at prio -199
-(NF_IP6_PRI_CONNTRACK + 1), I guess I'm safe as I run at -99.
+Which is incorrect, as the maximum attribute size is 0xffff - NLA_HDRLEN.
+Thus, when trying to queue a maximum-sized IP packet, you get
+NFQA_PAYLOAD with nla->len = 4 (due to overflow), i.e. no payload at
+all.
 
-I have tested that your patchset works, with my ipvs patches, but would
-like the trigger the changed code path, to make sure.
+Since this is a limitation of netlink this isn't fixable in nfqueue.
+How to best handle this situation?
 
-Could you provide an iptables command/rule, that trigger this code path?
+We can either truncate and queue 0xffff - NLA_HDRLEN (i.e., cut off 4
+bytes from what will be queued), or we could refuse to queue the packet
+(userspace asked for the full packet, but we can't fullfill the
+ request).
 
+Any ideas/suggestions?
 
-[cut]
-
-> @@ -199,9 +200,13 @@ static unsigned int ipv6_confirm(unsigned int hooknum,
->  static unsigned int __ipv6_conntrack_in(struct net *net,
->  					unsigned int hooknum,
->  					struct sk_buff *skb,
-> +					const struct net_device *in,
-> +					const struct net_device *out,
->  					int (*okfn)(struct sk_buff *))
->  {
->  	struct sk_buff *reasm = skb->nfct_reasm;
-> +	struct nf_conn *ct;
-> +	enum ip_conntrack_info ctinfo;
->  
->  	/* This packet is fragmented and has reassembled packet. */
->  	if (reasm) {
-> @@ -213,6 +218,20 @@ static unsigned int __ipv6_conntrack_in(struct net *net,
->  			if (ret != NF_ACCEPT)
->  				return ret;
->  		}
-> +
-> +		/* Conntrack helpers need the entire reassembled packet in the
-> +		 * POST_ROUTING hook.
-> +		 */
-> +		ct = nf_ct_get(reasm, &ctinfo);
-> +		if (ct != NULL && test_bit(IPS_HELPER_BIT, &ct->status)) {
-> +			nf_conntrack_get_reasm(skb);
-> +			NF_HOOK_THRESH(NFPROTO_IPV6, hooknum, reasm,
-> +				       (struct net_device *)in,
-> +				       (struct net_device *)out,
-> +				       okfn, NF_IP6_PRI_CONNTRACK + 1);
-
-Hook prio change to NF_IP6_PRI_CONNTRACK + 1
-
-
-> +			return NF_DROP_ERR(-ECANCELED);
-> +		}
-
-[cut]
-
-> @@ -592,6 +599,7 @@ void nf_ct_frag6_output(unsigned int hooknum, struct sk_buff *skb,
->  			int (*okfn)(struct sk_buff *))
->  {
->  	struct sk_buff *s, *s2;
-> +	unsigned int ret = 0;
->  
->  	for (s = NFCT_FRAG6_CB(skb)->orig; s;) {
->  		nf_conntrack_put_reasm(s->nfct_reasm);
-> @@ -601,8 +609,13 @@ void nf_ct_frag6_output(unsigned int hooknum, struct sk_buff *skb,
->  		s2 = s->next;
->  		s->next = NULL;
->  
-> -		NF_HOOK_THRESH(NFPROTO_IPV6, hooknum, s, in, out, okfn,
-> -			       NF_IP6_PRI_CONNTRACK_DEFRAG + 1);
-> +		if (ret != -ECANCELED)
-> +			ret = NF_HOOK_THRESH(NFPROTO_IPV6, hooknum, s,
-> +					     in, out, okfn,
-> +					     NF_IP6_PRI_CONNTRACK_DEFRAG + 1);
-
-Old hook prio
-
-> +		else
-> +			kfree_skb(s);
-> +
->  		s = s2;
->  	}
->  	nf_conntrack_put_reasm(skb);
-
-
+Thanks,
+Florian
