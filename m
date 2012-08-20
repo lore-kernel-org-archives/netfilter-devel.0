@@ -1,42 +1,62 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/5] netfilter fixes for 3.6-rc
-Date: Mon, 20 Aug 2012 02:45:04 -0700 (PDT)
-Message-ID: <20120820.024504.634595271117672814.davem@davemloft.net>
-References: <1345212573-3076-1-git-send-email-pablo@netfilter.org>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH 11/11] netlink: add documentation for memory mapped I/O
+Date: Mon, 20 Aug 2012 12:32:36 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1208201224430.8114@frira.zrqbmnf.qr>
+References: <1345443532-3707-1-git-send-email-kaber@trash.net> <1345443532-3707-12-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Florian.Westphal@Sophos.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:52647 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753558Ab2HTJpF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Aug 2012 05:45:05 -0400
-In-Reply-To: <1345212573-3076-1-git-send-email-pablo@netfilter.org>
+Received: from seven.medozas.de ([5.9.24.206]:47028 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752418Ab2HTKci (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 20 Aug 2012 06:32:38 -0400
+In-Reply-To: <1345443532-3707-12-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: pablo@netfilter.org
-Date: Fri, 17 Aug 2012 16:09:28 +0200
 
-> The following five patches contain fixes for 3.6-rc, they are:
-> 
-> * Two fixes for message parsing in the SIP conntrack helper, from
->   Patrick McHardy.
-> 
-> * One fix for the SIP helper introduced in the user-space cthelper
->   infrastructure, from Patrick McHardy.
-> 
-> * fix missing appropriate locking while modifying one conntrack entry
->   from the nfqueue integration code, from myself.
-> 
-> * fix possible access to uninitiliazed timer in the nf_conntrack
->   expectation infrastructure, from myself.
-> 
-> You can pull these changes from:
-> 
-> git://1984.lsi.us.es/nf
+On Monday 2012-08-20 08:18, Patrick McHardy wrote:
+>+
+>+RX and TX rings
+>+----------------
+>+
+>+Each ring contains a number of continous memory blocks, containing frames of
+>+fixed size dependant on the parameters used for ring setup.
 
-Pulled, thanks Pablo.
+dependent
+
+>+The blocks are only visible to the kernel, from the point of view of user-space
+>+the ring just contains the frames in a continous memory zone.
+
+...to the kernel; from the user-space point of view, the ring...
+
+continuous (multiple occurrences)
+
+>+Ring frames
+>+------------
+>+
+>+Each frames contain a frame header, consisting of a synchronization word and some
+
+Each frame contains a frame header,
+
+>+The possible values in the status word are:
+>+
+>+- NL_MMAP_STATUS_UNUSED:
+>+	RX ring:	frame belongs to the kernel and contains no message
+
+The frame (mult)
+
+>+			for user-space. Approriate action is to invoke poll()
+>+			to wait for new messages.
+
+The appropriate (mult)
+
+>+			if (hdr->nm_status == NL_MMAP_STATUS_VALID)
+>+				/* Regular memory mapped frame */
+>+				nlh = (void *hdr) + NL_MMAP_HDRLEN;
+
+(void *)hdr + NL_MMAP_HDRLEN
+
