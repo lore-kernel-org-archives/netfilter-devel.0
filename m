@@ -1,33 +1,36 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 01/18] ipv4: fix path MTU discovery with connection
- tracking
-Date: Mon, 20 Aug 2012 12:59:45 +0200 (MEST)
-Message-ID: <Pine.GSO.4.63.1208201259390.24912@stinky-local.trash.net>
-References: <1345434006-16549-1-git-send-email-kaber@trash.net>
- <1345434006-16549-2-git-send-email-kaber@trash.net>
- <alpine.LNX.2.01.1208201002270.6101@frira.zrqbmnf.qr>
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: Re: [PATCH 05/19] netfilter: nf_conntrack_ipv6: improve
+ fragmentation handling
+Date: Mon, 20 Aug 2012 15:13:05 +0200
+Message-ID: <1345468385.3069.251.camel@localhost>
+References: <1344542943-11588-1-git-send-email-kaber@trash.net>
+	   <1344542943-11588-6-git-send-email-kaber@trash.net>
+	  <1345190795.3069.228.camel@localhost>
+	 <Pine.GSO.4.63.1208181423050.17600@stinky-local.trash.net>
+	 <1345405069.3069.241.camel@localhost>
+	 <Pine.GSO.4.63.1208192141570.3016@stinky-local.trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38400 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752905Ab2HTK7r (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Aug 2012 06:59:47 -0400
-In-Reply-To: <alpine.LNX.2.01.1208201002270.6101@frira.zrqbmnf.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <Pine.GSO.4.63.1208192141570.3016@stinky-local.trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 20 Aug 2012, Jan Engelhardt wrote:
+On Sun, 2012-08-19 at 21:44 +0200, Patrick McHardy wrote:
 
-> On Monday 2012-08-20 05:39, Patrick McHardy wrote:
->
->> IPv4 conntrack defragments incoming packet at the PRE_ROUTING hook and
->> (in case of forwarded packets) refragments them at POST_ROUTING
->> independant of the IP_DF flag.
->
-> "independent". (also in 06/18)
+> Could you send me your patch so I get a better picture of what you're 
+> doing exactly?
 
-Fixed, thanks.
+Okay, just posted the patchset.
+
+Specifically look at patch:
+ [PATCH 3/3] ipvs: Complete IPv6 fragment handling for IPVS
+
+Where I use the hook to copy the fw mark from the reasm SKB packet to
+the SKB fragments. (Perhaps, this could be done else were in the
+netfilter framework).
+
+--Jesper Brouer
