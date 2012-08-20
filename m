@@ -1,26 +1,217 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH 01/18] ipv4: fix path MTU discovery with connection
- tracking
-Date: Mon, 20 Aug 2012 10:04:40 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1208201002270.6101@frira.zrqbmnf.qr>
-References: <1345434006-16549-1-git-send-email-kaber@trash.net> <1345434006-16549-2-git-send-email-kaber@trash.net>
+Subject: Re: [PATCH 06/18] netfilter: add protocol independant NAT core
+Date: Mon, 20 Aug 2012 10:57:54 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1208201011480.6101@frira.zrqbmnf.qr>
+References: <1345434006-16549-1-git-send-email-kaber@trash.net> <1345434006-16549-7-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.medozas.de ([5.9.24.206]:45867 "EHLO seven.medozas.de"
+Received: from seven.medozas.de ([5.9.24.206]:46261 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755608Ab2HTIEl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Aug 2012 04:04:41 -0400
-In-Reply-To: <1345434006-16549-2-git-send-email-kaber@trash.net>
+	id S1753821Ab2HTI54 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 20 Aug 2012 04:57:56 -0400
+In-Reply-To: <1345434006-16549-7-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+
 On Monday 2012-08-20 05:39, Patrick McHardy wrote:
+> 
+> enum ctattr_nat {
+> 	CTA_NAT_UNSPEC,
+>-	CTA_NAT_MINIP,
+>-	CTA_NAT_MAXIP,
+>+	CTA_NAT_V4_MINIP,
+>+#define CTA_NAT_MINIP CTA_NAT_V4_MINIP
+>+	CTA_NAT_V4_MAXIP,
+>+#define CTA_NAT_MAXIP CTA_NAT_V4_MAXIP
+> 	CTA_NAT_PROTO,
+> 	__CTA_NAT_MAX
+> };
 
->IPv4 conntrack defragments incoming packet at the PRE_ROUTING hook and
->(in case of forwarded packets) refragments them at POST_ROUTING
->independant of the IP_DF flag.
+One could also
 
-"independent". (also in 06/18)
+enum ctattr_nat {
+   ...
+   __CTA_NAT_MAX,
+
+  CTA_NAT_MINIP = CTA_NAT_V4_MINIP,
+  CTA_NAT_MAXIP = CTA_NAT_V4_MAXIP,
+};
+
+to provide the old names.
+
+
+>diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+>index fcc543c..33372a1 100644
+>--- a/net/ipv4/netfilter/Kconfig
+>+++ b/net/ipv4/netfilter/Kconfig
+[...]
+> 
+>-config NF_NAT_NEEDED
+>-	bool
+>-	depends on NF_NAT
+>-	default y
+>-
+
+Could add "if NF_NAT_IPV4".."endif" block as appropriate around here,
+to save on all the extra "depend on NF_NAT_IPV4" clauses.
+
+> config IP_NF_TARGET_MASQUERADE
+> 	tristate "MASQUERADE target support"
+>-	depends on NF_NAT
+>+	depends on NF_NAT_IPV4
+> 	default m if NETFILTER_ADVANCED=n
+> 	help
+> 	  Masquerading is a special case of NAT: all outgoing connections are
+
+
+
+
+>+static int nf_nat_ipv4_in_range(const struct nf_conntrack_tuple *t,
+>+				const struct nf_nat_range *range)
+>+{
+>+	return ntohl(t->src.u3.ip) >= ntohl(range->min_addr.ip) &&
+>+	       ntohl(t->src.u3.ip) <= ntohl(range->max_addr.ip);
+>+}
+
+static bool ..
+
+>+static bool nf_nat_ipv4_manip_pkt(struct sk_buff *skb,
+>+				  unsigned int iphdroff,
+>+				  const struct nf_nat_l4proto *l4proto,
+>+				  const struct nf_conntrack_tuple *target,
+>+				  enum nf_nat_manip_type maniptype)
+>+{
+>+	struct iphdr *iph;
+>+	unsigned int hdroff;
+>+
+>+	if (!skb_make_writable(skb, iphdroff + sizeof(*iph)))
+>+		return false;
+>+
+>+	iph = (void *)skb->data + iphdroff;
+
+Is iph = ip_hdr(skb), hdroff = iphdroff+skb_iphdrlen(iph) not usable here?
+
+>+	hdroff = iphdroff + iph->ihl * 4;
+>+
+>+	if (!l4proto->manip_pkt(skb, &nf_nat_l3proto_ipv4, iphdroff, hdroff,
+>+				target, maniptype))
+>+		return false;
+>+	iph = (void *)skb->data + iphdroff;
+
+Is trying to avoid some GNU extensions a worthwhile goal? If so,
+iph = (struct iphdr *)(skb->data + iphdroff) should be used, like in:
+
+>+static void nf_nat_ipv4_csum_update(struct sk_buff *skb,
+>+				    unsigned int iphdroff, __sum16 *check,
+>+				    const struct nf_conntrack_tuple *t,
+>+				    enum nf_nat_manip_type maniptype)
+>+{
+>+	struct iphdr *iph = (struct iphdr *)(skb->data + iphdroff);
+>[...]
+>+}
+
+
+
+>+static void nf_nat_ipv4_csum_recalc(struct sk_buff *skb,
+>+				    u8 proto, void *data, __sum16 *check,
+>+				    int datalen, int oldlen)
+>+{
+>+	const struct iphdr *iph = ip_hdr(skb);
+>+	struct rtable *rt = skb_rtable(skb);
+>+
+>+	if (skb->ip_summed != CHECKSUM_PARTIAL) {
+>+		if (!(rt->rt_flags & RTCF_LOCAL) &&
+>+		    (!skb->dev || skb->dev->features & NETIF_F_V4_CSUM)) {
+>+			skb->ip_summed = CHECKSUM_PARTIAL;
+>+			skb->csum_start = skb_headroom(skb) +
+>+					  skb_network_offset(skb) +
+>+					  ip_hdrlen(skb);
+>+			skb->csum_offset = (void *)check - data;
+>+			*check = ~csum_tcpudp_magic(iph->saddr, iph->daddr,
+>+						    datalen, proto, 0);
+>+		} else {
+>+			*check = 0;
+>+			*check = csum_tcpudp_magic(iph->saddr, iph->daddr,
+>+						   datalen, proto,
+>+						   csum_partial(data, datalen,
+>+								0));
+>+			if (proto == IPPROTO_UDP && !*check)
+>+				*check = CSUM_MANGLED_0;
+>+		}
+>+	} else
+>+		inet_proto_csum_replace2(check, skb,
+>+					 htons(oldlen), htons(datalen), 1);
+>+}
+
+Here is a style factory trick: invert the condition such that the
+simple case is first, and the big one becomes an else if
+with a reduced indent:
+
+	if (skb->ip_summed == CHECKSUM_PARTIAL) {
+		inet_proto_csum_replace2(check, skb,
+					 htons(oldlen), htons(datalen), 1);
+	} else if (!(rt->rt_flags & RTCF_LOCAL) &&
+		    (!skb->dev || skb->dev->features & NETIF_F_V4_CSUM)) {
+		skb->ip_summed = CHECKSUM_PARTIAL;
+		skb->csum_start = skb_headroom(skb) +
+				  skb_network_offset(skb) +
+				  ip_hdrlen(skb);
+		skb->csum_offset = (void *)check - data;
+		*check = ~csum_tcpudp_magic(iph->saddr, iph->daddr,
+					    datalen, proto, 0);
+	} else {
+		*check = 0;
+		*check = csum_tcpudp_magic(iph->saddr, iph->daddr,
+					   datalen, proto,
+					   csum_partial(data, datalen,
+							0));
+		if (proto == IPPROTO_UDP && !*check)
+			*check = CSUM_MANGLED_0;
+	}
+
+
+>+static void __exit nf_nat_l3proto_ipv4_exit(void)
+>+{
+>+	nf_nat_l3proto_unregister(&nf_nat_l3proto_ipv4);
+>+	nf_nat_l4proto_unregister(NFPROTO_IPV4, &nf_nat_l4proto_icmp);
+>+}
+>+
+>+MODULE_LICENSE("GPL");
+>+MODULE_ALIAS("nf-nat-" __stringify(AF_INET));
+
+Technically, this would have to be NFPROTO_IPV4, though GNU C has yet
+to gain an extension to stringify enum constants..
+
+
+>+	/* 1) If this srcip/proto/src-proto-part is currently mapped,
+>+	 * and that same mapping gives a unique tuple within the given
+>+	 * range, use that.
+>+	 *
+>+	 * This is only required for source (ie. NAT/masq) mappings.
+>+	 * So far, we don't do local source mappings, so multiple
+>+	 * manips not an issue.
+           manips are not an issue.
+
+
+>-		/* nf_conntrack_alter_reply might re-allocate extension area */
+>+		/* nf_conntrack_alter_reply might re-allocate exntension aera */
+
+extension was correct :)
+
+>+	{
+>+		.name		= "SNAT",
+>+		.revision	= 1,
+>+		.target		= xt_snat_target_v1,
+>+		.targetsize	= sizeof(struct nf_nat_range),
+>+		.table		= "nat",
+>+		.hooks		= (1 << NF_INET_POST_ROUTING) |
+>+				  (1 << NF_INET_LOCAL_OUT),
+>+		.me		= THIS_MODULE,
+
+ .family = NFPROTO_UNSPEC,
+
+Just for completeness.
