@@ -1,57 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 02/11] net: add function to allocate skbuff head without
- data area
-Date: Mon, 20 Aug 2012 08:41:40 +0200 (MEST)
-Message-ID: <Pine.GSO.4.63.1208200841010.6655@stinky-local.trash.net>
-References: <1345443532-3707-1-git-send-email-kaber@trash.net>
- <1345443532-3707-3-git-send-email-kaber@trash.net> <1345444774.5158.241.camel@edumazet-glaptop>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH 01/18] ipv4: fix path MTU discovery with connection
+ tracking
+Date: Mon, 20 Aug 2012 09:41:24 +0200
+Message-ID: <1345448484.5158.247.camel@edumazet-glaptop>
+References: <1345434006-16549-1-git-send-email-kaber@trash.net>
+	 <1345434006-16549-2-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Florian.Westphal@Sophos.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1345444774.5158.241.camel@edumazet-glaptop>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:62835 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755572Ab2HTHl3 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 20 Aug 2012 03:41:29 -0400
+In-Reply-To: <1345434006-16549-2-git-send-email-kaber@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 20 Aug 2012, Eric Dumazet wrote:
+On Mon, 2012-08-20 at 05:39 +0200, Patrick McHardy wrote:
+> IPv4 conntrack defragments incoming packet at the PRE_ROUTING hook and
+> (in case of forwarded packets) refragments them at POST_ROUTING
+> independant of the IP_DF flag. Refragmentation uses the dst_mtu() of
+> the local route without caring about the original fragment sizes,
+> thereby breaking PMTUD.
+> 
+> This patch fixes this by keeping track of the largest received fragment
+> with IP_DF set and generates an ICMP fragmentation required error during
+> refragmentation if that size exceeds the MTU.
+> 
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
+> ---
 
-> On Mon, 2012-08-20 at 08:18 +0200, Patrick McHardy wrote:
->> Add a function to allocate a skbuff head without any data. This will be
->> used by memory mapped netlink to attached data from the mmaped area to
->> the skb.
->>
->> Additionally change skb_release_all() to check whether the skb has a
->> data area to allow the skb destructor to clear the data pointer in
->> case only a head has been allocated.
->
->      * ...
->
->>
->> +struct sk_buff *__alloc_skb_head(gfp_t gfp_mask, int node)
->> +{
->> +	struct sk_buff *skb;
->> +
->> +	/* Get the HEAD */
->> +	skb = kmem_cache_alloc_node(skbuff_head_cache,
->> +				    gfp_mask & ~__GFP_DMA, node);
->> +	if (!skb)
->> +		goto out;
->> +	prefetchw(skb);
->> +
->
-> This prefetch is probably not worth it, since you write on skb on the
-> following memset(). Cpu wont have enough 'time' to take benefit from
-> this hint.
+Acked-by: Eric Dumazet <edumazet@google.com>
 
-Right, I remember we talked about that before and I already removed it.
-Must have forgotten to actually commit that change, thanks!
 
->
->> +	/*
->> +	 * Only clear those fields we need to clear, not those that we will
->> +	 * actually initialise below. Hence, don't put any more fields after
->> +	 * the tail pointer in struct sk_buff!
->> +	 */
->> +	memset(skb, 0, offsetof(struct sk_buff, tail));
