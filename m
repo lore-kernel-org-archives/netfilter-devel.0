@@ -1,49 +1,69 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] libxt_tcp: print space before, not after "flags:"
-Date: Tue, 21 Aug 2012 12:37:10 +0200
-Message-ID: <20120821103710.GA31073@1984>
-References: <m2k3wt4iaz.fsf@igel.home>
+From: Cong Wang <amwang@redhat.com>
+Subject: Re: [RFC Patch net-next] ipv6: unify conntrack reassembly expire
+ code with standard one
+Date: Tue, 21 Aug 2012 21:38:58 +0800
+Message-ID: <1345556338.3044.1.camel@cr0>
+References: <1345190565-21689-1-git-send-email-amwang@redhat.com>
+	 <1826853.rak2U42CMU@alaris> <1345453599.22373.9.camel@cr0>
+	 <20120820202109.GB28790@unicorn.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Andreas Schwab <schwab@linux-m68k.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, Herbert Xu <herbert@gondor.hengli.com.au>,
+	"David S. Miller" <davem@davemloft.net>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Shan Wei <shanwei@cn.fujitsu.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: Michal Kubecek <mkubecek@suse.cz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59863 "EHLO mail.us.es"
+Received: from mx1.redhat.com ([209.132.183.28]:29159 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756344Ab2HUKhP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Aug 2012 06:37:15 -0400
-Content-Disposition: inline
-In-Reply-To: <m2k3wt4iaz.fsf@igel.home>
+	id S1751957Ab2HUNje (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Aug 2012 09:39:34 -0400
+In-Reply-To: <20120820202109.GB28790@unicorn.suse.cz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Aug 20, 2012 at 06:52:36PM +0200, Andreas Schwab wrote:
-> Signed-off-by: Andreas Schwab <schwab@linux-m68k.org>
-> ---
->  extensions/libxt_tcp.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
+On Mon, 2012-08-20 at 22:21 +0200, Michal Kubecek wrote:
+> On Mon, Aug 20, 2012 at 05:06:39PM +0800, Cong Wang wrote:
+> > doesn't work. I think we probably can save the struct net pointer in
+> > struct netns_frags during inet_frags_init_net(), so that container_of()
+> > can be eliminated. 
 > 
-> diff --git a/extensions/libxt_tcp.c b/extensions/libxt_tcp.c
-> index e849fa2..bbdec45 100644
-> --- a/extensions/libxt_tcp.c
-> +++ b/extensions/libxt_tcp.c
-> @@ -278,11 +278,10 @@ static void
->  print_flags(uint8_t mask, uint8_t cmp, int invert, int numeric)
->  {
->  	if (mask || invert) {
-> -		printf("flags:%s", invert ? "!" : "");
-> +		printf(" flags:%s", invert ? "!" : "");
->  		if (numeric)
-> -			printf(" 0x%02X/0x%02X", mask, cmp);
-> +			printf("0x%02X/0x%02X", mask, cmp);
->  		else {
-> -			printf(" ");
->  			print_tcpf(mask);
->  			printf("/");
->  			print_tcpf(cmp);
+> This would work but one would have to check carefully that the pointer
+> is always set to an usable value. Or we could just add a flag indicating
+> whether the structure is embedded (and if it is not, use init_net).
+> Another approach was suggested in the patchworks discussion: add a
+> special namespace for IPv6 conntrack fragment handling.
 
-Right, iptables -L -n is broken indeed:
+I think your former solution is easier, I will try it.
 
-tcp dpt:10flags: 0x17/0x02
+> 
+> > Thanks for testing! I tried to test it too, but seems I can't trigger a
+> > defragment. Any hints?
+> 
+> I used netfilter on a computer between source and destination of the 
+> packets (generated with "ping6 -s 3000"):
+> 
+> ip6tables -A FORWARD -o ... -m frag --fragid 0:0xFFFFFFFF --fraglast -j DROP
+> 
+> The --fragid condition is needed to work around a bug in iptables (if 
+> frag module is loaded and there is no --fragid, only packets with zero
+> fragment id match - patch for this is already in git). On the target,
+> packet is defragmented automatically, by default by the "normal" code,
+> with nf_conntrack_ipv6 module by the conntrack code.
+> 
+> Setting
+> 
+>   echo 5 >/proc/sys/net/ipv6/ip6frag_time
+>   echo 5 >/proc/sys/net/netfilter/nf_conntrack_frag6_timeout
+> 
+> on target also helps.
+> 
 
-Applied, thanks.
+Great! This helps!
+
+Thanks!
+
