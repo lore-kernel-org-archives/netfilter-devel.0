@@ -1,62 +1,90 @@
-From: Michal Kubecek <mkubecek@suse.cz>
-Subject: Re: [RFC Patch net-next] ipv6: unify conntrack reassembly expire
- code with standard one
-Date: Mon, 20 Aug 2012 22:21:09 +0200
-Message-ID: <20120820202109.GB28790@unicorn.suse.cz>
-References: <1345190565-21689-1-git-send-email-amwang@redhat.com>
- <1826853.rak2U42CMU@alaris>
- <1345453599.22373.9.camel@cr0>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH 3/3] netfilter: replace list_for_each_continue_rcu with
+ new interface
+Date: Mon, 20 Aug 2012 17:02:55 -0700
+Message-ID: <20120821000254.GP2435@linux.vnet.ibm.com>
+References: <502CB939.3050008@linux.vnet.ibm.com>
+ <502DC9A3.2070703@linux.vnet.ibm.com>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, Herbert Xu <herbert@gondor.hengli.com.au>,
-	"David S. Miller" <davem@davemloft.net>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Shan Wei <shanwei@cn.fujitsu.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Cong Wang <amwang@redhat.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org,
+	David Miller <davem@davemloft.net>, kaber@trash.net,
+	pablo@netfilter.org
+To: Michael Wang <wangyun@linux.vnet.ibm.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:34298 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754439Ab2HTUVL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Aug 2012 16:21:11 -0400
+Received: from e32.co.us.ibm.com ([32.97.110.150]:51791 "EHLO
+	e32.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751702Ab2HUAEZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 20 Aug 2012 20:04:25 -0400
+Received: from /spool/local
+	by e32.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <netfilter-devel@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
+	Mon, 20 Aug 2012 18:04:22 -0600
 Content-Disposition: inline
-In-Reply-To: <1345453599.22373.9.camel@cr0>
+In-Reply-To: <502DC9A3.2070703@linux.vnet.ibm.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Aug 20, 2012 at 05:06:39PM +0800, Cong Wang wrote:
-> doesn't work. I think we probably can save the struct net pointer in
-> struct netns_frags during inet_frags_init_net(), so that container_of()
-> can be eliminated. 
+On Fri, Aug 17, 2012 at 12:33:39PM +0800, Michael Wang wrote:
+> From: Michael Wang <wangyun@linux.vnet.ibm.com>
+> 
+> This patch replaces list_for_each_continue_rcu() with
+> list_for_each_entry_continue_rcu() to allow removing
+> list_for_each_continue_rcu().
+> 
+> Signed-off-by: Michael Wang <wangyun@linux.vnet.ibm.com>
 
-This would work but one would have to check carefully that the pointer
-is always set to an usable value. Or we could just add a flag indicating
-whether the structure is embedded (and if it is not, use init_net).
-Another approach was suggested in the patchworks discussion: add a
-special namespace for IPv6 conntrack fragment handling.
+Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 
-> Thanks for testing! I tried to test it too, but seems I can't trigger a
-> defragment. Any hints?
-
-I used netfilter on a computer between source and destination of the 
-packets (generated with "ping6 -s 3000"):
-
-ip6tables -A FORWARD -o ... -m frag --fragid 0:0xFFFFFFFF --fraglast -j DROP
-
-The --fragid condition is needed to work around a bug in iptables (if 
-frag module is loaded and there is no --fragid, only packets with zero
-fragment id match - patch for this is already in git). On the target,
-packet is defragmented automatically, by default by the "normal" code,
-with nf_conntrack_ipv6 module by the conntrack code.
-
-Setting
-
-  echo 5 >/proc/sys/net/ipv6/ip6frag_time
-  echo 5 >/proc/sys/net/netfilter/nf_conntrack_frag6_timeout
-
-on target also helps.
-
-                                                        Michal Kubecek
+> ---
+>  net/netfilter/core.c |   11 +++++++----
+>  1 files changed, 7 insertions(+), 4 deletions(-)
+> 
+> diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+> index e19f365..50225bd 100644
+> --- a/net/netfilter/core.c
+> +++ b/net/netfilter/core.c
+> @@ -131,14 +131,14 @@ unsigned int nf_iterate(struct list_head *head,
+>  			int hook_thresh)
+>  {
+>  	unsigned int verdict;
+> +	struct nf_hook_ops *elem = list_entry_rcu(*i,
+> +						struct nf_hook_ops, list);
+> 
+>  	/*
+>  	 * The caller must not block between calls to this
+>  	 * function because of risk of continuing from deleted element.
+>  	 */
+> -	list_for_each_continue_rcu(*i, head) {
+> -		struct nf_hook_ops *elem = (struct nf_hook_ops *)*i;
+> -
+> +	list_for_each_entry_continue_rcu(elem, head, list) {
+>  		if (hook_thresh > elem->priority)
+>  			continue;
+> 
+> @@ -155,11 +155,14 @@ repeat:
+>  				continue;
+>  			}
+>  #endif
+> -			if (verdict != NF_REPEAT)
+> +			if (verdict != NF_REPEAT) {
+> +				*i = &elem->list;
+>  				return verdict;
+> +			}
+>  			goto repeat;
+>  		}
+>  	}
+> +	*i = &elem->list;
+>  	return NF_ACCEPT;
+>  }
+> 
+> -- 
+> 1.7.4.1
+> 
+> 
 
