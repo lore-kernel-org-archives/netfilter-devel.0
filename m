@@ -1,90 +1,83 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH 3/3] netfilter: replace list_for_each_continue_rcu with
- new interface
-Date: Mon, 20 Aug 2012 17:02:55 -0700
-Message-ID: <20120821000254.GP2435@linux.vnet.ibm.com>
-References: <502CB939.3050008@linux.vnet.ibm.com>
- <502DC9A3.2070703@linux.vnet.ibm.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH 0/3] ipvs: IPv6 fragment handling for IPVS
+Date: Tue, 21 Aug 2012 14:24:15 +0900
+Message-ID: <20120821052415.GD14933@verge.net.au>
+References: <20120820130732.1509.13080.stgit@dragon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	netfilter@vger.kernel.org, coreteam@netfilter.org,
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	Hans Schillstrom <hans@schillstrom.com>,
+	lvs-devel@vger.kernel.org, Julian Anastasov <ja@ssi.bg>,
+	Wensong Zhang <wensong@linux-vs.org>,
 	netfilter-devel@vger.kernel.org,
-	David Miller <davem@davemloft.net>, kaber@trash.net,
-	pablo@netfilter.org
-To: Michael Wang <wangyun@linux.vnet.ibm.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from e32.co.us.ibm.com ([32.97.110.150]:51791 "EHLO
-	e32.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751702Ab2HUAEZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Aug 2012 20:04:25 -0400
-Received: from /spool/local
-	by e32.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <netfilter-devel@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
-	Mon, 20 Aug 2012 18:04:22 -0600
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jesper Dangaard Brouer <brouer@redhat.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <502DC9A3.2070703@linux.vnet.ibm.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20120820130732.1509.13080.stgit@dragon>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Aug 17, 2012 at 12:33:39PM +0800, Michael Wang wrote:
-> From: Michael Wang <wangyun@linux.vnet.ibm.com>
+On Mon, Aug 20, 2012 at 03:08:30PM +0200, Jesper Dangaard Brouer wrote:
+> The following patchset implement IPv6 fragment handling for IPVS.
 > 
-> This patch replaces list_for_each_continue_rcu() with
-> list_for_each_entry_continue_rcu() to allow removing
-> list_for_each_continue_rcu().
+> This work is based upon patches from Hans Schillstrom.  I have taken
+> over the patchset, in close agreement with Hans, because he don't have
+> (gotten allocated) time to complete his work.
 > 
-> Signed-off-by: Michael Wang <wangyun@linux.vnet.ibm.com>
+> I have cleaned up the patchset, changed the API a bit, fixed a refcnt
+> bug, and rebased on top of Julians recent changes. (All with Hans'es
+> knowledge)
+> 
+>  Patch01: is just unrelated trivial fixes.
+> 
+>  Patch02: Fix faulty IPv6 extension header handling in IPVS
+> 
+>  Patch03: Complete IPv6 fragment handling for IPVS
+> 
+> This patchset is based upon:
+>  Homes ipvs-next tree:
+>   git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git
+> 
+>  On top of commit 3654e61137db891f5312e6dd813b961484b5fdf3:
+>   ipvs: add pmtu_disc option to disable IP DF for TUN packets
 
-Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+I have no objection to these changes, but I would be more comfortable
+applying them after a review from Hans, Julian or Pablo.
 
+> 
 > ---
->  net/netfilter/core.c |   11 +++++++----
->  1 files changed, 7 insertions(+), 4 deletions(-)
 > 
-> diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-> index e19f365..50225bd 100644
-> --- a/net/netfilter/core.c
-> +++ b/net/netfilter/core.c
-> @@ -131,14 +131,14 @@ unsigned int nf_iterate(struct list_head *head,
->  			int hook_thresh)
->  {
->  	unsigned int verdict;
-> +	struct nf_hook_ops *elem = list_entry_rcu(*i,
-> +						struct nf_hook_ops, list);
-> 
->  	/*
->  	 * The caller must not block between calls to this
->  	 * function because of risk of continuing from deleted element.
->  	 */
-> -	list_for_each_continue_rcu(*i, head) {
-> -		struct nf_hook_ops *elem = (struct nf_hook_ops *)*i;
-> -
-> +	list_for_each_entry_continue_rcu(elem, head, list) {
->  		if (hook_thresh > elem->priority)
->  			continue;
-> 
-> @@ -155,11 +155,14 @@ repeat:
->  				continue;
->  			}
->  #endif
-> -			if (verdict != NF_REPEAT)
-> +			if (verdict != NF_REPEAT) {
-> +				*i = &elem->list;
->  				return verdict;
-> +			}
->  			goto repeat;
->  		}
->  	}
-> +	*i = &elem->list;
->  	return NF_ACCEPT;
->  }
-> 
-> -- 
-> 1.7.4.1
+> Jesper Dangaard Brouer (3):
+>       ipvs: Complete IPv6 fragment handling for IPVS
+>       ipvs: Fix faulty IPv6 extension header handling in IPVS
+>       ipvs: Trivial changes, use compressed IPv6 address in output
 > 
 > 
-
+>  include/net/ip_vs.h                     |  191 +++++++++++----
+>  net/netfilter/ipvs/Kconfig              |    7 -
+>  net/netfilter/ipvs/ip_vs_conn.c         |   15 -
+>  net/netfilter/ipvs/ip_vs_core.c         |  384 +++++++++++++++++--------------
+>  net/netfilter/ipvs/ip_vs_dh.c           |    2 
+>  net/netfilter/ipvs/ip_vs_lblc.c         |    2 
+>  net/netfilter/ipvs/ip_vs_lblcr.c        |    2 
+>  net/netfilter/ipvs/ip_vs_pe_sip.c       |   27 ++
+>  net/netfilter/ipvs/ip_vs_proto.c        |    6 
+>  net/netfilter/ipvs/ip_vs_proto_ah_esp.c |    9 -
+>  net/netfilter/ipvs/ip_vs_proto_sctp.c   |   42 +--
+>  net/netfilter/ipvs/ip_vs_proto_tcp.c    |   40 +--
+>  net/netfilter/ipvs/ip_vs_proto_udp.c    |   41 +--
+>  net/netfilter/ipvs/ip_vs_sched.c        |    2 
+>  net/netfilter/ipvs/ip_vs_sh.c           |    2 
+>  net/netfilter/ipvs/ip_vs_xmit.c         |   75 +++---
+>  net/netfilter/xt_ipvs.c                 |    4 
+>  17 files changed, 489 insertions(+), 362 deletions(-)
+> 
+> 
+> --
+> Best regards,
+>   Jesper Dangaard Brouer
+>   MSc.CS, Sr. Network Kernel Developer at Red Hat
+>   Author of http://www.iptv-analyzer.org
+>   LinkedIn: http://www.linkedin.com/in/brouer
+> 
