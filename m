@@ -1,32 +1,30 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 00/18] netfilter: IPv6 NAT
-Date: Thu, 23 Aug 2012 00:22:43 +0200
-Message-ID: <20120822222243.GA10342@1984>
-References: <1345434006-16549-1-git-send-email-kaber@trash.net>
- <20120822.022801.740821969974372752.davem@davemloft.net>
- <Pine.GSO.4.63.1208222322060.25423@stinky-local.trash.net>
- <20120822.144208.2245712403707914143.davem@davemloft.net>
+Subject: Re: [PATCH 3/3] netfilter: replace list_for_each_continue_rcu with
+ new interface
+Date: Thu, 23 Aug 2012 00:32:28 +0200
+Message-ID: <20120822223228.GA11141@1984>
+References: <502CB939.3050008@linux.vnet.ibm.com>
+ <502DC9A3.2070703@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org,
+	David Miller <davem@davemloft.net>, kaber@trash.net,
+	"paulmck@linux.vnet.ibm.com" <paulmck@linux.vnet.ibm.com>
+To: Michael Wang <wangyun@linux.vnet.ibm.com>
+Return-path: <netfilter-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20120822.144208.2245712403707914143.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <502DC9A3.2070703@linux.vnet.ibm.com>
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Aug 22, 2012 at 02:42:08PM -0700, David Miller wrote:
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Wed, 22 Aug 2012 23:23:53 +0200 (MEST)
+On Fri, Aug 17, 2012 at 12:33:39PM +0800, Michael Wang wrote:
+> From: Michael Wang <wangyun@linux.vnet.ibm.com>
 > 
-> > The NAT patches depend on a couple of fixes in Pablo's latest
-> > submission, if you could merge net.git into net-next.git, I can push
-> > them to Pablo without creating conflicts. Thanks!
-> 
-> I just did that right now, should show up on kernel.org shortly.
+> This patch replaces list_for_each_continue_rcu() with
+> list_for_each_entry_continue_rcu() to allow removing
+> list_for_each_continue_rcu().
 
-First, I'll pass you a Netfilter batch with 10 patches asap.
-
-Then, I'll refresh my tree and apply Patrick's NAT patches.
+Applied, thanks.
