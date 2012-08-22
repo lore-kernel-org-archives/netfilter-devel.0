@@ -1,66 +1,42 @@
-From: "Hans Schillstrom" <hans@schillstrom.com>
-Subject: Re[2]:  [PATCH 05/19] netfilter: nf_conntrack_ipv6: improve
-	fragmentation handling
-Date: Wed, 22 Aug 2012 07:01:24 +0200 (CEST)
-Message-ID: <mdaatbj.b2f3561b17fe4f00a6e947611a0959a1@obelix.schillstrom.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH 0/3] ipvs: IPv6 fragment handling for IPVS
+Date: Wed, 22 Aug 2012 15:42:04 +0900
+Message-ID: <20120822064204.GE20726@verge.net.au>
+References: <20120820130732.1509.13080.stgit@dragon>
+ <20120821052415.GD14933@verge.net.au>
+ <1345535487.3069.281.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "Patrick McHardy" <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	"Julian Anastasov" <ja@ssi.bg>,
-	"Hans Schillstrom" <hans.schillstrom@ericsson.com>
-To: "Jesper Dangaard Brouer" <brouer@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Julian Anastasov <ja@ssi.bg>, netdev@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>,
+	Hans Schillstrom <hans@schillstrom.com>,
+	LVS devel <lvs-devel@vger.kernel.org>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jesper Dangaard Brouer <brouer@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-gw11.han.skanova.net ([81.236.55.20]:38755 "EHLO
-	smtp-gw11.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751422Ab2HVFBd convert rfc822-to-8bit (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:57130 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753599Ab2HVGmH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Aug 2012 01:01:33 -0400
+	Wed, 22 Aug 2012 02:42:07 -0400
+Content-Disposition: inline
+In-Reply-To: <1345535487.3069.281.camel@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi
->
->On Sun, 2012-08-19 at 21:44 +0200, Patrick McHardy wrote:
->> On Sun, 19 Aug 2012, Jesper Dangaard Brouer wrote:
->> > On Sat, 2012-08-18 at 14:26 +0200, Patrick McHardy wrote:
->[...]
->
->> > Don't I need to load some of the helper modules, or just the
->> > nf_conntrack_ipv6 module, or perhaps only nf_defrag_ipv6 ?
->>=20
->> Not with the entire patchset, just IPv6 conntrack is enough. Aith IP=
-v6 NAT
->> the first packet of a connection must always be defragemented, indep=
-endant
->> of an assigned helper.
->
->When loading "nf_conntrack_ipv6" I run into issues.
->
->When sending a fragmented UDP packet.  With these patches, the IPVS
->stack will no longer see the fragmented packets, but instead see one
->large SKB.  This will trigger a MTU path check in e.g.
->ip_vs_dr_xmit_v6() and an ICMPv6 too big packet is send back.
->
->  IPVS: ip_vs_dr_xmit_v6(): frag needed
->
->Perhaps we could change/fix the MTU check in IPVS?
->(This would also solve issues I've seen with TSO/GSO frames, hitting
->this code path).
->
-I ran into this as well,=20
-try this for the mtu check.
+On Tue, Aug 21, 2012 at 09:51:27AM +0200, Jesper Dangaard Brouer wrote:
+> On Tue, 2012-08-21 at 14:24 +0900, Simon Horman wrote:
+> > I have no objection to these changes, but I would be more comfortable
+> > applying them after a review from Hans, Julian or Pablo.
+> > 
+> I would appreciate a review, especially from Julian.
+> 
+> I'm going to do some more extensive testing on the patchset, in this
+> week.  So, no hurry on applying these, we have time for a good review
+> process.
 
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0if ((!skb->local_df && skb->l=
-en > mtu && !skb_is_gso(skb)) ||
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 =C2=A0 =C2=A0(IP6CB(skb)->fr=
-ag_max_size && IP6CB(skb)->frag_max_size > mtu)) {
-
-/Hans
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks Jesper, and Julian and Hans who also responded.
+Let me know when you feel the series is ready to merge.
+I am also in no hurry.
