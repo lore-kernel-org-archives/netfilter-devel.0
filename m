@@ -1,54 +1,30 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re[2]:  [PATCH 05/19] netfilter: nf_conntrack_ipv6: improve
- fragmentation handling
-Date: Wed, 22 Aug 2012 10:16:59 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1208221014000.1698@ja.ssi.bg>
-References: <mdaatbj.b2f3561b17fe4f00a6e947611a0959a1@obelix.schillstrom.com> <alpine.LFD.2.00.1208220954260.1698@ja.ssi.bg>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/18] netfilter: IPv6 NAT
+Date: Wed, 22 Aug 2012 02:28:01 -0700 (PDT)
+Message-ID: <20120822.022801.740821969974372752.davem@davemloft.net>
+References: <1345434006-16549-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811672-1446726840-1345619819=:1698"
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>,
-	Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>
-To: Hans Schillstrom <hans@schillstrom.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1208220954260.1698@ja.ssi.bg>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: kaber@trash.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:51242 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752737Ab2HVJ2C (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Aug 2012 05:28:02 -0400
+In-Reply-To: <1345434006-16549-1-git-send-email-kaber@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+From: Patrick McHardy <kaber@trash.net>
+Date: Mon, 20 Aug 2012 05:39:48 +0200
 
----1463811672-1446726840-1345619819=:1698
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+> Following is the latest IPv6 NAT patchset, based on -rc2.
 
+Feel free to push patch #1 via the nf tree when give the
+final version of this to Pablo, and you can add my ACK to
+it as well if you like:
 
-	Hello,
-
-On Wed, 22 Aug 2012, Julian Anastasov wrote:
-
-> On Wed, 22 Aug 2012, Hans Schillstrom wrote:
-> 
-> > >Perhaps we could change/fix the MTU check in IPVS?
-> > >(This would also solve issues I've seen with TSO/GSO frames, hitting
-> > >this code path).
-> > >
-> > I ran into this as well, 
-> > try this for the mtu check.
-> > 
-> >        if ((!skb->local_df && skb->len > mtu && !skb_is_gso(skb)) ||
-> >            (IP6CB(skb)->frag_max_size && IP6CB(skb)->frag_max_size > mtu)) {
-> 
-> 	Better without local_df check, it is our job to
-> set it.
-
-	Ops, sorry. It seems now nf_ct_frag6_reasm (Patch 02/18)
-will set head->local_df = 1, so we should check local_df
-as Hans said.
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
----1463811672-1446726840-1345619819=:1698--
+Acked-by: David S. Miller <davem@davemloft.net>
