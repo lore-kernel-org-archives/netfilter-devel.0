@@ -1,27 +1,38 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net-next] ipv4/netfilter: remove unnecessary goto
- statement for error recovery
-Date: Thu, 23 Aug 2012 00:33:12 +0200
-Message-ID: <20120822223312.GB11141@1984>
-References: <1345425092-11905-1-git-send-email-sakiwit@gmail.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH 06/18] netfilter: add protocol independant NAT core
+Date: Thu, 23 Aug 2012 00:48:19 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1208230045480.22098@frira.zrqbmnf.qr>
+References: <1345434006-16549-1-git-send-email-kaber@trash.net> <1345434006-16549-7-git-send-email-kaber@trash.net> <alpine.LNX.2.01.1208201011480.6101@frira.zrqbmnf.qr> <Pine.GSO.4.63.1208230008220.5113@stinky-local.trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Jean Sacren <sakiwit@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1345425092-11905-1-git-send-email-sakiwit@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from seven.medozas.de ([5.9.24.206]:44199 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754501Ab2HVWsU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Aug 2012 18:48:20 -0400
+In-Reply-To: <Pine.GSO.4.63.1208230008220.5113@stinky-local.trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Aug 19, 2012 at 07:11:32PM -0600, Jean Sacren wrote:
-> Usually it's a good practice to use goto statement for error recovery
-> when initializing the module. This approach could be an overkill if:
-> 
->  1) there is only one fail case;
->  2) success and failure use the same return statement.
-> 
-> For a cleaner approach, remove the unnecessary goto statement and
-> directly implement error recovery.
 
-Applied, thanks Jean.
+On Thursday 2012-08-23 00:13, Patrick McHardy wrote:
+>>> +	iph = (void *)skb->data + iphdroff;
+>>
+>> Is trying to avoid some GNU extensions a worthwhile goal? If so,
+>> iph = (struct iphdr *)(skb->data + iphdroff) should be used, like in:
+>
+> I don't get your point.
+
+You are doing arithmetic with a void* pointer, which is a GNU extension.
+Should we try to limit "unnecessary excess usage" of GNU features?
+You could do arithmetic with the char* that skb->data is:
+
+ iph = (void *)(skb->data + iphdroff);
+
+or, if more clarity is desired, the more verbose form
+
+ iph = (struct iphdr *)(skb->data + iphdroff);
+
+Does this seem like something worthwhile to passively pursue?
