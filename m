@@ -1,42 +1,52 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH 0/3] ipvs: IPv6 fragment handling for IPVS
-Date: Wed, 22 Aug 2012 15:42:04 +0900
-Message-ID: <20120822064204.GE20726@verge.net.au>
-References: <20120820130732.1509.13080.stgit@dragon>
- <20120821052415.GD14933@verge.net.au>
- <1345535487.3069.281.camel@localhost>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re[2]:  [PATCH 05/19] netfilter: nf_conntrack_ipv6: improve
+ fragmentation handling
+Date: Wed, 22 Aug 2012 10:07:16 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1208220954260.1698@ja.ssi.bg>
+References: <mdaatbj.b2f3561b17fe4f00a6e947611a0959a1@obelix.schillstrom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Julian Anastasov <ja@ssi.bg>, netdev@vger.kernel.org,
+Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811672-1109582794-1345619249=:1698"
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>,
 	Patrick McHardy <kaber@trash.net>,
-	Hans Schillstrom <hans@schillstrom.com>,
-	LVS devel <lvs-devel@vger.kernel.org>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jesper Dangaard Brouer <brouer@redhat.com>
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>
+To: Hans Schillstrom <hans@schillstrom.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:57130 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753599Ab2HVGmH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Aug 2012 02:42:07 -0400
-Content-Disposition: inline
-In-Reply-To: <1345535487.3069.281.camel@localhost>
+Received: from ja.ssi.bg ([178.16.129.10]:52391 "EHLO ja.ssi.bg"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751632Ab2HVHGR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Aug 2012 03:06:17 -0400
+In-Reply-To: <mdaatbj.b2f3561b17fe4f00a6e947611a0959a1@obelix.schillstrom.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Aug 21, 2012 at 09:51:27AM +0200, Jesper Dangaard Brouer wrote:
-> On Tue, 2012-08-21 at 14:24 +0900, Simon Horman wrote:
-> > I have no objection to these changes, but I would be more comfortable
-> > applying them after a review from Hans, Julian or Pablo.
-> > 
-> I would appreciate a review, especially from Julian.
-> 
-> I'm going to do some more extensive testing on the patchset, in this
-> week.  So, no hurry on applying these, we have time for a good review
-> process.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Thanks Jesper, and Julian and Hans who also responded.
-Let me know when you feel the series is ready to merge.
-I am also in no hurry.
+---1463811672-1109582794-1345619249=:1698
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+
+
+	Hello,
+
+On Wed, 22 Aug 2012, Hans Schillstrom wrote:
+
+> >Perhaps we could change/fix the MTU check in IPVS?
+> >(This would also solve issues I've seen with TSO/GSO frames, hitting
+> >this code path).
+> >
+> I ran into this as well, 
+> try this for the mtu check.
+> 
+>        if ((!skb->local_df && skb->len > mtu && !skb_is_gso(skb)) ||
+>            (IP6CB(skb)->frag_max_size && IP6CB(skb)->frag_max_size > mtu)) {
+
+	Better without local_df check, it is our job to
+set it.
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
+---1463811672-1109582794-1345619249=:1698--
