@@ -1,51 +1,36 @@
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: [PATCH] ipvs: Fix GSO support for IPVS DR IPv6 mode
-Date: Wed, 22 Aug 2012 13:11:18 +0200
-Message-ID: <20120822111040.29174.4871.stgit@dragon>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 00/18] netfilter: IPv6 NAT
+Date: Wed, 22 Aug 2012 23:23:53 +0200 (MEST)
+Message-ID: <Pine.GSO.4.63.1208222322060.25423@stinky-local.trash.net>
+References: <1345434006-16549-1-git-send-email-kaber@trash.net>
+ <20120822.022801.740821969974372752.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, Julian Anastasov <ja@ssi.bg>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	netfilter-devel@vger.kernel.org
-To: Simon Horman <horms@verge.net.au>,
-	Hans Schillstrom <hans@schillstrom.com>,
-	lvs-devel@vger.kernel.org,
-	Jesper Dangaard Brouer <brouer@redhat.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:63254 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752765Ab2HVVXz (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Aug 2012 17:23:55 -0400
+In-Reply-To: <20120822.022801.740821969974372752.davem@davemloft.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-The MTU check in ip_vs_dr_xmit_v6() were missing a
-check for skb_is_gso().
+On Wed, 22 Aug 2012, David Miller wrote:
 
-This e.g. caused issues for KVM IPVS setups, where different
-Segmentation Offloading techniques are utilized, between guests,
-via the virtio driver.  This resulted in very bad performance,
-due to the ICMPv6 "too big" messages didn't affect the sender.
+> From: Patrick McHardy <kaber@trash.net>
+> Date: Mon, 20 Aug 2012 05:39:48 +0200
+>
+>> Following is the latest IPv6 NAT patchset, based on -rc2.
+>
+> Feel free to push patch #1 via the nf tree when give the
+> final version of this to Pablo, and you can add my ACK to
+> it as well if you like:
+>
+> Acked-by: David S. Miller <davem@davemloft.net>
 
-Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
-
----
-To Simon,
-This should perhaps go to stable?
-The patch is based on ipvs-next, but will apply on ipvs with an offset.
-Jesper
-
- net/netfilter/ipvs/ip_vs_xmit.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index 543a554..80c3006 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -1113,7 +1113,7 @@ ip_vs_dr_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
- 
- 	/* MTU checking */
- 	mtu = dst_mtu(&rt->dst);
--	if (skb->len > mtu) {
-+	if (skb->len > mtu && !skb_is_gso(skb))) {
- 		if (!skb->dev) {
- 			struct net *net = dev_net(skb_dst(skb)->dev);
- 
-
+Thanks, will do. The NAT patches depend on a couple of fixes in Pablo's
+latest submission, if you could merge net.git into net-next.git, I can
+push them to Pablo without creating conflicts. Thanks!
