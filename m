@@ -1,30 +1,51 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/11] netlink: memory mapped I/O
-Date: Wed, 22 Aug 2012 02:29:28 -0700 (PDT)
-Message-ID: <20120822.022928.1709843473935977957.davem@davemloft.net>
-References: <1345443532-3707-1-git-send-email-kaber@trash.net>
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: [PATCH] ipvs: Fix GSO support for IPVS DR IPv6 mode
+Date: Wed, 22 Aug 2012 13:11:18 +0200
+Message-ID: <20120822111040.29174.4871.stgit@dragon>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: Florian.Westphal@Sophos.com, netdev@vger.kernel.org,
+Cc: netdev@vger.kernel.org, Julian Anastasov <ja@ssi.bg>,
+	Wensong Zhang <wensong@linux-vs.org>,
 	netfilter-devel@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:51277 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752737Ab2HVJ33 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Aug 2012 05:29:29 -0400
-In-Reply-To: <1345443532-3707-1-git-send-email-kaber@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Simon Horman <horms@verge.net.au>,
+	Hans Schillstrom <hans@schillstrom.com>,
+	lvs-devel@vger.kernel.org,
+	Jesper Dangaard Brouer <brouer@redhat.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 20 Aug 2012 08:18:41 +0200
+The MTU check in ip_vs_dr_xmit_v6() were missing a
+check for skb_is_gso().
 
-> The following patches contain an implementation of memory mapped I/O for
-> netlink, rebased onto the current net-next tree. The implementation is
-> modelled after AF_PACKET memory mapped I/O with a few differences:
+This e.g. caused issues for KVM IPVS setups, where different
+Segmentation Offloading techniques are utilized, between guests,
+via the virtio driver.  This resulted in very bad performance,
+due to the ICMPv6 "too big" messages didn't affect the sender.
 
-Thanks for taking this work so far.  Let me know when you have a version
-with all the feedback integrated.
+Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+
+---
+To Simon,
+This should perhaps go to stable?
+The patch is based on ipvs-next, but will apply on ipvs with an offset.
+Jesper
+
+ net/netfilter/ipvs/ip_vs_xmit.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index 543a554..80c3006 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -1113,7 +1113,7 @@ ip_vs_dr_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 
+ 	/* MTU checking */
+ 	mtu = dst_mtu(&rt->dst);
+-	if (skb->len > mtu) {
++	if (skb->len > mtu && !skb_is_gso(skb))) {
+ 		if (!skb->dev) {
+ 			struct net *net = dev_net(skb_dst(skb)->dev);
+ 
+
