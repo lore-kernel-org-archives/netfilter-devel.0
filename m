@@ -1,36 +1,30 @@
-From: Patrick McHardy <kaber@trash.net>
+From: David Miller <davem@davemloft.net>
 Subject: Re: [PATCH 00/18] netfilter: IPv6 NAT
-Date: Wed, 22 Aug 2012 23:23:53 +0200 (MEST)
-Message-ID: <Pine.GSO.4.63.1208222322060.25423@stinky-local.trash.net>
+Date: Wed, 22 Aug 2012 14:42:08 -0700 (PDT)
+Message-ID: <20120822.144208.2245712403707914143.davem@davemloft.net>
 References: <1345434006-16549-1-git-send-email-kaber@trash.net>
- <20120822.022801.740821969974372752.davem@davemloft.net>
+	<20120822.022801.740821969974372752.davem@davemloft.net>
+	<Pine.GSO.4.63.1208222322060.25423@stinky-local.trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63254 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752765Ab2HVVXz (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:58416 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932094Ab2HVVmJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Aug 2012 17:23:55 -0400
-In-Reply-To: <20120822.022801.740821969974372752.davem@davemloft.net>
+	Wed, 22 Aug 2012 17:42:09 -0400
+In-Reply-To: <Pine.GSO.4.63.1208222322060.25423@stinky-local.trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 22 Aug 2012, David Miller wrote:
+From: Patrick McHardy <kaber@trash.net>
+Date: Wed, 22 Aug 2012 23:23:53 +0200 (MEST)
 
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Mon, 20 Aug 2012 05:39:48 +0200
->
->> Following is the latest IPv6 NAT patchset, based on -rc2.
->
-> Feel free to push patch #1 via the nf tree when give the
-> final version of this to Pablo, and you can add my ACK to
-> it as well if you like:
->
-> Acked-by: David S. Miller <davem@davemloft.net>
+> The NAT patches depend on a couple of fixes in Pablo's latest
+> submission, if you could merge net.git into net-next.git, I can push
+> them to Pablo without creating conflicts. Thanks!
 
-Thanks, will do. The NAT patches depend on a couple of fixes in Pablo's
-latest submission, if you could merge net.git into net-next.git, I can
-push them to Pablo without creating conflicts. Thanks!
+I just did that right now, should show up on kernel.org shortly.
