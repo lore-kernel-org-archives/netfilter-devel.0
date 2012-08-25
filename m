@@ -1,42 +1,39 @@
-From: Cong Wang <amwang@redhat.com>
-Subject: Re: [RFC Patch net-next] ipv6: unify conntrack reassembly expire
- code with standard one
-Date: Fri, 24 Aug 2012 18:13:28 +0800
-Message-ID: <1345803208.11584.30.camel@cr0>
-References: <1345190565-21689-1-git-send-email-amwang@redhat.com>
-	 <1826853.rak2U42CMU@alaris> <1345453599.22373.9.camel@cr0>
-	 <20120820202109.GB28790@unicorn.suse.cz>
+From: Andre Tomt <andre@tomt.net>
+Subject: Re: [PATCH 00/19] netfilter: IPv6 NAT
+Date: Sat, 25 Aug 2012 02:58:39 +0200
+Message-ID: <5038233F.7000202@tomt.net>
+References: <1344542943-11588-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, Herbert Xu <herbert@gondor.hengli.com.au>,
-	"David S. Miller" <davem@davemloft.net>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Michal Kubecek <mkubecek@suse.cz>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:29216 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751356Ab2HXKPa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 24 Aug 2012 06:15:30 -0400
-In-Reply-To: <20120820202109.GB28790@unicorn.suse.cz>
+Received: from catastrophix.ugh.no ([178.79.162.34]:56508 "EHLO
+	catastrophix.ugh.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753103Ab2HYBFM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 24 Aug 2012 21:05:12 -0400
+In-Reply-To: <1344542943-11588-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi, Michal,
+On 09. aug. 2012 22:08, kaber@trash.net wrote:
+> The following patches contain an updated version of IPv6 NAT against
+> Linus' current tree.
 
-Could you help to test my updated patches?
+Hmmm. Looking in my crystal ball (hi #ipv6!), I predict that if this 
+lands in mainline - and thus in consumer CPE/routers eventually - many 
+ISP's will have little incentive to actually implement assigning of 
+blocks to their consumer users like they "have to" today.
 
-You can find them (the most top 4 patches) in my github tree:
-https://github.com/congwang/linux/commits/ipv6
+We have this wonderful chance of fixing a major problem with todays 
+internet, but now we are going down this very slippery slope.
 
-which is based on net-next.
+I do need this code for a experimental project myself, and acknowledge 
+there may be some valid use cases, but I do not like the global 
+implications one bit.
 
-I tried to setup the environment to reproduce it, but failed. I also
-tried scapy, but I still can't trigger "Fragment Reassembly Timeout".
+At least some big fat warnings please?
 
-Thanks a lot!
-
-
+:-(
