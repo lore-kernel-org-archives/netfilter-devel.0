@@ -1,37 +1,44 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [Patch net-next] netfilter: remove xt_NOTRACK
-Date: Sun, 26 Aug 2012 22:04:48 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1208262201520.32152@frira.zrqbmnf.qr>
-References: <1345962219-2999-1-git-send-email-amwang@redhat.com> <CAHo-Ooz0SDBZTvBKRR-bZs0wHk25bSLaYgUYF0njUgxY8iGWpA@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 2/3] ipvs: Fix faulty IPv6 extension header handling in
+ IPVS
+Date: Sun, 26 Aug 2012 23:13:45 +0200 (MEST)
+Message-ID: <Pine.GSO.4.63.1208262311110.16771@stinky-local.trash.net>
+References: <20120820130732.1509.13080.stgit@dragon> <20120820130840.1509.75794.stgit@dragon>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Cong Wang <amwang@redhat.com>, netfilter-devel@vger.kernel.org,
-	Cong Wang <xiyou.wangcong@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>, netfilter@vger.kernel.org
-To: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netdev@vger.kernel.org, Hans Schillstrom <hans@schillstrom.com>,
+	lvs-devel@vger.kernel.org, Julian Anastasov <ja@ssi.bg>,
+	Simon Horman <horms@verge.net.au>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	netfilter-devel@vger.kernel.org
+To: Jesper Dangaard Brouer <brouer@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from seven.inai.de ([5.9.24.206]:38878 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751869Ab2HZUEu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 26 Aug 2012 16:04:50 -0400
-In-Reply-To: <CAHo-Ooz0SDBZTvBKRR-bZs0wHk25bSLaYgUYF0njUgxY8iGWpA@mail.gmail.com>
+Received: from stinky.trash.net ([213.144.137.162]:35635 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750764Ab2HZVNr (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 26 Aug 2012 17:13:47 -0400
+In-Reply-To: <20120820130840.1509.75794.stgit@dragon>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sunday 2012-08-26 12:42, Maciej =C5=BBenczykowski wrote:
+On Mon, 20 Aug 2012, Jesper Dangaard Brouer wrote:
 
->Sounds like the old -t raw ... -j NOTRACK is replaced by -t raw ... -j
->CT --notrack.
->Will -j NOTRACK continue to work?  Could it be added as an alias to CT=
-?
+> Based on patch from: Hans Schillstrom
+>
+> IPv6 headers must be processed in order of appearance,
+> neither can it be assumed that Upper layer headers is first.
+> If anything else than L4 is the first header IPVS will throw it.
+>
+> IPVS will write SNAT & DNAT modifications at a fixed pos which
+> will corrupt the message. Proper header position must be found
+> before writing modifying packet.
+>
+> This patch contains a lot of API changes.  This is done, to avoid
+> the costly scan of finding the IPv6 headers, via ipv6_find_hdr().
+> Finding the IPv6 headers is done as early as possible, and passed
+> on as a pointer "struct ip_vs_iphdr *" to the affected functions.
 
-No, and, dunno. There are currently no provisions for aliasing in the=20
-userspace side.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+How about we change netfilter to set up the skb's transport header
+at an early time so we can avoid all (most of) these header scans
+in netfilter?
