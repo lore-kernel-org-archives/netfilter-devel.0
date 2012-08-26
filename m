@@ -1,48 +1,37 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 00/19] netfilter: IPv6 NAT
-Date: Sun, 26 Aug 2012 20:06:59 +0200 (MEST)
-Message-ID: <Pine.GSO.4.63.1208262005400.28940@stinky-local.trash.net>
-References: <1344542943-11588-1-git-send-email-kaber@trash.net>
- <5038233F.7000202@tomt.net> <5038278A.6080901@tomt.net>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [Patch net-next] netfilter: remove xt_NOTRACK
+Date: Sun, 26 Aug 2012 22:04:48 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1208262201520.32152@frira.zrqbmnf.qr>
+References: <1345962219-2999-1-git-send-email-amwang@redhat.com> <CAHo-Ooz0SDBZTvBKRR-bZs0wHk25bSLaYgUYF0njUgxY8iGWpA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Andre Tomt <andre@tomt.net>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Cong Wang <amwang@redhat.com>, netfilter-devel@vger.kernel.org,
+	Cong Wang <xiyou.wangcong@gmail.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>, netfilter@vger.kernel.org
+To: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34427 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752034Ab2HZSHB (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 26 Aug 2012 14:07:01 -0400
-In-Reply-To: <5038278A.6080901@tomt.net>
+Received: from seven.inai.de ([5.9.24.206]:38878 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751869Ab2HZUEu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 26 Aug 2012 16:04:50 -0400
+In-Reply-To: <CAHo-Ooz0SDBZTvBKRR-bZs0wHk25bSLaYgUYF0njUgxY8iGWpA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 25 Aug 2012, Andre Tomt wrote:
+On Sunday 2012-08-26 12:42, Maciej =C5=BBenczykowski wrote:
 
-> On 25. aug. 2012 02:58, Andre Tomt wrote:
->> On 09. aug. 2012 22:08, kaber@trash.net wrote:
->>> The following patches contain an updated version of IPv6 NAT against
->>> Linus' current tree.
->> 
->> Hmmm. Looking in my crystal ball (hi #ipv6!), I predict that if this
->> lands in mainline - and thus in consumer CPE/routers eventually - many
->> ISP's will have little incentive to actually implement assigning of
->> blocks to their consumer users like they "have to" today.
->> 
->> We have this wonderful chance of fixing a major problem with todays
->> internet, but now we are going down this very slippery slope.
->> 
->> I do need this code for a experimental project myself, and acknowledge
->> there may be some valid use cases, but I do not like the global
->> implications one bit.
->> 
->> At least some big fat warnings please?
->
-> Clarification: This is about the NAT66 port-based 1:n NAT targets.
+>Sounds like the old -t raw ... -j NOTRACK is replaced by -t raw ... -j
+>CT --notrack.
+>Will -j NOTRACK continue to work?  Could it be added as an alias to CT=
+?
 
-We can certainly add a warning to the Kconfig text or (better) the
-iptables manpage. But only a very small percentage of people who
-might end up (unknowingly) using this will ever see them.
-
-Feel free to send a patch though.
+No, and, dunno. There are currently no provisions for aliasing in the=20
+userspace side.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
