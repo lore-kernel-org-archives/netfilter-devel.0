@@ -1,31 +1,31 @@
 From: Oliver <olipro@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-Subject: [PATCH] death_by_event() does not check IPS_DYING_BIT - race condition against ctnetlink_del_conntrack
-Date: Mon, 27 Aug 2012 11:33:29 +0200
-Message-ID: <7353554.n89QJXU3eh@gentoovm>
+Subject: [PATCH] [RFC] death_by_event() does not check IPS_DYING_BIT - race condition against ctnetlink_del_conntrack
+Date: Mon, 27 Aug 2012 11:44:32 +0200
+Message-ID: <9863271.IqbmzeiTs3@gentoovm>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="nextPart3756408.pNz4kmILVL"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.uptheinter.net ([77.74.196.236]:33223 "EHLO
+Received: from mail.uptheinter.net ([77.74.196.236]:33237 "EHLO
 	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750775Ab2H0Jml (ORCPT
+	with ESMTP id S1751002Ab2H0Jol (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 27 Aug 2012 05:42:41 -0400
+	Mon, 27 Aug 2012 05:44:41 -0400
 Received: from localhost (localhost [127.0.0.1])
-	by mail.uptheinter.net (Postfix) with ESMTP id E60CAA3303
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 Aug 2012 10:33:37 +0100 (BST)
+	by mail.uptheinter.net (Postfix) with ESMTP id D7D1BA32CD
+	for <netfilter-devel@vger.kernel.org>; Mon, 27 Aug 2012 10:44:39 +0100 (BST)
 Received: from mail.uptheinter.net ([127.0.0.1])
 	by localhost (vps2.uptheinter.net [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id QHMRYLOLN2b4 for <netfilter-devel@vger.kernel.org>;
-	Mon, 27 Aug 2012 10:33:30 +0100 (BST)
+	with LMTP id Q94Dz5ld2f4K for <netfilter-devel@vger.kernel.org>;
+	Mon, 27 Aug 2012 10:44:30 +0100 (BST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Apologies if this proves to be a double post, I suspect my previous e-mail got 
+canned due to the patch being an attachment.
 
---nextPart3756408.pNz4kmILVL
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+----
 
 In a previous version of ctnetlink, a race condition could be caused as a 
 result of ctnetlink_del_conntrack not setting the IPS_DYING_BIT that is 
@@ -125,14 +125,10 @@ Aug 24 14:02:39 fw02-lab [ 2544.355404]  [<ffffffff81686e62>] ?
 system_call_fastpath+0x16/0x1b
 Aug 24 14:02:39 fw02-lab [ 2544.355541] Rebooting in 5 seconds..
 
-Thanks,
-Oliver
---nextPart3756408.pNz4kmILVL
-Content-Disposition: attachment; filename="death_by_event-check-dying-bit.patch"
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/x-patch; charset="UTF-8"; name="death_by_event-check-dying-bit.patch"
+Patch:
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+diff --git a/net/netfilter/nf_conntrack_core.c 
+b/net/netfilter/nf_conntrack_core.c
 index 729f157..5c274f3 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
@@ -147,5 +143,5 @@ index 729f157..5c274f3 100644
  		ct->timeout.expires = jiffies +
  			(random32() % net->ct.sysctl_events_retry_timeout);
 
---nextPart3756408.pNz4kmILVL--
-
+Thanks,
+Oliver
