@@ -1,57 +1,37 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 05/19] netfilter: nf_conntrack_ipv6: improve fragmentation
- handling
-Date: Sun, 26 Aug 2012 23:20:55 +0200 (MEST)
-Message-ID: <Pine.GSO.4.63.1208262318550.16771@stinky-local.trash.net>
-References: <1344542943-11588-1-git-send-email-kaber@trash.net>   
- <1344542943-11588-6-git-send-email-kaber@trash.net>   <1345190795.3069.228.camel@localhost>
-  <Pine.GSO.4.63.1208181423050.17600@stinky-local.trash.net>
- <1345405069.3069.241.camel@localhost>  <Pine.GSO.4.63.1208192141570.3016@stinky-local.trash.net>
- <1345587697.3069.297.camel@localhost>
+From: Florian Weimer <fweimer@redhat.com>
+Subject: Re: [PATCH 00/19] netfilter: IPv6 NAT
+Date: Mon, 27 Aug 2012 09:33:39 +0200
+Message-ID: <503B22D3.4020109@redhat.com>
+References: <1344542943-11588-1-git-send-email-kaber@trash.net> <5038233F.7000202@tomt.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Julian Anastasov <ja@ssi.bg>,
-	Hans Schillstrom <hans@schillstrom.com>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>
-To: Jesper Dangaard Brouer <brouer@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: Andre Tomt <andre@tomt.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35683 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752142Ab2HZVU4 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 26 Aug 2012 17:20:56 -0400
-In-Reply-To: <1345587697.3069.297.camel@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:43466 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752488Ab2H0Hdt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 27 Aug 2012 03:33:49 -0400
+In-Reply-To: <5038233F.7000202@tomt.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 22 Aug 2012, Jesper Dangaard Brouer wrote:
+On 08/25/2012 02:58 AM, Andre Tomt wrote:
+> On 09. aug. 2012 22:08, kaber@trash.net wrote:
+>> The following patches contain an updated version of IPv6 NAT against
+>> Linus' current tree.
+>
+> Hmmm. Looking in my crystal ball (hi #ipv6!), I predict that if this
+> lands in mainline - and thus in consumer CPE/routers eventually - many
+> ISP's will have little incentive to actually implement assigning of
+> blocks to their consumer users like they "have to" today.
 
-> On Sun, 2012-08-19 at 21:44 +0200, Patrick McHardy wrote:
->> On Sun, 19 Aug 2012, Jesper Dangaard Brouer wrote:
->>> On Sat, 2012-08-18 at 14:26 +0200, Patrick McHardy wrote:
-> [...]
->
->>> Don't I need to load some of the helper modules, or just the
->>> nf_conntrack_ipv6 module, or perhaps only nf_defrag_ipv6 ?
->>
->> Not with the entire patchset, just IPv6 conntrack is enough. Aith IPv6 NAT
->> the first packet of a connection must always be defragemented, independant
->> of an assigned helper.
->
-> When loading "nf_conntrack_ipv6" I run into issues.
->
-> When sending a fragmented UDP packet.  With these patches, the IPVS
-> stack will no longer see the fragmented packets, but instead see one
-> large SKB.  This will trigger a MTU path check in e.g.
-> ip_vs_dr_xmit_v6() and an ICMPv6 too big packet is send back.
->
->  IPVS: ip_vs_dr_xmit_v6(): frag needed
->
-> Perhaps we could change/fix the MTU check in IPVS?
-> (This would also solve issues I've seen with TSO/GSO frames, hitting
-> this code path).
+I think the brokenness of IPv6 ND is still sufficient incentive to 
+provide the customer with a prefix.  Whether this prefix is constant 
+over an extended period of time is a separate question.  Even among 
+consumers, preferences vary widely.
 
-I guess this should use the same check as in IPv6 output, check
-whether IP6CB(skb)->max_frag_size is != 0 and > MTU and only send
-an ICMPv6 error in that case.
+-- 
+Florian Weimer / Red Hat Product Security Team
