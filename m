@@ -1,86 +1,44 @@
-From: pablo@netfilter.org
-Subject: [PATCH 2/2] netfilter: nf_conntrack: add nf_ct_timeout_lookup
-Date: Tue, 28 Aug 2012 12:53:15 +0200
-Message-ID: <1346151195-15632-2-git-send-email-pablo@netfilter.org>
-References: <1346151195-15632-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Wei Yongjun <weiyj.lk@gmail.com>
+Subject: [PATCH] netfilter: nfnetlink_queue: remove pointless conditional
+ before kfree_skb()
+Date: Tue, 28 Aug 2012 21:14:15 +0800
+Message-ID: <CAPgLHd_dNe3ZLzkAZC7p6V7oQLohmFQxfPjVtK-SBhXG1yYxWw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: yongjun_wei@trendmicro.com.cn, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org
+To: pablo@netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33122 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752545Ab2H1Kyn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Aug 2012 06:54:43 -0400
-In-Reply-To: <1346151195-15632-1-git-send-email-pablo@netfilter.org>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:51663 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752028Ab2H1NOQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Aug 2012 09:14:16 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-This patch adds the new nf_ct_timeout_lookup function to encapsulate
-the timeout policy attachment that is called in the nf_conntrack_in
-path.
+Remove pointless conditional before kfree_skb().
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 ---
- include/net/netfilter/nf_conntrack_timeout.h |   20 ++++++++++++++++++++
- net/netfilter/nf_conntrack_core.c            |    7 +------
- 2 files changed, 21 insertions(+), 6 deletions(-)
+ net/netfilter/nfnetlink_queue_core.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_timeout.h b/include/net/netfilter/nf_conntrack_timeout.h
-index 34ec89f..e41e472 100644
---- a/include/net/netfilter/nf_conntrack_timeout.h
-+++ b/include/net/netfilter/nf_conntrack_timeout.h
-@@ -55,6 +55,26 @@ struct nf_conn_timeout *nf_ct_timeout_ext_add(struct nf_conn *ct,
- #endif
- };
+diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
+index c0496a5..5c2d78d 100644
+--- a/net/netfilter/nfnetlink_queue_core.c
++++ b/net/netfilter/nfnetlink_queue_core.c
+@@ -406,8 +406,7 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
+ 	return skb;
  
-+static inline unsigned int *
-+nf_ct_timeout_lookup(struct net *net, struct nf_conn *ct,
-+		     struct nf_conntrack_l4proto *l4proto)
-+{
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
-+	struct nf_conn_timeout *timeout_ext;
-+	unsigned int *timeouts;
-+
-+	timeout_ext = nf_ct_timeout_find(ct);
-+	if (timeout_ext)
-+		timeouts = NF_CT_TIMEOUT_EXT_DATA(timeout_ext);
-+	else
-+		timeouts = l4proto->get_timeouts(net);
-+
-+	return timeouts;
-+#else
-+	return l4proto->get_timeouts(net);
-+#endif
-+}
-+
- #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- extern int nf_conntrack_timeout_init(struct net *net);
- extern void nf_conntrack_timeout_fini(struct net *net);
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index cf48755..fc61f40 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -924,7 +924,6 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_conntrack_l3proto *l3proto;
- 	struct nf_conntrack_l4proto *l4proto;
--	struct nf_conn_timeout *timeout_ext;
- 	unsigned int *timeouts;
- 	unsigned int dataoff;
- 	u_int8_t protonum;
-@@ -991,11 +990,7 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
- 	NF_CT_ASSERT(skb->nfct);
- 
- 	/* Decide what timeout policy we want to apply to this flow. */
--	timeout_ext = nf_ct_timeout_find(ct);
--	if (timeout_ext)
--		timeouts = NF_CT_TIMEOUT_EXT_DATA(timeout_ext);
--	else
--		timeouts = l4proto->get_timeouts(net);
-+	timeouts = nf_ct_timeout_lookup(net, ct, l4proto);
- 
- 	ret = l4proto->packet(ct, skb, dataoff, ctinfo, pf, hooknum, timeouts);
- 	if (ret <= 0) {
--- 
-1.7.10.4
+ nla_put_failure:
+-	if (skb)
+-		kfree_skb(skb);
++	kfree_skb(skb);
+ 	net_err_ratelimited("nf_queue: error creating packet message\n");
+ 	return NULL;
+ }
+
 
