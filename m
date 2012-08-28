@@ -1,44 +1,61 @@
-From: Wei Yongjun <weiyj.lk@gmail.com>
-Subject: [PATCH] netfilter: remove pointless conditional before kfree_skb()
-Date: Tue, 28 Aug 2012 21:14:43 +0800
-Message-ID: <CAPgLHd_+fxJET1PkriFRqws5gFr5220zqcZCuEU59M2gAB-9KA@mail.gmail.com>
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: [PATCH V2 0/2] net: ipvs and netfilter IPv6 defrag MTU handling
+Date: Tue, 28 Aug 2012 16:21:17 +0200
+Message-ID: <20120828142051.11475.63775.stgit@dragon>
+References: <Pine.GSO.4.63.1208281020530.18770@stinky-local.trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: yongjun_wei@trendmicro.com.cn, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, coreteam@netfilter.org
-To: pablo@netfilter.org, kaber@trash.net, kuznet@ms2.inr.ac.ru,
-	jmorris@namei.org, yoshfuji@linux-ipv6.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>,
+	Hans Schillstrom <hans@schillstrom.com>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	netfilter-devel@vger.kernel.org
+To: netdev@vger.kernel.org, "Patrick McHardy" <kaber@trash.net>,
+	lvs-devel@vger.kernel.org, Julian Anastasov <ja@ssi.bg>,
+	Simon Horman <horms@verge.net.au>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:33557 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752280Ab2H1NOn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Aug 2012 09:14:43 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:50913 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751799Ab2H1OSr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Aug 2012 10:18:47 -0400
+In-Reply-To: <Pine.GSO.4.63.1208281020530.18770@stinky-local.trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+The following patchset V2 makes IPVS compatible with Patrick McHardys
+IPv6 NAT patchset: http://thread.gmane.org/gmane.linux.network/239615
 
-Remove pointless conditional before kfree_skb().
+Specifically the part that improves defragmentation.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+ Patch01: Cleanup (and fixes a bug) in IPVS MTU IPv6 handling
+  In V2: we also handle tunnel mode, to use the common helper
+
+ Patch02: Extend MTU check to account for IPv6 NAT defrag changes
+  In V2: the tunnel mode is no longer a special case.
+
+This patchset is based upon:
+ Homes ipvs-next tree:
+  git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git
+
+BUT with Patrick McHardy's IPv6 NAT patchset applied first, on top of
+commit: 3654e61137db891f5312e6dd813b961484b5fdf3
+title: "ipvs: add pmtu_disc option to disable IP DF for TUN packets"
+
 ---
- net/ipv6/netfilter/nf_conntrack_reasm.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index c9c78c2..58cf705 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -112,8 +112,7 @@ static unsigned int nf_hashfn(struct inet_frag_queue *q)
- 
- static void nf_skb_free(struct sk_buff *skb)
- {
--	if (NFCT_FRAG6_CB(skb)->orig)
--		kfree_skb(NFCT_FRAG6_CB(skb)->orig);
-+	kfree_skb(NFCT_FRAG6_CB(skb)->orig);
- }
- 
- /* Destruction primitives. */
+Jesper Dangaard Brouer (2):
+      ipvs: Extend MTU check to account for IPv6 NAT defrag changes
+      ipvs: IPv6 MTU checking cleanup and bugfix
 
 
+ net/netfilter/ipvs/ip_vs_xmit.c |   28 ++++++++++++++++++++++------
+ 1 files changed, 22 insertions(+), 6 deletions(-)
+
+
+--
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Sr. Network Kernel Developer at Red Hat
+  Author of http://www.iptv-analyzer.org
+  LinkedIn: http://www.linkedin.com/in/brouer
