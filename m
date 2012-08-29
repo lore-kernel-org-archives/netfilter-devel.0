@@ -1,20 +1,17 @@
 From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 1/7] ipvs: fix error return code
-Date: Wed, 29 Aug 2012 18:49:11 +0200
-Message-ID: <1346258957-7649-2-git-send-email-Julia.Lawall@lip6.fr>
+Subject: [PATCH 6/7] net/netfilter/nfnetlink_log.c: fix error return code
+Date: Wed, 29 Aug 2012 18:49:17 +0200
+Message-ID: <1346258957-7649-8-git-send-email-Julia.Lawall@lip6.fr>
 References: <1346258957-7649-1-git-send-email-Julia.Lawall@lip6.fr>
-Cc: kernel-janitors@vger.kernel.org, Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, coreteam@netfilter.org,
+Cc: kernel-janitors@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-To: Wensong Zhang <wensong@linux-vs.org>
-Return-path: <lvs-devel-owner@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-owner@vger.kernel.org>
 In-Reply-To: <1346258957-7649-1-git-send-email-Julia.Lawall@lip6.fr>
-Sender: lvs-devel-owner@vger.kernel.org
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Julia Lawall <Julia.Lawall@lip6.fr>
@@ -45,23 +42,23 @@ ret@p1 = 0
 Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
 ---
- net/netfilter/ipvs/ip_vs_ctl.c |    4 +++-
+ net/netfilter/nfnetlink_log.c |    4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 3c60137..767cc12 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1171,8 +1171,10 @@ ip_vs_add_service(struct net *net, struct ip_vs_service_user_kern *u,
- 		goto out_err;
- 	}
- 	svc->stats.cpustats = alloc_percpu(struct ip_vs_cpu_stats);
--	if (!svc->stats.cpustats)
-+	if (!svc->stats.cpustats) {
-+		ret = -ENOMEM;
- 		goto out_err;
-+	}
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 4142aac..9ef5438 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -1002,8 +1002,10 @@ static int __init nfnetlink_log_init(void)
  
- 	/* I'm the first user of the service */
- 	atomic_set(&svc->usecnt, 0);
+ #ifdef CONFIG_PROC_FS
+ 	if (!proc_create("nfnetlink_log", 0440,
+-			 proc_net_netfilter, &nful_file_ops))
++			 proc_net_netfilter, &nful_file_ops)) {
++		status = -ENOMEM;
+ 		goto cleanup_logger;
++	}
+ #endif
+ 	return status;
+ 
 
