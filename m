@@ -1,42 +1,40 @@
-From: Oliver <olipro@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
-Subject: Re: [PATCH] death_by_event() does not check IPS_DYING_BIT - race condition against ctnetlink_del_conntrack
-Date: Thu, 30 Aug 2012 05:09:01 +0200
-Message-ID: <5239380.eElFyXbOPg@gentoovm>
-References: <7353554.n89QJXU3eh@gentoovm> <5427975.6moJlq4F9d@gentoovm> <20120830025009.GA16782@1984>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 03/19] netfilter: nf_conntrack_ipv6: improve fragmentation
+ handling
+Date: Thu, 30 Aug 2012 08:54:07 +0200 (MEST)
+Message-ID: <Pine.GSO.4.63.1208300853120.26781@stinky-local.trash.net>
+References: <1346190539-9963-1-git-send-email-kaber@trash.net>
+ <1346190539-9963-4-git-send-email-kaber@trash.net>
+ <Pine.LNX.4.64.1208291007520.32281@ask.diku.dk>
+ <Pine.GSO.4.63.1208291424550.26100@stinky-local.trash.net> <20120830030635.GA17583@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Jesper Dangaard Brouer <hawk@diku.dk>,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>,
+	netdev <netdev@vger.kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.uptheinter.net ([77.74.196.236]:39129 "EHLO
-	mail.uptheinter.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754024Ab2H3DIs (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:47369 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752372Ab2H3GyP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 Aug 2012 23:08:48 -0400
-In-Reply-To: <20120830025009.GA16782@1984>
+	Thu, 30 Aug 2012 02:54:15 -0400
+In-Reply-To: <20120830030635.GA17583@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 30 August 2012 04:50:09 you wrote:
-> Not sure what you mean, you're still crashing with the patch below,
-> right?
-> 
-> My proposal is to give a try to the ecache patch, that requires
-> removing the previous patch.
+On Thu, 30 Aug 2012, Pablo Neira Ayuso wrote:
 
-Apologies for the confusion;  the patch quoted is essentially the first patch 
-you provided me, with my changes to make it work in 3.4.10 *plus* the deletion 
-of the change to nf_conntrack_ecache.h where your patch deleted the 
-nf_ct_is_dying() check (i.e I have this check left in) - with this 
-modification, I find that conntrackd is well-behaved and I have thus far not 
-successfully caused a kernel panic.
+> On Wed, Aug 29, 2012 at 02:27:00PM +0200, Patrick McHardy wrote:
+>>>> +	    (IP6CB(skb)->frag_max_size && IP6CB(skb)->frag_max_size > mtu)) {
+>>>
+>>> Eric Dumazet would probably nitpick and say, it can be reduced to:
+>>> (IP6CB(skb)->frag_max_size > mtu)
+>>> ;-)
+>>
+>> True. I'll fix that once Pablo has pulled in the patches.
+>
+> If you don't want to wait, you can send me a follow up patch, I'll
+> apply it manually.
 
-Having tested your latest patch, I can also confirm that it also does not 
-crash, including at exhaustion of the conntrack table.
-
-In terms of overall stability, I would presume your latest patch is superior 
-to the previous (i.e. what I attached most recently) ?
-
-Kind Regards,
-Oliver
+No hurry, I'll send it with a few other patches once its merged.
