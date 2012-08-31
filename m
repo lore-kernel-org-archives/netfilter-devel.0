@@ -1,14 +1,18 @@
 From: pablo@netfilter.org
-Subject: [PATCH 2/6] ipvs: fix error return code
-Date: Fri, 31 Aug 2012 16:03:05 +0200
-Message-ID: <1346421789-3449-3-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 4/6] netfilter: nfnetlink_log: fix error return code in init path
+Date: Fri, 31 Aug 2012 16:03:07 +0200
+Message-ID: <1346421789-3449-5-git-send-email-pablo@netfilter.org>
 References: <1346421789-3449-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:54076 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754012Ab2HaOEb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 31 Aug 2012 10:04:31 -0400
 In-Reply-To: <1346421789-3449-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Julia Lawall <Julia.Lawall@lip6.fr>
 
@@ -36,27 +40,27 @@ ret@p1 = 0
 // </smpl>
 
 Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-Acked-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_ctl.c |    4 +++-
+ net/netfilter/nfnetlink_log.c |    4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 72bf32a..f51013c 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1171,8 +1171,10 @@ ip_vs_add_service(struct net *net, struct ip_vs_service_user_kern *u,
- 		goto out_err;
- 	}
- 	svc->stats.cpustats = alloc_percpu(struct ip_vs_cpu_stats);
--	if (!svc->stats.cpustats)
-+	if (!svc->stats.cpustats) {
-+		ret = -ENOMEM;
- 		goto out_err;
-+	}
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 592091c1..14e2f39 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -996,8 +996,10 @@ static int __init nfnetlink_log_init(void)
  
- 	/* I'm the first user of the service */
- 	atomic_set(&svc->usecnt, 0);
+ #ifdef CONFIG_PROC_FS
+ 	if (!proc_create("nfnetlink_log", 0440,
+-			 proc_net_netfilter, &nful_file_ops))
++			 proc_net_netfilter, &nful_file_ops)) {
++		status = -ENOMEM;
+ 		goto cleanup_logger;
++	}
+ #endif
+ 	return status;
+ 
 -- 
 1.7.10.4
+
