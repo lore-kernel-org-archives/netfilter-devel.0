@@ -1,31 +1,24 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2] netfilter: pass 'nf_hook_ops' instead of
- 'list_head' to nf_queue()
-Date: Mon, 3 Sep 2012 17:31:51 +0200
-Message-ID: <20120903153151.GC19926@1984>
-References: <5035C6E6.6040001@linux.vnet.ibm.com>
+Subject: Re: [PATCH] properly annotate ipv4_netfilter_{init,fini}()
+Date: Mon, 3 Sep 2012 17:32:25 +0200
+Message-ID: <20120903153225.GD19926@1984>
+References: <4FDF1C97020000780008A64E@nat28.tlf.novell.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	coreteam@netfilter.org, netfilter@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	David Miller <davem@davemloft.net>, kaber@trash.net
-To: Michael Wang <wangyun@linux.vnet.ibm.com>
-Return-path: <netfilter-owner@vger.kernel.org>
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
+To: Jan Beulich <JBeulich@suse.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:56551 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932281Ab2ICPc2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Sep 2012 11:32:28 -0400
 Content-Disposition: inline
-In-Reply-To: <5035C6E6.6040001@linux.vnet.ibm.com>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <4FDF1C97020000780008A64E@nat28.tlf.novell.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Aug 23, 2012 at 02:00:06PM +0800, Michael Wang wrote:
-> From: Michael Wang <wangyun@linux.vnet.ibm.com>
-> 
-> Since 'list_for_each_continue_rcu' has already been replaced by
-> 'list_for_each_entry_continue_rcu', pass 'list_head' to nf_queue() as a
-> parameter can not benefit us any more.
-> 
-> This patch will replace 'list_head' with 'nf_hook_ops' as the parameter of
-> nf_queue() and __nf_queue() to save code.
+On Mon, Jun 18, 2012 at 11:18:31AM +0100, Jan Beulich wrote:
+> Despite being just a few bytes of code, they should still have proper
+> annotations.
 
-Applied, thanks.
+I missed this small one, now applied, thanks Jan.
