@@ -1,31 +1,57 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: [PATCH] pgsql: add SSL connection implementation to PGSQL plugin
-Date: Mon, 03 Sep 2012 13:00:49 +0100
-Message-ID: <50449BF1.40005@googlemail.com>
-References: <1346503911-3781-1-git-send-email-mr.dash.four@googlemail.com>	 <20120902233228.GA22069@1984> <50440A1B.7060908@googlemail.com> <1346653997.5194.37.camel@tiger.regit.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [Patch net-next] netfilter: remove xt_NOTRACK
+Date: Mon, 3 Sep 2012 17:31:21 +0200
+Message-ID: <20120903153121.GA19926@1984>
+References: <1345962219-2999-1-git-send-email-amwang@redhat.com>
+ <CAHo-Ooz0SDBZTvBKRR-bZs0wHk25bSLaYgUYF0njUgxY8iGWpA@mail.gmail.com>
+ <alpine.LNX.2.01.1208262201520.32152@frira.zrqbmnf.qr>
+ <CAM_iQpU2GPgHP1BVfL_JL6dadjHeiU08en+UpAicjmH3H0QX5Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Core Team <netfilter-devel@vger.kernel.org>
-To: Eric Leblond <eric@regit.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jan Engelhardt <jengelh@inai.de>,
+	Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>,
+	Cong Wang <amwang@redhat.com>, netfilter-devel@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>, netfilter@vger.kernel.org
+To: Cong Wang <xiyou.wangcong@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:51620 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752866Ab2ICMBB (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Sep 2012 08:01:01 -0400
-Received: by eekc1 with SMTP id c1so1961349eek.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 03 Sep 2012 05:01:00 -0700 (PDT)
-In-Reply-To: <1346653997.5194.37.camel@tiger.regit.org>
+Received: from mail.us.es ([193.147.175.20]:56268 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932316Ab2ICPbY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Sep 2012 11:31:24 -0400
+Content-Disposition: inline
+In-Reply-To: <CAM_iQpU2GPgHP1BVfL_JL6dadjHeiU08en+UpAicjmH3H0QX5Q@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Mon, Sep 03, 2012 at 03:57:53PM +0800, Cong Wang wrote:
+> On Mon, Aug 27, 2012 at 4:04 AM, Jan Engelhardt <jengelh@inai.de> wro=
+te:
+> > On Sunday 2012-08-26 12:42, Maciej =C5=BBenczykowski wrote:
+> >
+> >>Sounds like the old -t raw ... -j NOTRACK is replaced by -t raw ...=
+ -j
+> >>CT --notrack.
+> >>Will -j NOTRACK continue to work?  Could it be added as an alias to=
+ CT?
+> >
+> > No, and, dunno. There are currently no provisions for aliasing in t=
+he
+> > userspace side.
+>=20
+> So no objections from you, right? :)
 
->> Sure. Are there any (other) objections to the patch I submitted?
->>     
->
-> I've applied the current patch to give it a run. And it shows a lot of
-> whitespace errors. You'll need to fix it too.
->   
-What do you mean by that?
+Applied, thanks.
+
+I think it can be possible to rewrite the iptables NOTRACK user-space
+extension to use the CT target. Still I would need to check if some
+more sophisticated aliasing can be possible.
+
+And iptables-save will show the CT target though, but that shouldn't
+be a problem.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
