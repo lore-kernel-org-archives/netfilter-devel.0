@@ -1,64 +1,111 @@
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: [RFC PATCH 2/2] netfilter: More users of ipv6_find_hdr_cb()
-Date: Mon, 03 Sep 2012 23:16:47 +0200
-Message-ID: <20120903211631.8851.40213.stgit@dragon>
-References: <20120903211504.8851.6894.stgit@dragon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: "Patrick McHardy" <kaber@trash.net>,
-	Hans Schillstrom <hans@schillstrom.com>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>
+From: pablo@netfilter.org
+Subject: [PATCH 01/25] ipvs: IPv6 MTU checking cleanup and bugfix
+Date: Tue,  4 Sep 2012 01:53:48 +0200
+Message-ID: <1346716452-3080-2-git-send-email-pablo@netfilter.org>
+References: <1346716452-3080-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:18916 "EHLO mx1.redhat.com"
+Received: from mail.us.es ([193.147.175.20]:37091 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753456Ab2ICVMj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Sep 2012 17:12:39 -0400
-In-Reply-To: <20120903211504.8851.6894.stgit@dragon>
+	id S1754148Ab2ICXz2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Sep 2012 19:55:28 -0400
+In-Reply-To: <1346716452-3080-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Functions tproxy_tg6_v1() and socket_mt6_v1 could use the
-CB cached version of ipv6_find_hdr().
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+
+Cleaning up the IPv6 MTU checking in the IPVS xmit code, by using
+a common helper function __mtu_check_toobig_v6().
+
+The MTU check for tunnel mode can also use this helper as
+ntohs(old_iph->payload_len) + sizeof(struct ipv6hdr) is qual to
+skb->len.  And the 'mtu' variable have been adjusted before
+calling helper.
+
+Notice, this also fixes a bug, as the the MTU check in ip_vs_dr_xmit_v6()
+were missing a check for skb_is_gso().
+
+This bug e.g. caused issues for KVM IPVS setups, where different
+Segmentation Offloading techniques are utilized, between guests,
+via the virtio driver.  This resulted in very bad performance,
+due to the ICMPv6 "too big" messages didn't affect the sender.
 
 Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
-
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-Could someone with tproxy or socket experience tell me,
-if the SKB CB data can survive this far?
+ net/netfilter/ipvs/ip_vs_xmit.c |   21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
-
- net/netfilter/xt_TPROXY.c |    2 +-
- net/netfilter/xt_socket.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
-index d7f1953..c73b713 100644
---- a/net/netfilter/xt_TPROXY.c
-+++ b/net/netfilter/xt_TPROXY.c
-@@ -285,7 +285,7 @@ tproxy_tg6_v1(struct sk_buff *skb, const struct xt_action_param *par)
- 	int thoff = 0;
- 	int tproto;
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index 543a554..67a3978 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -85,6 +85,15 @@ __ip_vs_dst_check(struct ip_vs_dest *dest, u32 rtos)
+ 	return dst;
+ }
  
--	tproto = ipv6_find_hdr(skb, &thoff, -1, NULL, NULL);
-+	tproto = ipv6_find_hdr_cb(skb, &thoff, -1, NULL, NULL);
- 	if (tproto < 0) {
- 		pr_debug("unable to find transport header in IPv6 packet, dropping\n");
- 		return NF_DROP;
-diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
-index 9ea482d..4feca50 100644
---- a/net/netfilter/xt_socket.c
-+++ b/net/netfilter/xt_socket.c
-@@ -266,7 +266,7 @@ socket_mt6_v1(const struct sk_buff *skb, struct xt_action_param *par)
- 	int thoff = 0, tproto;
- 	const struct xt_socket_mtinfo1 *info = (struct xt_socket_mtinfo1 *) par->matchinfo;
++static inline bool
++__mtu_check_toobig_v6(const struct sk_buff *skb, u32 mtu)
++{
++	if (skb->len > mtu && !skb_is_gso(skb)) {
++		return true; /* Packet size violate MTU size */
++	}
++	return false;
++}
++
+ /* Get route to daddr, update *saddr, optionally bind route to saddr */
+ static struct rtable *do_output_route4(struct net *net, __be32 daddr,
+ 				       u32 rtos, int rt_mode, __be32 *saddr)
+@@ -491,7 +500,7 @@ ip_vs_bypass_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
  
--	tproto = ipv6_find_hdr(skb, &thoff, -1, NULL, NULL);
-+	tproto = ipv6_find_hdr_cb(skb, &thoff, -1, NULL, NULL);
- 	if (tproto < 0) {
- 		pr_debug("unable to find transport header in IPv6 packet, dropping\n");
- 		return NF_DROP;
+ 	/* MTU checking */
+ 	mtu = dst_mtu(&rt->dst);
+-	if (skb->len > mtu && !skb_is_gso(skb)) {
++	if (__mtu_check_toobig_v6(skb, mtu)) {
+ 		if (!skb->dev) {
+ 			struct net *net = dev_net(skb_dst(skb)->dev);
+ 
+@@ -712,7 +721,7 @@ ip_vs_nat_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 
+ 	/* MTU checking */
+ 	mtu = dst_mtu(&rt->dst);
+-	if (skb->len > mtu && !skb_is_gso(skb)) {
++	if (__mtu_check_toobig_v6(skb, mtu)) {
+ 		if (!skb->dev) {
+ 			struct net *net = dev_net(skb_dst(skb)->dev);
+ 
+@@ -946,8 +955,8 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	if (skb_dst(skb))
+ 		skb_dst(skb)->ops->update_pmtu(skb_dst(skb), NULL, skb, mtu);
+ 
+-	if (mtu < ntohs(old_iph->payload_len) + sizeof(struct ipv6hdr) &&
+-	    !skb_is_gso(skb)) {
++	/* MTU checking: Notice that 'mtu' have been adjusted before hand */
++	if (__mtu_check_toobig_v6(skb, mtu)) {
+ 		if (!skb->dev) {
+ 			struct net *net = dev_net(skb_dst(skb)->dev);
+ 
+@@ -1113,7 +1122,7 @@ ip_vs_dr_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 
+ 	/* MTU checking */
+ 	mtu = dst_mtu(&rt->dst);
+-	if (skb->len > mtu) {
++	if (__mtu_check_toobig_v6(skb, mtu)) {
+ 		if (!skb->dev) {
+ 			struct net *net = dev_net(skb_dst(skb)->dev);
+ 
+@@ -1349,7 +1358,7 @@ ip_vs_icmp_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 
+ 	/* MTU checking */
+ 	mtu = dst_mtu(&rt->dst);
+-	if (skb->len > mtu && !skb_is_gso(skb)) {
++	if (__mtu_check_toobig_v6(skb, mtu)) {
+ 		if (!skb->dev) {
+ 			struct net *net = dev_net(skb_dst(skb)->dev);
+ 
+-- 
+1.7.10.4
 
