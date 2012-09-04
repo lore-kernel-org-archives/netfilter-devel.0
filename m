@@ -1,34 +1,50 @@
-From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Subject: Re: [Patch net-next] netfilter: remove xt_NOTRACK
-Date: Mon, 3 Sep 2012 17:14:45 -0700
-Message-ID: <CAHo-Ooy=fg23B5TU7vL95V_-W=Fq+qxHFiycWwPGYBwrfVFdzQ@mail.gmail.com>
-References: <1345962219-2999-1-git-send-email-amwang@redhat.com>
-	<CAHo-Ooz0SDBZTvBKRR-bZs0wHk25bSLaYgUYF0njUgxY8iGWpA@mail.gmail.com>
-	<alpine.LNX.2.01.1208262201520.32152@frira.zrqbmnf.qr>
-	<CAM_iQpU2GPgHP1BVfL_JL6dadjHeiU08en+UpAicjmH3H0QX5Q@mail.gmail.com>
-	<20120903153121.GA19926@1984>
-	<20120903192455.GA3527@1984>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/25] Netfilter updates for net-next
+Date: Mon, 03 Sep 2012 20:39:55 -0400 (EDT)
+Message-ID: <20120903.203955.1132524974832821579.davem@davemloft.net>
+References: <1346716452-3080-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Cong Wang <xiyou.wangcong@gmail.com>,
-	Jan Engelhardt <jengelh@inai.de>,
-	Cong Wang <amwang@redhat.com>, netfilter-devel@vger.kernel.org,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>, netfilter@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <20120903192455.GA3527@1984>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:52239 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754205Ab2IDAj5 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Sep 2012 20:39:57 -0400
+In-Reply-To: <1346716452-3080-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-+<----->if (cs->target->alias == NULL)^M
-+<-----><------>strcpy(cs->target->t->u.user.name, cs->jumpto);^M
-+<----->else^M
-+<-----><------>strcpy(cs->target->t->u.user.name, cs->target->alias);^M
+From: pablo@netfilter.org
+Date: Tue,  4 Sep 2012 01:53:47 +0200
 
-I'd have probably written if (cs->target->alias) copy(alias) else copy(jumpto)
+> The following patchset contains updates for your net-next tree, the most
+> relevant thing here is the new IPv6 NAT support from Patrick McHardy.
+> More specifically, they are:
+> 
+> * Several patches to prepare IPv6 NAT support, including one to improve
+>   IPv6 fragmentation handling for Netfilter and IPVS from Patrick McHardy
+>   and Jesper Dangaard respectively.
+> 
+> * IPv6 NAT support for source/destination NAT, masquerading, redirection
+>   and network mapping, again from Patrick.
+> 
+> * A new target that allows stateless Network Prefix Translation (NPT)
+>   for IPv6, also from Patrick.
+> 
+> * Changes in existing helpers to support IPv6 NAT, mostly and Patrick and
+>   a couple from myself.
+> 
+> * Removal of xt_NOTRACK that has now been superseded by the CT target, from
+>   Cong Wang.
+> 
+> * Minor cleanups from Jan Beulich, Michael Wang and myself.
+> 
+> You can pull these changes from:
+> 
+> git://1984.lsi.us.es/nf-next master
 
-doesn't this all really belong in the CT files now?
-ie. libxt_CT.c not libxt_NOTRACK.c
-
-Either way, LGTM.
+Pulled and pushed out to net-next, thanks!
