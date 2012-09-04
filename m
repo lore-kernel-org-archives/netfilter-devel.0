@@ -1,71 +1,135 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [Patch net-next] netfilter: remove xt_NOTRACK
-Date: Tue, 4 Sep 2012 17:58:16 +0200
-Message-ID: <20120904155816.GA20346@1984>
-References: <CAHo-Ooz0SDBZTvBKRR-bZs0wHk25bSLaYgUYF0njUgxY8iGWpA@mail.gmail.com>
- <alpine.LNX.2.01.1208262201520.32152@frira.zrqbmnf.qr>
- <CAM_iQpU2GPgHP1BVfL_JL6dadjHeiU08en+UpAicjmH3H0QX5Q@mail.gmail.com>
- <20120903153121.GA19926@1984>
- <20120903192455.GA3527@1984>
- <CAHo-Ooy=fg23B5TU7vL95V_-W=Fq+qxHFiycWwPGYBwrfVFdzQ@mail.gmail.com>
- <alpine.LNX.2.01.1209040539040.9352@frira.zrqbmnf.qr>
- <CAHo-OoyEKNM4ZL5ucrrjWGOFu6iizNBzvsKUBbd5aVtpccG0hw@mail.gmail.com>
- <20120904085813.GA24911@1984>
- <alpine.LNX.2.01.1209041706001.15208@frira.zrqbmnf.qr>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH] netfilter: take care of timewait sockets
+Date: Tue, 04 Sep 2012 19:49:03 +0200
+Message-ID: <1346780943.13121.58.camel@edumazet-glaptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>,
-	Cong Wang <xiyou.wangcong@gmail.com>,
-	Cong Wang <amwang@redhat.com>, netfilter-devel@vger.kernel.org,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>, netfilter@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.01.1209041706001.15208@frira.zrqbmnf.qr>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
+	netdev <netdev@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:65130 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932450Ab2IDRtM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 Sep 2012 13:49:12 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Sep 04, 2012 at 05:15:17PM +0200, Jan Engelhardt wrote:
-> On Tuesday 2012-09-04 10:58, Pablo Neira Ayuso wrote:
->=20
-> >On Mon, Sep 03, 2012 at 10:29:40PM -0700, Maciej =C5=BBenczykowski w=
-rote:
-> >[...]
-> >> > Not solved:
-> >> > 4. Since NOTRACK now always maps to CT, "-j NOTRACK"
-> >> >    has become unusable on sufficiently old kernels.
-> >> >    Should we even bother?
-> >>=20
-> >> Yes, we must, otherwise distros can't upgrade to latest iptables
-> >> without either patching or upgrading kernel.
-> >
-> >Why not? They will upgrade and they will start using the CT target
-> >sooner than any other, which seems good to me.
-> >
-> >We also need to add support for real_rev 0 of the CT target. Just to=
-           =20
-> >make sure that we don't break with old kernels.                     =
-           =20
->=20
-> Right; but is that not what might be described as "hypocritic"?
-> Even after adding support for CT.0, people still need >=3D 2.6.34.
-> Where is the non-breakage for them?
+From: Eric Dumazet <edumazet@google.com>
 
-Well yes, we have break at some point, but better if we break for
-kernels before 2.6.34 than before 3.4 (CT.1 was added there) ;-).
+Sami Farin reported crashes in xt_LOG because it assumes skb->sk is a
+full blown socket.
 
-So we're doing is just to trying to do our best to avoid the sure
-breakage that will happen in upcoming 3.7 where NOTRACK will be gone.
+But with TCP early demux, we can have skb->sk pointing to a timewait
+socket.
 
-There's only one single -stable branch that would break using recent
-iptables + old kernel.
+Same fix is needed in netfnetlink_log
 
-> (I can't say I feel /too/ bad for the RHEL folks stuck with their
-> ancient 2.6.32 :-P )
-> (And don't tell me about backports, because in general, they don't
-> do that for NF.)
+Diagnosed-by: Florian Westphal <fw@strlen.de>
+Reported-by: Sami Farin <hvtaifwkbgefbaei@gmail.com>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+---
+ net/netfilter/nfnetlink_log.c |   14 +++++++------
+ net/netfilter/xt_LOG.c        |   33 ++++++++++++++++----------------
+ 2 files changed, 25 insertions(+), 22 deletions(-)
 
-I'm mostly thinking of embedded people, that usually stick to really
-old kernels.
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 14e2f39..5cfb5be 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -381,6 +381,7 @@ __build_packet_message(struct nfulnl_instance *inst,
+ 	struct nlmsghdr *nlh;
+ 	struct nfgenmsg *nfmsg;
+ 	sk_buff_data_t old_tail = inst->skb->tail;
++	struct sock *sk;
+ 
+ 	nlh = nlmsg_put(inst->skb, 0, 0,
+ 			NFNL_SUBSYS_ULOG << 8 | NFULNL_MSG_PACKET,
+@@ -499,18 +500,19 @@ __build_packet_message(struct nfulnl_instance *inst,
+ 	}
+ 
+ 	/* UID */
+-	if (skb->sk) {
+-		read_lock_bh(&skb->sk->sk_callback_lock);
+-		if (skb->sk->sk_socket && skb->sk->sk_socket->file) {
+-			struct file *file = skb->sk->sk_socket->file;
++	sk = skb->sk;
++	if (sk && sk->sk_state != TCP_TIME_WAIT) {
++		read_lock_bh(&sk->sk_callback_lock);
++		if (sk->sk_socket && sk->sk_socket->file) {
++			struct file *file = sk->sk_socket->file;
+ 			__be32 uid = htonl(file->f_cred->fsuid);
+ 			__be32 gid = htonl(file->f_cred->fsgid);
+-			read_unlock_bh(&skb->sk->sk_callback_lock);
++			read_unlock_bh(&sk->sk_callback_lock);
+ 			if (nla_put_be32(inst->skb, NFULA_UID, uid) ||
+ 			    nla_put_be32(inst->skb, NFULA_GID, gid))
+ 				goto nla_put_failure;
+ 		} else
+-			read_unlock_bh(&skb->sk->sk_callback_lock);
++			read_unlock_bh(&sk->sk_callback_lock);
+ 	}
+ 
+ 	/* local sequence number */
+diff --git a/net/netfilter/xt_LOG.c b/net/netfilter/xt_LOG.c
+index ff5f75f..2a4f969 100644
+--- a/net/netfilter/xt_LOG.c
++++ b/net/netfilter/xt_LOG.c
+@@ -145,6 +145,19 @@ static int dump_tcp_header(struct sbuff *m, const struct sk_buff *skb,
+ 	return 0;
+ }
+ 
++static void dump_sk_uid_gid(struct sbuff *m, struct sock *sk)
++{
++	if (!sk || sk->sk_state == TCP_TIME_WAIT)
++		return;
++
++	read_lock_bh(&sk->sk_callback_lock);
++	if (sk->sk_socket && sk->sk_socket->file)
++		sb_add(m, "UID=%u GID=%u ",
++			sk->sk_socket->file->f_cred->fsuid,
++			sk->sk_socket->file->f_cred->fsgid);
++	read_unlock_bh(&sk->sk_callback_lock);
++}
++
+ /* One level of recursion won't kill us */
+ static void dump_ipv4_packet(struct sbuff *m,
+ 			const struct nf_loginfo *info,
+@@ -361,14 +374,8 @@ static void dump_ipv4_packet(struct sbuff *m,
+ 	}
+ 
+ 	/* Max length: 15 "UID=4294967295 " */
+-	if ((logflags & XT_LOG_UID) && !iphoff && skb->sk) {
+-		read_lock_bh(&skb->sk->sk_callback_lock);
+-		if (skb->sk->sk_socket && skb->sk->sk_socket->file)
+-			sb_add(m, "UID=%u GID=%u ",
+-				skb->sk->sk_socket->file->f_cred->fsuid,
+-				skb->sk->sk_socket->file->f_cred->fsgid);
+-		read_unlock_bh(&skb->sk->sk_callback_lock);
+-	}
++	if ((logflags & XT_LOG_UID) && !iphoff)
++		dump_sk_uid_gid(m, skb->sk);
+ 
+ 	/* Max length: 16 "MARK=0xFFFFFFFF " */
+ 	if (!iphoff && skb->mark)
+@@ -717,14 +724,8 @@ static void dump_ipv6_packet(struct sbuff *m,
+ 	}
+ 
+ 	/* Max length: 15 "UID=4294967295 " */
+-	if ((logflags & XT_LOG_UID) && recurse && skb->sk) {
+-		read_lock_bh(&skb->sk->sk_callback_lock);
+-		if (skb->sk->sk_socket && skb->sk->sk_socket->file)
+-			sb_add(m, "UID=%u GID=%u ",
+-				skb->sk->sk_socket->file->f_cred->fsuid,
+-				skb->sk->sk_socket->file->f_cred->fsgid);
+-		read_unlock_bh(&skb->sk->sk_callback_lock);
+-	}
++	if ((logflags & XT_LOG_UID) && recurse)
++		dump_sk_uid_gid(m, skb->sk);
+ 
+ 	/* Max length: 16 "MARK=0xFFFFFFFF " */
+ 	if (!recurse && skb->mark)
+
+
