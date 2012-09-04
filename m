@@ -1,80 +1,50 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [RFC PATCH 0/2] RFC: Caching IPv6 exthdr in skb->cb[]
-Date: Tue, 4 Sep 2012 10:26:21 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1209040955460.1704@ja.ssi.bg>
-References: <Pine.GSO.4.63.1208291427170.26100@stinky-local.trash.net> <20120903211504.8851.6894.stgit@dragon>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [Patch net-next] netfilter: remove xt_NOTRACK
+Date: Tue, 4 Sep 2012 10:58:13 +0200
+Message-ID: <20120904085813.GA24911@1984>
+References: <1345962219-2999-1-git-send-email-amwang@redhat.com>
+ <CAHo-Ooz0SDBZTvBKRR-bZs0wHk25bSLaYgUYF0njUgxY8iGWpA@mail.gmail.com>
+ <alpine.LNX.2.01.1208262201520.32152@frira.zrqbmnf.qr>
+ <CAM_iQpU2GPgHP1BVfL_JL6dadjHeiU08en+UpAicjmH3H0QX5Q@mail.gmail.com>
+ <20120903153121.GA19926@1984>
+ <20120903192455.GA3527@1984>
+ <CAHo-Ooy=fg23B5TU7vL95V_-W=Fq+qxHFiycWwPGYBwrfVFdzQ@mail.gmail.com>
+ <alpine.LNX.2.01.1209040539040.9352@frira.zrqbmnf.qr>
+ <CAHo-OoyEKNM4ZL5ucrrjWGOFu6iizNBzvsKUBbd5aVtpccG0hw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
-	Hans Schillstrom <hans@schillstrom.com>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jesper Dangaard Brouer <brouer@redhat.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jan Engelhardt <jengelh@inai.de>,
+	Cong Wang <xiyou.wangcong@gmail.com>,
+	Cong Wang <amwang@redhat.com>, netfilter-devel@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>, netfilter@vger.kernel.org
+To: Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:39887 "EHLO ja.ssi.bg"
+Received: from mail.us.es ([193.147.175.20]:46516 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753004Ab2IDHX3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Sep 2012 03:23:29 -0400
-In-Reply-To: <20120903211504.8851.6894.stgit@dragon>
+	id S1754625Ab2IDI6T (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 Sep 2012 04:58:19 -0400
+Content-Disposition: inline
+In-Reply-To: <CAHo-OoyEKNM4ZL5ucrrjWGOFu6iizNBzvsKUBbd5aVtpccG0hw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Mon, Sep 03, 2012 at 10:29:40PM -0700, Maciej =C5=BBenczykowski wrot=
+e:
+[...]
+> > Not solved:
+> > 4. Since NOTRACK now always maps to CT, "-j NOTRACK"
+> >    has become unusable on sufficiently old kernels.
+> >    Should we even bother?
+>=20
+> Yes, we must, otherwise distros can't upgrade to latest iptables
+> without either patching or upgrading kernel.
 
-	Hello,
-
-On Mon, 3 Sep 2012, Jesper Dangaard Brouer wrote:
-
-> Hi Patrick and Hans,
-> 
-> This is my followup to:
->   [PATCH 2/3] ipvs: Fix faulty IPv6 extension header handling in IPVS
-> 
-> Where you proposed improving the overall architecture of IPv6
-> extension header parsing not only for IPVS but for other related
-> Netfilter subsystems as well.
-> 
-> We discussed using/extending inet6_skb_parm/IP6CB.  There was not
-> enough room for extending inet6_skb_parm directly, so I have
-> introduced a struct inet6_skb_exthdr_cache/IP6CB_EXTHDR, which extend
-> IP6CB.
-> 
-> The question is if this approach will work.  Can netfilter be allowed
-> to modify data after inet6_skb_parm/IP6CB, given all the different
-> HOOKs ?
-
-	Yes, as long as we do not reach the protocol
-receiving handlers, eg. tcp_v4_rcv. But the problem is 
-that many modules can use this CB part but nobody knows
-if it is valid - it is not reset.
-
-	If data is part of IP6CB it is reset in ipv6_rcv
-with memset(IP6CB(skb), 0, sizeof(struct inet6_skb_parm));
-
-	One option is to extend this memset to cover this
-new IP6CB_EXTHDR part if CONFIG_NF_DEFRAG_IPV6 is defined.
-I.e. we can create new struct inet6_skb_parm_exthdr, DCCP, TCP
-will continue to use/extend inet6_skb_parm but
-ipv6_find_hdr_cb will know that their part is reset. Then
-above memset can become:
-
-memset(IP6CB_EXTHDR(skb), 0, sizeof(struct inet6_skb_parm_exthdr));
-
-struct inet6_skb_parm_exthdr {
-	struct inet6_skb_parm	h6;
-#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
-	__u16	thoff; ...
-	...
-#endif
-};
-
-	Not sure if it should depend only on
-CONFIG_NF_DEFRAG_IPV6.
-
-> If we find this is a valid approach, then I'll update the IPVS patches
-> to also use this.
-
-Regards
-
+Why not? They will upgrade and they will start using the CT target
+sooner than any other, which seems good to me.
 --
-Julian Anastasov <ja@ssi.bg>
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
