@@ -1,60 +1,43 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: [PATCH net-next] netfilter: x_tables: xt_init() should run
  earlier
-Date: Wed, 5 Sep 2012 18:53:21 +0200
-Message-ID: <20120905165321.GA22243@1984>
+Date: Wed, 05 Sep 2012 18:59:36 +0200
+Message-ID: <1346864376.13121.159.camel@edumazet-glaptop>
 References: <CAM_iQpVUZ50RYLUgEHbcm7ua996hgE7Gj-P-bWNJutuvm1nUoQ@mail.gmail.com>
- <1346860506.13121.148.camel@edumazet-glaptop>
- <1346861569.13121.149.camel@edumazet-glaptop>
- <1346863073.13121.155.camel@edumazet-glaptop>
+	 <1346860506.13121.148.camel@edumazet-glaptop>
+	 <1346861569.13121.149.camel@edumazet-glaptop>
+	 <1346863073.13121.155.camel@edumazet-glaptop> <20120905165321.GA22243@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Cc: Cong Wang <xiyou.wangcong@gmail.com>,
 	Patrick McHardy <kaber@trash.net>,
 	netfilter-devel@vger.kernel.org,
 	Linux Kernel Network Developers <netdev@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60783 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752832Ab2IEQxY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Sep 2012 12:53:24 -0400
-Content-Disposition: inline
-In-Reply-To: <1346863073.13121.155.camel@edumazet-glaptop>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:46937 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753025Ab2IEQ7m (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 5 Sep 2012 12:59:42 -0400
+In-Reply-To: <20120905165321.GA22243@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Eric,
+On Wed, 2012-09-05 at 18:53 +0200, Pablo Neira Ayuso wrote:
+> Hi Eric,
 
-On Wed, Sep 05, 2012 at 06:37:53PM +0200, Eric Dumazet wrote:
-> From: Eric Dumazet <edumazet@google.com>
 > 
-> Cong Wang reported a NULL dereference in xt_register_target()
+> It seems we've clashed fixing this, sorry. Can you still see any
+> problem with my patch?
 > 
-> It turns out xt_nat_init() was called before xt_init(), so xt array
-> was not yet setup.
-> 
-> xt_init() should be marked core_initcall() to solve this problem.
-> 
-> Reported-by: Cong Wang <xiyou.wangcong@gmail.com>
-> Signed-off-by: Eric Dumazet <edumazet@google.com>
-> ---
->  net/netfilter/x_tables.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-> index 8d987c3..afcea11 100644
-> --- a/net/netfilter/x_tables.c
-> +++ b/net/netfilter/x_tables.c
-> @@ -1390,6 +1390,6 @@ static void __exit xt_fini(void)
->  	kfree(xt);
->  }
->  
-> -module_init(xt_init);
-> +core_initcall(xt_init);
->  module_exit(xt_fini);
+> Thanks for looking into this.
 
-It seems we've clashed fixing this, sorry. Can you still see any
-problem with my patch?
+No problem !
 
-Thanks for looking into this.
+It seems link order is the way to go, so your patch is good too !
+
+Thanks
+
+
