@@ -1,61 +1,52 @@
-From: pablo@netfilter.org
-Subject: [PATCH] netfilter: fix crash during boot if NAT has been compiled built-in
-Date: Wed,  5 Sep 2012 18:37:04 +0200
-Message-ID: <1346863024-2574-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: NULL pointer dereference in xt_register_target()
+Date: Wed, 5 Sep 2012 18:48:31 +0200
+Message-ID: <20120905164831.GA21836@1984>
+References: <CAM_iQpVUZ50RYLUgEHbcm7ua996hgE7Gj-P-bWNJutuvm1nUoQ@mail.gmail.com>
+ <1346860506.13121.148.camel@edumazet-glaptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Cong Wang <xiyou.wangcong@gmail.com>,
+	netfilter-devel@vger.kernel.org,
+	Linux Kernel Network Developers <netdev@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58124 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:60068 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754309Ab2IEQiQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Sep 2012 12:38:16 -0400
+	id S1750800Ab2IEQsh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 5 Sep 2012 12:48:37 -0400
+Content-Disposition: inline
+In-Reply-To: <1346860506.13121.148.camel@edumazet-glaptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+On Wed, Sep 05, 2012 at 05:55:06PM +0200, Eric Dumazet wrote:
+> On Wed, 2012-09-05 at 23:43 +0800, Cong Wang wrote:
+> > Hi, folks,
+> > 
+> > The latest net-next tree can't boot due to a NULL ptr def
+> > bug in the kernel, the full backtrack is:
+> > 
+> > http://img1.douban.com/view/photo/photo/public/p1697139550.jpg
+> > 
+> > the kernel .config file is:
+> > 
+> > http://pastebin.com/9YTnkqKN
+> > 
+> > I don't have time to look into the issue. If you need other info,
+> > please let me know.
+> 
+> It seems xt_nat_init() is called before xt_init(), so xt array is not
+> yet setup.
 
-(c7232c9 netfilter: add protocol independent NAT core) introduced a
-problem that leads to crashing during boot due to NULL pointer
-dereference. It seems that xt_nat calls xt_register_target() before
-xt_init():
+I have enqueued the following patch to fix this:
 
-net/netfilter/x_tables.c:static struct xt_af *xt; is NULL and we crash on
-xt_register_target(struct xt_target *target)
-{
-        u_int8_t af = target->family;
-        int ret;
+http://1984.lsi.us.es/git/nf-next/commit/?id=00545bec9412d130c77f72a08d6c8b6ad21d4a1
+e
+commit 00545bec9412d130c77f72a08d6c8b6ad21d4a1e
+Author: Pablo Neira Ayuso <pablo@netfilter.org>
+Date:   Wed Sep 5 18:24:55 2012 +0200
 
-        ret = mutex_lock_interruptible(&xt[af].mutex);
-...
+    netfilter: fix crash during boot if NAT has been compiled built-in
 
-Fix this by changing the linking order, to make sure that x_tables
-comes before xt_nat.
-
-Reported-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 98244d4..0baa3f1 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -47,7 +47,6 @@ nf_nat-y	:= nf_nat_core.o nf_nat_proto_unknown.o nf_nat_proto_common.o \
- 		   nf_nat_proto_udp.o nf_nat_proto_tcp.o nf_nat_helper.o
- 
- obj-$(CONFIG_NF_NAT) += nf_nat.o
--obj-$(CONFIG_NF_NAT) += xt_nat.o
- 
- # NAT protocols (nf_nat)
- obj-$(CONFIG_NF_NAT_PROTO_DCCP) += nf_nat_proto_dccp.o
-@@ -71,6 +70,7 @@ obj-$(CONFIG_NETFILTER_XTABLES) += x_tables.o xt_tcpudp.o
- obj-$(CONFIG_NETFILTER_XT_MARK) += xt_mark.o
- obj-$(CONFIG_NETFILTER_XT_CONNMARK) += xt_connmark.o
- obj-$(CONFIG_NETFILTER_XT_SET) += xt_set.o
-+obj-$(CONFIG_NF_NAT) += xt_nat.o
- 
- # targets
- obj-$(CONFIG_NETFILTER_XT_TARGET_AUDIT) += xt_AUDIT.o
--- 
-1.7.10.4
-
+Thanks.
