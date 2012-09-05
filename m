@@ -1,54 +1,61 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH net-next] netfilter: x_tables: xt_init() should run earlier
-Date: Wed, 05 Sep 2012 18:37:53 +0200
-Message-ID: <1346863073.13121.155.camel@edumazet-glaptop>
-References: <CAM_iQpVUZ50RYLUgEHbcm7ua996hgE7Gj-P-bWNJutuvm1nUoQ@mail.gmail.com>
-	 <1346860506.13121.148.camel@edumazet-glaptop>
-	 <1346861569.13121.149.camel@edumazet-glaptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Linux Kernel Network Developers <netdev@vger.kernel.org>
-To: Cong Wang <xiyou.wangcong@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+From: pablo@netfilter.org
+Subject: [PATCH] netfilter: fix crash during boot if NAT has been compiled built-in
+Date: Wed,  5 Sep 2012 18:37:04 +0200
+Message-ID: <1346863024-2574-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:50496 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751999Ab2IEQiB (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Sep 2012 12:38:01 -0400
-In-Reply-To: <1346861569.13121.149.camel@edumazet-glaptop>
+Received: from mail.us.es ([193.147.175.20]:58124 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754309Ab2IEQiQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 5 Sep 2012 12:38:16 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Eric Dumazet <edumazet@google.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Cong Wang reported a NULL dereference in xt_register_target()
+(c7232c9 netfilter: add protocol independent NAT core) introduced a
+problem that leads to crashing during boot due to NULL pointer
+dereference. It seems that xt_nat calls xt_register_target() before
+xt_init():
 
-It turns out xt_nat_init() was called before xt_init(), so xt array
-was not yet setup.
+net/netfilter/x_tables.c:static struct xt_af *xt; is NULL and we crash on
+xt_register_target(struct xt_target *target)
+{
+        u_int8_t af = target->family;
+        int ret;
 
-xt_init() should be marked core_initcall() to solve this problem.
+        ret = mutex_lock_interruptible(&xt[af].mutex);
+...
 
-Reported-by: Cong Wang <xiyou.wangcong@gmail.com>
-Signed-off-by: Eric Dumazet <edumazet@google.com>
+Fix this by changing the linking order, to make sure that x_tables
+comes before xt_nat.
+
+Reported-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/x_tables.c |    2 +-
+ net/netfilter/Makefile |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 8d987c3..afcea11 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1390,6 +1390,6 @@ static void __exit xt_fini(void)
- 	kfree(xt);
- }
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 98244d4..0baa3f1 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -47,7 +47,6 @@ nf_nat-y	:= nf_nat_core.o nf_nat_proto_unknown.o nf_nat_proto_common.o \
+ 		   nf_nat_proto_udp.o nf_nat_proto_tcp.o nf_nat_helper.o
  
--module_init(xt_init);
-+core_initcall(xt_init);
- module_exit(xt_fini);
+ obj-$(CONFIG_NF_NAT) += nf_nat.o
+-obj-$(CONFIG_NF_NAT) += xt_nat.o
  
-
+ # NAT protocols (nf_nat)
+ obj-$(CONFIG_NF_NAT_PROTO_DCCP) += nf_nat_proto_dccp.o
+@@ -71,6 +70,7 @@ obj-$(CONFIG_NETFILTER_XTABLES) += x_tables.o xt_tcpudp.o
+ obj-$(CONFIG_NETFILTER_XT_MARK) += xt_mark.o
+ obj-$(CONFIG_NETFILTER_XT_CONNMARK) += xt_connmark.o
+ obj-$(CONFIG_NETFILTER_XT_SET) += xt_set.o
++obj-$(CONFIG_NF_NAT) += xt_nat.o
+ 
+ # targets
+ obj-$(CONFIG_NETFILTER_XT_TARGET_AUDIT) += xt_AUDIT.o
+-- 
+1.7.10.4
 
