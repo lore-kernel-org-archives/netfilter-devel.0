@@ -1,27 +1,41 @@
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: NULL pointer dereference in xt_register_target()
-Date: Wed, 5 Sep 2012 23:43:51 +0800
-Message-ID: <CAM_iQpVUZ50RYLUgEHbcm7ua996hgE7Gj-P-bWNJutuvm1nUoQ@mail.gmail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: NULL pointer dereference in xt_register_target()
+Date: Wed, 05 Sep 2012 17:55:06 +0200
+Message-ID: <1346860506.13121.148.camel@edumazet-glaptop>
+References: <CAM_iQpVUZ50RYLUgEHbcm7ua996hgE7Gj-P-bWNJutuvm1nUoQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Linux Kernel Network Developers <netdev@vger.kernel.org>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	Linux Kernel Network Developers <netdev@vger.kernel.org>
+To: Cong Wang <xiyou.wangcong@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:33045 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753156Ab2IEPzO (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 5 Sep 2012 11:55:14 -0400
+In-Reply-To: <CAM_iQpVUZ50RYLUgEHbcm7ua996hgE7Gj-P-bWNJutuvm1nUoQ@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi, folks,
+On Wed, 2012-09-05 at 23:43 +0800, Cong Wang wrote:
+> Hi, folks,
+> 
+> The latest net-next tree can't boot due to a NULL ptr def
+> bug in the kernel, the full backtrack is:
+> 
+> http://img1.douban.com/view/photo/photo/public/p1697139550.jpg
+> 
+> the kernel .config file is:
+> 
+> http://pastebin.com/9YTnkqKN
+> 
+> I don't have time to look into the issue. If you need other info,
+> please let me know.
 
-The latest net-next tree can't boot due to a NULL ptr def
-bug in the kernel, the full backtrack is:
+It seems xt_nat_init() is called before xt_init(), so xt array is not
+yet setup.
 
-http://img1.douban.com/view/photo/photo/public/p1697139550.jpg
 
-the kernel .config file is:
 
-http://pastebin.com/9YTnkqKN
-
-I don't have time to look into the issue. If you need other info,
-please let me know.
-
-Thanks.
