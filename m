@@ -1,42 +1,37 @@
-From: Wei Yongjun <weiyj.lk@gmail.com>
-Subject: [PATCH] ipvs: use list_del_init instead of list_del/INIT_LIST_HEAD
-Date: Thu, 6 Sep 2012 12:21:53 +0800
-Message-ID: <CAPgLHd_JMzWm-Eh48bXcq6xW2viVEQgmkxLU8KgVyD2gUk6sZQ@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: take care of timewait sockets
+Date: Thu, 6 Sep 2012 14:34:07 +0200
+Message-ID: <20120906123407.GB1217@1984>
+References: <1346780943.13121.58.camel@edumazet-glaptop>
+ <20120905171016.GA23211@1984>
+ <1346867542.13121.160.camel@edumazet-glaptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: yongjun_wei@trendmicro.com.cn, lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
-	pablo@netfilter.org, kaber@trash.net
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Sender: lvs-devel-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
+	netdev <netdev@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1346867542.13121.160.camel@edumazet-glaptop>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+On Wed, Sep 05, 2012 at 07:52:22PM +0200, Eric Dumazet wrote:
+> On Wed, 2012-09-05 at 19:10 +0200, Pablo Neira Ayuso wrote:
+> > On Tue, Sep 04, 2012 at 07:49:03PM +0200, Eric Dumazet wrote:
+> > > From: Eric Dumazet <edumazet@google.com>
+> > > 
+> > > Sami Farin reported crashes in xt_LOG because it assumes skb->sk is a
+> > > full blown socket.
+> > > 
+> > > But with TCP early demux, we can have skb->sk pointing to a timewait
+> > > socket.
+> > 
+> > TCP early demux is there since 3.6-rc.
+> > 
+> > I'll add that to the changelog if you don't mind, to help tracking
+> > things for -stable.
+> 
+> Sure, its not a stable candidate.
 
-Using list_del_init() instead of list_del() + INIT_LIST_HEAD().
-
-spatch with a semantic match is used to found this problem.
-(http://coccinelle.lip6.fr/)
-
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- net/netfilter/ipvs/ip_vs_ctl.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index f51013c..9d9f83e 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -539,8 +539,7 @@ static int ip_vs_rs_unhash(struct ip_vs_dest *dest)
- 	 * Remove it from the rs_table table.
- 	 */
- 	if (!list_empty(&dest->d_list)) {
--		list_del(&dest->d_list);
--		INIT_LIST_HEAD(&dest->d_list);
-+		list_del_init(&dest->d_list);
- 	}
- 
- 	return 1;
-
-
+Done, applied thanks a lot Eric!
