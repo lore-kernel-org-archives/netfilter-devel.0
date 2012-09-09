@@ -1,35 +1,35 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH net-next] netfilter: x_tables: xt_init() should run
- earlier
-Date: Sat, 08 Sep 2012 21:50:41 +0200
-Message-ID: <1347133841.1234.1033.camel@edumazet-glaptop>
-References: <CAM_iQpVUZ50RYLUgEHbcm7ua996hgE7Gj-P-bWNJutuvm1nUoQ@mail.gmail.com>
-	 <1346860506.13121.148.camel@edumazet-glaptop>
-	 <1346861569.13121.149.camel@edumazet-glaptop>
-	 <1346863073.13121.155.camel@edumazet-glaptop>
-	 <Pine.GSO.4.63.1209081949500.2030@stinky-local.trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/2] TCP conntrack patches
+Date: Sun, 9 Sep 2012 22:11:11 +0200
+Message-ID: <20120909201111.GA19595@1984>
+References: <1346442954-29047-1-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Cong Wang <xiyou.wangcong@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org,
-	Linux Kernel Network Developers <netdev@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, Jan Wrobel <wrr@mixedbit.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:36298 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753114Ab2IHTuq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 8 Sep 2012 15:50:46 -0400
-In-Reply-To: <Pine.GSO.4.63.1209081949500.2030@stinky-local.trash.net>
+Received: from mail.us.es ([193.147.175.20]:47456 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754825Ab2IIULP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 9 Sep 2012 16:11:15 -0400
+Content-Disposition: inline
+In-Reply-To: <1346442954-29047-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 2012-09-08 at 19:50 +0200, Patrick McHardy wrote:
+Hi Jozsef,
 
-> Shouldn't we simply change the Makefile order?
+On Fri, Aug 31, 2012 at 09:55:52PM +0200, Jozsef Kadlecsik wrote:
+> Hi Pablo,
+> 
+> Jan Wrobel wrote a nice article on off-path TCP attacks (see
+> http://arxiv.org/abs/1201.2074). He discovered two weaknesses
+> in netfilter TCP conntrack, which make such attacks easier.
+> The next two patches fixes the issues.
+> 
+> Please review them and consider applying them.
 
-Yes, this is what Pablo did.
+I think this can be considered security fixes, so I'll push this to
+3.6-rc.
 
-
+Thanks Jozsef.
