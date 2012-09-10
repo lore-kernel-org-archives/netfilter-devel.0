@@ -1,38 +1,44 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] ipvs: use list_del_init instead of
- list_del/INIT_LIST_HEAD
-Date: Mon, 10 Sep 2012 11:16:05 +0200
-Message-ID: <20120910091605.GA5661@1984>
-References: <CAPgLHd_JMzWm-Eh48bXcq6xW2viVEQgmkxLU8KgVyD2gUk6sZQ@mail.gmail.com>
- <20120910000129.GA31408@verge.net.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Wei Yongjun <weiyj.lk@gmail.com>, wensong@linux-vs.org, ja@ssi.bg,
-	kaber@trash.net, yongjun_wei@trendmicro.com.cn,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org
-To: Simon Horman <horms@verge.net.au>
+From: pablo@netfilter.org
+Subject: [PATCH] build: make clean removes .*.d and *.d
+Date: Mon, 10 Sep 2012 12:28:11 +0200
+Message-ID: <1347272891-3015-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39585 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36199 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756851Ab2IJJQM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Sep 2012 05:16:12 -0400
-Content-Disposition: inline
-In-Reply-To: <20120910000129.GA31408@verge.net.au>
+	id S1756106Ab2IJK3W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 10 Sep 2012 06:29:22 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 10, 2012 at 09:01:30AM +0900, Simon Horman wrote:
-> On Thu, Sep 06, 2012 at 12:21:53PM +0800, Wei Yongjun wrote:
-> > From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> > 
-> > Using list_del_init() instead of list_del() + INIT_LIST_HEAD().
-> > 
-> > spatch with a semantic match is used to found this problem.
-> > (http://coccinelle.lip6.fr/)
-> > 
-> > Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> 
-> Acked-by: Simon Horman <horms@verge.net.au>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Applied, thanks Simon and Wei.
+While changing from master to nf-nat branch, I hit this error:
+
+make[2]: ***   CC       libipt_CLUSTERIP.oo
+No hay ninguna regla para construir el objetivo `../include/net/netfilter/nf_nat.h', necesario para `libipt_DNAT.oo'.  Alto.
+
+by removing *.d and .*.d I get it fixed. Add this to `make clean'
+so I can avoid doing this by hand.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ extensions/GNUmakefile.in |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+index 218dc3a..88ab31d 100644
+--- a/extensions/GNUmakefile.in
++++ b/extensions/GNUmakefile.in
+@@ -76,7 +76,7 @@ install: ${targets_install}
+ 	if test -n "${targets_install}"; then install -pm0755 $^ "${DESTDIR}${xtlibdir}/"; fi;
+ 
+ clean:
+-	rm -f *.o *.oo *.so *.a {matches,targets}[46].man initext.c initext4.c initext6.c;
++	rm -f *.o *.oo *.so *.a .*.d *.d {matches,targets}[46].man initext.c initext4.c initext6.c;
+ 
+ distclean: clean
+ 	rm -f .*.d .*.dd;
+-- 
+1.7.10.4
+
