@@ -1,35 +1,51 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/2] TCP conntrack patches
-Date: Sun, 9 Sep 2012 22:11:11 +0200
-Message-ID: <20120909201111.GA19595@1984>
-References: <1346442954-29047-1-git-send-email-kadlec@blackhole.kfki.hu>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH] ipvs: use list_del_init instead of
+ list_del/INIT_LIST_HEAD
+Date: Mon, 10 Sep 2012 09:01:30 +0900
+Message-ID: <20120910000129.GA31408@verge.net.au>
+References: <CAPgLHd_JMzWm-Eh48bXcq6xW2viVEQgmkxLU8KgVyD2gUk6sZQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Jan Wrobel <wrr@mixedbit.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47456 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754825Ab2IIULP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 9 Sep 2012 16:11:15 -0400
+Cc: wensong@linux-vs.org, ja@ssi.bg, pablo@netfilter.org,
+	kaber@trash.net, yongjun_wei@trendmicro.com.cn,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1346442954-29047-1-git-send-email-kadlec@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <CAPgLHd_JMzWm-Eh48bXcq6xW2viVEQgmkxLU8KgVyD2gUk6sZQ@mail.gmail.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jozsef,
-
-On Fri, Aug 31, 2012 at 09:55:52PM +0200, Jozsef Kadlecsik wrote:
-> Hi Pablo,
+On Thu, Sep 06, 2012 at 12:21:53PM +0800, Wei Yongjun wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 > 
-> Jan Wrobel wrote a nice article on off-path TCP attacks (see
-> http://arxiv.org/abs/1201.2074). He discovered two weaknesses
-> in netfilter TCP conntrack, which make such attacks easier.
-> The next two patches fixes the issues.
+> Using list_del_init() instead of list_del() + INIT_LIST_HEAD().
 > 
-> Please review them and consider applying them.
+> spatch with a semantic match is used to found this problem.
+> (http://coccinelle.lip6.fr/)
+> 
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-I think this can be considered security fixes, so I'll push this to
-3.6-rc.
+Acked-by: Simon Horman <horms@verge.net.au>
 
-Thanks Jozsef.
+> ---
+>  net/netfilter/ipvs/ip_vs_ctl.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index f51013c..9d9f83e 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> @@ -539,8 +539,7 @@ static int ip_vs_rs_unhash(struct ip_vs_dest *dest)
+>  	 * Remove it from the rs_table table.
+>  	 */
+>  	if (!list_empty(&dest->d_list)) {
+> -		list_del(&dest->d_list);
+> -		INIT_LIST_HEAD(&dest->d_list);
+> +		list_del_init(&dest->d_list);
+>  	}
+>  
+>  	return 1;
+> 
+> 
