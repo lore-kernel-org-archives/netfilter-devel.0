@@ -1,51 +1,81 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH] ipvs: use list_del_init instead of
- list_del/INIT_LIST_HEAD
-Date: Mon, 10 Sep 2012 09:01:30 +0900
-Message-ID: <20120910000129.GA31408@verge.net.au>
-References: <CAPgLHd_JMzWm-Eh48bXcq6xW2viVEQgmkxLU8KgVyD2gUk6sZQ@mail.gmail.com>
+From: Fiedler Roman <Roman.Fiedler@ait.ac.at>
+Subject: ulogd syslogemu output garbage after kernel update (32 to 64bit)
+Date: Mon, 10 Sep 2012 08:36:56 +0200
+Message-ID: <9F69795E29C890408AC2DAF646C89BB379DA486186@MAILBOX.arc.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: wensong@linux-vs.org, ja@ssi.bg, pablo@netfilter.org,
-	kaber@trash.net, yongjun_wei@trendmicro.com.cn,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org
-To: Wei Yongjun <weiyj.lk@gmail.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAPgLHd_JMzWm-Eh48bXcq6xW2viVEQgmkxLU8KgVyD2gUk6sZQ@mail.gmail.com>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mta1.ait.ac.at ([62.218.164.111]:46162 "EHLO mail.ait.ac.at"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751372Ab2IJGmq convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 10 Sep 2012 02:42:46 -0400
+Content-Language: de-DE
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 06, 2012 at 12:21:53PM +0800, Wei Yongjun wrote:
-> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> 
-> Using list_del_init() instead of list_del() + INIT_LIST_HEAD().
-> 
-> spatch with a semantic match is used to found this problem.
-> (http://coccinelle.lip6.fr/)
-> 
-> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Hello list,
 
-Acked-by: Simon Horman <horms@verge.net.au>
+In short: Could 32-bit ulogd run on 64-bit kernel without failing?
 
-> ---
->  net/netfilter/ipvs/ip_vs_ctl.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index f51013c..9d9f83e 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -539,8 +539,7 @@ static int ip_vs_rs_unhash(struct ip_vs_dest *dest)
->  	 * Remove it from the rs_table table.
->  	 */
->  	if (!list_empty(&dest->d_list)) {
-> -		list_del(&dest->d_list);
-> -		INIT_LIST_HEAD(&dest->d_list);
-> +		list_del_init(&dest->d_list);
->  	}
->  
->  	return 1;
-> 
-> 
+Longer story: One of our machines runs on 32bit linux because 32bit cod=
+e is smaller. Also the kernel was a 32-bit one. Over the time during op=
+eration, the larger amount of data processed increased RAM requirements=
+=2E All processes stay below 4G but the system itself could use more th=
+an 4G RAM, which is not possible with the 32-bit kernel used. So the ke=
+rnel was upgraded  to 64 bit (kernel 3.3.2) WITHOUT upgrading the syste=
+m to 64 bit.
+
+Afterwards everything worked fine except that the ulogd (1.24-3ubuntu1)=
+ messages written to syslogemu were complete garbage, e.g.
+
+Jan  1 00:00:00 localhost  0 0 20 0 1 < IN=3D [unprintable bytes]
+R OUT=3D [unprintable bytes] MAC=3D50:54:2d:49:4e:46:4f:00:00:00:00:00:=
+00:00:00:00:00:00:00:0e:00:50:56:9c:3c:a6:00:50:56:9c:00:a2:08:00:34:35=
+:37:36:36:31:32:20:34:32:38:37:38:35:39:38:34:30:20:34:32:38:37:38:35:3=
+8:31:30:34:20:34:31:35:31:32  SRC=3D32.48.32.48 DST=3D32.49.55.32 LEN=3D=
+13112 TOS=3D10 PREC=3D0x20 TTL=3D57 ID=3D12340 MF FRAG:5940 PROTO=3D53
+
+All other iptables tools seem to work correctly, e.g. iptables-save sho=
+ws correct interface names, rules and also the ruleset works as expecte=
+d. From that I would expect, that the error should reside in the netlin=
+k handover of captured packets to ulogd or the ulogd handling of those =
+messages.
+
+Is it possible to run a 32-bit ulogd on 64-bit system or is there some =
+reason, this cannot work? If it won't work, it would be nice if ulogd f=
+ails to start with some understandable error message.
+
+Kind Regards,
+Roman
+
+DI Roman Fiedler
+Engineer
+Safety & Security Department
+Assistive Healthcare Information Technology
+
+AIT Austrian Institute of Technology GmbH
+Reininghausstrae 13/1=A0 |=A0 8020 Graz=A0 |=A0 Austria
+T +43(0) 50550 2957=A0 |=A0 M +43(0) 664 8561599=A0 |=A0 F +43(0) 50550=
+ 2950
+roman.fiedler@ait.ac.at | http://www.ait.ac.at/
+
+=46N: 115980 i HG Wien=A0 |=A0 UID: ATU14703506
+This email and any attachments thereto, is intended only for use by the=
+ addressee(s) named herein and may contain legally privileged and/or co=
+nfidential information. If you are not the intended recipient, please n=
+otify the sender by return e-mail or by telephone and delete this messa=
+ge from your system and any printout thereof. Any unauthorized use, rep=
+roduction, or dissemination of this message is strictly prohibited. Ple=
+ase note that e-mails are susceptible to change. AIT Austrian Institute=
+ of Technology GmbH shall not be liable for the improper or incomplete =
+transmission of the information contained in this communication, nor sh=
+all it be liable for any delay in its receipt.
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
