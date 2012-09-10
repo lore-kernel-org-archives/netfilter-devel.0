@@ -1,44 +1,55 @@
-From: pablo@netfilter.org
-Subject: [PATCH] build: make clean removes .*.d and *.d
-Date: Mon, 10 Sep 2012 12:28:11 +0200
-Message-ID: <1347272891-3015-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: [PATCH] build: have `make clean` remove dep files too
+Date: Mon, 10 Sep 2012 15:10:05 +0200
+Message-ID: <1347282605-20781-1-git-send-email-jengelh@inai.de>
+References: <1347272891-3015-1-git-send-email-pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36199 "EHLO mail.us.es"
+Received: from ares07.inai.de ([5.9.24.206]:58070 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756106Ab2IJK3W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Sep 2012 06:29:22 -0400
+	id S1750984Ab2IJNKJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 10 Sep 2012 09:10:09 -0400
+In-Reply-To: <1347272891-3015-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-
-While changing from master to nf-nat branch, I hit this error:
+While changing branches, one can hit errors like:
 
 make[2]: ***   CC       libipt_CLUSTERIP.oo
-No hay ninguna regla para construir el objetivo `../include/net/netfilter/nf_nat.h', necesario para `libipt_DNAT.oo'.  Alto.
+No hay ninguna regla para construir el objetivo
+`../include/net/netfilter/nf_nat.h', necesario para
+`libipt_DNAT.oo'. Alto.
 
-by removing *.d and .*.d I get it fixed. Add this to `make clean'
-so I can avoid doing this by hand.
+Pablo thinks dep files should be removed on `make clean`, and I
+concur. (JFI, Note that native automake would not clear its ".deps"
+directory.) Keep the "distclean: clean" line to keep invocations by
+automake from the parent directory working.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
+
+This patch is fetchable on
+	git://git.inai.de/iptables master
+
  extensions/GNUmakefile.in |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
-index 218dc3a..88ab31d 100644
+index 218dc3a..4a8ff49 100644
 --- a/extensions/GNUmakefile.in
 +++ b/extensions/GNUmakefile.in
-@@ -76,7 +76,7 @@ install: ${targets_install}
- 	if test -n "${targets_install}"; then install -pm0755 $^ "${DESTDIR}${xtlibdir}/"; fi;
+@@ -77,9 +77,9 @@ install: ${targets_install}
  
  clean:
--	rm -f *.o *.oo *.so *.a {matches,targets}[46].man initext.c initext4.c initext6.c;
-+	rm -f *.o *.oo *.so *.a .*.d *.d {matches,targets}[46].man initext.c initext4.c initext6.c;
+ 	rm -f *.o *.oo *.so *.a {matches,targets}[46].man initext.c initext4.c initext6.c;
++	rm -f .*.d .*.dd;
  
  distclean: clean
- 	rm -f .*.d .*.dd;
+-	rm -f .*.d .*.dd;
+ 
+ init%.o: init%.c
+ 	${AM_VERBOSE_CC} ${CC} ${AM_CPPFLAGS} ${AM_DEPFLAGS} ${AM_CFLAGS} -D_INIT=$*_init ${CFLAGS} -o $@ -c $<;
 -- 
 1.7.10.4
 
