@@ -1,79 +1,47 @@
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: [PATCH V3 8/8] ipvs: SIP fragment handling
-Date: Tue, 11 Sep 2012 14:39:30 +0200
-Message-ID: <20120911123901.4305.10642.stgit@dragon>
-References: <20120911123531.4305.40304.stgit@dragon>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] conntrackd: make conntrackd namespace aware
+Date: Tue, 11 Sep 2012 17:44:58 +0200
+Message-ID: <20120911154458.GB28012@1984>
+References: <1346461915-6309-1-git-send-email-aatteka@nicira.com>
+ <20120906170253.GA17317@1984>
+ <CAA=3Oq=G9g=9LkKxhobU1cTLtU3jyuGJZn4kn_E4LJXk11Escw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>,
-	Thomas Graf <tgraf@suug.ch>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	netfilter-devel@vger.kernel.org, Simon Horman <horms@verge.net.au>
-To: Hans Schillstrom <hans@schillstrom.com>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	netdev@vger.kernel.org, "Patrick McHardy" <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	lvs-devel@vger.kernel.org, Julian Anastasov <ja@ssi.bg>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20120911123531.4305.40304.stgit@dragon>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Ansis Atteka <aatteka@nicira.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:46625 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759346Ab2IKS6c (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 11 Sep 2012 14:58:32 -0400
+Content-Disposition: inline
+In-Reply-To: <CAA=3Oq=G9g=9LkKxhobU1cTLtU3jyuGJZn4kn_E4LJXk11Escw@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Use the nfct_reasm SKB if available.
+On Mon, Sep 10, 2012 at 04:24:49PM -0700, Ansis Atteka wrote:
+[...]
+> >
+> >> +
+> >> +#ifdef __NR_setns
+> >> +
+> >> +static int root_fd = -1;
+> >
+> > This root_fd should go to STATE(ns).root_fd:
+>
+> Right, it makes more sense to put it inside ct_state for
+> now.
+> 
+> Once conntrackd will become multi-namespace
+> aware, we will have to move it somewhere else,
+> because all the namespaces(i.e. ct_states) will
+> use the same root_fd.
 
-Based on part of a patch from: Hans Schillstrom
-I have left Hans'es comment in the patch (marked /HS)
+Can you develop a bit more the change that should happen in your
+opinion) to conntrackd to support multi-namespace? I'd like to get an
+idea before that patch lands on the mailing list.
 
-Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+[...]
+> Thanks for review! I will send updated patch soon.
 
----
-V3:
- - I have split out the SIP fragment handling into a seperate patch.
-   As I have not been able to test this part.
- - Change the strange SKB swapping reasm = skb, reverse logic to minimize patch
-
-
- net/netfilter/ipvs/ip_vs_pe_sip.c |   19 +++++++++++++++----
- 1 files changed, 15 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_pe_sip.c b/net/netfilter/ipvs/ip_vs_pe_sip.c
-index ee4e2e3..43acba6 100644
---- a/net/netfilter/ipvs/ip_vs_pe_sip.c
-+++ b/net/netfilter/ipvs/ip_vs_pe_sip.c
-@@ -68,6 +68,7 @@ static int get_callid(const char *dptr, unsigned int dataoff,
- static int
- ip_vs_sip_fill_param(struct ip_vs_conn_param *p, struct sk_buff *skb)
- {
-+	struct sk_buff *reasm = skb_nfct_reasm(skb);
- 	struct ip_vs_iphdr iph;
- 	unsigned int dataoff, datalen, matchoff, matchlen;
- 	const char *dptr;
-@@ -78,13 +79,23 @@ ip_vs_sip_fill_param(struct ip_vs_conn_param *p, struct sk_buff *skb)
- 	/* Only useful with UDP */
- 	if (iph.protocol != IPPROTO_UDP)
- 		return -EINVAL;
-+	/*
-+	 * todo: IPv6 fragments:
-+	 *       I think this only should be done for the first fragment. /HS
-+	 */
-+	if (reasm) {
-+		skb = reasm;
-+		dataoff = iph.thoff_reasm + sizeof(struct udphdr);
-+	} else
-+		dataoff = iph.len + sizeof(struct udphdr);
- 
--	/* No Data ? */
--	dataoff = iph.len + sizeof(struct udphdr);
- 	if (dataoff >= skb->len)
- 		return -EINVAL;
--
--	if ((retc=skb_linearize(skb)) < 0)
-+	/*
-+	 * todo: Check if this will mess-up the reasm skb !!! /HS
-+	 */
-+	retc = skb_linearize(skb);
-+	if (retc < 0)
- 		return retc;
- 	dptr = skb->data + dataoff;
- 	datalen = skb->len - dataoff;
+Thanks.
