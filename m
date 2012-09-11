@@ -1,47 +1,49 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] conntrackd: make conntrackd namespace aware
-Date: Tue, 11 Sep 2012 17:44:58 +0200
-Message-ID: <20120911154458.GB28012@1984>
-References: <1346461915-6309-1-git-send-email-aatteka@nicira.com>
- <20120906170253.GA17317@1984>
- <CAA=3Oq=G9g=9LkKxhobU1cTLtU3jyuGJZn4kn_E4LJXk11Escw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Ansis Atteka <aatteka@nicira.com>
+From: pablo@netfilter.org
+Subject: [PATCH] netfilter: ctnetlink: fix module auto-load in ctnetlink_create_conntrack
+Date: Tue, 11 Sep 2012 17:52:15 +0200
+Message-ID: <1347378735-22625-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46625 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47396 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759346Ab2IKS6c (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Sep 2012 14:58:32 -0400
-Content-Disposition: inline
-In-Reply-To: <CAA=3Oq=G9g=9LkKxhobU1cTLtU3jyuGJZn4kn_E4LJXk11Escw@mail.gmail.com>
+	id S1758764Ab2IKTBE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 11 Sep 2012 15:01:04 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 10, 2012 at 04:24:49PM -0700, Ansis Atteka wrote:
-[...]
-> >
-> >> +
-> >> +#ifdef __NR_setns
-> >> +
-> >> +static int root_fd = -1;
-> >
-> > This root_fd should go to STATE(ns).root_fd:
->
-> Right, it makes more sense to put it inside ct_state for
-> now.
-> 
-> Once conntrackd will become multi-namespace
-> aware, we will have to move it somewhere else,
-> because all the namespaces(i.e. ct_states) will
-> use the same root_fd.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Can you develop a bit more the change that should happen in your
-opinion) to conntrackd to support multi-namespace? I'd like to get an
-idea before that patch lands on the mailing list.
+(c7232c9 netfilter: add protocol independent NAT core) added
+incorrect locking for the module auto-load case in ctnetlink_parse_nat.
 
-[...]
-> Thanks for review! I will send updated patch soon.
+That function is always called from ctnetlink_create_conntrack which
+requires no locking.
 
-Thanks.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_netlink.c |    2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index a205bd6..257da50 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1120,7 +1120,6 @@ ctnetlink_parse_nat_setup(struct nf_conn *ct,
+ 	if (err == -EAGAIN) {
+ #ifdef CONFIG_MODULES
+ 		rcu_read_unlock();
+-		spin_unlock_bh(&nf_conntrack_lock);
+ 		nfnl_unlock();
+ 		if (request_module("nf-nat-%u", nf_ct_l3num(ct)) < 0) {
+ 			nfnl_lock();
+@@ -1129,7 +1128,6 @@ ctnetlink_parse_nat_setup(struct nf_conn *ct,
+ 			return -EOPNOTSUPP;
+ 		}
+ 		nfnl_lock();
+-		spin_lock_bh(&nf_conntrack_lock);
+ 		rcu_read_lock();
+ #else
+ 		err = -EOPNOTSUPP;
+-- 
+1.7.10.4
+
