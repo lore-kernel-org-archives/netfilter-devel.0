@@ -1,48 +1,74 @@
-From: Andrew Beverley <andy@andybev.com>
-Subject: Re: help with conntrack
-Date: Wed, 12 Sep 2012 20:27:30 +0100
-Message-ID: <1347478050.2349.202.camel@andrew-desktop>
-References: <CAOSBYzdLo=A9VApP-BsbQ_Hi8c_NOkS00GUEAjU8X85o+vEy_A@mail.gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: Oops with latest (netfilter) nf-next tree, when unloading
+ iptable_nat
+Date: Wed, 12 Sep 2012 23:36:27 +0200
+Message-ID: <20120912213627.GJ14750@breakpoint.cc>
+References: <1347357081.3928.32.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Miguel Alejandro =?ISO-8859-1?Q?Gonz=E1lez?= <maggonzz@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Pablo Neira Ayuso <pablo@gnumonks.org>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	netdev <netdev@vger.kernel.org>, Florian Westphal <fw@strlen.de>,
+	yongjun_wei@trendmicro.com.cn, kaber@trash.net
+To: Jesper Dangaard Brouer <brouer@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from earth.simplelists.com ([89.16.184.171]:43914 "EHLO
-	earth.simplelists.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750708Ab2ILThy (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:51730 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754949Ab2ILVgf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Sep 2012 15:37:54 -0400
-In-Reply-To: <CAOSBYzdLo=A9VApP-BsbQ_Hi8c_NOkS00GUEAjU8X85o+vEy_A@mail.gmail.com>
+	Wed, 12 Sep 2012 17:36:35 -0400
+Content-Disposition: inline
+In-Reply-To: <1347357081.3928.32.camel@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2012-09-11 at 23:08 -0500, Miguel Alejandro Gonz=C3=A1lez wrote=
-:
-> Hello
->=20
-> I'm making a netfilter module and I need to have interaction with
-> conntrack, as I understand conntrack is a hash table of all connectio=
-ns
-> IPv4 and IPv6. I basically need to know how to do lookups, insertions=
- an
-> deletions, can you tell me how do this? If you can give me some
-> documentation or code to see how conntrack works and how to achieve w=
-hat I
-> need to do, that would be great
+Jesper Dangaard Brouer <brouer@redhat.com> wrote:
 
-The "Writing Netfilter Modules" should help you (see part II):
-http://inai.de/documents/Netfilter_Modules.pdf
+[ CC'd Patrick ]
 
-Of course, there's also libnetfilter_conntrack which includes some good
-examples, although it's a userspace library.
+> I'm hitting this general protection fault, when unloading iptables_nat.
+> [  524.591067] Pid: 5842, comm: modprobe Not tainted 3.6.0-rc3-pablo-nf-next+ #1 Red Hat KVM
+> [  524.591067] RIP: 0010:[<ffffffffa002c2fd>]  [<ffffffffa002c2fd>] nf_nat_proto_clean+0x6d/0xc0 [nf_nat]
+> [  524.591067] RSP: 0018:ffff880073203e18  EFLAGS: 00010246
+> [  524.591067] RAX: 0000000000000000 RBX: ffff880077dff2c8 RCX: ffff8800797fab70
+> [  524.591067] RDX: dead000000200200 RSI: ffff880073203e88 RDI: ffffffffa002f208
+> [  524.591067] RBP: ffff880073203e28 R08: ffff880073202000 R09: 0000000000000000
+> [  524.591067] R10: dead000000200200 R11: dead000000100100 R12: ffffffff81c6dc00
+>  list corruption?   ^^^^^^^^^^^^^^^^      ^^^^^^^^^^^^^^^^
 
-Andy
+Yep, looks like it.
 
+> [  524.591067]  [<ffffffffa002c290>] ? nf_nat_net_exit+0x50/0x50 [nf_nat]
+> [  524.591067]  [<ffffffff815614e3>] nf_ct_iterate_cleanup+0xc3/0x170
+> [  524.591067]  [<ffffffffa002c54a>] nf_nat_l3proto_unregister+0x8a/0x100 [nf_nat]
+> [  524.591067]  [<ffffffff812a0303>] ? compat_prepare_timeout+0x13/0xb0
+> [  524.591067]  [<ffffffffa0035848>] nf_nat_l3proto_ipv4_exit+0x10/0x23 [nf_nat_ipv4]
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On module removal nf_nat_ipv4 calls nf_iterate_cleanup which invokes
+nf_nat_proto_clean() for each conntrack.  That will then call
+hlist_del_rcu(&nat->bysource) using eachs conntracks nat ext area.
+
+Problem is that nf_nat_proto_clean() is called multiple times for the same
+conntrack:
+a) nf_ct_iterate_cleanup() returns each ct twice (origin, reply)
+b) we call it both for l3 and for l4 protocol ids
+
+We barf in hlist_del_rcu the 2nd time because ->pprev is poisoned.
+
+This was introduced with the ipv6 nat patches.
+
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -487,7 +487,7 @@ static int nf_nat_proto_clean(struct nf_conn *i, void *data)
+ 
+        if (clean->hash) {
+                spin_lock_bh(&nf_nat_lock);
+-               hlist_del_rcu(&nat->bysource);
++               hlist_del_init_rcu(&nat->bysource);
+                spin_unlock_bh(&nf_nat_lock);
+        } else {
+
+Would probably avoid it.  I guess it would be nicer to only call this
+once for each ct.
+
+Patrick, any other idea?
