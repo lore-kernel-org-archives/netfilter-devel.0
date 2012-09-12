@@ -1,115 +1,46 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: xt_LOG: avoid using old-style "<.>" printk
- prefix
-Date: Wed, 12 Sep 2012 14:48:26 +0200
-Message-ID: <20120912124826.GA12726@1984>
+From: Romain Francoise <romain@orebokech.com>
+Subject: Re: [PATCH] netfilter: xt_LOG: avoid using old-style "<.>" printk prefix
+Date: Wed, 12 Sep 2012 15:29:39 +0200
+Message-ID: <87392n8j3w.fsf@silenus.orebokech.com>
 References: <874nn5dbx9.fsf@silenus.orebokech.com>
+	<20120912124826.GA12726@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
 	netfilter@vger.kernel.org, coreteam@netfilter.org,
 	Joe Perches <joe@perches.com>,
 	Andrew Morton <akpm@linux-foundation.org>,
 	"David S. Miller" <davem@davemloft.net>, eric.dumazet@gmail.com
-To: Romain Francoise <romain@orebokech.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42397 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757831Ab2ILMsa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Sep 2012 08:48:30 -0400
-Content-Disposition: inline
-In-Reply-To: <874nn5dbx9.fsf@silenus.orebokech.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <20120912124826.GA12726@1984> (Pablo Neira Ayuso's message of
+	"Wed, 12 Sep 2012 14:48:26 +0200")
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi Pablo,
 
-CC'ing Joe Perches and Eric Dumazet, they are discussing a similar
-patch.
+Pablo Neira Ayuso <pablo@netfilter.org> writes:
 
-Would you be OK with the prink_emit variant to solve this? (Once
-several issues are resolved).
+> ebt_log chunk is missing.
 
-On Mon, Sep 10, 2012 at 07:29:06PM +0200, Romain Francoise wrote:
-> Since commit 04d2c8c83d ("printk: convert the format for KERN_<LEVEL> to
-> a 2 byte pattern"), printk no longer uses a "<.>" string prefix
-> internally, so the call in xt_LOG ends up emitting the prefix as part of
-> the log itself (and possibly not at the configured level).
-> 
-> To avoid having to worry about printk's internal formatting, switch to
-> printk_emit(), specifying the desired level directly.
+Sorry, didn't notice that it has the same bug. Do you want that in the
+same patch, or separate?
 
-ebt_log chunk is missing.
+>>  	m->buf[m->count] = 0;
+>> -	printk("%s\n", m->buf);
+>> +	printk_emit(0, level, NULL, 0, "%s\n", m->buf);
 
-> Signed-off-by: Romain Francoise <romain@orebokech.com>
-> ---
->  include/net/netfilter/xt_log.h |    7 +++++--
->  net/netfilter/xt_LOG.c         |    6 +++++-
->  2 files changed, 10 insertions(+), 3 deletions(-)
-> 
-> diff --git a/include/net/netfilter/xt_log.h b/include/net/netfilter/xt_log.h
-> index 9d9756c..343f5bb 100644
-> --- a/include/net/netfilter/xt_log.h
-> +++ b/include/net/netfilter/xt_log.h
-> @@ -39,11 +39,14 @@ static struct sbuff *sb_open(void)
->  	return m;
->  }
->  
-> -static void sb_close(struct sbuff *m)
-> +static void sb_emit(struct sbuff *m, int level)
->  {
->  	m->buf[m->count] = 0;
-> -	printk("%s\n", m->buf);
-> +	printk_emit(0, level, NULL, 0, "%s\n", m->buf);
+> I think it should be printk_emit(-1, ... Note facility is -1.
 
-I think it should be printk_emit(-1, ... Note facility is -1.
+> Thus, we skip the syslog prefix stripping (we can skip it and save
+> some cycles).
 
-Thus, we skip the syslog prefix stripping (we can skip it and save
-some cycles).
+I don't think that's possible, the facility is copied down to user-space
+consumers and it has to be zero for the message to be identified as
+originating from the kernel (0 is LOG_KERN).
 
-> +}
->  
-> +static void sb_close(struct sbuff *m)
-> +{
->  	if (likely(m != &emergency))
->  		kfree(m);
->  	else {
-> diff --git a/net/netfilter/xt_LOG.c b/net/netfilter/xt_LOG.c
-> index ff5f75f..d33ff9f 100644
-> --- a/net/netfilter/xt_LOG.c
-> +++ b/net/netfilter/xt_LOG.c
-> @@ -436,7 +436,7 @@ log_packet_common(struct sbuff *m,
->  		  const struct nf_loginfo *loginfo,
->  		  const char *prefix)
->  {
-> -	sb_add(m, "<%d>%sIN=%s OUT=%s ", loginfo->u.log.level,
-> +	sb_add(m, "%sIN=%s OUT=%s ",
->  	       prefix,
->  	       in ? in->name : "",
->  	       out ? out->name : "");
-> @@ -477,6 +477,8 @@ ipt_log_packet(u_int8_t pf,
->  
->  	dump_ipv4_packet(m, loginfo, skb, 0);
->  
-> +	sb_emit(m, loginfo->u.log.level);
-> +
->  	sb_close(m);
->  }
->  
-> @@ -807,6 +809,8 @@ ip6t_log_packet(u_int8_t pf,
->  
->  	dump_ipv6_packet(m, loginfo, skb, skb_network_offset(skb), 1);
->  
-> +	sb_emit(m, loginfo->u.log.level);
-> +
->  	sb_close(m);
->  }
->  #endif
-> -- 
-> 1.7.10.4
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+As it boils down to a single test for KERN_SOH_ASCII I don't think it
+matters very much.
+
+Thanks!
