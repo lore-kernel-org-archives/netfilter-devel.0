@@ -1,113 +1,90 @@
-From: Ansis Atteka <aatteka@nicira.com>
-Subject: Re: [PATCH] conntrackd: make conntrackd namespace aware
-Date: Thu, 13 Sep 2012 00:37:18 -0700
-Message-ID: <CAA=3Oqm_tGgKpWf2V=Ki7Le-UcA7o_-_o+77TRjPX6-4RYha2Q@mail.gmail.com>
-References: <1346461915-6309-1-git-send-email-aatteka@nicira.com>
-	<20120906170253.GA17317@1984>
-	<CAA=3Oq=G9g=9LkKxhobU1cTLtU3jyuGJZn4kn_E4LJXk11Escw@mail.gmail.com>
-	<20120911154458.GB28012@1984>
+From: Fiedler Roman <Roman.Fiedler@ait.ac.at>
+Subject: AW: ulogd syslogemu output garbage after kernel update (32 to 64bit)
+Date: Thu, 13 Sep 2012 09:42:24 +0200
+Message-ID: <9F69795E29C890408AC2DAF646C89BB379DA5476A8@MAILBOX.arc.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:37647 "HELO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751635Ab2IMHhV (ORCPT
+Received: from mx2.ait.ac.at ([62.218.164.132]:59701 "EHLO MX2.ait.ac.at"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751015Ab2IMHm2 convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Sep 2012 03:37:21 -0400
-Received: by wgbfm10 with SMTP id fm10so335923wgb.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Sep 2012 00:37:19 -0700 (PDT)
-In-Reply-To: <20120911154458.GB28012@1984>
+	Thu, 13 Sep 2012 03:42:28 -0400
+Received: from pps.filterd (MX2 [127.0.0.1])
+	by MX2.ait.ac.at (8.14.5/8.14.5) with SMTP id q8D7gQX8023913
+	for <netfilter-devel@vger.kernel.org>; Thu, 13 Sep 2012 09:42:26 +0200
+Received: from mail.ait.ac.at (mta2.ait.ac.at [62.218.164.112])
+	by MX2.ait.ac.at with ESMTP id 179dg00efx-1
+	(version=TLSv1/SSLv3 cipher=AES128-SHA bits=128 verify=NOT)
+	for <netfilter-devel@vger.kernel.org>; Thu, 13 Sep 2012 09:42:26 +0200
+Content-Language: de-DE
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Sep 11, 2012 at 8:44 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Mon, Sep 10, 2012 at 04:24:49PM -0700, Ansis Atteka wrote:
-> [...]
->> >
->> >> +
->> >> +#ifdef __NR_setns
->> >> +
->> >> +static int root_fd = -1;
->> >
->> > This root_fd should go to STATE(ns).root_fd:
->>
->> Right, it makes more sense to put it inside ct_state for
->> now.
->>
->> Once conntrackd will become multi-namespace
->> aware, we will have to move it somewhere else,
->> because all the namespaces(i.e. ct_states) will
->> use the same root_fd.
->
-> Can you develop a bit more the change that should happen in your
-> opinion) to conntrackd to support multi-namespace? I'd like to get an
-> idea before that patch lands on the mailing list.
-I know that this would be a massive change, so I might miss
-something in the proposal. Anyway feel free to correct me or ask for
-more details where necessary. Here is a list of necessary changes:
+> -----Urspr=FCngliche Nachricht-----
+> Von: Fiedler Roman
+> Gesendet: Montag, 10. September 2012 08:37
+> An: netfilter-devel@vger.kernel.org
+> Betreff: ulogd syslogemu output garbage after kernel update (32 to 64=
+bit)
+>=20
+> Hello list,
+>=20
+> In short: Could 32-bit ulogd run on 64-bit kernel without failing?
 
-1. Quite a lot of refactoring in configuration parser.
+Has any one an educated guess, if that could work? Are netlink data-str=
+uctures machine-arch dependent and hence a 32-bit ulogd cannot process =
+a 64-bit netlink message?
+=20
+> Longer story: One of our machines runs on 32bit linux because 32bit c=
+ode is
+> smaller. Also the kernel was a 32-bit one. Over the time during opera=
+tion, the
+> larger amount of data processed increased RAM requirements. All proce=
+sses
+> stay below 4G but the system itself could use more than 4G RAM, which=
+ is not
+> possible with the 32-bit kernel used. So the kernel was upgraded  to =
+64 bit
+> (kernel 3.3.2) WITHOUT upgrading the system to 64 bit.
+>=20
+> Afterwards everything worked fine except that the ulogd (1.24-3ubuntu=
+1)
+> messages written to syslogemu were complete garbage, e.g.
+>=20
+> Jan  1 00:00:00 localhost  0 0 20 0 1 < IN=3D [unprintable bytes]
+> R OUT=3D [unprintable bytes]
+> MAC=3D50:54:2d:49:4e:46:4f:00:00:00:00:00:00:00:00:00:00:00:00:0e:00:=
+5
+> 0:56:9c:3c:a6:00:50:56:9c:00:a2:08:00:34:35:37:36:36:31:32:20:34:32:3=
+8:
+> 37:38:35:39:38:34:30:20:34:32:38:37:38:35:38:31:30:34:20:34:31:35:31:=
+3
+> 2  SRC=3D32.48.32.48 DST=3D32.49.55.32 LEN=3D13112 TOS=3D10 PREC=3D0x=
+20 TTL=3D57
+> ID=3D12340 MF FRAG:5940 PROTO=3D53
+>=20
+> All other iptables tools seem to work correctly, e.g. iptables-save s=
+hows
+> correct interface names, rules and also the ruleset works as expected=
+=2E From
+> that I would expect, that the error should reside in the netlink hand=
+over of
+> captured packets to ulogd or the ulogd handling of those messages.
+>=20
+> Is it possible to run a 32-bit ulogd on 64-bit system or is there som=
+e reason,
+> this cannot work? If it won't work, it would be nice if ulogd fails t=
+o start with
+> some understandable error message.
+>=20
+> Kind Regards,
+> Roman
 
-I would suggest to split ct_conf struct into three logical pieces (i.e. smaller
-structs):
-a. channel config (instance per remote conntrackd instance)
-b. conntrack-state config (instance per namespace)
-c. static/global config (single instance; Would contain path to log
-file, unix socket e.t.c.)
-
-This decoupling would allow much more easily to maintain relation
-between conntrack-states and channels (for example, when multiple
-namespaces are using the same channel).
-
-Also, currently CONFIG(X) macro allows to reference only a single ct_conf
-instance. This will need to be changed so that each namespace has its own
-ct_conf_sync instance. And each channel has its own ct_conf_channel instance.
-
-Also, I am afraid that, for this to make more sense, I would have to extend
-conntrackd.conf syntax, For example,introduce following top-level sections:
-channel {}, sync {} and global {} respectively.
-
-2. Allow to add, remove and list configuration dynamically without
-restarting conntrackd. This would require ability to start conntrackd
-with minimal global/static configuration. After that add namespaces and
-channel configuration by using Unix Domain socket.
-
-For example, instead of starting conntrackd with following command:
-conntrackd -C /etc/conntrackd/conntrackd.conf
-
-One would have to use something like this:
-conntrackd --global-config /etc/conntrackd/conntrackd_global.conf #
-This config file would just specify Unix socket, log file e.t.c.
-and then on-the-fly add channel and namespace configuration with:
-conntrackd -U /var/run/conntrackd.ctl --add
-/etc/conntrackd/conntrackd_namespace1.conf
-conntrackd -U /var/run/conntrackd.ctl --add
-/etc/conntrackd/conntrackd_channel1.conf
-conntrackd -U /var/run/conntrackd.ctl --add
-/etc/conntrackd/conntrackd_namespace2.conf
-conntrackd -U /var/run/conntrackd.ctl --add
-/etc/conntrackd/conntrackd_channel2.conf
-
-We could glue namespaces together with channels by using some IDs.
-
-Another question is, whether over the Unix domain socket we would prefer to
-transfer binary (already parsed) or textual (yet unparsed) configuration?
-
-Also, I would need to figure out if/how to maintain backward compatibility with
-already existing commands, when there are multiple namespaces (e.g. dump
-internal cache, commit external cache ...).
-
-3. Wire protocol format improvements, so that namespace ID would be encapsulated
-into the protocol too. This is required, when same channel is being
-used by multiple
-namespaces.
-
-4. Similarly as CONFIG(x) was broken down into 3 logical pieces, the
-same thing would
-need to be done for STATE(x) macros.
-
-
-Thanks,
-Ansis
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
