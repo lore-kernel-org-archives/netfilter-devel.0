@@ -1,39 +1,33 @@
-From: Pablo Neira Ayuso <pablo@gnumonks.org>
+From: Fengguang Wu <fengguang.wu@intel.com>
 Subject: Re: xt_nat_init: BUG: unable to handle kernel NULL pointer
  dereference at 00000000000000e0
-Date: Thu, 13 Sep 2012 11:42:05 +0200
-Message-ID: <20120913094205.GA30612@1984>
+Date: Thu, 13 Sep 2012 18:55:10 +0800
+Message-ID: <20120913105510.GA31666@localhost>
 References: <20120913091629.GA28022@localhost>
- <20120913093024.GL14750@breakpoint.cc>
+ <1347528823.13103.1427.camel@edumazet-glaptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Fengguang Wu <fengguang.wu@intel.com>,
-	Patrick McHardy <kaber@trash.net>,
+Cc: Patrick McHardy <kaber@trash.net>,
 	networking <netdev@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
 	"Netfilter Development Maili..." <netfilter-devel@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+	LKML <linux-kernel@vger.kernel.org>,
+	Florian Westphal <fw@strlen.de>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20120913093024.GL14750@breakpoint.cc>
+In-Reply-To: <1347528823.13103.1427.camel@edumazet-glaptop>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Sep 13, 2012 at 11:30:24AM +0200, Florian Westphal wrote:
-> Fengguang Wu <fengguang.wu@intel.com> wrote:
-> > Hi Patrick,
-> > 
-> > This happens in today's linux-next tree and is pretty reproducible.
-> > [    1.834544] nf_conntrack version 0.5.0 (1786 buckets, 7144 max)
-> > [    1.835406] ctnetlink v0.93: registering with nfnetlink.
-> > [    1.836202] BUG: unable to handle kernel NULL pointer dereference at 00000000000000e0
-> > [    1.837539] IP: [<ffffffff81a19123>] mutex_lock_interruptible+0x23/0x70
+> Wasnt it already solved ?
 > 
-> Should be fixed by
-> commit 00545bec9412d130c77f72a08d6c8b6ad21d4a1e
-> Author: Pablo Neira Ayuso <pablo@netfilter.org>
-> Subject: netfilter: fix crash during boot if NAT has been compiled built-in
+> http://1984.lsi.us.es/git/nf-next/commit/?id=00545bec9412d130c77f72a08d6c8b6ad21d4a1
 > 
-> But seems its not yet in net-next.  Pablo?
+> Just have to wait that netfilter fixes are pushed upstream
 
-I'll request the pull asap.
+OK, sorry. I didn't subscribe many mailing lists and rely on the
+search results in google and LKML to avoid duplicate reports..
+
+Thanks,
+Fengguang
