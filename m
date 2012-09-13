@@ -1,44 +1,45 @@
-From: Lutfi ODUNCUOGLU <lutfio@metu.edu.tr>
-Subject: Ipset Problem
-Date: Thu, 13 Sep 2012 17:19:27 +0300
-Message-ID: <5051EB6F.2050406@metu.edu.tr>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: Ipset Problem
+Date: Thu, 13 Sep 2012 16:53:58 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1209131649290.11289@blackhole.kfki.hu>
+References: <5051EB6F.2050406@metu.edu.tr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Lutfi ODUNCUOGLU <lutfio@metu.edu.tr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from frigya.general.services.metu.edu.tr ([144.122.145.140]:36483
-	"EHLO frigya.general.services.metu.edu.tr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755508Ab2IMO00 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Sep 2012 10:26:26 -0400
-Received: from [144.122.3.229] (sandal.cc.metu.edu.tr [144.122.3.229])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by frigya.general.services.metu.edu.tr (Postfix) with ESMTPSA id 6053A629A2
-	for <netfilter-devel@vger.kernel.org>; Thu, 13 Sep 2012 17:19:28 +0300 (EEST)
+Received: from smtp2.kfki.hu ([148.6.0.28]:39617 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751809Ab2IMOyA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Sep 2012 10:54:00 -0400
+In-Reply-To: <5051EB6F.2050406@metu.edu.tr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Thu, 13 Sep 2012, Lutfi ODUNCUOGLU wrote:
 
-I have two iptables configuration, for inet4 and inet6. In order to stop 
-the iptables;
+> I have two iptables configuration, for inet4 and inet6. In order to stop the
+> iptables;
+> 
+> ipset flush
+> ipset destroy
+> 
+> and for ip6tables
+> 
+> ipset flush
+> ipset destroy
 
-ipset flush
-ipset destroy
+Unnecessary, the sets are already flushed and destroyed above.
 
+> Can we make them just to flush and destroy inet6 or inet4? Is there any way?
 
-and for ip6tables
+"ipset flush" flushes all sets, and "ipset destroy" destroys all sets, 
+both inet and inet6. 
 
-ipset flush
-ipset destroy
-
-
-Can we make them just to flush and destroy inet6 or inet4? Is there any 
-way? If not can you add this to request list?
-
-
-Thanks in advance.
-
-Lutfi
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
