@@ -1,38 +1,49 @@
-From: pablo@netfilter.org
-Subject: [PATCH 3/5] netfilter: nfnetlink_queue: remove pointless conditional before kfree_skb()
-Date: Thu, 13 Sep 2012 13:01:30 +0200
-Message-ID: <1347534092-3579-4-git-send-email-pablo@netfilter.org>
-References: <1347534092-3579-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1347534092-3579-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@gnumonks.org>
+Subject: Re: ulogd syslogemu output garbage after kernel update (32 to
+ 64bit)
+Date: Thu, 13 Sep 2012 13:09:55 +0200
+Message-ID: <20120913110955.GA3914@1984>
+References: <9F69795E29C890408AC2DAF646C89BB379DA5476A8@MAILBOX.arc.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Fiedler Roman <Roman.Fiedler@ait.ac.at>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:48802 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753927Ab2IMLKA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Sep 2012 07:10:00 -0400
+Content-Disposition: inline
+In-Reply-To: <9F69795E29C890408AC2DAF646C89BB379DA5476A8@MAILBOX.arc.local>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+On Thu, Sep 13, 2012 at 09:42:24AM +0200, Fiedler Roman wrote:
+> > -----Urspr=FCngliche Nachricht-----
+> > Von: Fiedler Roman
+> > Gesendet: Montag, 10. September 2012 08:37
+> > An: netfilter-devel@vger.kernel.org
+> > Betreff: ulogd syslogemu output garbage after kernel update (32 to =
+64bit)
+> >=20
+> > Hello list,
+> >=20
+> > In short: Could 32-bit ulogd run on 64-bit kernel without failing?
+>=20
+> Has any one an educated guess, if that could work? Are netlink data-s=
+tructures machine-arch dependent and hence a 32-bit ulogd cannot proces=
+s a 64-bit netlink message?
 
-Remove pointless conditional before kfree_skb().
+Netlink is aligned to 32-bits, no matter if arch is 32-bits/64-bits.
+So the short answer is yes, it should work.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nfnetlink_queue_core.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+You'll have to debug this issue further if you want us to help.
 
-diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
-index c0496a5..5c2d78d 100644
---- a/net/netfilter/nfnetlink_queue_core.c
-+++ b/net/netfilter/nfnetlink_queue_core.c
-@@ -406,8 +406,7 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
- 	return skb;
- 
- nla_put_failure:
--	if (skb)
--		kfree_skb(skb);
-+	kfree_skb(skb);
- 	net_err_ratelimited("nf_queue: error creating packet message\n");
- 	return NULL;
- }
--- 
-1.7.10.4
+Moreover, as Jozsef mentioned, we're targeting to ulogd2. Consider
+that ulogd has entered EOL.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
