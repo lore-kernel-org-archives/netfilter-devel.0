@@ -1,69 +1,60 @@
-From: hdemir@metu.edu.tr
-Subject: Re: Ipset Problem
-Date: Thu, 13 Sep 2012 23:12:08 +0300
-Message-ID: <efd86f46bf8b3fd78b796b99cfccea21.squirrel@sqrl.metu.edu.tr>
-References: <5051EB6F.2050406@metu.edu.tr>
-    <alpine.DEB.2.00.1209131649290.11289@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Cc: "Lutfi ODUNCUOGLU" <lutfio@metu.edu.tr>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Combine two modules
+Date: Fri, 14 Sep 2012 03:40:30 +0200
+Message-ID: <1347586832-6190-1-git-send-email-jengelh@inai.de>
+Cc: davem@davemloft.net, kaber@trash.net,
+	netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from frigya.general.services.metu.edu.tr ([144.122.145.140]:46195
-	"EHLO frigya.general.services.metu.edu.tr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756092Ab2IMUV0 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Sep 2012 16:21:26 -0400
-In-Reply-To: <alpine.DEB.2.00.1209131649290.11289@blackhole.kfki.hu>
+Received: from ares07.inai.de ([5.9.24.206]:46549 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751200Ab2INBkl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Sep 2012 21:40:41 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> On Thu, 13 Sep 2012, Lutfi ODUNCUOGLU wrote:
->
->> I have two iptables configuration, for inet4 and inet6. In order to stop
->> the
->> iptables;
->>
->> ipset flush
->> ipset destroy
->>
->> and for ip6tables
->>
->> ipset flush
->> ipset destroy
->
-> Unnecessary, the sets are already flushed and destroyed above.
 
-Why unnecessary? Can I need to only flush and destroy inet6 sets? If I can
-define them separetly, why not? Mostly iptables and ip6tables are
-different. They are handled separate. One can need to flush and destroy
-them, I think.
+Hi,
 
 
-thanks.
+please review, and if ok merge, this small set of two patches to the
+new IPv6 NAT that recently gone in.
 
->
->> Can we make them just to flush and destroy inet6 or inet4? Is there any
->> way?
->
-> "ipset flush" flushes all sets, and "ipset destroy" destroys all sets,
-> both inet and inet6.
->
-> Best regards,
-> Jozsef
-> -
-> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-> Address : Wigner Research Centre for Physics, Hungarian Academy of
-> Sciences
->           H-1525 Budapest 114, POB. 49, Hungary
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+thanks,
+Jan
+===
+The following changes since commit b0e61d98c672a9216d72d2d7430f6dc60795002e:
+
+  Merge branch 'master' of git://1984.lsi.us.es/nf-next (2012-09-13 14:24:31 -0400)
+
+are available in the git repository at:
 
 
+  git://git.inai.de/linux master
+
+for you to fetch changes up to 653e421b28fbf11842c60f9751d9589e95fbbca3:
+
+  net: netfilter: combine ipt_REDIRECT and ip6t_REDIRECT (2012-09-14 02:33:48 +0200)
+
+----------------------------------------------------------------
+Jan Engelhardt (2):
+      net: netfilter: combine ipt_NETMAP and ip6t_NETMAP
+      net: netfilter: combine ipt_REDIRECT and ip6t_REDIRECT
+
+ net/ipv4/netfilter/Kconfig         |   23 ++---
+ net/ipv4/netfilter/Makefile        |    2 -
+ net/ipv4/netfilter/ipt_NETMAP.c    |  101 -------------------
+ net/ipv6/netfilter/Kconfig         |   21 ----
+ net/ipv6/netfilter/Makefile        |    2 -
+ net/ipv6/netfilter/ip6t_NETMAP.c   |   94 ------------------
+ net/ipv6/netfilter/ip6t_REDIRECT.c |   98 -------------------
+ net/netfilter/Kconfig              |   21 ++++
+ net/netfilter/Makefile             |    2 +
+ net/netfilter/xt_NETMAP.c          |  165 +++++++++++++++++++++++++++++++
+ net/netfilter/xt_REDIRECT.c        |  190 ++++++++++++++++++++++++++++++++++++
+ 11 files changed, 388 insertions(+), 331 deletions(-)
+ delete mode 100644 net/ipv4/netfilter/ipt_NETMAP.c
+ delete mode 100644 net/ipv6/netfilter/ip6t_NETMAP.c
+ delete mode 100644 net/ipv6/netfilter/ip6t_REDIRECT.c
+ create mode 100644 net/netfilter/xt_NETMAP.c
+ create mode 100644 net/netfilter/xt_REDIRECT.c
