@@ -1,115 +1,59 @@
-From: Aft nix <aftnix@gmail.com>
-Subject: Help parsing options with iptables extension
-Date: Sat, 15 Sep 2012 16:58:09 +0600
-Message-ID: <CAGuaRCuz+8_CPsXpouoDOdkg-6ezjuZrgc=UVqe-JqYwz2U2QQ@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: conntrack tuple
+Date: Sat, 15 Sep 2012 23:14:50 +0200
+Message-ID: <20120915211450.GA11216@1984>
+References: <CA+Z0r8Mg3X8LQF0Y-kODT+SGgYuOm7FwwWWZoz5R+XP=vFLRLQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Miguel Alejandro =?iso-8859-1?Q?Gonz=E1lez?= <maggonzz@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:57438 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752869Ab2IOK6K (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 15 Sep 2012 06:58:10 -0400
-Received: by ieje11 with SMTP id e11so7536953iej.19
-        for <netfilter-devel@vger.kernel.org>; Sat, 15 Sep 2012 03:58:09 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:51337 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750960Ab2IOVOz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 15 Sep 2012 17:14:55 -0400
+Content-Disposition: inline
+In-Reply-To: <CA+Z0r8Mg3X8LQF0Y-kODT+SGgYuOm7FwwWWZoz5R+XP=vFLRLQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi,
-It seems writing actual kernel module is easier then writing its
-iptables counterpart :)
 
-I'm trying to write a userspace plugin for my in kernel netfilter module.
+On Fri, Sep 14, 2012 at 09:57:36AM -0500, Miguel Alejandro Gonz=E1lez w=
+rote:
+> Hello
+>=20
+> I have some questions about how conntrack tuple handles ICMP error me=
+ssages...
+>=20
+> When a ICMP error packet arrives containing an embedded UDP or TCP
+> packet, assuming there was already a UDP or TCP connection being
+> tracked by conntrack, what are the IP addresses of the tuple, the one=
+s
+> from the ICMP error message or the ones from the embedded packet?
 
-Data structure i'm trying to populate is following :
+It uses inner headers of the ICMP error message, ie. "the ones from
+the embedded packet".
 
-#define XT_OBSF_MAX_KEY_LEN 32
-enum {
-	XT_OBSF_ENC_ARC4 = 1 << 0,
-	XT_OBSF_ENC_AES = 1 << 1,
-	XT_OBSF_PAD_STATIC = 1 << 2,
-	XT_OBSF_PAD_RANDOM = 1 << 3,
-	XT_OBSF_ENC_ENC = 1 << 4,
-	XT_OBSF_ENC_DEC = 1 << 5,
-	XT_OBSF_PAD_ADD = 1 << 6,
-	XT_OBSF_PAD_REM = 1 << 7
-};
+See net/ipv4/netfilter/nf_conntrack_proto_icmp.c
 
-struct enc_info {
-		__u8 key[XT_OBSF_MAX_KEY_LEN];
-		__u8 kl;
-	};
+> Also does the tuple saves port information in this case as well as ic=
+mp
+> type and code?
 
-struct pad_info {
-		__u8 s;
-		__u8 e;
-	};
+Conntrack does not save any ICMP error information.
 
-struct xt_OBSF_tginfo {
-	__u8 flags;
-	struct enc_info *e_info;
-	struct xt_obsf_priv *priv;
-};
+> How does conntrack know that ICMP error message is related to an
+> existing connection?
 
-struct xt_OBSF_tginfo_v1 {
-	__u8 flags;
-	struct enc_info *e_info;
-	struct pad_info *p_info;
-	struct xt_obsf_priv *priv;
-};
+The conntrack code looks up for some existing entry by using the
+information in the inner headers of the ICMP error message.
 
-The structure of options are :
-
-static void OBSF_help(void)
-{
-	printf(
-		"OBSF target obtions\n"
-		"  --key key --keylen kln "
-			"key is <32 byte valued"
-                    --enc-type aes/arc4
-
-		""
-		);
-}
-
-static void OBSF_help_v1(void)
-{
-	OBSF_help();
-	printf(
-		"  --pad yes/no --pad-type static/random --s start value ---e end value"
-				"start/end value 0-255"
-				"start > end"
-		""
-		);
-}
-
-What i'm trying to do is following:
-
-struct xt_OBSF_info * info;
-
---key "key" will go into              info->e_info->key
---keylen "len" will go into          info->e_info->kl
---enc-type static/random will set flag in info->flags
-
---pad if its present then      struct xt_OBSF_info_v1        will be used.
---pad-type static/random will set flag into info->flags
---s "start_value" and --e "end_value" will go info info->p_info->s and
-info->p_info->e
-
-Now i'm confused how i should initialize
-
-struct xt_option_entry OBSF_opts[] = {
-
-......
-......
-......
-
-}
-
-I've seen the example for xt_NFQUEUE.c and tried to model my
-initialization after it, but
-its a little confusing.
-
-Thanks in advance.
--aft
+If no entry is found, the packet is considered invalid, and you can
+drop it with iptables ... -m state --state INVALID
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
