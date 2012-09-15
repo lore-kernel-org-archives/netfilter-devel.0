@@ -1,86 +1,115 @@
-From: auto75914331@hushmail.com
-Subject: Re: [PATCH V2] netfilter/iptables: Fix log-level processing
-Date: Fri, 14 Sep 2012 21:03:24 +0300
-Message-ID: <20120914180324.E51B26F448@smtp.hushmail.com>
+From: Aft nix <aftnix@gmail.com>
+Subject: Help parsing options with iptables extension
+Date: Sat, 15 Sep 2012 16:58:09 +0600
+Message-ID: <CAGuaRCuz+8_CPsXpouoDOdkg-6ezjuZrgc=UVqe-JqYwz2U2QQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: "Bart De Schuymer" <bart.de.schuymer@pandora.be>,
-	"Pablo Neira Ayuso" <pablo@netfilter.org>,
-	"Patrick McHardy" <kaber@trash.net>,
-	"Stephen Hemminger" <shemminger@vyatta.com>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, bridge@lists.linux-foundation.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: "Joe Perches" <joe@perches.com>,
-	"Eric Dumazet" <eric.dumazet@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:57438 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752869Ab2IOK6K (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 15 Sep 2012 06:58:10 -0400
+Received: by ieje11 with SMTP id e11so7536953iej.19
+        for <netfilter-devel@vger.kernel.org>; Sat, 15 Sep 2012 03:58:09 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-thanks, propably works, will not test
+Hi,
+It seems writing actual kernel module is easier then writing its
+iptables counterpart :)
 
+I'm trying to write a userspace plugin for my in kernel netfilter module.
 
+Data structure i'm trying to populate is following :
 
-On 12.09.2012 at 3:05 PM, Joe Perches <joe@perches.com> wrote:
->
->auto75914331@hushmail.com reports that iptables does not correctly
->output the KERN_<level>.
->
->$IPTABLES -A RULE_0_in  -j LOG  --log-level notice --log-prefix 
->"DENY  in: "
->
->result with linux 3.6-rc5
->Sep 12 06:37:29 xxxxx kernel: <5>DENY  in: IN=eth0 OUT= MAC=.......
->
->result with linux 3.5.3 and older:
->Sep  9 10:43:01 xxxxx kernel: DENY  in: IN=eth0 OUT= MAC......
->
->commit 04d2c8c83d0
->("printk: convert the format for KERN_<LEVEL> to a 2 byte pattern")
->updated the syslog header style but did not update netfilter uses.
->
->Do so.
->
->Signed-off-by: Joe Perches <joe@perches.com>
->cc: auto75914331@hushmail.com
->---
->v2: Use KERN_SOH and string concatenation instead of "%c" 
->KERN_SOH_ASCII
->as suggested by Eric Dumazet.
->
-> net/bridge/netfilter/ebt_log.c |    2 +-
-> net/netfilter/xt_LOG.c         |    4 ++--
-> 2 files changed, 3 insertions(+), 3 deletions(-)
->
->diff --git a/net/bridge/netfilter/ebt_log.c 
->b/net/bridge/netfilter/ebt_log.c
->index f88ee53..92de5e5 100644
->--- a/net/bridge/netfilter/ebt_log.c
->+++ b/net/bridge/netfilter/ebt_log.c
->@@ -80,7 +80,7 @@ ebt_log_packet(u_int8_t pf, unsigned int hooknum,
-> 	unsigned int bitmask;
-> 
-> 	spin_lock_bh(&ebt_log_lock);
->-	printk("<%c>%s IN=%s OUT=%s MAC source = %pM MAC dest = %pM 
->proto = 0x%04x",
->+	printk(KERN_SOH "%c%s IN=%s OUT=%s MAC source = %pM MAC dest = 
->%pM proto = 0x%04x",
-> 	       '0' + loginfo->u.log.level, prefix,
-> 	       in ? in->name : "", out ? out->name : "",
-> 	       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest,
->diff --git a/net/netfilter/xt_LOG.c b/net/netfilter/xt_LOG.c
->index ff5f75f..d1609dd 100644
->--- a/net/netfilter/xt_LOG.c
->+++ b/net/netfilter/xt_LOG.c
->@@ -436,8 +436,8 @@ log_packet_common(struct sbuff *m,
-> 		  const struct nf_loginfo *loginfo,
-> 		  const char *prefix)
-> {
->-	sb_add(m, "<%d>%sIN=%s OUT=%s ", loginfo->u.log.level,
->-	       prefix,
->+	sb_add(m, KERN_SOH "%c%sIN=%s OUT=%s ",
->+	       '0' + loginfo->u.log.level, prefix,
-> 	       in ? in->name : "",
-> 	       out ? out->name : "");
-> #ifdef CONFIG_BRIDGE_NETFILTER
+#define XT_OBSF_MAX_KEY_LEN 32
+enum {
+	XT_OBSF_ENC_ARC4 = 1 << 0,
+	XT_OBSF_ENC_AES = 1 << 1,
+	XT_OBSF_PAD_STATIC = 1 << 2,
+	XT_OBSF_PAD_RANDOM = 1 << 3,
+	XT_OBSF_ENC_ENC = 1 << 4,
+	XT_OBSF_ENC_DEC = 1 << 5,
+	XT_OBSF_PAD_ADD = 1 << 6,
+	XT_OBSF_PAD_REM = 1 << 7
+};
+
+struct enc_info {
+		__u8 key[XT_OBSF_MAX_KEY_LEN];
+		__u8 kl;
+	};
+
+struct pad_info {
+		__u8 s;
+		__u8 e;
+	};
+
+struct xt_OBSF_tginfo {
+	__u8 flags;
+	struct enc_info *e_info;
+	struct xt_obsf_priv *priv;
+};
+
+struct xt_OBSF_tginfo_v1 {
+	__u8 flags;
+	struct enc_info *e_info;
+	struct pad_info *p_info;
+	struct xt_obsf_priv *priv;
+};
+
+The structure of options are :
+
+static void OBSF_help(void)
+{
+	printf(
+		"OBSF target obtions\n"
+		"  --key key --keylen kln "
+			"key is <32 byte valued"
+                    --enc-type aes/arc4
+
+		""
+		);
+}
+
+static void OBSF_help_v1(void)
+{
+	OBSF_help();
+	printf(
+		"  --pad yes/no --pad-type static/random --s start value ---e end value"
+				"start/end value 0-255"
+				"start > end"
+		""
+		);
+}
+
+What i'm trying to do is following:
+
+struct xt_OBSF_info * info;
+
+--key "key" will go into              info->e_info->key
+--keylen "len" will go into          info->e_info->kl
+--enc-type static/random will set flag in info->flags
+
+--pad if its present then      struct xt_OBSF_info_v1        will be used.
+--pad-type static/random will set flag into info->flags
+--s "start_value" and --e "end_value" will go info info->p_info->s and
+info->p_info->e
+
+Now i'm confused how i should initialize
+
+struct xt_option_entry OBSF_opts[] = {
+
+......
+......
+......
+
+}
+
+I've seen the example for xt_NFQUEUE.c and tried to model my
+initialization after it, but
+its a little confusing.
+
+Thanks in advance.
+-aft
