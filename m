@@ -1,107 +1,88 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 02/11] xt_psd: move parts of main match function to helpers
-Date: Sun, 16 Sep 2012 23:29:46 +0200
-Message-ID: <1347830995-19226-3-git-send-email-fw@strlen.de>
+Subject: [PATCH 04/11] xt_psd: move match functionality to helpers
+Date: Sun, 16 Sep 2012 23:29:48 +0200
+Message-ID: <1347830995-19226-5-git-send-email-fw@strlen.de>
 References: <1347830995-19226-1-git-send-email-fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:33803 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:33805 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751523Ab2IPVce (ORCPT
+	by vger.kernel.org with ESMTP id S1751658Ab2IPVci (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 16 Sep 2012 17:32:34 -0400
+	Sun, 16 Sep 2012 17:32:38 -0400
 In-Reply-To: <1347830995-19226-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-the match function is way too large, start to split this
-into smaller chunks.
+... reduce line count and to allow code reuse when ipv6 support is introduced.
 ---
- extensions/xt_psd.c |   55 +++++++++++++++++++++++++++++---------------------
- 1 files changed, 32 insertions(+), 23 deletions(-)
+ extensions/xt_psd.c |   36 ++++++++++++++++++++++++++----------
+ 1 files changed, 26 insertions(+), 10 deletions(-)
 
 diff --git a/extensions/xt_psd.c b/extensions/xt_psd.c
-index 1588631..442c05a 100644
+index e803052..df04277 100644
 --- a/extensions/xt_psd.c
 +++ b/extensions/xt_psd.c
-@@ -118,6 +118,36 @@ static bool port_in_list(struct host *host, u8 proto, u16 port)
+@@ -148,6 +148,29 @@ is_portscan(struct host *host, const struct xt_psd_info *psdinfo,
  	return false;
  }
  
-+static u16 get_port_weight(const struct xt_psd_info *psd, __be16 port)
++static struct host *host_get_next(struct host *h, struct host **last)
 +{
-+	return ntohs(port) < 1024 ? psd->lo_ports_weight : psd->hi_ports_weight;
++	if (h->next)
++		*last = h;
++	return h->next;
++}
++
++static void ht_unlink(struct host **head, struct host *last)
++{
++	if (last)
++		last->next = last->next->next;
++	else if (*head)
++		*head = (*head)->next;
 +}
 +
 +static bool
-+is_portscan(struct host *host, const struct xt_psd_info *psdinfo,
-+            u8 proto, __be16 dest_port)
++entry_is_recent(const struct host *h, unsigned long delay_threshold,
++		unsigned long now)
 +{
-+	host->timestamp = jiffies;
-+
-+	if (host->weight >= psdinfo->weight_threshold) /* already matched */
-+		return true;
-+
-+	/* Update the total weight */
-+	host->weight += get_port_weight(psdinfo, dest_port);
-+
-+	/* Got enough destination ports to decide that this is a scan? */
-+	if (host->weight >= psdinfo->weight_threshold)
-+		return true;
-+
-+	/* Remember the new port */
-+	if (host->count < ARRAY_SIZE(host->ports)) {
-+		host->ports[host->count].number = dest_port;
-+		host->ports[host->count].proto = proto;
-+		host->count++;
-+	}
-+	return false;
++	return now - h->timestamp <= (delay_threshold*HZ)/100 &&
++				time_after_eq(now, h->timestamp);
 +}
 +
  static bool
  xt_psd_match(const struct sk_buff *pskb, struct xt_action_param *match)
  {
-@@ -200,31 +230,10 @@ xt_psd_match(const struct sk_buff *pskb, struct xt_action_param *match)
- 			if (proto == IPPROTO_TCP && (tcph->ack || tcph->rst))
- 				goto out_no_match;
+@@ -215,16 +238,12 @@ xt_psd_match(const struct sk_buff *pskb, struct xt_action_param *match)
+ 		if (curr->src_addr.s_addr == addr.s_addr)
+ 			break;
+ 		count++;
+-		if (curr->next != NULL)
+-			last = curr;
+-		curr = curr->next;
++		curr = host_get_next(curr, &last);
+ 	}
  
--			/* Packet to a new port, and not TCP/ACK: update the timestamp */
--			curr->timestamp = now;
+ 	if (curr != NULL) {
+ 		/* We know this address, and the entry isn't too old. Update it. */
+-		if (now - curr->timestamp <= (psdinfo->delay_threshold*HZ)/100 &&
+-		    time_after_eq(now, curr->timestamp)) {
 -
--			/* Matched this scan already? Then Leave. */
--			if (curr->weight >= psdinfo->weight_threshold)
--				goto out_match;
--
--			/* Update the total weight */
--			curr->weight += (ntohs(dest_port) < 1024) ?
--				psdinfo->lo_ports_weight : psdinfo->hi_ports_weight;
--
--			/* Got enough destination ports to decide that this is a scan? */
--			if (curr->weight >= psdinfo->weight_threshold)
-+			if (is_portscan(curr, psdinfo, proto, dest_port))
- 				goto out_match;
--
--			/* Remember the new port */
--			if (curr->count < ARRAY_SIZE(curr->ports)) {
--				curr->ports[curr->count].number = dest_port;
--				curr->ports[curr->count].proto = proto;
--				curr->count++;
--			}
--
- 			goto out_no_match;
- 		}
--
- 		/* We know this address, but the entry is outdated. Mark it unused, and
++		if (entry_is_recent(curr, psdinfo->delay_threshold, now)) {
+ 			if (port_in_list(curr, proto, dest_port))
+ 				goto out_no_match;
+ 			/* TCP/ACK and/or TCP/RST to a new port? This could be an outgoing connection. */
+@@ -239,10 +258,7 @@ xt_psd_match(const struct sk_buff *pskb, struct xt_action_param *match)
  		 * remove from the hash table. We'll allocate a new entry instead since
  		 * this one might get re-used too soon. */
-@@ -287,7 +296,7 @@ xt_psd_match(const struct sk_buff *pskb, struct xt_action_param *match)
- 	curr->dest_addr.s_addr = iph->daddr;
- 	curr->src_port = src_port;
- 	curr->count = 1;
--	curr->weight = (ntohs(dest_port) < 1024) ? psdinfo->lo_ports_weight : psdinfo->hi_ports_weight;
-+	curr->weight = get_port_weight(psdinfo, dest_port);
- 	curr->ports[0].number = dest_port;
- 	curr->ports[0].proto = proto;
+ 		curr->src_addr.s_addr = 0;
+-		if (last != NULL)
+-			last->next = last->next->next;
+-		else if (*head != NULL)
+-			*head = (*head)->next;
++		ht_unlink(head, last);
+ 		last = NULL;
+ 	}
  
 -- 
 1.7.8.6
