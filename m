@@ -1,42 +1,32 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] netfilter: xt_time: add support to ignore day
- transition
-Date: Mon, 17 Sep 2012 13:02:29 +0200
-Message-ID: <20120917110229.GB9909@breakpoint.cc>
-References: <1347877389-15728-1-git-send-email-fw@strlen.de>
- <1347877389-15728-2-git-send-email-fw@strlen.de>
- <alpine.LNX.2.01.1209171230550.21480@nerf07.vanv.qr>
+From: Nicole <nicole@cats-muvva.net>
+Subject: Allocating and destroying connection-related data
+Date: Mon, 17 Sep 2012 12:41:05 +0100
+Message-ID: <50570C51.2080104@cats-muvva.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@inai.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35510 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755693Ab2IQLCb (ORCPT
+Received: from mail.cats-muvva.net ([195.69.92.234]:51347 "EHLO
+	hosting.cats-muvva.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756049Ab2IQLt7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Sep 2012 07:02:31 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.01.1209171230550.21480@nerf07.vanv.qr>
+	Mon, 17 Sep 2012 07:49:59 -0400
+Received: from [192.168.9.2] (workbench.cats-muvva.net [192.168.9.2])
+	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+	(Client CN "CAcert WoT User", Issuer "CA Cert Signing Authority" (not verified))
+	by hosting.cats-muvva.net (Postfix) with ESMTPS id A5F5A46EED
+	for <netfilter-devel@vger.kernel.org>; Mon, 17 Sep 2012 12:41:07 +0100 (BST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt <jengelh@inai.de> wrote:
-> >Currently, if you want to do something like:
-> >"match Monday, starting 23:00, for two hours"
-> >You need two rules, one for Mon 23:00 to 0:00 and one for Tue 0:00-1:00.
-> >The rule
-> >--weekdays Mo --timestart 23:00  --timestop 01:00
-> >looks correct, but it will first match on monday from midnight to 1 a.m.
-> >and then again for another hour from 23:00 onwards.
-> 
-> I think stop < start should be outright rejected in the user interface 
-> because of its confusion potential. Given what it currently does, it 
-> does not seem like it was ever desired.
+Dear All,
 
-No, it works fine the way it is; in fact, the kernel
-explicitly tests for stop < start to make things work.
+Do you have a tutorial (or example) for how to write a module that
+allocates and destroys its own small amount of data that can be
+associated with any connection, including those for which a connection
+tracker is already used?
 
-Only when --weekdays is used with a stop < start rule
-the behaviour gets weird.
+Many thanks
+
+Nicole
