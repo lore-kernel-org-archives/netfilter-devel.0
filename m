@@ -1,34 +1,44 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Allocating and destroying connection-related data
-Date: Mon, 17 Sep 2012 14:31:43 +0200
-Message-ID: <20120917123143.GA7240@1984>
-References: <50570C51.2080104@cats-muvva.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Nicole <nicole@cats-muvva.net>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 0/7][xt-addons] xt_psd: ipv6 support
+Date: Mon, 17 Sep 2012 14:55:16 +0200
+Message-ID: <1347886523-19356-1-git-send-email-fw@strlen.de>
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37554 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756179Ab2IQMbs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Sep 2012 08:31:48 -0400
-Content-Disposition: inline
-In-Reply-To: <50570C51.2080104@cats-muvva.net>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35812 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752206Ab2IQMx1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Sep 2012 08:53:27 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.72)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1TDapK-0000In-Lu
+	for netfilter-devel@vger.kernel.org; Mon, 17 Sep 2012 14:53:26 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 17, 2012 at 12:41:05PM +0100, Nicole wrote:
-> Dear All,
-> 
-> Do you have a tutorial (or example) for how to write a module that
-> allocates and destroys its own small amount of data that can be
-> associated with any connection, including those for which a connection
-> tracker is already used?
+Changes since v1:
+- rebased on top of xt-addons.git psd branch
+- patch1: convert all int hash declarations to unsigned int
+- patch7: use if (foo != NULL) instead of (!foo) where appropriate
 
-There is not, sorry. You'll have to read source code. Check:
+There are no other changes.
 
-net/netfilter/nf_conntrack_extend.c
+The following changes since commit 093f3b0a975d2be97ba33426ceead8d205bca2f6:
 
-and for instance on how to create a conntrack extension:
+  xt_psd: move match functionality to helpers (2012-09-17 04:44:29 +0200)
 
-net/netfilter/nf_conntrack_acct.c
+are available in the git repository at:
+  git://git.breakpoint.cc/fw/xtables-addons.git psd_12
+
+Florian Westphal (7):
+      xt_psd: remove unneeded variables, make hash unsigned
+      xt_psd: split struct host into generic and af-dependent structure
+      xt_psd: move table cleanup into helper
+      xt_psd: use tcph->dest directly
+      xt_psd: move l4 header fetching into helper
+      xt_psd: move ipv4 state locking responsibility to caller
+      psd: add ipv6 support
+
+ extensions/libxt_psd.c |    2 +-
+ extensions/xt_psd.c    |  463 +++++++++++++++++++++++++++++++++++-------------
+ 2 files changed, 340 insertions(+), 125 deletions(-)
