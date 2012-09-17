@@ -1,49 +1,49 @@
-From: Cong Wang <amwang@redhat.com>
-Subject: Re: [PATCH net-next 0/4] ipv6: fix the reassembly expire code in
- nf_conntrack
-Date: Mon, 17 Sep 2012 11:13:29 +0800
-Message-ID: <1347851609.17409.28.camel@cr0>
-References: <1347517541-10653-1-git-send-email-amwang@redhat.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH 05/11] xt_psd: remove unneeded variables
+Date: Mon, 17 Sep 2012 09:35:57 +0200
+Message-ID: <20120917073557.GA9909@breakpoint.cc>
+References: <1347830995-19226-1-git-send-email-fw@strlen.de>
+ <1347830995-19226-6-git-send-email-fw@strlen.de>
+ <alpine.LNX.2.01.1209170453550.13524@nerf07.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Herbert Xu <herbert@gondor.hengli.com.au>,
-	"David S. Miller" <davem@davemloft.net>
-To: netdev@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25501 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751988Ab2IQDNk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 16 Sep 2012 23:13:40 -0400
-In-Reply-To: <1347517541-10653-1-git-send-email-amwang@redhat.com>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:34817 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753537Ab2IQHf7 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Sep 2012 03:35:59 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.01.1209170453550.13524@nerf07.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Ping... Any review? :)
-
-On Thu, 2012-09-13 at 14:25 +0800, Cong Wang wrote:
-> ipv6: add a new namespace for nf_conntrack_reasm
-> ipv6: unify conntrack reassembly expire code with
-> ipv6: make ip6_frag_nqueues() and ip6_frag_mem() static
-> ipv6: unify fragment thresh handling code
+Jan Engelhardt <jengelh@inai.de> wrote:
+> On Sunday 2012-09-16 23:29, Florian Westphal wrote:
+> >
+> >- dest port and dest address were only written, never read
+> >- struct inaddr isn't needed either, just look at iph->saddr
 > 
-> Cc: Herbert Xu <herbert@gondor.apana.org.au>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Signed-off-by: Cong Wang <amwang@redhat.com>
 > 
-> ---
+> I have applied 01..04, with some redactional changes (diff 
+> 975f017..093f3b0).
+
+Alright, the changes are ok; I'll update the remaining
+patches to use stdint-types.
+
+> >-static inline int hashfunc(struct in_addr addr)
+> >+static unsigned int hashfunc(__be32 addr)
 > 
->  include/net/inet_frag.h                 |    2 +-
->  include/net/ipv6.h                      |   32 +++++-
->  include/net/net_namespace.h             |    3 +
->  include/net/netns/conntrack.h           |    6 +
->  net/ipv4/inet_fragment.c                |    9 +-
->  net/ipv4/ip_fragment.c                  |    5 +-
->  net/ipv6/netfilter/nf_conntrack_reasm.c |  196 ++++++++++++++++---------------
->  net/ipv6/reassembly.c                   |   88 ++++----------
->  8 files changed, 176 insertions(+), 165 deletions(-)
-> 
+> You are changing the type of hash here. While I concur with using an 
+> unsigned quantity for a hash value, this is not done consistenly - there 
+> are some (signed) "int hash"s left in the code. Can I get a patch that 
+> rectifies this consistently across the entire .c file as well?
 
+Sure; I'll rebase to remaining patches on top of your tree.
 
+> BTW, does the _10 in your branch name have any significance? :)
 
+Not really; I usually start out with foo_01 and then increment the
+number when rebasing/structuring the changeset.
