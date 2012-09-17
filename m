@@ -1,135 +1,95 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 2/7] xt_psd: split struct host into generic and af-dependent structure
-Date: Mon, 17 Sep 2012 14:55:18 +0200
-Message-ID: <1347886523-19356-3-git-send-email-fw@strlen.de>
+Subject: [PATCH 3/7] xt_psd: move table cleanup into helper
+Date: Mon, 17 Sep 2012 14:55:19 +0200
+Message-ID: <1347886523-19356-4-git-send-email-fw@strlen.de>
 References: <1347886523-19356-1-git-send-email-fw@strlen.de>
 To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35814 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35816 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752206Ab2IQMx3 (ORCPT
+	by vger.kernel.org with ESMTP id S1752206Ab2IQMxb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Sep 2012 08:53:29 -0400
+	Mon, 17 Sep 2012 08:53:31 -0400
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.72)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1TDapN-0000J3-2t
-	for netfilter-devel@vger.kernel.org; Mon, 17 Sep 2012 14:53:29 +0200
+	id 1TDapO-0000Jm-Ae
+	for netfilter-devel@vger.kernel.org; Mon, 17 Sep 2012 14:53:30 +0200
 In-Reply-To: <1347886523-19356-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 ---
- extensions/xt_psd.c |   36 +++++++++++++++++++++++++++---------
- 1 files changed, 27 insertions(+), 9 deletions(-)
+ extensions/xt_psd.c |   42 ++++++++++++++++++++----------------------
+ 1 files changed, 20 insertions(+), 22 deletions(-)
 
 diff --git a/extensions/xt_psd.c b/extensions/xt_psd.c
-index dc9b006..7eaf91a 100644
+index 7eaf91a..352c11a 100644
 --- a/extensions/xt_psd.c
 +++ b/extensions/xt_psd.c
-@@ -68,7 +68,6 @@ struct port {
- struct host {
- 	struct host *next;
- 	unsigned long timestamp;
--	struct in_addr src_addr;
- 	__be16 src_port;
- 	uint16_t count;
- 	uint8_t weight;
-@@ -76,6 +75,19 @@ struct host {
- };
+@@ -183,6 +183,25 @@ entry_is_recent(const struct host *h, unsigned long delay_threshold,
+ 	       time_after_eq(now, h->timestamp);
+ }
  
- /**
-+ * Information we keep per ipv4 source address.
-+ */
-+struct host4 {
-+	struct host host;
-+	__be32 saddr;
-+};
-+
-+static struct host4 *host_to_host4(const struct host *h)
++static void remove_oldest(struct host **head, struct host *curr)
 +{
-+	return (struct host4 *) h;
++	struct host *h, *last = NULL;
++
++	/* We're going to re-use the oldest list entry, so remove it from the hash
++	 * table first if it is really already in use */
++	h = *head;
++	while (h != NULL) {
++		if (curr == h)
++			break;
++		last = h;
++		h = h->next;
++	}
++
++	/* Then, remove it */
++	if (h != NULL)
++		ht_unlink(head, last);
 +}
 +
-+/**
-  * State information.
-  * @list:	list of source addresses
-  * @hash:	pointers into the list
-@@ -83,7 +95,7 @@ struct host {
-  */
- static struct {
- 	spinlock_t lock;
--	struct host list[LIST_SIZE];
-+	struct host4 list[LIST_SIZE];
- 	struct host *hash[HASH_SIZE];
- 	int index;
- } state;
-@@ -185,6 +197,7 @@ xt_psd_match(const struct sk_buff *pskb, struct xt_action_param *match)
- 	u_int8_t proto;
- 	unsigned long now;
- 	struct host *curr, *last = NULL, **head;
-+	struct host4 *curr4;
- 	int count = 0;
- 	unsigned int hash;
- 	/* Parameters from userspace */
-@@ -232,7 +245,8 @@ xt_psd_match(const struct sk_buff *pskb, struct xt_action_param *match)
- 	/* Do we know this source address already? */
- 	curr = *head;
- 	while (curr != NULL) {
--		if (curr->src_addr.s_addr == iph->saddr)
-+		curr4 = host_to_host4(curr);
-+		if (curr4->saddr == iph->saddr)
- 			break;
- 		count++;
- 		curr = host_get_next(curr, &last);
-@@ -254,7 +268,8 @@ xt_psd_match(const struct sk_buff *pskb, struct xt_action_param *match)
- 		/* We know this address, but the entry is outdated. Mark it unused, and
- 		 * remove from the hash table. We'll allocate a new entry instead since
- 		 * this one might get re-used too soon. */
--		curr->src_addr.s_addr = 0;
-+		curr4 = host_to_host4(curr);
-+		curr4->saddr = 0;
- 		ht_unlink(head, last);
- 		last = NULL;
- 	}
-@@ -274,14 +289,15 @@ xt_psd_match(const struct sk_buff *pskb, struct xt_action_param *match)
- 	 * hash table already because of the HASH_MAX check above). */
+ static bool
+ xt_psd_match(const struct sk_buff *pskb, struct xt_action_param *match)
+ {
+@@ -284,36 +303,15 @@ xt_psd_match(const struct sk_buff *pskb, struct xt_action_param *match)
+ 	if (count >= HASH_MAX && last != NULL)
+ 		last->next = NULL;
  
- 	/* First, find it */
--	if (state.list[state.index].src_addr.s_addr != 0)
--		head = &state.hash[hashfunc(state.list[state.index].src_addr.s_addr)];
-+	if (state.list[state.index].saddr != 0)
-+		head = &state.hash[hashfunc(state.list[state.index].saddr)];
+-	/* We're going to re-use the oldest list entry, so remove it from the hash
+-	 * table first (if it is really already in use, and isn't removed from the
+-	 * hash table already because of the HASH_MAX check above). */
+-
+-	/* First, find it */
+ 	if (state.list[state.index].saddr != 0)
+ 		head = &state.hash[hashfunc(state.list[state.index].saddr)];
  	else
  		head = &last;
- 	last = NULL;
- 	curr = *head;
- 	while (curr != NULL) {
--		if (curr == &state.list[state.index])
-+		curr4 = host_to_host4(curr);
-+		if (curr4 == &state.list[state.index])
- 			break;
- 		last = curr;
- 		curr = curr->next;
-@@ -296,7 +312,8 @@ xt_psd_match(const struct sk_buff *pskb, struct xt_action_param *match)
- 	}
+-	last = NULL;
+-	curr = *head;
+-	while (curr != NULL) {
+-		curr4 = host_to_host4(curr);
+-		if (curr4 == &state.list[state.index])
+-			break;
+-		last = curr;
+-		curr = curr->next;
+-	}
+-
+-	/* Then, remove it */
+-	if (curr != NULL) {
+-		if (last != NULL)
+-			last->next = last->next->next;
+-		else if (*head != NULL)
+-			*head = (*head)->next;
+-	}
  
  	/* Get our list entry */
--	curr = &state.list[state.index++];
-+	curr4 = &state.list[state.index++];
-+	curr = &curr4->host;
+ 	curr4 = &state.list[state.index++];
+ 	curr = &curr4->host;
++	remove_oldest(head, curr);
  	if (state.index >= LIST_SIZE)
  		state.index = 0;
  
-@@ -306,7 +323,8 @@ xt_psd_match(const struct sk_buff *pskb, struct xt_action_param *match)
- 	*head = curr;
- 
- 	/* And fill in the fields */
--	curr->src_addr.s_addr = iph->saddr;
-+	curr4 = host_to_host4(curr);
-+	curr4->saddr = iph->saddr;
- 	curr->timestamp = now;
- 	curr->count = 1;
- 	curr->weight = get_port_weight(psdinfo, dest_port);
 -- 
 1.7.8.6
 
