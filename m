@@ -1,34 +1,211 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCHv2] conntrackd: make conntrackd namespace aware
-Date: Tue, 18 Sep 2012 20:53:34 +0200
-Message-ID: <20120918185334.GA32009@1984>
-References: <1347331857-6577-1-git-send-email-aatteka@nicira.com>
- <20120918180802.GA28256@1984>
+Subject: Re: linux-next: Tree for Sept 18 (netfilter)
+Date: Tue, 18 Sep 2012 21:13:55 +0200
+Message-ID: <20120918191355.GA661@1984>
+References: <20120918163755.0a5e6757d3ae75ecb43373a0@canb.auug.org.au>
+ <5058A8A7.7000604@xenotime.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Ansis Atteka <aatteka@nicira.com>
+Content-Type: multipart/mixed; boundary="SLDf9lqlvOQaIe6s"
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: Randy Dunlap <rdunlap@xenotime.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47337 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:49815 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754116Ab2IRSxi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Sep 2012 14:53:38 -0400
+	id S1754254Ab2IRTOE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Sep 2012 15:14:04 -0400
 Content-Disposition: inline
-In-Reply-To: <20120918180802.GA28256@1984>
+In-Reply-To: <5058A8A7.7000604@xenotime.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Sep 18, 2012 at 08:08:02PM +0200, Pablo Neira Ayuso wrote:
-[...]
-> > diff --git a/src/namespace.c b/src/namespace.c
-> > new file mode 100644
-> > index 0000000..3f64cb5
-> > --- /dev/null
-> > +++ b/src/namespace.c
-[...]
-> > +	struct nfct_handle *handle;
-> 
-> This need handle = NULL. See below why.
 
-Not really, sorry, I just noticed handle does not need to be
-initialized to NULL.
+--SLDf9lqlvOQaIe6s
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Sep 18, 2012 at 10:00:23AM -0700, Randy Dunlap wrote:
+> On 09/17/2012 11:37 PM, Stephen Rothwell wrote:
+> 
+> > Hi all,
+> > 
+> > Changes since 201209017:
+> > 
+> 
+> on x86_64:
+> 
+> ERROR: "ip6t_do_table" [net/ipv6/netfilter/ip6table_nat.ko] undefined!
+> ERROR: "ip6t_register_table" [net/ipv6/netfilter/ip6table_nat.ko] undefined!
+> ERROR: "ip6t_alloc_initial_table" [net/ipv6/netfilter/ip6table_nat.ko] undefined!
+> ERROR: "ip6t_unregister_table" [net/ipv6/netfilter/ip6table_nat.ko] undefined!
+> 
+> 
+> Full randconfig file is attached.
+
+This should fix it. Thanks for the report.
+
+--SLDf9lqlvOQaIe6s
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0001-netfilter-fix-IPv6-NAT-dependencies-in-Kconfig.patch"
+
+>From 78c2b7d8b8978e77fde5b11b3f27a0cd1031fe94 Mon Sep 17 00:00:00 2001
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Tue, 18 Sep 2012 21:03:39 +0200
+Subject: [PATCH] netfilter: fix IPv6 NAT dependencies in Kconfig
+
+* NF_NAT_IPV6 requires IP6_NF_IPTABLES
+
+* IP6_NF_TARGET_MASQUERADE, IP6_NF_TARGET_NETMAP, IP6_NF_TARGET_REDIRECT
+  and IP6_NF_TARGET_NPT require NF_NAT_IPV6.
+
+This change just mirrors what IPv4 does in Kconfig, for consistency.
+
+Reported-by: Randy Dunlap <rdunlap@xenotime.net>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/ipv6/netfilter/Kconfig |  110 ++++++++++++++++++++++----------------------
+ 1 file changed, 55 insertions(+), 55 deletions(-)
+
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index 3b73254..d8f276b 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -25,18 +25,6 @@ config NF_CONNTRACK_IPV6
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-config NF_NAT_IPV6
+-	tristate "IPv6 NAT"
+-	depends on NF_CONNTRACK_IPV6
+-	depends on NETFILTER_ADVANCED
+-	select NF_NAT
+-	help
+-	  The IPv6 NAT option allows masquerading, port forwarding and other
+-	  forms of full Network Address Port Translation. It is controlled by
+-	  the `nat' table in ip6tables, see the man page for ip6tables(8).
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+ config IP6_NF_IPTABLES
+ 	tristate "IP6 tables support (required for filtering)"
+ 	depends on INET && IPV6
+@@ -144,48 +132,6 @@ config IP6_NF_TARGET_HL
+ 	(e.g. when running oldconfig). It selects
+ 	CONFIG_NETFILTER_XT_TARGET_HL.
+ 
+-config IP6_NF_TARGET_MASQUERADE
+-	tristate "MASQUERADE target support"
+-	depends on NF_NAT_IPV6
+-	help
+-	  Masquerading is a special case of NAT: all outgoing connections are
+-	  changed to seem to come from a particular interface's address, and
+-	  if the interface goes down, those connections are lost.  This is
+-	  only useful for dialup accounts with dynamic IP address (ie. your IP
+-	  address will be different on next dialup).
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+-config IP6_NF_TARGET_NETMAP
+-	tristate "NETMAP target support"
+-	depends on NF_NAT_IPV6
+-	help
+-	  NETMAP is an implementation of static 1:1 NAT mapping of network
+-	  addresses. It maps the network address part, while keeping the host
+-	  address part intact.
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+-config IP6_NF_TARGET_REDIRECT
+-	tristate "REDIRECT target support"
+-	depends on NF_NAT_IPV6
+-	help
+-	  REDIRECT is a special case of NAT: all incoming connections are
+-	  mapped onto the incoming interface's address, causing the packets to
+-	  come to the local machine instead of passing through.  This is
+-	  useful for transparent proxies.
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+-config IP6_NF_TARGET_NPT
+-	tristate "NPT (Network Prefix translation) target support"
+-	depends on NETFILTER_ADVANCED
+-	help
+-	  This option adds the `SNPT' and `DNPT' target, which perform
+-	  stateless IPv6-to-IPv6 Network Prefix Translation per RFC 6296.
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+ config IP6_NF_FILTER
+ 	tristate "Packet filtering"
+ 	default m if NETFILTER_ADVANCED=n
+@@ -235,9 +181,63 @@ config IP6_NF_SECURITY
+        help
+          This option adds a `security' table to iptables, for use
+          with Mandatory Access Control (MAC) policy.
+-        
++
+          If unsure, say N.
+ 
++config NF_NAT_IPV6
++	tristate "IPv6 NAT"
++	depends on NF_CONNTRACK_IPV6
++	depends on NETFILTER_ADVANCED
++	select NF_NAT
++	help
++	  The IPv6 NAT option allows masquerading, port forwarding and other
++	  forms of full Network Address Port Translation. It is controlled by
++	  the `nat' table in ip6tables, see the man page for ip6tables(8).
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
++if NF_NAT_IPV6
++
++config IP6_NF_TARGET_MASQUERADE
++	tristate "MASQUERADE target support"
++	help
++	  Masquerading is a special case of NAT: all outgoing connections are
++	  changed to seem to come from a particular interface's address, and
++	  if the interface goes down, those connections are lost.  This is
++	  only useful for dialup accounts with dynamic IP address (ie. your IP
++	  address will be different on next dialup).
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
++config IP6_NF_TARGET_NETMAP
++	tristate "NETMAP target support"
++	help
++	  NETMAP is an implementation of static 1:1 NAT mapping of network
++	  addresses. It maps the network address part, while keeping the host
++	  address part intact.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
++config IP6_NF_TARGET_REDIRECT
++	tristate "REDIRECT target support"
++	help
++	  REDIRECT is a special case of NAT: all incoming connections are
++	  mapped onto the incoming interface's address, causing the packets to
++	  come to the local machine instead of passing through.  This is
++	  useful for transparent proxies.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
++config IP6_NF_TARGET_NPT
++	tristate "NPT (Network Prefix translation) target support"
++	help
++	  This option adds the `SNPT' and `DNPT' target, which perform
++	  stateless IPv6-to-IPv6 Network Prefix Translation per RFC 6296.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
++endif # NF_NAT_IPV6
++
+ endif # IP6_NF_IPTABLES
+ 
+ endmenu
+-- 
+1.7.10.4
+
+
+--SLDf9lqlvOQaIe6s--
