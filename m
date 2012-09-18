@@ -1,211 +1,105 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: linux-next: Tree for Sept 18 (netfilter)
-Date: Tue, 18 Sep 2012 21:13:55 +0200
-Message-ID: <20120918191355.GA661@1984>
-References: <20120918163755.0a5e6757d3ae75ecb43373a0@canb.auug.org.au>
- <5058A8A7.7000604@xenotime.net>
+Subject: Re: [PATCH] conntrackd: make conntrackd namespace aware
+Date: Tue, 18 Sep 2012 21:23:20 +0200
+Message-ID: <20120918192320.GA1182@1984>
+References: <1346461915-6309-1-git-send-email-aatteka@nicira.com>
+ <20120906170253.GA17317@1984>
+ <CAA=3Oq=G9g=9LkKxhobU1cTLtU3jyuGJZn4kn_E4LJXk11Escw@mail.gmail.com>
+ <20120911154458.GB28012@1984>
+ <CAA=3Oqm_tGgKpWf2V=Ki7Le-UcA7o_-_o+77TRjPX6-4RYha2Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="SLDf9lqlvOQaIe6s"
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: Randy Dunlap <rdunlap@xenotime.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Ansis Atteka <aatteka@nicira.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49815 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:51086 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754254Ab2IRTOE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Sep 2012 15:14:04 -0400
+	id S1754011Ab2IRTXY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Sep 2012 15:23:24 -0400
 Content-Disposition: inline
-In-Reply-To: <5058A8A7.7000604@xenotime.net>
+In-Reply-To: <CAA=3Oqm_tGgKpWf2V=Ki7Le-UcA7o_-_o+77TRjPX6-4RYha2Q@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
---SLDf9lqlvOQaIe6s
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Sep 18, 2012 at 10:00:23AM -0700, Randy Dunlap wrote:
-> On 09/17/2012 11:37 PM, Stephen Rothwell wrote:
+On Thu, Sep 13, 2012 at 12:37:18AM -0700, Ansis Atteka wrote:
+[...]
+> I know that this would be a massive change, so I might miss
+> something in the proposal. Anyway feel free to correct me or ask for
+> more details where necessary. Here is a list of necessary changes:
 > 
-> > Hi all,
-> > 
-> > Changes since 201209017:
-> > 
+> 1. Quite a lot of refactoring in configuration parser.
 > 
-> on x86_64:
+> I would suggest to split ct_conf struct into three logical pieces (i.e. smaller
+> structs):
+> a. channel config (instance per remote conntrackd instance)
+> b. conntrack-state config (instance per namespace)
+> c. static/global config (single instance; Would contain path to log
+> file, unix socket e.t.c.)
+
+I always wanted to clean up ct_conf. See patch attached, I didn't
+commit it yet since I want to give it some test (Please, not need to
+rebase the patch we're currently discussing upon it).
+
+> This decoupling would allow much more easily to maintain relation
+> between conntrack-states and channels (for example, when multiple
+> namespaces are using the same channel).
+
+I'm not familiar with the channel definition you're using.
+
+Note that conntrackd already uses the name `channel' for the state-sync
+link abstraction (ie. TCP / UDP / MCAST / TIPC ...).
+
+> Also, currently CONFIG(X) macro allows to reference only a single ct_conf
+> instance. This will need to be changed so that each namespace has its own
+> ct_conf_sync instance. And each channel has its own ct_conf_channel instance.
 > 
-> ERROR: "ip6t_do_table" [net/ipv6/netfilter/ip6table_nat.ko] undefined!
-> ERROR: "ip6t_register_table" [net/ipv6/netfilter/ip6table_nat.ko] undefined!
-> ERROR: "ip6t_alloc_initial_table" [net/ipv6/netfilter/ip6table_nat.ko] undefined!
-> ERROR: "ip6t_unregister_table" [net/ipv6/netfilter/ip6table_nat.ko] undefined!
+> Also, I am afraid that, for this to make more sense, I would have to extend
+> conntrackd.conf syntax, For example,introduce following top-level sections:
+> channel {}, sync {} and global {} respectively.
 > 
+> 2. Allow to add, remove and list configuration dynamically without
+> restarting conntrackd. This would require ability to start conntrackd
+> with minimal global/static configuration. After that add namespaces and
+> channel configuration by using Unix Domain socket.
 > 
-> Full randconfig file is attached.
+> For example, instead of starting conntrackd with following command:
+> conntrackd -C /etc/conntrackd/conntrackd.conf
+> 
+> One would have to use something like this:
+> conntrackd --global-config /etc/conntrackd/conntrackd_global.conf #
+> This config file would just specify Unix socket, log file e.t.c.
+> and then on-the-fly add channel and namespace configuration with:
+> conntrackd -U /var/run/conntrackd.ctl --add
+> /etc/conntrackd/conntrackd_namespace1.conf
+> conntrackd -U /var/run/conntrackd.ctl --add
+> /etc/conntrackd/conntrackd_channel1.conf
+> conntrackd -U /var/run/conntrackd.ctl --add
+> /etc/conntrackd/conntrackd_namespace2.conf
+> conntrackd -U /var/run/conntrackd.ctl --add
+> /etc/conntrackd/conntrackd_channel2.conf
+> 
+> We could glue namespaces together with channels by using some IDs.
+> 
+> Another question is, whether over the Unix domain socket we would prefer to
+> transfer binary (already parsed) or textual (yet unparsed) configuration?
+> 
+> Also, I would need to figure out if/how to maintain backward compatibility with
+> already existing commands, when there are multiple namespaces (e.g. dump
+> internal cache, commit external cache ...).
+> 
+> 3. Wire protocol format improvements, so that namespace ID would be encapsulated
+> into the protocol too. This is required, when same channel is being
+> used by multiple namespaces.
 
-This should fix it. Thanks for the report.
+This only requires adding one new TLV attribute to identify this. So
+we don't need to bloat the header with one field that is not use.
 
---SLDf9lqlvOQaIe6s
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-netfilter-fix-IPv6-NAT-dependencies-in-Kconfig.patch"
+> 4. Similarly as CONFIG(x) was broken down into 3 logical pieces, the
+> same thing would
+> need to be done for STATE(x) macros.
 
->From 78c2b7d8b8978e77fde5b11b3f27a0cd1031fe94 Mon Sep 17 00:00:00 2001
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue, 18 Sep 2012 21:03:39 +0200
-Subject: [PATCH] netfilter: fix IPv6 NAT dependencies in Kconfig
+This seems to be a huge changeset what you're proposing.
 
-* NF_NAT_IPV6 requires IP6_NF_IPTABLES
-
-* IP6_NF_TARGET_MASQUERADE, IP6_NF_TARGET_NETMAP, IP6_NF_TARGET_REDIRECT
-  and IP6_NF_TARGET_NPT require NF_NAT_IPV6.
-
-This change just mirrors what IPv4 does in Kconfig, for consistency.
-
-Reported-by: Randy Dunlap <rdunlap@xenotime.net>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv6/netfilter/Kconfig |  110 ++++++++++++++++++++++----------------------
- 1 file changed, 55 insertions(+), 55 deletions(-)
-
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index 3b73254..d8f276b 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -25,18 +25,6 @@ config NF_CONNTRACK_IPV6
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
--config NF_NAT_IPV6
--	tristate "IPv6 NAT"
--	depends on NF_CONNTRACK_IPV6
--	depends on NETFILTER_ADVANCED
--	select NF_NAT
--	help
--	  The IPv6 NAT option allows masquerading, port forwarding and other
--	  forms of full Network Address Port Translation. It is controlled by
--	  the `nat' table in ip6tables, see the man page for ip6tables(8).
--
--	  To compile it as a module, choose M here.  If unsure, say N.
--
- config IP6_NF_IPTABLES
- 	tristate "IP6 tables support (required for filtering)"
- 	depends on INET && IPV6
-@@ -144,48 +132,6 @@ config IP6_NF_TARGET_HL
- 	(e.g. when running oldconfig). It selects
- 	CONFIG_NETFILTER_XT_TARGET_HL.
- 
--config IP6_NF_TARGET_MASQUERADE
--	tristate "MASQUERADE target support"
--	depends on NF_NAT_IPV6
--	help
--	  Masquerading is a special case of NAT: all outgoing connections are
--	  changed to seem to come from a particular interface's address, and
--	  if the interface goes down, those connections are lost.  This is
--	  only useful for dialup accounts with dynamic IP address (ie. your IP
--	  address will be different on next dialup).
--
--	  To compile it as a module, choose M here.  If unsure, say N.
--
--config IP6_NF_TARGET_NETMAP
--	tristate "NETMAP target support"
--	depends on NF_NAT_IPV6
--	help
--	  NETMAP is an implementation of static 1:1 NAT mapping of network
--	  addresses. It maps the network address part, while keeping the host
--	  address part intact.
--
--	  To compile it as a module, choose M here.  If unsure, say N.
--
--config IP6_NF_TARGET_REDIRECT
--	tristate "REDIRECT target support"
--	depends on NF_NAT_IPV6
--	help
--	  REDIRECT is a special case of NAT: all incoming connections are
--	  mapped onto the incoming interface's address, causing the packets to
--	  come to the local machine instead of passing through.  This is
--	  useful for transparent proxies.
--
--	  To compile it as a module, choose M here.  If unsure, say N.
--
--config IP6_NF_TARGET_NPT
--	tristate "NPT (Network Prefix translation) target support"
--	depends on NETFILTER_ADVANCED
--	help
--	  This option adds the `SNPT' and `DNPT' target, which perform
--	  stateless IPv6-to-IPv6 Network Prefix Translation per RFC 6296.
--
--	  To compile it as a module, choose M here.  If unsure, say N.
--
- config IP6_NF_FILTER
- 	tristate "Packet filtering"
- 	default m if NETFILTER_ADVANCED=n
-@@ -235,9 +181,63 @@ config IP6_NF_SECURITY
-        help
-          This option adds a `security' table to iptables, for use
-          with Mandatory Access Control (MAC) policy.
--        
-+
-          If unsure, say N.
- 
-+config NF_NAT_IPV6
-+	tristate "IPv6 NAT"
-+	depends on NF_CONNTRACK_IPV6
-+	depends on NETFILTER_ADVANCED
-+	select NF_NAT
-+	help
-+	  The IPv6 NAT option allows masquerading, port forwarding and other
-+	  forms of full Network Address Port Translation. It is controlled by
-+	  the `nat' table in ip6tables, see the man page for ip6tables(8).
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
-+if NF_NAT_IPV6
-+
-+config IP6_NF_TARGET_MASQUERADE
-+	tristate "MASQUERADE target support"
-+	help
-+	  Masquerading is a special case of NAT: all outgoing connections are
-+	  changed to seem to come from a particular interface's address, and
-+	  if the interface goes down, those connections are lost.  This is
-+	  only useful for dialup accounts with dynamic IP address (ie. your IP
-+	  address will be different on next dialup).
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
-+config IP6_NF_TARGET_NETMAP
-+	tristate "NETMAP target support"
-+	help
-+	  NETMAP is an implementation of static 1:1 NAT mapping of network
-+	  addresses. It maps the network address part, while keeping the host
-+	  address part intact.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
-+config IP6_NF_TARGET_REDIRECT
-+	tristate "REDIRECT target support"
-+	help
-+	  REDIRECT is a special case of NAT: all incoming connections are
-+	  mapped onto the incoming interface's address, causing the packets to
-+	  come to the local machine instead of passing through.  This is
-+	  useful for transparent proxies.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
-+config IP6_NF_TARGET_NPT
-+	tristate "NPT (Network Prefix translation) target support"
-+	help
-+	  This option adds the `SNPT' and `DNPT' target, which perform
-+	  stateless IPv6-to-IPv6 Network Prefix Translation per RFC 6296.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
-+endif # NF_NAT_IPV6
-+
- endif # IP6_NF_IPTABLES
- 
- endmenu
--- 
-1.7.10.4
-
-
---SLDf9lqlvOQaIe6s--
+I need some convincing architecture example that describes how this
+can be used before you submit such a big patch. I need to understand
+it to know if there is a different way to make this.
