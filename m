@@ -1,46 +1,56 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next 0/4] ipv6: fix the reassembly expire code in
- nf_conntrack
-Date: Mon, 17 Sep 2012 12:59:25 -0400 (EDT)
-Message-ID: <20120917.125925.930848734158369358.davem@davemloft.net>
-References: <1347517541-10653-1-git-send-email-amwang@redhat.com>
-	<20120917.125419.1478223385564528540.davem@davemloft.net>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH] New Target Extension OBSF
+Date: Tue, 18 Sep 2012 02:04:10 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1209180120530.22227@nerf07.vanv.qr>
+References: <1347895271.27332.1.camel@kernel-host-rh6>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-7
-Content-Transfer-Encoding: base64
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	herbert@gondor.hengli.com.au
-To: amwang@redhat.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: aft <aftnix@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:59172 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754455Ab2IQQ71 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Sep 2012 12:59:27 -0400
-In-Reply-To: <20120917.125419.1478223385564528540.davem@davemloft.net>
+Received: from ares07.inai.de ([5.9.24.206]:41528 "EHLO seven.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932379Ab2IRAEM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Sep 2012 20:04:12 -0400
+In-Reply-To: <1347895271.27332.1.camel@kernel-host-rh6>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-RnJvbTogRGF2aWQgTWlsbGVyIDxkYXZlbUBkYXZlbWxvZnQubmV0Pg0KRGF0ZTogTW9uLCAxNyBT
-ZXAgMjAxMiAxMjo1NDoxOSAtMDQwMCAoRURUKQ0KDQo+IEZyb206IENvbmcgV2FuZyA8YW13YW5n
-QHJlZGhhdC5jb20+DQo+IERhdGU6IFRodSwgMTMgU2VwIDIwMTIgMTQ6MjU6MzcgKzA4MDANCj4g
-DQo+PiBpcHY2OiBhZGQgYSBuZXcgbmFtZXNwYWNlIGZvciBuZl9jb25udHJhY2tfcmVhc20NCj4+
-IGlwdjY6IHVuaWZ5IGNvbm50cmFjayByZWFzc2VtYmx5IGV4cGlyZSBjb2RlIHdpdGgNCj4+IGlw
-djY6IG1ha2UgaXA2X2ZyYWdfbnF1ZXVlcygpIGFuZCBpcDZfZnJhZ19tZW0oKSBzdGF0aWMNCj4+
-IGlwdjY6IHVuaWZ5IGZyYWdtZW50IHRocmVzaCBoYW5kbGluZyBjb2RlDQo+PiANCj4+IENjOiBI
-ZXJiZXJ0IFh1IDxoZXJiZXJ0QGdvbmRvci5hcGFuYS5vcmcuYXU+DQo+PiBDYzogIkRhdmlkIFMu
-IE1pbGxlciIgPGRhdmVtQGRhdmVtbG9mdC5uZXQ+DQo+PiBTaWduZWQtb2ZmLWJ5OiBDb25nIFdh
-bmcgPGFtd2FuZ0ByZWRoYXQuY29tPg0KPiANCj4gVGhlc2UgY2hhbmdlcyBsb29rIGdyZWF0LCBh
-bGwgYXBwbGllZCB0byBuZXQtbmV4dCwgdGhhbmtzLg0KDQpJIGhhdmUgdG8gYXNrIGlmIHlvdSBh
-Y3R1YWxseSBidWlsZCB0ZXN0ZWQgdGhpcyBjaGFuZ2UgYXQgYWxsOg0KDQpuZXQvaXB2Ni9wcm9j
-LmM6IEluIGZ1bmN0aW9uIKFzb2Nrc3RhdDZfc2VxX3Nob3eiOg0KbmV0L2lwdjYvcHJvYy5jOjQ2
-OjEwOiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24goWlwNl9mcmFnX25x
-dWV1ZXOiIFstV2Vycm9yPWltcGxpY2l0LWZ1bmN0aW9uLWRlY2xhcmF0aW9uXQ0KbmV0L2lwdjYv
-cHJvYy5jOjQ2OjEwOiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24goWlw
-Nl9mcmFnX21lbaIgWy1XZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24tZGVjbGFyYXRpb25dDQoNCkl0
-IGlzIGFic29sdXRlbHkgaW1wb3NzaWJsZSBmb3IgeW91IHRvIGhhdmUgZW5hYmxlZCBpcHY2IGFu
-ZCBub3QgZ290dGVuDQp0aGF0IGJ1aWxkIGVycm9yLg0KDQpUaGUgb25seSBsb2dpY2FsIGV4cGxh
-bmF0aW9uIGlzIHRoYXQgeW91IGRpZG4ndCBjb21taXQgdGhlIGNoYW5nZXMNCnRvIG5ldC9pcHY2
-L3Byb2MuYyBpbiB5b3VyIHRyZWUgd2hlbiB5b3UgcHV0IHRvZ2V0aGVyIHRoZXNlIHBhdGNoZXMu
-DQoNClBsZWFzZSBmaXggdGhpcyB1cCBhbmQgcmVzdWJtaXQgdGhlIGZ1bGwgc2VyaWVzLg0KDQpU
-aGFua3MuDQo=
+
+On Monday 2012-09-17 17:21, aft wrote:
+>
+>1) it encrypts UDP traffic.
+>2) it adds false bytes(padding).
+>
+>Its purpose is to escape smarter DPIs which blocks certain kinds of
+>packets by several heuristic methods.
+
+But then why not use IPsec (udpencap), OpenVPN, or something?
+After all, you do already need a cooperating peer to decrypt
+your traffic, and hence might as well pick a _standardized_ solution.
+
+If all you want is evading some DPI gateways, I guess even the
+lowly XOR non-encryption scheme will sufficiently work.
+
+>+static struct xt_target obsf_tg_reg[] __read_mostly = {
+>+	{
+>+		.name = "OBSF",
+>+		.family = NFPROTO_UNSPEC,
+>+		.target = obsf_tg,
+>+		.checkentry = obsf_tg_check,
+>+		.targetsize = sizeof(struct xt_OBSF_tginfo),
+>+		.me = THIS_MODULE,
+>+	},
+>+	{
+>+		.name = "OBSF",
+>+		.revision = 1,
+>+		.family = NFPROTO_UNSPEC,
+>+		.target = obsf_tg_v1,
+>+		.targetsize = sizeof(struct xt_OBSF_tginfo_v1),
+>+		.checkentry = obsf_tg_check_v1,
+>+		.me = THIS_MODULE,
+>+	},
+>+};
+
+There is no need to use two revisions.
+
