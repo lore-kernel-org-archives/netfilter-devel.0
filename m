@@ -1,50 +1,38 @@
 From: Cong Wang <amwang@redhat.com>
-Subject: Re: [PATCH 1/4] ipv6: add a new namespace for nf_conntrack_reasm
-Date: Tue, 18 Sep 2012 18:44:01 +0800
-Message-ID: <1347965041.14402.28.camel@cr0>
-References: <1347942582-23962-1-git-send-email-amwang@redhat.com>
-	 <1347942582-23962-2-git-send-email-amwang@redhat.com>
-	 <20120918073756.GA18206@1984>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+Subject: [PATCH v3 net-next 0/4] ipv6: fix the reassembly expire code in nf_conntrack
+Date: Tue, 18 Sep 2012 21:45:07 +0800
+Message-ID: <1347975911-5655-1-git-send-email-amwang@redhat.com>
+Cc: netfilter-devel@vger.kernel.org,
 	Herbert Xu <herbert@gondor.hengli.com.au>,
-	Michal =?UTF-8?Q?Kube=C4=8Dek?= <mkubecek@suse.cz>,
-	David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53217 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753156Ab2IRKoW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Sep 2012 06:44:22 -0400
-In-Reply-To: <20120918073756.GA18206@1984>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+	"David S. Miller" <davem@davemloft.net>,
+	Cong Wang <amwang@redhat.com>
+To: netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2012-09-18 at 09:37 +0200, Pablo Neira Ayuso wrote:
-> > +#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
-> > +	struct netns_nf_ct	nf_ct;
-> > +#endif
-> 
-> There's above one "struct netns_ct" that already encapsulates
-> netfilter conntrack netns parameters.
-> 
-> However, I'd prefer if, while at it, you define some struct
-> netns_nf_frag instead.
-> 
-> In net/ipv6/netfilter/Makefile, it says:
-> 
-> # defrag
-> nf_defrag_ipv6-y := nf_defrag_ipv6_hooks.o nf_conntrack_reasm.o
-> 
-> Note that nf defragmentation is not glued to conntrack anymore. So I'd
-> go for one netns_nf_frag for this in include/net/net_namespace.h
-> 
+V3: rename struct netns_nf_ct to struct netns_nf_frag
 
-Sure, I will rename that struct to 'struct netns_nf_frag'.
+V2: use IS_ENABLED(CONFIG_IPV6) to fix a build error
+    rebase to latest net-next
 
-Thanks for review!
+ipv6: add a new namespace for nf_conntrack_reasm
+ipv6: unify conntrack reassembly expire code with standard one
+ipv6: make ip6_frag_nqueues() and ip6_frag_mem() static
+ipv6: unify fragment thresh handling code
 
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Cong Wang <amwang@redhat.com>
 
+-----
+
+ include/net/inet_frag.h                 |    2 +-
+ include/net/ipv6.h                      |   32 +++++-
+ include/net/net_namespace.h             |    3 +
+ include/net/netns/ipv6.h                |    8 ++
+ net/ipv4/inet_fragment.c                |    9 +-
+ net/ipv4/ip_fragment.c                  |    5 +-
+ net/ipv6/netfilter/nf_conntrack_reasm.c |  196 ++++++++++++++++---------------
+ net/ipv6/reassembly.c                   |   88 ++++----------
+ 8 files changed, 178 insertions(+), 165 deletions(-)
