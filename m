@@ -1,81 +1,82 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/4] ipv6: add a new namespace for nf_conntrack_reasm
-Date: Tue, 18 Sep 2012 09:37:56 +0200
-Message-ID: <20120918073756.GA18206@1984>
-References: <1347942582-23962-1-git-send-email-amwang@redhat.com>
- <1347942582-23962-2-git-send-email-amwang@redhat.com>
+From: Aft nix <aftnix@gmail.com>
+Subject: Re: [PATCH] New Target Extension OBSF
+Date: Tue, 18 Sep 2012 13:46:26 +0600
+Message-ID: <CAGuaRCvVhf8+ZjvSG3NBnSXH1PStb3Di6fnydKVgXrLYhKdV1w@mail.gmail.com>
+References: <1347895271.27332.1.camel@kernel-host-rh6>
+	<alpine.LNX.2.01.1209180120530.22227@nerf07.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Herbert Xu <herbert@gondor.hengli.com.au>,
-	Michal =?utf-8?Q?Kube=C4=8Dek?= <mkubecek@suse.cz>,
-	David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>
-To: Cong Wang <amwang@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45383 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932082Ab2IRHiC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Sep 2012 03:38:02 -0400
-Content-Disposition: inline
-In-Reply-To: <1347942582-23962-2-git-send-email-amwang@redhat.com>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:51332 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932089Ab2IRHq1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Sep 2012 03:46:27 -0400
+Received: by ieak13 with SMTP id k13so1846608iea.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Sep 2012 00:46:26 -0700 (PDT)
+In-Reply-To: <alpine.LNX.2.01.1209180120530.22227@nerf07.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Sep 18, 2012 at 12:29:39PM +0800, Cong Wang wrote:
-> As pointed by Michal, it is necessary to add a new
-> namespace for nf_conntrack_reasm code, this prepares
-> for the second patch.
+On Tue, Sep 18, 2012 at 6:04 AM, Jan Engelhardt <jengelh@inai.de> wrote:
+>
+> On Monday 2012-09-17 17:21, aft wrote:
+>>
+>>1) it encrypts UDP traffic.
+>>2) it adds false bytes(padding).
+>>
+>>Its purpose is to escape smarter DPIs which blocks certain kinds of
+>>packets by several heuristic methods.
+>
+> But then why not use IPsec (udpencap), OpenVPN, or something?
+> After all, you do already need a cooperating peer to decrypt
+> your traffic, and hence might as well pick a _standardized_ solution.
+>
 
-This looks good to me, but there are some comestical changes I have to
-request.
+The client does not support IPsec.
 
-> Cc: Herbert Xu <herbert@gondor.apana.org.au>
-> Cc: Michal Kube=C4=8Dek <mkubecek@suse.cz>
-> Cc: David Miller <davem@davemloft.net>
-> Cc: Patrick McHardy <kaber@trash.net>
-> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> Cc: netfilter-devel@vger.kernel.org
-> Signed-off-by: Cong Wang <amwang@redhat.com>
-> ---
->  include/net/net_namespace.h             |    3 +
->  include/net/netns/conntrack.h           |    6 ++
->  net/ipv6/netfilter/nf_conntrack_reasm.c |  135 +++++++++++++++++++++=
-----------
->  3 files changed, 102 insertions(+), 42 deletions(-)
->=20
-> diff --git a/include/net/net_namespace.h b/include/net/net_namespace.=
-h
-> index 5ae57f1..5c467bb 100644
-> --- a/include/net/net_namespace.h
-> +++ b/include/net/net_namespace.h
-> @@ -93,6 +93,9 @@ struct net {
->  #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODU=
-LE)
->  	struct netns_ct		ct;
->  #endif
-> +#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
-> +	struct netns_nf_ct	nf_ct;
-> +#endif
+> If all you want is evading some DPI gateways, I guess even the
+> lowly XOR non-encryption scheme will sufficiently work.
+>
 
-There's above one "struct netns_ct" that already encapsulates
-netfilter conntrack netns parameters.
+XOR used to work, but DPIs recently started detecting XORed packets.
 
-However, I'd prefer if, while at it, you define some struct
-netns_nf_frag instead.
+>>+static struct xt_target obsf_tg_reg[] __read_mostly = {
+>>+      {
+>>+              .name = "OBSF",
+>>+              .family = NFPROTO_UNSPEC,
+>>+              .target = obsf_tg,
+>>+              .checkentry = obsf_tg_check,
+>>+              .targetsize = sizeof(struct xt_OBSF_tginfo),
+>>+              .me = THIS_MODULE,
+>>+      },
+>>+      {
+>>+              .name = "OBSF",
+>>+              .revision = 1,
+>>+              .family = NFPROTO_UNSPEC,
+>>+              .target = obsf_tg_v1,
+>>+              .targetsize = sizeof(struct xt_OBSF_tginfo_v1),
+>>+              .checkentry = obsf_tg_check_v1,
+>>+              .me = THIS_MODULE,
+>>+      },
+>>+};
+>
+> There is no need to use two revisions.
+>
 
-In net/ipv6/netfilter/Makefile, it says:
+Well, i thought there are times when you will not inject false bytes,
+just encryption will suffices. That's why i've made
+Two versions. When to make two versions is not really clear to me.
 
-# defrag
-nf_defrag_ipv6-y :=3D nf_defrag_ipv6_hooks.o nf_conntrack_reasm.o
+My idea was, a feature will always available, and another feature will
+be available on demand, So better divide it in two versions.
 
-Note that nf defragmentation is not glued to conntrack anymore. So I'd
-go for one netns_nf_frag for this in include/net/net_namespace.h
+I will change it and post the patch.
 
-Thanks.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cheers.
+
+
+-- 
+-aft
