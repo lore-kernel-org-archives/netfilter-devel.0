@@ -1,59 +1,43 @@
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: Re: Oops with latest (netfilter) nf-next tree, when unloading
- iptable_nat
-Date: Wed, 19 Sep 2012 21:14:52 +0200
-Message-ID: <1348082092.2761.142.camel@localhost>
-References: <1347357081.3928.32.camel@localhost>
-	 <20120912213627.GJ14750@breakpoint.cc>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v4 net-next 0/4] ipv6: fix the reassembly expire code
+ in nf_conntrack
+Date: Wed, 19 Sep 2012 17:28:35 -0400 (EDT)
+Message-ID: <20120919.172835.698305064973980053.davem@davemloft.net>
+References: <1348023011-16195-1-git-send-email-amwang@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@gnumonks.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>, yongjun_wei@trendmicro.com.cn,
-	kaber@trash.net
-To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	herbert@gondor.hengli.com.au, pablo@netfilter.org
+To: amwang@redhat.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5720 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756909Ab2ISTPO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Sep 2012 15:15:14 -0400
-In-Reply-To: <20120912213627.GJ14750@breakpoint.cc>
+Received: from shards.monkeyblade.net ([149.20.54.216]:57898 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751904Ab2ISV2i (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Sep 2012 17:28:38 -0400
+In-Reply-To: <1348023011-16195-1-git-send-email-amwang@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 2012-09-12 at 23:36 +0200, Florian Westphal wrote:
+From: Cong Wang <amwang@redhat.com>
+Date: Wed, 19 Sep 2012 10:50:07 +0800
 
-[...cut...]
-
-> On module removal nf_nat_ipv4 calls nf_iterate_cleanup which invokes
-> nf_nat_proto_clean() for each conntrack.  That will then call
-> hlist_del_rcu(&nat->bysource) using eachs conntracks nat ext area.
+> V4: some coding style fix
 > 
-> Problem is that nf_nat_proto_clean() is called multiple times for the same
-> conntrack:
-> a) nf_ct_iterate_cleanup() returns each ct twice (origin, reply)
-> b) we call it both for l3 and for l4 protocol ids
+> V3: rename struct netns_nf_ct to struct netns_nf_frag
 > 
-> We barf in hlist_del_rcu the 2nd time because ->pprev is poisoned.
+> V2: use IS_ENABLED(CONFIG_IPV6) to fix a build error
+>     rebase to latest net-next
 > 
-> This was introduced with the ipv6 nat patches.
+> ipv6: add a new namespace for nf_conntrack_reasm
+> ipv6: unify conntrack reassembly expire code with standard one
+> ipv6: make ip6_frag_nqueues() and ip6_frag_mem() static
+> ipv6: unify fragment thresh handling code
 > 
-> --- a/net/netfilter/nf_nat_core.c
-> +++ b/net/netfilter/nf_nat_core.c
-> @@ -487,7 +487,7 @@ static int nf_nat_proto_clean(struct nf_conn *i, void *data)
->  
->         if (clean->hash) {
->                 spin_lock_bh(&nf_nat_lock);
-> -               hlist_del_rcu(&nat->bysource);
-> +               hlist_del_init_rcu(&nat->bysource);
->                 spin_unlock_bh(&nf_nat_lock);
->         } else {
->
-> Would probably avoid it.  I guess it would be nicer to only call this
-> once for each ct.
+> Cc: Herbert Xu <herbert@gondor.apana.org.au>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> Signed-off-by: Cong Wang <amwang@redhat.com>
 
-Florian's patch fixes the Oops :-)
-
-
-
+All applied to net-next, thanks.
