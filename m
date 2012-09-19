@@ -1,54 +1,64 @@
 From: Jesper Dangaard Brouer <hawk@diku.dk>
-Subject: Re: [PATCH 2/4] ipv6: unify conntrack reassembly expire code with
- standard one
-Date: Wed, 19 Sep 2012 17:12:46 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.1209191659150.12601@ask.diku.dk>
-References: <1348023011-16195-1-git-send-email-amwang@redhat.com>
- <1348023011-16195-3-git-send-email-amwang@redhat.com>
+Subject: Re: [RFC] Inter-match communication cache
+Date: Wed, 19 Sep 2012 17:38:43 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1209191720490.12601@ask.diku.dk>
+References: <alpine.DEB.2.00.1209182232460.5113@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netdev <netdev@vger.kernel.org>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	Herbert Xu <herbert@gondor.hengli.com.au>,
-	=?UTF-8?q?Michal=20Kube=C4=8Dek?= <mkubecek@suse.cz>,
-	David Miller <davem@davemloft.net>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Cong Wang <amwang@redhat.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1348023011-16195-3-git-send-email-amwang@redhat.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mgw2.diku.dk ([130.225.96.92]:40603 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755698Ab2ISPhM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Sep 2012 11:37:12 -0400
+In-Reply-To: <alpine.DEB.2.00.1209182232460.5113@blackhole.kfki.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 19 Sep 2012, Cong Wang wrote:
 
-[cut]
-> With this patch applied, I can see ICMP Time Exceeded sent
-> from the receiver when the sender sent out 3/4 fragmented
-> IPv6 UPD packet.
+On Tue, 18 Sep 2012, Jozsef Kadlecsik wrote:
 
-Typo "UPD" -> "UDP"
+> I propose a small cache for inter-match communication purpose:
+>
+> diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+> index 8d674a7..f07eab2 100644
+> --- a/include/linux/netfilter/x_tables.h
+> +++ b/include/linux/netfilter/x_tables.h
+> @@ -216,6 +216,9 @@ struct xt_action_param {
+> 		const void *matchinfo, *targinfo;
+> 	};
+> 	const struct net_device *in, *out;
+> +#ifdef CONFIG_NETFILTER_XTABLES_CACHE
+> +	u_int32_t cache;
+> +#endif
 
-If people want to redo the IPv6 UDP fragment tests, they can use my scapy 
-script, and comment out sending the last fragment:
-  https://github.com/netoptimizer/network-testing/blob/master/scapy/ipv6_fragment01.py
+Perhaps we should add it, that the end of the struct, to avoid too big ABI 
+breakage.  And I generally don't like, adding compile time optional 
+elements in the middle of a struct, as it make its harder to cache profile 
+and padding/aligning the struct.
 
-Another thing, could you please "mark"/put the version of the patch in the 
-subject line, like:
+> 	int fragoff;
+> 	unsigned int thoff;
+> 	unsigned int hooknum;
+> @@ -223,6 +226,15 @@ struct xt_action_param {
+> 	bool hotdrop;
+> };
 
-  [PATCH V4 2/4] ipv6: ...
+>
+> +enum xt_cache_owner {
+> +	XT_CACHE_OWNER_NONE	= 0,
+> +	XT_CACHE_OWNER_IPSET	= 1,
+> +};
+> +
+> +#define XT_CACHE_GET_OWNER(cache)	 (((cache) & 0xFF000000) >> 24)
+> +#define XT_CACHE_SET_OWNER(cache, owner) ((cache) |= (owner) << 24)
+> +#define XT_CACHE_GET_VALUE(cache)	 ((cache) & 0x00FFFFFF)
+> +
 
-This makes it easier, to follow on which version of the patch people are 
-replying to.
+So, you are reserving 24 bit for data/"values". And we have 8 bits for 
+setting an owner of this data.  Thats the basic idea right?
 
-With git send-email I think you have to do:
-
-   git send-email --subject-prefix="PATCH V4"
-
-And with stg (stacked git) I usually do:
-
-   stg mail --version "V4" --to netdev ...
 
 Cheers,
    Jesper Brouer
