@@ -1,62 +1,76 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH] New Target Extension OBSF
-Date: Wed, 19 Sep 2012 04:36:39 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1209190434080.13470@nerf07.vanv.qr>
-References: <1347895271.27332.1.camel@kernel-host-rh6> <alpine.LNX.2.01.1209180120530.22227@nerf07.vanv.qr> <CAGuaRCvVhf8+ZjvSG3NBnSXH1PStb3Di6fnydKVgXrLYhKdV1w@mail.gmail.com>
+From: Cong Wang <amwang@redhat.com>
+Subject: [PATCH 3/4] ipv6: make ip6_frag_nqueues() and ip6_frag_mem() static inline
+Date: Wed, 19 Sep 2012 10:50:10 +0800
+Message-ID: <1348023011-16195-4-git-send-email-amwang@redhat.com>
+References: <1348023011-16195-1-git-send-email-amwang@redhat.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Aft nix <aftnix@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:47907 "EHLO seven.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754981Ab2ISCgl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Sep 2012 22:36:41 -0400
-In-Reply-To: <CAGuaRCvVhf8+ZjvSG3NBnSXH1PStb3Di6fnydKVgXrLYhKdV1w@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, Cong Wang <amwang@redhat.com>,
+	Herbert Xu <herbert@gondor.hengli.com.au>,
+	=?UTF-8?q?Michal=20Kube=C4=8Dek?= <mkubecek@suse.cz>,
+	David Miller <davem@davemloft.net>
+To: netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1348023011-16195-1-git-send-email-amwang@redhat.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Michal Kube=C4=8Dek <mkubecek@suse.cz>
+Cc: David Miller <davem@davemloft.net>
+Signed-off-by: Cong Wang <amwang@redhat.com>
+---
+ include/net/ipv6.h    |   13 +++++++++++--
+ net/ipv6/reassembly.c |   10 ----------
+ 2 files changed, 11 insertions(+), 12 deletions(-)
 
-On Tuesday 2012-09-18 09:46, Aft nix wrote:
->
->On Tue, Sep 18, 2012 at 6:04 AM, Jan Engelhardt <jengelh@inai.de> wrote:
->>
->> On Monday 2012-09-17 17:21, aft wrote:
->>>
->>>1) it encrypts UDP traffic.
->>>2) it adds false bytes(padding).
->>>
->>>Its purpose is to escape smarter DPIs which blocks certain kinds of
->>>packets by several heuristic methods.
->>
->> But then why not use IPsec (udpencap), OpenVPN, or something?
->> After all, you do already need a cooperating peer to decrypt
->> your traffic, and hence might as well pick a _standardized_ solution.
->
->The client does not support IPsec.
-
-Why would it not? If you can make kernel changes, you can as well run
-a simple userspace program. (Example for a userspace program that
-does IPsec using tun interface: vpnc.)
-
->>>+      },
->>>+      {
->>>+              .name = "OBSF",
->>>+              .revision = 1,
->>>+              .family = NFPROTO_UNSPEC,
->>>+              .target = obsf_tg_v1,
->>>+              .targetsize = sizeof(struct xt_OBSF_tginfo_v1),
->>>+              .checkentry = obsf_tg_check_v1,
->>>+              .me = THIS_MODULE,
->>>+      },
->>>+};
->>
->> There is no need to use two revisions.
->
->Well, i thought there are times when you will not inject false bytes,
->just encryption will suffices. That's why i've made
->Two versions. When to make two versions is not really clear to me.
-
-A new ABI is needed when the struct you are using to pass options
-such as "pad or not" does not suffice to hold your option data
-any more.
+diff --git a/include/net/ipv6.h b/include/net/ipv6.h
+index 81d4455..979bf6c 100644
+--- a/include/net/ipv6.h
++++ b/include/net/ipv6.h
+@@ -271,8 +271,17 @@ struct ipv6_txoptions *ipv6_fixup_options(struct i=
+pv6_txoptions *opt_space,
+=20
+ extern bool ipv6_opt_accepted(const struct sock *sk, const struct sk_b=
+uff *skb);
+=20
+-int ip6_frag_nqueues(struct net *net);
+-int ip6_frag_mem(struct net *net);
++#if IS_ENABLED(CONFIG_IPV6)
++static inline int ip6_frag_nqueues(struct net *net)
++{
++	return net->ipv6.frags.nqueues;
++}
++
++static inline int ip6_frag_mem(struct net *net)
++{
++	return atomic_read(&net->ipv6.frags.mem);
++}
++#endif
+=20
+ #define IPV6_FRAG_HIGH_THRESH	(256 * 1024)	/* 262144 */
+ #define IPV6_FRAG_LOW_THRESH	(192 * 1024)	/* 196608 */
+diff --git a/net/ipv6/reassembly.c b/net/ipv6/reassembly.c
+index 0ee5533..cf74f4e 100644
+--- a/net/ipv6/reassembly.c
++++ b/net/ipv6/reassembly.c
+@@ -67,16 +67,6 @@ struct ip6frag_skb_cb
+=20
+ static struct inet_frags ip6_frags;
+=20
+-int ip6_frag_nqueues(struct net *net)
+-{
+-	return net->ipv6.frags.nqueues;
+-}
+-
+-int ip6_frag_mem(struct net *net)
+-{
+-	return atomic_read(&net->ipv6.frags.mem);
+-}
+-
+ static int ip6_frag_reasm(struct frag_queue *fq, struct sk_buff *prev,
+ 			  struct net_device *dev);
+=20
+--=20
+1.7.7.6
