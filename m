@@ -1,385 +1,286 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 2/4] netfilter: ipset: Include supported revisions in module description
+Subject: [PATCH 4/4] netfilter: ipset: Support to match elements marked with "nomatch"
 Date: Fri, 21 Sep 2012 22:49:43 +0200
-Message-ID: <1348260583-16635-1-git-send-email-kadlec@blackhole.kfki.hu>
+Message-ID: <1348260583-16705-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:49404 "EHLO smtp2.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:35170 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757911Ab2IUUtp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Sep 2012 16:49:45 -0400
+	id S1757920Ab2IUUto (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Sep 2012 16:49:44 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Exceptions can now be matched and we can branch according to the
+possible cases:
+
+a. match in the set if the element is not flagged as "nomatch"
+b. match in the set if the element is flagged with "nomatch"
+c. no match
+
+i.e.
+
+iptables ... -m set --match-set ... -j ...
+iptables ... -m set --match-set ... --nomatch-entries -j ...
+...
+
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/linux/netfilter/ipset/ip_set.h      |    6 ++++++
- net/netfilter/ipset/ip_set_bitmap_ip.c      |    9 ++++++---
- net/netfilter/ipset/ip_set_bitmap_ipmac.c   |    9 ++++++---
- net/netfilter/ipset/ip_set_bitmap_port.c    |    9 ++++++---
- net/netfilter/ipset/ip_set_hash_ip.c        |    9 ++++++---
- net/netfilter/ipset/ip_set_hash_ipport.c    |    9 ++++++---
- net/netfilter/ipset/ip_set_hash_ipportip.c  |    9 ++++++---
- net/netfilter/ipset/ip_set_hash_ipportnet.c |   13 ++++++++-----
- net/netfilter/ipset/ip_set_hash_net.c       |   11 +++++++----
- net/netfilter/ipset/ip_set_hash_netiface.c  |   11 +++++++----
- net/netfilter/ipset/ip_set_hash_netport.c   |   13 ++++++++-----
- net/netfilter/ipset/ip_set_list_set.c       |    9 ++++++---
- 12 files changed, 78 insertions(+), 39 deletions(-)
+ include/linux/netfilter/ipset/ip_set.h      |    4 ++++
+ net/netfilter/ipset/ip_set_core.c           |    6 ++++++
+ net/netfilter/ipset/ip_set_hash_ipportnet.c |   11 ++++++-----
+ net/netfilter/ipset/ip_set_hash_net.c       |   10 +++++-----
+ net/netfilter/ipset/ip_set_hash_netiface.c  |   11 ++++++-----
+ net/netfilter/ipset/ip_set_hash_netport.c   |   10 +++++-----
+ net/netfilter/xt_set.c                      |   22 ++++++++++++++++++++++
+ 7 files changed, 54 insertions(+), 20 deletions(-)
 
 diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index 2edc64c..1d954c6 100644
+index 0c1e97b..528697b 100644
 --- a/include/linux/netfilter/ipset/ip_set.h
 +++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -206,9 +206,15 @@ enum ip_set_kopt {
- #include <linux/netlink.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/x_tables.h>
-+#include <linux/stringify.h>
- #include <linux/vmalloc.h>
- #include <net/netlink.h>
+@@ -190,6 +190,7 @@ enum ip_set_dim {
+ 	 * If changed, new revision of iptables match/target is required.
+ 	 */
+ 	IPSET_DIM_MAX = 6,
++	IPSET_BIT_RETURN_NOMATCH = 7,
+ };
  
-+#define _IP_SET_MODULE_DESC(a, b, c)		\
-+	MODULE_DESCRIPTION(a " type of IP sets, revisions " b "-" c)
-+#define IP_SET_MODULE_DESC(a, b, c)		\
-+	_IP_SET_MODULE_DESC(a, __stringify(b), __stringify(c))
-+
- /* Set features */
- enum ip_set_feature {
- 	IPSET_TYPE_IP_FLAG = 0,
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
-index 02184b5..4a92fd4 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ip.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
-@@ -27,9 +27,12 @@
- #define IP_SET_BITMAP_TIMEOUT
- #include <linux/netfilter/ipset/ip_set_timeout.h>
+ /* Option flags for kernel operations */
+@@ -198,6 +199,7 @@ enum ip_set_kopt {
+ 	IPSET_DIM_ONE_SRC = (1 << IPSET_DIM_ONE),
+ 	IPSET_DIM_TWO_SRC = (1 << IPSET_DIM_TWO),
+ 	IPSET_DIM_THREE_SRC = (1 << IPSET_DIM_THREE),
++	IPSET_RETURN_NOMATCH = (1 << IPSET_BIT_RETURN_NOMATCH),
+ };
  
-+#define REVISION_MIN	0
-+#define REVISION_MAX	0
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
--MODULE_DESCRIPTION("bitmap:ip type of IP sets");
-+IP_SET_MODULE_DESC("bitmap:ip", REVISION_MIN, REVISION_MAX);
- MODULE_ALIAS("ip_set_bitmap:ip");
+ #ifdef __KERNEL__
+@@ -229,6 +231,8 @@ enum ip_set_feature {
+ 	IPSET_TYPE_NAME = (1 << IPSET_TYPE_NAME_FLAG),
+ 	IPSET_TYPE_IFACE_FLAG = 5,
+ 	IPSET_TYPE_IFACE = (1 << IPSET_TYPE_IFACE_FLAG),
++	IPSET_TYPE_NOMATCH_FLAG = 6,
++	IPSET_TYPE_NOMATCH = (1 << IPSET_TYPE_NOMATCH_FLAG),
+ 	/* Strictly speaking not a feature, but a flag for dumping:
+ 	 * this settype must be dumped last */
+ 	IPSET_DUMP_LAST_FLAG = 7,
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index 72e9bf0..778465f 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -370,6 +370,12 @@ ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
+ 		set->variant->kadt(set, skb, par, IPSET_ADD, opt);
+ 		write_unlock_bh(&set->lock);
+ 		ret = 1;
++	} else {
++		/* --return-nomatch: invert matched element */
++		if ((opt->flags & IPSET_RETURN_NOMATCH) &&
++		    (set->type->features & IPSET_TYPE_NOMATCH) &&
++		    (ret > 0 || ret == -ENOTEMPTY))
++			ret = -ret;
+ 	}
  
- /* Type structure */
-@@ -556,8 +559,8 @@ static struct ip_set_type bitmap_ip_type __read_mostly = {
- 	.features	= IPSET_TYPE_IP,
- 	.dimension	= IPSET_DIM_ONE,
- 	.family		= NFPROTO_IPV4,
--	.revision_min	= 0,
--	.revision_max	= 0,
-+	.revision_min	= REVISION_MIN,
-+	.revision_max	= REVISION_MAX,
- 	.create		= bitmap_ip_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_IP]		= { .type = NLA_NESTED },
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-index 6819d3c..645c9d1 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-@@ -26,9 +26,12 @@
- #include <linux/netfilter/ipset/ip_set_timeout.h>
- #include <linux/netfilter/ipset/ip_set_bitmap.h>
- 
-+#define REVISION_MIN	0
-+#define REVISION_MAX	0
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
--MODULE_DESCRIPTION("bitmap:ip,mac type of IP sets");
-+IP_SET_MODULE_DESC("bitmap:ip,mac", REVISION_MIN, REVISION_MAX);
- MODULE_ALIAS("ip_set_bitmap:ip,mac");
- 
- enum {
-@@ -630,8 +633,8 @@ static struct ip_set_type bitmap_ipmac_type = {
- 	.features	= IPSET_TYPE_IP | IPSET_TYPE_MAC,
- 	.dimension	= IPSET_DIM_TWO,
- 	.family		= NFPROTO_IPV4,
--	.revision_min	= 0,
--	.revision_max	= 0,
-+	.revision_min	= REVISION_MIN,
-+	.revision_max	= REVISION_MAX,
- 	.create		= bitmap_ipmac_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_IP]		= { .type = NLA_NESTED },
-diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
-index b9f1fce..e6b2db7 100644
---- a/net/netfilter/ipset/ip_set_bitmap_port.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_port.c
-@@ -22,9 +22,12 @@
- #define IP_SET_BITMAP_TIMEOUT
- #include <linux/netfilter/ipset/ip_set_timeout.h>
- 
-+#define REVISION_MIN	0
-+#define REVISION_MAX	0
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
--MODULE_DESCRIPTION("bitmap:port type of IP sets");
-+IP_SET_MODULE_DESC("bitmap:port", REVISION_MIN, REVISION_MAX);
- MODULE_ALIAS("ip_set_bitmap:port");
- 
- /* Type structure */
-@@ -487,8 +490,8 @@ static struct ip_set_type bitmap_port_type = {
- 	.features	= IPSET_TYPE_PORT,
- 	.dimension	= IPSET_DIM_ONE,
- 	.family		= NFPROTO_UNSPEC,
--	.revision_min	= 0,
--	.revision_max	= 0,
-+	.revision_min	= REVISION_MIN,
-+	.revision_max	= REVISION_MAX,
- 	.create		= bitmap_port_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_PORT]	= { .type = NLA_U16 },
-diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
-index bc8f76e..ec3dba5 100644
---- a/net/netfilter/ipset/ip_set_hash_ip.c
-+++ b/net/netfilter/ipset/ip_set_hash_ip.c
-@@ -24,9 +24,12 @@
- #include <linux/netfilter/ipset/ip_set_timeout.h>
- #include <linux/netfilter/ipset/ip_set_hash.h>
- 
-+#define REVISION_MIN	0
-+#define REVISION_MAX	0
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
--MODULE_DESCRIPTION("hash:ip type of IP sets");
-+IP_SET_MODULE_DESC("hash:ip", REVISION_MIN, REVISION_MAX);
- MODULE_ALIAS("ip_set_hash:ip");
- 
- /* Type specific function prefix */
-@@ -452,8 +455,8 @@ static struct ip_set_type hash_ip_type __read_mostly = {
- 	.features	= IPSET_TYPE_IP,
- 	.dimension	= IPSET_DIM_ONE,
- 	.family		= NFPROTO_UNSPEC,
--	.revision_min	= 0,
--	.revision_max	= 0,
-+	.revision_min	= REVISION_MIN,
-+	.revision_max	= REVISION_MAX,
- 	.create		= hash_ip_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
-diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
-index 6760fd4..0171f75 100644
---- a/net/netfilter/ipset/ip_set_hash_ipport.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipport.c
-@@ -25,9 +25,12 @@
- #include <linux/netfilter/ipset/ip_set_getport.h>
- #include <linux/netfilter/ipset/ip_set_hash.h>
- 
-+#define REVISION_MIN	0
-+#define REVISION_MAX	1 /* SCTP and UDPLITE support added */
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
--MODULE_DESCRIPTION("hash:ip,port type of IP sets");
-+IP_SET_MODULE_DESC("hash:ip,port", REVISION_MIN, REVISION_MAX);
- MODULE_ALIAS("ip_set_hash:ip,port");
- 
- /* Type specific function prefix */
-@@ -523,8 +526,8 @@ static struct ip_set_type hash_ipport_type __read_mostly = {
- 	.features	= IPSET_TYPE_IP | IPSET_TYPE_PORT,
- 	.dimension	= IPSET_DIM_TWO,
- 	.family		= NFPROTO_UNSPEC,
--	.revision_min	= 0,
--	.revision_max	= 1,	/* SCTP and UDPLITE support added */
-+	.revision_min	= REVISION_MIN,
-+	.revision_max	= REVISION_MAX,
- 	.create		= hash_ipport_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
-diff --git a/net/netfilter/ipset/ip_set_hash_ipportip.c b/net/netfilter/ipset/ip_set_hash_ipportip.c
-index ac09bec..6344ef5 100644
---- a/net/netfilter/ipset/ip_set_hash_ipportip.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipportip.c
-@@ -25,9 +25,12 @@
- #include <linux/netfilter/ipset/ip_set_getport.h>
- #include <linux/netfilter/ipset/ip_set_hash.h>
- 
-+#define REVISION_MIN	0
-+#define REVISION_MAX	1 /* SCTP and UDPLITE support added */
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
--MODULE_DESCRIPTION("hash:ip,port,ip type of IP sets");
-+IP_SET_MODULE_DESC("hash:ip,port,ip", REVISION_MIN, REVISION_MAX);
- MODULE_ALIAS("ip_set_hash:ip,port,ip");
- 
- /* Type specific function prefix */
-@@ -541,8 +544,8 @@ static struct ip_set_type hash_ipportip_type __read_mostly = {
- 	.features	= IPSET_TYPE_IP | IPSET_TYPE_PORT | IPSET_TYPE_IP2,
- 	.dimension	= IPSET_DIM_THREE,
- 	.family		= NFPROTO_UNSPEC,
--	.revision_min	= 0,
--	.revision_max	= 1,	/* SCTP and UDPLITE support added */
-+	.revision_min	= REVISION_MIN,
-+	.revision_max	= REVISION_MAX,
- 	.create		= hash_ipportip_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
+ 	/* Convert error codes to nomatch */
 diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-index 242814e..8ee9168 100644
+index 8ee9168..cb71f9a 100644
 --- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
 +++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-@@ -25,9 +25,14 @@
- #include <linux/netfilter/ipset/ip_set_getport.h>
- #include <linux/netfilter/ipset/ip_set_hash.h>
+@@ -104,10 +104,10 @@ hash_ipportnet4_data_flags(struct hash_ipportnet4_elem *dst, u32 flags)
+ 	dst->nomatch = !!(flags & IPSET_FLAG_NOMATCH);
+ }
  
-+#define REVISION_MIN	0
-+/*			1    SCTP and UDPLITE support added */
-+/*			2    Range as input support for IPv4 added */
-+#define REVISION_MAX	3 /* nomatch flag support added */
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
--MODULE_DESCRIPTION("hash:ip,port,net type of IP sets");
-+IP_SET_MODULE_DESC("hash:ip,port,net", REVISION_MIN, REVISION_MAX);
- MODULE_ALIAS("ip_set_hash:ip,port,net");
+-static inline bool
++static inline int
+ hash_ipportnet4_data_match(const struct hash_ipportnet4_elem *elem)
+ {
+-	return !elem->nomatch;
++	return elem->nomatch ? -ENOTEMPTY : 1;
+ }
  
- /* Type specific function prefix */
-@@ -695,10 +700,8 @@ static struct ip_set_type hash_ipportnet_type __read_mostly = {
- 	.features	= IPSET_TYPE_IP | IPSET_TYPE_PORT | IPSET_TYPE_IP2,
+ static inline void
+@@ -411,10 +411,10 @@ hash_ipportnet6_data_flags(struct hash_ipportnet6_elem *dst, u32 flags)
+ 	dst->nomatch = !!(flags & IPSET_FLAG_NOMATCH);
+ }
+ 
+-static inline bool
++static inline int
+ hash_ipportnet6_data_match(const struct hash_ipportnet6_elem *elem)
+ {
+-	return !elem->nomatch;
++	return elem->nomatch ? -ENOTEMPTY : 1;
+ }
+ 
+ static inline void
+@@ -697,7 +697,8 @@ hash_ipportnet_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ static struct ip_set_type hash_ipportnet_type __read_mostly = {
+ 	.name		= "hash:ip,port,net",
+ 	.protocol	= IPSET_PROTOCOL,
+-	.features	= IPSET_TYPE_IP | IPSET_TYPE_PORT | IPSET_TYPE_IP2,
++	.features	= IPSET_TYPE_IP | IPSET_TYPE_PORT | IPSET_TYPE_IP2 |
++			  IPSET_TYPE_NOMATCH,
  	.dimension	= IPSET_DIM_THREE,
  	.family		= NFPROTO_UNSPEC,
--	.revision_min	= 0,
--	/*		  1	   SCTP and UDPLITE support added */
--	/*		  2	   Range as input support for IPv4 added */
--	.revision_max	= 3,	/* nomatch flag support added */
-+	.revision_min	= REVISION_MIN,
-+	.revision_max	= REVISION_MAX,
- 	.create		= hash_ipportnet_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
+ 	.revision_min	= REVISION_MIN,
 diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/ip_set_hash_net.c
-index d676093..014ff72 100644
+index 014ff72..29e94b9 100644
 --- a/net/netfilter/ipset/ip_set_hash_net.c
 +++ b/net/netfilter/ipset/ip_set_hash_net.c
-@@ -23,9 +23,13 @@
- #include <linux/netfilter/ipset/ip_set_timeout.h>
- #include <linux/netfilter/ipset/ip_set_hash.h>
+@@ -90,10 +90,10 @@ hash_net4_data_flags(struct hash_net4_elem *dst, u32 flags)
+ 	dst->nomatch = flags & IPSET_FLAG_NOMATCH;
+ }
  
-+#define REVISION_MIN	0
-+/*			1    Range as input support for IPv4 added */
-+#define REVISION_MAX	2 /* nomatch flag support added */
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
--MODULE_DESCRIPTION("hash:net type of IP sets");
-+IP_SET_MODULE_DESC("hash:net", REVISION_MIN, REVISION_MAX);
- MODULE_ALIAS("ip_set_hash:net");
+-static inline bool
++static inline int
+ hash_net4_data_match(const struct hash_net4_elem *elem)
+ {
+-	return !elem->nomatch;
++	return elem->nomatch ? -ENOTEMPTY : 1;
+ }
  
- /* Type specific function prefix */
-@@ -535,9 +539,8 @@ static struct ip_set_type hash_net_type __read_mostly = {
- 	.features	= IPSET_TYPE_IP,
+ static inline void
+@@ -311,10 +311,10 @@ hash_net6_data_flags(struct hash_net6_elem *dst, u32 flags)
+ 	dst->nomatch = flags & IPSET_FLAG_NOMATCH;
+ }
+ 
+-static inline bool
++static inline int
+ hash_net6_data_match(const struct hash_net6_elem *elem)
+ {
+-	return !elem->nomatch;
++	return elem->nomatch ? -ENOTEMPTY : 1;
+ }
+ 
+ static inline void
+@@ -536,7 +536,7 @@ hash_net_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ static struct ip_set_type hash_net_type __read_mostly = {
+ 	.name		= "hash:net",
+ 	.protocol	= IPSET_PROTOCOL,
+-	.features	= IPSET_TYPE_IP,
++	.features	= IPSET_TYPE_IP | IPSET_TYPE_NOMATCH,
  	.dimension	= IPSET_DIM_ONE,
  	.family		= NFPROTO_UNSPEC,
--	.revision_min	= 0,
--	/*		= 1 	   Range as input support for IPv4 added */
--	.revision_max	= 2,	/* nomatch flag support added */
-+	.revision_min	= REVISION_MIN,
-+	.revision_max	= REVISION_MAX,
- 	.create		= hash_net_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
+ 	.revision_min	= REVISION_MIN,
 diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
-index e7c671d..a5c8491 100644
+index a5c8491..b9a6338 100644
 --- a/net/netfilter/ipset/ip_set_hash_netiface.c
 +++ b/net/netfilter/ipset/ip_set_hash_netiface.c
-@@ -24,9 +24,13 @@
- #include <linux/netfilter/ipset/ip_set_timeout.h>
- #include <linux/netfilter/ipset/ip_set_hash.h>
+@@ -201,10 +201,10 @@ hash_netiface4_data_flags(struct hash_netiface4_elem *dst, u32 flags)
+ 	dst->nomatch = flags & IPSET_FLAG_NOMATCH;
+ }
  
-+#define REVISION_MIN	0
-+/*			1    nomatch flag support added */
-+#define REVISION_MAX	2 /* /0 support added */
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
--MODULE_DESCRIPTION("hash:net,iface type of IP sets");
-+IP_SET_MODULE_DESC("hash:net,iface", REVISION_MIN, REVISION_MAX);
- MODULE_ALIAS("ip_set_hash:net,iface");
+-static inline bool
++static inline int
+ hash_netiface4_data_match(const struct hash_netiface4_elem *elem)
+ {
+-	return !elem->nomatch;
++	return elem->nomatch ? -ENOTEMPTY : 1;
+ }
  
- /* Interface name rbtree */
-@@ -773,9 +777,8 @@ static struct ip_set_type hash_netiface_type __read_mostly = {
- 	.features	= IPSET_TYPE_IP | IPSET_TYPE_IFACE,
+ static inline void
+@@ -497,10 +497,10 @@ hash_netiface6_data_flags(struct hash_netiface6_elem *dst, u32 flags)
+ 	dst->nomatch = flags & IPSET_FLAG_NOMATCH;
+ }
+ 
+-static inline bool
++static inline int
+ hash_netiface6_data_match(const struct hash_netiface6_elem *elem)
+ {
+-	return !elem->nomatch;
++	return elem->nomatch ? -ENOTEMPTY : 1;
+ }
+ 
+ static inline void
+@@ -774,7 +774,8 @@ hash_netiface_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ static struct ip_set_type hash_netiface_type __read_mostly = {
+ 	.name		= "hash:net,iface",
+ 	.protocol	= IPSET_PROTOCOL,
+-	.features	= IPSET_TYPE_IP | IPSET_TYPE_IFACE,
++	.features	= IPSET_TYPE_IP | IPSET_TYPE_IFACE |
++			  IPSET_TYPE_NOMATCH,
  	.dimension	= IPSET_DIM_TWO,
  	.family		= NFPROTO_UNSPEC,
--	.revision_min	= 0,
--	/*		= 1,	   nomatch flag support added */
--	.revision_max	= 2,	/* /0 support added */
-+	.revision_min	= REVISION_MIN,
-+	.revision_max	= REVISION_MAX,
- 	.create		= hash_netiface_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
+ 	.revision_min	= REVISION_MIN,
 diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ipset/ip_set_hash_netport.c
-index 3ec27fc..7ca357a 100644
+index 7ca357a..7ef700d 100644
 --- a/net/netfilter/ipset/ip_set_hash_netport.c
 +++ b/net/netfilter/ipset/ip_set_hash_netport.c
-@@ -24,9 +24,14 @@
- #include <linux/netfilter/ipset/ip_set_getport.h>
- #include <linux/netfilter/ipset/ip_set_hash.h>
+@@ -104,10 +104,10 @@ hash_netport4_data_flags(struct hash_netport4_elem *dst, u32 flags)
+ 	dst->nomatch = !!(flags & IPSET_FLAG_NOMATCH);
+ }
  
-+#define REVISION_MIN	0
-+/*			1    SCTP and UDPLITE support added */
-+/*			2    Range as input support for IPv4 added */
-+#define REVISION_MAX	3 /* nomatch flag support added */
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
--MODULE_DESCRIPTION("hash:net,port type of IP sets");
-+IP_SET_MODULE_DESC("hash:net,port", REVISION_MIN, REVISION_MAX);
- MODULE_ALIAS("ip_set_hash:net,port");
+-static inline bool
++static inline int
+ hash_netport4_data_match(const struct hash_netport4_elem *elem)
+ {
+-	return !elem->nomatch;
++	return elem->nomatch ? -ENOTEMPTY : 1;
+ }
  
- /* Type specific function prefix */
-@@ -648,10 +653,8 @@ static struct ip_set_type hash_netport_type __read_mostly = {
- 	.features	= IPSET_TYPE_IP | IPSET_TYPE_PORT,
+ static inline void
+@@ -375,10 +375,10 @@ hash_netport6_data_flags(struct hash_netport6_elem *dst, u32 flags)
+ 	dst->nomatch = !!(flags & IPSET_FLAG_NOMATCH);
+ }
+ 
+-static inline bool
++static inline int
+ hash_netport6_data_match(const struct hash_netport6_elem *elem)
+ {
+-	return !elem->nomatch;
++	return elem->nomatch ? -ENOTEMPTY : 1;
+ }
+ 
+ static inline void
+@@ -650,7 +650,7 @@ hash_netport_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
+ static struct ip_set_type hash_netport_type __read_mostly = {
+ 	.name		= "hash:net,port",
+ 	.protocol	= IPSET_PROTOCOL,
+-	.features	= IPSET_TYPE_IP | IPSET_TYPE_PORT,
++	.features	= IPSET_TYPE_IP | IPSET_TYPE_PORT | IPSET_TYPE_NOMATCH,
  	.dimension	= IPSET_DIM_TWO,
  	.family		= NFPROTO_UNSPEC,
--	.revision_min	= 0,
--	/*		  1	   SCTP and UDPLITE support added */
--	/*		  2,	   Range as input support for IPv4 added */
--	.revision_max	= 3,	/* nomatch flag support added */
-+	.revision_min	= REVISION_MIN,
-+	.revision_max	= REVISION_MAX,
- 	.create		= hash_netport_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
-diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-index 6cb1225..8371c2b 100644
---- a/net/netfilter/ipset/ip_set_list_set.c
-+++ b/net/netfilter/ipset/ip_set_list_set.c
-@@ -16,9 +16,12 @@
- #include <linux/netfilter/ipset/ip_set_timeout.h>
- #include <linux/netfilter/ipset/ip_set_list.h>
+ 	.revision_min	= REVISION_MIN,
+diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
+index c6f7db7..865a9e5 100644
+--- a/net/netfilter/xt_set.c
++++ b/net/netfilter/xt_set.c
+@@ -356,6 +356,27 @@ static struct xt_match set_matches[] __read_mostly = {
+ 		.destroy	= set_match_v1_destroy,
+ 		.me		= THIS_MODULE
+ 	},
++	/* --return-nomatch flag support */
++	{
++		.name		= "set",
++		.family		= NFPROTO_IPV4,
++		.revision	= 2,
++		.match		= set_match_v1,
++		.matchsize	= sizeof(struct xt_set_info_match_v1),
++		.checkentry	= set_match_v1_checkentry,
++		.destroy	= set_match_v1_destroy,
++		.me		= THIS_MODULE
++	},
++	{
++		.name		= "set",
++		.family		= NFPROTO_IPV6,
++		.revision	= 2,
++		.match		= set_match_v1,
++		.matchsize	= sizeof(struct xt_set_info_match_v1),
++		.checkentry	= set_match_v1_checkentry,
++		.destroy	= set_match_v1_destroy,
++		.me		= THIS_MODULE
++	},
+ };
  
-+#define REVISION_MIN	0
-+#define REVISION_MAX	0
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
--MODULE_DESCRIPTION("list:set type of IP sets");
-+IP_SET_MODULE_DESC("list:set", REVISION_MIN, REVISION_MAX);
- MODULE_ALIAS("ip_set_list:set");
- 
- /* Member elements without and with timeout */
-@@ -579,8 +582,8 @@ static struct ip_set_type list_set_type __read_mostly = {
- 	.features	= IPSET_TYPE_NAME | IPSET_DUMP_LAST,
- 	.dimension	= IPSET_DIM_ONE,
- 	.family		= NFPROTO_UNSPEC,
--	.revision_min	= 0,
--	.revision_max	= 0,
-+	.revision_min	= REVISION_MIN,
-+	.revision_max	= REVISION_MAX,
- 	.create		= list_set_create,
- 	.create_policy	= {
- 		[IPSET_ATTR_SIZE]	= { .type = NLA_U32 },
+ static struct xt_target set_targets[] __read_mostly = {
+@@ -389,6 +410,7 @@ static struct xt_target set_targets[] __read_mostly = {
+ 		.destroy	= set_target_v1_destroy,
+ 		.me		= THIS_MODULE
+ 	},
++	/* --timeout and --exist flags support */
+ 	{
+ 		.name		= "SET",
+ 		.revision	= 2,
 -- 
 1.7.0.4
 
