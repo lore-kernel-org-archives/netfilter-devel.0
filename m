@@ -1,80 +1,34 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Oops with latest (netfilter) nf-next tree, when unloading
- iptable_nat
-Date: Fri, 21 Sep 2012 03:00:25 +0200
-Message-ID: <20120921010025.GA20479@1984>
-References: <1347357081.3928.32.camel@localhost>
- <20120912213627.GJ14750@breakpoint.cc>
- <20120914120750.GA5764@1984>
- <Pine.GSO.4.63.1209141511020.11622@stinky-local.trash.net>
- <1348058791.2761.94.camel@localhost>
- <Pine.GSO.4.63.1209200855500.8409@stinky-local.trash.net>
- <20120920100859.GB20828@1984>
- <Pine.GSO.4.63.1209201212480.1775@stinky-local.trash.net>
- <Pine.GSO.4.63.1209201859140.14078@stinky-local.trash.net>
+From: =?UTF-8?Q?=C4=B0brahim_Ercan?= <ibrahim.ercan@engineer.com>
+Subject: How to add wildcard netmask to ipset?
+Date: Fri, 21 Sep 2012 10:35:19 +0300
+Message-ID: <CAK6Qs9=Q4tpOjB6JfcSS3fbnyQdAv_Oqcz4zzqqZx5e10PvrAg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>,
-	Florian Westphal <fw@strlen.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>, yongjun_wei@trendmicro.com.cn
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: netfilter@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33062 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753007Ab2IUBA3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Sep 2012 21:00:29 -0400
-Content-Disposition: inline
-In-Reply-To: <Pine.GSO.4.63.1209201859140.14078@stinky-local.trash.net>
+Received: from mailout-us.mail.com ([74.208.122.35]:38908 "HELO
+	mailout-us.mail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1756410Ab2IUHmC convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Sep 2012 03:42:02 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 20, 2012 at 07:06:52PM +0200, Patrick McHardy wrote:
-> On Thu, 20 Sep 2012, Patrick McHardy wrote:
-> 
-> >>>diff --git a/net/netfilter/nf_conntrack_core.c
-> >>>b/net/netfilter/nf_conntrack_core.c
-> >>>index dcb2791..0f241be 100644
-> >>>--- a/net/netfilter/nf_conntrack_core.c
-> >>>+++ b/net/netfilter/nf_conntrack_core.c
-> >>>@@ -1224,6 +1224,8 @@ get_next_corpse(struct net *net, int
-> >>>(*iter)(struct nf_conn *i, void *data),
-> >>> 	spin_lock_bh(&nf_conntrack_lock);
-> >>> 	for (; *bucket < net->ct.htable_size; (*bucket)++) {
-> >>> 		hlist_nulls_for_each_entry(h, n, &net->ct.hash[*bucket],
-> >>>hnnode) {
-> >>>+			if (NF_CT_DIRECTION(h) != IP_CT_DIR_ORIGINAL)
-> >>>+				continue;
-> >>
-> >>I think this will make the deletion of entries via `conntrack -F'
-> >>slowier as we'll have to iterate over more entries (we won't delete
-> >>entries for the reply tuple).
-> >
-> >Slightly maybe, but I doubt it makes much of a difference.
-> >
-> >>I think I prefer Florian's patch, it's fairly small and it does not
-> >>change the current nf_ct_iterate behaviour or adding some
-> >>nf_nat_iterate cleanup.
-> >
-> >I don't think I've received it. Could you forward it to me please?
-> 
-> Florian forwarded the patch to me. While it fixes the problem, it
-> is a workaround and it certainly is inelegant to do the
-> list_del_rcu_init() and memset up to *four* times for a single conntrack.
-> 
-> The correct thing IMO is to invoke the callbacks exactly once per
-> conntrack, either through my nf_ct_iterate_cleanup() change or through
-> a new iteration function for callers that don't kill conntracks. As
-> soon as we start generating events for NAT section cleanup this will be
-> needed in any case.
-> 
-> Unless I'm missing something, conntrack flushing is also a really
-> rare operation anyways and for large tables where this might make a
-> small difference will take a quite large time anyway.
+Hello,
 
-Makes sense. And we can revisit this to improve it later.
+We are using ipset and we want to add wildcard netmasks to ipset. We
+are using hash:net to store our ips. Ipset does not accept adding
+netmasks so when adding a network like 192.168.1.0/255.255.255.0 we
+convert it to 192.168.1.0/24 CIDR notation and add. But a network like
+192.168.2.0/255.0.255.0 cannot be converted to CIDR nor can be added
+to ipset. What can we do?
 
-I'll take this patch. I'll send a batch with updates for the nf-nat
-thin asap.
-
-Thanks a lot Patrick.
+--=20
+=C4=B0brahim Ercan
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
