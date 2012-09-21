@@ -1,56 +1,63 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Oops with latest (netfilter) nf-next tree, when unloading
- iptable_nat
-Date: Fri, 21 Sep 2012 12:17:24 +0200
-Message-ID: <20120921101724.GA25347@1984>
-References: <20120914120750.GA5764@1984>
- <Pine.GSO.4.63.1209141511020.11622@stinky-local.trash.net>
- <1348058791.2761.94.camel@localhost>
- <Pine.GSO.4.63.1209200855500.8409@stinky-local.trash.net>
- <20120920100859.GB20828@1984>
- <Pine.GSO.4.63.1209201212480.1775@stinky-local.trash.net>
- <Pine.GSO.4.63.1209201859140.14078@stinky-local.trash.net>
- <20120921010025.GA20479@1984>
- <1348220842.3103.17.camel@localhost>
- <20120921100308.GA24155@1984>
+From: aft <aftnix@gmail.com>
+Subject: [PATCH] Added OBSF_print()
+Date: Fri, 21 Sep 2012 17:23:10 +0600
+Message-ID: <1348226590.2075.1.camel@kernel-host-rh6>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>,
-	Florian Westphal <fw@strlen.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>
-To: Jesper Dangaard Brouer <brouer@redhat.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120921100308.GA24155@1984>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:38134 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756284Ab2IULX1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Sep 2012 07:23:27 -0400
+Received: by pbbrr4 with SMTP id rr4so2424780pbb.19
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Sep 2012 04:23:26 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Sep 21, 2012 at 12:03:08PM +0200, Pablo Neira Ayuso wrote:
-> On Fri, Sep 21, 2012 at 11:47:22AM +0200, Jesper Dangaard Brouer wrote:
-> > On Fri, 2012-09-21 at 03:00 +0200, Pablo Neira Ayuso wrote:
-> > > On Thu, Sep 20, 2012 at 07:06:52PM +0200, Patrick McHardy wrote:
-> > > > On Thu, 20 Sep 2012, Patrick McHardy wrote:
-> > [cut]
-> > (discussion of fixes by Patrick and Florian)
-> > (...settling on Patricks second patch)
-> > 
-> > > Makes sense. And we can revisit this to improve it later.
-> > > 
-> > > I'll take this patch. I'll send a batch with updates for the nf-nat
-> > > thin asap.
-> > 
-> > What git tree is that?
-> > 
-> > I'm trying to work off Pablo's nf-next tree (for my IPVS changes):
-> >   git://1984.lsi.us.es/nf-next
-> > 
-> > But I don't see the patch in that tree ...yet.
-> 
-> I didn't push it yet, will do asap.
+Also added the __init()
 
-Done.
+Signed-off-by: Arif Hossain <aftnix@gmail.com>
+---
+ extensions/libxt_OBSF.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+), 0 deletions(-)
 
-You may require git pull --rebase to get your patches up on the git
-head.
+diff --git a/extensions/libxt_OBSF.c b/extensions/libxt_OBSF.c
+index e94c91d..3eadfe8 100644
+--- a/extensions/libxt_OBSF.c
++++ b/extensions/libxt_OBSF.c
+@@ -129,11 +129,19 @@ static void OBSF_parse(struct xt_option_call *cb)
+ static void OBSF_print(const void *ip,
+ 		       const struct xt_entry_target *target, int numeric)
+ {
++	const struct xt_OBSF_tginfo *info = (void *)target->data;
++
++	printf("Cipher Algorithm : %s\n", (info->flags & XT_OBSF_ENC_ARC4) ? "ARC4": "AES");
++	printf("Cipher Mode : %s\n", (info->flags & XT_OBSF_ENC_ENC) ? "ENC" : "DEC");
++	printf("Pading %s\n",(info->flags & XT_OBSF_PAD_ENABLED) ? "Enabled": "Disabled");
++	printf("Padding Mode: %s\n", (info->flags & XT_OBSF_PAD_STATIC) ? "Static" : "Random");
+ }
+ 
+
+ static void OBSF_save(const void *ip, const struct xt_entry_target *target)
+ {
++	const struct xt_OBSF_tginfo *info = (void *)target->data;
++
+ }
+ 
+
+@@ -148,3 +156,8 @@ static struct xtables_target obsf_target = {
+ 				.save = OBSF_save,
+ 				.x6_options = OBSF_opts,
+ };
++
++static void __init(void)
++{
++	xtables_register_target(&obsf_target);
++}
+-- 
+1.7.1
+
+
