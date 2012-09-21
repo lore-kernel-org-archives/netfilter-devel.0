@@ -1,293 +1,281 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 1/3] netfilter: ipset: Fix sparse warnings "incorrect type in assignment"
+Subject: [PATCH 3/3] netfilter: ipset: Fix cidr book keeping for hash:*net* types
 Date: Fri, 21 Sep 2012 22:38:22 +0200
-Message-ID: <1348259902-16403-1-git-send-email-kadlec@blackhole.kfki.hu>
+Message-ID: <1348259902-16472-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:40212 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:56225 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757806Ab2IUUiX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Sep 2012 16:38:23 -0400
+	id S1757472Ab2IUUiY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Sep 2012 16:38:24 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+The book-keeping of the different sized networks were bogus, fix it.
+The broken code could lead invalid matching in such sets when the number
+of different sized networks were greater than the smallest CIDR value of
+the networks.
+
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/ipset/ip_set_hash_ip.c        |    4 ++--
- net/netfilter/ipset/ip_set_hash_ipport.c    |   13 +++++++------
- net/netfilter/ipset/ip_set_hash_ipportip.c  |   13 +++++++------
- net/netfilter/ipset/ip_set_hash_ipportnet.c |   21 ++++++++++++---------
- net/netfilter/ipset/ip_set_hash_net.c       |    4 ++--
- net/netfilter/ipset/ip_set_hash_netiface.c  |    4 ++--
- net/netfilter/ipset/ip_set_hash_netport.c   |   13 +++++++------
- 7 files changed, 39 insertions(+), 33 deletions(-)
+ include/linux/netfilter/ipset/ip_set_ahash.h |  104 ++++++++++++++------------
+ 1 files changed, 55 insertions(+), 49 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
-index a68dbd4..42bccd5 100644
---- a/net/netfilter/ipset/ip_set_hash_ip.c
-+++ b/net/netfilter/ipset/ip_set_hash_ip.c
-@@ -114,7 +114,7 @@ nla_put_failure:
- static inline void
- hash_ip4_data_next(struct ip_set_hash *h, const struct hash_ip4_elem *d)
+diff --git a/include/linux/netfilter/ipset/ip_set_ahash.h b/include/linux/netfilter/ipset/ip_set_ahash.h
+index b114d35..8708c34 100644
+--- a/include/linux/netfilter/ipset/ip_set_ahash.h
++++ b/include/linux/netfilter/ipset/ip_set_ahash.h
+@@ -137,50 +137,59 @@ htable_bits(u32 hashsize)
+ #endif
+ 
+ #define SET_HOST_MASK(family)	(family == AF_INET ? 32 : 128)
++#ifdef IP_SET_HASH_WITH_MULTI
++#define NETS_LENGTH(family)	(SET_HOST_MASK(family) + 1)
++#else
++#define NETS_LENGTH(family)	SET_HOST_MASK(family)
++#endif
+ 
+ /* Network cidr size book keeping when the hash stores different
+  * sized networks */
+ static void
+-add_cidr(struct ip_set_hash *h, u8 cidr, u8 host_mask)
++add_cidr(struct ip_set_hash *h, u8 cidr, u8 nets_length)
  {
--	h->next.ip = ntohl(d->ip);
-+	h->next.ip = d->ip;
+-	u8 i;
+-
+-	++h->nets[cidr-1].nets;
+-
+-	pr_debug("add_cidr added %u: %u\n", cidr, h->nets[cidr-1].nets);
++	int i, j;
+ 
+-	if (h->nets[cidr-1].nets > 1)
+-		return;
+-
+-	/* New cidr size */
+-	for (i = 0; i < host_mask && h->nets[i].cidr; i++) {
+-		/* Add in increasing prefix order, so larger cidr first */
+-		if (h->nets[i].cidr < cidr)
+-			swap(h->nets[i].cidr, cidr);
++	/* Add in increasing prefix order, so larger cidr first */
++	for (i = 0, j = -1; i < nets_length && h->nets[i].nets; i++) {
++		if (j != -1)
++			continue;
++		else if (h->nets[i].cidr < cidr)
++			j = i;
++		else if (h->nets[i].cidr == cidr) {
++			h->nets[i].nets++;
++			return;
++		}
++	}
++	if (j != -1) {
++		for (; j != -1 && i > j; i--) {
++			h->nets[i].cidr = h->nets[i - 1].cidr;
++			h->nets[i].nets = h->nets[i - 1].nets;
++		}
+ 	}
+-	if (i < host_mask)
+-		h->nets[i].cidr = cidr;
++	h->nets[i].cidr = cidr;
++	h->nets[i].nets = 1;
  }
  
- static int
-@@ -188,7 +188,7 @@ hash_ip4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	hosts = h->netmask == 32 ? 1 : 2 << (32 - h->netmask - 1);
- 
- 	if (retried)
--		ip = h->next.ip;
-+		ip = ntohl(h->next.ip);
- 	for (; !before(ip_to, ip); ip += hosts) {
- 		nip = htonl(ip);
- 		if (nip == 0)
-diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
-index 92722bb..e0ce0da 100644
---- a/net/netfilter/ipset/ip_set_hash_ipport.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipport.c
-@@ -130,8 +130,8 @@ static inline void
- hash_ipport4_data_next(struct ip_set_hash *h,
- 		       const struct hash_ipport4_elem *d)
+ static void
+-del_cidr(struct ip_set_hash *h, u8 cidr, u8 host_mask)
++del_cidr(struct ip_set_hash *h, u8 cidr, u8 nets_length)
  {
--	h->next.ip = ntohl(d->ip);
--	h->next.port = ntohs(d->port);
-+	h->next.ip = d->ip;
-+	h->next.port = d->port;
- }
+-	u8 i;
+-
+-	--h->nets[cidr-1].nets;
++	u8 i, j;
  
- static int
-@@ -231,9 +231,10 @@ hash_ipport4_uadt(struct ip_set *set, struct nlattr *tb[],
+-	pr_debug("del_cidr deleted %u: %u\n", cidr, h->nets[cidr-1].nets);
++	for (i = 0; i < nets_length - 1 && h->nets[i].cidr != cidr; i++)
++		;
++	h->nets[i].nets--;
+ 
+-	if (h->nets[cidr-1].nets != 0)
++	if (h->nets[i].nets != 0)
+ 		return;
+ 
+-	/* All entries with this cidr size deleted, so cleanup h->cidr[] */
+-	for (i = 0; i < host_mask - 1 && h->nets[i].cidr; i++) {
+-		if (h->nets[i].cidr == cidr)
+-			h->nets[i].cidr = cidr = h->nets[i+1].cidr;
++	for (j = i; j < nets_length - 1 && h->nets[j].nets; j++) {
++		h->nets[j].cidr = h->nets[j + 1].cidr;
++		h->nets[j].nets = h->nets[j + 1].nets;
+ 	}
+-	h->nets[i - 1].cidr = 0;
+ }
++#else
++#define NETS_LENGTH(family)		0
+ #endif
+ 
+ /* Destroy the hashtable part of the set */
+@@ -202,14 +211,14 @@ ahash_destroy(struct htable *t)
+ 
+ /* Calculate the actual memory size of the set data */
+ static size_t
+-ahash_memsize(const struct ip_set_hash *h, size_t dsize, u8 host_mask)
++ahash_memsize(const struct ip_set_hash *h, size_t dsize, u8 nets_length)
+ {
+ 	u32 i;
+ 	struct htable *t = h->table;
+ 	size_t memsize = sizeof(*h)
+ 			 + sizeof(*t)
+ #ifdef IP_SET_HASH_WITH_NETS
+-			 + sizeof(struct ip_set_hash_nets) * host_mask
++			 + sizeof(struct ip_set_hash_nets) * nets_length
+ #endif
+ 			 + jhash_size(t->htable_bits) * sizeof(struct hbucket);
+ 
+@@ -238,7 +247,7 @@ ip_set_hash_flush(struct ip_set *set)
+ 	}
+ #ifdef IP_SET_HASH_WITH_NETS
+ 	memset(h->nets, 0, sizeof(struct ip_set_hash_nets)
+-			   * SET_HOST_MASK(set->family));
++			   * NETS_LENGTH(set->family));
+ #endif
+ 	h->elements = 0;
+ }
+@@ -271,9 +280,6 @@ ip_set_hash_destroy(struct ip_set *set)
+ (jhash2((u32 *)(data), HKEY_DATALEN/sizeof(u32), initval)	\
+ 	& jhash_mask(htable_bits))
+ 
+-#define CONCAT(a, b, c)		a##b##c
+-#define TOKEN(a, b, c)		CONCAT(a, b, c)
+-
+ /* Type/family dependent function prototypes */
+ 
+ #define type_pf_data_equal	TOKEN(TYPE, PF, _data_equal)
+@@ -478,7 +484,7 @@ type_pf_add(struct ip_set *set, void *value, u32 timeout, u32 flags)
  	}
  
- 	if (retried)
--		ip = h->next.ip;
-+		ip = ntohl(h->next.ip);
- 	for (; !before(ip_to, ip); ip++) {
--		p = retried && ip == h->next.ip ? h->next.port : port;
-+		p = retried && ip == ntohl(h->next.ip) ? ntohs(h->next.port)
-+						       : port;
- 		for (; p <= port_to; p++) {
- 			data.ip = htonl(ip);
- 			data.port = htons(p);
-@@ -349,7 +350,7 @@ static inline void
- hash_ipport6_data_next(struct ip_set_hash *h,
- 		       const struct hash_ipport6_elem *d)
+ #ifdef IP_SET_HASH_WITH_NETS
+-	add_cidr(h, CIDR(d->cidr), HOST_MASK);
++	add_cidr(h, CIDR(d->cidr), NETS_LENGTH(set->family));
+ #endif
+ 	h->elements++;
+ out:
+@@ -513,7 +519,7 @@ type_pf_del(struct ip_set *set, void *value, u32 timeout, u32 flags)
+ 		n->pos--;
+ 		h->elements--;
+ #ifdef IP_SET_HASH_WITH_NETS
+-		del_cidr(h, CIDR(d->cidr), HOST_MASK);
++		del_cidr(h, CIDR(d->cidr), NETS_LENGTH(set->family));
+ #endif
+ 		if (n->pos + AHASH_INIT_SIZE < n->size) {
+ 			void *tmp = kzalloc((n->size - AHASH_INIT_SIZE)
+@@ -546,10 +552,10 @@ type_pf_test_cidrs(struct ip_set *set, struct type_pf_elem *d, u32 timeout)
+ 	const struct type_pf_elem *data;
+ 	int i, j = 0;
+ 	u32 key, multi = 0;
+-	u8 host_mask = SET_HOST_MASK(set->family);
++	u8 nets_length = NETS_LENGTH(set->family);
+ 
+ 	pr_debug("test by nets\n");
+-	for (; j < host_mask && h->nets[j].cidr && !multi; j++) {
++	for (; j < nets_length && h->nets[j].nets && !multi; j++) {
+ 		type_pf_data_netmask(d, h->nets[j].cidr);
+ 		key = HKEY(d, h->initval, t->htable_bits);
+ 		n = hbucket(t, key);
+@@ -604,7 +610,7 @@ type_pf_head(struct ip_set *set, struct sk_buff *skb)
+ 	memsize = ahash_memsize(h, with_timeout(h->timeout)
+ 					? sizeof(struct type_pf_telem)
+ 					: sizeof(struct type_pf_elem),
+-				set->family == AF_INET ? 32 : 128);
++				NETS_LENGTH(set->family));
+ 	read_unlock_bh(&set->lock);
+ 
+ 	nested = ipset_nest_start(skb, IPSET_ATTR_DATA);
+@@ -783,7 +789,7 @@ type_pf_elem_tadd(struct hbucket *n, const struct type_pf_elem *value,
+ 
+ /* Delete expired elements from the hashtable */
+ static void
+-type_pf_expire(struct ip_set_hash *h)
++type_pf_expire(struct ip_set_hash *h, u8 nets_length)
  {
--	h->next.port = ntohs(d->port);
-+	h->next.port = d->port;
- }
+ 	struct htable *t = h->table;
+ 	struct hbucket *n;
+@@ -798,7 +804,7 @@ type_pf_expire(struct ip_set_hash *h)
+ 			if (type_pf_data_expired(data)) {
+ 				pr_debug("expired %u/%u\n", i, j);
+ #ifdef IP_SET_HASH_WITH_NETS
+-				del_cidr(h, CIDR(data->cidr), HOST_MASK);
++				del_cidr(h, CIDR(data->cidr), nets_length);
+ #endif
+ 				if (j != n->pos - 1)
+ 					/* Not last one */
+@@ -839,7 +845,7 @@ type_pf_tresize(struct ip_set *set, bool retried)
+ 	if (!retried) {
+ 		i = h->elements;
+ 		write_lock_bh(&set->lock);
+-		type_pf_expire(set->data);
++		type_pf_expire(set->data, NETS_LENGTH(set->family));
+ 		write_unlock_bh(&set->lock);
+ 		if (h->elements <  i)
+ 			return 0;
+@@ -904,7 +910,7 @@ type_pf_tadd(struct ip_set *set, void *value, u32 timeout, u32 flags)
  
- static int
-@@ -431,7 +432,7 @@ hash_ipport6_uadt(struct ip_set *set, struct nlattr *tb[],
- 		swap(port, port_to);
- 
- 	if (retried)
--		port = h->next.port;
-+		port = ntohs(h->next.port);
- 	for (; port <= port_to; port++) {
- 		data.port = htons(port);
- 		ret = adtfn(set, &data, timeout, flags);
-diff --git a/net/netfilter/ipset/ip_set_hash_ipportip.c b/net/netfilter/ipset/ip_set_hash_ipportip.c
-index 0637ce0..c864bf4 100644
---- a/net/netfilter/ipset/ip_set_hash_ipportip.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipportip.c
-@@ -133,8 +133,8 @@ static inline void
- hash_ipportip4_data_next(struct ip_set_hash *h,
- 			 const struct hash_ipportip4_elem *d)
- {
--	h->next.ip = ntohl(d->ip);
--	h->next.port = ntohs(d->port);
-+	h->next.ip = d->ip;
-+	h->next.port = d->port;
- }
- 
- static int
-@@ -239,9 +239,10 @@ hash_ipportip4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (h->elements >= h->maxelem)
+ 		/* FIXME: when set is full, we slow down here */
+-		type_pf_expire(h);
++		type_pf_expire(h, NETS_LENGTH(set->family));
+ 	if (h->elements >= h->maxelem) {
+ 		if (net_ratelimit())
+ 			pr_warning("Set %s is full, maxelem %u reached\n",
+@@ -933,8 +939,8 @@ type_pf_tadd(struct ip_set *set, void *value, u32 timeout, u32 flags)
+ 	if (j != AHASH_MAX(h) + 1) {
+ 		data = ahash_tdata(n, j);
+ #ifdef IP_SET_HASH_WITH_NETS
+-		del_cidr(h, CIDR(data->cidr), HOST_MASK);
+-		add_cidr(h, CIDR(d->cidr), HOST_MASK);
++		del_cidr(h, CIDR(data->cidr), NETS_LENGTH(set->family));
++		add_cidr(h, CIDR(d->cidr), NETS_LENGTH(set->family));
+ #endif
+ 		type_pf_data_copy(data, d);
+ 		type_pf_data_timeout_set(data, timeout);
+@@ -952,7 +958,7 @@ type_pf_tadd(struct ip_set *set, void *value, u32 timeout, u32 flags)
  	}
  
- 	if (retried)
--		ip = h->next.ip;
-+		ip = ntohl(h->next.ip);
- 	for (; !before(ip_to, ip); ip++) {
--		p = retried && ip == h->next.ip ? h->next.port : port;
-+		p = retried && ip == ntohl(h->next.ip) ? ntohs(h->next.port)
-+						       : port;
- 		for (; p <= port_to; p++) {
- 			data.ip = htonl(ip);
- 			data.port = htons(p);
-@@ -362,7 +363,7 @@ static inline void
- hash_ipportip6_data_next(struct ip_set_hash *h,
- 			 const struct hash_ipportip6_elem *d)
- {
--	h->next.port = ntohs(d->port);
-+	h->next.port = d->port;
- }
+ #ifdef IP_SET_HASH_WITH_NETS
+-	add_cidr(h, CIDR(d->cidr), HOST_MASK);
++	add_cidr(h, CIDR(d->cidr), NETS_LENGTH(set->family));
+ #endif
+ 	h->elements++;
+ out:
+@@ -986,7 +992,7 @@ type_pf_tdel(struct ip_set *set, void *value, u32 timeout, u32 flags)
+ 		n->pos--;
+ 		h->elements--;
+ #ifdef IP_SET_HASH_WITH_NETS
+-		del_cidr(h, CIDR(d->cidr), HOST_MASK);
++		del_cidr(h, CIDR(d->cidr), NETS_LENGTH(set->family));
+ #endif
+ 		if (n->pos + AHASH_INIT_SIZE < n->size) {
+ 			void *tmp = kzalloc((n->size - AHASH_INIT_SIZE)
+@@ -1016,9 +1022,9 @@ type_pf_ttest_cidrs(struct ip_set *set, struct type_pf_elem *d, u32 timeout)
+ 	struct hbucket *n;
+ 	int i, j = 0;
+ 	u32 key, multi = 0;
+-	u8 host_mask = SET_HOST_MASK(set->family);
++	u8 nets_length = NETS_LENGTH(set->family);
  
- static int
-@@ -449,7 +450,7 @@ hash_ipportip6_uadt(struct ip_set *set, struct nlattr *tb[],
- 		swap(port, port_to);
+-	for (; j < host_mask && h->nets[j].cidr && !multi; j++) {
++	for (; j < nets_length && h->nets[j].nets && !multi; j++) {
+ 		type_pf_data_netmask(d, h->nets[j].cidr);
+ 		key = HKEY(d, h->initval, t->htable_bits);
+ 		n = hbucket(t, key);
+@@ -1147,7 +1153,7 @@ type_pf_gc(unsigned long ul_set)
  
- 	if (retried)
--		port = h->next.port;
-+		port = ntohs(h->next.port);
- 	for (; port <= port_to; port++) {
- 		data.port = htons(port);
- 		ret = adtfn(set, &data, timeout, flags);
-diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-index 1ce21ca..2c704bb 100644
---- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-@@ -173,9 +173,9 @@ static inline void
- hash_ipportnet4_data_next(struct ip_set_hash *h,
- 			  const struct hash_ipportnet4_elem *d)
- {
--	h->next.ip = ntohl(d->ip);
--	h->next.port = ntohs(d->port);
--	h->next.ip2 = ntohl(d->ip2);
-+	h->next.ip = d->ip;
-+	h->next.port = d->port;
-+	h->next.ip2 = d->ip2;
- }
+ 	pr_debug("called\n");
+ 	write_lock_bh(&set->lock);
+-	type_pf_expire(h);
++	type_pf_expire(h, NETS_LENGTH(set->family));
+ 	write_unlock_bh(&set->lock);
  
- static int
-@@ -314,14 +314,17 @@ hash_ipportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	}
- 
- 	if (retried)
--		ip = h->next.ip;
-+		ip = ntohl(h->next.ip);
- 	for (; !before(ip_to, ip); ip++) {
- 		data.ip = htonl(ip);
--		p = retried && ip == h->next.ip ? h->next.port : port;
-+		p = retried && ip == ntohl(h->next.ip) ? ntohs(h->next.port)
-+						       : port;
- 		for (; p <= port_to; p++) {
- 			data.port = htons(p);
--			ip2 = retried && ip == h->next.ip && p == h->next.port
--				? h->next.ip2 : ip2_from;
-+			ip2 = retried
-+			      && ip == ntohl(h->next.ip)
-+			      && p == ntohs(h->next.port)
-+				? ntohl(h->next.ip2) : ip2_from;
- 			while (!after(ip2, ip2_to)) {
- 				data.ip2 = htonl(ip2);
- 				ip2_last = ip_set_range_to_cidr(ip2, ip2_to,
-@@ -486,7 +489,7 @@ static inline void
- hash_ipportnet6_data_next(struct ip_set_hash *h,
- 			  const struct hash_ipportnet6_elem *d)
- {
--	h->next.port = ntohs(d->port);
-+	h->next.port = d->port;
- }
- 
- static int
-@@ -598,7 +601,7 @@ hash_ipportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
- 		swap(port, port_to);
- 
- 	if (retried)
--		port = h->next.port;
-+		port = ntohs(h->next.port);
- 	for (; port <= port_to; port++) {
- 		data.port = htons(port);
- 		ret = adtfn(set, &data, timeout, flags);
-diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/ip_set_hash_net.c
-index c57a6a0..d676093 100644
---- a/net/netfilter/ipset/ip_set_hash_net.c
-+++ b/net/netfilter/ipset/ip_set_hash_net.c
-@@ -152,7 +152,7 @@ static inline void
- hash_net4_data_next(struct ip_set_hash *h,
- 		    const struct hash_net4_elem *d)
- {
--	h->next.ip = ntohl(d->ip);
-+	h->next.ip = d->ip;
- }
- 
- static int
-@@ -235,7 +235,7 @@ hash_net4_uadt(struct ip_set *set, struct nlattr *tb[],
- 			return -IPSET_ERR_HASH_RANGE;
- 	}
- 	if (retried)
--		ip = h->next.ip;
-+		ip = ntohl(h->next.ip);
- 	while (!after(ip, ip_to)) {
- 		data.ip = htonl(ip);
- 		last = ip_set_range_to_cidr(ip, ip_to, &data.cidr);
-diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
-index d5d3607..632693f 100644
---- a/net/netfilter/ipset/ip_set_hash_netiface.c
-+++ b/net/netfilter/ipset/ip_set_hash_netiface.c
-@@ -277,7 +277,7 @@ static inline void
- hash_netiface4_data_next(struct ip_set_hash *h,
- 			 const struct hash_netiface4_elem *d)
- {
--	h->next.ip = ntohl(d->ip);
-+	h->next.ip = d->ip;
- }
- 
- static int
-@@ -409,7 +409,7 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	}
- 
- 	if (retried)
--		ip = h->next.ip;
-+		ip = ntohl(h->next.ip);
- 	while (!after(ip, ip_to)) {
- 		data.ip = htonl(ip);
- 		last = ip_set_range_to_cidr(ip, ip_to, &data.cidr);
-diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ipset/ip_set_hash_netport.c
-index fc3143a..3ec27fc 100644
---- a/net/netfilter/ipset/ip_set_hash_netport.c
-+++ b/net/netfilter/ipset/ip_set_hash_netport.c
-@@ -171,8 +171,8 @@ static inline void
- hash_netport4_data_next(struct ip_set_hash *h,
- 			const struct hash_netport4_elem *d)
- {
--	h->next.ip = ntohl(d->ip);
--	h->next.port = ntohs(d->port);
-+	h->next.ip = d->ip;
-+	h->next.port = d->port;
- }
- 
- static int
-@@ -289,12 +289,13 @@ hash_netport4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	}
- 
- 	if (retried)
--		ip = h->next.ip;
-+		ip = ntohl(h->next.ip);
- 	while (!after(ip, ip_to)) {
- 		data.ip = htonl(ip);
- 		last = ip_set_range_to_cidr(ip, ip_to, &cidr);
- 		data.cidr = cidr - 1;
--		p = retried && ip == h->next.ip ? h->next.port : port;
-+		p = retried && ip == ntohl(h->next.ip) ? ntohs(h->next.port)
-+						       : port;
- 		for (; p <= port_to; p++) {
- 			data.port = htons(p);
- 			ret = adtfn(set, &data, timeout, flags);
-@@ -450,7 +451,7 @@ static inline void
- hash_netport6_data_next(struct ip_set_hash *h,
- 			const struct hash_netport6_elem *d)
- {
--	h->next.port = ntohs(d->port);
-+	h->next.port = d->port;
- }
- 
- static int
-@@ -554,7 +555,7 @@ hash_netport6_uadt(struct ip_set *set, struct nlattr *tb[],
- 		swap(port, port_to);
- 
- 	if (retried)
--		port = h->next.port;
-+		port = ntohs(h->next.port);
- 	for (; port <= port_to; port++) {
- 		data.port = htons(port);
- 		ret = adtfn(set, &data, timeout, flags);
+ 	h->gc.expires = jiffies + IPSET_GC_PERIOD(h->timeout) * HZ;
 -- 
 1.7.0.4
 
