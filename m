@@ -1,83 +1,63 @@
-From: Aft nix <aftnix@gmail.com>
-Subject: Re: [PATCH] New Target Extension OBSF
-Date: Fri, 21 Sep 2012 17:36:30 +0600
-Message-ID: <CAGuaRCvT1oLxq=RNBufFpOGe9NXhbBcgfJ2vNibyP7wWhOWC_A@mail.gmail.com>
-References: <1347895271.27332.1.camel@kernel-host-rh6>
-	<alpine.LNX.2.01.1209180120530.22227@nerf07.vanv.qr>
-	<CAGuaRCvVhf8+ZjvSG3NBnSXH1PStb3Di6fnydKVgXrLYhKdV1w@mail.gmail.com>
-	<alpine.LNX.2.01.1209190434080.13470@nerf07.vanv.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: [PATCH] mk: fix librairies dependencies
+Date: Fri, 21 Sep 2012 15:55:39 +0200
+Message-ID: <1348235739-29392-1-git-send-email-nicolas.dichtel@6wind.com>
+Cc: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:44942 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754070Ab2IULga (ORCPT
+Received: from 33.106-14-84.ripe.coltfrance.com ([84.14.106.33]:54651 "EHLO
+	proxy.6wind.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753938Ab2IUOCm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Sep 2012 07:36:30 -0400
-Received: by ieak13 with SMTP id k13so5149270iea.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Sep 2012 04:36:30 -0700 (PDT)
-In-Reply-To: <alpine.LNX.2.01.1209190434080.13470@nerf07.vanv.qr>
+	Fri, 21 Sep 2012 10:02:42 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Sep 19, 2012 at 8:36 AM, Jan Engelhardt <jengelh@inai.de> wrote:
->
-> On Tuesday 2012-09-18 09:46, Aft nix wrote:
->>
->>On Tue, Sep 18, 2012 at 6:04 AM, Jan Engelhardt <jengelh@inai.de> wrote:
->>>
->>> On Monday 2012-09-17 17:21, aft wrote:
->>>>
->>>>1) it encrypts UDP traffic.
->>>>2) it adds false bytes(padding).
->>>>
->>>>Its purpose is to escape smarter DPIs which blocks certain kinds of
->>>>packets by several heuristic methods.
->>>
->>> But then why not use IPsec (udpencap), OpenVPN, or something?
->>> After all, you do already need a cooperating peer to decrypt
->>> your traffic, and hence might as well pick a _standardized_ solution.
->>
->>The client does not support IPsec.
->
-> Why would it not? If you can make kernel changes, you can as well run
-> a simple userspace program. (Example for a userspace program that
-> does IPsec using tun interface: vpnc.)
+Several includes are missing when netfilter libs are not in the
+standard path.
 
-I'm doing these in Server's kernel. The client is a mobile device. AES/ARC4
-are implemented in the client application directly.
+Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+---
+Patch is against conntrack-tools.git
 
+ Make_global.am  | 4 +++-
+ src/Makefile.am | 4 ++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
->
->>>>+      },
->>>>+      {
->>>>+              .name = "OBSF",
->>>>+              .revision = 1,
->>>>+              .family = NFPROTO_UNSPEC,
->>>>+              .target = obsf_tg_v1,
->>>>+              .targetsize = sizeof(struct xt_OBSF_tginfo_v1),
->>>>+              .checkentry = obsf_tg_check_v1,
->>>>+              .me = THIS_MODULE,
->>>>+      },
->>>>+};
->>>
->>> There is no need to use two revisions.
->>
->>Well, i thought there are times when you will not inject false bytes,
->>just encryption will suffices. That's why i've made
->>Two versions. When to make two versions is not really clear to me.
->
-> A new ABI is needed when the struct you are using to pass options
-> such as "pad or not" does not suffice to hold your option data
-> any more.
-
-I've changed it in my recent version, see newer pathces, where i
-changed it to reflect your suggestion.
-Thanks for clearing that out. I had a confused conception about when
-to use more than one DS.
-
-
+diff --git a/Make_global.am b/Make_global.am
+index 7b5342d..23c7dd0 100644
+--- a/Make_global.am
++++ b/Make_global.am
+@@ -4,4 +4,6 @@ AM_CFLAGS = -std=gnu99 -W -Wall \
+ 	-Wmissing-prototypes -Wwrite-strings -Wcast-qual -Wfloat-equal -Wshadow -Wpointer-arith -Wbad-function-cast -Wsign-compare -Waggregate-return -Wmissing-declarations -Wredundant-decls -Wnested-externs -Winline -Wstrict-prototypes -Wundef \
+ 	-Wno-unused-parameter ${LIBNFNETLINK_CFLAGS} ${LIBMNL_CFLAGS} \
+ 	${LIBNETFILTER_CONNTRACK_CFLAGS} \
+-	${LIBNETFILTER_CTTIMEOUT_CFLAGS}
++	${LIBNETFILTER_CTTIMEOUT_CFLAGS} \
++	${LIBNETFILTER_QUEUE_CFLAGS} \
++	${LIBNETFILTER_CTHELPER_CFLAGS}
+diff --git a/src/Makefile.am b/src/Makefile.am
+index d8074d2..ec03e46 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -9,7 +9,7 @@ CLEANFILES = read_config_yy.c read_config_lex.c
+ sbin_PROGRAMS = conntrack conntrackd nfct
+ 
+ conntrack_SOURCES = conntrack.c
+-conntrack_LDADD = ../extensions/libct_proto_tcp.la ../extensions/libct_proto_udp.la ../extensions/libct_proto_udplite.la ../extensions/libct_proto_icmp.la ../extensions/libct_proto_icmpv6.la ../extensions/libct_proto_sctp.la ../extensions/libct_proto_dccp.la ../extensions/libct_proto_gre.la ../extensions/libct_proto_unknown.la ${LIBNETFILTER_CONNTRACK_LIBS} ${LIBMNL_LIBS}
++conntrack_LDADD = ../extensions/libct_proto_tcp.la ../extensions/libct_proto_udp.la ../extensions/libct_proto_udplite.la ../extensions/libct_proto_icmp.la ../extensions/libct_proto_icmpv6.la ../extensions/libct_proto_sctp.la ../extensions/libct_proto_dccp.la ../extensions/libct_proto_gre.la ../extensions/libct_proto_unknown.la ${LIBNETFILTER_CONNTRACK_LIBS} ${LIBMNL_LIBS} ${LIBNFNETLINK_LIBS}
+ 
+ nfct_SOURCES = nfct.c			\
+ 	       helpers.c			\
+@@ -46,7 +46,7 @@ read_config_yy.o read_config_lex.o: AM_CFLAGS += -Wno-missing-prototypes -Wno-mi
+ 
+ conntrackd_LDADD = ${LIBMNL_LIBS} ${LIBNETFILTER_CONNTRACK_LIBS} \
+ 		   ${LIBNETFILTER_QUEUE_LIBS} ${LIBNETFILTER_CTHELPER_LIBS} \
+-		   ${libdl_LIBS}
++		   ${libdl_LIBS} ${LIBNFNETLINK_LIBS}
+ 
+ conntrackd_LDFLAGS = -export-dynamic
+ 
 -- 
--aft
+1.7.12
+
