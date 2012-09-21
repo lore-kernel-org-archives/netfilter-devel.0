@@ -1,68 +1,44 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net-next] nat: remove obsolete rcu_read_unlock call
-Date: Fri, 21 Sep 2012 21:47:07 +0200
-Message-ID: <20120921194707.GA32377@1984>
-References: <20120920135133.GA21538@uweber-WS>
- <1348150485.31352.87.camel@edumazet-glaptop>
- <20120921100842.1608006f@nehalam.linuxnetplumber.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Ulrich Weber <ulrich.weber@sophos.com>,
-	netfilter-devel@vger.kernel.org
-To: Stephen Hemminger <shemminger@vyatta.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH 0/3] ipset fixes
+Date: Fri, 21 Sep 2012 22:38:21 +0200
+Message-ID: <1348259901-16369-1-git-send-email-kadlec@blackhole.kfki.hu>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45573 "EHLO mail.us.es"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:39707 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757656Ab2IUTrL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Sep 2012 15:47:11 -0400
-Content-Disposition: inline
-In-Reply-To: <20120921100842.1608006f@nehalam.linuxnetplumber.net>
+	id S1757842Ab2IUUiX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Sep 2012 16:38:23 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Sep 21, 2012 at 10:08:42AM -0700, Stephen Hemminger wrote:
-> On Thu, 20 Sep 2012 16:14:45 +0200
-> Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> 
-> > On Thu, 2012-09-20 at 15:52 +0200, Ulrich Weber wrote:
-> > > hlist walk in find_appropriate_src() is not protected anymore by rcu_read_lock(),
-> > > so rcu_read_unlock() is unnecessary if in_range() matches.
-> > > 
-> > > Signed-off-by: Ulrich Weber <ulrich.weber@sophos.com>
-> > > ---
-> > >  net/netfilter/nf_nat_core.c |    4 +---
-> > >  1 file changed, 1 insertion(+), 3 deletions(-)
-> > > 
-> > > diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-> > > index 1816ad3..125d832 100644
-> > > --- a/net/netfilter/nf_nat_core.c
-> > > +++ b/net/netfilter/nf_nat_core.c
-> > > @@ -201,10 +201,8 @@ find_appropriate_src(struct net *net, u16 zone,
-> > >  				       &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
-> > >  			result->dst = tuple->dst;
-> > >  
-> > > -			if (in_range(l3proto, l4proto, result, range)) {
-> > > -				rcu_read_unlock();
-> > > +			if (in_range(l3proto, l4proto, result, range))
-> > >  				return 1;
-> > > -			}
-> > >  		}
-> > >  	}
-> > >  	return 0;
-> > 
-> > 
-> > This could explain the rcu_read_unlock() imbalance Stephen had (lockdep
-> > splat with net-next)
-> > 
-> > 
-> > How old is this bug ?
-> > 
-> > 
-> > 
-> 
-> This fixes the lockdep splat I saw when staring KVM vm's with net-next and lockdep enabled
+Hi Pablo,
 
-It's in my tree already.
+Here follows two important ipset fixes against your nf tree. (The first
+patch is an old one somehow forgotten to send or apply and the other
+ones depend on it.)
 
-I'll pass it to David asap. Thanks for the report.
+You can pull these changes from:
+
+git://blackhole.kfki.hu/nf master
+
+Best regards,
+Jozsef
+
+Jozsef Kadlecsik (3):
+  netfilter: ipset: Fix sparse warnings "incorrect type in assignment"
+  netfilter: ipset: Check and reject crazy /0 input parameters
+  netfilter: ipset: Fix cidr book keeping for hash:*net* types
+
+ include/linux/netfilter/ipset/ip_set_ahash.h |  104 ++++++++++++++------------
+ net/netfilter/ipset/ip_set_bitmap_ip.c       |   10 ++-
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c    |    5 +-
+ net/netfilter/ipset/ip_set_hash_ip.c         |    6 +-
+ net/netfilter/ipset/ip_set_hash_ipport.c     |   15 ++--
+ net/netfilter/ipset/ip_set_hash_ipportip.c   |   15 ++--
+ net/netfilter/ipset/ip_set_hash_ipportnet.c  |   23 +++---
+ net/netfilter/ipset/ip_set_hash_net.c        |    4 +-
+ net/netfilter/ipset/ip_set_hash_netiface.c   |    4 +-
+ net/netfilter/ipset/ip_set_hash_netport.c    |   13 ++--
+ 10 files changed, 107 insertions(+), 92 deletions(-)
+
