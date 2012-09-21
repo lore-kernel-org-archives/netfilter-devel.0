@@ -1,63 +1,83 @@
-From: aft <aftnix@gmail.com>
-Subject: [PATCH] Added OBSF_print()
-Date: Fri, 21 Sep 2012 17:23:10 +0600
-Message-ID: <1348226590.2075.1.camel@kernel-host-rh6>
+From: Aft nix <aftnix@gmail.com>
+Subject: Re: [PATCH] New Target Extension OBSF
+Date: Fri, 21 Sep 2012 17:36:30 +0600
+Message-ID: <CAGuaRCvT1oLxq=RNBufFpOGe9NXhbBcgfJ2vNibyP7wWhOWC_A@mail.gmail.com>
+References: <1347895271.27332.1.camel@kernel-host-rh6>
+	<alpine.LNX.2.01.1209180120530.22227@nerf07.vanv.qr>
+	<CAGuaRCvVhf8+ZjvSG3NBnSXH1PStb3Di6fnydKVgXrLYhKdV1w@mail.gmail.com>
+	<alpine.LNX.2.01.1209190434080.13470@nerf07.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:38134 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756284Ab2IULX1 (ORCPT
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:44942 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754070Ab2IULga (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Sep 2012 07:23:27 -0400
-Received: by pbbrr4 with SMTP id rr4so2424780pbb.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Sep 2012 04:23:26 -0700 (PDT)
+	Fri, 21 Sep 2012 07:36:30 -0400
+Received: by ieak13 with SMTP id k13so5149270iea.19
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Sep 2012 04:36:30 -0700 (PDT)
+In-Reply-To: <alpine.LNX.2.01.1209190434080.13470@nerf07.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Also added the __init()
+On Wed, Sep 19, 2012 at 8:36 AM, Jan Engelhardt <jengelh@inai.de> wrote:
+>
+> On Tuesday 2012-09-18 09:46, Aft nix wrote:
+>>
+>>On Tue, Sep 18, 2012 at 6:04 AM, Jan Engelhardt <jengelh@inai.de> wrote:
+>>>
+>>> On Monday 2012-09-17 17:21, aft wrote:
+>>>>
+>>>>1) it encrypts UDP traffic.
+>>>>2) it adds false bytes(padding).
+>>>>
+>>>>Its purpose is to escape smarter DPIs which blocks certain kinds of
+>>>>packets by several heuristic methods.
+>>>
+>>> But then why not use IPsec (udpencap), OpenVPN, or something?
+>>> After all, you do already need a cooperating peer to decrypt
+>>> your traffic, and hence might as well pick a _standardized_ solution.
+>>
+>>The client does not support IPsec.
+>
+> Why would it not? If you can make kernel changes, you can as well run
+> a simple userspace program. (Example for a userspace program that
+> does IPsec using tun interface: vpnc.)
 
-Signed-off-by: Arif Hossain <aftnix@gmail.com>
----
- extensions/libxt_OBSF.c |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
+I'm doing these in Server's kernel. The client is a mobile device. AES/ARC4
+are implemented in the client application directly.
 
-diff --git a/extensions/libxt_OBSF.c b/extensions/libxt_OBSF.c
-index e94c91d..3eadfe8 100644
---- a/extensions/libxt_OBSF.c
-+++ b/extensions/libxt_OBSF.c
-@@ -129,11 +129,19 @@ static void OBSF_parse(struct xt_option_call *cb)
- static void OBSF_print(const void *ip,
- 		       const struct xt_entry_target *target, int numeric)
- {
-+	const struct xt_OBSF_tginfo *info = (void *)target->data;
-+
-+	printf("Cipher Algorithm : %s\n", (info->flags & XT_OBSF_ENC_ARC4) ? "ARC4": "AES");
-+	printf("Cipher Mode : %s\n", (info->flags & XT_OBSF_ENC_ENC) ? "ENC" : "DEC");
-+	printf("Pading %s\n",(info->flags & XT_OBSF_PAD_ENABLED) ? "Enabled": "Disabled");
-+	printf("Padding Mode: %s\n", (info->flags & XT_OBSF_PAD_STATIC) ? "Static" : "Random");
- }
- 
 
- static void OBSF_save(const void *ip, const struct xt_entry_target *target)
- {
-+	const struct xt_OBSF_tginfo *info = (void *)target->data;
-+
- }
- 
+>
+>>>>+      },
+>>>>+      {
+>>>>+              .name = "OBSF",
+>>>>+              .revision = 1,
+>>>>+              .family = NFPROTO_UNSPEC,
+>>>>+              .target = obsf_tg_v1,
+>>>>+              .targetsize = sizeof(struct xt_OBSF_tginfo_v1),
+>>>>+              .checkentry = obsf_tg_check_v1,
+>>>>+              .me = THIS_MODULE,
+>>>>+      },
+>>>>+};
+>>>
+>>> There is no need to use two revisions.
+>>
+>>Well, i thought there are times when you will not inject false bytes,
+>>just encryption will suffices. That's why i've made
+>>Two versions. When to make two versions is not really clear to me.
+>
+> A new ABI is needed when the struct you are using to pass options
+> such as "pad or not" does not suffice to hold your option data
+> any more.
 
-@@ -148,3 +156,8 @@ static struct xtables_target obsf_target = {
- 				.save = OBSF_save,
- 				.x6_options = OBSF_opts,
- };
-+
-+static void __init(void)
-+{
-+	xtables_register_target(&obsf_target);
-+}
+I've changed it in my recent version, see newer pathces, where i
+changed it to reflect your suggestion.
+Thanks for clearing that out. I had a confused conception about when
+to use more than one DS.
+
+
 -- 
-1.7.1
-
-
+-aft
