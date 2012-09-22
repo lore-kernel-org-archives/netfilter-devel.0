@@ -1,49 +1,148 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH] netfilter: have r->cost != 0 case work
-Date: Sat, 22 Sep 2012 10:26:52 +0200
-Message-ID: <1348302412-2811-1-git-send-email-jengelh@inai.de>
-References: <alpine.LNX.2.01.1209221003280.3512@nerf07.vanv.qr>
-Cc: kaber@trash.net, jrobinson@infoblox.com
+From: pablo@netfilter.org
+Subject: [PATCH] netfilter: nf_ct_ftp: add sequence tracking pickup facility for injected entries
+Date: Sat, 22 Sep 2012 12:24:02 +0200
+Message-ID: <1348309442-3088-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:33245 "EHLO seven.medozas.de"
+Received: from mail.us.es ([193.147.175.20]:42914 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754458Ab2IVI06 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 22 Sep 2012 04:26:58 -0400
-In-Reply-To: <alpine.LNX.2.01.1209221003280.3512@nerf07.vanv.qr>
+	id S1751809Ab2IVKZa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 22 Sep 2012 06:25:30 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Commit v2.6.19-rc1~1272^2~41 tells us that r->cost != 0 can happen when
-a running state is saved to userspace and then reinstated from there.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Make sure that priv is initialized with some values when that happens.
+This patch allows the FTP helper to pickup the sequence tracking from
+the first packet seen. This is useful to fix the breakage of the first
+FTP command after the failover while using conntrackd to synchronize
+states.
 
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+The seq_aft_nl_num field in struct nf_ct_ftp_info has been shrinked to
+16-bits (enough for what it does), so we can use the remaining 16-bits
+to store the flags while using the same size for the private FTP helper
+data.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_limit.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/netfilter/nf_conntrack_ftp.h |    6 +++++-
+ net/netfilter/nf_conntrack_ftp.c           |   21 +++++++++++++++++++++
+ net/netfilter/nf_conntrack_netlink.c       |    4 ++--
+ net/netfilter/nfnetlink_cthelper.c         |    3 +++
+ 4 files changed, 31 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
-index 5c22ce8..a4c1e45 100644
---- a/net/netfilter/xt_limit.c
-+++ b/net/netfilter/xt_limit.c
-@@ -117,11 +117,11 @@ static int limit_mt_check(const struct xt_mtchk_param *par)
+diff --git a/include/linux/netfilter/nf_conntrack_ftp.h b/include/linux/netfilter/nf_conntrack_ftp.h
+index 28f18df..8faf3f7 100644
+--- a/include/linux/netfilter/nf_conntrack_ftp.h
++++ b/include/linux/netfilter/nf_conntrack_ftp.h
+@@ -18,13 +18,17 @@ enum nf_ct_ftp_type {
  
- 	/* For SMP, we only want to use one set of state. */
- 	r->master = priv;
-+	/* User avg in seconds * XT_LIMIT_SCALE: convert to jiffies *
-+	   128. */
-+	priv->prev = jiffies;
-+	priv->credit = user2credits(r->avg * r->burst); /* Credits full. */
- 	if (r->cost == 0) {
--		/* User avg in seconds * XT_LIMIT_SCALE: convert to jiffies *
--		   128. */
--		priv->prev = jiffies;
--		priv->credit = user2credits(r->avg * r->burst); /* Credits full. */
- 		r->credit_cap = priv->credit; /* Credits full. */
- 		r->cost = user2credits(r->avg);
+ #define FTP_PORT	21
+ 
++#define NF_CT_FTP_SEQ_PICKUP	(1 << 0)
++
+ #define NUM_SEQ_TO_REMEMBER 2
+ /* This structure exists only once per master */
+ struct nf_ct_ftp_master {
+ 	/* Valid seq positions for cmd matching after newline */
+ 	u_int32_t seq_aft_nl[IP_CT_DIR_MAX][NUM_SEQ_TO_REMEMBER];
+ 	/* 0 means seq_match_aft_nl not set */
+-	int seq_aft_nl_num[IP_CT_DIR_MAX];
++	u_int16_t seq_aft_nl_num[IP_CT_DIR_MAX];
++	/* pickup sequence tracking, useful for conntrackd */
++	u_int16_t flags[IP_CT_DIR_MAX];
+ };
+ 
+ struct nf_conntrack_expect;
+diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
+index f8cc26a..1ce3bef 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -396,6 +396,12 @@ static int help(struct sk_buff *skb,
+ 
+ 	/* Look up to see if we're just after a \n. */
+ 	if (!find_nl_seq(ntohl(th->seq), ct_ftp_info, dir)) {
++		/* We're picking up this, clear flags and let it continue */
++		if (unlikely(ct_ftp_info->flags[dir] & NF_CT_FTP_SEQ_PICKUP)) {
++			ct_ftp_info->flags[dir] ^= NF_CT_FTP_SEQ_PICKUP;
++			goto skip_nl_seq;
++		}
++
+ 		/* Now if this ends in \n, update ftp info. */
+ 		pr_debug("nf_conntrack_ftp: wrong seq pos %s(%u) or %s(%u)\n",
+ 			 ct_ftp_info->seq_aft_nl_num[dir] > 0 ? "" : "(UNSET)",
+@@ -406,6 +412,7 @@ static int help(struct sk_buff *skb,
+ 		goto out_update_nl;
  	}
+ 
++skip_nl_seq:
+ 	/* Initialize IP/IPv6 addr to expected address (it's not mentioned
+ 	   in EPSV responses) */
+ 	cmd.l3num = nf_ct_l3num(ct);
+@@ -512,6 +519,19 @@ out_update_nl:
+ 	return ret;
+ }
+ 
++static int nf_ct_ftp_from_nlattr(struct nlattr *attr, struct nf_conn *ct)
++{
++	struct nf_ct_ftp_master *ftp = nfct_help_data(ct);
++
++	/* This conntrack has been injected from user-space, always pick up
++	 * sequence tracking. Otherwise, the first FTP command after the
++	 * failover breaks.
++	 */
++	ftp->flags[IP_CT_DIR_ORIGINAL] |= NF_CT_FTP_SEQ_PICKUP;
++	ftp->flags[IP_CT_DIR_REPLY] |= NF_CT_FTP_SEQ_PICKUP;
++	return 0;
++}
++
+ static struct nf_conntrack_helper ftp[MAX_PORTS][2] __read_mostly;
+ 
+ static const struct nf_conntrack_expect_policy ftp_exp_policy = {
+@@ -561,6 +581,7 @@ static int __init nf_conntrack_ftp_init(void)
+ 			ftp[i][j].expect_policy = &ftp_exp_policy;
+ 			ftp[i][j].me = THIS_MODULE;
+ 			ftp[i][j].help = help;
++			ftp[i][j].from_nlattr = nf_ct_ftp_from_nlattr;
+ 			if (ports[i] == FTP_PORT)
+ 				sprintf(ftp[i][j].name, "ftp");
+ 			else
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 2dcd080..7bbfb3d 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1238,7 +1238,7 @@ ctnetlink_change_helper(struct nf_conn *ct, const struct nlattr * const cda[])
+ 	if (help) {
+ 		if (help->helper == helper) {
+ 			/* update private helper data if allowed. */
+-			if (helper->from_nlattr && helpinfo)
++			if (helper->from_nlattr)
+ 				helper->from_nlattr(helpinfo, ct);
+ 			return 0;
+ 		} else
+@@ -1467,7 +1467,7 @@ ctnetlink_create_conntrack(struct net *net, u16 zone,
+ 				goto err2;
+ 			}
+ 			/* set private helper data if allowed. */
+-			if (helper->from_nlattr && helpinfo)
++			if (helper->from_nlattr)
+ 				helper->from_nlattr(helpinfo, ct);
+ 
+ 			/* not in hash table yet so not strictly necessary */
+diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
+index 3678073..945950a 100644
+--- a/net/netfilter/nfnetlink_cthelper.c
++++ b/net/netfilter/nfnetlink_cthelper.c
+@@ -85,6 +85,9 @@ nfnl_cthelper_from_nlattr(struct nlattr *attr, struct nf_conn *ct)
+ {
+ 	const struct nf_conn_help *help = nfct_help(ct);
+ 
++	if (attr == NULL)
++		return -EINVAL;
++
+ 	if (help->helper->data_len == 0)
+ 		return -EINVAL;
+ 
 -- 
 1.7.10.4
 
