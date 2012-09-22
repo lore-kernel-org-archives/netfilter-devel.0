@@ -1,76 +1,206 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 0/3] ipset fixes
-Date: Sat, 22 Sep 2012 21:22:08 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1209221705440.18018@blackhole.kfki.hu>
-References: <1348259901-16369-1-git-send-email-kadlec@blackhole.kfki.hu> <20120922103433.GA26572@1984>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 4/7] netfilter: ipset: Add /0 network support to hash:net,iface type
+Date: Sat, 22 Sep 2012 22:51:42 +0200
+Message-ID: <1348347102-19167-1-git-send-email-kadlec@blackhole.kfki.hu>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:38814 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:37270 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752140Ab2IVTWM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 22 Sep 2012 15:22:12 -0400
-In-Reply-To: <20120922103433.GA26572@1984>
+	id S1753367Ab2IVUvp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 22 Sep 2012 16:51:45 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Now it is possible to setup a single hash:net,iface type of set and
+a single ip6?tables match which covers all egress/ingress filtering.
 
-On Sat, 22 Sep 2012, Pablo Neira Ayuso wrote:
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ net/netfilter/ipset/ip_set_hash_netiface.c |   44 +++++++++++++--------------
+ 1 files changed, 21 insertions(+), 23 deletions(-)
 
-> On Fri, Sep 21, 2012 at 10:38:21PM +0200, Jozsef Kadlecsik wrote:
-> > 
-> > Here follows two important ipset fixes against your nf tree. (The first
-> > patch is an old one somehow forgotten to send or apply and the other
-> > ones depend on it.)
-> > 
-> > You can pull these changes from:
-> > 
-> > git://blackhole.kfki.hu/nf master
-> > 
-> > Jozsef Kadlecsik (3):
-> >   netfilter: ipset: Fix sparse warnings "incorrect type in assignment"
-> 
-> This one above has to go through nf-next. I can manually applied, no
-> need to resend the patch.
-
-OK, thanks.
+diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
+index 632693f..e7c671d 100644
+--- a/net/netfilter/ipset/ip_set_hash_netiface.c
++++ b/net/netfilter/ipset/ip_set_hash_netiface.c
+@@ -140,7 +140,7 @@ struct hash_netiface4_elem_hashed {
+ 	u8 physdev;
+ 	u8 cidr;
+ 	u8 nomatch;
+-	u8 padding;
++	u8 elem;
+ };
  
-> >   netfilter: ipset: Check and reject crazy /0 input parameters
-> >   netfilter: ipset: Fix cidr book keeping for hash:*net* types
-> 
-> Please, could you develop how critical are these above? We're fairly
-> late in the release cycle, I'd prefer if we pass only really critical
-> fixes.
-
-> >   netfilter: ipset: Check and reject crazy /0 input parameters
-
-This one is easy to trigger: bitmap:ip sets are allowed to be created from 
-range 0/0, but with /16 subnets as elements:
-
-ipset new foo bitmap:ip range 0/0 netmask 16
-
-However if "netmask 16" is left out accidentally, the kernel does not 
-reject it but creates a broken set and the system will crash when the 
-first element is added.
-
-If we are quite late in the release cycle, maybe it can wait and be added 
-to nf-next only.
-
-> >   netfilter: ipset: Fix cidr book keeping for hash:*net* types
-
-You asked to check how critical the bug is, and it was just the perfect 
-question :-). I have re-checked and I was mistaken. The new case (zero 
-cidr size), which was not handled by the old code, somehow misled me. So 
-the patch description should be rewritten - I'm going to send a new batch 
-of the patches against nf-next tomorrow. Thanks!
-
-Best regards,
-Jozsef
+ #define HKEY_DATALEN	sizeof(struct hash_netiface4_elem_hashed)
+@@ -151,7 +151,7 @@ struct hash_netiface4_elem {
+ 	u8 physdev;
+ 	u8 cidr;
+ 	u8 nomatch;
+-	u8 padding;
++	u8 elem;
+ 	const char *iface;
+ };
+ 
+@@ -161,7 +161,7 @@ struct hash_netiface4_telem {
+ 	u8 physdev;
+ 	u8 cidr;
+ 	u8 nomatch;
+-	u8 padding;
++	u8 elem;
+ 	const char *iface;
+ 	unsigned long timeout;
+ };
+@@ -181,18 +181,14 @@ hash_netiface4_data_equal(const struct hash_netiface4_elem *ip1,
+ static inline bool
+ hash_netiface4_data_isnull(const struct hash_netiface4_elem *elem)
+ {
+-	return elem->cidr == 0;
++	return elem->elem == 0;
+ }
+ 
+ static inline void
+ hash_netiface4_data_copy(struct hash_netiface4_elem *dst,
+ 			 const struct hash_netiface4_elem *src)
+ {
+-	dst->ip = src->ip;
+-	dst->cidr = src->cidr;
+-	dst->physdev = src->physdev;
+-	dst->iface = src->iface;
+-	dst->nomatch = src->nomatch;
++	memcpy(dst, src, sizeof(*dst));
+ }
+ 
+ static inline void
+@@ -217,7 +213,7 @@ hash_netiface4_data_netmask(struct hash_netiface4_elem *elem, u8 cidr)
+ static inline void
+ hash_netiface4_data_zero_out(struct hash_netiface4_elem *elem)
+ {
+-	elem->cidr = 0;
++	elem->elem = 0;
+ }
+ 
+ static bool
+@@ -288,7 +284,8 @@ hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	struct ip_set_hash *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_netiface4_elem data = {
+-		.cidr = h->nets[0].cidr ? h->nets[0].cidr : HOST_MASK
++		.cidr = h->nets[0].cidr ? h->nets[0].cidr : HOST_MASK,
++		.elem = 1,
+ 	};
+ 	int ret;
+ 
+@@ -339,7 +336,7 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
+ {
+ 	struct ip_set_hash *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_netiface4_elem data = { .cidr = HOST_MASK };
++	struct hash_netiface4_elem data = { .cidr = HOST_MASK, .elem = 1 };
+ 	u32 ip = 0, ip_to, last;
+ 	u32 timeout = h->timeout;
+ 	char iface[IFNAMSIZ];
+@@ -360,7 +357,7 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 	if (tb[IPSET_ATTR_CIDR]) {
+ 		data.cidr = nla_get_u8(tb[IPSET_ATTR_CIDR]);
+-		if (!data.cidr || data.cidr > HOST_MASK)
++		if (data.cidr > HOST_MASK)
+ 			return -IPSET_ERR_INVALID_CIDR;
+ 	}
+ 
+@@ -389,7 +386,6 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		if (adt == IPSET_ADD && (cadt_flags & IPSET_FLAG_NOMATCH))
+ 			flags |= (cadt_flags << 16);
+ 	}
 -
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+ 	if (adt == IPSET_TEST || !tb[IPSET_ATTR_IP_TO]) {
+ 		data.ip = htonl(ip & ip_set_hostmask(data.cidr));
+ 		ret = adtfn(set, &data, timeout, flags);
+@@ -442,7 +438,7 @@ struct hash_netiface6_elem_hashed {
+ 	u8 physdev;
+ 	u8 cidr;
+ 	u8 nomatch;
+-	u8 padding;
++	u8 elem;
+ };
+ 
+ #define HKEY_DATALEN	sizeof(struct hash_netiface6_elem_hashed)
+@@ -452,7 +448,7 @@ struct hash_netiface6_elem {
+ 	u8 physdev;
+ 	u8 cidr;
+ 	u8 nomatch;
+-	u8 padding;
++	u8 elem;
+ 	const char *iface;
+ };
+ 
+@@ -461,7 +457,7 @@ struct hash_netiface6_telem {
+ 	u8 physdev;
+ 	u8 cidr;
+ 	u8 nomatch;
+-	u8 padding;
++	u8 elem;
+ 	const char *iface;
+ 	unsigned long timeout;
+ };
+@@ -481,7 +477,7 @@ hash_netiface6_data_equal(const struct hash_netiface6_elem *ip1,
+ static inline bool
+ hash_netiface6_data_isnull(const struct hash_netiface6_elem *elem)
+ {
+-	return elem->cidr == 0;
++	return elem->elem == 0;
+ }
+ 
+ static inline void
+@@ -506,7 +502,7 @@ hash_netiface6_data_match(const struct hash_netiface6_elem *elem)
+ static inline void
+ hash_netiface6_data_zero_out(struct hash_netiface6_elem *elem)
+ {
+-	elem->cidr = 0;
++	elem->elem = 0;
+ }
+ 
+ static inline void
+@@ -590,7 +586,8 @@ hash_netiface6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	struct ip_set_hash *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_netiface6_elem data = {
+-		.cidr = h->nets[0].cidr ? h->nets[0].cidr : HOST_MASK
++		.cidr = h->nets[0].cidr ? h->nets[0].cidr : HOST_MASK,
++		.elem = 1,
+ 	};
+ 	int ret;
+ 
+@@ -637,7 +634,7 @@ hash_netiface6_uadt(struct ip_set *set, struct nlattr *tb[],
+ {
+ 	struct ip_set_hash *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_netiface6_elem data = { .cidr = HOST_MASK };
++	struct hash_netiface6_elem data = { .cidr = HOST_MASK, .elem = 1 };
+ 	u32 timeout = h->timeout;
+ 	char iface[IFNAMSIZ];
+ 	int ret;
+@@ -659,7 +656,7 @@ hash_netiface6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 	if (tb[IPSET_ATTR_CIDR])
+ 		data.cidr = nla_get_u8(tb[IPSET_ATTR_CIDR]);
+-	if (!data.cidr || data.cidr > HOST_MASK)
++	if (data.cidr > HOST_MASK)
+ 		return -IPSET_ERR_INVALID_CIDR;
+ 	ip6_netmask(&data.ip, data.cidr);
+ 
+@@ -777,7 +774,8 @@ static struct ip_set_type hash_netiface_type __read_mostly = {
+ 	.dimension	= IPSET_DIM_TWO,
+ 	.family		= NFPROTO_UNSPEC,
+ 	.revision_min	= 0,
+-	.revision_max	= 1,	/* nomatch flag support added */
++	/*		= 1,	   nomatch flag support added */
++	.revision_max	= 2,	/* /0 support added */
+ 	.create		= hash_netiface_create,
+ 	.create_policy	= {
+ 		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
+-- 
+1.7.0.4
+
