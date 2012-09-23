@@ -1,114 +1,40 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 6/7] netfilter: ipset: Coding style fixes
-Date: Sat, 22 Sep 2012 22:51:43 +0200
-Message-ID: <1348347103-19235-1-git-send-email-kadlec@blackhole.kfki.hu>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: nflog feature request
+Date: Sun, 23 Sep 2012 12:45:05 +0200 (MEST)
+Message-ID: <Pine.GSO.4.63.1209231244230.3420@stinky-local.trash.net>
+References: <CAEmTpZE2=nu8uuviLBvOroCrK4i=1bYgaZSCfQeH1332fDVcYQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="-559023410-851401618-1348397105=:3420"
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+To: =?UTF-8?B?0JzQsNGA0Log0JrQvtGA0LXQvdCx0LXRgNCz?=
+	<socketpair@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:37269 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753294Ab2IVUvp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 22 Sep 2012 16:51:45 -0400
+Received: from stinky.trash.net ([213.144.137.162]:56385 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752422Ab2IWKpO (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 23 Sep 2012 06:45:14 -0400
+In-Reply-To: <CAEmTpZE2=nu8uuviLBvOroCrK4i=1bYgaZSCfQeH1332fDVcYQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
----
- include/linux/netfilter/ipset/ip_set.h       |    5 +++--
- include/linux/netfilter/ipset/ip_set_ahash.h |    2 +-
- net/netfilter/ipset/ip_set_bitmap_ipmac.c    |    4 ++--
- net/netfilter/ipset/ip_set_core.c            |    9 ++++++---
- 4 files changed, 12 insertions(+), 8 deletions(-)
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index 1d954c6..0c1e97b 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -255,7 +255,7 @@ struct ip_set_type_variant {
- 	 *		returns negative error code,
- 	 *			zero for no match/success to add/delete
- 	 *			positive for matching element */
--	int (*kadt)(struct ip_set *set, const struct sk_buff * skb,
-+	int (*kadt)(struct ip_set *set, const struct sk_buff *skb,
- 		    const struct xt_action_param *par,
- 		    enum ipset_adt adt, const struct ip_set_adt_opt *opt);
- 
-@@ -430,7 +430,8 @@ static inline int nla_put_ipaddr4(struct sk_buff *skb, int type, __be32 ipaddr)
- 	return ret;
- }
- 
--static inline int nla_put_ipaddr6(struct sk_buff *skb, int type, const struct in6_addr *ipaddrptr)
-+static inline int nla_put_ipaddr6(struct sk_buff *skb, int type,
-+				  const struct in6_addr *ipaddrptr)
- {
- 	struct nlattr *__nested = ipset_nest_start(skb, type);
- 	int ret;
-diff --git a/include/linux/netfilter/ipset/ip_set_ahash.h b/include/linux/netfilter/ipset/ip_set_ahash.h
-index 495acdf..ef9acd3 100644
---- a/include/linux/netfilter/ipset/ip_set_ahash.h
-+++ b/include/linux/netfilter/ipset/ip_set_ahash.h
-@@ -696,7 +696,7 @@ nla_put_failure:
- }
- 
- static int
--type_pf_kadt(struct ip_set *set, const struct sk_buff * skb,
-+type_pf_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	     const struct xt_action_param *par,
- 	     enum ipset_adt adt, const struct ip_set_adt_opt *opt);
- static int
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-index 645c9d1..0f92dc2 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-@@ -323,11 +323,11 @@ bitmap_ipmac_tlist(const struct ip_set *set,
- 		    (elem->match == MAC_FILLED &&
- 		     nla_put(skb, IPSET_ATTR_ETHER, ETH_ALEN,
- 			     elem->ether)))
--		    goto nla_put_failure;
-+			goto nla_put_failure;
- 		timeout = elem->match == MAC_UNSET ? elem->timeout
- 				: ip_set_timeout_get(elem->timeout);
- 		if (nla_put_net32(skb, IPSET_ATTR_TIMEOUT, htonl(timeout)))
--		    goto nla_put_failure;
-+			goto nla_put_failure;
- 		ipset_nest_end(skb, nested);
- 	}
- 	ipset_nest_end(skb, atd);
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index ad39ef4..72e9bf0 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -69,7 +69,8 @@ find_set_type(const char *name, u8 family, u8 revision)
- 
- 	list_for_each_entry_rcu(type, &ip_set_type_list, list)
- 		if (STREQ(type->name, name) &&
--		    (type->family == family || type->family == NFPROTO_UNSPEC) &&
-+		    (type->family == family ||
-+		     type->family == NFPROTO_UNSPEC) &&
- 		    revision >= type->revision_min &&
- 		    revision <= type->revision_max)
- 			return type;
-@@ -149,7 +150,8 @@ __find_set_type_minmax(const char *name, u8 family, u8 *min, u8 *max,
- 	rcu_read_lock();
- 	list_for_each_entry_rcu(type, &ip_set_type_list, list)
- 		if (STREQ(type->name, name) &&
--		    (type->family == family || type->family == NFPROTO_UNSPEC)) {
-+		    (type->family == family ||
-+		     type->family == NFPROTO_UNSPEC)) {
- 			found = true;
- 			if (type->revision_min < *min)
- 				*min = type->revision_min;
-@@ -721,7 +723,8 @@ ip_set_create(struct sock *ctnl, struct sk_buff *skb,
- 	 * by the nfnl mutex. Find the first free index in ip_set_list
- 	 * and check clashing.
- 	 */
--	if ((ret = find_free_id(set->name, &index, &clash)) != 0) {
-+	ret = find_free_id(set->name, &index, &clash);
-+	if (ret != 0) {
- 		/* If this is the same set and requested, ignore error */
- 		if (ret == -EEXIST &&
- 		    (flags & IPSET_FLAG_EXIST) &&
--- 
-1.7.0.4
+---559023410-851401618-1348397105=:3420
+Content-Type: TEXT/PLAIN; charset=X-UNKNOWN; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
+On Sat, 22 Sep 2012, =D0~\=D0=B0=D1~@=D0=BA =D0~Z=D0=BE=D1~@=D0=B5=D0=BD=D0=
+=B1=D0=B5=D1~@=D0=B3 wrote:
+
+> Hello. Can you help be to make feature request for NFLOG target ?
+>
+> I want NFLOG to choose group at run time based on current CPU. This will =
+be
+> used in userspace accordingly - n threads that handle packets from CPU on
+> which packet was originated.
+
+Have a look at xt_NFQUEUE.c and nfnetlink_queue, which implement something
+similar for userspace queueing.
+---559023410-851401618-1348397105=:3420--
