@@ -1,78 +1,55 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/7][RFC] netfilter: add xt_qtaguid matching module
-Date: Sun, 23 Sep 2012 23:26:36 +0200
-Message-ID: <20120923212636.GA1141@1984>
-References: <1348279853-44499-1-git-send-email-john.stultz@linaro.org>
- <1348279853-44499-3-git-send-email-john.stultz@linaro.org>
+Subject: Re: [PATCH 0/3] ipset fixes
+Date: Mon, 24 Sep 2012 00:26:01 +0200
+Message-ID: <20120923222601.GA5624@1984>
+References: <1348259901-16369-1-git-send-email-kadlec@blackhole.kfki.hu>
+ <20120922103433.GA26572@1984>
+ <alpine.DEB.2.00.1209221705440.18018@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: LKML <linux-kernel@vger.kernel.org>, JP Abgrall <jpa@google.com>,
-	netdev@vger.kernel.org, Ashish Sharma <ashishsharma@google.com>,
-	Peter P Waskiewicz Jr <peter.p.waskiewicz.jr@intel.com>,
-	netfilter-devel@vger.kernel.org
-To: John Stultz <john.stultz@linaro.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49742 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53541 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754464Ab2IWV0q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 23 Sep 2012 17:26:46 -0400
+	id S1754561Ab2IWW0F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 23 Sep 2012 18:26:05 -0400
 Content-Disposition: inline
-In-Reply-To: <1348279853-44499-3-git-send-email-john.stultz@linaro.org>
+In-Reply-To: <alpine.DEB.2.00.1209221705440.18018@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi John,
-
-Cc'ing netfilter-devel (better than only netdev, to attract the
-attention from other Netfilter hacker fellows).
-
-Some comments on this:
-
-On Fri, Sep 21, 2012 at 10:10:48PM -0400, John Stultz wrote:
-> From: JP Abgrall <jpa@google.com>
+On Sat, Sep 22, 2012 at 09:22:08PM +0200, Jozsef Kadlecsik wrote:
+[...]
+> > Please, could you develop how critical are these above? We're fairly
+> > late in the release cycle, I'd prefer if we pass only really critical
+> > fixes.
 > 
-> This module allows tracking stats at the socket level for given UIDs.
-> It replaces xt_owner.
-> If the --uid-owner is not specified, it will just count stats based on
-> who the skb belongs to. This will even happen on incoming skbs as it
-> looks into the skb via xt_socket magic to see who owns it.
-> If an skb is lost, it will be assigned to uid=0.
+> > >   netfilter: ipset: Check and reject crazy /0 input parameters
 > 
-> To control what sockets of what UIDs are tagged by what, one uses:
->   echo t $sock_fd $accounting_tag $the_billed_uid \
->      > /proc/net/xt_qtaguid/ctrl
->  So whenever an skb belongs to a sock_fd, it will be accounted against
->    $the_billed_uid
->   and matching stats will show up under the uid with the given
->    $accounting_tag.
+> This one is easy to trigger: bitmap:ip sets are allowed to be created from 
+> range 0/0, but with /16 subnets as elements:
 > 
-> Because the number of allocations for the stats structs is not that big:
->   ~500 apps * 32 per app
-> we'll just do it atomic. This avoids walking lists many times, and
-> the fancy worker thread handling. Slabs will grow when needed later.
+> ipset new foo bitmap:ip range 0/0 netmask 16
 > 
-> It use netdevice and inetaddr notifications instead of hooks in the core dev
-> code to track when a device comes and goes. This removes the need for
-> exposed iface_stat.h.
+> However if "netmask 16" is left out accidentally, the kernel does not 
+> reject it but creates a broken set and the system will crash when the 
+> first element is added.
+
+I see, this crash seems to be triggered in really rare situation.
+
+> If we are quite late in the release cycle, maybe it can wait and be added 
+> to nf-next only.
+
+We can still push fixes, but at this stage we should focus on fixes
+that really happen in normal cases / typical usage IMO.
+
+> > >   netfilter: ipset: Fix cidr book keeping for hash:*net* types
 > 
-> Put procfs dirs in /proc/net/xt_qtaguid/
->   ctrl
->   stats
->   iface_stat/<iface>/...
-> The uid stats are obtainable in ./stats.
+> You asked to check how critical the bug is, and it was just the perfect 
+> question :-). I have re-checked and I was mistaken. The new case (zero 
+> cidr size), which was not handled by the old code, somehow misled me. So 
+> the patch description should be rewritten - I'm going to send a new batch 
+> of the patches against nf-next tomorrow. Thanks!
 
-Unless I'm missing anything worth in this patch, this seems to me like
-a combo match of owner + nfacct infrastructure.
-
-I guess you can probably get all done with one single rule, but that
-is not enough to justify its inclusion in mainline.
-
-In case you are not familiar with the nfacct infrastructure:
-
-http://lwn.net/Articles/472094/
-
-I'd be happy anyway if you provide more examples on you use this, so I
-can assure you we can do this with the existing infrastructure in
-mainstream.
-
-Thanks!
+Will check tomorrow, thanks again!
