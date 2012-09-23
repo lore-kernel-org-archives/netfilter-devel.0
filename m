@@ -1,61 +1,78 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: have r->cost != 0 case work
-Date: Sun, 23 Sep 2012 14:43:56 +0200
-Message-ID: <58f14b4c-67ab-48aa-bbaf-3ce244500b93@email.android.com>
-References: <alpine.LNX.2.01.1209221003280.3512@nerf07.vanv.qr> <1348302412-2811-1-git-send-email-jengelh@inai.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 2/7][RFC] netfilter: add xt_qtaguid matching module
+Date: Sun, 23 Sep 2012 23:26:36 +0200
+Message-ID: <20120923212636.GA1141@1984>
+References: <1348279853-44499-1-git-send-email-john.stultz@linaro.org>
+ <1348279853-44499-3-git-send-email-john.stultz@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: jrobinson@infoblox.com
-To: Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: LKML <linux-kernel@vger.kernel.org>, JP Abgrall <jpa@google.com>,
+	netdev@vger.kernel.org, Ashish Sharma <ashishsharma@google.com>,
+	Peter P Waskiewicz Jr <peter.p.waskiewicz.jr@intel.com>,
+	netfilter-devel@vger.kernel.org
+To: John Stultz <john.stultz@linaro.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57264 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753505Ab2IWMoM (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 23 Sep 2012 08:44:12 -0400
-In-Reply-To: <1348302412-2811-1-git-send-email-jengelh@inai.de>
+Received: from mail.us.es ([193.147.175.20]:49742 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754464Ab2IWV0q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 23 Sep 2012 17:26:46 -0400
+Content-Disposition: inline
+In-Reply-To: <1348279853-44499-3-git-send-email-john.stultz@linaro.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi John,
 
+Cc'ing netfilter-devel (better than only netdev, to attract the
+attention from other Netfilter hacker fellows).
 
-Jan Engelhardt <jengelh@inai.de> schrieb:
+Some comments on this:
 
->Commit v2.6.19-rc1~1272^2~41 tells us that r->cost != 0 can happen when
->a running state is saved to userspace and then reinstated from there.
->
->Make sure that priv is initialized with some values when that happens.
->
->Signed-off-by: Jan Engelhardt <jengelh@inai.de>
->---
-> net/netfilter/xt_limit.c |    8 ++++----
-> 1 file changed, 4 insertions(+), 4 deletions(-)
->
->diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
->index 5c22ce8..a4c1e45 100644
->--- a/net/netfilter/xt_limit.c
->+++ b/net/netfilter/xt_limit.c
->@@ -117,11 +117,11 @@ static int limit_mt_check(const struct
->xt_mtchk_param *par)
+On Fri, Sep 21, 2012 at 10:10:48PM -0400, John Stultz wrote:
+> From: JP Abgrall <jpa@google.com>
 > 
-> 	/* For SMP, we only want to use one set of state. */
-> 	r->master = priv;
->+	/* User avg in seconds * XT_LIMIT_SCALE: convert to jiffies *
->+	   128. */
->+	priv->prev = jiffies;
->+	priv->credit = user2credits(r->avg * r->burst); /* Credits full. */
-> 	if (r->cost == 0) {
->-		/* User avg in seconds * XT_LIMIT_SCALE: convert to jiffies *
->-		   128. */
->-		priv->prev = jiffies;
->-		priv->credit = user2credits(r->avg * r->burst); /* Credits full. */
-> 		r->credit_cap = priv->credit; /* Credits full. */
-> 		r->cost = user2credits(r->avg);
-> 	}
+> This module allows tracking stats at the socket level for given UIDs.
+> It replaces xt_owner.
+> If the --uid-owner is not specified, it will just count stats based on
+> who the skb belongs to. This will even happen on incoming skbs as it
+> looks into the skb via xt_socket magic to see who owns it.
+> If an skb is lost, it will be assigned to uid=0.
+> 
+> To control what sockets of what UIDs are tagged by what, one uses:
+>   echo t $sock_fd $accounting_tag $the_billed_uid \
+>      > /proc/net/xt_qtaguid/ctrl
+>  So whenever an skb belongs to a sock_fd, it will be accounted against
+>    $the_billed_uid
+>   and matching stats will show up under the uid with the given
+>    $accounting_tag.
+> 
+> Because the number of allocations for the stats structs is not that big:
+>   ~500 apps * 32 per app
+> we'll just do it atomic. This avoids walking lists many times, and
+> the fancy worker thread handling. Slabs will grow when needed later.
+> 
+> It use netdevice and inetaddr notifications instead of hooks in the core dev
+> code to track when a device comes and goes. This removes the need for
+> exposed iface_stat.h.
+> 
+> Put procfs dirs in /proc/net/xt_qtaguid/
+>   ctrl
+>   stats
+>   iface_stat/<iface>/...
+> The uid stats are obtainable in ./stats.
 
-I don't think we can do any better than this. We could reuse the old state from userspace, but that might have changed in the kernel as well.
+Unless I'm missing anything worth in this patch, this seems to me like
+a combo match of owner + nfacct infrastructure.
 
-Perhaps for the future we can find some way to optionally associate elements of the new ruleset with the old one and keep states when parameters haven't changed. Probably hard though since the new ruleset is constructed in the kernel while the old one is still active.
+I guess you can probably get all done with one single rule, but that
+is not enough to justify its inclusion in mainline.
 
+In case you are not familiar with the nfacct infrastructure:
+
+http://lwn.net/Articles/472094/
+
+I'd be happy anyway if you provide more examples on you use this, so I
+can assure you we can do this with the existing infrastructure in
+mainstream.
+
+Thanks!
