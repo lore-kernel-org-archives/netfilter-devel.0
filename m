@@ -1,43 +1,65 @@
-From: pablo@netfilter.org
-Subject: [PATCH 03/16] netfilter: nf_nat: remove obsolete rcu_read_unlock call
-Date: Mon, 24 Sep 2012 21:19:15 +0200
-Message-ID: <1348514369-3272-4-git-send-email-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/16] netfilter updates for net-next
+Date: Mon, 24 Sep 2012 15:41:46 -0400 (EDT)
+Message-ID: <20120924.154146.1340089668693733600.davem@davemloft.net>
 References: <1348514369-3272-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1348514369-3272-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Ulrich Weber <ulrich.weber@sophos.com>
+From: pablo@netfilter.org
+Date: Mon, 24 Sep 2012 21:19:12 +0200
 
-hlist walk in find_appropriate_src() is not protected anymore by rcu_read_lock(),
-so rcu_read_unlock() is unnecessary if in_range() matches.
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> Hi David,
+> 
+> This patchset contains updates for your net-next tree, they are:
+> 
+> * Mostly fixes for the recently pushed IPv6 NAT support:
+> 
+> - Fix crash while removing nf_nat modules from Patrick McHardy.
+> - Fix unbalanced rcu_read_unlock from Ulrich Weber.
+> - Merge NETMAP and REDIRECT into one single xt_target module, from
+>   Jan Engelhardt.
+> - Fix Kconfig for IPv6 NAT, which allows inconsistent configurations,
+>   from myself.
+> 
+> * Updates for ipset, all of the from Jozsef Kadlecsik:
+> 
+> - Add the new "nomatch" option to obtain reverse set matching.
+> - Support for /0 CIDR in hash:net,iface set type.
+> - One non-critical fix for a rare crash due to pass really
+>   wrong configuration parameters.
+> - Coding style cleanups.
+> - Sparse fixes.
+> - Add set revision supported via modinfo.i
+> 
+> * One extension for the xt_time match, to support matching during
+>   the transition between two days with one single rule, from
+>   Florian Westphal.
+> 
+> * Fix maximum packet length supported by nfnetlink_queue and add
+>   NFQA_CAP_LEN attribute, from myself.
+> 
+> You can notice that this batch contains a couple of fixes that may
+> go to 3.6-rc but I don't consider them critical to push them:
+> 
+> * The ipset fix for the /0 cidr case, which is triggered with one
+>   inconsistent command line invocation of ipset.
+> 
+> * The nfnetlink_queue maximum packet length supported since it requires
+>   the new NFQA_CAP_LEN attribute to provide a full workaround for the
+>   described problem.
+> 
+> You can pull these changes from:
+> 
+> git://1984.lsi.us.es/nf-next master
 
-This bug was added in (c7232c9 netfilter: add protocol independent NAT core).
-
-Signed-off-by: Ulrich Weber <ulrich.weber@sophos.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_nat_core.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 65cf694..5f2f910 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -201,10 +201,8 @@ find_appropriate_src(struct net *net, u16 zone,
- 				       &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
- 			result->dst = tuple->dst;
- 
--			if (in_range(l3proto, l4proto, result, range)) {
--				rcu_read_unlock();
-+			if (in_range(l3proto, l4proto, result, range))
- 				return 1;
--			}
- 		}
- 	}
- 	return 0;
--- 
-1.7.10.4
+Pulled, thanks Pablo.
