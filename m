@@ -1,36 +1,59 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] libxt_time: add support to ignore day transition
-Date: Mon, 24 Sep 2012 14:40:17 +0200
-Message-ID: <20120924124017.GA30792@1984>
-References: <1347877389-15728-1-git-send-email-fw@strlen.de>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH] netfilter: have r->cost != 0 case work
+Date: Mon, 24 Sep 2012 15:02:40 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1209241501440.16909@nerf07.vanv.qr>
+References: <alpine.LNX.2.01.1209221003280.3512@nerf07.vanv.qr> <1348302412-2811-1-git-send-email-jengelh@inai.de> <58f14b4c-67ab-48aa-bbaf-3ce244500b93@email.android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, jrobinson@infoblox.com
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47052 "EHLO mail.us.es"
+Received: from ares07.inai.de ([5.9.24.206]:34280 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755204Ab2IXMkY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Sep 2012 08:40:24 -0400
-Content-Disposition: inline
-In-Reply-To: <1347877389-15728-1-git-send-email-fw@strlen.de>
+	id S1752854Ab2IXNCn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 24 Sep 2012 09:02:43 -0400
+In-Reply-To: <58f14b4c-67ab-48aa-bbaf-3ce244500b93@email.android.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 17, 2012 at 12:23:08PM +0200, Florian Westphal wrote:
-> Currently, if you want to do something like:
-> "match Monday, starting 23:00, for two hours"
-> You need two rules, one for Mon 23:00 to 0:00 and one for Tue 0:00-1:00.
-> The rule
-> --weekdays Mo --timestart 23:00  --timestop 01:00
-> looks correct, but it will first match on monday from midnight to 1 a.m.
-> and then again for another hour from 23:00 onwards.
-> 
-> This permits userspace to explicitly ignore the day transition and
-> match for a single, continuous time period instead.
 
-Applied to the iptables-linux-3.7 branch.
+On Sunday 2012-09-23 14:43, Patrick McHardy wrote:
+>Jan Engelhardt <jengelh@inai.de> schrieb:
+>
+>>Commit v2.6.19-rc1~1272^2~41 tells us that r->cost != 0 can happen when
+>>a running state is saved to userspace and then reinstated from there.
+>>
+>>Make sure that priv is initialized with some values when that happens.
+>>
+>>Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+>>---
+>> net/netfilter/xt_limit.c |    8 ++++----
+>> 1 file changed, 4 insertions(+), 4 deletions(-)
+>>
+>>diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
+>>index 5c22ce8..a4c1e45 100644
+>>--- a/net/netfilter/xt_limit.c
+>>+++ b/net/netfilter/xt_limit.c
+>>@@ -117,11 +117,11 @@ static int limit_mt_check(const struct
+>>xt_mtchk_param *par)
+>> 
+>> 	/* For SMP, we only want to use one set of state. */
+>> 	r->master = priv;
+>>+	/* User avg in seconds * XT_LIMIT_SCALE: convert to jiffies *
+>>+	   128. */
+>>+	priv->prev = jiffies;
+>>+	priv->credit = user2credits(r->avg * r->burst); /* Credits full. */
+>> 	if (r->cost == 0) {
+>>-		/* User avg in seconds * XT_LIMIT_SCALE: convert to jiffies *
+>>-		   128. */
+>>-		priv->prev = jiffies;
+>>-		priv->credit = user2credits(r->avg * r->burst); /* Credits full. */
+>> 		r->credit_cap = priv->credit; /* Credits full. */
+>> 		r->cost = user2credits(r->avg);
+>> 	}
+>
+>I don't think we can do any better than this.
 
-Will merge this to master once linux-3.7-rc1 is released.
-
-Thanks Florian.
+"This" being the state as of 3.5, or this patch?
+priv-> really should be initialized, somehow.
+Being a kernel-only structure, can't rely on userspace to do it.
