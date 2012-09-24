@@ -1,52 +1,37 @@
-From: Aft nix <aftnix@gmail.com>
-Subject: Re: no extension found for this protocol
-Date: Mon, 24 Sep 2012 19:03:14 +0600
-Message-ID: <CAGuaRCu2tFRhg2euL7UFKQmHzKAUFpZ90aa2nOs7niGeKJaMqg@mail.gmail.com>
-References: <CAGuaRCvtBG4dn70f=gjkB_ep7LDtWn_eHZJ+2PVtU2sikS94AQ@mail.gmail.com>
-	<alpine.LNX.2.01.1209241431310.12534@nerf07.vanv.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@inai.de>
+From: pablo@netfilter.org
+Subject: [PATCH 0/2] nfnetlink_queue updates
+Date: Mon, 24 Sep 2012 15:03:08 +0200
+Message-ID: <1348491790-10276-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:54559 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752854Ab2IXNDP (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Sep 2012 09:03:15 -0400
-Received: by ieak13 with SMTP id k13so10707050iea.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Sep 2012 06:03:14 -0700 (PDT)
-In-Reply-To: <alpine.LNX.2.01.1209241431310.12534@nerf07.vanv.qr>
+Received: from mail.us.es ([193.147.175.20]:53659 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752854Ab2IXNEj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 24 Sep 2012 09:04:39 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 24, 2012 at 6:32 PM, Jan Engelhardt <jengelh@inai.de> wrote:
-> On Monday 2012-09-24 13:12, Aft nix wrote:
->
->>Hi,
->>
->>I've added a target extension. The kernel module(xt_*.ko)  and  the
->>userspace plugin(libxt_*.so) are there. But when
->>i try to invoke the rule, it gives me "No extension found for this protocol".
->>
->>What am i doing wrong here?
->
-> You forgot to FedEx a magic glass sphere to me...
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Fair enough.
+Hi,
 
-But i'm confused which debug information is useful here. Both *.ko and
-*.so files
-are in place. iptables --version states 1.4.15(Actually the libxt_*.c
-is included "in tree". i've just
-checked out v1.4.15 tag from git tree and added libxt_*.c and xt_*.h)
+The following patches aim to provide a workaround for the
+problem described by Florian Westphal in:
 
-kernel version is also misleading. Its modified with 3.5.0 taken as base.
+http://marc.info/?l=netfilter-devel&m=134519473212536&w=2
 
-Please help me out with which information you need to understand the phenomenon.
+The idea (by now) is to limit the maximum support length to what
+we can handle, which is 65535 - 4 bytes and add a new attribute
+that allows us to know the real packet length in the kernel.
 
-cheers.
+Pablo Neira Ayuso (2):
+  netfilter: nfnetlink_queue: fix maximum packet length to userspace
+  netfilter: nfnetlink_queue: add NFQA_CAP_LEN attribute
 
+ include/linux/netfilter/nfnetlink_queue.h |    1 +
+ net/netfilter/nfnetlink_queue_core.c      |   19 ++++++++++++++-----
+ 2 files changed, 15 insertions(+), 5 deletions(-)
 
 -- 
--aft
+1.7.10.4
+
