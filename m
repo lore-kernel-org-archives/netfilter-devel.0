@@ -1,45 +1,39 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: have r->cost != 0 case work
-Date: Wed, 26 Sep 2012 01:27:39 +0200
-Message-ID: <20120925232739.GB12349@1984>
-References: <alpine.LNX.2.01.1209221003280.3512@nerf07.vanv.qr>
- <1348302412-2811-1-git-send-email-jengelh@inai.de>
- <20120925143915.GA9091@1984>
- <alpine.LNX.2.01.1209251648570.12652@nerf07.vanv.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
-	jrobinson@infoblox.com
-To: Jan Engelhardt <jengelh@inai.de>
+From: pablo@netfilter.org
+Subject: [PATCH] netfilter fix for 3.6-rc7
+Date: Wed, 26 Sep 2012 01:34:10 +0200
+Message-ID: <1348616051-5694-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38395 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:38878 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751732Ab2IYX1s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Sep 2012 19:27:48 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.01.1209251648570.12652@nerf07.vanv.qr>
+	id S1751342Ab2IYXfm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Sep 2012 19:35:42 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Sep 25, 2012 at 04:52:32PM +0200, Jan Engelhardt wrote:
-> On Tuesday 2012-09-25 16:39, Pablo Neira Ayuso wrote:
-> >On Sat, Sep 22, 2012 at 10:26:52AM +0200, Jan Engelhardt wrote:
-> >> Commit v2.6.19-rc1~1272^2~41 tells us that r->cost != 0 can happen when
-> >> a running state is saved to userspace and then reinstated from there.
-> >> 
-> >> Make sure that priv is initialized with some values when that happens.
-> >
-> >Just to clarify: With this patch, we go back to the situation in which
-> >the state is reset on unrelated rule updates, right?
-> 
-> Before this patch, when userspace updated a rule, random things 
-> would happen on matching due to use of uninitialized memory.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-I know that ;-)
+Hi David,
 
-> Now, the values are initialized, and implies that the credit is reset on 
-> table update.
+If time allows, I'd appreciate if you can take the following fix
+for the xt_limit match.
 
-This is what I wanted to confirm. Thanks Jan.
+As Jan indicates, random things may occur while using the xt_limit
+match due to use of uninitialized memory.
 
-I'll pass this to David. Let's see if we can get this into 3.6-rc.
+You can pull this change from:
+
+git://1984.lsi.us.es/nf master
+
+Thanks!
+
+Jan Engelhardt (1):
+  netfilter: xt_limit: have r->cost != 0 case work
+
+ net/netfilter/xt_limit.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+-- 
+1.7.10.4
+
