@@ -1,128 +1,45 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH V3 0/8] ipvs: IPv6 fragment handling for IPVS
-Date: Tue, 25 Sep 2012 23:48:11 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1209252319260.1770@ja.ssi.bg>
-References: <20120911123531.4305.40304.stgit@dragon>  <alpine.LFD.2.00.1209130143410.1653@ja.ssi.bg> <1348578674.2689.15.camel@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: have r->cost != 0 case work
+Date: Wed, 26 Sep 2012 01:27:39 +0200
+Message-ID: <20120925232739.GB12349@1984>
+References: <alpine.LNX.2.01.1209221003280.3512@nerf07.vanv.qr>
+ <1348302412-2811-1-git-send-email-jengelh@inai.de>
+ <20120925143915.GA9091@1984>
+ <alpine.LNX.2.01.1209251648570.12652@nerf07.vanv.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Hans Schillstrom <hans@schillstrom.com>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	lvs-devel@vger.kernel.org, Thomas Graf <tgraf@suug.ch>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	netfilter-devel@vger.kernel.org, Simon Horman <horms@verge.net.au>
-To: Jesper Dangaard Brouer <brouer@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
+	jrobinson@infoblox.com
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:43609 "EHLO ja.ssi.bg"
+Received: from mail.us.es ([193.147.175.20]:38395 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750840Ab2IYUo3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Sep 2012 16:44:29 -0400
-In-Reply-To: <1348578674.2689.15.camel@localhost>
+	id S1751732Ab2IYX1s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Sep 2012 19:27:48 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.01.1209251648570.12652@nerf07.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-	Hello,
-
-On Tue, 25 Sep 2012, Jesper Dangaard Brouer wrote:
-
-> > 	Some comments:
-> > 
-> > - About patch 4: ip_vs_icmp_xmit_v6 already calls skb_make_writable
-> > before ip_vs_nat_icmp_v6, that is why we provide 'offset'.
+On Tue, Sep 25, 2012 at 04:52:32PM +0200, Jan Engelhardt wrote:
+> On Tuesday 2012-09-25 16:39, Pablo Neira Ayuso wrote:
+> >On Sat, Sep 22, 2012 at 10:26:52AM +0200, Jan Engelhardt wrote:
+> >> Commit v2.6.19-rc1~1272^2~41 tells us that r->cost != 0 can happen when
+> >> a running state is saved to userspace and then reinstated from there.
+> >> 
+> >> Make sure that priv is initialized with some values when that happens.
+> >
+> >Just to clarify: With this patch, we go back to the situation in which
+> >the state is reset on unrelated rule updates, right?
 > 
-> I see, that call path is correct, BUT I was talking about another call
-> path of ip_vs_nat_icmp_v6(), via handle_response_icmp() (which also
-> calls skb_make_writable).  That call path is triggered, if the
-> real-server, have shutdown its service and send back an ICMPv6 packet.
+> Before this patch, when userspace updated a rule, random things 
+> would happen on matching due to use of uninitialized memory.
 
-	Yes, currently, both ip_vs_nat_icmp_v6 callers use
-skb_make_writable before calling it.
+I know that ;-)
 
-> Hmm, testing it again, I cannot trigger this issue.  Perhaps I was
-> confusing my self and were using my test script that added IPv6 exthdrs
-> to the packet.  Adding print statements to the code, also show the
-> correct offset now.
-> I'm dropping this patch-4, and I'll adjust/fix patch-5 ("ipvs: fix
-> faulty IPv6 extension header handling in IPVS") accordingly.  And I'll
-> double check patch-5, that exthdr have been accounted for (in the offset
-> used by skb_make_writable() before calling ip_vs_nat_icmp_v6()).
+> Now, the values are initialized, and implies that the credit is reset on 
+> table update.
 
-	Yes, patch-4 is not needed.
+This is what I wanted to confirm. Thanks Jan.
 
-> > - May be we can provide the offset of ICMPv6 header
-> > from ip_vs_in_icmp_v6 to ip_vs_icmp_xmit_v6 as additional
-> > argument (icmp_offset) and then to ip_vs_nat_icmp_v6. By this
-> > way we can avoid the two ipv6_find_hdr calls if we also provide
-> > the iph argument from ip_vs_icmp_xmit_v6 to ip_vs_nat_icmp_v6,
-> > its ->len points to the ports. ip_vs_in_icmp_v6 provides
-> > also protocol in this ciph, so may be we have everything.
-> 
-> Is this comment for the API patch-7 ("ipvs: API change to avoid rescan
-> of IPv6 exthdr") ?
-
-	No, this comment is for patch-5 where 2 ipv6_find_hdr
-calls are added to ip_vs_nat_icmp_v6. But we can change it
-later in followup patch as an optimization.
-
-> The API patch is going to save 19 calls to ipv6_find_hdr ().
-> 
-> 
-> > - in ip_vs_in_icmp_v6 there must be 'offs_ciph = ciph.len;'
-> > just before this line:
-> > 
-> > if (IPPROTO_TCP == ciph.protocol || IPPROTO_UDP == ciph.protocol ||
-> > 
-> 
-> It would be a lot easier for me, if you commented directly on the
-> patches.
-
-	Sorry, this is for patch-5, its purpose is for
-skb_make_writable in ip_vs_icmp_xmit_v6, not for debug.
-
-> I can see that 'offs_ciph = ciph.len;' is set earlier in this patch, but
-> that value is primarily used by IP_VS_DBG_PKT.  And offs_ciph, needs to
-> be updated, again, with the value of ciph.len after the call to
-> ipv6_find_hdr().  So, yes you are right ;-)
-> 
-> I'll rename offs_ciph to "writable" to emphasize what we are using this
-> value for.
-
-	Good idea, this is its purpose.
-
-> > 	The idea is that we linearize for writing the inner
-> > IP header and optionally the 2 ports. That is why old
-> > logic was 'offset += 2 * sizeof(__u16);'
-> 
-> The port logic was kept.  But I'll make it more clear whats happening,
-> and keep the "+=" coding style.
-
-	Yes, it was in this way at 2 places before your changes,
-one in handle_response_icmp and another in ip_vs_in_icmp_v6.
-
-> > - initially, ip_vs_fill_iph_skb fills iphdr->flags from
-> > current fragment, later ip_vs_out_icmp_v6 uses the same
-> > ipvsh when calling ipv6_find_hdr. Should we initialize
-> > ipvsh->flags to 0 before calling ipv6_find_hdr because
-> > it is I/O argument?
-
-	For the record, this is patch-7
-
-> As we don't use the flag, after this point, we can just give
-> ipv6_find_hdr() a NULL value instead.
-
-	Agreed, NULL for flags looks fine.
-
-> But I must give you, that it's a little confusing the way we reuse the
-> ipvsh variable (in ip_vs_out_icmp_v6()).  Think, this needs to be
-> rewritten to use a separate variable, like in ip_vs_in_icmp_v6().
-
-	The initialization is risky but saves stack. So,
-it is up to you to decide whether we need local ipvsh_stack
-var as before patch-7.
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+I'll pass this to David. Let's see if we can get this into 3.6-rc.
