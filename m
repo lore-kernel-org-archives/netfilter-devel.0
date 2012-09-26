@@ -1,125 +1,134 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [patch v2 04/11] nf_conntrack_netlink: pass
- nf_conntrack_netlink module to netlink_dump_start
-Date: Wed, 26 Sep 2012 11:58:37 +0200
-Message-ID: <20120926095837.GA23815@1984>
-References: <1348648888-24943-1-git-send-email-gaofeng@cn.fujitsu.com>
- <1348648888-24943-4-git-send-email-gaofeng@cn.fujitsu.com>
- <20120926092632.GA21589@1984>
- <5062CE07.1080704@cn.fujitsu.com>
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: [PATCH V4 1/7] ipvs: Trivial changes,
+	use compressed IPv6 address in output
+Date: Wed, 26 Sep 2012 14:05:53 +0200
+Message-ID: <20120926120546.24804.22455.stgit@dragon>
+References: <20120926120534.24804.78415.stgit@dragon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: davem@davemloft.net, eric.dumazet@gmail.com,
-	steffen.klassert@secunet.com, netfilter-devel@vger.kernel.org,
-	linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-	linux-crypto@vger.kernel.org, stephen.hemminger@vyatta.com,
-	jengelh@inai.de
-To: Gao feng <gaofeng@cn.fujitsu.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47436 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752119Ab2IZJ6l (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Sep 2012 05:58:41 -0400
-Content-Disposition: inline
-In-Reply-To: <5062CE07.1080704@cn.fujitsu.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>,
+	"Patrick McHardy" <kaber@trash.net>, Thomas Graf <tgraf@suug.ch>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	netfilter-devel@vger.kernel.org, Simon Horman <horms@verge.net.au>
+To: Hans Schillstrom <hans@schillstrom.com>,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	netdev@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+	lvs-devel@vger.kernel.org, Julian Anastasov <ja@ssi.bg>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <20120926120534.24804.78415.stgit@dragon>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Sep 26, 2012 at 05:42:31PM +0800, Gao feng wrote:
-> Hi Pablo:
->=20
-> =E4=BA=8E 2012=E5=B9=B409=E6=9C=8826=E6=97=A5 17:26, Pablo Neira Ayus=
-o =E5=86=99=E9=81=93:
-> > On Wed, Sep 26, 2012 at 04:41:21PM +0800, Gao feng wrote:
-> >> use proper netlink_dump_control.done and .module to avoid panic.
-> >>
-> >> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
-> >> ---
-> >>  net/netfilter/nf_conntrack_netlink.c |    8 ++++++++
-> >>  1 files changed, 8 insertions(+), 0 deletions(-)
-> >>
-> >> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/=
-nf_conntrack_netlink.c
-> >> index 9807f32..509a257 100644
-> >> --- a/net/netfilter/nf_conntrack_netlink.c
-> >> +++ b/net/netfilter/nf_conntrack_netlink.c
-> >> @@ -706,6 +706,7 @@ static int ctnetlink_done(struct netlink_callb=
-ack *cb)
-> >>  		nf_ct_put((struct nf_conn *)cb->args[1]);
-> >>  	if (cb->data)
-> >>  		kfree(cb->data);
-> >> +	netlink_dump_done(cb);
-> >=20
-> > I think you can call netlink_dump_done from af_netlink.c:
-> >=20
-> > static int netlink_dump(struct sock *sk)=20
-> >         ...
-> >         if (cb->done) {
-> >                 cb->done(cb);
-> >                 netlink_dump_done(...);
-> >         }
-> >=20
-> > Thus, you don't need to change netlink_dump_control in every netlin=
-k
-> > subsystem.
->=20
-> because cb->done is called by netlink_sock_destruct too,it's very use=
-fully
-> when userspace program only send dump request to kernel without readi=
-ng
-> data from kernel.
+Have not converted the proc file output to compressed IPv6 addresses.
 
-Then add that to netlink_sock_destruct as well. If possible, I prefer
-if this remains in the netlink core to avoid leaking module refcount
-if you forget to call netlink_dump_done.
+Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+---
 
-> >=20
-> >>  	return 0;
-> >>  }
-> >> =20
-> >> @@ -1022,6 +1023,7 @@ ctnetlink_get_conntrack(struct sock *ctnl, s=
-truct sk_buff *skb,
-> >>  		struct netlink_dump_control c =3D {
-> >>  			.dump =3D ctnetlink_dump_table,
-> >>  			.done =3D ctnetlink_done,
-> >> +			.module =3D THIS_MODULE,
-> >=20
-> > You can do something similar to:
-> >=20
-> > 9f00d97 netlink: hide struct module parameter in netlink_kernel_cre=
-ate
-> >=20
-> > by definiting netlink_dump_start as static inline and using
-> > THIS_MODULE from there.
-> >=20
-> > If I'm not missing anything, with those two changes, you will not n=
-eed
-> > to modify any caller and it will result one single patch.
-> >=20
->=20
-> You can see the patch [11/11], THIS_MODULE in infiniband/core/cma.c
-> means module rdma_cm,but we call netlink_dump_start in infiniband/cor=
-e/netlink.c
+ include/net/ip_vs.h              |    2 +-
+ net/netfilter/ipvs/ip_vs_core.c  |    2 +-
+ net/netfilter/ipvs/ip_vs_proto.c |    6 +++---
+ net/netfilter/ipvs/ip_vs_sched.c |    2 +-
+ net/netfilter/ipvs/ip_vs_xmit.c  |   10 +++++-----
+ 5 files changed, 11 insertions(+), 11 deletions(-)
 
-You can still use __netlink_dump_start for that case, which allows you
-to specify a custom struct module * parameter. But for most cases,
-netlink_dump_start (which hides THIS_MODULE) should be fine.
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index ee75ccd..aba0bb2 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -165,7 +165,7 @@ static inline const char *ip_vs_dbg_addr(int af, char *buf, size_t buf_len,
+ 	int len;
+ #ifdef CONFIG_IP_VS_IPV6
+ 	if (af == AF_INET6)
+-		len = snprintf(&buf[*idx], buf_len - *idx, "[%pI6]",
++		len = snprintf(&buf[*idx], buf_len - *idx, "[%pI6c]",
+ 			       &addr->in6) + 1;
+ 	else
+ #endif
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 58918e2..4edb654 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -1487,7 +1487,7 @@ ip_vs_in_icmp_v6(struct sk_buff *skb, int *related, unsigned int hooknum)
+ 	if (ic == NULL)
+ 		return NF_DROP;
+ 
+-	IP_VS_DBG(12, "Incoming ICMPv6 (%d,%d) %pI6->%pI6\n",
++	IP_VS_DBG(12, "Incoming ICMPv6 (%d,%d) %pI6c->%pI6c\n",
+ 		  ic->icmp6_type, ntohs(icmpv6_id(ic)),
+ 		  &iph->saddr, &iph->daddr);
+ 
+diff --git a/net/netfilter/ipvs/ip_vs_proto.c b/net/netfilter/ipvs/ip_vs_proto.c
+index 50d8218..939f7fb 100644
+--- a/net/netfilter/ipvs/ip_vs_proto.c
++++ b/net/netfilter/ipvs/ip_vs_proto.c
+@@ -280,17 +280,17 @@ ip_vs_tcpudp_debug_packet_v6(struct ip_vs_protocol *pp,
+ 	if (ih == NULL)
+ 		sprintf(buf, "TRUNCATED");
+ 	else if (ih->nexthdr == IPPROTO_FRAGMENT)
+-		sprintf(buf, "%pI6->%pI6 frag",	&ih->saddr, &ih->daddr);
++		sprintf(buf, "%pI6c->%pI6c frag", &ih->saddr, &ih->daddr);
+ 	else {
+ 		__be16 _ports[2], *pptr;
+ 
+ 		pptr = skb_header_pointer(skb, offset + sizeof(struct ipv6hdr),
+ 					  sizeof(_ports), _ports);
+ 		if (pptr == NULL)
+-			sprintf(buf, "TRUNCATED %pI6->%pI6",
++			sprintf(buf, "TRUNCATED %pI6c->%pI6c",
+ 				&ih->saddr, &ih->daddr);
+ 		else
+-			sprintf(buf, "%pI6:%u->%pI6:%u",
++			sprintf(buf, "%pI6c:%u->%pI6c:%u",
+ 				&ih->saddr, ntohs(pptr[0]),
+ 				&ih->daddr, ntohs(pptr[1]));
+ 	}
+diff --git a/net/netfilter/ipvs/ip_vs_sched.c b/net/netfilter/ipvs/ip_vs_sched.c
+index 08dbdd5..d6bf20d 100644
+--- a/net/netfilter/ipvs/ip_vs_sched.c
++++ b/net/netfilter/ipvs/ip_vs_sched.c
+@@ -159,7 +159,7 @@ void ip_vs_scheduler_err(struct ip_vs_service *svc, const char *msg)
+ 			     svc->fwmark, msg);
+ #ifdef CONFIG_IP_VS_IPV6
+ 	} else if (svc->af == AF_INET6) {
+-		IP_VS_ERR_RL("%s: %s [%pI6]:%d - %s\n",
++		IP_VS_ERR_RL("%s: %s [%pI6c]:%d - %s\n",
+ 			     svc->scheduler->name,
+ 			     ip_vs_proto_name(svc->protocol),
+ 			     &svc->addr.in6, ntohs(svc->port), msg);
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index 56f6d5d..1060bd5 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -335,7 +335,7 @@ __ip_vs_get_out_rt_v6(struct sk_buff *skb, struct ip_vs_dest *dest,
+ 	local = __ip_vs_is_local_route6(rt);
+ 	if (!((local ? IP_VS_RT_MODE_LOCAL : IP_VS_RT_MODE_NON_LOCAL) &
+ 	      rt_mode)) {
+-		IP_VS_DBG_RL("Stopping traffic to %s address, dest: %pI6\n",
++		IP_VS_DBG_RL("Stopping traffic to %s address, dest: %pI6c\n",
+ 			     local ? "local":"non-local", daddr);
+ 		dst_release(&rt->dst);
+ 		return NULL;
+@@ -343,8 +343,8 @@ __ip_vs_get_out_rt_v6(struct sk_buff *skb, struct ip_vs_dest *dest,
+ 	if (local && !(rt_mode & IP_VS_RT_MODE_RDR) &&
+ 	    !((ort = (struct rt6_info *) skb_dst(skb)) &&
+ 	      __ip_vs_is_local_route6(ort))) {
+-		IP_VS_DBG_RL("Redirect from non-local address %pI6 to local "
+-			     "requires NAT method, dest: %pI6\n",
++		IP_VS_DBG_RL("Redirect from non-local address %pI6c to local "
++			     "requires NAT method, dest: %pI6c\n",
+ 			     &ipv6_hdr(skb)->daddr, daddr);
+ 		dst_release(&rt->dst);
+ 		return NULL;
+@@ -352,8 +352,8 @@ __ip_vs_get_out_rt_v6(struct sk_buff *skb, struct ip_vs_dest *dest,
+ 	if (unlikely(!local && (!skb->dev || skb->dev->flags & IFF_LOOPBACK) &&
+ 		     ipv6_addr_type(&ipv6_hdr(skb)->saddr) &
+ 				    IPV6_ADDR_LOOPBACK)) {
+-		IP_VS_DBG_RL("Stopping traffic from loopback address %pI6 "
+-			     "to non-local address, dest: %pI6\n",
++		IP_VS_DBG_RL("Stopping traffic from loopback address %pI6c "
++			     "to non-local address, dest: %pI6c\n",
+ 			     &ipv6_hdr(skb)->saddr, daddr);
+ 		dst_release(&rt->dst);
+ 		return NULL;
 
-> we should make sure the cb.moudle point to the module which cb.dump b=
-elongs to.
-> we can call netlink_dump_start to set cb->dump everywhere, so I think=
- we still
-> need to pass struct module to the netlink_callback.
->=20
-> thanks for your comments!
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
-evel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
