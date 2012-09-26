@@ -1,48 +1,38 @@
-From: pablo@netfilter.org
-Subject: [PATCH] netfilter: xt_limit: have r->cost != 0 case work
-Date: Wed, 26 Sep 2012 01:34:11 +0200
-Message-ID: <1348616051-5694-2-git-send-email-pablo@netfilter.org>
-References: <1348616051-5694-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1348616051-5694-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: [PATCH 03/11] unix_diag: pass unix_diag module to netlink_dump_start
+Date: Wed, 26 Sep 2012 12:52:12 +0800
+Message-ID: <1348635140-20225-3-git-send-email-gaofeng@cn.fujitsu.com>
+References: <1348635140-20225-1-git-send-email-gaofeng@cn.fujitsu.com>
+Cc: netfilter-devel@vger.kernel.org, linux-rdma@vger.kernel.org,
+	netdev@vger.kernel.org, eric.dumazet@gmail.com,
+	pablo@netfilter.org, steffen.klassert@secunet.com,
+	linux-crypto@vger.kernel.org, jengelh@inai.de,
+	stephen.hemminger@vyatta.com, Gao feng <gaofeng@cn.fujitsu.com>
+To: davem@davemloft.net
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <1348635140-20225-1-git-send-email-gaofeng@cn.fujitsu.com>
+Sender: linux-crypto-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Jan Engelhardt <jengelh@inai.de>
+use proper netlink_dump_control.done and .module to avoid panic.
 
-Commit v2.6.19-rc1~1272^2~41 tells us that r->cost != 0 can happen when
-a running state is saved to userspace and then reinstated from there.
-
-Make sure that private xt_limit area is initialized with correct values.
-Otherwise, random matchings due to use of uninitialized memory.
-
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
 ---
- net/netfilter/xt_limit.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ net/unix/diag.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
-index 5c22ce8..a4c1e45 100644
---- a/net/netfilter/xt_limit.c
-+++ b/net/netfilter/xt_limit.c
-@@ -117,11 +117,11 @@ static int limit_mt_check(const struct xt_mtchk_param *par)
- 
- 	/* For SMP, we only want to use one set of state. */
- 	r->master = priv;
-+	/* User avg in seconds * XT_LIMIT_SCALE: convert to jiffies *
-+	   128. */
-+	priv->prev = jiffies;
-+	priv->credit = user2credits(r->avg * r->burst); /* Credits full. */
- 	if (r->cost == 0) {
--		/* User avg in seconds * XT_LIMIT_SCALE: convert to jiffies *
--		   128. */
--		priv->prev = jiffies;
--		priv->credit = user2credits(r->avg * r->burst); /* Credits full. */
- 		r->credit_cap = priv->credit; /* Credits full. */
- 		r->cost = user2credits(r->avg);
- 	}
+diff --git a/net/unix/diag.c b/net/unix/diag.c
+index 750b134..5e09553 100644
+--- a/net/unix/diag.c
++++ b/net/unix/diag.c
+@@ -299,6 +299,8 @@ static int unix_diag_handler_dump(struct sk_buff *skb, struct nlmsghdr *h)
+ 	if (h->nlmsg_flags & NLM_F_DUMP) {
+ 		struct netlink_dump_control c = {
+ 			.dump = unix_diag_dump,
++			.done = netlink_dump_done,
++			.module = THIS_MODULE,
+ 		};
+ 		return netlink_dump_start(net->diag_nlsk, skb, h, &c);
+ 	} else
 -- 
-1.7.10.4
+1.7.7.6
