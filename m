@@ -1,45 +1,27 @@
-From: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
-Subject: Re: [PATCH 02/11] inet_diag: pass inet_diag module to
- netlink_dump_start
-Date: Wed, 26 Sep 2012 19:26:14 +0200
-Message-ID: <20120926172614.GA22353@1984>
-References: <1348635140-20225-1-git-send-email-gaofeng@cn.fujitsu.com>
- <1348635140-20225-2-git-send-email-gaofeng@cn.fujitsu.com>
- <20120926090714.618a4b39@nehalam.linuxnetplumber.net>
+From: =?ISO-8859-1?Q?Miguel_Alejandro_Gonz=E1lez?= <maggonzz@gmail.com>
+Subject: searching tuples in conntrack
+Date: Wed, 26 Sep 2012 12:29:17 -0500
+Message-ID: <CA+Z0r8MVyzWP_uM+Ryge5YY8Dr9XO+Uh1x0g7Zc8FBp16mMAGQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Gao feng <gaofeng-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org>, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org,
-	steffen.klassert-opNxpl+3fjRBDgjK7y7TUQ@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	jengelh-9+2X+4sQBs8@public.gmane.org, stephen.hemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org
-To: Stephen Hemminger <shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20120926090714.618a4b39-We1ePj4FEcvRI77zikRAJc56i+j3xesD0e7PPNI6Mm0@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:53466 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932135Ab2IZR3s (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 Sep 2012 13:29:48 -0400
+Received: by vbbff1 with SMTP id ff1so921730vbb.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 26 Sep 2012 10:29:47 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Sep 26, 2012 at 09:07:14AM -0700, Stephen Hemminger wrote:
-> On Wed, 26 Sep 2012 12:52:11 +0800
-> Gao feng <gaofeng-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org> wrote:
-> 
-> >  			struct netlink_dump_control c = {
-> >  				.dump = inet_diag_dump_compat,
-> > +				.done = netlink_dump_done,
-> > +				.module = THIS_MODULE,
-> >  			};
-> 
-> Since these are immutable, why the netlink_dump_control structures
-> on the stack (which requires code to generate at runtime), and instead
-> make them global
-> 
-> static const struct netlink_dump_control unix_diag_ctrl = {
-> ...
+Hello,
 
-I made that code. I can send a patch to statify those
-netlink_dump_control structures.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I have been reading some kernel code trying to find a function that
+searches the conntrack hash table for a transport address and returns
+the given tuple. Is there any way to do this? I found a function in
+the nat code called find_appropriate_src but i think it only works for
+the nat table...
+
+Regards
