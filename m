@@ -1,58 +1,38 @@
 From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: Re: [PATCH 01/11] netlink: add reference of module in netlink_dump_start
-Date: Wed, 26 Sep 2012 15:24:03 +0800
-Message-ID: <5062AD93.9080206@cn.fujitsu.com>
-References: <1348635140-20225-1-git-send-email-gaofeng@cn.fujitsu.com> <1348643247.5093.32.camel@edumazet-glaptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
-	linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-	pablo@netfilter.org, steffen.klassert@secunet.com,
-	linux-crypto@vger.kernel.org, jengelh@inai.de,
-	stephen.hemminger@vyatta.com
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:26109 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752071Ab2IZHYC convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Sep 2012 03:24:02 -0400
-In-Reply-To: <1348643247.5093.32.camel@edumazet-glaptop>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: [patch v2 05/11] nfnetlink_acct: pass nfnetlink_acct module to netlink_dump_start
+Date: Wed, 26 Sep 2012 16:41:22 +0800
+Message-ID: <1348648888-24943-5-git-send-email-gaofeng@cn.fujitsu.com>
+References: <1348648888-24943-1-git-send-email-gaofeng@cn.fujitsu.com>
+Cc: netfilter-devel@vger.kernel.org, linux-rdma@vger.kernel.org,
+	netdev@vger.kernel.org, linux-crypto@vger.kernel.org,
+	pablo@netfilter.org, stephen.hemminger@vyatta.com, jengelh@inai.de,
+	Gao feng <gaofeng@cn.fujitsu.com>
+To: davem@davemloft.net, eric.dumazet@gmail.com,
+	steffen.klassert@secunet.com
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <1348648888-24943-1-git-send-email-gaofeng@cn.fujitsu.com>
+Sender: linux-crypto-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-=E4=BA=8E 2012=E5=B9=B409=E6=9C=8826=E6=97=A5 15:07, Eric Dumazet =E5=86=
-=99=E9=81=93:
-> On Wed, 2012-09-26 at 12:52 +0800, Gao feng wrote:
->=20
->> +int netlink_dump_done(struct netlink_callback *cb)
->> +{
->> +	if (cb->module)
->> +		module_put(cb->module);
->> +	return 0;
->> +}
->> +EXPORT_SYMBOL(netlink_dump_done);
->> +
->=20
-> No need to test cb->module being not NULL
->=20
->=20
-> int netlink_dump_done(struct netlink_callback *cb)
-> {
-> 	module_put(cb->module);
-> 	return 0;
-> }
->=20
-> Same remark for try_module_get() call
->=20
+use proper netlink_dump_control.done and .module to avoid panic.
 
-will fix it in v2 patchset.
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+---
+ net/netfilter/nfnetlink_acct.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-thanks Eric.
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
+index b2e7310..1e9cb0f 100644
+--- a/net/netfilter/nfnetlink_acct.c
++++ b/net/netfilter/nfnetlink_acct.c
+@@ -175,6 +175,8 @@ nfnl_acct_get(struct sock *nfnl, struct sk_buff *skb,
+ 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
+ 		struct netlink_dump_control c = {
+ 			.dump = nfnl_acct_dump,
++			.done = netlink_dump_done,
++			.module = THIS_MODULE,
+ 		};
+ 		return netlink_dump_start(nfnl, skb, nlh, &c);
+ 	}
+-- 
+1.7.7.6
