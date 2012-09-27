@@ -1,136 +1,118 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 5/7] libxt_NOTRACK: replace as an alias to CT --notrack
-Date: Fri, 28 Sep 2012 00:48:27 +0200
-Message-ID: <1348786109-20894-6-git-send-email-jengelh@inai.de>
+Subject: [PATCH 6/7] iptables: support for match aliases
+Date: Fri, 28 Sep 2012 00:48:28 +0200
+Message-ID: <1348786109-20894-7-git-send-email-jengelh@inai.de>
 References: <1348786109-20894-1-git-send-email-jengelh@inai.de>
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:56164 "EHLO seven.medozas.de"
+Received: from ares07.inai.de ([5.9.24.206]:56165 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756005Ab2I0Wsd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1755985Ab2I0Wsd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 27 Sep 2012 18:48:33 -0400
 In-Reply-To: <1348786109-20894-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Note that we do not need any print/save functions for the alias entries,
-since the real CT entry will handle this.
+This patch allows for match names listed on the command line to be
+rewritten to new names and revisions, like we did for targets before.
 
 Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- extensions/GNUmakefile.in  |    5 ++++-
- extensions/libxt_CT.c      |   40 ++++++++++++++++++++++++++++++++++++++++
- extensions/libxt_NOTRACK.c |   15 ---------------
- 3 files changed, 44 insertions(+), 16 deletions(-)
- delete mode 100644 extensions/libxt_NOTRACK.c
+ include/xtables.h    |    1 +
+ iptables/ip6tables.c |    6 +++++-
+ iptables/iptables.c  |    6 +++++-
+ libxtables/xtables.c |   12 ++++++++----
+ 4 files changed, 19 insertions(+), 6 deletions(-)
 
-diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
-index 218dc3a..b5c355a 100644
---- a/extensions/GNUmakefile.in
-+++ b/extensions/GNUmakefile.in
-@@ -39,6 +39,7 @@ endif
- #	Wildcard module list
- #
- pfx_build_mod := $(patsubst ${srcdir}/libxt_%.c,%,$(sort $(wildcard ${srcdir}/libxt_*.c)))
-+pfx_build_mod += NOTRACK
- @ENABLE_IPV4_TRUE@ pf4_build_mod := $(patsubst ${srcdir}/libipt_%.c,%,$(sort $(wildcard ${srcdir}/libipt_*.c)))
- @ENABLE_IPV6_TRUE@ pf6_build_mod := $(patsubst ${srcdir}/libip6t_%.c,%,$(sort $(wildcard ${srcdir}/libip6t_*.c)))
- pfx_build_mod := $(filter-out @blacklist_modules@,${pfx_build_mod})
-@@ -96,11 +97,13 @@ lib%.so: lib%.oo
- lib%.oo: ${srcdir}/lib%.c
- 	${AM_VERBOSE_CC} ${CC} ${AM_CPPFLAGS} ${AM_DEPFLAGS} ${AM_CFLAGS} -D_INIT=lib$*_init -DPIC -fPIC ${CFLAGS} -o $@ -c $<;
+diff --git a/include/xtables.h b/include/xtables.h
+index 7bdc331..2cc1a02 100644
+--- a/include/xtables.h
++++ b/include/xtables.h
+@@ -213,6 +213,7 @@ struct xtables_match
+ 	struct xtables_match *next;
  
-+libxt_NOTRACK.so: libxt_CT.so
-+	ln -fs $< $@
+ 	const char *name;
++	const char *real_name;
+ 
+ 	/* Revision of match (0 by default). */
+ 	u_int8_t revision;
+diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
+index 752cf03..f93bfb3 100644
+--- a/iptables/ip6tables.c
++++ b/iptables/ip6tables.c
+@@ -1319,8 +1319,12 @@ static void command_match(struct iptables_command_state *cs)
+ 	size = XT_ALIGN(sizeof(struct xt_entry_match)) + m->size;
+ 	m->m = xtables_calloc(1, size);
+ 	m->m->u.match_size = size;
+-	strcpy(m->m->u.user.name, m->name);
++	strcpy(m->m->u.user.name, m->real_name);
+ 	m->m->u.user.revision = m->revision;
++	if (m->real_name != m->name)
++		fprintf(stderr, "WARNING: The %s match is obsolete. "
++		        "Use %s instead.\n", m->name, m->real_name);
 +
- # Need the LIBADDs in iptables/Makefile.am too for libxtables_la_LIBADD
- xt_RATEEST_LIBADD   = -lm
- xt_statistic_LIBADD = -lm
+ 	xs_init_match(m);
+ 	if (m == m->next)
+ 		return;
+diff --git a/iptables/iptables.c b/iptables/iptables.c
+index a237e93..5786bfd 100644
+--- a/iptables/iptables.c
++++ b/iptables/iptables.c
+@@ -1330,8 +1330,12 @@ static void command_match(struct iptables_command_state *cs)
+ 	size = XT_ALIGN(sizeof(struct xt_entry_match)) + m->size;
+ 	m->m = xtables_calloc(1, size);
+ 	m->m->u.match_size = size;
+-	strcpy(m->m->u.user.name, m->name);
++	strcpy(m->m->u.user.name, m->real_name);
+ 	m->m->u.user.revision = m->revision;
++	if (m->real_name != m->name)
++		fprintf(stderr, "WARNING: The %s match is obsolete. "
++		        "Use %s instead.\n", m->name, m->real_name);
++
+ 	xs_init_match(m);
+ 	if (m == m->next)
+ 		return;
+diff --git a/libxtables/xtables.c b/libxtables/xtables.c
+index a2b24c5..82c3643 100644
+--- a/libxtables/xtables.c
++++ b/libxtables/xtables.c
+@@ -848,6 +848,8 @@ void xtables_register_match(struct xtables_match *me)
+ 		exit(1);
+ 	}
  
--
- #
- #	Static bits
- #
-diff --git a/extensions/libxt_CT.c b/extensions/libxt_CT.c
-index 27a20e2..a576a95 100644
---- a/extensions/libxt_CT.c
-+++ b/extensions/libxt_CT.c
-@@ -248,6 +248,20 @@ static void ct_save_v1(const void *ip, const struct xt_entry_target *target)
- 		printf(" --zone %u", info->zone);
++	if (me->real_name == NULL)
++		me->real_name = me->name;
+ 	if (me->x6_options != NULL)
+ 		xtables_option_metavalidate(me->name, me->x6_options);
+ 	if (me->extra_opts != NULL)
+@@ -903,8 +905,10 @@ xtables_mt_prefer(bool a_alias, unsigned int a_rev, unsigned int a_fam,
+ static int xtables_match_prefer(const struct xtables_match *a,
+ 				const struct xtables_match *b)
+ {
+-	return xtables_mt_prefer(false, a->revision, a->family,
+-				 false, b->revision, b->family);
++	return xtables_mt_prefer(a->name != a->real_name,
++				 a->revision, a->family,
++				 b->name != b->real_name,
++				 b->revision, b->family);
  }
  
-+static void notrack_ct0_tg_init(struct xt_entry_target *target)
-+{
-+	struct xt_ct_target_info *info = (void *)target->data;
-+
-+	info->flags = XT_CT_NOTRACK;
-+}
-+
-+static void notrack_ct1_tg_init(struct xt_entry_target *target)
-+{
-+	struct xt_ct_target_info_v1 *info = (void *)target->data;
-+
-+	info->flags = XT_CT_NOTRACK;
-+}
-+
- static struct xtables_target ct_target_reg[] = {
- 	{
- 		.family		= NFPROTO_UNSPEC,
-@@ -274,6 +288,32 @@ static struct xtables_target ct_target_reg[] = {
- 		.x6_parse	= ct_parse_v1,
- 		.x6_options	= ct_opts_v1,
- 	},
-+	{
-+		.family        = NFPROTO_UNSPEC,
-+		.name          = "NOTRACK",
-+		.real_name     = "CT",
-+		.revision      = 0,
-+		.version       = XTABLES_VERSION,
-+		.size          = XT_ALIGN(sizeof(struct xt_ct_target_info)),
-+		.userspacesize = offsetof(struct xt_ct_target_info, ct),
-+		.init          = notrack_ct0_tg_init,
-+	},
-+	{
-+		.family        = NFPROTO_UNSPEC,
-+		.name          = "NOTRACK",
-+		.real_name     = "CT",
-+		.revision      = 1,
-+		.version       = XTABLES_VERSION,
-+		.size          = XT_ALIGN(sizeof(struct xt_ct_target_info_v1)),
-+		.userspacesize = offsetof(struct xt_ct_target_info_v1, ct),
-+		.init          = notrack_ct1_tg_init,
-+	},
-+	{
-+		.family        = NFPROTO_UNSPEC,
-+		.name          = "NOTRACK",
-+		.revision      = 0,
-+		.version       = XTABLES_VERSION,
-+	},
- };
+ static int xtables_target_prefer(const struct xtables_target *a,
+@@ -938,11 +942,11 @@ static void xtables_fully_register_pending_match(struct xtables_match *me)
  
- void _init(void)
-diff --git a/extensions/libxt_NOTRACK.c b/extensions/libxt_NOTRACK.c
-deleted file mode 100644
-index ca58700..0000000
---- a/extensions/libxt_NOTRACK.c
-+++ /dev/null
-@@ -1,15 +0,0 @@
--/* Shared library add-on to iptables to add NOTRACK target support. */
--#include <xtables.h>
--
--static struct xtables_target notrack_target = {
--	.family		= NFPROTO_UNSPEC,
--	.name		= "NOTRACK",
--	.version	= XTABLES_VERSION,
--	.size		= XT_ALIGN(0),
--	.userspacesize	= XT_ALIGN(0),
--};
--
--void _init(void)
--{
--	xtables_register_target(&notrack_target);
--}
+ 		/* Now we have two (or more) options, check compatibility. */
+ 		if (compare > 0 &&
+-		    compatible_match_revision(old->name, old->revision))
++		    compatible_match_revision(old->real_name, old->revision))
+ 			return;
+ 
+ 		/* See if new match can be used. */
+-		if (!compatible_match_revision(me->name, me->revision))
++		if (!compatible_match_revision(me->real_name, me->revision))
+ 			return;
+ 
+ 		/* Delete old one. */
 -- 
 1.7.10.4
 
