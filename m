@@ -1,406 +1,135 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 7/7] libxt_state: replace as an alias to xt_conntrack
-Date: Fri, 28 Sep 2012 00:48:29 +0200
-Message-ID: <1348786109-20894-8-git-send-email-jengelh@inai.de>
+Subject: [PATCH 5/7] libxt_NOTRACK: replace as an alias to CT --notrack
+Date: Fri, 28 Sep 2012 00:48:27 +0200
+Message-ID: <1348786109-20894-6-git-send-email-jengelh@inai.de>
 References: <1348786109-20894-1-git-send-email-jengelh@inai.de>
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:56166 "EHLO seven.medozas.de"
+Received: from ares07.inai.de ([5.9.24.206]:56164 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756027Ab2I0Wse (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 Sep 2012 18:48:34 -0400
+	id S1756005Ab2I0Wsd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 27 Sep 2012 18:48:33 -0400
 In-Reply-To: <1348786109-20894-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Note that we do not need any print/save functions for the alias entries,
+since the real CT entry will handle this.
+
 Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- extensions/GNUmakefile.in    |    4 +-
- extensions/libxt_conntrack.c |  189 ++++++++++++++++++++++++++++++++++++++++++
- extensions/libxt_state.c     |  137 ------------------------------
- 3 files changed, 192 insertions(+), 138 deletions(-)
- delete mode 100644 extensions/libxt_state.c
+ extensions/GNUmakefile.in  |    5 ++++-
+ extensions/libxt_CT.c      |   40 ++++++++++++++++++++++++++++++++++++++++
+ extensions/libxt_NOTRACK.c |   15 ---------------
+ 3 files changed, 44 insertions(+), 16 deletions(-)
+ delete mode 100644 extensions/libxt_NOTRACK.c
 
 diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
-index b5c355a..48facce 100644
+index 218dc3a..b5c355a 100644
 --- a/extensions/GNUmakefile.in
 +++ b/extensions/GNUmakefile.in
-@@ -39,7 +39,7 @@ endif
+@@ -39,6 +39,7 @@ endif
  #	Wildcard module list
  #
  pfx_build_mod := $(patsubst ${srcdir}/libxt_%.c,%,$(sort $(wildcard ${srcdir}/libxt_*.c)))
--pfx_build_mod += NOTRACK
-+pfx_build_mod += NOTRACK state
++pfx_build_mod += NOTRACK
  @ENABLE_IPV4_TRUE@ pf4_build_mod := $(patsubst ${srcdir}/libipt_%.c,%,$(sort $(wildcard ${srcdir}/libipt_*.c)))
  @ENABLE_IPV6_TRUE@ pf6_build_mod := $(patsubst ${srcdir}/libip6t_%.c,%,$(sort $(wildcard ${srcdir}/libip6t_*.c)))
  pfx_build_mod := $(filter-out @blacklist_modules@,${pfx_build_mod})
-@@ -99,6 +99,8 @@ lib%.oo: ${srcdir}/lib%.c
+@@ -96,11 +97,13 @@ lib%.so: lib%.oo
+ lib%.oo: ${srcdir}/lib%.c
+ 	${AM_VERBOSE_CC} ${CC} ${AM_CPPFLAGS} ${AM_DEPFLAGS} ${AM_CFLAGS} -D_INIT=lib$*_init -DPIC -fPIC ${CFLAGS} -o $@ -c $<;
  
- libxt_NOTRACK.so: libxt_CT.so
- 	ln -fs $< $@
-+libxt_state.so: libxt_conntrack.so
++libxt_NOTRACK.so: libxt_CT.so
 +	ln -fs $< $@
- 
++
  # Need the LIBADDs in iptables/Makefile.am too for libxtables_la_LIBADD
  xt_RATEEST_LIBADD   = -lm
-diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
-index fff69f8..b559d9d 100644
---- a/extensions/libxt_conntrack.c
-+++ b/extensions/libxt_conntrack.c
-@@ -13,7 +13,11 @@
- #include <string.h>
- #include <xtables.h>
- #include <linux/netfilter/xt_conntrack.h>
-+#include <linux/netfilter/xt_state.h>
- #include <linux/netfilter/nf_conntrack_common.h>
-+#ifndef XT_STATE_UNTRACKED
-+#define XT_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 1))
-+#endif
+ xt_statistic_LIBADD = -lm
  
- struct ip_conntrack_old_tuple {
- 	struct {
-@@ -1003,6 +1007,142 @@ conntrack1_mt6_save(const void *ip, const struct xt_entry_match *match)
- 	conntrack_dump(&up, "--", NFPROTO_IPV6, true, false);
+-
+ #
+ #	Static bits
+ #
+diff --git a/extensions/libxt_CT.c b/extensions/libxt_CT.c
+index 27a20e2..a576a95 100644
+--- a/extensions/libxt_CT.c
++++ b/extensions/libxt_CT.c
+@@ -248,6 +248,20 @@ static void ct_save_v1(const void *ip, const struct xt_entry_target *target)
+ 		printf(" --zone %u", info->zone);
  }
  
-+static void
-+state_help(void)
++static void notrack_ct0_tg_init(struct xt_entry_target *target)
 +{
-+	printf(
-+"state match options:\n"
-+" [!] --state [INVALID|ESTABLISHED|NEW|RELATED|UNTRACKED][,...]\n"
-+"				State(s) to match\n");
++	struct xt_ct_target_info *info = (void *)target->data;
++
++	info->flags = XT_CT_NOTRACK;
 +}
 +
-+static const struct xt_option_entry state_opts[] = {
-+	{.name = "state", .id = O_CTSTATE, .type = XTTYPE_STRING,
-+	 .flags = XTOPT_MAND | XTOPT_INVERT},
-+	XTOPT_TABLEEND,
-+};
-+
-+static unsigned int
-+state_parse_state(const char *state, size_t len)
++static void notrack_ct1_tg_init(struct xt_entry_target *target)
 +{
-+	if (strncasecmp(state, "INVALID", len) == 0)
-+		return XT_STATE_INVALID;
-+	else if (strncasecmp(state, "NEW", len) == 0)
-+		return XT_STATE_BIT(IP_CT_NEW);
-+	else if (strncasecmp(state, "ESTABLISHED", len) == 0)
-+		return XT_STATE_BIT(IP_CT_ESTABLISHED);
-+	else if (strncasecmp(state, "RELATED", len) == 0)
-+		return XT_STATE_BIT(IP_CT_RELATED);
-+	else if (strncasecmp(state, "UNTRACKED", len) == 0)
-+		return XT_STATE_UNTRACKED;
-+	return 0;
++	struct xt_ct_target_info_v1 *info = (void *)target->data;
++
++	info->flags = XT_CT_NOTRACK;
 +}
 +
-+static unsigned int
-+state_parse_states(const char *arg)
-+{
-+	const char *comma;
-+	unsigned int mask = 0, flag;
-+
-+	while ((comma = strchr(arg, ',')) != NULL) {
-+		if (comma == arg)
-+			goto badstate;
-+		flag = state_parse_state(arg, comma-arg);
-+		if (flag == 0)
-+			goto badstate;
-+		mask |= flag;
-+		arg = comma+1;
-+	}
-+	if (!*arg)
-+		xtables_error(PARAMETER_PROBLEM, "\"--state\" requires a list of "
-+					      "states with no spaces, e.g. "
-+					      "ESTABLISHED,RELATED");
-+	if (strlen(arg) == 0)
-+		goto badstate;
-+	flag = state_parse_state(arg, strlen(arg));
-+	if (flag == 0)
-+		goto badstate;
-+	mask |= flag;
-+	return mask;
-+ badstate:
-+	xtables_error(PARAMETER_PROBLEM, "Bad state \"%s\"", arg);
-+}
-+
-+static void state_parse(struct xt_option_call *cb)
-+{
-+	struct xt_state_info *sinfo = cb->data;
-+
-+	xtables_option_parse(cb);
-+	sinfo->statemask = state_parse_states(cb->arg);
-+	if (cb->invert)
-+		sinfo->statemask = ~sinfo->statemask;
-+}
-+
-+static void state_ct1_parse(struct xt_option_call *cb)
-+{
-+	struct xt_conntrack_mtinfo1 *sinfo = cb->data;
-+
-+	xtables_option_parse(cb);
-+	sinfo->state_mask = state_parse_states(cb->arg);
-+	if (cb->invert)
-+		sinfo->invert_flags |= XT_CONNTRACK_STATE;
-+}
-+
-+static void state_ct23_parse(struct xt_option_call *cb)
-+{
-+	struct xt_conntrack_mtinfo3 *sinfo = cb->data;
-+
-+	xtables_option_parse(cb);
-+	sinfo->state_mask = state_parse_states(cb->arg);
-+	if (cb->invert)
-+		sinfo->invert_flags |= XT_CONNTRACK_STATE;
-+}
-+
-+static void state_print_state(unsigned int statemask)
-+{
-+	const char *sep = "";
-+
-+	if (statemask & XT_STATE_INVALID) {
-+		printf("%sINVALID", sep);
-+		sep = ",";
-+	}
-+	if (statemask & XT_STATE_BIT(IP_CT_NEW)) {
-+		printf("%sNEW", sep);
-+		sep = ",";
-+	}
-+	if (statemask & XT_STATE_BIT(IP_CT_RELATED)) {
-+		printf("%sRELATED", sep);
-+		sep = ",";
-+	}
-+	if (statemask & XT_STATE_BIT(IP_CT_ESTABLISHED)) {
-+		printf("%sESTABLISHED", sep);
-+		sep = ",";
-+	}
-+	if (statemask & XT_STATE_UNTRACKED) {
-+		printf("%sUNTRACKED", sep);
-+		sep = ",";
-+	}
-+}
-+
-+static void
-+state_print(const void *ip,
-+      const struct xt_entry_match *match,
-+      int numeric)
-+{
-+	const struct xt_state_info *sinfo = (const void *)match->data;
-+
-+	printf(" state ");
-+	state_print_state(sinfo->statemask);
-+}
-+
-+static void state_save(const void *ip, const struct xt_entry_match *match)
-+{
-+	const struct xt_state_info *sinfo = (const void *)match->data;
-+
-+	printf(" --state ");
-+	state_print_state(sinfo->statemask);
-+}
-+
- static struct xtables_match conntrack_mt_reg[] = {
+ static struct xtables_target ct_target_reg[] = {
  	{
- 		.version       = XTABLES_VERSION,
-@@ -1102,6 +1242,55 @@ static struct xtables_match conntrack_mt_reg[] = {
- 		.save          = conntrack3_mt6_save,
- 		.x6_options    = conntrack3_mt_opts,
+ 		.family		= NFPROTO_UNSPEC,
+@@ -274,6 +288,32 @@ static struct xtables_target ct_target_reg[] = {
+ 		.x6_parse	= ct_parse_v1,
+ 		.x6_options	= ct_opts_v1,
  	},
 +	{
 +		.family        = NFPROTO_UNSPEC,
-+		.name          = "state",
-+		.real_name     = "conntrack",
-+		.revision      = 1,
-+		.version       = XTABLES_VERSION,
-+		.size          = XT_ALIGN(sizeof(struct xt_conntrack_mtinfo1)),
-+		.userspacesize = XT_ALIGN(sizeof(struct xt_conntrack_mtinfo1)),
-+		.help          = state_help,
-+		.x6_parse      = state_ct1_parse,
-+		.x6_options    = state_opts,
-+	},
-+	{
-+		.family        = NFPROTO_UNSPEC,
-+		.name          = "state",
-+		.real_name     = "conntrack",
-+		.revision      = 2,
-+		.version       = XTABLES_VERSION,
-+		.size          = XT_ALIGN(sizeof(struct xt_conntrack_mtinfo2)),
-+		.userspacesize = XT_ALIGN(sizeof(struct xt_conntrack_mtinfo2)),
-+		.help          = state_help,
-+		.x6_parse      = state_ct23_parse,
-+		.x6_options    = state_opts,
-+	},
-+	{
-+		.family        = NFPROTO_UNSPEC,
-+		.name          = "state",
-+		.real_name     = "conntrack",
-+		.revision      = 3,
-+		.version       = XTABLES_VERSION,
-+		.size          = XT_ALIGN(sizeof(struct xt_conntrack_mtinfo3)),
-+		.userspacesize = XT_ALIGN(sizeof(struct xt_conntrack_mtinfo3)),
-+		.help          = state_help,
-+		.x6_parse      = state_ct23_parse,
-+		.x6_options    = state_opts,
-+	},
-+	{
-+		.family        = NFPROTO_UNSPEC,
-+		.name          = "state",
++		.name          = "NOTRACK",
++		.real_name     = "CT",
 +		.revision      = 0,
 +		.version       = XTABLES_VERSION,
-+		.size          = XT_ALIGN(sizeof(struct xt_state_info)),
-+		.userspacesize = XT_ALIGN(sizeof(struct xt_state_info)),
-+		.help          = state_help,
-+		.print         = state_print,
-+		.save          = state_save,
-+		.x6_parse      = state_parse,
-+		.x6_options    = state_opts,
++		.size          = XT_ALIGN(sizeof(struct xt_ct_target_info)),
++		.userspacesize = offsetof(struct xt_ct_target_info, ct),
++		.init          = notrack_ct0_tg_init,
++	},
++	{
++		.family        = NFPROTO_UNSPEC,
++		.name          = "NOTRACK",
++		.real_name     = "CT",
++		.revision      = 1,
++		.version       = XTABLES_VERSION,
++		.size          = XT_ALIGN(sizeof(struct xt_ct_target_info_v1)),
++		.userspacesize = offsetof(struct xt_ct_target_info_v1, ct),
++		.init          = notrack_ct1_tg_init,
++	},
++	{
++		.family        = NFPROTO_UNSPEC,
++		.name          = "NOTRACK",
++		.revision      = 0,
++		.version       = XTABLES_VERSION,
 +	},
  };
  
  void _init(void)
-diff --git a/extensions/libxt_state.c b/extensions/libxt_state.c
+diff --git a/extensions/libxt_NOTRACK.c b/extensions/libxt_NOTRACK.c
 deleted file mode 100644
-index eff444c..0000000
---- a/extensions/libxt_state.c
+index ca58700..0000000
+--- a/extensions/libxt_NOTRACK.c
 +++ /dev/null
-@@ -1,137 +0,0 @@
--#include <stdio.h>
--#include <string.h>
+@@ -1,15 +0,0 @@
+-/* Shared library add-on to iptables to add NOTRACK target support. */
 -#include <xtables.h>
--#include <linux/netfilter/nf_conntrack_common.h>
--#include <linux/netfilter/xt_state.h>
 -
--#ifndef XT_STATE_UNTRACKED
--#define XT_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 1))
--#endif
--
--enum {
--	O_STATE = 0,
--};
--
--static void
--state_help(void)
--{
--	printf(
--"state match options:\n"
--" [!] --state [INVALID|ESTABLISHED|NEW|RELATED|UNTRACKED][,...]\n"
--"				State(s) to match\n");
--}
--
--static const struct xt_option_entry state_opts[] = {
--	{.name = "state", .id = O_STATE, .type = XTTYPE_STRING,
--	 .flags = XTOPT_MAND | XTOPT_INVERT},
--	XTOPT_TABLEEND,
--};
--
--static int
--state_parse_state(const char *state, size_t len, struct xt_state_info *sinfo)
--{
--	if (strncasecmp(state, "INVALID", len) == 0)
--		sinfo->statemask |= XT_STATE_INVALID;
--	else if (strncasecmp(state, "NEW", len) == 0)
--		sinfo->statemask |= XT_STATE_BIT(IP_CT_NEW);
--	else if (strncasecmp(state, "ESTABLISHED", len) == 0)
--		sinfo->statemask |= XT_STATE_BIT(IP_CT_ESTABLISHED);
--	else if (strncasecmp(state, "RELATED", len) == 0)
--		sinfo->statemask |= XT_STATE_BIT(IP_CT_RELATED);
--	else if (strncasecmp(state, "UNTRACKED", len) == 0)
--		sinfo->statemask |= XT_STATE_UNTRACKED;
--	else
--		return 0;
--	return 1;
--}
--
--static void
--state_parse_states(const char *arg, struct xt_state_info *sinfo)
--{
--	const char *comma;
--
--	while ((comma = strchr(arg, ',')) != NULL) {
--		if (comma == arg || !state_parse_state(arg, comma-arg, sinfo))
--			xtables_error(PARAMETER_PROBLEM, "Bad state \"%s\"", arg);
--		arg = comma+1;
--	}
--	if (!*arg)
--		xtables_error(PARAMETER_PROBLEM, "\"--state\" requires a list of "
--					      "states with no spaces, e.g. "
--					      "ESTABLISHED,RELATED");
--	if (strlen(arg) == 0 || !state_parse_state(arg, strlen(arg), sinfo))
--		xtables_error(PARAMETER_PROBLEM, "Bad state \"%s\"", arg);
--}
--
--static void state_parse(struct xt_option_call *cb)
--{
--	struct xt_state_info *sinfo = cb->data;
--
--	xtables_option_parse(cb);
--	state_parse_states(cb->arg, sinfo);
--	if (cb->invert)
--		sinfo->statemask = ~sinfo->statemask;
--}
--
--static void state_print_state(unsigned int statemask)
--{
--	const char *sep = "";
--
--	if (statemask & XT_STATE_INVALID) {
--		printf("%sINVALID", sep);
--		sep = ",";
--	}
--	if (statemask & XT_STATE_BIT(IP_CT_NEW)) {
--		printf("%sNEW", sep);
--		sep = ",";
--	}
--	if (statemask & XT_STATE_BIT(IP_CT_RELATED)) {
--		printf("%sRELATED", sep);
--		sep = ",";
--	}
--	if (statemask & XT_STATE_BIT(IP_CT_ESTABLISHED)) {
--		printf("%sESTABLISHED", sep);
--		sep = ",";
--	}
--	if (statemask & XT_STATE_UNTRACKED) {
--		printf("%sUNTRACKED", sep);
--		sep = ",";
--	}
--}
--
--static void
--state_print(const void *ip,
--      const struct xt_entry_match *match,
--      int numeric)
--{
--	const struct xt_state_info *sinfo = (const void *)match->data;
--
--	printf(" state ");
--	state_print_state(sinfo->statemask);
--}
--
--static void state_save(const void *ip, const struct xt_entry_match *match)
--{
--	const struct xt_state_info *sinfo = (const void *)match->data;
--
--	printf(" --state ");
--	state_print_state(sinfo->statemask);
--}
--
--static struct xtables_match state_match = { 
+-static struct xtables_target notrack_target = {
 -	.family		= NFPROTO_UNSPEC,
--	.name		= "state",
+-	.name		= "NOTRACK",
 -	.version	= XTABLES_VERSION,
--	.size		= XT_ALIGN(sizeof(struct xt_state_info)),
--	.userspacesize	= XT_ALIGN(sizeof(struct xt_state_info)),
--	.help		= state_help,
--	.print		= state_print,
--	.save		= state_save,
--	.x6_parse	= state_parse,
--	.x6_options	= state_opts,
+-	.size		= XT_ALIGN(0),
+-	.userspacesize	= XT_ALIGN(0),
 -};
 -
 -void _init(void)
 -{
--	xtables_register_match(&state_match);
+-	xtables_register_target(&notrack_target);
 -}
 -- 
 1.7.10.4
