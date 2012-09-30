@@ -1,63 +1,107 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 05/17] doc: mention iptables-apply in the SEE ALSO sections
-Date: Sun, 30 Sep 2012 12:22:08 +0200
-Message-ID: <1349000540-17508-6-git-send-email-jengelh@inai.de>
+Subject: [PATCH 08/17] iptables-restore: kill unused -b option
+Date: Sun, 30 Sep 2012 12:22:11 +0200
+Message-ID: <1349000540-17508-9-git-send-email-jengelh@inai.de>
 References: <1349000540-17508-1-git-send-email-jengelh@inai.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:38813 "EHLO seven.medozas.de"
+Received: from ares07.inai.de ([5.9.24.206]:38815 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750843Ab2I3KW1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1750924Ab2I3KW1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Sun, 30 Sep 2012 06:22:27 -0400
 In-Reply-To: <1349000540-17508-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-References: http://bugs.debian.org/660748
+"-b"/"--binary" never ever did anything. Remove it.
+
+References: http://bugs.debian.org/644221
 Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- iptables/ip6tables.8.in   |    1 +
- iptables/iptables-apply.8 |    2 +-
- iptables/iptables.8.in    |    1 +
- 3 files changed, 3 insertions(+), 1 deletion(-)
+ iptables/ip6tables-restore.c |   11 +++--------
+ iptables/iptables-restore.c  |   11 +++--------
+ 2 files changed, 6 insertions(+), 16 deletions(-)
 
-diff --git a/iptables/ip6tables.8.in b/iptables/ip6tables.8.in
-index edd092d..078bcac 100644
---- a/iptables/ip6tables.8.in
-+++ b/iptables/ip6tables.8.in
-@@ -390,6 +390,7 @@ There are several other changes in ip6tables.
- \fBip6tables\-save\fP(8),
- \fBip6tables\-restore\fP(8),
- \fBiptables\fP(8),
-+\fBiptables\-apply\fP(8),
- \fBiptables\-extensions\fP(8),
- \fBiptables\-save\fP(8),
- \fBiptables\-restore\fP(8),
-diff --git a/iptables/iptables-apply.8 b/iptables/iptables-apply.8
-index 8208fd0..66eaf57 100644
---- a/iptables/iptables-apply.8
-+++ b/iptables/iptables-apply.8
-@@ -18,7 +18,7 @@ connection, the user will not be able to answer affirmatively. In this
- case, the script rolls back to the previous ruleset after the timeout
- expired. The timeout can be set with \fB\-t\fP.
- .PP
--When called as ip6tables\-apply, the script will use
-+When called as \fBip6tables\-apply\fP, the script will use
- ip6tables\-save/\-restore instead.
- .SH OPTIONS
- .TP
-diff --git a/iptables/iptables.8.in b/iptables/iptables.8.in
-index 48eb2fa..d6b409d 100644
---- a/iptables/iptables.8.in
-+++ b/iptables/iptables.8.in
-@@ -393,6 +393,7 @@ seen previously.  So the following options are handled differently:
- .fi
- There are several other changes in iptables.
- .SH SEE ALSO
-+\fBiptables\-apply\fP(8),
- \fBiptables\-save\fP(8),
- \fBiptables\-restore\fP(8),
- \fBiptables\-extensions\fP(8),
+diff --git a/iptables/ip6tables-restore.c b/iptables/ip6tables-restore.c
+index 0e8252f..4ddbe46 100644
+--- a/iptables/ip6tables-restore.c
++++ b/iptables/ip6tables-restore.c
+@@ -25,11 +25,10 @@
+ #define DEBUGP(x, args...)
+ #endif
+ 
+-static int binary = 0, counters = 0, verbose = 0, noflush = 0;
++static int counters = 0, verbose = 0, noflush = 0;
+ 
+ /* Keeping track of external matches and targets.  */
+ static const struct option options[] = {
+-	{.name = "binary",   .has_arg = false, .val = 'b'},
+ 	{.name = "counters", .has_arg = false, .val = 'c'},
+ 	{.name = "verbose",  .has_arg = false, .val = 'v'},
+ 	{.name = "test",     .has_arg = false, .val = 't'},
+@@ -44,8 +43,7 @@ static void print_usage(const char *name, const char *version) __attribute__((no
+ 
+ static void print_usage(const char *name, const char *version)
+ {
+-	fprintf(stderr, "Usage: %s [-b] [-c] [-v] [-t] [-h]\n"
+-			"	   [ --binary ]\n"
++	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h]\n"
+ 			"	   [ --counters ]\n"
+ 			"	   [ --verbose ]\n"
+ 			"	   [ --test ]\n"
+@@ -204,11 +202,8 @@ int ip6tables_restore_main(int argc, char *argv[])
+ 	init_extensions6();
+ #endif
+ 
+-	while ((c = getopt_long(argc, argv, "bcvthnM:T:", options, NULL)) != -1) {
++	while ((c = getopt_long(argc, argv, "cvthnM:T:", options, NULL)) != -1) {
+ 		switch (c) {
+-			case 'b':
+-				binary = 1;
+-				break;
+ 			case 'c':
+ 				counters = 1;
+ 				break;
+diff --git a/iptables/iptables-restore.c b/iptables/iptables-restore.c
+index 0822513..af54b6e 100644
+--- a/iptables/iptables-restore.c
++++ b/iptables/iptables-restore.c
+@@ -22,11 +22,10 @@
+ #define DEBUGP(x, args...)
+ #endif
+ 
+-static int binary = 0, counters = 0, verbose = 0, noflush = 0;
++static int counters = 0, verbose = 0, noflush = 0;
+ 
+ /* Keeping track of external matches and targets.  */
+ static const struct option options[] = {
+-	{.name = "binary",   .has_arg = false, .val = 'b'},
+ 	{.name = "counters", .has_arg = false, .val = 'c'},
+ 	{.name = "verbose",  .has_arg = false, .val = 'v'},
+ 	{.name = "test",     .has_arg = false, .val = 't'},
+@@ -43,8 +42,7 @@ static void print_usage(const char *name, const char *version) __attribute__((no
+ 
+ static void print_usage(const char *name, const char *version)
+ {
+-	fprintf(stderr, "Usage: %s [-b] [-c] [-v] [-t] [-h]\n"
+-			"	   [ --binary ]\n"
++	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h]\n"
+ 			"	   [ --counters ]\n"
+ 			"	   [ --verbose ]\n"
+ 			"	   [ --test ]\n"
+@@ -204,11 +202,8 @@ iptables_restore_main(int argc, char *argv[])
+ 	init_extensions4();
+ #endif
+ 
+-	while ((c = getopt_long(argc, argv, "bcvthnM:T:", options, NULL)) != -1) {
++	while ((c = getopt_long(argc, argv, "cvthnM:T:", options, NULL)) != -1) {
+ 		switch (c) {
+-			case 'b':
+-				binary = 1;
+-				break;
+ 			case 'c':
+ 				counters = 1;
+ 				break;
 -- 
 1.7.10.4
 
