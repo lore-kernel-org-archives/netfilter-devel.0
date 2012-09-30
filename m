@@ -1,73 +1,61 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Mostly documentation fixes
-Date: Sun, 30 Sep 2012 23:16:59 +0200
-Message-ID: <20120930211659.GB13681@1984>
-References: <1349000540-17508-1-git-send-email-jengelh@inai.de>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH 06/17] iptables: fix order of internal commands list
+Date: Sun, 30 Sep 2012 23:25:42 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1209302313540.28050@nerf07.vanv.qr>
+References: <1349000540-17508-1-git-send-email-jengelh@inai.de> <1349000540-17508-7-git-send-email-jengelh@inai.de> <20120930210908.GA13681@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56051 "EHLO mail.us.es"
+Received: from ares07.inai.de ([5.9.24.206]:41084 "EHLO seven.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751561Ab2I3VRD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 30 Sep 2012 17:17:03 -0400
-Content-Disposition: inline
-In-Reply-To: <1349000540-17508-1-git-send-email-jengelh@inai.de>
+	id S1751550Ab2I3VZo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 30 Sep 2012 17:25:44 -0400
+In-Reply-To: <20120930210908.GA13681@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Sep 30, 2012 at 12:22:03PM +0200, Jan Engelhardt wrote:
-> 
-> Hi,
-> 
-> 
-> It was that time of the year again to process reports from the
-> Debian bug tracking system. :)
-> 
-> ===
-> The following changes since commit 0d701631625898ac33fb53c67ed2b529668fe0d7:
-> 
->   libxt_state: replace as an alias to xt_conntrack (2012-09-30 11:21:25 +0200)
-> 
-> are available in the git repository at:
-> 
->   git://git.inai.de/iptables master
-> 
-> for you to fetch changes up to 6cf011116fc4752cde75eabe3b1b3f2a93ae27bd:
-> 
->   src: remove faulty deprecated marker in libipt_LOG source (2012-09-30 12:17:31 +0200)
 
-All patches but:
+On Sunday 2012-09-30 23:09, Pablo Neira Ayuso wrote:
+>On Sun, Sep 30, 2012 at 12:22:09PM +0200, Jan Engelhardt wrote:
+>> Specifying -S on the command line would add 4096 (0x1000, 1<<12) to the
+>> cmd flags, but -S was in fact commands_v_options[13]. This led to a
+>> bogus option checking and an error message:
+>> 
+>> $ iptables -A foo -S
+>> iptables v1.4.14: Cannot use -E with -A
+>
+>Are you fixing old bugs?
+>This works here:
+># iptables -A foo -S
+>iptables v1.4.15: Cannot use -S with -A
 
-iptables: fix order of internal commands list
+Hm.
 
-look fine to me. For iptables-restore: kill unused -b option I'd be
-more conservative, ie. spotting a warning to say that the option is
-meaningless (so we make sure we don't break stupid scripts).
+>http://git.netfilter.org/[...]h=067a9baf6dc82babe466078ab3c05354c7741271
 
-Apart from that, all OK. Please feel free to add:
+You only changed the "cmdflags" variable so that it lines up with
+the CMD_ flags, however, you forgot to line up "commands_v_options"
+as well.
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Indeed your patch 067a9baf fixes "cannot use $that with $that".
+My commit message was wrong, as I was misled by v1.4.14 behavior.
+In fact, I had the real issue written down first. Approximate
+excerpt from the reflog:
 
-Thanks for your updates Jan.
 
-> ----------------------------------------------------------------
-> Jan Engelhardt (17):
->       doc: clean up interpunction in state list for xt_conntrack
->       doc: deduplicate extension descriptions into a new manpage
->       doc: trim "state" manpage and reference conntrack instead
->       doc: have NOTRACK manpage point to CT instead
->       doc: mention iptables-apply in the SEE ALSO sections
->       iptables: fix order of internal commands list
->       iptables: implement --line-numbers for iptables -S
->       iptables-restore: kill unused -b option
->       doc: rename .8.in files to .8in
->       doc: add package version to all manpages
->       doc: fixup omissions in ip6tables-restore.8
->       doc: document iptables-restore's -t option
->       doc: document iptables-restore's -v option
->       doc: document iptables-restore's -M option
->       doc: document iptables-restore's -h option
->       doc: name the supported log levels for ipt_LOG
->       src: remove faulty deprecated marker in libipt_LOG source
+    iptables: fix order of command flags for option parser
+    
+    Specifying -S on the command line would add 4096 (0x1000, 1<<12) to the
+    cmd flags, but -S was in fact commands_v_options[13].
+    
+    This problem never manifested itself before, because the [8]-[13] mostly
+    had the same 'x' pattern. Now, when trying to allow --line-numbers for
+    -S, the issue showed itself as --line-numbers was still rejected even
+    after swapping 'x' for ' '.
+    
+    References: http://bugs.debian.org/642173
+
+
+Does that make more sense?
