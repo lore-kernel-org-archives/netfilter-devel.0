@@ -1,66 +1,33 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: [PATCH] Fix userspace compilation of ip_tables.h/ip6_tables.h in
- C++ mode
-Date: Sun, 30 Sep 2012 22:49:11 -0600
-Message-ID: <20121001044911.GB8446@obsidianresearch.com>
+From: "Mrs. Maria Bristow" <no-reply@mx2.4shared.com>
+Subject: RE: Please am dying of breast cancer !!!
+Date: Mon, 01 Oct 2012 14:36:26 +0200
+Message-ID: <201210011240.q91CeJuC016570@srv1.iexpress.com.br>
+Reply-To: maria.bristow@1email.eu
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: Recipients <no-reply@mx2.4shared.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from quartz.orcorp.ca ([184.70.90.242]:54576 "EHLO quartz.orcorp.ca"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750738Ab2JAFSt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Oct 2012 01:18:49 -0400
-Received: from jgg by quartz.orcorp.ca with local (Exim 4.72)
-	(envelope-from <jgunthorpe@obsidianresearch.com>)
-	id 1TIXwN-0002HU-GX
-	for netfilter-devel@vger.kernel.org; Sun, 30 Sep 2012 22:49:11 -0600
-Content-Disposition: inline
+Received: from c906f44f.static.virtua.com.br ([201.6.244.79]:48366 "EHLO
+	srv1.iexpress.com.br" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752113Ab2JAMiY convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Oct 2012 08:38:24 -0400
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The implicit cast from void * is not allowed for C++ compilers, and the
-arithmetic on void * generates warnings in C++ mode.
+Hello,
 
-$ g++ -c t.cc
-ip_tables.h:221:24: warning: pointer of type 'void *' used in arithmetic
-ip_tables.h:221:24: error: invalid conversion from 'void*' to 'xt_entry_target*'
+Am dying of breast cancer and I need your assistance to help me carry o=
+ut my dream charity work with my funds =E2=82=AC2.8M Euros with a Secur=
+ity firm, if you are interested please reach me for more details on thi=
+s email: maria.bristow@1email.eu
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
----
- include/linux/netfilter_ipv4/ip_tables.h  |    2 +-
- include/linux/netfilter_ipv6/ip6_tables.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-Repost to the correct list, FWIW, scripts/get_maintainer.pl does not
-give good advice for these files ;)
-
-diff --git a/include/linux/netfilter_ipv4/ip_tables.h b/include/linux/netfilter_ipv4/ip_tables.h
-index db79231..050ad8a 100644
---- a/include/linux/netfilter_ipv4/ip_tables.h
-+++ b/include/linux/netfilter_ipv4/ip_tables.h
-@@ -226,7 +226,7 @@ struct ipt_get_entries {
- static __inline__ struct xt_entry_target *
- ipt_get_target(struct ipt_entry *e)
- {
--	return (void *)e + e->target_offset;
-+	return (struct xt_entry_target *)((__u8 *)e + e->target_offset);
- }
- 
- /*
-diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
-index 08c2cbb..3349bf1 100644
---- a/include/linux/netfilter_ipv6/ip6_tables.h
-+++ b/include/linux/netfilter_ipv6/ip6_tables.h
-@@ -263,7 +263,7 @@ struct ip6t_get_entries {
- static __inline__ struct xt_entry_target *
- ip6t_get_target(struct ip6t_entry *e)
- {
--	return (void *)e + e->target_offset;
-+	return (struct xt_entry_target *)((__u8 *)e + e->target_offset);
- }
- 
- /*
--- 
-1.7.4.1
-
+Yours Sincerely,
+Mrs. Maria Bristow
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
