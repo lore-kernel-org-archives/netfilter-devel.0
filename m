@@ -1,48 +1,44 @@
-From: Ed W <lists@wildgooses.com>
-Subject: How to access conntrack connection expiration in a netfilter module?
-Date: Mon, 01 Oct 2012 22:17:02 +0100
-Message-ID: <506A084E.5060505@wildgooses.com>
+From: Cong Wang <amwang@redhat.com>
+Subject: Re: Increasing XT_EXTENSION_MAXNAMELEN to 32
+Date: Tue, 02 Oct 2012 12:21:33 +0800
+Message-ID: <1349151693.22107.10.camel@cr0>
+References: <1348934029.10238.15.camel@cr0>
+	 <alpine.LNX.2.01.1209291844490.19330@nerf07.vanv.qr>
+	 <20120929184716.GA4050@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Cc: Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail1.nippynetworks.com ([91.220.24.129]:46510 "EHLO
-	mail1.nippynetworks.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757467Ab2JAVRD (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Oct 2012 17:17:03 -0400
-Received: from localhost (mail1.nippynetworks.com [127.0.0.1])
-	by mail1.nippynetworks.com (Postfix) with ESMTP id 105CD340338
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Oct 2012 22:17:02 +0100 (BST)
-Received: from mail1.nippynetworks.com ([127.0.0.1])
-	by localhost (mail1.nippynetworks.com [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id UdFM31f28M5i for <netfilter-devel@vger.kernel.org>;
-	Mon,  1 Oct 2012 22:17:01 +0100 (BST)
-Received: from eds-macbook-pro.nippynetworks.local (unknown [212.69.38.73])
-	(Authenticated sender: edward@wildgooses.com)
-	by mail1.nippynetworks.com (Postfix) with ESMTPSA id C7BB2340305
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Oct 2012 22:17:01 +0100 (BST)
+Received: from mx1.redhat.com ([209.132.183.28]:15899 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751153Ab2JBEVy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Oct 2012 00:21:54 -0400
+In-Reply-To: <20120929184716.GA4050@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi, I'm trying to update the opendpi-netfilter module to work with more 
-recent kernels and the ntop ndpi fork of the code (now that opendpi 
-seems to have gone away)
+On Sat, 2012-09-29 at 20:47 +0200, Pablo Neira Ayuso wrote:
+> On Sat, Sep 29, 2012 at 06:46:22PM +0200, Jan Engelhardt wrote:
+> > On Saturday 2012-09-29 17:53, Cong Wang wrote:
+> > 
+> > >Hi, netfilter experts,
+> > >
+> > >A customer wants to increase XT_EXTENSION_MAXNAMELEN to at least 31 (1
+> > >for '\0'), so I just increase it to 32. Do you have any comments or
+> > >objections for the following patch?
+> > 
+> > This is a no-no. You are breaking the ABI.
+> 
+> Agreed. Sorry Cong, you cannot do that.
 
-The netfilter module registers a conntrack notifier in order to release 
-resources once a conntrack is destroyed
-https://github.com/ewildgoose/ndpi-netfilter/blob/master/src/main.c
-This is not possible though, if you also want to have conntrack events 
-through netlink... ( NF_CT_NETLINK grabs the conntrack notifier first)
+Ok, no problem.
 
-Now I have read the history on why this is the case, but what are the 
-obvious workarounds to this situation?  Can we extend the conntrack 
-connection with custom properties? Anything better than simply scanning 
-my flows occasionally and comparing with the conntrack list to see if 
-they have gone away?
+I knew this could break user-space iptables, so there must be some other
+applications relying on this ABI too, hmm... I will tell the customer
+this is not possible to change.
 
-Thanks for any thoughts
-
-Ed W
+Thanks!
 
