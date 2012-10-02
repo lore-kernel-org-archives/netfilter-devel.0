@@ -1,59 +1,67 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: [RFC PATCH] includes: add definitions of nfnl_tables
-Date: Tue,  2 Oct 2012 15:07:12 +0200
-Message-ID: <1349183232-4212-1-git-send-email-nicolas.dichtel@6wind.com>
-References: <1349183171-4136-2-git-send-email-nicolas.dichtel@6wind.com>
-Cc: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+From: Ed W <lists@wildgooses.com>
+Subject: Re: How to access conntrack connection expiration in a netfilter
+ module?
+Date: Tue, 02 Oct 2012 18:02:37 +0100
+Message-ID: <506B1E2D.3090501@wildgooses.com>
+References: <506A084E.5060505@wildgooses.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 33.106-14-84.ripe.coltfrance.com ([84.14.106.33]:39285 "EHLO
-	proxy.6wind.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753314Ab2JBNCh (ORCPT
+Received: from mail1.nippynetworks.com ([91.220.24.129]:47028 "EHLO
+	mail1.nippynetworks.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752897Ab2JBRCi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Oct 2012 09:02:37 -0400
-In-Reply-To: <1349183171-4136-2-git-send-email-nicolas.dichtel@6wind.com>
+	Tue, 2 Oct 2012 13:02:38 -0400
+Received: from localhost (mail1.nippynetworks.com [127.0.0.1])
+	by mail1.nippynetworks.com (Postfix) with ESMTP id 2D7C73404C7
+	for <netfilter-devel@vger.kernel.org>; Tue,  2 Oct 2012 18:02:37 +0100 (BST)
+Received: from mail1.nippynetworks.com ([127.0.0.1])
+	by localhost (mail1.nippynetworks.com [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id zZLccL7zViCT for <netfilter-devel@vger.kernel.org>;
+	Tue,  2 Oct 2012 18:02:37 +0100 (BST)
+Received: from eds-macbook-pro.nippynetworks.local (unknown [212.69.38.73])
+	(Authenticated sender: edward@wildgooses.com)
+	by mail1.nippynetworks.com (Postfix) with ESMTPSA id E81A33404C6
+	for <netfilter-devel@vger.kernel.org>; Tue,  2 Oct 2012 18:02:36 +0100 (BST)
+In-Reply-To: <506A084E.5060505@wildgooses.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
----
- include/libnfnetlink/linux_nfnetlink.h        | 3 +++
- include/libnfnetlink/linux_nfnetlink_compat.h | 1 +
- 2 files changed, 4 insertions(+)
+Go on... I'm sure someone wants to have a stab at educating this twit on 
+ways a netfilter module could do housekeeping and cleanup it's internal 
+state when conntrack connections are destroyed (emphasis being on how to 
+discover they have been destroyed in some timely manner?)
 
-diff --git a/include/libnfnetlink/linux_nfnetlink.h b/include/libnfnetlink/linux_nfnetlink.h
-index 76a8550..82785d9 100644
---- a/include/libnfnetlink/linux_nfnetlink.h
-+++ b/include/libnfnetlink/linux_nfnetlink.h
-@@ -18,6 +18,8 @@ enum nfnetlink_groups {
- #define NFNLGRP_CONNTRACK_EXP_UPDATE	NFNLGRP_CONNTRACK_EXP_UPDATE
- 	NFNLGRP_CONNTRACK_EXP_DESTROY,
- #define NFNLGRP_CONNTRACK_EXP_DESTROY	NFNLGRP_CONNTRACK_EXP_DESTROY
-+	NFNLGRP_TABLES,
-+#define NFNLGRP_TABLES			NFNLGRP_TABLES
- 	__NFNLGRP_MAX,
- };
- #define NFNLGRP_MAX	(__NFNLGRP_MAX - 1)
-@@ -47,6 +49,7 @@ struct nfgenmsg {
- #define NFNL_SUBSYS_QUEUE		3
- #define NFNL_SUBSYS_ULOG		4
- #define NFNL_SUBSYS_COUNT		5
-+#define NFNL_SUBSYS_TABLES		10
- 
- #ifdef __KERNEL__
- 
-diff --git a/include/libnfnetlink/linux_nfnetlink_compat.h b/include/libnfnetlink/linux_nfnetlink_compat.h
-index e145176..2546e01 100644
---- a/include/libnfnetlink/linux_nfnetlink_compat.h
-+++ b/include/libnfnetlink/linux_nfnetlink_compat.h
-@@ -10,6 +10,7 @@
- #define NF_NETLINK_CONNTRACK_EXP_NEW		0x00000008
- #define NF_NETLINK_CONNTRACK_EXP_UPDATE		0x00000010
- #define NF_NETLINK_CONNTRACK_EXP_DESTROY	0x00000020
-+#define NF_NETLINK_TABLES			0x00000040
- 
- /* Generic structure for encapsulation optional netfilter information.
-  * It is reminiscent of sockaddr, but with sa_family replaced
--- 
-1.7.12
+Thanks
+
+Ed W
+
+On 01/10/2012 22:17, Ed W wrote:
+> Hi, I'm trying to update the opendpi-netfilter module to work with 
+> more recent kernels and the ntop ndpi fork of the code (now that 
+> opendpi seems to have gone away)
+>
+> The netfilter module registers a conntrack notifier in order to 
+> release resources once a conntrack is destroyed
+> https://github.com/ewildgoose/ndpi-netfilter/blob/master/src/main.c
+> This is not possible though, if you also want to have conntrack events 
+> through netlink... ( NF_CT_NETLINK grabs the conntrack notifier first)
+>
+> Now I have read the history on why this is the case, but what are the 
+> obvious workarounds to this situation?  Can we extend the conntrack 
+> connection with custom properties? Anything better than simply 
+> scanning my flows occasionally and comparing with the conntrack list 
+> to see if they have gone away?
+>
+> Thanks for any thoughts
+>
+> Ed W
+>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe 
+> netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
