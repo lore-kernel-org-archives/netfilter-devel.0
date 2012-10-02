@@ -1,44 +1,33 @@
-From: Cong Wang <amwang@redhat.com>
-Subject: Re: Increasing XT_EXTENSION_MAXNAMELEN to 32
-Date: Tue, 02 Oct 2012 12:21:33 +0800
-Message-ID: <1349151693.22107.10.camel@cr0>
-References: <1348934029.10238.15.camel@cr0>
-	 <alpine.LNX.2.01.1209291844490.19330@nerf07.vanv.qr>
-	 <20120929184716.GA4050@1984>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org,
-	Patrick McHardy <kaber@trash.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: [RFC PATCH 0/1] xtables: allow to monitor table update event
+Date: Tue,  2 Oct 2012 15:06:10 +0200
+Message-ID: <1349183171-4136-1-git-send-email-nicolas.dichtel@6wind.com>
+References: <1348501182-12470-1-git-send-email-nicolas.dichtel@6wind.com>
+To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:15899 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751153Ab2JBEVy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Oct 2012 00:21:54 -0400
-In-Reply-To: <20120929184716.GA4050@1984>
+Received: from 33.106-14-84.ripe.coltfrance.com ([84.14.106.33]:39276 "EHLO
+	proxy.6wind.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751158Ab2JBNBl (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Oct 2012 09:01:41 -0400
+In-Reply-To: <1348501182-12470-1-git-send-email-nicolas.dichtel@6wind.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 2012-09-29 at 20:47 +0200, Pablo Neira Ayuso wrote:
-> On Sat, Sep 29, 2012 at 06:46:22PM +0200, Jan Engelhardt wrote:
-> > On Saturday 2012-09-29 17:53, Cong Wang wrote:
-> > 
-> > >Hi, netfilter experts,
-> > >
-> > >A customer wants to increase XT_EXTENSION_MAXNAMELEN to at least 31 (1
-> > >for '\0'), so I just increase it to 32. Do you have any comments or
-> > >objections for the following patch?
-> > 
-> > This is a no-no. You are breaking the ABI.
-> 
-> Agreed. Sorry Cong, you cannot do that.
+The following patch is an example of a userspace tools (in fact, iptables)
+that use the new netlink API to monitor tables activity.
 
-Ok, no problem.
+I will also send a patch against libnfnetlink to update linux includes with
+this new feature.
 
-I knew this could break user-space iptables, so there must be some other
-applications relying on this ABI too, hmm... I will tell the customer
-this is not possible to change.
+Maybe another API can be used for this feature: adding a setsockopt() on an
+iptc socket to enable monitoring. When a table is updated, a packet (built with
+CMSG_* macro for example) can be sent over all sockets that monitor tables
+acitivity (like km sockets in IPsec). I know that this socket was used only with
+[g|s]etsockopt(), but this can avoid adding another netlink API.
 
-Thanks!
+Comments are welcome.
+
+Regards,
+Nicolas
 
