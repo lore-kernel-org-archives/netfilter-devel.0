@@ -1,146 +1,177 @@
-From: "Gutholm, James" <gutholmj@evergreen.edu>
-Subject: Conntrackd Segmentation fault due to nfexp_get_attr returning NULL
-Date: Wed, 3 Oct 2012 18:52:08 +0000
-Message-ID: <3E070A3A9446DB43B8A316366DBEABBE1F26A591@palm.evergreen.edu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Conntrackd Segmentation fault due to nfexp_get_attr returning
+ NULL
+Date: Wed, 3 Oct 2012 22:33:38 +0200
+Message-ID: <20121003203338.GA10154@1984>
+References: <3E070A3A9446DB43B8A316366DBEABBE1F26A591@palm.evergreen.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="vtzGhvizbBRQ85DL"
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "Gutholm, James" <gutholmj@evergreen.edu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from abalone.evergreen.edu ([192.211.16.10]:64483 "EHLO
-	abalone.evergreen.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750870Ab2JCTBl convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Oct 2012 15:01:41 -0400
-Content-Language: en-US
-Content-ID: <CC9CDA26E87F9C4DB5386915ACC30F15@evergreen.edu>
+Received: from mail.us.es ([193.147.175.20]:38978 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753485Ab2JCUdp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Oct 2012 16:33:45 -0400
+Content-Disposition: inline
+In-Reply-To: <3E070A3A9446DB43B8A316366DBEABBE1F26A591@palm.evergreen.edu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-Under heavy load conntrackd is crashing. Running under gdb I was able to determine that the crashes are caused by an unchecked null pointer returned by nfexp_get_attr in both exp_filter_find() in filter.c and exp_build_str() in build.c
+--vtzGhvizbBRQ85DL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This only happens when expectation sync is being used. Setting "ExpectationSync Off" in conntrackd.conf stops the crashes.
+On Wed, Oct 03, 2012 at 06:52:08PM +0000, Gutholm, James wrote:
+> 
+> Under heavy load conntrackd is crashing. Running under gdb I was able to determine that the crashes are caused by an unchecked null pointer returned by nfexp_get_attr in both exp_filter_find() in filter.c and exp_build_str() in build.c
+> i
+> This only happens when expectation sync is being used. Setting "ExpectationSync Off" in conntrackd.conf stops the crashes.
+> 
+> I coded in a couple of checks on the pointer returned which at least stop the errors. I've included the changes as diffs and also the gdb output in case it is helpful. If there's something else I can provide, I'm happy to help but this might be pushing the limit of my expertise.
+> 
+> James
+> 
+> This is on RHEL6 (2.6.32-300.32.2.el6uek.x86_64) with conntrack-tool built from source.
 
-I coded in a couple of checks on the pointer returned which at least stop the errors. I've included the changes as diffs and also the gdb output in case it is helpful. If there's something else I can provide, I'm happy to help but this might be pushing the limit of my expertise.
+I see, I forgot to document that Linux kernel >= 3.5 to get
+ExpectationSync working flawlessly is required.
 
-James
+I have attached the following patch. It fixes the crash, and document
+this accordingly but you still will have to upgrade your kernel if you
+want expectation synchronization.
 
-This is on RHEL6 (2.6.32-300.32.2.el6uek.x86_64) with conntrack-tool built from source.
+BTW, thanks a lot for the report, really accurate.
 
-Conntrack-tools versions
-conntrack-tools-1.2.2
-libnetfilter_conntrack-1.0.1
-libnetfilter_cttimeout-1.0.0
-libnfnetlink-1.0.0
+I'd appreciate if you give it a test, just to make sure we don't crash
+anymore, even if you will not get the expectsync feature working
+correctly in all possible scenarios.
 
-Diffs of the NULL pointer check code I added.
-$ diff conntrack-tools-1.2.2/src/build.c conntrack-tools-1.2.2-mod/src/build.c
-19a20,22
-> #include <stdio.h>
-> #include <stdlib.h>
-> #include <errno.h>
-23a27
-> #include "log.h"
-287c291,296
-< 	addattr(n, b, data, strlen(data)+1);
+--vtzGhvizbBRQ85DL
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0001-conntrackd-fix-crash-if-ExpectationSync-is-enabled-o.patch"
+
+>From 597d10a74acbb17bba5db48ca71c3a76ce2d9305 Mon Sep 17 00:00:00 2001
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Wed, 3 Oct 2012 22:19:25 +0200
+Subject: [PATCH] conntrackd: fix crash if ExpectationSync is enabled on old
+ Linux kernels
+
+ExpectationSync requires Linux kernel >= 3.5 to work sanely, document this.
+Still, we don't want to crash if someone enables expectation sync with
+old Linux kernels (like 2.6.32).
+
+Reported-by: James Gutholm <gutholmj@evergreen.edu>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-> 	if (data != NULL) {
-> 		addattr(n, b, data, strlen(data)+1);
-> 	} else {
-> 		dlog(LOG_ERR, "nfexp_get_attr returned NULL pointer in exp_build_str in build.c: %s", 
-> 			strerror(errno));
-> 	}
+ doc/manual/conntrack-tools.tmpl  |    7 +++++++
+ doc/sync/alarm/conntrackd.conf   |    3 ++-
+ doc/sync/ftfw/conntrackd.conf    |    3 ++-
+ doc/sync/notrack/conntrackd.conf |    3 ++-
+ src/build.c                      |    3 ++-
+ src/filter.c                     |   12 +++++++++++-
+ 6 files changed, 26 insertions(+), 5 deletions(-)
+
+diff --git a/doc/manual/conntrack-tools.tmpl b/doc/manual/conntrack-tools.tmpl
+index 47e6f84..63a53e4 100644
+--- a/doc/manual/conntrack-tools.tmpl
++++ b/doc/manual/conntrack-tools.tmpl
+@@ -660,6 +660,13 @@ Sync {
+ 
+ <sect3 id="sync-expect"><title>Synchronization of expectations</title>
+ 
++   <note><title>Check your Linux kernel version first</title>
++    <para>
++     The synchronization of expectations require a Linux kernel &gt;= 3.5
++     to work appropriately.
++    </para>
++   </note>
++
+  <para>The connection tracking system provides helpers that allows you to
+  filter multi-flow application protocols like FTP, H.323 and SIP among many
+  others. These protocols usually split the control and data traffic in
+diff --git a/doc/sync/alarm/conntrackd.conf b/doc/sync/alarm/conntrackd.conf
+index b9520fb..0223745 100644
+--- a/doc/sync/alarm/conntrackd.conf
++++ b/doc/sync/alarm/conntrackd.conf
+@@ -194,7 +194,8 @@ Sync {
+ 
+ 		# Set this option on if you want to enable the synchronization
+ 		# of expectations. You have to specify the list of helpers that
+-		# you want to enable. Default is off.
++		# you want to enable. Default is off. This feature requires
++		# a Linux kernel >= 3.5.
+ 		#
+ 		# ExpectationSync {
+ 		#       ftp
+diff --git a/doc/sync/ftfw/conntrackd.conf b/doc/sync/ftfw/conntrackd.conf
+index 53a7d0f..65e7b77 100644
+--- a/doc/sync/ftfw/conntrackd.conf
++++ b/doc/sync/ftfw/conntrackd.conf
+@@ -217,7 +217,8 @@ Sync {
+ 
+ 		# Set this option on if you want to enable the synchronization
+ 		# of expectations. You have to specify the list of helpers that
+-		# you want to enable. Default is off.
++		# you want to enable. Default is off. This feature requires
++		# a Linux kernel >= 3.5.
+ 		#
+ 		# ExpectationSync {
+ 		#	ftp
+diff --git a/doc/sync/notrack/conntrackd.conf b/doc/sync/notrack/conntrackd.conf
+index 11f022e..3d036fb 100644
+--- a/doc/sync/notrack/conntrackd.conf
++++ b/doc/sync/notrack/conntrackd.conf
+@@ -256,7 +256,8 @@ Sync {
+ 
+ 		# Set this option on if you want to enable the synchronization
+ 		# of expectations. You have to specify the list of helpers that
+-		# you want to enable. Default is off.
++		# you want to enable. Default is off. This feature requires
++		# a Linux kernel >= 3.5.
+ 		#
+ 		# ExpectationSync {
+ 		#       ftp
+diff --git a/src/build.c b/src/build.c
+index 7d4ef12..e15eb4f 100644
+--- a/src/build.c
++++ b/src/build.c
+@@ -356,7 +356,8 @@ void exp2msg(const struct nf_expect *exp, struct nethdr *n)
+ 
+ 		exp_build_u32(exp, ATTR_EXP_NAT_DIR, n, NTA_EXP_NAT_DIR);
+ 	}
+-	exp_build_str(exp, ATTR_EXP_HELPER_NAME, n, NTA_EXP_HELPER_NAME);
++	if (nfexp_attr_is_set(exp, ATTR_EXP_HELPER_NAME))
++		exp_build_str(exp, ATTR_EXP_HELPER_NAME, n, NTA_EXP_HELPER_NAME);
+ 	if (nfexp_attr_is_set(exp, ATTR_EXP_FN))
+ 		exp_build_str(exp, ATTR_EXP_FN, n, NTA_EXP_FN);
+ }
+diff --git a/src/filter.c b/src/filter.c
+index 39dd4ca..02a8078 100644
+--- a/src/filter.c
++++ b/src/filter.c
+@@ -473,7 +473,17 @@ int exp_filter_find(struct exp_filter *f, const struct nf_expect *exp)
+ 		return 1;
+ 
+ 	list_for_each_entry(item, &f->list, head) {
+-		const char *name = nfexp_get_attr(exp, ATTR_EXP_HELPER_NAME);
++		const char *name;
++
++		if (nfexp_attr_is_set(exp, ATTR_EXP_HELPER_NAME))
++			name = nfexp_get_attr(exp, ATTR_EXP_HELPER_NAME);
++		else {
++			/* No helper name, this is likely to be a kernel older
++			 * which does not include the helper name, just skip
++			 * this so we don't crash.
++			 */
++			return 0;
++		}
+ 
+ 		/* we allow partial matching to support things like sip-PORT. */
+ 		if (strncasecmp(item->helper_name, name,
+-- 
+1.7.10.4
 
 
-$ diff conntrack-tools-1.2.2/src/filter.c conntrack-tools-1.2.2-mod/src/filter.c
-477,479c477,479
-< 
-< 		/* we allow partial matching to support things like sip-PORT. */
-< 		if (strncasecmp(item->helper_name, name,
----
-> 		if (name != NULL) {
-> 			/* we allow partial matching to support things like sip-PORT. */
-> 			if (strncasecmp(item->helper_name, name,
-481c481,485
-< 			return 1;
----
-> 				return 1;
-> 			}
-> 		} else {
-> 			dlog(LOG_ERR, "nfexp_get_attr returned NULL pointer in exp_filter_find in filter.c: %s",
-> 				strerror(errno));
-
-(gdb) run
-Starting program: /usr/local/sbin/conntrackd -C /etc/conntrackd/conntrackd.conf
-
-Program received signal SIGSEGV, Segmentation fault.
-__strlen_sse2 () at ../sysdeps/x86_64/strlen.S:32
-32		movdqu	(%rdi), %xmm1
-(gdb) backtrace
-#0  __strlen_sse2 () at ../sysdeps/x86_64/strlen.S:32
-#1  0x000000000040eec7 in exp_build_str (exp=0x6f0140, n=0x637020) at build.c:287
-#2  exp2msg (exp=0x6f0140, n=0x637020) at build.c:359
-#3  0x000000000040b13e in cache_exp_build_msg (obj=0x1b93810, type=3) at cache-exp.c:283
-#4  0x000000000040d0e3 in tx_queue_xmit (n=0x1b93848, data=<value optimized out>) at sync-ftfw.c:521
-#5  0x00000000004059cd in queue_iterate (b=0x658cc0, data=0x0, iterate=0x40d0b0 <tx_queue_xmit>) at queue.c:179
-#6  0x000000000040cfcb in ftfw_xmit () at sync-ftfw.c:545
-#7  0x000000000040c762 in run_sync (readfds=0x7fffffffd330) at sync-mode.c:439
-#8  0x0000000000404601 in run_events (next_alarm=<value optimized out>) at run.c:710
-#9  0x00000000004042a1 in do_run (run_step=0x4044b0 <run_events>) at run.c:763
-#10 0x000000000040430a in run () at run.c:772
-#11 0x00000000004039dd in main (argc=3, argv=0x7fffffffe6f8) at main.c:409
-(gdb) frame 1
-#1  0x000000000040eec7 in exp_build_str (exp=0x6f0140, n=0x637020) at build.c:287
-287		addattr(n, b, data, strlen(data)+1);
-(gdb) info frame
-Stack level 1, frame at 0x7fffffffd240:
- rip = 0x40eec7 in exp_build_str (build.c:287); saved rip 0x40b13e
- inlined into frame 2, caller of frame at 0x7fffffffd200
- source language c.
- Arglist at unknown address.
- Locals at unknown address, Previous frame's sp is 0x7fffffffd200
- Saved registers:
-  rip at 0x7fffffffd1f8
-(gdb) info locals
-data = 0x0
-(gdb) 
-
-
-
-(gdb) run
-Starting program: /usr/local/sbin/conntrackd -C /etc/conntrackd/conntrackd.conf
-
-Program received signal SIGSEGV, Segmentation fault.
-__strncasecmp_l_ssse3 () at ../sysdeps/x86_64/strcmp.S:214
-214		movlpd	(%rsi), %xmm2
-(gdb) backtrace
-#0  __strncasecmp_l_ssse3 () at ../sysdeps/x86_64/strcmp.S:214
-#1  0x0000000000408772 in exp_filter_find (f=0x654350, exp=0x808f10) at filter.c:479
-#2  0x0000000000405044 in exp_event_handler (nlh=0x7fffffffb2d0, type=NFCT_T_NEW, exp=0x808f10, data=<value optimized out>)
-    at run.c:363
-#3  0x00007ffff7bcc0be in __callback (nlh=0x7fffffffb2d0, nfa=<value optimized out>, data=0x15fb800) at callback.c:75
-#4  0x00007ffff79c3288 in nfnl_step (h=<value optimized out>, nlh=0x7fffffffb2d0) at libnfnetlink.c:1345
-#5  0x00007ffff79c33ff in nfnl_process (h=0x15fb410, buf=<value optimized out>, len=192) at libnfnetlink.c:1390
-#6  0x00007ffff79c4436 in nfnl_catch (h=0x15fb410) at libnfnetlink.c:1544
-#7  0x000000000040468c in run_events (next_alarm=<value optimized out>) at run.c:646
-#8  0x00000000004042a1 in do_run (run_step=0x4044b0 <run_events>) at run.c:763
-#9  0x000000000040430a in run () at run.c:772
-#10 0x00000000004039dd in main (argc=3, argv=0x7fffffffe6d8) at main.c:409
-(gdb) frame 1
-#1  0x0000000000408772 in exp_filter_find (f=0x654350, exp=0x808f10) at filter.c:479
-479			if (strncasecmp(item->helper_name, name,
-(gdb) info frame
-Stack level 1, frame at 0x7fffffffb190:
- rip = 0x408772 in exp_filter_find (filter.c:479); saved rip 0x405044
- called by frame at 0x7fffffffb1c0, caller of frame at 0x7fffffffb160
- source language c.
- Arglist at 0x7fffffffb158, args: f=0x654350, exp=0x808f10
- Locals at 0x7fffffffb158, Previous frame's sp is 0x7fffffffb190
- Saved registers:
-  rbx at 0x7fffffffb160, rbp at 0x7fffffffb168, r12 at 0x7fffffffb170, r13 at 0x7fffffffb178, r14 at 0x7fffffffb180,
-  rip at 0x7fffffffb188
-(gdb) info locals
-name = 0x0
-item = 0x6544b0
-(gdb) 
+--vtzGhvizbBRQ85DL--
