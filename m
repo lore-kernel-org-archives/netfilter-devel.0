@@ -1,30 +1,45 @@
-From: =?ISO-8859-1?Q?Miguel_Alejandro_Gonz=E1lez?= <maggonzz@gmail.com>
-Subject: kernel panic in icmp_error
-Date: Wed, 3 Oct 2012 17:22:53 -0500
-Message-ID: <CA+Z0r8NcZwtwk+GG-fKpwRMnLphpXSqpa0h1A=jJ_At7Remb_g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:52199 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754475Ab2JCWXY (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Oct 2012 18:23:24 -0400
-Received: by padhz1 with SMTP id hz1so6789244pad.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 03 Oct 2012 15:23:24 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: [patch v3 02/11] inet_diag: pass inet_diag module to netlink_dump_start
+Date: Thu, 4 Oct 2012 12:41:20 +0800
+Message-ID: <1349325689-16104-2-git-send-email-gaofeng@cn.fujitsu.com>
+References: <1349325689-16104-1-git-send-email-gaofeng@cn.fujitsu.com>
+Cc: netfilter-devel@vger.kernel.org, linux-rdma@vger.kernel.org,
+	netdev@vger.kernel.org, linux-crypto@vger.kernel.org,
+	pablo@netfilter.org, stephen.hemminger@vyatta.com, jengelh@inai.de,
+	Gao feng <gaofeng@cn.fujitsu.com>
+To: davem@davemloft.net, eric.dumazet@gmail.com,
+	steffen.klassert@secunet.com
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <1349325689-16104-1-git-send-email-gaofeng@cn.fujitsu.com>
+Sender: linux-crypto-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello
+set netlink_dump_control.module to avoid panic.
 
-I'm making a Netfilter module that depends on conntrack, it has come
-to my attention that a kernel panic occurs when a ICMP error packet
-embedded inside another ICMP error packet in the function icmp_error()
-in /ipv4/netfilter/nf_conntrack_proto_icmp.c
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+---
+ net/ipv4/inet_diag.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Is the function not prepared to receive this kind of packets or is
-this a bug? Will a kernel panic also happen in icmpv6_error() in
-ipv6/netfilter/nf_conntrack_proto_icmpv6.c??
-
-Regards!
+diff --git a/net/ipv4/inet_diag.c b/net/ipv4/inet_diag.c
+index 535584c..5ffd7bc 100644
+--- a/net/ipv4/inet_diag.c
++++ b/net/ipv4/inet_diag.c
+@@ -981,6 +981,7 @@ static int inet_diag_rcv_msg_compat(struct sk_buff *skb, struct nlmsghdr *nlh)
+ 		{
+ 			struct netlink_dump_control c = {
+ 				.dump = inet_diag_dump_compat,
++				.module = THIS_MODULE,
+ 			};
+ 			return netlink_dump_start(net->diag_nlsk, skb, nlh, &c);
+ 		}
+@@ -1010,6 +1011,7 @@ static int inet_diag_handler_dump(struct sk_buff *skb, struct nlmsghdr *h)
+ 		{
+ 			struct netlink_dump_control c = {
+ 				.dump = inet_diag_dump,
++				.module = THIS_MODULE,
+ 			};
+ 			return netlink_dump_start(net->diag_nlsk, skb, h, &c);
+ 		}
+-- 
+1.7.7.6
