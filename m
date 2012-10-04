@@ -1,7 +1,7 @@
 From: Gao feng <gaofeng-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org>
-Subject: [patch v3 07/11] nfnetlink_cttimeout: pass nfnetlink_cttimeout module to netlink_dump_start
-Date: Thu, 4 Oct 2012 12:41:25 +0800
-Message-ID: <1349325689-16104-7-git-send-email-gaofeng@cn.fujitsu.com>
+Subject: [patch v3 03/11] unix_diag: pass unix_diag module to netlink_dump_start
+Date: Thu, 4 Oct 2012 12:41:21 +0800
+Message-ID: <1349325689-16104-3-git-send-email-gaofeng@cn.fujitsu.com>
 References: <1349325689-16104-1-git-send-email-gaofeng@cn.fujitsu.com>
 Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
 	netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
@@ -18,21 +18,21 @@ set netlink_dump_control.module to avoid panic.
 
 Signed-off-by: Gao feng <gaofeng-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org>
 ---
- net/netfilter/nfnetlink_cttimeout.c |    1 +
+ net/unix/diag.c |    1 +
  1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index 8847b4d..e0ab57c 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -248,6 +248,7 @@ cttimeout_get_timeout(struct sock *ctnl, struct sk_buff *skb,
- 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
+diff --git a/net/unix/diag.c b/net/unix/diag.c
+index 06748f1..e1cd31f 100644
+--- a/net/unix/diag.c
++++ b/net/unix/diag.c
+@@ -299,6 +299,7 @@ static int unix_diag_handler_dump(struct sk_buff *skb, struct nlmsghdr *h)
+ 	if (h->nlmsg_flags & NLM_F_DUMP) {
  		struct netlink_dump_control c = {
- 			.dump = ctnl_timeout_dump,
+ 			.dump = unix_diag_dump,
 +			.module = THIS_MODULE,
  		};
- 		return netlink_dump_start(ctnl, skb, nlh, &c);
- 	}
+ 		return netlink_dump_start(net->diag_nlsk, skb, h, &c);
+ 	} else
 -- 
 1.7.7.6
 
