@@ -1,49 +1,71 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: kernel panic in icmp_error
-Date: Thu, 4 Oct 2012 10:55:57 +0200
-Message-ID: <20121004085557.GA27566@1984>
-References: <CA+Z0r8NcZwtwk+GG-fKpwRMnLphpXSqpa0h1A=jJ_At7Remb_g@mail.gmail.com>
+From: Ben Hutchings <bhutchings@solarflare.com>
+Subject: Re: [patch v3 01/11] netlink: add reference of module in
+ netlink_dump_start
+Date: Thu, 4 Oct 2012 16:41:42 +0100
+Message-ID: <1349365302.2817.1.camel@bwh-desktop.uk.solarflarecom.com>
+References: <1349325689-16104-1-git-send-email-gaofeng@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Miguel Alejandro =?iso-8859-1?Q?Gonz=E1lez?= <maggonzz@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: <davem@davemloft.net>, <eric.dumazet@gmail.com>,
+	<steffen.klassert@secunet.com>, <netfilter-devel@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>,
+	<linux-crypto@vger.kernel.org>, <pablo@netfilter.org>,
+	<stephen.hemminger@vyatta.com>, <jengelh@inai.de>
+To: Gao feng <gaofeng@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45701 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965535Ab2JDI4G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Oct 2012 04:56:06 -0400
-Content-Disposition: inline
-In-Reply-To: <CA+Z0r8NcZwtwk+GG-fKpwRMnLphpXSqpa0h1A=jJ_At7Remb_g@mail.gmail.com>
+Received: from webmail.solarflare.com ([12.187.104.25]:15252 "EHLO
+	ocex02.SolarFlarecom.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S965618Ab2JDPlt (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 4 Oct 2012 11:41:49 -0400
+In-Reply-To: <1349325689-16104-1-git-send-email-gaofeng@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Oct 03, 2012 at 05:22:53PM -0500, Miguel Alejandro Gonz=E1lez w=
-rote:
-> Hello
->=20
-> I'm making a Netfilter module that depends on conntrack, it has come
-> to my attention that a kernel panic occurs when a ICMP error packet
-> embedded inside another ICMP error packet in the function icmp_error(=
-)
-> in /ipv4/netfilter/nf_conntrack_proto_icmp.c
+On Thu, 2012-10-04 at 12:41 +0800, Gao feng wrote:
+> I get a panic when I use ss -a and rmmod inet_diag at the
+> same time.
+> 
+> it's because netlink_dump use inet_diag_dump witch function
+> belongs to module inet_diag.
+> 
+> I search the codes and find many modules have the same problem.
+> We need add reference of the module witch the cb->dump belongs
+> to.
+> 
+> Thanks for all help from Stephen,Jan,Eric,Steffen and Pablo.
+> 
+> Change From v2:
+> 
+> delete netlink_dump_done,and call module_put in netlink_dump
+> and netlink_sock_destruct.
+[...]
+> @@ -1794,19 +1798,28 @@ int netlink_dump_start(struct sock *ssk, struct sk_buff *skb,
+>  		return -ECONNREFUSED;
+>  	}
+>  	nlk = nlk_sk(sk);
+> -	/* A dump is in progress... */
+> +
+>  	mutex_lock(nlk->cb_mutex);
+> +	/* A dump is in progress... */
+>  	if (nlk->cb) {
+>  		mutex_unlock(nlk->cb_mutex);
+>  		netlink_destroy_callback(cb);
+> -		sock_put(sk);
+> -		return -EBUSY;
+> +		ret = -EBUSY;
+> +		goto out;
+>  	}
+> +	/* add reference of module witch cb->dump belong to */
+[...]
 
-Can it be due to malformed packet? Do you have this patch in your kerne=
-l?
+'which' not 'witch' :-)
 
-commit 07153c6ec074257ade76a461429b567cff2b3a1e
-Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Date:   Tue Apr 3 22:02:01 2012 +0200
+Ben.
 
-    netfilter: nf_ct_ipv4: packets with wrong ihl are invalid
+-- 
+Ben Hutchings, Staff Engineer, Solarflare
+Not speaking for my employer; that's the marketing department's job.
+They asked us to note that Solarflare product names are trademarked.
 
-> Is the function not prepared to receive this kind of packets or is
-> this a bug? Will a kernel panic also happen in icmpv6_error() in
-> ipv6/netfilter/nf_conntrack_proto_icmpv6.c??
-
-I need more information, please post the kernel backtrace.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
