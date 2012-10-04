@@ -1,130 +1,49 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: [patch v3 01/11] netlink: add reference of module in netlink_dump_start
-Date: Thu, 4 Oct 2012 12:41:19 +0800
-Message-ID: <1349325689-16104-1-git-send-email-gaofeng@cn.fujitsu.com>
-Cc: netfilter-devel@vger.kernel.org, linux-rdma@vger.kernel.org,
-	netdev@vger.kernel.org, linux-crypto@vger.kernel.org,
-	pablo@netfilter.org, stephen.hemminger@vyatta.com, jengelh@inai.de,
-	Gao feng <gaofeng@cn.fujitsu.com>
-To: davem@davemloft.net, eric.dumazet@gmail.com,
-	steffen.klassert@secunet.com
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: kernel panic in icmp_error
+Date: Thu, 4 Oct 2012 10:55:57 +0200
+Message-ID: <20121004085557.GA27566@1984>
+References: <CA+Z0r8NcZwtwk+GG-fKpwRMnLphpXSqpa0h1A=jJ_At7Remb_g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Miguel Alejandro =?iso-8859-1?Q?Gonz=E1lez?= <maggonzz@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:62440 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751406Ab2JDElj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Oct 2012 00:41:39 -0400
+Received: from mail.us.es ([193.147.175.20]:45701 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965535Ab2JDI4G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 4 Oct 2012 04:56:06 -0400
+Content-Disposition: inline
+In-Reply-To: <CA+Z0r8NcZwtwk+GG-fKpwRMnLphpXSqpa0h1A=jJ_At7Remb_g@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I get a panic when I use ss -a and rmmod inet_diag at the
-same time.
+On Wed, Oct 03, 2012 at 05:22:53PM -0500, Miguel Alejandro Gonz=E1lez w=
+rote:
+> Hello
+>=20
+> I'm making a Netfilter module that depends on conntrack, it has come
+> to my attention that a kernel panic occurs when a ICMP error packet
+> embedded inside another ICMP error packet in the function icmp_error(=
+)
+> in /ipv4/netfilter/nf_conntrack_proto_icmp.c
 
-it's because netlink_dump use inet_diag_dump witch function
-belongs to module inet_diag.
+Can it be due to malformed packet? Do you have this patch in your kerne=
+l?
 
-I search the codes and find many modules have the same problem.
-We need add reference of the module witch the cb->dump belongs
-to.
+commit 07153c6ec074257ade76a461429b567cff2b3a1e
+Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Date:   Tue Apr 3 22:02:01 2012 +0200
 
-Thanks for all help from Stephen,Jan,Eric,Steffen and Pablo.
+    netfilter: nf_ct_ipv4: packets with wrong ihl are invalid
 
-Change From v2:
+> Is the function not prepared to receive this kind of packets or is
+> this a bug? Will a kernel panic also happen in icmpv6_error() in
+> ipv6/netfilter/nf_conntrack_proto_icmpv6.c??
 
-delete netlink_dump_done,and call module_put in netlink_dump
-and netlink_sock_destruct.
-
-Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
----
- include/linux/netlink.h  |    5 ++++-
- net/netlink/af_netlink.c |   21 +++++++++++++++++----
- 2 files changed, 21 insertions(+), 5 deletions(-)
-
-diff --git a/include/linux/netlink.h b/include/linux/netlink.h
-index f80c56a..bf4e501 100644
---- a/include/linux/netlink.h
-+++ b/include/linux/netlink.h
-@@ -245,6 +245,8 @@ struct netlink_callback {
- 					struct netlink_callback *cb);
- 	int			(*done)(struct netlink_callback *cb);
- 	void			*data;
-+	/* the module that dump function belong to */
-+	struct module		*module;
- 	u16			family;
- 	u16			min_dump_alloc;
- 	unsigned int		prev_seq, seq;
-@@ -262,8 +264,9 @@ __nlmsg_put(struct sk_buff *skb, u32 portid, u32 seq, int type, int len, int fla
- 
- struct netlink_dump_control {
- 	int (*dump)(struct sk_buff *skb, struct netlink_callback *);
--	int (*done)(struct netlink_callback*);
-+	int (*done)(struct netlink_callback *);
- 	void *data;
-+	struct module *module;
- 	u16 min_dump_alloc;
- };
- 
-diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
-index 0f2e3ad..0905dfb 100644
---- a/net/netlink/af_netlink.c
-+++ b/net/netlink/af_netlink.c
-@@ -169,6 +169,7 @@ static void netlink_sock_destruct(struct sock *sk)
- 	if (nlk->cb) {
- 		if (nlk->cb->done)
- 			nlk->cb->done(nlk->cb);
-+		module_put(nlk->cb->module);
- 		netlink_destroy_callback(nlk->cb);
- 	}
- 
-@@ -1755,6 +1756,8 @@ static int netlink_dump(struct sock *sk)
- 
- 	if (cb->done)
- 		cb->done(cb);
-+
-+	module_put(cb->module);
- 	nlk->cb = NULL;
- 	mutex_unlock(nlk->cb_mutex);
- 
-@@ -1784,6 +1787,7 @@ int netlink_dump_start(struct sock *ssk, struct sk_buff *skb,
- 	cb->done = control->done;
- 	cb->nlh = nlh;
- 	cb->data = control->data;
-+	cb->module = control->module;
- 	cb->min_dump_alloc = control->min_dump_alloc;
- 	atomic_inc(&skb->users);
- 	cb->skb = skb;
-@@ -1794,19 +1798,28 @@ int netlink_dump_start(struct sock *ssk, struct sk_buff *skb,
- 		return -ECONNREFUSED;
- 	}
- 	nlk = nlk_sk(sk);
--	/* A dump is in progress... */
-+
- 	mutex_lock(nlk->cb_mutex);
-+	/* A dump is in progress... */
- 	if (nlk->cb) {
- 		mutex_unlock(nlk->cb_mutex);
- 		netlink_destroy_callback(cb);
--		sock_put(sk);
--		return -EBUSY;
-+		ret = -EBUSY;
-+		goto out;
- 	}
-+	/* add reference of module witch cb->dump belong to */
-+	if (!try_module_get(cb->module)) {
-+		mutex_unlock(nlk->cb_mutex);
-+		netlink_destroy_callback(cb);
-+		ret = -EPROTONOSUPPORT;
-+		goto out;
-+	}
-+
- 	nlk->cb = cb;
- 	mutex_unlock(nlk->cb_mutex);
- 
- 	ret = netlink_dump(sk);
--
-+out:
- 	sock_put(sk);
- 
- 	if (ret)
--- 
-1.7.7.6
-
+I need more information, please post the kernel backtrace.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
