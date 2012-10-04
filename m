@@ -1,65 +1,66 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: [patch v3 09/11] xfrm: pass xfrm_user module to netlink_dump_start
-Date: Thu, 4 Oct 2012 12:41:27 +0800
-Message-ID: <1349325689-16104-9-git-send-email-gaofeng@cn.fujitsu.com>
-References: <1349325689-16104-1-git-send-email-gaofeng@cn.fujitsu.com>
-Cc: netfilter-devel@vger.kernel.org, linux-rdma@vger.kernel.org,
-	netdev@vger.kernel.org, linux-crypto@vger.kernel.org,
-	pablo@netfilter.org, stephen.hemminger@vyatta.com, jengelh@inai.de,
-	Gao feng <gaofeng@cn.fujitsu.com>
-To: davem@davemloft.net, eric.dumazet@gmail.com,
-	steffen.klassert@secunet.com
+From: "Gutholm, James" <gutholmj@evergreen.edu>
+Subject: Re: Conntrackd Segmentation fault due to nfexp_get_attr returning
+ NULL
+Date: Thu, 4 Oct 2012 02:36:47 +0000
+Message-ID: <3E070A3A9446DB43B8A316366DBEABBE1F26B561@palm.evergreen.edu>
+References: <20121003203338.GA10154@1984>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:62440 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752488Ab2JDEln (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Oct 2012 00:41:43 -0400
-In-Reply-To: <1349325689-16104-1-git-send-email-gaofeng@cn.fujitsu.com>
+Received: from abalone.evergreen.edu ([192.211.16.10]:16022 "EHLO
+	abalone.evergreen.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752915Ab2JDCgt convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Oct 2012 22:36:49 -0400
+In-Reply-To: <20121003203338.GA10154@1984>
+Content-Language: en-US
+Content-ID: <34CE9FCFC36DC043A1B7F1AA82BDFAAA@evergreen.edu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-set netlink_dump_control.module to avoid panic.
 
-Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
----
- net/xfrm/xfrm_user.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+Thanks for the quick reply. So far, no crashes on the standby which gets a
+little traffic. I'll run it on the active firewall on Friday but expect
+the same
 
-diff --git a/net/xfrm/xfrm_user.c b/net/xfrm/xfrm_user.c
-index 421f984..3d909f7 100644
---- a/net/xfrm/xfrm_user.c
-+++ b/net/xfrm/xfrm_user.c
-@@ -2308,17 +2308,20 @@ static struct xfrm_link {
- 	int (*doit)(struct sk_buff *, struct nlmsghdr *, struct nlattr **);
- 	int (*dump)(struct sk_buff *, struct netlink_callback *);
- 	int (*done)(struct netlink_callback *);
-+	struct module *module;
- } xfrm_dispatch[XFRM_NR_MSGTYPES] = {
- 	[XFRM_MSG_NEWSA       - XFRM_MSG_BASE] = { .doit = xfrm_add_sa        },
- 	[XFRM_MSG_DELSA       - XFRM_MSG_BASE] = { .doit = xfrm_del_sa        },
- 	[XFRM_MSG_GETSA       - XFRM_MSG_BASE] = { .doit = xfrm_get_sa,
- 						   .dump = xfrm_dump_sa,
--						   .done = xfrm_dump_sa_done  },
-+						   .done = xfrm_dump_sa_done,
-+						   .module = THIS_MODULE      },
- 	[XFRM_MSG_NEWPOLICY   - XFRM_MSG_BASE] = { .doit = xfrm_add_policy    },
- 	[XFRM_MSG_DELPOLICY   - XFRM_MSG_BASE] = { .doit = xfrm_get_policy    },
- 	[XFRM_MSG_GETPOLICY   - XFRM_MSG_BASE] = { .doit = xfrm_get_policy,
- 						   .dump = xfrm_dump_policy,
--						   .done = xfrm_dump_policy_done },
-+						   .done = xfrm_dump_policy_done,
-+						   .module = THIS_MODULE      },
- 	[XFRM_MSG_ALLOCSPI    - XFRM_MSG_BASE] = { .doit = xfrm_alloc_userspi },
- 	[XFRM_MSG_ACQUIRE     - XFRM_MSG_BASE] = { .doit = xfrm_add_acquire   },
- 	[XFRM_MSG_EXPIRE      - XFRM_MSG_BASE] = { .doit = xfrm_add_sa_expire },
-@@ -2362,6 +2365,7 @@ static int xfrm_user_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
- 			struct netlink_dump_control c = {
- 				.dump = link->dump,
- 				.done = link->done,
-+				.module = link->module,
- 			};
- 			return netlink_dump_start(net->xfrm.nlsk, skb, nlh, &c);
- 		}
--- 
-1.7.7.6
+-- James
+
+
+
+On 10/3/12 1:33 PM, "Pablo Neira Ayuso" <pablo@netfilter.org> wrote:
+
+>On Wed, Oct 03, 2012 at 06:52:08PM +0000, Gutholm, James wrote:
+>> 
+>> Under heavy load conntrackd is crashing. Running under gdb I was able
+>>to determine that the crashes are caused by an unchecked null pointer
+>>returned by nfexp_get_attr in both exp_filter_find() in filter.c and
+>>exp_build_str() in build.c
+>> i
+>> This only happens when expectation sync is being used. Setting
+>>"ExpectationSync Off" in conntrackd.conf stops the crashes.
+>> 
+>> I coded in a couple of checks on the pointer returned which at least
+>>stop the errors. I've included the changes as diffs and also the gdb
+>>output in case it is helpful. If there's something else I can provide,
+>>I'm happy to help but this might be pushing the limit of my expertise.
+>> 
+>> James
+>> 
+>> This is on RHEL6 (2.6.32-300.32.2.el6uek.x86_64) with conntrack-tool
+>>built from source.
+>
+>I see, I forgot to document that Linux kernel >= 3.5 to get
+>ExpectationSync working flawlessly is required.
+>
+>I have attached the following patch. It fixes the crash, and document
+>this accordingly but you still will have to upgrade your kernel if you
+>want expectation synchronization.
+>
+>BTW, thanks a lot for the report, really accurate.
+>
+>I'd appreciate if you give it a test, just to make sure we don't crash
+>anymore, even if you will not get the expectsync feature working
+>correctly in all possible scenarios.
 
