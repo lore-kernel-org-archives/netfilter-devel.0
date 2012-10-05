@@ -1,29 +1,26 @@
 From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: Re: [patch v3 02/11] inet_diag: pass inet_diag module to netlink_dump_start
-Date: Thu, 04 Oct 2012 16:03:51 +0800
-Message-ID: <506D42E7.1000203@cn.fujitsu.com>
-References: <1349325689-16104-1-git-send-email-gaofeng@cn.fujitsu.com>  <1349325689-16104-2-git-send-email-gaofeng@cn.fujitsu.com> <1349327316.16011.11.camel@edumazet-glaptop>
+Subject: Re: [patch v3 01/11] netlink: add reference of module in netlink_dump_start
+Date: Fri, 05 Oct 2012 08:50:48 +0800
+Message-ID: <506E2EE8.4080901@cn.fujitsu.com>
+References: <1349325689-16104-1-git-send-email-gaofeng@cn.fujitsu.com> <1349365302.2817.1.camel@bwh-desktop.uk.solarflarecom.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: davem@davemloft.net, steffen.klassert@secunet.com,
-	netfilter-devel@vger.kernel.org, linux-rdma@vger.kernel.org,
-	netdev@vger.kernel.org, linux-crypto@vger.kernel.org,
-	pablo@netfilter.org, stephen.hemminger@vyatta.com, jengelh@inai.de
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1349327316.16011.11.camel@edumazet-glaptop>
-Sender: netdev-owner@vger.kernel.org
+Cc: davem@davemloft.net, eric.dumazet@gmail.com,
+	steffen.klassert@secunet.com, netfilter-devel@vger.kernel.org,
+	linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+	linux-crypto@vger.kernel.org, pablo@netfilter.org,
+	stephen.hemminger@vyatta.com, jengelh@inai.de
+To: Ben Hutchings <bhutchings@solarflare.com>
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <1349365302.2817.1.camel@bwh-desktop.uk.solarflarecom.com>
+Sender: linux-crypto-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-=E4=BA=8E 2012=E5=B9=B410=E6=9C=8804=E6=97=A5 13:08, Eric Dumazet =E5=86=
+=E4=BA=8E 2012=E5=B9=B410=E6=9C=8804=E6=97=A5 23:41, Ben Hutchings =E5=86=
 =99=E9=81=93:
-> I believe Pablo suggestion was to make netlink_dump_start()
-> automatically pass THIS_MODULE so that we dont need to change all cal=
-l
-> sites ?
+> 'which' not 'witch' :-)
+>=20
+> Ben.
 
-Yes, since you and Pablo both think this should be better,
-I will resend this patchset.
-
-Thanks!
+thanks Ben,will fix it :)
