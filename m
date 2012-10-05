@@ -1,121 +1,131 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 08/16] ipvs: fix ip_vs_set_timeout debug messages
-Date: Sat, 6 Oct 2012 09:54:15 +0000
-Message-ID: <201210060954.15831.arnd@arndb.de>
-References: <1349448930-23976-1-git-send-email-arnd@arndb.de> <201210060645.05225.arnd@arndb.de> <alpine.LFD.2.00.1210061052170.1971@ja.ssi.bg>
+Subject: [PATCH 00/16] ARM: mostly harmless gcc warnings
+Date: Fri,  5 Oct 2012 16:55:14 +0200
+Message-ID: <1349448930-23976-1-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	arm@kernel.org, "David S. Miller" <davem@davemloft.net>,
-	netdev@vger.kernel.org, Simon Horman <horms@verge.net.au>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org
-To: Julian Anastasov <ja@ssi.bg>, Krzysztof Halasa <khc@pm.waw.pl>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1210061052170.1971@ja.ssi.bg>
-Sender: netdev-owner@vger.kernel.org
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>,
+ Dave Martin <dave.martin@linaro.org>, Jan Kara <jack@suse.cz>,
+ Catalin Marinas <catalin.marinas@arm.com>, linux-fbdev@vger.kernel.org,
+ Dominik Brodowski <linux@dominikbrodowski.net>,
+ Grant Likely <grant.likely@secretlab.ca>, Pavel Machek <pavel@suse.cz>,
+ netdev@vger.kernel.org, Greg Ungerer <gerg@uclinux.org>,
+ Christoph Lameter <cl@linux.com>, Kukjin Kim <kgene.kim@samsung.com>,
+ Mike Turquette <mturquette@linaro.org>, Wan ZongShun <mcuos.com@gmail.com>,
+ linux-scsi@vger.kernel.org,
+ Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+ Jochen Friedrich <jochen@scram.de>, linux-samsung-soc@vger.kernel.org,
+ Julian Anastasov <ja@ssi.bg>, arm@kernel.org,
+ Alan Stern <stern@rowland.harvard.edu>, Mike Rapoport <mike@compulab.co.il>,
+ Russell King <rmk+kernel@arm.linux.org.uk>, coreteam@netfilter.org,
+ Arnd Bergmann <arnd@arndb.de>, linux-p
+To: linux-arm-kernel@lists.infradead.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Saturday 06 October 2012, Julian Anastasov wrote:
-> On Sat, 6 Oct 2012, Arnd Bergmann wrote:
-> > > 	Are there any CONFIG_IP_VS_PROTO_xxx options in this
-> > > default config? It is a waste of memory if IPVS is compiled
-> > > without any protocols.
-> > 
-> > They all appear to be turned off:
-> > 
-> > $ grep CONFIG_IP_VS obj-tmp/.config
-> > CONFIG_IP_VS=m
-> > CONFIG_IP_VS_DEBUG=y
-> > CONFIG_IP_VS_TAB_BITS=12
-> > # CONFIG_IP_VS_PROTO_TCP is not set
-> > # CONFIG_IP_VS_PROTO_UDP is not set
-> > # CONFIG_IP_VS_PROTO_AH_ESP is not set
-> > # CONFIG_IP_VS_PROTO_ESP is not set
-> > # CONFIG_IP_VS_PROTO_AH is not set
-> > # CONFIG_IP_VS_PROTO_SCTP is not set
-> 
-> 	Something should be changed here, may be at least
-> TCP/UDP, who knows.
-
-I don't try to read too much into our defconfigs. We have 140 of them
-on ARM, and they are mainly useful to give a reasonable build coverage,
-but I wouldn't expect them to be actually used on that hardware.
-
-I'll leave it up to Krzysztof to send a patch for this if he wants.
-
-> > --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> > +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> > @@ -2590,6 +2588,7 @@ __ip_vs_get_timeouts(struct net *net, struct ip_vs_timeout_user *u)
-> >  #if defined(CONFIG_IP_VS_PROTO_TCP) || defined(CONFIG_IP_VS_PROTO_UDP)
-> >  	struct ip_vs_proto_data *pd;
-> >  #endif
-> 
-> 	That is what we want. If you plan another submission
-> you can add empty line before this memset and to replace
-> the __ip_vs_get_timeouts call in ip_vs_genl_set_config with
-> memset but they are cosmetic changes. Or may be Simon will
-> take care about the coding style when applying the change.
-> 
-> Acked-by: Julian Anastasov <ja@ssi.bg>
-
-I'd prefer Simon to pick up the patch. He should also decide whether he wants
-to add it to stable. In theory, this is a small leak of kernel stack data
-to user space, but as you say in practice it should not happen because it
-only exists for silly configurations that nobody should be using.
-
-AFAICT, removing the call to __ip_vs_get_timeouts in do_ip_vs_get_ctl would
-be a semantic change for the case where a user sends a IPVS_CMD_SET_CONFIG
-message without without the complete set of attributes inside it. The current
-behavior is to leave the timeouts alone, replacing the __ip_vs_get_timeouts
-with a memset would zero them. I left this part alone then.
+In my attempt to weed out all warnings in ARM defconfigs, this
+is the latest installment of patches. Ideally these could all
+go through the respective subsystem maintainer trees, but
+for any patches I don't hear anything back on, I will just
+merge them through the arm-soc tree.
 
 	Arnd
 
-8<-----
-ipvs: initialize returned data in do_ip_vs_get_ctl
+Arnd Bergmann (16):
+  ARM: warnings in arch/arm/include/asm/uaccess.h
+  ARM: binfmt_flat: unused variable 'persistent'
+  SCSI: ARM: ncr5380/oak uses no interrupts
+  SCSI: ARM: make fas216_dumpinfo function conditional
+  vfs: bogus warnings in fs/namei.c
+  mm/slob: use min_t() to compare ARCH_SLAB_MINALIGN
+  cgroup: fix warning when building without any subsys
+  ipvs: fix ip_vs_set_timeout debug messages
+  USB: EHCI: mark ehci_orion_conf_mbus_windows __devinit
+  clk: don't mark clkdev_add_table as init
+  pcmcia: sharpsl: don't discard sharpsl_pcmcia_ops
+  video: mark nuc900fb_map_video_memory as __devinit
+  ARM: be really quiet when building with 'make -s'
+  ARM: pxa: armcore: fix PCI PIO warnings
+  spi/s3c64xx: use correct dma_transfer_direction type
+  ARM: pass -marm to gcc by default for both C and assembler
 
-As reported by a gcc warning, the do_ip_vs_get_ctl does not initalize
-all the members of the ip_vs_timeout_user structure it returns if
-at least one of the TCP or UDP protocols is disabled for ipvs. 
+ arch/arm/Makefile               |   13 +++++++------
+ arch/arm/boot/Makefile          |   10 +++++-----
+ arch/arm/common/it8152.c        |   12 +++++++++---
+ arch/arm/include/asm/flat.h     |    2 +-
+ arch/arm/include/asm/uaccess.h  |    4 ++--
+ arch/arm/tools/Makefile         |    2 +-
+ drivers/clk/clkdev.c            |    2 +-
+ drivers/pcmcia/pxa2xx_sharpsl.c |    2 +-
+ drivers/scsi/arm/fas216.c       |    2 +-
+ drivers/scsi/arm/oak.c          |    1 +
+ drivers/spi/spi-s3c64xx.c       |    2 +-
+ drivers/usb/host/ehci-orion.c   |    2 +-
+ drivers/video/nuc900fb.c        |    2 +-
+ fs/namei.c                      |    6 +++---
+ include/linux/cgroup.h          |    2 +-
+ mm/slob.c                       |    6 +++---
+ net/netfilter/ipvs/ip_vs_ctl.c  |   10 ++++++----
+ 17 files changed, 45 insertions(+), 35 deletions(-)
 
-This makes sure that the data is always initialized, before it is
-returned as a response to IPVS_CMD_GET_CONFIG or printed as a
-debug message in IPVS_CMD_SET_CONFIG.
+Cc: "James E.J. Bottomley" <JBottomley@parallels.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Ben Blum <bblum@andrew.cmu.edu>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Bryan Wu <bryan.wu@canonical.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Dave Martin <dave.martin@linaro.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Eric Miao <eric.y.miao@gmail.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Greg Ungerer <gerg@uclinux.org>
+Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jochen Friedrich <jochen@scram.de>
+Cc: Julian Anastasov <ja@ssi.bg>
+Cc: Krzysztof Halasa <khc@pm.waw.pl>
+Cc: Kukjin Kim <kgene.kim@samsung.com>
+Cc: Li Zefan <lizefan@huawei.com>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Mike Rapoport <mike@compulab.co.il>
+Cc: Mike Turquette <mturquette@linaro.org>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Pavel Machek <pavel@suse.cz>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Wan ZongShun <mcuos.com@gmail.com>
+Cc: coreteam@netfilter.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-fbdev@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org
+Cc: linux-pcmcia@lists.infradead.org
+Cc: linux-samsung-soc@vger.kernel.org
+Cc: linux-scsi@vger.kernel.org
+Cc: linux-usb@vger.kernel.org
+Cc: netdev@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+Cc: netfilter@vger.kernel.org
+Cc: spi-devel-general@lists.sourceforge.net
 
-Without this patch, building ARM ixp4xx_defconfig results in:
 
-net/netfilter/ipvs/ip_vs_ctl.c: In function 'ip_vs_genl_set_cmd':
-net/netfilter/ipvs/ip_vs_ctl.c:2238:47: warning: 't.udp_timeout' may be used uninitialized in this function [-Wuninitialized]
-net/netfilter/ipvs/ip_vs_ctl.c:3322:28: note: 't.udp_timeout' was declared here
-net/netfilter/ipvs/ip_vs_ctl.c:2238:47: warning: 't.tcp_fin_timeout' may be used uninitialized in this function [-Wuninitialized]
-net/netfilter/ipvs/ip_vs_ctl.c:3322:28: note: 't.tcp_fin_timeout' was declared here
-net/netfilter/ipvs/ip_vs_ctl.c:2238:47: warning: 't.tcp_timeout' may be used uninitialized in this function [-Wuninitialized]
-net/netfilter/ipvs/ip_vs_ctl.c:3322:28: note: 't.tcp_timeout' was declared here
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Julian Anastasov <ja@ssi.bg>
----
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 2770f85..c4ee437 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -2591,6 +2589,8 @@ __ip_vs_get_timeouts(struct net *net, struct ip_vs_timeout_user *u)
- 	struct ip_vs_proto_data *pd;
- #endif
- 
-+	memset(u, 0, sizeof (*u));
-+
- #ifdef CONFIG_IP_VS_PROTO_TCP
- 	pd = ip_vs_proto_data_get(net, IPPROTO_TCP);
- 	u->tcp_timeout = pd->timeout_table[IP_VS_TCP_S_ESTABLISHED] / HZ;
-@@ -2768,7 +2768,6 @@ do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
- 	{
- 		struct ip_vs_timeout_user t;
- 
--		memset(&t, 0, sizeof(t));
- 		__ip_vs_get_timeouts(net, &t);
- 		if (copy_to_user(user, &t, sizeof(t)) != 0)
- 			ret = -EFAULT;
+-- 
+1.7.10
