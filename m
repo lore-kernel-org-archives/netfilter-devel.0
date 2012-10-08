@@ -1,50 +1,84 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] iptables: restore NOTRACK functionality, target
- aliasing
-Date: Mon, 8 Oct 2012 10:37:21 +0200
-Message-ID: <20121008083721.GA12128@1984>
-References: <alpine.LNX.2.01.1210080141140.2933@nerf07.vanv.qr>
- <1349656356-10180-1-git-send-email-jengelh@inai.de>
+Subject: [ANNOUNCE] libnfnetlink 1.0.1 release
+Date: Mon, 8 Oct 2012 11:04:53 +0200
+Message-ID: <20121008090453.GA14619@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51162 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752712Ab2JHIhZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Oct 2012 04:37:25 -0400
+Content-Type: multipart/mixed; boundary="u3/rZRmxL6MmkK24"
+Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
+	netfilter-announce@lists.netfilter.org, lwn@lwn.net?
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1349656356-10180-1-git-send-email-jengelh@inai.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Oct 08, 2012 at 02:32:36AM +0200, Jan Engelhardt wrote:
-> Commit v1.4.16-1-g2aaa7ec is testing for real_name (not) being NULL
-> which was always false (true). real_name was never NULL, so cs->jumpto
-> would always be used, which rendered -j NOTRACK unusable, since the
-> chosen real name.revision is for example NOTRACK.1, which does not exist
-> at the kernel side.
-> 
-> 	# ./iptables/xtables-multi main4 -t raw -A foo -j NOTRACK
-> 	dbg: Using NOTRACK.1
-> 	WARNING: The NOTRACK target is obsolete. Use CT instead.
-> 	iptables: Protocol wrong type for socket.
-> 
-> To reasonably support the extra-special verdict names, make it so that
-> real_name remains NULL when an extension defined no alias, which we can
-> then use to determine whether the user entered an alias name (which
-> needs to be followed) or not.
 
-I have applied this and made a new release.
+--u3/rZRmxL6MmkK24
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I kindly told you. I don't want late patches to hit iptables if I'm
-about to release it, ie. close to when the Linux kernel comes out.
+Hi!
 
-The reason was that chances to hit bugs and not noticing becomes
-higher. In other words, stick to conservative mode.
+The Netfilter project proudly presents:
 
-Let this serve as proof of it.
+        libnfnetlink 1.0.1
 
-You disregarded my advice and now we have this shame, three releases
-in one day just because of rushing.
+This release contains minor fixes and updates for this library.
+
+See ChangeLog that comes attached to this email for more details.
+
+You can download it from:
+
+http://www.netfilter.org/projects/libnfnetlink/downloads.html
+ftp://ftp.netfilter.org/pub/libnfnetlink/
+
+Have fun!
+
+--u3/rZRmxL6MmkK24
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="changes-libnfnetlink-1.0.1.txt"
+
+Jan Engelhardt (22):
+      build: use autoconf-suggested naming of files
+      build: use modern call syntax for AC_INIT, AM_INIT_AUTOMAKE
+      build: avoid use of deprecated INCLUDES
+      build: use simpler autoreconf in autogen
+      build: use AC_CONFIG_MACRO_DIR as directed
+      build: run AC_CANONICAL_HOST only
+      build: remove statements without effect
+      build: remove -fPIC flag
+      Add .gitignore files
+      build: use AC_OUTPUT
+      build: default to not building static libraries
+      Remove distro-specific parts
+      src: remove redundant casts
+      build: remove unused LIBTOOL_DEPS
+      build: use -Wall across the entire source
+      utils: resolve compiler warning
+      nfnl: avoid exit on large packet
+      build: fix error with automake-1.9
+      Update .gitignore
+      build: use AC_CONFIG_AUX_DIR and stash away tools
+      build: disable implicit .tar.gz archive generation and use POSIX mode
+      build: remove unnecessary AC_EXEEXT
+
+Jiri Popelka (1):
+      src: BAD_SIZEOF
+
+Pablo Neira Ayuso (13):
+      src: add COPYING file that include licensing terms
+      iftable: fix wrong handler unregistration on error
+      license: upgrade to GPLv2+
+      Merge branch 'master' of git://dev.medozas.de/libnfnetlink
+      build: kernel-like compilation messages
+      src: update copyright header
+      utils: iftest: display link state (UP/DOWN)
+      utils: iftest: pass the device name you want to obtain information for
+      utils: iftest: check return value of nlif_query
+      utils: iftest: relax check of nlif_name2index
+      iftable: fix incomplete list of interfaces via nlif_query
+      nfnl: fix compilation warning with gcc-4.7
+      bump version to 1.0.1
+
+
+--u3/rZRmxL6MmkK24--
