@@ -1,25 +1,23 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] libnetfilter_queue 1.0.2 release
-Date: Mon, 8 Oct 2012 12:49:24 +0200
-Message-ID: <20121008104924.GA22039@1984>
-References: <20121008092636.GA15925@1984>
+Subject: [ANNOUNCE] conntrack-tools 1.4.0 release
+Date: Mon, 8 Oct 2012 13:50:21 +0200
+Message-ID: <20121008115021.GA26222@1984>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="ew6BAiZeqk4r7MaW"
+Content-Type: multipart/mixed; boundary="1yeeQ81UyVL57Vl7"
 Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
 	netfilter-announce@lists.netfilter.org, lwn@lwn.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40636 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:33830 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751901Ab2JHKtd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Oct 2012 06:49:33 -0400
+	id S1750766Ab2JHLu3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 8 Oct 2012 07:50:29 -0400
 Content-Disposition: inline
-In-Reply-To: <20121008092636.GA15925@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---ew6BAiZeqk4r7MaW
+--1yeeQ81UyVL57Vl7
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
@@ -27,41 +25,56 @@ Hi!
 
 The Netfilter project proudly presents:
 
-        libnetfilter_queue 1.0.2
+        conntrack-tools 1.4.0
 
-This release provides new interfaces to interact with libmnl.
+This release adds the user-space helper infrastructure which includes
+the RPC portmapper (to support NFSv3) and Oracle*TNS helpers.
+
+More information available at:
+
+http://conntrack-tools.netfilter.org/manual.html
 
 See ChangeLog that comes attached to this email for more details.
 
 You can download it from:
 
-http://www.netfilter.org/projects/libnetfilter_queue/downloads.html
-ftp://ftp.netfilter.org/pub/libnetfilter_queue/
+http://www.netfilter.org/projects/conntrack-tools/downloads.html
+ftp://ftp.netfilter.org/pub/conntrack-tools/
 
 Have fun!
 
---ew6BAiZeqk4r7MaW
+--1yeeQ81UyVL57Vl7
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="changes-libnetfilter_queue-1.0.2.txt"
+Content-Disposition: attachment; filename="changes-conntrack-tools-1.4.0.txt"
 
-Jan Engelhardt (3):
-      build: remove unnecessary AC_EXEEXT
-      build: remove unused lines in Makefile.am
-      build: remove stray empty variable
+Ansis Atteka (1):
+      tests: conntrackd: fix compile errors and warnings
 
-Krishna Kumar (1):
-      src: implement API to set per-queue flags
+Jozsef Kadlecsik (2):
+      conntrackd: RPC helper added to cthelper
+      conntrackd: TNS helper added to cthelper
 
-Pablo Neira Ayuso (9):
-      add new libnetfilter_queue API for libmnl
-      add pkt_buff and protocol helper functions
-      add mangle functions for IPv4/TCP and IPv4/UDP
-      extra: pktbuff: pktb_expand_tail return 0 if there is no room in the tail
-      pktbuff: fix pktb_push, _pull and _put function
-      src: update doxygen documentation for new API for libmnl
-      examples: nf-queue: fix compilation warning with gcc-4.7
-      fix compilation warning in nfq_get_payload
-      bump version to 1.0.2
+Nicolas Dichtel (1):
+      build: fix libraries dependencies in Makefiles
+
+Pablo Neira Ayuso (14):
+      conntrack: add support for stats dumping via ctnetlink
+      conntrack: -C uses ctnetlink instead of /proc/sys/net/netfilter/nf_conntrack_count
+      conntrackd: generalize file descriptor infrastructure
+      conntrackd: move ctnetlink code to ctnl.c (removed from run.c)
+      conntrackd: add cthelper infrastructure (+ example FTP helper)
+      tests: conntrackd: add cthelper-test infrastructure
+      nfct: helper: use CONNTRACKD_LIB_DIR variable set during configuration
+      cthelper: disable debugging information by default
+      cthelper: ftp: fix EPRT case for IPv4
+      conntrackd: parse: fix wrong maximum length for ATTR_EXP_FN
+      conntrackd: cthelper: add QueueLen option
+      conntrackd: fix crash if ExpectationSync is enabled on old Linux kernels
+      doc: detail user-space helper support
+      bump version to 1.4.0 and update dependencies
+
+Vincent Bernat (1):
+      conntrackd: don't resync expectations if such sync has been disabled
 
 
---ew6BAiZeqk4r7MaW--
+--1yeeQ81UyVL57Vl7--
