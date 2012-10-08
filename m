@@ -1,28 +1,49 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [ANNOUNCE] conntrack-tools 1.4.0 release
-Date: Mon, 8 Oct 2012 14:53:31 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1210081451430.4431@nerf07.vanv.qr>
-References: <20121008115021.GA26222@1984>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 2/2] Update .gitignore
+Date: Mon,  8 Oct 2012 14:57:20 +0200
+Message-ID: <1349701040-10894-3-git-send-email-jengelh@inai.de>
+References: <1349701040-10894-1-git-send-email-jengelh@inai.de>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:48787 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:48827 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750845Ab2JHMxc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Oct 2012 08:53:32 -0400
-In-Reply-To: <20121008115021.GA26222@1984>
+	id S1751883Ab2JHM51 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 8 Oct 2012 08:57:27 -0400
+In-Reply-To: <1349701040-10894-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+---
+ .gitignore |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+ create mode 100644 .gitignore
 
->The Netfilter project proudly presents:
->
->        conntrack-tools 1.4.0
->
->This release adds the user-space helper infrastructure which includes
->the RPC portmapper (to support NFSv3) and Oracle*TNS helpers.
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..a83525b
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,18 @@
++.deps/
++.libs/
++Makefile
++Makefile.in
++*.o
++*.la
++*.lo
++
++/aclocal.m4
++/autom4te.cache/
++/build-aux/
++/config.*
++/configure
++/libtool
++
++/doxygen.cfg
++/*.pc
++/stamp-h1
+-- 
+1.7.10.4
 
-conntrack-tools-1.4.0 wants a libnetfilter_cthelper-1.0.0, but this has 
-not been announced so far.
