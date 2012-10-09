@@ -1,35 +1,51 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: iptables-dev Source Example
-Date: Wed, 10 Oct 2012 00:08:07 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1210100007100.16482@nerf07.vanv.qr>
-References: <5072D6F8.2010707@iit.demokritos.gr> <20121008152237.GA8350@1984>    <CAHo-OoyUUHju8du-Otd6vfgv_ORz-Y_PrPB0VDKbU74jYy9hjg@mail.gmail.com>    <2aa140973d7d5a320bd1402da1647a26.squirrel@webmail.iit.demokritos.gr>    <alpine.LNX.2.01.1210091753520.12373@nerf07.vanv.qr>
- <11f6603b92965503cfaef2622aaf56a0.squirrel@webmail.iit.demokritos.gr>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>,
-	netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: "Katia S." <katias@iit.demokritos.gr>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:55984 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756444Ab2JIWII (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Oct 2012 18:08:08 -0400
-In-Reply-To: <11f6603b92965503cfaef2622aaf56a0.squirrel@webmail.iit.demokritos.gr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: [PATCH net] netfilter: nf_conntrack: fix rt_gateway checks for h323
+Date: Wed, 10 Oct 2012 02:00:47 +0300
+Message-ID: <1349823647-2166-1-git-send-email-ja@ssi.bg>
+Cc: netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 2012-10-09 19:23, Katia S. wrote:
+	After the change "Adjust semantics of rt->rt_gateway"
+(commit f8126f1d51) we should properly match the nexthop when
+destinations are directly connected because rt_gateway can be 0.
 
->Yeah, that's why I installed the development packages of both iptables and
->iptc. I'm gussing the API I need is in the iptc lib.. But still, no luck
->finding a tutorial there either.
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+---
 
-As I said, iptables/iptc does not have anything to do with tc.
+	This patch needs a closer look from the Netfilter team.
 
+	It restores the check as it was committed originally,
+i.e. to compare nexthops. I'm not sure what is the desired logic,
+it can depend on the following:
 
->>>Well, I have been running "tc" commands like "tc qdisc" or "tc class" to
->>>get some information I need on various devices and interfaces.
->>>
->>>Right now I need to implement the exact same feature in a program of
->>>mine, [...]
+- two directly connected hosts (rt_gateway=0) can be from different
+subnets or not
+
+- one party A is the gateway (rt_gateway=0), another party uses
+this gateway (rt_gateway=A)
+
+	May be someone that knows this code better can comment
+if the check should be different.
+
+ net/netfilter/nf_conntrack_h323_main.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+index 1b30b0d..962795e 100644
+--- a/net/netfilter/nf_conntrack_h323_main.c
++++ b/net/netfilter/nf_conntrack_h323_main.c
+@@ -753,7 +753,8 @@ static int callforward_do_filter(const union nf_inet_addr *src,
+ 				   flowi4_to_flowi(&fl1), false)) {
+ 			if (!afinfo->route(&init_net, (struct dst_entry **)&rt2,
+ 					   flowi4_to_flowi(&fl2), false)) {
+-				if (rt1->rt_gateway == rt2->rt_gateway &&
++				if (rt_nexthop(rt1, fl1.daddr) ==
++				    rt_nexthop(rt2, fl2.daddr) &&
+ 				    rt1->dst.dev  == rt2->dst.dev)
+ 					ret = 1;
+ 				dst_release(&rt2->dst);
+-- 
+1.7.3.4
