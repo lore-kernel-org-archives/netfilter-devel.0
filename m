@@ -1,39 +1,56 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH] build: resolve automake-1.12 warnings
-Date: Tue,  9 Oct 2012 16:02:35 +0200
-Message-ID: <1349791355-8494-2-git-send-email-jengelh@inai.de>
-References: <1349791355-8494-1-git-send-email-jengelh@inai.de>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Giuseppe Longo <giuseppelng@gmail.com>
+Subject: Re: iptables-dev Source Example
+Date: Tue, 9 Oct 2012 17:05:53 +0200
+Message-ID: <CAFpD06QSeXHVCW+Gv_KWVB=EKvCez5N1F+6erZ8=tgf4i+Yveg@mail.gmail.com>
+References: <5072D6F8.2010707@iit.demokritos.gr>
+	<20121008152237.GA8350@1984>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: Katia Sarsempagieva <katias@iit.demokritos.gr>,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:54957 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754290Ab2JIOCi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Oct 2012 10:02:38 -0400
-In-Reply-To: <1349791355-8494-1-git-send-email-jengelh@inai.de>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:60410 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752410Ab2JIPFz (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 9 Oct 2012 11:05:55 -0400
+Received: by mail-we0-f174.google.com with SMTP id t9so3292868wey.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 09 Oct 2012 08:05:54 -0700 (PDT)
+In-Reply-To: <20121008152237.GA8350@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-am/ltlibrary.am: warning: 'libnfnetlink.la': linking libtool libraries
-using a non-POSIX archiver requires 'AM_PROG_AR' in 'configure.ac'
+2012/10/8 Pablo Neira Ayuso <pablo@netfilter.org>:
+> On Mon, Oct 08, 2012 at 04:36:56PM +0300, Katia Sarsempagieva wrote:
+>> Hello everyone!
+>>
+>> I'm totally new to the iptables development sphere, so I would like
+>> to kindly request for a favor...
+>>
+>> I have installed the iptables-dev package on my Debian Linux machine.
+>> What I want to do is to write my very own program using the iptables
+>> library to query the interface information
+>> of various machines (queues, lost packets, total packets etc).
+>>
+>> But no matter how much I've tried to find a single tutorial or a
+>> source code sample (with the compiler command, of cource)
+>> I failed.
+>> So, can any of you please help me out? Maybe give me a tip on where
+>> to search or pass me a link to a tutorial page
+>> or anything that could contain a program sample and compilation
+>> instructions..?
+>
+> I don't think you'll find much information. The library that iptables
+> provides is mostly internal. We know of people that has been tinkering
+> with it in their projects, but the API has not been stable along years
+> and it is not documented. I expect to solve this situation soon.
+>
+> I'm afraid that the only reference you have is the source code by now.
+> Good luck.
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
----
- configure.ac |    1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/configure.ac b/configure.ac
-index ed549df..0926a1c 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -7,6 +7,7 @@ AC_CANONICAL_HOST
- 
- AM_INIT_AUTOMAKE([-Wall foreign subdir-objects
- 	tar-pax no-dist-gzip dist-bzip2 1.6])
-+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
- 
- dnl kernel style compile messages
- m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
--- 
-1.7.10.4
-
+Can be documented these API?
