@@ -1,137 +1,107 @@
 From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH 08/16] ipvs: fix ip_vs_set_timeout debug messages
-Date: Tue, 9 Oct 2012 10:48:31 +0900
-Message-ID: <20121009014831.GI3403@verge.net.au>
-References: <1349448930-23976-1-git-send-email-arnd@arndb.de>
- <201210060645.05225.arnd@arndb.de>
- <alpine.LFD.2.00.1210061052170.1971@ja.ssi.bg>
- <201210060954.15831.arnd@arndb.de>
+Subject: Re: [GIT PULL nf-next] IPVS for 3.7 #2
+Date: Tue, 9 Oct 2012 12:52:33 +0900
+Message-ID: <20121009035233.GB26896@verge.net.au>
+References: <1348800904-23902-1-git-send-email-horms@verge.net.au>
+ <1349721865.22194.53.camel@localhost>
+ <20121008231704.GA7974@1984>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Julian Anastasov <ja@ssi.bg>, Krzysztof Halasa <khc@pm.waw.pl>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	arm@kernel.org, "David S. Miller" <davem@davemloft.net>,
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>,
+	David Miller <davem@davemloft.net>, lvs-devel@vger.kernel.org,
 	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, coreteam@netfilter.org
-To: Arnd Bergmann <arnd@arndb.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:55177 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751852Ab2JIBse (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Oct 2012 21:48:34 -0400
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	Hans Schillstrom <hans@schillstrom.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <201210060954.15831.arnd@arndb.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20121008231704.GA7974@1984>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Oct 06, 2012 at 09:54:15AM +0000, Arnd Bergmann wrote:
-> On Saturday 06 October 2012, Julian Anastasov wrote:
-> > On Sat, 6 Oct 2012, Arnd Bergmann wrote:
-> > > > 	Are there any CONFIG_IP_VS_PROTO_xxx options in this
-> > > > default config? It is a waste of memory if IPVS is compiled
-> > > > without any protocols.
+On Tue, Oct 09, 2012 at 01:17:04AM +0200, Pablo Neira Ayuso wrote:
+> Hi Jesper,
+> 
+> On Mon, Oct 08, 2012 at 08:44:25PM +0200, Jesper Dangaard Brouer wrote:
+> > Hey Pablo,
+> > 
+> > These changes were intended for 3.7, but just checked you git tree...
+> > and it looks like you didn't pull in Simon's changes, and thus they have
+> > not hit DaveM's tree for the merge window :-(
+> 
+> Sorry, you sent this pull request by friday 28/09. Net-next was closed
+> on tuesday 02/10. That was tight. I don't like to push things too hard
+> to David by last time.
+
+I understand.
+
+> My intention is still to pass this to net-next once it gets opened
+> again, of course. So don't worry, we still have the chance to get this
+> in.
+> 
+> I see at least one fix in this patchset, we can still pass it that to
+> 3.7 if you want.
+
+There is a fix from Arnd that I would like incorporated in 3.7.
+I will send a pull-request for that a little later.
+
+> Let me know what you prefer.
+> 
+> > --Jesper
+> > 
+> > 
+> > On Fri, 2012-09-28 at 11:54 +0900, Simon Horman wrote:
+> > > Hi Pablo,
 > > > 
-> > > They all appear to be turned off:
+> > > please consider the following enhancements to IPVS for inclusion in 3.7.
 > > > 
-> > > $ grep CONFIG_IP_VS obj-tmp/.config
-> > > CONFIG_IP_VS=m
-> > > CONFIG_IP_VS_DEBUG=y
-> > > CONFIG_IP_VS_TAB_BITS=12
-> > > # CONFIG_IP_VS_PROTO_TCP is not set
-> > > # CONFIG_IP_VS_PROTO_UDP is not set
-> > > # CONFIG_IP_VS_PROTO_AH_ESP is not set
-> > > # CONFIG_IP_VS_PROTO_ESP is not set
-> > > # CONFIG_IP_VS_PROTO_AH is not set
-> > > # CONFIG_IP_VS_PROTO_SCTP is not set
+> > > ----------------------------------------------------------------
+> > > The following changes since commit 82c93fcc2e1737fede2752520f1bf8f4de6304d8:
+> > > 
+> > >   x86: bpf_jit_comp: add XOR instruction for BPF JIT (2012-09-24 16:54:35 -0400)
+> > > 
+> > > are available in the git repository at:
+> > > 
+> > >   git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git master
+> > > 
+> > > for you to fetch changes up to 92eec78d25aee6bbc9bd295f51c022ddfa80cdd9:
+> > > 
+> > >   ipvs: SIP fragment handling (2012-09-28 11:37:16 +0900)
+> > > 
+> > > ----------------------------------------------------------------
+> > > Jesper Dangaard Brouer (7):
+> > >       ipvs: Trivial changes, use compressed IPv6 address in output
+> > >       ipvs: IPv6 extend ICMPv6 handling for future types
+> > >       ipvs: Use config macro IS_ENABLED()
+> > >       ipvs: Fix faulty IPv6 extension header handling in IPVS
+> > >       ipvs: Complete IPv6 fragment handling for IPVS
+> > >       ipvs: API change to avoid rescan of IPv6 exthdr
+> > >       ipvs: SIP fragment handling
+> > > 
+> > >  include/net/ip_vs.h                     |  194 +++++++++++----
+> > >  net/netfilter/ipvs/Kconfig              |    7 +-
+> > >  net/netfilter/ipvs/ip_vs_conn.c         |   15 +-
+> > >  net/netfilter/ipvs/ip_vs_core.c         |  404 +++++++++++++++++--------------
+> > >  net/netfilter/ipvs/ip_vs_dh.c           |    2 +-
+> > >  net/netfilter/ipvs/ip_vs_lblc.c         |    2 +-
+> > >  net/netfilter/ipvs/ip_vs_lblcr.c        |    2 +-
+> > >  net/netfilter/ipvs/ip_vs_pe_sip.c       |   18 +-
+> > >  net/netfilter/ipvs/ip_vs_proto.c        |    6 +-
+> > >  net/netfilter/ipvs/ip_vs_proto_ah_esp.c |    9 +-
+> > >  net/netfilter/ipvs/ip_vs_proto_sctp.c   |   42 ++--
+> > >  net/netfilter/ipvs/ip_vs_proto_tcp.c    |   40 ++-
+> > >  net/netfilter/ipvs/ip_vs_proto_udp.c    |   41 ++--
+> > >  net/netfilter/ipvs/ip_vs_sched.c        |    2 +-
+> > >  net/netfilter/ipvs/ip_vs_sh.c           |    2 +-
+> > >  net/netfilter/ipvs/ip_vs_xmit.c         |   73 +++---
+> > >  net/netfilter/xt_ipvs.c                 |    4 +-
+> > >  17 files changed, 501 insertions(+), 362 deletions(-)
 > > 
-> > 	Something should be changed here, may be at least
-> > TCP/UDP, who knows.
-> 
-> I don't try to read too much into our defconfigs. We have 140 of them
-> on ARM, and they are mainly useful to give a reasonable build coverage,
-> but I wouldn't expect them to be actually used on that hardware.
-> 
-> I'll leave it up to Krzysztof to send a patch for this if he wants.
-> 
-> > > --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> > > +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> > > @@ -2590,6 +2588,7 @@ __ip_vs_get_timeouts(struct net *net, struct ip_vs_timeout_user *u)
-> > >  #if defined(CONFIG_IP_VS_PROTO_TCP) || defined(CONFIG_IP_VS_PROTO_UDP)
-> > >  	struct ip_vs_proto_data *pd;
-> > >  #endif
 > > 
-> > 	That is what we want. If you plan another submission
-> > you can add empty line before this memset and to replace
-> > the __ip_vs_get_timeouts call in ip_vs_genl_set_config with
-> > memset but they are cosmetic changes. Or may be Simon will
-> > take care about the coding style when applying the change.
-> > 
-> > Acked-by: Julian Anastasov <ja@ssi.bg>
-> 
-> I'd prefer Simon to pick up the patch. He should also decide whether he wants
-> to add it to stable. In theory, this is a small leak of kernel stack data
-> to user space, but as you say in practice it should not happen because it
-> only exists for silly configurations that nobody should be using.
-> 
-> AFAICT, removing the call to __ip_vs_get_timeouts in do_ip_vs_get_ctl would
-> be a semantic change for the case where a user sends a IPVS_CMD_SET_CONFIG
-> message without without the complete set of attributes inside it. The current
-> behavior is to leave the timeouts alone, replacing the __ip_vs_get_timeouts
-> with a memset would zero them. I left this part alone then.
-> 
-> 	Arnd
-
-Hi,
-
-sorry for being a bit slow, it was a long weekend here.
-This patch looks reasonable and I think it is appropriate for stable.
-I'll see about getting it merged accordingly.
-
-> 
-> 8<-----
-> ipvs: initialize returned data in do_ip_vs_get_ctl
-> 
-> As reported by a gcc warning, the do_ip_vs_get_ctl does not initalize
-> all the members of the ip_vs_timeout_user structure it returns if
-> at least one of the TCP or UDP protocols is disabled for ipvs. 
-> 
-> This makes sure that the data is always initialized, before it is
-> returned as a response to IPVS_CMD_GET_CONFIG or printed as a
-> debug message in IPVS_CMD_SET_CONFIG.
-> 
-> Without this patch, building ARM ixp4xx_defconfig results in:
-> 
-> net/netfilter/ipvs/ip_vs_ctl.c: In function 'ip_vs_genl_set_cmd':
-> net/netfilter/ipvs/ip_vs_ctl.c:2238:47: warning: 't.udp_timeout' may be used uninitialized in this function [-Wuninitialized]
-> net/netfilter/ipvs/ip_vs_ctl.c:3322:28: note: 't.udp_timeout' was declared here
-> net/netfilter/ipvs/ip_vs_ctl.c:2238:47: warning: 't.tcp_fin_timeout' may be used uninitialized in this function [-Wuninitialized]
-> net/netfilter/ipvs/ip_vs_ctl.c:3322:28: note: 't.tcp_fin_timeout' was declared here
-> net/netfilter/ipvs/ip_vs_ctl.c:2238:47: warning: 't.tcp_timeout' may be used uninitialized in this function [-Wuninitialized]
-> net/netfilter/ipvs/ip_vs_ctl.c:3322:28: note: 't.tcp_timeout' was declared here
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Acked-by: Julian Anastasov <ja@ssi.bg>
-> ---
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index 2770f85..c4ee437 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -2591,6 +2589,8 @@ __ip_vs_get_timeouts(struct net *net, struct ip_vs_timeout_user *u)
->  	struct ip_vs_proto_data *pd;
->  #endif
->  
-> +	memset(u, 0, sizeof (*u));
-> +
->  #ifdef CONFIG_IP_VS_PROTO_TCP
->  	pd = ip_vs_proto_data_get(net, IPPROTO_TCP);
->  	u->tcp_timeout = pd->timeout_table[IP_VS_TCP_S_ESTABLISHED] / HZ;
-> @@ -2768,7 +2768,6 @@ do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
->  	{
->  		struct ip_vs_timeout_user t;
->  
-> -		memset(&t, 0, sizeof(t));
->  		__ip_vs_get_timeouts(net, &t);
->  		if (copy_to_user(user, &t, sizeof(t)) != 0)
->  			ret = -EFAULT;
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
