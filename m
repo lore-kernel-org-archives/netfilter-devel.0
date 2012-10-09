@@ -1,45 +1,33 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: static build breakage - 1.4.16.2.
-Date: Tue, 9 Oct 2012 12:04:57 +0200
-Message-ID: <20121009100457.GA20804@1984>
-References: <CAHo-Ooy1C9kV2NT=R8vTnaDccHnenkC1Scm+W0NrjgN1iUsvsQ@mail.gmail.com>
- <alpine.LNX.2.01.1210090002380.21001@nerf07.vanv.qr>
- <CAHo-OoxV9YQfXueHrBt1WJjv7MpsEOfkBdwOeEhcJbvGQ+wv7Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jan Engelhardt <jengelh@inai.de>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: libnfnetlink patches
+Date: Tue,  9 Oct 2012 16:02:34 +0200
+Message-ID: <1349791355-8494-1-git-send-email-jengelh@inai.de>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59978 "EHLO mail.us.es"
+Received: from ares07.inai.de ([5.9.24.206]:54956 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755239Ab2JIKFF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Oct 2012 06:05:05 -0400
-Content-Disposition: inline
-In-Reply-To: <CAHo-OoxV9YQfXueHrBt1WJjv7MpsEOfkBdwOeEhcJbvGQ+wv7Q@mail.gmail.com>
+	id S1754247Ab2JIOCi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 9 Oct 2012 10:02:38 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Oct 08, 2012 at 05:16:14PM -0700, Maciej =C5=BBenczykowski wrot=
-e:
-> > (N.B. You can have both --enable-static and --enable-shared)
->=20
-> Yeah, but I just want a small binary and don't need shared support
-> (indeed it's even undesirable).
->=20
-> > This patch seems to do it for me. Ok for you?
->=20
-> Looks like it.
 
-Applied, thanks a lot.
+The following changes since commit 1166116e34af868bc814aea338c246e49a7a8748:
 
-> Care to push and release as .3?
+  bump version to 1.0.1 (2012-10-08 10:51:16 +0200)
 
-Will do in a couple of days.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+are available in the git repository at:
+
+  git://git.inai.de/libnfnetlink master
+
+for you to fetch changes up to 97a3960000c9803f91d3a59a734d1e1aa721fcc3:
+
+  build: resolve automake-1.12 warnings (2012-10-09 15:59:48 +0200)
+
+----------------------------------------------------------------
+Jan Engelhardt (1):
+      build: resolve automake-1.12 warnings
+
+ configure.ac |    1 +
+ 1 file changed, 1 insertion(+)
