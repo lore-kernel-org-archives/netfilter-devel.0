@@ -1,39 +1,35 @@
-From: Gustavo Zacarias <gustavo@zacarias.com.ar>
-Subject: [PATCH] autoconf/ulogd: fix broken libpcap AM_CONDITIONAL
-Date: Tue,  9 Oct 2012 16:27:19 -0300
-Message-ID: <1349810839-5958-1-git-send-email-gustavo@zacarias.com.ar>
-Cc: Gustavo Zacarias <gustavo@zacarias.com.ar>
-To: netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: iptables-dev Source Example
+Date: Wed, 10 Oct 2012 00:08:07 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1210100007100.16482@nerf07.vanv.qr>
+References: <5072D6F8.2010707@iit.demokritos.gr> <20121008152237.GA8350@1984>    <CAHo-OoyUUHju8du-Otd6vfgv_ORz-Y_PrPB0VDKbU74jYy9hjg@mail.gmail.com>    <2aa140973d7d5a320bd1402da1647a26.squirrel@webmail.iit.demokritos.gr>    <alpine.LNX.2.01.1210091753520.12373@nerf07.vanv.qr>
+ <11f6603b92965503cfaef2622aaf56a0.squirrel@webmail.iit.demokritos.gr>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>,
+	netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: "Katia S." <katias@iit.demokritos.gr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from loknar.toptech.com.ar ([85.10.205.246]:47843 "EHLO
-	loknar.toptech.com.ar" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751116Ab2JITlK (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Oct 2012 15:41:10 -0400
+Received: from ares07.inai.de ([5.9.24.206]:55984 "EHLO ares07.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756444Ab2JIWII (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 9 Oct 2012 18:08:08 -0400
+In-Reply-To: <11f6603b92965503cfaef2622aaf56a0.squirrel@webmail.iit.demokritos.gr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The AM_CONDITIONAL lacks the opening bracket, hence it always evaluates
-as true, even if there's no libpcap found thus causing build breakage.
+On Tuesday 2012-10-09 19:23, Katia S. wrote:
 
-Signed-off-by: Gustavo Zacarias <gustavo@zacarias.com.ar>
----
- configure.ac |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+>Yeah, that's why I installed the development packages of both iptables and
+>iptc. I'm gussing the API I need is in the iptc lib.. But still, no luck
+>finding a tutorial there either.
 
-diff --git a/configure.ac b/configure.ac
-index 10b6e1f..57c596c 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -21,7 +21,7 @@ AC_SEARCH_LIBS([dlopen], [dl], [libdl_LIBS="$LIBS"; LIBS=""])
- AC_SUBST([libdl_LIBS])
- AC_SEARCH_LIBS([pcap_close], [pcap], [libpcap_LIBS="-lpcap"; LIBS=""])
- AC_SUBST([libpcap_LIBS])
--AM_CONDITIONAL([HAVE_PCAP], test -n "$libpcap_LIBS"])
-+AM_CONDITIONAL([HAVE_PCAP],[test -n "$libpcap_LIBS"])
- 
- dnl Checks for header files.
- AC_HEADER_DIRENT
--- 
-1.7.8.6
+As I said, iptables/iptc does not have anything to do with tc.
 
+
+>>>Well, I have been running "tc" commands like "tc qdisc" or "tc class" to
+>>>get some information I need on various devices and interfaces.
+>>>
+>>>Right now I need to implement the exact same feature in a program of
+>>>mine, [...]
