@@ -1,75 +1,62 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 2/2] build: resolve compile abort in libxt_limit on RHEL5
-Date: Wed, 10 Oct 2012 12:35:14 +0200
-Message-ID: <1349865314-27640-3-git-send-email-jengelh@inai.de>
+Subject: [PATCH 1/2] build: remove symlink-only extensions from static object list
+Date: Wed, 10 Oct 2012 12:35:13 +0200
+Message-ID: <1349865314-27640-2-git-send-email-jengelh@inai.de>
 References: <1349865314-27640-1-git-send-email-jengelh@inai.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:57232 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:57230 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754763Ab2JJKfR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1754944Ab2JJKfR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Wed, 10 Oct 2012 06:35:17 -0400
 In-Reply-To: <1349865314-27640-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-	libxt_limit.c: In function 'print_rate':
-	libxt_limit.c:124: error: 'INFINITY' undeclared (first use in
-	this function)
-
-The default mode of glibc-2.15's <features.h> sets
-"-D_POSIX_C_SOURCE=3D200809L", and therefore "-D_ISOC99_SOURCE". Howeve=
-r,
-on =C3=BEe olde RHEL 5's glibc-2.5, it only has "-D_POSIX_C_SOURCE=3D20=
-0112L".
-
-Explicitly draw in the definition of INFINITY by always defining
-_ISOC99_SOURCE. By doing this, we are moving off of the default set, so
-_BSD_SOURCE also needs to be explicitly set to get at IFNAMSIZ that is
-used in xt_hashlimit.h.
+$ ./configure --enable-static --disable-shared --enable-ipv4
+  --enable-ipv6 && make
+[...]
+make[3]: *** No rule to make target "libxt_NOTRACK.o", needed by
+"libext.a". Stop.
 
 Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- extensions/libxt_hashlimit.c |    2 ++
- extensions/libxt_limit.c     |    2 ++
- 2 files changed, 4 insertions(+)
+ extensions/GNUmakefile.in |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/extensions/libxt_hashlimit.c b/extensions/libxt_hashlimit.=
-c
-index 831345b..c5b8d77 100644
---- a/extensions/libxt_hashlimit.c
-+++ b/extensions/libxt_hashlimit.c
-@@ -10,6 +10,8 @@
-  *=20
-  * Error corections by nmalykh@bilim.com (22.01.2005)
-  */
-+#define _BSD_SOURCE 1
-+#define _ISOC99_SOURCE 1
- #include <math.h>
- #include <stdbool.h>
- #include <stdint.h>
-diff --git a/extensions/libxt_limit.c b/extensions/libxt_limit.c
-index 023500c..f75ef2f 100644
---- a/extensions/libxt_limit.c
-+++ b/extensions/libxt_limit.c
-@@ -3,6 +3,8 @@
-  * J=C3=A9r=C3=B4me de Vivie   <devivie@info.enserb.u-bordeaux.fr>
-  * Herv=C3=A9 Eychenne    <rv@wallfire.org>
-  */
-+#define _BSD_SOURCE 1
-+#define _ISOC99_SOURCE 1
- #include <math.h>
- #include <stdio.h>
- #include <string.h>
---=20
+diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+index 8b38df9..1cef239 100644
+--- a/extensions/GNUmakefile.in
++++ b/extensions/GNUmakefile.in
+@@ -39,7 +39,7 @@ endif
+ #	Wildcard module list
+ #
+ pfx_build_mod := $(patsubst ${srcdir}/libxt_%.c,%,$(sort $(wildcard ${srcdir}/libxt_*.c)))
+-pfx_build_mod += NOTRACK state
++pfx_symlinks  := NOTRACK state
+ @ENABLE_IPV4_TRUE@ pf4_build_mod := $(patsubst ${srcdir}/libipt_%.c,%,$(sort $(wildcard ${srcdir}/libipt_*.c)))
+ @ENABLE_IPV6_TRUE@ pf6_build_mod := $(patsubst ${srcdir}/libip6t_%.c,%,$(sort $(wildcard ${srcdir}/libip6t_*.c)))
+ pfx_build_mod := $(filter-out @blacklist_modules@,${pfx_build_mod})
+@@ -48,7 +48,7 @@ pf6_build_mod := $(filter-out @blacklist_modules@,${pf6_build_mod})
+ pfx_objs      := $(patsubst %,libxt_%.o,${pfx_build_mod})
+ pf4_objs      := $(patsubst %,libipt_%.o,${pf4_build_mod})
+ pf6_objs      := $(patsubst %,libip6t_%.o,${pf6_build_mod})
+-pfx_solibs    := $(patsubst %,libxt_%.so,${pfx_build_mod})
++pfx_solibs    := $(patsubst %,libxt_%.so,${pfx_build_mod} ${pfx_symlinks})
+ pf4_solibs    := $(patsubst %,libipt_%.so,${pf4_build_mod})
+ pf6_solibs    := $(patsubst %,libip6t_%.so,${pf6_build_mod})
+ 
+@@ -220,7 +220,7 @@ man_run    = \
+ 	done >$@;
+ 
+ matches.man: .initext.dd .initext4.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
+-	$(call man_run,$(call ex_matches,${pfx_build_mod} ${pf4_build_mod} ${pf6_build_mod}))
++	$(call man_run,$(call ex_matches,${pfx_build_mod} ${pf4_build_mod} ${pf6_build_mod} ${pfx_symlinks}))
+ 
+ targets.man: .initext.dd .initext4.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
+-	$(call man_run,$(call ex_targets,${pfx_build_mod} ${pf4_build_mod} ${pf6_build_mod}))
++	$(call man_run,$(call ex_targets,${pfx_build_mod} ${pf4_build_mod} ${pf6_build_mod} ${pfx_symlinks}))
+-- 
 1.7.10.4
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
