@@ -1,72 +1,63 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 7/9] doc: document iptables-restore's -h option
-Date: Wed, 10 Oct 2012 14:26:30 +0200
-Message-ID: <1349871992-31115-8-git-send-email-jengelh@inai.de>
+Subject: [PATCH 8/9] doc: name the supported log levels for ipt_LOG
+Date: Wed, 10 Oct 2012 14:26:31 +0200
+Message-ID: <1349871992-31115-9-git-send-email-jengelh@inai.de>
 References: <1349871992-31115-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:57560 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:57561 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753512Ab2JJM0j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1753706Ab2JJM0j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Wed, 10 Oct 2012 08:26:39 -0400
 In-Reply-To: <1349871992-31115-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-References: http://bugs.debian.org/644221
+Leonardo Ferreira da Silva Boiko lets it be known that syslogd.conf may
+not exist on certain systems. Referencing that manpage is not a good
+idea in any case, I believe, since the strings that are accepted are
+defined by iptables and not a syslog implementation.
+
+References: http://bugs.debian.org/567564
 Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- iptables/ip6tables-restore.8in |    5 ++++-
- iptables/iptables-restore.8in  |    5 ++++-
+ extensions/libip6t_LOG.man |    5 ++++-
+ extensions/libipt_LOG.man  |    5 ++++-
  2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/iptables/ip6tables-restore.8in b/iptables/ip6tables-restore.8in
-index f3419f4..697a226 100644
---- a/iptables/ip6tables-restore.8in
-+++ b/iptables/ip6tables-restore.8in
-@@ -21,7 +21,7 @@
- .SH NAME
- ip6tables-restore \(em Restore IPv6 Tables
- .SH SYNOPSIS
--\fBip6tables\-restore\fP [\fB\-cntv\fP] [\fB\-M\fP \fImodprobe\fP]
-+\fBip6tables\-restore\fP [\fB\-chntv\fP] [\fB\-M\fP \fImodprobe\fP]
- [\fB\-T\fP \fIname\fP]
- .SH DESCRIPTION
- .PP
-@@ -32,6 +32,9 @@ I/O redirection provided by your shell to read from a file
- \fB\-c\fR, \fB\-\-counters\fR
- restore the values of all packet and byte counters
+diff --git a/extensions/libip6t_LOG.man b/extensions/libip6t_LOG.man
+index b7803fe..0a48640 100644
+--- a/extensions/libip6t_LOG.man
++++ b/extensions/libip6t_LOG.man
+@@ -11,7 +11,10 @@ separate rules with the same matching criteria, first using target LOG
+ then DROP (or REJECT).
  .TP
-+\fB\-h\fP, \fB\-\-help\fP
-+Print a short option summary.
-+.TP
- \fB\-n\fR, \fB\-\-noflush\fR 
- don't flush the previous contents of the table. If not specified,
- \fBip6tables-restore\fP flushes (deletes) all previous contents of the
-diff --git a/iptables/iptables-restore.8in b/iptables/iptables-restore.8in
-index c493cf9..197f013 100644
---- a/iptables/iptables-restore.8in
-+++ b/iptables/iptables-restore.8in
-@@ -21,7 +21,7 @@
- .SH NAME
- iptables-restore \(em Restore IP Tables
- .SH SYNOPSIS
--\fBiptables\-restore\fP [\fB\-cntv\fP] [\fB\-M\fP \fImodprobe\fP]
-+\fBiptables\-restore\fP [\fB\-chntv\fP] [\fB\-M\fP \fImodprobe\fP]
- [\fB\-T\fP \fIname\fP]
- .SH DESCRIPTION
- .PP
-@@ -32,6 +32,9 @@ I/O redirection provided by your shell to read from a file
- \fB\-c\fR, \fB\-\-counters\fR
- restore the values of all packet and byte counters
+ \fB\-\-log\-level\fP \fIlevel\fP
+-Level of logging (numeric or see \fIsyslog.conf\fP(5)).
++Level of logging, which can be (system-specific) numeric or a mnemonic.
++Possible values are (in decreasing order of priority): \fBemerg\fP,
++\fBalert\fP, \fBcrit\fP, \fBerror\fP, \fBwarning\fP, \fBnotice\fP, \fBinfo\fP
++or \fBdebug\fP.
  .TP
-+\fB\-h\fP, \fB\-\-help\fP
-+Print a short option summary.
-+.TP
- \fB\-n\fR, \fB\-\-noflush\fR 
- don't flush the previous contents of the table. If not specified, 
- .B iptables-restore
+ \fB\-\-log\-prefix\fP \fIprefix\fP
+ Prefix log messages with the specified prefix; up to 29 letters long,
+diff --git a/extensions/libipt_LOG.man b/extensions/libipt_LOG.man
+index 47c35e0..f2574f8 100644
+--- a/extensions/libipt_LOG.man
++++ b/extensions/libipt_LOG.man
+@@ -11,7 +11,10 @@ separate rules with the same matching criteria, first using target LOG
+ then DROP (or REJECT).
+ .TP
+ \fB\-\-log\-level\fP \fIlevel\fP
+-Level of logging (numeric or see \fIsyslog.conf\fP(5)).
++Level of logging, which can be (system-specific) numeric or a mnemonic.
++Possible values are (in decreasing order of priority): \fBemerg\fP,
++\fBalert\fP, \fBcrit\fP, \fBerror\fP, \fBwarning\fP, \fBnotice\fP, \fBinfo\fP
++or \fBdebug\fP.
+ .TP
+ \fB\-\-log\-prefix\fP \fIprefix\fP
+ Prefix log messages with the specified prefix; up to 29 letters long,
 -- 
 1.7.10.4
 
