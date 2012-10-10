@@ -1,36 +1,46 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: iptables -stable patches
-Date: Wed, 10 Oct 2012 12:35:12 +0200
-Message-ID: <1349865314-27640-1-git-send-email-jengelh@inai.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 2/2] build: resolve compile abort in libxt_limit on
+ RHEL5
+Date: Wed, 10 Oct 2012 13:29:15 +0200
+Message-ID: <20121010112915.GA25237@1984>
+References: <1349865314-27640-1-git-send-email-jengelh@inai.de>
+ <1349865314-27640-3-git-send-email-jengelh@inai.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:57231 "EHLO ares07.inai.de"
+Received: from mail.us.es ([193.147.175.20]:34830 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754804Ab2JJKfR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Oct 2012 06:35:17 -0400
+	id S1751204Ab2JJL3Z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Oct 2012 07:29:25 -0400
+Content-Disposition: inline
+In-Reply-To: <1349865314-27640-3-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Wed, Oct 10, 2012 at 12:35:14PM +0200, Jan Engelhardt wrote:
+> 	libxt_limit.c: In function 'print_rate':
+> 	libxt_limit.c:124: error: 'INFINITY' undeclared (first use in
+> 	this function)
+>=20
+> The default mode of glibc-2.15's <features.h> sets
+> "-D_POSIX_C_SOURCE=3D200809L", and therefore "-D_ISOC99_SOURCE". Howe=
+ver,
+> on =FEe olde RHEL 5's glibc-2.5, it only has "-D_POSIX_C_SOURCE=3D200=
+112L".
+>=20
+> Explicitly draw in the definition of INFINITY by always defining
+> _ISOC99_SOURCE. By doing this, we are moving off of the default set, =
+so
+> _BSD_SOURCE also needs to be explicitly set to get at IFNAMSIZ that i=
+s
+> used in xt_hashlimit.h.
 
-The following changes since commit c1a150c98fc94858a440550f0cb347a6060ebb30:
-
-  bump version to 1.4.16.2 (2012-10-08 10:09:04 +0200)
-
-are available in the git repository at:
-
-  git://git.inai.de/iptables master
-
-for you to fetch changes up to f525886fc628341809e9139f87eab92f3f6f31da:
-
-  build: resolve compile abort in libxt_limit on RHEL5 (2012-10-09 02:01:09 +0200)
-
-----------------------------------------------------------------
-Jan Engelhardt (2):
-      build: remove symlink-only extensions from static object list
-      build: resolve compile abort in libxt_limit on RHEL5
-
- extensions/GNUmakefile.in    |    8 ++++----
- extensions/libxt_hashlimit.c |    2 ++
- extensions/libxt_limit.c     |    2 ++
- 3 files changed, 8 insertions(+), 4 deletions(-)
+Applied, thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
