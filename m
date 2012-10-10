@@ -1,62 +1,76 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 3/9] doc: fixup omissions in ip6tables-restore.8
-Date: Wed, 10 Oct 2012 14:26:26 +0200
-Message-ID: <1349871992-31115-4-git-send-email-jengelh@inai.de>
+Subject: [PATCH 6/9] doc: document iptables-restore's -M option
+Date: Wed, 10 Oct 2012 14:26:29 +0200
+Message-ID: <1349871992-31115-7-git-send-email-jengelh@inai.de>
 References: <1349871992-31115-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:57550 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:57558 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753012Ab2JJM0i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Oct 2012 08:26:38 -0400
+	id S1753320Ab2JJM0j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Oct 2012 08:26:39 -0400
 In-Reply-To: <1349871992-31115-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+References: http://bugs.debian.org/644221
 Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- iptables/ip6tables-restore.8in |    6 ++++--
- iptables/iptables-restore.8in  |    2 +-
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ iptables/ip6tables-restore.8in |    7 ++++++-
+ iptables/iptables-restore.8in  |    7 ++++++-
+ 2 files changed, 12 insertions(+), 2 deletions(-)
 
 diff --git a/iptables/ip6tables-restore.8in b/iptables/ip6tables-restore.8in
-index a9859ae..e9018d0 100644
+index 6c0009e..f3419f4 100644
 --- a/iptables/ip6tables-restore.8in
 +++ b/iptables/ip6tables-restore.8in
-@@ -21,7 +21,7 @@
+@@ -21,7 +21,8 @@
  .SH NAME
  ip6tables-restore \(em Restore IPv6 Tables
  .SH SYNOPSIS
--\fBip6tables\-restore\fP [\fB\-c\fP] [\fB\-n\fP]
-+\fBip6tables\-restore\fP [\fB\-c\fP] [\fB\-n\fP] [\fB\-T\fP \fIname\fP]
+-\fBip6tables\-restore\fP [\fB\-cntv\fP] [\fB\-T\fP \fIname\fP]
++\fBip6tables\-restore\fP [\fB\-cntv\fP] [\fB\-M\fP \fImodprobe\fP]
++[\fB\-T\fP \fIname\fP]
  .SH DESCRIPTION
  .PP
  .B ip6tables-restore
-@@ -32,7 +32,9 @@ I/O redirection provided by your shell to read from a file
- restore the values of all packet and byte counters
+@@ -42,6 +43,10 @@ Only parse and construct the ruleset, but do not commit it.
+ \fB\-v\fP, \fB\-\-verbose\fP
+ Print additional debug info during ruleset processing.
  .TP
- \fB\-n\fR, \fB\-\-noflush\fR 
--don't flush the previous contents of the table. If not specified, 
-+don't flush the previous contents of the table. If not specified,
-+\fBip6tables-restore\fP flushes (deletes) all previous contents of the
-+respective table.
- .TP
++\fB\-M\fP, \fB\-\-modprobe\fP \fImodprobe_program\fP
++Specify the path to the modprobe program. By default, ip6tables-restore will
++inspect /proc/sys/kernel/modprobe to determine the executable's path.
++.TP
  \fB\-T\fP, \fB\-\-table\fP \fIname\fP
  Restore only the named table even if the input stream contains other ones.
+ .B ip6tables-restore
 diff --git a/iptables/iptables-restore.8in b/iptables/iptables-restore.8in
-index 37faae0..75de847 100644
+index 27440fb..c493cf9 100644
 --- a/iptables/iptables-restore.8in
 +++ b/iptables/iptables-restore.8in
-@@ -34,7 +34,7 @@ restore the values of all packet and byte counters
- \fB\-n\fR, \fB\-\-noflush\fR 
- don't flush the previous contents of the table. If not specified, 
+@@ -21,7 +21,8 @@
+ .SH NAME
+ iptables-restore \(em Restore IP Tables
+ .SH SYNOPSIS
+-\fBiptables\-restore\fP [\fB\-cntv\fP] [\fB\-T\fP \fIname\fP]
++\fBiptables\-restore\fP [\fB\-cntv\fP] [\fB\-M\fP \fImodprobe\fP]
++[\fB\-T\fP \fIname\fP]
+ .SH DESCRIPTION
+ .PP
  .B iptables-restore
--flushes (deletes) all previous contents of the respective IP Table.
-+flushes (deletes) all previous contents of the respective table.
+@@ -42,6 +43,10 @@ Only parse and construct the ruleset, but do not commit it.
+ \fB\-v\fP, \fB\-\-verbose\fP
+ Print additional debug info during ruleset processing.
  .TP
++\fB\-M\fP, \fB\-\-modprobe\fP \fImodprobe_program\fP
++Specify the path to the modprobe program. By default, iptables-restore will
++inspect /proc/sys/kernel/modprobe to determine the executable's path.
++.TP
  \fB\-T\fP, \fB\-\-table\fP \fIname\fP
  Restore only the named table even if the input stream contains other ones.
+ .SH BUGS
 -- 
 1.7.10.4
 
