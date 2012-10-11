@@ -1,43 +1,37 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] Netfilter/IPVS updates for stable 3.0 onwards
-Date: Thu, 11 Oct 2012 15:08:59 -0400 (EDT)
-Message-ID: <20121011.150859.332451795976030438.davem@davemloft.net>
-References: <1349949607-12190-1-git-send-email-pablo@netfilter.org>
+Subject: Re: [PATCH] Netfilter/IPVS updates for stable 3.4 onwards
+Date: Thu, 11 Oct 2012 15:09:14 -0400 (EDT)
+Message-ID: <20121011.150914.2287282974329140985.davem@davemloft.net>
+References: <1349950054-12353-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: stable@kernel.org, netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:38687 "EHLO
+Received: from shards.monkeyblade.net ([149.20.54.216]:38694 "EHLO
 	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965074Ab2JKTJB (ORCPT
+	with ESMTP id S932901Ab2JKTJQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Oct 2012 15:09:01 -0400
-In-Reply-To: <1349949607-12190-1-git-send-email-pablo@netfilter.org>
+	Thu, 11 Oct 2012 15:09:16 -0400
+In-Reply-To: <1349950054-12353-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: pablo@netfilter.org
-Date: Thu, 11 Oct 2012 12:00:01 +0200
+Date: Thu, 11 Oct 2012 12:07:31 +0200
 
 > From: Pablo Neira Ayuso <pablo@netfilter.org>
 > 
 > Hi!
 > 
-> The following patchset aims to reduce the Netfilter debt with stable 3.0 and
-> onwards.
+> The following patchset contain fixes for stable 3.4 onwards.
 > 
-> The selected six patches are:
+> The selected three patches are:
 > 
-> 07153c6 netfilter: nf_ct_ipv4: packets with wrong ihl are invalid
-> 3f509c6 netfilter: nf_nat_sip: fix incorrect handling of EBUSY for RTCP expectation
-> f22eb25 netfilter: nf_nat_sip: fix via header translation with multiple parameters
-> 2614f86 netfilter: nf_ct_expect: fix possible access to uninitialized timer
-> 9e33ce4 ipvs: fix oops on NAT reply in br_nf context
-> 82e6bfe netfilter: xt_limit: have r->cost != 0 case work [REQUIRES 7a909ac netfilter: limit, hashlimit: avoid duplicated inline]
-> 
-> I have read stable_rules.txt and I consider they match the requirements.
+> 283283c ipvs: fix oops in ip_vs_dst_event on rmmod
+> 66b6aaf netfilter: nf_conntrack: fix racy timer handling with reliable events
+> a73f89a netfilter: ipset: timeout fixing bug broke SET target special timeout value [REQUIRES 127f559 netfilter: ipset: fix timeout value overflow bug]
 > 
 > Please, cherry-pick them. Thanks!
 
