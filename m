@@ -1,36 +1,36 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] Netfilter/IPVS updates for stable 3.0 onwards
-Date: Thu, 11 Oct 2012 23:55:15 +0200
-Message-ID: <20121011215515.GA4577@1984>
-References: <1349949607-12190-1-git-send-email-pablo@netfilter.org>
- <20121011.150859.332451795976030438.davem@davemloft.net>
- <20121011.151132.556363803639719373.davem@davemloft.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] Netfilter updates for stable 3.5
+Date: Thu, 11 Oct 2012 18:20:26 -0400 (EDT)
+Message-ID: <20121011.182026.1610707574096938694.davem@davemloft.net>
+References: <1349950699-12600-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: stable@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58134 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759433Ab2JKVzU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Oct 2012 17:55:20 -0400
-Content-Disposition: inline
-In-Reply-To: <20121011.151132.556363803639719373.davem@davemloft.net>
+Received: from shards.monkeyblade.net ([149.20.54.216]:40219 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752632Ab2JKWU2 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Oct 2012 18:20:28 -0400
+In-Reply-To: <1349950699-12600-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Oct 11, 2012 at 03:11:32PM -0400, David Miller wrote:
+From: pablo@netfilter.org
+Date: Thu, 11 Oct 2012 12:18:18 +0200
+
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
 > 
-> Pablo, the stable kernel address is "stable@vger.kernel.org" not
-> "stable@kernel.org"
+> Hi!
 > 
-> Therefore all of your submissions bounced.
+> The following patchset contain fixes for stable 3.5.
+> 
+> The selected patch is:
+> 
+> 2dba62c netfilter: nfnetlink_log: fix NLA_PUT macro removal bug
+> 
+> Please, cherry-pick it. Thanks!
 
-I noticed too late so I resent the patches with the correct direction
-again.
-
-I've already fixed my sendmail scripts.
-
-Can you ack those, please?
-
-Thanks.
+Acked-by: David S. Miller <davem@davemloft.net>
