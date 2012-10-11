@@ -1,133 +1,60 @@
 From: pablo@netfilter.org
-Subject: [PATCH 4/6] netfilter: nf_ct_expect: fix possible access to uninitialized timer
-Date: Thu, 11 Oct 2012 12:00:05 +0200
-Message-ID: <1349949607-12190-5-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 3/6] netfilter: nf_nat_sip: fix via header translation with multiple parameters
+Date: Thu, 11 Oct 2012 12:00:04 +0200
+Message-ID: <1349949607-12190-4-git-send-email-pablo@netfilter.org>
 References: <1349949607-12190-1-git-send-email-pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
 To: stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45937 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45912 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758293Ab2JKKAh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Oct 2012 06:00:37 -0400
+	id S1758291Ab2JKKAf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Oct 2012 06:00:35 -0400
 In-Reply-To: <1349949607-12190-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
 
-In __nf_ct_expect_check, the function refresh_timer returns 1
-if a matching expectation is found and its timer is successfully
-refreshed. This results in nf_ct_expect_related returning 0.
-Note that at this point:
+Via-headers are parsed beginning at the first character after the Via-address.
+When the address is translated first and its length decreases, the offset to
+start parsing at is incorrect and header parameters might be missed.
 
-- the passed expectation is not inserted in the expectation table
-  and its timer was not initialized, since we have refreshed one
-  matching/existing expectation.
+Update the offset after translating the Via-address to fix this.
 
-- nf_ct_expect_alloc uses kmem_cache_alloc, so the expectation
-  timer is in some undefined state just after the allocation,
-  until it is appropriately initialized.
-
-This can be a problem for the SIP helper during the expectation
-addition:
-
- ...
- if (nf_ct_expect_related(rtp_exp) == 0) {
-         if (nf_ct_expect_related(rtcp_exp) != 0)
-                 nf_ct_unexpect_related(rtp_exp);
- ...
-
-Note that nf_ct_expect_related(rtp_exp) may return 0 for the timer refresh
-case that is detailed above. Then, if nf_ct_unexpect_related(rtcp_exp)
-returns != 0, nf_ct_unexpect_related(rtp_exp) is called, which does:
-
- spin_lock_bh(&nf_conntrack_lock);
- if (del_timer(&exp->timeout)) {
-         nf_ct_unlink_expect(exp);
-         nf_ct_expect_put(exp);
- }
- spin_unlock_bh(&nf_conntrack_lock);
-
-Note that del_timer always returns false if the timer has been
-initialized.  However, the timer was not initialized since setup_timer
-was not called, therefore, the expectation timer remains in some
-undefined state. If I'm not missing anything, this may lead to the
-removal an unexistent expectation.
-
-To fix this, the optimization that allows refreshing an expectation
-is removed. Now nf_conntrack_expect_related looks more consistent
-to me since it always add the expectation in case that it returns
-success.
-
-Thanks to Patrick McHardy for participating in the discussion of
-this patch.
-
-I think this may be the source of the problem described by:
-http://marc.info/?l=netfilter-devel&m=134073514719421&w=2
-
-Reported-by: Rafal Fitt <rafalf@aplusc.com.pl>
-Acked-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_expect.c |   29 ++++++-----------------------
- 1 file changed, 6 insertions(+), 23 deletions(-)
+ net/ipv4/netfilter/nf_nat_sip.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 45cf602..527651a 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -361,23 +361,6 @@ static void evict_oldest_expect(struct nf_conn *master,
- 	}
- }
+diff --git a/net/ipv4/netfilter/nf_nat_sip.c b/net/ipv4/netfilter/nf_nat_sip.c
+index eef8f29..4ad9cf1 100644
+--- a/net/ipv4/netfilter/nf_nat_sip.c
++++ b/net/ipv4/netfilter/nf_nat_sip.c
+@@ -148,7 +148,7 @@ static unsigned int ip_nat_sip(struct sk_buff *skb, unsigned int dataoff,
+ 	if (ct_sip_parse_header_uri(ct, *dptr, NULL, *datalen,
+ 				    hdr, NULL, &matchoff, &matchlen,
+ 				    &addr, &port) > 0) {
+-		unsigned int matchend, poff, plen, buflen, n;
++		unsigned int olen, matchend, poff, plen, buflen, n;
+ 		char buffer[sizeof("nnn.nnn.nnn.nnn:nnnnn")];
  
--static inline int refresh_timer(struct nf_conntrack_expect *i)
--{
--	struct nf_conn_help *master_help = nfct_help(i->master);
--	const struct nf_conntrack_expect_policy *p;
--
--	if (!del_timer(&i->timeout))
--		return 0;
--
--	p = &rcu_dereference_protected(
--		master_help->helper,
--		lockdep_is_held(&nf_conntrack_lock)
--		)->expect_policy[i->class];
--	i->timeout.expires = jiffies + p->timeout * HZ;
--	add_timer(&i->timeout);
--	return 1;
--}
--
- static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect)
- {
- 	const struct nf_conntrack_expect_policy *p;
-@@ -386,7 +369,7 @@ static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect)
- 	struct nf_conn_help *master_help = nfct_help(master);
- 	struct nf_conntrack_helper *helper;
- 	struct net *net = nf_ct_exp_net(expect);
--	struct hlist_node *n;
-+	struct hlist_node *n, *next;
- 	unsigned int h;
- 	int ret = 1;
+ 		/* We're only interested in headers related to this
+@@ -163,11 +163,12 @@ static unsigned int ip_nat_sip(struct sk_buff *skb, unsigned int dataoff,
+ 				goto next;
+ 		}
  
-@@ -395,12 +378,12 @@ static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect)
- 		goto out;
- 	}
- 	h = nf_ct_expect_dst_hash(&expect->tuple);
--	hlist_for_each_entry(i, n, &net->ct.expect_hash[h], hnode) {
-+	hlist_for_each_entry_safe(i, n, next, &net->ct.expect_hash[h], hnode) {
- 		if (expect_matches(i, expect)) {
--			/* Refresh timer: if it's dying, ignore.. */
--			if (refresh_timer(i)) {
--				ret = 0;
--				goto out;
-+			if (del_timer(&i->timeout)) {
-+				nf_ct_unlink_expect(i);
-+				nf_ct_expect_put(i);
-+				break;
- 			}
- 		} else if (expect_clash(i, expect)) {
- 			ret = -EBUSY;
++		olen = *datalen;
+ 		if (!map_addr(skb, dataoff, dptr, datalen, matchoff, matchlen,
+ 			      &addr, port))
+ 			return NF_DROP;
+ 
+-		matchend = matchoff + matchlen;
++		matchend = matchoff + matchlen + *datalen - olen;
+ 
+ 		/* The maddr= parameter (RFC 2361) specifies where to send
+ 		 * the reply. */
 -- 
 1.7.10.4
 
