@@ -1,46 +1,33 @@
 From: pablo@netfilter.org
-Subject: [PATCH 1/1] netfilter: nfnetlink_log: fix NLA_PUT macro removal bug
-Date: Thu, 11 Oct 2012 12:09:54 +0200
-Message-ID: <1349950194-12422-2-git-send-email-pablo@netfilter.org>
-References: <1349950194-12422-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH] Netfilter/IPVS updates for stable 3.0 onwards
+Date: Thu, 11 Oct 2012 12:15:33 +0200
+Message-ID: <1349950539-12491-1-git-send-email-pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-To: stable@kernel.org
+To: stable@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49388 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52379 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758333Ab2JKKKI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Oct 2012 06:10:08 -0400
-In-Reply-To: <1349950194-12422-1-git-send-email-pablo@netfilter.org>
+	id S1758323Ab2JKKPu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Oct 2012 06:15:50 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Commit 1db20a52 (nfnetlink_log: Stop using NLA_PUT*().) incorrectly
-converted a NLA_PUT_BE16 macro to nla_put_be32() in nfnetlink_log:
+Hi!
 
--               NLA_PUT_BE16(inst->skb, NFULA_HWTYPE, htons(skb->dev->type));
-+               if (nla_put_be32(inst->skb, NFULA_HWTYPE, htons(skb->dev->type))
+The following patchset aims to reduce the Netfilter debt with stable 3.0 and
+onwards.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nfnetlink_log.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The selected six patches are:
 
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 169ab59..592091c1 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -480,7 +480,7 @@ __build_packet_message(struct nfulnl_instance *inst,
- 	}
- 
- 	if (indev && skb_mac_header_was_set(skb)) {
--		if (nla_put_be32(inst->skb, NFULA_HWTYPE, htons(skb->dev->type)) ||
-+		if (nla_put_be16(inst->skb, NFULA_HWTYPE, htons(skb->dev->type)) ||
- 		    nla_put_be16(inst->skb, NFULA_HWLEN,
- 				 htons(skb->dev->hard_header_len)) ||
- 		    nla_put(inst->skb, NFULA_HWHEADER, skb->dev->hard_header_len,
--- 
-1.7.10.4
+07153c6 netfilter: nf_ct_ipv4: packets with wrong ihl are invalid
+3f509c6 netfilter: nf_nat_sip: fix incorrect handling of EBUSY for RTCP expectation
+f22eb25 netfilter: nf_nat_sip: fix via header translation with multiple parameters
+2614f86 netfilter: nf_ct_expect: fix possible access to uninitialized timer
+9e33ce4 ipvs: fix oops on NAT reply in br_nf context
+82e6bfe netfilter: xt_limit: have r->cost != 0 case work [REQUIRES 7a909ac netfilter: limit, hashlimit: avoid duplicated inline]
 
+I have read stable_rules.txt and I consider they match the requirements.
+
+Please, cherry-pick them. Thanks!
