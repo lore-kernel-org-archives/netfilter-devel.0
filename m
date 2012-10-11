@@ -1,62 +1,66 @@
 From: pablo@netfilter.org
-Subject: [PATCH 2/6] netfilter: nf_nat_sip: fix incorrect handling of EBUSY for RTCP expectation
-Date: Thu, 11 Oct 2012 12:15:35 +0200
-Message-ID: <1349950539-12491-3-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 1/6] netfilter: nf_ct_ipv4: packets with wrong ihl are invalid
+Date: Thu, 11 Oct 2012 12:15:34 +0200
+Message-ID: <1349950539-12491-2-git-send-email-pablo@netfilter.org>
 References: <1349950539-12491-1-git-send-email-pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
 To: stable@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52399 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52414 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758335Ab2JKKPx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Oct 2012 06:15:53 -0400
+	id S1758335Ab2JKKPz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Oct 2012 06:15:55 -0400
 In-Reply-To: <1349950539-12491-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-We're hitting bug while trying to reinsert an already existing
-expectation:
+It was reported that the Linux kernel sometimes logs:
 
-kernel BUG at kernel/timer.c:895!
-invalid opcode: 0000 [#1] SMP
-[...]
-Call Trace:
- <IRQ>
- [<ffffffffa0069563>] nf_ct_expect_related_report+0x4a0/0x57a [nf_conntrack]
- [<ffffffff812d423a>] ? in4_pton+0x72/0x131
- [<ffffffffa00ca69e>] ip_nat_sdp_media+0xeb/0x185 [nf_nat_sip]
- [<ffffffffa00b5b9b>] set_expected_rtp_rtcp+0x32d/0x39b [nf_conntrack_sip]
- [<ffffffffa00b5f15>] process_sdp+0x30c/0x3ec [nf_conntrack_sip]
- [<ffffffff8103f1eb>] ? irq_exit+0x9a/0x9c
- [<ffffffffa00ca738>] ? ip_nat_sdp_media+0x185/0x185 [nf_nat_sip]
+klogd: [2629147.402413] kernel BUG at net / netfilter /
+nf_conntrack_proto_tcp.c: 447!
+klogd: [1072212.887368] kernel BUG at net / netfilter /
+nf_conntrack_proto_tcp.c: 392
 
-We have to remove the RTP expectation if the RTCP expectation hits EBUSY
-since we keep trying with other ports until we succeed.
+ipv4_get_l4proto() in nf_conntrack_l3proto_ipv4.c and tcp_error() in
+nf_conntrack_proto_tcp.c should catch malformed packets, so the errors
+at the indicated lines - TCP options parsing - should not happen.
+However, tcp_error() relies on the "dataoff" offset to the TCP header,
+calculated by ipv4_get_l4proto().  But ipv4_get_l4proto() does not check
+bogus ihl values in IPv4 packets, which then can slip through tcp_error()
+and get caught at the TCP options parsing routines.
 
-Reported-by: Rafal Fitt <rafalf@aplusc.com.pl>
+The patch fixes ipv4_get_l4proto() by invalidating packets with bogus
+ihl value.
+
+The patch closes netfilter bugzilla id 771.
+
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/nf_nat_sip.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/net/ipv4/netfilter/nf_nat_sip.c b/net/ipv4/netfilter/nf_nat_sip.c
-index 4ad9cf1..9c87cde 100644
---- a/net/ipv4/netfilter/nf_nat_sip.c
-+++ b/net/ipv4/netfilter/nf_nat_sip.c
-@@ -502,7 +502,10 @@ static unsigned int ip_nat_sdp_media(struct sk_buff *skb, unsigned int dataoff,
- 		ret = nf_ct_expect_related(rtcp_exp);
- 		if (ret == 0)
- 			break;
--		else if (ret != -EBUSY) {
-+		else if (ret == -EBUSY) {
-+			nf_ct_unexpect_related(rtp_exp);
-+			continue;
-+		} else if (ret < 0) {
- 			nf_ct_unexpect_related(rtp_exp);
- 			port = 0;
- 			break;
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index 750b06a..cf73cc7 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -84,6 +84,14 @@ static int ipv4_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
+ 	*dataoff = nhoff + (iph->ihl << 2);
+ 	*protonum = iph->protocol;
+ 
++	/* Check bogus IP headers */
++	if (*dataoff > skb->len) {
++		pr_debug("nf_conntrack_ipv4: bogus IPv4 packet: "
++			 "nhoff %u, ihl %u, skblen %u\n",
++			 nhoff, iph->ihl << 2, skb->len);
++		return -NF_ACCEPT;
++	}
++
+ 	return NF_ACCEPT;
+ }
+ 
 -- 
 1.7.10.4
 
