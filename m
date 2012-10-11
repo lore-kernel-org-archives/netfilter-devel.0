@@ -1,33 +1,62 @@
 From: pablo@netfilter.org
-Subject: [PATCH] Netfilter/IPVS updates for stable 3.0 onwards
-Date: Thu, 11 Oct 2012 12:15:33 +0200
-Message-ID: <1349950539-12491-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 2/6] netfilter: nf_nat_sip: fix incorrect handling of EBUSY for RTCP expectation
+Date: Thu, 11 Oct 2012 12:15:35 +0200
+Message-ID: <1349950539-12491-3-git-send-email-pablo@netfilter.org>
+References: <1349950539-12491-1-git-send-email-pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
 To: stable@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52379 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52399 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758323Ab2JKKPu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Oct 2012 06:15:50 -0400
+	id S1758335Ab2JKKPx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Oct 2012 06:15:53 -0400
+In-Reply-To: <1349950539-12491-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Hi!
+We're hitting bug while trying to reinsert an already existing
+expectation:
 
-The following patchset aims to reduce the Netfilter debt with stable 3.0 and
-onwards.
+kernel BUG at kernel/timer.c:895!
+invalid opcode: 0000 [#1] SMP
+[...]
+Call Trace:
+ <IRQ>
+ [<ffffffffa0069563>] nf_ct_expect_related_report+0x4a0/0x57a [nf_conntrack]
+ [<ffffffff812d423a>] ? in4_pton+0x72/0x131
+ [<ffffffffa00ca69e>] ip_nat_sdp_media+0xeb/0x185 [nf_nat_sip]
+ [<ffffffffa00b5b9b>] set_expected_rtp_rtcp+0x32d/0x39b [nf_conntrack_sip]
+ [<ffffffffa00b5f15>] process_sdp+0x30c/0x3ec [nf_conntrack_sip]
+ [<ffffffff8103f1eb>] ? irq_exit+0x9a/0x9c
+ [<ffffffffa00ca738>] ? ip_nat_sdp_media+0x185/0x185 [nf_nat_sip]
 
-The selected six patches are:
+We have to remove the RTP expectation if the RTCP expectation hits EBUSY
+since we keep trying with other ports until we succeed.
 
-07153c6 netfilter: nf_ct_ipv4: packets with wrong ihl are invalid
-3f509c6 netfilter: nf_nat_sip: fix incorrect handling of EBUSY for RTCP expectation
-f22eb25 netfilter: nf_nat_sip: fix via header translation with multiple parameters
-2614f86 netfilter: nf_ct_expect: fix possible access to uninitialized timer
-9e33ce4 ipvs: fix oops on NAT reply in br_nf context
-82e6bfe netfilter: xt_limit: have r->cost != 0 case work [REQUIRES 7a909ac netfilter: limit, hashlimit: avoid duplicated inline]
+Reported-by: Rafal Fitt <rafalf@aplusc.com.pl>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/ipv4/netfilter/nf_nat_sip.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-I have read stable_rules.txt and I consider they match the requirements.
+diff --git a/net/ipv4/netfilter/nf_nat_sip.c b/net/ipv4/netfilter/nf_nat_sip.c
+index 4ad9cf1..9c87cde 100644
+--- a/net/ipv4/netfilter/nf_nat_sip.c
++++ b/net/ipv4/netfilter/nf_nat_sip.c
+@@ -502,7 +502,10 @@ static unsigned int ip_nat_sdp_media(struct sk_buff *skb, unsigned int dataoff,
+ 		ret = nf_ct_expect_related(rtcp_exp);
+ 		if (ret == 0)
+ 			break;
+-		else if (ret != -EBUSY) {
++		else if (ret == -EBUSY) {
++			nf_ct_unexpect_related(rtp_exp);
++			continue;
++		} else if (ret < 0) {
+ 			nf_ct_unexpect_related(rtp_exp);
+ 			port = 0;
+ 			break;
+-- 
+1.7.10.4
 
-Please, cherry-pick them. Thanks!
