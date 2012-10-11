@@ -1,66 +1,60 @@
 From: pablo@netfilter.org
-Subject: [PATCH 1/6] netfilter: nf_ct_ipv4: packets with wrong ihl are invalid
-Date: Thu, 11 Oct 2012 12:15:34 +0200
-Message-ID: <1349950539-12491-2-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 3/6] netfilter: nf_nat_sip: fix via header translation with multiple parameters
+Date: Thu, 11 Oct 2012 12:15:36 +0200
+Message-ID: <1349950539-12491-4-git-send-email-pablo@netfilter.org>
 References: <1349950539-12491-1-git-send-email-pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
 To: stable@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52414 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52425 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758335Ab2JKKPz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Oct 2012 06:15:55 -0400
+	id S1758378Ab2JKKP5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Oct 2012 06:15:57 -0400
 In-Reply-To: <1349950539-12491-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Patrick McHardy <kaber@trash.net>
 
-It was reported that the Linux kernel sometimes logs:
+Via-headers are parsed beginning at the first character after the Via-address.
+When the address is translated first and its length decreases, the offset to
+start parsing at is incorrect and header parameters might be missed.
 
-klogd: [2629147.402413] kernel BUG at net / netfilter /
-nf_conntrack_proto_tcp.c: 447!
-klogd: [1072212.887368] kernel BUG at net / netfilter /
-nf_conntrack_proto_tcp.c: 392
+Update the offset after translating the Via-address to fix this.
 
-ipv4_get_l4proto() in nf_conntrack_l3proto_ipv4.c and tcp_error() in
-nf_conntrack_proto_tcp.c should catch malformed packets, so the errors
-at the indicated lines - TCP options parsing - should not happen.
-However, tcp_error() relies on the "dataoff" offset to the TCP header,
-calculated by ipv4_get_l4proto().  But ipv4_get_l4proto() does not check
-bogus ihl values in IPv4 packets, which then can slip through tcp_error()
-and get caught at the TCP options parsing routines.
-
-The patch fixes ipv4_get_l4proto() by invalidating packets with bogus
-ihl value.
-
-The patch closes netfilter bugzilla id 771.
-
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ net/ipv4/netfilter/nf_nat_sip.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 750b06a..cf73cc7 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -84,6 +84,14 @@ static int ipv4_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
- 	*dataoff = nhoff + (iph->ihl << 2);
- 	*protonum = iph->protocol;
+diff --git a/net/ipv4/netfilter/nf_nat_sip.c b/net/ipv4/netfilter/nf_nat_sip.c
+index eef8f29..4ad9cf1 100644
+--- a/net/ipv4/netfilter/nf_nat_sip.c
++++ b/net/ipv4/netfilter/nf_nat_sip.c
+@@ -148,7 +148,7 @@ static unsigned int ip_nat_sip(struct sk_buff *skb, unsigned int dataoff,
+ 	if (ct_sip_parse_header_uri(ct, *dptr, NULL, *datalen,
+ 				    hdr, NULL, &matchoff, &matchlen,
+ 				    &addr, &port) > 0) {
+-		unsigned int matchend, poff, plen, buflen, n;
++		unsigned int olen, matchend, poff, plen, buflen, n;
+ 		char buffer[sizeof("nnn.nnn.nnn.nnn:nnnnn")];
  
-+	/* Check bogus IP headers */
-+	if (*dataoff > skb->len) {
-+		pr_debug("nf_conntrack_ipv4: bogus IPv4 packet: "
-+			 "nhoff %u, ihl %u, skblen %u\n",
-+			 nhoff, iph->ihl << 2, skb->len);
-+		return -NF_ACCEPT;
-+	}
-+
- 	return NF_ACCEPT;
- }
+ 		/* We're only interested in headers related to this
+@@ -163,11 +163,12 @@ static unsigned int ip_nat_sip(struct sk_buff *skb, unsigned int dataoff,
+ 				goto next;
+ 		}
  
++		olen = *datalen;
+ 		if (!map_addr(skb, dataoff, dptr, datalen, matchoff, matchlen,
+ 			      &addr, port))
+ 			return NF_DROP;
+ 
+-		matchend = matchoff + matchlen;
++		matchend = matchoff + matchlen + *datalen - olen;
+ 
+ 		/* The maddr= parameter (RFC 2361) specifies where to send
+ 		 * the reply. */
 -- 
 1.7.10.4
 
