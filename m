@@ -1,63 +1,66 @@
 From: pablo@netfilter.org
-Subject: [PATCH 1/3] ipvs: fix oops in ip_vs_dst_event on rmmod
-Date: Thu, 11 Oct 2012 12:17:36 +0200
-Message-ID: <1349950658-12548-2-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 3/3] netfilter: ipset: timeout fixing bug broke SET target special timeout value
+Date: Thu, 11 Oct 2012 12:17:38 +0200
+Message-ID: <1349950658-12548-4-git-send-email-pablo@netfilter.org>
 References: <1349950658-12548-1-git-send-email-pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
 To: stable@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53281 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53307 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758381Ab2JKKRv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Oct 2012 06:17:51 -0400
+	id S1758383Ab2JKKRw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Oct 2012 06:17:52 -0400
 In-Reply-To: <1349950658-12548-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Julian Anastasov <ja@ssi.bg>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-	After commit 39f618b4fd95ae243d940ec64c961009c74e3333 (3.4)
-"ipvs: reset ipvs pointer in netns" we can oops in
-ip_vs_dst_event on rmmod ip_vs because ip_vs_control_cleanup
-is called after the ipvs_core_ops subsys is unregistered and
-net->ipvs is NULL. Fix it by exiting early from ip_vs_dst_event
-if ipvs is NULL. It is safe because all services and dests
-for the net are already freed.
+The patch "127f559 netfilter: ipset: fix timeout value overflow bug"
+broke the SET target when no timeout was specified.
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+Reported-by: Jean-Philippe Menil <jean-philippe.menil@univ-nantes.fr>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_ctl.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index d43e3c1..84444dd 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1521,11 +1521,12 @@ static int ip_vs_dst_event(struct notifier_block *this, unsigned long event,
- {
- 	struct net_device *dev = ptr;
- 	struct net *net = dev_net(dev);
-+	struct netns_ipvs *ipvs = net_ipvs(net);
- 	struct ip_vs_service *svc;
- 	struct ip_vs_dest *dest;
- 	unsigned int idx;
+This patch requires:
+
+commit 127f559127f5175e4bec3dab725a34845d956591
+Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Date:   Mon May 7 02:35:44 2012 +0000
+
+    netfilter: ipset: fix timeout value overflow bug
+    
+    Large timeout parameters could result wrong timeout values due to
+    an overflow at msec to jiffies conversion (reported by Andreas Herz)
+
+---
+ net/netfilter/xt_set.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
+index 035960e..c6f7db7 100644
+--- a/net/netfilter/xt_set.c
++++ b/net/netfilter/xt_set.c
+@@ -16,6 +16,7 @@
  
--	if (event != NETDEV_UNREGISTER)
-+	if (event != NETDEV_UNREGISTER || !ipvs)
- 		return NOTIFY_DONE;
- 	IP_VS_DBG(3, "%s() dev=%s\n", __func__, dev->name);
- 	EnterFunction(2);
-@@ -1551,7 +1552,7 @@ static int ip_vs_dst_event(struct notifier_block *this, unsigned long event,
- 		}
- 	}
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_set.h>
++#include <linux/netfilter/ipset/ip_set_timeout.h>
  
--	list_for_each_entry(dest, &net_ipvs(net)->dest_trash, n_list) {
-+	list_for_each_entry(dest, &ipvs->dest_trash, n_list) {
- 		__ip_vs_dev_reset(dest, dev);
- 	}
- 	mutex_unlock(&__ip_vs_mutex);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+@@ -310,7 +311,8 @@ set_target_v2(struct sk_buff *skb, const struct xt_action_param *par)
+ 		info->del_set.flags, 0, UINT_MAX);
+ 
+ 	/* Normalize to fit into jiffies */
+-	if (add_opt.timeout > UINT_MAX/MSEC_PER_SEC)
++	if (add_opt.timeout != IPSET_NO_TIMEOUT &&
++	    add_opt.timeout > UINT_MAX/MSEC_PER_SEC)
+ 		add_opt.timeout = UINT_MAX/MSEC_PER_SEC;
+ 	if (info->add_set.index != IPSET_INVALID_ID)
+ 		ip_set_add(info->add_set.index, skb, par, &add_opt);
 -- 
 1.7.10.4
 
