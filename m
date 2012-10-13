@@ -1,67 +1,70 @@
-From: Ansis Atteka <ansisatteka@gmail.com>
-Subject: Re: [PATCHv3] conntrackd: make conntrackd namespace aware
-Date: Fri, 12 Oct 2012 19:02:01 -0700
-Message-ID: <CAMQa7Bg9Wf1emNYnS9J4375d4Xhrs7NLRuj2ZBJD==hbXGBMTA@mail.gmail.com>
-References: <1349315351-6689-1-git-send-email-aatteka@nicira.com>
-	<20121010223556.GA6160@1984>
+From: Stephen Clark <sclark46@earthlink.net>
+Subject: Re: ipsec nat issue
+Date: Fri, 12 Oct 2012 22:36:36 -0400
+Message-ID: <5078D3B4.6030107@earthlink.net>
+References: <50787C14.7060009@earthlink.net> <alpine.LNX.2.01.1210122226130.11967@nerf07.vanv.qr>
+Reply-To: sclark46@earthlink.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Ansis Atteka <aatteka@nicira.com>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:40580 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750947Ab2JMCCE (ORCPT
+Received: from elasmtp-mealy.atl.sa.earthlink.net ([209.86.89.69]:35034 "EHLO
+	elasmtp-mealy.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752470Ab2JMCgj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Oct 2012 22:02:04 -0400
-Received: by mail-lb0-f174.google.com with SMTP id n3so2430349lbo.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 12 Oct 2012 19:02:02 -0700 (PDT)
-In-Reply-To: <20121010223556.GA6160@1984>
+	Fri, 12 Oct 2012 22:36:39 -0400
+In-Reply-To: <alpine.LNX.2.01.1210122226130.11967@nerf07.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 10 October 2012 15:35, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Hi Ansis,
+On 10/12/2012 04:28 PM, Jan Engelhardt wrote:
+> On Friday 2012-10-12 22:22, Stephen Clark wrote:
 >
-> On Wed, Oct 03, 2012 at 06:49:10PM -0700, Ansis Atteka wrote:
->> This patch allows conntrackd to open CT Netlink sockets into a given
->> network namespace. Channel sockets (e.g. UDP) would still be opened into
->> the same namespace where conntrackd was started.
+>    
+>> Hello,
 >>
->> The only binary this patch affects is conntrackd. All other binaries (e.g.
->> conntrack, nfct) would still operate in the same namespace where they were
->> started.
+>> I have the following setup:
 >>
->> To make use of this patch:
->> 1. create a network namespace: "ip netns add the_ns"
->> 2. add "NetlinkNamespace /var/run/netns/the_ns" line to the conntrackd.conf
->> file inside General {...} section.
+>> ipsec tunnel 10.255.3.128/25 - pub add1<->  pub add2 - 10.255.5.128/25
+>>
+>> trying to SNAT remote private address 10.255.5.128/25 to make it appear like it
+>> was local 10.255.3.254
+>>      
+> The left endpoint has 10.255.3.128/25 declared as local, so if the left
+> side is to respond to packets which have 10.255.3.254 as source address,
+> that reply will be delivered on its own side (the left side), and never
+> the tunnel.
 >
-> I want to apply this, but user-space helpers got broken with this:
+> This is like trying to SNAT all your home traffic that is supposed to go
+> to the internet to 192.168.1.1 -- unroutable for the Internet.
 >
-> [Thu Oct 11 00:31:13 2012] (pid=12400) [ERROR] could not switch to namespace: Invalid argument
->
-> You can use conntrack-tools/doc/helper/conntrackd.conf as example.
->
-> You also need to use a Linux kernel 3.6 to test this user-space helper
-> feature, see: http://conntrack-tools.netfilter.org/manual.html#helpers
+>    
+Hi Jan,
 
-After a quick try to configure user-space helpers, I am seeing following error:
+The ping is initiated from the right side of the tunnel trying to ping a 
+device on the left subnet. The device on the left
+subnet at 10.255.3.129 doesn't know about the right subnet at 
+10.255.5.128/25 so I want to make the packets coming
+from the right subnet of 10.255.5.128/25 appear as if they came from the 
+left address of 10.255.3.254. I would expect
+that when the echo response came back from 10.255.3.129 it would be 
+unSNATed so the destination address would now
+be 10.255.5.254 and it would go back thru the vpn tunnel to the right side.
 
-root@aatteka-virtual-machine:~# uname -r
-3.6.0-030600-generic
-root@aatteka-virtual-machine:~# nfct helper add rpc inet tcp
-nfct v1.2.2: error: Invalid argument
-root@aatteka-virtual-machine:~# nfct helper list
-nfct v1.2.2: error: Invalid argument
+I don't see this as any different than when I use SNAT from my private 
+network to my public network except
+I using two private addresses.
 
-gdb tells me that this is response on NFNL_MSG_CTHELPER_[GET|NEW]
-messages. Am I missing something when registering user-space helpers?
 
-Thanks,
-Ansis
+-- 
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+"They that give up essential liberty to obtain temporary safety,
+deserve neither liberty nor safety."  (Ben Franklin)
+
+"The course of history shows that as a government grows, liberty
+decreases."  (Thomas Jefferson)
+
+
+
