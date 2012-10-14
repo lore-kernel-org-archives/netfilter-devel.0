@@ -1,67 +1,93 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCHv3] conntrackd: make conntrackd namespace aware
-Date: Sun, 14 Oct 2012 23:48:19 +0200
-Message-ID: <20121014214819.GA831@1984>
-References: <1349315351-6689-1-git-send-email-aatteka@nicira.com>
- <20121010223556.GA6160@1984>
- <CAMQa7Bg9Wf1emNYnS9J4375d4Xhrs7NLRuj2ZBJD==hbXGBMTA@mail.gmail.com>
+Subject: Re: [RFC] Multi-namespace support (Request for comments)
+Date: Mon, 15 Oct 2012 00:05:28 +0200
+Message-ID: <20121014220528.GA1432@1984>
+References: <1350184376-7957-1-git-send-email-aatteka@nicira.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Ansis Atteka <aatteka@nicira.com>, netfilter-devel@vger.kernel.org
-To: Ansis Atteka <ansisatteka@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Ansis Atteka <aatteka@nicira.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39088 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40185 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752354Ab2JNVsZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 14 Oct 2012 17:48:25 -0400
+	id S1753048Ab2JNWFp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 14 Oct 2012 18:05:45 -0400
 Content-Disposition: inline
-In-Reply-To: <CAMQa7Bg9Wf1emNYnS9J4375d4Xhrs7NLRuj2ZBJD==hbXGBMTA@mail.gmail.com>
+In-Reply-To: <1350184376-7957-1-git-send-email-aatteka@nicira.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Oct 12, 2012 at 07:02:01PM -0700, Ansis Atteka wrote:
-> On 10 October 2012 15:35, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Hi Ansis,
-> >
-> > On Wed, Oct 03, 2012 at 06:49:10PM -0700, Ansis Atteka wrote:
-> >> This patch allows conntrackd to open CT Netlink sockets into a given
-> >> network namespace. Channel sockets (e.g. UDP) would still be opened into
-> >> the same namespace where conntrackd was started.
-> >>
-> >> The only binary this patch affects is conntrackd. All other binaries (e.g.
-> >> conntrack, nfct) would still operate in the same namespace where they were
-> >> started.
-> >>
-> >> To make use of this patch:
-> >> 1. create a network namespace: "ip netns add the_ns"
-> >> 2. add "NetlinkNamespace /var/run/netns/the_ns" line to the conntrackd.conf
-> >> file inside General {...} section.
-> >
-> > I want to apply this, but user-space helpers got broken with this:
-> >
-> > [Thu Oct 11 00:31:13 2012] (pid=12400) [ERROR] could not switch to namespace: Invalid argument
-> >
-> > You can use conntrack-tools/doc/helper/conntrackd.conf as example.
-> >
-> > You also need to use a Linux kernel 3.6 to test this user-space helper
-> > feature, see: http://conntrack-tools.netfilter.org/manual.html#helpers
+On Sat, Oct 13, 2012 at 08:12:56PM -0700, Ansis Atteka wrote:
+> This patch should not be considered complete! It was sent out with intention
+> to propose feature and receive further comments.
 > 
-> After a quick try to configure user-space helpers, I am seeing following error:
+> It enables single conntrackd process to synchronize state among multiple
+> namespaces. To test this patch apply it on the top of this one:
 > 
-> root@aatteka-virtual-machine:~# uname -r
-> 3.6.0-030600-generic
-> root@aatteka-virtual-machine:~# nfct helper add rpc inet tcp
-> nfct v1.2.2: error: Invalid argument
-> root@aatteka-virtual-machine:~# nfct helper list
-> nfct v1.2.2: error: Invalid argument
+> http://markmail.org/thread/npxklk4p6g4y3rup
 > 
-> gdb tells me that this is response on NFNL_MSG_CTHELPER_[GET|NEW]
-> messages. Am I missing something when registering user-space helpers?
+> And use following conntrackd.conf on both hosts:
+> 
+> Sync {
+>         Mode NOTRACK {
+>                 DisableInternalCache On
+>                 DisableExternalCache On
+>         }
+>         UDP {
+>                 IPv4_Destination_Address <host[1|2]>
+>                 Interface breth0
+>                 SndSocketBuffer 1249280
+>                 Checksum on
+>                 Port 3781
+>         }
+> }
+> General {
+>         Nice -20
+>         LogFile on
+>         LockFile /var/lock/conntrack.lock
+>         UNIX {
+>                 Path /var/run/conntrackd.ctl
+>                 Backlog 20
+>         }
+>         NetlinkBufferSize 2097152
+>         NetlinkBufferSizeMaxGrowth 8388608
+> }
+> 
+> The configuration above is used as template when instantiating
+> the actual configuration for every namespace. Use following
+> commands to do that:
+> 
+> host1: conntrackd -A namespace1 /var/run/netns/namespace1
+> host1: conntrackd -A namespace2 /var/run/netns/namespace2
+> host2: conntrackd -A namespace1 /var/run/netns/namespace1
+> host2: conntrackd -A namespace2 /var/run/netns/namespace2
+> 
+> The first argument is the namespace identifier and second
+> is the path to the actual namespace mount point.
+> 
+> This patch doesn't work correctly yet with:
+> 1. caches
+> 2. FTFW or ALARM modes
+> 3. filters (it seems a little bit tricky to unglobalize it)
+> 4. expectations
+> 5. and it even breaks the current conntrackd usage (it does
+> not create state object for the current namespace)
+> 
+> Currently I am protoyping another patch that will allow
+> to synchronize different namespace subsets between more
+> than two hosts (i.e. each ns_state will reference the
+> right multichannel structure and use it).
 
-Did you forget to compile your kernel with CONFIG_NF_CT_NETLINK_HELPER ?
+This is a large changeset but seems reasonable if you put care on it,
+and that will require several rounds of comments.
 
-nfnetlink returns -EINVAL for unexistent subsystems (we should change
-it to a better error code actually).
+I have dedicated a lot of time to stabilize this software. If you want
+me to take this feature, you'll have to put *a lot* of care on the
+patches, really.
 
-IIRC nfnetlink_cthelper should be autoloaded automatically. Not need
-to explicitly modprobe it.
+BTW, better split this in some patch stack. First small patches for
+little changes you require to prepare the ground for your feature.
+Then, the last patch should be your new feature.
+
+Check tools like stgit to work with stack of patches in case you are
+not familiar with.
