@@ -1,40 +1,66 @@
-From: "U.Mutlu" <for-gmane@mutluit.com>
-Subject: [xtables-addons] geoip in Debian 7 working fine (--> please update
- the distro matrix)
-Date: Mon, 15 Oct 2012 13:55:15 +0200
-Message-ID: <k5gtj2$ou2$1@ger.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: pablo@netfilter.org
+Subject: [PATCH] netfilter: xt_CT: fix timeout setting with IPv6
+Date: Mon, 15 Oct 2012 14:07:59 +0200
+Message-ID: <1350302879-3194-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:54136 "EHLO plane.gmane.org"
+Received: from mail.us.es ([193.147.175.20]:58072 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752286Ab2JOLz1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Oct 2012 07:55:27 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
-	id 1TNjGd-000051-4S
-	for netfilter-devel@vger.kernel.org; Mon, 15 Oct 2012 13:55:31 +0200
-Received: from 77-21-150-226-dynip.superkabel.de ([77.21.150.226])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Oct 2012 13:55:31 +0200
-Received: from for-gmane by 77-21-150-226-dynip.superkabel.de with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Oct 2012 13:55:31 +0200
+	id S1752362Ab2JOMJA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Oct 2012 08:09:00 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
-please update the matrix at
-http://xtables-addons.sourceforge.net/distro-support.php?p=kernel%7Ciptables%7Cxtables-addons%7Cxtables-geoip&d=.*
-for Debian 7 (wheezy), as geoip is working well in that distribution
-(the pkg "xtables-addons-common" from the debian repo must be installed).
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Proof:
-  1050 44349 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            Source country: CN
-    11   374 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            Source country: HK
+This patch fixes ip6tables and the CT target if it is used to set
+some custom conntrack timeout policy for IPv6.
 
-:-)
+Use xt_ct_find_proto which already handles the ip6tables case for us.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/xt_CT.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+index 16c7125..ae7f5da 100644
+--- a/net/netfilter/xt_CT.c
++++ b/net/netfilter/xt_CT.c
+@@ -180,9 +180,9 @@ xt_ct_set_timeout(struct nf_conn *ct, const struct xt_tgchk_param *par,
+ 	typeof(nf_ct_timeout_find_get_hook) timeout_find_get;
+ 	struct ctnl_timeout *timeout;
+ 	struct nf_conn_timeout *timeout_ext;
+-	const struct ipt_entry *e = par->entryinfo;
+ 	struct nf_conntrack_l4proto *l4proto;
+ 	int ret = 0;
++	u8 proto;
+ 
+ 	rcu_read_lock();
+ 	timeout_find_get = rcu_dereference(nf_ct_timeout_find_get_hook);
+@@ -192,9 +192,11 @@ xt_ct_set_timeout(struct nf_conn *ct, const struct xt_tgchk_param *par,
+ 		goto out;
+ 	}
+ 
+-	if (e->ip.invflags & IPT_INV_PROTO) {
++	proto = xt_ct_find_proto(par);
++	if (!proto) {
+ 		ret = -EINVAL;
+-		pr_info("You cannot use inversion on L4 protocol\n");
++		pr_info("You must specify a L4 protocol, and not use "
++			"inversions on it.\n");
+ 		goto out;
+ 	}
+ 
+@@ -214,7 +216,7 @@ xt_ct_set_timeout(struct nf_conn *ct, const struct xt_tgchk_param *par,
+ 	/* Make sure the timeout policy matches any existing protocol tracker,
+ 	 * otherwise default to generic.
+ 	 */
+-	l4proto = __nf_ct_l4proto_find(par->family, e->ip.proto);
++	l4proto = __nf_ct_l4proto_find(par->family, proto);
+ 	if (timeout->l4proto->l4proto != l4proto->l4proto) {
+ 		ret = -EINVAL;
+ 		pr_info("Timeout policy `%s' can only be used by L4 protocol "
+-- 
+1.7.10.4
 
