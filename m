@@ -1,66 +1,53 @@
-From: pablo@netfilter.org
-Subject: [PATCH] netfilter: xt_CT: fix timeout setting with IPv6
-Date: Mon, 15 Oct 2012 14:07:59 +0200
-Message-ID: <1350302879-3194-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: Re: [RFC PATCH 0/1] xtables: allow to monitor table update event
+Date: Mon, 15 Oct 2012 15:10:24 +0200
+Message-ID: <507C0B40.5000105@6wind.com>
+References: <1348501182-12470-1-git-send-email-nicolas.dichtel@6wind.com> <1349183171-4136-1-git-send-email-nicolas.dichtel@6wind.com>
+Reply-To: nicolas.dichtel@6wind.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58072 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752362Ab2JOMJA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Oct 2012 08:09:00 -0400
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:62126 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753120Ab2JONKc (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Oct 2012 09:10:32 -0400
+Received: by mail-bk0-f46.google.com with SMTP id jk13so2441381bkc.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Oct 2012 06:10:30 -0700 (PDT)
+In-Reply-To: <1349183171-4136-1-git-send-email-nicolas.dichtel@6wind.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Le 02/10/2012 15:06, Nicolas Dichtel a =C3=A9crit :
+> The following patch is an example of a userspace tools (in fact, ipta=
+bles)
+> that use the new netlink API to monitor tables activity.
+>
+> I will also send a patch against libnfnetlink to update linux include=
+s with
+> this new feature.
+>
+> Maybe another API can be used for this feature: adding a setsockopt()=
+ on an
+> iptc socket to enable monitoring. When a table is updated, a packet (=
+built with
+> CMSG_* macro for example) can be sent over all sockets that monitor t=
+ables
+> acitivity (like km sockets in IPsec). I know that this socket was use=
+d only with
+> [g|s]etsockopt(), but this can avoid adding another netlink API.
+>
+> Comments are welcome.
+Any feedback about this patch or the other proposed API?
 
-This patch fixes ip6tables and the CT target if it is used to set
-some custom conntrack timeout policy for IPv6.
 
-Use xt_ct_find_proto which already handles the ip6tables case for us.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/xt_CT.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
-index 16c7125..ae7f5da 100644
---- a/net/netfilter/xt_CT.c
-+++ b/net/netfilter/xt_CT.c
-@@ -180,9 +180,9 @@ xt_ct_set_timeout(struct nf_conn *ct, const struct xt_tgchk_param *par,
- 	typeof(nf_ct_timeout_find_get_hook) timeout_find_get;
- 	struct ctnl_timeout *timeout;
- 	struct nf_conn_timeout *timeout_ext;
--	const struct ipt_entry *e = par->entryinfo;
- 	struct nf_conntrack_l4proto *l4proto;
- 	int ret = 0;
-+	u8 proto;
- 
- 	rcu_read_lock();
- 	timeout_find_get = rcu_dereference(nf_ct_timeout_find_get_hook);
-@@ -192,9 +192,11 @@ xt_ct_set_timeout(struct nf_conn *ct, const struct xt_tgchk_param *par,
- 		goto out;
- 	}
- 
--	if (e->ip.invflags & IPT_INV_PROTO) {
-+	proto = xt_ct_find_proto(par);
-+	if (!proto) {
- 		ret = -EINVAL;
--		pr_info("You cannot use inversion on L4 protocol\n");
-+		pr_info("You must specify a L4 protocol, and not use "
-+			"inversions on it.\n");
- 		goto out;
- 	}
- 
-@@ -214,7 +216,7 @@ xt_ct_set_timeout(struct nf_conn *ct, const struct xt_tgchk_param *par,
- 	/* Make sure the timeout policy matches any existing protocol tracker,
- 	 * otherwise default to generic.
- 	 */
--	l4proto = __nf_ct_l4proto_find(par->family, e->ip.proto);
-+	l4proto = __nf_ct_l4proto_find(par->family, proto);
- 	if (timeout->l4proto->l4proto != l4proto->l4proto) {
- 		ret = -EINVAL;
- 		pr_info("Timeout policy `%s' can only be used by L4 protocol "
--- 
-1.7.10.4
-
+Regards,
+Nicolas
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
