@@ -1,68 +1,40 @@
-From: Elison Niven <elison.niven@cyberoam.com>
-Subject: [PATCH 1/1] netfilter : fix hooks for SNAT and DNAT targets
-Date: Mon, 15 Oct 2012 16:14:48 +0530
-Message-ID: <1350297888-3363-1-git-send-email-elison.niven@cyberoam.com>
-Cc: sanket.shah@cyberoam.com, Elison Niven <elison.niven@cyberoam.com>
-To: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+From: "U.Mutlu" <for-gmane@mutluit.com>
+Subject: [xtables-addons] geoip in Debian 7 working fine (--> please update
+ the distro matrix)
+Date: Mon, 15 Oct 2012 13:55:15 +0200
+Message-ID: <k5gtj2$ou2$1@ger.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailhost.elitecore.com ([203.88.135.194]:55894 "EHLO
-	elitecore.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750739Ab2JOKyR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Oct 2012 06:54:17 -0400
+Received: from plane.gmane.org ([80.91.229.3]:54136 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752286Ab2JOLz1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Oct 2012 07:55:27 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
+	id 1TNjGd-000051-4S
+	for netfilter-devel@vger.kernel.org; Mon, 15 Oct 2012 13:55:31 +0200
+Received: from 77-21-150-226-dynip.superkabel.de ([77.21.150.226])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Oct 2012 13:55:31 +0200
+Received: from for-gmane by 77-21-150-226-dynip.superkabel.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Oct 2012 13:55:31 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Correct hooks for SNAT and DNAT targets in xt_nat.c :
-SNAT hooks should be POST_ROUTING and LOCAL_IN.
-DNAT hooks should be PRE_ROUTING and LOCAL_OUT.
+Hello,
+please update the matrix at
+http://xtables-addons.sourceforge.net/distro-support.php?p=kernel%7Ciptables%7Cxtables-addons%7Cxtables-geoip&d=.*
+for Debian 7 (wheezy), as geoip is working well in that distribution
+(the pkg "xtables-addons-common" from the debian repo must be installed).
 
-Signed-off-by: Elison Niven <elison.niven@cyberoam.com>
-Signed-off-by: Sanket Shah <sanket.shah@cyberoam.com>
----
- net/netfilter/xt_nat.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+Proof:
+  1050 44349 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            Source country: CN
+    11   374 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            Source country: HK
 
-diff --git a/net/netfilter/xt_nat.c b/net/netfilter/xt_nat.c
-index 81aafa8..bea7464 100644
---- a/net/netfilter/xt_nat.c
-+++ b/net/netfilter/xt_nat.c
-@@ -111,7 +111,7 @@ static struct xt_target xt_nat_target_reg[] __read_mostly = {
- 		.family		= NFPROTO_IPV4,
- 		.table		= "nat",
- 		.hooks		= (1 << NF_INET_POST_ROUTING) |
--				  (1 << NF_INET_LOCAL_OUT),
-+				  (1 << NF_INET_LOCAL_IN),
- 		.me		= THIS_MODULE,
- 	},
- 	{
-@@ -123,7 +123,7 @@ static struct xt_target xt_nat_target_reg[] __read_mostly = {
- 		.family		= NFPROTO_IPV4,
- 		.table		= "nat",
- 		.hooks		= (1 << NF_INET_PRE_ROUTING) |
--				  (1 << NF_INET_LOCAL_IN),
-+				  (1 << NF_INET_LOCAL_OUT),
- 		.me		= THIS_MODULE,
- 	},
- 	{
-@@ -133,7 +133,7 @@ static struct xt_target xt_nat_target_reg[] __read_mostly = {
- 		.targetsize	= sizeof(struct nf_nat_range),
- 		.table		= "nat",
- 		.hooks		= (1 << NF_INET_POST_ROUTING) |
--				  (1 << NF_INET_LOCAL_OUT),
-+				  (1 << NF_INET_LOCAL_IN),
- 		.me		= THIS_MODULE,
- 	},
- 	{
-@@ -143,7 +143,7 @@ static struct xt_target xt_nat_target_reg[] __read_mostly = {
- 		.targetsize	= sizeof(struct nf_nat_range),
- 		.table		= "nat",
- 		.hooks		= (1 << NF_INET_PRE_ROUTING) |
--				  (1 << NF_INET_LOCAL_IN),
-+				  (1 << NF_INET_LOCAL_OUT),
- 		.me		= THIS_MODULE,
- 	},
- };
--- 
-1.7.7
+:-)
 
