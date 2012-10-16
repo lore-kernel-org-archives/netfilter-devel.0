@@ -1,11 +1,14 @@
 From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH] Netfilter/IPVS updates for stable 3.4 onwards
-Date: Tue, 16 Oct 2012 09:31:41 -0700
-Message-ID: <20121016163141.GA4777@kroah.com>
+Subject: Re: [PATCH 3/3] netfilter: ipset: timeout fixing bug broke SET
+ target special timeout value
+Date: Tue, 16 Oct 2012 09:32:00 -0700
+Message-ID: <20121016163200.GB4777@kroah.com>
 References: <1349950658-12548-1-git-send-email-pablo@netfilter.org>
- <20121015231857.GA2118@kroah.com>
- <20121016090429.GA15577@1984>
- <20121016143834.GA6490@1984>
+ <1349950658-12548-4-git-send-email-pablo@netfilter.org>
+ <20121015232225.GB2118@kroah.com>
+ <20121015232750.GA32665@kroah.com>
+ <20121015234022.GB667@kroah.com>
+ <20121016093653.GA18252@1984>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: stable@vger.kernel.org, netfilter-devel@vger.kernel.org
@@ -13,42 +16,57 @@ To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from mail-pa0-f46.google.com ([209.85.220.46]:62512 "EHLO
 	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755145Ab2JPQbq (ORCPT
+	with ESMTP id S1754799Ab2JPQcF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Oct 2012 12:31:46 -0400
+	Tue, 16 Oct 2012 12:32:05 -0400
 Received: by mail-pa0-f46.google.com with SMTP id hz1so6075839pad.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Oct 2012 09:31:45 -0700 (PDT)
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Oct 2012 09:32:05 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20121016143834.GA6490@1984>
+In-Reply-To: <20121016093653.GA18252@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 16, 2012 at 04:38:34PM +0200, Pablo Neira Ayuso wrote:
-> On Tue, Oct 16, 2012 at 11:04:29AM +0200, Pablo Neira Ayuso wrote:
-> > On Mon, Oct 15, 2012 at 04:18:57PM -0700, Greg KH wrote:
-> > > On Thu, Oct 11, 2012 at 12:17:35PM +0200, pablo@netfilter.org wrote:
-> > > > From: Pablo Neira Ayuso <pablo@netfilter.org>
+On Tue, Oct 16, 2012 at 11:36:53AM +0200, Pablo Neira Ayuso wrote:
+> On Mon, Oct 15, 2012 at 04:40:22PM -0700, Greg KH wrote:
+> > On Mon, Oct 15, 2012 at 04:27:50PM -0700, Greg KH wrote:
+> > > On Mon, Oct 15, 2012 at 04:22:25PM -0700, Greg KH wrote:
+> > > > On Thu, Oct 11, 2012 at 12:17:38PM +0200, pablo@netfilter.org wrote:
+> > > > > From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> > > > > 
+> > > > > The patch "127f559 netfilter: ipset: fix timeout value overflow bug"
+> > > > > broke the SET target when no timeout was specified.
+> > > > > 
+> > > > > Reported-by: Jean-Philippe Menil <jean-philippe.menil@univ-nantes.fr>
+> > > > > Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> > > > > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > > > > ---
+> > > > > 
+> > > > > This patch requires:
+> > > > > 
+> > > > > commit 127f559127f5175e4bec3dab725a34845d956591
+> > > > > Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> > > > > Date:   Mon May 7 02:35:44 2012 +0000
+> > > > > 
+> > > > >     netfilter: ipset: fix timeout value overflow bug
+> > > > >     
+> > > > >     Large timeout parameters could result wrong timeout values due to
+> > > > >     an overflow at msec to jiffies conversion (reported by Andreas Herz)
 > > > > 
-> > > > Hi!
-> > > > 
-> > > > The following patchset contain fixes for stable 3.4 onwards.
-> > > > 
-> > > > The selected three patches are:
-> > > > 
-> > > > 283283c ipvs: fix oops in ip_vs_dst_event on rmmod
-> > > > 66b6aaf netfilter: nf_conntrack: fix racy timer handling with reliable events
+> > > > This patch doesn't apply to the 3.0.y series, care to provide a
+> > > > backport, and a backported version of the original patch above that
+> > > > needs it?
 > > > 
-> > > Where did this git commit id come from?  It's really
-> > > 5b423f6a40a0327f9d40bc8b97ce9be266f74368 in Linus's tree.
+> > > Oh wait, should I apply the 3.0.y specific patches first?  I'll go do
+> > > that and see if these two then apply here...
 > > 
-> > Indeed, really sorry for the bogus commit id. I don't know how that
-> > commit id has slipped through.
+> > Nope, doesn't apply.  Care to backport both of these patches for 3.0.y
+> > and send them to us?
 > 
-> Should I resubmit or will you pick it?
+> I can send you the backport for 3.2 but not for 3.0.
+> 
+> That fix is for one feature that was added in 3.1, so no way to make it
+> for 3.0 :-)
 
-I already picked it up and you should have the email saying it was
-applied in your inbox, right?
-
-thanks,
+Ah, ok, no worries then.
 
 greg k-h
