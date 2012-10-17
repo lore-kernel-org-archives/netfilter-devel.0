@@ -1,54 +1,67 @@
-From: Bozeanu Andrei <andrei.bozeanu@cert-ro.eu>
-Subject: a problem with netfilter
-Date: Wed, 17 Oct 2012 15:34:11 +0300
-Message-ID: <507EA5C3.6020903@cert-ro.eu>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH net] netfilter: nf_conntrack: fix rt_gateway checks for
+ h323
+Date: Wed, 17 Oct 2012 22:44:19 +0300 (EEST)
+Message-ID: <alpine.LFD.2.00.1210172240160.1654@ja.ssi.bg>
+References: <1349823647-2166-1-git-send-email-ja@ssi.bg> <20121016235534.GA2805@1984> <alpine.LFD.2.00.1210171111150.1679@ja.ssi.bg> <20121017123957.GA31202@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	zhaojingmin@users.sourceforge.net
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx0a.cert-ro.eu ([192.166.122.27]:29993 "EHLO mx0a.cert-ro.eu"
+Received: from ja.ssi.bg ([178.16.129.10]:54339 "EHLO ja.ssi.bg"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755981Ab2JQMoR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Oct 2012 08:44:17 -0400
-Received: from mx1.cert-ro.eu (localhost [127.0.0.1])
-	by mx1.cert-ro.eu (Postfix) with ESMTP id 7D1D8125061
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Oct 2012 15:34:08 +0300 (EEST)
-Received: from [192.168.201.19] (unknown [192.166.122.3])
-	by mx1.cert-ro.eu (Postfix) with ESMTPSA id 5E4A1124F99
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Oct 2012 15:34:08 +0300 (EEST)
+	id S1757623Ab2JQTil (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Oct 2012 15:38:41 -0400
+In-Reply-To: <20121017123957.GA31202@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hey all,
 
-I am writing a linux firewall kernel module (something a bit specific)
-using Netfilter, in C. I extract the
-TCP header and the IP header using the functions tcp_hdr() and ip_hdr()
-on the skb. I extract the source and
-destination IPs without any problem, yet, when I try to see the source
-port and the destination port i get wrong
-values.
+	Hello,
 
-sport = ntohs(tcp_hdr(skb)->source);
-dport= ntohs(tcp_hdr(skb)->dest);
+On Wed, 17 Oct 2012, Pablo Neira Ayuso wrote:
 
-I use printk to send the info to the syslog and
-printk(KERN_INFO "got data on port %hu from source port %hu\n", dport,
-sport);
+> > 	But if creating expectation is considered harmless
+> > then better to use just the rt_nexthop check because
+> > checking for subnets is too risky, hosts can use different
+> > subnet masks. By this way we reduce the risk to connect
+> > internal hosts without expectation.
+> 
+> It creates an expection for the IP parsed as result of the call
+> forwarding that will expire after 240 seconds. So it consumes memory
+> but it will expire after that time.
+> 
+> I prefer not to modify this code unless someone using the H.323 helper
+> reports a problem.
 
-the result i get is
-"got data on port 17680 from port 84"
-"got data on port 17680 from port 84"
-"got data on port 17680 from port 100"
+	Agreed
 
-while netstat shows me that the right values for these ports are dport =
-56188 and sport = 22.
+> Thanks for your comments. I'll take your patch and extend the
+> description a bit to explain the current situation of that chunk of
+> code for the history.
 
-I must be doing something wrong or missing something of the bigger
-picture, I would apreciate any insight
-on why this behavior is generated.
+	Yes, it needs better description. Thanks!
 
-Thank you all,
-A.
+> > > > diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+> > > > index 1b30b0d..962795e 100644
+> > > > --- a/net/netfilter/nf_conntrack_h323_main.c
+> > > > +++ b/net/netfilter/nf_conntrack_h323_main.c
+> > > > @@ -753,7 +753,8 @@ static int callforward_do_filter(const union nf_inet_addr *src,
+> > > >  				   flowi4_to_flowi(&fl1), false)) {
+> > > >  			if (!afinfo->route(&init_net, (struct dst_entry **)&rt2,
+> > > >  					   flowi4_to_flowi(&fl2), false)) {
+> > > > -				if (rt1->rt_gateway == rt2->rt_gateway &&
+> > > > +				if (rt_nexthop(rt1, fl1.daddr) ==
+> > > > +				    rt_nexthop(rt2, fl2.daddr) &&
+> > > >  				    rt1->dst.dev  == rt2->dst.dev)
+> > > >  					ret = 1;
+> > > >  				dst_release(&rt2->dst);
+> > > > -- 
+> > > > 1.7.3.4
 
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
