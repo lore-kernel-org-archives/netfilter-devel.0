@@ -1,67 +1,65 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH net] netfilter: nf_conntrack: fix rt_gateway checks for
- h323
-Date: Wed, 17 Oct 2012 22:44:19 +0300 (EEST)
-Message-ID: <alpine.LFD.2.00.1210172240160.1654@ja.ssi.bg>
-References: <1349823647-2166-1-git-send-email-ja@ssi.bg> <20121016235534.GA2805@1984> <alpine.LFD.2.00.1210171111150.1679@ja.ssi.bg> <20121017123957.GA31202@1984>
+From: "U.Mutlu" <for-gmane@mutluit.com>
+Subject: Re: a problem with netfilter
+Date: Thu, 18 Oct 2012 04:15:56 +0200
+Message-ID: <507F665C.40507@mutluit.com>
+References: <507EA5C3.6020903@cert-ro.eu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	zhaojingmin@users.sourceforge.net
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:54339 "EHLO ja.ssi.bg"
+Received: from plane.gmane.org ([80.91.229.3]:56855 "EHLO plane.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757623Ab2JQTil (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Oct 2012 15:38:41 -0400
-In-Reply-To: <20121017123957.GA31202@1984>
+	id S1753493Ab2JRCQQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Oct 2012 22:16:16 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
+	id 1TOfel-0006CH-MB
+	for netfilter-devel@vger.kernel.org; Thu, 18 Oct 2012 04:16:19 +0200
+Received: from 77-21-150-226-dynip.superkabel.de ([77.21.150.226])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Oct 2012 04:16:19 +0200
+Received: from for-gmane by 77-21-150-226-dynip.superkabel.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Oct 2012 04:16:19 +0200
+In-Reply-To: <507EA5C3.6020903@cert-ro.eu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Bozeanu Andrei wrote, On 10/17/2012 02:34 PM:
+> Hey all,
+>
+> I am writing a linux firewall kernel module (something a bit specific)
+> using Netfilter, in C. I extract the
+> TCP header and the IP header using the functions tcp_hdr() and ip_hdr()
+> on the skb. I extract the source and
+> destination IPs without any problem, yet, when I try to see the source
+> port and the destination port i get wrong
+> values.
+>
+> sport = ntohs(tcp_hdr(skb)->source);
+> dport= ntohs(tcp_hdr(skb)->dest);
 
-	Hello,
+Just guessing: maybe ntohs has already been applied to source and dest, so try it w/o ntohs()...
 
-On Wed, 17 Oct 2012, Pablo Neira Ayuso wrote:
+> I use printk to send the info to the syslog and
+> printk(KERN_INFO "got data on port %hu from source port %hu\n", dport,
+> sport);
+>
+> the result i get is
+> "got data on port 17680 from port 84"
+> "got data on port 17680 from port 84"
+> "got data on port 17680 from port 100"
+>
+> while netstat shows me that the right values for these ports are dport =
+> 56188 and sport = 22.
+>
+> I must be doing something wrong or missing something of the bigger
+> picture, I would apreciate any insight
+> on why this behavior is generated.
+>
+> Thank you all,
+> A.
 
-> > 	But if creating expectation is considered harmless
-> > then better to use just the rt_nexthop check because
-> > checking for subnets is too risky, hosts can use different
-> > subnet masks. By this way we reduce the risk to connect
-> > internal hosts without expectation.
-> 
-> It creates an expection for the IP parsed as result of the call
-> forwarding that will expire after 240 seconds. So it consumes memory
-> but it will expire after that time.
-> 
-> I prefer not to modify this code unless someone using the H.323 helper
-> reports a problem.
 
-	Agreed
-
-> Thanks for your comments. I'll take your patch and extend the
-> description a bit to explain the current situation of that chunk of
-> code for the history.
-
-	Yes, it needs better description. Thanks!
-
-> > > > diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-> > > > index 1b30b0d..962795e 100644
-> > > > --- a/net/netfilter/nf_conntrack_h323_main.c
-> > > > +++ b/net/netfilter/nf_conntrack_h323_main.c
-> > > > @@ -753,7 +753,8 @@ static int callforward_do_filter(const union nf_inet_addr *src,
-> > > >  				   flowi4_to_flowi(&fl1), false)) {
-> > > >  			if (!afinfo->route(&init_net, (struct dst_entry **)&rt2,
-> > > >  					   flowi4_to_flowi(&fl2), false)) {
-> > > > -				if (rt1->rt_gateway == rt2->rt_gateway &&
-> > > > +				if (rt_nexthop(rt1, fl1.daddr) ==
-> > > > +				    rt_nexthop(rt2, fl2.daddr) &&
-> > > >  				    rt1->dst.dev  == rt2->dst.dev)
-> > > >  					ret = 1;
-> > > >  				dst_release(&rt2->dst);
-> > > > -- 
-> > > > 1.7.3.4
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
