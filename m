@@ -1,38 +1,22 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] Netfilter/IPVS updates for your net tree (3.7)
-Date: Thu, 18 Oct 2012 15:18:18 -0400 (EDT)
-Message-ID: <20121018.151818.1882310621973081517.davem@davemloft.net>
-References: <1350470334-5742-1-git-send-email-pablo@netfilter.org>
+Subject: net-next is open
+Date: Thu, 18 Oct 2012 16:37:54 -0400 (EDT)
+Message-ID: <20121018.163754.1896412399147373622.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:53437 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750854Ab2JRTSV (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Oct 2012 15:18:21 -0400
-In-Reply-To: <1350470334-5742-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, linux-wireless@vger.kernel.org
+To: netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: pablo@netfilter.org
-Date: Wed, 17 Oct 2012 12:38:50 +0200
 
-> The following patchset contains Netfilter/IPVS updates for your
-> net tree, they are:
-> 
-> * Fix incorrect hooks for SNAT and DNAT (bug introduced in recent IPv6
->   NAT changes), from Elison Niven.
-> 
-> * Fix xt_TEE (got broken with recent rt_gateway semantic change),
->   from Eric Dumazet.
-> 
-> * Fix custom conntrack timeout policy attachment for IPv6, from myself.
-> 
-> * Always initialize ip_vs_timeout_user in case that TCP or UDP protocols
->   is disabled, from Arnd Bergmann.
+You can now submit patches for 'net-next', I just sync'd it up with
+current 'net'.
 
-Pulled, thanks Pablo.
+As I warned, I have tossed every feature/cleanup patch submitted
+before now in patchwork, so you have to resubmit anything you
+erroneously submitted over the past few weeks.
+
+Thanks.
