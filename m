@@ -1,39 +1,38 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [xtables-addons] geoip in Debian 7 working fine (--> please
- update the distro matrix)
-Date: Thu, 18 Oct 2012 19:57:26 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1210181956080.16834@nerf07.vanv.qr>
-References: <k5gtj2$ou2$1@ger.gmane.org> <alpine.LNX.2.01.1210181915570.16412@nerf07.vanv.qr> <508040F0.4050006@mutluit.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] Netfilter/IPVS updates for your net tree (3.7)
+Date: Thu, 18 Oct 2012 15:18:18 -0400 (EDT)
+Message-ID: <20121018.151818.1882310621973081517.davem@davemloft.net>
+References: <1350470334-5742-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: "U.Mutlu" <for-gmane@mutluit.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:53281 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932125Ab2JRR51 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Oct 2012 13:57:27 -0400
-In-Reply-To: <508040F0.4050006@mutluit.com>
+Received: from shards.monkeyblade.net ([149.20.54.216]:53437 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750854Ab2JRTSV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Oct 2012 15:18:21 -0400
+In-Reply-To: <1350470334-5742-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2012-10-18 19:48, U.Mutlu wrote:
+From: pablo@netfilter.org
+Date: Wed, 17 Oct 2012 12:38:50 +0200
 
-> Jan Engelhardt wrote, On 10/18/2012 07:18 PM:
->> On Monday 2012-10-15 13:55, U.Mutlu wrote:
->>
->>> Hello,
->>> please update the matrix at
->>> http://xtables-addons.sourceforge.net/distro-support.php?p=kernel%7Ciptables%7Cxtables-addons%7Cxtables-geoip&d=.*
->>> for Debian 7 (wheezy), as geoip is working well in that distribution
->>> (the pkg "xtables-addons-common" from the debian repo must be installed).
->>
->> Debian does not provide a xtables-geoip package.
->
-> As said, I've it working fine here, I used the following steps:
+> The following patchset contains Netfilter/IPVS updates for your
+> net tree, they are:
+> 
+> * Fix incorrect hooks for SNAT and DNAT (bug introduced in recent IPv6
+>   NAT changes), from Elison Niven.
+> 
+> * Fix xt_TEE (got broken with recent rt_gateway semantic change),
+>   from Eric Dumazet.
+> 
+> * Fix custom conntrack timeout policy attachment for IPv6, from myself.
+> 
+> * Always initialize ip_vs_timeout_user in case that TCP or UDP protocols
+>   is disabled, from Arnd Bergmann.
 
-I believe you that you did get it to work. However, the table is 
-expressly about distro-package availability (it even says so in big 
-letters), and Debian simply does not have anything premade such that you 
-could `apt-get install xtables-geoip` to retrieve a (more-or-less) 
-recent version of the geoip db ready for use.
+Pulled, thanks Pablo.
