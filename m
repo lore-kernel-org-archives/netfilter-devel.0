@@ -1,53 +1,67 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [RFC PATCH] netfilter: add connlabel conntrack extension
-Date: Fri, 19 Oct 2012 15:52:15 +0200
-Message-ID: <20121019135215.GE18674@breakpoint.cc>
-References: <1350577344-16321-1-git-send-email-fw@strlen.de>
- <20121018165104.GA15142@1984>
- <20121018203809.GA18674@breakpoint.cc>
- <20121019081959.GA11880@1984>
- <20121019085007.GC18674@breakpoint.cc>
- <20121019131533.GB30731@1984>
+From: Pavel Roskin <proski-mXXj517/zsQ@public.gmane.org>
+Subject: Re: [ath9k-devel] [PATCH net-next 00/21] treewide: Use
+ consistent api style for address testing
+Date: Fri, 19 Oct 2012 11:55:17 -0400
+Message-ID: <20121019115517.7b8514a8@mj>
+References: <cover.1350618006.git.joe@perches.com>
+	<1350630254.2293.183.camel@edumazet-glaptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:51322 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754203Ab2JSNwQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Oct 2012 09:52:16 -0400
-Content-Disposition: inline
-In-Reply-To: <20121019131533.GB30731@1984>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, b.a.t.m.a.n-ZwoEplunGu2X36UT3dwllkB+6BGkLq7r@public.gmane.org,
+	linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, brcm80211-dev-list-dY08KVG/lbpWk0Htik3J/w@public.gmane.org,
+	users-poMEt7QlJxcwIE2E9O76wjtx2kNaKg5H@public.gmane.org, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	devel-s9riP+hp16TNLxjTenLetw@public.gmane.org, dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org,
+	linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, wimax-BPSAo7wm5JOHVYUYWc+uSQ@public.gmane.org,
+	linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	bridge-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, lvs-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, b43-dev-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org,
+	cbe-oss-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org,
+	user-mode-linux-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
+	devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org,
+	davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	user-mode-linux-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
+	linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	l
+To: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <1350630254.2293.183.camel@edumazet-glaptop>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+	<mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+	<mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Sender: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> I just think that having some clear use case for this is important.
+On Fri, 19 Oct 2012 09:04:14 +0200
+Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+
+> Yes they are some names discrepancies, thats a big deal.
 > 
-> If you're original idea is just to attach labels to help sysadmins to
-> understand what's going on through the gateway, then we can leave this
-> as is and add some new specific extension for nfgrep once it comes
-> into place.
+> And we have alloc_skb() / kfree_skb() / skb_clone() 
+> 
+> Why not skb_alloc() / skb_free() / skb_clone() ?
+> 
+> Some people actually know current code by name of functions, they dont
+> want to change their mind and having to grep include files and git log
+> to learn the new names of an old function, especially when traveling
+> and using a laptop.
 
-No, I intend for userspace to assign labels to connections, e.g.
-via NFQUEUE.
+I agree.
 
-Also, labels should also be made available via ctnetlink, e.g. for
-logging/accounting.
+Also, it makes sense to introduce a more consistent name for a function
+when it's improved in some way and the callers need to be adjusted or
+re-checked.
 
-Example: Conntracks are interface agnostic, so you would be able
-to provide "came in via interface X" information via connlabels.
+That way, the old name can be phased out as the code is made compatible
+with the new function.
 
-My main problem is currently understanding what nfgrep needs.
-Since you suggested to do all labelname<->number mapping in
-userspace, how would the nfgrep part assign a label?
-
-Is that also done via netfilter rules, or via some "module magic"
-feature?  It would be nice to come up with something that
-fits nfgrep needs, too.
-
-Best regards,
-Florian
+-- 
+Regards,
+Pavel Roskin
