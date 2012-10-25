@@ -1,65 +1,80 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC PATCH 0/1] xtables: allow to monitor table update event
-Date: Thu, 25 Oct 2012 19:19:11 +0200
-Message-ID: <20121025171911.GA9571@1984>
-References: <1348501182-12470-1-git-send-email-nicolas.dichtel@6wind.com>
- <1349183171-4136-1-git-send-email-nicolas.dichtel@6wind.com>
- <507C0B40.5000105@6wind.com>
- <50893620.70107@6wind.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [RFC] back on nf_tables (plus compatibility layer)
+Date: Fri, 26 Oct 2012 00:02:56 +0200 (CEST)
+Message-ID: <alpine.LNX.2.01.1210252352420.13437@nerf07.vanv.qr>
+References: <20121025170632.GA4890@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43242 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935930Ab2JYRTT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Oct 2012 13:19:19 -0400
-Content-Disposition: inline
-In-Reply-To: <50893620.70107@6wind.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Linux Networking Developer Mailing List
+	<netdev@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20121025170632.GA4890@1984>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Nicolas,
+On Thursday 2012-10-25 19:06, Pablo Neira Ayuso wrote:
 
-On Thu, Oct 25, 2012 at 02:52:48PM +0200, Nicolas Dichtel wrote:
-> Le 15/10/2012 15:10, Nicolas Dichtel a =E9crit :
-> >Le 02/10/2012 15:06, Nicolas Dichtel a =E9crit :
-> >>The following patch is an example of a userspace tools (in fact, ip=
-tables)
-> >>that use the new netlink API to monitor tables activity.
-> >>
-> >>I will also send a patch against libnfnetlink to update linux inclu=
-des with
-> >>this new feature.
-> >>
-> >>Maybe another API can be used for this feature: adding a setsockopt=
-() on an
-> >>iptc socket to enable monitoring. When a table is updated, a packet=
- (built with
-> >>CMSG_* macro for example) can be sent over all sockets that monitor=
- tables
-> >>acitivity (like km sockets in IPsec). I know that this socket was u=
-sed only with
-> >>[g|s]etsockopt(), but this can avoid adding another netlink API.
-> >>
-> >>Comments are welcome.
-> >Any feedback about this patch or the other proposed API?
+>Hi,
 >
-> Still no comment about this feature? Maybe another option to solve th=
-e problem?
+>I've been working for a while to recover nf_tables kernel patches and
+>to implement a compatibility layer so it can be used with existing
+>x_tables target/match extensions. [...]
+>2) Provide a fast path to merge this into mainstream. We'll have both
+>   iptables and nftables interfaces during some time in the Linux kernel,
+>   then remove iptables infrastructure at some point. iptables scripts
+>   would not break as we'll have the iptables emulation over nftables.
+>[...]
+>One final thing: nftables does not support atomic table commit. The
+>point here is if we really need this for the emulation utility or we
+>can live without that. Implementing atomic table replacement in
+>nftables is not trivial. I have hard time to find this commit table
+>feature useful.
 
-Adding a new nfnetlink subsystem to just reports table updates seems
-a bit too much to me.
+Meanwhile, I am on xtables2 that actually reproduces the set of
+_really important_ features that currently are in the setsockopt
+iptables, like atomic table replace and atomic dump.
 
-I'd aim to the nftables proposal that I just made. If this doesn't
-happen in a reasonable amount of time, get back to the mailing list
-and push us again to get this in.
+I have updated to the newest tree, and the first set is
+available in the git repository at:
+  git://git.inai.de/linux xt2-20121025
+----------------------------------------------------------------
+      netfilter: xtables2: initial table skeletal functions
+      netfilter: xtables2: initial Netlink interface
+      netfilter: xtables2: chain creation and deletion
+      netfilter: xtables2: chain renaming support
+      netfilter: xtables2: transaction commit operation
+      netfilter: xtables2: table replace support
+      netfilter: xtables2: transaction abort support
+      netfilter: xtables2: redirect writes into transaction buffer
+      netfilter: xtables2: supply a revision number
 
-Thanks.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ include/net/netfilter/xt_core.h                  |   48 ++
+ include/uapi/linux/netfilter/Kbuild              |    1 +
+ include/uapi/linux/netfilter/nfnetlink.h         |    3 +-
+ include/uapi/linux/netfilter/nfnetlink_xtables.h |   52 ++
+ net/netfilter/Kconfig                            |    8 +-
+ net/netfilter/Makefile                           |    2 +
+ net/netfilter/xt_core.c                          |  204 ++++++++
+ net/netfilter/xt_nfnetlink.c                     |  602 ++++++++++++++++++++++
+ net/netfilter/xt_nfnetlink.h                     |    7 +
+ 9 files changed, 925 insertions(+), 2 deletions(-)
+ create mode 100644 include/net/netfilter/xt_core.h
+ create mode 100644 include/uapi/linux/netfilter/nfnetlink_xtables.h
+ create mode 100644 net/netfilter/xt_core.c
+ create mode 100644 net/netfilter/xt_nfnetlink.c
+ create mode 100644 net/netfilter/xt_nfnetlink.h
+---snip---
+
+with userspace
+available in the git repository at:
+  git://git.inai.de/libnetfilter_xtables master
+
+which contains a test utility xtnl-test to try the code paths that
+have been added so far on the kernel side.
+
+Getting the locking right is sort of a time killer; I hope
+Eric Dumazet might get interested to have a look on that part,
+since he has done so much w.r.t. locking in ip_tables already :)
