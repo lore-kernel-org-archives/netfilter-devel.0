@@ -1,60 +1,57 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nf-next PATCH v2] ipvs: fix build errors related to config
- option combinations
-Date: Tue, 23 Oct 2012 10:53:20 +0200
-Message-ID: <20121023085320.GC7079@1984>
-References: <20121022192245.12620.84466.stgit@dragon>
- <20121023003314.GC5015@verge.net.au>
- <20121023084241.GA7079@1984>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: Re: [RFC PATCH 0/1] xtables: allow to monitor table update event
+Date: Thu, 25 Oct 2012 14:52:48 +0200
+Message-ID: <50893620.70107@6wind.com>
+References: <1348501182-12470-1-git-send-email-nicolas.dichtel@6wind.com> <1349183171-4136-1-git-send-email-nicolas.dichtel@6wind.com> <507C0B40.5000105@6wind.com>
+Reply-To: nicolas.dichtel@6wind.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>, fengguang.wu@intel.com,
-	yuanhan.liu@linux.intel.com, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20121023084241.GA7079@1984>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:63863 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752803Ab2JYMwx (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Oct 2012 08:52:53 -0400
+Received: by mail-ee0-f46.google.com with SMTP id b15so600818eek.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Oct 2012 05:52:51 -0700 (PDT)
+In-Reply-To: <507C0B40.5000105@6wind.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 23, 2012 at 10:42:41AM +0200, Pablo Neira Ayuso wrote:
-> On Tue, Oct 23, 2012 at 09:33:15AM +0900, Simon Horman wrote:
-> > On Mon, Oct 22, 2012 at 09:22:45PM +0200, Jesper Dangaard Brouer wrote:
-> > > Fix two build error introduced by commit 63dca2c0:
-> > >  "ipvs: Fix faulty IPv6 extension header handling in IPVS"
-> > > 
-> > > First build error was fairly trivial and can occur, when
-> > > CONFIG_IP_VS_IPV6 is disabled.
-> > > 
-> > > The second build error was tricky, and can occur when deselecting
-> > > both all Netfilter and IPVS, but selecting CONFIG_IPV6.  This is
-> > > caused by "kernel/sysctl_binary.c" including "net/ip_vs.h", which
-> > > includes "linux/netfilter_ipv6/ip6_tables.h" causing include
-> > > of "include/linux/netfilter/x_tables.h" which then cannot find
-> > > the typedef nf_hookfn.
-> > > 
-> > > Fix this by only including "linux/netfilter_ipv6/ip6_tables.h" in
-> > > case of CONFIG_IP_VS_IPV6 as its already used to guard the usage
-> > > of ipv6_find_hdr().
-> > 
-> > Thanks, I have verified both of these fixes and I will send a pull
-> > request ASAP.
-> > 
-> > I do wonder how we might get earlier test coverage of these kinds of problems.
-> 
-> David already mentioned that we (Netfilter/IPVS) should aim to reduce
-> the amount of ifdef pollution in the code. Sometimes it is possible in
-> a nice way by encapsulating code that depends on the feature in one
-> single file.
-> 
-> Sometimes it also requires some more thinking to make it that way (not
-> as easy as adding ifdef).
-> 
-> I think if we aim to that, we can avoid this sort of problems.
+Le 15/10/2012 15:10, Nicolas Dichtel a =C3=A9crit :
+> Le 02/10/2012 15:06, Nicolas Dichtel a =C3=A9crit :
+>> The following patch is an example of a userspace tools (in fact, ipt=
+ables)
+>> that use the new netlink API to monitor tables activity.
+>>
+>> I will also send a patch against libnfnetlink to update linux includ=
+es with
+>> this new feature.
+>>
+>> Maybe another API can be used for this feature: adding a setsockopt(=
+) on an
+>> iptc socket to enable monitoring. When a table is updated, a packet =
+(built with
+>> CMSG_* macro for example) can be sent over all sockets that monitor =
+tables
+>> acitivity (like km sockets in IPsec). I know that this socket was us=
+ed only with
+>> [g|s]etsockopt(), but this can avoid adding another netlink API.
+>>
+>> Comments are welcome.
+> Any feedback about this patch or the other proposed API?
+Still no comment about this feature? Maybe another option to solve the =
+problem?
 
-By looking at all those CONFIG_IP_VS_IPV6. I'd suggest to abstract
-generic layer 3 operations and thus move all IPv4 and IPv6 to the
-corresponding files (eg. ipvs_l3proto_ipv4.c and
-ipvs_l3proto_ipv6.c).
+
+Regards,
+Nicolas
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
