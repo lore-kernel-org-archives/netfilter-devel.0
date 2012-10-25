@@ -1,121 +1,65 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [RFC] back on nf_tables (plus compatibility layer)
-Date: Thu, 25 Oct 2012 19:06:32 +0200
-Message-ID: <20121025170632.GA4890@1984>
+Subject: Re: [RFC PATCH 0/1] xtables: allow to monitor table update event
+Date: Thu, 25 Oct 2012 19:19:11 +0200
+Message-ID: <20121025171911.GA9571@1984>
+References: <1348501182-12470-1-git-send-email-nicolas.dichtel@6wind.com>
+ <1349183171-4136-1-git-send-email-nicolas.dichtel@6wind.com>
+ <507C0B40.5000105@6wind.com>
+ <50893620.70107@6wind.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org
-To: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41339 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43242 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935930Ab2JYRGk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Oct 2012 13:06:40 -0400
+	id S935930Ab2JYRTT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Oct 2012 13:19:19 -0400
 Content-Disposition: inline
+In-Reply-To: <50893620.70107@6wind.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hi Nicolas,
 
-I've been working for a while to recover nf_tables kernel patches and
-to implement a compatibility layer so it can be used with existing
-x_tables target/match extensions. These are the main reasons that
-motivated me to follow this approach:
+On Thu, Oct 25, 2012 at 02:52:48PM +0200, Nicolas Dichtel wrote:
+> Le 15/10/2012 15:10, Nicolas Dichtel a =E9crit :
+> >Le 02/10/2012 15:06, Nicolas Dichtel a =E9crit :
+> >>The following patch is an example of a userspace tools (in fact, ip=
+tables)
+> >>that use the new netlink API to monitor tables activity.
+> >>
+> >>I will also send a patch against libnfnetlink to update linux inclu=
+des with
+> >>this new feature.
+> >>
+> >>Maybe another API can be used for this feature: adding a setsockopt=
+() on an
+> >>iptc socket to enable monitoring. When a table is updated, a packet=
+ (built with
+> >>CMSG_* macro for example) can be sent over all sockets that monitor=
+ tables
+> >>acitivity (like km sockets in IPsec). I know that this socket was u=
+sed only with
+> >>[g|s]etsockopt(), but this can avoid adding another netlink API.
+> >>
+> >>Comments are welcome.
+> >Any feedback about this patch or the other proposed API?
+>
+> Still no comment about this feature? Maybe another option to solve th=
+e problem?
 
-1) nf_tables already provides a netlink interface, which has been a
-   longstanding demand from users.
+Adding a new nfnetlink subsystem to just reports table updates seems
+a bit too much to me.
 
-2) Provide a fast path to merge this into mainstream. We'll have both
-   iptables and nftables interfaces during some time in the Linux kernel,
-   then remove iptables infrastructure at some point. iptables scripts
-   would not break as we'll have the iptables emulation over nftables.
+I'd aim to the nftables proposal that I just made. If this doesn't
+happen in a reasonable amount of time, get back to the mailing list
+and push us again to get this in.
 
-3) Regarding the compatibility layer: To provide a working command
-   line utility with the same syntax of iptables. The idea is that users
-   don't notice that they are working with the nf_tables kernel
-   infrastructure. We did that during the transition from ipchains to
-   iptables.
-
-4) Several extensions for x_tables still need to be ported to
-   nf_tables. With the compatibility layer, we can use non-native
-   x_tables extensions with nf_tables until it fully provides a
-   replacement for all existing features.
-
-5) The compatibility layer provides a way to hook existing x_tables
-   matches/targets with nftables. So we can use all existing features
-   from nftables until we provide native nftables expressions /
-   user-space code that replace them.
-
-The compatibility layer has limitations to emulate struct ipt_entry,
-hookmask, protocol and inversion passed to xt->checkentry(). But this
-can be mostly workaround by relaxing some of the checking in
-kernel-space that prevent users from doing stupid things (like trying
-to use the TCPMSS target for non-TCP traffic / non-syn packets). In my
-list, the affected targets are ECN, CLUSTERIP, TCPMSS, REJECT and CT.
-I have some proposals on how to workaround those.
-
-You can access the preliminary iptables over nftables code from:
-
-http://1984.lsi.us.es/git/iptables-nftables/
-
-The name of the utilities are xtables, xtables-save and
-xtables-restore.
-
-There are several missing features in that iptables over nftables
-code: -Z, -R, -E, rule insertion at position and -f are not yet
-working. IPv6 support is also still missing.
-
-It requires this user-space library:
-
-http://1984.lsi.us.es/git/libnftables/
-
-And the following Linux kernel code with several experimental patches
-of mine:
-
-http://1984.lsi.us.es/git/nf-next/log/?h=nf_tables-experiments
-
-I see several things that need to be improved in the nftables kernel
-side:
-
-1) Improve rule addition and deletion timing, currently it is not
-very good compared to iptables. To improve deletions I think we
-have to modify the current locking approach based on RCU. To improve
-additions, we have to improve the unique handle allocation (probably
-using a 64-bits handle number so we forget about wrap-arounds and we
-just incrementally assign new handles).
-
-2) No built-in nat and route tables. Better allow from user-space
-configure one table with the nat / route property. If we provide
-documentation on how to use them appropriately, I would not worry too
-much if the user uses wrongly.
-
-3) Add operation to obtain chain counters, following the same approach
-of iptables (iterate over the entire rule-set and accumulate packets
-and bytes, like in get_counters()).
-
-4) Add native support for TRACE, it seems to be missing in nf_tables.
-
-5) Changes to allow to add rules at positions and replace them, since
-iptables allows this.
-
-6) To speed up packet matching, we can compile nftables expressions to
-some internal bytecode (that could be even compiled to native assembly
-instructions like Eric Dumazet did for BPF).
-
-Several of these things can be improved while we already have this in
-mainline.
-
-One final thing: nftables does not support atomic table commit. The
-point here is if we really need this for the emulation utility or we
-can live without that. Implementing atomic table replacement in
-nftables is not trivial. I have hard time to find this commit table
-feature useful.
-
-That's all by now. By resolving most of these things and having the
-compatibility layer ready, we should get nftables into mainstream
-anytime soon IMO.
-
-Comments welcome.
-
-Regards.
+Thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
