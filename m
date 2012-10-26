@@ -1,25 +1,24 @@
 From: Ramesh M <rameshandram@gmail.com>
-Subject: (unknown)
-Date: Fri, 26 Oct 2012 10:29:16 +0530
-Message-ID: <CABx-mUmVbY+6b2wcpP74eYCccoBg7VyyHGyUw5kMMy2S=PT-EA@mail.gmail.com>
+Subject: kernel Panic on function tcp_manip_pkt+0x3c/0x11c in linux 2.6.31
+Date: Fri, 26 Oct 2012 10:39:28 +0530
+Message-ID: <CABx-mU=PxkxLn0d6AU0dCmsgBZkf0XjkHDd4nHXgQmBpCi9LWA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:36108 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755377Ab2JZE7R (ORCPT
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:53138 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756165Ab2JZFJ3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Oct 2012 00:59:17 -0400
-Received: by mail-ob0-f174.google.com with SMTP id uo13so2275922obb.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Oct 2012 21:59:16 -0700 (PDT)
-Subject: 
+	Fri, 26 Oct 2012 01:09:29 -0400
+Received: by mail-oa0-f46.google.com with SMTP id h16so2337387oag.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Oct 2012 22:09:28 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi Team,
 
-I am getting the below panic message when i enable NAT in linux kernel
+I am getting the below  kernel panic message when i enable NAT in linux kernel
 2.6.31 running on mips based SOC board.
 
 could you please let me know if you this issue already FIXED or root
@@ -31,7 +30,6 @@ Thanks for your help
 
 Regards
 Ramesh
-
 
 Unhandled kernel unaligned access or invalid instruction[#1]:
 Cpu 0
