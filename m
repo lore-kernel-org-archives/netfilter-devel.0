@@ -1,80 +1,88 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [RFC] back on nf_tables (plus compatibility layer)
-Date: Fri, 26 Oct 2012 00:02:56 +0200 (CEST)
-Message-ID: <alpine.LNX.2.01.1210252352420.13437@nerf07.vanv.qr>
-References: <20121025170632.GA4890@1984>
+From: Ramesh M <rameshandram@gmail.com>
+Subject: (unknown)
+Date: Fri, 26 Oct 2012 10:29:16 +0530
+Message-ID: <CABx-mUmVbY+6b2wcpP74eYCccoBg7VyyHGyUw5kMMy2S=PT-EA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Linux Networking Developer Mailing List
-	<netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20121025170632.GA4890@1984>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:36108 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755377Ab2JZE7R (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Oct 2012 00:59:17 -0400
+Received: by mail-ob0-f174.google.com with SMTP id uo13so2275922obb.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Oct 2012 21:59:16 -0700 (PDT)
+Subject: 
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2012-10-25 19:06, Pablo Neira Ayuso wrote:
+Hi Team,
 
->Hi,
->
->I've been working for a while to recover nf_tables kernel patches and
->to implement a compatibility layer so it can be used with existing
->x_tables target/match extensions. [...]
->2) Provide a fast path to merge this into mainstream. We'll have both
->   iptables and nftables interfaces during some time in the Linux kernel,
->   then remove iptables infrastructure at some point. iptables scripts
->   would not break as we'll have the iptables emulation over nftables.
->[...]
->One final thing: nftables does not support atomic table commit. The
->point here is if we really need this for the emulation utility or we
->can live without that. Implementing atomic table replacement in
->nftables is not trivial. I have hard time to find this commit table
->feature useful.
+I am getting the below panic message when i enable NAT in linux kernel
+2.6.31 running on mips based SOC board.
 
-Meanwhile, I am on xtables2 that actually reproduces the set of
-_really important_ features that currently are in the setsockopt
-iptables, like atomic table replace and atomic dump.
+could you please let me know if you this issue already FIXED or root
+caused  somewhere ??
 
-I have updated to the newest tree, and the first set is
-available in the git repository at:
-  git://git.inai.de/linux xt2-20121025
-----------------------------------------------------------------
-      netfilter: xtables2: initial table skeletal functions
-      netfilter: xtables2: initial Netlink interface
-      netfilter: xtables2: chain creation and deletion
-      netfilter: xtables2: chain renaming support
-      netfilter: xtables2: transaction commit operation
-      netfilter: xtables2: table replace support
-      netfilter: xtables2: transaction abort support
-      netfilter: xtables2: redirect writes into transaction buffer
-      netfilter: xtables2: supply a revision number
 
- include/net/netfilter/xt_core.h                  |   48 ++
- include/uapi/linux/netfilter/Kbuild              |    1 +
- include/uapi/linux/netfilter/nfnetlink.h         |    3 +-
- include/uapi/linux/netfilter/nfnetlink_xtables.h |   52 ++
- net/netfilter/Kconfig                            |    8 +-
- net/netfilter/Makefile                           |    2 +
- net/netfilter/xt_core.c                          |  204 ++++++++
- net/netfilter/xt_nfnetlink.c                     |  602 ++++++++++++++++++++++
- net/netfilter/xt_nfnetlink.h                     |    7 +
- 9 files changed, 925 insertions(+), 2 deletions(-)
- create mode 100644 include/net/netfilter/xt_core.h
- create mode 100644 include/uapi/linux/netfilter/nfnetlink_xtables.h
- create mode 100644 net/netfilter/xt_core.c
- create mode 100644 net/netfilter/xt_nfnetlink.c
- create mode 100644 net/netfilter/xt_nfnetlink.h
----snip---
+Thanks for your help
 
-with userspace
-available in the git repository at:
-  git://git.inai.de/libnetfilter_xtables master
 
-which contains a test utility xtnl-test to try the code paths that
-have been added so far on the kernel side.
+Regards
+Ramesh
 
-Getting the locking right is sort of a time killer; I hope
-Eric Dumazet might get interested to have a look on that part,
-since he has done so much w.r.t. locking in ip_tables already :)
+
+Unhandled kernel unaligned access or invalid instruction[#1]:
+Cpu 0
+$ 0   : 00000000 00000000 804f3172 0000005c
+$ 4   : 8797c8c0 0000001c 879a32e4 00000001
+$ 8   : 00000028 800fdf48 00000014 37987883
+$12   : 185a5616 80256a20 05491623 edf4c4c3
+$16   : 00000006 0000001c 00000014 879a32e4
+$20   : 8797c8c0 00000001 879a32d8 879cec00
+$24   : 00000000 80193958
+$28   : 87824000 87825a50 8797c8c0 801e5074
+Hi    : 00000388
+Lo    : 00000000
+epc   : 801e6b60 tcp_manip_pkt+0x3c/0x11c
+    Not tainted
+ra    : 801e5074 manip_pkt+0x70/0x14c
+Status: 1100ff03    KERNEL EXL IE
+Cause : 00800010
+BadVA : 804f318e
+PrId  : 00019750 (MIPS 74Kc)
+Modules linked in: athrs_gmac
+Process ksoftirqd/0 (pid: 3, threadinfo=87824000, task=87817198, tls=00000000)
+Stack : 185a5616 80256a20 05491623 edf4c4c3 804f3186 8797c8c0 804f3172 00000006
+        8797c8c0 0000001c 879a32e4 00000001 00000001 801e5074 87825b10 8111ae50
+        87824000 87825ab8 8797c8c0 801e527c 804f3186 8797c8c0 879a32e4 00000014
+        00000000 801e52cc 8797c8c0 87825c08 8797c8c0 00000001 00000001 87825ad8
+        802cb970 802c6aa0 c0a80115 00000000 00000000 00000000 052c0002 0a34f48c
+        ...
+Call Trace:
+[<801e6b60>] tcp_manip_pkt+0x3c/0x11c
+[<801e5074>] manip_pkt+0x70/0x14c
+[<801e52cc>] nf_nat_icmp_reply_translation+0x17c/0x26c
+[<801eb8bc>] nf_nat_fn+0x100/0x1d8
+[<801ebae0>] nf_nat_out+0x48/0xe8
+[<8018a174>] nf_iterate+0x84/0xf8
+[<8018a378>] nf_hook_slow+0x94/0x130
+[<801b4d94>] ip_output+0xac/0xd8
+[<801b401c>] ip_push_pending_frames+0x2e8/0x378
+[<801d6c98>] icmp_send+0x524/0x58c
+[<801a9ff4>] ipv4_link_failure+0x20/0x60
+[<801d41dc>] arp_error_report+0x38/0x4c
+[<8017cf00>] neigh_invalidate+0x94/0xb8
+[<8017e8e0>] neigh_timer_handler+0x1f8/0x448
+[<8002d708>] run_timer_softirq+0x14c/0x1d8
+[<80029248>] __do_softirq+0xb0/0x144
+[<80029324>] do_softirq+0x48/0x6c
+[<800293a8>] ksoftirqd+0x60/0xf0
+[<80037c4c>] kthread+0x7c/0x88
+[<800085ec>] kernel_thread_helper+0x10/0x18
+
+Code: afbf0034  8c8200a8  8c830054 <7c45100a> 7c421e00  00021080
+00458021  26020014  0062182b
+Disabling lock debugging due to kernel taint
+Kernel panic - not syncing: Fatal exception in interrupt
