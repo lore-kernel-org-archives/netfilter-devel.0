@@ -1,85 +1,53 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: [PATCH] netfilter: remove silly double assignment
-Date: Fri, 26 Oct 2012 11:13:27 +0100
-Message-ID: <20121026101320.18664.26806.stgit@localhost.localdomain>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFC] back on nf_tables (plus compatibility layer)
+Date: Fri, 26 Oct 2012 13:04:19 +0200
+Message-ID: <20121026110419.GA16629@1984>
+References: <20121025170632.GA4890@1984>
+ <alpine.LNX.2.01.1210252352420.13437@nerf07.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Linux Networking Developer Mailing List
+	<netdev@vger.kernel.org>
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:55079 "EHLO
-	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755260Ab2JZKL5 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Oct 2012 06:11:57 -0400
-Received: from localhost.localdomain (earthlight.etchedpixels.co.uk [81.2.110.250])
-	by lxorguk.ukuu.org.uk (8.14.5/8.14.1) with ESMTP id q9QAhqom024233
-	for <netfilter-devel@vger.kernel.org>; Fri, 26 Oct 2012 11:44:01 +0100
+Received: from mail.us.es ([193.147.175.20]:33478 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753304Ab2JZLEb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Oct 2012 07:04:31 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.01.1210252352420.13437@nerf07.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Alan Cox <alan@linux.intel.com>
+On Fri, Oct 26, 2012 at 12:02:56AM +0200, Jan Engelhardt wrote:
+> On Thursday 2012-10-25 19:06, Pablo Neira Ayuso wrote:
+> 
+> >Hi,
+> >
+> >I've been working for a while to recover nf_tables kernel patches and
+> >to implement a compatibility layer so it can be used with existing
+> >x_tables target/match extensions. [...]
+> >2) Provide a fast path to merge this into mainstream. We'll have both
+> >   iptables and nftables interfaces during some time in the Linux kernel,
+> >   then remove iptables infrastructure at some point. iptables scripts
+> >   would not break as we'll have the iptables emulation over nftables.
+> >[...]
+> >One final thing: nftables does not support atomic table commit. The
+> >point here is if we really need this for the emulation utility or we
+> >can live without that. Implementing atomic table replacement in
+> >nftables is not trivial. I have hard time to find this commit table
+> >feature useful.
+> 
+> Meanwhile, I am on xtables2 that actually reproduces the set of
+> _really important_ features that currently are in the setsockopt
+> iptables, like atomic table replace and atomic dump.
+> 
+> I have updated to the newest tree, and the first set is
+> available in the git repository at:
+>   git://git.inai.de/linux xt2-20121025
 
-I don't even want to think what the C spec says for this 8)
-
-Signed-off-by: Alan Cox <alan@linux.intel.com>
----
-
- net/netfilter/ipvs/ip_vs_nfct.c |    2 +-
- net/netfilter/ipvs/ip_vs_xmit.c |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_nfct.c b/net/netfilter/ipvs/ip_vs_nfct.c
-index 022e77e..c8beafd 100644
---- a/net/netfilter/ipvs/ip_vs_nfct.c
-+++ b/net/netfilter/ipvs/ip_vs_nfct.c
-@@ -82,7 +82,7 @@ void
- ip_vs_update_conntrack(struct sk_buff *skb, struct ip_vs_conn *cp, int outin)
- {
- 	enum ip_conntrack_info ctinfo;
--	struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
-+	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
- 	struct nf_conntrack_tuple new_tuple;
- 
- 	if (ct == NULL || nf_ct_is_confirmed(ct) || nf_ct_is_untracked(ct) ||
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index cc4c809..d8ce87a 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -592,7 +592,7 @@ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
- #if IS_ENABLED(CONFIG_NF_CONNTRACK)
- 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
- 		enum ip_conntrack_info ctinfo;
--		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
-+		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
- 
- 		if (ct && !nf_ct_is_untracked(ct)) {
- 			IP_VS_DBG_RL_PKT(10, AF_INET, pp, skb, 0,
-@@ -709,7 +709,7 @@ ip_vs_nat_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
- #if IS_ENABLED(CONFIG_NF_CONNTRACK)
- 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
- 		enum ip_conntrack_info ctinfo;
--		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
-+		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
- 
- 		if (ct && !nf_ct_is_untracked(ct)) {
- 			IP_VS_DBG_RL_PKT(10, AF_INET6, pp, skb, 0,
-@@ -1227,7 +1227,7 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
- #if IS_ENABLED(CONFIG_NF_CONNTRACK)
- 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
- 		enum ip_conntrack_info ctinfo;
--		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
-+		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
- 
- 		if (ct && !nf_ct_is_untracked(ct)) {
- 			IP_VS_DBG(10, "%s(): "
-@@ -1347,7 +1347,7 @@ ip_vs_icmp_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
- #if IS_ENABLED(CONFIG_NF_CONNTRACK)
- 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
- 		enum ip_conntrack_info ctinfo;
--		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
-+		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
- 
- 		if (ct && !nf_ct_is_untracked(ct)) {
- 			IP_VS_DBG(10, "%s(): "
-
+If you think this feature is important, checkout nf_tables and think
+how to integrate this prototype code that provides atomic table
+replacement to it.
