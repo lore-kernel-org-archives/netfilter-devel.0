@@ -1,40 +1,46 @@
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: [nf-next:nf_tables7 3/3] net/netfilter/nf_tables_api.c:1299:1:
- warning: the frame size of 1184 bytes is larger than 1024 bytes
-Date: Sun, 28 Oct 2012 14:07:36 +0800
-Message-ID: <20121028060736.GA32717@localhost>
-References: <508cc50d.M5tgqmAbgcg453NH%yuanhan.liu@linux.intel.com>
+From: Cong Wang <amwang@redhat.com>
+Subject: Re: [PATCH] net/ipv6/netfilter: solve section mismatch in
+ nf_conntrack_reasm
+Date: Sun, 28 Oct 2012 20:49:45 +0800
+Message-ID: <1351428585.15482.3.camel@cr0>
+References: <508BAE26.6010104@yahoo.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: David Miller <davem@davemloft.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	Michal =?UTF-8?Q?Kube=C4=8Dek?= <mkubecek@suse.cz>,
+	Herbert Xu <herbert@gondor.hengli.com.au>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+To: Hein Tibosch <hein_tibosch@yahoo.es>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:56081 "EHLO mga01.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:49260 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751044Ab2J1GHj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 28 Oct 2012 02:07:39 -0400
-Content-Disposition: inline
-In-Reply-To: <508cc50d.M5tgqmAbgcg453NH%yuanhan.liu@linux.intel.com>
+	id S1752079Ab2J1MuM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 28 Oct 2012 08:50:12 -0400
+In-Reply-To: <508BAE26.6010104@yahoo.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+On Sat, 2012-10-27 at 17:49 +0800, Hein Tibosch wrote:
+> From: Hein Tibosch <hein_tibosch@yahoo.es>
+> Subject: net/ipv6/netfilter: solve section mismatch in nf_conntrack_reasm
+> 
+> WARNING: net/ipv6/netfilter/nf_defrag_ipv6.o(.text+0xe0): Section mismatch in
+> reference from the function nf_ct_net_init() to the function
+> .init.text:nf_ct_frag6_sysctl_register()
+> The function nf_ct_net_init() references
+> the function __init nf_ct_frag6_sysctl_register().
+> etc
+> 
+> In case nf_conntrack_ipv6 is compiled as a module, nf_ct_net_init could be
+> called after the init code and data are unloaded.
+> Therefore remove the "__net_init" annotation from nf_ct_frag6_sysctl_register()
+> 
+> Signed-off-by: Hein Tibosch <hein_tibosch@yahoo.es>
 
-FYI, there are new compile warnings show up in
+Acked-by: Cong Wang <amwang@redhat.com>
 
-tree:   git://150.214.188.80/nf-next nf_tables7
-head:   a6332633391e97de473423052cb6173b4e6e7a27
-commit: a6332633391e97de473423052cb6173b4e6e7a27 [3/3] netfilter: nf_tables
-config: m68k-allmodconfig # make ARCH=m68k allmodconfig
+Thanks!
 
-All warnings:
-
-net/netfilter/nf_tables_api.c: In function 'nf_tables_newrule':
-net/netfilter/nf_tables_api.c:1299:1: warning: the frame size of 1184 bytes is larger than 1024 bytes [-Wframe-larger-than=]
---
-net/netfilter/nft_ct.c: In function 'nft_ct_eval':
-net/netfilter/nft_ct.c:77:46: warning: the omitted middle operand in ?: will always be 'true', suggest explicit middle operand [-Wparentheses]
-
----
-0-DAY kernel build testing backend         Open Source Technology Center
-Fengguang Wu, Yuanhan Liu                              Intel Corporation
