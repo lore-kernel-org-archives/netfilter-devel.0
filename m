@@ -1,77 +1,55 @@
 From: pablo@netfilter.org
-Subject: [PATCH 2/3] netfilter: nf_nat: don't check for port change on ICMP tuples
-Date: Tue, 30 Oct 2012 11:19:19 +0100
-Message-ID: <1351592360-5686-3-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 3/3] netfilter: nf_defrag_ipv6: solve section mismatch in nf_conntrack_reasm
+Date: Tue, 30 Oct 2012 11:19:20 +0100
+Message-ID: <1351592360-5686-4-git-send-email-pablo@netfilter.org>
 References: <1351592360-5686-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58414 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932587Ab2J3KTg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Oct 2012 06:19:36 -0400
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1351592360-5686-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Ulrich Weber <ulrich.weber@sophos.com>
+From: Hein Tibosch <hein_tibosch@yahoo.es>
 
-ICMP tuples have id in src and type/code in dst.
-So comparing src.u.all with dst.u.all will always fail here
-and ip_xfrm_me_harder() is called for every ICMP packet,
-even if there was no NAT.
+WARNING: net/ipv6/netfilter/nf_defrag_ipv6.o(.text+0xe0): Section mismatch in
+reference from the function nf_ct_net_init() to the function
+.init.text:nf_ct_frag6_sysctl_register()
+The function nf_ct_net_init() references the function
+__init nf_ct_frag6_sysctl_register().
 
-Signed-off-by: Ulrich Weber <ulrich.weber@sophos.com>
+In case nf_conntrack_ipv6 is compiled as a module, nf_ct_net_init could be
+called after the init code and data are unloaded. Therefore remove the
+"__net_init" annotation from nf_ct_frag6_sysctl_register().
+
+Signed-off-by: Hein Tibosch <hein_tibosch@yahoo.es>
+Acked-by: Cong Wang <amwang@redhat.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/iptable_nat.c  |    4 +++-
- net/ipv6/netfilter/ip6table_nat.c |    4 +++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ net/ipv6/netfilter/nf_conntrack_reasm.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/ipv4/netfilter/iptable_nat.c b/net/ipv4/netfilter/iptable_nat.c
-index 9e0ffaf..a820472 100644
---- a/net/ipv4/netfilter/iptable_nat.c
-+++ b/net/ipv4/netfilter/iptable_nat.c
-@@ -184,7 +184,8 @@ nf_nat_ipv4_out(unsigned int hooknum,
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 18bd9bb..22c8ea9 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -85,7 +85,7 @@ static struct ctl_table nf_ct_frag6_sysctl_table[] = {
+ 	{ }
+ };
  
- 		if ((ct->tuplehash[dir].tuple.src.u3.ip !=
- 		     ct->tuplehash[!dir].tuple.dst.u3.ip) ||
--		    (ct->tuplehash[dir].tuple.src.u.all !=
-+		    (ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMP &&
-+		     ct->tuplehash[dir].tuple.src.u.all !=
- 		     ct->tuplehash[!dir].tuple.dst.u.all))
- 			if (nf_xfrm_me_harder(skb, AF_INET) < 0)
- 				ret = NF_DROP;
-@@ -221,6 +222,7 @@ nf_nat_ipv4_local_fn(unsigned int hooknum,
- 		}
- #ifdef CONFIG_XFRM
- 		else if (!(IPCB(skb)->flags & IPSKB_XFRM_TRANSFORMED) &&
-+			 ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMP &&
- 			 ct->tuplehash[dir].tuple.dst.u.all !=
- 			 ct->tuplehash[!dir].tuple.src.u.all)
- 			if (nf_xfrm_me_harder(skb, AF_INET) < 0)
-diff --git a/net/ipv6/netfilter/ip6table_nat.c b/net/ipv6/netfilter/ip6table_nat.c
-index e418bd6..d57dab1 100644
---- a/net/ipv6/netfilter/ip6table_nat.c
-+++ b/net/ipv6/netfilter/ip6table_nat.c
-@@ -186,7 +186,8 @@ nf_nat_ipv6_out(unsigned int hooknum,
+-static int __net_init nf_ct_frag6_sysctl_register(struct net *net)
++static int nf_ct_frag6_sysctl_register(struct net *net)
+ {
+ 	struct ctl_table *table;
+ 	struct ctl_table_header *hdr;
+@@ -127,7 +127,7 @@ static void __net_exit nf_ct_frags6_sysctl_unregister(struct net *net)
+ }
  
- 		if (!nf_inet_addr_cmp(&ct->tuplehash[dir].tuple.src.u3,
- 				      &ct->tuplehash[!dir].tuple.dst.u3) ||
--		    (ct->tuplehash[dir].tuple.src.u.all !=
-+		    (ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMPV6 &&
-+		     ct->tuplehash[dir].tuple.src.u.all !=
- 		     ct->tuplehash[!dir].tuple.dst.u.all))
- 			if (nf_xfrm_me_harder(skb, AF_INET6) < 0)
- 				ret = NF_DROP;
-@@ -222,6 +223,7 @@ nf_nat_ipv6_local_fn(unsigned int hooknum,
- 		}
- #ifdef CONFIG_XFRM
- 		else if (!(IP6CB(skb)->flags & IP6SKB_XFRM_TRANSFORMED) &&
-+			 ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMPV6 &&
- 			 ct->tuplehash[dir].tuple.dst.u.all !=
- 			 ct->tuplehash[!dir].tuple.src.u.all)
- 			if (nf_xfrm_me_harder(skb, AF_INET6))
+ #else
+-static int __net_init nf_ct_frag6_sysctl_register(struct net *net)
++static int nf_ct_frag6_sysctl_register(struct net *net)
+ {
+ 	return 0;
+ }
 -- 
 1.7.10.4
-
