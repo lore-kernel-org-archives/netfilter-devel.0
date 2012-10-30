@@ -1,42 +1,55 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nf-next:nf_tables7 3/3] net/netfilter/nf_tables_api.c:1299:1:
- warning: the frame size of 1184 bytes is larger than 1024 bytes
-Date: Tue, 30 Oct 2012 19:36:11 +0100
-Message-ID: <20121030183611.GA20628@1984>
-References: <508cc50d.M5tgqmAbgcg453NH%yuanhan.liu@linux.intel.com>
- <20121028060736.GA32717@localhost>
+From: Behan Webster <behanw@converseincode.com>
+Subject: [PATCH 0/2] Removing the use of VLAIS from netfilter
+Date: Tue, 30 Oct 2012 14:42:52 -0400
+Message-ID: <1351622574-18421-1-git-send-email-behanw@converseincode.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Fengguang Wu <fengguang.wu@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Behan Webster <behanw@converseincode.com>
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42532 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752523Ab2J3SgU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Oct 2012 14:36:20 -0400
-Content-Disposition: inline
-In-Reply-To: <20121028060736.GA32717@localhost>
+Received: from mail-ia0-f174.google.com ([209.85.210.174]:58904 "EHLO
+	mail-ia0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753445Ab2J3Smi (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 30 Oct 2012 14:42:38 -0400
+Received: by mail-ia0-f174.google.com with SMTP id y32so412759iag.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Oct 2012 11:42:38 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Oct 28, 2012 at 02:07:36PM +0800, Fengguang Wu wrote:
-> Hi Pablo,
-> 
-> FYI, there are new compile warnings show up in
-> 
-> tree:   git://150.214.188.80/nf-next nf_tables7
-> head:   a6332633391e97de473423052cb6173b4e6e7a27
-> commit: a6332633391e97de473423052cb6173b4e6e7a27 [3/3] netfilter: nf_tables
-> config: m68k-allmodconfig # make ARCH=m68k allmodconfig
-> 
-> All warnings:
-> 
-> net/netfilter/nf_tables_api.c: In function 'nf_tables_newrule':
-> net/netfilter/nf_tables_api.c:1299:1: warning: the frame size of 1184 bytes is larger than 1024 bytes [-Wframe-larger-than=]
-> --
-> net/netfilter/nft_ct.c: In function 'nft_ct_eval':
-> net/netfilter/nft_ct.c:77:46: warning: the omitted middle operand in ?: will always be 'true', suggest explicit middle operand [-Wparentheses]
+The use of variable length arrays in structs (VLAIS) in the Linux Kerne=
+l code
+precludes the use of compilers which don't implement VLAIS (for instanc=
+e the
+Clang compiler). The LLVMLinux Project is working towards the ability o=
+f
+providing the Linux kernel developer the choice of using the Clang comp=
+iler
+toolchain. This is a part of a series of patches which remove the use o=
+f VLAIS
+from crypto code, dm-crypt, jbd2, libcrc32c, netfilter, and usb gadget.=
+ Other
+patches to allow Clang to be used will follow.
 
-I have pushed a couple of fixes for these to the nf_tables7 branch.
+Behan Webster (1):
+  Helper macros used for replacing the use of VLAIS
 
-Thanks for the report.
+Jan-Simon M=C3=B6ller (1):
+  Remove VLAIS usage from netfilter
+
+ include/linux/valign.h      |   87 +++++++++++++++++++++++++++++++++++=
+++++++++
+ net/netfilter/xt_repldata.h |   40 ++++++++++++--------
+ 2 files changed, 111 insertions(+), 16 deletions(-)
+ create mode 100644 include/linux/valign.h
+
+--=20
+1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
