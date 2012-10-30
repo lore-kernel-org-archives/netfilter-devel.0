@@ -1,27 +1,129 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] New ulogd2 maintainer: Eric Leblond
-Date: Tue, 30 Oct 2012 20:53:43 +0100
-Message-ID: <20121030195343.GA25885@1984>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Users Mailing list <netfilter@vger.kernel.org>
-To: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Behan Webster <behanw@converseincode.com>
+Subject: [PATCH V2 1/3] Helper macros used for replacing the use of VLAIS
+Date: Tue, 30 Oct 2012 17:18:55 -0400
+Message-ID: <1351631937-21455-2-git-send-email-behanw@converseincode.com>
+References: <1351631937-21455-1-git-send-email-behanw@converseincode.com>
+Cc: linux-usb@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Behan Webster <behanw@converseincode.com>
+To: balbi@ti.com, davem@davemloft.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:55254 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934653Ab2J3VSm (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 30 Oct 2012 17:18:42 -0400
+Received: by mail-ie0-f174.google.com with SMTP id k13so1121090iea.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Oct 2012 14:18:42 -0700 (PDT)
+In-Reply-To: <1351631937-21455-1-git-send-email-behanw@converseincode.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi!
+The use of variable length arrays in structs (VLAIS) in the Linux Kernel code
+precludes the use of compilers which don't implement VLAIS (for instance the
+Clang compiler). This new header file contains macros which can be used to
+calculate the size and offset of variables in an allocated buffer of memory
+taking into account alignment issues.
 
-I'm happy to announce that Eric Leblond, fellow hacker of the
-Netfilter core team, has become the official maintainer of ulogd2.
+Signed-off-by: Behan Webster <behanw@converseincode.com>
+---
+ include/linux/valign.h |   87 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 87 insertions(+)
+ create mode 100644 include/linux/valign.h
 
-http://www.netfilter.org/news.html#2012-10-30
+diff --git a/include/linux/valign.h b/include/linux/valign.h
+new file mode 100644
+index 0000000..b39381b
+--- /dev/null
++++ b/include/linux/valign.h
+@@ -0,0 +1,87 @@
++/*
++ * Variable alignment macros used to break up a larger chunk of memory into
++ * smaller variables. Meant to be used to replace the use of Variable Length
++ * Arrays In Structures (VLAIS)
++ *
++ *  Copyright (C) 2012 Behan Webster <behanw@conversincode.com>
++ */
++
++#ifndef _VALIGN_H_
++#define _VALIGN_H_
++
++/**
++ * truncalign() - Align a memory address by truncation
++ * @num:	Address or size to align
++ * @padwidth:	Number of byte upon which to align
++ *
++ * Truncate an address or size to a particular memory alignment.
++ * Used by truncalign().
++ */
++#define truncalign(num, padwidth) ((long)(num) & ~((padwidth)-1))
++
++/**
++ * padalign() - Align a memory address by padding
++ * @num:	Address or size to align
++ * @padwidth:	Number of byte upon which to align
++ *
++ * Pad out an address or size to a particular memory alignment
++ * Used by paddedsize() and paddedstart().
++ */
++#define padalign(num, padwidth) \
++	truncalign((long)(num) + ((padwidth)-1), padwidth)
++
++/**
++ * paddedsize() - Calculate the size of an chunk of aligned memory
++ * @offset:	Unaligned offset to the start of the chunk size being calculated
++ * @num:	The number of variables in the array of "type" (can be 1)
++ * @type:	The type of variables in the array
++ * @nexttype:	The type of the next variable in the large piece of memory
++ *
++ * Calculate the size that a variable (or array) will take as a part of a
++ * larger piece of memory.  Takes into account a potentially unaligned offset
++ * into the larger piece of allocated memory, the alignment of the variable
++ * type, and the alignement of the type of the variable to be used after that.
++ *
++ * Example: size_t l = paddedsize(1, 2, short, int);
++ *
++ * The example above would give you a padded size of 6 bytes: 2x 16-bit shorts,
++ * starting at 2 bytes into the buffer (the offset of 1 byte being padded out
++ * to 2 bytes) followed by 2 bytes of padding so that the next type (a 32-bit
++ * int) would be 32-bit aligned. looking like this:
++ *
++ *   0: O.SS SS.. iiii
++ *        \-----/ <-- 2 shorts + 2 bytes of padding = size of 6 bytes
++ *
++ * O = The offset
++ * . = Padding bytes
++ * S = 2 shorts
++ * i = int which will theoretically be next
++ */
++#define paddedsize(offset, num, type, nexttype) (padalign((offset) \
++	+ (num) * sizeof(type), __alignof__(nexttype)) - (offset))
++
++/**
++ * paddedstart() - Calculate the start of a chunk of aligned memory
++ * @ptr:	Pointer from which to calculate the start of the chunk
++ * @offset:	Offset from the ptr to the start of the chunk being calculated
++ * @type:	The type of variable in the chunk of memory
++ *
++ * Calculate the start address of a variable based on the offset from an
++ * address, aligned based on the type of the variable specified.
++ *
++ * Example: char *data = kmalloc(size, GFP_KERNEL);
++ *          long *var = paddedstart(data, 12, long);
++ *
++ * The example above on a 64-bit machine would return the equivalent of
++ * &buffer[16] since a long needs to be 8 byte aligned.
++ *
++ *   0: OOOO OOOO OOOO .... LLLL LLLL
++ *                          ^ <-- The start address of the long
++ * O = The offset
++ * . = Padding bytes
++ * L = The long
++ */
++#define paddedstart(ptr, offset, type) \
++	(type *)padalign((long)(ptr)+(offset), __alignof__(type))
++
++#endif
+-- 
+1.7.9.5
 
-With these, we are confident that this will help to boost the
-development of the second generation of our user-space firewall
-logging daemon!
-
-Pablo,
-On behalf of the Netfilter Core Team.
