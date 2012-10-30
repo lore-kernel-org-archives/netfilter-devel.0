@@ -1,55 +1,207 @@
 From: Behan Webster <behanw@converseincode.com>
-Subject: [PATCH V2 0/3] Removing the use of VLAIS from USB Gadget and netfilter
-Date: Tue, 30 Oct 2012 17:18:54 -0400
-Message-ID: <1351631937-21455-1-git-send-email-behanw@converseincode.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH V2 2/3] Remove VLAIS usage from gadget code
+Date: Tue, 30 Oct 2012 17:18:56 -0400
+Message-ID: <1351631937-21455-3-git-send-email-behanw@converseincode.com>
+References: <1351631937-21455-1-git-send-email-behanw@converseincode.com>
 Cc: linux-usb@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Behan Webster <behanw@converseincode.com>
 To: balbi@ti.com, davem@davemloft.net
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1351631937-21455-1-git-send-email-behanw@converseincode.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a V2 version of the patch set I previously sent out. Since the =
-use of a
-new valign.h file spans both the USB and netfilter subsystems, I should=
- have
-sent out all 3 patches to both trees at once. Assuming all is well, hop=
-efully
-both subsystems can cooperate to get these patches in without causing
-conflicts.
+The use of variable length arrays in structs (VLAIS) in the Linux Kernel code
+precludes the use of compilers which don't implement VLAIS (for instance the
+Clang compiler). This patch instead calculates offsets into the kmalloc-ed
+memory buffer using macros from valign.h.
 
-The use of variable length arrays in structs (VLAIS) in the Linux Kerne=
-l code
-precludes the use of compilers which don't implement VLAIS (for instanc=
-e the
-Clang compiler). The LLVMLinux Project is working towards the ability o=
-f
-providing the Linux kernel developer the choice of using the Clang comp=
-iler
-toolchain. This is a part of a series of patches which remove the use o=
-f VLAIS
-from crypto code, dm-crypt, jbd2, libcrc32c, netfilter, and usb gadget.=
- Other
-patches to allow Clang to be used to compile the Linux kernel will foll=
-ow.
+Signed-off-by: Behan Webster <behanw@converseincode.com>
+---
+ drivers/usb/gadget/f_fs.c |  106 ++++++++++++++++++++++++++-------------------
+ 1 file changed, 61 insertions(+), 45 deletions(-)
 
-Behan Webster (2):
-  Helper macros used for replacing the use of VLAIS
-  Remove VLAIS usage from gadget code
-
-Jan-Simon M=C3=B6ller (1):
-  Remove VLAIS usage from netfilter
-
- drivers/usb/gadget/f_fs.c   |  106 +++++++++++++++++++++++++----------=
---------
- include/linux/valign.h      |   87 +++++++++++++++++++++++++++++++++++
- net/netfilter/xt_repldata.h |   40 +++++++++-------
- 3 files changed, 172 insertions(+), 61 deletions(-)
- create mode 100644 include/linux/valign.h
-
---=20
+diff --git a/drivers/usb/gadget/f_fs.c b/drivers/usb/gadget/f_fs.c
+index 64c4ec1..ca6cacc 100644
+--- a/drivers/usb/gadget/f_fs.c
++++ b/drivers/usb/gadget/f_fs.c
+@@ -22,6 +22,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/export.h>
+ #include <linux/hid.h>
++#include <linux/valign.h>
+ #include <asm/unaligned.h>
+ 
+ #include <linux/usb/composite.h>
+@@ -1875,6 +1876,15 @@ error:
+ 	return ret;
+ }
+ 
++static void __ffs_init_stringtabs(struct usb_gadget_strings **stringtabs,
++	struct usb_gadget_strings *t, unsigned len)
++{
++		do {
++			*stringtabs++ = t++;
++		} while (--len);
++		*stringtabs = NULL;
++}
++
+ static int __ffs_data_got_strings(struct ffs_data *ffs,
+ 				  char *const _data, size_t len)
+ {
+@@ -1911,31 +1921,26 @@ static int __ffs_data_got_strings(struct ffs_data *ffs,
+ 
+ 	/* Allocate everything in one chunk so there's less maintenance. */
+ 	{
+-		struct {
+-			struct usb_gadget_strings *stringtabs[lang_count + 1];
+-			struct usb_gadget_strings stringtab[lang_count];
+-			struct usb_string strings[lang_count*(needed_count+1)];
+-		} *d;
+-		unsigned i = 0;
+-
+-		d = kmalloc(sizeof *d, GFP_KERNEL);
++		int strtabslen = paddedsize(0, lang_count+1,
++			struct usb_gadget_strings *, struct usb_gadget_strings);
++		int strtablen = paddedsize(strtabslen, lang_count,
++			struct usb_gadget_strings, struct usb_string);
++		int strlen = paddedsize(strtabslen + strtablen,
++			lang_count*(needed_count+1), struct usb_string, int);
++
++		stringtabs = kmalloc(strtabslen + strtablen + strlen,
++			GFP_KERNEL);
+ 		if (unlikely(!d)) {
+ 			kfree(_data);
+ 			return -ENOMEM;
+ 		}
+ 
+-		stringtabs = d->stringtabs;
+-		t = d->stringtab;
+-		i = lang_count;
+-		do {
+-			*stringtabs++ = t++;
+-		} while (--i);
+-		*stringtabs = NULL;
+-
+-		stringtabs = d->stringtabs;
+-		t = d->stringtab;
+-		s = d->strings;
++		t = paddedstart(stringtabs, strtabslen,
++			struct usb_gadget_strings);
++		s = paddedstart(t, strtablen, struct usb_string);
+ 		strings = s;
++
++		__ffs_init_stringtabs(stringtabs, t, lang_count);
+ 	}
+ 
+ 	/* For each language */
+@@ -2209,17 +2214,23 @@ static int ffs_func_bind(struct usb_configuration *c,
+ 
+ 	int ret;
+ 
+-	/* Make it a single chunk, less management later on */
+-	struct {
+-		struct ffs_ep eps[ffs->eps_count];
+-		struct usb_descriptor_header
+-			*fs_descs[full ? ffs->fs_descs_count + 1 : 0];
+-		struct usb_descriptor_header
+-			*hs_descs[high ? ffs->hs_descs_count + 1 : 0];
+-		short inums[ffs->interfaces_count];
+-		char raw_descs[high ? ffs->raw_descs_length
+-				    : ffs->raw_fs_descs_length];
+-	} *data;
++	struct ffs_ep *eps;
++	struct usb_descriptor_header **fs_descs;
++	struct usb_descriptor_header **hs_descs;
++	short *inums;
++	char *raw_descs;
++
++	int epslen = paddedsize(0, ffs->eps_count,
++			struct ffs_ep, struct usb_descriptor_header);
++	int fsdlen = paddedsize(epslen, full ? ffs->fs_descs_count + 1 : 0,
++			struct usb_descriptor_header,
++			struct usb_descriptor_header);
++	int hsdlen = paddedsize(fsdlen, high ? ffs->hs_descs_count + 1 : 0,
++			struct usb_descriptor_header, short);
++	int inumlen = paddedsize(hsdlen, ffs->interfaces_count, short, char);
++	int rawlen = paddedsize(inumlen,
++		high ? ffs->raw_descs_length : ffs->raw_fs_descs_length,
++		char, int);
+ 
+ 	ENTER();
+ 
+@@ -2227,21 +2238,28 @@ static int ffs_func_bind(struct usb_configuration *c,
+ 	if (unlikely(!(full | high)))
+ 		return -ENOTSUPP;
+ 
+-	/* Allocate */
+-	data = kmalloc(sizeof *data, GFP_KERNEL);
++	/* Allocate a single chunk, less management later on */
++	eps = kmalloc(epslen+fsdlen+hsdlen+inumlen+rawlen, GFP_KERNEL);
+ 	if (unlikely(!data))
+ 		return -ENOMEM;
+ 
++	/* Calculate start of each variable in the allocated memory */
++	fs_descs = paddedstart(eps, epslen, struct usb_descriptor_header *);
++	hs_descs = paddedstart(fs_descs, fsdlen,
++		struct usb_descriptor_header *);
++	inums = paddedstart(hs_descs, hsdlen, short);
++	raw_descs = paddedstart(inums, inumlen, char);
++
+ 	/* Zero */
+-	memset(data->eps, 0, sizeof data->eps);
+-	memcpy(data->raw_descs, ffs->raw_descs + 16, sizeof data->raw_descs);
+-	memset(data->inums, 0xff, sizeof data->inums);
++	memset(eps, 0, epslen);
++	memcpy(raw_descs, ffs->raw_descs + 16, rawlen);
++	memset(inums, 0xff, inumlen);
+ 	for (ret = ffs->eps_count; ret; --ret)
+-		data->eps[ret].num = -1;
++		eps[ret].num = -1;
+ 
+ 	/* Save pointers */
+-	func->eps             = data->eps;
+-	func->interfaces_nums = data->inums;
++	func->eps             = eps;
++	func->interfaces_nums = inums;
+ 
+ 	/*
+ 	 * Go through all the endpoint descriptors and allocate
+@@ -2249,10 +2267,9 @@ static int ffs_func_bind(struct usb_configuration *c,
+ 	 * numbers without worrying that it may be described later on.
+ 	 */
+ 	if (likely(full)) {
+-		func->function.descriptors = data->fs_descs;
++		func->function.descriptors = fs_descs;
+ 		ret = ffs_do_descs(ffs->fs_descs_count,
+-				   data->raw_descs,
+-				   sizeof data->raw_descs,
++				   raw_descs, rawlen,
+ 				   __ffs_func_bind_do_descs, func);
+ 		if (unlikely(ret < 0))
+ 			goto error;
+@@ -2261,10 +2278,9 @@ static int ffs_func_bind(struct usb_configuration *c,
+ 	}
+ 
+ 	if (likely(high)) {
+-		func->function.hs_descriptors = data->hs_descs;
++		func->function.hs_descriptors = hs_descs;
+ 		ret = ffs_do_descs(ffs->hs_descs_count,
+-				   data->raw_descs + ret,
+-				   (sizeof data->raw_descs) - ret,
++				   raw_descs + ret, rawlen - ret,
+ 				   __ffs_func_bind_do_descs, func);
+ 	}
+ 
+@@ -2275,7 +2291,7 @@ static int ffs_func_bind(struct usb_configuration *c,
+ 	 */
+ 	ret = ffs_do_descs(ffs->fs_descs_count +
+ 			   (high ? ffs->hs_descs_count : 0),
+-			   data->raw_descs, sizeof data->raw_descs,
++			   raw_descs, rawlen,
+ 			   __ffs_func_bind_do_nums, func);
+ 	if (unlikely(ret < 0))
+ 		goto error;
+-- 
 1.7.9.5
