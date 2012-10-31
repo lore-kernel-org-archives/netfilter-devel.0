@@ -1,41 +1,68 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/3] netfilter updates for the net tree
-Date: Wed, 31 Oct 2012 14:57:17 -0400 (EDT)
-Message-ID: <20121031.145717.1393377293605160832.davem@davemloft.net>
-References: <1351592360-5686-1-git-send-email-pablo@netfilter.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: ipset restore behavior with newer glibc
+Date: Wed, 31 Oct 2012 19:49:43 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1210311904120.14824@blackhole.kfki.hu>
+References: <50915160.1090908@akamai.com> <alpine.LNX.2.01.1210311737030.20899@nerf07.vanv.qr>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Josh Hunt <johunt@akamai.com>, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:48596 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759922Ab2JaS6H (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 31 Oct 2012 14:58:07 -0400
-In-Reply-To: <1351592360-5686-1-git-send-email-pablo@netfilter.org>
+Received: from smtp0.kfki.hu ([148.6.0.25]:53046 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759973Ab2JaS7k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 31 Oct 2012 14:59:40 -0400
+In-Reply-To: <alpine.LNX.2.01.1210311737030.20899@nerf07.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: pablo@netfilter.org
-Date: Tue, 30 Oct 2012 11:19:17 +0100
+On Wed, 31 Oct 2012, Jan Engelhardt wrote:
 
-> The following patchset contains fixes for your net tree, two of them
-> are due to relatively recent changes, one has been a longstanding bug,
-> they are:
+> On Wednesday 2012-10-31 17:27, Josh Hunt wrote:
 > 
-> * Fix incorrect usage of rt_gateway in the H.323 helper, from
->   Julian Anastasov.
+> > When doing an ipset restore with newer versions of glibc I'm seeing 
+> > some extra syscall overhead that I was not seeing with glibc 2.4. I 
+> > was wondering if anyone has seen such behavior and could help me 
+> > understand what is going on?
+> >
+> > Here is a snippet of strace during the restore with glibc 2.4:
+> > http://pastebin.com/qxkPF7FB and one with glibc 2.7:
+> > http://pastebin.com/wga9SN0E
+> > I've also seen similar behavior with glibc 2.11.
+> >
+> > You'll notice that with the newer version a second netlink socket is created
+> > and it appears some data is sent and info received back from the kernel
 > 
-> * Skip re-route in nf_nat code for ICMP traffic. If CONFIG_XFRM is
->   enabled, we waste cycles to look up for the route again. This problem
->   seems to be there since really long time. From Ulrich Weber.
-> 
-> * Fix mismatching section in nf_conntrack_reasm, from Hein Tibosch.
-> 
-> You can pull this changes from:
-> 
-> git://1984.lsi.us.es/nf master
+> I have observed such as well in other programs as well. Without
+> looking into this too deeply, I suspect that a program, or a library
+> on its behalf, is using the interface name<->index resolution
+> functions if_nametoindex(3) et al, for which netlink is used in
+> sufficiently new glibc where socket ioctls were (probably) used
+> previously. Could this be it?
 
-Pulled, thanks.
+ipset does not check interface names (except the length of the string), so 
+does not call if_nametoindex.
+
+The extra syscalls come from "getaddrinfo", which is used by ipset to 
+parse every IP address. In eglibc 2.11 the implementation of "getaddrinfo" 
+contains the comment and the uncoditional call:
+
+  /* We might need information about what interfaces are available.
+     Also determine whether we have IPv4 or IPv6 interfaces or both.  We
+     cannot cache the results since new interfaces could be added at
+     any time.  */
+  __check_pf (&seen_ipv4, &seen_ipv6, &in6ai, &in6ailen);
+
+And indeed, __check_pf opens up a netlink socket, makes a request then 
+closes it.
+
+I haven't checked the source code of glibc itself but I suppose it works 
+the same way.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
