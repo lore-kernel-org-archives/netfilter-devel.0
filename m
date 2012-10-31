@@ -1,40 +1,33 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH next] netfilter: ipv6: add getsockopt to retrieve
- origdst
-Date: Wed, 31 Oct 2012 09:48:15 +0100
-Message-ID: <20121031084815.GA29966@breakpoint.cc>
-References: <1351595329-13081-1-git-send-email-fw@strlen.de>
- <1351649498.10780.6947.camel@nbnickhq4>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Nick Jones <nick.jones@network-box.com>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: [nf-next/nf_tables-experiments - PATCH 0/2] chain rename and rule replacement
+Date: Wed, 31 Oct 2012 11:28:27 +0200
+Message-ID: <1351675709-14127-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:42264 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935123Ab2JaItT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 31 Oct 2012 04:49:19 -0400
-Content-Disposition: inline
-In-Reply-To: <1351649498.10780.6947.camel@nbnickhq4>
+Received: from mga03.intel.com ([143.182.124.21]:7772 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754480Ab2JaJ2d (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 31 Oct 2012 05:28:33 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Nick Jones <nick.jones@network-box.com> wrote:
-> > getsockopt(m_sock, SOL_IP, SO_ORIGINAL_DST, &m_server_addr, &addrsize)
-> > 
-> > but for ipv6 no such option existed.
-> > 
-> > This adds getsockopt(..., IPPROTO_IPV6, IP6T_SO_ORIGINAL_DST, ...).
-> > 
-> > Without this, userspace needs to parse /proc or use ctnetlink, which
-> > appears to be overkill.
-> 
-> Doesn't getsockname(2) provide this information?
+Hi,
 
-No.  It will show the local address (the address we REDIRECT'ed to).
+Here is two patches, there title is self-explaining.
 
-> It does for TPROXY'd connections.
+Renaming chain's name applies only on user's chain. Not on builtin or base ones.
 
-Yes, because with TPROXY the destination won't be rewritten.
+Please review,
+
+Tomasz Bursztyka (2):
+  nf_tables: Add support for changing users chain's name
+  nf_tables: Add support for replacing a rule by another one.
+
+ include/linux/netfilter/nf_tables.h |  1 +
+ net/netfilter/nf_tables_api.c       | 82 ++++++++++++++++++++++++++++++++++---
+ 2 files changed, 77 insertions(+), 6 deletions(-)
+
+-- 
+1.7.12.4
+
