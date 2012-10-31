@@ -1,20 +1,41 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH V2 0/3] Removing the use of VLAIS from USB Gadget and
- netfilter
-Date: Wed, 31 Oct 2012 12:45:12 -0400 (EDT)
-Message-ID: <20121031.124512.1730676495977289903.davem@davemloft.net>
-References: <1351631937-21455-1-git-send-email-behanw@converseincode.com>
+Subject: Re: [PATCH 0/3] netfilter updates for the net tree
+Date: Wed, 31 Oct 2012 14:57:17 -0400 (EDT)
+Message-ID: <20121031.145717.1393377293605160832.davem@davemloft.net>
+References: <1351592360-5686-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: balbi@ti.com, linux-usb@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
-To: behanw@converseincode.com
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1351631937-21455-1-git-send-email-behanw@converseincode.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:48596 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759922Ab2JaS6H (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 31 Oct 2012 14:58:07 -0400
+In-Reply-To: <1351592360-5686-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+From: pablo@netfilter.org
+Date: Tue, 30 Oct 2012 11:19:17 +0100
 
-I'm not pulling this crap into my tree to deal with limitations
-of a non-gcc compiler.
+> The following patchset contains fixes for your net tree, two of them
+> are due to relatively recent changes, one has been a longstanding bug,
+> they are:
+> 
+> * Fix incorrect usage of rt_gateway in the H.323 helper, from
+>   Julian Anastasov.
+> 
+> * Skip re-route in nf_nat code for ICMP traffic. If CONFIG_XFRM is
+>   enabled, we waste cycles to look up for the route again. This problem
+>   seems to be there since really long time. From Ulrich Weber.
+> 
+> * Fix mismatching section in nf_conntrack_reasm, from Hein Tibosch.
+> 
+> You can pull this changes from:
+> 
+> git://1984.lsi.us.es/nf master
+
+Pulled, thanks.
