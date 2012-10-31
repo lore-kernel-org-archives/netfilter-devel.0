@@ -1,55 +1,61 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [nf-next/nf_tables-experiments - PATCH 1/2] nf_tables: Add support
- for changing users chain's name
-Date: Wed, 31 Oct 2012 16:29:01 +0200
-Message-ID: <509135AD.4070007@linux.intel.com>
-References: <1351675709-14127-1-git-send-email-tomasz.bursztyka@linux.intel.com> <1351675709-14127-2-git-send-email-tomasz.bursztyka@linux.intel.com> <20121031134924.GA1060@1984>
+From: Behan Webster <behanw-k/hB3zQhLwledRVtV/plodBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH V2 2/3] Remove VLAIS usage from gadget code
+Date: Wed, 31 Oct 2012 11:33:20 -0400
+Message-ID: <509144C0.8000601@converseincode.com>
+References: <1351631937-21455-1-git-send-email-behanw@converseincode.com> <1351631937-21455-3-git-send-email-behanw@converseincode.com> <20121031132838.GQ10998@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:63009 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934348Ab2JaO3E (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 31 Oct 2012 10:29:04 -0400
-In-Reply-To: <20121031134924.GA1060@1984>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20121031132838.GQ10998-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-> > From net/netfilter/nf_tables_core.c:
+On 12-10-31 09:28 AM, Felipe Balbi wrote:
+> hi,
 >
->          case NFT_GOTO:
->                  chain = data[NFT_REG_VERDICT].chain;
->
-> In the GOTO case, we already point to the chain object. That chain
-> object is loaded in nft_immediate.c _eval(). However, the private data
-> of immediate is initialized in the _init() path. That means we would
-> need to refresh the entire rule-set to point to the correct new chain
-> object, otherwise we would crash.
+> On Tue, Oct 30, 2012 at 05:18:56PM -0400, Behan Webster wrote:
+>> The use of variable length arrays in structs (VLAIS) in the Linux Kernel code
+>> precludes the use of compilers which don't implement VLAIS (for instance the
+>> Clang compiler). This patch instead calculates offsets into the kmalloc-ed
+>> memory buffer using macros from valign.h.
+>>
+>> Signed-off-by: Behan Webster <behanw-k/hB3zQhLwledRVtV/plodBPR1lH4CV8@public.gmane.org>
+> this won't apply after the current cleanups I applied to gadget code
+> from Sebastian.
+Makes sense. I'll try it with your repo, and regenerate.
 
-Missed that one completely...
+> If someone takes this patch, it will generate a series of annoying,
+> hard-to-figure-out conflicts (at least judging by the looks of
+> $SUBJECT).
+I just tried the patch on your git.kernel.org repo and thankfully there 
+is only one hunk which is rejected, and fortunately the reason is 
+trivial (descriptors -> fs_descriptors).
 
-> I'd follow a simpler solution to avoid issues. Use a fixed chain name
-> length (the same length as iptables does, or just 32 bytes).
->
-> We can revisit this later to see if we can support renaming and
-> dynamically allocated chain objects at the same time.
+Was:
+-        func->function.descriptors = data->fs_descs;
++        func->function.descriptors = fs_descs;
 
-First solution is easy to implement, and do not imply any performance 
-drop, only a bit of memory loss for short names.
+Now is:
+-        func->function.fs_descriptors = data->fs_descs;
++        func->function.fs_descriptors = fs_descs;
 
-Second one, I cannot see anything but a 2 pass system (a hash table 
-handling unique handle related to a chain pointer).
-But then the gain of bytes - with variable name size - versus the size 
-of the hash table etc... might be pointless.
-Maybe I am just wrong. Is there any other solution?
+I will regenerate the patch set, but obviously the new gadget patch in 
+the V3 patchset will only apply to the USB repo, and not to the 
+netfilter repo.
 
-> Would you resend a new version of this patch?
+Thanks,
 
-Ok, I will go with first solution, unless you or someone else comes up 
-with a better proposition.
+Behan
 
-Tomasz
+-- 
+Behan Webster
+behanw-k/hB3zQhLwledRVtV/plodBPR1lH4CV8@public.gmane.org
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
