@@ -1,57 +1,50 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [RFC] back on nf_tables (plus compatibility layer)
-Date: Thu, 1 Nov 2012 16:49:01 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1210311726400.20723@nerf07.vanv.qr>
-References: <20121025170632.GA4890@1984> <alpine.LNX.2.01.1210252352420.13437@nerf07.vanv.qr> <20121026110419.GA16629@1984> <alpine.LNX.2.01.1210311449570.29232@nerf07.vanv.qr> <20121031154216.GB9558@1984>
+From: pablo@netfilter.org
+Subject: [PATCH 0/2] [RFC] nf_tables: speed up rule addition and deletion
+Date: Thu,  1 Nov 2012 17:02:22 +0100
+Message-ID: <1351785744-7492-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Linux Networking Developer Mailing List
-	<netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:36345 "EHLO ares07.inai.de"
+Received: from mail.us.es ([193.147.175.20]:37643 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933010Ab2KAPtF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Nov 2012 11:49:05 -0400
-In-Reply-To: <20121031154216.GB9558@1984>
+	id S964813Ab2KAQCd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 1 Nov 2012 12:02:33 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 2012-10-31 16:42, Pablo Neira Ayuso wrote:
->> >> 
->> >> I have updated to the newest tree, and the first set is
->> >> available in the git repository at:
->> >>   git://git.inai.de/linux xt2-20121025
->> >
->> >If you think this feature is important, checkout nf_tables and think
->> >how to integrate this prototype code that provides atomic table
->> >replacement to it.
->> 
->> I'd rather tinker with xt2.
->
->You're are free spend your time on your pet project, but I warn you:
->it will *extremely hard* to justify its inclusion into mainline.
->As said, I don't think it makes sense to add two firewall
->engines/interfaces for the same thing.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-You make it sound like you have already made up your mind and will
-not consider xtnl because you are having nft as your pet project.
-That would be really sad.
+Hi!
 
-So, what xt2 has of this hour.
+The following two RFC patches aim to improve rule addition and
+deletion timing.
 
-(- netlink interface obviously)
- - netns support
- - single table sufficiency
- - is RCU'd
- - atomic whole-table replace
- - atomic chain-level multi-rule replace
-   (less to transfer over netlink between kernel<->user)
- - chain-level dump (also relates to transfer size)
- - packed ruleset for cache efficiency
- - already has had some review from community members when it was last posted
- - in-code and external documentation
+The current major bottleneck in the rule addition is the handle
+allocation per chain which is O(n), a simple way to get it O(1)
+is to use a 64-bits handle instead of 16-bits to uniquely identify
+the rule.
 
-Certainly there is still something to do - but so would there be for nft.
+The main concern here is to avoid wrap around of the handle
+(so we have no two rules with the same handle). We could stick
+to 32-bits. Overrun would happen after 2^32 rule additions, that
+seems unlikely but still possible in scenario in which rules
+are dynamically added and deleted.
+
+Regarding deletion, as it was documented in the source code,
+synchronize_rcu() really make performance suck. The alternative
+is to use kfree_rcu() and add one struct rcu_head per rule. This
+increases the length of the rule structure.
+
+I didn't come with any better simple solution like these two.
+
+I think this is yet another space-time tradeoff thing. So I'd put
+pressure on the memory side at this moment.
+
+Comments welcome.
+
+-- 
+1.7.10.4
+
