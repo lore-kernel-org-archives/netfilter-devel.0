@@ -1,79 +1,99 @@
-From: Josh Hunt <johunt@akamai.com>
-Subject: Re: ipset restore behavior with newer glibc
-Date: Wed, 31 Oct 2012 14:30:02 -0500
-Message-ID: <50917C3A.5080203@akamai.com>
-References: <50915160.1090908@akamai.com> <alpine.LNX.2.01.1210311737030.20899@nerf07.vanv.qr> <alpine.DEB.2.00.1210311904120.14824@blackhole.kfki.hu>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH V2 2/3] Remove VLAIS usage from gadget code
+Date: Thu, 1 Nov 2012 09:21:16 +0200
+Message-ID: <20121101072116.GA32013@arwen.pp.htv.fi>
+References: <1351631937-21455-1-git-send-email-behanw@converseincode.com>
+ <1351631937-21455-3-git-send-email-behanw@converseincode.com>
+ <20121031132838.GQ10998@arwen.pp.htv.fi>
+ <509144C0.8000601@converseincode.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@inai.de>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from prod-mail-xrelay06.akamai.com ([96.6.114.98]:43549 "EHLO
-	prod-mail-xrelay06.akamai.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752667Ab2JaTaI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 31 Oct 2012 15:30:08 -0400
-In-Reply-To: <alpine.DEB.2.00.1210311904120.14824@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="5vNYLRcllDrimb99"
+Cc: <balbi-l0cyMroinI0@public.gmane.org>, <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+	<netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Behan Webster <behanw-k/hB3zQhLwledRVtV/plodBPR1lH4CV8@public.gmane.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <509144C0.8000601-k/hB3zQhLwledRVtV/plodBPR1lH4CV8@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 10/31/2012 01:49 PM, Jozsef Kadlecsik wrote:
-> On Wed, 31 Oct 2012, Jan Engelhardt wrote:
->
->> On Wednesday 2012-10-31 17:27, Josh Hunt wrote:
->>
->>> When doing an ipset restore with newer versions of glibc I'm seeing
->>> some extra syscall overhead that I was not seeing with glibc 2.4. I
->>> was wondering if anyone has seen such behavior and could help me
->>> understand what is going on?
->>>
->>> Here is a snippet of strace during the restore with glibc 2.4:
->>> http://pastebin.com/qxkPF7FB and one with glibc 2.7:
->>> http://pastebin.com/wga9SN0E
->>> I've also seen similar behavior with glibc 2.11.
->>>
->>> You'll notice that with the newer version a second netlink socket is created
->>> and it appears some data is sent and info received back from the kernel
->>
->> I have observed such as well in other programs as well. Without
->> looking into this too deeply, I suspect that a program, or a library
->> on its behalf, is using the interface name<->index resolution
->> functions if_nametoindex(3) et al, for which netlink is used in
->> sufficiently new glibc where socket ioctls were (probably) used
->> previously. Could this be it?
->
-> ipset does not check interface names (except the length of the string), so
-> does not call if_nametoindex.
->
-> The extra syscalls come from "getaddrinfo", which is used by ipset to
-> parse every IP address. In eglibc 2.11 the implementation of "getaddrinfo"
-> contains the comment and the uncoditional call:
->
->    /* We might need information about what interfaces are available.
->       Also determine whether we have IPv4 or IPv6 interfaces or both.  We
->       cannot cache the results since new interfaces could be added at
->       any time.  */
->    __check_pf (&seen_ipv4, &seen_ipv6, &in6ai, &in6ailen);
->
-> And indeed, __check_pf opens up a netlink socket, makes a request then
-> closes it.
->
-> I haven't checked the source code of glibc itself but I suppose it works
-> the same way.
->
-> Best regards,
-> Jozsef
-> -
-> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-> Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
->            H-1525 Budapest 114, POB. 49, Hungary
->
-Jozsef
+--5vNYLRcllDrimb99
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-It looks like you're right. glibc doesn't do the socket in __check_pf, 
-but does add a socket call inside of getaddrinfo.
+Hi,
 
-Josh
+On Wed, Oct 31, 2012 at 11:33:20AM -0400, Behan Webster wrote:
+> On 12-10-31 09:28 AM, Felipe Balbi wrote:
+> >hi,
+> >
+> >On Tue, Oct 30, 2012 at 05:18:56PM -0400, Behan Webster wrote:
+> >>The use of variable length arrays in structs (VLAIS) in the Linux Kerne=
+l code
+> >>precludes the use of compilers which don't implement VLAIS (for instanc=
+e the
+> >>Clang compiler). This patch instead calculates offsets into the kmalloc=
+-ed
+> >>memory buffer using macros from valign.h.
+> >>
+> >>Signed-off-by: Behan Webster <behanw-k/hB3zQhLwledRVtV/plodBPR1lH4CV8@public.gmane.org>
+> >this won't apply after the current cleanups I applied to gadget code
+> >from Sebastian.
+> Makes sense. I'll try it with your repo, and regenerate.
+>=20
+> >If someone takes this patch, it will generate a series of annoying,
+> >hard-to-figure-out conflicts (at least judging by the looks of
+> >$SUBJECT).
+> I just tried the patch on your git.kernel.org repo and thankfully
+> there is only one hunk which is rejected, and fortunately the reason
+> is trivial (descriptors -> fs_descriptors).
+>=20
+> Was:
+> -        func->function.descriptors =3D data->fs_descs;
+> +        func->function.descriptors =3D fs_descs;
+>=20
+> Now is:
+> -        func->function.fs_descriptors =3D data->fs_descs;
+> +        func->function.fs_descriptors =3D fs_descs;
+>=20
+> I will regenerate the patch set, but obviously the new gadget patch
+> in the V3 patchset will only apply to the USB repo, and not to the
+> netfilter repo.
+
+then we can merge to net tree and handle the conflicts when merging to
+Linus, that'd be fine by me as long as people know how to solve the
+conflict properly ;-)
+
+--=20
+balbi
+
+--5vNYLRcllDrimb99
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQkiLsAAoJEIaOsuA1yqREd1QQAKe3dQ1fDKIfatg1mHzvXktL
+H/xNZs3FG42iC2lmi7dYQ2oe1B0XYrqrjRFAfr+5U/7J8bVO5nQAM3Dw0yN6Hsgh
+Gs01NEvzCvrdB0iqMrmudp/rbDO68jdfJtTq7HDvN3gS2JTbh62ubLEp3iuGXYk8
+CPgy/oqjZo8Gc7NDgQRCSFczIw8AAYeGAIkc5GW2KfjILgrelrXFtV5nQ3iKmZQD
+Pj+mhaXzl/Xx0NaQosOAR0/h4AFrIQbh60t2l8KjJSEpfpuCgXiVC1hU0UrJXafa
+xG7T3kYP6FKyWultL70UoSbGQ/tnnILVm3X0lmAmZ3V9CcDeIYhQtys2v7jUjasz
+7nohu61lMt4+sruipoI21pWvXQbR9m9nfgp7+u9jIG0OZ6RJ2AAfEqAB/xuN/waT
+4PPyVl1atob2cmG9ptQTIHwjoxljP1uPEfmnx35ivYR/UXI+kEp/b15xKy3j4BaG
+v2IUDLPWajjvOwcSpXcHGGke5VcTNqDtBSr9X+nE1MjaENWQh+eFQTB7Bq9SSEyI
+o/4MEdkT8PhQN75207EUHopGag68DCDDxBeuNygnCVOTdo3EorwCxwfOOy2nDZsI
+44BN29BvtFxRhttMko3ljcqGoQDQL91HnuX9YOrxMWuaubLmxyiylz9YcnyapfnN
+fToJE+ZrDwcgwcb4urIj
+=2uiy
+-----END PGP SIGNATURE-----
+
+--5vNYLRcllDrimb99--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
