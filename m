@@ -1,186 +1,189 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: =?UTF-8?q?=5BPATCH=2001/11=5D=20netfilter=3A=20xtables2=3A=20initial=20table=20skeletal=20functions?=
-Date: Fri,  2 Nov 2012 04:38:33 +0100
-Message-ID: <1351827523-10629-2-git-send-email-jengelh@inai.de>
+Subject: [PATCH 04/11] netfilter: xtables2: chain renaming support
+Date: Fri,  2 Nov 2012 04:38:36 +0100
+Message-ID: <1351827523-10629-5-git-send-email-jengelh@inai.de>
 References: <1351827523-10629-1-git-send-email-jengelh@inai.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:42666 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:42664 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762645Ab2KBDkG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1762657Ab2KBDkG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 1 Nov 2012 23:40:06 -0400
 In-Reply-To: <1351827523-10629-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds the xt2 table functions. Of course this does not do
-anything useful yet, chain and rule support directly follow.
+To keep in mind for later patches: for a ruleset to do chain jumps by
+following a C pointer, and have that work with the create-delete cycle
+of the chain rename operation, the pointer will need to point to
+something that is static across the create-delete. What I thought up:
+
+struct xt2_chain { char name[48]; struct xt2_p_chain *persistent; };
+struct xt2_p_chain { struct xt2_chain *back; void *packed_data; };
+
+and having the ruleset point to a struct xt2_p_chain.
 
 Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- include/net/netfilter/xt_core.h |   15 +++++++
- net/netfilter/Kconfig           |    8 +++-
- net/netfilter/Makefile          |    1 +
- net/netfilter/xt_core.c         |   85 +++++++++++++++++++++++++++++++=
-++++++++
- 4 files changed, 108 insertions(+), 1 deletion(-)
- create mode 100644 include/net/netfilter/xt_core.h
- create mode 100644 net/netfilter/xt_core.c
+ include/net/netfilter/xt_core.h                  |    2 +
+ include/uapi/linux/netfilter/nfnetlink_xtables.h |    4 ++
+ net/netfilter/xt_core.c                          |   30 +++++++++++++++
+ net/netfilter/xt_nfnetlink.c                     |   45 ++++++++++++++++++++++
+ 4 files changed, 81 insertions(+)
 
-diff --git a/include/net/netfilter/xt_core.h b/include/net/netfilter/xt=
-_core.h
-new file mode 100644
-index 0000000..4ddaaae
---- /dev/null
+diff --git a/include/net/netfilter/xt_core.h b/include/net/netfilter/xt_core.h
+index 5fec51f..cfd09fa 100644
+--- a/include/net/netfilter/xt_core.h
 +++ b/include/net/netfilter/xt_core.h
-@@ -0,0 +1,15 @@
-+#ifndef _NETFILTER_XTCORE_H
-+#define _NETFILTER_XTCORE_H 1
-+
-+/**
-+ * @master:	the master table
-+ */
-+struct xt2_pernet_data {
-+	struct xt2_table __rcu *master;
-+};
-+
-+struct xt2_table {
-+	int _dummy;
-+};
-+
-+#endif /* _NETFILTER_XTCORE_H */
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index fefa514..56b19a1 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -429,7 +429,13 @@ config NETFILTER_XTABLES
- 	  This is required if you intend to use any of ip_tables,
- 	  ip6_tables or arp_tables.
-=20
--if NETFILTER_XTABLES
-+config NETFILTER_XTABLES2
-+	tristate "Netfilter Xtables2 packet filtering"
-+	---help---
-+	Xtables2 is a rework of the internal architecture of Xtables.
-+	It supersedes iptables, ip6tables, arptables and ebtables.
-+
-+if NETFILTER_XTABLES || NETFILTER_XTABLES2
-=20
- comment "Xtables combined modules"
-=20
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 3259697..00eab5c 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -65,6 +65,7 @@ obj-$(CONFIG_NETFILTER_TPROXY) +=3D nf_tproxy_core.o
-=20
- # generic X tables=20
- obj-$(CONFIG_NETFILTER_XTABLES) +=3D x_tables.o xt_tcpudp.o
-+obj-$(CONFIG_NETFILTER_XTABLES2) +=3D xt_core.o
-=20
- # combos
- obj-$(CONFIG_NETFILTER_XT_MARK) +=3D xt_mark.o
+@@ -41,5 +41,7 @@ extern struct xt2_pernet_data *xtables2_pernet(struct net *);
+ extern struct xt2_chain *xt2_chain_new(struct xt2_table *, const char *);
+ extern struct xt2_chain *xt2_chain_lookup(struct xt2_table *, const char *);
+ extern void xt2_chain_free(struct xt2_chain *);
++extern struct xt2_chain *xt2_chain_move(struct xt2_table *, const char *,
++					const char *);
+ 
+ #endif /* _NETFILTER_XTCORE_H */
+diff --git a/include/uapi/linux/netfilter/nfnetlink_xtables.h b/include/uapi/linux/netfilter/nfnetlink_xtables.h
+index 57dec3c..1f66720 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_xtables.h
++++ b/include/uapi/linux/netfilter/nfnetlink_xtables.h
+@@ -8,24 +8,28 @@
+  * 			(message equipped with NFXTA_ERRNO/NFXTA_XTERRNO)
+  * %NFXTM_CHAIN_NEW:	request creation of a chain by name
+  * %NFXTM_CHAIN_DEL:	request deletion of a chain by name
++ * %NFXTM_CHAIN_MOVE:	rename a chain
+  */
+ enum nfxt_msg_type {
+ 	NFXTM_IDENTIFY = 1,
+ 	NFXTM_ERROR,
+ 	NFXTM_CHAIN_NEW,
+ 	NFXTM_CHAIN_DEL,
++	NFXTM_CHAIN_MOVE,
+ };
+ 
+ /**
+  * %NFXTA_NAME:			name of the object being operated on
+  * %NFXTA_ERRNO:		system error code (%Exxx)
+  * %NFXTA_XTERRNO:		NFXT-specific error code (cf. enum nfxt_errno)
++ * %NFXTA_NEW_NAME:		new name of object
+  */
+ enum nfxt_attr_type {
+ 	NFXTA_UNSPEC = 0,
+ 	NFXTA_NAME,
+ 	NFXTA_ERRNO,
+ 	NFXTA_XTERRNO,
++	NFXTA_NEW_NAME,
+ };
+ 
+ /**
 diff --git a/net/netfilter/xt_core.c b/net/netfilter/xt_core.c
-new file mode 100644
-index 0000000..89dd0a0
---- /dev/null
+index a0d6748..289ab5063 100644
+--- a/net/netfilter/xt_core.c
 +++ b/net/netfilter/xt_core.c
-@@ -0,0 +1,85 @@
-+/*
-+ *	Xtables2 core
-+ *	Copyright =C2=A9 Jan Engelhardt, 2009-2012
+@@ -100,6 +100,36 @@ void xt2_chain_free(struct xt2_chain *chain)
+ }
+ 
+ /**
++ * @table:	table to add the new chain to
++ * @name:	current name for the chain; not %NULL
++ * @new_name:	new name for the chain; not %NULL
 + *
-+ *	This program is free software: you can redistribute it and/or modif=
-y
-+ *	it under the terms of the GNU General Public License as published b=
-y
-+ *	the Free Software Foundation, either version 2 of the License, or
-+ *	(at your option) any later version.
++ * Rename chain by means of a create-delete cycle. This is to avoid
++ * temporary invisiblity of the chain and/or duplicate chain names for readers.
++ *
++ * Caller should hold table lock.
 + */
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#include <linux/err.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/slab.h>
-+#include <net/net_namespace.h>
-+#include <net/netns/generic.h>
-+#include <net/netfilter/xt_core.h>
-+
-+MODULE_DESCRIPTION("Netfilter Xtables2 packet filtering");
-+MODULE_AUTHOR("Jan Engelhardt");
-+MODULE_LICENSE("GPL");
-+
-+static int xtables2_net_id __read_mostly;
-+
-+static inline struct xt2_pernet_data *xtables2_pernet(struct net *net)
++struct xt2_chain *xt2_chain_move(struct xt2_table *table, const char *old_name,
++				 const char *new_name)
 +{
-+	return net_generic(net, xtables2_net_id);
++	struct xt2_chain *old_chain, *new_chain;
++
++	if (strlen(new_name) >= ARRAY_SIZE(new_chain->name))
++		return ERR_PTR(-ENAMETOOLONG);
++	if (xt2_chain_lookup(table, new_name) != NULL)
++		return ERR_PTR(-EEXIST);
++	old_chain = xt2_chain_lookup(table, old_name);
++	if (old_chain == NULL)
++		return ERR_PTR(-ENOENT);
++	new_chain = xt2_chain_new(table, new_name);
++	if (IS_ERR(new_chain))
++		return new_chain;
++	/* - rule move magic here once that code appears */
++	xt2_chain_free(old_chain);
++	return new_chain;
 +}
 +
 +/**
-+ * Create a new table with no chains and no rules.
-+ */
-+static struct xt2_table *xt2_table_new(void)
+  * Create a new table with no chains and no rules.
+  */
+ static struct xt2_table *xt2_table_new(void)
+diff --git a/net/netfilter/xt_nfnetlink.c b/net/netfilter/xt_nfnetlink.c
+index 88df8350a..9fc18c4 100644
+--- a/net/netfilter/xt_nfnetlink.c
++++ b/net/netfilter/xt_nfnetlink.c
+@@ -257,10 +257,54 @@ xtnetlink_chain_del(struct sock *xtnl, struct sk_buff *iskb,
+ 	return xtnetlink_error(&ref, ret);
+ }
+ 
++static int
++xtnetlink_chain_move(struct sock *xtnl, struct sk_buff *iskb,
++		     const struct nlmsghdr *imsg,
++		     const struct nlattr *const *attr)
 +{
++	struct xt2_pernet_data *pnet = xtables2_pernet(sock_net(xtnl));
++	struct xtnetlink_pktref ref =
++		{.c_skb = iskb, .c_msg = imsg, .sock = xtnl};
++	const char *old_name, *new_name;
++	const struct xt2_chain *chain;
 +	struct xt2_table *table;
++	int ret;
 +
-+	table =3D kzalloc(sizeof(*table), GFP_KERNEL);
-+	if (table =3D=3D NULL)
-+		return NULL;
++	if (attr[NFXTA_NAME] == NULL)
++		return xtnetlink_error(&ref, NFXTE_ATTRSET_INCOMPLETE);
++	old_name = nla_data(attr[NFXTA_NAME]);
++	if (*old_name == '\0')
++		return xtnetlink_error(&ref, NFXTE_CHAIN_NOENT);
++	if (attr[NFXTA_NEW_NAME] == NULL)
++		return xtnetlink_error(&ref, NFXTE_ATTRSET_INCOMPLETE);
++	new_name = nla_data(attr[NFXTA_NEW_NAME]);
++	if (*new_name == '\0')
++		return xtnetlink_error(&ref, NFXTE_CHAIN_INVALID_NAME);
 +
-+	return table;
++	mutex_lock(&pnet->master_lock);
++	table = pnet->master;
++	mutex_lock(&table->lock);
++	chain = xt2_chain_move(table, old_name, new_name);
++	ret   = IS_ERR(chain) ? PTR_ERR(chain) : 0;
++	mutex_unlock(&table->lock);
++	mutex_unlock(&pnet->master_lock);
++	switch (ret) {
++	case -ENAMETOOLONG:
++		return xtnetlink_error(&ref, NFXTE_CHAIN_NAMETOOLONG);
++	case -EEXIST:
++		return xtnetlink_error(&ref, NFXTE_CHAIN_EXISTS);
++	case -ENOENT:
++		return xtnetlink_error(&ref, NFXTE_CHAIN_NOENT);
++	default:
++		return xtnetlink_error(&ref, ret);
++	}
 +}
 +
-+static void xt2_table_free(struct xt2_table *table)
-+{
-+	kfree(table);
-+}
-+
-+static int __net_init xtables2_net_init(struct net *net)
-+{
-+	struct xt2_pernet_data *pnet =3D xtables2_pernet(net);
-+
-+	pnet->master =3D xt2_table_new();
-+	if (IS_ERR(pnet->master))
-+		return PTR_ERR(pnet->master);
-+	return 0;
-+}
-+
-+static void __net_exit xtables2_net_exit(struct net *net)
-+{
-+	struct xt2_pernet_data *pnet =3D xtables2_pernet(net);
-+
-+	xt2_table_free(pnet->master);
-+}
-+
-+static struct pernet_operations xtables2_pernet_ops =3D {
-+	.init =3D xtables2_net_init,
-+	.exit =3D xtables2_net_exit,
-+	.id   =3D &xtables2_net_id,
-+	.size =3D sizeof(struct xt2_pernet_data),
-+};
-+
-+static int __init xtables2_init(void)
-+{
-+	pr_info("Xtables2, (C) 2009-2012, J.Engelhardt\n");
-+	return register_pernet_subsys(&xtables2_pernet_ops);
-+}
-+
-+static void __exit xtables2_exit(void)
-+{
-+	unregister_pernet_subsys(&xtables2_pernet_ops);
-+}
-+
-+module_init(xtables2_init);
-+module_exit(xtables2_exit);
---=20
+ static const struct nla_policy xtnetlink_policy[] = {
+ 	[NFXTA_NAME] = {.type = NLA_NUL_STRING},
+ 	[NFXTA_ERRNO] = {.type = NLA_U32},
+ 	[NFXTA_XTERRNO] = {.type = NLA_U32},
++	[NFXTA_NEW_NAME] = {.type = NLA_NUL_STRING},
+ };
+ 
+ /*
+@@ -276,6 +320,7 @@ static const struct nfnl_callback xtnetlink_callback[] = {
+ 	[NFXTM_IDENTIFY] = {.call = xtnetlink_identify, pol},
+ 	[NFXTM_CHAIN_NEW] = {.call = xtnetlink_chain_new, pol},
+ 	[NFXTM_CHAIN_DEL] = {.call = xtnetlink_chain_del, pol},
++	[NFXTM_CHAIN_MOVE] = {.call = xtnetlink_chain_move, pol},
+ };
+ #undef pol
+ 
+-- 
 1.7.10.4
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
