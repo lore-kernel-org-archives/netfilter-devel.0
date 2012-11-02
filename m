@@ -1,127 +1,186 @@
-From: pablo@netfilter.org
-Subject: [PATCH 1/2] netfilter: nf_tables: use 64-bits rule handle instead of 16-bits
-Date: Thu,  1 Nov 2012 17:02:23 +0100
-Message-ID: <1351785744-7492-2-git-send-email-pablo@netfilter.org>
-References: <1351785744-7492-1-git-send-email-pablo@netfilter.org>
-Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: =?UTF-8?q?=5BPATCH=2001/11=5D=20netfilter=3A=20xtables2=3A=20initial=20table=20skeletal=20functions?=
+Date: Fri,  2 Nov 2012 04:38:33 +0100
+Message-ID: <1351827523-10629-2-git-send-email-jengelh@inai.de>
+References: <1351827523-10629-1-git-send-email-jengelh@inai.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37648 "EHLO mail.us.es"
+Received: from ares07.inai.de ([5.9.24.206]:42666 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964813Ab2KAQCi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Nov 2012 12:02:38 -0400
-In-Reply-To: <1351785744-7492-1-git-send-email-pablo@netfilter.org>
+	id S1762645Ab2KBDkG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 1 Nov 2012 23:40:06 -0400
+In-Reply-To: <1351827523-10629-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+This patch adds the xt2 table functions. Of course this does not do
+anything useful yet, chain and rule support directly follow.
 
-This allows fast handle allocation. This speeds up rule addition
-from O(n) to O(1).
-
-I assume 64-bits handle should be enough to avoid an overrun
-(such thing may lead to two rules having the same handle quite
-easily with 16-bits).
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- include/net/netfilter/nf_tables.h |    4 ++--
- net/netfilter/nf_tables_api.c     |   23 ++++++++---------------
- 2 files changed, 10 insertions(+), 17 deletions(-)
+ include/net/netfilter/xt_core.h |   15 +++++++
+ net/netfilter/Kconfig           |    8 +++-
+ net/netfilter/Makefile          |    1 +
+ net/netfilter/xt_core.c         |   85 +++++++++++++++++++++++++++++++=
+++++++++
+ 4 files changed, 108 insertions(+), 1 deletion(-)
+ create mode 100644 include/net/netfilter/xt_core.h
+ create mode 100644 net/netfilter/xt_core.c
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 74b8b770..3289e0d 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -302,7 +302,7 @@ static inline void *nft_expr_priv(const struct nft_expr *expr)
-  */
- struct nft_rule {
- 	struct list_head		list;
--	u16				handle;
-+	u64				handle;
- 	u16				dlen;
- 	unsigned char			data[]
- 		__attribute__((aligned(__alignof__(struct nft_expr))));
-@@ -356,7 +356,7 @@ struct nft_chain {
- 	u8				policy;
- 	u16				use;
- 	u16				level;
--	u16				hgenerator;
-+	u64				hgenerator;
- 	char				name[NFT_CHAIN_MAXNAMELEN];
- };
- 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index e510f18..cfe6b85 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1061,7 +1061,7 @@ static void nf_tables_expr_destroy(const struct nft_ctx *ctx,
-  */
- 
- static struct nft_rule *__nf_tables_rule_lookup(const struct nft_chain *chain,
--						u16 handle)
-+						u64 handle)
- {
- 	struct nft_rule *rule;
- 
-@@ -1080,26 +1080,19 @@ static struct nft_rule *nf_tables_rule_lookup(const struct nft_chain *chain,
- 	if (nla == NULL)
- 		return ERR_PTR(-EINVAL);
- 
--	return __nf_tables_rule_lookup(chain, ntohs(nla_get_be16(nla)));
-+	return __nf_tables_rule_lookup(chain, be64_to_cpu(nla_get_be64(nla)));
- }
- 
--static u16 nf_tables_rule_alloc_handle(struct nft_chain *chain)
-+static inline u64 nf_tables_rule_alloc_handle(struct nft_chain *chain)
- {
--	int i = 0xFFFF;
--	u16 handle;
--
--	do {
--		handle = ++chain->hgenerator;
--	} while (--i > 0 && !IS_ERR(__nf_tables_rule_lookup(chain, handle)));
--
--	return i > 0 ? handle : 0;
-+	return ++chain->hgenerator;
- }
- 
- static const struct nla_policy nft_rule_policy[NFTA_RULE_MAX + 1] = {
- 	[NFTA_RULE_TABLE]	= { .type = NLA_STRING },
- 	[NFTA_RULE_CHAIN]	= { .type = NLA_STRING,
- 				    .len = NFT_CHAIN_MAXNAMELEN - 1 },
--	[NFTA_RULE_HANDLE]	= { .type = NLA_U16 },
-+	[NFTA_RULE_HANDLE]	= { .type = NLA_U64 },
- 	[NFTA_RULE_EXPRESSIONS]	= { .type = NLA_NESTED },
- };
- 
-@@ -1129,7 +1122,7 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 pid, u32 seq,
- 		goto nla_put_failure;
- 	if (nla_put_string(skb, NFTA_RULE_CHAIN, chain->name))
- 		goto nla_put_failure;
--	if (nla_put_be16(skb, NFTA_RULE_HANDLE, htons(rule->handle)))
-+	if (nla_put_be64(skb, NFTA_RULE_HANDLE, cpu_to_be64(rule->handle)))
- 		goto nla_put_failure;
- 
- 	list = nla_nest_start(skb, NFTA_RULE_EXPRESSIONS);
-@@ -1317,7 +1310,7 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
- 	unsigned int size, i, n;
- 	int err, rem;
- 	bool create;
--	u16 handle;
-+	u64 handle;
- 
- 	create = nlh->nlmsg_flags & NLM_F_CREATE ? true : false;
- 
-@@ -1334,7 +1327,7 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
- 		return PTR_ERR(chain);
- 
- 	if (nla[NFTA_RULE_HANDLE]) {
--		handle = ntohs(nla_get_be16(nla[NFTA_RULE_HANDLE]));
-+		handle = be64_to_cpu(nla_get_be64(nla[NFTA_RULE_HANDLE]));
- 		rule = __nf_tables_rule_lookup(chain, handle);
- 		if (IS_ERR(rule)) {
- 			if (PTR_ERR(rule) != -ENOENT)
--- 
+diff --git a/include/net/netfilter/xt_core.h b/include/net/netfilter/xt=
+_core.h
+new file mode 100644
+index 0000000..4ddaaae
+--- /dev/null
++++ b/include/net/netfilter/xt_core.h
+@@ -0,0 +1,15 @@
++#ifndef _NETFILTER_XTCORE_H
++#define _NETFILTER_XTCORE_H 1
++
++/**
++ * @master:	the master table
++ */
++struct xt2_pernet_data {
++	struct xt2_table __rcu *master;
++};
++
++struct xt2_table {
++	int _dummy;
++};
++
++#endif /* _NETFILTER_XTCORE_H */
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index fefa514..56b19a1 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -429,7 +429,13 @@ config NETFILTER_XTABLES
+ 	  This is required if you intend to use any of ip_tables,
+ 	  ip6_tables or arp_tables.
+=20
+-if NETFILTER_XTABLES
++config NETFILTER_XTABLES2
++	tristate "Netfilter Xtables2 packet filtering"
++	---help---
++	Xtables2 is a rework of the internal architecture of Xtables.
++	It supersedes iptables, ip6tables, arptables and ebtables.
++
++if NETFILTER_XTABLES || NETFILTER_XTABLES2
+=20
+ comment "Xtables combined modules"
+=20
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 3259697..00eab5c 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -65,6 +65,7 @@ obj-$(CONFIG_NETFILTER_TPROXY) +=3D nf_tproxy_core.o
+=20
+ # generic X tables=20
+ obj-$(CONFIG_NETFILTER_XTABLES) +=3D x_tables.o xt_tcpudp.o
++obj-$(CONFIG_NETFILTER_XTABLES2) +=3D xt_core.o
+=20
+ # combos
+ obj-$(CONFIG_NETFILTER_XT_MARK) +=3D xt_mark.o
+diff --git a/net/netfilter/xt_core.c b/net/netfilter/xt_core.c
+new file mode 100644
+index 0000000..89dd0a0
+--- /dev/null
++++ b/net/netfilter/xt_core.c
+@@ -0,0 +1,85 @@
++/*
++ *	Xtables2 core
++ *	Copyright =C2=A9 Jan Engelhardt, 2009-2012
++ *
++ *	This program is free software: you can redistribute it and/or modif=
+y
++ *	it under the terms of the GNU General Public License as published b=
+y
++ *	the Free Software Foundation, either version 2 of the License, or
++ *	(at your option) any later version.
++ */
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++#include <linux/err.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/slab.h>
++#include <net/net_namespace.h>
++#include <net/netns/generic.h>
++#include <net/netfilter/xt_core.h>
++
++MODULE_DESCRIPTION("Netfilter Xtables2 packet filtering");
++MODULE_AUTHOR("Jan Engelhardt");
++MODULE_LICENSE("GPL");
++
++static int xtables2_net_id __read_mostly;
++
++static inline struct xt2_pernet_data *xtables2_pernet(struct net *net)
++{
++	return net_generic(net, xtables2_net_id);
++}
++
++/**
++ * Create a new table with no chains and no rules.
++ */
++static struct xt2_table *xt2_table_new(void)
++{
++	struct xt2_table *table;
++
++	table =3D kzalloc(sizeof(*table), GFP_KERNEL);
++	if (table =3D=3D NULL)
++		return NULL;
++
++	return table;
++}
++
++static void xt2_table_free(struct xt2_table *table)
++{
++	kfree(table);
++}
++
++static int __net_init xtables2_net_init(struct net *net)
++{
++	struct xt2_pernet_data *pnet =3D xtables2_pernet(net);
++
++	pnet->master =3D xt2_table_new();
++	if (IS_ERR(pnet->master))
++		return PTR_ERR(pnet->master);
++	return 0;
++}
++
++static void __net_exit xtables2_net_exit(struct net *net)
++{
++	struct xt2_pernet_data *pnet =3D xtables2_pernet(net);
++
++	xt2_table_free(pnet->master);
++}
++
++static struct pernet_operations xtables2_pernet_ops =3D {
++	.init =3D xtables2_net_init,
++	.exit =3D xtables2_net_exit,
++	.id   =3D &xtables2_net_id,
++	.size =3D sizeof(struct xt2_pernet_data),
++};
++
++static int __init xtables2_init(void)
++{
++	pr_info("Xtables2, (C) 2009-2012, J.Engelhardt\n");
++	return register_pernet_subsys(&xtables2_pernet_ops);
++}
++
++static void __exit xtables2_exit(void)
++{
++	unregister_pernet_subsys(&xtables2_pernet_ops);
++}
++
++module_init(xtables2_init);
++module_exit(xtables2_exit);
+--=20
 1.7.10.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
