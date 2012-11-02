@@ -1,37 +1,43 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [PATCH 2/2] netfilter: nf_tables: improve deletion performance
-Date: Fri, 02 Nov 2012 11:05:32 +0200
-Message-ID: <50938CDC.4000902@linux.intel.com>
-References: <1351785744-7492-1-git-send-email-pablo@netfilter.org> <1351785744-7492-3-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH next] netfilter: ipv6: add getsockopt to retrieve
+ origdst
+Date: Fri, 2 Nov 2012 12:36:46 +0100
+Message-ID: <20121102113646.GA27088@1984>
+References: <1351595329-13081-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:55531 "EHLO mga03.intel.com"
+Received: from mail.us.es ([193.147.175.20]:33229 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753802Ab2KBJFy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 2 Nov 2012 05:05:54 -0400
-In-Reply-To: <1351785744-7492-3-git-send-email-pablo@netfilter.org>
+	id S1762395Ab2KBLgz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 2 Nov 2012 07:36:55 -0400
+Content-Disposition: inline
+In-Reply-To: <1351595329-13081-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+On Tue, Oct 30, 2012 at 12:08:49PM +0100, Florian Westphal wrote:
+> userspace can query the original ipv4 destination address of a REDIRECTed
+> connection via
+> getsockopt(m_sock, SOL_IP, SO_ORIGINAL_DST, &m_server_addr, &addrsize)
+> 
+> but for ipv6 no such option existed.
+> 
+> This adds getsockopt(..., IPPROTO_IPV6, IP6T_SO_ORIGINAL_DST, ...).
+> 
+> Without this, userspace needs to parse /proc or use ctnetlink, which
+> appears to be overkill.
 
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -1289,7 +1289,7 @@ static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
->   		nf_tables_expr_destroy(ctx, expr);
->   		expr = nft_expr_next(expr);
->   	}
-> -	kfree(rule);
-> +	kfree_rcu(rule, rcu_head);
->   }
+Applied, thanks Florian.
 
-Shouldn't it free the expression list at the same moment when the rule 
-will actually be freed?
-So call_rcu() instead of kfree_rcu().
+> ---
+>  Instead of adding new IP6T_SO_ORIGINAL_DST, we could also
+>  simply re-use existing SO_ORIGINAL_DST ipv4 define.  Any Preferences?
 
-Tomasz
+I've added this to the patch description, for the record:
 
+"This uses option number 80 for IP6T_SO_ORIGINAL_DST, which is spare,
+to use the same number we use in the IPv4 socket option
+SO_ORIGINAL_DST".
