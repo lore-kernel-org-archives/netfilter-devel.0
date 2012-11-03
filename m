@@ -1,101 +1,99 @@
 From: Eric Leblond <eric@regit.org>
-Subject: [PATCH 1/4] Add configure flag to disable NFACCT build
-Date: Sat,  3 Nov 2012 12:32:58 +0100
-Message-ID: <1351942382-24791-2-git-send-email-eric@regit.org>
+Subject: [PATCH 4/4] configure: display info about build plugins
+Date: Sat,  3 Nov 2012 12:33:01 +0100
+Message-ID: <1351942382-24791-5-git-send-email-eric@regit.org>
 References: <1351942382-24791-1-git-send-email-eric@regit.org>
 Cc: eric@regit.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:49003 "EHLO
+Received: from ks28632.kimsufi.com ([91.121.96.152]:49004 "EHLO
 	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755634Ab2KCMDV (ORCPT
+	with ESMTP id S1754062Ab2KCMDW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 3 Nov 2012 08:03:21 -0400
+	Sat, 3 Nov 2012 08:03:22 -0400
 In-Reply-To: <1351942382-24791-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It is now possible to pass the --disable-nfacct flag to disable
-compilation of NFACCT input plugin. Doing this the build of ulogd
-is possible on system where nfacct is not available.
+This patch modifies configure to display the list of plugins that
+will be built.
 ---
- configure.ac              |    8 +++++++-
- input/sum/Makefile.am     |    4 ++--
- output/ulogd_output_XML.c |    7 ++++++-
- 3 files changed, 15 insertions(+), 4 deletions(-)
+ configure.ac |   42 ++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 40 insertions(+), 2 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index 0f21cf1..159cb0b 100644
+index 930aef0..c70887d 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -44,9 +44,15 @@ AC_SUBST([regular_CFLAGS])
- dnl Check for the right nfnetlink version
- PKG_CHECK_MODULES([LIBNFNETLINK], [libnfnetlink >= 1.0.1])
- PKG_CHECK_MODULES([LIBMNL], [libmnl >= 1.0.3])
--PKG_CHECK_MODULES([LIBNETFILTER_ACCT], [libnetfilter_acct >= 1.0.1])
- PKG_CHECK_MODULES([LIBNETFILTER_CONNTRACK], [libnetfilter_conntrack >= 1.0.2])
- PKG_CHECK_MODULES([LIBNETFILTER_LOG], [libnetfilter_log >= 1.0.0])
-+AC_ARG_ENABLE(nfacct,
-+       AS_HELP_STRING([--enable-nfacct], [Enable nfacct module [default=yes]]),,[enable_nfacct=yes])
-+AS_IF([test "x$enable_nfacct" = "xyes"], [
-+    PKG_CHECK_MODULES([LIBNETFILTER_ACCT], [libnetfilter_acct >= 1.0.1])
-+    AC_DEFINE([BUILD_NFACCT], [1], [Building nfacct module])
-+])
-+AM_CONDITIONAL([BUILD_NFACCT], [test "x$enable_nfacct" = "xyes"])
+@@ -22,6 +22,11 @@ AC_SUBST([libdl_LIBS])
+ AC_SEARCH_LIBS([pcap_close], [pcap], [libpcap_LIBS="-lpcap"; LIBS=""])
+ AC_SUBST([libpcap_LIBS])
+ AM_CONDITIONAL([HAVE_PCAP], [test -n "$libpcap_LIBS"])
++if test "x$libpcap_LIBS" != "x"; then
++	enable_pcap="yes"
++else
++	enable_pcap="no"
++fi
+ 
+ dnl Checks for header files.
+ AC_HEADER_DIRENT
+@@ -68,17 +73,35 @@ AM_CONDITIONAL([BUILD_NFACCT], [test "x$enable_nfacct" = "xyes"])
  
  CT_CHECK_POSTGRES_DB()
  AM_CONDITIONAL(HAVE_PGSQL, test "x$PQLIBPATH" != "x")
-diff --git a/input/sum/Makefile.am b/input/sum/Makefile.am
-index 33fa849..b6ddb4d 100644
---- a/input/sum/Makefile.am
-+++ b/input/sum/Makefile.am
-@@ -1,8 +1,8 @@
- AM_CPPFLAGS = -I$(top_srcdir)/include $(LIBNETFILTER_ACCT_CFLAGS) $(LIBMNL_CFLAGS)
- AM_CFLAGS = ${regular_CFLAGS}
--
-+if BUILD_NFACCT
- pkglib_LTLIBRARIES = ulogd_inpflow_NFACCT.la
--
- ulogd_inpflow_NFACCT_la_SOURCES = ulogd_inpflow_NFACCT.c
- ulogd_inpflow_NFACCT_la_LDFLAGS = -avoid-version -module
- ulogd_inpflow_NFACCT_la_LIBADD  = $(LIBMNL_LIBS) $(LIBNETFILTER_ACCT_LIBS)
-+endif
-diff --git a/output/ulogd_output_XML.c b/output/ulogd_output_XML.c
-index e9c3974..616e6c0 100644
---- a/output/ulogd_output_XML.c
-+++ b/output/ulogd_output_XML.c
-@@ -20,7 +20,10 @@
++if test "x$PQLIBPATH" != "x"; then
++	enable_pgsql="yes"
++else
++	enable_pgsql="no"
++fi
  
- #include <libnetfilter_conntrack/libnetfilter_conntrack.h>
- #include <libnetfilter_log/libnetfilter_log.h>
-+#include "../config.h"
-+#ifdef BUILD_NFACCT
- #include <libnetfilter_acct/libnetfilter_acct.h>
-+#endif
- #include <ulogd/ulogd.h>
- #include <sys/param.h>
- #include <time.h>
-@@ -118,6 +121,7 @@ xml_output_packet(struct ulogd_key *inp, char *buf, ssize_t size)
- static int
- xml_output_sum(struct ulogd_key *inp, char *buf, ssize_t size)
- {
-+#ifdef BUILD_NFACCT
- 	struct nfacct *nfacct = ikey_get_ptr(&inp[KEY_SUM]);
- 	int tmp;
+ CT_CHECK_MYSQL_DB()
+ AM_CONDITIONAL(HAVE_MYSQL, test "x$MYSQL_LIB" != "x")
++if test "x$MYSQL_LIB" != "x"; then
++	enable_mysql="yes"
++else
++	enable_mysql="no"
++fi
  
-@@ -125,10 +129,11 @@ xml_output_sum(struct ulogd_key *inp, char *buf, ssize_t size)
- 						 NFACCT_SNPRINTF_F_TIME);
- 	if (tmp < 0 || tmp >= size)
- 		return -1;
+ PKG_CHECK_MODULES([libsqlite3], [sqlite3], [], [:])
+ AM_CONDITIONAL([HAVE_SQLITE3], [test -n "$libsqlite3_LIBS"])
++if test "x$libsqlite3_LIBS" != "x"; then
++	enable_sqlite3="yes"
++else
++	enable_sqlite3="no"
++fi
+ 
+ CT_CHECK_DBI()
+ AM_CONDITIONAL(HAVE_DBI, test "x$DBI_LIB" != "x")
 -
-+#endif
- 	return 0;
- }
+-
++if test "x$DBI_LIB" != "x"; then
++	enable_dbi="yes"
++else
++	enable_dbi="no"
++fi
  
+ dnl AC_SUBST(DATABASE_DIR)
+ dnl AC_SUBST(DATABASE_LIB)
+@@ -102,3 +125,18 @@ AC_CONFIG_FILES(include/Makefile include/ulogd/Makefile include/libipulog/Makefi
+ 	  output/dbi/Makefile \
+ 	  src/Makefile Makefile Rules.make)
+ AC_OUTPUT
 +
- static int xml_output(struct ulogd_pluginstance *upi)
- {
- 	struct ulogd_key *inp = upi->input.keys;
++echo "
++Ulogd configuration:
++  Input plugins:
++    NFLOG plugin:			${enable_nflog}
++    NFCT plugin:			${enable_nfct}
++    NFACCT plugin:			${enable_nfacct}
++  Output plugins:
++    PCAP plugin:			${enable_pcap}
++    PGSQL plugin:			${enable_pgsql}
++    MySQL plugin:			${enable_mysql}
++    SQLITE3 plugin:			${enable_sqlite3}
++    DBI plugin:				${enable_dbi}
++"
++echo "You can now run 'make' and 'make install'"
 -- 
 1.7.10.4
 
