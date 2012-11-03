@@ -1,67 +1,32 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: [PATCH 3/4] Add configure flag to disable NFLOG build
-Date: Sat, 03 Nov 2012 17:02:00 +0100
-Message-ID: <1351958520.11805.2.camel@tourtet>
-References: <1351942382-24791-1-git-send-email-eric@regit.org>
-	 <1351942382-24791-4-git-send-email-eric@regit.org>
-	 <alpine.LNX.2.01.1211031541140.14935@nerf07.vanv.qr>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH 1/4] Add configure flag to disable NFACCT build
+Date: Sat, 3 Nov 2012 17:02:22 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1211031702030.15964@nerf07.vanv.qr>
+References: <1351942382-24791-1-git-send-email-eric@regit.org>  <1351942382-24791-2-git-send-email-eric@regit.org>  <alpine.LNX.2.01.1211031537300.14935@nerf07.vanv.qr> <1351958461.11805.1.camel@tourtet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:50511 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756330Ab2KCQCI convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 3 Nov 2012 12:02:08 -0400
-In-Reply-To: <alpine.LNX.2.01.1211031541140.14935@nerf07.vanv.qr>
+Received: from ares07.inai.de ([5.9.24.206]:49868 "EHLO ares07.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756390Ab2KCQC2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 3 Nov 2012 12:02:28 -0400
+In-Reply-To: <1351958461.11805.1.camel@tourtet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
 
-Le samedi 03 novembre 2012 =C3=A0 15:41 +0100, Jan Engelhardt a =C3=A9c=
-rit :
->=20
-> On Saturday 2012-11-03 12:33, Eric Leblond wrote:
-> >=20
-> >+if BUILD_NFLOG
-> > pkglib_LTLIBRARIES =3D ulogd_inppkt_NFLOG.la ulogd_inppkt_ULOG.la \
-> >                        ulogd_inppkt_UNIXSOCK.la
-> >=20
-> > ulogd_inppkt_NFLOG_la_SOURCES =3D ulogd_inppkt_NFLOG.c
-> > ulogd_inppkt_NFLOG_la_LDFLAGS =3D -avoid-version -module $(LIBNETFI=
-LTER_LOG_LIBS)
-> > ulogd_inppkt_NFLOG_la_CFLAGS =3D $(AM_CFLAGS) $(LIBNETFILTER_LOG_CF=
-LAGS)
-> >+else
-> >+pkglib_LTLIBRARIES =3D ulogd_inppkt_ULOG.la ulogd_inppkt_UNIXSOCK.l=
-a
-> >+endif
->=20
-> You can use
->=20
->   pkglib_LTLIBRARIES =3D ulogd_inppkt_ULOG.la ulogd_inppkt_UNIXSOCK.l=
-a
->   if BUILD_NFLOG
->   pkglib_LTLIBRARIES +=3D ulogd_inppkt_NFLOG.la
->   ...
->   endif
->=20
-> So that ulogd_inppkt_ULOG.la ulogd_inppkt_UNIXSOCK.la
-> does not have to be listed twice.
+On Saturday 2012-11-03 17:01, Eric Leblond wrote:
+>> >+AS_IF([test "x$enable_nfacct" = "xyes"], [
+>> >+    PKG_CHECK_MODULES([LIBNETFILTER_ACCT], [libnetfilter_acct >= 1.0.1])
+>> >+    AC_DEFINE([BUILD_NFACCT], [1], [Building nfacct module])
+>> >+])
+>> >+AM_CONDITIONAL([BUILD_NFACCT], [test "x$enable_nfacct" = "xyes"])
 
-You're right that's a better construction.
+>> As far as I remember, AM conditionals do not automatically
+>> become C macros. Can you check config.h?
+>
+>Yeah, that's why I've added AC_DEFINE when the module is built.
 
-BR,
---
-Eric
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I completely missed that. Sorry for the noise.
