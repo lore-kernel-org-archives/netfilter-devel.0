@@ -1,32 +1,53 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH 1/4] Add configure flag to disable NFACCT build
-Date: Sat, 3 Nov 2012 17:02:22 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1211031702030.15964@nerf07.vanv.qr>
-References: <1351942382-24791-1-git-send-email-eric@regit.org>  <1351942382-24791-2-git-send-email-eric@regit.org>  <alpine.LNX.2.01.1211031537300.14935@nerf07.vanv.qr> <1351958461.11805.1.camel@tourtet>
+From: Eric Leblond <eric@regit.org>
+Subject: [PATCH 0/2] Add include for nflog and nfacct
+Date: Sun, 04 Nov 2012 10:51:51 +0100
+Message-ID: <1352022711.11805.8.camel@tourtet>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@regit.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-ibna1pCJ+G6QyEEnv8eQ"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:49868 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756390Ab2KCQC2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 3 Nov 2012 12:02:28 -0400
-In-Reply-To: <1351958461.11805.1.camel@tourtet>
+Received: from ks28632.kimsufi.com ([91.121.96.152]:56937 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751065Ab2KDJwO (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 4 Nov 2012 04:52:14 -0500
+Received: from ip-37-24-162-232.unitymediagroup.de ([37.24.162.232] helo=[192.168.0.107])
+	by ks28632.kimsufi.com with esmtpsa (TLS1.0:RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <eric@regit.org>)
+	id 1TUwsF-0008VI-IW
+	for netfilter-devel@vger.kernel.org; Sun, 04 Nov 2012 10:52:11 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Saturday 2012-11-03 17:01, Eric Leblond wrote:
->> >+AS_IF([test "x$enable_nfacct" = "xyes"], [
->> >+    PKG_CHECK_MODULES([LIBNETFILTER_ACCT], [libnetfilter_acct >= 1.0.1])
->> >+    AC_DEFINE([BUILD_NFACCT], [1], [Building nfacct module])
->> >+])
->> >+AM_CONDITIONAL([BUILD_NFACCT], [test "x$enable_nfacct" = "xyes"])
+--=-ibna1pCJ+G6QyEEnv8eQ
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
->> As far as I remember, AM conditionals do not automatically
->> become C macros. Can you check config.h?
->
->Yeah, that's why I've added AC_DEFINE when the module is built.
+Hi,
 
-I completely missed that. Sorry for the noise.
+The libnetfilter_log and libnetfilter_acct include can't be put directly
+on top of a source file because some integer types are not defined.
+Following this mail are two patches to fix this problem.
+
+BR,
+--
+Eric
+
+--=-ibna1pCJ+G6QyEEnv8eQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iD8DBQBQljq3nxA7CdMWjzIRAkQjAJ4nkyrXoUfkmoisdnFXXo31KufwqACfczkW
+BvZGmPDJifLf9gjp5P8rMkQ=
+=Os/K
+-----END PGP SIGNATURE-----
+
+--=-ibna1pCJ+G6QyEEnv8eQ--
+
