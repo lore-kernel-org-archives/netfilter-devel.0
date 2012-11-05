@@ -1,28 +1,31 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: [ANNOUNCE] New ulogd2 maintainer: Eric Leblond
-Date: Sun, 04 Nov 2012 18:50:30 +0000
-Message-ID: <5096B8F6.2010205@googlemail.com>
-References: <20121030195343.GA25885@1984> <5093E1AD.6050501@googlemail.com> <alpine.LNX.2.01.1211021610260.4894@nerf07.vanv.qr>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: [PATCH 2/2] netfilter: nf_tables: improve deletion performance
+Date: Mon, 05 Nov 2012 12:16:34 +0200
+Message-ID: <50979202.7030108@linux.intel.com>
+References: <1351785744-7492-1-git-send-email-pablo@netfilter.org> <1351785744-7492-3-git-send-email-pablo@netfilter.org> <50938CDC.4000902@linux.intel.com> <20121104184420.GA22844@1984>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:60003 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751993Ab2KDSug (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 4 Nov 2012 13:50:36 -0500
-Received: by mail-wi0-f172.google.com with SMTP id hq12so2551292wib.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 04 Nov 2012 10:50:35 -0800 (PST)
-In-Reply-To: <alpine.LNX.2.01.1211021610260.4894@nerf07.vanv.qr>
+Received: from mga01.intel.com ([192.55.52.88]:20716 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751642Ab2KEKQg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 Nov 2012 05:16:36 -0500
+In-Reply-To: <20121104184420.GA22844@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Pablo,
 
-> Even in the light of competition of next-gen packet filter 
-> implementations, I think this was really uncalled for.
->   
-The subject of "competition" (or lack of it) was not what my email was 
-about, but you already knew that when you posted the above, didn't you?
+>> Shouldn't it free the expression list at the same moment when the
+>> rule will actually be freed?
+>> So call_rcu() instead of kfree_rcu().
+> You're right. New patch attached using the call_rcu approach.
+
+The patch looks fine now. Removing the nft_ctx does not harm actually, 
+it was providing
+superfluous flexibility in this destroying case.
+
+Tomasz
