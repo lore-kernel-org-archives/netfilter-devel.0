@@ -1,48 +1,48 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: [PATCH] pgsql: add SSL connection implementation to PGSQL plugin
-Date: Wed, 07 Nov 2012 09:41:08 +0100
-Message-ID: <1352277668.3652.43.camel@tourtet>
-References: <1346503911-3781-1-git-send-email-mr.dash.four@googlemail.com>
-		 <20120902233228.GA22069@1984> <50440A1B.7060908@googlemail.com>
-	 <1346653997.5194.37.camel@tiger.regit.org> <50449BF1.40005@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Core Team <netfilter-devel@vger.kernel.org>
-To: Mr Dash Four <mr.dash.four@googlemail.com>
+From: Reese Moore <ram@vt.edu>
+Subject: [PATCH] net/netfilter/nf_conntrack_pptp.c: Fix comment referring to incorrect RFC.
+Date: Wed,  7 Nov 2012 12:05:08 -0500
+Message-ID: <1352307908-24733-1-git-send-email-ram@vt.edu>
+Cc: netfilter-devel@vger.kernel.org, Reese Moore <ram@vt.edu>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:56868 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750768Ab2KGIlS convert rfc822-to-8bit (ORCPT
+Received: from lennier.cc.vt.edu ([198.82.162.213]:39040 "EHLO
+	lennier.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751657Ab2KGRFU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Nov 2012 03:41:18 -0500
-In-Reply-To: <50449BF1.40005@googlemail.com>
+	Wed, 7 Nov 2012 12:05:20 -0500
+Received: from zidane.cc.vt.edu (zidane.cc.vt.edu [198.82.163.227])
+	by lennier.cc.vt.edu (8.13.8/8.13.8) with ESMTP id qA7H2XU3009355
+	for <netfilter-devel@vger.kernel.org>; Wed, 7 Nov 2012 12:05:19 -0500
+Received: by mail-vb0-f70.google.com with SMTP id fo1so2945864vbb.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 07 Nov 2012 09:05:19 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+The header of this file cites to "RFFC2673" which is "Binary Labels in the
+Domain Name System". It should refer to "RFC 2637" which is "Point-to-Point
+Tunneling Protocol (PPTP)".
 
-Le lundi 03 septembre 2012 =C3=A0 13:00 +0100, Mr Dash Four a =C3=A9cri=
-t :
-> >> Sure. Are there any (other) objections to the patch I submitted?
-> >>    =20
-> >
-> > I've applied the current patch to give it a run. And it shows a lot=
- of
-> > whitespace errors. You'll need to fix it too.
-> >  =20
-> What do you mean by that?
+This patch corrects the double 'F' and the transposition of the last two
+numbers.
 
-There's a lot of spaces at end of lines or empty lines containing only
-spaces. Basically, s/ +$// to fix it.
+Signed-off-by: Reese Moore <ram@vt.edu>
+---
+ net/netfilter/nf_conntrack_pptp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-BR,
---
-Eric Leblond
+diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
+index cc7669e..e6678d2 100644
+--- a/net/netfilter/nf_conntrack_pptp.c
++++ b/net/netfilter/nf_conntrack_pptp.c
+@@ -14,7 +14,7 @@
+  * Limitations:
+  * 	 - We blindly assume that control connections are always
+  * 	   established in PNS->PAC direction.  This is a violation
+- * 	   of RFFC2673
++ *	   of RFC 2637
+  * 	 - We can only support one single call within each session
+  * TODO:
+  *	 - testing of incoming PPTP calls
+-- 
+1.8.0
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
