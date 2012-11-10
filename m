@@ -1,82 +1,71 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: UDP packets sent with wrong source address after routing change
- [AV#3431]
-Date: Sat, 10 Nov 2012 22:47:55 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1211102216540.14307@blackhole.kfki.hu>
-References: <alpine.DEB.2.02.1211081627150.6644@lap-x201> <alpine.LNX.2.01.1211081829150.28568@nerf07.vanv.qr> <alpine.DEB.2.00.1211081823030.5637@chris-desktop.fen.aptivate.org> <20121110140720.GA9610@1984>
- <alpine.LNX.2.01.1211101957320.1938@nerf07.vanv.qr>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
+Subject: Re: [PATCH] pgsql: add SSL connection implementation to PGSQL plugin
+Date: Sat, 10 Nov 2012 23:17:31 +0000
+Message-ID: <509EE08B.80805@googlemail.com>
+References: <1346503911-3781-1-git-send-email-mr.dash.four@googlemail.com>		 <20120902233228.GA22069@1984> <50440A1B.7060908@googlemail.com>	 <1346653997.5194.37.camel@tiger.regit.org> <50449BF1.40005@googlemail.com> <1352277668.3652.43.camel@tourtet>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Chris Wilson <chris@aptivate.org>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: Netfilter Core Team <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:37687 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752451Ab2KJVr7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 10 Nov 2012 16:47:59 -0500
-In-Reply-To: <alpine.LNX.2.01.1211101957320.1938@nerf07.vanv.qr>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:35394 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751154Ab2KJXRg (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 10 Nov 2012 18:17:36 -0500
+Received: by mail-wg0-f44.google.com with SMTP id dr13so3358350wgb.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 10 Nov 2012 15:17:35 -0800 (PST)
+In-Reply-To: <1352277668.3652.43.camel@tourtet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 10 Nov 2012, Jan Engelhardt wrote:
+Eric Leblond wrote:
+> Hello,
+>=20
+> Le lundi 03 septembre 2012 =C3=A0 13:00 +0100, Mr Dash Four a =C3=A9c=
+rit :
+>>>> Sure. Are there any (other) objections to the patch I submitted?
+>>>>    =20
+>>> I've applied the current patch to give it a run. And it shows a lot=
+ of
+>>> whitespace errors. You'll need to fix it too.
+>>>  =20
+>> What do you mean by that?
+>=20
+> There's a lot of spaces at end of lines or empty lines containing onl=
+y
+> spaces. Basically, s/ +$// to fix it.
+I see. The patch I submitted over 2 months ago was based on the (then) =
+newest git tree. From that tree, the 2 files I modified were output/pgs=
+ql/ulogd_output_PGSQL.c and ulogd.conf.in.
 
-> On Saturday 2012-11-10 15:07, Pablo Neira Ayuso wrote:
-> 
-> >On Thu, Nov 08, 2012 at 06:37:24PM +0000, Chris Wilson wrote:
-> >[...]
-> >> >>Another option which doesn't violate layering might be to update
-> >> >>the NAT rule when the outgoing address is known (after routing),
-> >> >
-> >> >That is what MASQUERADE is usually for.
-> >> 
-> >> Unfortunately I am using MASQUERADE and this still happens. If it
-> >> could just be fixed in the MASQUERADE target that would be a big
-> >> win.
-> >
-> >MASQUERADE already cleans up the entries in the conntrack table once
-> >you get your device down, that code is still there in 2.6.18:
-> >
-> >http://lxr.linux.no/#linux+v2.6.18/net/ipv4/netfilter/ipt_MASQUERADE.c#L111
-> 
-> It looks like it only catches the case of a changing ifindex.
-> 
-> That may work for PPP links, but if you access the 'net over an
-> Ethernet-looking link as is (thankfully) done by cable ISPs,
-> the interface will never go away.
-> 
-> The DHCP client will simply change one or more addresses on it -- and
-> at the same time I wonder if that makes it a "you should run
-> conntrack -F or something from your dhclient.script" case.
+By looking at my patch, it is quite evident that the white space "error=
+s", as you call them, originate mostly from the existing source in that=
+ git tree. In cases where I have introduced new "errors", these were ca=
+used by cut-and-paste from the original source after applying the modif=
+ications I needed done for the patch to fulfil its purpose.
 
-That's also handled by the MASQUERADE target: if the device was downed or 
-its address deleted, the corresponding conntrack entries are cleaned up.
+Even today, the present version of ulogd_output_PGSQL.c and ulogd.conf.=
+in in the current ulogd2 git tree has "a lot of whitespace errors" in t=
+hem, even without my patch being applied.=20
 
-But the thread is drifted from the original cases:
+A simple search for such "errors" in output/pgsql/ulogd_output_PGSQL.c =
+alone produces 15 matches.=20
 
-> This only seems to happen when you're using a UDP device behind a Linux
-> NAT router, and your routing to the destination host changes, because:
->
-> * You bring up a VPN tunnel and the SIP destination is at the other end 
-> of that tunnel; or
+I suspect if I run similar searches on the entire ulogd2 tree (or any o=
+ther tree within netfilter.org for that matter), the results won't be a=
+ny different. Since you and Pablo are the maintainers of that tree, I a=
+m assuming that these "errors" were good enough for you when you patche=
+d these files in the past.=20
 
-This case is not handled by MASQUERADE.
+Why is that? What's changed?=20
 
-> * Your default route changes because you failover to another provider.
-
-And this case is also not handled if the original default route device is 
-still healthy, that is for example when you use some dynamic routing 
-protocol which detects failure in the routing path.
-
-I do not see any simple solution except to delete any NATed entry 
-unconditionally when the routing changes. But that can easily be too much 
-and may kill valid entries.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Am I supposed to run a clean sweep of the entire existing git tree befo=
+re submitting any patches, so that they meet with your and Pablo's appr=
+oval then? I won't even go into the 2 months it took for the above resp=
+onse to finally arrive.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
