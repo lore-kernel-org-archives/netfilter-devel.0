@@ -1,71 +1,87 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: [PATCH] pgsql: add SSL connection implementation to PGSQL plugin
-Date: Sat, 10 Nov 2012 23:17:31 +0000
-Message-ID: <509EE08B.80805@googlemail.com>
-References: <1346503911-3781-1-git-send-email-mr.dash.four@googlemail.com>		 <20120902233228.GA22069@1984> <50440A1B.7060908@googlemail.com>	 <1346653997.5194.37.camel@tiger.regit.org> <50449BF1.40005@googlemail.com> <1352277668.3652.43.camel@tourtet>
+From: Aft nix <aftnix@gmail.com>
+Subject: Target extension with nf_hooks
+Date: Sun, 11 Nov 2012 16:56:14 +0600
+Message-ID: <CAGuaRCtEa2VGPb3-jYvuK9+t++L44xTeOm15xpsFXmzLHoui3g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: Netfilter Core Team <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:35394 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751154Ab2KJXRg (ORCPT
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:61398 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752533Ab2KKK4O (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 10 Nov 2012 18:17:36 -0500
-Received: by mail-wg0-f44.google.com with SMTP id dr13so3358350wgb.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 10 Nov 2012 15:17:35 -0800 (PST)
-In-Reply-To: <1352277668.3652.43.camel@tourtet>
+	Sun, 11 Nov 2012 05:56:14 -0500
+Received: by mail-ie0-f174.google.com with SMTP id k13so7799714iea.19
+        for <netfilter-devel@vger.kernel.org>; Sun, 11 Nov 2012 02:56:14 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond wrote:
-> Hello,
->=20
-> Le lundi 03 septembre 2012 =C3=A0 13:00 +0100, Mr Dash Four a =C3=A9c=
-rit :
->>>> Sure. Are there any (other) objections to the patch I submitted?
->>>>    =20
->>> I've applied the current patch to give it a run. And it shows a lot=
- of
->>> whitespace errors. You'll need to fix it too.
->>>  =20
->> What do you mean by that?
->=20
-> There's a lot of spaces at end of lines or empty lines containing onl=
-y
-> spaces. Basically, s/ +$// to fix it.
-I see. The patch I submitted over 2 months ago was based on the (then) =
-newest git tree. From that tree, the 2 files I modified were output/pgs=
-ql/ulogd_output_PGSQL.c and ulogd.conf.in.
+Hi,
 
-By looking at my patch, it is quite evident that the white space "error=
-s", as you call them, originate mostly from the existing source in that=
- git tree. In cases where I have introduced new "errors", these were ca=
-used by cut-and-paste from the original source after applying the modif=
-ications I needed done for the patch to fulfil its purpose.
+Is there any technical difficulties associated with the following scenario:
 
-Even today, the present version of ulogd_output_PGSQL.c and ulogd.conf.=
-in in the current ulogd2 git tree has "a lot of whitespace errors" in t=
-hem, even without my patch being applied.=20
+1) its invoked with $iptables -t mangle -A PREROUTING -j MY_TARGET
 
-A simple search for such "errors" in output/pgsql/ulogd_output_PGSQL.c =
-alone produces 15 matches.=20
+2) My target module is initialized as :
 
-I suspect if I run similar searches on the entire ulogd2 tree (or any o=
-ther tree within netfilter.org for that matter), the results won't be a=
-ny different. Since you and Pablo are the maintainers of that tree, I a=
-m assuming that these "errors" were good enough for you when you patche=
-d these files in the past.=20
+static struct xt_target obsf_tg_reg __read_mostly = {
 
-Why is that? What's changed?=20
+        .name = "OBSF",
+        .family = NFPROTO_UNSPEC,
+        .target = obsf_tg,
+        .checkentry = obsf_tg_check,
+        .targetsize = sizeof(struct xt_OBSF_tginfo),
+        .me = THIS_MODULE,
+};
 
-Am I supposed to run a clean sweep of the entire existing git tree befo=
-re submitting any patches, so that they meet with your and Pablo's appr=
-oval then? I won't even go into the 2 months it took for the above resp=
-onse to finally arrive.
+static int __init obsf_tg_init(void)
+{
+    return xt_register_target(&obsf_tg_reg);
+}
+
+2) Now inside the module, it also registers a nf_hook:
+
+
+static struct nf_hook_ops inward_obsf_ops __read_mostly = {
+    .pf = NFPROTO_IPV4,
+    .priority = 1,
+    .hooknum = NF_INET_PRE_ROUTING,
+    .hook = ibss_obsf_inward_begin,
+};
+
+/*
+ * Module init and exit functions
+ * No need ot worry about them
+ */
+
+static int __init ibss_obsf_inward_init(void)
+{
+    printk(KERN_ALERT "\nPacket_Inward module started ...");
+    return nf_register_hook(&inward_obsf_ops);
+}
+
+My question is
+
+a) Between ibss_obsf_inward_begin() and obsf_tg() who will be called first?
+
+b) Does this design lead to any inconsistencies?
+
+c) Should i register ibss_ofsf_inward_begin() with different hook ,
+say NF_INET_LOCAL_INPUT?
+
+Only example i could find inside 3.7.rc3 kernel tree is :
+
+net/ipv4/ipt_CLUSTERIP.c:540
+
+540 static struct nf_hook_ops cip_arp_ops __read_mostly = {
+541         .hook = arp_mangle,
+542         .pf = NFPROTO_ARP,
+543         .hooknum = NF_ARP_OUT,
+544         .priority = -1
+545 };
+
+I'm not sure i can do the same for ordinary netfilter module.
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-aft
