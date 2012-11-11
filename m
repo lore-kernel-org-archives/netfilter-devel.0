@@ -1,87 +1,87 @@
-From: Aft nix <aftnix@gmail.com>
-Subject: Target extension with nf_hooks
-Date: Sun, 11 Nov 2012 16:56:14 +0600
-Message-ID: <CAGuaRCtEa2VGPb3-jYvuK9+t++L44xTeOm15xpsFXmzLHoui3g@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: UDP packets sent with wrong source address after routing
+ change [AV#3431]
+Date: Sun, 11 Nov 2012 13:23:44 +0100
+Message-ID: <20121111122344.GA2212@1984>
+References: <alpine.DEB.2.02.1211081627150.6644@lap-x201>
+ <alpine.LNX.2.01.1211081829150.28568@nerf07.vanv.qr>
+ <alpine.DEB.2.00.1211081823030.5637@chris-desktop.fen.aptivate.org>
+ <20121110140720.GA9610@1984>
+ <alpine.LNX.2.01.1211101957320.1938@nerf07.vanv.qr>
+ <alpine.DEB.2.00.1211102216540.14307@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Jan Engelhardt <jengelh@inai.de>,
+	Chris Wilson <chris@aptivate.org>,
+	netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:61398 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752533Ab2KKK4O (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 11 Nov 2012 05:56:14 -0500
-Received: by mail-ie0-f174.google.com with SMTP id k13so7799714iea.19
-        for <netfilter-devel@vger.kernel.org>; Sun, 11 Nov 2012 02:56:14 -0800 (PST)
+Received: from mail.us.es ([193.147.175.20]:52456 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752188Ab2KKMXt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 11 Nov 2012 07:23:49 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1211102216540.14307@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Sat, Nov 10, 2012 at 10:47:55PM +0100, Jozsef Kadlecsik wrote:
+> On Sat, 10 Nov 2012, Jan Engelhardt wrote:
+> 
+> > On Saturday 2012-11-10 15:07, Pablo Neira Ayuso wrote:
+> > 
+> > >On Thu, Nov 08, 2012 at 06:37:24PM +0000, Chris Wilson wrote:
+> > >[...]
+> > >> >>Another option which doesn't violate layering might be to update
+> > >> >>the NAT rule when the outgoing address is known (after routing),
+> > >> >
+> > >> >That is what MASQUERADE is usually for.
+> > >> 
+> > >> Unfortunately I am using MASQUERADE and this still happens. If it
+> > >> could just be fixed in the MASQUERADE target that would be a big
+> > >> win.
+> > >
+> > >MASQUERADE already cleans up the entries in the conntrack table once
+> > >you get your device down, that code is still there in 2.6.18:
+> > >
+> > >http://lxr.linux.no/#linux+v2.6.18/net/ipv4/netfilter/ipt_MASQUERADE.c#L111
+> > 
+> > It looks like it only catches the case of a changing ifindex.
+> > 
+> > That may work for PPP links, but if you access the 'net over an
+> > Ethernet-looking link as is (thankfully) done by cable ISPs,
+> > the interface will never go away.
+> > 
+> > The DHCP client will simply change one or more addresses on it -- and
+> > at the same time I wonder if that makes it a "you should run
+> > conntrack -F or something from your dhclient.script" case.
+> 
+> That's also handled by the MASQUERADE target: if the device was downed or 
+> its address deleted, the corresponding conntrack entries are cleaned up.
+> 
+> But the thread is drifted from the original cases:
+> 
+> > This only seems to happen when you're using a UDP device behind a Linux
+> > NAT router, and your routing to the destination host changes, because:
+> >
+> > * You bring up a VPN tunnel and the SIP destination is at the other end 
+> > of that tunnel; or
+> 
+> This case is not handled by MASQUERADE.
+> 
+> > * Your default route changes because you failover to another provider.
+> 
+> And this case is also not handled if the original default route device is 
+> still healthy, that is for example when you use some dynamic routing 
+> protocol which detects failure in the routing path.
+> 
+> I do not see any simple solution except to delete any NATed entry 
+> unconditionally when the routing changes. But that can easily be too much 
+> and may kill valid entries.
 
-Is there any technical difficulties associated with the following scenario:
+I do not see it either and flushing the entire table seems to me like
+way too much.
 
-1) its invoked with $iptables -t mangle -A PREROUTING -j MY_TARGET
-
-2) My target module is initialized as :
-
-static struct xt_target obsf_tg_reg __read_mostly = {
-
-        .name = "OBSF",
-        .family = NFPROTO_UNSPEC,
-        .target = obsf_tg,
-        .checkentry = obsf_tg_check,
-        .targetsize = sizeof(struct xt_OBSF_tginfo),
-        .me = THIS_MODULE,
-};
-
-static int __init obsf_tg_init(void)
-{
-    return xt_register_target(&obsf_tg_reg);
-}
-
-2) Now inside the module, it also registers a nf_hook:
-
-
-static struct nf_hook_ops inward_obsf_ops __read_mostly = {
-    .pf = NFPROTO_IPV4,
-    .priority = 1,
-    .hooknum = NF_INET_PRE_ROUTING,
-    .hook = ibss_obsf_inward_begin,
-};
-
-/*
- * Module init and exit functions
- * No need ot worry about them
- */
-
-static int __init ibss_obsf_inward_init(void)
-{
-    printk(KERN_ALERT "\nPacket_Inward module started ...");
-    return nf_register_hook(&inward_obsf_ops);
-}
-
-My question is
-
-a) Between ibss_obsf_inward_begin() and obsf_tg() who will be called first?
-
-b) Does this design lead to any inconsistencies?
-
-c) Should i register ibss_ofsf_inward_begin() with different hook ,
-say NF_INET_LOCAL_INPUT?
-
-Only example i could find inside 3.7.rc3 kernel tree is :
-
-net/ipv4/ipt_CLUSTERIP.c:540
-
-540 static struct nf_hook_ops cip_arp_ops __read_mostly = {
-541         .hook = arp_mangle,
-542         .pf = NFPROTO_ARP,
-543         .hooknum = NF_ARP_OUT,
-544         .priority = -1
-545 };
-
-I'm not sure i can do the same for ordinary netfilter module.
-
-
---
--aft
+My suggestion is to use conntrack -D ... including the appropriate
+selectors to delete only affected entries, and those selectors depend
+on the setup.
