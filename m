@@ -1,47 +1,41 @@
-From: =?UTF-8?Q?Nicolas_Ma=C3=AEtre?= <nimai@skynet.be>
-Subject: FSM for TCP proto
-Date: Sun, 11 Nov 2012 16:58:04 +0100
-Message-ID: <CACd4Q021-ukEstznTnm-3Jst9_E94R7Q89ohFrs05S2uj5W+Mg@mail.gmail.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: Target extension with nf_hooks
+Date: Sun, 11 Nov 2012 18:15:09 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1211111802590.6241@nerf07.vanv.qr>
+References: <CAGuaRCtEa2VGPb3-jYvuK9+t++L44xTeOm15xpsFXmzLHoui3g@mail.gmail.com> <alpine.LNX.2.01.1211111434430.6241@nerf07.vanv.qr> <CAGuaRCsgOhwaUf8Pn+gu=axd7O1M4tYPoBje_gMT+LmQzMeNOw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Aft nix <aftnix@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:57494 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753160Ab2KKP60 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 11 Nov 2012 10:58:26 -0500
-Received: by mail-wg0-f44.google.com with SMTP id dr13so3651009wgb.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 11 Nov 2012 07:58:25 -0800 (PST)
+Received: from ares07.inai.de ([5.9.24.206]:47018 "EHLO ares07.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753170Ab2KKRPP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 11 Nov 2012 12:15:15 -0500
+In-Reply-To: <CAGuaRCsgOhwaUf8Pn+gu=axd7O1M4tYPoBje_gMT+LmQzMeNOw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
 
-I've been trying to understand netfilter's connection tracking for TCP.
+On Sunday 2012-11-11 15:47, Aft nix wrote:
+>
+>Thanks for the reply. Now mangle tables has this:
+>
+>include/uapi/linux/netfilter_ipv4.h:    NF_IP_PRI_MANGLE = -150,
+>
+>What i get from this list that which table will get priority.
+>
+>But i'm trying to know which function will be called first?
 
-The FSM used is a simplified version of the usual TCP FSM, and
-therefore, as I understand it, it does not permit a perfect tracking
-of TCP.
+The one with a lower numerical value.
+What is to happen when two hooks have the same priority value
+is unspecified.
 
-A first question is: why not rely on a better version of the FSM? It
-would maybe imply that the states of both end-hosts should be stored
-but it would also allow a finer-grained tracking of the connection.
+>But i'm still confused about which function (one registered with
+>struct xt_target , another registered with struct nf_hook_ops) will
+>get priority?
 
-I assume this is because the firewall doesn't need to be so specific
-about the tracking, but why not? Wouldn't it be better from a security
-viewpoint?
+Those are two very different things.
 
-In the same line of thinking, I can see that, for example, at the
-regular connection closing, no check is done on the direction of the
-FIN segments. AFAIK, this would mean that a host could make think the
-firewall that a connection is closed when it is actually sending 2
-times a  FIN segment. A one-liner check would make sure that both FINs
-come from different hosts, why omit this?
-The real question is: am I missing something important that would make
-this kind of things insignificant?
+>How does a table associated with different chains?
 
-In advance, thank you.
-
---
-nimai
