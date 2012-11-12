@@ -1,56 +1,93 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: UDP packets sent with wrong source address after routing change
- [AV#3431]
-Date: Mon, 12 Nov 2012 20:34:26 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1211122020280.18729@blackhole.kfki.hu>
-References: <alpine.DEB.2.02.1211081627150.6644@lap-x201> <alpine.LNX.2.01.1211081829150.28568@nerf07.vanv.qr> <alpine.DEB.2.00.1211081823030.5637@chris-desktop.fen.aptivate.org> <20121110140720.GA9610@1984> <alpine.LNX.2.01.1211101957320.1938@nerf07.vanv.qr>
- <alpine.DEB.2.00.1211102216540.14307@blackhole.kfki.hu> <alpine.DEB.2.02.1211121019280.23195@lap-x201> <alpine.DEB.2.00.1211121556480.18137@blackhole.kfki.hu> <alpine.DEB.2.02.1211121523190.23195@lap-x201>
+From: dawid <dawidwys@gmail.com>
+Subject: Using netfilter Api within OpenWRT
+Date: Mon, 12 Nov 2012 20:40:55 +0100
+Message-ID: <50A150C7.1030205@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Chris Wilson <chris-netfilter-110904@aptivate.org>
+Content-Type: multipart/mixed;
+ boundary="------------040809050703080604010404"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:57868 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752507Ab2KLTe2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Nov 2012 14:34:28 -0500
-In-Reply-To: <alpine.DEB.2.02.1211121523190.23195@lap-x201>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:40303 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752021Ab2KLTlA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 Nov 2012 14:41:00 -0500
+Received: by mail-bk0-f46.google.com with SMTP id q16so247814bkw.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Nov 2012 11:40:59 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 12 Nov 2012, Chris Wilson wrote:
+This is a multi-part message in MIME format.
+--------------040809050703080604010404
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> I propose that:
-> 
-> * when the packet matches an existing conntrack rule, and
-> 
-> * is sent out of an interface that does not list the packet's new (SNAT-to)
-> source address as one of its IP addresses (i.e. if this were a new
-> connection, MASQUERADE would not choose this source address), and
-> 
-> * the --update-source-address flag is set on the MASQUERADE target
-> 
-> then update the source address on the conntrack rule to the new one.
-> 
-> That's the same thing that would happen if we deleted the conntrack entry
-> first: MASQUERADE would choose a new source address and save it in the new
-> conntrack entry.
+Hi I am writing some netfilter kernel module for my OpenWRT Backfire rev 
+28680 build for Dir-300(AR23xx).
 
-What do you think about this?
+I have written some hook_function but unfortunatly any sk_buff i get in 
+it is corrupted. There is only trash in it and as a
+Could some of u tell me what am i doing wrong? The skb_network_header 
+function always returns NULL.
 
-- add route change notification event to the net core
-- add --update-source-address flag to the MASQUERADE target
-- add a call for such events to the MASQUERADE target, when
-  the flag is enabled
+I have included example of my code.
 
-The called function then can scan the conntrack table and for every entry 
-which has got the update-source-address flag, can check whether the source 
-IP address should be changed. Those entries are then deleted.
+I would be extremely grateful for any sort of help.
 
-Best regards,
-Joysef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Regards
+
+Dawid
+
+
+--------------040809050703080604010404
+Content-Type: text/plain; charset=windows-1250;
+ name="module.c"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="module.c"
+
+I2luY2x1ZGUgPGxpbnV4L21vZHVsZS5oPg0KI2luY2x1ZGUgPGxpbnV4L2tlcm5lbC5oPg0K
+I2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlci5oPg0KI3VuZGVmIF9fS0VSTkVMX18NCiNpbmNs
+dWRlIDxsaW51eC9uZXRmaWx0ZXJfaXB2NC5oPg0KI2RlZmluZSBfX0tFUk5FTF9fDQojaW5j
+bHVkZSA8bGludXgvc2tidWZmLmg+DQojaW5jbHVkZSA8bGludXgvaXAuaD4NCiNpbmNsdWRl
+IDxuZXQvaXAuaD4NCiNpbmNsdWRlIDxuZXQvdGNwLmg+DQoNCnN0cnVjdCBuZl9ob29rX29w
+cyBuZmhvOyAgIC8vbmV0IGZpbHRlciBob29rIG9wdGlvbiBzdHJ1Y3QNCnN0cnVjdCBza19i
+dWZmICpzb2NrX2J1ZmY7DQpzdHJ1Y3QgdGNwaGRyICp0Y3BfaGVhZGVyOyAgICAgICAgICAv
+LyBUQ1AgaGVhZGVyIHN0cnVjdA0Kc3RydWN0IGlwaGRyICppcF9oZWFkZXI7ICAgICAgICAg
+ICAgLy8gSVAgaGVhZGVyIHN0cnVjdA0KDQoNCnVuc2lnbmVkIGludCBob29rX2Z1bmModW5z
+aWduZWQgaW50IGhvb2tudW0sDQogICAgICAgICAgICBzdHJ1Y3Qgc2tfYnVmZiAqc2tiLA0K
+ICAgICAgICAgICAgY29uc3Qgc3RydWN0IG5ldF9kZXZpY2UgKmluLA0KICAgICAgICAgICAg
+Y29uc3Qgc3RydWN0IG5ldF9kZXZpY2UgKm91dCwNCiAgICAgICAgICAgIGludCAoKm9rZm4p
+KHN0cnVjdCBza19idWZmICopKQ0Kew0KICAgIHNvY2tfYnVmZiA9IHNrYjsNCg0KICAgIGlm
+ICghc29ja19idWZmKQ0KICAgIHsNCiAgICAgICAgcHJpbnRrKEtFUk5fSU5GTyAiTlVMTCBz
+b2NrIGJ1ZmYgaGVhZGVyXG4iKTsNCiAgICAgICAgcmV0dXJuIE5GX0FDQ0VQVDsNCiAgICB9
+DQoNCiAgICBwcmludGsoS0VSTl9JTkZPICJJUF9QUk9UTyAlZFxuIiwgc29ja19idWZmLT5w
+cm90b2NvbCk7DQogICAgaXBfaGVhZGVyID0gKHN0cnVjdCBpcGhkciAqKXNrYl9uZXR3b3Jr
+X2hlYWRlcihzb2NrX2J1ZmYpOw0KDQogICAgaWYgKCFpcF9oZWFkZXIpDQogICAgew0KICAg
+ICAgICBwcmludGsoS0VSTl9JTkZPICJOVUxMIGlwIGhlYWRlclxuIik7DQogICAgICAgIHJl
+dHVybiBORl9BQ0NFUFQ7DQogICAgfQ0KDQogICAgcHJpbnRrKEtFUk5fSU5GTyAiU1JDOiAo
+JXUuJXUuJXUuJXUpIC0tPiBEU1Q6ICgldS4ldS4ldS4ldSlcbiIsTklQUVVBRChpcF9oZWFk
+ZXItPnNhZGRyKSxOSVBRVUFEKGlwX2hlYWRlci0+ZGFkZHIpKTsNCg0KICAgIGlmKGlwX2hl
+YWRlci0+cHJvdG9jb2wgPT0gSVBQUk9UT19UQ1Apew0KICAgICAgICBwcmludGsoS0VSTl9J
+TkZPICJ0Y3AgcGFja2V0IHJlY2VpdmVkXG4iKTsNCiAgICB9DQoNCiAgICBpZihpcF9oZWFk
+ZXItPnByb3RvY29sID09IElQUFJPVE9fVURQKXsNCiAgICAgICAgcHJpbnRrKEtFUk5fSU5G
+TyAidWRwIHBhY2tldCByZWNlaXZlZFxuIik7DQogICAgfQ0KDQogICAgaWYoaXBfaGVhZGVy
+LT5wcm90b2NvbCA9PSBJUFBST1RPX0lDTVApew0KICAgICAgICBwcmludGsoS0VSTl9JTkZP
+ICJpY21wIHBhY2tldCByZWNlaXZlZFxuIik7DQogICAgfQ0KDQoNCiAgICBwcmludGsoS0VS
+Tl9JTkZPICJwYWNrZXQgcmVjZWl2ZWRcbiIpOw0KICAgIHJldHVybiBORl9BQ0NFUFQ7DQp9
+DQoNCnN0YXRpYyBpbnQgX19pbml0IGN1c3RvbV9pbml0X21vZHVsZSh2b2lkKQ0Kew0KIG5m
+aG8uaG9vayA9IGhvb2tfZnVuYzsgICAgICAgICAgICAgICAgICAgICAgIC8vZnVuY3Rpb24g
+dG8gY2FsbCB3aGVuIGNvbmRpdGlvbnMgYmVsb3cgbWV0DQogbmZoby5ob29rbnVtID0gTkZf
+SVBfUFJFX1JPVVRJTkc7ICAgICAgICAgICAgLy9jYWxsZWQgcmlnaHQgYWZ0ZXIgcGFja2V0
+IHJlY2lldmVkLCBmaXJzdCBob29rIGluIE5ldGZpbHRlcg0KIG5maG8ucGYgPSBQRl9JTkVU
+OyAgICAgICAgICAgICAgICAgICAgICAgICAgIC8vSVBWNCBwYWNrZXRzDQogbmZoby5wcmlv
+cml0eSA9IE5GX0lQX1BSSV9GSVJTVDsgICAgICAgICAgICAgLy9zZXQgdG8gaGlnaGVzdCBw
+cmlvcml0eSBvdmVyIGFsbCBvdGhlciBob29rIGZ1bmN0aW9ucw0KIG5mX3JlZ2lzdGVyX2hv
+b2soJm5maG8pOyAgICAgICAgICAgICAgICAgICAgIC8vcmVnaXN0ZXIgaG9vaw0KDQogcHJp
+bnRrKEtFUk5fSU5GTyAiaW5pdF9tb2R1bGUoKSBjYWxsZWRcbiIpOw0KIHJldHVybiAwOw0K
+fQ0KDQpzdGF0aWMgdm9pZCBfX2V4aXQgY3VzdG9tX2NsZWFudXBfbW9kdWxlKHZvaWQpDQp7
+DQogcHJpbnRrKEtFUk5fSU5GTyAiY2xlYW51cF9tb2R1bGUoKSBjYWxsZWRcbiIpOw0KIG5m
+X3VucmVnaXN0ZXJfaG9vaygmbmZobyk7ICAgICAgICAgICAgICAgICAgICAgLy9jbGVhbnVw
+IJYgdW5yZWdpc3RlciBob29rDQp9DQoNCm1vZHVsZV9pbml0KGN1c3RvbV9pbml0X21vZHVs
+ZSk7DQptb2R1bGVfZXhpdChjdXN0b21fY2xlYW51cF9tb2R1bGUpOw==
+--------------040809050703080604010404--
