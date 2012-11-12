@@ -1,69 +1,72 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH RFC v2] netfilter: add connlabel conntrack extension
-Date: Mon, 12 Nov 2012 13:47:05 +0100
-Message-ID: <20121112124705.GC20678@breakpoint.cc>
-References: <1351860231-5434-1-git-send-email-fw@strlen.de>
- <20121112065001.GB11330@1984>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: UDP packets sent with wrong source address after routing change
+ [AV#3431]
+Date: Mon, 12 Nov 2012 16:05:45 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1211121556480.18137@blackhole.kfki.hu>
+References: <alpine.DEB.2.02.1211081627150.6644@lap-x201> <alpine.LNX.2.01.1211081829150.28568@nerf07.vanv.qr> <alpine.DEB.2.00.1211081823030.5637@chris-desktop.fen.aptivate.org> <20121110140720.GA9610@1984> <alpine.LNX.2.01.1211101957320.1938@nerf07.vanv.qr>
+ <alpine.DEB.2.00.1211102216540.14307@blackhole.kfki.hu> <alpine.DEB.2.02.1211121019280.23195@lap-x201>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Chris Wilson <chris-netfilter-110904@aptivate.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:54333 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751949Ab2KLMrG (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Nov 2012 07:47:06 -0500
-Content-Disposition: inline
-In-Reply-To: <20121112065001.GB11330@1984>
+Received: from smtp-in.kfki.hu ([148.6.0.25]:37490 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752959Ab2KLPFs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 Nov 2012 10:05:48 -0500
+In-Reply-To: <alpine.DEB.2.02.1211121019280.23195@lap-x201>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > diff --git a/net/netfilter/nf_conntrack_labels.c b/net/netfilter/nf_conntrack_labels.c
-> > new file mode 100644
-> > index 0000000..eab398b
-> > --- /dev/null
-> > +++ b/net/netfilter/nf_conntrack_labels.c
-> > @@ -0,0 +1,143 @@
-> > +#include <linux/ctype.h>
-> > +#include <linux/export.h>
-> > +#include <linux/jhash.h>
-> > +#include <linux/spinlock.h>
-> > +#include <linux/types.h>
-> > +#include <linux/slab.h>
-> > +
-> > +#include <net/netfilter/nf_conntrack_ecache.h>
-> > +#include <net/netfilter/nf_conntrack_labels.h>
-> > +
-> > +static int labels_set_realloc(struct nf_conn_labels *l,
-> > +			      struct __nf_conn_labels_rcu_ptr *oldptr, u16 bit)
+On Mon, 12 Nov 2012, Chris Wilson wrote:
+
+> On Sat, 10 Nov 2012, Jozsef Kadlecsik wrote:
 > 
-> I think we can simplify this code if we use the CT target to set the
-> number of labels that we'll use, so we skip allocations in runtime and
-> possible reallocation.
+> > But the thread is drifted from the original cases:
+> > 
+> > > This only seems to happen when you're using a UDP device behind a Linux
+> > > NAT router, and your routing to the destination host changes, because:
+> > > 
+> > > * You bring up a VPN tunnel and the SIP destination is at the other end
+> > > of that tunnel; or
+> > 
+> > This case is not handled by MASQUERADE.
+> > 
+> > > * Your default route changes because you failover to another provider.
+> > 
+> > And this case is also not handled if the original default route device is
+> > still healthy, that is for example when you use some dynamic routing
+> > protocol which detects failure in the routing path.
 > 
-> ... -t raw -j CT --labels 32
+> Not necessarily dynamic routing. Even using pppd (pppoa/pppoe) for one
+> connection and ethernet for the other can cause this problem. Any case that
+> changes routing without bringing down the old device can be affected.
+> 
+> I'm glad you agree that these are actual problems or limitations with
+> MASQUERADE.
+>
+> > I do not see any simple solution except to delete any NATed entry
+> > unconditionally when the routing changes. But that can easily be too much
+> > and may kill valid entries.
+> 
+> But I'm sorry that you won't consider having a flag that changes 
+> MASQUERADE's behaviour to automatically change the source address in the 
+> conntrack entry.
 
-I'm not convinced yet ;-)
+I don't think changing the source address were a good solution: if 
+MASQUERADE could be changed to handle the cases then the wrong conntrack 
+entries should be deleted.
 
-I think we should avoid to make users fiddle with CT target options
-just to get certain functionality working.
+But what would trigger the action? (Routing changed? I do not see such a 
+kernel event but I might missed it.) And more importantly, what would 
+identify the affected entries?
 
-Alternative would be to keep track of highest bit requested in a "-m connlabel"
-rule to figure out the needed size.
+I do not see any good answer to those questions.
 
-In any case, it would require adding "u16 len" to the extension area; else
-we can't figure out how many bytes are valid, i.e.:
-
-struct nf_conn_labels {
-+       u16 size;		/* length of label storage */
-+	unsigned long bits[];	/* variable-sized label storage */
-+};
-
-it would increase minimum length needed but it would avoid
-the rcu dances done by the current scheme.
-
-It this is ok for you I'll make this change to see how many LOC are
-saved by this.
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
