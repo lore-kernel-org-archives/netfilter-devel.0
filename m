@@ -1,93 +1,64 @@
-From: dawid <dawidwys@gmail.com>
-Subject: Using netfilter Api within OpenWRT
-Date: Mon, 12 Nov 2012 20:40:55 +0100
-Message-ID: <50A150C7.1030205@gmail.com>
+From: Ed W <lists@wildgooses.com>
+Subject: Re: UDP packets sent with wrong source address after routing change
+ [AV#3431]
+Date: Mon, 12 Nov 2012 19:56:40 +0000
+Message-ID: <50A15478.6070801@wildgooses.com>
+References: <alpine.DEB.2.02.1211081627150.6644@lap-x201> <alpine.LNX.2.01.1211081829150.28568@nerf07.vanv.qr> <alpine.DEB.2.00.1211081823030.5637@chris-desktop.fen.aptivate.org> <20121110140720.GA9610@1984> <alpine.LNX.2.01.1211101957320.1938@nerf07.vanv.qr> <alpine.DEB.2.00.1211102216540.14307@blackhole.kfki.hu> <alpine.DEB.2.02.1211121019280.23195@lap-x201> <alpine.DEB.2.00.1211121556480.18137@blackhole.kfki.hu> <alpine.DEB.2.02.1211121523190.23195@lap-x201> <alpine.DEB.2.00.1211121740100.18435@blackhole.kfki.hu> <alpine.DEB.2.02.1211121805330.23195@lap-x201>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040809050703080604010404"
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org
+To: Chris Wilson <chris-netfilter-110904@aptivate.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:40303 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752021Ab2KLTlA (ORCPT
+Received: from mail1.nippynetworks.com ([91.220.24.129]:59546 "EHLO
+	mail1.nippynetworks.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751888Ab2KLT4n (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Nov 2012 14:41:00 -0500
-Received: by mail-bk0-f46.google.com with SMTP id q16so247814bkw.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Nov 2012 11:40:59 -0800 (PST)
+	Mon, 12 Nov 2012 14:56:43 -0500
+In-Reply-To: <alpine.DEB.2.02.1211121805330.23195@lap-x201>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------040809050703080604010404
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Hi I am writing some netfilter kernel module for my OpenWRT Backfire rev 
-28680 build for Dir-300(AR23xx).
+>> An in-kernel "route changed" notification were great, because then we 
+>> could delete all MASQUERAD-ed entries where --update-source-address 
+>> flag is set.
+>
+> If we could register to receive routing changed events for SNAT source 
+> addresses, that would be great (more efficient) but if the mechanism 
+> does not yet exist, it would be much more difficult to create.
+>
+> I suppose that if we just deleted them all on any routing change, then 
+> that would solve the immediate problem for us. It would be ideal if 
+> incoming packets could still be directed to the correct internal 
+> source, but dropping them is a smaller problem than continuing to send 
+> out invalid packets and keeping a broken entry alive forever.
 
-I have written some hook_function but unfortunatly any sk_buff i get in 
-it is corrupted. There is only trash in it and as a
-Could some of u tell me what am i doing wrong? The skb_network_header 
-function always returns NULL.
+I'm probably completely missing the point, but:
 
-I have included example of my code.
+- Route changes such as you describe will be triggered by some user 
+space event.
+- Lets generically call that "dhcpcd" for the sake of a label
+- These userspace events should all be capable of some kind of "hook" on 
+change
+- This userspace hook can zap the relevant conntrack entries
 
-I would be extremely grateful for any sort of help.
+The pros/conns seem to be that:
+- one more piece of userspace to maintain
+- but there is now integration between the userspace routing decisions 
+and the decision to zap certain conntrack entries
 
-Regards
 
-Dawid
+For example in my situation I dynamically tweak ipsets and an IP 
+dropping into an IPset causes routing decisions to be made for just that 
+user. When we add a user to an ipset we also zap previous conntrack 
+entries relating to that user.
+
+I'm not sure that I can see any way for the kernel to know when it 
+should adjust conntrack entries in my situation?
 
 
---------------040809050703080604010404
-Content-Type: text/plain; charset=windows-1250;
- name="module.c"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="module.c"
+Cheers
 
-I2luY2x1ZGUgPGxpbnV4L21vZHVsZS5oPg0KI2luY2x1ZGUgPGxpbnV4L2tlcm5lbC5oPg0K
-I2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlci5oPg0KI3VuZGVmIF9fS0VSTkVMX18NCiNpbmNs
-dWRlIDxsaW51eC9uZXRmaWx0ZXJfaXB2NC5oPg0KI2RlZmluZSBfX0tFUk5FTF9fDQojaW5j
-bHVkZSA8bGludXgvc2tidWZmLmg+DQojaW5jbHVkZSA8bGludXgvaXAuaD4NCiNpbmNsdWRl
-IDxuZXQvaXAuaD4NCiNpbmNsdWRlIDxuZXQvdGNwLmg+DQoNCnN0cnVjdCBuZl9ob29rX29w
-cyBuZmhvOyAgIC8vbmV0IGZpbHRlciBob29rIG9wdGlvbiBzdHJ1Y3QNCnN0cnVjdCBza19i
-dWZmICpzb2NrX2J1ZmY7DQpzdHJ1Y3QgdGNwaGRyICp0Y3BfaGVhZGVyOyAgICAgICAgICAv
-LyBUQ1AgaGVhZGVyIHN0cnVjdA0Kc3RydWN0IGlwaGRyICppcF9oZWFkZXI7ICAgICAgICAg
-ICAgLy8gSVAgaGVhZGVyIHN0cnVjdA0KDQoNCnVuc2lnbmVkIGludCBob29rX2Z1bmModW5z
-aWduZWQgaW50IGhvb2tudW0sDQogICAgICAgICAgICBzdHJ1Y3Qgc2tfYnVmZiAqc2tiLA0K
-ICAgICAgICAgICAgY29uc3Qgc3RydWN0IG5ldF9kZXZpY2UgKmluLA0KICAgICAgICAgICAg
-Y29uc3Qgc3RydWN0IG5ldF9kZXZpY2UgKm91dCwNCiAgICAgICAgICAgIGludCAoKm9rZm4p
-KHN0cnVjdCBza19idWZmICopKQ0Kew0KICAgIHNvY2tfYnVmZiA9IHNrYjsNCg0KICAgIGlm
-ICghc29ja19idWZmKQ0KICAgIHsNCiAgICAgICAgcHJpbnRrKEtFUk5fSU5GTyAiTlVMTCBz
-b2NrIGJ1ZmYgaGVhZGVyXG4iKTsNCiAgICAgICAgcmV0dXJuIE5GX0FDQ0VQVDsNCiAgICB9
-DQoNCiAgICBwcmludGsoS0VSTl9JTkZPICJJUF9QUk9UTyAlZFxuIiwgc29ja19idWZmLT5w
-cm90b2NvbCk7DQogICAgaXBfaGVhZGVyID0gKHN0cnVjdCBpcGhkciAqKXNrYl9uZXR3b3Jr
-X2hlYWRlcihzb2NrX2J1ZmYpOw0KDQogICAgaWYgKCFpcF9oZWFkZXIpDQogICAgew0KICAg
-ICAgICBwcmludGsoS0VSTl9JTkZPICJOVUxMIGlwIGhlYWRlclxuIik7DQogICAgICAgIHJl
-dHVybiBORl9BQ0NFUFQ7DQogICAgfQ0KDQogICAgcHJpbnRrKEtFUk5fSU5GTyAiU1JDOiAo
-JXUuJXUuJXUuJXUpIC0tPiBEU1Q6ICgldS4ldS4ldS4ldSlcbiIsTklQUVVBRChpcF9oZWFk
-ZXItPnNhZGRyKSxOSVBRVUFEKGlwX2hlYWRlci0+ZGFkZHIpKTsNCg0KICAgIGlmKGlwX2hl
-YWRlci0+cHJvdG9jb2wgPT0gSVBQUk9UT19UQ1Apew0KICAgICAgICBwcmludGsoS0VSTl9J
-TkZPICJ0Y3AgcGFja2V0IHJlY2VpdmVkXG4iKTsNCiAgICB9DQoNCiAgICBpZihpcF9oZWFk
-ZXItPnByb3RvY29sID09IElQUFJPVE9fVURQKXsNCiAgICAgICAgcHJpbnRrKEtFUk5fSU5G
-TyAidWRwIHBhY2tldCByZWNlaXZlZFxuIik7DQogICAgfQ0KDQogICAgaWYoaXBfaGVhZGVy
-LT5wcm90b2NvbCA9PSBJUFBST1RPX0lDTVApew0KICAgICAgICBwcmludGsoS0VSTl9JTkZP
-ICJpY21wIHBhY2tldCByZWNlaXZlZFxuIik7DQogICAgfQ0KDQoNCiAgICBwcmludGsoS0VS
-Tl9JTkZPICJwYWNrZXQgcmVjZWl2ZWRcbiIpOw0KICAgIHJldHVybiBORl9BQ0NFUFQ7DQp9
-DQoNCnN0YXRpYyBpbnQgX19pbml0IGN1c3RvbV9pbml0X21vZHVsZSh2b2lkKQ0Kew0KIG5m
-aG8uaG9vayA9IGhvb2tfZnVuYzsgICAgICAgICAgICAgICAgICAgICAgIC8vZnVuY3Rpb24g
-dG8gY2FsbCB3aGVuIGNvbmRpdGlvbnMgYmVsb3cgbWV0DQogbmZoby5ob29rbnVtID0gTkZf
-SVBfUFJFX1JPVVRJTkc7ICAgICAgICAgICAgLy9jYWxsZWQgcmlnaHQgYWZ0ZXIgcGFja2V0
-IHJlY2lldmVkLCBmaXJzdCBob29rIGluIE5ldGZpbHRlcg0KIG5maG8ucGYgPSBQRl9JTkVU
-OyAgICAgICAgICAgICAgICAgICAgICAgICAgIC8vSVBWNCBwYWNrZXRzDQogbmZoby5wcmlv
-cml0eSA9IE5GX0lQX1BSSV9GSVJTVDsgICAgICAgICAgICAgLy9zZXQgdG8gaGlnaGVzdCBw
-cmlvcml0eSBvdmVyIGFsbCBvdGhlciBob29rIGZ1bmN0aW9ucw0KIG5mX3JlZ2lzdGVyX2hv
-b2soJm5maG8pOyAgICAgICAgICAgICAgICAgICAgIC8vcmVnaXN0ZXIgaG9vaw0KDQogcHJp
-bnRrKEtFUk5fSU5GTyAiaW5pdF9tb2R1bGUoKSBjYWxsZWRcbiIpOw0KIHJldHVybiAwOw0K
-fQ0KDQpzdGF0aWMgdm9pZCBfX2V4aXQgY3VzdG9tX2NsZWFudXBfbW9kdWxlKHZvaWQpDQp7
-DQogcHJpbnRrKEtFUk5fSU5GTyAiY2xlYW51cF9tb2R1bGUoKSBjYWxsZWRcbiIpOw0KIG5m
-X3VucmVnaXN0ZXJfaG9vaygmbmZobyk7ICAgICAgICAgICAgICAgICAgICAgLy9jbGVhbnVw
-IJYgdW5yZWdpc3RlciBob29rDQp9DQoNCm1vZHVsZV9pbml0KGN1c3RvbV9pbml0X21vZHVs
-ZSk7DQptb2R1bGVfZXhpdChjdXN0b21fY2xlYW51cF9tb2R1bGUpOw==
---------------040809050703080604010404--
+Ed W
