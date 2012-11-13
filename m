@@ -1,81 +1,48 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: UDP packets sent with wrong source address after routing change
- [AV#3431]
-Date: Tue, 13 Nov 2012 17:19:49 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1211131712210.21144@blackhole.kfki.hu>
-References: <alpine.DEB.2.02.1211081627150.6644@lap-x201> <alpine.LNX.2.01.1211081829150.28568@nerf07.vanv.qr> <alpine.DEB.2.00.1211081823030.5637@chris-desktop.fen.aptivate.org> <20121110140720.GA9610@1984> <alpine.LNX.2.01.1211101957320.1938@nerf07.vanv.qr>
- <alpine.DEB.2.00.1211102216540.14307@blackhole.kfki.hu> <alpine.DEB.2.02.1211121019280.23195@lap-x201> <alpine.DEB.2.00.1211121556480.18137@blackhole.kfki.hu> <alpine.DEB.2.02.1211121523190.23195@lap-x201> <alpine.DEB.2.00.1211121740100.18435@blackhole.kfki.hu>
- <alpine.DEB.2.02.1211121805330.23195@lap-x201> <alpine.DEB.2.00.1211121940290.18729@blackhole.kfki.hu> <alpine.DEB.2.00.1211122014550.4432@chris-desktop.fen.aptivate.org> <alpine.DEB.2.00.1211131639320.21144@blackhole.kfki.hu>
- <alpine.DEB.2.02.1211131601040.23195@lap-x201>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Chris Wilson <chris-netfilter-110904@aptivate.org>
+From: pablo@netfilter.org
+Subject: [PATCH] [RFC] nf_tables: dormant tables
+Date: Tue, 13 Nov 2012 17:33:18 +0100
+Message-ID: <1352824399-3641-1-git-send-email-pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:42730 "EHLO smtp1.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:48418 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752108Ab2KMQTv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Nov 2012 11:19:51 -0500
-In-Reply-To: <alpine.DEB.2.02.1211131601040.23195@lap-x201>
+	id S1754780Ab2KMQdj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Nov 2012 11:33:39 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Chris,
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-On Tue, 13 Nov 2012, Chris Wilson wrote:
+Hi,
 
-> On Tue, 13 Nov 2012, Jozsef Kadlecsik wrote:
-> 
-> > Please note, I believe only the second example you wrote is relevant.
-> > Starting VPN just out of the blue *after* connections are built up is just
-> > not the right thing.
-> 
-> I don't want to argue too strongly for the VPN case because I didn't
-> experience it myself. I found it while researching to understand this problem,
-> and it was never solved (properly and reported) by the sysadmin who
-> experienced it.
-> 
-> The problem I have with that is that I don't know how to configure the Linux
-> firewall and devices behind it correctly to avoid this.
-> 
-> Devices behind the firewall are trying to establish connections with devices
-> outside, constantly. The firewall reboots. As soon as networking is up and
-> iptables allows the devices' packets to pass, they start creating conntrack
-> entries, even if the VPN is not up and therefore the packets are being routed
-> out of the wrong interface.
+The following patch adds the concept of dormant tables. Basically,
+it's a flag that you can set to get a table (and all they chains)
+inactive. Dormant tables have no effect and see no traffic.
 
-Ahh, the niceties of living systems! :-))
- 
-> The VPN cannot be brought up until networking is up, so the only ways I can
-> see to prevent this are:
-> 
-> * the firewall ruleset forbids packets destined for VPN addresses to leave via
-> the public interface. But the VPN destinations not be known until the tunnel
-> comes up and the VPN server declares to the client which subnets should be
-> routed through it. It might even change every time. Or it might be the default
-> route. Should we then forbid all packets from leaving on the public interface?
-> How will the VPN communication happen then?
+This operation can be also used to support atomic replacement
+at chain level, that can be done following these steps:
 
-But *something* selects which traffic is forwarded via the VPN tunnels. As 
-egress-ingress filtering, the same selection can be used to allow the 
-proper interfaces only.
- 
-> * disable IP forwarding until the VPN comes up. Affects all non-VPN traffic as
-> well.
-> 
-> * keep the internal interface down until VPN comes up. Affects all non-VPN
-> traffic as well.
-> 
-> * shoot lusers/device vendors in the head. Maybe the best option?
-> 
-> * flush the existing conntrack entries when the VPN comes up.
-> 
-> * any others?
+1) set table as dormant
+2) flush the rule-set in all their chains
+3) add the new rule-set
+4) set table as active
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+The main target of this patch is to provide a way to load the
+rule-set in a chain at once, avoiding possible some inconsistent
+state at the chain level.
+
+Coments welcome.
+
+Pablo Neira Ayuso (1):
+  netfilter: nf_tables: add support for dormant tables
+
+ include/linux/netfilter/nf_tables.h |   10 ++++
+ include/net/netfilter/nf_tables.h   |    2 +
+ net/netfilter/nf_tables_api.c       |   90 +++++++++++++++++++++++++++++++++--
+ 3 files changed, 98 insertions(+), 4 deletions(-)
+
+-- 
+1.7.10.4
+
