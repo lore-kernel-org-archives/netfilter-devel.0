@@ -1,93 +1,120 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: UDP packets sent with wrong source address after routing change
  [AV#3431]
-Date: Tue, 13 Nov 2012 16:25:30 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1211131619040.21144@blackhole.kfki.hu>
+Date: Tue, 13 Nov 2012 16:58:06 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1211131639320.21144@blackhole.kfki.hu>
 References: <alpine.DEB.2.02.1211081627150.6644@lap-x201> <alpine.LNX.2.01.1211081829150.28568@nerf07.vanv.qr> <alpine.DEB.2.00.1211081823030.5637@chris-desktop.fen.aptivate.org> <20121110140720.GA9610@1984> <alpine.LNX.2.01.1211101957320.1938@nerf07.vanv.qr>
- <alpine.DEB.2.00.1211102216540.14307@blackhole.kfki.hu> <alpine.DEB.2.02.1211121019280.23195@lap-x201> <alpine.DEB.2.00.1211121556480.18137@blackhole.kfki.hu> <alpine.DEB.2.02.1211121523190.23195@lap-x201> <alpine.DEB.2.00.1211122020280.18729@blackhole.kfki.hu>
- <20121112233024.GA15215@1984> <50A257C8.8050700@earthlink.net>
+ <alpine.DEB.2.00.1211102216540.14307@blackhole.kfki.hu> <alpine.DEB.2.02.1211121019280.23195@lap-x201> <alpine.DEB.2.00.1211121556480.18137@blackhole.kfki.hu> <alpine.DEB.2.02.1211121523190.23195@lap-x201> <alpine.DEB.2.00.1211121740100.18435@blackhole.kfki.hu>
+ <alpine.DEB.2.02.1211121805330.23195@lap-x201> <alpine.DEB.2.00.1211121940290.18729@blackhole.kfki.hu> <alpine.DEB.2.00.1211122014550.4432@chris-desktop.fen.aptivate.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Chris Wilson <chris-netfilter-110904@aptivate.org>,
-	netfilter-devel@vger.kernel.org
-To: Stephen Clark <sclark46@earthlink.net>
+Cc: netfilter-devel@vger.kernel.org
+To: Chris Wilson <chris-netfilter-110904@aptivate.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:51607 "EHLO smtp0.kfki.hu"
+Received: from smtp1.kfki.hu ([148.6.0.26]:33054 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750779Ab2KMPZd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Nov 2012 10:25:33 -0500
-In-Reply-To: <50A257C8.8050700@earthlink.net>
+	id S1754074Ab2KMP6I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Nov 2012 10:58:08 -0500
+In-Reply-To: <alpine.DEB.2.00.1211122014550.4432@chris-desktop.fen.aptivate.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 13 Nov 2012, Stephen Clark wrote:
+On Mon, 12 Nov 2012, Chris Wilson wrote:
 
-> On 11/12/2012 06:30 PM, Pablo Neira Ayuso wrote:
-> > 
-> > On Mon, Nov 12, 2012 at 08:34:26PM +0100, Jozsef Kadlecsik wrote:
-> > > On Mon, 12 Nov 2012, Chris Wilson wrote:
+> On Mon, 12 Nov 2012, Jozsef Kadlecsik wrote:
+> 
+> > > > > * is sent out of an interface that does not list the packet's new
+> > > > > (SNAT-to)
+> > > > > source address as one of its IP addresses (i.e. if this were a new
+> > > > > connection, MASQUERADE would not choose this source address), and
+> > > > 
+> > > > First, it'd mean a heavy checking for every matched packet.
 > > > 
-> > > > I propose that:
-> > > > 
-> > > > * when the packet matches an existing conntrack rule, and
-> > > > 
-> > > > * is sent out of an interface that does not list the packet's new
-> > > > (SNAT-to)
-> > > > source address as one of its IP addresses (i.e. if this were a new
-> > > > connection, MASQUERADE would not choose this source address), and
-> > > > 
-> > > > * the --update-source-address flag is set on the MASQUERADE target
-> > > > 
-> > > > then update the source address on the conntrack rule to the new one.
-> > > > 
-> > > > That's the same thing that would happen if we deleted the conntrack
-> > > > entry
-> > > > first: MASQUERADE would choose a new source address and save it in the
-> > > > new
-> > > > conntrack entry.
-> > > What do you think about this?
-> > > 
-> > > - add route change notification event to the net core
-> > > - add --update-source-address flag to the MASQUERADE target
-> > > - add a call for such events to the MASQUERADE target, when
-> > >    the flag is enabled
-> > > 
-> > > The called function then can scan the conntrack table and for every entry
-> > > which has got the update-source-address flag, can check whether the source
-> > > IP address should be changed. Those entries are then deleted.
-> > It seems to me this can be implemented this from user-space. It would
-> > require a new working mode for conntrackd that would:
+> > > Is it really so expensive to get the list of IP addresses for an interface
+> > > and check down the list for presence of a given address?
 > > 
-> > 1) subscribe to route events via rtnl and libmnl.
-> > 2) get new interface address for some monitored address, also via rtnl.
-> > 3) iterate over the table and remove those entries with outdated IP
-> > address.
-> > 
-> > All the infrastructure is ready, and it would not require any kernel
-> > upgrade. What do you think about this approach?
-> > 
-> A similar problem exists in the following scenario:
-> You have two upstream isp that you are doing load balancing by having multiple
-> default routes:
-> default
->         nexthop via 66.xxx.xxx.xxx  dev eth1 weight 1
->         nexthop via 205.xxx.xxx.xxx  dev eth2 weight 1
-> On one of the external interface you have a DNAT to
-> an internal server on a private address. The DNAT makes
-> a conntrack entry that is going to in effect do a SNAT on reponses
-> from the internal server back out to the internet, but the load balancing
-> decision on routing happens before this implicit SNAT so you have packets
-> trying to go out an interface where the source address does not fall in the
-> subnet of that interface.
+> > That'd mean that for *every* packet first the next routing hop should be
+> > calculated in netfilter too
+> 
+> Why "too"? Doesn't the kernel do that already? Why not use the results of the
+> kernel's decision?
 
-In my opinion this is a broken network design. The DNAT should not depend 
-on the external interface, problem solved.
+I wrote from memory and I was wrong: routing info is reused.
  
-> Why is routing decision done before the SNAT?
+> > then an IP address of the interface selected and then the old and the
+> > calculated addresses compared. For every packet, unconditionally, that's
+> > simply too much overhead.
+> 
+> This only needs to be done if the packet hits a conntrack with
+> --update-source-address. And looking down the list of IP addresses of the
+> interface in that case doesn't seem too bad. But I'm willing to concede on it.
 
-Because that is the natural place: this way OUTPUT and FORWARD can be 
-separated and we can use the original source IP addresses in the rules.
+In your proposal, the checking of the --update-source-address flag was the 
+last one. So I commented it according to that logic.
+ 
+> > > If so, perhaps that's a problem elsewhere in the kernel?
+> > 
+> > No, it's netfilter specific.
+> 
+> I mean, it shouldn't be hard (or expensive) to get a list of IP addresses for
+> an interface, and it shouldn't be hard to check whether a given IP is in that
+> list. If it is, then it seems to me that something must be broken. But I don't
+> want to have a fight over it.
+
+What I press is that unnecessary checkings simply waste resources and 
+therefore expensive. Even if something is fast, if it can be avoided, then 
+we must do so.
+ 
+> > > Another option is to check, after routing, the source address that
+> > > MASQUERADE would have assigned to the packet. There must be a mechanism
+> > > for that, because we already do it for the first packet in the connection,
+> > > and it surely cannot be expensive. If it's different to the current
+> > > SNAT-to address in the conntrack, and the flag is set on the conntrack,
+> > > then update the conntrack.
+> > 
+> > The first packets are special: the (NAT) rules are evaluated for the very
+> > first packets only. Subsequent ones are looked up in the conntrack table and
+> > the nat table is completely skipped. As I wrote, there's no callback/hook by
+> > which such a functionality for MASQUERADE could be called.
+> 
+> That doesn't mean that it's expensive, just that we don't do it at the moment.
+> And the mangle table is called for every packet, so netfilter already does
+> some work for every packet.
+
+Yes, and the proposal of adding all hooks to the mangle table was also 
+heavily argued. Sorry, but I regard it expensive to add a new hook to NAT 
+in general, just to check a new MASQUERADE flag for every packet.
+ 
+> > Also, SNAT/MASQUERADE is the very last action in netfilter.
+> 
+> Sorry, but why does that make a difference?
+
+The "missing" callback/hook from NAT could be "worked around" if there 
+were a netfilter hook after SNAT/MASQUERADE.
+
+> > My concern is that there can for example be conntrack extensions attached
+> > to the conntrack entry, which may became broken if the IP address was
+> > simply changed.
+> 
+> Good point, I didn't realise that.
+> 
+> > > I think the problem applies even more to portless protocols such as GRE.
+> > > Devices have no choice to "change the source port" when making a new
+> > > connection. Any packets that they send, will definitely keep a stale entry
+> > > alive.
+> > > 
+> > > Thank you for considering and engaging with this proposal :)
+> > 
+> > It's an issue, which should be solved in MASQUERADE itself. The conntrack
+> > tool can be used to solve it, in theory. In practice it's not easy at all: a
+> > daemon should be run on the machine which catches the routing changes and
+> > then calls "conntrack".
+> 
+> Agreed :)
+
+Please note, I believe only the second example you wrote is relevant. 
+Starting VPN just out of the blue *after* connections are built up is just 
+not the right thing.
 
 Best regards,
 Jozsef
