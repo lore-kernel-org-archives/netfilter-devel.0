@@ -1,39 +1,39 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: Non-Understood Message
-Date: Tue, 13 Nov 2012 23:53:31 +0100
-Message-ID: <20121113225331.GG20678@breakpoint.cc>
-References: <50A2A40E.5050802@cats-muvva.net>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH 2/2] Handle the routing changes in the MASQUERADE
+ target
+Date: Wed, 14 Nov 2012 00:49:20 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1211140047370.26843@nerf07.vanv.qr>
+References: <1352837857-22087-1-git-send-email-kadlec@blackhole.kfki.hu> <1352837857-22087-3-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Nicole <nicole@cats-muvva.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:32971 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754045Ab2KMWxd (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Nov 2012 17:53:33 -0500
-Content-Disposition: inline
-In-Reply-To: <50A2A40E.5050802@cats-muvva.net>
+Received: from ares07.inai.de ([5.9.24.206]:60708 "EHLO ares07.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752146Ab2KMXtX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Nov 2012 18:49:23 -0500
+In-Reply-To: <1352837857-22087-3-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Nicole <nicole@cats-muvva.net> wrote:
-> MYTARGET.0 target: invalid size 65540 (kernel) != (user) 4
 
-[..]
+On Tuesday 2012-11-13 21:17, Jozsef Kadlecsik wrote:
 
-> struct xt_mytarget_tginfo {
->     __u8    value;
-> 
->     __u8    mode;
-> 
->     bool    final;
-> 
->     bool    set_value;
-> 
->     __u8    by_port[USHRT_MAX];
-> };
+>+static int
+>+route_cmp(struct nf_conn *i, const struct fib_info *fi)
+>+{  [...]
+>+}
+>+
+>+static int masq_route_event(struct notifier_block *this,
+>+			    unsigned long event,
+>+			    void *ptr)
+>+{
+>+	if (event == NETDEV_ROUTE_CHANGED) {
+>+		/* Routing changed, delete marked entries */
+>+		nf_ct_iterate_cleanup(net, route_cmp,
+>+				      (const struct fib_info)ptr);
 
-Its too large.  The kernel <-> userspace abi encodes size
-in 'u16' datatype, thus the target size sent by userspace overflows.
+It would seem you forget a '*' near fib_info)ptr.
+The cast is pointless though, since ptr is already of type void *
+which nf_ct_iterate_cleanup expects.
