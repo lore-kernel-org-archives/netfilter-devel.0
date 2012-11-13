@@ -1,61 +1,80 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Chris Wilson <chris-netfilter-110904@aptivate.org>
 Subject: Re: UDP packets sent with wrong source address after routing change
  [AV#3431]
-Date: Tue, 13 Nov 2012 17:04:48 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1211131658340.21144@blackhole.kfki.hu>
+Date: Tue, 13 Nov 2012 16:09:57 +0000 (GMT)
+Message-ID: <alpine.DEB.2.02.1211131601040.23195@lap-x201>
 References: <alpine.DEB.2.02.1211081627150.6644@lap-x201> <alpine.LNX.2.01.1211081829150.28568@nerf07.vanv.qr> <alpine.DEB.2.00.1211081823030.5637@chris-desktop.fen.aptivate.org> <20121110140720.GA9610@1984> <alpine.LNX.2.01.1211101957320.1938@nerf07.vanv.qr>
- <alpine.DEB.2.00.1211102216540.14307@blackhole.kfki.hu> <alpine.DEB.2.02.1211121019280.23195@lap-x201> <alpine.DEB.2.00.1211121556480.18137@blackhole.kfki.hu> <alpine.DEB.2.02.1211121523190.23195@lap-x201> <alpine.DEB.2.00.1211122020280.18729@blackhole.kfki.hu>
- <alpine.DEB.2.00.1211122227540.4432@chris-desktop.fen.aptivate.org>
+ <alpine.DEB.2.00.1211102216540.14307@blackhole.kfki.hu> <alpine.DEB.2.02.1211121019280.23195@lap-x201> <alpine.DEB.2.00.1211121556480.18137@blackhole.kfki.hu> <alpine.DEB.2.02.1211121523190.23195@lap-x201> <alpine.DEB.2.00.1211121740100.18435@blackhole.kfki.hu>
+ <alpine.DEB.2.02.1211121805330.23195@lap-x201> <alpine.DEB.2.00.1211121940290.18729@blackhole.kfki.hu> <alpine.DEB.2.00.1211122014550.4432@chris-desktop.fen.aptivate.org> <alpine.DEB.2.00.1211131639320.21144@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Chris Wilson <chris-netfilter-110904@aptivate.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Chris Wilson <chris-netfilter-110904@aptivate.org>,
+	netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:51163 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751576Ab2KMQEt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Nov 2012 11:04:49 -0500
-In-Reply-To: <alpine.DEB.2.00.1211122227540.4432@chris-desktop.fen.aptivate.org>
+Received: from one-mail.aptivate.org ([87.106.150.205]:35281 "EHLO
+	one-mail.aptivate.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752812Ab2KMQKQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Nov 2012 11:10:16 -0500
+In-Reply-To: <alpine.DEB.2.00.1211131639320.21144@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 12 Nov 2012, Chris Wilson wrote:
+Hi Jozsef,
 
-> On Mon, 12 Nov 2012, Jozsef Kadlecsik wrote:
-> 
-> > What do you think about this?
-> > 
-> > - add route change notification event to the net core
-> > - add --update-source-address flag to the MASQUERADE target
-> > - add a call for such events to the MASQUERADE target, when
-> >  the flag is enabled
-> > 
-> > The called function then can scan the conntrack table and for every entry
-> > which has got the update-source-address flag, can check whether the source
-> > IP address should be changed. Those entries are then deleted.
-> 
-> That sounds like a relatively easy implementation that would solve the main
-> problem for us.
-> 
-> I think there might be one element missing from the above process: the 
-> actual conntrack entries created by the MASQUERADE 
-> --update-source-address rule should be marked with an 
-> UPDATE_SOURCE_ADDRESS flag, so that they can be found and deleted when 
-> the routing changes.
+On Tue, 13 Nov 2012, Jozsef Kadlecsik wrote:
 
-Yes, I thought that is implied by the the MASQUERADE flag.
- 
-> Perhaps the flag/option should be called "--remove-if-routing-changes" or
-> "--routing-dependent" or something like that, since the source address is not
-> really being (directly) changed as I proposed at the beginning?
+>>>> I think the problem applies even more to portless protocols such as GRE.
+>>>> Devices have no choice to "change the source port" when making a new
+>>>> connection. Any packets that they send, will definitely keep a stale entry
+>>>> alive.
+>
+> Please note, I believe only the second example you wrote is relevant.
+> Starting VPN just out of the blue *after* connections are built up is just
+> not the right thing.
 
-I dunno, I'm not very good at naming. The "--routing-dependent" is 
-shorter.
+I don't want to argue too strongly for the VPN case because I didn't 
+experience it myself. I found it while researching to understand this 
+problem, and it was never solved (properly and reported) by the sysadmin 
+who experienced it.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+The problem I have with that is that I don't know how to configure the 
+Linux firewall and devices behind it correctly to avoid this.
+
+Devices behind the firewall are trying to establish connections with 
+devices outside, constantly. The firewall reboots. As soon as networking 
+is up and iptables allows the devices' packets to pass, they start 
+creating conntrack entries, even if the VPN is not up and therefore the 
+packets are being routed out of the wrong interface.
+
+The VPN cannot be brought up until networking is up, so the only ways I 
+can see to prevent this are:
+
+* the firewall ruleset forbids packets destined for VPN addresses to leave 
+via the public interface. But the VPN destinations not be known until the 
+tunnel comes up and the VPN server declares to the client which subnets 
+should be routed through it. It might even change every time. Or it might 
+be the default route. Should we then forbid all packets from leaving on 
+the public interface? How will the VPN communication happen then?
+
+* disable IP forwarding until the VPN comes up. Affects all non-VPN 
+traffic as well.
+
+* keep the internal interface down until VPN comes up. Affects all non-VPN 
+traffic as well.
+
+* shoot lusers/device vendors in the head. Maybe the best option?
+
+* flush the existing conntrack entries when the VPN comes up.
+
+* any others?
+
+Cheers, Chris.
+-- 
+Aptivate | http://www.aptivate.org | Phone: +44 1223 967 838
+Future Business, Cam City FC, Milton Rd, Cambridge, CB4 1UY, UK
+
+Aptivate is a not-for-profit company registered in England and Wales
+with company number 04980791.
+
