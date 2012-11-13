@@ -1,74 +1,83 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: UDP packets sent with wrong source address after routing
- change [AV#3431]
-Date: Tue, 13 Nov 2012 00:30:24 +0100
-Message-ID: <20121112233024.GA15215@1984>
-References: <alpine.DEB.2.02.1211081627150.6644@lap-x201>
- <alpine.LNX.2.01.1211081829150.28568@nerf07.vanv.qr>
- <alpine.DEB.2.00.1211081823030.5637@chris-desktop.fen.aptivate.org>
- <20121110140720.GA9610@1984>
- <alpine.LNX.2.01.1211101957320.1938@nerf07.vanv.qr>
- <alpine.DEB.2.00.1211102216540.14307@blackhole.kfki.hu>
- <alpine.DEB.2.02.1211121019280.23195@lap-x201>
- <alpine.DEB.2.00.1211121556480.18137@blackhole.kfki.hu>
- <alpine.DEB.2.02.1211121523190.23195@lap-x201>
- <alpine.DEB.2.00.1211122020280.18729@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Chris Wilson <chris-netfilter-110904@aptivate.org>,
-	netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: pablo@netfilter.org
+Subject: [PATCH 1/3] ipvs: remove silly double assignment
+Date: Tue, 13 Nov 2012 01:06:41 +0100
+Message-ID: <1352765203-4160-2-git-send-email-pablo@netfilter.org>
+References: <1352765203-4160-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42701 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:46011 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754135Ab2KLXa3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Nov 2012 18:30:29 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1211122020280.18729@blackhole.kfki.hu>
+	id S1753822Ab2KMAHB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 Nov 2012 19:07:01 -0500
+In-Reply-To: <1352765203-4160-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jozsef,
+From: Alan Cox <alan@linux.intel.com>
 
-On Mon, Nov 12, 2012 at 08:34:26PM +0100, Jozsef Kadlecsik wrote:
-> On Mon, 12 Nov 2012, Chris Wilson wrote:
-> 
-> > I propose that:
-> > 
-> > * when the packet matches an existing conntrack rule, and
-> > 
-> > * is sent out of an interface that does not list the packet's new (SNAT-to)
-> > source address as one of its IP addresses (i.e. if this were a new
-> > connection, MASQUERADE would not choose this source address), and
-> > 
-> > * the --update-source-address flag is set on the MASQUERADE target
-> > 
-> > then update the source address on the conntrack rule to the new one.
-> > 
-> > That's the same thing that would happen if we deleted the conntrack entry
-> > first: MASQUERADE would choose a new source address and save it in the new
-> > conntrack entry.
-> 
-> What do you think about this?
-> 
-> - add route change notification event to the net core
-> - add --update-source-address flag to the MASQUERADE target
-> - add a call for such events to the MASQUERADE target, when
->   the flag is enabled
-> 
-> The called function then can scan the conntrack table and for every entry 
-> which has got the update-source-address flag, can check whether the source 
-> IP address should be changed. Those entries are then deleted.
+I don't even want to think what the C spec says for this 8)
 
-It seems to me this can be implemented this from user-space. It would
-require a new working mode for conntrackd that would:
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/ipvs/ip_vs_nfct.c |    2 +-
+ net/netfilter/ipvs/ip_vs_xmit.c |    8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-1) subscribe to route events via rtnl and libmnl.
-2) get new interface address for some monitored address, also via rtnl.
-3) iterate over the table and remove those entries with outdated IP
-address.
+diff --git a/net/netfilter/ipvs/ip_vs_nfct.c b/net/netfilter/ipvs/ip_vs_nfct.c
+index 022e77e..c8beafd 100644
+--- a/net/netfilter/ipvs/ip_vs_nfct.c
++++ b/net/netfilter/ipvs/ip_vs_nfct.c
+@@ -82,7 +82,7 @@ void
+ ip_vs_update_conntrack(struct sk_buff *skb, struct ip_vs_conn *cp, int outin)
+ {
+ 	enum ip_conntrack_info ctinfo;
+-	struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
++	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 	struct nf_conntrack_tuple new_tuple;
+ 
+ 	if (ct == NULL || nf_ct_is_confirmed(ct) || nf_ct_is_untracked(ct) ||
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index 12008b4..ee6b7a9 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -594,7 +594,7 @@ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ #if IS_ENABLED(CONFIG_NF_CONNTRACK)
+ 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
+ 		enum ip_conntrack_info ctinfo;
+-		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
++		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 
+ 		if (ct && !nf_ct_is_untracked(ct)) {
+ 			IP_VS_DBG_RL_PKT(10, AF_INET, pp, skb, 0,
+@@ -710,7 +710,7 @@ ip_vs_nat_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ #if IS_ENABLED(CONFIG_NF_CONNTRACK)
+ 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
+ 		enum ip_conntrack_info ctinfo;
+-		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
++		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 
+ 		if (ct && !nf_ct_is_untracked(ct)) {
+ 			IP_VS_DBG_RL_PKT(10, AF_INET6, pp, skb, 0,
+@@ -1235,7 +1235,7 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ #if IS_ENABLED(CONFIG_NF_CONNTRACK)
+ 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
+ 		enum ip_conntrack_info ctinfo;
+-		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
++		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 
+ 		if (ct && !nf_ct_is_untracked(ct)) {
+ 			IP_VS_DBG(10, "%s(): "
+@@ -1356,7 +1356,7 @@ ip_vs_icmp_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ #if IS_ENABLED(CONFIG_NF_CONNTRACK)
+ 	if (cp->flags & IP_VS_CONN_F_SYNC && local) {
+ 		enum ip_conntrack_info ctinfo;
+-		struct nf_conn *ct = ct = nf_ct_get(skb, &ctinfo);
++		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 
+ 		if (ct && !nf_ct_is_untracked(ct)) {
+ 			IP_VS_DBG(10, "%s(): "
+-- 
+1.7.10.4
 
-All the infrastructure is ready, and it would not require any kernel
-upgrade. What do you think about this approach?
-
-Regards.
