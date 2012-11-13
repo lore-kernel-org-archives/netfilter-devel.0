@@ -1,80 +1,62 @@
-From: Chris Wilson <chris-netfilter-110904@aptivate.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: UDP packets sent with wrong source address after routing change
  [AV#3431]
-Date: Tue, 13 Nov 2012 16:09:57 +0000 (GMT)
-Message-ID: <alpine.DEB.2.02.1211131601040.23195@lap-x201>
+Date: Tue, 13 Nov 2012 17:11:11 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1211131704520.21144@blackhole.kfki.hu>
 References: <alpine.DEB.2.02.1211081627150.6644@lap-x201> <alpine.LNX.2.01.1211081829150.28568@nerf07.vanv.qr> <alpine.DEB.2.00.1211081823030.5637@chris-desktop.fen.aptivate.org> <20121110140720.GA9610@1984> <alpine.LNX.2.01.1211101957320.1938@nerf07.vanv.qr>
- <alpine.DEB.2.00.1211102216540.14307@blackhole.kfki.hu> <alpine.DEB.2.02.1211121019280.23195@lap-x201> <alpine.DEB.2.00.1211121556480.18137@blackhole.kfki.hu> <alpine.DEB.2.02.1211121523190.23195@lap-x201> <alpine.DEB.2.00.1211121740100.18435@blackhole.kfki.hu>
- <alpine.DEB.2.02.1211121805330.23195@lap-x201> <alpine.DEB.2.00.1211121940290.18729@blackhole.kfki.hu> <alpine.DEB.2.00.1211122014550.4432@chris-desktop.fen.aptivate.org> <alpine.DEB.2.00.1211131639320.21144@blackhole.kfki.hu>
+ <alpine.DEB.2.00.1211102216540.14307@blackhole.kfki.hu> <alpine.DEB.2.02.1211121019280.23195@lap-x201> <alpine.DEB.2.00.1211121556480.18137@blackhole.kfki.hu> <alpine.DEB.2.02.1211121523190.23195@lap-x201> <alpine.DEB.2.00.1211122020280.18729@blackhole.kfki.hu>
+ <20121112233024.GA15215@1984>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Chris Wilson <chris-netfilter-110904@aptivate.org>,
 	netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from one-mail.aptivate.org ([87.106.150.205]:35281 "EHLO
-	one-mail.aptivate.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752812Ab2KMQKQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Nov 2012 11:10:16 -0500
-In-Reply-To: <alpine.DEB.2.00.1211131639320.21144@blackhole.kfki.hu>
+Received: from smtp2.kfki.hu ([148.6.0.28]:56900 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754923Ab2KMQLM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Nov 2012 11:11:12 -0500
+In-Reply-To: <20121112233024.GA15215@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jozsef,
+On Tue, 13 Nov 2012, Pablo Neira Ayuso wrote:
 
-On Tue, 13 Nov 2012, Jozsef Kadlecsik wrote:
+> On Mon, Nov 12, 2012 at 08:34:26PM +0100, Jozsef Kadlecsik wrote:
+> > 
+> > What do you think about this?
+> > 
+> > - add route change notification event to the net core
+> > - add --update-source-address flag to the MASQUERADE target
+> > - add a call for such events to the MASQUERADE target, when
+> >   the flag is enabled
+> > 
+> > The called function then can scan the conntrack table and for every entry 
+> > which has got the update-source-address flag, can check whether the source 
+> > IP address should be changed. Those entries are then deleted.
+> 
+> It seems to me this can be implemented this from user-space. It would
+> require a new working mode for conntrackd that would:
+> 
+> 1) subscribe to route events via rtnl and libmnl.
+> 2) get new interface address for some monitored address, also via rtnl.
+> 3) iterate over the table and remove those entries with outdated IP
+> address.
+> 
+> All the infrastructure is ready, and it would not require any kernel
+> upgrade. What do you think about this approach?
 
->>>> I think the problem applies even more to portless protocols such as GRE.
->>>> Devices have no choice to "change the source port" when making a new
->>>> connection. Any packets that they send, will definitely keep a stale entry
->>>> alive.
->
-> Please note, I believe only the second example you wrote is relevant.
-> Starting VPN just out of the blue *after* connections are built up is just
-> not the right thing.
+So far conntrackd implements conntrack replication. It could be extended 
+with such functionality, yes. However, it'd be just good if MASQUERADE 
+would not require an external component (i.e. userspace daemon) to work in 
+all cases.
 
-I don't want to argue too strongly for the VPN case because I didn't 
-experience it myself. I found it while researching to understand this 
-problem, and it was never solved (properly and reported) by the sysadmin 
-who experienced it.
+Step 2 does indeed required?
 
-The problem I have with that is that I don't know how to configure the 
-Linux firewall and devices behind it correctly to avoid this.
-
-Devices behind the firewall are trying to establish connections with 
-devices outside, constantly. The firewall reboots. As soon as networking 
-is up and iptables allows the devices' packets to pass, they start 
-creating conntrack entries, even if the VPN is not up and therefore the 
-packets are being routed out of the wrong interface.
-
-The VPN cannot be brought up until networking is up, so the only ways I 
-can see to prevent this are:
-
-* the firewall ruleset forbids packets destined for VPN addresses to leave 
-via the public interface. But the VPN destinations not be known until the 
-tunnel comes up and the VPN server declares to the client which subnets 
-should be routed through it. It might even change every time. Or it might 
-be the default route. Should we then forbid all packets from leaving on 
-the public interface? How will the VPN communication happen then?
-
-* disable IP forwarding until the VPN comes up. Affects all non-VPN 
-traffic as well.
-
-* keep the internal interface down until VPN comes up. Affects all non-VPN 
-traffic as well.
-
-* shoot lusers/device vendors in the head. Maybe the best option?
-
-* flush the existing conntrack entries when the VPN comes up.
-
-* any others?
-
-Cheers, Chris.
--- 
-Aptivate | http://www.aptivate.org | Phone: +44 1223 967 838
-Future Business, Cam City FC, Milton Rd, Cambridge, CB4 1UY, UK
-
-Aptivate is a not-for-profit company registered in England and Wales
-with company number 04980791.
-
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
