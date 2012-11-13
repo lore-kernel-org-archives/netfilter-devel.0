@@ -1,119 +1,85 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 1/2] Introduce notification chain for routing changes
-Date: Tue, 13 Nov 2012 21:17:36 +0100
-Message-ID: <1352837857-22087-2-git-send-email-kadlec@blackhole.kfki.hu>
-References: <1352837857-22087-1-git-send-email-kadlec@blackhole.kfki.hu>
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: netfilter-devel@vger.kernel.org
+From: Stephen Clark <sclark46@earthlink.net>
+Subject: Re: UDP packets sent with wrong source address after routing change
+ [AV#3431]
+Date: Tue, 13 Nov 2012 16:19:41 -0500
+Message-ID: <50A2B96D.5080905@earthlink.net>
+References: <alpine.DEB.2.02.1211081627150.6644@lap-x201> <alpine.LNX.2.01.1211081829150.28568@nerf07.vanv.qr> <alpine.DEB.2.00.1211081823030.5637@chris-desktop.fen.aptivate.org> <20121110140720.GA9610@1984> <alpine.LNX.2.01.1211101957320.1938@nerf07.vanv.qr> <alpine.DEB.2.00.1211102216540.14307@blackhole.kfki.hu> <alpine.DEB.2.02.1211121019280.23195@lap-x201> <alpine.DEB.2.00.1211121556480.18137@blackhole.kfki.hu> <alpine.DEB.2.02.1211121523190.23195@lap-x201> <alpine.DEB.2.00.1211122020280.18729@blackhole.kfki.hu> <20121112233024.GA15215@1984> <50A257C8.8050700@earthlink.net> <alpine.DEB.2.00.1211131619040.21144@blackhole.kfki.hu> <50A291BF.70609@earthlink.net> <alpine.DEB.2.00.1211132012500.21586@blackhole.kfki.hu>
+Reply-To: sclark46@earthlink.net
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Chris Wilson <chris-netfilter-110904@aptivate.org>,
+	netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:45081 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755789Ab2KMURk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Nov 2012 15:17:40 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by smtp1.kfki.hu (Postfix) with ESMTP id 92FEE4D4015
-	for <netfilter-devel@vger.kernel.org>; Tue, 13 Nov 2012 21:17:38 +0100 (CET)
-Received: from smtp1.kfki.hu ([127.0.0.1])
-	by localhost (smtp1.kfki.hu [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id vs9JPN5BUVSP for <netfilter-devel@vger.kernel.org>;
-	Tue, 13 Nov 2012 21:17:38 +0100 (CET)
-Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.0.114])
-	by smtp1.kfki.hu (Postfix) with ESMTP id 769834D4005
-	for <netfilter-devel@vger.kernel.org>; Tue, 13 Nov 2012 21:17:38 +0100 (CET)
-In-Reply-To: <1352837857-22087-1-git-send-email-kadlec@blackhole.kfki.hu>
+Received: from elasmtp-kukur.atl.sa.earthlink.net ([209.86.89.65]:49764 "EHLO
+	elasmtp-kukur.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932080Ab2KMVTr (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Nov 2012 16:19:47 -0500
+In-Reply-To: <alpine.DEB.2.00.1211132012500.21586@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On 11/13/2012 02:24 PM, Jozsef Kadlecsik wrote:
+> On Tue, 13 Nov 2012, Stephen Clark wrote:
+>
+>> On 11/13/2012 10:25 AM, Jozsef Kadlecsik wrote:
+>>> On Tue, 13 Nov 2012, Stephen Clark wrote:
+>>>
+>>>> A similar problem exists in the following scenario:
+>>>> You have two upstream isp that you are doing load balancing by having
+>>>> multiple
+>>>> default routes:
+>>>> default
+>>>>           nexthop via 66.xxx.xxx.xxx  dev eth1 weight 1
+>>>>           nexthop via 205.xxx.xxx.xxx  dev eth2 weight 1
+>>>> On one of the external interface you have a DNAT to
+>>>> an internal server on a private address. The DNAT makes
+>>>> a conntrack entry that is going to in effect do a SNAT on reponses
+>>>> from the internal server back out to the internet, but the load balancing
+>>>> decision on routing happens before this implicit SNAT so you have packets
+>>>> trying to go out an interface where the source address does not fall in
+>>>> the
+>>>> subnet of that interface.
+>>> In my opinion this is a broken network design. The DNAT should not depend
+>>> on the external interface, problem solved.
+>>>
+>> Hmmm... what does this mean ^^^ ?
+>> Say you have the follwoing:
+>> eth1 with ips 66.xxx.xxx.1 and 66.xxx.xxx.2
+>> eth2 with ip 205.xxx.xxx.xxx
+>> eth0 with ip 10.0.1.254/24
+>> with a server at 10.0.1.253.
+>>
+>> iptables -A PREROUTING -i eth1 -d 66.xxx.xxx.2 -j DNAT --to-destination
+>> 10.0.1.253
+>>
+>> How else would you access an internal server at a private address
+>> without using a DNAT from an external public ip? Is there some other way
+>> to do this that I am not aware of?
+> Everything depends on your backup provider: does it route the network
+> 66.xxx.xxx.xxx/y to you or not?
+>
+> - If the answer is no, then the rule above is correct but the internal
+>    server cannot be reached when the backup line is up. So it does not
+>    matter what's in the conntrack table, no answer is sent over the backup
+>    link to you.
+> - If the answer is yes, then the rule should not contain the "-i eth1"
+>    part and your internal server could be reached as 66.xxx.xxx.2,
+>    independent of the uplinks.
+There is no intent for backup of the incoming connection to 66.xxx.xxx.2 - only 
+load balancing outgoing
+traffic.
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
----
- include/linux/inetdevice.h |    2 ++
- include/linux/netdevice.h  |    1 +
- net/ipv4/fib_trie.c        |   18 ++++++++++++++++++
- 3 files changed, 21 insertions(+), 0 deletions(-)
-
-diff --git a/include/linux/inetdevice.h b/include/linux/inetdevice.h
-index d032780..cf16dab 100644
---- a/include/linux/inetdevice.h
-+++ b/include/linux/inetdevice.h
-@@ -170,6 +170,8 @@ struct in_ifaddr {
- 
- extern int register_inetaddr_notifier(struct notifier_block *nb);
- extern int unregister_inetaddr_notifier(struct notifier_block *nb);
-+extern int register_iproute_notifier(struct notifier_block *nb);
-+extern int unregister_iproute_notifier(struct notifier_block *nb);
- 
- extern struct net_device *__ip_dev_find(struct net *net, __be32 addr, bool devref);
- static inline struct net_device *ip_dev_find(struct net *net, __be32 addr)
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index f8eda02..f61b5f4 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -1540,6 +1540,7 @@ struct packet_type {
- #define NETDEV_RELEASE		0x0012
- #define NETDEV_NOTIFY_PEERS	0x0013
- #define NETDEV_JOIN		0x0014
-+#define NETDEV_ROUTE_CHANGED	0x0015
- 
- extern int register_netdevice_notifier(struct notifier_block *nb);
- extern int unregister_netdevice_notifier(struct notifier_block *nb);
-diff --git a/net/ipv4/fib_trie.c b/net/ipv4/fib_trie.c
-index 31d771c..5caf26b 100644
---- a/net/ipv4/fib_trie.c
-+++ b/net/ipv4/fib_trie.c
-@@ -73,6 +73,7 @@
- #include <linux/slab.h>
- #include <linux/prefetch.h>
- #include <linux/export.h>
-+#include <linux/notifier.h>
- #include <net/net_namespace.h>
- #include <net/ip.h>
- #include <net/protocol.h>
-@@ -178,6 +179,8 @@ static const int sync_pages = 128;
- static struct kmem_cache *fn_alias_kmem __read_mostly;
- static struct kmem_cache *trie_leaf_kmem __read_mostly;
- 
-+static BLOCKING_NOTIFIER_HEAD(iproute_chain);
-+
- /*
-  * caller must hold RTNL
-  */
-@@ -1337,6 +1340,8 @@ int fib_table_insert(struct fib_table *tb, struct fib_config *cfg)
- 	rtmsg_fib(RTM_NEWROUTE, htonl(key), new_fa, plen, tb->tb_id,
- 		  &cfg->fc_nlinfo, 0);
- succeeded:
-+	blocking_notifier_call_chain(&iproute_chain,
-+				     NETDEV_ROUTE_CHANGED, fi);
- 	return 0;
- 
- out_free_new_fa:
-@@ -1713,6 +1718,8 @@ int fib_table_delete(struct fib_table *tb, struct fib_config *cfg)
- 	if (fa->fa_state & FA_S_ACCESSED)
- 		rt_cache_flush(cfg->fc_nlinfo.nl_net);
- 
-+	blocking_notifier_call_chain(&iproute_chain,
-+				     NETDEV_ROUTE_CHANGED, fa->fa_info);
- 	fib_release_info(fa->fa_info);
- 	alias_free_mem_rcu(fa);
- 	return 0;
-@@ -1979,6 +1986,17 @@ void __init fib_trie_init(void)
- 					   0, SLAB_PANIC, NULL);
- }
- 
-+int register_iproute_notifier(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_register(&iproute_chain, nb);
-+}
-+EXPORT_SYMBOL(register_iproute_notifier);
-+
-+int unregister_iproute_notifier(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_unregister(&iproute_chain, nb);
-+}
-+EXPORT_SYMBOL(unregister_iproute_notifier);
- 
- struct fib_table *fib_trie_table(u32 id)
- {
 -- 
-1.7.0.4
+
+"They that give up essential liberty to obtain temporary safety,
+deserve neither liberty nor safety."  (Ben Franklin)
+
+"The course of history shows that as a government grows, liberty
+decreases."  (Thomas Jefferson)
+
+
 
