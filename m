@@ -1,63 +1,104 @@
-From: Dong Wei <dwei.zh@gmail.com>
-Subject: Potential risk in xt_socket match
-Date: Wed, 14 Nov 2012 18:48:36 +0800
-Message-ID: <CALy-_URurqp6bU1gwYDEXQk97JCC0B6_uv+0tP7Gzq9AVk_0Sg@mail.gmail.com>
+From: Stephen Clark <sclark46@earthlink.net>
+Subject: Re: UDP packets sent with wrong source address after routing change
+ [AV#3431]
+Date: Wed, 14 Nov 2012 09:14:31 -0500
+Message-ID: <50A3A747.20104@earthlink.net>
+References: <alpine.DEB.2.02.1211081627150.6644@lap-x201> <alpine.LNX.2.01.1211081829150.28568@nerf07.vanv.qr> <alpine.DEB.2.00.1211081823030.5637@chris-desktop.fen.aptivate.org> <20121110140720.GA9610@1984> <alpine.LNX.2.01.1211101957320.1938@nerf07.vanv.qr> <alpine.DEB.2.00.1211102216540.14307@blackhole.kfki.hu> <alpine.DEB.2.02.1211121019280.23195@lap-x201> <alpine.DEB.2.00.1211121556480.18137@blackhole.kfki.hu> <alpine.DEB.2.02.1211121523190.23195@lap-x201> <alpine.DEB.2.00.1211122020280.18729@blackhole.kfki.hu> <20121112233024.GA15215@1984> <50A257C8.8050700@earthlink.net> <alpine.DEB.2.00.1211131619040.21144@blackhole.kfki.hu> <50A291BF.70609@earthlink.net> <alpine.DEB.2.00.1211132012500.21586@blackhole.kfki.hu> <50A2B96D.5080905@earthlink.net> <alpine.DEB.2.00.1211140901060.4404@bla
+ ckhole.kfki.hu>
+Reply-To: sclark46@earthlink.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Chris Wilson <chris-netfilter-110904@aptivate.org>,
+	netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:34063 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932836Ab2KNKsg (ORCPT
+Received: from elasmtp-masked.atl.sa.earthlink.net ([209.86.89.68]:58331 "EHLO
+	elasmtp-masked.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753552Ab2KNOOj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Nov 2012 05:48:36 -0500
-Received: by mail-pb0-f46.google.com with SMTP id wy7so293037pbc.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Nov 2012 02:48:36 -0800 (PST)
+	Wed, 14 Nov 2012 09:14:39 -0500
+In-Reply-To: <alpine.DEB.2.00.1211140901060.4404@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi, All
+On 11/14/2012 03:08 AM, Jozsef Kadlecsik wrote:
+> On Tue, 13 Nov 2012, Stephen Clark wrote:
+>
+>> On 11/13/2012 02:24 PM, Jozsef Kadlecsik wrote:
+>>> On Tue, 13 Nov 2012, Stephen Clark wrote:
+>>>
+>>>> On 11/13/2012 10:25 AM, Jozsef Kadlecsik wrote:
+>>>>> On Tue, 13 Nov 2012, Stephen Clark wrote:
+>>>>>
+>>>>>> A similar problem exists in the following scenario:
+>>>>>> You have two upstream isp that you are doing load balancing by having
+>>>>>> multiple
+>>>>>> default routes:
+>>>>>> default
+>>>>>>            nexthop via 66.xxx.xxx.xxx  dev eth1 weight 1
+>>>>>>            nexthop via 205.xxx.xxx.xxx  dev eth2 weight 1
+>>>>>> On one of the external interface you have a DNAT to
+>>>>>> an internal server on a private address. The DNAT makes
+>>>>>> a conntrack entry that is going to in effect do a SNAT on reponses
+>>>>>> from the internal server back out to the internet, but the load
+>>>>>> balancing
+>>>>>> decision on routing happens before this implicit SNAT so you have
+>>>>>> packets
+>>>>>> trying to go out an interface where the source address does not fall
+>>>>>> in
+>>>>>> the
+>>>>>> subnet of that interface.
+>>>>> In my opinion this is a broken network design. The DNAT should not
+>>>>> depend
+>>>>> on the external interface, problem solved.
+>>>>>
+>>>> Hmmm... what does this mean ^^^ ?
+>>>> Say you have the follwoing:
+>>>> eth1 with ips 66.xxx.xxx.1 and 66.xxx.xxx.2
+>>>> eth2 with ip 205.xxx.xxx.xxx
+>>>> eth0 with ip 10.0.1.254/24
+>>>> with a server at 10.0.1.253.
+>>>>
+>>>> iptables -A PREROUTING -i eth1 -d 66.xxx.xxx.2 -j DNAT --to-destination
+>>>> 10.0.1.253
+>>>>
+>>>> How else would you access an internal server at a private address
+>>>> without using a DNAT from an external public ip? Is there some other way
+>>>> to do this that I am not aware of?
+>>> Everything depends on your backup provider: does it route the network
+>>> 66.xxx.xxx.xxx/y to you or not?
+>>>
+>>> - If the answer is no, then the rule above is correct but the internal
+>>>     server cannot be reached when the backup line is up. So it does not
+>>>     matter what's in the conntrack table, no answer is sent over the backup
+>>>     link to you.
+>>> - If the answer is yes, then the rule should not contain the "-i eth1"
+>>>     part and your internal server could be reached as 66.xxx.xxx.2,
+>>>     independent of the uplinks.
+>> There is no intent for backup of the incoming connection to 66.xxx.xxx.2 -
+>> only load balancing outgoing
+>> traffic.
+> Then I don't understand, what is the problem. When the reply packet is
+> sent out over the backup line, why should the source address fall into
+> the subnet of the outgoing interface? Unless, of course if you yourself or
+> your backup provider prevents it by egress filtering.
+>
+A lot of ISPs in the U.S. do reverse path filtering and drop packets that could 
+not originate from their provided subnet.
+If they did not do this then of course there would be no problem.
 
-When I read net/netfilter/xt_socket.c, I found maybe there will be a
-potential risk in this match.
+Regards,
+Steve
 
-Linux-3.4.4
-socket_match(...)
-{
-    ...snip...
-    sk = nf_tproxy_get_sock_v4(...);
-    if (sk != NULL) {
-          do_some_check();
-          xt_socket_put_sk(sk);
-          if (wildcard || !transparent)
-               sk = NULL;
-    }
-    pr_debug(...);
-    return sk != NULL;
-}
+-- 
 
-Assuming that, we got the tproxyed socket by nf_tproxy_get_sock_v4()
-and we should do some more check for it. Before we call
-do_some_check(), xt_socket give up CPU to let other process run. In
-this period, sk maybe updated. This is common for SMP CPU. Other CPU
-maybe try to destroy the sk structure if socket process is killed or
-even socket APP crashed. The sk structure will not be  really freed,
-because we hold the ref of the sk, but maybe some structure members is
-cleaned up.
+"They that give up essential liberty to obtain temporary safety,
+deserve neither liberty nor safety."  (Ben Franklin)
 
-When xt_socket match run again, sk members are changed.
+"The course of history shows that as a government grows, liberty
+decreases."  (Thomas Jefferson)
 
-So, should we use socket lock which is similar to tcp_v4_rcv() to
-protect the sk structure we got by nf_tproxy_get_sock_v4()?
 
-Like this:
-    if (sk != NULL) {
-          bh_lock_sock_nested(sk);
-          do_some_check();
-          bh_unlock_sock(sk);
-          xt_socket_put_sk(sk);
-          if (wildcard || !transparent)
-               sk = NULL;
-    }
 
-Anyone have idea about this issue?
