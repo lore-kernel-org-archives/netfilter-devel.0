@@ -1,46 +1,39 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 2/2] Handle the routing changes in the MASQUERADE
- target
-Date: Wed, 14 Nov 2012 08:55:22 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1211140853260.4404@blackhole.kfki.hu>
-References: <1352837857-22087-1-git-send-email-kadlec@blackhole.kfki.hu> <1352837857-22087-3-git-send-email-kadlec@blackhole.kfki.hu> <alpine.LNX.2.01.1211140047370.26843@nerf07.vanv.qr>
+Subject: Re: [PATCH 1/2] Introduce notification chain for routing changes
+Date: Wed, 14 Nov 2012 08:57:21 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1211140855280.4404@blackhole.kfki.hu>
+References: <1352837857-22087-1-git-send-email-kadlec@blackhole.kfki.hu> <1352837857-22087-2-git-send-email-kadlec@blackhole.kfki.hu> <20121113.171515.552672146557270042.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:41728 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:59917 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751434Ab2KNHz0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Nov 2012 02:55:26 -0500
-In-Reply-To: <alpine.LNX.2.01.1211140047370.26843@nerf07.vanv.qr>
+	id S1751239Ab2KNH5X (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 Nov 2012 02:57:23 -0500
+In-Reply-To: <20121113.171515.552672146557270042.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 14 Nov 2012, Jan Engelhardt wrote:
+On Tue, 13 Nov 2012, David Miller wrote:
 
-> On Tuesday 2012-11-13 21:17, Jozsef Kadlecsik wrote:
+> From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> Date: Tue, 13 Nov 2012 21:17:36 +0100
 > 
-> >+static int
-> >+route_cmp(struct nf_conn *i, const struct fib_info *fi)
-> >+{  [...]
-> >+}
-> >+
-> >+static int masq_route_event(struct notifier_block *this,
-> >+			    unsigned long event,
-> >+			    void *ptr)
-> >+{
-> >+	if (event == NETDEV_ROUTE_CHANGED) {
-> >+		/* Routing changed, delete marked entries */
-> >+		nf_ct_iterate_cleanup(net, route_cmp,
-> >+				      (const struct fib_info)ptr);
+> > 
+> > Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> > ---
+> >  include/linux/inetdevice.h |    2 ++
+> >  include/linux/netdevice.h  |    1 +
+> >  net/ipv4/fib_trie.c        |   18 ++++++++++++++++++
+> >  3 files changed, 21 insertions(+), 0 deletions(-)
 > 
-> It would seem you forget a '*' near fib_info)ptr.
-> The cast is pointless though, since ptr is already of type void *
-> which nf_ct_iterate_cleanup expects.
+> A change like this needs to be reviewed on netdev, not
+> netfilter-devel
 
-You are right and it was not tested at all. Just a quick code to discuss 
-not only in theory but something real.
+Yes, of course. I just wanted to put together a possible real solution 
+which we could discuss further.
 
 Best regards,
 Jozsef
