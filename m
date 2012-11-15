@@ -1,44 +1,47 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: VoIP conntrack issue
-Date: Thu, 15 Nov 2012 00:38:09 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1211150035180.32273@nerf07.vanv.qr>
-References: <CABY2qi8n0ttC99_UktcT+Jwnd9WCCsvk5+ug1GXrrYbd9ixxWw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: =?UTF-8?Q?J=C3=B6rn_Krebs?= <jk@smartbyte.de>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: [nf-next:nf_tables-experiments PATCH 0/4] NAT expression and IPv6 NAT support
+Date: Thu, 15 Nov 2012 11:15:48 +0200
+Message-ID: <1352970952-3447-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:38722 "EHLO ares07.inai.de"
+Received: from mga09.intel.com ([134.134.136.24]:1854 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932216Ab2KNXiL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Nov 2012 18:38:11 -0500
-In-Reply-To: <CABY2qi8n0ttC99_UktcT+Jwnd9WCCsvk5+ug1GXrrYbd9ixxWw@mail.gmail.com>
+	id S932435Ab2KOJP5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Nov 2012 04:15:57 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
 
-On Wednesday 2012-11-14 23:41, J=C3=B6rn Krebs wrote:
->
->The problem I have with case 1 is that Linux is assigning a new extern=
-al port.
->So and my router Case 1 looks more like this:
->A:5000 <-> router:5000 <-> C
->A:5000 <-> router:1030 <-> D
->Which causes a big issue with my VoIP setup!
->(VoIP is negotiating the ports inside the SIP protocol. They are not
->detected and they are fixed and not detected on the fly)
+Here 4 patches to set up NAT expression and related IPvx chains.
+It's an adaptation of existing code (splitting nft_chain_ipv4_nat.c and taking code from ip6tables_nat.c),
+that's why I kept former Copyrights even in the new modules created.
 
-Are you sure you have tried loading nf_nat_sip, like I mentioned
-in the thread[1] on netfilter@ ? Or the extra DNAT rule?
+In nft_nat.c, I used memcpy() on ipv6 data, let me know if there is a better way (though I guess gcc optimizes it).
 
-[1] http://marc.info/?l=3Dnetfilter&m=3D135289221821117&w=3D2
+Please review,
 
->(Hope I made my case clear)
+Tomasz Bursztyka (4):
+  nf_tables: Change NFTA_NAT_ attributes to better semantic
+    significance
+  nf_tables: Split IPv4 NAT into NAT expression and NAT IPv4 chain
+  nf_tables: Add support for IPv6 NAT expression
+  nf_tables: Add support for IPv6 NAT chain
 
-(The conntrack -E dump made a lot more sense to me.)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ include/linux/netfilter/nf_tables.h     |  10 +-
+ net/ipv4/netfilter/Kconfig              |   1 +
+ net/ipv4/netfilter/nft_chain_nat_ipv4.c | 158 +-------------------
+ net/ipv6/netfilter/Kconfig              |   5 +
+ net/ipv6/netfilter/Makefile             |   2 +
+ net/ipv6/netfilter/nft_chain_nat_ipv6.c | 213 +++++++++++++++++++++++++++
+ net/netfilter/Kconfig                   |   5 +
+ net/netfilter/Makefile                  |   1 +
+ net/netfilter/nft_nat.c                 | 248 ++++++++++++++++++++++++++++++++
+ 9 files changed, 486 insertions(+), 157 deletions(-)
+ create mode 100644 net/ipv6/netfilter/nft_chain_nat_ipv6.c
+ create mode 100644 net/netfilter/nft_nat.c
+
+-- 
+1.8.0
+
