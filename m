@@ -1,73 +1,510 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] conntrackd: make conntrackd namespace aware
-Date: Thu, 15 Nov 2012 13:20:42 +0100
-Message-ID: <20121115122042.GA1701@1984>
-References: <1346461915-6309-1-git-send-email-aatteka@nicira.com>
- <20120906170253.GA17317@1984>
- <CAA=3Oq=G9g=9LkKxhobU1cTLtU3jyuGJZn4kn_E4LJXk11Escw@mail.gmail.com>
- <20120911154458.GB28012@1984>
- <CAA=3Oqm_tGgKpWf2V=Ki7Le-UcA7o_-_o+77TRjPX6-4RYha2Q@mail.gmail.com>
- <20120918192320.GA1182@1984>
- <CAA=3OqkaM_s4DEdL3D8tG5SCkRpubgzfw2a0snGZBGU0KD09Gg@mail.gmail.com>
- <20120919082143.GA20453@1984>
- <CAA=3Oq=COQS_gYuTT3mQ5KssEdNJHAj4gYz8dcg+rfr9XA_Sdg@mail.gmail.com>
+Subject: Re: [nf-next:nf_tables-experiments PATCH 2/4] nf_tables: Split
+ IPv4 NAT into NAT expression and NAT IPv4 chain
+Date: Thu, 15 Nov 2012 13:26:45 +0100
+Message-ID: <20121115122645.GA2271@1984>
+References: <1352970952-3447-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+ <1352970952-3447-3-git-send-email-tomasz.bursztyka@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Ansis Atteka <aatteka@nicira.com>
+To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41188 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44086 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1767659Ab2KOMUr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Nov 2012 07:20:47 -0500
+	id S2993328Ab2KOM0v (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Nov 2012 07:26:51 -0500
 Content-Disposition: inline
-In-Reply-To: <CAA=3Oq=COQS_gYuTT3mQ5KssEdNJHAj4gYz8dcg+rfr9XA_Sdg@mail.gmail.com>
+In-Reply-To: <1352970952-3447-3-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Oct 15, 2012 at 09:55:09PM -0700, Ansis Atteka wrote:
-[...]
-> >> Here is how I am currently doing that:
-> >>
-> >> struct nethdr {
-> >> #if __BYTE_ORDER == __LITTLE_ENDIAN
-> >>       uint8_t type:4,
-> >>               version:4;
-> >> #elif __BYTE_ORDER == __BIG_ENDIAN
-> >>       uint8_t version:4,
-> >>               type:4;
-> >> #else
-> >> #error  "Unknown system endianess!"
-> >> #endif
-> >>       uint8_t flags;
-> >>       uint16_t len;
-> >>       uint32_t seq;
-> >>       uint32_t nsid; < -present only if nethdr.flag &
-> >> };
-> >> nsid is the namespace id. This field would be present only
-> >> if nethdr.flags & NET_F_NAMESPACE != 0.
-> >
-> > That adds an always zero field for the non-namespace case in the
-> > protocol fixed header. TLVs can be used for optional fields.
-> 
-> What is your take on encapsulating namespace id in control messages
-> (e.g. state resync requests)?
-> 
-> It seems that as of now control messages do not have TLVs...
-> 
-> Of course I could put some logic inside build.c and parse.c to deal
-> with that. For example, if caller passes NULL for nf_conntrack *ct,
-> then that would handle control message case?
-> 
-> Any better ideas?
+Hi Tomasz,
 
-It took me a long while to decide on this, sorry for the delay.
+Thanks for the patchset, one comment, please see below:
 
-I think adding some 32-bits ID to the nethdr is fine since I can reuse
-in case I decide to support cluster-based firewall clusters composed
-of more than two firewalls.
+On Thu, Nov 15, 2012 at 11:15:50AM +0200, Tomasz Bursztyka wrote:
+> This will permit to generalize NAT expression handling for both IPv4 and IPv6.
+> 
+> Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+> ---
+>  net/ipv4/netfilter/Kconfig              |   1 +
+>  net/ipv4/netfilter/nft_chain_nat_ipv4.c | 166 +-------------------------
+>  net/netfilter/Kconfig                   |   5 +
+>  net/netfilter/Makefile                  |   1 +
+>  net/netfilter/nft_nat.c                 | 198 ++++++++++++++++++++++++++++++++
+>  5 files changed, 210 insertions(+), 161 deletions(-)
+>  create mode 100644 net/netfilter/nft_nat.c
+> 
+> diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+> index 1aefe95..e0ebf2f 100644
+> --- a/net/ipv4/netfilter/Kconfig
+> +++ b/net/ipv4/netfilter/Kconfig
+> @@ -63,6 +63,7 @@ config NFT_CHAIN_ROUTE_IPV4
+>  
+>  config NFT_CHAIN_NAT_IPV4
+>  	depends on NF_TABLES_IPV4
+> +	depends on NFT_NAT
+>  	tristate "IPv4 nf_tables nat chain support"
+>  
+>  config IP_NF_IPTABLES
+> diff --git a/net/ipv4/netfilter/nft_chain_nat_ipv4.c b/net/ipv4/netfilter/nft_chain_nat_ipv4.c
+> index 95b265b..f036184 100644
+> --- a/net/ipv4/netfilter/nft_chain_nat_ipv4.c
+> +++ b/net/ipv4/netfilter/nft_chain_nat_ipv4.c
+> @@ -1,6 +1,7 @@
+>  /*
+>   * Copyright (c) 2008-2009 Patrick McHardy <kaber@trash.net>
+>   * Copyright (c) 2012 Pablo Neira Ayuso <pablo@netfilter.org>
+> + * Copyright (c) 2012 Intel Corporation
+>   *
+>   * This program is free software; you can redistribute it and/or modify
+>   * it under the terms of the GNU General Public License version 2 as
+> @@ -14,10 +15,8 @@
+>  #include <linux/list.h>
+>  #include <linux/skbuff.h>
+>  #include <linux/ip.h>
+> -#include <linux/netlink.h>
+>  #include <linux/netfilter.h>
+>  #include <linux/netfilter_ipv4.h>
+> -#include <linux/netfilter/nfnetlink.h>
+>  #include <linux/netfilter/nf_tables.h>
+>  #include <net/netfilter/nf_conntrack.h>
+>  #include <net/netfilter/nf_nat.h>
+> @@ -26,155 +25,6 @@
+>  #include <net/netfilter/nf_nat_l3proto.h>
+>  #include <net/ip.h>
+>  
+> -struct nft_nat {
+> -	enum nft_registers	sreg_addr_min:8;
+> -	enum nft_registers	sreg_addr_max:8;
+> -	enum nft_registers	sreg_proto_min:8;
+> -	enum nft_registers	sreg_proto_max:8;
+> -	enum nf_nat_manip_type	type;
+> -};
+> -
+> -static void nft_nat_eval(const struct nft_expr *expr,
+> -			 struct nft_data data[NFT_REG_MAX + 1],
+> -			 const struct nft_pktinfo *pkt)
+> -{
+> -	const struct nft_nat *priv = nft_expr_priv(expr);
+> -	enum ip_conntrack_info ctinfo;
+> -	struct nf_conn *ct = nf_ct_get(pkt->skb, &ctinfo);
+> -	struct nf_nat_range range;
+> -
+> -	memset(&range, 0, sizeof(range));
+> -	if (priv->sreg_addr_min) {
+> -		range.min_addr.ip = data[priv->sreg_addr_min].data[0];
+> -		range.max_addr.ip = data[priv->sreg_addr_max].data[0];
+> -		range.flags |= NF_NAT_RANGE_MAP_IPS;
+> -	}
+> -
+> -	if (priv->sreg_proto_min) {
+> -		range.min_proto.all = data[priv->sreg_proto_min].data[0];
+> -		range.max_proto.all = data[priv->sreg_proto_max].data[0];
+> -		range.flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
+> -	}
+> -
+> -	data[NFT_REG_VERDICT].verdict =
+> -		nf_nat_setup_info(ct, &range, priv->type);
+> -}
+> -
+> -static const struct nla_policy nft_nat_policy[NFTA_NAT_MAX + 1] = {
+> -	[NFTA_NAT_TYPE]          = { .type = NLA_U32 },
+> -	[NFTA_NAT_REG_ADDR_MIN]  = { .type = NLA_U32 },
+> -	[NFTA_NAT_REG_ADDR_MAX]  = { .type = NLA_U32 },
+> -	[NFTA_NAT_REG_PROTO_MIN] = { .type = NLA_U32 },
+> -	[NFTA_NAT_REG_PROTO_MAX] = { .type = NLA_U32 },
+> -};
+> -
+> -static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+> -			const struct nlattr * const tb[])
+> -{
+> -	struct nft_nat *priv = nft_expr_priv(expr);
+> -	int err;
+> -
+> -	if (tb[NFTA_NAT_TYPE] == NULL)
+> -		return -EINVAL;
+> -
+> -	switch (ntohl(nla_get_be32(tb[NFTA_NAT_TYPE]))) {
+> -	case NFT_NAT_SNAT:
+> -		priv->type = NF_NAT_MANIP_SRC;
+> -		break;
+> -	case NFT_NAT_DNAT:
+> -		priv->type = NF_NAT_MANIP_DST;
+> -		break;
+> -	default:
+> -		return -EINVAL;
+> -	}
+> -
+> -	if (tb[NFTA_NAT_REG_ADDR_MIN]) {
+> -		priv->sreg_addr_min = ntohl(nla_get_be32(
+> -						tb[NFTA_NAT_REG_ADDR_MIN]));
+> -		err = nft_validate_input_register(priv->sreg_addr_min);
+> -		if (err < 0)
+> -			return err;
+> -	}
+> -
+> -	if (tb[NFTA_NAT_REG_ADDR_MAX]) {
+> -		priv->sreg_addr_max = ntohl(nla_get_be32(
+> -						tb[NFTA_NAT_REG_ADDR_MAX]));
+> -		err = nft_validate_input_register(priv->sreg_addr_max);
+> -		if (err < 0)
+> -			return err;
+> -	} else
+> -		priv->sreg_addr_max = priv->sreg_addr_min;
+> -
+> -	if (tb[NFTA_NAT_REG_PROTO_MIN]) {
+> -		priv->sreg_proto_min = ntohl(nla_get_be32(
+> -						tb[NFTA_NAT_REG_PROTO_MIN]));
+> -		err = nft_validate_input_register(priv->sreg_proto_min);
+> -		if (err < 0)
+> -			return err;
+> -	}
+> -
+> -	if (tb[NFTA_NAT_REG_PROTO_MAX]) {
+> -		priv->sreg_proto_max = ntohl(nla_get_be32(
+> -						tb[NFTA_NAT_REG_PROTO_MAX]));
+> -		err = nft_validate_input_register(priv->sreg_proto_max);
+> -		if (err < 0)
+> -			return err;
+> -	} else
+> -		priv->sreg_proto_max = priv->sreg_proto_min;
+> -
+> -	return 0;
+> -}
+> -
+> -static int nft_nat_dump(struct sk_buff *skb, const struct nft_expr *expr)
+> -{
+> -	const struct nft_nat *priv = nft_expr_priv(expr);
+> -
+> -	switch (priv->type) {
+> -	case NF_NAT_MANIP_SRC:
+> -		if (nla_put_be32(skb, NFTA_NAT_TYPE, htonl(NFT_NAT_SNAT)))
+> -			goto nla_put_failure;
+> -		break;
+> -	case NF_NAT_MANIP_DST:
+> -		if (nla_put_be32(skb, NFTA_NAT_TYPE, htonl(NFT_NAT_DNAT)))
+> -			goto nla_put_failure;
+> -		break;
+> -	}
+> -
+> -	if (nla_put_be32(skb,
+> -			 NFTA_NAT_REG_ADDR_MIN, htonl(priv->sreg_addr_min)))
+> -		goto nla_put_failure;
+> -	if (nla_put_be32(skb,
+> -			 NFTA_NAT_REG_ADDR_MAX, htonl(priv->sreg_addr_max)))
+> -		goto nla_put_failure;
+> -	if (nla_put_be32(skb,
+> -			 NFTA_NAT_REG_PROTO_MIN, htonl(priv->sreg_proto_min)))
+> -		goto nla_put_failure;
+> -	if (nla_put_be32(skb,
+> -			 NFTA_NAT_REG_PROTO_MAX, htonl(priv->sreg_proto_max)))
+> -		goto nla_put_failure;
+> -	return 0;
+> -
+> -nla_put_failure:
+> -	return -1;
+> -}
+> -
+> -static struct nft_expr_type nft_nat_type;
+> -static const struct nft_expr_ops nft_nat_ops = {
+> -	.type		= &nft_nat_type,
+> -	.size		= NFT_EXPR_SIZE(sizeof(struct nft_nat)),
+> -	.eval		= nft_nat_eval,
+> -	.init		= nft_nat_init,
+> -	.dump		= nft_nat_dump,
+> -};
+> -
+> -static struct nft_expr_type nft_nat_type __read_mostly = {
+> -	.name		= "nat",
+> -	.ops		= &nft_nat_ops,
+> -	.policy		= nft_nat_policy,
+> -	.maxattr	= NFTA_NAT_MAX,
+> -	.owner		= THIS_MODULE,
+> -};
+> -
+>  /*
+>   * NAT chains
+>   */
+> @@ -331,24 +181,19 @@ static int __init nft_chain_nat_init(void)
+>  {
+>  	int err;
+>  
+> +#ifdef CONFIG_MODULES
+> +	request_module("nft_nat");
+> +#endif
 
-The ID will allows us to identify messages coming from different
-firewall and to keep different external caches, one per node ID.
+I think this expression is automagically via nft_expr_type_get. The
+MODULE_ALIAS_NFT_EXPR macro already helps to achieve that. So I think
+we can remove that request_module call.
 
-So go ahead with adding that ID to the nethdr.
+No need to resend this patchset in case you confirm this comment is
+correct, I can delete those lines myself.
+
+> +
+>  	err = nft_register_chain_type(&nft_chain_nat_ipv4);
+>  	if (err < 0)
+>  		return err;
+>  
+> -	err = nft_register_expr(&nft_nat_type);
+> -	if (err < 0)
+> -		goto err;
+> -
+>  	return 0;
+> -
+> -err:
+> -	nft_unregister_chain_type(&nft_chain_nat_ipv4);
+> -	return err;
+>  }
+>  
+>  static void __exit nft_chain_nat_exit(void)
+>  {
+> -	nft_unregister_expr(&nft_nat_type);
+>  	nft_unregister_chain_type(&nft_chain_nat_ipv4);
+>  }
+>  
+> @@ -358,4 +203,3 @@ module_exit(nft_chain_nat_exit);
+>  MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+>  MODULE_ALIAS_NFT_CHAIN(AF_INET, "nat");
+> -MODULE_ALIAS_NFT_EXPR("nat");
+> diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+> index 95d2907..9ba8d0e 100644
+> --- a/net/netfilter/Kconfig
+> +++ b/net/netfilter/Kconfig
+> @@ -469,6 +469,11 @@ config NFT_LIMIT
+>         depends on NF_TABLES
+>         tristate "Netfilter nf_tables limit module"
+>  
+> +config NFT_NAT
+> +       depends on NF_TABLES
+> +       depends on NF_CONNTRACK
+> +       tristate "Netfilter nf_tables nat module"
+> +
+>  if NETFILTER_XTABLES
+>  
+>  comment "Xtables combined modules"
+> diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+> index 62d1a0f..1e9b653 100644
+> --- a/net/netfilter/Makefile
+> +++ b/net/netfilter/Makefile
+> @@ -73,6 +73,7 @@ obj-$(CONFIG_NFT_EXTHDR)	+= nft_exthdr.o
+>  obj-$(CONFIG_NFT_META)		+= nft_meta.o
+>  obj-$(CONFIG_NFT_CT)		+= nft_ct.o
+>  obj-$(CONFIG_NFT_LIMIT)		+= nft_limit.o
+> +obj-$(CONFIG_NFT_NAT)		+= nft_nat.o
+>  #nf_tables-objs			+= nft_meta_target.o
+>  obj-$(CONFIG_NFT_RBTREE)	+= nft_rbtree.o
+>  obj-$(CONFIG_NFT_HASH)		+= nft_hash.o
+> diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
+> new file mode 100644
+> index 0000000..ea9854e
+> --- /dev/null
+> +++ b/net/netfilter/nft_nat.c
+> @@ -0,0 +1,198 @@
+> +/*
+> + * Copyright (c) 2008-2009 Patrick McHardy <kaber@trash.net>
+> + * Copyright (c) 2012 Pablo Neira Ayuso <pablo@netfilter.org>
+> + * Copyright (c) 2012 Intel Corporation
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms and conditions of the GNU General Public License,
+> + * version 2, as published by the Free Software Foundation.
+> + *
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/init.h>
+> +#include <linux/skbuff.h>
+> +#include <linux/ip.h>
+> +#include <linux/netlink.h>
+> +#include <linux/netfilter.h>
+> +#include <linux/netfilter_ipv4.h>
+> +#include <linux/netfilter/nfnetlink.h>
+> +#include <linux/netfilter/nf_tables.h>
+> +#include <net/netfilter/nf_conntrack.h>
+> +#include <net/netfilter/nf_nat.h>
+> +#include <net/netfilter/nf_nat_core.h>
+> +#include <net/netfilter/nf_tables.h>
+> +#include <net/netfilter/nf_nat_l3proto.h>
+> +#include <net/ip.h>
+> +
+> +struct nft_nat {
+> +	enum nft_registers      sreg_addr_min:8;
+> +	enum nft_registers      sreg_addr_max:8;
+> +	enum nft_registers      sreg_proto_min:8;
+> +	enum nft_registers      sreg_proto_max:8;
+> +	enum nf_nat_manip_type  type;
+> +};
+> +
+> +static void nft_nat_eval(const struct nft_expr *expr,
+> +			 struct nft_data data[NFT_REG_MAX + 1],
+> +			 const struct nft_pktinfo *pkt)
+> +{
+> +	const struct nft_nat *priv = nft_expr_priv(expr);
+> +	enum ip_conntrack_info ctinfo;
+> +	struct nf_conn *ct = nf_ct_get(pkt->skb, &ctinfo);
+> +	struct nf_nat_range range;
+> +
+> +	memset(&range, 0, sizeof(range));
+> +	if (priv->sreg_addr_min) {
+> +		range.min_addr.ip = data[priv->sreg_addr_min].data[0];
+> +		range.max_addr.ip = data[priv->sreg_addr_max].data[0];
+> +		range.flags |= NF_NAT_RANGE_MAP_IPS;
+> +	}
+> +
+> +	if (priv->sreg_proto_min) {
+> +		range.min_proto.all = data[priv->sreg_proto_min].data[0];
+> +		range.max_proto.all = data[priv->sreg_proto_max].data[0];
+> +		range.flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
+> +	}
+> +
+> +	data[NFT_REG_VERDICT].verdict =
+> +		nf_nat_setup_info(ct, &range, priv->type);
+> +}
+> +
+> +static const struct nla_policy nft_nat_policy[NFTA_NAT_MAX + 1] = {
+> +	[NFTA_NAT_TYPE]		 = { .type = NLA_U32 },
+> +	[NFTA_NAT_REG_ADDR_MIN]	 = { .type = NLA_U32 },
+> +	[NFTA_NAT_REG_ADDR_MAX]	 = { .type = NLA_U32 },
+> +	[NFTA_NAT_REG_PROTO_MIN] = { .type = NLA_U32 },
+> +	[NFTA_NAT_REG_PROTO_MAX] = { .type = NLA_U32 },
+> +};
+> +
+> +static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+> +			const struct nlattr * const tb[])
+> +{
+> +	struct nft_nat *priv = nft_expr_priv(expr);
+> +	int err;
+> +
+> +	if (tb[NFTA_NAT_TYPE] == NULL)
+> +		return -EINVAL;
+> +
+> +	switch (ntohl(nla_get_be32(tb[NFTA_NAT_TYPE]))) {
+> +	case NFT_NAT_SNAT:
+> +		priv->type = NF_NAT_MANIP_SRC;
+> +		break;
+> +	case NFT_NAT_DNAT:
+> +		priv->type = NF_NAT_MANIP_DST;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (tb[NFTA_NAT_REG_ADDR_MIN]) {
+> +		priv->sreg_addr_min = ntohl(nla_get_be32(
+> +						tb[NFTA_NAT_REG_ADDR_MIN]));
+> +		err = nft_validate_input_register(priv->sreg_addr_min);
+> +		if (err < 0)
+> +			return err;
+> +	}
+> +
+> +	if (tb[NFTA_NAT_REG_ADDR_MAX]) {
+> +		priv->sreg_addr_max = ntohl(nla_get_be32(
+> +						tb[NFTA_NAT_REG_ADDR_MAX]));
+> +		err = nft_validate_input_register(priv->sreg_addr_max);
+> +		if (err < 0)
+> +			return err;
+> +	} else
+> +		priv->sreg_addr_max = priv->sreg_addr_min;
+> +
+> +	if (tb[NFTA_NAT_REG_PROTO_MIN]) {
+> +		priv->sreg_proto_min = ntohl(nla_get_be32(
+> +						tb[NFTA_NAT_REG_PROTO_MIN]));
+> +		err = nft_validate_input_register(priv->sreg_proto_min);
+> +		if (err < 0)
+> +			return err;
+> +	}
+> +
+> +	if (tb[NFTA_NAT_REG_PROTO_MAX]) {
+> +		priv->sreg_proto_max = ntohl(nla_get_be32(
+> +						tb[NFTA_NAT_REG_PROTO_MAX]));
+> +		err = nft_validate_input_register(priv->sreg_proto_max);
+> +		if (err < 0)
+> +			return err;
+> +	} else
+> +		priv->sreg_proto_max = priv->sreg_proto_min;
+> +
+> +	return 0;
+> +}
+> +
+> +static int nft_nat_dump(struct sk_buff *skb, const struct nft_expr *expr)
+> +{
+> +	const struct nft_nat *priv = nft_expr_priv(expr);
+> +
+> +	switch (priv->type) {
+> +	case NF_NAT_MANIP_SRC:
+> +		if (nla_put_be32(skb, NFTA_NAT_TYPE, htonl(NFT_NAT_SNAT)))
+> +			goto nla_put_failure;
+> +		break;
+> +	case NF_NAT_MANIP_DST:
+> +		if (nla_put_be32(skb, NFTA_NAT_TYPE, htonl(NFT_NAT_DNAT)))
+> +			goto nla_put_failure;
+> +		break;
+> +	}
+> +
+> +	if (nla_put_be32(skb,
+> +			 NFTA_NAT_REG_ADDR_MIN, htonl(priv->sreg_addr_min)))
+> +		goto nla_put_failure;
+> +	if (nla_put_be32(skb,
+> +			 NFTA_NAT_REG_ADDR_MAX, htonl(priv->sreg_addr_max)))
+> +		goto nla_put_failure;
+> +	if (nla_put_be32(skb,
+> +			 NFTA_NAT_REG_PROTO_MIN, htonl(priv->sreg_proto_min)))
+> +		goto nla_put_failure;
+> +	if (nla_put_be32(skb,
+> +			 NFTA_NAT_REG_PROTO_MAX, htonl(priv->sreg_proto_max)))
+> +		goto nla_put_failure;
+> +	return 0;
+> +
+> +nla_put_failure:
+> +	return -1;
+> +}
+> +
+> +static struct nft_expr_type nft_nat_type;
+> +static const struct nft_expr_ops nft_nat_ops = {
+> +	.type           = &nft_nat_type,
+> +	.size           = NFT_EXPR_SIZE(sizeof(struct nft_nat)),
+> +	.eval           = nft_nat_eval,
+> +	.init           = nft_nat_init,
+> +	.dump           = nft_nat_dump,
+> +};
+> +
+> +static struct nft_expr_type nft_nat_type __read_mostly = {
+> +	.name           = "nat",
+> +	.ops            = &nft_nat_ops,
+> +	.policy         = nft_nat_policy,
+> +	.maxattr        = NFTA_NAT_MAX,
+> +	.owner          = THIS_MODULE,
+> +};
+> +
+> +static int __init nft_nat_module_init(void)
+> +{
+> +	int err;
+> +
+> +	err = nft_register_expr(&nft_nat_type);
+> +	if (err < 0)
+> +		return err;
+> +
+> +	return 0;
+> +}
+> +
+> +static void __exit nft_nat_module_exit(void)
+> +{
+> +	nft_unregister_expr(&nft_nat_type);
+> +}
+> +
+> +module_init(nft_nat_module_init);
+> +module_exit(nft_nat_module_exit);
+> +
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>");
+> +MODULE_ALIAS_NFT_EXPR("nat");
+> -- 
+> 1.8.0
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
