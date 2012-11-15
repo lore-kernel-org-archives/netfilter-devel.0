@@ -1,34 +1,41 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: bugzilla status?
-Date: Thu, 15 Nov 2012 19:14:20 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1211151913210.6791@nerf07.vanv.qr>
-References: <1352663561.17852.140661152301329.78E9D920@webmail.messagingengine.com> <20121111205458.GA3804@1984> <1352668477.31926.140661152323369.5EA58239@webmail.messagingengine.com> <1352996137.12531.140661154073597.78868B19@webmail.messagingengine.com>
- <20121115162852.GA19709@1984> <alpine.LNX.2.01.1211151745550.24398@nerf07.vanv.qr> <1352998442.20620.140661154088857.003FBE7B@webmail.messagingengine.com> <alpine.LNX.2.01.1211151849160.25666@nerf07.vanv.qr>
- <1353002359.2736.140661154114333.7899D355@webmail.messagingengine.com>
+From: Stephen Clark <sclark46@earthlink.net>
+Subject: fedora plans to replace iptables with firewalld
+Date: Thu, 15 Nov 2012 14:30:21 -0500
+Message-ID: <50A542CD.7030604@earthlink.net>
+Reply-To: sclark46@earthlink.net
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: ar16@imapmail.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:43161 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1768630Ab2KOSOV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Nov 2012 13:14:21 -0500
-In-Reply-To: <1353002359.2736.140661154114333.7899D355@webmail.messagingengine.com>
+Received: from elasmtp-galgo.atl.sa.earthlink.net ([209.86.89.61]:58452 "EHLO
+	elasmtp-galgo.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1768777Ab2KOTaZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Nov 2012 14:30:25 -0500
+Received: from [69.22.83.100] (helo=joker.seclark.com)
+	by elasmtp-galgo.atl.sa.earthlink.net with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.67)
+	(envelope-from <sclark46@earthlink.net>)
+	id 1TZ58o-0002fK-Qu
+	for netfilter-devel@vger.kernel.org; Thu, 15 Nov 2012 14:30:22 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2012-11-15 18:59, ar16@imapmail.org wrote:
+Hello List,
 
->atm i can faithfully reproduce it with 1.4.14 on any/all of my Opensuse
->12.2 boxes.
+Is anyone here aware that fedora is planning on replacing iptables with
+something called firewalld?
 
-Well, as Pablo indicated (the linked Debian reports from bug 782) also 
-show that this has already been fixed.
+Regards,
 
->otoh, 1.4.16 from netfilter:security causes me to hit this:
->https://bugs.launchpad.net/ufw/+bug/1065297
->
->trying to figure out what to do about THAT one ...
+-- 
 
-perl -i -pe 's{-m state --state}{-m conntrack --ctstate}g' my.rules
+"They that give up essential liberty to obtain temporary safety,
+deserve neither liberty nor safety."  (Ben Franklin)
+
+"The course of history shows that as a government grows, liberty
+decreases."  (Thomas Jefferson)
+
+
+
