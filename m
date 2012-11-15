@@ -1,65 +1,45 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH RFC v2] netfilter: add connlabel conntrack extension
-Date: Thu, 15 Nov 2012 14:09:27 +0100
-Message-ID: <20121115130927.GB4929@1984>
-References: <1351860231-5434-1-git-send-email-fw@strlen.de>
- <20121112065001.GB11330@1984>
- <20121112124705.GC20678@breakpoint.cc>
- <20121115121357.GB31335@1984>
- <20121115125002.GI20678@breakpoint.cc>
+From: arif <aftnix@gmail.com>
+Subject: Splitting network packets from target modules
+Date: Thu, 15 Nov 2012 19:14:44 +0600
+Message-ID: <k82ps8$uh2$1@ger.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58074 "EHLO mail.us.es"
+Received: from plane.gmane.org ([80.91.229.3]:60490 "EHLO plane.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1767704Ab2KONJd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Nov 2012 08:09:33 -0500
-Content-Disposition: inline
-In-Reply-To: <20121115125002.GI20678@breakpoint.cc>
+	id S1767736Ab2KONT4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Nov 2012 08:19:56 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
+	id 1TYzMR-00067D-Ec
+	for netfilter-devel@vger.kernel.org; Thu, 15 Nov 2012 14:20:03 +0100
+Received: from 103.23.169.3 ([103.23.169.3])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Nov 2012 14:20:03 +0100
+Received: from aftnix by 103.23.169.3 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Nov 2012 14:20:03 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Nov 15, 2012 at 01:50:02PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Mon, Nov 12, 2012 at 01:47:05PM +0100, Florian Westphal wrote:
-> > > Alternative would be to keep track of highest bit requested in a "-m connlabel"
-> > > rule to figure out the needed size.
-> > > 
-> > > In any case, it would require adding "u16 len" to the extension area; else
-> > > we can't figure out how many bytes are valid, i.e.:
-> > > 
-> > > struct nf_conn_labels {
-> > > +       u16 size;		/* length of label storage */
-> > > +	unsigned long bits[];	/* variable-sized label storage */
-> > > +};
-> > > 
-> > > it would increase minimum length needed but it would avoid
-> > > the rcu dances done by the current scheme.
-> > > 
-> > > It this is ok for you I'll make this change to see how many LOC are
-> > > saved by this.
-> > 
-> > If we simplify the current connlabel code it would be great. And so
-> > far, the only way I can think to obtain that is to explictly specify
-> > via the CT target the length of the label.
-> 
-> I've turned it into a var-length extension, so all the rcu dances
-> and runtime reallocs are gone.
-> 
-> I'll be sending the first non-rfc version of the patchset soon.
-> 
-> Minor drawback: I had to reduce it to 128 labels max, else the
-> extension offset array (u8 offset[]) will overflow if too many
-> extensions are enabled.
+Hi,
 
-Good point. That reminds me that we should add some bugtrap to
-net/netfilter/nf_conntrack_extend.c to check for such possible
-overflows.
+I'm trying to write a target module which will do the following :
 
-> At the moment the 128 labels max constraint is no problem at all,
-> and we can increase it later if we reduce total possible extension
-> size (or use u16 for length/offset tracking).
+1) oldskb will be cached.
+2) newskb1,newskb2....newskbn will be allocated and initialized.
+3) packet will be dropped using NF_DROP
+4) Newskbs will be sent to L4(target will work from PREROUTING hook)
 
-Sure.
+But i'm confused how i'm going to send these new skbs to uplink.
+returning NF_ACCEPT will not do the trick i guess.
+
+Is there any existing target module which tries to do send multiple skbs
+to uplink?
+
+cheers
+arif
+
