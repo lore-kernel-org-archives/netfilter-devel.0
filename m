@@ -1,99 +1,56 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 2/2] Handle the routing changes in the MASQUERADE
- target
-Date: Thu, 15 Nov 2012 15:42:14 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1211151532500.7485@blackhole.kfki.hu>
-References: <1352837857-22087-1-git-send-email-kadlec@blackhole.kfki.hu> <1352837857-22087-3-git-send-email-kadlec@blackhole.kfki.hu> <20121115114444.GA31335@1984>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH 0/3] libnetfilter_conntrack: add connlabel support
+Date: Thu, 15 Nov 2012 16:50:08 +0100
+Message-ID: <1352994611-3707-1-git-send-email-fw@strlen.de>
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:41081 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993283Ab2KOOmQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Nov 2012 09:42:16 -0500
-In-Reply-To: <20121115114444.GA31335@1984>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41025 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S2993118Ab2KOPsP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Nov 2012 10:48:15 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.72)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1TZ1fq-0008TU-I1
+	for netfilter-devel@vger.kernel.org; Thu, 15 Nov 2012 16:48:14 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 15 Nov 2012, Pablo Neira Ayuso wrote:
+The following three patches add support for the planned
+connlabel extension to libnetfilter_conntrack.
 
-> Two comments on this patch:
-> 
-> On Tue, Nov 13, 2012 at 09:17:37PM +0100, Jozsef Kadlecsik wrote:
-> > When the routing changes, MASQUERADE should delete the conntrack
-> > entries where the source NATed address changes due to the routing
-> > change. As a first approximation, delete all entries which are
-> > marked with the new "--route-dependent" flag of the MASQUERADE
-> > target.
-> > 
-> > Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> > ---
-> >  include/uapi/linux/netfilter/nf_conntrack_common.h |    4 ++
-> >  include/uapi/linux/netfilter/nf_nat.h              |    1 +
-> >  net/ipv4/netfilter/ipt_MASQUERADE.c                |   40 ++++++++++++++++++++
-> >  3 files changed, 45 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
-> > index 1644cdd..1c698b5 100644
-> > --- a/include/uapi/linux/netfilter/nf_conntrack_common.h
-> > +++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
-> > @@ -87,6 +87,10 @@ enum ip_conntrack_status {
-> >  	/* Conntrack got a helper explicitly attached via CT target. */
-> >  	IPS_HELPER_BIT = 13,
-> >  	IPS_HELPER = (1 << IPS_HELPER_BIT),
-> > +
-> > +	/* Conntrack must be deleted when routing changed (NAT) */
-> > +	IPS_ROUTING_DEPENDENT_BIT = 14,
-> > +	IPS_ROUTING_DEPENDENT = (1 << IPS_ROUTING_DEPENDENT_BIT),
-> 
-> This seems to me a bit too specific for the masquerade module. I've
-> been checking the struct nf_conn_nat to squash that information there,
-> but I don't find the way to make it without increasing the length of
-> the NAT area.
+I've tried to add Pablos feedback/ideas, thus:
+- a new nfct_bitmask object is added, plus
+  interfaces to test/set such bits
+- 2nd patch adds functions to create/inspect a
+  name <-> bit mapping table
+- setting/retrieving the connlabels is done
+  with the existing nfct_get/set_attr interface, so
+  no new interface for that.
 
-I know, we waste a status bit. But I couldn't find a better way to store 
-the information in conntrack.
- 
-> >  };
-> >  
-> >  /* Connection tracking event types */
-> > diff --git a/include/uapi/linux/netfilter/nf_nat.h b/include/uapi/linux/netfilter/nf_nat.h
-> > index bf0cc37..a0dfac7 100644
-> > --- a/include/uapi/linux/netfilter/nf_nat.h
-> > +++ b/include/uapi/linux/netfilter/nf_nat.h
-> > @@ -8,6 +8,7 @@
-> >  #define NF_NAT_RANGE_PROTO_SPECIFIED	2
-> >  #define NF_NAT_RANGE_PROTO_RANDOM	4
-> >  #define NF_NAT_RANGE_PERSISTENT		8
-> > +#define NF_NAT_ROUTING_DEPENDENT	16
-> >  
-> >  struct nf_nat_ipv4_range {
-> >  	unsigned int			flags;
-> > diff --git a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/ipt_MASQUERADE.c
-> > index 5d5d4d1..ecf3063 100644
-> > --- a/net/ipv4/netfilter/ipt_MASQUERADE.c
-> > +++ b/net/ipv4/netfilter/ipt_MASQUERADE.c
-> 
-> We now have IPv6 NAT support, so I guess you need to patch
-> /net/ipv6/netfilter/ip6t_MASQUERADE.c
+Caveats:
+- I only wired CTA_LABELS up with the libmnl-based API
+- I only made a very brief test of this code (using
+  the example programs).
 
-Ohh, yes, I missed that. I'll add the required code there.
+Please let me know if there are any remaining issues
+with the chosen approach.
 
-Currently I'm trying to find a way to purge just the entries which are 
-affected by the routing change (for example when there are muliple VPN 
-tunnels). However that requires a new conntrack extension and it's 
-nontrivial (at least for me) to figure out the required data from struct 
-fib_info.
-
-If the conntrack extension is used then of course the status bit is not 
-required.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+summary of changes:
+examples/Makefile.am                                       |   10 
+examples/nfct-mnl-dump-labels.c                            |  103 +++++
+examples/nfct-mnl-set-label.c                              |  170 +++++++++
+include/internal/bitops.h                                  |    2 
+include/internal/object.h                                  |   12 
+include/internal/prototypes.h                              |    9 
+include/libnetfilter_conntrack/libnetfilter_conntrack.h    |   20 +
+include/libnetfilter_conntrack/linux_nfnetlink_conntrack.h |    1 
+src/conntrack/Makefile.am                                  |    1 
+src/conntrack/api.c                                        |  164 ++++++++
+src/conntrack/build_mnl.c                                  |   12 
+src/conntrack/getter.c                                     |    6 
+src/conntrack/labels.c                                     |  239 +++++++++++++
+src/conntrack/parse.c                                      |    1 
+src/conntrack/parse_mnl.c                                  |   25 +
+src/conntrack/setter.c                                     |   12 
+16 files changed, 787 insertions(+)
