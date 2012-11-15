@@ -1,56 +1,38 @@
-From: Stephen Clark <sclark46@earthlink.net>
-Subject: Re: fedora plans to replace iptables with firewalld
-Date: Thu, 15 Nov 2012 15:39:38 -0500
-Message-ID: <50A5530A.9000509@earthlink.net>
-References: <50A542CD.7030604@earthlink.net> <20121115.143737.1667162595710068997.davem@davemloft.net>
-Reply-To: sclark46@earthlink.net
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH 2/3] api: add connlabel api and attribute
+Date: Thu, 15 Nov 2012 22:07:11 +0100
+Message-ID: <20121115210711.GJ20678@breakpoint.cc>
+References: <1352994611-3707-1-git-send-email-fw@strlen.de>
+ <1352994611-3707-3-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from elasmtp-banded.atl.sa.earthlink.net ([209.86.89.70]:58760 "EHLO
-	elasmtp-banded.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751358Ab2KOVCd (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:42282 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750766Ab2KOVfi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Nov 2012 16:02:33 -0500
-In-Reply-To: <20121115.143737.1667162595710068997.davem@davemloft.net>
+	Thu, 15 Nov 2012 16:35:38 -0500
+Content-Disposition: inline
+In-Reply-To: <1352994611-3707-3-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11/15/2012 02:37 PM, David Miller wrote:
-> From: Stephen Clark<sclark46@earthlink.net>
-> Date: Thu, 15 Nov 2012 14:30:21 -0500
->
->> Is anyone here aware that fedora is planning on replacing iptables
->> with something called firewalld?
-> It's an abstraction layer built on top of iptables and ebtables,
-> not a replacement.
->
-> A simple read of the project web site would have told you this,
-> and I encourage you to do some research in the future instead
-> of spreading misinformation.
->
-> Thanks.
->
-This is not what it says in the feature page at
-https://fedoraproject.org/wiki/Features/firewalld-default#Detailed_Description
+Florian Westphal <fw@strlen.de> wrote:
+> --- a/src/conntrack/api.c
+> +++ b/src/conntrack/api.c
+> @@ -95,6 +95,8 @@ void nfct_destroy(struct nf_conntrack *ct)
+>  		free(ct->secctx);
+>  	if (ct->helper_info)
+>  		free(ct->helper_info);
+> +	if (ct->connlabels)
+> +		nfct_bitmask_destroy(ct->connlabels);
+>  	free(ct);
+>  	ct = NULL; /* bugtrap */
+>  }
 
-That says:
+Will cause double-free for nfct_cloned objects.
 
-   The services iptables, iptables-ipv6 and ebtables will be replaced by
-   firewalld. system-config-firewall in it's [sic] current form will also be
-   replaced.
-
-
--- 
-
-"They that give up essential liberty to obtain temporary safety,
-deserve neither liberty nor safety."  (Ben Franklin)
-
-"The course of history shows that as a government grows, liberty
-decreases."  (Thomas Jefferson)
-
-
-
+I'll fix nfct_clone and will add the missing nfct_copy*
+handling in the next iteration, some time next week.
