@@ -1,38 +1,63 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 2/3] api: add connlabel api and attribute
-Date: Thu, 15 Nov 2012 22:07:11 +0100
-Message-ID: <20121115210711.GJ20678@breakpoint.cc>
-References: <1352994611-3707-1-git-send-email-fw@strlen.de>
- <1352994611-3707-3-git-send-email-fw@strlen.de>
+From: David Miller <davem@davemloft.net>
+Subject: Re: fedora plans to replace iptables with firewalld
+Date: Thu, 15 Nov 2012 15:45:15 -0500 (EST)
+Message-ID: <20121115.154515.1601270379989323660.davem@davemloft.net>
+References: <50A542CD.7030604@earthlink.net>
+	<20121115.143737.1667162595710068997.davem@davemloft.net>
+	<50A5530A.9000509@earthlink.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: sclark46@earthlink.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:42282 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750766Ab2KOVfi (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:48512 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751634Ab2KOVkb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Nov 2012 16:35:38 -0500
-Content-Disposition: inline
-In-Reply-To: <1352994611-3707-3-git-send-email-fw@strlen.de>
+	Thu, 15 Nov 2012 16:40:31 -0500
+In-Reply-To: <50A5530A.9000509@earthlink.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Florian Westphal <fw@strlen.de> wrote:
-> --- a/src/conntrack/api.c
-> +++ b/src/conntrack/api.c
-> @@ -95,6 +95,8 @@ void nfct_destroy(struct nf_conntrack *ct)
->  		free(ct->secctx);
->  	if (ct->helper_info)
->  		free(ct->helper_info);
-> +	if (ct->connlabels)
-> +		nfct_bitmask_destroy(ct->connlabels);
->  	free(ct);
->  	ct = NULL; /* bugtrap */
->  }
+From: Stephen Clark <sclark46@earthlink.net>
+Date: Thu, 15 Nov 2012 15:39:38 -0500
 
-Will cause double-free for nfct_cloned objects.
+> On 11/15/2012 02:37 PM, David Miller wrote:
+>> From: Stephen Clark<sclark46@earthlink.net>
+>> Date: Thu, 15 Nov 2012 14:30:21 -0500
+>>
+>>> Is anyone here aware that fedora is planning on replacing iptables
+>>> with something called firewalld?
+>> It's an abstraction layer built on top of iptables and ebtables,
+>> not a replacement.
+>>
+>> A simple read of the project web site would have told you this,
+>> and I encourage you to do some research in the future instead
+>> of spreading misinformation.
+>>
+>> Thanks.
+>>
+> This is not what it says in the feature page at
+> https://fedoraproject.org/wiki/Features/firewalld-default#Detailed_Description
 
-I'll fix nfct_clone and will add the missing nfct_copy*
-handling in the next iteration, some time next week.
+The "service" as in the user level scripts, not the kernel level
+components.
+
+Read the project page, for real:
+
+https://fedoraproject.org/wiki/FirewallD
+
+Where it explicitly says:
+
+====================
+Adding an abstraction layer on top of ip*tables and ebtables firewall
+rules makes adding rules simple and more intuitive. The abstraction
+layer needs to be powerful, but also simple, which makes this not an
+easy task. A firewall language has to gen invented for this. Firewall
+rules have a fixed position and querying generic information about
+access state, access policies for ports and other firewall features is
+possible.
+====================
+
+Please stop wasting everyone's time.
