@@ -1,80 +1,113 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2] Handle the routing changes in the MASQUERADE target
-Date: Thu, 15 Nov 2012 12:44:44 +0100
-Message-ID: <20121115114444.GA31335@1984>
-References: <1352837857-22087-1-git-send-email-kadlec@blackhole.kfki.hu>
- <1352837857-22087-3-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH RFC v2] netfilter: add connlabel conntrack extension
+Date: Thu, 15 Nov 2012 13:13:57 +0100
+Message-ID: <20121115121357.GB31335@1984>
+References: <1351860231-5434-1-git-send-email-fw@strlen.de>
+ <20121112065001.GB11330@1984>
+ <20121112124705.GC20678@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56498 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:38238 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933097Ab2KOLow (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Nov 2012 06:44:52 -0500
+	id S1423623Ab2KOMOG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Nov 2012 07:14:06 -0500
 Content-Disposition: inline
-In-Reply-To: <1352837857-22087-3-git-send-email-kadlec@blackhole.kfki.hu>
+In-Reply-To: <20121112124705.GC20678@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jozsef,
+Hi Florian,
 
-Two comments on this patch:
-
-On Tue, Nov 13, 2012 at 09:17:37PM +0100, Jozsef Kadlecsik wrote:
-> When the routing changes, MASQUERADE should delete the conntrack
-> entries where the source NATed address changes due to the routing
-> change. As a first approximation, delete all entries which are
-> marked with the new "--route-dependent" flag of the MASQUERADE
-> target.
+On Mon, Nov 12, 2012 at 01:47:05PM +0100, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > diff --git a/net/netfilter/nf_conntrack_labels.c b/net/netfilter/nf_conntrack_labels.c
+> > > new file mode 100644
+> > > index 0000000..eab398b
+> > > --- /dev/null
+> > > +++ b/net/netfilter/nf_conntrack_labels.c
+> > > @@ -0,0 +1,143 @@
+> > > +#include <linux/ctype.h>
+> > > +#include <linux/export.h>
+> > > +#include <linux/jhash.h>
+> > > +#include <linux/spinlock.h>
+> > > +#include <linux/types.h>
+> > > +#include <linux/slab.h>
+> > > +
+> > > +#include <net/netfilter/nf_conntrack_ecache.h>
+> > > +#include <net/netfilter/nf_conntrack_labels.h>
+> > > +
+> > > +static int labels_set_realloc(struct nf_conn_labels *l,
+> > > +			      struct __nf_conn_labels_rcu_ptr *oldptr, u16 bit)
+> > 
+> > I think we can simplify this code if we use the CT target to set the
+> > number of labels that we'll use, so we skip allocations in runtime and
+> > possible reallocation.
+> > 
+> > ... -t raw -j CT --labels 32
 > 
-> Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> ---
->  include/uapi/linux/netfilter/nf_conntrack_common.h |    4 ++
->  include/uapi/linux/netfilter/nf_nat.h              |    1 +
->  net/ipv4/netfilter/ipt_MASQUERADE.c                |   40 ++++++++++++++++++++
->  3 files changed, 45 insertions(+), 0 deletions(-)
+> I'm not convinced yet ;-)
 > 
-> diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
-> index 1644cdd..1c698b5 100644
-> --- a/include/uapi/linux/netfilter/nf_conntrack_common.h
-> +++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
-> @@ -87,6 +87,10 @@ enum ip_conntrack_status {
->  	/* Conntrack got a helper explicitly attached via CT target. */
->  	IPS_HELPER_BIT = 13,
->  	IPS_HELPER = (1 << IPS_HELPER_BIT),
-> +
-> +	/* Conntrack must be deleted when routing changed (NAT) */
-> +	IPS_ROUTING_DEPENDENT_BIT = 14,
-> +	IPS_ROUTING_DEPENDENT = (1 << IPS_ROUTING_DEPENDENT_BIT),
+> I think we should avoid to make users fiddle with CT target options
+> just to get certain functionality working.
 
-This seems to me a bit too specific for the masquerade module. I've
-been checking the struct nf_conn_nat to squash that information there,
-but I don't find the way to make it without increasing the length of
-the NAT area.
+I agree that we should try to keep things easy for users.
 
->  };
->  
->  /* Connection tracking event types */
-> diff --git a/include/uapi/linux/netfilter/nf_nat.h b/include/uapi/linux/netfilter/nf_nat.h
-> index bf0cc37..a0dfac7 100644
-> --- a/include/uapi/linux/netfilter/nf_nat.h
-> +++ b/include/uapi/linux/netfilter/nf_nat.h
-> @@ -8,6 +8,7 @@
->  #define NF_NAT_RANGE_PROTO_SPECIFIED	2
->  #define NF_NAT_RANGE_PROTO_RANDOM	4
->  #define NF_NAT_RANGE_PERSISTENT		8
-> +#define NF_NAT_ROUTING_DEPENDENT	16
->  
->  struct nf_nat_ipv4_range {
->  	unsigned int			flags;
-> diff --git a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/ipt_MASQUERADE.c
-> index 5d5d4d1..ecf3063 100644
-> --- a/net/ipv4/netfilter/ipt_MASQUERADE.c
-> +++ b/net/ipv4/netfilter/ipt_MASQUERADE.c
+Still, since the conntrack helper discussion during the last workshop,
+I think that users should explicitly enable conntrack features they
+want via iptables.
 
-We now have IPv6 NAT support, so I guess you need to patch
-/net/ipv6/netfilter/ip6t_MASQUERADE.c
+In that direction, I've been toying with some patches to explicitly
+enable connectiong tracking via the CT target, ie. instead of tracking
+everything by default and using NOTRACK to say what you don't what
+(like we do now), tell what you want to track via some explict rule.
+PF people are doing it that way.
+
+Still that's an important semantic change so we'll have to keep some
+compatibility mode for some time (we would do the conntrack lookup in
+the raw table, and follow-up rules will find the ct object). That also
+would change the assumption that "you have no ct object in the raw
+table" to "you get the ct object just after the -j CT
+--enable-tracking rule".
+
+Note that we would have to rename (via aliasing) the raw table to
+make it become a filter table in the PREROUTING chain once that
+semantic change happens.
+
+As result of that change, it would allow us to remove the current
+template logic from:
+
+1) attach the template
+2) use the template in nf_conntrack_in() to set on features we requested
+
+to:
+
+1) lookup/create ct object and attach features requested by the user
+   all at once.
+
+I'm going to find some spare time to send a RFC patch for this.
+
+> Alternative would be to keep track of highest bit requested in a "-m connlabel"
+> rule to figure out the needed size.
+> 
+> In any case, it would require adding "u16 len" to the extension area; else
+> we can't figure out how many bytes are valid, i.e.:
+> 
+> struct nf_conn_labels {
+> +       u16 size;		/* length of label storage */
+> +	unsigned long bits[];	/* variable-sized label storage */
+> +};
+> 
+> it would increase minimum length needed but it would avoid
+> the rcu dances done by the current scheme.
+> 
+> It this is ok for you I'll make this change to see how many LOC are
+> saved by this.
+
+If we simplify the current connlabel code it would be great. And so
+far, the only way I can think to obtain that is to explictly specify
+via the CT target the length of the label.
 
 Regards.
