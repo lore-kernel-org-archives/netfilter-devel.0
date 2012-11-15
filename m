@@ -1,113 +1,73 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH RFC v2] netfilter: add connlabel conntrack extension
-Date: Thu, 15 Nov 2012 13:13:57 +0100
-Message-ID: <20121115121357.GB31335@1984>
-References: <1351860231-5434-1-git-send-email-fw@strlen.de>
- <20121112065001.GB11330@1984>
- <20121112124705.GC20678@breakpoint.cc>
+Subject: Re: [PATCH] conntrackd: make conntrackd namespace aware
+Date: Thu, 15 Nov 2012 13:20:42 +0100
+Message-ID: <20121115122042.GA1701@1984>
+References: <1346461915-6309-1-git-send-email-aatteka@nicira.com>
+ <20120906170253.GA17317@1984>
+ <CAA=3Oq=G9g=9LkKxhobU1cTLtU3jyuGJZn4kn_E4LJXk11Escw@mail.gmail.com>
+ <20120911154458.GB28012@1984>
+ <CAA=3Oqm_tGgKpWf2V=Ki7Le-UcA7o_-_o+77TRjPX6-4RYha2Q@mail.gmail.com>
+ <20120918192320.GA1182@1984>
+ <CAA=3OqkaM_s4DEdL3D8tG5SCkRpubgzfw2a0snGZBGU0KD09Gg@mail.gmail.com>
+ <20120919082143.GA20453@1984>
+ <CAA=3Oq=COQS_gYuTT3mQ5KssEdNJHAj4gYz8dcg+rfr9XA_Sdg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Ansis Atteka <aatteka@nicira.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38238 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41188 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423623Ab2KOMOG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Nov 2012 07:14:06 -0500
+	id S1767659Ab2KOMUr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Nov 2012 07:20:47 -0500
 Content-Disposition: inline
-In-Reply-To: <20121112124705.GC20678@breakpoint.cc>
+In-Reply-To: <CAA=3Oq=COQS_gYuTT3mQ5KssEdNJHAj4gYz8dcg+rfr9XA_Sdg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Florian,
-
-On Mon, Nov 12, 2012 at 01:47:05PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > diff --git a/net/netfilter/nf_conntrack_labels.c b/net/netfilter/nf_conntrack_labels.c
-> > > new file mode 100644
-> > > index 0000000..eab398b
-> > > --- /dev/null
-> > > +++ b/net/netfilter/nf_conntrack_labels.c
-> > > @@ -0,0 +1,143 @@
-> > > +#include <linux/ctype.h>
-> > > +#include <linux/export.h>
-> > > +#include <linux/jhash.h>
-> > > +#include <linux/spinlock.h>
-> > > +#include <linux/types.h>
-> > > +#include <linux/slab.h>
-> > > +
-> > > +#include <net/netfilter/nf_conntrack_ecache.h>
-> > > +#include <net/netfilter/nf_conntrack_labels.h>
-> > > +
-> > > +static int labels_set_realloc(struct nf_conn_labels *l,
-> > > +			      struct __nf_conn_labels_rcu_ptr *oldptr, u16 bit)
-> > 
-> > I think we can simplify this code if we use the CT target to set the
-> > number of labels that we'll use, so we skip allocations in runtime and
-> > possible reallocation.
-> > 
-> > ... -t raw -j CT --labels 32
+On Mon, Oct 15, 2012 at 09:55:09PM -0700, Ansis Atteka wrote:
+[...]
+> >> Here is how I am currently doing that:
+> >>
+> >> struct nethdr {
+> >> #if __BYTE_ORDER == __LITTLE_ENDIAN
+> >>       uint8_t type:4,
+> >>               version:4;
+> >> #elif __BYTE_ORDER == __BIG_ENDIAN
+> >>       uint8_t version:4,
+> >>               type:4;
+> >> #else
+> >> #error  "Unknown system endianess!"
+> >> #endif
+> >>       uint8_t flags;
+> >>       uint16_t len;
+> >>       uint32_t seq;
+> >>       uint32_t nsid; < -present only if nethdr.flag &
+> >> };
+> >> nsid is the namespace id. This field would be present only
+> >> if nethdr.flags & NET_F_NAMESPACE != 0.
+> >
+> > That adds an always zero field for the non-namespace case in the
+> > protocol fixed header. TLVs can be used for optional fields.
 > 
-> I'm not convinced yet ;-)
+> What is your take on encapsulating namespace id in control messages
+> (e.g. state resync requests)?
 > 
-> I think we should avoid to make users fiddle with CT target options
-> just to get certain functionality working.
-
-I agree that we should try to keep things easy for users.
-
-Still, since the conntrack helper discussion during the last workshop,
-I think that users should explicitly enable conntrack features they
-want via iptables.
-
-In that direction, I've been toying with some patches to explicitly
-enable connectiong tracking via the CT target, ie. instead of tracking
-everything by default and using NOTRACK to say what you don't what
-(like we do now), tell what you want to track via some explict rule.
-PF people are doing it that way.
-
-Still that's an important semantic change so we'll have to keep some
-compatibility mode for some time (we would do the conntrack lookup in
-the raw table, and follow-up rules will find the ct object). That also
-would change the assumption that "you have no ct object in the raw
-table" to "you get the ct object just after the -j CT
---enable-tracking rule".
-
-Note that we would have to rename (via aliasing) the raw table to
-make it become a filter table in the PREROUTING chain once that
-semantic change happens.
-
-As result of that change, it would allow us to remove the current
-template logic from:
-
-1) attach the template
-2) use the template in nf_conntrack_in() to set on features we requested
-
-to:
-
-1) lookup/create ct object and attach features requested by the user
-   all at once.
-
-I'm going to find some spare time to send a RFC patch for this.
-
-> Alternative would be to keep track of highest bit requested in a "-m connlabel"
-> rule to figure out the needed size.
+> It seems that as of now control messages do not have TLVs...
 > 
-> In any case, it would require adding "u16 len" to the extension area; else
-> we can't figure out how many bytes are valid, i.e.:
+> Of course I could put some logic inside build.c and parse.c to deal
+> with that. For example, if caller passes NULL for nf_conntrack *ct,
+> then that would handle control message case?
 > 
-> struct nf_conn_labels {
-> +       u16 size;		/* length of label storage */
-> +	unsigned long bits[];	/* variable-sized label storage */
-> +};
-> 
-> it would increase minimum length needed but it would avoid
-> the rcu dances done by the current scheme.
-> 
-> It this is ok for you I'll make this change to see how many LOC are
-> saved by this.
+> Any better ideas?
 
-If we simplify the current connlabel code it would be great. And so
-far, the only way I can think to obtain that is to explictly specify
-via the CT target the length of the label.
+It took me a long while to decide on this, sorry for the delay.
 
-Regards.
+I think adding some 32-bits ID to the nethdr is fine since I can reuse
+in case I decide to support cluster-based firewall clusters composed
+of more than two firewalls.
+
+The ID will allows us to identify messages coming from different
+firewall and to keep different external caches, one per node ID.
+
+So go ahead with adding that ID to the nethdr.
