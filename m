@@ -1,191 +1,341 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 1/3] api: add nfct_bitmask object
-Date: Thu, 15 Nov 2012 16:50:09 +0100
-Message-ID: <1352994611-3707-2-git-send-email-fw@strlen.de>
+Subject: [PATCH 3/3] examples: add connlabel dump/set/clear demo programs
+Date: Thu, 15 Nov 2012 16:50:11 +0100
+Message-ID: <1352994611-3707-4-git-send-email-fw@strlen.de>
 References: <1352994611-3707-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41026 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41029 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993118Ab2KOPsT (ORCPT
+	by vger.kernel.org with ESMTP id S1756017Ab2KOPsW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Nov 2012 10:48:19 -0500
+	Thu, 15 Nov 2012 10:48:22 -0500
 In-Reply-To: <1352994611-3707-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-In order to use generic getter/setter API with upcoming
-conntrack label extension, add  helper functions to set/test/unset
-bits in a vector of arbitrary size.
-
-Conntrack labels will then be encoded via nfct_bitmask object.
-
-Original idea from Pablo Neira Ayuso.
 ---
- include/internal/bitops.h                          |    2 +
- include/internal/object.h                          |    8 ++
- .../libnetfilter_conntrack.h                       |   11 ++
- src/conntrack/api.c                                |   99 ++++++++++++++++++++
- 4 files changed, 120 insertions(+), 0 deletions(-)
+ examples/Makefile.am            |   10 +++
+ examples/nfct-mnl-dump-labels.c |  103 +++++++++++++++++++++++
+ examples/nfct-mnl-set-label.c   |  170 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 283 insertions(+), 0 deletions(-)
+ create mode 100644 examples/nfct-mnl-dump-labels.c
+ create mode 100644 examples/nfct-mnl-set-label.c
 
-diff --git a/include/internal/bitops.h b/include/internal/bitops.h
-index 7ae566b..aefff0e 100644
---- a/include/internal/bitops.h
-+++ b/include/internal/bitops.h
-@@ -73,4 +73,6 @@ test_bitmask_u32_or(const uint32_t *buf1, const uint32_t *buf2, int len)
- 	return 0;
- }
+diff --git a/examples/Makefile.am b/examples/Makefile.am
+index 55bd750..a366390 100644
+--- a/examples/Makefile.am
++++ b/examples/Makefile.am
+@@ -3,6 +3,8 @@ include $(top_srcdir)/Make_global.am
+ check_PROGRAMS = nfct-mnl-create	\
+ 		 nfct-mnl-del		\
+ 		 nfct-mnl-dump		\
++		 nfct-mnl-dump-labels	\
++		 nfct-mnl-set-label	\
+ 		 nfct-mnl-event		\
+ 		 nfct-mnl-flush		\
+ 		 nfct-mnl-get		\
+@@ -21,6 +23,14 @@ nfct_mnl_dump_SOURCES = nfct-mnl-dump.c
+ nfct_mnl_dump_LDADD = ../src/libnetfilter_conntrack.la
+ nfct_mnl_dump_LDFLAGS = -dynamic -ldl -lmnl
  
-+#define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
++nfct_mnl_dump_labels_SOURCES = nfct-mnl-dump-labels.c
++nfct_mnl_dump_labels_LDADD = ../src/libnetfilter_conntrack.la
++nfct_mnl_dump_labels_LDFLAGS = -dynamic -ldl -lmnl
 +
- #endif
-diff --git a/include/internal/object.h b/include/internal/object.h
-index 443e800..609265d 100644
---- a/include/internal/object.h
-+++ b/include/internal/object.h
-@@ -297,4 +297,12 @@ struct nf_expect {
- 	u_int32_t 		set[1];
- };
- 
-+/*
-+ * bitmask object
-+ */
-+struct nfct_bitmask {
-+	unsigned int words;
-+	uint32_t bits[];
++nfct_mnl_set_label_SOURCES = nfct-mnl-set-label.c
++nfct_mnl_set_label_LDADD = ../src/libnetfilter_conntrack.la
++nfct_mnl_set_label_LDFLAGS = -dynamic -ldl -lmnl
++
+ nfct_mnl_event_SOURCES = nfct-mnl-event.c
+ nfct_mnl_event_LDADD = ../src/libnetfilter_conntrack.la
+ nfct_mnl_event_LDFLAGS = -dynamic -ldl -lmnl
+diff --git a/examples/nfct-mnl-dump-labels.c b/examples/nfct-mnl-dump-labels.c
+new file mode 100644
+index 0000000..babb928
+--- /dev/null
++++ b/examples/nfct-mnl-dump-labels.c
+@@ -0,0 +1,103 @@
++#include <stdio.h>
++#include <stdlib.h>
++#include <time.h>
++
++#include <libmnl/libmnl.h>
++#include <libnetfilter_conntrack/libnetfilter_conntrack.h>
++
++static void print_label(struct nf_conntrack *ct, struct nfct_labelmap *map)
++{
++	unsigned int i, max;
++	const struct nfct_bitmask *b = nfct_get_attr(ct, ATTR_CONNLABELS);
++	if (!b)
++		return;
++
++	puts("labels:");
++	max = nfct_bitmask_maxbit(b);
++	for (i = 0; i <= max; i++) {
++		if (nfct_bitmask_test_bit(b, i))
++			printf("\t'%s' (%d)\n", map ? nfct_labelmap_get_name(map, i) : "", i);
++	}
++}
++
++static int data_cb(const struct nlmsghdr *nlh, void *data)
++{
++	struct nf_conntrack *ct;
++	char buf[4096];
++
++	ct = nfct_new();
++	if (ct == NULL)
++		return MNL_CB_OK;
++
++	nfct_nlmsg_parse(nlh, ct);
++
++	nfct_snprintf(buf, sizeof(buf), ct, NFCT_T_UNKNOWN, NFCT_O_DEFAULT, 0);
++	printf("%s\n", buf);
++
++	print_label(ct, data);
++
++	nfct_destroy(ct);
++
++	return MNL_CB_OK;
++}
++
++int main(void)
++{
++	struct mnl_socket *nl;
++	struct nlmsghdr *nlh;
++	struct nfgenmsg *nfh;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	unsigned int seq, portid;
++	int ret;
++	struct nfct_labelmap *l = nfct_labelmap_new(NULL);
++
++	nl = mnl_socket_open(NETLINK_NETFILTER);
++	if (nl == NULL) {
++		perror("mnl_socket_open");
++		exit(EXIT_FAILURE);
++	}
++
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		perror("mnl_socket_bind");
++		exit(EXIT_FAILURE);
++	}
++	portid = mnl_socket_get_portid(nl);
++
++	nlh = mnl_nlmsg_put_header(buf);
++	nlh->nlmsg_type = (NFNL_SUBSYS_CTNETLINK << 8) | IPCTNL_MSG_CT_GET;
++	nlh->nlmsg_flags = NLM_F_REQUEST|NLM_F_DUMP;
++	nlh->nlmsg_seq = seq = time(NULL);
++
++	nfh = mnl_nlmsg_put_extra_header(nlh, sizeof(struct nfgenmsg));
++	nfh->nfgen_family = AF_UNSPEC;
++	nfh->version = NFNETLINK_V0;
++	nfh->res_id = 0;
++
++
++	ret = mnl_socket_sendto(nl, nlh, nlh->nlmsg_len);
++	if (ret == -1) {
++		perror("mnl_socket_recvfrom");
++		exit(EXIT_FAILURE);
++	}
++
++	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++
++
++	while (ret > 0) {
++		ret = mnl_cb_run(buf, ret, seq, portid, data_cb, l);
++		if (ret <= MNL_CB_STOP)
++			break;
++		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	}
++	if (ret == -1) {
++		perror("mnl_socket_recvfrom");
++		exit(EXIT_FAILURE);
++	}
++
++	if (l)
++		nfct_labelmap_destroy(l);
++
++	mnl_socket_close(nl);
++
++	return 0;
++}
+diff --git a/examples/nfct-mnl-set-label.c b/examples/nfct-mnl-set-label.c
+new file mode 100644
+index 0000000..dd52011
+--- /dev/null
++++ b/examples/nfct-mnl-set-label.c
+@@ -0,0 +1,170 @@
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <time.h>
++
++#include <libmnl/libmnl.h>
++#include <libnetfilter_conntrack/libnetfilter_conntrack.h>
++
++struct callback_args {
++	struct mnl_socket *nl;
++	unsigned int seq;
++	int bit;
 +};
 +
- #endif
-diff --git a/include/libnetfilter_conntrack/libnetfilter_conntrack.h b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-index 12f61d1..97e2dd7 100644
---- a/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-+++ b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
-@@ -273,6 +273,17 @@ enum {
- 	NFCT_CB_STOLEN = 2,     /* like continue, but ct is not freed */
- };
- 
-+/* bitmask setter/getter */
-+struct nfct_bitmask;
-+
-+struct nfct_bitmask *nfct_bitmask_new(unsigned int maxbit);
-+unsigned int nfct_bitmask_maxbit(const struct nfct_bitmask *);
-+
-+void nfct_bitmask_set_bit(struct nfct_bitmask *, unsigned int bit);
-+int nfct_bitmask_test_bit(const struct nfct_bitmask *, unsigned int bit);
-+void nfct_bitmask_unset_bit(struct nfct_bitmask *, unsigned int bit);
-+void nfct_bitmask_destroy(struct nfct_bitmask *);
-+
- /* setter */
- extern void nfct_set_attr(struct nf_conntrack *ct,
- 			  const enum nf_conntrack_attr type,
-diff --git a/src/conntrack/api.c b/src/conntrack/api.c
-index 000571f..f1fcdc4 100644
---- a/src/conntrack/api.c
-+++ b/src/conntrack/api.c
-@@ -1483,3 +1483,102 @@ void nfct_filter_dump_set_attr_u8(struct nfct_filter_dump *filter_dump,
- /**
-  * @}
-  */
-+
-+/**
-+ * \defgroup bitmask bitmask object
-+ *
-+ * @{
-+ */
-+
-+/**
-+ * nfct_bitmask_new - allocate a new bitmask
-+ *
-+ * \param max highest valid bit that can be set/unset.
-+ *
-+ * In case of success, this function returns a valid pointer to a memory blob,
-+ * otherwise NULL is returned and errno is set appropiately.
-+ */
-+struct nfct_bitmask *nfct_bitmask_new(unsigned int max)
++static void set_label(struct nf_conntrack *ct, struct callback_args *cbargs)
 +{
-+	struct nfct_bitmask *b;
-+	unsigned int bytes, words;
++	struct nfct_bitmask *b = (void *) nfct_get_attr(ct, ATTR_CONNLABELS);
++	int bit = cbargs->bit;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct nlmsghdr *nlh;
++	struct nfgenmsg *nfh;
 +
-+	if (max > 0xffff)
-+		return NULL;
-+
-+	words = DIV_ROUND_UP(max+1, 32);
-+	bytes = words * sizeof(b->bits[0]);
-+
-+	b = malloc(sizeof(struct nfct_bitmask) + bytes);
 +	if (b) {
-+		memset(b->bits, 0, bytes);
-+		b->words = words;
++		if (bit >= 0 && nfct_bitmask_test_bit(b, bit))
++			return;
++	} else if (bit < 0)
++		return;
++
++	b = nfct_bitmask_new(bit < 0 ? 0 : bit);
++	if (!b)
++		return;
++	if (bit >= 0)
++		nfct_bitmask_set_bit(b, bit);
++	nfct_set_attr(ct, ATTR_CONNLABELS, b);
++
++	cbargs->seq++;
++
++	nlh = mnl_nlmsg_put_header(buf);
++	nlh->nlmsg_type = (NFNL_SUBSYS_CTNETLINK << 8) | IPCTNL_MSG_CT_NEW;
++	nlh->nlmsg_flags = NLM_F_REQUEST|NLM_F_CREATE;
++	nlh->nlmsg_seq = cbargs->seq;
++
++	nfh = mnl_nlmsg_put_extra_header(nlh, sizeof(struct nfgenmsg));
++	nfh->nfgen_family = nfct_get_attr_u8(ct, ATTR_L3PROTO);
++	nfh->version = NFNETLINK_V0;
++	nfh->res_id = 0;
++
++	nfct_nlmsg_build(nlh, ct);
++
++	if (mnl_socket_sendto(cbargs->nl, nlh, nlh->nlmsg_len) < 0)
++		perror("mnl_socket_sendto");
++}
++
++static int data_cb(const struct nlmsghdr *nlh, void *data)
++{
++	struct nf_conntrack *ct;
++	char buf[4096];
++
++	ct = nfct_new();
++	if (ct == NULL)
++		return MNL_CB_OK;
++
++	nfct_nlmsg_parse(nlh, ct);
++
++	nfct_snprintf(buf, sizeof(buf), ct, NFCT_T_UNKNOWN, NFCT_O_DEFAULT, 0);
++	printf("%s\n", buf);
++
++	set_label(ct, data);
++
++	nfct_destroy(ct);
++
++	return MNL_CB_OK;
++}
++
++static void show_labels(struct nfct_labelmap *l)
++{
++	unsigned int i = 0;
++	const char *name;
++
++	if (l) {
++		fputs("usage: program label, configured labels are:\n", stderr);
++		while ((name = nfct_labelmap_get_name(l, i))) {
++			if (*name)
++				fprintf(stderr, "%s -> bit %d\n", name, i);
++			i++;
++		}
++	} else {
++		fputs("no labels configured, usage: program bit\n", stderr);
 +	}
-+	return b;
++	exit(1);
 +}
 +
-+/*
-+ * nfct_bitmask_set_bit - set bit in the bitmask
-+ *
-+ * \param b pointer to the bitmask object
-+ * \param bit the bit to set
-+ */
-+void nfct_bitmask_set_bit(struct nfct_bitmask *b, unsigned int bit)
++int main(int argc, char *argv[])
 +{
-+	unsigned int bits = b->words * 32;
-+	if (bit < bits)
-+		set_bit(bit, b->bits);
-+}
++	struct mnl_socket *nl;
++	struct nlmsghdr *nlh;
++	struct nfgenmsg *nfh;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	unsigned int seq, portid;
++	struct callback_args cbargs;
++	int ret;
++	struct nfct_labelmap *l = nfct_labelmap_new(NULL);
 +
-+/*
-+ * nfct_bitmask_test_bit - test if a bit in the bitmask is set
-+ *
-+ * \param b pointer to the bitmask object
-+ * \param bit the bit to test
-+ *
-+ * returns 0 if the bit is not set.
-+ */
-+int nfct_bitmask_test_bit(const struct nfct_bitmask *b, unsigned int bit)
-+{
-+	unsigned int bits = b->words * 32;
-+	return bit < bits && test_bit(bit, b->bits);
-+}
++	if (argc < 2)
++		show_labels(l);
 +
-+/*
-+ * nfct_bitmask_unset_bit - unset bit in the bitmask
-+ *
-+ * \param b pointer to the bitmask object
-+ * \param bit the bit to clear
-+ */
-+void nfct_bitmask_unset_bit(struct nfct_bitmask *b, unsigned int bit)
-+{
-+	unsigned int bits = b->words * 32;
-+	if (bit < bits)
-+		unset_bit(bit, b->bits);
-+}
++	cbargs.bit = l ? nfct_labelmap_get_bit(l, argv[1]) : -1;
 +
-+/*
-+ * nfct_bitmask_maxbit - return highest bit that may be set/unset
-+ *
-+ * \param b pointer to the bitmask object
-+ */
-+unsigned int nfct_bitmask_maxbit(const struct nfct_bitmask *b)
-+{
-+	return (b->words * 32) - 1;
-+}
++	if (cbargs.bit < 0) {
++		cbargs.bit = atoi(argv[1]);
++		if (cbargs.bit == 0 && argv[1][0] != '0')
++			show_labels(l);
++	}
 +
-+/*
-+ * nfct_bitmask_destroy - destroy bitmask object
-+ *
-+ * \param b pointer to the bitmask object
-+ *
-+ * This function releases the memory that is used by the bitmask object.
-+ */
-+void nfct_bitmask_destroy(struct nfct_bitmask *b)
-+{
-+	free(b);
-+}
++	if (cbargs.bit < 0)
++		puts("will clear all labels");
++	else
++		printf("will set label bit %d\n", cbargs.bit);
 +
-+/**
-+ * @}
-+ */
++	nl = mnl_socket_open(NETLINK_NETFILTER);
++	if (nl == NULL) {
++		perror("mnl_socket_open");
++		exit(EXIT_FAILURE);
++	}
++
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		perror("mnl_socket_bind");
++		exit(EXIT_FAILURE);
++	}
++	portid = mnl_socket_get_portid(nl);
++
++	nlh = mnl_nlmsg_put_header(buf);
++	nlh->nlmsg_type = (NFNL_SUBSYS_CTNETLINK << 8) | IPCTNL_MSG_CT_GET;
++	nlh->nlmsg_flags = NLM_F_REQUEST|NLM_F_DUMP;
++	nlh->nlmsg_seq = seq = time(NULL);
++
++	nfh = mnl_nlmsg_put_extra_header(nlh, sizeof(struct nfgenmsg));
++	nfh->nfgen_family = AF_UNSPEC;
++	nfh->version = NFNETLINK_V0;
++	nfh->res_id = 0;
++
++
++	ret = mnl_socket_sendto(nl, nlh, nlh->nlmsg_len);
++	if (ret == -1) {
++		perror("mnl_socket_recvfrom");
++		exit(EXIT_FAILURE);
++	}
++
++	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++
++	cbargs.nl = nl;
++	cbargs.seq = seq;
++
++	while (ret > 0) {
++		ret = mnl_cb_run(buf, ret, seq, portid, data_cb, &cbargs);
++		if (ret <= MNL_CB_STOP)
++			break;
++		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	}
++	if (ret == -1) {
++		perror("mnl_socket_recvfrom");
++		exit(EXIT_FAILURE);
++	}
++
++	if (l)
++		nfct_labelmap_destroy(l);
++	mnl_socket_close(nl);
++
++	return 0;
++}
 -- 
 1.7.8.6
 
