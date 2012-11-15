@@ -1,38 +1,43 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [nf-next:nf_tables-experiments PATCH 2/4] nf_tables: Split IPv4
- NAT into NAT expression and NAT IPv4 chain
-Date: Thu, 15 Nov 2012 14:38:53 +0200
-Message-ID: <50A4E25D.7010101@linux.intel.com>
-References: <1352970952-3447-1-git-send-email-tomasz.bursztyka@linux.intel.com> <1352970952-3447-3-git-send-email-tomasz.bursztyka@linux.intel.com> <20121115122645.GA2271@1984>
+Subject: Re: [nf-next:nf_tables-experiments PATCH 3/4] nf_tables: Add support
+ for IPv6 NAT expression
+Date: Thu, 15 Nov 2012 14:44:27 +0200
+Message-ID: <50A4E3AB.3080703@linux.intel.com>
+References: <1352970952-3447-1-git-send-email-tomasz.bursztyka@linux.intel.com> <1352970952-3447-4-git-send-email-tomasz.bursztyka@linux.intel.com> <20121115122908.GB2271@1984>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:6574 "EHLO mga14.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:31172 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993283Ab2KOMiz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Nov 2012 07:38:55 -0500
-In-Reply-To: <20121115122645.GA2271@1984>
+	id S2993283Ab2KOMoa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Nov 2012 07:44:30 -0500
+In-Reply-To: <20121115122908.GB2271@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi Pablo,
 
->>   {
->> >  	int err;
+>>   #include <linux/netfilter_ipv4.h>
+>> >@@ -26,8 +27,10 @@
+>> >  #include <net/ip.h>
 >> >  
->> >+#ifdef CONFIG_MODULES
->> >+	request_module("nft_nat");
->> >+#endif
-> I think this expression is automagically via nft_expr_type_get. The
-> MODULE_ALIAS_NFT_EXPR macro already helps to achieve that. So I think
-> we can remove that request_module call.
->
-> No need to resend this patchset in case you confirm this comment is
-> correct, I can delete those lines myself.
+>> >  struct nft_nat {
+>> >-	enum nft_registers      sreg_addr_min:8;
+>> >-	enum nft_registers      sreg_addr_max:8;
+>> >+	enum nft_registers      sreg_addr_min_v4:8;
+>> >+	enum nft_registers      sreg_addr_max_v4:8;
+>> >+	enum nft_registers      sreg_addr_min_v6:8;
+>> >+	enum nft_registers      sreg_addr_max_v6:8;
+> Suggestion: Couldn't we get this patch a bit smaller by adding int
+> family and the NFTA_NAT_FAMILY attribute?
 
-Sure, go ahead.
+Why not, at least semantically it could look better indeed, though from 
+struct size point of view it won't change anything.
+The logic for parsing NFTA would be easier too.
+
+Let's do this.
 
 Tomasz
