@@ -1,213 +1,119 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nf-next:nf_tables-experiments PATCH 3/4] nf_tables: Add
- support for IPv6 NAT expression
-Date: Thu, 15 Nov 2012 13:29:08 +0100
-Message-ID: <20121115122908.GB2271@1984>
-References: <1352970952-3447-1-git-send-email-tomasz.bursztyka@linux.intel.com>
- <1352970952-3447-4-git-send-email-tomasz.bursztyka@linux.intel.com>
+From: Stephen Clark <sclark46@earthlink.net>
+Subject: Re: UDP packets sent with wrong source address after routing change
+ [AV#3431]
+Date: Thu, 15 Nov 2012 07:33:32 -0500
+Message-ID: <50A4E11C.3070200@earthlink.net>
+References: <alpine.DEB.2.02.1211081627150.6644@lap-x201> <alpine.LNX.2.01.1211081829150.28568@nerf07.vanv.qr> <alpine.DEB.2.00.1211081823030.5637@chris-desktop.fen.aptivate.org> <20121110140720.GA9610@1984> <alpine.LNX.2.01.1211101957320.1938@nerf07.vanv.qr> <alpine.DEB.2.00.1211102216540.14307@blackhole.kfki.hu> <alpine.DEB.2.02.1211121019280.23195@lap-x201> <alpine.DEB.2.00.1211121556480.18137@blackhole.kfki.hu> <alpine.DEB.2.02.1211121523190.23195@lap-x201> <alpine.DEB.2.00.1211122020280.18729@blackhole.kfki.hu> <20121112233024.GA15215@1984> <50A257C8.8050700@earthlink.net> <alpine.DEB.2.00.1211131619040.21144@blackhole.kfki.hu> <50A291BF.70609@earthlink.net> <alpine.DEB.2.00.1211132012500.21586@blackhole.kfki.hu> <50A2B96D.5080905@earthlink.net> <alpine.DEB.2.00.1211140901060.4404@bla
+ ckhole.kfki.hu> <50A3A747.20104@earthlink.net> <alpine.DEB.2.00.1211142107450.5958@blackhole.kfki.hu>
+Reply-To: sclark46@earthlink.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Chris Wilson <chris-netfilter-110904@aptivate.org>,
+	netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44890 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1767581Ab2KOM3Q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Nov 2012 07:29:16 -0500
-Content-Disposition: inline
-In-Reply-To: <1352970952-3447-4-git-send-email-tomasz.bursztyka@linux.intel.com>
+Received: from elasmtp-dupuy.atl.sa.earthlink.net ([209.86.89.62]:35783 "EHLO
+	elasmtp-dupuy.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S2993328Ab2KOMdj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Nov 2012 07:33:39 -0500
+In-Reply-To: <alpine.DEB.2.00.1211142107450.5958@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi again Tomasz,
+On 11/14/2012 03:15 PM, Jozsef Kadlecsik wrote:
+> On Wed, 14 Nov 2012, Stephen Clark wrote:
+>
+>> On 11/14/2012 03:08 AM, Jozsef Kadlecsik wrote:
+>>> On Tue, 13 Nov 2012, Stephen Clark wrote:
+>>>
+>>>> On 11/13/2012 02:24 PM, Jozsef Kadlecsik wrote:
+>>>>> On Tue, 13 Nov 2012, Stephen Clark wrote:
+>>>>>
+>>>>>> On 11/13/2012 10:25 AM, Jozsef Kadlecsik wrote:
+>>>>>>> On Tue, 13 Nov 2012, Stephen Clark wrote:
+>>>>>>>
+>>>>>>>> A similar problem exists in the following scenario:
+>>>>>>>> You have two upstream isp that you are doing load balancing by
+>>>>>>>> having
+>>>>>>>> multiple
+>>>>>>>> default routes:
+>>>>>>>> default
+>>>>>>>>             nexthop via 66.xxx.xxx.xxx  dev eth1 weight 1
+>>>>>>>>             nexthop via 205.xxx.xxx.xxx  dev eth2 weight 1
+>>>>>>>> On one of the external interface you have a DNAT to
+>>>>>>>> an internal server on a private address. The DNAT makes
+>>>>>>>> a conntrack entry that is going to in effect do a SNAT on reponses
+>>>>>>>> from the internal server back out to the internet, but the load
+>>>>>>>> balancing
+>>>>>>>> decision on routing happens before this implicit SNAT so you have
+>>>>>>>> packets
+>>>>>>>> trying to go out an interface where the source address does not
+>>>>>>>> fall
+>>>>>>>> in
+>>>>>>>> the
+>>>>>>>> subnet of that interface.
+>>>>>>> In my opinion this is a broken network design. The DNAT should not
+>>>>>>> depend
+>>>>>>> on the external interface, problem solved.
+>>>>>>>
+>>>>>> Hmmm... what does this mean ^^^ ?
+>>>>>> Say you have the follwoing:
+>>>>>> eth1 with ips 66.xxx.xxx.1 and 66.xxx.xxx.2
+>>>>>> eth2 with ip 205.xxx.xxx.xxx
+>>>>>> eth0 with ip 10.0.1.254/24
+>>>>>> with a server at 10.0.1.253.
+>>>>>>
+>>>>>> iptables -A PREROUTING -i eth1 -d 66.xxx.xxx.2 -j DNAT
+>>>>>> --to-destination
+>>>>>> 10.0.1.253
+>>>>>>
+>>>>>> How else would you access an internal server at a private address
+>>>>>> without using a DNAT from an external public ip? Is there some other
+>>>>>> way
+>>>>>> to do this that I am not aware of?
+>>>>> Everything depends on your backup provider: does it route the network
+>>>>> 66.xxx.xxx.xxx/y to you or not?
+>>>>>
+>>>>> - If the answer is no, then the rule above is correct but the internal
+>>>>>      server cannot be reached when the backup line is up. So it does not
+>>>>>      matter what's in the conntrack table, no answer is sent over the
+>>>>> backup
+>>>>>      link to you.
+>>>>> - If the answer is yes, then the rule should not contain the "-i eth1"
+>>>>>      part and your internal server could be reached as 66.xxx.xxx.2,
+>>>>>      independent of the uplinks.
+>>>> There is no intent for backup of the incoming connection to 66.xxx.xxx.2 -
+>>>> only load balancing outgoing
+>>>> traffic.
+>>> Then I don't understand, what is the problem. When the reply packet is
+>>> sent out over the backup line, why should the source address fall into
+>>> the subnet of the outgoing interface? Unless, of course if you yourself or
+>>> your backup provider prevents it by egress filtering.
+>>>
+>> A lot of ISPs in the U.S. do reverse path filtering and drop packets that
+>> could not originate from their provided subnet.
+>> If they did not do this then of course there would be no problem.
+> But then this traffic is not load balanced at all and the reply packets
+> must be sent out over eth1 only. So you have to add a routing rule which
+> forces routing over eth1.
+>
 
-Comment below:
+You are correct and that is what we do. But it would be nice if the linux kernel was
+smart enough to make sure the packet went out the correct interface without having
+to add additional rules.
 
-On Thu, Nov 15, 2012 at 11:15:51AM +0200, Tomasz Bursztyka wrote:
-> Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-> ---
->  include/linux/netfilter/nf_tables.h |   6 ++-
->  net/netfilter/nft_nat.c             | 100 +++++++++++++++++++++++++++---------
->  2 files changed, 79 insertions(+), 27 deletions(-)
-> 
-> diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-> index f42cc9d..7ab2d65 100644
-> --- a/include/linux/netfilter/nf_tables.h
-> +++ b/include/linux/netfilter/nf_tables.h
-> @@ -395,8 +395,10 @@ enum nft_nat_types {
->  enum nft_nat_attributes {
->  	NFTA_NAT_UNSPEC,
->  	NFTA_NAT_TYPE,
-> -	NFTA_NAT_REG_ADDR_MIN,
-> -	NFTA_NAT_REG_ADDR_MAX,
-> +	NFTA_NAT_REG_ADDR_MIN_V4,
-> +	NFTA_NAT_REG_ADDR_MAX_V4,
-> +	NFTA_NAT_REG_ADDR_MIN_V6,
-> +	NFTA_NAT_REG_ADDR_MAX_V6,
->  	NFTA_NAT_REG_PROTO_MIN,
->  	NFTA_NAT_REG_PROTO_MAX,
->  	__NFTA_NAT_MAX
-> diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
-> index ea9854e..ca5b0da 100644
-> --- a/net/netfilter/nft_nat.c
-> +++ b/net/netfilter/nft_nat.c
-> @@ -13,6 +13,7 @@
->  #include <linux/init.h>
->  #include <linux/skbuff.h>
->  #include <linux/ip.h>
-> +#include <linux/string.h>
->  #include <linux/netlink.h>
->  #include <linux/netfilter.h>
->  #include <linux/netfilter_ipv4.h>
-> @@ -26,8 +27,10 @@
->  #include <net/ip.h>
->  
->  struct nft_nat {
-> -	enum nft_registers      sreg_addr_min:8;
-> -	enum nft_registers      sreg_addr_max:8;
-> +	enum nft_registers      sreg_addr_min_v4:8;
-> +	enum nft_registers      sreg_addr_max_v4:8;
-> +	enum nft_registers      sreg_addr_min_v6:8;
-> +	enum nft_registers      sreg_addr_max_v6:8;
+But I guess one could argue this gives the user more control.
 
-Suggestion: Couldn't we get this patch a bit smaller by adding int
-family and the NFTA_NAT_FAMILY attribute?
+-- 
 
->  	enum nft_registers      sreg_proto_min:8;
->  	enum nft_registers      sreg_proto_max:8;
->  	enum nf_nat_manip_type  type;
-> @@ -43,9 +46,15 @@ static void nft_nat_eval(const struct nft_expr *expr,
->  	struct nf_nat_range range;
->  
->  	memset(&range, 0, sizeof(range));
-> -	if (priv->sreg_addr_min) {
-> -		range.min_addr.ip = data[priv->sreg_addr_min].data[0];
-> -		range.max_addr.ip = data[priv->sreg_addr_max].data[0];
-> +	if (priv->sreg_addr_min_v4) {
-> +		range.min_addr.ip = data[priv->sreg_addr_min_v4].data[0];
-> +		range.max_addr.ip = data[priv->sreg_addr_max_v4].data[0];
-> +		range.flags |= NF_NAT_RANGE_MAP_IPS;
-> +	} else if (priv->sreg_addr_min_v6) {
-> +		memcpy(range.min_addr.ip6, data[priv->sreg_addr_min_v4].data,
-> +		       sizeof(struct nft_data));
-> +		memcpy(range.max_addr.ip6, data[priv->sreg_addr_max_v6].data,
-> +		       sizeof(struct nft_data));
->  		range.flags |= NF_NAT_RANGE_MAP_IPS;
->  	}
->  
-> @@ -60,11 +69,13 @@ static void nft_nat_eval(const struct nft_expr *expr,
->  }
->  
->  static const struct nla_policy nft_nat_policy[NFTA_NAT_MAX + 1] = {
-> -	[NFTA_NAT_TYPE]		 = { .type = NLA_U32 },
-> -	[NFTA_NAT_REG_ADDR_MIN]	 = { .type = NLA_U32 },
-> -	[NFTA_NAT_REG_ADDR_MAX]	 = { .type = NLA_U32 },
-> -	[NFTA_NAT_REG_PROTO_MIN] = { .type = NLA_U32 },
-> -	[NFTA_NAT_REG_PROTO_MAX] = { .type = NLA_U32 },
-> +	[NFTA_NAT_TYPE]			= { .type = NLA_U32 },
-> +	[NFTA_NAT_REG_ADDR_MIN_V4]	= { .type = NLA_U32 },
-> +	[NFTA_NAT_REG_ADDR_MAX_V4]	= { .type = NLA_U32 },
-> +	[NFTA_NAT_REG_ADDR_MIN_V6]	= { .type = NLA_U32 },
-> +	[NFTA_NAT_REG_ADDR_MAX_V6]	= { .type = NLA_U32 },
-> +	[NFTA_NAT_REG_PROTO_MIN]	= { .type = NLA_U32 },
-> +	[NFTA_NAT_REG_PROTO_MAX]	= { .type = NLA_U32 },
->  };
->  
->  static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
-> @@ -87,22 +98,45 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
->  		return -EINVAL;
->  	}
->  
-> -	if (tb[NFTA_NAT_REG_ADDR_MIN]) {
-> -		priv->sreg_addr_min = ntohl(nla_get_be32(
-> -						tb[NFTA_NAT_REG_ADDR_MIN]));
-> -		err = nft_validate_input_register(priv->sreg_addr_min);
-> +	if ((tb[NFTA_NAT_REG_ADDR_MIN_V4] && tb[NFTA_NAT_REG_ADDR_MIN_V6]) ||
-> +	    (tb[NFTA_NAT_REG_ADDR_MIN_V4] && tb[NFTA_NAT_REG_ADDR_MAX_V6]) ||
-> +	    (tb[NFTA_NAT_REG_ADDR_MAX_V4] && tb[NFTA_NAT_REG_ADDR_MIN_V6]) ||
-> +	    (tb[NFTA_NAT_REG_ADDR_MAX_V4] && tb[NFTA_NAT_REG_ADDR_MAX_V6]))
-> +		return -EINVAL;
-> +
-> +	if (tb[NFTA_NAT_REG_ADDR_MIN_V4]) {
-> +		priv->sreg_addr_min_v4 = ntohl(nla_get_be32(
-> +						tb[NFTA_NAT_REG_ADDR_MIN_V4]));
-> +		err = nft_validate_input_register(priv->sreg_addr_min_v4);
-> +		if (err < 0)
-> +			return err;
-> +	}
-> +
-> +	if (tb[NFTA_NAT_REG_ADDR_MAX_V4]) {
-> +		priv->sreg_addr_max_v4 = ntohl(nla_get_be32(
-> +						tb[NFTA_NAT_REG_ADDR_MAX_V4]));
-> +		err = nft_validate_input_register(priv->sreg_addr_max_v4);
-> +		if (err < 0)
-> +			return err;
-> +	} else
-> +		priv->sreg_addr_max_v4 = priv->sreg_addr_min_v4;
-> +
-> +	if (tb[NFTA_NAT_REG_ADDR_MIN_V6]) {
-> +		priv->sreg_addr_min_v6 = ntohl(nla_get_be32(
-> +						tb[NFTA_NAT_REG_ADDR_MIN_V6]));
-> +		err = nft_validate_input_register(priv->sreg_addr_min_v6);
->  		if (err < 0)
->  			return err;
->  	}
->  
-> -	if (tb[NFTA_NAT_REG_ADDR_MAX]) {
-> -		priv->sreg_addr_max = ntohl(nla_get_be32(
-> -						tb[NFTA_NAT_REG_ADDR_MAX]));
-> -		err = nft_validate_input_register(priv->sreg_addr_max);
-> +	if (tb[NFTA_NAT_REG_ADDR_MAX_V6]) {
-> +		priv->sreg_addr_max_v6 = ntohl(nla_get_be32(
-> +						tb[NFTA_NAT_REG_ADDR_MAX_V6]));
-> +		err = nft_validate_input_register(priv->sreg_addr_max_v4);
->  		if (err < 0)
->  			return err;
->  	} else
-> -		priv->sreg_addr_max = priv->sreg_addr_min;
-> +		priv->sreg_addr_max_v6 = priv->sreg_addr_min_v6;
->  
->  	if (tb[NFTA_NAT_REG_PROTO_MIN]) {
->  		priv->sreg_proto_min = ntohl(nla_get_be32(
-> @@ -139,12 +173,28 @@ static int nft_nat_dump(struct sk_buff *skb, const struct nft_expr *expr)
->  		break;
->  	}
->  
-> -	if (nla_put_be32(skb,
-> -			 NFTA_NAT_REG_ADDR_MIN, htonl(priv->sreg_addr_min)))
-> -		goto nla_put_failure;
-> -	if (nla_put_be32(skb,
-> -			 NFTA_NAT_REG_ADDR_MAX, htonl(priv->sreg_addr_max)))
-> -		goto nla_put_failure;
-> +	if (priv->sreg_addr_min_v4) {
-> +		if (nla_put_be32(skb,
-> +				 NFTA_NAT_REG_ADDR_MIN_V4,
-> +				 htonl(priv->sreg_addr_min_v4)))
-> +			goto nla_put_failure;
-> +		if (nla_put_be32(skb,
-> +				 NFTA_NAT_REG_ADDR_MAX_V4,
-> +				 htonl(priv->sreg_addr_max_v4)))
-> +			goto nla_put_failure;
-> +	}
-> +
-> +	if (priv->sreg_addr_min_v6) {
-> +		if (nla_put_be32(skb,
-> +				 NFTA_NAT_REG_ADDR_MIN_V6,
-> +				 htonl(priv->sreg_addr_min_v6)))
-> +			goto nla_put_failure;
-> +		if (nla_put_be32(skb,
-> +				 NFTA_NAT_REG_ADDR_MAX_V6,
-> +				 htonl(priv->sreg_addr_max_v6)))
-> +			goto nla_put_failure;
-> +	}
-> +
->  	if (nla_put_be32(skb,
->  			 NFTA_NAT_REG_PROTO_MIN, htonl(priv->sreg_proto_min)))
->  		goto nla_put_failure;
-> -- 
-> 1.8.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+"They that give up essential liberty to obtain temporary safety,
+deserve neither liberty nor safety."  (Ben Franklin)
+
+"The course of history shows that as a government grows, liberty
+decreases."  (Thomas Jefferson)
+
+
+
