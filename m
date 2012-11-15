@@ -1,46 +1,60 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nf-next:nf_tables-experiments PATCH 3/4] nf_tables: Add
- support for IPv6 NAT expression
-Date: Thu, 15 Nov 2012 13:47:12 +0100
-Message-ID: <20121115124712.GA4084@1984>
-References: <1352970952-3447-1-git-send-email-tomasz.bursztyka@linux.intel.com>
- <1352970952-3447-4-git-send-email-tomasz.bursztyka@linux.intel.com>
- <20121115122908.GB2271@1984>
- <50A4E3AB.3080703@linux.intel.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH RFC v2] netfilter: add connlabel conntrack extension
+Date: Thu, 15 Nov 2012 13:50:02 +0100
+Message-ID: <20121115125002.GI20678@breakpoint.cc>
+References: <1351860231-5434-1-git-send-email-fw@strlen.de>
+ <20121112065001.GB11330@1984>
+ <20121112124705.GC20678@breakpoint.cc>
+ <20121115121357.GB31335@1984>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Content-Transfer-Encoding: 8BIT
+Cc: Florian Westphal <fw@strlen.de>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51483 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1767694Ab2KOMrY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Nov 2012 07:47:24 -0500
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:40241 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1423250Ab2KOMuD convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Nov 2012 07:50:03 -0500
 Content-Disposition: inline
-In-Reply-To: <50A4E3AB.3080703@linux.intel.com>
+In-Reply-To: <20121115121357.GB31335@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Nov 15, 2012 at 02:44:27PM +0200, Tomasz Bursztyka wrote:
-> Hi Pablo,
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Mon, Nov 12, 2012 at 01:47:05PM +0100, Florian Westphal wrote:
+> > Alternative would be to keep track of highest bit requested in a "-m connlabel"
+> > rule to figure out the needed size.
+> > 
+> > In any case, it would require adding "u16 len" to the extension area; else
+> > we can't figure out how many bytes are valid, i.e.:
+> > 
+> > struct nf_conn_labels {
+> > +       u16 size;		/* length of label storage */
+> > +	unsigned long bits[];	/* variable-sized label storage */
+> > +};
+> > 
+> > it would increase minimum length needed but it would avoid
+> > the rcu dances done by the current scheme.
+> > 
+> > It this is ok for you I'll make this change to see how many LOC are
+> > saved by this.
 > 
-> >>  #include <linux/netfilter_ipv4.h>
-> >>>@@ -26,8 +27,10 @@
-> >>>  #include <net/ip.h>
-> >>>  >  struct nft_nat {
-> >>>-	enum nft_registers      sreg_addr_min:8;
-> >>>-	enum nft_registers      sreg_addr_max:8;
-> >>>+	enum nft_registers      sreg_addr_min_v4:8;
-> >>>+	enum nft_registers      sreg_addr_max_v4:8;
-> >>>+	enum nft_registers      sreg_addr_min_v6:8;
-> >>>+	enum nft_registers      sreg_addr_max_v6:8;
-> >Suggestion: Couldn't we get this patch a bit smaller by adding int
-> >family and the NFTA_NAT_FAMILY attribute?
-> 
-> Why not, at least semantically it could look better indeed, though
-> from struct size point of view it won't change anything.
-> The logic for parsing NFTA would be easier too.
-> 
-> Let's do this.
+> If we simplify the current connlabel code it would be great. And so
+> far, the only way I can think to obtain that is to explictly specify
+> via the CT target the length of the label.
 
-Great, thanks a lot.
+I've turned it into a var-length extension, so all the rcu dances
+and runtime reallocs are gone.
+
+I'll be sending the first non-rfc version of the patchset soon.
+
+Minor drawback: I had to reduce it to 128 labels max, else the
+extension offset array (u8 offset[]) will overflow if too many
+extensions are enabled.
+
+At the moment the 128 labels max constraint is no problem at all,
+and we can increase it later if we reduce total possible extension
+size (or use u16 for length/offset tracking).
