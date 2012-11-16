@@ -1,47 +1,52 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/4] netfilter updates for nf-next (try 2)
-Date: Fri, 16 Nov 2012 13:00:44 -0500 (EST)
-Message-ID: <20121116.130044.936556420105398924.davem@davemloft.net>
-References: <1353069653-3231-1-git-send-email-pablo@netfilter.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 2/2] Handle the routing changes in the MASQUERADE
+ target
+Date: Fri, 16 Nov 2012 22:38:25 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1211162234050.14924@blackhole.kfki.hu>
+References: <1352837857-22087-1-git-send-email-kadlec@blackhole.kfki.hu> <1352837857-22087-3-git-send-email-kadlec@blackhole.kfki.hu> <20121115114444.GA31335@1984> <alpine.DEB.2.00.1211151532500.7485@blackhole.kfki.hu> <20121116100914.GB25964@1984>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:58057 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752714Ab2KPSAu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Nov 2012 13:00:50 -0500
-In-Reply-To: <1353069653-3231-1-git-send-email-pablo@netfilter.org>
+Received: from smtp2.kfki.hu ([148.6.0.28]:38643 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753642Ab2KPVi1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Nov 2012 16:38:27 -0500
+In-Reply-To: <20121116100914.GB25964@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: pablo@netfilter.org
-Date: Fri, 16 Nov 2012 13:40:49 +0100
+Hi Pablo,
 
-> This is the second try to include the following four patches that contain
-> updates for your net-next tree, they are:
-> 
-> * Little cleanup for IPVS the use of a strange notation to assign the
->   conntrack object, from Alan Cox.
-> 
-> * Another little cleanup for nf_nat to save a couple of lines by using
->   PTR_RET, from Wu Fengguan
-> 
-> * getsockopt support to obtain the original IPv6 address after NAT,
->   similar to the one that IPv4 provides, from Florian Westphal.
-> 
-> * Follow-up patch pointed out by YOSHIFUJI Hideaki to only provide
->   the scope_id in case that link is local, again from Florian Westphal.
-> 
-> You can pull these changes from:
-> 
-> git://1984.lsi.us.es/nf-next master
+On Fri, 16 Nov 2012, Pablo Neira Ayuso wrote:
 
-Pulled, thanks.
+> > Currently I'm trying to find a way to purge just the entries which are 
+> > affected by the routing change (for example when there are muliple VPN 
+> > tunnels). However that requires a new conntrack extension and it's 
+> > nontrivial (at least for me) to figure out the required data from struct 
+> > fib_info.
+> > 
+> > If the conntrack extension is used then of course the status bit is not 
+> > required.
+> 
+> We can register now variable length conntrack extensions. I think we
+> can use that feature to extend nf_conn_nat to allocate extra
+> information for all working modes of MASQUERADE. It may require
+> changing the nf_nat_setup_info interface to pass some new flags.
+> 
+> Regarding the variable length conntrack extensions, please check
+> nf_ct_ext_add_length in net/netfilter/nf_conntrack_helper.c for
+> instance.
 
-There was a conflict I had to resolve because the net-next tree
-had a series of IS_ENABLED conversions that overlapped with some
-of the changes in your tree.
+I realized that there's no point to store the extra information in an 
+extension: changing for example the weight of another routing rule may 
+effect the conntrack entry. So we have to recheck the routing. Sigh.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
