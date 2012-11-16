@@ -1,55 +1,53 @@
 From: pablo@netfilter.org
-Subject: [PATCH 2/3] [-stable] netfilter: Validate the sequence number of dataless ACK packets as well
-Date: Fri, 16 Nov 2012 15:00:13 +0100
-Message-ID: <1353074415-21379-3-git-send-email-pablo@netfilter.org>
-References: <1353074415-21379-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 1/3] [-stable] netfilter: xt_TEE: don't use destination address found in header
+Date: Fri, 16 Nov 2012 15:02:28 +0100
+Message-ID: <1353074550-21456-2-git-send-email-pablo@netfilter.org>
+References: <1353074550-21456-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, stable@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36213 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36614 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751992Ab2KPOAc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Nov 2012 09:00:32 -0500
-In-Reply-To: <1353074415-21379-1-git-send-email-pablo@netfilter.org>
+	id S1751570Ab2KPOCi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Nov 2012 09:02:38 -0500
+In-Reply-To: <1353074550-21456-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 
-We spare nothing by not validating the sequence number of dataless
-ACK packets and enabling it makes harder off-path attacks.
+Torsten Luettgert bisected TEE regression starting with commit
+f8126f1d5136be1 (ipv4: Adjust semantics of rt->rt_gateway.)
 
-See: "Reflection scan: an Off-Path Attack on TCP" by Jan Wrobel,
-http://arxiv.org/abs/1201.2074
+The problem is that it tries to ARP-lookup the original destination
+address of the forwarded packet, not the address of the gateway.
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Fix this using FLOWI_FLAG_KNOWN_NH Julian added in commit
+c92b96553a80c1 (ipv4: Add FLOWI_FLAG_KNOWN_NH), so that known
+nexthop (info->gw.ip) has preference on resolving.
+
+Reported-by: Torsten Luettgert <ml-netfilter@enda.eu>
+Bisected-by: Torsten Luettgert <ml-netfilter@enda.eu>
+Tested-by: Torsten Luettgert <ml-netfilter@enda.eu>
+Cc: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_proto_tcp.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ net/netfilter/xt_TEE.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 1eb458c..a9d5f50 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -625,15 +625,9 @@ static bool tcp_in_window(const struct nf_conn *ct,
- 		ack = sack = receiver->td_end;
- 	}
- 
--	if (seq == end
--	    && (!tcph->rst
--		|| (seq == 0 && state->state == TCP_CONNTRACK_SYN_SENT)))
-+	if (tcph->rst && seq == 0 && state->state == TCP_CONNTRACK_SYN_SENT)
- 		/*
--		 * Packets contains no data: we assume it is valid
--		 * and check the ack value only.
--		 * However RST segments are always validated by their
--		 * SEQ number, except when seq == 0 (reset sent answering
--		 * SYN.
-+		 * RST sent answering SYN.
- 		 */
- 		seq = end = sender->td_end;
- 
+diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
+index ee2e5bc..bd93e51 100644
+--- a/net/netfilter/xt_TEE.c
++++ b/net/netfilter/xt_TEE.c
+@@ -70,6 +70,7 @@ tee_tg_route4(struct sk_buff *skb, const struct xt_tee_tginfo *info)
+ 	fl4.daddr = info->gw.ip;
+ 	fl4.flowi4_tos = RT_TOS(iph->tos);
+ 	fl4.flowi4_scope = RT_SCOPE_UNIVERSE;
++	fl4.flowi4_flags = FLOWI_FLAG_KNOWN_NH;
+ 	rt = ip_route_output_key(net, &fl4);
+ 	if (IS_ERR(rt))
+ 		return false;
 -- 
 1.7.10.4
 
