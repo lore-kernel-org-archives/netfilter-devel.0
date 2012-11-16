@@ -1,63 +1,56 @@
-From: pablo@netfilter.org
-Subject: [PATCH 3/3] [-stable] netfilter: nf_conntrack: fix rt_gateway checks for H.323 helper
-Date: Fri, 16 Nov 2012 15:02:30 +0100
-Message-ID: <1353074550-21456-4-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/3] [-stable] Netfilter updates for stable 3.6
+Date: Fri, 16 Nov 2012 15:04:48 +0100
+Message-ID: <20121116140448.GA10464@1984>
 References: <1353074550-21456-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Cc: davem@davemloft.net, stable@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36643 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36974 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751980Ab2KPOCo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Nov 2012 09:02:44 -0500
+	id S1751590Ab2KPOEz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Nov 2012 09:04:55 -0500
+Content-Disposition: inline
 In-Reply-To: <1353074550-21456-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Julian Anastasov <ja@ssi.bg>
+On Fri, Nov 16, 2012 at 03:02:27PM +0100, pablo@netfilter.org wrote:
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> Hi!
+> 
+> Please, consider the following Netfilter patches for stable 3.6 and
+> onwards inclusion.
 
-After the change "Adjust semantics of rt->rt_gateway"
-(commit f8126f1d51) we should properly match the nexthop when
-destinations are directly connected because rt_gateway can be 0.
+The "onwards" is obviously a typo from the template I've used, these
+are already in 3.7-rc :-)
 
-The rt_gateway checks in H.323 helper try to avoid the creation
-of an unnecessary expectation in this call-forwarding case:
-
-http://people.netfilter.org/zhaojingmin/h323_conntrack_nat_helper/#_Toc133598073
-
-However, the existing code fails to avoid that in many cases,
-see this thread:
-
-http://marc.info/?l=linux-netdev&m=135043175028620&w=2
-
-It seems it is not trivial to know from the kernel if two hosts
-have to go through the firewall to communicate each other, which
-is the main point of the call-forwarding filter code to avoid
-creating unnecessary expectations.
-
-So this patch just gets things the way they were as before
-commit f8126f1d51.
-
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_h323_main.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index 4283b20..02f65bc 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -733,7 +733,8 @@ static int callforward_do_filter(const union nf_inet_addr *src,
- 				   flowi4_to_flowi(&fl1), false)) {
- 			if (!afinfo->route(&init_net, (struct dst_entry **)&rt2,
- 					   flowi4_to_flowi(&fl2), false)) {
--				if (rt1->rt_gateway == rt2->rt_gateway &&
-+				if (rt_nexthop(rt1, fl1.daddr) ==
-+				    rt_nexthop(rt2, fl2.daddr) &&
- 				    rt1->dst.dev  == rt2->dst.dev)
- 					ret = 1;
- 				dst_release(&rt2->dst);
--- 
-1.7.10.4
-
+> The selected three patches are:
+> 
+> 2ad5b9e netfilter: xt_TEE: don't use destination address found in header
+> bbb5823 netfilter: nf_conntrack: fix rt_gateway checks for H.323 helper
+> 0153d5a netfilter: xt_CT: fix timeout setting with IPv6 [REQUIRES: 236df00 netfilter: xt_CT: refactorize xt_ct_tg_check]
+> 
+> More relevantly, the first patch fix the TEE target, which is broken in 3.6.
+> 
+> Please, cherry-pick them. Thanks!
+> 
+> Eric Dumazet (1):
+>   netfilter: xt_TEE: don't use destination address found in header
+> 
+> Julian Anastasov (1):
+>   netfilter: nf_conntrack: fix rt_gateway checks for H.323 helper
+> 
+> Pablo Neira Ayuso (1):
+>   netfilter: xt_CT: fix timeout setting with IPv6
+> 
+> --
+> 1.7.10.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
