@@ -1,96 +1,103 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 06/11] netfilter: xtables2: rule entry handler
-Date: Fri, 16 Nov 2012 02:23:40 +0100
-Message-ID: <1353029025-31635-7-git-send-email-jengelh@inai.de>
+Subject: [PATCH 07/11] netfilter: xtables2: rule dumping
+Date: Fri, 16 Nov 2012 02:23:41 +0100
+Message-ID: <1353029025-31635-8-git-send-email-jengelh@inai.de>
 References: <1353029025-31635-1-git-send-email-jengelh@inai.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:45177 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:45178 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751153Ab2KPBX5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1751219Ab2KPBX5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 15 Nov 2012 20:23:57 -0500
 In-Reply-To: <1353029025-31635-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-You can now send the set of new rules along with a splice request.
-(Currently empty rules, since matches/targets are yet to come.)
+Now that the chain blob is populated (by previous commit), it can be
+traversed and dumped to userspace.
 
 Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- include/uapi/linux/netfilter/nfnetlink_xtables.h |    2 ++
- net/netfilter/xt_nfnetlink.c                     |   31 ++++++++++++++++++++++
- 2 files changed, 33 insertions(+)
+ net/netfilter/xt_nfnetlink.c |   43 +++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/netfilter/nfnetlink_xtables.h b/include/uapi/linux/netfilter/nfnetlink_xtables.h
-index 9f34b44..2ffbf60 100644
---- a/include/uapi/linux/netfilter/nfnetlink_xtables.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_xtables.h
-@@ -15,6 +15,7 @@
-  * %NFXTM_CHAIN_DUMP:	retrieve chain properties and rules in the chain
-  * %NFXTM_TABLE_DUMP:	retrieve table (multiple chains) and their rules
-  * %NFXTM_CHAIN_SPLICE:	start a splice transaction; modify rules of a chain
-+ * %NFXTM_RULE_ENTRY:	used to convey rule data (during both splice and dump)
+diff --git a/net/netfilter/xt_nfnetlink.c b/net/netfilter/xt_nfnetlink.c
+index 60e883f..26a8c51 100644
+--- a/net/netfilter/xt_nfnetlink.c
++++ b/net/netfilter/xt_nfnetlink.c
+@@ -99,10 +99,12 @@ struct xtnetlink_transact {
+  * struct netlink_callback->args[x] holds, for different x:
+  * %NLCBA_TABLE_PTR:	a pointer to the currently traversed table
+  * %NLCBA_CHAIN_PTR:	a pointer to the currently traversed chain
++ * %NLCBA_RULE_PTR:	a pointer to the currently traversed rule
   */
- enum nfxt_msg_type {
- 	NFXTM_IDENTIFY = 1,
-@@ -28,6 +29,7 @@ enum nfxt_msg_type {
- 	NFXTM_CHAIN_DUMP,
- 	NFXTM_TABLE_DUMP,
- 	NFXTM_CHAIN_SPLICE,
-+	NFXTM_RULE_ENTRY,
+ enum {
+ 	NLCBA_TABLE_PTR = 0,
+ 	NLCBA_CHAIN_PTR,
++	NLCBA_RULE_PTR,
  };
  
  /**
-diff --git a/net/netfilter/xt_nfnetlink.c b/net/netfilter/xt_nfnetlink.c
-index 1941ce6..60e883f 100644
---- a/net/netfilter/xt_nfnetlink.c
-+++ b/net/netfilter/xt_nfnetlink.c
-@@ -1002,6 +1002,36 @@ static int xtnetlink_table_dump(struct sock *xtnl, struct sk_buff *iskb,
- 	return netlink_dump_start(xtnl, iskb, imsg, &ctl);
+@@ -818,6 +820,40 @@ xtnetlink_emit_final(struct sk_buff *skb, struct netlink_callback *nl_cb)
+ 	return 0;
  }
  
-+static int xtnetlink_rule_entry(struct sock *xtnl, struct sk_buff *iskb,
-+				const struct nlmsghdr *imsg,
-+				const struct nlattr *const *ad)
++static int xtnetlink_emit_chain(struct sk_buff *, struct netlink_callback *);
++
++static int
++xtnetlink_emit_rule(struct sk_buff *skb, struct netlink_callback *nl_cb)
 +{
-+	struct xtnetlink_pktref ref =
-+		{.c_skb = iskb, .c_msg = imsg, .sock = xtnl};
-+	struct xt2_proto_rule *rule;
-+	struct xtnetlink_transact *xa;
-+	int ret;
++	struct xtnetlink_pktref oldref =
++		{.c_skb = nl_cb->skb, .c_msg = nl_cb->nlh};
++	struct xt2_table *table = (void *)nl_cb->args[NLCBA_TABLE_PTR];
++	struct xt2_chain *chain = (void *)nl_cb->args[NLCBA_CHAIN_PTR];
++	struct xt2_packed_rule *rule = (void *)nl_cb->args[NLCBA_RULE_PTR];
++	struct nlmsghdr *msg = NULL;
 +
-+	xa = xtnetlink_transact_get(sock_net(xtnl), NETLINK_CB(iskb).portid,
-+				    XA_SPLICE_BUFFER);
-+	if (xa == NULL)
-+		return xtnetlink_error(&ref, NFXTE_TRANSACT_INACTIVE);
++	msg = xtnetlink_fill(skb, &oldref, NLM_F_MULTI);
++	msg->nlmsg_type = MAKE_TAGGED_TYPE(NFXTM_RULE_ENTRY);
++	nlmsg_end(skb, msg);
 +
-+	rule = xt2_rule_new();
-+	if (rule == NULL)
-+		goto out_of_mem;
-+	ret = xt2_rulebuf_push(xa->splice_param->rulebuf, rule);
-+	xtnetlink_transact_put(xa);
-+	if (ret < 0)
-+		return xtnetlink_error(&ref, ret);
-+	return xtnetlink_error(&ref, NFXTE_SUCCESS);
++	/* Note chain->rules is always valid if we got here to emit rules. */
++	rule = xt2_chain_next_rule(rule);
++	if (rule < xt2_chain_stop_rule(chain->rules)) {
++		nl_cb->args[NLCBA_RULE_PTR] = (uintptr_t)rule;
++	} else if (table != NULL && chain->anchor.next != &table->chain_list) {
++		/* Advance to next chain */
++		chain = list_entry(chain->anchor.next,
++				   __typeof__(*chain), anchor);
++		nl_cb->args[NLCBA_CHAIN_PTR] = (uintptr_t)chain;
++		nl_cb->dump = xtnetlink_emit_chain;
++	} else {
++		/* No more chains either */
++		nl_cb->dump = xtnetlink_emit_final;
++	}
 +
-+ out_of_mem:
-+	ret = xtnetlink_error(&ref, -ENOMEM);
-+	xtnetlink_transact_put(xa);
-+	return ret;
++	return skb->len;
 +}
 +
- static const struct nla_policy xtnetlink_policy[] = {
- 	[NFXTA_NAME] = {.type = NLA_NUL_STRING},
- 	[NFXTA_ERRNO] = {.type = NLA_U32},
-@@ -1033,6 +1063,7 @@ static const struct nfnl_callback xtnetlink_callback[] = {
- 	[NFXTM_CHAIN_DUMP] = {.call = xtnetlink_chain_dump, pol},
- 	[NFXTM_TABLE_DUMP] = {.call = xtnetlink_table_dump, pol},
- 	[NFXTM_CHAIN_SPLICE] = {.call = xtnetlink_chain_splice, pol},
-+	[NFXTM_RULE_ENTRY] = {.call = xtnetlink_rule_entry, pol},
- };
- #undef pol
+ static int
+ xtnetlink_emit_chain(struct sk_buff *skb, struct netlink_callback *nl_cb)
+ {
+@@ -833,12 +869,17 @@ xtnetlink_emit_chain(struct sk_buff *skb, struct netlink_callback *nl_cb)
+ 		goto nla_put_failure;
+ 	nlmsg_end(skb, msg);
  
+-	if (table != NULL && chain->anchor.next != &table->chain_list) {
++	if (chain->rules != NULL) {
++		/* If there are rules, they need to be dumped next. */
++		nl_cb->args[NLCBA_RULE_PTR] = (uintptr_t)chain->rules->data;
++		nl_cb->dump = xtnetlink_emit_rule;
++	} else if (table != NULL && chain->anchor.next != &table->chain_list) {
+ 		/* Advance to next chain and keep nl_cb->dump. */
+ 		chain = list_entry(chain->anchor.next,
+ 				   __typeof__(*chain), anchor);
+ 		nl_cb->args[NLCBA_CHAIN_PTR] = (uintptr_t)chain;
+ 	} else {
++		/* No more chains present */
+ 		nl_cb->dump = xtnetlink_emit_final;
+ 	}
+ 	return skb->len;
 -- 
 1.7.10.4
 
