@@ -1,106 +1,53 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2] Handle the routing changes in the MASQUERADE target
-Date: Fri, 16 Nov 2012 11:09:14 +0100
-Message-ID: <20121116100914.GB25964@1984>
-References: <1352837857-22087-1-git-send-email-kadlec@blackhole.kfki.hu>
- <1352837857-22087-3-git-send-email-kadlec@blackhole.kfki.hu>
- <20121115114444.GA31335@1984>
- <alpine.DEB.2.00.1211151532500.7485@blackhole.kfki.hu>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH 0/3] netfilter: add connlabel conntrack extension
+Date: Fri, 16 Nov 2012 12:31:09 +0100
+Message-ID: <20121116113109.GK20678@breakpoint.cc>
+References: <1352994915-3859-1-git-send-email-fw@strlen.de>
+ <20121116100256.GA25964@1984>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Florian Westphal <fw@strlen.de>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55530 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751109Ab2KPKJ0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Nov 2012 05:09:26 -0500
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44486 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751627Ab2KPLbL (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Nov 2012 06:31:11 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1211151532500.7485@blackhole.kfki.hu>
+In-Reply-To: <20121116100256.GA25964@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jozsef,
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Thu, Nov 15, 2012 at 04:55:12PM +0100, Florian Westphal wrote:
+> > Changes since RFCv2:
+> > - make it a variable-size extension and remove dynamic
+> >   reallocation of the label array
+> > - add ctnetlink support for receiving/setting labels
+> > - limit to 128 instead of 1k labels due to limited extension
+> >   space (128 is more than enough for now, so this is no problem).
+> 
+> At a quick glance I like this round, you got this simplified :-).
+> 
+> My only concern is that (if I'm not missing anything) it
+> inconditionally add the extension even if we don't need it.
 
-On Thu, Nov 15, 2012 at 03:42:14PM +0100, Jozsef Kadlecsik wrote:
-> On Thu, 15 Nov 2012, Pablo Neira Ayuso wrote:
-> 
-> > Two comments on this patch:
-> > 
-> > On Tue, Nov 13, 2012 at 09:17:37PM +0100, Jozsef Kadlecsik wrote:
-> > > When the routing changes, MASQUERADE should delete the conntrack
-> > > entries where the source NATed address changes due to the routing
-> > > change. As a first approximation, delete all entries which are
-> > > marked with the new "--route-dependent" flag of the MASQUERADE
-> > > target.
-> > > 
-> > > Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> > > ---
-> > >  include/uapi/linux/netfilter/nf_conntrack_common.h |    4 ++
-> > >  include/uapi/linux/netfilter/nf_nat.h              |    1 +
-> > >  net/ipv4/netfilter/ipt_MASQUERADE.c                |   40 ++++++++++++++++++++
-> > >  3 files changed, 45 insertions(+), 0 deletions(-)
-> > > 
-> > > diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
-> > > index 1644cdd..1c698b5 100644
-> > > --- a/include/uapi/linux/netfilter/nf_conntrack_common.h
-> > > +++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
-> > > @@ -87,6 +87,10 @@ enum ip_conntrack_status {
-> > >  	/* Conntrack got a helper explicitly attached via CT target. */
-> > >  	IPS_HELPER_BIT = 13,
-> > >  	IPS_HELPER = (1 << IPS_HELPER_BIT),
-> > > +
-> > > +	/* Conntrack must be deleted when routing changed (NAT) */
-> > > +	IPS_ROUTING_DEPENDENT_BIT = 14,
-> > > +	IPS_ROUTING_DEPENDENT = (1 << IPS_ROUTING_DEPENDENT_BIT),
-> > 
-> > This seems to me a bit too specific for the masquerade module. I've
-> > been checking the struct nf_conn_nat to squash that information there,
-> > but I don't find the way to make it without increasing the length of
-> > the NAT area.
-> 
-> I know, we waste a status bit. But I couldn't find a better way to store 
-> the information in conntrack.
->
-> > >  };
-> > >  
-> > >  /* Connection tracking event types */
-> > > diff --git a/include/uapi/linux/netfilter/nf_nat.h b/include/uapi/linux/netfilter/nf_nat.h
-> > > index bf0cc37..a0dfac7 100644
-> > > --- a/include/uapi/linux/netfilter/nf_nat.h
-> > > +++ b/include/uapi/linux/netfilter/nf_nat.h
-> > > @@ -8,6 +8,7 @@
-> > >  #define NF_NAT_RANGE_PROTO_SPECIFIED	2
-> > >  #define NF_NAT_RANGE_PROTO_RANDOM	4
-> > >  #define NF_NAT_RANGE_PERSISTENT		8
-> > > +#define NF_NAT_ROUTING_DEPENDENT	16
-> > >  
-> > >  struct nf_nat_ipv4_range {
-> > >  	unsigned int			flags;
-> > > diff --git a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/ipt_MASQUERADE.c
-> > > index 5d5d4d1..ecf3063 100644
-> > > --- a/net/ipv4/netfilter/ipt_MASQUERADE.c
-> > > +++ b/net/ipv4/netfilter/ipt_MASQUERADE.c
-> > 
-> > We now have IPv6 NAT support, so I guess you need to patch
-> > /net/ipv6/netfilter/ip6t_MASQUERADE.c
-> 
-> Ohh, yes, I missed that. I'll add the required code there.
-> 
-> Currently I'm trying to find a way to purge just the entries which are 
-> affected by the routing change (for example when there are muliple VPN 
-> tunnels). However that requires a new conntrack extension and it's 
-> nontrivial (at least for me) to figure out the required data from struct 
-> fib_info.
-> 
-> If the conntrack extension is used then of course the status bit is not 
-> required.
+Its conditional:
 
-We can register now variable length conntrack extensions. I think we
-can use that feature to extend nf_conn_nat to allocate extra
-information for all working modes of MASQUERADE. It may require
-changing the nf_nat_setup_info interface to pass some new flags.
+words = ACCESS_ONCE(net->ct.label_words);
+if (words == 0 || WARN_ON_ONCE(words > 8))
+	return NULL;
+cl_ext = nf_ct_ext_add_length(ct, NF_CT_EXT_LABELS, words * sizeof(long),..
 
-Regarding the variable length conntrack extensions, please check
-nf_ct_ext_add_length in net/netfilter/nf_conntrack_helper.c for
-instance.
+xt_connlabel increases "label_words" to a non-zero
+value based on the highest bit it saw so far.  So e.g. when bit 32 is
+requested, a 32-bit machine kernel will set words to 2, and
+a 64 bit kernel to 1, thus turning the extension on for new connections.
+
+The only drawback is that when you add a connlabel rule for bits 127,
+then for bit 1, then delete the first rule again words will be larger
+than one.
+
+But i think this ok (I don't want to add per-bit refcountr :-) )
