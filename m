@@ -1,58 +1,56 @@
+From: pablo@netfilter.org
+Subject: [PATCH 0/4] netfilter updates for nf-next (try 2)
+Date: Fri, 16 Nov 2012 13:40:49 +0100
+Message-ID: <1353069653-3231-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/3] netfilter: add connlabel conntrack extension
-Date: Fri, 16 Nov 2012 12:52:23 +0100
-Message-ID: <20121116115223.GB333@1984>
-References: <1352994915-3859-1-git-send-email-fw@strlen.de>
- <20121116100256.GA25964@1984>
- <20121116113109.GK20678@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57601 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751746Ab2KPLwb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Nov 2012 06:52:31 -0500
-Content-Disposition: inline
-In-Reply-To: <20121116113109.GK20678@breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Nov 16, 2012 at 12:31:09PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Thu, Nov 15, 2012 at 04:55:12PM +0100, Florian Westphal wrote:
-> > > Changes since RFCv2:
-> > > - make it a variable-size extension and remove dynamic
-> > >   reallocation of the label array
-> > > - add ctnetlink support for receiving/setting labels
-> > > - limit to 128 instead of 1k labels due to limited extension
-> > >   space (128 is more than enough for now, so this is no problem).
-> > 
-> > At a quick glance I like this round, you got this simplified :-).
-> > 
-> > My only concern is that (if I'm not missing anything) it
-> > inconditionally add the extension even if we don't need it.
-> 
-> Its conditional:
-> 
-> words = ACCESS_ONCE(net->ct.label_words);
-> if (words == 0 || WARN_ON_ONCE(words > 8))
-> 	return NULL;
-> cl_ext = nf_ct_ext_add_length(ct, NF_CT_EXT_LABELS, words * sizeof(long),..
-> 
-> xt_connlabel increases "label_words" to a non-zero
-> value based on the highest bit it saw so far.  So e.g. when bit 32 is
-> requested, a 32-bit machine kernel will set words to 2, and
-> a 64 bit kernel to 1, thus turning the extension on for new connections.
-> 
-> The only drawback is that when you add a connlabel rule for bits 127,
-> then for bit 1, then delete the first rule again words will be larger
-> than one.
-> 
-> But i think this ok (I don't want to add per-bit refcountr :-) )
+Hi David,
 
-I see. Let me give a more look in-depth, in any case this version
-seems reasonable to be included mainstream :-).
+This is the second try to include the following four patches that contain
+updates for your net-next tree, they are:
 
-Regards.
+* Little cleanup for IPVS the use of a strange notation to assign the
+  conntrack object, from Alan Cox.
+
+* Another little cleanup for nf_nat to save a couple of lines by using
+  PTR_RET, from Wu Fengguan
+
+* getsockopt support to obtain the original IPv6 address after NAT,
+  similar to the one that IPv4 provides, from Florian Westphal.
+
+* Follow-up patch pointed out by YOSHIFUJI Hideaki to only provide
+  the scope_id in case that link is local, again from Florian Westphal.
+
+You can pull these changes from:
+
+git://1984.lsi.us.es/nf-next master
+
+Thanks!
+
+Alan Cox (1):
+  ipvs: remove silly double assignment
+
+Florian Westphal (2):
+  netfilter: ipv6: add getsockopt to retrieve origdst
+  netfilter: ipv6: only provide sk_bound_dev_if for link-local addr
+
+Wu Fengguang (1):
+  netfilter: nf_nat: use PTR_RET
+
+ include/uapi/linux/in6.h                       |    1 +
+ include/uapi/linux/netfilter_ipv6/ip6_tables.h |    3 ++
+ net/ipv4/netfilter/iptable_nat.c               |    4 +-
+ net/ipv6/netfilter/ip6table_nat.c              |    4 +-
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |   66 ++++++++++++++++++++++++
+ net/netfilter/ipvs/ip_vs_nfct.c                |    2 +-
+ net/netfilter/ipvs/ip_vs_xmit.c                |    8 +--
+ 7 files changed, 77 insertions(+), 11 deletions(-)
+
+-- 
+1.7.10.4
