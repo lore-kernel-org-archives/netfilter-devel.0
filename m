@@ -1,60 +1,68 @@
 From: pablo@netfilter.org
-Subject: [PATCH 3/3] [-stable] netfilter: nf_nat: don't check for port change on ICMP tuples
-Date: Fri, 16 Nov 2012 15:00:14 +0100
-Message-ID: <1353074415-21379-4-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 1/3] [-stable] netfilter: Mark SYN/ACK packets as invalid from original direction
+Date: Fri, 16 Nov 2012 15:00:12 +0100
+Message-ID: <1353074415-21379-2-git-send-email-pablo@netfilter.org>
 References: <1353074415-21379-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, stable@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36222 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36202 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752023Ab2KPOAh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Nov 2012 09:00:37 -0500
+	id S1751992Ab2KPOA2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Nov 2012 09:00:28 -0500
 In-Reply-To: <1353074415-21379-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Ulrich Weber <ulrich.weber@sophos.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-ICMP tuples have id in src and type/code in dst.
-So comparing src.u.all with dst.u.all will always fail here
-and ip_xfrm_me_harder() is called for every ICMP packet,
-even if there was no NAT.
+Clients should not send such packets. By accepting them, we open
+up a hole by wich ephemeral ports can be discovered in an off-path
+attack.
 
-This patch is a backport of:
+See: "Reflection scan: an Off-Path Attack on TCP" by Jan Wrobel,
+http://arxiv.org/abs/1201.2074
 
-[ 38fe36a netfilter: nf_nat: don't check for port change on ICMP tuples ]
-
-Signed-off-by: Ulrich Weber <ulrich.weber@sophos.com>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/nf_nat_standalone.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ net/netfilter/nf_conntrack_proto_tcp.c |   19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_nat_standalone.c b/net/ipv4/netfilter/nf_nat_standalone.c
-index 483b76d..b2c3ed7 100644
---- a/net/ipv4/netfilter/nf_nat_standalone.c
-+++ b/net/ipv4/netfilter/nf_nat_standalone.c
-@@ -194,7 +194,8 @@ nf_nat_out(unsigned int hooknum,
- 
- 		if ((ct->tuplehash[dir].tuple.src.u3.ip !=
- 		     ct->tuplehash[!dir].tuple.dst.u3.ip) ||
--		    (ct->tuplehash[dir].tuple.src.u.all !=
-+		    (ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMP &&
-+		     ct->tuplehash[dir].tuple.src.u.all !=
- 		     ct->tuplehash[!dir].tuple.dst.u.all)
- 		   )
- 			return ip_xfrm_me_harder(skb) == 0 ? ret : NF_DROP;
-@@ -230,7 +231,8 @@ nf_nat_local_fn(unsigned int hooknum,
- 				ret = NF_DROP;
- 		}
- #ifdef CONFIG_XFRM
--		else if (ct->tuplehash[dir].tuple.dst.u.all !=
-+		else if (ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMP &&
-+			 ct->tuplehash[dir].tuple.dst.u.all !=
- 			 ct->tuplehash[!dir].tuple.src.u.all)
- 			if (ip_xfrm_me_harder(skb))
- 				ret = NF_DROP;
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 37bf943..1eb458c 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -159,21 +159,18 @@ static const u8 tcp_conntracks[2][6][TCP_CONNTRACK_MAX] = {
+  *	sCL -> sSS
+  */
+ /* 	     sNO, sSS, sSR, sES, sFW, sCW, sLA, sTW, sCL, sS2	*/
+-/*synack*/ { sIV, sIV, sIG, sIG, sIG, sIG, sIG, sIG, sIG, sSR },
++/*synack*/ { sIV, sIV, sSR, sIV, sIV, sIV, sIV, sIV, sIV, sSR },
+ /*
+  *	sNO -> sIV	Too late and no reason to do anything
+  *	sSS -> sIV	Client can't send SYN and then SYN/ACK
+  *	sS2 -> sSR	SYN/ACK sent to SYN2 in simultaneous open
+- *	sSR -> sIG
+- *	sES -> sIG	Error: SYNs in window outside the SYN_SENT state
+- *			are errors. Receiver will reply with RST
+- *			and close the connection.
+- *			Or we are not in sync and hold a dead connection.
+- *	sFW -> sIG
+- *	sCW -> sIG
+- *	sLA -> sIG
+- *	sTW -> sIG
+- *	sCL -> sIG
++ *	sSR -> sSR	Late retransmitted SYN/ACK in simultaneous open
++ *	sES -> sIV	Invalid SYN/ACK packets sent by the client
++ *	sFW -> sIV
++ *	sCW -> sIV
++ *	sLA -> sIV
++ *	sTW -> sIV
++ *	sCL -> sIV
+  */
+ /* 	     sNO, sSS, sSR, sES, sFW, sCW, sLA, sTW, sCL, sS2	*/
+ /*fin*/    { sIV, sIV, sFW, sFW, sLA, sLA, sLA, sTW, sCL, sIV },
 -- 
 1.7.10.4
 
