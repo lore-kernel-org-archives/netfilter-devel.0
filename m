@@ -1,56 +1,47 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/3] [-stable] Netfilter updates for stable 3.6
-Date: Fri, 16 Nov 2012 15:04:48 +0100
-Message-ID: <20121116140448.GA10464@1984>
-References: <1353074550-21456-1-git-send-email-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/4] netfilter updates for nf-next (try 2)
+Date: Fri, 16 Nov 2012 13:00:44 -0500 (EST)
+Message-ID: <20121116.130044.936556420105398924.davem@davemloft.net>
+References: <1353069653-3231-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: davem@davemloft.net, stable@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36974 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751590Ab2KPOEz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Nov 2012 09:04:55 -0500
-Content-Disposition: inline
-In-Reply-To: <1353074550-21456-1-git-send-email-pablo@netfilter.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:58057 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752714Ab2KPSAu (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Nov 2012 13:00:50 -0500
+In-Reply-To: <1353069653-3231-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Nov 16, 2012 at 03:02:27PM +0100, pablo@netfilter.org wrote:
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> Hi!
-> 
-> Please, consider the following Netfilter patches for stable 3.6 and
-> onwards inclusion.
+From: pablo@netfilter.org
+Date: Fri, 16 Nov 2012 13:40:49 +0100
 
-The "onwards" is obviously a typo from the template I've used, these
-are already in 3.7-rc :-)
+> This is the second try to include the following four patches that contain
+> updates for your net-next tree, they are:
+> 
+> * Little cleanup for IPVS the use of a strange notation to assign the
+>   conntrack object, from Alan Cox.
+> 
+> * Another little cleanup for nf_nat to save a couple of lines by using
+>   PTR_RET, from Wu Fengguan
+> 
+> * getsockopt support to obtain the original IPv6 address after NAT,
+>   similar to the one that IPv4 provides, from Florian Westphal.
+> 
+> * Follow-up patch pointed out by YOSHIFUJI Hideaki to only provide
+>   the scope_id in case that link is local, again from Florian Westphal.
+> 
+> You can pull these changes from:
+> 
+> git://1984.lsi.us.es/nf-next master
 
-> The selected three patches are:
-> 
-> 2ad5b9e netfilter: xt_TEE: don't use destination address found in header
-> bbb5823 netfilter: nf_conntrack: fix rt_gateway checks for H.323 helper
-> 0153d5a netfilter: xt_CT: fix timeout setting with IPv6 [REQUIRES: 236df00 netfilter: xt_CT: refactorize xt_ct_tg_check]
-> 
-> More relevantly, the first patch fix the TEE target, which is broken in 3.6.
-> 
-> Please, cherry-pick them. Thanks!
-> 
-> Eric Dumazet (1):
->   netfilter: xt_TEE: don't use destination address found in header
-> 
-> Julian Anastasov (1):
->   netfilter: nf_conntrack: fix rt_gateway checks for H.323 helper
-> 
-> Pablo Neira Ayuso (1):
->   netfilter: xt_CT: fix timeout setting with IPv6
-> 
-> --
-> 1.7.10.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Pulled, thanks.
+
+There was a conflict I had to resolve because the net-next tree
+had a series of IS_ENABLED conversions that overlapped with some
+of the changes in your tree.
