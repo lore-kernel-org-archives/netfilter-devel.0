@@ -1,45 +1,162 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset 6.15 released
-Date: Mon, 19 Nov 2012 14:03:09 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1211191356240.21756@blackhole.kfki.hu>
+Subject: [PATCH] netfilter: ipset: Fix range bug in hash:ip,port,net
+Date: Mon, 19 Nov 2012 17:42:21 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1211191550450.22583@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp0.kfki.hu ([148.6.0.25]:52945 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753048Ab2KSQmX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 19 Nov 2012 11:42:23 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hi Pablo,
 
-I'm happy to announce ipset 6.15, which brings a few bugfixes and 
-corrections. The most important is that there was a range input bug in 
-hash:ip,port,net type: if a single element was to be added/deleted, due to 
-a missing initialization, a range of elements were added/deleted.
+Please consider applying the next patch for the stable nf tree.
+You can also pull the patch from here:
 
->From now on the "ipset" tool uses gethostbyname2 instead of getaddrinfo: 
-in newer glibc, getaddrinfo issues an extra system call to kernel, which 
-slows down ipset.
+	git://blackhole.kfki.hu/nf master
 
-Userspace changes:
- - Fix interactive mode (Fredrik Eriksson)
- - Use gethostbyname2 instead of getaddrinfo
- - Make tests/check_cidrs.sh script executable
- - Add tests to check completely ranges with hash types
- - Make easier to apply the netlink.patch
- - Support protocol numbers as well, not only protocol names
- - Add (back) the debug flag to configure
- - Add simple test to check cidr book-keeping
+Due to the missing ininitalization at adding/deleting entries, when
+a plain_ip,port,net element was the object, multiple elements were
+added/deleted instead. The bug came from the missing dangling
+default initialization.
 
-Kernel part changes:
- - Increase the number of maximal sets automatically as needed
- - Restore the support of kernel versions between 2.6.32 and 2.6.35
- - Fix range bug in hash:ip,port,net
- - Revert, then reapply cidr book keeping patch to handle /0
+The error-prone default initialization is corrected in all hash:* types.
 
-You can download the source code of ipset from:
-        http://ipset.netfilter.org
-        ftp://ftp.netfilter.org/pub/ipset/
-        git://git.netfilter.org/ipset.git
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ net/netfilter/ipset/ip_set_hash_ip.c        |    4 ++--
+ net/netfilter/ipset/ip_set_hash_ipport.c    |    7 +++----
+ net/netfilter/ipset/ip_set_hash_ipportip.c  |    7 +++----
+ net/netfilter/ipset/ip_set_hash_ipportnet.c |    7 +++++--
+ 4 files changed, 13 insertions(+), 12 deletions(-)
+
+diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
+index ec3dba5..5c0b785 100644
+--- a/net/netfilter/ipset/ip_set_hash_ip.c
++++ b/net/netfilter/ipset/ip_set_hash_ip.c
+@@ -173,6 +173,7 @@ hash_ip4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		return adtfn(set, &nip, timeout, flags);
+ 	}
+ 
++	ip_to = ip;
+ 	if (tb[IPSET_ATTR_IP_TO]) {
+ 		ret = ip_set_get_hostipaddr4(tb[IPSET_ATTR_IP_TO], &ip_to);
+ 		if (ret)
+@@ -185,8 +186,7 @@ hash_ip4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		if (!cidr || cidr > 32)
+ 			return -IPSET_ERR_INVALID_CIDR;
+ 		ip_set_mask_from_to(ip, ip_to, cidr);
+-	} else
+-		ip_to = ip;
++	}
+ 
+ 	hosts = h->netmask == 32 ? 1 : 2 << (32 - h->netmask - 1);
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
+index 0171f75..6283351 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipport.c
++++ b/net/netfilter/ipset/ip_set_hash_ipport.c
+@@ -162,7 +162,7 @@ hash_ipport4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	const struct ip_set_hash *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_ipport4_elem data = { };
+-	u32 ip, ip_to = 0, p = 0, port, port_to;
++	u32 ip, ip_to, p = 0, port, port_to;
+ 	u32 timeout = h->timeout;
+ 	bool with_ports = false;
+ 	int ret;
+@@ -210,7 +210,7 @@ hash_ipport4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		return ip_set_eexist(ret, flags) ? 0 : ret;
+ 	}
+ 
+-	ip = ntohl(data.ip);
++	ip_to = ip = ntohl(data.ip);
+ 	if (tb[IPSET_ATTR_IP_TO]) {
+ 		ret = ip_set_get_hostipaddr4(tb[IPSET_ATTR_IP_TO], &ip_to);
+ 		if (ret)
+@@ -223,8 +223,7 @@ hash_ipport4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		if (!cidr || cidr > 32)
+ 			return -IPSET_ERR_INVALID_CIDR;
+ 		ip_set_mask_from_to(ip, ip_to, cidr);
+-	} else
+-		ip_to = ip;
++	}
+ 
+ 	port_to = port = ntohs(data.port);
+ 	if (with_ports && tb[IPSET_ATTR_PORT_TO]) {
+diff --git a/net/netfilter/ipset/ip_set_hash_ipportip.c b/net/netfilter/ipset/ip_set_hash_ipportip.c
+index 6344ef5..6a21271 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipportip.c
++++ b/net/netfilter/ipset/ip_set_hash_ipportip.c
+@@ -166,7 +166,7 @@ hash_ipportip4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	const struct ip_set_hash *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_ipportip4_elem data = { };
+-	u32 ip, ip_to = 0, p = 0, port, port_to;
++	u32 ip, ip_to, p = 0, port, port_to;
+ 	u32 timeout = h->timeout;
+ 	bool with_ports = false;
+ 	int ret;
+@@ -218,7 +218,7 @@ hash_ipportip4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		return ip_set_eexist(ret, flags) ? 0 : ret;
+ 	}
+ 
+-	ip = ntohl(data.ip);
++	ip_to = ip = ntohl(data.ip);
+ 	if (tb[IPSET_ATTR_IP_TO]) {
+ 		ret = ip_set_get_hostipaddr4(tb[IPSET_ATTR_IP_TO], &ip_to);
+ 		if (ret)
+@@ -231,8 +231,7 @@ hash_ipportip4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		if (!cidr || cidr > 32)
+ 			return -IPSET_ERR_INVALID_CIDR;
+ 		ip_set_mask_from_to(ip, ip_to, cidr);
+-	} else
+-		ip_to = ip;
++	}
+ 
+ 	port_to = port = ntohs(data.port);
+ 	if (with_ports && tb[IPSET_ATTR_PORT_TO]) {
+diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+index cb71f9a..2d5cd4e 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+@@ -215,8 +215,8 @@ hash_ipportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	const struct ip_set_hash *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_ipportnet4_elem data = { .cidr = HOST_MASK - 1 };
+-	u32 ip, ip_to = 0, p = 0, port, port_to;
+-	u32 ip2_from = 0, ip2_to, ip2_last, ip2;
++	u32 ip, ip_to, p = 0, port, port_to;
++	u32 ip2_from, ip2_to, ip2_last, ip2;
+ 	u32 timeout = h->timeout;
+ 	bool with_ports = false;
+ 	u8 cidr;
+@@ -286,6 +286,7 @@ hash_ipportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		return ip_set_eexist(ret, flags) ? 0 : ret;
+ 	}
+ 
++	ip_to = ip;
+ 	if (tb[IPSET_ATTR_IP_TO]) {
+ 		ret = ip_set_get_hostipaddr4(tb[IPSET_ATTR_IP_TO], &ip_to);
+ 		if (ret)
+@@ -306,6 +307,8 @@ hash_ipportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		if (port > port_to)
+ 			swap(port, port_to);
+ 	}
++
++	ip2_to = ip2_from;
+ 	if (tb[IPSET_ATTR_IP2_TO]) {
+ 		ret = ip_set_get_hostipaddr4(tb[IPSET_ATTR_IP2_TO], &ip2_to);
+ 		if (ret)
+-- 
+1.7.0.4
+
 
 Best regards,
 Jozsef
