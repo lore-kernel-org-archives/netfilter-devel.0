@@ -1,68 +1,86 @@
-From: Ricardo Klein <klein.rfk@gmail.com>
-Subject: Re: [ANNOUNCE] ipset 6.15 released
-Date: Mon, 19 Nov 2012 18:20:09 -0200
-Message-ID: <CADuigkVE-qMowSn0oSh==L998rraoc7H793dppJFY2fEfqkLpg@mail.gmail.com>
-References: <alpine.DEB.2.00.1211191356240.21756@blackhole.kfki.hu>
-	<CADuigkXXwhGkjYVCo68BmOGSbe95DzSYcM6u-YQmrjKSD5VWaQ@mail.gmail.com>
-	<alpine.LNX.2.01.1211191927160.9275@nerf07.vanv.qr>
-	<CADuigkV+d=xvKvKODTyA8avp21ZcL0pY0TjhxAehQi975wkwdQ@mail.gmail.com>
-	<alpine.DEB.2.00.1211192056520.23128@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Jan Engelhardt <jengelh@inai.de>, netfilter@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH] conntrack: fix nfct_clone with certain attribute data types
+Date: Mon, 19 Nov 2012 22:39:55 +0100
+Message-ID: <1353361195-2345-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:36125 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754690Ab2KSUUK (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:53894 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751781Ab2KSVnQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 19 Nov 2012 15:20:10 -0500
-In-Reply-To: <alpine.DEB.2.00.1211192056520.23128@blackhole.kfki.hu>
+	Mon, 19 Nov 2012 16:43:16 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It works.
+some attributes are pointers to malloc'd objects.  Simply
+copying the pointer results in use-after free
+when the original or the clone is destroyed.
 
-Now I will implement a new firewall configuration script using ipset
-instead of txt lists that need to be reloaded every time....
---
-Att...
+Also, add test case for cloned objects to ensure that
+ct = nfct_new();
+ct2 = nfct_clone(ct);
+nfct_destroy(ct);
+nfct_destroy(ct2);
 
-Ricardo Felipe Klein
-klein.rfk@gmail.com
+won't crash due to double-frees.
 
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ When working on the connlabel stuff I noticed that nfct_clone does a
+ plain memcpy.  Afaics nfct_clone has returned a shallow copy for ages.
+ But documentation implies that it really should do a deep copy.
 
-On Mon, Nov 19, 2012 at 5:57 PM, Jozsef Kadlecsik
-<kadlec@blackhole.kfki.hu> wrote:
-> On Mon, 19 Nov 2012, Ricardo Klein wrote:
->
->> if  you need, I can deploy a clean CentOS 6.3 64bits and test it again
->> running autogen with pkg-config installed....
->
-> Yes, please. A double check does not hurt.
->
-> Best regards,
-> Jozsef
->
->> On Mon, Nov 19, 2012 at 4:28 PM, Jan Engelhardt <jengelh@inai.de> wrote:
->> > On Monday 2012-11-19 18:39, Ricardo Klein wrote:
->> >
->> >>It fails on ./configure on CentOS 6.3 x84_64 with the message:
->> >>./configure: line 14702: syntax error near unexpected token `libmnl,'
->> >>./configure: line 14702: `PKG_CHECK_MODULES(libmnl, libmnl >= 1)'
->> >
->> > This means you ran autoreconf (which you normally don't need to, because
->> > there already is a configure script), while at the same time did not
->> > have pkg-config installed.
->> --
->> To unsubscribe from this list: send the line "unsubscribe netfilter" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
-> -
-> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-> Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
->           H-1525 Budapest 114, POB. 49, Hungary
+ Pablo, could you please double-check?  Thanks!
+
+ qa/test_api.c       |    6 ++++++
+ src/conntrack/api.c |    2 +-
+ 2 files changed, 7 insertions(+), 1 deletions(-)
+
+diff --git a/qa/test_api.c b/qa/test_api.c
+index d5f95e9..fa325c8 100644
+--- a/qa/test_api.c
++++ b/qa/test_api.c
+@@ -2,6 +2,7 @@
+  * Run this after adding a new attribute to the nf_conntrack object
+  */
+ 
++#include <assert.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <unistd.h>
+@@ -199,6 +200,10 @@ int main(void)
+ 		eval_sigterm(status);
+ 	}
+ 
++	ct2 = nfct_clone(ct);
++	assert(ct2);
++	nfct_destroy(ct2);
++
+ 	ct2 = nfct_new();
+ 	if (!ct2) {
+ 		perror("nfct_new");
+@@ -264,6 +269,7 @@ int main(void)
+ 	}
+ 
+ 	nfct_destroy(ct2);
++	printf("== destroy cloned ct entry ==\n");
+ 	nfct_destroy(ct);
+ 	nfct_destroy(tmp);
+ 	nfexp_destroy(exp);
+diff --git a/src/conntrack/api.c b/src/conntrack/api.c
+index 000571f..ebf0d52 100644
+--- a/src/conntrack/api.c
++++ b/src/conntrack/api.c
+@@ -147,7 +147,7 @@ struct nf_conntrack *nfct_clone(const struct nf_conntrack *ct)
+ 
+ 	if ((clone = nfct_new()) == NULL)
+ 		return NULL;
+-	memcpy(clone, ct, sizeof(*ct));
++	nfct_copy(clone, ct, NFCT_CP_ALL);
+ 
+ 	return clone;
+ }
+-- 
+1.7.8.6
+
