@@ -1,86 +1,60 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH] conntrack: fix nfct_clone with certain attribute data types
-Date: Mon, 19 Nov 2012 22:39:55 +0100
-Message-ID: <1353361195-2345-1-git-send-email-fw@strlen.de>
+Subject: [PATCH] qa: fix handling of ATTR_HELPER_INFO attribute
+Date: Mon, 19 Nov 2012 22:40:32 +0100
+Message-ID: <1353361232-2437-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:53894 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:53906 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751781Ab2KSVnQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752331Ab2KSVqO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 19 Nov 2012 16:43:16 -0500
+	Mon, 19 Nov 2012 16:46:14 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-some attributes are pointers to malloc'd objects.  Simply
-copying the pointer results in use-after free
-when the original or the clone is destroyed.
-
-Also, add test case for cloned objects to ensure that
-ct = nfct_new();
-ct2 = nfct_clone(ct);
-nfct_destroy(ct);
-nfct_destroy(ct2);
-
-won't crash due to double-frees.
+The attribute is variable-length and must be thus be set via set_attr_l().
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- When working on the connlabel stuff I noticed that nfct_clone does a
- plain memcpy.  Afaics nfct_clone has returned a shallow copy for ages.
- But documentation implies that it really should do a deep copy.
+ I'll push this in a couple of days if noone objects.
 
- Pablo, could you please double-check?  Thanks!
-
- qa/test_api.c       |    6 ++++++
- src/conntrack/api.c |    2 +-
- 2 files changed, 7 insertions(+), 1 deletions(-)
+ qa/test_api.c |   13 ++++++++++---
+ 1 files changed, 10 insertions(+), 3 deletions(-)
 
 diff --git a/qa/test_api.c b/qa/test_api.c
-index d5f95e9..fa325c8 100644
+index 92cdafb..3c0f0f9 100644
 --- a/qa/test_api.c
 +++ b/qa/test_api.c
-@@ -2,6 +2,7 @@
-  * Run this after adding a new attribute to the nf_conntrack object
-  */
- 
-+#include <assert.h>
- #include <stdio.h>
- #include <stdlib.h>
- #include <unistd.h>
-@@ -199,6 +200,10 @@ int main(void)
- 		eval_sigterm(status);
- 	}
- 
-+	ct2 = nfct_clone(ct);
-+	assert(ct2);
-+	nfct_destroy(ct2);
+@@ -83,9 +83,6 @@ int main(void)
+ 	ret = fork();
+ 	if (ret == 0) {
+ 		for (i=0; i<ATTR_MAX; i++) {
+-			data[0] = (uint8_t) i;
+-			nfct_set_attr(ct, i, data);
+-			val = nfct_get_attr(ct, i);
+ 			/* These attributes cannot be set, ignore them. */
+ 			switch(i) {
+ 			case ATTR_ORIG_COUNTER_PACKETS:
+@@ -96,8 +93,18 @@ int main(void)
+ 			case ATTR_SECCTX:
+ 			case ATTR_TIMESTAMP_START:
+ 			case ATTR_TIMESTAMP_STOP:
++			case ATTR_CONNLABELS:
+ 				continue;
++			/* These attributes require special handling */
++			case ATTR_HELPER_INFO:
++				nfct_set_attr_l(ct, i, data, sizeof(data));
++				break;
++			default:
++				data[0] = (uint8_t) i;
++				nfct_set_attr(ct, i, data);
+ 			}
++			val = nfct_get_attr(ct, i);
 +
- 	ct2 = nfct_new();
- 	if (!ct2) {
- 		perror("nfct_new");
-@@ -264,6 +269,7 @@ int main(void)
- 	}
- 
- 	nfct_destroy(ct2);
-+	printf("== destroy cloned ct entry ==\n");
- 	nfct_destroy(ct);
- 	nfct_destroy(tmp);
- 	nfexp_destroy(exp);
-diff --git a/src/conntrack/api.c b/src/conntrack/api.c
-index 000571f..ebf0d52 100644
---- a/src/conntrack/api.c
-+++ b/src/conntrack/api.c
-@@ -147,7 +147,7 @@ struct nf_conntrack *nfct_clone(const struct nf_conntrack *ct)
- 
- 	if ((clone = nfct_new()) == NULL)
- 		return NULL;
--	memcpy(clone, ct, sizeof(*ct));
-+	nfct_copy(clone, ct, NFCT_CP_ALL);
- 
- 	return clone;
- }
+ 			if (val[0] != data[0]) {
+ 				printf("ERROR: set/get operations don't match "
+ 				       "for attribute %d (%x != %x)\n",
 -- 
 1.7.8.6
 
