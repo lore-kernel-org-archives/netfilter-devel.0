@@ -1,41 +1,26 @@
-From: Iain Fraser <iainkfraser@gmail.com>
-Subject: create and insert packet at timer event
-Date: Sat, 17 Nov 2012 22:36:42 +0000
-Message-ID: <CA+bLfK4jn0nbokHr1_xgs=kUvEpGSFVuYTBGT1P3Y5k-i4SBiw@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] Correct libxt_statistic save output
+Date: Mon, 19 Nov 2012 11:44:17 +0100
+Message-ID: <20121119104417.GA1175@1984>
+References: <50A80A47.6010700@shorewall.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Tom Eastep <teastep@shorewall.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:46311 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752270Ab2KQWgn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 17 Nov 2012 17:36:43 -0500
-Received: by mail-ie0-f174.google.com with SMTP id k13so5248753iea.19
-        for <netfilter-devel@vger.kernel.org>; Sat, 17 Nov 2012 14:36:43 -0800 (PST)
+Received: from mail.us.es ([193.147.175.20]:36725 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751248Ab2KSKo0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 19 Nov 2012 05:44:26 -0500
+Content-Disposition: inline
+In-Reply-To: <50A80A47.6010700@shorewall.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+On Sat, Nov 17, 2012 at 02:05:59PM -0800, Tom Eastep wrote:
+> Suppressing '--packet 0' in save output resulted in restore failure.
+> 
+> This patch includes '--packet 0' in save output while continuing to
+> suppress it in print output.
 
-For my experiments I would like to create ( alloc_skb ) and ip route a
-packet on a timer event in a kernel module I'm developing.
-1) It doesn't have an incoming device therefore I can't use netif_rx
-2) It doesn't have a cached route or a socket ( in fact it may even
-have a source ip for a different host )
-
-Is there anyway I can pass it onto the ip_forward or something similar
-( i.e. onto the tcp/ip network stack )?  At the moment I'm trying to
-get a route using the following code:
-
-rt = ip_route_output( &init_net, iph->daddr,/*iph->saddr*/ 0, 0, 0) ) ;
-
-This crashes the kernel ( computer freezes up instantly ). I know
-iph->daddr is correct using printk, So I'm guessing ( after studying
-the source ) that init_net is
-incorrect. I must be honest I don't really understand this network
-namespace and not even sure if this is the right way to go to solve my
-problem.
-
-thanks in advance
-Iain
+Applied, thanks Tom!
