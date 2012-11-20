@@ -1,45 +1,44 @@
 From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 2/3] [-stable] netfilter: xt_CT: fix timeout setting with
- IPv6
-Date: Tue, 20 Nov 2012 11:33:54 -0800
-Message-ID: <20121120193354.GB9496@kroah.com>
+Subject: Re: [PATCH 0/3] [-stable] Netfilter updates for stable 3.6
+Date: Tue, 20 Nov 2012 11:34:16 -0800
+Message-ID: <20121120193416.GC9496@kroah.com>
 References: <1353074550-21456-1-git-send-email-pablo@netfilter.org>
- <1353074550-21456-3-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
 	stable@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:50924 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752475Ab2KTTd6 (ORCPT
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:48023 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752284Ab2KTTeT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Nov 2012 14:33:58 -0500
-Received: by mail-pb0-f46.google.com with SMTP id wy7so4498900pbc.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Nov 2012 11:33:57 -0800 (PST)
+	Tue, 20 Nov 2012 14:34:19 -0500
+Received: by mail-pa0-f46.google.com with SMTP id bh2so1483623pad.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Nov 2012 11:34:19 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <1353074550-21456-3-git-send-email-pablo@netfilter.org>
+In-Reply-To: <1353074550-21456-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Nov 16, 2012 at 03:02:29PM +0100, pablo@netfilter.org wrote:
+On Fri, Nov 16, 2012 at 03:02:27PM +0100, pablo@netfilter.org wrote:
 > From: Pablo Neira Ayuso <pablo@netfilter.org>
 > 
-> This patch fixes ip6tables and the CT target if it is used to set
-> some custom conntrack timeout policy for IPv6.
+> Hi!
 > 
-> Use xt_ct_find_proto which already handles the ip6tables case for us.
+> Please, consider the following Netfilter patches for stable 3.6 and
+> onwards inclusion.
 > 
-> [ This patch requires: 236df00 netfilter: xt_CT: refactorize xt_ct_tg_check ]
+> The selected three patches are:
 > 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  net/netfilter/xt_CT.c |   10 ++++++----
->  1 file changed, 6 insertions(+), 4 deletions(-)
+> 2ad5b9e netfilter: xt_TEE: don't use destination address found in header
+> bbb5823 netfilter: nf_conntrack: fix rt_gateway checks for H.323 helper
 
-This one doesn't apply to the 3.6-stable tree, care to provide a
-backport that works properly?
+These two now applied to the 3.6-stable tree.
+
+> 0153d5a netfilter: xt_CT: fix timeout setting with IPv6 [REQUIRES: 236df00 netfilter: xt_CT: refactorize xt_ct_tg_check]
+
+This one didn't apply :(
 
 thanks,
 
