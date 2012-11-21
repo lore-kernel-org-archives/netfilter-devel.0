@@ -1,35 +1,42 @@
-From: Michal Kubecek <mkubecek@suse.cz>
-Subject: [PATCH trivial] netfilter: fix struct ip6t_frag field description
-Date: Thu, 22 Nov 2012 14:15:18 +0100
-Message-ID: <20121122132527.BA54BC35B8@unicorn.suse.cz>
-Cc: coreteam@netfilter.org, netdev@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: [PATCH] build: support for Linux 3.7 UAPI
+Date: Thu, 22 Nov 2012 00:05:42 +0100
+Message-ID: <1353539142-31631-1-git-send-email-jengelh@inai.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kadlec@blackhole.kfki.hu
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ares07.inai.de ([5.9.24.206]:32808 "EHLO ares07.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965019Ab2KVTOJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 Nov 2012 14:14:09 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
+In Linux 3.7, nfnetlink.h moved below include/uapi/. Make configure
+recognize that. Furthermore, we can drop the unnecessary indirection
+via backticks and just ask grep directly if there was any result.
 ---
- include/uapi/linux/netfilter_ipv6/ip6t_frag.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Also available via
 
-diff --git a/include/uapi/linux/netfilter_ipv6/ip6t_frag.h b/include/uapi/linux/netfilter_ipv6/ip6t_frag.h
-index b47f61b..dfd8bc2 100644
---- a/include/uapi/linux/netfilter_ipv6/ip6t_frag.h
-+++ b/include/uapi/linux/netfilter_ipv6/ip6t_frag.h
-@@ -4,9 +4,9 @@
- #include <linux/types.h>
+	git://git.inai.de/ipset master
+
+ configure.ac |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index 7a6aa33..dea392d 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -68,7 +68,8 @@ fi
  
- struct ip6t_frag {
--	__u32 ids[2];			/* Security Parameter Index */
-+	__u32 ids[2];			/* Identification range */
- 	__u32 hdrlen;			/* Header Length */
--	__u8  flags;			/*  */
-+	__u8  flags;			/* Flags */
- 	__u8  invflags;			/* Inverse flags */
- };
+ AC_PROG_GREP
  
+-if test "X`$GREP 'NFNL_SUBSYS_IPSET' $ksourcedir/include/linux/netfilter/nfnetlink.h`" = "X"
++if ! $GREP -q "NFNL_SUBSYS_IPSET" "$ksourcedir/include/linux/netfilter/nfnetlink.h" && \
++   ! $GREP -q "NFNL_SUBSYS_IPSET" "$ksourcedir/include/uapi/linux/netfilter/nfnetlink.h";
+ then
+ 	AC_MSG_ERROR([The kernel source directory $ksourcedir is not patched with netlink.patch to support ipset])
+ fi
 -- 
 1.7.10.4
+
