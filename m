@@ -1,45 +1,39 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 0/3] [-stable] Netfilter updates for stable 3.6
-Date: Tue, 20 Nov 2012 11:34:16 -0800
-Message-ID: <20121120193416.GC9496@kroah.com>
-References: <1353074550-21456-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	stable@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:48023 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752284Ab2KTTeT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Nov 2012 14:34:19 -0500
-Received: by mail-pa0-f46.google.com with SMTP id bh2so1483623pad.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Nov 2012 11:34:19 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1353074550-21456-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH 1/1] netfilter: cttimeout: fix buffer overflow
+Date: Wed, 21 Nov 2012 12:37:38 +0100
+Message-ID: <1353497858-29404-1-git-send-email-fw@strlen.de>
+Cc: netdev <netdev@vger.kernel.org>, Florian Westphal <fw@strlen.de>
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Nov 16, 2012 at 03:02:27PM +0100, pablo@netfilter.org wrote:
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> Hi!
-> 
-> Please, consider the following Netfilter patches for stable 3.6 and
-> onwards inclusion.
-> 
-> The selected three patches are:
-> 
-> 2ad5b9e netfilter: xt_TEE: don't use destination address found in header
-> bbb5823 netfilter: nf_conntrack: fix rt_gateway checks for H.323 helper
+Chen Gang reports:
+the length of nla_data(cda[CTA_TIMEOUT_NAME]) is not limited in server side.
 
-These two now applied to the 3.6-stable tree.
+And indeed, its used to strcpy to a fixed-sized buffer.
 
-> 0153d5a netfilter: xt_CT: fix timeout setting with IPv6 [REQUIRES: 236df00 netfilter: xt_CT: refactorize xt_ct_tg_check]
+Fortunately, nfnetlink users need CAP_NET_ADMIN.
 
-This one didn't apply :(
+Reported-by: Chen Gang <gang.chen@asianux.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nfnetlink_cttimeout.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-thanks,
-
-greg k-h
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index 8847b4d..701c88a 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -41,7 +41,8 @@ MODULE_DESCRIPTION("cttimeout: Extended Netfilter Connection Tracking timeout tu
+ static LIST_HEAD(cttimeout_list);
+ 
+ static const struct nla_policy cttimeout_nla_policy[CTA_TIMEOUT_MAX+1] = {
+-	[CTA_TIMEOUT_NAME]	= { .type = NLA_NUL_STRING },
++	[CTA_TIMEOUT_NAME]	= { .type = NLA_NUL_STRING,
++				    .len  = CTNL_TIMEOUT_NAME_MAX - 1},
+ 	[CTA_TIMEOUT_L3PROTO]	= { .type = NLA_U16 },
+ 	[CTA_TIMEOUT_L4PROTO]	= { .type = NLA_U8 },
+ 	[CTA_TIMEOUT_DATA]	= { .type = NLA_NESTED },
+-- 
+1.7.8.6
