@@ -1,41 +1,48 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 1/2] netfilter: ipset: fix netiface set name overflow
-Date: Thu, 22 Nov 2012 12:32:45 +0100
-Message-ID: <1353583966-12402-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+From: pablo@netfilter.org
+Subject: [PATCH 0/2] netfilter fixes for net
+Date: Thu, 22 Nov 2012 10:10:50 +0100
+Message-ID: <1353575452-3127-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37262 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757151Ab2KVTfl (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Nov 2012 14:35:41 -0500
+Received: from mail.us.es ([193.147.175.20]:52514 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756736Ab2KVURp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 Nov 2012 15:17:45 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-attribute is copied to IFNAMSIZ-size stack variable,
-but IFNAMSIZ is smaller than IPSET_MAXNAMELEN.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Fortunately nfnetlink needs CAP_NET_ADMIN.
+Hi David,
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/ipset/ip_set_hash_netiface.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+The following patchset contains two Netfilter fixes:
 
-diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
-index b9a6338..45a1014 100644
---- a/net/netfilter/ipset/ip_set_hash_netiface.c
-+++ b/net/netfilter/ipset/ip_set_hash_netiface.c
-@@ -793,7 +793,7 @@ static struct ip_set_type hash_netiface_type __read_mostly = {
- 		[IPSET_ATTR_IP]		= { .type = NLA_NESTED },
- 		[IPSET_ATTR_IP_TO]	= { .type = NLA_NESTED },
- 		[IPSET_ATTR_IFACE]	= { .type = NLA_NUL_STRING,
--					    .len = IPSET_MAXNAMELEN - 1 },
-+					    .len  = IFNAMSIZ - 1 },
- 		[IPSET_ATTR_CADT_FLAGS]	= { .type = NLA_U32 },
- 		[IPSET_ATTR_CIDR]	= { .type = NLA_U8 },
- 		[IPSET_ATTR_TIMEOUT]	= { .type = NLA_U32 },
+* Fix buffer overflow in the name of the timeout policy object
+  in the cttimeout infrastructure, from Florian Westphal.
+
+* Fix a bug in the hash set in case that IP ranges are
+  specified, from Jozsef Kadlecsik.
+
+You can pull these changes from:
+
+git://1984.lsi.us.es/nf master
+
+Thanks!
+
+Florian Westphal (1):
+  netfilter: cttimeout: fix buffer overflow
+
+Jozsef Kadlecsik (1):
+  netfilter: ipset: Fix range bug in hash:ip,port,net
+
+ net/netfilter/ipset/ip_set_hash_ip.c        |    4 ++--
+ net/netfilter/ipset/ip_set_hash_ipport.c    |    7 +++----
+ net/netfilter/ipset/ip_set_hash_ipportip.c  |    7 +++----
+ net/netfilter/ipset/ip_set_hash_ipportnet.c |    7 +++++--
+ net/netfilter/nfnetlink_cttimeout.c         |    3 ++-
+ 5 files changed, 15 insertions(+), 13 deletions(-)
+
 -- 
-1.7.8.6
+1.7.10.4
 
