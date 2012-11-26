@@ -1,41 +1,35 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 1/2] build: resolve automake-1.12 warnings
-Date: Tue, 27 Nov 2012 00:54:58 +0100
-Message-ID: <1353974099-19891-2-git-send-email-jengelh@inai.de>
-References: <1353974099-19891-1-git-send-email-jengelh@inai.de>
+Subject: ulogd fixes
+Date: Tue, 27 Nov 2012 00:54:57 +0100
+Message-ID: <1353974099-19891-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
 To: eric@regit.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:48989 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:48987 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932424Ab2KZXzK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S932293Ab2KZXzK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 26 Nov 2012 18:55:10 -0500
-In-Reply-To: <1353974099-19891-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-/usr/share/automake-1.12/am/ltlibrary.am: warning:
-'ulogd_output_SQLITE3.la': linking libtool libraries using a non-POSIX
-archiver requires 'AM_PROG_AR' in 'configure.ac'
-(one for each .la)
 
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
----
- configure.ac |    1 +
- 1 file changed, 1 insertion(+)
+The following changes since commit 85393baff66bfe69d053e1bf3a7230025e5f229a:
 
-diff --git a/configure.ac b/configure.ac
-index c70887d..df0e9d3 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -6,6 +6,7 @@ AM_INIT_AUTOMAKE([-Wall foreign tar-pax no-dist-gzip dist-bzip2 1.10b])
- AC_CONFIG_HEADER([config.h])
- AC_CONFIG_MACRO_DIR([m4])
- 
-+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
- dnl kernel style compile messages
- m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
- 
--- 
-1.7.10.4
+  XML: add missing include (2012-11-04 09:19:53 +0100)
 
+are available in the git repository at:
+
+  git://git.inai.de/ulogd master
+
+for you to fetch changes up to 58a5cac020af30544c59b32496072ee131b65821:
+
+  build: resolve compile error due to missing nfacct CPPFLAGS (2012-11-27 00:53:10 +0100)
+
+----------------------------------------------------------------
+Jan Engelhardt (2):
+      build: resolve automake-1.12 warnings
+      build: resolve compile error due to missing nfacct CPPFLAGS
+
+ configure.ac       |    1 +
+ output/Makefile.am |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
