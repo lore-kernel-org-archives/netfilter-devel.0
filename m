@@ -1,41 +1,41 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] examples: nf-queue: fix api usage
-Date: Sun, 25 Nov 2012 23:34:13 +0100
-Message-ID: <20121125223413.GA25197@breakpoint.cc>
-References: <1353858872-12348-1-git-send-email-fw@strlen.de>
- <20121125204725.GA5456@1984>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: [PATCH 1/2] build: resolve automake-1.12 warnings
+Date: Tue, 27 Nov 2012 00:54:58 +0100
+Message-ID: <1353974099-19891-2-git-send-email-jengelh@inai.de>
+References: <1353974099-19891-1-git-send-email-jengelh@inai.de>
+Cc: netfilter-devel@vger.kernel.org
+To: eric@regit.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44137 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753727Ab2KYWeP (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 25 Nov 2012 17:34:15 -0500
-Content-Disposition: inline
-In-Reply-To: <20121125204725.GA5456@1984>
+Received: from ares07.inai.de ([5.9.24.206]:48989 "EHLO ares07.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932424Ab2KZXzK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 26 Nov 2012 18:55:10 -0500
+In-Reply-To: <1353974099-19891-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Sun, Nov 25, 2012 at 04:54:32PM +0100, Florian Westphal wrote:
-> > 1. struct nlattr *attr[NFQA_MAX+1] must be initialized.
-> >    Otherwise, attr[FOO] might be non-null after parsing
-> >    even if that attribute isn't present in the message.
-> > 
-> > 2. mnl_attr_get_payload will never return NULL (if the
-> >    attribute is NULL, it returns MNL_ATTR_HDRLEN.)
-> 
-> Fine with me, just a question:
+/usr/share/automake-1.12/am/ltlibrary.am: warning:
+'ulogd_output_SQLITE3.la': linking libtool libraries using a non-POSIX
+archiver requires 'AM_PROG_AR' in 'configure.ac'
+(one for each .la)
 
-> > +	puts("sleep 10 seconds");
-> > +	sleep(10);
-> 
-> Why this sleep 10 seconds? :-)
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+---
+ configure.ac |    1 +
+ 1 file changed, 1 insertion(+)
 
-Uhhh... Nothing to see here, move along ;-)
+diff --git a/configure.ac b/configure.ac
+index c70887d..df0e9d3 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -6,6 +6,7 @@ AM_INIT_AUTOMAKE([-Wall foreign tar-pax no-dist-gzip dist-bzip2 1.10b])
+ AC_CONFIG_HEADER([config.h])
+ AC_CONFIG_MACRO_DIR([m4])
+ 
++m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
+ dnl kernel style compile messages
+ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+ 
+-- 
+1.7.10.4
 
-Thanks for spotting, i applied the patch (without
-this leftover debug crud...).
