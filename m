@@ -1,35 +1,49 @@
-From: Chris Wilson <chris@aptivate.org>
-Subject: Re: [PATCH 1/1] Introduce notification events for routing changes
-Date: Tue, 27 Nov 2012 20:32:05 +0000 (GMT)
-Message-ID: <alpine.DEB.2.00.1211272031030.17417@chris-desktop.fen.aptivate.org>
-References: <1354048045-17846-1-git-send-email-kadlec@blackhole.kfki.hu> <1354048045-17846-2-git-send-email-kadlec@blackhole.kfki.hu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/1] conntrack: fix nfct_clone with certain attribute
+ data types
+Date: Tue, 27 Nov 2012 22:15:23 +0100
+Message-ID: <20121127211523.GA5131@1984>
+References: <1354030656-23507-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1354048045-17846-2-git-send-email-kadlec@blackhole.kfki.hu>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:38556 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754525Ab2K0VPb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Nov 2012 16:15:31 -0500
+Content-Disposition: inline
+In-Reply-To: <1354030656-23507-1-git-send-email-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Joszef,
+On Tue, Nov 27, 2012 at 04:37:36PM +0100, Florian Westphal wrote:
+> some attributes are pointers to malloc'd objects.  Simply copying the
+> pointer results in use-after free when the original or the clone is
+> destroyed.
+> 
+> Fix it by using nfct_copy instead of memcpy and add proper test case
+> for cloned objects:
+> - nfct_cmp of orig and clone should return 1 (equal)
+> - freeing both the original and the clone should
+>   neither leak memory nor result in double-frees.
+> 
+> the testsuite changes revealed a few more problems:
+>  - ct1->timeout == ct2->timeout returned 0, ie. same timeout
+>    was considered "not equal" by nfct_cmp
+>  - secctx comparision causes "Invalid address" valgrind warnings
+>    when pointer is NULL
+>  - NFCT_CP_OVERRIDE did not handle helper attribute and
+>    erronously freed ct1 secctx memory.
+> 
+> While at it, bump qa_test data dummy to 256 (else, valgrind
+> complains about move-depends-on-uninitialized-memory).
+> 
+> Lastly, fix compilation of test_api by killing bogus ATTR_CONNLABEL.
+>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-On Tue, 27 Nov 2012, Jozsef Kadlecsik wrote:
+This is great, thanks Florian.
 
-> The netfilter MASQUERADE target does not handle the case when the routing
-> changes and the source address of existing connections become invalid.
-> The problem can be solved if routing modifications create events to which
-> the MASQUERADE target can subscribe and then delete the affected
-> connections.
-
-I would like to thank you personally for picking this up and running with 
-it, developing the patches and pushing for their inclusion. Thank you. 
-Your hard work is very much appreciated here.
-
-Cheers, Chris.
--- 
-Aptivate | http://www.aptivate.org | Phone: +44 1223 967 838
-Future Business, Cam City FC, Milton Rd, Cambridge, CB4 1UY, UK
-
-Aptivate is a not-for-profit company registered in England and Wales
-with company number 04980791.
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
