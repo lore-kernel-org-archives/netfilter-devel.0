@@ -1,44 +1,50 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 2/2] build: resolve compile error due to missing nfacct CPPFLAGS
-Date: Tue, 27 Nov 2012 00:54:59 +0100
-Message-ID: <1353974099-19891-3-git-send-email-jengelh@inai.de>
-References: <1353974099-19891-1-git-send-email-jengelh@inai.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: move ipv6_find_hdr to net/ipv6/netfilter.c
+ and rename it
+Date: Tue, 27 Nov 2012 01:59:28 +0100
+Message-ID: <20121127005928.GA20540@1984>
+References: <1353798438-6331-1-git-send-email-pablo@netfilter.org>
+ <alpine.LNX.2.01.1211251228320.26208@nerf07.vanv.qr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: eric@regit.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:48986 "EHLO ares07.inai.de"
+Received: from mail.us.es ([193.147.175.20]:46858 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932076Ab2KZXzK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Nov 2012 18:55:10 -0500
-In-Reply-To: <1353974099-19891-1-git-send-email-jengelh@inai.de>
+	id S1757174Ab2K0A7g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 26 Nov 2012 19:59:36 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.01.1211251228320.26208@nerf07.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fixes this error:
+On Sun, Nov 25, 2012 at 12:34:20PM +0100, Jan Engelhardt wrote:
+> On Sunday 2012-11-25 00:07, pablo@netfilter.org wrote:
+> 
+> >From: Pablo Neira Ayuso <pablo@netfilter.org>
+> >
+> >IPVS uses ipv6_find_hdr, but this function is defined in ip6_tables.c,
+> >to avoid such a dependency, move the function definition to the
+> >generic IPv6 netfilter infrastructure.
+> 
+> Could we move this in a different way, such that the "ipv6_find_hdr"
+> function and functions from exthdrs_core.c end up in a separate
+> module (or even built-in code), such that modules like xt_socket.c
+> can drop their dependency on ipv6.ko?
 
-make[3]: Entering directory "/home/jengelh/code/ulogd2/output"
-  CC       ulogd_output_XML.lo
-ulogd_output_XML.c:31:49: fatal error:
-libnetfilter_acct/libnetfilter_acct.h: No such file or directory
+I'd go the other way around: we split xt_socket into two chunks so we
+can avoid such IPv6 dependency.
 
-(Note that pkgconfig-provided cflags are actually cppflags, so
-I add ${LIBNETFILTER_ACCT_CFLAGS} to AM_CPPFLAGS.)
-
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
----
- output/Makefile.am |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/output/Makefile.am b/output/Makefile.am
-index 630aee6..61d827a 100644
---- a/output/Makefile.am
-+++ b/output/Makefile.am
-@@ -1,4 +1,4 @@
--AM_CPPFLAGS = -I$(top_srcdir)/include
-+AM_CPPFLAGS = -I$(top_srcdir)/include ${LIBNETFILTER_ACCT_CFLAGS}
- AM_CFLAGS = ${regular_CFLAGS} ${LIBNETFILTER_LOG_CFLAGS} \
- 	    ${LIBNETFILTER_CONNTRACK_CFLAGS}
- 
--- 
-1.7.10.4
-
+> >index 429089c..d25f2d9 100644
+> >--- a/net/ipv6/netfilter.c
+> >+++ b/net/ipv6/netfilter.c
+> >@@ -60,6 +60,109 @@ int ip6_route_me_harder(struct sk_buff *skb)
+> > EXPORT_SYMBOL(ip6_route_me_harder);
+> > 
+> >+int nf_ip6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
+> >+		    int target, unsigned short *fragoff, int *flags)
+> >+{
+> >[...]
+> >+}
+> >+EXPORT_SYMBOL(nf_ip6_find_hdr);
