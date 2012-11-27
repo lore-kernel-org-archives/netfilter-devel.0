@@ -1,68 +1,50 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 1/2] build: avoid per-target CFLAGS
-Date: Tue, 27 Nov 2012 13:49:05 +0100
-Message-ID: <1354020546-4799-1-git-send-email-jengelh@inai.de>
-Cc: netfilter-devel@vger.kernel.org
-To: eric@regit.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:50806 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750771Ab2K0MtJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Nov 2012 07:49:09 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: ipset 6.16 kernel panic on bitmap:hash,ip
+Date: Tue, 27 Nov 2012 13:58:28 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1211271352350.14623@blackhole.kfki.hu>
+References: <CADuigkVyCJVe5yKVvcKweZ=FmnTTWE1JQ55a35LrCLi2oWBHoQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: Ricardo Klein <klein.rfk@gmail.com>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <CADuigkVyCJVe5yKVvcKweZ=FmnTTWE1JQ55a35LrCLi2oWBHoQ@mail.gmail.com>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-There is no harm in putting the includes in the global AM_CPPFLAGS;
-this can generally save number of compilations of a file when a
-source file is used multiple times.
+On Tue, 27 Nov 2012, Ricardo Klein wrote:
 
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
----
-Available in
-	git://git.inai.de/ulogd master
+> When I creta an ipset like this:
+> ipset -N SET_MACS bitmap:ip,mac range 0.0.0.0/0
+> 
+> I got kernel panic when run:
+> ipset list
 
- input/flow/Makefile.am   |    3 +--
- input/packet/Makefile.am |    3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+That can't be ipset 6.16, neither in the kernel, nor the ipset binary.
+The bug is fixed in ipset 6.15. You are running kernel modules and 
+ipset binary from earlier releases.
+ 
+> Anyway, we need some rules here based on mac address (no matter what
+> ip address the machine have, because some of them are in DHCP).
+> I know that a mac address can be easy cloned, but, still, we need that
+> for some rules...
+> 
+> Can we have a set type "mac address" ? Only mac, with no ip?
+> 
+> O tried "ipset -N SET_MACS_ADM bitmap:ip,mac range 10.0.0.0/8" too but got:
+> ipset v6.16: The range you specified exceeds the size limit of the set type
+> 
+> "ipset -N SET_MACS_ADM bitmap:ip,mac range 10.0.0.0/16" woked...
+> 
+> But again, this does not do the job because I need to set a rule based
+> on mac address and dinamic ip addresses.
 
-diff --git a/input/flow/Makefile.am b/input/flow/Makefile.am
-index 36c34ca..0e07a7d 100644
---- a/input/flow/Makefile.am
-+++ b/input/flow/Makefile.am
-@@ -1,5 +1,5 @@
- 
--AM_CPPFLAGS = -I$(top_srcdir)/include
-+AM_CPPFLAGS = -I$(top_srcdir)/include ${LIBNETFILTER_CONNTRACK_CFLAGS}
- AM_CFLAGS = ${regular_CFLAGS}
- 
- if BUILD_NFCT
-@@ -7,7 +7,6 @@ pkglib_LTLIBRARIES = ulogd_inpflow_NFCT.la # ulogd_inpflow_IPFIX.la
- 
- ulogd_inpflow_NFCT_la_SOURCES = ulogd_inpflow_NFCT.c
- ulogd_inpflow_NFCT_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS)
--ulogd_inpflow_NFCT_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
- endif
- 
- #ulogd_inpflow_IPFIX_la_SOURCES = ulogd_inpflow_IPFIX.c
-diff --git a/input/packet/Makefile.am b/input/packet/Makefile.am
-index debea91..1c884b8 100644
---- a/input/packet/Makefile.am
-+++ b/input/packet/Makefile.am
-@@ -1,5 +1,5 @@
- 
--AM_CPPFLAGS = -I$(top_srcdir)/include
-+AM_CPPFLAGS = -I$(top_srcdir)/include ${LIBNETFILTER_LOG_CFLAGS}
- AM_CFLAGS = ${regular_CFLAGS}
- 
- pkglib_LTLIBRARIES = ulogd_inppkt_ULOG.la ulogd_inppkt_UNIXSOCK.la
-@@ -9,7 +9,6 @@ endif
- 
- ulogd_inppkt_NFLOG_la_SOURCES = ulogd_inppkt_NFLOG.c
- ulogd_inppkt_NFLOG_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_LOG_LIBS)
--ulogd_inppkt_NFLOG_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_LOG_CFLAGS)
- 
- ulogd_inppkt_ULOG_la_SOURCES = ulogd_inppkt_ULOG.c
- ulogd_inppkt_ULOG_la_LDFLAGS = -avoid-version -module
--- 
-1.7.10.4
+Holger Eitzenberger is working on a hash:mac type.
 
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
