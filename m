@@ -1,60 +1,98 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset 6.16 kernel panic on bitmap:hash,ip
-Date: Tue, 27 Nov 2012 15:03:11 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1211271459050.15929@blackhole.kfki.hu>
-References: <CADuigkVyCJVe5yKVvcKweZ=FmnTTWE1JQ55a35LrCLi2oWBHoQ@mail.gmail.com> <alpine.DEB.2.00.1211271352350.14623@blackhole.kfki.hu> <CADuigkX8Q0AJ_-PHyzn+1orKuXfqgrdPPC3yZ1aORBJrdcxBLg@mail.gmail.com> <alpine.DEB.2.00.1211271403550.14623@blackhole.kfki.hu>
- <CADuigkUwmj1d2PWW7wWvu12e7J9K6V9gvs+8BiM_J8QjYT5RGw@mail.gmail.com> <CADuigkUGcYNBYjgB+fLp4A5M-pDd779E-6WCpfVv5tqvpnfpUQ@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] conntrack: fix nfct_clone with certain attribute data
+ types
+Date: Tue, 27 Nov 2012 15:05:09 +0100
+Message-ID: <20121127140509.GA8853@1984>
+References: <1353361195-2345-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: Ricardo Klein <klein.rfk@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:41968 "EHLO smtp0.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:47737 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752286Ab2K0ODM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Nov 2012 09:03:12 -0500
-In-Reply-To: <CADuigkUGcYNBYjgB+fLp4A5M-pDd779E-6WCpfVv5tqvpnfpUQ@mail.gmail.com>
+	id S1752286Ab2K0OFV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Nov 2012 09:05:21 -0500
+Content-Disposition: inline
+In-Reply-To: <1353361195-2345-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 27 Nov 2012, Ricardo Klein wrote:
-
-> So did I foud a bug? If yes, glad to help \o/
+On Mon, Nov 19, 2012 at 10:39:55PM +0100, Florian Westphal wrote:
+> some attributes are pointers to malloc'd objects.  Simply
+> copying the pointer results in use-after free
+> when the original or the clone is destroyed.
 > 
-> Well, with 6.15 it builds OK...
-
-You are trying to compile 6.16 with a kernel which lacks some 
-definitions and I have to workaround that.
-
-> BUT, I cant use bitmap:ip,mac on iptables rules... check this:
+> Also, add test case for cloned objects to ensure that
+> ct = nfct_new();
+> ct2 = nfct_clone(ct);
+> nfct_destroy(ct);
+> nfct_destroy(ct2);
 > 
-> # CLEAR ALL IPTABLES RULES
-> iptables -F
+> won't crash due to double-frees.
 > 
-> #CRIATE SET
-> ipset destroy SET_MACS_ADM
-> ipset -N SET_MACS_ADM macipmap range 10.0.0.0/16
-> sleep 1
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  When working on the connlabel stuff I noticed that nfct_clone does a
+>  plain memcpy.  Afaics nfct_clone has returned a shallow copy for ages.
+>  But documentation implies that it really should do a deep copy.
 > 
-> # POPULATE SET
-> ipset -A SET_MACS_ADM 10.0.34.32,00:1F:3B:xx:xx:xx
-> *(xx:xx:xx was intentional to hide my mac address)
+>  Pablo, could you please double-check?  Thanks!
 > 
-> # CREATE IPTABLES RULE
-> iptables -A INPUT -m set --set SET_MACS_ADM src -j DROP
+>  qa/test_api.c       |    6 ++++++
+>  src/conntrack/api.c |    2 +-
+>  2 files changed, 7 insertions(+), 1 deletions(-)
 > 
-> it is not blocking traffic coming from that machine...
+> diff --git a/qa/test_api.c b/qa/test_api.c
+> index d5f95e9..fa325c8 100644
+> --- a/qa/test_api.c
+> +++ b/qa/test_api.c
+> @@ -2,6 +2,7 @@
+>   * Run this after adding a new attribute to the nf_conntrack object
+>   */
+>  
+> +#include <assert.h>
+>  #include <stdio.h>
+>  #include <stdlib.h>
+>  #include <unistd.h>
+> @@ -199,6 +200,10 @@ int main(void)
+>  		eval_sigterm(status);
+>  	}
+>  
+> +	ct2 = nfct_clone(ct);
+> +	assert(ct2);
+> +	nfct_destroy(ct2);
+> +
+>  	ct2 = nfct_new();
+>  	if (!ct2) {
+>  		perror("nfct_new");
+> @@ -264,6 +269,7 @@ int main(void)
+>  	}
+>  
+>  	nfct_destroy(ct2);
+> +	printf("== destroy cloned ct entry ==\n");
+>  	nfct_destroy(ct);
+>  	nfct_destroy(tmp);
+>  	nfexp_destroy(exp);
+> diff --git a/src/conntrack/api.c b/src/conntrack/api.c
+> index 000571f..ebf0d52 100644
+> --- a/src/conntrack/api.c
+> +++ b/src/conntrack/api.c
+> @@ -147,7 +147,7 @@ struct nf_conntrack *nfct_clone(const struct nf_conntrack *ct)
+>  
+>  	if ((clone = nfct_new()) == NULL)
+>  		return NULL;
+> -	memcpy(clone, ct, sizeof(*ct));
+> +	nfct_copy(clone, ct, NFCT_CP_ALL);
 
-Yes, because you specified one directional parameter only: bitmap:ip,mac 
-is a two dimensional set and thus the set match/SET target require two 
-directional parameters.
+That seems safe to me.
 
-You can't force bitmap:ip,mac to match only the MAC addresses.
+Still I think NFCT_CP_OVERRIDE is faster. I added that flag way after
+to improve a bit the copying time.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+It will require also to add the connlabel support to it. See
+__copy_fast.
+
+I need to check this again but I think we can remove
+src/conntrack/copy.c and make NFCT_CP_ALL behave just like
+NFCT_CP_OVERRIDE.
