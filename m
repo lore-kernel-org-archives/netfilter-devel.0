@@ -1,161 +1,99 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 3/3] netfilter: ctnetlink: allow userspace to set labels
-Date: Tue, 27 Nov 2012 12:18:38 +0100
-Message-ID: <20121127111838.GA28064@1984>
-References: <1352994915-3859-1-git-send-email-fw@strlen.de>
- <1352994915-3859-4-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH] netfilter: ipset: Increase the number of maximal sets
+ automatically as needed
+Date: Tue, 27 Nov 2012 12:33:53 +0100
+Message-ID: <20121127113353.GA30478@1984>
+References: <alpine.DEB.2.00.1211202017260.27297@blackhole.kfki.hu>
+ <20121127104856.GA27734@1984>
+ <alpine.DEB.2.00.1211271207300.14623@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60515 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40984 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751383Ab2K0LSr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Nov 2012 06:18:47 -0500
+	id S1754971Ab2K0Lfx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Nov 2012 06:35:53 -0500
 Content-Disposition: inline
-In-Reply-To: <1352994915-3859-4-git-send-email-fw@strlen.de>
+In-Reply-To: <alpine.DEB.2.00.1211271207300.14623@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Florian,
-
-On Thu, Nov 15, 2012 at 04:55:15PM +0100, Florian Westphal wrote:
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  include/net/netfilter/nf_conntrack_labels.h |    3 ++
->  net/netfilter/nf_conntrack_labels.c         |   34 +++++++++++++++++++++++++++
->  net/netfilter/nf_conntrack_netlink.c        |   23 ++++++++++++++++++
->  3 files changed, 60 insertions(+), 0 deletions(-)
+On Tue, Nov 27, 2012 at 12:18:30PM +0100, Jozsef Kadlecsik wrote:
+> Hi Pablo,
 > 
-> diff --git a/include/net/netfilter/nf_conntrack_labels.h b/include/net/netfilter/nf_conntrack_labels.h
-> index fdd88fb..e058b2b 100644
-> --- a/include/net/netfilter/nf_conntrack_labels.h
-> +++ b/include/net/netfilter/nf_conntrack_labels.h
-> @@ -52,3 +52,6 @@ static inline void nf_conntrack_labels_fini(struct net *net) {}
->  
->  bool nf_connlabel_match(const struct nf_conn *ct, u16 bit);
->  int nf_connlabel_set(struct nf_conn *ct, u16 bit);
-> +
-> +int nfnetlink_connlabel_set(struct nf_conn *ct, const void *data,
-> +			    unsigned int length);
-> diff --git a/net/netfilter/nf_conntrack_labels.c b/net/netfilter/nf_conntrack_labels.c
-> index fe9c0c6..8bff33c 100644
-> --- a/net/netfilter/nf_conntrack_labels.c
-> +++ b/net/netfilter/nf_conntrack_labels.c
-> @@ -52,6 +52,40 @@ int nf_connlabel_set(struct nf_conn *ct, u16 bit)
->  }
->  EXPORT_SYMBOL_GPL(nf_connlabel_set);
->  
-> +#if IS_ENABLED(CONFIG_NF_CT_NETLINK)
-> +int nfnetlink_connlabel_set(struct nf_conn *ct, const void *data, unsigned int length)
-> +{
-> +	const size_t maxblen = (1024 / BITS_PER_LONG) * sizeof(long);
-> +	struct nf_conn_labels *labels;
-> +	unsigned int size;
-> +
-> +	if (length > maxblen)
-> +		return -EMSGSIZE;
-> +
-> +	labels = nf_ct_labels_find(ct);
-> +	if (!labels)
-> +		return -ENOSPC;
-> +
-> +	size = labels->words * sizeof(long);
-> +
-> +	if (size < length)
-> +		length = size;
-> +
-> +	if (length)
-> +		memcpy(labels->bits, data, length);
-> +
-> +	if (size > length) {
-> +		unsigned int pad = size - length;
-> +		char *mem = (void *) labels->bits;
-> +		memset(mem + pad, 0, pad);
-> +	}
-> +
-> +	nf_conntrack_event_cache(IPCT_LABEL, ct);
-> +	return 0;
-> +}
-
-Via ctnetlink_new_conntrack, we should be able to create and set the
-connlabel if we want to support state-sync of connlabels.
-
-That requires calling _ext_add(...) to allocate the label, based on
-cda[CTA_LABELS], and set it. In that case we're safe to memcpy without
-interfering with any ongoing bit testing since that conntrack is not
-in the hashes yet.
-
-For the update case, I think we'll have to iterate over the mask and
-use xchg to update words, thus, we avoid any interference ongoing bit
-testing.
-
-> +EXPORT_SYMBOL_GPL(nfnetlink_connlabel_set);
-> +#endif
-> +
->  static struct nf_ct_ext_type labels_extend __read_mostly = {
->  	.len    = sizeof(struct nf_conn_labels),
->  	.align  = __alignof__(struct nf_conn_labels),
-> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-> index 43a1247..834fe99 100644
-> --- a/net/netfilter/nf_conntrack_netlink.c
-> +++ b/net/netfilter/nf_conntrack_netlink.c
-> @@ -1229,6 +1229,16 @@ ctnetlink_change_nat(struct nf_conn *ct, const struct nlattr * const cda[])
->  }
->  
->  static inline int
-> +ctnetlink_attach_label(struct nf_conn *ct, const struct nlattr * const cda[])
-> +{
-> +#ifdef CONFIG_NF_CONNTRACK_LABELS
-> +	return nfnetlink_connlabel_set(ct, nla_data(cda[CTA_LABELS]), nla_len(cda[CTA_LABELS]));
-> +#else
-> +	return -EOPNOTSUPP;
-> +#endif
-> +}
-> +
-> +static inline int
->  ctnetlink_change_helper(struct nf_conn *ct, const struct nlattr * const cda[])
->  {
->  	struct nf_conntrack_helper *helper;
-> @@ -1441,6 +1451,11 @@ ctnetlink_change_conntrack(struct nf_conn *ct,
->  			return err;
->  	}
->  #endif
-> +	if (cda[CTA_LABELS]) {
-> +		err = ctnetlink_attach_label(ct, cda);
-> +		if (err < 0)
-> +			return err;
-> +	}
->  
->  	return 0;
->  }
-> @@ -1649,6 +1664,9 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
->  			else
->  				events = IPCT_NEW;
->  
-> +			if (cda[CTA_LABELS] && ctnetlink_attach_label(ct, cda) == 0)
-> +				events |= (1 << IPCT_LABEL);
-> +
->  			nf_conntrack_eventmask_report((1 << IPCT_REPLY) |
->  						      (1 << IPCT_ASSURED) |
->  						      (1 << IPCT_HELPER) |
-> @@ -1946,6 +1964,11 @@ ctnetlink_nfqueue_parse_ct(const struct nlattr *cda[], struct nf_conn *ct)
->  		if (err < 0)
->  			return err;
->  	}
-> +	if (cda[CTA_LABELS]) {
-> +		err = ctnetlink_attach_label(ct, cda);
-> +		if (err < 0)
-> +			return err;
-> +	}
->  #if defined(CONFIG_NF_CONNTRACK_MARK)
->  	if (cda[CTA_MARK])
->  		ct->mark = ntohl(nla_get_be32(cda[CTA_MARK]));
-> -- 
-> 1.7.8.6
+> On Tue, 27 Nov 2012, Pablo Neira Ayuso wrote:
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > I've got one question regarding this patch:
+> [...] 
+> > > @@ -730,10 +775,9 @@ ip_set_create(struct sock *ctnl, struct sk_buff *skb,
+> > >  	 * and check clashing.
+> > >  	 */
+> > >  	ret = find_free_id(set->name, &index, &clash);
+> > > -	if (ret != 0) {
+> > > +	if (ret == -EEXIST) {
+> > >  		/* If this is the same set and requested, ignore error */
+> > > -		if (ret == -EEXIST &&
+> > > -		    (flags & IPSET_FLAG_EXIST) &&
+> > > +		if ((flags & IPSET_FLAG_EXIST) &&
+> > >  		    STREQ(set->type->name, clash->type->name) &&
+> > >  		    set->type->family == clash->type->family &&
+> > >  		    set->type->revision_min == clash->type->revision_min &&
+> > > @@ -741,13 +785,36 @@ ip_set_create(struct sock *ctnl, struct sk_buff *skb,
+> > >  		    set->variant->same_set(set, clash))
+> > >  			ret = 0;
+> > >  		goto cleanup;
+> > > -	}
+> > > +	} else if (ret == -IPSET_ERR_MAX_SETS) {
+> > > +		struct ip_set **list, **tmp;
+> > > +		ip_set_id_t i = ip_set_max + IP_SET_INC;
+> > > +
+> > > +		if (i < ip_set_max)
+> > > +			/* Wraparound */
+> > > +			goto cleanup;
+> > > +
+> > > +		list = kzalloc(sizeof(struct ip_set *) * i, GFP_KERNEL);
+> > > +		if (!list)
+> > > +			goto cleanup;
+> > > +		/* nfnl mutex is held, both lists are valid */
+> > > +		tmp = nfnl_dereference(ip_set_list);
+> > > +		memcpy(list, tmp, sizeof(struct ip_set *) * ip_set_max);
+> > > +		rcu_assign_pointer(ip_set_list, list);
+> > > +		/* Make sure all current packets have passed through */
+> > > +		synchronize_net();
+> > > +		/* Use new list */
+> > > +		index = ip_set_max;
+> > > +		ip_set_max = i;
+> > > +		kfree(tmp);
+> > > +		ret = 0;
+> > 
+> > I can see that this increases in 64 new slots the array of sets every
+> > time the this hits -IPSET_ERR_MAX_SETS. And that can be happen on and
+> > on, without limitation AFAICS.
+> 
+> No, the ip_set_id_t is actually u16. A few lines above the wraparound is 
+> checked and at that point the increasing of the array is stopped.
+
+Ah, I see. So we've got an implicit limit of 65536.
+
+> > Why not just some specific operation to set a new ip_set_max value and
+> > readjust the array of sets in that case? Thus, the user is in full
+> > control of the maximum number of sets and we don't have to assume
+> > anything.
+> 
+> That'd need another knob - this way the array is increased as needed.
+> The user doesn't have to count the required sets in advance, just create.
+
+Yes, that would require some new netlink command. I tend to prefer
+explicit configuration options. My concern is that day someone will
+come and say that 2^16 are not enough for them. Then, we'll have to
+add some explicit upper limit and allow to modify it.
+
+But I'm all fine if you like it this way. We can just document that
+the new maximum amount of sets 65536.
+
+> But please discard this patch, I'm going to send you a completed one, 
+> which survived not only the compiling but the testsuite too.
+
+OK, thanks a lot Jozsef.
