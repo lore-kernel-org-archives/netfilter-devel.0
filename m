@@ -1,53 +1,45 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 3/3] netfilter: ctnetlink: allow userspace to set labels
-Date: Tue, 27 Nov 2012 15:13:17 +0100
-Message-ID: <20121127141317.GB9089@1984>
-References: <1352994915-3859-1-git-send-email-fw@strlen.de>
- <1352994915-3859-4-git-send-email-fw@strlen.de>
- <20121127111838.GA28064@1984>
- <20121127115000.GA14156@breakpoint.cc>
- <20121127123149.GA2351@1984>
- <20121127130904.GB14156@breakpoint.cc>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [ANNOUNCE] ipset 6.16.1 released
+Date: Tue, 27 Nov 2012 15:16:42 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1211271510180.15929@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49706 "EHLO mail.us.es"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:42984 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755715Ab2K0ON2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Nov 2012 09:13:28 -0500
-Content-Disposition: inline
-In-Reply-To: <20121127130904.GB14156@breakpoint.cc>
+	id S1755629Ab2K0OQo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Nov 2012 09:16:44 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Nov 27, 2012 at 02:09:04PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > > For the update case, I think we'll have to iterate over the mask and
-> > > > use xchg to update words, thus, we avoid any interference ongoing bit
-> > > > testing.
-> > > 
-> > > Could you elaborate?
-> > > Why is memcpy not good enough here?
-> > 
-> > while updating the connlabel via memcpy, some test_bit on the
-> > connlabel may be already happening. I was suggesting some way to avoid
-> > racing with it.
-> 
-> I don't understand why its racing.
-> 
-> Is there a case where we update a word, and test_bit can return
-> "bit is set", even if the bit in the word is neither currently
-> set nor about to be set?
-> 
-> If not, then I don't see the race; either the test happens
-> before we copied the word, or afterwards; regardless of copy vs.
-> xchg?
+Hi,
 
-I was thinking on the case in which we are setting bits via the
-connlabel extension and modifying this from ctnetlink at the same
-time.
+I'm happy to announce ipset 6.16.1. The most important part is the patch 
+from Florian Westphal, which fixes netiface set name overflow in the 
+kernel. The RCU handling of the automating increase of the maximal sets 
+feature introduced in 6.15 is also fixed.
 
-But I don't see any way to make it any better, I think your approach
-is fine for the update case.
+Userspace changes:
+  - Remove all modules before testing resize 
+  - build: support for Linux 3.7 UAPI (Jan Engelhardt) 
+
+Kernel part changes:
+  - Add ipset package version to external module description 
+  - Backport RCU handling up to 2.6.32.x 
+  - Netlink pid is renamed to portid in kernel 3.7.0 
+  - Fix RCU handling when the number of maximal sets are increased
+  - netfilter: ipset: fix netiface set name overflow (Florian Westphal) 
+
+You can download the source code of ipset from:
+        http://ipset.netfilter.org
+        ftp://ftp.netfilter.org/pub/ipset/
+        git://git.netfilter.org/ipset.git
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
