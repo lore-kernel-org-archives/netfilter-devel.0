@@ -1,98 +1,55 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] conntrack: fix nfct_clone with certain attribute data
- types
-Date: Tue, 27 Nov 2012 15:05:09 +0100
-Message-ID: <20121127140509.GA8853@1984>
-References: <1353361195-2345-1-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH] netfilter: ipset: Increase the number of maximal sets
+ automatically as needed
+Date: Tue, 27 Nov 2012 15:09:25 +0100
+Message-ID: <20121127140925.GA9089@1984>
+References: <alpine.DEB.2.00.1211202017260.27297@blackhole.kfki.hu>
+ <20121127104856.GA27734@1984>
+ <alpine.DEB.2.00.1211271207300.14623@blackhole.kfki.hu>
+ <20121127113353.GA30478@1984>
+ <alpine.DEB.2.00.1211271246020.14623@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47737 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48606 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752286Ab2K0OFV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Nov 2012 09:05:21 -0500
+	id S1754886Ab2K0OJc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Nov 2012 09:09:32 -0500
 Content-Disposition: inline
-In-Reply-To: <1353361195-2345-1-git-send-email-fw@strlen.de>
+In-Reply-To: <alpine.DEB.2.00.1211271246020.14623@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 19, 2012 at 10:39:55PM +0100, Florian Westphal wrote:
-> some attributes are pointers to malloc'd objects.  Simply
-> copying the pointer results in use-after free
-> when the original or the clone is destroyed.
+On Tue, Nov 27, 2012 at 12:55:00PM +0100, Jozsef Kadlecsik wrote:
+[...]
+> > > > Why not just some specific operation to set a new ip_set_max value and
+> > > > readjust the array of sets in that case? Thus, the user is in full
+> > > > control of the maximum number of sets and we don't have to assume
+> > > > anything.
+> > > 
+> > > That'd need another knob - this way the array is increased as needed.
+> > > The user doesn't have to count the required sets in advance, just create.
+> > 
+> > Yes, that would require some new netlink command. I tend to prefer
+> > explicit configuration options. My concern is that day someone will
+> > come and say that 2^16 are not enough for them. Then, we'll have to
+> > add some explicit upper limit and allow to modify it.
 > 
-> Also, add test case for cloned objects to ensure that
-> ct = nfct_new();
-> ct2 = nfct_clone(ct);
-> nfct_destroy(ct);
-> nfct_destroy(ct2);
-> 
-> won't crash due to double-frees.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  When working on the connlabel stuff I noticed that nfct_clone does a
->  plain memcpy.  Afaics nfct_clone has returned a shallow copy for ages.
->  But documentation implies that it really should do a deep copy.
-> 
->  Pablo, could you please double-check?  Thanks!
-> 
->  qa/test_api.c       |    6 ++++++
->  src/conntrack/api.c |    2 +-
->  2 files changed, 7 insertions(+), 1 deletions(-)
-> 
-> diff --git a/qa/test_api.c b/qa/test_api.c
-> index d5f95e9..fa325c8 100644
-> --- a/qa/test_api.c
-> +++ b/qa/test_api.c
-> @@ -2,6 +2,7 @@
->   * Run this after adding a new attribute to the nf_conntrack object
->   */
->  
-> +#include <assert.h>
->  #include <stdio.h>
->  #include <stdlib.h>
->  #include <unistd.h>
-> @@ -199,6 +200,10 @@ int main(void)
->  		eval_sigterm(status);
->  	}
->  
-> +	ct2 = nfct_clone(ct);
-> +	assert(ct2);
-> +	nfct_destroy(ct2);
-> +
->  	ct2 = nfct_new();
->  	if (!ct2) {
->  		perror("nfct_new");
-> @@ -264,6 +269,7 @@ int main(void)
->  	}
->  
->  	nfct_destroy(ct2);
-> +	printf("== destroy cloned ct entry ==\n");
->  	nfct_destroy(ct);
->  	nfct_destroy(tmp);
->  	nfexp_destroy(exp);
-> diff --git a/src/conntrack/api.c b/src/conntrack/api.c
-> index 000571f..ebf0d52 100644
-> --- a/src/conntrack/api.c
-> +++ b/src/conntrack/api.c
-> @@ -147,7 +147,7 @@ struct nf_conntrack *nfct_clone(const struct nf_conntrack *ct)
->  
->  	if ((clone = nfct_new()) == NULL)
->  		return NULL;
-> -	memcpy(clone, ct, sizeof(*ct));
-> +	nfct_copy(clone, ct, NFCT_CP_ALL);
+> That'd be non trivial, because the whole array should then be replaced 
+> with something else for faster access from user space when the set is 
+> searched by name. The kernel always refers to the index.
 
-That seems safe to me.
+I think the index is fine as a way to search.
 
-Still I think NFCT_CP_OVERRIDE is faster. I added that flag way after
-to improve a bit the copying time.
+> > But I'm all fine if you like it this way. We can just document that
+> > the new maximum amount of sets 65536.
+> 
+> It's "documented" in the input range of the "Maximum number of IP 
+> sets" configuration parameter in Kconfig. Should I add it explicitely to 
+> the help text? Or directly to the title line?
 
-It will require also to add the connlabel support to it. See
-__copy_fast.
+Some information in the changelog would be sufficient.
 
-I need to check this again but I think we can remove
-src/conntrack/copy.c and make NFCT_CP_ALL behave just like
-NFCT_CP_OVERRIDE.
+Thanks.
