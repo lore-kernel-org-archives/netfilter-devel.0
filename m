@@ -1,37 +1,34 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 0/1] netfilter: ipset: Increase the number of maximal sets automatically
-Date: Tue, 27 Nov 2012 20:58:08 +0100
-Message-ID: <1354046289-17547-1-git-send-email-kadlec@blackhole.kfki.hu>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+Subject: [PATCH 0/1] Introduce notification events for routing changes
+Date: Tue, 27 Nov 2012 21:27:24 +0100
+Message-ID: <1354048045-17846-1-git-send-email-kadlec@blackhole.kfki.hu>
+Cc: netfilter-devel@vger.kernel.org
+To: netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:49310 "EHLO smtp1.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:55935 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756244Ab2K0T6L (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Nov 2012 14:58:11 -0500
+	id S932233Ab2K0U11 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Nov 2012 15:27:27 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Hi Dave,
 
-Here follows the final version of the patch. It passes cleanly
-
-CONFIG_SPARSE_RCU_POINTER=y
-
-make C=2 net/netfilter/ipset/ip_set_core.o
-
-and also the complete ipset testsuite.
-
-You can also pull the patch from here:
-
-	git://blackhole.kfki.hu/nf-next master
+Please consider applying the following patch for net-next, which introduce
+events for routing changes. With it, the MASQUERADE target is able to clean
+up connections with wrong NATed source addresses after routing changed (backup
+default route, VPNs).
 
 Best regards,
 Jozsef
 
 Jozsef Kadlecsik (1):
-  netfilter: ipset: Increase the number of maximal sets automatically
+  Introduce notification events for routing changes
 
- net/netfilter/ipset/ip_set_core.c |  243 ++++++++++++++++++++++++-------------
- 1 files changed, 160 insertions(+), 83 deletions(-)
+ include/linux/inetdevice.h |    2 ++
+ include/linux/netdevice.h  |    1 +
+ include/net/ip6_route.h    |    3 ++-
+ net/ipv4/fib_trie.c        |   17 +++++++++++++++++
+ net/ipv6/route.c           |   21 +++++++++++++++++++++
+ 5 files changed, 43 insertions(+), 1 deletions(-)
 
