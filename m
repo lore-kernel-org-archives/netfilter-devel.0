@@ -1,55 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: ipset: Increase the number of maximal sets
- automatically as needed
-Date: Tue, 27 Nov 2012 15:09:25 +0100
-Message-ID: <20121127140925.GA9089@1984>
-References: <alpine.DEB.2.00.1211202017260.27297@blackhole.kfki.hu>
- <20121127104856.GA27734@1984>
- <alpine.DEB.2.00.1211271207300.14623@blackhole.kfki.hu>
- <20121127113353.GA30478@1984>
- <alpine.DEB.2.00.1211271246020.14623@blackhole.kfki.hu>
+Subject: Re: [PATCH 3/3] netfilter: ctnetlink: allow userspace to set labels
+Date: Tue, 27 Nov 2012 15:13:17 +0100
+Message-ID: <20121127141317.GB9089@1984>
+References: <1352994915-3859-1-git-send-email-fw@strlen.de>
+ <1352994915-3859-4-git-send-email-fw@strlen.de>
+ <20121127111838.GA28064@1984>
+ <20121127115000.GA14156@breakpoint.cc>
+ <20121127123149.GA2351@1984>
+ <20121127130904.GB14156@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48606 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:49706 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754886Ab2K0OJc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Nov 2012 09:09:32 -0500
+	id S1755715Ab2K0ON2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Nov 2012 09:13:28 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1211271246020.14623@blackhole.kfki.hu>
+In-Reply-To: <20121127130904.GB14156@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Nov 27, 2012 at 12:55:00PM +0100, Jozsef Kadlecsik wrote:
-[...]
-> > > > Why not just some specific operation to set a new ip_set_max value and
-> > > > readjust the array of sets in that case? Thus, the user is in full
-> > > > control of the maximum number of sets and we don't have to assume
-> > > > anything.
+On Tue, Nov 27, 2012 at 02:09:04PM +0100, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > > For the update case, I think we'll have to iterate over the mask and
+> > > > use xchg to update words, thus, we avoid any interference ongoing bit
+> > > > testing.
 > > > 
-> > > That'd need another knob - this way the array is increased as needed.
-> > > The user doesn't have to count the required sets in advance, just create.
+> > > Could you elaborate?
+> > > Why is memcpy not good enough here?
 > > 
-> > Yes, that would require some new netlink command. I tend to prefer
-> > explicit configuration options. My concern is that day someone will
-> > come and say that 2^16 are not enough for them. Then, we'll have to
-> > add some explicit upper limit and allow to modify it.
+> > while updating the connlabel via memcpy, some test_bit on the
+> > connlabel may be already happening. I was suggesting some way to avoid
+> > racing with it.
 > 
-> That'd be non trivial, because the whole array should then be replaced 
-> with something else for faster access from user space when the set is 
-> searched by name. The kernel always refers to the index.
-
-I think the index is fine as a way to search.
-
-> > But I'm all fine if you like it this way. We can just document that
-> > the new maximum amount of sets 65536.
+> I don't understand why its racing.
 > 
-> It's "documented" in the input range of the "Maximum number of IP 
-> sets" configuration parameter in Kconfig. Should I add it explicitely to 
-> the help text? Or directly to the title line?
+> Is there a case where we update a word, and test_bit can return
+> "bit is set", even if the bit in the word is neither currently
+> set nor about to be set?
+> 
+> If not, then I don't see the race; either the test happens
+> before we copied the word, or afterwards; regardless of copy vs.
+> xchg?
 
-Some information in the changelog would be sufficient.
+I was thinking on the case in which we are setting bits via the
+connlabel extension and modifying this from ctnetlink at the same
+time.
 
-Thanks.
+But I don't see any way to make it any better, I think your approach
+is fine for the update case.
