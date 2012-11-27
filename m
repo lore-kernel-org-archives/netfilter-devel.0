@@ -1,50 +1,36 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: move ipv6_find_hdr to net/ipv6/netfilter.c
- and rename it
-Date: Tue, 27 Nov 2012 01:59:28 +0100
-Message-ID: <20121127005928.GA20540@1984>
-References: <1353798438-6331-1-git-send-email-pablo@netfilter.org>
- <alpine.LNX.2.01.1211251228320.26208@nerf07.vanv.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+From: pablo@netfilter.org
+Subject: [PATCH] netfilter updates for net (3.7-rc7)
+Date: Tue, 27 Nov 2012 02:03:04 +0100
+Message-ID: <1353978185-3564-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46858 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47073 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757174Ab2K0A7g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Nov 2012 19:59:36 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.01.1211251228320.26208@nerf07.vanv.qr>
+	id S1754849Ab2K0BD0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 26 Nov 2012 20:03:26 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Nov 25, 2012 at 12:34:20PM +0100, Jan Engelhardt wrote:
-> On Sunday 2012-11-25 00:07, pablo@netfilter.org wrote:
-> 
-> >From: Pablo Neira Ayuso <pablo@netfilter.org>
-> >
-> >IPVS uses ipv6_find_hdr, but this function is defined in ip6_tables.c,
-> >to avoid such a dependency, move the function definition to the
-> >generic IPv6 netfilter infrastructure.
-> 
-> Could we move this in a different way, such that the "ipv6_find_hdr"
-> function and functions from exthdrs_core.c end up in a separate
-> module (or even built-in code), such that modules like xt_socket.c
-> can drop their dependency on ipv6.ko?
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-I'd go the other way around: we split xt_socket into two chunks so we
-can avoid such IPv6 dependency.
+Hi David,
 
-> >index 429089c..d25f2d9 100644
-> >--- a/net/ipv6/netfilter.c
-> >+++ b/net/ipv6/netfilter.c
-> >@@ -60,6 +60,109 @@ int ip6_route_me_harder(struct sk_buff *skb)
-> > EXPORT_SYMBOL(ip6_route_me_harder);
-> > 
-> >+int nf_ip6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
-> >+		    int target, unsigned short *fragoff, int *flags)
-> >+{
-> >[...]
-> >+}
-> >+EXPORT_SYMBOL(nf_ip6_find_hdr);
+This update contains one patch to fix an overflow via the interface
+name attribute in the ipset infrastructure, from Florian Westphal.
+
+You can pull this change from:
+
+git://1984.lsi.us.es/nf master
+
+Thanks!
+
+Florian Westphal (1):
+  netfilter: ipset: fix netiface set name overflow
+
+ net/netfilter/ipset/ip_set_hash_netiface.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+-- 
+1.7.10.4
+
