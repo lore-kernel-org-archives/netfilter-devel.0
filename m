@@ -1,52 +1,37 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 3/3] netfilter: ctnetlink: allow userspace to set labels
-Date: Tue, 27 Nov 2012 12:50:00 +0100
-Message-ID: <20121127115000.GA14156@breakpoint.cc>
-References: <1352994915-3859-1-git-send-email-fw@strlen.de>
- <1352994915-3859-4-git-send-email-fw@strlen.de>
- <20121127111838.GA28064@1984>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH 2/2] build: resolve compile error due to missing nfacct
+ CPPFLAGS
+Date: Tue, 27 Nov 2012 12:51:16 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1211271251000.22381@nerf07.vanv.qr>
+References: <1353974099-19891-1-git-send-email-jengelh@inai.de>  <1353974099-19891-3-git-send-email-jengelh@inai.de> <1354002875.4103.5.camel@tiger2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49811 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751003Ab2K0LuC (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Nov 2012 06:50:02 -0500
-Content-Disposition: inline
-In-Reply-To: <20121127111838.GA28064@1984>
+Received: from ares07.inai.de ([5.9.24.206]:50522 "EHLO ares07.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750890Ab2K0LvT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Nov 2012 06:51:19 -0500
+In-Reply-To: <1354002875.4103.5.camel@tiger2>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > +#if IS_ENABLED(CONFIG_NF_CT_NETLINK)
-> > +int nfnetlink_connlabel_set(struct nf_conn *ct, const void *data, unsigned int length)
-> > +{
-[..]
-> > +	labels = nf_ct_labels_find(ct);
-> > +	if (!labels)
-> > +		return -ENOSPC;
-[..]
 
-> Via ctnetlink_new_conntrack, we should be able to create and set the
-> connlabel if we want to support state-sync of connlabels.
+On Tuesday 2012-11-27 08:54, Eric Leblond wrote:
+>> index 630aee6..61d827a 100644
+>> --- a/output/Makefile.am
+>> +++ b/output/Makefile.am
+>> @@ -1,4 +1,4 @@
+>> -AM_CPPFLAGS = -I$(top_srcdir)/include
+>> +AM_CPPFLAGS = -I$(top_srcdir)/include ${LIBNETFILTER_ACCT_CFLAGS}
+>>  AM_CFLAGS = ${regular_CFLAGS} ${LIBNETFILTER_LOG_CFLAGS} \
+>>  	    ${LIBNETFILTER_CONNTRACK_CFLAGS}
+>
+>Good catch but on last line we use the other ${LIBNETFILTER*_CFLAGS} to
+>populate AM_CFLAGS. We should keep all variables at the same place. If
+>we follow your indication in the commit we should use AM_CPPFLAGS (I'm
+>agree with that).
 
-Right.   Good point.
-
-> That requires calling _ext_add(...) to allocate the label, based on
-> cda[CTA_LABELS], and set it. In that case we're safe to memcpy without
-> interfering with any ongoing bit testing since that conntrack is not
-> in the hashes yet.
-
-True.  So we can't race with other _ext_add() callers either.
-I'll add this functionality, thanks for pointing this out.
-
-> For the update case, I think we'll have to iterate over the mask and
-> use xchg to update words, thus, we avoid any interference ongoing bit
-> testing.
-
-Could you elaborate?
-Why is memcpy not good enough here?
+I can send another patch moving all the pkgconfig variables to
+CPPFLAGS.
