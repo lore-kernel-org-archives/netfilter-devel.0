@@ -1,39 +1,52 @@
-From: Ricardo Klein <klein.rfk@gmail.com>
-Subject: ipset 6.16 kernel panic on bitmap:hash,ip
-Date: Tue, 27 Nov 2012 10:17:59 -0200
-Message-ID: <CADuigkVyCJVe5yKVvcKweZ=FmnTTWE1JQ55a35LrCLi2oWBHoQ@mail.gmail.com>
+From: Eric Leblond <eric@regit.org>
+Subject: Re: [PATCH 2/2] build: resolve compile error due to missing nfacct
+ CPPFLAGS
+Date: Tue, 27 Nov 2012 13:30:08 +0100
+Message-ID: <1354019408.4103.10.camel@tiger2>
+References: <1353974099-19891-1-git-send-email-jengelh@inai.de>
+	  <1353974099-19891-3-git-send-email-jengelh@inai.de>
+	 <1354002875.4103.5.camel@tiger2>
+	 <alpine.LNX.2.01.1211271251000.22381@nerf07.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ks28632.kimsufi.com ([91.121.96.152]:37513 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751086Ab2K0Mal (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Nov 2012 07:30:41 -0500
+In-Reply-To: <alpine.LNX.2.01.1211271251000.22381@nerf07.vanv.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-When I creta an ipset like this:
-ipset -N SET_MACS bitmap:ip,mac range 0.0.0.0/0
+Hi,
 
-I got kernel panic when run:
-ipset list
+On Tue, 2012-11-27 at 12:51 +0100, Jan Engelhardt wrote:
+> On Tuesday 2012-11-27 08:54, Eric Leblond wrote:
+> >> index 630aee6..61d827a 100644
+> >> --- a/output/Makefile.am
+> >> +++ b/output/Makefile.am
+> >> @@ -1,4 +1,4 @@
+> >> -AM_CPPFLAGS = -I$(top_srcdir)/include
+> >> +AM_CPPFLAGS = -I$(top_srcdir)/include ${LIBNETFILTER_ACCT_CFLAGS}
+> >>  AM_CFLAGS = ${regular_CFLAGS} ${LIBNETFILTER_LOG_CFLAGS} \
+> >>  	    ${LIBNETFILTER_CONNTRACK_CFLAGS}
+> >
+> >Good catch but on last line we use the other ${LIBNETFILTER*_CFLAGS} to
+> >populate AM_CFLAGS. We should keep all variables at the same place. If
+> >we follow your indication in the commit we should use AM_CPPFLAGS (I'm
+> >agree with that).
+> 
+> I can send another patch moving all the pkgconfig variables to
+> CPPFLAGS.
 
-Anyway, we need some rules here based on mac address (no matter what
-ip address the machine have, because some of them are in DHCP).
-I know that a mac address can be easy cloned, but, still, we need that
-for some rules...
+Please do, I will push your two patches to the public tree once done.
 
-Can we have a set type "mac address" ? Only mac, with no ip?
+BR,
+-- 
+Eric Leblond <eric@regit.org>
+Blog: https://home.regit.org/
 
-O tried "ipset -N SET_MACS_ADM bitmap:ip,mac range 10.0.0.0/8" too but got:
-ipset v6.16: The range you specified exceeds the size limit of the set type
-
-"ipset -N SET_MACS_ADM bitmap:ip,mac range 10.0.0.0/16" woked...
-
-But again, this does not do the job because I need to set a rule based
-on mac address and dinamic ip addresses.
-
-* Using CentOS 6.3 x86_64 with latest updates on VirtualBox (last one too)
-
---
-Att...
-
-Ricardo Felipe Klein
-klein.rfk@gmail.com
