@@ -1,49 +1,95 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] conntrack: fix nfct_clone with certain attribute
- data types
-Date: Tue, 27 Nov 2012 22:15:23 +0100
-Message-ID: <20121127211523.GA5131@1984>
-References: <1354030656-23507-1-git-send-email-fw@strlen.de>
+From: Dries De Winter <dries.dewinter@gmail.com>
+Subject: [PATCH] net: ICMPv6 packets transmitted on wrong interface if
+ nfmark is mangled
+Date: Wed, 28 Nov 2012 10:09:55 +0100 (CET)
+Message-ID: <14515182.2480.1354093791878.JavaMail.driesdw@sahwcmp0020>
+References: <22884633.2468.1354092935228.JavaMail.driesdw@sahwcmp0020>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38556 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754525Ab2K0VPb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Nov 2012 16:15:31 -0500
-Content-Disposition: inline
-In-Reply-To: <1354030656-23507-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <22884633.2468.1354092935228.JavaMail.driesdw@sahwcmp0020>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Nov 27, 2012 at 04:37:36PM +0100, Florian Westphal wrote:
-> some attributes are pointers to malloc'd objects.  Simply copying the
-> pointer results in use-after free when the original or the clone is
-> destroyed.
-> 
-> Fix it by using nfct_copy instead of memcpy and add proper test case
-> for cloned objects:
-> - nfct_cmp of orig and clone should return 1 (equal)
-> - freeing both the original and the clone should
->   neither leak memory nor result in double-frees.
-> 
-> the testsuite changes revealed a few more problems:
->  - ct1->timeout == ct2->timeout returned 0, ie. same timeout
->    was considered "not equal" by nfct_cmp
->  - secctx comparision causes "Invalid address" valgrind warnings
->    when pointer is NULL
->  - NFCT_CP_OVERRIDE did not handle helper attribute and
->    erronously freed ct1 secctx memory.
-> 
-> While at it, bump qa_test data dummy to 256 (else, valgrind
-> complains about move-depends-on-uninitialized-memory).
-> 
-> Lastly, fix compilation of test_api by killing bogus ATTR_CONNLABEL.
->
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+From: Dries De Winter <dries.dewinter@gmail.com>
 
-This is great, thanks Florian.
+The IPv6 mangle table may change the source/destination address and skb->mark
+of a packet. Therefore it may be necessary to "reroute" a packet after it
+traversed this table. But this should not happen for some special packets like
+neighbour solicitations and MLD reports: they have an explicit destination, not
+originating from the routing table. Rerouting these packets may cause them to
+go out on the wrong interface or not to go out at all depending on the routing
+table.
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+I propose a patch which allows to mark a dst_entry as "non-reroutable".
+icmp6_dst_alloc() (used by ndisc and MLD implementation) will always mark the
+allocated dst_entry as such. A check is added to netfilter (IPv6-only) so
+packets heading for a non-reroutable destination are never rerouted.
+
+Detailed discussion about the patch:
+- It is based on 3.6.7.
+- Are there other examples of dsts but ICMPv6 that should be non-reroutable?
+- Are there other situations but rerouting by netfilter in which this new flag
+  should be considered?
+- Similar logic exists in IPv4 so local multicast/broadcast messages are
+  potentially transmitted on the wrong interface. However, it's a less likely
+  corner case there because those packets are treated differently by
+  local output routing: multicast/broadcast messages are by default routed to
+  the interface with a matching source IP-address. But this logic is invalid
+  because (1) it is allowed to send messages with a source IP-address
+  different from your own and (2) it is allowed to assign the same IP-address
+  on multiple interfaces. So I feel that also in the case of IPv4 it should
+  be possible to forbid rerouting for some special packets.
+
+Regards,
+
+Dries De Winter
+SoftAtHome
+
+Signed-off-by: Dries De Winter <dries.dewinter@gmail.com>
+---
+diff --git a/include/net/dst.h b/include/net/dst.h
+index 621e351..8b92678 100644
+--- a/include/net/dst.h
++++ b/include/net/dst.h
+@@ -61,6 +61,7 @@ struct dst_entry {
+ #define DST_NOPEER                0x0040
+ #define DST_FAKE_RTABLE                0x0080
+ #define DST_XFRM_TUNNEL                0x0100
++#define DST_NOREROUTE                0x0200
+ 
+         unsigned short                pending_confirm;
+ 
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index db31561..5b98145 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -23,6 +23,10 @@ int ip6_route_me_harder(struct sk_buff *skb)
+                 .saddr = iph->saddr,
+         };
+ 
++        dst = skb_dst(skb);
++        if (dst && (dst->flags & DST_NOREROUTE))
++                return 0;
++
+         dst = ip6_route_output(net, skb->sk, &fl6);
+         if (dst->error) {
+                 IP6_INC_STATS(net, ip6_dst_idev(dst), IPSTATS_MIB_OUTNOROUTES);
+diff --git a/net/ipv6/route.c b/net/ipv6/route.c
+index 070a3ce..1c7d377 100644
+--- a/net/ipv6/route.c
++++ b/net/ipv6/route.c
+@@ -1234,7 +1234,7 @@ struct dst_entry *icmp6_dst_alloc(struct net_device *dev,
+                 }
+         }
+ 
+-        rt->dst.flags |= DST_HOST;
++        rt->dst.flags |= DST_HOST | DST_NOREROUTE;
+         rt->dst.output  = ip6_output;
+         rt->n = neigh;
+         atomic_set(&rt->dst.__refcnt, 1);
