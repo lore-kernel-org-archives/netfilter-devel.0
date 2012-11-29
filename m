@@ -1,26 +1,28 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [RFC] [PATCH] Handle routing changes for the MASQUERADE target
-Date: Thu, 29 Nov 2012 23:31:51 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1211292328370.26251@blackhole.kfki.hu>
-References: <alpine.DEB.2.00.1211292202150.25841@blackhole.kfki.hu> <20121129212640.GB26937@breakpoint.cc>
+Date: Thu, 29 Nov 2012 23:33:39 +0100
+Message-ID: <20121129223339.GA9370@1984>
+References: <alpine.DEB.2.00.1211292202150.25841@blackhole.kfki.hu>
+ <20121129212640.GB26937@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:46842 "EHLO smtp0.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:42480 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753304Ab2K2Wbx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Nov 2012 17:31:53 -0500
+	id S1752157Ab2K2Wdt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Nov 2012 17:33:49 -0500
+Content-Disposition: inline
 In-Reply-To: <20121129212640.GB26937@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Florian,
-
-On Thu, 29 Nov 2012, Florian Westphal wrote:
-
+On Thu, Nov 29, 2012 at 10:26:40PM +0100, Florian Westphal wrote:
 > Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> wrote:
+> 
+> Hi Jozsef,
 > 
 > this looks really good, two minor nits below.
 > 
@@ -50,9 +52,9 @@ On Thu, 29 Nov 2012, Florian Westphal wrote:
 > > +			if (del_timer(&ct->timeout)) {
 > > +				if (nf_conntrack_event(IPCT_DESTROY, ct) < 0) {
 > [..]
-
-Yes, that'd be even better.
- 
+> 
+> ?
+> 
 > > --- a/net/ipv6/netfilter/ip6table_nat.c
 > > +++ b/net/ipv6/netfilter/ip6table_nat.c
 > > @@ -19,6 +19,7 @@
@@ -72,12 +74,5 @@ Yes, that'd be even better.
 > It would avoid the code duplication and the needed #if IS_ENABLED() MASQ
 > check.
 
-You mean an inline function? I'll send an updated version tomorrow :-).
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+I'd suggest a hook function that is set via rcu_pointer_assign in the
+init path of the masquerade target.
