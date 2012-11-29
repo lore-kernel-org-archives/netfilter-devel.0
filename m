@@ -1,46 +1,57 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 1/1] Introduce notification events for routing changes
-Date: Thu, 29 Nov 2012 10:05:16 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1211291002520.23615@blackhole.kfki.hu>
-References: <1354048045-17846-1-git-send-email-kadlec@blackhole.kfki.hu> <1354048045-17846-2-git-send-email-kadlec@blackhole.kfki.hu> <20121128.175929.618012822860698468.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+From: pablo@netfilter.org
+Subject: [PATCH 0/2] improve conntrack object traceability
+Date: Thu, 29 Nov 2012 14:51:20 +0100
+Message-ID: <1354197082-8431-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:48135 "EHLO smtp1.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:37734 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751141Ab2K2JFT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Nov 2012 04:05:19 -0500
-In-Reply-To: <20121128.175929.618012822860698468.davem@davemloft.net>
+	id S1753358Ab2K2Nvf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Nov 2012 08:51:35 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 28 Nov 2012, David Miller wrote:
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-> > The netfilter MASQUERADE target does not handle the case when the routing
-> > changes and the source address of existing connections become invalid.
-> > The problem can be solved if routing modifications create events to which
-> > the MASQUERADE target can subscribe and then delete the affected
-> > connections.
-> > 
-> > The patch adds the required event support for IPv4/IPv6.
-> > 
-> > Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> 
-> What part of the information are you actually interested in?
-> 
-> Because just saying that a route is added or removed using fib_info X
-> doesn't tell you a whole lot.
-[...]
+Hi!
 
-Please discard my patch. I found a simpler and more efficient way to solve 
-the issue in netfilter itself.
+The following patchset modifies the conntrack subsystem to ensure
+that nf_conn objects are always inserted in any of the existing
+lists, they are: the hashtable, the unconfirmed and the dying lists.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+ctnetlink is also extended to allow to dump their content. I know of
+people debugging issues using simple scripts like these below:
+
+DYING=`conntrack -L dying | wc -l`
+ACTIVE=`conntrack -L | wc -l`
+UNCONFIRMED=`conntrack -L unconfirmed | wc -l`
+TOTAL=`conntrack -C`
+
+echo "dying: $DYING"
+echo "active: $ACTIVE"
+echo "unconfirmed: $UNCONFIRMED"
+SUM=$(($DYING + $ACTIVE + $UNCONFIRMED))
+echo "sum: $SUM"
+echo "total: $TOTAL"
+
+So you can track that the active+dying+unconfirmed don't deviate
+too much from global conntrack object counter.
+
+I needed to slightly change the current behaviour so all objects
+are inserted in the dying list while running through the destroy
+path. Before this, this list was only used in conntrackd with
+reliable event reporting were in using.
+
+Pablo Neira Ayuso (2):
+  netfilter: nf_conntrack: improve nf_conn object traceability
+  netfilter: ctnetlink: dump entries from the dying and unconfirmed lists
+
+ include/net/netfilter/nf_conntrack.h               |    2 +-
+ include/uapi/linux/netfilter/nfnetlink_conntrack.h |    2 +
+ net/netfilter/nf_conntrack_core.c                  |   25 ++---
+ net/netfilter/nf_conntrack_netlink.c               |  110 +++++++++++++++++++-
+ 4 files changed, 121 insertions(+), 18 deletions(-)
+
+-- 
+1.7.10.4
+
