@@ -1,43 +1,33 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 3/3] netfilter: ctnetlink: allow userspace to set labels
-Date: Fri, 30 Nov 2012 15:02:54 +0100
-Message-ID: <20121130140254.GB31969@breakpoint.cc>
-References: <1352994915-3859-1-git-send-email-fw@strlen.de>
- <1352994915-3859-4-git-send-email-fw@strlen.de>
- <20121127111838.GA28064@1984>
- <20121127115000.GA14156@breakpoint.cc>
- <20121127123149.GA2351@1984>
- <20121127130904.GB14156@breakpoint.cc>
- <20121127141317.GB9089@1984>
- <20121127142433.GE14156@breakpoint.cc>
- <20121130135806.GA7955@1984>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net: ICMPv6 packets transmitted on wrong interface if
+ nfmark is mangled
+Date: Fri, 30 Nov 2012 12:22:43 -0500 (EST)
+Message-ID: <20121130.122243.710720011890818822.davem@davemloft.net>
+References: <14515182.2480.1354093791878.JavaMail.driesdw@sahwcmp0020>
+	<20121128.183037.1780631404801131036.davem@davemloft.net>
+	<CA+e04fhY1KjYFwbQ6P=V==kyU3fqMrvrzRJSyz6sy=RwHki07Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, kaber@trash.net, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: dries.dewinter@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:33830 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758297Ab2K3OCz (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:44694 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754515Ab2K3RWp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Nov 2012 09:02:55 -0500
-Content-Disposition: inline
-In-Reply-To: <20121130135806.GA7955@1984>
+	Fri, 30 Nov 2012 12:22:45 -0500
+In-Reply-To: <CA+e04fhY1KjYFwbQ6P=V==kyU3fqMrvrzRJSyz6sy=RwHki07Q@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Quick idea: I think we can also support atomic replacement at word
-> size using xchg, so the replacement operation can still happen at word
-> level. Setting many bits at once would be also faster with that.
+From: Dries De Winter <dries.dewinter@gmail.com>
+Date: Fri, 30 Nov 2012 13:29:20 +0100
 
-Unfortunately, no -- the interface is too rudimentary.
-Example: You want to set bis 0, 2, 6; but leave all other
-bit that are set intact.
+> 2012/11/29 David Miller <davem@davemloft.net>:
+>> Regardless of the answer to that question, it should be explained
+>> in the commit message.
+> Should I post a new patch email including this comment?
 
-So you first need to make a dump to fetch the current labels set.
-Then, you set bits 0, 2, 6 and send the new state to the kernel.
-
-But between the dump and the set operation, a new bit might
-have been set.  So even when using xchg it will be un-set again...
+Yes, please do.
