@@ -1,147 +1,56 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC] [PATCH] Handle routing changes for the MASQUERADE target
-Date: Thu, 29 Nov 2012 23:44:29 +0100
-Message-ID: <20121129224429.GB9370@1984>
-References: <alpine.DEB.2.00.1211292202150.25841@blackhole.kfki.hu>
+From: Dries De Winter <dries.dewinter@gmail.com>
+Subject: Re: [PATCH] net: ICMPv6 packets transmitted on wrong interface if
+ nfmark is mangled
+Date: Fri, 30 Nov 2012 13:29:20 +0100
+Message-ID: <CA+e04fhY1KjYFwbQ6P=V==kyU3fqMrvrzRJSyz6sy=RwHki07Q@mail.gmail.com>
+References: <22884633.2468.1354092935228.JavaMail.driesdw@sahwcmp0020>
+	<14515182.2480.1354093791878.JavaMail.driesdw@sahwcmp0020>
+	<20121128.183037.1780631404801131036.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: pablo@netfilter.org, kaber@trash.net, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43293 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753382Ab2K2Woe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Nov 2012 17:44:34 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1211292202150.25841@blackhole.kfki.hu>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:40409 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756082Ab2K3M3W (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 30 Nov 2012 07:29:22 -0500
+In-Reply-To: <20121128.183037.1780631404801131036.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jozsef,
+2012/11/29 David Miller <davem@davemloft.net>:
+> From: Dries De Winter <dries.dewinter@gmail.com>
+> Date: Wed, 28 Nov 2012 10:09:55 +0100 (CET)
+>
+>> I propose a patch which allows to mark a dst_entry as "non-reroutable".
+>> icmp6_dst_alloc() (used by ndisc and MLD implementation) will always mark
+>> the
+>> allocated dst_entry as such. A check is added to netfilter (IPv6-only) so
+>> packets heading for a non-reroutable destination are never rerouted.
+>
+> What about addrconf_dst_alloc()?  Shouldn't it have this new flag set
+> as well?
+I don't think so. I'm not sure if I understand all of IPv6 routing
+correctly, but it looks like dst entries allocated by
+addrconf_dst_alloc() are added to the routing table pretty much like
+normal routes and skbuffs get assigned such dst entries by normal rule
+lookup / route lookup.
 
-On Thu, Nov 29, 2012 at 10:12:54PM +0100, Jozsef Kadlecsik wrote:
-> Hi,
-> 
-> This is the second variant of the patch which addresses the route 
-> changes affecting already masqueraded connections.
-> 
-> When the route changes (backup default route, VPNs), the packets are sent 
-> out with wrong source address. The patch addresses the issue by comparing 
-> the outgoing interface directly with the masquerade interface in the nat 
-> table. It *is* MASQUERADE specific, so probably the inserted code could be 
-> enclosed in a proper ifdef.
-> 
-> Events are inefficient, because it'd require scanning the whole conntrack 
-> table at any route change and re-checking the route for all entry, which 
-> is simply way too expensive.
+If an skbuff got assigned such a dst entry by normal routing in the
+first place, and the changes done by the mangle table don't affect
+routing (e.g. skb->mark changed but no policy based routing), I guess
+that rerouting the packet will get you there too. In the meantime, by
+not specifying DST_NOREROUTE for such destinations, you don't lose the
+capability to mangle a packet so it should really be routed
+differently.
 
-I still have to waste the bullet of proposing to do this from
-user-space.
+> Regardless of the answer to that question, it should be explained
+> in the commit message.
+Should I post a new patch email including this comment?
 
-I think a new command for the conntrack utility to iterate over the
-table and kill entries with wrong masq_index would be relatively
-simple. You will have to pass the ifindex you want to compare from
-user-space.
+Regards,
 
-People have to update their scripts when they consider that this
-action is required and we save doing this for each packet.
-
-> Comments are highly welcomed.
-> 
-> Best regards,
-> Jozsef
-> 
-> ---
->  net/ipv4/netfilter/iptable_nat.c  |   19 +++++++++++++++++++
->  net/ipv6/netfilter/ip6table_nat.c |   19 +++++++++++++++++++
->  2 files changed, 38 insertions(+), 0 deletions(-)
-> 
-> diff --git a/net/ipv4/netfilter/iptable_nat.c b/net/ipv4/netfilter/iptable_nat.c
-> index ac635a7..128885d 100644
-> --- a/net/ipv4/netfilter/iptable_nat.c
-> +++ b/net/ipv4/netfilter/iptable_nat.c
-> @@ -17,6 +17,7 @@
->  #include <net/netfilter/nf_nat.h>
->  #include <net/netfilter/nf_nat_core.h>
->  #include <net/netfilter/nf_nat_l3proto.h>
-> +#include <net/netfilter/nf_conntrack_ecache.h>
->  
->  static const struct xt_table nf_nat_ipv4_table = {
->  	.name		= "nat",
-> @@ -134,6 +135,24 @@ nf_nat_ipv4_fn(unsigned int hooknum,
->  		/* ESTABLISHED */
->  		NF_CT_ASSERT(ctinfo == IP_CT_ESTABLISHED ||
->  			     ctinfo == IP_CT_ESTABLISHED_REPLY);
-> +		if (hooknum == NF_INET_POST_ROUTING &&
-> +		    CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL &&
-> +		    nat->masq_index && nat->masq_index != out->ifindex) {
-> +			/* Outgoing interface changed, kill ct.  */
-> +			if (del_timer(&ct->timeout)) {
-> +				if (nf_conntrack_event(IPCT_DESTROY, ct) < 0) {
-> +					nf_ct_delete_from_lists(ct);
-> +					nf_ct_insert_dying_list(ct);
-> +					nf_ct_put(ct);
-> +					return NF_DROP;
-> +				}
-> +				set_bit(IPS_DYING_BIT, &ct->status);
-> +				nf_ct_delete_from_lists(ct);
-> +				nf_ct_put(ct);
-> +			}
-> +			nf_ct_put(ct);
-> +			return NF_DROP;
-> +		}
->  	}
->  
->  	return nf_nat_packet(ct, ctinfo, hooknum, skb);
-> diff --git a/net/ipv6/netfilter/ip6table_nat.c b/net/ipv6/netfilter/ip6table_nat.c
-> index fa84cf8..d06d7de 100644
-> --- a/net/ipv6/netfilter/ip6table_nat.c
-> +++ b/net/ipv6/netfilter/ip6table_nat.c
-> @@ -19,6 +19,7 @@
->  #include <net/netfilter/nf_nat.h>
->  #include <net/netfilter/nf_nat_core.h>
->  #include <net/netfilter/nf_nat_l3proto.h>
-> +#include <net/netfilter/nf_conntrack_ecache.h>
->  
->  static const struct xt_table nf_nat_ipv6_table = {
->  	.name		= "nat",
-> @@ -137,6 +138,24 @@ nf_nat_ipv6_fn(unsigned int hooknum,
->  		/* ESTABLISHED */
->  		NF_CT_ASSERT(ctinfo == IP_CT_ESTABLISHED ||
->  			     ctinfo == IP_CT_ESTABLISHED_REPLY);
-> +		if (hooknum == NF_INET_POST_ROUTING &&
-> +		    CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL &&
-> +		    nat->masq_index && nat->masq_index != out->ifindex) {
-> +			/* Outgoing interface changed, kill ct.  */
-> +			if (del_timer(&ct->timeout)) {
-> +				if (nf_conntrack_event(IPCT_DESTROY, ct) < 0) {
-> +					nf_ct_delete_from_lists(ct);
-> +					nf_ct_insert_dying_list(ct);
-> +					nf_ct_put(ct);
-> +					return NF_DROP;
-> +				}
-> +				set_bit(IPS_DYING_BIT, &ct->status);
-> +				nf_ct_delete_from_lists(ct);
-> +				nf_ct_put(ct);
-> +			}
-> +			nf_ct_put(ct);
-> +			return NF_DROP;
-> +		}
->  	}
->  
->  	return nf_nat_packet(ct, ctinfo, hooknum, skb);
-> -- 
-> 1.7.0.4
-> 
-> 
-> Best regards,
-> Jozsef
-> -
-> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-> Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
->           H-1525 Budapest 114, POB. 49, Hungary
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Dries.
