@@ -1,31 +1,32 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] Handle routing changes in MASQUERADE target, v4
-Date: Mon, 3 Dec 2012 19:28:05 +0100
-Message-ID: <20121203182805.GA22736@1984>
-References: <alpine.DEB.2.00.1211302149050.16257@blackhole.kfki.hu>
- <alpine.DEB.2.00.1211302336170.16789@blackhole.kfki.hu>
+Subject: Re: [PATCH] netfilter: remove extra timer from ecache extension
+Date: Mon, 3 Dec 2012 19:32:14 +0100
+Message-ID: <20121203183214.GA23029@1984>
+References: <1354306565-2289-1-git-send-email-fw@strlen.de>
+ <20121203143933.GB5599@1984>
+ <20121203151706.GD11627@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43944 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44544 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750792Ab2LCS2M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Dec 2012 13:28:12 -0500
+	id S1751111Ab2LCScR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Dec 2012 13:32:17 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1211302336170.16789@blackhole.kfki.hu>
+In-Reply-To: <20121203151706.GD11627@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Nov 30, 2012 at 11:37:26PM +0100, Jozsef Kadlecsik wrote:
-> When the route changes (backup default route, VPNs) which affect a
-> masqueraded target, the packets were sent out with the outdated source
-> address. The patch addresses the issue by comparing the outgoing interface
-> directly with the masqueraded interface in the nat table.
-> 
-> Events are inefficient in this case, because it'd require adding route
-> events to the network core and then scanning the whole conntrack table
-> and re-checking the route for all entry.
+On Mon, Dec 03, 2012 at 04:17:06PM +0100, Florian Westphal wrote:
+[...]
+> I can re-spin the patch on top of your dying-list changes, if
+> you prefer to test all patches at the same time.
 
-Applied, thanks.
+Please, do so. You can use nf-next tree, I have applied those to it.
+
+As promised, I'll send a follow-up patch to fix the issue that you
+spotted regarding the dying list and the output path of nf_conntrack.
+
+Thanks.
