@@ -1,58 +1,60 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 3/3] netfilter: ctnetlink: allow userspace to set labels
-Date: Mon, 3 Dec 2012 13:58:44 +0100
-Message-ID: <20121203125843.GB30523@1984>
-References: <20121127123149.GA2351@1984>
- <20121127130904.GB14156@breakpoint.cc>
- <20121127141317.GB9089@1984>
- <20121127142433.GE14156@breakpoint.cc>
- <20121130135806.GA7955@1984>
- <20121130140254.GB31969@breakpoint.cc>
- <20121130183450.GA27138@1984>
- <20121130213631.GE31969@breakpoint.cc>
- <20121203110417.GA22667@1984>
- <20121203111332.GB11627@breakpoint.cc>
+Subject: Re: [PATCH] build: resolve link failure for ip6t_NETMAP
+Date: Mon, 3 Dec 2012 14:12:09 +0100
+Message-ID: <20121203131209.GA32300@1984>
+References: <1354472208-25759-1-git-send-email-jengelh@inai.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60246 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:38781 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753142Ab2LCM6v (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Dec 2012 07:58:51 -0500
+	id S1752768Ab2LCNMP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Dec 2012 08:12:15 -0500
 Content-Disposition: inline
-In-Reply-To: <20121203111332.GB11627@breakpoint.cc>
+In-Reply-To: <1354472208-25759-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Dec 03, 2012 at 12:13:32PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > No matter what xchg tricks you do in the kernel: if 1<<31 was set
-> > > after the dump completed, it will be un-set again via
-> > > send_change_to_kernel(), i.e. we clear bit 1<<31, even though we didn't
-> > > want to.  I don't see how this can be solved; kernel has no idea that
-> > > userspace doesn't wish to alter 1<<31.
-> > 
-> > We can return -EAGAIN to userspace with cmpxchg. From kernel-space:
-> > 
-> > old = word;
-> > word |= flags & mask; /* to set/unset a bunch of bits */
-> > if (xchgcmp(&word, new, old) != old)
-> >         return -EAGAIN;
+On Sun, Dec 02, 2012 at 07:16:48PM +0100, Jan Engelhardt wrote:
+> Link stage of libip6t_NETMAP failed since recently.
 > 
-> Ah.  you're pulling a mask parameter out of your hat :-)
+>   CCLD     libip6t_NETMAP.so
+> /usr/lib64/gcc/x86_64-suse-linux/4.7/../../../../x86_64-suse-linux/bin/ld:
+> cannot find -lip6tc
 
-I did :-)
+Is this problem opensuse specific? Need some diagnosing information on
+why that's happening.
 
-BTW, -EAGAIN already has a meaning for nfnetlink, so some other error
-should be returned for the approach above.
-
-Not sure if you checked the other approach I mentioned:
-
-do {
-        old = word;
-        word |= flags & mask;
-} while (xchgcmp(&word, new, old) != old);
-
-So ctnetlink would keep trying until no interference happen.
+> Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+> ---
+> 
+> Retrievable through
+> 	git://git.inai.de/iptables master
+> 
+> 
+>  extensions/GNUmakefile.in |    3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+> index e71e3ff..68e0b9b 100644
+> --- a/extensions/GNUmakefile.in
+> +++ b/extensions/GNUmakefile.in
+> @@ -101,7 +101,8 @@ libxt_state.so: libxt_conntrack.so
+>  	ln -fs $< $@
+>  
+>  # Need the LIBADDs in iptables/Makefile.am too for libxtables_la_LIBADD
+> -ip6t_NETMAP_LIBADD  = -lip6tc
+> +ip6t_NETMAP_LIBADD  = -L${top_builddir}/libiptc/.libs \
+> +                      -L${top_builddir}/libiptc -lip6tc
+>  xt_RATEEST_LIBADD   = -lm
+>  xt_statistic_LIBADD = -lm
+>  
+> -- 
+> 1.7.10.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
