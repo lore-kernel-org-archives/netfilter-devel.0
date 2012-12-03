@@ -1,39 +1,31 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH] build: resolve link failure for ip6t_NETMAP
-Date: Mon, 3 Dec 2012 16:58:11 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1212031655050.15887@nerf07.vanv.qr>
-References: <1354472208-25759-1-git-send-email-jengelh@inai.de> <20121203131209.GA32300@1984>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH next] netfilter: kill support for per-af queue backends
+Date: Mon, 3 Dec 2012 19:23:37 +0100
+Message-ID: <20121203182337.GA22238@1984>
+References: <1353687741-2604-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:46559 "EHLO ares07.inai.de"
+Received: from mail.us.es ([193.147.175.20]:43134 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754293Ab2LCP6P (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Dec 2012 10:58:15 -0500
-In-Reply-To: <20121203131209.GA32300@1984>
+	id S1751142Ab2LCSXp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Dec 2012 13:23:45 -0500
+Content-Disposition: inline
+In-Reply-To: <1353687741-2604-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2012-12-03 14:12, Pablo Neira Ayuso wrote:
+On Fri, Nov 23, 2012 at 05:22:21PM +0100, Florian Westphal wrote:
+> We used to have several queueing backends, but nowadays only
+> nfnetlink_queue remains.
+> 
+> In light of this there doesn't seem to be a good reason to
+> support per-af registering -- just hook up nfnetlink_queue on module
+> load and remove it on unload.
+> 
+> This means that the userspace BIND/UNBIND_PF commands are now obsolete;
+> the kernel will ignore them.
 
->On Sun, Dec 02, 2012 at 07:16:48PM +0100, Jan Engelhardt wrote:
->> Link stage of libip6t_NETMAP failed since recently.
->> 
->>   CCLD     libip6t_NETMAP.so
->> /usr/lib64/gcc/x86_64-suse-linux/4.7/../../../../x86_64-suse-linux/bin/ld:
->> cannot find -lip6tc
->
->Is this problem opensuse specific? Need some diagnosing information on
->why that's happening.
-
-This happens whenever you don't have /usr/lib(64)/libip6tc.so.
-
-In openSUSE, iptables is split into the packages iptables, libiptc0, 
-libiptc-devel, libxtables9 and libxtables-devel, and libip6tc.so is a 
--devel thing that is generally not installed on user's machines. (Hence 
-I spot this.) I think this should be similar in Debian.
-
-Also, note that iptables itself is not installed while building iptables 
-itself (for obvious reasons) in most distribution build systems.
+Applied, thanks Florian.
