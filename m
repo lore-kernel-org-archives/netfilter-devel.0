@@ -1,25 +1,31 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2] netfilter: nla_policy updates
-Date: Mon, 3 Dec 2012 19:27:38 +0100
-Message-ID: <20121203182738.GB22656@1984>
-References: <1353583966-12402-1-git-send-email-fw@strlen.de>
- <1353583966-12402-2-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH] Handle routing changes in MASQUERADE target, v4
+Date: Mon, 3 Dec 2012 19:28:05 +0100
+Message-ID: <20121203182805.GA22736@1984>
+References: <alpine.DEB.2.00.1211302149050.16257@blackhole.kfki.hu>
+ <alpine.DEB.2.00.1211302336170.16789@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43844 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43944 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751121Ab2LCS1l (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Dec 2012 13:27:41 -0500
+	id S1750792Ab2LCS2M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Dec 2012 13:28:12 -0500
 Content-Disposition: inline
-In-Reply-To: <1353583966-12402-2-git-send-email-fw@strlen.de>
+In-Reply-To: <alpine.DEB.2.00.1211302336170.16789@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Nov 22, 2012 at 12:32:46PM +0100, Florian Westphal wrote:
-> Add stricter checking for a few attributes.
-> Note that these changes don't fix any bug in the current code base.
+On Fri, Nov 30, 2012 at 11:37:26PM +0100, Jozsef Kadlecsik wrote:
+> When the route changes (backup default route, VPNs) which affect a
+> masqueraded target, the packets were sent out with the outdated source
+> address. The patch addresses the issue by comparing the outgoing interface
+> directly with the masqueraded interface in the nat table.
+> 
+> Events are inefficient in this case, because it'd require adding route
+> events to the network core and then scanning the whole conntrack table
+> and re-checking the route for all entry.
 
-Applied, thanks!
+Applied, thanks.
