@@ -1,65 +1,39 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] netfilter: remove extra timer from ecache extension
-Date: Mon, 3 Dec 2012 16:17:06 +0100
-Message-ID: <20121203151706.GD11627@breakpoint.cc>
-References: <1354306565-2289-1-git-send-email-fw@strlen.de>
- <20121203143933.GB5599@1984>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH] build: resolve link failure for ip6t_NETMAP
+Date: Mon, 3 Dec 2012 16:58:11 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1212031655050.15887@nerf07.vanv.qr>
+References: <1354472208-25759-1-git-send-email-jengelh@inai.de> <20121203131209.GA32300@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41180 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753490Ab2LCPRI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Dec 2012 10:17:08 -0500
-Content-Disposition: inline
-In-Reply-To: <20121203143933.GB5599@1984>
+Received: from ares07.inai.de ([5.9.24.206]:46559 "EHLO ares07.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754293Ab2LCP6P (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Dec 2012 10:58:15 -0500
+In-Reply-To: <20121203131209.GA32300@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Instead we use a per-ns tasklet to re-trigger event delivery.
-> > When we enqueue a ct entry into the dying list, the tasklet
-> > is scheduled.
-> > 
-> > The tasklet will then deliver up to 20 entries.  It will
-> > re-sched itself if not all the pending events could be delivered.
-> 
-> I would like to give a test to this patch in my testbed.
+On Monday 2012-12-03 14:12, Pablo Neira Ayuso wrote:
 
-That would be great.
+>On Sun, Dec 02, 2012 at 07:16:48PM +0100, Jan Engelhardt wrote:
+>> Link stage of libip6t_NETMAP failed since recently.
+>> 
+>>   CCLD     libip6t_NETMAP.so
+>> /usr/lib64/gcc/x86_64-suse-linux/4.7/../../../../x86_64-suse-linux/bin/ld:
+>> cannot find -lip6tc
+>
+>Is this problem opensuse specific? Need some diagnosing information on
+>why that's happening.
 
-I can re-spin the patch on top of your dying-list changes, if
-you prefer to test all patches at the same time.
+This happens whenever you don't have /usr/lib(64)/libip6tc.so.
 
-> And I wonder if we can make it better with some timer-based garbage
-> collector that randomly / adaptively runs to give tries to deliver
-> events.
-> 
-> I remember that insisting too often in the delivery of missed events
-> does not make any good.
+In openSUSE, iptables is split into the packages iptables, libiptc0, 
+libiptc-devel, libxtables9 and libxtables-devel, and libip6tc.so is a 
+-devel thing that is generally not installed on user's machines. (Hence 
+I spot this.) I think this should be similar in Debian.
 
-Yes, from my tests only very few attempts are successful.
-
-However, I've failed to come up with a scheme where events
-are re-tried in a timely manner without risk of acummulating
-a large event/entry backlog.
-
-> >  Note: Conflicts with "improve conntrack object traceability".
-> > 
-> >  The patch assumes the dying list only contains entries where the delete
-> >  event has not been delivered yet.
-> > 
-> >  With that patch, all conntracks are put on the dying list, including
-> >  those who are about to be free'd.
-> > 
-> >  I THINK that this is fixable by skipping dying-list entries with
-> >  IPS_DYING_BIT set.  However, this will increase the tasket workload.
-> 
-> I think you will mostly find entries that are waiting for its event to
-> be delivered. So playing with IPS_DYING_BIT seems the right way to go
-> to me.
-
-Perfect.  Thats what I'll do, then.
+Also, note that iptables itself is not installed while building iptables 
+itself (for obvious reasons) in most distribution build systems.
