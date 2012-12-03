@@ -1,64 +1,39 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 3/3] netfilter: ctnetlink: allow userspace to set labels
-Date: Mon, 3 Dec 2012 12:13:32 +0100
-Message-ID: <20121203111332.GB11627@breakpoint.cc>
-References: <20121127115000.GA14156@breakpoint.cc>
- <20121127123149.GA2351@1984>
- <20121127130904.GB14156@breakpoint.cc>
- <20121127141317.GB9089@1984>
- <20121127142433.GE14156@breakpoint.cc>
- <20121130135806.GA7955@1984>
- <20121130140254.GB31969@breakpoint.cc>
- <20121130183450.GA27138@1984>
- <20121130213631.GE31969@breakpoint.cc>
- <20121203110417.GA22667@1984>
+From: Sebastian Andrzej Siewior <sebastian-E0PNVn5OA6ohrxcnuTQ+TQ@public.gmane.org>
+Subject: Re: [PATCH V2 2/3] Remove VLAIS usage from gadget code
+Date: Mon, 3 Dec 2012 12:57:06 +0100
+Message-ID: <20121203115706.GA4760@breakpoint.cc>
+References: <1351631937-21455-1-git-send-email-behanw@converseincode.com>
+ <1351631937-21455-3-git-send-email-behanw@converseincode.com>
+ <20121031132838.GQ10998@arwen.pp.htv.fi>
+ <509144C0.8000601@converseincode.com>
+ <20121101072116.GA32013@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:40160 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751291Ab2LCLNd (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Dec 2012 06:13:33 -0500
+Cc: Behan Webster <behanw-k/hB3zQhLwledRVtV/plodBPR1lH4CV8@public.gmane.org>, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org,
+	linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20121203110417.GA22667@1984>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20121101072116.GA32013-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > No matter what xchg tricks you do in the kernel: if 1<<31 was set
-> > after the dump completed, it will be un-set again via
-> > send_change_to_kernel(), i.e. we clear bit 1<<31, even though we didn't
-> > want to.  I don't see how this can be solved; kernel has no idea that
-> > userspace doesn't wish to alter 1<<31.
-> 
-> We can return -EAGAIN to userspace with cmpxchg. From kernel-space:
-> 
-> old = word;
-> word |= flags & mask; /* to set/unset a bunch of bits */
-> if (xchgcmp(&word, new, old) != old)
->         return -EAGAIN;
+On Thu, Nov 01, 2012 at 09:21:16AM +0200, Felipe Balbi wrote:
+> then we can merge to net tree and handle the conflicts when merging to
+> Linus, that'd be fine by me as long as people know how to solve the
+> conflict properly ;-)
 
-Ah.  you're pulling a mask parameter out of your hat :-)
+Felipe please drop this patch. I don't like this VLAIS patch and its
+macro magic. I support the goal of compiling the kernel with clang but I
+don't think that this is appropriate. Davem has also his problems with
+the netfilter part so I am no the only one.
+*I* think the gadget part of the kernel is something most people won't
+use so it won't show up.
+Anyway, please drop this completely I try to think of something sane.
 
-> I'm assuming we're fine if kernel just set some bit and later on
-> we explicitly unset it.
-
-Right.
-
-> Note that I'm also assuming that we pass flags and mask as attribute
-> as we do for nf_conntrack_tcp.c (see netlink attributes).
-
-Yes, there is no such thing at the moment.
-Userspace just sends a CTA_LABEL attribute, which is a bit-vector
-(u32 array).
-
-I can add CTA_LABEL_MASK, of course, and change the memcpy accordingly.
-
-In fact, I think I'll do so to see how much additional code it would be.
-
-Thanks for your hint,
-Florian
+Sebastian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
