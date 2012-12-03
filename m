@@ -1,75 +1,28 @@
-From: borg@uu3.net
-Subject: Patch using ipset match in policy routing.
-Date: Mon, 3 Dec 2012 22:49:35 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.1212032247290.19414@cube>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH] net: ICMPv6 packets transmitted on wrong interface if
+ nfmark is mangled
+Date: Tue, 4 Dec 2012 00:38:25 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1212040037240.2816@nerf07.vanv.qr>
+References: <20121130.122243.710720011890818822.davem@davemloft.net> <1354538763-2678-1-git-send-email-dries.dewinter@gmail.com> <20121203.141128.206409637987621093.davem@davemloft.net> <CA+e04fjWMDE9xEApysFRprZDBdM3Ya2RHrxtoau7i+fxzGT8CQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.uu3.net ([87.99.63.19]:55328 "EHLO borg.uu3.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751142Ab2LCWWq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Dec 2012 17:22:46 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by borg.uu3.net (Postfix) with ESMTP id 47A21633F9
-	for <netfilter-devel@vger.kernel.org>; Mon,  3 Dec 2012 22:49:35 +0100 (CET)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: David Miller <davem@davemloft.net>, pablo@netfilter.org,
+	kaber@trash.net, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Dries De Winter <dries.dewinter@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CA+e04fjWMDE9xEApysFRprZDBdM3Ya2RHrxtoau7i+fxzGT8CQ@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Forwarding here as well. Feels like it belongs here more.
 
----------- Forwarded message ----------
-From: borg@uu3.net
-To: linux-kernel@vger.kernel.org
-Subject: Patch using ipset match in policy routing.
-Date: Mon, 3 Dec 2012 10:57:13 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.1212031042330.4310@cube>
+On Monday 2012-12-03 22:31, Dries De Winter wrote:
+>
+>Not fixing this means that skb->mark is unavailable for use on ICMPv6
+>packets because it will inevitably put those packets on the wrong
+>interface. [...]
+>I use skb->mark for QoS, not for routing so I don't expect
+>the outgoing interface to be affected by my markers.
 
-Hello.
-
-Here comes the patch thats makes possible to use ipset
-directly in ip rule (policy routing).
-This makes such configuration easier, because
-there is no need to have:
-iptables -t mangle -A OUTPUT -m set --set ... -j MARK --set-mark 1
-ip rule add fwmark 1 lookup 1
-
-Additionaly, it fixes issue with wrong src addr for unconnected
-protocols such as UDP, ICMP...
-https://bugzilla.kernel.org/show_bug.cgi?id=16216
-
-Brief question to google confirms that few people might have
-interest in this patch.
-
-ftp://borg.uu3.net/home/borg/patch/linux-2.6.27.62+ipset_routing.patch
-ftp://borg.uu3.net/home/borg/patch/iproute2+ipset.patch
-
-To install the patch, first you need to patch kernel using
-ipset (4.5 preffered). Then, you apply this patch.
-Additionaly, you need to patch iproute2 to use new match:
-ip route add ipset <name> src|dst lookup <n>
-
-The place for this is IPSET webpage I belive, but I mailing
-it here because I have few concerns:
-- Now this patch needs IPSET to be compiled into kernel (no modules)
-   I would like to fix it
-- I had to add 2 new function to API of IPSET, and so I probably
-   doing something wrong.
-- Patch is conditional: CONFIG_IP_NF_SET
-   except in 2 places:
-   size_t payload = NLMSG_ALIGN(sizeof(struct fib_rule_hdr))
-   enum { ... } // FRA_* defs
-
-   Not sure if this is correct way.
-
-Sorry that patch is agaist old kernel. I just needed it fast
-for monday and this one is run on 2 production boxes I need
-this feature.
-
-One box is already patched and is running fine (non SMP host).
-No issues so far. I will compare CPU usage after roughty 24 hrs.
-
-Second box is SMP and I will try to patch it ASAP.
-
-Regards,
-Borg
+Why would it do that, if one has no routes joined to a fwmark NNN
+routing rule?
