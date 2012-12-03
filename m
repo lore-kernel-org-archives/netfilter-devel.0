@@ -1,39 +1,100 @@
-From: Sebastian Andrzej Siewior <sebastian-E0PNVn5OA6ohrxcnuTQ+TQ@public.gmane.org>
-Subject: Re: [PATCH V2 2/3] Remove VLAIS usage from gadget code
-Date: Mon, 3 Dec 2012 12:57:06 +0100
-Message-ID: <20121203115706.GA4760@breakpoint.cc>
-References: <1351631937-21455-1-git-send-email-behanw@converseincode.com>
- <1351631937-21455-3-git-send-email-behanw@converseincode.com>
- <20121031132838.GQ10998@arwen.pp.htv.fi>
- <509144C0.8000601@converseincode.com>
- <20121101072116.GA32013@arwen.pp.htv.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Behan Webster <behanw-k/hB3zQhLwledRVtV/plodBPR1lH4CV8@public.gmane.org>, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org,
-	linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20121101072116.GA32013-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Dries De Winter <dries.dewinter@gmail.com>
+Subject: [PATCH] net: ICMPv6 packets transmitted on wrong interface if nfmark is mangled
+Date: Mon,  3 Dec 2012 13:46:03 +0100
+Message-ID: <1354538763-2678-1-git-send-email-dries.dewinter@gmail.com>
+References: <20121130.122243.710720011890818822.davem@davemloft.net>
+Cc: pablo@netfilter.org, kaber@trash.net, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Dries De Winter <dries.dewinter@gmail.com>
+To: David Miller <davem@davemloft.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:55671 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752084Ab2LCMrg (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Dec 2012 07:47:36 -0500
+In-Reply-To: <20121130.122243.710720011890818822.davem@davemloft.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Nov 01, 2012 at 09:21:16AM +0200, Felipe Balbi wrote:
-> then we can merge to net tree and handle the conflicts when merging to
-> Linus, that'd be fine by me as long as people know how to solve the
-> conflict properly ;-)
+The IPv6 mangle table may change the source/destination address and skb->mark
+of a packet. Therefore it may be necessary to "reroute" a packet after it
+traversed this table. But this should not happen for some special packets like
+neighbour solicitations and MLD reports: they have an explicit destination, not
+originating from the routing table. Rerouting these packets may cause them to
+go out on the wrong interface or not to go out at all depending on the routing
+table.
 
-Felipe please drop this patch. I don't like this VLAIS patch and its
-macro magic. I support the goal of compiling the kernel with clang but I
-don't think that this is appropriate. Davem has also his problems with
-the netfilter part so I am no the only one.
-*I* think the gadget part of the kernel is something most people won't
-use so it won't show up.
-Anyway, please drop this completely I try to think of something sane.
+This patch allows to mark a dst_entry as "non-reroutable". icmp6_dst_alloc()
+(used by ndisc and MLD implementation) will always mark the allocated dst_entry
+as such. A check is added to netfilter (IPv6-only) so packets heading for a
+non-reroutable destination are never rerouted.
 
-Sebastian
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Remarks:
+
+(1) dst entries allocated by addrconf_dst_alloc() are added to the routing
+table like normal routes and skbuffs get assigned such dst entries by normal
+rule lookup / route lookup. Therefore it's not needed to mark those dst
+entries as non-reroutable: if an skbuff got assigned such a dst entry by
+normal routing in the first place, and the changes done by the mangle table
+don't affect routing, rerouting the packet will get it there too.
+
+(2) Similar logic exists in IPv4 so local multicast/broadcast messages are
+potentially transmitted on the wrong interface. However, it's a less likely
+corner case there because those packets are treated differently by local
+output routing: multicast/broadcast messages are by default routed to the
+interface with a matching source IP-address. But this logic is invalid because
+it is allowed to (1) send messages with a source IP-address different from
+your own and (2) to assign the same IP-address on multiple interfaces.
+So ideally in IPv4 some dsts should be marked as non-reroutable as well.
+
+Signed-off-by: Dries De Winter <dries.dewinter@gmail.com>
+---
+ include/net/dst.h    |    1 +
+ net/ipv6/netfilter.c |    4 ++++
+ net/ipv6/route.c     |    2 +-
+ 3 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/include/net/dst.h b/include/net/dst.h
+index 9a78810..cb6ae51 100644
+--- a/include/net/dst.h
++++ b/include/net/dst.h
+@@ -61,6 +61,7 @@ struct dst_entry {
+ #define DST_NOPEER		0x0040
+ #define DST_FAKE_RTABLE		0x0080
+ #define DST_XFRM_TUNNEL		0x0100
++#define DST_NOREROUTE		0x0200
+ 
+ 	unsigned short		pending_confirm;
+ 
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index 429089c..cf9e871 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -24,6 +24,10 @@ int ip6_route_me_harder(struct sk_buff *skb)
+ 		.saddr = iph->saddr,
+ 	};
+ 
++	dst = skb_dst(skb);
++	if (dst && (dst->flags & DST_NOREROUTE))
++		return 0;
++
+ 	dst = ip6_route_output(net, skb->sk, &fl6);
+ 	if (dst->error) {
+ 		IP6_INC_STATS(net, ip6_dst_idev(dst), IPSTATS_MIB_OUTNOROUTES);
+diff --git a/net/ipv6/route.c b/net/ipv6/route.c
+index b1e6cf0..8fa7db5 100644
+--- a/net/ipv6/route.c
++++ b/net/ipv6/route.c
+@@ -1225,7 +1225,7 @@ struct dst_entry *icmp6_dst_alloc(struct net_device *dev,
+ 		}
+ 	}
+ 
+-	rt->dst.flags |= DST_HOST;
++	rt->dst.flags |= DST_HOST | DST_NOREROUTE;
+ 	rt->dst.output  = ip6_output;
+ 	rt->n = neigh;
+ 	atomic_set(&rt->dst.__refcnt, 1);
+-- 
+1.7.10.4
+
