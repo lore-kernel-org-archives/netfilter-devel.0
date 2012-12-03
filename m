@@ -1,100 +1,45 @@
-From: Dries De Winter <dries.dewinter@gmail.com>
-Subject: [PATCH] net: ICMPv6 packets transmitted on wrong interface if nfmark is mangled
-Date: Mon,  3 Dec 2012 13:46:03 +0100
-Message-ID: <1354538763-2678-1-git-send-email-dries.dewinter@gmail.com>
-References: <20121130.122243.710720011890818822.davem@davemloft.net>
-Cc: pablo@netfilter.org, kaber@trash.net, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Dries De Winter <dries.dewinter@gmail.com>
-To: David Miller <davem@davemloft.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/2] netfilter: nf_conntrack: improve nf_conn object
+ traceability
+Date: Mon, 3 Dec 2012 13:50:36 +0100
+Message-ID: <20121203125036.GA30523@1984>
+References: <1354197082-8431-1-git-send-email-pablo@netfilter.org>
+ <1354197082-8431-2-git-send-email-pablo@netfilter.org>
+ <20121203110610.GA11627@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:55671 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752084Ab2LCMrg (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Dec 2012 07:47:36 -0500
-In-Reply-To: <20121130.122243.710720011890818822.davem@davemloft.net>
+Received: from mail.us.es ([193.147.175.20]:57738 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751008Ab2LCMun (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Dec 2012 07:50:43 -0500
+Content-Disposition: inline
+In-Reply-To: <20121203110610.GA11627@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The IPv6 mangle table may change the source/destination address and skb->mark
-of a packet. Therefore it may be necessary to "reroute" a packet after it
-traversed this table. But this should not happen for some special packets like
-neighbour solicitations and MLD reports: they have an explicit destination, not
-originating from the routing table. Rerouting these packets may cause them to
-go out on the wrong interface or not to go out at all depending on the routing
-table.
+On Mon, Dec 03, 2012 at 12:06:10PM +0100, Florian Westphal wrote:
+> pablo@netfilter.org <pablo@netfilter.org> wrote:
+> 
+> Hi Pablo,
+> 
+> I have one question related to ct object destruction: 
+> 
+> > @@ -247,6 +245,9 @@ void nf_ct_delete_from_lists(struct nf_conn *ct)
+> >  	 * Otherwise we can get spurious warnings. */
+> >  	NF_CT_STAT_INC(net, delete_list);
+> >  	clean_from_lists(ct);
+> > +	/* add this conntrack to the dying list */
+> > +	hlist_nulls_add_head(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
+> > +			     &net->ct.dying);
+> >  	spin_unlock_bh(&nf_conntrack_lock);
+> 
+> i.o.w., conntrack objects that were in hash table are now always moved
+> to the dying list.  Shouldn't nf_ct_release_dying_list() be adjusted,
+> too?  It still seems to assume that the dying list only contains
+> alive conntack objects whose events have not been delivered yet.
 
-This patch allows to mark a dst_entry as "non-reroutable". icmp6_dst_alloc()
-(used by ndisc and MLD implementation) will always mark the allocated dst_entry
-as such. A check is added to netfilter (IPv6-only) so packets heading for a
-non-reroutable destination are never rerouted.
-
-Remarks:
-
-(1) dst entries allocated by addrconf_dst_alloc() are added to the routing
-table like normal routes and skbuffs get assigned such dst entries by normal
-rule lookup / route lookup. Therefore it's not needed to mark those dst
-entries as non-reroutable: if an skbuff got assigned such a dst entry by
-normal routing in the first place, and the changes done by the mangle table
-don't affect routing, rerouting the packet will get it there too.
-
-(2) Similar logic exists in IPv4 so local multicast/broadcast messages are
-potentially transmitted on the wrong interface. However, it's a less likely
-corner case there because those packets are treated differently by local
-output routing: multicast/broadcast messages are by default routed to the
-interface with a matching source IP-address. But this logic is invalid because
-it is allowed to (1) send messages with a source IP-address different from
-your own and (2) to assign the same IP-address on multiple interfaces.
-So ideally in IPv4 some dsts should be marked as non-reroutable as well.
-
-Signed-off-by: Dries De Winter <dries.dewinter@gmail.com>
----
- include/net/dst.h    |    1 +
- net/ipv6/netfilter.c |    4 ++++
- net/ipv6/route.c     |    2 +-
- 3 files changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/include/net/dst.h b/include/net/dst.h
-index 9a78810..cb6ae51 100644
---- a/include/net/dst.h
-+++ b/include/net/dst.h
-@@ -61,6 +61,7 @@ struct dst_entry {
- #define DST_NOPEER		0x0040
- #define DST_FAKE_RTABLE		0x0080
- #define DST_XFRM_TUNNEL		0x0100
-+#define DST_NOREROUTE		0x0200
- 
- 	unsigned short		pending_confirm;
- 
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 429089c..cf9e871 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -24,6 +24,10 @@ int ip6_route_me_harder(struct sk_buff *skb)
- 		.saddr = iph->saddr,
- 	};
- 
-+	dst = skb_dst(skb);
-+	if (dst && (dst->flags & DST_NOREROUTE))
-+		return 0;
-+
- 	dst = ip6_route_output(net, skb->sk, &fl6);
- 	if (dst->error) {
- 		IP6_INC_STATS(net, ip6_dst_idev(dst), IPSTATS_MIB_OUTNOROUTES);
-diff --git a/net/ipv6/route.c b/net/ipv6/route.c
-index b1e6cf0..8fa7db5 100644
---- a/net/ipv6/route.c
-+++ b/net/ipv6/route.c
-@@ -1225,7 +1225,7 @@ struct dst_entry *icmp6_dst_alloc(struct net_device *dev,
- 		}
- 	}
- 
--	rt->dst.flags |= DST_HOST;
-+	rt->dst.flags |= DST_HOST | DST_NOREROUTE;
- 	rt->dst.output  = ip6_output;
- 	rt->n = neigh;
- 	atomic_set(&rt->dst.__refcnt, 1);
--- 
-1.7.10.4
-
+I see, you mean that nf_ct_release_dying_list should delete objects
+from the dying list. Yes, I'll fix that. Thanks for the spot.
