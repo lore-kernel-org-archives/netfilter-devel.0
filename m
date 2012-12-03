@@ -1,60 +1,52 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] build: resolve link failure for ip6t_NETMAP
-Date: Mon, 3 Dec 2012 14:12:09 +0100
-Message-ID: <20121203131209.GA32300@1984>
-References: <1354472208-25759-1-git-send-email-jengelh@inai.de>
+Subject: Re: [PATCH 1/2] netfilter: nf_conntrack: improve nf_conn object
+ traceability
+Date: Mon, 3 Dec 2012 14:28:53 +0100
+Message-ID: <20121203132853.GA985@1984>
+References: <1354197082-8431-1-git-send-email-pablo@netfilter.org>
+ <1354197082-8431-2-git-send-email-pablo@netfilter.org>
+ <20121203110610.GA11627@breakpoint.cc>
+ <20121203125036.GA30523@1984>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38781 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43052 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752768Ab2LCNMP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Dec 2012 08:12:15 -0500
+	id S1754783Ab2LCN3C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Dec 2012 08:29:02 -0500
 Content-Disposition: inline
-In-Reply-To: <1354472208-25759-1-git-send-email-jengelh@inai.de>
+In-Reply-To: <20121203125036.GA30523@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Dec 02, 2012 at 07:16:48PM +0100, Jan Engelhardt wrote:
-> Link stage of libip6t_NETMAP failed since recently.
+On Mon, Dec 03, 2012 at 01:50:36PM +0100, Pablo Neira Ayuso wrote:
+> On Mon, Dec 03, 2012 at 12:06:10PM +0100, Florian Westphal wrote:
+> > pablo@netfilter.org <pablo@netfilter.org> wrote:
+> > 
+> > Hi Pablo,
+> > 
+> > I have one question related to ct object destruction: 
+> > 
+> > > @@ -247,6 +245,9 @@ void nf_ct_delete_from_lists(struct nf_conn *ct)
+> > >  	 * Otherwise we can get spurious warnings. */
+> > >  	NF_CT_STAT_INC(net, delete_list);
+> > >  	clean_from_lists(ct);
+> > > +	/* add this conntrack to the dying list */
+> > > +	hlist_nulls_add_head(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
+> > > +			     &net->ct.dying);
+> > >  	spin_unlock_bh(&nf_conntrack_lock);
+> > 
+> > i.o.w., conntrack objects that were in hash table are now always moved
+> > to the dying list.  Shouldn't nf_ct_release_dying_list() be adjusted,
+> > too?  It still seems to assume that the dying list only contains
+> > alive conntack objects whose events have not been delivered yet.
 > 
->   CCLD     libip6t_NETMAP.so
-> /usr/lib64/gcc/x86_64-suse-linux/4.7/../../../../x86_64-suse-linux/bin/ld:
-> cannot find -lip6tc
+> I see, you mean that nf_ct_release_dying_list should delete objects
+> from the dying list. Yes, I'll fix that. Thanks for the spot.
 
-Is this problem opensuse specific? Need some diagnosing information on
-why that's happening.
+destroy_conntrack will delete the object from the dying list, so I
+think the code is fine.
 
-> Signed-off-by: Jan Engelhardt <jengelh@inai.de>
-> ---
-> 
-> Retrievable through
-> 	git://git.inai.de/iptables master
-> 
-> 
->  extensions/GNUmakefile.in |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
-> index e71e3ff..68e0b9b 100644
-> --- a/extensions/GNUmakefile.in
-> +++ b/extensions/GNUmakefile.in
-> @@ -101,7 +101,8 @@ libxt_state.so: libxt_conntrack.so
->  	ln -fs $< $@
->  
->  # Need the LIBADDs in iptables/Makefile.am too for libxtables_la_LIBADD
-> -ip6t_NETMAP_LIBADD  = -lip6tc
-> +ip6t_NETMAP_LIBADD  = -L${top_builddir}/libiptc/.libs \
-> +                      -L${top_builddir}/libiptc -lip6tc
->  xt_RATEEST_LIBADD   = -lm
->  xt_statistic_LIBADD = -lm
->  
-> -- 
-> 1.7.10.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Am I missing anything?
