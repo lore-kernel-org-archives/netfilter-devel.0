@@ -1,120 +1,110 @@
-From: borg@uu3.net
-Subject: Re: Patch using ipset match in policy routing.
-Date: Tue, 4 Dec 2012 22:46:55 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.1212042240550.16537@cube>
-References: <Pine.LNX.4.64.1212032247290.19414@cube>
- <alpine.DEB.2.00.1212042115450.26188@blackhole.kfki.hu>
+From: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+Subject: Re: [PATCH V2 2/3] Remove VLAIS usage from gadget code
+Date: Tue, 4 Dec 2012 23:24:38 +0100
+Message-ID: <20121204222438.GA7624@breakpoint.cc>
+References: <1351631937-21455-1-git-send-email-behanw@converseincode.com>
+ <1351631937-21455-3-git-send-email-behanw@converseincode.com>
+ <20121031132838.GQ10998@arwen.pp.htv.fi>
+ <509144C0.8000601@converseincode.com>
+ <20121101072116.GA32013@arwen.pp.htv.fi>
+ <20121203115706.GA4760@breakpoint.cc>
+ <50BCF61D.5000707@converseincode.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.uu3.net ([87.99.63.19]:59742 "EHLO borg.uu3.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751436Ab2LDVq5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Dec 2012 16:46:57 -0500
-In-Reply-To: <alpine.DEB.2.00.1212042115450.26188@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Felipe Balbi <balbi@ti.com>, davem@davemloft.net,
+	linux-usb@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Compiling the Linux Kernel with Clang/LLVM
+	<llvmlinux@lists.linuxfoundation.org>
+To: Behan Webster <behanw@converseincode.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <50BCF61D.5000707@converseincode.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello.
+On Mon, Dec 03, 2012 at 07:57:33PM +0100, Behan Webster wrote:
+> However, in order to approximate what gcc is doing in code, obviously
+> some math is required. The thought was that macros would hide the
+> worst of it, trying not to obfuscate what was actually being done.
 
-Uh. Seems you didnt read whole email?
-This is generaly a fix for wrong src addr in policy routing:
-https://bugzilla.kernel.org/show_bug.cgi?id=16216
+Why hide? The thing that is done here is setting up pointers and keep t=
+his
+struct as a container. It is never used again, just freed. Therefore I =
+would
+suggest to remove and do something different.
 
-While using iptables MARK and ip rule fwmark works for forwarded
-packets, this breaks localy generated packets making them
-routed correctly but having wrong src addr.
-This is because kernel first lookups routing table
-to get src addr and then pass packet to netfilter.
-In that stage is too late to do policy routing for localy
-generated packets.
+> One of the project members came up with this alternative. How about
+> something like this? Less math, though more string pasting. When
+> compiled, the unused variables get optimized away. Otherwise the
+> memory packing is identical to using VLAIS in gcc.
+>=20
+> #define vla_struct(structname) size_t structname##__##next =3D 0
+> #define vla_struct_size(structname) structname##__##next
+>=20
+> #define vla_item(structname, type, name, n) \
+>         type * structname##_##name; \
+>         size_t structname##_##name##__##pad =3D \
+>                 (structname##__##next & (__alignof__(type)-1)); \
+>         size_t structname##_##name##__##offset =3D \
+>                 structname##__##next + structname##_##name##__##pad; =
+\
+>         size_t structname##_##name##__##sz =3D n * sizeof(type); \
+>         structname##__##next =3D structname##__##next + \
+>                 structname##_##name##__##pad +
+> structname##_##name##__##sz;
+>=20
+> #define vla_ptr(ptr,structname,name) structname##_##name =3D \
+> (typeof(structname##_##name))&ptr[structname##_##name##__##offset]
+>=20
+>=20
+> Then you can do something like this that looks vaguely struct-like:
+>=20
+>         vla_struct(foo);
+>                 vla_item(foo, char,  vara, 1);
+>                 vla_item(foo, short, varb, 10);
+>                 vla_item(foo, int,   varc, 5);
+>                 vla_item(foo, long,  vard, 3);
+>         size_t total =3D vla_struct_size(foo);
+>         char buffer[total];
+>=20
+>         vla_ptr(buffer, foo, varc);
+>         foo_varc =3D 1;
 
-This should be fixed, but unfortunately its not easy.
+I prefer to try to rewritte the code in the gadget in a different manne=
+r
+before using macro magic. I guess most people around here think that ex=
+tensive
+usage of macros equals giving a gun to a chimpanzee. It may work for a =
+while
+and may even look cute in the eye of the gun sponsor. However once it f=
+ires=E2=80=A6
 
-Regards,
-Borg
+> I've been profiling some sample code around this implementation
+> comparing it between compilers, and it approximates the code size and
+> speed of using VLAIS in gcc (especially with -O2). It actually
+> performs better than the previously proposed macros.
 
-PS: Does IPSET have any mailing list or contacts? I couldnt
-find them.. Thats why I mailed netfilter-devel.
+I'm not concerned about speed here. This is an one time setup.
 
+> But certainly if anyone has a solution which works for everyone, then
+> I'm more than happy to adopt it. The LLVM community has made quite a
+> few changes in order to help get Linux working with clang. However,
 
----------- Original message ----------
+That is nice to hear. Besides gcc there is the icc.
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: borg@uu3.net
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: Patch using ipset match in policy routing.
-Date: Tue, 4 Dec 2012 21:22:10 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1212042115450.26188@blackhole.kfki.hu>
+> VLAIS is not something they are willing to accept (for various
+> reasons). There are other patches to LLVM that are still working
+Is this not described in C99 6.7.2.1p16?
 
-Hi,
+> their way upstream that are required to be able to compile Linux as
+> well.
 
-On Mon, 3 Dec 2012, borg@uu3.net wrote:
+I hope the other are "simple" to get in :)
 
-> Forwarding here as well. Feels like it belongs here more.
-> 
-> ---------- Forwarded message ----------
-> From: borg@uu3.net
-> To: linux-kernel@vger.kernel.org
-> Subject: Patch using ipset match in policy routing.
-> Date: Mon, 3 Dec 2012 10:57:13 +0100 (CET)
-> Message-ID: <Pine.LNX.4.64.1212031042330.4310@cube>
-> 
-> Hello.
-> 
-> Here comes the patch thats makes possible to use ipset
-> directly in ip rule (policy routing).
-> This makes such configuration easier, because
-> there is no need to have:
-> iptables -t mangle -A OUTPUT -m set --set ... -j MARK --set-mark 1
-> ip rule add fwmark 1 lookup 1
-> 
-> Additionaly, it fixes issue with wrong src addr for unconnected
-> protocols such as UDP, ICMP...
-> https://bugzilla.kernel.org/show_bug.cgi?id=16216
-> 
-> Brief question to google confirms that few people might have
-> interest in this patch.
-> 
-> ftp://borg.uu3.net/home/borg/patch/linux-2.6.27.62+ipset_routing.patch
-> ftp://borg.uu3.net/home/borg/patch/iproute2+ipset.patch
-> 
-> To install the patch, first you need to patch kernel using
-> ipset (4.5 preffered). Then, you apply this patch.
-> Additionaly, you need to patch iproute2 to use new match:
-> ip route add ipset <name> src|dst lookup <n>
-> 
-> The place for this is IPSET webpage I belive, but I mailing
-> it here because I have few concerns:
-> - Now this patch needs IPSET to be compiled into kernel (no modules)
->   I would like to fix it
-> - I had to add 2 new function to API of IPSET, and so I probably
->   doing something wrong.
-> - Patch is conditional: CONFIG_IP_NF_SET
->   except in 2 places:
->   size_t payload = NLMSG_ALIGN(sizeof(struct fib_rule_hdr))
->   enum { ... } // FRA_* defs
-> 
->   Not sure if this is correct way.
-> 
-> Sorry that patch is agaist old kernel. I just needed it fast
-> for monday and this one is run on 2 production boxes I need
-> this feature.
-> 
-> One box is already patched and is running fine (non SMP host).
-> No issues so far. I will compare CPU usage after roughty 24 hrs.
-> 
-> Second box is SMP and I will try to patch it ASAP.
+>=20
+> Behan
+>=20
 
-I'm sorry but please justify why such a feature would be required. I don't 
-think "this way there's no need to mark" is enough.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Sebastian
