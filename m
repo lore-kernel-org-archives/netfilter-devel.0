@@ -1,98 +1,73 @@
+From: pablo@netfilter.org
+Subject: [PATCH 0/6] netfilter updates for net-next
+Date: Tue,  4 Dec 2012 18:31:27 +0100
+Message-ID: <1354642293-4114-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH V2] netfilter: remove extra timer from ecache extension
-Date: Tue, 4 Dec 2012 18:21:57 +0100
-Message-ID: <20121204172157.GA18304@1984>
-References: <1354613751-30154-1-git-send-email-fw@strlen.de>
- <20121204121323.GA29442@1984>
- <20121204154118.GE11627@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52574 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751566Ab2LDRWG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Dec 2012 12:22:06 -0500
-Content-Disposition: inline
-In-Reply-To: <20121204154118.GE11627@breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Dec 04, 2012 at 04:41:18PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Tue, Dec 04, 2012 at 10:35:51AM +0100, Florian Westphal wrote:
-> > > This brings the (per-conntrack) ecache extension back to 24 bytes in
-> > > size (was 112 byte on x86_64 with lockdep on).
-> > > 
-> > > Instead we use a per-ns tasklet to re-trigger event delivery.  When we
-> > > enqueue a ct entry into the dying list, the tasklet is scheduled.
-> > > 
-> > > The tasklet will then deliver up to 20 entries.  It will re-sched
-> > > itself unless all the pending events could be delivered.
-> > > 
-> > > While at it, dying list handling is moved into ecache.c, since its only
-> > > revlevant if ct events are enabled.
-> > 
-> > Just tested this. My testbed consists of two firewalls in HA running
-> > conntrackd with event reliable mode. I've got a client that generates
-> > lots of small TCP flows that goes through the firewalls and reach a
-> > benchmark server.
-> > 
-> > This is my analysis:
-> > 
-> > conntrack -C shows:
-> [..]
-> > 261548 <--- we hit table full, dropping packets
-> > 176849 <--- it seems the tasklet gets a chance to run
-> >             given that we get less interruptions from the NIC
-> > 166449 <--- it slightly empty the dying list
-> > 131176
-> > 55602
-> > 28316
-> [..]
-> > #  hits  hits/s  ^h/s  ^bytes   kB/s  errs   rst  tout  mhtime
-> > 4796894 15727 16509   2393805   2227     0     0     0   0.005
-> > 4813038 15728 16144   2340880   2227     0     0     0   0.005
-> > 4828796 15728 15758   2284910   2227     0     0     0   0.005
-> > 4845279 15731 16483   2390035   2227     0     0     0   0.005
-> > 4860956 15731 15677   2273165   2227     0     0     0   0.005
-> > 4876826 15731 15870   2301150   2227     0     0     0   0.005
-> > 4883165 15701  6339    919155   2223     0     0     0   0.004
-> > 4883165 15651     0         0   2216     0     0     0   0.000  <--- table full
-> > 4883165 15601     0         0   2209     0     0     0   0.000
-> > 4894657 15588 11492   1666340   2207     0     0     0   3.008
-> > 4913408 15598 18751   2718895   2208     0     0     0   0.004
-> > 4931896 15607 18488   2680760   2210     0     0     0   0.004
-> > 
-> > So it seems the tasklet gets starved under heavy load.
-> > 
-> > This happens on and on, so after some time we hit table full and again
-> > the dying list is empty.
-> > 
-> > These are old HP proliant DL145G2 from 2005, that's why the maximum
-> > flows/s looks low.
-> > 
-> > Looking at the number and the behaviour under heavy stress, I think we
-> > have to consider a different approach.
-> 
-> Thanks for testing.  Is that a single cpu machine?
+Hi David,
 
-Single cpu with two cores.
+If time allows, please pull the following 6 updates for your
+net-next tree:
 
-> If yes, I think this result might be because the tasklet busy-loop
-> competes with conntrackd for cpu, so essentially we waste cycles
-> on futile re-delivery instead of leaving the cpu to conntrackd,
-> (which should process events).
+* Remove limitation in the maximum number of supported sets in ipset.
+  Now ipset automagically increments the number of slots in the array
+  of sets by 64 new spare slots, from Jozsef Kadlecsik.
 
-Makes sense.
+* Partially remove the generic queue infrastructure now that ip_queue
+  is gone. Its only client is nfnetlink_queue now, from Florian
+  Westphal.
 
-> If thats true, then we might be able to improve this by avoiding the
-> 'tasklet re-scheds itself'.  This would also solve the
-> 'softirqd eats 100% cpu' when conntrackd is stopped/suspended.
->
-> I'll see if I can cook up a patch some time tomorrow.
+* Add missing attribute policy checkings in ctnetlink, from Florian
+  Westphal.
 
-That's fine.
+* Automagically kill conntrack entries that use the wrong output
+  interface for the masquerading case in case of routing changes,
+  from Jozsef Kadlecsik.
 
-Thanks.
+* Two patches two improve ct object traceability. Now ct objects are
+  always placed in any of the existing lists. This allows us to dump
+  the content of unconfirmed and dying conntracks via ctnetlink as
+  a way to provide more instrumentation in case you suspect leaks,
+  from myself.
+
+You can pull these changes from:
+
+git://1984.lsi.us.es/nf-next master
+
+Thanks!
+
+Florian Westphal (2):
+  netfilter: kill support for per-af queue backends
+  netfilter: ctnetlink: nla_policy updates
+
+Jozsef Kadlecsik (2):
+  netfilter: ipset: Increase the number of maximal sets automatically
+  netfilter: nf_nat: Handle routing changes in MASQUERADE target
+
+Pablo Neira Ayuso (2):
+  netfilter: nf_conntrack: improve nf_conn object traceability
+  netfilter: ctnetlink: dump entries from the dying and unconfirmed lists
+
+ include/net/netfilter/nf_conntrack.h               |    2 +-
+ include/net/netfilter/nf_nat.h                     |   15 ++
+ include/net/netfilter/nf_queue.h                   |    8 +-
+ include/uapi/linux/netfilter/nfnetlink_conntrack.h |    2 +
+ net/ipv4/netfilter/iptable_nat.c                   |    4 +
+ net/ipv6/netfilter/ip6table_nat.c                  |    4 +
+ net/netfilter/core.c                               |    2 -
+ net/netfilter/ipset/ip_set_core.c                  |  243 +++++++++++++-------
+ net/netfilter/nf_conntrack_core.c                  |   25 +-
+ net/netfilter/nf_conntrack_netlink.c               |  118 +++++++++-
+ net/netfilter/nf_conntrack_proto_tcp.c             |    2 +
+ net/netfilter/nf_queue.c                           |  152 ++----------
+ net/netfilter/nfnetlink_queue_core.c               |   14 +-
+ 13 files changed, 332 insertions(+), 259 deletions(-)
+
+--
+1.7.10.4
