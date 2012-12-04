@@ -1,20 +1,53 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: borg@uu3.net
 Subject: Re: Patch using ipset match in policy routing.
-Date: Tue, 4 Dec 2012 21:22:10 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1212042115450.26188@blackhole.kfki.hu>
+Date: Tue, 4 Dec 2012 22:46:55 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.1212042240550.16537@cube>
 References: <Pine.LNX.4.64.1212032247290.19414@cube>
+ <alpine.DEB.2.00.1212042115450.26188@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: borg@uu3.net
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:37909 "EHLO smtp0.kfki.hu"
+Received: from borg.uu3.net ([87.99.63.19]:59742 "EHLO borg.uu3.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751144Ab2LDUWN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Dec 2012 15:22:13 -0500
-In-Reply-To: <Pine.LNX.4.64.1212032247290.19414@cube>
+	id S1751436Ab2LDVq5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 Dec 2012 16:46:57 -0500
+In-Reply-To: <alpine.DEB.2.00.1212042115450.26188@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
+
+Hello.
+
+Uh. Seems you didnt read whole email?
+This is generaly a fix for wrong src addr in policy routing:
+https://bugzilla.kernel.org/show_bug.cgi?id=16216
+
+While using iptables MARK and ip rule fwmark works for forwarded
+packets, this breaks localy generated packets making them
+routed correctly but having wrong src addr.
+This is because kernel first lookups routing table
+to get src addr and then pass packet to netfilter.
+In that stage is too late to do policy routing for localy
+generated packets.
+
+This should be fixed, but unfortunately its not easy.
+
+Regards,
+Borg
+
+PS: Does IPSET have any mailing list or contacts? I couldnt
+find them.. Thats why I mailed netfilter-devel.
+
+
+---------- Original message ----------
+
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: borg@uu3.net
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: Patch using ipset match in policy routing.
+Date: Tue, 4 Dec 2012 21:22:10 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1212042115450.26188@blackhole.kfki.hu>
 
 Hi,
 
