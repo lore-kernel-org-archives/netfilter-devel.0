@@ -1,135 +1,83 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 3/8] netfilter: xtables2: store netns in table and rule blob
-Date: Tue,  4 Dec 2012 02:00:44 +0100
-Message-ID: <1354582849-26888-4-git-send-email-jengelh@inai.de>
-References: <1354582849-26888-1-git-send-email-jengelh@inai.de>
+Subject: Xtables2 status for Dec 04
+Date: Tue,  4 Dec 2012 02:00:41 +0100
+Message-ID: <1354582849-26888-1-git-send-email-jengelh@inai.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:49565 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:49563 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751497Ab2LDBA6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1751722Ab2LDBA6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 3 Dec 2012 20:00:58 -0500
-In-Reply-To: <1354582849-26888-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The destroy and checkentry functions for matches and targets want to
-know the network namespace, so it needs to be made available to those.
 
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
----
- include/net/netfilter/xt_core.h |    9 +++++++++
- net/netfilter/xt_core.c         |   18 +++++++++++++++++-
- 2 files changed, 26 insertions(+), 1 deletion(-)
+(Previous sets: http://www.spinics.net/lists/netfilter-devel/msg24117.html
+http://www.spinics.net/lists/netfilter-devel/msg23925.html , which have
+been amended lightly to address bugs and cosmetics.)
 
-diff --git a/include/net/netfilter/xt_core.h b/include/net/netfilter/xt_core.h
-index a5b3ab6..9e79f77 100644
---- a/include/net/netfilter/xt_core.h
-+++ b/include/net/netfilter/xt_core.h
-@@ -95,10 +95,14 @@ struct xt2_pernet_data {
- /**
-  * @chain_list:		list of chains (struct xt2_chain)
-  * @lock:		protecting changes to @chain_list
-+ * @netns:		network namespace this table belongs to
-  */
- struct xt2_table {
- 	struct list_head chain_list;
- 	struct mutex lock;
-+#if IS_ENABLED(CONFIG_NET_NS)
-+	struct net *netns;
-+#endif
- };
- 
- /**
-@@ -107,12 +111,17 @@ struct xt2_table {
-  * structure, we also follow up on the xt2_p_chain idea from the commit
-  * "netfilter: xtables2: chain renaming support", i.e. jumps and gotos will
-  * always point to the chain while the "rules" pointer can change.
-+ *
-+ * @netns:		network namespace this table belongs to
-  */
- struct xt2_rule_block {
- 	union {
- 		struct rcu_head rcu;
- 		struct work_struct work;
- 	};
-+#if IS_ENABLED(CONFIG_NET_NS)
-+	struct net *netns;
-+#endif
- 	size_t size;
- 	char data[] __xt_int_aligned;
- };
-diff --git a/net/netfilter/xt_core.c b/net/netfilter/xt_core.c
-index 4bde992..865da3b 100644
---- a/net/netfilter/xt_core.c
-+++ b/net/netfilter/xt_core.c
-@@ -29,6 +29,14 @@
- 	     (rule) != NULL && (rule) < xt2_chain_stop_rule(chain); \
- 	     (rule) = xt2_chain_next_rule(rule))
- 
-+#if IS_ENABLED(CONFIG_NET_NS)
-+#	define xt2_net_get(net) (net)
-+#	define xt2_net_set(obj, net) do { (obj) = (net); } while (false)
-+#else
-+#	define xt2_net_get(net) NULL
-+#	define xt2_net_set(obj, net) do { (obj) = (net); } while (false)
-+#endif
-+
- /**
-  * The rule buffer, which collects multiple prototype rules for use with
-  * xt2_chain_splice(). While there is only one member here, struct
-@@ -437,6 +445,8 @@ xt2_chain_dup(struct xt2_table *new_table, const struct xt2_chain *old)
- 		xt2_chain_free(chain);
- 		return ERR_PTR(ret);
- 	}
-+	if (old->rules != NULL && chain->rules != NULL)
-+		xt2_net_set(chain->rules->netns, old->rules->netns);
- 	return chain;
- }
- 
-@@ -576,6 +586,8 @@ int xt2_chain_splice(struct xt2_chain *chain, struct xt2_rule_buffer *rulebuf,
- 		if (spl.b_insert != 0 || !list_empty(spl.rule_list))
- 			/* Should not happen, but safe guards are cool. */
- 			return -EOVERFLOW;
-+	} else {
-+		xt2_net_set(blob->netns, chain->table->netns);
- 	}
- 
- 	/* Read proto rules and stream them into the blob. */
-@@ -690,7 +702,8 @@ int xt2_chain_demote(struct xt2_chain *chain)
- }
- 
- /**
-- * Create a new table with no chains and no rules.
-+ * Create a new table with no chains and no rules. The caller should set
-+ * the namespace to which it belongs.
-  */
- struct xt2_table *xt2_table_new(void)
- {
-@@ -702,6 +715,7 @@ struct xt2_table *xt2_table_new(void)
- 
- 	mutex_init(&table->lock);
- 	INIT_LIST_HEAD(&table->chain_list);
-+	table->netns = NULL;
- 	return table;
- }
- 
-@@ -739,6 +753,7 @@ xt2_table_replace(struct xt2_pernet_data *pnet, struct xt2_table *new_table)
- 	struct xt2_chain *chain;
- 	struct xt2_table *old_table;
- 
-+	xt2_net_set(new_table->netns, pnet->master->netns);
- 	list_for_each_entry(chain, &new_table->chain_list, anchor)
- 		if (chain->ops != NULL)
- 			xt2_chain_promote(chain);
-@@ -763,6 +778,7 @@ static int __net_init xtables2_net_init(struct net *net)
- 	pnet->master = xt2_table_new();
- 	if (IS_ERR(pnet->master))
- 		return PTR_ERR(pnet->master);
-+	pnet->master->netns = net;
- 	return 0;
- }
- 
--- 
-1.7.10.4
+This is the third set of patches in Xtables2, in particular,
+extension load/unload and execution logic for matches, targets
+and verdicts. So, a "yay" is in order.
 
+	Mandatory URLs.
+	kernel part: git://git.inai.de/linux xt2-20121204-0135
+	user part:   git://git.inai.de/libnetfilter_xtables master
+
+Some xt extensions are directly usable. The table-replace test program
+will use xt_MARK and xt_comment:
+
+	cd libnetfilter_xtables/src/
+	# this adds some rules with (m)atches, (t)argets, (v)erdicts
+	# all with a he(x)dump
+	./xtnl-test table-replace -Pmtvx
+	ip6tables -A INPUT -m mark --mark 0x66666666
+	iptables  -A INPUT -m mark --mark 0x44444444
+
+Watch counters with `ip6tables -nvL` (or ipv4). As you will notice,
+xt1 can run as a sibling to xt2.
+
+The Xtables2 high-level documentation that currently contains the
+section Architectural Differences, was updated:
+
+	http://inai.de/documents/Xtables2_Userdoc.pdf (or .txt, .lyx)
+
+
+== git canned text: ==
+
+The following changes since commit 026b9cc06de11b5f14509d6f64863c413bf3a42b:
+
+  netfilter: xtables2: support nomination for chains (2012-12-03 04:09:41 +0100)
+
+are available in the git repository at:
+
+  git://git.inai.de/linux 
+
+for you to fetch changes up to bc6b85e5300c13a9296837af1092d9febc78eb80:
+
+  netfilter: xtables2: execute targets in live rule traversal (2012-12-04 01:33:06 +0100)
+
+----------------------------------------------------------------
+Jan Engelhardt (8):
+      netfilter: xtables2: support for entering/dumping rule verdicts
+      netfilter: xtables2: execute verdicts in live rule traversal
+      netfilter: xtables2: store netns in table and rule blob
+      netfilter: xtables2: iterator for obtain/drop references to actions
+      netfilter: xtables2: support for entering/dumping match actions
+      netfilter: xtables2: execute matches in live rule traversal
+      netfilter: xtables2: support for entering/dumping target actions
+      netfilter: xtables2: execute targets in live rule traversal
+
+ include/net/netfilter/xt_core.h                  |   89 +++++
+ include/uapi/linux/netfilter/nfnetlink_xtables.h |   21 ++
+ net/netfilter/xt_core.c                          |  426 ++++++++++++++++++++--
+ net/netfilter/xt_nfnetlink.c                     |  155 ++++++++
+ 4 files changed, 668 insertions(+), 23 deletions(-)
+
+                Ohloh Line Count Summary [all ~30 commits]
+Language  Files       Code    Comment  Comment %      Blank      Total
+--------  -----  ---------  ---------  ---------  ---------  ---------
+c             4       1885        639      25.3%        259       2783
+cpp           1        157         76      32.6%         22        255
+--------  -----  ---------  ---------  ---------  ---------  ---------
+Total         5       2042        715      25.9%        281       3038
