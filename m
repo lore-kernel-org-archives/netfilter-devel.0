@@ -1,52 +1,93 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH] build: resolve link failure for ip6t_NETMAP
-Date: Tue, 4 Dec 2012 14:42:16 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1212041440210.28423@nerf07.vanv.qr>
-References: <1354472208-25759-1-git-send-email-jengelh@inai.de> <20121203131209.GA32300@1984> <alpine.LNX.2.01.1212031655050.15887@nerf07.vanv.qr> <20121204121647.GA30262@1984>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH V2] netfilter: remove extra timer from ecache extension
+Date: Tue, 4 Dec 2012 16:41:18 +0100
+Message-ID: <20121204154118.GE11627@breakpoint.cc>
+References: <1354613751-30154-1-git-send-email-fw@strlen.de>
+ <20121204121323.GA29442@1984>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:50992 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751839Ab2LDNmT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Dec 2012 08:42:19 -0500
-In-Reply-To: <20121204121647.GA30262@1984>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45386 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751613Ab2LDPlT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 Dec 2012 10:41:19 -0500
+Content-Disposition: inline
+In-Reply-To: <20121204121323.GA29442@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 2012-12-04 13:16, Pablo Neira Ayuso wrote:
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Tue, Dec 04, 2012 at 10:35:51AM +0100, Florian Westphal wrote:
+> > This brings the (per-conntrack) ecache extension back to 24 bytes in
+> > size (was 112 byte on x86_64 with lockdep on).
+> > 
+> > Instead we use a per-ns tasklet to re-trigger event delivery.  When we
+> > enqueue a ct entry into the dying list, the tasklet is scheduled.
+> > 
+> > The tasklet will then deliver up to 20 entries.  It will re-sched
+> > itself unless all the pending events could be delivered.
+> > 
+> > While at it, dying list handling is moved into ecache.c, since its only
+> > revlevant if ct events are enabled.
+> 
+> Just tested this. My testbed consists of two firewalls in HA running
+> conntrackd with event reliable mode. I've got a client that generates
+> lots of small TCP flows that goes through the firewalls and reach a
+> benchmark server.
+> 
+> This is my analysis:
+> 
+> conntrack -C shows:
+[..]
+> 261548 <--- we hit table full, dropping packets
+> 176849 <--- it seems the tasklet gets a chance to run
+>             given that we get less interruptions from the NIC
+> 166449 <--- it slightly empty the dying list
+> 131176
+> 55602
+> 28316
+[..]
+> #  hits  hits/s  ^h/s  ^bytes   kB/s  errs   rst  tout  mhtime
+> 4796894 15727 16509   2393805   2227     0     0     0   0.005
+> 4813038 15728 16144   2340880   2227     0     0     0   0.005
+> 4828796 15728 15758   2284910   2227     0     0     0   0.005
+> 4845279 15731 16483   2390035   2227     0     0     0   0.005
+> 4860956 15731 15677   2273165   2227     0     0     0   0.005
+> 4876826 15731 15870   2301150   2227     0     0     0   0.005
+> 4883165 15701  6339    919155   2223     0     0     0   0.004
+> 4883165 15651     0         0   2216     0     0     0   0.000  <--- table full
+> 4883165 15601     0         0   2209     0     0     0   0.000
+> 4894657 15588 11492   1666340   2207     0     0     0   3.008
+> 4913408 15598 18751   2718895   2208     0     0     0   0.004
+> 4931896 15607 18488   2680760   2210     0     0     0   0.004
+> 
+> So it seems the tasklet gets starved under heavy load.
+> 
+> This happens on and on, so after some time we hit table full and again
+> the dying list is empty.
+> 
+> These are old HP proliant DL145G2 from 2005, that's why the maximum
+> flows/s looks low.
+> 
+> Looking at the number and the behaviour under heavy stress, I think we
+> have to consider a different approach.
 
->On Mon, Dec 03, 2012 at 04:58:11PM +0100, Jan Engelhardt wrote:
->> On Monday 2012-12-03 14:12, Pablo Neira Ayuso wrote:
->> 
->> >On Sun, Dec 02, 2012 at 07:16:48PM +0100, Jan Engelhardt wrote:
->> >> Link stage of libip6t_NETMAP failed since recently.
->> >> 
->> >>   CCLD     libip6t_NETMAP.so
->> >> /usr/lib64/gcc/x86_64-suse-linux/4.7/../../../../x86_64-suse-linux/bin/ld:
->> >> cannot find -lip6tc
->> >
->> >Is this problem opensuse specific? Need some diagnosing information on
->> >why that's happening.
->> 
->> This happens whenever you don't have /usr/lib(64)/libip6tc.so.
->> 
->> In openSUSE, iptables is split into the packages iptables, libiptc0, 
->> libiptc-devel, libxtables9 and libxtables-devel, and libip6tc.so is a 
->> -devel thing that is generally not installed on user's machines. (Hence 
->> I spot this.) I think this should be similar in Debian.
->> 
->> Also, note that iptables itself is not installed while building iptables 
->> itself (for obvious reasons) in most distribution build systems.
->
->By this explanation, then I don't see why we need that -lip6tc in the
->makefile.
+Thanks for testing.  Is that a single cpu machine?
 
-Without -lip6tc (the current state of the 'next' branch), it would yield 
-an error:
+If yes, I think this result might be because the tasklet busy-loop
+competes with conntrackd for cpu, so essentially we waste cycles
+on futile re-delivery instead of leaving the cpu to conntrackd,
+(which should process events).
 
-libip6t_NETMAP.oo: In function `NETMAP_print':
-/home/jengelh/code/iptables/extensions/libip6t_NETMAP.c:64: undefined 
-reference to `ipv6_prefix_length'
+If thats true, then we might be able to improve this by avoiding the
+'tasklet re-scheds itself'.  This would also solve the
+'softirqd eats 100% cpu' when conntrackd is stopped/suspended.
+
+I'll see if I can cook up a patch some time tomorrow.
+
+Thanks,
+Florian
