@@ -1,60 +1,39 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: borg@uu3.net
 Subject: Re: Patch using ipset match in policy routing.
-Date: Wed, 5 Dec 2012 11:01:56 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1212050926200.27565@blackhole.kfki.hu>
-References: <Pine.LNX.4.64.1212032247290.19414@cube> <alpine.DEB.2.00.1212042115450.26188@blackhole.kfki.hu> <Pine.LNX.4.64.1212042240550.16537@cube>
+Date: Wed, 5 Dec 2012 13:33:10 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.1212051326330.1837@cube>
+References: <Pine.LNX.4.64.1212032247290.19414@cube>
+ <alpine.DEB.2.00.1212042115450.26188@blackhole.kfki.hu>
+ <Pine.LNX.4.64.1212042240550.16537@cube> <alpine.DEB.2.00.1212050926200.27565@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: borg@uu3.net
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:53492 "EHLO smtp1.kfki.hu"
+Received: from borg.uu3.net ([87.99.63.19]:34361 "EHLO borg.uu3.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753300Ab2LEKB7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Dec 2012 05:01:59 -0500
-In-Reply-To: <Pine.LNX.4.64.1212042240550.16537@cube>
+	id S1752018Ab2LEMdM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 5 Dec 2012 07:33:12 -0500
+In-Reply-To: <alpine.DEB.2.00.1212050926200.27565@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 4 Dec 2012, borg@uu3.net wrote:
+> As far as I see, it's a chicken and egg problem: the kernel must lookup 
+> the routing table first to select a source address and that can't be 
+> changed later by policy routing.
+You are correct.
 
-> Uh. Seems you didnt read whole email?
-> This is generaly a fix for wrong src addr in policy routing:
-> https://bugzilla.kernel.org/show_bug.cgi?id=16216
-> 
-> While using iptables MARK and ip rule fwmark works for forwarded
-> packets, this breaks localy generated packets making them
-> routed correctly but having wrong src addr.
-> This is because kernel first lookups routing table
-> to get src addr and then pass packet to netfilter.
-> In that stage is too late to do policy routing for localy
-> generated packets.
-> 
-> This should be fixed, but unfortunately its not easy.
+> In the bugzilla thread Ambroz Bizjak suggested using SNAT. Why doens't it 
+> a good solution?
+SNAT is not supposed to be used that way.. better would be NETMAP.
+But still I feel it is not right aproach.
 
-But you want to give an ipset-specific answer to a generic issue: fwmark 
-is independent of ipset.
+Okey, lets cut it. I know that this patch is for very specific setups
+that are used very rary. I rather wanted to have tech talk here about
+how I've done certain things.
 
-As far as I see, it's a chicken and egg problem: the kernel must lookup 
-the routing table first to select a source address and that can't be 
-changed later by policy routing.
+Lets it leave it as is. Patch is working fine (both SMP and non SMP hosts).
+If someone will be interested in it, can pick it up and mail me directly.
 
-In the bugzilla thread Ambroz Bizjak suggested using SNAT. Why doens't it 
-a good solution?
-
-The application could also be started in a net namespace.
-
-> PS: Does IPSET have any mailing list or contacts? I couldnt
-> find them.. Thats why I mailed netfilter-devel.
-
-netfilter-devel is perfect for ipset.
-
-[Please don't top post.]
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Regards,
+Borg
