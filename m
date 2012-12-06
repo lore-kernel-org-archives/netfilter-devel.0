@@ -1,40 +1,48 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH rfc] netfilter: two xtables matches
-Date: Thu, 6 Dec 2012 06:22:46 +0100
-Message-ID: <20121206052246.GA2905@1984>
-References: <1354735339-13402-1-git-send-email-willemb@google.com>
- <CA+FuTSeYvcdtNf7N=POD+RzsE01+WVsub6F_nqbn06RZyoWx8w@mail.gmail.com>
- <alpine.LNX.2.01.1212052100190.30908@nerf07.vanv.qr>
+From: Dries De Winter <dries.dewinter@gmail.com>
+Subject: Re: [PATCH] net: ICMPv6 packets transmitted on wrong interface if
+ nfmark is mangled
+Date: Thu, 6 Dec 2012 10:11:23 +0100
+Message-ID: <CA+e04fgTfSYppUHZkv0DaTawHEOKA-YXiahEJwTS75ndkK1TXw@mail.gmail.com>
+References: <CA+e04fjWMDE9xEApysFRprZDBdM3Ya2RHrxtoau7i+fxzGT8CQ@mail.gmail.com>
+	<20121203.170636.1325623456787407245.davem@davemloft.net>
+	<CA+e04fgiMDoaCx0fpdK5F6YfJ_CSOZ13q1fn9xs7De4JO02c6g@mail.gmail.com>
+	<20121205.125700.2246243377198648534.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Willem de Bruijn <willemb@google.com>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Eric Dumazet <edumazet@google.com>,
-	David Miller <davem@davemloft.net>, kaber@trash.net
-To: Jan Engelhardt <jengelh@inai.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50584 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751495Ab2LFFWz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Dec 2012 00:22:55 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.01.1212052100190.30908@nerf07.vanv.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: pablo@netfilter.org, kaber@trash.net, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20121205.125700.2246243377198648534.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Dec 05, 2012 at 09:00:36PM +0100, Jan Engelhardt wrote:
-> On Wednesday 2012-12-05 20:28, Willem de Bruijn wrote:
-> 
-> >Somehow, the first part of this email went missing. Not critical,
-> >but for completeness:
-> >
-> >These two patches each add an xtables match.
-> >
-> >The xt_priority match is a straighforward addition in the style of
-> >xt_mark, adding the option to filter on one more sk_buff field. I
-> >have an immediate application for this. The amount of code (in
-> >kernel + userspace) to add a single check proved quite large.
-> 
-> Hm so yeah, can't we just place this in xt_mark.c?
+2012/12/5 David Miller <davem@davemloft.net>:
+> From: Dries De Winter <dries.dewinter@gmail.com>
+> Date: Wed, 5 Dec 2012 14:41:59 +0100
+>
+>> My "noreroute" patch will not fix this. Therefore it's indeed maybe
+>> better to add a simple check to ip6_route_me_harder(): not a check for
+>> ICMPv6, but a check for (ipv6_addr_type(&iph->daddr) &
+>> IPV6_ADDR_LINKLOCAL) instead. What do you think?
+>
+> What if a packet is rewritten from a non-link-local destination address
+> into a link-local one?  Or vice versa?
+>
+> Your test will fail in those cases.
 
-I don't feel this belongs to xt_mark at all.
+You are saying that the decision should be based on the original
+destination address rather the modified one? I would say the opposite:
+
+- If a non-link-local destination is changed into a link-local one, it
+should certainly not be rerouted because routing doesn't make much
+sense for link-local destinations.
+
+- If a link-local destination is changed into a non-link-local one,
+why not reroute it according to the new destination?
+
+If you do not agree, we can also put the check in
+ip6t_local_out_hook() where the original destination is still
+available.
+
+Dries.
