@@ -1,48 +1,49 @@
-From: Dries De Winter <dries.dewinter@gmail.com>
-Subject: Re: [PATCH] net: ICMPv6 packets transmitted on wrong interface if
- nfmark is mangled
-Date: Thu, 6 Dec 2012 10:11:23 +0100
-Message-ID: <CA+e04fgTfSYppUHZkv0DaTawHEOKA-YXiahEJwTS75ndkK1TXw@mail.gmail.com>
-References: <CA+e04fjWMDE9xEApysFRprZDBdM3Ya2RHrxtoau7i+fxzGT8CQ@mail.gmail.com>
-	<20121203.170636.1325623456787407245.davem@davemloft.net>
-	<CA+e04fgiMDoaCx0fpdK5F6YfJ_CSOZ13q1fn9xs7De4JO02c6g@mail.gmail.com>
-	<20121205.125700.2246243377198648534.davem@davemloft.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: how to implement port triggering using iptables?
+Date: Thu, 6 Dec 2012 11:48:43 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1212061145001.30593@blackhole.kfki.hu>
+References: <50C0513D.5000703@neusoft.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: pablo@netfilter.org, kaber@trash.net, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20121205.125700.2246243377198648534.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: =?ISO-2022-JP?Q?=1B$B8Ub}=1B=28J?= <hu-lei@neusoft.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-in.kfki.hu ([148.6.0.28]:34648 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965008Ab2LFKsq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 6 Dec 2012 05:48:46 -0500
+In-Reply-To: <50C0513D.5000703@neusoft.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-2012/12/5 David Miller <davem@davemloft.net>:
-> From: Dries De Winter <dries.dewinter@gmail.com>
-> Date: Wed, 5 Dec 2012 14:41:59 +0100
->
->> My "noreroute" patch will not fix this. Therefore it's indeed maybe
->> better to add a simple check to ip6_route_me_harder(): not a check for
->> ICMPv6, but a check for (ipv6_addr_type(&iph->daddr) &
->> IPV6_ADDR_LINKLOCAL) instead. What do you think?
->
-> What if a packet is rewritten from a non-link-local destination address
-> into a link-local one?  Or vice versa?
->
-> Your test will fail in those cases.
+On Thu, 6 Dec 2012, ?? wrote:
 
-You are saying that the decision should be based on the original
-destination address rather the modified one? I would say the opposite:
+> How to implement port triggering using iptables?
+> And where can I download the patch of the port triggering?
 
-- If a non-link-local destination is changed into a link-local one, it
-should certainly not be rerouted because routing doesn't make much
-sense for link-local destinations.
+The first hit of the google search "port triggering iptables" is a good 
+starting point.
 
-- If a link-local destination is changed into a non-link-local one,
-why not reroute it according to the new destination?
+> ---------------------------------------------------------------------------------------------------
+> Confidentiality Notice: The information contained in this e-mail and any
+> accompanying attachment(s) 
+[...]
 
-If you do not agree, we can also put the check in
-ip6t_local_out_hook() where the original destination is still
-available.
+Disclaimer: By sending an email to *any* of my addresses you are agreeing
+that:
 
-Dries.
+1. I am by definition, "the intended recipient"
+2. All information in the email is mine to do with as I see fit and make 
+   such financial profit, political mileage, or good joke as it lends 
+   itself to. In particular, I may quote it on any forum or mailing list.
+3. I may take the contents as representing the views of your company.
+4. This overrides any disclaimer or statement of confidentiality that may 
+   be included on your message.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
