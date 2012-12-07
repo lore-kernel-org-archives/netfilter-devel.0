@@ -1,55 +1,64 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH rfc] netfilter: two xtables matches
-Date: Fri, 7 Dec 2012 08:22:49 +0100
-Message-ID: <20121207072249.GA10911@1984>
-References: <1354735339-13402-1-git-send-email-willemb@google.com>
- <CA+FuTSeYvcdtNf7N=POD+RzsE01+WVsub6F_nqbn06RZyoWx8w@mail.gmail.com>
- <alpine.LNX.2.01.1212052100190.30908@nerf07.vanv.qr>
- <20121206052246.GA2905@1984>
- <CA+FuTSf+fh21koZRJ_ZDsr8yiiwcw2-pJ4uTyS2pOHZGdBM1-w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jan Engelhardt <jengelh@inai.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	netdev@vger.kernel.org, Eric Dumazet <edumazet@google.com>,
-	David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>
-To: Willem de Bruijn <willemb@google.com>
+From: haibbo@gmail.com
+Subject: [PATCH] fix conntrack reassembly expire code
+Date: Fri,  7 Dec 2012 17:42:17 +0800
+Message-ID: <1354873337-3776-1-git-send-email-haibbo@gmail.com>
+Cc: Haibo Xi <haibbo@gmail.com>
+To: pablo@netfilter.org, kaber@trash.net,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60710 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754990Ab2LGHWz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Dec 2012 02:22:55 -0500
-Content-Disposition: inline
-In-Reply-To: <CA+FuTSf+fh21koZRJ_ZDsr8yiiwcw2-pJ4uTyS2pOHZGdBM1-w@mail.gmail.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:63324 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754245Ab2LGJnF (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 7 Dec 2012 04:43:05 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Dec 06, 2012 at 04:12:10PM -0500, Willem de Bruijn wrote:
-> On Thu, Dec 6, 2012 at 12:22 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Wed, Dec 05, 2012 at 09:00:36PM +0100, Jan Engelhardt wrote:
-> >> On Wednesday 2012-12-05 20:28, Willem de Bruijn wrote:
-> >>
-> >> >Somehow, the first part of this email went missing. Not critical,
-> >> >but for completeness:
-> >> >
-> >> >These two patches each add an xtables match.
-> >> >
-> >> >The xt_priority match is a straighforward addition in the style of
-> >> >xt_mark, adding the option to filter on one more sk_buff field. I
-> >> >have an immediate application for this. The amount of code (in
-> >> >kernel + userspace) to add a single check proved quite large.
-> >>
-> >> Hm so yeah, can't we just place this in xt_mark.c?
-> >
-> > I don't feel this belongs to xt_mark at all.
-> 
-> Do you have other concerns, or can I resubmit as is for merging in a
-> few days if no one raises additional issues?
-> 
-> For this and netfilter changes in general: should these patches be
-> against git://1984.lsi.us.es/nf-next instead of net-next? This patch
-> likely applies cleanly there, but I haven't tried yet. Thanks.
+From: Haibo Xi <haibbo@gmail.com>
 
-Please, against nf-next since this has to go throuh the netfilter
-tree.
+Commit b836c99fd6c9 (ipv6: unify conntrack reassembly expire
+code with standard one) use the standard IPv6 reassembly
+code(ip6_expire_frag_queue) to handle conntrack reassembly expire.
+
+In ip6_expire_frag_queue, it invoke dev_get_by_index_rcu to get
+which device received this expired packet.so we must save ifindex
+when NF_conntrack get this packet.
+
+With this patch applied, I can see ICMP Time Exceeded sent
+from the receiver when the sender sent out 1/2 fragmented
+IPv6 packet.
+
+Signed-off-by: Haibo Xi <haibbo@gmail.com>
+---
+ net/ipv6/netfilter/nf_conntrack_reasm.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
+
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 22c8ea9..e7197be 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -196,6 +196,7 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
+ 	struct sk_buff *prev, *next;
+ 	unsigned int payload_len;
+ 	int offset, end;
++	struct net_device *dev = NULL;
+ 
+ 	if (fq->q.last_in & INET_FRAG_COMPLETE) {
+ 		pr_debug("Already completed\n");
+@@ -311,7 +312,11 @@ found:
+ 	else
+ 		fq->q.fragments = skb;
+ 
+-	skb->dev = NULL;
++	dev = skb->dev;
++	if (dev) {
++		fq->iif = dev->ifindex;
++		skb->dev = NULL;
++	}
+ 	fq->q.stamp = skb->tstamp;
+ 	fq->q.meat += skb->len;
+ 	if (payload_len > fq->q.max_size)
+-- 
+1.7.0.4
+
