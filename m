@@ -1,58 +1,161 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH rfc] netfilter: two xtables matches
-Date: Fri, 7 Dec 2012 14:20:14 +0100
-Message-ID: <20121207132014.GB3019@1984>
-References: <1354735339-13402-1-git-send-email-willemb@google.com>
- <CA+FuTSeYvcdtNf7N=POD+RzsE01+WVsub6F_nqbn06RZyoWx8w@mail.gmail.com>
- <alpine.LNX.2.01.1212052100190.30908@nerf07.vanv.qr>
- <20121206052246.GA2905@1984>
- <CA+FuTSf+fh21koZRJ_ZDsr8yiiwcw2-pJ4uTyS2pOHZGdBM1-w@mail.gmail.com>
+From: Neil Horman <nhorman@tuxdriver.com>
+Subject: Re: [PATCH 2/4] net: remove obsolete simple_strto<foo>
+Date: Fri, 7 Dec 2012 10:22:16 -0500
+Message-ID: <20121207152216.GC29819@shamino.rdu.redhat.com>
+References: <1354880998-23417-1-git-send-email-abhi.c.pawar@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jan Engelhardt <jengelh@inai.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	netdev@vger.kernel.org, Eric Dumazet <edumazet@google.com>,
-	David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>
-To: Willem de Bruijn <willemb@google.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53338 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030293Ab2LGNUV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Dec 2012 08:20:21 -0500
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	"John W. Linville" <linville@tuxdriver.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	Cong Wang <amwang@redhat.com>,
+	Eric Dumazet <edumazet@google.com>,
+	Joe Perches <joe@perches.com>, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	linux-wireless@vger.kernel.org
+To: Abhijit Pawar <abhi.c.pawar@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CA+FuTSf+fh21koZRJ_ZDsr8yiiwcw2-pJ4uTyS2pOHZGdBM1-w@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1354880998-23417-1-git-send-email-abhi.c.pawar@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Dec 06, 2012 at 04:12:10PM -0500, Willem de Bruijn wrote:
-> On Thu, Dec 6, 2012 at 12:22 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Wed, Dec 05, 2012 at 09:00:36PM +0100, Jan Engelhardt wrote:
-> >> On Wednesday 2012-12-05 20:28, Willem de Bruijn wrote:
-> >>
-> >> >Somehow, the first part of this email went missing. Not critical,
-> >> >but for completeness:
-> >> >
-> >> >These two patches each add an xtables match.
-> >> >
-> >> >The xt_priority match is a straighforward addition in the style of
-> >> >xt_mark, adding the option to filter on one more sk_buff field. I
-> >> >have an immediate application for this. The amount of code (in
-> >> >kernel + userspace) to add a single check proved quite large.
-> >>
-> >> Hm so yeah, can't we just place this in xt_mark.c?
-> >
-> > I don't feel this belongs to xt_mark at all.
+On Fri, Dec 07, 2012 at 05:19:58PM +0530, Abhijit Pawar wrote:
+> This patch replace the obsolete simple_strto<foo> with kstrto<foo>
 > 
-> Do you have other concerns, or can I resubmit as is for merging in a
-> few days if no one raises additional issues?
+> Signed-off-by: Abhijit Pawar <abhi.c.pawar@gmail.com>
+> ---
+>  net/core/netpoll.c                 |    9 +++++++--
+>  net/ipv4/netfilter/ipt_CLUSTERIP.c |    9 +++++++--
+>  net/mac80211/debugfs_sta.c         |    4 +++-
+>  net/netfilter/nf_conntrack_core.c  |    6 ++++--
+>  4 files changed, 21 insertions(+), 7 deletions(-)
+> 
+> diff --git a/net/core/netpoll.c b/net/core/netpoll.c
+> index 77a0388..596b127 100644
+> --- a/net/core/netpoll.c
+> +++ b/net/core/netpoll.c
+> @@ -668,13 +668,16 @@ EXPORT_SYMBOL(netpoll_print_options);
+>  
+>  int netpoll_parse_options(struct netpoll *np, char *opt)
+>  {
+> +	int rc;
+>  	char *cur=opt, *delim;
+>  
+>  	if (*cur != '@') {
+>  		if ((delim = strchr(cur, '@')) == NULL)
+>  			goto parse_failed;
+>  		*delim = 0;
+> -		np->local_port = simple_strtol(cur, NULL, 10);
+> +		rc = kstrtol(cur, 10, &np->local_port);
+> +		if (rc)
+> +			goto parse_failed;
+Perhaps consolidate this to:
+if (kstrtol(cur, 10, &np->local_port)
+	goto parse_failed
 
-In nftables we have the 'meta' extension that allows to match all
-skbuff fields (among other things):
+Then you don't have to declare the new stack variable
 
-http://1984.lsi.us.es/git/nf-next/tree/net/netfilter/nft_meta.c?h=nf_tables8
+>  		cur = delim;
+>  	}
+>  	cur++;
+> @@ -705,7 +708,9 @@ int netpoll_parse_options(struct netpoll *np, char *opt)
+>  		*delim = 0;
+>  		if (*cur == ' ' || *cur == '\t')
+>  			np_info(np, "warning: whitespace is not allowed\n");
+> -		np->remote_port = simple_strtol(cur, NULL, 10);
+> +		rc = kstrtol(cur, 10, &np->remote_port);
+> +		if (rc)
+> +			goto parse_failed;
+>  		cur = delim;
+Ditto
 
-I think it's the way to go so we stop adding small matches for each
-skbuff field.
+>  	}
+>  	cur++;
+> diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+> index fe5daea..55e7b73 100644
+> --- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
+> +++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+> @@ -661,6 +661,7 @@ static ssize_t clusterip_proc_write(struct file *file, const char __user *input,
+>  #define PROC_WRITELEN	10
+>  	char buffer[PROC_WRITELEN+1];
+>  	unsigned long nodenum;
+> +	int rc;
+>  
+>  	if (size > PROC_WRITELEN)
+>  		return -EIO;
+> @@ -669,11 +670,15 @@ static ssize_t clusterip_proc_write(struct file *file, const char __user *input,
+>  	buffer[size] = 0;
+>  
+>  	if (*buffer == '+') {
+> -		nodenum = simple_strtoul(buffer+1, NULL, 10);
+> +		rc = kstrtoul(buffer+1, 10, &nodenum);
+> +		if (rc)
+> +			return -EINVAL;
+>  		if (clusterip_add_node(c, nodenum))
+>  			return -ENOMEM;
+>  	} else if (*buffer == '-') {
+> -		nodenum = simple_strtoul(buffer+1, NULL,10);
+> +		rc = kstrtoul(buffer+1, 10, &nodenum);
+> +		if (rc)
+> +			return -EINVAL;
+>  		if (clusterip_del_node(c, nodenum))
+>  			return -ENOENT;
+Same deal with the rc variable, although in this case it might make sense to
+return rc if kstrtoul fails, instead of just filtering it all down to -EINVAL.
 
-I don't mind the name if it's xt_skbuff or xt_meta.
+>  	} else
+> diff --git a/net/mac80211/debugfs_sta.c b/net/mac80211/debugfs_sta.c
+> index 89281d2..18754fd 100644
+> --- a/net/mac80211/debugfs_sta.c
+> +++ b/net/mac80211/debugfs_sta.c
+> @@ -219,7 +219,9 @@ static ssize_t sta_agg_status_write(struct file *file, const char __user *userbu
+>  	} else
+>  		return -EINVAL;
+>  
+> -	tid = simple_strtoul(buf, NULL, 0);
+> +	ret = kstrtoul(buf, 0, &tid);
+> +	if (ret)
+> +		return -EINVAL;
+>  
+>  	if (tid >= IEEE80211_NUM_TIDS)
+>  		return -EINVAL;
+> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> index af17516..18ce24b 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -1409,7 +1409,7 @@ EXPORT_SYMBOL_GPL(nf_ct_alloc_hashtable);
+>  
+>  int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp)
+>  {
+> -	int i, bucket;
+> +	int i, bucket, rc;
+>  	unsigned int hashsize, old_size;
+>  	struct hlist_nulls_head *hash, *old_hash;
+>  	struct nf_conntrack_tuple_hash *h;
+> @@ -1422,7 +1422,9 @@ int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp)
+>  	if (!nf_conntrack_htable_size)
+>  		return param_set_uint(val, kp);
+>  
+> -	hashsize = simple_strtoul(val, NULL, 0);
+> +	rc = kstrtouint(val, 0, &hashsize);
+> +	if (rc)
+> +		return -EINVAL;
+>  	if (!hashsize)
+>  		return -EINVAL;
+>  
+As above, these call points might benefit from returning rc rather than just
+EINVAL.
+
+Neil
+
+> -- 
+> 1.7.7.6
+> 
+> 
