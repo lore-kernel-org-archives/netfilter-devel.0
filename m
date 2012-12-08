@@ -1,57 +1,269 @@
 From: Willem de Bruijn <willemb@google.com>
-Subject: Re: [PATCH rfc] netfilter: two xtables matches
-Date: Fri, 7 Dec 2012 12:26:34 -0500
-Message-ID: <CA+FuTSduAv4JdzzOE4tVWQCL-00jruPDwcUxuYvPizQkkKrBbg@mail.gmail.com>
-References: <1354735339-13402-1-git-send-email-willemb@google.com>
- <CA+FuTSeYvcdtNf7N=POD+RzsE01+WVsub6F_nqbn06RZyoWx8w@mail.gmail.com>
- <alpine.LNX.2.01.1212052100190.30908@nerf07.vanv.qr> <20121206052246.GA2905@1984>
- <CA+FuTSf+fh21koZRJ_ZDsr8yiiwcw2-pJ4uTyS2pOHZGdBM1-w@mail.gmail.com> <20121207132014.GB3019@1984>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Jan Engelhardt <jengelh@inai.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	netdev@vger.kernel.org, Eric Dumazet <edumazet@google.com>,
-	David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20121207132014.GB3019@1984>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: [PATCH] [RFC] netfilter: add xt_skbuff xtables match
+Date: Fri,  7 Dec 2012 19:04:04 -0500
+Message-ID: <1354925044-15135-1-git-send-email-willemb@google.com>
+References: <1354735339-13402-2-git-send-email-willemb@google.com>
+Cc: Willem de Bruijn <willemb@google.com>
+To: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+	kaber@trash.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:43904 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755549Ab2LHAEO (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 7 Dec 2012 19:04:14 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so113291ghb.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 07 Dec 2012 16:04:13 -0800 (PST)
+In-Reply-To: <1354735339-13402-2-git-send-email-willemb@google.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Dec 7, 2012 at 8:20 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Thu, Dec 06, 2012 at 04:12:10PM -0500, Willem de Bruijn wrote:
->> On Thu, Dec 6, 2012 at 12:22 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> > On Wed, Dec 05, 2012 at 09:00:36PM +0100, Jan Engelhardt wrote:
->> >> On Wednesday 2012-12-05 20:28, Willem de Bruijn wrote:
->> >>
->> >> >Somehow, the first part of this email went missing. Not critical,
->> >> >but for completeness:
->> >> >
->> >> >These two patches each add an xtables match.
->> >> >
->> >> >The xt_priority match is a straighforward addition in the style of
->> >> >xt_mark, adding the option to filter on one more sk_buff field. I
->> >> >have an immediate application for this. The amount of code (in
->> >> >kernel + userspace) to add a single check proved quite large.
->> >>
->> >> Hm so yeah, can't we just place this in xt_mark.c?
->> >
->> > I don't feel this belongs to xt_mark at all.
->>
->> Do you have other concerns, or can I resubmit as is for merging in a
->> few days if no one raises additional issues?
->
-> In nftables we have the 'meta' extension that allows to match all
-> skbuff fields (among other things):
->
-> http://1984.lsi.us.es/git/nf-next/tree/net/netfilter/nft_meta.c?h=nf_tables8
->
-> I think it's the way to go so we stop adding small matches for each
-> skbuff field.
->
-> I don't mind the name if it's xt_skbuff or xt_meta.
+Add an iptables match based on skb fields, such as mark, priority,
+input interface and rxhash. The match supports range based matching
+on one field, with optional inversion and masking.
 
-Okay. I'll respin right now with one more field to select the skb field to
-match on, as a patch against tree nf-next, and will send that to
-netfilter-devel.
+v2: switches from xt_priority to xt_skbuff. Pablo, is this what
+you had in mind? It doesn't perfectly duplicate the values from
+nftables xt_meta. Needs more testing to cover the field-specific
+codepaths.
+
+Tested by inserting
+
+iptables -t mangle -A PREROUTING -s $SRC -j MARK --set-mark 10
+iptables -A INPUT -m skbuff --min 10 --max 10 -j TRACE
+
+The userspace tool needs work, too. For one, I just hardcoded the
+field_id to be skb_field_mark for this test. That's why it's missing
+from the command line.
+
+Signed-off-by: Willem de Bruijn <willemb@google.com>
+---
+ include/linux/netfilter/xt_skbuff.h |   33 ++++++++
+ net/netfilter/Kconfig               |    9 ++
+ net/netfilter/Makefile              |    1 +
+ net/netfilter/xt_skbuff.c           |  141 +++++++++++++++++++++++++++++++++++
+ 4 files changed, 184 insertions(+), 0 deletions(-)
+ create mode 100644 include/linux/netfilter/xt_skbuff.h
+ create mode 100644 net/netfilter/xt_skbuff.c
+
+diff --git a/include/linux/netfilter/xt_skbuff.h b/include/linux/netfilter/xt_skbuff.h
+new file mode 100644
+index 0000000..10eb8d8
+--- /dev/null
++++ b/include/linux/netfilter/xt_skbuff.h
+@@ -0,0 +1,33 @@
++#ifndef _XT_SKBUFF_H
++#define _XT_SKBUFF_H
++
++#include <linux/types.h>
++
++enum xt_skbuff_field_selector {
++	skb_field_csum = 0,
++	skb_field_hatype,
++	skb_field_iif,
++	skb_field_len,
++	skb_field_mark,
++	skb_field_pkt_type,
++	skb_field_priority,
++	skb_field_protocol,
++	skb_field_queue_mapping,
++	skb_field_rt_classid,
++	skb_field_rxhash,
++	skb_field_secmark,
++	skb_field_sk_uid,
++	skb_field_sk_gid,
++	skb_field_tstamp,
++	skb_field_vlan_tci,
++};
++
++struct xt_skbuff_info {
++	__u16 field_id;		/* an xt_skbuff_field_selector value */
++	__u8  invert;
++	__u64 min;
++	__u64 max;
++	__u64 mask;
++};
++
++#endif /*_XT_SKBUFF_H */
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index fefa514..3a07a86 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -1093,6 +1093,15 @@ config NETFILTER_XT_MATCH_PKTTYPE
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
++config NETFILTER_XT_MATCH_SKBUFF
++	tristate '"skbuff" match support'
++	depends on NETFILTER_ADVANCED
++	help
++	  This option adds a match based on the value of a chosen sk_buff
++	  field.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
+ config NETFILTER_XT_MATCH_QUOTA
+ 	tristate '"quota" match support'
+ 	depends on NETFILTER_ADVANCED
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 3259697..9bc95e0 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -129,6 +129,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_RATEEST) += xt_rateest.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_REALM) += xt_realm.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_RECENT) += xt_recent.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_SCTP) += xt_sctp.o
++obj-$(CONFIG_NETFILTER_XT_MATCH_SKBUFF) += xt_skbuff.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_SOCKET) += xt_socket.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STATE) += xt_state.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STATISTIC) += xt_statistic.o
+diff --git a/net/netfilter/xt_skbuff.c b/net/netfilter/xt_skbuff.c
+new file mode 100644
+index 0000000..5ca30eb
+--- /dev/null
++++ b/net/netfilter/xt_skbuff.c
+@@ -0,0 +1,141 @@
++/* Xtables module to match packets based on sk_buff fields.
++ * Copyright 2012 Google Inc.
++ * Written by Willem de Bruijn <willemb@google.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <net/sock.h>
++
++#include <linux/netfilter/xt_skbuff.h>
++#include <linux/netfilter/x_tables.h>
++
++MODULE_AUTHOR("Willem de Bruijn <willemb@google.com>");
++MODULE_DESCRIPTION("Xtables: skbuff match");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("ipt_priority");
++MODULE_ALIAS("ip6t_priority");
++
++static bool skbuff_mt(const struct sk_buff *skb,
++			struct xt_action_param *par)
++{
++	const struct xt_skbuff_info *info = par->matchinfo;
++	u64 value;
++
++	switch (info->field_id) {
++	case skb_field_csum:
++		if (skb->ip_summed != CHECKSUM_COMPLETE)
++			return false;
++		value = skb->csum;
++		break;
++	case skb_field_hatype:
++		if (!skb->dev)
++			return false;
++		value = skb->dev->type;
++		break;
++	case skb_field_iif:
++		value = skb->skb_iif;
++		break;
++	case skb_field_len:
++		value = skb->len;
++		break;
++	case skb_field_mark:
++		value = skb->mark;
++		break;
++	case skb_field_pkt_type:
++		value = skb->pkt_type;
++		break;
++	case skb_field_priority:
++		value = skb->priority;
++		break;
++	case skb_field_protocol:
++		value = skb->protocol;
++		break;
++	case skb_field_queue_mapping:
++		value = skb->queue_mapping;
++		break;
++	case skb_field_rt_classid:
++#ifdef CONFIG_NET_CLS_ROUTE
++		const struct dst_entry *dst;
++
++		rcu_read_lock();
++		dst = skb_dst(skb);
++		if (dst)
++			value = dst->tclassid;
++		rcu_read_unlock();
++		if (!dst)
++			return false;
++		break;
++#else
++		return false;
++#endif
++	case skb_field_rxhash:
++		value = skb->rxhash;
++		break;
++	case skb_field_secmark:
++#ifdef CONFIG_NETWORK_SECMARK
++		value = skb->secmark;
++		break;
++#else
++		return false;
++#endif
++	case skb_field_sk_uid:
++		if (!skb->sk || !skb->sk->sk_socket || !skb->sk->sk_socket->file)
++			return false;
++		value = skb->sk->sk_socket->file->f_cred->fsuid;
++		break;
++	case skb_field_sk_gid:
++		if (!skb->sk || !skb->sk->sk_socket || !skb->sk->sk_socket->file)
++			return false;
++		value = skb->sk->sk_socket->file->f_cred->fsgid;
++		break;
++	case skb_field_tstamp:
++		value = skb->tstamp.tv64;
++		break;
++	case skb_field_vlan_tci:
++		value = skb->vlan_tci;
++		break;
++	default:
++		return false;
++	}
++
++	value &= info->mask;
++	return (value >= info->min && value <= info->max) ^ info->invert;
++}
++
++static int skbuff_mt_check(const struct xt_mtchk_param *par)
++{
++	const struct xt_skbuff_info *info = par->matchinfo;
++
++	if (info->field_id > skb_field_vlan_tci)
++		return -EINVAL;
++
++	return 0;
++}
++
++static struct xt_match skbuff_mt_reg __read_mostly = {
++	.name		= "skbuff",
++	.revision	= 0,
++	.family		= NFPROTO_UNSPEC,
++	.match		= skbuff_mt,
++	.matchsize	= sizeof(struct xt_skbuff_info),
++	.checkentry	= skbuff_mt_check,
++	.me		= THIS_MODULE,
++};
++
++static int __init skbuff_mt_init(void)
++{
++	return xt_register_match(&skbuff_mt_reg);
++}
++
++static void __exit skbuff_mt_exit(void)
++{
++	xt_unregister_match(&skbuff_mt_reg);
++}
++
++module_init(skbuff_mt_init);
++module_exit(skbuff_mt_exit);
+-- 
+1.7.7.3
+
