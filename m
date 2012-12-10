@@ -1,7 +1,7 @@
 From: kaber@trash.net
-Subject: =?UTF-8?q?=5BPATCH=203/5=5D=20netfilter=3A=20nf=5Ftables=3A=20destroy=20anonymous=20sets=20immediately=20if=20binding=20fails?=
-Date: Mon, 10 Dec 2012 18:20:10 +0100
-Message-ID: <1355160012-13952-4-git-send-email-kaber@trash.net>
+Subject: =?UTF-8?q?=5BPATCH=202/5=5D=20netfilter=3A=20nf=5Ftables=3A=20save=2048=20bits=20per=20rule?=
+Date: Mon, 10 Dec 2012 18:20:09 +0100
+Message-ID: <1355160012-13952-3-git-send-email-kaber@trash.net>
 References: <1355160012-13952-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -9,9 +9,9 @@ Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36284 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:36282 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751337Ab2LJRbl (ORCPT
+	with ESMTP id S1751093Ab2LJRbl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 10 Dec 2012 12:31:41 -0500
 In-Reply-To: <1355160012-13952-1-git-send-email-kaber@trash.net>
@@ -20,47 +20,33 @@ List-ID: <netfilter-devel.vger.kernel.org>
 
 =46rom: Patrick McHardy <kaber@trash.net>
 
-Treat a failed binding similar to binding+unbinding and destroy the
-set immediately to avoid leaving stray sets in the table.
+We currently have a hole of 48 bits in the layout of struct nft_rule
+because the increased handle size. Using 48 bits for the handle should
+be enough to avoid overflow and allows to plug that hole.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- net/netfilter/nf_tables_api.c | 10 +++++++++-
- 1 Datei ge=C3=A4ndert, 9 Zeilen hinzugef=C3=BCgt(+), 1 Zeile entfernt(=
--)
+ include/net/netfilter/nf_tables.h | 4 ++--
+ 1 Datei ge=C3=A4ndert, 2 Zeilen hinzugef=C3=BCgt(+), 2 Zeilen entfernt=
+(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_ap=
-i.c
-index 570b877..c0f0cf06e 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1980,6 +1980,9 @@ int nf_tables_bind_set(const struct nft_ctx *ctx,=
- struct nft_set *set,
- {
- 	struct nft_set_bind_check_args args;
-=20
-+	if (!list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS)
-+		return -EBUSY;
-+
- 	if (set->flags & NFT_SET_MAP) {
- 		args.iter.skip 	=3D 0;
- 		args.iter.count	=3D 0;
-@@ -1988,8 +1991,13 @@ int nf_tables_bind_set(const struct nft_ctx *ctx=
-, struct nft_set *set,
- 		args.ctx	=3D ctx;
-=20
- 		set->ops->walk(set, &args.iter);
--		if (args.iter.err < 0)
-+		if (args.iter.err < 0) {
-+			/* Destroy anonymous sets if binding fails */
-+			if (set->flags & NFT_SET_ANONYMOUS)
-+				nf_tables_set_destroy(ctx, set);
-+
- 			return args.iter.err;
-+		}
- 	}
-=20
- 	binding->chain =3D ctx->chain;
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/=
+nf_tables.h
+index 2301b74..a3defd8 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -303,8 +303,8 @@ static inline void *nft_expr_priv(const struct nft_=
+expr *expr)
+ struct nft_rule {
+ 	struct list_head		list;
+ 	struct rcu_head			rcu_head;
+-	u64				handle;
+-	u16				dlen;
++	u64				handle:48,
++					dlen:16;
+ 	unsigned char			data[]
+ 		__attribute__((aligned(__alignof__(struct nft_expr))));
+ };
 --=20
 1.7.11.7
 
