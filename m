@@ -1,7 +1,7 @@
 From: kaber@trash.net
-Subject: =?UTF-8?q?=5BPATCH=201/5=5D=20netfilter=3A=20nf=5Ftables=3A=20fix=20anonymous=20sets?=
-Date: Mon, 10 Dec 2012 18:20:08 +0100
-Message-ID: <1355160012-13952-2-git-send-email-kaber@trash.net>
+Subject: =?UTF-8?q?=5BPATCH=203/5=5D=20netfilter=3A=20nf=5Ftables=3A=20destroy=20anonymous=20sets=20immediately=20if=20binding=20fails?=
+Date: Mon, 10 Dec 2012 18:20:10 +0100
+Message-ID: <1355160012-13952-4-git-send-email-kaber@trash.net>
 References: <1355160012-13952-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -9,9 +9,9 @@ Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36283 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:36284 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751006Ab2LJRbl (ORCPT
+	with ESMTP id S1751337Ab2LJRbl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 10 Dec 2012 12:31:41 -0500
 In-Reply-To: <1355160012-13952-1-git-send-email-kaber@trash.net>
@@ -20,42 +20,47 @@ List-ID: <netfilter-devel.vger.kernel.org>
 
 =46rom: Patrick McHardy <kaber@trash.net>
 
-Commit a109bd34 (netfilter: nf_tables: don't report anonymous sets) bro=
-ke
-use of anonymous sets by not reporting the created set name to userspac=
-e
-anymore. Anonymous sets are created using "set%d", the notification is
-needed so elements can be added to the finally chosen name.
-
-set set%d@filter/inet <anonymous,constant>
-	key: type 12 len 4
-set set%d@filter/inet
-element 0x00000002
-element 0x00000001
-internal:0:0-0: Error: Could not add set elements: Object not found
+Treat a failed binding similar to binding+unbinding and destroy the
+set immediately to avoid leaving stray sets in the table.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- net/netfilter/nf_tables_api.c | 3 +--
- 1 Datei ge=C3=A4ndert, 1 Zeile hinzugef=C3=BCgt(+), 2 Zeilen entfernt(=
+ net/netfilter/nf_tables_api.c | 10 +++++++++-
+ 1 Datei ge=C3=A4ndert, 9 Zeilen hinzugef=C3=BCgt(+), 1 Zeile entfernt(=
 -)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_ap=
 i.c
-index f701dc0..570b877 100644
+index 570b877..c0f0cf06e 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -1915,8 +1915,7 @@ static int nf_tables_newset(struct sock *nlsk, st=
-ruct sk_buff *skb,
- 		goto err2;
+@@ -1980,6 +1980,9 @@ int nf_tables_bind_set(const struct nft_ctx *ctx,=
+ struct nft_set *set,
+ {
+ 	struct nft_set_bind_check_args args;
 =20
- 	list_add_tail(&set->list, &table->sets);
--	if (!(set->flags & NFT_SET_ANONYMOUS))
--		nf_tables_set_notify(&ctx, set, NFT_MSG_NEWSET);
-+	nf_tables_set_notify(&ctx, set, NFT_MSG_NEWSET);
- 	return 0;
++	if (!list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS)
++		return -EBUSY;
++
+ 	if (set->flags & NFT_SET_MAP) {
+ 		args.iter.skip 	=3D 0;
+ 		args.iter.count	=3D 0;
+@@ -1988,8 +1991,13 @@ int nf_tables_bind_set(const struct nft_ctx *ctx=
+, struct nft_set *set,
+ 		args.ctx	=3D ctx;
 =20
- err2:
+ 		set->ops->walk(set, &args.iter);
+-		if (args.iter.err < 0)
++		if (args.iter.err < 0) {
++			/* Destroy anonymous sets if binding fails */
++			if (set->flags & NFT_SET_ANONYMOUS)
++				nf_tables_set_destroy(ctx, set);
++
+ 			return args.iter.err;
++		}
+ 	}
+=20
+ 	binding->chain =3D ctx->chain;
 --=20
 1.7.11.7
 
