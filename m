@@ -1,102 +1,132 @@
-From: Willem de Bruijn <willemb@google.com>
-Subject: [PATCH] [rfc] a bpf compilation tool for xt_bpf
-Date: Sun,  9 Dec 2012 17:52:38 -0500
-Message-ID: <1355093558-27931-1-git-send-email-willemb@google.com>
-References: <1355082854-31853-1-git-send-email-willemb@google.com>
-Cc: Willem de Bruijn <willemb@google.com>
-To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+From: Abhijit Pawar <abhi.c.pawar@gmail.com>
+Subject: [PATCH RESEND] net: remove obsolete simple_strto<foo>
+Date: Mon, 10 Dec 2012 14:42:28 +0530
+Message-ID: <1355130748-7828-1-git-send-email-abhi.c.pawar@gmail.com>
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, linux-wireless@vger.kernel.org,
+	Abhijit Pawar <abhi.c.pawar@gmail.com>
+To: "David S. Miller" <davem@davemloft.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	"John W. Linville" <linville@tuxdriver.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	Cong Wang <amwang@redhat.com>,
+	Eric Dumazet <edumazet@google.com>,
+	Neil Horman <nhorman@tuxdriver.com>,
+	Joe Perches <joe@perches.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:35489 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934578Ab2LIWwr (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:41296 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752142Ab2LJJNS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 9 Dec 2012 17:52:47 -0500
-Received: by mail-bk0-f74.google.com with SMTP id je9so133988bkc.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 09 Dec 2012 14:52:45 -0800 (PST)
-In-Reply-To: <1355082854-31853-1-git-send-email-willemb@google.com>
+	Mon, 10 Dec 2012 04:13:18 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-An example tool to convert textual BPF into the instructions
-acceptable by xt_bpf. This is mostly boilerplate around existing
-pcap calls.
+This patch replace the obsolete simple_strto<foo> with kstrto<foo>
 
-I do not intend this for submission as is. It adds a dependency
-on pcap, which would at the least have to be optional and detected
-by autoconf.
+Signed-off-by: Abhijit Pawar <abhi.c.pawar@gmail.com>
 ---
- utils/Makefile.am   |    3 ++-
- utils/bpf_compile.c |   47 +++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 49 insertions(+), 1 deletions(-)
- create mode 100644 utils/bpf_compile.c
+ net/core/netpoll.c                 |    5 ++++-
+ net/ipv4/netfilter/ipt_CLUSTERIP.c |    9 +++++++--
+ net/mac80211/debugfs_sta.c         |    3 +++
+ net/netfilter/nf_conntrack_core.c  |    5 ++++-
+ 4 files changed, 18 insertions(+), 4 deletions(-)
 
-diff --git a/utils/Makefile.am b/utils/Makefile.am
-index f1bbfc5..4c67292 100644
---- a/utils/Makefile.am
-+++ b/utils/Makefile.am
-@@ -4,7 +4,8 @@ AM_CFLAGS = ${regular_CFLAGS}
- AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_builddir}/include \
-               -I${top_srcdir}/include ${libnfnetlink_CFLAGS}
+diff --git a/net/core/netpoll.c b/net/core/netpoll.c
+index 77a0388..12c129f 100644
+--- a/net/core/netpoll.c
++++ b/net/core/netpoll.c
+@@ -674,7 +674,8 @@ int netpoll_parse_options(struct netpoll *np, char *opt)
+ 		if ((delim = strchr(cur, '@')) == NULL)
+ 			goto parse_failed;
+ 		*delim = 0;
+-		np->local_port = simple_strtol(cur, NULL, 10);
++		if (kstrtou16(cur, 10, &np->local_port))
++			goto parse_failed;
+ 		cur = delim;
+ 	}
+ 	cur++;
+@@ -706,6 +707,8 @@ int netpoll_parse_options(struct netpoll *np, char *opt)
+ 		if (*cur == ' ' || *cur == '\t')
+ 			np_info(np, "warning: whitespace is not allowed\n");
+ 		np->remote_port = simple_strtol(cur, NULL, 10);
++		if (kstrtou16(cur, 10, &np->remote_port))
++			goto parse_failed;
+ 		cur = delim;
+ 	}
+ 	cur++;
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index fe5daea..75e33a7 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -661,6 +661,7 @@ static ssize_t clusterip_proc_write(struct file *file, const char __user *input,
+ #define PROC_WRITELEN	10
+ 	char buffer[PROC_WRITELEN+1];
+ 	unsigned long nodenum;
++	int rc;
  
--sbin_PROGRAMS = nfnl_osf
-+sbin_PROGRAMS = nfnl_osf bpf_compile
- pkgdata_DATA = pf.os
+ 	if (size > PROC_WRITELEN)
+ 		return -EIO;
+@@ -669,11 +670,15 @@ static ssize_t clusterip_proc_write(struct file *file, const char __user *input,
+ 	buffer[size] = 0;
  
- nfnl_osf_LDADD = -lnfnetlink
-+bpf_compile_LDADD = -lpcap
-diff --git a/utils/bpf_compile.c b/utils/bpf_compile.c
-new file mode 100644
-index 0000000..62f7bc8
---- /dev/null
-+++ b/utils/bpf_compile.c
-@@ -0,0 +1,47 @@
-+/*
-+ * BPF program compilation tool
-+ *
-+ * Written by Willem de Bruijn (willemb@google.com)
-+ * Copyright Google, Inc. 2012
-+ * Licensed under the GNU General Public License version 2 (GPLv2)
-+*/
-+
-+#include <pcap.h>
-+#include <stdio.h>
-+
-+int main(int argc, char **argv)
-+{
-+	struct bpf_program program;
-+	struct bpf_insn *ins;
-+	int i, dlt = DLT_RAW;
-+
-+	if (argc < 2 || argc > 3) {
-+		fprintf(stderr, "Usage: %s [linktype] <program>\n"
-+				"       linktype is one of EN10MB, RAW, ...\n"
-+				"       program must be one parameter\n",
-+				argv[0]);
-+		return 1;
-+	}
-+
-+	if (argc == 3) {
-+		dlt = pcap_datalink_name_to_val(argv[1]);
-+		if (dlt == -1) {
-+			fprintf(stderr, "Unknown datalinktype: %s\n", argv[1]);
-+			return 1;
-+		}
-+	}
-+
-+	printf("Using datalinktype %s\n", pcap_datalink_val_to_name(dlt));
-+	if (pcap_compile_nopcap(65535, dlt, &program, argv[argc - 1], 1, 0)) {
-+		fprintf(stderr, "Compilation error\n");
-+		return 1;
-+	}
-+
-+	printf("%d\n", program.bf_len);
-+	ins = program.bf_insns;
-+	for (i = 0; i < program.bf_len; ++ins, ++i)
-+		printf("%u %u %u %u\n", ins->code, ins->jt, ins->jf, ins->k);
-+
-+	return 0;
-+}
-+
+ 	if (*buffer == '+') {
+-		nodenum = simple_strtoul(buffer+1, NULL, 10);
++		rc = kstrtoul(buffer+1, 10, &nodenum);
++		if (rc)
++			return rc;
+ 		if (clusterip_add_node(c, nodenum))
+ 			return -ENOMEM;
+ 	} else if (*buffer == '-') {
+-		nodenum = simple_strtoul(buffer+1, NULL,10);
++		rc = kstrtoul(buffer+1, 10, &nodenum);
++		if (rc)
++			return rc;
+ 		if (clusterip_del_node(c, nodenum))
+ 			return -ENOENT;
+ 	} else
+diff --git a/net/mac80211/debugfs_sta.c b/net/mac80211/debugfs_sta.c
+index 49a1c70..0dedb4b 100644
+--- a/net/mac80211/debugfs_sta.c
++++ b/net/mac80211/debugfs_sta.c
+@@ -221,6 +221,9 @@ static ssize_t sta_agg_status_write(struct file *file, const char __user *userbu
+ 		return -EINVAL;
+ 
+ 	tid = simple_strtoul(buf, NULL, 0);
++	ret = kstrtoul(buf, 0, &tid);
++	if (ret)
++		return ret;
+ 
+ 	if (tid >= IEEE80211_NUM_TIDS)
+ 		return -EINVAL;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index af17516..37d9e62 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1409,7 +1409,7 @@ EXPORT_SYMBOL_GPL(nf_ct_alloc_hashtable);
+ 
+ int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp)
+ {
+-	int i, bucket;
++	int i, bucket, rc;
+ 	unsigned int hashsize, old_size;
+ 	struct hlist_nulls_head *hash, *old_hash;
+ 	struct nf_conntrack_tuple_hash *h;
+@@ -1423,6 +1423,9 @@ int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp)
+ 		return param_set_uint(val, kp);
+ 
+ 	hashsize = simple_strtoul(val, NULL, 0);
++	rc = kstrtouint(val, 0, &hashsize);
++	if (rc)
++		return rc;
+ 	if (!hashsize)
+ 		return -EINVAL;
+ 
 -- 
-1.7.7.3
+1.7.7.6
 
