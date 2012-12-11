@@ -1,40 +1,29 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: Re: how to monitor changes in kernel tables
-Date: Tue, 11 Dec 2012 17:52:19 +0100
-Message-ID: <50C764C3.5060204@6wind.com>
-References: <1355137694.470612479@f293.mail.ru>
-Reply-To: nicolas.dichtel@6wind.com
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 2/2] net: remove obsolete simple_strto<foo>
+Date: Tue, 11 Dec 2012 12:51:23 -0500 (EST)
+Message-ID: <20121211.125123.1239332621724872493.davem@davemloft.net>
+References: <1355203852-12749-1-git-send-email-abhi.c.pawar@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: aalexh@mail.ru
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:49479 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754094Ab2LKQwX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Dec 2012 11:52:23 -0500
-Received: by mail-ee0-f46.google.com with SMTP id e53so2334574eek.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Dec 2012 08:52:22 -0800 (PST)
-In-Reply-To: <1355137694.470612479@f293.mail.ru>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, kaber@trash.net, kuznet@ms2.inr.ac.ru,
+	jmorris@namei.org, yoshfuji@linux-ipv6.org, linville@tuxdriver.com,
+	johannes@sipsolutions.net, amwang@redhat.com, edumazet@google.com,
+	nhorman@tuxdriver.com, joe@perches.com, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	linux-wireless@vger.kernel.org
+To: abhi.c.pawar@gmail.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1355203852-12749-1-git-send-email-abhi.c.pawar@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Le 10/12/2012 12:08, aalexh@mail.ru a =C3=A9crit :
-> Hi everyone,
-> I wonder are there any ready to use and correct from netfilter design=
- point of view API to monitor changes in kernel tables?
-There is no mechanism to monitor netfilter tables.
+From: Abhijit Pawar <abhi.c.pawar@gmail.com>
+Date: Tue, 11 Dec 2012 11:00:52 +0530
 
-Here is a proposal to do that: http://patchwork.ozlabs.org/patch/186468=
-/
-but the patch has been rejected for now because netfilter system will b=
-e=20
-reworked soon.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> This patch removes the redundant occurences of simple_strto<foo>
+> 
+> Signed-off-by: Abhijit Pawar <abhi.c.pawar@gmail.com>
+
+Applied.
