@@ -1,36 +1,68 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/5] netfilter: nf_tables: nf_tables update
-Date: Tue, 11 Dec 2012 02:42:39 +0100
-Message-ID: <20121211014239.GA18063@1984>
-References: <1355160012-13952-1-git-send-email-kaber@trash.net>
+Subject: Re: [PATCH] fix conntrack reassembly expire code
+Date: Tue, 11 Dec 2012 02:50:20 +0100
+Message-ID: <20121211015019.GA18425@1984>
+References: <1354873337-3776-1-git-send-email-haibbo@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33742 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751470Ab2LKBmo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Dec 2012 20:42:44 -0500
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org
+To: haibbo@gmail.com
+Return-path: <netfilter-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1355160012-13952-1-git-send-email-kaber@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1354873337-3776-1-git-send-email-haibbo@gmail.com>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Dec 10, 2012 at 06:20:07PM +0100, kaber@trash.net wrote:
-> The following patches for nf_tables fix a few bugs and introduct
-> loop detection:
-> 
-> - anonymous sets are currently broken since we're not reporting the
->   chosen set name to userspace anymore
-> 
-> - save 48 bits per rule by reducing the handle size and plugging a whole
-> 
-> - destroy anonymous sets immediately when binding fails since there
->   will be no unbinding operation
-> 
-> - add loop detection for new jump verdicts
-> 
-> Please apply, thanks!
+Hi Haibbo,
 
-All applied, thanks a lot Patrick!
+On Fri, Dec 07, 2012 at 05:42:17PM +0800, haibbo@gmail.com wrote:
+> From: Haibo Xi <haibbo@gmail.com>
+> 
+> Commit b836c99fd6c9 (ipv6: unify conntrack reassembly expire
+> code with standard one) use the standard IPv6 reassembly
+> code(ip6_expire_frag_queue) to handle conntrack reassembly expire.
+> 
+> In ip6_expire_frag_queue, it invoke dev_get_by_index_rcu to get
+> which device received this expired packet.so we must save ifindex
+> when NF_conntrack get this packet.
+> 
+> With this patch applied, I can see ICMP Time Exceeded sent
+> from the receiver when the sender sent out 1/2 fragmented
+> IPv6 packet.
+> 
+> Signed-off-by: Haibo Xi <haibbo@gmail.com>
+> ---
+>  net/ipv6/netfilter/nf_conntrack_reasm.c |    7 ++++++-
+>  1 files changed, 6 insertions(+), 1 deletions(-)
+> 
+> diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+> index 22c8ea9..e7197be 100644
+> --- a/net/ipv6/netfilter/nf_conntrack_reasm.c
+> +++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+> @@ -196,6 +196,7 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
+>  	struct sk_buff *prev, *next;
+>  	unsigned int payload_len;
+>  	int offset, end;
+> +	struct net_device *dev = NULL;
+
+This assignation above is superfluous.
+
+>  	if (fq->q.last_in & INET_FRAG_COMPLETE) {
+>  		pr_debug("Already completed\n");
+> @@ -311,7 +312,11 @@ found:
+>  	else
+>  		fq->q.fragments = skb;
+>  
+> -	skb->dev = NULL;
+> +	dev = skb->dev;
+> +	if (dev) {
+> +		fq->iif = dev->ifindex;
+> +		skb->dev = NULL;
+> +	}
+>  	fq->q.stamp = skb->tstamp;
+>  	fq->q.meat += skb->len;
+>  	if (payload_len > fq->q.max_size)
+> -- 
+> 1.7.0.4
+> 
