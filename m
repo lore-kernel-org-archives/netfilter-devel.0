@@ -1,151 +1,69 @@
-From: kaber@trash.net
-Subject: =?UTF-8?q?=5BPATCH=2011/11=5D=20netfilter=3A=20nf=5Ftables=3A=20include=20NLM=5FF=5FAPPEND/NLM=5FF=5FREPLACE=20flags=20in=20rule=20notification?=
-Date: Wed, 12 Dec 2012 19:47:41 +0100
-Message-ID: <1355338061-5517-12-git-send-email-kaber@trash.net>
-References: <1355338061-5517-1-git-send-email-kaber@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
-To: pablo@netfilter.org
+From: Andrew Collins <bsderandrew@gmail.com>
+Subject: [PATCH] netfilter: nf_nat: Also handle non-ESTABLISHED routing changes in MASQUERADE
+Date: Wed, 12 Dec 2012 16:49:27 -0700
+Message-ID: <1355356167-10397-1-git-send-email-bsderandrew@gmail.com>
+To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63176 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754503Ab2LLSrx (ORCPT
+Received: from mail-da0-f46.google.com ([209.85.210.46]:40930 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754860Ab2LLXtg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Dec 2012 13:47:53 -0500
-In-Reply-To: <1355338061-5517-1-git-send-email-kaber@trash.net>
+	Wed, 12 Dec 2012 18:49:36 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: Patrick McHardy <kaber@trash.net>
+The MASQUERADE target now handles routing changes which affect
+the output interface of a connection, but only for ESTABLISHED
+connections.  It is also possible for NEW connections which
+already have a conntrack entry to be affected by routing changes.
 
-Since the ruleset is ordered, userspace needs to know about NLM_F_APPEN=
-D to
-properly interpret a NEWRULE message. In case of replacement we usually=
- don't
-send a DELX+NEWX message but a NEWX message with the NLM_F_REPLACE flag=
-=2E
+This adds a check to drop entries in the NEW+conntrack state
+when the oif has changed.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Andrew Collins <bsderandrew@gmail.com>
 ---
- net/netfilter/nf_tables_api.c | 21 ++++++++++-----------
- 1 Datei ge=C3=A4ndert, 10 Zeilen hinzugef=C3=BCgt(+), 11 Zeilen entfer=
-nt(-)
+ net/ipv4/netfilter/iptable_nat.c |   15 ++++++++++-----
+ 1 files changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_ap=
-i.c
-index bbd463e..c4e4baa 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1126,7 +1126,7 @@ static const struct nla_policy nft_rule_policy[NF=
-TA_RULE_MAX + 1] =3D {
- };
-=20
- static int nf_tables_fill_rule_info(struct sk_buff *skb, u32 portid, u=
-32 seq,
--				    int event, int family,
-+				    int event, u32 flags, int family,
- 				    const struct nft_table *table,
- 				    const struct nft_chain *chain,
- 				    const struct nft_rule *rule)
-@@ -1137,7 +1137,8 @@ static int nf_tables_fill_rule_info(struct sk_buf=
-f *skb, u32 portid, u32 seq,
- 	struct nlattr *list;
-=20
- 	event |=3D NFNL_SUBSYS_NFTABLES << 8;
--	nlh =3D nlmsg_put(skb, portid, seq, event, sizeof(struct nfgenmsg), 0=
-);
-+	nlh =3D nlmsg_put(skb, portid, seq, event, sizeof(struct nfgenmsg),
-+			flags);
- 	if (nlh =3D=3D NULL)
- 		goto nla_put_failure;
- 	nlh->nlmsg_flags	=3D portid ? NLM_F_MULTI : 0;
-@@ -1179,7 +1180,7 @@ static int nf_tables_rule_notify(const struct sk_=
-buff *oskb,
- 				 const struct nft_table *table,
- 				 const struct nft_chain *chain,
- 				 const struct nft_rule *rule,
--				 int event, int family)
-+				 int event, u32 flags, int family)
- {
- 	struct sk_buff *skb;
- 	u32 portid =3D NETLINK_CB(oskb).portid;
-@@ -1197,7 +1198,7 @@ static int nf_tables_rule_notify(const struct sk_=
-buff *oskb,
- 	if (skb =3D=3D NULL)
- 		goto err;
-=20
--	err =3D nf_tables_fill_rule_info(skb, portid, seq, event,
-+	err =3D nf_tables_fill_rule_info(skb, portid, seq, event, flags,
- 				       family, table, chain, rule);
- 	if (err < 0) {
- 		kfree_skb(skb);
-@@ -1237,7 +1238,7 @@ static int nf_tables_dump_rules(struct sk_buff *s=
-kb,
- 						       sizeof(cb->args) - sizeof(cb->args[0]));
- 					if (nf_tables_fill_rule_info(skb, NETLINK_CB(cb->skb).portid,
- 								      cb->nlh->nlmsg_seq,
--								      NFT_MSG_NEWRULE,
-+								      NFT_MSG_NEWRULE, 0,
- 								      afi->family, table, chain, rule) < 0)
- 						goto done;
- cont:
-@@ -1292,7 +1293,7 @@ static int nf_tables_getrule(struct sock *nlsk, s=
-truct sk_buff *skb,
- 		return -ENOMEM;
-=20
- 	err =3D nf_tables_fill_rule_info(skb2, NETLINK_CB(skb).portid,
--				       nlh->nlmsg_seq, NFT_MSG_NEWRULE,
-+				       nlh->nlmsg_seq, NFT_MSG_NEWRULE, 0,
- 				       family, table, chain, rule);
- 	if (err < 0)
- 		goto err;
-@@ -1415,9 +1416,6 @@ static int nf_tables_newrule(struct sock *nlsk, s=
-truct sk_buff *skb,
-=20
- 	if (nlh->nlmsg_flags & NLM_F_REPLACE) {
- 		list_replace_rcu(&old_rule->list, &rule->list);
--
--		nf_tables_rule_notify(skb, nlh, table, chain, old_rule,
--				      NFT_MSG_DELRULE, nfmsg->nfgen_family);
- 		nf_tables_rule_destroy(old_rule);
- 	} else if (nlh->nlmsg_flags & NLM_F_APPEND)
- 		list_add_tail_rcu(&rule->list, &chain->rules);
-@@ -1425,6 +1423,7 @@ static int nf_tables_newrule(struct sock *nlsk, s=
-truct sk_buff *skb,
- 		list_add_rcu(&rule->list, &chain->rules);
-=20
- 	nf_tables_rule_notify(skb, nlh, table, chain, rule, NFT_MSG_NEWRULE,
-+			      nlh->nlmsg_flags & (NLM_F_APPEND | NLM_F_REPLACE),
- 			      nfmsg->nfgen_family);
- 	return 0;
-=20
-@@ -1470,7 +1469,7 @@ static int nf_tables_delrule(struct sock *nlsk, s=
-truct sk_buff *skb,
- 		list_del_rcu(&rule->list);
-=20
- 		nf_tables_rule_notify(skb, nlh, table, chain, rule,
--				      NFT_MSG_DELRULE, family);
-+				      NFT_MSG_DELRULE, 0, family);
- 		nf_tables_rule_destroy(rule);
- 	} else {
- 		/* Remove all rules in this chain */
-@@ -1478,7 +1477,7 @@ static int nf_tables_delrule(struct sock *nlsk, s=
-truct sk_buff *skb,
- 			list_del_rcu(&rule->list);
-=20
- 			nf_tables_rule_notify(skb, nlh, table, chain, rule,
--					      NFT_MSG_DELRULE, family);
-+					      NFT_MSG_DELRULE, 0, family);
- 			nf_tables_rule_destroy(rule);
- 		}
+diff --git a/net/ipv4/netfilter/iptable_nat.c b/net/ipv4/netfilter/iptable_nat.c
+index da2c8a3..eeaff7e 100644
+--- a/net/ipv4/netfilter/iptable_nat.c
++++ b/net/ipv4/netfilter/iptable_nat.c
+@@ -124,23 +124,28 @@ nf_nat_ipv4_fn(unsigned int hooknum,
+ 			ret = nf_nat_rule_find(skb, hooknum, in, out, ct);
+ 			if (ret != NF_ACCEPT)
+ 				return ret;
+-		} else
++		} else {
+ 			pr_debug("Already setup manip %s for ct %p\n",
+ 				 maniptype == NF_NAT_MANIP_SRC ? "SRC" : "DST",
+ 				 ct);
++			if (nf_nat_oif_changed(hooknum, ctinfo, nat, out))
++				goto oif_changed;
++		}
+ 		break;
+ 
+ 	default:
+ 		/* ESTABLISHED */
+ 		NF_CT_ASSERT(ctinfo == IP_CT_ESTABLISHED ||
+ 			     ctinfo == IP_CT_ESTABLISHED_REPLY);
+-		if (nf_nat_oif_changed(hooknum, ctinfo, nat, out)) {
+-			nf_ct_kill_acct(ct, ctinfo, skb);
+-			return NF_DROP;
+-		}
++		if (nf_nat_oif_changed(hooknum, ctinfo, nat, out))
++			goto oif_changed;
  	}
---=20
-1.7.11.7
+ 
+ 	return nf_nat_packet(ct, ctinfo, hooknum, skb);
++
++oif_changed:
++	nf_ct_kill_acct(ct, ctinfo, skb);
++	return NF_DROP;
+ }
+ 
+ static unsigned int
+-- 
+1.7.1
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
