@@ -1,7 +1,7 @@
 From: kaber@trash.net
-Subject: =?UTF-8?q?=5BPATCH=2009/11=5D=20netfilter=3A=20nf=5Ftables=3A=20return=20error=20for=20rule=20change=20request?=
-Date: Wed, 12 Dec 2012 19:47:39 +0100
-Message-ID: <1355338061-5517-10-git-send-email-kaber@trash.net>
+Subject: =?UTF-8?q?=5BPATCH=2008/11=5D=20netfilter=3A=20nf=5Ftables=3A=20remove=20ability=20to=20specify=20handles=20for=20new=20rules?=
+Date: Wed, 12 Dec 2012 19:47:38 +0100
+Message-ID: <1355338061-5517-9-git-send-email-kaber@trash.net>
 References: <1355338061-5517-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -9,40 +9,72 @@ Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63176 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:63174 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754383Ab2LLSrw (ORCPT
+	with ESMTP id S1754214Ab2LLSrv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Dec 2012 13:47:52 -0500
+	Wed, 12 Dec 2012 13:47:51 -0500
 In-Reply-To: <1355338061-5517-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 =46rom: Patrick McHardy <kaber@trash.net>
 
-We only support full replacement, not change of a rule.
+Does not serve any useful purpose, simply remove it. Also return an
+error if neither a handle nor NLM_F_CREATE is specified.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- net/netfilter/nf_tables_api.c | 2 +-
- 1 Datei ge=C3=A4ndert, 1 Zeile hinzugef=C3=BCgt(+), 1 Zeile entfernt(-=
-)
+ net/netfilter/nf_tables_api.c | 31 +++++++++++++------------------
+ 1 Datei ge=C3=A4ndert, 13 Zeilen hinzugef=C3=BCgt(+), 18 Zeilen entfer=
+nt(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_ap=
 i.c
-index bacd417..c91f638 100644
+index afda73f..bacd417 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -1372,7 +1372,7 @@ static int nf_tables_newrule(struct sock *nlsk, s=
-truct sk_buff *skb,
- 			old_rule =3D rule;
- 			rule =3D NULL;
- 		} else
--			return 0;
-+			return -EOPNOTSUPP;
- 	} else {
- 		if (!create)
- 			return -EINVAL;
+@@ -1363,26 +1363,21 @@ static int nf_tables_newrule(struct sock *nlsk,=
+ struct sk_buff *skb,
+ 	if (nla[NFTA_RULE_HANDLE]) {
+ 		handle =3D be64_to_cpu(nla_get_be64(nla[NFTA_RULE_HANDLE]));
+ 		rule =3D __nf_tables_rule_lookup(chain, handle);
+-		if (IS_ERR(rule)) {
+-			if (PTR_ERR(rule) !=3D -ENOENT)
+-				return PTR_ERR(rule);
+-			rule =3D NULL;
+-		}
++		if (IS_ERR(rule))
++			return PTR_ERR(rule);
+=20
+-		if (rule !=3D NULL) {
+-			if (nlh->nlmsg_flags & NLM_F_EXCL)
+-				return -EEXIST;
+-			if (nlh->nlmsg_flags & NLM_F_REPLACE) {
+-				old_rule =3D rule;
+-				rule =3D NULL;
+-			} else
+-				return 0;
+-		}
+-	} else
++		if (nlh->nlmsg_flags & NLM_F_EXCL)
++			return -EEXIST;
++		if (nlh->nlmsg_flags & NLM_F_REPLACE) {
++			old_rule =3D rule;
++			rule =3D NULL;
++		} else
++			return 0;
++	} else {
++		if (!create)
++			return -EINVAL;
+ 		handle =3D nf_tables_alloc_handle(table);
+-
+-	if (handle =3D=3D 0)
+-		return -EINVAL;
++	}
+=20
+ 	n =3D 0;
+ 	size =3D 0;
 --=20
 1.7.11.7
 
