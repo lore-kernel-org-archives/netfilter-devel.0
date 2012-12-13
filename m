@@ -1,36 +1,24 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH v2] netfilter: nf_nat: Also handle non-ESTABLISHED routing
- changes in MASQUERADE
-Date: Thu, 13 Dec 2012 09:19:27 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1212130918410.2048@blackhole.kfki.hu>
-References: <1355358229-25167-1-git-send-email-bsderandrew@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Formal submission of Xtables2
+Date: Thu, 13 Dec 2012 12:00:46 +0100
+Message-ID: <20121213110046.GA22337@1984>
+References: <alpine.LNX.2.01.1212130601210.9421@nerf07.vanv.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Andrew Collins <bsderandrew@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1355358229-25167-1-git-send-email-bsderandrew@gmail.com>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Netfilter user mailing list <netfilter@vger.kernel.org>
+To: Jan Engelhardt <jengelh@inai.de>
+Return-path: <netfilter-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.01.1212130601210.9421@nerf07.vanv.qr>
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 12 Dec 2012, Andrew Collins wrote:
+On Thu, Dec 13, 2012 at 07:00:07AM +0100, Jan Engelhardt wrote:
+[...]
+> Please consider for merging.
 
-> The MASQUERADE target now handles routing changes which affect
-> the output interface of a connection, but only for ESTABLISHED
-> connections.  It is also possible for NEW connections which
-> already have a conntrack entry to be affected by routing changes.
-> 
-> This adds a check to drop entries in the NEW+conntrack state
-> when the oif has changed.
-> 
-> Signed-off-by: Andrew Collins <bsderandrew@gmail.com>
-
-Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+nftables and its compatibility layer already provide this and we will
+not have to maintain two different netlink interfaces, which is too
+much overhead.
