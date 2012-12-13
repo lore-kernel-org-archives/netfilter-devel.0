@@ -1,91 +1,55 @@
-From: "Bob Hockney" <bhockney@ix.netcom.com>
-Subject: [PATCH] nfnetlink_log mac address for 6in4 tunnels
-Date: Thu, 13 Dec 2012 10:37:02 -0700
-Message-ID: <000601cdd958$76ea7a00$64bf6e00$@ix.netcom.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: Formal submission of Xtables2
+Date: Thu, 13 Dec 2012 19:19:28 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1212131826040.5486@nerf07.vanv.qr>
+References: <alpine.LNX.2.01.1212130601210.9421@nerf07.vanv.qr> <20121213110046.GA22337@1984> <alpine.LNX.2.01.1212131214100.20007@nerf07.vanv.qr> <20121213120509.GA26118@1984> <alpine.LNX.2.01.1212131405170.786@nerf07.vanv.qr> <20121213142820.GA3489@1984>
+ <alpine.LNX.2.01.1212131528410.1273@nerf07.vanv.qr> <20121213151615.GA6962@1984> <alpine.LNX.2.01.1212131623480.10856@nerf07.vanv.qr> <20121213172523.GB14333@1984>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from elasmtp-dupuy.atl.sa.earthlink.net ([209.86.89.62]:59277 "EHLO
-	elasmtp-dupuy.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755767Ab2LMRhE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Dec 2012 12:37:04 -0500
-Received: from [24.49.174.127] (helo=DESKTOPBOB)
-	by elasmtp-dupuy.atl.sa.earthlink.net with esmtpsa (TLSv1:AES128-SHA:128)
-	(Exim 4.67)
-	(envelope-from <bhockney@ix.netcom.com>)
-	id 1TjCiV-0006GX-SD
-	for netfilter-devel@vger.kernel.org; Thu, 13 Dec 2012 12:37:04 -0500
-Content-Language: en-us
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Netfilter user mailing list <netfilter@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <20121213172523.GB14333@1984>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 
-For tunneled ipv6in4 packets, the LOG target (xt_LOG.c) adjusts the start of
-the mac field to start at the ethernet header instead of the ipv4 header for
-the tunnel.  This patch conforms what is passed by the NFLOG target through
-nfnetlink to what the LOG target does.  Code borrowed from xt_LOG.c.
+On Thursday 2012-12-13 18:25, Pablo Neira Ayuso wrote:
+>> >> turn out to work these days.
+>> >
+>> >Nobody is going to throw everything overboard. Nftables is backward
+>> >compatible while providing a new framework[,]
+>> 
+>> That sounds just like xt2. Compatibility exists such that there is a 
+>> defined mapping from xt1->xt2 rules (at one point I did write a 
+>> setsockopt translator in the past...); the userspace tool mimics 
+>> iptables in syntax, though I have allowed myself to not have certain 
+>> options in the CLI tool.
+>
+>We provided that compatibility layer that mimics iptables in Oct 2012
+>[1]. However, it seems you prefered to code it your way from almost
+>scratch, that's confusing.
 
-Here are before and after log lines.  The kernel: lines are with the LOG
-target, the ulogd lines are with NFLOG, ulogd and its SYSLOG  plugin:
+That's just not true; I did post before on the xt2 matter as well,
+in its various stages.
 
-Log lines for the same packet, before patch:
+xtables2_a8: http://marc.info/?l=netfilter-devel&m=132699055220975&w=2
+xtables2_a7: https://lwn.net/Articles/426896/
+             https://lwn.net/Articles/417619/
 
-Dec  3 09:07:22 gateway kernel: [   69.268396] INVALID IN=he-ipv6 OUT=eth1
-MAC=00:50:8d:bf:02:01:68:ef:bd:f0:7d:d9:08:00:45:00:00:5c:00:00:40:00:fa:29:
-64:c2:42:dc:12:2a:18:31:ae:7f TUNNEL=66.220.18.42->w.x.y.z SRC= ...
-Dec  3 09:07:22 gateway ulogd[1628]: INVALID  IN=he-ipv6 OUT=eth1
-MAC=45:00:00:5c:00:00:40:00:fa:29:64:c2:42:dc:12:2a:18:31:ae:7f:68:00:00:00:
-00:20:06:35:2a:03:28:80:00:10 SRC= ...
-
-Log lines after patch:
-
-Dec  3 09:08:44 gateway kernel: [   32.998288] INVALID IN=he-ipv6 OUT=eth1
-MAC=00:50:8d:bf:02:01:68:ef:bd:f0:7d:d9:08:00:45:00:00:5c:00:00:40:00:fa:29:
-64:c2:42:dc:12:2a:18:31:ae:7f TUNNEL=66.220.18.42->w.x.y.z SRC= ...
-Dec  3 09:08:45 gateway ulogd[1488]: INVALID  IN=he-ipv6 OUT=eth1
-MAC=00:50:8d:bf:02:01:68:ef:bd:f0:7d:d9:08:00:45:00:00:5c:00:00:40:00:fa:29:
-64:c2:42:dc:12:2a:18:31:ae:7f SRC= ...
-
-Signed-off-by: Bob Hockney <bhockney@ix.netcom.com>
-
-===
-
---- a/net/netfilter/nfnetlink_log.c        2012-11-28 17:11:02.285514325
--0700
-+++ b/net/netfilter/nfnetlink_log.c 2012-11-28 17:10:38.551830948 -0700
-@@ -382,6 +382,7 @@
-        struct nfgenmsg *nfmsg;
-        sk_buff_data_t old_tail = inst->skb->tail;
-        struct sock *sk;
-+       const unsigned char *hwhdrp;
-
-        nlh = nlmsg_put(inst->skb, 0, 0,
-                        NFNL_SUBSYS_ULOG << 8 | NFULNL_MSG_PACKET,
-@@ -483,9 +484,16 @@
-        if (indev && skb_mac_header_was_set(skb)) {
-                if (nla_put_be16(inst->skb, NFULA_HWTYPE,
-htons(skb->dev->type)) ||
-                    nla_put_be16(inst->skb, NFULA_HWLEN,
--                                htons(skb->dev->hard_header_len)) ||
--                   nla_put(inst->skb, NFULA_HWHEADER,
-skb->dev->hard_header_len,
--                           skb_mac_header(skb)))
-+                                htons(skb->dev->hard_header_len)))
-+                       goto nla_put_failure;
-+
-+               hwhdrp = skb_mac_header(skb);
-+
-+               if (skb->dev->type == ARPHRD_SIT)
-+                       hwhdrp -= ETH_HLEN;
-+
-+               if (!(hwhdrp < skb->head) && nla_put(inst->skb,
-NFULA_HWHEADER,
-+                           skb->dev->hard_header_len, hwhdrp))
-                        goto nla_put_failure;
-        }
+There is even older experimenting stuff in my git repo, which you
+can look at. (The dates are not forged - you will have to trust me
+on that.)
 
 
+
+Each of us are (understandably) biased, as each has contributed
+to "their" implementation. But, you also have the decisive power
+as the Linux kernel Netfilter subsystem maintainer, and I fear
+that you might use this to reject xt2 to force nft.
+That thought _terrifies_ me, and were it so, it would not be an
+environment I want to work in.
+
+Just say so if I am to GTFO.
