@@ -1,38 +1,51 @@
-From: Florent Fourcot <florent.fourcot@enst-bretagne.fr>
-Subject: [PATCH] Fix comment for packets without data
-Date: Thu, 13 Dec 2012 19:27:28 +0100
-Message-ID: <1355423248-12448-1-git-send-email-florent.fourcot@enst-bretagne.fr>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Florent Fourcot <florent.fourcot@enst-bretagne.fr>
-To: pablo@netfilter.org, yoshfuji@linux-ipv6.org
+From: Rick Jones <rick.jones2@hp.com>
+Subject: Re: [PATCH] Fix comment for packets without data
+Date: Thu, 13 Dec 2012 10:51:22 -0800
+Message-ID: <50CA23AA.1040501@hp.com>
+References: <1355423248-12448-1-git-send-email-florent.fourcot@enst-bretagne.fr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, yoshfuji@linux-ipv6.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Florent Fourcot <florent.fourcot@enst-bretagne.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fourcot.fr ([217.70.191.14]:40199 "EHLO olfflo.fourcot.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756058Ab2LMSjD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Dec 2012 13:39:03 -0500
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:7800 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756566Ab2LMSvZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Dec 2012 13:51:25 -0500
+In-Reply-To: <1355423248-12448-1-git-send-email-florent.fourcot@enst-bretagne.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The double negation is probably a typo error
+On 12/13/2012 10:27 AM, Florent Fourcot wrote:
+> The double negation is probably a typo error
+>
+> Signed-off-by: Florent Fourcot <florent.fourcot@enst-bretagne.fr>
+> ---
+>   net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+> index 00ee17c..d9efe32 100644
+> --- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+> +++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+> @@ -81,7 +81,7 @@ static int ipv6_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
+>   	}
+>   	protoff = ipv6_skip_exthdr(skb, extoff, &nexthdr, &frag_off);
+>   	/*
+> -	 * (protoff == skb->len) mean that the packet doesn't have no data
+> +	 * (protoff == skb->len) mean that the packet does not have any data
+>   	 * except of IPv6 & ext headers. but it's tracked anyway. - YK
+>   	 */
+>   	if (protoff < 0 || (frag_off & htons(~0x7)) != 0) {
+>
 
-Signed-off-by: Florent Fourcot <florent.fourcot@enst-bretagne.fr>
----
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Might as well take it to completion and have it read "(protoff == 
+skb->len) means the packet does not have any data"  or "(protoff == 
+skb->len) means the packet has no data"  Not sure about that next line 
+with the except.  Perhaps "(protoff == skb->len) means the packet has no 
+data, just IPv6 and extension headers, but it is tracked anyway."
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index 00ee17c..d9efe32 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -81,7 +81,7 @@ static int ipv6_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
- 	}
- 	protoff = ipv6_skip_exthdr(skb, extoff, &nexthdr, &frag_off);
- 	/*
--	 * (protoff == skb->len) mean that the packet doesn't have no data
-+	 * (protoff == skb->len) mean that the packet does not have any data
- 	 * except of IPv6 & ext headers. but it's tracked anyway. - YK
- 	 */
- 	if (protoff < 0 || (frag_off & htons(~0x7)) != 0) {
--- 
-1.7.10.4
-
+rick jones
