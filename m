@@ -1,39 +1,43 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 00/11] netfilter: nf_tables: small cleanups and netlink
- fixes
-Date: Fri, 14 Dec 2012 08:16:52 +0100
-Message-ID: <20121214071652.GA7731@1984>
-References: <1355338061-5517-1-git-send-email-kaber@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+From: Florent Fourcot <florent.fourcot@enst-bretagne.fr>
+Subject: [PATCH] Fix comment for packets without data
+Date: Fri, 14 Dec 2012 11:53:33 +0100
+Message-ID: <1355482413-18629-1-git-send-email-florent.fourcot@enst-bretagne.fr>
+References: <50CA23AA.1040501@hp.com>
+Cc: pablo@netfilter.org, yoshfuji@linux-ipv6.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Florent Fourcot <florent.fourcot@enst-bretagne.fr>
+To: rick.jones2@hp.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44166 "EHLO mail.us.es"
+Received: from fourcot.fr ([217.70.191.14]:42324 "EHLO olfflo.fourcot.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753719Ab2LNHRB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 14 Dec 2012 02:17:01 -0500
-Content-Disposition: inline
-In-Reply-To: <1355338061-5517-1-git-send-email-kaber@trash.net>
+	id S1751323Ab2LNKxy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 14 Dec 2012 05:53:54 -0500
+In-Reply-To: <50CA23AA.1040501@hp.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Dec 12, 2012 at 07:47:30PM +0100, kaber@trash.net wrote:
-> The following patches clean up a few minor things and fix a couple of netlink
-> issues:
-> 
-> - rename of pid to portid for consistency
-> - revert patch to include use attribute only sent by the kernel in nla_policy 
-> - move the hgenerator to the table to save a bit memory
-> - move the chain policy to basechains
-> - send netlink notifications for basechain policy changes
-> - introduce a chain handle and fix chain renames
-> - fix an invalid event type for rule GET operations
-> - remove ability to specify handles for new rules
-> - return an error for unsupported rule change requests
-> - return an error for rule replacement requests without a rule
-> - include NLM_F_APPEND/NLM_F_REPLACE in NEWRULE messages
-> 
-> Please apply, thanks.
+Remove ambiguity of double negation
 
-All applied, thanks a lot Patrick.
+Signed-off-by: Florent Fourcot <florent.fourcot@enst-bretagne.fr>
+---
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+index 00ee17c..137e245 100644
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -81,8 +81,8 @@ static int ipv6_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
+ 	}
+ 	protoff = ipv6_skip_exthdr(skb, extoff, &nexthdr, &frag_off);
+ 	/*
+-	 * (protoff == skb->len) mean that the packet doesn't have no data
+-	 * except of IPv6 & ext headers. but it's tracked anyway. - YK
++	 * (protoff == skb->len) means the packet has not data, just
++	 * IPv6 and possibly extensions headers, but it is tracked anyway
+ 	 */
+ 	if (protoff < 0 || (frag_off & htons(~0x7)) != 0) {
+ 		pr_debug("ip6_conntrack_core: can't find proto in pkt\n");
+-- 
+1.7.10.4
+
