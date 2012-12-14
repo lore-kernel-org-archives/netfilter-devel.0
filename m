@@ -1,51 +1,39 @@
-From: Rick Jones <rick.jones2@hp.com>
-Subject: Re: [PATCH] Fix comment for packets without data
-Date: Thu, 13 Dec 2012 10:51:22 -0800
-Message-ID: <50CA23AA.1040501@hp.com>
-References: <1355423248-12448-1-git-send-email-florent.fourcot@enst-bretagne.fr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 00/11] netfilter: nf_tables: small cleanups and netlink
+ fixes
+Date: Fri, 14 Dec 2012 08:16:52 +0100
+Message-ID: <20121214071652.GA7731@1984>
+References: <1355338061-5517-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, yoshfuji@linux-ipv6.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Florent Fourcot <florent.fourcot@enst-bretagne.fr>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:7800 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756566Ab2LMSvZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Dec 2012 13:51:25 -0500
-In-Reply-To: <1355423248-12448-1-git-send-email-florent.fourcot@enst-bretagne.fr>
+Received: from mail.us.es ([193.147.175.20]:44166 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753719Ab2LNHRB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 14 Dec 2012 02:17:01 -0500
+Content-Disposition: inline
+In-Reply-To: <1355338061-5517-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 12/13/2012 10:27 AM, Florent Fourcot wrote:
-> The double negation is probably a typo error
->
-> Signed-off-by: Florent Fourcot <florent.fourcot@enst-bretagne.fr>
-> ---
->   net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-> index 00ee17c..d9efe32 100644
-> --- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-> +++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-> @@ -81,7 +81,7 @@ static int ipv6_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
->   	}
->   	protoff = ipv6_skip_exthdr(skb, extoff, &nexthdr, &frag_off);
->   	/*
-> -	 * (protoff == skb->len) mean that the packet doesn't have no data
-> +	 * (protoff == skb->len) mean that the packet does not have any data
->   	 * except of IPv6 & ext headers. but it's tracked anyway. - YK
->   	 */
->   	if (protoff < 0 || (frag_off & htons(~0x7)) != 0) {
->
+On Wed, Dec 12, 2012 at 07:47:30PM +0100, kaber@trash.net wrote:
+> The following patches clean up a few minor things and fix a couple of netlink
+> issues:
+> 
+> - rename of pid to portid for consistency
+> - revert patch to include use attribute only sent by the kernel in nla_policy 
+> - move the hgenerator to the table to save a bit memory
+> - move the chain policy to basechains
+> - send netlink notifications for basechain policy changes
+> - introduce a chain handle and fix chain renames
+> - fix an invalid event type for rule GET operations
+> - remove ability to specify handles for new rules
+> - return an error for unsupported rule change requests
+> - return an error for rule replacement requests without a rule
+> - include NLM_F_APPEND/NLM_F_REPLACE in NEWRULE messages
+> 
+> Please apply, thanks.
 
-Might as well take it to completion and have it read "(protoff == 
-skb->len) means the packet does not have any data"  or "(protoff == 
-skb->len) means the packet has no data"  Not sure about that next line 
-with the except.  Perhaps "(protoff == skb->len) means the packet has no 
-data, just IPv6 and extension headers, but it is tracked anyway."
-
-rick jones
+All applied, thanks a lot Patrick.
