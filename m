@@ -1,56 +1,59 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Resend: One bug in the xt_hashlimit.c
-Date: Mon, 17 Dec 2012 00:01:20 +0100
-Message-ID: <20121216230120.GA5191@1984>
-References: <CA+6hz4oJ3g3z49z44nN02DJtkHDkF5tiNH-nDH3thdD3GYUg7A@mail.gmail.com>
- <alpine.LNX.2.01.1212161822470.27614@nerf07.vanv.qr>
+Subject: Re: Formal submission of Xtables2
+Date: Mon, 17 Dec 2012 00:57:51 +0100
+Message-ID: <20121216235751.GA7528@1984>
+References: <alpine.LNX.2.01.1212130601210.9421@nerf07.vanv.qr>
+ <20121213110046.GA22337@1984>
+ <20121214094141.GO2606@workstation>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Feng Gao <gfree.wind@gmail.com>, laforge@netfilter.org,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@inai.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51109 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750981Ab2LPXBY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 16 Dec 2012 18:01:24 -0500
+Cc: Netfilter user mailing list <netfilter@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: Andreas Herz <andi@geekosphere.org>
+Return-path: <netfilter-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.01.1212161822470.27614@nerf07.vanv.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20121214094141.GO2606@workstation>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Dec 16, 2012 at 06:39:56PM +0100, Jan Engelhardt wrote:
-[...]
-> What would you think of the following patch?
+Hi Andreas,
+
+On Fri, Dec 14, 2012 at 10:41:41AM +0100, Andreas Herz wrote:
+> On 13/12/12 at 12:00, Pablo Neira Ayuso wrote:
+> > On Thu, Dec 13, 2012 at 07:00:07AM +0100, Jan Engelhardt wrote:
+> > [...]
+> > > Please consider for merging.
+> > 
+> > nftables and its compatibility layer already provide this and we will
+> > not have to maintain two different netlink interfaces, which is too
+> > much overhead.
 > 
-> diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-> index 26a668a..0d17032 100644
-> --- a/net/netfilter/xt_hashlimit.c
-> +++ b/net/netfilter/xt_hashlimit.c
-> @@ -591,9 +591,11 @@ hashlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
->  		goto hotdrop;
->  
->  	rcu_read_lock_bh();
-> +	spin_lock_bh();
->  	dh = dsthash_find(hinfo, &dst);
->  	if (dh == NULL) {
->  		dh = dsthash_alloc_init(hinfo, &dst);
-> +		spin_unlock_bh();
+> Apart of your discussion (i think it's quite interesting although
+> you might not agree), is there a summary of the status of nftables?
+> The last time i read about it, while i was at the university, i
+> thought it was dead.  I read that Patrick McHardy was the one
+> pushing the project but never heard any news after 2010. Now i read
+> that Pablo is taking care of it.
 
-This is sub-optimal and RCU becomes almost useless with this approach.
+It's true that nftables suffered an hiatus in its development, but
+we're back on it and there has been quite a lot of activity on it
+recently. This is the kernel branch, you can check the changelog here:
 
-The way to fix this is to follow a similar approach to what
-nf_conntrack does to avoid this race.
+http://1984.lsi.us.es/git/nf-next/log/?h=nf_tables8
 
->  		if (dh == NULL) {
->  			rcu_read_unlock_bh();
->  			goto hotdrop;
-> @@ -601,6 +603,7 @@ hashlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
->  		dh->expires = jiffies + msecs_to_jiffies(hinfo->cfg.expire);
->  		rateinfo_init(dh, hinfo);
->  	} else {
-> +		spin_unlock_bh();
->  		/* update expiration timeout */
->  		dh->expires = now + msecs_to_jiffies(hinfo->cfg.expire);
->  		rateinfo_recalc(dh, now, hinfo->cfg.mode);
+And there's an iptables compatibility layer that is ready for IPv4,
+you can find details here:
+
+http://www.spinics.net/lists/netfilter-devel/msg23831.html
+
+> So i would love to hear more details on the roadmap for nftables, might
+> be interesting for me and my work here.
+
+I understand you want to know more on the future of nftables, but
+because the way I am, I prefer to skip "hot air" wording by now and
+talk on code done anytime soon.
+
+So I have to request some patience from you. We promise to deliver as
+much information as possible once we are done with the core features.
+
+Thanks.
