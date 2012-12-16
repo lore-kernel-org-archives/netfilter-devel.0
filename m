@@ -1,45 +1,53 @@
-From: Jan Engelhardt <jengelh@inai.de>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
 Subject: Re: tc ipt action
-Date: Sun, 16 Dec 2012 01:59:33 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1212160144110.26218@nerf07.vanv.qr>
-References: <50C4821D.5090206@gmail.com> <50C9B4BB.9060609@mojatatu.com> <50CCE961.5050204@mojatatu.com> <20121216002755.GA11773@1984>
+Date: Sun, 16 Dec 2012 05:22:13 -0500
+Message-ID: <50CDA0D5.5080209@mojatatu.com>
+References: <50C4821D.5090206@gmail.com> <50C9B4BB.9060609@mojatatu.com> <50CCE961.5050204@mojatatu.com> <alpine.LNX.2.01.1212160002330.4901@nerf07.vanv.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Jamal Hadi Salim <jhs@mojatatu.com>,
-	Yury Stankevich <urykhy@gmail.com>, shemonc@gmail.com,
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Yury Stankevich <urykhy@gmail.com>, shemonc@gmail.com,
 	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20121216002755.GA11773@1984>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	pablo@netfilter.org, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ia0-f174.google.com ([209.85.210.174]:46071 "EHLO
+	mail-ia0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752330Ab2LPKWQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 16 Dec 2012 05:22:16 -0500
+Received: by mail-ia0-f174.google.com with SMTP id y25so4579830iay.19
+        for <netfilter-devel@vger.kernel.org>; Sun, 16 Dec 2012 02:22:15 -0800 (PST)
+In-Reply-To: <alpine.LNX.2.01.1212160002330.4901@nerf07.vanv.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+On 12-12-15 06:06 PM, Jan Engelhardt wrote:
 
-On Sunday 2012-12-16 01:27, Pablo Neira Ayuso wrote:
->On Sat, Dec 15, 2012 at 04:19:29PM -0500, Jamal Hadi Salim wrote:
->> Example, the following should work for
->> tc filter add dev eth0 parent ffff: protocol ip u32 match u32 0 0
->> action ipt -j CONNMARK \
->> action mirred egress redirect dev ifb0
->> 
->commit 7299fa4b615d7f7ee12cde444266f6b31f667f9f
->    libxt_CONNMARK: use guided option parser
+> If I try that command (substituting ipt->xt and eth0->dummy0,
+> ifb0->dummy1), all I get is the dreaded "Invalid argument".
+> So the kernel rejected the command, which could indicate that
+> userspace construction might have been ok.
 >
->BTW, I think it would be good if we find the way to check for
->libxtables current version (see iptables/configure.ac), so you can
->know that we broke binary compatibility again.
+> # tc filter add dev dummy0 parent ffff: protocol ip u32 match u32 0 0 \
+> action xt -j CONNMARK action mirred egress redirect dev dummy1
+>
+> tablename: mangle hook: NF_IP_PRE_ROUTING
+>          target:  CONNMARK and 0x0 index 0
+> RTNETLINK answers: Invalid argument
+> We have an error talking to the kernel
+>
 
-For the C level, there is XTABLES_VERSION_CODE.
+No problem sending it to the kernel here on ubuntu 12.04.
+I also upgraded to current linus git tree, same result.
+The problem is the parameters are not accepted in user space as
+you can see for connmark and what gets sent (eg CONNMARK and 0x0)
+doesnt seem sensible.
 
-#if XTABLES_VERSION_CODE >= 6
-	if (m != NULL && m->x6_parse != NULL)
-		m->x6_parse(...)
-#else
-	else if (m != NULL && m->parse != NULL)
-		m->parse(...)
-	...
+> What was the last combination that worked?
 
-We can also export this through pkgconfig, similar to how
-downstream users are to discover the plugin dir
-(`pkg-config xtables --variable libdir`).
+First time this got reported to me (or i got CCed on the problem) - I am 
+told it broke after iptables 1.4.11.
+
+cheers,
+jamal
