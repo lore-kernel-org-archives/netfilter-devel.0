@@ -1,80 +1,63 @@
-From: Mike Frysinger <vapier@gentoo.org>
-Subject: Re: [PATCH] build: unbreak linkage of m_xt.so
-Date: Sun, 16 Dec 2012 17:02:22 -0500
-Message-ID: <201212161702.24623.vapier@gentoo.org>
-References: <alpine.LNX.2.01.1212160119060.7193@nerf07.vanv.qr> <1355617968-26138-1-git-send-email-jengelh@inai.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: problem: [PATCH] iptable_REJECT doesn't constructs the tcp
+ reset packet cleanly
+Date: Sun, 16 Dec 2012 23:32:08 +0100
+Message-ID: <20121216223208.GA1304@1984>
+References: <CAAFTS2WV4PbnKREaNZNHMSezTPuG-QcUWONd_MnB54KQVks33w@mail.gmail.com>
+ <20121211005802.GA14525@1984>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart3527860.5BcSLlq8Zt";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Cc: stephen.hemminger@vyatta.com, netdev@vger.kernel.org,
-	jhs@mojatatu.com, urykhy@gmail.com, shemonc@gmail.com,
-	pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
+	kaber@trash.net, linux-kernel@vger.kernel.org
+To: Mukund Jampala <jbmukund@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:58147 "EHLO smtp.gentoo.org"
+Received: from mail.us.es ([193.147.175.20]:49140 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751491Ab2LPWCZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 16 Dec 2012 17:02:25 -0500
-In-Reply-To: <1355617968-26138-1-git-send-email-jengelh@inai.de>
+	id S1751368Ab2LPWcO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 16 Dec 2012 17:32:14 -0500
+Content-Disposition: inline
+In-Reply-To: <20121211005802.GA14525@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---nextPart3527860.5BcSLlq8Zt
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On Tue, Dec 11, 2012 at 01:58:02AM +0100, Pablo Neira Ayuso wrote:
+[...]
+> On Mon, Dec 10, 2012 at 12:48:49PM -0800, Mukund Jampala wrote:
+> > problem description:
+> > The problem occurs when iptables constructs the tcp reset packet.
+> > It doesn't initialize the pointer to the tcp header within the skb.
+> > When the skb is passed to the ixgbe driver for transmit, the ixgbe
+> > driver attempts to access the tcp header and crashes.
+> > Currently, other drivers (such as our 1G e1000e or igb drivers) don't
+> > access the tcp header on transmit unless the TSO option is turned on.
+[...]
+> > Solution: set the skb->trasport_header to a valid data offset in ipt
+> > reject module
+> > 
+> > diff -up net/ipv4/netfilter/ipt_REJECT.c{.orig,}
+> > --- net/ipv4/netfilter/ipt_REJECT.c.orig	2012-12-10 12:08:37.000000000 -0800
+> > +++ net/ipv4/netfilter/ipt_REJECT.c	2012-12-10 12:10:08.000000000 -0800
+> > @@ -79,6 +79,8 @@ static void send_reset(struct sk_buff *o
+> >  	niph->saddr	= oiph->daddr;
+> >  	niph->daddr	= oiph->saddr;
+> > 
+> > +
+> > +	skb_reset_transport_header(nskb);
+> >  	tcph = (struct tcphdr *)skb_put(nskb, sizeof(struct tcphdr));
+> >  	memset(tcph, 0, sizeof(*tcph));
+> >  	tcph->source	= oth->dest;
+> > 
+> > Please let me know if you have any concerns with the patch.
+> 
+> This is a good and extensive diagnosing, thanks a lot.
+> 
+> Regarding your patch format, please, use git format-patch for your
+> upcoming contributions and add the Signed-off-by tag to your patches.
+> It makes
+> 
+> But for this time, I'll do the formatting myself and will take this
+> into the nf tree.
 
-On Saturday 15 December 2012 19:32:48 Jan Engelhardt wrote:
-> --- a/configure
-> +++ b/configure
-> @@ -4,7 +4,6 @@
->  INCLUDE=3D${1:-"$PWD/include"}
->=20
->  : ${PKG_CONFIG:=3Dpkg-config}
->  : ${CC=3Dgcc}
->=20
-> -echo "PKG_CONFIG:=3D${PKG_CONFIG}" >>Config
->=20
->  # Make a temp directory in build tree.
->  TMPDIR=3D$(mktemp -d config.XXXXXX)
-> @@ -224,6 +223,7 @@ rm -f $TMPDIR/ipsettest.c $TMPDIR/ipsettest
->  }
->=20
->  echo "# Generated config based on" $INCLUDE >Config
-> +echo "PKG_CONFIG:=3D${PKG_CONFIG}" >>Config
->=20
->  echo "TC schedulers"
+I have also made the same change for ip6t_REJECT.
 
-the use of un-indented shell functions makes the code read in a way it does=
-n't=20
-actually execute.  i'd suggest moving this logic into a function to match=20
-existing style rather than simply moving the Config write.  i'll post a pat=
-ch.
-=2Dmike
-
---nextPart3527860.5BcSLlq8Zt
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.17 (GNU/Linux)
-
-iQIcBAABAgAGBQJQzkTwAAoJEEFjO5/oN/WBaUgQANArb8UIKUDwXSRAGiCLoaPF
-4v7sB/yW+PxL5t7Wal0XqSM3qWs3Cz7iGm8zJVMnqtJy70GpeBnIHiIzDkWDEEgp
-jpi2nxdKftqQO00rBEoLZdKY4QAtZu2eUvpjuJgHaIqQ2mz2TYUjpas5NUhidljW
-F3r7aqzRDwuOJYnoZv9eq8uWblEPs9N8sR1Jtf9szk2VpbAvtKL8ZnzTzULAVFxZ
-hgt1sXLXlu2EYL/c7oM7kswkf8pkVbNtvocEBnvw9X/oRSQdDq9JEkOzfuap7Dd9
-i/dreyAqwnZnsww8WgAjRfSgpfV8p4B3jFPS7tiID2bxF11Y7RvnVfXS7P5MKO1e
-l50ZnYk8xLlxyy0gVGjuWI7UGPP5HFBIZNmCeqr7S+wE2aLm5o2giaA+Nut8lySg
-HYdAzZO9gTKwkYisV2vx7X5qY9aoJXSK33iGMa7dP1llEIZuylNT9vEBtPqwyt25
-0poT4L49/99MXzY/HZGmNvKxkNeXwD8Y6h9icL8dngwBtbf0yMQS+Mm8uNJSl0On
-EcCzGjk3ktCczgyNFe1aUyoGF//VYAhQrFRnGwsBK+1uGfqwn+rdfQc8nK4oEKpJ
-F9Xtyg3qSYstu1+MqfnU6hfaqLcny2/yk0zsRIJWX6Tag8zypEhM/xfEg+ZAv9sP
-GXyQtwyo6V/XIRa19oLT
-=PWp4
------END PGP SIGNATURE-----
-
---nextPart3527860.5BcSLlq8Zt--
+Applied, thanks Mukund.
