@@ -1,55 +1,46 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] nfnetlink_log mac address for 6in4 tunnels
-Date: Sun, 16 Dec 2012 23:47:47 +0100
-Message-ID: <20121216224747.GA4167@1984>
-References: <000601cdd958$76ea7a00$64bf6e00$@ix.netcom.com>
+Subject: Re: [PATCH] xt_recent fix BUG()
+Date: Sun, 16 Dec 2012 23:50:25 +0100
+Message-ID: <20121216225025.GB4167@1984>
+References: <50C78438.4040102@guap.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Bob Hockney <bhockney@ix.netcom.com>
+To: "Vitaly E. Lavrov" <lve@guap.ru>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50122 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:50324 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750981Ab2LPWrv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 16 Dec 2012 17:47:51 -0500
+	id S1750713Ab2LPWu2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 16 Dec 2012 17:50:28 -0500
 Content-Disposition: inline
-In-Reply-To: <000601cdd958$76ea7a00$64bf6e00$@ix.netcom.com>
+In-Reply-To: <50C78438.4040102@guap.ru>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Dec 13, 2012 at 10:37:02AM -0700, Bob Hockney wrote:
-> 
-> For tunneled ipv6in4 packets, the LOG target (xt_LOG.c) adjusts the start of
-> the mac field to start at the ethernet header instead of the ipv4 header for
-> the tunnel.  This patch conforms what is passed by the NFLOG target through
-> nfnetlink to what the LOG target does.  Code borrowed from xt_LOG.c.
-> 
-> Here are before and after log lines.  The kernel: lines are with the LOG
-> target, the ulogd lines are with NFLOG, ulogd and its SYSLOG  plugin:
-> 
-> Log lines for the same packet, before patch:
-> 
-> Dec  3 09:07:22 gateway kernel: [   69.268396] INVALID IN=he-ipv6 OUT=eth1
-> MAC=00:50:8d:bf:02:01:68:ef:bd:f0:7d:d9:08:00:45:00:00:5c:00:00:40:00:fa:29:
-> 64:c2:42:dc:12:2a:18:31:ae:7f TUNNEL=66.220.18.42->w.x.y.z SRC= ...
-> Dec  3 09:07:22 gateway ulogd[1628]: INVALID  IN=he-ipv6 OUT=eth1
-> MAC=45:00:00:5c:00:00:40:00:fa:29:64:c2:42:dc:12:2a:18:31:ae:7f:68:00:00:00:
-> 00:20:06:35:2a:03:28:80:00:10 SRC= ...
-> 
-> Log lines after patch:
-> 
-> Dec  3 09:08:44 gateway kernel: [   32.998288] INVALID IN=he-ipv6 OUT=eth1
-> MAC=00:50:8d:bf:02:01:68:ef:bd:f0:7d:d9:08:00:45:00:00:5c:00:00:40:00:fa:29:
-> 64:c2:42:dc:12:2a:18:31:ae:7f TUNNEL=66.220.18.42->w.x.y.z SRC= ...
-> Dec  3 09:08:45 gateway ulogd[1488]: INVALID  IN=he-ipv6 OUT=eth1
-> MAC=00:50:8d:bf:02:01:68:ef:bd:f0:7d:d9:08:00:45:00:00:5c:00:00:40:00:fa:29:
-> 64:c2:42:dc:12:2a:18:31:ae:7f SRC= ...
+Hi Vitaly,
 
-Applied.
+On Tue, Dec 11, 2012 at 11:06:32PM +0400, Vitaly E. Lavrov wrote:
+> The following patch fixes a bug in xt_recent.
+> Bug appears at the end of work the networks namespace, provided that
+> the tables (filter/mangle/raw) have rule  with xt_recent.
+> The error occurs because the __net_exit recent_net_exit() is
+> executed before the tables are cleared.
+> Change this order of calls is impossible, since tables must be
+> registered earlier than extensions.
+> Bug exists in all versions of the kernel since 2.6.35
+> 
+> Cleaning tables before completing the network namespace can be used
+> as a workaround.
+> 
+> Idea of the patch that if the files are deleted from the directory
+> /proc/net/xt_recent" procedure XXXXX, then a flag is set "clean".
+> If cleaning the tables occurs later and the flag "clean" is set,
+> then the delete files is skipped.
+> 
+> Patch for kernel 3.4.22
 
-Please, next time you have to base your patch on some recent linux
-kernel tree. You can get it via git or just some snapshot via
-kernel.org, I'm telling this because I had to rebase this patch upon
-current.
+I need that the patch applies to some more recent kernel tree.
 
-Thanks Bob.
+Same comment for the hashlimit fix.
+
+Could you send me a new round rebased upon it, please? Thanks.
