@@ -1,108 +1,48 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: Resend: One bug in the xt_hashlimit.c
-Date: Sun, 16 Dec 2012 18:39:56 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1212161822470.27614@nerf07.vanv.qr>
-References: <CA+6hz4oJ3g3z49z44nN02DJtkHDkF5tiNH-nDH3thdD3GYUg7A@mail.gmail.com>
+Subject: Re: [PATCH] build: unbreak linkage of m_xt.so
+Date: Sun, 16 Dec 2012 18:43:03 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1212161841070.27614@nerf07.vanv.qr>
+References: <alpine.LNX.2.01.1212160119060.7193@nerf07.vanv.qr> <1355617968-26138-1-git-send-email-jengelh@inai.de> <50CDA2DA.3060805@mojatatu.com> <50CDFEFB.2070208@mojatatu.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, laforge@netfilter.org,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Feng Gao <gfree.wind@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:37004 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751586Ab2LPRj7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 16 Dec 2012 12:39:59 -0500
-In-Reply-To: <CA+6hz4oJ3g3z49z44nN02DJtkHDkF5tiNH-nDH3thdD3GYUg7A@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: stephen.hemminger@vyatta.com, vapier@gentoo.org,
+	netdev@vger.kernel.org, urykhy@gmail.com, shemonc@gmail.com,
+	pablo@netfilter.org, netfilter-devel@vger.kernel.org
+To: Jamal Hadi Salim <jhs@mojatatu.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <50CDFEFB.2070208@mojatatu.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sunday 2012-12-16 16:19, Feng Gao wrote:
+On Sunday 2012-12-16 18:03, Jamal Hadi Salim wrote:
+
+> On 12-12-16 05:30 AM, Jamal Hadi Salim wrote:
 >
->Hi Harald & Jan,
+>> I can confirm it builds fine for me now if i take out the hack I had and
+>> use this patch.
 >
->Because there is no any response for this issue,so I send the egmail again a
->s a reminder.
-
-Sorry to not have responded. This sort of went under the radar since
-netfilter-devel was initially not Cced. More answers to the patch
-below.
-
->The following codes are from function "hashlimit_mt".
->dh = dsthash_find(hinfo, &dst);
->if (dh == NULL) {
->dh = dsthash_alloc_init(hinfo, &dst);
 >
->When two or more threads invoke dsthash_find(hinfo, &dst) at the same time
->and fail to find the dh, then all of them will enter the dsthash_alloc_init
->to create one new node.
->As a result, it will casue that these multiple threads create multle nodes
->with same IP. It is not expected behavior.
+> Sorry, I take what i said back and went back to explicitly adding -l xtables.
+> The problem is still the intepretation of tc/Makefile. Here's the compile
+> output.
+> ----
+> gcc -Wall -Wstrict-prototypes -O2 -I../include -DRESOLVE_HOSTNAMES
+> -DLIBDIR=\"/usr/lib\" -DCONFDIR=\"/etc/iproute2\" -D_GNU_SOURCE -DCONFIG_GACT
+> -DCONFIG_GACT_PROB -DIPT_LIB_DIR=\"/lib/xtables\" -DYY_NO_INPUT
+> -Wl,-export-dynamic -shared -fpic -o m_xt.so m_xt.c $(pkg-config xtables
+> --cflags --libs)
+> ----
 
->--- net/netfilter/xt_hashlimit.c.orig	2012-12-02 13:54:45.376382165 +0800
->+++ net/netfilter/xt_hashlimit.c	2012-12-02 13:59:32.083381142 +0800
->@@ -157,11 +157,20 @@ dsthash_find(const struct xt_hashlimit_h
-> /* allocate dsthash_ent, initialize dst, put in htable and lock it */
-> static struct dsthash_ent *
-> dsthash_alloc_init(struct xt_hashlimit_htable *ht,
->-		   const struct dsthash_dst *dst)
->+		   const struct dsthash_dst *dst,
->+		   bool *new_node)
-> {
-> 	struct dsthash_ent *ent;
-> 
-> 	spin_lock(&ht->lock);
->+
->+	ent = dsthash_find(ht, dst);
+I saw the same during make, _but_, on running `ldd tc/m_xt.so`, I got a
+libxtables.so entry, so I thought I was fine.
 
-Hm. In hashlimit_mt(), dsthash_find() has already been called once
-(within a RCU_bh section), and now you are doing the lookup again
-(within spin_lock section).
 
->+	if (ent) {        
 
-You have trailing squatspaces (remove them). I suggest that you
-use `mcedit` or `git log -1 -p`, as both these tools highlight
-such unwanted trailing spaces.
+"$() "is something for the shell to expand, not make. See this testcase.
 
->@@ -539,7 +555,7 @@ hashlimit_mt(const struct sk_buff *skb, 
-> 		dh->expires = now + msecs_to_jiffies(hinfo->cfg.expire);
-> 		rateinfo_recalc(dh, now);
-> 	}
->-
->+	
-> 	if (dh->rateinfo.credit >= dh->rateinfo.cost) {
-> 		/* below the limit */
-> 		dh->rateinfo.credit -= dh->rateinfo.cost;
-
-Same spacing issue here.
-
-====
-
-What would you think of the following patch?
-
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 26a668a..0d17032 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -591,9 +591,11 @@ hashlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 		goto hotdrop;
- 
- 	rcu_read_lock_bh();
-+	spin_lock_bh();
- 	dh = dsthash_find(hinfo, &dst);
- 	if (dh == NULL) {
- 		dh = dsthash_alloc_init(hinfo, &dst);
-+		spin_unlock_bh();
- 		if (dh == NULL) {
- 			rcu_read_unlock_bh();
- 			goto hotdrop;
-@@ -601,6 +603,7 @@ hashlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 		dh->expires = jiffies + msecs_to_jiffies(hinfo->cfg.expire);
- 		rateinfo_init(dh, hinfo);
- 	} else {
-+		spin_unlock_bh();
- 		/* update expiration timeout */
- 		dh->expires = now + msecs_to_jiffies(hinfo->cfg.expire);
- 		rateinfo_recalc(dh, now, hinfo->cfg.mode);
+$ make
+echo $(pkg-config xtables --cflags --libs)
+-I/usr/include/iptables-1.4.16.3 -lxtables
+$ cat Makefile 
+a:
+        echo $$(pkg-config xtables --cflags --libs)
