@@ -1,57 +1,43 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: Re: RFC  [PATCH] iproute2:  temporary solution to fix xt breakage
-Date: Mon, 17 Dec 2012 08:12:03 -0800
-Message-ID: <20121217081203.3dc324c8@nehalam.linuxnetplumber.net>
-References: <50C4821D.5090206@gmail.com>
-	<50C9B4BB.9060609@mojatatu.com>
-	<50CCE961.5050204@mojatatu.com>
-	<alpine.LNX.2.01.1212160002330.4901@nerf07.vanv.qr>
-	<CAASe=fQT2pVOK0uctdaKL+aOrF8nYeTMfoF15kmd-rC02+7Vnw@mail.gmail.com>
-	<50CDFB6A.3090806@mojatatu.com>
-	<50CE1A04.1000405@mojatatu.com>
-	<alpine.LNX.2.01.1212162003340.27614@nerf07.vanv.qr>
-	<50CE3203.9080007@mojatatu.com>
-	<50CF1071.1050405@mojatatu.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: Formal submission of Xtables2
+Date: Mon, 17 Dec 2012 21:51:10 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1212171936410.18910@nerf07.vanv.qr>
+References: <20121213142820.GA3489@1984> <alpine.LNX.2.01.1212131528410.1273@nerf07.vanv.qr> <20121213151615.GA6962@1984> <alpine.LNX.2.01.1212131623480.10856@nerf07.vanv.qr> <20121213172523.GB14333@1984> <alpine.LNX.2.01.1212131826040.5486@nerf07.vanv.qr>
+ <20121217000841.GA9331@1984> <alpine.LNX.2.01.1212170214350.29351@nerf07.vanv.qr> <20121217095330.GA17148@1984> <alpine.LNX.2.01.1212171155090.25980@nerf07.vanv.qr> <20121217143018.GB1106@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Hasan Chowdhury <shemonc@gmail.com>,
-	Jan Engelhardt <jengelh@inai.de>,
-	Yury Stankevich <urykhy@gmail.com>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Jamal Hadi Salim <jhs@mojatatu.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:59571 "EHLO mail.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753141Ab2LQQNU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Dec 2012 11:13:20 -0500
-In-Reply-To: <50CF1071.1050405@mojatatu.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Netfilter user mailing list <netfilter@vger.kernel.org>,
+	=?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <20121217143018.GB1106@1984>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 17 Dec 2012 07:30:41 -0500
-Jamal Hadi Salim <jhs@mojatatu.com> wrote:
+On Monday 2012-12-17 15:30, Pablo Neira Ayuso wrote:
 
-> On 12-12-16 03:41 PM, Jamal Hadi Salim wrote:
-> >
-> > There is an "intermediate solution" from Hasan which doesnt require
-> > the kernel change. It changes the kernel endpoint to "ipt". I am
-> > conflicted because it is a quick hack while otoh forcing people to
-> > upgrade kernel is a usability issue.
-> >
-> 
-> 
-> Attached. Author is Hasan - I didnt sign it because i am looking for
-> feedback and i find it distasteful but it solves the problem.
-> This is needed until we have a proper fix in the kernel propagated.
-> Once that kernel change is ubiquitous this change is noise and a
-> maintanance pain. I am making it hard to even turn it on
-> (i.e someone knowledgeable will have to compile with CONFIG_XT_HACK)
-> 
-> cheers,
-> jamal
-> 
-> 
+>On Mon, Dec 17, 2012 at 02:01:07PM +0100, Jan Engelhardt wrote:
+>[...]
+>> >So far, I haven't see any *strong reason* to drop nftables code
+>> 
+>> In all fairness, I have never said anything about dropping nft.
+>> I am focused on xt2, its inclusion and subsequent maintenance, because 
+>> it resolves the ipt shortcomings in a way that I think appeals most to 
+>> the userspace crowd.
+>
+>I'm still not convinced but I want find a short-term compromise
+>solution for this which does not involve tons of email. We'll announce
+>the netfilter workshop soon, likely to happen at Q1 2013 depending on
+>availability of the organizer, but maybe Q2 2013 (but not later), I
+>think it's the place to debate your proposal and nftables, of course.
+>
+>I will not get anything into mainline until then.
 
-Maybe xtables should have stable API/ABI and use shim routines there?
+Delaying this for more months is not a good idea, I think.
+
+The amount of patches will grow as more features are implemented. If
+there is an objection to a patch, then this can have implications for
+all those that follow (not rebase conflicts, but actual
+invalidating), which gets more painful the larger the patchset is.
