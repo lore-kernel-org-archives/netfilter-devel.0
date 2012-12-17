@@ -1,59 +1,36 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: Formal submission of Xtables2
-Date: Mon, 17 Dec 2012 00:57:51 +0100
-Message-ID: <20121216235751.GA7528@1984>
-References: <alpine.LNX.2.01.1212130601210.9421@nerf07.vanv.qr>
- <20121213110046.GA22337@1984>
- <20121214094141.GO2606@workstation>
+Date: Mon, 17 Dec 2012 01:08:41 +0100
+Message-ID: <20121217000841.GA9331@1984>
+References: <20121213110046.GA22337@1984>
+ <alpine.LNX.2.01.1212131214100.20007@nerf07.vanv.qr>
+ <20121213120509.GA26118@1984>
+ <alpine.LNX.2.01.1212131405170.786@nerf07.vanv.qr>
+ <20121213142820.GA3489@1984>
+ <alpine.LNX.2.01.1212131528410.1273@nerf07.vanv.qr>
+ <20121213151615.GA6962@1984>
+ <alpine.LNX.2.01.1212131623480.10856@nerf07.vanv.qr>
+ <20121213172523.GB14333@1984>
+ <alpine.LNX.2.01.1212131826040.5486@nerf07.vanv.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter user mailing list <netfilter@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: Andreas Herz <andi@geekosphere.org>
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Netfilter user mailing list <netfilter@vger.kernel.org>
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20121214094141.GO2606@workstation>
+In-Reply-To: <alpine.LNX.2.01.1212131826040.5486@nerf07.vanv.qr>
 Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Andreas,
+On Thu, Dec 13, 2012 at 07:19:28PM +0100, Jan Engelhardt wrote:
+[...]
+> Each of us are (understandably) biased, as each has contributed
+> to "their" implementation. But, you also have the decisive power as
+> the Linux kernel Netfilter subsystem maintainer, and I fear that you
+> might use this to reject xt2 to force nft.
 
-On Fri, Dec 14, 2012 at 10:41:41AM +0100, Andreas Herz wrote:
-> On 13/12/12 at 12:00, Pablo Neira Ayuso wrote:
-> > On Thu, Dec 13, 2012 at 07:00:07AM +0100, Jan Engelhardt wrote:
-> > [...]
-> > > Please consider for merging.
-> > 
-> > nftables and its compatibility layer already provide this and we will
-> > not have to maintain two different netlink interfaces, which is too
-> > much overhead.
-> 
-> Apart of your discussion (i think it's quite interesting although
-> you might not agree), is there a summary of the status of nftables?
-> The last time i read about it, while i was at the university, i
-> thought it was dead.  I read that Patrick McHardy was the one
-> pushing the project but never heard any news after 2010. Now i read
-> that Pablo is taking care of it.
-
-It's true that nftables suffered an hiatus in its development, but
-we're back on it and there has been quite a lot of activity on it
-recently. This is the kernel branch, you can check the changelog here:
-
-http://1984.lsi.us.es/git/nf-next/log/?h=nf_tables8
-
-And there's an iptables compatibility layer that is ready for IPv4,
-you can find details here:
-
-http://www.spinics.net/lists/netfilter-devel/msg23831.html
-
-> So i would love to hear more details on the roadmap for nftables, might
-> be interesting for me and my work here.
-
-I understand you want to know more on the future of nftables, but
-because the way I am, I prefer to skip "hot air" wording by now and
-talk on code done anytime soon.
-
-So I have to request some patience from you. We promise to deliver as
-much information as possible once we are done with the core features.
-
-Thanks.
+I have to ask you to stick to technical arguments. Discrediting me
+here in the mailing list and everywhere and using irritating wording
+will not help to get this mainstream. Stop this.
