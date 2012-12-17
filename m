@@ -1,97 +1,59 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v3] netfilter: nf_conntrack_sip: Handle Cisco 7941/7945
- IP phones
-Date: Mon, 17 Dec 2012 01:44:57 +0100
-Message-ID: <20121217004457.GA12234@1984>
-References: <f0955e6c2110044fa058d0f3ecf945ca@localhost>
- <1290412334.2756.141.camel@edumazet-laptop>
- <1355703441.18919.6.camel@shinybook.infradead.org>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: Formal submission of Xtables2
+Date: Mon, 17 Dec 2012 02:39:07 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1212170214350.29351@nerf07.vanv.qr>
+References: <20121213110046.GA22337@1984> <alpine.LNX.2.01.1212131214100.20007@nerf07.vanv.qr> <20121213120509.GA26118@1984> <alpine.LNX.2.01.1212131405170.786@nerf07.vanv.qr> <20121213142820.GA3489@1984> <alpine.LNX.2.01.1212131528410.1273@nerf07.vanv.qr>
+ <20121213151615.GA6962@1984> <alpine.LNX.2.01.1212131623480.10856@nerf07.vanv.qr> <20121213172523.GB14333@1984> <alpine.LNX.2.01.1212131826040.5486@nerf07.vanv.qr> <20121217000841.GA9331@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Kevin Cernekee <cernekee@gmail.com>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: David Woodhouse <dwmw2@infradead.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Netfilter user mailing list <netfilter@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57956 "EHLO mail.us.es"
+Received: from ares07.inai.de ([5.9.24.206]:38220 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751442Ab2LQApD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 16 Dec 2012 19:45:03 -0500
-Content-Disposition: inline
-In-Reply-To: <1355703441.18919.6.camel@shinybook.infradead.org>
+	id S1751491Ab2LQBjJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 16 Dec 2012 20:39:09 -0500
+In-Reply-To: <20121217000841.GA9331@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi David,
+On Monday 2012-12-17 01:08, Pablo Neira Ayuso wrote:
 
-On Mon, Dec 17, 2012 at 12:17:21AM +0000, David Woodhouse wrote:
-> On Mon, 2010-11-22 at 08:52 +0100, Eric Dumazet wrote:
-> > Le dimanche 21 novembre 2010 =E0 18:40 -0800, Kevin Cernekee a =E9c=
-rit :
-> > > [v3:
-> > >   Only activate the new forced_dport logic if the IP matches, but=
- the
-> > >   port does not. ]
-> > >=20
-> > > Most SIP devices use a source port of 5060/udp on SIP requests, s=
-o the
-> > > response automatically comes back to port 5060:
-> > >=20
-> > > phone_ip:5060 -> proxy_ip:5060   REGISTER
-> > > proxy_ip:5060 -> phone_ip:5060   100 Trying
-> > >=20
-> > > The newer Cisco IP phones, however, use a randomly chosen high so=
-urce
-> > > port for the SIP request but expect the response on port 5060:
-> > >=20
-> > > phone_ip:49173 -> proxy_ip:5060  REGISTER
-> > > proxy_ip:5060 -> phone_ip:5060   100 Trying
-> > >=20
-> > > Standard Linux NAT, with or without nf_nat_sip, will send the rep=
-ly back
-> > > to port 49173, not 5060:
-> > >=20
-> > > phone_ip:49173 -> proxy_ip:5060  REGISTER
-> > > proxy_ip:5060 -> phone_ip:49173  100 Trying
-> > >=20
-> > > But the phone is not listening on 49173, so it will never see the=
- reply.
-> > >=20
-> > > This patch modifies nf_*_sip to work around this quirk by extract=
-ing
-> > > the SIP response port from the Via: header, iff the source IP in =
-the
-> > > packet header matches the source IP in the SIP request.
-> > >=20
-> > > Signed-off-by: Kevin Cernekee <cernekee@gmail.com>
-> > > ---
-> >=20
-> > Thanks for doing this work Keven !
-> >=20
-> > Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
->=20
-> What happened to this? OpenWRT is still carrying it, and it broke in
-> 3.7. Here's a completely untested update...
+>On Thu, Dec 13, 2012 at 07:19:28PM +0100, Jan Engelhardt wrote:
+>[...]
+>> Each of us are (understandably) biased, as each has contributed
+>> to "their" implementation. But, you also have the decisive power as
+>> the Linux kernel Netfilter subsystem maintainer, and I fear that you
+>> might use this to reject xt2 to force nft.
+>
+>I have to ask you to stick to technical arguments.
 
-I requested Kevin to resend a new version based on the current kernel
-tree while spinning on old pending patches since I have no access to
-that hardware, but no luck.
+Ok, let me try again then. We should merge xtables2, because
+(some selected arguments follow):
 
-So I'll review this and, since OpenWRT is carrying, I guess we can get
-this into net-next merge window.
+ - It brings a NL-type (<- long-sought) interface
 
-Thanks for the reminder.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ - It uses a single table because there simply is no need
+   to have multiple ones. This has benefits for replacement atomicity 
+   guarantees, and gives some memory previously spent for modules
+   back to the user, for example.
+
+ - This table is NFPROTO_UNSPEC which means that the duplication of
+   rules between ip(4)tables and ip6tables users had to make is
+   gone, meaning less maintenance/complexity/etc. for the administrator, 
+   and of course, less rules lead to less memory usage.
+
+ - and because it retains some characteristics, for example
+   atomic replaces and netns.
+
+>You wrote on Thu, 13 Dec 2012 13:05:09 +0100:
+>>I don't think that feature-set provides compelling reasons to push [xt2]
+
+   Not everybody cares about these things, that would be unrealistic.
+   However, some users, and me included, _do have_ an interest in having
+   what is presented, because they do e.g. run containers. Otherwise,
+   we would not be having netns in iptables today, right?
+
+Now, don't dismiss these arguments.
