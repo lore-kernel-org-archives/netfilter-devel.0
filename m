@@ -1,60 +1,157 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: tc ipt action
-Date: Tue, 18 Dec 2012 14:58:56 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1212181426590.24597@nerf07.vanv.qr>
-References: <50C4821D.5090206@gmail.com> <50C9B4BB.9060609@mojatatu.com> <50CCE961.5050204@mojatatu.com> <20121216002755.GA11773@1984> <alpine.LNX.2.01.1212160144110.26218@nerf07.vanv.qr> <50CDA5BE.2080800@mojatatu.com> <alpine.LNX.2.01.1212161815310.27614@nerf07.vanv.qr>
- <50CE0921.7060306@mojatatu.com> <alpine.LNX.2.01.1212161850530.27614@nerf07.vanv.qr> <50CE307E.40304@mojatatu.com> <alpine.LNX.2.01.1212162220270.20281@nerf07.vanv.qr> <50CF16FE.5040300@mojatatu.com> <alpine.LNX.2.01.1212171401180.25980@nerf07.vanv.qr>
- <50D06E66.8000600@mojatatu.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Yury Stankevich <urykhy@gmail.com>, shemonc@gmail.com,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: [PATCH] netfilter: xtables: remove table restrictions from some modules
+Date: Tue, 18 Dec 2012 15:07:01 +0100
+Message-ID: <1355839621-14206-1-git-send-email-jengelh@inai.de>
+Cc: jhs@mojatatu.com, netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:44072 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:44115 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754411Ab2LRN65 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Dec 2012 08:58:57 -0500
-In-Reply-To: <50D06E66.8000600@mojatatu.com>
+	id S1754302Ab2LROHE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Dec 2012 09:07:04 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+I cannot think of a reason to limit the use of these modules to the
+"mangle" table or their hooks. TOS/DSCP is not only used to influence
+a routing decision, for example.
 
-On Tuesday 2012-12-18 14:23, Jamal Hadi Salim wrote:
-> On 12-12-17 08:28 AM, Jan Engelhardt wrote:
->>
->> With act_xt2 as drafted, it instead invokes a chain, which would
->>
->> 1. leave the construction of the target data and calling it
->>    to the subsystems they conceptually belong to - the packet filter
->> 2. lets you do matches, jumps and all that.
->
->I like #2. For #1 as long as it doesnt deviate from desire to have
->one or more instances of targets, we should be fine.
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+---
 
-Chains can store multiple targets, so no loss.
+Are there any pitfalls I am not aware of?
+Could conntrack be upset if TCPOPTSTRIP/CHECKSUM can execute
+at different places?
 
->> Good thing you ask. Chain names are unique within a netns, and this
->> act_xtables.c draft looks at the packet to get to know its netns, so
->> that seems fine.
->
-> My motivation for that question:
-> Is it possible to ignore the hook and tablename and just use the chain
-> name?
 
-1. table
+ net/ipv4/netfilter/ipt_ECN.c   |    1 -
+ net/netfilter/xt_CHECKSUM.c    |    1 -
+ net/netfilter/xt_CLASSIFY.c    |    3 ---
+ net/netfilter/xt_DSCP.c        |    4 ----
+ net/netfilter/xt_HL.c          |    2 --
+ net/netfilter/xt_TCPOPTSTRIP.c |    2 --
+ 6 files changed, 13 deletions(-)
 
-First, I think some targets need to relax their restrictions, such as
-with xt_DSCP.
+diff --git a/net/ipv4/netfilter/ipt_ECN.c b/net/ipv4/netfilter/ipt_ECN.c
+index 4bf3dc4..5508113 100644
+--- a/net/ipv4/netfilter/ipt_ECN.c
++++ b/net/ipv4/netfilter/ipt_ECN.c
+@@ -119,7 +119,6 @@ static struct xt_target ecn_tg_reg __read_mostly = {
+ 	.family		= NFPROTO_IPV4,
+ 	.target		= ecn_tg,
+ 	.targetsize	= sizeof(struct ipt_ECN_info),
+-	.table		= "mangle",
+ 	.checkentry	= ecn_tg_check,
+ 	.me		= THIS_MODULE,
+ };
+diff --git a/net/netfilter/xt_CHECKSUM.c b/net/netfilter/xt_CHECKSUM.c
+index 0f642ef..153d5c3 100644
+--- a/net/netfilter/xt_CHECKSUM.c
++++ b/net/netfilter/xt_CHECKSUM.c
+@@ -51,7 +51,6 @@ static struct xt_target checksum_tg_reg __read_mostly = {
+ 	.family		= NFPROTO_UNSPEC,
+ 	.target		= checksum_tg,
+ 	.targetsize	= sizeof(struct xt_CHECKSUM_info),
+-	.table		= "mangle",
+ 	.checkentry	= checksum_tg_check,
+ 	.me		= THIS_MODULE,
+ };
+diff --git a/net/netfilter/xt_CLASSIFY.c b/net/netfilter/xt_CLASSIFY.c
+index af9c4da..c988093 100644
+--- a/net/netfilter/xt_CLASSIFY.c
++++ b/net/netfilter/xt_CLASSIFY.c
+@@ -42,8 +42,6 @@ static struct xt_target classify_tg_reg[] __read_mostly = {
+ 		.name       = "CLASSIFY",
+ 		.revision   = 0,
+ 		.family     = NFPROTO_UNSPEC,
+-		.hooks      = (1 << NF_INET_LOCAL_OUT) | (1 << NF_INET_FORWARD) |
+-		              (1 << NF_INET_POST_ROUTING),
+ 		.target     = classify_tg,
+ 		.targetsize = sizeof(struct xt_classify_target_info),
+ 		.me         = THIS_MODULE,
+@@ -52,7 +50,6 @@ static struct xt_target classify_tg_reg[] __read_mostly = {
+ 		.name       = "CLASSIFY",
+ 		.revision   = 0,
+ 		.family     = NFPROTO_ARP,
+-		.hooks      = (1 << NF_ARP_OUT) | (1 << NF_ARP_FORWARD),
+ 		.target     = classify_tg,
+ 		.targetsize = sizeof(struct xt_classify_target_info),
+ 		.me         = THIS_MODULE,
+diff --git a/net/netfilter/xt_DSCP.c b/net/netfilter/xt_DSCP.c
+index ae82716..0a9ff64 100644
+--- a/net/netfilter/xt_DSCP.c
++++ b/net/netfilter/xt_DSCP.c
+@@ -118,7 +118,6 @@ static struct xt_target dscp_tg_reg[] __read_mostly = {
+ 		.checkentry	= dscp_tg_check,
+ 		.target		= dscp_tg,
+ 		.targetsize	= sizeof(struct xt_DSCP_info),
+-		.table		= "mangle",
+ 		.me		= THIS_MODULE,
+ 	},
+ 	{
+@@ -127,14 +126,12 @@ static struct xt_target dscp_tg_reg[] __read_mostly = {
+ 		.checkentry	= dscp_tg_check,
+ 		.target		= dscp_tg6,
+ 		.targetsize	= sizeof(struct xt_DSCP_info),
+-		.table		= "mangle",
+ 		.me		= THIS_MODULE,
+ 	},
+ 	{
+ 		.name		= "TOS",
+ 		.revision	= 1,
+ 		.family		= NFPROTO_IPV4,
+-		.table		= "mangle",
+ 		.target		= tos_tg,
+ 		.targetsize	= sizeof(struct xt_tos_target_info),
+ 		.me		= THIS_MODULE,
+@@ -143,7 +140,6 @@ static struct xt_target dscp_tg_reg[] __read_mostly = {
+ 		.name		= "TOS",
+ 		.revision	= 1,
+ 		.family		= NFPROTO_IPV6,
+-		.table		= "mangle",
+ 		.target		= tos_tg6,
+ 		.targetsize	= sizeof(struct xt_tos_target_info),
+ 		.me		= THIS_MODULE,
+diff --git a/net/netfilter/xt_HL.c b/net/netfilter/xt_HL.c
+index 1535e87..4da5db3 100644
+--- a/net/netfilter/xt_HL.c
++++ b/net/netfilter/xt_HL.c
+@@ -137,7 +137,6 @@ static struct xt_target hl_tg_reg[] __read_mostly = {
+ 		.family     = NFPROTO_IPV4,
+ 		.target     = ttl_tg,
+ 		.targetsize = sizeof(struct ipt_TTL_info),
+-		.table      = "mangle",
+ 		.checkentry = ttl_tg_check,
+ 		.me         = THIS_MODULE,
+ 	},
+@@ -147,7 +146,6 @@ static struct xt_target hl_tg_reg[] __read_mostly = {
+ 		.family     = NFPROTO_IPV6,
+ 		.target     = hl_tg6,
+ 		.targetsize = sizeof(struct ip6t_HL_info),
+-		.table      = "mangle",
+ 		.checkentry = hl_tg6_check,
+ 		.me         = THIS_MODULE,
+ 	},
+diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTSTRIP.c
+index 25fd1c4..b42c02e 100644
+--- a/net/netfilter/xt_TCPOPTSTRIP.c
++++ b/net/netfilter/xt_TCPOPTSTRIP.c
+@@ -103,7 +103,6 @@ static struct xt_target tcpoptstrip_tg_reg[] __read_mostly = {
+ 	{
+ 		.name       = "TCPOPTSTRIP",
+ 		.family     = NFPROTO_IPV4,
+-		.table      = "mangle",
+ 		.proto      = IPPROTO_TCP,
+ 		.target     = tcpoptstrip_tg4,
+ 		.targetsize = sizeof(struct xt_tcpoptstrip_target_info),
+@@ -113,7 +112,6 @@ static struct xt_target tcpoptstrip_tg_reg[] __read_mostly = {
+ 	{
+ 		.name       = "TCPOPTSTRIP",
+ 		.family     = NFPROTO_IPV6,
+-		.table      = "mangle",
+ 		.proto      = IPPROTO_TCP,
+ 		.target     = tcpoptstrip_tg6,
+ 		.targetsize = sizeof(struct xt_tcpoptstrip_target_info),
+-- 
+1.7.10.4
 
-Then, only a handful of extensions remain: CT, <all NATs>,
-TPROXY and REJECT. Would anyone want to call these from act_ipt?
-I doubt it. :)
-
-2. hooks
-
-Extensions with hook limit: <NAT>, TPROXY, REJECT, CLASSIFY.
-Again, I don't quite see the value of attempting to NAT from act_ipt.
-CLASSIFY {c|sh?}ould be relaxed, unless I am missing something.
