@@ -1,39 +1,61 @@
 From: Jamal Hadi Salim <jhs@mojatatu.com>
-Subject: Re: RFC [PATCH] iproute2: temporary solution to fix xt breakage
-Date: Tue, 18 Dec 2012 07:28:39 -0500
-Message-ID: <50D06177.2090905@mojatatu.com>
-References: <50C4821D.5090206@gmail.com> <50C9B4BB.9060609@mojatatu.com> <50CCE961.5050204@mojatatu.com> <alpine.LNX.2.01.1212160002330.4901@nerf07.vanv.qr> <CAASe=fQT2pVOK0uctdaKL+aOrF8nYeTMfoF15kmd-rC02+7Vnw@mail.gmail.com> <50CDFB6A.3090806@mojatatu.com> <50CE1A04.1000405@mojatatu.com> <alpine.LNX.2.01.1212162003340.27614@nerf07.vanv.qr> <50CE3203.9080007@mojatatu.com> <50CF1071.1050405@mojatatu.com> <CAASe=fRuJdtisEvp7uo=PHwN3nKHqsYDW4Om1gk2MK-vyNvBrA@mail.gmail.com>
+Subject: Re: tc ipt action
+Date: Tue, 18 Dec 2012 08:23:50 -0500
+Message-ID: <50D06E66.8000600@mojatatu.com>
+References: <50C4821D.5090206@gmail.com> <50C9B4BB.9060609@mojatatu.com> <50CCE961.5050204@mojatatu.com> <20121216002755.GA11773@1984> <alpine.LNX.2.01.1212160144110.26218@nerf07.vanv.qr> <50CDA5BE.2080800@mojatatu.com> <alpine.LNX.2.01.1212161815310.27614@nerf07.vanv.qr> <50CE0921.7060306@mojatatu.com> <alpine.LNX.2.01.1212161850530.27614@nerf07.vanv.qr> <50CE307E.40304@mojatatu.com> <alpine.LNX.2.01.1212162220270.20281@nerf07.vanv.qr> <50CF16FE.5040300@mojatatu.com> <alpine.LNX.2.01.1212171401180.25980@nerf07.vanv.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Stephen Hemminger <shemminger@vyatta.com>,
-	Jan Engelhardt <jengelh@inai.de>,
-	Yury Stankevich <urykhy@gmail.com>,
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Yury Stankevich <urykhy@gmail.com>, shemonc@gmail.com,
 	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Hasan Chowdhury <shemonc@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ie0-f171.google.com ([209.85.223.171]:38386 "EHLO
-	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752924Ab2LRM2v (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Dec 2012 07:28:51 -0500
-Received: by mail-ie0-f171.google.com with SMTP id 17so719811iea.16
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Dec 2012 04:28:50 -0800 (PST)
-In-Reply-To: <CAASe=fRuJdtisEvp7uo=PHwN3nKHqsYDW4Om1gk2MK-vyNvBrA@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+	netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <alpine.LNX.2.01.1212171401180.25980@nerf07.vanv.qr>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 12-12-17 11:10 AM, Hasan Chowdhury wrote:
-> Juts noticed , the attached patch does not have the modification for
-> m_xt.c , without it   ,I guess this patch  is not going  to work.
+On 12-12-17 08:28 AM, Jan Engelhardt wrote:
+>
+> On Monday 2012-12-17 13:58, Jamal Hadi Salim wrote:
 
+> AFAICS, (one instance of) act_ipt today directly invokes (exactly one
+> instance of) a target.
 
-Thats in the first patch i sent out which I hope Stephen will apply
-right away.
-This one depends on that. So you must apply that patch, then this.
+Design intent.
+You can have the same target instance used by specifying the same index
+on the command line.
+
+>With act_xt2 as drafted, it instead invokes a chain, which would
+>
+> 1. leave the construction of the target data and calling it
+>     to the subsystems they conceptually belong to - the packet filter
+> 2. lets you do matches, jumps and all that.
+>
+
+I like #2. For #1 as long as it doesnt deviate from desire to have one 
+or more instances of targets, we should be fine.
+
+> Good thing you ask. Chain names are unique within a netns, and this
+> act_xtables.c draft looks at the packet to get to know its netns, so
+> that seems fine.
+
+My motivation for that question:
+Is it possible to ignore the hook and tablename and just use the chain
+name?
+
+> However, your question also leads to looking at whether TC Actions
+> themselves are sufficiently netns-ified, and it seems this is _not_
+> the case. Am I right in the observation that variables like
+> "tcf_ipt_ht" are in fact global rather tha per-netns?
+
+In general we dont need to worry about netns since actions are attached 
+to the filters which are dependent on qdiscs which are dependent on 
+netdevs which are per netns.
+I believe actions (not filters or qdiscs) have a way where this can
+be circumvented in one scenario (I can configure them bypassing the 
+filter interface). Thanks for bringing this up - I will look at it.
 
 cheers,
 jamal
-
-
