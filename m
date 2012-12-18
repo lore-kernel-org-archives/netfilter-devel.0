@@ -1,157 +1,63 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH] netfilter: xtables: remove table restrictions from some modules
-Date: Tue, 18 Dec 2012 15:07:01 +0100
-Message-ID: <1355839621-14206-1-git-send-email-jengelh@inai.de>
-Cc: jhs@mojatatu.com, netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: Re: [PATCH] build: unbreak linkage of m_xt.so
+Date: Tue, 18 Dec 2012 09:21:30 -0800
+Message-ID: <20121218092130.1d3f4239@nehalam.linuxnetplumber.net>
+References: <alpine.LNX.2.01.1212160119060.7193@nerf07.vanv.qr>
+	<1355617968-26138-1-git-send-email-jengelh@inai.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: stephen.hemminger@vyatta.com, vapier@gentoo.org,
+	netdev@vger.kernel.org, jhs@mojatatu.com, urykhy@gmail.com,
+	shemonc@gmail.com, pablo@netfilter.org,
+	netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:44115 "EHLO ares07.inai.de"
+Received: from mail.vyatta.com ([76.74.103.46]:57742 "EHLO mail.vyatta.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754302Ab2LROHE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Dec 2012 09:07:04 -0500
+	id S1754609Ab2LRRXe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Dec 2012 12:23:34 -0500
+In-Reply-To: <1355617968-26138-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I cannot think of a reason to limit the use of these modules to the
-"mangle" table or their hooks. TOS/DSCP is not only used to influence
-a routing decision, for example.
+On Sun, 16 Dec 2012 01:32:48 +0100
+Jan Engelhardt <jengelh@inai.de> wrote:
 
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
----
+> Commit v3.7.0~10 caused the variable new PKG_CONFIG variable never
+> to be present at the time of calling make, leading to tc/m_xt.so
+> not linked with -lxtables (result from pkg-config xtables --libs),
+> that in turn leading to
+> 
+> tc: symbol lookup error: /usr/lib64/tc//m_xt.so: undefined symbol:
+> xtables_init_all
+> 
+> Fixing that.
+> 
+> Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+> ---
+>  configure |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/configure b/configure
+> index 9912114..573ee55 100755
+> --- a/configure
+> +++ b/configure
+> @@ -4,7 +4,6 @@
+>  INCLUDE=${1:-"$PWD/include"}
+>  : ${PKG_CONFIG:=pkg-config}
+>  : ${CC=gcc}
+> -echo "PKG_CONFIG:=${PKG_CONFIG}" >>Config
+>  
+>  # Make a temp directory in build tree.
+>  TMPDIR=$(mktemp -d config.XXXXXX)
+> @@ -224,6 +223,7 @@ rm -f $TMPDIR/ipsettest.c $TMPDIR/ipsettest
+>  }
+>  
+>  echo "# Generated config based on" $INCLUDE >Config
+> +echo "PKG_CONFIG:=${PKG_CONFIG}" >>Config
+>  
+>  echo "TC schedulers"
+>  
 
-Are there any pitfalls I am not aware of?
-Could conntrack be upset if TCPOPTSTRIP/CHECKSUM can execute
-at different places?
-
-
- net/ipv4/netfilter/ipt_ECN.c   |    1 -
- net/netfilter/xt_CHECKSUM.c    |    1 -
- net/netfilter/xt_CLASSIFY.c    |    3 ---
- net/netfilter/xt_DSCP.c        |    4 ----
- net/netfilter/xt_HL.c          |    2 --
- net/netfilter/xt_TCPOPTSTRIP.c |    2 --
- 6 files changed, 13 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ipt_ECN.c b/net/ipv4/netfilter/ipt_ECN.c
-index 4bf3dc4..5508113 100644
---- a/net/ipv4/netfilter/ipt_ECN.c
-+++ b/net/ipv4/netfilter/ipt_ECN.c
-@@ -119,7 +119,6 @@ static struct xt_target ecn_tg_reg __read_mostly = {
- 	.family		= NFPROTO_IPV4,
- 	.target		= ecn_tg,
- 	.targetsize	= sizeof(struct ipt_ECN_info),
--	.table		= "mangle",
- 	.checkentry	= ecn_tg_check,
- 	.me		= THIS_MODULE,
- };
-diff --git a/net/netfilter/xt_CHECKSUM.c b/net/netfilter/xt_CHECKSUM.c
-index 0f642ef..153d5c3 100644
---- a/net/netfilter/xt_CHECKSUM.c
-+++ b/net/netfilter/xt_CHECKSUM.c
-@@ -51,7 +51,6 @@ static struct xt_target checksum_tg_reg __read_mostly = {
- 	.family		= NFPROTO_UNSPEC,
- 	.target		= checksum_tg,
- 	.targetsize	= sizeof(struct xt_CHECKSUM_info),
--	.table		= "mangle",
- 	.checkentry	= checksum_tg_check,
- 	.me		= THIS_MODULE,
- };
-diff --git a/net/netfilter/xt_CLASSIFY.c b/net/netfilter/xt_CLASSIFY.c
-index af9c4da..c988093 100644
---- a/net/netfilter/xt_CLASSIFY.c
-+++ b/net/netfilter/xt_CLASSIFY.c
-@@ -42,8 +42,6 @@ static struct xt_target classify_tg_reg[] __read_mostly = {
- 		.name       = "CLASSIFY",
- 		.revision   = 0,
- 		.family     = NFPROTO_UNSPEC,
--		.hooks      = (1 << NF_INET_LOCAL_OUT) | (1 << NF_INET_FORWARD) |
--		              (1 << NF_INET_POST_ROUTING),
- 		.target     = classify_tg,
- 		.targetsize = sizeof(struct xt_classify_target_info),
- 		.me         = THIS_MODULE,
-@@ -52,7 +50,6 @@ static struct xt_target classify_tg_reg[] __read_mostly = {
- 		.name       = "CLASSIFY",
- 		.revision   = 0,
- 		.family     = NFPROTO_ARP,
--		.hooks      = (1 << NF_ARP_OUT) | (1 << NF_ARP_FORWARD),
- 		.target     = classify_tg,
- 		.targetsize = sizeof(struct xt_classify_target_info),
- 		.me         = THIS_MODULE,
-diff --git a/net/netfilter/xt_DSCP.c b/net/netfilter/xt_DSCP.c
-index ae82716..0a9ff64 100644
---- a/net/netfilter/xt_DSCP.c
-+++ b/net/netfilter/xt_DSCP.c
-@@ -118,7 +118,6 @@ static struct xt_target dscp_tg_reg[] __read_mostly = {
- 		.checkentry	= dscp_tg_check,
- 		.target		= dscp_tg,
- 		.targetsize	= sizeof(struct xt_DSCP_info),
--		.table		= "mangle",
- 		.me		= THIS_MODULE,
- 	},
- 	{
-@@ -127,14 +126,12 @@ static struct xt_target dscp_tg_reg[] __read_mostly = {
- 		.checkentry	= dscp_tg_check,
- 		.target		= dscp_tg6,
- 		.targetsize	= sizeof(struct xt_DSCP_info),
--		.table		= "mangle",
- 		.me		= THIS_MODULE,
- 	},
- 	{
- 		.name		= "TOS",
- 		.revision	= 1,
- 		.family		= NFPROTO_IPV4,
--		.table		= "mangle",
- 		.target		= tos_tg,
- 		.targetsize	= sizeof(struct xt_tos_target_info),
- 		.me		= THIS_MODULE,
-@@ -143,7 +140,6 @@ static struct xt_target dscp_tg_reg[] __read_mostly = {
- 		.name		= "TOS",
- 		.revision	= 1,
- 		.family		= NFPROTO_IPV6,
--		.table		= "mangle",
- 		.target		= tos_tg6,
- 		.targetsize	= sizeof(struct xt_tos_target_info),
- 		.me		= THIS_MODULE,
-diff --git a/net/netfilter/xt_HL.c b/net/netfilter/xt_HL.c
-index 1535e87..4da5db3 100644
---- a/net/netfilter/xt_HL.c
-+++ b/net/netfilter/xt_HL.c
-@@ -137,7 +137,6 @@ static struct xt_target hl_tg_reg[] __read_mostly = {
- 		.family     = NFPROTO_IPV4,
- 		.target     = ttl_tg,
- 		.targetsize = sizeof(struct ipt_TTL_info),
--		.table      = "mangle",
- 		.checkentry = ttl_tg_check,
- 		.me         = THIS_MODULE,
- 	},
-@@ -147,7 +146,6 @@ static struct xt_target hl_tg_reg[] __read_mostly = {
- 		.family     = NFPROTO_IPV6,
- 		.target     = hl_tg6,
- 		.targetsize = sizeof(struct ip6t_HL_info),
--		.table      = "mangle",
- 		.checkentry = hl_tg6_check,
- 		.me         = THIS_MODULE,
- 	},
-diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTSTRIP.c
-index 25fd1c4..b42c02e 100644
---- a/net/netfilter/xt_TCPOPTSTRIP.c
-+++ b/net/netfilter/xt_TCPOPTSTRIP.c
-@@ -103,7 +103,6 @@ static struct xt_target tcpoptstrip_tg_reg[] __read_mostly = {
- 	{
- 		.name       = "TCPOPTSTRIP",
- 		.family     = NFPROTO_IPV4,
--		.table      = "mangle",
- 		.proto      = IPPROTO_TCP,
- 		.target     = tcpoptstrip_tg4,
- 		.targetsize = sizeof(struct xt_tcpoptstrip_target_info),
-@@ -113,7 +112,6 @@ static struct xt_target tcpoptstrip_tg_reg[] __read_mostly = {
- 	{
- 		.name       = "TCPOPTSTRIP",
- 		.family     = NFPROTO_IPV6,
--		.table      = "mangle",
- 		.proto      = IPPROTO_TCP,
- 		.target     = tcpoptstrip_tg6,
- 		.targetsize = sizeof(struct xt_tcpoptstrip_target_info),
--- 
-1.7.10.4
-
+Ok, manually did the diff (conflicted with other previous changes).
