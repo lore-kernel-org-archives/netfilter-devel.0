@@ -1,44 +1,37 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: NAT pool
-Date: Wed, 19 Dec 2012 10:45:33 +0100
-Message-ID: <20121219094533.GA22434@1984>
-References: <CAOSBYzcjkZiPA7zFC62OoQGdzTiw7c4aavvBE1_FM+Su1x5Mxg@mail.gmail.com>
- <alpine.LNX.2.01.1212182348580.8238@nerf07.vanv.qr>
- <CAOSBYzeWpv_+eoYKHnfkcUctRiDDRDk4=fLOcGsY2usWXA6VPg@mail.gmail.com>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: Re: RFC  [PATCH] iproute2:  temporary solution to fix xt breakage
+Date: Wed, 19 Dec 2012 06:36:52 -0500
+Message-ID: <50D1A6D4.1080307@mojatatu.com>
+References: <50C4821D.5090206@gmail.com> <50C9B4BB.9060609@mojatatu.com> <50CCE961.5050204@mojatatu.com> <alpine.LNX.2.01.1212160002330.4901@nerf07.vanv.qr> <CAASe=fQT2pVOK0uctdaKL+aOrF8nYeTMfoF15kmd-rC02+7Vnw@mail.gmail.com> <50CDFB6A.3090806@mojatatu.com> <50CE1A04.1000405@mojatatu.com> <alpine.LNX.2.01.1212162003340.27614@nerf07.vanv.qr> <50CE3203.9080007@mojatatu.com> <50CF1071.1050405@mojatatu.com> <20121217081203.3dc324c8@nehalam.linuxnetplumber.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org
-To: Miguel Alejandro =?iso-8859-1?Q?Gonz=E1lez?= <maggonzz@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Hasan Chowdhury <shemonc@gmail.com>,
+	Jan Engelhardt <jengelh@inai.de>,
+	Yury Stankevich <urykhy@gmail.com>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	pablo@netfilter.org, netfilter-devel@vger.kernel.org
+To: Stephen Hemminger <shemminger@vyatta.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47134 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751387Ab2LSJpl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Dec 2012 04:45:41 -0500
-Content-Disposition: inline
-In-Reply-To: <CAOSBYzeWpv_+eoYKHnfkcUctRiDDRDk4=fLOcGsY2usWXA6VPg@mail.gmail.com>
+Received: from mail-ie0-f179.google.com ([209.85.223.179]:45462 "EHLO
+	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752510Ab2LSLgz (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Dec 2012 06:36:55 -0500
+Received: by mail-ie0-f179.google.com with SMTP id k14so2551005iea.24
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Dec 2012 03:36:54 -0800 (PST)
+In-Reply-To: <20121217081203.3dc324c8@nehalam.linuxnetplumber.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Dec 18, 2012 at 07:53:46PM -0600, Miguel Alejandro Gonz=E1lez w=
-rote:
-> Cool, well I want to use it for a NAT64 module where are developing..=
-=2E
-> right now we have a pool developed from scratch. It would have to
-> handle a ip range and protocol range... but I think the implementatio=
-n
-> you guys have already does this.
+On 12-12-17 11:12 AM, Stephen Hemminger wrote:
 
-Yes, you should use the conntrack and nat subsystems for that.
+>
+> Maybe xtables should have stable API/ABI and use shim routines there?
 
-I discussed this with Patrick recently. The main problem is that
-you're going to find code that uses ct->hashtuple[ORIG].l3num. You
-should start by changing that is an initial patch, then the follow-up
-patch to add the NAT64 feature.
+Thats the general direction being taken now with this last changes...
 
-Regards.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cheers,
+jamal
+
+
