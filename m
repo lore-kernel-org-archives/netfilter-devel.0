@@ -1,48 +1,34 @@
 From: Jamal Hadi Salim <jhs@mojatatu.com>
 Subject: Re: [PATCH] pkt_sched: act_xt support new Xtables interface
-Date: Wed, 19 Dec 2012 18:00:03 -0500
-Message-ID: <50D246F3.2060603@mojatatu.com>
-References: <50C4821D.5090206@gmail.com> <50C9B4BB.9060609@mojatatu.com> <50CCE961.5050204@mojatatu.com> <alpine.LNX.2.01.1212160002330.4901@nerf07.vanv.qr> <CAASe=fQT2pVOK0uctdaKL+aOrF8nYeTMfoF15kmd-rC02+7Vnw@mail.gmail.com> <50CDFB6A.3090806@mojatatu.com> <50CE1A04.1000405@mojatatu.com> <alpine.LNX.2.01.1212162003340.27614@nerf07.vanv.qr> <50CE3203.9080007@mojatatu.com> <50CF1071.1050405@mojatatu.com> <CAASe=fRuJdtisEvp7uo=PHwN3nKHqsYDW4Om1gk2MK-vyNvBrA@mail.gmail.com> <50D06177.2090905@mojatatu.com> <CAASe=fR6Hm2dxp=1wDchtrzqnaH6qacHpg2wrsqLfmGpPbQ9Fg@mail.gmail.com> <50D1A8A7.1090002@mojatatu.com> <50D1AB7E.5060000@mojatatu.com> <CAASe=fQZGwjM_2PStRE0tje33Doi6TuwJJ3p7x-SRcwq3mQvRg@mail.gmail.com>
+Date: Wed, 19 Dec 2012 18:05:23 -0500
+Message-ID: <50D24833.8040803@mojatatu.com>
+References: <50C4821D.5090206@gmail.com> <50C9B4BB.9060609@mojatatu.com> <50CCE961.5050204@mojatatu.com> <alpine.LNX.2.01.1212160002330.4901@nerf07.vanv.qr> <CAASe=fQT2pVOK0uctdaKL+aOrF8nYeTMfoF15kmd-rC02+7Vnw@mail.gmail.com> <50CDFB6A.3090806@mojatatu.com> <50CE1A04.1000405@mojatatu.com> <alpine.LNX.2.01.1212162003340.27614@nerf07.vanv.qr> <50CE3203.9080007@mojatatu.com> <50CF1071.1050405@mojatatu.com> <CAASe=fRuJdtisEvp7uo=PHwN3nKHqsYDW4Om1gk2MK-vyNvBrA@mail.gmail.com> <50D06177.2090905@mojatatu.com> <CAASe=fR6Hm2dxp=1wDchtrzqnaH6qacHpg2wrsqLfmGpPbQ9Fg@mail.gmail.com> <50D1A8A7.1090002@mojatatu.com> <50D1AB7E.5060000@mojatatu.com> <alpine.LNX.2.01.1212191648490.13317@nerf07.vanv.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Stephen Hemminger <shemminger@vyatta.com>,
-	Jan Engelhardt <jengelh@inai.de>,
+Cc: Hasan Chowdhury <shemonc@gmail.com>,
+	Stephen Hemminger <shemminger@vyatta.com>,
 	Yury Stankevich <urykhy@gmail.com>,
 	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
 	pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Hasan Chowdhury <shemonc@gmail.com>
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAASe=fQZGwjM_2PStRE0tje33Doi6TuwJJ3p7x-SRcwq3mQvRg@mail.gmail.com>
+In-Reply-To: <alpine.LNX.2.01.1212191648490.13317@nerf07.vanv.qr>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-On 12-12-19 10:51 AM, Hasan Chowdhury wrote:
-> Hi Jamal,
-> I will test it once I get some opportunity , but think I like to know
-> even before any  testing
->
-> 1. What will be the new procedure to compile iproute2 after the patch
-> apply (any new library or any configuration that needs to be adjusted )
-
-git pull Stephens latest tree.
-Apply patch 1 and compile.
-When you are done compiling an m_xt.so will sit in the tc directory;
-unfortunate that we are putting out this shared libs. Backup your distro
-version and copy this over to that location. On ubuntu 12.04:
-sudo cp tc/m_xt.so /usr/lib/tc/m_xt.so
-will do it.
-
-> 2.  tc filter add dev eth0 protocol ip parent 1: prio 3 u32 match ip src
-> 192.168.0.0/16 <http://192.168.0.0/16>  flowid 1:1  action xt  -j MARK
-> --set-mark 3
+On 12-12-19 10:52 AM, Jan Engelhardt wrote:
 >
 >
-> is this still a valid command ?
+> Humm... that's a huge patch for what seems to be equal to act_ipt.c
+> Let's do a cross-diff:
 >
 
-Indeed it is.
+I was thinking of our little discussion when doing that.
+The one reason i separated the two is so when the time is right you
+can patch on top of only act_xt.c and eventually act_ipt.c will die..
+Does changes on top of act_xt.c sound palatable to you?
+Otherwise, you are right - it is overkill
 
 cheers,
 jamal
