@@ -1,34 +1,67 @@
-From: Jamal Hadi Salim <jhs@mojatatu.com>
-Subject: Re: [PATCH] pkt_sched: act_xt support new Xtables interface
-Date: Wed, 19 Dec 2012 18:05:23 -0500
-Message-ID: <50D24833.8040803@mojatatu.com>
-References: <50C4821D.5090206@gmail.com> <50C9B4BB.9060609@mojatatu.com> <50CCE961.5050204@mojatatu.com> <alpine.LNX.2.01.1212160002330.4901@nerf07.vanv.qr> <CAASe=fQT2pVOK0uctdaKL+aOrF8nYeTMfoF15kmd-rC02+7Vnw@mail.gmail.com> <50CDFB6A.3090806@mojatatu.com> <50CE1A04.1000405@mojatatu.com> <alpine.LNX.2.01.1212162003340.27614@nerf07.vanv.qr> <50CE3203.9080007@mojatatu.com> <50CF1071.1050405@mojatatu.com> <CAASe=fRuJdtisEvp7uo=PHwN3nKHqsYDW4Om1gk2MK-vyNvBrA@mail.gmail.com> <50D06177.2090905@mojatatu.com> <CAASe=fR6Hm2dxp=1wDchtrzqnaH6qacHpg2wrsqLfmGpPbQ9Fg@mail.gmail.com> <50D1A8A7.1090002@mojatatu.com> <50D1AB7E.5060000@mojatatu.com> <alpine.LNX.2.01.1212191648490.13317@nerf07.vanv.qr>
+From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: Re: [PATCH] build: unbreak linkage of m_xt.so
+Date: Wed, 19 Dec 2012 16:03:17 -0800
+Message-ID: <20121219160317.6004b55e@nehalam.linuxnetplumber.net>
+References: <alpine.LNX.2.01.1212160119060.7193@nerf07.vanv.qr>
+	<1355617968-26138-1-git-send-email-jengelh@inai.de>
+	<20121218092130.1d3f4239@nehalam.linuxnetplumber.net>
+	<201212181348.00379.vapier@gentoo.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Hasan Chowdhury <shemonc@gmail.com>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	Yury Stankevich <urykhy@gmail.com>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.2.01.1212191648490.13317@nerf07.vanv.qr>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: multipart/signed; micalg=PGP-SHA256;
+ boundary="Sig_/flAk.iQCe_8Z7DscS1pqkEQ"; protocol="application/pgp-signature"
+Cc: Jan Engelhardt <jengelh@inai.de>, stephen.hemminger@vyatta.com,
+	netdev@vger.kernel.org, jhs@mojatatu.com, urykhy@gmail.com,
+	shemonc@gmail.com, pablo@netfilter.org,
+	netfilter-devel@vger.kernel.org
+To: Mike Frysinger <vapier@gentoo.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.vyatta.com ([76.74.103.46]:53451 "EHLO mail.vyatta.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751399Ab2LTAEe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Dec 2012 19:04:34 -0500
+In-Reply-To: <201212181348.00379.vapier@gentoo.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 12-12-19 10:52 AM, Jan Engelhardt wrote:
->
->
-> Humm... that's a huge patch for what seems to be equal to act_ipt.c
-> Let's do a cross-diff:
->
+--Sig_/flAk.iQCe_8Z7DscS1pqkEQ
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-I was thinking of our little discussion when doing that.
-The one reason i separated the two is so when the time is right you
-can patch on top of only act_xt.c and eventually act_ipt.c will die..
-Does changes on top of act_xt.c sound palatable to you?
-Otherwise, you are right - it is overkill
+On Tue, 18 Dec 2012 13:47:58 -0500
+Mike Frysinger <vapier@gentoo.org> wrote:
 
-cheers,
-jamal
+> this patch is no longer necessary one you merged my:
+> 	configure: move toolchain init to a function
+>=20
+> it's actually undesirable to apply this after that since it makes the con=
+figure=20
+> script less clear again ...
+>=20
+> sorry if my commit message wasn't obvious.
+> -mike
+
+ok, went back to old way.
+
+--Sig_/flAk.iQCe_8Z7DscS1pqkEQ
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCAAGBQJQ0lXFAAoJEICnf2CVzeR+Gm0QAKOeChAt2VVMVhBWKeMMpfju
+4v6UX++ZhcG1+rEyiaxsOLY3gzARf7ry+yF5rJdYzqLsug9+kUiGWrwYRVvNRdzi
+8ViTISO2gg7Vefxf14lFejSL1y7ufBWZ+qDVYFe8DXV5L3sA+/j5YM/r3ZbV62QF
+801rfKMp8G27+5fmzvN/ZU2onOFtmeoc2NK4LrKdTeZfzH5cLf3nmU6XvXTX9vRI
+oV6trashd++Emg0GAqtfgd2A8P61shZhztSHRKvEFFGUoqjC09DT/o+PE0//JAyU
+9C94Hx1GvUnmsiaNf4KhdHfKZkzdTzAf01wjZ4PxscFELyBfrEBwirJ0eGwPQi/+
+u51jBoNjCWFWkEm7h0VUl9stKZYB+ybzGXtfctrdXI7D1/++gjSNlEE03x4vWjG/
+XP4w/atoza7+ifi27I2CkuFakwPrnjmoAbwcqCmowSkYaRx+EhxvMOqkbNqtC6nn
+enmc+Ra7EckxNFLw7EZP0tkkpiBsRz/gDEo+8IF3PKJXO0S1H3wx47VA3KtqZRyj
+9A10dkAxxu89lirxYALYbhlQhKYPn86Bp1qCSXYe1aVH3Ramrr+As3vxeIZKsBI8
+F3VvF5+rM/s//MaPQkS5uTndmIn6lsi+/edPWk/7I3FZmbVHnPI9+qUcbqbr7KPX
+Ux1eAQHfdVyKnIrXW86V
+=i96B
+-----END PGP SIGNATURE-----
+
+--Sig_/flAk.iQCe_8Z7DscS1pqkEQ--
