@@ -1,67 +1,71 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: Re: [PATCH] build: unbreak linkage of m_xt.so
-Date: Wed, 19 Dec 2012 16:03:17 -0800
-Message-ID: <20121219160317.6004b55e@nehalam.linuxnetplumber.net>
-References: <alpine.LNX.2.01.1212160119060.7193@nerf07.vanv.qr>
-	<1355617968-26138-1-git-send-email-jengelh@inai.de>
-	<20121218092130.1d3f4239@nehalam.linuxnetplumber.net>
-	<201212181348.00379.vapier@gentoo.org>
+From: Yury Stankevich <urykhy@gmail.com>
+Subject: Re: [PATCH] pkt_sched: act_xt support new Xtables interface
+Date: Thu, 20 Dec 2012 12:54:01 +0400
+Message-ID: <50D2D229.6040802@gmail.com>
+References: <50C4821D.5090206@gmail.com> <50C9B4BB.9060609@mojatatu.com> <50CCE961.5050204@mojatatu.com> <alpine.LNX.2.01.1212160002330.4901@nerf07.vanv.qr> <CAASe=fQT2pVOK0uctdaKL+aOrF8nYeTMfoF15kmd-rC02+7Vnw@mail.gmail.com> <50CDFB6A.3090806@mojatatu.com> <50CE1A04.1000405@mojatatu.com> <alpine.LNX.2.01.1212162003340.27614@nerf07.vanv.qr> <50CE3203.9080007@mojatatu.com> <50CF1071.1050405@mojatatu.com> <CAASe=fRuJdtisEvp7uo=PHwN3nKHqsYDW4Om1gk2MK-vyNvBrA@mail.gmail.com> <50D06177.2090905@mojatatu.com> <CAASe=fR6Hm2dxp=1wDchtrzqnaH6qacHpg2wrsqLfmGpPbQ9Fg@mail.gmail.com> <50D1A8A7.1090002@mojatatu.com> <50D1AB7E.5060000@mojatatu.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA256;
- boundary="Sig_/flAk.iQCe_8Z7DscS1pqkEQ"; protocol="application/pgp-signature"
-Cc: Jan Engelhardt <jengelh@inai.de>, stephen.hemminger@vyatta.com,
-	netdev@vger.kernel.org, jhs@mojatatu.com, urykhy@gmail.com,
-	shemonc@gmail.com, pablo@netfilter.org,
-	netfilter-devel@vger.kernel.org
-To: Mike Frysinger <vapier@gentoo.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Hasan Chowdhury <shemonc@gmail.com>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	Jan Engelhardt <jengelh@inai.de>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	pablo@netfilter.org, netfilter-devel@vger.kernel.org
+To: Jamal Hadi Salim <jhs@mojatatu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:53451 "EHLO mail.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751399Ab2LTAEe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Dec 2012 19:04:34 -0500
-In-Reply-To: <201212181348.00379.vapier@gentoo.org>
+Received: from mail-bk0-f54.google.com ([209.85.214.54]:46092 "EHLO
+	mail-bk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751218Ab2LTIyN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Dec 2012 03:54:13 -0500
+In-Reply-To: <50D1AB7E.5060000@mojatatu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---Sig_/flAk.iQCe_8Z7DscS1pqkEQ
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+19.12.2012 15:56, Jamal Hadi Salim =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+> Hasan/Yury, if you test this please use the latest iproute2 with only
+> the first patch I posted (originally from Hasan). Hasan please use th=
+at
+> patch not your version - if theres anything wrong we can find out soo=
+ner
+> before the patch becomes final.
 
-On Tue, 18 Dec 2012 13:47:58 -0500
-Mike Frysinger <vapier@gentoo.org> wrote:
+Hello,
+3.7.1 kernel with 3.7.0 iproute,
+patch-xt, xt-p1 + linkage fix was applyed
+command successfully performed, but actually doesn't work.
 
-> this patch is no longer necessary one you merged my:
-> 	configure: move toolchain init to a function
->=20
-> it's actually undesirable to apply this after that since it makes the con=
-figure=20
-> script less clear again ...
->=20
-> sorry if my commit message wasn't obvious.
-> -mike
+command:
+tc filter add dev $dev parent ffff: protocol ip u32 match u32 0 0 \
+            action xt -j CONNMARK --restore-mark \
+            action mirred egress redirect dev ifb0
+then i use filter:
 
-ok, went back to old way.
+tc filter add dev ifb0 protocol ip parent 1: prio 2 handle 0xa fw flowi=
+d
+1:102
 
---Sig_/flAk.iQCe_8Z7DscS1pqkEQ
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+iptables line:
+iptable -t mangle -A POSTROUTING -p tcp --dport 80 -m connmark --mark 0
+-m connbytes --connbytes 204800: --connbytes-dir both --connbytes-mode
+bytes -j CONNMARK --set-mark 0xa
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+once i run a test to download 300K file,
+from iptables counters i can see that rule in POSTROUTING is triggered,
+but from `tc -s qdisc show dev ifb0` i see that no packets was sent to
+1:102 flow.
 
-iQIcBAEBCAAGBQJQ0lXFAAoJEICnf2CVzeR+Gm0QAKOeChAt2VVMVhBWKeMMpfju
-4v6UX++ZhcG1+rEyiaxsOLY3gzARf7ry+yF5rJdYzqLsug9+kUiGWrwYRVvNRdzi
-8ViTISO2gg7Vefxf14lFejSL1y7ufBWZ+qDVYFe8DXV5L3sA+/j5YM/r3ZbV62QF
-801rfKMp8G27+5fmzvN/ZU2onOFtmeoc2NK4LrKdTeZfzH5cLf3nmU6XvXTX9vRI
-oV6trashd++Emg0GAqtfgd2A8P61shZhztSHRKvEFFGUoqjC09DT/o+PE0//JAyU
-9C94Hx1GvUnmsiaNf4KhdHfKZkzdTzAf01wjZ4PxscFELyBfrEBwirJ0eGwPQi/+
-u51jBoNjCWFWkEm7h0VUl9stKZYB+ybzGXtfctrdXI7D1/++gjSNlEE03x4vWjG/
-XP4w/atoza7+ifi27I2CkuFakwPrnjmoAbwcqCmowSkYaRx+EhxvMOqkbNqtC6nn
-enmc+Ra7EckxNFLw7EZP0tkkpiBsRz/gDEo+8IF3PKJXO0S1H3wx47VA3KtqZRyj
-9A10dkAxxu89lirxYALYbhlQhKYPn86Bp1qCSXYe1aVH3Ramrr+As3vxeIZKsBI8
-F3VvF5+rM/s//MaPQkS5uTndmIn6lsi+/edPWk/7I3FZmbVHnPI9+qUcbqbr7KPX
-Ux1eAQHfdVyKnIrXW86V
-=i96B
------END PGP SIGNATURE-----
+btw,
+tc -p -s filter show dev ifb0 parent 1:
+do not show stats `(rule hit 416 success 0)` for this (filter protocol
+ip pref 2 fw handle 0xa classid 1:102) rule.
 
---Sig_/flAk.iQCe_8Z7DscS1pqkEQ--
+
+
+--=20
+Linux registered user #402966 // pub 1024D/E99AF373 <pgp.mit.edu>
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
