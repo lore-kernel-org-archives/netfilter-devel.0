@@ -1,51 +1,33 @@
-From: Jamal Hadi Salim <jhs@mojatatu.com>
-Subject: Re: [PATCH] pkt_sched: act_xt support new Xtables interface
-Date: Fri, 21 Dec 2012 08:50:32 -0500
-Message-ID: <50D46928.9070809@mojatatu.com>
-References: <50C4821D.5090206@gmail.com> <50C9B4BB.9060609@mojatatu.com> <50CCE961.5050204@mojatatu.com> <alpine.LNX.2.01.1212160002330.4901@nerf07.vanv.qr> <CAASe=fQT2pVOK0uctdaKL+aOrF8nYeTMfoF15kmd-rC02+7Vnw@mail.gmail.com> <50CDFB6A.3090806@mojatatu.com> <50CE1A04.1000405@mojatatu.com> <alpine.LNX.2.01.1212162003340.27614@nerf07.vanv.qr> <50CE3203.9080007@mojatatu.com> <50CF1071.1050405@mojatatu.com> <CAASe=fRuJdtisEvp7uo=PHwN3nKHqsYDW4Om1gk2MK-vyNvBrA@mail.gmail.com> <50D06177.2090905@mojatatu.com> <CAASe=fR6Hm2dxp=1wDchtrzqnaH6qacHpg2wrsqLfmGpPbQ9Fg@mail.gmail.com> <50D1A8A7.1090002@mojatatu.com> <50D1AB7E.5060000@mojatatu.com> <50D2D229.6040802@gmail.com> <50D305FD.7000901@mojatatu.com> <50D327CD.3050904@gmail.com> <50D45E25.7050703@mojatatu.com> <50D46060.2070308@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Hasan Chowdhury <shemonc@gmail.com>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	Jan Engelhardt <jengelh@inai.de>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Yury Stankevich <urykhy@gmail.com>
+From: Eric Leblond <eric@regit.org>
+Subject: [ulogd patches 0/3] IPv6 improvements
+Date: Fri, 21 Dec 2012 15:01:50 +0100
+Message-ID: <1356098513-18684-1-git-send-email-eric@regit.org>
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ia0-f174.google.com ([209.85.210.174]:51141 "EHLO
-	mail-ia0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751327Ab2LUNuf (ORCPT
+Received: from ks28632.kimsufi.com ([91.121.96.152]:46336 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751363Ab2LUOCr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Dec 2012 08:50:35 -0500
-Received: by mail-ia0-f174.google.com with SMTP id y25so3846215iay.5
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Dec 2012 05:50:34 -0800 (PST)
-In-Reply-To: <50D46060.2070308@gmail.com>
+	Fri, 21 Dec 2012 09:02:47 -0500
+Received: from ip-37-24-162-232.unitymediagroup.de ([37.24.162.232] helo=localhost.localdomain)
+	by ks28632.kimsufi.com with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <eric@regit.org>)
+	id 1Tm3BU-0000ou-S7
+	for netfilter-devel@vger.kernel.org; Fri, 21 Dec 2012 15:02:45 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 12-12-21 08:13 AM, Yury Stankevich wrote:
 
-> sure,
-> i use it ingress,
-> so, i need to use tc xt action
-> to get mark on the packet, before filter on ifb will run.
+Hello,
 
-Ok. So does ifb see it?
+Here's a ulogd patchset made by Bob Hockney. It fixes a bug in
+IPv6 flowlabel and add some IPv6 related field to MySQL and PGSQL
+databases.
 
-> prerouting rule, in turn, used to test if mark was actually restored.
+I will apply and push these patches for Christmas if there is
+no remarks.
 
-No experience with connmark, but - in order to restore something has
-to store it, correct?
-
-> in practice:
-> 1. prerouting rule - is not fired. so, no packets with mark was seen.
-> 2. filter on ifb - do not pass traffic to flow configured.
-> looks like `CONNMARK --restore` is not really called.
->
-
-My suspicion is that it is not set to begin with...
-
-cheers,
-jamal
-
+Happy Christmas to all :)
+--
+Eric Leblond <eric@regit.org>
