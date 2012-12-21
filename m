@@ -1,35 +1,33 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH] netfilter: xtables: remove table restrictions from some
- modules
-Date: Fri, 21 Dec 2012 12:02:34 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1212211201110.32410@nerf07.vanv.qr>
-References: <1355839621-14206-1-git-send-email-jengelh@inai.de> <CAHo-OowdeVrzc8GfMes0y-LLpq4Kxei=nuGdih7hkyAvk3ahWw@mail.gmail.com>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: Re: [PATCH] pkt_sched: act_xt support new Xtables interface
+Date: Fri, 21 Dec 2012 08:03:33 -0500
+Message-ID: <50D45E25.7050703@mojatatu.com>
+References: <50C4821D.5090206@gmail.com> <50C9B4BB.9060609@mojatatu.com> <50CCE961.5050204@mojatatu.com> <alpine.LNX.2.01.1212160002330.4901@nerf07.vanv.qr> <CAASe=fQT2pVOK0uctdaKL+aOrF8nYeTMfoF15kmd-rC02+7Vnw@mail.gmail.com> <50CDFB6A.3090806@mojatatu.com> <50CE1A04.1000405@mojatatu.com> <alpine.LNX.2.01.1212162003340.27614@nerf07.vanv.qr> <50CE3203.9080007@mojatatu.com> <50CF1071.1050405@mojatatu.com> <CAASe=fRuJdtisEvp7uo=PHwN3nKHqsYDW4Om1gk2MK-vyNvBrA@mail.gmail.com> <50D06177.2090905@mojatatu.com> <CAASe=fR6Hm2dxp=1wDchtrzqnaH6qacHpg2wrsqLfmGpPbQ9Fg@mail.gmail.com> <50D1A8A7.1090002@mojatatu.com> <50D1AB7E.5060000@mojatatu.com> <50D2D229.6040802@gmail.com> <50D305FD.7000901@mojatatu.com> <50D327CD.3050904@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: pablo@netfilter.org, jhs@mojatatu.com,
-	netfilter-devel@vger.kernel.org
-To: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:55341 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750869Ab2LULCg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Dec 2012 06:02:36 -0500
-In-Reply-To: <CAHo-OowdeVrzc8GfMes0y-LLpq4Kxei=nuGdih7hkyAvk3ahWw@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Hasan Chowdhury <shemonc@gmail.com>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	Jan Engelhardt <jengelh@inai.de>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	pablo@netfilter.org, netfilter-devel@vger.kernel.org
+To: Yury Stankevich <urykhy@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <50D327CD.3050904@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Friday 2012-12-21 11:19, Maciej =C5=BBenczykowski wrote:
+On 12-12-20 09:59 AM, Yury Stankevich wrote:
+> interesting,
+>
+> #tc -s filter show dev usb0 parent ffff:
 
->I'm not sure about the current state.
->But there used to be code that would cause a mangle tables tos change
->to trigger a reroute.
->I'm guessing this wouldn't work if tos was changed from another table.
 
-Indeed, changing TOS from "filter" will not influence the route,
-but you can still do so by way of using TOS in "mangle".
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Given you are adding this on ingress - the settings you have will
+happen before pre-routing hook.
+If you did things at egress - the setting will take effect after
+post-routing. So take a closer look at those details they look
+like your source of issues..
+
+cheers,
+jamal
