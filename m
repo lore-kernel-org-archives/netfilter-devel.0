@@ -1,130 +1,124 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [PATCH 2/3] Handle postgresql schemas correctly
-Date: Fri, 21 Dec 2012 15:01:52 +0100
-Message-ID: <1356098513-18684-3-git-send-email-eric@regit.org>
-References: <1356098513-18684-1-git-send-email-eric@regit.org>
-Cc: Bob Hockney <zeus@ix.netcom.com>, Eric Leblond <eric@regit.org>
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:46339 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751363Ab2LUOCy (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Dec 2012 09:02:54 -0500
-In-Reply-To: <1356098513-18684-1-git-send-email-eric@regit.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Yury Stankevich <urykhy@gmail.com>
+Subject: Re: [PATCH] pkt_sched: act_xt support new Xtables interface
+Date: Fri, 21 Dec 2012 18:14:25 +0400
+Message-ID: <50D46EC1.2040608@gmail.com>
+References: <50C4821D.5090206@gmail.com> <50C9B4BB.9060609@mojatatu.com> <50CCE961.5050204@mojatatu.com> <alpine.LNX.2.01.1212160002330.4901@nerf07.vanv.qr> <CAASe=fQT2pVOK0uctdaKL+aOrF8nYeTMfoF15kmd-rC02+7Vnw@mail.gmail.com> <50CDFB6A.3090806@mojatatu.com> <50CE1A04.1000405@mojatatu.com> <alpine.LNX.2.01.1212162003340.27614@nerf07.vanv.qr> <50CE3203.9080007@mojatatu.com> <50CF1071.1050405@mojatatu.com> <CAASe=fRuJdtisEvp7uo=PHwN3nKHqsYDW4Om1gk2MK-vyNvBrA@mail.gmail.com> <50D06177.2090905@mojatatu.com> <CAASe=fR6Hm2dxp=1wDchtrzqnaH6qacHpg2wrsqLfmGpPbQ9Fg@mail.gmail.com> <50D1A8A7.1090002@mojatatu.com> <50D1AB7E.5060000@mojatatu.com> <50D2D229.6040802@gmail.com> <50D305FD.7000901@mojatatu.com> <50D327CD.3050904@gmail.com> <50D45E25.7050703@mojatatu.com> <50D46060.2070308@gmail.com> <50D4692
+ 8.9070809@mojatatu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Hasan Chowdhury <shemonc@gmail.com>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	Jan Engelhardt <jengelh@inai.de>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	pablo@netfilter.org, netfilter-devel@vger.kernel.org
+To: Jamal Hadi Salim <jhs@mojatatu.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <50D46928.9070809@mojatatu.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Bob Hockney <zeus@ix.netcom.com>
 
-Add 'schema' variable to look into corresponding schema.
+well.
+let me describe whole picture i want to achieve
 
-Signed-off-by: Eric Leblond <eric@regit.org>
----
- output/pgsql/ulogd_output_PGSQL.c |   35 +++++++++++++++++++++++++++++++----
- ulogd.conf.in                     |    4 ++++
- 2 files changed, 35 insertions(+), 4 deletions(-)
+1. use htb/sfq on ingress.
 
-diff --git a/output/pgsql/ulogd_output_PGSQL.c b/output/pgsql/ulogd_output_PGSQL.c
-index cd793ca..f246153 100644
---- a/output/pgsql/ulogd_output_PGSQL.c
-+++ b/output/pgsql/ulogd_output_PGSQL.c
-@@ -105,9 +105,16 @@ static int pgsql_namespace(struct ulogd_pluginstance *upi)
- 	}
- 
- 	if (PQresultStatus(pi->pgres) == PGRES_TUPLES_OK) {
--		ulogd_log(ULOGD_DEBUG, "using schema %s\n",
--			  schema_ce(upi->config_kset).u.string);
--		pi->db_inst.schema = schema_ce(upi->config_kset).u.string;
-+		if (PQntuples(pi->pgres)) {
-+			ulogd_log(ULOGD_DEBUG, "using schema %s\n",
-+				  schema_ce(upi->config_kset).u.string);
-+			pi->db_inst.schema = schema_ce(upi->config_kset).u.string;
-+		} else {
-+			ulogd_log(ULOGD_ERROR, "schema %s not found: %s\n",
-+				 schema_ce(upi->config_kset).u.string, PQerrorMessage(pi->dbh));
-+			PQclear(pi->pgres);
-+			return -1;
-+		}
- 	} else {
- 		pi->db_inst.schema = NULL;
- 	}
-@@ -223,6 +230,8 @@ static int open_db_pgsql(struct ulogd_pluginstance *upi)
- 	char *user = user_ce(upi->config_kset).u.string;
- 	char *pass = pass_ce(upi->config_kset).u.string;
- 	char *db = db_ce(upi->config_kset).u.string;
-+	char *schema = NULL;
-+	char pgbuf[128];
- 
- 	/* 80 is more than what we need for the fixed parts below */
- 	len = 80 + strlen(user) + strlen(db);
-@@ -270,11 +279,29 @@ static int open_db_pgsql(struct ulogd_pluginstance *upi)
- 	}
- 
- 	if (pgsql_namespace(upi)) {
--		ulogd_log(ULOGD_ERROR, "unable to test for pgsql schemas\n");
-+		ulogd_log(ULOGD_ERROR, "problem testing for pgsql schemas\n");
- 		close_db_pgsql(upi);
- 		return -1;
- 	}
- 
-+	pi=(struct pgsql_instance *)upi->private;
-+	schema = pi->db_inst.schema;
-+
-+	if (!(schema == NULL) && (strcmp(schema,"public"))) {
-+		snprintf(pgbuf, 128, "SET search_path='%.63s', \"$user\", 'public'", schema);
-+		pi->pgres = PQexec(pi->dbh, pgbuf);
-+		if ((PQresultStatus(pi->pgres) == PGRES_COMMAND_OK)) {
-+			PQclear(pi->pgres);
-+		} else {
-+			ulogd_log(ULOGD_ERROR, "could not set search path to (%s): %s\n",
-+				 schema, PQerrorMessage(pi->dbh));
-+			PQclear(pi->pgres);
-+			close_db_pgsql(upi);
-+			return -1;
-+		}
-+
-+	}
-+
- 	return 0;
- }
- 
-diff --git a/ulogd.conf.in b/ulogd.conf.in
-index 3bd464b..c630b88 100644
---- a/ulogd.conf.in
-+++ b/ulogd.conf.in
-@@ -213,6 +213,7 @@ db="nulog"
- host="localhost"
- user="nupik"
- table="ulog"
-+#schema="public"
- pass="changeme"
- procedure="INSERT_PACKET_FULL"
- 
-@@ -221,6 +222,7 @@ db="nulog"
- host="localhost"
- user="nupik"
- table="ulog2_ct"
-+#schema="public"
- pass="changeme"
- procedure="INSERT_CT"
- 
-@@ -229,6 +231,7 @@ db="nulog"
- host="localhost"
- user="nupik"
- table="ulog2_ct"
-+#schema="public"
- pass="changeme"
- procedure="INSERT_OR_REPLACE_CT"
- 
-@@ -237,6 +240,7 @@ db="nulog"
- host="localhost"
- user="nupik"
- table="nfacct"
-+#schema="public"
- pass="changeme"
- procedure="INSERT_NFACCT"
- 
--- 
-1.7.10.4
+i got a traffic, and use few u32 filters to direct it to 3 flows,
+priority, interactive, and bulk.
+as http normally pass to interactive flow, i want to move long donwload=
+s
+to the bulk one.
 
+how i trying to find these downloads:
+
+iptables -t mangle -A POSTROUTING -p tcp --dport 80 -m connmark --mark =
+0
+-m connbytes --connbytes 204800: --connbytes-dir both --connbytes-mode
+bytes -j CONNMARK --set-mark 0xa
+so, http connection where more than 200K downloaded, must got a
+connection mark.
+
+since ingress traffic hits qos before netfilter,
+i use xt action, to copy connection mark, to a packet.
+(action xt -j CONNMARK --restore-mark )
+from this moment, i expect packet must have a restored mark
+
+after this, i can use high priority tc filter .. handle 0xa fw flowid 1=
+:102
+to direct packet with mark 0xa to 1:102 flow (bulk).
+
+now about a problem.
+
+1. i run http download, once i get 200K - i can see that rule in
+POSTROUTING is triggered and connection mark is installed (iptables -L
+-n -v mangle -- can show number of packets matched by rule)
+
+2. i see to tc stats for my flows, and i see, that packets still going
+to interactive flow, not bulk as i expect.
+
+3. from tc -s filter show dev usb0 parent ffff:
+filter protocol ip pref 49152 u32
+filter protocol ip pref 49152 u32 fh 800: ht divisor 1
+filter protocol ip pref 49152 u32 fh 800::800 order 2048 key ht 800 bkt
+0 terminal flowid ???  (rule hit 707 success 707)
+  match 00000000/00000000 at 0 (success 707 )
+	action order 1: tablename: mangle  hook: NF_IP_PRE_ROUTING
+	target  CONNMARK restore
+	index 5 ref 1 bind 1 installed 394 sec used 11 sec
+	Action statistics:
+	Sent 783783 bytes 707 pkt (dropped 0, overlimits 0 requeues 0)
+	backlog 0b 0p requeues 0
+
+	action order 2: mirred (Egress Redirect to device ifb0) stolen
+ 	index 5 ref 1 bind 1 installed 394 sec used 11 sec
+ 	Action statistics:
+	Sent 783783 bytes 707 pkt (dropped 0, overlimits 0 requeues 0)
+	backlog 0b 0p requeues 0
+
+i can see that packets must reach xt action.
+
+4. lets try to check packets mark with iptables,
+if mark restored by xt action - i must be able to match it in preroutin=
+g
+rule.
+iptables -t mangle -A PREROUTING -m mark --mark 0xa -j NFLOG --nflog-gr=
+oup 1
+
+but this rule not macthesd - so, no mark is restored by xt action.
+
+maybe im completely wrong here, and such mode can't work for some reaso=
+n ?
+
+21.12.2012 17:50, Jamal Hadi Salim =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+> On 12-12-21 08:13 AM, Yury Stankevich wrote:
+>=20
+>> sure,
+>> i use it ingress,
+>> so, i need to use tc xt action
+>> to get mark on the packet, before filter on ifb will run.
+>=20
+> Ok. So does ifb see it?
+>=20
+>> prerouting rule, in turn, used to test if mark was actually restored=
+=2E
+>=20
+> No experience with connmark, but - in order to restore something has
+> to store it, correct?
+>=20
+>> in practice:
+>> 1. prerouting rule - is not fired. so, no packets with mark was seen=
+=2E
+>> 2. filter on ifb - do not pass traffic to flow configured.
+>> looks like `CONNMARK --restore` is not really called.
+>>
+>=20
+> My suspicion is that it is not set to begin with...
+>=20
+> cheers,
+> jamal
+>=20
+
+
+--=20
+Linux registered user #402966 // pub 1024D/E99AF373 <pgp.mit.edu>
