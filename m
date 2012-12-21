@@ -1,150 +1,175 @@
-From: Yury Stankevich <urykhy@gmail.com>
-Subject: Re: [PATCH] pkt_sched: act_xt support new Xtables interface
-Date: Thu, 20 Dec 2012 18:59:25 +0400
-Message-ID: <50D327CD.3050904@gmail.com>
-References: <50C4821D.5090206@gmail.com> <50C9B4BB.9060609@mojatatu.com> <50CCE961.5050204@mojatatu.com> <alpine.LNX.2.01.1212160002330.4901@nerf07.vanv.qr> <CAASe=fQT2pVOK0uctdaKL+aOrF8nYeTMfoF15kmd-rC02+7Vnw@mail.gmail.com> <50CDFB6A.3090806@mojatatu.com> <50CE1A04.1000405@mojatatu.com> <alpine.LNX.2.01.1212162003340.27614@nerf07.vanv.qr> <50CE3203.9080007@mojatatu.com> <50CF1071.1050405@mojatatu.com> <CAASe=fRuJdtisEvp7uo=PHwN3nKHqsYDW4Om1gk2MK-vyNvBrA@mail.gmail.com> <50D06177.2090905@mojatatu.com> <CAASe=fR6Hm2dxp=1wDchtrzqnaH6qacHpg2wrsqLfmGpPbQ9Fg@mail.gmail.com> <50D1A8A7.1090002@mojatatu.com> <50D1AB7E.5060000@mojatatu.com> <50D2D229.6040802@gmail.com> <50D305FD.7000901@mojatatu.com>
+From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <zenczykowski@gmail.com>
+Subject: Re: [PATCH] netfilter: xtables: remove table restrictions from some modules
+Date: Fri, 21 Dec 2012 11:19:05 +0100
+Message-ID: <CAHo-OowdeVrzc8GfMes0y-LLpq4Kxei=nuGdih7hkyAvk3ahWw@mail.gmail.com>
+References: <1355839621-14206-1-git-send-email-jengelh@inai.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Hasan Chowdhury <shemonc@gmail.com>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	Jan Engelhardt <jengelh@inai.de>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Jamal Hadi Salim <jhs@mojatatu.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <50D305FD.7000901@mojatatu.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: pablo@netfilter.org, jhs@mojatatu.com,
+	netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-vb0-f54.google.com ([209.85.212.54]:58868 "EHLO
+	mail-vb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750869Ab2LUKq1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Dec 2012 05:46:27 -0500
+Received: by mail-vb0-f54.google.com with SMTP id l1so4941492vba.27
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Dec 2012 02:46:26 -0800 (PST)
+In-Reply-To: <1355839621-14206-1-git-send-email-jengelh@inai.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-interesting,
+I'm not sure about the current state.
+But there used to be code that would cause a mangle tables tos change
+to trigger a reroute.
+I'm guessing this wouldn't work if tos was changed from another table.
 
-#tc -s filter show dev usb0 parent ffff:
-filter protocol ip pref 49152 u32
-filter protocol ip pref 49152 u32 fh 800: ht divisor 1
-filter protocol ip pref 49152 u32 fh 800::800 order 2048 key ht 800 bkt
-0 terminal flowid ???  (rule hit 707 success 707)
-  match 00000000/00000000 at 0 (success 707 )
-	action order 1: tablename: mangle  hook: NF_IP_PRE_ROUTING
-	target  CONNMARK restore
-	index 5 ref 1 bind 1 installed 394 sec used 11 sec
-	Action statistics:
-	Sent 783783 bytes 707 pkt (dropped 0, overlimits 0 requeues 0)
-	backlog 0b 0p requeues 0
-
-	action order 2: mirred (Egress Redirect to device ifb0) stolen
- 	index 5 ref 1 bind 1 installed 394 sec used 11 sec
- 	Action statistics:
-	Sent 783783 bytes 707 pkt (dropped 0, overlimits 0 requeues 0)
-	backlog 0b 0p requeues 0
-
-so, looks like packets was sent to CONNMARK target.
-
-but...
-i make a iptables rule to log packets with 0xa mark:
-
-Chain PREROUTING (policy ACCEPT 1308 packets, 848K bytes)
- pkts bytes target     prot opt in     out     source
-destination
-    0     0 NFLOG      all  --  *      *       0.0.0.0/0
-0.0.0.0/0            mark match 0xa nflog-group 1
-
-Chain POSTROUTING (policy ACCEPT 1240 packets, 550K bytes)
- pkts bytes target     prot opt in     out     source
-destination
-    1    40 CONNMARK   tcp  --  *      *       0.0.0.0/0
-0.0.0.0/0            tcp dpt:80 connmark match  0x0 connbytes 204800
-connbytes mode bytes connbytes direction both CONNMARK set 0xa
-
-idea is:
-i run downloading, rule from POSTROUTING must fire if i download more
-than ~200K,
-tc filter call to CONNMARK restore, must restore mark (0xa) for packets
-belong to this connection.
-so i expect, that PREROUTING rule must notice the restored mark, but it
-doesn't.
-maybe i miss something ?
-
-
-20.12.2012 16:35, Jamal Hadi Salim =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
->=20
-> Could be your setup. I didnt do a lot of testing but
-> from my notes (running different kernel at the moment):
->=20
-> #try to point to everything (no iptables setup)
-> tc filter add dev eth0 parent ffff: protocol ip u32 match u32 0 0 flo=
-wid
-> 23:23 action xt -j CONNMARK --restore-mark
-> #let it run for a 1 sec then display with
-> tc -s filter show dev eth0 parent ffff:
->=20
-> ----
-> filter protocol ip pref 49152 u32
-> filter protocol ip pref 49152 u32 fh 800: ht divisor 1
-> filter protocol ip pref 49152 u32 fh 800::800 order 2048 key ht 800 b=
-kt
-> 0 flowid 23:23
->   match 00000000/00000000 at 0
->     action order 1: tablename: mangle  hook: NF_IP_PRE_ROUTING
->     target  CONNMARK restore
->     index 1 ref 1 bind 1 installed 3 sec used 1 sec
->     Action statistics:
->     Sent 280 bytes 4 pkt (dropped 0, overlimits 0 requeues 0)
->     backlog 0b 0p requeues 0
-> ----
->=20
-> cheers,
-> jamal
->=20
-> On 12-12-20 03:54 AM, Yury Stankevich wrote:
->> 19.12.2012 15:56, Jamal Hadi Salim =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
->>> Hasan/Yury, if you test this please use the latest iproute2 with on=
-ly
->>> the first patch I posted (originally from Hasan). Hasan please use =
-that
->>> patch not your version - if theres anything wrong we can find out s=
-ooner
->>> before the patch becomes final.
->>
->> Hello,
->> 3.7.1 kernel with 3.7.0 iproute,
->> patch-xt, xt-p1 + linkage fix was applyed
->> command successfully performed, but actually doesn't work.
->>
->> command:
->> tc filter add dev $dev parent ffff: protocol ip u32 match u32 0 0 \
->>              action xt -j CONNMARK --restore-mark \
->>              action mirred egress redirect dev ifb0
->> then i use filter:
->>
->> tc filter add dev ifb0 protocol ip parent 1: prio 2 handle 0xa fw fl=
-owid
->> 1:102
->>
->> iptables line:
->> iptable -t mangle -A POSTROUTING -p tcp --dport 80 -m connmark --mar=
-k 0
->> -m connbytes --connbytes 204800: --connbytes-dir both --connbytes-mo=
-de
->> bytes -j CONNMARK --set-mark 0xa
->>
->> once i run a test to download 300K file,
->> from iptables counters i can see that rule in POSTROUTING is trigger=
-ed,
->> but from `tc -s qdisc show dev ifb0` i see that no packets was sent =
-to
->> 1:102 flow.
->>
->> btw,
->> tc -p -s filter show dev ifb0 parent 1:
->> do not show stats `(rule hit 416 success 0)` for this (filter protoc=
-ol
->> ip pref 2 fw handle 0xa classid 1:102) rule.
->>
->>
->>
->=20
-
-
---=20
-Linux registered user #402966 // pub 1024D/E99AF373 <pgp.mit.edu>
+On Tue, Dec 18, 2012 at 3:07 PM, Jan Engelhardt <jengelh@inai.de> wrote:
+> I cannot think of a reason to limit the use of these modules to the
+> "mangle" table or their hooks. TOS/DSCP is not only used to influence
+> a routing decision, for example.
+>
+> Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+> ---
+>
+> Are there any pitfalls I am not aware of?
+> Could conntrack be upset if TCPOPTSTRIP/CHECKSUM can execute
+> at different places?
+>
+>
+>  net/ipv4/netfilter/ipt_ECN.c   |    1 -
+>  net/netfilter/xt_CHECKSUM.c    |    1 -
+>  net/netfilter/xt_CLASSIFY.c    |    3 ---
+>  net/netfilter/xt_DSCP.c        |    4 ----
+>  net/netfilter/xt_HL.c          |    2 --
+>  net/netfilter/xt_TCPOPTSTRIP.c |    2 --
+>  6 files changed, 13 deletions(-)
+>
+> diff --git a/net/ipv4/netfilter/ipt_ECN.c b/net/ipv4/netfilter/ipt_ECN.c
+> index 4bf3dc4..5508113 100644
+> --- a/net/ipv4/netfilter/ipt_ECN.c
+> +++ b/net/ipv4/netfilter/ipt_ECN.c
+> @@ -119,7 +119,6 @@ static struct xt_target ecn_tg_reg __read_mostly = {
+>         .family         = NFPROTO_IPV4,
+>         .target         = ecn_tg,
+>         .targetsize     = sizeof(struct ipt_ECN_info),
+> -       .table          = "mangle",
+>         .checkentry     = ecn_tg_check,
+>         .me             = THIS_MODULE,
+>  };
+> diff --git a/net/netfilter/xt_CHECKSUM.c b/net/netfilter/xt_CHECKSUM.c
+> index 0f642ef..153d5c3 100644
+> --- a/net/netfilter/xt_CHECKSUM.c
+> +++ b/net/netfilter/xt_CHECKSUM.c
+> @@ -51,7 +51,6 @@ static struct xt_target checksum_tg_reg __read_mostly = {
+>         .family         = NFPROTO_UNSPEC,
+>         .target         = checksum_tg,
+>         .targetsize     = sizeof(struct xt_CHECKSUM_info),
+> -       .table          = "mangle",
+>         .checkentry     = checksum_tg_check,
+>         .me             = THIS_MODULE,
+>  };
+> diff --git a/net/netfilter/xt_CLASSIFY.c b/net/netfilter/xt_CLASSIFY.c
+> index af9c4da..c988093 100644
+> --- a/net/netfilter/xt_CLASSIFY.c
+> +++ b/net/netfilter/xt_CLASSIFY.c
+> @@ -42,8 +42,6 @@ static struct xt_target classify_tg_reg[] __read_mostly = {
+>                 .name       = "CLASSIFY",
+>                 .revision   = 0,
+>                 .family     = NFPROTO_UNSPEC,
+> -               .hooks      = (1 << NF_INET_LOCAL_OUT) | (1 << NF_INET_FORWARD) |
+> -                             (1 << NF_INET_POST_ROUTING),
+>                 .target     = classify_tg,
+>                 .targetsize = sizeof(struct xt_classify_target_info),
+>                 .me         = THIS_MODULE,
+> @@ -52,7 +50,6 @@ static struct xt_target classify_tg_reg[] __read_mostly = {
+>                 .name       = "CLASSIFY",
+>                 .revision   = 0,
+>                 .family     = NFPROTO_ARP,
+> -               .hooks      = (1 << NF_ARP_OUT) | (1 << NF_ARP_FORWARD),
+>                 .target     = classify_tg,
+>                 .targetsize = sizeof(struct xt_classify_target_info),
+>                 .me         = THIS_MODULE,
+> diff --git a/net/netfilter/xt_DSCP.c b/net/netfilter/xt_DSCP.c
+> index ae82716..0a9ff64 100644
+> --- a/net/netfilter/xt_DSCP.c
+> +++ b/net/netfilter/xt_DSCP.c
+> @@ -118,7 +118,6 @@ static struct xt_target dscp_tg_reg[] __read_mostly = {
+>                 .checkentry     = dscp_tg_check,
+>                 .target         = dscp_tg,
+>                 .targetsize     = sizeof(struct xt_DSCP_info),
+> -               .table          = "mangle",
+>                 .me             = THIS_MODULE,
+>         },
+>         {
+> @@ -127,14 +126,12 @@ static struct xt_target dscp_tg_reg[] __read_mostly = {
+>                 .checkentry     = dscp_tg_check,
+>                 .target         = dscp_tg6,
+>                 .targetsize     = sizeof(struct xt_DSCP_info),
+> -               .table          = "mangle",
+>                 .me             = THIS_MODULE,
+>         },
+>         {
+>                 .name           = "TOS",
+>                 .revision       = 1,
+>                 .family         = NFPROTO_IPV4,
+> -               .table          = "mangle",
+>                 .target         = tos_tg,
+>                 .targetsize     = sizeof(struct xt_tos_target_info),
+>                 .me             = THIS_MODULE,
+> @@ -143,7 +140,6 @@ static struct xt_target dscp_tg_reg[] __read_mostly = {
+>                 .name           = "TOS",
+>                 .revision       = 1,
+>                 .family         = NFPROTO_IPV6,
+> -               .table          = "mangle",
+>                 .target         = tos_tg6,
+>                 .targetsize     = sizeof(struct xt_tos_target_info),
+>                 .me             = THIS_MODULE,
+> diff --git a/net/netfilter/xt_HL.c b/net/netfilter/xt_HL.c
+> index 1535e87..4da5db3 100644
+> --- a/net/netfilter/xt_HL.c
+> +++ b/net/netfilter/xt_HL.c
+> @@ -137,7 +137,6 @@ static struct xt_target hl_tg_reg[] __read_mostly = {
+>                 .family     = NFPROTO_IPV4,
+>                 .target     = ttl_tg,
+>                 .targetsize = sizeof(struct ipt_TTL_info),
+> -               .table      = "mangle",
+>                 .checkentry = ttl_tg_check,
+>                 .me         = THIS_MODULE,
+>         },
+> @@ -147,7 +146,6 @@ static struct xt_target hl_tg_reg[] __read_mostly = {
+>                 .family     = NFPROTO_IPV6,
+>                 .target     = hl_tg6,
+>                 .targetsize = sizeof(struct ip6t_HL_info),
+> -               .table      = "mangle",
+>                 .checkentry = hl_tg6_check,
+>                 .me         = THIS_MODULE,
+>         },
+> diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTSTRIP.c
+> index 25fd1c4..b42c02e 100644
+> --- a/net/netfilter/xt_TCPOPTSTRIP.c
+> +++ b/net/netfilter/xt_TCPOPTSTRIP.c
+> @@ -103,7 +103,6 @@ static struct xt_target tcpoptstrip_tg_reg[] __read_mostly = {
+>         {
+>                 .name       = "TCPOPTSTRIP",
+>                 .family     = NFPROTO_IPV4,
+> -               .table      = "mangle",
+>                 .proto      = IPPROTO_TCP,
+>                 .target     = tcpoptstrip_tg4,
+>                 .targetsize = sizeof(struct xt_tcpoptstrip_target_info),
+> @@ -113,7 +112,6 @@ static struct xt_target tcpoptstrip_tg_reg[] __read_mostly = {
+>         {
+>                 .name       = "TCPOPTSTRIP",
+>                 .family     = NFPROTO_IPV6,
+> -               .table      = "mangle",
+>                 .proto      = IPPROTO_TCP,
+>                 .target     = tcpoptstrip_tg6,
+>                 .targetsize = sizeof(struct xt_tcpoptstrip_target_info),
+> --
+> 1.7.10.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
