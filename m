@@ -1,37 +1,84 @@
-From: Jamal Hadi Salim <jhs@mojatatu.com>
-Subject: Re: [PATCH] pkt_sched: act_xt support new Xtables interface
-Date: Sat, 22 Dec 2012 09:09:04 -0500
-Message-ID: <50D5BF00.7050304@mojatatu.com>
-References: <50C4821D.5090206@gmail.com> <50C9B4BB.9060609@mojatatu.com> <50CCE961.5050204@mojatatu.com> <alpine.LNX.2.01.1212160002330.4901@nerf07.vanv.qr> <CAASe=fQT2pVOK0uctdaKL+aOrF8nYeTMfoF15kmd-rC02+7Vnw@mail.gmail.com> <50CDFB6A.3090806@mojatatu.com> <50CE1A04.1000405@mojatatu.com> <alpine.LNX.2.01.1212162003340.27614@nerf07.vanv.qr> <50CE3203.9080007@mojatatu.com> <50CF1071.1050405@mojatatu.com> <CAASe=fRuJdtisEvp7uo=PHwN3nKHqsYDW4Om1gk2MK-vyNvBrA@mail.gmail.com> <50D06177.2090905@mojatatu.com> <CAASe=fR6Hm2dxp=1wDchtrzqnaH6qacHpg2wrsqLfmGpPbQ9Fg@mail.gmail.com> <50D1A8A7.1090002@mojatatu.com> <50D1AB7E.5060000@mojatatu.com> <50D2D229.6040802@gmail.com> <50D305FD.7000901@mojatatu.com> <50D327CD.3050904@gmail.com> <50D45E25.7050703@mojatatu.com> <50D46060.2070308@gmail.com> <50D4692
- 8.9070809@mojatatu.com> <50D46EC1.2040608@gmail.com> <50D5B366.30005@mojatatu.com> <50D5BC96.9010602@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Hasan Chowdhury <shemonc@gmail.com>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	Jan Engelhardt <jengelh@inai.de>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Yury Stankevich <urykhy@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ie0-f177.google.com ([209.85.223.177]:50258 "EHLO
-	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751144Ab2LVOJH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 22 Dec 2012 09:09:07 -0500
-Received: by mail-ie0-f177.google.com with SMTP id k13so7498223iea.22
-        for <netfilter-devel@vger.kernel.org>; Sat, 22 Dec 2012 06:09:06 -0800 (PST)
-In-Reply-To: <50D5BC96.9010602@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: [PATCH 25/29] net/netfilter: rename random32() and net_random() to prandom_u32()
+Date: Mon, 24 Dec 2012 11:14:12 +0900
+Message-ID: <1356315256-6572-26-git-send-email-akinobu.mita@gmail.com>
+References: <1356315256-6572-1-git-send-email-akinobu.mita@gmail.com>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, "David S. Miller" <davem@davemloft.net>,
+	netdev@vger.kernel.org
+To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1356315256-6572-1-git-send-email-akinobu.mita@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 12-12-22 08:58 AM, Yury Stankevich wrote:
+Use more preferable function name which implies using a pseudo-random
+number generator.
 
-> i'm trying if this can work, alas. it can't.
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+Cc: netfilter@vger.kernel.org
+Cc: coreteam@netfilter.org
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: netdev@vger.kernel.org
+---
+ net/netfilter/ipvs/ip_vs_conn.c   | 2 +-
+ net/netfilter/nf_conntrack_core.c | 4 ++--
+ net/netfilter/xt_statistic.c      | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-Now i want it to work ;-> So dont give up yet.
-
-
-cheers,
-jamal
-
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 30e764a..870dff6 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1200,7 +1200,7 @@ void ip_vs_random_dropentry(struct net *net)
+ 	 * Randomly scan 1/32 of the whole table every second
+ 	 */
+ 	for (idx = 0; idx < (ip_vs_conn_tab_size>>5); idx++) {
+-		unsigned int hash = net_random() & ip_vs_conn_tab_mask;
++		unsigned int hash = prandom_u32() & ip_vs_conn_tab_mask;
+ 		struct hlist_node *n;
+ 
+ 		/*
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 08cdc71..a8f5c7a 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -263,7 +263,7 @@ static void death_by_event(unsigned long ul_conntrack)
+ 	if (nf_conntrack_event(IPCT_DESTROY, ct) < 0) {
+ 		/* bad luck, let's retry again */
+ 		ecache->timeout.expires = jiffies +
+-			(random32() % net->ct.sysctl_events_retry_timeout);
++			(prandom_u32() % net->ct.sysctl_events_retry_timeout);
+ 		add_timer(&ecache->timeout);
+ 		return;
+ 	}
+@@ -282,7 +282,7 @@ void nf_ct_dying_timeout(struct nf_conn *ct)
+ 	/* set a new timer to retry event delivery */
+ 	setup_timer(&ecache->timeout, death_by_event, (unsigned long)ct);
+ 	ecache->timeout.expires = jiffies +
+-		(random32() % net->ct.sysctl_events_retry_timeout);
++		(prandom_u32() % net->ct.sysctl_events_retry_timeout);
+ 	add_timer(&ecache->timeout);
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_dying_timeout);
+diff --git a/net/netfilter/xt_statistic.c b/net/netfilter/xt_statistic.c
+index 4fe4fb4..11de55e 100644
+--- a/net/netfilter/xt_statistic.c
++++ b/net/netfilter/xt_statistic.c
+@@ -37,7 +37,7 @@ statistic_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 
+ 	switch (info->mode) {
+ 	case XT_STATISTIC_MODE_RANDOM:
+-		if ((net_random() & 0x7FFFFFFF) < info->u.random.probability)
++		if ((prandom_u32() & 0x7FFFFFFF) < info->u.random.probability)
+ 			ret = !ret;
+ 		break;
+ 	case XT_STATISTIC_MODE_NTH:
+-- 
+1.7.11.7
