@@ -1,48 +1,66 @@
-From: canqun zhang <canqunzhang@gmail.com>
-Subject: Re: kernel panic when running /etc/init.d/iptables restart
-Date: Tue, 25 Dec 2012 18:45:41 +0800
-Message-ID: <CAFFEFTWWNQ_NKw840mQ3gTfB9XR44EXb_=Ft4o+UoHwxv13VRg@mail.gmail.com>
-References: <CAFFEFTXxsPRf1Rmxyih0wL4O6q8G0OFmz0iRLX0tOYedYfajHw@mail.gmail.com>
-	<50D93B43.8060303@cn.fujitsu.com>
-	<CAFFEFTULzSysz+JCBC==VtKD8u1KO6EZnSdQ5XWM7um-zs9_pg@mail.gmail.com>
-	<50D965F9.7090007@cn.fujitsu.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] iptables 1.4.17 release
+Date: Tue, 25 Dec 2012 14:09:07 +0100
+Message-ID: <20121225130907.GA27528@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, linux-kernel@vger.kernel.org,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: Gao feng <gaofeng@cn.fujitsu.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <50D965F9.7090007@cn.fujitsu.com>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="YZ5djTAD1cGYuMQK"
+Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
+	netfilter-announce@lists.netfilter.org, lwn@lwn.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thanks for your suggestion,i will modify this patch and take tests.
 
-2012/12/25 Gao feng <gaofeng@cn.fujitsu.com>:
-> On 2012/12/25 15:25, canqun zhang wrote:
->> Hi Gao feng
->> The stack information is as follows. The kenel will panic because the
->> nf_ct_destroy is NULL.
->>
->> Reproduction:
->> (1) starting a lxc container
->> (2) iptables -t nat -A POSTROUTING -s 10.48.254.18 -o eth1 -j
->> MASQUERADE (run it on host machine)
->> (3) /etc/ini.d/iptables save (run it on host machine)
->> (4)/etc/init.d/iptables restart (run it on host machine)
->>
->
-> Thanks!
-> It seems that nf_conntrack_l[3,4]proto_unregister doesn't make sure
-> nf_conns of the proto being destroyed.
->
-> If I'm right, there is another problem even your fix this panic problem.
-> the l3,14proto will be unregistered before all of it's nf_conns being destroyed.
-> So even nf_ct_destroy is not NULL,in destroy_conntrack we are not able to
-> find the right l4proto,the l4proto->destroy will be incorrect.resources will
-> not be released correctly.
->
-> So I think the root problem is we do register/unregister, set/unset both on the
-> first net (init_net), Maybe it's better to do register set on the first net, and
-> do unregister unset on the last net.
+--YZ5djTAD1cGYuMQK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi!
+
+The Netfilter project proudly presents:
+
+        iptables 1.4.17
+
+More relevantly, this release includes the IPv6 NAT extensions from
+Patrick McHardy, the ignore day transition from Florian Westphal and
+a couple of fixes.
+
+See ChangeLog that comes attached to this email for more details.
+
+You can download it from:
+
+http://www.netfilter.org/projects/iptables/downloads.html
+ftp://ftp.netfilter.org/pub/iptables/
+
+Have fun!
+
+--YZ5djTAD1cGYuMQK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="changes-iptables-1.4.17.txt"
+
+Florian Westphal (1):
+      libxt_time: add support to ignore day transition
+
+Jozsef Kadlecsik (1):
+      Manpage update: matches are evaluated in the order they are specified.
+
+Pablo Neira Ayuso (2):
+      Merge branch 'next' branch that contains new features scheduled for     Linux kernel 3.7
+      bump version to 1.4.17
+
+Patrick McHardy (7):
+      Convert the NAT targets to use the kernel supplied nf_nat.h header
+      extensions: add IPv6 MASQUERADE extension
+      extensions: add IPv6 SNAT extension
+      extensions: add IPv6 DNAT target
+      extensions: add IPv6 REDIRECT extension
+      extensions: add IPv6 NETMAP extension
+      extensions: add NPT extension
+
+Tom Eastep (1):
+      extensions: libxt_statistic: Fix save output
+
+
+--YZ5djTAD1cGYuMQK--
