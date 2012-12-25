@@ -1,65 +1,53 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 12/13] doc: document the -4 and -6 options
-Date: Wed, 26 Dec 2012 00:11:28 +0100
-Message-ID: <1356477089-13241-13-git-send-email-jengelh@inai.de>
+Subject: [PATCH 13/13] build: resolve link failure for ip6t_NETMAP
+Date: Wed, 26 Dec 2012 00:11:29 +0100
+Message-ID: <1356477089-13241-14-git-send-email-jengelh@inai.de>
 References: <1356477089-13241-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:38912 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:38913 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752510Ab2LYXLf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Dec 2012 18:11:35 -0500
+	id S1752549Ab2LYXLg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Dec 2012 18:11:36 -0500
 In-Reply-To: <1356477089-13241-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Link stage of libip6t_NETMAP failed since recently.
+
+  CCLD     libip6t_NETMAP.so
+/usr/lib64/gcc/x86_64-suse-linux/4.7/../../../../x86_64-suse-linux/bin/ld:
+cannot find -lip6tc
+
+libip6t_NETMAP.c uses the "ipv6_prefix_length" function from
+libip6tc.so; "-lip6tc" is used in the Makefile, but, the directory to
+it is not specified.
+
+Why does the link succeed for some people? Because
+/usr/lib(64)/libip6tc.so satisfies -lip6tc, but not all environments,
+especially those without iptables development files, have that file,
+hence this link error can happen.
+
 Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- iptables/ip6tables.8.in |    9 +++++++++
- iptables/iptables.8.in  |    9 +++++++++
- 2 files changed, 18 insertions(+)
+ extensions/GNUmakefile.in |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/iptables/ip6tables.8.in b/iptables/ip6tables.8.in
-index dfeebe6..c274e91 100644
---- a/iptables/ip6tables.8.in
-+++ b/iptables/ip6tables.8.in
-@@ -240,6 +240,15 @@ Give a (currently very brief) description of the command syntax.
- The following parameters make up a rule specification (as used in the
- add, delete, insert, replace and append commands).
- .TP
-+\fB\-4\fP, \fB\-\-ipv4\fP
-+If a rule using the \fB\-4\fP option is inserted with (and only with)
-+ip6tables-restore, it will be silently ignored. Any other uses will throw an
-+error. This option allows to put both IPv4 and IPv6 rules in a single rule file
-+for use with both iptables-restore and ip6tables-restore.
-+.TP
-+\fB\-6\fP, \fB\-\-ipv6\fP
-+This option has no effect in ip6tables and ip6tables-restore.
-+.TP
- [\fB!\fP] \fB\-p\fP, \fB\-\-protocol\fP \fIprotocol\fP
- The protocol of the rule or of the packet to check.
- The specified protocol can be one of \fBtcp\fP, \fBudp\fP, \fBudplite\fP,
-diff --git a/iptables/iptables.8.in b/iptables/iptables.8.in
-index 9276cf9..22a8478 100644
---- a/iptables/iptables.8.in
-+++ b/iptables/iptables.8.in
-@@ -243,6 +243,15 @@ Give a (currently very brief) description of the command syntax.
- The following parameters make up a rule specification (as used in the
- add, delete, insert, replace and append commands).
- .TP
-+\fB\-4\fP, \fB\-\-ipv4\fP
-+This option has no effect in iptables and iptables-restore.
-+.TP
-+\fB\-6\fP, \fB\-\-ipv6\fP
-+If a rule using the \fB\-6\fP option is inserted with (and only with)
-+iptables-restore, it will be silently ignored. Any other uses will throw an
-+error. This option allows to put both IPv4 and IPv6 rules in a single rule file
-+for use with both iptables-restore and ip6tables-restore.
-+.TP
- [\fB!\fP] \fB\-p\fP, \fB\-\-protocol\fP \fIprotocol\fP
- The protocol of the rule or of the packet to check.
- The specified protocol can be one of \fBtcp\fP, \fBudp\fP, \fBudplite\fP,
+diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+index e71e3ff..68e0b9b 100644
+--- a/extensions/GNUmakefile.in
++++ b/extensions/GNUmakefile.in
+@@ -101,7 +101,8 @@ libxt_state.so: libxt_conntrack.so
+ 	ln -fs $< $@
+ 
+ # Need the LIBADDs in iptables/Makefile.am too for libxtables_la_LIBADD
+-ip6t_NETMAP_LIBADD  = -lip6tc
++ip6t_NETMAP_LIBADD  = -L${top_builddir}/libiptc/.libs \
++                      -L${top_builddir}/libiptc -lip6tc
+ xt_RATEEST_LIBADD   = -lm
+ xt_statistic_LIBADD = -lm
+ 
 -- 
 1.7.10.4
 
