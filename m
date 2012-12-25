@@ -1,76 +1,65 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 05/13] doc: document iptables-restore's -M option
-Date: Wed, 26 Dec 2012 00:11:21 +0100
-Message-ID: <1356477089-13241-6-git-send-email-jengelh@inai.de>
+Subject: [PATCH 12/13] doc: document the -4 and -6 options
+Date: Wed, 26 Dec 2012 00:11:28 +0100
+Message-ID: <1356477089-13241-13-git-send-email-jengelh@inai.de>
 References: <1356477089-13241-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:38905 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:38912 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752463Ab2LYXLe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Dec 2012 18:11:34 -0500
+	id S1752510Ab2LYXLf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Dec 2012 18:11:35 -0500
 In-Reply-To: <1356477089-13241-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-References: http://bugs.debian.org/644221
 Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- iptables/ip6tables-restore.8.in |    7 ++++++-
- iptables/iptables-restore.8.in  |    7 ++++++-
- 2 files changed, 12 insertions(+), 2 deletions(-)
+ iptables/ip6tables.8.in |    9 +++++++++
+ iptables/iptables.8.in  |    9 +++++++++
+ 2 files changed, 18 insertions(+)
 
-diff --git a/iptables/ip6tables-restore.8.in b/iptables/ip6tables-restore.8.in
-index 6c0009e..f3419f4 100644
---- a/iptables/ip6tables-restore.8.in
-+++ b/iptables/ip6tables-restore.8.in
-@@ -21,7 +21,8 @@
- .SH NAME
- ip6tables-restore \(em Restore IPv6 Tables
- .SH SYNOPSIS
--\fBip6tables\-restore\fP [\fB\-cntv\fP] [\fB\-T\fP \fIname\fP]
-+\fBip6tables\-restore\fP [\fB\-cntv\fP] [\fB\-M\fP \fImodprobe\fP]
-+[\fB\-T\fP \fIname\fP]
- .SH DESCRIPTION
- .PP
- .B ip6tables-restore
-@@ -42,6 +43,10 @@ Only parse and construct the ruleset, but do not commit it.
- \fB\-v\fP, \fB\-\-verbose\fP
- Print additional debug info during ruleset processing.
+diff --git a/iptables/ip6tables.8.in b/iptables/ip6tables.8.in
+index dfeebe6..c274e91 100644
+--- a/iptables/ip6tables.8.in
++++ b/iptables/ip6tables.8.in
+@@ -240,6 +240,15 @@ Give a (currently very brief) description of the command syntax.
+ The following parameters make up a rule specification (as used in the
+ add, delete, insert, replace and append commands).
  .TP
-+\fB\-M\fP, \fB\-\-modprobe\fP \fImodprobe_program\fP
-+Specify the path to the modprobe program. By default, ip6tables-restore will
-+inspect /proc/sys/kernel/modprobe to determine the executable's path.
++\fB\-4\fP, \fB\-\-ipv4\fP
++If a rule using the \fB\-4\fP option is inserted with (and only with)
++ip6tables-restore, it will be silently ignored. Any other uses will throw an
++error. This option allows to put both IPv4 and IPv6 rules in a single rule file
++for use with both iptables-restore and ip6tables-restore.
 +.TP
- \fB\-T\fP, \fB\-\-table\fP \fIname\fP
- Restore only the named table even if the input stream contains other ones.
- .B ip6tables-restore
-diff --git a/iptables/iptables-restore.8.in b/iptables/iptables-restore.8.in
-index 27440fb..c493cf9 100644
---- a/iptables/iptables-restore.8.in
-+++ b/iptables/iptables-restore.8.in
-@@ -21,7 +21,8 @@
- .SH NAME
- iptables-restore \(em Restore IP Tables
- .SH SYNOPSIS
--\fBiptables\-restore\fP [\fB\-cntv\fP] [\fB\-T\fP \fIname\fP]
-+\fBiptables\-restore\fP [\fB\-cntv\fP] [\fB\-M\fP \fImodprobe\fP]
-+[\fB\-T\fP \fIname\fP]
- .SH DESCRIPTION
- .PP
- .B iptables-restore
-@@ -42,6 +43,10 @@ Only parse and construct the ruleset, but do not commit it.
- \fB\-v\fP, \fB\-\-verbose\fP
- Print additional debug info during ruleset processing.
++\fB\-6\fP, \fB\-\-ipv6\fP
++This option has no effect in ip6tables and ip6tables-restore.
++.TP
+ [\fB!\fP] \fB\-p\fP, \fB\-\-protocol\fP \fIprotocol\fP
+ The protocol of the rule or of the packet to check.
+ The specified protocol can be one of \fBtcp\fP, \fBudp\fP, \fBudplite\fP,
+diff --git a/iptables/iptables.8.in b/iptables/iptables.8.in
+index 9276cf9..22a8478 100644
+--- a/iptables/iptables.8.in
++++ b/iptables/iptables.8.in
+@@ -243,6 +243,15 @@ Give a (currently very brief) description of the command syntax.
+ The following parameters make up a rule specification (as used in the
+ add, delete, insert, replace and append commands).
  .TP
-+\fB\-M\fP, \fB\-\-modprobe\fP \fImodprobe_program\fP
-+Specify the path to the modprobe program. By default, iptables-restore will
-+inspect /proc/sys/kernel/modprobe to determine the executable's path.
++\fB\-4\fP, \fB\-\-ipv4\fP
++This option has no effect in iptables and iptables-restore.
 +.TP
- \fB\-T\fP, \fB\-\-table\fP \fIname\fP
- Restore only the named table even if the input stream contains other ones.
- .SH BUGS
++\fB\-6\fP, \fB\-\-ipv6\fP
++If a rule using the \fB\-6\fP option is inserted with (and only with)
++iptables-restore, it will be silently ignored. Any other uses will throw an
++error. This option allows to put both IPv4 and IPv6 rules in a single rule file
++for use with both iptables-restore and ip6tables-restore.
++.TP
+ [\fB!\fP] \fB\-p\fP, \fB\-\-protocol\fP \fIprotocol\fP
+ The protocol of the rule or of the packet to check.
+ The specified protocol can be one of \fBtcp\fP, \fBudp\fP, \fBudplite\fP,
 -- 
 1.7.10.4
 
