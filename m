@@ -1,69 +1,59 @@
 From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: [libnl-nft PATCH] Fix file descriptor leak on error
-Date: Tue, 25 Dec 2012 15:21:10 +0100
-Message-ID: <50D9B656.6040809@intra2net.com>
+Subject: [libnl-nft PATCH] Fix out of bounds buffer access in rtnl_netem_set_delay_distribution()
+Date: Tue, 25 Dec 2012 15:15:27 +0100
+Message-ID: <50D9B4FF.9000806@intra2net.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from re04.intra2net.com ([82.165.46.26]:36981 "EHLO
+Received: from re04.intra2net.com ([82.165.46.26]:36983 "EHLO
 	re04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753641Ab2LYOVN (ORCPT
+	with ESMTP id S1753764Ab2LYOVo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Dec 2012 09:21:13 -0500
+	Tue, 25 Dec 2012 09:21:44 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
+
+sizeof(test_path) returns the array size
+and not the number of array elements.
 
 Detected by cppcheck
 
 Signed-off-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
 ---
- lib/utils.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ lib/route/sch/netem.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/lib/utils.c b/lib/utils.c
-index 4007bee..50ca6d9 100644
---- a/lib/utils.c
-+++ b/lib/utils.c
-@@ -60,24 +60,32 @@ int __nl_read_num_str_file(const char *path, int (*cb)(long, const char *))
- 			continue;
- 
- 		num = strtol(buf, &end, 0);
--		if (end == buf)
-+		if (end == buf) {
-+			fclose(fd);
- 			return -NLE_INVAL;
-+		}
- 
--		if (num == LONG_MIN || num == LONG_MAX)
-+		if (num == LONG_MIN || num == LONG_MAX) {
-+			fclose(fd);
- 			return -NLE_RANGE;
-+		}
- 
- 		while (*end == ' ' || *end == '\t')
- 			end++;
- 
- 		goodlen = strcspn(end, "#\r\n\t ");
--		if (goodlen == 0)
-+		if (goodlen == 0) {
-+			fclose(fd);
- 			return -NLE_INVAL;
-+		}
- 
- 		end[goodlen] = '\0';
- 
- 		err = cb(num, end);
--		if (err < 0)
-+		if (err < 0) {
-+			fclose(fd);
- 			return err;
-+		}
+diff --git a/lib/route/sch/netem.c b/lib/route/sch/netem.c
+index 18878a7..5894fd9 100644
+--- a/lib/route/sch/netem.c
++++ b/lib/route/sch/netem.c
+@@ -861,7 +861,7 @@ int rtnl_netem_set_delay_distribution(struct rtnl_qdisc *qdisc, const char *dist
+ 		return -NLE_NOMEM;
+ 		
+ 	FILE *f = NULL;
+-	int i, n = 0;
++	int i = 0, n = 0;
+ 	size_t len = 2048;
+ 	char *line;
+ 	char name[NAME_MAX];
+@@ -873,11 +873,12 @@ int rtnl_netem_set_delay_distribution(struct rtnl_qdisc *qdisc, const char *dist
+ 		strcpy(dist_suffix, "");
+ 	
+ 	/* Check several locations for the dist file */
+-	char *test_path[] = { "", "./", "/usr/lib/tc/", "/usr/local/lib/tc/" };
++	char *test_path[] = { "", "./", "/usr/lib/tc/", "/usr/local/lib/tc/", NULL };
+ 	
+-	for (i = 0; i < sizeof(test_path) && f == NULL; i++) {
++	while(f == NULL && test_path[i] != NULL) {
+ 		snprintf(name, NAME_MAX, "%s%s%s", test_path[i], dist_type, dist_suffix);
+ 		f = fopen(name, "r");
++		++i;
  	}
- 
- 	fclose(fd);
+ 	
+ 	if ( f == NULL )
 -- 
 1.7.11.7
 
