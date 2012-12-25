@@ -1,66 +1,69 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] iptables 1.4.17 release
-Date: Tue, 25 Dec 2012 14:09:07 +0100
-Message-ID: <20121225130907.GA27528@1984>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: [libnl-nft PATCH] Fix file descriptor leak on error
+Date: Tue, 25 Dec 2012 15:21:10 +0100
+Message-ID: <50D9B656.6040809@intra2net.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="YZ5djTAD1cGYuMQK"
-Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
-	netfilter-announce@lists.netfilter.org, lwn@lwn.net
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from re04.intra2net.com ([82.165.46.26]:36981 "EHLO
+	re04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753641Ab2LYOVN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Dec 2012 09:21:13 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Detected by cppcheck
 
---YZ5djTAD1cGYuMQK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
+---
+ lib/utils.c | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-Hi!
+diff --git a/lib/utils.c b/lib/utils.c
+index 4007bee..50ca6d9 100644
+--- a/lib/utils.c
++++ b/lib/utils.c
+@@ -60,24 +60,32 @@ int __nl_read_num_str_file(const char *path, int (*cb)(long, const char *))
+ 			continue;
+ 
+ 		num = strtol(buf, &end, 0);
+-		if (end == buf)
++		if (end == buf) {
++			fclose(fd);
+ 			return -NLE_INVAL;
++		}
+ 
+-		if (num == LONG_MIN || num == LONG_MAX)
++		if (num == LONG_MIN || num == LONG_MAX) {
++			fclose(fd);
+ 			return -NLE_RANGE;
++		}
+ 
+ 		while (*end == ' ' || *end == '\t')
+ 			end++;
+ 
+ 		goodlen = strcspn(end, "#\r\n\t ");
+-		if (goodlen == 0)
++		if (goodlen == 0) {
++			fclose(fd);
+ 			return -NLE_INVAL;
++		}
+ 
+ 		end[goodlen] = '\0';
+ 
+ 		err = cb(num, end);
+-		if (err < 0)
++		if (err < 0) {
++			fclose(fd);
+ 			return err;
++		}
+ 	}
+ 
+ 	fclose(fd);
+-- 
+1.7.11.7
 
-The Netfilter project proudly presents:
-
-        iptables 1.4.17
-
-More relevantly, this release includes the IPv6 NAT extensions from
-Patrick McHardy, the ignore day transition from Florian Westphal and
-a couple of fixes.
-
-See ChangeLog that comes attached to this email for more details.
-
-You can download it from:
-
-http://www.netfilter.org/projects/iptables/downloads.html
-ftp://ftp.netfilter.org/pub/iptables/
-
-Have fun!
-
---YZ5djTAD1cGYuMQK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="changes-iptables-1.4.17.txt"
-
-Florian Westphal (1):
-      libxt_time: add support to ignore day transition
-
-Jozsef Kadlecsik (1):
-      Manpage update: matches are evaluated in the order they are specified.
-
-Pablo Neira Ayuso (2):
-      Merge branch 'next' branch that contains new features scheduled for     Linux kernel 3.7
-      bump version to 1.4.17
-
-Patrick McHardy (7):
-      Convert the NAT targets to use the kernel supplied nf_nat.h header
-      extensions: add IPv6 MASQUERADE extension
-      extensions: add IPv6 SNAT extension
-      extensions: add IPv6 DNAT target
-      extensions: add IPv6 REDIRECT extension
-      extensions: add IPv6 NETMAP extension
-      extensions: add NPT extension
-
-Tom Eastep (1):
-      extensions: libxt_statistic: Fix save output
-
-
---YZ5djTAD1cGYuMQK--
