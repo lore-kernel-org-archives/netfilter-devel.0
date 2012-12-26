@@ -1,65 +1,77 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [libnetfilter_acct PATCH] Fix packets and bytes inversion.
-Date: Wed, 26 Dec 2012 23:30:52 +0100
-Message-ID: <1356561052-32655-1-git-send-email-eric@regit.org>
-Cc: Eric Leblond <eric@regit.org>
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] pkt_sched: act_xt support new Xtables interface
+Date: Thu, 27 Dec 2012 00:10:45 +0100
+Message-ID: <20121226231045.GA1914@1984>
+References: <50D46928.9070809@mojatatu.com>
+ <50D46EC1.2040608@gmail.com>
+ <50D5B366.30005@mojatatu.com>
+ <50D5BC96.9010602@gmail.com>
+ <50D5BF00.7050304@mojatatu.com>
+ <50D83DDB.102@mojatatu.com>
+ <50D8413C.8050508@openwrt.org>
+ <20121224131233.GA29307@1984>
+ <50D86136.6070006@mojatatu.com>
+ <20121224181943.GA16068@1984>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Felix Fietkau <nbd@openwrt.org>,
+	Yury Stankevich <urykhy@gmail.com>,
+	Hasan Chowdhury <shemonc@gmail.com>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	Jan Engelhardt <jengelh@inai.de>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: Jamal Hadi Salim <jhs@mojatatu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:41601 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750789Ab2LZWbk (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Dec 2012 17:31:40 -0500
+Received: from mail.us.es ([193.147.175.20]:35743 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751371Ab2LZXKt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 Dec 2012 18:10:49 -0500
+Content-Disposition: inline
+In-Reply-To: <20121224181943.GA16068@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pkts and bytes are inversed in some part of the code. This patch
-fixes most of the occurence of this problem.
+On Mon, Dec 24, 2012 at 07:19:43PM +0100, Pablo Neira Ayuso wrote:
+> Hi Jamal,
+> 
+> On Mon, Dec 24, 2012 at 09:05:42AM -0500, Jamal Hadi Salim wrote:
+> > On 12-12-24 08:12 AM, Pablo Neira Ayuso wrote:
+> > >
+> > >conntrack needs to see defragmented packets, you have to call
+> > >nf_defrag_ipv4 / _ipv6 respectively before that.
+> > >
+> > 
+> > This should not be too hard to do - although my thinking says this
+> > should be a separate action.
+> > 
+> > >This also changes the semantics of the raw table in iptables since it
+> > >will now see packet with conntrack already attached. So this would
+> > >also break -j CT --notrack.
+> > 
+> > Is there a flag we can check which says a flow is not to be tracked?
+> > Doesnt nf_conntrack_in() fail if --no track is set?
+> 
+> The notrack dummy conntrack (consider it a flag) is attached in
+> prerouting raw table. By attaching conntracks at ingress, the notrack
+> flag will be ignored. Note that this also breaks conntrack templates
+> via -j CT, that allows us to set custom conntrack timeouts, zones and
+> helpers at prerouting raw.
+> 
+> Basically, ct templates are attached via -j CT, this template is
+> munched by nf_conntrack_in, which adds the corresponding ct features
+> based on the template information.
 
-Signed-off-by: Eric Leblond <eric@regit.org>
----
- src/libnetfilter_acct.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+I'm still spinning around this and I don't come with some easy
+solution that doesn't break the existing semantics. One possibility
+can be to drop the ct reference after leaving ingress, so the lookup
+happens again in prerouting after the raw table to attach it again and
+no ct is seen in the raw table but:
 
-diff --git a/src/libnetfilter_acct.c b/src/libnetfilter_acct.c
-index 6a3a839..0abaeac 100644
---- a/src/libnetfilter_acct.c
-+++ b/src/libnetfilter_acct.c
-@@ -106,11 +106,11 @@ nfacct_attr_set(struct nfacct *nfacct, enum nfacct_attr_type type,
- 		nfacct->bitset |= (1 << NFACCT_ATTR_NAME);
- 		break;
- 	case NFACCT_ATTR_PKTS:
--		nfacct->bytes = *((uint64_t *) data);
-+		nfacct->pkts = *((uint64_t *) data);
- 		nfacct->bitset |= (1 << NFACCT_ATTR_PKTS);
- 		break;
- 	case NFACCT_ATTR_BYTES:
--		nfacct->pkts = *((uint64_t *) data);
-+		nfacct->bytes = *((uint64_t *) data);
- 		nfacct->bitset |= (1 << NFACCT_ATTR_BYTES);
- 		break;
- 	}
-@@ -237,9 +237,9 @@ nfacct_snprintf_plain(char *buf, size_t rem, struct nfacct *nfacct,
- 		ret = snprintf(buf, rem,
- 			"{ pkts = %.20llu, bytes = %.20llu } = %s;",
- 			(unsigned long long)
--			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_BYTES),
--			(unsigned long long)
- 			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_PKTS),
-+			(unsigned long long)
-+			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_BYTES),
- 			nfacct_attr_get_str(nfacct, NFACCT_ATTR_NAME));
- 	} else {
- 		ret = snprintf(buf, rem, "%s\n",
-@@ -426,7 +426,7 @@ void nfacct_nlmsg_build_payload(struct nlmsghdr *nlh, struct nfacct *nfacct)
- 		mnl_attr_put_u64(nlh, NFACCT_PKTS, htobe64(nfacct->pkts));
- 
- 	if (nfacct->bitset & (1 << NFACCT_ATTR_BYTES))
--		mnl_attr_put_u64(nlh, NFACCT_PKTS, htobe64(nfacct->bytes));
-+		mnl_attr_put_u64(nlh, NFACCT_BYTES, htobe64(nfacct->bytes));
- }
- EXPORT_SYMBOL(nfacct_nlmsg_build_payload);
- 
--- 
-1.7.10.4
+1) it's suboptimal in case users have rules using ct at ingress and in
+   iptables.
 
+2) the conntrack template infrastructure needs to be reworked/replaced
+   by something more flexible to attach features to conntracks, so we
+   can still attach features for conntrack entries that were created
+   at ingress (so helpers / custom timeouts / notrack don't break).
