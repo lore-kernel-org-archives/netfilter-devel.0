@@ -1,77 +1,50 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] pkt_sched: act_xt support new Xtables interface
-Date: Thu, 27 Dec 2012 00:10:45 +0100
-Message-ID: <20121226231045.GA1914@1984>
-References: <50D46928.9070809@mojatatu.com>
- <50D46EC1.2040608@gmail.com>
- <50D5B366.30005@mojatatu.com>
- <50D5BC96.9010602@gmail.com>
- <50D5BF00.7050304@mojatatu.com>
- <50D83DDB.102@mojatatu.com>
- <50D8413C.8050508@openwrt.org>
- <20121224131233.GA29307@1984>
- <50D86136.6070006@mojatatu.com>
- <20121224181943.GA16068@1984>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Felix Fietkau <nbd@openwrt.org>,
-	Yury Stankevich <urykhy@gmail.com>,
-	Hasan Chowdhury <shemonc@gmail.com>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	Jan Engelhardt <jengelh@inai.de>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: Jamal Hadi Salim <jhs@mojatatu.com>
+From: pablo@netfilter.org
+Subject: [PATCH 1/4] iptables: remove unused leftover definitions
+Date: Thu, 27 Dec 2012 01:19:19 +0100
+Message-ID: <1356567561-3205-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35743 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39950 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751371Ab2LZXKt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Dec 2012 18:10:49 -0500
-Content-Disposition: inline
-In-Reply-To: <20121224181943.GA16068@1984>
+	id S1751509Ab2L0ATc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 Dec 2012 19:19:32 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Dec 24, 2012 at 07:19:43PM +0100, Pablo Neira Ayuso wrote:
-> Hi Jamal,
-> 
-> On Mon, Dec 24, 2012 at 09:05:42AM -0500, Jamal Hadi Salim wrote:
-> > On 12-12-24 08:12 AM, Pablo Neira Ayuso wrote:
-> > >
-> > >conntrack needs to see defragmented packets, you have to call
-> > >nf_defrag_ipv4 / _ipv6 respectively before that.
-> > >
-> > 
-> > This should not be too hard to do - although my thinking says this
-> > should be a separate action.
-> > 
-> > >This also changes the semantics of the raw table in iptables since it
-> > >will now see packet with conntrack already attached. So this would
-> > >also break -j CT --notrack.
-> > 
-> > Is there a flag we can check which says a flow is not to be tracked?
-> > Doesnt nf_conntrack_in() fail if --no track is set?
-> 
-> The notrack dummy conntrack (consider it a flag) is attached in
-> prerouting raw table. By attaching conntracks at ingress, the notrack
-> flag will be ignored. Note that this also breaks conntrack templates
-> via -j CT, that allows us to set custom conntrack timeouts, zones and
-> helpers at prerouting raw.
-> 
-> Basically, ct templates are attached via -j CT, this template is
-> munched by nf_conntrack_in, which adds the corresponding ct features
-> based on the template information.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-I'm still spinning around this and I don't come with some easy
-solution that doesn't break the existing semantics. One possibility
-can be to drop the ct reference after leaving ingress, so the lookup
-happens again in prerouting after the raw table to attach it again and
-no ct is seen in the raw table but:
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ iptables/iptables.c |   16 ----------------
+ 1 file changed, 16 deletions(-)
 
-1) it's suboptimal in case users have rules using ct at ingress and in
-   iptables.
+diff --git a/iptables/iptables.c b/iptables/iptables.c
+index f765cf9..760cb16 100644
+--- a/iptables/iptables.c
++++ b/iptables/iptables.c
+@@ -186,22 +186,6 @@ static const int inverse_for_options[NUMBER_OF_OPT] =
+ #define prog_name iptables_globals.program_name
+ #define prog_vers iptables_globals.program_version
+ 
+-/* Primitive headers... */
+-/* defined in netinet/in.h */
+-#if 0
+-#ifndef IPPROTO_ESP
+-#define IPPROTO_ESP 50
+-#endif
+-#ifndef IPPROTO_AH
+-#define IPPROTO_AH 51
+-#endif
+-#endif
+-
+-enum {
+-	IPT_DOTTED_ADDR = 0,
+-	IPT_DOTTED_MASK
+-};
+-
+ static void __attribute__((noreturn))
+ exit_tryhelp(int status)
+ {
+-- 
+1.7.10.4
 
-2) the conntrack template infrastructure needs to be reworked/replaced
-   by something more flexible to attach features to conntracks, so we
-   can still attach features for conntrack entries that were created
-   at ingress (so helpers / custom timeouts / notrack don't break).
