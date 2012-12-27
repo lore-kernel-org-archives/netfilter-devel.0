@@ -1,260 +1,172 @@
 From: pablo@netfilter.org
-Subject: [PATCH 3/3] libxtables: add xtables_print_num
-Date: Thu, 27 Dec 2012 01:20:05 +0100
-Message-ID: <1356567605-3246-2-git-send-email-pablo@netfilter.org>
-References: <1356567605-3246-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 2/3] libxtables: add xtables_rule_matches_free
+Date: Thu, 27 Dec 2012 01:20:04 +0100
+Message-ID: <1356567605-3246-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39997 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40011 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751545Ab2L0AUP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Dec 2012 19:20:15 -0500
-In-Reply-To: <1356567605-3246-1-git-send-email-pablo@netfilter.org>
+	id S1751551Ab2L0AU1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 Dec 2012 19:20:27 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-This function is used both by iptables and ip6tables.
+This function is shared by iptables and ip6tables.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/xtables.h    |   16 ++++++++++++++++
- iptables/ip6tables.c |   48 ++++--------------------------------------------
- iptables/iptables.c  |   49 ++++---------------------------------------------
- libxtables/xtables.c |   29 +++++++++++++++++++++++++++++
- 4 files changed, 53 insertions(+), 89 deletions(-)
+ configure.ac         |    4 ++--
+ include/xtables.h    |    2 ++
+ iptables/ip6tables.c |   23 +----------------------
+ iptables/iptables.c  |   23 +----------------------
+ libxtables/xtables.c |   22 ++++++++++++++++++++++
+ 5 files changed, 28 insertions(+), 46 deletions(-)
 
+diff --git a/configure.ac b/configure.ac
+index c3b253a..e644308 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -2,8 +2,8 @@
+ AC_INIT([iptables], [1.4.16.3])
+ 
+ # See libtool.info "Libtool's versioning system"
+-libxtables_vcurrent=9
+-libxtables_vage=0
++libxtables_vcurrent=10
++libxtables_vage=1
+ 
+ AC_CONFIG_AUX_DIR([build-aux])
+ AC_CONFIG_HEADERS([config.h])
 diff --git a/include/xtables.h b/include/xtables.h
-index add76ae..75de958 100644
+index 2cc1a02..add76ae 100644
 --- a/include/xtables.h
 +++ b/include/xtables.h
-@@ -469,6 +469,22 @@ extern void xtables_ip6parse_multiple(const char *, struct in6_addr **,
-  */
- extern void xtables_save_string(const char *value);
+@@ -417,6 +417,8 @@ extern struct xtables_match *xtables_find_match(const char *name,
+ extern struct xtables_target *xtables_find_target(const char *name,
+ 	enum xtables_tryload);
  
-+#define FMT_NUMERIC		0x0001
-+#define FMT_NOCOUNTS		0x0002
-+#define FMT_KILOMEGAGIGA	0x0004
-+#define FMT_OPTIONS		0x0008
-+#define FMT_NOTABLE		0x0010
-+#define FMT_NOTARGET		0x0020
-+#define FMT_VIA			0x0040
-+#define FMT_NONEWLINE		0x0080
-+#define FMT_LINENUMBERS		0x0100
++extern void xtables_rule_matches_free(struct xtables_rule_match **matches);
 +
-+#define FMT_PRINT_RULE (FMT_NOCOUNTS | FMT_OPTIONS | FMT_VIA \
-+                        | FMT_NUMERIC | FMT_NOTABLE)
-+#define FMT(tab,notab) ((format) & FMT_NOTABLE ? (notab) : (tab))
-+
-+extern void xtables_print_num(uint64_t number, unsigned int format);
-+
- #if defined(ALL_INCLUSIVE) || defined(NO_SHARED_LIBS)
- #	ifdef _INIT
- #		undef _init
+ /* Your shared library should call one of these. */
+ extern void xtables_register_match(struct xtables_match *me);
+ extern void xtables_register_matches(struct xtables_match *, unsigned int);
 diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
-index e9e753a..556647f 100644
+index 0e11a9e..e9e753a 100644
 --- a/iptables/ip6tables.c
 +++ b/iptables/ip6tables.c
-@@ -52,21 +52,6 @@
- #define FALSE 0
- #endif
- 
--#define FMT_NUMERIC	0x0001
--#define FMT_NOCOUNTS	0x0002
--#define FMT_KILOMEGAGIGA 0x0004
--#define FMT_OPTIONS	0x0008
--#define FMT_NOTABLE	0x0010
--#define FMT_NOTARGET	0x0020
--#define FMT_VIA		0x0040
--#define FMT_NONEWLINE	0x0080
--#define FMT_LINENUMBERS 0x0100
--
--#define FMT_PRINT_RULE (FMT_NOCOUNTS | FMT_OPTIONS | FMT_VIA \
--			| FMT_NUMERIC | FMT_NOTABLE)
--#define FMT(tab,notab) ((format) & FMT_NOTABLE ? (notab) : (tab))
--
--
- #define CMD_NONE		0x0000U
- #define CMD_INSERT		0x0001U
- #define CMD_DELETE		0x0002U
-@@ -442,31 +427,6 @@ set_option(unsigned int *options, unsigned int option, uint8_t *invflg,
- 	}
+@@ -1249,27 +1249,6 @@ generate_entry(const struct ip6t_entry *fw,
+ 	return e;
  }
  
--static void
--print_num(uint64_t number, unsigned int format)
+-static void clear_rule_matches(struct xtables_rule_match **matches)
 -{
--	if (format & FMT_KILOMEGAGIGA) {
--		if (number > 99999) {
--			number = (number + 500) / 1000;
--			if (number > 9999) {
--				number = (number + 500) / 1000;
--				if (number > 9999) {
--					number = (number + 500) / 1000;
--					if (number > 9999) {
--						number = (number + 500) / 1000;
--						printf(FMT("%4lluT ","%lluT "), (unsigned long long)number);
--					}
--					else printf(FMT("%4lluG ","%lluG "), (unsigned long long)number);
--				}
--				else printf(FMT("%4lluM ","%lluM "), (unsigned long long)number);
--			} else
--				printf(FMT("%4lluK ","%lluK "), (unsigned long long)number);
--		} else
--			printf(FMT("%5llu ","%llu "), (unsigned long long)number);
--	} else
--		printf(FMT("%8llu ","%llu "), (unsigned long long)number);
+-	struct xtables_rule_match *matchp, *tmp;
+-
+-	for (matchp = *matches; matchp;) {
+-		tmp = matchp->next;
+-		if (matchp->match->m) {
+-			free(matchp->match->m);
+-			matchp->match->m = NULL;
+-		}
+-		if (matchp->match == matchp->match->next) {
+-			free(matchp->match);
+-			matchp->match = NULL;
+-		}
+-		free(matchp);
+-		matchp = tmp;
+-	}
+-
+-	*matches = NULL;
 -}
 -
+ static void command_jump(struct iptables_command_state *cs)
+ {
+ 	size_t size;
+@@ -1963,7 +1942,7 @@ int do_command6(int argc, char *argv[], char **table, struct xtc_handle **handle
+ 	if (verbose > 1)
+ 		dump_entries6(*handle);
  
- static void
- print_header(unsigned int format, const char *chain, struct xtc_handle *handle)
-@@ -478,9 +438,9 @@ print_header(unsigned int format, const char *chain, struct xtc_handle *handle)
- 		printf(" (policy %s", pol);
- 		if (!(format & FMT_NOCOUNTS)) {
- 			fputc(' ', stdout);
--			print_num(counters.pcnt, (format|FMT_NOTABLE));
-+			xtables_print_num(counters.pcnt, (format|FMT_NOTABLE));
- 			fputs("packets, ", stdout);
--			print_num(counters.bcnt, (format|FMT_NOTABLE));
-+			xtables_print_num(counters.bcnt, (format|FMT_NOTABLE));
- 			fputs("bytes", stdout);
- 		}
- 		printf(")\n");
-@@ -563,8 +523,8 @@ print_firewall(const struct ip6t_entry *fw,
- 		printf(FMT("%-4u ", "%u "), num);
+-	clear_rule_matches(&cs.matches);
++	xtables_rule_matches_free(&cs.matches);
  
- 	if (!(format & FMT_NOCOUNTS)) {
--		print_num(fw->counters.pcnt, format);
--		print_num(fw->counters.bcnt, format);
-+		xtables_print_num(fw->counters.pcnt, format);
-+		xtables_print_num(fw->counters.bcnt, format);
- 	}
- 
- 	if (!(format & FMT_NOTARGET))
+ 	if (e != NULL) {
+ 		free(e);
 diff --git a/iptables/iptables.c b/iptables/iptables.c
-index 7cc8251..00e3f01 100644
+index 760cb16..7cc8251 100644
 --- a/iptables/iptables.c
 +++ b/iptables/iptables.c
-@@ -48,21 +48,6 @@
- #define FALSE 0
- #endif
- 
--#define FMT_NUMERIC	0x0001
--#define FMT_NOCOUNTS	0x0002
--#define FMT_KILOMEGAGIGA 0x0004
--#define FMT_OPTIONS	0x0008
--#define FMT_NOTABLE	0x0010
--#define FMT_NOTARGET	0x0020
--#define FMT_VIA		0x0040
--#define FMT_NONEWLINE	0x0080
--#define FMT_LINENUMBERS 0x0100
--
--#define FMT_PRINT_RULE (FMT_NOCOUNTS | FMT_OPTIONS | FMT_VIA \
--			| FMT_NUMERIC | FMT_NOTABLE)
--#define FMT(tab,notab) ((format) & FMT_NOTABLE ? (notab) : (tab))
--
--
- #define CMD_NONE		0x0000U
- #define CMD_INSERT		0x0001U
- #define CMD_DELETE		0x0002U
-@@ -429,32 +414,6 @@ set_option(unsigned int *options, unsigned int option, uint8_t *invflg,
+@@ -1241,27 +1241,6 @@ generate_entry(const struct ipt_entry *fw,
+ 	return e;
  }
  
- static void
--print_num(uint64_t number, unsigned int format)
+-static void clear_rule_matches(struct xtables_rule_match **matches)
 -{
--	if (format & FMT_KILOMEGAGIGA) {
--		if (number > 99999) {
--			number = (number + 500) / 1000;
--			if (number > 9999) {
--				number = (number + 500) / 1000;
--				if (number > 9999) {
--					number = (number + 500) / 1000;
--					if (number > 9999) {
--						number = (number + 500) / 1000;
--						printf(FMT("%4lluT ","%lluT "), (unsigned long long)number);
--					}
--					else printf(FMT("%4lluG ","%lluG "), (unsigned long long)number);
--				}
--				else printf(FMT("%4lluM ","%lluM "), (unsigned long long)number);
--			} else
--				printf(FMT("%4lluK ","%lluK "), (unsigned long long)number);
--		} else
--			printf(FMT("%5llu ","%llu "), (unsigned long long)number);
--	} else
--		printf(FMT("%8llu ","%llu "), (unsigned long long)number);
+-	struct xtables_rule_match *matchp, *tmp;
+-
+-	for (matchp = *matches; matchp;) {
+-		tmp = matchp->next;
+-		if (matchp->match->m) {
+-			free(matchp->match->m);
+-			matchp->match->m = NULL;
+-		}
+-		if (matchp->match == matchp->match->next) {
+-			free(matchp->match);
+-			matchp->match = NULL;
+-		}
+-		free(matchp);
+-		matchp = tmp;
+-	}
+-
+-	*matches = NULL;
 -}
 -
--
--static void
- print_header(unsigned int format, const char *chain, struct xtc_handle *handle)
+ static void command_jump(struct iptables_command_state *cs)
  {
- 	struct xt_counters counters;
-@@ -464,9 +423,9 @@ print_header(unsigned int format, const char *chain, struct xtc_handle *handle)
- 		printf(" (policy %s", pol);
- 		if (!(format & FMT_NOCOUNTS)) {
- 			fputc(' ', stdout);
--			print_num(counters.pcnt, (format|FMT_NOTABLE));
-+			xtables_print_num(counters.pcnt, (format|FMT_NOTABLE));
- 			fputs("packets, ", stdout);
--			print_num(counters.bcnt, (format|FMT_NOTABLE));
-+			xtables_print_num(counters.bcnt, (format|FMT_NOTABLE));
- 			fputs("bytes", stdout);
- 		}
- 		printf(")\n");
-@@ -551,8 +510,8 @@ print_firewall(const struct ipt_entry *fw,
- 		printf(FMT("%-4u ", "%u "), num);
+ 	size_t size;
+@@ -1963,7 +1942,7 @@ int do_command4(int argc, char *argv[], char **table, struct xtc_handle **handle
+ 	if (verbose > 1)
+ 		dump_entries(*handle);
  
- 	if (!(format & FMT_NOCOUNTS)) {
--		print_num(fw->counters.pcnt, format);
--		print_num(fw->counters.bcnt, format);
-+		xtables_print_num(fw->counters.pcnt, format);
-+		xtables_print_num(fw->counters.bcnt, format);
- 	}
+-	clear_rule_matches(&cs.matches);
++	xtables_rule_matches_free(&cs.matches);
  
- 	if (!(format & FMT_NOTARGET))
+ 	if (e != NULL) {
+ 		free(e);
 diff --git a/libxtables/xtables.c b/libxtables/xtables.c
-index da174e2..009ab91 100644
+index 4c91286..da174e2 100644
 --- a/libxtables/xtables.c
 +++ b/libxtables/xtables.c
-@@ -1912,6 +1912,35 @@ xtables_parse_protocol(const char *s)
- 	return -1;
+@@ -1075,6 +1075,28 @@ void xtables_register_targets(struct xtables_target *target, unsigned int n)
+ 	} while (n > 0);
  }
  
-+void xtables_print_num(uint64_t number, unsigned int format)
++/* receives a list of xtables_rule_match, release them */
++void xtables_rule_matches_free(struct xtables_rule_match **matches)
 +{
-+	if (!(format & FMT_KILOMEGAGIGA)) {
-+		printf(FMT("%8llu ","%llu "), (unsigned long long)number);
-+		return;
++	struct xtables_rule_match *matchp, *tmp;
++
++	for (matchp = *matches; matchp;) {
++		tmp = matchp->next;
++		if (matchp->match->m) {
++			free(matchp->match->m);
++			matchp->match->m = NULL;
++		}
++		if (matchp->match == matchp->match->next) {
++			free(matchp->match);
++			matchp->match = NULL;
++		}
++		free(matchp);
++		matchp = tmp;
 +	}
-+	if (number <= 99999) {
-+		printf(FMT("%5llu ","%llu "), (unsigned long long)number);
-+		return;
-+	}
-+	number = (number + 500) / 1000;
-+	if (number <= 9999) {
-+		printf(FMT("%4lluK ","%lluK "), (unsigned long long)number);
-+		return;
-+	}
-+	number = (number + 500) / 1000;
-+	if (number <= 9999) {
-+		printf(FMT("%4lluM ","%lluM "), (unsigned long long)number);
-+		return;
-+	}
-+	number = (number + 500) / 1000;
-+	if (number <= 9999) {
-+		printf(FMT("%4lluG ","%lluG "), (unsigned long long)number);
-+		return;
-+	}
-+	number = (number + 500) / 1000;
-+	printf(FMT("%4lluT ","%lluT "), (unsigned long long)number);
++
++	*matches = NULL;
 +}
 +
- int kernel_version;
- 
- void get_kernel_version(void)
+ /**
+  * xtables_param_act - act on condition
+  * @status:	a constant from enum xtables_exittype
 -- 
 1.7.10.4
 
