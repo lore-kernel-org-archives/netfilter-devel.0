@@ -1,43 +1,44 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [libnetfilter_conntrack PATCH] Fix logic typo in cmp_secctx
-Date: Thu, 27 Dec 2012 15:29:55 +0100
-Message-ID: <20121227142955.GB11727@breakpoint.cc>
-References: <4631253.eD7KB7KPU6@storm>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: [ipset PATCH] Fix wrong bracket placing
+Date: Thu, 27 Dec 2012 16:46:29 +0100
+Message-ID: <1952176.MYFl3FrgUH@storm>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44612 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752629Ab2L0O35 (ORCPT
+Received: from re04.intra2net.com ([82.165.46.26]:48980 "EHLO
+	re04.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752804Ab2L0Pqf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 Dec 2012 09:29:57 -0500
-Content-Disposition: inline
-In-Reply-To: <4631253.eD7KB7KPU6@storm>
+	Thu, 27 Dec 2012 10:46:35 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thomas Jarosch <thomas.jarosch@intra2net.com> wrote:
-> cppcheck reported:
-> [src/conntrack/compare.c:364] -> [src/conntrack/compare.c:364]: (style) Same expression on both sides of '||'.
-> 
-> Signed-off-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
-> ---
->  src/conntrack/compare.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/src/conntrack/compare.c b/src/conntrack/compare.c
-> index b18f7fc..e282a24 100644
-> --- a/src/conntrack/compare.c
-> +++ b/src/conntrack/compare.c
-> @@ -361,7 +361,7 @@ cmp_secctx(const struct nf_conntrack *ct1,
->  	   const struct nf_conntrack *ct2,
->  	   unsigned int flags)
->  {
-> -	if (ct1->secctx == NULL || ct1->secctx == NULL)
-> +	if (ct1->secctx == NULL || ct2->secctx == NULL)
+cppcheck (vaguely) reported:
+[lib/parse.c:448]: (style) Suspicious condition (assignment + comparison); Clarify expression with parentheses.
 
-Grrr, my fault.
+Signed-off-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
+---
+ lib/parse.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Applied, thanks for fixing this.
+diff --git a/lib/parse.c b/lib/parse.c
+index 550048c..d06e9cd 100644
+--- a/lib/parse.c
++++ b/lib/parse.c
+@@ -445,8 +445,8 @@ ipset_parse_proto(struct ipset_session *session,
+ 		uint8_t protonum;
+ 		int err;
+ 
+-		if (!((err = string_to_u8(session, str, &protonum) == 0) &&
+-		      (protoent = getprotobynumber(protonum)) != NULL))
++		if (!((err = string_to_u8(session, str, &protonum)) == 0) &&
++		      (protoent = getprotobynumber(protonum)) != NULL)
+ 			return syntax_err("cannot parse '%s' "
+ 					  "as a protocol", str);
+ 	}
+-- 
+1.7.11.7
+
