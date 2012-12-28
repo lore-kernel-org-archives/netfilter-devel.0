@@ -1,64 +1,52 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH 01/19] netfilter: move nf_conntrack initialize out of pernet operations
-Date: Thu, 27 Dec 2012 22:00:23 -0800
-Message-ID: <8738yqiumg.fsf@xmission.com>
-References: <1356662206-2260-1-git-send-email-gaofeng@cn.fujitsu.com>
-	<CAFFEFTXT_fkF2pPSxDEEgic80NVWLqBWtFuvs6W9uDUW2aCnqw@mail.gmail.com>
-	<87ip7mlr2r.fsf@xmission.com>
-	<CAFFEFTU8kxXV2pQ3B_goRs2Y7p2ecZ1YuSKSjfYF_58eD1tDqw@mail.gmail.com>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Re: [PATCH 01/19] netfilter: move nf_conntrack initialize out of
+ pernet operations
+Date: Fri, 28 Dec 2012 15:16:07 +0800
+Message-ID: <50DD4737.2070306@cn.fujitsu.com>
+References: <1356662206-2260-1-git-send-email-gaofeng@cn.fujitsu.com> <CAFFEFTXT_fkF2pPSxDEEgic80NVWLqBWtFuvs6W9uDUW2aCnqw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Gao feng <gaofeng@cn.fujitsu.com>, netfilter-devel@vger.kernel.org,
-	"netdev\@vger.kernel.org" <netdev@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>, pablo@netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>, pablo@netfilter.org,
+	ebiederm@xmission.com
 To: canqun zhang <canqunzhang@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:58139 "EHLO
-	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750893Ab2L1GAe convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Dec 2012 01:00:34 -0500
-In-Reply-To: <CAFFEFTU8kxXV2pQ3B_goRs2Y7p2ecZ1YuSKSjfYF_58eD1tDqw@mail.gmail.com>
-	(canqun zhang's message of "Fri, 28 Dec 2012 13:32:29 +0800")
+Received: from cn.fujitsu.com ([222.73.24.84]:1680 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751381Ab2L1H7h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 28 Dec 2012 02:59:37 -0500
+In-Reply-To: <CAFFEFTXT_fkF2pPSxDEEgic80NVWLqBWtFuvs6W9uDUW2aCnqw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-canqun zhang <canqunzhang@gmail.com> writes:
+On 12/28/12 11:52, canqun zhang wrote:
+> Hi all
+> As discussed above,if the host machine create several linux
+> containers, there will be several  net namespaces.Resources with "nf
+> conntrack" are registered or unregistered on the first net
+> namespace(init_net),But init_net is not unregistered lastly,so
+> cleanuping other net namespaces  will triger painic.
+> If net namespaces are created  with the order of 1,2,...n,they should
+> be cleaned with the order of n,...2,1,so in this case init_net will be
+> unregistered lastly.
+> I fixed it up (see below). I have taken a lot of test!
+> 
 
-> yes=EF=BC=8CNetwork namespaces in general can be cleaned up in any or=
-der=EF=BC=8Cbut
-> when doing /etc/ini.d/iptables restart, the system need cleaning up
-> all net namespace,and init_net should be cleanup lastly.init_net is
-> the first namespace,other net namespace is copied for it ,and it is
-> diuty for Initializing resources,so It in itself is special.
+I thinks this BUG is a netfilter BUG,not a netns BUG.
+Other subsystems implemented netns support don't use init_net to
+do some special works((un)register/(un)set).
 
-"other net namespaces is copied for it"  I don't have a clue what
-you mean by that.  Every network namespace starts out in a default
-state not in a copied state.
+In fact,we can't use init_net to do this job well.such as function
+nf_conntrack_clean,we shoud set ip_ct_attach to NULL before any
+netns doing cleanup jobs, and set nf_ct_destroy to NULL after all of
+netns finish these cleanup jobs.
 
-Nowhere else in the network stack does &init_net have the duty
-of initializing or cleaning up resources.
+So I think finally we still need this patchset,And this is a regular
+way to fix this problem.
 
-That /etc/init.d/iptables restart removes modules in general is a littl=
-e
-dubious.  That /etc/init.d/iptables restart removes modules when there
-are other existing network namespaces using those modules is down right
-dangerous.  Dangerous in the anyone can ssh into the machine way.  I
-suspect it has taken 5 years for this bug to show up because it is so
-idiotic to remove code that someone else is using.
+Can you help me to test if the panic bug is fixed by this patchset?
+and then give me your tested-by?
 
-I won't argue that making it so that &init_net is the last network
-namespace to go will solve this problem.  But I can't see how adding
-the guarantee that &init_net will always be cleaned up last is a good
-long term solution.
-
-Removing the init_net special case gives a simpler mental model, and
-less to learn and maintain about network namespaces.
-
-Eric
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thank you very much!
