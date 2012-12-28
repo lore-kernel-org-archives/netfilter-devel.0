@@ -1,39 +1,28 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 01/19] netfilter: move nf_conntrack initialize out of
- pernet operations
-Date: Fri, 28 Dec 2012 12:58:01 +0100
-Message-ID: <20121228115801.GA20120@1984>
-References: <1356662206-2260-1-git-send-email-gaofeng@cn.fujitsu.com>
- <CAFFEFTXT_fkF2pPSxDEEgic80NVWLqBWtFuvs6W9uDUW2aCnqw@mail.gmail.com>
- <87ip7mlr2r.fsf@xmission.com>
+Subject: nf-next is OPEN [was Re: net-next is OPEN]
+Date: Fri, 28 Dec 2012 13:06:07 +0100
+Message-ID: <20121228120607.GA20422@1984>
+References: <20121227.203124.369340581824664910.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: canqun zhang <canqunzhang@gmail.com>,
-	Gao feng <gaofeng@cn.fujitsu.com>,
-	netfilter-devel@vger.kernel.org,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>
-To: "Eric W. Biederman" <ebiederm@xmission.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51734 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52867 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753611Ab2L1L6G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Dec 2012 06:58:06 -0500
+	id S1751685Ab2L1MGQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 28 Dec 2012 07:06:16 -0500
 Content-Disposition: inline
-In-Reply-To: <87ip7mlr2r.fsf@xmission.com>
+In-Reply-To: <20121227.203124.369340581824664910.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Dec 27, 2012 at 08:48:44PM -0800, Eric W. Biederman wrote:
-[...]
-> Does anyone know why Alexy decided to do this only for init_net?
+On Thu, Dec 27, 2012 at 08:31:24PM -0800, David Miller wrote:
+> The net-next tree is now open for submissions.
 
-Not myself.
+And, by extension, nf-next is also open.
 
-[...]
-> My inclination is that Gao Feng is on the rigt path by just removing
-> the strange init_net special case and performing the work once
-> per module load, and once per module unload.
+I'll spin over the netfilter patches with new features that were
+submitted lately, if you didn't already/don't get feedback in a
+reasonable amount of time, feel free to re-submit.
 
-That makes sense to me, I'll check Gao's patchset asap to come back to
-him with some feedback. Thanks.
+Thanks.
