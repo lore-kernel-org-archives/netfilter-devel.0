@@ -1,59 +1,101 @@
-From: canqun zhang <canqunzhang@gmail.com>
-Subject: Re: [PATCH 01/19] netfilter: move nf_conntrack initialize out of
- pernet operations
-Date: Fri, 28 Dec 2012 16:48:07 +0800
-Message-ID: <CAFFEFTXU1Yptqx0x6CjtqXMU+7HYu4F7Hk7u29oPCeghZ9Wc_Q@mail.gmail.com>
-References: <1356662206-2260-1-git-send-email-gaofeng@cn.fujitsu.com>
-	<CAFFEFTXT_fkF2pPSxDEEgic80NVWLqBWtFuvs6W9uDUW2aCnqw@mail.gmail.com>
-	<50DD4737.2070306@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>, pablo@netfilter.org,
-	"Eric W. Biederman" <ebiederm@xmission.com>
-To: Gao feng <gaofeng@cn.fujitsu.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qa0-f54.google.com ([209.85.216.54]:45472 "EHLO
-	mail-qa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750999Ab2L1IsI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Dec 2012 03:48:08 -0500
-In-Reply-To: <50DD4737.2070306@cn.fujitsu.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: pablo@netfilter.org
+Subject: [PATCH 00/12] netfilter fixes for 3.8-rc1
+Date: Fri, 28 Dec 2012 12:52:39 +0100
+Message-ID: <1356695571-3305-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-ok, I can help you take a test, please send a big patch container this
-patchset  to my email.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
+Hi David,
 
-2012/12/28 Gao feng <gaofeng@cn.fujitsu.com>:
-> On 12/28/12 11:52, canqun zhang wrote:
->> Hi all
->> As discussed above,if the host machine create several linux
->> containers, there will be several  net namespaces.Resources with "nf
->> conntrack" are registered or unregistered on the first net
->> namespace(init_net),But init_net is not unregistered lastly,so
->> cleanuping other net namespaces  will triger painic.
->> If net namespaces are created  with the order of 1,2,...n,they should
->> be cleaned with the order of n,...2,1,so in this case init_net will be
->> unregistered lastly.
->> I fixed it up (see below). I have taken a lot of test!
->>
->
-> I thinks this BUG is a netfilter BUG,not a netns BUG.
-> Other subsystems implemented netns support don't use init_net to
-> do some special works((un)register/(un)set).
->
-> In fact,we can't use init_net to do this job well.such as function
-> nf_conntrack_clean,we shoud set ip_ct_attach to NULL before any
-> netns doing cleanup jobs, and set nf_ct_destroy to NULL after all of
-> netns finish these cleanup jobs.
->
-> So I think finally we still need this patchset,And this is a regular
-> way to fix this problem.
->
-> Can you help me to test if the panic bug is fixed by this patchset?
-> and then give me your tested-by?
->
-> thank you very much!
+The following batch contains Netfilter fixes for 3.8-rc1. They are
+a mixture of old bugs that have passed unnoticed (I'll pass these to
+stable) and more fresh ones from the previous merge window, they are:
+
+* Fix for MAC address in 6in4 tunnels via NFLOG that results in ulogd
+  showing up wrong address, from Bob Hockney.
+
+* Fix a comment in nf_conntrack_ipv6, from Florent Fourcot.
+
+* Fix a leak an error path in ctnetlink while creating an expectation,
+  from Jesper Juhl.
+
+* Fix missing ICMP time exceeded in the IPv6 defragmentation code, from
+  Haibo Xi.
+
+* Fix inconsistent handling of routing changes in MASQUERADE for the
+  new connections case, from Andrew Collins.
+
+* Fix a missing skb_reset_transport in ip[6]t_REJECT that leads to
+  crashes in the ixgbe driver (since it seems to access the transport
+  header with TSO enabled), from Mukund Jampala.
+
+* Recover obsoleted NOTRACK target by including it into the CT and spot
+  a warning via printk about being obsoleted. Many people don't check the
+  scheduled to be removal file under Documentation, so we follow some
+  less agressive approach to kill this in a year or so. Spotted by Florian
+  Westphal, patch from myself.
+
+* Fix race condition in xt_hashlimit that allows to create two or more
+  entries, from myself.
+
+* Fix crash if the CT is used due to the recently added facilities to
+  consult the dying and unconfirmed conntrack lists, from myself.
+
+That's basically it, you can pull these changes from:
+
+git://1984.lsi.us.es/nf master
+
+Have a nice entrance for the new year. Thanks.
+
+Andrew Collins (1):
+  netfilter: nf_nat: Also handle non-ESTABLISHED routing changes in MASQUERADE
+
+Bob Hockney (1):
+  netfilter: nfnetlink_log: fix mac address for 6in4 tunnels
+
+Florent Fourcot (1):
+  netfilter: nf_conntrack_ipv6: fix comment for packets without data
+
+Haibo Xi (1):
+  netfilter: nf_ct_reasm: fix conntrack reassembly expire code
+
+Jesper Juhl (1):
+  netfilter: ctnetlink: fix leak in error path of ctnetlink_create_expect
+
+Mukund Jampala (1):
+  netfilter: ip[6]t_REJECT: fix wrong transport header pointer in TCP reset
+
+Pablo Neira Ayuso (4):
+  netfilter: xt_CT: fix crash while destroy ct templates
+  netfilter: nfnetlink_log: fix possible compilation issue due to missing include
+  netfilter: xt_CT: recover NOTRACK target support
+  netfilter: xt_hashlimit: fix race that results in duplicated entries
+
+Vitaly E. Lavrov (2):
+  netfilter: xt_recent: fix namespace destroy path
+  netfilter: xt_hashlimit: fix namespace destroy path
+
+ include/net/netns/conntrack.h                  |    1 +
+ include/net/netns/x_tables.h                   |    1 +
+ net/ipv4/netfilter/ipt_REJECT.c                |    1 +
+ net/ipv4/netfilter/iptable_nat.c               |   15 ++++--
+ net/ipv6/netfilter/ip6t_REJECT.c               |    1 +
+ net/ipv6/netfilter/ip6table_nat.c              |   15 ++++--
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    4 +-
+ net/ipv6/netfilter/nf_conntrack_reasm.c        |    5 +-
+ net/netfilter/Kconfig                          |    4 ++
+ net/netfilter/nf_conntrack_core.c              |    2 +
+ net/netfilter/nf_conntrack_netlink.c           |    2 +-
+ net/netfilter/nfnetlink_log.c                  |   16 +++++--
+ net/netfilter/xt_CT.c                          |   58 +++++++++++++++++++++++-
+ net/netfilter/xt_hashlimit.c                   |   54 ++++++++++++++++++----
+ net/netfilter/xt_recent.c                      |   20 ++++++--
+ 15 files changed, 169 insertions(+), 30 deletions(-)
+
+-- 
+1.7.10.4
