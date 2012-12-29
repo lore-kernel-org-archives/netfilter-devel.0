@@ -1,25 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/12] netfilter fixes for 3.8-rc1
-Date: Fri, 28 Dec 2012 14:31:28 -0800 (PST)
-Message-ID: <20121228.143128.1769826806303718472.davem@davemloft.net>
-References: <1356695571-3305-1-git-send-email-pablo@netfilter.org>
+From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: [PATCH] netfilter: add include file to nf_conntrack_snmp.c
+Date: Fri, 28 Dec 2012 20:17:08 -0800
+Message-ID: <20121228201708.77f1c376@nehalam.linuxnetplumber.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1356695571-3305-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.vyatta.com ([76.74.103.46]:41219 "EHLO mail.vyatta.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751016Ab2L2ESb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 28 Dec 2012 23:18:31 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: pablo@netfilter.org
-Date: Fri, 28 Dec 2012 12:52:39 +0100
+Prototype for nf_nat_snmp_hook is in nf_conntrack_snmp.h therefore
+it should be included to get type checking. Found by sparse.
 
-> git://1984.lsi.us.es/nf master
+Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
 
-Pulled, thanks Pablo.
 
-> Have a nice entrance for the new year. Thanks.
-
-Thanks, you too.
+--- a/net/netfilter/nf_conntrack_snmp.c	2012-10-25 09:11:15.711271681 -0700
++++ b/net/netfilter/nf_conntrack_snmp.c	2012-12-28 20:09:04.666030725 -0800
+@@ -16,6 +16,7 @@
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_helper.h>
+ #include <net/netfilter/nf_conntrack_expect.h>
++#include <linux/netfilter/nf_conntrack_snmp.h>
+ 
+ #define SNMP_PORT	161
+ 
