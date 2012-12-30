@@ -1,28 +1,41 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/3] netfilter: nf_tables: minor fixes
-Date: Sun, 30 Dec 2012 03:21:07 +0100
-Message-ID: <20121230022107.GA10800@1984>
-References: <1356590608-25829-1-git-send-email-kaber@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+From: akong@redhat.com
+Subject: [PATCH] net: fix checking boundary of valid vlan id
+Date: Sun, 30 Dec 2012 17:21:47 +0800
+Message-ID: <1356859307-26205-1-git-send-email-akong@redhat.com>
+Cc: pablo@netfilter.org, kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51006 "EHLO mail.us.es"
+Received: from mx1.redhat.com ([209.132.183.28]:38239 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753705Ab2L3CVP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 29 Dec 2012 21:21:15 -0500
-Content-Disposition: inline
-In-Reply-To: <1356590608-25829-1-git-send-email-kaber@trash.net>
+	id S1753733Ab2L3JWl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 30 Dec 2012 04:22:41 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Dec 27, 2012 at 07:43:25AM +0100, kaber@trash.net wrote:
-> Hi Pablo,
-> 
-> the following patches fix two minor netlink issues and add a missing check
-> for duplicate names on chain renames.
-> 
-> Please apply, thanks!
+From: Amos Kong <akong@redhat.com>
 
-All applied, thanks Patrick!
+According to IEEE 802.1Q, 4096 is not a valid vlan id, 4095 is reserved.
+
+Signed-off-by: Amos Kong <akong@redhat.com>
+---
+ net/bridge/netfilter/ebt_vlan.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/bridge/netfilter/ebt_vlan.c b/net/bridge/netfilter/ebt_vlan.c
+index eae67bf..5bdebc3 100644
+--- a/net/bridge/netfilter/ebt_vlan.c
++++ b/net/bridge/netfilter/ebt_vlan.c
+@@ -121,8 +121,8 @@ static int ebt_vlan_mt_check(const struct xt_mtchk_param *par)
+ 	 * if_vlan.h: VLAN_N_VID 4096. */
+ 	if (GET_BITMASK(EBT_VLAN_ID)) {
+ 		if (!!info->id) { /* if id!=0 => check vid range */
+-			if (info->id > VLAN_N_VID) {
+-				pr_debug("id %d is out of range (1-4096)\n",
++			if (info->id >= VLAN_N_VID - 1) {
++				pr_debug("id %d is out of range (1-4094)\n",
+ 					 info->id);
+ 				return -EINVAL;
+ 			}
+-- 
+1.7.11.7
+
