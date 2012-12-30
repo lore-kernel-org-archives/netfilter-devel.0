@@ -1,41 +1,43 @@
-From: akong@redhat.com
-Subject: [PATCH] net: fix checking boundary of valid vlan id
-Date: Sun, 30 Dec 2012 17:21:47 +0800
-Message-ID: <1356859307-26205-1-git-send-email-akong@redhat.com>
-Cc: pablo@netfilter.org, kaber@trash.net
+From: Mike Frysinger <vapier@gentoo.org>
+Subject: [PATCH] extensions: fix linking against -lip6tc
+Date: Sun, 30 Dec 2012 18:11:47 -0500
+Message-ID: <1356909107-9924-1-git-send-email-vapier@gentoo.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38239 "EHLO mx1.redhat.com"
+Received: from smtp.gentoo.org ([140.211.166.183]:57420 "EHLO smtp.gentoo.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753733Ab2L3JWl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 30 Dec 2012 04:22:41 -0500
+	id S1755086Ab2L3XK1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 30 Dec 2012 18:10:27 -0500
+Received: from localhost.localdomain (localhost [127.0.0.1])
+	by smtp.gentoo.org (Postfix) with ESMTP id A1EDD33D77F
+	for <netfilter-devel@vger.kernel.org>; Sun, 30 Dec 2012 23:10:26 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Amos Kong <akong@redhat.com>
+The current build forgets to specify a path to find libip6tc which means
+it either fails (if there is no libip6tc in the system), or links against
+an old version (if there is one in the system).
 
-According to IEEE 802.1Q, 4096 is not a valid vlan id, 4095 is reserved.
-
-Signed-off-by: Amos Kong <akong@redhat.com>
+References: https://bugs.gentoo.org/449262
+Reported-by: Mike Gilbert <floppym@gentoo.org>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
 ---
- net/bridge/netfilter/ebt_vlan.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ extensions/GNUmakefile.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/bridge/netfilter/ebt_vlan.c b/net/bridge/netfilter/ebt_vlan.c
-index eae67bf..5bdebc3 100644
---- a/net/bridge/netfilter/ebt_vlan.c
-+++ b/net/bridge/netfilter/ebt_vlan.c
-@@ -121,8 +121,8 @@ static int ebt_vlan_mt_check(const struct xt_mtchk_param *par)
- 	 * if_vlan.h: VLAN_N_VID 4096. */
- 	if (GET_BITMASK(EBT_VLAN_ID)) {
- 		if (!!info->id) { /* if id!=0 => check vid range */
--			if (info->id > VLAN_N_VID) {
--				pr_debug("id %d is out of range (1-4096)\n",
-+			if (info->id >= VLAN_N_VID - 1) {
-+				pr_debug("id %d is out of range (1-4094)\n",
- 					 info->id);
- 				return -EINVAL;
- 			}
+diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+index e71e3ff..a605474 100644
+--- a/extensions/GNUmakefile.in
++++ b/extensions/GNUmakefile.in
+@@ -101,7 +101,7 @@ libxt_state.so: libxt_conntrack.so
+ 	ln -fs $< $@
+ 
+ # Need the LIBADDs in iptables/Makefile.am too for libxtables_la_LIBADD
+-ip6t_NETMAP_LIBADD  = -lip6tc
++ip6t_NETMAP_LIBADD  = -L../libiptc/.libs -lip6tc
+ xt_RATEEST_LIBADD   = -lm
+ xt_statistic_LIBADD = -lm
+ 
 -- 
-1.7.11.7
+1.8.0
 
