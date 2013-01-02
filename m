@@ -1,96 +1,93 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH] build: resolve link failure for ip6t_NETMAP
-Date: Wed,  2 Jan 2013 09:47:51 +0100
-Message-ID: <1357116471-27433-1-git-send-email-jengelh@inai.de>
-References: <alpine.LNX.2.01.1301020821230.16620@nerf07.vanv.qr>
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-To: vapier@gentoo.org
+From: Ulrich Weber <ulrich.weber@sophos.com>
+Subject: [PATCH] netfilter: fix IPv6 NTP checksum calculation
+Date: Wed, 2 Jan 2013 16:24:40 +0100
+Message-ID: <20130102152440.GA3760@uweber-WS>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Cc: <kaber@trash.net>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:57373 "EHLO ares07.inai.de"
+Received: from mx2.sophos.com ([145.253.124.138]:40978 "EHLO mx2.sophos.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752544Ab3ABIrw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Jan 2013 03:47:52 -0500
-In-Reply-To: <alpine.LNX.2.01.1301020821230.16620@nerf07.vanv.qr>
+	id S1752755Ab3ABPb5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 2 Jan 2013 10:31:57 -0500
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Link stage of libip6t_NETMAP failed since recently.
+csum16_add() has a broken carry detection, should be:
+sum += sum < (__force u16)b;
 
-  CCLD     libip6t_NETMAP.so
-/usr/lib64/gcc/x86_64-suse-linux/4.7/../../../../x86_64-suse-linux/bin/ld:
-cannot find -lip6tc
+Instead of fixing csum16_add, remove the custom checksum
+functions and use the generic csum_add/csum_sub ones.
 
-libip6t_NETMAP.c uses the "ipv6_prefix_length" function from
-libip6tc.so; "-lip6tc" is used in the Makefile, but, the directory to
-it is not specified.
-
-Why does the link succeed for some people? Because
-/usr/lib(64)/libip6tc.so satisfies -lip6tc, but not all environments,
-especially those without iptables development files, have that file,
-hence this link error can happen.
-
-By suggestion of Mike Frysinger, this patch uses libtool to produce
-and link the plugins.
-
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+Signed-off-by: Ulrich Weber <ulrich.weber@sophos.com>
 ---
+ net/ipv6/netfilter/ip6t_NPT.c |   33 +++++++--------------------------
+ 1 file changed, 7 insertions(+), 26 deletions(-)
 
- * use of ../libxtables/libxtables.la
-
- extensions/GNUmakefile.in |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
-
-diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
-index e71e3ff..adad4d6 100644
---- a/extensions/GNUmakefile.in
-+++ b/extensions/GNUmakefile.in
-@@ -33,6 +33,7 @@ AM_VERBOSE_CXX    = @echo "  CXX     " $@;
- AM_VERBOSE_CXXLD  = @echo "  CXXLD   " $@;
- AM_VERBOSE_AR     = @echo "  AR      " $@;
- AM_VERBOSE_GEN    = @echo "  GEN     " $@;
-+AM_VERBOSE_NULL   = @
- endif
+diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
+index e948691..7302b0b 100644
+--- a/net/ipv6/netfilter/ip6t_NPT.c
++++ b/net/ipv6/netfilter/ip6t_NPT.c
+@@ -14,42 +14,23 @@
+ #include <linux/netfilter_ipv6/ip6t_NPT.h>
+ #include <linux/netfilter/x_tables.h>
  
- #
-@@ -75,7 +76,7 @@ install: ${targets_install}
- 	if test -n "${targets_install}"; then install -pm0755 $^ "${DESTDIR}${xtlibdir}/"; fi;
+-static __sum16 csum16_complement(__sum16 a)
+-{
+-	return (__force __sum16)(0xffff - (__force u16)a);
+-}
+-
+-static __sum16 csum16_add(__sum16 a, __sum16 b)
+-{
+-	u16 sum;
+-
+-	sum = (__force u16)a + (__force u16)b;
+-	sum += (__force u16)a < (__force u16)b;
+-	return (__force __sum16)sum;
+-}
+-
+-static __sum16 csum16_sub(__sum16 a, __sum16 b)
+-{
+-	return csum16_add(a, csum16_complement(b));
+-}
+-
+ static int ip6t_npt_checkentry(const struct xt_tgchk_param *par)
+ {
+ 	struct ip6t_npt_tginfo *npt = par->targinfo;
+-	__sum16 src_sum = 0, dst_sum = 0;
++	__wsum src_sum = 0, dst_sum = 0;
+ 	unsigned int i;
  
- clean:
--	rm -f *.o *.oo *.so *.a {matches,targets}.man initext.c initext4.c initext6.c;
-+	rm -f *.la *.o *.lo *.so *.a {matches,targets}.man initext.c initext4.c initext6.c;
- 	rm -f .*.d .*.dd;
+ 	if (npt->src_pfx_len > 64 || npt->dst_pfx_len > 64)
+ 		return -EINVAL;
  
- distclean: clean
-@@ -89,19 +90,22 @@ init%.o: init%.c
- #
- #	Shared libraries
- #
--lib%.so: lib%.oo
--	${AM_VERBOSE_CCLD} ${CCLD} ${AM_LDFLAGS} -shared ${LDFLAGS} -o $@ $< -L../libxtables/.libs -lxtables ${$*_LIBADD};
-+lib%.so: lib%.la
-+	${AM_VERBOSE_NULL} ln -fs .libs/$@ $@
+ 	for (i = 0; i < ARRAY_SIZE(npt->src_pfx.in6.s6_addr16); i++) {
+-		src_sum = csum16_add(src_sum,
+-				(__force __sum16)npt->src_pfx.in6.s6_addr16[i]);
+-		dst_sum = csum16_add(dst_sum,
+-				(__force __sum16)npt->dst_pfx.in6.s6_addr16[i]);
++		src_sum = csum_add(src_sum,
++				(__force __wsum)npt->src_pfx.in6.s6_addr16[i]);
++		dst_sum = csum_add(dst_sum,
++				(__force __wsum)npt->dst_pfx.in6.s6_addr16[i]);
+ 	}
  
--lib%.oo: ${srcdir}/lib%.c
--	${AM_VERBOSE_CC} ${CC} ${AM_CPPFLAGS} ${AM_DEPFLAGS} ${AM_CFLAGS} -D_INIT=lib$*_init -DPIC -fPIC ${CFLAGS} -o $@ -c $<;
-+lib%.la: lib%.lo
-+	${AM_VERBOSE_CCLD} ../libtool ${AM_LIBTOOL_SILENT} --tag=CC --mode=link ${CCLD} ${AM_LDFLAGS} -module ${LDFLAGS} -o $@ $< ../libxtables/libxtables.la ${$*_LIBADD} -rpath ${xtlibdir}
-+
-+lib%.lo: ${srcdir}/lib%.c
-+	${AM_VERBOSE_CC} ../libtool ${AM_LIBTOOL_SILENT} --tag=CC --mode=compile ${CC} ${AM_CPPFLAGS} ${AM_DEPFLAGS} ${AM_CFLAGS} -D_INIT=lib$*_init ${CFLAGS} -o $@ -c $<
+-	npt->adjustment = csum16_sub(src_sum, dst_sum);
++	npt->adjustment = (__force __sum16) csum_sub(src_sum, dst_sum);
+ 	return 0;
+ }
  
- libxt_NOTRACK.so: libxt_CT.so
--	ln -fs $< $@
-+	${AM_VERBOSE_GEN} ln -fs $< $@
- libxt_state.so: libxt_conntrack.so
--	ln -fs $< $@
-+	${AM_VERBOSE_GEN} ln -fs $< $@
+@@ -85,7 +66,7 @@ static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
+ 			return false;
+ 	}
  
- # Need the LIBADDs in iptables/Makefile.am too for libxtables_la_LIBADD
--ip6t_NETMAP_LIBADD  = -lip6tc
-+ip6t_NETMAP_LIBADD  = ../libiptc/libip6tc.la
- xt_RATEEST_LIBADD   = -lm
- xt_statistic_LIBADD = -lm
- 
+-	sum = csum16_add((__force __sum16)addr->s6_addr16[idx],
++	sum = (__force __sum16) csum_add((__force __wsum)addr->s6_addr16[idx],
+ 			 npt->adjustment);
+ 	if (sum == CSUM_MANGLED_0)
+ 		sum = 0;
 -- 
-1.7.10.4
+1.7.9.5
 
