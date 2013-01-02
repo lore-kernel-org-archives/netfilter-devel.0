@@ -1,93 +1,108 @@
 From: Ulrich Weber <ulrich.weber@sophos.com>
-Subject: [PATCH] netfilter: fix IPv6 NTP checksum calculation
-Date: Wed, 2 Jan 2013 16:24:40 +0100
-Message-ID: <20130102152440.GA3760@uweber-WS>
+Subject: [PATCH] iptables: allow IPv6 port NAT without address NAT
+Date: Wed, 2 Jan 2013 16:52:44 +0100
+Message-ID: <20130102155244.GB5133@uweber-WS>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Cc: <kaber@trash.net>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx2.sophos.com ([145.253.124.138]:40978 "EHLO mx2.sophos.com"
+Received: from mx2.sophos.com ([145.253.124.138]:59750 "EHLO mx2.sophos.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752755Ab3ABPb5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Jan 2013 10:31:57 -0500
+	id S1752978Ab3ABPwr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 2 Jan 2013 10:52:47 -0500
+Received: from mx2.sophos.com (localhost.localdomain [127.0.0.1])
+	by localhost (Postfix) with SMTP id 98EB618831D
+	for <netfilter-devel@vger.kernel.org>; Wed,  2 Jan 2013 15:52:46 +0000 (GMT)
+Received: from de-wie-exch3b.green.sophos (de-wie-exch3b.green.sophos [10.60.70.62])
+	by mx2.sophos.com (Postfix) with ESMTPS id 6368918831C
+	for <netfilter-devel@vger.kernel.org>; Wed,  2 Jan 2013 15:52:46 +0000 (GMT)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-csum16_add() has a broken carry detection, should be:
-sum += sum < (__force u16)b;
-
-Instead of fixing csum16_add, remove the custom checksum
-functions and use the generic csum_add/csum_sub ones.
+correct parsing of IPv6 port NAT without address NAT
+and also print brackets for port only IPv6 NAT.
 
 Signed-off-by: Ulrich Weber <ulrich.weber@sophos.com>
 ---
- net/ipv6/netfilter/ip6t_NPT.c |   33 +++++++--------------------------
- 1 file changed, 7 insertions(+), 26 deletions(-)
+ extensions/libip6t_DNAT.c | 12 +++++-------
+ extensions/libip6t_SNAT.c | 12 +++++-------
+ 2 files changed, 10 insertions(+), 14 deletions(-)
 
-diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
-index e948691..7302b0b 100644
---- a/net/ipv6/netfilter/ip6t_NPT.c
-+++ b/net/ipv6/netfilter/ip6t_NPT.c
-@@ -14,42 +14,23 @@
- #include <linux/netfilter_ipv6/ip6t_NPT.h>
- #include <linux/netfilter/x_tables.h>
+diff --git a/extensions/libip6t_DNAT.c b/extensions/libip6t_DNAT.c
+index a5969c3..6f11d52 100644
+--- a/extensions/libip6t_DNAT.c
++++ b/extensions/libip6t_DNAT.c
+@@ -105,8 +105,8 @@ parse_to(const char *orig_arg, int portok, struct nf_nat_range *range)
+ 			range->min_proto.tcp.port = htons(port);
+ 			range->max_proto.tcp.port = htons(maxport);
+ 		}
+-		/* Starts with a colon? No IP info...*/
+-		if (colon == arg) {
++		/* Starts with [] colon? No IP info...*/
++		if (colon == arg+2) {
+ 			free(arg);
+ 			return;
+ 		}
+@@ -183,18 +183,16 @@ static void DNAT_fcheck(struct xt_fcheck_call *cb)
  
--static __sum16 csum16_complement(__sum16 a)
--{
--	return (__force __sum16)(0xffff - (__force u16)a);
--}
--
--static __sum16 csum16_add(__sum16 a, __sum16 b)
--{
--	u16 sum;
--
--	sum = (__force u16)a + (__force u16)b;
--	sum += (__force u16)a < (__force u16)b;
--	return (__force __sum16)sum;
--}
--
--static __sum16 csum16_sub(__sum16 a, __sum16 b)
--{
--	return csum16_add(a, csum16_complement(b));
--}
--
- static int ip6t_npt_checkentry(const struct xt_tgchk_param *par)
+ static void print_range(const struct nf_nat_range *range)
  {
- 	struct ip6t_npt_tginfo *npt = par->targinfo;
--	__sum16 src_sum = 0, dst_sum = 0;
-+	__wsum src_sum = 0, dst_sum = 0;
- 	unsigned int i;
- 
- 	if (npt->src_pfx_len > 64 || npt->dst_pfx_len > 64)
- 		return -EINVAL;
- 
- 	for (i = 0; i < ARRAY_SIZE(npt->src_pfx.in6.s6_addr16); i++) {
--		src_sum = csum16_add(src_sum,
--				(__force __sum16)npt->src_pfx.in6.s6_addr16[i]);
--		dst_sum = csum16_add(dst_sum,
--				(__force __sum16)npt->dst_pfx.in6.s6_addr16[i]);
-+		src_sum = csum_add(src_sum,
-+				(__force __wsum)npt->src_pfx.in6.s6_addr16[i]);
-+		dst_sum = csum_add(dst_sum,
-+				(__force __wsum)npt->dst_pfx.in6.s6_addr16[i]);
++	if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)
++		printf("[");
+ 	if (range->flags & NF_NAT_RANGE_MAP_IPS) {
+-		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)
+-			printf("[");
+ 		printf("%s", xtables_ip6addr_to_numeric(&range->min_addr.in6));
+ 		if (memcmp(&range->min_addr, &range->max_addr,
+ 			   sizeof(range->min_addr)))
+ 			printf("-%s", xtables_ip6addr_to_numeric(&range->max_addr.in6));
+-		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)
+-			printf("]");
  	}
+ 	if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
+-		printf(":");
++		printf("]:");
+ 		printf("%hu", ntohs(range->min_proto.tcp.port));
+ 		if (range->max_proto.tcp.port != range->min_proto.tcp.port)
+ 			printf("-%hu", ntohs(range->max_proto.tcp.port));
+diff --git a/extensions/libip6t_SNAT.c b/extensions/libip6t_SNAT.c
+index 307be70..8d2c87e 100644
+--- a/extensions/libip6t_SNAT.c
++++ b/extensions/libip6t_SNAT.c
+@@ -105,8 +105,8 @@ parse_to(const char *orig_arg, int portok, struct nf_nat_range *range)
+ 			range->min_proto.tcp.port = htons(port);
+ 			range->max_proto.tcp.port = htons(maxport);
+ 		}
+-		/* Starts with a colon? No IP info...*/
+-		if (colon == arg) {
++		/* Starts with [] colon? No IP info...*/
++		if (colon == arg+2) {
+ 			free(arg);
+ 			return;
+ 		}
+@@ -183,18 +183,16 @@ static void SNAT_fcheck(struct xt_fcheck_call *cb)
  
--	npt->adjustment = csum16_sub(src_sum, dst_sum);
-+	npt->adjustment = (__force __sum16) csum_sub(src_sum, dst_sum);
- 	return 0;
- }
- 
-@@ -85,7 +66,7 @@ static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
- 			return false;
+ static void print_range(const struct nf_nat_range *range)
+ {
++	if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)
++		printf("[");
+ 	if (range->flags & NF_NAT_RANGE_MAP_IPS) {
+-		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)
+-			printf("[");
+ 		printf("%s", xtables_ip6addr_to_numeric(&range->min_addr.in6));
+ 		if (memcmp(&range->min_addr, &range->max_addr,
+ 			   sizeof(range->min_addr)))
+ 			printf("-%s", xtables_ip6addr_to_numeric(&range->max_addr.in6));
+-		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)
+-			printf("]");
  	}
- 
--	sum = csum16_add((__force __sum16)addr->s6_addr16[idx],
-+	sum = (__force __sum16) csum_add((__force __wsum)addr->s6_addr16[idx],
- 			 npt->adjustment);
- 	if (sum == CSUM_MANGLED_0)
- 		sum = 0;
+ 	if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
+-		printf(":");
++		printf("]:");
+ 		printf("%hu", ntohs(range->min_proto.tcp.port));
+ 		if (range->max_proto.tcp.port != range->min_proto.tcp.port)
+ 			printf("-%hu", ntohs(range->max_proto.tcp.port));
 -- 
-1.7.9.5
+1.8.0.2
 
