@@ -1,108 +1,89 @@
 From: Ulrich Weber <ulrich.weber@sophos.com>
-Subject: [PATCH] iptables: allow IPv6 port NAT without address NAT
-Date: Wed, 2 Jan 2013 16:52:44 +0100
-Message-ID: <20130102155244.GB5133@uweber-WS>
+Subject: [PATCH] iptables: fix wording in DNPT target
+Date: Wed, 2 Jan 2013 17:03:49 +0100
+Message-ID: <20130102160349.GB3760@uweber-WS>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx2.sophos.com ([145.253.124.138]:59750 "EHLO mx2.sophos.com"
+Received: from mx1.sophos.com ([145.253.124.137]:34888 "EHLO mx1.sophos.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752978Ab3ABPwr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Jan 2013 10:52:47 -0500
-Received: from mx2.sophos.com (localhost.localdomain [127.0.0.1])
-	by localhost (Postfix) with SMTP id 98EB618831D
-	for <netfilter-devel@vger.kernel.org>; Wed,  2 Jan 2013 15:52:46 +0000 (GMT)
+	id S1752793Ab3ABQDx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 2 Jan 2013 11:03:53 -0500
+Received: from mx1.sophos.com (localhost.localdomain [127.0.0.1])
+	by localhost (Postfix) with SMTP id E18085B80A5
+	for <netfilter-devel@vger.kernel.org>; Wed,  2 Jan 2013 16:03:51 +0000 (GMT)
 Received: from de-wie-exch3b.green.sophos (de-wie-exch3b.green.sophos [10.60.70.62])
-	by mx2.sophos.com (Postfix) with ESMTPS id 6368918831C
-	for <netfilter-devel@vger.kernel.org>; Wed,  2 Jan 2013 15:52:46 +0000 (GMT)
+	by mx1.sophos.com (Postfix) with ESMTPS id B10665B808C
+	for <netfilter-devel@vger.kernel.org>; Wed,  2 Jan 2013 16:03:51 +0000 (GMT)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-correct parsing of IPv6 port NAT without address NAT
-and also print brackets for port only IPv6 NAT.
+replaces SNPT by DNPT
 
 Signed-off-by: Ulrich Weber <ulrich.weber@sophos.com>
 ---
- extensions/libip6t_DNAT.c | 12 +++++-------
- extensions/libip6t_SNAT.c | 12 +++++-------
- 2 files changed, 10 insertions(+), 14 deletions(-)
+ extensions/libip6t_DNPT.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/extensions/libip6t_DNAT.c b/extensions/libip6t_DNAT.c
-index a5969c3..6f11d52 100644
---- a/extensions/libip6t_DNAT.c
-+++ b/extensions/libip6t_DNAT.c
-@@ -105,8 +105,8 @@ parse_to(const char *orig_arg, int portok, struct nf_nat_range *range)
- 			range->min_proto.tcp.port = htons(port);
- 			range->max_proto.tcp.port = htons(maxport);
- 		}
--		/* Starts with a colon? No IP info...*/
--		if (colon == arg) {
-+		/* Starts with [] colon? No IP info...*/
-+		if (colon == arg+2) {
- 			free(arg);
- 			return;
- 		}
-@@ -183,18 +183,16 @@ static void DNAT_fcheck(struct xt_fcheck_call *cb)
+diff --git a/extensions/libip6t_DNPT.c b/extensions/libip6t_DNPT.c
+index 9e4dc5c..7439816 100644
+--- a/extensions/libip6t_DNPT.c
++++ b/extensions/libip6t_DNPT.c
+@@ -8,7 +8,7 @@ enum {
+ 	O_DST_PFX	= 1 << 1,
+ };
  
- static void print_range(const struct nf_nat_range *range)
- {
-+	if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)
-+		printf("[");
- 	if (range->flags & NF_NAT_RANGE_MAP_IPS) {
--		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)
--			printf("[");
- 		printf("%s", xtables_ip6addr_to_numeric(&range->min_addr.in6));
- 		if (memcmp(&range->min_addr, &range->max_addr,
- 			   sizeof(range->min_addr)))
- 			printf("-%s", xtables_ip6addr_to_numeric(&range->max_addr.in6));
--		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)
--			printf("]");
- 	}
- 	if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
--		printf(":");
-+		printf("]:");
- 		printf("%hu", ntohs(range->min_proto.tcp.port));
- 		if (range->max_proto.tcp.port != range->min_proto.tcp.port)
- 			printf("-%hu", ntohs(range->max_proto.tcp.port));
-diff --git a/extensions/libip6t_SNAT.c b/extensions/libip6t_SNAT.c
-index 307be70..8d2c87e 100644
---- a/extensions/libip6t_SNAT.c
-+++ b/extensions/libip6t_SNAT.c
-@@ -105,8 +105,8 @@ parse_to(const char *orig_arg, int portok, struct nf_nat_range *range)
- 			range->min_proto.tcp.port = htons(port);
- 			range->max_proto.tcp.port = htons(maxport);
- 		}
--		/* Starts with a colon? No IP info...*/
--		if (colon == arg) {
-+		/* Starts with [] colon? No IP info...*/
-+		if (colon == arg+2) {
- 			free(arg);
- 			return;
- 		}
-@@ -183,18 +183,16 @@ static void SNAT_fcheck(struct xt_fcheck_call *cb)
+-static const struct xt_option_entry SNPT_options[] = {
++static const struct xt_option_entry DNPT_options[] = {
+ 	{ .name = "src-pfx", .id = O_SRC_PFX, .type = XTTYPE_HOSTMASK,
+ 	  .flags = XTOPT_MAND },
+ 	{ .name = "dst-pfx", .id = O_DST_PFX, .type = XTTYPE_HOSTMASK,
+@@ -16,16 +16,16 @@ static const struct xt_option_entry SNPT_options[] = {
+ 	{ }
+ };
  
- static void print_range(const struct nf_nat_range *range)
+-static void SNPT_help(void)
++static void DNPT_help(void)
  {
-+	if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)
-+		printf("[");
- 	if (range->flags & NF_NAT_RANGE_MAP_IPS) {
--		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)
--			printf("[");
- 		printf("%s", xtables_ip6addr_to_numeric(&range->min_addr.in6));
- 		if (memcmp(&range->min_addr, &range->max_addr,
- 			   sizeof(range->min_addr)))
- 			printf("-%s", xtables_ip6addr_to_numeric(&range->max_addr.in6));
--		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)
--			printf("]");
+-	printf("SNPT target options:"
++	printf("DNPT target options:"
+ 	       "\n"
+ 	       " --src-pfx prefix/length\n"
+ 	       " --dst-pfx prefix/length\n"
+ 	       "\n");
+ }
+ 
+-static void SNPT_parse(struct xt_option_call *cb)
++static void DNPT_parse(struct xt_option_call *cb)
+ {
+ 	struct ip6t_npt_tginfo *npt = cb->data;
+ 
+@@ -42,7 +42,7 @@ static void SNPT_parse(struct xt_option_call *cb)
  	}
- 	if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
--		printf(":");
-+		printf("]:");
- 		printf("%hu", ntohs(range->min_proto.tcp.port));
- 		if (range->max_proto.tcp.port != range->min_proto.tcp.port)
- 			printf("-%hu", ntohs(range->max_proto.tcp.port));
+ }
+ 
+-static void SNPT_print(const void *ip, const struct xt_entry_target *target,
++static void DNPT_print(const void *ip, const struct xt_entry_target *target,
+ 		       int numeric)
+ {
+ 	const struct ip6t_npt_tginfo *npt = (const void *)target->data;
+@@ -59,10 +59,10 @@ static struct xtables_target snpt_tg_reg = {
+ 	.family		= NFPROTO_IPV6,
+ 	.size		= XT_ALIGN(sizeof(struct ip6t_npt_tginfo)),
+ 	.userspacesize	= offsetof(struct ip6t_npt_tginfo, adjustment),
+-	.help		= SNPT_help,
+-	.x6_parse	= SNPT_parse,
+-	.print		= SNPT_print,
+-	.x6_options	= SNPT_options,
++	.help		= DNPT_help,
++	.x6_parse	= DNPT_parse,
++	.print		= DNPT_print,
++	.x6_options	= DNPT_options,
+ };
+ 
+ void _init(void)
 -- 
 1.8.0.2
 
