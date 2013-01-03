@@ -1,48 +1,29 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] net: fix checking boundary of valid vlan id
-Date: Thu, 3 Jan 2013 01:39:23 +0100
-Message-ID: <20130103003923.GA30625@1984>
-References: <1356848931-22193-1-git-send-email-akong@redhat.com>
+Subject: Re: [nfacct PATCH] Add restore command
+Date: Thu, 3 Jan 2013 01:44:20 +0100
+Message-ID: <20130103004420.GA31385@1984>
+References: <1356596193-2782-1-git-send-email-eric@regit.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, davem@davemloft.net,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: akong@redhat.com
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41606 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41841 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753029Ab3ACAjb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Jan 2013 19:39:31 -0500
+	id S1753039Ab3ACAoY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 2 Jan 2013 19:44:24 -0500
 Content-Disposition: inline
-In-Reply-To: <1356848931-22193-1-git-send-email-akong@redhat.com>
+In-Reply-To: <1356596193-2782-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Dec 30, 2012 at 02:28:51PM +0800, akong@redhat.com wrote:
-> From: Amos Kong <akong@redhat.com>
-> 
-> 4096 is not a valid vlan id.
-> 
-> Signed-off-by: Amos Kong <akong@redhat.com>
-> ---
->  net/bridge/netfilter/ebt_vlan.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/bridge/netfilter/ebt_vlan.c b/net/bridge/netfilter/ebt_vlan.c
-> index eae67bf..b279ec0 100644
-> --- a/net/bridge/netfilter/ebt_vlan.c
-> +++ b/net/bridge/netfilter/ebt_vlan.c
-> @@ -121,8 +121,8 @@ static int ebt_vlan_mt_check(const struct xt_mtchk_param *par)
->  	 * if_vlan.h: VLAN_N_VID 4096. */
->  	if (GET_BITMASK(EBT_VLAN_ID)) {
->  		if (!!info->id) { /* if id!=0 => check vid range */
-> -			if (info->id > VLAN_N_VID) {
-> -				pr_debug("id %d is out of range (1-4096)\n",
-> +			if (info->id >= VLAN_N_VID) {
-> +				pr_debug("id %d is out of range (1-4095)\n",
+On Thu, Dec 27, 2012 at 09:16:33AM +0100, Eric Leblond wrote:
+> This patch adds a 'restore' command to nfacct commands. It takes
+> the output of 'list' command and use it to restore the counters.
+> Basically, the user can save the counter with:
+>  nfacct list >nfacct.dump
+> And restore them with:
+>  nfacct restore <nfacct.dump
 
-Someone may forge frames including reserved VLAN ids.
-
-People can use ebtables to drop invalid frames, this is a firewalling
-utility after all ;-). I'm not taking these, sorry.
+Thanks a lot, this is good, I was expecting someone to take it and to
+add support for that :-).
