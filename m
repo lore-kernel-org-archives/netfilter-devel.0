@@ -1,107 +1,71 @@
 From: Ulrich Weber <ulrich.weber@sophos.com>
-Subject: [PATCH v2] iptables: allow IPv6 port NAT without address NAT
-Date: Thu, 3 Jan 2013 11:39:58 +0100
-Message-ID: <20130103103958.GA9315@uweber-WS>
-References: <20130102155244.GB5133@uweber-WS>
- <20130103001306.GB27394@1984>
+Subject: [PATCH] iptables: set IPv6 DNAT --to-destination
+Date: Thu, 3 Jan 2013 11:41:38 +0100
+Message-ID: <20130103104125.GA11070@uweber-WS>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Cc: <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx2.sophos.com ([145.253.124.138]:59391 "EHLO mx2.sophos.com"
+Received: from mx2.sophos.com ([145.253.124.138]:59437 "EHLO mx2.sophos.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752981Ab3ACKkG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Jan 2013 05:40:06 -0500
+	id S1753039Ab3ACKlp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Jan 2013 05:41:45 -0500
+Received: from mx2.sophos.com (localhost.localdomain [127.0.0.1])
+	by localhost (Postfix) with SMTP id 5395060002
+	for <netfilter-devel@vger.kernel.org>; Thu,  3 Jan 2013 10:41:44 +0000 (GMT)
+Received: from de-wie-exch3b.green.sophos (de-wie-exch3b.green.sophos [10.60.70.62])
+	by mx2.sophos.com (Postfix) with ESMTPS id 2ACAA60001
+	for <netfilter-devel@vger.kernel.org>; Thu,  3 Jan 2013 10:41:44 +0000 (GMT)
 Content-Disposition: inline
-In-Reply-To: <20130103001306.GB27394@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-correct parsing of IPv6 port NAT without address NAT,
-assume one colon as port information.
-
-Allows:
-* address only:
- -j DNAT --to affe::1
- -j DNAT --to [affe::1]
-
-* port only
- -j DNAT --to :80
- -j DNAT --to :80-110
- -j DNAT --to []:80
- -j DNAT --to []:80-110
-
-* address and port
- -j DNAT --to [affe::1]:80
- -j DNAT --to [affe::1]:80-110
+as in IPv4 and fixes DNAT_save
 
 Signed-off-by: Ulrich Weber <ulrich.weber@sophos.com>
 ---
- extensions/libip6t_DNAT.c | 11 ++++++++---
- extensions/libip6t_SNAT.c | 11 ++++++++---
- 2 files changed, 16 insertions(+), 6 deletions(-)
+ extensions/libip6t_DNAT.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/extensions/libip6t_DNAT.c b/extensions/libip6t_DNAT.c
-index a5969c3..1bba37e 100644
+index 1bba37e..eaa6bf1 100644
 --- a/extensions/libip6t_DNAT.c
 +++ b/extensions/libip6t_DNAT.c
-@@ -54,8 +54,13 @@ parse_to(const char *orig_arg, int portok, struct nf_nat_range *range)
- 		xtables_error(RESOURCE_PROBLEM, "strdup");
+@@ -29,13 +29,13 @@ static void DNAT_help(void)
+ {
+ 	printf(
+ "DNAT target options:\n"
+-" --to-dest [<ipaddr>[-<ipaddr>]][:port[-port]]\n"
+-"				Address to map source to.\n"
++" --to-destination [<ipaddr>[-<ipaddr>]][:port[-port]]\n"
++"				Address to map destination to.\n"
+ "[--random] [--persistent]\n");
+ }
  
- 	start = strchr(arg, '[');
--	if (start == NULL)
-+	if (start == NULL) {
- 		start = arg;
-+		/* Lets assume one colon is port information. Otherwise its an IPv6 address */
-+		colon = strchr(arg, ':');
-+		if (colon && strchr(colon+1, ':'))
-+			colon = NULL;
-+	}
- 	else {
- 		start++;
- 		end = strchr(start, ']');
-@@ -105,8 +110,8 @@ parse_to(const char *orig_arg, int portok, struct nf_nat_range *range)
- 			range->min_proto.tcp.port = htons(port);
- 			range->max_proto.tcp.port = htons(maxport);
+ static const struct xt_option_entry DNAT_opts[] = {
+-	{.name = "to-dest", .id = O_TO_DEST, .type = XTTYPE_STRING,
++	{.name = "to-destination", .id = O_TO_DEST, .type = XTTYPE_STRING,
+ 	 .flags = XTOPT_MAND | XTOPT_MULTI},
+ 	{.name = "random", .id = O_RANDOM, .type = XTTYPE_NONE},
+ 	{.name = "persistent", .id = O_PERSISTENT, .type = XTTYPE_NONE},
+@@ -167,7 +167,7 @@ static void DNAT_parse(struct xt_option_call *cb)
+ 				get_kernel_version();
+ 			if (kernel_version > LINUX_VERSION(2, 6, 10))
+ 				xtables_error(PARAMETER_PROBLEM,
+-					   "DNAT: Multiple --to-source not supported");
++					   "DNAT: Multiple --to-destination not supported");
  		}
--		/* Starts with a colon? No IP info...*/
--		if (colon == arg) {
-+		/* Starts with colon or [] colon? No IP info...*/
-+		if (colon == arg || colon == arg+2) {
- 			free(arg);
- 			return;
- 		}
-diff --git a/extensions/libip6t_SNAT.c b/extensions/libip6t_SNAT.c
-index 307be70..7382ad0 100644
---- a/extensions/libip6t_SNAT.c
-+++ b/extensions/libip6t_SNAT.c
-@@ -54,8 +54,13 @@ parse_to(const char *orig_arg, int portok, struct nf_nat_range *range)
- 		xtables_error(RESOURCE_PROBLEM, "strdup");
+ 		parse_to(cb->arg, portok, range);
+ 		break;
+@@ -223,7 +223,7 @@ static void DNAT_save(const void *ip, const struct xt_entry_target *target)
+ {
+ 	const struct nf_nat_range *range = (const void *)target->data;
  
- 	start = strchr(arg, '[');
--	if (start == NULL)
-+	if (start == NULL) {
- 		start = arg;
-+		/* Lets assume one colon is port information. Otherwise its an IPv6 address */
-+		colon = strchr(arg, ':');
-+		if (colon && strchr(colon+1, ':'))
-+			colon = NULL;
-+	}
- 	else {
- 		start++;
- 		end = strchr(start, ']');
-@@ -105,8 +110,8 @@ parse_to(const char *orig_arg, int portok, struct nf_nat_range *range)
- 			range->min_proto.tcp.port = htons(port);
- 			range->max_proto.tcp.port = htons(maxport);
- 		}
--		/* Starts with a colon? No IP info...*/
--		if (colon == arg) {
-+		/* Starts with colon or [] colon? No IP info...*/
-+		if (colon == arg || colon == arg+2) {
- 			free(arg);
- 			return;
- 		}
+-	printf(" --to-source ");
++	printf(" --to-destination ");
+ 	print_range(range);
+ 	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM)
+ 		printf(" --random");
 -- 
 1.8.0.2
 
