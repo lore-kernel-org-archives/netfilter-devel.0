@@ -1,71 +1,66 @@
-From: Ulrich Weber <ulrich.weber@sophos.com>
-Subject: [PATCH] iptables: set IPv6 DNAT --to-destination
-Date: Thu, 3 Jan 2013 11:41:38 +0100
-Message-ID: <20130103104125.GA11070@uweber-WS>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-To: <netfilter-devel@vger.kernel.org>
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: [PATCH -v2 22/26] net/netfilter: rename random32() to prandom_u32()
+Date: Thu,  3 Jan 2013 21:19:18 +0900
+Message-ID: <1357215562-6288-23-git-send-email-akinobu.mita@gmail.com>
+References: <1357215562-6288-1-git-send-email-akinobu.mita@gmail.com>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, "David S. Miller" <davem@davemloft.net>,
+	netdev@vger.kernel.org
+To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx2.sophos.com ([145.253.124.138]:59437 "EHLO mx2.sophos.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753039Ab3ACKlp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Jan 2013 05:41:45 -0500
-Received: from mx2.sophos.com (localhost.localdomain [127.0.0.1])
-	by localhost (Postfix) with SMTP id 5395060002
-	for <netfilter-devel@vger.kernel.org>; Thu,  3 Jan 2013 10:41:44 +0000 (GMT)
-Received: from de-wie-exch3b.green.sophos (de-wie-exch3b.green.sophos [10.60.70.62])
-	by mx2.sophos.com (Postfix) with ESMTPS id 2ACAA60001
-	for <netfilter-devel@vger.kernel.org>; Thu,  3 Jan 2013 10:41:44 +0000 (GMT)
-Content-Disposition: inline
+Received: from mail-pb0-f51.google.com ([209.85.160.51]:37503 "EHLO
+	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753059Ab3ACMUZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Jan 2013 07:20:25 -0500
+In-Reply-To: <1357215562-6288-1-git-send-email-akinobu.mita@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-as in IPv4 and fixes DNAT_save
+Use more preferable function name which implies using a pseudo-random
+number generator.
 
-Signed-off-by: Ulrich Weber <ulrich.weber@sophos.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+Cc: netfilter@vger.kernel.org
+Cc: coreteam@netfilter.org
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: netdev@vger.kernel.org
 ---
- extensions/libip6t_DNAT.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/extensions/libip6t_DNAT.c b/extensions/libip6t_DNAT.c
-index 1bba37e..eaa6bf1 100644
---- a/extensions/libip6t_DNAT.c
-+++ b/extensions/libip6t_DNAT.c
-@@ -29,13 +29,13 @@ static void DNAT_help(void)
- {
- 	printf(
- "DNAT target options:\n"
--" --to-dest [<ipaddr>[-<ipaddr>]][:port[-port]]\n"
--"				Address to map source to.\n"
-+" --to-destination [<ipaddr>[-<ipaddr>]][:port[-port]]\n"
-+"				Address to map destination to.\n"
- "[--random] [--persistent]\n");
+* Change from v1
+- leave net_random() callers as-is because that is a useful indirection
+
+ net/netfilter/nf_conntrack_core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 08cdc71..a8f5c7a 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -263,7 +263,7 @@ static void death_by_event(unsigned long ul_conntrack)
+ 	if (nf_conntrack_event(IPCT_DESTROY, ct) < 0) {
+ 		/* bad luck, let's retry again */
+ 		ecache->timeout.expires = jiffies +
+-			(random32() % net->ct.sysctl_events_retry_timeout);
++			(prandom_u32() % net->ct.sysctl_events_retry_timeout);
+ 		add_timer(&ecache->timeout);
+ 		return;
+ 	}
+@@ -282,7 +282,7 @@ void nf_ct_dying_timeout(struct nf_conn *ct)
+ 	/* set a new timer to retry event delivery */
+ 	setup_timer(&ecache->timeout, death_by_event, (unsigned long)ct);
+ 	ecache->timeout.expires = jiffies +
+-		(random32() % net->ct.sysctl_events_retry_timeout);
++		(prandom_u32() % net->ct.sysctl_events_retry_timeout);
+ 	add_timer(&ecache->timeout);
  }
- 
- static const struct xt_option_entry DNAT_opts[] = {
--	{.name = "to-dest", .id = O_TO_DEST, .type = XTTYPE_STRING,
-+	{.name = "to-destination", .id = O_TO_DEST, .type = XTTYPE_STRING,
- 	 .flags = XTOPT_MAND | XTOPT_MULTI},
- 	{.name = "random", .id = O_RANDOM, .type = XTTYPE_NONE},
- 	{.name = "persistent", .id = O_PERSISTENT, .type = XTTYPE_NONE},
-@@ -167,7 +167,7 @@ static void DNAT_parse(struct xt_option_call *cb)
- 				get_kernel_version();
- 			if (kernel_version > LINUX_VERSION(2, 6, 10))
- 				xtables_error(PARAMETER_PROBLEM,
--					   "DNAT: Multiple --to-source not supported");
-+					   "DNAT: Multiple --to-destination not supported");
- 		}
- 		parse_to(cb->arg, portok, range);
- 		break;
-@@ -223,7 +223,7 @@ static void DNAT_save(const void *ip, const struct xt_entry_target *target)
- {
- 	const struct nf_nat_range *range = (const void *)target->data;
- 
--	printf(" --to-source ");
-+	printf(" --to-destination ");
- 	print_range(range);
- 	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM)
- 		printf(" --random");
+ EXPORT_SYMBOL_GPL(nf_ct_dying_timeout);
 -- 
-1.8.0.2
+1.7.11.7
 
