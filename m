@@ -1,59 +1,63 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: linux-next: Tree for Jan 2 (netfilter)
-Date: Thu, 03 Jan 2013 10:56:32 -0800
-Message-ID: <50E5D460.80303@infradead.org>
-References: <20130102151216.b81cd4d4bf54fc8d1f5d9b27@canb.auug.org.au> <50E47EEF.8090005@infradead.org> <20130103013559.GA2323@1984> <20130103023001.GA13254@1984>
+From: Ben Hutchings <bhutchings@solarflare.com>
+Subject: Re: [PATCH] net: fix checking boundary of valid vlan id
+Date: Thu, 3 Jan 2013 20:06:31 +0000
+Message-ID: <1357243591.2685.2.camel@bwh-desktop.uk.solarflarecom.com>
+References: <1356848931-22193-1-git-send-email-akong@redhat.com>
+	 <20130103003923.GA30625@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
+Cc: <akong@redhat.com>, <netdev@vger.kernel.org>,
+	<davem@davemloft.net>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20130103023001.GA13254@1984>
-Sender: linux-next-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from webmail.solarflare.com ([12.187.104.25]:46580 "EHLO
+	webmail.solarflare.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752998Ab3ACUGe (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Jan 2013 15:06:34 -0500
+In-Reply-To: <20130103003923.GA30625@1984>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 01/02/13 18:30, Pablo Neira Ayuso wrote:
-> On Thu, Jan 03, 2013 at 02:35:59AM +0100, Pablo Neira Ayuso wrote:
->>> when NF_CONNTRACK is not enabled (build was on i386):
->>>
->>>   CC [M]  net/netfilter/xt_CT.o
->>> In file included from net/netfilter/xt_CT.c:16:0:
->>> include/net/netfilter/nf_conntrack.h:77:22: error: field 'ct_general' has incomplete type
->>> include/net/netfilter/nf_conntrack.h: In function 'nf_ct_get':
->>> include/net/netfilter/nf_conntrack.h:157:30: error: 'const struct sk_buff' has no member named 'nfct'
->>> include/net/netfilter/nf_conntrack.h: In function 'nf_ct_put':
->>> include/net/netfilter/nf_conntrack.h:164:2: error: implicit declaration of function 'nf_conntrack_put' [-Werror=implicit-function-declaration]
->>> net/netfilter/xt_CT.c: In function 'xt_ct_target_v0':
->>> net/netfilter/xt_CT.c:30:9: error: 'struct sk_buff' has no member named 'nfct'
->>> net/netfilter/xt_CT.c:34:5: error: 'struct sk_buff' has no member named 'nfct'
->>> net/netfilter/xt_CT.c: In function 'xt_ct_target_v1':
->>> net/netfilter/xt_CT.c:47:9: error: 'struct sk_buff' has no member named 'nfct'
->>> net/netfilter/xt_CT.c:51:5: error: 'struct sk_buff' has no member named 'nfct'
->>> net/netfilter/xt_CT.c: In function 'xt_ct_tg_check_v0':
->>> net/netfilter/xt_CT.c:155:15: error: 'struct net' has no member named 'ct'
->>> net/netfilter/xt_CT.c: In function 'xt_ct_tg_check_v1':
->>> net/netfilter/xt_CT.c:299:15: error: 'struct net' has no member named 'ct'
->>> net/netfilter/xt_CT.c: In function 'notrack_tg':
->>> net/netfilter/xt_CT.c:392:9: error: 'struct sk_buff' has no member named 'nfct'
->>> net/netfilter/xt_CT.c:395:5: error: 'struct sk_buff' has no member named 'nfct'
->>> net/netfilter/xt_CT.c:397:2: error: implicit declaration of function 'nf_conntrack_get' [-Werror=implicit-function-declaration]
->>> net/netfilter/xt_CT.c:397:22: error: 'struct sk_buff' has no member named 'nfct'
->>> cc1: some warnings being treated as errors
->>> make[3]: *** [net/netfilter/xt_CT.o] Error 1
->>
->> Sorry, I cannot reproduce the selection ...
+On Thu, 2013-01-03 at 01:39 +0100, Pablo Neira Ayuso wrote:
+> On Sun, Dec 30, 2012 at 02:28:51PM +0800, akong@redhat.com wrote:
+> > From: Amos Kong <akong@redhat.com>
+> > 
+> > 4096 is not a valid vlan id.
+> > 
+> > Signed-off-by: Amos Kong <akong@redhat.com>
+> > ---
+> >  net/bridge/netfilter/ebt_vlan.c | 4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/net/bridge/netfilter/ebt_vlan.c b/net/bridge/netfilter/ebt_vlan.c
+> > index eae67bf..b279ec0 100644
+> > --- a/net/bridge/netfilter/ebt_vlan.c
+> > +++ b/net/bridge/netfilter/ebt_vlan.c
+> > @@ -121,8 +121,8 @@ static int ebt_vlan_mt_check(const struct xt_mtchk_param *par)
+> >  	 * if_vlan.h: VLAN_N_VID 4096. */
+> >  	if (GET_BITMASK(EBT_VLAN_ID)) {
+> >  		if (!!info->id) { /* if id!=0 => check vid range */
+> > -			if (info->id > VLAN_N_VID) {
+> > -				pr_debug("id %d is out of range (1-4096)\n",
+> > +			if (info->id >= VLAN_N_VID) {
+> > +				pr_debug("id %d is out of range (1-4095)\n",
 > 
-> Caught it. Patch attached, thanks for the report.
-> 
+> Someone may forge frames including reserved VLAN ids.
 
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
+They may find it difficult to fit the value 4096 into a 12-bit field,
+though.
 
-Thanks.
+Ben.
 
+> People can use ebtables to drop invalid frames, this is a firewalling
+> utility after all ;-). I'm not taking these, sorry.
 
 -- 
-~Randy
+Ben Hutchings, Staff Engineer, Solarflare
+Not speaking for my employer; that's the marketing department's job.
+They asked us to note that Solarflare product names are trademarked.
+
