@@ -1,34 +1,35 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: fix IPv6 NTP checksum calculation
-Date: Fri, 4 Jan 2013 20:22:52 +0100
-Message-ID: <20130104192252.GA17684@1984>
-References: <20130102152440.GA3760@uweber-WS>
- <20130104092042.GB28028@macbook.localnet>
+Subject: Re: [PATCH] netfilter: xt_recent: avoid high order page allocations
+Date: Fri, 4 Jan 2013 20:23:16 +0100
+Message-ID: <20130104192316.GA17714@1984>
+References: <1357287519.1678.70.camel@edumazet-glaptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Ulrich Weber <ulrich.weber@sophos.com>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+	Miroslav Kratochvil <exa.exa@gmail.com>,
+	h.reindl@thelounge.net, Dave Jones <davej@redhat.com>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42943 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42975 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754381Ab3ADTXA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Jan 2013 14:23:00 -0500
+	id S1754013Ab3ADTXU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Jan 2013 14:23:20 -0500
 Content-Disposition: inline
-In-Reply-To: <20130104092042.GB28028@macbook.localnet>
+In-Reply-To: <1357287519.1678.70.camel@edumazet-glaptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jan 04, 2013 at 10:20:43AM +0100, Patrick McHardy wrote:
-> On Wed, Jan 02, 2013 at 04:24:40PM +0100, Ulrich Weber wrote:
-> > csum16_add() has a broken carry detection, should be:
-> > sum += sum < (__force u16)b;
-> > 
-> > Instead of fixing csum16_add, remove the custom checksum
-> > functions and use the generic csum_add/csum_sub ones.
+On Fri, Jan 04, 2013 at 12:18:39AM -0800, Eric Dumazet wrote:
+> From: Eric Dumazet <edumazet@google.com>
 > 
-> Looks good to me.
+> xt_recent can try high order page allocations and this can fail.
 > 
-> Acked-by: Patrick McHardy <kaber@trash.net>
+> iptables: page allocation failure: order:9, mode:0xc0d0
+> 
+> It also wastes about half the allocated space because of kmalloc()
+> power-of-two roundups and struct recent_table layout.
+> 
+> Use vmalloc() instead to save space and be less prone to allocation
+> errors when memory is fragmented.
 
-Applied, thanks!
+Applied, thanks Eric!
