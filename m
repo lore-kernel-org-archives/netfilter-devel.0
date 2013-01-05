@@ -1,61 +1,45 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: [Ulogd PATCH 0/4] Implement filter for NFCT
-Date: Sat, 05 Jan 2013 10:57:29 +0100
-Message-ID: <1357379849.14581.2.camel@tiger2>
-References: <1356715802-11572-1-git-send-email-eric@regit.org>
+From: Steven Jan Springl <steven@springl.ukfsn.org>
+Subject: arptables bug.
+Date: Sat, 5 Jan 2013 20:56:18 +0000
+Message-ID: <201301052056.18524.steven@springl.ukfsn.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-Yg3id3JMQ54FRpE3+sC7"
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:44784 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755414Ab3AEJ6L (ORCPT
+Received: from mail.springl.ukfsn.org ([84.45.199.6]:38419 "EHLO
+	mail.springl.ukfsn.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755865Ab3AEVFT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 5 Jan 2013 04:58:11 -0500
-Received: from ip-37-24-162-232.unitymediagroup.de ([37.24.162.232] helo=[192.168.0.110])
-	by ks28632.kimsufi.com with esmtpsa (TLS1.0:RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <eric@regit.org>)
-	id 1TrQW1-0006NS-2F
-	for netfilter-devel@vger.kernel.org; Sat, 05 Jan 2013 10:58:09 +0100
-In-Reply-To: <1356715802-11572-1-git-send-email-eric@regit.org>
+	Sat, 5 Jan 2013 16:05:19 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by mail.springl.ukfsn.org (Postfix) with ESMTP id 4E8A4880053
+	for <netfilter-devel@vger.kernel.org>; Sat,  5 Jan 2013 20:56:20 +0000 (GMT)
+Received: from mail.springl.ukfsn.org ([127.0.0.1])
+	by localhost (es1.home [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 7yaPTMrEr3K8 for <netfilter-devel@vger.kernel.org>;
+	Sat,  5 Jan 2013 20:56:19 +0000 (GMT)
+Received: from l9.localnet (l9.home [IPv6:2001:4d48:ad52:500:e2cb:4eff:feb4:8d52])
+	by mail.springl.ukfsn.org (Postfix) with ESMTP id F3350880046
+	for <netfilter-devel@vger.kernel.org>; Sat,  5 Jan 2013 20:56:18 +0000 (GMT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello
 
---=-Yg3id3JMQ54FRpE3+sC7
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+I am using arptables v0.0.3.4 in Debian Squeeze.
 
-Hi,
+Issuing command:
 
-On Fri, 2012-12-28 at 18:29 +0100, Eric Leblond wrote:
-> Hello,
->=20
-> This patchset implements filtering capability in NFCT input plugin. For
-> now this is only possible when NFCT is used in event mode as the
-> libnetfilter_conntrack library does not support filtering of dump.
+aptables -A INPUT -i eth0 --opcode ! 1 -j DROP
 
-Patches pushed to git tree.
+Then issuing command arptables-save produces the following:
 
-BR,
---=20
-Eric Leblond <eric@regit.org>
-Blog: https://home.regit.org/
+-A INPUT -j DROP -i eth0  --opcode 1
 
---=-Yg3id3JMQ54FRpE3+sC7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+The "!" is missing from the opcode.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Regards.
 
-iEYEABECAAYFAlDn+QkACgkQnxA7CdMWjzLlmgCcC0TUtw25oUkILA7GSxX43le3
-Hs0AoJAfPUKqHYrdKK5+u+Lt4WSzW6nq
-=H+Ej
------END PGP SIGNATURE-----
-
---=-Yg3id3JMQ54FRpE3+sC7--
-
+Steven.
