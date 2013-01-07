@@ -1,45 +1,43 @@
-From: Steven Jan Springl <steven@springl.ukfsn.org>
-Subject: arptables bug.
-Date: Sat, 5 Jan 2013 20:56:18 +0000
-Message-ID: <201301052056.18524.steven@springl.ukfsn.org>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Re: [PATCH 19/19] netfilter: gre: fix resource leak when unregister
+ gre proto
+Date: Mon, 07 Jan 2013 09:27:37 +0800
+Message-ID: <50EA2489.3070309@cn.fujitsu.com>
+References: <1356662206-2260-1-git-send-email-gaofeng@cn.fujitsu.com> <1356662206-2260-20-git-send-email-gaofeng@cn.fujitsu.com> <20130105035048.GA20027@1984>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.springl.ukfsn.org ([84.45.199.6]:38419 "EHLO
-	mail.springl.ukfsn.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755865Ab3AEVFT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 5 Jan 2013 16:05:19 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by mail.springl.ukfsn.org (Postfix) with ESMTP id 4E8A4880053
-	for <netfilter-devel@vger.kernel.org>; Sat,  5 Jan 2013 20:56:20 +0000 (GMT)
-Received: from mail.springl.ukfsn.org ([127.0.0.1])
-	by localhost (es1.home [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 7yaPTMrEr3K8 for <netfilter-devel@vger.kernel.org>;
-	Sat,  5 Jan 2013 20:56:19 +0000 (GMT)
-Received: from l9.localnet (l9.home [IPv6:2001:4d48:ad52:500:e2cb:4eff:feb4:8d52])
-	by mail.springl.ukfsn.org (Postfix) with ESMTP id F3350880046
-	for <netfilter-devel@vger.kernel.org>; Sat,  5 Jan 2013 20:56:18 +0000 (GMT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	canqunzhang@gmail.com, kaber@trash.net, ebiederm@xmission.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20130105035048.GA20027@1984>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello
+Hi Pablo,
 
-I am using arptables v0.0.3.4 in Debian Squeeze.
+On 01/05/13 11:50, Pablo Neira Ayuso wrote:
+> Hi Gao,
+> 
+> On Fri, Dec 28, 2012 at 10:36:46AM +0800, Gao feng wrote:
+>> Currectly we unregister proto before all conntrack entries of
+>> this proto being destroyed. so in function destroy_conntrack
+>> we can't find proper l4proto to call l4proto->destroy.
+>> this will cause resource leak.
+> 
+> Good catch.
+> 
+> But better to remove the entries before unregistering the protocol
+> tracker, so l4proto->destroy is always called.
+> 
 
-Issuing command:
+I think the reason we unregister proto before remove all entries
+is to avoid new entry for this protocol being created.
 
-aptables -A INPUT -i eth0 --opcode ! 1 -j DROP
+If we remove all contrack entries before unregistration, there maybe
+some new entries being created between nf_ct_iterate_cleanup and
+nf_conntrack_l4proto_unregister_net.this will cause some terrible things.
 
-Then issuing command arptables-save produces the following:
-
--A INPUT -j DROP -i eth0  --opcode 1
-
-The "!" is missing from the opcode.
-
-Regards.
-
-Steven.
+SO I think we should make proto unavailable first,remove all entries next,
+and remove proto from nf_ct_protos arrays finally.
