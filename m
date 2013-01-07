@@ -1,42 +1,48 @@
-From: pablo@netfilter.org
-Subject: [PATCH 2/3] netfilter: fix missing dependencies for the NOTRACK target
-Date: Mon,  7 Jan 2013 21:04:06 +0100
-Message-ID: <1357589047-3373-3-git-send-email-pablo@netfilter.org>
-References: <1357589047-3373-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1357589047-3373-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: arptables bug.
+Date: Mon, 07 Jan 2013 21:20:40 +0100
+Message-ID: <50EB2E18.5070708@pandora.be>
+References: <201301052056.18524.steven@springl.ukfsn.org> <20130107032415.GA18563@1984>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Steven Jan Springl <steven@springl.ukfsn.org>,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from juliette.telenet-ops.be ([195.130.137.74]:59308 "EHLO
+	juliette.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751307Ab3AGUUo (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 Jan 2013 15:20:44 -0500
+In-Reply-To: <20130107032415.GA18563@1984>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Hi Pablo,
 
-warning: (NETFILTER_XT_TARGET_NOTRACK) selects NETFILTER_XT_TARGET_CT which has unmet direct
-+dependencies (NET && INET && NETFILTER && NETFILTER_XTABLES && NF_CONNTRACK && (IP_NF_RAW ||
-+IP6_NF_RAW) && NETFILTER_ADVANCED)
+I've applied (a slightly different version of) your patch, thanks. I'll 
+make a new release somewhere this week.
 
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/Kconfig |    3 +++
- 1 file changed, 3 insertions(+)
+cheers,
+Bart
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 390f96c..49e96df 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -682,6 +682,9 @@ config NETFILTER_XT_TARGET_NFQUEUE
- 
- config NETFILTER_XT_TARGET_NOTRACK
- 	tristate  '"NOTRACK" target support (DEPRECATED)'
-+	depends on NF_CONNTRACK
-+	depends on IP_NF_RAW || IP6_NF_RAW
-+	depends on NETFILTER_ADVANCED
- 	select NETFILTER_XT_TARGET_CT
- 
- config NETFILTER_XT_TARGET_RATEEST
--- 
-1.7.10.4
+Op 7/01/2013 4:24, Pablo Neira Ayuso schreef:
+> On Sat, Jan 05, 2013 at 08:56:18PM +0000, Steven Jan Springl wrote:
+>> Hello
+>>
+>> I am using arptables v0.0.3.4 in Debian Squeeze.
+>>
+>> Issuing command:
+>>
+>> aptables -A INPUT -i eth0 --opcode ! 1 -j DROP
+>>
+>> Then issuing command arptables-save produces the following:
+>>
+>> -A INPUT -j DROP -i eth0  --opcode 1
+>>
+>> The "!" is missing from the opcode.
+> Patch attached to fix it.
+>
+> Bart, could you please apply this to your git repo? Thanks.
+
