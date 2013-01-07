@@ -1,79 +1,77 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: Re: [PATCH 19/19] netfilter: gre: fix resource leak when unregister
- gre proto
-Date: Mon, 07 Jan 2013 11:05:12 +0800
-Message-ID: <50EA3B68.1080001@cn.fujitsu.com>
-References: <1356662206-2260-1-git-send-email-gaofeng@cn.fujitsu.com> <1356662206-2260-20-git-send-email-gaofeng@cn.fujitsu.com> <20130105035048.GA20027@1984> <50EA2489.3070309@cn.fujitsu.com> <20130107021517.GA12215@1984> <20130107023808.GA14431@1984> <50EA3A1F.8020108@cn.fujitsu.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: arptables bug.
+Date: Mon, 7 Jan 2013 04:24:15 +0100
+Message-ID: <20130107032415.GA18563@1984>
+References: <201301052056.18524.steven@springl.ukfsn.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	canqunzhang@gmail.com, kaber@trash.net, ebiederm@xmission.com
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: multipart/mixed; boundary="RnlQjJ0d97Da+TV1"
+Cc: netfilter-devel@vger.kernel.org,
+	Bart De Schuymer <bdschuym@pandora.be>
+To: Steven Jan Springl <steven@springl.ukfsn.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:59250 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1753409Ab3AGDEm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 6 Jan 2013 22:04:42 -0500
-In-Reply-To: <50EA3A1F.8020108@cn.fujitsu.com>
+Received: from mail.us.es ([193.147.175.20]:33097 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753395Ab3AGDYT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 6 Jan 2013 22:24:19 -0500
+Content-Disposition: inline
+In-Reply-To: <201301052056.18524.steven@springl.ukfsn.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 01/07/13 10:59, Gao feng wrote:
-> On 01/07/13 10:38, Pablo Neira Ayuso wrote:
->> On Mon, Jan 07, 2013 at 03:15:17AM +0100, Pablo Neira Ayuso wrote:
->>> Hi Gao,
->>>
->>> On Mon, Jan 07, 2013 at 09:27:37AM +0800, Gao feng wrote:
->>>> Hi Pablo,
->>>>
->>>> On 01/05/13 11:50, Pablo Neira Ayuso wrote:
->>>>> Hi Gao,
->>>>>
->>>>> On Fri, Dec 28, 2012 at 10:36:46AM +0800, Gao feng wrote:
->>>>>> Currectly we unregister proto before all conntrack entries of
->>>>>> this proto being destroyed. so in function destroy_conntrack
->>>>>> we can't find proper l4proto to call l4proto->destroy.
->>>>>> this will cause resource leak.
->>>>>
->>>>> Good catch.
->>>>>
->>>>> But better to remove the entries before unregistering the protocol
->>>>> tracker, so l4proto->destroy is always called.
->>>>>
->>>>
->>>> I think the reason we unregister proto before remove all entries
->>>> is to avoid new entry for this protocol being created.
->>>>
->>>> If we remove all contrack entries before unregistration, there maybe
->>>> some new entries being created between nf_ct_iterate_cleanup and
->>>> nf_conntrack_l4proto_unregister_net.this will cause some terrible things.
->>>
->>> Leaks are less likely to happen, but may well still happen while
->>> racing with protocol removal, agreed.
->>>
->>>> SO I think we should make proto unavailable first,remove all entries next,
->>>> and remove proto from nf_ct_protos arrays finally.
->>>
->>> Your proposal adds a branch in the packet path to fix an issue that is
->>> specific of the GRE protocol tracker. In the current code, this fixes
->>> the memory leak while removing the nf_conntrack_proto_gre module,
->>> which is a rare operation.
->>>
->>> We have to come with a less intrusive solution.
->>
->> Wait. The existing code is calling nf_ct_gre_keymap_flush in
->> proto_gre_net_exit path, so those keymap objects are not leaked.
+
+--RnlQjJ0d97Da+TV1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Sat, Jan 05, 2013 at 08:56:18PM +0000, Steven Jan Springl wrote:
+> Hello
 > 
-> Agree, it looks like nf_ct_gre_keymap_flush is added to solve this
-> problem.
+> I am using arptables v0.0.3.4 in Debian Squeeze.
 > 
-> Please ignore this patch.
+> Issuing command:
+> 
+> aptables -A INPUT -i eth0 --opcode ! 1 -j DROP
+> 
+> Then issuing command arptables-save produces the following:
+> 
+> -A INPUT -j DROP -i eth0  --opcode 1
+> 
+> The "!" is missing from the opcode.
 
-I mean ignore the codes of gre part.
-I still think nf_ct_iterate_cleanup doesn't make sure all entries being
-destroyed.
+Patch attached to fix it.
 
-I will resend this patch.
+Bart, could you please apply this to your git repo? Thanks.
 
-Thanks!
+--RnlQjJ0d97Da+TV1
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0001-arptables-fix-opcode-1-in-L-n-output.patch"
+
+>From b83962f7ad5b65468d6e1ce099e970afd336c3b1 Mon Sep 17 00:00:00 2001
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon, 7 Jan 2013 04:14:22 +0100
+Subject: [PATCH] arptables: fix ! --opcode 1 in -L -n output
+
+The imbalance in the array is likely to fix the negation of:
+
+--h-type, --proto-type, -i and -o.
+---
+ userspace/arptables/arptables.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/userspace/arptables/arptables.c b/userspace/arptables/arptables.c
+index 2f048c7..29ccd22 100644
+--- a/userspace/arptables/arptables.c
++++ b/userspace/arptables/arptables.c
+@@ -204,6 +204,7 @@ static int inverse_for_options[NUMBER_OF_OPT] =
+ /* 2 */ ARPT_INV_SRCDEVADDR,
+ /* 3 */ ARPT_INV_TGTDEVADDR,
+ /* -l */ ARPT_INV_ARPHLN,
++	0,
+ /* 4 */ ARPT_INV_ARPOP,
+ /* 5 */ ARPT_INV_ARPHRD,
+ /* 6 */ ARPT_INV_ARPPRO,
+-- 
+1.7.10.4
+
+
+--RnlQjJ0d97Da+TV1--
