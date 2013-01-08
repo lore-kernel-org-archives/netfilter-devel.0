@@ -1,23 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/3] Netfilter fixes for 3.8-rc2
-Date: Mon, 07 Jan 2013 19:26:30 -0800 (PST)
-Message-ID: <20130107.192630.46268552180952153.davem@davemloft.net>
-References: <1357589047-3373-1-git-send-email-pablo@netfilter.org>
+From: Steven Jan Springl <steven@springl.ukfsn.org>
+Subject: Possible arptables bug.
+Date: Tue, 8 Jan 2013 10:32:53 +0000
+Message-ID: <201301081032.53926.steven@springl.ukfsn.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1357589047-3373-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.springl.ukfsn.org ([84.45.199.6]:39317 "EHLO
+	mail.springl.ukfsn.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752112Ab3AHKdC (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Jan 2013 05:33:02 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by mail.springl.ukfsn.org (Postfix) with ESMTP id 98FF6880053
+	for <netfilter-devel@vger.kernel.org>; Tue,  8 Jan 2013 10:32:55 +0000 (GMT)
+Received: from mail.springl.ukfsn.org ([127.0.0.1])
+	by localhost (es1.home [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id SuSqaaLDJ3eP for <netfilter-devel@vger.kernel.org>;
+	Tue,  8 Jan 2013 10:32:54 +0000 (GMT)
+Received: from l9.localnet (l9.home [IPv6:2001:4d48:ad52:500:e2cb:4eff:feb4:8d52])
+	by mail.springl.ukfsn.org (Postfix) with ESMTP id 4C12088004D
+	for <netfilter-devel@vger.kernel.org>; Tue,  8 Jan 2013 10:32:54 +0000 (GMT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: pablo@netfilter.org
-Date: Mon,  7 Jan 2013 21:04:04 +0100
+Hello
 
-> You can pull these changes from:
-> 
-> git://1984.lsi.us.es/nf master
+arptables-save tries to convert any IP addresses to DNS names.
+Is this the expected behaviour?
 
-Pulled, thanks Pablo.
+If it is the expected behaviour, is there any way that it can be disabled as
+arptables-save hangs until the DNS lookup times out if DNS is not available?
+
+Steven.
