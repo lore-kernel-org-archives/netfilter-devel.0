@@ -1,14 +1,14 @@
 From: pablo@netfilter.org
-Subject: [PATCH 5/7] netfilter: nf_tables: x_tables support as a compile time option
-Date: Thu, 10 Jan 2013 16:28:39 +0100
-Message-ID: <1357831721-10182-5-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 3/7] netfilter: nf_tables: remove hook definitions from struct nft_af_info
+Date: Thu, 10 Jan 2013 16:28:37 +0100
+Message-ID: <1357831721-10182-3-git-send-email-pablo@netfilter.org>
 References: <1357831721-10182-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net, tomasz.bursztyka@linux.intel.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37143 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37148 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753907Ab3AJP27 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1753952Ab3AJP27 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 10 Jan 2013 10:28:59 -0500
 In-Reply-To: <1357831721-10182-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -16,128 +16,95 @@ List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Restore Make x_tables over nf_tables as optional module at compile
-time. The main reason for this is the dependency on x_tables symbols.
+They are now included in the filter chain definition.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables_core.h |    3 ---
- net/netfilter/Kconfig                  |    9 +++++++++
- net/netfilter/Makefile                 |    3 ++-
- net/netfilter/nf_tables_core.c         |    6 ------
- net/netfilter/nft_compat.c             |   12 ++++++++++--
- 5 files changed, 21 insertions(+), 12 deletions(-)
+ include/net/netfilter/nf_tables.h   |    2 --
+ net/ipv4/netfilter/nf_tables_ipv4.c |    5 +----
+ net/ipv6/netfilter/nf_tables_ipv6.c |    5 +----
+ net/netfilter/nf_tables_api.c       |    2 --
+ 4 files changed, 2 insertions(+), 12 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
-index 12a568a..fe7b162 100644
---- a/include/net/netfilter/nf_tables_core.h
-+++ b/include/net/netfilter/nf_tables_core.h
-@@ -39,7 +39,4 @@ extern const struct nft_expr_ops nft_payload_fast_ops;
- extern int nft_payload_module_init(void);
- extern void nft_payload_module_exit(void);
- 
--extern int nft_compat_module_init(void);
--extern void nft_compat_module_exit(void);
--
- #endif /* _NET_NF_TABLES_CORE_H */
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 9ba8d0e..7d1c3c0 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -474,6 +474,15 @@ config NFT_NAT
-        depends on NF_CONNTRACK
-        tristate "Netfilter nf_tables nat module"
- 
-+config NFT_COMPAT
-+       depends on NF_TABLES
-+       select NETFILTER_XTABLES
-+       tristate "Netfilter x_tables over nf_tables module"
-+       help
-+	 This is required if you intend to use any of existing
-+	 x_tables match/target extensions over the nf_tables
-+	 framework.
-+
- if NETFILTER_XTABLES
- 
- comment "Xtables combined modules"
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 1e9b653..9733bed 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -64,11 +64,12 @@ obj-$(CONFIG_NF_NAT_TFTP) += nf_nat_tftp.o
- obj-$(CONFIG_NETFILTER_TPROXY) += nf_tproxy_core.o
- 
- # nf_tables
--nf_tables-objs += nf_tables_core.o nf_tables_api.o nft_compat.o
-+nf_tables-objs += nf_tables_core.o nf_tables_api.o
- nf_tables-objs += nft_immediate.o nft_cmp.o nft_lookup.o
- nf_tables-objs += nft_bitwise.o nft_byteorder.o nft_payload.o
- 
- obj-$(CONFIG_NF_TABLES)		+= nf_tables.o
-+obj-$(CONFIG_NFT_COMPAT)	+= nft_compat.o
- obj-$(CONFIG_NFT_EXTHDR)	+= nft_exthdr.o
- obj-$(CONFIG_NFT_META)		+= nft_meta.o
- obj-$(CONFIG_NFT_CT)		+= nft_ct.o
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index a87a5b7..b9917b7 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -159,13 +159,8 @@ int __init nf_tables_core_module_init(void)
- 	if (err < 0)
- 		goto err6;
- 
--	err = nft_compat_module_init();
--	if (err < 0)
--		goto err7;
--
- 	return 0;
- 
--err7:
- 	nft_payload_module_exit();
- err6:
- 	nft_byteorder_module_exit();
-@@ -183,7 +178,6 @@ err1:
- 
- void nf_tables_core_module_exit(void)
- {
--	nft_compat_module_exit();
- 	nft_payload_module_exit();
- 	nft_byteorder_module_exit();
- 	nft_bitwise_module_exit();
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 1bd642c..9f84e23 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -548,7 +548,7 @@ static struct nft_expr_type nft_target_type __read_mostly = {
- 	.owner		= THIS_MODULE,
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 5d9d43f..0dc7d80 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -430,7 +430,6 @@ struct nft_table {
+  *	@nhooks: number of hooks in this family
+  *	@owner: module owner
+  *	@tables: used internally
+- *	@hooks: hookfn overrides for packet validation
+  */
+ struct nft_af_info {
+ 	struct list_head		list;
+@@ -438,7 +437,6 @@ struct nft_af_info {
+ 	unsigned int			nhooks;
+ 	struct module			*owner;
+ 	struct list_head		tables;
+-	nf_hookfn			*hooks[NF_MAX_HOOKS];
  };
  
--int __init nft_compat_module_init(void)
-+static int __init nft_compat_module_init(void)
- {
- 	int ret;
+ extern int nft_register_afinfo(struct net *, struct nft_af_info *);
+diff --git a/net/ipv4/netfilter/nf_tables_ipv4.c b/net/ipv4/netfilter/nf_tables_ipv4.c
+index a0ee4c2..29e09e9 100644
+--- a/net/ipv4/netfilter/nf_tables_ipv4.c
++++ b/net/ipv4/netfilter/nf_tables_ipv4.c
+@@ -38,9 +38,6 @@ static struct nft_af_info nft_af_ipv4 __read_mostly = {
+ 	.family		= NFPROTO_IPV4,
+ 	.nhooks		= NF_INET_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
+-	.hooks		= {
+-		[NF_INET_LOCAL_OUT]	= nft_ipv4_output,
+-	},
+ };
  
-@@ -577,7 +577,7 @@ err_match:
- 	return ret;
- }
+ static int nf_tables_ipv4_init_net(struct net *net)
+@@ -82,7 +79,7 @@ static struct nf_chain_type filter_ipv4 = {
+ 			  (1 << NF_INET_POST_ROUTING),
+ 	.fn		= {
+ 		[NF_INET_LOCAL_IN]	= nft_do_chain,
+-		[NF_INET_LOCAL_OUT]	= nft_do_chain,
++		[NF_INET_LOCAL_OUT]	= nft_ipv4_output,
+ 		[NF_INET_FORWARD]	= nft_do_chain,
+ 		[NF_INET_PRE_ROUTING]	= nft_do_chain,
+ 		[NF_INET_POST_ROUTING]	= nft_do_chain,
+diff --git a/net/ipv6/netfilter/nf_tables_ipv6.c b/net/ipv6/netfilter/nf_tables_ipv6.c
+index e1eee09..84ccd35 100644
+--- a/net/ipv6/netfilter/nf_tables_ipv6.c
++++ b/net/ipv6/netfilter/nf_tables_ipv6.c
+@@ -35,9 +35,6 @@ static struct nft_af_info nft_af_ipv6 __read_mostly = {
+ 	.family		= NFPROTO_IPV6,
+ 	.nhooks		= NF_INET_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
+-	.hooks		= {
+-		[NF_INET_LOCAL_OUT]	= nft_ipv6_output,
+-	},
+ };
  
--void nft_compat_module_exit(void)
-+static void __exit nft_compat_module_exit(void)
- {
- 	nfnetlink_subsys_unregister(&nfnl_compat_subsys);
- 	nft_unregister_expr(&nft_target_type);
-@@ -587,3 +587,11 @@ void nft_compat_module_exit(void)
- }
+ static int nf_tables_ipv6_init_net(struct net *net)
+@@ -79,7 +76,7 @@ static struct nf_chain_type filter_ipv6 = {
+ 			  (1 << NF_INET_POST_ROUTING),
+ 	.fn		= {
+ 		[NF_INET_LOCAL_IN]	= nft_do_chain,
+-		[NF_INET_LOCAL_OUT]	= nft_do_chain,
++		[NF_INET_LOCAL_OUT]	= nft_ipv6_output,
+ 		[NF_INET_FORWARD]	= nft_do_chain,
+ 		[NF_INET_PRE_ROUTING]	= nft_do_chain,
+ 		[NF_INET_POST_ROUTING]	= nft_do_chain,
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index a8ae0b4..697b853 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -842,8 +842,6 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+ 		ops->priority	= ntohl(nla_get_be32(ha[NFTA_HOOK_PRIORITY]));
+ 		ops->priv	= chain;
+ 		ops->hook       = hookfn;
+-		if (afi->hooks[ops->hooknum])
+-			ops->hook = afi->hooks[ops->hooknum];
  
- MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_NFTA_COMPAT);
-+
-+module_init(nft_compat_module_init);
-+module_exit(nft_compat_module_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
-+MODULE_ALIAS_NFT_EXPR("match");
-+MODULE_ALIAS_NFT_EXPR("target");
+ 		chain->flags |= NFT_BASE_CHAIN;
+ 
 -- 
 1.7.10.4
 
