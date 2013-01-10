@@ -1,36 +1,101 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: [RELEASE] arptables v0.0.4
-Date: Thu, 10 Jan 2013 21:46:55 +0100
-Message-ID: <50EF28BF.2020001@pandora.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: [PATCH] netfilter: x_tables: print correct hook names for ARP
+Date: Thu, 10 Jan 2013 23:30:05 +0100
+Message-ID: <1357857005-2825-1-git-send-email-jengelh@inai.de>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from juliette.telenet-ops.be ([195.130.137.74]:44444 "EHLO
-	juliette.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755066Ab3AJUq6 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jan 2013 15:46:58 -0500
+Received: from ares07.inai.de ([5.9.24.206]:60190 "EHLO ares07.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751614Ab3AJWaG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Jan 2013 17:30:06 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi all,
+arptables 0.0.4 supports calling the CLASSIFY target, but on adding a
+rule to the wrong chain, the diagnostic is as follows:
 
-As I promised, there's a new release of the arptables utility.
+	# arptables -A INPUT -j CLASSIFY --set-class 0:0
+	arptables: Invalid argument
+	# dmesg | tail -n1
+	x_tables: arp_tables: CLASSIFY target: used from hooks
+	PREROUTING, but only usable from INPUT/FORWARD
 
-Changes:
-- add xtables CLASSIFY target (Frederic Leroy)
-- remove compile warnings
-- install improvements in Makefile (Peter Volkov)
-- let --proto-type also accept hexadecimal input
-- update manpage (Peter Volkov)
-- bug fixes:
-   - also print the -i and -o interface if -v isn't specified
-   - fix handling of inversion flag (Pablo Neira Ayuso)
+This is incorrect, since xt_CLASSIFY.c does specify
+(1 << NF_ARP_OUT) | (1 << NF_ARP_FORWARD).
 
-See http://ebtables.sourceforge.net/downloads/latest.html
+This patch corrects the x_tables diagnostic message to print the
+proper hook names for the NFPROTO_ARP case.
 
-cheers,
-Bart
+Affects all kernels down to and including v2.6.31.
+
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+---
+ net/netfilter/x_tables.c |   28 ++++++++++++++++++++--------
+ 1 file changed, 20 insertions(+), 8 deletions(-)
+
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 8d987c3..7b3a9e5 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -345,19 +345,27 @@ int xt_find_revision(u8 af, const char *name, u8 revision, int target,
+ }
+ EXPORT_SYMBOL_GPL(xt_find_revision);
+ 
+-static char *textify_hooks(char *buf, size_t size, unsigned int mask)
++static char *
++textify_hooks(char *buf, size_t size, unsigned int mask, uint8_t nfproto)
+ {
+-	static const char *const names[] = {
++	static const char *const inetbr_names[] = {
+ 		"PREROUTING", "INPUT", "FORWARD",
+ 		"OUTPUT", "POSTROUTING", "BROUTING",
+ 	};
+-	unsigned int i;
++	static const char *const arp_names[] = {
++		"INPUT", "FORWARD", "OUTPUT",
++	};
++	const char *const *names;
++	unsigned int i, max;
+ 	char *p = buf;
+ 	bool np = false;
+ 	int res;
+ 
++	names = (nfproto == NFPROTO_ARP) ? arp_names : inetbr_names;
++	max   = (nfproto == NFPROTO_ARP) ? ARRAY_SIZE(arp_names) :
++	                                   ARRAY_SIZE(inetbr_names);
+ 	*p = '\0';
+-	for (i = 0; i < ARRAY_SIZE(names); ++i) {
++	for (i = 0; i < max; ++i) {
+ 		if (!(mask & (1 << i)))
+ 			continue;
+ 		res = snprintf(p, size, "%s%s", np ? "/" : "", names[i]);
+@@ -402,8 +410,10 @@ int xt_check_match(struct xt_mtchk_param *par,
+ 		pr_err("%s_tables: %s match: used from hooks %s, but only "
+ 		       "valid from %s\n",
+ 		       xt_prefix[par->family], par->match->name,
+-		       textify_hooks(used, sizeof(used), par->hook_mask),
+-		       textify_hooks(allow, sizeof(allow), par->match->hooks));
++		       textify_hooks(used, sizeof(used), par->hook_mask,
++		                     par->family),
++		       textify_hooks(allow, sizeof(allow), par->match->hooks,
++		                     par->family));
+ 		return -EINVAL;
+ 	}
+ 	if (par->match->proto && (par->match->proto != proto || inv_proto)) {
+@@ -575,8 +585,10 @@ int xt_check_target(struct xt_tgchk_param *par,
+ 		pr_err("%s_tables: %s target: used from hooks %s, but only "
+ 		       "usable from %s\n",
+ 		       xt_prefix[par->family], par->target->name,
+-		       textify_hooks(used, sizeof(used), par->hook_mask),
+-		       textify_hooks(allow, sizeof(allow), par->target->hooks));
++		       textify_hooks(used, sizeof(used), par->hook_mask,
++		                     par->family),
++		       textify_hooks(allow, sizeof(allow), par->target->hooks,
++		                     par->family));
+ 		return -EINVAL;
+ 	}
+ 	if (par->target->proto && (par->target->proto != proto || inv_proto)) {
+-- 
+1.7.10.4
 
