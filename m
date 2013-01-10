@@ -1,75 +1,89 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: v3.8-rc3: uninitialized warnings in net/netfilter/xt_CT.c
-Date: Thu, 10 Jan 2013 12:18:21 +0100
-Message-ID: <20130110111821.GA23008@liondog.tnic>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: v3.8-rc3: uninitialized warnings in net/netfilter/xt_CT.c
+Date: Thu, 10 Jan 2013 12:47:42 +0100
+Message-ID: <20130110114742.GA17883@1984>
+References: <20130110111821.GA23008@liondog.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: lkml <linux-kernel@vger.kernel.org>
-To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org
+Content-Type: multipart/mixed; boundary="opJtzjQTFsWo+cga"
+Content-Transfer-Encoding: 8bit
+To: Borislav Petkov <bp@alien8.de>, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	lkml <linux-kernel@vger.kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <20130110111821.GA23008@liondog.tnic>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-I get
+--opJtzjQTFsWo+cga
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-net/netfilter/xt_CT.c: In function =E2=80=98xt_ct_tg_check_v1=E2=80=99:
-net/netfilter/xt_CT.c:250:6: warning: =E2=80=98ret=E2=80=99 may be used=
- uninitialized in this function [-Wmaybe-uninitialized]
-net/netfilter/xt_CT.c: In function =E2=80=98xt_ct_tg_check_v0=E2=80=99:
-net/netfilter/xt_CT.c:112:6: warning: =E2=80=98ret=E2=80=99 may be used=
- uninitialized in this function [-Wmaybe-uninitialized]
+Hi Borislav,
 
-when building 3.8-rc3 here.
+On Thu, Jan 10, 2013 at 12:18:21PM +0100, Borislav Petkov wrote:
+> Hi,
+> 
+> I get
+> 
+> net/netfilter/xt_CT.c: In function ‘xt_ct_tg_check_v1’:
+> net/netfilter/xt_CT.c:250:6: warning: ‘ret’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+> net/netfilter/xt_CT.c: In function ‘xt_ct_tg_check_v0’:
+> net/netfilter/xt_CT.c:112:6: warning: ‘ret’ may be used uninitialized in this function [-Wmaybe-uninitialized]
 
-And this time, the warnings are real:
+Patch attached to address this issue.
 
-static int xt_ct_tg_check_v0(const struct xt_tgchk_param *par)
-{
-	struct xt_ct_target_info *info =3D par->targinfo;
-	struct nf_conntrack_tuple t;
-	struct nf_conn *ct;
-	int ret;
+--opJtzjQTFsWo+cga
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment; filename="0001-netfilter-xt_CT-fix-unset-return-value-if-conntrack-.patch"
+Content-Transfer-Encoding: 8bit
 
-	if (info->flags & ~XT_CT_NOTRACK)
-		return -EINVAL;
+>From 3ceaa3b1baa660aaeef63b86ea9771dcab6d0acd Mon Sep 17 00:00:00 2001
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Thu, 10 Jan 2013 12:42:15 +0100
+Subject: [PATCH] netfilter: xt_CT: fix unset return value if conntrack zone
+ are disabled
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-	if (info->flags & XT_CT_NOTRACK) {
-		ct =3D nf_ct_untracked_get();
-		atomic_inc(&ct->ct_general.use);
-		goto out;
-	}
+net/netfilter/xt_CT.c: In function ‘xt_ct_tg_check_v1’:
+net/netfilter/xt_CT.c:250:6: warning: ‘ret’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+net/netfilter/xt_CT.c: In function ‘xt_ct_tg_check_v0’:
+net/netfilter/xt_CT.c:112:6: warning: ‘ret’ may be used uninitialized in this function [-Wmaybe-uninitialized]
 
-#ifndef CONFIG_NF_CONNTRACK_ZONES
-	if (info->zone)
-		goto err1;
-#endif
-=2E..
+Reported-by: Borislav Petkov <bp@alien8.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/xt_CT.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-ret doesn't get initialized and if the first two if-blocks are false an=
-d
-CONFIG_NF_CONNTRACK_ZONES is not defined (as is in my case) we do "goto
-err1":
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+index 2a08430..bde009e 100644
+--- a/net/netfilter/xt_CT.c
++++ b/net/netfilter/xt_CT.c
+@@ -109,7 +109,7 @@ static int xt_ct_tg_check_v0(const struct xt_tgchk_param *par)
+ 	struct xt_ct_target_info *info = par->targinfo;
+ 	struct nf_conntrack_tuple t;
+ 	struct nf_conn *ct;
+-	int ret;
++	int ret = -EOPNOTSUPP;
+ 
+ 	if (info->flags & ~XT_CT_NOTRACK)
+ 		return -EINVAL;
+@@ -247,7 +247,7 @@ static int xt_ct_tg_check_v1(const struct xt_tgchk_param *par)
+ 	struct xt_ct_target_info_v1 *info = par->targinfo;
+ 	struct nf_conntrack_tuple t;
+ 	struct nf_conn *ct;
+-	int ret;
++	int ret = -EOPNOTSUPP;
+ 
+ 	if (info->flags & ~XT_CT_NOTRACK)
+ 		return -EINVAL;
+-- 
+1.7.10.4
 
-err1:
-        return ret;
 
-which returns an uninitialized 'ret'.
-
-Now, I don't know the code to know whether if (info->zone) is ever true
-but someone better check this before subtle bugs start happening.
-
-Ditto for the xt_ct_tg_check_v1() function.
-
-Thanks.
-
---=20
-Regards/Gruss,
-    Boris.
-
-Sent from a fat crate under my desk. Formatting is fine.
---
+--opJtzjQTFsWo+cga--
