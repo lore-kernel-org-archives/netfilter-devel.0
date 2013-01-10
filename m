@@ -1,632 +1,165 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [iptables-nftables RFC PATCH 2/6] xtables: Combine IPv6 support with IPv4 support
-Date: Thu, 10 Jan 2013 16:29:35 +0200
-Message-ID: <1357828179-18664-3-git-send-email-tomasz.bursztyka@linux.intel.com>
+Subject: [iptables-nftables RFC PATCH 3/6] nft: Use handle's family attribute instead of hardcoded AF_INET one
+Date: Thu, 10 Jan 2013 16:29:36 +0200
+Message-ID: <1357828179-18664-4-git-send-email-tomasz.bursztyka@linux.intel.com>
 References: <1357828179-18664-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:29742 "EHLO mga14.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:14646 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752344Ab3AJO3q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jan 2013 09:29:46 -0500
+	id S1753005Ab3AJO3r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Jan 2013 09:29:47 -0500
 In-Reply-To: <1357828179-18664-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Instead of having separate binaries for IPv4 and IPv6, it combines
-both supports together in the same place and let the nft handle
-knows about which family is in use.
+This permits to deal with the right family in use, provided by xtables.c
 
 Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 ---
- iptables/xtables.c | 378 ++++++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 261 insertions(+), 117 deletions(-)
+ iptables/nft.c | 30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
-diff --git a/iptables/xtables.c b/iptables/xtables.c
-index 89ccd7f..284316c 100644
---- a/iptables/xtables.c
-+++ b/iptables/xtables.c
-@@ -204,6 +204,20 @@ enum {
- 	IPT_DOTTED_MASK
- };
- 
-+struct addr_mask {
-+	union {
-+		struct in_addr	*v4;
-+		struct in6_addr *v6;
-+	} addr;
-+
-+	unsigned int naddrs;
-+
-+	union {
-+		struct in_addr	*v4;
-+		struct in6_addr *v6;
-+	} mask;
-+};
-+
- static void __attribute__((noreturn))
- exit_tryhelp(int status)
- {
-@@ -370,6 +384,15 @@ add_command(unsigned int *cmd, const int newcmd, const int othercmds,
-  *	return global static data.
- */
- 
-+/* These are invalid numbers as upper layer protocol */
-+static int is_exthdr(uint16_t proto)
-+{
-+	return (proto == IPPROTO_ROUTING ||
-+		proto == IPPROTO_FRAGMENT ||
-+		proto == IPPROTO_AH ||
-+		proto == IPPROTO_DSTOPTS);
-+}
-+
- /* Christophe Burki wants `-p 6' to imply `-m tcp'.  */
- /* Can't be zero. */
- static int
-@@ -430,26 +453,35 @@ static int
- add_entry(const char *chain,
- 	  const char *table,
- 	  struct iptables_command_state *cs,
--	  unsigned int nsaddrs,
--	  const struct in_addr saddrs[],
--	  const struct in_addr smasks[],
--	  unsigned int ndaddrs,
--	  const struct in_addr daddrs[],
--	  const struct in_addr dmasks[],
-+	  int family,
-+	  const struct addr_mask s,
-+	  const struct addr_mask d,
- 	  bool verbose, struct nft_handle *h, bool append)
- {
- 	unsigned int i, j;
- 	int ret = 1;
- 
--	for (i = 0; i < nsaddrs; i++) {
--		cs->fw.ip.src.s_addr = saddrs[i].s_addr;
--		cs->fw.ip.smsk.s_addr = smasks[i].s_addr;
--		for (j = 0; j < ndaddrs; j++) {
--			cs->fw.ip.dst.s_addr = daddrs[j].s_addr;
--			cs->fw.ip.dmsk.s_addr = dmasks[j].s_addr;
-+	for (i = 0; i < s.naddrs; i++) {
-+		if (family == AF_INET) {
-+			cs->fw.ip.src.s_addr = s.addr.v4[i].s_addr;
-+			cs->fw.ip.smsk.s_addr = s.mask.v4[i].s_addr;
-+			for (j = 0; j < d.naddrs; j++) {
-+				cs->fw.ip.dst.s_addr = d.addr.v4[j].s_addr;
-+				cs->fw.ip.dmsk.s_addr = d.mask.v4[j].s_addr;
- 
--			ret = nft_rule_add(h, chain, table,
--					   cs, append, 0, verbose);
-+				ret = nft_rule_add(h, chain, table,
-+						   cs, append, 0, verbose);
-+			}
-+		} else if (family == AF_INET6) {
-+			cs->fw6.ipv6.src = s.addr.v6[i];
-+			cs->fw6.ipv6.smsk = s.mask.v6[i];
-+			for (j = 0; j < d.naddrs; j++) {
-+				cs->fw6.ipv6.dst = d.addr.v6[j];
-+				cs->fw6.ipv6.dmsk = d.mask.v6[j];
-+
-+				ret = nft_rule_add(h, chain, table,
-+						   cs, append, 0, verbose);
-+			}
- 		}
+diff --git a/iptables/nft.c b/iptables/nft.c
+index 9296b88..78a100e 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -248,7 +248,7 @@ nft_table_builtin_add(struct nft_handle *h, struct builtin_table *_t,
+ 					NFT_TABLE_F_DORMANT);
  	}
  
-@@ -460,14 +492,23 @@ static int
- replace_entry(const char *chain, const char *table,
- 	      struct iptables_command_state *cs,
- 	      unsigned int rulenum,
--	      const struct in_addr *saddr, const struct in_addr *smask,
--	      const struct in_addr *daddr, const struct in_addr *dmask,
-+	      int family,
-+	      const struct addr_mask s,
-+	      const struct addr_mask d,
- 	      bool verbose, struct nft_handle *h)
- {
--	cs->fw.ip.src.s_addr = saddr->s_addr;
--	cs->fw.ip.dst.s_addr = daddr->s_addr;
--	cs->fw.ip.smsk.s_addr = smask->s_addr;
--	cs->fw.ip.dmsk.s_addr = dmask->s_addr;
-+	if (family == AF_INET) {
-+		cs->fw.ip.src.s_addr = s.addr.v4->s_addr;
-+		cs->fw.ip.dst.s_addr = d.addr.v4->s_addr;
-+		cs->fw.ip.smsk.s_addr = s.mask.v4->s_addr;
-+		cs->fw.ip.dmsk.s_addr = d.mask.v4->s_addr;
-+	} else if (family == AF_INET6) {
-+		cs->fw6.ipv6.src = *s.addr.v6;
-+		cs->fw6.ipv6.dst = *d.addr.v6;
-+		cs->fw6.ipv6.smsk = *s.mask.v6;
-+		cs->fw6.ipv6.dmsk = *d.mask.v6;
-+	} else
-+		return 1;
+-	nlh = nft_table_nlmsg_build_hdr(buf, NFT_MSG_NEWTABLE, AF_INET,
++	nlh = nft_table_nlmsg_build_hdr(buf, NFT_MSG_NEWTABLE, h->family,
+ 					NLM_F_ACK|NLM_F_EXCL, h->seq);
+ 	nft_table_nlmsg_build_payload(nlh, t);
+ 	nft_table_free(t);
+@@ -294,7 +294,7 @@ nft_chain_builtin_add(struct nft_handle *h, struct builtin_table *table,
+ 		return;
  
- 	return nft_rule_replace(h, chain, table, cs, rulenum, verbose);
- }
-@@ -475,25 +516,34 @@ replace_entry(const char *chain, const char *table,
- static int
- delete_entry(const char *chain, const char *table,
- 	     struct iptables_command_state *cs,
--	     unsigned int nsaddrs,
--	     const struct in_addr saddrs[],
--	     const struct in_addr smasks[],
--	     unsigned int ndaddrs,
--	     const struct in_addr daddrs[],
--	     const struct in_addr dmasks[],
-+	     int family,
-+	     const struct addr_mask s,
-+	     const struct addr_mask d,
- 	     bool verbose,
- 	     struct nft_handle *h)
- {
- 	unsigned int i, j;
- 	int ret = 1;
+ 	/* NLM_F_CREATE requests module autoloading */
+-	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, AF_INET,
++	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, h->family,
+ 					NLM_F_ACK|NLM_F_EXCL|NLM_F_CREATE,
+ 					h->seq);
+ 	nft_chain_nlmsg_build_payload(nlh, c);
+@@ -410,7 +410,7 @@ int nft_table_add(struct nft_handle *h, const struct nft_table *t)
+ 	char buf[MNL_SOCKET_BUFFER_SIZE];
+ 	struct nlmsghdr *nlh;
  
--	for (i = 0; i < nsaddrs; i++) {
--		cs->fw.ip.src.s_addr = saddrs[i].s_addr;
--		cs->fw.ip.smsk.s_addr = smasks[i].s_addr;
--		for (j = 0; j < ndaddrs; j++) {
--			cs->fw.ip.dst.s_addr = daddrs[j].s_addr;
--			cs->fw.ip.dmsk.s_addr = dmasks[j].s_addr;
--			ret = nft_rule_delete(h, chain, table, cs, verbose);
-+	for (i = 0; i < s.naddrs; i++) {
-+		if (family == AF_INET) {
-+			cs->fw.ip.src.s_addr = s.addr.v4[i].s_addr;
-+			cs->fw.ip.smsk.s_addr = s.mask.v4[i].s_addr;
-+			for (j = 0; j < d.naddrs; j++) {
-+				cs->fw.ip.dst.s_addr = d.addr.v4[j].s_addr;
-+				cs->fw.ip.dmsk.s_addr = d.mask.v4[j].s_addr;
-+				ret = nft_rule_delete(h, chain,
-+						      table, cs, verbose);
-+			}
-+		} else if (family == AF_INET6) {
-+			cs->fw6.ipv6.src = s.addr.v6[i];
-+			cs->fw6.ipv6.smsk = s.mask.v6[i];
-+			for (j = 0; j < d.naddrs; j++) {
-+				cs->fw6.ipv6.dst = d.addr.v6[j];
-+				cs->fw6.ipv6.dmsk = d.mask.v6[j];
-+				ret = nft_rule_delete(h, chain,
-+						      table, cs, verbose);
-+			}
- 		}
+-	nlh = nft_table_nlmsg_build_hdr(buf, NFT_MSG_NEWTABLE, AF_INET,
++	nlh = nft_table_nlmsg_build_hdr(buf, NFT_MSG_NEWTABLE, h->family,
+ 					NLM_F_ACK|NLM_F_EXCL, h->seq);
+ 	nft_table_nlmsg_build_payload(nlh, t);
+ 
+@@ -422,7 +422,7 @@ int nft_chain_add(struct nft_handle *h, const struct nft_chain *c)
+ 	char buf[MNL_SOCKET_BUFFER_SIZE];
+ 	struct nlmsghdr *nlh;
+ 
+-	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, AF_INET,
++	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, h->family,
+ 					NLM_F_ACK|NLM_F_EXCL, h->seq);
+ 	nft_chain_nlmsg_build_payload(nlh, c);
+ 
+@@ -464,7 +464,7 @@ int nft_table_wake_dormant(struct nft_handle *h, const char *table)
+ 	nft_table_attr_set(t, NFT_TABLE_ATTR_NAME, (char *)table);
+ 	nft_table_attr_set_u32(t, NFT_TABLE_ATTR_FLAGS, 0);
+ 
+-	nlh = nft_table_nlmsg_build_hdr(buf, NFT_MSG_NEWTABLE, AF_INET,
++	nlh = nft_table_nlmsg_build_hdr(buf, NFT_MSG_NEWTABLE, h->family,
+ 					NLM_F_ACK, h->seq);
+ 	nft_table_nlmsg_build_payload(nlh, t);
+ 	nft_table_free(t);
+@@ -525,7 +525,7 @@ __nft_chain_set(struct nft_handle *h, const char *table,
+ 					counters->pcnt);
  	}
  
-@@ -503,21 +553,33 @@ delete_entry(const char *chain, const char *table,
- static int
- check_entry(const char *chain, const char *table,
- 	    struct iptables_command_state *cs,
--	    unsigned int nsaddrs, const struct in_addr *saddrs,
--	    const struct in_addr *smasks, unsigned int ndaddrs,
--	    const struct in_addr *daddrs, const struct in_addr *dmasks,
-+	    int family,
-+	    const struct addr_mask s,
-+	    const struct addr_mask d,
- 	    bool verbose, struct nft_handle *h)
- {
- 	unsigned int i, j;
- 	int ret = 1;
+-	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, AF_INET,
++	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, h->family,
+ 					NLM_F_ACK, h->seq);
+ 	nft_chain_nlmsg_build_payload(nlh, c);
  
--	for (i = 0; i < nsaddrs; i++) {
--		cs->fw.ip.src.s_addr = saddrs[i].s_addr;
--		cs->fw.ip.smsk.s_addr = smasks[i].s_addr;
--		for (j = 0; j < ndaddrs; j++) {
--			cs->fw.ip.dst.s_addr = daddrs[j].s_addr;
--			cs->fw.ip.dmsk.s_addr = dmasks[j].s_addr;
--			ret = nft_rule_check(h, chain, table, cs, verbose);
-+	for (i = 0; i < s.naddrs; i++) {
-+		if (family == AF_INET) {
-+			cs->fw.ip.src.s_addr = s.addr.v4[i].s_addr;
-+			cs->fw.ip.smsk.s_addr = s.mask.v4[i].s_addr;
-+			for (j = 0; j < d.naddrs; j++) {
-+				cs->fw.ip.dst.s_addr = d.addr.v4[j].s_addr;
-+				cs->fw.ip.dmsk.s_addr = d.mask.v4[j].s_addr;
-+				ret = nft_rule_check(h, chain,
-+						     table, cs, verbose);
-+			}
-+		} else if (family == AF_INET6) {
-+			cs->fw6.ipv6.src = s.addr.v6[i];
-+			cs->fw6.ipv6.smsk = s.mask.v6[i];
-+			for (j = 0; j < d.naddrs; j++) {
-+				cs->fw6.ipv6.dst = d.addr.v6[j];
-+				cs->fw6.ipv6.dmsk = d.mask.v6[j];
-+				ret = nft_rule_check(h, chain,
-+						     table, cs, verbose);
-+			}
- 		}
+@@ -877,7 +877,7 @@ nft_rule_add(struct nft_handle *h, const char *chain, const char *table,
  	}
  
-@@ -657,9 +719,8 @@ static void command_match(struct iptables_command_state *cs)
- int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
- {
- 	struct iptables_command_state cs;
--	unsigned int nsaddrs = 0, ndaddrs = 0;
--	struct in_addr *saddrs = NULL, *smasks = NULL;
--	struct in_addr *daddrs = NULL, *dmasks = NULL;
-+	struct addr_mask s;
-+	struct addr_mask d;
+ 	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_NEWRULE,
+-				       AF_INET, flags, h->seq);
++				       h->family, flags, h->seq);
  
- 	int verbose = 0;
- 	const char *chain = NULL;
-@@ -671,7 +732,16 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
- 	struct xtables_match *m;
- 	struct xtables_rule_match *matchp;
- 	struct xtables_target *t;
--	unsigned long long cnt;
-+	unsigned long long pcnt_cnt = 0, bcnt_cnt = 0;
-+
-+	int family = AF_INET;
-+	u_int16_t proto = 0;
-+	u_int8_t flags = 0, invflags = 0;
-+	char iniface[IFNAMSIZ], outiface[IFNAMSIZ];
-+	unsigned char iniface_mask[IFNAMSIZ], outiface_mask[IFNAMSIZ];
-+
-+	memset(&s, 0, sizeof(s));
-+	memset(&d, 0, sizeof(d));
+ 	nft_rule_nlmsg_build_payload(nlh, r);
  
- 	memset(&cs, 0, sizeof(cs));
- 	cs.jumpto = "";
-@@ -861,7 +931,7 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
- 			 * Option selection
- 			 */
- 		case 'p':
--			set_option(&cs.options, OPT_PROTOCOL, &cs.fw.ip.invflags,
-+			set_option(&cs.options, OPT_PROTOCOL, &invflags,
- 				   cs.invert);
+@@ -1328,7 +1328,7 @@ static struct nft_chain_list *nft_chain_list_get(struct nft_handle *h)
+ 		return 0;
+ 	}
  
- 			/* Canonicalize into lower case */
-@@ -869,31 +939,29 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
- 				*cs.protocol = tolower(*cs.protocol);
+-	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_GETCHAIN, AF_INET,
++	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_GETCHAIN, h->family,
+ 					NLM_F_DUMP, h->seq);
  
- 			cs.protocol = optarg;
--			cs.fw.ip.proto = xtables_parse_protocol(cs.protocol);
-+			proto = xtables_parse_protocol(cs.protocol);
+ 	ret = mnl_talk(h, nlh, nft_chain_list_cb, list);
+@@ -1440,7 +1440,7 @@ static struct nft_rule_list *nft_rule_list_get(struct nft_handle *h)
+ 		return 0;
+ 	}
  
--			if (cs.fw.ip.proto == 0
--			    && (cs.fw.ip.invflags & XT_INV_PROTO))
-+			if (proto == 0 && (invflags & XT_INV_PROTO))
- 				xtables_error(PARAMETER_PROBLEM,
- 					   "rule would never match protocol");
- 			break;
+-	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_GETRULE, AF_INET,
++	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_GETRULE, h->family,
+ 					NLM_F_DUMP, h->seq);
  
- 		case 's':
--			set_option(&cs.options, OPT_SOURCE, &cs.fw.ip.invflags,
-+			set_option(&cs.options, OPT_SOURCE, &invflags,
- 				   cs.invert);
- 			shostnetworkmask = optarg;
- 			break;
+ 	ret = mnl_talk(h, nlh, nft_rule_list_cb, list);
+@@ -1506,7 +1506,7 @@ __nft_rule_flush(struct nft_handle *h, const char *table, const char *chain)
+ 	nft_rule_attr_set(r, NFT_RULE_ATTR_CHAIN, (char *)chain);
  
- 		case 'd':
--			set_option(&cs.options, OPT_DESTINATION, &cs.fw.ip.invflags,
-+			set_option(&cs.options, OPT_DESTINATION, &invflags,
- 				   cs.invert);
- 			dhostnetworkmask = optarg;
- 			break;
+ 	/* Delete all rules in this table + chain */
+-	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_DELRULE, AF_INET,
++	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_DELRULE, h->family,
+ 					NLM_F_ACK, h->seq);
+ 	nft_rule_nlmsg_build_payload(nlh, r);
+ 	nft_rule_free(r);
+@@ -1583,7 +1583,7 @@ int nft_chain_user_add(struct nft_handle *h, const char *chain, const char *tabl
+ 	nft_chain_attr_set(c, NFT_CHAIN_ATTR_TABLE, (char *)table);
+ 	nft_chain_attr_set(c, NFT_CHAIN_ATTR_NAME, (char *)chain);
  
- #ifdef IPT_F_GOTO
- 		case 'g':
--			set_option(&cs.options, OPT_JUMP, &cs.fw.ip.invflags,
-+			set_option(&cs.options, OPT_JUMP, &invflags,
- 				   cs.invert);
--			cs.fw.ip.flags |= IPT_F_GOTO;
- 			cs.jumpto = parse_target(optarg);
- 			break;
- #endif
-@@ -908,11 +976,11 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
- 				xtables_error(PARAMETER_PROBLEM,
- 					"Empty interface is likely to be "
- 					"undesired");
--			set_option(&cs.options, OPT_VIANAMEIN, &cs.fw.ip.invflags,
-+			set_option(&cs.options, OPT_VIANAMEIN, &invflags,
- 				   cs.invert);
- 			xtables_parse_interface(optarg,
--					cs.fw.ip.iniface,
--					cs.fw.ip.iniface_mask);
-+						iniface,
-+						iniface_mask);
- 			break;
+-	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, AF_INET,
++	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, h->family,
+ 					NLM_F_ACK|NLM_F_EXCL, h->seq);
+ 	nft_chain_nlmsg_build_payload(nlh, c);
+ 	nft_chain_free(c);
+@@ -1604,7 +1604,7 @@ static int __nft_chain_del(struct nft_handle *h, struct nft_chain *c)
+ 	struct nlmsghdr *nlh;
+ 	int ret;
  
- 		case 'o':
-@@ -920,23 +988,23 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
- 				xtables_error(PARAMETER_PROBLEM,
- 					"Empty interface is likely to be "
- 					"undesired");
--			set_option(&cs.options, OPT_VIANAMEOUT, &cs.fw.ip.invflags,
-+			set_option(&cs.options, OPT_VIANAMEOUT, &invflags,
- 				   cs.invert);
- 			xtables_parse_interface(optarg,
--					cs.fw.ip.outiface,
--					cs.fw.ip.outiface_mask);
-+						outiface,
-+						outiface_mask);
- 			break;
+-	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_DELCHAIN, AF_INET,
++	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_DELCHAIN, h->family,
+ 					NLM_F_ACK, h->seq);
+ 	nft_chain_nlmsg_build_payload(nlh, c);
  
- 		case 'f':
--			set_option(&cs.options, OPT_FRAGMENT, &cs.fw.ip.invflags,
-+			set_option(&cs.options, OPT_FRAGMENT, &invflags,
- 				   cs.invert);
--			cs.fw.ip.flags |= IPT_F_FRAG;
-+			flags |= IPT_F_FRAG;
- 			break;
+@@ -1750,7 +1750,7 @@ int nft_chain_user_rename(struct nft_handle *h,const char *chain,
+ 	nft_chain_attr_set(c, NFT_CHAIN_ATTR_NAME, (char *)newname);
+ 	nft_chain_attr_set_u64(c, NFT_CHAIN_ATTR_HANDLE, handle);
  
- 		case 'v':
- 			if (!verbose)
- 				set_option(&cs.options, OPT_VERBOSE,
--					   &cs.fw.ip.invflags, cs.invert);
-+					   &invflags, cs.invert);
- 			verbose++;
- 			break;
+-	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, AF_INET,
++	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, h->family,
+ 					NLM_F_ACK, h->seq);
+ 	nft_chain_nlmsg_build_payload(nlh, c);
+ 	nft_chain_free(c);
+@@ -1803,7 +1803,7 @@ static struct nft_table_list *nft_table_list_get(struct nft_handle *h)
+ 		return 0;
+ 	}
  
-@@ -945,7 +1013,7 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
- 			break;
+-	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_GETTABLE, AF_INET,
++	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_GETTABLE, h->family,
+ 					NLM_F_DUMP, h->seq);
  
- 		case 'n':
--			set_option(&cs.options, OPT_NUMERIC, &cs.fw.ip.invflags,
-+			set_option(&cs.options, OPT_NUMERIC, &invflags,
- 				   cs.invert);
- 			break;
+ 	ret = mnl_talk(h, nlh, nft_table_list_cb, list);
+@@ -2342,7 +2342,7 @@ __nft_rule_del(struct nft_handle *h, struct nft_rule *r)
+ 	struct nlmsghdr *nlh;
+ 	int ret;
  
-@@ -957,7 +1025,7 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
- 			break;
+-	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_DELRULE, AF_INET,
++	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_DELRULE, h->family,
+ 					NLM_F_ACK, h->seq);
+ 	nft_rule_nlmsg_build_payload(nlh, r);
  
- 		case 'x':
--			set_option(&cs.options, OPT_EXPANDED, &cs.fw.ip.invflags,
-+			set_option(&cs.options, OPT_EXPANDED, &invflags,
- 				   cs.invert);
- 			break;
- 
-@@ -970,7 +1038,7 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
- 			exit(0);
- 
- 		case '0':
--			set_option(&cs.options, OPT_LINENUMBERS, &cs.fw.ip.invflags,
-+			set_option(&cs.options, OPT_LINENUMBERS, &invflags,
- 				   cs.invert);
- 			break;
- 
-@@ -980,7 +1048,7 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
- 
- 		case 'c':
- 
--			set_option(&cs.options, OPT_COUNTERS, &cs.fw.ip.invflags,
-+			set_option(&cs.options, OPT_COUNTERS, &invflags,
- 				   cs.invert);
- 			pcnt = optarg;
- 			bcnt = strchr(pcnt + 1, ',');
-@@ -994,29 +1062,25 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
- 					"-%c requires packet and byte counter",
- 					opt2char(OPT_COUNTERS));
- 
--			if (sscanf(pcnt, "%llu", &cnt) != 1)
-+			if (sscanf(pcnt, "%llu", &pcnt_cnt) != 1)
- 				xtables_error(PARAMETER_PROBLEM,
- 					"-%c packet counter not numeric",
- 					opt2char(OPT_COUNTERS));
--			cs.counters.pcnt = cnt;
- 
--			if (sscanf(bcnt, "%llu", &cnt) != 1)
-+			if (sscanf(bcnt, "%llu", &bcnt_cnt) != 1)
- 				xtables_error(PARAMETER_PROBLEM,
- 					"-%c byte counter not numeric",
- 					opt2char(OPT_COUNTERS));
--			cs.counters.bcnt = cnt;
- 			break;
- 
- 		case '4':
--			/* This is indeed the IPv4 iptables */
-+			if (family != AF_INET)
-+				exit_tryhelp(2);
- 			break;
- 
- 		case '6':
--			/* This is not the IPv6 ip6tables */
--			if (line != -1)
--				return 1; /* success: line ignored */
--			fprintf(stderr, "This is the IPv4 version of iptables.\n");
--			exit_tryhelp(2);
-+			family = AF_INET6;
-+			break;
- 
- 		case 1: /* non option */
- 			if (optarg[0] == '!' && optarg[1] == '\0') {
-@@ -1063,27 +1127,109 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
- 		xtables_error(PARAMETER_PROBLEM,
- 			   "nothing appropriate following !");
- 
--	if (command & (CMD_REPLACE | CMD_INSERT | CMD_DELETE | CMD_APPEND | CMD_CHECK)) {
--		if (!(cs.options & OPT_DESTINATION))
--			dhostnetworkmask = "0.0.0.0/0";
--		if (!(cs.options & OPT_SOURCE))
--			shostnetworkmask = "0.0.0.0/0";
--	}
-+	switch (family) {
-+	case AF_INET:
-+		cs.fw.ip.proto = proto;
-+		cs.fw.ip.invflags = invflags;
-+		cs.fw.ip.flags = flags;
- 
--	if (shostnetworkmask)
--		xtables_ipparse_multiple(shostnetworkmask, &saddrs,
--					 &smasks, &nsaddrs);
-+		strncpy(cs.fw.ip.iniface, iniface, IFNAMSIZ);
-+		memcpy(cs.fw.ip.iniface_mask,
-+		       iniface_mask, IFNAMSIZ*sizeof(unsigned char));
- 
--	if (dhostnetworkmask)
--		xtables_ipparse_multiple(dhostnetworkmask, &daddrs,
--					 &dmasks, &ndaddrs);
-+		strncpy(cs.fw.ip.outiface, outiface, IFNAMSIZ);
-+		memcpy(cs.fw.ip.outiface_mask,
-+		       outiface_mask, IFNAMSIZ*sizeof(unsigned char));
- 
--	if ((nsaddrs > 1 || ndaddrs > 1) &&
--	    (cs.fw.ip.invflags & (IPT_INV_SRCIP | IPT_INV_DSTIP)))
--		xtables_error(PARAMETER_PROBLEM, "! not allowed with multiple"
--			   " source or destination IP addresses");
-+		if (strlen(cs.jumpto) != 0)
-+			cs.fw.ip.flags |= IPT_F_GOTO;
- 
--	if (command == CMD_REPLACE && (nsaddrs != 1 || ndaddrs != 1))
-+		cs.counters.pcnt = pcnt_cnt;
-+		cs.counters.bcnt = bcnt_cnt;
-+
-+		if (command & (CMD_REPLACE | CMD_INSERT |
-+				CMD_DELETE | CMD_APPEND | CMD_CHECK)) {
-+			if (!(cs.options & OPT_DESTINATION))
-+				dhostnetworkmask = "0.0.0.0/0";
-+			if (!(cs.options & OPT_SOURCE))
-+				shostnetworkmask = "0.0.0.0/0";
-+		}
-+
-+		if (shostnetworkmask)
-+			xtables_ipparse_multiple(shostnetworkmask, &s.addr.v4,
-+						 &s.mask.v4, &s.naddrs);
-+		if (dhostnetworkmask)
-+			xtables_ipparse_multiple(dhostnetworkmask, &d.addr.v4,
-+						 &d.mask.v4, &d.naddrs);
-+
-+		if ((s.naddrs > 1 || d.naddrs > 1) &&
-+		    (cs.fw.ip.invflags & (IPT_INV_SRCIP | IPT_INV_DSTIP)))
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "! not allowed with multiple"
-+				      " source or destination IP addresses");
-+		break;
-+	case AF_INET6:
-+		if (proto != 0)
-+			flags |= IP6T_F_PROTO;
-+
-+		cs.fw6.ipv6.proto = proto;
-+		cs.fw6.ipv6.invflags = invflags;
-+		cs.fw6.ipv6.flags = flags;
-+
-+		if (flags & IPT_F_FRAG)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "-f is not valid on IPv6");
-+
-+		if (is_exthdr(cs.fw6.ipv6.proto)
-+		    && (cs.fw6.ipv6.invflags & XT_INV_PROTO) == 0)
-+			fprintf(stderr,
-+				"Warning: never matched protocol: %s. "
-+				"use extension match instead.\n",
-+				cs.protocol);
-+
-+		strncpy(cs.fw6.ipv6.iniface, iniface, IFNAMSIZ);
-+		memcpy(cs.fw6.ipv6.iniface_mask,
-+		       iniface_mask, IFNAMSIZ*sizeof(unsigned char));
-+
-+		strncpy(cs.fw6.ipv6.outiface, outiface, IFNAMSIZ);
-+		memcpy(cs.fw6.ipv6.outiface_mask,
-+		       outiface_mask, IFNAMSIZ*sizeof(unsigned char));
-+
-+		if (strlen(cs.jumpto) != 0)
-+			cs.fw6.ipv6.flags |= IP6T_F_GOTO;
-+
-+		cs.fw6.counters.pcnt = pcnt_cnt;
-+		cs.fw6.counters.bcnt = bcnt_cnt;
-+
-+		if (command & (CMD_REPLACE | CMD_INSERT |
-+				CMD_DELETE | CMD_APPEND | CMD_CHECK)) {
-+			if (!(cs.options & OPT_DESTINATION))
-+				dhostnetworkmask = "::0/0";
-+			if (!(cs.options & OPT_SOURCE))
-+				shostnetworkmask = "::0/0";
-+		}
-+
-+		if (shostnetworkmask)
-+			xtables_ip6parse_multiple(shostnetworkmask, &s.addr.v6,
-+						  &s.mask.v6, &s.naddrs);
-+		if (dhostnetworkmask)
-+			xtables_ip6parse_multiple(dhostnetworkmask, &d.addr.v6,
-+						  &d.mask.v6, &d.naddrs);
-+
-+		if ((s.naddrs > 1 || d.naddrs > 1) &&
-+		    (cs.fw6.ipv6.invflags & (IP6T_INV_SRCIP | IP6T_INV_DSTIP)))
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "! not allowed with multiple"
-+				      " source or destination IP addresses");
-+		break;
-+	default:
-+		exit_tryhelp(2);
-+		break;
-+	}
-+
-+	h->family = family;
-+
-+	if (command == CMD_REPLACE && (s.naddrs != 1 || d.naddrs != 1))
- 		xtables_error(PARAMETER_PROBLEM, "Replacement rule does not "
- 			   "specify a unique address");
- 
-@@ -1128,39 +1274,30 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
- 
- 	switch (command) {
- 	case CMD_APPEND:
--		ret = add_entry(chain, *table, &cs,
--				nsaddrs, saddrs, smasks,
--				ndaddrs, daddrs, dmasks,
--				cs.options&OPT_VERBOSE,
-+		ret = add_entry(chain, *table, &cs, family,
-+				s, d, cs.options&OPT_VERBOSE,
- 				h, true);
- 		break;
- 	case CMD_DELETE:
--		ret = delete_entry(chain, *table, &cs,
--				   nsaddrs, saddrs, smasks,
--				   ndaddrs, daddrs, dmasks,
--				   cs.options&OPT_VERBOSE, h);
-+		ret = delete_entry(chain, *table, &cs, family,
-+				   s, d, cs.options&OPT_VERBOSE, h);
- 		break;
- 	case CMD_DELETE_NUM:
- 		ret = nft_rule_delete_num(h, chain, *table, rulenum - 1, verbose);
- 		break;
- 	case CMD_CHECK:
--		ret = check_entry(chain, *table, &cs,
--				   nsaddrs, saddrs, smasks,
--				   ndaddrs, daddrs, dmasks,
--				   cs.options&OPT_VERBOSE, h);
-+		ret = check_entry(chain, *table, &cs, family,
-+				   s, d, cs.options&OPT_VERBOSE, h);
- 		break;
- 	case CMD_REPLACE:
- 		/* FIXME replace at rulenum */
- 		ret = replace_entry(chain, *table, &cs, rulenum - 1,
--				    saddrs, smasks, daddrs, dmasks,
--				    cs.options&OPT_VERBOSE, h);
-+				    family, s, d, cs.options&OPT_VERBOSE, h);
- 		break;
- 	case CMD_INSERT:
- 		/* FIXME insert at rulenum */
--		ret = add_entry(chain, *table, &cs,
--				nsaddrs, saddrs, smasks,
--				ndaddrs, daddrs, dmasks,
--				cs.options&OPT_VERBOSE, h, false);
-+		ret = add_entry(chain, *table, &cs, family,
-+				s, d, cs.options&OPT_VERBOSE, h, false);
- 		break;
- 	case CMD_FLUSH:
- 		ret = nft_rule_flush(h, chain, *table);
-@@ -1226,10 +1363,17 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
- 
- 	clear_rule_matches(&cs.matches);
- 
--	free(saddrs);
--	free(smasks);
--	free(daddrs);
--	free(dmasks);
-+	if (family == AF_INET) {
-+		free(s.addr.v4);
-+		free(s.mask.v4);
-+		free(d.addr.v4);
-+		free(d.mask.v4);
-+	} else if (family == AF_INET6) {
-+		free(s.addr.v6);
-+		free(s.mask.v6);
-+		free(d.addr.v6);
-+		free(d.mask.v6);
-+	}
- 	xtables_free_opts(1);
- 
- 	return ret;
 -- 
 1.8.0.2
 
