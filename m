@@ -1,67 +1,34 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 2/2] build: do not dereference symlinks on installation
-Date: Thu, 10 Jan 2013 16:15:19 +0100
-Message-ID: <1357830919-10367-3-git-send-email-jengelh@inai.de>
-References: <1357830919-10367-1-git-send-email-jengelh@inai.de>
+Subject: iptables: build fixes
+Date: Thu, 10 Jan 2013 16:15:17 +0100
+Message-ID: <1357830919-10367-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:57822 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:57820 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753025Ab3AJPPX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1751652Ab3AJPPX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 10 Jan 2013 10:15:23 -0500
-In-Reply-To: <1357830919-10367-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-By using install(1), libxt_NOTRACK.so was inadvertently installed as
-an actual file to /usr/lib/xtables rather than as a symlink. Switch to
-using cp(1).
 
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
----
- extensions/GNUmakefile.in |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+The following changes since commit 983196ceb4d3bb7b6d3cf6da18bb6d5a5eafb347:
 
-diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
-index e520c86..15ede9f 100644
---- a/extensions/GNUmakefile.in
-+++ b/extensions/GNUmakefile.in
-@@ -52,9 +52,10 @@ pf6_objs      := $(patsubst %,libip6t_%.o,${pf6_build_mod})
- pfx_lalibs    := $(patsubst %,libxt_%.la,${pfx_build_mod})
- pf4_lalibs    := $(patsubst %,libipt_%.la,${pf4_build_mod})
- pf6_lalibs    := $(patsubst %,libip6t_%.la,${pf6_build_mod})
--pfx_solibs    := $(patsubst %,libxt_%.so,${pfx_build_mod} ${pfx_symlinks})
-+pfx_solibs    := $(patsubst %,libxt_%.so,${pfx_build_mod})
- pf4_solibs    := $(patsubst %,libipt_%.so,${pf4_build_mod})
- pf6_solibs    := $(patsubst %,libip6t_%.so,${pf6_build_mod})
-+pfx_solinks   := $(patsubst %,libxt_%.so,${pfx_symlinks})
- 
- 
- #
-@@ -65,9 +66,9 @@ targets_install :=
- @ENABLE_STATIC_TRUE@ libext_objs := ${pfx_objs}
- @ENABLE_STATIC_TRUE@ libext4_objs := ${pf4_objs}
- @ENABLE_STATIC_TRUE@ libext6_objs := ${pf6_objs}
--@ENABLE_STATIC_FALSE@ targets += ${pfx_solibs} ${pf4_solibs} ${pf6_solibs}
-+@ENABLE_STATIC_FALSE@ targets += ${pfx_solibs} ${pf4_solibs} ${pf6_solibs} ${pfx_solinks}
- @ENABLE_STATIC_FALSE@ targets_la_install += ${pfx_lalibs} ${pf4_lalibs} ${pf6_lalibs}
--@ENABLE_STATIC_FALSE@ targets_so_install += ${pfx_solibs}
-+@ENABLE_STATIC_FALSE@ targets_so_install += ${pfx_solinks}
- 
- .SECONDARY:
- 
-@@ -79,7 +80,9 @@ install: ${targets_la_install} ${targets_so_install}
- 	@mkdir -p "${DESTDIR}${xtlibdir}";
- 	${AM_VERBOSE_NULL} ../libtool ${AM_LIBTOOL_SILENT} --mode=install install -pm0755 ${targets_la_install} "${DESTDIR}${xtlibdir}/"
- 	rm -f "${DESTDIR}${xtlibdir}"/*.la;
--	install -pm0755 ${targets_so_install} "${DESTDIR}${xtlibdir}/"
-+	# targets_so_install contains symlinks, and these should be preserved,
-+	# so using install(1) is out of the question for them.
-+	cp -a ${targets_so_install} "${DESTDIR}${xtlibdir}/"
- 
- clean:
- 	rm -f *.la *.o *.lo *.so *.a {matches,targets}.man initext.c initext4.c initext6.c;
--- 
-1.7.10.4
+  doc: document the -4 and -6 options (2013-01-07 02:26:16 +0100)
 
+are available in the git repository at:
+
+  git://git.inai.de/iptables master
+
+for you to fetch changes up to dd5fd152645c572e76ad7a02084ea8ef19552a93:
+
+  build: do not dereference symlinks on installation (2013-01-10 16:02:09 +0100)
+
+----------------------------------------------------------------
+Jan Engelhardt (2):
+      build: also use libtool for install stage
+      build: do not dereference symlinks on installation
+
+ extensions/GNUmakefile.in |   21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
