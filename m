@@ -1,26 +1,25 @@
 From: Willem de Bruijn <willemb@google.com>
-Subject: [PATCH next v3] iptables: add xt_bpf match
-Date: Wed,  9 Jan 2013 19:15:44 -0500
-Message-ID: <1357776944-28805-1-git-send-email-willemb@google.com>
-References: <1357776502-21555-1-git-send-email-willemb@google.com>
+Subject: [PATCH next v2] iptables: add xt_bpf match
+Date: Wed,  9 Jan 2013 19:08:22 -0500
+Message-ID: <1357776502-21555-1-git-send-email-willemb@google.com>
+References: <CA+FuTSeOZDZKAuPbZQxB+7f0Xq24PgDc0Pd8=y4yxW247Qs7Pw@mail.gmail.com>
 Cc: Willem de Bruijn <willemb@google.com>
 To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:36829 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932330Ab3AJAWZ (ORCPT
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:55618 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932224Ab3AJAjp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Jan 2013 19:22:25 -0500
-Received: by mail-qa0-f74.google.com with SMTP id r4so15053qaq.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 Jan 2013 16:22:25 -0800 (PST)
-In-Reply-To: <1357776502-21555-1-git-send-email-willemb@google.com>
+	Wed, 9 Jan 2013 19:39:45 -0500
+Received: by mail-gg0-f201.google.com with SMTP id o6so324912ggm.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 09 Jan 2013 16:39:44 -0800 (PST)
+In-Reply-To: <CA+FuTSeOZDZKAuPbZQxB+7f0Xq24PgDc0Pd8=y4yxW247Qs7Pw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Changes:
-- v3: reverted no longer needed changes to x_tables.c
-- v2: use a fixed size match structure to communicate between
-      kernel and userspace.
+- v2->v1: use a fixed size match structure to communicate between
+          kernel and userspace.
 
 Support arbitrary linux socket filter (BPF) programs as iptables
 match rules. This allows for very expressive filters, and on
@@ -45,14 +44,24 @@ if my test methodology is flawed in some way. Even in cases where
 slower, the filter adds functionality currently lacking in iptables,
 such as access to sk_buff fields like rxhash and queue_mapping.
 ---
+ Gconfig.xt_bpf                        |    1 +
  include/uapi/linux/netfilter/xt_bpf.h |   17 ++++++++
  net/netfilter/Kconfig                 |    9 ++++
  net/netfilter/Makefile                |    1 +
+ net/netfilter/x_tables.c              |    5 +-
  net/netfilter/xt_bpf.c                |   73 +++++++++++++++++++++++++++++++++
- 4 files changed, 100 insertions(+), 0 deletions(-)
+ 6 files changed, 104 insertions(+), 2 deletions(-)
+ create mode 100644 Gconfig.xt_bpf
  create mode 100644 include/uapi/linux/netfilter/xt_bpf.h
  create mode 100644 net/netfilter/xt_bpf.c
 
+diff --git a/Gconfig.xt_bpf b/Gconfig.xt_bpf
+new file mode 100644
+index 0000000..dd51452
+--- /dev/null
++++ b/Gconfig.xt_bpf
+@@ -0,0 +1 @@
++CONFIG_NETFILTER_XT_MATCH_BPF=m
 diff --git a/include/uapi/linux/netfilter/xt_bpf.h b/include/uapi/linux/netfilter/xt_bpf.h
 new file mode 100644
 index 0000000..5dda450
@@ -108,6 +117,22 @@ index 3259697..6d6194525 100644
  obj-$(CONFIG_NETFILTER_XT_MATCH_CLUSTER) += xt_cluster.o
  obj-$(CONFIG_NETFILTER_XT_MATCH_COMMENT) += xt_comment.o
  obj-$(CONFIG_NETFILTER_XT_MATCH_CONNBYTES) += xt_connbytes.o
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 8d987c3..26306be 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -379,8 +379,9 @@ int xt_check_match(struct xt_mtchk_param *par,
+ 	if (XT_ALIGN(par->match->matchsize) != size &&
+ 	    par->match->matchsize != -1) {
+ 		/*
+-		 * ebt_among is exempt from centralized matchsize checking
+-		 * because it uses a dynamic-size data set.
++		 * matches of variable size length, such as ebt_among,
++		 * are exempt from centralized matchsize checking. They
++		 * skip the test by setting xt_match.matchsize to -1.
+ 		 */
+ 		pr_err("%s_tables: %s.%u match: invalid size "
+ 		       "%u (kernel) != (user) %u\n",
 diff --git a/net/netfilter/xt_bpf.c b/net/netfilter/xt_bpf.c
 new file mode 100644
 index 0000000..1bdfab8
