@@ -1,165 +1,274 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [iptables-nftables RFC PATCH 3/6] nft: Use handle's family attribute instead of hardcoded AF_INET one
-Date: Thu, 10 Jan 2013 16:29:36 +0200
-Message-ID: <1357828179-18664-4-git-send-email-tomasz.bursztyka@linux.intel.com>
+Subject: [iptables-nftables RFC PATCH 4/6] nft: Support IPv6 rules manipulation
+Date: Thu, 10 Jan 2013 16:29:37 +0200
+Message-ID: <1357828179-18664-5-git-send-email-tomasz.bursztyka@linux.intel.com>
 References: <1357828179-18664-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:14646 "EHLO mga14.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:10179 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753005Ab3AJO3r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jan 2013 09:29:47 -0500
+	id S1752344Ab3AJO3t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Jan 2013 09:29:49 -0500
 In-Reply-To: <1357828179-18664-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This permits to deal with the right family in use, provided by xtables.c
+It firsts moves redondant code into helpers, and then apply the right
+sequence according to the family type.
+
+Note: It currently lacks of IPv6 fragments handling support
 
 Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 ---
- iptables/nft.c | 30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ iptables/nft.c | 198 ++++++++++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 134 insertions(+), 64 deletions(-)
 
 diff --git a/iptables/nft.c b/iptables/nft.c
-index 9296b88..78a100e 100644
+index 78a100e..f12008a 100644
 --- a/iptables/nft.c
 +++ b/iptables/nft.c
-@@ -248,7 +248,7 @@ nft_table_builtin_add(struct nft_handle *h, struct builtin_table *_t,
- 					NFT_TABLE_F_DORMANT);
- 	}
+@@ -35,6 +35,8 @@
  
--	nlh = nft_table_nlmsg_build_hdr(buf, NFT_MSG_NEWTABLE, AF_INET,
-+	nlh = nft_table_nlmsg_build_hdr(buf, NFT_MSG_NEWTABLE, h->family,
- 					NLM_F_ACK|NLM_F_EXCL, h->seq);
- 	nft_table_nlmsg_build_payload(nlh, t);
- 	nft_table_free(t);
-@@ -294,7 +294,7 @@ nft_chain_builtin_add(struct nft_handle *h, struct builtin_table *table,
- 		return;
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>	/* FIXME: only IPV4 by now */
++#include <linux/netfilter_ipv6/ip6_tables.h>
++#include <netinet/ip6.h>
  
- 	/* NLM_F_CREATE requests module autoloading */
--	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, AF_INET,
-+	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, h->family,
- 					NLM_F_ACK|NLM_F_EXCL|NLM_F_CREATE,
- 					h->seq);
- 	nft_chain_nlmsg_build_payload(nlh, c);
-@@ -410,7 +410,7 @@ int nft_table_add(struct nft_handle *h, const struct nft_table *t)
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	struct nlmsghdr *nlh;
+ #include <linux/netlink.h>
+ #include <linux/netfilter/nfnetlink.h>
+@@ -741,6 +743,78 @@ static void add_counters(struct nft_rule *r, uint64_t packets, uint64_t bytes)
+ 	nft_rule_add_expr(r, expr);
+ }
  
--	nlh = nft_table_nlmsg_build_hdr(buf, NFT_MSG_NEWTABLE, AF_INET,
-+	nlh = nft_table_nlmsg_build_hdr(buf, NFT_MSG_NEWTABLE, h->family,
- 					NLM_F_ACK|NLM_F_EXCL, h->seq);
- 	nft_table_nlmsg_build_payload(nlh, t);
++static void add_iniface(struct nft_rule *r, char *iface, int invflags)
++{
++	int iface_len;
++	uint32_t op;
++
++	iface_len = strlen(iface);
++
++	if (invflags & IPT_INV_VIA_IN)
++		op = NFT_CMP_NEQ;
++	else
++		op = NFT_CMP_EQ;
++
++	if (iface[iface_len - 1] == '+') {
++		add_meta(r, NFT_META_IIFNAME);
++		add_cmp_ptr(r, op, iface, iface_len - 1);
++	} else {
++		add_meta(r, NFT_META_IIF);
++		add_cmp_u32(r, if_nametoindex(iface), op);
++	}
++}
++
++static void add_outiface(struct nft_rule *r, char *iface, int invflags)
++{
++	int iface_len;
++	uint32_t op;
++
++	iface_len = strlen(iface);
++
++	if (invflags & IPT_INV_VIA_OUT)
++		op = NFT_CMP_NEQ;
++	else
++		op = NFT_CMP_EQ;
++
++	if (iface[iface_len - 1] == '+') {
++		add_meta(r, NFT_META_OIFNAME);
++		add_cmp_ptr(r, op, iface, iface_len - 1);
++	} else {
++		add_meta(r, NFT_META_OIF);
++		add_cmp_u32(r, if_nametoindex(iface), op);
++	}
++}
++
++static void add_addr(struct nft_rule *r, int offset,
++			void *data, size_t len, int invflags)
++{
++	uint32_t op;
++
++	add_payload(r, offset, len);
++
++	if (invflags & IPT_INV_SRCIP || invflags & IPT_INV_DSTIP)
++		op = NFT_CMP_NEQ;
++	else
++		op = NFT_CMP_EQ;
++
++	add_cmp_ptr(r, op, data, len);
++}
++
++static void add_proto(struct nft_rule *r, int offset, size_t len,
++		      uint32_t proto, int invflags)
++{
++	uint32_t op;
++
++	add_payload(r, offset, len);
++
++	if (invflags & XT_INV_PROTO)
++		op = NFT_CMP_NEQ;
++	else
++		op = NFT_CMP_EQ;
++
++	add_cmp_u32(r, proto, op);
++}
++
+ int
+ nft_rule_add(struct nft_handle *h, const char *chain, const char *table,
+ 	     struct iptables_command_state *cs,
+@@ -753,6 +827,7 @@ nft_rule_add(struct nft_handle *h, const char *chain, const char *table,
+ 	int ret = 1;
+ 	uint32_t op;
+ 	int flags = append ? NLM_F_APPEND : 0;
++	int ip_flags = 0;
  
-@@ -422,7 +422,7 @@ int nft_chain_add(struct nft_handle *h, const struct nft_chain *c)
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	struct nlmsghdr *nlh;
- 
--	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, AF_INET,
-+	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, h->family,
- 					NLM_F_ACK|NLM_F_EXCL, h->seq);
- 	nft_chain_nlmsg_build_payload(nlh, c);
- 
-@@ -464,7 +464,7 @@ int nft_table_wake_dormant(struct nft_handle *h, const char *table)
- 	nft_table_attr_set(t, NFT_TABLE_ATTR_NAME, (char *)table);
- 	nft_table_attr_set_u32(t, NFT_TABLE_ATTR_FLAGS, 0);
- 
--	nlh = nft_table_nlmsg_build_hdr(buf, NFT_MSG_NEWTABLE, AF_INET,
-+	nlh = nft_table_nlmsg_build_hdr(buf, NFT_MSG_NEWTABLE, h->family,
- 					NLM_F_ACK, h->seq);
- 	nft_table_nlmsg_build_payload(nlh, t);
- 	nft_table_free(t);
-@@ -525,7 +525,7 @@ __nft_chain_set(struct nft_handle *h, const char *table,
- 					counters->pcnt);
- 	}
- 
--	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, AF_INET,
-+	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, h->family,
- 					NLM_F_ACK, h->seq);
- 	nft_chain_nlmsg_build_payload(nlh, c);
- 
-@@ -877,7 +877,7 @@ nft_rule_add(struct nft_handle *h, const char *chain, const char *table,
- 	}
- 
- 	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_NEWRULE,
--				       AF_INET, flags, h->seq);
-+				       h->family, flags, h->seq);
- 
- 	nft_rule_nlmsg_build_payload(nlh, r);
- 
-@@ -1328,7 +1328,7 @@ static struct nft_chain_list *nft_chain_list_get(struct nft_handle *h)
- 		return 0;
- 	}
- 
--	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_GETCHAIN, AF_INET,
-+	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_GETCHAIN, h->family,
- 					NLM_F_DUMP, h->seq);
- 
- 	ret = mnl_talk(h, nlh, nft_chain_list_cb, list);
-@@ -1440,7 +1440,7 @@ static struct nft_rule_list *nft_rule_list_get(struct nft_handle *h)
- 		return 0;
- 	}
- 
--	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_GETRULE, AF_INET,
-+	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_GETRULE, h->family,
- 					NLM_F_DUMP, h->seq);
- 
- 	ret = mnl_talk(h, nlh, nft_rule_list_cb, list);
-@@ -1506,7 +1506,7 @@ __nft_rule_flush(struct nft_handle *h, const char *table, const char *chain)
+ 	/* If built-in chains don't exist for this table, create them */
+ 	nft_chain_builtin_init(h, table, chain, NF_ACCEPT);
+@@ -768,77 +843,72 @@ nft_rule_add(struct nft_handle *h, const char *chain, const char *table,
+ 	nft_rule_attr_set(r, NFT_RULE_ATTR_TABLE, (char *)table);
  	nft_rule_attr_set(r, NFT_RULE_ATTR_CHAIN, (char *)chain);
  
- 	/* Delete all rules in this table + chain */
--	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_DELRULE, AF_INET,
-+	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_DELRULE, h->family,
- 					NLM_F_ACK, h->seq);
- 	nft_rule_nlmsg_build_payload(nlh, r);
- 	nft_rule_free(r);
-@@ -1583,7 +1583,7 @@ int nft_chain_user_add(struct nft_handle *h, const char *chain, const char *tabl
- 	nft_chain_attr_set(c, NFT_CHAIN_ATTR_TABLE, (char *)table);
- 	nft_chain_attr_set(c, NFT_CHAIN_ATTR_NAME, (char *)chain);
+-	if (cs->fw.ip.iniface[0] != '\0') {
+-		int iface_len = strlen(cs->fw.ip.iniface);
+-
+-		if (cs->fw.ip.invflags & IPT_INV_VIA_IN)
+-			op = NFT_CMP_NEQ;
+-		else
+-			op = NFT_CMP_EQ;
+-
+-		if (cs->fw.ip.iniface[iface_len - 1] == '+') {
+-			add_meta(r, NFT_META_IIFNAME);
+-			add_cmp_ptr(r, op, cs->fw.ip.iniface, iface_len - 1);
+-		} else {
+-			add_meta(r, NFT_META_IIF);
+-			add_cmp_u32(r, if_nametoindex(cs->fw.ip.iniface), op);
++	switch (h->family) {
++	case AF_INET:
++		if (cs->fw.ip.iniface[0] != '\0')
++			add_iniface(r, cs->fw.ip.iniface, cs->fw.ip.invflags);
++
++		if (cs->fw.ip.outiface[0] != '\0')
++			add_outiface(r, cs->fw.ip.outiface,
++				     cs->fw.ip.invflags);
++
++		if (cs->fw.ip.src.s_addr != 0)
++			add_addr(r, offsetof(struct iphdr, saddr),
++				 &cs->fw.ip.src.s_addr, 4,
++				 cs->fw.ip.invflags);
++
++		if (cs->fw.ip.dst.s_addr != 0)
++			add_addr(r, offsetof(struct iphdr, daddr),
++				 &cs->fw.ip.dst.s_addr, 4,
++				 cs->fw.ip.invflags);
++
++		if (cs->fw.ip.proto != 0)
++			add_proto(r, offsetof(struct iphdr, protocol), 1,
++				  cs->fw.ip.proto, cs->fw.ip.invflags);
++
++		if (cs->fw.ip.flags & IPT_F_FRAG) {
++			add_payload(r, offsetof(struct iphdr, frag_off), 2);
++			/* get the 13 bits that contain the fragment offset */
++			add_bitwise_u16(r, 0x1fff, !0x1fff);
++
++			/* if offset is non-zero, this is a fragment */
++			if (cs->fw.ip.invflags & IPT_INV_FRAG)
++				op = NFT_CMP_EQ;
++			else
++				op = NFT_CMP_NEQ;
++
++			add_cmp_u16(r, 0, op);
+ 		}
+-	}
+-	if (cs->fw.ip.outiface[0] != '\0') {
+-		int iface_len = strlen(cs->fw.ip.outiface);
  
--	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, AF_INET,
-+	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, h->family,
- 					NLM_F_ACK|NLM_F_EXCL, h->seq);
- 	nft_chain_nlmsg_build_payload(nlh, c);
- 	nft_chain_free(c);
-@@ -1604,7 +1604,7 @@ static int __nft_chain_del(struct nft_handle *h, struct nft_chain *c)
- 	struct nlmsghdr *nlh;
- 	int ret;
+-		if (cs->fw.ip.invflags & IPT_INV_VIA_OUT)
+-			op = NFT_CMP_NEQ;
+-		else
+-			op = NFT_CMP_EQ;
++		ip_flags = cs->fw.ip.flags;
  
--	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_DELCHAIN, AF_INET,
-+	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_DELCHAIN, h->family,
- 					NLM_F_ACK, h->seq);
- 	nft_chain_nlmsg_build_payload(nlh, c);
+-		if (cs->fw.ip.outiface[iface_len - 1] == '+') {
+-			add_meta(r, NFT_META_OIFNAME);
+-			add_cmp_ptr(r, op, cs->fw.ip.outiface, iface_len - 1);
+-		} else {
+-			add_meta(r, NFT_META_OIF);
+-			add_cmp_u32(r, if_nametoindex(cs->fw.ip.outiface), op);
+-		}
+-	}
+-	if (cs->fw.ip.src.s_addr != 0) {
+-		add_payload(r, offsetof(struct iphdr, saddr), 4);
+-		if (cs->fw.ip.invflags & IPT_INV_SRCIP)
+-			op = NFT_CMP_NEQ;
+-		else
+-			op = NFT_CMP_EQ;
++		break;
++	case AF_INET6:
++		if (cs->fw6.ipv6.iniface[0] != '\0')
++			add_iniface(r, cs->fw6.ipv6.iniface,
++				    cs->fw6.ipv6.invflags);
  
-@@ -1750,7 +1750,7 @@ int nft_chain_user_rename(struct nft_handle *h,const char *chain,
- 	nft_chain_attr_set(c, NFT_CHAIN_ATTR_NAME, (char *)newname);
- 	nft_chain_attr_set_u64(c, NFT_CHAIN_ATTR_HANDLE, handle);
+-		add_cmp_u32(r, cs->fw.ip.src.s_addr, op);
+-	}
+-	if (cs->fw.ip.dst.s_addr != 0) {
+-		add_payload(r, offsetof(struct iphdr, daddr), 4);
+-		if (cs->fw.ip.invflags & IPT_INV_DSTIP)
+-			op = NFT_CMP_NEQ;
+-		else
+-			op = NFT_CMP_EQ;
++		if (cs->fw6.ipv6.outiface[0] != '\0')
++			add_outiface(r, cs->fw6.ipv6.outiface,
++				    cs->fw6.ipv6.invflags);
  
--	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, AF_INET,
-+	nlh = nft_chain_nlmsg_build_hdr(buf, NFT_MSG_NEWCHAIN, h->family,
- 					NLM_F_ACK, h->seq);
- 	nft_chain_nlmsg_build_payload(nlh, c);
- 	nft_chain_free(c);
-@@ -1803,7 +1803,7 @@ static struct nft_table_list *nft_table_list_get(struct nft_handle *h)
- 		return 0;
+-		add_cmp_u32(r, cs->fw.ip.dst.s_addr, op);
+-	}
+-	if (cs->fw.ip.proto != 0) {
+-		add_payload(r, offsetof(struct iphdr, protocol), 1);
+-		if (cs->fw.ip.invflags & XT_INV_PROTO)
+-			op = NFT_CMP_NEQ;
+-		else
+-			op = NFT_CMP_EQ;
++		if (!IN6_IS_ADDR_UNSPECIFIED(&cs->fw6.ipv6.src))
++			add_addr(r, offsetof(struct ip6_hdr, ip6_src),
++				 &cs->fw6.ipv6.src, 16,
++				 cs->fw6.ipv6.invflags);
+ 
+-		add_cmp_u32(r, cs->fw.ip.proto, op);
+-	}
+-	if (cs->fw.ip.flags & IPT_F_FRAG) {
+-		add_payload(r, offsetof(struct iphdr, frag_off), 2);
+-		/* get the 13 bits that contain the fragment offset */
+-		add_bitwise_u16(r, 0x1fff, !0x1fff);
++		if (!IN6_IS_ADDR_UNSPECIFIED(&cs->fw6.ipv6.dst))
++			add_addr(r, offsetof(struct ip6_hdr, ip6_dst),
++				 &cs->fw6.ipv6.dst, 16,
++				 cs->fw6.ipv6.invflags);
+ 
+-		/* if offset is non-zero, this is a fragment */
+-		if (cs->fw.ip.invflags & IPT_INV_FRAG)
+-			op = NFT_CMP_EQ;
+-		else
+-			op = NFT_CMP_NEQ;
++		if (cs->fw6.ipv6.proto != 0)
++			add_proto(r, offsetof(struct ip6_hdr, ip6_nxt), 1,
++				  cs->fw6.ipv6.proto, cs->fw6.ipv6.invflags);
++
++		ip_flags = cs->fw6.ipv6.flags;
+ 
+-		add_cmp_u16(r, 0, op);
++		break;
  	}
  
--	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_GETTABLE, AF_INET,
-+	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_GETTABLE, h->family,
- 					NLM_F_DUMP, h->seq);
- 
- 	ret = mnl_talk(h, nlh, nft_table_list_cb, list);
-@@ -2342,7 +2342,7 @@ __nft_rule_del(struct nft_handle *h, struct nft_rule *r)
- 	struct nlmsghdr *nlh;
- 	int ret;
- 
--	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_DELRULE, AF_INET,
-+	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_DELRULE, h->family,
- 					NLM_F_ACK, h->seq);
- 	nft_rule_nlmsg_build_payload(nlh, r);
- 
+ 	for (matchp = cs->matches; matchp; matchp = matchp->next)
+@@ -862,7 +932,7 @@ nft_rule_add(struct nft_handle *h, const char *chain, const char *table,
+ 			add_target(r, cs->target->t);
+ 	} else if (strlen(cs->jumpto) > 0) {
+ 		/* Not standard, then it's a go / jump to chain */
+-		if (cs->fw.ip.flags & IPT_F_GOTO)
++		if (ip_flags & IPT_F_GOTO)
+ 			add_jumpto(r, cs->jumpto, NFT_GOTO);
+ 		else
+ 			add_jumpto(r, cs->jumpto, NFT_JUMP);
 -- 
 1.8.0.2
 
