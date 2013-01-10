@@ -1,594 +1,286 @@
 From: pablo@netfilter.org
-Subject: [PATCH 4/7] netfilter: nf_tables: move specific layer 3 compat code to nf_tables_ipv[4|6]
-Date: Thu, 10 Jan 2013 16:28:38 +0100
-Message-ID: <1357831721-10182-4-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 6/7] netfilter: nf_tables: support 32bits-64bits x_tables compat
+Date: Thu, 10 Jan 2013 16:28:40 +0100
+Message-ID: <1357831721-10182-6-git-send-email-pablo@netfilter.org>
 References: <1357831721-10182-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net, tomasz.bursztyka@linux.intel.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37140 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37157 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753679Ab3AJP27 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jan 2013 10:28:59 -0500
+	id S1753907Ab3AJP3B (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Jan 2013 10:29:01 -0500
 In-Reply-To: <1357831721-10182-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-This patch moves the struct xt_action_param to struct nft_pktinfo
-and that structure is filled at the beginning of the every chain.
+This patch adds support for existing compat infrastructure in
+matches/targets.
 
-The specific code to handle IPv4 and IPv6 now resides in
-nf_tables_ipv[4|6].
+This adds a new callback compat_to_blob that uses memcpy
+instead of copy_to_user.
+
+The standard target has no compat_to_blob since user-space
+is using the native immediate expression to issue verdicts.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h         |   24 +++++++---
- include/net/netfilter/nf_tables_ipv4.h    |   23 ++++++++++
- include/net/netfilter/nf_tables_ipv6.h    |   29 ++++++++++++
- include/net/netns/nftables.h              |    3 +-
- net/ipv4/netfilter/nf_tables_ipv4.c       |   30 ++++++++++---
- net/ipv4/netfilter/nft_chain_nat_ipv4.c   |    6 ++-
- net/ipv4/netfilter/nft_chain_route_ipv4.c |    6 ++-
- net/ipv6/netfilter/nf_tables_ipv6.c       |   31 ++++++++++---
- net/ipv6/netfilter/nft_chain_nat_ipv6.c   |    6 ++-
- net/ipv6/netfilter/nft_chain_route_ipv6.c |    7 ++-
- net/netfilter/nf_tables_core.c            |   19 +++-----
- net/netfilter/nft_compat.c                |   69 +++--------------------------
- 12 files changed, 154 insertions(+), 99 deletions(-)
- create mode 100644 include/net/netfilter/nf_tables_ipv4.h
- create mode 100644 include/net/netfilter/nf_tables_ipv6.h
+ include/linux/netfilter/x_tables.h |    2 +
+ net/ipv4/netfilter/ipt_ULOG.c      |   14 ++++++
+ net/netfilter/nft_compat.c         |   83 ++++++++++++++++++++++++++++++++----
+ net/netfilter/xt_limit.c           |   16 +++++++
+ 4 files changed, 107 insertions(+), 8 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 0dc7d80..98e31eb 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -3,6 +3,7 @@
- 
- #include <linux/list.h>
- #include <linux/netfilter.h>
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/nf_tables.h>
- #include <net/netlink.h>
- 
-@@ -16,10 +17,22 @@ struct nft_pktinfo {
- 	u8				nhoff;
- 	u8				thoff;
- 	/* for x_tables compatibility */
--	bool				compat_set;
--	u16				fragoff;
-+	struct xt_action_param		xt;
- };
- 
-+static inline void nft_set_pktinfo(struct nft_pktinfo *pkt,
-+				   const struct nf_hook_ops *ops,
-+				   struct sk_buff *skb,
-+				   const struct net_device *in,
-+				   const struct net_device *out)
-+{
-+	pkt->skb = skb;
-+	pkt->in = pkt->xt.in = in;
-+	pkt->out = pkt->xt.out = out;
-+	pkt->hooknum = pkt->xt.hooknum = ops->hooknum;
-+	pkt->xt.family = ops->pf;
-+}
-+
- struct nft_data {
- 	union {
- 		u32				data[4];
-@@ -397,11 +410,8 @@ static inline struct nft_base_chain *nft_base_chain(const struct nft_chain *chai
- 	return container_of(chain, struct nft_base_chain, chain);
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 8d674a7..f2cc078 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -307,6 +307,7 @@ struct xt_match {
+ 	/* Called when userspace align differs from kernel space one */
+ 	void (*compat_from_user)(void *dst, const void *src);
+ 	int (*compat_to_user)(void __user *dst, const void *src);
++	void (*compat_to_blob)(void *dst, const void *src);
+ #endif
+ 	/* Set this to THIS_MODULE if you are a module, otherwise NULL */
+ 	struct module *me;
+@@ -347,6 +348,7 @@ struct xt_target {
+ 	/* Called when userspace align differs from kernel space one */
+ 	void (*compat_from_user)(void *dst, const void *src);
+ 	int (*compat_to_user)(void __user *dst, const void *src);
++	void (*compat_to_blob)(void *dst, const void *src);
+ #endif
+ 	/* Set this to THIS_MODULE if you are a module, otherwise NULL */
+ 	struct module *me;
+diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
+index b5ef3cb..6941581 100644
+--- a/net/ipv4/netfilter/ipt_ULOG.c
++++ b/net/ipv4/netfilter/ipt_ULOG.c
+@@ -356,6 +356,19 @@ static int ulog_tg_compat_to_user(void __user *dst, const void *src)
+ 	memcpy(cl.prefix, l->prefix, sizeof(cl.prefix));
+ 	return copy_to_user(dst, &cl, sizeof(cl)) ? -EFAULT : 0;
  }
- 
--extern unsigned int nft_do_chain(const struct nf_hook_ops *ops,
--				 struct sk_buff *skb,
--				 const struct net_device *in,
--				 const struct net_device *out,
--				 int (*okfn)(struct sk_buff *));
-+extern unsigned int nft_do_chain_pktinfo(struct nft_pktinfo *pkt,
-+					 const struct nf_hook_ops *ops);
- 
- /**
-  *	struct nft_table - nf_tables table
-diff --git a/include/net/netfilter/nf_tables_ipv4.h b/include/net/netfilter/nf_tables_ipv4.h
-new file mode 100644
-index 0000000..1be1c2c
---- /dev/null
-+++ b/include/net/netfilter/nf_tables_ipv4.h
-@@ -0,0 +1,23 @@
-+#ifndef _NF_TABLES_IPV4_H_
-+#define _NF_TABLES_IPV4_H_
 +
-+#include <net/netfilter/nf_tables.h>
-+#include <net/ip.h>
-+
-+static inline void
-+nft_set_pktinfo_ipv4(struct nft_pktinfo *pkt,
-+		     const struct nf_hook_ops *ops,
-+		     struct sk_buff *skb,
-+		     const struct net_device *in,
-+		     const struct net_device *out)
++static void ulog_tg_compat_to_blob(void *dst, const void *src)
 +{
-+	struct iphdr *ip;
++	const struct ipt_ulog_info *l = src;
++	struct compat_ipt_ulog_info cl = {
++		.nl_group	= l->nl_group,
++		.copy_range	= l->copy_range,
++		.qthreshold	= l->qthreshold,
++	};
 +
-+	nft_set_pktinfo(pkt, ops, skb, in, out);
-+
-+	pkt->xt.thoff = ip_hdrlen(pkt->skb);
-+	ip = ip_hdr(pkt->skb);
-+	pkt->xt.fragoff = ntohs(ip->frag_off) & IP_OFFSET;
++	memcpy(cl.prefix, l->prefix, sizeof(cl.prefix));
++	memcpy(dst, &cl, sizeof(cl));
 +}
-+
-+#endif
-diff --git a/include/net/netfilter/nf_tables_ipv6.h b/include/net/netfilter/nf_tables_ipv6.h
-new file mode 100644
-index 0000000..f836642
---- /dev/null
-+++ b/include/net/netfilter/nf_tables_ipv6.h
-@@ -0,0 +1,29 @@
-+#ifndef _NF_TABLES_IPV6_H_
-+#define _NF_TABLES_IPV6_H_
-+
-+#include <linux/netfilter_ipv6/ip6_tables.h>
-+
-+static inline int
-+nft_set_pktinfo_ipv6(struct nft_pktinfo *pkt,
-+		     const struct nf_hook_ops *ops,
-+		     struct sk_buff *skb,
-+		     const struct net_device *in,
-+		     const struct net_device *out)
-+{
-+	int protohdr, thoff = 0;
-+	unsigned short frag_off;
-+
-+	nft_set_pktinfo(pkt, ops, skb, in, out);
-+
-+	protohdr = ipv6_find_hdr(pkt->skb, &thoff, -1, &frag_off, NULL);
-+	/* If malformed, drop it */
-+	if (protohdr < 0)
-+		return -1;
-+
-+	pkt->xt.thoff = thoff;
-+	pkt->xt.fragoff = frag_off;
-+
-+	return 0;
-+}
-+
-+#endif
-diff --git a/include/net/netns/nftables.h b/include/net/netns/nftables.h
-index 255757c..a98b1c5 100644
---- a/include/net/netns/nftables.h
-+++ b/include/net/netns/nftables.h
-@@ -2,7 +2,8 @@
- #define _NETNS_NFTABLES_H_
+ #endif /* CONFIG_COMPAT */
  
- #include <linux/list.h>
--#include <net/netfilter/nf_tables.h>
-+
-+struct nft_af_info;
- 
- struct netns_nftables {
- 	struct list_head	af_info;
-diff --git a/net/ipv4/netfilter/nf_tables_ipv4.c b/net/ipv4/netfilter/nf_tables_ipv4.c
-index 29e09e9..9ae1dae 100644
---- a/net/ipv4/netfilter/nf_tables_ipv4.c
-+++ b/net/ipv4/netfilter/nf_tables_ipv4.c
-@@ -15,7 +15,7 @@
- #include <linux/netfilter_ipv4.h>
- #include <net/netfilter/nf_tables.h>
- #include <net/net_namespace.h>
--#include <net/ip.h>
-+#include <net/netfilter/nf_tables_ipv4.h>
- 
- static unsigned int nft_ipv4_output(const struct nf_hook_ops *ops,
- 				    struct sk_buff *skb,
-@@ -23,6 +23,8 @@ static unsigned int nft_ipv4_output(const struct nf_hook_ops *ops,
- 				    const struct net_device *out,
- 				    int (*okfn)(struct sk_buff *))
- {
-+	struct nft_pktinfo pkt;
-+
- 	if (unlikely(skb->len < sizeof(struct iphdr) ||
- 		     ip_hdr(skb)->ihl < sizeof(struct iphdr) / 4)) {
- 		if (net_ratelimit())
-@@ -30,8 +32,9 @@ static unsigned int nft_ipv4_output(const struct nf_hook_ops *ops,
- 				"packet\n");
- 		return NF_ACCEPT;
- 	}
-+	nft_set_pktinfo_ipv4(&pkt, ops, skb, in, out);
- 
--	return nft_do_chain(ops, skb, in, out, okfn);
-+	return nft_do_chain_pktinfo(&pkt, ops);
- }
- 
- static struct nft_af_info nft_af_ipv4 __read_mostly = {
-@@ -68,6 +71,20 @@ static struct pernet_operations nf_tables_ipv4_net_ops = {
- 	.exit	= nf_tables_ipv4_exit_net,
+ static struct xt_target ulog_tg_reg __read_mostly = {
+@@ -368,6 +381,7 @@ static struct xt_target ulog_tg_reg __read_mostly = {
+ 	.compatsize	= sizeof(struct compat_ipt_ulog_info),
+ 	.compat_from_user = ulog_tg_compat_from_user,
+ 	.compat_to_user	= ulog_tg_compat_to_user,
++	.compat_to_blob	= ulog_tg_compat_to_blob,
+ #endif
+ 	.me		= THIS_MODULE,
  };
- 
-+static unsigned int
-+nft_do_chain_ipv4(const struct nf_hook_ops *ops,
-+		  struct sk_buff *skb,
-+		  const struct net_device *in,
-+		  const struct net_device *out,
-+		  int (*okfn)(struct sk_buff *))
-+{
-+	struct nft_pktinfo pkt;
-+
-+	nft_set_pktinfo_ipv4(&pkt, ops, skb, in, out);
-+
-+	return nft_do_chain_pktinfo(&pkt, ops);
-+}
-+
- static struct nf_chain_type filter_ipv4 = {
- 	.family		= NFPROTO_IPV4,
- 	.name		= "filter",
-@@ -78,11 +95,12 @@ static struct nf_chain_type filter_ipv4 = {
- 			  (1 << NF_INET_PRE_ROUTING) |
- 			  (1 << NF_INET_POST_ROUTING),
- 	.fn		= {
--		[NF_INET_LOCAL_IN]	= nft_do_chain,
-+		[NF_INET_LOCAL_IN]	= nft_do_chain_ipv4,
- 		[NF_INET_LOCAL_OUT]	= nft_ipv4_output,
--		[NF_INET_FORWARD]	= nft_do_chain,
--		[NF_INET_PRE_ROUTING]	= nft_do_chain,
--		[NF_INET_POST_ROUTING]	= nft_do_chain,
-+		[NF_INET_LOCAL_OUT]	= nft_do_chain_ipv4,
-+		[NF_INET_FORWARD]	= nft_do_chain_ipv4,
-+		[NF_INET_PRE_ROUTING]	= nft_do_chain_ipv4,
-+		[NF_INET_POST_ROUTING]	= nft_do_chain_ipv4,
- 	},
- };
- 
-diff --git a/net/ipv4/netfilter/nft_chain_nat_ipv4.c b/net/ipv4/netfilter/nft_chain_nat_ipv4.c
-index ce9879e..e42d6d9 100644
---- a/net/ipv4/netfilter/nft_chain_nat_ipv4.c
-+++ b/net/ipv4/netfilter/nft_chain_nat_ipv4.c
-@@ -22,6 +22,7 @@
- #include <net/netfilter/nf_nat.h>
- #include <net/netfilter/nf_nat_core.h>
- #include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_ipv4.h>
- #include <net/netfilter/nf_nat_l3proto.h>
- #include <net/ip.h>
- 
-@@ -39,6 +40,7 @@ static unsigned int nf_nat_fn(const struct nf_hook_ops *ops,
- 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
- 	struct nf_conn_nat *nat;
- 	enum nf_nat_manip_type maniptype = HOOK2MANIP(ops->hooknum);
-+	struct nft_pktinfo pkt;
- 	unsigned int ret;
- 
- 	if (ct == NULL || nf_ct_is_untracked(ct))
-@@ -71,7 +73,9 @@ static unsigned int nf_nat_fn(const struct nf_hook_ops *ops,
- 		if (nf_nat_initialized(ct, maniptype))
- 			break;
- 
--		ret = nft_do_chain(ops, skb, in, out, okfn);
-+		nft_set_pktinfo_ipv4(&pkt, ops, skb, in, out);
-+
-+		ret = nft_do_chain_pktinfo(&pkt, ops);
- 		if (ret != NF_ACCEPT)
- 			return ret;
- 		if (!nf_nat_initialized(ct, maniptype)) {
-diff --git a/net/ipv4/netfilter/nft_chain_route_ipv4.c b/net/ipv4/netfilter/nft_chain_route_ipv4.c
-index 471edd3..f991eb0 100644
---- a/net/ipv4/netfilter/nft_chain_route_ipv4.c
-+++ b/net/ipv4/netfilter/nft_chain_route_ipv4.c
-@@ -17,6 +17,7 @@
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_ipv4.h>
- #include <net/route.h>
- 
- static unsigned int nf_route_table_hook(const struct nf_hook_ops *ops,
-@@ -26,11 +27,14 @@ static unsigned int nf_route_table_hook(const struct nf_hook_ops *ops,
- 					int (*okfn)(struct sk_buff *))
- {
- 	unsigned int ret;
-+	struct nft_pktinfo pkt;
- 	u32 mark;
- 
-+	nft_set_pktinfo_ipv4(&pkt, ops, skb, in, out);
-+
- 	// FIXME: length validation
- 	mark = skb->mark;
--	ret = nft_do_chain(ops, skb, in, out, okfn);
-+	ret = nft_do_chain_pktinfo(&pkt, ops);
- 	if (ret != NF_DROP && ret != NF_QUEUE) {
- 		if (skb->mark != mark && ip_route_me_harder(skb, RTN_UNSPEC))
- 			ret = NF_DROP;
-diff --git a/net/ipv6/netfilter/nf_tables_ipv6.c b/net/ipv6/netfilter/nf_tables_ipv6.c
-index 84ccd35..e2d856e 100644
---- a/net/ipv6/netfilter/nf_tables_ipv6.c
-+++ b/net/ipv6/netfilter/nf_tables_ipv6.c
-@@ -14,6 +14,7 @@
- #include <linux/ipv6.h>
- #include <linux/netfilter_ipv6.h>
- #include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_ipv6.h>
- 
- static unsigned int nft_ipv6_output(const struct nf_hook_ops *ops,
- 				    struct sk_buff *skb,
-@@ -21,14 +22,18 @@ static unsigned int nft_ipv6_output(const struct nf_hook_ops *ops,
- 				    const struct net_device *out,
- 				    int (*okfn)(struct sk_buff *))
- {
-+	struct nft_pktinfo pkt;
-+
- 	if (unlikely(skb->len < sizeof(struct ipv6hdr))) {
- 		if (net_ratelimit())
- 			pr_info("nf_tables_ipv6: ignoring short SOCK_RAW "
- 				"packet\n");
- 		return NF_ACCEPT;
- 	}
-+	if (nft_set_pktinfo_ipv6(&pkt, ops, skb, in, out) < 0)
-+		return NF_DROP;
- 
--	return nft_do_chain(ops, skb, in, out, okfn);
-+	return nft_do_chain_pktinfo(&pkt, ops);
- }
- 
- static struct nft_af_info nft_af_ipv6 __read_mostly = {
-@@ -65,6 +70,22 @@ static struct pernet_operations nf_tables_ipv6_net_ops = {
- 	.exit	= nf_tables_ipv6_exit_net,
- };
- 
-+static unsigned int
-+nft_do_chain_ipv6(const struct nf_hook_ops *ops,
-+		  struct sk_buff *skb,
-+		  const struct net_device *in,
-+		  const struct net_device *out,
-+		  int (*okfn)(struct sk_buff *))
-+{
-+	struct nft_pktinfo pkt;
-+
-+	/* malformed packet, drop it */
-+	if (nft_set_pktinfo_ipv6(&pkt, ops, skb, in, out) < 0)
-+		return NF_DROP;
-+
-+	return nft_do_chain_pktinfo(&pkt, ops);
-+}
-+
- static struct nf_chain_type filter_ipv6 = {
- 	.family		= NFPROTO_IPV6,
- 	.name		= "filter",
-@@ -75,11 +96,11 @@ static struct nf_chain_type filter_ipv6 = {
- 			  (1 << NF_INET_PRE_ROUTING) |
- 			  (1 << NF_INET_POST_ROUTING),
- 	.fn		= {
--		[NF_INET_LOCAL_IN]	= nft_do_chain,
-+		[NF_INET_LOCAL_IN]	= nft_do_chain_ipv6,
- 		[NF_INET_LOCAL_OUT]	= nft_ipv6_output,
--		[NF_INET_FORWARD]	= nft_do_chain,
--		[NF_INET_PRE_ROUTING]	= nft_do_chain,
--		[NF_INET_POST_ROUTING]	= nft_do_chain,
-+		[NF_INET_FORWARD]	= nft_do_chain_ipv6,
-+		[NF_INET_PRE_ROUTING]	= nft_do_chain_ipv6,
-+		[NF_INET_POST_ROUTING]	= nft_do_chain_ipv6,
- 	},
- };
- 
-diff --git a/net/ipv6/netfilter/nft_chain_nat_ipv6.c b/net/ipv6/netfilter/nft_chain_nat_ipv6.c
-index bc2f351..9f283dd 100644
---- a/net/ipv6/netfilter/nft_chain_nat_ipv6.c
-+++ b/net/ipv6/netfilter/nft_chain_nat_ipv6.c
-@@ -20,6 +20,7 @@
- #include <net/netfilter/nf_nat.h>
- #include <net/netfilter/nf_nat_core.h>
- #include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_ipv6.h>
- #include <net/netfilter/nf_nat_l3proto.h>
- #include <net/ipv6.h>
- 
-@@ -40,6 +41,7 @@ static unsigned int nf_nat_ipv6_fn(const struct nf_hook_ops *ops,
- 	__be16 frag_off;
- 	int hdrlen;
- 	u8 nexthdr;
-+	struct nft_pktinfo pkt;
- 	unsigned int ret;
- 
- 	if (ct == NULL || nf_ct_is_untracked(ct))
-@@ -75,7 +77,9 @@ static unsigned int nf_nat_ipv6_fn(const struct nf_hook_ops *ops,
- 		if (nf_nat_initialized(ct, maniptype))
- 			break;
- 
--		ret = nft_do_chain(ops, skb, in, out, okfn);
-+		nft_set_pktinfo_ipv6(&pkt, ops, skb, in, out);
-+
-+		ret = nft_do_chain_pktinfo(&pkt, ops);
- 		if (ret != NF_ACCEPT)
- 			return ret;
- 		if (!nf_nat_initialized(ct, maniptype)) {
-diff --git a/net/ipv6/netfilter/nft_chain_route_ipv6.c b/net/ipv6/netfilter/nft_chain_route_ipv6.c
-index 0504695..341b3a8 100644
---- a/net/ipv6/netfilter/nft_chain_route_ipv6.c
-+++ b/net/ipv6/netfilter/nft_chain_route_ipv6.c
-@@ -19,6 +19,7 @@
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_ipv6.h>
- #include <net/route.h>
- 
- static unsigned int nf_route_table_hook(const struct nf_hook_ops *ops,
-@@ -28,10 +29,14 @@ static unsigned int nf_route_table_hook(const struct nf_hook_ops *ops,
- 					int (*okfn)(struct sk_buff *))
- {
- 	unsigned int ret;
-+	struct nft_pktinfo pkt;
- 	u32 mark;
- 
-+	if (nft_set_pktinfo_ipv6(&pkt, ops, skb, in, out) < 0)
-+		return NF_DROP;
-+
- 	mark = skb->mark;
--	ret = nft_do_chain(ops, skb, in, out, okfn);
-+	ret = nft_do_chain_pktinfo(&pkt, ops);
- 	if (ret != NF_DROP && ret != NF_QUEUE) {
- 		if (skb->mark != mark && ip6_route_me_harder(skb))
- 			ret = NF_DROP;
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index a860769..a87a5b7 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -60,22 +60,13 @@ static bool nft_payload_fast_eval(const struct nft_expr *expr,
- 	return true;
- }
- 
--unsigned int nft_do_chain(const struct nf_hook_ops *ops,
--			  struct sk_buff *skb,
--			  const struct net_device *in,
--			  const struct net_device *out,
--			  int (*okfn)(struct sk_buff *))
-+unsigned int
-+nft_do_chain_pktinfo(struct nft_pktinfo *pkt, const struct nf_hook_ops *ops)
- {
- 	const struct nft_chain *chain = ops->priv;
- 	const struct nft_rule *rule;
- 	const struct nft_expr *expr, *last;
- 	struct nft_data data[NFT_REG_MAX + 1];
--	const struct nft_pktinfo pkt = {
--		.skb		= skb,
--		.in		= in,
--		.out		= out,
--		.hooknum	= ops->hooknum,
--	};
- 	unsigned int stackptr = 0;
- 	struct {
- 		const struct nft_chain	*chain;
-@@ -91,8 +82,8 @@ next_rule:
- 			if (expr->ops == &nft_cmp_fast_ops)
- 				nft_cmp_fast_eval(expr, data);
- 			else if (expr->ops != &nft_payload_fast_ops ||
--				 !nft_payload_fast_eval(expr, data, &pkt))
--				expr->ops->eval(expr, data, &pkt);
-+				 !nft_payload_fast_eval(expr, data, pkt))
-+				expr->ops->eval(expr, data, pkt);
- 
- 			if (data[NFT_REG_VERDICT].verdict != NFT_CONTINUE)
- 				break;
-@@ -138,7 +129,7 @@ next_rule:
- 
- 	return nft_base_chain(chain)->policy;
- }
--EXPORT_SYMBOL_GPL(nft_do_chain);
-+EXPORT_SYMBOL_GPL(nft_do_chain_pktinfo);
- 
- int __init nf_tables_core_module_init(void)
- {
 diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 416c89e..1bd642c 100644
+index 9f84e23..3cd6fd6 100644
 --- a/net/netfilter/nft_compat.c
 +++ b/net/netfilter/nft_compat.c
-@@ -17,53 +17,16 @@
- #include <linux/netfilter/nf_tables.h>
- #include <linux/netfilter/nf_tables_compat.h>
- #include <linux/netfilter/x_tables.h>
--#include <linux/netfilter_ipv4/ip_tables.h>
--#include <linux/netfilter_ipv6/ip6_tables.h>
- #include <net/netfilter/nf_tables.h>
- #include <net/ip.h>
- #include <net/ipv6.h>
- 
--static inline int
--nft_compat_set_pktinfo(struct nft_pktinfo *pkt, u8 family)
--{
--	int protohdr, thoff = 0;
--	unsigned short frag_off;
--	struct iphdr *ip;
--
--	switch(family) {
--	case NFPROTO_IPV4:
--		pkt->thoff = ip_hdrlen(pkt->skb);
--		ip = ip_hdr(pkt->skb);
--		pkt->fragoff = ntohs(ip->frag_off) & IP_OFFSET;
--		pkt->compat_set = true;
--		break;
--	case NFPROTO_IPV6:
--		protohdr = ipv6_find_hdr(pkt->skb, &thoff, -1, &frag_off, NULL);
--		/* If malformed, drop it */
--		if (protohdr < 0)
--			return -1;
--
--		pkt->thoff = thoff;
--		pkt->fragoff = frag_off;
--		pkt->compat_set = true;
--		break;
--	}
--	return 0;
--}
--
- static inline void
--nft_compat_set_par(struct xt_action_param *par, const struct nft_pktinfo *pkt,
--		   const void *xt, const void *xt_info, u8 family)
-+nft_compat_set_par(struct xt_action_param *par, void *xt, const void *xt_info)
- {
- 	par->target	= xt;
- 	par->targinfo	= xt_info;
--	par->in		= pkt->in;
--	par->out	= pkt->out;
--	par->hooknum	= pkt->hooknum;
--	par->thoff	= pkt->thoff;
--	par->family	= family;
- 	par->hotdrop	= false;
--	par->fragoff	= pkt->fragoff;
+@@ -1,5 +1,5 @@
+ /*
+- * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
++ * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -82,6 +82,19 @@ nft_target_set_tgchk_param(struct xt_tgchk_param *par,
+ 	par->family	= ctx->afi->family;
  }
  
- static void nft_target_eval(const struct nft_expr *expr,
-@@ -73,22 +36,13 @@ static void nft_target_eval(const struct nft_expr *expr,
- 	void *info = nft_expr_priv(expr);
- 	struct xt_target *target = expr->ops->data;
- 	struct sk_buff *skb = pkt->skb;
--	struct xt_action_param par;
++static void target_compat_from_user(struct xt_target *t, void *in, void *out)
++{
++	int pad;
++
++	if (t->compat_from_user) {
++		t->compat_from_user(out, in);
++		pad = XT_ALIGN(t->targetsize) - t->targetsize;
++		if (pad > 0)
++			memset(out + t->targetsize, 0, pad);
++	} else
++		memcpy(out, in, XT_ALIGN(t->targetsize));
++}
++
+ static int
+ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 		const struct nlattr * const tb[])
+@@ -92,8 +105,7 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	size_t size = XT_ALIGN(nla_len(tb[NFTA_TARGET_INFO]));
  	int ret;
  
--	if (!pkt->compat_set) {
--		if (nft_compat_set_pktinfo((struct nft_pktinfo *)pkt,
--					   target->family) < 0) {
--			data[NFT_REG_VERDICT].verdict = NF_DROP;
--			return;
--		}
--	}
--
--	nft_compat_set_par(&par, pkt, target, info, target->family);
-+	nft_compat_set_par((struct xt_action_param *)&pkt->xt, target, info);
+-	memcpy(info, nla_data(tb[NFTA_TARGET_INFO]),
+-	       XT_ALIGN(target->targetsize));
++	target_compat_from_user(target, nla_data(tb[NFTA_TARGET_INFO]), info);
  
--	ret = target->target(skb, &par);
-+	ret = target->target(skb, &pkt->xt);
+ 	nft_target_set_tgchk_param(&par, ctx, target, info);
  
--	if (par.hotdrop)
-+	if (pkt->xt.hotdrop)
- 		ret = NF_DROP;
+@@ -122,6 +134,26 @@ nft_target_destroy(const struct nft_expr *expr)
+ 	module_put(target->me);
+ }
  
- 	switch(ret) {
-@@ -213,22 +167,13 @@ static void nft_match_eval(const struct nft_expr *expr,
++static int
++target_dump_info(struct sk_buff *skb, const struct xt_target *t, const void *in)
++{
++	void *out;
++	int ret;
++
++	if (t->compat_to_blob) {
++		out = kmalloc(XT_ALIGN(t->targetsize), GFP_ATOMIC);
++		if (out == NULL)
++			return -ENOMEM;
++
++		t->compat_to_blob(out, in);
++		ret = nla_put(skb, NFTA_TARGET_INFO, XT_ALIGN(t->targetsize), out);
++		kfree(out);
++	} else
++		ret = nla_put(skb, NFTA_TARGET_INFO, XT_ALIGN(t->targetsize), in);
++
++	return ret;
++}
++
+ static int nft_target_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ {
+ 	const struct xt_target *target = expr->ops->data;
+@@ -129,7 +161,7 @@ static int nft_target_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 
+ 	if (nla_put_string(skb, NFTA_TARGET_NAME, target->name) ||
+ 	    nla_put_be32(skb, NFTA_TARGET_REV, htonl(target->revision)) ||
+-	    nla_put(skb, NFTA_TARGET_INFO, XT_ALIGN(target->targetsize), info))
++	    target_dump_info(skb, target, info))
+ 		goto nla_put_failure;
+ 
+ 	return 0;
+@@ -214,6 +246,19 @@ nft_match_set_mtchk_param(struct xt_mtchk_param *par, const struct nft_ctx *ctx,
+ 	par->family	= ctx->afi->family;
+ }
+ 
++static void match_compat_from_user(struct xt_match *m, void *in, void *out)
++{
++	int pad;
++
++	if (m->compat_from_user) {
++		m->compat_from_user(out, in);
++		pad = XT_ALIGN(m->matchsize) - m->matchsize;
++		if (pad > 0)
++			memset(out + m->matchsize, 0, pad);
++	} else
++		memcpy(out, in, XT_ALIGN(m->matchsize));
++}
++
+ static int
+ nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 		const struct nlattr * const tb[])
+@@ -224,7 +269,7 @@ nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	size_t size = XT_ALIGN(nla_len(tb[NFTA_MATCH_INFO]));
+ 	int ret;
+ 
+-	memcpy(info, nla_data(tb[NFTA_MATCH_INFO]), XT_ALIGN(match->matchsize));
++	match_compat_from_user(match, nla_data(tb[NFTA_MATCH_INFO]), info);
+ 
+ 	nft_match_set_mtchk_param(&par, ctx, match, info);
+ 
+@@ -247,6 +292,26 @@ nft_match_destroy(const struct nft_expr *expr)
+ 	module_put(match->me);
+ }
+ 
++static int
++match_dump_info(struct sk_buff *skb, const struct xt_match *m, const void *in)
++{
++	void *out;
++	int ret;
++
++	if (m->compat_to_blob) {
++		out = kmalloc(XT_ALIGN(m->matchsize), GFP_ATOMIC);
++		if (out == NULL)
++			return -ENOMEM;
++
++		m->compat_to_blob(out, in);
++		ret = nla_put(skb, NFTA_MATCH_INFO, XT_ALIGN(m->matchsize), out);
++		kfree(out);
++	} else
++		ret = nla_put(skb, NFTA_MATCH_INFO, XT_ALIGN(m->matchsize), in);
++
++	return ret;
++}
++
+ static int nft_match_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ {
  	void *info = nft_expr_priv(expr);
- 	struct xt_match *match = expr->ops->data;
- 	struct sk_buff *skb = pkt->skb;
--	struct xt_action_param par;
- 	bool ret;
+@@ -254,7 +319,7 @@ static int nft_match_dump(struct sk_buff *skb, const struct nft_expr *expr)
  
--	if (!pkt->compat_set) {
--		if (nft_compat_set_pktinfo((struct nft_pktinfo *)pkt,
--					   match->family) < 0) {
--			data[NFT_REG_VERDICT].verdict = NF_DROP;
--			return;
--		}
--	}
--
--	nft_compat_set_par(&par, pkt, match, info, match->family);
-+	nft_compat_set_par((struct xt_action_param *)&pkt->xt, match, info);
+ 	if (nla_put_string(skb, NFTA_MATCH_NAME, match->name) ||
+ 	    nla_put_be32(skb, NFTA_MATCH_REV, htonl(match->revision)) ||
+-	    nla_put(skb, NFTA_MATCH_INFO, XT_ALIGN(match->matchsize), info))
++	    match_dump_info(skb, match, info))
+ 		goto nla_put_failure;
  
--	ret = match->match(skb, &par);
-+	ret = match->match(skb, (struct xt_action_param *)&pkt->xt);
+ 	return 0;
+@@ -449,7 +514,8 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 		return ERR_PTR(-ENOMEM);
  
--	if (par.hotdrop) {
-+	if (pkt->xt.hotdrop) {
- 		data[NFT_REG_VERDICT].verdict = NF_DROP;
- 		return;
- 	}
+ 	nft_match->ops.type = &nft_match_type;
+-	nft_match->ops.size = NFT_EXPR_SIZE(XT_ALIGN(match->matchsize));
++	nft_match->ops.size = NFT_EXPR_SIZE(XT_ALIGN(match->matchsize) +
++					    xt_compat_match_offset(match));
+ 	nft_match->ops.eval = nft_match_eval;
+ 	nft_match->ops.init = nft_match_init;
+ 	nft_match->ops.destroy = nft_match_destroy;
+@@ -519,7 +585,8 @@ nft_target_select_ops(const struct nft_ctx *ctx,
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	nft_target->ops.type = &nft_target_type;
+-	nft_target->ops.size = NFT_EXPR_SIZE(XT_ALIGN(target->targetsize));
++	nft_target->ops.size = NFT_EXPR_SIZE(XT_ALIGN(target->targetsize) +
++					     xt_compat_target_offset(target));
+ 	nft_target->ops.eval = nft_target_eval;
+ 	nft_target->ops.init = nft_target_init;
+ 	nft_target->ops.destroy = nft_target_destroy;
+diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
+index 5c22ce8..4a19bd4 100644
+--- a/net/netfilter/xt_limit.c
++++ b/net/netfilter/xt_limit.c
+@@ -177,6 +177,21 @@ static int limit_mt_compat_to_user(void __user *dst, const void *src)
+ 	};
+ 	return copy_to_user(dst, &cm, sizeof(cm)) ? -EFAULT : 0;
+ }
++
++static void limit_mt_compat_to_blob(void *dst, const void *src)
++{
++	const struct xt_rateinfo *m = src;
++	struct compat_xt_rateinfo cm = {
++		.avg		= m->avg,
++		.burst		= m->burst,
++		.prev		= m->prev,
++		.credit		= m->credit,
++		.credit_cap	= m->credit_cap,
++		.cost		= m->cost,
++		.master		= m->prev >> 32,
++	};
++	memcpy(dst, &cm, sizeof(cm));
++}
+ #endif /* CONFIG_COMPAT */
+ 
+ static struct xt_match limit_mt_reg __read_mostly = {
+@@ -191,6 +206,7 @@ static struct xt_match limit_mt_reg __read_mostly = {
+ 	.compatsize       = sizeof(struct compat_xt_rateinfo),
+ 	.compat_from_user = limit_mt_compat_from_user,
+ 	.compat_to_user   = limit_mt_compat_to_user,
++	.compat_to_blob   = limit_mt_compat_to_blob,
+ #endif
+ 	.me               = THIS_MODULE,
+ };
 -- 
 1.7.10.4
 
