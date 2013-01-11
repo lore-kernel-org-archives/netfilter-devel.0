@@ -1,101 +1,66 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH] netfilter: x_tables: print correct hook names for ARP
-Date: Thu, 10 Jan 2013 23:30:05 +0100
-Message-ID: <1357857005-2825-1-git-send-email-jengelh@inai.de>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Re: [PATCH 01/19] netfilter: move nf_conntrack initialize out of
+ pernet operations
+Date: Fri, 11 Jan 2013 09:01:36 +0800
+Message-ID: <50EF6470.5000303@cn.fujitsu.com>
+References: <1356662206-2260-1-git-send-email-gaofeng@cn.fujitsu.com> <20130110164154.GA5457@1984>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	canqunzhang@gmail.com, kaber@trash.net, ebiederm@xmission.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:60190 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751614Ab3AJWaG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jan 2013 17:30:06 -0500
+Received: from cn.fujitsu.com ([222.73.24.84]:53305 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752841Ab3AKBKb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Jan 2013 20:10:31 -0500
+In-Reply-To: <20130110164154.GA5457@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-arptables 0.0.4 supports calling the CLASSIFY target, but on adding a
-rule to the wrong chain, the diagnostic is as follows:
+On 2013/01/11 00:41, Pablo Neira Ayuso wrote:
+> First off, thanks for looking into this.
+> 
+> I want to get this fix into 3.8 and -stable but this patch includes a
+> rework whose scope is net-next (upcoming 3.9).
+> 
+> The attached patch aims to fix the issue according to your patch
+> description. Once this is in, we can revisit your code refactoring
+> proposal.
+> 
+> Let me know.
+> 
 
-	# arptables -A INPUT -j CLASSIFY --set-class 0:0
-	arptables: Invalid argument
-	# dmesg | tail -n1
-	x_tables: arp_tables: CLASSIFY target: used from hooks
-	PREROUTING, but only usable from INPUT/FORWARD
+Yes,I'm happy this bug being fixed in 3.8.
+So what I should do is waiting for below patch being accepted and
+then rebase my patchset? It's OK.
+Thanks!
 
-This is incorrect, since xt_CLASSIFY.c does specify
-(1 << NF_ARP_OUT) | (1 << NF_ARP_FORWARD).
+> 
+> 0001-netfilter-nf_conntrack-fix-BUG_ON-while-removing-nf_.patch
+> 
+> 
+>>From a211bd666fbfe17ae7171a50ad92fedc7b9e19fa Mon Sep 17 00:00:00 2001
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> Date: Thu, 10 Jan 2013 16:12:01 +0100
+> Subject: [PATCH] netfilter: nf_conntrack: fix BUG_ON while removing
+>  nf_conntrack with netns
+> 
+> canqun zhang reported that we're hitting BUG_ON in the
+> nf_conntrack_destroy path when calling kfree_skb while
+> rmmod'ing the nf_conntrack module.
+> 
+> Currently, the nf_ct_destroy hook is being set to NULL in the
+> destroy path of conntrack.init_net. However, this is a problem
+> since init_net may be destroyed before any other existing netns
+> (we cannot assume any specific ordering while releasing existing
+> netns according to what I read in recent emails).
+> 
+> Thanks to Gao feng for initial patch to address this issue.
+> 
+> Reported-by: canqun zhang <canqunzhang@gmail.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
 
-This patch corrects the x_tables diagnostic message to print the
-proper hook names for the NFPROTO_ARP case.
-
-Affects all kernels down to and including v2.6.31.
-
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
----
- net/netfilter/x_tables.c |   28 ++++++++++++++++++++--------
- 1 file changed, 20 insertions(+), 8 deletions(-)
-
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 8d987c3..7b3a9e5 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -345,19 +345,27 @@ int xt_find_revision(u8 af, const char *name, u8 revision, int target,
- }
- EXPORT_SYMBOL_GPL(xt_find_revision);
- 
--static char *textify_hooks(char *buf, size_t size, unsigned int mask)
-+static char *
-+textify_hooks(char *buf, size_t size, unsigned int mask, uint8_t nfproto)
- {
--	static const char *const names[] = {
-+	static const char *const inetbr_names[] = {
- 		"PREROUTING", "INPUT", "FORWARD",
- 		"OUTPUT", "POSTROUTING", "BROUTING",
- 	};
--	unsigned int i;
-+	static const char *const arp_names[] = {
-+		"INPUT", "FORWARD", "OUTPUT",
-+	};
-+	const char *const *names;
-+	unsigned int i, max;
- 	char *p = buf;
- 	bool np = false;
- 	int res;
- 
-+	names = (nfproto == NFPROTO_ARP) ? arp_names : inetbr_names;
-+	max   = (nfproto == NFPROTO_ARP) ? ARRAY_SIZE(arp_names) :
-+	                                   ARRAY_SIZE(inetbr_names);
- 	*p = '\0';
--	for (i = 0; i < ARRAY_SIZE(names); ++i) {
-+	for (i = 0; i < max; ++i) {
- 		if (!(mask & (1 << i)))
- 			continue;
- 		res = snprintf(p, size, "%s%s", np ? "/" : "", names[i]);
-@@ -402,8 +410,10 @@ int xt_check_match(struct xt_mtchk_param *par,
- 		pr_err("%s_tables: %s match: used from hooks %s, but only "
- 		       "valid from %s\n",
- 		       xt_prefix[par->family], par->match->name,
--		       textify_hooks(used, sizeof(used), par->hook_mask),
--		       textify_hooks(allow, sizeof(allow), par->match->hooks));
-+		       textify_hooks(used, sizeof(used), par->hook_mask,
-+		                     par->family),
-+		       textify_hooks(allow, sizeof(allow), par->match->hooks,
-+		                     par->family));
- 		return -EINVAL;
- 	}
- 	if (par->match->proto && (par->match->proto != proto || inv_proto)) {
-@@ -575,8 +585,10 @@ int xt_check_target(struct xt_tgchk_param *par,
- 		pr_err("%s_tables: %s target: used from hooks %s, but only "
- 		       "usable from %s\n",
- 		       xt_prefix[par->family], par->target->name,
--		       textify_hooks(used, sizeof(used), par->hook_mask),
--		       textify_hooks(allow, sizeof(allow), par->target->hooks));
-+		       textify_hooks(used, sizeof(used), par->hook_mask,
-+		                     par->family),
-+		       textify_hooks(allow, sizeof(allow), par->target->hooks,
-+		                     par->family));
- 		return -EINVAL;
- 	}
- 	if (par->target->proto && (par->target->proto != proto || inv_proto)) {
--- 
-1.7.10.4
-
+Acked-by: Gao feng <gaofeng@cn.fujitsu.com>
