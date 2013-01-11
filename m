@@ -1,216 +1,355 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 3/3] netfilter: ctnetlink: allow userspace to modify labels
-Date: Fri, 11 Jan 2013 17:30:46 +0100
-Message-ID: <1357921846-29650-4-git-send-email-fw@strlen.de>
-References: <1357921846-29650-1-git-send-email-fw@strlen.de>
+Subject: [PATCH next] extensions: add connlabel match
+Date: Fri, 11 Jan 2013 17:35:28 +0100
+Message-ID: <1357922128-29950-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50601 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50611 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753818Ab3AKQ3F (ORCPT
+	by vger.kernel.org with ESMTP id S1755091Ab3AKQd3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Jan 2013 11:29:05 -0500
-In-Reply-To: <1357921846-29650-1-git-send-email-fw@strlen.de>
+	Fri, 11 Jan 2013 11:33:29 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add the ability to set/clear labels assigned to a conntrack
-via ctnetlink.
+allows to "tag" connections with up to 128 label names.
 
-To allow userspace to only alter specific bits, Pablo suggested to add
-a new CTA_LABELS_MASK attribute:
+Labels are defined in /etc/xtables/connlabel.conf, example:
+0 from eth0
+1 via eth0
 
-The new set of active labels is then determined via
+Labels can then be attached to flows, e.g.
 
-active = (active & ~mask) ^ changeset
-
-i.e., the mask selects those bits in the existing set that should be
-changed.
-
-This follows the same method already used by MARK and CONNMARK targets.
-
-Omitting CTA_LABELS_MASK is the same as setting all bits in CTA_LABELS_MASK
-to 1: The existing set is replaced by the one from userspace.
+-A PREROUTING  -i eth0 -m connlabel --label "from eth0" --set
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_conntrack_labels.h        |    3 +
- include/uapi/linux/netfilter/nfnetlink_conntrack.h |    1 +
- net/netfilter/nf_conntrack_labels.c                |   43 +++++++++++++++++++
- net/netfilter/nf_conntrack_netlink.c               |   44 ++++++++++++++++++++
- 4 files changed, 91 insertions(+), 0 deletions(-)
+ The main issue with this patch is the location of the connlabel config file.
+ Upcoming patches to libnetfilter_conntrack add a lookup helper API, these
+ need to know the pathname of said file.
 
-diff --git a/include/net/netfilter/nf_conntrack_labels.h b/include/net/netfilter/nf_conntrack_labels.h
-index b94fe31..a3ce5d0 100644
---- a/include/net/netfilter/nf_conntrack_labels.h
-+++ b/include/net/netfilter/nf_conntrack_labels.h
-@@ -46,6 +46,9 @@ static inline struct nf_conn_labels *nf_ct_labels_ext_add(struct nf_conn *ct)
- bool nf_connlabel_match(const struct nf_conn *ct, u16 bit);
- int nf_connlabel_set(struct nf_conn *ct, u16 bit);
+ [ preview at
+   http://git.breakpoint.cc/cgit.cgi/fw/libnetfilter_conntrack.git/log/?h=ctlabel_08 ]
+
+ I'd like to avoid that users of that API need to try out X different locations,
+ thats why its hard-coded to /etc/xtables/connlabel.conf.
+
+ I'd be interested in feedback (esp. from disto maintainers)
+ and possible alternatives to naming/location of this file.
+
+ Makefile.am                            |    4 +
+ etc/xtables/connlabel.conf             |    9 ++
+ extensions/libxt_connlabel.c           |  210 ++++++++++++++++++++++++++++++++
+ extensions/libxt_connlabel.man         |   32 +++++
+ include/linux/netfilter/xt_connlabel.h |   12 ++
+ 5 files changed, 267 insertions(+), 0 deletions(-)
+ create mode 100644 etc/xtables/connlabel.conf
+ create mode 100644 extensions/libxt_connlabel.c
+ create mode 100644 extensions/libxt_connlabel.man
+ create mode 100644 include/linux/netfilter/xt_connlabel.h
+
+diff --git a/Makefile.am b/Makefile.am
+index 6400ba4..4ae5075 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -26,5 +26,9 @@ tarball:
+ 	tar -C /tmp -cjf ${PACKAGE_TARNAME}-${PACKAGE_VERSION}.tar.bz2 --owner=root --group=root ${PACKAGE_TARNAME}-${PACKAGE_VERSION}/;
+ 	rm -Rf /tmp/${PACKAGE_TARNAME}-${PACKAGE_VERSION};
  
-+int nf_connlabels_replace(struct nf_conn *ct,
-+			  const u32 *data, const u32 *mask, unsigned int words);
++install-data-hook:
++	@mkdir -p -m 755 $(DESTDIR)/etc/xtables/ || :
++	@test -f /etc/xtables/connlabel.conf || $(INSTALL) -m 644 etc/xtables/connlabel.conf $(DESTDIR)/etc/xtables/connlabel.conf || :
 +
- #ifdef CONFIG_NF_CONNTRACK_LABELS
- int nf_conntrack_labels_init(struct net *net);
- void nf_conntrack_labels_fini(struct net *net);
-diff --git a/include/uapi/linux/netfilter/nfnetlink_conntrack.h b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-index 9e71e0c..08fabc6 100644
---- a/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-@@ -50,6 +50,7 @@ enum ctattr_type {
- 	CTA_TIMESTAMP,
- 	CTA_MARK_MASK,
- 	CTA_LABELS,
-+	CTA_LABELS_MASK,
- 	__CTA_MAX
- };
- #define CTA_MAX (__CTA_MAX - 1)
-diff --git a/net/netfilter/nf_conntrack_labels.c b/net/netfilter/nf_conntrack_labels.c
-index 2a82236..c99bd11 100644
---- a/net/netfilter/nf_conntrack_labels.c
-+++ b/net/netfilter/nf_conntrack_labels.c
-@@ -52,6 +52,49 @@ int nf_connlabel_set(struct nf_conn *ct, u16 bit)
- }
- EXPORT_SYMBOL_GPL(nf_connlabel_set);
- 
-+#if IS_ENABLED(CONFIG_NF_CT_NETLINK)
-+static void replace_u32(u32 *address, u32 mask, u32 new)
+ config.status: extensions/GNUmakefile.in \
+ 	include/xtables-version.h.in include/iptables/internal.h.in
+diff --git a/etc/xtables/connlabel.conf b/etc/xtables/connlabel.conf
+new file mode 100644
+index 0000000..9bd52c7
+--- /dev/null
++++ b/etc/xtables/connlabel.conf
+@@ -0,0 +1,9 @@
++# example connlabel.conf mapping file.
++# used by the "connlabel" match to translate
++# names to their bit-value.
++0	eth0-in
++1	eth0-out
++2	ppp-in
++3	ppp-out
++4	bulk-traffic
++5	interactive
+diff --git a/extensions/libxt_connlabel.c b/extensions/libxt_connlabel.c
+new file mode 100644
+index 0000000..ae52901
+--- /dev/null
++++ b/extensions/libxt_connlabel.c
+@@ -0,0 +1,210 @@
++#include <errno.h>
++#include <stdbool.h>
++#include <string.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <xtables.h>
++#include <linux/netfilter/xt_connlabel.h>
++
++enum {
++	O_LABEL = 0,
++	O_SET = 1,
++};
++
++#define CONNLABEL_CFG "/etc/xtables/connlabel.conf"
++
++static void connlabel_mt_help(void)
 +{
-+	u32 old, tmp;
-+
-+	do {
-+		old = *address;
-+		tmp = (old & mask) ^ new;
-+	} while (cmpxchg(address, old, tmp) != old);
++	puts(
++"connlabel match options:\n"
++"[!] --label name     Match if label has been set on connection\n"
++"    --set            Set label on connection");
 +}
 +
-+int nf_connlabels_replace(struct nf_conn *ct,
-+			  const u32 *data,
-+			  const u32 *mask, unsigned int words32)
-+{
-+	struct nf_conn_labels *labels;
-+	unsigned int size, i;
-+	u32 *dst;
-+
-+	labels = nf_ct_labels_find(ct);
-+	if (!labels)
-+		return -ENOSPC;
-+
-+	size = labels->words * sizeof(long);
-+	if (size < (words32 * sizeof(u32)))
-+		words32 = size / sizeof(u32);
-+
-+	dst = (u32 *) labels->bits;
-+	if (words32) {
-+		for (i = 0; i < words32; i++)
-+			replace_u32(&dst[i], mask ? ~mask[i] : 0, data[i]);
-+	}
-+
-+	size /= sizeof(u32);
-+	for (i = words32; i < size; i++) /* pad */
-+		replace_u32(&dst[i], 0, 0);
-+
-+	nf_conntrack_event_cache(IPCT_LABEL, ct);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(nf_connlabels_replace);
-+#endif
-+
- static struct nf_ct_ext_type labels_extend __read_mostly = {
- 	.len    = sizeof(struct nf_conn_labels),
- 	.align  = __alignof__(struct nf_conn_labels),
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 005ab7e..c957fe2 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -961,6 +961,7 @@ ctnetlink_parse_help(const struct nlattr *attr, char **helper_name,
- 	return 0;
- }
- 
-+#define __CTA_LABELS_MAX_LENGTH ((XT_CONNLABEL_MAXBIT + 1) / BITS_PER_BYTE)
- static const struct nla_policy ct_nla_policy[CTA_MAX+1] = {
- 	[CTA_TUPLE_ORIG]	= { .type = NLA_NESTED },
- 	[CTA_TUPLE_REPLY]	= { .type = NLA_NESTED },
-@@ -977,6 +978,10 @@ static const struct nla_policy ct_nla_policy[CTA_MAX+1] = {
- 	[CTA_NAT_SEQ_ADJ_REPLY] = { .type = NLA_NESTED },
- 	[CTA_ZONE]		= { .type = NLA_U16 },
- 	[CTA_MARK_MASK]		= { .type = NLA_U32 },
-+	[CTA_LABELS]		= { .type = NLA_BINARY,
-+				    .len = __CTA_LABELS_MAX_LENGTH },
-+	[CTA_LABELS_MASK]	= { .type = NLA_BINARY,
-+				    .len = __CTA_LABELS_MAX_LENGTH },
- };
- 
- static int
-@@ -1505,6 +1510,31 @@ ctnetlink_change_nat_seq_adj(struct nf_conn *ct,
- #endif
- 
- static int
-+ctnetlink_attach_labels(struct nf_conn *ct, const struct nlattr * const cda[])
-+{
-+#ifdef CONFIG_NF_CONNTRACK_LABELS
-+	size_t len = nla_len(cda[CTA_LABELS]);
-+	const void *mask = cda[CTA_LABELS_MASK];
-+
-+	if (len & (sizeof(u32)-1)) /* must be multiple of u32 */
-+		return -EINVAL;
-+
-+	if (mask) {
-+		if (nla_len(cda[CTA_LABELS_MASK]) == 0 ||
-+		    nla_len(cda[CTA_LABELS_MASK]) != len)
-+			return -EINVAL;
-+		mask = nla_data(cda[CTA_LABELS_MASK]);
-+	}
-+
-+	len /= sizeof(u32);
-+
-+	return nf_connlabels_replace(ct, nla_data(cda[CTA_LABELS]), mask, len);
-+#else
-+	return -EOPNOTSUPP;
-+#endif
-+}
++static const struct xt_option_entry connlabel_mt_opts[] = {
++	{.name = "label", .id = O_LABEL, .type = XTTYPE_STRING,
++	 .min = 1, .flags = XTOPT_MAND|XTOPT_INVERT},
++	{.name = "set", .id = O_SET, .type = XTTYPE_NONE},
++	XTOPT_TABLEEND,
++};
 +
 +static int
- ctnetlink_change_conntrack(struct nf_conn *ct,
- 			   const struct nlattr * const cda[])
- {
-@@ -1550,6 +1580,11 @@ ctnetlink_change_conntrack(struct nf_conn *ct,
- 			return err;
- 	}
- #endif
-+	if (cda[CTA_LABELS]) {
-+		err = ctnetlink_attach_labels(ct, cda);
-+		if (err < 0)
-+			return err;
-+	}
- 
- 	return 0;
- }
-@@ -1758,6 +1793,10 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 			else
- 				events = IPCT_NEW;
- 
-+			if (cda[CTA_LABELS] &&
-+			    ctnetlink_attach_labels(ct, cda) == 0)
-+				events |= (1 << IPCT_LABEL);
++xtables_parse_connlabel_numerical(const char *s, char **end)
++{
++	uintmax_t value;
 +
- 			nf_conntrack_eventmask_report((1 << IPCT_REPLY) |
- 						      (1 << IPCT_ASSURED) |
- 						      (1 << IPCT_HELPER) |
-@@ -2055,6 +2094,11 @@ ctnetlink_nfqueue_parse_ct(const struct nlattr *cda[], struct nf_conn *ct)
- 		if (err < 0)
- 			return err;
- 	}
-+	if (cda[CTA_LABELS]) {
-+		err = ctnetlink_attach_labels(ct, cda);
-+		if (err < 0)
-+			return err;
++	if (!xtables_strtoul(s, end, &value, 0, XT_CONNLABEL_MAXBIT))
++		return -1;
++	return value;
++}
++
++static bool is_space_posix(int c)
++{
++	return c == ' ' || c == '\f' || c == '\r' || c == '\t' || c == '\v';
++}
++
++static char * trim_label(char *label)
++{
++	char *end;
++
++	while (is_space_posix(*label))
++		label++;
++	end = strchr(label, '\n');
++	if (end)
++		*end = 0;
++	else
++		end = strchr(label, '\0');
++	end--;
++
++	while (is_space_posix(*end) && end > label) {
++		*end = 0;
++		end--;
 +	}
- #if defined(CONFIG_NF_CONNTRACK_MARK)
- 	if (cda[CTA_MARK])
- 		ct->mark = ntohl(nla_get_be32(cda[CTA_MARK]));
++
++	return *label ? label : NULL;
++}
++
++static void
++xtables_get_connlabel(uint16_t bit, char *buf, size_t len)
++{
++	FILE *fp = fopen(CONNLABEL_CFG, "r");
++	char label[1024];
++	char *end;
++
++	if (!fp)
++		goto error;
++
++	while (fgets(label, sizeof(label), fp)) {
++		int tmp;
++
++		if (label[0] == '#')
++			continue;
++		tmp = xtables_parse_connlabel_numerical(label, &end);
++		if (tmp < 0 || tmp < (int) bit)
++			continue;
++		if (tmp > (int) bit)
++			break;
++
++		end = trim_label(end);
++		if (!end)
++			continue;
++		snprintf(buf, len, "%s", end);
++		fclose(fp);
++		return;
++	}
++	fclose(fp);
++ error:
++	snprintf(buf, len, "%u", (unsigned int) bit);
++}
++
++
++static uint16_t xtables_parse_connlabel(const char *s)
++{
++	FILE *fp = fopen(CONNLABEL_CFG, "r");
++	char label[1024];
++	char *end;
++	int bit;
++
++	if (!fp)
++		xtables_error(PARAMETER_PROBLEM, "label '%s': could not open '%s': %s",
++						s, CONNLABEL_CFG, strerror(errno));
++
++	while (fgets(label, sizeof(label), fp)) {
++		if (label[0] == '#' || !strstr(label, s))
++			continue;
++		bit = xtables_parse_connlabel_numerical(label, &end);
++		if (bit < 0)
++			continue;
++
++		end = trim_label(end);
++		if (!end)
++			continue;
++		if (strcmp(end, s) == 0) {
++			fclose(fp);
++			return bit;
++		}
++	}
++	fclose(fp);
++	xtables_error(PARAMETER_PROBLEM, "label '%s' not found in config file %s",
++					s, CONNLABEL_CFG);
++}
++
++static void connlabel_mt_parse(struct xt_option_call *cb)
++{
++	struct xt_connlabel_mtinfo *info = cb->data;
++	int tmp;
++
++	xtables_option_parse(cb);
++
++	switch (cb->entry->id) {
++	case O_LABEL:
++		tmp = xtables_parse_connlabel_numerical(cb->arg, NULL);
++		info->bit = tmp < 0 ? xtables_parse_connlabel(cb->arg) : tmp;
++
++		if (cb->invert)
++			info->options |= XT_CONNLABEL_OP_INVERT;
++		break;
++	case O_SET:
++		info->options |= XT_CONNLABEL_OP_SET;
++		break;
++	}
++
++}
++
++static void
++connlabel_mt_print_op(const struct xt_connlabel_mtinfo *info, const char *prefix)
++{
++	if (info->options & XT_CONNLABEL_OP_SET)
++		printf(" %sset", prefix);
++}
++
++static void
++connlabel_mt_print(const void *ip, const struct xt_entry_match *match, int numeric)
++{
++	const struct xt_connlabel_mtinfo *info = (const void *)match->data;
++	char buf[1024];
++
++	printf(" connlabel");
++	if (info->options & XT_CONNLABEL_OP_INVERT)
++		printf(" !");
++	if (numeric) {
++		printf(" %u", info->bit);
++	} else {
++		xtables_get_connlabel(info->bit, buf, sizeof(buf));
++		printf(" '%s'", buf);
++	}
++	connlabel_mt_print_op(info, "");
++}
++
++static void
++connlabel_mt_save(const void *ip, const struct xt_entry_match *match)
++{
++	const struct xt_connlabel_mtinfo *info = (const void *)match->data;
++	char buf[1024];
++
++	if (info->options & XT_CONNLABEL_OP_INVERT)
++		printf(" !");
++
++	xtables_get_connlabel(info->bit, buf, sizeof(buf));
++	printf(" --label \"%s\"", buf);
++
++	connlabel_mt_print_op(info, "--");
++}
++
++static struct xtables_match connlabel_mt_reg = {
++	.family        = NFPROTO_UNSPEC,
++	.name          = "connlabel",
++	.version       = XTABLES_VERSION,
++	.size          = XT_ALIGN(sizeof(struct xt_connlabel_mtinfo)),
++	.userspacesize = offsetof(struct xt_connlabel_mtinfo, bit),
++	.help          = connlabel_mt_help,
++	.print         = connlabel_mt_print,
++	.save          = connlabel_mt_save,
++	.x6_parse      = connlabel_mt_parse,
++	.x6_options    = connlabel_mt_opts,
++};
++
++void _init(void)
++{
++	xtables_register_match(&connlabel_mt_reg);
++}
+diff --git a/extensions/libxt_connlabel.man b/extensions/libxt_connlabel.man
+new file mode 100644
+index 0000000..d5ee079
+--- /dev/null
++++ b/extensions/libxt_connlabel.man
+@@ -0,0 +1,32 @@
++Module matches or adds connlabels to a connection.
++connlabels are similar to connmarks, except labels are bit-based; i.e.
++all labels may be attached to a flow at the same time.
++Up to 128 unique labels are currently supported.
++.TP
++[\fB!\fP] \fB\-\-label\fP \fBname\fP
++matches if label \fBname\fP has been set on a connection.
++Instead of a name (which will be translated to a number, see EXAMPLE below),
++a number may be used instead.  Using a number always overrides connlabel.conf.
++.TP
++\fB\-\-set\fP
++if the label has not been set on the connection, set it.
++Note that setting a label can fail.  This is because the kernel allocates the
++conntrack label storage area when the connection is created, and it only
++reserves the amount of memory required by the ruleset that exists at
++the time the connection is created.
++In this case, the match will fail (or succeed, in case \fB\-\-label\fP
++option was negated).
++.PP
++Label translation is done via the \fB/etc/xtables/connlabel.conf\fP configuration file.
++.PP
++Example:
++.IP
++.nf
++0	eth0-in
++1	eth0-out
++2	ppp-in
++3	ppp-out
++4	bulk-traffic
++5	interactive
++.fi
++.PP
+diff --git a/include/linux/netfilter/xt_connlabel.h b/include/linux/netfilter/xt_connlabel.h
+new file mode 100644
+index 0000000..c4bc9ee
+--- /dev/null
++++ b/include/linux/netfilter/xt_connlabel.h
+@@ -0,0 +1,12 @@
++#include <linux/types.h>
++
++#define XT_CONNLABEL_MAXBIT 127
++enum xt_connlabel_mtopts {
++	XT_CONNLABEL_OP_INVERT = 1 << 0,
++	XT_CONNLABEL_OP_SET    = 1 << 1,
++};
++
++struct xt_connlabel_mtinfo {
++	__u16 bit;
++	__u16 options;
++};
 -- 
 1.7.8.6
 
