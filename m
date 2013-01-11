@@ -1,150 +1,216 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 2/3] netfilter: ctnetlink: deliver labels to userspace
-Date: Fri, 11 Jan 2013 17:30:45 +0100
-Message-ID: <1357921846-29650-3-git-send-email-fw@strlen.de>
+Subject: [PATCH 3/3] netfilter: ctnetlink: allow userspace to modify labels
+Date: Fri, 11 Jan 2013 17:30:46 +0100
+Message-ID: <1357921846-29650-4-git-send-email-fw@strlen.de>
 References: <1357921846-29650-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50599 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50601 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753818Ab3AKQ3A (ORCPT
+	by vger.kernel.org with ESMTP id S1753818Ab3AKQ3F (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Jan 2013 11:29:00 -0500
+	Fri, 11 Jan 2013 11:29:05 -0500
 In-Reply-To: <1357921846-29650-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Introduce CTA_LABELS attribute to send a bit-vector of currently active labels
-to userspace.
+Add the ability to set/clear labels assigned to a conntrack
+via ctnetlink.
 
-Future patch will permit userspace to also set/delete active labels.
+To allow userspace to only alter specific bits, Pablo suggested to add
+a new CTA_LABELS_MASK attribute:
+
+The new set of active labels is then determined via
+
+active = (active & ~mask) ^ changeset
+
+i.e., the mask selects those bits in the existing set that should be
+changed.
+
+This follows the same method already used by MARK and CONNMARK targets.
+
+Omitting CTA_LABELS_MASK is the same as setting all bits in CTA_LABELS_MASK
+to 1: The existing set is replaced by the one from userspace.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/uapi/linux/netfilter/nf_conntrack_common.h |    1 +
+ include/net/netfilter/nf_conntrack_labels.h        |    3 +
  include/uapi/linux/netfilter/nfnetlink_conntrack.h |    1 +
- net/netfilter/nf_conntrack_labels.c                |    2 +-
- net/netfilter/nf_conntrack_netlink.c               |   41 ++++++++++++++++++++
- 4 files changed, 44 insertions(+), 1 deletions(-)
+ net/netfilter/nf_conntrack_labels.c                |   43 +++++++++++++++++++
+ net/netfilter/nf_conntrack_netlink.c               |   44 ++++++++++++++++++++
+ 4 files changed, 91 insertions(+), 0 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
-index 1644cdd..d69483f 100644
---- a/include/uapi/linux/netfilter/nf_conntrack_common.h
-+++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
-@@ -101,6 +101,7 @@ enum ip_conntrack_events {
- 	IPCT_MARK,		/* new mark has been set */
- 	IPCT_NATSEQADJ,		/* NAT is doing sequence adjustment */
- 	IPCT_SECMARK,		/* new security mark has been set */
-+	IPCT_LABEL,		/* new connlabel has been set */
- };
+diff --git a/include/net/netfilter/nf_conntrack_labels.h b/include/net/netfilter/nf_conntrack_labels.h
+index b94fe31..a3ce5d0 100644
+--- a/include/net/netfilter/nf_conntrack_labels.h
++++ b/include/net/netfilter/nf_conntrack_labels.h
+@@ -46,6 +46,9 @@ static inline struct nf_conn_labels *nf_ct_labels_ext_add(struct nf_conn *ct)
+ bool nf_connlabel_match(const struct nf_conn *ct, u16 bit);
+ int nf_connlabel_set(struct nf_conn *ct, u16 bit);
  
- enum ip_conntrack_expect_events {
++int nf_connlabels_replace(struct nf_conn *ct,
++			  const u32 *data, const u32 *mask, unsigned int words);
++
+ #ifdef CONFIG_NF_CONNTRACK_LABELS
+ int nf_conntrack_labels_init(struct net *net);
+ void nf_conntrack_labels_fini(struct net *net);
 diff --git a/include/uapi/linux/netfilter/nfnetlink_conntrack.h b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-index 86e930c..9e71e0c 100644
+index 9e71e0c..08fabc6 100644
 --- a/include/uapi/linux/netfilter/nfnetlink_conntrack.h
 +++ b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-@@ -49,6 +49,7 @@ enum ctattr_type {
- 	CTA_SECCTX,
+@@ -50,6 +50,7 @@ enum ctattr_type {
  	CTA_TIMESTAMP,
  	CTA_MARK_MASK,
-+	CTA_LABELS,
+ 	CTA_LABELS,
++	CTA_LABELS_MASK,
  	__CTA_MAX
  };
  #define CTA_MAX (__CTA_MAX - 1)
 diff --git a/net/netfilter/nf_conntrack_labels.c b/net/netfilter/nf_conntrack_labels.c
-index 9fcf470..2a82236 100644
+index 2a82236..c99bd11 100644
 --- a/net/netfilter/nf_conntrack_labels.c
 +++ b/net/netfilter/nf_conntrack_labels.c
-@@ -46,7 +46,7 @@ int nf_connlabel_set(struct nf_conn *ct, u16 bit)
- 		return 0;
- 
- 	if (test_and_set_bit(bit, labels->bits))
--		return 0;
-+		nf_conntrack_event_cache(IPCT_LABEL, ct);
- 
- 	return 0;
+@@ -52,6 +52,49 @@ int nf_connlabel_set(struct nf_conn *ct, u16 bit)
  }
+ EXPORT_SYMBOL_GPL(nf_connlabel_set);
+ 
++#if IS_ENABLED(CONFIG_NF_CT_NETLINK)
++static void replace_u32(u32 *address, u32 mask, u32 new)
++{
++	u32 old, tmp;
++
++	do {
++		old = *address;
++		tmp = (old & mask) ^ new;
++	} while (cmpxchg(address, old, tmp) != old);
++}
++
++int nf_connlabels_replace(struct nf_conn *ct,
++			  const u32 *data,
++			  const u32 *mask, unsigned int words32)
++{
++	struct nf_conn_labels *labels;
++	unsigned int size, i;
++	u32 *dst;
++
++	labels = nf_ct_labels_find(ct);
++	if (!labels)
++		return -ENOSPC;
++
++	size = labels->words * sizeof(long);
++	if (size < (words32 * sizeof(u32)))
++		words32 = size / sizeof(u32);
++
++	dst = (u32 *) labels->bits;
++	if (words32) {
++		for (i = 0; i < words32; i++)
++			replace_u32(&dst[i], mask ? ~mask[i] : 0, data[i]);
++	}
++
++	size /= sizeof(u32);
++	for (i = words32; i < size; i++) /* pad */
++		replace_u32(&dst[i], 0, 0);
++
++	nf_conntrack_event_cache(IPCT_LABEL, ct);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(nf_connlabels_replace);
++#endif
++
+ static struct nf_ct_ext_type labels_extend __read_mostly = {
+ 	.len    = sizeof(struct nf_conn_labels),
+ 	.align  = __alignof__(struct nf_conn_labels),
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 5bf95eb..005ab7e 100644
+index 005ab7e..c957fe2 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -324,6 +324,40 @@ nla_put_failure:
- #define ctnetlink_dump_secctx(a, b) (0)
+@@ -961,6 +961,7 @@ ctnetlink_parse_help(const struct nlattr *attr, char **helper_name,
+ 	return 0;
+ }
+ 
++#define __CTA_LABELS_MAX_LENGTH ((XT_CONNLABEL_MAXBIT + 1) / BITS_PER_BYTE)
+ static const struct nla_policy ct_nla_policy[CTA_MAX+1] = {
+ 	[CTA_TUPLE_ORIG]	= { .type = NLA_NESTED },
+ 	[CTA_TUPLE_REPLY]	= { .type = NLA_NESTED },
+@@ -977,6 +978,10 @@ static const struct nla_policy ct_nla_policy[CTA_MAX+1] = {
+ 	[CTA_NAT_SEQ_ADJ_REPLY] = { .type = NLA_NESTED },
+ 	[CTA_ZONE]		= { .type = NLA_U16 },
+ 	[CTA_MARK_MASK]		= { .type = NLA_U32 },
++	[CTA_LABELS]		= { .type = NLA_BINARY,
++				    .len = __CTA_LABELS_MAX_LENGTH },
++	[CTA_LABELS_MASK]	= { .type = NLA_BINARY,
++				    .len = __CTA_LABELS_MAX_LENGTH },
+ };
+ 
+ static int
+@@ -1505,6 +1510,31 @@ ctnetlink_change_nat_seq_adj(struct nf_conn *ct,
  #endif
  
-+#ifdef CONFIG_NF_CONNTRACK_LABELS
-+static int ctnetlink_label_size(const struct nf_conn *ct)
+ static int
++ctnetlink_attach_labels(struct nf_conn *ct, const struct nlattr * const cda[])
 +{
-+	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
++#ifdef CONFIG_NF_CONNTRACK_LABELS
++	size_t len = nla_len(cda[CTA_LABELS]);
++	const void *mask = cda[CTA_LABELS_MASK];
 +
-+	if (!labels)
-+		return 0;
-+	return nla_total_size(labels->words * sizeof(long));
++	if (len & (sizeof(u32)-1)) /* must be multiple of u32 */
++		return -EINVAL;
++
++	if (mask) {
++		if (nla_len(cda[CTA_LABELS_MASK]) == 0 ||
++		    nla_len(cda[CTA_LABELS_MASK]) != len)
++			return -EINVAL;
++		mask = nla_data(cda[CTA_LABELS_MASK]);
++	}
++
++	len /= sizeof(u32);
++
++	return nf_connlabels_replace(ct, nla_data(cda[CTA_LABELS]), mask, len);
++#else
++	return -EOPNOTSUPP;
++#endif
 +}
 +
 +static int
-+ctnetlink_dump_labels(struct sk_buff *skb, const struct nf_conn *ct)
-+{
-+	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
-+	unsigned int len, i;
-+
-+	if (!labels)
-+		return 0;
-+
-+	len = labels->words * sizeof(long);
-+	i = 0;
-+	do {
-+		if (labels->bits[i] != 0)
-+			return nla_put(skb, CTA_LABELS, len, labels->bits);
-+		i++;
-+	} while (i < labels->words);
-+
-+	return 0;
-+}
-+#else
-+#define ctnetlink_dump_labels(a, b) (0)
-+#define ctnetlink_label_size(a)	(0)
-+#endif
-+
- #define master_tuple(ct) &(ct->master->tuplehash[IP_CT_DIR_ORIGINAL].tuple)
- 
- static inline int
-@@ -464,6 +498,7 @@ ctnetlink_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
- 	    ctnetlink_dump_helpinfo(skb, ct) < 0 ||
- 	    ctnetlink_dump_mark(skb, ct) < 0 ||
- 	    ctnetlink_dump_secctx(skb, ct) < 0 ||
-+	    ctnetlink_dump_labels(skb, ct) < 0 ||
- 	    ctnetlink_dump_id(skb, ct) < 0 ||
- 	    ctnetlink_dump_use(skb, ct) < 0 ||
- 	    ctnetlink_dump_master(skb, ct) < 0 ||
-@@ -562,6 +597,7 @@ ctnetlink_nlmsg_size(const struct nf_conn *ct)
- 	       + nla_total_size(sizeof(u_int32_t)) /* CTA_MARK */
+ ctnetlink_change_conntrack(struct nf_conn *ct,
+ 			   const struct nlattr * const cda[])
+ {
+@@ -1550,6 +1580,11 @@ ctnetlink_change_conntrack(struct nf_conn *ct,
+ 			return err;
+ 	}
  #endif
- 	       + ctnetlink_proto_size(ct)
-+	       + ctnetlink_label_size(ct)
- 	       ;
- }
++	if (cda[CTA_LABELS]) {
++		err = ctnetlink_attach_labels(ct, cda);
++		if (err < 0)
++			return err;
++	}
  
-@@ -663,6 +699,9 @@ ctnetlink_conntrack_event(unsigned int events, struct nf_ct_event *item)
- 		    && ctnetlink_dump_secctx(skb, ct) < 0)
- 			goto nla_put_failure;
- #endif
-+		if (events & (1 << IPCT_LABEL) &&
-+		     ctnetlink_dump_labels(skb, ct) < 0)
-+			goto nla_put_failure;
- 
- 		if (events & (1 << IPCT_RELATED) &&
- 		    ctnetlink_dump_master(skb, ct) < 0)
-@@ -1986,6 +2025,8 @@ ctnetlink_nfqueue_build(struct sk_buff *skb, struct nf_conn *ct)
- 	if (ct->mark && ctnetlink_dump_mark(skb, ct) < 0)
- 		goto nla_put_failure;
- #endif
-+	if (ctnetlink_dump_labels(skb, ct) < 0)
-+		goto nla_put_failure;
- 	rcu_read_unlock();
  	return 0;
+ }
+@@ -1758,6 +1793,10 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
+ 			else
+ 				events = IPCT_NEW;
  
++			if (cda[CTA_LABELS] &&
++			    ctnetlink_attach_labels(ct, cda) == 0)
++				events |= (1 << IPCT_LABEL);
++
+ 			nf_conntrack_eventmask_report((1 << IPCT_REPLY) |
+ 						      (1 << IPCT_ASSURED) |
+ 						      (1 << IPCT_HELPER) |
+@@ -2055,6 +2094,11 @@ ctnetlink_nfqueue_parse_ct(const struct nlattr *cda[], struct nf_conn *ct)
+ 		if (err < 0)
+ 			return err;
+ 	}
++	if (cda[CTA_LABELS]) {
++		err = ctnetlink_attach_labels(ct, cda);
++		if (err < 0)
++			return err;
++	}
+ #if defined(CONFIG_NF_CONNTRACK_MARK)
+ 	if (cda[CTA_MARK])
+ 		ct->mark = ntohl(nla_get_be32(cda[CTA_MARK]));
 -- 
 1.7.8.6
 
