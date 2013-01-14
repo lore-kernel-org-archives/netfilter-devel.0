@@ -1,34 +1,50 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] 9th Netfilter Workshop in Copenhagen, Denmark
-Date: Mon, 14 Jan 2013 20:09:45 +0100
-Message-ID: <20130114190945.GA15386@1984>
+From: pablo@netfilter.org
+Subject: [PATCH 0/3] netfilter fixes for 3.8-rc3
+Date: Tue, 15 Jan 2013 00:24:02 +0100
+Message-ID: <1358205845-8522-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Users Mailing list <netfilter@vger.kernel.org>,
-	Jesper Dangaard Brouer <jbrouer@redhat.com>
-To: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netfilter-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-We are happy to announce the next edition in the workshop series. This
-year the event will be co-hosted with the Open Source Days 2013 [1] in
-Copenhagen, Denmark from 10th to 14th March, 2013.
+Hi David,
 
-The official workshop website [2] will collect the important
-information regarding this event. You may notice that some areas still
-lack of important information, we are working hard to deliver those as
-soon as possible. So, please, be patient.
+The following patchset contains netfilter fixes for 3.8-rc3,
+they are:
 
-We are still looking for sponsors, if you think you can help us to get
-funds to run the workshop, please, contact me and I'll be glad to
-send you our sponsorship policy.
+* fix possible BUG_ON if several netns are in use and the nf_conntrack
+  module is removed, initial patch from Gao feng, final patch from myself.
 
-Regards.
+* fix unset return value if conntrack zone are disabled at
+  compile-time, reported by Borislav Petkov, fix from myself.
 
-[1] http://www.opensourcedays.org/
-[2] http://workshop.netfilter.org/2013/
+* fix display error message via dmesg for arp_tables, from Jan Engelhardt.
+
+You can pull these changes from:
+
+git://1984.lsi.us.es/nf master
+
+Thanks!
+
+Jan Engelhardt (1):
+  netfilter: x_tables: print correct hook names for ARP
+
+Pablo Neira Ayuso (2):
+  netfilter: xt_CT: fix unset return value if conntrack zone are disabled
+  netfilter: nf_conntrack: fix BUG_ON while removing nf_conntrack with netns
+
+ include/net/netfilter/nf_conntrack_core.h |    2 ++
+ net/netfilter/nf_conntrack_core.c         |    9 +++++----
+ net/netfilter/nf_conntrack_standalone.c   |    1 +
+ net/netfilter/x_tables.c                  |   28 ++++++++++++++++++++--------
+ net/netfilter/xt_CT.c                     |    4 ++--
+ 5 files changed, 30 insertions(+), 14 deletions(-)
+
+-- 
+1.7.10.4
