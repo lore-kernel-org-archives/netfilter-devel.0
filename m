@@ -1,59 +1,57 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 2/2] parser: workaround glibc-2.3.2 bug 358
-Date: Tue, 15 Jan 2013 19:20:02 +0100
-Message-ID: <1358274002-6042-3-git-send-email-jengelh@inai.de>
+Subject: [PATCH 1/2] build: fix libiptc build failure on old linux-glibc-devel headers
+Date: Tue, 15 Jan 2013 19:20:01 +0100
+Message-ID: <1358274002-6042-2-git-send-email-jengelh@inai.de>
 References: <1358274002-6042-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:38866 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:38864 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757246Ab3AOSUG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1756073Ab3AOSUG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Tue, 15 Jan 2013 13:20:06 -0500
 In-Reply-To: <1358274002-6042-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-glibc-2.3.2 has a bug whereby it would reject looking up services by
-port number without a socket type specification. In iptables, this
-manifests as:
+On Debian 3.1, compilation of libiptc fails with
 
-	# iptables -A INPUT -p udp --sport 67
-	iptables v1.4.16.3: Port "67" does not resolve to anything.
+	  CC       libip4tc.lo
+	In file included from libip4tc.c:113:
+	libiptc.c:93: error: field `list' has incomplete type
 
-(The bug was found to be fixed in glibc-2.3.6.)
-References: http://sourceware.org/bugzilla/show_bug.cgi?id=358
-References: http://marc.info/?l=netfilter&m=135826543809613&w=2
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+This is because /usr/include/linux/list.h still existed at that time,
+but has all its definitions stashed in __KERNEL__. Switching
+linux_list.h's guards to another name resolves the problem.
 ---
- libxtables/xtoptions.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ libiptc/linux_list.h   |    4 ++--
+ libiptc/linux_stddef.h |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/libxtables/xtoptions.c b/libxtables/xtoptions.c
-index 452e0fe..0654cb6 100644
---- a/libxtables/xtoptions.c
-+++ b/libxtables/xtoptions.c
-@@ -562,6 +562,20 @@ static int xtables_getportbyname(const char *name)
- 	int ret;
+diff --git a/libiptc/linux_list.h b/libiptc/linux_list.h
+index abdcf88..3a51185 100644
+--- a/libiptc/linux_list.h
++++ b/libiptc/linux_list.h
+@@ -1,5 +1,5 @@
+-#ifndef _LINUX_LIST_H
+-#define _LINUX_LIST_H
++#ifndef _IPTC_LIST_H
++#define _IPTC_LIST_H
  
- 	ret = getaddrinfo(NULL, name, NULL, &res);
-+	if (ret == EAI_SERVICE) {
-+		/*
-+		 * glibc-2.3.2 has a bug that yields EAI_SERVICE when
-+		 * name is a number in string format, e.g. "67".
-+		 * (http://sourceware.org/bugzilla/show_bug.cgi?id=358)
-+		 * Fall back to strtoul if it is such a plain number.
-+		 */
-+		char *end;
-+
-+		ret = strtoul(name, &end, 10);
-+		if (name != end && *end == '\0')
-+			return ret;
-+		return -1;
-+	}
- 	if (ret < 0)
- 		return -1;
- 	ret = -1;
+ #undef offsetof
+ #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+diff --git a/libiptc/linux_stddef.h b/libiptc/linux_stddef.h
+index 56416f1..57758c9 100644
+--- a/libiptc/linux_stddef.h
++++ b/libiptc/linux_stddef.h
+@@ -1,5 +1,5 @@
+-#ifndef _LINUX_STDDEF_H
+-#define _LINUX_STDDEF_H
++#ifndef _IPTC_STDDEF_H
++#define _IPTC_STDDEF_H
+ 
+ #undef NULL
+ #if defined(__cplusplus)
 -- 
 1.7.10.4
 
