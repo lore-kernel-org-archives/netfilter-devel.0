@@ -1,57 +1,48 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 1/2] build: fix libiptc build failure on old linux-glibc-devel headers
-Date: Tue, 15 Jan 2013 19:20:01 +0100
-Message-ID: <1358274002-6042-2-git-send-email-jengelh@inai.de>
-References: <1358274002-6042-1-git-send-email-jengelh@inai.de>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:38864 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756073Ab3AOSUG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2013 13:20:06 -0500
-In-Reply-To: <1358274002-6042-1-git-send-email-jengelh@inai.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Cong Ding <dinggnu@gmail.com>
+Subject: [PATCH] net: netfilter/xt_CT.c: fix uninitialized variable
+Date: Tue, 15 Jan 2013 19:58:34 +0100
+Message-ID: <1358276314-9536-1-git-send-email-dinggnu@gmail.com>
+Cc: Cong Ding <dinggnu@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Debian 3.1, compilation of libiptc fails with
+If CONFIG_NF_CONNTRACK_ZONES is not defined, the variable ret might be
+uninitialized when it goes to err1 through line 125 and 263 respectively.
+So I change these goto err1 to return -EINVAL directly.
 
-	  CC       libip4tc.lo
-	In file included from libip4tc.c:113:
-	libiptc.c:93: error: field `list' has incomplete type
-
-This is because /usr/include/linux/list.h still existed at that time,
-but has all its definitions stashed in __KERNEL__. Switching
-linux_list.h's guards to another name resolves the problem.
+Signed-off-by: Cong Ding <dinggnu@gmail.com>
 ---
- libiptc/linux_list.h   |    4 ++--
- libiptc/linux_stddef.h |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ net/netfilter/xt_CT.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/libiptc/linux_list.h b/libiptc/linux_list.h
-index abdcf88..3a51185 100644
---- a/libiptc/linux_list.h
-+++ b/libiptc/linux_list.h
-@@ -1,5 +1,5 @@
--#ifndef _LINUX_LIST_H
--#define _LINUX_LIST_H
-+#ifndef _IPTC_LIST_H
-+#define _IPTC_LIST_H
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+index 2a08430..941f600 100644
+--- a/net/netfilter/xt_CT.c
++++ b/net/netfilter/xt_CT.c
+@@ -122,7 +122,7 @@ static int xt_ct_tg_check_v0(const struct xt_tgchk_param *par)
  
- #undef offsetof
- #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
-diff --git a/libiptc/linux_stddef.h b/libiptc/linux_stddef.h
-index 56416f1..57758c9 100644
---- a/libiptc/linux_stddef.h
-+++ b/libiptc/linux_stddef.h
-@@ -1,5 +1,5 @@
--#ifndef _LINUX_STDDEF_H
--#define _LINUX_STDDEF_H
-+#ifndef _IPTC_STDDEF_H
-+#define _IPTC_STDDEF_H
+ #ifndef CONFIG_NF_CONNTRACK_ZONES
+ 	if (info->zone)
+-		goto err1;
++		return -EINVAL;
+ #endif
  
- #undef NULL
- #if defined(__cplusplus)
+ 	ret = nf_ct_l3proto_try_module_get(par->family);
+@@ -260,7 +260,7 @@ static int xt_ct_tg_check_v1(const struct xt_tgchk_param *par)
+ 
+ #ifndef CONFIG_NF_CONNTRACK_ZONES
+ 	if (info->zone)
+-		goto err1;
++		return -EINVAL;
+ #endif
+ 
+ 	ret = nf_ct_l3proto_try_module_get(par->family);
 -- 
 1.7.10.4
-
