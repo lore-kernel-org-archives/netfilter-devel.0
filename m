@@ -1,60 +1,65 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Born Without <blackhole@airpost.net>
 Subject: Re: state match is obsolete 1.4.17
-Date: Tue, 15 Jan 2013 11:06:12 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1301151102490.11129@blackhole.kfki.hu>
-References: <CAMD-=V+PhM3NLpWyxB0G4KUN6D+-XKL0PZCBAuyUXUw56gmuJw@mail.gmail.com> <alpine.LNX.2.01.1301150958390.16853@nerf07.vanv.qr> <50F5273F.5020205@inliniac.net>
+Date: Tue, 15 Jan 2013 13:06:58 +0100
+Message-ID: <50F54662.1030405@airpost.net>
+References: <CAMD-=V+PhM3NLpWyxB0G4KUN6D+-XKL0PZCBAuyUXUw56gmuJw@mail.gmail.com> <alpine.LNX.2.01.1301150958390.16853@nerf07.vanv.qr> <50F5273F.5020205@inliniac.net> <alpine.DEB.2.00.1301151102490.11129@blackhole.kfki.hu>
+Reply-To: blackhole@airpost.net
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Jan Engelhardt <jengelh@inai.de>,
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Victor Julien <lists@inliniac.net>,
+	Jan Engelhardt <jengelh@inai.de>,
 	Nick Edwards <nick.z.edwards@gmail.com>,
 	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Victor Julien <lists@inliniac.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:33198 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750872Ab3AOKGO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2013 05:06:14 -0500
-In-Reply-To: <50F5273F.5020205@inliniac.net>
+Received: from out5-smtp.messagingengine.com ([66.111.4.29]:33591 "EHLO
+	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751636Ab3AOMHC (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Jan 2013 07:07:02 -0500
+In-Reply-To: <alpine.DEB.2.00.1301151102490.11129@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 15 Jan 2013, Victor Julien wrote:
+On 15.01.2013 11:06, Jozsef Kadlecsik wrote:
+> On Tue, 15 Jan 2013, Victor Julien wrote:
+>
+>> On 01/15/2013 10:11 AM, Jan Engelhardt wrote:
+>>>
+>>> On Tuesday 2013-01-15 06:09, Nick Edwards wrote:
+>>>
+>>>> WARNING: The state match is obsolete. Use conntrack instead.
+>>>>
+>>>> Getting these errors since upgrading to 1.4.17
+>>>
+>>> It is a warning, not an error. (An error would not let use you
+>>> the command at all.)
+>>>
+>>>> Am I right in assuming that :
+>>>> iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+>>>> must now become :
+>>>> iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+>>>> or does that not do the same thing?
+>>>
+>>> state is a redundant subset of conntrack (the latter was introduced around
+>>> Linux 2.5.32) and shall go away.
+>>
+>> I think removing it is a bad idea. For years and years all docs, books,
+>> tutorials and frontends (like my own) have worked with "state". The
+>> change seems so trivial "s/-m state --state/-m conntrack --ctstate/g"
+>> that it would appear keeping "state" around as an alias or compatibility
+>> layer would require minimal effort. Why not keep it around?
+>
+> Actually, I have to agree. Why don't we keep "state" as an alias and
+> accept the old syntax in "conntrack"?
+>
+> What's the compelling reason to break countless scripts?
+>
 
-> On 01/15/2013 10:11 AM, Jan Engelhardt wrote:
-> > 
-> > On Tuesday 2013-01-15 06:09, Nick Edwards wrote:
-> > 
-> >> WARNING: The state match is obsolete. Use conntrack instead.
-> >>
-> >> Getting these errors since upgrading to 1.4.17
-> > 
-> > It is a warning, not an error. (An error would not let use you
-> > the command at all.)
-> > 
-> >> Am I right in assuming that :
-> >> iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-> >> must now become :
-> >> iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-> >> or does that not do the same thing?
-> > 
-> > state is a redundant subset of conntrack (the latter was introduced around
-> > Linux 2.5.32) and shall go away.
-> 
-> I think removing it is a bad idea. For years and years all docs, books,
-> tutorials and frontends (like my own) have worked with "state". The
-> change seems so trivial "s/-m state --state/-m conntrack --ctstate/g"
-> that it would appear keeping "state" around as an alias or compatibility
-> layer would require minimal effort. Why not keep it around?
+Yes please, bump +1
 
-Actually, I have to agree. Why don't we keep "state" as an alias and 
-accept the old syntax in "conntrack"?
+I never understood why 'state' wasn't simply extended.
+Not doing a smooth transition, is just very unfriendly to users, for 
+actually no good reason.
 
-What's the compelling reason to break countless scripts?
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
