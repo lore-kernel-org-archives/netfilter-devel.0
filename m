@@ -1,11 +1,11 @@
-From: "Waskiewicz Jr, Peter P" <peter.p.waskiewicz.jr@intel.com>
+From: Cong Ding <dinggnu@gmail.com>
 Subject: Re: [PATCH] net: netfilter/xt_CT.c: fix uninitialized variable
-Date: Tue, 15 Jan 2013 19:06:51 +0000
-Message-ID: <1358276792.1991.121.camel@ppwaskie-mobl2>
+Date: Tue, 15 Jan 2013 20:16:14 +0100
+Message-ID: <20130115191613.GD7211@gmail.com>
 References: <1358276314-9536-1-git-send-email-dinggnu@gmail.com>
+ <1358276792.1991.121.camel@ppwaskie-mobl2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>,
 	"David S. Miller" <davem@davemloft.net>,
@@ -14,37 +14,50 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	"coreteam@netfilter.org" <coreteam@netfilter.org>,
 	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
 	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-To: Cong Ding <dinggnu@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:64245 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755924Ab3AOTG4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2013 14:06:56 -0500
-In-Reply-To: <1358276314-9536-1-git-send-email-dinggnu@gmail.com>
-Content-Language: en-US
-Content-ID: <54B6BD695D25314E926B20A4E27867BC@intel.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: "Waskiewicz Jr, Peter P" <peter.p.waskiewicz.jr@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1358276792.1991.121.camel@ppwaskie-mobl2>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-T24gVHVlLCAyMDEzLTAxLTE1IGF0IDE5OjU4ICswMTAwLCBDb25nIERpbmcgd3JvdGU6DQo+IElm
-IENPTkZJR19ORl9DT05OVFJBQ0tfWk9ORVMgaXMgbm90IGRlZmluZWQsIHRoZSB2YXJpYWJsZSBy
-ZXQgbWlnaHQgYmUNCj4gdW5pbml0aWFsaXplZCB3aGVuIGl0IGdvZXMgdG8gZXJyMSB0aHJvdWdo
-IGxpbmUgMTI1IGFuZCAyNjMgcmVzcGVjdGl2ZWx5Lg0KPiBTbyBJIGNoYW5nZSB0aGVzZSBnb3Rv
-IGVycjEgdG8gcmV0dXJuIC1FSU5WQUwgZGlyZWN0bHkuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBD
-b25nIERpbmcgPGRpbmdnbnVAZ21haWwuY29tPg0KPiAtLS0NCj4gIG5ldC9uZXRmaWx0ZXIveHRf
-Q1QuYyB8ICAgIDQgKystLQ0KPiAgMSBmaWxlIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwgMiBk
-ZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYgLS1naXQgYS9uZXQvbmV0ZmlsdGVyL3h0X0NULmMgYi9u
-ZXQvbmV0ZmlsdGVyL3h0X0NULmMNCj4gaW5kZXggMmEwODQzMC4uOTQxZjYwMCAxMDA2NDQNCj4g
-LS0tIGEvbmV0L25ldGZpbHRlci94dF9DVC5jDQo+ICsrKyBiL25ldC9uZXRmaWx0ZXIveHRfQ1Qu
-Yw0KPiBAQCAtMTIyLDcgKzEyMiw3IEBAIHN0YXRpYyBpbnQgeHRfY3RfdGdfY2hlY2tfdjAoY29u
-c3Qgc3RydWN0IHh0X3RnY2hrX3BhcmFtICpwYXIpDQo+ICANCj4gICNpZm5kZWYgQ09ORklHX05G
-X0NPTk5UUkFDS19aT05FUw0KPiAgCWlmIChpbmZvLT56b25lKQ0KPiAtCQlnb3RvIGVycjE7DQo+
-ICsJCXJldHVybiAtRUlOVkFMOw0KPiAgI2VuZGlmDQo+ICANCj4gIAlyZXQgPSBuZl9jdF9sM3By
-b3RvX3RyeV9tb2R1bGVfZ2V0KHBhci0+ZmFtaWx5KTsNCj4gQEAgLTI2MCw3ICsyNjAsNyBAQCBz
-dGF0aWMgaW50IHh0X2N0X3RnX2NoZWNrX3YxKGNvbnN0IHN0cnVjdCB4dF90Z2Noa19wYXJhbSAq
-cGFyKQ0KPiAgDQo+ICAjaWZuZGVmIENPTkZJR19ORl9DT05OVFJBQ0tfWk9ORVMNCj4gIAlpZiAo
-aW5mby0+em9uZSkNCj4gLQkJZ290byBlcnIxOw0KPiArCQlyZXR1cm4gLUVJTlZBTDsNCj4gICNl
-bmRpZg0KDQpJbiBkcm9wcGluZyBib3RoIGdvdG8ncywgeW91IGxlZnQgdGhlIGVycjEgbGFiZWwg
-dW51c2VkLiAgV291bGRuJ3QganVzdA0KaW5pdGlhbGl6aW5nIHJldCB0byAtRUlOVkFMIGJlIGVh
-c2llciBhbmQgY2xlYW5lcj8gIFRoZW4geW91IHdvdWxkbid0IGJlDQptZXNzaW5nIHdpdGggdGhl
-IGZsb3cgb2YgdGhlIGZ1bmN0aW9uLg0KDQotUEoNCg==
+On Tue, Jan 15, 2013 at 07:06:51PM +0000, Waskiewicz Jr, Peter P wrote:
+> On Tue, 2013-01-15 at 19:58 +0100, Cong Ding wrote:
+> > If CONFIG_NF_CONNTRACK_ZONES is not defined, the variable ret might be
+> > uninitialized when it goes to err1 through line 125 and 263 respectively.
+> > So I change these goto err1 to return -EINVAL directly.
+> > 
+> > Signed-off-by: Cong Ding <dinggnu@gmail.com>
+> > ---
+> >  net/netfilter/xt_CT.c |    4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+> > index 2a08430..941f600 100644
+> > --- a/net/netfilter/xt_CT.c
+> > +++ b/net/netfilter/xt_CT.c
+> > @@ -122,7 +122,7 @@ static int xt_ct_tg_check_v0(const struct xt_tgchk_param *par)
+> >  
+> >  #ifndef CONFIG_NF_CONNTRACK_ZONES
+> >  	if (info->zone)
+> > -		goto err1;
+> > +		return -EINVAL;
+> >  #endif
+> >  
+> >  	ret = nf_ct_l3proto_try_module_get(par->family);
+> > @@ -260,7 +260,7 @@ static int xt_ct_tg_check_v1(const struct xt_tgchk_param *par)
+> >  
+> >  #ifndef CONFIG_NF_CONNTRACK_ZONES
+> >  	if (info->zone)
+> > -		goto err1;
+> > +		return -EINVAL;
+> >  #endif
+> 
+> In dropping both goto's, you left the err1 label unused.  Wouldn't just
+> initializing ret to -EINVAL be easier and cleaner?  Then you wouldn't be
+> messing with the flow of the function.
+The label err1 are also used in line 130 and 298. I change it to "return
+-EINVAL" rather than initialize ret to -EINVAL is to keep it the same as line
+115 and 253.  Otherwise, we should change line 115 and 253 to be goto err1,
+too?
+- cong
