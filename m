@@ -1,38 +1,60 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/3] netfilter fixes for 3.8-rc3
-Date: Mon, 14 Jan 2013 18:27:29 -0500 (EST)
-Message-ID: <20130114.182729.2180886298032512388.davem@davemloft.net>
-References: <1358205845-8522-1-git-send-email-pablo@netfilter.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: state match is obsolete 1.4.17
+Date: Tue, 15 Jan 2013 11:06:12 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1301151102490.11129@blackhole.kfki.hu>
+References: <CAMD-=V+PhM3NLpWyxB0G4KUN6D+-XKL0PZCBAuyUXUw56gmuJw@mail.gmail.com> <alpine.LNX.2.01.1301150958390.16853@nerf07.vanv.qr> <50F5273F.5020205@inliniac.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1358205845-8522-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Jan Engelhardt <jengelh@inai.de>,
+	Nick Edwards <nick.z.edwards@gmail.com>,
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Victor Julien <lists@inliniac.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-in.kfki.hu ([148.6.0.26]:33198 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750872Ab3AOKGO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Jan 2013 05:06:14 -0500
+In-Reply-To: <50F5273F.5020205@inliniac.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: pablo@netfilter.org
-Date: Tue, 15 Jan 2013 00:24:02 +0100
+On Tue, 15 Jan 2013, Victor Julien wrote:
 
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> On 01/15/2013 10:11 AM, Jan Engelhardt wrote:
+> > 
+> > On Tuesday 2013-01-15 06:09, Nick Edwards wrote:
+> > 
+> >> WARNING: The state match is obsolete. Use conntrack instead.
+> >>
+> >> Getting these errors since upgrading to 1.4.17
+> > 
+> > It is a warning, not an error. (An error would not let use you
+> > the command at all.)
+> > 
+> >> Am I right in assuming that :
+> >> iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+> >> must now become :
+> >> iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+> >> or does that not do the same thing?
+> > 
+> > state is a redundant subset of conntrack (the latter was introduced around
+> > Linux 2.5.32) and shall go away.
 > 
-> Hi David,
-> 
-> The following patchset contains netfilter fixes for 3.8-rc3,
-> they are:
-> 
-> * fix possible BUG_ON if several netns are in use and the nf_conntrack
->   module is removed, initial patch from Gao feng, final patch from myself.
-> 
-> * fix unset return value if conntrack zone are disabled at
->   compile-time, reported by Borislav Petkov, fix from myself.
-> 
-> * fix display error message via dmesg for arp_tables, from Jan Engelhardt.
-> 
-> You can pull these changes from:
-> 
-> git://1984.lsi.us.es/nf master
+> I think removing it is a bad idea. For years and years all docs, books,
+> tutorials and frontends (like my own) have worked with "state". The
+> change seems so trivial "s/-m state --state/-m conntrack --ctstate/g"
+> that it would appear keeping "state" around as an alias or compatibility
+> layer would require minimal effort. Why not keep it around?
 
-Pulled, thanks Pablo.
+Actually, I have to agree. Why don't we keep "state" as an alias and 
+accept the old syntax in "conntrack"?
+
+What's the compelling reason to break countless scripts?
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
