@@ -1,118 +1,198 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: state match is obsolete 1.4.17
-Date: Wed, 16 Jan 2013 01:11:09 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1301160105200.8938@nerf07.vanv.qr>
-References: <CAMD-=V+PhM3NLpWyxB0G4KUN6D+-XKL0PZCBAuyUXUw56gmuJw@mail.gmail.com> <alpine.LNX.2.01.1301150958390.16853@nerf07.vanv.qr> <CAMD-=V+p0gv+amQearBpGPD0q3zALUEfQj6xCoTTg197jN3_5A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter user mailing list <netfilter@vger.kernel.org>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Nick Edwards <nick.z.edwards@gmail.com>
+From: Jiri Pirko <jiri@resnulli.us>
+Subject: [patch net-next] doc: add nf_conntrack sysctl api documentation
+Date: Wed, 16 Jan 2013 13:44:17 +0100
+Message-ID: <1358340257-1902-1-git-send-email-jiri@resnulli.us>
+Cc: davem@davemloft.net, rob@landley.net, linux-doc@vger.kernel.org,
+	kuznet@ms2.inr.ac.ru, jmorris@namei.org, yoshfuji@linux-ipv6.org,
+	pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org
+To: netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:40109 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932415Ab3APALL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jan 2013 19:11:11 -0500
-In-Reply-To: <CAMD-=V+p0gv+amQearBpGPD0q3zALUEfQj6xCoTTg197jN3_5A@mail.gmail.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:45846 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752776Ab3APMoX (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 Jan 2013 07:44:23 -0500
+Received: by mail-wi0-f178.google.com with SMTP id hn3so1185363wib.11
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Jan 2013 04:44:22 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+I grepped through the code and picked bits about nf_conntrack sysctl api
+and put that into one documentation file.
 
-On Wednesday 2013-01-16 00:27, Nick Edwards wrote:
->> On Tuesday 2013-01-15 06:09, Nick Edwards wrote:
->>
->>>WARNING: The state match is obsolete. Use conntrack instead.
->>>Getting these errors since upgrading to 1.4.17
->>
->> It is a warning, not an error. (An error would not let use you
->> the command at all.)
->
->I can understand that if there is a lot of pre warning, as others have
->mentioned, most guides show the former..
->And can you confirm my change is the correct method to obtain the same
->net result please?
-
-Yes.
-
->Maybe the warning could be changed to
->WARNING: The state match is deprecated and will eventually go away.
->Use conntrack instead.
->That wont panic people into thinking the rule is not working.
-
-Cannot guarantee that it will make it in, but I support your
-position with this patch.
-
-
-git://git.inai.de/iptables obsol
->From 6ef6c8821c26d5a8738cf90e397972c97986ac98 Mon Sep 17 00:00:00 2001
-From: Jan Engelhardt <jengelh@inai.de>
-Date: Wed, 16 Jan 2013 01:03:40 +0100
-Subject: [PATCH] iptables: reword warning on using an alias
-
-This by suggestion of Nick Edward.
-
-References: http://marc.info/?l=netfilter&m=135829245822520&w=2
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+Signed-off-by: Jiri Pirko <jiri@resnulli.us>
 ---
- iptables/ip6tables.c |    9 +++++----
- iptables/iptables.c  |    9 +++++----
- 2 files changed, 10 insertions(+), 8 deletions(-)
+ Documentation/networking/nf_conntrack-sysctl.txt | 160 +++++++++++++++++++++++
+ 1 file changed, 160 insertions(+)
+ create mode 100644 Documentation/networking/nf_conntrack-sysctl.txt
 
-diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
-index 556647f..ba71aca 100644
---- a/iptables/ip6tables.c
-+++ b/iptables/ip6tables.c
-@@ -1229,8 +1229,8 @@ static void command_jump(struct iptables_command_state *cs)
- 		strcpy(cs->target->t->u.user.name, cs->jumpto);
- 	} else {
- 		strcpy(cs->target->t->u.user.name, cs->target->real_name);
--		fprintf(stderr, "WARNING: The %s target is obsolete. "
--		        "Use %s instead.\n",
-+		fprintf(stderr, "WARNING: The %s target is obsolete and will "
-+		        "eventually go away. Use %s instead.\n",
- 		        cs->jumpto, cs->target->real_name);
- 	}
- 	cs->target->t->u.user.revision = cs->target->revision;
-@@ -1265,8 +1265,9 @@ static void command_match(struct iptables_command_state *cs)
- 		strcpy(m->m->u.user.name, m->name);
- 	} else {
- 		strcpy(m->m->u.user.name, m->real_name);
--		fprintf(stderr, "WARNING: The %s match is obsolete. "
--		        "Use %s instead.\n", m->name, m->real_name);
-+		fprintf(stderr, "WARNING: The %s match is obsolete and will "
-+		        "eventually go away. Use %s instead.\n",
-+		        m->name, m->real_name);
- 	}
- 	m->m->u.user.revision = m->revision;
- 
-diff --git a/iptables/iptables.c b/iptables/iptables.c
-index 00e3f01..f0dc14b 100644
---- a/iptables/iptables.c
-+++ b/iptables/iptables.c
-@@ -1222,8 +1222,8 @@ static void command_jump(struct iptables_command_state *cs)
- 	} else {
- 		/* Alias support for userspace side */
- 		strcpy(cs->target->t->u.user.name, cs->target->real_name);
--		fprintf(stderr, "WARNING: The %s target is obsolete. "
--		        "Use %s instead.\n",
-+		fprintf(stderr, "WARNING: The %s target is obsolete and will "
-+		        "eventually go away. Use %s instead.\n",
- 		        cs->jumpto, cs->target->real_name);
- 	}
- 	cs->target->t->u.user.revision = cs->target->revision;
-@@ -1259,8 +1259,9 @@ static void command_match(struct iptables_command_state *cs)
- 		strcpy(m->m->u.user.name, m->name);
- 	} else {
- 		strcpy(m->m->u.user.name, m->real_name);
--		fprintf(stderr, "WARNING: The %s match is obsolete. "
--		        "Use %s instead.\n", m->name, m->real_name);
-+		fprintf(stderr, "WARNING: The %s match is obsolete and will "
-+		        "eventually go away. Use %s instead.\n",
-+		        m->name, m->real_name);
- 	}
- 	m->m->u.user.revision = m->revision;
- 
+diff --git a/Documentation/networking/nf_conntrack-sysctl.txt b/Documentation/networking/nf_conntrack-sysctl.txt
+new file mode 100644
+index 0000000..ab5f977
+--- /dev/null
++++ b/Documentation/networking/nf_conntrack-sysctl.txt
+@@ -0,0 +1,160 @@
++/proc/sys/net/netfilter/nf_conntrack_* Variables:
++
++nf_conntrack_acct - BOOLEAN
++	0 - disabled (default)
++	not 0 - enabled
++
++	Enable connection tracking flow accounting.
++
++nf_conntrack_buckets - INTEGER (read-only)
++	Size of hash table. Value is computed in nf_conntrack_init_init_net()
++	and it basically depends on total memory size.
++
++nf_conntrack_checksum - BOOLEAN
++	0 - disabled
++	not 0 - enabled (default)
++
++	Enable connection tracking checksuming.
++
++nf_conntrack_count - INTEGER (read-only)
++	Number of currently allocated conntracks.
++
++nf_conntrack_events - BOOLEAN
++	0 - disabled
++	not 0 - enabled (default)
++
++	If this option is enabled, the connection tracking code will provide
++	a notifier chain that can be used by other kernel code to get notified
++	about changes in the connection tracking state.
++
++nf_conntrack_events_retry_timeout - INTEGER (seconds)
++	default 15
++
++	Timeout after which destroy event will be delivered.
++
++nf_conntrack_expect_max - INTEGER
++	Maximum size of expectation table. Default value is computed in
++	nf_conntrack_expect_init() and depends on nf_conntrack_buckets value.
++
++nf_conntrack_frag6_high_thresh - INTEGER
++	default 262144
++
++	Maximum memory used to reassemble IPv6 fragments. When
++	nf_conntrack_frag6_high_thresh bytes of memory is allocated for this
++	purpose, the fragment handler will toss packets until
++	nf_conntrack_frag6_low_thresh is reached.
++
++nf_conntrack_frag6_low_thresh - INTEGER
++	default 196608
++
++	See nf_conntrack_frag6_low_thresh
++
++nf_conntrack_frag6_timeout - INTEGER (seconds)
++	default 60
++
++	Time to keep an IPv6 fragment in memory.
++
++nf_conntrack_generic_timeout - INTEGER (seconds)
++	default 600
++
++	Default for generic timeout.
++
++nf_conntrack_helper - BOOLEAN
++	0 - disabled
++	not 0 - enabled (default)
++
++	Enable automatic conntrack helper assignment.
++
++nf_conntrack_icmp_timeout - INTEGER (seconds)
++	default 30
++
++	Default for ICMP timeout.
++
++nf_conntrack_icmpv6_timeout - INTEGER (seconds)
++	default 30
++
++	Default for ICMP6 timeout.
++
++nf_conntrack_log_invalid - INTEGER
++	0 - disabled (default)
++	IPPROTO_RAW (log packets of any proto)
++	IPPROTO_TCP
++	IPPROTO_ICMP
++	IPPROTO_ICMPV6
++	IPPROTO_DCCP
++	IPPROTO_UDP
++	IPPROTO_UDPLITE
++
++	For values, see <linux/in.h>
++
++	Log invalid packets of a type specified by value.
++
++nf_conntrack_max - INTEGER
++	Size of connection tracking table. Default value is computed in
++	nf_conntrack_init_init_net() and depends on nf_conntrack_buckets value.
++
++nf_conntrack_tcp_be_liberal - BOOLEAN
++	0 - disabled (default)
++	not 0 - enabled
++
++	Be conservative in what you do, be liberal in what you accept from others.
++	If it's non-zero, we mark only out of window RST segments as INVALID.
++
++nf_conntrack_tcp_loose - BOOLEAN
++	0 - disabled
++	not 0 - enabled (default)
++
++	If it is set to zero, we disable picking up already established
++	connections.
++
++nf_conntrack_tcp_max_retrans - INTEGER
++	default 3
++
++	Max number of the retransmitted packets without receiving an
++	(acceptable) ACK from the destination. If this number is reached,
++	a shorter timer will be started.
++
++nf_conntrack_tcp_timeout_close - INTEGER (seconds)
++	default 10
++
++nf_conntrack_tcp_timeout_close_wait - INTEGER (seconds)
++	default 60
++
++nf_conntrack_tcp_timeout_established - INTEGER (seconds)
++	default 432000 (5 days)
++
++nf_conntrack_tcp_timeout_fin_wait - INTEGER (seconds)
++	default 120
++
++nf_conntrack_tcp_timeout_last_ack - INTEGER (seconds)
++	default 30
++
++nf_conntrack_tcp_timeout_max_retrans - INTEGER (seconds)
++	default 300
++
++nf_conntrack_tcp_timeout_syn_recv - INTEGER (seconds)
++	default 60
++
++nf_conntrack_tcp_timeout_syn_sent - INTEGER (seconds)
++	default 120
++
++nf_conntrack_tcp_timeout_time_wait - INTEGER (seconds)
++	default 120
++
++nf_conntrack_tcp_timeout_unacknowledged - INTEGER (seconds)
++	default 300
++
++nf_conntrack_timestamp - BOOLEAN
++	0 - disabled (default)
++	not 0 - enabled
++
++	Enable connection tracking flow timestamping.
++
++nf_conntrack_udp_timeout - INTEGER (seconds)
++	default 30
++
++nf_conntrack_udp_timeout_stream2 - INTEGER (seconds)
++	default 180
++
++	This extended timeout will be used in case there is an UDP stream
++	detected.
 -- 
-1.7.10.4
+1.8.1
 
