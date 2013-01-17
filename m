@@ -1,53 +1,24 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v4] netfilter: nf_conntrack_sip: Handle Cisco 7941/7945
- IP phones
-Date: Fri, 18 Jan 2013 00:35:39 +0100
-Message-ID: <20130117233539.GA15576@1984>
-References: <1355805238-2460-1-git-send-email-cernekee@gmail.com>
+Subject: Re: [PATCH] netfilter: add include file to nf_conntrack_snmp.c
+Date: Fri, 18 Jan 2013 00:36:37 +0100
+Message-ID: <20130117233637.GA15922@1984>
+References: <20121228201708.77f1c376@nehalam.linuxnetplumber.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: David Woodhouse <dwmw2@infradead.org>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	Gabor Juhos <juhosg@openwrt.org>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Kevin Cernekee <cernekee@gmail.com>
-Return-path: <netfilter-owner@vger.kernel.org>
+Cc: David Miller <davem@davemloft.net>, netfilter-devel@vger.kernel.org
+To: Stephen Hemminger <shemminger@vyatta.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:35435 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751058Ab3AQXgk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Jan 2013 18:36:40 -0500
 Content-Disposition: inline
-In-Reply-To: <1355805238-2460-1-git-send-email-cernekee@gmail.com>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20121228201708.77f1c376@nehalam.linuxnetplumber.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Dec 17, 2012 at 08:33:58PM -0800, Kevin Cernekee wrote:
-> Most SIP devices use a source port of 5060/udp on SIP requests, so the
-> response automatically comes back to port 5060:
-> 
->     phone_ip:5060 -> proxy_ip:5060   REGISTER
->     proxy_ip:5060 -> phone_ip:5060   100 Trying
-> 
-> The newer Cisco IP phones, however, use a randomly chosen high source
-> port for the SIP request but expect the response on port 5060:
-> 
->     phone_ip:49173 -> proxy_ip:5060  REGISTER
->     proxy_ip:5060 -> phone_ip:5060   100 Trying
-> 
-> Standard Linux NAT, with or without nf_nat_sip, will send the reply back
-> to port 49173, not 5060:
-> 
->     phone_ip:49173 -> proxy_ip:5060  REGISTER
->     proxy_ip:5060 -> phone_ip:49173  100 Trying
-> 
-> But the phone is not listening on 49173, so it will never see the reply.
-> 
-> This patch modifies nf_*_sip to work around this quirk by extracting
-> the SIP response port from the Via: header, iff the source IP in the
-> packet header matches the source IP in the SIP request.
+On Fri, Dec 28, 2012 at 08:17:08PM -0800, Stephen Hemminger wrote:
+> Prototype for nf_nat_snmp_hook is in nf_conntrack_snmp.h therefore
+> it should be included to get type checking. Found by sparse.
 
-Applied, thanks Kevin.
+Applied, thanks Stephen.
