@@ -1,41 +1,45 @@
 From: Eric Leblond <eric@regit.org>
-Subject: [PATCH 2/4] Fix warning on format
-Date: Sat, 19 Jan 2013 10:53:49 +0100
-Message-ID: <1358589231-1358-3-git-send-email-eric@regit.org>
+Subject: [PATCH 3/4] base: fix warning on pointer handling
+Date: Sat, 19 Jan 2013 10:53:50 +0100
+Message-ID: <1358589231-1358-4-git-send-email-eric@regit.org>
 References: <1358589231-1358-1-git-send-email-eric@regit.org>
 Cc: eric@regit.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:37680 "EHLO
+Received: from ks28632.kimsufi.com ([91.121.96.152]:37681 "EHLO
 	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751889Ab3ASJyg (ORCPT
+	with ESMTP id S1751890Ab3ASJyh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 19 Jan 2013 04:54:36 -0500
+	Sat, 19 Jan 2013 04:54:37 -0500
 In-Reply-To: <1358589231-1358-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It seems Z is a libc5 only format modifier. Using standard 'z'
-instead.
 
 Signed-off-by: Eric Leblond <eric@regit.org>
 ---
- util/printpkt.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ filter/raw2packet/ulogd_raw2packet_BASE.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/util/printpkt.c b/util/printpkt.c
-index 3983a68..6b646e9 100644
---- a/util/printpkt.c
-+++ b/util/printpkt.c
-@@ -299,7 +299,7 @@ static int printpkt_ipv6(struct ulogd_key *res, char *buf)
- 				   (char *) ikey_get_ptr(&res[KEY_IP_DADDR]));
+diff --git a/filter/raw2packet/ulogd_raw2packet_BASE.c b/filter/raw2packet/ulogd_raw2packet_BASE.c
+index 8a6b4da..8dfe38e 100644
+--- a/filter/raw2packet/ulogd_raw2packet_BASE.c
++++ b/filter/raw2packet/ulogd_raw2packet_BASE.c
+@@ -895,10 +895,10 @@ static int _interp_arp(struct ulogd_pluginstance *pi, u_int32_t len)
+ 	okey_set_u16(&ret[KEY_ARP_PTYPE], ntohs(arph->arp_pro));
+ 	okey_set_u16(&ret[KEY_ARP_OPCODE], ntohs(arph->arp_op));
  
- 	if (pp_is_valid(res, KEY_IP6_PAYLOAD_LEN))
--		buf_cur += sprintf(buf_cur, "LEN=%Zu ",
-+		buf_cur += sprintf(buf_cur, "LEN=%zu ",
- 				   ikey_get_u16(&res[KEY_IP6_PAYLOAD_LEN]) +
- 				   sizeof(struct ip6_hdr));
+-	okey_set_ptr(&ret[KEY_ARP_SHA], &arph->arp_sha);
+-	okey_set_ptr(&ret[KEY_ARP_SPA], &arph->arp_spa),
+-	okey_set_ptr(&ret[KEY_ARP_THA], &arph->arp_tha);
+-	okey_set_ptr(&ret[KEY_ARP_TPA], &arph->arp_tpa);
++	okey_set_ptr(&ret[KEY_ARP_SHA], (void *)&arph->arp_sha);
++	okey_set_ptr(&ret[KEY_ARP_SPA], (void *)&arph->arp_spa),
++	okey_set_ptr(&ret[KEY_ARP_THA], (void *)&arph->arp_tha);
++	okey_set_ptr(&ret[KEY_ARP_TPA], (void *)&arph->arp_tpa);
  
+ 	return ULOGD_IRET_OK;
+ }
 -- 
 1.7.10.4
 
