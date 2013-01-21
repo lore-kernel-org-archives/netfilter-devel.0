@@ -1,42 +1,27 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH next] iptables: add xt_bpf match
-Date: Mon, 21 Jan 2013 12:42:20 +0100
-Message-ID: <20130121114220.GB8541@breakpoint.cc>
-References: <CA+FuTSeU8m8Hect+2cT6QOmfNH3oJ8mASOat-zn3-3WwJxJNZg@mail.gmail.com>
- <1358529450-32413-1-git-send-email-willemb@google.com>
- <20130121112838.GA2907@1984>
- <20130121113328.GA3698@1984>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [patch v3] doc: add nf_conntrack sysctl api documentation
+Date: Mon, 21 Jan 2013 12:52:02 +0100
+Message-ID: <20130121115202.GA5074@1984>
+References: <1358499908-1268-1-git-send-email-jiri@resnulli.us>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:51150 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752544Ab3AULmV (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jan 2013 06:42:21 -0500
+Cc: netdev@vger.kernel.org, davem@davemloft.net, rob@landley.net,
+	linux-doc@vger.kernel.org, kuznet@ms2.inr.ac.ru, jmorris@namei.org,
+	yoshfuji@linux-ipv6.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org, fw@strlen.de,
+	Neal Murphy <neal.p.murphy@alum.wpi.edu>
+To: Jiri Pirko <jiri@resnulli.us>
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130121113328.GA3698@1984>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1358499908-1268-1-git-send-email-jiri@resnulli.us>
+Sender: linux-doc-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Mon, Jan 21, 2013 at 12:28:38PM +0100, Pablo Neira Ayuso wrote:
-> > Hi Willem,
-> > 
-> > I have applied this patch to my nf-next tree with minor changes.
+On Fri, Jan 18, 2013 at 10:05:08AM +0100, Jiri Pirko wrote:
+> I grepped through the code and picked bits about nf_conntrack sysctl api
+> and put that into one documentation file.
 
-[..]
+Applied, thanks a lot Jiri.
 
-> diff --git a/include/uapi/linux/netfilter/Kbuild b/include/uapi/linux/netfilter/Kbuild
-> index 08f555f..8b4bd36 100644
-> --- a/include/uapi/linux/netfilter/Kbuild
-> +++ b/include/uapi/linux/netfilter/Kbuild
-> @@ -35,6 +35,7 @@ header-y += xt_TCPOPTSTRIP.h
->  header-y += xt_TEE.h
->  header-y += xt_TPROXY.h
->  header-y += xt_addrtype.h
-> +header-y += xt_bpf.h
-
-Good catch. I forgot about that too, so xt_connlabel.h is also missing.
+I have also included some grammar improvements that Neil Murphy has
+proposed (he seems to have accidentally trimmed off the CC list).
