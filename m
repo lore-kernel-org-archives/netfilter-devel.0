@@ -1,75 +1,72 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH next v3] iptables: add xt_bpf match
-Date: Tue, 22 Jan 2013 12:11:48 +0100
-Message-ID: <20130122111148.GA3897@1984>
-References: <1357776502-21555-1-git-send-email-willemb@google.com>
- <1357776944-28805-1-git-send-email-willemb@google.com>
- <20130117235328.GA16224@1984>
- <CA+FuTSeU8m8Hect+2cT6QOmfNH3oJ8mASOat-zn3-3WwJxJNZg@mail.gmail.com>
- <20130121134434.GA12865@1984>
- <20130122084657.GE8541@breakpoint.cc>
- <alpine.DEB.2.00.1301221021060.31599@blackhole.kfki.hu>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH]: Keep the "state" match as alias [Re: state match is
+ obsolete 1.4.17]
+Date: Tue, 22 Jan 2013 22:47:35 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1301222234010.1424@blackhole.kfki.hu>
+References: <CAMD-=V+PhM3NLpWyxB0G4KUN6D+-XKL0PZCBAuyUXUw56gmuJw@mail.gmail.com> <alpine.LNX.2.01.1301150958390.16853@nerf07.vanv.qr> <50F5273F.5020205@inliniac.net> <alpine.DEB.2.00.1301151102490.11129@blackhole.kfki.hu> <alpine.LNX.2.01.1301151342440.19279@nerf07.vanv.qr>
+ <alpine.DEB.2.00.1301151406540.11172@blackhole.kfki.hu> <alpine.LNX.2.01.1301151444250.20224@nerf07.vanv.qr> <alpine.DEB.2.00.1301151534360.11172@blackhole.kfki.hu> <alpine.DEB.2.00.1301151820230.12091@blackhole.kfki.hu> <20130118002818.GA19003@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-	Willem de Bruijn <willemb@google.com>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Jan Engelhardt <jengelh@inai.de>,
+	Victor Julien <lists@inliniac.net>,
+	Nick Edwards <nick.z.edwards@gmail.com>,
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49215 "EHLO mail.us.es"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:55934 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751635Ab3AVLL6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Jan 2013 06:11:58 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1301221021060.31599@blackhole.kfki.hu>
+	id S1751123Ab3AVVri (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Jan 2013 16:47:38 -0500
+In-Reply-To: <20130118002818.GA19003@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 22, 2013 at 10:46:17AM +0100, Jozsef Kadlecsik wrote:
-> On Tue, 22 Jan 2013, Florian Westphal wrote:
-> 
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > On Fri, Jan 18, 2013 at 11:48:34AM -0500, Willem de Bruijn wrote:
-> > > [...]
-> > > > To compile code right now, the little bpf compiler that I emailed
-> > > > before can be downloaded from
-> > > > http://code.google.com/p/kernel/downloads/detail?name=bpf2decimal.c
-> > > > 
-> > > > I don't think that a compiler has to be shipped with iptables itself,
-> > > > let alone make iptables link against libraries. That said,  it is not
-> > > > impossible to detect pcap.h in configure.ac and optionally enable a
-> > > > "-m bpf --string" mode that calls pcap_compile_nopcap from within
-> > > > libxt_bpf, so let me know if you would like me to code that up. I can
-> > > > also try to send a patch to tcpdump that extends compilation (`-ddd -y
-> > > > <type>`) to arbitrary link layer types.
-> > > 
-> > > We have to decide if:
-> > > 
-> > > a) we add a new hard library dependency to iptables (libpcap) for just
-> > > for one single module, that is, the libxt_bpf depends on libpcap.
-> > > 
-> > > or
-> > > 
-> > > b) provide a separate utility to generate the BPF filter in text-based
-> > > format from some utility that accepts tcpdump-like syntax. The utility
-> > > can be distributed in the utils directory and it would not be
-> > > mandatory to compile it if libpcap is not present.
-> > > 
-> > > I'd like to hear pro and cons arguments from others on this.
-> > 
-> > a) is arguably more user friendly, however, I don't think we can
-> >    retain the 'text representation' for iptables-save so users
-> >    would still be confronted with the compiled data at some point
-> >    (i.e., they need to write down the original expression anyway to
-> >     figure out what the rule they added 6 months back actually does...)
-> > 
-> > I would go with b) for now; we can always move to a) later on, but not
-> > the other way around (would kill backwards compatibility).
-> 
-> Yes, let's go with b). (But from packaging point of view 
-> utils/bpf2decimal.c depending on libpcap is not much different from 
-> extensions/libxt_bpf.c depending on libpcap.)
+On Fri, 18 Jan 2013, Pablo Neira Ayuso wrote:
 
-We can skip that dependency by adding an independent configure.ac and
-Makefile for this under iptables/utils/nfbpf. Thus, iptables itself
-will not depend on libpcap.
+> On Tue, Jan 15, 2013 at 06:28:11PM +0100, Jozsef Kadlecsik wrote:
+> > On Tue, 15 Jan 2013, Jozsef Kadlecsik wrote:
+> > 
+> > > With passing one more internal flag, indicating that the "state" alias is 
+> > > used, the "conntrack" module can remain completely hidden and the user can 
+> > > list/save exactly the same command as the issued one.
+> > 
+> > Here follows the patch which introduces match module aliases (the same can 
+> > be done for targets as well). The alias is handled as it were a real 
+> > extension while it's actually handled by another module. Listing/saving 
+> > keeps the alias name and options.
+> > 
+> > The "state" extension is the first example of such an alias.
+> 
+> I like this symmetrical aliasing approach.
+> 
+> The aim is to get rid of redundant things in the kernel. And with
+> this, we can get that without disturbing users.
+> 
+> Would you do the same for the NOTRACK target?
+
+Yes, but looking through the modules, I see a lot of inconsistencies: in 
+listing match names capitalized, some match/target doesn't print its name, 
+missing whitespaces, etc.
+
+I'm going to fix those, but quite a lot of simplification could be 
+achieved if the options at listing and saving could be generated by the 
+same function in a match/target. Like instead of
+
+	ttl match TTL == xxx
+
+I propose to list the match as
+
+	ttl eq xxx
+
+(That is generate listings by striping off the dashes and the match/target 
+name prefix from the options.)
+
+The question is: do we have a "stable API" in listings, at this level?
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
