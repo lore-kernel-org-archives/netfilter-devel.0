@@ -1,17 +1,17 @@
 From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: [PATCH nf-next 06/11] netfilter: timeout: move initial codes out of pernet_operations
-Date: Tue, 22 Jan 2013 16:10:29 +0800
-Message-ID: <1358842234-15005-6-git-send-email-gaofeng@cn.fujitsu.com>
+Subject: [PATCH nf-next 09/11] netfilter: proto: move initial codes out of pernet_operations
+Date: Tue, 22 Jan 2013 16:10:32 +0800
+Message-ID: <1358842234-15005-9-git-send-email-gaofeng@cn.fujitsu.com>
 References: <1358842234-15005-1-git-send-email-gaofeng@cn.fujitsu.com>
 Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
 	canqunzhang@gmail.com, ebiederm@xmission.com,
 	Gao feng <gaofeng@cn.fujitsu.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:43830 "EHLO song.cn.fujitsu.com"
+Received: from cn.fujitsu.com ([222.73.24.84]:61479 "EHLO song.cn.fujitsu.com"
 	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752074Ab3AVIKo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Jan 2013 03:10:44 -0500
+	id S1753415Ab3AVIKs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Jan 2013 03:10:48 -0500
 In-Reply-To: <1358842234-15005-1-git-send-email-gaofeng@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -20,132 +20,146 @@ Move the global initial codes to the module_init/exit context.
 
 Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
 ---
- include/net/netfilter/nf_conntrack_timeout.h |  8 ++++----
- net/netfilter/nf_conntrack_core.c            | 15 ++++++++-------
- net/netfilter/nf_conntrack_timeout.c         | 23 +++++++----------------
- 3 files changed, 19 insertions(+), 27 deletions(-)
+ include/net/netfilter/nf_conntrack_core.h |  7 +++++--
+ net/netfilter/nf_conntrack_core.c         | 13 +++++++++---
+ net/netfilter/nf_conntrack_proto.c        | 34 +++++++++++++++++--------------
+ 3 files changed, 34 insertions(+), 20 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_timeout.h b/include/net/netfilter/nf_conntrack_timeout.h
-index e41e472..d23aceb 100644
---- a/include/net/netfilter/nf_conntrack_timeout.h
-+++ b/include/net/netfilter/nf_conntrack_timeout.h
-@@ -76,15 +76,15 @@ nf_ct_timeout_lookup(struct net *net, struct nf_conn *ct,
- }
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index e05c1f6..930275fa 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -28,8 +28,11 @@ extern unsigned int nf_conntrack_in(struct net *net,
+ extern int nf_conntrack_init_net(struct net *net);
+ extern void nf_conntrack_cleanup_net(struct net *net);
  
- #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
--extern int nf_conntrack_timeout_init(struct net *net);
--extern void nf_conntrack_timeout_fini(struct net *net);
-+extern int nf_conntrack_timeout_init(void);
-+extern void nf_conntrack_timeout_fini(void);
- #else
--static inline int nf_conntrack_timeout_init(struct net *net)
-+static inline int nf_conntrack_timeout_init(void)
- {
-         return 0;
- }
+-extern int nf_conntrack_proto_init(struct net *net);
+-extern void nf_conntrack_proto_fini(struct net *net);
++extern int nf_conntrack_proto_pernet_init(struct net *net);
++extern void nf_conntrack_proto_pernet_fini(struct net *net);
++
++extern int nf_conntrack_proto_init(void);
++extern void nf_conntrack_proto_fini(void);
  
--static inline void nf_conntrack_timeout_fini(struct net *net)
-+static inline void nf_conntrack_timeout_fini(void)
- {
-         return;
- }
+ extern int nf_conntrack_init_start(void);
+ extern void nf_conntrack_cleanup_start(void);
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 048fe77..4f4d107 100644
+index a4a3bcf..c8e001a 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
 @@ -1348,6 +1348,7 @@ void nf_conntrack_cleanup_end(void)
  #ifdef CONFIG_NF_CONNTRACK_ZONES
  	nf_ct_extend_unregister(&nf_ct_zone_extend);
  #endif
-+	nf_conntrack_timeout_fini();
- 	nf_conntrack_ecache_fini();
- 	nf_conntrack_tstamp_fini();
- 	nf_conntrack_acct_fini();
-@@ -1378,7 +1379,6 @@ void nf_conntrack_cleanup_net(struct net *net)
- 	nf_conntrack_proto_fini(net);
- 	nf_conntrack_labels_fini(net);
- 	nf_conntrack_helper_fini(net);
--	nf_conntrack_timeout_fini(net);
++	nf_conntrack_proto_fini();
+ 	nf_conntrack_labels_fini();
+ 	nf_conntrack_helper_fini();
+ 	nf_conntrack_timeout_fini();
+@@ -1378,7 +1379,7 @@ void nf_conntrack_cleanup_net(struct net *net)
+ 	}
+ 
+ 	nf_ct_free_hashtable(net->ct.hash, net->ct.htable_size);
+-	nf_conntrack_proto_fini(net);
++	nf_conntrack_proto_pernet_fini(net);
+ 	nf_conntrack_helper_pernet_fini(net);
  	nf_conntrack_ecache_pernet_fini(net);
  	nf_conntrack_tstamp_pernet_fini(net);
- 	nf_conntrack_acct_pernet_fini(net);
-@@ -1522,6 +1522,10 @@ int nf_conntrack_init_start(void)
+@@ -1540,6 +1541,10 @@ int nf_conntrack_init_start(void)
  	if (ret < 0)
- 		goto err_ecache;
- 
-+	ret = nf_conntrack_timeout_init();
-+	if (ret < 0)
-+		goto err_timeout;
-+
- #ifdef CONFIG_NF_CONNTRACK_ZONES
- 	ret = nf_ct_extend_register(&nf_ct_zone_extend);
- 	if (ret < 0)
-@@ -1539,8 +1543,10 @@ int nf_conntrack_init_start(void)
- 
- #ifdef CONFIG_NF_CONNTRACK_ZONES
- err_extend:
--	nf_conntrack_ecache_fini();
-+	nf_conntrack_timeout_fini();
+ 		goto err_extend;
  #endif
-+err_timeout:
-+	nf_conntrack_ecache_fini();
- err_ecache:
- 	nf_conntrack_tstamp_fini();
- err_tstamp:
-@@ -1616,9 +1622,6 @@ int nf_conntrack_init_net(struct net *net)
- 	ret = nf_conntrack_ecache_pernet_init(net);
- 	if (ret < 0)
- 		goto err_ecache;
--	ret = nf_conntrack_timeout_init(net);
--	if (ret < 0)
--		goto err_timeout;
- 	ret = nf_conntrack_helper_init(net);
++	ret = nf_conntrack_proto_init();
++	if (ret < 0)
++		goto err_proto;
++
+ 	/* Set up fake conntrack: to never be deleted, not in any hashes */
+ 	for_each_possible_cpu(cpu) {
+ 		struct nf_conn *ct = &per_cpu(nf_conntrack_untracked, cpu);
+@@ -1550,10 +1555,12 @@ int nf_conntrack_init_start(void)
+ 	nf_ct_untracked_status_or(IPS_CONFIRMED | IPS_UNTRACKED);
+ 	return 0;
+ 
++err_proto:
+ #ifdef CONFIG_NF_CONNTRACK_ZONES
++	nf_ct_extend_unregister(&nf_ct_zone_extend);
+ err_extend:
+-	nf_conntrack_labels_fini();
+ #endif
++	nf_conntrack_labels_fini();
+ err_labels:
+ 	nf_conntrack_helper_fini();
+ err_helper:
+@@ -1638,7 +1645,7 @@ int nf_conntrack_init_net(struct net *net)
+ 	ret = nf_conntrack_helper_pernet_init(net);
  	if (ret < 0)
  		goto err_helper;
-@@ -1637,8 +1640,6 @@ err_proto:
- err_labels:
- 	nf_conntrack_helper_fini(net);
- err_helper:
--	nf_conntrack_timeout_fini(net);
--err_timeout:
- 	nf_conntrack_ecache_pernet_fini(net);
- err_ecache:
- 	nf_conntrack_tstamp_pernet_fini(net);
-diff --git a/net/netfilter/nf_conntrack_timeout.c b/net/netfilter/nf_conntrack_timeout.c
-index a878ce5..1a2248b 100644
---- a/net/netfilter/nf_conntrack_timeout.c
-+++ b/net/netfilter/nf_conntrack_timeout.c
-@@ -37,24 +37,15 @@ static struct nf_ct_ext_type timeout_extend __read_mostly = {
- 	.id	= NF_CT_EXT_TIMEOUT,
- };
+-	ret = nf_conntrack_proto_init(net);
++	ret = nf_conntrack_proto_pernet_init(net);
+ 	if (ret < 0)
+ 		goto err_proto;
+ 	return 0;
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 51e928d..f0ec07c 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -503,9 +503,8 @@ void nf_conntrack_l4proto_unregister(struct net *net,
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_unregister);
  
--int nf_conntrack_timeout_init(struct net *net)
-+int nf_conntrack_timeout_init(void)
+-int nf_conntrack_proto_init(struct net *net)
++int nf_conntrack_proto_pernet_init(struct net *net)
  {
--	int ret = 0;
--
--	if (net_eq(net, &init_net)) {
--		ret = nf_ct_extend_register(&timeout_extend);
--		if (ret < 0) {
--			printk(KERN_ERR "nf_ct_timeout: Unable to register "
--					"timeout extension.\n");
--			return ret;
--		}
+-	unsigned int i;
+ 	int err;
+ 	struct nf_proto_net *pn = nf_ct_l4proto_net(net,
+ 					&nf_conntrack_l4proto_generic);
+@@ -520,19 +519,12 @@ int nf_conntrack_proto_init(struct net *net)
+ 	if (err < 0)
+ 		return err;
+ 
+-	if (net == &init_net) {
+-		for (i = 0; i < AF_MAX; i++)
+-			rcu_assign_pointer(nf_ct_l3protos[i],
+-					   &nf_conntrack_l3proto_generic);
 -	}
 -
--	return 0;
-+	int ret = nf_ct_extend_register(&timeout_extend);
-+	if (ret < 0) {
-+		pr_err("nf_ct_timeout: Unable to register timeout extension.\n");
-+	return ret;
+ 	pn->users++;
+ 	return 0;
  }
  
--void nf_conntrack_timeout_fini(struct net *net)
-+void nf_conntrack_timeout_fini(void)
+-void nf_conntrack_proto_fini(struct net *net)
++void nf_conntrack_proto_pernet_fini(struct net *net)
  {
--	if (net_eq(net, &init_net))
--		nf_ct_extend_unregister(&timeout_extend);
-+	nf_ct_extend_unregister(&timeout_extend);
+-	unsigned int i;
+ 	struct nf_proto_net *pn = nf_ct_l4proto_net(net,
+ 					&nf_conntrack_l4proto_generic);
+ 
+@@ -540,9 +532,21 @@ void nf_conntrack_proto_fini(struct net *net)
+ 	nf_ct_l4proto_unregister_sysctl(net,
+ 					pn,
+ 					&nf_conntrack_l4proto_generic);
+-	if (net == &init_net) {
+-		/* free l3proto protocol tables */
+-		for (i = 0; i < PF_MAX; i++)
+-			kfree(nf_ct_protos[i]);
+-	}
++}
++
++int nf_conntrack_proto_init(void)
++{
++	unsigned int i;
++	for (i = 0; i < AF_MAX; i++)
++		rcu_assign_pointer(nf_ct_l3protos[i],
++				   &nf_conntrack_l3proto_generic);
++	return 0;
++}
++
++void nf_conntrack_proto_fini(void)
++{
++	unsigned int i;
++	/* free l3proto protocol tables */
++	for (i = 0; i < PF_MAX; i++)
++		kfree(nf_ct_protos[i]);
  }
 -- 
 1.7.11.7
