@@ -1,84 +1,89 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: [PATCH]: Keep the "state" match as alias [Re: state match is
  obsolete 1.4.17]
-Date: Wed, 23 Jan 2013 04:03:41 +0100
-Message-ID: <20130123030341.GA2844@1984>
-References: <alpine.LNX.2.01.1301150958390.16853@nerf07.vanv.qr>
- <50F5273F.5020205@inliniac.net>
- <alpine.DEB.2.00.1301151102490.11129@blackhole.kfki.hu>
- <alpine.LNX.2.01.1301151342440.19279@nerf07.vanv.qr>
- <alpine.DEB.2.00.1301151406540.11172@blackhole.kfki.hu>
- <alpine.LNX.2.01.1301151444250.20224@nerf07.vanv.qr>
- <alpine.DEB.2.00.1301151534360.11172@blackhole.kfki.hu>
- <alpine.DEB.2.00.1301151820230.12091@blackhole.kfki.hu>
- <20130118002818.GA19003@1984>
- <alpine.DEB.2.00.1301222234010.1424@blackhole.kfki.hu>
+Date: Wed, 23 Jan 2013 10:00:19 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1301230936030.2373@blackhole.kfki.hu>
+References: <alpine.LNX.2.01.1301150958390.16853@nerf07.vanv.qr> <50F5273F.5020205@inliniac.net> <alpine.DEB.2.00.1301151102490.11129@blackhole.kfki.hu> <alpine.LNX.2.01.1301151342440.19279@nerf07.vanv.qr> <alpine.DEB.2.00.1301151406540.11172@blackhole.kfki.hu>
+ <alpine.LNX.2.01.1301151444250.20224@nerf07.vanv.qr> <alpine.DEB.2.00.1301151534360.11172@blackhole.kfki.hu> <alpine.DEB.2.00.1301151820230.12091@blackhole.kfki.hu> <20130118002818.GA19003@1984> <alpine.DEB.2.00.1301222234010.1424@blackhole.kfki.hu>
+ <20130123030341.GA2844@1984>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Jan Engelhardt <jengelh@inai.de>,
 	Victor Julien <lists@inliniac.net>,
 	Nick Edwards <nick.z.edwards@gmail.com>,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45289 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752136Ab3AWDDt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Jan 2013 22:03:49 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1301222234010.1424@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	mbr@cipherdyne.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <20130123030341.GA2844@1984>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jozsef,
+On Wed, 23 Jan 2013, Pablo Neira Ayuso wrote:
 
-On Tue, Jan 22, 2013 at 10:47:35PM +0100, Jozsef Kadlecsik wrote:
-> On Fri, 18 Jan 2013, Pablo Neira Ayuso wrote:
-> 
-> > On Tue, Jan 15, 2013 at 06:28:11PM +0100, Jozsef Kadlecsik wrote:
-> > > On Tue, 15 Jan 2013, Jozsef Kadlecsik wrote:
-> > > 
-> > > > With passing one more internal flag, indicating that the "state" alias is 
-> > > > used, the "conntrack" module can remain completely hidden and the user can 
-> > > > list/save exactly the same command as the issued one.
-> > > 
-> > > Here follows the patch which introduces match module aliases (the same can 
-> > > be done for targets as well). The alias is handled as it were a real 
-> > > extension while it's actually handled by another module. Listing/saving 
-> > > keeps the alias name and options.
-> > > 
-> > > The "state" extension is the first example of such an alias.
+> On Tue, Jan 22, 2013 at 10:47:35PM +0100, Jozsef Kadlecsik wrote:
+> > On Fri, 18 Jan 2013, Pablo Neira Ayuso wrote:
 > > 
-> > I like this symmetrical aliasing approach.
+> > > On Tue, Jan 15, 2013 at 06:28:11PM +0100, Jozsef Kadlecsik wrote:
+> > > > On Tue, 15 Jan 2013, Jozsef Kadlecsik wrote:
+> > > > 
+> > > > > With passing one more internal flag, indicating that the "state" alias is 
+> > > > > used, the "conntrack" module can remain completely hidden and the user can 
+> > > > > list/save exactly the same command as the issued one.
+> > > > 
+> > > > Here follows the patch which introduces match module aliases (the same can 
+> > > > be done for targets as well). The alias is handled as it were a real 
+> > > > extension while it's actually handled by another module. Listing/saving 
+> > > > keeps the alias name and options.
+> > > > 
+> > > > The "state" extension is the first example of such an alias.
+> > > 
+> > > I like this symmetrical aliasing approach.
+> > > 
+> > > The aim is to get rid of redundant things in the kernel. And with
+> > > this, we can get that without disturbing users.
+> > > 
+> > > Would you do the same for the NOTRACK target?
 > > 
-> > The aim is to get rid of redundant things in the kernel. And with
-> > this, we can get that without disturbing users.
+> > Yes, but looking through the modules, I see a lot of inconsistencies: in 
+> > listing match names capitalized, some match/target doesn't print its name, 
+> > missing whitespaces, etc.
 > > 
-> > Would you do the same for the NOTRACK target?
+> > I'm going to fix those, but quite a lot of simplification could be 
+> > achieved if the options at listing and saving could be generated by the 
+> > same function in a match/target. Like instead of
+> > 
+> > 	ttl match TTL == xxx
+> > 
+> > I propose to list the match as
+> > 
+> > 	ttl eq xxx
+> > 
+> > (That is generate listings by striping off the dashes and the match/target 
+> > name prefix from the options.)
+> > 
+> > The question is: do we have a "stable API" in listings, at this level?
 > 
-> Yes, but looking through the modules, I see a lot of inconsistencies: in 
-> listing match names capitalized, some match/target doesn't print its name, 
-> missing whitespaces, etc.
-> 
-> I'm going to fix those, but quite a lot of simplification could be 
-> achieved if the options at listing and saving could be generated by the 
-> same function in a match/target. Like instead of
-> 
-> 	ttl match TTL == xxx
-> 
-> I propose to list the match as
-> 
-> 	ttl eq xxx
-> 
-> (That is generate listings by striping off the dashes and the match/target 
-> name prefix from the options.)
-> 
-> The question is: do we have a "stable API" in listings, at this level?
+> I remember that, while discussing nfacct, some people mentioned that
+> they were using scripts to parse iptables -L -n to digest counters.
 
-I remember that, while discussing nfacct, some people mentioned that
-they were using scripts to parse iptables -L -n to digest counters.
+The counters part is not affected.
+ 
+> I have also found some perl extension [1] that parses `iptables -L -n'
+> output.
+> 
+> [1] http://search.cpan.org/dist/IPTables-Parse/
 
-I have also found some perl extension [1] that parses `iptables -L -n'
-output.
+Sigh. Why 'iptables -L -n' is used and not 'iptables-save -c'?
 
-[1] http://search.cpan.org/dist/IPTables-Parse/
+Looking at the perl module, the proposed changes would break the parsing 
+of the options of the SNAT/DNAT targets. It'd be not hard to prepare the 
+module to handle current/proposed formats.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
