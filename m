@@ -1,48 +1,59 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Add packet statistics to ipset?
-Date: Wed, 23 Jan 2013 20:20:33 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1301232019330.4495@blackhole.kfki.hu>
-References: <510029CC.5000902@gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Jonathan <jdccdevel@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH 0/4] libnetfilter_conntrack: connlabel support
+Date: Wed, 23 Jan 2013 23:38:17 +0100
+Message-ID: <1358980701-3747-1-git-send-email-fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:42922 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751028Ab3AWTUf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jan 2013 14:20:35 -0500
-In-Reply-To: <510029CC.5000902@gmail.com>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:34225 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752217Ab3AWWmq (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Jan 2013 17:42:46 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 23 Jan 2013, Jonathan wrote:
+The following four patches add support for the connlabel extension to
+libnetfilter_conntrack, i.e. support for accessing/changing labels
+via ctnetlink from userspace.
 
-> How difficult would it be to add packet/byte counters to ipset?
-> 
-> I have a iptables ruleset that I'm looking to simplify, and I would like to
-> use the ipset module. However, I also have a need to collect per-host byte
-> counters. Currently I scrape them from the iptables output, but with ipset
-> this is not possible afaik. This makes the ipset module (which I would
-> _really_ like to use) useless for me.
-> 
-> I am not familiar with kernel programming, but I do know C. If it's not too
-> difficult, I would be very interested in helping with implementing this, or
-> even implementing it myself with some help.
-> 
-> Other options I have considered are adding some sort of ip-bitmap or hash
-> support to the nfacct system, or an aggregation filter module for ulogd. From
-> what I can tell, adding bitmaps/hashes to the nfacct system would be much more
-> complicated, and adding an aggregation filter to ulogd would be far less
-> efficient.
+If there are no objections I'll push these changes soon.
 
-It was already requested and I'm working on it. The next ipset release 
-will come with counters support.
+I only wired CTA_LABELS up with the (newer) libmnl-based API.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Please let me know if there are any remaining issues.
+
+summary of changes:
+
+Florian Westphal (4):
+      api: add nfct_bitmask object
+      api: add connlabel api and attribute
+      examples: add connlabel dump/set/clear demo programs
+      api: add CTA_LABEL_MASK attribute handling
+
+ examples/Makefile.am                               |   10 +
+ examples/nfct-mnl-dump-labels.c                    |  103 +++++++++
+ examples/nfct-mnl-set-label.c                      |  190 +++++++++++++++
+ include/internal/bitops.h                          |    2 +
+ include/internal/object.h                          |   13 +
+ include/internal/prototypes.h                      |    9 +
+ .../libnetfilter_conntrack.h                       |   22 ++
+ .../linux_nfnetlink_conntrack.h                    |    2 +
+ qa/Makefile.am                                     |    5 +-
+ qa/qa-connlabel.conf                               |   11 +
+ qa/test_api.c                                      |   74 ++++++-
+ qa/test_connlabel.c                                |   70 ++++++
+ src/conntrack/Makefile.am                          |    1 +
+ src/conntrack/api.c                                |  184 +++++++++++++++
+ src/conntrack/build_mnl.c                          |   18 ++
+ src/conntrack/copy.c                               |   32 +++-
+ src/conntrack/getter.c                             |   12 +
+ src/conntrack/labels.c                             |  243 ++++++++++++++++++++
+ src/conntrack/parse.c                              |    1 +
+ src/conntrack/parse_mnl.c                          |   26 ++
+ src/conntrack/setter.c                             |   23 ++
+ 21 files changed, 1046 insertions(+), 5 deletions(-)
+ create mode 100644 examples/nfct-mnl-dump-labels.c
+ create mode 100644 examples/nfct-mnl-set-label.c
+ create mode 100644 qa/qa-connlabel.conf
+ create mode 100644 qa/test_connlabel.c
+ create mode 100644 src/conntrack/labels.c
