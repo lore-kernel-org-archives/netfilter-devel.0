@@ -1,115 +1,81 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 5/8] extensions: S/DNPT: add missing save function
-Date: Thu, 24 Jan 2013 20:37:55 +0100
-Message-ID: <1359056278-27618-6-git-send-email-jengelh@inai.de>
+Subject: [PATCH 7/8] iptables: reword warning on using an alias
+Date: Thu, 24 Jan 2013 20:37:57 +0100
+Message-ID: <1359056278-27618-8-git-send-email-jengelh@inai.de>
 References: <1359056278-27618-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:40474 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:40476 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753503Ab3AXTiK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1754929Ab3AXTiK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 24 Jan 2013 14:38:10 -0500
 In-Reply-To: <1359056278-27618-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jean-Michel DILLY reports that `ip6tables -S` exits with
+This by suggestion of Nick Edward.
 
-	Target `DNPT' is missing save function
-
-when a DNPT rule is invoked. Fix this omission.
-
-References: http://marc.info/?l=netfilter&m=135904831220440&w=2
+References: http://marc.info/?l=netfilter&m=135829245822520&w=2
 Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- extensions/libip6t_DNPT.c |   19 +++++++++++++++++++
- extensions/libip6t_SNPT.c |   19 +++++++++++++++++++
- 2 files changed, 38 insertions(+)
+ iptables/ip6tables.c |    9 +++++----
+ iptables/iptables.c  |    9 +++++----
+ 2 files changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/extensions/libip6t_DNPT.c b/extensions/libip6t_DNPT.c
-index 7439816..703adf6 100644
---- a/extensions/libip6t_DNPT.c
-+++ b/extensions/libip6t_DNPT.c
-@@ -1,4 +1,5 @@
- #include <stdio.h>
-+#include <string.h>
- #include <xtables.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter_ipv6/ip6t_NPT.h>
-@@ -53,6 +54,23 @@ static void DNPT_print(const void *ip, const struct xt_entry_target *target,
- 				 npt->dst_pfx_len);
- }
+diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
+index aa22e52..d2f37fa 100644
+--- a/iptables/ip6tables.c
++++ b/iptables/ip6tables.c
+@@ -1225,8 +1225,8 @@ static void command_jump(struct iptables_command_state *cs)
+ 		strcpy(cs->target->t->u.user.name, cs->jumpto);
+ 	} else {
+ 		strcpy(cs->target->t->u.user.name, cs->target->real_name);
+-		fprintf(stderr, "WARNING: The %s target is obsolete. "
+-		        "Use %s instead.\n",
++		fprintf(stderr, "WARNING: The %s target is obsolete and will "
++		        "eventually go away. Use %s instead.\n",
+ 		        cs->jumpto, cs->target->real_name);
+ 	}
+ 	cs->target->t->u.user.revision = cs->target->revision;
+@@ -1261,8 +1261,9 @@ static void command_match(struct iptables_command_state *cs)
+ 		strcpy(m->m->u.user.name, m->name);
+ 	} else {
+ 		strcpy(m->m->u.user.name, m->real_name);
+-		fprintf(stderr, "WARNING: The %s match is obsolete. "
+-		        "Use %s instead.\n", m->name, m->real_name);
++		fprintf(stderr, "WARNING: The %s match is obsolete and will "
++		        "eventually go away. Use %s instead.\n",
++		        m->name, m->real_name);
+ 	}
+ 	m->m->u.user.revision = m->revision;
  
-+static void DNPT_save(const void *ip, const struct xt_entry_target *target)
-+{
-+	static const struct in6_addr zero_addr;
-+	const struct ip6t_npt_tginfo *info = (const void *)target->data;
-+
-+	if (memcmp(&info->src_pfx.in6, &zero_addr, sizeof(zero_addr)) != 0 ||
-+	    info->src_pfx_len != 0)
-+		printf("--src-pfx %s/%u ",
-+		       xtables_ip6addr_to_numeric(&info->src_pfx.in6),
-+		       info->src_pfx_len);
-+	if (memcmp(&info->dst_pfx.in6, &zero_addr, sizeof(zero_addr)) != 0 ||
-+	    info->dst_pfx_len != 0)
-+		printf("--dst-pfx %s/%u ",
-+		       xtables_ip6addr_to_numeric(&info->dst_pfx.in6),
-+		       info->dst_pfx_len);
-+}
-+
- static struct xtables_target snpt_tg_reg = {
- 	.name		= "DNPT",
- 	.version	= XTABLES_VERSION,
-@@ -62,6 +80,7 @@ static struct xtables_target snpt_tg_reg = {
- 	.help		= DNPT_help,
- 	.x6_parse	= DNPT_parse,
- 	.print		= DNPT_print,
-+	.save		= DNPT_save,
- 	.x6_options	= DNPT_options,
- };
- 
-diff --git a/extensions/libip6t_SNPT.c b/extensions/libip6t_SNPT.c
-index 26a86c5..7ed80b2 100644
---- a/extensions/libip6t_SNPT.c
-+++ b/extensions/libip6t_SNPT.c
-@@ -1,4 +1,5 @@
- #include <stdio.h>
-+#include <string.h>
- #include <xtables.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter_ipv6/ip6t_NPT.h>
-@@ -53,6 +54,23 @@ static void SNPT_print(const void *ip, const struct xt_entry_target *target,
- 				 npt->dst_pfx_len);
- }
- 
-+static void SNPT_save(const void *ip, const struct xt_entry_target *target)
-+{
-+	static const struct in6_addr zero_addr;
-+	const struct ip6t_npt_tginfo *info = (const void *)target->data;
-+
-+	if (memcmp(&info->src_pfx.in6, &zero_addr, sizeof(zero_addr)) != 0 ||
-+	    info->src_pfx_len != 0)
-+		printf("--src-pfx %s/%u ",
-+		       xtables_ip6addr_to_numeric(&info->src_pfx.in6),
-+		       info->src_pfx_len);
-+	if (memcmp(&info->dst_pfx.in6, &zero_addr, sizeof(zero_addr)) != 0 ||
-+	    info->dst_pfx_len != 0)
-+		printf("--dst-pfx %s/%u ",
-+		       xtables_ip6addr_to_numeric(&info->dst_pfx.in6),
-+		       info->dst_pfx_len);
-+}
-+
- static struct xtables_target snpt_tg_reg = {
- 	.name		= "SNPT",
- 	.version	= XTABLES_VERSION,
-@@ -62,6 +80,7 @@ static struct xtables_target snpt_tg_reg = {
- 	.help		= SNPT_help,
- 	.x6_parse	= SNPT_parse,
- 	.print		= SNPT_print,
-+	.save		= SNPT_save,
- 	.x6_options	= SNPT_options,
- };
+diff --git a/iptables/iptables.c b/iptables/iptables.c
+index 5be5e78..fc6fdf4 100644
+--- a/iptables/iptables.c
++++ b/iptables/iptables.c
+@@ -1216,8 +1216,8 @@ static void command_jump(struct iptables_command_state *cs)
+ 	} else {
+ 		/* Alias support for userspace side */
+ 		strcpy(cs->target->t->u.user.name, cs->target->real_name);
+-		fprintf(stderr, "WARNING: The %s target is obsolete. "
+-		        "Use %s instead.\n",
++		fprintf(stderr, "WARNING: The %s target is obsolete and will "
++		        "eventually go away. Use %s instead.\n",
+ 		        cs->jumpto, cs->target->real_name);
+ 	}
+ 	cs->target->t->u.user.revision = cs->target->revision;
+@@ -1253,8 +1253,9 @@ static void command_match(struct iptables_command_state *cs)
+ 		strcpy(m->m->u.user.name, m->name);
+ 	} else {
+ 		strcpy(m->m->u.user.name, m->real_name);
+-		fprintf(stderr, "WARNING: The %s match is obsolete. "
+-		        "Use %s instead.\n", m->name, m->real_name);
++		fprintf(stderr, "WARNING: The %s match is obsolete and will "
++		        "eventually go away. Use %s instead.\n",
++		        m->name, m->real_name);
+ 	}
+ 	m->m->u.user.revision = m->revision;
  
 -- 
 1.7.10.4
