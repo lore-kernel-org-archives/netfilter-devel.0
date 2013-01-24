@@ -1,90 +1,116 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 6/8] iptables: fall back to using save function when print is not defined
-Date: Thu, 24 Jan 2013 20:37:56 +0100
-Message-ID: <1359056278-27618-7-git-send-email-jengelh@inai.de>
+Subject: [PATCH 5/8] extensions: S/DNPT: add missing save function
+Date: Thu, 24 Jan 2013 20:37:55 +0100
+Message-ID: <1359056278-27618-6-git-send-email-jengelh@inai.de>
 References: <1359056278-27618-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:40475 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:40474 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753852Ab3AXTiK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1753503Ab3AXTiK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 24 Jan 2013 14:38:10 -0500
 In-Reply-To: <1359056278-27618-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This way we can avoid having to provide two dumping function for new
-plugins.
+Jean-Michel DILLY reports that `ip6tables -S` exits with
 
+	Target `DNPT' is missing save function
+
+when a DNPT rule is invoked. Fix this omission.
+
+References: http://marc.info/?l=netfilter&m=135904831220440&w=2
 Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- iptables/ip6tables.c |   12 ++++++++++--
- iptables/iptables.c  |   10 ++++++++--
- 2 files changed, 18 insertions(+), 4 deletions(-)
+ extensions/libip6t_DNPT.c |   19 +++++++++++++++++++
+ extensions/libip6t_SNPT.c |   19 +++++++++++++++++++
+ 2 files changed, 38 insertions(+)
 
-diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
-index 371d700..aa22e52 100644
---- a/iptables/ip6tables.c
-+++ b/iptables/ip6tables.c
-@@ -487,10 +487,14 @@ print_match(const struct xt_entry_match *m,
- 		xtables_find_match(m->u.user.name, XTF_TRY_LOAD, NULL);
+diff --git a/extensions/libip6t_DNPT.c b/extensions/libip6t_DNPT.c
+index 7439816..703adf6 100644
+--- a/extensions/libip6t_DNPT.c
++++ b/extensions/libip6t_DNPT.c
+@@ -1,4 +1,5 @@
+ #include <stdio.h>
++#include <string.h>
+ #include <xtables.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+ #include <linux/netfilter_ipv6/ip6t_NPT.h>
+@@ -53,6 +54,23 @@ static void DNPT_print(const void *ip, const struct xt_entry_target *target,
+ 				 npt->dst_pfx_len);
+ }
  
- 	if (match) {
--		if (match->print)
-+		if (match->print) {
- 			match->print(ip, m, numeric);
--		else
-+		} else if (match->save != NULL) {
-+			printf("-m %s ", match->name);
-+			match->save(ip, m);
-+		} else {
- 			printf("%s ", match->name);
-+		}
- 	} else {
- 		if (m->u.user.name[0])
- 			printf("UNKNOWN match `%s' ", m->u.user.name);
-@@ -617,6 +621,10 @@ print_firewall(const struct ip6t_entry *fw,
- 		if (target->print)
- 			/* Print the target information. */
- 			target->print(&fw->ipv6, t, format & FMT_NUMERIC);
-+		else if (target->save != NULL) {
-+			printf("hi world");
-+			target->save(&fw->ipv6, t);
-+			}
- 	} else if (t->u.target_size != sizeof(*t))
- 		printf("[%u bytes of unknown target data] ",
- 		       (unsigned int)(t->u.target_size - sizeof(*t)));
-diff --git a/iptables/iptables.c b/iptables/iptables.c
-index 6e5250e..5be5e78 100644
---- a/iptables/iptables.c
-+++ b/iptables/iptables.c
-@@ -472,10 +472,14 @@ print_match(const struct xt_entry_match *m,
- 		xtables_find_match(m->u.user.name, XTF_TRY_LOAD, NULL);
++static void DNPT_save(const void *ip, const struct xt_entry_target *target)
++{
++	static const struct in6_addr zero_addr;
++	const struct ip6t_npt_tginfo *info = (const void *)target->data;
++
++	if (memcmp(&info->src_pfx.in6, &zero_addr, sizeof(zero_addr)) != 0 ||
++	    info->src_pfx_len != 0)
++		printf("--src-pfx %s/%u ",
++		       xtables_ip6addr_to_numeric(&info->src_pfx.in6),
++		       info->src_pfx_len);
++	if (memcmp(&info->dst_pfx.in6, &zero_addr, sizeof(zero_addr)) != 0 ||
++	    info->dst_pfx_len != 0)
++		printf("--dst-pfx %s/%u ",
++		       xtables_ip6addr_to_numeric(&info->dst_pfx.in6),
++		       info->dst_pfx_len);
++}
++
+ static struct xtables_target snpt_tg_reg = {
+ 	.name		= "DNPT",
+ 	.version	= XTABLES_VERSION,
+@@ -62,6 +80,7 @@ static struct xtables_target snpt_tg_reg = {
+ 	.help		= DNPT_help,
+ 	.x6_parse	= DNPT_parse,
+ 	.print		= DNPT_print,
++	.save		= DNPT_save,
+ 	.x6_options	= DNPT_options,
+ };
  
- 	if (match) {
--		if (match->print)
-+		if (match->print) {
- 			match->print(ip, m, numeric);
--		else
-+		} else if (match->save != NULL) {
-+			printf("-m %s ", match->name);
-+			match->save(ip, m);
-+		} else {
- 			printf("%s ", match->name);
-+		}
- 	} else {
- 		if (m->u.user.name[0])
- 			printf("UNKNOWN match `%s' ", m->u.user.name);
-@@ -602,6 +606,8 @@ print_firewall(const struct ipt_entry *fw,
- 		if (target->print)
- 			/* Print the target information. */
- 			target->print(&fw->ip, t, format & FMT_NUMERIC);
-+		else if (target->save != NULL)
-+			target->save(&fw->ip, t);
- 	} else if (t->u.target_size != sizeof(*t))
- 		printf("[%u bytes of unknown target data] ",
- 		       (unsigned int)(t->u.target_size - sizeof(*t)));
+diff --git a/extensions/libip6t_SNPT.c b/extensions/libip6t_SNPT.c
+index 26a86c5..7ed80b2 100644
+--- a/extensions/libip6t_SNPT.c
++++ b/extensions/libip6t_SNPT.c
+@@ -1,4 +1,5 @@
+ #include <stdio.h>
++#include <string.h>
+ #include <xtables.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+ #include <linux/netfilter_ipv6/ip6t_NPT.h>
+@@ -53,6 +54,23 @@ static void SNPT_print(const void *ip, const struct xt_entry_target *target,
+ 				 npt->dst_pfx_len);
+ }
+ 
++static void SNPT_save(const void *ip, const struct xt_entry_target *target)
++{
++	static const struct in6_addr zero_addr;
++	const struct ip6t_npt_tginfo *info = (const void *)target->data;
++
++	if (memcmp(&info->src_pfx.in6, &zero_addr, sizeof(zero_addr)) != 0 ||
++	    info->src_pfx_len != 0)
++		printf("--src-pfx %s/%u ",
++		       xtables_ip6addr_to_numeric(&info->src_pfx.in6),
++		       info->src_pfx_len);
++	if (memcmp(&info->dst_pfx.in6, &zero_addr, sizeof(zero_addr)) != 0 ||
++	    info->dst_pfx_len != 0)
++		printf("--dst-pfx %s/%u ",
++		       xtables_ip6addr_to_numeric(&info->dst_pfx.in6),
++		       info->dst_pfx_len);
++}
++
+ static struct xtables_target snpt_tg_reg = {
+ 	.name		= "SNPT",
+ 	.version	= XTABLES_VERSION,
+@@ -62,6 +80,7 @@ static struct xtables_target snpt_tg_reg = {
+ 	.help		= SNPT_help,
+ 	.x6_parse	= SNPT_parse,
+ 	.print		= SNPT_print,
++	.save		= SNPT_save,
+ 	.x6_options	= SNPT_options,
+ };
+ 
 -- 
 1.7.10.4
 
