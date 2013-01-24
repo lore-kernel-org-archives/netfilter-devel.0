@@ -1,50 +1,60 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: Accumulated fixes
-Date: Thu, 24 Jan 2013 20:37:50 +0100
-Message-ID: <1359056278-27618-1-git-send-email-jengelh@inai.de>
+Subject: [PATCH 8/8] build: fix libiptc build failure on old linux-glibc-devel headers
+Date: Thu, 24 Jan 2013 20:37:58 +0100
+Message-ID: <1359056278-27618-9-git-send-email-jengelh@inai.de>
+References: <1359056278-27618-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:40464 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:40483 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751992Ab3AXTiH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Jan 2013 14:38:07 -0500
+	id S1755103Ab3AXTiL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 Jan 2013 14:38:11 -0500
+In-Reply-To: <1359056278-27618-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Linux 2.4.x systems, where /usr/include/linux generally contain
+unsanitized headers, compilation of libiptc fails with
 
-The following changes since commit 983196ceb4d3bb7b6d3cf6da18bb6d5a5eafb347:
+	  CC       libip4tc.lo
+	In file included from libip4tc.c:113:
+	libiptc.c:93: error: field `list' has incomplete type
 
-  doc: document the -4 and -6 options (2013-01-07 02:26:16 +0100)
+This is because /usr/include/linux/list.h still existed at that time,
+but has all its definitions stashed in __KERNEL__. Switching
+linux_list.h's guards to another name resolves the problem.
 
-are available in the git repository at:
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+---
+ libiptc/linux_list.h   |    4 ++--
+ libiptc/linux_stddef.h |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-  git://git.inai.de/iptables master
+diff --git a/libiptc/linux_list.h b/libiptc/linux_list.h
+index abdcf88..3a51185 100644
+--- a/libiptc/linux_list.h
++++ b/libiptc/linux_list.h
+@@ -1,5 +1,5 @@
+-#ifndef _LINUX_LIST_H
+-#define _LINUX_LIST_H
++#ifndef _IPTC_LIST_H
++#define _IPTC_LIST_H
+ 
+ #undef offsetof
+ #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+diff --git a/libiptc/linux_stddef.h b/libiptc/linux_stddef.h
+index 56416f1..57758c9 100644
+--- a/libiptc/linux_stddef.h
++++ b/libiptc/linux_stddef.h
+@@ -1,5 +1,5 @@
+-#ifndef _LINUX_STDDEF_H
+-#define _LINUX_STDDEF_H
++#ifndef _IPTC_STDDEF_H
++#define _IPTC_STDDEF_H
+ 
+ #undef NULL
+ #if defined(__cplusplus)
+-- 
+1.7.10.4
 
-for you to fetch changes up to 4ce010a66d8479521a5f2cfc94fbaa232163f80c:
-
-  build: fix libiptc build failure on old linux-glibc-devel headers (2013-01-24 20:36:18 +0100)
-
-----------------------------------------------------------------
-Jan Engelhardt (8):
-      build: also use libtool for install stage
-      build: do not dereference symlinks on installation
-      libxtables: centralize checking for a .save function
-      extensions: eui64: set userspacesize=0
-      extensions: S/DNPT: add missing save function
-      iptables: fall back to using save function when print is not defined
-      iptables: reword warning on using an alias
-      build: fix libiptc build failure on old linux-glibc-devel headers
-
- extensions/GNUmakefile.in   |   21 +++++++++++++++------
- extensions/libip6t_DNPT.c   |   19 +++++++++++++++++++
- extensions/libip6t_SNPT.c   |   19 +++++++++++++++++++
- extensions/libip6t_eui64.c  |    2 +-
- extensions/libxt_standard.c |    6 ++++++
- iptables/ip6tables.c        |   33 +++++++++++++++------------------
- iptables/iptables.c         |   31 +++++++++++++------------------
- libiptc/linux_list.h        |    4 ++--
- libiptc/linux_stddef.h      |    4 ++--
- libxtables/xtables.c        |   21 +++++++++++++++++++++
- tests/options-most.rules    |    2 ++
- 11 files changed, 115 insertions(+), 47 deletions(-)
