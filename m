@@ -1,43 +1,365 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: Re: [nf-next:master 10/20] net/netfilter/nf_conntrack_standalone.c:566:2:
- error: 'nf_ct_netfilter_header' undeclared
-Date: Thu, 24 Jan 2013 08:46:53 +0800
-Message-ID: <5100847D.8050303@cn.fujitsu.com>
-References: <50ffea92.W3YbcwYaFKlgs8cR%fengguang.wu@intel.com> <20130123141522.GA17264@1984>
+From: Willem de Bruijn <willemb@google.com>
+Subject: Re: [PATCH] extensions: add libxt_bpf extension
+Date: Wed, 23 Jan 2013 21:04:36 -0500
+Message-ID: <CA+FuTSefoH77i_8Jd2uBF9VMTV-Js6aGo4d7N3YTq-NNY2T9Qw@mail.gmail.com>
+References: <1355082884-31927-1-git-send-email-willemb@google.com>
+ <1357776727-28547-1-git-send-email-willemb@google.com> <20130121121919.GA3916@1984>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: kbuild test robot <fengguang.wu@intel.com>,
-	netfilter-devel@vger.kernel.org
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:27331 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752241Ab3AXAqT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jan 2013 19:46:19 -0500
-In-Reply-To: <20130123141522.GA17264@1984>
+Received: from mail-ie0-f179.google.com ([209.85.223.179]:33983 "EHLO
+	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752591Ab3AXCFH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Jan 2013 21:05:07 -0500
+Received: by mail-ie0-f179.google.com with SMTP id k14so14755720iea.24
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Jan 2013 18:05:07 -0800 (PST)
+In-Reply-To: <20130121121919.GA3916@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2013/01/23 22:15, Pablo Neira Ayuso wrote:
-> On Wed, Jan 23, 2013 at 09:50:10PM +0800, kbuild test robot wrote:
->> tree:   git://150.214.188.80/nf-next master
->> head:   c296bb4d5d417d466c9bcc8afef68a3db5449a64
->> commit: f94161c1bbdf7af11729cf106b4452f2432448e0 [10/20] netfilter: nf_conntrack: move initialization out of pernet operations
->> config: x86_64-randconfig-x974 (attached as .config)
+On Mon, Jan 21, 2013 at 7:19 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, Jan 09, 2013 at 07:12:07PM -0500, Willem de Bruijn wrote:
+>> Changes:
+>> - v2
+>>   - update to match latest kernel module (fixed size match struct)
+>>   - add manual page
+>>   - fix save/restore
+>>   - fix matching whole program on delete
 >>
->> All error/warnings:
+>> Support filtering using Linux Socket Filters
+>> ---
+>>  extensions/libxt_bpf.c   |  199 ++++++++++++++++++++++++++++++++++++++++++++++
+>>  extensions/libxt_bpf.man |   17 ++++
+>>  2 files changed, 216 insertions(+), 0 deletions(-)
+>>  create mode 100644 extensions/libxt_bpf.c
+>>  create mode 100644 extensions/libxt_bpf.man
 >>
->>    net/netfilter/nf_conntrack_standalone.c: In function 'nf_conntrack_standalone_init':
->>>> net/netfilter/nf_conntrack_standalone.c:566:2: error: 'nf_ct_netfilter_header' undeclared (first use in this function)
->>    net/netfilter/nf_conntrack_standalone.c:566:2: note: each undeclared identifier is reported only once for each function it appears in
->>>> net/netfilter/nf_conntrack_standalone.c:567:41: error: 'nf_ct_netfilter_table' undeclared (first use in this function)
->>    net/netfilter/nf_conntrack_standalone.c: In function 'nf_conntrack_standalone_fini':
->>    net/netfilter/nf_conntrack_standalone.c:591:30: error: 'nf_ct_netfilter_header' undeclared (first use in this function)
-> 
-> Patch attached to fix this. Thanks kbuild test robot.
-> 
+>> diff --git a/extensions/libxt_bpf.c b/extensions/libxt_bpf.c
+>> new file mode 100644
+>> index 0000000..8ad540f
+>> --- /dev/null
+>> +++ b/extensions/libxt_bpf.c
+>> @@ -0,0 +1,199 @@
+>> +/*
+>> + * Xtables BPF extension
+>> + *
+>> + * Written by Willem de Bruijn (willemb@google.com)
+>> + * Copyright Google, Inc. 2013
+>> + * Licensed under the GNU General Public License version 2 (GPLv2)
+>> +*/
+>> +
+>> +#include <linux/netfilter/xt_bpf.h>
+>> +#include <errno.h>
+>> +#include <fcntl.h>
+>> +#include <stdio.h>
+>> +#include <stdlib.h>
+>> +#include <string.h>
+>> +#include <sys/stat.h>
+>> +#include <sys/types.h>
+>> +#include <unistd.h>
+>> +#include <xtables.h>
+>> +
+>> +#define BCODE_FILE_MAX_LEN_B 1024
+>
+> This has to be updated now that this sticks to 64 instructions per
+> filter.
 
-Oops,it's my fault.
+Oh.. rereading my comments after sending the revised patch I see that
+I missed this. Will fix up in the next revision. If my little
+arithmetic below is correct, it should be either 1603, or a little bit
+larger (this is mainly a safety against enormous files).
 
-Thanks you guys!
+>> +
+>> +enum { O_BCODE_STDIN = 0,
+>> +       O_BCODE_FILE};
+>
+> Better:
+>
+> enum {
+>         O_...
+>         O_...
+> };
+
+Done
+
+>> +
+>> +static void bpf_help(void)
+>> +{
+>> +     printf(
+>> +"bpf match options:\n"
+>> +"--bytecode-file <file>      : a bpf program as generated by\n"
+>> +"  `tcpdump -i any -ddd <expr> > file\n"
+>> +"--bytecode <program>        : a bpf program as generated by\n"
+>> +"  `tcpdump -i any -ddd <expr> | tr '\\n' ','`\n");
+>> +}
+>> +
+>> +static const struct xt_option_entry bpf_opts[] = {
+>> +     {.name = "bytecode", .id = O_BCODE_STDIN, .type = XTTYPE_STRING},
+>> +     {.name = "bytecode-file", .id = O_BCODE_FILE, .type = XTTYPE_STRING},
+>> +     XTOPT_TABLEEND,
+>> +};
+>> +
+>> +static void bpf_parse_string(struct xt_option_call *cb, const char *bpf_program,
+>> +                          const char separator)
+>> +{
+>> +     struct xt_bpf_info *bi = (void *) cb->data;
+>> +     const char *token;
+>> +     char sp;
+>> +     int i;
+>> +
+>> +     /* parse head: length. */
+>> +     if (sscanf(bpf_program, "%hu%c", &bi->bpf_program_num_elem, &sp) != 2 ||
+>> +                sp != separator)
+>> +             xtables_error(PARAMETER_PROBLEM,
+>> +                           "bpf: error parsing program length");
+>> +     if (!bi->bpf_program_num_elem)
+>> +             xtables_error(PARAMETER_PROBLEM,
+>> +                           "bpf: illegal zero length program");
+>> +     if (bi->bpf_program_num_elem > XT_BPF_MAX_NUM_INSTR)
+>> +             xtables_error(PARAMETER_PROBLEM,
+>> +                           "bpf: number of instructions exceeds maximum");
+>> +
+>> +     /* parse instructions. */
+>> +     i = 0;
+>> +     token = bpf_program;
+>> +     while ((token = strchr(token, separator)) && (++token)[0]) {
+>> +             if (i >= bi->bpf_program_num_elem) {
+>> +                     xtables_error(PARAMETER_PROBLEM,
+>> +                                   "bpf: program length: parameter");
+>
+> better error reporting?
+
+Done
+
+>> +                     return;
+
+Done
+
+> That return is superfluous. xtables_error calls exit.
+>
+>> +             }
+>> +             if (sscanf(token, "%hu %hhu %hhu %u,",
+>> +                        &bi->bpf_program[i].code,
+>> +                        &bi->bpf_program[i].jt,
+>> +                        &bi->bpf_program[i].jf,
+>> +                        &bi->bpf_program[i].k) != 4) {
+>> +                     xtables_error(PARAMETER_PROBLEM,
+>> +                                   "bpf: error at instr %d", i);
+>> +                     return;
+>
+> Same thing.
+
+Done
+
+>> +             }
+>> +             i++;
+>> +     }
+>> +
+>> +     if (i != bi->bpf_program_num_elem) {
+>> +             xtables_error(PARAMETER_PROBLEM,
+>> +                           "bpf: program length: parsing");
+>
+> Better error reporting?
+
+Done
+
+>> +             return;
+>
+> Same thing.
+
+Done
+
+>> +     }
+>> +}
+>> +
+>> +static void bpf_parse_file(struct xt_option_call *cb, const char *filepath)
+>> +{
+>> +     struct stat stats;
+>> +     char *contents;
+>> +     int fd, len = 0, ret;
+>> +
+>> +     if (access(filepath, F_OK))
+>> +             xtables_error(PARAMETER_PROBLEM, "bpf: no such file");
+>> +     if (access(filepath, R_OK))
+>> +             xtables_error(PARAMETER_PROBLEM, "bpf: no read permissions");
+>
+> Remove these above so...
+
+Done
+
+>
+>> +
+>> +     fd = open(filepath, O_RDONLY);
+>> +     if (fd == -1)
+>> +             xtables_error(PARAMETER_PROBLEM, "bpf: error opening file");
+>
+> you can use strerror here.
+
+Done
+
+>
+>> +     if (fstat(fd, &stats))
+>> +             xtables_error(PARAMETER_PROBLEM, "bpf: error reading metadata");
+>> +     if (stats.st_size >= BCODE_FILE_MAX_LEN_B)
+>> +             xtables_error(PARAMETER_PROBLEM, "bpf: file too large");
+>> +
+>> +     contents = malloc(stats.st_size + 1);
+>
+> Better a buffer allocated in the stack now that we have 64
+> instructions per filter?
+
+The decimal notation still allows variable size, causing us to have to
+allocate an upper estimate. This is 3 characters for the first line +
+64 * (5 + 1 + 3 + 1 + 3 + 1 + 10 + 1) == 1603 B if I didn't mess up
+somewhere.
+
+> Or use fread to get each line and put it into the filter? so reading
+> the filter and parsing it happens all at once.
+
+That would involve duplicating some of the parsing logic from
+bpf_parse_string, and the same error reports (program length mismatch,
+instruction errors, etcetera). I think that parsing in only one
+location is preferable (but I'm happy to change the code if you
+prefer).
+
+>> +     if (!contents)
+>> +             xtables_error(PARAMETER_PROBLEM, "bpf: allocation failed");
+>> +     contents[stats.st_size] = 0;
+>> +
+>> +     while (len < stats.st_size) {
+>> +             ret = read(fd, contents + len, stats.st_size - len);
+>> +             if (ret == -1) {
+>> +                     if (errno == EAGAIN)
+>> +                             continue;
+>> +                     xtables_error(PARAMETER_PROBLEM, "bpf: read failed");
+>> +             }
+>> +             if (!ret)
+>> +                     xtables_error(PARAMETER_PROBLEM, "bpf: unexpected EOF");
+>> +             len += ret;
+>> +     }
+>> +
+>> +     bpf_parse_string(cb, contents, '\n');
+>> +
+>> +     free(contents);
+>> +     close(fd);
+>> +}
+>> +
+>> +static void bpf_parse(struct xt_option_call *cb)
+>> +{
+>> +     xtables_option_parse(cb);
+>> +     switch (cb->entry->id) {
+>> +     case O_BCODE_STDIN:
+>> +             bpf_parse_string(cb, cb->arg, ',');
+>> +             break;
+>> +     case O_BCODE_FILE:
+>> +             bpf_parse_file(cb, cb->arg);
+>> +             break;
+>> +     default:
+>> +             xtables_error(PARAMETER_PROBLEM, "bpf: unknown option");
+>> +     }
+>> +}
+>> +
+>> +static void bpf_print_code(const void *ip, const struct xt_entry_match *match)
+>> +{
+>> +     const struct xt_bpf_info *info = (void *) match->data;
+>> +     int i;
+>> +
+>> +     for (i = 0; i < info->bpf_program_num_elem; i++)
+>> +             printf("%hu %hhu %hhu %u,", info->bpf_program[i].code,
+>> +                                         info->bpf_program[i].jt,
+>> +                                         info->bpf_program[i].jf,
+>> +                                         info->bpf_program[i].k);
+>> +}
+>> +
+>> +static void bpf_save(const void *ip, const struct xt_entry_match *match)
+>> +{
+>> +     const struct xt_bpf_info *info = (void *) match->data;
+>> +
+>> +     printf(" --bytecode \"%hu,", info->bpf_program_num_elem);
+>> +     bpf_print_code(ip, match);
+>> +     printf("\"");
+>> +}
+>> +
+>> +static void bpf_fcheck(struct xt_fcheck_call *cb)
+>> +{
+>> +     if (((!!(cb->xflags & (1 << O_BCODE_STDIN))) ^
+>> +          (!!(cb->xflags & (1 << O_BCODE_FILE)))) == 0)
+>> +             xtables_error(PARAMETER_PROBLEM,
+>> +                           "bpf: pass bytecode or bytecode-file, not both");
+>> +}
+>> +
+>> +static void bpf_print(const void *ip, const struct xt_entry_match *match,
+>> +                   int numeric)
+>> +{
+>> +     printf("match bpf ");
+>> +     return bpf_print_code(ip, match);
+>> +}
+>> +
+>> +static struct xtables_match bpf_match = {
+>> +     .family         = NFPROTO_UNSPEC,
+>> +     .name           = "bpf",
+>> +     .version        = XTABLES_VERSION,
+>> +     .size           = XT_ALIGN(sizeof(struct xt_bpf_info)),
+>> +     .userspacesize  = XT_ALIGN(sizeof(struct xt_bpf_info) - sizeof(void *)),
+>
+> Use offsetof instead, please.
+
+Done.
+
+>> +     .help           = bpf_help,
+>> +     .print          = bpf_print,
+>> +     .save           = bpf_save,
+>> +     .x6_parse       = bpf_parse,
+>> +     .x6_fcheck      = bpf_fcheck,
+>> +     .x6_options     = bpf_opts,
+>> +};
+>> +
+>> +void _init(void)
+>> +{
+>> +     xtables_register_match(&bpf_match);
+>> +}
+>> diff --git a/extensions/libxt_bpf.man b/extensions/libxt_bpf.man
+>> new file mode 100644
+>> index 0000000..359684c
+>> --- /dev/null
+>> +++ b/extensions/libxt_bpf.man
+>> @@ -0,0 +1,17 @@
+>> +.TP
+>> +Match using Linux Socket Filter. Expects a BPF program in decimal format for a device without link layer. This is the format generated by \fBtcpdump \-ddd \-i $DEV\fP, if $DEV is of type DLT_RAW.
+>> +.TP
+>> +\fB\-\-bytecode\-file\fP \fIfilename\fP
+>> +Pass the program stored in a file.
+>> +For example:
+>> +.IP
+>> +iptables \-A OUTPUT \-m bpf \-\-bytecode-file program.bpf \-j ACCEPT
+>
+> It's a good idea to describe the format of the file here.
+
+Done. Maybe a bit too verbose now. Let me know, if so.
+
+>> +.TP
+>> +\fB\-\-bytecode\fP \fIcode\fP
+>> +Pass the program on the command line. In this case all end-lines
+>> +must have been converted to commas (for instance using `tr '\\n' ','`).
+>> +For example:
+>> +.IP
+>> +iptables \-A OUTPUT \-m bpf \-\-bytecode
+>> +         '6,40 0 0 14, 21 0 3 2048,48 0 0 25,21 0 1 20,6 0 0 96,6 0 0 0'
+>
+> Please, a filter that actually works ;-)
+
+Oops! Done (and tested).
+
+>> +         \-j ACCEPT
+>> --
+>> 1.7.7.3
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Thanks!
