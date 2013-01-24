@@ -1,82 +1,50 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 7/8] iptables: reword warning on using an alias
-Date: Thu, 24 Jan 2013 20:37:57 +0100
-Message-ID: <1359056278-27618-8-git-send-email-jengelh@inai.de>
-References: <1359056278-27618-1-git-send-email-jengelh@inai.de>
+Subject: Accumulated fixes
+Date: Thu, 24 Jan 2013 20:37:50 +0100
+Message-ID: <1359056278-27618-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:40476 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:40464 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754929Ab3AXTiK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Jan 2013 14:38:10 -0500
-In-Reply-To: <1359056278-27618-1-git-send-email-jengelh@inai.de>
+	id S1751992Ab3AXTiH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 Jan 2013 14:38:07 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This by suggestion of Nick Edward.
 
-References: http://marc.info/?l=netfilter&m=135829245822520&w=2
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
----
- iptables/ip6tables.c |    9 +++++----
- iptables/iptables.c  |    9 +++++----
- 2 files changed, 10 insertions(+), 8 deletions(-)
+The following changes since commit 983196ceb4d3bb7b6d3cf6da18bb6d5a5eafb347:
 
-diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
-index aa22e52..d2f37fa 100644
---- a/iptables/ip6tables.c
-+++ b/iptables/ip6tables.c
-@@ -1225,8 +1225,8 @@ static void command_jump(struct iptables_command_state *cs)
- 		strcpy(cs->target->t->u.user.name, cs->jumpto);
- 	} else {
- 		strcpy(cs->target->t->u.user.name, cs->target->real_name);
--		fprintf(stderr, "WARNING: The %s target is obsolete. "
--		        "Use %s instead.\n",
-+		fprintf(stderr, "WARNING: The %s target is obsolete and will "
-+		        "eventually go away. Use %s instead.\n",
- 		        cs->jumpto, cs->target->real_name);
- 	}
- 	cs->target->t->u.user.revision = cs->target->revision;
-@@ -1261,8 +1261,9 @@ static void command_match(struct iptables_command_state *cs)
- 		strcpy(m->m->u.user.name, m->name);
- 	} else {
- 		strcpy(m->m->u.user.name, m->real_name);
--		fprintf(stderr, "WARNING: The %s match is obsolete. "
--		        "Use %s instead.\n", m->name, m->real_name);
-+		fprintf(stderr, "WARNING: The %s match is obsolete and will "
-+		        "eventually go away. Use %s instead.\n",
-+		        m->name, m->real_name);
- 	}
- 	m->m->u.user.revision = m->revision;
- 
-diff --git a/iptables/iptables.c b/iptables/iptables.c
-index 5be5e78..fc6fdf4 100644
---- a/iptables/iptables.c
-+++ b/iptables/iptables.c
-@@ -1216,8 +1216,8 @@ static void command_jump(struct iptables_command_state *cs)
- 	} else {
- 		/* Alias support for userspace side */
- 		strcpy(cs->target->t->u.user.name, cs->target->real_name);
--		fprintf(stderr, "WARNING: The %s target is obsolete. "
--		        "Use %s instead.\n",
-+		fprintf(stderr, "WARNING: The %s target is obsolete and will "
-+		        "eventually go away. Use %s instead.\n",
- 		        cs->jumpto, cs->target->real_name);
- 	}
- 	cs->target->t->u.user.revision = cs->target->revision;
-@@ -1253,8 +1253,9 @@ static void command_match(struct iptables_command_state *cs)
- 		strcpy(m->m->u.user.name, m->name);
- 	} else {
- 		strcpy(m->m->u.user.name, m->real_name);
--		fprintf(stderr, "WARNING: The %s match is obsolete. "
--		        "Use %s instead.\n", m->name, m->real_name);
-+		fprintf(stderr, "WARNING: The %s match is obsolete and will "
-+		        "eventually go away. Use %s instead.\n",
-+		        m->name, m->real_name);
- 	}
- 	m->m->u.user.revision = m->revision;
- 
--- 
-1.7.10.4
+  doc: document the -4 and -6 options (2013-01-07 02:26:16 +0100)
 
+are available in the git repository at:
+
+  git://git.inai.de/iptables master
+
+for you to fetch changes up to 4ce010a66d8479521a5f2cfc94fbaa232163f80c:
+
+  build: fix libiptc build failure on old linux-glibc-devel headers (2013-01-24 20:36:18 +0100)
+
+----------------------------------------------------------------
+Jan Engelhardt (8):
+      build: also use libtool for install stage
+      build: do not dereference symlinks on installation
+      libxtables: centralize checking for a .save function
+      extensions: eui64: set userspacesize=0
+      extensions: S/DNPT: add missing save function
+      iptables: fall back to using save function when print is not defined
+      iptables: reword warning on using an alias
+      build: fix libiptc build failure on old linux-glibc-devel headers
+
+ extensions/GNUmakefile.in   |   21 +++++++++++++++------
+ extensions/libip6t_DNPT.c   |   19 +++++++++++++++++++
+ extensions/libip6t_SNPT.c   |   19 +++++++++++++++++++
+ extensions/libip6t_eui64.c  |    2 +-
+ extensions/libxt_standard.c |    6 ++++++
+ iptables/ip6tables.c        |   33 +++++++++++++++------------------
+ iptables/iptables.c         |   31 +++++++++++++------------------
+ libiptc/linux_list.h        |    4 ++--
+ libiptc/linux_stddef.h      |    4 ++--
+ libxtables/xtables.c        |   21 +++++++++++++++++++++
+ tests/options-most.rules    |    2 ++
+ 11 files changed, 115 insertions(+), 47 deletions(-)
