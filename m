@@ -1,279 +1,115 @@
-From: Willem de Bruijn <willemb@google.com>
-Subject: [PATCH next] extensions: add libxt_bpf extension
-Date: Wed, 23 Jan 2013 21:00:58 -0500
-Message-ID: <1358992858-20172-1-git-send-email-willemb@google.com>
-References: <1357776727-28547-1-git-send-email-willemb@google.com>
-Cc: Willem de Bruijn <willemb@google.com>
-To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+From: Jean-Michel DILLY <jm@dilly.me>
+Subject: Re: [PATCH] netfilter: fix IPv6 NTP checksum calculation
+Date: Thu, 24 Jan 2013 18:09:06 +0100
+Message-ID: <06023CFA-4D28-43B3-8C7F-B8223F3390DD@dilly.me>
+Mime-Version: 1.0 (Apple Message framework v1283)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:59047 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752554Ab3AXCI2 (ORCPT
+Received: from mail.dillydally.fr ([87.98.128.188]:60268 "EHLO
+	mail.dillydally.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753969Ab3AXRPH convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jan 2013 21:08:28 -0500
-Received: by mail-ye0-f201.google.com with SMTP id r11so1026173yen.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Jan 2013 18:08:28 -0800 (PST)
-In-Reply-To: <1357776727-28547-1-git-send-email-willemb@google.com>
+	Thu, 24 Jan 2013 12:15:07 -0500
+Received: from localhost (ip6-localhost [IPv6:::1])
+	by mail.dillydally.fr (Postfix) with ESMTP id BCE24800D7
+	for <netfilter-devel@vger.kernel.org>; Thu, 24 Jan 2013 18:09:05 +0100 (CET)
+Received: from mail.dillydally.fr ([127.0.0.1])
+	by localhost (mail.dillydally.fr [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id fVWqk0DgXLqK for <netfilter-devel@vger.kernel.org>;
+	Thu, 24 Jan 2013 18:09:05 +0100 (CET)
+Received: from [192.168.0.87] (nancy.dillydally.fr [109.190.61.4])
+	by mail.dillydally.fr (Postfix) with ESMTPSA id B6758800C8
+	for <netfilter-devel@vger.kernel.org>; Thu, 24 Jan 2013 18:09:04 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Changes:
-- v3
-  - more informative error messages and man page
-- v2
-  - update to match latest kernel module (fixed size match struct)
-  - add manual page
-  - fix save/restore
-  - fix matching whole program on delete
+Hi all,
+This patch doesn't work as expected. I tried with few IP and each time 0x0100 were missing. csum_add seems buggy too.
+I have reimplemented csum16s functions with the Ulrich's fix. It seems to work now.
+I'm a noob, so I guess someone will propose a better patch for this.
+diff --git a/ip6t_NPT.c b/linux-3.8-rc4/net/ipv6/netfilter/ip6t_NPT.c
+index 787748b..29ef720 100644
+--- a/ip6t_NPT.c
++++ b/linux-3.8-rc4/net/ipv6/netfilter/ip6t_NPT.c
+@@ -14,24 +14,44 @@
+ #include <linux/netfilter_ipv6/ip6t_NPT.h>
+ #include <linux/netfilter/x_tables.h>
+ 
++static __sum16 csum16_add(__sum16 a, __sum16 b)
++{
++       __u16 result;
++
++       result = (__force __u16) a + (__force __u16) b;
++       result += result < (__force u16)b; 
++               
++
++       return (__force __sum16) result;
++}
++
++static __sum16 csum16_complement(__sum16 a)
++{
++       return (__force __sum16)(0xffff - (__force u16)a);
++}
++
++static __sum16 csum16_sub(__sum16 a, __sum16 b)
++{
++       return csum16_add(a, csum16_complement(b));
++}
+ 
+ static int ip6t_npt_checkentry(const struct xt_tgchk_param *par)
+ {
+        struct ip6t_npt_tginfo *npt = par->targinfo;
+-       __wsum src_sum = 0, dst_sum = 0;
++       __sum16 src_sum = 0, dst_sum = 0;
+        unsigned int i;
+ 
+        if (npt->src_pfx_len > 64 || npt->dst_pfx_len > 64)
+                return -EINVAL;
+ 
+        for (i = 0; i < ARRAY_SIZE(npt->src_pfx.in6.s6_addr16); i++) {
+-               src_sum = csum_add(src_sum,
+-                       (__force __wsum)npt->src_pfx.in6.s6_addr16[i]);
+-               dst_sum = csum_add(dst_sum,
+-                       (__force __wsum)npt->dst_pfx.in6.s6_addr16[i]);
++               src_sum = csum16_add(src_sum, 
++                                       (__force __sum16)npt->src_pfx.in6.s6_addr16[i]);
++               dst_sum = csum16_add(dst_sum, 
++                                       (__force __sum16)npt->dst_pfx.in6.s6_addr16[i]);
+        }
+ 
+-       npt->adjustment = (__force __sum16) csum_sub(src_sum, dst_sum);
++       npt->adjustment = csum16_sub(src_sum, dst_sum);
+        return 0;
+ }
+ 
+@@ -67,8 +87,8 @@ static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
+                        return false;
+        }
+ 
+-       sum = (__force __sum16) csum_add((__force __wsum)addr->s6_addr16[idx],
+-                        npt->adjustment);
++       sum = csum16_add((__force __sum16)addr->s6_addr16[idx],
++                               npt->adjustment);
+        if (sum == CSUM_MANGLED_0)
+                sum = 0;
+        *(__force __sum16 *)&addr->s6_addr16[idx] = sum;
 
-Support filtering using Linux Socket Filters
----
- extensions/libxt_bpf.c   | 193 +++++++++++++++++++++++++++++++++++++++++++++++
- extensions/libxt_bpf.man |  35 +++++++++
- 2 files changed, 228 insertions(+)
- create mode 100644 extensions/libxt_bpf.c
- create mode 100644 extensions/libxt_bpf.man
+Regards,
+JMichel
 
-diff --git a/extensions/libxt_bpf.c b/extensions/libxt_bpf.c
-new file mode 100644
-index 0000000..15dc870
---- /dev/null
-+++ b/extensions/libxt_bpf.c
-@@ -0,0 +1,193 @@
-+/*
-+ * Xtables BPF extension
-+ *
-+ * Written by Willem de Bruijn (willemb@google.com)
-+ * Copyright Google, Inc. 2013
-+ * Licensed under the GNU General Public License version 2 (GPLv2)
-+*/
-+
-+#include <linux/netfilter/xt_bpf.h>
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/stat.h>
-+#include <sys/types.h>
-+#include <unistd.h>
-+#include <xtables.h>
-+
-+#define BCODE_FILE_MAX_LEN_B	1024
-+
-+enum {
-+	O_BCODE_STDIN = 0,
-+	O_BCODE_FILE
-+};
-+
-+static void bpf_help(void)
-+{
-+	printf(
-+"bpf match options:\n"
-+"--bytecode-file <file>	: a bpf program as generated by\n"
-+"  `tcpdump -i any -ddd <expr> > file\n"
-+"--bytecode <program>	: a bpf program as generated by\n"
-+"  `tcpdump -i any -ddd <expr> | tr '\\n' ','`\n");
-+}
-+
-+static const struct xt_option_entry bpf_opts[] = {
-+	{.name = "bytecode", .id = O_BCODE_STDIN, .type = XTTYPE_STRING},
-+	{.name = "bytecode-file", .id = O_BCODE_FILE, .type = XTTYPE_STRING},
-+	XTOPT_TABLEEND,
-+};
-+
-+static void bpf_parse_string(struct xt_option_call *cb, const char *bpf_program,
-+			     const char separator)
-+{
-+	struct xt_bpf_info *bi = (void *) cb->data;
-+	const char *token;
-+	char sp;
-+	int i;
-+
-+	/* parse head: length. */
-+	if (sscanf(bpf_program, "%hu%c", &bi->bpf_program_num_elem, &sp) != 2 ||
-+		   sp != separator)
-+		xtables_error(PARAMETER_PROBLEM,
-+			      "bpf: error parsing program length");
-+	if (!bi->bpf_program_num_elem)
-+		xtables_error(PARAMETER_PROBLEM,
-+			      "bpf: illegal zero length program");
-+	if (bi->bpf_program_num_elem > XT_BPF_MAX_NUM_INSTR)
-+		xtables_error(PARAMETER_PROBLEM,
-+			      "bpf: number of instructions exceeds maximum");
-+
-+	/* parse instructions. */
-+	i = 0;
-+	token = bpf_program;
-+	while ((token = strchr(token, separator)) && (++token)[0]) {
-+		if (i >= bi->bpf_program_num_elem)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "bpf: real program length exceeds"
-+				      " the encoded length parameter");
-+		if (sscanf(token, "%hu %hhu %hhu %u,",
-+			   &bi->bpf_program[i].code,
-+			   &bi->bpf_program[i].jt,
-+			   &bi->bpf_program[i].jf,
-+			   &bi->bpf_program[i].k) != 4)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "bpf: error at instr %d", i);
-+		i++;
-+	}
-+
-+	if (i != bi->bpf_program_num_elem)
-+		xtables_error(PARAMETER_PROBLEM,
-+			      "bpf: parsed program length is less than the"
-+			      " encoded length parameter");
-+}
-+
-+static void bpf_parse_file(struct xt_option_call *cb, const char *filepath)
-+{
-+	struct stat stats;
-+	char *contents;
-+	int fd, len = 0, ret;
-+
-+	fd = open(filepath, O_RDONLY);
-+	if (fd == -1)
-+		xtables_error(PARAMETER_PROBLEM, "bpf: error opening file: %s",
-+			      strerror(errno));
-+	if (fstat(fd, &stats))
-+		xtables_error(PARAMETER_PROBLEM, "bpf: error reading metadata");
-+	if (stats.st_size >= BCODE_FILE_MAX_LEN_B)
-+		xtables_error(PARAMETER_PROBLEM, "bpf: file too large");
-+
-+	contents = malloc(stats.st_size + 1);
-+	if (!contents)
-+		xtables_error(PARAMETER_PROBLEM, "bpf: allocation failed");
-+	contents[stats.st_size] = 0;
-+
-+	while (len < stats.st_size) {
-+		ret = read(fd, contents + len, stats.st_size - len);
-+		if (ret == -1) {
-+			if (errno == EAGAIN)
-+				continue;
-+			xtables_error(PARAMETER_PROBLEM, "bpf: read failed");
-+		}
-+		if (!ret)
-+			xtables_error(PARAMETER_PROBLEM, "bpf: unexpected EOF");
-+		len += ret;
-+	}
-+
-+	bpf_parse_string(cb, contents, '\n');
-+
-+	free(contents);
-+	close(fd);
-+}
-+
-+static void bpf_parse(struct xt_option_call *cb)
-+{
-+	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case O_BCODE_STDIN:
-+		bpf_parse_string(cb, cb->arg, ',');
-+		break;
-+	case O_BCODE_FILE:
-+		bpf_parse_file(cb, cb->arg);
-+		break;
-+	default:
-+		xtables_error(PARAMETER_PROBLEM, "bpf: unknown option");
-+	}
-+}
-+
-+static void bpf_print_code(const void *ip, const struct xt_entry_match *match)
-+{
-+	const struct xt_bpf_info *info = (void *) match->data;
-+	int i;
-+
-+	for (i = 0; i < info->bpf_program_num_elem; i++)
-+		printf("%hu %hhu %hhu %u,", info->bpf_program[i].code,
-+					    info->bpf_program[i].jt,
-+					    info->bpf_program[i].jf,
-+					    info->bpf_program[i].k);
-+}
-+
-+static void bpf_save(const void *ip, const struct xt_entry_match *match)
-+{
-+	const struct xt_bpf_info *info = (void *) match->data;
-+
-+	printf(" --bytecode \"%hu,", info->bpf_program_num_elem);
-+	bpf_print_code(ip, match);
-+	printf("\"");
-+}
-+
-+static void bpf_fcheck(struct xt_fcheck_call *cb)
-+{
-+	if (((!!(cb->xflags & (1 << O_BCODE_STDIN))) ^
-+	     (!!(cb->xflags & (1 << O_BCODE_FILE)))) == 0)
-+		xtables_error(PARAMETER_PROBLEM,
-+			      "bpf: pass bytecode or bytecode-file, not both");
-+}
-+
-+static void bpf_print(const void *ip, const struct xt_entry_match *match,
-+		      int numeric)
-+{
-+	printf("match bpf ");
-+	return bpf_print_code(ip, match);
-+}
-+
-+static struct xtables_match bpf_match = {
-+	.family		= NFPROTO_UNSPEC,
-+	.name		= "bpf",
-+	.version	= XTABLES_VERSION,
-+	.size		= XT_ALIGN(sizeof(struct xt_bpf_info)),
-+	.userspacesize	= XT_ALIGN(offsetof(struct xt_bpf_info, filter)),
-+	.help		= bpf_help,
-+	.print		= bpf_print,
-+	.save		= bpf_save,
-+	.x6_parse	= bpf_parse,
-+	.x6_fcheck	= bpf_fcheck,
-+	.x6_options	= bpf_opts,
-+};
-+
-+void _init(void)
-+{
-+	xtables_register_match(&bpf_match);
-+}
-diff --git a/extensions/libxt_bpf.man b/extensions/libxt_bpf.man
-new file mode 100644
-index 0000000..468c023
---- /dev/null
-+++ b/extensions/libxt_bpf.man
-@@ -0,0 +1,35 @@
-+.TP
-+Match using Linux Socket Filter. Expects a BPF program in decimal format for a device without link layer. This is the format generated by \fBtcpdump \-ddd \-i $DEV\fP, if $DEV is of type DLT_RAW.
-+.TP
-+\fB\-\-bytecode\-file\fP \fIfilename\fP
-+Pass the program stored in a file.
-+For example:
-+.IP
-+iptables \-A OUTPUT \-m bpf \-\-bytecode-file program.bpf \-j ACCEPT
-+.IP
-+The file format matches the output of the tcpdump command: one line
-+that stores the number of instructions, followed by one line for each
-+instruction. Instruction lines follow the pattern 'u16 u8 u8 u32'
-+in decimal notation. Fields encode the operation, jump offset if true,
-+jump offset if false and generic multiuse field 'K'. Comments are not
-+supported.
-+.IP
-+For example, to read only packets matching 'ip proto 6', insert the
-+following, without the comments or trailing whitespace:
-+.br
-+4               # number of instructions
-+.br
-+48 0 0 9        # load byte  ip->proto
-+.br
-+21 0 1 6        # jump equal IPPROTO_TCP
-+.br
-+6 0 0 1         # return     pass (non-zero)
-+.br
-+6 0 0 0         # return     fail (zero)
-+.TP
-+\fB\-\-bytecode\fP \fIcode\fP
-+Pass the program on the command line. In this case all end-lines
-+must have been converted to commas (for instance using `tr '\\n' ','`).
-+For example, the same program passed on the command line becomes:
-+.IP
-+iptables \-A OUTPUT \-m bpf \-\-bytecode '4,48 0 0 9,21 0 1 6,6 0 0 1,6 0 0 0,' \-j ACCEPT
--- 
-1.8.1
+On Fri, Jan 04, 2013 at 10:20:43AM +0100, Patrick McHardy wrote:
+> > On Wed, Jan 02, 2013 at 04:24:40PM +0100, Ulrich Weber wrote:
+> > > csum16_add() has a broken carry detection, should be:
+> > > sum += sum < (__force u16)b;
+> > > 
+> > > Instead of fixing csum16_add, remove the custom checksum
+> > > functions and use the generic csum_add/csum_sub ones.
+> > 
+> > Looks good to me.
+> > 
+> > Acked-by: Patrick McHardy <kaber@trash.net>
+
+>Applied, thanks!
 
