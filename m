@@ -1,33 +1,38 @@
-From: pablo@netfilter.org
-Subject: [PATCH 07/21] netfilter: add missing xt_bpf.h header in installation
-Date: Fri, 25 Jan 2013 14:54:39 +0100
-Message-ID: <1359122093-3404-8-git-send-email-pablo@netfilter.org>
-References: <1359122093-3404-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1359122093-3404-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch] ipvs: freeing uninitialized pointer on error
+Date: Fri, 25 Jan 2013 18:44:57 +0300
+Message-ID: <20130125154456.GB5908@elgon.mountain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	kernel-janitors@vger.kernel.org
+To: Wensong Zhang <wensong@linux-vs.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: lvs-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+If state != IP_VS_STATE_BACKUP then tinfo->buf is uninitialized.  If
+kthread_run() fails then it means we free random memory resulting in an
+oops.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/uapi/linux/netfilter/Kbuild |    1 +
- 1 file changed, 1 insertion(+)
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-diff --git a/include/uapi/linux/netfilter/Kbuild b/include/uapi/linux/netfilter/Kbuild
-index 08f555f..8b4bd36 100644
---- a/include/uapi/linux/netfilter/Kbuild
-+++ b/include/uapi/linux/netfilter/Kbuild
-@@ -35,6 +35,7 @@ header-y += xt_TCPOPTSTRIP.h
- header-y += xt_TEE.h
- header-y += xt_TPROXY.h
- header-y += xt_addrtype.h
-+header-y += xt_bpf.h
- header-y += xt_cluster.h
- header-y += xt_comment.h
- header-y += xt_connbytes.h
--- 
-1.7.10.4
+diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
+index effa10c..44fd10c 100644
+--- a/net/netfilter/ipvs/ip_vs_sync.c
++++ b/net/netfilter/ipvs/ip_vs_sync.c
+@@ -1795,6 +1795,8 @@ int start_sync_thread(struct net *net, int state, char *mcast_ifn, __u8 syncid)
+ 					     GFP_KERNEL);
+ 			if (!tinfo->buf)
+ 				goto outtinfo;
++		} else {
++			tinfo->buf = NULL;
+ 		}
+ 		tinfo->id = id;
+ 
