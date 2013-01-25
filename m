@@ -1,62 +1,57 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: BUG: unable to handle kernel paging request at 0000000000609920
- in networking code on 3.2.23.
-Date: Fri, 25 Jan 2013 01:36:57 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1301250124310.21495@nerf07.vanv.qr>
-References: <A60E26F6-16DC-4A29-BFDE-1B17DC51F64F@telemetry.com> <loom.20130124T115328-292@post.gmane.org> <20130124230850.GI8541@breakpoint.cc>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: BUG: unable to handle kernel paging request at
+ 0000000000609920 in networking code on 3.2.23.
+Date: Fri, 25 Jan 2013 09:28:39 +0100
+Message-ID: <20130125082839.GJ8541@breakpoint.cc>
+References: <A60E26F6-16DC-4A29-BFDE-1B17DC51F64F@telemetry.com>
+ <loom.20130124T115328-292@post.gmane.org>
+ <20130124230850.GI8541@breakpoint.cc>
+ <alpine.LNX.2.01.1301250124310.21495@nerf07.vanv.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Rafal Kupka <rkupka@telemetry.com>, netdev@vger.kernel.org,
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>,
+	Rafal Kupka <rkupka@telemetry.com>, netdev@vger.kernel.org,
 	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:45159 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755220Ab3AYAg7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Jan 2013 19:36:59 -0500
-In-Reply-To: <20130124230850.GI8541@breakpoint.cc>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:40140 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753793Ab3AYI2m (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Jan 2013 03:28:42 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.01.1301250124310.21495@nerf07.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Friday 2013-01-25 00:08, Florian Westphal wrote:
->@@ -35,10 +35,18 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
-> {
-> 	unsigned int optl, i, j;
-> 	struct tcphdr *tcph;
->+	struct tcphdr _tcph;
-> 	u_int16_t n, o;
-> 	u_int8_t *opt;
+Jan Engelhardt <jengelh@inai.de> wrote:
+> On Friday 2013-01-25 00:08, Florian Westphal wrote:
+> >@@ -35,10 +35,18 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
+> > {
+> > 	unsigned int optl, i, j;
+> > 	struct tcphdr *tcph;
+> >+	struct tcphdr _tcph;
+> > 	u_int16_t n, o;
+> > 	u_int8_t *opt;
+> > 
+> >-	if (!skb_make_writable(skb, skb->len))
+> >+	if (skb->len < minlen)
+> >+		return XT_CONTINUE;
+> >+
+> >+	tcph = skb_header_pointer(skb, tcphoff, sizeof(_tcph), &_tcph);
+> >+	if (!tcph)
+> >+		return XT_CONTINUE; /* no options -> nothing to do */
 > 
->-	if (!skb_make_writable(skb, skb->len))
->+	if (skb->len < minlen)
->+		return XT_CONTINUE;
->+
->+	tcph = skb_header_pointer(skb, tcphoff, sizeof(_tcph), &_tcph);
->+	if (!tcph)
->+		return XT_CONTINUE; /* no options -> nothing to do */
+> To the best of my analysis, the "no options" comment is incorrect here,
+> because you are not even looking at the options so far, but only tcph.
 
-To the best of my analysis, the "no options" comment is incorrect here,
-because you are not even looking at the options so far, but only tcph.
-The prose should probably be something like:
+Yup.
 
-	if (iph->frag_off & htons(IP_OFFSET)) != 0)
-		/* not the first fragment - lost case */
-		return XT_CONTINUE;
-	if (iph->len < iph->ihl * 4 + sizeof(_tcph))
-		/* fragment boundary within tcphdr */
-		return XT_CONTINUE;
-	tcph = skb_header_pointer(skb, tcphoff, sizeof(_tcph), &_tcph);
-	if (tcph == NULL)
-		/* packet way too short for some reason
-		   (should not occur since we tested for fragment
-		   boundary) */
-		return NF_DROP;
-	if (tcph->doff * 4 - sizeof(_tcph) == 0)
-		/* no options */
-		return XT_CONTINUE;
-	if (iph->len < iph->ihl * 4 + sizeof(_tcph) + tcphoff))
-		/* fragment boundary within tcpoptions */
-		return XT_CONTINUE;
+> The prose should probably be something like:
+ 
+> 	if (iph->frag_off & htons(IP_OFFSET)) != 0)
+> 		/* not the first fragment - lost case */
+> 		return XT_CONTINUE;
+[..]
 
-	skb_make_writable...
+Can to submit a patch?
