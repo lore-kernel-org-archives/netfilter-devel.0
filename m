@@ -1,18 +1,18 @@
 From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
 Subject: [RFC PATCH 2/4] netfilter: ip6t_NPT: Use csum_partial().
-Date: Sun, 27 Jan 2013 03:36:34 +0900
-Message-ID: <51042232.5020805@linux-ipv6.org>
+Date: Sun, 27 Jan 2013 03:36:48 +0900
+Message-ID: <51042240.1020606@linux-ipv6.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Cc: jm@dilly.me, fw@strlen.de, yoshfuji@linux-ipv6.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 94.43.138.210.xn.2iij.net ([210.138.43.94]:57769 "EHLO
+Received: from 94.43.138.210.xn.2iij.net ([210.138.43.94]:57777 "EHLO
 	mail.st-paulia.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752343Ab3AZSgg (ORCPT
+	with ESMTP id S1752343Ab3AZSgt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 26 Jan 2013 13:36:36 -0500
+	Sat, 26 Jan 2013 13:36:49 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
