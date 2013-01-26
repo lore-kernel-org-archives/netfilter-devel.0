@@ -1,52 +1,53 @@
 From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Subject: [RFC PATCH 2/4] netfilter: ip6t_NPT: Use csum_partial().
-Date: Sun, 27 Jan 2013 03:36:48 +0900
-Message-ID: <51042240.1020606@linux-ipv6.org>
+Subject: [RFC PATCH 1/4] netfilter: ip6t_NPT: Fix checksuming.
+Date: Sun, 27 Jan 2013 03:37:48 +0900
+Message-ID: <5104227C.3030306@linux-ipv6.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Cc: jm@dilly.me, fw@strlen.de, yoshfuji@linux-ipv6.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 94.43.138.210.xn.2iij.net ([210.138.43.94]:57777 "EHLO
+Received: from 94.43.138.210.xn.2iij.net ([210.138.43.94]:57804 "EHLO
 	mail.st-paulia.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752343Ab3AZSgt (ORCPT
+	with ESMTP id S1752343Ab3AZSht (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 26 Jan 2013 13:36:49 -0500
+	Sat, 26 Jan 2013 13:37:49 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Cast __wsum from/to __sum16 is wrong.  Instead, apply appropriate
+conversion function: csum_unfold() or csum_fold().
+
 Signed-off-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
 ---
- net/ipv6/netfilter/ip6t_NPT.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ net/ipv6/netfilter/ip6t_NPT.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
-index 3ff281b..b1bf3ed 100644
+index 7302b0b..3ff281b 100644
 --- a/net/ipv6/netfilter/ip6t_NPT.c
 +++ b/net/ipv6/netfilter/ip6t_NPT.c
-@@ -17,18 +17,13 @@
- static int ip6t_npt_checkentry(const struct xt_tgchk_param *par)
- {
- 	struct ip6t_npt_tginfo *npt = par->targinfo;
--	__wsum src_sum = 0, dst_sum = 0;
--	unsigned int i;
-+	__wsum src_sum, dst_sum;
+@@ -30,7 +30,7 @@ static int ip6t_npt_checkentry(const struct xt_tgchk_param *par)
+ 				(__force __wsum)npt->dst_pfx.in6.s6_addr16[i]);
+ 	}
  
- 	if (npt->src_pfx_len > 64 || npt->dst_pfx_len > 64)
- 		return -EINVAL;
- 
--	for (i = 0; i < ARRAY_SIZE(npt->src_pfx.in6.s6_addr16); i++) {
--		src_sum = csum_add(src_sum,
--				(__force __wsum)npt->src_pfx.in6.s6_addr16[i]);
--		dst_sum = csum_add(dst_sum,
--				(__force __wsum)npt->dst_pfx.in6.s6_addr16[i]);
--	}
-+	src_sum = csum_partial(&npt->src_pfx.in6, sizeof(npt->src_pfx.in6), 0);
-+	dst_sum = csum_partial(&npt->dst_pfx.in6, sizeof(npt->dst_pfx.in6), 0);
- 
- 	npt->adjustment = csum_fold(csum_sub(src_sum, dst_sum));
+-	npt->adjustment = (__force __sum16) csum_sub(src_sum, dst_sum);
++	npt->adjustment = csum_fold(csum_sub(src_sum, dst_sum));
  	return 0;
+ }
+ 
+@@ -66,8 +66,8 @@ static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
+ 			return false;
+ 	}
+ 
+-	sum = (__force __sum16) csum_add((__force __wsum)addr->s6_addr16[idx],
+-			 npt->adjustment);
++	sum = csum_fold(csum_add(csum_unfold((__force __sum16)addr->s6_addr16[idx]),
++				 csum_unfold(npt->adjustment)));
+ 	if (sum == CSUM_MANGLED_0)
+ 		sum = 0;
+ 	*(__force __sum16 *)&addr->s6_addr16[idx] = sum;
 -- 
 1.7.9.5
 
