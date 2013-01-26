@@ -1,53 +1,59 @@
 From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Subject: [RFC PATCH 1/4] netfilter: ip6t_NPT: Fix checksuming.
-Date: Sun, 27 Jan 2013 03:37:48 +0900
-Message-ID: <5104227C.3030306@linux-ipv6.org>
+Subject: [RFC PATCH 3/4] netfilter ip6t_NPT: Ensure to check lower part of
+ prefixes are zero.
+Date: Sun, 27 Jan 2013 03:38:23 +0900
+Message-ID: <5104229F.9000501@linux-ipv6.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Cc: jm@dilly.me, fw@strlen.de, yoshfuji@linux-ipv6.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 94.43.138.210.xn.2iij.net ([210.138.43.94]:57804 "EHLO
+Received: from 94.43.138.210.xn.2iij.net ([210.138.43.94]:57823 "EHLO
 	mail.st-paulia.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752343Ab3AZSht (ORCPT
+	with ESMTP id S1752343Ab3AZSiZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 26 Jan 2013 13:37:49 -0500
+	Sat, 26 Jan 2013 13:38:25 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Cast __wsum from/to __sum16 is wrong.  Instead, apply appropriate
-conversion function: csum_unfold() or csum_fold().
-
 Signed-off-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
 ---
- net/ipv6/netfilter/ip6t_NPT.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ net/ipv6/netfilter/ip6t_NPT.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
 diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
-index 7302b0b..3ff281b 100644
+index b1bf3ed..7d23d22 100644
 --- a/net/ipv6/netfilter/ip6t_NPT.c
 +++ b/net/ipv6/netfilter/ip6t_NPT.c
-@@ -30,7 +30,7 @@ static int ip6t_npt_checkentry(const struct xt_tgchk_param *par)
- 				(__force __wsum)npt->dst_pfx.in6.s6_addr16[i]);
- 	}
+@@ -9,6 +9,7 @@
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
+ #include <linux/ipv6.h>
++#include <net/ipv6.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter_ipv6.h>
+ #include <linux/netfilter_ipv6/ip6t_NPT.h>
+@@ -18,10 +19,19 @@ static int ip6t_npt_checkentry(const struct xt_tgchk_param *par)
+ {
+ 	struct ip6t_npt_tginfo *npt = par->targinfo;
+ 	__wsum src_sum, dst_sum;
++	struct in6_addr pfx;
  
--	npt->adjustment = (__force __sum16) csum_sub(src_sum, dst_sum);
-+	npt->adjustment = csum_fold(csum_sub(src_sum, dst_sum));
- 	return 0;
- }
+ 	if (npt->src_pfx_len > 64 || npt->dst_pfx_len > 64)
+ 		return -EINVAL;
  
-@@ -66,8 +66,8 @@ static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
- 			return false;
- 	}
++	/* Ensure that LSB of prefix is zero */
++	ipv6_addr_prefix(&pfx, &npt->src_pfx.in6, npt->src_pfx_len);
++	if (!ipv6_addr_equal(&pfx, &npt->src_pfx.in6))
++		return -EINVAL;
++	ipv6_addr_prefix(&pfx, &npt->dst_pfx.in6, npt->dst_pfx_len);
++	if (!ipv6_addr_equal(&pfx, &npt->dst_pfx.in6))
++		return -EINVAL;
++
+ 	src_sum = csum_partial(&npt->src_pfx.in6, sizeof(npt->src_pfx.in6), 0);
+ 	dst_sum = csum_partial(&npt->dst_pfx.in6, sizeof(npt->dst_pfx.in6), 0);
  
--	sum = (__force __sum16) csum_add((__force __wsum)addr->s6_addr16[idx],
--			 npt->adjustment);
-+	sum = csum_fold(csum_add(csum_unfold((__force __sum16)addr->s6_addr16[idx]),
-+				 csum_unfold(npt->adjustment)));
- 	if (sum == CSUM_MANGLED_0)
- 		sum = 0;
- 	*(__force __sum16 *)&addr->s6_addr16[idx] = sum;
 -- 
 1.7.9.5
 
