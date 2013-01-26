@@ -1,113 +1,30 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [iptables PATCH] configure: display summary at end of configure
-Date: Fri, 25 Jan 2013 23:48:10 +0100
-Message-ID: <1359154090-11061-1-git-send-email-eric@regit.org>
-Cc: eric@regit.org
-To: netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [iptables PATCH] configure: display summary at end of
+ configure
+Date: Sat, 26 Jan 2013 01:16:47 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1301260113570.24932@nerf07.vanv.qr>
+References: <1359154090-11061-1-git-send-email-eric@regit.org>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:44517 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753360Ab3AYWs4 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Jan 2013 17:48:56 -0500
+Received: from ares07.inai.de ([5.9.24.206]:52849 "EHLO ares07.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752290Ab3AZAQs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Jan 2013 19:16:48 -0500
+In-Reply-To: <1359154090-11061-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds a message at the end of configure which displays
-the different compilation options and system settings.
 
-An example result is the following:
+On Friday 2013-01-25 23:48, Eric Leblond wrote:
+>
+>Build parameters:
+>  Static build:				no
+>  Shared build:				yes
 
-Iptables Configuration:
-  IPv4 support:				yes
-  IPv6 support:				yes
-  Devel support:			yes
-  IPQ support:				no
-  Large file support:			yes
+--enable-static/shared has a different meaning in iptables:
 
-Build parameters:
-  Static build:				no
-  Shared build:				yes
-  Installation prefix (--prefix):	/usr/local
-  Xtables extension directory:		/usr/local/lib/xtables
-  Pkg-config directory:			/usr/local/lib/pkgconfig
-  Kernel build directory:		/lib/modules/custom
-  Host:					x86_64-unknown-linux-gnu
-  GCC binary:				gcc
-
-Signed-off-by: Eric Leblond <eric@regit.org>
----
- configure.ac |   46 +++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 45 insertions(+), 1 deletion(-)
-
-diff --git a/configure.ac b/configure.ac
-index ffd088c..13d085e 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -49,7 +49,8 @@ AC_ARG_ENABLE([devel],
- 	[Install Xtables development headers]),
- 	[enable_devel="$enableval"], [enable_devel="yes"])
- AC_ARG_ENABLE([libipq],
--	AS_HELP_STRING([--enable-libipq], [Build and install libipq]))
-+	AS_HELP_STRING([--enable-libipq], [Build and install libipq]),
-+	[enable_libipq="$enableval"], [enable_libipq="no"])
- AC_ARG_WITH([pkgconfigdir], AS_HELP_STRING([--with-pkgconfigdir=PATH],
- 	[Path to the pkgconfig directory [[LIBDIR/pkgconfig]]]),
- 	[pkgconfigdir="$withval"], [pkgconfigdir='${libdir}/pkgconfig'])
-@@ -107,6 +108,20 @@ if [[ -n "$ksourcedir" ]]; then
- fi;
- pkgdatadir='${datadir}/xtables';
- 
-+define([EXPAND_VARIABLE],
-+[$2=[$]$1
-+if test $prefix = 'NONE'; then
-+	prefix="/usr/local"
-+fi
-+while true; do
-+  case "[$]$2" in
-+    *\[$]* ) eval "$2=[$]$2" ;;
-+    *) break ;;
-+  esac
-+done
-+eval "$2=[$]$2"
-+])dnl EXPAND_VARIABLE
-+
- AC_SUBST([regular_CFLAGS])
- AC_SUBST([regular_CPPFLAGS])
- AC_SUBST([noundef_LDFLAGS])
-@@ -129,3 +144,32 @@ AC_CONFIG_FILES([Makefile extensions/GNUmakefile include/Makefile
- 	libxtables/Makefile utils/Makefile
- 	include/xtables-version.h include/iptables/internal.h])
- AC_OUTPUT
-+
-+
-+EXPAND_VARIABLE(xtlibdir, e_xtlibdir)
-+EXPAND_VARIABLE(pkgconfigdir, e_pkgconfigdir)
-+
-+echo "
-+Iptables Configuration:
-+  IPv4 support:				${enable_ipv4}
-+  IPv6 support:				${enable_ipv6}
-+  Devel support:			${enable_devel}
-+  IPQ support:				${enable_libipq}
-+  Large file support:			${enable_largefile}
-+
-+Build parameters:
-+  Static build:				${enable_static}
-+  Shared build:				${enable_shared}
-+  Installation prefix (--prefix):	${prefix}
-+  Xtables extension directory:		${e_xtlibdir}
-+  Pkg-config directory:			${e_pkgconfigdir}"
-+
-+if [[ -n "$ksourcedir" ]]; then
-+	echo "  Kernel source directory:		${ksourcedir}"
-+fi;
-+if [[ -n "$kbuilddir" ]]; then
-+	echo "  Kernel build directory:		${kbuilddir}"
-+fi;
-+
-+echo "  Host:					${host}
-+  GCC binary:				${CC}"
--- 
-1.7.10.4
-
+   Put plugins into executable:           ${enable_static}
+   Support plugins via dlopen:            ${enable_shared}
