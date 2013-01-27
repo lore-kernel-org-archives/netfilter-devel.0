@@ -1,39 +1,50 @@
-From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Subject: [RFC PATCH 4/4] netfilter: ip6t_NPT: Do not mix two prefixes.
-Date: Sun, 27 Jan 2013 03:38:44 +0900
-Message-ID: <510422B4.8020204@linux-ipv6.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/21] netfilter updates for net-next
+Date: Sun, 27 Jan 2013 00:56:45 -0500 (EST)
+Message-ID: <20130127.005645.1941744802495301026.davem@davemloft.net>
+References: <1359122093-3404-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: jm@dilly.me, fw@strlen.de, yoshfuji@linux-ipv6.org
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 94.43.138.210.xn.2iij.net ([210.138.43.94]:57837 "EHLO
-	mail.st-paulia.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752343Ab3AZSip (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:55196 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755726Ab3A0F4r (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 26 Jan 2013 13:38:45 -0500
+	Sun, 27 Jan 2013 00:56:47 -0500
+In-Reply-To: <1359122093-3404-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
----
- net/ipv6/netfilter/ip6t_NPT.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+From: pablo@netfilter.org
+Date: Fri, 25 Jan 2013 14:54:32 +0100
 
-diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
-index 7d23d22..74e171d 100644
---- a/net/ipv6/netfilter/ip6t_NPT.c
-+++ b/net/ipv6/netfilter/ip6t_NPT.c
-@@ -56,7 +56,7 @@ static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
- 
- 		idx = i / 32;
- 		addr->s6_addr32[idx] &= mask;
--		addr->s6_addr32[idx] |= npt->dst_pfx.in6.s6_addr32[idx];
-+		addr->s6_addr32[idx] |= ~mask & npt->dst_pfx.in6.s6_addr32[idx];
- 	}
- 
- 	if (pfx_len <= 48)
--- 
-1.7.9.5
+> * The new connlabel extension for x_tables, that allows us to attach
+>   labels to each conntrack flow. The kernel implementation uses a
+>   bitmask and there's a file in user-space that maps the bits with the
+>   corresponding string for each existing label. By now, you can attach
+>   up to 128 overlapping labels. From Florian Westphal.
+> 
+> * A new round of improvements for the netns support for conntrack.
+>   Gao feng has moved many of the initialization code of each module
+>   of the netns init path. He also made several code refactoring, that
+>   code looks cleaner to me now.
+> 
+> * Added documentation for all possible tweaks for nf_conntrack via
+>   sysctl, from Jiri Pirko.
+> 
+> * Cisco 7941/7945 IP phone support for our SIP conntrack helper,
+>   from Kevin Cernekee.
+> 
+> * Missing header file in the snmp helper, from Stephen Hemminger.
+> 
+> * Finally, a couple of fixes to resolve minor issues with these
+>   changes, from myself.
+> 
+> You can pull these changes from:
+> 
+> git://1984.lsi.us.es/nf-next master
 
+Pulled, thanks Pablo.
