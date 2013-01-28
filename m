@@ -1,71 +1,66 @@
 From: pablo@netfilter.org
-Subject: [stable-3.7 07/14] netfilter: xt_recent: fix namespace destroy path
-Date: Mon, 28 Jan 2013 20:31:26 +0100
-Message-ID: <1359401493-6196-8-git-send-email-pablo@netfilter.org>
+Subject: [stable-3.7 03/14] netfilter: nfnetlink_log: fix mac address for 6in4 tunnels
+Date: Mon, 28 Jan 2013 20:31:22 +0100
+Message-ID: <1359401493-6196-4-git-send-email-pablo@netfilter.org>
 References: <1359401493-6196-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org
 To: stable@vger.kernel.org
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:50463 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753455Ab3A1Tby (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Jan 2013 14:31:54 -0500
 In-Reply-To: <1359401493-6196-1-git-send-email-pablo@netfilter.org>
-Sender: stable-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: "Vitaly E. Lavrov" <lve@guap.ru>
+From: Bob Hockney <bhockney@ix.netcom.com>
 
-recent_net_exit() is called before recent_mt_destroy() in the
-destroy path of network namespaces. Make sure there are no entries
-in the parent proc entry xt_recent before removing it.
+For tunnelled ipv6in4 packets, the LOG target (xt_LOG.c) adjusts
+the start of the mac field to start at the ethernet header instead
+of the ipv4 header for the tunnel. This patch conforms what is
+passed by the NFLOG target through nfnetlink to what the LOG target
+does. Code borrowed from xt_LOG.c.
 
-Signed-off-by: Vitaly E. Lavrov <lve@guap.ru>
+Signed-off-by: Bob Hockney <bhockney@ix.netcom.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_recent.c |   20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ net/netfilter/nfnetlink_log.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index 4635c9b..dab053e 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -431,7 +431,8 @@ static void recent_mt_destroy(const struct xt_mtdtor_param *par)
- 		list_del(&t->list);
- 		spin_unlock_bh(&recent_lock);
- #ifdef CONFIG_PROC_FS
--		remove_proc_entry(t->name, recent_net->xt_recent);
-+		if (recent_net->xt_recent != NULL)
-+			remove_proc_entry(t->name, recent_net->xt_recent);
- #endif
- 		recent_table_flush(t);
- 		kfree(t);
-@@ -615,6 +616,20 @@ static int __net_init recent_proc_net_init(struct net *net)
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 9f199f2..4e210e0 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -384,6 +384,7 @@ __build_packet_message(struct nfulnl_instance *inst,
+ 	struct nfgenmsg *nfmsg;
+ 	sk_buff_data_t old_tail = inst->skb->tail;
+ 	struct sock *sk;
++	const unsigned char *hwhdrp;
  
- static void __net_exit recent_proc_net_exit(struct net *net)
- {
-+	struct recent_net *recent_net = recent_pernet(net);
-+	struct recent_table *t;
+ 	nlh = nlmsg_put(inst->skb, 0, 0,
+ 			NFNL_SUBSYS_ULOG << 8 | NFULNL_MSG_PACKET,
+@@ -485,9 +486,17 @@ __build_packet_message(struct nfulnl_instance *inst,
+ 	if (indev && skb_mac_header_was_set(skb)) {
+ 		if (nla_put_be16(inst->skb, NFULA_HWTYPE, htons(skb->dev->type)) ||
+ 		    nla_put_be16(inst->skb, NFULA_HWLEN,
+-				 htons(skb->dev->hard_header_len)) ||
+-		    nla_put(inst->skb, NFULA_HWHEADER, skb->dev->hard_header_len,
+-			    skb_mac_header(skb)))
++				 htons(skb->dev->hard_header_len)))
++			goto nla_put_failure;
 +
-+	/* recent_net_exit() is called before recent_mt_destroy(). Make sure
-+	 * that the parent xt_recent proc entry is is empty before trying to
-+	 * remove it.
-+	 */
-+	spin_lock_bh(&recent_lock);
-+	list_for_each_entry(t, &recent_net->tables, list)
-+	        remove_proc_entry(t->name, recent_net->xt_recent);
++		hwhdrp = skb_mac_header(skb);
 +
-+	recent_net->xt_recent = NULL;
-+	spin_unlock_bh(&recent_lock);
++		if (skb->dev->type == ARPHRD_SIT)
++			hwhdrp -= ETH_HLEN;
 +
- 	proc_net_remove(net, "xt_recent");
- }
- #else
-@@ -638,9 +653,6 @@ static int __net_init recent_net_init(struct net *net)
- 
- static void __net_exit recent_net_exit(struct net *net)
- {
--	struct recent_net *recent_net = recent_pernet(net);
--
--	BUG_ON(!list_empty(&recent_net->tables));
- 	recent_proc_net_exit(net);
- }
++		if (hwhdrp >= skb->head &&
++		    nla_put(inst->skb, NFULA_HWHEADER,
++			    skb->dev->hard_header_len, hwhdrp))
+ 			goto nla_put_failure;
+ 	}
  
 -- 
 1.7.10.4
+
