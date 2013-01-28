@@ -1,107 +1,48 @@
 From: pablo@netfilter.org
-Subject: [stable-3.7 13/14] netfilter: x_tables: print correct hook names for ARP
-Date: Mon, 28 Jan 2013 20:31:32 +0100
-Message-ID: <1359401493-6196-14-git-send-email-pablo@netfilter.org>
+Subject: [stable-3.7 04/14] netfilter: nfnetlink_log: fix possible compilation issue due to missing include
+Date: Mon, 28 Jan 2013 20:31:23 +0100
+Message-ID: <1359401493-6196-5-git-send-email-pablo@netfilter.org>
 References: <1359401493-6196-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org
 To: stable@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50534 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:50458 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753648Ab3A1TcG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Jan 2013 14:32:06 -0500
+	id S1753276Ab3A1Tbx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Jan 2013 14:31:53 -0500
 In-Reply-To: <1359401493-6196-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jan Engelhardt <jengelh@inai.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-arptables 0.0.4 (released on 10th Jan 2013) supports calling the
-CLASSIFY target, but on adding a rule to the wrong chain, the
-diagnostic is as follows:
+In (0c36b48 netfilter: nfnetlink_log: fix mac address for 6in4 tunnels)
+the include file that defines ARPD_SIT was missing. This passed unnoticed
+during my tests (I did not hit this problem here).
 
-	# arptables -A INPUT -j CLASSIFY --set-class 0:0
-	arptables: Invalid argument
-	# dmesg | tail -n1
-	x_tables: arp_tables: CLASSIFY target: used from hooks
-	PREROUTING, but only usable from INPUT/FORWARD
+net/netfilter/nfnetlink_log.c: In function '__build_packet_message':
+net/netfilter/nfnetlink_log.c:494:25: error: 'ARPHRD_SIT' undeclared (first use in this function)
+net/netfilter/nfnetlink_log.c:494:25: note: each undeclared identifier is reported only once for
++each function it appears in
 
-This is incorrect, since xt_CLASSIFY.c does specify
-(1 << NF_ARP_OUT) | (1 << NF_ARP_FORWARD).
-
-This patch corrects the x_tables diagnostic message to print the
-proper hook names for the NFPROTO_ARP case.
-
-Affects all kernels down to and including v2.6.31.
-
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/x_tables.c |   28 ++++++++++++++++++++--------
- 1 file changed, 20 insertions(+), 8 deletions(-)
+ net/netfilter/nfnetlink_log.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 8d987c3..7b3a9e5 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -345,19 +345,27 @@ int xt_find_revision(u8 af, const char *name, u8 revision, int target,
- }
- EXPORT_SYMBOL_GPL(xt_find_revision);
- 
--static char *textify_hooks(char *buf, size_t size, unsigned int mask)
-+static char *
-+textify_hooks(char *buf, size_t size, unsigned int mask, uint8_t nfproto)
- {
--	static const char *const names[] = {
-+	static const char *const inetbr_names[] = {
- 		"PREROUTING", "INPUT", "FORWARD",
- 		"OUTPUT", "POSTROUTING", "BROUTING",
- 	};
--	unsigned int i;
-+	static const char *const arp_names[] = {
-+		"INPUT", "FORWARD", "OUTPUT",
-+	};
-+	const char *const *names;
-+	unsigned int i, max;
- 	char *p = buf;
- 	bool np = false;
- 	int res;
- 
-+	names = (nfproto == NFPROTO_ARP) ? arp_names : inetbr_names;
-+	max   = (nfproto == NFPROTO_ARP) ? ARRAY_SIZE(arp_names) :
-+	                                   ARRAY_SIZE(inetbr_names);
- 	*p = '\0';
--	for (i = 0; i < ARRAY_SIZE(names); ++i) {
-+	for (i = 0; i < max; ++i) {
- 		if (!(mask & (1 << i)))
- 			continue;
- 		res = snprintf(p, size, "%s%s", np ? "/" : "", names[i]);
-@@ -402,8 +410,10 @@ int xt_check_match(struct xt_mtchk_param *par,
- 		pr_err("%s_tables: %s match: used from hooks %s, but only "
- 		       "valid from %s\n",
- 		       xt_prefix[par->family], par->match->name,
--		       textify_hooks(used, sizeof(used), par->hook_mask),
--		       textify_hooks(allow, sizeof(allow), par->match->hooks));
-+		       textify_hooks(used, sizeof(used), par->hook_mask,
-+		                     par->family),
-+		       textify_hooks(allow, sizeof(allow), par->match->hooks,
-+		                     par->family));
- 		return -EINVAL;
- 	}
- 	if (par->match->proto && (par->match->proto != proto || inv_proto)) {
-@@ -575,8 +585,10 @@ int xt_check_target(struct xt_tgchk_param *par,
- 		pr_err("%s_tables: %s target: used from hooks %s, but only "
- 		       "usable from %s\n",
- 		       xt_prefix[par->family], par->target->name,
--		       textify_hooks(used, sizeof(used), par->hook_mask),
--		       textify_hooks(allow, sizeof(allow), par->target->hooks));
-+		       textify_hooks(used, sizeof(used), par->hook_mask,
-+		                     par->family),
-+		       textify_hooks(allow, sizeof(allow), par->target->hooks,
-+		                     par->family));
- 		return -EINVAL;
- 	}
- 	if (par->target->proto && (par->target->proto != proto || inv_proto)) {
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 4e210e0..92fd8ec 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -13,6 +13,7 @@
+  */
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
++#include <linux/if_arp.h>
+ #include <linux/init.h>
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
 -- 
 1.7.10.4
 
