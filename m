@@ -1,171 +1,51 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 2/3] Add the "state" alias to the "conntrack" match
-Date: Mon, 28 Jan 2013 21:32:54 +0100
-Message-ID: <1359405175-4394-3-git-send-email-kadlec@blackhole.kfki.hu>
-References: <1359405175-4394-1-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 1/1] netfilter: Add flags and compatibility revision in order to support aliases.
+Date: Mon, 28 Jan 2013 21:44:48 +0100
+Message-ID: <1359405888-5090-2-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1359405888-5090-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:49367 "EHLO smtp0.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:55004 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752712Ab3A1Ujl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Jan 2013 15:39:41 -0500
-In-Reply-To: <1359405175-4394-1-git-send-email-kadlec@blackhole.kfki.hu>
+	id S1752049Ab3A1Uou (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Jan 2013 15:44:50 -0500
+In-Reply-To: <1359405888-5090-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+The patch adds the flag to denote the "state" alias as of the subset
+of the "conntrack" match and the flag and revision for the "NOTRACK"
+alias as the subset of the "CT" target.
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- extensions/libxt_conntrack.c           |   27 ++++++++++++++++++++++++---
- extensions/libxt_state.man             |    2 +-
- include/linux/netfilter/xt_conntrack.h |    1 +
- 3 files changed, 26 insertions(+), 4 deletions(-)
+ include/uapi/linux/netfilter/xt_CT.h        |    5 ++-
+ include/uapi/linux/netfilter/xt_conntrack.h |    1 +
+ net/netfilter/xt_CT.c                       |   75 +++++++++++++++++++++++++++
+ 3 files changed, 80 insertions(+), 1 deletions(-)
 
-diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
-index c37f14d..f7704eb 100644
---- a/extensions/libxt_conntrack.c
-+++ b/extensions/libxt_conntrack.c
-@@ -801,7 +801,9 @@ conntrack_dump(const struct xt_conntrack_mtinfo3 *info, const char *prefix,
- 	if (info->match_flags & XT_CONNTRACK_STATE) {
- 		if (info->invert_flags & XT_CONNTRACK_STATE)
- 			printf(" !");
--		printf(" %sctstate", prefix);
-+		printf(" %s%s", prefix,
-+			info->match_flags & XT_CONNTRACK_STATE_ALIAS
-+				? "state" : "ctstate");
- 		print_state(info->state_mask);
- 	}
+diff --git a/include/uapi/linux/netfilter/xt_CT.h b/include/uapi/linux/netfilter/xt_CT.h
+index a064b8a..54528fd 100644
+--- a/include/uapi/linux/netfilter/xt_CT.h
++++ b/include/uapi/linux/netfilter/xt_CT.h
+@@ -3,7 +3,10 @@
  
-@@ -902,6 +904,15 @@ conntrack_dump(const struct xt_conntrack_mtinfo3 *info, const char *prefix,
- 	}
- }
+ #include <linux/types.h>
  
-+static const char *
-+conntrack_print_name_alias(const struct xt_entry_match *match)
-+{
-+	struct xt_conntrack_mtinfo1 *info = (void *)match->data;
-+
-+	return info->match_flags & XT_CONNTRACK_STATE_ALIAS
-+		? "state" : "conntrack";
-+}
-+
- static void conntrack_print(const void *ip, const struct xt_entry_match *match,
-                             int numeric)
- {
-@@ -1083,7 +1094,7 @@ static void state_ct1_parse(struct xt_option_call *cb)
- 	struct xt_conntrack_mtinfo1 *sinfo = cb->data;
+-#define XT_CT_NOTRACK	0x1
++enum {
++	XT_CT_NOTRACK		= 1 << 0,
++	XT_CT_NOTRACK_ALIAS	= 1 << 1,
++};
  
- 	xtables_option_parse(cb);
--	sinfo->match_flags = XT_CONNTRACK_STATE;
-+	sinfo->match_flags = XT_CONNTRACK_STATE | XT_CONNTRACK_STATE_ALIAS;
- 	sinfo->state_mask = state_parse_states(cb->arg);
- 	if (cb->invert)
- 		sinfo->invert_flags |= XT_CONNTRACK_STATE;
-@@ -1094,7 +1105,7 @@ static void state_ct23_parse(struct xt_option_call *cb)
- 	struct xt_conntrack_mtinfo3 *sinfo = cb->data;
- 
- 	xtables_option_parse(cb);
--	sinfo->match_flags = XT_CONNTRACK_STATE;
-+	sinfo->match_flags = XT_CONNTRACK_STATE | XT_CONNTRACK_STATE_ALIAS;
- 	sinfo->state_mask = state_parse_states(cb->arg);
- 	if (cb->invert)
- 		sinfo->invert_flags |= XT_CONNTRACK_STATE;
-@@ -1158,6 +1169,7 @@ static struct xtables_match conntrack_mt_reg[] = {
- 		.x6_fcheck     = conntrack_mt_check,
- 		.print         = conntrack_print,
- 		.save          = conntrack_save,
-+		.alias	       = conntrack_print_name_alias,
- 		.x6_options    = conntrack_mt_opts_v0,
- 	},
- 	{
-@@ -1172,6 +1184,7 @@ static struct xtables_match conntrack_mt_reg[] = {
- 		.x6_fcheck     = conntrack_mt_check,
- 		.print         = conntrack1_mt4_print,
- 		.save          = conntrack1_mt4_save,
-+		.alias	       = conntrack_print_name_alias,
- 		.x6_options    = conntrack2_mt_opts,
- 	},
- 	{
-@@ -1186,6 +1199,7 @@ static struct xtables_match conntrack_mt_reg[] = {
- 		.x6_fcheck     = conntrack_mt_check,
- 		.print         = conntrack1_mt6_print,
- 		.save          = conntrack1_mt6_save,
-+		.alias	       = conntrack_print_name_alias,
- 		.x6_options    = conntrack2_mt_opts,
- 	},
- 	{
-@@ -1200,6 +1214,7 @@ static struct xtables_match conntrack_mt_reg[] = {
- 		.x6_fcheck     = conntrack_mt_check,
- 		.print         = conntrack2_mt_print,
- 		.save          = conntrack2_mt_save,
-+		.alias	       = conntrack_print_name_alias,
- 		.x6_options    = conntrack2_mt_opts,
- 	},
- 	{
-@@ -1214,6 +1229,7 @@ static struct xtables_match conntrack_mt_reg[] = {
- 		.x6_fcheck     = conntrack_mt_check,
- 		.print         = conntrack2_mt6_print,
- 		.save          = conntrack2_mt6_save,
-+		.alias	       = conntrack_print_name_alias,
- 		.x6_options    = conntrack2_mt_opts,
- 	},
- 	{
-@@ -1228,6 +1244,7 @@ static struct xtables_match conntrack_mt_reg[] = {
- 		.x6_fcheck     = conntrack_mt_check,
- 		.print         = conntrack3_mt_print,
- 		.save          = conntrack3_mt_save,
-+		.alias	       = conntrack_print_name_alias,
- 		.x6_options    = conntrack3_mt_opts,
- 	},
- 	{
-@@ -1242,6 +1259,7 @@ static struct xtables_match conntrack_mt_reg[] = {
- 		.x6_fcheck     = conntrack_mt_check,
- 		.print         = conntrack3_mt6_print,
- 		.save          = conntrack3_mt6_save,
-+		.alias	       = conntrack_print_name_alias,
- 		.x6_options    = conntrack3_mt_opts,
- 	},
- 	{
-@@ -1249,6 +1267,7 @@ static struct xtables_match conntrack_mt_reg[] = {
- 		.name          = "state",
- 		.real_name     = "conntrack",
- 		.revision      = 1,
-+		.ext_flags     = XTABLES_EXT_ALIAS,
- 		.version       = XTABLES_VERSION,
- 		.size          = XT_ALIGN(sizeof(struct xt_conntrack_mtinfo1)),
- 		.userspacesize = XT_ALIGN(sizeof(struct xt_conntrack_mtinfo1)),
-@@ -1261,6 +1280,7 @@ static struct xtables_match conntrack_mt_reg[] = {
- 		.name          = "state",
- 		.real_name     = "conntrack",
- 		.revision      = 2,
-+		.ext_flags     = XTABLES_EXT_ALIAS,
- 		.version       = XTABLES_VERSION,
- 		.size          = XT_ALIGN(sizeof(struct xt_conntrack_mtinfo2)),
- 		.userspacesize = XT_ALIGN(sizeof(struct xt_conntrack_mtinfo2)),
-@@ -1273,6 +1293,7 @@ static struct xtables_match conntrack_mt_reg[] = {
- 		.name          = "state",
- 		.real_name     = "conntrack",
- 		.revision      = 3,
-+		.ext_flags     = XTABLES_EXT_ALIAS,
- 		.version       = XTABLES_VERSION,
- 		.size          = XT_ALIGN(sizeof(struct xt_conntrack_mtinfo3)),
- 		.userspacesize = XT_ALIGN(sizeof(struct xt_conntrack_mtinfo3)),
-diff --git a/extensions/libxt_state.man b/extensions/libxt_state.man
-index bd60468..ec096ca 100644
---- a/extensions/libxt_state.man
-+++ b/extensions/libxt_state.man
-@@ -1,4 +1,4 @@
--The "state" module is an obsolete version of "conntrack".
-+The "state" extension is a subset of the "conntrack" module.
- "state" allows access to the connection tracking state for this packet.
- .TP
- [\fB!\fP] \fB\-\-state\fP \fIstate\fP
-diff --git a/include/linux/netfilter/xt_conntrack.h b/include/linux/netfilter/xt_conntrack.h
-index 74b904d..e971501 100644
---- a/include/linux/netfilter/xt_conntrack.h
-+++ b/include/linux/netfilter/xt_conntrack.h
-@@ -30,6 +30,7 @@ enum {
+ struct xt_ct_target_info {
+ 	__u16 flags;
+diff --git a/include/uapi/linux/netfilter/xt_conntrack.h b/include/uapi/linux/netfilter/xt_conntrack.h
+index e3c041d..e5bd308 100644
+--- a/include/uapi/linux/netfilter/xt_conntrack.h
++++ b/include/uapi/linux/netfilter/xt_conntrack.h
+@@ -31,6 +31,7 @@ enum {
  	XT_CONNTRACK_REPLSRC_PORT = 1 << 10,
  	XT_CONNTRACK_REPLDST_PORT = 1 << 11,
  	XT_CONNTRACK_DIRECTION    = 1 << 12,
@@ -173,6 +53,99 @@ index 74b904d..e971501 100644
  };
  
  struct xt_conntrack_mtinfo1 {
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+index bde009e..415efdd 100644
+--- a/net/netfilter/xt_CT.c
++++ b/net/netfilter/xt_CT.c
+@@ -309,6 +309,70 @@ err1:
+ 	return ret;
+ }
+ 
++static int xt_ct_tg_check_v2(const struct xt_tgchk_param *par)
++{
++	struct xt_ct_target_info_v1 *info = par->targinfo;
++	struct nf_conntrack_tuple t;
++	struct nf_conn *ct;
++	int ret = -EOPNOTSUPP;
++
++	if (info->flags & XT_CT_NOTRACK) {
++		ct = nf_ct_untracked_get();
++		atomic_inc(&ct->ct_general.use);
++		goto out;
++	}
++
++#ifndef CONFIG_NF_CONNTRACK_ZONES
++	if (info->zone)
++		goto err1;
++#endif
++
++	ret = nf_ct_l3proto_try_module_get(par->family);
++	if (ret < 0)
++		goto err1;
++
++	memset(&t, 0, sizeof(t));
++	ct = nf_conntrack_alloc(par->net, info->zone, &t, &t, GFP_KERNEL);
++	ret = PTR_ERR(ct);
++	if (IS_ERR(ct))
++		goto err2;
++
++	ret = 0;
++	if ((info->ct_events || info->exp_events) &&
++	    !nf_ct_ecache_ext_add(ct, info->ct_events, info->exp_events,
++				  GFP_KERNEL))
++		goto err3;
++
++	if (info->helper[0]) {
++		ret = xt_ct_set_helper(ct, info->helper, par);
++		if (ret < 0)
++			goto err3;
++	}
++
++	if (info->timeout[0]) {
++		ret = xt_ct_set_timeout(ct, par, info->timeout);
++		if (ret < 0)
++			goto err3;
++	}
++
++	__set_bit(IPS_TEMPLATE_BIT, &ct->status);
++	__set_bit(IPS_CONFIRMED_BIT, &ct->status);
++
++	/* Overload tuple linked list to put us in template list. */
++	hlist_nulls_add_head_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
++				 &par->net->ct.tmpl);
++out:
++	info->ct = ct;
++	return 0;
++
++err3:
++	nf_conntrack_free(ct);
++err2:
++	nf_ct_l3proto_module_put(par->family);
++err1:
++	return ret;
++}
++
+ static void xt_ct_tg_destroy_v0(const struct xt_tgdtor_param *par)
+ {
+ 	struct xt_ct_target_info *info = par->targinfo;
+@@ -383,6 +447,17 @@ static struct xt_target xt_ct_tg_reg[] __read_mostly = {
+ 		.table		= "raw",
+ 		.me		= THIS_MODULE,
+ 	},
++	{
++		.name		= "CT",
++		.family		= NFPROTO_UNSPEC,
++		.revision	= 2,
++		.targetsize	= sizeof(struct xt_ct_target_info_v1),
++		.checkentry	= xt_ct_tg_check_v2,
++		.destroy	= xt_ct_tg_destroy_v1,
++		.target		= xt_ct_target_v1,
++		.table		= "raw",
++		.me		= THIS_MODULE,
++	},
+ };
+ 
+ static unsigned int
 -- 
 1.7.0.4
 
