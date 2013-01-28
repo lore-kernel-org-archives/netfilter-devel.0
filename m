@@ -1,66 +1,55 @@
 From: pablo@netfilter.org
-Subject: [stable-3.7 03/14] netfilter: nfnetlink_log: fix mac address for 6in4 tunnels
-Date: Mon, 28 Jan 2013 20:31:22 +0100
-Message-ID: <1359401493-6196-4-git-send-email-pablo@netfilter.org>
+Subject: [stable-3.7 02/14] netfilter: nf_ct_reasm: fix conntrack reassembly expire code
+Date: Mon, 28 Jan 2013 20:31:21 +0100
+Message-ID: <1359401493-6196-3-git-send-email-pablo@netfilter.org>
 References: <1359401493-6196-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org
 To: stable@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50463 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:50449 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753455Ab3A1Tby (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Jan 2013 14:31:54 -0500
+	id S1752950Ab3A1Tbv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Jan 2013 14:31:51 -0500
 In-Reply-To: <1359401493-6196-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Bob Hockney <bhockney@ix.netcom.com>
+From: Haibo Xi <haibbo@gmail.com>
 
-For tunnelled ipv6in4 packets, the LOG target (xt_LOG.c) adjusts
-the start of the mac field to start at the ethernet header instead
-of the ipv4 header for the tunnel. This patch conforms what is
-passed by the NFLOG target through nfnetlink to what the LOG target
-does. Code borrowed from xt_LOG.c.
+Commit b836c99fd6c9 (ipv6: unify conntrack reassembly expire
+code with standard one) use the standard IPv6 reassembly
+code(ip6_expire_frag_queue) to handle conntrack reassembly expire.
 
-Signed-off-by: Bob Hockney <bhockney@ix.netcom.com>
+In ip6_expire_frag_queue, it invoke dev_get_by_index_rcu to get
+which device received this expired packet.so we must save ifindex
+when NF_conntrack get this packet.
+
+With this patch applied, I can see ICMP Time Exceeded sent
+from the receiver when the sender sent out 1/2 fragmented
+IPv6 packet.
+
+Signed-off-by: Haibo Xi <haibbo@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_log.c |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ net/ipv6/netfilter/nf_conntrack_reasm.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 9f199f2..4e210e0 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -384,6 +384,7 @@ __build_packet_message(struct nfulnl_instance *inst,
- 	struct nfgenmsg *nfmsg;
- 	sk_buff_data_t old_tail = inst->skb->tail;
- 	struct sock *sk;
-+	const unsigned char *hwhdrp;
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 22c8ea9..3dacecc 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -311,7 +311,10 @@ found:
+ 	else
+ 		fq->q.fragments = skb;
  
- 	nlh = nlmsg_put(inst->skb, 0, 0,
- 			NFNL_SUBSYS_ULOG << 8 | NFULNL_MSG_PACKET,
-@@ -485,9 +486,17 @@ __build_packet_message(struct nfulnl_instance *inst,
- 	if (indev && skb_mac_header_was_set(skb)) {
- 		if (nla_put_be16(inst->skb, NFULA_HWTYPE, htons(skb->dev->type)) ||
- 		    nla_put_be16(inst->skb, NFULA_HWLEN,
--				 htons(skb->dev->hard_header_len)) ||
--		    nla_put(inst->skb, NFULA_HWHEADER, skb->dev->hard_header_len,
--			    skb_mac_header(skb)))
-+				 htons(skb->dev->hard_header_len)))
-+			goto nla_put_failure;
-+
-+		hwhdrp = skb_mac_header(skb);
-+
-+		if (skb->dev->type == ARPHRD_SIT)
-+			hwhdrp -= ETH_HLEN;
-+
-+		if (hwhdrp >= skb->head &&
-+		    nla_put(inst->skb, NFULA_HWHEADER,
-+			    skb->dev->hard_header_len, hwhdrp))
- 			goto nla_put_failure;
- 	}
- 
+-	skb->dev = NULL;
++	if (skb->dev) {
++		fq->iif = skb->dev->ifindex;
++		skb->dev = NULL;
++	}
+ 	fq->q.stamp = skb->tstamp;
+ 	fq->q.meat += skb->len;
+ 	if (payload_len > fq->q.max_size)
 -- 
 1.7.10.4
 
