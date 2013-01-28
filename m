@@ -1,55 +1,88 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 4/6] extensions: eui64: set userspacesize=0
-Date: Mon, 28 Jan 2013 14:59:44 +0100
-Message-ID: <1359381586-11940-5-git-send-email-jengelh@inai.de>
+Subject: [PATCH 5/6] iptables: fall back to using save function when print is not defined
+Date: Mon, 28 Jan 2013 14:59:45 +0100
+Message-ID: <1359381586-11940-6-git-send-email-jengelh@inai.de>
 References: <1359381586-11940-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:37334 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:37335 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756242Ab3A1N7s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Jan 2013 08:59:48 -0500
+	id S1756442Ab3A1N7t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Jan 2013 08:59:49 -0500
 In-Reply-To: <1359381586-11940-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The eui64 match does not use its parameter block at all, so
-userspacesize should be 0. This resolves "eui64 is missing a save
-function".
+This way we can avoid having to provide two dumping function for new
+plugins.
 
 Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- extensions/libip6t_eui64.c |    2 +-
- tests/options-most.rules   |    2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ iptables/ip6tables.c |   10 ++++++++--
+ iptables/iptables.c  |   10 ++++++++--
+ 2 files changed, 16 insertions(+), 4 deletions(-)
 
-diff --git a/extensions/libip6t_eui64.c b/extensions/libip6t_eui64.c
-index 607bf86..3bd7a8f 100644
---- a/extensions/libip6t_eui64.c
-+++ b/extensions/libip6t_eui64.c
-@@ -6,7 +6,7 @@ static struct xtables_match eui64_mt6_reg = {
- 	.version	= XTABLES_VERSION,
- 	.family		= NFPROTO_IPV6,
- 	.size		= XT_ALIGN(sizeof(int)),
--	.userspacesize	= XT_ALIGN(sizeof(int)),
-+	.userspacesize	= 0,
- };
+diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
+index 371d700..ec7818d 100644
+--- a/iptables/ip6tables.c
++++ b/iptables/ip6tables.c
+@@ -487,10 +487,14 @@ print_match(const struct xt_entry_match *m,
+ 		xtables_find_match(m->u.user.name, XTF_TRY_LOAD, NULL);
  
- void _init(void)
-diff --git a/tests/options-most.rules b/tests/options-most.rules
-index ef4e7f1..c26847e 100644
---- a/tests/options-most.rules
-+++ b/tests/options-most.rules
-@@ -91,6 +91,8 @@
- -A matches
- -A matches -p esp -m esp --espspi 5:4294967295
- -A matches
-+-A matches -m eui64
-+-A matches
- -A matches -m hashlimit --hashlimit-upto 1/sec --hashlimit-burst 1 --hashlimit-name mini1 --hashlimit-htable-expire 2000
- -A matches -m hashlimit --hashlimit-upto 1/sec --hashlimit-burst 1 --hashlimit-name mini1
- -A matches -m hashlimit --hashlimit-upto 1/min --hashlimit-burst 1 --hashlimit-name mini2
+ 	if (match) {
+-		if (match->print)
++		if (match->print) {
+ 			match->print(ip, m, numeric);
+-		else
++		} else if (match->save != NULL) {
++			printf("-m %s ", match->name);
++			match->save(ip, m);
++		} else {
+ 			printf("%s ", match->name);
++		}
+ 	} else {
+ 		if (m->u.user.name[0])
+ 			printf("UNKNOWN match `%s' ", m->u.user.name);
+@@ -617,6 +621,8 @@ print_firewall(const struct ip6t_entry *fw,
+ 		if (target->print)
+ 			/* Print the target information. */
+ 			target->print(&fw->ipv6, t, format & FMT_NUMERIC);
++		else if (target->save != NULL)
++			target->save(&fw->ipv6, t);
+ 	} else if (t->u.target_size != sizeof(*t))
+ 		printf("[%u bytes of unknown target data] ",
+ 		       (unsigned int)(t->u.target_size - sizeof(*t)));
+diff --git a/iptables/iptables.c b/iptables/iptables.c
+index 6e5250e..5be5e78 100644
+--- a/iptables/iptables.c
++++ b/iptables/iptables.c
+@@ -472,10 +472,14 @@ print_match(const struct xt_entry_match *m,
+ 		xtables_find_match(m->u.user.name, XTF_TRY_LOAD, NULL);
+ 
+ 	if (match) {
+-		if (match->print)
++		if (match->print) {
+ 			match->print(ip, m, numeric);
+-		else
++		} else if (match->save != NULL) {
++			printf("-m %s ", match->name);
++			match->save(ip, m);
++		} else {
+ 			printf("%s ", match->name);
++		}
+ 	} else {
+ 		if (m->u.user.name[0])
+ 			printf("UNKNOWN match `%s' ", m->u.user.name);
+@@ -602,6 +606,8 @@ print_firewall(const struct ipt_entry *fw,
+ 		if (target->print)
+ 			/* Print the target information. */
+ 			target->print(&fw->ip, t, format & FMT_NUMERIC);
++		else if (target->save != NULL)
++			target->save(&fw->ip, t);
+ 	} else if (t->u.target_size != sizeof(*t))
+ 		printf("[%u bytes of unknown target data] ",
+ 		       (unsigned int)(t->u.target_size - sizeof(*t)));
 -- 
 1.7.10.4
 
