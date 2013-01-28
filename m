@@ -1,88 +1,147 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 5/6] iptables: fall back to using save function when print is not defined
-Date: Mon, 28 Jan 2013 14:59:45 +0100
-Message-ID: <1359381586-11940-6-git-send-email-jengelh@inai.de>
+Subject: [PATCH 3/6] libxtables: centralize checking for a .save function
+Date: Mon, 28 Jan 2013 14:59:43 +0100
+Message-ID: <1359381586-11940-4-git-send-email-jengelh@inai.de>
 References: <1359381586-11940-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:37335 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:37333 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756442Ab3A1N7t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1756329Ab3A1N7t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 28 Jan 2013 08:59:49 -0500
 In-Reply-To: <1359381586-11940-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This way we can avoid having to provide two dumping function for new
-plugins.
+Both iptables.c and ip6tables.c check for target->save == NULL, which
+can be consolidated. In fact, we should also check for match->save ==
+NULL, which this patch addds to libxtables.
 
 Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- iptables/ip6tables.c |   10 ++++++++--
- iptables/iptables.c  |   10 ++++++++--
- 2 files changed, 16 insertions(+), 4 deletions(-)
+ extensions/libxt_standard.c |   14 ++++++++++++++
+ iptables/ip6tables.c        |   12 ------------
+ iptables/iptables.c         |   12 ------------
+ libxtables/xtables.c        |   21 +++++++++++++++++++++
+ 4 files changed, 35 insertions(+), 24 deletions(-)
 
+diff --git a/extensions/libxt_standard.c b/extensions/libxt_standard.c
+index c64ba29..601e709 100644
+--- a/extensions/libxt_standard.c
++++ b/extensions/libxt_standard.c
+@@ -9,12 +9,26 @@ static void standard_help(void)
+ "(If target is DROP, ACCEPT, RETURN or nothing)\n");
+ }
+ 
++static void standard_save(const void *ip, const struct xt_entry_target *t)
++{
++	/*
++	 * This function left blank intentionally - it only serves to make
++	 * iptables not exit with "target lacks a save function". The
++	 * "standard" target is special, since we do not emit -j standard, but
++	 * -j <verdict>. This is printed by iptables.c's function
++	 * print_rule4(), which ultimately calls TC_GET_TARGET in
++	 * libiptc/libiptc.c that will emit the verdict name based upon data in
++	 * the parameter block (@t->data in this "standard_save" function).
++	 */
++}
++
+ static struct xtables_target standard_target = {
+ 	.family		= NFPROTO_UNSPEC,
+ 	.name		= "standard",
+ 	.version	= XTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(int)),
+ 	.userspacesize	= XT_ALIGN(sizeof(int)),
++	.save		= standard_save,
+ 	.help		= standard_help,
+ };
+ 
 diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
-index 371d700..ec7818d 100644
+index 556647f..371d700 100644
 --- a/iptables/ip6tables.c
 +++ b/iptables/ip6tables.c
-@@ -487,10 +487,14 @@ print_match(const struct xt_entry_match *m,
- 		xtables_find_match(m->u.user.name, XTF_TRY_LOAD, NULL);
+@@ -1112,18 +1112,6 @@ void print_rule6(const struct ip6t_entry *e,
  
- 	if (match) {
--		if (match->print)
-+		if (match->print) {
- 			match->print(ip, m, numeric);
--		else
-+		} else if (match->save != NULL) {
-+			printf("-m %s ", match->name);
-+			match->save(ip, m);
-+		} else {
- 			printf("%s ", match->name);
-+		}
- 	} else {
- 		if (m->u.user.name[0])
- 			printf("UNKNOWN match `%s' ", m->u.user.name);
-@@ -617,6 +621,8 @@ print_firewall(const struct ip6t_entry *fw,
- 		if (target->print)
- 			/* Print the target information. */
- 			target->print(&fw->ipv6, t, format & FMT_NUMERIC);
-+		else if (target->save != NULL)
-+			target->save(&fw->ipv6, t);
- 	} else if (t->u.target_size != sizeof(*t))
- 		printf("[%u bytes of unknown target data] ",
- 		       (unsigned int)(t->u.target_size - sizeof(*t)));
+ 		if (target->save)
+ 			target->save(&e->ipv6, t);
+-		else {
+-			/* If the target size is greater than xt_entry_target
+-			 * there is something to be saved, we just don't know
+-			 * how to print it */
+-			if (t->u.target_size !=
+-			    sizeof(struct xt_entry_target)) {
+-				fprintf(stderr, "Target `%s' is missing "
+-						"save function\n",
+-					t->u.user.name);
+-				exit(1);
+-			}
+-		}
+ 	}
+ 	printf("\n");
+ }
 diff --git a/iptables/iptables.c b/iptables/iptables.c
-index 6e5250e..5be5e78 100644
+index 00e3f01..6e5250e 100644
 --- a/iptables/iptables.c
 +++ b/iptables/iptables.c
-@@ -472,10 +472,14 @@ print_match(const struct xt_entry_match *m,
- 		xtables_find_match(m->u.user.name, XTF_TRY_LOAD, NULL);
+@@ -1103,18 +1103,6 @@ void print_rule4(const struct ipt_entry *e,
  
- 	if (match) {
--		if (match->print)
-+		if (match->print) {
- 			match->print(ip, m, numeric);
--		else
-+		} else if (match->save != NULL) {
-+			printf("-m %s ", match->name);
-+			match->save(ip, m);
-+		} else {
- 			printf("%s ", match->name);
-+		}
- 	} else {
- 		if (m->u.user.name[0])
- 			printf("UNKNOWN match `%s' ", m->u.user.name);
-@@ -602,6 +606,8 @@ print_firewall(const struct ipt_entry *fw,
- 		if (target->print)
- 			/* Print the target information. */
- 			target->print(&fw->ip, t, format & FMT_NUMERIC);
-+		else if (target->save != NULL)
-+			target->save(&fw->ip, t);
- 	} else if (t->u.target_size != sizeof(*t))
- 		printf("[%u bytes of unknown target data] ",
- 		       (unsigned int)(t->u.target_size - sizeof(*t)));
+ 		if (target->save)
+ 			target->save(&e->ip, t);
+-		else {
+-			/* If the target size is greater than xt_entry_target
+-			 * there is something to be saved, we just don't know
+-			 * how to print it */
+-			if (t->u.target_size !=
+-			    sizeof(struct xt_entry_target)) {
+-				fprintf(stderr, "Target `%s' is missing "
+-						"save function\n",
+-					t->u.user.name);
+-				exit(1);
+-			}
+-		}
+ 	}
+ 	printf("\n");
+ }
+diff --git a/libxtables/xtables.c b/libxtables/xtables.c
+index 009ab91..b81013a 100644
+--- a/libxtables/xtables.c
++++ b/libxtables/xtables.c
+@@ -852,6 +852,16 @@ void xtables_register_match(struct xtables_match *me)
+ 		xtables_option_metavalidate(me->name, me->x6_options);
+ 	if (me->extra_opts != NULL)
+ 		xtables_check_options(me->name, me->extra_opts);
++	if (me->userspacesize > 0 && me->save == NULL &&
++	    me->real_name == NULL) {
++		/*
++		 * Catch extensions that have data to be saved, but which
++		 * forgot to define a save method.
++		 */
++		fprintf(stderr, "Match \"%s\" is missing a save function\n",
++		        me->name);
++		exit(1);
++	}
+ 
+ 	/* ignore not interested match */
+ 	if (me->family != afinfo->family && me->family != AF_UNSPEC)
+@@ -1010,6 +1020,17 @@ void xtables_register_target(struct xtables_target *me)
+ 		xtables_option_metavalidate(me->name, me->x6_options);
+ 	if (me->extra_opts != NULL)
+ 		xtables_check_options(me->name, me->extra_opts);
++	if (me->userspacesize > 0 && me->save == NULL &&
++	    me->real_name == NULL) {
++		/*
++		 * Catch extensions that have data to be saved, but which
++		 * forgot to define a save method. This only applies to true
++		 * modules (real_name==NULL), not aliases.
++		 */
++		fprintf(stderr, "Target \"%s\" is missing a save function\n",
++		        me->name);
++		exit(1);
++	}
+ 
+ 	/* ignore not interested target */
+ 	if (me->family != afinfo->family && me->family != AF_UNSPEC)
 -- 
 1.7.10.4
 
