@@ -1,44 +1,98 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: Accumulated fixes v2
-Date: Mon, 28 Jan 2013 14:59:40 +0100
-Message-ID: <1359381586-11940-1-git-send-email-jengelh@inai.de>
+Subject: [PATCH 1/6] build: also use libtool for install stage
+Date: Mon, 28 Jan 2013 14:59:41 +0100
+Message-ID: <1359381586-11940-2-git-send-email-jengelh@inai.de>
+References: <1359381586-11940-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:37332 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:37330 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755339Ab3A1N7s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1754517Ab3A1N7s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 28 Jan 2013 08:59:48 -0500
+In-Reply-To: <1359381586-11940-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+The just-built library has DT_RPATH entries to be runnable from
+whereever it is. If we just install that, the distro build systems
+will throw warnings like
 
-The following changes since commit 166f20a3665a28e0f5fcedd0914c8e7d41521428:
+	(Open Build Service) ERROR: RPATH
+	"/home/abuild/rpmbuild/BUILD/iptables-1.4.17a/libxtables/.libs"
+	on /home/abuild/rpmbuild/BUILDROOT/iptables-1.4.17a-0.x86_64/usr/lib64/xtables/libxt_unclean.so
+	is not allowed
 
-  doc: document nat table for IPv6 (2013-01-28 12:38:21 +0100)
+These RPATH entries are indeed undesired for libraries is in a system
+location, which is why libtool produces another copy of the library on
+installation. The makefile however missed using libtool during
+installation (introduced with commit v1.4.17-1-g68e77a2).
+This patch now resolves this.
 
-are available in the git repository at:
+There will be extra "warnings" emitted by libtool during `make install`,
+like:
 
-  git://git.inai.de/iptables master
+	libtool: install: warning: relinking "libxt_AUDIT.la"
 
-for you to fetch changes up to 22a75444ef99f72235ef31ae516c15999e268b04:
+This is normal (and unfixable), and is because
+${builddir}/libxt_AUDIT.so links against
+"/home/user/iptables/libxtables/.libs/libxtables.so.9", which is
+correct for everything in the build tree, but for installation,
+"libxtables.so.9" is the right value for the DT_NEEDED entry, which is
+why libtool has to, and will accordingly, relink on installation.
 
-  iptables: reword warning on using an alias (2013-01-28 14:39:00 +0100)
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+---
+ extensions/GNUmakefile.in |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-----------------------------------------------------------------
-Jan Engelhardt (6):
-      build: also use libtool for install stage
-      build: do not dereference symlinks on installation
-      libxtables: centralize checking for a .save function
-      extensions: eui64: set userspacesize=0
-      iptables: fall back to using save function when print is not defined
-      iptables: reword warning on using an alias
+diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+index adad4d6..e520c86 100644
+--- a/extensions/GNUmakefile.in
++++ b/extensions/GNUmakefile.in
+@@ -49,6 +49,9 @@ pf6_build_mod := $(filter-out @blacklist_modules@,${pf6_build_mod})
+ pfx_objs      := $(patsubst %,libxt_%.o,${pfx_build_mod})
+ pf4_objs      := $(patsubst %,libipt_%.o,${pf4_build_mod})
+ pf6_objs      := $(patsubst %,libip6t_%.o,${pf6_build_mod})
++pfx_lalibs    := $(patsubst %,libxt_%.la,${pfx_build_mod})
++pf4_lalibs    := $(patsubst %,libipt_%.la,${pf4_build_mod})
++pf6_lalibs    := $(patsubst %,libip6t_%.la,${pf6_build_mod})
+ pfx_solibs    := $(patsubst %,libxt_%.so,${pfx_build_mod} ${pfx_symlinks})
+ pf4_solibs    := $(patsubst %,libipt_%.so,${pf4_build_mod})
+ pf6_solibs    := $(patsubst %,libip6t_%.so,${pf6_build_mod})
+@@ -63,7 +66,8 @@ targets_install :=
+ @ENABLE_STATIC_TRUE@ libext4_objs := ${pf4_objs}
+ @ENABLE_STATIC_TRUE@ libext6_objs := ${pf6_objs}
+ @ENABLE_STATIC_FALSE@ targets += ${pfx_solibs} ${pf4_solibs} ${pf6_solibs}
+-@ENABLE_STATIC_FALSE@ targets_install += ${pfx_solibs} ${pf4_solibs} ${pf6_solibs}
++@ENABLE_STATIC_FALSE@ targets_la_install += ${pfx_lalibs} ${pf4_lalibs} ${pf6_lalibs}
++@ENABLE_STATIC_FALSE@ targets_so_install += ${pfx_solibs}
+ 
+ .SECONDARY:
+ 
+@@ -71,9 +75,11 @@ targets_install :=
+ 
+ all: ${targets}
+ 
+-install: ${targets_install}
++install: ${targets_la_install} ${targets_so_install}
+ 	@mkdir -p "${DESTDIR}${xtlibdir}";
+-	if test -n "${targets_install}"; then install -pm0755 $^ "${DESTDIR}${xtlibdir}/"; fi;
++	${AM_VERBOSE_NULL} ../libtool ${AM_LIBTOOL_SILENT} --mode=install install -pm0755 ${targets_la_install} "${DESTDIR}${xtlibdir}/"
++	rm -f "${DESTDIR}${xtlibdir}"/*.la;
++	install -pm0755 ${targets_so_install} "${DESTDIR}${xtlibdir}/"
+ 
+ clean:
+ 	rm -f *.la *.o *.lo *.so *.a {matches,targets}.man initext.c initext4.c initext6.c;
+@@ -94,7 +100,7 @@ lib%.so: lib%.la
+ 	${AM_VERBOSE_NULL} ln -fs .libs/$@ $@
+ 
+ lib%.la: lib%.lo
+-	${AM_VERBOSE_CCLD} ../libtool ${AM_LIBTOOL_SILENT} --tag=CC --mode=link ${CCLD} ${AM_LDFLAGS} -module ${LDFLAGS} -o $@ $< ../libxtables/libxtables.la ${$*_LIBADD} -rpath ${xtlibdir}
++	${AM_VERBOSE_CCLD} ../libtool ${AM_LIBTOOL_SILENT} --tag=CC --mode=link ${CCLD} ${AM_LDFLAGS} -avoid-version -module ${LDFLAGS} -o $@ $< ../libxtables/libxtables.la ${$*_LIBADD} -rpath ${xtlibdir}
+ 
+ lib%.lo: ${srcdir}/lib%.c
+ 	${AM_VERBOSE_CC} ../libtool ${AM_LIBTOOL_SILENT} --tag=CC --mode=compile ${CC} ${AM_CPPFLAGS} ${AM_DEPFLAGS} ${AM_CFLAGS} -D_INIT=lib$*_init ${CFLAGS} -o $@ -c $<
+-- 
+1.7.10.4
 
- extensions/GNUmakefile.in   |   21 +++++++++++++++------
- extensions/libip6t_eui64.c  |    2 +-
- extensions/libxt_standard.c |   14 ++++++++++++++
- iptables/ip6tables.c        |   31 +++++++++++++------------------
- iptables/iptables.c         |   31 +++++++++++++------------------
- libxtables/xtables.c        |   21 +++++++++++++++++++++
- tests/options-most.rules    |    2 ++
- 7 files changed, 79 insertions(+), 43 deletions(-)
