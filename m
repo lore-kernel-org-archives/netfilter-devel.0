@@ -1,48 +1,44 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [GIT PULL nf] IPVS
-Date: Mon, 28 Jan 2013 10:18:33 +0900
-Message-ID: <1359335914-27325-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	Hans Schillstrom <hans@schillstrom.com>,
-	Jesper Dangaard Brouer <brouer@redhat.com>,
-	Dan Carpenter <dan.carpenter@oracle.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] iptables: extensions: fix iptables extensions build
+ error    in cross-compilation environments
+Date: Mon, 28 Jan 2013 12:29:16 +0100
+Message-ID: <20130128112916.GA15718@1984>
+References: <1358363255-30629-1-git-send-email-cristian.iorga@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Cristian Iorga <cristian.iorga@intel.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:41686 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756962Ab3A1BSp (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 27 Jan 2013 20:18:45 -0500
+Received: from mail.us.es ([193.147.175.20]:38780 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751035Ab3A1L30 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Jan 2013 06:29:26 -0500
+Content-Disposition: inline
+In-Reply-To: <1358363255-30629-1-git-send-email-cristian.iorga@intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Hi Cristian,
 
-please consider the following fix for IPVS patch for 3.8.
+On Wed, Jan 16, 2013 at 09:07:35PM +0200, Cristian Iorga wrote:
+> libtool is properly declared and used for cross-platform
+> build environments
 
-I believe that the problem was introduced in 3.4 and thus
-this fix is appropriate for 3.4, 3.5, 3.6 and 3.7 -stable.
+I'm hitting this error with your patch:
 
-----------------------------------------------------------------
-The following changes since commit 5b76c4948fe6977bead2359c2054f3e6a2dcf3d0:
+make[2]: se ingresa al directorio `/tmp/iptables/extensions'
+  CC       libxt_AUDIT.lo
+  CC       libxt_CHECKSUM.lo
+  CC       libxt_CLASSIFY.lo
+  CC       libxt_CONNMARK.lo
+  CC       libxt_CONNSECMARK.lo
+../libtool: 1552: ../libtool: ../libtool: 1552: ../libtool:
+preserve_args+= --silent: not found
+../libtool: 1564: ../libtool: preserve_args+= --silent: not
+foundpreserve_args+= --tag CC: not found
 
-  netfilter: x_tables: print correct hook names for ARP (2013-01-13 12:54:12 +0100)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git master
-
-for you to fetch changes up to b425df4cdd953a400d814b4474c9d3ec04481858:
-
-  ipvs: freeing uninitialized pointer on error (2013-01-28 10:14:37 +0900)
-
-----------------------------------------------------------------
-Dan Carpenter (1):
-      ipvs: freeing uninitialized pointer on error
-
- net/netfilter/ipvs/ip_vs_sync.c |    2 ++
- 1 file changed, 2 insertions(+)
+../libtool: 1564: ../libtool: preserve_args+= --tag CC: not found
+../libtool: 1: eval: base_compile+= gcc: not found
+../libtool: 1: eval: base_compile+= -D_LARGEFILE_SOURCE=1: not found
+../libtool: 1: eval: base_compile+= -D_LARGE_FILES: not
+found../libtool: 1: eval:   CC       libxt_CT.lo
