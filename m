@@ -1,246 +1,154 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 1/3] Introduce match/target aliases
-Date: Mon, 28 Jan 2013 21:32:53 +0100
-Message-ID: <1359405175-4394-2-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 3/3] Add the "NOTRACK" alias to the "CT" target
+Date: Mon, 28 Jan 2013 21:32:55 +0100
+Message-ID: <1359405175-4394-4-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1359405175-4394-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:49364 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:49366 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752049Ab3A1Ujl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1752181Ab3A1Ujl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 28 Jan 2013 15:39:41 -0500
 In-Reply-To: <1359405175-4394-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The match/target alias allows us to support the syntax of matches, targets
-targets merged into other matches/targets.
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/xtables.h    |   16 ++++++++++++++++
- iptables/ip6tables.c |   34 ++++++++++++++++++----------------
- iptables/iptables.c  |   34 ++++++++++++++++++----------------
- 3 files changed, 52 insertions(+), 32 deletions(-)
+ extensions/libxt_CT.c           |   48 +++++++++++++++++++++++++++++++++++++++
+ extensions/libxt_NOTRACK.man    |    4 +-
+ include/linux/netfilter/xt_CT.h |    5 +++-
+ 3 files changed, 54 insertions(+), 3 deletions(-)
 
-diff --git a/include/xtables.h b/include/xtables.h
-index 75de958..c35a6e6 100644
---- a/include/xtables.h
-+++ b/include/xtables.h
-@@ -201,6 +201,10 @@ struct xtables_lmap {
- 	struct xtables_lmap *next;
- };
+diff --git a/extensions/libxt_CT.c b/extensions/libxt_CT.c
+index a576a95..dbafea9 100644
+--- a/extensions/libxt_CT.c
++++ b/extensions/libxt_CT.c
+@@ -191,6 +191,10 @@ ct_print_v1(const void *ip, const struct xt_entry_target *target, int numeric)
+ 	const struct xt_ct_target_info_v1 *info =
+ 		(const struct xt_ct_target_info_v1 *)target->data;
  
-+enum xtables_ext_flags {
-+	XTABLES_EXT_ALIAS = 1 << 0,
-+};
++	if (info->flags & XT_CT_NOTRACK_ALIAS) {
++		printf (" NOTRACK");
++		return;
++	}
+ 	printf(" CT");
+ 	if (info->flags & XT_CT_NOTRACK)
+ 		printf(" notrack");
+@@ -213,6 +217,8 @@ static void ct_save(const void *ip, const struct xt_entry_target *target)
+ 	const struct xt_ct_target_info *info =
+ 		(const struct xt_ct_target_info *)target->data;
+ 
++	if (info->flags & XT_CT_NOTRACK_ALIAS)
++		return;
+ 	if (info->flags & XT_CT_NOTRACK)
+ 		printf(" --notrack");
+ 	if (info->helper[0])
+@@ -232,6 +238,8 @@ static void ct_save_v1(const void *ip, const struct xt_entry_target *target)
+ 	const struct xt_ct_target_info_v1 *info =
+ 		(const struct xt_ct_target_info_v1 *)target->data;
+ 
++	if (info->flags & XT_CT_NOTRACK_ALIAS)
++		return;
+ 	if (info->flags & XT_CT_NOTRACK)
+ 		printf(" --notrack");
+ 	if (info->helper[0])
+@@ -248,6 +256,14 @@ static void ct_save_v1(const void *ip, const struct xt_entry_target *target)
+ 		printf(" --zone %u", info->zone);
+ }
+ 
++static const char *
++ct_print_name_alias(const struct xt_entry_target *target)
++{
++	struct xt_ct_target_info *info = (void *)target->data;
 +
- /* Include file for additions: new matches and targets. */
- struct xtables_match
++	return info->flags & XT_CT_NOTRACK_ALIAS ? "NOTRACK" : "CT";
++}
++
+ static void notrack_ct0_tg_init(struct xt_entry_target *target)
  {
-@@ -218,6 +222,9 @@ struct xtables_match
- 	/* Revision of match (0 by default). */
- 	u_int8_t revision;
- 
-+	/* Extension flags */
-+	u_int8_t ext_flags;
-+
- 	u_int16_t family;
- 
- 	/* Size of match data. */
-@@ -251,6 +258,9 @@ struct xtables_match
- 	/* ip is struct ipt_ip * for example */
- 	void (*save)(const void *ip, const struct xt_entry_match *match);
- 
-+	/* Print match name or alias */
-+	const char *(*alias)(const struct xt_entry_match *match);
-+
- 	/* Pointer to list of extra command-line options */
- 	const struct option *extra_opts;
- 
-@@ -289,6 +299,9 @@ struct xtables_target
- 	/* Revision of target (0 by default). */
- 	u_int8_t revision;
- 
-+	/* Extension flags */
-+	u_int8_t ext_flags;
-+
- 	u_int16_t family;
- 
- 
-@@ -322,6 +335,9 @@ struct xtables_target
- 	void (*save)(const void *ip,
- 		     const struct xt_entry_target *target);
- 
-+	/* Print target name or alias */
-+	const char *(*alias)(const struct xt_entry_target *target);
-+
- 	/* Pointer to list of extra command-line options */
- 	const struct option *extra_opts;
- 
-diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
-index 556647f..4cfbea3 100644
---- a/iptables/ip6tables.c
-+++ b/iptables/ip6tables.c
-@@ -1000,7 +1000,8 @@ static int print_match_save(const struct xt_entry_match *e,
- 		xtables_find_match(e->u.user.name, XTF_TRY_LOAD, NULL);
- 
- 	if (match) {
--		printf(" -m %s", e->u.user.name);
-+		printf(" -m %s",
-+			match->alias ? match->alias(e) : e->u.user.name);
- 
- 		/* some matches don't provide a save function */
- 		if (match->save)
-@@ -1089,16 +1090,8 @@ void print_rule6(const struct ip6t_entry *e,
- 	if (counters < 0)
- 		printf(" -c %llu %llu", (unsigned long long)e->counters.pcnt, (unsigned long long)e->counters.bcnt);
- 
--	/* Print target name */
-+	/* Print target name and targinfo part */
- 	target_name = ip6tc_get_target(e, h);
--	if (target_name && (*target_name != '\0'))
--#ifdef IP6T_F_GOTO
--		printf(" -%c %s", e->ipv6.flags & IP6T_F_GOTO ? 'g' : 'j', target_name);
--#else
--		printf(" -j %s", target_name);
--#endif
--
--	/* Print targinfo part */
- 	t = ip6t_get_target((struct ip6t_entry *)e);
- 	if (t->u.user.name[0]) {
- 		struct xtables_target *target =
-@@ -1110,6 +1103,7 @@ void print_rule6(const struct ip6t_entry *e,
- 			exit(1);
- 		}
- 
-+		printf(" -j %s", target->alias ? target->alias(t) : target_name);
- 		if (target->save)
- 			target->save(&e->ipv6, t);
- 		else {
-@@ -1124,7 +1118,13 @@ void print_rule6(const struct ip6t_entry *e,
- 				exit(1);
- 			}
- 		}
--	}
-+	} else if (target_name && (*target_name != '\0'))
-+#ifdef IP6T_F_GOTO
-+		printf(" -%c %s", e->ipv6.flags & IP6T_F_GOTO ? 'g' : 'j', target_name);
-+#else
-+		printf(" -j %s", target_name);
-+#endif
-+
- 	printf("\n");
+ 	struct xt_ct_target_info *info = (void *)target->data;
+@@ -262,6 +278,13 @@ static void notrack_ct1_tg_init(struct xt_entry_target *target)
+ 	info->flags = XT_CT_NOTRACK;
  }
  
-@@ -1229,9 +1229,10 @@ static void command_jump(struct iptables_command_state *cs)
- 		strcpy(cs->target->t->u.user.name, cs->jumpto);
- 	} else {
- 		strcpy(cs->target->t->u.user.name, cs->target->real_name);
--		fprintf(stderr, "WARNING: The %s target is obsolete. "
--		        "Use %s instead.\n",
--		        cs->jumpto, cs->target->real_name);
-+		if (!(cs->target->ext_flags & XTABLES_EXT_ALIAS))
-+			fprintf(stderr, "Notice: The %s target is converted into %s target "
-+			        "in rule listing and saving.\n",
-+			        cs->jumpto, cs->target->real_name);
- 	}
- 	cs->target->t->u.user.revision = cs->target->revision;
- 
-@@ -1265,8 +1266,9 @@ static void command_match(struct iptables_command_state *cs)
- 		strcpy(m->m->u.user.name, m->name);
- 	} else {
- 		strcpy(m->m->u.user.name, m->real_name);
--		fprintf(stderr, "WARNING: The %s match is obsolete. "
--		        "Use %s instead.\n", m->name, m->real_name);
-+		if (!(m->ext_flags & XTABLES_EXT_ALIAS))
-+			fprintf(stderr, "Notice: The %s match is converted into %s match "
-+			        "in rule listing and saving.\n", m->name, m->real_name);
- 	}
- 	m->m->u.user.revision = m->revision;
- 
-diff --git a/iptables/iptables.c b/iptables/iptables.c
-index 00e3f01..085eea1 100644
---- a/iptables/iptables.c
-+++ b/iptables/iptables.c
-@@ -991,7 +991,8 @@ static int print_match_save(const struct xt_entry_match *e,
- 		xtables_find_match(e->u.user.name, XTF_TRY_LOAD, NULL);
- 
- 	if (match) {
--		printf(" -m %s", e->u.user.name);
-+		printf(" -m %s",
-+			match->alias ? match->alias(e) : e->u.user.name);
- 
- 		/* some matches don't provide a save function */
- 		if (match->save)
-@@ -1080,16 +1081,8 @@ void print_rule4(const struct ipt_entry *e,
- 	if (counters < 0)
- 		printf(" -c %llu %llu", (unsigned long long)e->counters.pcnt, (unsigned long long)e->counters.bcnt);
- 
--	/* Print target name */
-+	/* Print target name and targinfo part */
- 	target_name = iptc_get_target(e, h);
--	if (target_name && (*target_name != '\0'))
--#ifdef IPT_F_GOTO
--		printf(" -%c %s", e->ip.flags & IPT_F_GOTO ? 'g' : 'j', target_name);
--#else
--		printf(" -j %s", target_name);
--#endif
--
--	/* Print targinfo part */
- 	t = ipt_get_target((struct ipt_entry *)e);
- 	if (t->u.user.name[0]) {
- 		const struct xtables_target *target =
-@@ -1101,6 +1094,7 @@ void print_rule4(const struct ipt_entry *e,
- 			exit(1);
- 		}
- 
-+		printf(" -j %s", target->alias ? target->alias(t) : target_name);
- 		if (target->save)
- 			target->save(&e->ip, t);
- 		else {
-@@ -1115,7 +1109,13 @@ void print_rule4(const struct ipt_entry *e,
- 				exit(1);
- 			}
- 		}
--	}
-+	} else if (target_name && (*target_name != '\0'))
-+#ifdef IPT_F_GOTO
-+		printf(" -%c %s", e->ip.flags & IPT_F_GOTO ? 'g' : 'j', target_name);
-+#else
-+		printf(" -j %s", target_name);
-+#endif
++static void notrack_ct2_tg_init(struct xt_entry_target *target)
++{
++	struct xt_ct_target_info_v1 *info = (void *)target->data;
 +
- 	printf("\n");
- }
++	info->flags = XT_CT_NOTRACK | XT_CT_NOTRACK_ALIAS;
++}
++
+ static struct xtables_target ct_target_reg[] = {
+ 	{
+ 		.family		= NFPROTO_UNSPEC,
+@@ -289,6 +312,20 @@ static struct xtables_target ct_target_reg[] = {
+ 		.x6_options	= ct_opts_v1,
+ 	},
+ 	{
++		.family		= NFPROTO_UNSPEC,
++		.name		= "CT",
++		.revision	= 2,
++		.version	= XTABLES_VERSION,
++		.size		= XT_ALIGN(sizeof(struct xt_ct_target_info_v1)),
++		.userspacesize	= offsetof(struct xt_ct_target_info_v1, ct),
++		.help		= ct_help_v1,
++		.print		= ct_print_v1,
++		.save		= ct_save_v1,
++		.alias		= ct_print_name_alias,
++		.x6_parse	= ct_parse_v1,
++		.x6_options	= ct_opts_v1,
++	},
++	{
+ 		.family        = NFPROTO_UNSPEC,
+ 		.name          = "NOTRACK",
+ 		.real_name     = "CT",
+@@ -311,6 +348,17 @@ static struct xtables_target ct_target_reg[] = {
+ 	{
+ 		.family        = NFPROTO_UNSPEC,
+ 		.name          = "NOTRACK",
++		.real_name     = "CT",
++		.revision      = 2,
++		.ext_flags     = XTABLES_EXT_ALIAS,
++		.version       = XTABLES_VERSION,
++		.size          = XT_ALIGN(sizeof(struct xt_ct_target_info_v1)),
++		.userspacesize = offsetof(struct xt_ct_target_info_v1, ct),
++		.init          = notrack_ct2_tg_init,
++	},
++	{
++		.family        = NFPROTO_UNSPEC,
++		.name          = "NOTRACK",
+ 		.revision      = 0,
+ 		.version       = XTABLES_VERSION,
+ 	},
+diff --git a/extensions/libxt_NOTRACK.man b/extensions/libxt_NOTRACK.man
+index 633b965..4302b93 100644
+--- a/extensions/libxt_NOTRACK.man
++++ b/extensions/libxt_NOTRACK.man
+@@ -1,3 +1,3 @@
+-This target disables connection tracking for all packets matching that rule.
+-It is obsoleted by \-j CT \-\-notrack. Like CT, NOTRACK can only be used in
++This extension disables connection tracking for all packets matching that rule.
++It is equivalent with \-j CT \-\-notrack. Like CT, NOTRACK can only be used in
+ the \fBraw\fP table.
+diff --git a/include/linux/netfilter/xt_CT.h b/include/linux/netfilter/xt_CT.h
+index a064b8a..54528fd 100644
+--- a/include/linux/netfilter/xt_CT.h
++++ b/include/linux/netfilter/xt_CT.h
+@@ -3,7 +3,10 @@
  
-@@ -1222,9 +1222,10 @@ static void command_jump(struct iptables_command_state *cs)
- 	} else {
- 		/* Alias support for userspace side */
- 		strcpy(cs->target->t->u.user.name, cs->target->real_name);
--		fprintf(stderr, "WARNING: The %s target is obsolete. "
--		        "Use %s instead.\n",
--		        cs->jumpto, cs->target->real_name);
-+		if (!(cs->target->ext_flags & XTABLES_EXT_ALIAS))
-+			fprintf(stderr, "Notice: The %s target is converted into %s target "
-+			        "in rule listing and saving.\n",
-+			        cs->jumpto, cs->target->real_name);
- 	}
- 	cs->target->t->u.user.revision = cs->target->revision;
+ #include <linux/types.h>
  
-@@ -1259,8 +1260,9 @@ static void command_match(struct iptables_command_state *cs)
- 		strcpy(m->m->u.user.name, m->name);
- 	} else {
- 		strcpy(m->m->u.user.name, m->real_name);
--		fprintf(stderr, "WARNING: The %s match is obsolete. "
--		        "Use %s instead.\n", m->name, m->real_name);
-+		if (!(m->ext_flags & XTABLES_EXT_ALIAS))
-+			fprintf(stderr, "Notice: the %s match is converted into %s match "
-+			        "in rule listing and saving.\n", m->name, m->real_name);
- 	}
- 	m->m->u.user.revision = m->revision;
+-#define XT_CT_NOTRACK	0x1
++enum {
++	XT_CT_NOTRACK		= 1 << 0,
++	XT_CT_NOTRACK_ALIAS	= 1 << 1,
++};
  
+ struct xt_ct_target_info {
+ 	__u16 flags;
 -- 
 1.7.0.4
 
