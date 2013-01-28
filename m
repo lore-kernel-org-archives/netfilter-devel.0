@@ -1,28 +1,54 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: Re: [iptables PATCH] configure: display summary at end of configure
-Date: Sun, 27 Jan 2013 14:09:11 +0000
-Message-ID: <51053507.7050402@googlemail.com>
-References: <1359154090-11061-1-git-send-email-eric@regit.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+From: Simon Horman <horms@verge.net.au>
+Subject: [PATCH] ipvs: freeing uninitialized pointer on error
+Date: Mon, 28 Jan 2013 10:18:34 +0900
+Message-ID: <1359335914-27325-2-git-send-email-horms@verge.net.au>
+References: <1359335914-27325-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	Hans Schillstrom <hans@schillstrom.com>,
+	Jesper Dangaard Brouer <brouer@redhat.com>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Simon Horman <horms@verge.net.au>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:44610 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754915Ab3A0OJT (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:41685 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756930Ab3A1BSp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 27 Jan 2013 09:09:19 -0500
-Received: by mail-wg0-f45.google.com with SMTP id dq12so1217861wgb.24
-        for <netfilter-devel@vger.kernel.org>; Sun, 27 Jan 2013 06:09:17 -0800 (PST)
-In-Reply-To: <1359154090-11061-1-git-send-email-eric@regit.org>
+	Sun, 27 Jan 2013 20:18:45 -0500
+In-Reply-To: <1359335914-27325-1-git-send-email-horms@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Dan Carpenter <dan.carpenter@oracle.com>
 
->   Devel support:			yes
->   
-What is "Devel" support exactly? Is this supposed to be "Development" 
-support? If so, why not spell it in full - it is not as if you are 
-constrained in any way and can't put a few extra characters, is it?
+If state != IP_VS_STATE_BACKUP then tinfo->buf is uninitialized.  If
+kthread_run() fails then it means we free random memory resulting in an
+oops.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+---
+ net/netfilter/ipvs/ip_vs_sync.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
+index effa10c..44fd10c 100644
+--- a/net/netfilter/ipvs/ip_vs_sync.c
++++ b/net/netfilter/ipvs/ip_vs_sync.c
+@@ -1795,6 +1795,8 @@ int start_sync_thread(struct net *net, int state, char *mcast_ifn, __u8 syncid)
+ 					     GFP_KERNEL);
+ 			if (!tinfo->buf)
+ 				goto outtinfo;
++		} else {
++			tinfo->buf = NULL;
+ 		}
+ 		tinfo->id = id;
+ 
+-- 
+1.7.10.4
 
