@@ -1,41 +1,119 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [stable-3.7 00/14] netfilter stable fixes for 3.7
-Date: Mon, 28 Jan 2013 15:52:26 -0500 (EST)
-Message-ID: <20130128.155226.1839051149651139071.davem@davemloft.net>
-References: <1359401493-6196-1-git-send-email-pablo@netfilter.org>
+From: Ulrich Weber <ulrich.weber@gmail.com>
+Subject: Re: [RFC PATCH 1/4] netfilter: ip6t_NPT: Fix checksuming.
+Date: Tue, 29 Jan 2013 15:42:39 +0100
+Message-ID: <5107DFDF.4050504@gmail.com>
+References: <5104227C.3030306@linux-ipv6.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: multipart/mixed;
+ boundary="------------070706020304090800030500"
+Cc: netfilter-devel@vger.kernel.org, jm@dilly.me, fw@strlen.de
+To: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-la0-f43.google.com ([209.85.215.43]:43520 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754062Ab3A2Omp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Jan 2013 09:42:45 -0500
+Received: by mail-la0-f43.google.com with SMTP id ek20so354561lab.30
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Jan 2013 06:42:43 -0800 (PST)
+In-Reply-To: <5104227C.3030306@linux-ipv6.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+This is a multi-part message in MIME format.
+--------------070706020304090800030500
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
-Cc: stable@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1359401493-6196-1-git-send-email-pablo@netfilter.org>
-Sender: stable-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
 
-From: pablo@netfilter.org
-Date: Mon, 28 Jan 2013 20:31:19 +0100
+Hi Yoshofuji,
 
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> This patchset contain netfilter stable fixes for 3.7, original
-> commits (in no particular order) are:
-> 
-> 0c36b48 netfilter: nfnetlink_log: fix mac address for 6in4 tunnels
-> e035edd netfilter: nfnetlink_log: fix possible compilation issue due to missing include
-> 665e205 netfilter: xt_recent: fix namespace destroy path
-> 2727de7 netfilter: xt_recent: avoid high order page allocations
-> 5b76c49 netfilter: x_tables: print correct hook names for ARP
-> 4fe198e netfilter: ipset: Fix range bug in hash:ip,port,net
-> c6f4089 netfilter: ip[6]t_REJECT: fix wrong transport header pointer in TCP reset
-> 32263dd netfilter: xt_hashlimit: fix namespace destroy path
-> 0918184 netfilter: xt_hashlimit: fix race that results in duplicated entries
-> 1310b95 netfilter: ctnetlink: fix leak in error path of ctnetlink_create_expect
-> 97cf00e netfilter: nf_ct_reasm: fix conntrack reassembly expire code
-> 10db906 netfilter: xt_CT: recover NOTRACK target support
-> 757ae31 netfilter: fix missing dependencies for the NOTRACK target
-> 1e47ee8 netfilter: nf_conntrack: fix BUG_ON while removing nf_conntrack with netns
-> 
-> Please, apply. Thanks!
+thanks for your patches! If I add a onces complement
+to the return value of csum_fold() it works for my setup.
 
-These all look fine to me for -stable.
+Cheers
+Ulrich
+
+On 01/26/13 19:37, YOSHIFUJI Hideaki wrote:
+> Cast __wsum from/to __sum16 is wrong.  Instead, apply appropriate
+> conversion function: csum_unfold() or csum_fold().
+>
+> Signed-off-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+> ---
+>  net/ipv6/netfilter/ip6t_NPT.c |    6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
+> index 7302b0b..3ff281b 100644
+> --- a/net/ipv6/netfilter/ip6t_NPT.c
+> +++ b/net/ipv6/netfilter/ip6t_NPT.c
+> @@ -30,7 +30,7 @@ static int ip6t_npt_checkentry(const struct xt_tgchk_param *par)
+>  				(__force __wsum)npt->dst_pfx.in6.s6_addr16[i]);
+>  	}
+>  
+> -	npt->adjustment = (__force __sum16) csum_sub(src_sum, dst_sum);
+> +	npt->adjustment = csum_fold(csum_sub(src_sum, dst_sum));
+>  	return 0;
+>  }
+>  
+> @@ -66,8 +66,8 @@ static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
+>  			return false;
+>  	}
+>  
+> -	sum = (__force __sum16) csum_add((__force __wsum)addr->s6_addr16[idx],
+> -			 npt->adjustment);
+> +	sum = csum_fold(csum_add(csum_unfold((__force __sum16)addr->s6_addr16[idx]),
+> +				 csum_unfold(npt->adjustment)));
+>  	if (sum == CSUM_MANGLED_0)
+>  		sum = 0;
+>  	*(__force __sum16 *)&addr->s6_addr16[idx] = sum;
+
+
+--------------070706020304090800030500
+Content-Type: text/x-patch;
+ name="0001-netfilter-ip6t_NTP-Use-onces-complement-of-csum_fold.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0001-netfilter-ip6t_NTP-Use-onces-complement-of-csum_fold.pa";
+ filename*1="tch"
+
+>From 40e0c6d86514a8dcc80f18fbe8a2945c6ee78f6d Mon Sep 17 00:00:00 2001
+From: Ulrich Weber <ulrich.weber@sophos.com>
+Date: Tue, 29 Jan 2013 15:24:21 +0100
+Subject: [PATCH] netfilter: ip6t_NTP: Use onces complement of csum_fold
+
+we need a 16bit value but not folded
+
+Signed-off-by: Ulrich Weber <ulrich.weber@sophos.com>
+---
+ net/ipv6/netfilter/ip6t_NPT.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
+index 74e171d..61a9b95 100644
+--- a/net/ipv6/netfilter/ip6t_NPT.c
++++ b/net/ipv6/netfilter/ip6t_NPT.c
+@@ -35,7 +35,7 @@ static int ip6t_npt_checkentry(const struct xt_tgchk_param *par)
+ 	src_sum = csum_partial(&npt->src_pfx.in6, sizeof(npt->src_pfx.in6), 0);
+ 	dst_sum = csum_partial(&npt->dst_pfx.in6, sizeof(npt->dst_pfx.in6), 0);
+ 
+-	npt->adjustment = csum_fold(csum_sub(src_sum, dst_sum));
++	npt->adjustment = ~csum_fold(csum_sub(src_sum, dst_sum));
+ 	return 0;
+ }
+ 
+@@ -71,8 +71,8 @@ static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
+ 			return false;
+ 	}
+ 
+-	sum = csum_fold(csum_add(csum_unfold((__force __sum16)addr->s6_addr16[idx]),
+-				 csum_unfold(npt->adjustment)));
++	sum = ~csum_fold(csum_add(csum_unfold((__force __sum16)addr->s6_addr16[idx]),
++				  csum_unfold(npt->adjustment)));
+ 	if (sum == CSUM_MANGLED_0)
+ 		sum = 0;
+ 	*(__force __sum16 *)&addr->s6_addr16[idx] = sum;
+-- 
+1.7.9.5
+
+
+--------------070706020304090800030500--
