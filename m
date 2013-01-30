@@ -1,14 +1,14 @@
 From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: [iptables-nftables RFC PATCH] nft: Split nft core to become family independant
-Date: Wed, 30 Jan 2013 14:35:01 +0200
-Message-ID: <1359549301-9387-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+Subject: [iptables-nftables PATCH v2] nft: Split nft core to become family independant
+Date: Wed, 30 Jan 2013 15:33:48 +0200
+Message-ID: <1359552828-13386-1-git-send-email-tomasz.bursztyka@linux.intel.com>
 Cc: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:38265 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:3805 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752359Ab3A3MfJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2013 07:35:09 -0500
+	id S1754183Ab3A3NeG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Jan 2013 08:34:06 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -17,18 +17,23 @@ to implement and provide a struct nft_family_ops {}.
 
 This split will ease the future support of bridge and arp rules manipulations.
 
-Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com> 
+Signed-off-by: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
 
 ---
+
+Version 2:
+	- added (C) headers 
+	- put relevant shared macros in nft-shared.h
+
  iptables/Makefile.am  |   1 +
- iptables/nft-ipv4.c   | 322 +++++++++++++++++++
- iptables/nft-ipv6.c   | 230 +++++++++++++
- iptables/nft-shared.c | 433 +++++++++++++++++++++++++
- iptables/nft-shared.h |  64 ++++
- iptables/nft.c        | 867 ++------------------------------------------------
+ iptables/nft-ipv4.c   | 315 ++++++++++++++++++
+ iptables/nft-ipv6.c   | 224 +++++++++++++
+ iptables/nft-shared.c | 426 ++++++++++++++++++++++++
+ iptables/nft-shared.h | 110 +++++++
+ iptables/nft.c        | 893 +-------------------------------------------------
  iptables/nft.h        |   2 +
- iptables/xtables.c    |   4 +
- 8 files changed, 1074 insertions(+), 849 deletions(-)
+ iptables/xtables.c    |  19 +-
+ 8 files changed, 1100 insertions(+), 890 deletions(-)
  create mode 100644 iptables/nft-ipv4.c
  create mode 100644 iptables/nft-ipv6.c
  create mode 100644 iptables/nft-shared.c
@@ -48,10 +53,29 @@ index f91682e..15f319e 100644
  xtables_multi_LDADD   += -lmnl -lnftables
 diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
 new file mode 100644
-index 0000000..372ae9a
+index 0000000..154dabe
 --- /dev/null
 +++ b/iptables/nft-ipv4.c
-@@ -0,0 +1,322 @@
+@@ -0,0 +1,315 @@
++/*
++ * Authors:
++ * 	(C) 2013 by Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
++ * 	(C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
++ *
++ *	This program is free software; you can redistribute it and/or modify
++ *	it under the terms of the GNU General Public License as published by
++ *	the Free Software Foundation; either version 2 of the License, or
++ *	(at your option) any later version.
++ *
++ *	This program is distributed in the hope that it will be useful,
++ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *	GNU General Public License for more details.
++ *
++ *	You should have received a copy of the GNU General Public License
++ *	along with this program; if not, write to the Free Software
++ *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
 +
 +#include <string.h>
 +#include <stdio.h>
@@ -66,32 +90,6 @@ index 0000000..372ae9a
 +#include <linux/netfilter/nf_tables.h>
 +
 +#include "nft-shared.h"
-+
-+#if 0
-+#define DEBUGP(x, args...) fprintf(stdout, x, ## args)
-+#define NLDEBUG
-+#define DEBUG_DEL
-+#else
-+#define DEBUGP(x, args...)
-+#endif
-+
-+/*
-+ * iptables print output emulation
-+ */
-+
-+#define FMT_NUMERIC	0x0001
-+#define FMT_NOCOUNTS	0x0002
-+#define FMT_KILOMEGAGIGA 0x0004
-+#define FMT_OPTIONS	0x0008
-+#define FMT_NOTABLE	0x0010
-+#define FMT_NOTARGET	0x0020
-+#define FMT_VIA		0x0040
-+#define FMT_NONEWLINE	0x0080
-+#define FMT_LINENUMBERS 0x0100
-+
-+#define FMT_PRINT_RULE (FMT_NOCOUNTS | FMT_OPTIONS | FMT_VIA \
-+			| FMT_NUMERIC | FMT_NOTABLE)
-+#define FMT(tab,notab) ((format) & FMT_NOTABLE ? (notab) : (tab))
 +
 +static int nft_ipv4_add(struct nft_rule *r, struct iptables_command_state *cs)
 +{
@@ -376,10 +374,30 @@ index 0000000..372ae9a
 +};
 diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
 new file mode 100644
-index 0000000..86649ff
+index 0000000..0470c37
 --- /dev/null
 +++ b/iptables/nft-ipv6.c
-@@ -0,0 +1,230 @@
+@@ -0,0 +1,224 @@
++/*
++ * Authors:
++ * 	(C) 2013 by Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
++ * 	(C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
++ *
++ *	This program is free software; you can redistribute it and/or modify
++ *	it under the terms of the GNU General Public License as published by
++ *	the Free Software Foundation; either version 2 of the License, or
++ *	(at your option) any later version.
++ *
++ *	This program is distributed in the hope that it will be useful,
++ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *	GNU General Public License for more details.
++ *
++ *	You should have received a copy of the GNU General Public License
++ *	along with this program; if not, write to the Free Software
++ *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
 +#include <string.h>
 +#include <stdio.h>
 +
@@ -391,32 +409,6 @@ index 0000000..86649ff
 +#include <xtables.h>
 +
 +#include "nft-shared.h"
-+
-+#if 0
-+#define DEBUGP(x, args...) fprintf(stdout, x, ## args)
-+#define NLDEBUG
-+#define DEBUG_DEL
-+#else
-+#define DEBUGP(x, args...)
-+#endif
-+
-+/*
-+ * iptables print output emulation
-+ */
-+
-+#define FMT_NUMERIC	0x0001
-+#define FMT_NOCOUNTS	0x0002
-+#define FMT_KILOMEGAGIGA 0x0004
-+#define FMT_OPTIONS	0x0008
-+#define FMT_NOTABLE	0x0010
-+#define FMT_NOTARGET	0x0020
-+#define FMT_VIA		0x0040
-+#define FMT_NONEWLINE	0x0080
-+#define FMT_LINENUMBERS 0x0100
-+
-+#define FMT_PRINT_RULE (FMT_NOCOUNTS | FMT_OPTIONS | FMT_VIA \
-+			| FMT_NUMERIC | FMT_NOTABLE)
-+#define FMT(tab,notab) ((format) & FMT_NOTABLE ? (notab) : (tab))
 +
 +static int nft_ipv6_add(struct nft_rule *r, struct iptables_command_state *cs)
 +{
@@ -612,10 +604,29 @@ index 0000000..86649ff
 +};
 diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
 new file mode 100644
-index 0000000..ab4f24b
+index 0000000..e9c34f0
 --- /dev/null
 +++ b/iptables/nft-shared.c
-@@ -0,0 +1,433 @@
+@@ -0,0 +1,426 @@
++/*
++ * Authors:
++ * 	(C) 2013 by Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
++ * 	(C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
++ *
++ *	This program is free software; you can redistribute it and/or modify
++ *	it under the terms of the GNU General Public License as published by
++ *	the Free Software Foundation; either version 2 of the License, or
++ *	(at your option) any later version.
++ *
++ *	This program is distributed in the hope that it will be useful,
++ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *	GNU General Public License for more details.
++ *
++ *	You should have received a copy of the GNU General Public License
++ *	along with this program; if not, write to the Free Software
++ *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
 +
 +#include <string.h>
 +#include <stdio.h>
@@ -630,32 +641,6 @@ index 0000000..ab4f24b
 +
 +#include "nft-shared.h"
 +#include "xshared.h"
-+
-+#if 0
-+#define DEBUGP(x, args...) fprintf(stdout, x, ## args)
-+#define NLDEBUG
-+#define DEBUG_DEL
-+#else
-+#define DEBUGP(x, args...)
-+#endif
-+
-+/*
-+ * iptables print output emulation
-+ */
-+
-+#define FMT_NUMERIC	0x0001
-+#define FMT_NOCOUNTS	0x0002
-+#define FMT_KILOMEGAGIGA 0x0004
-+#define FMT_OPTIONS	0x0008
-+#define FMT_NOTABLE	0x0010
-+#define FMT_NOTARGET	0x0020
-+#define FMT_VIA		0x0040
-+#define FMT_NONEWLINE	0x0080
-+#define FMT_LINENUMBERS 0x0100
-+
-+#define FMT_PRINT_RULE (FMT_NOCOUNTS | FMT_OPTIONS | FMT_VIA \
-+			| FMT_NUMERIC | FMT_NOTABLE)
-+#define FMT(tab,notab) ((format) & FMT_NOTABLE ? (notab) : (tab))
 +
 +extern struct nft_family_ops nft_family_ops_ipv4;
 +extern struct nft_family_ops nft_family_ops_ipv6;
@@ -1051,10 +1036,30 @@ index 0000000..ab4f24b
 +
 diff --git a/iptables/nft-shared.h b/iptables/nft-shared.h
 new file mode 100644
-index 0000000..42bbcd0
+index 0000000..4b2594f
 --- /dev/null
 +++ b/iptables/nft-shared.h
-@@ -0,0 +1,64 @@
+@@ -0,0 +1,110 @@
++/*
++ * Authors:
++ * 	(C) 2013 by Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
++ * 	(C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
++ *
++ *	This program is free software; you can redistribute it and/or modify
++ *	it under the terms of the GNU General Public License as published by
++ *	the Free Software Foundation; either version 2 of the License, or
++ *	(at your option) any later version.
++ *
++ *	This program is distributed in the hope that it will be useful,
++ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *	GNU General Public License for more details.
++ *
++ *	You should have received a copy of the GNU General Public License
++ *	along with this program; if not, write to the Free Software
++ *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
 +#ifndef _NFT_SHARED_H_
 +#define _NFT_SHARED_H_
 +
@@ -1064,6 +1069,32 @@ index 0000000..42bbcd0
 +#include <libnftables/expr.h>
 +
 +#include "xshared.h"
++
++#if 0
++#define DEBUGP(x, args...) fprintf(stdout, x, ## args)
++#define NLDEBUG
++#define DEBUG_DEL
++#else
++#define DEBUGP(x, args...)
++#endif
++
++/*
++ * iptables print output emulation
++ */
++
++#define FMT_NUMERIC	0x0001
++#define FMT_NOCOUNTS	0x0002
++#define FMT_KILOMEGAGIGA 0x0004
++#define FMT_OPTIONS	0x0008
++#define FMT_NOTABLE	0x0010
++#define FMT_NOTARGET	0x0020
++#define FMT_VIA		0x0040
++#define FMT_NONEWLINE	0x0080
++#define FMT_LINENUMBERS 0x0100
++
++#define FMT_PRINT_RULE (FMT_NOCOUNTS | FMT_OPTIONS | FMT_VIA \
++			| FMT_NUMERIC | FMT_NOTABLE)
++#define FMT(tab,notab) ((format) & FMT_NOTABLE ? (notab) : (tab))
 +
 +struct nft_family_ops {
 +	int (*add)(struct nft_rule *r, struct iptables_command_state *cs);
@@ -1120,10 +1151,25 @@ index 0000000..42bbcd0
 +
 +#endif
 diff --git a/iptables/nft.c b/iptables/nft.c
-index 29072e5..aa26519 100644
+index 29072e5..5a93294 100644
 --- a/iptables/nft.c
 +++ b/iptables/nft.c
-@@ -54,6 +54,7 @@
+@@ -9,14 +9,6 @@
+  * This code has been sponsored by Sophos Astaro <http://www.sophos.com>
+  */
+ 
+-#if 0
+-#define DEBUGP(x, args...) fprintf(stdout, x, ## args)
+-#define NLDEBUG
+-#define DEBUG_DEL
+-#else
+-#define DEBUGP(x, args...)
+-#endif
+-
+ #include <unistd.h>
+ #include <fcntl.h>
+ #include <sys/types.h>
+@@ -54,6 +46,7 @@
  
  #include "nft.h"
  #include "xshared.h" /* proto_to_name */
@@ -1131,7 +1177,7 @@ index 29072e5..aa26519 100644
  
  static void *nft_fn;
  
-@@ -655,80 +656,6 @@ static void nft_rule_print_debug(struct nft_rule *r, struct nlmsghdr *nlh)
+@@ -655,80 +648,6 @@ static void nft_rule_print_debug(struct nft_rule *r, struct nlmsghdr *nlh)
  #endif
  }
  
@@ -1212,7 +1258,7 @@ index 29072e5..aa26519 100644
  static void add_counters(struct nft_rule *r, uint64_t packets, uint64_t bytes)
  {
  	struct nft_rule_expr *expr;
-@@ -743,78 +670,6 @@ static void add_counters(struct nft_rule *r, uint64_t packets, uint64_t bytes)
+@@ -743,78 +662,6 @@ static void add_counters(struct nft_rule *r, uint64_t packets, uint64_t bytes)
  	nft_rule_add_expr(r, expr);
  }
  
@@ -1291,7 +1337,7 @@ index 29072e5..aa26519 100644
  int
  nft_rule_add(struct nft_handle *h, const char *chain, const char *table,
  	     struct iptables_command_state *cs,
-@@ -825,7 +680,6 @@ nft_rule_add(struct nft_handle *h, const char *chain, const char *table,
+@@ -825,7 +672,6 @@ nft_rule_add(struct nft_handle *h, const char *chain, const char *table,
  	struct xtables_rule_match *matchp;
  	struct nft_rule *r;
  	int ret = 1;
@@ -1299,7 +1345,7 @@ index 29072e5..aa26519 100644
  	int flags = append ? NLM_F_APPEND : 0;
  	int ip_flags = 0;
  
-@@ -843,73 +697,7 @@ nft_rule_add(struct nft_handle *h, const char *chain, const char *table,
+@@ -843,73 +689,7 @@ nft_rule_add(struct nft_handle *h, const char *chain, const char *table,
  	nft_rule_attr_set(r, NFT_RULE_ATTR_TABLE, (char *)table);
  	nft_rule_attr_set(r, NFT_RULE_ATTR_CHAIN, (char *)chain);
  
@@ -1374,7 +1420,7 @@ index 29072e5..aa26519 100644
  
  	for (matchp = cs->matches; matchp; matchp = matchp->next)
  		add_match(r, matchp->match->m);
-@@ -1158,203 +946,6 @@ nft_print_meta(struct nft_rule_expr *e, struct nft_rule_expr_iter *iter)
+@@ -1158,203 +938,6 @@ nft_print_meta(struct nft_rule_expr *e, struct nft_rule_expr_iter *iter)
  }
  
  static void
@@ -1578,7 +1624,7 @@ index 29072e5..aa26519 100644
  nft_print_counters(struct nft_rule_expr *e, struct nft_rule_expr_iter *iter,
  		   bool counters)
  {
-@@ -1385,10 +976,9 @@ static void nft_rule_print_save(struct nft_rule *r, bool counters)
+@@ -1385,10 +968,9 @@ static void nft_rule_print_save(struct nft_rule *r, bool counters)
  		if (strcmp(name, "counter") == 0) {
  			nft_print_counters(expr, iter, counters);
  		} else if (strcmp(name, "payload") == 0) {
@@ -1592,7 +1638,7 @@ index 29072e5..aa26519 100644
  		} else if (strcmp(name, "meta") == 0) {
  			nft_print_meta(expr, iter);
  		} else if (strcmp(name, "match") == 0) {
-@@ -2072,107 +1662,13 @@ match_different(const struct xt_entry_match *a,
+@@ -2072,107 +1654,13 @@ match_different(const struct xt_entry_match *a,
  	return 0;
  }
  
@@ -1701,7 +1747,7 @@ index 29072e5..aa26519 100644
  
  	e = nft_rule_expr_iter_next(iter);
  	if (e == NULL)
-@@ -2184,171 +1680,19 @@ nft_parse_meta(struct nft_rule_expr *e, struct nft_rule_expr_iter *iter,
+@@ -2184,171 +1672,19 @@ nft_parse_meta(struct nft_rule_expr *e, struct nft_rule_expr_iter *iter,
  		return;
  	}
  
@@ -1876,7 +1922,7 @@ index 29072e5..aa26519 100644
  }
  
  static void
-@@ -2365,6 +1709,7 @@ nft_parse_immediate(struct nft_rule_expr *e, struct nft_rule_expr_iter *iter,
+@@ -2365,6 +1701,7 @@ nft_parse_immediate(struct nft_rule_expr *e, struct nft_rule_expr_iter *iter,
  {
  	int verdict = nft_rule_expr_get_u32(e, NFT_EXPR_IMM_VERDICT);
  	const char *chain = nft_rule_expr_get_str(e, NFT_EXPR_IMM_CHAIN);
@@ -1884,7 +1930,7 @@ index 29072e5..aa26519 100644
  
  	/* Standard target? */
  	switch(verdict) {
-@@ -2378,10 +1723,8 @@ nft_parse_immediate(struct nft_rule_expr *e, struct nft_rule_expr_iter *iter,
+@@ -2378,10 +1715,8 @@ nft_parse_immediate(struct nft_rule_expr *e, struct nft_rule_expr_iter *iter,
  		cs->jumpto = "RETURN";
  		return;
  	case NFT_GOTO:
@@ -1897,7 +1943,7 @@ index 29072e5..aa26519 100644
  	case NFT_JUMP:
  		cs->jumpto = chain;
  		return;
-@@ -2669,6 +2012,8 @@ nft_rule_find(struct nft_rule_list *list, const char *chain, const char *table,
+@@ -2669,6 +2004,8 @@ nft_rule_find(struct nft_rule_list *list, const char *chain, const char *table,
  			nft_rule_attr_get_str(r, NFT_RULE_ATTR_TABLE);
  		const char *rule_chain =
  			nft_rule_attr_get_str(r, NFT_RULE_ATTR_CHAIN);
@@ -1906,7 +1952,7 @@ index 29072e5..aa26519 100644
  		struct iptables_command_state this = {};
  
  		if (strcmp(table, rule_table) != 0 ||
-@@ -2692,7 +2037,7 @@ nft_rule_find(struct nft_rule_list *list, const char *chain, const char *table,
+@@ -2692,7 +2029,7 @@ nft_rule_find(struct nft_rule_list *list, const char *chain, const char *table,
  
  			nft_rule_to_iptables_command_state(r, &this);
  
@@ -1915,10 +1961,29 @@ index 29072e5..aa26519 100644
  				goto next;
  
  			if (!find_matches(cs->matches, r)) {
-@@ -2858,31 +2203,6 @@ int nft_rule_replace(struct nft_handle *h, const char *chain,
- #define FMT(tab,notab) ((format) & FMT_NOTABLE ? (notab) : (tab))
+@@ -2839,49 +2176,6 @@ int nft_rule_replace(struct nft_handle *h, const char *chain,
+ 	return ret;
+ }
  
- static void
+-/*
+- * iptables print output emulation
+- */
+-
+-#define FMT_NUMERIC	0x0001
+-#define FMT_NOCOUNTS	0x0002
+-#define FMT_KILOMEGAGIGA 0x0004
+-#define FMT_OPTIONS	0x0008
+-#define FMT_NOTABLE	0x0010
+-#define FMT_NOTARGET	0x0020
+-#define FMT_VIA		0x0040
+-#define FMT_NONEWLINE	0x0080
+-#define FMT_LINENUMBERS 0x0100
+-
+-#define FMT_PRINT_RULE (FMT_NOCOUNTS | FMT_OPTIONS | FMT_VIA \
+-			| FMT_NUMERIC | FMT_NOTABLE)
+-#define FMT(tab,notab) ((format) & FMT_NOTABLE ? (notab) : (tab))
+-
+-static void
 -print_num(uint64_t number, unsigned int format)
 -{
 -	if (format & FMT_KILOMEGAGIGA) {
@@ -1943,11 +2008,10 @@ index 29072e5..aa26519 100644
 -		printf(FMT("%8llu ","%llu "), (unsigned long long)number);
 -}
 -
--static void
+ static void
  print_header(unsigned int format, const char *chain, const char *pol,
  	     const struct xt_counters *counters, bool basechain, uint32_t refs)
- {
-@@ -2955,73 +2275,6 @@ print_match(struct nft_rule_expr *expr, int numeric)
+@@ -2955,73 +2249,6 @@ print_match(struct nft_rule_expr *expr, int numeric)
  }
  
  static void
@@ -2021,7 +2085,7 @@ index 29072e5..aa26519 100644
  print_firewall(const struct iptables_command_state *cs, struct nft_rule *r,
  	       unsigned int num, unsigned int format)
  {
-@@ -3029,10 +2282,8 @@ print_firewall(const struct iptables_command_state *cs, struct nft_rule *r,
+@@ -3029,10 +2256,8 @@ print_firewall(const struct iptables_command_state *cs, struct nft_rule *r,
  	const char *targname = NULL;
  	const void *targinfo = NULL;
  	int family;
@@ -2033,7 +2097,7 @@ index 29072e5..aa26519 100644
  	struct nft_rule_expr_iter *iter;
  	struct nft_rule_expr *expr;
  	struct xt_entry_target *t;
-@@ -3084,91 +2335,9 @@ print_firewall(const struct iptables_command_state *cs, struct nft_rule *r,
+@@ -3084,91 +2309,9 @@ print_firewall(const struct iptables_command_state *cs, struct nft_rule *r,
  	nft_rule_expr_iter_destroy(iter);
  
  	family = nft_rule_attr_get_u8(r, NFT_RULE_ATTR_FAMILY);
@@ -2147,7 +2211,7 @@ index f7ed0a3..76e6688 100644
  
  int nft_init(struct nft_handle *h);
 diff --git a/iptables/xtables.c b/iptables/xtables.c
-index 1205a83..7413ed7 100644
+index 1205a83..bc2ad13 100644
 --- a/iptables/xtables.c
 +++ b/iptables/xtables.c
 @@ -40,6 +40,7 @@
@@ -2158,7 +2222,29 @@ index 1205a83..7413ed7 100644
  #include "nft.h"
  
  #ifndef TRUE
-@@ -1250,6 +1251,9 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
+@@ -49,21 +50,6 @@
+ #define FALSE 0
+ #endif
+ 
+-#define FMT_NUMERIC	0x0001
+-#define FMT_NOCOUNTS	0x0002
+-#define FMT_KILOMEGAGIGA 0x0004
+-#define FMT_OPTIONS	0x0008
+-#define FMT_NOTABLE	0x0010
+-#define FMT_NOTARGET	0x0020
+-#define FMT_VIA		0x0040
+-#define FMT_NONEWLINE	0x0080
+-#define FMT_LINENUMBERS 0x0100
+-
+-#define FMT_PRINT_RULE (FMT_NOCOUNTS | FMT_OPTIONS | FMT_VIA \
+-			| FMT_NUMERIC | FMT_NOTABLE)
+-#define FMT(tab,notab) ((format) & FMT_NOTABLE ? (notab) : (tab))
+-
+-
+ #define CMD_NONE		0x0000U
+ #define CMD_INSERT		0x0001U
+ #define CMD_DELETE		0x0002U
+@@ -1250,6 +1236,9 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table)
  	}
  
  	h->family = family;
