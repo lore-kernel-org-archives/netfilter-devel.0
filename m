@@ -1,38 +1,114 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 2/2] netfilter: xt_CT: add alias flag
-Date: Wed, 30 Jan 2013 22:39:57 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1301302239110.24343@blackhole.kfki.hu>
-References: <1359579481-3362-1-git-send-email-pablo@netfilter.org> <1359579481-3362-2-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: pablo@netfilter.org
+Subject: [PATCH 2/2] netfilter: xt_CT: add alias flag
+Date: Wed, 30 Jan 2013 21:58:01 +0100
+Message-ID: <1359579481-3362-2-git-send-email-pablo@netfilter.org>
+References: <1359579481-3362-1-git-send-email-pablo@netfilter.org>
+Cc: kadlec@blackhole.kfki.hu
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:37169 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754035Ab3A3VkA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2013 16:40:00 -0500
-In-Reply-To: <1359579481-3362-2-git-send-email-pablo@netfilter.org>
+Received: from slan-550-85.anhosting.com ([209.236.71.68]:59240 "EHLO
+	slan-550-85.anhosting.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757105Ab3A3WDh (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Jan 2013 17:03:37 -0500
+In-Reply-To: <1359579481-3362-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 30 Jan 2013, pablo@netfilter.org wrote:
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> This patch adds the alias flag to support full NOTRACK target
-> aliasing.
-> 
-> Based on initial patch from Jozsef Kadlecsik.
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+This patch adds the alias flag to support full NOTRACK target
+aliasing.
 
-Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Based on initial patch from Jozsef Kadlecsik.
 
-Best regards,
-Jozsef
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/uapi/linux/netfilter/xt_CT.h |    6 +++++-
+ net/netfilter/xt_CT.c                |   32 +++++++++++++++++++++++++++++---
+ 2 files changed, 34 insertions(+), 4 deletions(-)
+
+diff --git a/include/uapi/linux/netfilter/xt_CT.h b/include/uapi/linux/netfilter/xt_CT.h
+index a064b8a..5a688c1 100644
+--- a/include/uapi/linux/netfilter/xt_CT.h
++++ b/include/uapi/linux/netfilter/xt_CT.h
+@@ -3,7 +3,11 @@
+ 
+ #include <linux/types.h>
+ 
+-#define XT_CT_NOTRACK	0x1
++enum {
++	XT_CT_NOTRACK		= 1 << 0,
++	XT_CT_NOTRACK_ALIAS	= 1 << 1,
++	XT_CT_MASK		= XT_CT_NOTRACK | XT_CT_NOTRACK_ALIAS,
++};
+ 
+ struct xt_ct_target_info {
+ 	__u16 flags;
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+index d69f1c7..a60261c 100644
+--- a/net/netfilter/xt_CT.c
++++ b/net/netfilter/xt_CT.c
+@@ -185,9 +185,6 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
+ 	struct nf_conn *ct;
+ 	int ret = -EOPNOTSUPP;
+ 
+-	if (info->flags & ~XT_CT_NOTRACK)
+-		return -EINVAL;
 -
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+ 	if (info->flags & XT_CT_NOTRACK) {
+ 		ct = nf_ct_untracked_get();
+ 		atomic_inc(&ct->ct_general.use);
+@@ -256,6 +253,9 @@ static int xt_ct_tg_check_v0(const struct xt_tgchk_param *par)
+ 	};
+ 	int ret;
+ 
++	if (info->flags & ~XT_CT_NOTRACK)
++		return -EINVAL;
++
+ 	memcpy(info_v1.helper, info->helper, sizeof(info->helper));
+ 
+ 	ret = xt_ct_tg_check(par, &info_v1);
+@@ -269,6 +269,21 @@ static int xt_ct_tg_check_v0(const struct xt_tgchk_param *par)
+ 
+ static int xt_ct_tg_check_v1(const struct xt_tgchk_param *par)
+ {
++	struct xt_ct_target_info_v1 *info = par->targinfo;
++
++	if (info->flags & ~XT_CT_NOTRACK)
++		return -EINVAL;
++
++	return xt_ct_tg_check(par, par->targinfo);
++}
++
++static int xt_ct_tg_check_v2(const struct xt_tgchk_param *par)
++{
++	struct xt_ct_target_info_v1 *info = par->targinfo;
++
++	if (info->flags & ~XT_CT_MASK)
++		return -EINVAL;
++
+ 	return xt_ct_tg_check(par, par->targinfo);
+ }
+ 
+@@ -350,6 +365,17 @@ static struct xt_target xt_ct_tg_reg[] __read_mostly = {
+ 		.table		= "raw",
+ 		.me		= THIS_MODULE,
+ 	},
++	{
++		.name		= "CT",
++		.family		= NFPROTO_UNSPEC,
++		.revision	= 2,
++		.targetsize	= sizeof(struct xt_ct_target_info_v1),
++		.checkentry	= xt_ct_tg_check_v2,
++		.destroy	= xt_ct_tg_destroy_v1,
++		.target		= xt_ct_target_v1,
++		.table		= "raw",
++		.me		= THIS_MODULE,
++	},
+ };
+ 
+ static unsigned int
+-- 
+1.7.10.4
+
