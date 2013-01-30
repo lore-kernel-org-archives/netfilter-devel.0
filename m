@@ -1,47 +1,33 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 0/3] Introduce aliases for matches and targets
-Date: Wed, 30 Jan 2013 22:05:19 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1301302204260.24048@blackhole.kfki.hu>
-References: <1359405175-4394-1-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 2/2] netfilter: xt_CT: add alias flag
+Date: Wed, 30 Jan 2013 22:39:57 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1301302239110.24343@blackhole.kfki.hu>
+References: <1359579481-3362-1-git-send-email-pablo@netfilter.org> <1359579481-3362-2-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:34235 "EHLO smtp2.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:37169 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751668Ab3A3VFW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jan 2013 16:05:22 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 77CBD1F4091
-	for <netfilter-devel@vger.kernel.org>; Wed, 30 Jan 2013 22:05:19 +0100 (CET)
-Received: from smtp2.kfki.hu ([127.0.0.1])
-	by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id fxQrlr0ufhdr for <netfilter-devel@vger.kernel.org>;
-	Wed, 30 Jan 2013 22:05:19 +0100 (CET)
-Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.0.114])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 5610E1F408F
-	for <netfilter-devel@vger.kernel.org>; Wed, 30 Jan 2013 22:05:19 +0100 (CET)
-In-Reply-To: <1359405175-4394-1-git-send-email-kadlec@blackhole.kfki.hu>
+	id S1754035Ab3A3VkA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Jan 2013 16:40:00 -0500
+In-Reply-To: <1359579481-3362-2-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+On Wed, 30 Jan 2013, pablo@netfilter.org wrote:
 
-On Mon, 28 Jan 2013, Jozsef Kadlecsik wrote:
-
-> The next patches introduce the alias support for matches and targets in
-> iptables. The goal is to keep the old syntax of matches/targets merged
-> into "super" matches/targets. This way firewall scripts can run unmodified,
-> using the old extensions.
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
 > 
-> The NOTRACK alias requires a new revision of the CT target (flags are checked
-> in the current revision). Next follows the kernel part of the patches. Until
-> the new revision is missing, instead of the warning, a notice is printed
-> to the users.
+> This patch adds the alias flag to support full NOTRACK target
+> aliasing.
 > 
-> Please comment/ACK the patches.
+> Based on initial patch from Jozsef Kadlecsik.
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Is it OK then to apply these patches in the git tree of iptables?
+Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
 Best regards,
 Jozsef
