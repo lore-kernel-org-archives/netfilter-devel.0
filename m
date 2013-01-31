@@ -1,37 +1,110 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Accumulated fixes v2
-Date: Thu, 31 Jan 2013 10:41:21 +0100
-Message-ID: <20130131094121.GD6167@localhost>
-References: <1359381586-11940-1-git-send-email-jengelh@inai.de>
- <alpine.LNX.2.01.1301310313210.5099@nerf07.vanv.qr>
+Subject: Re: [RFC PATCH 1/4] netfilter: ip6t_NPT: Fix checksuming.
+Date: Thu, 31 Jan 2013 11:04:17 +0100
+Message-ID: <20130131100417.GA6358@localhost>
+References: <5104227C.3030306@linux-ipv6.org>
+ <5107DFDF.4050504@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+Cc: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>,
+	netfilter-devel@vger.kernel.org, jm@dilly.me, fw@strlen.de
+To: Ulrich Weber <ulrich.weber@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from slan-550-85.anhosting.com ([174.127.110.175]:53261 "EHLO
+Received: from slan-550-85.anhosting.com ([174.127.110.175]:46953 "EHLO
 	slan-550-85.anhosting.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751408Ab3AaJl0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753001Ab3AaKEX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Jan 2013 04:41:26 -0500
+	Thu, 31 Jan 2013 05:04:23 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.01.1301310313210.5099@nerf07.vanv.qr>
+In-Reply-To: <5107DFDF.4050504@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jan 31, 2013 at 03:13:32AM +0100, Jan Engelhardt wrote:
-> On Monday 2013-01-28 14:59, Jan Engelhardt wrote:
-> 
-> >----------------------------------------------------------------
-> >Jan Engelhardt (6):
-> >      build: also use libtool for install stage
-> >      build: do not dereference symlinks on installation
-> >      libxtables: centralize checking for a .save function
-> >      extensions: eui64: set userspacesize=0
-> >      iptables: fall back to using save function when print is not defined
-> >      iptables: reword warning on using an alias
-> 
-> Any disposition on this?
+Hi,
 
-Jozsef's patchset is more important at this moment. Once those
-applied, I'll look again into these.
+On Tue, Jan 29, 2013 at 03:42:39PM +0100, Ulrich Weber wrote:
+> Hi Yoshofuji,
+> 
+> thanks for your patches! If I add a onces complement
+> to the return value of csum_fold() it works for my setup.
+
+Any consensus on the fix for this? I'd like to have some solution into
+3.8-rc.
+
+Thanks.
+
+> On 01/26/13 19:37, YOSHIFUJI Hideaki wrote:
+> > Cast __wsum from/to __sum16 is wrong.  Instead, apply appropriate
+> > conversion function: csum_unfold() or csum_fold().
+> >
+> > Signed-off-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+> > ---
+> >  net/ipv6/netfilter/ip6t_NPT.c |    6 +++---
+> >  1 file changed, 3 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
+> > index 7302b0b..3ff281b 100644
+> > --- a/net/ipv6/netfilter/ip6t_NPT.c
+> > +++ b/net/ipv6/netfilter/ip6t_NPT.c
+> > @@ -30,7 +30,7 @@ static int ip6t_npt_checkentry(const struct xt_tgchk_param *par)
+> >  				(__force __wsum)npt->dst_pfx.in6.s6_addr16[i]);
+> >  	}
+> >  
+> > -	npt->adjustment = (__force __sum16) csum_sub(src_sum, dst_sum);
+> > +	npt->adjustment = csum_fold(csum_sub(src_sum, dst_sum));
+> >  	return 0;
+> >  }
+> >  
+> > @@ -66,8 +66,8 @@ static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
+> >  			return false;
+> >  	}
+> >  
+> > -	sum = (__force __sum16) csum_add((__force __wsum)addr->s6_addr16[idx],
+> > -			 npt->adjustment);
+> > +	sum = csum_fold(csum_add(csum_unfold((__force __sum16)addr->s6_addr16[idx]),
+> > +				 csum_unfold(npt->adjustment)));
+> >  	if (sum == CSUM_MANGLED_0)
+> >  		sum = 0;
+> >  	*(__force __sum16 *)&addr->s6_addr16[idx] = sum;
+> 
+
+> From 40e0c6d86514a8dcc80f18fbe8a2945c6ee78f6d Mon Sep 17 00:00:00 2001
+> From: Ulrich Weber <ulrich.weber@sophos.com>
+> Date: Tue, 29 Jan 2013 15:24:21 +0100
+> Subject: [PATCH] netfilter: ip6t_NTP: Use onces complement of csum_fold
+> 
+> we need a 16bit value but not folded
+> 
+> Signed-off-by: Ulrich Weber <ulrich.weber@sophos.com>
+> ---
+>  net/ipv6/netfilter/ip6t_NPT.c |    6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
+> index 74e171d..61a9b95 100644
+> --- a/net/ipv6/netfilter/ip6t_NPT.c
+> +++ b/net/ipv6/netfilter/ip6t_NPT.c
+> @@ -35,7 +35,7 @@ static int ip6t_npt_checkentry(const struct xt_tgchk_param *par)
+>  	src_sum = csum_partial(&npt->src_pfx.in6, sizeof(npt->src_pfx.in6), 0);
+>  	dst_sum = csum_partial(&npt->dst_pfx.in6, sizeof(npt->dst_pfx.in6), 0);
+>  
+> -	npt->adjustment = csum_fold(csum_sub(src_sum, dst_sum));
+> +	npt->adjustment = ~csum_fold(csum_sub(src_sum, dst_sum));
+>  	return 0;
+>  }
+>  
+> @@ -71,8 +71,8 @@ static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
+>  			return false;
+>  	}
+>  
+> -	sum = csum_fold(csum_add(csum_unfold((__force __sum16)addr->s6_addr16[idx]),
+> -				 csum_unfold(npt->adjustment)));
+> +	sum = ~csum_fold(csum_add(csum_unfold((__force __sum16)addr->s6_addr16[idx]),
+> +				  csum_unfold(npt->adjustment)));
+>  	if (sum == CSUM_MANGLED_0)
+>  		sum = 0;
+>  	*(__force __sum16 *)&addr->s6_addr16[idx] = sum;
+> -- 
+> 1.7.9.5
+> 
+
