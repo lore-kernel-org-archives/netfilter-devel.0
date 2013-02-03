@@ -1,52 +1,51 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: api: add connlabel api and attribute
-Date: Sun, 3 Feb 2013 13:02:45 +0100
-Message-ID: <20130203120245.GA32074@breakpoint.cc>
-References: <1358980701-3747-3-git-send-email-fw@strlen.de>
- <20130202204811.GA32078@breakpoint.cc>
- <20130203095921.GA3560@localhost>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: [PATCH] netfilter: fix missing dependencies for NETFILTER_XT_MATCH_CONNLABEL
+Date: Sun, 03 Feb 2013 08:04:35 -0800
+Message-ID: <510E8A93.6050300@infradead.org>
+References: <510DC976.7000008@infradead.org> <1359890647-25846-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:38221 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751695Ab3BCMCq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Feb 2013 07:02:46 -0500
-Content-Disposition: inline
-In-Reply-To: <20130203095921.GA3560@localhost>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, linux-next@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <1359890647-25846-1-git-send-email-fw@strlen.de>
+Sender: linux-next-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > The existing setters all copy their argument, but the current connlabel
-> > setter only assigns the pointer, i.e., 'ownership' of the bitmask object
-> > is then tied to conntrack object.  This may not be whats expected.
-> > 
-> > Should I make this change:
-> > 
-> > set_attr_connlabels(struct nf_conntrack *ct, const void *value, size_t len)
-> > {
-> > -  ct->connlabels = (void *) value;
-> > +  ct->connlabels = nfct_bitmask_clone(value);
-> > }
-> > 
-> > to avoid this or not?
+On 02/03/13 03:24, Florian Westphal wrote:
+> It was possible to set
+> NF_CONNTRACK=n
+> NF_CONNTRACK_LABELS=y
 > 
-> To attach expectations to master conntracks, we pass the object via
-> the setter without cloning it.
+> via NETFILTER_XT_MATCH_CONNLABEL=y:
+> 
+> warning: (NETFILTER_XT_MATCH_CONNLABEL) selects NF_CONNTRACK_LABELS which has
+> unmet direct dependencies (NET && INET && NETFILTER && NF_CONNTRACK)
+> 
+> Reported-by: Randy Dunlap <rdunlap@infradead.org>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Oh? Sorry, I failed to spot that.  But perfect, so there is no need
-to make this change.
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
 
-> So my suggestion is to document how it works and leave it as is. BTW,
-> make sure that object is released in the nfct_destroy path if you do
-> so.
+Thanks.
 
-pushed to -next.
+> ---
+> diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+> index eb2c8eb..d4dd702 100644
+> --- a/net/netfilter/Kconfig
+> +++ b/net/netfilter/Kconfig
+> @@ -860,6 +860,7 @@ config NETFILTER_XT_MATCH_CONNBYTES
+>  config NETFILTER_XT_MATCH_CONNLABEL
+>  	tristate '"connlabel" match support'
+>  	select NF_CONNTRACK_LABELS
+> +	depends on NF_CONNTRACK
+>  	depends on NETFILTER_ADVANCED
+>  	---help---
+>  	  This match allows you to test and assign userspace-defined labels names
+> 
 
-Thanks for your suggestions, i've added a doc-comment to
-nfct_bitmask_destroy() about this.
+
+-- 
+~Randy
