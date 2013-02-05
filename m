@@ -1,38 +1,41 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [GIT PULL nf] IPVS
-Date: Tue, 5 Feb 2013 03:58:30 +0100
-Message-ID: <20130205025830.GA12762@localhost>
-References: <1359335914-27325-1-git-send-email-horms@verge.net.au>
+Subject: Re: [PATCH] netfilter: fix missing dependencies for
+ NETFILTER_XT_MATCH_CONNLABEL
+Date: Tue, 5 Feb 2013 04:00:33 +0100
+Message-ID: <20130205030032.GA12794@localhost>
+References: <510DC976.7000008@infradead.org>
+ <1359890647-25846-1-git-send-email-fw@strlen.de>
+ <510E8A93.6050300@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Hans Schillstrom <hans.schillstrom@ericsson.com>,
-	Hans Schillstrom <hans@schillstrom.com>,
-	Jesper Dangaard Brouer <brouer@redhat.com>,
-	Dan Carpenter <dan.carpenter@oracle.com>
-To: Simon Horman <horms@verge.net.au>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Randy Dunlap <rdunlap@infradead.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from slan-550-85.anhosting.com ([174.127.110.175]:10122 "EHLO
+Received: from slan-550-85.anhosting.com ([174.127.110.175]:61394 "EHLO
 	slan-550-85.anhosting.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755336Ab3BEC6m (ORCPT
+	by vger.kernel.org with ESMTP id S1755333Ab3BEDAh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Feb 2013 21:58:42 -0500
+	Mon, 4 Feb 2013 22:00:37 -0500
 Content-Disposition: inline
-In-Reply-To: <1359335914-27325-1-git-send-email-horms@verge.net.au>
+In-Reply-To: <510E8A93.6050300@infradead.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 28, 2013 at 10:18:33AM +0900, Simon Horman wrote:
-> Hi Pablo,
+On Sun, Feb 03, 2013 at 08:04:35AM -0800, Randy Dunlap wrote:
+> On 02/03/13 03:24, Florian Westphal wrote:
+> > It was possible to set
+> > NF_CONNTRACK=n
+> > NF_CONNTRACK_LABELS=y
+> > 
+> > via NETFILTER_XT_MATCH_CONNLABEL=y:
+> > 
+> > warning: (NETFILTER_XT_MATCH_CONNLABEL) selects NF_CONNTRACK_LABELS which has
+> > unmet direct dependencies (NET && INET && NETFILTER && NF_CONNTRACK)
+> > 
+> > Reported-by: Randy Dunlap <rdunlap@infradead.org>
+> > Signed-off-by: Florian Westphal <fw@strlen.de>
 > 
-> please consider the following fix for IPVS patch for 3.8.
+> Acked-by: Randy Dunlap <rdunlap@infradead.org>
 
-Pulled, thanks Simon.
-
-> I believe that the problem was introduced in 3.4 and thus
-> this fix is appropriate for 3.4, 3.5, 3.6 and 3.7 -stable.
-
-Will pass this to -stable for 3.4 and 3.7.
+Applied, thanks.
