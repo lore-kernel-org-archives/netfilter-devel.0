@@ -1,136 +1,88 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH net] ipvs: sctp: fix checksumming on snat and dnat
- handlers
-Date: Tue, 5 Feb 2013 23:41:53 +0200 (EET)
-Message-ID: <alpine.LFD.2.00.1302052324220.2007@ja.ssi.bg>
-References: <1360081291-30698-1-git-send-email-dborkman@redhat.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: horms@verge.net.au, lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org
-To: Daniel Borkmann <dborkman@redhat.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: [PATCH 4/4] iptables: fall back to using save function when print is not defined
+Date: Wed,  6 Feb 2013 01:47:05 +0100
+Message-ID: <1360111625-1759-5-git-send-email-jengelh@inai.de>
+References: <1360111625-1759-1-git-send-email-jengelh@inai.de>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:52580 "EHLO ja.ssi.bg"
+Received: from ares07.inai.de ([5.9.24.206]:58918 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756819Ab3BEVha (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Feb 2013 16:37:30 -0500
-In-Reply-To: <1360081291-30698-1-git-send-email-dborkman@redhat.com>
+	id S1754070Ab3BFArJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Feb 2013 19:47:09 -0500
+In-Reply-To: <1360111625-1759-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This way we can avoid having to provide two dumping function for new
+plugins.
 
-	Hello,
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+---
+ iptables/ip6tables.c |   10 ++++++++--
+ iptables/iptables.c  |   10 ++++++++--
+ 2 files changed, 16 insertions(+), 4 deletions(-)
 
-On Tue, 5 Feb 2013, Daniel Borkmann wrote:
+diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
+index aeeb62a..6a85d83 100644
+--- a/iptables/ip6tables.c
++++ b/iptables/ip6tables.c
+@@ -487,10 +487,14 @@ print_match(const struct xt_entry_match *m,
+ 		xtables_find_match(m->u.user.name, XTF_TRY_LOAD, NULL);
+ 
+ 	if (match) {
+-		if (match->print)
++		if (match->print) {
+ 			match->print(ip, m, numeric);
+-		else
++		} else if (match->save != NULL) {
++			printf("-m %s ", match->name);
++			match->save(ip, m);
++		} else {
+ 			printf("%s ", match->name);
++		}
+ 	} else {
+ 		if (m->u.user.name[0])
+ 			printf("UNKNOWN match `%s' ", m->u.user.name);
+@@ -617,6 +621,8 @@ print_firewall(const struct ip6t_entry *fw,
+ 		if (target->print)
+ 			/* Print the target information. */
+ 			target->print(&fw->ipv6, t, format & FMT_NUMERIC);
++		else if (target->save != NULL)
++			target->save(&fw->ipv6, t);
+ 	} else if (t->u.target_size != sizeof(*t))
+ 		printf("[%u bytes of unknown target data] ",
+ 		       (unsigned int)(t->u.target_size - sizeof(*t)));
+diff --git a/iptables/iptables.c b/iptables/iptables.c
+index 27bd5b4..757d9d3 100644
+--- a/iptables/iptables.c
++++ b/iptables/iptables.c
+@@ -472,10 +472,14 @@ print_match(const struct xt_entry_match *m,
+ 		xtables_find_match(m->u.user.name, XTF_TRY_LOAD, NULL);
+ 
+ 	if (match) {
+-		if (match->print)
++		if (match->print) {
+ 			match->print(ip, m, numeric);
+-		else
++		} else if (match->save != NULL) {
++			printf("-m %s ", match->name);
++			match->save(ip, m);
++		} else {
+ 			printf("%s ", match->name);
++		}
+ 	} else {
+ 		if (m->u.user.name[0])
+ 			printf("UNKNOWN match `%s' ", m->u.user.name);
+@@ -602,6 +606,8 @@ print_firewall(const struct ipt_entry *fw,
+ 		if (target->print)
+ 			/* Print the target information. */
+ 			target->print(&fw->ip, t, format & FMT_NUMERIC);
++		else if (target->save != NULL)
++			target->save(&fw->ip, t);
+ 	} else if (t->u.target_size != sizeof(*t))
+ 		printf("[%u bytes of unknown target data] ",
+ 		       (unsigned int)(t->u.target_size - sizeof(*t)));
+-- 
+1.7.10.4
 
-> In our test lab, we have a simple SCTP client connecting to a SCTP
-> server via an IPVS load balancer. On some machines, load balancing
-> works, but on others the initial handshake just fails, thus no
-> SCTP connection whatsoever can be established!
-> 
-> We observed that the SCTP INIT-ACK handshake reply from the IPVS
-> machine to the client had a correct IP checksum, but corrupt SCTP
-> checksum when forwarded, thus on the client-side the packet was
-> dropped and an intial handshake retriggered until all attempts
-> run into the void.
-> 
-> To fix this issue, this patch i) adds a missing CHECKSUM_UNNECESSARY
-> after the full checksum (re-)calculation (as done in IPVS TCP and UDP
-> code as well), ii) calculates the checksum in little-endian format
-> (as fixed with the SCTP code in commit 4458f04c: sctp: Clean up sctp
-> checksumming code) and iii) refactors duplicate checksum code into a
-> common function. Tested by myself.
-> 
-> Cc: Simon Horman <horms@verge.net.au>
-> Cc: Julian Anastasov <ja@ssi.bg>
-> Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
-
-	Looks good to me. Simon, please apply as bugfix.
-It seems we have this problem from day 1 (2.6.34).
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-> ---
->  net/netfilter/ipvs/ip_vs_proto_sctp.c |   35 ++++++++++++++++-----------------
->  1 files changed, 17 insertions(+), 18 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> index 746048b..ae8ec6f 100644
-> --- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> +++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> @@ -61,14 +61,27 @@ sctp_conn_schedule(int af, struct sk_buff *skb, struct ip_vs_proto_data *pd,
->  	return 1;
->  }
->  
-> +static void sctp_nat_csum(struct sk_buff *skb, sctp_sctphdr_t *sctph,
-> +			  unsigned int sctphoff)
-> +{
-> +	__u32 crc32;
-> +	struct sk_buff *iter;
-> +
-> +	crc32 = sctp_start_cksum((__u8 *)sctph, skb_headlen(skb) - sctphoff);
-> +	skb_walk_frags(skb, iter)
-> +		crc32 = sctp_update_cksum((u8 *) iter->data,
-> +					  skb_headlen(iter), crc32);
-> +	sctph->checksum = sctp_end_cksum(crc32);
-> +
-> +	skb->ip_summed = CHECKSUM_UNNECESSARY;
-> +}
-> +
->  static int
->  sctp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
->  		  struct ip_vs_conn *cp, struct ip_vs_iphdr *iph)
->  {
->  	sctp_sctphdr_t *sctph;
->  	unsigned int sctphoff = iph->len;
-> -	struct sk_buff *iter;
-> -	__be32 crc32;
->  
->  #ifdef CONFIG_IP_VS_IPV6
->  	if (cp->af == AF_INET6 && iph->fragoffs)
-> @@ -92,13 +105,7 @@ sctp_snat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
->  	sctph = (void *) skb_network_header(skb) + sctphoff;
->  	sctph->source = cp->vport;
->  
-> -	/* Calculate the checksum */
-> -	crc32 = sctp_start_cksum((u8 *) sctph, skb_headlen(skb) - sctphoff);
-> -	skb_walk_frags(skb, iter)
-> -		crc32 = sctp_update_cksum((u8 *) iter->data, skb_headlen(iter),
-> -				          crc32);
-> -	crc32 = sctp_end_cksum(crc32);
-> -	sctph->checksum = crc32;
-> +	sctp_nat_csum(skb, sctph, sctphoff);
->  
->  	return 1;
->  }
-> @@ -109,8 +116,6 @@ sctp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
->  {
->  	sctp_sctphdr_t *sctph;
->  	unsigned int sctphoff = iph->len;
-> -	struct sk_buff *iter;
-> -	__be32 crc32;
->  
->  #ifdef CONFIG_IP_VS_IPV6
->  	if (cp->af == AF_INET6 && iph->fragoffs)
-> @@ -134,13 +139,7 @@ sctp_dnat_handler(struct sk_buff *skb, struct ip_vs_protocol *pp,
->  	sctph = (void *) skb_network_header(skb) + sctphoff;
->  	sctph->dest = cp->dport;
->  
-> -	/* Calculate the checksum */
-> -	crc32 = sctp_start_cksum((u8 *) sctph, skb_headlen(skb) - sctphoff);
-> -	skb_walk_frags(skb, iter)
-> -		crc32 = sctp_update_cksum((u8 *) iter->data, skb_headlen(iter),
-> -					  crc32);
-> -	crc32 = sctp_end_cksum(crc32);
-> -	sctph->checksum = crc32;
-> +	sctp_nat_csum(skb, sctph, sctphoff);
->  
->  	return 1;
->  }
-> -- 
-> 1.7.1
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
