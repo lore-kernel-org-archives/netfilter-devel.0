@@ -1,51 +1,47 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Assorted fixes v3
-Date: Wed,  6 Feb 2013 01:47:01 +0100
-Message-ID: <1360111625-1759-1-git-send-email-jengelh@inai.de>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:58913 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754330Ab3BFArJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Feb 2013 19:47:09 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: [GIT PULL nf] IPVS fixes #2
+Date: Wed,  6 Feb 2013 10:24:37 +0900
+Message-ID: <1360113878-31051-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	Daniel Borkmann <dborkman@redhat.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+Hi Pablo,
 
+Another fix. This one seems suitable for stable all the way back to
+2.6.34. I suspect this change may not apply cleanly all the way back there.
+Please let me know if I should prepare some backports.
 
-Removed
-  build: also use libtool for install stage
-  iptables: reword warning on using an alias
-Added:
-  build: bump SONAME for libxtables
+----------------------------------------------------------------
+The following changes since commit b425df4cdd953a400d814b4474c9d3ec04481858:
 
-===
-The following changes since commit 817ac5a5e54d083983b7c834194b46c4366d71d2:
-
-  Merge branch 'master' of vishnu.netfilter.org:/data/git/iptables (2013-01-31 20:36:27 +0100)
+  ipvs: freeing uninitialized pointer on error (2013-01-28 10:14:37 +0900)
 
 are available in the git repository at:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes2-for-v3.8
 
-  git://git.inai.de/iptables master
+for you to fetch changes up to 4b47bc9a9e69141ed3a854c57601f548e82c78ba:
 
-for you to fetch changes up to 80722f5b0c2723d34782affec7dc247352d9be33:
-
-  iptables: fall back to using save function when print is not defined (2013-02-06 01:40:43 +0100)
+  ipvs: sctp: fix checksumming on snat and dnat handlers (2013-02-06 09:56:50 +0900)
 
 ----------------------------------------------------------------
-Jan Engelhardt (4):
-      build: bump SONAME for libxtables
-      libxtables: centralize checking for a .save function
-      extensions: eui64: set userspacesize=0
-      iptables: fall back to using save function when print is not defined
+Second fix for IPVS targeted at 3.8
 
- configure.ac                |    2 +-
- extensions/libip6t_eui64.c  |    2 +-
- extensions/libxt_standard.c |   14 ++++++++++++++
- iptables/ip6tables.c        |   22 ++++++++--------------
- iptables/iptables.c         |   22 ++++++++--------------
- libxtables/xtables.c        |   21 +++++++++++++++++++++
- tests/options-most.rules    |    2 ++
- 7 files changed, 55 insertions(+), 30 deletions(-)
+SCTP checksumming correction by Daniel Borkmann
+
+This appears to have been present since SCTP support was added to IPVS
+and is thus present since 2.6.34.
+
+----------------------------------------------------------------
+Daniel Borkmann (1):
+      ipvs: sctp: fix checksumming on snat and dnat handlers
+
+ net/netfilter/ipvs/ip_vs_proto_sctp.c |   35 ++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 18 deletions(-)
