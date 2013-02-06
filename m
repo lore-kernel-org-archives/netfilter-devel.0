@@ -1,55 +1,41 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 3/4] extensions: eui64: set userspacesize=0
-Date: Wed,  6 Feb 2013 01:47:04 +0100
-Message-ID: <1360111625-1759-4-git-send-email-jengelh@inai.de>
+Subject: [PATCH 1/4] build: bump SONAME for libxtables
+Date: Wed,  6 Feb 2013 01:47:02 +0100
+Message-ID: <1360111625-1759-2-git-send-email-jengelh@inai.de>
 References: <1360111625-1759-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:58914 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:58917 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754496Ab3BFArJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1753950Ab3BFArJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Tue, 5 Feb 2013 19:47:09 -0500
 In-Reply-To: <1360111625-1759-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The eui64 match does not use its parameter block at all, so
-userspacesize should be 0. This resolves "eui64 is missing a save
-function".
+Commit v1.4.17-16-gefcdba4 updated structs in xtables.h, so age must
+become 0 and vcurrent be increased. The latter has already happened in
+v1.4.17-6-gd1e7922.
 
 Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- extensions/libip6t_eui64.c |    2 +-
- tests/options-most.rules   |    2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ configure.ac |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/extensions/libip6t_eui64.c b/extensions/libip6t_eui64.c
-index 607bf86..3bd7a8f 100644
---- a/extensions/libip6t_eui64.c
-+++ b/extensions/libip6t_eui64.c
-@@ -6,7 +6,7 @@ static struct xtables_match eui64_mt6_reg = {
- 	.version	= XTABLES_VERSION,
- 	.family		= NFPROTO_IPV6,
- 	.size		= XT_ALIGN(sizeof(int)),
--	.userspacesize	= XT_ALIGN(sizeof(int)),
-+	.userspacesize	= 0,
- };
+diff --git a/configure.ac b/configure.ac
+index ffd088c..27e0b10 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -3,7 +3,7 @@ AC_INIT([iptables], [1.4.17])
  
- void _init(void)
-diff --git a/tests/options-most.rules b/tests/options-most.rules
-index ef4e7f1..c26847e 100644
---- a/tests/options-most.rules
-+++ b/tests/options-most.rules
-@@ -91,6 +91,8 @@
- -A matches
- -A matches -p esp -m esp --espspi 5:4294967295
- -A matches
-+-A matches -m eui64
-+-A matches
- -A matches -m hashlimit --hashlimit-upto 1/sec --hashlimit-burst 1 --hashlimit-name mini1 --hashlimit-htable-expire 2000
- -A matches -m hashlimit --hashlimit-upto 1/sec --hashlimit-burst 1 --hashlimit-name mini1
- -A matches -m hashlimit --hashlimit-upto 1/min --hashlimit-burst 1 --hashlimit-name mini2
+ # See libtool.info "Libtool's versioning system"
+ libxtables_vcurrent=10
+-libxtables_vage=1
++libxtables_vage=0
+ 
+ AC_CONFIG_AUX_DIR([build-aux])
+ AC_CONFIG_HEADERS([config.h])
 -- 
 1.7.10.4
 
