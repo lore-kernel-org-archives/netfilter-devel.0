@@ -1,41 +1,40 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [GIT PULL nf] IPVS fixes #2
-Date: Thu, 7 Feb 2013 19:12:13 +0100
-Message-ID: <20130207181213.GA18181@localhost>
-References: <1360113878-31051-1-git-send-email-horms@verge.net.au>
+Subject: Re: [RFC PATCH 1/4] netfilter: ip6t_NPT: Fix checksuming.
+Date: Thu, 7 Feb 2013 19:14:11 +0100
+Message-ID: <20130207181411.GB18181@localhost>
+References: <5104227C.3030306@linux-ipv6.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Daniel Borkmann <dborkman@redhat.com>
-To: Simon Horman <horms@verge.net.au>
+Cc: netfilter-devel@vger.kernel.org, jm@dilly.me, fw@strlen.de,
+	Ulrich Weber <ulrich.weber@gmail.com>
+To: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from slan-550-85.anhosting.com ([174.127.110.175]:61988 "EHLO
+Received: from slan-550-85.anhosting.com ([174.127.110.175]:58133 "EHLO
 	slan-550-85.anhosting.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755801Ab3BGSMY (ORCPT
+	by vger.kernel.org with ESMTP id S1757017Ab3BGSOQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Feb 2013 13:12:24 -0500
+	Thu, 7 Feb 2013 13:14:16 -0500
 Content-Disposition: inline
-In-Reply-To: <1360113878-31051-1-git-send-email-horms@verge.net.au>
+In-Reply-To: <5104227C.3030306@linux-ipv6.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Feb 06, 2013 at 10:24:37AM +0900, Simon Horman wrote:
-> Hi Pablo,
-> 
-> Another fix. This one seems suitable for stable all the way back to
-> 2.6.34. I suspect this change may not apply cleanly all the way back there.
-> Please let me know if I should prepare some backports.
-> 
-> ----------------------------------------------------------------
-> The following changes since commit b425df4cdd953a400d814b4474c9d3ec04481858:
-> 
->   ipvs: freeing uninitialized pointer on error (2013-01-28 10:14:37 +0900)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes2-for-v3.8
+On Sun, Jan 27, 2013 at 03:37:48AM +0900, YOSHIFUJI Hideaki wrote:
+> Cast __wsum from/to __sum16 is wrong.  Instead, apply appropriate
+> conversion function: csum_unfold() or csum_fold().
 
-Pulled, thanks Simon.
+Applied.
+
+I have mangled this patch by collapsing Ulrich's:
+
+http://patchwork.ozlabs.org/patch/216563/
+
+And I have added this to the description:
+
+    [ The original patch has been modified to undo the final ~ that
+      csum_fold returns. We only need to fold the 32-bit word that
+      results from the checksum calculation into a 16-bit to ensure
+      that the original subnet is restored appropriately. Spotted by
+      Ulrich Weber. ]
+
+Thanks.
