@@ -1,60 +1,61 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC PATCH 2/4] netfilter: ip6t_NPT: Use csum_partial().
-Date: Thu, 7 Feb 2013 19:16:21 +0100
-Message-ID: <20130207181620.GC18244@localhost>
-References: <51042240.1020606@linux-ipv6.org>
+Subject: Re: [PATCH] ulog: add protection when remove ipt_ULOG
+Date: Thu, 7 Feb 2013 19:27:08 +0100
+Message-ID: <20130207182708.GA18328@localhost>
+References: <1360029450-6673-1-git-send-email-gaofeng@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, jm@dilly.me, fw@strlen.de
-To: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Gao feng <gaofeng@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from slan-550-85.anhosting.com ([174.127.110.175]:41051 "EHLO
+Received: from slan-550-85.anhosting.com ([174.127.110.175]:61057 "EHLO
 	slan-550-85.anhosting.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1030219Ab3BGSQ0 (ORCPT
+	by vger.kernel.org with ESMTP id S1758690Ab3BGS1N (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Feb 2013 13:16:26 -0500
+	Thu, 7 Feb 2013 13:27:13 -0500
 Content-Disposition: inline
-In-Reply-To: <51042240.1020606@linux-ipv6.org>
+In-Reply-To: <1360029450-6673-1-git-send-email-gaofeng@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Will pass this patch to net-next, as it is a cleanup.
+Hi Gao,
 
-On Sun, Jan 27, 2013 at 03:36:48AM +0900, YOSHIFUJI Hideaki wrote:
-> Signed-off-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+On Tue, Feb 05, 2013 at 09:57:30AM +0800, Gao feng wrote:
+> We should add a lock protection when we free the skb,
+> because it maybe used by ipt_ulog_packet right now.
+
+Did you hit a reproducible crash?
+
+I think this is very unlikely to happen. The removal of the module
+happens in user-context and the entire path to build and deliver the
+skb to user-space is protected is under spin_lock_bh, so scheduling
+is not possible.
+
+> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
 > ---
->  net/ipv6/netfilter/ip6t_NPT.c |   11 +++--------
->  1 file changed, 3 insertions(+), 8 deletions(-)
+>  net/ipv4/netfilter/ipt_ULOG.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 > 
-> diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
-> index 3ff281b..b1bf3ed 100644
-> --- a/net/ipv6/netfilter/ip6t_NPT.c
-> +++ b/net/ipv6/netfilter/ip6t_NPT.c
-> @@ -17,18 +17,13 @@
->  static int ip6t_npt_checkentry(const struct xt_tgchk_param *par)
->  {
->  	struct ip6t_npt_tginfo *npt = par->targinfo;
-> -	__wsum src_sum = 0, dst_sum = 0;
-> -	unsigned int i;
-> +	__wsum src_sum, dst_sum;
+> diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
+> index b5ef3cb..b390002 100644
+> --- a/net/ipv4/netfilter/ipt_ULOG.c
+> +++ b/net/ipv4/netfilter/ipt_ULOG.c
+> @@ -430,11 +430,12 @@ static void __exit ulog_tg_exit(void)
+>  			pr_debug("timer was pending, deleting\n");
+>  			del_timer(&ub->timer);
+>  		}
+> -
+> +		spin_lock_bh(&ulog_lock);
+>  		if (ub->skb) {
+>  			kfree_skb(ub->skb);
+>  			ub->skb = NULL;
+>  		}
+> +		spin_unlock_bh(&ulog_lock);
+>  	}
+>  }
 >  
->  	if (npt->src_pfx_len > 64 || npt->dst_pfx_len > 64)
->  		return -EINVAL;
->  
-> -	for (i = 0; i < ARRAY_SIZE(npt->src_pfx.in6.s6_addr16); i++) {
-> -		src_sum = csum_add(src_sum,
-> -				(__force __wsum)npt->src_pfx.in6.s6_addr16[i]);
-> -		dst_sum = csum_add(dst_sum,
-> -				(__force __wsum)npt->dst_pfx.in6.s6_addr16[i]);
-> -	}
-> +	src_sum = csum_partial(&npt->src_pfx.in6, sizeof(npt->src_pfx.in6), 0);
-> +	dst_sum = csum_partial(&npt->dst_pfx.in6, sizeof(npt->dst_pfx.in6), 0);
->  
->  	npt->adjustment = csum_fold(csum_sub(src_sum, dst_sum));
->  	return 0;
 > -- 
-> 1.7.9.5
-> 
+> 1.7.11.7
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
