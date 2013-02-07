@@ -1,46 +1,41 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: Re: [PATCH 06/10] netfilter: ipt_ulog: add net namespace support
- for ipt_ulog
-Date: Thu, 07 Feb 2013 15:57:50 +0800
-Message-ID: <51135E7E.9020301@cn.fujitsu.com>
-References: <1360223390-15589-1-git-send-email-gaofeng@cn.fujitsu.com> <1360223390-15589-6-git-send-email-gaofeng@cn.fujitsu.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [GIT PULL nf] IPVS fixes #2
+Date: Thu, 7 Feb 2013 19:12:13 +0100
+Message-ID: <20130207181213.GA18181@localhost>
+References: <1360113878-31051-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Gao feng <gaofeng@cn.fujitsu.com>, netfilter-devel@vger.kernel.org,
-	containers@lists.linux-foundation.org, ebiederm@xmission.com,
-	netdev@vger.kernel.org, lve@guap.ru
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	Daniel Borkmann <dborkman@redhat.com>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:65011 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752252Ab3BGH5O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Feb 2013 02:57:14 -0500
-In-Reply-To: <1360223390-15589-6-git-send-email-gaofeng@cn.fujitsu.com>
+Received: from slan-550-85.anhosting.com ([174.127.110.175]:61988 "EHLO
+	slan-550-85.anhosting.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755801Ab3BGSMY (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 7 Feb 2013 13:12:24 -0500
+Content-Disposition: inline
+In-Reply-To: <1360113878-31051-1-git-send-email-horms@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
-
-On 2013/02/07 15:49, Gao feng wrote:
-> Add pernet_operations for ipt_ulog, in pernet_ops,
-> we call nf_log_set/unset to set/unset nf_loggers
-> of per net.
+On Wed, Feb 06, 2013 at 10:24:37AM +0900, Simon Horman wrote:
+> Hi Pablo,
 > 
-> This patch also make ulog_buffers and netlink socket
-> nflognl per netns.
+> Another fix. This one seems suitable for stable all the way back to
+> 2.6.34. I suspect this change may not apply cleanly all the way back there.
+> Please let me know if I should prepare some backports.
 > 
-> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+> ----------------------------------------------------------------
+> The following changes since commit b425df4cdd953a400d814b4474c9d3ec04481858:
+> 
+>   ipvs: freeing uninitialized pointer on error (2013-01-28 10:14:37 +0900)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes2-for-v3.8
 
-Please take care this patch,it's base on the prev two patches
-"ulog: add protection when remove ipt_ULOG" and
-"netfilter: ipt_ULOG: make spinlock per nlgroup" which I send on
-2013/02/05.
-
-If you think this patchset is ok and intend to apply it,you should
-apply the prev two patches before apply this patchset.
-
-BTW,I will out of office until 2/18,I will response your comments
-as soon as I come back.
-
-Thanks!
+Pulled, thanks Simon.
