@@ -1,28 +1,84 @@
-From: Daniel Borkmann <dborkman@redhat.com>
-Subject: Re: [PATCH] ipvs: sctp: fix checksumming on snat and dnat handlers
-Date: Wed, 06 Feb 2013 12:20:57 +0100
-Message-ID: <51123C99.6010402@redhat.com>
-References: <1360113878-31051-1-git-send-email-horms@verge.net.au> <1360113878-31051-2-git-send-email-horms@verge.net.au> <AE90C24D6B3A694183C094C60CF0A2F6026B7137@saturn3.aculab.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Simon Horman <horms@verge.net.au>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: David Laight <David.Laight@ACULAB.COM>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: [PATCH 03/10] netfilter: ebt_log: add net namespace support for ebt_log
+Date: Thu, 7 Feb 2013 15:49:43 +0800
+Message-ID: <1360223390-15589-3-git-send-email-gaofeng@cn.fujitsu.com>
+References: <1360223390-15589-1-git-send-email-gaofeng@cn.fujitsu.com>
+Cc: containers@lists.linux-foundation.org, pablo@netfilter.org,
+	ebiederm@xmission.com, netdev@vger.kernel.org, lve@guap.ru,
+	Gao feng <gaofeng@cn.fujitsu.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <AE90C24D6B3A694183C094C60CF0A2F6026B7137@saturn3.aculab.com>
+In-Reply-To: <1360223390-15589-1-git-send-email-gaofeng@cn.fujitsu.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 02/06/2013 10:18 AM, David Laight wrote:
-> If the NAT code has only modified a few bytes inside one of the SCTP
-> chunks, then the crc can be modified by knowing the changed bits and
-> the number of bytes to the end of the chunk (without looking at
-> any other data bytes).
-> That would (probably) be faster (may not really matter for INIT-ACK.
+Add pernet_operations for ebt_log, in pernet_ops,
+we call nf_log_set/unset to set/unset nf_loggers
+of per net.
 
-If applicable, this could be a follow-up optimization after the bug fix.
+Because the syslog ns has not been implemented,
+we don't want the container DOS the host's syslog.
+so only enable ebt_log in init_net and wait for
+syslog ns.
+
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+---
+ net/bridge/netfilter/ebt_log.c | 24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
+
+diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
+index 1d397ac..a654240 100644
+--- a/net/bridge/netfilter/ebt_log.c
++++ b/net/bridge/netfilter/ebt_log.c
+@@ -78,6 +78,10 @@ ebt_log_packet(u_int8_t pf, unsigned int hooknum,
+    const char *prefix)
+ {
+ 	unsigned int bitmask;
++	struct net *net = dev_net((in != NULL) ? in : out);
++
++	if (!net_eq(net, &init_net))
++		return;
+ 
+ 	spin_lock_bh(&ebt_log_lock);
+ 	printk(KERN_SOH "%c%s IN=%s OUT=%s MAC source = %pM MAC dest = %pM proto = 0x%04x",
+@@ -207,6 +211,22 @@ static struct nf_logger ebt_log_logger __read_mostly = {
+ 	.me		= THIS_MODULE,
+ };
+ 
++static int __net_init ebt_log_net_init(struct net *net)
++{
++	nf_log_set(net, NFPROTO_BRIDGE, &ebt_log_logger);
++	return 0;
++}
++
++static void __net_exit ebt_log_net_fini(struct net *net)
++{
++	nf_log_unset(net, &ebt_log_logger);
++}
++
++static struct pernet_operations ebt_log_net_ops = {
++	.init = ebt_log_net_init,
++	.exit = ebt_log_net_fini,
++};
++
+ static int __init ebt_log_init(void)
+ {
+ 	int ret;
+@@ -214,12 +234,14 @@ static int __init ebt_log_init(void)
+ 	ret = xt_register_target(&ebt_log_tg_reg);
+ 	if (ret < 0)
+ 		return ret;
++
+ 	nf_log_register(NFPROTO_BRIDGE, &ebt_log_logger);
+-	return 0;
++	return register_pernet_subsys(&ebt_log_net_ops);
+ }
+ 
+ static void __exit ebt_log_fini(void)
+ {
++	unregister_pernet_subsys(&ebt_log_net_ops);
+ 	nf_log_unregister(&ebt_log_logger);
+ 	xt_unregister_target(&ebt_log_tg_reg);
+ }
+-- 
+1.7.11.7
