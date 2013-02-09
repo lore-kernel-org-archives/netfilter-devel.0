@@ -1,37 +1,74 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: Assorted fixes v3
-Date: Fri, 8 Feb 2013 02:11:29 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1302080204350.10433@nerf07.vanv.qr>
-References: <1360111625-1759-1-git-send-email-jengelh@inai.de> <20130207185330.GA18719@localhost>
+From: pablo@netfilter.org
+Subject: [PATCH 0/5] Netfilter/IPVS fixes for 3.8-rc7
+Date: Sat,  9 Feb 2013 13:03:55 +0100
+Message-ID: <1360411440-6526-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:40697 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759783Ab3BHBLa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Feb 2013 20:11:30 -0500
-In-Reply-To: <20130207185330.GA18719@localhost>
+Received: from slan-550-85.anhosting.com ([209.236.71.68]:21526 "EHLO
+	slan-550-85.anhosting.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754164Ab3BIMEM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 9 Feb 2013 07:04:12 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+=46rom: Pablo Neira Ayuso <pablo@netfilter.org>
 
-On Thursday 2013-02-07 19:53, Pablo Neira Ayuso wrote:
->> ----------------------------------------------------------------
->> Jan Engelhardt (4):
->>       build: bump SONAME for libxtables
->
->Applied this one, thanks a lot for catching up this.
->
->>       libxtables: centralize checking for a .save function
->>       extensions: eui64: set userspacesize=0
->>       iptables: fall back to using save function when print is not defined
->
->Not applying these, they are not fixes, sorry.
+Hi David,
 
-If you say so. (But it would have been nice to get told that the first time.)
+The following patchset contains Netfilter/IPVS fixes for 3.8-rc7, they =
+are:
 
-Now, I can't put these onto nf/next without someone having to go through
-a merge conflict later on, so besides getting put on hold again,
-what is the preferable action?
+* Fix oops in IPVS state-sync due to releasing a random memory area due
+  to unitialized pointer, from Dan Carpenter.
+
+* Fix SCTP flow establishment due to bad checksumming mangling in IPVS,
+  from Daniel Borkmann.
+
+* Three fixes for the recently added IPv6 NPT, all from YOSHIFUJI Hidea=
+ki,
+  with an amendment collapsed into those patches from Ulrich Weber. The=
+y
+  fiix adjustment calculation, fix prefix mangling and ensure LSB of
+  prefixes are zeroes (as required by RFC).
+
+Specifically, it took me a while to validate the 1's complement arithme=
+tics/
+checksumming approach in the IPv6 NPT code.
+
+It's fairly late stage, so let me know if you can still pull these from=
+:
+
+git://1984.lsi.us.es/nf master
+
+Thanks!
+
+Dan Carpenter (1):
+  ipvs: freeing uninitialized pointer on error
+
+Daniel Borkmann (1):
+  ipvs: sctp: fix checksumming on snat and dnat handlers
+
+YOSHIFUJI Hideaki / =E5=90=89=E8=97=A4=E8=8B=B1=E6=98=8E (3):
+  netfilter: ip6t_NPT: Fix adjustment calculation
+  netfilter: ip6t_NPT: Fix prefix mangling
+  netfilter: ip6t_NPT: Ensure to check lower part of prefixes are zero
+
+ net/ipv6/netfilter/ip6t_NPT.c         |   18 +++++++++++++----
+ net/netfilter/ipvs/ip_vs_proto_sctp.c |   35 ++++++++++++++++---------=
+--------
+ net/netfilter/ipvs/ip_vs_sync.c       |    2 ++
+ 3 files changed, 33 insertions(+), 22 deletions(-)
+
+--=20
+1.7.10.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
