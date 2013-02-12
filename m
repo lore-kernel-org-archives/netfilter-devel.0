@@ -1,29 +1,36 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] netfilter: ctnetlink: don't permit ct creation with
- random tuple
-Date: Tue, 12 Feb 2013 23:35:49 +0100
-Message-ID: <20130212223549.GA7045@localhost>
-References: <1360660958-29494-1-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH 1/1] netfilter: nf_ct_helper: don't discard helper if it
+ is actually the same
+Date: Tue, 12 Feb 2013 23:36:12 +0100
+Message-ID: <20130212223612.GB7045@localhost>
+References: <1360684793-32109-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from slan-550-85.anhosting.com ([174.127.110.175]:42857 "EHLO
+Received: from slan-550-85.anhosting.com ([174.127.110.175]:23986 "EHLO
 	slan-550-85.anhosting.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751319Ab3BLWfx (ORCPT
+	by vger.kernel.org with ESMTP id S1753539Ab3BLWgR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Feb 2013 17:35:53 -0500
+	Tue, 12 Feb 2013 17:36:17 -0500
 Content-Disposition: inline
-In-Reply-To: <1360660958-29494-1-git-send-email-fw@strlen.de>
+In-Reply-To: <1360684793-32109-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Feb 12, 2013 at 10:22:38AM +0100, Florian Westphal wrote:
-> Userspace can cause kernel panic by not specifying orig/reply
-> tuple: kernel will create a tuple with random stack values.
+On Tue, Feb 12, 2013 at 04:59:53PM +0100, Florian Westphal wrote:
+> commit 32f5376003920a8bc1bd97c6cddcf42df0b6a833
+> (netfilter: nf_ct_helper: disable automatic helper re-assignment of different type)
+> breaks transparent proxy scenarios.
 > 
-> Problem is that tuple.dst.dir will be random, too, which
-> causes nf_ct_tuplehash_to_ctrack() to return garbage.
+> For example, initial helper lookup might yield "ftp" (dport 21),
+> while re-lookup after REDIRECT yields "ftp-2121".
+> 
+> This causes the autoassign code to toss the ftp helper, even
+> though these are just different instances of the same.
+> 
+> Change the test to check for the helper function address instead
+> of the helper address, as suggested by Pablo.
 
-Applied, thanks Florian.
+Also applied this one, thanks.
