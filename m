@@ -1,70 +1,50 @@
-From: Jamal Hadi Salim <jhs@mojatatu.com>
-Subject: Re: team driver MAC NAT
-Date: Tue, 12 Feb 2013 10:12:15 -0500
-Message-ID: <511A5BCF.20907@mojatatu.com>
-References: <20130212140247.GB18057@minipsycho.orion>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, davem@davemloft.net, edumazet@google.com,
-	bart.de.schuymer@pandora.be, stephen@networkplumber.org,
-	pablo@netfilter.org, kaber@trash.net,
-	netfilter-devel@vger.kernel.org
-To: Jiri Pirko <jiri@resnulli.us>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH 1/1] netfilter: nf_ct_helper: don't discard helper if it is actually the same
+Date: Tue, 12 Feb 2013 16:59:53 +0100
+Message-ID: <1360684793-32109-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:56941 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758131Ab3BLPMX (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:40156 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758579Ab3BLP5s (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Feb 2013 10:12:23 -0500
-Received: by mail-ie0-f181.google.com with SMTP id 17so226494iea.12
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Feb 2013 07:12:22 -0800 (PST)
-In-Reply-To: <20130212140247.GB18057@minipsycho.orion>
+	Tue, 12 Feb 2013 10:57:48 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jiri,
+commit 32f5376003920a8bc1bd97c6cddcf42df0b6a833
+(netfilter: nf_ct_helper: disable automatic helper re-assignment of different type)
+breaks transparent proxy scenarios.
 
-This would be a good fit for  a tc action. This way such a feature can be
-used by other netdevs (including plain bridge, and not just team)
-The main question is how does the tc action learn about the MAC
-addresses that
-it needs to convert.
+For example, initial helper lookup might yield "ftp" (dport 21),
+while re-lookup after REDIRECT yields "ftp-2121".
 
-cheers,
-jamal
+This causes the autoassign code to toss the ftp helper, even
+though these are just different instances of the same.
 
-On 13-02-12 09:02 AM, Jiri Pirko wrote:
-> Hi all.
-> 
-> I have following situation:
-> 
-> host X  .............  eth0 -> br0 <- team0 <- eth2  ..............  switch  .........  host Z
-> host Y  .............  eth1 ---^         ^---- eth3  .................^
-> 
-> Now to achieve RX traffic balancing on team0, I have to mangle src mac of
-> all outgoing packets. If the packet goes through eth2, src mac will be set to
-> eth2 mac, same happens on eth3. I have to magle ARP packets as well.
-> 
-> This would achieve something which might be called "MAC NAT".
-> 
-> To unmangle RXed packets back to the original MAC adresses (of host X and host Y)
-> I need to track "connections".
-> 
-> Now the question is: Should this be integrated in netfilter infrastructure?
-> I'm thinking something similar to existing conntrack. NF_HOOK will be placed
-> in team driver rx/tx functions (similar to what bridge does).
-> 
-> I think this would be nicer than to do it independently just in team driver code.
-> Also this MAC NAT (with tracking connections, unlike what bridge MAC NAT does)
-> can be probably handy for other purposes as well (not sure what)
-> 
-> Thanks for any suggestions.
-> 
-> Jiri
-> --
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Change the test to check for the helper function address instead
+of the helper address, as suggested by Pablo.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_conntrack_helper.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 884f2b3..6357441 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -236,7 +236,8 @@ int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
+ 		/* We only allow helper re-assignment of the same sort since
+ 		 * we cannot reallocate the helper extension area.
+ 		 */
+-		if (help->helper != helper) {
++		struct nf_conntrack_helper *tmp = rcu_dereference(help->helper);
++		if (tmp && tmp->help != helper->help) {
+ 			RCU_INIT_POINTER(help->helper, NULL);
+ 			goto out;
+ 		}
+-- 
+1.7.8.6
 
