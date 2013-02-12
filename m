@@ -1,50 +1,70 @@
-From: Jiri Pirko <jiri@resnulli.us>
-Subject: team driver MAC NAT
-Date: Tue, 12 Feb 2013 15:02:47 +0100
-Message-ID: <20130212140247.GB18057@minipsycho.orion>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: Re: team driver MAC NAT
+Date: Tue, 12 Feb 2013 10:12:15 -0500
+Message-ID: <511A5BCF.20907@mojatatu.com>
+References: <20130212140247.GB18057@minipsycho.orion>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: davem@davemloft.net, edumazet@google.com,
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, davem@davemloft.net, edumazet@google.com,
 	bart.de.schuymer@pandora.be, stephen@networkplumber.org,
 	pablo@netfilter.org, kaber@trash.net,
 	netfilter-devel@vger.kernel.org
-To: netdev@vger.kernel.org
+To: Jiri Pirko <jiri@resnulli.us>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ee0-f52.google.com ([74.125.83.52]:58762 "EHLO
-	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759317Ab3BLOC5 (ORCPT
+Received: from mail-ie0-f181.google.com ([209.85.223.181]:56941 "EHLO
+	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758131Ab3BLPMX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Feb 2013 09:02:57 -0500
-Received: by mail-ee0-f52.google.com with SMTP id b15so54743eek.25
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Feb 2013 06:02:56 -0800 (PST)
-Content-Disposition: inline
+	Tue, 12 Feb 2013 10:12:23 -0500
+Received: by mail-ie0-f181.google.com with SMTP id 17so226494iea.12
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Feb 2013 07:12:22 -0800 (PST)
+In-Reply-To: <20130212140247.GB18057@minipsycho.orion>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi all.
+Jiri,
 
-I have following situation:
+This would be a good fit for  a tc action. This way such a feature can be
+used by other netdevs (including plain bridge, and not just team)
+The main question is how does the tc action learn about the MAC
+addresses that
+it needs to convert.
 
-host X  .............  eth0 -> br0 <- team0 <- eth2  ..............  switch  .........  host Z
-host Y  .............  eth1 ---^         ^---- eth3  .................^
+cheers,
+jamal
 
-Now to achieve RX traffic balancing on team0, I have to mangle src mac of
-all outgoing packets. If the packet goes through eth2, src mac will be set to
-eth2 mac, same happens on eth3. I have to magle ARP packets as well.
+On 13-02-12 09:02 AM, Jiri Pirko wrote:
+> Hi all.
+> 
+> I have following situation:
+> 
+> host X  .............  eth0 -> br0 <- team0 <- eth2  ..............  switch  .........  host Z
+> host Y  .............  eth1 ---^         ^---- eth3  .................^
+> 
+> Now to achieve RX traffic balancing on team0, I have to mangle src mac of
+> all outgoing packets. If the packet goes through eth2, src mac will be set to
+> eth2 mac, same happens on eth3. I have to magle ARP packets as well.
+> 
+> This would achieve something which might be called "MAC NAT".
+> 
+> To unmangle RXed packets back to the original MAC adresses (of host X and host Y)
+> I need to track "connections".
+> 
+> Now the question is: Should this be integrated in netfilter infrastructure?
+> I'm thinking something similar to existing conntrack. NF_HOOK will be placed
+> in team driver rx/tx functions (similar to what bridge does).
+> 
+> I think this would be nicer than to do it independently just in team driver code.
+> Also this MAC NAT (with tracking connections, unlike what bridge MAC NAT does)
+> can be probably handy for other purposes as well (not sure what)
+> 
+> Thanks for any suggestions.
+> 
+> Jiri
+> --
+> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-This would achieve something which might be called "MAC NAT".
-
-To unmangle RXed packets back to the original MAC adresses (of host X and host Y)
-I need to track "connections".
-
-Now the question is: Should this be integrated in netfilter infrastructure?
-I'm thinking something similar to existing conntrack. NF_HOOK will be placed
-in team driver rx/tx functions (similar to what bridge does).
-
-I think this would be nicer than to do it independently just in team driver code.
-Also this MAC NAT (with tracking connections, unlike what bridge MAC NAT does)
-can be probably handy for other purposes as well (not sure what)
-
-Thanks for any suggestions.
-
-Jiri
