@@ -1,55 +1,89 @@
-From: pablo@netfilter.org
-Subject: [PATCH 2/3] netfilter: nf_ct_helper: don't discard helper if it is actually the same
-Date: Wed, 13 Feb 2013 21:38:32 +0100
-Message-ID: <1360787913-10335-3-git-send-email-pablo@netfilter.org>
-References: <1360787913-10335-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+From: Zoltan Kiss <zoltan.kiss@citrix.com>
+Subject: tcp_use_frto crashes on empty tcp_write_queue
+Date: Wed, 13 Feb 2013 21:06:53 +0000
+Message-ID: <511C006D.5060605@citrix.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Frediano Ziglio <frediano.ziglio@citrix.com>
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from slan-550-85.anhosting.com ([209.236.71.68]:56399 "EHLO
-	slan-550-85.anhosting.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934256Ab3BMUiq (ORCPT
+Received: from smtp02.citrix.com ([66.165.176.63]:47285 "EHLO
+	SMTP02.CITRIX.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752010Ab3BMVHD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Feb 2013 15:38:46 -0500
-In-Reply-To: <1360787913-10335-1-git-send-email-pablo@netfilter.org>
+	Wed, 13 Feb 2013 16:07:03 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
+Hi,
 
-commit (32f5376 netfilter: nf_ct_helper: disable automatic helper
-re-assignment of different type) broke transparent proxy scenarios.
+I see the following WARN and then crash on 2.6.32.12:
 
-For example, initial helper lookup might yield "ftp" (dport 21),
-while re-lookup after REDIRECT yields "ftp-2121".
+<4>WARNING: at net/ipv4/tcp_timer.c:293 tcp_retransmit_timer+0x5dd/0x630()
 
-This causes the autoassign code to toss the ftp helper, even
-though these are just different instances of the same helper.
+...
 
-Change the test to check for the helper function address instead
-of the helper address, as suggested by Pablo.
+<1>BUG: unable to handle kernel NULL pointer dereference at (null)
+<1>IP: [<c033f2b5>] tcp_use_frto+0x45/0x90
+...
+<0>Call Trace:
+<4> [<c0343ab9>] ? tcp_retransmit_timer+0xd9/0x630
+<4> [<c0120e58>] ? __wake_up_common+0x48/0x70
+<4> [<c0344580>] ? tcp_write_timer+0xe0/0x1a0
+<4> [<c0137fe1>] ? run_timer_softirq+0x151/0x200
+<4> [<c02af069>] ? maybe_schedule_tx_action+0x39/0x40
+<4> [<c03444a0>] ? tcp_write_timer+0x0/0x1a0
+<4> [<c013359a>] ? __do_softirq+0xba/0x180
+<4> [<c015e7a7>] ? move_native_irq+0x47/0x50
+...
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@gnumonks.org>
----
- net/netfilter/nf_conntrack_helper.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+I've checked the code, tcp_use_frto() crashes because
 
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 884f2b3..91527d5 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -236,7 +236,9 @@ int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
- 		/* We only allow helper re-assignment of the same sort since
- 		 * we cannot reallocate the helper extension area.
- 		 */
--		if (help->helper != helper) {
-+		struct nf_conntrack_helper *tmp = rcu_dereference(help->helper);
-+
-+		if (tmp && tmp->help != helper->help) {
- 			RCU_INIT_POINTER(help->helper, NULL);
- 			goto out;
- 		}
--- 
-1.7.10.4
+skb = tcp_write_queue_head(sk);
 
+returns a NULL, as the queue is empty, and in the next line:
+
+if (tcp_skb_is_last(sk, skb))
+===>
+static inline bool tcp_skb_is_last(const struct sock *sk,
+				   const struct sk_buff *skb)
+{
+	return skb_queue_is_last(&sk->sk_write_queue, skb);
+}
+===>
+static inline bool skb_queue_is_last(const struct sk_buff_head *list,
+				     const struct sk_buff *skb)
+{
+	return (skb->next == (struct sk_buff *) list);
+}
+
+That skb->next cause the NULL pointer dereference.
+
+I've checked this in upstream, and it seems this would fail in the same 
+way. Wouldn't it be more reasonable to return from 
+tcp_retransmit_timer() instead of just signing a WARN? Something like this:
+
+diff -r 7a748d2cb9f1 -r bb8257f0730a net/ipv4/tcp_timer.c
+--- a/net/ipv4/tcp_timer.c	Wed Feb 13 15:02:50 2013 +0000
++++ b/net/ipv4/tcp_timer.c	Wed Feb 13 15:03:18 2013 +0000
+@@ -287,11 +287,9 @@ void tcp_retransmit_timer(struct sock *s
+  	struct tcp_sock *tp = tcp_sk(sk);
+  	struct inet_connection_sock *icsk = inet_csk(sk);
+
+-	if (!tp->packets_out)
++	if (!tp->packets_out || tcp_write_queue_empty(sk))
+  		goto out;
+
+-	WARN_ON(tcp_write_queue_empty(sk));
+-
+  	if (!tp->snd_wnd && !sock_flag(sk, SOCK_DEAD) &&
+  	    !((1 << sk->sk_state) & (TCPF_SYN_SENT | TCPF_SYN_RECV))) {
+  		/* Receiver dastardly shrinks window. Our retransmits
+
+
+Credit goes to Frediano for the patch.
+
+Regards,
+
+Zoli
