@@ -1,49 +1,63 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [GIT PULL nf] IPVS fixes #2
-Date: Wed, 13 Feb 2013 21:13:01 +0100
-Message-ID: <20130213201301.GA7245@localhost>
-References: <1360113878-31051-1-git-send-email-horms@verge.net.au>
- <20130207181213.GA18181@localhost>
+From: pablo@netfilter.org
+Subject: [PATCH 0/3] netfilter fixes for 3.7-rc8
+Date: Wed, 13 Feb 2013 21:38:30 +0100
+Message-ID: <1360787913-10335-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Daniel Borkmann <dborkman@redhat.com>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130207181213.GA18181@localhost>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from slan-550-85.anhosting.com ([209.236.71.68]:54957 "EHLO
+	slan-550-85.anhosting.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934336Ab3BMUim (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Feb 2013 15:38:42 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi again Simon,
+=46rom: Pablo Neira Ayuso <pablo@netfilter.org>
 
-On Thu, Feb 07, 2013 at 07:12:13PM +0100, Pablo Neira Ayuso wrote:
-> On Wed, Feb 06, 2013 at 10:24:37AM +0900, Simon Horman wrote:
-> > Hi Pablo,
-> > 
-> > Another fix. This one seems suitable for stable all the way back to
-> > 2.6.34. I suspect this change may not apply cleanly all the way back there.
-> > Please let me know if I should prepare some backports.
+Hi David,
 
-While reviewing patches that I'll pass to -stable, I noticed that:
+The following patchset contains three Netfilter fixes, they are:
 
-4b47bc9 ipvs: sctp: fix checksumming on snat and dnat handlers
+* Fix conntrack helper re-assignment after NAT mangling if only if
+  the same helper is attached to the conntrack again, from Florian
+  Westphal.
 
-depends on:
+* Don't allow the creation of conntrack entries via ctnetlink if the
+  original and reply tuples are missing, from Florian Westphal.
 
-commit d4383f04d145cce8b855c463f40020639ef83ea0
-Author: Jesper Dangaard Brouer <brouer@redhat.com>
-Date:   Wed Sep 26 14:07:17 2012 +0200
+* Fix broken sysctl interface in nf_ct_reasm while adding netns support
+  to it, from Michal Kubecek.
 
-    ipvs: API change to avoid rescan of IPv6 exthdr
+Again, these are coming very late but they seem small and non-intrusive=
+ to me.
+If case your verdict is positive, you can pull this changes from:
 
-which is too big to add as dependency (it does not fulfill -stable
-rule of not bigger patches than 100 lines).
+git://1984.lsi.us.es/nf master
 
-If you want to me pass this sctp fix to -stable, you or Daniel will
-have to send me a backport.
+Thanks!
 
-Regards.
+=46lorian Westphal (2):
+  netfilter: ctnetlink: don't permit ct creation with random tuple
+  netfilter: nf_ct_helper: don't discard helper if it is actually the s=
+ame
+
+Michal Kube=C4=8Dek (1):
+  netfilter: nf_ct_reasm: fix per-netns sysctl initialization
+
+ net/ipv6/netfilter/nf_conntrack_reasm.c |    6 +++---
+ net/netfilter/nf_conntrack_helper.c     |    4 +++-
+ net/netfilter/nf_conntrack_netlink.c    |    3 +++
+ 3 files changed, 9 insertions(+), 4 deletions(-)
+
+--=20
+1.7.10.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
