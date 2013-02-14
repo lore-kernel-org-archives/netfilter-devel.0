@@ -1,33 +1,41 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftables PATCH] change XML output format to element better
- than attributes
-Date: Thu, 14 Feb 2013 09:34:13 +0100
-Message-ID: <20130214083413.GB3343@localhost>
-References: <20130213221513.11611.54603.stgit@nfdev.cica.es>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/3] netfilter fixes for 3.7-rc8
+Date: Thu, 14 Feb 2013 13:18:11 -0500 (EST)
+Message-ID: <20130214.131811.650216250906083038.davem@davemloft.net>
+References: <1360787913-10335-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero <arturo.borrero.glez@gmail.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from slan-550-85.anhosting.com ([174.127.110.175]:64097 "EHLO
-	slan-550-85.anhosting.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932311Ab3BNIeT (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:58581 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758447Ab3BNSSN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Feb 2013 03:34:19 -0500
-Content-Disposition: inline
-In-Reply-To: <20130213221513.11611.54603.stgit@nfdev.cica.es>
+	Thu, 14 Feb 2013 13:18:13 -0500
+In-Reply-To: <1360787913-10335-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Feb 13, 2013 at 11:15:13PM +0100, Arturo Borrero wrote:
-> Some of the problems with attributes are:
-> 
-> * attributes cannot contain multiple values (child elements can)
-> * attributes are not easily expandable (for future changes)
-> * attributes cannot describe structures (child elements can)
-> * attributes are more difficult to manipulate by program code
-> * attribute values are not easy to test against a DTD
-> 
-> Examples of this question at: http://www.w3schools.com/dtd/dtd_el_vs_attr.asp
+From: pablo@netfilter.org
+Date: Wed, 13 Feb 2013 21:38:30 +0100
 
-Applied, thanks.
+> The following patchset contains three Netfilter fixes, they are:
+> 
+> * Fix conntrack helper re-assignment after NAT mangling if only if
+>   the same helper is attached to the conntrack again, from Florian
+>   Westphal.
+> 
+> * Don't allow the creation of conntrack entries via ctnetlink if the
+>   original and reply tuples are missing, from Florian Westphal.
+> 
+> * Fix broken sysctl interface in nf_ct_reasm while adding netns support
+>   to it, from Michal Kubecek.
+> 
+> Again, these are coming very late but they seem small and non-intrusive to me.
+> If case your verdict is positive, you can pull this changes from:
+> 
+> git://1984.lsi.us.es/nf master
+
+Pulled, thanks Pablo.
