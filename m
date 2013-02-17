@@ -1,137 +1,108 @@
-From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Subject: [RFC PATCH net-next (V2, RESENT)] ipv6: Queue fragments per interface
- for multicast/link-local addresses.
-Date: Sun, 17 Feb 2013 01:44:38 +0900
-Message-ID: <511FB776.8000901@linux-ipv6.org>
-References: <511F1E03.9010205@linux-ipv6.org>
+From: Mr Dash Four <mr.dash.four@googlemail.com>
+Subject: [RFC]: extend iptables' AUDIT target functionality
+Date: Sun, 17 Feb 2013 19:18:09 +0000
+Message-ID: <51212CF1.8060500@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-To: netdev <netdev@vger.kernel.org>
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Thomas Graf <tgraf@infradead.org>,
+	Eric Paris <eparis@redhat.com>, Steve Grubb <sgrubb@redhat.com>
+To: Linux-audit <linux-audit@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 94.43.138.210.xn.2iij.net ([210.138.43.94]:47157 "EHLO
-	mail.st-paulia.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753571Ab3BPQom (ORCPT
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:64218 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752158Ab3BQTSS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 Feb 2013 11:44:42 -0500
-In-Reply-To: <511F1E03.9010205@linux-ipv6.org>
+	Sun, 17 Feb 2013 14:18:18 -0500
+Received: by mail-wg0-f48.google.com with SMTP id 16so3976815wgi.15
+        for <netfilter-devel@vger.kernel.org>; Sun, 17 Feb 2013 11:18:16 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We should queue fragments for the same link-local address on
-different interfaces (e.g. fe80::1%eth0 and fe80::1%eth1) to the
-different queue, because of nature of addressing architecture.
+As it stands currently, when a NETFILTER_PKT type message is logged by 
+the audit daemon for ICMP type 3 messages (destination unreachable), I 
+get absolutely no information in that log as to who/what caused that to 
+be triggered by the kernel, apart from, may be, the SELinux context. I 
+get something like:
 
-Similarly, we should queue fragments for multicast on different
-interface to the different queue.  This is okay because
-application joins group on speicific interface, and multicast
-traffic is expected only on that interface.
+type=NETFILTER_PKT msg=audit(16/02/2013 07:10:28.004:7802) : action=0 
+hook=3 len=80 inif=? outif=eth4 saddr=10.2.7.2 daddr=10.3.0.6 ipid=21794 
+proto=icmp icmptype=destination-unreachable icmpcode=1 
+obj=system_u:object_r:web_client_pkt_t:s0
 
-CC: Ben Greear <greearb@candelatech.com>
-CC: Vlad Yasevich <vyasevic@redhat.com>
-CC: Eric Dumazet <eric.dumazet@gmail.com>
-Signed-off-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
----
- include/net/ipv6.h                      |    1 +
- net/ipv6/netfilter/nf_conntrack_reasm.c |    9 +++++++--
- net/ipv6/reassembly.c                   |   10 ++++++++--
- 3 files changed, 16 insertions(+), 4 deletions(-)
+I have managed to successfully change the AUDIT iptables target to 
+include additional information from the original connection which caused 
+this ICMP type message to be emitted, though before committing and 
+issuing the relevant patches, I thought to seek more broad consensus as 
+to what I should include as additional information in that audit log.
 
-diff --git a/include/net/ipv6.h b/include/net/ipv6.h
-index 851d541..1af98aa 100644
---- a/include/net/ipv6.h
-+++ b/include/net/ipv6.h
-@@ -463,6 +463,7 @@ enum ip6_defrag_users {
- struct ip6_create_arg {
- 	__be32 id;
- 	u32 user;
-+	int ifindex;
- 	const struct in6_addr *src;
- 	const struct in6_addr *dst;
- };
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index c674f15..acd1820 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -163,7 +163,8 @@ static void nf_ct_frag6_expire(unsigned long data)
- 
- /* Creation primitives. */
- static inline struct frag_queue *fq_find(struct net *net, __be32 id,
--					 u32 user, struct in6_addr *src,
-+					 u32 user, int ifindex,
-+					 struct in6_addr *src,
- 					 struct in6_addr *dst)
- {
- 	struct inet_frag_queue *q;
-@@ -171,6 +172,10 @@ static inline struct frag_queue *fq_find(struct net *net, __be32 id,
- 	unsigned int hash;
- 
- 	arg.id = id;
-+	if (ipv6_addr_type(dst) & (IPV6_ADDR_MULTICAST | IPV6_ADDR_LINKLOCAL))
-+		arg.ifindex = ifindex;
-+	else
-+		arg.ifindex = 0;
- 	arg.user = user;
- 	arg.src = src;
- 	arg.dst = dst;
-@@ -572,7 +577,7 @@ struct sk_buff *nf_ct_frag6_gather(struct sk_buff *skb, u32 user)
- 	inet_frag_evictor(&net->nf_frag.frags, &nf_frags, false);
- 	local_bh_enable();
- 
--	fq = fq_find(net, fhdr->identification, user, &hdr->saddr, &hdr->daddr);
-+	fq = fq_find(net, fhdr->identification, user, dev->ifindex, &hdr->saddr, &hdr->daddr);
- 	if (fq == NULL) {
- 		pr_debug("Can't find and can't create new queue\n");
- 		goto ret_orig;
-diff --git a/net/ipv6/reassembly.c b/net/ipv6/reassembly.c
-index bab2c27..18c5e3c 100644
---- a/net/ipv6/reassembly.c
-+++ b/net/ipv6/reassembly.c
-@@ -113,6 +113,7 @@ bool ip6_frag_match(struct inet_frag_queue *q, void *a)
- 
- 	fq = container_of(q, struct frag_queue, q);
- 	return	fq->id == arg->id &&
-+		(!arg->ifindex || fq->iif == arg->ifindex) &&
- 		fq->user == arg->user &&
- 		ipv6_addr_equal(&fq->saddr, arg->src) &&
- 		ipv6_addr_equal(&fq->daddr, arg->dst);
-@@ -182,13 +183,17 @@ static void ip6_frag_expire(unsigned long data)
- }
- 
- static __inline__ struct frag_queue *
--fq_find(struct net *net, __be32 id, const struct in6_addr *src, const struct in6_addr *dst)
-+fq_find(struct net *net, __be32 id, int ifindex, const struct in6_addr *src, const struct in6_addr *dst)
- {
- 	struct inet_frag_queue *q;
- 	struct ip6_create_arg arg;
- 	unsigned int hash;
- 
- 	arg.id = id;
-+	if (ipv6_addr_type(dst) & (IPV6_ADDR_MULTICAST | IPV6_ADDR_LINKLOCAL))
-+		arg.ifindex = ifindex;
-+	else
-+		arg.ifindex = 0;
- 	arg.user = IP6_DEFRAG_LOCAL_DELIVER;
- 	arg.src = src;
- 	arg.dst = dst;
-@@ -534,7 +539,8 @@ static int ipv6_frag_rcv(struct sk_buff *skb)
- 		IP6_ADD_STATS_BH(net, ip6_dst_idev(skb_dst(skb)),
- 				 IPSTATS_MIB_REASMFAILS, evicted);
- 
--	fq = fq_find(net, fhdr->identification, &hdr->saddr, &hdr->daddr);
-+	fq = fq_find(net, fhdr->identification, skb->dev->ifindex,
-+		     &hdr->saddr, &hdr->daddr);
- 	if (fq != NULL) {
- 		int ret;
- 
--- 
-1.7.9.5
+When ICMP type 3 message is triggered (that is also valid for type 4 - 
+"source quench", and type 11 - "time exceeded" ICMP messages), and also 
+depending on the type of the original connection, the following 
+information is available to the modified AUDIT iptables target and could 
+be transferred in the audit log for that (original) connection:
 
---
-To unsubscribe from this list: send the line "unsubscribe netdev" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+IP-related properties:
+~~~~~~~
+1. Source IP address;
+2. Destination IP address;
+3. Protocol used;
+4. Type of service (TOS) value of the original packet;
+5. Time-to-live (TTL) value of the original packet;
+6. Checksum;
+7. Total length of the original packet;
 
+TCP-related (valid only when the original connection was TCP):
+~~~~~~~~~
+1. Source port;
+2. Destination port;
+3. TCP flags of the original packet;
+4. TCP sequence value of the original packet;
+5. Acknowledgement sequence number of the original packet;
+6. Checksum;
+7. Window size value;
 
+UDP-related (valid only when the original connection was UDP):
+~~~~~~~~~
+1. Source port;
+2. Destination port;
+3. Packet length (header + payload) of the original packet;
+4. Checksum;
+
+SCTP-related (valid only when the original connection was SCTP):
+~~~~~~~~~~
+1. Source port;
+2. Destination port;
+3. Checksum;
+
+Please note that this is *all* the data available to the AUDIT target, 
+not what is (or should be) included in the audit logs!
+
+As it stands, I have currently included the following in the AUDIT 
+target to be logged, though this is not final, as I am still seeking 
+more broad consensus, hence this email:
+
+IP-related properties: Source & destination IP addresses, protocol and 
+total length of the original packet;
+TCP-related: Source & destination ports, TCP flags;
+UDP-related: Source & destination ports;
+SCTP-related: Source & destination ports;
+
+As already mentioned, there are at least two things I am still 
+considering: 1) should I add/exclude some of what I just listed above?; 
+and 2) what should be the structure of the audit message?
+
+For the latter, I have currently placed everything in a single audit 
+message: the properties of the ICMP audit message (as shown in the 
+example above), plus the field name/value pairs of the original 
+connection added after that. They are currently named as "oX=V", where 
+"X" is the brief description of the property in question and "V" is its 
+value (in other words, TCP source port with a value of 443 of the 
+original connection is constructed as "osport=443" in the final audit 
+message).
+
+I would like to know whether there are any objections, new ideas or 
+suggestions to the above before committing this and issuing the relevant 
+patches. Thanks!
