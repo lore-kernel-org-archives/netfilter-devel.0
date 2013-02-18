@@ -1,196 +1,64 @@
 From: Willem de Bruijn <willemb@google.com>
-Subject: [PATCH] utils: bpf_compile
-Date: Sun, 17 Feb 2013 22:44:01 -0500
-Message-ID: <1361159041-9783-1-git-send-email-willemb@google.com>
-References: <20130123185620.GA6251@1984>
-Cc: Willem de Bruijn <willemb@google.com>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH next v3] iptables: add xt_bpf match
+Date: Sun, 17 Feb 2013 22:52:23 -0500
+Message-ID: <CA+FuTScWmRddTC4kOKqF9+4Ama3NJZ5uv=jHVREq5jARU5897w@mail.gmail.com>
+References: <1357776502-21555-1-git-send-email-willemb@google.com>
+ <1357776944-28805-1-git-send-email-willemb@google.com> <20130117235328.GA16224@1984>
+ <CA+FuTSeU8m8Hect+2cT6QOmfNH3oJ8mASOat-zn3-3WwJxJNZg@mail.gmail.com>
+ <20130121134434.GA12865@1984> <20130122084657.GE8541@breakpoint.cc>
+ <CA+FuTSfUvDqUOh2f8Z2NJC+ouy_=7UPEhXObz0ZS4mGLxpeQog@mail.gmail.com>
+ <20130123162125.GA27000@1984> <CA+FuTSdZ=e99f16WKusOr=0KAHq+s8xJbMRQj2tWL3j2bre3MQ@mail.gmail.com>
+ <20130123185620.GA6251@1984>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: Florian Westphal <fw@strlen.de>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:51255 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754483Ab3BRDoG (ORCPT
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:51438 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755983Ab3BRDwz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 17 Feb 2013 22:44:06 -0500
-Received: by mail-ye0-f201.google.com with SMTP id r11so533087yen.4
-        for <netfilter-devel@vger.kernel.org>; Sun, 17 Feb 2013 19:44:05 -0800 (PST)
+	Sun, 17 Feb 2013 22:52:55 -0500
+Received: by mail-ie0-f172.google.com with SMTP id c10so6670713ieb.17
+        for <netfilter-devel@vger.kernel.org>; Sun, 17 Feb 2013 19:52:55 -0800 (PST)
 In-Reply-To: <20130123185620.GA6251@1984>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-A BPF compiler to convert tcpudmp expressions to the decimal format accepted
-by the libxt_bpf.
+On Wed, Jan 23, 2013 at 1:56 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, Jan 23, 2013 at 11:38:20AM -0500, Willem de Bruijn wrote:
+>> On Wed, Jan 23, 2013 at 11:21 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>> > On Wed, Jan 23 2013 at 10:59:28AM -0500, Willem de Bruijn wrote:
+>> >> >> b) provide a separate utility to generate the BPF filter in text-based
+>> >> >> format from some utility that accepts tcpdump-like syntax. The utility
+>> >> >> can be distributed in the utils directory and it would not be
+>> >> >> mandatory to compile it if libpcap is not present.
+>> > [...]
+>> >> > I would go with b) for now; we can always move to a) later on, but not
+>> >> > the other way around (would kill backwards compatibility).
+>> >>
+>> >> This sounds like the consensus (for the record, I also prefer this less
+>> >> disruptive approach). In that case, I can submit a revised libxt_bpf with your
+>> >> suggested changes right away, Pablo, and we can leave the separate
+>> >> userspace tool for a later commit.
+>> >
+>> > Either way is fine, but please we should have that utility compiler
+>> > integrated in the iptables tree by when 3.9-rc1 is released.
+>>
+>> Okay. I'll prepare a separate patch with the pcap-based utility, then.
 
-Generate a file and pass that to iptables:
+Just sent the patch. I'm no expert at autoconf and automake, so the
+build logic can conceivably be shorter, but it works for me and the
+logic is straightforward. I forgot to mention in the commit message
+which versions of the tools I used: tested on a ubuntu 12.04 with
+autoconf 2.68, automake 1.9.6 and libtool 2.4.2.
 
-  bpf_compile RAW 'udp dst port 9000' > test.bpf
-  iptables -A OUTPUT -m bpf --bytecode-file test.bpf -j LOG
-
-Or pass the output directly to iptables using backticks:
-
-  iptables -A INPUT -m bpf --bytecode \
-      "`./bpf_compile RAW 'udp dst port 9000' | tr '\n' ','`" -j LOG
-
-This utility depends on libpcap. The library is only compiled if the option
---enable-pcap is explicitly passed to ./configure and libpcap is found.
-
-Tested (for review: to be removed before merging):
-
-- compilation always succeeds.
-  - utils/bpf_compile is only built when enable_pcap is true and libpcap is found
-  - utils/nfnl_osf is (still) only built when nfnetlink library is found
-
-- execution
-  - tested the above two expressions and verified dmesg output
-
-- logging
-  - iptables -L INPUT
-"
-LOG        all  --  anywhere             anywhere            match bpf 48 0 0
-0,84 0 0 240,21 0 4 96,48 0 0 6,21 0 13 17,40 0 0 42,21 10 11 9000,48 0 0 0,84
-0 0 240,21 0 8 64,48 0 0 9,21 0 6 17,40 0 0 6,69 4 0 8191,177 0 0 0,72 0 0
-  2,21 0 1 9000,6 0 0 65535,6 0 0 0, LOG level warning
-"
-
-  - iptables-save
-"
--A INPUT -m bpf --bytecode "19,48 0 0 0,84 0 0 240,21 0 4 96,48 0 0 6,21 0
-13 17,40 0 0 42,21 10 11 9000,48 0 0 0,84 0 0 240,21 0 8 64,48 0 0 9,21 0
-6 17,40 0 0 6,69 4 0 8191,177 0 0 0,72 0 0 2,21 0 1 9000,6 0 0 65535,6
-0 0 0," -j LOG
-"
----
- Makefile.am         |  2 --
- configure.ac        |  8 ++++++++
- utils/Makefile.am   | 14 ++++++++++++--
- utils/bpf_compile.c | 55 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 75 insertions(+), 4 deletions(-)
- create mode 100644 utils/bpf_compile.c
-
-diff --git a/Makefile.am b/Makefile.am
-index 6400ba4..c38d360 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -10,9 +10,7 @@ endif
- if ENABLE_LIBIPQ
- SUBDIRS         += libipq
- endif
--if HAVE_LIBNFNETLINK
- SUBDIRS         += utils
--endif
- # Depends on libxtables:
- SUBDIRS         += extensions
- # Depends on extensions/libext.a:
-diff --git a/configure.ac b/configure.ac
-index 27e0b10..fe40afe 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -50,6 +50,9 @@ AC_ARG_ENABLE([devel],
- 	[enable_devel="$enableval"], [enable_devel="yes"])
- AC_ARG_ENABLE([libipq],
- 	AS_HELP_STRING([--enable-libipq], [Build and install libipq]))
-+AC_ARG_ENABLE([pcap],
-+	AS_HELP_STRING([--enable-pcap], [Build libpcap dependencies]),
-+	[want_pcap="yes"])
- AC_ARG_WITH([pkgconfigdir], AS_HELP_STRING([--with-pkgconfigdir=PATH],
- 	[Path to the pkgconfig directory [[LIBDIR/pkgconfig]]]),
- 	[pkgconfigdir="$withval"], [pkgconfigdir='${libdir}/pkgconfig'])
-@@ -93,6 +96,11 @@ PKG_CHECK_MODULES([libnfnetlink], [libnfnetlink >= 1.0],
- 	[nfnetlink=1], [nfnetlink=0])
- AM_CONDITIONAL([HAVE_LIBNFNETLINK], [test "$nfnetlink" = 1])
- 
-+if test "$want_pcap" == "yes"; then
-+AC_CHECK_LIB(pcap, pcap_compile_nopcap, [have_libpcap="yes"])
-+fi;
-+AM_CONDITIONAL([HAVE_LIBPCAP], [test "$have_libpcap" = "yes"])
-+
- regular_CFLAGS="-Wall -Waggregate-return -Wmissing-declarations \
- 	-Wmissing-prototypes -Wredundant-decls -Wshadow -Wstrict-prototypes \
- 	-Winline -pipe";
-diff --git a/utils/Makefile.am b/utils/Makefile.am
-index f1bbfc5..b05ff51 100644
---- a/utils/Makefile.am
-+++ b/utils/Makefile.am
-@@ -4,7 +4,17 @@ AM_CFLAGS = ${regular_CFLAGS}
- AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_builddir}/include \
-               -I${top_srcdir}/include ${libnfnetlink_CFLAGS}
- 
--sbin_PROGRAMS = nfnl_osf
--pkgdata_DATA = pf.os
-+sbin_PROGRAMS =
-+pkgdata_DATA =
-+
-+if HAVE_LIBNFNETLINK
-+sbin_PROGRAMS += nfnl_osf
-+pkgdata_DATA += pf.os
- 
- nfnl_osf_LDADD = -lnfnetlink
-+endif
-+
-+if HAVE_LIBPCAP
-+sbin_PROGRAMS += bpf_compile
-+bpf_compile_LDADD = -lpcap
-+endif
-diff --git a/utils/bpf_compile.c b/utils/bpf_compile.c
-new file mode 100644
-index 0000000..7b3e3c0
---- /dev/null
-+++ b/utils/bpf_compile.c
-@@ -0,0 +1,55 @@
-+/*
-+ * BPF program compilation tool
-+ *
-+ * Generates decimal output, similar to `tcpdump -ddd ...`.
-+ * Unlike tcpdump, will generate for any given link layer type.
-+ *
-+ * There is no makefile:
-+ * compile with `gcc -Wall -o bpf2decimal bpf2decimal.c -lpcap` or similar.
-+ *
-+ * Written by Willem de Bruijn (willemb@google.com)
-+ * Copyright Google, Inc. 2013
-+ * Licensed under the GNU General Public License version 2 (GPLv2)
-+*/
-+
-+#include <pcap.h>
-+#include <stdio.h>
-+
-+int main(int argc, char **argv)
-+{
-+	struct bpf_program program;
-+	struct bpf_insn *ins;
-+	int i, dlt = DLT_RAW;
-+
-+	if (argc < 2 || argc > 3) {
-+		fprintf(stderr, "Usage:    %s [link] '<program>'\n\n"
-+				"          link is a pcap linklayer type:\n"
-+				"          one of EN10MB, RAW, SLIP, ...\n\n"
-+				"Examples: %s RAW 'tcp and greater 100'\n"
-+				"          %s EN10MB 'ip proto 47'\n'",
-+				argv[0], argv[0], argv[0]);
-+		return 1;
-+	}
-+
-+	if (argc == 3) {
-+		dlt = pcap_datalink_name_to_val(argv[1]);
-+		if (dlt == -1) {
-+			fprintf(stderr, "Unknown datalinktype: %s\n", argv[1]);
-+			return 1;
-+		}
-+	}
-+
-+	if (pcap_compile_nopcap(65535, dlt, &program, argv[argc - 1], 1,
-+				PCAP_NETMASK_UNKNOWN)) {
-+		fprintf(stderr, "Compilation error\n");
-+		return 1;
-+	}
-+
-+	printf("%d\n", program.bf_len);
-+	ins = program.bf_insns;
-+	for (i = 0; i < program.bf_len; ++ins, ++i)
-+		printf("%u %u %u %u\n", ins->code, ins->jt, ins->jf, ins->k);
-+
-+	return 0;
-+}
-+
--- 
-1.8.1.3
-
+>> Since utils is built as part of the root make invocation, I think it's
+>> better to test for pcap.h in the root configure.ac and add a test in
+>> utils/Makefile.am to build this tool if found, as opposed to creating
+>> a separate configure.ac under utils. We can also discuss these
+>> details after the first version of the patch, of course.
+>
+> That's fine by now, and it's way less bloat.
