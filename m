@@ -1,74 +1,59 @@
 From: Eric Leblond <eric@regit.org>
-Subject: [PATCH 5/7] Add handling of too long arguments.
-Date: Mon, 18 Feb 2013 09:37:46 +0100
-Message-ID: <1361176668-22661-6-git-send-email-eric@regit.org>
+Subject: [PATCH 2/7] Suppress dead FIXME.
+Date: Mon, 18 Feb 2013 09:37:43 +0100
+Message-ID: <1361176668-22661-3-git-send-email-eric@regit.org>
 References: <1361176668-22661-1-git-send-email-eric@regit.org>
 Cc: eric@regit.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:48543 "EHLO
+Received: from ks28632.kimsufi.com ([91.121.96.152]:48540 "EHLO
 	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751999Ab3BRIie (ORCPT
+	with ESMTP id S1751553Ab3BRIid (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Feb 2013 03:38:34 -0500
+	Mon, 18 Feb 2013 03:38:33 -0500
 In-Reply-To: <1361176668-22661-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When an argument is too long, it can not be store into ulogd
-configuration and this must results in a error.
 
 Signed-off-by: Eric Leblond <eric@regit.org>
 ---
- include/ulogd/conffile.h |    1 +
- src/conffile.c           |    5 ++++-
- src/ulogd.c              |    5 +++++
- 3 files changed, 10 insertions(+), 1 deletion(-)
+ input/packet/ulogd_inppkt_NFLOG.c |    2 --
+ src/ulogd.c                       |    1 -
+ 2 files changed, 3 deletions(-)
 
-diff --git a/include/ulogd/conffile.h b/include/ulogd/conffile.h
-index 0b8ac0e..69a6f70 100644
---- a/include/ulogd/conffile.h
-+++ b/include/ulogd/conffile.h
-@@ -18,6 +18,7 @@ enum {
- 	ERRMAND,	/* mandatory option not found */
- 	ERRUNKN,	/* unknown config key */
- 	ERRSECTION,	/* section not found */
-+	ERRTOOLONG,	/* string too long */
- };
+diff --git a/input/packet/ulogd_inppkt_NFLOG.c b/input/packet/ulogd_inppkt_NFLOG.c
+index 7870c31..cc0c2d4 100644
+--- a/input/packet/ulogd_inppkt_NFLOG.c
++++ b/input/packet/ulogd_inppkt_NFLOG.c
+@@ -339,7 +339,6 @@ interp_packet(struct ulogd_pluginstance *upi, u_int8_t pf_family,
+ 		    label_ce(upi->config_kset).u.value);
  
- /* maximum line length of config file entries */
-diff --git a/src/conffile.c b/src/conffile.c
-index 616d7a9..9a73406 100644
---- a/src/conffile.c
-+++ b/src/conffile.c
-@@ -197,7 +197,10 @@ int config_parse_file(const char *section, struct config_keyset *kset)
- 					if (strlen(args) < 
- 					    CONFIG_VAL_STRING_LEN ) {
- 						strcpy(ce->u.string, args);
--						/* FIXME: what if not ? */
-+					} else {
-+						config_errce = ce;
-+						err = -ERRTOOLONG;
-+						goto cpf_error;
- 					}
- 					break;
- 				case CONFIG_TYPE_INT:
+ 	if (ph) {
+-		/* FIXME */
+ 		okey_set_u8(&ret[NFLOG_KEY_OOB_HOOK], ph->hook);
+ 		okey_set_u16(&ret[NFLOG_KEY_OOB_PROTOCOL],
+ 			     ntohs(ph->hw_protocol));
+@@ -376,7 +375,6 @@ interp_packet(struct ulogd_pluginstance *upi, u_int8_t pf_family,
+ 	if (! (nflog_get_timestamp(ldata, &ts) == 0 && ts.tv_sec))
+ 		gettimeofday(&ts, NULL);
+ 
+-	/* FIXME: convert endianness */
+ 	okey_set_u32(&ret[NFLOG_KEY_OOB_TIME_SEC], ts.tv_sec & 0xffffffff);
+ 	okey_set_u32(&ret[NFLOG_KEY_OOB_TIME_USEC], ts.tv_usec & 0xffffffff);
+ 
 diff --git a/src/ulogd.c b/src/ulogd.c
-index f8c8ed0..6c0df8a 100644
+index d0fdcc5..c7617d9 100644
 --- a/src/ulogd.c
 +++ b/src/ulogd.c
-@@ -989,6 +989,11 @@ static int parse_conffile(const char *section, struct config_keyset *ce)
- 			ulogd_log(ULOGD_ERROR,
- 				"section \"%s\" not found\n", section);
- 			break;
-+		case -ERRTOOLONG:
-+			ulogd_log(ULOGD_ERROR,
-+				"too long string value for key \"%s\"\n",
-+				config_errce->key);
-+			break;
- 	}
- 	return 1;
- }
+@@ -1102,7 +1102,6 @@ static void signal_handler(int signal)
+ 
+ static void print_usage(void)
+ {
+-	/* FIXME */
+ 	printf("ulogd Version %s\n", VERSION);
+ 	printf(COPYRIGHT);
+ 	printf("This is free software with ABSOLUTELY NO WARRANTY.\n\n");
 -- 
 1.7.10.4
 
