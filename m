@@ -1,41 +1,91 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/7] netfilter updates for net-next
-Date: Tue, 19 Feb 2013 00:44:04 -0500 (EST)
-Message-ID: <20130219.004404.1352291386944772627.davem@davemloft.net>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH 7/7] netfilter: nf_ct_helper: Fix logging for dropped
+ packets
+Date: Mon, 18 Feb 2013 23:51:07 -0800
+Message-ID: <1361260267.5920.15.camel@joe-AO722>
 References: <1361232651-5626-1-git-send-email-pablo@netfilter.org>
+	 <1361232651-5626-8-git-send-email-pablo@netfilter.org>
+	 <1361233322.2046.3.camel@joe-AO722> <20130219011109.GA6362@localhost>
+	 <1361237594.2046.16.camel@joe-AO722> <20130219015015.GA11869@localhost>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+Cc: netdev@vger.kernel.org, davem@davemloft.net,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:54176 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751841Ab3BSFoI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Feb 2013 00:44:08 -0500
-In-Reply-To: <1361232651-5626-1-git-send-email-pablo@netfilter.org>
+Received: from perches-mx.perches.com ([206.117.179.246]:37945 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757317Ab3BSHvI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Feb 2013 02:51:08 -0500
+In-Reply-To: <20130219015015.GA11869@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: pablo@netfilter.org
-Date: Tue, 19 Feb 2013 01:10:44 +0100
+On Tue, 2013-02-19 at 02:50 +0100, Pablo Neira Ayuso wrote:
+> On Mon, Feb 18, 2013 at 05:33:14PM -0800, Joe Perches wrote:
+> > On Tue, 2013-02-19 at 02:11 +0100, Pablo Neira Ayuso wrote:
+> > > On Mon, Feb 18, 2013 at 04:22:02PM -0800, Joe Perches wrote:
+> > > > On Tue, 2013-02-19 at 01:10 +0100, pablo@netfilter.org wrote:
+> > > > > This patch modifies the existing code to provide more specific
+> > > > > error message in the scope of each helper to help users to debug
+> > > > > the reason why the packet has been dropped, ie:
+> > > > []
+> > > > > diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+> > > > []
+> > > > > @@ -100,6 +100,9 @@ struct nf_ct_helper_expectfn {
+> > > > >  	void (*expectfn)(struct nf_conn *ct, struct nf_conntrack_expect *exp);
+> > > > >  };
+> > > > >  
+> > > > > +extern void nf_ct_helper_log(struct sk_buff *skb, const struct nf_conn *,
+> > > > > +			     const char *fmt, ...);
 
-> The following patchset contain updates for your net-next tree, they are:
-> 
-> * Fix (for just added) connlabel dependencies, from Florian Westphal.
-> 
-> * Add aliasing support for conntrack, thus users can either use -m state
->   or -m conntrack from iptables while using the same kernel module, from
->   Jozsef Kadlecsik.
-> 
-> * Some code refactoring for the CT target to merge common code in
->   revision 0 and 1, from myself.
-> 
-> * Add aliasing support for CT, based on patch from Jozsef Kadlecsik.
-> 
-> * Add one mutex per nfnetlink subsystem, from myself.
-> 
-> * Improved logging for packets that are dropped by helpers, from myself.
+Hi again Pablo.
 
-Pulled, thanks Pablo.
+Sorry, I didn't look at the function implementation.
+
+It doesn't use the var args that follow fmt.
+Two current uses have format and args aren't emitted correctly.
+
+This is needed:
+
+From: Joe Perches <joe@perches.com>
+
+Update nf_ct_helper_log to emit args along with the format.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ net/netfilter/nf_conntrack_helper.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 013cdf6..3ebc2ae 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -341,6 +341,13 @@ void nf_ct_helper_log(struct sk_buff *skb, const struct nf_conn *ct,
+ {
+ 	const struct nf_conn_help *help;
+ 	const struct nf_conntrack_helper *helper;
++	struct va_format vaf;
++	va_list args;
++
++	va_start(args, fmt);
++
++	vaf.fmt = fmt;
++	vaf.va = &args;
+ 
+ 	/* Called from the helper function, this call never fails */
+ 	help = nfct_help(ct);
+@@ -349,7 +356,9 @@ void nf_ct_helper_log(struct sk_buff *skb, const struct nf_conn *ct,
+ 	helper = rcu_dereference(help->helper);
+ 
+ 	nf_log_packet(nf_ct_l3num(ct), 0, skb, NULL, NULL, NULL,
+-		      "nf_ct_%s: dropping packet: %s ", helper->name, fmt);
++		      "nf_ct_%s: dropping packet: %pV", helper->name, &vaf);
++
++	va_end(args);
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_helper_log);
+ 
+
+
