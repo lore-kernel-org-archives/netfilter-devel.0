@@ -1,8 +1,8 @@
 From: Joe Perches <joe@perches.com>
 Subject: Re: [PATCH 7/7] netfilter: nf_ct_helper: better logging for dropped
  packets
-Date: Mon, 18 Feb 2013 17:23:37 -0800
-Message-ID: <1361237017.2046.9.camel@joe-AO722>
+Date: Mon, 18 Feb 2013 17:33:14 -0800
+Message-ID: <1361237594.2046.16.camel@joe-AO722>
 References: <1361232651-5626-1-git-send-email-pablo@netfilter.org>
 	 <1361232651-5626-8-git-send-email-pablo@netfilter.org>
 	 <1361233322.2046.3.camel@joe-AO722> <20130219011109.GA6362@localhost>
@@ -13,10 +13,10 @@ Cc: netdev@vger.kernel.org, davem@davemloft.net,
 	netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:53527 "EHLO
+Received: from perches-mx.perches.com ([206.117.179.246]:51066 "EHLO
 	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757400Ab3BSBXj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Feb 2013 20:23:39 -0500
+	id S1754499Ab3BSBdP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Feb 2013 20:33:15 -0500
 In-Reply-To: <20130219011109.GA6362@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -30,29 +30,40 @@ On Tue, 2013-02-19 at 02:11 +0100, Pablo Neira Ayuso wrote:
 > > []
 > > > diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
 > > []
-[]
-> > do please try to avoid splitting formats
+> > > @@ -100,6 +100,9 @@ struct nf_ct_helper_expectfn {
+> > >  	void (*expectfn)(struct nf_conn *ct, struct nf_conntrack_expect *exp);
+> > >  };
+> > >  
+> > > +extern void nf_ct_helper_log(struct sk_buff *skb, const struct nf_conn *,
+> > > +			     const char *fmt, ...);
 > > 
-> > 				nf_ct_helper_log(skb, ct,
-> > 						 "cannot add expectation");
+> > this should be declared
+> > 
+> > __printf(3, 4)
+> > void nf_ct_helper_log(etc...)
 > 
-> Done whenever possible, sometimes I see myself forced to split them to
-> fit 80-chars per column.
+> Fixed, thanks.
 
-It's always possible.
+Well, not really.
 
-Just ignore line length limitations for formats.
+The new prototype is:
 
-If the formats are on a separate line, checkpatch
-won't complain either.
++extern __printf(3,4) void nf_ct_helper_log(struct sk_buff *skb,
++                                          const struct nf_conn *,
++                                          const char *fmt, ...);
++
 
-If nf_cg_helper_log was named nf_cg_helper_printk
-checkpatch wouldn't complain if the original line
-with format was > 80 cols
+The extern isn't necessary.
+The second arg doesn't have a name.
+The printf args could use a space between them.
 
-		nf_ct_helper_printk(skb, ct, "some really long format past 80 cols ...");
+I think this should be
 
-but then the log isn't really a printk either and
-that's a checkpatch limitation on understanding
-what is and isn't a logging output function.
+__printf(3, 4)
+void nf_ct_helper_log(struct sk_buff *skb, const struct nf_conn *ct,
+                      const char *fmt, ...);
+
+without the extern to be more like the prototypes that follow
+it in that file.
+
 
