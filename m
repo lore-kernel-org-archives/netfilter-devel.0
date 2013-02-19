@@ -1,91 +1,55 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 7/7] netfilter: nf_ct_helper: Fix logging for dropped
- packets
-Date: Mon, 18 Feb 2013 23:51:07 -0800
-Message-ID: <1361260267.5920.15.camel@joe-AO722>
-References: <1361232651-5626-1-git-send-email-pablo@netfilter.org>
-	 <1361232651-5626-8-git-send-email-pablo@netfilter.org>
-	 <1361233322.2046.3.camel@joe-AO722> <20130219011109.GA6362@localhost>
-	 <1361237594.2046.16.camel@joe-AO722> <20130219015015.GA11869@localhost>
+From: Josh Hunt <johunt@akamai.com>
+Subject: ipset timeout values corrupt on set resize
+Date: Tue, 19 Feb 2013 11:31:35 -0600
+Message-ID: <5123B6F7.2050707@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, davem@davemloft.net,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:37945 "EHLO
-	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757317Ab3BSHvI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Feb 2013 02:51:08 -0500
-In-Reply-To: <20130219015015.GA11869@localhost>
+Received: from prod-mail-xrelay05.akamai.com ([96.6.114.97]:37254 "EHLO
+	prod-mail-xrelay05.akamai.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758678Ab3BSRkE (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Feb 2013 12:40:04 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2013-02-19 at 02:50 +0100, Pablo Neira Ayuso wrote:
-> On Mon, Feb 18, 2013 at 05:33:14PM -0800, Joe Perches wrote:
-> > On Tue, 2013-02-19 at 02:11 +0100, Pablo Neira Ayuso wrote:
-> > > On Mon, Feb 18, 2013 at 04:22:02PM -0800, Joe Perches wrote:
-> > > > On Tue, 2013-02-19 at 01:10 +0100, pablo@netfilter.org wrote:
-> > > > > This patch modifies the existing code to provide more specific
-> > > > > error message in the scope of each helper to help users to debug
-> > > > > the reason why the packet has been dropped, ie:
-> > > > []
-> > > > > diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-> > > > []
-> > > > > @@ -100,6 +100,9 @@ struct nf_ct_helper_expectfn {
-> > > > >  	void (*expectfn)(struct nf_conn *ct, struct nf_conntrack_expect *exp);
-> > > > >  };
-> > > > >  
-> > > > > +extern void nf_ct_helper_log(struct sk_buff *skb, const struct nf_conn *,
-> > > > > +			     const char *fmt, ...);
+I just ran into this and figured I'd see if anyone else has hit the 
+issue. If I create a set with timeouts enabled and then add entries to 
+this set which requires a resize, the timeout values become corrupt.
 
-Hi again Pablo.
+Here's an example of what I'm doing:
 
-Sorry, I didn't look at the function implementation.
+ipset create foo hash:ip,port,ip maxelem 16536 timeout 600
 
-It doesn't use the var args that follow fmt.
-Two current uses have format and args aren't emitted correctly.
+Then I add ~16k entries to the set and I see things like this as I'm 
+adding entries to the set:
 
-This is needed:
+Name: foo
+Type: hash:ip,port,ip
+Revision: 1
+Header: family inet hashsize 2048 maxelem 16536 timeout 600
+Size in memory: 268456
+References: 0
+Members:
+2.0.3.233,tcp:9999,172.24.196.41 timeout 1610614
+2.0.17.81,tcp:9999,172.24.196.41 timeout 596
+2.0.21.190,tcp:9999,172.24.196.41 timeout 598
+2.0.4.156,tcp:9999,172.24.196.41 timeout 1610879
+2.0.6.132,tcp:9999,172.24.196.41 timeout 1611592
 
-From: Joe Perches <joe@perches.com>
+I believe this is resizing related b/c if I force the hashsize to 
+something that won't get resized (ex: something >= maxelem) then I don't 
+see this problem.
 
-Update nf_ct_helper_log to emit args along with the format.
+I noticed in the resize code there's a lot of casting from type_pf_elem 
+to type_pf_telem, but haven't investigated yet to determine the root 
+cause of the problem.
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- net/netfilter/nf_conntrack_helper.c | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+I've reproduced this on kernel 3.2 with the latest ipset userspace utils 
+6.16.1.
 
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 013cdf6..3ebc2ae 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -341,6 +341,13 @@ void nf_ct_helper_log(struct sk_buff *skb, const struct nf_conn *ct,
- {
- 	const struct nf_conn_help *help;
- 	const struct nf_conntrack_helper *helper;
-+	struct va_format vaf;
-+	va_list args;
-+
-+	va_start(args, fmt);
-+
-+	vaf.fmt = fmt;
-+	vaf.va = &args;
- 
- 	/* Called from the helper function, this call never fails */
- 	help = nfct_help(ct);
-@@ -349,7 +356,9 @@ void nf_ct_helper_log(struct sk_buff *skb, const struct nf_conn *ct,
- 	helper = rcu_dereference(help->helper);
- 
- 	nf_log_packet(nf_ct_l3num(ct), 0, skb, NULL, NULL, NULL,
--		      "nf_ct_%s: dropping packet: %s ", helper->name, fmt);
-+		      "nf_ct_%s: dropping packet: %pV", helper->name, &vaf);
-+
-+	va_end(args);
- }
- EXPORT_SYMBOL_GPL(nf_ct_helper_log);
- 
-
-
+Thanks for any help
+Josh
