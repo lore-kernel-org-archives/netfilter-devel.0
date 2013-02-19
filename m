@@ -1,69 +1,47 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 7/7] netfilter: nf_ct_helper: better logging for dropped
- packets
-Date: Mon, 18 Feb 2013 16:22:02 -0800
-Message-ID: <1361233322.2046.3.camel@joe-AO722>
-References: <1361232651-5626-1-git-send-email-pablo@netfilter.org>
-	 <1361232651-5626-8-git-send-email-pablo@netfilter.org>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Re: [PATCH] ulog: add protection when remove ipt_ULOG
+Date: Tue, 19 Feb 2013 09:09:02 +0800
+Message-ID: <5122D0AE.7060405@cn.fujitsu.com>
+References: <1360029450-6673-1-git-send-email-gaofeng@cn.fujitsu.com> <20130207182708.GA18328@localhost> <5121A6B0.9090809@cn.fujitsu.com> <20130218165230.GA19791@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, davem@davemloft.net,
-	netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:33907 "EHLO
-	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754844Ab3BSAWE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Feb 2013 19:22:04 -0500
-In-Reply-To: <1361232651-5626-8-git-send-email-pablo@netfilter.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:47769 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1757003Ab3BSBIW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Feb 2013 20:08:22 -0500
+In-Reply-To: <20130218165230.GA19791@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2013-02-19 at 01:10 +0100, pablo@netfilter.org wrote:
-> This patch modifies the existing code to provide more specific
-> error message in the scope of each helper to help users to debug
-> the reason why the packet has been dropped, ie:
-[]
-> diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-[]
-> @@ -100,6 +100,9 @@ struct nf_ct_helper_expectfn {
->  	void (*expectfn)(struct nf_conn *ct, struct nf_conntrack_expect *exp);
->  };
->  
-> +extern void nf_ct_helper_log(struct sk_buff *skb, const struct nf_conn *,
-> +			     const char *fmt, ...);
+On 2013/02/19 00:52, Pablo Neira Ayuso wrote:
+> On Mon, Feb 18, 2013 at 11:57:36AM +0800, Gao feng wrote:
+> [...]
+>>> I think this is very unlikely to happen. The removal of the module
+>>> happens in user-context and the entire path to build and deliver the
+>>> skb to user-space is protected is under spin_lock_bh, so scheduling
+>>> is not possible.
+>>
+>> Doesn't spin_lock_bh only disable local cpu's bottom-half?
+>> the task that remove the modules can run on other cpus at the same time.
+>> I'm wrong?
+> 
+> That's right. But that will not happen since the removal of ipt_ULOG
+> is protected by the module refcount, which is bumped for each iptables
+> rule. So, you have to remove all rules using the ULOG target first to
+> be able to rmmod that module, but then there is no chance to race with
+> packets.
 
-this should be declared
+this calltrack doesn't add the refcount of moudule.
+trace_packet->nf_log_packet->logger->logfn(ipt_logfn).
+But when removing module,we call nf_log_unregister and
+we can make sure only ulog_tg_exit uses ulog_buffer->skb,
+So it's safe to don't add spin lock protect here.
 
-__printf(3, 4)
-void nf_ct_helper_log(etc...)
+I will send a v2 patchset to remove the spin lock protect
+in ebt_ulog module.
 
-to get the compiler to verify format and arguments.
-
-> @@ -210,8 +212,11 @@ static int help(struct sk_buff *skb, unsigned int protoff,
->  						 addr_beg_p - ib_ptr,
->  						 addr_end_p - addr_beg_p,
->  						 exp);
-> -			else if (nf_ct_expect_related(exp) != 0)
-> +			else if (nf_ct_expect_related(exp) != 0) {
-> +				nf_ct_helper_log(skb, ct, "cannot add "
-> +							  "expectation");
-
-do please try to avoid splitting formats
-
-				nf_ct_helper_log(skb, ct,
-						 "cannot add expectation");
-
-> @@ -1123,8 +1130,11 @@ static int process_sdp(struct sk_buff *skb, unsigned int protoff,
->  					      dptr, datalen, mediaoff,
->  					      SDP_HDR_CONNECTION, SDP_HDR_MEDIA,
->  					      &rtp_addr);
-> -			if (ret != NF_ACCEPT)
-> +			if (ret != NF_ACCEPT) {
-> +				nf_ct_helper_log(skb, ct, "cannot mangle "
-> +							  "media connection");
-
-here too, etc...
-
-
+Thanks!
