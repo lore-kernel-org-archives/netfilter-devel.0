@@ -1,35 +1,36 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 01/10] netfilter: make /proc/net/netfilter pernet
-Date: Thu, 21 Feb 2013 00:13:12 +0100
-Message-ID: <20130220231312.GB3875@localhost>
-References: <1360223390-15589-1-git-send-email-gaofeng@cn.fujitsu.com>
- <20130207183318.GA18359@localhost>
- <51246EEA.5020301@cn.fujitsu.com>
+Subject: Re: [PATCH] netfilter: ipset: timeout values corrupted on set resize
+Date: Thu, 21 Feb 2013 00:46:52 +0100
+Message-ID: <20130220234652.GA5060@localhost>
+References: <1361302559-8657-1-git-send-email-johunt@akamai.com>
+ <alpine.DEB.2.00.1302202238210.9720@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	containers@lists.linux-foundation.org, ebiederm@xmission.com,
-	netdev@vger.kernel.org, lve@guap.ru
-To: Gao feng <gaofeng@cn.fujitsu.com>
+Cc: Josh Hunt <johunt@akamai.com>, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from slan-550-85.anhosting.com ([174.127.110.175]:61590 "EHLO
+Received: from slan-550-85.anhosting.com ([174.127.110.175]:33923 "EHLO
 	slan-550-85.anhosting.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751013Ab3BTXNS (ORCPT
+	by vger.kernel.org with ESMTP id S1751143Ab3BTXq5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Feb 2013 18:13:18 -0500
+	Wed, 20 Feb 2013 18:46:57 -0500
 Content-Disposition: inline
-In-Reply-To: <51246EEA.5020301@cn.fujitsu.com>
+In-Reply-To: <alpine.DEB.2.00.1302202238210.9720@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Feb 20, 2013 at 02:36:26PM +0800, Gao feng wrote:
-> > This doesn't belong here to x_tables, it should be place in
-> > include/net/net_namespace.h.
+Hi Jozsef,
+
+On Wed, Feb 20, 2013 at 10:44:18PM +0100, Jozsef Kadlecsik wrote:
+[...]
+> That's a good catch and perfect patch.
 > 
-> Get it,will fix it in next version.
+> I'm just at the checking phase of the next release, which required a 
+> fairly large rewriting of the types - and which, as a side effect, fixed 
+> this bug. If I won't be able to release the rewritten version by the 
+> weekend, I'm going to apply your patch and release an interim version.
 
-Thanks Gao.
+My suggestion is to apply the fix first so we can pass this to -stable.
 
-> Should I wait for the nf-next being open again?
-
-Yes.
+Let me know. Thanks.
