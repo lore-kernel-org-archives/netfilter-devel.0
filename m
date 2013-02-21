@@ -1,104 +1,102 @@
-From: Daniel Borkmann <dborkman@redhat.com>
-Subject: Re: [PATCH] utils: bpf_compile
-Date: Thu, 21 Feb 2013 14:43:34 +0100
-Message-ID: <51262486.40905@redhat.com>
-References: <20130123185620.GA6251@1984> <1361159041-9783-1-git-send-email-willemb@google.com> <5124A795.6090504@redhat.com> <CA+FuTScKuNMZ5rfGJ9r_h1mgDeZ76NwA6hgsqrSvaCzJza+Lxg@mail.gmail.com>
+From: Neil Horman <nhorman@tuxdriver.com>
+Subject: Re: [PATCH stable] ipvs: sctp: fix checksumming on snat and dnat
+ handlers
+Date: Thu, 21 Feb 2013 10:14:51 -0500
+Message-ID: <20130221151451.GB2730@shamino.rdu.redhat.com>
+References: <cover.1361451476.git.dborkman@redhat.com>
+ <f904dab20914b562ad9c0baf0727971dc5a4b549.1361451476.git.dborkman@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Willem de Bruijn <willemb@google.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9686 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751305Ab3BUNoW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Feb 2013 08:44:22 -0500
-In-Reply-To: <CA+FuTScKuNMZ5rfGJ9r_h1mgDeZ76NwA6hgsqrSvaCzJza+Lxg@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
+	linux-sctp@vger.kernel.org, Julian Anastasov <ja@ssi.bg>,
+	Simon Horman <horms@verge.net.au>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Daniel Borkmann <dborkman@redhat.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <f904dab20914b562ad9c0baf0727971dc5a4b549.1361451476.git.dborkman@redhat.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 02/21/2013 05:35 AM, Willem de Bruijn wrote:
-> On Wed, Feb 20, 2013 at 5:38 AM, Daniel Borkmann <dborkman@redhat.com> wrote:
->> On 02/18/2013 04:44 AM, Willem de Bruijn wrote:
->>>
->>> A BPF compiler to convert tcpudmp expressions to the decimal format
->>> accepted
->>> by the libxt_bpf.
->>
->> [...]
->>
->>> --- /dev/null
->>> +++ b/utils/bpf_compile.c
->>> @@ -0,0 +1,55 @@
->>> +/*
->>> + * BPF program compilation tool
->>> + *
->>> + * Generates decimal output, similar to `tcpdump -ddd ...`.
->>> + * Unlike tcpdump, will generate for any given link layer type.
->>> + *
->>> + * There is no makefile:
->>> + * compile with `gcc -Wall -o bpf2decimal bpf2decimal.c -lpcap` or
->>> similar.
->>> + *
->>> + * Written by Willem de Bruijn (willemb@google.com)
->>> + * Copyright Google, Inc. 2013
->>> + * Licensed under the GNU General Public License version 2 (GPLv2)
->>> +*/
->>> +
->>> +#include <pcap.h>
->>> +#include <stdio.h>
->>> +
->>> +int main(int argc, char **argv)
->>> +{
->>> +       struct bpf_program program;
->>> +       struct bpf_insn *ins;
->>> +       int i, dlt = DLT_RAW;
->>> +
->>> +       if (argc < 2 || argc > 3) {
->>> +               fprintf(stderr, "Usage:    %s [link] '<program>'\n\n"
->>> +                               "          link is a pcap linklayer
->>> type:\n"
->>> +                               "          one of EN10MB, RAW, SLIP,
->>> ...\n\n"
->>> +                               "Examples: %s RAW 'tcp and greater 100'\n"
->>> +                               "          %s EN10MB 'ip proto 47'\n'",
->>> +                               argv[0], argv[0], argv[0]);
->>> +               return 1;
->>> +       }
->>> +
->>> +       if (argc == 3) {
->>> +               dlt = pcap_datalink_name_to_val(argv[1]);
->>> +               if (dlt == -1) {
->>> +                       fprintf(stderr, "Unknown datalinktype: %s\n",
->>> argv[1]);
->>> +                       return 1;
->>> +               }
->>> +       }
->>> +
->>> +       if (pcap_compile_nopcap(65535, dlt, &program, argv[argc - 1], 1,
->>> +                               PCAP_NETMASK_UNKNOWN)) {
->>> +               fprintf(stderr, "Compilation error\n");
->>> +               return 1;
->>> +       }
->>> +
->>> +       printf("%d\n", program.bf_len);
->>> +       ins = program.bf_insns;
->>> +       for (i = 0; i < program.bf_len; ++ins, ++i)
->>> +               printf("%u %u %u %u\n", ins->code, ins->jt, ins->jf,
->>> ins->k);
->>
->>
->> Here I think you should release the internally allocated memory by adding a:
->>
->>          pcap_freecode(&program);
->
-> Thanks for catching that, Daniel. I'll hold off respinning the patch
-> to see if there is other feedback, but will fix this in the next
-> revision.
+On Thu, Feb 21, 2013 at 02:05:39PM +0100, Daniel Borkmann wrote:
+> In our test lab, we have a simple SCTP client connecting to a SCTP
+> server via an IPVS load balancer. On some machines, load balancing
+> works, but on others the initial handshake just fails, thus no
+> SCTP connection whatsoever can be established!
+> 
+> We observed that the SCTP INIT-ACK handshake reply from the IPVS
+> machine to the client had a correct IP checksum, but corrupt SCTP
+> checksum when forwarded, thus on the client-side the packet was
+> dropped and an intial handshake retriggered until all attempts
+> run into the void.
+> 
+> To fix this issue, this patch i) adds a missing CHECKSUM_UNNECESSARY
+> after the full checksum (re-)calculation (as done in IPVS TCP and UDP
+> code as well), and ii) calculates the checksum in little-endian format
+> (as fixed with the SCTP code in commit 4458f04c: sctp: Clean up sctp
+> checksumming code). Stable backport of upstream commit 4b47bc9a.
+> 
+> Cc: Julian Anastasov <ja@ssi.bg>
+> Cc: Simon Horman <horms@verge.net.au>
+> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
+> ---
+>  net/netfilter/ipvs/ip_vs_proto_sctp.c | 14 ++++++++------
+>  1 file changed, 8 insertions(+), 6 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+> index 9f3fb75..94bb367 100644
+> --- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
+> +++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+> @@ -70,7 +70,7 @@ sctp_snat_handler(struct sk_buff *skb,
+>  	sctp_sctphdr_t *sctph;
+>  	unsigned int sctphoff;
+>  	struct sk_buff *iter;
+> -	__be32 crc32;
+> +	__u32 crc32;
+>  
+>  #ifdef CONFIG_IP_VS_IPV6
+>  	if (cp->af == AF_INET6)
+> @@ -101,8 +101,9 @@ sctp_snat_handler(struct sk_buff *skb,
+>  	skb_walk_frags(skb, iter)
+>  		crc32 = sctp_update_cksum((u8 *) iter->data, skb_headlen(iter),
+>  				          crc32);
+> -	crc32 = sctp_end_cksum(crc32);
+> -	sctph->checksum = crc32;
+> +	sctph->checksum = sctp_end_cksum(crc32);
+> +
+> +	skb->ip_summed = CHECKSUM_UNNECESSARY;
+>  
+>  	return 1;
+>  }
+> @@ -114,7 +115,7 @@ sctp_dnat_handler(struct sk_buff *skb,
+>  	sctp_sctphdr_t *sctph;
+>  	unsigned int sctphoff;
+>  	struct sk_buff *iter;
+> -	__be32 crc32;
+> +	__u32 crc32;
+>  
+>  #ifdef CONFIG_IP_VS_IPV6
+>  	if (cp->af == AF_INET6)
+> @@ -145,8 +146,9 @@ sctp_dnat_handler(struct sk_buff *skb,
+>  	skb_walk_frags(skb, iter)
+>  		crc32 = sctp_update_cksum((u8 *) iter->data, skb_headlen(iter),
+>  					  crc32);
+> -	crc32 = sctp_end_cksum(crc32);
+> -	sctph->checksum = crc32;
+> +	sctph->checksum = sctp_end_cksum(crc32);
+> +
+> +	skb->ip_summed = CHECKSUM_UNNECESSARY;
+>  
+>  	return 1;
+>  }
+> -- 
+> 1.7.11.7
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-sctp" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+Acked-by: Neil Horman <nhorman@tuxdriver.com>
 
-Thanks, otherwise I think the user space utility looks good.
-
-I've also just added support for this output format into bpfc
-(netsniff-ng Git tree), in case low-level filter devel/debugging
-is needed, e.g. bpfc -Di <file>.
