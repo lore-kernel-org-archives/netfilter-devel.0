@@ -1,61 +1,27 @@
-From: Jonh Wendell <jonh.wendell@gmail.com>
-Subject: [PATCH] arptables: build an libarptc.a archive
-Date: Thu, 21 Feb 2013 20:45:36 -0300
-Message-ID: <1361490336-4676-1-git-send-email-jonh.wendell@gmail.com>
-Cc: Jonh Wendell <jonh.wendell@oiwifi.com.br>
-To: netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH] arptables: build an libarptc.a archive
+Date: Fri, 22 Feb 2013 09:50:23 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1302220950030.1652@nerf07.vanv.qr>
+References: <1361490336-4676-1-git-send-email-jonh.wendell@gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org,
+	Jonh Wendell <jonh.wendell@oiwifi.com.br>
+To: Jonh Wendell <jonh.wendell@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ye0-f169.google.com ([209.85.213.169]:64965 "EHLO
-	mail-ye0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754618Ab3BUXrg (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Feb 2013 18:47:36 -0500
-Received: by mail-ye0-f169.google.com with SMTP id l13so20355yen.14
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Feb 2013 15:47:35 -0800 (PST)
+Received: from ares07.inai.de ([5.9.24.206]:37778 "EHLO ares07.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752076Ab3BVIu1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 22 Feb 2013 03:50:27 -0500
+In-Reply-To: <1361490336-4676-1-git-send-email-jonh.wendell@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jonh Wendell <jonh.wendell@oiwifi.com.br>
+On Friday 2013-02-22 00:45, Jonh Wendell wrote:
 
-this allows programs to statically link against libarptc.
+>From: Jonh Wendell <jonh.wendell@oiwifi.com.br>
+>
+>this allows programs to statically link against libarptc.
 
-Signed-off-by: Jonh Wendell <jonh.wendell@oiwifi.com.br>
----
- userspace/arptables/Makefile | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/userspace/arptables/Makefile b/userspace/arptables/Makefile
-index 9a7bea4..38158d9 100644
---- a/userspace/arptables/Makefile
-+++ b/userspace/arptables/Makefile
-@@ -19,7 +19,7 @@ endif
- 
- include extensions/Makefile
- 
--all: arptables
-+all: arptables libarptc/libarptc.a
- 
- arptables.o: arptables.c
- 	$(CC) $(CFLAGS) -c -o $@ $<
-@@ -30,6 +30,9 @@ arptables-standalone.o: arptables-standalone.c
- libarptc/libarptc.o: libarptc/libarptc.c libarptc/libarptc_incl.c
- 	$(CC) $(CFLAGS) -c -o $@ $<
- 
-+libarptc/libarptc.a: libarptc/libarptc.o
-+	$(AR) rcs $@ $<
-+
- arptables: arptables-standalone.o arptables.o libarptc/libarptc.o $(EXT_OBJS)
- 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
- 
-@@ -62,7 +65,7 @@ clean:
- 	rm -f arptables
- 	rm -f *.o *~
- 	rm -f extensions/*.o extensions/*~
--	rm -f libarptc/*.o libarptc/*~
-+	rm -f libarptc/*.o libarptc/*~ libarptc/*.a
- 	rm -f include/*~ include/libarptc/*~
- 
- DIR:=arptables-v$(ARPTABLES_VERSION)
--- 
-1.8.1.2
-
+A shared library, should anyone ever wish to develop against arptc 
+(which I doubt), is much preferable.
