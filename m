@@ -1,56 +1,74 @@
 From: Eric Leblond <eric@regit.org>
-Subject: [Ulogd2 PATCH 4/4] Prepare release number to 2.0.2
-Date: Fri, 22 Feb 2013 11:25:58 +0100
-Message-ID: <1361528758-16674-5-git-send-email-eric@regit.org>
+Subject: [Ulogd2 PATCH 2/4] Update man page.
+Date: Fri, 22 Feb 2013 11:25:56 +0100
+Message-ID: <1361528758-16674-3-git-send-email-eric@regit.org>
 References: <1361528758-16674-1-git-send-email-eric@regit.org>
 Cc: eric@regit.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:39923 "EHLO
+Received: from ks28632.kimsufi.com ([91.121.96.152]:39921 "EHLO
 	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754101Ab3BVK0e (ORCPT
+	with ESMTP id S1755235Ab3BVK0e (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Fri, 22 Feb 2013 05:26:34 -0500
 In-Reply-To: <1361528758-16674-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Update release number and fill Changes file.
 
 Signed-off-by: Eric Leblond <eric@regit.org>
 ---
- Changes      |    9 +++++++++
- configure.ac |    2 +-
- 2 files changed, 10 insertions(+), 1 deletion(-)
+ ulogd.8 |   21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-diff --git a/Changes b/Changes
-index e59322c..3552b11 100644
---- a/Changes
-+++ b/Changes
-@@ -1,3 +1,12 @@
-+Version 2.0.2 (2013-02-21)
-+ - Add Graphite output module
-+ - Update postgresql schema
-+ - Add nfct filtering capabilities
-+ - Add -v option to display message on sdtout
-+ - Add -l option to specify verbosity on command line
-+ - Build system improvements
-+ - Fix parsing of ipv6 flowlabel and tc fields
-+
- Version 2.00alpha (2004-Oct-03)
- - Total re-work.  ulogd2 is almost unrelated to the ULOG netfilter target.
-   Instead, it has become a generic logging framework for anything from
-diff --git a/configure.ac b/configure.ac
-index df0e9d3..c94704b 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -1,5 +1,5 @@
- dnl Process this file with autoconf to produce a configure script.
--AC_INIT([ulogd], [2.0.1])
-+AC_INIT([ulogd], [2.0.2])
- AC_PREREQ([2.50])
- AC_CONFIG_AUX_DIR([build-aux])
- AM_INIT_AUTOMAKE([-Wall foreign tar-pax no-dist-gzip dist-bzip2 1.10b])
+diff --git a/ulogd.8 b/ulogd.8
+index fc8db15..ad82290 100644
+--- a/ulogd.8
++++ b/ulogd.8
+@@ -2,7 +2,7 @@
+ .\" First parameter, NAME, should be all caps
+ .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+ .\" other parameters are allowed: see man(7), man(1)
+-.TH ULOGD 8 "September 11, 2008" "Linux Netfilter"
++.TH ULOGD 8 "February 20, 2013" "Linux Netfilter"
+ .\" Please adjust this date whenever revising the manpage.
+ .\"
+ .\" Some roff macros, for reference:
+@@ -22,14 +22,15 @@ ulogd \- netfilter/iptables logging daemon
+ .SH DESCRIPTION
+ .B ulogd
+ is a logging daemon that reads event messages coming from the Netfilter 
+-connection tracking and the Netfilter packet logging subsystem. You have
+-to enable support for connection tracking event delivery; ctnetlink and
+-the NFLOG target in your Linux kernel 2.6.x or load their respective modules.
+-The deprecated ULOG target (which has been superseded by NFLOG) is also
++connection tracking, the Netfilter packet logging subsystem and from
++the Netfilter accounting subsystem. You have to enable support for
++connection tracking event delivery; ctnetlink and the NFLOG target in
++your Linux kernel 2.6.x or load their respective modules. The deprecated
++ULOG target (which has been superseded by NFLOG) is also
+ supported.
+ .PP
+-The received messages can be logged into files or into a mySQL or
+-PostgreSQL database.
++The received messages can be logged into files or into a mySQL, sqlite3 
++or PostgreSQL database. IPFIX and Graphite output are also supported.
+ .SH OPTIONS
+ .TP
+ .B -d, --daemon
+@@ -45,6 +46,12 @@ show usage information
+ .B -V, --version
+ show version information and copyright
+ .TP
++.B -v, --verbose
++verbose output on stdout when not running as daemon
++.TP
++.B -l, --loglevel <level>
++set log level to <level>: debug(1), info(3), notice(5), error(7) or fatal(8) (default 5)
++.TP
+ .B -u <UID>, --uid <UID>
+ change UID/GID
+ .TP
 -- 
 1.7.10.4
 
