@@ -1,39 +1,52 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [PATCH] arptables: build an libarptc.a archive
-Date: Sun, 24 Feb 2013 11:09:29 +0100
-Message-ID: <5129E6D9.9000403@pandora.be>
-References: <1361490336-4676-1-git-send-email-jonh.wendell@gmail.com> <alpine.LNX.2.01.1302220950030.1652@nerf07.vanv.qr>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] netfilter: ipset: timeout values corrupted on set
+ resize
+Date: Sun, 24 Feb 2013 20:52:09 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1302211749080.11814@blackhole.kfki.hu>
+References: <1361302559-8657-1-git-send-email-johunt@akamai.com> <alpine.DEB.2.00.1302202238210.9720@blackhole.kfki.hu> <51254FA8.3050407@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Jonh Wendell <jonh.wendell@gmail.com>,
-	netfilter-devel@vger.kernel.org,
-	Jonh Wendell <jonh.wendell@oiwifi.com.br>
-To: Jan Engelhardt <jengelh@inai.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Josh Hunt <johunt@akamai.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from jacques.telenet-ops.be ([195.130.132.50]:55222 "EHLO
-	jacques.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752212Ab3BXKJd (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Feb 2013 05:09:33 -0500
-In-Reply-To: <alpine.LNX.2.01.1302220950030.1652@nerf07.vanv.qr>
+Received: from smtp2.kfki.hu ([148.6.0.28]:46262 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757221Ab3BXTwM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 24 Feb 2013 14:52:12 -0500
+In-Reply-To: <51254FA8.3050407@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Op 22/02/2013 9:50, Jan Engelhardt schreef:
-> On Friday 2013-02-22 00:45, Jonh Wendell wrote:
->
->> From: Jonh Wendell <jonh.wendell@oiwifi.com.br>
->>
->> this allows programs to statically link against libarptc.
-> A shared library, should anyone ever wish to develop against arptc
-> (which I doubt), is much preferable.
-I've applied the patch. It's pretty common in embedded systems not to 
-use shared libraries. If anyone wants a shared library, they'll have to 
-provide a patch...
-Hopefully the new nftables or xtables2 will support arptables and 
-provide for a better alternative :-)
+On Wed, 20 Feb 2013, Josh Hunt wrote:
 
-cheers,
-Bart
+> On 02/20/2013 03:44 PM, Jozsef Kadlecsik wrote:
+> > 
+> > That's a good catch and perfect patch.
+> > 
+> > I'm just at the checking phase of the next release, which required a
+> > fairly large rewriting of the types - and which, as a side effect, fixed
+> > this bug. If I won't be able to release the rewritten version by the
+> > weekend, I'm going to apply your patch and release an interim version.
+> 
+> Is there a git tree I could check out to look at the new changes? I'd be
+> interested in seeing what you've done.
 
+It's on my devel laptop only :-)
+
+> Also, what was the motivation behind the large changes you're doing?
+
+The support of the extensions attached to the set members required a 
+reorganization. Until now just the timeout as extension existed. The new 
+extension to be introduced is the packet and bytes counters per elements. 
+It was mandatory to rewrite the handling of the extensions and the 
+generation of the variants of a set type.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
