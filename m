@@ -1,48 +1,69 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH stable] ipvs: sctp: fix checksumming on snat and dnat
- handlers
-Date: Mon, 25 Feb 2013 16:40:25 +0100
-Message-ID: <20130225154025.GC20561@localhost>
-References: <cover.1361451476.git.dborkman@redhat.com>
- <f904dab20914b562ad9c0baf0727971dc5a4b549.1361451476.git.dborkman@redhat.com>
- <20130221151451.GB2730@shamino.rdu.redhat.com>
+Subject: Re: iptables nfacct match question
+Date: Mon, 25 Feb 2013 16:48:48 +0100
+Message-ID: <20130225154848.GA20609@localhost>
+References: <51292D41.8000703@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Daniel Borkmann <dborkman@redhat.com>,
-	netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
-	linux-sctp@vger.kernel.org, Julian Anastasov <ja@ssi.bg>,
-	Simon Horman <horms@verge.net.au>
-To: Neil Horman <nhorman@tuxdriver.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Michael Zintakis <michael.zintakis@googlemail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from slan-550-85.anhosting.com ([174.127.110.175]:26372 "EHLO
+	slan-550-85.anhosting.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1759778Ab3BYPsw (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Feb 2013 10:48:52 -0500
 Content-Disposition: inline
-In-Reply-To: <20130221151451.GB2730@shamino.rdu.redhat.com>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <51292D41.8000703@googlemail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 21, 2013 at 10:14:51AM -0500, Neil Horman wrote:
-> On Thu, Feb 21, 2013 at 02:05:39PM +0100, Daniel Borkmann wrote:
-> > In our test lab, we have a simple SCTP client connecting to a SCTP
-> > server via an IPVS load balancer. On some machines, load balancing
-> > works, but on others the initial handshake just fails, thus no
-> > SCTP connection whatsoever can be established!
-> > 
-> > We observed that the SCTP INIT-ACK handshake reply from the IPVS
-> > machine to the client had a correct IP checksum, but corrupt SCTP
-> > checksum when forwarded, thus on the client-side the packet was
-> > dropped and an intial handshake retriggered until all attempts
-> > run into the void.
-> > 
-> > To fix this issue, this patch i) adds a missing CHECKSUM_UNNECESSARY
-> > after the full checksum (re-)calculation (as done in IPVS TCP and UDP
-> > code as well), and ii) calculates the checksum in little-endian format
-> > (as fixed with the SCTP code in commit 4458f04c: sctp: Clean up sctp
-> > checksumming code). Stable backport of upstream commit 4b47bc9a.
-> > 
-> > Cc: Julian Anastasov <ja@ssi.bg>
-> > Cc: Simon Horman <horms@verge.net.au>
-> > Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> > Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
-[...]
-> Acked-by: Neil Horman <nhorman@tuxdriver.com>
+Hi Michael,
 
-Enqueued to -stable. Thanks.
+On Sat, Feb 23, 2013 at 08:57:37PM +0000, Michael Zintakis wrote:
+> As part of my daily job, I am currently trying to expand the
+> functionality of the 4 netfilter components dealing with accounting:
+> nfacct (executable), nfnetlink_acct (userspace library), nfacct
+> (kernel part) and iptables match (kernel+userspace).
+> 
+> I need to be able to pre-select the number formatting of "bytes" and
+> "packets" for each registered nfacct name using additional option in
+> the nfacct iptables match (called --nfacct-fmt). Each registered
+> nfacct name would have different formatting depending on the amount
+> of traffic and also other factors. This formatting is going to be
+> used mainly by invoking nfacct (executable) as plain text (in other
+> words as "nfacct list").
+> 
+> What I currently implemented is add an additional property to nfacct
+> struct (uint16_t fmt), storing the format to be used for "bytes" and
+> "packets" for each registered name. The higher 8 bits of that number
+> contain the format to be used for "packets", the lower 8 bits - for
+> "bytes".
+
+Could you develop some example usage of your extension?
+
+> I was able to successfully modify the kernel part (nfacct), nfacct
+> (the executable) and libnfnetlink_act userspace library to
+> accommodate the above change, but I am currently struggling with
+> modifying the nfacct match in iptables.
+> 
+> The problem arises when new nfacct match is used against old version
+> of the nfacct iptables match in the kernel. It all stems from
+> "struct xt_nfacct_match_info", which I need to expand in order to
+> include the new option, but since this struct is part of
+> kernel-headers, I am unable to do that, so I thought to ask for a
+> bit of advice on this list!
+> 
+> One possible solution for me is to add a new pair of parse and print
+> functions, as well as add another element to the nfacct_match array
+> defined in libxt_nfacct.c to accommodate this new functionality and
+> then use these newly-defined functions to possibly communicate with
+> the kernel part to propagate/retrieve the new uint16_t fmt property
+> value via nfnetlink. 
+> 
+> This approach seems to me a bit overly complex so I thought to ask -
+> is this the "usual" way of dealing with such scenarios or is there
+> another, simpler (or better) alternative? Thank you!
+
+Yes, this is how our (limited) revision infrastructure works at this
+moment.
