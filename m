@@ -1,41 +1,31 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: [Ulogd2 PATCH 0/4] preparing 2.0.2 release
-Date: Mon, 25 Feb 2013 08:18:05 +0100
-Message-ID: <1361776685.8245.7.camel@tiger2>
-References: <1361528758-16674-1-git-send-email-eric@regit.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/2] ipset patches
+Date: Mon, 25 Feb 2013 16:36:09 +0100
+Message-ID: <20130225153609.GA20550@localhost>
+References: <1361465146-11861-1-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:47024 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751621Ab3BYHSh (ORCPT
+Received: from slan-550-85.anhosting.com ([174.127.110.175]:64488 "EHLO
+	slan-550-85.anhosting.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757827Ab3BYPgO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Feb 2013 02:18:37 -0500
-Received: from ip-37-24-162-232.unitymediagroup.de ([37.24.162.232] helo=[192.168.0.110])
-	by ks28632.kimsufi.com with esmtpsa (TLS1.0:RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <eric@regit.org>)
-	id 1U9sKZ-0008VJ-4C
-	for netfilter-devel@vger.kernel.org; Mon, 25 Feb 2013 08:18:35 +0100
-In-Reply-To: <1361528758-16674-1-git-send-email-eric@regit.org>
+	Mon, 25 Feb 2013 10:36:14 -0500
+Content-Disposition: inline
+In-Reply-To: <1361465146-11861-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-
-On Fri, 2013-02-22 at 11:25 +0100, Eric Leblond wrote:
-> Hello,
+On Thu, Feb 21, 2013 at 05:45:44PM +0100, Jozsef Kadlecsik wrote:
+> Hi Pablo,
 > 
-> Here's a small patchset updating documentation and "administrative"
-> files of ulogd.
+> Please consider applying the next two patches against your nf tree.
+> You can pull the changes from
+> 
+> git://blackhole.kfki.hu/nf master
 
-Pushed to git tree without Changes file update. I've suppressed it as
-git log is enough to manage changes.
+Pulled, thanks Jozsef.
 
-BR,
--- 
-Eric Leblond <eric@regit.org>
-Blog: https://home.regit.org/
-
+Will pass this to -stable as well.
