@@ -1,41 +1,30 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: iptables nfacct match question
-Date: Tue, 26 Feb 2013 22:47:07 +0100
-Message-ID: <20130226214707.GA3555@localhost>
-References: <51292D41.8000703@googlemail.com>
- <20130225154848.GA20609@localhost>
- <512BC79F.1070708@googlemail.com>
- <20130226135529.GA9526@localhost>
- <512D0BA4.7060809@googlemail.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH] iptables-save: add --chain argument, limits output to
+ a chain
+Date: Tue, 26 Feb 2013 23:18:33 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1302262317240.13412@nerf07.vanv.qr>
+References: <1361878382-11959-1-git-send-email-jonh.wendell@gmail.com> <alpine.LNX.2.01.1302261547450.7232@nerf07.vanv.qr> <CABXqP=jq3rEE6b1xpgA0QtuwAQ04U5b3voMdTsuGmLB-qrsDxg@mail.gmail.com> <alpine.LNX.2.01.1302261639580.7776@nerf07.vanv.qr>
+ <CABXqP=idCE0Rj8uC11VeGCpf7Cfb46A1OuD0SXAbjxpXXaxr-Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Michael Zintakis <michael.zintakis@googlemail.com>
+To: Jonh Wendell <jonh.wendell@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from slan-550-85.anhosting.com ([174.127.110.175]:57911 "EHLO
-	slan-550-85.anhosting.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757513Ab3BZVrR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Feb 2013 16:47:17 -0500
-Content-Disposition: inline
-In-Reply-To: <512D0BA4.7060809@googlemail.com>
+Received: from ares07.inai.de ([5.9.24.206]:41840 "EHLO ares07.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756448Ab3BZWSe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Feb 2013 17:18:34 -0500
+In-Reply-To: <CABXqP=idCE0Rj8uC11VeGCpf7Cfb46A1OuD0SXAbjxpXXaxr-Q@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Feb 26, 2013 at 07:23:16PM +0000, Michael Zintakis wrote:
-[...]
-> Different types of traffic, by their very nature, have different
-> volume requirements. At the "low" end, we have DNS and
-> authentication-type traffic (think RADIUS for example), where the
-> denomination needs to be pretty "low" - in KiB or even "plain bytes"
-> range.
 
-I see. Then my new proposal is to add a new automagic function to
-round the output to the most expressive measure, would be somehow
-similar to xtables_print_num:
+On Tuesday 2013-02-26 17:18, Jonh Wendell wrote:
+>
+>My particular use case is: I want to flush all iptables rules except
+>those ones from a specific chain.
+>So, I save them with iptables-save -C <chain-name>, flush, and then
+>run iptables-restore on them.
 
-http://git.netfilter.org/cgi-bin/gitweb.cgi?p=iptables.git;a=blob;f=libxtables/xtables.c;h=009ab9115f6fd687a762a2552f89ac0b81ee1a42;hb=HEAD#l1915
-
-Would that fit into your needs?
-
-Regards.
+But if chain-name is not a base chain, then you wipe out the
+main rules for all practical purposes.
