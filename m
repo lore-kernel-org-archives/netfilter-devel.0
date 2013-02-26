@@ -1,30 +1,39 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH] iptables-save: add --chain argument, limits output to
- a chain
-Date: Tue, 26 Feb 2013 23:18:33 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1302262317240.13412@nerf07.vanv.qr>
-References: <1361878382-11959-1-git-send-email-jonh.wendell@gmail.com> <alpine.LNX.2.01.1302261547450.7232@nerf07.vanv.qr> <CABXqP=jq3rEE6b1xpgA0QtuwAQ04U5b3voMdTsuGmLB-qrsDxg@mail.gmail.com> <alpine.LNX.2.01.1302261639580.7776@nerf07.vanv.qr>
- <CABXqP=idCE0Rj8uC11VeGCpf7Cfb46A1OuD0SXAbjxpXXaxr-Q@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/2] netfilter fixes for net
+Date: Tue, 26 Feb 2013 17:24:53 -0500 (EST)
+Message-ID: <20130226.172453.430508326485431658.davem@davemloft.net>
+References: <1361886320-9492-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Jonh Wendell <jonh.wendell@gmail.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:41840 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756448Ab3BZWSe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Feb 2013 17:18:34 -0500
-In-Reply-To: <CABXqP=idCE0Rj8uC11VeGCpf7Cfb46A1OuD0SXAbjxpXXaxr-Q@mail.gmail.com>
+Received: from shards.monkeyblade.net ([149.20.54.216]:43254 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753635Ab3BZWYz (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Feb 2013 17:24:55 -0500
+In-Reply-To: <1361886320-9492-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: pablo@netfilter.org
+Date: Tue, 26 Feb 2013 14:45:18 +0100
 
-On Tuesday 2013-02-26 17:18, Jonh Wendell wrote:
->
->My particular use case is: I want to flush all iptables rules except
->those ones from a specific chain.
->So, I save them with iptables-save -C <chain-name>, flush, and then
->run iptables-restore on them.
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> Hi David,
+> 
+> The following patchset contains two bugfixes for netfilter/ipset via
+> Jozsef Kadlecsik, they are:
+> 
+> * Fix timeout corruption if sets are resized, by Josh Hunt.
+> 
+> * Fix bogus error report if the flag nomatch is set, from Jozsef.
+> 
+> You can pull these changes from:
+> 
+> git://1984.lsi.us.es/nf master
 
-But if chain-name is not a base chain, then you wipe out the
-main rules for all practical purposes.
+Pulled, thanks Pablo.
