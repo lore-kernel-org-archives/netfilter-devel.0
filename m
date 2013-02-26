@@ -1,211 +1,119 @@
-From: pablo@netfilter.org
-Subject: [PATCH] conntrackd: cthelper: add DHCPv6 support
-Date: Tue, 26 Feb 2013 01:22:30 +0100
-Message-ID: <1361838150-24011-1-git-send-email-pablo@netfilter.org>
+From: jonh.wendell@gmail.com
+Subject: [PATCH] iptables-save: add --chain argument, limits output to a chain
+Date: Tue, 26 Feb 2013 08:33:02 -0300
+Message-ID: <1361878382-11959-1-git-send-email-jonh.wendell@gmail.com>
+Cc: Jonh Wendell <jonh.wendell@oiwifi.com.br>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from slan-550-85.anhosting.com ([209.236.71.68]:50240 "EHLO
-	slan-550-85.anhosting.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751010Ab3BZAWj (ORCPT
+Received: from mail-gh0-f182.google.com ([209.85.160.182]:33210 "EHLO
+	mail-gh0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757513Ab3BZLdK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Feb 2013 19:22:39 -0500
-Received: from 22.229.78.188.dynamic.jazztel.es ([188.78.229.22]:42120 helo=localhost.localdomain)
-	by slan-550-85.anhosting.com with esmtpa (Exim 4.80)
-	(envelope-from <pablo@netfilter.org>)
-	id 1UA8Ja-002EDl-ED
-	for netfilter-devel@vger.kernel.org; Mon, 25 Feb 2013 17:22:38 -0700
+	Tue, 26 Feb 2013 06:33:10 -0500
+Received: by mail-gh0-f182.google.com with SMTP id z15so653739ghb.41
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Feb 2013 03:33:09 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Jonh Wendell <jonh.wendell@oiwifi.com.br>
 
-This patch adds the DHCPv6 helper.
+Similar to the --table argument, if a --chain (or -C) argument
+is passed, we limit the output to rules of that chain.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Jonh Wendell <jonh.wendell@oiwifi.com.br>
 ---
- include/helper.h        |    2 +
- src/expect.c            |   20 +++++++++
- src/helpers/Makefile.am |    7 +++-
- src/helpers/dhcpv6.c    |  104 +++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 132 insertions(+), 1 deletion(-)
- create mode 100644 src/helpers/dhcpv6.c
+ iptables/iptables-save.8 |    8 ++++++--
+ iptables/iptables-save.c |   13 ++++++++++++-
+ 2 files changed, 18 insertions(+), 3 deletions(-)
 
-diff --git a/include/helper.h b/include/helper.h
-index 9d96fb7..c9cb4a6 100644
---- a/include/helper.h
-+++ b/include/helper.h
-@@ -46,6 +46,8 @@ extern int cthelper_expect_init(struct nf_expect *exp, struct nf_conntrack *mast
- extern int cthelper_add_expect(struct nf_expect *exp);
- extern int cthelper_del_expect(struct nf_expect *exp);
+diff --git a/iptables/iptables-save.8 b/iptables/iptables-save.8
+index c2e0a94..2f510d0 100644
+--- a/iptables/iptables-save.8
++++ b/iptables/iptables-save.8
+@@ -1,4 +1,4 @@
+-.TH IPTABLES-SAVE 8 "Jan 04, 2001" "" ""
++.TH IPTABLES-SAVE 8 "Feb 25, 2013" "" ""
+ .\"
+ .\" Man page written by Harald Welte <laforge@gnumonks.org>
+ .\" It is based on the iptables man page.
+@@ -22,7 +22,7 @@
+ iptables-save \(em dump iptables rules to stdout
+ .SH SYNOPSIS
+ \fBiptables\-save\fP [\fB\-M\fP \fImodprobe\fP] [\fB\-c\fP]
+-[\fB\-t\fP \fItable\fP]
++[\fB\-t\fP \fItable\fP] [\fB\-C\fP \fIchain\fP]
+ .SH DESCRIPTION
+ .PP
+ .B iptables-save
+@@ -39,6 +39,10 @@ include the current values of all packet and byte counters in the output
+ \fB\-t\fR, \fB\-\-table\fR \fItablename\fP
+ restrict output to only one table. If not specified, output includes all
+ available tables.
++.TP
++\fB\-C\fR, \fB\-\-chain\fR \fIchainname\fP
++restrict output to only one chain. If not specified, output includes all
++available chains.
+ .SH BUGS
+ None known as of iptables-1.2.1 release
+ .SH AUTHOR
+diff --git a/iptables/iptables-save.c b/iptables/iptables-save.c
+index e599fce..aae77b6 100644
+--- a/iptables/iptables-save.c
++++ b/iptables/iptables-save.c
+@@ -22,12 +22,14 @@
+ #endif
  
-+extern int cthelper_update_ct(struct nf_conntrack *ct);
-+
- extern void cthelper_get_addr_src(struct nf_conntrack *ct, int dir, union nfct_attr_grp_addr *addr);
- extern void cthelper_get_addr_dst(struct nf_conntrack *ct, int dir, union nfct_attr_grp_addr *addr);
+ static int show_counters = 0;
++static char *chainname = NULL;
  
-diff --git a/src/expect.c b/src/expect.c
-index 6069770..552facb 100644
---- a/src/expect.c
-+++ b/src/expect.c
-@@ -175,6 +175,26 @@ static int cthelper_expect_cmd(struct nf_expect *exp, int cmd)
- 	return ret;
- }
+ static const struct option options[] = {
+ 	{.name = "counters", .has_arg = false, .val = 'c'},
+ 	{.name = "dump",     .has_arg = false, .val = 'd'},
+ 	{.name = "table",    .has_arg = true,  .val = 't'},
+ 	{.name = "modprobe", .has_arg = true,  .val = 'M'},
++	{.name = "chain",    .has_arg = true,  .val = 'C'},
+ 	{NULL},
+ };
  
-+static int cthelper_ct_cmd(struct nf_conntrack *ct, int cmd)
-+{
-+	int ret;
-+	struct nfct_handle *h;
-+
-+	h = nfct_open(CONNTRACK, 0);
-+	if (!h)
-+		return -1;
-+
-+	ret = nfct_query(h, cmd, ct);
-+
-+	nfct_close(h);
-+	return ret;
-+}
-+
-+int cthelper_update_ct(struct nf_conntrack *ct)
-+{
-+	return cthelper_ct_cmd(ct, NFCT_Q_UPDATE);
-+}
-+
- int cthelper_add_expect(struct nf_expect *exp)
- {
- 	return cthelper_expect_cmd(exp, NFCT_Q_CREATE_UPDATE);
-diff --git a/src/helpers/Makefile.am b/src/helpers/Makefile.am
-index 589b4f3..e254111 100644
---- a/src/helpers/Makefile.am
-+++ b/src/helpers/Makefile.am
-@@ -2,7 +2,8 @@ include $(top_srcdir)/Make_global.am
+@@ -85,6 +87,9 @@ static int do_output(const char *tablename)
+ 	     chain;
+ 	     chain = iptc_next_chain(h)) {
  
- pkglib_LTLIBRARIES = ct_helper_ftp.la	\
- 		     ct_helper_rpc.la	\
--		     ct_helper_tns.la
-+		     ct_helper_tns.la	\
-+		     ct_helper_dhcpv6.la
++		if (chainname && *chainname && strcmp(chain, chainname))
++			continue;
++
+ 		printf(":%s ", chain);
+ 		if (iptc_builtin(chain, h)) {
+ 			struct xt_counters count;
+@@ -101,6 +106,9 @@ static int do_output(const char *tablename)
+ 	     chain = iptc_next_chain(h)) {
+ 		const struct ipt_entry *e;
  
- ct_helper_ftp_la_SOURCES = ftp.c
- ct_helper_ftp_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS)
-@@ -15,3 +16,7 @@ ct_helper_rpc_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
- ct_helper_tns_la_SOURCES = tns.c
- ct_helper_tns_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS)
- ct_helper_tns_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
++		if (chainname && *chainname && strcmp(chain, chainname))
++			continue;
 +
-+ct_helper_dhcpv6_la_SOURCES = dhcpv6.c
-+ct_helper_dhcpv6_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS)
-+ct_helper_dhcpv6_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
-diff --git a/src/helpers/dhcpv6.c b/src/helpers/dhcpv6.c
-new file mode 100644
-index 0000000..60b5c8c
---- /dev/null
-+++ b/src/helpers/dhcpv6.c
-@@ -0,0 +1,104 @@
-+/*
-+ * (C) 2013 by Pablo Neira Ayuso <pablo@netfilter.org>
-+ *
-+ * Based on code from Linux kernel module:
-+ *
-+ * DHCPv6 multicast connection tracking helper.
-+ *
-+ * (c) 2012 Google Inc.
-+ *
-+ * Original author: Darren Willis <djw@google.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the License, or (at your option) any later version.
-+ */
-+
-+#include "conntrackd.h"
-+#include "helper.h"
-+#include "myct.h"
-+#include "log.h"
-+#include <errno.h>
-+#include <netinet/ip.h>
-+#include <netinet/ip6.h>
-+#include <libmnl/libmnl.h>
-+#include <libnetfilter_conntrack/libnetfilter_conntrack.h>
-+#include <libnetfilter_queue/libnetfilter_queue.h>
-+#include <libnetfilter_queue/libnetfilter_queue_udp.h>
-+#include <libnetfilter_queue/pktbuff.h>
-+#include <linux/netfilter.h>
-+
-+#define DHCPV6_CLIENT_PORT 546
-+
-+static uint16_t dhcpv6_port;
-+static unsigned int timeout = 120; /* FIXME: make this configurable */
-+
-+static inline int ipv6_addr_is_multicast(const struct in6_addr *addr)
-+{
-+	return (addr->s6_addr32[0] & htonl(0xFF000000)) == htonl(0xFF000000);
-+}
-+
-+static int
-+dhcpv6_helper_cb(struct pkt_buff *pkt, uint32_t protoff,
-+		 struct myct *myct, uint32_t ctinfo)
-+{
-+	struct iphdr *iph = (struct iphdr *)pktb_network_header(pkt);
-+	struct ip6_hdr *ip6h = (struct ip6_hdr *)pktb_network_header(pkt);
-+	int dir = CTINFO2DIR(ctinfo);
-+	union nfct_attr_grp_addr addr;
-+	struct nf_expect *exp;
-+	int ret = NF_ACCEPT;
-+
-+	if (iph->version != 6)
-+		return NF_ACCEPT;
-+
-+	if (!ipv6_addr_is_multicast(&ip6h->ip6_dst))
-+		return NF_ACCEPT;
-+
-+	exp = nfexp_new();
-+	if (exp == NULL)
-+		return NF_ACCEPT;
-+
-+	cthelper_get_addr_src(myct->ct, !dir, &addr);
-+
-+	if (cthelper_expect_init(exp, myct->ct, 0, NULL, &addr,
-+				 IPPROTO_UDP, NULL, &dhcpv6_port,
-+				 NF_CT_EXPECT_PERMANENT)) {
-+		goto err_exp;
-+	}
-+
-+	if (cthelper_add_expect(exp) < 0) {
-+		ret = NF_DROP;
-+		goto err_exp;
-+	}
-+
-+	nfct_set_attr_u32(myct->ct, ATTR_TIMEOUT, timeout);
-+	cthelper_update_ct(myct->ct);
-+
-+	ret = NF_ACCEPT;
-+err_exp:
-+	nfexp_destroy(exp);
-+	return ret;
-+}
-+
-+static struct ctd_helper dhcpv6_helper = {
-+	.name		= "dhcpv6",
-+	.l4proto	= IPPROTO_UDP,
-+	.cb		= dhcpv6_helper_cb,
-+	.policy		= {
-+		[0] = {
-+			.name			= "dhcpv6",
-+			.expect_max		= 1,
-+			.expect_timeout		= 300,
-+		},
-+	},
-+};
-+
-+void __attribute__ ((constructor)) dhcpv6_init(void);
-+
-+void dhcpv6_init(void)
-+{
-+	dhcpv6_port = htons(DHCPV6_CLIENT_PORT);
-+	helper_register(&dhcpv6_helper);
-+}
+ 		/* Dump out rules */
+ 		e = iptc_first_rule(chain, h);
+ 		while(e) {
+@@ -140,7 +148,7 @@ iptables_save_main(int argc, char *argv[])
+ 	init_extensions4();
+ #endif
+ 
+-	while ((c = getopt_long(argc, argv, "bcdt:", options, NULL)) != -1) {
++	while ((c = getopt_long(argc, argv, "bcdt:C:", options, NULL)) != -1) {
+ 		switch (c) {
+ 		case 'c':
+ 			show_counters = 1;
+@@ -153,6 +161,9 @@ iptables_save_main(int argc, char *argv[])
+ 		case 'M':
+ 			xtables_modprobe_program = optarg;
+ 			break;
++		case 'C':
++			chainname = optarg;
++			break;
+ 		case 'd':
+ 			do_output(tablename);
+ 			exit(0);
 -- 
 1.7.10.4
 
