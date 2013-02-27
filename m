@@ -1,108 +1,47 @@
-From: Willem de Bruijn <willemb@google.com>
-Subject: Re: [PATCH next v3] iptables: add xt_bpf match
-Date: Wed, 27 Feb 2013 15:39:50 -0500
-Message-ID: <CA+FuTSfaf1E1qkB6DEPqZQeUZcYv1DxHdprzrKG528N3zkuO4g@mail.gmail.com>
-References: <1357776502-21555-1-git-send-email-willemb@google.com>
- <1357776944-28805-1-git-send-email-willemb@google.com> <20130117235328.GA16224@1984>
- <CA+FuTSeU8m8Hect+2cT6QOmfNH3oJ8mASOat-zn3-3WwJxJNZg@mail.gmail.com>
- <20130121134434.GA12865@1984> <20130122084657.GE8541@breakpoint.cc>
- <CA+FuTSfUvDqUOh2f8Z2NJC+ouy_=7UPEhXObz0ZS4mGLxpeQog@mail.gmail.com>
- <20130123162125.GA27000@1984> <CA+FuTSdZ=e99f16WKusOr=0KAHq+s8xJbMRQj2tWL3j2bre3MQ@mail.gmail.com>
- <20130123185620.GA6251@1984> <CA+FuTScWmRddTC4kOKqF9+4Ama3NJZ5uv=jHVREq5jARU5897w@mail.gmail.com>
- <CAHo-OowT=DBJ5vFjv1wt4kaaM-pMWMh5_dLWxxuod3to-nHA1Q@mail.gmail.com>
+From: Michael Zintakis <michael.zintakis@googlemail.com>
+Subject: Re: iptables nfacct match question
+Date: Wed, 27 Feb 2013 20:57:21 +0000
+Message-ID: <512E7331.10304@googlemail.com>
+References: <51292D41.8000703@googlemail.com> <20130225154848.GA20609@localhost> <512BC79F.1070708@googlemail.com> <20130226135529.GA9526@localhost> <512D0BA4.7060809@googlemail.com> <20130226214707.GA3555@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: =?ISO-8859-2?Q?Maciej_=AFenczykowski?= <zenczykowski@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ie0-f179.google.com ([209.85.223.179]:59512 "EHLO
-	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759533Ab3B0UkV convert rfc822-to-8bit (ORCPT
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:61307 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750955Ab3B0U5f (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Feb 2013 15:40:21 -0500
-Received: by mail-ie0-f179.google.com with SMTP id k11so1149070iea.24
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Feb 2013 12:40:21 -0800 (PST)
-In-Reply-To: <CAHo-OowT=DBJ5vFjv1wt4kaaM-pMWMh5_dLWxxuod3to-nHA1Q@mail.gmail.com>
+	Wed, 27 Feb 2013 15:57:35 -0500
+Received: by mail-lb0-f171.google.com with SMTP id gg13so815979lbb.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Feb 2013 12:57:34 -0800 (PST)
+In-Reply-To: <20130226214707.GA3555@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Feb 23, 2013 at 9:15 PM, Maciej =C5=BBenczykowski
-<zenczykowski@gmail.com> wrote:
-> at a guess, there should be a --with/without option for it, and if
-> --with=3Dtool is specified build/configure should fail if support
-> libraries are missing
 
-Agreed on the fail hard.
+Pablo Neira Ayuso wrote:
+> I see. Then my new proposal is to add a new automagic function to
+> round the output to the most expressive measure, would be somehow
+> similar to xtables_print_num:
+> 
+> http://git.netfilter.org/cgi-bin/gitweb.cgi?p=iptables.git;a=blob;f=libxtables/xtables.c;h=009ab9115f6fd687a762a2552f89ac0b81ee1a42;hb=HEAD#l1915
+I might be seeing this wrong and if so I apologize, but is this the same/similar function which exists in the "old" iptables accounting, as well as seen for packets/bytes counter when iptables -L -vn is executed? If so, that isn't very appropriate as I indicated in my previous posting.
 
-After a brief offline discussion on --enable vs --with, will respin
-with optional --enable-bpf-compiler. The option is disabled by
-default. If it is enabled and pcap cannot be found, build fails.
+Pablo, do you think there is something wrong with the "iec" and "si" options already in place? If you think that I've done something wrong, please let me know because this was one of the reasons for placing the changes (and including the patches) in the code I attached before. I would gladly benefit from a feedback on that code.
+ 
+> Would that fit into your needs?
+Short answer: no, not really.
 
-If no further comments, I'll respin shortly.
+As I already posted, the "iec" and "si" options deal with the two numbering standards (IEC and the "old" SI), have 3-digit decimal point resolution and, most importantly in this case, they were put in place to cover traffic which is of unpredictable/unknown quantity/volume. Going from our own experience, this covers about 20% of the traffic we measure. 
 
->
-> On Sun, Feb 17, 2013 at 7:52 PM, Willem de Bruijn <willemb@google.com=
-> wrote:
->> On Wed, Jan 23, 2013 at 1:56 PM, Pablo Neira Ayuso <pablo@netfilter.=
-org> wrote:
->>> On Wed, Jan 23, 2013 at 11:38:20AM -0500, Willem de Bruijn wrote:
->>>> On Wed, Jan 23, 2013 at 11:21 AM, Pablo Neira Ayuso <pablo@netfilt=
-er.org> wrote:
->>>> > On Wed, Jan 23 2013 at 10:59:28AM -0500, Willem de Bruijn wrote:
->>>> >> >> b) provide a separate utility to generate the BPF filter in =
-text-based
->>>> >> >> format from some utility that accepts tcpdump-like syntax. T=
-he utility
->>>> >> >> can be distributed in the utils directory and it would not b=
-e
->>>> >> >> mandatory to compile it if libpcap is not present.
->>>> > [...]
->>>> >> > I would go with b) for now; we can always move to a) later on=
-, but not
->>>> >> > the other way around (would kill backwards compatibility).
->>>> >>
->>>> >> This sounds like the consensus (for the record, I also prefer t=
-his less
->>>> >> disruptive approach). In that case, I can submit a revised libx=
-t_bpf with your
->>>> >> suggested changes right away, Pablo, and we can leave the separ=
-ate
->>>> >> userspace tool for a later commit.
->>>> >
->>>> > Either way is fine, but please we should have that utility compi=
-ler
->>>> > integrated in the iptables tree by when 3.9-rc1 is released.
->>>>
->>>> Okay. I'll prepare a separate patch with the pcap-based utility, t=
-hen.
->>
->> Just sent the patch. I'm no expert at autoconf and automake, so the
->> build logic can conceivably be shorter, but it works for me and the
->> logic is straightforward. I forgot to mention in the commit message
->> which versions of the tools I used: tested on a ubuntu 12.04 with
->> autoconf 2.68, automake 1.9.6 and libtool 2.4.2.
->>
->>>> Since utils is built as part of the root make invocation, I think =
-it's
->>>> better to test for pcap.h in the root configure.ac and add a test =
-in
->>>> utils/Makefile.am to build this tool if found, as opposed to creat=
-ing
->>>> a separate configure.ac under utils. We can also discuss these
->>>> details after the first version of the patch, of course.
->>>
->>> That's fine by now, and it's way less bloat.
->> --
->> To unsubscribe from this list: send the line "unsubscribe netfilter-=
-devel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For the vast majority of all other traffic, we "lock" the denominator and use the appropriate format ("kib", "mib" etc). This is so that if that traffic is different from what we expected to see, this is instantly reflected in the numbers and is immediately flagged for further analysis.
+
+Let me illustrate this with a small example: if we use "3pl,mib" format options for a specific type of traffic and we start getting byte count numbers like, for example, "140,666,825.688MiB" (in other words, over 134TiB), then this is instantly flagged to be analyzed to find why that traffic shot our pre-determined "expectation" from being in the "MiB range" and jumped two ranges and got into "TiB" territory.
+
+The packet count is also a different matter. Even though in vast majority of cases we use the "3pl" format, this is by no means set solid in stone, so packet count format would also needs to be configured for each traffic measure (i.e. nfacct object).
+
+The "old" SI-type options ("kb","mb" and so on) were also put there for a reason - we still have people who are used to this measure, so it is more convenient for them to have this working range of options, which they could use. I hope I have explained this clear, let me know if this is not the case.
+
+
+MZ
