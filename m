@@ -1,44 +1,38 @@
-From: Jonh Wendell <jonh.wendell@gmail.com>
-Subject: Re: [PATCH] iptables-save: add --chain argument, limits output to a chain
-Date: Tue, 26 Feb 2013 20:30:01 -0300
-Message-ID: <CABXqP=jsFJKvfb4QaFuN2jAshUn-ECpZ2FA6KLBYOencYTnXyQ@mail.gmail.com>
-References: <1361878382-11959-1-git-send-email-jonh.wendell@gmail.com>
-	<alpine.LNX.2.01.1302261547450.7232@nerf07.vanv.qr>
-	<CABXqP=jq3rEE6b1xpgA0QtuwAQ04U5b3voMdTsuGmLB-qrsDxg@mail.gmail.com>
-	<alpine.LNX.2.01.1302261639580.7776@nerf07.vanv.qr>
-	<CABXqP=idCE0Rj8uC11VeGCpf7Cfb46A1OuD0SXAbjxpXXaxr-Q@mail.gmail.com>
-	<alpine.LNX.2.01.1302262317240.13412@nerf07.vanv.qr>
+From: Nicole <nicole@cats-muvva.net>
+Subject: Help on error message
+Date: Wed, 27 Feb 2013 18:00:40 +0000
+Message-ID: <512E49C8.30602@cats-muvva.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oa0-f52.google.com ([209.85.219.52]:33543 "EHLO
-	mail-oa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754525Ab3BZXaC (ORCPT
+Received: from mail.cats-muvva.net ([195.69.92.234]:42123 "EHLO
+	hosting.cats-muvva.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758009Ab3B0SI3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Feb 2013 18:30:02 -0500
-Received: by mail-oa0-f52.google.com with SMTP id k14so6427746oag.39
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Feb 2013 15:30:02 -0800 (PST)
-In-Reply-To: <alpine.LNX.2.01.1302262317240.13412@nerf07.vanv.qr>
+	Wed, 27 Feb 2013 13:08:29 -0500
+Received: from hosting.cats-muvva.net (localhost [127.0.0.1])
+	by hosting.cats-muvva.net (Postfix) with ESMTP id 0E5213E09AB
+	for <netfilter-devel@vger.kernel.org>; Wed, 27 Feb 2013 18:00:10 +0000 (GMT)
+Received: from [192.168.9.51] (workbench.cats-muvva.net [192.168.9.51])
+	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+	(Client CN "CAcert WoT User", Issuer "CA Cert Signing Authority" (not verified))
+	by hosting.cats-muvva.net (Postfix) with ESMTPS id DC9383E0893
+	for <netfilter-devel@vger.kernel.org>; Wed, 27 Feb 2013 18:00:09 +0000 (GMT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2013/2/26 Jan Engelhardt <jengelh@inai.de>:
->
-> On Tuesday 2013-02-26 17:18, Jonh Wendell wrote:
->>
->>My particular use case is: I want to flush all iptables rules except
->>those ones from a specific chain.
->>So, I save them with iptables-save -C <chain-name>, flush, and then
->>run iptables-restore on them.
->
-> But if chain-name is not a base chain, then you wipe out the
-> main rules for all practical purposes.
+Hi Guys,
 
-actually, after flush all rules, I load a preset set of rules and only
-then I run iptables-restore.
+Call me lazy if you wish, but I thought I'd get a clear answer here.
 
--- 
-Jonh Wendell
-http://www.bani.com.br
+I have written a extension using xtables. It spits out the error message
+
+Extension xxxx uses invalid ID nn.
+
+What does this mean?
+
+Many thanks
+
+Nicole
