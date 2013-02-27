@@ -1,27 +1,34 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [MAINTENANCE] netfilter.org infrastructure updates
-Date: Wed, 27 Feb 2013 19:09:24 +0100
-Message-ID: <20130227180923.GA18059@localhost>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: Help on error message
+Date: Wed, 27 Feb 2013 20:43:44 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1302272040020.31630@nerf07.vanv.qr>
+References: <512E49C8.30602@cats-muvva.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Netfilter Users Mailing list <netfilter@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Nicole <nicole@cats-muvva.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44671 "EHLO mail.us.es"
+Received: from ares07.inai.de ([5.9.24.206]:45618 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932490Ab3B0SJc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Feb 2013 13:09:32 -0500
-Content-Disposition: inline
+	id S1752587Ab3B0Tnp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 27 Feb 2013 14:43:45 -0500
+In-Reply-To: <512E49C8.30602@cats-muvva.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi!
+On Wednesday 2013-02-27 19:00, Nicole wrote:
 
-We have scheduled March 1st, 2013 (Friday) to perform major
-maintainance tasks on the netfilter.org infrastructure. For that
-reason, you may notice temporary disruptions on the service.
+> Hi Guys,
+>
+> Call me lazy if you wish, but I thought I'd get a clear answer here.
+> I have written a extension using xtables. It spits out the error message
+> Extension xxxx uses invalid ID nn.
+> What does this mean?
 
-Sorry for the inconvenience.
+Usually hints towards the fact that your extension uses more than 256 
+command-line options.
 
-Regards.
+Our magic glass spheres are, unfortunately, under maintenance until 
+further notice. You will have to post more details - such as full 
+unabridged source code - before a satisfying assessment can be made as 
+to where in your extension the problem lies.
