@@ -1,38 +1,27 @@
-From: Nicole <nicole@cats-muvva.net>
-Subject: Help on error message
-Date: Wed, 27 Feb 2013 18:00:40 +0000
-Message-ID: <512E49C8.30602@cats-muvva.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [MAINTENANCE] netfilter.org infrastructure updates
+Date: Wed, 27 Feb 2013 19:09:24 +0100
+Message-ID: <20130227180923.GA18059@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+To: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Netfilter Users Mailing list <netfilter@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.cats-muvva.net ([195.69.92.234]:42123 "EHLO
-	hosting.cats-muvva.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758009Ab3B0SI3 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Feb 2013 13:08:29 -0500
-Received: from hosting.cats-muvva.net (localhost [127.0.0.1])
-	by hosting.cats-muvva.net (Postfix) with ESMTP id 0E5213E09AB
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 Feb 2013 18:00:10 +0000 (GMT)
-Received: from [192.168.9.51] (workbench.cats-muvva.net [192.168.9.51])
-	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-	(Client CN "CAcert WoT User", Issuer "CA Cert Signing Authority" (not verified))
-	by hosting.cats-muvva.net (Postfix) with ESMTPS id DC9383E0893
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 Feb 2013 18:00:09 +0000 (GMT)
+Received: from mail.us.es ([193.147.175.20]:44671 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932490Ab3B0SJc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 27 Feb 2013 13:09:32 -0500
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Guys,
+Hi!
 
-Call me lazy if you wish, but I thought I'd get a clear answer here.
+We have scheduled March 1st, 2013 (Friday) to perform major
+maintainance tasks on the netfilter.org infrastructure. For that
+reason, you may notice temporary disruptions on the service.
 
-I have written a extension using xtables. It spits out the error message
+Sorry for the inconvenience.
 
-Extension xxxx uses invalid ID nn.
-
-What does this mean?
-
-Many thanks
-
-Nicole
+Regards.
