@@ -1,42 +1,48 @@
-From: Amos Jeffries <squid3@treenet.co.nz>
-Subject: Re: Help on error message
-Date: Thu, 28 Feb 2013 21:43:31 +1300
-Message-ID: <512F18B3.6050004@treenet.co.nz>
-References: <512E49C8.30602@cats-muvva.net> <alpine.LNX.2.01.1302272040020.31630@nerf07.vanv.qr> <512E6AF4.40008@cats-muvva.net> <512EA15C.2080800@googlemail.com>
+From: Karel Rericha <karel@maxtel.cz>
+Subject: Extending class handle from 16bit to 32bit
+Date: Thu, 28 Feb 2013 14:49:28 +0100
+Message-ID: <CAN==1RrDHivRrzE1FKcDykRkgh2Obp+XC+5NEeuOE0NWJ=cn_g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Mr Dash Four <mr.dash.four@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ip-58-28-153-233.static-xdsl.xnet.co.nz ([58.28.153.233]:50745
-	"EHLO treenet.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754231Ab3B1Ixq (ORCPT
+Received: from mail-bk0-f52.google.com ([209.85.214.52]:40337 "EHLO
+	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752436Ab3B1Nt3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Feb 2013 03:53:46 -0500
-In-Reply-To: <512EA15C.2080800@googlemail.com>
+	Thu, 28 Feb 2013 08:49:29 -0500
+Received: by mail-bk0-f52.google.com with SMTP id jk13so847365bkc.39
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Feb 2013 05:49:28 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 28/02/2013 1:14 p.m., Mr Dash Four wrote:
->
->> I've been reading Linus Torval's latest rants, so I don't feel 
->> confident enough about my own code to subject it to the cold scrutiny 
->> of this list.
-> Rants? What rants? Have I missed something? I know Linus doesn't mince 
-> his words (good on him!), particularly when it comes to Gnome 3 and 
-> SUSE (which I fully agree with, on both counts), but I wasn't aware of 
-> any new ones. Care to enlighten me?
+Hello,
 
-Topic of the week seems to be some rather nasty UEFI hacks being added 
-to the X.509 systems:
-http://www.gossamer-threads.com/lists/linux/kernel/1682804?do=post_view_threaded#1682804
+we are about to hit the 16bit limit for number of qdisc classes (we
+have over 40k classes in one qdisc). Currently there is 32bit handle,
+which htb and hfsc interpret as 16bit qdisc and 16bit class. We would
+like to extend the 16bit class handle and considering two approaches:
 
-The submitter was already turned down by Rusty the intermediary 
-maintainer and it got bumped up to Linus. The media are blowing the 
-small amount of horror/exasperation into a "rant".
+a) low effort
+Fork hfsc and in forked hfsc interpret 32bit handle as 8bit qdisc and
+24bit class.
+- not "clean" solution, no chance to accept to mainstream IMHO
+- requires just fork hfsc and add support for forked hfsc to iptables ???
 
-NP: had to link the mirror due to load on the mailing lists main server 
-for some reason ;-)
+b) extensive way
+Extend handle to 64bit, intepret as 32bit qdisc and 32bit class.
+- need to touch all qdisc to work with 64bit handle
+- same apply for iptables, make it work with 64bit handle
+- add some compatibility layer for software depending on 32bit ?
+- what about different architectures than x86 ?
 
-AYJ
+Does anyone have any idea/experience how to solve this ?
+
+We are open to offer bounty for actuall programming work as soon as
+the right way will be chosen.
+
+Thanks for suggestions,
+
+Karel Rericha
+ISP Alliance a.s.
+Czech Republic
