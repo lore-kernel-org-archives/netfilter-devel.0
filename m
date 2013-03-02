@@ -1,35 +1,41 @@
-From: Karel Rericha <karel@maxtel.cz>
-Subject: Re: Extending class handle from 16bit to 32bit
-Date: Fri, 1 Mar 2013 10:22:21 +0100
-Message-ID: <CAN==1Rrj7aPqSs1CqegnR264JsuNmbSzdt99+_A+N1p45PJD9g@mail.gmail.com>
-References: <CAN==1RrDHivRrzE1FKcDykRkgh2Obp+XC+5NEeuOE0NWJ=cn_g@mail.gmail.com>
-	<20130228135209.1f82c7b3@nehalam.linuxnetplumber.net>
+From: Asshole kicker <puff3pass1@yahoo.com>
+Subject: Re: fedora plans to replace iptables with firewalld
+Date: Sat, 2 Mar 2013 00:16:42 +0000 (UTC)
+Message-ID: <loom.20130302T011113-84@post.gmane.org>
+References: <50A542CD.7030604@earthlink.net> <20121115.143737.1667162595710068997.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org
-To: Stephen Hemminger <stephen@networkplumber.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bk0-f51.google.com ([209.85.214.51]:56812 "EHLO
-	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751739Ab3CAJWX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Mar 2013 04:22:23 -0500
-Received: by mail-bk0-f51.google.com with SMTP id ik5so1243892bkc.24
-        for <netfilter-devel@vger.kernel.org>; Fri, 01 Mar 2013 01:22:21 -0800 (PST)
-In-Reply-To: <20130228135209.1f82c7b3@nehalam.linuxnetplumber.net>
+Received: from plane.gmane.org ([80.91.229.3]:43771 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751559Ab3CBATq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 1 Mar 2013 19:19:46 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
+	id 1UBaBJ-00029d-2G
+	for netfilter-devel@vger.kernel.org; Sat, 02 Mar 2013 01:20:05 +0100
+Received: from mailman.uunoc.net ([173.8.12.237])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Sat, 02 Mar 2013 01:20:05 +0100
+Received: from puff3pass1 by mailman.uunoc.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Sat, 02 Mar 2013 01:20:05 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->> a) low effort
->> Fork hfsc and in forked hfsc interpret 32bit handle as 8bit qdisc and
->> 24bit class.
->> - not "clean" solution, no chance to accept to mainstream IMHO
->> - requires just fork hfsc and add support for forked hfsc to iptables ???
+David Miller <davem <at> davemloft.net> writes:
 
-> The handle is baked into the kernel binary API, You can't change it without
-> a doing a whole new netlink API and have compatibility layer.
 
-Stephen, is "low effort" way possible ? Any ideas what difficulties
-can we walk into if going that way ?
 
-Karel
+> A simple read of the project web site would have told you this,
+> and I encourage you to do some research in the future instead
+> of spreading misinformation.
+> 
+
+
+What an asshole!!! The guy just asked a friggin question. People like you make
+me want to fart. In your mouth. LOL!!!
+
