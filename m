@@ -1,84 +1,108 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] iptables 1.4.18 release
-Date: Sun, 3 Mar 2013 23:20:08 +0100
-Message-ID: <20130303222008.GA28215@localhost>
+From: Eric Leblond <eric@regit.org>
+Subject: [ANNOUNCE] ulogd 2.0.2 release
+Date: Sun, 03 Mar 2013 23:49:12 +0100
+Message-ID: <1362350952.4930.61.camel@tiger2>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="T4sUOijqQbZv57TR"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-AFkOm2ukfHKxiIIkD0CM"
 Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
 	netfilter-announce@lists.netfilter.org, lwn@lwn.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44984 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754549Ab3CCWUT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Mar 2013 17:20:19 -0500
-Content-Disposition: inline
+Received: from ks28632.kimsufi.com ([91.121.96.152]:43888 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754551Ab3CCWtv (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 Mar 2013 17:49:51 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---T4sUOijqQbZv57TR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-AFkOm2ukfHKxiIIkD0CM
+Content-Type: multipart/mixed; boundary="=-1OZquf5YgPi3OucUbiFM"
+
+
+--=-1OZquf5YgPi3OucUbiFM
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
 Hi!
 
 The Netfilter project proudly presents:
 
-        iptables 1.4.18
+        ulogd 2.0.2
 
-iptables is the userspace command line program used to configure the
-Linux 2.4.x and later packet filtering ruleset. It is targeted towards
-system administrators.
+ulogd is a userspace logging daemon for netfilter/iptables related
+logging. This includes per-packet logging of security violations,
+per-packet logging for accounting, per-flow logging and flexible
+user-defined accounting.
 
 See ChangeLog that comes attached to this email for more details.
 
 You can download it from:
 
-http://www.netfilter.org/projects/iptables/downloads.html
-ftp://ftp.netfilter.org/pub/iptables/
+http://www.netfilter.org/projects/ulogd/downloads.html
+ftp://ftp.netfilter.org/pub/ulogd/
 
 Have fun!
+--=20
+Eric Leblond <eric@regit.org>
+Blog: https://home.regit.org/
+
+--=-1OZquf5YgPi3OucUbiFM
+Content-Disposition: attachment; filename="changes-ulogd-2.0.2.txt"
+Content-Type: text/plain; name="changes-ulogd-2.0.2.txt"; charset="UTF-8"
+Content-Transfer-Encoding: base64
+
+Qm9iIEhvY2tuZXkgKDMpOg0KICAgICAgRml4IHBhcnNpbmcgb2YgaXB2NiBmbG93bGFiZWwgYW5k
+IHRjIGZpZWxkcw0KICAgICAgSGFuZGxlIHBvc3RncmVzcWwgc2NoZW1hcyBjb3JyZWN0bHkNCiAg
+ICAgIEFkZCBhZGRpdGlvbmFsIGlwNiBoZWFkZXIgZmllbGRzIHRvIGRhdGFiYXNlIHNjcmlwdHMN
+Cg0KRXJpYyBMZWJsb25kICgzMik6DQogICAgICBjb25maWd1cmU6IGFkZCBmbGFnIHRvIGRpc2Fi
+bGUgTkZBQ0NUIGJ1aWxkDQogICAgICBjb25maWd1cmU6IGFkZCBmbGFnIHRvIGRpc2FibGUgTkZD
+VCBidWlsZA0KICAgICAgY29uZmlndXJlOiBhZGQgZmxhZyB0byBkaXNhYmxlIE5GTE9HIGJ1aWxk
+DQogICAgICBjb25maWd1cmU6IGRpc3BsYXkgaW5mbyBhYm91dCBidWlsZCBwbHVnaW5zDQogICAg
+ICBVc2UgUFJJdTY0IHRvIHByaW50IHVuc2lnbmVkIDY0Yml0IGludA0KICAgICAgWE1MOiBhZGQg
+bWlzc2luZyBpbmNsdWRlDQogICAgICBBZGQgbWlzc2luZyB1NjQgZnVuY3Rpb24uDQogICAgICBB
+ZGQgR1JBUEhJVEUgb3V0cHV0IG1vZHVsZS4NCiAgICAgIG5mY3Q6IGNhbGwgcmVnaXN0ZXIgY2Fs
+bGJhY2sgb24gb3BlbmVkIGhhbmRsZXINCiAgICAgIGFkZHI6IGFkZCBmaWxlIGNvbnRhaW5pbmcg
+YWRkciB1dGlsaXR5IGZ1bmN0aW9ucy4NCiAgICAgIG5mY3Q6IGltcGxlbWVudCBzcmMgYW5kIGRz
+dCBmaWx0ZXINCiAgICAgIG5mY3Q6IGFkZCBwcm90b2NvbCBmaWx0ZXINCiAgICAgIGFkZHI6IGZp
+eCBjb21waWxhdGlvbiB3YXJuaW5nDQogICAgICB1bG9nZDogYWRkIC12IG9wdGlvbiB0byBkaXNw
+bGF5IG1lc3NhZ2Ugb24gc3RkZXJyLg0KICAgICAgY29uZjogYWRkIGZsYWcgdG8gYWxsb3cgb3B0
+aW9uIHNldHVwIHR1bmluZw0KICAgICAgQWRkIC1sIG9wdGlvbiB0byBzZXQgbG9nIGxldmVsIGZy
+b20gY29tbWFuZCBsaW5lDQogICAgICBHZXQgcmlkIG9mIFNWTiB0YWcgaW4gY29tbWVudC4NCiAg
+ICAgIEZpeCB3YXJuaW5nIG9uIGZvcm1hdA0KICAgICAgYmFzZTogZml4IHdhcm5pbmcgb24gcG9p
+bnRlciBoYW5kbGluZw0KICAgICAgZ3JhcGhpdGU6IGZpeCB3YXJuaW5nIGFib3V0IGdudSBleHRl
+bnNpb24gdXNhZ2UNCiAgICAgIEFkZCBUQUdTIHRvIC5naXRpZ25vcmUNCiAgICAgIEZpeCBtYWtl
+IGRpc3RjaGVjaw0KICAgICAgZ3JhcGhpdGU6IGZpeCBjcmFzaCBvbiBpMzg2DQogICAgICBVcGRh
+dGUgVE9ETy4NCiAgICAgIFN1cHByZXNzIGRlYWQgRklYTUUuDQogICAgICBVc2UgYWNjZXNzIHRv
+IGVuc3VyZSByZWFkYWJpbGl0eSBvZiBjb25maWcgZ2lsZQ0KICAgICAgRml4IHR5cG8gaW4gY29t
+bWVudHMuDQogICAgICBBZGQgaGFuZGxpbmcgb2YgdG9vIGxvbmcgbGluZSBhbmQgYXJndW1lbnRz
+Lg0KICAgICAgbG9nZW11OiByZXR1cm4gZXJyb3IgaWYgY29uZmlndXJhdGlvbiBpcyBpbnZhbGlk
+Lg0KICAgICAgVXBkYXRlIG1hbiBwYWdlLg0KICAgICAgVXBkYXRlIFJFQURNRQ0KICAgICAgUHJl
+cGFyZSByZWxlYXNlIG51bWJlciB0byAyLjAuMg0KDQpHdXN0YXZvIFphY2FyaWFzICgxKToNCiAg
+ICAgIGF1dG9jb25mL3Vsb2dkOiBmaXggYnJva2VuIGxpYnBjYXAgQU1fQ09ORElUSU9OQUwNCg0K
+SmFuIEVuZ2VsaGFyZHQgKDQpOg0KICAgICAgYnVpbGQ6IHJlc29sdmUgYXV0b21ha2UtMS4xMiB3
+YXJuaW5ncw0KICAgICAgYnVpbGQ6IHJlc29sdmUgY29tcGlsZSBlcnJvciBkdWUgdG8gbWlzc2lu
+ZyBuZmFjY3QgQ1BQRkxBR1MNCiAgICAgIGJ1aWxkOiBhdm9pZCBwZXItdGFyZ2V0IENGTEFHUw0K
+ICAgICAgYnVpbGQ6IG1vdmUgcmVtYWluaW5nIHByZXByb2Nlc3NvciBmbGFncyBpbnRvIENQUEZM
+QUdTDQoNCg==
 
 
---T4sUOijqQbZv57TR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="changes-iptables-1.4.18.txt"
+--=-1OZquf5YgPi3OucUbiFM--
 
-Florian Westphal (1):
-      doc: rpfilter: invert option should have own paragraph
+--=-AFkOm2ukfHKxiIIkD0CM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-Jan Engelhardt (11):
-      build: resolve link failure for ip6t_NETMAP
-      doc: fixup omissions in ip6tables-restore.8
-      doc: document iptables-restore's -t option
-      doc: document iptables-restore's -v option
-      doc: document iptables-restore's -M option
-      doc: document iptables-restore's -h option
-      doc: name the supported log levels for ipt_LOG
-      doc: mention -m in the manpage
-      doc: document the -4 and -6 options
-      extensions: S/DNPT: add missing save function
-      build: bump SONAME for libxtables
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Jozsef Kadlecsik (3):
-      Introduce match/target aliases
-      Add the "state" alias to the "conntrack" match
-      Merge branch 'master' of vishnu.netfilter.org:/data/git/iptables
+iEYEABECAAYFAlEz02gACgkQnxA7CdMWjzJvBQCfZJWF5jzKtGoBdF8NmbiTvuCS
+5KEAn3XH1J33pen3wYo0gpbKryzZOwdU
+=VV9+
+-----END PGP SIGNATURE-----
 
-Pablo Neira Ayuso (7):
-      iptables: remove unused leftover definitions
-      libxtables: add xtables_rule_matches_free
-      libxtables: add xtables_print_num
-      Merge branch 'stable' into 'master'
-      doc: document nat table for IPv6
-      doc: iptables provides up to 5 independent tables
-      build: bump version to 1.4.18
+--=-AFkOm2ukfHKxiIIkD0CM--
 
-Ulrich Weber (3):
-      extensions: libip6t_DNPT: fix wording in DNPT target
-      extension: libip6t_DNAT: allow port DNAT without address
-      extensions: libip6t_DNAT: set IPv6 DNAT --to-destination
-
-
---T4sUOijqQbZv57TR--
