@@ -1,26 +1,84 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [ulogd patch 0/1] use conntrack based timestamp
-Date: Sun,  3 Mar 2013 23:10:57 +0100
-Message-ID: <1362348658-19291-1-git-send-email-eric@regit.org>
-Cc: eric@regit.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] iptables 1.4.18 release
+Date: Sun, 3 Mar 2013 23:20:08 +0100
+Message-ID: <20130303222008.GA28215@localhost>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="T4sUOijqQbZv57TR"
+Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
+	netfilter-announce@lists.netfilter.org, lwn@lwn.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:43621 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753432Ab3CCWLl (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Mar 2013 17:11:41 -0500
+Received: from mail.us.es ([193.147.175.20]:44984 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754549Ab3CCWUT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 Mar 2013 17:20:19 -0500
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-Hello,
+--T4sUOijqQbZv57TR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This patch is using the connection tracking provided timestamp as
-time source when it is available. This fixes some cases where ulogd
-was not able to get the timestamp.
-I was initially thinking to add a configuration option to avoid the
-check of the connection tracking attribute but I don't think the
-load induced by the check is too costly.
+Hi!
 
-BR,
+The Netfilter project proudly presents:
+
+        iptables 1.4.18
+
+iptables is the userspace command line program used to configure the
+Linux 2.4.x and later packet filtering ruleset. It is targeted towards
+system administrators.
+
+See ChangeLog that comes attached to this email for more details.
+
+You can download it from:
+
+http://www.netfilter.org/projects/iptables/downloads.html
+ftp://ftp.netfilter.org/pub/iptables/
+
+Have fun!
+
+
+--T4sUOijqQbZv57TR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="changes-iptables-1.4.18.txt"
+
+Florian Westphal (1):
+      doc: rpfilter: invert option should have own paragraph
+
+Jan Engelhardt (11):
+      build: resolve link failure for ip6t_NETMAP
+      doc: fixup omissions in ip6tables-restore.8
+      doc: document iptables-restore's -t option
+      doc: document iptables-restore's -v option
+      doc: document iptables-restore's -M option
+      doc: document iptables-restore's -h option
+      doc: name the supported log levels for ipt_LOG
+      doc: mention -m in the manpage
+      doc: document the -4 and -6 options
+      extensions: S/DNPT: add missing save function
+      build: bump SONAME for libxtables
+
+Jozsef Kadlecsik (3):
+      Introduce match/target aliases
+      Add the "state" alias to the "conntrack" match
+      Merge branch 'master' of vishnu.netfilter.org:/data/git/iptables
+
+Pablo Neira Ayuso (7):
+      iptables: remove unused leftover definitions
+      libxtables: add xtables_rule_matches_free
+      libxtables: add xtables_print_num
+      Merge branch 'stable' into 'master'
+      doc: document nat table for IPv6
+      doc: iptables provides up to 5 independent tables
+      build: bump version to 1.4.18
+
+Ulrich Weber (3):
+      extensions: libip6t_DNPT: fix wording in DNPT target
+      extension: libip6t_DNAT: allow port DNAT without address
+      extensions: libip6t_DNAT: set IPv6 DNAT --to-destination
+
+
+--T4sUOijqQbZv57TR--
