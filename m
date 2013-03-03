@@ -1,9 +1,9 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] libnetfilter_acct 1.0.2 release
-Date: Sun, 3 Mar 2013 23:01:27 +0100
-Message-ID: <20130303220127.GA19632@localhost>
+Subject: [ANNOUNCE] nfacct 1.0.1 release
+Date: Sun, 3 Mar 2013 23:04:06 +0100
+Message-ID: <20130303220406.GA28022@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="uAKRQypu60I7Lcqm"
+Content-Type: multipart/mixed; boundary="9jxsPFA5p3P2qPhR"
 Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
 	netfilter-announce@lists.netfilter.org, lwn@lwn.net
 To: netfilter-devel@vger.kernel.org
@@ -13,7 +13,7 @@ Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---uAKRQypu60I7Lcqm
+--9jxsPFA5p3P2qPhR
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
@@ -21,38 +21,31 @@ Hi!
 
 The Netfilter project proudly presents:
 
-        libnetfilter_acct 1.0.2
+        nfacct 1.0.1
 
-libnetfilter_acct is the userspace library providing interface to
-extended accounting infrastructure starting Linux kernel 3.3.
+nfacct is the command line tool to create/retrieve/delete accounting
+objects (available since Linux kernel 3.3).
 
 See ChangeLog that comes attached to this email for more details.
 
 You can download it from:
 
-http://www.netfilter.org/projects/libnetfilter_acct/downloads.html
-ftp://ftp.netfilter.org/pub/libnetfilter_acct/
+http://www.netfilter.org/projects/nfacct/downloads.html
+ftp://ftp.netfilter.org/pub/nfacct/
 
 Have fun!
 
 
---uAKRQypu60I7Lcqm
+--9jxsPFA5p3P2qPhR
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="changes-libnetfilter_acct-1.0.2.txt"
+Content-Disposition: attachment; filename="changes-nfacct-1.0.1.txt"
 
 Eric Leblond (2):
-      Add include needed for integer types definition.
-      Fix packets and bytes inversion.
+      nfacct: fix parsing of `xml' `reset' together.
+      Add restore command
 
-Jan Engelhardt (3):
-      build: resolve automake-1.12 warnings
-      build: resolve compile abort on RHEL5 #1
-      build: resolve compile abort on RHEL5 #2
-
-Pablo Neira Ayuso (3):
-      Merge git://git.inai.de/libnetfilter_acct master
-      Partially revert "src: remove unnecessary castings"
-      build: bump version to 1.0.2
+Pablo Neira Ayuso (1):
+      build: bump version to 1.0.1
 
 
---uAKRQypu60I7Lcqm--
+--9jxsPFA5p3P2qPhR--
