@@ -1,27 +1,34 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [PATCH] netfilter: xt_AUDIT: only generate audit log when audit
- enabled
-Date: Mon, 4 Mar 2013 10:50:27 +0000
-Message-ID: <20130304105027.GA20334@casper.infradead.org>
-References: <1362392952-11268-1-git-send-email-gaofeng@cn.fujitsu.com>
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: Re: [PATCH 1/2] netfilter: nf_tables: partially rework commit and
+ abort operation
+Date: Mon, 04 Mar 2013 14:22:08 +0200
+Message-ID: <513491F0.8030106@linux.intel.com>
+References: <1362092898-23306-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Gao feng <gaofeng@cn.fujitsu.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:40548 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756755Ab3CDKua (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Mar 2013 05:50:30 -0500
-Content-Disposition: inline
-In-Reply-To: <1362392952-11268-1-git-send-email-gaofeng@cn.fujitsu.com>
+Received: from mga02.intel.com ([134.134.136.20]:2542 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754497Ab3CDMWL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 4 Mar 2013 07:22:11 -0500
+In-Reply-To: <1362092898-23306-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 03/04/13 at 06:29pm, Gao feng wrote:
-> We should stop generting audit log if audit is disabled.
-> 
-> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+Hi Pablo,
 
-Acked-by: Thomas Graf <tgraf@suug.ch>
+I would have some comments again, but mostly on the features it exposes.
+
+I am not fully sure we want to dump non-active rules for instance.
+And why limiting the transaction access to one netlink connection at a 
+time? (though for commit operation it's fully relevant of course)
+
+Things like that.
+Could we see that in detail at the NFWS?
+
+Tomasz
+
+
