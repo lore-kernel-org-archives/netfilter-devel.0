@@ -1,59 +1,36 @@
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: [PATCH -v3 19/23] net/netfilter: rename random32() to prandom_u32()
-Date: Mon,  4 Mar 2013 21:58:27 +0900
-Message-ID: <1362401911-14074-20-git-send-email-akinobu.mita@gmail.com>
-References: <1362401911-14074-1-git-send-email-akinobu.mita@gmail.com>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, "David S. Miller" <davem@davemloft.net>,
-	netdev@vger.kernel.org
-To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1362401911-14074-1-git-send-email-akinobu.mita@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Mr Dash Four <mr.dash.four@googlemail.com>
+Subject: Re: [MAINTENANCE] netfilter.org infrastructure updates
+Date: Mon, 04 Mar 2013 13:08:04 +0000
+Message-ID: <51349CB4.9050807@googlemail.com>
+References: <20130227180923.GA18059@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:36475 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756702Ab3CDNIM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 4 Mar 2013 08:08:12 -0500
+Received: by mail-wg0-f48.google.com with SMTP id 16so4028649wgi.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 04 Mar 2013 05:08:11 -0800 (PST)
+In-Reply-To: <20130227180923.GA18059@localhost>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Use more preferable function name which implies using a pseudo-random
-number generator.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org
-Cc: netfilter@vger.kernel.org
-Cc: coreteam@netfilter.org
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: netdev@vger.kernel.org
----
+> We have scheduled March 1st, 2013 (Friday) to perform major
+> maintainance tasks on the netfilter.org infrastructure. For that
+> reason, you may notice temporary disruptions on the service.
+>
+> Sorry for the inconvenience.
+>   
+I see that the gitweb interface has now been changed and it relies on 
+cgit. Since that change was made, I no longer seems able to download 
+gzipped snapshots of the current tree (iptables master/head and the 
+like). This is essential for me as I often need to do this when I am in 
+places where the git protocol isn't available for whatever reason. Could 
+you restore or enable this functionality please?
 
-No change from v2
-
- net/netfilter/nf_conntrack_core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index c8e001a..f84965a 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -264,7 +264,7 @@ static void death_by_event(unsigned long ul_conntrack)
- 	if (nf_conntrack_event(IPCT_DESTROY, ct) < 0) {
- 		/* bad luck, let's retry again */
- 		ecache->timeout.expires = jiffies +
--			(random32() % net->ct.sysctl_events_retry_timeout);
-+			(prandom_u32() % net->ct.sysctl_events_retry_timeout);
- 		add_timer(&ecache->timeout);
- 		return;
- 	}
-@@ -283,7 +283,7 @@ void nf_ct_dying_timeout(struct nf_conn *ct)
- 	/* set a new timer to retry event delivery */
- 	setup_timer(&ecache->timeout, death_by_event, (unsigned long)ct);
- 	ecache->timeout.expires = jiffies +
--		(random32() % net->ct.sysctl_events_retry_timeout);
-+		(prandom_u32() % net->ct.sysctl_events_retry_timeout);
- 	add_timer(&ecache->timeout);
- }
- EXPORT_SYMBOL_GPL(nf_ct_dying_timeout);
--- 
-1.8.1.2
