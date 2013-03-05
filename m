@@ -1,64 +1,80 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 5/5] libxtables: constify xtables_option_[mt]fcall argument
-Date: Tue,  5 Mar 2013 02:08:15 +0100
-Message-ID: <1362445695-15952-6-git-send-email-jengelh@inai.de>
+Subject: [PATCH 4/5] build: do not dereference symlinks on installation
+Date: Tue,  5 Mar 2013 02:08:14 +0100
+Message-ID: <1362445695-15952-5-git-send-email-jengelh@inai.de>
 References: <1362445695-15952-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:45720 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:45717 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932354Ab3CEBIS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Mar 2013 20:08:18 -0500
+	id S1758916Ab3CEBIR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 4 Mar 2013 20:08:17 -0500
 In-Reply-To: <1362445695-15952-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Nothing modifies the match/target, so we can mark it const.
+By using install(1), libxt_NOTRACK.so was inadvertently installed as
+an actual file to /usr/lib/xtables rather than as a symlink. Switch to
+using cp(1).
 
 Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- include/xtables.h      |    4 ++--
- libxtables/xtoptions.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ extensions/GNUmakefile.in |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/include/xtables.h b/include/xtables.h
-index c35a6e6..f14914c 100644
---- a/include/xtables.h
-+++ b/include/xtables.h
-@@ -535,8 +535,8 @@ extern void xtables_option_tpcall(unsigned int, char **, bool,
- 				  struct xtables_target *, void *);
- extern void xtables_option_mpcall(unsigned int, char **, bool,
- 				  struct xtables_match *, void *);
--extern void xtables_option_tfcall(struct xtables_target *);
--extern void xtables_option_mfcall(struct xtables_match *);
-+extern void xtables_option_tfcall(const struct xtables_target *);
-+extern void xtables_option_mfcall(const struct xtables_match *);
- extern void xtables_options_fcheck(const char *, unsigned int,
- 				   const struct xt_option_entry *);
+diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+index adad4d6..781ac6d 100644
+--- a/extensions/GNUmakefile.in
++++ b/extensions/GNUmakefile.in
+@@ -40,7 +40,7 @@ endif
+ #	Wildcard module list
+ #
+ pfx_build_mod := $(patsubst ${srcdir}/libxt_%.c,%,$(sort $(wildcard ${srcdir}/libxt_*.c)))
+-pfx_symlinks  := NOTRACK state
++pfx_symlinks  := libxt_NOTRACK.so libxt_state.so
+ @ENABLE_IPV4_TRUE@ pf4_build_mod := $(patsubst ${srcdir}/libipt_%.c,%,$(sort $(wildcard ${srcdir}/libipt_*.c)))
+ @ENABLE_IPV6_TRUE@ pf6_build_mod := $(patsubst ${srcdir}/libip6t_%.c,%,$(sort $(wildcard ${srcdir}/libip6t_*.c)))
+ pfx_build_mod := $(filter-out @blacklist_modules@,${pfx_build_mod})
+@@ -49,7 +49,7 @@ pf6_build_mod := $(filter-out @blacklist_modules@,${pf6_build_mod})
+ pfx_objs      := $(patsubst %,libxt_%.o,${pfx_build_mod})
+ pf4_objs      := $(patsubst %,libipt_%.o,${pf4_build_mod})
+ pf6_objs      := $(patsubst %,libip6t_%.o,${pf6_build_mod})
+-pfx_solibs    := $(patsubst %,libxt_%.so,${pfx_build_mod} ${pfx_symlinks})
++pfx_solibs    := $(patsubst %,libxt_%.so,${pfx_build_mod})
+ pf4_solibs    := $(patsubst %,libipt_%.so,${pf4_build_mod})
+ pf6_solibs    := $(patsubst %,libip6t_%.so,${pf6_build_mod})
  
-diff --git a/libxtables/xtoptions.c b/libxtables/xtoptions.c
-index 452e0fe..01c626c 100644
---- a/libxtables/xtoptions.c
-+++ b/libxtables/xtoptions.c
-@@ -1034,7 +1034,7 @@ void xtables_options_fcheck(const char *name, unsigned int xflags,
-  * Dispatch arguments to the appropriate final_check function, based upon the
-  * extension's choice of API.
-  */
--void xtables_option_tfcall(struct xtables_target *t)
-+void xtables_option_tfcall(const struct xtables_target *t)
- {
- 	if (t->x6_fcheck != NULL) {
- 		struct xt_fcheck_call cb;
-@@ -1055,7 +1055,7 @@ void xtables_option_tfcall(struct xtables_target *t)
-  * Dispatch arguments to the appropriate final_check function, based upon the
-  * extension's choice of API.
-  */
--void xtables_option_mfcall(struct xtables_match *m)
-+void xtables_option_mfcall(const struct xtables_match *m)
- {
- 	if (m->x6_fcheck != NULL) {
- 		struct xt_fcheck_call cb;
+@@ -59,11 +59,13 @@ pf6_solibs    := $(patsubst %,libip6t_%.so,${pf6_build_mod})
+ #
+ targets := libext.a libext4.a libext6.a matches.man targets.man
+ targets_install :=
++targets_instlink :=
+ @ENABLE_STATIC_TRUE@ libext_objs := ${pfx_objs}
+ @ENABLE_STATIC_TRUE@ libext4_objs := ${pf4_objs}
+ @ENABLE_STATIC_TRUE@ libext6_objs := ${pf6_objs}
+-@ENABLE_STATIC_FALSE@ targets += ${pfx_solibs} ${pf4_solibs} ${pf6_solibs}
++@ENABLE_STATIC_FALSE@ targets += ${pfx_solibs} ${pfx_symlinks} ${pf4_solibs} ${pf6_solibs}
+ @ENABLE_STATIC_FALSE@ targets_install += ${pfx_solibs} ${pf4_solibs} ${pf6_solibs}
++@ENABLE_STATIC_FALSE@ targets_instlink += ${pfx_symlinks}
+ 
+ .SECONDARY:
+ 
+@@ -71,9 +73,12 @@ targets_install :=
+ 
+ all: ${targets}
+ 
+-install: ${targets_install}
++install: ${targets_install} ${targets_instlink}
+ 	@mkdir -p "${DESTDIR}${xtlibdir}";
+-	if test -n "${targets_install}"; then install -pm0755 $^ "${DESTDIR}${xtlibdir}/"; fi;
++	if test -n "${targets_install}"; then \
++		install -pm0755 ${targets_install} "${DESTDIR}${xtlibdir}/"; \
++		cp -a ${pfx_symlinks} "${DESTDIR}${xtlibdir}/"; \
++	fi;
+ 
+ clean:
+ 	rm -f *.la *.o *.lo *.so *.a {matches,targets}.man initext.c initext4.c initext6.c;
 -- 
 1.7.10.4
 
