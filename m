@@ -1,203 +1,129 @@
 From: Mr Dash Four <mr.dash.four@googlemail.com>
-Subject: [PATCH 1/2] iptables (userspace): add secmark match
-Date: Tue, 05 Mar 2013 12:48:47 +0000
-Message-ID: <5135E9AF.6010800@googlemail.com>
+Subject: [PATCH 2/2] iptables (kernel): add secmark match
+Date: Tue, 05 Mar 2013 12:48:59 +0000
+Message-ID: <5135E9BB.8080409@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Eric Paris <eparis@redhat.com>,
-	Netfilter Core Team <netfilter-devel@vger.kernel.org>,
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Cc: Netfilter Core Team <netfilter-devel@vger.kernel.org>,
 	Fedora SELinux Users <selinux@lists.fedoraproject.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:58282 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751526Ab3CEMs5 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Mar 2013 07:48:57 -0500
-Received: by mail-wg0-f41.google.com with SMTP id ds1so2911518wgb.4
-        for <netfilter-devel@vger.kernel.org>; Tue, 05 Mar 2013 04:48:56 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <selinux-bounces@lists.fedoraproject.org>
+List-Unsubscribe: <https://admin.fedoraproject.org/mailman/options/selinux>,
+	<mailto:selinux-request@lists.fedoraproject.org?subject=unsubscribe>
+List-Archive: <http://lists.fedoraproject.org/pipermail/selinux/>
+List-Post: <mailto:selinux@lists.fedoraproject.org>
+List-Help: <mailto:selinux-request@lists.fedoraproject.org?subject=help>
+List-Subscribe: <https://admin.fedoraproject.org/mailman/listinfo/selinux>,
+	<mailto:selinux-request@lists.fedoraproject.org?subject=subscribe>
+Sender: selinux-bounces@lists.fedoraproject.org
+Errors-To: selinux-bounces@lists.fedoraproject.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This patch is part of the userspace changes needed for the "secmark" match
-in iptables.
-
-Signed-off-by: Mr Dash Four <mr.dash.four@googlemail.com>
----
-  extensions/libxt_secmark.c           |  100 ++++++++++++++++++++++++++++++++++
-  extensions/libxt_secmark.man         |   22 ++++++++
-  include/linux/netfilter/xt_secmark.h |   24 ++++++++
-  3 files changed, 146 insertions(+)
-  create mode 100644 extensions/libxt_secmark.c
-  create mode 100644 extensions/libxt_secmark.man
-  create mode 100644 include/linux/netfilter/xt_secmark.h
-
-diff --git a/extensions/libxt_secmark.c b/extensions/libxt_secmark.c
-new file mode 100644
-index 0000000..92ecc6b
---- /dev/null
-+++ b/extensions/libxt_secmark.c
-@@ -0,0 +1,100 @@
-+/*
-+ * Shared library add-on to iptables to add secmark match support.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 (or
-+ * any later at your option) as published by the Free Software Foundation.
-+ */
-+#include <stdbool.h>
-+#include <stdlib.h>
-+#include <stdio.h>
-+#include <string.h>
-+#include <getopt.h>
-+#include <xtables.h>
-+
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/xt_secmark.h>
-+
-+#define PFX "secmark match: "
-+
-+enum {
-+	O_SELCTX = 0,
-+};
-+
-+#define s struct xt_secmark_match_info
-+static const struct xt_option_entry secmark_opts[] = {
-+	{.name = "selctx", .id = O_SELCTX, .type = XTTYPE_STRING,
-+	 .flags = XTOPT_MAND|XTOPT_PUT, XTOPT_POINTER(s, secctx)},
-+	XTOPT_TABLEEND,
-+};
-+#undef s
-+
-+static void secmark_help(void)
-+{
-+	printf("secmark match options:\n"
-+	       " --selctx STRING              SELinux security context\n");
-+}
-+
-+static void secmark_parse(struct xt_option_call *cb)
-+{
-+	struct xt_secmark_match_info *info = cb->data;
-+
-+	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case O_SELCTX:
-+		if (strchr(cb->arg, '\n') != NULL)
-+			xtables_error(PARAMETER_PROBLEM, PFX
-+				     "new lines not allowed in --selctx");
-+		info->mode = SECMARK_MODE_SEL;
-+		break;
-+	}
-+}
-+
-+static void
-+secmark_print_selctx(const struct xt_secmark_match_info *info, char *str)
-+{
-+	switch (info->mode) {
-+	case SECMARK_MODE_SEL:
-+		printf(" %sselctx %s", str, info->secctx);
-+		break;
-+	
-+	default:
-+		xtables_error(OTHER_PROBLEM, PFX "invalid mode %hhu\n", info->mode);
-+	}
-+}
-+
-+static void secmark_print(const void *ip, const struct xt_entry_match *match,
-+                        int numeric)
-+{
-+	const struct xt_secmark_match_info *info =
-+		(struct xt_secmark_match_info *)match->data;
-+
-+	secmark_print_selctx(info, "");
-+}
-+
-+static void secmark_save(const void *ip, const struct xt_entry_match *match)
-+{
-+	const struct xt_secmark_match_info *info =
-+		(struct xt_secmark_match_info *)match->data;
-+
-+	secmark_print_selctx(info, "--");
-+}
-+
-+static struct xtables_match secmark_match = {
-+	.family		= NFPROTO_UNSPEC,
-+	.name		= "secmark",
-+	.version	= XTABLES_VERSION,
-+	.revision	= 0,
-+	.size		= XT_ALIGN(sizeof(struct xt_secmark_match_info)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct xt_secmark_match_info)),
-+	.help		= secmark_help,
-+	.print		= secmark_print,
-+	.save		= secmark_save,
-+	.x6_parse	= secmark_parse,
-+	.x6_options	= secmark_opts,
-+};
-+
-+void _init(void)
-+{
-+	xtables_register_match(&secmark_match);
-+}
-diff --git a/extensions/libxt_secmark.man b/extensions/libxt_secmark.man
-new file mode 100644
-index 0000000..b38e32c
---- /dev/null
-+++ b/extensions/libxt_secmark.man
-@@ -0,0 +1,22 @@
-+The secmark match is used to match the security mark value
-+associated with a packet.
-+.PP
-+Only one option is available with this match which needs
-+to be specified:
-+.TP
-+\fB\-\-selctx\fP \fIselctx\fP
-+This option selects the SELinux security context (\fBselctx\fP) to
-+be used for packet matching. This security context needs to have already
-+been assigned to a packet by using the \fBSECMARK\fP target.
-+.PP
-+For this extension to be used, the appropriate SELinux support needs
-+to be installed and present in the Linux kernel.
-+.PP
-+Examples:
-+.IP
-+iptables \-I INPUT \-p icmp \-\-icmp-type 3 \-m secmark \-\-selctx
-+system_u:object_r:dns_packet_t:s0 \-j ACCEPT
-+.IP
-+iptables \-I OUTPUT \-m secmark \-\-selctx
-+system_u:object_r:ssh_packet_t:s0 \-j DROP
-+
-diff --git a/include/linux/netfilter/xt_secmark.h b/include/linux/netfilter/xt_secmark.h
-new file mode 100644
-index 0000000..c74a35d
---- /dev/null
-+++ b/include/linux/netfilter/xt_secmark.h
-@@ -0,0 +1,24 @@
-+#ifndef _XT_SECMARK_MATCH_H
-+#define _XT_SECMARK_MATCH_H
-+
-+#include <linux/types.h>
-+
-+/*
-+ * Header file for iptables xt_secmark match
-+ *
-+ * This is intended for use by various security subsystems (but not
-+ * at the same time).
-+ *
-+ * 'mode' refers to the specific security subsystem which the
-+ * packets are being marked for.
-+ */
-+#define SECMARK_MODE_SEL	0x01		/* SELinux */
-+#define SECMARK_SECCTX_MAX	256
-+
-+struct xt_secmark_match_info {
-+	__u8 mode;
-+	__u32 secid;
-+	char secctx[SECMARK_SECCTX_MAX];
-+};
-+
-+#endif /* _XT_SECMARK_MATCH_H */
-
-
-
-
+VGhpcyBwYXRjaCBpcyBwYXJ0IG9mIHRoZSBrZXJuZWwgY2hhbmdlcyBuZWVkZWQgZm9yIHRoZSAi
+c2VjbWFyayIgbWF0Y2gKaW4gaXB0YWJsZXMuCgpTaWduZWQtb2ZmLWJ5OiBNciBEYXNoIEZvdXIg
+PG1yLmRhc2guZm91ckBnb29nbGVtYWlsLmNvbT4KLS0tCiAgaW5jbHVkZS91YXBpL2xpbnV4L25l
+dGZpbHRlci9LYnVpbGQgICAgICAgfCAgICAxICsKICBpbmNsdWRlL3VhcGkvbGludXgvbmV0Zmls
+dGVyL3h0X3NlY21hcmsuaCB8ICAgMjQgKysrKysrCiAgbmV0L25ldGZpbHRlci9LY29uZmlnICAg
+ICAgICAgICAgICAgICAgICAgfCAgIDEwICsrKwogIG5ldC9uZXRmaWx0ZXIvTWFrZWZpbGUgICAg
+ICAgICAgICAgICAgICAgIHwgICAgMSArCiAgbmV0L25ldGZpbHRlci94dF9zZWNtYXJrLmMgICAg
+ICAgICAgICAgICAgfCAgMTE3ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiAgNSBmaWxl
+cyBjaGFuZ2VkLCAxNTMgaW5zZXJ0aW9ucygrKQogIGNyZWF0ZSBtb2RlIDEwMDY0NCBpbmNsdWRl
+L3VhcGkvbGludXgvbmV0ZmlsdGVyL3h0X3NlY21hcmsuaAogIGNyZWF0ZSBtb2RlIDEwMDY0NCBu
+ZXQvbmV0ZmlsdGVyL3h0X3NlY21hcmsuYwoKZGlmZiAtLWdpdCBhL2luY2x1ZGUvdWFwaS9saW51
+eC9uZXRmaWx0ZXIvS2J1aWxkIGIvaW5jbHVkZS91YXBpL2xpbnV4L25ldGZpbHRlci9LYnVpbGQK
+aW5kZXggNDExMTU3Ny4uNDg4NGVkZCAxMDA2NDQKLS0tIGEvaW5jbHVkZS91YXBpL2xpbnV4L25l
+dGZpbHRlci9LYnVpbGQKKysrIGIvaW5jbHVkZS91YXBpL2xpbnV4L25ldGZpbHRlci9LYnVpbGQK
+QEAgLTY5LDYgKzY5LDcgQEAgaGVhZGVyLXkgKz0geHRfcmF0ZWVzdC5oCiAgaGVhZGVyLXkgKz0g
+eHRfcmVhbG0uaAogIGhlYWRlci15ICs9IHh0X3JlY2VudC5oCiAgaGVhZGVyLXkgKz0geHRfc2N0
+cC5oCitoZWFkZXIteSArPSB4dF9zZWNtYXJrLmgKICBoZWFkZXIteSArPSB4dF9zZXQuaAogIGhl
+YWRlci15ICs9IHh0X3NvY2tldC5oCiAgaGVhZGVyLXkgKz0geHRfc3RhdGUuaApkaWZmIC0tZ2l0
+IGEvaW5jbHVkZS91YXBpL2xpbnV4L25ldGZpbHRlci94dF9zZWNtYXJrLmggYi9pbmNsdWRlL3Vh
+cGkvbGludXgvbmV0ZmlsdGVyL3h0X3NlY21hcmsuaApuZXcgZmlsZSBtb2RlIDEwMDY0NAppbmRl
+eCAwMDAwMDAwLi5jNzRhMzVkCi0tLSAvZGV2L251bGwKKysrIGIvaW5jbHVkZS91YXBpL2xpbnV4
+L25ldGZpbHRlci94dF9zZWNtYXJrLmgKQEAgLTAsMCArMSwyNCBAQAorI2lmbmRlZiBfWFRfU0VD
+TUFSS19NQVRDSF9ICisjZGVmaW5lIF9YVF9TRUNNQVJLX01BVENIX0gKKworI2luY2x1ZGUgPGxp
+bnV4L3R5cGVzLmg+CisKKy8qCisgKiBIZWFkZXIgZmlsZSBmb3IgaXB0YWJsZXMgeHRfc2VjbWFy
+ayBtYXRjaAorICoKKyAqIFRoaXMgaXMgaW50ZW5kZWQgZm9yIHVzZSBieSB2YXJpb3VzIHNlY3Vy
+aXR5IHN1YnN5c3RlbXMgKGJ1dCBub3QKKyAqIGF0IHRoZSBzYW1lIHRpbWUpLgorICoKKyAqICdt
+b2RlJyByZWZlcnMgdG8gdGhlIHNwZWNpZmljIHNlY3VyaXR5IHN1YnN5c3RlbSB3aGljaCB0aGUK
+KyAqIHBhY2tldHMgYXJlIGJlaW5nIG1hcmtlZCBmb3IuCisgKi8KKyNkZWZpbmUgU0VDTUFSS19N
+T0RFX1NFTAkweDAxCQkvKiBTRUxpbnV4ICovCisjZGVmaW5lIFNFQ01BUktfU0VDQ1RYX01BWAky
+NTYKKworc3RydWN0IHh0X3NlY21hcmtfbWF0Y2hfaW5mbyB7CisJX191OCBtb2RlOworCV9fdTMy
+IHNlY2lkOworCWNoYXIgc2VjY3R4W1NFQ01BUktfU0VDQ1RYX01BWF07Cit9OworCisjZW5kaWYg
+LyogX1hUX1NFQ01BUktfTUFUQ0hfSCAqLwpkaWZmIC0tZ2l0IGEvbmV0L25ldGZpbHRlci9LY29u
+ZmlnIGIvbmV0L25ldGZpbHRlci9LY29uZmlnCmluZGV4IDU2ZDIyY2EuLmQ1M2VhMTQgMTAwNjQ0
+Ci0tLSBhL25ldC9uZXRmaWx0ZXIvS2NvbmZpZworKysgYi9uZXQvbmV0ZmlsdGVyL0tjb25maWcK
+QEAgLTExNjYsNiArMTE2NiwxNiBAQCBjb25maWcgTkVURklMVEVSX1hUX01BVENIX1JFQ0VOVAog
+IAlTaG9ydCBvcHRpb25zIGFyZSBhdmFpbGFibGUgYnkgdXNpbmcgJ2lwdGFibGVzIC1tIHJlY2Vu
+dCAtaCcKICAJT2ZmaWNpYWwgV2Vic2l0ZTogPGh0dHA6Ly9zbm93bWFuLm5ldC9wcm9qZWN0cy9p
+cHRfcmVjZW50Lz4KCitjb25maWcgTkVURklMVEVSX1hUX01BVENIX1NFQ01BUksKKwl0cmlzdGF0
+ZSAnInNlY21hcmsiIG1hdGNoIHN1cHBvcnQnCisJZGVwZW5kcyBvbiBORl9DT05OVFJBQ0sgJiYg
+TkZfQ09OTlRSQUNLX1NFQ01BUksKKwlkZWZhdWx0IG0gaWYgTkVURklMVEVSX0FEVkFOQ0VEPW4K
+KwloZWxwCisJICBUaGUgU0VDTUFSSyBtYXRjaCBhbGxvd3MgbWF0Y2hpbmcgb24gc2VjdXJpdHkg
+bWFya2luZyBvZiBuZXR3b3JrCisJICBwYWNrZXRzLCBmb3IgdXNlIHdpdGggc2VjdXJpdHkgc3Vi
+c3lzdGVtcy4KKworCSAgVG8gY29tcGlsZSBpdCBhcyBhIG1vZHVsZSwgY2hvb3NlIE0gaGVyZS4g
+IElmIHVuc3VyZSwgc2F5IE4uCisKICBjb25maWcgTkVURklMVEVSX1hUX01BVENIX1NDVFAKICAJ
+dHJpc3RhdGUgICcic2N0cCIgcHJvdG9jb2wgbWF0Y2ggc3VwcG9ydCcKICAJZGVwZW5kcyBvbiBO
+RVRGSUxURVJfQURWQU5DRUQKZGlmZiAtLWdpdCBhL25ldC9uZXRmaWx0ZXIvTWFrZWZpbGUgYi9u
+ZXQvbmV0ZmlsdGVyL01ha2VmaWxlCmluZGV4IGExYWJmODcuLjY4NmM0YzMgMTAwNjQ0Ci0tLSBh
+L25ldC9uZXRmaWx0ZXIvTWFrZWZpbGUKKysrIGIvbmV0L25ldGZpbHRlci9NYWtlZmlsZQpAQCAt
+MTM5LDYgKzEzOSw3IEBAIG9iai0kKENPTkZJR19ORVRGSUxURVJfWFRfTUFUQ0hfU1RSSU5HKSAr
+PSB4dF9zdHJpbmcubwogIG9iai0kKENPTkZJR19ORVRGSUxURVJfWFRfTUFUQ0hfVENQTVNTKSAr
+PSB4dF90Y3Btc3MubwogIG9iai0kKENPTkZJR19ORVRGSUxURVJfWFRfTUFUQ0hfVElNRSkgKz0g
+eHRfdGltZS5vCiAgb2JqLSQoQ09ORklHX05FVEZJTFRFUl9YVF9NQVRDSF9VMzIpICs9IHh0X3Uz
+Mi5vCitvYmotJChDT05GSUdfTkVURklMVEVSX1hUX01BVENIX1NFQ01BUkspICs9IHh0X3NlY21h
+cmsubwoKICAjIGlwc2V0CiAgb2JqLSQoQ09ORklHX0lQX1NFVCkgKz0gaXBzZXQvCmRpZmYgLS1n
+aXQgYS9uZXQvbmV0ZmlsdGVyL3h0X3NlY21hcmsuYyBiL25ldC9uZXRmaWx0ZXIveHRfc2VjbWFy
+ay5jCm5ldyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4IDAwMDAwMDAuLjg4MzdkMTMKLS0tIC9kZXYv
+bnVsbAorKysgYi9uZXQvbmV0ZmlsdGVyL3h0X3NlY21hcmsuYwpAQCAtMCwwICsxLDExNyBAQAor
+LyoKKyAqIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0
+ZSBpdCBhbmQvb3IgbW9kaWZ5CisgKiBpdCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5l
+cmFsIFB1YmxpYyBMaWNlbnNlIHZlcnNpb24gMiAob3IgYW55CisgKiBsYXRlciBhdCB5b3VyIG9w
+dGlvbikgYXMgcHVibGlzaGVkIGJ5IHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24uCisgKi8K
+KworI2RlZmluZSBwcl9mbXQoZm10KSBLQlVJTERfTU9ETkFNRSAiOiAiIGZtdAorI2luY2x1ZGUg
+PGxpbnV4L21vZHVsZS5oPgorI2luY2x1ZGUgPGxpbnV4L3NlY3VyaXR5Lmg+CisjaW5jbHVkZSA8
+bGludXgvc2tidWZmLmg+CisKKyNpbmNsdWRlIDxsaW51eC9uZXRmaWx0ZXIveF90YWJsZXMuaD4K
+KyNpbmNsdWRlIDx1YXBpL2xpbnV4L25ldGZpbHRlci94dF9zZWNtYXJrLmg+CisKK01PRFVMRV9B
+VVRIT1IoIk1yIERhc2ggRm91ciA8bXIuZGFzaC5mb3VyQGdvb2dsZW1haWwuY29tPiIpOworTU9E
+VUxFX0RFU0NSSVBUSU9OKCJYdGFibGVzOiBzZWN1cml0eSBtYXJrIG1hdGNoIik7CitNT0RVTEVf
+TElDRU5TRSgiR1BMIik7CitNT0RVTEVfQUxJQVMoImlwdF9zZWNtYXJrIik7CitNT0RVTEVfQUxJ
+QVMoImlwNnRfc2VjbWFyayIpOworCitzdGF0aWMgdTggbW9kZTsKKworc3RhdGljIGJvb2wgc2Vj
+bWFya19tdChjb25zdCBzdHJ1Y3Qgc2tfYnVmZiAqc2tiLCBzdHJ1Y3QgeHRfYWN0aW9uX3BhcmFt
+ICpwYXIpCit7CisJY29uc3Qgc3RydWN0IHh0X3NlY21hcmtfbWF0Y2hfaW5mbyAqaW5mbyA9IHBh
+ci0+dGFyZ2luZm87CisJdTMyIHNlY21hcmsgPSAwOworCisJQlVHX09OKGluZm8tPm1vZGUgIT0g
+bW9kZSk7CisKKwlzd2l0Y2ggKG1vZGUpIHsKKwljYXNlIFNFQ01BUktfTU9ERV9TRUw6CisJCXNl
+Y21hcmsgPSBpbmZvLT5zZWNpZDsKKwkJYnJlYWs7CisJZGVmYXVsdDoKKwkJQlVHKCk7CisJfQor
+CisJcmV0dXJuIChza2ItPnNlY21hcmsgIT0gMCAmJiBzZWNtYXJrICE9IDAgJiYgc2tiLT5zZWNt
+YXJrID09IHNlY21hcmspOworfQorCitzdGF0aWMgaW50IGNoZWNrZW50cnlfbHNtKHN0cnVjdCB4
+dF9zZWNtYXJrX21hdGNoX2luZm8gKmluZm8pCit7CisJaW50IGVycjsKKworCWluZm8tPnNlY2N0
+eFtTRUNNQVJLX1NFQ0NUWF9NQVggLSAxXSA9ICdcMCc7CisJaW5mby0+c2VjaWQgPSAwOworCisJ
+ZXJyID0gc2VjdXJpdHlfc2VjY3R4X3RvX3NlY2lkKGluZm8tPnNlY2N0eCwgc3RybGVuKGluZm8t
+PnNlY2N0eCksCisJCQkJICAgICAgICZpbmZvLT5zZWNpZCk7CisJaWYgKGVycikgeworCQlpZiAo
+ZXJyID09IC1FSU5WQUwpCisJCQlwcl9pbmZvKCJpbnZhbGlkIHNlY3VyaXR5IGNvbnRleHQgXCcl
+c1wnXG4iLCBpbmZvLT5zZWNjdHgpOworCQlyZXR1cm4gZXJyOworCX0KKworCWlmICghaW5mby0+
+c2VjaWQpIHsKKwkJcHJfaW5mbygidW5hYmxlIHRvIG1hcCBzZWN1cml0eSBjb250ZXh0IFwnJXNc
+J1xuIiwgaW5mby0+c2VjY3R4KTsKKwkJcmV0dXJuIC1FTk9FTlQ7CisJfQorCisJcmV0dXJuIDA7
+Cit9CisKK3N0YXRpYyBpbnQKK3NlY21hcmtfbXRfY2hlY2tlbnRyeShjb25zdCBzdHJ1Y3QgeHRf
+bXRjaGtfcGFyYW0gKnBhcikKK3sKKwlzdHJ1Y3QgeHRfc2VjbWFya19tYXRjaF9pbmZvICppbmZv
+ID0gcGFyLT5tYXRjaGluZm87CisJaW50IGVycjsKKworCWlmIChtb2RlICYmIG1vZGUgIT0gaW5m
+by0+bW9kZSkgeworCQlwcl9pbmZvKCJtb2RlIGFscmVhZHkgc2V0IHRvICVodSBjYW5ub3QgbWl4
+IHdpdGggIgorCQkJInJ1bGVzIGZvciBtb2RlICVodVxuIiwgbW9kZSwgaW5mby0+bW9kZSk7CisJ
+CXJldHVybiAtRUlOVkFMOworCX0KKworCXN3aXRjaCAoaW5mby0+bW9kZSkgeworCWNhc2UgU0VD
+TUFSS19NT0RFX1NFTDoKKwkJYnJlYWs7CisJZGVmYXVsdDoKKwkJcHJfaW5mbygiaW52YWxpZCBt
+b2RlOiAlaHVcbiIsIGluZm8tPm1vZGUpOworCQlyZXR1cm4gLUVJTlZBTDsKKwl9CisKKwllcnIg
+PSBjaGVja2VudHJ5X2xzbShpbmZvKTsKKwlpZiAoZXJyKQorCQlyZXR1cm4gZXJyOworCisJaWYg
+KCFtb2RlKQorCQltb2RlID0gaW5mby0+bW9kZTsKKwlyZXR1cm4gMDsKK30KKworc3RhdGljIHZv
+aWQKK3NlY21hcmtfbXRfZGVzdHJveShjb25zdCBzdHJ1Y3QgeHRfbXRkdG9yX3BhcmFtICpwYXIp
+IHsgfQorCitzdGF0aWMgc3RydWN0IHh0X21hdGNoIHNlY21hcmtfbXRfcmVnIF9fcmVhZF9tb3N0
+bHkgPSB7CisJLm5hbWUgICAgICAgPSAic2VjbWFyayIsCisJLmZhbWlseSAgICAgPSBORlBST1RP
+X1VOU1BFQywKKwkuY2hlY2tlbnRyeSA9IHNlY21hcmtfbXRfY2hlY2tlbnRyeSwKKwkubWF0Y2gg
+ICAgICA9IHNlY21hcmtfbXQsCisJLmRlc3Ryb3kgICAgPSBzZWNtYXJrX210X2Rlc3Ryb3ksCisJ
+Lm1hdGNoc2l6ZSAgPSBzaXplb2Yoc3RydWN0IHh0X3NlY21hcmtfbWF0Y2hfaW5mbyksCisJLm1l
+ICAgICAgICAgPSBUSElTX01PRFVMRSwKK307CisKK3N0YXRpYyBpbnQgX19pbml0IHNlY21hcmtf
+bXRfaW5pdCh2b2lkKQoreworCXJldHVybiB4dF9yZWdpc3Rlcl9tYXRjaCgmc2VjbWFya19tdF9y
+ZWcpOworfQorCitzdGF0aWMgdm9pZCBfX2V4aXQgc2VjbWFya19tdF9leGl0KHZvaWQpCit7CisJ
+eHRfdW5yZWdpc3Rlcl9tYXRjaCgmc2VjbWFya19tdF9yZWcpOworfQorCittb2R1bGVfaW5pdChz
+ZWNtYXJrX210X2luaXQpOworbW9kdWxlX2V4aXQoc2VjbWFya19tdF9leGl0KTsKCgoKCi0tCnNl
+bGludXggbWFpbGluZyBsaXN0CnNlbGludXhAbGlzdHMuZmVkb3JhcHJvamVjdC5vcmcKaHR0cHM6
+Ly9hZG1pbi5mZWRvcmFwcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL3NlbGludXg=
