@@ -1,88 +1,64 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 3/5] iptables: fall back to using save function when print is not defined
-Date: Tue,  5 Mar 2013 02:08:13 +0100
-Message-ID: <1362445695-15952-4-git-send-email-jengelh@inai.de>
+Subject: [PATCH 5/5] libxtables: constify xtables_option_[mt]fcall argument
+Date: Tue,  5 Mar 2013 02:08:15 +0100
+Message-ID: <1362445695-15952-6-git-send-email-jengelh@inai.de>
 References: <1362445695-15952-1-git-send-email-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:45719 "EHLO ares07.inai.de"
+Received: from ares07.inai.de ([5.9.24.206]:45720 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758948Ab3CEBIR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Mar 2013 20:08:17 -0500
+	id S932354Ab3CEBIS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 4 Mar 2013 20:08:18 -0500
 In-Reply-To: <1362445695-15952-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This way we can avoid having to provide two dumping function for new
-plugins.
+Nothing modifies the match/target, so we can mark it const.
 
 Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- iptables/ip6tables.c |   10 ++++++++--
- iptables/iptables.c  |   10 ++++++++--
- 2 files changed, 16 insertions(+), 4 deletions(-)
+ include/xtables.h      |    4 ++--
+ libxtables/xtoptions.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
-index aeeb62a..6a85d83 100644
---- a/iptables/ip6tables.c
-+++ b/iptables/ip6tables.c
-@@ -487,10 +487,14 @@ print_match(const struct xt_entry_match *m,
- 		xtables_find_match(m->u.user.name, XTF_TRY_LOAD, NULL);
+diff --git a/include/xtables.h b/include/xtables.h
+index c35a6e6..f14914c 100644
+--- a/include/xtables.h
++++ b/include/xtables.h
+@@ -535,8 +535,8 @@ extern void xtables_option_tpcall(unsigned int, char **, bool,
+ 				  struct xtables_target *, void *);
+ extern void xtables_option_mpcall(unsigned int, char **, bool,
+ 				  struct xtables_match *, void *);
+-extern void xtables_option_tfcall(struct xtables_target *);
+-extern void xtables_option_mfcall(struct xtables_match *);
++extern void xtables_option_tfcall(const struct xtables_target *);
++extern void xtables_option_mfcall(const struct xtables_match *);
+ extern void xtables_options_fcheck(const char *, unsigned int,
+ 				   const struct xt_option_entry *);
  
- 	if (match) {
--		if (match->print)
-+		if (match->print) {
- 			match->print(ip, m, numeric);
--		else
-+		} else if (match->save != NULL) {
-+			printf("-m %s ", match->name);
-+			match->save(ip, m);
-+		} else {
- 			printf("%s ", match->name);
-+		}
- 	} else {
- 		if (m->u.user.name[0])
- 			printf("UNKNOWN match `%s' ", m->u.user.name);
-@@ -617,6 +621,8 @@ print_firewall(const struct ip6t_entry *fw,
- 		if (target->print)
- 			/* Print the target information. */
- 			target->print(&fw->ipv6, t, format & FMT_NUMERIC);
-+		else if (target->save != NULL)
-+			target->save(&fw->ipv6, t);
- 	} else if (t->u.target_size != sizeof(*t))
- 		printf("[%u bytes of unknown target data] ",
- 		       (unsigned int)(t->u.target_size - sizeof(*t)));
-diff --git a/iptables/iptables.c b/iptables/iptables.c
-index 27bd5b4..757d9d3 100644
---- a/iptables/iptables.c
-+++ b/iptables/iptables.c
-@@ -472,10 +472,14 @@ print_match(const struct xt_entry_match *m,
- 		xtables_find_match(m->u.user.name, XTF_TRY_LOAD, NULL);
- 
- 	if (match) {
--		if (match->print)
-+		if (match->print) {
- 			match->print(ip, m, numeric);
--		else
-+		} else if (match->save != NULL) {
-+			printf("-m %s ", match->name);
-+			match->save(ip, m);
-+		} else {
- 			printf("%s ", match->name);
-+		}
- 	} else {
- 		if (m->u.user.name[0])
- 			printf("UNKNOWN match `%s' ", m->u.user.name);
-@@ -602,6 +606,8 @@ print_firewall(const struct ipt_entry *fw,
- 		if (target->print)
- 			/* Print the target information. */
- 			target->print(&fw->ip, t, format & FMT_NUMERIC);
-+		else if (target->save != NULL)
-+			target->save(&fw->ip, t);
- 	} else if (t->u.target_size != sizeof(*t))
- 		printf("[%u bytes of unknown target data] ",
- 		       (unsigned int)(t->u.target_size - sizeof(*t)));
+diff --git a/libxtables/xtoptions.c b/libxtables/xtoptions.c
+index 452e0fe..01c626c 100644
+--- a/libxtables/xtoptions.c
++++ b/libxtables/xtoptions.c
+@@ -1034,7 +1034,7 @@ void xtables_options_fcheck(const char *name, unsigned int xflags,
+  * Dispatch arguments to the appropriate final_check function, based upon the
+  * extension's choice of API.
+  */
+-void xtables_option_tfcall(struct xtables_target *t)
++void xtables_option_tfcall(const struct xtables_target *t)
+ {
+ 	if (t->x6_fcheck != NULL) {
+ 		struct xt_fcheck_call cb;
+@@ -1055,7 +1055,7 @@ void xtables_option_tfcall(struct xtables_target *t)
+  * Dispatch arguments to the appropriate final_check function, based upon the
+  * extension's choice of API.
+  */
+-void xtables_option_mfcall(struct xtables_match *m)
++void xtables_option_mfcall(const struct xtables_match *m)
+ {
+ 	if (m->x6_fcheck != NULL) {
+ 		struct xt_fcheck_call cb;
 -- 
 1.7.10.4
 
