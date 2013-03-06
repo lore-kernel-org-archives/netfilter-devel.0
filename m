@@ -1,35 +1,40 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: iptables: build fixes
-Date: Wed, 6 Mar 2013 06:13:19 +0100 (CET)
-Message-ID: <alpine.LNX.2.01.1303060612480.28932@nerf07.vanv.qr>
-References: <1357830919-10367-1-git-send-email-jengelh@inai.de> <20130112024915.GA22315@altlinux.org> <20130306000833.GA30360@altlinux.org>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-To: "Dmitry V. Levin" <ldv@altlinux.org>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: [PATCH nftables] nftables: fix compilation when nf-netlink is a module
+Date: Wed,  6 Mar 2013 11:26:37 +0100
+Message-ID: <1362565597-2391-1-git-send-email-nicolas.dichtel@6wind.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Nicolas Dichtel <nicolas.dichtel@6wind.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares07.inai.de ([5.9.24.206]:59689 "EHLO ares07.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750794Ab3CFFNV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Mar 2013 00:13:21 -0500
-In-Reply-To: <20130306000833.GA30360@altlinux.org>
+Received: from 33.106-14-84.ripe.coltfrance.com ([84.14.106.33]:52236 "EHLO
+	proxy.6wind.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756732Ab3CFKet (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 6 Mar 2013 05:34:49 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 2013-03-06 01:08, Dmitry V. Levin wrote:
->On Sat, Jan 12, 2013 at 06:49:15AM +0400, Dmitry V. Levin wrote:
->> On Thu, Jan 10, 2013 at 04:15:17PM +0100, Jan Engelhardt wrote:
->> [...]
->> > Jan Engelhardt (2):
->> >       build: also use libtool for install stage
->> >       build: do not dereference symlinks on installation
->> > 
->> >  extensions/GNUmakefile.in |   21 +++++++++++++++------
->> >  1 file changed, 15 insertions(+), 6 deletions(-)
->> 
->> Acked-by: Dmitry V. Levin <ldv@altlinux.org>
->
->Any idea why these fixed didn't get into 1.4.18?
+nftables uses nfnl_[un]lock() and thus depends on CONFIG_NETFILTER_NETLINK.
+It's not possible to have nftables built-in when CONFIG_NETFILTER_NETLINK is set
+to m.
 
-http://www.spinics.net/lists/netfilter-devel/msg25045.html
-and its reply ("Thread Next" link).
+Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+---
+ net/netfilter/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 7d1c3c0..acf6705 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -430,6 +430,7 @@ config NETFILTER_XTABLES
+ 	  ip6_tables or arp_tables.
+ 
+ config NF_TABLES
++       depends on NETFILTER_NETLINK
+        tristate "Netfilter nf_tables support"
+ 
+ config NFT_PAYLOAD
+-- 
+1.8.0.1
+
