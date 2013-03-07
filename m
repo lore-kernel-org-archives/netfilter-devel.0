@@ -1,44 +1,28 @@
-From: pablo@netfilter.org
-Subject: [PATCH 2/3] netfilter: xt_AUDIT: only generate audit log when audit enabled
-Date: Thu,  7 Mar 2013 12:00:01 +0100
-Message-ID: <1362654002-4405-3-git-send-email-pablo@netfilter.org>
-References: <1362654002-4405-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org
-To: netdev@vger.kernel.org
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: re L4 conntracking netns conversion
+Date: Thu, 7 Mar 2013 13:50:45 +0200
+Message-ID: <CACVxJT9mPb+Fh7gc-PYwC288sjJct+-s5bSZ783j_6tiTNJKMg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: netdev <netdev@vger.kernel.org>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Gao feng <gaofeng@cn.fujitsu.com>,
+	"Eric W. Biederman" <ebiederm@xmission.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41597 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756010Ab3CGLAU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Mar 2013 06:00:20 -0500
-In-Reply-To: <1362654002-4405-1-git-send-email-pablo@netfilter.org>
+Received: from mail-la0-f47.google.com ([209.85.215.47]:56795 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932664Ab3CGLur (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 7 Mar 2013 06:50:47 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao feng <gaofeng@cn.fujitsu.com>
+Lots of netns changes!
 
-We should stop generting audit log if audit is disabled.
+I can't verify right now, but unless I'm not mistaken,
+every L4 protocol conversion is buggy/oopsable/remotely ddosable
+because per-netns stuff is initialized after protocol is hooked into
+master dispatcher.
 
-Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
-Acked-by: Thomas Graf <tgraf@suug.ch>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/xt_AUDIT.c |    3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
-index ba92824..3228d7f 100644
---- a/net/netfilter/xt_AUDIT.c
-+++ b/net/netfilter/xt_AUDIT.c
-@@ -124,6 +124,9 @@ audit_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 	const struct xt_audit_info *info = par->targinfo;
- 	struct audit_buffer *ab;
- 
-+	if (audit_enabled == 0)
-+		goto errout;
-+
- 	ab = audit_log_start(NULL, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
- 	if (ab == NULL)
- 		goto errout;
--- 
-1.7.10.4
-
+See c296bb4d5d417d466c9bcc8afef68a3db5449a64.
