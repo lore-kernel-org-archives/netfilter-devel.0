@@ -1,28 +1,39 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: re L4 conntracking netns conversion
-Date: Thu, 7 Mar 2013 13:50:45 +0200
-Message-ID: <CACVxJT9mPb+Fh7gc-PYwC288sjJct+-s5bSZ783j_6tiTNJKMg@mail.gmail.com>
+From: David Miller <davem@redhat.com>
+Subject: Re: [PATCH 0/3] netfilter fixes for your net tree
+Date: Thu, 07 Mar 2013 15:23:41 -0500 (EST)
+Message-ID: <20130307.152341.1494792387347754637.davem@redhat.com>
+References: <1362654002-4405-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netdev <netdev@vger.kernel.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Gao feng <gaofeng@cn.fujitsu.com>,
-	"Eric W. Biederman" <ebiederm@xmission.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:56795 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932664Ab3CGLur (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Mar 2013 06:50:47 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:19162 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751391Ab3CGUXo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 7 Mar 2013 15:23:44 -0500
+In-Reply-To: <1362654002-4405-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Lots of netns changes!
+From: pablo@netfilter.org
+Date: Thu,  7 Mar 2013 11:59:59 +0100
 
-I can't verify right now, but unless I'm not mistaken,
-every L4 protocol conversion is buggy/oopsable/remotely ddosable
-because per-netns stuff is initialized after protocol is hooked into
-master dispatcher.
+> The following patchset contains Netfilter fixes for your net tree,
+> they are:
+> 
+> * Don't generate audit log message if audit is not enabled, from Gao Feng.
+> 
+> * Fix logging formatting for packets dropped by helpers, by Joe Perches.
+> 
+> * Fix a compilation warning in nfnetlink if CONFIG_PROVE_RCU is not set,
+>   from Paul Bolle.
+> 
+> You can pull these changes from:
+> 
+> git://1984.lsi.us.es/nf master
 
-See c296bb4d5d417d466c9bcc8afef68a3db5449a64.
+Pulled, but keep in mind that if there are any bugs in these changes I
+know exactly where you are. :-)
+
