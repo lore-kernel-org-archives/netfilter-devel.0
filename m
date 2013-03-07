@@ -1,39 +1,40 @@
-From: David Miller <davem@redhat.com>
-Subject: Re: [PATCH 0/3] netfilter fixes for your net tree
-Date: Thu, 07 Mar 2013 15:23:41 -0500 (EST)
-Message-ID: <20130307.152341.1494792387347754637.davem@redhat.com>
-References: <1362654002-4405-1-git-send-email-pablo@netfilter.org>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH 1/6] build: also use libtool for install stage
+Date: Thu, 7 Mar 2013 21:39:30 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1303072138210.22653@nerf07.vanv.qr>
+References: <1359381586-11940-1-git-send-email-jengelh@inai.de> <1359381586-11940-2-git-send-email-jengelh@inai.de> <20130205033007.GA20407@localhost> <20130306110836.GA4017@altlinux.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: "Dmitry V. Levin" <ldv@altlinux.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19162 "EHLO mx1.redhat.com"
+Received: from ares07.inai.de ([5.9.24.206]:39268 "EHLO ares07.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751391Ab3CGUXo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Mar 2013 15:23:44 -0500
-In-Reply-To: <1362654002-4405-1-git-send-email-pablo@netfilter.org>
+	id S932747Ab3CGUjb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 7 Mar 2013 15:39:31 -0500
+In-Reply-To: <20130306110836.GA4017@altlinux.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: pablo@netfilter.org
-Date: Thu,  7 Mar 2013 11:59:59 +0100
 
-> The following patchset contains Netfilter fixes for your net tree,
-> they are:
-> 
-> * Don't generate audit log message if audit is not enabled, from Gao Feng.
-> 
-> * Fix logging formatting for packets dropped by helpers, by Joe Perches.
-> 
-> * Fix a compilation warning in nfnetlink if CONFIG_PROVE_RCU is not set,
->   from Paul Bolle.
-> 
-> You can pull these changes from:
-> 
-> git://1984.lsi.us.es/nf master
+On Wednesday 2013-03-06 12:08, Dmitry V. Levin wrote:
+>> > 
+>> > There will be extra "warnings" emitted by libtool during `make install`,
+>> > like:
+>> > 
+>> > 	libtool: install: warning: relinking "libxt_AUDIT.la"
+>> > 
+>> > This is normal (and unfixable)
+>> 
+>> I prefer that distros live with that warning. Users will be annoyed by
+>> that warning for sure.
+>
+>[...]
+>With regards to libtool's warnings about relinking, it happens to all
+>hundreds of packages that manipulate RPATH entries during build, so
+>the amount of annoyance among libtool users would hardly increase.
 
-Pulled, but keep in mind that if there are any bugs in these changes I
-know exactly where you are. :-)
-
+That said, the --no-warn option is only available in libtool >= 2.4.2
+or so; it is not present in 2.4(.0).
+I nevertheless have a patch (unpushed) ontop of my latest set (pushed).
