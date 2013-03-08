@@ -1,169 +1,40 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: [PATCH] netfilter: register pernet subsystem before register L4 proto
-Date: Fri, 8 Mar 2013 11:20:46 +0800
-Message-ID: <1362712846-12954-1-git-send-email-gaofeng@cn.fujitsu.com>
-Cc: pablo@netfilter.org, ebiederm@xmission.com,
-	Gao feng <gaofeng@cn.fujitsu.com>,
-	Alexey Dobriyan <adobriyan@gmail.com>
-To: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+From: =?ISO-8859-1?Q?Miguel_Alejandro_Gonz=E1lez?= <maggonzz@gmail.com>
+Subject: NAT64 - Netfilter module
+Date: Thu, 7 Mar 2013 22:09:25 -0600
+Message-ID: <CAOSBYzfUBvV5pv63+VtOMF=QiBrFzk4sHxRRrxT83U8mR9i40g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:62611 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1755874Ab3CHD22 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Mar 2013 22:28:28 -0500
+Received: from mail-qe0-f49.google.com ([209.85.128.49]:50902 "EHLO
+	mail-qe0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759549Ab3CHEJ0 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 7 Mar 2013 23:09:26 -0500
+Received: by mail-qe0-f49.google.com with SMTP id 1so760833qec.22
+        for <netfilter-devel@vger.kernel.org>; Thu, 07 Mar 2013 20:09:25 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-In commit c296bb4d5d417d466c9bcc8afef68a3db5449a64
-"netfilter: nf_conntrack: refactor l4proto support for netns",
-we register l4proto gre/dccp/udplite/sctp before register
-pernet subsystem,it's a wrong order.
+Hello everybody,
 
-We should register pernet subsystem before register L4proto,
-since after register L4proto, init_conntrack may try to access
-the resources which allocated in register_pernet_subsys.
+I just want to tell you about the project we've been doing for the past months.
 
-Reported-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
----
- net/netfilter/nf_conntrack_proto_dccp.c    | 12 ++++++------
- net/netfilter/nf_conntrack_proto_gre.c     | 12 ++++++------
- net/netfilter/nf_conntrack_proto_sctp.c    | 12 ++++++------
- net/netfilter/nf_conntrack_proto_udplite.c | 12 ++++++------
- 4 files changed, 24 insertions(+), 24 deletions(-)
+Mainly I just want to hear your expert opinion about the
+implementation and to see if there is a possibility to be added to
+main netfilter code.
 
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index 432f957..ba65b20 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -969,6 +969,10 @@ static int __init nf_conntrack_proto_dccp_init(void)
- {
- 	int ret;
- 
-+	ret = register_pernet_subsys(&dccp_net_ops);
-+	if (ret < 0)
-+		goto out_pernet;
-+
- 	ret = nf_ct_l4proto_register(&dccp_proto4);
- 	if (ret < 0)
- 		goto out_dccp4;
-@@ -977,16 +981,12 @@ static int __init nf_conntrack_proto_dccp_init(void)
- 	if (ret < 0)
- 		goto out_dccp6;
- 
--	ret = register_pernet_subsys(&dccp_net_ops);
--	if (ret < 0)
--		goto out_pernet;
--
- 	return 0;
--out_pernet:
--	nf_ct_l4proto_unregister(&dccp_proto6);
- out_dccp6:
- 	nf_ct_l4proto_unregister(&dccp_proto4);
- out_dccp4:
-+	unregister_pernet_subsys(&dccp_net_ops);
-+out_pernet:
- 	return ret;
- }
- 
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
-index bd7d01d..155ce9f 100644
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -420,18 +420,18 @@ static int __init nf_ct_proto_gre_init(void)
- {
- 	int ret;
- 
--	ret = nf_ct_l4proto_register(&nf_conntrack_l4proto_gre4);
--	if (ret < 0)
--		goto out_gre4;
--
- 	ret = register_pernet_subsys(&proto_gre_net_ops);
- 	if (ret < 0)
- 		goto out_pernet;
- 
-+	ret = nf_ct_l4proto_register(&nf_conntrack_l4proto_gre4);
-+	if (ret < 0)
-+		goto out_gre4;
-+
- 	return 0;
--out_pernet:
--	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_gre4);
- out_gre4:
-+	unregister_pernet_subsys(&proto_gre_net_ops);
-+out_pernet:
- 	return ret;
- }
- 
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 480f616..ec83536 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -888,6 +888,10 @@ static int __init nf_conntrack_proto_sctp_init(void)
- {
- 	int ret;
- 
-+	ret = register_pernet_subsys(&sctp_net_ops);
-+	if (ret < 0)
-+		goto out_pernet;
-+
- 	ret = nf_ct_l4proto_register(&nf_conntrack_l4proto_sctp4);
- 	if (ret < 0)
- 		goto out_sctp4;
-@@ -896,16 +900,12 @@ static int __init nf_conntrack_proto_sctp_init(void)
- 	if (ret < 0)
- 		goto out_sctp6;
- 
--	ret = register_pernet_subsys(&sctp_net_ops);
--	if (ret < 0)
--		goto out_pernet;
--
- 	return 0;
--out_pernet:
--	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_sctp6);
- out_sctp6:
- 	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_sctp4);
- out_sctp4:
-+	unregister_pernet_subsys(&sctp_net_ops);
-+out_pernet:
- 	return ret;
- }
- 
-diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
-index 1574895..ca969f6 100644
---- a/net/netfilter/nf_conntrack_proto_udplite.c
-+++ b/net/netfilter/nf_conntrack_proto_udplite.c
-@@ -371,6 +371,10 @@ static int __init nf_conntrack_proto_udplite_init(void)
- {
- 	int ret;
- 
-+	ret = register_pernet_subsys(&udplite_net_ops);
-+	if (ret < 0)
-+		goto out_pernet;
-+
- 	ret = nf_ct_l4proto_register(&nf_conntrack_l4proto_udplite4);
- 	if (ret < 0)
- 		goto out_udplite4;
-@@ -379,16 +383,12 @@ static int __init nf_conntrack_proto_udplite_init(void)
- 	if (ret < 0)
- 		goto out_udplite6;
- 
--	ret = register_pernet_subsys(&udplite_net_ops);
--	if (ret < 0)
--		goto out_pernet;
--
- 	return 0;
--out_pernet:
--	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_udplite6);
- out_udplite6:
- 	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_udplite4);
- out_udplite4:
-+	unregister_pernet_subsys(&udplite_net_ops);
-+out_pernet:
- 	return ret;
- }
- 
--- 
-1.7.11.7
+The code is on a testing phase and bugs are being fixed, but I think
+you can get the main idea of the implementation reading quickly
+through the code.
 
+Feel free to read the code, test it and report any issue, bad
+implementation, error, etc.
+
+Documentation is provided in the source code, if you have any question
+don't hesitate send them to the Github page or add an issue or even
+contribute to the code!
+
+Source code: https://github.com/NICMx/NAT64
+
+Regards!
