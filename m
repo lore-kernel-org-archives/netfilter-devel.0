@@ -1,40 +1,34 @@
-From: =?ISO-8859-1?Q?Miguel_Alejandro_Gonz=E1lez?= <maggonzz@gmail.com>
-Subject: NAT64 - Netfilter module
-Date: Thu, 7 Mar 2013 22:09:25 -0600
-Message-ID: <CAOSBYzfUBvV5pv63+VtOMF=QiBrFzk4sHxRRrxT83U8mR9i40g@mail.gmail.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: conntrack-tools: dying and unconfirmed list not accessible
+Date: Mon, 11 Mar 2013 13:45:43 +0100 (CET)
+Message-ID: <alpine.LNX.2.01.1303111344120.25847@nerf07.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qe0-f49.google.com ([209.85.128.49]:50902 "EHLO
-	mail-qe0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759549Ab3CHEJ0 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Mar 2013 23:09:26 -0500
-Received: by mail-qe0-f49.google.com with SMTP id 1so760833qec.22
-        for <netfilter-devel@vger.kernel.org>; Thu, 07 Mar 2013 20:09:25 -0800 (PST)
+Received: from ares07.inai.de ([5.9.24.206]:53243 "EHLO ares07.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753478Ab3CKMpp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 Mar 2013 08:45:45 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello everybody,
+Hi,
 
-I just want to tell you about the project we've been doing for the past months.
 
-Mainly I just want to hear your expert opinion about the
-implementation and to see if there is a possibility to be added to
-main netfilter code.
+In kernel 3.7.10 and a recent conntrack-tools, there seems to be a 
+problem with dumping the dying and confirm list.
 
-The code is on a testing phase and bugs are being fixed, but I think
-you can get the main idea of the implementation reading quickly
-through the code.
+# conntrack -L dying
+conntrack v1.4.1 (conntrack-tools): Operation failed: invalid parameters
+# conntrack -L unconfirmed
+conntrack v1.4.1 (conntrack-tools): Operation failed: invalid parameters
 
-Feel free to read the code, test it and report any issue, bad
-implementation, error, etc.
+Is it perhaps that this is 3.8.x material?
 
-Documentation is provided in the source code, if you have any question
-don't hesitate send them to the Github page or add an issue or even
-contribute to the code!
+The two new tables should also get a description in conntrack.8.
 
-Source code: https://github.com/NICMx/NAT64
 
-Regards!
+thanks,
+Jan
