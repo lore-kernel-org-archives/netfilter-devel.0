@@ -1,47 +1,32 @@
-From: Hannes Frederic Sowa <hannes@stressinduktion.org>
-Subject: [PATCH net-next] ipv6: use ipv6_iface_scope_id in conntrack to return scope id
-Date: Tue, 12 Mar 2013 22:21:36 +0100
-Message-ID: <20130312212136.GB14801@order.stressinduktion.org>
+From: <ggeorgiev@eurista.com>
+Subject: Need a way to match vlan / pcp fields in 802.1q header - from netfilter
+ list
+Date: Tue, 12 Mar 2013 15:33:32 -0700
+Message-ID: <20130312153332.e96aff9bbdc3fe78db33ffdcbc125810.e9b5961a6f.wbe@email03.secureserver.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Cc: yoshfuji@linux-ipv6.org, netdev@vger.kernel.org,
-	pablo@netfilter.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from order.stressinduktion.org ([87.106.68.36]:59695 "EHLO
-	order.stressinduktion.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755391Ab3CLVVh (ORCPT
+Received: from p3plsmtp03-04-2.prod.phx3.secureserver.net ([72.167.218.216]:59205
+	"EHLO p3plwbeout03-04.prod.phx3.secureserver.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756152Ab3CLWie convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Mar 2013 17:21:37 -0400
-Content-Disposition: inline
+	Tue, 12 Mar 2013 18:38:34 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Cc: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Signed-off-by: Hannes Frederic Sowa <hannes@stressinduktion.org>
----
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+Hello everyone,
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index 2b6c226..97bcf2b 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -330,12 +330,8 @@ ipv6_getorigdst(struct sock *sk, int optval, void __user *user, int *len)
- 					sizeof(sin6.sin6_addr));
- 
- 	nf_ct_put(ct);
--
--	if (ipv6_addr_type(&sin6.sin6_addr) & IPV6_ADDR_LINKLOCAL)
--		sin6.sin6_scope_id = sk->sk_bound_dev_if;
--	else
--		sin6.sin6_scope_id = 0;
--
-+	sin6.sin6_scope_id = ipv6_iface_scope_id(&sin6.sin6_addr,
-+						 sk->sk_bound_dev_if);
- 	return copy_to_user(user, &sin6, sizeof(sin6)) ? -EFAULT : 0;
- }
- 
--- 
-1.8.1.4
+I need an advice of how to make an ebtables/iptables rule or custom
+application, matching 802.1q CoS field on the raw vlan interface (eth0),
+and no one seems to have an idea in the 'netfilter' list.
+Libnetfilter_queue seems to be of no use, as iptables do not see the
+vlan tag, so what is the alternative? 
 
+For more details you can check the recent article with similar name in
+'netfilter' list. Will really appreciate an advice of how to handle this
+task. Am I first ever to need this?
+
+Thanks, George.
