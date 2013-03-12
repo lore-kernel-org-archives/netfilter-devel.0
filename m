@@ -1,65 +1,61 @@
-From: Holger Eitzenberger <holger@eitzenberger.org>
-Subject: [PATCH] xtables-addons: build against 3.8.y
-Date: Tue, 12 Mar 2013 09:18:12 +0100
-Message-ID: <20130312081812.GB11508@imap.eitzenberger.org>
+From: Matthias Schiffer <mschiffer@universe-factory.net>
+Subject: Re: Unable to get NPTv6 to work with kernel 3.8.2
+Date: Tue, 12 Mar 2013 09:34:54 +0100
+Message-ID: <513EE8AE.2090406@universe-factory.net>
+References: <513DE42B.5070702@universe-factory.net> <20130312061101.GB7938@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="G4iJoqBmSsgzjUCe"
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@inai.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="----enig2GXXMTQHJNGOPNHGKNONG"
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:61635 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752880Ab3CLISQ (ORCPT
+Received: from chaos.universe-factory.net ([5.9.180.86]:54623 "EHLO
+	chaos.universe-factory.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753125Ab3CLIe6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Mar 2013 04:18:16 -0400
-Content-Disposition: inline
+	Tue, 12 Mar 2013 04:34:58 -0400
+In-Reply-To: <20130312061101.GB7938@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+------enig2GXXMTQHJNGOPNHGKNONG
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
---G4iJoqBmSsgzjUCe
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On 03/12/2013 07:11 AM, Florian Westphal wrote:
+> Matthias Schiffer <mschiffer@universe-factory.net> wrote:
+>> ip6tables -t nat -A OUTPUT -d fd00:0:0:3::/64 -j DNPT --src-pfx
+>> fd00:0:0:3::/64 --dst-pfx fd00:0:0:1::/64
+> [..]
+>=20
+> This won't work, DNPT is stateless, the nat table is only consulted
+> for the first packet of a connection.
+>=20
+> Use mangle instead, this should also take care of possible new
+> route due to changed dst address.
+>=20
 
-Hi Jan,
+Ah, thanks for your pointer. Everything seems to work correctly now :)
 
-I see that xtables-addons 1.47.1 do not build against kernel 3.8.2,
-because of ipv6_find_hdr() having moved to <net/ipv6.h>.  And this
-include is missing from xt_SYSREQ.c:
-
-extensions/xt_SYSRQ.c: In function 'sysrq_tg6':
-extensions/xt_SYSRQ.c:251: xt_SYSRQ.c:251: error: implicit declaration \
-	of function 'ipv6_find_ hdr'
-
-The attached patch fixes that.
-
-Please check.
-
- /Holger
+Best regards,
+Matthias Schiffer
 
 
---G4iJoqBmSsgzjUCe
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="0001-ipv6_find_hdr-has-moved.diff"
 
-xt_SYSRQ: include <net/ipv6.h>
+------enig2GXXMTQHJNGOPNHGKNONG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-ipv6_find_hdr() has moved to <net/ipv6.h> since kernel
-v3.8.  It is necessary to include this header as well.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
+iEYEARECAAYFAlE+6K8ACgkQq3qIxbiQM9jTDACfSJxmOhzj6okvT1+dpdZ6oje6
+YkMAoIEwoRlpG+VIAtsGkRNGfVCxd3mP
+=1CTX
+-----END PGP SIGNATURE-----
 
-Index: xtables-addons-1.47.1/extensions/xt_SYSRQ.c
-===================================================================
---- xtables-addons-1.47.1.orig/extensions/xt_SYSRQ.c
-+++ xtables-addons-1.47.1/extensions/xt_SYSRQ.c
-@@ -24,6 +24,7 @@
- #include <linux/crypto.h>
- #include <linux/scatterlist.h>
- #include <net/ip.h>
-+#include <net/ipv6.h>
- #include "compat_xtables.h"
- 
- #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 19) && \
-
---G4iJoqBmSsgzjUCe--
+------enig2GXXMTQHJNGOPNHGKNONG--
