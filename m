@@ -1,46 +1,47 @@
-From: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
-Subject: [PATCH] bridge: netfilter: use PTR_RET instead of IS_ERR + PTR_ERR
-Date: Tue, 12 Mar 2013 20:11:33 +0200
-Message-ID: <1363111893-25146-1-git-send-email-silviupopescu1990@gmail.com>
-Cc: bart.de.schuymer@pandora.be, pablo@netfilter.org, kaber@trash.net,
-	stephen@networkplumber.org, davem@davemloft.net,
-	netfilter@vger.kernel.org, coreteam@netfilter.org,
-	bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
+From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Subject: [PATCH net-next] ipv6: use ipv6_iface_scope_id in conntrack to return scope id
+Date: Tue, 12 Mar 2013 22:21:36 +0100
+Message-ID: <20130312212136.GB14801@order.stressinduktion.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Cc: yoshfuji@linux-ipv6.org, netdev@vger.kernel.org,
+	pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:36854 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932465Ab3CLSLn (ORCPT
+Received: from order.stressinduktion.org ([87.106.68.36]:59695 "EHLO
+	order.stressinduktion.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755391Ab3CLVVh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Mar 2013 14:11:43 -0400
+	Tue, 12 Mar 2013 17:21:37 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This uses PTR_RET instead of IS_ERR and PTR_ERR in order to increase
-readability.
-
-Signed-off-by: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
+Cc: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Signed-off-by: Hannes Frederic Sowa <hannes@stressinduktion.org>
 ---
- net/bridge/netfilter/ebtable_broute.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebtable_broute.c b/net/bridge/netfilter/ebtable_broute.c
-index 40d8258..70f656c 100644
---- a/net/bridge/netfilter/ebtable_broute.c
-+++ b/net/bridge/netfilter/ebtable_broute.c
-@@ -64,9 +64,7 @@ static int ebt_broute(struct sk_buff *skb)
- static int __net_init broute_net_init(struct net *net)
- {
- 	net->xt.broute_table = ebt_register_table(net, &broute_table);
--	if (IS_ERR(net->xt.broute_table))
--		return PTR_ERR(net->xt.broute_table);
--	return 0;
-+	return PTR_RET(net->xt.broute_table);
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+index 2b6c226..97bcf2b 100644
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -330,12 +330,8 @@ ipv6_getorigdst(struct sock *sk, int optval, void __user *user, int *len)
+ 					sizeof(sin6.sin6_addr));
+ 
+ 	nf_ct_put(ct);
+-
+-	if (ipv6_addr_type(&sin6.sin6_addr) & IPV6_ADDR_LINKLOCAL)
+-		sin6.sin6_scope_id = sk->sk_bound_dev_if;
+-	else
+-		sin6.sin6_scope_id = 0;
+-
++	sin6.sin6_scope_id = ipv6_iface_scope_id(&sin6.sin6_addr,
++						 sk->sk_bound_dev_if);
+ 	return copy_to_user(user, &sin6, sizeof(sin6)) ? -EFAULT : 0;
  }
  
- static void __net_exit broute_net_exit(struct net *net)
 -- 
-1.7.9.5
+1.8.1.4
 
