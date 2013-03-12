@@ -1,67 +1,65 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: Unable to get NPTv6 to work with kernel 3.8.2
-Date: Tue, 12 Mar 2013 07:11:01 +0100
-Message-ID: <20130312061101.GB7938@breakpoint.cc>
-References: <513DE42B.5070702@universe-factory.net>
+From: Holger Eitzenberger <holger@eitzenberger.org>
+Subject: [PATCH] xtables-addons: build against 3.8.y
+Date: Tue, 12 Mar 2013 09:18:12 +0100
+Message-ID: <20130312081812.GB11508@imap.eitzenberger.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Matthias Schiffer <mschiffer@universe-factory.net>
+Content-Type: multipart/mixed; boundary="G4iJoqBmSsgzjUCe"
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:33981 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754860Ab3CLGLE (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:61635 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752880Ab3CLISQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Mar 2013 02:11:04 -0400
+	Tue, 12 Mar 2013 04:18:16 -0400
 Content-Disposition: inline
-In-Reply-To: <513DE42B.5070702@universe-factory.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Matthias Schiffer <mschiffer@universe-factory.net> wrote:
-> ip6tables -t nat -A OUTPUT -d fd00:0:0:3::/64 -j DNPT --src-pfx
-> fd00:0:0:3::/64 --dst-pfx fd00:0:0:1::/64
-[..]
 
-This won't work, DNPT is stateless, the nat table is only consulted
-for the first packet of a connection.
+--G4iJoqBmSsgzjUCe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Use mangle instead, this should also take care of possible new
-route due to changed dst address.
+Hi Jan,
 
-Any objections wrt. restricting NPT to mangle?
+I see that xtables-addons 1.47.1 do not build against kernel 3.8.2,
+because of ipv6_find_hdr() having moved to <net/ipv6.h>.  And this
+include is missing from xt_SYSREQ.c:
 
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH] netfilter: ip6t_NPT: restrict to mangle table
+extensions/xt_SYSRQ.c: In function 'sysrq_tg6':
+extensions/xt_SYSRQ.c:251: xt_SYSRQ.c:251: error: implicit declaration \
+	of function 'ipv6_find_ hdr'
 
-As the translation is stateless, using it in nat table
-doesn't work (only initial packet is translated).
-filter table OUTPUT works but won't re-route the packet after translation.
+The attached patch fixes that.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
-not even compile tested.
+Please check.
 
-diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
-index 83acc14..33608c6 100644
---- a/net/ipv6/netfilter/ip6t_NPT.c
-+++ b/net/ipv6/netfilter/ip6t_NPT.c
-@@ -114,6 +114,7 @@ ip6t_dnpt_tg(struct sk_buff *skb, const struct xt_action_param *par)
- static struct xt_target ip6t_npt_target_reg[] __read_mostly = {
- 	{
- 		.name		= "SNPT",
-+		.table		= "mangle",
- 		.target		= ip6t_snpt_tg,
- 		.targetsize	= sizeof(struct ip6t_npt_tginfo),
- 		.checkentry	= ip6t_npt_checkentry,
-@@ -124,6 +125,7 @@ static struct xt_target ip6t_npt_target_reg[] __read_mostly = {
- 	},
- 	{
- 		.name		= "DNPT",
-+		.table		= "mangle",
- 		.target		= ip6t_dnpt_tg,
- 		.targetsize	= sizeof(struct ip6t_npt_tginfo),
- 		.checkentry	= ip6t_npt_checkentry,
--- 
-1.7.12.4
+ /Holger
 
+
+--G4iJoqBmSsgzjUCe
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="0001-ipv6_find_hdr-has-moved.diff"
+
+xt_SYSRQ: include <net/ipv6.h>
+
+ipv6_find_hdr() has moved to <net/ipv6.h> since kernel
+v3.8.  It is necessary to include this header as well.
+
+Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
+
+Index: xtables-addons-1.47.1/extensions/xt_SYSRQ.c
+===================================================================
+--- xtables-addons-1.47.1.orig/extensions/xt_SYSRQ.c
++++ xtables-addons-1.47.1/extensions/xt_SYSRQ.c
+@@ -24,6 +24,7 @@
+ #include <linux/crypto.h>
+ #include <linux/scatterlist.h>
+ #include <net/ip.h>
++#include <net/ipv6.h>
+ #include "compat_xtables.h"
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 19) && \
+
+--G4iJoqBmSsgzjUCe--
