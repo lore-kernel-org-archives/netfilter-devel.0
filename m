@@ -1,38 +1,39 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [libmnl PATCH] doxygen: fix a variable name.
-Date: Thu, 14 Mar 2013 12:05:27 +0100
-Message-ID: <1363259128-9134-1-git-send-email-eric@regit.org>
-Cc: eric@regit.org
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nftables v2] nftables: fix compilation when nf-netlink is
+ a module
+Date: Thu, 14 Mar 2013 16:43:47 +0100
+Message-ID: <20130314154347.GA15759@localhost>
+References: <51372681.7010604@6wind.com>
+ <1362577327-16634-1-git-send-email-nicolas.dichtel@6wind.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:58507 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756200Ab3CNLGQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Mar 2013 07:06:16 -0400
+Received: from mail.us.es ([193.147.175.20]:45434 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755779Ab3CNPnx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 14 Mar 2013 11:43:53 -0400
+Content-Disposition: inline
+In-Reply-To: <1362577327-16634-1-git-send-email-nicolas.dichtel@6wind.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Variable name in doxygen description was not correct.
+On Wed, Mar 06, 2013 at 02:42:07PM +0100, Nicolas Dichtel wrote:
+> nftables uses nfnl_[un]lock() and thus depends on
+> CONFIG_NETFILTER_NETLINK.  It's not possible to have nftables
+> built-in when CONFIG_NETFILTER_NETLINK is set to m.
+> 
+> I also add a dependancy between NETFILTER_XTABLES and NFT_COMPAT
+> instead of automatically set NETFILTER_XTABLES when NFT_COMPAT is
+> set. This is to avoid a circular dependency:
+> 
+> net/netfilter/Kconfig:432:error: recursive dependency detected!
+> net/netfilter/Kconfig:432:	symbol NF_TABLES depends on NETFILTER_NETLINK
+> net/netfilter/Kconfig:4:	symbol NETFILTER_NETLINK is selected by NETFILTER_NETLINK_ACCT
+> net/netfilter/Kconfig:7:	symbol NETFILTER_NETLINK_ACCT is selected by NETFILTER_XT_MATCH_NFACCT
+> net/netfilter/Kconfig:1087:	symbol NETFILTER_XT_MATCH_NFACCT depends on NETFILTER_XTABLES
+> net/netfilter/Kconfig:425:	symbol NETFILTER_XTABLES is selected by NFT_COMPAT
+> net/netfilter/Kconfig:478:	symbol NFT_COMPAT depends on NF_TABLES
 
-Signed-off-by: Eric Leblond <eric@regit.org>
----
- src/nlmsg.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/src/nlmsg.c b/src/nlmsg.c
-index 000829e..fdb7af8 100644
---- a/src/nlmsg.c
-+++ b/src/nlmsg.c
-@@ -222,7 +222,7 @@ EXPORT_SYMBOL(mnl_nlmsg_seq_ok);
- /**
-  * mnl_nlmsg_portid_ok - perform portID origin check
-  * \param nlh current netlink message that we are handling
-- * \param seq netlink portid that we want to check
-+ * \param portid netlink portid that we want to check
-  *
-  * This functions returns true if the origin is fulfilled, otherwise
-  * false is returned. We skip the tracking for netlink message whose portID
--- 
-1.7.10.4
-
+Applied, thanks Nicolas.
