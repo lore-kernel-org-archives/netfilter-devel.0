@@ -1,27 +1,42 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables-nftables] iptables: fix compil when
- lib[mnl|nftables] are not in standard path
-Date: Thu, 14 Mar 2013 16:43:57 +0100
-Message-ID: <20130314154357.GB15759@localhost>
-References: <1362582031-17576-1-git-send-email-nicolas.dichtel@6wind.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+From: pablo@netfilter.org
+Subject: [PATCH 2/2] netfilter: nfnetlink_queue: fix incorrect initialization of copy range field
+Date: Thu, 14 Mar 2013 17:03:18 +0100
+Message-ID: <1363276999-30144-2-git-send-email-pablo@netfilter.org>
+References: <1363276999-30144-1-git-send-email-pablo@netfilter.org>
+Cc: eric.dumazet@gmail.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45465 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48510 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755779Ab3CNPoC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Mar 2013 11:44:02 -0400
-Content-Disposition: inline
-In-Reply-To: <1362582031-17576-1-git-send-email-nicolas.dichtel@6wind.com>
+	id S933603Ab3CNQDc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 14 Mar 2013 12:03:32 -0400
+In-Reply-To: <1363276999-30144-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 06, 2013 at 04:00:31PM +0100, Nicolas Dichtel wrote:
-> There was several problems:
->  a typo in the configure option
->  a typo in CFLAGS addon for libmnl and libnftables
->  paths to lib were missing on link
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Also applied, thanks.
+2^16 = 0xffff, not 0xfffff (note the extra 'f').
+
+Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nfnetlink_queue_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
+index 4512658..e81dad6 100644
+--- a/net/netfilter/nfnetlink_queue_core.c
++++ b/net/netfilter/nfnetlink_queue_core.c
+@@ -113,7 +113,7 @@ instance_create(u_int16_t queue_num, int portid)
+ 	inst->queue_num = queue_num;
+ 	inst->peer_portid = portid;
+ 	inst->queue_maxlen = NFQNL_QMAX_DEFAULT;
+-	inst->copy_range = 0xfffff;
++	inst->copy_range = 0xffff;
+ 	inst->copy_mode = NFQNL_COPY_NONE;
+ 	spin_lock_init(&inst->lock);
+ 	INIT_LIST_HEAD(&inst->queue_list);
+-- 
+1.7.10.4
+
