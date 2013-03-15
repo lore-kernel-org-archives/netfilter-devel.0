@@ -1,32 +1,40 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: register pernet subsystem before register L4
- proto
-Date: Fri, 15 Mar 2013 12:55:38 +0100
-Message-ID: <20130315115538.GA9608@localhost>
-References: <1362712846-12954-1-git-send-email-gaofeng@cn.fujitsu.com>
+Subject: Re: Unable to get NPTv6 to work with kernel 3.8.2
+Date: Fri, 15 Mar 2013 13:02:06 +0100
+Message-ID: <20130315120206.GA9625@localhost>
+References: <513DE42B.5070702@universe-factory.net>
+ <20130312061101.GB7938@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	ebiederm@xmission.com, Alexey Dobriyan <adobriyan@gmail.com>
-To: Gao feng <gaofeng@cn.fujitsu.com>
+Cc: Matthias Schiffer <mschiffer@universe-factory.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36360 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:38282 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753898Ab3COLzq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Mar 2013 07:55:46 -0400
+	id S1753967Ab3COMCM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Mar 2013 08:02:12 -0400
 Content-Disposition: inline
-In-Reply-To: <1362712846-12954-1-git-send-email-gaofeng@cn.fujitsu.com>
+In-Reply-To: <20130312061101.GB7938@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Mar 08, 2013 at 11:20:46AM +0800, Gao feng wrote:
-> In commit c296bb4d5d417d466c9bcc8afef68a3db5449a64
-> "netfilter: nf_conntrack: refactor l4proto support for netns",
-> we register l4proto gre/dccp/udplite/sctp before register
-> pernet subsystem,it's a wrong order.
+On Tue, Mar 12, 2013 at 07:11:01AM +0100, Florian Westphal wrote:
+> Matthias Schiffer <mschiffer@universe-factory.net> wrote:
+> > ip6tables -t nat -A OUTPUT -d fd00:0:0:3::/64 -j DNPT --src-pfx
+> > fd00:0:0:3::/64 --dst-pfx fd00:0:0:1::/64
+> [..]
 > 
-> We should register pernet subsystem before register L4proto,
-> since after register L4proto, init_conntrack may try to access
-> the resources which allocated in register_pernet_subsys.
+> This won't work, DNPT is stateless, the nat table is only consulted
+> for the first packet of a connection.
+> 
+> Use mangle instead, this should also take care of possible new
+> route due to changed dst address.
+> 
+> Any objections wrt. restricting NPT to mangle?
 
-Applied to nf tree, thanks.
+No. People are getting confused with this, so let's get this into the
+nf tree to hit mainstream as soon as possible.
+
+Applied, thanks Florian.
