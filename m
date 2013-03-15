@@ -1,39 +1,26 @@
-From: pablo@netfilter.org
-Subject: [PATCH 1/2] netfilter: nfnetlink_queue: use xor hash function to distribute instances
-Date: Thu, 14 Mar 2013 17:03:17 +0100
-Message-ID: <1363276999-30144-1-git-send-email-pablo@netfilter.org>
-Cc: eric.dumazet@gmail.com
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] libnetfilter_acct: use PRIu64 and remove unnecessary cast
+Date: Fri, 15 Mar 2013 12:47:27 +0100
+Message-ID: <20130315114727.GA8329@localhost>
+References: <20130305135943.GA4369@localhost>
+ <51363C27.3020305@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter developer mailing list <netfilter-devel@vger.kernel.org>
+To: Mr Dash Four <mr.dash.four@googlemail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48509 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:33519 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932394Ab3CNQDb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Mar 2013 12:03:31 -0400
+	id S1753908Ab3COLrf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Mar 2013 07:47:35 -0400
+Content-Disposition: inline
+In-Reply-To: <51363C27.3020305@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+On Tue, Mar 05, 2013 at 06:40:39PM +0000, Mr Dash Four wrote:
+> This patch corrects all nfacct_snprintf_* functions to use PRIu64,
+> given that we are using uint64_t type variables and also removes
+> the unnecessary casts.
 
-Thanks to Eric Dumazet for suggesting this during the NFWS.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nfnetlink_queue_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
-index 3158d87..4512658 100644
---- a/net/netfilter/nfnetlink_queue_core.c
-+++ b/net/netfilter/nfnetlink_queue_core.c
-@@ -73,7 +73,7 @@ static struct hlist_head instance_table[INSTANCE_BUCKETS] __read_mostly;
- 
- static inline u_int8_t instance_hashfn(u_int16_t queue_num)
- {
--	return ((queue_num >> 8) | queue_num) % INSTANCE_BUCKETS;
-+	return ((queue_num >> 8) ^ queue_num) % INSTANCE_BUCKETS;
- }
- 
- static struct nfqnl_instance *
--- 
-1.7.10.4
-
+Applied, thanks.
