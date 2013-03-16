@@ -1,77 +1,51 @@
-From: d tbsky <tbskyd@gmail.com>
-Subject: strange result of iptables command under race condition
-Date: Fri, 15 Mar 2013 22:47:02 +0800
-Message-ID: <CAC6SzH+8D0i1ggXKe3UYB5Jad8Wp+GsAP_JbonCFERnWzU2T3w@mail.gmail.com>
-References: <CAC6SzH+GZ+oKM9fxdw8Hax-rd=XxmdcrttDvSUVTkD=sJChz+g@mail.gmail.com>
+From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Subject: Re: [RFC PATCH net-next (V2, RESENT)] ipv6: Queue fragments per interface for multicast/link-local addresses.
+Date: Sat, 16 Mar 2013 08:47:45 +0100
+Message-ID: <20130316074745.GC24041@order.stressinduktion.org>
+References: <511F1E03.9010205@linux-ipv6.org> <511FB776.8000901@linux-ipv6.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
+To: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bk0-f53.google.com ([209.85.214.53]:58218 "EHLO
-	mail-bk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754703Ab3COOrE (ORCPT
+Received: from order.stressinduktion.org ([87.106.68.36]:38619 "EHLO
+	order.stressinduktion.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751927Ab3CPHrq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Mar 2013 10:47:04 -0400
-Received: by mail-bk0-f53.google.com with SMTP id j10so1532178bkw.40
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Mar 2013 07:47:02 -0700 (PDT)
-In-Reply-To: <CAC6SzH+GZ+oKM9fxdw8Hax-rd=XxmdcrttDvSUVTkD=sJChz+g@mail.gmail.com>
+	Sat, 16 Mar 2013 03:47:46 -0400
+Content-Disposition: inline
+In-Reply-To: <511FB776.8000901@linux-ipv6.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-hi:
-   I want to make my firewall script better, so it won't be bothered
-if there are other iptables command running in the same time.(like
-administrator invoke iptables command from shell.)
+On Sun, Feb 17, 2013 at 01:44:38AM +0900, YOSHIFUJI Hideaki wrote:
+> We should queue fragments for the same link-local address on
+> different interfaces (e.g. fe80::1%eth0 and fe80::1%eth1) to the
+> different queue, because of nature of addressing architecture.
+> 
+> Similarly, we should queue fragments for multicast on different
+> interface to the different queue.  This is okay because
+> application joins group on speicific interface, and multicast
+> traffic is expected only on that interface.
+> 
+> CC: Ben Greear <greearb@candelatech.com>
+> CC: Vlad Yasevich <vyasevic@redhat.com>
+> CC: Eric Dumazet <eric.dumazet@gmail.com>
+> Signed-off-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
 
-  I don't want to change the linux system default file, so I don't
-want to make a wrapper for iptables command. I want my script to
-detect the conflict, so I try to write two testing script like below:
+I just found this patch while cleaning up my tree. I don't know its state
+(netdev patchworks says RFC and netfilter patchworks still lists it as
+new). However, I also do think that the per interface matching would be
+the right thing to do for multicast|linklocal fragments. Perhaps this patch
+should be resend?
 
-a.sh:
-#!/bin/bash
-while /bin/true ;do
-    while /bin/true; do
-        iptables -A INPUT -s 10.1.1.1 -j ACCEPT && break
-    done
-    while /bin/true;do
-        iptables -D INPUT -s 10.1.1.1 -j ACCEPT && break
-    done
-done
+Yoshifuji, do you think we should also implement RFC 3168 5.3 ECN
+fragmentation protection in reassembly.c? I think it should be
+straightforward because it is already implemented for ipv4 and the
+relevant bits just need to be moved to inet_fragment.c and become a bit
+more generalized.
 
-b.sh:
-#!/bin/bash
-while /bin/true ;do
-    while /bin/true; do
-        iptables -A INPUT -s 10.2.2.2 -j ACCEPT && break
-    done
-    while /bin/true;do
-        iptables -D INPUT -s 10.2.2.2 -j ACCEPT && break
-    done
-done
+Thanks,
 
-then I run two scripts simultaneously:
-./a.sh &
-./b.sh
+  Hannes
 
-I saw lot of error messages. but I am surprised there are three kind
-of error messages.
-1. iptables: Resource temporarily unavailable.
-    => this is expected. and error code is 4. I can detect it.
-2. iptables: Invalid argument. Run `dmesg' for more information.
-     => I don't know why this error comes out.
-3. iptables: Bad rule (does a matching rule exist in that chain?).
-     => this is even more strange. this means the "iptables -D" has no
-entry to delete. so it means the last "iptables -A" report success but
-it is actually failed to insert the rule.
-
-it seems run two iptables command simultaneously is dangerous and
-would cause a mess. I wonder why the iptables command can not
-detect/prevent the conflict itself?
-so I think for system reliability the only way is to write a locking
-wrapper for iptables command(like flock /sbin/iptables -c
-/sbin/iptables)
-
-thanks a lot for suggestion!
-
-Regards,
-tbskyd
