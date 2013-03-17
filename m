@@ -1,34 +1,56 @@
-From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: [PATCH] nf_conntrack: add include to fix sparse warning
-Date: Sat, 16 Mar 2013 10:00:28 -0700
-Message-ID: <20130316100028.7c9655ef@nehalam.linuxnetplumber.net>
+From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Subject: Re: [RFC PATCH net-next (V2, RESENT)] ipv6: Queue fragments per interface
+ for multicast/link-local addresses.
+Date: Sun, 17 Mar 2013 09:50:25 +0900
+Message-ID: <51451351.50508@linux-ipv6.org>
+References: <511F1E03.9010205@linux-ipv6.org> <511FB776.8000901@linux-ipv6.org> <20130316074745.GC24041@order.stressinduktion.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+To: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+	Hannes Frederic Sowa <hannes@stressinduktion.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:54078 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751001Ab3CPRAc (ORCPT
+Received: from 94.43.138.210.xn.2iij.net ([210.138.43.94]:38562 "EHLO
+	mail.st-paulia.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752585Ab3CQAu1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 Mar 2013 13:00:32 -0400
-Received: by mail-pb0-f42.google.com with SMTP id xb4so5122688pbc.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 16 Mar 2013 10:00:32 -0700 (PDT)
+	Sat, 16 Mar 2013 20:50:27 -0400
+In-Reply-To: <20130316074745.GC24041@order.stressinduktion.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Include header file to pickup prototype of nf_nat_seq_adjust_hook
+Hannes Frederic Sowa wrote:
+> On Sun, Feb 17, 2013 at 01:44:38AM +0900, YOSHIFUJI Hideaki wrote:
+>> We should queue fragments for the same link-local address on
+>> different interfaces (e.g. fe80::1%eth0 and fe80::1%eth1) to the
+>> different queue, because of nature of addressing architecture.
+>>
+>> Similarly, we should queue fragments for multicast on different
+>> interface to the different queue.  This is okay because
+>> application joins group on speicific interface, and multicast
+>> traffic is expected only on that interface.
+>>
+>> CC: Ben Greear <greearb@candelatech.com>
+>> CC: Vlad Yasevich <vyasevic@redhat.com>
+>> CC: Eric Dumazet <eric.dumazet@gmail.com>
+>> Signed-off-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+> 
+> I just found this patch while cleaning up my tree. I don't know its state
+> (netdev patchworks says RFC and netfilter patchworks still lists it as
+> new). However, I also do think that the per interface matching would be
+> the right thing to do for multicast|linklocal fragments. Perhaps this patch
+> should be resend?
 
-Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
+Will do.
 
---- a/net/netfilter/nf_conntrack_core.c	2013-03-07 18:12:53.945286471 -0800
-+++ b/net/netfilter/nf_conntrack_core.c	2013-03-16 09:48:42.312411171 -0700
-@@ -48,6 +48,7 @@
- #include <net/netfilter/nf_conntrack_labels.h>
- #include <net/netfilter/nf_nat.h>
- #include <net/netfilter/nf_nat_core.h>
-+#include <net/netfilter/nf_nat_helper.h>
- 
- #define NF_CONNTRACK_VERSION	"0.5.0"
- 
+> Yoshifuji, do you think we should also implement RFC 3168 5.3 ECN
+> fragmentation protection in reassembly.c? I think it should be
+> straightforward because it is already implemented for ipv4 and the
+> relevant bits just need to be moved to inet_fragment.c and become a bit
+> more generalized.
+
+OK.
+
+--yoshfuji
+
