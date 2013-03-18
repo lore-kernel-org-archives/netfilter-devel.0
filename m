@@ -1,54 +1,93 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next] netfilter: nfnetlink_queue: zero copy support
-Date: Mon, 18 Mar 2013 10:24:44 +0100
-Message-ID: <20130318092444.GG7938@breakpoint.cc>
-References: <1363576555.29475.122.camel@edumazet-glaptop>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Re: [PATCH] netfilter: nf_conntrack: Batch cleanup
+Date: Mon, 18 Mar 2013 17:33:02 +0800
+Message-ID: <5146DF4E.9030609@cn.fujitsu.com>
+References: <1363254014-10725-1-git-send-email-vdavydov@parallels.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netdev <netdev@vger.kernel.org>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devel@openvz.org,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	"Eric W. Biederman" <ebiederm@xmission.com>
+To: Vladimir Davydov <vdavydov@parallels.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:55055 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750975Ab3CRJYr (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Mar 2013 05:24:47 -0400
-Content-Disposition: inline
-In-Reply-To: <1363576555.29475.122.camel@edumazet-glaptop>
+Received: from cn.fujitsu.com ([222.73.24.84]:50293 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1753832Ab3CRJcT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Mar 2013 05:32:19 -0400
+In-Reply-To: <1363254014-10725-1-git-send-email-vdavydov@parallels.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> From: Eric Dumazet <edumazet@google.com>
+On 2013/03/14 17:40, Vladimir Davydov wrote:
+> The patch introduces nf_conntrack_cleanup_net_list(), which cleanups
+> nf_conntrack for a list of netns and calls synchronize_net() only once
+> for them all. This should reduce netns destruction time.
+> --
+> I've measured cleanup time for 1k dummy net ns. Here are the results:
 > 
-> nfqnl_build_packet_message() actually copy the packet
-> inside the netlink message, while it can instead use
-> zero copy.
+>  <without the patch>
+>  # modprobe nf_conntrack
+>  # time modprobe -r nf_conntrack
 > 
-> Make sure the skb 'copy' is the last component of the
-> cooked netlink message, as we cant add anything after it.
+>  real	0m10.337s
+>  user	0m0.000s
+>  sys	0m0.376s
 > 
-> Patch cooked in Copenhagen at Netfilter Workshop ;)
+>  <with the patch>
+>  # modprobe nf_conntrack
+>  # time modprobe -r nf_conntrack
+> 
+>  real    0m5.661s
+>  user    0m0.000s
+>  sys     0m0.216s
+> 
+> Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+> Cc: Patrick McHardy <kaber@trash.net>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+> ---
+>  include/net/netfilter/nf_conntrack_core.h |    1 +
+>  net/netfilter/nf_conntrack_core.c         |   46 ++++++++++++++++++++---------
+>  net/netfilter/nf_conntrack_standalone.c   |   16 ++++++----
+>  3 files changed, 43 insertions(+), 20 deletions(-)
+> 
+> diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+> index 930275f..fb2b623 100644
+> --- a/include/net/netfilter/nf_conntrack_core.h
+> +++ b/include/net/netfilter/nf_conntrack_core.h
+> @@ -27,6 +27,7 @@ extern unsigned int nf_conntrack_in(struct net *net,
+>  
+>  extern int nf_conntrack_init_net(struct net *net);
+>  extern void nf_conntrack_cleanup_net(struct net *net);
+> +extern void nf_conntrack_cleanup_net_list(struct list_head *net_exit_list);
+>  
+>  extern int nf_conntrack_proto_pernet_init(struct net *net);
+>  extern void nf_conntrack_proto_pernet_fini(struct net *net);
+> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> index c8e001a..09c02ef 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -1364,30 +1364,48 @@ void nf_conntrack_cleanup_end(void)
+>   */
+>  void nf_conntrack_cleanup_net(struct net *net)
+>  {
+> +	LIST_HEAD(single);
+> +
+> +	list_add(&net->exit_list, &single);
+> +	nf_conntrack_cleanup_net_list(&single);
+> +}
+> +
 
-This is awesome.
-Was there a consensus wrt. mmap'd netlink vs. your patch?
+After adding net->exit_list to this single list,in setup_net we will
+re-add this net->exit_list to net_exit_list. So there has no invalid
+pointer problem.
 
-[ I ask because both get rid of one skb data copy ]
+This patch looks good to me.
+Acked-by: Gao feng <gaofeng@cn.fujitsu.com>
 
-> Still to be addressed in separate patches :
->
-> -GRO/GSO packets are segmented in nf_queue()
-> and checksummed in nfqnl_build_packet_message().
-> Proper support for GSO/GRO packets (no segmentation,
-> and no checksumming) needs application cooperation, if we
-> want no regressions.
-
-Since ipqueue is gone we might be able to push the segmentation
-down to nfnetlink_queue.  Then new userspace applications
-could indicate a 'I won't verify checksums and will handle huge
-packets'.
-
-Are you working on something like this?
+Thanks!
