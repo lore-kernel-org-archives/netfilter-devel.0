@@ -1,336 +1,188 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [Ulogd PATCH 4/4] db: store data in memory during database downtime
-Date: Mon, 18 Mar 2013 01:01:24 +0100
-Message-ID: <1363564884-5957-5-git-send-email-eric@regit.org>
-References: <1363564884-5957-1-git-send-email-eric@regit.org>
-Cc: eric@regit.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:44635 "EHLO
-	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932687Ab3CRABu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 17 Mar 2013 20:01:50 -0400
-In-Reply-To: <1363564884-5957-1-git-send-email-eric@regit.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH nf-next] netfilter: nfnetlink_queue: zero copy support
+Date: Sun, 17 Mar 2013 20:15:55 -0700
+Message-ID: <1363576555.29475.122.camel@edumazet-glaptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netdev <netdev@vger.kernel.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This patch is adding a mechanism to store query in a backlog build
-in memory. This allow to store events during downtime in memory and
-realize the effective insertion when the database comes back.
-A memory cap is used to avoid any memory flooding.
+From: Eric Dumazet <edumazet@google.com>
 
-Signed-off-by: Eric Leblond <eric@regit.org>
+nfqnl_build_packet_message() actually copy the packet
+inside the netlink message, while it can instead use
+zero copy.
+
+Make sure the skb 'copy' is the last component of the
+cooked netlink message, as we cant add anything after it.
+
+Patch cooked in Copenhagen at Netfilter Workshop ;)
+
+Still to be addressed in separate patches :
+
+-GRO/GSO packets are segmented in nf_queue()
+and checksummed in nfqnl_build_packet_message().
+
+Proper support for GSO/GRO packets (no segmentation,
+and no checksumming) needs application cooperation, if we
+want no regressions.
+
+Signed-off-by: Eric Dumazet <edumazet@google.com>
 ---
- include/ulogd/db.h |   34 +++++++++--
- ulogd.conf.in      |    9 +++
- util/db.c          |  170 +++++++++++++++++++++++++++++++++++++++++++---------
- 3 files changed, 180 insertions(+), 33 deletions(-)
+ net/netfilter/nfnetlink_queue_core.c |   94 +++++++++++++++++++------
+ 1 file changed, 72 insertions(+), 22 deletions(-)
 
-diff --git a/include/ulogd/db.h b/include/ulogd/db.h
-index 1c910ff..a533902 100644
---- a/include/ulogd/db.h
-+++ b/include/ulogd/db.h
-@@ -20,6 +20,12 @@ struct db_driver {
- 			const char *stmt, unsigned int len);
- };
- 
-+struct db_stmt {
-+	char *stmt;
-+	int len;
-+	struct llist_head list;
-+};
-+
- struct db_instance {
- 	char *stmt; /* buffer for our insert statement */
- 	char *stmt_val; /* pointer to the beginning of the "VALUES" part */
-@@ -28,9 +34,15 @@ struct db_instance {
- 	time_t reconnect;
- 	int (*interp)(struct ulogd_pluginstance *upi);
- 	struct db_driver *driver;
-+	unsigned int backlog_memcap;
-+	unsigned int backlog_memusage;
-+	unsigned int backlog_oneshot;
-+	unsigned char backlog_full;
-+	struct llist_head backlog;
- };
- #define TIME_ERR		((time_t)-1)	/* Be paranoid */
- #define RECONNECT_DEFAULT	2
-+#define MAX_ONESHOT_REQUEST	10
- 
- #define DB_CES							\
- 		{						\
-@@ -51,13 +63,25 @@ struct db_instance {
- 			.key = "procedure",			\
- 			.type = CONFIG_TYPE_STRING,		\
- 			.options = CONFIG_OPT_MANDATORY,	\
-+		},						\
-+		{						\
-+			.key = "backlog_memcap",		\
-+			.type = CONFIG_TYPE_INT,		\
-+			.u.value = 0,				\
-+		},						\
-+		{						\
-+			.key = "backlog_oneshot_requests",	\
-+			.type = CONFIG_TYPE_INT,		\
-+			.u.value = MAX_ONESHOT_REQUEST,		\
- 		}
- 
--#define DB_CE_NUM	4
--#define table_ce(x)	(x->ces[0])
--#define reconnect_ce(x)	(x->ces[1])
--#define timeout_ce(x)	(x->ces[2])
--#define procedure_ce(x)	(x->ces[3])
-+#define DB_CE_NUM		6
-+#define table_ce(x)		(x->ces[0])
-+#define reconnect_ce(x)		(x->ces[1])
-+#define timeout_ce(x)		(x->ces[2])
-+#define procedure_ce(x)		(x->ces[3])
-+#define backlog_memcap_ce(x)	(x->ces[4])
-+#define backlog_oneshot_ce(x)	(x->ces[5])
- 
- void ulogd_db_signal(struct ulogd_pluginstance *upi, int signal);
- int ulogd_db_start(struct ulogd_pluginstance *upi);
-diff --git a/ulogd.conf.in b/ulogd.conf.in
-index f4f63d9..3e5e648 100644
---- a/ulogd.conf.in
-+++ b/ulogd.conf.in
-@@ -207,6 +207,13 @@ user="nupik"
- table="ulog"
- pass="changeme"
- procedure="INSERT_PACKET_FULL"
-+# backlog configuration:
-+# set backlog_memcap to the size of memory that will be
-+# allocated to store events in memory if data is temporary down
-+# and insert them when the database came back.
-+#backlog_memcap=1000000
-+# number of events to insert at once when backlog is not empty
-+#backlog_oneshot_requests=10
- 
- [mysql2]
- db="nulog"
-@@ -224,6 +231,8 @@ table="ulog"
- #schema="public"
- pass="changeme"
- procedure="INSERT_PACKET_FULL"
-+#backlog_memcap=1000000
-+#backlog_oneshot_requests=10
- 
- [pgsql2]
- db="nulog"
-diff --git a/util/db.c b/util/db.c
-index 0d8b9c1..d125e21 100644
---- a/util/db.c
-+++ b/util/db.c
-@@ -167,7 +167,22 @@ int ulogd_db_configure(struct ulogd_pluginstance *upi,
- 	 * but abort during input key resolving routines.  configure
- 	 * doesn't have a destructor... */
- 	di->driver->close_db(upi);
-+
-+	INIT_LLIST_HEAD(&di->backlog);
-+	di->backlog_memusage = 0;
- 	
-+	di->backlog_memcap = backlog_memcap_ce(upi->config_kset).u.value;
-+	if (di->backlog_memcap > 0) {
-+		di->backlog_oneshot = backlog_oneshot_ce(upi->config_kset).u.value;
-+		if (di->backlog_oneshot <= 2) {
-+			ulogd_log(ULOGD_ERROR,
-+				  "backlog_oneshot_requests must be > 2 to hope"
-+				  " cleaning. Setting it to 3.\n");
-+			di->backlog_oneshot = 3;
-+		}
-+		di->backlog_full = 0;
-+	}
-+
- 	return ret;
+diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
+index 858fd52..388fb8ba3 100644
+--- a/net/netfilter/nfnetlink_queue_core.c
++++ b/net/netfilter/nfnetlink_queue_core.c
+@@ -217,14 +217,59 @@ nfqnl_flush(struct nfqnl_instance *queue, nfqnl_cmpfn cmpfn, unsigned long data)
+ 	spin_unlock_bh(&queue->lock);
  }
  
-@@ -245,38 +260,15 @@ static int _init_reconnect(struct ulogd_pluginstance *upi)
- 	return 0;
- }
- 
--static int _init_db(struct ulogd_pluginstance *upi)
--{
--	struct db_instance *di = (struct db_instance *) upi->private;
--
--	if (di->reconnect && di->reconnect > time(NULL))
--		return 0;
--	
--	if (di->driver->open_db(upi)) {
--		ulogd_log(ULOGD_ERROR, "can't establish database connection\n");
--		return _init_reconnect(upi);
--	}
--
--	/* enable 'real' logging */
--	di->interp = &__interp_db;
--
--	di->reconnect = 0;
--
--	/* call the interpreter function to actually write the
--	 * log line that we wanted to write */
--	return __interp_db(upi);
--}
--
--
--/* our main output function, called by ulogd */
--static int __interp_db(struct ulogd_pluginstance *upi)
-+static void __format_query_db(struct ulogd_pluginstance *upi)
- {
- 	struct db_instance *di = (struct db_instance *) &upi->private;
-+
- 	unsigned int i;
- 
- 	di->stmt_ins = di->stmt_val;
- 
--	for (i = 0; i < upi->input.num_keys; i++) { 
-+	for (i = 0; i < upi->input.num_keys; i++) {
- 		struct ulogd_key *res = upi->input.keys[i].u.source;
- 
- 		if (upi->input.keys[i].flags & ULOGD_KEYF_INACTIVE)
-@@ -325,8 +317,8 @@ static int __interp_db(struct ulogd_pluginstance *upi)
- 		case ULOGD_RET_STRING:
- 			*(di->stmt_ins++) = '\'';
- 			if (res->u.value.ptr) {
--				di->stmt_ins += 
--				di->driver->escape_string(upi, di->stmt_ins, 
-+				di->stmt_ins +=
-+				di->driver->escape_string(upi, di->stmt_ins,
- 							  res->u.value.ptr,
- 							strlen(res->u.value.ptr));
- 			}
-@@ -347,10 +339,132 @@ static int __interp_db(struct ulogd_pluginstance *upi)
- 		di->stmt_ins = di->stmt + strlen(di->stmt);
- 	}
- 	*(di->stmt_ins - 1) = ')';
-+}
-+
-+static int __add_to_backlog(struct ulogd_pluginstance *upi, const char *stmt, unsigned int len)
++static void
++nfqnl_zcopy(struct sk_buff *to, const struct sk_buff *from, int len, int hlen)
 +{
-+	struct db_instance *di = (struct db_instance *) &upi->private;
-+	struct db_stmt *query;
- 
-+	/* check if we are using backlog */
-+	if (di->backlog_memcap == 0)
-+		return 0;
++	int i, j = 0;
++	int plen = 0; /* length of skb->head fragment */
++	struct page *page;
++	unsigned int offset;
 +
-+	/* check len against backlog */
-+	if (len + di->backlog_memusage > di->backlog_memcap) {
-+		if (di->backlog_full == 0)
-+			ulogd_log(ULOGD_ERROR,
-+				  "Backlog is full starting to reject events.\n");
-+		di->backlog_full = 1;
-+		return -1;
++	/* dont bother with small payloads */
++	if (len <= skb_tailroom(to)) {
++		skb_copy_bits(from, 0, skb_put(to, len), len);
++		return;
 +	}
 +
-+	query = malloc(sizeof(struct db_stmt));
-+	if (query == NULL)
-+		return -1;
-+
-+	query->stmt = strndup(stmt, len);
-+	query->len = len;
-+
-+	if (query->stmt == NULL) {
-+		free(query);
-+		return -1;
-+	}
-+
-+	di->backlog_memusage += len + sizeof(struct db_stmt);
-+	di->backlog_full = 0;
-+
-+	llist_add_tail(&query->list, &di->backlog);
-+
-+	return 0;
-+}
-+
-+static int _init_db(struct ulogd_pluginstance *upi)
-+{
-+	struct db_instance *di = (struct db_instance *) upi->private;
-+
-+	if (di->reconnect && di->reconnect > time(NULL)) {
-+		/* store entry to backlog if it is active */
-+		if (di->backlog_memcap && !di->backlog_full) {
-+			__format_query_db(upi);
-+			__add_to_backlog(upi, di->stmt,
-+						strlen(di->stmt));
++	if (hlen) {
++		skb_copy_bits(from, 0, skb_put(to, hlen), hlen);
++		len -= hlen;
++	} else {
++		plen = min_t(int, skb_headlen(from), len);
++		if (plen) {
++			page = virt_to_head_page(from->head);
++			offset = from->data - (unsigned char *)page_address(page);
++			__skb_fill_page_desc(to, 0, page, offset, plen);
++			get_page(page);
++			j = 1;
++			len -= plen;
 +		}
-+		return 0;
 +	}
 +
-+	if (di->driver->open_db(upi)) {
-+		ulogd_log(ULOGD_ERROR, "can't establish database connection\n");
-+		if (di->backlog_memcap && !di->backlog_full) {
-+			__format_query_db(upi);
-+			__add_to_backlog(upi, di->stmt, strlen(di->stmt));
-+		}
-+		return _init_reconnect(upi);
-+	}
++	to->truesize += len + plen;
++	to->len += len + plen;
++	to->data_len += len + plen;
 +
-+	/* enable 'real' logging */
-+	di->interp = &__interp_db;
-+
-+	di->reconnect = 0;
-+
-+	/* call the interpreter function to actually write the
-+	 * log line that we wanted to write */
-+	return __interp_db(upi);
-+}
-+
-+static int __treat_backlog(struct ulogd_pluginstance *upi)
-+{
-+	struct db_instance *di = (struct db_instance *) &upi->private;
-+	int i = di->backlog_oneshot;
-+	struct db_stmt *query;
-+	struct db_stmt *nquery;
-+
-+	/* Don't try reconnect before timeout */
-+	if (di->reconnect && di->reconnect > time(NULL))
-+		return 0;
-+
-+	llist_for_each_entry_safe(query, nquery, &di->backlog, list) {
-+		if (di->driver->execute(upi, query->stmt, query->len) < 0) {
-+			/* error occur, database connexion need to be closed */
-+			di->driver->close_db(upi);
-+			return _init_reconnect(upi);
-+		} else {
-+			di->backlog_memusage -= query->len + sizeof(struct db_stmt);
-+			llist_del(&query->list);
-+			free(query->stmt);
-+			free(query);
-+		}
-+		if (--i < 0)
++	for (i = 0; i < skb_shinfo(from)->nr_frags; i++) {
++		if (!len)
 +			break;
++		skb_shinfo(to)->frags[j] = skb_shinfo(from)->frags[i];
++		skb_shinfo(to)->frags[j].size = min_t(int, skb_shinfo(to)->frags[j].size, len);
++		len -= skb_shinfo(to)->frags[j].size;
++		skb_frag_ref(to, j);
++		j++;
 +	}
-+	return 0;
++	skb_shinfo(to)->nr_frags = j;
 +}
 +
-+/* our main output function, called by ulogd */
-+static int __interp_db(struct ulogd_pluginstance *upi)
-+{
-+	struct db_instance *di = (struct db_instance *) &upi->private;
+ static struct sk_buff *
+ nfqnl_build_packet_message(struct nfqnl_instance *queue,
+ 			   struct nf_queue_entry *entry,
+ 			   __be32 **packet_id_ptr)
+ {
+-	sk_buff_data_t old_tail;
+ 	size_t size;
+ 	size_t data_len = 0, cap_len = 0;
++	int hlen = 0;
+ 	struct sk_buff *skb;
+ 	struct nlattr *nla;
+ 	struct nfqnl_msg_packet_hdr *pmsg;
+@@ -246,8 +291,10 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
+ #endif
+ 		+ nla_total_size(sizeof(u_int32_t))	/* mark */
+ 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hw))
+-		+ nla_total_size(sizeof(struct nfqnl_msg_packet_timestamp)
+-		+ nla_total_size(sizeof(u_int32_t)));	/* cap_len */
++		+ nla_total_size(sizeof(u_int32_t));	/* cap_len */
 +
-+
-+	__format_query_db(upi);
- 	/* now we have created our statement, insert it */
++	if (entskb->tstamp.tv64)
++		size += nla_total_size(sizeof(struct nfqnl_msg_packet_timestamp));
  
-+	/* if backup log is not empty we add current query to it */
-+	if (! llist_empty(&di->backlog)) {
-+		int ret = __add_to_backlog(upi, di->stmt, strlen(di->stmt));
-+		if (ret == 0)
-+			return __treat_backlog(upi);
-+		else {
-+			ret = __treat_backlog(upi);
-+			if (ret)
-+				return ret;
-+			/* try adding once the data to backlog */
-+			return __add_to_backlog(upi, di->stmt, strlen(di->stmt));
-+		}
-+	}
+ 	outdev = entry->outdev;
+ 
+@@ -265,7 +312,16 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
+ 		if (data_len == 0 || data_len > entskb->len)
+ 			data_len = entskb->len;
+ 
+-		size += nla_total_size(data_len);
 +
- 	if (di->driver->execute(upi, di->stmt, strlen(di->stmt)) < 0) {
-+		__add_to_backlog(upi, di->stmt, strlen(di->stmt));
- 		/* error occur, database connexion need to be closed */
- 		di->driver->close_db(upi);
- 		return _init_reconnect(upi);
--- 
-1.7.10.4
-
++		if (!entskb->head_frag ||
++		    skb_headlen(entskb) < L1_CACHE_BYTES ||
++		    skb_shinfo(entskb)->nr_frags >= MAX_SKB_FRAGS)
++			hlen = skb_headlen(entskb);
++
++		if (skb_has_frag_list(entskb))
++			hlen = entskb->len;
++		hlen = min_t(int, data_len, hlen);
++		size += sizeof(struct nlattr) + hlen;
+ 		cap_len = entskb->len;
+ 		break;
+ 	}
+@@ -277,7 +333,6 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
+ 	if (!skb)
+ 		return NULL;
+ 
+-	old_tail = skb->tail;
+ 	nlh = nlmsg_put(skb, 0, 0,
+ 			NFNL_SUBSYS_QUEUE << 8 | NFQNL_MSG_PACKET,
+ 			sizeof(struct nfgenmsg), 0);
+@@ -382,31 +437,26 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
+ 			goto nla_put_failure;
+ 	}
+ 
++	if (ct && nfqnl_ct_put(skb, ct, ctinfo) < 0)
++		goto nla_put_failure;
++
++	if (cap_len > 0 && nla_put_be32(skb, NFQA_CAP_LEN, htonl(cap_len)))
++		goto nla_put_failure;
++
+ 	if (data_len) {
+ 		struct nlattr *nla;
+-		int sz = nla_attr_size(data_len);
+ 
+-		if (skb_tailroom(skb) < nla_total_size(data_len)) {
+-			printk(KERN_WARNING "nf_queue: no tailroom!\n");
+-			kfree_skb(skb);
+-			return NULL;
+-		}
++		if (skb_tailroom(skb) < sizeof(*nla) + hlen)
++			goto nla_put_failure;
+ 
+-		nla = (struct nlattr *)skb_put(skb, nla_total_size(data_len));
++		nla = (struct nlattr *)skb_put(skb, sizeof(*nla));
+ 		nla->nla_type = NFQA_PAYLOAD;
+-		nla->nla_len = sz;
++		nla->nla_len = nla_attr_size(data_len);
+ 
+-		if (skb_copy_bits(entskb, 0, nla_data(nla), data_len))
+-			BUG();
++		nfqnl_zcopy(skb, entskb, data_len, hlen);
+ 	}
+ 
+-	if (ct && nfqnl_ct_put(skb, ct, ctinfo) < 0)
+-		goto nla_put_failure;
+-
+-	if (cap_len > 0 && nla_put_be32(skb, NFQA_CAP_LEN, htonl(cap_len)))
+-		goto nla_put_failure;
+-
+-	nlh->nlmsg_len = skb->tail - old_tail;
++	nlh->nlmsg_len = skb->len;
+ 	return skb;
+ 
+ nla_put_failure:
