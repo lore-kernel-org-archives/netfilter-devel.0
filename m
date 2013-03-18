@@ -1,143 +1,54 @@
-From: pablo@netfilter.org
-Subject: [PATCH] netfilter: ctnetlink: allow to dump expectation per master conntrack
-Date: Mon, 18 Mar 2013 10:21:36 +0100
-Message-ID: <1363598496-6112-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf-next] netfilter: nfnetlink_queue: zero copy support
+Date: Mon, 18 Mar 2013 10:24:44 +0100
+Message-ID: <20130318092444.GG7938@breakpoint.cc>
+References: <1363576555.29475.122.camel@edumazet-glaptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netdev <netdev@vger.kernel.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35945 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750975Ab3CRJVv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Mar 2013 05:21:51 -0400
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:55055 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750975Ab3CRJYr (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Mar 2013 05:24:47 -0400
+Content-Disposition: inline
+In-Reply-To: <1363576555.29475.122.camel@edumazet-glaptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> From: Eric Dumazet <edumazet@google.com>
+> 
+> nfqnl_build_packet_message() actually copy the packet
+> inside the netlink message, while it can instead use
+> zero copy.
+> 
+> Make sure the skb 'copy' is the last component of the
+> cooked netlink message, as we cant add anything after it.
+> 
+> Patch cooked in Copenhagen at Netfilter Workshop ;)
 
-This patch adds the ability to dump all existing expectations
-per master conntrack.
+This is awesome.
+Was there a consensus wrt. mmap'd netlink vs. your patch?
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_netlink.c |   99 ++++++++++++++++++++++++++++++++--
- 1 file changed, 94 insertions(+), 5 deletions(-)
+[ I ask because both get rid of one skb data copy ]
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 5d60e04..5876e6d 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2410,6 +2410,91 @@ out:
- 	return skb->len;
- }
- 
-+static int
-+ctnetlink_exp_ct_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
-+{
-+	struct nf_conntrack_expect *exp, *last;
-+	struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
-+	struct nf_conn *ct = cb->data;
-+	struct nf_conn_help *help = nfct_help(ct);
-+	struct hlist_node *next;
-+	u_int8_t l3proto = nfmsg->nfgen_family;
-+
-+	if (cb->args[0])
-+		return 0;
-+
-+	rcu_read_lock();
-+	last = (struct nf_conntrack_expect *)cb->args[1];
-+restart:
-+	hlist_for_each_entry(exp, next, &help->expectations, lnode) {
-+		if (l3proto && exp->tuple.src.l3num != l3proto)
-+			continue;
-+		if (cb->args[1]) {
-+			if (exp != last)
-+				continue;
-+			cb->args[1] = 0;
-+		}
-+		if (ctnetlink_exp_fill_info(skb,
-+					    NETLINK_CB(cb->skb).portid,
-+					    cb->nlh->nlmsg_seq,
-+					    IPCTNL_MSG_EXP_NEW,
-+					    exp) < 0) {
-+			if (!atomic_inc_not_zero(&exp->use))
-+				continue;
-+			cb->args[1] = (unsigned long)exp;
-+			goto out;
-+		}
-+	}
-+	if (cb->args[1]) {
-+		cb->args[1] = 0;
-+		goto restart;
-+	}
-+	cb->args[0] = 1;
-+out:
-+	rcu_read_unlock();
-+	if (last)
-+		nf_ct_expect_put(last);
-+
-+	return skb->len;
-+}
-+
-+static int ctnetlink_dump_exp_ct(struct sock *ctnl, struct sk_buff *skb,
-+				 const struct nlmsghdr *nlh,
-+				 const struct nlattr * const cda[])
-+{
-+	int err;
-+	struct net *net = sock_net(ctnl);
-+	struct nfgenmsg *nfmsg = nlmsg_data(nlh);
-+	u_int8_t u3 = nfmsg->nfgen_family;
-+	struct nf_conntrack_tuple tuple;
-+	struct nf_conntrack_tuple_hash *h;
-+	struct nf_conn *ct;
-+	u16 zone = 0;
-+	struct netlink_dump_control c = {
-+		.dump = ctnetlink_exp_ct_dump_table,
-+		.done = ctnetlink_exp_done,
-+	};
-+
-+	err = ctnetlink_parse_tuple(cda, &tuple, CTA_EXPECT_MASTER, u3);
-+	if (err < 0)
-+		return err;
-+
-+	if (cda[CTA_EXPECT_ZONE]) {
-+		err = ctnetlink_parse_zone(cda[CTA_EXPECT_ZONE], &zone);
-+		if (err < 0)
-+			return err;
-+	}
-+
-+	h = nf_conntrack_find_get(net, zone, &tuple);
-+	if (!h)
-+		return -ENOENT;
-+
-+	ct = nf_ct_tuplehash_to_ctrack(h);
-+	c.data = ct;
-+
-+	return netlink_dump_start(ctnl, skb, nlh, &c);
-+}
-+
- static const struct nla_policy exp_nla_policy[CTA_EXPECT_MAX+1] = {
- 	[CTA_EXPECT_MASTER]	= { .type = NLA_NESTED },
- 	[CTA_EXPECT_TUPLE]	= { .type = NLA_NESTED },
-@@ -2440,11 +2525,15 @@ ctnetlink_get_expect(struct sock *ctnl, struct sk_buff *skb,
- 	int err;
- 
- 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
--		struct netlink_dump_control c = {
--			.dump = ctnetlink_exp_dump_table,
--			.done = ctnetlink_exp_done,
--		};
--		return netlink_dump_start(ctnl, skb, nlh, &c);
-+		if (cda[CTA_EXPECT_MASTER])
-+			return ctnetlink_dump_exp_ct(ctnl, skb, nlh, cda);
-+		else {
-+			struct netlink_dump_control c = {
-+				.dump = ctnetlink_exp_dump_table,
-+				.done = ctnetlink_exp_done,
-+			};
-+			return netlink_dump_start(ctnl, skb, nlh, &c);
-+		}
- 	}
- 
- 	err = ctnetlink_parse_zone(cda[CTA_EXPECT_ZONE], &zone);
--- 
-1.7.10.4
+> Still to be addressed in separate patches :
+>
+> -GRO/GSO packets are segmented in nf_queue()
+> and checksummed in nfqnl_build_packet_message().
+> Proper support for GSO/GRO packets (no segmentation,
+> and no checksumming) needs application cooperation, if we
+> want no regressions.
 
+Since ipqueue is gone we might be able to push the segmentation
+down to nfnetlink_queue.  Then new userspace applications
+could indicate a 'I won't verify checksums and will handle huge
+packets'.
+
+Are you working on something like this?
