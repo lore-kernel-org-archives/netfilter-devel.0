@@ -1,58 +1,34 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: Can we rely on ethernet header padding?
-Date: Tue, 19 Mar 2013 08:21:35 -0700
-Message-ID: <1363706495.2558.14.camel@edumazet-glaptop>
-References: <20130319150545.GA18218@unicorn.suse.cz>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [GIT PULL nf v2] IPVS fixes for v3.9
+Date: Tue, 19 Mar 2013 16:42:50 +0100
+Message-ID: <20130319154250.GA5385@localhost>
+References: <1363696850-14766-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Michal Kubecek <mkubecek@suse.cz>
+Content-Type: text/plain; charset=us-ascii
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pb0-f48.google.com ([209.85.160.48]:57170 "EHLO
-	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755982Ab3CSPVj (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Mar 2013 11:21:39 -0400
-In-Reply-To: <20130319150545.GA18218@unicorn.suse.cz>
+Received: from mail.us.es ([193.147.175.20]:49215 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756353Ab3CSPmz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Mar 2013 11:42:55 -0400
+Content-Disposition: inline
+In-Reply-To: <1363696850-14766-1-git-send-email-horms@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2013-03-19 at 16:05 +0100, Michal Kubecek wrote:
-> Hello,
+On Tue, Mar 19, 2013 at 09:40:47PM +0900, Simon Horman wrote:
+> Hi Pablo,
 > 
-> a customer of ours ran into
+> The following changes since commit a82783c91d5dce680dbd290ebf301a520b0e72a5:
 > 
->   http://bugzilla.netfilter.org/show_bug.cgi?id=765
+>   netfilter: ip6t_NPT: restrict to mangle table (2013-03-15 12:58:21 +0100)
 > 
-> They checked that commit a504b86e prevents the crash but I'm not sure it
-> is sufficient.
+> are available in the git repository at:
 > 
-> The crash happens when br_nf_pre_routing_finish_bridge() calls
-> neigh_hh_bridge() which copies not only destination MAC address but also
-> the padding with it. IIUC this is for performance reasons (so that
-> aligned 8 bytes are copied rather than 6).
-> 
-> But I wonder whether we can rely on the fact that every skb on an
-> ethernet-like device has ethernet header padded at least to the 16 bytes
-> expected by neigh_hh_bridge() and neigh_hh_output() or whether the
-> bridge code should make sure. I tried to look for such test but couldn't
-> find any, even if commit a504b86e description mentions reallocating the
-> skb rather than a crash.
+>   git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes-for-v3.9
 
-Thats a side effect.
-
-Before calling netif_rx() the driver usually calls eth_type_trans()
-to pull the ethernet header, so there is the room for 14 bytes.
-
-Normally a driver has NET_SKB_PAD bytes of headroom before the ethernet
-header, so the bridge code is safe only if all drivers use this
-NET_SKB_PAD padding on receive side. And they really should for
-performance reasons.
-
-Better not touch bridge code to catch offending drivers
-
-
-
-
-
+Pulled, thanks Simon.
