@@ -1,21 +1,26 @@
-From: Julian Calaby <julian.calaby@gmail.com>
+From: Daniel Baluta <daniel.baluta@gmail.com>
 Subject: Re: [PATCH] net: Add socket() system call self test.
-Date: Wed, 20 Mar 2013 09:12:09 +1100
-Message-ID: <CAGRGNgU4nyDrbbN6QWh06PknACP9+h2sFrRcNyOLU_pnwMU5EA@mail.gmail.com>
+Date: Wed, 20 Mar 2013 00:14:05 +0200
+Message-ID: <CAEnQRZDOwE592qXK0h-u1B7R-9oWP1CZ2rbt197QTn4oagdwgw@mail.gmail.com>
 References: <20130319.145258.1891905092469394685.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	linux-wireless@vger.kernel.org
 To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:60136 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933880Ab3CSWOH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Mar 2013 18:14:07 -0400
 In-Reply-To: <20130319.145258.1891905092469394685.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi David,
 
-On Wed, Mar 20, 2013 at 5:52 AM, David Miller <davem@davemloft.net> wrote:
+On Tue, Mar 19, 2013 at 8:52 PM, David Miller <davem@davemloft.net> wrote:
 >
 > Signed-off-by: David S. Miller <davem@davemloft.net>
 > ---
@@ -74,14 +79,14 @@ On Wed, Mar 20, 2013 at 5:52 AM, David Miller <davem@davemloft.net> wrote:
 > +
 > +run_tests: all
 > +       @/bin/sh ./run_netsocktests || echo "vmtests: [FAIL]"
+> +
+> +clean:
+> +       $(RM) $(NET_SOCK_PROGS)
+> diff --git a/tools/testing/selftests/net-socket/run_netsocktests b/tools/testing/selftests/net-socket/run_netsocktests
 
-Should that not be "vmtests"?
+I think it's better to have a selftests/net directory dedicated for
+networking tests. Over time
+the number of net-{x} directories may become very large.
 
-Thanks,
 
--- 
-Julian Calaby
-
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
-.Plan: http://sites.google.com/site/juliancalaby/
+Daniel.
