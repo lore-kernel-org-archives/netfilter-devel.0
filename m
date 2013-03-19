@@ -1,34 +1,148 @@
 From: holger@eitzenberger.org
-Subject: [PATCH RFC 1/3] NFQUEUE: introduce CPU fanout
-Date: Tue, 19 Mar 2013 15:14:43 +0100
-Message-ID: <20130319141605.158831637@eitzenberger.org>
+Subject: [PATCH RFC 3/3] NFQUEUE: add --queue-cpu-fanout parameter
+Date: Tue, 19 Mar 2013 15:14:45 +0100
+Message-ID: <20130319141606.304161536@eitzenberger.org>
 References: <20130319141442.150005875@eitzenberger.org>
 To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:63788 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.186]:55172 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752886Ab3CSOQI (ORCPT
+	with ESMTP id S1752296Ab3CSOQK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Mar 2013 10:16:08 -0400
+	Tue, 19 Mar 2013 10:16:10 -0400
 Received: from holger by kruemel.eitzenberger.org with local (Exim 4.76)
 	(envelope-from <holger@eitzenberger.org>)
-	id 1UHxKf-0006R7-HH
-	for netfilter-devel@vger.kernel.org; Tue, 19 Mar 2013 15:16:05 +0100
-Content-Disposition: inline; filename=net-next/NFQUEUE-cpu-fanout.diff
+	id 1UHxKg-0006S9-MP
+	for netfilter-devel@vger.kernel.org; Tue, 19 Mar 2013 15:16:06 +0100
+Content-Disposition: inline; filename=iptables/iptables-NFQUEUE-cpu-fanout.diff
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
 
 ---
- include/uapi/linux/netfilter/xt_NFQUEUE.h |    8 ++++++
- net/netfilter/xt_NFQUEUE.c                |   41 ++++++++++++++++++++++++++++-
- 2 files changed, 47 insertions(+), 2 deletions(-)
+ extensions/libxt_NFQUEUE.c           |   59 +++++++++++++++++++++++++++++++++-
+ include/linux/netfilter/xt_NFQUEUE.h |    8 +++++
+ 2 files changed, 66 insertions(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/netfilter/xt_NFQUEUE.h b/include/uapi/linux/netfilter/xt_NFQUEUE.h
+diff --git a/extensions/libxt_NFQUEUE.c b/extensions/libxt_NFQUEUE.c
+index 8c2f699..8106425 100644
+--- a/extensions/libxt_NFQUEUE.c
++++ b/extensions/libxt_NFQUEUE.c
+@@ -13,8 +13,10 @@ enum {
+ 	O_QUEUE_NUM = 0,
+ 	O_QUEUE_BALANCE,
+ 	O_QUEUE_BYPASS,
++	O_QUEUE_CPU_FANOUT,
+ 	F_QUEUE_NUM     = 1 << O_QUEUE_NUM,
+ 	F_QUEUE_BALANCE = 1 << O_QUEUE_BALANCE,
++	F_QUEUE_CPU_FANOUT = 1 << O_QUEUE_CPU_FANOUT,
+ };
+ 
+ static void NFQUEUE_help(void)
+@@ -37,7 +39,15 @@ static void NFQUEUE_help_v2(void)
+ {
+ 	NFQUEUE_help_v1();
+ 	printf(
+-"  --queue-bypass		Bypass Queueing if no queue instance exists.\n");
++"  --queue-bypass		Bypass Queueing if no queue instance exists.\n"
++"  --queue-cpu-fanout	Use current CPU (no hashing)\n");
++}
++
++static void NFQUEUE_help_v3(void)
++{
++	NFQUEUE_help_v2();
++	printf(
++"  --queue-cpu-fanout	Use current CPU (no hashing)\n");
+ }
+ 
+ #define s struct xt_NFQ_info
+@@ -48,6 +58,8 @@ static const struct xt_option_entry NFQUEUE_opts[] = {
+ 	{.name = "queue-balance", .id = O_QUEUE_BALANCE,
+ 	 .type = XTTYPE_UINT16RC, .excl = F_QUEUE_NUM},
+ 	{.name = "queue-bypass", .id = O_QUEUE_BYPASS, .type = XTTYPE_NONE},
++	{.name = "queue-cpu-fanout", .id = O_QUEUE_CPU_FANOUT,
++	 .type = XTTYPE_NONE, .also = O_QUEUE_BALANCE},
+ 	XTOPT_TABLEEND,
+ };
+ #undef s
+@@ -92,6 +104,18 @@ static void NFQUEUE_parse_v2(struct xt_option_call *cb)
+ 	}
+ }
+ 
++static void NFQUEUE_parse_v3(struct xt_option_call *cb)
++{
++	struct xt_NFQ_info_v3 *info = cb->data;
++
++	NFQUEUE_parse_v2(cb);
++	switch (cb->entry->id) {
++	case O_QUEUE_CPU_FANOUT:
++		info->flags |= NFQ_FLAG_CPU_FANOUT;
++		break;
++	}
++}
++
+ static void NFQUEUE_print(const void *ip,
+                           const struct xt_entry_target *target, int numeric)
+ {
+@@ -124,6 +148,16 @@ static void NFQUEUE_print_v2(const void *ip,
+ 		printf(" bypass");
+ }
+ 
++static void NFQUEUE_print_v3(const void *ip,
++                             const struct xt_entry_target *target, int numeric)
++{
++	const struct xt_NFQ_info_v3 *info = (void *)target->data;
++
++	NFQUEUE_print_v2(ip, target, numeric);
++	if (info->flags & NFQ_FLAG_CPU_FANOUT)
++		printf(" cpu-fanout");
++}
++
+ static void NFQUEUE_save(const void *ip, const struct xt_entry_target *target)
+ {
+ 	const struct xt_NFQ_info *tinfo =
+@@ -155,6 +189,16 @@ static void NFQUEUE_save_v2(const void *ip, const struct xt_entry_target *target
+ 		printf(" --queue-bypass");
+ }
+ 
++static void NFQUEUE_save_v3(const void *ip,
++			    const struct xt_entry_target *target)
++{
++	const struct xt_NFQ_info_v3 *info = (void *)target->data;
++
++	NFQUEUE_save_v2(ip, target);
++	if (info->flags & NFQ_FLAG_CPU_FANOUT)
++		printf(" --queue-cpu-fanout");
++}
++
+ static void NFQUEUE_init_v1(struct xt_entry_target *t)
+ {
+ 	struct xt_NFQ_info_v1 *tinfo = (void *)t->data;
+@@ -199,6 +243,19 @@ static struct xtables_target nfqueue_targets[] = {
+ 	.save		= NFQUEUE_save_v2,
+ 	.x6_parse	= NFQUEUE_parse_v2,
+ 	.x6_options	= NFQUEUE_opts,
++},{
++	.family		= NFPROTO_UNSPEC,
++	.revision	= 3,
++	.name		= "NFQUEUE",
++	.version	= XTABLES_VERSION,
++	.size		= XT_ALIGN(sizeof(struct xt_NFQ_info_v3)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_NFQ_info_v3)),
++	.help		= NFQUEUE_help_v3,
++	.init		= NFQUEUE_init_v1,
++	.print		= NFQUEUE_print_v3,
++	.save		= NFQUEUE_save_v3,
++	.x6_parse	= NFQUEUE_parse_v3,
++	.x6_options	= NFQUEUE_opts,
+ }
+ };
+ 
+diff --git a/include/linux/netfilter/xt_NFQUEUE.h b/include/linux/netfilter/xt_NFQUEUE.h
 index 9eafdbb..1f24680 100644
---- a/include/uapi/linux/netfilter/xt_NFQUEUE.h
-+++ b/include/uapi/linux/netfilter/xt_NFQUEUE.h
+--- a/include/linux/netfilter/xt_NFQUEUE.h
++++ b/include/linux/netfilter/xt_NFQUEUE.h
 @@ -26,4 +26,12 @@ struct xt_NFQ_info_v2 {
  	__u16 bypass;
  };
@@ -42,74 +156,4 @@ index 9eafdbb..1f24680 100644
 +};
 +
  #endif /* _XT_NFQ_TARGET_H */
-diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
-index 817f9e9..cf9c6a1 100644
---- a/net/netfilter/xt_NFQUEUE.c
-+++ b/net/netfilter/xt_NFQUEUE.c
-@@ -108,7 +108,7 @@ nfqueue_tg_v2(struct sk_buff *skb, const struct xt_action_param *par)
- 
- static int nfqueue_tg_check(const struct xt_tgchk_param *par)
- {
--	const struct xt_NFQ_info_v2 *info = par->targinfo;
-+	const struct xt_NFQ_info_v3 *info = par->targinfo;
- 	u32 maxid;
- 
- 	if (unlikely(!rnd_inited)) {
-@@ -125,11 +125,39 @@ static int nfqueue_tg_check(const struct xt_tgchk_param *par)
- 		       info->queues_total, maxid);
- 		return -ERANGE;
- 	}
--	if (par->target->revision == 2 && info->bypass > 1)
-+	if (par->target->revision >= 2 && info->bypass > 1)
-+		return -EINVAL;
-+	if (par->target->revision == 3 && info->flags & ~NFQ_FLAG_CPU_FANOUT)
- 		return -EINVAL;
-+
- 	return 0;
- }
- 
-+static unsigned int
-+nfqueue_tg_v3(struct sk_buff *skb, const struct xt_action_param *par)
-+{
-+	const struct xt_NFQ_info_v3 *info = par->targinfo;
-+	u32 queue = info->queuenum;
-+
-+	if (info->queues_total > 1) {
-+		if (info->flags & NFQ_FLAG_CPU_FANOUT) {
-+			int cpu = smp_processor_id();
-+
-+			queue = info->queuenum + cpu % info->queues_total;
-+		} else {
-+			if (par->family == NFPROTO_IPV4)
-+				queue = (((u64) hash_v4(skb) * info->queues_total) >>
-+						 32) + queue;
-+#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
-+			else if (par->family == NFPROTO_IPV6)
-+				queue = (((u64) hash_v6(skb) * info->queues_total) >>
-+						 32) + queue;
-+#endif
-+		}
-+	}
-+	return NF_QUEUE_NR(queue);
-+}
-+
- static struct xt_target nfqueue_tg_reg[] __read_mostly = {
- 	{
- 		.name		= "NFQUEUE",
-@@ -156,6 +184,15 @@ static struct xt_target nfqueue_tg_reg[] __read_mostly = {
- 		.targetsize	= sizeof(struct xt_NFQ_info_v2),
- 		.me		= THIS_MODULE,
- 	},
-+	{
-+		.name		= "NFQUEUE",
-+		.revision	= 3,
-+		.family		= NFPROTO_UNSPEC,
-+		.checkentry	= nfqueue_tg_check,
-+		.target		= nfqueue_tg_v3,
-+		.targetsize	= sizeof(struct xt_NFQ_info_v3),
-+		.me		= THIS_MODULE,
-+	},
- };
- 
- static int __init nfqueue_tg_init(void)
 
