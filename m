@@ -1,41 +1,58 @@
-From: Michal Kubecek <mkubecek@suse.cz>
-Subject: Can we rely on ethernet header padding?
-Date: Tue, 19 Mar 2013 16:05:45 +0100
-Message-ID: <20130319150545.GA18218@unicorn.suse.cz>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: Can we rely on ethernet header padding?
+Date: Tue, 19 Mar 2013 08:21:35 -0700
+Message-ID: <1363706495.2558.14.camel@edumazet-glaptop>
+References: <20130319150545.GA18218@unicorn.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: netdev@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Michal Kubecek <mkubecek@suse.cz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:43060 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755951Ab3CSPFr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Mar 2013 11:05:47 -0400
-Content-Disposition: inline
+Received: from mail-pb0-f48.google.com ([209.85.160.48]:57170 "EHLO
+	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755982Ab3CSPVj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Mar 2013 11:21:39 -0400
+In-Reply-To: <20130319150545.GA18218@unicorn.suse.cz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+On Tue, 2013-03-19 at 16:05 +0100, Michal Kubecek wrote:
+> Hello,
+> 
+> a customer of ours ran into
+> 
+>   http://bugzilla.netfilter.org/show_bug.cgi?id=765
+> 
+> They checked that commit a504b86e prevents the crash but I'm not sure it
+> is sufficient.
+> 
+> The crash happens when br_nf_pre_routing_finish_bridge() calls
+> neigh_hh_bridge() which copies not only destination MAC address but also
+> the padding with it. IIUC this is for performance reasons (so that
+> aligned 8 bytes are copied rather than 6).
+> 
+> But I wonder whether we can rely on the fact that every skb on an
+> ethernet-like device has ethernet header padded at least to the 16 bytes
+> expected by neigh_hh_bridge() and neigh_hh_output() or whether the
+> bridge code should make sure. I tried to look for such test but couldn't
+> find any, even if commit a504b86e description mentions reallocating the
+> skb rather than a crash.
 
-a customer of ours ran into
+Thats a side effect.
 
-  http://bugzilla.netfilter.org/show_bug.cgi?id=765
+Before calling netif_rx() the driver usually calls eth_type_trans()
+to pull the ethernet header, so there is the room for 14 bytes.
 
-They checked that commit a504b86e prevents the crash but I'm not sure it
-is sufficient.
+Normally a driver has NET_SKB_PAD bytes of headroom before the ethernet
+header, so the bridge code is safe only if all drivers use this
+NET_SKB_PAD padding on receive side. And they really should for
+performance reasons.
 
-The crash happens when br_nf_pre_routing_finish_bridge() calls
-neigh_hh_bridge() which copies not only destination MAC address but also
-the padding with it. IIUC this is for performance reasons (so that
-aligned 8 bytes are copied rather than 6).
+Better not touch bridge code to catch offending drivers
 
-But I wonder whether we can rely on the fact that every skb on an
-ethernet-like device has ethernet header padded at least to the 16 bytes
-expected by neigh_hh_bridge() and neigh_hh_output() or whether the
-bridge code should make sure. I tried to look for such test but couldn't
-find any, even if commit a504b86e description mentions reallocating the
-skb rather than a crash.
 
-Thanks in advance,
-                                                          Michal Kubecek
+
+
 
