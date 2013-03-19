@@ -1,72 +1,64 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [GIT PULL nf] IPVS fixes for v3.9
-Date: Tue, 19 Mar 2013 10:45:55 +0100
-Message-ID: <20130319094555.GB3602@localhost>
-References: <1363657198-5333-1-git-send-email-horms@verge.net.au>
+From: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
+Subject: Re: [PATCH 2/2] man/send(2): document a long standing bug that can
+ cause spurious EPERM errors
+Date: Tue, 19 Mar 2013 11:12:23 +0100
+Message-ID: <20130319101223.GA3672@localhost>
+References: <1363675513.4767.6.camel@nexus>
+ <1363675960.4767.10.camel@nexus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Michael Kerrisk <mtk.manpages-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,
+	linux-man-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>,
+	Hirotaka Sasaki <sasaki.hirotaka-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
+To: Fernando Luis =?iso-8859-1?Q?V=E1zquez?= Cao
+	<fernando_b1-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
+Return-path: <linux-man-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1363657198-5333-1-git-send-email-horms@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
+In-Reply-To: <1363675960.4767.10.camel@nexus>
+Sender: linux-man-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Simon,
+On Tue, Mar 19, 2013 at 03:52:40PM +0900, Fernando Luis V=E1zquez Cao w=
+rote:
+> Subject: [PATCH 2/2] man/send(2): document a long standing bug that c=
+an cause spurious EPERM errors
+>=20
+> This bug has been known since early 2009 (the latest) and  discussed =
+in
+> netdev before:
+>=20
+> http://marc.info/?l=3Dlinux-netdev&w=3D2&r=3D1&s=3DPossible+race+cond=
+ition+in+conntracking+&q=3Db
+>=20
+> It seems that a proper fix would be non trivial, so document the bug
+> in the meantime.
+>
+> Reported-by: Hirotaka Sasaki <sasaki.hirotaka-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
+> Signed-off-by: Fernando Luis Vazquez Cao <fernando-gVGce1chcLdL9jVzuh4AOg@public.gmane.org>
+> ---
+>=20
+> diff -urNp man-pages-3.50-orig/man2/send.2 man-pages-3.50/man2/send.2
+> --- man-pages-3.50-orig/man2/send.2	2013-03-19 15:18:03.784306647 +09=
+00
+> +++ man-pages-3.50/man2/send.2	2013-03-19 15:30:40.788060426 +0900
+> @@ -420,6 +420,11 @@ Linux may return
+>  .B EPIPE
+>  instead of
+>  .BR ENOTCONN .
+> +
+> +Linux may return spurious
+> +.B EPERM
+> +errors when netfilter's conntrack module is loaded and two or more
+> +UDP packets belonging to the same connection are processed in parall=
+el.
 
-I proposed this:
+The Connection tracking system may drop packets for different reasons
+under rare circunstances, not only in this case.
 
-> I think that these three fixes:
->
-> ipvs: add backup_only flag to avoid loops
-> ipvs: remove extra rcu lock
-> ipvs: fix sctp chunk length order
->
-> should find their path to the net tree.
->
-> The remaining two sparse fixes should go to net-next.
-
-But you sent me these for net:
-
-ipvs: fix sctp chunk length order
-ipvs: fix hashing in ip_vs_svc_hashkey
-ipvs: fix some sparse warnings
-
-that doesn't match.
-
-Can you resolve this? Thanks.
-
-On Tue, Mar 19, 2013 at 10:39:55AM +0900, Simon Horman wrote:
-> Hi Pablo,
->
-> The following changes since commit a82783c91d5dce680dbd290ebf301a520b0e72a5:
->
->   netfilter: ip6t_NPT: restrict to mangle table (2013-03-15 12:58:21 +0100)
->
-> are available in the git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes-for-v3.9
->
-> for you to fetch changes up to 1804ac13ac3d9d39b94f3074f303b286e90632ba:
->
->   ipvs: fix some sparse warnings (2013-03-19 09:37:37 +0900)
->
-> ----------------------------------------------------------------
-> IPVS fixes for v3.9 from Julian Anastasov
->
-> ----------------------------------------------------------------
-> Julian Anastasov (3):
->       ipvs: fix sctp chunk length order
->       ipvs: fix hashing in ip_vs_svc_hashkey
->       ipvs: fix some sparse warnings
->
->  include/net/ip_vs.h                   |    2 +-
->  net/netfilter/ipvs/ip_vs_core.c       |    8 +-------
->  net/netfilter/ipvs/ip_vs_ctl.c        |    8 +++++---
->  net/netfilter/ipvs/ip_vs_est.c        |    2 +-
->  net/netfilter/ipvs/ip_vs_proto_sctp.c |   16 +++++++++-------
->  5 files changed, 17 insertions(+), 19 deletions(-)
+I'd prefer if you only apply patch 1/2.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-man" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
