@@ -1,26 +1,23 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nf_conntrack: Batch cleanup
-Date: Tue, 19 Mar 2013 23:53:19 +0100
-Message-ID: <20130319225319.GA3669@localhost>
-References: <1363254014-10725-1-git-send-email-vdavydov@parallels.com>
+Subject: Re: [PATCH] nf_conntrack: add include to fix sparse warning
+Date: Tue, 19 Mar 2013 23:54:16 +0100
+Message-ID: <20130319225416.GA3682@localhost>
+References: <20130316100028.7c9655ef@nehalam.linuxnetplumber.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devel@openvz.org,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	"Eric W. Biederman" <ebiederm@xmission.com>
-To: Vladimir Davydov <vdavydov@parallels.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Stephen Hemminger <stephen@networkplumber.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:34878 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754995Ab3CSWyY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Mar 2013 18:54:24 -0400
 Content-Disposition: inline
-In-Reply-To: <1363254014-10725-1-git-send-email-vdavydov@parallels.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20130316100028.7c9655ef@nehalam.linuxnetplumber.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Mar 14, 2013 at 01:40:14PM +0400, Vladimir Davydov wrote:
-> The patch introduces nf_conntrack_cleanup_net_list(), which cleanups
-> nf_conntrack for a list of netns and calls synchronize_net() only once
-> for them all. This should reduce netns destruction time.
+On Sat, Mar 16, 2013 at 10:00:28AM -0700, Stephen Hemminger wrote:
+> Include header file to pickup prototype of nf_nat_seq_adjust_hook
 
 Applied, thanks.
