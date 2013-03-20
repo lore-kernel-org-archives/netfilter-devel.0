@@ -1,53 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/7] netfilter fixes for 3.9-rc
-Date: Wed, 20 Mar 2013 10:25:22 -0400 (EDT)
-Message-ID: <20130320.102522.1602310574602201267.davem@davemloft.net>
-References: <1363776574-4766-1-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: conntrackd: fix IPv6 address pattern
+Date: Wed, 20 Mar 2013 15:53:18 +0100
+Message-ID: <20130320145318.GA14299@localhost>
+References: <514877E2.9050105@open.ch>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:56782 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751980Ab3CTOZX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Mar 2013 10:25:23 -0400
-In-Reply-To: <1363776574-4766-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter@vger.kernel.org,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Roman Hoog Antink <rha@open.ch>
+Return-path: <netfilter-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <514877E2.9050105@open.ch>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: pablo@netfilter.org
-Date: Wed, 20 Mar 2013 11:49:27 +0100
+Hi Roman,
 
-> The following patchset contains 7 Netfilter/IPVS fixes for 3.9-rc, they are:
+On Tue, Mar 19, 2013 at 03:36:18PM +0100, Roman Hoog Antink wrote:
+> Hi
 > 
-> * Restrict IPv6 stateless NPT targets to the mangle table. Many users are
->   complaining that this target does not work in the nat table, which is the
->   wrong table for it, from Florian Westphal.
-> 
-> * Fix possible use before initialization in the netns init path of several
->   conntrack protocol trackers (introduced recently while improving conntrack
->   netns support), from Gao Feng.
-> 
-> * Fix incorrect initialization of copy_range in nfnetlink_queue, spotted
->   by Eric Dumazet during the NFWS2013, patch from myself.
-> 
-> * Fix wrong calculation of next SCTP chunk in IPVS, from Julian Anastasov.
-> 
-> * Remove rcu_read_lock section in IPVS while calling ipv4_update_pmtu
->   not required anymore after change introduced in 3.7, again from Julian.
-> 
-> * Fix SYN looping in IPVS state sync if the backup is used a real server
->   in DR/TUN modes, this required a new /proc entry to disable the director
->   function when acting as backup, also from Julian.
-> 
-> * Remove leftover IP_NF_QUEUE Kconfig after ip_queue removal, noted by
->   Paul Bolle.
-> 
-> You can pull these changes from:
-> 
-> git://1984.lsi.us.es/nf master
+> Please consider accepting the following patch that fixes an IPv6 address
+> pattern in the lexical parser.
 
-Pulled, thanks!
+Applied, thanks.
+
+BTW, please, next time post your patch to netfilter-devel ML. That
+should help to make sure the patch hits mainstream.
