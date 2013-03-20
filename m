@@ -1,37 +1,30 @@
-From: "Wenzhou Ourvis" <ourvis@ourvis.com>
-Subject: Re: Hello
-Date: Tue, 19 Mar 2013 21:46:19 -0300
-Message-ID: <20130320003533.05C531CCF62E@webmail.fii.gob.ve>
+From: Michal Kubecek <mkubecek@suse.cz>
+Subject: Re: Can we rely on ethernet header padding?
+Date: Wed, 20 Mar 2013 10:54:26 +0100
+Message-ID: <20130320095426.GA20373@unicorn.suse.cz>
+References: <20130319150545.GA18218@unicorn.suse.cz>
+ <1363706495.2558.14.camel@edumazet-glaptop>
+ <20130319154806.GB18218@unicorn.suse.cz>
+ <20130319142553.3e08e7b9@nehalam.linuxnetplumber.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: Recipients <ourvis@ourvis.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from webmail.fii.gob.ve ([201.249.174.161]:50357 "EHLO
-	webmail.fii.gob.ve" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750983Ab3CTH5d convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Mar 2013 03:57:33 -0400
-Content-Description: Mail message body
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Eric Dumazet <eric.dumazet@gmail.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Stephen Hemminger <stephen@networkplumber.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130319142553.3e08e7b9@nehalam.linuxnetplumber.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Dear E-mail User,
+On Tue, Mar 19, 2013 at 02:25:53PM -0700, Stephen Hemminger wrote:
+> 
+> My view is that the bridge code must check before assuming headroom.
+> But because of that, it means a packet copy would be necessary for cases
+> where packets arrive without enough headroom.
 
+Yes, but for most users this is better than a crash. How about issuing a
+WARN_ONCE() in such case so that we avoid writing out of the buffer but
+still allow developers (and users who check logs) to catch the problem?
 
-  This is to immediately inform you that your email address with Micros ID: IDJT-32238-EHI-676GI-8ED has won you 2,485,000.00 GBP and a brand new Range Rover SUV from the Wenzhou Ourvis yearly draw promo.
-
-Use the details below to login and fill in the claim form to immediately begin your claims.
-
-
-
-WEBSITE: www.wenzhourviss.cla.fr
-USERNAME: ISO912PP
-PASSWORD: XNO87PS
-
-
-Regards,
-Dr. Warren Payne,
-Wenzhou Ourvis Company.
-European Zonal Coordinator,
-United Kingdom.
+                                                          Michal Kubecek
