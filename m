@@ -1,28 +1,41 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: =?ISO-8859-1?Q?Jorge_D=E1vila?= <jorgedavilalopez@gmail.com>
 Subject: Re: Drop a packet while keeping the conntrack alive
-Date: Thu, 21 Mar 2013 02:53:06 +0100
-Message-ID: <20130321015306.GB3779@localhost>
+Date: Wed, 20 Mar 2013 20:05:17 -0600
+Message-ID: <CAG61UF_QMHAqr9Kx2g9R0S0K_p+WeSSAoECKQKSErsEKNL_d4g@mail.gmail.com>
 References: <CACd4Q01yBxCJo8XcvY8+_HDqkuQG9Zz7=x6BGKdGCh7MA2oFHw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Nicolas =?iso-8859-1?Q?Ma=EEtre?= <nimai@skynet.be>
+To: =?ISO-8859-1?Q?Nicolas_Ma=EEtre?= <nimai@skynet.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45073 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756320Ab3CUBxL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Mar 2013 21:53:11 -0400
-Content-Disposition: inline
+Received: from mail-wg0-f50.google.com ([74.125.82.50]:37370 "EHLO
+	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751755Ab3CUCFT convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 20 Mar 2013 22:05:19 -0400
+Received: by mail-wg0-f50.google.com with SMTP id es5so1892255wgb.29
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2013 19:05:17 -0700 (PDT)
 In-Reply-To: <CACd4Q01yBxCJo8XcvY8+_HDqkuQG9Zz7=x6BGKdGCh7MA2oFHw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Nicolas,
+Hi list,
 
-On Thu, Mar 21, 2013 at 01:57:33AM +0100, Nicolas Ma=EEtre wrote:
+An example about ...
+
+With the current user space tools
+there are ways for tracking INVALID connections.
+
+INVALID connections, IMHO, should be "active" if you create a firewall
+with stateless packet filtering and of course, setting the "needed"
+values for the kernel parameters.
+
+Jorge Isaac
+
+2013/3/20, Nicolas Ma=EEtre <nimai@skynet.be>:
 > Hi,
->=20
+>
 > I've developed a connection tracking module which I'd like to use for
 > detecting packets that may be dropped with an iptables rule.
 > That is, the connection tracker can detect that a packet is not  vali=
@@ -35,20 +48,41 @@ t
 > such as the packet is not conform considering the current state of th=
 e
 > connection).
->=20
+>
 > As far as I understand it, the connection tracker usually handle this
 > by returning a negative/null value (-NF_ACCEPT, NF_DROP, ...) which
 > marks the packet invalid, so that it is possible to use the
 > xt_conntrack extension to match it.
->=20
+>
 > I've looked at the TCP connection tracker. If I understand well, the
 > current behavior is that if we've got an INVALID packet, it kills the
 > conntrack, then create it again if we see an ACK later on. Am I right=
 ?
+>
+> That is, it seems that by any way we invalidate a packet, it always
+> destroy the conntrack so that we haven't the connection state at our
+> disposal anymore. I would like to avoid that for the protocol I track=
+=2E
+> Is there a way to do so? Am I missing something?
+>
+>
+>
+> Thank you.
+>
+> --
+> nimai
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
+evel"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Packets that are invalid do not destroy the conntrack entry. The TCP
-tracker explicitly destroys the entry by calling nf_ct_kill function
-in some situations (RST seen / tracking is out-of-sync).
+
+--=20
+Jorge Isaac D=E1vila L=F3pez
+---
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
