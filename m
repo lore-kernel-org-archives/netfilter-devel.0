@@ -1,88 +1,82 @@
-From: =?ISO-8859-1?Q?Jorge_D=E1vila?= <jorgedavilalopez@gmail.com>
-Subject: Re: Drop a packet while keeping the conntrack alive
-Date: Wed, 20 Mar 2013 20:05:17 -0600
-Message-ID: <CAG61UF_QMHAqr9Kx2g9R0S0K_p+WeSSAoECKQKSErsEKNL_d4g@mail.gmail.com>
-References: <CACd4Q01yBxCJo8XcvY8+_HDqkuQG9Zz7=x6BGKdGCh7MA2oFHw@mail.gmail.com>
+From: Fernando Luis Vazquez Cao <fernando_b1@lab.ntt.co.jp>
+Subject: Re: [PATCH 2/2] man/send(2): document a long standing bug that can
+ cause spurious EPERM errors
+Date: Thu, 21 Mar 2013 14:07:02 +0900
+Message-ID: <514A9576.4060902@lab.ntt.co.jp>
+References: <1363675513.4767.6.camel@nexus> <1363675960.4767.10.camel@nexus> <20130319101223.GA3672@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: =?ISO-8859-1?Q?Nicolas_Ma=EEtre?= <nimai@skynet.be>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>,
+	linux-man@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	Hirotaka Sasaki <sasaki.hirotaka@lab.ntt.co.jp>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:37370 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751755Ab3CUCFT convert rfc822-to-8bit (ORCPT
+Received: from tama50.ecl.ntt.co.jp ([129.60.39.147]:36258 "EHLO
+	tama50.ecl.ntt.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753646Ab3CUFHU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Mar 2013 22:05:19 -0400
-Received: by mail-wg0-f50.google.com with SMTP id es5so1892255wgb.29
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Mar 2013 19:05:17 -0700 (PDT)
-In-Reply-To: <CACd4Q01yBxCJo8XcvY8+_HDqkuQG9Zz7=x6BGKdGCh7MA2oFHw@mail.gmail.com>
+	Thu, 21 Mar 2013 01:07:20 -0400
+In-Reply-To: <20130319101223.GA3672@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi list,
+On 2013/03/19 19:12, Pablo Neira Ayuso wrote:
+> On Tue, Mar 19, 2013 at 03:52:40PM +0900, Fernando Luis V=E1zquez Cao=
+ wrote:
+>> Subject: [PATCH 2/2] man/send(2): document a long standing bug that =
+can cause spurious EPERM errors
+>>
+>> This bug has been known since early 2009 (the latest) and  discussed=
+ in
+>> netdev before:
+>>
+>> http://marc.info/?l=3Dlinux-netdev&w=3D2&r=3D1&s=3DPossible+race+con=
+dition+in+conntracking+&q=3Db
+>>
+>> It seems that a proper fix would be non trivial, so document the bug
+>> in the meantime.
+>>
+>> Reported-by: Hirotaka Sasaki <sasaki.hirotaka@lab.ntt.co.jp>
+>> Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+>> ---
+>>
+>> diff -urNp man-pages-3.50-orig/man2/send.2 man-pages-3.50/man2/send.=
+2
+>> --- man-pages-3.50-orig/man2/send.2	2013-03-19 15:18:03.784306647 +0=
+900
+>> +++ man-pages-3.50/man2/send.2	2013-03-19 15:30:40.788060426 +0900
+>> @@ -420,6 +420,11 @@ Linux may return
+>>   .B EPIPE
+>>   instead of
+>>   .BR ENOTCONN .
+>> +
+>> +Linux may return spurious
+>> +.B EPERM
+>> +errors when netfilter's conntrack module is loaded and two or more
+>> +UDP packets belonging to the same connection are processed in paral=
+lel.
+> The Connection tracking system may drop packets for different reasons
+> under rare circunstances, not only in this case.
+> I'd prefer if you only apply patch 1/2.
 
-An example about ...
+I'd agree with you if we *silently* dropped packets in such
+situations, but unfortunately that's not the case.
 
-With the current user space tools
-there are ways for tracking INVALID connections.
+The problem is that sometimes we end up returning spurious EPERM
+errors to user space. Applications may (and many actually do)
+interpret EPERM as "an attempt was made to perform an operation
+limited to processes with appropriate privileges or to the owner of a
+file or other resource" and just bail out after seeing the first
+EPERM; after all, if its cause is system policy-related there is no
+point in retrying. Spurious EPERM errors would break such (perfectly
+compliant) applications, so the least we can do is document them
+properly.
 
-INVALID connections, IMHO, should be "active" if you create a firewall
-with stateless packet filtering and of course, setting the "needed"
-values for the kernel parameters.
-
-Jorge Isaac
-
-2013/3/20, Nicolas Ma=EEtre <nimai@skynet.be>:
-> Hi,
->
-> I've developed a connection tracking module which I'd like to use for
-> detecting packets that may be dropped with an iptables rule.
-> That is, the connection tracker can detect that a packet is not  vali=
-d
-> in the context of the tracked connection. So, I'd like the
-> administrator to be able to add a rule that would allow to drop/rejec=
-t
-> that packet.
-> A possible use case is to block packets from an attacker (assumed as
-> such as the packet is not conform considering the current state of th=
-e
-> connection).
->
-> As far as I understand it, the connection tracker usually handle this
-> by returning a negative/null value (-NF_ACCEPT, NF_DROP, ...) which
-> marks the packet invalid, so that it is possible to use the
-> xt_conntrack extension to match it.
->
-> I've looked at the TCP connection tracker. If I understand well, the
-> current behavior is that if we've got an INVALID packet, it kills the
-> conntrack, then create it again if we see an ACK later on. Am I right=
-?
->
-> That is, it seems that by any way we invalidate a packet, it always
-> destroy the conntrack so that we haven't the connection state at our
-> disposal anymore. I would like to avoid that for the protocol I track=
-=2E
-> Is there a way to do so? Am I missing something?
->
->
->
-> Thank you.
->
-> --
-> nimai
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
-evel"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
---=20
-Jorge Isaac D=E1vila L=F3pez
----
+Thanks,
+=46ernando
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
