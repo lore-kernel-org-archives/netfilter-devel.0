@@ -1,84 +1,100 @@
-From: Fernando Luis Vazquez Cao <fernando_b1@lab.ntt.co.jp>
-Subject: Re: [PATCH 2/2] man/send(2): document a long standing bug that can
- cause spurious EPERM errors
-Date: Thu, 21 Mar 2013 14:07:02 +0900
-Message-ID: <514A9576.4060902@lab.ntt.co.jp>
-References: <1363675513.4767.6.camel@nexus> <1363675960.4767.10.camel@nexus> <20130319101223.GA3672@localhost>
+From: Bourne Without <blackhole@airpost.net>
+Subject: [announce] - Bash programmable completion for ip[6]tables
+Date: Thu, 21 Mar 2013 11:23:34 +0100
+Message-ID: <514ADFA6.8090400@airpost.net>
+Reply-To: blackhole@airpost.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>,
-	linux-man@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	Hirotaka Sasaki <sasaki.hirotaka@lab.ntt.co.jp>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: "netfilter@vger.kernel.org" <netfilter@vger.kernel.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from tama50.ecl.ntt.co.jp ([129.60.39.147]:36258 "EHLO
-	tama50.ecl.ntt.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753646Ab3CUFHU (ORCPT
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:44320 "EHLO
+	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750950Ab3CUKY1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Mar 2013 01:07:20 -0400
-In-Reply-To: <20130319101223.GA3672@localhost>
+	Thu, 21 Mar 2013 06:24:27 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2013/03/19 19:12, Pablo Neira Ayuso wrote:
-> On Tue, Mar 19, 2013 at 03:52:40PM +0900, Fernando Luis V=E1zquez Cao=
- wrote:
->> Subject: [PATCH 2/2] man/send(2): document a long standing bug that =
-can cause spurious EPERM errors
->>
->> This bug has been known since early 2009 (the latest) and  discussed=
- in
->> netdev before:
->>
->> http://marc.info/?l=3Dlinux-netdev&w=3D2&r=3D1&s=3DPossible+race+con=
-dition+in+conntracking+&q=3Db
->>
->> It seems that a proper fix would be non trivial, so document the bug
->> in the meantime.
->>
->> Reported-by: Hirotaka Sasaki <sasaki.hirotaka@lab.ntt.co.jp>
->> Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
->> ---
->>
->> diff -urNp man-pages-3.50-orig/man2/send.2 man-pages-3.50/man2/send.=
-2
->> --- man-pages-3.50-orig/man2/send.2	2013-03-19 15:18:03.784306647 +0=
-900
->> +++ man-pages-3.50/man2/send.2	2013-03-19 15:30:40.788060426 +0900
->> @@ -420,6 +420,11 @@ Linux may return
->>   .B EPIPE
->>   instead of
->>   .BR ENOTCONN .
->> +
->> +Linux may return spurious
->> +.B EPERM
->> +errors when netfilter's conntrack module is loaded and two or more
->> +UDP packets belonging to the same connection are processed in paral=
-lel.
-> The Connection tracking system may drop packets for different reasons
-> under rare circunstances, not only in this case.
-> I'd prefer if you only apply patch 1/2.
+Hello,
 
-I'd agree with you if we *silently* dropped packets in such
-situations, but unfortunately that's not the case.
+I've written bash programmable completion (compspec) for ip[6]tables.
+There is already completion code for iptables in the bash_completion 
+package, but it is far less feature rich (just knows about the basic 
+options).
+My version supports all options (except -4, -6), matches and targets by 
+iptables v1.4.18. Plus some data is retrieved dynamically from the 
+system (i.e. interface names) and IP and MAC addresses can be feed by file.
 
-The problem is that sometimes we end up returning spurious EPERM
-errors to user space. Applications may (and many actually do)
-interpret EPERM as "an attempt was made to perform an operation
-limited to processes with appropriate privileges or to the owner of a
-file or other resource" and just bail out after seeing the first
-EPERM; after all, if its cause is system policy-related there is no
-point in retrying. Spurious EPERM errors would break such (perfectly
-compliant) applications, so the least we can do is document them
-properly.
+This is an alpha release and is available here:
 
-Thanks,
-=46ernando
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://sourceforge.net/projects/ipt-bashcompl/?source=navbar
+
+mirror:
+https://github.com/AllKind/iptables-bash_completion
+
+Readme:
+https://github.com/AllKind/iptables-bash_completion/blob/master/README.md
+
+or:
+http://sourceforge.net/p/ipt-bashcompl/code/ci/541c6a8b26b1acd1fb228b0a24e94256507451ab/tree/README.md
+
+
+As by myself I only use and know about a subset of the features 
+available, I extracted all information from the man page. Some things I 
+could not resolve by that. I was hoping for the community and people 
+from devel to help me fill the gaps. As I'm trying to make things as 
+accurate as possible, showing only what is needed, when it is needed...
+
+* AUDIT target - is it valid to audit 'drop' in the nat table? Doesn't 
+the nat table forbid DROP?
+
+* MASQUERADE/REDIRECT targets - the man page says --to-ports and 
+--random are only valid for tcp/udp. What about dccp, sctp, udplite?
+
+* MIRROR target - Is it valid in all or just the mangle table?
+
+* TEE target - is it valid in all tables, commandline does not complain?
+
+* connlimit match - is it valid in all tables? raw, nat?
+
+* devgroup match - Can I retrieve a list of the device groups from the 
+system? The only thing I found was a site at sf.net, not updated for 
+years. I did not yet try to compile/install that piece of software.
+
+* helper match - is there a way to retrieve all available helper names 
+from the system? If not, maybe I should just list the ones available by 
+now? And which are they, is there a doc somewhere listing them?
+
+* mh match - list of named mh-types? `ip6tables -p ipv6-mh -h' does not 
+display them, as the man page promises.
+
+* osf match - What are the actual valid genre strings? Anybody knows or 
+already did it, retrieve the valid genre strings dynamically, as they 
+might change?
+
+If somebody notices a match or target displayed for the wrong table, 
+please inform me, so I can correct it.
+
+I wasn't able to compile conntrack-tools yet, so CT targets timeout 
+policies cannot be dynamically retrieved by now. If someone already 
+coded that piece, let me know :)
+
+Another feature of this completion is, that in many cases it does 
+validation of users input (i.e. when an integer value is expected) and 
+refuses completion after invalid input.
+I hope I made the checks correctly.
+If somebody notices an error or has an idea what I've left out, let me know.
+This input validation might interfere with variable/command 
+substitution/glob completion. This issue is not resolved yet. I'm 
+thinking of implementing an environment variable to turn input 
+validation on/off.
+Variable/command substitution makes things very unpredictable (from the 
+programs view), so I'm not sure if I should keep that feature at all.
+Community feedback wanted...
+
+I hope you like that piece of software and the design desicions i took.
+Help, ideas, bug-reports, etc... are very much welcome.
+
+Have a nice day!
