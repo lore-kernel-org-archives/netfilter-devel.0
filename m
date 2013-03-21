@@ -1,62 +1,49 @@
-From: pablo@netfilter.org
-Subject: [PATCH 2/2] libip6t_DNPT: add manpage
-Date: Thu, 21 Mar 2013 13:40:48 +0100
-Message-ID: <1363869648-13529-2-git-send-email-pablo@netfilter.org>
-References: <1363869648-13529-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Holger Eitzenberger <holger@eitzenberger.org>
+Subject: [BUG NFQUEUE] NFQUEUE readers get -PERM from sys_sendto() if !root
+Date: Thu, 21 Mar 2013 15:36:43 +0100
+Message-ID: <20130321143643.GH13505@imap.eitzenberger.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, "Eric W. Biederman" <ebiederm@xmission.com>
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48553 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758060Ab3CUMk7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Mar 2013 08:40:59 -0400
-In-Reply-To: <1363869648-13529-1-git-send-email-pablo@netfilter.org>
+Received: from moutng.kundenserver.de ([212.227.126.171]:52410 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933448Ab3CUOhF (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 21 Mar 2013 10:37:05 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Hi,
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- extensions/libip6t_DNPT.man |   30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
- create mode 100644 extensions/libip6t_DNPT.man
+after updating to kernel v3.8.4 I see that Netfilter NFQUEUE readers
+get -EPERM from sys_sendto() at the time they try to inject the verdict
+back to the kernel.  This only occurs iff not running as 'root'.
 
-diff --git a/extensions/libip6t_DNPT.man b/extensions/libip6t_DNPT.man
-new file mode 100644
-index 0000000..61beeee
---- /dev/null
-+++ b/extensions/libip6t_DNPT.man
-@@ -0,0 +1,30 @@
-+Provides stateless destination IPv6-to-IPv6 Network Prefix Translation (as
-+described by RFC 6296).
-+.PP
-+You have to use this target in the
-+.B mangle
-+table, not in the
-+.B nat
-+table. It takes the following options:
-+.TP
-+\fB\-\-src\-pfx\fP [\fIprefix/\fP\fIlength]
-+Set source prefix that you want to translate and length
-+.TP
-+\fB\-\-dst\-pfx\fP [\fIprefix/\fP\fIlength]
-+Set destination prefix that you want to use in the translation and length
-+.PP
-+You have to use the SNPT target to undo the translation. Example:
-+.IP
-+ip6tables \-t mangle \-I POSTROUTING \-s fd00::/64 \! \-o vboxnet0
-+\-j SNPT \-\-src-pfx fd00::/64 \-\-dst-pfx 2001:e20:2000:40f::/64
-+.IP
-+ip6tables \-t mangle \-I PREROUTING \-i wlan0 \-d 2001:e20:2000:40f::/64
-+\-j DNPT \-\-src-pfx 2001:e20:2000:40f::/64 \-\-dst-pfx fd00::/64
-+.PP
-+You may need to enable IPv6 neighbor proxy:
-+.IP
-+sysctl -w net.ipv6.conf.all.proxy_ndp=1
-+.PP
-+You also have to use the
-+.B NOTRACK
-+target to disable connection tracking for translated flows.
--- 
-1.7.10.4
+The last working kernel is v3.7.7.
+
+Skimming through the changeset since v3.7.7 the following changes
+pop up:
+
+ userns: Require CAP_SYS_ADMIN for most uses of setns.
+ userns: Allow unprivileged use of setns.
+
+So it could be related to my current namespace config, which is
+
+  CONFIG_NAMESPACES=y
+  # CONFIG_UTS_NS is not set
+  # CONFIG_IPC_NS is not set
+  # CONFIG_USER_NS is not set
+  # CONFIG_PID_NS is not set
+  # CONFIG_NET_NS is not set
+
+I rate this a major issue, as quite some of those programs
+drop privileges for various reasons.
+
+Is this a known issue?  Well, I skimmed through the list, but didn't
+find anything.
+
+ /Holger
 
