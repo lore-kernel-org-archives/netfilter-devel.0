@@ -1,61 +1,46 @@
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: [PATCH 2/2] netfilter: TRACE: use IS_ENABLE to replace if defined
-Date: Fri, 22 Mar 2013 13:48:42 +0800
-Message-ID: <1363931322-2286-2-git-send-email-gaofeng@cn.fujitsu.com>
-References: <1363931322-2286-1-git-send-email-gaofeng@cn.fujitsu.com>
-Cc: Gao feng <gaofeng@cn.fujitsu.com>
-To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1363931322-2286-1-git-send-email-gaofeng@cn.fujitsu.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Wei Yongjun <weiyj.lk@gmail.com>
+Subject: [PATCH -next] netfilter: nfnetlink_queue: fix error return code in nfnetlink_queue_init()
+Date: Fri, 22 Mar 2013 19:28:18 +0800
+Message-ID: <CAPgLHd-WKwgAUeXH9C7OvnEmJiqZt7CJh=tZVqm5Aq0DKcqVcA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: yongjun_wei@trendmicro.com.cn, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org
+To: pablo@netfilter.org, kaber@trash.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-bk0-f54.google.com ([209.85.214.54]:60731 "EHLO
+	mail-bk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752833Ab3CVL2U (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 22 Mar 2013 07:28:20 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Inder to reduce codes, Use IS_ENABLE to replace the
-if defined.
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+Fix to return a negative error code from the error handling
+case instead of 0, as returned elsewhere in this function.
+
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 ---
- net/ipv4/ip_output.c           | 3 +--
- net/ipv4/netfilter/ip_tables.c | 6 ++----
- 2 files changed, 3 insertions(+), 6 deletions(-)
+ net/netfilter/nfnetlink_queue_core.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
-index 5e12dca..147abf5 100644
---- a/net/ipv4/ip_output.c
-+++ b/net/ipv4/ip_output.c
-@@ -430,8 +430,7 @@ static void ip_copy_metadata(struct sk_buff *to, struct sk_buff *from)
- 	to->tc_index = from->tc_index;
- #endif
- 	nf_copy(to, from);
--#if defined(CONFIG_NETFILTER_XT_TARGET_TRACE) || \
--    defined(CONFIG_NETFILTER_XT_TARGET_TRACE_MODULE)
-+#if IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TRACE)
- 	to->nf_trace = from->nf_trace;
- #endif
- #if defined(CONFIG_IP_VS) || defined(CONFIG_IP_VS_MODULE)
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 3efcf87..1b433aa 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -182,8 +182,7 @@ ipt_get_target_c(const struct ipt_entry *e)
- 	return ipt_get_target((struct ipt_entry *)e);
- }
+diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
+index 1cb4854..42680b2 100644
+--- a/net/netfilter/nfnetlink_queue_core.c
++++ b/net/netfilter/nfnetlink_queue_core.c
+@@ -1062,8 +1062,10 @@ static int __init nfnetlink_queue_init(void)
  
--#if defined(CONFIG_NETFILTER_XT_TARGET_TRACE) || \
--    defined(CONFIG_NETFILTER_XT_TARGET_TRACE_MODULE)
-+#if IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TRACE)
- static const char *const hooknames[] = {
- 	[NF_INET_PRE_ROUTING]		= "PREROUTING",
- 	[NF_INET_LOCAL_IN]		= "INPUT",
-@@ -361,8 +360,7 @@ ipt_do_table(struct sk_buff *skb,
- 		t = ipt_get_target(e);
- 		IP_NF_ASSERT(t->u.kernel.target);
+ #ifdef CONFIG_PROC_FS
+ 	if (!proc_create("nfnetlink_queue", 0440,
+-			 proc_net_netfilter, &nfqnl_file_ops))
++			 proc_net_netfilter, &nfqnl_file_ops)) {
++		status = -ENOMEM;
+ 		goto cleanup_subsys;
++	}
+ #endif
  
--#if defined(CONFIG_NETFILTER_XT_TARGET_TRACE) || \
--    defined(CONFIG_NETFILTER_XT_TARGET_TRACE_MODULE)
-+#if IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TRACE)
- 		/* The packet is traced: log it */
- 		if (unlikely(skb->nf_trace))
- 			trace_packet(skb, hook, in, out,
--- 
-1.7.11.7
+ 	register_netdevice_notifier(&nfqnl_dev_notifier);
+
+
