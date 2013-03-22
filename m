@@ -1,60 +1,40 @@
-From: Arturo Borrero <arturo.borrero.glez@gmail.com>
-Subject: [PATCH] expr: match: fix typo in function name
-Date: Thu, 21 Mar 2013 18:56:38 +0100
-Message-ID: <20130321175637.5783.35022.stgit@nfdev.cica.es>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=MIMEBOUNDARY
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: [PATCH 1/2] netfilter: reset nf_trace in nf_reset
+Date: Fri, 22 Mar 2013 13:48:41 +0800
+Message-ID: <1363931322-2286-1-git-send-email-gaofeng@cn.fujitsu.com>
+Cc: Gao feng <gaofeng@cn.fujitsu.com>
+To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:52836 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751629Ab3CUSsE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Mar 2013 14:48:04 -0400
+Received: from cn.fujitsu.com ([222.73.24.84]:59671 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751910Ab3CVFsG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 22 Mar 2013 01:48:06 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a MIME message.
+We forgot to clear the nf_trace of sk_buff in nf_reset,
+When we use veth device, this nf_trace information will
+be leaked from one net namespace to another net namespace.
 
---MIMEBOUNDARY
-Content-Disposition: inline
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-
-
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
 ---
- src/expr/match.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/skbuff.h | 3 +++
+ 1 file changed, 3 insertions(+)
 
---MIMEBOUNDARY
-Content-Disposition: attachment; filename=rule-expr-match-fix-typo-in-fu.patch
-MIME-Version: 1.0
-Content-Type: text/plain; name=rule-expr-match-fix-typo-in-fu.patch;
-	charset="utf-8"
-Content-Transfer-Encoding: 7bit
-
-diff --git a/src/expr/match.c b/src/expr/match.c
-index 9ae849b..f83a8ea 100644
---- a/src/expr/match.c
-+++ b/src/expr/match.c
-@@ -185,7 +185,7 @@ static int nft_rule_expr_match_parse(struct nft_rule_expr *e, struct nlattr *att
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index 441f5bf..72b3967 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -2641,6 +2641,9 @@ static inline void nf_reset(struct sk_buff *skb)
+ 	nf_bridge_put(skb->nf_bridge);
+ 	skb->nf_bridge = NULL;
+ #endif
++#if IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TRACE)
++	skb->nf_trace = 0;
++#endif
  }
  
- static
--int nft_rule_exp_match_snprintf_xml(char *buf, size_t len,
-+int nft_rule_expr_match_snprintf_xml(char *buf, size_t len,
- 				struct nft_expr_match *mt)
- {
- 	int ret, size=len;
-@@ -217,7 +217,7 @@ nft_rule_expr_match_snprintf(char *buf, size_t len, uint32_t type,
- 
- 	switch(type) {
- 	case NFT_RULE_O_XML:
--		return nft_rule_exp_match_snprintf_xml(buf, len, match);
-+		return nft_rule_expr_match_snprintf_xml(buf, len, match);
- 	case NFT_RULE_O_DEFAULT:
- 		return snprintf(buf, len, "name=%s rev=%u ",
- 				match->name, match->rev);
+ /* Note: This doesn't put any conntrack and bridge info in dst. */
+-- 
+1.7.11.7
 
---MIMEBOUNDARY--
