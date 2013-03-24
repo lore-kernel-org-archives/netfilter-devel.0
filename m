@@ -1,30 +1,41 @@
-From: Bourne Without <blackhole@airpost.net>
-Subject: Re: [PATCH 3/3 nfacct] user space executable changes and additions
-Date: Sun, 24 Mar 2013 06:48:59 +0100
-Message-ID: <514E93CB.6080102@airpost.net>
-References: <514D9D86.9040909@googlemail.com> <20130323152759.GB4925@localhost>
-Reply-To: blackhole@airpost.net
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: pablo@netfilter.org
+Subject: [PATCH 1/2] libxt_osf: fix missing --ttl and --log in save output
+Date: Sun, 24 Mar 2013 11:09:19 +0100
+Message-ID: <1364119760-5069-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:37012 "EHLO
-	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751639Ab3CXFtw (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Mar 2013 01:49:52 -0400
-In-Reply-To: <20130323152759.GB4925@localhost>
+Received: from mail.us.es ([193.147.175.20]:35600 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752774Ab3CXKJ3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 24 Mar 2013 06:09:29 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 23.03.2013 16:27, Pablo Neira Ayuso wrote:[...]
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
- > Bugfixes should always come first. Please, point to bugs and I'll be
- > happy to post patches to fix them or simply send me patches if you
- > like.
+closes http://bugzilla.netfilter.org/show_bug.cgi?id=805
 
-http://bugzilla.netfilter.org/show_bug.cgi?id=805
-;-)
+Reported-by: Bourne Without <blackhole@airposte.net>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ extensions/libxt_osf.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/extensions/libxt_osf.c b/extensions/libxt_osf.c
+index 88274a0..4e2139a 100644
+--- a/extensions/libxt_osf.c
++++ b/extensions/libxt_osf.c
+@@ -93,6 +93,10 @@ static void osf_save(const void *ip, const struct xt_entry_match *match)
+ 	const struct xt_osf_info *info = (const struct xt_osf_info*) match->data;
+ 
+ 	printf(" --genre %s%s", (info->flags & XT_OSF_INVERT) ? "! ": "", info->genre);
++	if (info->flags & XT_OSF_TTL)
++		printf(" --ttl %u", info->ttl);
++	if (info->flags & XT_OSF_LOG)
++		printf(" --log %u", info->loglevel);
+ }
+ 
+ static struct xtables_match osf_match = {
+-- 
+1.7.10.4
 
