@@ -1,25 +1,25 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/2] netfilter: reset nf_trace in nf_reset
-Date: Mon, 25 Mar 2013 20:31:46 +0100
-Message-ID: <20130325193146.GA3351@localhost>
-References: <1363931322-2286-1-git-send-email-gaofeng@cn.fujitsu.com>
+Subject: Re: [PATCH -next] netfilter: nfnetlink_queue: fix error return code
+ in nfnetlink_queue_init()
+Date: Mon, 25 Mar 2013 20:32:52 +0100
+Message-ID: <20130325193252.GA3476@localhost>
+References: <CAPgLHd-WKwgAUeXH9C7OvnEmJiqZt7CJh=tZVqm5Aq0DKcqVcA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Gao feng <gaofeng@cn.fujitsu.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50379 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758364Ab3CYTb4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Mar 2013 15:31:56 -0400
+Cc: kaber@trash.net, yongjun_wei@trendmicro.com.cn,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Return-path: <netfilter-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1363931322-2286-1-git-send-email-gaofeng@cn.fujitsu.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <CAPgLHd-WKwgAUeXH9C7OvnEmJiqZt7CJh=tZVqm5Aq0DKcqVcA@mail.gmail.com>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Mar 22, 2013 at 01:48:41PM +0800, Gao feng wrote:
-> We forgot to clear the nf_trace of sk_buff in nf_reset,
-> When we use veth device, this nf_trace information will
-> be leaked from one net namespace to another net namespace.
+On Fri, Mar 22, 2013 at 07:28:18PM +0800, Wei Yongjun wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> 
+> Fix to return a negative error code from the error handling
+> case instead of 0, as returned elsewhere in this function.
 
-Applied to the nf tree, thanks Gao.
+Applied, thanks. BTW, this patch is a good candidate for the net tree.
