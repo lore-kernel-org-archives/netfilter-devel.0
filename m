@@ -1,119 +1,65 @@
 From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: [PATCH nf-next v2 01/10] netfilter: make /proc/net/netfilter pernet
-Date: Mon, 25 Mar 2013 17:50:39 +0800
-Message-ID: <1364205048-32632-1-git-send-email-gaofeng@cn.fujitsu.com>
+Subject: [PATCH nf-next v2 10/10] netfilter: remove useless variable proc_net_netfilter
+Date: Mon, 25 Mar 2013 17:50:48 +0800
+Message-ID: <1364205048-32632-10-git-send-email-gaofeng@cn.fujitsu.com>
+References: <1364205048-32632-1-git-send-email-gaofeng@cn.fujitsu.com>
 Cc: pablo@netfilter.org, Gao feng <gaofeng@cn.fujitsu.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:26027 "EHLO song.cn.fujitsu.com"
+Received: from cn.fujitsu.com ([222.73.24.84]:13751 "EHLO song.cn.fujitsu.com"
 	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1756247Ab3CYJuL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Mar 2013 05:50:11 -0400
+	id S1756388Ab3CYJuO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Mar 2013 05:50:14 -0400
+In-Reply-To: <1364205048-32632-1-git-send-email-gaofeng@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Now,only init net has directroy /proc/net/netfilter,
-this patch makes this proc dentry pernet.
+After we add net namespace support for nflog and nfqueue,
+the var proc_net_netfilter has no use,just remove it.
 
 Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
 ---
- include/net/net_namespace.h   |  2 ++
- include/net/netns/netfilter.h | 11 +++++++++++
- net/netfilter/core.c          | 36 +++++++++++++++++++++++++++++++-----
- 3 files changed, 44 insertions(+), 5 deletions(-)
- create mode 100644 include/net/netns/netfilter.h
+ include/linux/netfilter.h | 1 -
+ net/netfilter/core.c      | 7 -------
+ 2 files changed, 8 deletions(-)
 
-diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
-index de644bc..b176978 100644
---- a/include/net/net_namespace.h
-+++ b/include/net/net_namespace.h
-@@ -17,6 +17,7 @@
- #include <net/netns/ipv6.h>
- #include <net/netns/sctp.h>
- #include <net/netns/dccp.h>
-+#include <net/netns/netfilter.h>
- #include <net/netns/x_tables.h>
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- #include <net/netns/conntrack.h>
-@@ -94,6 +95,7 @@ struct net {
- 	struct netns_dccp	dccp;
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index ee14284..b9d401c 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -291,7 +291,6 @@ nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, u_int8_t family)
+ 
+ #ifdef CONFIG_PROC_FS
+ #include <linux/proc_fs.h>
+-extern struct proc_dir_entry *proc_net_netfilter;
  #endif
- #ifdef CONFIG_NETFILTER
-+	struct netns_nf		nf;
- 	struct netns_xt		xt;
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	struct netns_ct		ct;
-diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
-new file mode 100644
-index 0000000..248ca1c
---- /dev/null
-+++ b/include/net/netns/netfilter.h
-@@ -0,0 +1,11 @@
-+#ifndef __NETNS_NETFILTER_H
-+#define __NETNS_NETFILTER_H
-+
-+#include <linux/proc_fs.h>
-+
-+struct netns_nf {
-+#if defined CONFIG_PROC_FS
-+	struct proc_dir_entry *proc_netfilter;
-+#endif
-+};
-+#endif
+ 
+ #else /* !CONFIG_NETFILTER */
 diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index a9c488b..e054799 100644
+index e054799..3117ce8 100644
 --- a/net/netfilter/core.c
 +++ b/net/netfilter/core.c
-@@ -281,6 +281,35 @@ struct proc_dir_entry *proc_net_netfilter;
- EXPORT_SYMBOL(proc_net_netfilter);
+@@ -276,11 +276,6 @@ void (*nf_nat_decode_session_hook)(struct sk_buff *, struct flowi *);
+ EXPORT_SYMBOL(nf_nat_decode_session_hook);
  #endif
  
-+static int __net_init netfilter_net_init(struct net *net)
-+{
-+#ifdef CONFIG_PROC_FS
-+	net->nf.proc_netfilter = proc_net_mkdir(net,
-+						"netfilter",
-+						net->proc_net);
-+	if (net_eq(net, &init_net)) {
-+		if (!net->nf.proc_netfilter)
-+			panic("cannot create netfilter proc entry");
-+		else
-+			proc_net_netfilter = net->nf.proc_netfilter;
-+	} else if (!net->nf.proc_netfilter) {
-+		pr_err("cannot create netfilter proc entry");
-+		return -ENOMEM;
-+	}
-+#endif
-+	return 0;
-+}
-+
-+static void __net_exit netfilter_net_exit(struct net *net)
-+{
-+	remove_proc_entry("netfilter", net->proc_net);
-+}
-+
-+static struct pernet_operations netfilter_net_ops = {
-+	.init = netfilter_net_init,
-+	.exit = netfilter_net_exit,
-+};
-+
- void __init netfilter_init(void)
- {
- 	int i, h;
-@@ -289,11 +318,8 @@ void __init netfilter_init(void)
- 			INIT_LIST_HEAD(&nf_hooks[i][h]);
- 	}
- 
 -#ifdef CONFIG_PROC_FS
--	proc_net_netfilter = proc_mkdir("netfilter", init_net.proc_net);
--	if (!proc_net_netfilter)
--		panic("cannot create netfilter proc entry");
+-struct proc_dir_entry *proc_net_netfilter;
+-EXPORT_SYMBOL(proc_net_netfilter);
 -#endif
-+	if (register_pernet_subsys(&netfilter_net_ops) < 0)
-+		return;
- 
- 	if (netfilter_log_init() < 0)
- 		panic("cannot initialize nf_log");
+-
+ static int __net_init netfilter_net_init(struct net *net)
+ {
+ #ifdef CONFIG_PROC_FS
+@@ -290,8 +285,6 @@ static int __net_init netfilter_net_init(struct net *net)
+ 	if (net_eq(net, &init_net)) {
+ 		if (!net->nf.proc_netfilter)
+ 			panic("cannot create netfilter proc entry");
+-		else
+-			proc_net_netfilter = net->nf.proc_netfilter;
+ 	} else if (!net->nf.proc_netfilter) {
+ 		pr_err("cannot create netfilter proc entry");
+ 		return -ENOMEM;
 -- 
 1.7.11.7
 
