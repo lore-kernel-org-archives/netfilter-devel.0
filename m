@@ -1,36 +1,47 @@
-From: pablo@netfilter.org
-Subject: [PATCH 06/12] netfilter: nfnetlink_queue: use xor hash function to distribute instances
-Date: Mon, 25 Mar 2013 13:15:46 +0100
-Message-ID: <1364213752-3934-7-git-send-email-pablo@netfilter.org>
-References: <1364213752-3934-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1364213752-3934-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
 From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nftables] Git location for User space utilities
+Date: Mon, 25 Mar 2013 16:54:46 +0100
+Message-ID: <20130325155445.GA15956@localhost>
+References: <CACd6PL04YMafbQb6uV6OKZJWrD_jJe3DZmin9oGmhBbdx6Wgcw@mail.gmail.com>
+ <CACd6PL1G_ELCNe1EnF7jR9fVGVCjFcKb0Cwcx_y6oP5EVFf9Fg@mail.gmail.com>
+ <514FF870.1010401@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Vidya Chowdary <vidya.chowdary@gmail.com>,
+	netfilter-devel@vger.kernel.org
+To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:54055 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758527Ab3CYPyw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Mar 2013 11:54:52 -0400
+Content-Disposition: inline
+In-Reply-To: <514FF870.1010401@linux.intel.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Thanks to Eric Dumazet for suggesting this during the NFWS.
+On Mon, Mar 25, 2013 at 09:10:40AM +0200, Tomasz Bursztyka wrote:
+> Hi,
+> 
+> >  http://1984.lsi.us.es/git/nftables/
+> >git://git.netfilter.org/libnl-nft.git
+> >git://git.netfilter.org/nftables.git
+> >
+> >Please confirm if above location remains intact or should I fork from some
+> >other git repository for user space and libnl enhancements.
+> 
+> These are the right one indeed.
+> 
+> There is also a repository for a backward compatible tool with
+> iptables: http://1984.lsi.us.es/git/iptables-nftables/
+> and the necessary library: http://1984.lsi.us.es/git/libnftables/
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nfnetlink_queue_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+To extend this information, these two are now available through:
 
-diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
-index 858fd52..350c50f 100644
---- a/net/netfilter/nfnetlink_queue_core.c
-+++ b/net/netfilter/nfnetlink_queue_core.c
-@@ -73,7 +73,7 @@ static struct hlist_head instance_table[INSTANCE_BUCKETS] __read_mostly;
- 
- static inline u_int8_t instance_hashfn(u_int16_t queue_num)
- {
--	return ((queue_num >> 8) | queue_num) % INSTANCE_BUCKETS;
-+	return ((queue_num >> 8) ^ queue_num) % INSTANCE_BUCKETS;
- }
- 
- static struct nfqnl_instance *
--- 
-1.7.10.4
+git clone git://git.netfilter.org/iptables-nftables/
+git clone git://git.netfilter.org/libnftable/
+
+Also through netfilter's cgit. I'll keep the 1984.lsi.us.es
+repositories for a while, they are mirroring git.netfilter.org now.
+
+Regards.
