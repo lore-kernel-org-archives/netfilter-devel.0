@@ -1,31 +1,25 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/12] Netfilter updates for net-next
-Date: Mon, 25 Mar 2013 12:13:48 -0400 (EDT)
-Message-ID: <20130325.121348.1614643051076427539.davem@davemloft.net>
-References: <1364213752-3934-1-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/2] netfilter: reset nf_trace in nf_reset
+Date: Mon, 25 Mar 2013 20:31:46 +0100
+Message-ID: <20130325193146.GA3351@localhost>
+References: <1363931322-2286-1-git-send-email-gaofeng@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+To: Gao feng <gaofeng@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:53017 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758468Ab3CYQNv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Mar 2013 12:13:51 -0400
-In-Reply-To: <1364213752-3934-1-git-send-email-pablo@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:50379 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758364Ab3CYTb4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Mar 2013 15:31:56 -0400
+Content-Disposition: inline
+In-Reply-To: <1363931322-2286-1-git-send-email-gaofeng@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: pablo@netfilter.org
-Date: Mon, 25 Mar 2013 13:15:40 +0100
+On Fri, Mar 22, 2013 at 01:48:41PM +0800, Gao feng wrote:
+> We forgot to clear the nf_trace of sk_buff in nf_reset,
+> When we use veth device, this nf_trace information will
+> be leaked from one net namespace to another net namespace.
 
-> The following patchset contains Netfilter/IPVS updates for
-> your net-next tree, they are:
- ...
-> You can pull these changes from:
-> 
-> git://1984.lsi.us.es/nf-next master
-
-Pulled, thanks a lot Pablo.
+Applied to the nf tree, thanks Gao.
