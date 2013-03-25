@@ -1,244 +1,119 @@
 From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: [PATCH nf-next v2 05/10] netfilter: ebt_ulog: add net namesapce support for ebt_ulog
-Date: Mon, 25 Mar 2013 17:50:43 +0800
-Message-ID: <1364205048-32632-5-git-send-email-gaofeng@cn.fujitsu.com>
-References: <1364205048-32632-1-git-send-email-gaofeng@cn.fujitsu.com>
+Subject: [PATCH nf-next v2 01/10] netfilter: make /proc/net/netfilter pernet
+Date: Mon, 25 Mar 2013 17:50:39 +0800
+Message-ID: <1364205048-32632-1-git-send-email-gaofeng@cn.fujitsu.com>
 Cc: pablo@netfilter.org, Gao feng <gaofeng@cn.fujitsu.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from cn.fujitsu.com ([222.73.24.84]:26027 "EHLO song.cn.fujitsu.com"
 	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1755716Ab3CYJuJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Mar 2013 05:50:09 -0400
-In-Reply-To: <1364205048-32632-1-git-send-email-gaofeng@cn.fujitsu.com>
+	id S1756247Ab3CYJuL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Mar 2013 05:50:11 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add pernet_operations for ebt_ulog, in pernet_ops,
-we call nf_log_set/unset to set/unset nf_loggers
-of per net.
-
-This patch also make ulog_buffers and netlink socket
-ebtulognl per netns.
+Now,only init net has directroy /proc/net/netfilter,
+this patch makes this proc dentry pernet.
 
 Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
 ---
- net/bridge/netfilter/ebt_ulog.c | 125 ++++++++++++++++++++++++++++------------
- 1 file changed, 88 insertions(+), 37 deletions(-)
+ include/net/net_namespace.h   |  2 ++
+ include/net/netns/netfilter.h | 11 +++++++++++
+ net/netfilter/core.c          | 36 +++++++++++++++++++++++++++++++-----
+ 3 files changed, 44 insertions(+), 5 deletions(-)
+ create mode 100644 include/net/netns/netfilter.h
 
-diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
-index 442b032..0ddd612 100644
---- a/net/bridge/netfilter/ebt_ulog.c
-+++ b/net/bridge/netfilter/ebt_ulog.c
-@@ -41,6 +41,7 @@
- #include <linux/netfilter_bridge/ebtables.h>
- #include <linux/netfilter_bridge/ebt_ulog.h>
- #include <net/netfilter/nf_log.h>
-+#include <net/netns/generic.h>
- #include <net/sock.h>
- #include "../br_private.h"
- 
-@@ -62,13 +63,22 @@ typedef struct {
- 	spinlock_t lock;		/* the per-queue lock */
- } ebt_ulog_buff_t;
- 
--static ebt_ulog_buff_t ulog_buffers[EBT_ULOG_MAXNLGROUPS];
--static struct sock *ebtulognl;
-+static int ebt_ulog_net_id __read_mostly;
-+struct ebt_ulog_net {
-+	unsigned int nlgroup[EBT_ULOG_MAXNLGROUPS];
-+	ebt_ulog_buff_t ulog_buffers[EBT_ULOG_MAXNLGROUPS];
-+	struct sock *ebtulognl;
+diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
+index de644bc..b176978 100644
+--- a/include/net/net_namespace.h
++++ b/include/net/net_namespace.h
+@@ -17,6 +17,7 @@
+ #include <net/netns/ipv6.h>
+ #include <net/netns/sctp.h>
+ #include <net/netns/dccp.h>
++#include <net/netns/netfilter.h>
+ #include <net/netns/x_tables.h>
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ #include <net/netns/conntrack.h>
+@@ -94,6 +95,7 @@ struct net {
+ 	struct netns_dccp	dccp;
+ #endif
+ #ifdef CONFIG_NETFILTER
++	struct netns_nf		nf;
+ 	struct netns_xt		xt;
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	struct netns_ct		ct;
+diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
+new file mode 100644
+index 0000000..248ca1c
+--- /dev/null
++++ b/include/net/netns/netfilter.h
+@@ -0,0 +1,11 @@
++#ifndef __NETNS_NETFILTER_H
++#define __NETNS_NETFILTER_H
++
++#include <linux/proc_fs.h>
++
++struct netns_nf {
++#if defined CONFIG_PROC_FS
++	struct proc_dir_entry *proc_netfilter;
++#endif
 +};
-+
-+static struct ebt_ulog_net *ebt_ulog_pernet(struct net *net)
++#endif
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index a9c488b..e054799 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -281,6 +281,35 @@ struct proc_dir_entry *proc_net_netfilter;
+ EXPORT_SYMBOL(proc_net_netfilter);
+ #endif
+ 
++static int __net_init netfilter_net_init(struct net *net)
 +{
-+	return net_generic(net, ebt_ulog_net_id);
-+}
- 
- /* send one ulog_buff_t to userspace */
--static void ulog_send(unsigned int nlgroup)
-+static void ulog_send(struct ebt_ulog_net *ebt, unsigned int nlgroup)
- {
--	ebt_ulog_buff_t *ub = &ulog_buffers[nlgroup];
-+	ebt_ulog_buff_t *ub = &ebt->ulog_buffers[nlgroup];
- 
- 	del_timer(&ub->timer);
- 
-@@ -80,7 +90,7 @@ static void ulog_send(unsigned int nlgroup)
- 		ub->lastnlh->nlmsg_type = NLMSG_DONE;
- 
- 	NETLINK_CB(ub->skb).dst_group = nlgroup + 1;
--	netlink_broadcast(ebtulognl, ub->skb, 0, nlgroup + 1, GFP_ATOMIC);
-+	netlink_broadcast(ebt->ebtulognl, ub->skb, 0, nlgroup + 1, GFP_ATOMIC);
- 
- 	ub->qlen = 0;
- 	ub->skb = NULL;
-@@ -89,10 +99,15 @@ static void ulog_send(unsigned int nlgroup)
- /* timer function to flush queue in flushtimeout time */
- static void ulog_timer(unsigned long data)
- {
--	spin_lock_bh(&ulog_buffers[data].lock);
--	if (ulog_buffers[data].skb)
--		ulog_send(data);
--	spin_unlock_bh(&ulog_buffers[data].lock);
-+	struct ebt_ulog_net *ebt = container_of((void *)data,
-+						struct ebt_ulog_net,
-+						nlgroup[*(unsigned int *)data]);
-+
-+	ebt_ulog_buff_t *ub = &ebt->ulog_buffers[*(unsigned int *)data];
-+	spin_lock_bh(&ub->lock);
-+	if (ub->skb)
-+		ulog_send(ebt, *(unsigned int *)data);
-+	spin_unlock_bh(&ub->lock);
- }
- 
- static struct sk_buff *ulog_alloc_skb(unsigned int size)
-@@ -123,8 +138,10 @@ static void ebt_ulog_packet(unsigned int hooknr, const struct sk_buff *skb,
- 	ebt_ulog_packet_msg_t *pm;
- 	size_t size, copy_len;
- 	struct nlmsghdr *nlh;
-+	struct net *net = dev_net(in ? in : out);
-+	struct ebt_ulog_net *ebt = ebt_ulog_pernet(net);
- 	unsigned int group = uloginfo->nlgroup;
--	ebt_ulog_buff_t *ub = &ulog_buffers[group];
-+	ebt_ulog_buff_t *ub = &ebt->ulog_buffers[group];
- 	spinlock_t *lock = &ub->lock;
- 	ktime_t kt;
- 
-@@ -146,7 +163,7 @@ static void ebt_ulog_packet(unsigned int hooknr, const struct sk_buff *skb,
- 		if (!(ub->skb = ulog_alloc_skb(size)))
- 			goto unlock;
- 	} else if (size > skb_tailroom(ub->skb)) {
--		ulog_send(group);
-+		ulog_send(ebt, group);
- 
- 		if (!(ub->skb = ulog_alloc_skb(size)))
- 			goto unlock;
-@@ -205,7 +222,7 @@ static void ebt_ulog_packet(unsigned int hooknr, const struct sk_buff *skb,
- 	ub->lastnlh = nlh;
- 
- 	if (ub->qlen >= uloginfo->qthreshold)
--		ulog_send(group);
-+		ulog_send(ebt, group);
- 	else if (!timer_pending(&ub->timer)) {
- 		ub->timer.expires = jiffies + flushtimeout * HZ / 100;
- 		add_timer(&ub->timer);
-@@ -277,47 +294,39 @@ static struct nf_logger ebt_ulog_logger __read_mostly = {
- 	.me		= THIS_MODULE,
- };
- 
--static int __init ebt_ulog_init(void)
-+static int __net_init ebt_ulog_net_init(struct net *net)
- {
--	int ret;
- 	int i;
-+	struct ebt_ulog_net *ebt = ebt_ulog_pernet(net);
-+
- 	struct netlink_kernel_cfg cfg = {
- 		.groups	= EBT_ULOG_MAXNLGROUPS,
- 	};
- 
--	if (nlbufsiz >= 128*1024) {
--		pr_warning("Netlink buffer has to be <= 128kB,"
--			   " please try a smaller nlbufsiz parameter.\n");
--		return -EINVAL;
--	}
--
- 	/* initialize ulog_buffers */
- 	for (i = 0; i < EBT_ULOG_MAXNLGROUPS; i++) {
--		setup_timer(&ulog_buffers[i].timer, ulog_timer, i);
--		spin_lock_init(&ulog_buffers[i].lock);
-+		ebt->nlgroup[i] = i;
-+		setup_timer(&ebt->ulog_buffers[i].timer, ulog_timer,
-+			    (unsigned long)&ebt->nlgroup[i]);
-+		spin_lock_init(&ebt->ulog_buffers[i].lock);
- 	}
- 
--	ebtulognl = netlink_kernel_create(&init_net, NETLINK_NFLOG, &cfg);
--	if (!ebtulognl)
--		ret = -ENOMEM;
--	else if ((ret = xt_register_target(&ebt_ulog_tg_reg)) != 0)
--		netlink_kernel_release(ebtulognl);
-+	ebt->ebtulognl = netlink_kernel_create(net, NETLINK_NFLOG, &cfg);
-+	if (!ebt->ebtulognl)
++#ifdef CONFIG_PROC_FS
++	net->nf.proc_netfilter = proc_net_mkdir(net,
++						"netfilter",
++						net->proc_net);
++	if (net_eq(net, &init_net)) {
++		if (!net->nf.proc_netfilter)
++			panic("cannot create netfilter proc entry");
++		else
++			proc_net_netfilter = net->nf.proc_netfilter;
++	} else if (!net->nf.proc_netfilter) {
++		pr_err("cannot create netfilter proc entry");
 +		return -ENOMEM;
- 
--	if (ret == 0)
--		nf_log_register(NFPROTO_BRIDGE, &ebt_ulog_logger);
--
--	return ret;
-+	nf_log_set(net, NFPROTO_BRIDGE, &ebt_ulog_logger);
++	}
++#endif
 +	return 0;
- }
- 
--static void __exit ebt_ulog_fini(void)
-+static void __net_exit ebt_ulog_net_fini(struct net *net)
- {
--	ebt_ulog_buff_t *ub;
- 	int i;
-+	struct ebt_ulog_net *ebt = ebt_ulog_pernet(net);
- 
--	nf_log_unregister(&ebt_ulog_logger);
--	xt_unregister_target(&ebt_ulog_tg_reg);
-+	nf_log_unset(net, &ebt_ulog_logger);
- 	for (i = 0; i < EBT_ULOG_MAXNLGROUPS; i++) {
--		ub = &ulog_buffers[i];
-+		ebt_ulog_buff_t *ub = &ebt->ulog_buffers[i];
- 		del_timer(&ub->timer);
- 
- 		if (ub->skb) {
-@@ -325,7 +334,49 @@ static void __exit ebt_ulog_fini(void)
- 			ub->skb = NULL;
- 		}
- 	}
--	netlink_kernel_release(ebtulognl);
-+	netlink_kernel_release(ebt->ebtulognl);
 +}
 +
-+static struct pernet_operations ebt_ulog_net_ops = {
-+	.init = ebt_ulog_net_init,
-+	.exit = ebt_ulog_net_fini,
-+	.id   = &ebt_ulog_net_id,
-+	.size = sizeof(struct ebt_ulog_net),
++static void __net_exit netfilter_net_exit(struct net *net)
++{
++	remove_proc_entry("netfilter", net->proc_net);
++}
++
++static struct pernet_operations netfilter_net_ops = {
++	.init = netfilter_net_init,
++	.exit = netfilter_net_exit,
 +};
 +
-+static int __init ebt_ulog_init(void)
-+{
-+	int ret;
-+
-+	if (nlbufsiz >= 128*1024) {
-+		pr_warn("Netlink buffer has to be <= 128kB,"
-+			"please try a smaller nlbufsiz parameter.\n");
-+		return -EINVAL;
-+	}
-+
-+	ret = register_pernet_subsys(&ebt_ulog_net_ops);
-+	if (ret)
-+		goto out_pernet;
-+
-+	ret = xt_register_target(&ebt_ulog_tg_reg);
-+	if (ret)
-+		goto out_target;
-+
-+	nf_log_register(NFPROTO_BRIDGE, &ebt_ulog_logger);
-+
-+	return 0;
-+
-+out_target:
-+	unregister_pernet_subsys(&ebt_ulog_net_ops);
-+out_pernet:
-+	return ret;
-+}
-+
-+static void __exit ebt_ulog_fini(void)
-+{
-+	nf_log_unregister(&ebt_ulog_logger);
-+	xt_unregister_target(&ebt_ulog_tg_reg);
-+	unregister_pernet_subsys(&ebt_ulog_net_ops);
- }
+ void __init netfilter_init(void)
+ {
+ 	int i, h;
+@@ -289,11 +318,8 @@ void __init netfilter_init(void)
+ 			INIT_LIST_HEAD(&nf_hooks[i][h]);
+ 	}
  
- module_init(ebt_ulog_init);
+-#ifdef CONFIG_PROC_FS
+-	proc_net_netfilter = proc_mkdir("netfilter", init_net.proc_net);
+-	if (!proc_net_netfilter)
+-		panic("cannot create netfilter proc entry");
+-#endif
++	if (register_pernet_subsys(&netfilter_net_ops) < 0)
++		return;
+ 
+ 	if (netfilter_log_init() < 0)
+ 		panic("cannot initialize nf_log");
 -- 
 1.7.11.7
 
