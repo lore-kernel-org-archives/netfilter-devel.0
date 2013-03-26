@@ -1,60 +1,47 @@
-From: Fernando Luis Vazquez Cao <fernando_b1-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
-Subject: Re: [PATCH 1/2] man/send(2): add EPERM to the list of possible errors
-Date: Tue, 26 Mar 2013 17:37:50 +0900
-Message-ID: <51515E5E.7020309@lab.ntt.co.jp>
-References: <1363675513.4767.6.camel@nexus>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: linux-man-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>,
-	Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>,
-	Hirotaka Sasaki <sasaki.hirotaka-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
-To: Michael Kerrisk <mtk.manpages-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Return-path: <linux-man-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1363675513.4767.6.camel@nexus>
-Sender: linux-man-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Subject: [RFC] Atomic rule manipulation part of transactions
+Date: Tue, 26 Mar 2013 12:19:03 +0200
+Message-ID: <1364293144-4147-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+References: <1362092898-23306-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net, pablo@netfilter.org,
+	Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:49393 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754099Ab3CZKTM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Mar 2013 06:19:12 -0400
+In-Reply-To: <1362092898-23306-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Michael,
+Hi,
 
-Do you see any problem with these two patches?
+I took the patch "[PATCH 1/2] netfilter: nf_tables: partially rework commit and abort operation" of Pablo and quickly did the changes on top of it.
 
-Thanks,
-=46ernando
+Basically if you need to do atomic rule manipulation, it will go in a transaction (like on a database).
+And it's enabled per-nfnetlink connection. Any connection should be able to do such manipulation.
+For that, I used the struct sock { sk_user_data } attribute... Afaik, nothing is using it on nfnetlink, so it looks safe to use it.
+But if it should not be used, due to some reasons, let's find another way.
 
+It remove the rule flags as well. It always sounded weird to add such flags, and the commit flag was just semantically wrong.
 
-On 2013/03/19 15:45, Fernando Luis V=C3=A1zquez Cao wrote:
-> Subject: [PATCH 1/2] man/send(2): add EPERM to the list of possible e=
-rrors
->
-> System policy (for example netfilter rule) can cause a send* operatio=
-n
-> to fail with EPERM.
->
-> Reported-by: Hirotaka Sasaki <sasaki.hirotaka-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
-> Signed-off-by: Fernando Luis Vazquez Cao <fernando-gVGce1chcLdL9jVzuh4AOg@public.gmane.org>
-> ---
->
-> diff -urNp man-pages-3.50-orig/man2/send.2 man-pages-3.50/man2/send.2
-> --- man-pages-3.50-orig/man2/send.2	2013-03-15 16:17:32.000000000 +09=
-00
-> +++ man-pages-3.50/man2/send.2	2013-03-19 15:17:03.616008275 +0900
-> @@ -357,6 +357,10 @@ Some bit in the
->   .I flags
->   argument is inappropriate for the socket type.
->   .TP
-> +.B EPERM
-> +System policy (for example a netfilter rule) does not permit the req=
-uested
-> +operation.
-> +.TP
->   .B EPIPE
->   The local end has been shut down on a connection oriented socket.
->   In this case the process
---
-To unsubscribe from this list: send the line "unsubscribe linux-man" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Besides that, I have a question about style issue: what naming rule is applied if the functions is static and not exposed anywhere?
+For instance static function exposed as struct nfnl_callback callbacks are always following nf_tables_ prefix
+But what about other functions? I have seen some with __nf_tables, nft_  or nf_tables_ ... 
+
+It's a proposal, not a patch since it's made on top of previous patch proposal.
+
+Please review,
+
+Tomasz Bursztyka (1):
+  nf_tables: Transaction API proposal
+
+ include/net/netfilter/nf_tables.h        |   9 ++
+ include/uapi/linux/netfilter/nf_tables.h |  11 +-
+ net/netfilter/nf_tables_api.c            | 170 +++++++++++++++++--------------
+ 3 files changed, 106 insertions(+), 84 deletions(-)
+
+-- 
+1.8.1.5
+
