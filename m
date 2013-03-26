@@ -1,184 +1,120 @@
-From: Neil Horman <nhorman@tuxdriver.com>
-Subject: [PATCH] libmnl: Add filtering support to library as a convienience
-Date: Tue, 26 Mar 2013 10:20:43 -0400
-Message-ID: <1364307643-21747-1-git-send-email-nhorman@tuxdriver.com>
-Cc: Neil Horman <nhorman@tuxdriver.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Weimer <fweimer@redhat.com>,
-	Hushan Jia <hushan.jia@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Michael Zintakis <michael.zintakis@googlemail.com>
+Subject: Re: [PATCH 1/3 nfnetlink_acct] numerous changes and improvements
+ to the kernel code
+Date: Tue, 26 Mar 2013 20:24:22 +0000
+Message-ID: <515203F6.10503@googlemail.com>
+References: <514D9D45.6090804@googlemail.com> <20130323151213.GA4925@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from charlotte.tuxdriver.com ([70.61.120.58]:52610 "EHLO
-	smtp.tuxdriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934400Ab3CZOVG (ORCPT
+Received: from mail-la0-f42.google.com ([209.85.215.42]:50264 "EHLO
+	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753968Ab3CZUYu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Mar 2013 10:21:06 -0400
+	Tue, 26 Mar 2013 16:24:50 -0400
+Received: by mail-la0-f42.google.com with SMTP id fe20so14428546lab.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Mar 2013 13:24:48 -0700 (PDT)
+In-Reply-To: <20130323151213.GA4925@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Theres been recent discussion about detecting and discarding unwanted netlink
-messages in libmnl, so that we can avoid having applications get spoofed by user
-space processes sending messages with malformed netlink headers.  Commonly
-applications want to be able to only receive messages from the kernel, but
-libmnl currently doesn't offer a mechanism to do that.  This patch adds such a
-mechanism.  It creates a function mnl_socket_recvfrom_filter, that adds an
-extra function pointer parameter which is used to interrogate recieved frames
-and filter them based on a desired criteria.  It also adds a convieninece
-function mnl_recvfrom_filter_user which can be passed as the filter agrument in
-mnl_socket_recvfrom_filter, so as to prevent individual applications from
-re-inventing the wheel over and over again.
+Hello Pablo,
 
-Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
-CC: Pablo Neira Ayuso <pablo@netfilter.org>
-CC: Florian Weimer <fweimer@redhat.com>
-CC: Hushan Jia <hushan.jia@gmail.com>
----
- include/libmnl/libmnl.h |  3 ++
- src/libmnl.map          |  6 ++++
- src/socket.c            | 84 ++++++++++++++++++++++++++++++++++++++++++-------
- 3 files changed, 82 insertions(+), 11 deletions(-)
 
-diff --git a/include/libmnl/libmnl.h b/include/libmnl/libmnl.h
-index a647fd9..2375d25 100644
---- a/include/libmnl/libmnl.h
-+++ b/include/libmnl/libmnl.h
-@@ -33,6 +33,9 @@ extern int mnl_socket_get_fd(const struct mnl_socket *nl);
- extern unsigned int mnl_socket_get_portid(const struct mnl_socket *nl);
- extern ssize_t mnl_socket_sendto(const struct mnl_socket *nl, const void *req, size_t siz);
- extern ssize_t mnl_socket_recvfrom(const struct mnl_socket *nl, void *buf, size_t siz);
-+extern ssize_t mnl_socket_recvfrom_filter(const struct mnl_socket *nl, void *buf, size_t size,
-+					  int(*filter)(const struct mnl_socket *, struct msghdr*));
-+extern int mnl_recvfrom_filter_user(const struct mnl_socket*, struct msghdr*);
- extern int mnl_socket_setsockopt(const struct mnl_socket *nl, int type, void *buf, socklen_t len);
- extern int mnl_socket_getsockopt(const struct mnl_socket *nl, int type, void *buf, socklen_t *len);
- 
-diff --git a/src/libmnl.map b/src/libmnl.map
-index dbc332e..ad7dc3d 100644
---- a/src/libmnl.map
-+++ b/src/libmnl.map
-@@ -72,3 +72,9 @@ local: *;
- LIBMNL_1.1 {
-   mnl_attr_parse_payload;
- } LIBMNL_1.0;
-+
-+
-+LIBMNL_1.2 {
-+  mnl_socket_recvfrom_filter;
-+  mnl_recvfrom_filter_user;
-+};
-diff --git a/src/socket.c b/src/socket.c
-index 6d54563..767eaeb 100644
---- a/src/socket.c
-+++ b/src/socket.c
-@@ -188,6 +188,26 @@ mnl_socket_sendto(const struct mnl_socket *nl, const void *buf, size_t len)
- }
- EXPORT_SYMBOL(mnl_socket_sendto);
- 
-+static ssize_t
-+__mnl_socket_recvfrom(const struct mnl_socket *nl, struct msghdr *msg)
-+{
-+	ssize_t ret;
-+
-+	ret = recvmsg(nl->fd, msg, 0);
-+	if (ret == -1)
-+		return ret;
-+
-+	if (msg->msg_flags & MSG_TRUNC) {
-+		errno = ENOSPC;
-+		return -1;
-+	}
-+	if (msg->msg_namelen != sizeof(struct sockaddr_nl)) {
-+		errno = EINVAL;
-+		return -1;
-+	}
-+	return ret;
-+}
-+
- /**
-  * mnl_socket_recvfrom - receive a netlink message
-  * \param nl netlink socket obtained via mnl_socket_open()
-@@ -205,6 +225,34 @@ EXPORT_SYMBOL(mnl_socket_sendto);
- ssize_t
- mnl_socket_recvfrom(const struct mnl_socket *nl, void *buf, size_t bufsiz)
- {
-+	return mnl_socket_recvfrom_filter(nl, buf, bufsiz, NULL);
-+}
-+EXPORT_SYMBOL(mnl_socket_recvfrom);
-+
-+/**
-+ * mnl_socket_recvfrom_filter - receive a netlink message after filtering
-+ * \param nl netlink socket obtained via mnl_socket_open()
-+ * \param buf buffer that you want to use to store the netlink message
-+ * \param bufsiz size of the buffer passed to store the netlink message
-+ * \param filter function pointer to method to filter messages
-+ *
-+ * On error, it returns -1 and errno is appropriately set. If errno is set
-+ * to ENOSPC, it means that the buffer that you have passed to store the
-+ * netlink message is too small, so you have received a truncated message.
-+ * To avoid this, you have to allocate a buffer of MNL_SOCKET_BUFFER_SIZE
-+ * (which is 8KB, see linux/netlink.h for more information). Using this
-+ * buffer size ensures that your buffer is big enough to store the netlink
-+ * message without truncating it. For every frame that is successfully received
-+ * the filter function is called (if set), a negative return from the filter
-+ * function causes the message to be discarded, and the filter error code is
-+ * returned to the caller of mnl_socket_recvfrom_filter.  A zero return code
-+ * from the filter function returns the message to the caller. 
-+ * 
-+ */
-+ssize_t
-+mnl_socket_recvfrom_filter(const struct mnl_socket *nl, void *buf, size_t bufsiz,
-+			   int(*filter)(const struct mnl_socket*, struct msghdr*))
-+{
- 	ssize_t ret;
- 	struct sockaddr_nl addr;
- 	struct iovec iov = {
-@@ -220,21 +268,35 @@ mnl_socket_recvfrom(const struct mnl_socket *nl, void *buf, size_t bufsiz)
- 		.msg_controllen	= 0,
- 		.msg_flags	= 0,
- 	};
--	ret = recvmsg(nl->fd, &msg, 0);
-+retry:
-+	ret = __mnl_socket_recvfrom(nl, &msg);
- 	if (ret == -1)
- 		return ret;
--
--	if (msg.msg_flags & MSG_TRUNC) {
--		errno = ENOSPC;
--		return -1;
--	}
--	if (msg.msg_namelen != sizeof(struct sockaddr_nl)) {
--		errno = EINVAL;
--		return -1;
--	}
-+	if (filter)
-+		ret = filter(nl, &msg);
- 	return ret;
- }
--EXPORT_SYMBOL(mnl_socket_recvfrom);
-+EXPORT_SYMBOL(mnl_socket_recvfrom_filter);
-+
-+/**
-+ * mnl_recvfrom_filter_user - helper function to filter user messages
-+ * \param nl netlink socket that a message was received on
-+ * \param msg - pointer to the msghdr of the received message
-+ *
-+ * This function is meant to be passed as the filter argument to
-+ * mnl_socket_recvfrom_filter.  It is a convienience function to automatically 
-+ * filter out messages originating from user space hosts. 
-+ *
-+ * returns zero, if the message originated from the kernel
-+ * returns non-zero if the message did not originate from the kernel
-+ */
-+int mnl_recvfrom_filter_user(const struct mnl_socket *nl, struct msghdr *msg)
-+{
-+	struct sockaddr_nl *addr = msg->msg_name;
-+
-+	return (addr->nl_pid == 0) ? 0 : -1;
-+}
-+EXPORT_SYMBOL(mnl_recvfrom_filter_user);
- 
- /**
-  * mnl_socket_close - close a given netlink socket
--- 
-1.7.11.7
+My apologies for this late reply...
 
+>>  struct nf_acct {
+>>  	atomic64_t		pkts;
+>>  	atomic64_t		bytes;
+>> +	atomic64_t		bthr;
+>> +	atomic_t		fmt;
+> 
+> These two new fields are meaningless to the kernel and they consume
+> extra memory for other people that may not want to use these new
+> features.
+> 
+> Instead of this, you can have a /etc/nfacct.conf file that contains
+> the formats and thresholds:
+> 
+> name "ALL 27 net" {
+>         pkts GiB
+>         bytes TiB
+>         threshold 6TiB
+> }
+> 
+> name "ALL misc" {
+>         bytes GiB
+> }
+> 
+> ...
+> 
+> and so on. You can add new options for the `nfacct add' command so
+> this formats and thresholds are automatically appended to the
+> configuration file.
+> 
+> I can help you by making a little parser to read the file and put that
+> formatting information into a list or hashtable. Thus, you can edit
+> the format and thresholds by modifying the configuration file, without
+> the need for interactions with the kernel.
+> 
+> BTW, atomic is not required for those two fields, this is protected by
+> the nfnl_lock.
+I disagree with you entirely.
+
+The two fields above aren't "meaningless" - they have a purpose and are an integral part of the nfacct object. None of the fields in the nfacct object are really used in the operation of the kernel itself - the kernel merely updates these. To put it bluntly, the whole nfacct struct is used as storage and the kernel don't use any of these fields in its core operation. OK, I agree that packet and byte counters are going to be updated much more frequently by the kernel than the fmt and bthr variables, but the fact is that these, strictly speaking, do not dependent for the kernel to operate. What I've done above is not a unique approach - in the kernel code there are a lot of examples like this, it is not something new and we are not re-inventing the wheel here or breaking a new ground.
+
+Another reason for having fmt and bthr as part of the kernel nfacct struct is that this data, alongside the bytes and packet counters, is shielded and protected (in ring0), its integrity guaranteed and can only be changed via the kernel itself and nothing else. This is very important for us.
+
+In the early stages of the nfacct changes, we considered a very similar approach to what you have proposed above, but rejected it, not least because the integrity and security of the data encapsulated in the nfacct struct cannot be guaranteed otherwise. We will rely heavily on this and don't need it to be changed arbitrarily (either by "mistake" or intentionally), so we decided that this is the best way going forward.
+
+In stage 2 (current plans are this to be completed by the end of q2 of this year) we will extend this and create a specifically designed daemon (nfacctd), which will "talk" directly to the kernel and retrieve accounting data (much like what nfacct executable currently does, but on a bigger scale) on-demand and in real time and then send it to a central point where such data will be collected from all other machines for statistics and analysis. That daemon can't be spending extra cpu cycles parsing files that may or may not exist or check whether the data in them is or isn't reliable (whether it is "changed" on purpose or not) - that really isn't good enough.
+
+>>  	if (matching) {
+>>  		if (nlh->nlmsg_flags & NLM_F_REPLACE) {
+>> -			/* reset counters if you request a replacement. */
+>> +			/* reset counters if you request a replacement */
+>> +			if (!tb[NFACCT_PKTS]) {
+>> +				/*
+>> +				 * Prevent resetting the packets counter if
+>> +				 * either fmt or bthr are specified.
+>> +				 *
+>> +				 * This is done for backward compatibility,
+>> +				 * otherwise resetting these counters should
+>> +				 * only be allowed when tb[NFACCT_PKTS] is
+>> +				 * explicitly specified and == 0.
+>> +				 *
+>> +				 */
+>> +				if (!tb[NFACCT_FMT] &&
+>> +				    !tb[NFACCT_BTHR]) {
+>>  			atomic64_set(&matching->pkts, 0);
+>> +				}
+>> +			} else {
+>> +				atomic64_set(&matching->pkts,
+>> +				be64_to_cpu(nla_get_be64(tb[NFACCT_PKTS])));
+> 
+> The replacement operation is not so easy. Note that you may hit
+> inconsistencies if while replacing the packet counter, the kernel
+> updates the byte counter, and then you replace the byte counter. You
+> would be leaking bytes and packets.
+If I understand you correctly Pablo, you are worried that the packet and byte counters can be, in a way "misaligned". But if we are to update these values we don't really care if the old values get updated or not prior to that change, do we?
+
+In other words, the packet value is updated and the kernel changes the byte value in the meantime. If we are later (in the same call) replacing the bytes value why do we care that there is a momentary inconsistency - we are going to replace it with a new value anyway?
+
+One thing I'll correct with the next submission is to make sure that request for packet counter update is made in the same call as a request for an update to byte counters, otherwise we might be having only the packet or only the byte counters updated, which will introduce an inconsistency. In other words, have something like:
+
+if (tb[NFACCT_PKTS] && tb[NFACCT_BYTES]) {
+ <do an update on both counters>
+} else if (tb[NFACCT_PKTS] || tb[NFACCT_BYTES]) { // only one of packets/bytes request has been made, reject it
+  return -EINVAL;
+}
+
+I hope I understood you correctly here.
+
+One "technical" query regarding future submissions: from reading this list, I gather that the patches need to be submitted using git, is that correct?
+
+The reason I ask this is because my git experience is zero (we use svn on all our development systems) and if it is possible to attach my patches as files (during my submission the last time, a friend of mine gave me a hand and prepared the patches for me as I am an absolute noob as far as git is concerned).
+
+If it is too much trouble, I'll probably scratch out the commands needed to execute git and do it that way - let me know.
