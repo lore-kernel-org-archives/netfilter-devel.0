@@ -1,97 +1,46 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Android netfilter patches (xt_IDLETIMER) [1/3]
-Date: Tue, 26 Mar 2013 13:45:52 +0100
-Message-ID: <20130326124552.GA5434@localhost>
-References: <5150CB02.2090105@gmail.com>
+Subject: Re: Android netfilter patches (xt_IDLETIMER) [3/3]
+Date: Tue, 26 Mar 2013 13:48:31 +0100
+Message-ID: <20130326124831.GB5434@localhost>
+References: <5150CB1E.7050409@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
 To: dmitry pervushin <dpervushin@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:54583 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755621Ab3CZMsf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Mar 2013 08:48:35 -0400
 Content-Disposition: inline
-In-Reply-To: <5150CB02.2090105@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <5150CB1E.7050409@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Dmitry,
-
-On Mon, Mar 25, 2013 at 11:09:06PM +0100, dmitry pervushin wrote:
-> Fix the case in which timer has expired and we refresh it without
-> sending the notification
->
-> Signed-off-by: Ashish Sharma <ashishsharma@google.com>
-> Signed-off-by: JP Abgrall <jpa@google.com>
-> Signed-off-by: John Stultz <john.stultz@linaro.org>
+On Mon, Mar 25, 2013 at 11:09:34PM +0100, dmitry pervushin wrote:
+> Changes to iptables to use updated kernel IDLETIMER structures
+> 
 > Signed-off-by: dmitry pervushin <dpervushin@gmail.com>
->
-> diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
-> index f407ebc1..3540c04 100644
-> --- a/net/netfilter/xt_IDLETIMER.c
-> +++ b/net/netfilter/xt_IDLETIMER.c
-> @@ -168,14 +168,22 @@ static unsigned int idletimer_tg_target(struct sk_buff *skb,
->  					 const struct xt_action_param *par)
->  {
->  	const struct idletimer_tg_info *info = par->targinfo;
-> +	unsigned long now = jiffies;
->
->  	pr_debug("resetting timer %s, timeout period %u\n",
->  		 info->label, info->timeout);
->
->  	BUG_ON(!info->timer);
->
-> +	if (time_before(info->timer->timer.expires, now)) {
-> +		schedule_work(&info->timer->work);
-> +		pr_debug("Starting timer %s (Expired, Jiffies): %lu, %lu\n",
-> +			 info->label, info->timer->timer.expires, now);
-> +	}
+> 
+> diff --git a/extensions/libxt_IDLETIMER.c b/extensions/libxt_IDLETIMER.c
+> index 21004a4..fc7a18c 100644
+> --- a/extensions/libxt_IDLETIMER.c
+> +++ b/extensions/libxt_IDLETIMER.c
+[...]
+>  static struct xtables_target idletimer_tg_reg = {
+>  	.family	       = NFPROTO_UNSPEC,
+>  	.name	       = "IDLETIMER",
+>  	.version       = XTABLES_VERSION,
+> -	.revision      = 0,
+> -	.size	       = XT_ALIGN(sizeof(struct idletimer_tg_info)),
+> -	.userspacesize = offsetof(struct idletimer_tg_info, timer),
+> +	.revision      = 1,
+> +	.size	       = XT_ALIGN(sizeof(struct idletimer_tg_info_v1)),
+> +	.userspacesize = offsetof(struct idletimer_tg_info_v1, timer),
+>  	.help	       = idletimer_tg_help,
+>  	.x6_parse      = xtables_option_parse,
+>  	.print	       = idletimer_tg_print,
 
-Hm, this seems to me like a new feature. With this change, IDLETIMER
-is sending notifications once the timer becomes active again.
-
-> +
-> +	/* TODO: Avoid modifying timers on each packet */
-
-Regarding this TODO, you can adapt this code snippet for this:
-
-unsigned long newtime = jiffies + extra_jiffies;
-
-/* Only update the timeout if the new timeout is at
- * least HZ jiffies from the old timeout. Need del_timer
- * for race avoidance (may already be dying).
- */
-if (newtime - ct->timeout.expires >= HZ)
-        mod_timer_pending(&ct->timeout, newtime);
-
-We're using it in nf_conntrack.
-
-This should come in a separate patch.
-
->  	mod_timer(&info->timer->timer,
-> -		  msecs_to_jiffies(info->timeout * 1000) + jiffies);
-> +		  msecs_to_jiffies(info->timeout * 1000) + now);
->
->  	return XT_CONTINUE;
->  }
-> @@ -184,6 +192,7 @@ static int idletimer_tg_checkentry(const struct xt_tgchk_param *par)
->  {
->  	struct idletimer_tg_info *info = par->targinfo;
->  	int ret;
-> +	unsigned long now = jiffies;
->
->  	pr_debug("checkentry targinfo%s\n", info->label);
->
-> @@ -204,8 +213,13 @@ static int idletimer_tg_checkentry(const struct xt_tgchk_param *par)
->  	info->timer = __idletimer_tg_find_by_label(info->label);
->  	if (info->timer) {
->  		info->timer->refcnt++;
-> +		if (time_before(info->timer->timer.expires, now)) {
-> +			schedule_work(&info->timer->work);
-> +			pr_debug("Starting Checkentry timer (Expired, Jiffies): %lu, %lu\n",
-> +				info->timer->timer.expires, now);
-> +		}
->  		mod_timer(&info->timer->timer,
-> -			  msecs_to_jiffies(info->timeout * 1000) + jiffies);
-> +			  msecs_to_jiffies(info->timeout * 1000) + now);
->
->  		pr_debug("increased refcnt of timer %s to %u\n",
->  			 info->label, info->timer->refcnt);
+We still need the old revision 0 in the iptables user-space code.
+There is people that may be using new iptables versions with old
+kernels.
