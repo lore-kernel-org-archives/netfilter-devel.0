@@ -1,60 +1,43 @@
-From: Neil Horman <nhorman@tuxdriver.com>
-Subject: Re: [PATCH] libmnl: Add filtering support to library as a
- convienience
-Date: Wed, 27 Mar 2013 08:55:57 -0400
-Message-ID: <20130327125557.GA1395@hmsreliant.think-freely.org>
-References: <1364307643-21747-1-git-send-email-nhorman@tuxdriver.com>
- <20130326205028.GA7117@localhost>
+From: Wei Yongjun <weiyj.lk@gmail.com>
+Subject: [PATCH -next] netfilter: nf_conntrack_standalone: fix error return code
+Date: Wed, 27 Mar 2013 21:57:10 +0800
+Message-ID: <CAPgLHd-=NwowPW_A6-owg6NE=zOCaTOC6fqDZh3mCVFrWMcN6Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Florian Weimer <fweimer@redhat.com>,
-	Hushan Jia <hushan.jia@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: yongjun_wei@trendmicro.com.cn, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org
+To: pablo@netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from charlotte.tuxdriver.com ([70.61.120.58]:45577 "EHLO
-	smtp.tuxdriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751758Ab3C0M4D (ORCPT
+Received: from mail-bk0-f50.google.com ([209.85.214.50]:56035 "EHLO
+	mail-bk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750977Ab3C0N5M (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Mar 2013 08:56:03 -0400
-Content-Disposition: inline
-In-Reply-To: <20130326205028.GA7117@localhost>
+	Wed, 27 Mar 2013 09:57:12 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 26, 2013 at 09:50:28PM +0100, Pablo Neira Ayuso wrote:
-> Hi Neil,
-> 
-> On Tue, Mar 26, 2013 at 10:20:43AM -0400, Neil Horman wrote:
-> > Theres been recent discussion about detecting and discarding unwanted netlink
-> > messages in libmnl, so that we can avoid having applications get spoofed by user
-> > space processes sending messages with malformed netlink headers.  Commonly
-> > applications want to be able to only receive messages from the kernel, but
-> > libmnl currently doesn't offer a mechanism to do that.  This patch adds such a
-> > mechanism.  It creates a function mnl_socket_recvfrom_filter, that adds an
-> > extra function pointer parameter which is used to interrogate recieved frames
-> > and filter them based on a desired criteria.  It also adds a convieninece
-> > function mnl_recvfrom_filter_user which can be passed as the filter agrument in
-> > mnl_socket_recvfrom_filter, so as to prevent individual applications from
-> > re-inventing the wheel over and over again.
-> 
-> I remember that report from Florian. After some discussion, I proposed
-> this solution:
-> 
-> commit 20e1db19db5d6b9e4e83021595eab0dc8f107bef
-> Author: Pablo Neira Ayuso <pablo@netfilter.org>
-> Date:   Thu Aug 23 02:09:11 2012 +0000
-> 
->     netlink: fix possible spoofing from non-root processes
-> 
-> Basically, it disables netlink-to-netlink communications between
-> non-root processes (with the exception of NETLINK_USERSOCK), so
-> non-root processes cannot spoof messages anymore.
-> 
-> Regards.
-> 
-Ah, thank you pablo, wish Florian or I had seen this previously.
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Regards
-Neil
+Fix to return a negative error code from the error handling
+case instead of 0, as returned elsewhere in function
+nf_conntrack_standalone_init().
+
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ net/netfilter/nf_conntrack_standalone.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 6c69fbd..ebb67d3 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -572,6 +572,7 @@ static int __init nf_conntrack_standalone_init(void)
+ 		register_net_sysctl(&init_net, "net", nf_ct_netfilter_table);
+ 	if (!nf_ct_netfilter_header) {
+ 		pr_err("nf_conntrack: can't register to sysctl.\n");
++		ret = -ENOMEM;
+ 		goto out_sysctl;
+ 	}
+ #endif
+
 
