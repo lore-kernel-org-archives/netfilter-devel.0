@@ -1,51 +1,50 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] libmnl: Add filtering support to library as a
- convienience
-Date: Tue, 26 Mar 2013 21:50:28 +0100
-Message-ID: <20130326205028.GA7117@localhost>
-References: <1364307643-21747-1-git-send-email-nhorman@tuxdriver.com>
+From: Fernando Luis Vazquez Cao <fernando_b1-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
+Subject: Re: [PATCH 1/2] man/send(2): add EPERM to the list of possible errors
+Date: Wed, 27 Mar 2013 13:14:49 +0900
+Message-ID: <51527239.5070505@lab.ntt.co.jp>
+References: <1363675513.4767.6.camel@nexus> <51515E5E.7020309@lab.ntt.co.jp> <20130326104833.GA5331@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Florian Weimer <fweimer@redhat.com>,
-	Hushan Jia <hushan.jia@gmail.com>
-To: Neil Horman <nhorman@tuxdriver.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34947 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751772Ab3CZUue (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Mar 2013 16:50:34 -0400
-Content-Disposition: inline
-In-Reply-To: <1364307643-21747-1-git-send-email-nhorman@tuxdriver.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Michael Kerrisk <mtk.manpages-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,
+	linux-man-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>,
+	Hirotaka Sasaki <sasaki.hirotaka-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
+To: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
+Return-path: <linux-man-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130326104833.GA5331@localhost>
+Sender: linux-man-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Neil,
+Hi Pablo,
 
-On Tue, Mar 26, 2013 at 10:20:43AM -0400, Neil Horman wrote:
-> Theres been recent discussion about detecting and discarding unwanted netlink
-> messages in libmnl, so that we can avoid having applications get spoofed by user
-> space processes sending messages with malformed netlink headers.  Commonly
-> applications want to be able to only receive messages from the kernel, but
-> libmnl currently doesn't offer a mechanism to do that.  This patch adds such a
-> mechanism.  It creates a function mnl_socket_recvfrom_filter, that adds an
-> extra function pointer parameter which is used to interrogate recieved frames
-> and filter them based on a desired criteria.  It also adds a convieninece
-> function mnl_recvfrom_filter_user which can be passed as the filter agrument in
-> mnl_socket_recvfrom_filter, so as to prevent individual applications from
-> re-inventing the wheel over and over again.
+On 2013/03/26 19:48, Pablo Neira Ayuso wrote:
+> On Tue, Mar 26, 2013 at 05:37:50PM +0900, Fernando Luis Vazquez Cao wrote:
+>> Hi Michael,
+>>
+>> Do you see any problem with these two patches?
+> Please, hold on with the second patch.
 
-I remember that report from Florian. After some discussion, I proposed
-this solution:
+Are you Ok with getting patch 1 merged while be discuss
+what to do about the issue that the second patch tried to
+document? Could I get your "Acked-by" for it?
 
-commit 20e1db19db5d6b9e4e83021595eab0dc8f107bef
-Author: Pablo Neira Ayuso <pablo@netfilter.org>
-Date:   Thu Aug 23 02:09:11 2012 +0000
 
-    netlink: fix possible spoofing from non-root processes
+> I'd like to find a possible solution for the EPERM problem that we've
+> been discussing. It requires some rework and performance evaluation.
 
-Basically, it disables netlink-to-netlink communications between
-non-root processes (with the exception of NETLINK_USERSOCK), so
-non-root processes cannot spoof messages anymore.
+The problem is that there is a huge installed base of
+systems that show this broken behaviour, so even if
+we find a proper fix for it we still should document
+which systems may be affected by the spurious EPERM
+bug, thus giving application programmers a chance to
+add logic to their programs to recover from such
+eventualities.
 
-Regards.
+
+Regards,
+Fernando
+--
+To unsubscribe from this list: send the line "unsubscribe linux-man" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
