@@ -1,145 +1,104 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH 00/15 v3] IPVS optimizations (repost)
-Date: Thu, 28 Mar 2013 18:04:26 +0900
-Message-ID: <20130328090425.GA31670@verge.net.au>
-References: <1364449184-26672-1-git-send-email-horms@verge.net.au>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] nf_tables: Transaction API proposal
+Date: Thu, 28 Mar 2013 11:04:15 +0100
+Message-ID: <20130328100415.GA7848@localhost>
+References: <1362092898-23306-1-git-send-email-pablo@netfilter.org>
+ <1364293144-4147-1-git-send-email-tomasz.bursztyka@linux.intel.com>
+ <1364293144-4147-2-git-send-email-tomasz.bursztyka@linux.intel.com>
+ <20130327163550.GA5136@localhost>
+ <5153F8E6.5080900@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	David Miller <davem@davemloft.net>
-Return-path: <lvs-devel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:51870 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751230Ab3C1KEV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 28 Mar 2013 06:04:21 -0400
 Content-Disposition: inline
-In-Reply-To: <1364449184-26672-1-git-send-email-horms@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <5153F8E6.5080900@linux.intel.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Mar 28, 2013 at 02:39:29PM +0900, Simon Horman wrote:
-> Hi Dave, Hi Pablo, Hi All,
-> 
-> This is a repost of an IPVS optimisations series by Julian Anastasov
-> which has been acked by Hans Schillstrom.
-> 
-> I have tentatively applied them to the ipvs-next tree.
-> However, the first patch of the series "net: add skb_dst_set_noref_force"
-> touches core code and thus I believe it needs some review on netdev,
-> this is the reason for me posting the series.
-> 
-> Assuming the patch is ok it would be easiest for me if
-> it went through the ipvs-next tree. But if there is a preference
-> for taking it through net-next, feel free.
-> 
-> What follows is Julian's cover-email for the series.
-> And then git information. I am happy for Pablo to pull this
-> if Dave is happy with that.
+Hi Tomasz,
 
-It seems that Dave has already acked the change.
+On Thu, Mar 28, 2013 at 10:01:42AM +0200, Tomasz Bursztyka wrote:
+> Hi Pablo,
+> 
+> >>--- a/include/uapi/linux/netfilter/nf_tables.h
+> >>+++ b/include/uapi/linux/netfilter/nf_tables.h
+> >>@@ -37,8 +37,9 @@ enum nf_tables_msg_types {
+> >>  	NFT_MSG_NEWSETELEM,
+> >>  	NFT_MSG_GETSETELEM,
+> >>  	NFT_MSG_DELSETELEM,
+> >>-	NFT_MSG_COMMIT,
+> >>-	NFT_MSG_ABORT,
+> >>+	NFT_MSG_START_TRANSACTION,
+> >>+	NFT_MSG_COMMIT_TRANSACTION,
+> >>+	NFT_MSG_ABORT_TRANSACTION,
+> >No need to rename this and use long names, I would leave them as:
+> >
+> >NFT_MSG_BEGIN
+> >NFT_MSG_COMMIT
+> >NFT_MSG_ABORT
+> 
+> I did that change to get a fully explicit message name, as all the
+> other ones are actually.
+> Why not shortening to NFT_MSG_BEGIN_TRANS then? or something like that.
 
-http://marc.info/?l=linux-netdev&m=136294921002680&w=2
+I was just trying to reduce the length of the patch, we can save a
+couple of renames, but I leave it up to you.
 
-I'll tag ipvs-next and send a proper pull request.
+> >>  	NFT_MSG_MAX,
+> >>  };
+> >>@@ -88,18 +89,12 @@ enum nft_chain_attributes {
+> >>  };
+> >>  #define NFTA_CHAIN_MAX		(__NFTA_CHAIN_MAX - 1)
+> >>-enum {
+> >>-	NFT_RULE_F_COMMIT	= (1 << 0),
+> >>-	NFT_RULE_F_MASK		= NFT_RULE_F_COMMIT,
+> >>-};
+> >I like the idea of removing the COMMIT flag by the explicit
+> >NFT_MSG_BEGIN.
+> >
+> >>-static int nf_tables_dirty_add(struct nft_rule *rule, const struct nft_ctx *ctx)
+> >>+static int nf_tables_transaction_add(const struct nft_ctx *ctx,
+> >>+				     struct nft_transaction *transaction,
+> >>+				     struct nft_rule *rule)
+> >>  {
+> >>  	struct nft_rule_update *rupd;
+> >>-	/* Another socket owns the dirty list? */
+> >>-	if (!ctx->net->nft.pid_owner)
+> >>-		ctx->net->nft.pid_owner = ctx->nlh->nlmsg_pid;
+> >>-	else if (ctx->net->nft.pid_owner != ctx->nlh->nlmsg_pid)
+> >>-		return -EBUSY;
+> >We still need that there is a single owner at time. Otherwise two
+> >ongoing transactions may overlap.
+> 
+> One of the point of this RFC is to propose a way to enable
+> transaction per-client.
 
-> ======================================================================
-> 
-> Date: Thu, 21 Mar 2013 11:57:57 +0200
-> From: Julian Anastasov <ja@ssi.bg>
-> To: Simon Horman <horms@verge.net.au>
-> Cc: lvs-devel@vger.kernel.org
-> Subject: [PATCHv3 net-next 00/15] IPVS optimizations
-> 
-> 	This is a first patchset for IPVS optimizations.
-> Another patchset will address the locking in schedulers
-> and moving the global _bh disabling from LOCAL_OUT to all
-> locks.
-> 
-> 	All patches are for net-next and Simon can
-> take them for ipvs-next.
-> 
-> 	The changes in this patchset eliminate locks
-> and dst refcnt operations from packet processing by
-> using RCU. There are more details in the patches.
-> 
-> v3:
-> * in "ipvs: consolidate all dst checks on transmit in one place"
->   preserve original skb dst even for local client, remove the
->   rt_is_input_route and skb->dev check. Call update_pmtu only for
->   local client by providing sk instead of skb.
-> * in "ipvs: optimize dst usage for real server" use
->   rcu_dereference_protected for __ip_vs_dst_cache_reset instead of
->   rcu_dereference_raw. Use the new skb_dst_set_noref_force func.
-> * in "ipvs: remove rs_lock by using RCU" prefer the port check in
->   ip_vs_has_real_service
-> * "ipvs: convert locks used in persistence engines" needs only
->   synchronize_rcu, not rcu_barrier, we do not use rcu callbacks
-> 
-> v2:
-> * use "net: add skb_dst_set_unref" instead of
->   "net: add dst_get_noref and refdst_ptr helpers"
-> * add "ipvs: no need to reroute anymore on DNAT over loopback"
-> * add "ipvs: do not use skb_share_check"
-> * add "ipvs: consolidate all dst checks on transmit in one place", so
->   that we can avoid the refdst games in next patch
-> * after "ipvs: consolidate all dst checks on transmit in one place"
->   "ipvs: optimize dst usage for real server" is simpler and
->   uses the new skb_dst_set_unref function
-> * extend "ipvs: reorder keys in connection structure" with
->   changes in ip_vs_ct_in_get
-> * fix "ipvs: avoid kmem_cache_zalloc in ip_vs_conn_new" to use new
->   function ip_vs_addr_set, so that we reset all address fields
->   that are used for hashing by hash_conntrack_raw
-> 
-> ======================================================================
-> 
-> The following changes since commit dece40e848f6e022f960dc9de54be518928460c3:
-> 
->   netfilter: nf_conntrack: speed up module removal path if netns in use (2013-03-19 17:08:31 +0100)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git master
-> 
-> for you to fetch changes up to e8a0eb703e38870118928384ffd5eeeb47e7e1ef:
-> 
->   ipvs: avoid kmem_cache_zalloc in ip_vs_conn_new (2013-03-28 14:16:38 +0900)
-> 
-> ----------------------------------------------------------------
-> Julian Anastasov (15):
->       net: add skb_dst_set_noref_force
->       ipvs: avoid routing by TOS for real server
->       ipvs: prefer NETDEV_DOWN event to free cached dsts
->       ipvs: convert the IP_VS_XMIT macros to functions
->       ipvs: rename functions related to dst_cache reset
->       ipvs: no need to reroute anymore on DNAT over loopback
->       ipvs: do not use skb_share_check
->       ipvs: consolidate all dst checks on transmit in one place
->       ipvs: optimize dst usage for real server
->       ipvs: convert app locks
->       ipvs: remove rs_lock by using RCU
->       ipvs: convert locks used in persistence engines
->       ipvs: convert connection locking
->       ipvs: reorder keys in connection structure
->       ipvs: avoid kmem_cache_zalloc in ip_vs_conn_new
-> 
->  include/linux/skbuff.h                |   35 +-
->  include/net/ip_vs.h                   |   71 ++-
->  net/core/dst.c                        |    9 +-
->  net/netfilter/ipvs/ip_vs_app.c        |   27 +-
->  net/netfilter/ipvs/ip_vs_conn.c       |  271 +++++----
->  net/netfilter/ipvs/ip_vs_core.c       |   16 +-
->  net/netfilter/ipvs/ip_vs_ctl.c        |  143 +++--
->  net/netfilter/ipvs/ip_vs_ftp.c        |    2 +
->  net/netfilter/ipvs/ip_vs_pe.c         |   43 +-
->  net/netfilter/ipvs/ip_vs_pe_sip.c     |    1 +
->  net/netfilter/ipvs/ip_vs_proto_sctp.c |   18 +-
->  net/netfilter/ipvs/ip_vs_proto_tcp.c  |   18 +-
->  net/netfilter/ipvs/ip_vs_proto_udp.c  |   19 +-
->  net/netfilter/ipvs/ip_vs_xmit.c       | 1046 ++++++++++++++-------------------
->  14 files changed, 810 insertions(+), 909 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+I cannot come up with a way to resolve the case in which several
+commit overlaps, as they may leave the rule-set in inconsistent state
+temporarily. Using iptables as reference, it returns an error if you
+try to commit while another commit is happening.
+
+> It's actually not nice to enable only one transaction at a time,
+> what do we do if the owner never commits?
+
+Currently, the transaction is aborted if the process dies or it
+finishes without committing. If you don't commit, I think the
+behaviour is similar to databases, the client blocks others. We can
+document this behaviour.
+
+Alternatively, we also have batch helpers in libmnl:
+
+http://git.netfilter.org/libmnl/tree/src/nlmsg.c#n387
+
+We can batch several rule updates into one single netlink datagram
+that is sent to the kernel. The batch needs to be started BEGIN and
+finished by COMMIT. We may also decide to restrict the BEGIN and
+COMMIT to batches.
+
+Regards.
