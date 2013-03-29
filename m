@@ -1,36 +1,86 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: [PATCH iptables] nfnl_osf: use the right nfnetlink lib
-Date: Fri, 29 Mar 2013 15:21:10 +0100
-Message-ID: <1364566870-7320-1-git-send-email-nicolas.dichtel@6wind.com>
-Cc: netfilter-devel@vger.kernel.org,
-	Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 33.106-14-84.ripe.coltfrance.com ([84.14.106.33]:39627 "EHLO
-	proxy.6wind.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753598Ab3C2OVZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Mar 2013 10:21:25 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH 06/34] ipvs: no need to reroute anymore on DNAT over loopback
+Date: Fri, 29 Mar 2013 18:44:06 +0400
+Message-ID: <5155A8B6.9030303@cogentembedded.com>
+References: <1364530311-11512-1-git-send-email-horms@verge.net.au> <1364530311-11512-7-git-send-email-horms@verge.net.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1364530311-11512-7-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-If the user specify libnfnetlink_LIBS during the configure, we must use it.
+Hello.
 
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
----
- utils/Makefile.am | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 29-03-2013 8:11, Simon Horman wrote:
 
-diff --git a/utils/Makefile.am b/utils/Makefile.am
-index f1bbfc5..8a85396 100644
---- a/utils/Makefile.am
-+++ b/utils/Makefile.am
-@@ -7,4 +7,4 @@ AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_builddir}/include \
- sbin_PROGRAMS = nfnl_osf
- pkgdata_DATA = pf.os
- 
--nfnl_osf_LDADD = -lnfnetlink
-+nfnl_osf_LDADD = ${libnfnetlink_LIBS} -lnfnetlink
--- 
-1.8.0.1
+> From: Julian Anastasov <ja@ssi.bg>
+
+> After commit 70e7341673 (ipv4: Show that ip_send_reply()
+> is purely unicast routine.) we do not need to reroute DNAT-ed
+> traffic over loopback because reply uses iph daddr and not
+> rt_spec_dst.
+
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> Signed-off by: Hans Schillstrom <hans@schillstrom.com>
+> Signed-off-by: Simon Horman <horms@verge.net.au>
+> ---
+>   net/netfilter/ipvs/ip_vs_xmit.c |   58 ++-------------------------------------
+>   1 file changed, 2 insertions(+), 56 deletions(-)
+
+> diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+> index 6448a2e..c942d36 100644
+> --- a/net/netfilter/ipvs/ip_vs_xmit.c
+> +++ b/net/netfilter/ipvs/ip_vs_xmit.c
+[...]
+> @@ -635,16 +597,8 @@ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+>   		/* drop old route */
+>   		skb_dst_drop(skb);
+>   		skb_dst_set(skb, &rt->dst);
+> -	} else {
+> +	} else
+
+    {} should be kept after *else*, according to Documentation/CodingStyle, 
+chapter 3.
+
+>   		ip_rt_put(rt);
+> -		/*
+> -		 * Some IPv4 replies get local address from routes,
+> -		 * not from iph, so while we DNAT after routing
+> -		 * we need this second input/output route.
+> -		 */
+> -		if (!__ip_vs_reroute_locally(skb))
+> -			goto tx_error;
+> -	}
+>
+>   	IP_VS_DBG_PKT(10, AF_INET, pp, skb, 0, "After DNAT");
+>
+> @@ -1269,16 +1223,8 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+>   		/* drop the old route when skb is not shared */
+>   		skb_dst_drop(skb);
+>   		skb_dst_set(skb, &rt->dst);
+> -	} else {
+> +	} else
+
+    Same here.
+
+>   		ip_rt_put(rt);
+> -		/*
+> -		 * Some IPv4 replies get local address from routes,
+> -		 * not from iph, so while we DNAT after routing
+> -		 * we need this second input/output route.
+> -		 */
+> -		if (!__ip_vs_reroute_locally(skb))
+> -			goto tx_error;
+> -	}
+>
+>   	/* Another hack: avoid icmp_send in ip_fragment */
+>   	skb->local_df = 1;
+>
 
