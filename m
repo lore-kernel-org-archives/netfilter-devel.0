@@ -1,293 +1,100 @@
-From: Arturo Borrero <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH 2/2] Basic support for printing nft_data_reg in
-	XML format.
-Date: Fri, 29 Mar 2013 16:34:32 +0100
-Message-ID: <20130329153432.30122.86772.stgit@nfdev.cica.es>
-References: <20130329153155.30122.21803.stgit@nfdev.cica.es>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH 06/34] ipvs: no need to reroute anymore on DNAT over
+ loopback
+Date: Fri, 29 Mar 2013 23:47:01 +0200 (EET)
+Message-ID: <alpine.LFD.2.00.1303292318090.1804@ja.ssi.bg>
+References: <1364530311-11512-1-git-send-email-horms@verge.net.au> <1364530311-11512-7-git-send-email-horms@verge.net.au> <5155A8B6.9030303@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:44445 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755659Ab3C2Peg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Mar 2013 11:34:36 -0400
-In-Reply-To: <20130329153155.30122.21803.stgit@nfdev.cica.es>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Simon Horman <horms@verge.net.au>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <5155A8B6.9030303@cogentembedded.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 
----
- src/expr/bitwise.c   |   33 ++++++++++++++-------------------
- src/expr/cmp.c       |   23 +++++++++++------------
- src/expr/data_reg.c  |   48 ++++++++++++++++++++++++++++++++++++++++++++++++
- src/expr/data_reg.h  |    3 +++
- src/expr/immediate.c |   43 ++++++++++++++++++++++++++++++++++++++-----
- 5 files changed, 114 insertions(+), 36 deletions(-)
+	Hello,
 
-diff --git a/src/expr/bitwise.c b/src/expr/bitwise.c
-index ac89cba..249307a 100644
---- a/src/expr/bitwise.c
-+++ b/src/expr/bitwise.c
-@@ -199,7 +199,7 @@ static int
- nft_rule_expr_bitwise_snprintf_xml(char *buf, size_t size,
- 				   struct nft_expr_bitwise *bitwise)
- {
--	int len = size, offset = 0, ret, i;
-+	int len = size, offset = 0, ret;
- 
- 	ret = snprintf(buf, len, "\t\t<sreg>%u</sreg> "
- 					"<dreg>%u</dreg> ",
-@@ -209,19 +209,16 @@ nft_rule_expr_bitwise_snprintf_xml(char *buf, size_t size,
- 	ret = snprintf(buf+offset, len, "<mask>");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--	for (i=0; i<bitwise->mask.len/sizeof(uint32_t); i++) {
--		ret = snprintf(buf+offset, len, "%.8x ",
--				bitwise->mask.val[i]);
--		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
--	}
-+	ret = nft_data_reg_snprintf(buf+offset, len, &bitwise->mask,
-+							NFT_RULE_O_XML, 0);
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	ret = snprintf(buf+offset, len, "</mask> <xor>");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--	for (i=0; i<bitwise->xor.len/sizeof(uint32_t); i++) {
--		ret = snprintf(buf+offset, len, "%.8x ", bitwise->xor.val[i]);
--		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
--	}
-+	ret = nft_data_reg_snprintf(buf+offset, len, &bitwise->xor,
-+							NFT_RULE_O_XML, 0);
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	ret = snprintf(buf+offset, len, "</xor> ");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-@@ -233,7 +230,7 @@ static int
- nft_rule_expr_bitwise_snprintf_default(char *buf, size_t size,
- 					struct nft_expr_bitwise *bitwise)
- {
--	int len = size, offset = 0, ret, i;
-+	int len = size, offset = 0, ret;
- 
- 	ret = snprintf(buf, len, "sreg=%u dreg=%u ",
- 			bitwise->sreg, bitwise->dreg);
-@@ -242,18 +239,16 @@ nft_rule_expr_bitwise_snprintf_default(char *buf, size_t size,
- 	ret = snprintf(buf+offset, len, " mask=");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--	for (i=0; i<bitwise->mask.len/sizeof(uint32_t); i++) {
--		ret = snprintf(buf+offset, len, "%.8x ", bitwise->mask.val[i]);
--		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
--	}
-+	ret = nft_data_reg_snprintf(buf+offset, len, &bitwise->mask,
-+							NFT_RULE_O_DEFAULT, 0);
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	ret = snprintf(buf+offset, len, " xor=");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--	for (i=0; i<bitwise->xor.len/sizeof(uint32_t); i++) {
--		ret = snprintf(buf+offset, len, "%.8x ", bitwise->xor.val[i]);
--		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
--	}
-+	ret = nft_data_reg_snprintf(buf+offset, len, &bitwise->xor,
-+							NFT_RULE_O_DEFAULT, 0);
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	return offset;
- }
-diff --git a/src/expr/cmp.c b/src/expr/cmp.c
-index 429f024..6a5c4c2 100644
---- a/src/expr/cmp.c
-+++ b/src/expr/cmp.c
-@@ -169,18 +169,17 @@ static char *expr_cmp_str[] = {
- static int
- nft_rule_expr_cmp_snprintf_xml(char *buf, size_t size, struct nft_expr_cmp *cmp)
- {
--	int len = size, offset = 0, ret, i;
-+	int len = size, offset = 0, ret;
- 
--	ret = snprintf(buf, len, "\t\t<sreg>%u</sreg> <op>%s</op> <data>",
-+	ret = snprintf(buf, len, "\t\t<sreg>%u</sreg> <op>%s</op> <cmpdata>",
- 			cmp->sreg, expr_cmp_str[cmp->op]);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--	for (i=0; i<cmp->data.len/sizeof(uint32_t); i++) {
--		ret = snprintf(buf+offset, len, "%.8x ", cmp->data.val[i]);
--		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
--	}
-+	ret = nft_data_reg_snprintf(buf+offset, len, &cmp->data,
-+							NFT_RULE_O_XML, 0);
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--	ret = snprintf(buf+offset, len, "</data> ");
-+	ret = snprintf(buf+offset, len, "</cmpdata> ");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	return offset;
-@@ -190,16 +189,16 @@ static int
- nft_rule_expr_cmp_snprintf_default(char *buf, size_t size,
- 				   struct nft_expr_cmp *cmp)
- {
--	int len = size, offset = 0, ret, i;
-+	int len = size, offset = 0, ret;
- 
- 	ret = snprintf(buf, len, "sreg=%u op=%s data=",
- 			cmp->sreg, expr_cmp_str[cmp->op]);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--	for (i=0; i<cmp->data.len/sizeof(uint32_t); i++) {
--		ret = snprintf(buf+offset, len, "%.8x ", cmp->data.val[i]);
--		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
--	}
-+	ret = nft_data_reg_snprintf(buf+offset, len, &cmp->data,
-+							NFT_RULE_O_DEFAULT, 0);
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+
- 	return offset;
- }
- 
-diff --git a/src/expr/data_reg.c b/src/expr/data_reg.c
-index 5b14695..b188571 100644
---- a/src/expr/data_reg.c
-+++ b/src/expr/data_reg.c
-@@ -18,10 +18,58 @@
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
- #include <libnftables/expr.h>
-+#include <libnftables/rule.h>
- #include "expr_ops.h"
- #include "data_reg.h"
- #include "internal.h"
- 
-+static int nft_data_reg_snprintf_xml(char *buf, size_t size, uint32_t flags,
-+						union nft_data_reg *reg)
-+{
-+	/* NOTE: The other struct in the union (the one with veredict/chain)
-+	* is not supported yet */
-+
-+	int len = size, offset = 0, ret, i;
-+
-+	for (i=0; i<4; i++) {
-+		ret = snprintf(buf+offset, len, "<data%d>0x%.8x</data%d>",
-+							i, reg->val[i], i);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+
-+	return offset;
-+}
-+
-+static int nft_data_reg_snprintf_default(char *buf, size_t size, uint32_t flags,
-+						union nft_data_reg *reg)
-+{
-+	/* NOTE: The other struct in the union (the one with veredict/chain)
-+	* is not supported yet */
-+
-+	int len = size, offset = 0, ret, i;
-+
-+	for (i=0; i<reg->len/sizeof(uint32_t); i++) {
-+		ret = snprintf(buf+offset, len, "0x%.8x ", reg->val[i]);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+
-+	return offset;
-+}
-+
-+int nft_data_reg_snprintf(char *buf, size_t size, union nft_data_reg *reg,
-+						uint32_t type, uint32_t flags)
-+{
-+	switch(type) {
-+	case NFT_RULE_O_XML:
-+		return nft_data_reg_snprintf_xml(buf, size, flags, reg);
-+	case NFT_RULE_O_DEFAULT:
-+		return nft_data_reg_snprintf_default(buf, size, flags, reg);
-+	default:
-+		break;
-+	}
-+	return -1;
-+}
-+
- static int nft_data_parse_cb(const struct nlattr *attr, void *data)
- {
- 	const struct nlattr **tb = data;
-diff --git a/src/expr/data_reg.h b/src/expr/data_reg.h
-index 00eab63..8441dc8 100644
---- a/src/expr/data_reg.h
-+++ b/src/expr/data_reg.h
-@@ -18,6 +18,9 @@ union nft_data_reg {
- 	};
- };
- 
-+int nft_data_reg_snprintf(char *buf, size_t size, union nft_data_reg *reg,
-+						uint32_t type, uint32_t flags);
-+int nft_data_reg_xml_parse(union nft_data_reg *reg, char *xml);
- int nft_parse_data(union nft_data_reg *data, struct nlattr *attr, int *type);
- 
- #endif
-diff --git a/src/expr/immediate.c b/src/expr/immediate.c
-index 496cbfd..f244783 100644
---- a/src/expr/immediate.c
-+++ b/src/expr/immediate.c
-@@ -196,6 +196,42 @@ nft_rule_expr_immediate_parse(struct nft_rule_expr *e, struct nlattr *attr)
- }
- 
- static int
-+nft_rule_expr_immediate_snprintf_xml(char *buf, size_t len,
-+			struct nft_expr_immediate *imm, uint32_t flags)
-+{
-+	int size = len, offset = 0, ret;
-+
-+	ret = snprintf(buf, len, "\t\t<dreg>%u</dreg>"
-+				"\n\t\t<immediatedata>", imm->dreg);
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+
-+	ret = nft_data_reg_snprintf(buf+offset, len, &imm->data,
-+							NFT_RULE_O_XML, flags);
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+
-+	ret = snprintf(buf+offset, len, "</immediatedata>");
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+
-+	return offset;
-+}
-+
-+static int
-+nft_rule_expr_immediate_snprintf_default(char *buf, size_t len,
-+				struct nft_expr_immediate *imm, uint32_t flags)
-+{
-+	int size = len, offset = 0, ret;
-+
-+	ret = snprintf(buf, len, "dreg=%u data=", imm->dreg);
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+
-+	ret = nft_data_reg_snprintf(buf+offset, len, &imm->data,
-+						NFT_RULE_O_DEFAULT, flags);
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+
-+	return offset;
-+}
-+
-+static int
- nft_rule_expr_immediate_snprintf(char *buf, size_t len, uint32_t type,
- 				 uint32_t flags, struct nft_rule_expr *e)
- {
-@@ -203,12 +239,9 @@ nft_rule_expr_immediate_snprintf(char *buf, size_t len, uint32_t type,
- 
- 	switch(type) {
- 	case NFT_RULE_O_XML:
--		return snprintf(buf, len, "\t\t<dreg>%u</dreg>"
--					  " <data>%u</data> ",
--				imm->dreg, imm->data.val[0]);
-+		return nft_rule_expr_immediate_snprintf_xml(buf, len, imm, flags);
- 	case NFT_RULE_O_DEFAULT:
--		return snprintf(buf, len, "dreg=%u data=%u ",
--				imm->dreg, imm->data.val[0]);
-+		return nft_rule_expr_immediate_snprintf_default(buf, len, imm, flags);
- 	default:
- 		break;
- 	}
+On Fri, 29 Mar 2013, Sergei Shtylyov wrote:
 
+> On 29-03-2013 8:11, Simon Horman wrote:
+> 
+> > From: Julian Anastasov <ja@ssi.bg>
+> 
+> > After commit 70e7341673 (ipv4: Show that ip_send_reply()
+> > is purely unicast routine.) we do not need to reroute DNAT-ed
+> > traffic over loopback because reply uses iph daddr and not
+> > rt_spec_dst.
+> 
+> > Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> > Signed-off by: Hans Schillstrom <hans@schillstrom.com>
+> > Signed-off-by: Simon Horman <horms@verge.net.au>
+> > ---
+> >   net/netfilter/ipvs/ip_vs_xmit.c |   58
+> > ++-------------------------------------
+> >   1 file changed, 2 insertions(+), 56 deletions(-)
+> 
+> > diff --git a/net/netfilter/ipvs/ip_vs_xmit.c
+> > b/net/netfilter/ipvs/ip_vs_xmit.c
+> > index 6448a2e..c942d36 100644
+> > --- a/net/netfilter/ipvs/ip_vs_xmit.c
+> > +++ b/net/netfilter/ipvs/ip_vs_xmit.c
+> [...]
+> > @@ -635,16 +597,8 @@ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn
+> > *cp,
+> >   		/* drop old route */
+> >   		skb_dst_drop(skb);
+> >   		skb_dst_set(skb, &rt->dst);
+> > -	} else {
+> > +	} else
+> 
+>    {} should be kept after *else*, according to Documentation/CodingStyle,
+> chapter 3.
+
+	Sigh. I missed this rule from Nov 2011.
+It seems checkpatch.pl can not stop such crimes to occur :)
+
+> >   		ip_rt_put(rt);
+> > -		/*
+> > -		 * Some IPv4 replies get local address from routes,
+> > -		 * not from iph, so while we DNAT after routing
+> > -		 * we need this second input/output route.
+> > -		 */
+> > -		if (!__ip_vs_reroute_locally(skb))
+> > -			goto tx_error;
+> > -	}
+> > 
+> >   	IP_VS_DBG_PKT(10, AF_INET, pp, skb, 0, "After DNAT");
+> > 
+> > @@ -1269,16 +1223,8 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct
+> > ip_vs_conn *cp,
+> >   		/* drop the old route when skb is not shared */
+> >   		skb_dst_drop(skb);
+> >   		skb_dst_set(skb, &rt->dst);
+> > -	} else {
+> > +	} else
+> 
+>    Same here.
+> 
+> >   		ip_rt_put(rt);
+> > -		/*
+> > -		 * Some IPv4 replies get local address from routes,
+> > -		 * not from iph, so while we DNAT after routing
+> > -		 * we need this second input/output route.
+> > -		 */
+> > -		if (!__ip_vs_reroute_locally(skb))
+> > -			goto tx_error;
+> > -	}
+> > 
+> >   	/* Another hack: avoid icmp_send in ip_fragment */
+> >   	skb->local_df = 1;
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
