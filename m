@@ -1,100 +1,49 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH 06/34] ipvs: no need to reroute anymore on DNAT over
- loopback
-Date: Fri, 29 Mar 2013 23:47:01 +0200 (EET)
-Message-ID: <alpine.LFD.2.00.1303292318090.1804@ja.ssi.bg>
-References: <1364530311-11512-1-git-send-email-horms@verge.net.au> <1364530311-11512-7-git-send-email-horms@verge.net.au> <5155A8B6.9030303@cogentembedded.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Simon Horman <horms@verge.net.au>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <5155A8B6.9030303@cogentembedded.com>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Matthias Schiffer <mschiffer@universe-factory.net>
+Subject: [PATCH] netfilter: ip6t_NPT: Fix translation for non-multiple of 32 prefix lengths
+Date: Sat, 30 Mar 2013 21:03:53 +0100
+Message-ID: <bba4b68de747f6d3d580232a15592f6ba0fc6722.1364673589.git.mschiffer@universe-factory.net>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from chaos.universe-factory.net ([5.9.180.86]:52048 "EHLO
+	chaos.universe-factory.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756639Ab3C3UEA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 30 Mar 2013 16:04:00 -0400
+Received: from avalon.fritz.box (31-17-90-183-dynip.superkabel.de [31.17.90.183])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by chaos.universe-factory.net (Postfix) with ESMTPSA id 792661801CD
+	for <netfilter-devel@vger.kernel.org>; Sat, 30 Mar 2013 21:03:56 +0100 (CET)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+The bitmask used for the prefix mangling was being calculated incorrectly,
+leading to the wrong part of the address being replaced when the prefix length
+wasn't a multiple of 32.
 
-	Hello,
+Signed-off-by: Matthias Schiffer <mschiffer@universe-factory.net>
+---
+Hi, this patch should to 3.9 and, if possible, 3.8-stable.
 
-On Fri, 29 Mar 2013, Sergei Shtylyov wrote:
+Regards,
+Matthias Schiffer
 
-> On 29-03-2013 8:11, Simon Horman wrote:
-> 
-> > From: Julian Anastasov <ja@ssi.bg>
-> 
-> > After commit 70e7341673 (ipv4: Show that ip_send_reply()
-> > is purely unicast routine.) we do not need to reroute DNAT-ed
-> > traffic over loopback because reply uses iph daddr and not
-> > rt_spec_dst.
-> 
-> > Signed-off-by: Julian Anastasov <ja@ssi.bg>
-> > Signed-off by: Hans Schillstrom <hans@schillstrom.com>
-> > Signed-off-by: Simon Horman <horms@verge.net.au>
-> > ---
-> >   net/netfilter/ipvs/ip_vs_xmit.c |   58
-> > ++-------------------------------------
-> >   1 file changed, 2 insertions(+), 56 deletions(-)
-> 
-> > diff --git a/net/netfilter/ipvs/ip_vs_xmit.c
-> > b/net/netfilter/ipvs/ip_vs_xmit.c
-> > index 6448a2e..c942d36 100644
-> > --- a/net/netfilter/ipvs/ip_vs_xmit.c
-> > +++ b/net/netfilter/ipvs/ip_vs_xmit.c
-> [...]
-> > @@ -635,16 +597,8 @@ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn
-> > *cp,
-> >   		/* drop old route */
-> >   		skb_dst_drop(skb);
-> >   		skb_dst_set(skb, &rt->dst);
-> > -	} else {
-> > +	} else
-> 
->    {} should be kept after *else*, according to Documentation/CodingStyle,
-> chapter 3.
+ net/ipv6/netfilter/ip6t_NPT.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-	Sigh. I missed this rule from Nov 2011.
-It seems checkpatch.pl can not stop such crimes to occur :)
+diff --git a/net/ipv6/netfilter/ip6t_NPT.c b/net/ipv6/netfilter/ip6t_NPT.c
+index 33608c6..c476f16 100644
+--- a/net/ipv6/netfilter/ip6t_NPT.c
++++ b/net/ipv6/netfilter/ip6t_NPT.c
+@@ -57,7 +57,7 @@ static bool ip6t_npt_map_pfx(const struct ip6t_npt_tginfo *npt,
+ 		if (pfx_len - i >= 32)
+ 			mask = 0;
+ 		else
+-			mask = htonl(~((1 << (pfx_len - i)) - 1));
++			mask = htonl(((1 << (i - pfx_len + 32)) - 1));
+ 
+ 		idx = i / 32;
+ 		addr->s6_addr32[idx] &= mask;
+-- 
+1.8.2
 
-> >   		ip_rt_put(rt);
-> > -		/*
-> > -		 * Some IPv4 replies get local address from routes,
-> > -		 * not from iph, so while we DNAT after routing
-> > -		 * we need this second input/output route.
-> > -		 */
-> > -		if (!__ip_vs_reroute_locally(skb))
-> > -			goto tx_error;
-> > -	}
-> > 
-> >   	IP_VS_DBG_PKT(10, AF_INET, pp, skb, 0, "After DNAT");
-> > 
-> > @@ -1269,16 +1223,8 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct
-> > ip_vs_conn *cp,
-> >   		/* drop the old route when skb is not shared */
-> >   		skb_dst_drop(skb);
-> >   		skb_dst_set(skb, &rt->dst);
-> > -	} else {
-> > +	} else
-> 
->    Same here.
-> 
-> >   		ip_rt_put(rt);
-> > -		/*
-> > -		 * Some IPv4 replies get local address from routes,
-> > -		 * not from iph, so while we DNAT after routing
-> > -		 * we need this second input/output route.
-> > -		 */
-> > -		if (!__ip_vs_reroute_locally(skb))
-> > -			goto tx_error;
-> > -	}
-> > 
-> >   	/* Another hack: avoid icmp_send in ip_fragment */
-> >   	skb->local_df = 1;
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
