@@ -1,48 +1,42 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH next] extensions: add libxt_bpf extension
-Date: Tue, 2 Apr 2013 00:16:33 +0200
-Message-ID: <20130401221633.GA26928@localhost>
-References: <1357776727-28547-1-git-send-email-willemb@google.com>
- <1358992858-20172-1-git-send-email-willemb@google.com>
+Subject: Re: [PATCH next] utils: bpf_compile
+Date: Tue, 2 Apr 2013 00:20:53 +0200
+Message-ID: <20130401222053.GB26928@localhost>
+References: <51262486.40905@redhat.com>
+ <1363103052-5529-1-git-send-email-willemb@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, dborkman@redhat.com,
+	zenczykowski@gmail.com
 To: Willem de Bruijn <willemb@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60728 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:32848 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758294Ab3DAWQq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Apr 2013 18:16:46 -0400
+	id S1755281Ab3DAWU5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Apr 2013 18:20:57 -0400
 Content-Disposition: inline
-In-Reply-To: <1358992858-20172-1-git-send-email-willemb@google.com>
+In-Reply-To: <1363103052-5529-1-git-send-email-willemb@google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jan 23, 2013 at 09:00:58PM -0500, Willem de Bruijn wrote:
-> Changes:
-> - v3
->   - more informative error messages and man page
-> - v2
->   - update to match latest kernel module (fixed size match struct)
->   - add manual page
->   - fix save/restore
->   - fix matching whole program on delete
-> 
-> Support filtering using Linux Socket Filters
+On Tue, Mar 12, 2013 at 11:44:12AM -0400, Willem de Bruijn wrote:
+> V2
+> - update build process to
+>   - succeed without bpf_compiler when --enable-bpf-compiler is not set
+>   - succeed with bpf_compiler when this flag is set and libpcap is found
+>   - fail when this flag is set but libpcap is absent
+> - release memory allocated by pcap on exit
 
 Applied with changes:
 
-* include a copy of include/linux/netfilter/xt_bpf.h in the tree.
+* renamed utility to add the `nf' prefix.
 
-* Removed the --bytecode-file option. The original
-  proposal was to accept BPF code in a file in human readable format.
-  Now, with the nfbpf_compile utility, it's very easy to generate the
-  filter using tcpdump-like syntax. We can recover the file parameter
-  later on if you find it useful.
+* the output of the utility is now exactly what iptables -m bpf --bytecode
+  needs, just to make it easier to everyone.
 
-* Removed the trailing comma in the backtick format, the parser works
-  just fine for me here.
-
-* Fix error message if --bytecode is missing.
+Still missing a hard fail if --enable-bpf-compiler is set and libpcap
+is not available in the system, I'd appreciate if you send me a follow
+up patch to address this. You may want to have a look at how ulogd2
+does this in its configure fail as reference.
 
 Thanks.
