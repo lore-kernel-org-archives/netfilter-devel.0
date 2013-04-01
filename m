@@ -1,42 +1,34 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH next] utils: bpf_compile
-Date: Tue, 2 Apr 2013 00:20:53 +0200
-Message-ID: <20130401222053.GB26928@localhost>
-References: <51262486.40905@redhat.com>
- <1363103052-5529-1-git-send-email-willemb@google.com>
+Subject: Re: [GIT PULL nf-next] IPVS optimisations for v3.10
+Date: Tue, 2 Apr 2013 00:41:19 +0200
+Message-ID: <20130401224119.GA12345@localhost>
+References: <1364530311-11512-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, dborkman@redhat.com,
-	zenczykowski@gmail.com
-To: Willem de Bruijn <willemb@google.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:32848 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755281Ab3DAWU5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Apr 2013 18:20:57 -0400
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1363103052-5529-1-git-send-email-willemb@google.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1364530311-11512-1-git-send-email-horms@verge.net.au>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Mar 12, 2013 at 11:44:12AM -0400, Willem de Bruijn wrote:
-> V2
-> - update build process to
->   - succeed without bpf_compiler when --enable-bpf-compiler is not set
->   - succeed with bpf_compiler when this flag is set and libpcap is found
->   - fail when this flag is set but libpcap is absent
-> - release memory allocated by pcap on exit
+On Fri, Mar 29, 2013 at 01:11:17PM +0900, Simon Horman wrote:
+> Hi Pablo,
+> 
+> The following changes since commit e5c5d22e8dcf7c2d430336cbf8e180bd38e8daf1:
+> 
+>   net: add ETH_P_802_3_MIN (2013-03-28 01:20:42 -0400)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs2-for-v3.10
+> 
+> for you to fetch changes up to e0566a7cef2f1afca4aa98244224fb9ca6ded08e:
+> 
+>   ipvs: do not disable bh for long time (2013-03-29 12:59:02 +0900)
 
-Applied with changes:
-
-* renamed utility to add the `nf' prefix.
-
-* the output of the utility is now exactly what iptables -m bpf --bytecode
-  needs, just to make it easier to everyone.
-
-Still missing a hard fail if --enable-bpf-compiler is set and libpcap
-is not available in the system, I'd appreciate if you send me a follow
-up patch to address this. You may want to have a look at how ulogd2
-does this in its configure fail as reference.
-
-Thanks.
+Pulled, thanks Simon.
