@@ -1,51 +1,40 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH 01/34] net: add skb_dst_set_noref_force
-Date: Tue, 2 Apr 2013 10:11:32 +0900
-Message-ID: <20130402011132.GF14785@verge.net.au>
-References: <1364530311-11512-1-git-send-email-horms@verge.net.au>
- <1364530311-11512-2-git-send-email-horms@verge.net.au>
- <20130401120644.GA4882@localhost>
- <20130401.125733.1045325402548119287.davem@davemloft.net>
- <20130401224230.GA12356@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	wensong@linux-vs.org, ja@ssi.bg
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130401224230.GA12356@localhost>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Michal Kubecek <mkubecek@suse.cz>
+Subject: [nf-next] netfilter: fix struct ip6t_frag field description
+Date: Tue, 2 Apr 2013 08:12:11 +0200
+Message-ID: <20130402062048.832BDC451E@unicorn.suse.cz>
+Cc: coreteam@netfilter.org, netdev@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:46535 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759154Ab3DBGUu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Apr 2013 02:20:50 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Apr 02, 2013 at 12:42:30AM +0200, Pablo Neira Ayuso wrote:
-> On Mon, Apr 01, 2013 at 12:57:33PM -0400, David Miller wrote:
-> > From: Pablo Neira Ayuso <pablo@netfilter.org>
-> > Date: Mon, 1 Apr 2013 14:06:44 +0200
-> > 
-> > > Hi Simon,
-> > > 
-> > > On Fri, Mar 29, 2013 at 01:11:18PM +0900, Simon Horman wrote:
-> > >> From: Julian Anastasov <ja@ssi.bg>
-> > >> 
-> > >> Rename skb_dst_set_noref to __skb_dst_set_noref and
-> > >> add force flag as suggested by David Miller. The new wrapper
-> > >> skb_dst_set_noref_force will force dst entries that are not
-> > >> cached to be attached as skb dst without taking reference
-> > >> as long as provided dst is reclaimed after RCU grace period.
-> > >> 
-> > >> Signed-off-by: Julian Anastasov <ja@ssi.bg>
-> > >> Signed-off by: Hans Schillstrom <hans@schillstrom.com>
-> > >> Signed-off-by: Simon Horman <horms@verge.net.au>
-> > > 
-> > > I think was acked by David, right?
-> > 
-> > It was:
-> > 
-> > Acked-by: David S. Miller <davem@davemloft.net>
-> 
-> I have added this missing Acked-by to the patch. Simon, you'll have to
-> rebase your tree, sorry.
+Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
+---
+ include/uapi/linux/netfilter_ipv6/ip6t_frag.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Thanks. Sorry for the mix up.
+diff --git a/include/uapi/linux/netfilter_ipv6/ip6t_frag.h b/include/uapi/linux/netfilter_ipv6/ip6t_frag.h
+index b47f61b..dfd8bc2 100644
+--- a/include/uapi/linux/netfilter_ipv6/ip6t_frag.h
++++ b/include/uapi/linux/netfilter_ipv6/ip6t_frag.h
+@@ -4,9 +4,9 @@
+ #include <linux/types.h>
+ 
+ struct ip6t_frag {
+-	__u32 ids[2];			/* Security Parameter Index */
++	__u32 ids[2];			/* Identification range */
+ 	__u32 hdrlen;			/* Header Length */
+-	__u8  flags;			/*  */
++	__u8  flags;			/* Flags */
+ 	__u8  invflags;			/* Inverse flags */
+ };
+ 
+-- 
+1.7.10.4
+
