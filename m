@@ -1,47 +1,21 @@
-From: Tomasz Bursztyka <tomasz.bursztyka@linux.intel.com>
-Subject: Re: [PATCH 1/2] netfilter: nf_tables: rework atomic transaction updates
-Date: Tue, 02 Apr 2013 12:03:39 +0300
-Message-ID: <515A9EEB.2090701@linux.intel.com>
-References: <1364502145-3701-1-git-send-email-pablo@netfilter.org> <1364502145-3701-2-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nf-next] netfilter: fix struct ip6t_frag field description
+Date: Tue, 2 Apr 2013 12:26:30 +0200
+Message-ID: <20130402102630.GA4309@localhost>
+References: <20130402062048.832BDC451E@unicorn.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>
+To: Michal Kubecek <mkubecek@suse.cz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:55396 "EHLO mga01.intel.com"
+Received: from mail.us.es ([193.147.175.20]:48850 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753999Ab3DBJEC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Apr 2013 05:04:02 -0400
-In-Reply-To: <1364502145-3701-2-git-send-email-pablo@netfilter.org>
+	id S1760067Ab3DBK0i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Apr 2013 06:26:38 -0400
+Content-Disposition: inline
+In-Reply-To: <20130402062048.832BDC451E@unicorn.suse.cz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
-
-> * A new begin operation to explicitly enter the transaction mode,
->    and remove the COMMIT flag per rule, as suggested by Tomasz.
-
-Could you split your patch to 2?
-- one which removes this flag and add *BEGIN* message stuff
-- and a the later one which propose the rest
-
-
-> +++ b/include/uapi/linux/netfilter/nf_tables.h
-> @@ -37,6 +37,7 @@ enum nf_tables_msg_types {
->   	NFT_MSG_NEWSETELEM,
->   	NFT_MSG_GETSETELEM,
->   	NFT_MSG_DELSETELEM,
-> +	NFT_MSG_BEGIN,
->   	NFT_MSG_COMMIT,
->   	NFT_MSG_ABORT,
->   	NFT_MSG_MAX,
-
-Still, I think it's awkward to propose a fully-explicit message name for 
-all but for the transaction ones.
-NFT_MSG_BEGINTRANSACT or something like that, would be better.
-
-
-Br,
-
-Tomasz
+Applied, thanks.
