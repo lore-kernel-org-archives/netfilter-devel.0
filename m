@@ -1,182 +1,75 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/3 nfnetlink_acct] numerous changes and improvements to
- the kernel code
-Date: Wed, 3 Apr 2013 12:46:47 +0200
-Message-ID: <20130403104647.GA5464@localhost>
-References: <514D9D45.6090804@googlemail.com>
- <20130323151213.GA4925@localhost>
- <515203F6.10503@googlemail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [libnftables PATCH 2/2] Basic support for printing nft_data_reg
+ in XML format.
+Date: Wed, 3 Apr 2013 14:38:38 +0200
+Message-ID: <CAOkSjBhNJAfa18_W8deetS=97X18H-5W=Z5n1a8txYm3WOzEjw@mail.gmail.com>
+References: <20130329153155.30122.21803.stgit@nfdev.cica.es>
+ <20130329153432.30122.86772.stgit@nfdev.cica.es> <20130402114123.GC9973@localhost>
+ <CAOkSjBjM57H+XAX7h5YFOPcfF_Hj3H_vfnMpBg6tnQVTee1CKA@mail.gmail.com> <20130402193229.GA16053@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
-To: Michael Zintakis <michael.zintakis@googlemail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33014 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760876Ab3DCKrq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Apr 2013 06:47:46 -0400
-Content-Disposition: inline
-In-Reply-To: <515203F6.10503@googlemail.com>
+Received: from mail-la0-f50.google.com ([209.85.215.50]:53640 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761873Ab3DCMi7 convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Apr 2013 08:38:59 -0400
+Received: by mail-la0-f50.google.com with SMTP id ec20so1391691lab.9
+        for <netfilter-devel@vger.kernel.org>; Wed, 03 Apr 2013 05:38:58 -0700 (PDT)
+In-Reply-To: <20130402193229.GA16053@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Michael,
-
-On Tue, Mar 26, 2013 at 08:24:22PM +0000, Michael Zintakis wrote:
-[...]
-> > Instead of this, you can have a /etc/nfacct.conf file that contains
-> > the formats and thresholds:
-> > 
-> > name "ALL 27 net" {
-> >         pkts GiB
-> >         bytes TiB
-> >         threshold 6TiB
-> > }
-> > 
-> > name "ALL misc" {
-> >         bytes GiB
-> > }
-> > 
-> > ...
-> > 
-> > and so on. You can add new options for the `nfacct add' command so
-> > this formats and thresholds are automatically appended to the
-> > configuration file.
-> > 
-> > I can help you by making a little parser to read the file and put that
-> > formatting information into a list or hashtable. Thus, you can edit
-> > the format and thresholds by modifying the configuration file, without
-> > the need for interactions with the kernel.
-> > 
-> > BTW, atomic is not required for those two fields, this is protected by
-> > the nfnl_lock.
+2013/4/2 Pablo Neira Ayuso <pablo@netfilter.org>:
+> On Tue, Apr 02, 2013 at 07:18:39PM +0200, Arturo Borrero Gonzalez wro=
+te:
+>> If cmp and bitwise are going to always have DATA_VALUE, and imm
+>> depending on what was set, I think we could do:
+>>
+>> int nft_data_reg_snprintf(char *buf, union data_reg *data, int type,=
+ ...)
+>> switch(type)
+>> return nft_data_reg_snprintf_'type'(buf, data, ...)
 >
-> I disagree with you entirely.
-
-At least you have to agree with me in that atomic is not required for
-those variables :)
-
-> The two fields above aren't "meaningless" - they have a purpose and
-> are an integral part of the nfacct object. None of the fields in the
-> nfacct object are really used in the operation of the kernel itself
-> - the kernel merely updates these. To put it bluntly, the whole
-> nfacct struct is used as storage and the kernel don't use any of
-> these fields in its core operation. OK, I agree that packet and byte
-> counters are going to be updated much more frequently by the kernel
-> than the fmt and bthr variables, but the fact is that these,
-> strictly speaking, do not dependent for the kernel to operate. What
-> I've done above is not a unique approach - in the kernel code there
-> are a lot of examples like this, it is not something new and we are
-> not re-inventing the wheel here or breaking a new ground.
-> 
-> Another reason for having fmt and bthr as part of the kernel nfacct
-> struct is that this data, alongside the bytes and packet counters,
-> is shielded and protected (in ring0), its integrity guaranteed and
-> can only be changed via the kernel itself and nothing else. This is
-> very important for us.
-
-Sorry, I don't think putting thing in the kernel makes things more
-secure.
-
-> In the early stages of the nfacct changes, we considered a very
-> similar approach to what you have proposed above, but rejected it,
-> not least because the integrity and security of the data
-> encapsulated in the nfacct struct cannot be guaranteed otherwise. We
-> will rely heavily on this and don't need it to be changed
-> arbitrarily (either by "mistake" or intentionally), so we decided
-> that this is the best way going forward.
+> where 'type' can be: value, verdict or chain.
 >
-> In stage 2 (current plans are this to be completed by the end of q2
-> of this year) we will extend this and create a specifically designed
-> daemon (nfacctd), which will "talk" directly to the kernel and
-> retrieve accounting data (much like what nfacct executable currently
-> does, but on a bigger scale) on-demand and in real time and then
-> send it to a central point where such data will be collected from
-> all other machines for statistics and analysis. That daemon can't be
-> spending extra cpu cycles parsing files that may or may not exist or
-> check whether the data in them is or isn't reliable (whether it is
-> "changed" on purpose or not) - that really isn't good enough.
-
-I think that daemon you want to implement is ulogd2. There's already a
-plugin available for nfacct. Thus, you can skip parsing the
-configuration file over and over again. To dump existing stats, you
-can add a unix socket interface for this new extension you want to do.
-
-> >>  	if (matching) {
-> >>  		if (nlh->nlmsg_flags & NLM_F_REPLACE) {
-> >> -			/* reset counters if you request a replacement. */
-> >> +			/* reset counters if you request a replacement */
-> >> +			if (!tb[NFACCT_PKTS]) {
-> >> +				/*
-> >> +				 * Prevent resetting the packets counter if
-> >> +				 * either fmt or bthr are specified.
-> >> +				 *
-> >> +				 * This is done for backward compatibility,
-> >> +				 * otherwise resetting these counters should
-> >> +				 * only be allowed when tb[NFACCT_PKTS] is
-> >> +				 * explicitly specified and == 0.
-> >> +				 *
-> >> +				 */
-> >> +				if (!tb[NFACCT_FMT] &&
-> >> +				    !tb[NFACCT_BTHR]) {
-> >>  			atomic64_set(&matching->pkts, 0);
-> >> +				}
-> >> +			} else {
-> >> +				atomic64_set(&matching->pkts,
-> >> +				be64_to_cpu(nla_get_be64(tb[NFACCT_PKTS])));
-> > 
-> > The replacement operation is not so easy. Note that you may hit
-> > inconsistencies if while replacing the packet counter, the kernel
-> > updates the byte counter, and then you replace the byte counter. You
-> > would be leaking bytes and packets.
+>> And the same applies when parsing XML.
 >
-> If I understand you correctly Pablo, you are worried that the packet
-> and byte counters can be, in a way "misaligned". But if we are to
-> update these values we don't really care if the old values get
-> updated or not prior to that change, do we?
->
-> In other words, the packet value is updated and the kernel changes
-> the byte value in the meantime. If we are later (in the same call)
-> replacing the bytes value why do we care that there is a momentary
-> inconsistency - we are going to replace it with a new value anyway?
+> Exactly.
 
-IMO we should care. Let me check if I can come with some lockless way
-to replace counters, so we can remove that -EBUSY limitation.
+I propose to use this format:
 
-> One thing I'll correct with the next submission is to make sure that
-> request for packet counter update is made in the same call as a
-> request for an update to byte counters, otherwise we might be having
-> only the packet or only the byte counters updated, which will
-> introduce an inconsistency. In other words, have something like:
-> 
-> if (tb[NFACCT_PKTS] && tb[NFACCT_BYTES]) {
->  <do an update on both counters>
-> } else if (tb[NFACCT_PKTS] || tb[NFACCT_BYTES]) { // only one of packets/bytes request has been made, reject it
->   return -EINVAL;
-> }
-> 
-> I hope I understood you correctly here.
-> 
-> One "technical" query regarding future submissions: from reading
-> this list, I gather that the patches need to be submitted using git,
-> is that correct?
+for DATA_VALUE:
 
-Some people use stgit and quilt. You may want to use diff as well (but
-make sure the patch applies with patch -p1). No restriction in that
-regard as long as the patch is well-formed.
+<expr type=3Dcmp>
+   [...]
+   <cmpdata>
+     <data_reg type=3Dvalue>
+      <len>N</len>
+      <data0>reg->val[i]</data0>
+       [...]
+       <dataN>reg->val[n]</dataN>
+    </data_reg>
+  </cmpdata>
+</expr>
 
-> The reason I ask this is because my git experience is zero (we use
-> svn on all our development systems) and if it is possible to attach
-> my patches as files (during my submission the last time, a friend of
-> mine gave me a hand and prepared the patches for me as I am an
-> absolute noob as far as git is concerned).
-> 
-> If it is too much trouble, I'll probably scratch out the commands
-> needed to execute git and do it that way - let me know.
+This way we also export/import the len of reg->val (actually reg->len)
 
-Ping me privately, I can send you some small sheet with typical
-commands I use. But I'd suggest stgit as a good way to start, I used
-it for years and the pop/push/refresh logic it implements is very
-intuitive.
+=46or DATA_VERDICT or DATA_CHAIN:
+<data_reg type=3Dverdict>
+    <verdict>int</verdict>
+    <chain>string</chain>
+</data_reg>
 
-Regards.
+assuming verdict and chain are always used together, despite of node
+'<verdict>' or '<chain>' being not set (but present with no value)
+--
+Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
