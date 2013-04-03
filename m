@@ -1,41 +1,62 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: [PATCH iptables v2] nfnl_osf: use the right nfnetlink lib
-Date: Wed,  3 Apr 2013 11:21:02 +0200
-Message-ID: <1364980862-17696-1-git-send-email-nicolas.dichtel@6wind.com>
-References: <alpine.LNX.2.01.1304030415450.14642@nerf07.vanv.qr>
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To: jengelh@inai.de
+From: Matthias Schiffer <mschiffer@universe-factory.net>
+Subject: Re: [PATCHv2] netfilter: ip6t_NPT: Fix translation for non-multiple
+ of 32 prefix lengths
+Date: Wed, 03 Apr 2013 11:42:00 +0200
+Message-ID: <515BF968.6010505@universe-factory.net>
+References: <bba4b68de747f6d3d580232a15592f6ba0fc6722.1364673589.git.mschiffer@universe-factory.net> <cf3234de124418a6954f079e473c3e01ea96952f.1364674922.git.mschiffer@universe-factory.net>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="----enig2DSHHELXJEQJPJVULEPUM"
+Cc: pablo@netfilter.org, kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 33.106-14-84.ripe.coltfrance.com ([84.14.106.33]:43934 "EHLO
-	proxy.6wind.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761029Ab3DCJVI (ORCPT
+Received: from chaos.universe-factory.net ([5.9.180.86]:36257 "EHLO
+	chaos.universe-factory.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1763300Ab3DCJmG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Apr 2013 05:21:08 -0400
-In-Reply-To: <alpine.LNX.2.01.1304030415450.14642@nerf07.vanv.qr>
+	Wed, 3 Apr 2013 05:42:06 -0400
+In-Reply-To: <cf3234de124418a6954f079e473c3e01ea96952f.1364674922.git.mschiffer@universe-factory.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If the user specify libnfnetlink_LIBS during the configure, we must use it.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+------enig2DSHHELXJEQJPJVULEPUM
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
----
+On 03/30/2013 09:23 PM, Matthias Schiffer wrote:
+> The bitmask used for the prefix mangling was being calculated incorrect=
+ly,
+> leading to the wrong part of the address being replaced when the prefix=
+ length
+> wasn't a multiple of 32.
+>=20
+> Signed-off-by: Matthias Schiffer <mschiffer@universe-factory.net>
+> ---
+> Hi, this patch should to 3.9 and, if possible, 3.8-stable.
+>=20
+> v2: Remove a redundant pair of parentheses.
+>=20
+> Regards,
+> Matthias Schiffer
+>=20
 
-v2: remove duplicate -lnfnetlink
+*ping* Anybody read the patch? Any comments?
 
- utils/Makefile.am | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/utils/Makefile.am b/utils/Makefile.am
-index f1bbfc5..66f5c5c 100644
---- a/utils/Makefile.am
-+++ b/utils/Makefile.am
-@@ -7,4 +7,4 @@ AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_builddir}/include \
- sbin_PROGRAMS = nfnl_osf
- pkgdata_DATA = pf.os
- 
--nfnl_osf_LDADD = -lnfnetlink
-+nfnl_osf_LDADD = ${libnfnetlink_LIBS}
--- 
-1.8.0.1
+------enig2DSHHELXJEQJPJVULEPUM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iEYEARECAAYFAlFb+WgACgkQq3qIxbiQM9iqSACeK5e6ECCITGT1MnTdt4tCvEKm
+mVQAoJ97lx87sdWh7Xr6Pu9PuwOq0r6l
+=Zk6W
+-----END PGP SIGNATURE-----
+
+------enig2DSHHELXJEQJPJVULEPUM--
