@@ -1,63 +1,96 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH next] utils: bpf_compile
-Date: Thu, 4 Apr 2013 11:34:47 +0200
-Message-ID: <20130404093447.GA4615@localhost>
-References: <51262486.40905@redhat.com>
- <1363103052-5529-1-git-send-email-willemb@google.com>
- <20130401222053.GB26928@localhost>
- <CA+FuTSd4hAGmeC4Z726x7hOJxnqbpf2_pKkCTQxfAvan11W33Q@mail.gmail.com>
+Subject: Re: [libnftables PATCH 2/2] Basic support for printing nft_data_reg
+ in XML format.
+Date: Thu, 4 Apr 2013 14:33:30 +0200
+Message-ID: <20130404123330.GA6069@localhost>
+References: <20130329153155.30122.21803.stgit@nfdev.cica.es>
+ <20130329153432.30122.86772.stgit@nfdev.cica.es>
+ <20130402114123.GC9973@localhost>
+ <CAOkSjBjM57H+XAX7h5YFOPcfF_Hj3H_vfnMpBg6tnQVTee1CKA@mail.gmail.com>
+ <20130402193229.GA16053@localhost>
+ <CAOkSjBhNJAfa18_W8deetS=97X18H-5W=Z5n1a8txYm3WOzEjw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
-	Daniel Borkmann <dborkman@redhat.com>,
-	Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>
-To: Willem de Bruijn <willemb@google.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33382 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35118 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757512Ab3DDJe4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Apr 2013 05:34:56 -0400
+	id S1758745Ab3DDMdl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 4 Apr 2013 08:33:41 -0400
 Content-Disposition: inline
-In-Reply-To: <CA+FuTSd4hAGmeC4Z726x7hOJxnqbpf2_pKkCTQxfAvan11W33Q@mail.gmail.com>
+In-Reply-To: <CAOkSjBhNJAfa18_W8deetS=97X18H-5W=Z5n1a8txYm3WOzEjw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 03, 2013 at 11:32:13AM -0400, Willem de Bruijn wrote:
-[...]
-> > Still missing a hard fail if --enable-bpf-compiler is set and libpcap
-> > is not available in the system,
+On Wed, Apr 03, 2013 at 02:38:38PM +0200, Arturo Borrero Gonzalez wrote:
+> 2013/4/2 Pablo Neira Ayuso <pablo@netfilter.org>:
+> > On Tue, Apr 02, 2013 at 07:18:39PM +0200, Arturo Borrero Gonzalez wrote:
+> >> If cmp and bitwise are going to always have DATA_VALUE, and imm
+> >> depending on what was set, I think we could do:
+> >>
+> >> int nft_data_reg_snprintf(char *buf, union data_reg *data, int type, ...)
+> >> switch(type)
+> >> return nft_data_reg_snprintf_'type'(buf, data, ...)
+> >
+> > where 'type' can be: value, verdict or chain.
+> >
+> >> And the same applies when parsing XML.
+> >
+> > Exactly.
 > 
-> Compilation and linking will both fail hard:
+> I propose to use this format:
 > 
-> if gcc -DHAVE_CONFIG_H -I. -I. -I..  -D_LARGEFILE_SOURCE=1
-> -D_LARGE_FILES -D_FILE_OFFSET_BITS=64 -D_REENTRANT
-> -DXTABLES_LIBDIR=\"/usr/local/lib/xtables\" -DXTABLES_INTERNAL
-> -I../include -I../include   -Wall -Waggregate-return
-> -Wmissing-declarations -Wmissing-prototypes -Wredundant-decls -Wshadow
-> -Wstrict-prototypes -Winline -pipe -g -O2 -MT nfbpf_compile.o -MD -MP
-> -MF ".deps/nfbpf_compile.Tpo" -c -o nfbpf_compile.o nfbpf_compile.c; \
-> then mv -f ".deps/nfbpf_compile.Tpo" ".deps/nfbpf_compile.Po"; else rm
-> -f ".deps/nfbpf_compile.Tpo"; exit 1; fi
-> nfbpf_compile.c:12:18: fatal error: pcap.h: No such file or directory
-> compilation terminated.
-> make: *** [nfbpf_compile.o] Error 1
+> for DATA_VALUE:
 > 
-> Do you want the configure script itself to fail before that step?
+> <expr type=cmp>
+>    [...]
+>    <cmpdata>
+>      <data_reg type=value>
+>       <len>N</len>
+>       <data0>reg->val[i]</data0>
+>        [...]
+>        <dataN>reg->val[n]</dataN>
+>     </data_reg>
+>   </cmpdata>
+> </expr>
+> 
+> This way we also export/import the len of reg->val (actually reg->len)
+> 
+> For DATA_VERDICT or DATA_CHAIN:
+> <data_reg type=verdict>
+>     <verdict>int</verdict>
+>     <chain>string</chain>
+> </data_reg>
+> 
+> assuming verdict and chain are always used together, despite of node
+> '<verdict>' or '<chain>' being not set (but present with no value)
+>
+> For DATA_VERDICT or DATA_CHAIN:
+> <data_reg type=verdict>
+>     <verdict>int</verdict>
+>     <chain>string</chain>
+> </data_reg> 
 
-Yes. It should hard fail if --enable-bpf-compiler is set and libpcap
-is not available.
+The verdict and the chain are mutually exclusive. So it has to be:
 
-> > I'd appreciate if you send me a follow
-> > up patch to address this. You may want to have a look at how ulogd2
-> > does this in its configure fail as reference.
-> 
-> That skips compilation if HAVE_PCAP is false, but it does not fail
-> hard during configure, either. At least, that's what I gather from
-> reading and running
-> 
-> https://git.netfilter.org/ulogd2/tree/configure.ac#n23
+* For DATA_VERDICT:
 
-Just pointed to that chunk of code so you can use it as base, you'll
-have to adapt it to achieve the behaviour we want, of course.
+<data_reg type=verdict>
+    <verdict>string</verdict>
+</data_reg>
 
-Thanks.
+where string can be accept, drop, return. Better use the string than
+the value, it's human readable and people can edit it without knowing
+the mapping between values and verdicts.
+
+* For DATA_CHAIN:
+
+<data_reg type=verdict>
+    <chain>string</chain>
+</data_reg>
+
+where string is the chain name. This chain is the chain to jump in
+case of matching (like in iptables: -j some_chain).
+
+Regards.
