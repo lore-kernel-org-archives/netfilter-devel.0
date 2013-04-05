@@ -1,135 +1,149 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next v2 01/10] netfilter: make /proc/net/netfilter
- pernet
-Date: Fri, 5 Apr 2013 19:44:04 +0200
-Message-ID: <20130405174404.GA4853@localhost>
-References: <1364205048-32632-1-git-send-email-gaofeng@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Gao feng <gaofeng@cn.fujitsu.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH 3/3] netfilter: nat: propagate errors from xfrm_me_harder()
+Date: Fri,  5 Apr 2013 18:41:12 +0200
+Message-ID: <1365180072-6182-4-git-send-email-kaber@trash.net>
+References: <1365180072-6182-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48700 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1162231Ab3DERoL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Apr 2013 13:44:11 -0400
-Content-Disposition: inline
-In-Reply-To: <1364205048-32632-1-git-send-email-gaofeng@cn.fujitsu.com>
+Received: from stinky.trash.net ([213.144.137.162]:36974 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1162064Ab3DEQtG (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Apr 2013 12:49:06 -0400
+In-Reply-To: <1365180072-6182-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 25, 2013 at 05:50:39PM +0800, Gao feng wrote:
-> Now,only init net has directroy /proc/net/netfilter,
-> this patch makes this proc dentry pernet.
+Propagate errors from ip_xfrm_me_harder() instead of returning EPERM in
+all cases.
 
-Applied with minor glitch, see below:
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ net/ipv4/netfilter/iptable_nat.c  | 17 +++++++++++------
+ net/ipv6/netfilter/ip6table_nat.c | 17 +++++++++++------
+ net/netfilter/nf_nat_core.c       |  9 +++++----
+ 3 files changed, 27 insertions(+), 16 deletions(-)
 
-> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
-> ---
->  include/net/net_namespace.h   |  2 ++
->  include/net/netns/netfilter.h | 11 +++++++++++
->  net/netfilter/core.c          | 36 +++++++++++++++++++++++++++++++-----
->  3 files changed, 44 insertions(+), 5 deletions(-)
->  create mode 100644 include/net/netns/netfilter.h
-> 
-> diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
-> index de644bc..b176978 100644
-> --- a/include/net/net_namespace.h
-> +++ b/include/net/net_namespace.h
-> @@ -17,6 +17,7 @@
->  #include <net/netns/ipv6.h>
->  #include <net/netns/sctp.h>
->  #include <net/netns/dccp.h>
-> +#include <net/netns/netfilter.h>
->  #include <net/netns/x_tables.h>
->  #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
->  #include <net/netns/conntrack.h>
-> @@ -94,6 +95,7 @@ struct net {
->  	struct netns_dccp	dccp;
->  #endif
->  #ifdef CONFIG_NETFILTER
-> +	struct netns_nf		nf;
->  	struct netns_xt		xt;
->  #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
->  	struct netns_ct		ct;
-> diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
-> new file mode 100644
-> index 0000000..248ca1c
-> --- /dev/null
-> +++ b/include/net/netns/netfilter.h
-> @@ -0,0 +1,11 @@
-> +#ifndef __NETNS_NETFILTER_H
-> +#define __NETNS_NETFILTER_H
-> +
-> +#include <linux/proc_fs.h>
-> +
-> +struct netns_nf {
-> +#if defined CONFIG_PROC_FS
-> +	struct proc_dir_entry *proc_netfilter;
-> +#endif
-> +};
-> +#endif
-> diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-> index a9c488b..e054799 100644
-> --- a/net/netfilter/core.c
-> +++ b/net/netfilter/core.c
-> @@ -281,6 +281,35 @@ struct proc_dir_entry *proc_net_netfilter;
->  EXPORT_SYMBOL(proc_net_netfilter);
->  #endif
->  
-> +static int __net_init netfilter_net_init(struct net *net)
-> +{
-> +#ifdef CONFIG_PROC_FS
-> +	net->nf.proc_netfilter = proc_net_mkdir(net,
-> +						"netfilter",
-> +						net->proc_net);
-> +	if (net_eq(net, &init_net)) {
-> +		if (!net->nf.proc_netfilter)
-> +			panic("cannot create netfilter proc entry");
+diff --git a/net/ipv4/netfilter/iptable_nat.c b/net/ipv4/netfilter/iptable_nat.c
+index c2937c8..6383273 100644
+--- a/net/ipv4/netfilter/iptable_nat.c
++++ b/net/ipv4/netfilter/iptable_nat.c
+@@ -176,6 +176,7 @@ nf_nat_ipv4_out(unsigned int hooknum,
+ #ifdef CONFIG_XFRM
+ 	const struct nf_conn *ct;
+ 	enum ip_conntrack_info ctinfo;
++	int err;
+ #endif
+ 	unsigned int ret;
+ 
+@@ -195,9 +196,11 @@ nf_nat_ipv4_out(unsigned int hooknum,
+ 		     ct->tuplehash[!dir].tuple.dst.u3.ip) ||
+ 		    (ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMP &&
+ 		     ct->tuplehash[dir].tuple.src.u.all !=
+-		     ct->tuplehash[!dir].tuple.dst.u.all))
+-			if (nf_xfrm_me_harder(skb, AF_INET) < 0)
+-				ret = NF_DROP;
++		     ct->tuplehash[!dir].tuple.dst.u.all)) {
++			err = nf_xfrm_me_harder(skb, AF_INET);
++			if (err < 0)
++				ret = NF_DROP_ERR(err);
++		}
+ 	}
+ #endif
+ 	return ret;
+@@ -235,9 +238,11 @@ nf_nat_ipv4_local_fn(unsigned int hooknum,
+ 		else if (!(IPCB(skb)->flags & IPSKB_XFRM_TRANSFORMED) &&
+ 			 ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMP &&
+ 			 ct->tuplehash[dir].tuple.dst.u.all !=
+-			 ct->tuplehash[!dir].tuple.src.u.all)
+-			if (nf_xfrm_me_harder(skb, AF_INET) < 0)
+-				ret = NF_DROP;
++			 ct->tuplehash[!dir].tuple.src.u.all) {
++			err = nf_xfrm_me_harder(skb, AF_INET);
++			if (err < 0)
++				ret = NF_DROP_ERR(err);
++		}
+ #endif
+ 	}
+ 	return ret;
+diff --git a/net/ipv6/netfilter/ip6table_nat.c b/net/ipv6/netfilter/ip6table_nat.c
+index 97e2edd..6383f90 100644
+--- a/net/ipv6/netfilter/ip6table_nat.c
++++ b/net/ipv6/netfilter/ip6table_nat.c
+@@ -179,6 +179,7 @@ nf_nat_ipv6_out(unsigned int hooknum,
+ #ifdef CONFIG_XFRM
+ 	const struct nf_conn *ct;
+ 	enum ip_conntrack_info ctinfo;
++	int err;
+ #endif
+ 	unsigned int ret;
+ 
+@@ -197,9 +198,11 @@ nf_nat_ipv6_out(unsigned int hooknum,
+ 				      &ct->tuplehash[!dir].tuple.dst.u3) ||
+ 		    (ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMPV6 &&
+ 		     ct->tuplehash[dir].tuple.src.u.all !=
+-		     ct->tuplehash[!dir].tuple.dst.u.all))
+-			if (nf_xfrm_me_harder(skb, AF_INET6) < 0)
+-				ret = NF_DROP;
++		     ct->tuplehash[!dir].tuple.dst.u.all)) {
++			err = nf_xfrm_me_harder(skb, AF_INET6);
++			if (err < 0)
++				ret = NF_DROP_ERR(err);
++		}
+ 	}
+ #endif
+ 	return ret;
+@@ -236,9 +239,11 @@ nf_nat_ipv6_local_fn(unsigned int hooknum,
+ 		else if (!(IP6CB(skb)->flags & IP6SKB_XFRM_TRANSFORMED) &&
+ 			 ct->tuplehash[dir].tuple.dst.protonum != IPPROTO_ICMPV6 &&
+ 			 ct->tuplehash[dir].tuple.dst.u.all !=
+-			 ct->tuplehash[!dir].tuple.src.u.all)
+-			if (nf_xfrm_me_harder(skb, AF_INET6))
+-				ret = NF_DROP;
++			 ct->tuplehash[!dir].tuple.src.u.all) {
++			err = nf_xfrm_me_harder(skb, AF_INET6);
++			if (err < 0)
++				ret = NF_DROP_ERR(err);
++		}
+ #endif
+ 	}
+ 	return ret;
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 8d5769c..346f871 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -87,9 +87,10 @@ int nf_xfrm_me_harder(struct sk_buff *skb, unsigned int family)
+ 	struct flowi fl;
+ 	unsigned int hh_len;
+ 	struct dst_entry *dst;
++	int err;
+ 
+-	if (xfrm_decode_session(skb, &fl, family) < 0)
+-		return -1;
++	err = xfrm_decode_session(skb, &fl, family);
++		return err;
+ 
+ 	dst = skb_dst(skb);
+ 	if (dst->xfrm)
+@@ -98,7 +99,7 @@ int nf_xfrm_me_harder(struct sk_buff *skb, unsigned int family)
+ 
+ 	dst = xfrm_lookup(dev_net(dst->dev), dst, &fl, skb->sk, 0);
+ 	if (IS_ERR(dst))
+-		return -1;
++		return PTR_ERR(dst);
+ 
+ 	skb_dst_drop(skb);
+ 	skb_dst_set(skb, dst);
+@@ -107,7 +108,7 @@ int nf_xfrm_me_harder(struct sk_buff *skb, unsigned int family)
+ 	hh_len = skb_dst(skb)->dev->hard_header_len;
+ 	if (skb_headroom(skb) < hh_len &&
+ 	    pskb_expand_head(skb, hh_len - skb_headroom(skb), 0, GFP_ATOMIC))
+-		return -1;
++		return -ENOMEM;
+ 	return 0;
+ }
+ EXPORT_SYMBOL(nf_xfrm_me_harder);
+-- 
+1.8.1.4
 
-Moved this panic() to netfilter_init and it just returns -ENOMEM.
-
-> +		else
-> +			proc_net_netfilter = net->nf.proc_netfilter;
-> +	} else if (!net->nf.proc_netfilter) {
-> +		pr_err("cannot create netfilter proc entry");
-> +		return -ENOMEM;
-> +	}
-> +#endif
-> +	return 0;
-> +}
-> +
-> +static void __net_exit netfilter_net_exit(struct net *net)
-> +{
-> +	remove_proc_entry("netfilter", net->proc_net);
-> +}
-> +
-> +static struct pernet_operations netfilter_net_ops = {
-> +	.init = netfilter_net_init,
-> +	.exit = netfilter_net_exit,
-> +};
-> +
->  void __init netfilter_init(void)
->  {
->  	int i, h;
-> @@ -289,11 +318,8 @@ void __init netfilter_init(void)
->  			INIT_LIST_HEAD(&nf_hooks[i][h]);
->  	}
->  
-> -#ifdef CONFIG_PROC_FS
-> -	proc_net_netfilter = proc_mkdir("netfilter", init_net.proc_net);
-> -	if (!proc_net_netfilter)
-> -		panic("cannot create netfilter proc entry");
-> -#endif
-> +	if (register_pernet_subsys(&netfilter_net_ops) < 0)
-> +		return;
->  
->  	if (netfilter_log_init() < 0)
->  		panic("cannot initialize nf_log");
-> -- 
-> 1.7.11.7
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
