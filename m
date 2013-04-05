@@ -1,75 +1,378 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: iptables nfacct match question
-Date: Thu, 4 Apr 2013 23:46:30 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1304042341530.24744@blackhole.kfki.hu>
-References: <51292D41.8000703@googlemail.com> <20130225154848.GA20609@localhost> <512BC79F.1070708@googlemail.com> <20130226135529.GA9526@localhost> <512D0BA4.7060809@googlemail.com> <20130226214707.GA3555@localhost> <512E7331.10304@googlemail.com>
- <515DE487.9020209@googlemail.com>
+From: Arturo Borrero <arturo.borrero.glez@gmail.com>
+Subject: [libnftables PATCH] Basic support for printing nft_data_reg in XML
+	format.
+Date: Fri, 05 Apr 2013 12:54:03 +0200
+Message-ID: <20130405105403.15226.22899.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Michael Zintakis <michael.zintakis@googlemail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:55145 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764920Ab3DDVxw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Apr 2013 17:53:52 -0400
-In-Reply-To: <515DE487.9020209@googlemail.com>
+Received: from smtp3.cica.es ([150.214.5.190]:33043 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1765084Ab3DEKyI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Apr 2013 06:54:08 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 4 Apr 2013, Michael Zintakis wrote:
+nft_data_reg now is printed in XML according to what it contains.
+---
+ src/expr/bitwise.c   |   34 ++++++++----------
+ src/expr/cmp.c       |   23 ++++++------
+ src/expr/data_reg.c  |   94 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/expr/data_reg.h  |    3 ++
+ src/expr/immediate.c |   83 +++++++++++++++++++++++++++++++++++++++++---
+ 5 files changed, 201 insertions(+), 36 deletions(-)
 
-> Michael Zintakis wrote:
-> > Pablo Neira Ayuso wrote:
-> >> I see. Then my new proposal is to add a new automagic function to
-> >> round the output to the most expressive measure, would be somehow
-> >> similar to xtables_print_num:
-> >>
-> >> http://git.netfilter.org/cgi-bin/gitweb.cgi?p=iptables.git;a=blob;f=libxtables/xtables.c;h=009ab9115f6fd687a762a2552f89ac0b81ee1a42;hb=HEAD#l1915
-> Something we've discovered with regards to the nfacct match recently. If 
-> I have the following iptables statement:
-> 
-> iptables -A INPUT -m nfacct --nfacct <nfacct_obj> -m <match2> -m <match3>
->
-> The above aklways updates the "nfacct_obj" byte and packet counters, 
-> regardless of whether "match2" and "match3" actually matches. However, 
-> if we have:
-> 
-> iptables -A INPUT -m <match2> -m nfacct --nfacct <nfacct_obj> -m <match3>
->
-> then "nfacct_obj" counters are updated only when "match1" is satisfied, 
-> but if we have:
-> 
-> iptables -A INPUT -m <match2> -m <match3> -m nfacct --nfacct <nfacct_obj>
->
-> then "nfacct_obj" counters are updated when both match2 and match3 are 
-> matched (which was the initial intention).
-> 
-> This inconsistency stems from the fact that the nfacct match in the 
-> kernel (xt_nfacct.c::nfacct_mt) always returns true, but also because of 
-> how iptables evaluates matches: it does so from left to right.
-> 
-> Since there isn't a callback in the xt_match struct which is called 
-> after ALL matches have been satisfied (xt_match.match is called for each 
-> registered match in that statement), this causes the nfacct counters to 
-> be updated (or not) depending on the position of the nfacct match.
-> 
-> What I have done locally is to add a separate callback (I called it 
-> "matched") which is called for all matches after all such matches in a 
-> particular statement have been satisfied, but that obviously will break 
-> lots of code depending on the old xt_match struct if such approach is 
-> adopted. My question is: is there more elegant solution to do this? 
+diff --git a/src/expr/bitwise.c b/src/expr/bitwise.c
+index ac89cba..5bed78a 100644
+--- a/src/expr/bitwise.c
++++ b/src/expr/bitwise.c
+@@ -199,7 +199,7 @@ static int
+ nft_rule_expr_bitwise_snprintf_xml(char *buf, size_t size,
+ 				   struct nft_expr_bitwise *bitwise)
+ {
+-	int len = size, offset = 0, ret, i;
++	int len = size, offset = 0, ret;
+ 
+ 	ret = snprintf(buf, len, "\t\t<sreg>%u</sreg> "
+ 					"<dreg>%u</dreg> ",
+@@ -209,19 +209,16 @@ nft_rule_expr_bitwise_snprintf_xml(char *buf, size_t size,
+ 	ret = snprintf(buf+offset, len, "<mask>");
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+-	for (i=0; i<bitwise->mask.len/sizeof(uint32_t); i++) {
+-		ret = snprintf(buf+offset, len, "%.8x ",
+-				bitwise->mask.val[i]);
+-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+-	}
++	ret = nft_data_reg_snprintf(buf+offset, len, &bitwise->mask,
++					NFT_RULE_O_XML, 0, DATA_VALUE);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	ret = snprintf(buf+offset, len, "</mask> <xor>");
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+-	for (i=0; i<bitwise->xor.len/sizeof(uint32_t); i++) {
+-		ret = snprintf(buf+offset, len, "%.8x ", bitwise->xor.val[i]);
+-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+-	}
++	ret = nft_data_reg_snprintf(buf+offset, len, &bitwise->xor,
++					NFT_RULE_O_XML, 0, DATA_VALUE);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	ret = snprintf(buf+offset, len, "</xor> ");
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+@@ -233,7 +230,7 @@ static int
+ nft_rule_expr_bitwise_snprintf_default(char *buf, size_t size,
+ 					struct nft_expr_bitwise *bitwise)
+ {
+-	int len = size, offset = 0, ret, i;
++	int len = size, offset = 0, ret;
+ 
+ 	ret = snprintf(buf, len, "sreg=%u dreg=%u ",
+ 			bitwise->sreg, bitwise->dreg);
+@@ -242,18 +239,17 @@ nft_rule_expr_bitwise_snprintf_default(char *buf, size_t size,
+ 	ret = snprintf(buf+offset, len, " mask=");
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+-	for (i=0; i<bitwise->mask.len/sizeof(uint32_t); i++) {
+-		ret = snprintf(buf+offset, len, "%.8x ", bitwise->mask.val[i]);
+-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+-	}
++	ret = nft_data_reg_snprintf(buf+offset, len, &bitwise->mask,
++					NFT_RULE_O_DEFAULT, 0, DATA_VALUE);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	ret = snprintf(buf+offset, len, " xor=");
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+-	for (i=0; i<bitwise->xor.len/sizeof(uint32_t); i++) {
+-		ret = snprintf(buf+offset, len, "%.8x ", bitwise->xor.val[i]);
+-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+-	}
++
++	ret = nft_data_reg_snprintf(buf+offset, len, &bitwise->xor,
++					NFT_RULE_O_DEFAULT, 0, DATA_VALUE);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	return offset;
+ }
+diff --git a/src/expr/cmp.c b/src/expr/cmp.c
+index 429f024..5c42db6 100644
+--- a/src/expr/cmp.c
++++ b/src/expr/cmp.c
+@@ -169,18 +169,17 @@ static char *expr_cmp_str[] = {
+ static int
+ nft_rule_expr_cmp_snprintf_xml(char *buf, size_t size, struct nft_expr_cmp *cmp)
+ {
+-	int len = size, offset = 0, ret, i;
++	int len = size, offset = 0, ret;
+ 
+-	ret = snprintf(buf, len, "\t\t<sreg>%u</sreg> <op>%s</op> <data>",
++	ret = snprintf(buf, len, "\t\t<sreg>%u</sreg> <op>%s</op> <cmpdata>",
+ 			cmp->sreg, expr_cmp_str[cmp->op]);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+-	for (i=0; i<cmp->data.len/sizeof(uint32_t); i++) {
+-		ret = snprintf(buf+offset, len, "%.8x ", cmp->data.val[i]);
+-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+-	}
++	ret = nft_data_reg_snprintf(buf+offset, len, &cmp->data,
++					NFT_RULE_O_XML, 0, DATA_VALUE);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+-	ret = snprintf(buf+offset, len, "</data> ");
++	ret = snprintf(buf+offset, len, "</cmpdata> ");
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	return offset;
+@@ -190,16 +189,16 @@ static int
+ nft_rule_expr_cmp_snprintf_default(char *buf, size_t size,
+ 				   struct nft_expr_cmp *cmp)
+ {
+-	int len = size, offset = 0, ret, i;
++	int len = size, offset = 0, ret;
+ 
+ 	ret = snprintf(buf, len, "sreg=%u op=%s data=",
+ 			cmp->sreg, expr_cmp_str[cmp->op]);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+-	for (i=0; i<cmp->data.len/sizeof(uint32_t); i++) {
+-		ret = snprintf(buf+offset, len, "%.8x ", cmp->data.val[i]);
+-		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+-	}
++	ret = nft_data_reg_snprintf(buf+offset, len, &cmp->data,
++					NFT_RULE_O_DEFAULT, 0, DATA_VALUE);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
+ 	return offset;
+ }
+ 
+diff --git a/src/expr/data_reg.c b/src/expr/data_reg.c
+index 5b14695..a3b8130 100644
+--- a/src/expr/data_reg.c
++++ b/src/expr/data_reg.c
+@@ -18,10 +18,104 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <libnftables/expr.h>
++#include <libnftables/rule.h>
+ #include "expr_ops.h"
+ #include "data_reg.h"
+ #include "internal.h"
+ 
++static
++int nft_data_reg_value_snprintf_xml(char *buf, size_t size,
++				union nft_data_reg *reg, uint32_t flags)
++{
++	int len = size, offset = 0, ret, i, j;
++	uint8_t *tmp;
++	int data_len=reg->len/sizeof(uint32_t);
++
++	ret = snprintf(buf, len, "<data_reg type=\"value\" >");
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	ret = snprintf(buf+offset, len, "<len>%d</len>", data_len);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	for (i=0; i<data_len; i++) {
++		ret = snprintf(buf+offset, len, "<data%d>0x", i);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++		tmp = (uint8_t *)&reg->val[i];
++
++		for (j=0; j<sizeof(int); j++) {
++			ret = snprintf(buf+offset, len, "%.02x", tmp[j]);
++			SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++		}
++
++		ret = snprintf(buf+offset, len, "</data%d>", i);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	ret = snprintf(buf+offset, len, "</data_reg>");
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	return offset;
++}
++
++static int nft_data_reg_value_snprintf_default(char *buf, size_t size,
++				union nft_data_reg *reg, uint32_t flags)
++{
++	int len = size, offset = 0, ret, i;
++
++	for (i=0; i<reg->len/sizeof(uint32_t); i++) {
++		ret = snprintf(buf+offset, len, "0x%.8x ", reg->val[i]);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	return offset;
++}
++
++int nft_data_reg_snprintf(char *buf, size_t size, union nft_data_reg *reg,
++			uint32_t output_format, uint32_t flags, int reg_type)
++{
++	switch(reg_type) {
++	case DATA_VALUE:
++		switch(output_format) {
++		case NFT_RULE_O_XML:
++			return nft_data_reg_value_snprintf_xml(buf, size,
++							reg, flags);
++		case NFT_RULE_O_DEFAULT:
++			return nft_data_reg_value_snprintf_default(buf, size,
++							reg, flags);
++		default:
++			break;
++		}
++	case DATA_VERDICT:
++		switch(output_format) {
++		case NFT_RULE_O_XML:
++			return snprintf(buf, size,
++					"<data_reg type=\"verdict\" >"
++						"<verdict>%d</verdict>"
++					"</data_reg>", reg->verdict);
++		case NFT_RULE_O_DEFAULT:
++			return snprintf(buf, size, "verdict=%d", reg->verdict);
++		default:
++			break;
++		}
++	case DATA_CHAIN:
++		switch(output_format) {
++		case NFT_RULE_O_XML:
++			return snprintf(buf, size,
++					"<data_reg type=\"chain\" >"
++						"<chain>%s</chain>"
++					"</data_reg>", reg->chain);
++		case NFT_RULE_O_DEFAULT:
++			return snprintf(buf, size, "chain=%s", reg->chain);
++		default:
++			break;
++		}
++	default:
++		break;
++	}
++	return -1;
++}
++
+ static int nft_data_parse_cb(const struct nlattr *attr, void *data)
+ {
+ 	const struct nlattr **tb = data;
+diff --git a/src/expr/data_reg.h b/src/expr/data_reg.h
+index 00eab63..1552c1e 100644
+--- a/src/expr/data_reg.h
++++ b/src/expr/data_reg.h
+@@ -18,6 +18,9 @@ union nft_data_reg {
+ 	};
+ };
+ 
++int nft_data_reg_snprintf(char *buf, size_t size, union nft_data_reg *reg,
++                        uint32_t output_format, uint32_t flags, int reg_type);
++int nft_data_reg_xml_parse(union nft_data_reg *reg, char *xml);
+ int nft_parse_data(union nft_data_reg *data, struct nlattr *attr, int *type);
+ 
+ #endif
+diff --git a/src/expr/immediate.c b/src/expr/immediate.c
+index 496cbfd..edccbd2 100644
+--- a/src/expr/immediate.c
++++ b/src/expr/immediate.c
+@@ -196,6 +196,82 @@ nft_rule_expr_immediate_parse(struct nft_rule_expr *e, struct nlattr *attr)
+ }
+ 
+ static int
++nft_rule_expr_immediate_snprintf_xml(char *buf, size_t len,
++			struct nft_expr_immediate *imm, uint32_t flags)
++{
++	int size = len, offset = 0, ret;
++	size_t *voidpointer=NULL;
++
++	ret = snprintf(buf, len, "\t\t<dreg>%u</dreg>"
++				"\n\t\t<immediatedata>", imm->dreg);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	/* If nft_rule_expr_immediate_get return != NULL then
++	* the attribute is set and we need to print it out */
++
++	if (nft_rule_expr_immediate_get((struct nft_rule_expr *)imm,
++				NFT_EXPR_IMM_DATA, voidpointer) != NULL) {
++		ret = nft_data_reg_snprintf(buf+offset, len, &imm->data,
++					NFT_RULE_O_XML, flags, DATA_VALUE);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	} else if (nft_rule_expr_immediate_get((struct nft_rule_expr *)imm,
++				NFT_EXPR_IMM_VERDICT, voidpointer) != NULL) {
++		ret = nft_data_reg_snprintf(buf+offset, len, &imm->data,
++					NFT_RULE_O_XML, flags, DATA_VERDICT);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	} else if (nft_rule_expr_immediate_get((struct nft_rule_expr *)imm,
++				NFT_EXPR_IMM_CHAIN, voidpointer) != NULL) {
++		ret = nft_data_reg_snprintf(buf+offset, len, &imm->data,
++					NFT_RULE_O_XML, flags, DATA_CHAIN);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	ret = snprintf(buf+offset, len, "</immediatedata>");
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	return offset;
++}
++
++static int
++nft_rule_expr_immediate_snprintf_default(char *buf, size_t len,
++				struct nft_expr_immediate *imm, uint32_t flags)
++{
++	int size = len, offset = 0, ret;
++	size_t *voidpointer=NULL;
++
++	ret = snprintf(buf, len, "dreg=%u", imm->dreg);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	/* If nft_rule_expr_immediate_get return != NULL then
++	* the attribute is set and we need to print it out */
++
++	if (nft_rule_expr_immediate_get((struct nft_rule_expr *)imm,
++				NFT_EXPR_IMM_DATA, voidpointer) != NULL) {
++		ret = nft_data_reg_snprintf(buf+offset, len, &imm->data,
++					NFT_RULE_O_DEFAULT, flags, DATA_VALUE);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	} else if (nft_rule_expr_immediate_get((struct nft_rule_expr *)imm,
++				NFT_EXPR_IMM_VERDICT, voidpointer) != NULL) {
++		ret = nft_data_reg_snprintf(buf+offset, len, &imm->data,
++					NFT_RULE_O_DEFAULT, flags, DATA_VERDICT);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
++	} else if (nft_rule_expr_immediate_get((struct nft_rule_expr *)imm,
++				NFT_EXPR_IMM_CHAIN, voidpointer) != NULL) {
++		ret = nft_data_reg_snprintf(buf+offset, len, &imm->data,
++					NFT_RULE_O_DEFAULT, flags, DATA_CHAIN);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	return offset;
++}
++
++static int
+ nft_rule_expr_immediate_snprintf(char *buf, size_t len, uint32_t type,
+ 				 uint32_t flags, struct nft_rule_expr *e)
+ {
+@@ -203,12 +279,9 @@ nft_rule_expr_immediate_snprintf(char *buf, size_t len, uint32_t type,
+ 
+ 	switch(type) {
+ 	case NFT_RULE_O_XML:
+-		return snprintf(buf, len, "\t\t<dreg>%u</dreg>"
+-					  " <data>%u</data> ",
+-				imm->dreg, imm->data.val[0]);
++		return nft_rule_expr_immediate_snprintf_xml(buf, len, imm, flags);
+ 	case NFT_RULE_O_DEFAULT:
+-		return snprintf(buf, len, "dreg=%u data=%u ",
+-				imm->dreg, imm->data.val[0]);
++		return nft_rule_expr_immediate_snprintf_default(buf, len, imm, flags);
+ 	default:
+ 		break;
+ 	}
 
-In my opinion this is not inconsistency at all, but the intended 
-behaviour. So I don't see any reason to add such a hack to override it.
-
-What prevents you from entering the matches in the order you want them to 
-be evaluated?
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
