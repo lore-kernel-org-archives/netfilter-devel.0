@@ -1,104 +1,46 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: iptables nfacct match question
-Date: Fri, 5 Apr 2013 21:24:50 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1304052116350.27405@blackhole.kfki.hu>
-References: <51292D41.8000703@googlemail.com> <20130225154848.GA20609@localhost> <512BC79F.1070708@googlemail.com> <20130226135529.GA9526@localhost> <512D0BA4.7060809@googlemail.com> <20130226214707.GA3555@localhost> <512E7331.10304@googlemail.com>
- <515DE487.9020209@googlemail.com> <alpine.DEB.2.00.1304042341530.24744@blackhole.kfki.hu> <515F21AC.3080504@googlemail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Michael Zintakis <michael.zintakis@googlemail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH] netfilter: nf_conntrack_sip: don't drop packets with offsets pointing outside the packet
+Date: Fri,  5 Apr 2013 20:13:30 +0200
+Message-ID: <1365185610-2287-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:59824 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1162546Ab3DETYw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Apr 2013 15:24:52 -0400
-In-Reply-To: <515F21AC.3080504@googlemail.com>
+Received: from stinky.trash.net ([213.144.137.162]:37482 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1162306Ab3DESNd (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Apr 2013 14:13:33 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Michael,
+Some Cisco phones create huge messages that are spread over multiple packets.
+After calculating the offset of the SIP body, it is validated to be within
+the packet and the packet is dropped otherwise. This breaks operation of
+these phones. Since connection tracking is supposed to be passive, just let
+those packets pass unmodified and untracked.
 
-On Fri, 5 Apr 2013, Michael Zintakis wrote:
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ net/netfilter/nf_conntrack_sip.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-> Jozsef Kadlecsik wrote:
-> > On Thu, 4 Apr 2013, Michael Zintakis wrote:
-> >> Something we've discovered with regards to the nfacct match recently. If 
-> >> I have the following iptables statement:
-> >>
-> >> iptables -A INPUT -m nfacct --nfacct <nfacct_obj> -m <match2> -m <match3>
-> >>
-> >> The above aklways updates the "nfacct_obj" byte and packet counters, 
-> >> regardless of whether "match2" and "match3" actually matches. However, 
-> >> if we have:
-> >>
-> >> iptables -A INPUT -m <match2> -m nfacct --nfacct <nfacct_obj> -m <match3>
-> >>
-> >> then "nfacct_obj" counters are updated only when "match1" is satisfied, 
-> >> but if we have:
-> >>
-> >> iptables -A INPUT -m <match2> -m <match3> -m nfacct --nfacct <nfacct_obj>
-> >>
-> >> then "nfacct_obj" counters are updated when both match2 and match3 are 
-> >> matched (which was the initial intention).
-> >>
-> >> This inconsistency stems from the fact that the nfacct match in the 
-> >> kernel (xt_nfacct.c::nfacct_mt) always returns true, but also because of 
-> >> how iptables evaluates matches: it does so from left to right.
-> >>
-> >> Since there isn't a callback in the xt_match struct which is called 
-> >> after ALL matches have been satisfied (xt_match.match is called for each 
-> >> registered match in that statement), this causes the nfacct counters to 
-> >> be updated (or not) depending on the position of the nfacct match.
-> >>
-> >> What I have done locally is to add a separate callback (I called it 
-> >> "matched") which is called for all matches after all such matches in a 
-> >> particular statement have been satisfied, but that obviously will break 
-> >> lots of code depending on the old xt_match struct if such approach is 
-> >> adopted. My question is: is there more elegant solution to do this? 
-> > 
-> > In my opinion this is not inconsistency at all, but the intended 
-> > behaviour. So I don't see any reason to add such a hack to override it.
-> I meant inconsistent in terms of the end result, which in the example 
-> above is packet/bytes counting.
-> 
-> That result is different depending on the order of the conditions (i.e. 
-> matches) attached to the iptables rule. With the 'old' accounting we 
-> didn't have that. In other words, with the old accounting we've had:
-> 
-> If (match1 && match2 && matchN) {
->   do_packet_and_bytes_counting();
-> }
-> 
-> No matter how we arrange the order of match1, match2 and matchN, the end 
-> result is (or should be) the same. With the nfacct match that isn't the 
-> case, but that isn't nfacct match's fault, but I guess it is because of 
-> the way iptables is examining the matches.
-
-Yes, exactly. And actually it supports rules like this:
-
-iptables -A INPUT -m <match0> -m nfacct --nfacct acct0 \
-                  -m <match1> -m nfacct --nfacct acct1 \ 
-		  ...
-
-Also, this is a new accounting method, which is just not the same as the 
-old one.
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 0e7d423..e0c4373 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -1593,10 +1593,8 @@ static int sip_help_tcp(struct sk_buff *skb, unsigned int protoff,
+ 		end += strlen("\r\n\r\n") + clen;
  
-> We would have had the consistency (in other words, getting a consistent 
-> result regardless of the order of the various conditions/matches) if 
-> nfacct was a target, not a match, but I know that would be difficult (I 
-> already examined that possibility) since the x_tables target does not 
-> provide a 'destroy' method, so there isn't a way to track the 'refcnt' 
-> in the nfacct kernel struct, so inventing this method is as equally as 
-> ugly as the hack I did with the nfacct match above, so I thought to ask 
-> and see whether there is a better solution.
+ 		msglen = origlen = end - dptr;
+-		if (msglen > datalen) {
+-			nf_ct_helper_log(skb, ct, "incomplete/bad SIP message");
+-			return NF_DROP;
+-		}
++		if (msglen > datalen)
++			return NF_ACCEPT;
+ 
+ 		ret = process_sip_msg(skb, ct, protoff, dataoff,
+ 				      &dptr, &msglen);
+-- 
+1.8.1.4
 
-Targets do have a destroy method.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
