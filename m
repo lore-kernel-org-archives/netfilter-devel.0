@@ -1,18 +1,124 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 0/3] netfilter: propagate routing and XFRM errors
-Date: Fri,  5 Apr 2013 18:41:09 +0200
-Message-ID: <1365180072-6182-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: iptables nfacct match question
+Date: Fri, 5 Apr 2013 23:01:28 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1304052255351.27405@blackhole.kfki.hu>
+References: <51292D41.8000703@googlemail.com> <20130225154848.GA20609@localhost> <512BC79F.1070708@googlemail.com> <20130226135529.GA9526@localhost> <512D0BA4.7060809@googlemail.com> <20130226214707.GA3555@localhost> <512E7331.10304@googlemail.com>
+ <515DE487.9020209@googlemail.com> <alpine.DEB.2.00.1304042341530.24744@blackhole.kfki.hu> <515F21AC.3080504@googlemail.com> <alpine.DEB.2.00.1304052116350.27405@blackhole.kfki.hu> <515F2761.80707@googlemail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Michael Zintakis <michael.zintakis@googlemail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-in.kfki.hu ([148.6.0.26]:40132 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1162203Ab3DEVBb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Apr 2013 17:01:31 -0400
+In-Reply-To: <515F2761.80707@googlemail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-These patches fix a long standing annoyance: netfilter will return
-EPERM for all errors during rerouting or XFRM policy lookups.
+Hi Michael,
 
-These patches change {ip,ip6}_route_me_harder() and nf_xfrm_me_harder()
-to return errno codes and use NF_DROP_ERR() to propagate those back
-to userspace.
+On Fri, 5 Apr 2013, Michael Zintakis wrote:
 
-Please apply.
+> Jozsef Kadlecsik wrote:
+> > On Fri, 5 Apr 2013, Michael Zintakis wrote:
+> > 
+> >> Jozsef Kadlecsik wrote:
+> >>> On Thu, 4 Apr 2013, Michael Zintakis wrote:
+> >>>> Something we've discovered with regards to the nfacct match recently. If 
+> >>>> I have the following iptables statement:
+> >>>>
+> >>>> iptables -A INPUT -m nfacct --nfacct <nfacct_obj> -m <match2> -m <match3>
+> >>>>
+> >>>> The above aklways updates the "nfacct_obj" byte and packet counters, 
+> >>>> regardless of whether "match2" and "match3" actually matches. However, 
+> >>>> if we have:
+> >>>>
+> >>>> iptables -A INPUT -m <match2> -m nfacct --nfacct <nfacct_obj> -m <match3>
+> >>>>
+> >>>> then "nfacct_obj" counters are updated only when "match1" is satisfied, 
+> >>>> but if we have:
+> >>>>
+> >>>> iptables -A INPUT -m <match2> -m <match3> -m nfacct --nfacct <nfacct_obj>
+> >>>>
+> >>>> then "nfacct_obj" counters are updated when both match2 and match3 are 
+> >>>> matched (which was the initial intention).
+> >>>>
+> >>>> This inconsistency stems from the fact that the nfacct match in the 
+> >>>> kernel (xt_nfacct.c::nfacct_mt) always returns true, but also because of 
+> >>>> how iptables evaluates matches: it does so from left to right.
+> >>>>
+> >>>> Since there isn't a callback in the xt_match struct which is called 
+> >>>> after ALL matches have been satisfied (xt_match.match is called for each 
+> >>>> registered match in that statement), this causes the nfacct counters to 
+> >>>> be updated (or not) depending on the position of the nfacct match.
+> >>>>
+> >>>> What I have done locally is to add a separate callback (I called it 
+> >>>> "matched") which is called for all matches after all such matches in a 
+> >>>> particular statement have been satisfied, but that obviously will break 
+> >>>> lots of code depending on the old xt_match struct if such approach is 
+> >>>> adopted. My question is: is there more elegant solution to do this? 
+> >>> In my opinion this is not inconsistency at all, but the intended 
+> >>> behaviour. So I don't see any reason to add such a hack to override it.
+> >> I meant inconsistent in terms of the end result, which in the example 
+> >> above is packet/bytes counting.
+> >>
+> >> That result is different depending on the order of the conditions (i.e. 
+> >> matches) attached to the iptables rule. With the 'old' accounting we 
+> >> didn't have that. In other words, with the old accounting we've had:
+> >>
+> >> If (match1 && match2 && matchN) {
+> >>   do_packet_and_bytes_counting();
+> >> }
+> >>
+> >> No matter how we arrange the order of match1, match2 and matchN, the end 
+> >> result is (or should be) the same. With the nfacct match that isn't the 
+> >> case, but that isn't nfacct match's fault, but I guess it is because of 
+> >> the way iptables is examining the matches.
+> > 
+> > Yes, exactly. And actually it supports rules like this:
+> > 
+> > iptables -A INPUT -m <match0> -m nfacct --nfacct acct0 \
+> >                   -m <match1> -m nfacct --nfacct acct1 \ 
+> > 		  ...
+> Hm, never thought of that, but I guess one learns something new every 
+> day. Thanks Jozsef!
+> 
+> > Also, this is a new accounting method, which is just not the same as the 
+> > old one.
+> Yes, I know, I wasn't disputing that - it is just that I am used to the 
+> 'old' accounting and when you've been using it for years it is not so 
+> easy to 'detach' yourself from that.
+> 
+> >> We would have had the consistency (in other words, getting a consistent 
+> >> result regardless of the order of the various conditions/matches) if 
+> >> nfacct was a target, not a match, but I know that would be difficult (I 
+> >> already examined that possibility) since the x_tables target does not 
+> >> provide a 'destroy' method, so there isn't a way to track the 'refcnt' 
+> >> in the nfacct kernel struct, so inventing this method is as equally as 
+> >> ugly as the hack I did with the nfacct match above, so I thought to ask 
+> >> and see whether there is a better solution.
+> > 
+> > Targets do have a destroy method.
+> Haha, you are far too quick for me!
+> 
+> I just found that out - I don't know how I did not see it when I first 
+> looked at it. I guess if I 'convert' nfacct to a target I could get that 
+> 'consistency', but I appreciate the new example you gave above, which I 
+> have to admit is very useful indeed (one can hit two or more birds with 
+> one stone so to speak).
+
+nfacct can't be converted to a target, because it'd result backward 
+incompatibilty - it already exists as a match. The module could be 
+extended to play the role of target as well, but it seems to be 
+unnecessary: there's no need to have a target in a rule, so in userspace 
+"-j NFACCT" could simply be replaced by "-m nfacct".
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
