@@ -1,128 +1,102 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 50/51] netfilter: ipv6: propagate routing errors from ip6_route_me_harder()
-Date: Sat,  6 Apr 2013 14:17:49 +0200
-Message-ID: <1365250670-14993-51-git-send-email-pablo@netfilter.org>
-References: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: Re: [PATCH nf-next v2 03/10] netfilter: ebt_log: add net namespace
+ support for ebt_log
+Date: Fri, 5 Apr 2013 20:32:43 +0200
+Message-ID: <20130405183243.GC4853@localhost>
+References: <1364205048-32632-1-git-send-email-gaofeng@cn.fujitsu.com>
+ <1364205048-32632-3-git-send-email-gaofeng@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Gao feng <gaofeng@cn.fujitsu.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:52995 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1162396Ab3DEScs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Apr 2013 14:32:48 -0400
+Content-Disposition: inline
+In-Reply-To: <1364205048-32632-3-git-send-email-gaofeng@cn.fujitsu.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
+On Mon, Mar 25, 2013 at 05:50:41PM +0800, Gao feng wrote:
+> Add pernet_operations for ebt_log, in pernet_ops,
+> we call nf_log_set/unset to set/unset nf_loggers
+> of per net.
+> 
+> Because the syslog ns has not been implemented,
+> we don't want the container DDOS the host's syslog.
+> so only enable ebt_log in init_net and wait for
+> syslog ns.
 
-Propagate routing errors from ip_route_me_harder() when dropping a packet
-using NF_DROP_ERR(). This makes userspace get the proper error instead of
-EPERM for everything.
+Applied with change.
 
-# ip -6 r a unreachable default table 100
-# ip -6 ru add fwmark 0x1 lookup 100
-# ip6tables -t mangle -A OUTPUT -d 2001:4860:4860::8888 -j MARK --set-mark 0x1
+> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+> ---
+>  net/bridge/netfilter/ebt_log.c | 24 +++++++++++++++++++++++-
+>  1 file changed, 23 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
+> index 08e5ea5..cd465d1 100644
+> --- a/net/bridge/netfilter/ebt_log.c
+> +++ b/net/bridge/netfilter/ebt_log.c
+> @@ -78,6 +78,10 @@ ebt_log_packet(u_int8_t pf, unsigned int hooknum,
+>     const char *prefix)
+>  {
+>  	unsigned int bitmask;
+> +	struct net *net = dev_net(in ? in : out);
+> +
 
-Old behaviour:
+Added a comment here to explicitly recall that we depend on syslog ns
+support to remove these two lines below.
 
-PING 2001:4860:4860::8888(2001:4860:4860::8888) 56 data bytes
-ping: sendmsg: Operation not permitted
-ping: sendmsg: Operation not permitted
-ping: sendmsg: Operation not permitted
+> +	if (!net_eq(net, &init_net))
+> +		return;
+>  
+>  	spin_lock_bh(&ebt_log_lock);
+>  	printk(KERN_SOH "%c%s IN=%s OUT=%s MAC source = %pM MAC dest = %pM proto = 0x%04x",
+> @@ -207,6 +211,22 @@ static struct nf_logger ebt_log_logger __read_mostly = {
+>  	.me		= THIS_MODULE,
+>  };
+>  
+> +static int __net_init ebt_log_net_init(struct net *net)
+> +{
+> +	nf_log_set(net, NFPROTO_BRIDGE, &ebt_log_logger);
+> +	return 0;
+> +}
+> +
+> +static void __net_exit ebt_log_net_fini(struct net *net)
+> +{
+> +	nf_log_unset(net, &ebt_log_logger);
+> +}
+> +
+> +static struct pernet_operations ebt_log_net_ops = {
+> +	.init = ebt_log_net_init,
+> +	.exit = ebt_log_net_fini,
+> +};
+> +
+>  static int __init ebt_log_init(void)
+>  {
+>  	int ret;
+> @@ -214,12 +234,14 @@ static int __init ebt_log_init(void)
+>  	ret = xt_register_target(&ebt_log_tg_reg);
+>  	if (ret < 0)
+>  		return ret;
+> +
+>  	nf_log_register(NFPROTO_BRIDGE, &ebt_log_logger);
+> -	return 0;
+> +	return register_pernet_subsys(&ebt_log_net_ops);
 
-New behaviour:
+You have to unroll in case register_pernet_subsys, I fixed this.
 
-PING 2001:4860:4860::8888(2001:4860:4860::8888) 56 data bytes
-ping: sendmsg: Network is unreachable
-ping: sendmsg: Network is unreachable
-ping: sendmsg: Network is unreachable
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv6/netfilter.c                 |    6 +++---
- net/ipv6/netfilter/ip6table_mangle.c |    9 ++++++---
- net/ipv6/netfilter/ip6table_nat.c    |    6 ++++--
- 3 files changed, 13 insertions(+), 8 deletions(-)
-
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 429089c..fc5fbd7 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -29,7 +29,7 @@ int ip6_route_me_harder(struct sk_buff *skb)
- 		IP6_INC_STATS(net, ip6_dst_idev(dst), IPSTATS_MIB_OUTNOROUTES);
- 		LIMIT_NETDEBUG(KERN_DEBUG "ip6_route_me_harder: No more route.\n");
- 		dst_release(dst);
--		return -EINVAL;
-+		return dst->error;
- 	}
- 
- 	/* Drop old route. */
-@@ -43,7 +43,7 @@ int ip6_route_me_harder(struct sk_buff *skb)
- 		skb_dst_set(skb, NULL);
- 		dst = xfrm_lookup(net, dst, flowi6_to_flowi(&fl6), skb->sk, 0);
- 		if (IS_ERR(dst))
--			return -1;
-+			return PTR_ERR(dst);
- 		skb_dst_set(skb, dst);
- 	}
- #endif
-@@ -53,7 +53,7 @@ int ip6_route_me_harder(struct sk_buff *skb)
- 	if (skb_headroom(skb) < hh_len &&
- 	    pskb_expand_head(skb, HH_DATA_ALIGN(hh_len - skb_headroom(skb)),
- 			     0, GFP_ATOMIC))
--		return -1;
-+		return -ENOMEM;
- 
- 	return 0;
- }
-diff --git a/net/ipv6/netfilter/ip6table_mangle.c b/net/ipv6/netfilter/ip6table_mangle.c
-index 6134a1e..e075399 100644
---- a/net/ipv6/netfilter/ip6table_mangle.c
-+++ b/net/ipv6/netfilter/ip6table_mangle.c
-@@ -38,7 +38,7 @@ ip6t_mangle_out(struct sk_buff *skb, const struct net_device *out)
- 	struct in6_addr saddr, daddr;
- 	u_int8_t hop_limit;
- 	u_int32_t flowlabel, mark;
--
-+	int err;
- #if 0
- 	/* root is playing with raw sockets. */
- 	if (skb->len < sizeof(struct iphdr) ||
-@@ -65,8 +65,11 @@ ip6t_mangle_out(struct sk_buff *skb, const struct net_device *out)
- 	     !ipv6_addr_equal(&ipv6_hdr(skb)->daddr, &daddr) ||
- 	     skb->mark != mark ||
- 	     ipv6_hdr(skb)->hop_limit != hop_limit ||
--	     flowlabel != *((u_int32_t *)ipv6_hdr(skb))))
--		return ip6_route_me_harder(skb) == 0 ? ret : NF_DROP;
-+	     flowlabel != *((u_int32_t *)ipv6_hdr(skb)))) {
-+		err = ip6_route_me_harder(skb);
-+		if (err < 0)
-+			ret = NF_DROP_ERR(err);
-+	}
- 
- 	return ret;
- }
-diff --git a/net/ipv6/netfilter/ip6table_nat.c b/net/ipv6/netfilter/ip6table_nat.c
-index e0e788d..97e2edd 100644
---- a/net/ipv6/netfilter/ip6table_nat.c
-+++ b/net/ipv6/netfilter/ip6table_nat.c
-@@ -215,6 +215,7 @@ nf_nat_ipv6_local_fn(unsigned int hooknum,
- 	const struct nf_conn *ct;
- 	enum ip_conntrack_info ctinfo;
- 	unsigned int ret;
-+	int err;
- 
- 	/* root is playing with raw sockets. */
- 	if (skb->len < sizeof(struct ipv6hdr))
-@@ -227,8 +228,9 @@ nf_nat_ipv6_local_fn(unsigned int hooknum,
- 
- 		if (!nf_inet_addr_cmp(&ct->tuplehash[dir].tuple.dst.u3,
- 				      &ct->tuplehash[!dir].tuple.src.u3)) {
--			if (ip6_route_me_harder(skb))
--				ret = NF_DROP;
-+			err = ip6_route_me_harder(skb);
-+			if (err < 0)
-+				ret = NF_DROP_ERR(err);
- 		}
- #ifdef CONFIG_XFRM
- 		else if (!(IP6CB(skb)->flags & IP6SKB_XFRM_TRANSFORMED) &&
--- 
-1.7.10.4
+>  }
+>  
+>  static void __exit ebt_log_fini(void)
+>  {
+> +	unregister_pernet_subsys(&ebt_log_net_ops);
+>  	nf_log_unregister(&ebt_log_logger);
+>  	xt_unregister_target(&ebt_log_tg_reg);
+>  }
+> -- 
+> 1.7.11.7
+> 
