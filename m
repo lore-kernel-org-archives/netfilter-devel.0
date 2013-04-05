@@ -1,161 +1,85 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 35/51] netfilter: xt_NFQUEUE: introduce CPU fanout
-Date: Sat,  6 Apr 2013 14:17:34 +0200
-Message-ID: <1365250670-14993-36-git-send-email-pablo@netfilter.org>
-References: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next v2 10/10] netfilter: remove useless variable
+ proc_net_netfilter
+Date: Fri, 5 Apr 2013 20:45:11 +0200
+Message-ID: <20130405184511.GC10039@localhost>
+References: <1364205048-32632-1-git-send-email-gaofeng@cn.fujitsu.com>
+ <1364205048-32632-10-git-send-email-gaofeng@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Gao feng <gaofeng@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39033 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53962 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422636Ab3DFMSn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 6 Apr 2013 08:18:43 -0400
-In-Reply-To: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
+	id S1162464Ab3DESp0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Apr 2013 14:45:26 -0400
+Content-Disposition: inline
+In-Reply-To: <1364205048-32632-10-git-send-email-gaofeng@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: "holger@eitzenberger.org" <holger@eitzenberger.org>
+On Mon, Mar 25, 2013 at 05:50:48PM +0800, Gao feng wrote:
+> After we add net namespace support for nflog and nfqueue,
+> the var proc_net_netfilter has no use,just remove it.
 
-Current NFQUEUE target uses a hash, computed over source and
-destination address (and other parameters), for steering the packet
-to the actual NFQUEUE. This, however forgets about the fact that the
-packet eventually is handled by a particular CPU on user request.
+Applied a different patch based on yours.
 
-If E. g.
+> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+> ---
+>  include/linux/netfilter.h | 1 -
+>  net/netfilter/core.c      | 7 -------
+>  2 files changed, 8 deletions(-)
+> 
+> diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+> index ee14284..b9d401c 100644
+> --- a/include/linux/netfilter.h
+> +++ b/include/linux/netfilter.h
+> @@ -291,7 +291,6 @@ nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, u_int8_t family)
+>  
+>  #ifdef CONFIG_PROC_FS
+>  #include <linux/proc_fs.h>
 
-  1) IRQ affinity is used to handle packets on a particular CPU already
-     (both single-queue or multi-queue case)
+Removed also these two lines above.
 
-and/or
+> -extern struct proc_dir_entry *proc_net_netfilter;
+>  #endif
+>  
+>  #else /* !CONFIG_NETFILTER */
+> diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+> index e054799..3117ce8 100644
+> --- a/net/netfilter/core.c
+> +++ b/net/netfilter/core.c
+> @@ -276,11 +276,6 @@ void (*nf_nat_decode_session_hook)(struct sk_buff *, struct flowi *);
+>  EXPORT_SYMBOL(nf_nat_decode_session_hook);
+>  #endif
+>  
+> -#ifdef CONFIG_PROC_FS
+> -struct proc_dir_entry *proc_net_netfilter;
+> -EXPORT_SYMBOL(proc_net_netfilter);
+> -#endif
+> -
+>  static int __net_init netfilter_net_init(struct net *net)
+>  {
+>  #ifdef CONFIG_PROC_FS
+> @@ -290,8 +285,6 @@ static int __net_init netfilter_net_init(struct net *net)
+>  	if (net_eq(net, &init_net)) {
+>  		if (!net->nf.proc_netfilter)
+>  			panic("cannot create netfilter proc entry");
+> -		else
+> -			proc_net_netfilter = net->nf.proc_netfilter;
+>  	} else if (!net->nf.proc_netfilter) {
+>  		pr_err("cannot create netfilter proc entry");
+>  		return -ENOMEM;
 
-  2) RPS is used to steer packets to a specific softirq
+Refactors this code to handle error path like:
 
-the target easily chooses an NFQUEUE which is not handled by a process
-pinned to the same CPU.
+       if (!net->nf.proc_netfilter) {
+               if (!net_eq(net, &init_net))
+                       pr_err("cannot create netfilter proc entry");
 
-The idea is therefore to use the CPU index for determining the
-NFQUEUE handling the packet.
+                return -ENOMEM;
+       }
 
-E. g. when having a system with 4 CPUs, 4 MQ queues and 4 NFQUEUEs it
-looks like this:
-
- +-----+  +-----+  +-----+  +-----+
- |NFQ#0|  |NFQ#1|  |NFQ#2|  |NFQ#3|
- +-----+  +-----+  +-----+  +-----+
-    ^        ^        ^        ^
-    |        |NFQUEUE |        |
-    +        +        +        +
- +-----+  +-----+  +-----+  +-----+
- |rx-0 |  |rx-1 |  |rx-2 |  |rx-3 |
- +-----+  +-----+  +-----+  +-----+
-
-The NFQUEUEs not necessarily have to start with number 0, setups with
-less NFQUEUEs than packet-handling CPUs are not a problem as well.
-
-This patch extends the NFQUEUE target to accept a new
-NFQ_FLAG_CPU_FANOUT flag. If this is specified the target uses the
-CPU index for determining the NFQUEUE being used. I have to introduce
-rev3 for this. The 'flags' are folded into _v2 'bypass'.
-
-By changing the way which queue is assigned, I'm able to improve the
-performance if the processes reading on the NFQUEUs are pinned
-correctly.
-
-Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/uapi/linux/netfilter/xt_NFQUEUE.h |    9 +++++++
- net/netfilter/xt_NFQUEUE.c                |   41 +++++++++++++++++++++++++++--
- 2 files changed, 48 insertions(+), 2 deletions(-)
-
-diff --git a/include/uapi/linux/netfilter/xt_NFQUEUE.h b/include/uapi/linux/netfilter/xt_NFQUEUE.h
-index 9eafdbb..8bb5fe6 100644
---- a/include/uapi/linux/netfilter/xt_NFQUEUE.h
-+++ b/include/uapi/linux/netfilter/xt_NFQUEUE.h
-@@ -26,4 +26,13 @@ struct xt_NFQ_info_v2 {
- 	__u16 bypass;
- };
- 
-+struct xt_NFQ_info_v3 {
-+	__u16 queuenum;
-+	__u16 queues_total;
-+	__u16 flags;
-+#define NFQ_FLAG_BYPASS		0x01 /* for compatibility with v2 */
-+#define NFQ_FLAG_CPU_FANOUT	0x02 /* use current CPU (no hashing) */
-+#define NFQ_FLAG_MASK		0x03
-+};
-+
- #endif /* _XT_NFQ_TARGET_H */
-diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
-index 817f9e9..a287ef2 100644
---- a/net/netfilter/xt_NFQUEUE.c
-+++ b/net/netfilter/xt_NFQUEUE.c
-@@ -108,7 +108,7 @@ nfqueue_tg_v2(struct sk_buff *skb, const struct xt_action_param *par)
- 
- static int nfqueue_tg_check(const struct xt_tgchk_param *par)
- {
--	const struct xt_NFQ_info_v2 *info = par->targinfo;
-+	const struct xt_NFQ_info_v3 *info = par->targinfo;
- 	u32 maxid;
- 
- 	if (unlikely(!rnd_inited)) {
-@@ -125,11 +125,39 @@ static int nfqueue_tg_check(const struct xt_tgchk_param *par)
- 		       info->queues_total, maxid);
- 		return -ERANGE;
- 	}
--	if (par->target->revision == 2 && info->bypass > 1)
-+	if (par->target->revision == 2 && info->flags > 1)
-+		return -EINVAL;
-+	if (par->target->revision == 3 && info->flags & ~NFQ_FLAG_MASK)
- 		return -EINVAL;
-+
- 	return 0;
- }
- 
-+static unsigned int
-+nfqueue_tg_v3(struct sk_buff *skb, const struct xt_action_param *par)
-+{
-+	const struct xt_NFQ_info_v3 *info = par->targinfo;
-+	u32 queue = info->queuenum;
-+
-+	if (info->queues_total > 1) {
-+		if (info->flags & NFQ_FLAG_CPU_FANOUT) {
-+			int cpu = smp_processor_id();
-+
-+			queue = info->queuenum + cpu % info->queues_total;
-+		} else {
-+			if (par->family == NFPROTO_IPV4)
-+				queue = (((u64) hash_v4(skb) * info->queues_total) >>
-+						 32) + queue;
-+#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
-+			else if (par->family == NFPROTO_IPV6)
-+				queue = (((u64) hash_v6(skb) * info->queues_total) >>
-+						 32) + queue;
-+#endif
-+		}
-+	}
-+	return NF_QUEUE_NR(queue);
-+}
-+
- static struct xt_target nfqueue_tg_reg[] __read_mostly = {
- 	{
- 		.name		= "NFQUEUE",
-@@ -156,6 +184,15 @@ static struct xt_target nfqueue_tg_reg[] __read_mostly = {
- 		.targetsize	= sizeof(struct xt_NFQ_info_v2),
- 		.me		= THIS_MODULE,
- 	},
-+	{
-+		.name		= "NFQUEUE",
-+		.revision	= 3,
-+		.family		= NFPROTO_UNSPEC,
-+		.checkentry	= nfqueue_tg_check,
-+		.target		= nfqueue_tg_v3,
-+		.targetsize	= sizeof(struct xt_NFQ_info_v3),
-+		.me		= THIS_MODULE,
-+	},
- };
- 
- static int __init nfqueue_tg_init(void)
--- 
-1.7.10.4
-
+So this spots an error only if netns fails. This still panics for the
+init_net case.
