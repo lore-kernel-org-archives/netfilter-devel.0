@@ -1,85 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next v2 10/10] netfilter: remove useless variable
- proc_net_netfilter
-Date: Fri, 5 Apr 2013 20:45:11 +0200
-Message-ID: <20130405184511.GC10039@localhost>
-References: <1364205048-32632-1-git-send-email-gaofeng@cn.fujitsu.com>
- <1364205048-32632-10-git-send-email-gaofeng@cn.fujitsu.com>
+Subject: Re: [Ulogd2 PATCH 2/3] Lower libnfnetlink requirement to 1.0.0
+Date: Fri, 5 Apr 2013 17:39:40 +0200
+Message-ID: <20130405153940.GC32205@localhost>
+References: <1365172437-15042-1-git-send-email-victor@inliniac.net>
+ <1365172437-15042-3-git-send-email-victor@inliniac.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Gao feng <gaofeng@cn.fujitsu.com>
+To: Victor Julien <victor@inliniac.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53962 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34059 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1162464Ab3DESp0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Apr 2013 14:45:26 -0400
+	id S1755664Ab3DEPj4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Apr 2013 11:39:56 -0400
 Content-Disposition: inline
-In-Reply-To: <1364205048-32632-10-git-send-email-gaofeng@cn.fujitsu.com>
+In-Reply-To: <1365172437-15042-3-git-send-email-victor@inliniac.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 25, 2013 at 05:50:48PM +0800, Gao feng wrote:
-> After we add net namespace support for nflog and nfqueue,
-> the var proc_net_netfilter has no use,just remove it.
-
-Applied a different patch based on yours.
-
-> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
-> ---
->  include/linux/netfilter.h | 1 -
->  net/netfilter/core.c      | 7 -------
->  2 files changed, 8 deletions(-)
+On Fri, Apr 05, 2013 at 04:33:56PM +0200, Victor Julien wrote:
+> Build and run tested against 1.0.0, worked fine for me.
 > 
-> diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-> index ee14284..b9d401c 100644
-> --- a/include/linux/netfilter.h
-> +++ b/include/linux/netfilter.h
-> @@ -291,7 +291,6 @@ nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, u_int8_t family)
+> ---
+>  configure.ac |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/configure.ac b/configure.ac
+> index a439bee..5755cf5 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -48,7 +48,7 @@ regular_CFLAGS="-Wall -Wextra -Wno-unused-parameter"
+>  AC_SUBST([regular_CFLAGS])
 >  
->  #ifdef CONFIG_PROC_FS
->  #include <linux/proc_fs.h>
+>  dnl Check for the right nfnetlink version
+> -PKG_CHECK_MODULES([LIBNFNETLINK], [libnfnetlink >= 1.0.1])
+> +PKG_CHECK_MODULES([LIBNFNETLINK], [libnfnetlink >= 1.0.0])
 
-Removed also these two lines above.
+Same thing here. There was also a reason to bump the version
+dependency.
 
-> -extern struct proc_dir_entry *proc_net_netfilter;
->  #endif
->  
->  #else /* !CONFIG_NETFILTER */
-> diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-> index e054799..3117ce8 100644
-> --- a/net/netfilter/core.c
-> +++ b/net/netfilter/core.c
-> @@ -276,11 +276,6 @@ void (*nf_nat_decode_session_hook)(struct sk_buff *, struct flowi *);
->  EXPORT_SYMBOL(nf_nat_decode_session_hook);
->  #endif
->  
-> -#ifdef CONFIG_PROC_FS
-> -struct proc_dir_entry *proc_net_netfilter;
-> -EXPORT_SYMBOL(proc_net_netfilter);
-> -#endif
-> -
->  static int __net_init netfilter_net_init(struct net *net)
->  {
->  #ifdef CONFIG_PROC_FS
-> @@ -290,8 +285,6 @@ static int __net_init netfilter_net_init(struct net *net)
->  	if (net_eq(net, &init_net)) {
->  		if (!net->nf.proc_netfilter)
->  			panic("cannot create netfilter proc entry");
-> -		else
-> -			proc_net_netfilter = net->nf.proc_netfilter;
->  	} else if (!net->nf.proc_netfilter) {
->  		pr_err("cannot create netfilter proc entry");
->  		return -ENOMEM;
+There's a fix in libnfnetlink in the nlif interface.
 
-Refactors this code to handle error path like:
+commit 8b15e485c0d5f4a1e56b2148a34995ed1fa9e95b
+Author: Pablo Neira Ayuso <pablo@netfilter.org>
+Date:   Mon Aug 13 19:49:58 2012 +0200
 
-       if (!net->nf.proc_netfilter) {
-               if (!net_eq(net, &init_net))
-                       pr_err("cannot create netfilter proc entry");
+    iftable: fix incomplete list of interfaces via nlif_query
 
-                return -ENOMEM;
-       }
+In systems with lots of NICs, nlif_query may fail without that patch
+in libnfnetlink.
 
-So this spots an error only if netns fails. This still panics for the
-init_net case.
+Please, don't downgrade the dependencies.
