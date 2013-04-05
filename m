@@ -1,53 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] netfilter: don't reset nf_trace in nf_reset()
-Date: Fri, 05 Apr 2013 14:56:53 -0400 (EDT)
-Message-ID: <20130405.145653.2046071452089341484.davem@davemloft.net>
-References: <1365187325-25147-1-git-send-email-kaber@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [Ulogd2 PATCH 3/3] Lower libnetfilter_conntrack requirement to
+ 0.9.1
+Date: Fri, 5 Apr 2013 17:37:03 +0200
+Message-ID: <20130405153703.GB32205@localhost>
+References: <1365172437-15042-1-git-send-email-victor@inliniac.net>
+ <1365172437-15042-4-git-send-email-victor@inliniac.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, gaofeng@cn.fujitsu.com
-To: kaber@trash.net
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Victor Julien <victor@inliniac.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:34033 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1162477Ab3DES44 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Apr 2013 14:56:56 -0400
-In-Reply-To: <1365187325-25147-1-git-send-email-kaber@trash.net>
+Received: from mail.us.es ([193.147.175.20]:33725 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755627Ab3DEPhP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Apr 2013 11:37:15 -0400
+Content-Disposition: inline
+In-Reply-To: <1365172437-15042-4-git-send-email-victor@inliniac.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Fri,  5 Apr 2013 20:42:05 +0200
+On Fri, Apr 05, 2013 at 04:33:57PM +0200, Victor Julien wrote:
+> Build tested, no warnings.
+> 
+> ---
+>  configure.ac |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/configure.ac b/configure.ac
+> index 5755cf5..b17ecb6 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -59,7 +59,7 @@ AM_CONDITIONAL([BUILD_NFLOG], [test "x$enable_nflog" = "xyes"])
+>  AC_ARG_ENABLE(nfct,
+>         AS_HELP_STRING([--enable-nfct], [Enable nfct module [default=yes]]),,[enable_nfct=yes])
+>  AS_IF([test "x$enable_nfct" = "xyes"], [
+> -    PKG_CHECK_MODULES([LIBNETFILTER_CONNTRACK], [libnetfilter_conntrack >= 1.0.2])
+> +    PKG_CHECK_MODULES([LIBNETFILTER_CONNTRACK], [libnetfilter_conntrack >= 0.9.1])
 
-> Commit 130549fe added code to reset nf_trace in nf_reset(). This is wrong
-> and unnecessary.
-> 
-> nf_reset() is used in the following cases:
-> 
-> - when passing packets up the the socket layer, at which point we want to
->   release all netfilter references that might keep modules pinned while
->   the packet is queued. nf_trace doesn't matter anymore at this point.
-> 
-> - when encapsulating or decapsulating IPsec packets. We want to continue
->   tracing these packets after IPsec processing.
-> 
-> - when passing packets through virtual network devices. Only devices on
->   that encapsulate in IPv4/v6 matter since otherwise nf_trace is not
->   used anymore. Its not entirely clear whether those packets should
->   be traced after that, however we've always done that.
-> 
-> - when passing packets through virtual network devices that make the
->   packet cross network namespace boundaries. This is the only cases
->   where we clearly want to reset nf_trace and is also what the
->   original patch intended to fix.
-> 
-> Add a new function nf_reset_trace() and use it in dev_forward_skb() to
-> fix this properly.
-> 
-> Signed-off-by: Patrick McHardy <kaber@trash.net>
-
-I'll apply this directly because I'm trying to get a pull request out
-to Linus.
+There was a fix for Eric Leblond's kernel-space ct filtering, if you
+downgrade this, people may come back and report that they are hitting
+old bugs.
