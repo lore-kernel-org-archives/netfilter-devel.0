@@ -1,55 +1,69 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH RFC 0/2] icmpv6: match any ICMPv6 error/informational type
-Date: Fri, 5 Apr 2013 18:09:03 +0200
-Message-ID: <20130405160903.GA5293@localhost>
-References: <20130403142729.484857089@eitzenberger.org>
+From: Victor Julien <lists@inliniac.net>
+Subject: Re: [Ulogd2 PATCH 2/3] Lower libnfnetlink requirement to 1.0.0
+Date: Fri, 05 Apr 2013 18:08:05 +0200
+Message-ID: <515EF6E5.6010506@inliniac.net>
+References: <1365172437-15042-1-git-send-email-victor@inliniac.net> <1365172437-15042-3-git-send-email-victor@inliniac.net> <20130405153940.GC32205@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: holger@eitzenberger.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38628 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161930Ab3DEQJQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Apr 2013 12:09:16 -0400
-Content-Disposition: inline
-In-Reply-To: <20130403142729.484857089@eitzenberger.org>
+Received: from static-27.netfusion.at ([83.215.238.27]:39547 "EHLO
+	tulpe.vuurmuur.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161931Ab3DEQIQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Apr 2013 12:08:16 -0400
+Received: from [192.168.1.3] (a80-101-90-58.adsl.xs4all.nl [80.101.90.58])
+	(authenticated bits=0)
+	by tulpe.vuurmuur.org (8.14.3/8.14.3/Debian-9.4) with ESMTP id r35FsZhV006439
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
+	for <netfilter-devel@vger.kernel.org>; Fri, 5 Apr 2013 17:54:37 +0200
+In-Reply-To: <20130405153940.GC32205@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 03, 2013 at 04:27:29PM +0200, holger@eitzenberger.org wrote:
-> Hi,
+On 04/05/2013 05:39 PM, Pablo Neira Ayuso wrote:
+> On Fri, Apr 05, 2013 at 04:33:56PM +0200, Victor Julien wrote:
+>> Build and run tested against 1.0.0, worked fine for me.
+>>
+>> ---
+>>  configure.ac |    2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/configure.ac b/configure.ac
+>> index a439bee..5755cf5 100644
+>> --- a/configure.ac
+>> +++ b/configure.ac
+>> @@ -48,7 +48,7 @@ regular_CFLAGS="-Wall -Wextra -Wno-unused-parameter"
+>>  AC_SUBST([regular_CFLAGS])
+>>  
+>>  dnl Check for the right nfnetlink version
+>> -PKG_CHECK_MODULES([LIBNFNETLINK], [libnfnetlink >= 1.0.1])
+>> +PKG_CHECK_MODULES([LIBNFNETLINK], [libnfnetlink >= 1.0.0])
 > 
-> for streamlining our ip6tables ruleset it would be helpfull to match
-> on *any* ICMPv6 informational type.  If not being able to specify any
-> informational type it would be required to specify the most common
-> types excplicitely, with as many rules as types.  And then with the
-> risk of missing some of them.
+> Same thing here. There was also a reason to bump the version
+> dependency.
 > 
-> Therefore the attached two patches implement the ability to match on
-> any ICMPv6 informational (--icmpv6-info) or error (--icmpv6-error)
-> type.
+> There's a fix in libnfnetlink in the nlif interface.
 > 
-> I made the options --icmpv6-type, --icmpv6-error and --icmpv6-info
-> mutually exclusive.
+> commit 8b15e485c0d5f4a1e56b2148a34995ed1fa9e95b
+> Author: Pablo Neira Ayuso <pablo@netfilter.org>
+> Date:   Mon Aug 13 19:49:58 2012 +0200
 > 
-> These are the points I'd like your comment specifically:
+>     iftable: fix incomplete list of interfaces via nlif_query
 > 
-> 1. I tried not to introduce a new revision by reusing the
->   icmpv6_icmp.invflags for the new flags.
+> In systems with lots of NICs, nlif_query may fail without that patch
+> in libnfnetlink.
 > 
-> 2. I think I can even rename icmpv6_icmp.invflags to icmpv6_icmp.flags
->   because the ABI still being the same.  I did this because the name
->   'invflags' being slightly misleading otherwise.
-> 
-> 3. the F_* flags in the iptables extensions are the same values as
->    the IP6T_ICMP_* values.  Should I use the IP6T_ICMP_* values
->    in the extension?
-> 
-> Or add a new revision instead?
+> Please, don't downgrade the dependencies.
 
-Please, add a new revision. The ABI will not be broken, but people
-using new iptables versions with old kernels will not get any specific
-error report telling that what they specify will not work.
+Okay, got it. Would have been nice to be able to work with the versions
+installed by recent distro's though.
 
-Thanks.
+-- 
+---------------------------------------------
+Victor Julien
+http://www.inliniac.net/
+PGP: http://www.inliniac.net/victorjulien.asc
+---------------------------------------------
+
