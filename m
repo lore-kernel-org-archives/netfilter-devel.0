@@ -1,117 +1,217 @@
-From: Mart Frauenlob <mart.frauenlob@chello.at>
-Subject: [PATCH] iptables: Update copyright time range in license header
-Date: Sat, 06 Apr 2013 11:04:34 +0200
-Message-ID: <515FE522.1020909@chello.at>
-Reply-To: mart.frauenlob@chello.at
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040409040607040901010703"
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 29/51] ipvs: do not expect result from done_service
+Date: Sat,  6 Apr 2013 14:17:28 +0200
+Message-ID: <1365250670-14993-30-git-send-email-pablo@netfilter.org>
+References: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fep12.mx.upcmail.net ([62.179.121.32]:35387 "EHLO
-	fep12.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1163106Ab3DFJU0 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 6 Apr 2013 05:20:26 -0400
-Received: from edge02.upcmail.net ([192.168.13.237])
-          by viefep23-int.chello.at
-          (InterMail vM.8.01.05.05 201-2260-151-110-20120111) with ESMTP
-          id <20130406090520.YJDQ17478.viefep23-int.chello.at@edge02.upcmail.net>
-          for <netfilter-devel@vger.kernel.org>;
-          Sat, 6 Apr 2013 11:05:20 +0200
+Received: from mail.us.es ([193.147.175.20]:38990 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1163426Ab3DFMSi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 6 Apr 2013 08:18:38 -0400
+In-Reply-To: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------040409040607040901010703
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Julian Anastasov <ja@ssi.bg>
 
-Hello,
+This method releases the scheduler state,
+it can not fail. Such change will help to properly
+replace the scheduler in following patch.
 
-this patch updates the copyright license time range for all headers 
-mentioning the coreteam as author from 2000-2002 to 2000-2013.
-
-Hopefully this is appropriate.
-
-Best regards
-
-Mart
-
---------------040409040607040901010703
-Content-Type: text/plain; charset=windows-1252;
- name="iptables-Update-coreteam-copyright-time-range-in-license.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="iptables-Update-coreteam-copyright-time-range-in-license.pat";
- filename*1="ch"
-
->From 4576a8e442dd2e627fac6f6c771e24a212a4d34a Mon Sep 17 00:00:00 2001
-From: Mart Frauenlob <mart.frauenlob@chello.at>
-Date: Sat, 6 Apr 2013 10:30:13 +0200
-Subject: [PATCH] iptables: Update coreteam copyright time range in license header.
-
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Simon Horman <horms@verge.net.au>
 ---
- iptables/ip6tables-standalone.c |    2 +-
- iptables/ip6tables.c            |    2 +-
- iptables/iptables-standalone.c  |    2 +-
- iptables/iptables.c             |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ include/net/ip_vs.h              |    4 ++--
+ net/netfilter/ipvs/ip_vs_ctl.c   |    5 +----
+ net/netfilter/ipvs/ip_vs_dh.c    |    4 +---
+ net/netfilter/ipvs/ip_vs_lblc.c  |    4 +---
+ net/netfilter/ipvs/ip_vs_lblcr.c |    4 +---
+ net/netfilter/ipvs/ip_vs_sched.c |   13 ++++---------
+ net/netfilter/ipvs/ip_vs_sh.c    |    4 +---
+ net/netfilter/ipvs/ip_vs_wrr.c   |    4 +---
+ 8 files changed, 12 insertions(+), 30 deletions(-)
 
-diff --git a/iptables/ip6tables-standalone.c b/iptables/ip6tables-standalone.c
-index 21b5811..c62d287 100644
---- a/iptables/ip6tables-standalone.c
-+++ b/iptables/ip6tables-standalone.c
-@@ -1,7 +1,7 @@
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index 18aeb85..4990de6 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -806,7 +806,7 @@ struct ip_vs_scheduler {
+ 	/* scheduler initializing service */
+ 	int (*init_service)(struct ip_vs_service *svc);
+ 	/* scheduling service finish */
+-	int (*done_service)(struct ip_vs_service *svc);
++	void (*done_service)(struct ip_vs_service *svc);
+ 	/* scheduler updating service */
+ 	int (*update_service)(struct ip_vs_service *svc);
+ 	/* dest is linked */
+@@ -1392,7 +1392,7 @@ extern int register_ip_vs_scheduler(struct ip_vs_scheduler *scheduler);
+ extern int unregister_ip_vs_scheduler(struct ip_vs_scheduler *scheduler);
+ extern int ip_vs_bind_scheduler(struct ip_vs_service *svc,
+ 				struct ip_vs_scheduler *scheduler);
+-extern int ip_vs_unbind_scheduler(struct ip_vs_service *svc);
++extern void ip_vs_unbind_scheduler(struct ip_vs_service *svc);
+ extern struct ip_vs_scheduler *ip_vs_scheduler_get(const char *sched_name);
+ extern void ip_vs_scheduler_put(struct ip_vs_scheduler *scheduler);
+ extern struct ip_vs_conn *
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 80d366b..d022726 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -1334,10 +1334,7 @@ ip_vs_edit_service(struct ip_vs_service *svc, struct ip_vs_service_user_kern *u)
+ 		/*
+ 		 * Unbind the old scheduler
+ 		 */
+-		if ((ret = ip_vs_unbind_scheduler(svc))) {
+-			old_sched = sched;
+-			goto out_unlock;
+-		}
++		ip_vs_unbind_scheduler(svc);
+ 
+ 		/*
+ 		 * Bind the new scheduler
+diff --git a/net/netfilter/ipvs/ip_vs_dh.c b/net/netfilter/ipvs/ip_vs_dh.c
+index ebe80f4..89c2723 100644
+--- a/net/netfilter/ipvs/ip_vs_dh.c
++++ b/net/netfilter/ipvs/ip_vs_dh.c
+@@ -174,7 +174,7 @@ static int ip_vs_dh_init_svc(struct ip_vs_service *svc)
+ }
+ 
+ 
+-static int ip_vs_dh_done_svc(struct ip_vs_service *svc)
++static void ip_vs_dh_done_svc(struct ip_vs_service *svc)
+ {
+ 	struct ip_vs_dh_state *s = svc->sched_data;
+ 
+@@ -185,8 +185,6 @@ static int ip_vs_dh_done_svc(struct ip_vs_service *svc)
+ 	kfree_rcu(s, rcu_head);
+ 	IP_VS_DBG(6, "DH hash table (memory=%Zdbytes) released\n",
+ 		  sizeof(struct ip_vs_dh_bucket)*IP_VS_DH_TAB_SIZE);
+-
+-	return 0;
+ }
+ 
+ 
+diff --git a/net/netfilter/ipvs/ip_vs_lblc.c b/net/netfilter/ipvs/ip_vs_lblc.c
+index b873e17..c7ff978 100644
+--- a/net/netfilter/ipvs/ip_vs_lblc.c
++++ b/net/netfilter/ipvs/ip_vs_lblc.c
+@@ -388,7 +388,7 @@ static int ip_vs_lblc_init_svc(struct ip_vs_service *svc)
+ }
+ 
+ 
+-static int ip_vs_lblc_done_svc(struct ip_vs_service *svc)
++static void ip_vs_lblc_done_svc(struct ip_vs_service *svc)
+ {
+ 	struct ip_vs_lblc_table *tbl = svc->sched_data;
+ 
+@@ -402,8 +402,6 @@ static int ip_vs_lblc_done_svc(struct ip_vs_service *svc)
+ 	kfree_rcu(tbl, rcu_head);
+ 	IP_VS_DBG(6, "LBLC hash table (memory=%Zdbytes) released\n",
+ 		  sizeof(*tbl));
+-
+-	return 0;
+ }
+ 
+ 
+diff --git a/net/netfilter/ipvs/ip_vs_lblcr.c b/net/netfilter/ipvs/ip_vs_lblcr.c
+index c22f173..6049b85 100644
+--- a/net/netfilter/ipvs/ip_vs_lblcr.c
++++ b/net/netfilter/ipvs/ip_vs_lblcr.c
+@@ -555,7 +555,7 @@ static int ip_vs_lblcr_init_svc(struct ip_vs_service *svc)
+ }
+ 
+ 
+-static int ip_vs_lblcr_done_svc(struct ip_vs_service *svc)
++static void ip_vs_lblcr_done_svc(struct ip_vs_service *svc)
+ {
+ 	struct ip_vs_lblcr_table *tbl = svc->sched_data;
+ 
+@@ -569,8 +569,6 @@ static int ip_vs_lblcr_done_svc(struct ip_vs_service *svc)
+ 	kfree_rcu(tbl, rcu_head);
+ 	IP_VS_DBG(6, "LBLCR hash table (memory=%Zdbytes) released\n",
+ 		  sizeof(*tbl));
+-
+-	return 0;
+ }
+ 
+ 
+diff --git a/net/netfilter/ipvs/ip_vs_sched.c b/net/netfilter/ipvs/ip_vs_sched.c
+index 7f11d3d..1b715d0 100644
+--- a/net/netfilter/ipvs/ip_vs_sched.c
++++ b/net/netfilter/ipvs/ip_vs_sched.c
+@@ -64,22 +64,17 @@ int ip_vs_bind_scheduler(struct ip_vs_service *svc,
  /*
-  * Author: Paul.Russell@rustcorp.com.au and mneuling@radlogic.com.au
-  *
-- * (C) 2000-2002 by the netfilter coreteam <coreteam@netfilter.org>:
-+ * (C) 2000-2013 by the netfilter coreteam <coreteam@netfilter.org>:
-  * 		    Paul 'Rusty' Russell <rusty@rustcorp.com.au>
-  * 		    Marc Boucher <marc+nf@mbsi.ca>
-  * 		    James Morris <jmorris@intercode.com.au>
-diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
-index c8d34e2..80f6c3a 100644
---- a/iptables/ip6tables.c
-+++ b/iptables/ip6tables.c
-@@ -3,7 +3,7 @@
- /*
-  * Author: Paul.Russell@rustcorp.com.au and mneuling@radlogic.com.au
-  *
-- * (C) 2000-2002 by the netfilter coreteam <coreteam@netfilter.org>:
-+ * (C) 2000-2013 by the netfilter coreteam <coreteam@netfilter.org>:
-  * 		    Paul 'Rusty' Russell <rusty@rustcorp.com.au>
-  * 		    Marc Boucher <marc+nf@mbsi.ca>
-  * 		    James Morris <jmorris@intercode.com.au>
-diff --git a/iptables/iptables-standalone.c b/iptables/iptables-standalone.c
-index 683a44a..f5b47ec 100644
---- a/iptables/iptables-standalone.c
-+++ b/iptables/iptables-standalone.c
-@@ -3,7 +3,7 @@
-  *
-  * Based on the ipchains code by Paul Russell and Michael Neuling
-  *
-- * (C) 2000-2002 by the netfilter coreteam <coreteam@netfilter.org>:
-+ * (C) 2000-2013 by the netfilter coreteam <coreteam@netfilter.org>:
-  * 		    Paul 'Rusty' Russell <rusty@rustcorp.com.au>
-  * 		    Marc Boucher <marc+nf@mbsi.ca>
-  * 		    James Morris <jmorris@intercode.com.au>
-diff --git a/iptables/iptables.c b/iptables/iptables.c
-index 79fa37b..3c8be20 100644
---- a/iptables/iptables.c
-+++ b/iptables/iptables.c
-@@ -3,7 +3,7 @@
- /*
-  * Author: Paul.Russell@rustcorp.com.au and mneuling@radlogic.com.au
-  *
-- * (C) 2000-2002 by the netfilter coreteam <coreteam@netfilter.org>:
-+ * (C) 2000-2013 by the netfilter coreteam <coreteam@netfilter.org>:
-  * 		    Paul 'Rusty' Russell <rusty@rustcorp.com.au>
-  * 		    Marc Boucher <marc+nf@mbsi.ca>
-  * 		    James Morris <jmorris@intercode.com.au>
+  *  Unbind a service with its scheduler
+  */
+-int ip_vs_unbind_scheduler(struct ip_vs_service *svc)
++void ip_vs_unbind_scheduler(struct ip_vs_service *svc)
+ {
+ 	struct ip_vs_scheduler *sched = svc->scheduler;
+ 
+ 	if (!sched)
+-		return 0;
++		return;
+ 
+-	if (sched->done_service) {
+-		if (sched->done_service(svc) != 0) {
+-			pr_err("%s(): done error\n", __func__);
+-			return -EINVAL;
+-		}
+-	}
++	if (sched->done_service)
++		sched->done_service(svc);
+ 
+ 	svc->scheduler = NULL;
+-	return 0;
+ }
+ 
+ 
+diff --git a/net/netfilter/ipvs/ip_vs_sh.c b/net/netfilter/ipvs/ip_vs_sh.c
+index 55e76d8..81c1a10 100644
+--- a/net/netfilter/ipvs/ip_vs_sh.c
++++ b/net/netfilter/ipvs/ip_vs_sh.c
+@@ -187,7 +187,7 @@ static int ip_vs_sh_init_svc(struct ip_vs_service *svc)
+ }
+ 
+ 
+-static int ip_vs_sh_done_svc(struct ip_vs_service *svc)
++static void ip_vs_sh_done_svc(struct ip_vs_service *svc)
+ {
+ 	struct ip_vs_sh_state *s = svc->sched_data;
+ 
+@@ -198,8 +198,6 @@ static int ip_vs_sh_done_svc(struct ip_vs_service *svc)
+ 	kfree_rcu(s, rcu_head);
+ 	IP_VS_DBG(6, "SH hash table (memory=%Zdbytes) released\n",
+ 		  sizeof(struct ip_vs_sh_bucket)*IP_VS_SH_TAB_SIZE);
+-
+-	return 0;
+ }
+ 
+ 
+diff --git a/net/netfilter/ipvs/ip_vs_wrr.c b/net/netfilter/ipvs/ip_vs_wrr.c
+index 98cb05e..a74fd9b 100644
+--- a/net/netfilter/ipvs/ip_vs_wrr.c
++++ b/net/netfilter/ipvs/ip_vs_wrr.c
+@@ -129,7 +129,7 @@ static int ip_vs_wrr_init_svc(struct ip_vs_service *svc)
+ }
+ 
+ 
+-static int ip_vs_wrr_done_svc(struct ip_vs_service *svc)
++static void ip_vs_wrr_done_svc(struct ip_vs_service *svc)
+ {
+ 	struct ip_vs_wrr_mark *mark = svc->sched_data;
+ 
+@@ -137,8 +137,6 @@ static int ip_vs_wrr_done_svc(struct ip_vs_service *svc)
+ 	 *    Release the mark variable
+ 	 */
+ 	kfree_rcu(mark, rcu_head);
+-
+-	return 0;
+ }
+ 
+ 
 -- 
-1.7.2.5
+1.7.10.4
 
-
---------------040409040607040901010703--
