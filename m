@@ -1,182 +1,161 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 00/51] netfilter updates for net-next
-Date: Sat,  6 Apr 2013 14:16:59 +0200
-Message-ID: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH 35/51] netfilter: xt_NFQUEUE: introduce CPU fanout
+Date: Sat,  6 Apr 2013 14:17:34 +0200
+Message-ID: <1365250670-14993-36-git-send-email-pablo@netfilter.org>
+References: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38865 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39033 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163342Ab3DFMSD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 6 Apr 2013 08:18:03 -0400
+	id S1422636Ab3DFMSn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 6 Apr 2013 08:18:43 -0400
+In-Reply-To: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi David,
+From: "holger@eitzenberger.org" <holger@eitzenberger.org>
 
-The following patchset contains Netfilter and IPVS updates for
-your net-next tree, most relevantly they are:
+Current NFQUEUE target uses a hash, computed over source and
+destination address (and other parameters), for steering the packet
+to the actual NFQUEUE. This, however forgets about the fact that the
+packet eventually is handled by a particular CPU on user request.
 
-* Add net namespace support to NFLOG, ULOG and ebt_ulog and NFQUEUE.
-  The LOG and ebt_log target has been also adapted, but they still
-  depend on the syslog netnamespace that seems to be missing, from
-  Gao Feng.
+If E. g.
 
-* Don't lose indications of congestion in IPv6 fragmentation handling,
-  from Hannes Frederic Sowa.i
+  1) IRQ affinity is used to handle packets on a particular CPU already
+     (both single-queue or multi-queue case)
 
-* IPVS conversion to use RCU, including some code consolidation patches
-  and optimizations, also some from Julian Anastasov.
+and/or
 
-* cpu fanout support for NFQUEUE, from Holger Eitzenberger.
+  2) RPS is used to steer packets to a specific softirq
 
-* Better error reporting to userspace when dropping packets from
-  all our _*_[xfrm|route]_me_harder functions, from Patrick McHardy.
+the target easily chooses an NFQUEUE which is not handled by a process
+pinned to the same CPU.
 
-You can pull these changes from:
+The idea is therefore to use the CPU index for determining the
+NFQUEUE handling the packet.
 
-git://1984.lsi.us.es/nf-next master
+E. g. when having a system with 4 CPUs, 4 MQ queues and 4 NFQUEUEs it
+looks like this:
 
-Thanks!
+ +-----+  +-----+  +-----+  +-----+
+ |NFQ#0|  |NFQ#1|  |NFQ#2|  |NFQ#3|
+ +-----+  +-----+  +-----+  +-----+
+    ^        ^        ^        ^
+    |        |NFQUEUE |        |
+    +        +        +        +
+ +-----+  +-----+  +-----+  +-----+
+ |rx-0 |  |rx-1 |  |rx-2 |  |rx-3 |
+ +-----+  +-----+  +-----+  +-----+
 
-Gao feng (10):
-  netfilter: use IS_ENABLE to replace if defined in TRACE target
-  netfilter: make /proc/net/netfilter pernet
-  netfilter: nf_log: prepare net namespace support for loggers
-  netfilter: ebt_log: add net namespace support for ebt_log
-  netfilter: xt_LOG: add net namespace support for xt_LOG
-  netfilter: ebt_ulog: add net namespace support for ebt_ulog
-  netfilter: ipt_ULOG: add net namespace support for ipt_ULOG
-  netfilter: nfnetlink_log: add net namespace support for nfnetlink_log
-  netfilter: enable per netns support for nf_loggers
-  netfilter: nfnetlink_queue: add net namespace support for nfnetlink_q=
-ueue
+The NFQUEUEs not necessarily have to start with number 0, setups with
+less NFQUEUEs than packet-handling CPUs are not a problem as well.
 
-Hannes Frederic Sowa (1):
-  netfilter: implement RFC3168 5.3 (ecn protection) for ipv6 fragmentat=
-ion handling
+This patch extends the NFQUEUE target to accept a new
+NFQ_FLAG_CPU_FANOUT flag. If this is specified the target uses the
+CPU index for determining the NFQUEUE being used. I have to introduce
+rev3 for this. The 'flags' are folded into _v2 'bypass'.
 
-Julian Anastasov (33):
-  ipvs: avoid routing by TOS for real server
-  ipvs: prefer NETDEV_DOWN event to free cached dsts
-  ipvs: convert the IP_VS_XMIT macros to functions
-  ipvs: rename functions related to dst_cache reset
-  ipvs: no need to reroute anymore on DNAT over loopback
-  ipvs: do not use skb_share_check
-  ipvs: consolidate all dst checks on transmit in one place
-  ipvs: optimize dst usage for real server
-  ipvs: convert app locks
-  ipvs: remove rs_lock by using RCU
-  ipvs: convert locks used in persistence engines
-  ipvs: convert connection locking
-  ipvs: reorder keys in connection structure
-  ipvs: avoid kmem_cache_zalloc in ip_vs_conn_new
-  ipvs: change ip_vs_sched_lock to mutex
-  ipvs: preparations for using rcu in schedulers
-  ipvs: add ip_vs_dest_hold and ip_vs_dest_put
-  ipvs: convert dh scheduler to rcu
-  ipvs: convert lblc scheduler to rcu
-  ipvs: convert lblcr scheduler to rcu
-  ipvs: convert lc scheduler to rcu
-  ipvs: convert nq scheduler to rcu
-  ipvs: convert rr scheduler to rcu
-  ipvs: convert sed scheduler to rcu
-  ipvs: convert sh scheduler to rcu
-  ipvs: convert wlc scheduler to rcu
-  ipvs: convert wrr scheduler to rcu
-  ipvs: reorganize dest trash
-  ipvs: do not expect result from done_service
-  ipvs: convert sched_lock to spin lock
-  ipvs: convert dests to rcu
-  ipvs: convert services to rcu
-  ipvs: do not disable bh for long time
+By changing the way which queue is assigned, I'm able to improve the
+performance if the processes reading on the NFQUEUs are pinned
+correctly.
 
-Michal Kube=C4=8Dek (1):
-  netfilter: fix struct ip6t_frag field description
+Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/uapi/linux/netfilter/xt_NFQUEUE.h |    9 +++++++
+ net/netfilter/xt_NFQUEUE.c                |   41 +++++++++++++++++++++++++++--
+ 2 files changed, 48 insertions(+), 2 deletions(-)
 
-Pablo Neira Ayuso (1):
-  netfilter: remove unneeded variable proc_net_netfilter
-
-Patrick McHardy (3):
-  netfilter: ipv4: propagate routing errors from ip_route_me_harder()
-  netfilter: ipv6: propagate routing errors from ip6_route_me_harder()
-  netfilter: nat: propagate errors from xfrm_me_harder()
-
-holger@eitzenberger.org (2):
-  netfilter: xt_NFQUEUE: introduce CPU fanout
-  netfilter: xt_NFQUEUE: coalesce IPv4 and IPv6 hashing
-
- include/linux/netfilter.h                      |    5 -
- include/net/ip_vs.h                            |  130 ++-
- include/net/net_namespace.h                    |    2 +
- include/net/netfilter/nf_log.h                 |   14 +-
- include/net/netns/netfilter.h                  |   18 +
- include/uapi/linux/netfilter/xt_NFQUEUE.h      |    9 +
- include/uapi/linux/netfilter_ipv6/ip6t_frag.h  |    4 +-
- net/bridge/netfilter/ebt_log.c                 |   44 +-
- net/bridge/netfilter/ebt_nflog.c               |    5 +-
- net/bridge/netfilter/ebt_ulog.c                |  125 ++-
- net/ipv4/ip_output.c                           |    3 +-
- net/ipv4/netfilter.c                           |    8 +-
- net/ipv4/netfilter/ip_tables.c                 |    9 +-
- net/ipv4/netfilter/ipt_ULOG.c                  |  129 ++-
- net/ipv4/netfilter/iptable_mangle.c            |    9 +-
- net/ipv4/netfilter/iptable_nat.c               |   23 +-
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |    8 +-
- net/ipv6/netfilter.c                           |    6 +-
- net/ipv6/netfilter/ip6_tables.c                |    3 +-
- net/ipv6/netfilter/ip6table_mangle.c           |    9 +-
- net/ipv6/netfilter/ip6table_nat.c              |   23 +-
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    7 +-
- net/ipv6/netfilter/nf_conntrack_reasm.c        |   22 +-
- net/netfilter/core.c                           |   29 +-
- net/netfilter/ipvs/ip_vs_app.c                 |   31 +-
- net/netfilter/ipvs/ip_vs_conn.c                |  306 +++----
- net/netfilter/ipvs/ip_vs_core.c                |   73 +-
- net/netfilter/ipvs/ip_vs_ctl.c                 |  641 +++++++--------
- net/netfilter/ipvs/ip_vs_dh.c                  |   86 +-
- net/netfilter/ipvs/ip_vs_ftp.c                 |    4 +
- net/netfilter/ipvs/ip_vs_lblc.c                |  115 +--
- net/netfilter/ipvs/ip_vs_lblcr.c               |  190 +++--
- net/netfilter/ipvs/ip_vs_lc.c                  |    3 +-
- net/netfilter/ipvs/ip_vs_nq.c                  |    3 +-
- net/netfilter/ipvs/ip_vs_pe.c                  |   55 +-
- net/netfilter/ipvs/ip_vs_pe_sip.c              |    1 +
- net/netfilter/ipvs/ip_vs_proto_sctp.c          |   36 +-
- net/netfilter/ipvs/ip_vs_proto_tcp.c           |   40 +-
- net/netfilter/ipvs/ip_vs_proto_udp.c           |   33 +-
- net/netfilter/ipvs/ip_vs_rr.c                  |   64 +-
- net/netfilter/ipvs/ip_vs_sched.c               |   63 +-
- net/netfilter/ipvs/ip_vs_sed.c                 |    5 +-
- net/netfilter/ipvs/ip_vs_sh.c                  |   86 +-
- net/netfilter/ipvs/ip_vs_sync.c                |   35 +-
- net/netfilter/ipvs/ip_vs_wlc.c                 |    5 +-
- net/netfilter/ipvs/ip_vs_wrr.c                 |  176 ++--
- net/netfilter/ipvs/ip_vs_xmit.c                | 1050 ++++++++++------=
---------
- net/netfilter/nf_conntrack_helper.c            |    2 +-
- net/netfilter/nf_conntrack_proto_dccp.c        |    9 +-
- net/netfilter/nf_conntrack_proto_tcp.c         |   18 +-
- net/netfilter/nf_conntrack_proto_udp.c         |    6 +-
- net/netfilter/nf_conntrack_proto_udplite.c     |    8 +-
- net/netfilter/nf_log.c                         |  206 +++--
- net/netfilter/nf_nat_core.c                    |    9 +-
- net/netfilter/nfnetlink_log.c                  |  182 ++--
- net/netfilter/nfnetlink_queue_core.c           |  173 ++--
- net/netfilter/xt_LOG.c                         |   52 +-
- net/netfilter/xt_NFQUEUE.c                     |   63 +-
- net/netfilter/xt_osf.c                         |    6 +-
- 59 files changed, 2451 insertions(+), 2028 deletions(-)
- create mode 100644 include/net/netns/netfilter.h
-
---=20
+diff --git a/include/uapi/linux/netfilter/xt_NFQUEUE.h b/include/uapi/linux/netfilter/xt_NFQUEUE.h
+index 9eafdbb..8bb5fe6 100644
+--- a/include/uapi/linux/netfilter/xt_NFQUEUE.h
++++ b/include/uapi/linux/netfilter/xt_NFQUEUE.h
+@@ -26,4 +26,13 @@ struct xt_NFQ_info_v2 {
+ 	__u16 bypass;
+ };
+ 
++struct xt_NFQ_info_v3 {
++	__u16 queuenum;
++	__u16 queues_total;
++	__u16 flags;
++#define NFQ_FLAG_BYPASS		0x01 /* for compatibility with v2 */
++#define NFQ_FLAG_CPU_FANOUT	0x02 /* use current CPU (no hashing) */
++#define NFQ_FLAG_MASK		0x03
++};
++
+ #endif /* _XT_NFQ_TARGET_H */
+diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
+index 817f9e9..a287ef2 100644
+--- a/net/netfilter/xt_NFQUEUE.c
++++ b/net/netfilter/xt_NFQUEUE.c
+@@ -108,7 +108,7 @@ nfqueue_tg_v2(struct sk_buff *skb, const struct xt_action_param *par)
+ 
+ static int nfqueue_tg_check(const struct xt_tgchk_param *par)
+ {
+-	const struct xt_NFQ_info_v2 *info = par->targinfo;
++	const struct xt_NFQ_info_v3 *info = par->targinfo;
+ 	u32 maxid;
+ 
+ 	if (unlikely(!rnd_inited)) {
+@@ -125,11 +125,39 @@ static int nfqueue_tg_check(const struct xt_tgchk_param *par)
+ 		       info->queues_total, maxid);
+ 		return -ERANGE;
+ 	}
+-	if (par->target->revision == 2 && info->bypass > 1)
++	if (par->target->revision == 2 && info->flags > 1)
++		return -EINVAL;
++	if (par->target->revision == 3 && info->flags & ~NFQ_FLAG_MASK)
+ 		return -EINVAL;
++
+ 	return 0;
+ }
+ 
++static unsigned int
++nfqueue_tg_v3(struct sk_buff *skb, const struct xt_action_param *par)
++{
++	const struct xt_NFQ_info_v3 *info = par->targinfo;
++	u32 queue = info->queuenum;
++
++	if (info->queues_total > 1) {
++		if (info->flags & NFQ_FLAG_CPU_FANOUT) {
++			int cpu = smp_processor_id();
++
++			queue = info->queuenum + cpu % info->queues_total;
++		} else {
++			if (par->family == NFPROTO_IPV4)
++				queue = (((u64) hash_v4(skb) * info->queues_total) >>
++						 32) + queue;
++#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
++			else if (par->family == NFPROTO_IPV6)
++				queue = (((u64) hash_v6(skb) * info->queues_total) >>
++						 32) + queue;
++#endif
++		}
++	}
++	return NF_QUEUE_NR(queue);
++}
++
+ static struct xt_target nfqueue_tg_reg[] __read_mostly = {
+ 	{
+ 		.name		= "NFQUEUE",
+@@ -156,6 +184,15 @@ static struct xt_target nfqueue_tg_reg[] __read_mostly = {
+ 		.targetsize	= sizeof(struct xt_NFQ_info_v2),
+ 		.me		= THIS_MODULE,
+ 	},
++	{
++		.name		= "NFQUEUE",
++		.revision	= 3,
++		.family		= NFPROTO_UNSPEC,
++		.checkentry	= nfqueue_tg_check,
++		.target		= nfqueue_tg_v3,
++		.targetsize	= sizeof(struct xt_NFQ_info_v3),
++		.me		= THIS_MODULE,
++	},
+ };
+ 
+ static int __init nfqueue_tg_init(void)
+-- 
 1.7.10.4
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
