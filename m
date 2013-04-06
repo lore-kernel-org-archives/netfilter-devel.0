@@ -1,77 +1,101 @@
-From: Mart Frauenlob <mart.frauenlob@chello.at>
-Subject: Re: [PATCH] iptables manpage: Fix missing space for recent match
- --mask option
-Date: Sat, 06 Apr 2013 11:20:51 +0200
-Message-ID: <515FE8F3.5020700@chello.at>
-References: <515FE4EC.1070900@chello.at>
-Reply-To: mart.frauenlob@chello.at
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------030401080905000401040800"
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 40/51] netfilter: ebt_log: add net namespace support for ebt_log
+Date: Sat,  6 Apr 2013 14:17:39 +0200
+Message-ID: <1365250670-14993-41-git-send-email-pablo@netfilter.org>
+References: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fep22.mx.upcmail.net ([62.179.121.42]:45187 "EHLO
-	fep22.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1163189Ab3DFJVj (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 6 Apr 2013 05:21:39 -0400
-Received: from edge02.upcmail.net ([192.168.13.237])
-          by viefep22-int.chello.at
-          (InterMail vM.8.01.05.05 201-2260-151-110-20120111) with ESMTP
-          id <20130406092137.UEYD12132.viefep22-int.chello.at@edge02.upcmail.net>
-          for <netfilter-devel@vger.kernel.org>;
-          Sat, 6 Apr 2013 11:21:37 +0200
-In-Reply-To: <515FE4EC.1070900@chello.at>
+Received: from mail.us.es ([193.147.175.20]:39066 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1163456Ab3DFMSv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 6 Apr 2013 08:18:51 -0400
+In-Reply-To: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------030401080905000401040800
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Gao feng <gaofeng@cn.fujitsu.com>
 
-On 06.04.2013 11:04, netfilter-devel-owner@vger.kernel.org wrote:
-> As the subject says...
->
-> Best regards
->
-> Mart
+Add pernet support to ebt_log by means of the new nf_log_set
+function added in (30e0c6a netfilter: nf_log: prepare net
+namespace support for loggers).
 
-lol damn, must been blind, now I added an extra space :/
-removed...
+Since syslog ns has yet not been implemented, we don't want
+the containers to DDOS host's syslogd. So only enable ebt_log
+only from init_net and wait for syslog ns support.
 
-
---------------030401080905000401040800
-Content-Type: text/plain; charset=windows-1252;
- name="iptables-manpage-Fix-missing-space-for-recent-match.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="iptables-manpage-Fix-missing-space-for-recent-match.patch"
-
->From 937309f37f9000f18f88c191923192c5d31a07e8 Mon Sep 17 00:00:00 2001
-From: Mart Frauenlob <mart.frauenlob@chello.at>
-Date: Sat, 6 Apr 2013 10:49:47 +0200
-Subject: [PATCH 2/2] iptables manpage: Fix missing space for recent match --mask option.
-
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- extensions/libxt_recent.man |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ net/bridge/netfilter/ebt_log.c |   37 +++++++++++++++++++++++++++++++++++--
+ 1 file changed, 35 insertions(+), 2 deletions(-)
 
-diff --git a/extensions/libxt_recent.man b/extensions/libxt_recent.man
-index 8e6a8e9..05ae4fa 100644
---- a/extensions/libxt_recent.man
-+++ b/extensions/libxt_recent.man
-@@ -24,7 +24,7 @@ is the default.
- \fB\-\-rdest\fP
- Match/save the destination address of each packet in the recent list table.
- .TP
--\fB\-\-mask\fPnetmask
-+\fB\-\-mask\fP \fnetmask\fP
- Netmask that will be applied to this recent list.
- .TP
- [\fB!\fP] \fB\-\-rcheck\fP
+diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
+index 08e5ea5..9878eb8 100644
+--- a/net/bridge/netfilter/ebt_log.c
++++ b/net/bridge/netfilter/ebt_log.c
+@@ -78,6 +78,11 @@ ebt_log_packet(u_int8_t pf, unsigned int hooknum,
+    const char *prefix)
+ {
+ 	unsigned int bitmask;
++	struct net *net = dev_net(in ? in : out);
++
++	/* FIXME: Disabled from containers until syslog ns is supported */
++	if (!net_eq(net, &init_net))
++		return;
+ 
+ 	spin_lock_bh(&ebt_log_lock);
+ 	printk(KERN_SOH "%c%s IN=%s OUT=%s MAC source = %pM MAC dest = %pM proto = 0x%04x",
+@@ -207,19 +212,47 @@ static struct nf_logger ebt_log_logger __read_mostly = {
+ 	.me		= THIS_MODULE,
+ };
+ 
++static int __net_init ebt_log_net_init(struct net *net)
++{
++	nf_log_set(net, NFPROTO_BRIDGE, &ebt_log_logger);
++	return 0;
++}
++
++static void __net_exit ebt_log_net_fini(struct net *net)
++{
++	nf_log_unset(net, &ebt_log_logger);
++}
++
++static struct pernet_operations ebt_log_net_ops = {
++	.init = ebt_log_net_init,
++	.exit = ebt_log_net_fini,
++};
++
+ static int __init ebt_log_init(void)
+ {
+ 	int ret;
+ 
++	ret = register_pernet_subsys(&ebt_log_net_ops);
++	if (ret < 0)
++		goto err_pernet;
++
+ 	ret = xt_register_target(&ebt_log_tg_reg);
+ 	if (ret < 0)
+-		return ret;
++		goto err_target;
++
+ 	nf_log_register(NFPROTO_BRIDGE, &ebt_log_logger);
+-	return 0;
++
++	return ret;
++
++err_target:
++	unregister_pernet_subsys(&ebt_log_net_ops);
++err_pernet:
++	return ret;
+ }
+ 
+ static void __exit ebt_log_fini(void)
+ {
++	unregister_pernet_subsys(&ebt_log_net_ops);
+ 	nf_log_unregister(&ebt_log_logger);
+ 	xt_unregister_target(&ebt_log_tg_reg);
+ }
 -- 
-1.7.2.5
+1.7.10.4
 
-
---------------030401080905000401040800--
