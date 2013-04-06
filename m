@@ -1,45 +1,113 @@
-From: Victor Julien <victor@inliniac.net>
-Subject: [Ulog2 PATCH] Exec libmnl config check only if nfacct is enabled
-Date: Fri,  5 Apr 2013 18:28:14 +0200
-Message-ID: <1365179294-24481-1-git-send-email-victor@inliniac.net>
-Cc: Victor Julien <victor@inliniac.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 05/51] ipvs: no need to reroute anymore on DNAT over loopback
+Date: Sat,  6 Apr 2013 14:17:04 +0200
+Message-ID: <1365250670-14993-6-git-send-email-pablo@netfilter.org>
+References: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from static-27.netfusion.at ([83.215.238.27]:39549 "EHLO
-	tulpe.vuurmuur.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161984Ab3DEQ2e (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Apr 2013 12:28:34 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-In case nfacct is not enabled in ulogd2, libmnl is not used. So it shouldn't
-be a hard global dependency, but instead only a dependency in case nfacct is
-enabled.
+From: Julian Anastasov <ja@ssi.bg>
+
+After commit 70e7341673 (ipv4: Show that ip_send_reply()
+is purely unicast routine.) we do not need to reroute DNAT-ed
+traffic over loopback because reply uses iph daddr and not
+rt_spec_dst.
+
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Signed-off by: Hans Schillstrom <hans@schillstrom.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
 ---
- configure.ac |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/ipvs/ip_vs_xmit.c |   58 ++-------------------------------------
+ 1 file changed, 2 insertions(+), 56 deletions(-)
 
-diff --git a/configure.ac b/configure.ac
-index c94704b..54a08aa 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -49,7 +49,6 @@ AC_SUBST([regular_CFLAGS])
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index 6448a2e..c942d36 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -207,44 +207,6 @@ __ip_vs_get_out_rt(struct sk_buff *skb, struct ip_vs_dest *dest,
+ 	return rt;
+ }
  
- dnl Check for the right nfnetlink version
- PKG_CHECK_MODULES([LIBNFNETLINK], [libnfnetlink >= 1.0.1])
--PKG_CHECK_MODULES([LIBMNL], [libmnl >= 1.0.3])
- AC_ARG_ENABLE(nflog,
-        AS_HELP_STRING([--enable-nflog], [Enable nflog module [default=yes]]),,[enable_nflog=yes])
- AS_IF([test "x$enable_nflog" = "xyes"], [
-@@ -67,6 +66,7 @@ AM_CONDITIONAL([BUILD_NFCT], [test "x$enable_nfct" = "xyes"])
- AC_ARG_ENABLE(nfacct,
-        AS_HELP_STRING([--enable-nfacct], [Enable nfacct module [default=yes]]),,[enable_nfacct=yes])
- AS_IF([test "x$enable_nfacct" = "xyes"], [
-+    PKG_CHECK_MODULES([LIBMNL], [libmnl >= 1.0.3])
-     PKG_CHECK_MODULES([LIBNETFILTER_ACCT], [libnetfilter_acct >= 1.0.1])
-     AC_DEFINE([BUILD_NFACCT], [1], [Building nfacct module])
- ])
+-/* Reroute packet to local IPv4 stack after DNAT */
+-static int
+-__ip_vs_reroute_locally(struct sk_buff *skb)
+-{
+-	struct rtable *rt = skb_rtable(skb);
+-	struct net_device *dev = rt->dst.dev;
+-	struct net *net = dev_net(dev);
+-	struct iphdr *iph = ip_hdr(skb);
+-
+-	if (rt_is_input_route(rt)) {
+-		unsigned long orefdst = skb->_skb_refdst;
+-
+-		if (ip_route_input(skb, iph->daddr, iph->saddr,
+-				   iph->tos, skb->dev))
+-			return 0;
+-		refdst_drop(orefdst);
+-	} else {
+-		struct flowi4 fl4 = {
+-			.daddr = iph->daddr,
+-			.saddr = iph->saddr,
+-			.flowi4_tos = RT_TOS(iph->tos),
+-			.flowi4_mark = skb->mark,
+-		};
+-
+-		rt = ip_route_output_key(net, &fl4);
+-		if (IS_ERR(rt))
+-			return 0;
+-		if (!(rt->rt_flags & RTCF_LOCAL)) {
+-			ip_rt_put(rt);
+-			return 0;
+-		}
+-		/* Drop old route. */
+-		skb_dst_drop(skb);
+-		skb_dst_set(skb, &rt->dst);
+-	}
+-	return 1;
+-}
+-
+ #ifdef CONFIG_IP_VS_IPV6
+ 
+ static inline int __ip_vs_is_local_route6(struct rt6_info *rt)
+@@ -635,16 +597,8 @@ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 		/* drop old route */
+ 		skb_dst_drop(skb);
+ 		skb_dst_set(skb, &rt->dst);
+-	} else {
++	} else
+ 		ip_rt_put(rt);
+-		/*
+-		 * Some IPv4 replies get local address from routes,
+-		 * not from iph, so while we DNAT after routing
+-		 * we need this second input/output route.
+-		 */
+-		if (!__ip_vs_reroute_locally(skb))
+-			goto tx_error;
+-	}
+ 
+ 	IP_VS_DBG_PKT(10, AF_INET, pp, skb, 0, "After DNAT");
+ 
+@@ -1269,16 +1223,8 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 		/* drop the old route when skb is not shared */
+ 		skb_dst_drop(skb);
+ 		skb_dst_set(skb, &rt->dst);
+-	} else {
++	} else
+ 		ip_rt_put(rt);
+-		/*
+-		 * Some IPv4 replies get local address from routes,
+-		 * not from iph, so while we DNAT after routing
+-		 * we need this second input/output route.
+-		 */
+-		if (!__ip_vs_reroute_locally(skb))
+-			goto tx_error;
+-	}
+ 
+ 	/* Another hack: avoid icmp_send in ip_fragment */
+ 	skb->local_df = 1;
 -- 
 1.7.10.4
-
