@@ -1,228 +1,122 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 18/51] ipvs: convert dh scheduler to rcu
-Date: Sat,  6 Apr 2013 14:17:17 +0200
-Message-ID: <1365250670-14993-19-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 38/51] netfilter: make /proc/net/netfilter pernet
+Date: Sat,  6 Apr 2013 14:17:37 +0200
+Message-ID: <1365250670-14993-39-git-send-email-pablo@netfilter.org>
 References: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38923 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39043 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1163389Ab3DFMS0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 6 Apr 2013 08:18:26 -0400
+	id S1163445Ab3DFMSq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 6 Apr 2013 08:18:46 -0400
 In-Reply-To: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Julian Anastasov <ja@ssi.bg>
+From: Gao feng <gaofeng@cn.fujitsu.com>
 
-Use the new add_dest and del_dest methods
-to reassign dests.
+This patch makes this proc dentry pernet. So far only init_net
+had a /proc/net/netfilter directory.
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_dh.c |   81 +++++++++++++++++++++++------------------
- 1 file changed, 45 insertions(+), 36 deletions(-)
+ include/net/net_namespace.h   |    2 ++
+ include/net/netns/netfilter.h |   11 +++++++++++
+ net/netfilter/core.c          |   33 +++++++++++++++++++++++++++++----
+ 3 files changed, 42 insertions(+), 4 deletions(-)
+ create mode 100644 include/net/netns/netfilter.h
 
-diff --git a/net/netfilter/ipvs/ip_vs_dh.c b/net/netfilter/ipvs/ip_vs_dh.c
-index 7f3b0cc..ebe80f4 100644
---- a/net/netfilter/ipvs/ip_vs_dh.c
-+++ b/net/netfilter/ipvs/ip_vs_dh.c
-@@ -51,7 +51,7 @@
-  *      IPVS DH bucket
-  */
- struct ip_vs_dh_bucket {
--	struct ip_vs_dest       *dest;          /* real server (cache) */
-+	struct ip_vs_dest __rcu	*dest;	/* real server (cache) */
- };
- 
- /*
-@@ -64,6 +64,10 @@ struct ip_vs_dh_bucket {
- #define IP_VS_DH_TAB_SIZE               (1 << IP_VS_DH_TAB_BITS)
- #define IP_VS_DH_TAB_MASK               (IP_VS_DH_TAB_SIZE - 1)
- 
-+struct ip_vs_dh_state {
-+	struct ip_vs_dh_bucket		buckets[IP_VS_DH_TAB_SIZE];
-+	struct rcu_head			rcu_head;
+diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
+index de644bc..b176978 100644
+--- a/include/net/net_namespace.h
++++ b/include/net/net_namespace.h
+@@ -17,6 +17,7 @@
+ #include <net/netns/ipv6.h>
+ #include <net/netns/sctp.h>
+ #include <net/netns/dccp.h>
++#include <net/netns/netfilter.h>
+ #include <net/netns/x_tables.h>
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ #include <net/netns/conntrack.h>
+@@ -94,6 +95,7 @@ struct net {
+ 	struct netns_dccp	dccp;
+ #endif
+ #ifdef CONFIG_NETFILTER
++	struct netns_nf		nf;
+ 	struct netns_xt		xt;
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	struct netns_ct		ct;
+diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
+new file mode 100644
+index 0000000..248ca1c
+--- /dev/null
++++ b/include/net/netns/netfilter.h
+@@ -0,0 +1,11 @@
++#ifndef __NETNS_NETFILTER_H
++#define __NETNS_NETFILTER_H
++
++#include <linux/proc_fs.h>
++
++struct netns_nf {
++#if defined CONFIG_PROC_FS
++	struct proc_dir_entry *proc_netfilter;
++#endif
 +};
++#endif
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index a9c488b..b085184 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -281,6 +281,34 @@ struct proc_dir_entry *proc_net_netfilter;
+ EXPORT_SYMBOL(proc_net_netfilter);
+ #endif
  
- /*
-  *	Returns hash value for IPVS DH entry
-@@ -85,10 +89,9 @@ static inline unsigned int ip_vs_dh_hashkey(int af, const union nf_inet_addr *ad
-  *      Get ip_vs_dest associated with supplied parameters.
-  */
- static inline struct ip_vs_dest *
--ip_vs_dh_get(int af, struct ip_vs_dh_bucket *tbl,
--	     const union nf_inet_addr *addr)
-+ip_vs_dh_get(int af, struct ip_vs_dh_state *s, const union nf_inet_addr *addr)
++static int __net_init netfilter_net_init(struct net *net)
++{
++#ifdef CONFIG_PROC_FS
++	net->nf.proc_netfilter = proc_net_mkdir(net, "netfilter",
++						net->proc_net);
++	if (net_eq(net, &init_net)) {
++		if (!net->nf.proc_netfilter)
++			return -ENOMEM;
++		else
++			proc_net_netfilter = net->nf.proc_netfilter;
++	} else if (!net->nf.proc_netfilter) {
++		pr_err("cannot create netfilter proc entry");
++		return -ENOMEM;
++	}
++#endif
++	return 0;
++}
++
++static void __net_exit netfilter_net_exit(struct net *net)
++{
++	remove_proc_entry("netfilter", net->proc_net);
++}
++
++static struct pernet_operations netfilter_net_ops = {
++	.init = netfilter_net_init,
++	.exit = netfilter_net_exit,
++};
++
+ void __init netfilter_init(void)
  {
--	return (tbl[ip_vs_dh_hashkey(af, addr)]).dest;
-+	return rcu_dereference(s->buckets[ip_vs_dh_hashkey(af, addr)].dest);
- }
- 
- 
-@@ -96,25 +99,30 @@ ip_vs_dh_get(int af, struct ip_vs_dh_bucket *tbl,
-  *      Assign all the hash buckets of the specified table with the service.
-  */
- static int
--ip_vs_dh_assign(struct ip_vs_dh_bucket *tbl, struct ip_vs_service *svc)
-+ip_vs_dh_reassign(struct ip_vs_dh_state *s, struct ip_vs_service *svc)
- {
- 	int i;
- 	struct ip_vs_dh_bucket *b;
- 	struct list_head *p;
- 	struct ip_vs_dest *dest;
-+	bool empty;
- 
--	b = tbl;
-+	b = &s->buckets[0];
- 	p = &svc->destinations;
-+	empty = list_empty(p);
- 	for (i=0; i<IP_VS_DH_TAB_SIZE; i++) {
--		if (list_empty(p)) {
--			b->dest = NULL;
--		} else {
-+		dest = rcu_dereference_protected(b->dest, 1);
-+		if (dest)
-+			ip_vs_dest_put(dest);
-+		if (empty)
-+			RCU_INIT_POINTER(b->dest, NULL);
-+		else {
- 			if (p == &svc->destinations)
- 				p = p->next;
- 
- 			dest = list_entry(p, struct ip_vs_dest, n_list);
--			atomic_inc(&dest->refcnt);
--			b->dest = dest;
-+			ip_vs_dest_hold(dest);
-+			RCU_INIT_POINTER(b->dest, dest);
- 
- 			p = p->next;
- 		}
-@@ -127,16 +135,18 @@ ip_vs_dh_assign(struct ip_vs_dh_bucket *tbl, struct ip_vs_service *svc)
- /*
-  *      Flush all the hash buckets of the specified table.
-  */
--static void ip_vs_dh_flush(struct ip_vs_dh_bucket *tbl)
-+static void ip_vs_dh_flush(struct ip_vs_dh_state *s)
- {
- 	int i;
- 	struct ip_vs_dh_bucket *b;
-+	struct ip_vs_dest *dest;
- 
--	b = tbl;
-+	b = &s->buckets[0];
- 	for (i=0; i<IP_VS_DH_TAB_SIZE; i++) {
--		if (b->dest) {
--			atomic_dec(&b->dest->refcnt);
--			b->dest = NULL;
-+		dest = rcu_dereference_protected(b->dest, 1);
-+		if (dest) {
-+			ip_vs_dest_put(dest);
-+			RCU_INIT_POINTER(b->dest, NULL);
- 		}
- 		b++;
- 	}
-@@ -145,21 +155,20 @@ static void ip_vs_dh_flush(struct ip_vs_dh_bucket *tbl)
- 
- static int ip_vs_dh_init_svc(struct ip_vs_service *svc)
- {
--	struct ip_vs_dh_bucket *tbl;
-+	struct ip_vs_dh_state *s;
- 
- 	/* allocate the DH table for this service */
--	tbl = kmalloc(sizeof(struct ip_vs_dh_bucket)*IP_VS_DH_TAB_SIZE,
--		      GFP_KERNEL);
--	if (tbl == NULL)
-+	s = kzalloc(sizeof(struct ip_vs_dh_state), GFP_KERNEL);
-+	if (s == NULL)
- 		return -ENOMEM;
- 
--	svc->sched_data = tbl;
-+	svc->sched_data = s;
- 	IP_VS_DBG(6, "DH hash table (memory=%Zdbytes) allocated for "
- 		  "current service\n",
- 		  sizeof(struct ip_vs_dh_bucket)*IP_VS_DH_TAB_SIZE);
- 
--	/* assign the hash buckets with the updated service */
--	ip_vs_dh_assign(tbl, svc);
-+	/* assign the hash buckets with current dests */
-+	ip_vs_dh_reassign(s, svc);
- 
- 	return 0;
- }
-@@ -167,13 +176,13 @@ static int ip_vs_dh_init_svc(struct ip_vs_service *svc)
- 
- static int ip_vs_dh_done_svc(struct ip_vs_service *svc)
- {
--	struct ip_vs_dh_bucket *tbl = svc->sched_data;
-+	struct ip_vs_dh_state *s = svc->sched_data;
- 
- 	/* got to clean up hash buckets here */
--	ip_vs_dh_flush(tbl);
-+	ip_vs_dh_flush(s);
- 
- 	/* release the table itself */
--	kfree(svc->sched_data);
-+	kfree_rcu(s, rcu_head);
- 	IP_VS_DBG(6, "DH hash table (memory=%Zdbytes) released\n",
- 		  sizeof(struct ip_vs_dh_bucket)*IP_VS_DH_TAB_SIZE);
- 
-@@ -181,15 +190,13 @@ static int ip_vs_dh_done_svc(struct ip_vs_service *svc)
- }
- 
- 
--static int ip_vs_dh_update_svc(struct ip_vs_service *svc)
-+static int ip_vs_dh_dest_changed(struct ip_vs_service *svc,
-+				 struct ip_vs_dest *dest)
- {
--	struct ip_vs_dh_bucket *tbl = svc->sched_data;
--
--	/* got to clean up hash buckets here */
--	ip_vs_dh_flush(tbl);
-+	struct ip_vs_dh_state *s = svc->sched_data;
- 
- 	/* assign the hash buckets with the updated service */
--	ip_vs_dh_assign(tbl, svc);
-+	ip_vs_dh_reassign(s, svc);
- 
- 	return 0;
- }
-@@ -212,19 +219,20 @@ static struct ip_vs_dest *
- ip_vs_dh_schedule(struct ip_vs_service *svc, const struct sk_buff *skb)
- {
- 	struct ip_vs_dest *dest;
--	struct ip_vs_dh_bucket *tbl;
-+	struct ip_vs_dh_state *s;
- 	struct ip_vs_iphdr iph;
- 
- 	ip_vs_fill_iph_addr_only(svc->af, skb, &iph);
- 
- 	IP_VS_DBG(6, "%s(): Scheduling...\n", __func__);
- 
--	tbl = (struct ip_vs_dh_bucket *)svc->sched_data;
--	dest = ip_vs_dh_get(svc->af, tbl, &iph.daddr);
-+	s = (struct ip_vs_dh_state *) svc->sched_data;
-+	dest = ip_vs_dh_get(svc->af, s, &iph.daddr);
- 	if (!dest
- 	    || !(dest->flags & IP_VS_DEST_F_AVAILABLE)
- 	    || atomic_read(&dest->weight) <= 0
- 	    || is_overloaded(dest)) {
-+		ip_vs_scheduler_err(svc, "no destination available");
- 		return NULL;
+ 	int i, h;
+@@ -289,11 +317,8 @@ void __init netfilter_init(void)
+ 			INIT_LIST_HEAD(&nf_hooks[i][h]);
  	}
  
-@@ -248,7 +256,8 @@ static struct ip_vs_scheduler ip_vs_dh_scheduler =
- 	.n_list =		LIST_HEAD_INIT(ip_vs_dh_scheduler.n_list),
- 	.init_service =		ip_vs_dh_init_svc,
- 	.done_service =		ip_vs_dh_done_svc,
--	.update_service =	ip_vs_dh_update_svc,
-+	.add_dest =		ip_vs_dh_dest_changed,
-+	.del_dest =		ip_vs_dh_dest_changed,
- 	.schedule =		ip_vs_dh_schedule,
- };
+-#ifdef CONFIG_PROC_FS
+-	proc_net_netfilter = proc_mkdir("netfilter", init_net.proc_net);
+-	if (!proc_net_netfilter)
++	if (register_pernet_subsys(&netfilter_net_ops) < 0)
+ 		panic("cannot create netfilter proc entry");
+-#endif
  
+ 	if (netfilter_log_init() < 0)
+ 		panic("cannot initialize nf_log");
 -- 
 1.7.10.4
 
