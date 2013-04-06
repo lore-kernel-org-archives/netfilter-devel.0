@@ -1,644 +1,468 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH] netfilter: add my copyright statements
-Date: Sat,  6 Apr 2013 15:24:29 +0200
-Message-ID: <1365254669-18964-1-git-send-email-kaber@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=y
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 20/51] ipvs: convert lblcr scheduler to rcu
+Date: Sat,  6 Apr 2013 14:17:19 +0200
+Message-ID: <1365250670-14993-21-git-send-email-pablo@netfilter.org>
+References: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Add copyright statements to all netfilter files which have had signific=
-ant
-changes done by myself in the past.
+From: Julian Anastasov <ja@ssi.bg>
 
-Some notes:
+The schedule method now needs _rcu list-traversal
+primitive for svc->destinations. The read_lock for sched_lock is
+removed. The set.lock is removed because now it is used in
+rare cases, mostly under sched_lock.
 
-- nf_conntrack_ecache.c was incorrectly attributed to Rusty and Netfilt=
-er
-  Core Team when it got split out of nf_conntrack_core.c. The copyright=
-s
-  even state a date which lies six years before it was written. It was
-  written in 2005 by Harald and myself.
-
-- net/ipv{4,6}/netfilter.c, net/netfitler/nf_queue.c were missing copyr=
-ight
-  statements. I've added the copyright statement from net/netfilter/cor=
-e.c,
-  where this code originated
-
-- for nf_conntrack_proto_tcp.c I've also added Jozsef, since I didn't w=
-ant
-  it to give the wrong impression
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Simon Horman <horms@verge.net.au>
 ---
- net/ipv4/netfilter.c                                  | 7 ++++++-
- net/ipv4/netfilter/arp_tables.c                       | 1 +
- net/ipv4/netfilter/ip_tables.c                        | 1 +
- net/ipv4/netfilter/ipt_ULOG.c                         | 1 +
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c        | 1 +
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c | 1 +
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c          | 1 +
- net/ipv4/netfilter/nf_nat_h323.c                      | 1 +
- net/ipv4/netfilter/nf_nat_pptp.c                      | 2 ++
- net/ipv4/netfilter/nf_nat_proto_gre.c                 | 2 ++
- net/ipv4/netfilter/nf_nat_snmp_basic.c                | 2 ++
- net/ipv6/netfilter.c                                  | 6 ++++++
- net/ipv6/netfilter/ip6_tables.c                       | 1 +
- net/ipv6/netfilter/ip6t_REJECT.c                      | 2 ++
- net/netfilter/core.c                                  | 1 +
- net/netfilter/nf_conntrack_amanda.c                   | 1 +
- net/netfilter/nf_conntrack_core.c                     | 1 +
- net/netfilter/nf_conntrack_ecache.c                   | 8 +++++---
- net/netfilter/nf_conntrack_expect.c                   | 1 +
- net/netfilter/nf_conntrack_ftp.c                      | 1 +
- net/netfilter/nf_conntrack_h323_main.c                | 1 +
- net/netfilter/nf_conntrack_helper.c                   | 1 +
- net/netfilter/nf_conntrack_irc.c                      | 1 +
- net/netfilter/nf_conntrack_pptp.c                     | 2 ++
- net/netfilter/nf_conntrack_proto.c                    | 1 +
- net/netfilter/nf_conntrack_proto_gre.c                | 1 +
- net/netfilter/nf_conntrack_proto_sctp.c               | 3 +++
- net/netfilter/nf_conntrack_proto_tcp.c                | 2 ++
- net/netfilter/nf_conntrack_proto_udp.c                | 1 +
- net/netfilter/nf_conntrack_standalone.c               | 1 +
- net/netfilter/nf_conntrack_tftp.c                     | 2 +-
- net/netfilter/nf_nat_amanda.c                         | 1 +
- net/netfilter/nf_nat_helper.c                         | 1 +
- net/netfilter/nf_queue.c                              | 5 +++++
- net/netfilter/nfnetlink_log.c                         | 1 +
- net/netfilter/x_tables.c                              | 1 +
- net/netfilter/xt_TCPMSS.c                             | 1 +
- net/netfilter/xt_conntrack.c                          | 1 +
- net/netfilter/xt_hashlimit.c                          | 1 +
- net/netfilter/xt_limit.c                              | 1 +
- 40 files changed, 66 insertions(+), 5 deletions(-)
+ net/netfilter/ipvs/ip_vs_lblcr.c |  171 ++++++++++++++++++++------------------
+ 1 file changed, 90 insertions(+), 81 deletions(-)
 
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index 4c0cf63..d1af3f7 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -1,4 +1,9 @@
--/* IPv4 specific functions of netfilter core */
-+/*
-+ * IPv4 specific functions of netfilter core
-+ *
-+ * Rusty Russell (C) 2000 -- This code is GPL.
-+ * Patrick McHardy (C) 2006-2012
-+ */
- #include <linux/kernel.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter_ipv4.h>
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_t=
-ables.c
-index 7dc6a97..85a4f21 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -6,6 +6,7 @@
-  * Some ARP specific bits are:
-  *
-  * Copyright (C) 2002 David S. Miller (davem@redhat.com)
-+ * Copyright (C) 2006-2009 Patrick McHardy <kaber@trash.net>
-  *
+diff --git a/net/netfilter/ipvs/ip_vs_lblcr.c b/net/netfilter/ipvs/ip_vs_lblcr.c
+index c03b6a3..c22f173 100644
+--- a/net/netfilter/ipvs/ip_vs_lblcr.c
++++ b/net/netfilter/ipvs/ip_vs_lblcr.c
+@@ -89,40 +89,44 @@
   */
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tab=
-les.c
-index 1b433aa..a9eb580 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -3,6 +3,7 @@
-  *
-  * Copyright (C) 1999 Paul `Rusty' Russell & Michael J. Neuling
-  * Copyright (C) 2000-2005 Netfilter Core Team <coreteam@netfilter.org=
->
-+ * Copyright (C) 2006-2010 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULO=
-G.c
-index 7d168dc..a9144fd 100644
---- a/net/ipv4/netfilter/ipt_ULOG.c
-+++ b/net/ipv4/netfilter/ipt_ULOG.c
-@@ -4,6 +4,7 @@
-  * (C) 2000-2004 by Harald Welte <laforge@netfilter.org>
-  * (C) 1999-2001 Paul `Rusty' Russell
-  * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
-+ * (C) 2005-2007 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/=
-netfilter/nf_conntrack_l3proto_ipv4.c
-index 2820aa1..567d841 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -1,6 +1,7 @@
-=20
- /* (C) 1999-2001 Paul `Rusty' Russell
-  * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
-+ * (C) 2006-2012 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c b/ne=
-t/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-index f2ca127..4c48e43 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-@@ -2,6 +2,7 @@
-  *
-  * (C) 1999-2001 Paul `Rusty' Russell
-  * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
-+ * (C) 2006-2010 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/ne=
-tfilter/nf_conntrack_proto_icmp.c
-index 5241d99..cba3465 100644
---- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-@@ -1,5 +1,6 @@
- /* (C) 1999-2001 Paul `Rusty' Russell
-  * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
-+ * (C) 2006-2010 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/net/ipv4/netfilter/nf_nat_h323.c b/net/ipv4/netfilter/nf_n=
-at_h323.c
-index 9c3db10..9eea059d 100644
---- a/net/ipv4/netfilter/nf_nat_h323.c
-+++ b/net/ipv4/netfilter/nf_nat_h323.c
-@@ -2,6 +2,7 @@
-  * H.323 extension for NAT alteration.
-  *
-  * Copyright (c) 2006 Jing Min Zhao <zhaojingmin@users.sourceforge.net=
->
-+ * Copyright (c) 2006-2012 Patrick McHardy <kaber@trash.net>
-  *
-  * This source code is licensed under General Public License version 2=
-=2E
-  *
-diff --git a/net/ipv4/netfilter/nf_nat_pptp.c b/net/ipv4/netfilter/nf_n=
-at_pptp.c
-index a06d7d7..657d230 100644
---- a/net/ipv4/netfilter/nf_nat_pptp.c
-+++ b/net/ipv4/netfilter/nf_nat_pptp.c
-@@ -13,6 +13,8 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com=
-/)
-  *
-+ * (C) 2006-2012 Patrick McHardy <kaber@trash.net>
-+ *
-  * TODO: - NAT to a unique tuple, not to TCP source port
-  * 	   (needs netfilter tuple reservation)
-  */
-diff --git a/net/ipv4/netfilter/nf_nat_proto_gre.c b/net/ipv4/netfilter=
-/nf_nat_proto_gre.c
-index ea44f02..690d8901 100644
---- a/net/ipv4/netfilter/nf_nat_proto_gre.c
-+++ b/net/ipv4/netfilter/nf_nat_proto_gre.c
-@@ -21,6 +21,8 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com=
-/)
-  *
-+ * (C) 2006-2012 Patrick McHardy <kaber@trash.net>
-+ *
-  */
-=20
- #include <linux/module.h>
-diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilte=
-r/nf_nat_snmp_basic.c
-index bac7122..5f011cc 100644
---- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
-+++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-@@ -38,6 +38,8 @@
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-130=
-7 USA
-  *
-  * Author: James Morris <jmorris@intercode.com.au>
-+ *
-+ * Copyright (c) 2006-2010 Patrick McHardy <kaber@trash.net>
-  */
- #include <linux/module.h>
- #include <linux/moduleparam.h>
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 429089c..49e1cb1 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -1,3 +1,9 @@
-+/*
-+ * IPv6 specific functions of netfilter core
-+ *
-+ * Rusty Russell (C) 2000 -- This code is GPL.
-+ * Patrick McHardy (C) 2006-2012
-+ */
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/ipv6.h>
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_t=
-ables.c
-index 341b54a..b51883a 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -3,6 +3,7 @@
-  *
-  * Copyright (C) 1999 Paul `Rusty' Russell & Michael J. Neuling
-  * Copyright (C) 2000-2005 Netfilter Core Team <coreteam@netfilter.org=
->
-+ * Copyright (c) 2006-2010 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t=
-_REJECT.c
-index ed3b427..70f9abc 100644
---- a/net/ipv6/netfilter/ip6t_REJECT.c
-+++ b/net/ipv6/netfilter/ip6t_REJECT.c
-@@ -7,6 +7,8 @@
-  * Authors:
-  *	Yasuyuki Kozakai	<yasuyuki.kozakai@toshiba.co.jp>
-  *
-+ * Copyright (c) 2005-2007 Patrick McHardy <kaber@trash.net>
-+ *
-  * Based on net/ipv4/netfilter/ipt_REJECT.c
-  *
-  * This program is free software; you can redistribute it and/or
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index a9c488b..0f47f80 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -5,6 +5,7 @@
-  * way.
-  *
-  * Rusty Russell (C)2000 -- This code is GPL.
-+ * Patrick McHardy (c) 2006-2012
-  */
- #include <linux/kernel.h>
- #include <linux/netfilter.h>
-diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_con=
-ntrack_amanda.c
-index dbdaa11..b8b95f4 100644
---- a/net/netfilter/nf_conntrack_amanda.c
-+++ b/net/netfilter/nf_conntrack_amanda.c
-@@ -2,6 +2,7 @@
-  *
-  * (C) 2002 by Brian J. Murrell <netfilter@interlinx.bc.ca>
-  * based on HW's ip_conntrack_irc.c as well as other modules
-+ * (C) 2006 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_connt=
-rack_core.c
-index 007e8c4..0cd9cf2 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -5,6 +5,7 @@
- /* (C) 1999-2001 Paul `Rusty' Russell
-  * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
-  * (C) 2003,2004 USAGI/WIDE Project <http://www.linux-ipv6.org>
-+ * (C) 2005-2012 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_con=
-ntrack_ecache.c
-index b5d2eb8..1df1761 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -1,8 +1,10 @@
- /* Event cache for netfilter. */
-=20
--/* (C) 1999-2001 Paul `Rusty' Russell
-- * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
-- * (C) 2003,2004 USAGI/WIDE Project <http://www.linux-ipv6.org>
-+/*
-+ * (C) 2005 Harald Welte <laforge@gnumonks.org>
-+ * (C) 2005 Patrick McHardy <kaber@trash.net>
-+ * (C) 2005-2006 Netfilter Core Team <coreteam@netfilter.org>
-+ * (C) 2005 USAGI/WIDE Project <http://www.linux-ipv6.org>
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_con=
-ntrack_expect.c
-index 8c10e3d..7684263 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -3,6 +3,7 @@
- /* (C) 1999-2001 Paul `Rusty' Russell
-  * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
-  * (C) 2003,2004 USAGI/WIDE Project <http://www.linux-ipv6.org>
-+ * (c) 2005-2012 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntr=
-ack_ftp.c
-index 62fb8fa..6b21707 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -3,6 +3,7 @@
- /* (C) 1999-2001 Paul `Rusty' Russell
-  * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
-  * (C) 2003,2004 USAGI/WIDE Project <http://www.linux-ipv6.org>
-+ * (C) 2006-2012 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_=
-conntrack_h323_main.c
-index 7df7b36..bdebd03 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -2,6 +2,7 @@
-  * H.323 connection tracking helper
-  *
-  * Copyright (c) 2006 Jing Min Zhao <zhaojingmin@users.sourceforge.net=
->
-+ * Copyright (c) 2006-2012 Patrick McHardy <kaber@trash.net>
-  *
-  * This source code is licensed under General Public License version 2=
-=2E
-  *
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_con=
-ntrack_helper.c
-index 94b4b98..2ef4f66 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -3,6 +3,7 @@
- /* (C) 1999-2001 Paul `Rusty' Russell
-  * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
-  * (C) 2003,2004 USAGI/WIDE Project <http://www.linux-ipv6.org>
-+ * (C) 2006-2012 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntr=
-ack_irc.c
-index 70985c5..0fd2976 100644
---- a/net/netfilter/nf_conntrack_irc.c
-+++ b/net/netfilter/nf_conntrack_irc.c
-@@ -1,6 +1,7 @@
- /* IRC extension for IP connection tracking, Version 1.21
-  * (C) 2000-2002 by Harald Welte <laforge@gnumonks.org>
-  * based on RR's ip_conntrack_ftp.c
-+ * (C) 2006-2012 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_connt=
-rack_pptp.c
-index e6678d2..7bd03de 100644
---- a/net/netfilter/nf_conntrack_pptp.c
-+++ b/net/netfilter/nf_conntrack_pptp.c
-@@ -11,6 +11,8 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com=
-/)
-  *
-+ * (C) 2006-2012 Patrick McHardy <kaber@trash.net>
-+ *
-  * Limitations:
-  * 	 - We blindly assume that control connections are always
-  * 	   established in PNS->PAC direction.  This is a violation
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conn=
-track_proto.c
-index 58ab405..0ab9636 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -3,6 +3,7 @@
- /* (C) 1999-2001 Paul `Rusty' Russell
-  * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
-  * (C) 2003,2004 USAGI/WIDE Project <http://www.linux-ipv6.org>
-+ * (C) 2006-2012 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_=
-conntrack_proto_gre.c
-index 155ce9f..9d9c0da 100644
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -21,6 +21,7 @@
-  *
-  * Development of this code funded by Astaro AG (http://www.astaro.com=
-/)
-  *
-+ * (C) 2006-2012 Patrick McHardy <kaber@trash.net>
-  */
-=20
- #include <linux/module.h>
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf=
-_conntrack_proto_sctp.c
-index ec83536..1314d33 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -1,6 +1,9 @@
- /*
-  * Connection tracking protocol helper module for SCTP.
-  *
-+ * Copyright (c) 2004 Kiran Kumar Immidi <immidi_kiran@yahoo.com>
-+ * Copyright (c) 2004-2012 Patrick McHardy <kaber@trash.net>
-+ *
-  * SCTP is defined in RFC 2960. References to various sections in this=
- code
-  * are to this RFC.
-  *
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_=
-conntrack_proto_tcp.c
-index 83876e9..5c4bb01 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -1,5 +1,7 @@
- /* (C) 1999-2001 Paul `Rusty' Russell
-  * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
-+ * (C) 2002-2013 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-+ * (C) 2006-2012 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_=
-conntrack_proto_udp.c
-index 59623cc..8627d03 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -1,5 +1,6 @@
- /* (C) 1999-2001 Paul `Rusty' Russell
-  * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
-+ * (C) 2006-2012 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf=
-_conntrack_standalone.c
-index 6c69fbd..ad4cea2 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -1,5 +1,6 @@
- /* (C) 1999-2001 Paul `Rusty' Russell
-  * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
-+ * (C) 2005-2012 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/net/netfilter/nf_conntrack_tftp.c b/net/netfilter/nf_connt=
-rack_tftp.c
-index e9936c8..e68ab4f 100644
---- a/net/netfilter/nf_conntrack_tftp.c
-+++ b/net/netfilter/nf_conntrack_tftp.c
-@@ -1,5 +1,5 @@
- /* (C) 2001-2002 Magnus Boden <mb@ozaba.mine.nu>
-- *
-+ * (C) 2006-2012 Patrick McHardy <kaber@trash.net>
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-diff --git a/net/netfilter/nf_nat_amanda.c b/net/netfilter/nf_nat_amand=
-a.c
-index 3b67c9d..eb77238 100644
---- a/net/netfilter/nf_nat_amanda.c
-+++ b/net/netfilter/nf_nat_amanda.c
-@@ -1,6 +1,7 @@
- /* Amanda extension for TCP NAT alteration.
-  * (C) 2002 by Brian J. Murrell <netfilter@interlinx.bc.ca>
-  * based on a copy of HW's ip_nat_irc.c as well as other modules
-+ * (C) 2006-2012 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-diff --git a/net/netfilter/nf_nat_helper.c b/net/netfilter/nf_nat_helpe=
-r.c
-index 23c2b38..5fea563 100644
---- a/net/netfilter/nf_nat_helper.c
-+++ b/net/netfilter/nf_nat_helper.c
-@@ -2,6 +2,7 @@
-  *
-  * (C) 2000-2002 Harald Welte <laforge@netfilter.org>
-  * (C) 2003-2006 Netfilter Core Team <coreteam@netfilter.org>
-+ * (C) 2007-2012 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index d812c12..5ccf01e 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -1,3 +1,8 @@
-+/*
-+ * Rusty Russell (C)2000 -- This code is GPL.
-+ * Patrick McHardy (c) 2006-2012
-+ */
+ struct ip_vs_dest_set_elem {
+ 	struct list_head	list;          /* list link */
+-	struct ip_vs_dest       *dest;          /* destination server */
++	struct ip_vs_dest __rcu *dest;         /* destination server */
++	struct rcu_head		rcu_head;
+ };
+ 
+ struct ip_vs_dest_set {
+ 	atomic_t                size;           /* set size */
+ 	unsigned long           lastmod;        /* last modified time */
+ 	struct list_head	list;           /* destination list */
+-	rwlock_t	        lock;           /* lock for this list */
+ };
+ 
+ 
+-static struct ip_vs_dest_set_elem *
+-ip_vs_dest_set_insert(struct ip_vs_dest_set *set, struct ip_vs_dest *dest)
++static void ip_vs_dest_set_insert(struct ip_vs_dest_set *set,
++				  struct ip_vs_dest *dest, bool check)
+ {
+ 	struct ip_vs_dest_set_elem *e;
+ 
+-	list_for_each_entry(e, &set->list, list) {
+-		if (e->dest == dest)
+-			/* already existed */
+-			return NULL;
++	if (check) {
++		list_for_each_entry(e, &set->list, list) {
++			struct ip_vs_dest *d;
 +
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/init.h>
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_lo=
-g.c
-index f248db5..f4b2d4f 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -3,6 +3,7 @@
-  * nfetlink.
-  *
-  * (C) 2005 by Harald Welte <laforge@netfilter.org>
-+ * (C) 2006-2012 Patrick McHardy <kaber@trash.net>
-  *
-  * Based on the old ipv4-only ipt_ULOG.c:
-  * (C) 2000-2004 by Harald Welte <laforge@netfilter.org>
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 686c771..1a73b18 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -2,6 +2,7 @@
-  * x_tables core - Backend for {ip,ip6,arp}_tables
-  *
-  * Copyright (C) 2006-2006 Harald Welte <laforge@netfilter.org>
-+ * Copyright (C) 2006-2012 Patrick McHardy <kaber@trash.net>
-  *
-  * Based on existing ip_tables code which is
-  *   Copyright (C) 1999 Paul `Rusty' Russell & Michael J. Neuling
-diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
-index 71a266d..a75240f 100644
---- a/net/netfilter/xt_TCPMSS.c
-+++ b/net/netfilter/xt_TCPMSS.c
-@@ -2,6 +2,7 @@
-  * This is a module which is used for setting the MSS option in TCP pa=
-ckets.
-  *
-  * Copyright (C) 2000 Marc Boucher <marc@mbsi.ca>
-+ * Copyright (C) 2007 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.=
-c
-index 61805d7..188404b9 100644
---- a/net/netfilter/xt_conntrack.c
-+++ b/net/netfilter/xt_conntrack.c
-@@ -3,6 +3,7 @@
-  *	information. (Superset of Rusty's minimalistic state match.)
-  *
-  *	(C) 2001  Marc Boucher (marc@mbsi.ca).
-+ *	(C) 2006-2012 Patrick McHardy <kaber@trash.net>
-  *	Copyright =C2=A9 CC Computer Consultants GmbH, 2007 - 2008
-  *
-  *	This program is free software; you can redistribute it and/or modif=
-y
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.=
-c
-index f330e8b..0199e7b 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -3,6 +3,7 @@
-  *	separately for each hashbucket (sourceip/sourceport/dstip/dstport)
-  *
-  *	(C) 2003-2004 by Harald Welte <laforge@netfilter.org>
-+ *	(C) 2006-2012 Patrick McHardy <kaber@trash.net>
-  *	Copyright =C2=A9 CC Computer Consultants GmbH, 2007 - 2008
-  *
-  * Development of this code was funded by Astaro AG, http://www.astaro=
-=2Ecom/
-diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
-index a4c1e45..bef8505 100644
---- a/net/netfilter/xt_limit.c
-+++ b/net/netfilter/xt_limit.c
-@@ -1,5 +1,6 @@
- /* (C) 1999 J=C3=A9r=C3=B4me de Vivie <devivie@info.enserb.u-bordeaux.=
-fr>
-  * (C) 1999 Herv=C3=A9 Eychenne <eychenne@info.enserb.u-bordeaux.fr>
-+ * (C) 2006-2012 Patrick McHardy <kaber@trash.net>
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
---=20
-1.8.1.4
++			d = rcu_dereference_protected(e->dest, 1);
++			if (d == dest)
++				/* already existed */
++				return;
++		}
+ 	}
+ 
+ 	e = kmalloc(sizeof(*e), GFP_ATOMIC);
+ 	if (e == NULL)
+-		return NULL;
++		return;
+ 
+-	atomic_inc(&dest->refcnt);
+-	e->dest = dest;
++	ip_vs_dest_hold(dest);
++	RCU_INIT_POINTER(e->dest, dest);
+ 
+-	list_add(&e->list, &set->list);
++	list_add_rcu(&e->list, &set->list);
+ 	atomic_inc(&set->size);
+ 
+ 	set->lastmod = jiffies;
+-	return e;
+ }
+ 
+ static void
+@@ -131,13 +135,16 @@ ip_vs_dest_set_erase(struct ip_vs_dest_set *set, struct ip_vs_dest *dest)
+ 	struct ip_vs_dest_set_elem *e;
+ 
+ 	list_for_each_entry(e, &set->list, list) {
+-		if (e->dest == dest) {
++		struct ip_vs_dest *d;
++
++		d = rcu_dereference_protected(e->dest, 1);
++		if (d == dest) {
+ 			/* HIT */
+ 			atomic_dec(&set->size);
+ 			set->lastmod = jiffies;
+-			atomic_dec(&e->dest->refcnt);
+-			list_del(&e->list);
+-			kfree(e);
++			ip_vs_dest_put(dest);
++			list_del_rcu(&e->list);
++			kfree_rcu(e, rcu_head);
+ 			break;
+ 		}
+ 	}
+@@ -147,17 +154,18 @@ static void ip_vs_dest_set_eraseall(struct ip_vs_dest_set *set)
+ {
+ 	struct ip_vs_dest_set_elem *e, *ep;
+ 
+-	write_lock(&set->lock);
+ 	list_for_each_entry_safe(e, ep, &set->list, list) {
++		struct ip_vs_dest *d;
++
++		d = rcu_dereference_protected(e->dest, 1);
+ 		/*
+ 		 * We don't kfree dest because it is referred either
+ 		 * by its service or by the trash dest list.
+ 		 */
+-		atomic_dec(&e->dest->refcnt);
+-		list_del(&e->list);
+-		kfree(e);
++		ip_vs_dest_put(d);
++		list_del_rcu(&e->list);
++		kfree_rcu(e, rcu_head);
+ 	}
+-	write_unlock(&set->lock);
+ }
+ 
+ /* get weighted least-connection node in the destination set */
+@@ -171,8 +179,8 @@ static inline struct ip_vs_dest *ip_vs_dest_set_min(struct ip_vs_dest_set *set)
+ 		return NULL;
+ 
+ 	/* select the first destination server, whose weight > 0 */
+-	list_for_each_entry(e, &set->list, list) {
+-		least = e->dest;
++	list_for_each_entry_rcu(e, &set->list, list) {
++		least = rcu_dereference(e->dest);
+ 		if (least->flags & IP_VS_DEST_F_OVERLOAD)
+ 			continue;
+ 
+@@ -186,8 +194,8 @@ static inline struct ip_vs_dest *ip_vs_dest_set_min(struct ip_vs_dest_set *set)
+ 
+ 	/* find the destination with the weighted least load */
+   nextstage:
+-	list_for_each_entry(e, &set->list, list) {
+-		dest = e->dest;
++	list_for_each_entry_continue_rcu(e, &set->list, list) {
++		dest = rcu_dereference(e->dest);
+ 		if (dest->flags & IP_VS_DEST_F_OVERLOAD)
+ 			continue;
+ 
+@@ -224,7 +232,7 @@ static inline struct ip_vs_dest *ip_vs_dest_set_max(struct ip_vs_dest_set *set)
+ 
+ 	/* select the first destination server, whose weight > 0 */
+ 	list_for_each_entry(e, &set->list, list) {
+-		most = e->dest;
++		most = rcu_dereference_protected(e->dest, 1);
+ 		if (atomic_read(&most->weight) > 0) {
+ 			moh = ip_vs_dest_conn_overhead(most);
+ 			goto nextstage;
+@@ -234,8 +242,8 @@ static inline struct ip_vs_dest *ip_vs_dest_set_max(struct ip_vs_dest_set *set)
+ 
+ 	/* find the destination with the weighted most load */
+   nextstage:
+-	list_for_each_entry(e, &set->list, list) {
+-		dest = e->dest;
++	list_for_each_entry_continue(e, &set->list, list) {
++		dest = rcu_dereference_protected(e->dest, 1);
+ 		doh = ip_vs_dest_conn_overhead(dest);
+ 		/* moh/mw < doh/dw ==> moh*dw < doh*mw, where mw,dw>0 */
+ 		if ((moh * atomic_read(&dest->weight) <
+@@ -262,11 +270,12 @@ static inline struct ip_vs_dest *ip_vs_dest_set_max(struct ip_vs_dest_set *set)
+  *      IP address and its destination server set
+  */
+ struct ip_vs_lblcr_entry {
+-	struct list_head        list;
++	struct hlist_node       list;
+ 	int			af;		/* address family */
+ 	union nf_inet_addr      addr;           /* destination IP address */
+ 	struct ip_vs_dest_set   set;            /* destination server set */
+ 	unsigned long           lastuse;        /* last used time */
++	struct rcu_head		rcu_head;
+ };
+ 
+ 
+@@ -274,12 +283,14 @@ struct ip_vs_lblcr_entry {
+  *      IPVS lblcr hash table
+  */
+ struct ip_vs_lblcr_table {
+-	struct list_head        bucket[IP_VS_LBLCR_TAB_SIZE];  /* hash bucket */
++	struct rcu_head		rcu_head;
++	struct hlist_head __rcu bucket[IP_VS_LBLCR_TAB_SIZE];  /* hash bucket */
+ 	atomic_t                entries;        /* number of entries */
+ 	int                     max_size;       /* maximum size of entries */
+ 	struct timer_list       periodic_timer; /* collect stale entries */
+ 	int                     rover;          /* rover for expire check */
+ 	int                     counter;        /* counter for no expire */
++	bool			dead;
+ };
+ 
+ 
+@@ -302,9 +313,9 @@ static ctl_table vs_vars_table[] = {
+ 
+ static inline void ip_vs_lblcr_free(struct ip_vs_lblcr_entry *en)
+ {
+-	list_del(&en->list);
++	hlist_del_rcu(&en->list);
+ 	ip_vs_dest_set_eraseall(&en->set);
+-	kfree(en);
++	kfree_rcu(en, rcu_head);
+ }
+ 
+ 
+@@ -334,15 +345,12 @@ ip_vs_lblcr_hash(struct ip_vs_lblcr_table *tbl, struct ip_vs_lblcr_entry *en)
+ {
+ 	unsigned int hash = ip_vs_lblcr_hashkey(en->af, &en->addr);
+ 
+-	list_add(&en->list, &tbl->bucket[hash]);
++	hlist_add_head_rcu(&en->list, &tbl->bucket[hash]);
+ 	atomic_inc(&tbl->entries);
+ }
+ 
+ 
+-/*
+- *  Get ip_vs_lblcr_entry associated with supplied parameters. Called under
+- *  read lock.
+- */
++/* Get ip_vs_lblcr_entry associated with supplied parameters. */
+ static inline struct ip_vs_lblcr_entry *
+ ip_vs_lblcr_get(int af, struct ip_vs_lblcr_table *tbl,
+ 		const union nf_inet_addr *addr)
+@@ -350,7 +358,7 @@ ip_vs_lblcr_get(int af, struct ip_vs_lblcr_table *tbl,
+ 	unsigned int hash = ip_vs_lblcr_hashkey(af, addr);
+ 	struct ip_vs_lblcr_entry *en;
+ 
+-	list_for_each_entry(en, &tbl->bucket[hash], list)
++	hlist_for_each_entry_rcu(en, &tbl->bucket[hash], list)
+ 		if (ip_vs_addr_equal(af, &en->addr, addr))
+ 			return en;
+ 
+@@ -381,14 +389,14 @@ ip_vs_lblcr_new(struct ip_vs_lblcr_table *tbl, const union nf_inet_addr *daddr,
+ 		/* initialize its dest set */
+ 		atomic_set(&(en->set.size), 0);
+ 		INIT_LIST_HEAD(&en->set.list);
+-		rwlock_init(&en->set.lock);
++
++		ip_vs_dest_set_insert(&en->set, dest, false);
+ 
+ 		ip_vs_lblcr_hash(tbl, en);
++		return en;
+ 	}
+ 
+-	write_lock(&en->set.lock);
+-	ip_vs_dest_set_insert(&en->set, dest);
+-	write_unlock(&en->set.lock);
++	ip_vs_dest_set_insert(&en->set, dest, true);
+ 
+ 	return en;
+ }
+@@ -397,17 +405,21 @@ ip_vs_lblcr_new(struct ip_vs_lblcr_table *tbl, const union nf_inet_addr *daddr,
+ /*
+  *      Flush all the entries of the specified table.
+  */
+-static void ip_vs_lblcr_flush(struct ip_vs_lblcr_table *tbl)
++static void ip_vs_lblcr_flush(struct ip_vs_service *svc)
+ {
++	struct ip_vs_lblcr_table *tbl = svc->sched_data;
+ 	int i;
+-	struct ip_vs_lblcr_entry *en, *nxt;
++	struct ip_vs_lblcr_entry *en;
++	struct hlist_node *next;
+ 
+-	/* No locking required, only called during cleanup. */
++	write_lock_bh(&svc->sched_lock);
++	tbl->dead = 1;
+ 	for (i=0; i<IP_VS_LBLCR_TAB_SIZE; i++) {
+-		list_for_each_entry_safe(en, nxt, &tbl->bucket[i], list) {
++		hlist_for_each_entry_safe(en, next, &tbl->bucket[i], list) {
+ 			ip_vs_lblcr_free(en);
+ 		}
+ 	}
++	write_unlock_bh(&svc->sched_lock);
+ }
+ 
+ static int sysctl_lblcr_expiration(struct ip_vs_service *svc)
+@@ -425,13 +437,14 @@ static inline void ip_vs_lblcr_full_check(struct ip_vs_service *svc)
+ 	struct ip_vs_lblcr_table *tbl = svc->sched_data;
+ 	unsigned long now = jiffies;
+ 	int i, j;
+-	struct ip_vs_lblcr_entry *en, *nxt;
++	struct ip_vs_lblcr_entry *en;
++	struct hlist_node *next;
+ 
+ 	for (i=0, j=tbl->rover; i<IP_VS_LBLCR_TAB_SIZE; i++) {
+ 		j = (j + 1) & IP_VS_LBLCR_TAB_MASK;
+ 
+ 		write_lock(&svc->sched_lock);
+-		list_for_each_entry_safe(en, nxt, &tbl->bucket[j], list) {
++		hlist_for_each_entry_safe(en, next, &tbl->bucket[j], list) {
+ 			if (time_after(en->lastuse +
+ 				       sysctl_lblcr_expiration(svc), now))
+ 				continue;
+@@ -463,7 +476,8 @@ static void ip_vs_lblcr_check_expire(unsigned long data)
+ 	unsigned long now = jiffies;
+ 	int goal;
+ 	int i, j;
+-	struct ip_vs_lblcr_entry *en, *nxt;
++	struct ip_vs_lblcr_entry *en;
++	struct hlist_node *next;
+ 
+ 	if ((tbl->counter % COUNT_FOR_FULL_EXPIRATION) == 0) {
+ 		/* do full expiration check */
+@@ -485,7 +499,7 @@ static void ip_vs_lblcr_check_expire(unsigned long data)
+ 		j = (j + 1) & IP_VS_LBLCR_TAB_MASK;
+ 
+ 		write_lock(&svc->sched_lock);
+-		list_for_each_entry_safe(en, nxt, &tbl->bucket[j], list) {
++		hlist_for_each_entry_safe(en, next, &tbl->bucket[j], list) {
+ 			if (time_before(now, en->lastuse+ENTRY_TIMEOUT))
+ 				continue;
+ 
+@@ -523,11 +537,12 @@ static int ip_vs_lblcr_init_svc(struct ip_vs_service *svc)
+ 	 *    Initialize the hash buckets
+ 	 */
+ 	for (i=0; i<IP_VS_LBLCR_TAB_SIZE; i++) {
+-		INIT_LIST_HEAD(&tbl->bucket[i]);
++		INIT_HLIST_HEAD(&tbl->bucket[i]);
+ 	}
+ 	tbl->max_size = IP_VS_LBLCR_TAB_SIZE*16;
+ 	tbl->rover = 0;
+ 	tbl->counter = 1;
++	tbl->dead = 0;
+ 
+ 	/*
+ 	 *    Hook periodic timer for garbage collection
+@@ -548,10 +563,10 @@ static int ip_vs_lblcr_done_svc(struct ip_vs_service *svc)
+ 	del_timer_sync(&tbl->periodic_timer);
+ 
+ 	/* got to clean up table entries here */
+-	ip_vs_lblcr_flush(tbl);
++	ip_vs_lblcr_flush(svc);
+ 
+ 	/* release the table itself */
+-	kfree(tbl);
++	kfree_rcu(tbl, rcu_head);
+ 	IP_VS_DBG(6, "LBLCR hash table (memory=%Zdbytes) released\n",
+ 		  sizeof(*tbl));
+ 
+@@ -577,7 +592,7 @@ __ip_vs_lblcr_schedule(struct ip_vs_service *svc)
+ 	 * The server with weight=0 is quiesced and will not receive any
+ 	 * new connection.
+ 	 */
+-	list_for_each_entry(dest, &svc->destinations, n_list) {
++	list_for_each_entry_rcu(dest, &svc->destinations, n_list) {
+ 		if (dest->flags & IP_VS_DEST_F_OVERLOAD)
+ 			continue;
+ 
+@@ -593,7 +608,7 @@ __ip_vs_lblcr_schedule(struct ip_vs_service *svc)
+ 	 *    Find the destination with the least load.
+ 	 */
+   nextstage:
+-	list_for_each_entry_continue(dest, &svc->destinations, n_list) {
++	list_for_each_entry_continue_rcu(dest, &svc->destinations, n_list) {
+ 		if (dest->flags & IP_VS_DEST_F_OVERLOAD)
+ 			continue;
+ 
+@@ -627,7 +642,7 @@ is_overloaded(struct ip_vs_dest *dest, struct ip_vs_service *svc)
+ 	if (atomic_read(&dest->activeconns) > atomic_read(&dest->weight)) {
+ 		struct ip_vs_dest *d;
+ 
+-		list_for_each_entry(d, &svc->destinations, n_list) {
++		list_for_each_entry_rcu(d, &svc->destinations, n_list) {
+ 			if (atomic_read(&d->activeconns)*2
+ 			    < atomic_read(&d->weight)) {
+ 				return 1;
+@@ -646,7 +661,7 @@ ip_vs_lblcr_schedule(struct ip_vs_service *svc, const struct sk_buff *skb)
+ {
+ 	struct ip_vs_lblcr_table *tbl = svc->sched_data;
+ 	struct ip_vs_iphdr iph;
+-	struct ip_vs_dest *dest = NULL;
++	struct ip_vs_dest *dest;
+ 	struct ip_vs_lblcr_entry *en;
+ 
+ 	ip_vs_fill_iph_addr_only(svc->af, skb, &iph);
+@@ -654,53 +669,46 @@ ip_vs_lblcr_schedule(struct ip_vs_service *svc, const struct sk_buff *skb)
+ 	IP_VS_DBG(6, "%s(): Scheduling...\n", __func__);
+ 
+ 	/* First look in our cache */
+-	read_lock(&svc->sched_lock);
+ 	en = ip_vs_lblcr_get(svc->af, tbl, &iph.daddr);
+ 	if (en) {
+-		/* We only hold a read lock, but this is atomic */
+ 		en->lastuse = jiffies;
+ 
+ 		/* Get the least loaded destination */
+-		read_lock(&en->set.lock);
+ 		dest = ip_vs_dest_set_min(&en->set);
+-		read_unlock(&en->set.lock);
+ 
+ 		/* More than one destination + enough time passed by, cleanup */
+ 		if (atomic_read(&en->set.size) > 1 &&
+-				time_after(jiffies, en->set.lastmod +
++		    time_after(jiffies, en->set.lastmod +
+ 				sysctl_lblcr_expiration(svc))) {
+-			struct ip_vs_dest *m;
++			write_lock(&svc->sched_lock);
++			if (atomic_read(&en->set.size) > 1) {
++				struct ip_vs_dest *m;
+ 
+-			write_lock(&en->set.lock);
+-			m = ip_vs_dest_set_max(&en->set);
+-			if (m)
+-				ip_vs_dest_set_erase(&en->set, m);
+-			write_unlock(&en->set.lock);
++				m = ip_vs_dest_set_max(&en->set);
++				if (m)
++					ip_vs_dest_set_erase(&en->set, m);
++			}
++			write_unlock(&svc->sched_lock);
+ 		}
+ 
+ 		/* If the destination is not overloaded, use it */
+-		if (dest && !is_overloaded(dest, svc)) {
+-			read_unlock(&svc->sched_lock);
++		if (dest && !is_overloaded(dest, svc))
+ 			goto out;
+-		}
+ 
+ 		/* The cache entry is invalid, time to schedule */
+ 		dest = __ip_vs_lblcr_schedule(svc);
+ 		if (!dest) {
+ 			ip_vs_scheduler_err(svc, "no destination available");
+-			read_unlock(&svc->sched_lock);
+ 			return NULL;
+ 		}
+ 
+ 		/* Update our cache entry */
+-		write_lock(&en->set.lock);
+-		ip_vs_dest_set_insert(&en->set, dest);
+-		write_unlock(&en->set.lock);
+-	}
+-	read_unlock(&svc->sched_lock);
+-
+-	if (dest)
++		write_lock(&svc->sched_lock);
++		if (!tbl->dead)
++			ip_vs_dest_set_insert(&en->set, dest, true);
++		write_unlock(&svc->sched_lock);
+ 		goto out;
++	}
+ 
+ 	/* No cache entry, time to schedule */
+ 	dest = __ip_vs_lblcr_schedule(svc);
+@@ -711,7 +719,8 @@ ip_vs_lblcr_schedule(struct ip_vs_service *svc, const struct sk_buff *skb)
+ 
+ 	/* If we fail to create a cache entry, we'll just use the valid dest */
+ 	write_lock(&svc->sched_lock);
+-	ip_vs_lblcr_new(tbl, &iph.daddr, dest);
++	if (!tbl->dead)
++		ip_vs_lblcr_new(tbl, &iph.daddr, dest);
+ 	write_unlock(&svc->sched_lock);
+ 
+ out:
+-- 
+1.7.10.4
