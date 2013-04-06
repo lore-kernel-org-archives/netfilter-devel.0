@@ -1,128 +1,77 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next v2 04/10] netfilter: xt_LOG: add net namespace
- support for xt_LOG
-Date: Fri, 5 Apr 2013 20:33:40 +0200
-Message-ID: <20130405183340.GD4853@localhost>
-References: <1364205048-32632-1-git-send-email-gaofeng@cn.fujitsu.com>
- <1364205048-32632-4-git-send-email-gaofeng@cn.fujitsu.com>
+From: Mart Frauenlob <mart.frauenlob@chello.at>
+Subject: Re: [PATCH] iptables manpage: Fix missing space for recent match
+ --mask option
+Date: Sat, 06 Apr 2013 11:20:51 +0200
+Message-ID: <515FE8F3.5020700@chello.at>
+References: <515FE4EC.1070900@chello.at>
+Reply-To: mart.frauenlob@chello.at
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Gao feng <gaofeng@cn.fujitsu.com>
+Content-Type: multipart/mixed;
+ boundary="------------030401080905000401040800"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53074 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1162402Ab3DESdw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Apr 2013 14:33:52 -0400
-Content-Disposition: inline
-In-Reply-To: <1364205048-32632-4-git-send-email-gaofeng@cn.fujitsu.com>
+Received: from fep22.mx.upcmail.net ([62.179.121.42]:45187 "EHLO
+	fep22.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1163189Ab3DFJVj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 6 Apr 2013 05:21:39 -0400
+Received: from edge02.upcmail.net ([192.168.13.237])
+          by viefep22-int.chello.at
+          (InterMail vM.8.01.05.05 201-2260-151-110-20120111) with ESMTP
+          id <20130406092137.UEYD12132.viefep22-int.chello.at@edge02.upcmail.net>
+          for <netfilter-devel@vger.kernel.org>;
+          Sat, 6 Apr 2013 11:21:37 +0200
+In-Reply-To: <515FE4EC.1070900@chello.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 25, 2013 at 05:50:42PM +0800, Gao feng wrote:
-> Add pernet_operations for xt_LOG, in pernet_ops,
-> we call nf_log_set/unset to set/unset nf_loggers
-> of per net.
-> 
-> Because the syslog ns has not been implemented,
-> we don't want the container DDOS the host's syslog.
-> so only enable ebt_log in init_net and wait for
-> syslog ns.
+This is a multi-part message in MIME format.
+--------------030401080905000401040800
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Applied with change.
+On 06.04.2013 11:04, netfilter-devel-owner@vger.kernel.org wrote:
+> As the subject says...
+>
+> Best regards
+>
+> Mart
 
-> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
-> ---
->  net/netfilter/xt_LOG.c | 41 ++++++++++++++++++++++++++++++++++++++---
->  1 file changed, 38 insertions(+), 3 deletions(-)
-> 
-> diff --git a/net/netfilter/xt_LOG.c b/net/netfilter/xt_LOG.c
-> index fa40096..d396600 100644
-> --- a/net/netfilter/xt_LOG.c
-> +++ b/net/netfilter/xt_LOG.c
-> @@ -474,7 +474,13 @@ ipt_log_packet(u_int8_t pf,
->  	       const struct nf_loginfo *loginfo,
->  	       const char *prefix)
->  {
-> -	struct sbuff *m = sb_open();
-> +	struct sbuff *m;
-> +	struct net *net = dev_net(in ? in : out);
-> +
-> +	if (!net_eq(net, &init_net))
-> +		return;
-> +
-> +	m = sb_open();
->  
->  	if (!loginfo)
->  		loginfo = &default_loginfo;
-> @@ -798,7 +804,13 @@ ip6t_log_packet(u_int8_t pf,
->  		const struct nf_loginfo *loginfo,
->  		const char *prefix)
->  {
-> -	struct sbuff *m = sb_open();
-> +	struct sbuff *m;
-> +	struct net *net = dev_net(in ? in : out);
-> +
+lol damn, must been blind, now I added an extra space :/
+removed...
 
-Added comment here, as in ebt_log.
 
-> +	if (!net_eq(net, &init_net))
-> +		return;
-> +
-> +	m = sb_open();
->  
->  	if (!loginfo)
->  		loginfo = &default_loginfo;
-> @@ -893,6 +905,28 @@ static struct nf_logger ip6t_log_logger __read_mostly = {
->  };
->  #endif
->  
-> +static int __net_init log_net_init(struct net *net)
-> +{
-> +	nf_log_set(net, NFPROTO_IPV4, &ipt_log_logger);
-> +#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
-> +	nf_log_set(net, NFPROTO_IPV6, &ip6t_log_logger);
-> +#endif
-> +	return 0;
-> +}
-> +
-> +static void __net_exit log_net_exit(struct net *net)
-> +{
-> +	nf_log_unset(net, &ipt_log_logger);
-> +#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
-> +	nf_log_unset(net, &ip6t_log_logger);
-> +#endif
-> +}
-> +
-> +static struct pernet_operations log_net_ops = {
-> +	.init = log_net_init,
-> +	.exit = log_net_exit,
-> +};
-> +
->  static int __init log_tg_init(void)
->  {
->  	int ret;
-> @@ -905,11 +939,12 @@ static int __init log_tg_init(void)
->  #if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
->  	nf_log_register(NFPROTO_IPV6, &ip6t_log_logger);
->  #endif
-> -	return 0;
-> +	return register_pernet_subsys(&log_net_ops);
+--------------030401080905000401040800
+Content-Type: text/plain; charset=windows-1252;
+ name="iptables-manpage-Fix-missing-space-for-recent-match.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="iptables-manpage-Fix-missing-space-for-recent-match.patch"
 
-You have to unroll if this fails.
+>From 937309f37f9000f18f88c191923192c5d31a07e8 Mon Sep 17 00:00:00 2001
+From: Mart Frauenlob <mart.frauenlob@chello.at>
+Date: Sat, 6 Apr 2013 10:49:47 +0200
+Subject: [PATCH 2/2] iptables manpage: Fix missing space for recent match --mask option.
 
->  }
->  
->  static void __exit log_tg_exit(void)
->  {
-> +	unregister_pernet_subsys(&log_net_ops);
->  	nf_log_unregister(&ipt_log_logger);
->  #if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
->  	nf_log_unregister(&ip6t_log_logger);
-> -- 
-> 1.7.11.7
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+---
+ extensions/libxt_recent.man |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/extensions/libxt_recent.man b/extensions/libxt_recent.man
+index 8e6a8e9..05ae4fa 100644
+--- a/extensions/libxt_recent.man
++++ b/extensions/libxt_recent.man
+@@ -24,7 +24,7 @@ is the default.
+ \fB\-\-rdest\fP
+ Match/save the destination address of each packet in the recent list table.
+ .TP
+-\fB\-\-mask\fPnetmask
++\fB\-\-mask\fP \fnetmask\fP
+ Netmask that will be applied to this recent list.
+ .TP
+ [\fB!\fP] \fB\-\-rcheck\fP
+-- 
+1.7.2.5
+
+
+--------------030401080905000401040800--
