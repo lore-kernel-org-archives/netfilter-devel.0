@@ -1,121 +1,117 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 16/51] ipvs: preparations for using rcu in schedulers
-Date: Sat,  6 Apr 2013 14:17:15 +0200
-Message-ID: <1365250670-14993-17-git-send-email-pablo@netfilter.org>
-References: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
+From: Mart Frauenlob <mart.frauenlob@chello.at>
+Subject: [PATCH] iptables: Update copyright time range in license header
+Date: Sat, 06 Apr 2013 11:04:34 +0200
+Message-ID: <515FE522.1020909@chello.at>
+Reply-To: mart.frauenlob@chello.at
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------040409040607040901010703"
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from fep12.mx.upcmail.net ([62.179.121.32]:35387 "EHLO
+	fep12.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1163106Ab3DFJU0 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 6 Apr 2013 05:20:26 -0400
+Received: from edge02.upcmail.net ([192.168.13.237])
+          by viefep23-int.chello.at
+          (InterMail vM.8.01.05.05 201-2260-151-110-20120111) with ESMTP
+          id <20130406090520.YJDQ17478.viefep23-int.chello.at@edge02.upcmail.net>
+          for <netfilter-devel@vger.kernel.org>;
+          Sat, 6 Apr 2013 11:05:20 +0200
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Julian Anastasov <ja@ssi.bg>
+This is a multi-part message in MIME format.
+--------------040409040607040901010703
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Allow schedulers to use rcu_dereference when
-returning destination on lookup. The RCU read-side critical
-section will allow ip_vs_bind_dest to get dest refcnt as
-preparation for the step where destinations will be
-deleted without an IP_VS_WAIT_WHILE guard that holds the
-packet processing during update.
+Hello,
 
-	Add new optional scheduler methods add_dest,
-del_dest and upd_dest. For now the methods are called
-together with update_service but update_service will be
-removed in a following change.
+this patch updates the copyright license time range for all headers 
+mentioning the coreteam as author from 2000-2002 to 2000-2013.
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+Hopefully this is appropriate.
+
+Best regards
+
+Mart
+
+--------------040409040607040901010703
+Content-Type: text/plain; charset=windows-1252;
+ name="iptables-Update-coreteam-copyright-time-range-in-license.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="iptables-Update-coreteam-copyright-time-range-in-license.pat";
+ filename*1="ch"
+
+>From 4576a8e442dd2e627fac6f6c771e24a212a4d34a Mon Sep 17 00:00:00 2001
+From: Mart Frauenlob <mart.frauenlob@chello.at>
+Date: Sat, 6 Apr 2013 10:30:13 +0200
+Subject: [PATCH] iptables: Update coreteam copyright time range in license header.
+
 ---
- include/net/ip_vs.h             |    6 ++++++
- net/netfilter/ipvs/ip_vs_core.c |    6 ++++++
- net/netfilter/ipvs/ip_vs_ctl.c  |    8 ++++++++
- 3 files changed, 20 insertions(+)
+ iptables/ip6tables-standalone.c |    2 +-
+ iptables/ip6tables.c            |    2 +-
+ iptables/iptables-standalone.c  |    2 +-
+ iptables/iptables.c             |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 43886bb..d91385c 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -805,6 +805,12 @@ struct ip_vs_scheduler {
- 	int (*done_service)(struct ip_vs_service *svc);
- 	/* scheduler updating service */
- 	int (*update_service)(struct ip_vs_service *svc);
-+	/* dest is linked */
-+	int (*add_dest)(struct ip_vs_service *svc, struct ip_vs_dest *dest);
-+	/* dest is unlinked */
-+	int (*del_dest)(struct ip_vs_service *svc, struct ip_vs_dest *dest);
-+	/* dest is updated */
-+	int (*upd_dest)(struct ip_vs_service *svc, struct ip_vs_dest *dest);
- 
- 	/* selecting a server from the given service */
- 	struct ip_vs_dest* (*schedule)(struct ip_vs_service *svc,
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 4fc749c..939ad11 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -301,8 +301,10 @@ ip_vs_sched_persist(struct ip_vs_service *svc,
- 		 * template is not available.
- 		 * return *ignored=0 i.e. ICMP and NF_DROP
- 		 */
-+		rcu_read_lock();
- 		dest = svc->scheduler->schedule(svc, skb);
- 		if (!dest) {
-+			rcu_read_unlock();
- 			IP_VS_DBG(1, "p-schedule: no dest found.\n");
- 			kfree(param.pe_data);
- 			*ignored = 0;
-@@ -318,6 +320,7 @@ ip_vs_sched_persist(struct ip_vs_service *svc,
- 		 * when the template expires */
- 		ct = ip_vs_conn_new(&param, &dest->addr, dport,
- 				    IP_VS_CONN_F_TEMPLATE, dest, skb->mark);
-+		rcu_read_unlock();
- 		if (ct == NULL) {
- 			kfree(param.pe_data);
- 			*ignored = -1;
-@@ -446,8 +449,10 @@ ip_vs_schedule(struct ip_vs_service *svc, struct sk_buff *skb,
- 		return NULL;
- 	}
- 
-+	rcu_read_lock();
- 	dest = svc->scheduler->schedule(svc, skb);
- 	if (dest == NULL) {
-+		rcu_read_unlock();
- 		IP_VS_DBG(1, "Schedule: no dest found.\n");
- 		return NULL;
- 	}
-@@ -468,6 +473,7 @@ ip_vs_schedule(struct ip_vs_service *svc, struct sk_buff *skb,
- 		cp = ip_vs_conn_new(&p, &dest->addr,
- 				    dest->port ? dest->port : pptr[1],
- 				    flags, dest, skb->mark);
-+		rcu_read_unlock();
- 		if (!cp) {
- 			*ignored = -1;
- 			return NULL;
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 182d958..d64f800 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -825,6 +825,11 @@ __ip_vs_update_dest(struct ip_vs_service *svc, struct ip_vs_dest *dest,
- 	if (add) {
- 		list_add(&dest->n_list, &svc->destinations);
- 		svc->num_dests++;
-+		if (svc->scheduler->add_dest)
-+			svc->scheduler->add_dest(svc, dest);
-+	} else {
-+		if (svc->scheduler->upd_dest)
-+			svc->scheduler->upd_dest(svc, dest);
- 	}
- 
- 	/* call the update_service, because server weight may be changed */
-@@ -1071,6 +1076,9 @@ static void __ip_vs_unlink_dest(struct ip_vs_service *svc,
- 	list_del(&dest->n_list);
- 	svc->num_dests--;
- 
-+	if (svcupd && svc->scheduler->del_dest)
-+		svc->scheduler->del_dest(svc, dest);
-+
- 	/*
- 	 *  Call the update_service function of its scheduler
- 	 */
+diff --git a/iptables/ip6tables-standalone.c b/iptables/ip6tables-standalone.c
+index 21b5811..c62d287 100644
+--- a/iptables/ip6tables-standalone.c
++++ b/iptables/ip6tables-standalone.c
+@@ -1,7 +1,7 @@
+ /*
+  * Author: Paul.Russell@rustcorp.com.au and mneuling@radlogic.com.au
+  *
+- * (C) 2000-2002 by the netfilter coreteam <coreteam@netfilter.org>:
++ * (C) 2000-2013 by the netfilter coreteam <coreteam@netfilter.org>:
+  * 		    Paul 'Rusty' Russell <rusty@rustcorp.com.au>
+  * 		    Marc Boucher <marc+nf@mbsi.ca>
+  * 		    James Morris <jmorris@intercode.com.au>
+diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
+index c8d34e2..80f6c3a 100644
+--- a/iptables/ip6tables.c
++++ b/iptables/ip6tables.c
+@@ -3,7 +3,7 @@
+ /*
+  * Author: Paul.Russell@rustcorp.com.au and mneuling@radlogic.com.au
+  *
+- * (C) 2000-2002 by the netfilter coreteam <coreteam@netfilter.org>:
++ * (C) 2000-2013 by the netfilter coreteam <coreteam@netfilter.org>:
+  * 		    Paul 'Rusty' Russell <rusty@rustcorp.com.au>
+  * 		    Marc Boucher <marc+nf@mbsi.ca>
+  * 		    James Morris <jmorris@intercode.com.au>
+diff --git a/iptables/iptables-standalone.c b/iptables/iptables-standalone.c
+index 683a44a..f5b47ec 100644
+--- a/iptables/iptables-standalone.c
++++ b/iptables/iptables-standalone.c
+@@ -3,7 +3,7 @@
+  *
+  * Based on the ipchains code by Paul Russell and Michael Neuling
+  *
+- * (C) 2000-2002 by the netfilter coreteam <coreteam@netfilter.org>:
++ * (C) 2000-2013 by the netfilter coreteam <coreteam@netfilter.org>:
+  * 		    Paul 'Rusty' Russell <rusty@rustcorp.com.au>
+  * 		    Marc Boucher <marc+nf@mbsi.ca>
+  * 		    James Morris <jmorris@intercode.com.au>
+diff --git a/iptables/iptables.c b/iptables/iptables.c
+index 79fa37b..3c8be20 100644
+--- a/iptables/iptables.c
++++ b/iptables/iptables.c
+@@ -3,7 +3,7 @@
+ /*
+  * Author: Paul.Russell@rustcorp.com.au and mneuling@radlogic.com.au
+  *
+- * (C) 2000-2002 by the netfilter coreteam <coreteam@netfilter.org>:
++ * (C) 2000-2013 by the netfilter coreteam <coreteam@netfilter.org>:
+  * 		    Paul 'Rusty' Russell <rusty@rustcorp.com.au>
+  * 		    Marc Boucher <marc+nf@mbsi.ca>
+  * 		    James Morris <jmorris@intercode.com.au>
 -- 
-1.7.10.4
+1.7.2.5
+
+
+--------------040409040607040901010703--
