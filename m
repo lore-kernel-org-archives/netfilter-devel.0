@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 48/51] netfilter: implement RFC3168 5.3 (ecn protection) for ipv6 fragmentation handling
-Date: Sat,  6 Apr 2013 14:17:47 +0200
-Message-ID: <1365250670-14993-49-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 02/51] ipvs: prefer NETDEV_DOWN event to free cached dsts
+Date: Sat,  6 Apr 2013 14:17:01 +0200
+Message-ID: <1365250670-14993-3-git-send-email-pablo@netfilter.org>
 References: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,123 +10,44 @@ In-Reply-To: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+From: Julian Anastasov <ja@ssi.bg>
 
-This change brings netfilter reassembly logic on par with
-reassembly.c. The corresponding change in net-next is
-(eec2e61 ipv6: implement RFC3168 5.3 (ecn protection) for
-ipv6 fragmentation handling)
+The real server becomes unreachable on down event,
+no need to wait device unregistration. Should help in
+releasing dsts early before dst->dev is replaced with lo.
 
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Jesper Dangaard Brouer <jbrouer@redhat.com>
-Cc: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Signed-off-by: Hannes Frederic Sowa <hannes@stressinduktion.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Signed-off by: Hans Schillstrom <hans@schillstrom.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
 ---
- net/ipv6/netfilter/nf_conntrack_reasm.c |   22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+ net/netfilter/ipvs/ip_vs_ctl.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 6700069..dffdc1a 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -41,6 +41,7 @@
- #include <net/rawv6.h>
- #include <net/ndisc.h>
- #include <net/addrconf.h>
-+#include <net/inet_ecn.h>
- #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
- #include <linux/sysctl.h>
- #include <linux/netfilter.h>
-@@ -138,6 +139,11 @@ static void __net_exit nf_ct_frags6_sysctl_unregister(struct net *net)
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 8104120..6b55ba6 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -1514,10 +1514,8 @@ __ip_vs_dev_reset(struct ip_vs_dest *dest, struct net_device *dev)
+ 	spin_unlock_bh(&dest->dst_lock);
+ 
  }
- #endif
+-/*
+- * Netdev event receiver
+- * Currently only NETDEV_UNREGISTER is handled, i.e. if we hold a reference to
+- * a device that is "unregister" it must be released.
++/* Netdev event receiver
++ * Currently only NETDEV_DOWN is handled to release refs to cached dsts
+  */
+ static int ip_vs_dst_event(struct notifier_block *this, unsigned long event,
+ 			    void *ptr)
+@@ -1529,7 +1527,7 @@ static int ip_vs_dst_event(struct notifier_block *this, unsigned long event,
+ 	struct ip_vs_dest *dest;
+ 	unsigned int idx;
  
-+static inline u8 ip6_frag_ecn(const struct ipv6hdr *ipv6h)
-+{
-+	return 1 << (ipv6_get_dsfield(ipv6h) & INET_ECN_MASK);
-+}
-+
- static unsigned int nf_hashfn(struct inet_frag_queue *q)
- {
- 	const struct frag_queue *nq;
-@@ -166,7 +172,7 @@ static void nf_ct_frag6_expire(unsigned long data)
- /* Creation primitives. */
- static inline struct frag_queue *fq_find(struct net *net, __be32 id,
- 					 u32 user, struct in6_addr *src,
--					 struct in6_addr *dst)
-+					 struct in6_addr *dst, u8 ecn)
- {
- 	struct inet_frag_queue *q;
- 	struct ip6_create_arg arg;
-@@ -176,6 +182,7 @@ static inline struct frag_queue *fq_find(struct net *net, __be32 id,
- 	arg.user = user;
- 	arg.src = src;
- 	arg.dst = dst;
-+	arg.ecn = ecn;
- 
- 	read_lock_bh(&nf_frags.lock);
- 	hash = inet6_hash_frag(id, src, dst, nf_frags.rnd);
-@@ -196,6 +203,7 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
- 	struct sk_buff *prev, *next;
- 	unsigned int payload_len;
- 	int offset, end;
-+	u8 ecn;
- 
- 	if (fq->q.last_in & INET_FRAG_COMPLETE) {
- 		pr_debug("Already completed\n");
-@@ -213,6 +221,8 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
- 		return -1;
- 	}
- 
-+	ecn = ip6_frag_ecn(ipv6_hdr(skb));
-+
- 	if (skb->ip_summed == CHECKSUM_COMPLETE) {
- 		const unsigned char *nh = skb_network_header(skb);
- 		skb->csum = csum_sub(skb->csum,
-@@ -317,6 +327,7 @@ found:
- 	}
- 	fq->q.stamp = skb->tstamp;
- 	fq->q.meat += skb->len;
-+	fq->ecn |= ecn;
- 	if (payload_len > fq->q.max_size)
- 		fq->q.max_size = payload_len;
- 	add_frag_mem_limit(&fq->q, skb->truesize);
-@@ -352,12 +363,17 @@ nf_ct_frag6_reasm(struct frag_queue *fq, struct net_device *dev)
- {
- 	struct sk_buff *fp, *op, *head = fq->q.fragments;
- 	int    payload_len;
-+	u8 ecn;
- 
- 	inet_frag_kill(&fq->q, &nf_frags);
- 
- 	WARN_ON(head == NULL);
- 	WARN_ON(NFCT_FRAG6_CB(head)->offset != 0);
- 
-+	ecn = ip_frag_ecn_table[fq->ecn];
-+	if (unlikely(ecn == 0xff))
-+		goto out_fail;
-+
- 	/* Unfragmented part is taken from the first segment. */
- 	payload_len = ((head->data - skb_network_header(head)) -
- 		       sizeof(struct ipv6hdr) + fq->q.len -
-@@ -428,6 +444,7 @@ nf_ct_frag6_reasm(struct frag_queue *fq, struct net_device *dev)
- 	head->dev = dev;
- 	head->tstamp = fq->q.stamp;
- 	ipv6_hdr(head)->payload_len = htons(payload_len);
-+	ipv6_change_dsfield(ipv6_hdr(head), 0xff, ecn);
- 	IP6CB(head)->frag_max_size = sizeof(struct ipv6hdr) + fq->q.max_size;
- 
- 	/* Yes, and fold redundant checksum back. 8) */
-@@ -572,7 +589,8 @@ struct sk_buff *nf_ct_frag6_gather(struct sk_buff *skb, u32 user)
- 	inet_frag_evictor(&net->nf_frag.frags, &nf_frags, false);
- 	local_bh_enable();
- 
--	fq = fq_find(net, fhdr->identification, user, &hdr->saddr, &hdr->daddr);
-+	fq = fq_find(net, fhdr->identification, user, &hdr->saddr, &hdr->daddr,
-+		     ip6_frag_ecn(hdr));
- 	if (fq == NULL) {
- 		pr_debug("Can't find and can't create new queue\n");
- 		goto ret_orig;
+-	if (event != NETDEV_UNREGISTER || !ipvs)
++	if (event != NETDEV_DOWN || !ipvs)
+ 		return NOTIFY_DONE;
+ 	IP_VS_DBG(3, "%s() dev=%s\n", __func__, dev->name);
+ 	EnterFunction(2);
 -- 
 1.7.10.4
