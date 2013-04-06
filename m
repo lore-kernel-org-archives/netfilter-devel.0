@@ -1,102 +1,62 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next v2 03/10] netfilter: ebt_log: add net namespace
- support for ebt_log
-Date: Fri, 5 Apr 2013 20:32:43 +0200
-Message-ID: <20130405183243.GC4853@localhost>
-References: <1364205048-32632-1-git-send-email-gaofeng@cn.fujitsu.com>
- <1364205048-32632-3-git-send-email-gaofeng@cn.fujitsu.com>
+Subject: Re: [PATCH 00/51] netfilter updates for net-next
+Date: Sat, 6 Apr 2013 15:52:44 +0200
+Message-ID: <20130406135244.GA17634@localhost>
+References: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
+ <alpine.LFD.2.00.1304061612270.1627@ja.ssi.bg>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Gao feng <gaofeng@cn.fujitsu.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52995 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1162396Ab3DEScs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Apr 2013 14:32:48 -0400
+Cc: netfilter-devel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
+To: Julian Anastasov <ja@ssi.bg>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1364205048-32632-3-git-send-email-gaofeng@cn.fujitsu.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.1304061612270.1627@ja.ssi.bg>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Mar 25, 2013 at 05:50:41PM +0800, Gao feng wrote:
-> Add pernet_operations for ebt_log, in pernet_ops,
-> we call nf_log_set/unset to set/unset nf_loggers
-> of per net.
+Hi Julian,
+
+On Sat, Apr 06, 2013 at 04:14:54PM +0300, Julian Anastasov wrote:
+> > Julian Anastasov (33):
 > 
-> Because the syslog ns has not been implemented,
-> we don't want the container DDOS the host's syslog.
-> so only enable ebt_log in init_net and wait for
-> syslog ns.
+> 	Is the "net: add skb_dst_set_noref_force" change
+> missing here?
 
-Applied with change.
+It's there, but I forgot to include it in this pull request email:
 
-> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
-> ---
->  net/bridge/netfilter/ebt_log.c | 24 +++++++++++++++++++++++-
->  1 file changed, 23 insertions(+), 1 deletion(-)
-> 
-> diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
-> index 08e5ea5..cd465d1 100644
-> --- a/net/bridge/netfilter/ebt_log.c
-> +++ b/net/bridge/netfilter/ebt_log.c
-> @@ -78,6 +78,10 @@ ebt_log_packet(u_int8_t pf, unsigned int hooknum,
->     const char *prefix)
->  {
->  	unsigned int bitmask;
-> +	struct net *net = dev_net(in ? in : out);
-> +
+http://1984.lsi.us.es/git/nf-next/commit/?id=932bc4d7a53ba418de67fdab533248df5b36c752
 
-Added a comment here to explicitly recall that we depend on syslog ns
-support to remove these two lines below.
-
-> +	if (!net_eq(net, &init_net))
-> +		return;
->  
->  	spin_lock_bh(&ebt_log_lock);
->  	printk(KERN_SOH "%c%s IN=%s OUT=%s MAC source = %pM MAC dest = %pM proto = 0x%04x",
-> @@ -207,6 +211,22 @@ static struct nf_logger ebt_log_logger __read_mostly = {
->  	.me		= THIS_MODULE,
->  };
->  
-> +static int __net_init ebt_log_net_init(struct net *net)
-> +{
-> +	nf_log_set(net, NFPROTO_BRIDGE, &ebt_log_logger);
-> +	return 0;
-> +}
-> +
-> +static void __net_exit ebt_log_net_fini(struct net *net)
-> +{
-> +	nf_log_unset(net, &ebt_log_logger);
-> +}
-> +
-> +static struct pernet_operations ebt_log_net_ops = {
-> +	.init = ebt_log_net_init,
-> +	.exit = ebt_log_net_fini,
-> +};
-> +
->  static int __init ebt_log_init(void)
->  {
->  	int ret;
-> @@ -214,12 +234,14 @@ static int __init ebt_log_init(void)
->  	ret = xt_register_target(&ebt_log_tg_reg);
->  	if (ret < 0)
->  		return ret;
-> +
->  	nf_log_register(NFPROTO_BRIDGE, &ebt_log_logger);
-> -	return 0;
-> +	return register_pernet_subsys(&ebt_log_net_ops);
-
-You have to unroll in case register_pernet_subsys, I fixed this.
-
->  }
->  
->  static void __exit ebt_log_fini(void)
->  {
-> +	unregister_pernet_subsys(&ebt_log_net_ops);
->  	nf_log_unregister(&ebt_log_logger);
->  	xt_unregister_target(&ebt_log_tg_reg);
->  }
-> -- 
-> 1.7.11.7
-> 
+> >   ipvs: avoid routing by TOS for real server
+> >   ipvs: prefer NETDEV_DOWN event to free cached dsts
+> >   ipvs: convert the IP_VS_XMIT macros to functions
+> >   ipvs: rename functions related to dst_cache reset
+> >   ipvs: no need to reroute anymore on DNAT over loopback
+> >   ipvs: do not use skb_share_check
+> >   ipvs: consolidate all dst checks on transmit in one place
+> >   ipvs: optimize dst usage for real server
+> >   ipvs: convert app locks
+> >   ipvs: remove rs_lock by using RCU
+> >   ipvs: convert locks used in persistence engines
+> >   ipvs: convert connection locking
+> >   ipvs: reorder keys in connection structure
+> >   ipvs: avoid kmem_cache_zalloc in ip_vs_conn_new
+> >   ipvs: change ip_vs_sched_lock to mutex
+> >   ipvs: preparations for using rcu in schedulers
+> >   ipvs: add ip_vs_dest_hold and ip_vs_dest_put
+> >   ipvs: convert dh scheduler to rcu
+> >   ipvs: convert lblc scheduler to rcu
+> >   ipvs: convert lblcr scheduler to rcu
+> >   ipvs: convert lc scheduler to rcu
+> >   ipvs: convert nq scheduler to rcu
+> >   ipvs: convert rr scheduler to rcu
+> >   ipvs: convert sed scheduler to rcu
+> >   ipvs: convert sh scheduler to rcu
+> >   ipvs: convert wlc scheduler to rcu
+> >   ipvs: convert wrr scheduler to rcu
+> >   ipvs: reorganize dest trash
+> >   ipvs: do not expect result from done_service
+> >   ipvs: convert sched_lock to spin lock
+> >   ipvs: convert dests to rcu
+> >   ipvs: convert services to rcu
+> >   ipvs: do not disable bh for long time
