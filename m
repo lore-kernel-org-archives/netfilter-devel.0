@@ -1,61 +1,36 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] iptables manpage: Fix missing space for recent match
- --mask option
-Date: Sat, 6 Apr 2013 13:04:35 +0200
-Message-ID: <20130406110435.GA4500@localhost>
-References: <515FE4EC.1070900@chello.at>
- <515FE8F3.5020700@chello.at>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/51] netfilter updates for net-next
+Date: Sun, 07 Apr 2013 12:27:28 -0400 (EDT)
+Message-ID: <20130407.122728.797835275855932038.davem@davemloft.net>
+References: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Mart Frauenlob <mart.frauenlob@chello.at>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33513 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932710Ab3DFLEl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 6 Apr 2013 07:04:41 -0400
-Content-Disposition: inline
-In-Reply-To: <515FE8F3.5020700@chello.at>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Apr 06, 2013 at 11:20:51AM +0200, Mart Frauenlob wrote:
-> On 06.04.2013 11:04, netfilter-devel-owner@vger.kernel.org wrote:
-> >As the subject says...
-> >
-> >Best regards
-> >
-> >Mart
-> 
-> lol damn, must been blind, now I added an extra space :/
-> removed...
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Sat,  6 Apr 2013 14:16:59 +0200
 
-And missed initial \fI in netmask, but no problem, I fixed it and
-applied this to master. Thanks.
+> You can pull these changes from:
+> 
+> git://1984.lsi.us.es/nf-next master
 
-> From 937309f37f9000f18f88c191923192c5d31a07e8 Mon Sep 17 00:00:00 2001
-> From: Mart Frauenlob <mart.frauenlob@chello.at>
-> Date: Sat, 6 Apr 2013 10:49:47 +0200
-> Subject: [PATCH 2/2] iptables manpage: Fix missing space for recent match --mask option.
-> 
-> ---
->  extensions/libxt_recent.man |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/extensions/libxt_recent.man b/extensions/libxt_recent.man
-> index 8e6a8e9..05ae4fa 100644
-> --- a/extensions/libxt_recent.man
-> +++ b/extensions/libxt_recent.man
-> @@ -24,7 +24,7 @@ is the default.
->  \fB\-\-rdest\fP
->  Match/save the destination address of each packet in the recent list table.
->  .TP
-> -\fB\-\-mask\fPnetmask
-> +\fB\-\-mask\fP \fnetmask\fP
->  Netmask that will be applied to this recent list.
->  .TP
->  [\fB!\fP] \fB\-\-rcheck\fP
-> -- 
-> 1.7.2.5
-> 
+Not a very good pull request, I don't know how you were able to
+successfully create it with all the inaccuracies.
 
+The dst.c change wasn't mentioned.
+
+and the last three patches (the error propagation fixes from Patrick)
+weren't even in this tree.
+
+I pulled, but I cannot believe that GIT didn't complain about this
+or provide some kind of feedback indicating that what you're asking
+me to pull doesn't match up with what's actually in that tree.
+
+I mean, if anyone had sent you a pull request like this, you would
+have rejected it.
