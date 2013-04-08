@@ -1,36 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/51] netfilter updates for net-next
-Date: Sun, 07 Apr 2013 12:27:28 -0400 (EDT)
-Message-ID: <20130407.122728.797835275855932038.davem@davemloft.net>
-References: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Re: [PATCH] netfilter: don't reset nf_trace in nf_reset()
+Date: Mon, 08 Apr 2013 09:11:02 +0800
+Message-ID: <51621926.10201@cn.fujitsu.com>
+References: <1365187325-25147-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1365250670-14993-1-git-send-email-pablo@netfilter.org>
+In-Reply-To: <1365187325-25147-1-git-send-email-kaber@trash.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Sat,  6 Apr 2013 14:16:59 +0200
-
-> You can pull these changes from:
+On 2013/04/06 02:42, Patrick McHardy wrote:
+> Commit 130549fe added code to reset nf_trace in nf_reset(). This is wrong
+> and unnecessary.
 > 
-> git://1984.lsi.us.es/nf-next master
+> nf_reset() is used in the following cases:
+> 
+> - when passing packets up the the socket layer, at which point we want to
+>   release all netfilter references that might keep modules pinned while
+>   the packet is queued. nf_trace doesn't matter anymore at this point.
+> 
+> - when encapsulating or decapsulating IPsec packets. We want to continue
+>   tracing these packets after IPsec processing.
+> 
+> - when passing packets through virtual network devices. Only devices on
+>   that encapsulate in IPv4/v6 matter since otherwise nf_trace is not
+>   used anymore. Its not entirely clear whether those packets should
+>   be traced after that, however we've always done that.
+> 
+> - when passing packets through virtual network devices that make the
+>   packet cross network namespace boundaries. This is the only cases
+>   where we clearly want to reset nf_trace and is also what the
+>   original patch intended to fix.
+> 
+> Add a new function nf_reset_trace() and use it in dev_forward_skb() to
+> fix this properly.
+> 
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-Not a very good pull request, I don't know how you were able to
-successfully create it with all the inaccuracies.
+Ok, I was confused by the nf_*reset*...
+This patch is more proper,Since my commit will change the behavior of TRACE in some case.
 
-The dst.c change wasn't mentioned.
-
-and the last three patches (the error propagation fixes from Patrick)
-weren't even in this tree.
-
-I pulled, but I cannot believe that GIT didn't complain about this
-or provide some kind of feedback indicating that what you're asking
-me to pull doesn't match up with what's actually in that tree.
-
-I mean, if anyone had sent you a pull request like this, you would
-have rejected it.
+Thanks for your fix and explanation.
