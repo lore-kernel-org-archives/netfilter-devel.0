@@ -1,34 +1,54 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 00/15] ipset patches for nf-next
-Date: Tue, 9 Apr 2013 22:03:22 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1304092201150.24146@blackhole.kfki.hu>
-References: <1365534598-23877-1-git-send-email-kadlec@blackhole.kfki.hu>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [libnftables PATCH v2] Basic support for printing nft_data_reg in
+ XML format.
+Date: Tue, 9 Apr 2013 22:26:48 +0200
+Message-ID: <CAOkSjBg9WD5E_ePjdat-E8vb1cXAMTafaF-FyW4-e49q7Uo7Rw@mail.gmail.com>
+References: <20130408083022.9188.50453.stgit@nfdev.cica.es> <20130409194255.GA5544@localhost>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:49902 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932929Ab3DIUDX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Apr 2013 16:03:23 -0400
-In-Reply-To: <1365534598-23877-1-git-send-email-kadlec@blackhole.kfki.hu>
+Received: from mail-la0-f53.google.com ([209.85.215.53]:41799 "EHLO
+	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936293Ab3DIU1K convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 9 Apr 2013 16:27:10 -0400
+Received: by mail-la0-f53.google.com with SMTP id fp13so86954lab.12
+        for <netfilter-devel@vger.kernel.org>; Tue, 09 Apr 2013 13:27:09 -0700 (PDT)
+In-Reply-To: <20130409194255.GA5544@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+2013/4/9 Pablo Neira Ayuso <pablo@netfilter.org>:
+>
+> Cannot use "data" instead of immediate data? This is nested in
+> <immediate>...</immediate>, it seems redundant to me.
 
-On Tue, 9 Apr 2013, Jozsef Kadlecsik wrote:
+Understood. And I will fix it.
 
-> Please consider applying the next patches against your nf-next tree.
+But let me explain why I did it:
 
-I'll rebase the patches against your nf-next tree when the fixes are 
-pulled, and resend them.
+for example, cmp is using <cmpdata>
+<cmpdata> has <data_reg></data_reg> which can also be redundant.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+But all around the XML printing (including sets, an incoming patch)
+i've been nesting the data_reg into another XML node, so you could
+easily see (also the XML parser) the difference between (for example.
+in set) nft_set_elem->key and nft_set_elem->data.
+As I needed to nest in nft_set_elem I decided to follow a constant
+line and do nest all data_reg.
+
+If you liked this reason, we can choose a new tag for immediate and
+cmp (or a general naming convention) to avoid be so redundant. If not,
+I'll fix it and resend.
+
+regards
+--
+Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
