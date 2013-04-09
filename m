@@ -1,34 +1,31 @@
-From: Mart Frauenlob <mart.frauenlob@chello.at>
-Subject: documentation bug: missing nat targets in man
-Date: Tue, 09 Apr 2013 11:47:42 +0200
-Message-ID: <5163E3BE.3040609@chello.at>
-Reply-To: mart.frauenlob@chello.at
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: documentation bug: missing nat targets in man
+Date: Tue, 9 Apr 2013 11:54:48 +0200
+Message-ID: <20130409095448.GD26170@macbook.localnet>
+References: <5163E3BE.3040609@chello.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Mart Frauenlob <mart.frauenlob@chello.at>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fep34.mx.upcmail.net ([62.179.121.52]:34097 "EHLO
-	fep34.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933110Ab3DIJs2 (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:41122 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753945Ab3DIJyv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Apr 2013 05:48:28 -0400
-Received: from edge04.upcmail.net ([192.168.13.239])
-          by viefep34-int.chello.at
-          (InterMail vM.8.01.05.05 201-2260-151-110-20120111) with ESMTP
-          id <20130409094826.FZZU6461.viefep34-int.chello.at@edge04.upcmail.net>
-          for <netfilter-devel@vger.kernel.org>;
-          Tue, 9 Apr 2013 11:48:26 +0200
+	Tue, 9 Apr 2013 05:54:51 -0400
+Content-Disposition: inline
+In-Reply-To: <5163E3BE.3040609@chello.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+On Tue, Apr 09, 2013 at 11:47:42AM +0200, Mart Frauenlob wrote:
+> Hello,
+> 
+> I noticed there's quite new DNAT, SNAT, NETMAP support for
+> ip6tables, but that information is missing in the man page.
+> Anything else needed than just copying the according ipv4 *.man files?
+> If so, want me do prepare a patch?
 
-I noticed there's quite new DNAT, SNAT, NETMAP support for ip6tables, 
-but that information is missing in the man page.
-Anything else needed than just copying the according ipv4 *.man files?
-If so, want me do prepare a patch?
-
-Best regards
-
-Mart
+I guess you can rename the ipv4 specific man files to xt_... and
+update them accordingly, the modules should behave similar to their
+IPv4 counterparts.
