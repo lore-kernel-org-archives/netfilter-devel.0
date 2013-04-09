@@ -1,14 +1,14 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 04/15] netfilter: ipset: Move often used IPv6 address masking function to header file
-Date: Tue,  9 Apr 2013 21:09:47 +0200
-Message-ID: <1365534598-23877-5-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 03/15] netfilter: ipset: Make possible to test elements marked with nomatch
+Date: Tue,  9 Apr 2013 21:09:46 +0200
+Message-ID: <1365534598-23877-4-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1365534598-23877-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:59779 "EHLO smtp0.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:59778 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935589Ab3DITKB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S935634Ab3DITKB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Tue, 9 Apr 2013 15:10:01 -0400
 In-Reply-To: <1365534598-23877-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -16,132 +16,209 @@ List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/linux/netfilter/ipset/pfxlen.h      |    9 +++++++++
- net/netfilter/ipset/ip_set_hash_ip.c        |    9 ---------
- net/netfilter/ipset/ip_set_hash_ipportnet.c |    9 ---------
- net/netfilter/ipset/ip_set_hash_net.c       |    9 ---------
- net/netfilter/ipset/ip_set_hash_netiface.c  |    9 ---------
- net/netfilter/ipset/ip_set_hash_netport.c   |    9 ---------
- 6 files changed, 9 insertions(+), 45 deletions(-)
+ include/linux/netfilter/ipset/ip_set.h      |    8 ++++++++
+ net/netfilter/ipset/ip_set_hash_ipportnet.c |   14 ++++++++------
+ net/netfilter/ipset/ip_set_hash_net.c       |   14 ++++++++------
+ net/netfilter/ipset/ip_set_hash_netiface.c  |   14 ++++++++------
+ net/netfilter/ipset/ip_set_hash_netport.c   |   14 ++++++++------
+ 5 files changed, 40 insertions(+), 24 deletions(-)
 
-diff --git a/include/linux/netfilter/ipset/pfxlen.h b/include/linux/netfilter/ipset/pfxlen.h
-index 199fd11..1afbb94 100644
---- a/include/linux/netfilter/ipset/pfxlen.h
-+++ b/include/linux/netfilter/ipset/pfxlen.h
-@@ -41,4 +41,13 @@ do {						\
- 	to = from | ~ip_set_hostmask(cidr);	\
- } while (0)
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+index 7958e84..9701871 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -200,6 +200,14 @@ ip_set_eexist(int ret, u32 flags)
+ 	return ret == -IPSET_ERR_EXIST && (flags & IPSET_FLAG_EXIST);
+ }
  
-+static inline void
-+ip6_netmask(union nf_inet_addr *ip, u8 prefix)
++/* Match elements marked with nomatch */
++static inline bool
++ip_set_enomatch(int ret, u32 flags, enum ipset_adt adt)
 +{
-+	ip->ip6[0] &= ip_set_netmask6(prefix)[0];
-+	ip->ip6[1] &= ip_set_netmask6(prefix)[1];
-+	ip->ip6[2] &= ip_set_netmask6(prefix)[2];
-+	ip->ip6[3] &= ip_set_netmask6(prefix)[3];
++	return adt == IPSET_TEST &&
++	       ret == -ENOTEMPTY && ((flags >> 16) & IPSET_FLAG_NOMATCH);
 +}
 +
- #endif /*_PFXLEN_H */
-diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
-index b7d4cb4..c486ad2 100644
---- a/net/netfilter/ipset/ip_set_hash_ip.c
-+++ b/net/netfilter/ipset/ip_set_hash_ip.c
-@@ -255,15 +255,6 @@ hash_ip6_data_zero_out(struct hash_ip6_elem *elem)
- 	ipv6_addr_set(&elem->ip.in6, 0, 0, 0, 0);
- }
- 
--static inline void
--ip6_netmask(union nf_inet_addr *ip, u8 prefix)
--{
--	ip->ip6[0] &= ip_set_netmask6(prefix)[0];
--	ip->ip6[1] &= ip_set_netmask6(prefix)[1];
--	ip->ip6[2] &= ip_set_netmask6(prefix)[2];
--	ip->ip6[3] &= ip_set_netmask6(prefix)[3];
--}
--
- static bool
- hash_ip6_data_list(struct sk_buff *skb, const struct hash_ip6_elem *data)
- {
+ /* Check the NLA_F_NET_BYTEORDER flag */
+ static inline bool
+ ip_set_attr_netorder(struct nlattr *tb[], int type)
 diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-index b4836c8..352f8b4 100644
+index 10a30b4..b4836c8 100644
 --- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
 +++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-@@ -446,15 +446,6 @@ hash_ipportnet6_data_zero_out(struct hash_ipportnet6_elem *elem)
- }
+@@ -279,10 +279,10 @@ hash_ipportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
+ 	}
  
- static inline void
--ip6_netmask(union nf_inet_addr *ip, u8 prefix)
--{
--	ip->ip6[0] &= ip_set_netmask6(prefix)[0];
--	ip->ip6[1] &= ip_set_netmask6(prefix)[1];
--	ip->ip6[2] &= ip_set_netmask6(prefix)[2];
--	ip->ip6[3] &= ip_set_netmask6(prefix)[3];
--}
--
--static inline void
- hash_ipportnet6_data_netmask(struct hash_ipportnet6_elem *elem, u8 cidr)
- {
- 	ip6_netmask(&elem->ip2, cidr);
+-	if (tb[IPSET_ATTR_CADT_FLAGS] && adt == IPSET_ADD) {
++	if (tb[IPSET_ATTR_CADT_FLAGS]) {
+ 		u32 cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
+ 		if (cadt_flags & IPSET_FLAG_NOMATCH)
+-			flags |= (cadt_flags << 16);
++			flags |= (IPSET_FLAG_NOMATCH << 16);
+ 	}
+ 
+ 	with_ports = with_ports && tb[IPSET_ATTR_PORT_TO];
+@@ -292,7 +292,8 @@ hash_ipportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		data.ip = htonl(ip);
+ 		data.ip2 = htonl(ip2_from & ip_set_hostmask(data.cidr + 1));
+ 		ret = adtfn(set, &data, timeout, flags);
+-		return ip_set_eexist(ret, flags) ? 0 : ret;
++		return ip_set_enomatch(ret, flags, adt) ? 1 :
++		       ip_set_eexist(ret, flags) ? 0 : ret;
+ 	}
+ 
+ 	ip_to = ip;
+@@ -610,15 +611,16 @@ hash_ipportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
+ 	}
+ 
+-	if (tb[IPSET_ATTR_CADT_FLAGS] && adt == IPSET_ADD) {
++	if (tb[IPSET_ATTR_CADT_FLAGS]) {
+ 		u32 cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
+ 		if (cadt_flags & IPSET_FLAG_NOMATCH)
+-			flags |= (cadt_flags << 16);
++			flags |= (IPSET_FLAG_NOMATCH << 16);
+ 	}
+ 
+ 	if (adt == IPSET_TEST || !with_ports || !tb[IPSET_ATTR_PORT_TO]) {
+ 		ret = adtfn(set, &data, timeout, flags);
+-		return ip_set_eexist(ret, flags) ? 0 : ret;
++		return ip_set_enomatch(ret, flags, adt) ? 1 :
++		       ip_set_eexist(ret, flags) ? 0 : ret;
+ 	}
+ 
+ 	port = ntohs(data.port);
 diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/ip_set_hash_net.c
-index 6dbe0af..370947c 100644
+index d6a5915..6dbe0af 100644
 --- a/net/netfilter/ipset/ip_set_hash_net.c
 +++ b/net/netfilter/ipset/ip_set_hash_net.c
-@@ -343,15 +343,6 @@ hash_net6_data_zero_out(struct hash_net6_elem *elem)
+@@ -225,16 +225,17 @@ hash_net4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
+ 	}
+ 
+-	if (tb[IPSET_ATTR_CADT_FLAGS] && adt == IPSET_ADD) {
++	if (tb[IPSET_ATTR_CADT_FLAGS]) {
+ 		u32 cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
+ 		if (cadt_flags & IPSET_FLAG_NOMATCH)
+-			flags |= (cadt_flags << 16);
++			flags |= (IPSET_FLAG_NOMATCH << 16);
+ 	}
+ 
+ 	if (adt == IPSET_TEST || !tb[IPSET_ATTR_IP_TO]) {
+ 		data.ip = htonl(ip & ip_set_hostmask(data.cidr));
+ 		ret = adtfn(set, &data, timeout, flags);
+-		return ip_set_eexist(ret, flags) ? 0 : ret;
++		return ip_set_enomatch(ret, flags, adt) ? 1 :
++		       ip_set_eexist(ret, flags) ? 0 : ret;
+ 	}
+ 
+ 	ip_to = ip;
+@@ -466,15 +467,16 @@ hash_net6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
+ 	}
+ 
+-	if (tb[IPSET_ATTR_CADT_FLAGS] && adt == IPSET_ADD) {
++	if (tb[IPSET_ATTR_CADT_FLAGS]) {
+ 		u32 cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
+ 		if (cadt_flags & IPSET_FLAG_NOMATCH)
+-			flags |= (cadt_flags << 16);
++			flags |= (IPSET_FLAG_NOMATCH << 16);
+ 	}
+ 
+ 	ret = adtfn(set, &data, timeout, flags);
+ 
+-	return ip_set_eexist(ret, flags) ? 0 : ret;
++	return ip_set_enomatch(ret, flags, adt) ? 1 :
++	       ip_set_eexist(ret, flags) ? 0 : ret;
  }
  
- static inline void
--ip6_netmask(union nf_inet_addr *ip, u8 prefix)
--{
--	ip->ip6[0] &= ip_set_netmask6(prefix)[0];
--	ip->ip6[1] &= ip_set_netmask6(prefix)[1];
--	ip->ip6[2] &= ip_set_netmask6(prefix)[2];
--	ip->ip6[3] &= ip_set_netmask6(prefix)[3];
--}
--
--static inline void
- hash_net6_data_netmask(struct hash_net6_elem *elem, u8 cidr)
- {
- 	ip6_netmask(&elem->ip, cidr);
+ /* Create hash:ip type of sets */
 diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
-index 2481620..dd9843e 100644
+index f2b0a3c..2481620 100644
 --- a/net/netfilter/ipset/ip_set_hash_netiface.c
 +++ b/net/netfilter/ipset/ip_set_hash_netiface.c
-@@ -529,15 +529,6 @@ hash_netiface6_data_zero_out(struct hash_netiface6_elem *elem)
+@@ -396,13 +396,14 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		u32 cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
+ 		if (cadt_flags & IPSET_FLAG_PHYSDEV)
+ 			data.physdev = 1;
+-		if (adt == IPSET_ADD && (cadt_flags & IPSET_FLAG_NOMATCH))
+-			flags |= (cadt_flags << 16);
++		if (cadt_flags & IPSET_FLAG_NOMATCH)
++			flags |= (IPSET_FLAG_NOMATCH << 16);
+ 	}
+ 	if (adt == IPSET_TEST || !tb[IPSET_ATTR_IP_TO]) {
+ 		data.ip = htonl(ip & ip_set_hostmask(data.cidr));
+ 		ret = adtfn(set, &data, timeout, flags);
+-		return ip_set_eexist(ret, flags) ? 0 : ret;
++		return ip_set_enomatch(ret, flags, adt) ? 1 :
++		       ip_set_eexist(ret, flags) ? 0 : ret;
+ 	}
+ 
+ 	if (tb[IPSET_ATTR_IP_TO]) {
+@@ -704,13 +705,14 @@ hash_netiface6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		u32 cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
+ 		if (cadt_flags & IPSET_FLAG_PHYSDEV)
+ 			data.physdev = 1;
+-		if (adt == IPSET_ADD && (cadt_flags & IPSET_FLAG_NOMATCH))
+-			flags |= (cadt_flags << 16);
++		if (cadt_flags & IPSET_FLAG_NOMATCH)
++			flags |= (IPSET_FLAG_NOMATCH << 16);
+ 	}
+ 
+ 	ret = adtfn(set, &data, timeout, flags);
+ 
+-	return ip_set_eexist(ret, flags) ? 0 : ret;
++	return ip_set_enomatch(ret, flags, adt) ? 1 :
++	       ip_set_eexist(ret, flags) ? 0 : ret;
  }
  
- static inline void
--ip6_netmask(union nf_inet_addr *ip, u8 prefix)
--{
--	ip->ip6[0] &= ip_set_netmask6(prefix)[0];
--	ip->ip6[1] &= ip_set_netmask6(prefix)[1];
--	ip->ip6[2] &= ip_set_netmask6(prefix)[2];
--	ip->ip6[3] &= ip_set_netmask6(prefix)[3];
--}
--
--static inline void
- hash_netiface6_data_netmask(struct hash_netiface6_elem *elem, u8 cidr)
- {
- 	ip6_netmask(&elem->ip, cidr);
+ /* Create hash:ip type of sets */
 diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ipset/ip_set_hash_netport.c
-index 57b0550..cd1d3c1 100644
+index 349deb6..57b0550 100644
 --- a/net/netfilter/ipset/ip_set_hash_netport.c
 +++ b/net/netfilter/ipset/ip_set_hash_netport.c
-@@ -407,15 +407,6 @@ hash_netport6_data_zero_out(struct hash_netport6_elem *elem)
- }
+@@ -272,16 +272,17 @@ hash_netport4_uadt(struct ip_set *set, struct nlattr *tb[],
  
- static inline void
--ip6_netmask(union nf_inet_addr *ip, u8 prefix)
--{
--	ip->ip6[0] &= ip_set_netmask6(prefix)[0];
--	ip->ip6[1] &= ip_set_netmask6(prefix)[1];
--	ip->ip6[2] &= ip_set_netmask6(prefix)[2];
--	ip->ip6[3] &= ip_set_netmask6(prefix)[3];
--}
--
--static inline void
- hash_netport6_data_netmask(struct hash_netport6_elem *elem, u8 cidr)
- {
- 	ip6_netmask(&elem->ip, cidr);
+ 	with_ports = with_ports && tb[IPSET_ATTR_PORT_TO];
+ 
+-	if (tb[IPSET_ATTR_CADT_FLAGS] && adt == IPSET_ADD) {
++	if (tb[IPSET_ATTR_CADT_FLAGS]) {
+ 		u32 cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
+ 		if (cadt_flags & IPSET_FLAG_NOMATCH)
+-			flags |= (cadt_flags << 16);
++			flags |= (IPSET_FLAG_NOMATCH << 16);
+ 	}
+ 
+ 	if (adt == IPSET_TEST || !(with_ports || tb[IPSET_ATTR_IP_TO])) {
+ 		data.ip = htonl(ip & ip_set_hostmask(data.cidr + 1));
+ 		ret = adtfn(set, &data, timeout, flags);
+-		return ip_set_eexist(ret, flags) ? 0 : ret;
++		return ip_set_enomatch(ret, flags, adt) ? 1 :
++		       ip_set_eexist(ret, flags) ? 0 : ret;
+ 	}
+ 
+ 	port = port_to = ntohs(data.port);
+@@ -561,15 +562,16 @@ hash_netport6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
+ 	}
+ 
+-	if (tb[IPSET_ATTR_CADT_FLAGS] && adt == IPSET_ADD) {
++	if (tb[IPSET_ATTR_CADT_FLAGS]) {
+ 		u32 cadt_flags = ip_set_get_h32(tb[IPSET_ATTR_CADT_FLAGS]);
+ 		if (cadt_flags & IPSET_FLAG_NOMATCH)
+-			flags |= (cadt_flags << 16);
++			flags |= (IPSET_FLAG_NOMATCH << 16);
+ 	}
+ 
+ 	if (adt == IPSET_TEST || !with_ports || !tb[IPSET_ATTR_PORT_TO]) {
+ 		ret = adtfn(set, &data, timeout, flags);
+-		return ip_set_eexist(ret, flags) ? 0 : ret;
++		return ip_set_enomatch(ret, flags, adt) ? 1 :
++		       ip_set_eexist(ret, flags) ? 0 : ret;
+ 	}
+ 
+ 	port = ntohs(data.port);
 -- 
 1.7.0.4
 
