@@ -1,128 +1,93 @@
 From: Mart Frauenlob <mart.frauenlob@chello.at>
-Subject: [PATCH] iptables manpage: Update REDIRECT target
-Date: Wed, 10 Apr 2013 18:30:26 +0200
-Message-ID: <516593A2.8040308@chello.at>
+Subject: [PATCH] iptables manpage: Update NETMAP target
+Date: Wed, 10 Apr 2013 18:30:43 +0200
+Message-ID: <516593B3.7070309@chello.at>
 Reply-To: mart.frauenlob@chello.at
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------060804030506070803060508"
+ boundary="------------090909040908030601030208"
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fep32.mx.upcmail.net ([62.179.121.50]:38358 "EHLO
-	fep32.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936994Ab3DJQbN (ORCPT
+Received: from fep19.mx.upcmail.net ([62.179.121.39]:48895 "EHLO
+	fep19.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S937045Ab3DJQba (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Apr 2013 12:31:13 -0400
+	Wed, 10 Apr 2013 12:31:30 -0400
 Received: from edge04.upcmail.net ([192.168.13.239])
-          by viefep32-int.chello.at
+          by viefep19-int.chello.at
           (InterMail vM.8.01.05.05 201-2260-151-110-20120111) with ESMTP
-          id <20130410163111.TKYY12904.viefep32-int.chello.at@edge04.upcmail.net>
+          id <20130410163128.IJLO25472.viefep19-int.chello.at@edge04.upcmail.net>
           for <netfilter-devel@vger.kernel.org>;
-          Wed, 10 Apr 2013 18:31:11 +0200
+          Wed, 10 Apr 2013 18:31:28 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 This is a multi-part message in MIME format.
---------------060804030506070803060508
+--------------090909040908030601030208
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
 Hello,
 
-this patch renames libipt_REDIRECT.man to libxt_REDIRECT.man thus 
-informing about the IPv6 version.
-Also the list of valid protocols for port mapping is updated to:
-tcp, udp, dccp and sctp.
+this patch renames libipt_NETMAP.man to libxt_NETMAP.man thus informing 
+about the IPv6 version.
 
-I hope the address provided for IPv6 localhost ::1 is correct?
 
 Best regards
 
 Mart
 
---------------060804030506070803060508
+--------------090909040908030601030208
 Content-Type: text/plain; charset=windows-1252;
- name="manpage-Rename-libipt_REDIRECT.man-to-libxt_REDIRECT.patch"
+ name="manpage-Rename-libipt_NETMAP.man-to-libxt_NETMAP.man.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment;
- filename*0="manpage-Rename-libipt_REDIRECT.man-to-libxt_REDIRECT.patch"
+ filename*0="manpage-Rename-libipt_NETMAP.man-to-libxt_NETMAP.man.patch"
 
->From 2032b842833bd4737e6bd1317ea8fa386d2e3fca Mon Sep 17 00:00:00 2001
+>From 5f14adf02e7320eed1b88fe610a59b056b43589f Mon Sep 17 00:00:00 2001
 From: AllKind <allkind@fastest.cc>
-Date: Wed, 10 Apr 2013 16:58:26 +0200
-Subject: [PATCH] manpage: Rename libipt_REDIRECT.man to libxt_REDIRECT.man.
- Update list of protocols valid for port mapping.
+Date: Wed, 10 Apr 2013 17:00:36 +0200
+Subject: [PATCH] manpage: Rename libipt_NETMAP.man to libxt_NETMAP.man.
 
 ---
- extensions/libipt_REDIRECT.man |   25 -------------------------
- extensions/libxt_REDIRECT.man  |   23 +++++++++++++++++++++++
- 2 files changed, 23 insertions(+), 25 deletions(-)
- delete mode 100644 extensions/libipt_REDIRECT.man
- create mode 100644 extensions/libxt_REDIRECT.man
+ extensions/libipt_NETMAP.man |    9 ---------
+ extensions/libxt_NETMAP.man  |    9 +++++++++
+ 2 files changed, 9 insertions(+), 9 deletions(-)
+ delete mode 100644 extensions/libipt_NETMAP.man
+ create mode 100644 extensions/libxt_NETMAP.man
 
-diff --git a/extensions/libipt_REDIRECT.man b/extensions/libipt_REDIRECT.man
+diff --git a/extensions/libipt_NETMAP.man b/extensions/libipt_NETMAP.man
 deleted file mode 100644
-index 90ab19d..0000000
---- a/extensions/libipt_REDIRECT.man
+index a7e90b8..0000000
+--- a/extensions/libipt_NETMAP.man
 +++ /dev/null
-@@ -1,25 +0,0 @@
--This target is only valid in the
+@@ -1,9 +0,0 @@
+-This target allows you to statically map a whole network of addresses onto
+-another network of addresses.  It can only be used from rules in the
 -.B nat
--table, in the
--.B PREROUTING
--and
--.B OUTPUT
--chains, and user-defined chains which are only called from those
--chains.  It redirects the packet to the machine itself by changing the
--destination IP to the primary address of the incoming interface
--(locally-generated packets are mapped to the 127.0.0.1 address).
+-table.
 -.TP
--\fB\-\-to\-ports\fP \fIport\fP[\fB\-\fP\fIport\fP]
--This specifies a destination port or range of ports to use: without
--this, the destination port is never altered.  This is only valid
--if the rule also specifies
--\fB\-p tcp\fP
--or
--\fB\-p udp\fP.
--.TP
--\fB\-\-random\fP
--If option
--\fB\-\-random\fP
--is used then port mapping will be randomized (kernel >= 2.6.22).
--.RS
--.PP
-diff --git a/extensions/libxt_REDIRECT.man b/extensions/libxt_REDIRECT.man
+-\fB\-\-to\fP \fIaddress\fP[\fB/\fP\fImask\fP]
+-Network address to map to.  The resulting address will be constructed in the
+-following way: All 'one' bits in the mask are filled in from the new `address'.
+-All bits that are zero in the mask are filled in from the original address.
+diff --git a/extensions/libxt_NETMAP.man b/extensions/libxt_NETMAP.man
 new file mode 100644
-index 0000000..7f7de5d
+index 0000000..a7e90b8
 --- /dev/null
-+++ b/extensions/libxt_REDIRECT.man
-@@ -0,0 +1,23 @@
-+This target is only valid in the
++++ b/extensions/libxt_NETMAP.man
+@@ -0,0 +1,9 @@
++This target allows you to statically map a whole network of addresses onto
++another network of addresses.  It can only be used from rules in the
 +.B nat
-+table, in the
-+.B PREROUTING
-+and
-+.B OUTPUT
-+chains, and user-defined chains which are only called from those
-+chains.  It redirects the packet to the machine itself by changing the
-+destination IP to the primary address of the incoming interface
-+(locally-generated packets are mapped to the localhost address,
-+127.0.0.1 for IPv4 and ::1 for IPv6).
++table.
 +.TP
-+\fB\-\-to\-ports\fP \fIport\fP[\fB\-\fP\fIport\fP]
-+This specifies a destination port or range of ports to use: without
-+this, the destination port is never altered.  This is only valid
-+if the rule also specifies one of the following protocols:
-+\fBtcp\fP, \fBudp\fP, \fBdccp\fP or \fBsctp\fP.
-+.TP
-+\fB\-\-random\fP
-+If option
-+\fB\-\-random\fP
-+is used then port mapping will be randomized (kernel >= 2.6.22).
-+.RS
-+.PP
++\fB\-\-to\fP \fIaddress\fP[\fB/\fP\fImask\fP]
++Network address to map to.  The resulting address will be constructed in the
++following way: All 'one' bits in the mask are filled in from the new `address'.
++All bits that are zero in the mask are filled in from the original address.
 -- 
 1.7.2.5
 
 
---------------060804030506070803060508--
+--------------090909040908030601030208--
