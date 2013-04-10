@@ -1,149 +1,64 @@
-From: Mart Frauenlob <mart.frauenlob@chello.at>
-Subject: [PATCH] iptables manpage: Update SNAT target
-Date: Wed, 10 Apr 2013 18:31:08 +0200
-Message-ID: <516593CC.1010908@chello.at>
-Reply-To: mart.frauenlob@chello.at
+From: Arturo Borrero <arturo.borrero.glez@gmail.com>
+Subject: [libnftables PATCH 0/5] XML works
+Date: Wed, 10 Apr 2013 18:39:52 +0200
+Message-ID: <20130410163912.6303.8705.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010501040209070503000005"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fep32.mx.upcmail.net ([62.179.121.50]:39178 "EHLO
-	fep32.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936705Ab3DJQbz (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Apr 2013 12:31:55 -0400
-Received: from edge04.upcmail.net ([192.168.13.239])
-          by viefep32-int.chello.at
-          (InterMail vM.8.01.05.05 201-2260-151-110-20120111) with ESMTP
-          id <20130410163153.TLMX12904.viefep32-int.chello.at@edge04.upcmail.net>
-          for <netfilter-devel@vger.kernel.org>;
-          Wed, 10 Apr 2013 18:31:53 +0200
+Received: from smtp3.cica.es ([150.214.5.190]:36324 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932468Ab3DJQj4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Apr 2013 12:39:56 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------010501040209070503000005
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+The following series implements:
 
-Hello,
+ * small XML format fixes in printing.
+ * a workaround for target/match binary data.
+ * delete all \n and \t in XML printing.
+ * print expr flags in XML (the <expr_flags> node)
+ * [RFC] XML-to-object parsing.
 
-this patch renames libipt_SNAT.man to libxt_SNAT.man thus informing 
-about the IPv6 version.
-Also the list of valid protocols for port mapping is updated to:
-tcp, udp, dccp and sctp.
+Note that for XML parsing i've used libmxml (http://minixml.org/)
 
-
-Best regards
-
-Mart
-
---------------010501040209070503000005
-Content-Type: text/plain; charset=windows-1252;
- name="manpage-Rename-libipt_SNAT.man-to-libxt_SNAT.man.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="manpage-Rename-libipt_SNAT.man-to-libxt_SNAT.man.patch"
-
->From 8136feb4b69ac27cb50d8f1db95bf2d03e9ba8a9 Mon Sep 17 00:00:00 2001
-From: AllKind <allkind@fastest.cc>
-Date: Wed, 10 Apr 2013 16:44:49 +0200
-Subject: [PATCH] manpage: Rename libipt_SNAT.man to libxt_SNAT.man.
- Update list of protocols valid for port mapping.
+Also, please consider the XML parsing code a RFC.
 
 ---
- extensions/libipt_SNAT.man |   37 -------------------------------------
- extensions/libxt_SNAT.man  |   34 ++++++++++++++++++++++++++++++++++
- 2 files changed, 34 insertions(+), 37 deletions(-)
- delete mode 100644 extensions/libipt_SNAT.man
- create mode 100644 extensions/libxt_SNAT.man
 
-diff --git a/extensions/libipt_SNAT.man b/extensions/libipt_SNAT.man
-deleted file mode 100644
-index 626b592..0000000
---- a/extensions/libipt_SNAT.man
-+++ /dev/null
-@@ -1,37 +0,0 @@
--This target is only valid in the
--.B nat
--table, in the
--.B POSTROUTING
--chain.  It specifies that the source address of the packet should be
--modified (and all future packets in this connection will also be
--mangled), and rules should cease being examined.  It takes one type
--of option:
--.TP
--\fB\-\-to\-source\fP [\fIipaddr\fP[\fB\-\fP\fIipaddr\fP]][\fB:\fP\fIport\fP[\fB\-\fP\fIport\fP]]
--which can specify a single new source IP address, an inclusive range
--of IP addresses, and optionally, a port range (which is only valid if
--the rule also specifies
--\fB\-p tcp\fP
--or
--\fB\-p udp\fP).
--If no port range is specified, then source ports below 512 will be
--mapped to other ports below 512: those between 512 and 1023 inclusive
--will be mapped to ports below 1024, and other ports will be mapped to
--1024 or above. Where possible, no port alteration will occur.
--
--In Kernels up to 2.6.10, you can add several \-\-to\-source options. For those
--kernels, if you specify more than one source address, either via an address
--range or multiple \-\-to\-source options, a simple round-robin (one after another
--in cycle) takes place between these addresses.
--Later Kernels (>= 2.6.11-rc1) don't have the ability to NAT to multiple ranges
--anymore.
--.TP
--\fB\-\-random\fP
--If option
--\fB\-\-random\fP
--is used then port mapping will be randomized (kernel >= 2.6.21).
--.TP
--\fB\-\-persistent\fP
--Gives a client the same source-/destination-address for each connection.
--This supersedes the SAME target. Support for persistent mappings is available
--from 2.6.29-rc2.
-diff --git a/extensions/libxt_SNAT.man b/extensions/libxt_SNAT.man
-new file mode 100644
-index 0000000..d1e6f0d
---- /dev/null
-+++ b/extensions/libxt_SNAT.man
-@@ -0,0 +1,34 @@
-+This target is only valid in the
-+.B nat
-+table, in the
-+.B POSTROUTING
-+chain.  It specifies that the source address of the packet should be
-+modified (and all future packets in this connection will also be
-+mangled), and rules should cease being examined.  It takes the
-+following options:
-+.TP
-+\fB\-\-to\-source\fP [\fIipaddr\fP[\fB\-\fP\fIipaddr\fP]][\fB:\fP\fIport\fP[\fB\-\fP\fIport\fP]]
-+which can specify a single new source IP address, an inclusive range
-+of IP addresses. Optionally a port range,
-+if the rule also specifies one of the following protocols:
-+\fBtcp\fP, \fBudp\fP, \fBdccp\fP or \fBsctp\fP.
-+If no port range is specified, then source ports below 512 will be
-+mapped to other ports below 512: those between 512 and 1023 inclusive
-+will be mapped to ports below 1024, and other ports will be mapped to
-+1024 or above. Where possible, no port alteration will occur.
-+In Kernels up to 2.6.10, you can add several \-\-to\-source options. For those
-+kernels, if you specify more than one source address, either via an address
-+range or multiple \-\-to\-source options, a simple round-robin (one after another
-+in cycle) takes place between these addresses.
-+Later Kernels (>= 2.6.11-rc1) don't have the ability to NAT to multiple ranges
-+anymore.
-+.TP
-+\fB\-\-random\fP
-+If option
-+\fB\-\-random\fP
-+is used then port mapping will be randomized (kernel >= 2.6.21).
-+.TP
-+\fB\-\-persistent\fP
-+Gives a client the same source-/destination-address for each connection.
-+This supersedes the SAME target. Support for persistent mappings is available
-+from 2.6.29-rc2.
+Arturo Borrero (5):
+      src: rule: small fix XML output
+      src: expr: XML printing for binary data in targer and match
+      src: xml printing: delete text format
+      src: expr: print flags in XML
+      src: support for XML parsing
+
+
+ Make_global.am              |    2 
+ configure.ac                |    1 
+ include/libnftables/chain.h |    1 
+ include/libnftables/rule.h  |    1 
+ include/libnftables/table.h |    1 
+ src/chain.c                 |  206 ++++++++++++++++++++++++++++++++++--
+ src/expr/bitwise.c          |  151 ++++++++++++++++++++++++--
+ src/expr/cmp.c              |  139 +++++++++++++++++++++++-
+ src/expr/counter.c          |   87 +++++++++++++++
+ src/expr/data_reg.c         |  249 +++++++++++++++++++++++++++++++++++++++++++
+ src/expr/immediate.c        |  118 ++++++++++++++++++++
+ src/expr/lookup.c           |  107 +++++++++++++++++-
+ src/expr/match.c            |  146 ++++++++++++++++++++++++-
+ src/expr/meta.c             |   84 ++++++++++++++-
+ src/expr/nat.c              |  159 +++++++++++++++++++++++++++
+ src/expr/payload.c          |  118 ++++++++++++++++++++
+ src/expr/target.c           |  148 +++++++++++++++++++++++++-
+ src/expr_ops.h              |    1 
+ src/libnftables.map         |    3 +
+ src/rule.c                  |  189 ++++++++++++++++++++++++++++++++-
+ src/table.c                 |  102 ++++++++++++++++--
+ 21 files changed, 1937 insertions(+), 76 deletions(-)
+
 -- 
-1.7.2.5
-
-
---------------010501040209070503000005--
+Signature
