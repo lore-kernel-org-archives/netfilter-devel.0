@@ -1,34 +1,76 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: Netfilter's tree at git.kernel.org
-Date: Wed, 10 Apr 2013 09:44:21 +0900
-Message-ID: <20130410004420.GE2462@verge.net.au>
-References: <20130409195424.GA5654@localhost>
+From: Florian Westphal <fw@strlen.de>
+Subject: Fwd: Re: [BUG] Fatal exception in interrupt -
+ nf_nat_cleanup_conntrack during IPv6 tests
+Date: Wed, 10 Apr 2013 11:04:36 +0200
+Message-ID: <20130410090436.GG3013@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:57478 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936034Ab3DJAoX (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:42012 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752546Ab3DJJEh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Apr 2013 20:44:23 -0400
+	Wed, 10 Apr 2013 05:04:37 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.72)
+	(envelope-from <fw@strlen.de>)
+	id 1UPqxI-0002qA-Bu
+	for netfilter-devel@vger.kernel.org; Wed, 10 Apr 2013 11:04:36 +0200
 Content-Disposition: inline
-In-Reply-To: <20130409195424.GA5654@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Apr 09, 2013 at 09:54:24PM +0200, Pablo Neira Ayuso wrote:
-> Hi Simon and Jozsef,
-> 
-> For pull requests, please switch to the trees at kernel.org:
-> 
-> https://git.kernel.org/cgit/linux/kernel/git/pablo/nf.git/
-> https://git.kernel.org/cgit/linux/kernel/git/pablo/nf-next.git/
-> 
-> I'll send a patch to David to update MAINTAINERS to point to the new
-> location asap.
+----- Forwarded message -----
 
-Thanks, I have updated my git remotes to use those trees.
+Subject: Re: [BUG] Fatal exception in interrupt - nf_nat_cleanup_conntrack during IPv6 tests
+
+CAI Qian <caiqian@redhat.com> wrote:
+
+[ CC'd nf-devel ]
+
+> Just hit this very often during IPv6 tests in both the latest stable
+> and mainline kernel.
+> 
+> [ 3597.206166] Modules linked in:
+[..]
+> nf_nat_ipv4(F-)
+[..]
+
+> [ 3597.804861] RIP: 0010:[<ffffffffa03227f2>]  [<ffffffffa03227f2>] nf_nat_cleanup_conntrack+0x42/0x70 [nf_nat] 
+> [ 3597.855207] RSP: 0018:ffff880202c63d40  EFLAGS: 00010246 
+> [ 3597.881350] RAX: 0000000000000000 RBX: ffff8801ac7bec28 RCX: ffff8801d0eedbe0 
+> [ 3597.917226] RDX: dead000000200200 RSI: 0000000000000011 RDI: ffffffffa03265b8 
+[..]
+
+> [ 3598.421036]  <IRQ>  
+> [ 3598.430467]  [<ffffffffa0305bb4>] __nf_ct_ext_destroy+0x44/0x60 [nf_conntrack] 
+> [ 3598.499191]  [<ffffffffa02fd3fe>] nf_conntrack_free+0x2e/0x70 [nf_conntrack] 
+> [ 3598.534121]  [<ffffffffa02febed>] destroy_conntrack+0xbd/0x110 [nf_conntrack] 
+> [ 3598.569981]  [<ffffffff81532187>] nf_conntrack_destroy+0x17/0x20 
+> [ 3598.599579]  [<ffffffffa02fe77c>] death_by_timeout+0xdc/0x1b0 [nf_conntrack]
+[..]
+> [ 3599.241868] Code: 83 ec 08 0f b6 58 11 84 db 74 43 48 01 c3 48 83 7b 20 00 74 39 48 c7 c7 b8 65 32 a0 e8 98 fc 2e e1 48 8b 03 48 8b 53 08 48 85 c0 <48> 89 02 74 04 48 89 50 08 48 ba 00 02 20 00 00 00 ad de 48 c7  
+> [ 3599.337037] RIP  [<ffffffffa03227f2>] nf_nat_cleanup_conntrack+0x42/0x70 [nf_nat] 
+
+Looks like we tried to remove bysource hash twice (rdx is
+LIST_POISON_2).
+
+I wonder if this would explain it:
+
+static void nf_nat_l4proto_clean(u8 l3proto, u8 l4proto)
+{
+[..]
+      /* Step 1 - remove from bysource hash */
+      clean.hash = true;
+      for_each_net(net)
+                nf_ct_iterate_cleanup(net, nf_nat_proto_clean, &clean);
+
+A nfct->timer fires and a conntrack is free'd before step 2 memsets the
+nat extension.  In that case, we would try to delete nat->bysource
+again?
+--
+To unsubscribe from this list: send the line "unsubscribe netdev" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+----- End forwarded message -----
