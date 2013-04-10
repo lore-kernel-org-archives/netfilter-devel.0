@@ -1,7 +1,7 @@
 From: Arturo Borrero <arturo.borrero.glez@gmail.com>
-Subject: [libnftables PATCH 3/5] src: xml printing: delete text format
-Date: Wed, 10 Apr 2013 18:40:07 +0200
-Message-ID: <20130410164007.6303.77061.stgit@nfdev.cica.es>
+Subject: [libnftables PATCH 4/5] src: expr: print flags in XML
+Date: Wed, 10 Apr 2013 18:40:13 +0200
+Message-ID: <20130410164013.6303.94034.stgit@nfdev.cica.es>
 References: <20130410163912.6303.8705.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -9,310 +9,330 @@ Content-Transfer-Encoding: 7bit
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:36344 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:36351 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932468Ab3DJQkL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Apr 2013 12:40:11 -0400
+	id S932468Ab3DJQkQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Apr 2013 12:40:16 -0400
 In-Reply-To: <20130410163912.6303.8705.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Delete all \n and \t from XML output.
+This patch adds the <expr_flags> XML node to expressions printing.
+
+Using this new node, a exact copy of the expr is exported, so is possible to know what attributes were originally set in the expr.
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- src/chain.c          |   24 ++++++++++++------------
- src/expr/bitwise.c   |    8 ++++----
- src/expr/cmp.c       |    4 ++--
- src/expr/counter.c   |    2 +-
- src/expr/immediate.c |    4 ++--
- src/expr/lookup.c    |    2 +-
- src/expr/match.c     |    2 +-
- src/expr/meta.c      |    4 ++--
- src/expr/nat.c       |    8 ++++----
- src/expr/payload.c   |    4 ++--
- src/expr/target.c    |    2 +-
- src/rule.c           |    8 ++++----
- src/table.c          |   14 +++++++-------
- 13 files changed, 43 insertions(+), 43 deletions(-)
+ src/expr/bitwise.c   |   17 ++++++++++-------
+ src/expr/cmp.c       |   15 ++++++++++-----
+ src/expr/counter.c   |    6 ++++--
+ src/expr/immediate.c |    4 ++++
+ src/expr/lookup.c    |   17 +++++++++--------
+ src/expr/match.c     |    8 ++++++--
+ src/expr/meta.c      |    5 +++--
+ src/expr/nat.c       |    4 ++++
+ src/expr/payload.c   |    5 +++--
+ src/expr/target.c    |    9 +++++++--
+ 10 files changed, 60 insertions(+), 30 deletions(-)
 
-diff --git a/src/chain.c b/src/chain.c
-index 9d77179..4c111b6 100644
---- a/src/chain.c
-+++ b/src/chain.c
-@@ -450,18 +450,18 @@ static int nft_chain_snprintf_xml(char *buf, size_t size, struct nft_chain *c)
- {
- 	return snprintf(buf, size,
- 		"<chain name=\"%s\" handle=\"%lu\""
--			" bytes=\"%lu\" packets=\"%lu\" >\n"
--			"\t<properties>\n"
--				"\t\t<flags>%d</flags>\n"
--				"\t\t<type>%s</type>\n"
--				"\t\t<table>%s</table>\n"
--				"\t\t<prio>%d</prio>\n"
--				"\t\t<use>%d</use>\n"
--				"\t\t<hooknum>%d</hooknum>\n"
--				"\t\t<policy>%d</policy>\n"
--				"\t\t<family>%d</family>\n"
--			"\t</properties>\n"
--		"</chain>\n",
-+			" bytes=\"%lu\" packets=\"%lu\" >"
-+			"<properties>"
-+				"<flags>%d</flags>"
-+				"<type>%s</type>"
-+				"<table>%s</table>"
-+				"<prio>%d</prio>"
-+				"<use>%d</use>"
-+				"<hooknum>%d</hooknum>"
-+				"<policy>%d</policy>"
-+				"<family>%d</family>"
-+			"</properties>"
-+		"</chain>",
- 			c->name, c->handle, c->bytes, c->packets,
- 			c->flags, c->type, c->table, c->prio,
- 			c->use, c->hooknum, c->policy, c->family);
 diff --git a/src/expr/bitwise.c b/src/expr/bitwise.c
-index 052144e..ddcf6a7 100644
+index ddcf6a7..4376fa0 100644
 --- a/src/expr/bitwise.c
 +++ b/src/expr/bitwise.c
-@@ -201,8 +201,8 @@ nft_rule_expr_bitwise_snprintf_xml(char *buf, size_t size,
+@@ -197,8 +197,9 @@ nft_rule_expr_bitwise_parse(struct nft_rule_expr *e, struct nlattr *attr)
+ 
+ static int
+ nft_rule_expr_bitwise_snprintf_xml(char *buf, size_t size,
+-				   struct nft_expr_bitwise *bitwise)
++				   struct nft_rule_expr *e)
  {
++	struct nft_expr_bitwise *bitwise = (struct nft_expr_bitwise *)e->data;
  	int len = size, offset = 0, ret;
  
--	ret = snprintf(buf, len, "\t\t<sreg>%u</sreg> "
--					"<dreg>%u</dreg> ",
-+	ret = snprintf(buf, len, "<sreg>%u</sreg>"
-+				"<dreg>%u</dreg>",
- 		       bitwise->sreg, bitwise->dreg);
+ 	ret = snprintf(buf, len, "<sreg>%u</sreg>"
+@@ -223,13 +224,18 @@ nft_rule_expr_bitwise_snprintf_xml(char *buf, size_t size,
+ 	ret = snprintf(buf+offset, len, "</xor>");
  	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
  
-@@ -213,14 +213,14 @@ nft_rule_expr_bitwise_snprintf_xml(char *buf, size_t size,
- 				    NFT_RULE_O_XML, 0, DATA_VALUE);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--	ret = snprintf(buf+offset, len, "</mask> <xor>");
-+	ret = snprintf(buf+offset, len, "</mask><xor>");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	ret = nft_data_reg_snprintf(buf+offset, len, &bitwise->xor,
- 				    NFT_RULE_O_XML, 0, DATA_VALUE);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--	ret = snprintf(buf+offset, len, "</xor> ");
-+	ret = snprintf(buf+offset, len, "</xor>");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
++	ret = snprintf(buf+offset, len, "<expr_flags>%u</expr_flags>",
++		       e->flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
  	return offset;
-diff --git a/src/expr/cmp.c b/src/expr/cmp.c
-index 6b5a3a2..3de849a 100644
---- a/src/expr/cmp.c
-+++ b/src/expr/cmp.c
-@@ -171,7 +171,7 @@ nft_rule_expr_cmp_snprintf_xml(char *buf, size_t size, struct nft_expr_cmp *cmp)
- {
- 	int len = size, offset = 0, ret;
- 
--	ret = snprintf(buf, len, "\t\t<sreg>%u</sreg> <op>%s</op> <cmpdata>",
-+	ret = snprintf(buf, len, "<sreg>%u</sreg><op>%s</op><cmpdata>",
- 		       cmp->sreg, expr_cmp_str[cmp->op]);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
-@@ -179,7 +179,7 @@ nft_rule_expr_cmp_snprintf_xml(char *buf, size_t size, struct nft_expr_cmp *cmp)
- 				    NFT_RULE_O_XML, 0, DATA_VALUE);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--	ret = snprintf(buf+offset, len, "</cmpdata> ");
-+	ret = snprintf(buf+offset, len, "</cmpdata>");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	return offset;
-diff --git a/src/expr/counter.c b/src/expr/counter.c
-index d2da9bf..550d56d 100644
---- a/src/expr/counter.c
-+++ b/src/expr/counter.c
-@@ -133,7 +133,7 @@ nft_rule_expr_counter_snprintf(char *buf, size_t len, uint32_t type,
- 
- 	switch(type) {
- 	case NFT_RULE_O_XML:
--		return snprintf(buf, len, "\t\t<pkts>%lu</pkts> <bytes>%lu</bytes> ",
-+		return snprintf(buf, len, "<pkts>%lu</pkts><bytes>%lu</bytes>",
- 				ctr->pkts, ctr->bytes);
- 	case NFT_RULE_O_DEFAULT:
- 		return snprintf(buf, len, "pkts=%lu bytes=%lu ",
-diff --git a/src/expr/immediate.c b/src/expr/immediate.c
-index 082db76..10f7793 100644
---- a/src/expr/immediate.c
-+++ b/src/expr/immediate.c
-@@ -202,8 +202,8 @@ nft_rule_expr_immediate_snprintf_xml(char *buf, size_t len,
- 	int size = len, offset = 0, ret;
- 	struct nft_expr_immediate *imm = (struct nft_expr_immediate *)e->data;
- 
--	ret = snprintf(buf, len, "\t\t<dreg>%u</dreg>"
--				"\n\t\t<immediatedata>", imm->dreg);
-+	ret = snprintf(buf, len, "<dreg>%u</dreg>"
-+				"<immediatedata>", imm->dreg);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 
-diff --git a/src/expr/lookup.c b/src/expr/lookup.c
-index 550c850..003554b 100644
---- a/src/expr/lookup.c
-+++ b/src/expr/lookup.c
-@@ -156,7 +156,7 @@ nft_rule_expr_lookup_snprintf_xml(char *buf, size_t size,
- {
- 	int len = size, offset = 0, ret;
- 
--	ret = snprintf(buf, len, "<set>%s</set><sreg>%u</sreg><dreg>%u</dreg>\n",
-+	ret = snprintf(buf, len, "<set>%s</set><sreg>%u</sreg><dreg>%u</dreg>",
- 			l->set_name, l->sreg, l->dreg);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
-diff --git a/src/expr/match.c b/src/expr/match.c
-index d1f5963..d3bfe76 100644
---- a/src/expr/match.c
-+++ b/src/expr/match.c
-@@ -193,7 +193,7 @@ int nft_rule_expr_match_snprintf_xml(char *buf, size_t len,
- 	int offset = 0;
- 	uint8_t *data = (uint8_t *)mt->data;
- 
--	ret = snprintf(buf, len, "\t\t<name>%s</name> <rev>%u</rev> <info><len>%u</len>",
-+	ret = snprintf(buf, len, "<name>%s</name><rev>%u</rev><info><len>%u</len>",
- 				mt->name, mt->rev, mt->data_len);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
-diff --git a/src/expr/meta.c b/src/expr/meta.c
-index 2095545..bfc1aa6 100644
---- a/src/expr/meta.c
-+++ b/src/expr/meta.c
-@@ -133,8 +133,8 @@ nft_rule_expr_meta_snprintf(char *buf, size_t len, uint32_t type,
- 
- 	switch(type) {
- 	case NFT_RULE_O_XML:
--		return snprintf(buf, len, "\t\t<dreg>%u</dreg>"
--					  " <key>%u</key> ",
-+		return snprintf(buf, len, "<dreg>%u</dreg>"
-+					  "<key>%u</key>",
- 				meta->dreg, meta->key);
- 	case NFT_RULE_O_DEFAULT:
- 		return snprintf(buf, len, "dreg=%u key=%u ",
-diff --git a/src/expr/nat.c b/src/expr/nat.c
-index 68217bd..56212a7 100644
---- a/src/expr/nat.c
-+++ b/src/expr/nat.c
-@@ -211,17 +211,17 @@ nft_rule_expr_nat_snprintf_xml(char *buf, size_t size,
- 	switch (nat->type) {
- 	case NFT_NAT_SNAT:
- 		ret = snprintf(buf, len,
--			"\t\t<type>NFT_NAT_SNAT</type> ");
-+			"<type>NFT_NAT_SNAT</type>");
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 		break;
- 	case NFT_NAT_DNAT:
- 		ret = snprintf(buf, len,
--			"\t\t<type>NFT_NAT_DNAT</type> ");
-+			"<type>NFT_NAT_DNAT</type>");
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 		break;
- 	}
- 
--	ret = snprintf(buf, len, "<family>%s</family> ",
-+	ret = snprintf(buf, len, "<family>%s</family>",
- 		       nat->family == AF_INET ? "AF_INET" : "AF_INET6");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
-@@ -234,7 +234,7 @@ nft_rule_expr_nat_snprintf_xml(char *buf, size_t size,
- 
- 	if (e->flags & (1 << NFT_EXPR_NAT_REG_PROTO_MIN)) {
- 		ret = snprintf(buf, len, "<sreg_proto_min>%u</sreg_proto_min>"
--				" <sreg_proto_max>%u</sreg_proto_max> ",
-+				"<sreg_proto_max>%u</sreg_proto_max>",
- 		       nat->sreg_proto_min, nat->sreg_proto_max);
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
-diff --git a/src/expr/payload.c b/src/expr/payload.c
-index 33fcef1..091078b 100644
---- a/src/expr/payload.c
-+++ b/src/expr/payload.c
-@@ -172,8 +172,8 @@ nft_rule_expr_payload_snprintf(char *buf, size_t len, uint32_t type,
- 
- 	switch(type) {
- 	case NFT_RULE_O_XML:
--		return snprintf(buf, len, "\t\t<dreg>%u</dreg>"
--					  "<base>%u</base> <offset>%u</offset>"
-+		return snprintf(buf, len, "<dreg>%u</dreg>"
-+					  "<base>%u</base><offset>%u</offset>"
- 					  "<len>%u</len>",
- 				payload->dreg, payload->base,
- 					payload->offset, payload->len);
-diff --git a/src/expr/target.c b/src/expr/target.c
-index aae58ce..b6cfd04 100644
---- a/src/expr/target.c
-+++ b/src/expr/target.c
-@@ -193,7 +193,7 @@ int nft_rule_exp_target_snprintf_xml(char *buf, size_t len,
- 	int offset = 0;
- 	uint8_t *data = (uint8_t *)tg->data;
- 
--	ret = snprintf(buf, len, "\t\t<name>%s</name> <rev>%u</rev> <info><len>%u</len>",
-+	ret = snprintf(buf, len, "<name>%s</name><rev>%u</rev><info><len>%u</len>",
- 			tg->name, tg->rev, tg->data_len);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
-diff --git a/src/rule.c b/src/rule.c
-index c463c69..6178e57 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -445,7 +445,7 @@ static int nft_rule_snprintf_xml(char *buf, size_t size, struct nft_rule *r,
- 
- 	ret = snprintf(buf, size,
- 		"<rule family=\"%u\" table=\"%s\" "
--			"chain=\"%s\" handle=\"%llu\">\n ",
-+			"chain=\"%s\" handle=\"%llu\">",
- 				r->family, r->table, r->chain,
- 				(unsigned long long)r->handle);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-@@ -460,17 +460,17 @@ static int nft_rule_snprintf_xml(char *buf, size_t size, struct nft_rule *r,
- 
- 	list_for_each_entry(expr, &r->expr_list, head) {
- 		ret = snprintf(buf+offset, len,
--				"\n\t<expr type=\"%s\">\n", expr->ops->name);
-+				"<expr type=\"%s\">", expr->ops->name);
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 		ret = expr->ops->snprintf(buf+offset, len, type, flags, expr);
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
--		ret = snprintf(buf+offset, len, "\n\t</expr>");
-+		ret = snprintf(buf+offset, len, "</expr>");
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	}
--	ret = snprintf(buf+offset, len, "\n</rule>\n ");
-+	ret = snprintf(buf+offset, len, "</rule>");
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	return ret;
-diff --git a/src/table.c b/src/table.c
-index f109cdd..b47d623 100644
---- a/src/table.c
-+++ b/src/table.c
-@@ -185,13 +185,13 @@ EXPORT_SYMBOL(nft_table_nlmsg_parse);
- static int nft_table_snprintf_xml(char *buf, size_t size, struct nft_table *t)
- {
- 	return snprintf(buf, size,
--			"<table name=\"%s\" >\n"
--				"\t<properties>\n"
--					"\t\t<family>%u</family>\n"
--					"\t\t<flags>%d</flags>\n"
--					"\t\t<table_flags>%d</table_flags>\n"
--				"\t</properties>\n"
--			"</table>\n" ,
-+			"<table name=\"%s\" >"
-+				"<properties>"
-+					"<family>%u</family>"
-+					"<flags>%d</flags>"
-+					"<table_flags>%d</table_flags>"
-+				"</properties>"
-+			"</table>" ,
- 			t->name, t->family, t->flags, t->table_flags);
  }
  
+ static int
+ nft_rule_expr_bitwise_snprintf_default(char *buf, size_t size,
+-				       struct nft_expr_bitwise *bitwise)
++				       struct nft_rule_expr *e)
+ {
++	struct nft_expr_bitwise *bitwise = (struct nft_expr_bitwise *)e->data;
+ 	int len = size, offset = 0, ret;
+ 
+ 	ret = snprintf(buf, len, "sreg=%u dreg=%u ",
+@@ -257,14 +263,11 @@ static int
+ nft_rule_expr_bitwise_snprintf(char *buf, size_t size, uint32_t type,
+ 			       uint32_t flags, struct nft_rule_expr *e)
+ {
+-	struct nft_expr_bitwise *bitwise = (struct nft_expr_bitwise *)e->data;
+-
+ 	switch(type) {
+ 	case NFT_RULE_O_XML:
+-		return nft_rule_expr_bitwise_snprintf_xml(buf, size, bitwise);
++		return nft_rule_expr_bitwise_snprintf_xml(buf, size, e);
+ 	case NFT_RULE_O_DEFAULT:
+-		return nft_rule_expr_bitwise_snprintf_default(buf, size,
+-							      bitwise);
++		return nft_rule_expr_bitwise_snprintf_default(buf, size, e);
+ 	default:
+ 		break;
+ 	}
+diff --git a/src/expr/cmp.c b/src/expr/cmp.c
+index 3de849a..e1e76a6 100644
+--- a/src/expr/cmp.c
++++ b/src/expr/cmp.c
+@@ -167,8 +167,9 @@ static char *expr_cmp_str[] = {
+ };
+ 
+ static int
+-nft_rule_expr_cmp_snprintf_xml(char *buf, size_t size, struct nft_expr_cmp *cmp)
++nft_rule_expr_cmp_snprintf_xml(char *buf, size_t size, struct nft_rule_expr *e)
+ {
++	struct nft_expr_cmp *cmp = (struct nft_expr_cmp *)e->data;
+ 	int len = size, offset = 0, ret;
+ 
+ 	ret = snprintf(buf, len, "<sreg>%u</sreg><op>%s</op><cmpdata>",
+@@ -182,13 +183,18 @@ nft_rule_expr_cmp_snprintf_xml(char *buf, size_t size, struct nft_expr_cmp *cmp)
+ 	ret = snprintf(buf+offset, len, "</cmpdata>");
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
++	ret = snprintf(buf+offset, len, "<expr_flags>%u</expr_flags>",
++		       e->flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
+ 	return offset;
+ }
+ 
+ static int
+ nft_rule_expr_cmp_snprintf_default(char *buf, size_t size,
+-				   struct nft_expr_cmp *cmp)
++				   struct nft_rule_expr *e)
+ {
++	struct nft_expr_cmp *cmp = (struct nft_expr_cmp *)e->data;
+ 	int len = size, offset = 0, ret;
+ 
+ 	ret = snprintf(buf, len, "sreg=%u op=%s data=",
+@@ -206,12 +212,11 @@ static int
+ nft_rule_expr_cmp_snprintf(char *buf, size_t size, uint32_t type,
+ 			   uint32_t flags, struct nft_rule_expr *e)
+ {
+-	struct nft_expr_cmp *cmp = (struct nft_expr_cmp *)e->data;
+ 	switch(type) {
+ 	case NFT_RULE_O_XML:
+-		return nft_rule_expr_cmp_snprintf_xml(buf, size, cmp);
++		return nft_rule_expr_cmp_snprintf_xml(buf, size, e);
+ 	case NFT_RULE_O_DEFAULT:
+-		return nft_rule_expr_cmp_snprintf_default(buf, size, cmp);
++		return nft_rule_expr_cmp_snprintf_default(buf, size, e);
+ 	default:
+ 		break;
+ 	}
+diff --git a/src/expr/counter.c b/src/expr/counter.c
+index 550d56d..ec6f637 100644
+--- a/src/expr/counter.c
++++ b/src/expr/counter.c
+@@ -133,8 +133,10 @@ nft_rule_expr_counter_snprintf(char *buf, size_t len, uint32_t type,
+ 
+ 	switch(type) {
+ 	case NFT_RULE_O_XML:
+-		return snprintf(buf, len, "<pkts>%lu</pkts><bytes>%lu</bytes>",
+-				ctr->pkts, ctr->bytes);
++		return snprintf(buf, len, "<pkts>%lu</pkts>"
++					"<bytes>%lu</bytes>"
++					"<expr_flags>%u</expr_flags>",
++				ctr->pkts, ctr->bytes, e->flags);
+ 	case NFT_RULE_O_DEFAULT:
+ 		return snprintf(buf, len, "pkts=%lu bytes=%lu ",
+ 				ctr->pkts, ctr->bytes);
+diff --git a/src/expr/immediate.c b/src/expr/immediate.c
+index 10f7793..d59f109 100644
+--- a/src/expr/immediate.c
++++ b/src/expr/immediate.c
+@@ -226,6 +226,10 @@ nft_rule_expr_immediate_snprintf_xml(char *buf, size_t len,
+ 	ret = snprintf(buf+offset, len, "</immediatedata>");
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
++	ret = snprintf(buf+offset, len, "<expr_flags>%u</expr_flags>",
++		       e->flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
+ 	return offset;
+ }
+ 
+diff --git a/src/expr/lookup.c b/src/expr/lookup.c
+index 003554b..2abe82e 100644
+--- a/src/expr/lookup.c
++++ b/src/expr/lookup.c
+@@ -152,12 +152,14 @@ nft_rule_expr_lookup_parse(struct nft_rule_expr *e, struct nlattr *attr)
+ 
+ static int
+ nft_rule_expr_lookup_snprintf_xml(char *buf, size_t size,
+-				  struct nft_expr_lookup *l)
++				  struct nft_rule_expr *e)
+ {
++	struct nft_expr_lookup *l = (struct nft_expr_lookup *)e->data;
+ 	int len = size, offset = 0, ret;
+ 
+-	ret = snprintf(buf, len, "<set>%s</set><sreg>%u</sreg><dreg>%u</dreg>",
+-			l->set_name, l->sreg, l->dreg);
++	ret = snprintf(buf, len, "<set>%s</set><sreg>%u</sreg><dreg>%u</dreg>"
++				"<expr_flags>%u</expr_flags>",
++			l->set_name, l->sreg, l->dreg, e->flags);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	return offset;
+@@ -165,8 +167,9 @@ nft_rule_expr_lookup_snprintf_xml(char *buf, size_t size,
+ 
+ static int
+ nft_rule_expr_lookup_snprintf_default(char *buf, size_t size,
+-				      struct nft_expr_lookup *l)
++				      struct nft_rule_expr *e)
+ {
++	struct nft_expr_lookup *l = (struct nft_expr_lookup *)e->data;
+ 	int len = size, offset = 0, ret;
+ 
+ 	ret = snprintf(buf, len, "set=%s sreg=%u dreg=%u\n",
+@@ -180,13 +183,11 @@ static int
+ nft_rule_expr_lookup_snprintf(char *buf, size_t size, uint32_t type,
+ 			       uint32_t flags, struct nft_rule_expr *e)
+ {
+-	struct nft_expr_lookup *lookup = (struct nft_expr_lookup *)e->data;
+-
+ 	switch(type) {
+ 	case NFT_RULE_O_XML:
+-		return nft_rule_expr_lookup_snprintf_xml(buf, size, lookup);
++		return nft_rule_expr_lookup_snprintf_xml(buf, size, e);
+ 	case NFT_RULE_O_DEFAULT:
+-		return nft_rule_expr_lookup_snprintf_default(buf, size, lookup);
++		return nft_rule_expr_lookup_snprintf_default(buf, size, e);
+ 	default:
+ 		break;
+ 	}
+diff --git a/src/expr/match.c b/src/expr/match.c
+index d3bfe76..9a2696e 100644
+--- a/src/expr/match.c
++++ b/src/expr/match.c
+@@ -186,8 +186,9 @@ static int nft_rule_expr_match_parse(struct nft_rule_expr *e, struct nlattr *att
+ 
+ static
+ int nft_rule_expr_match_snprintf_xml(char *buf, size_t len,
+-				struct nft_expr_match *mt)
++				struct nft_rule_expr *e)
+ {
++	struct nft_expr_match *mt = (struct nft_expr_match *)e->data;
+ 	int ret, size=len;
+ 	int i;
+ 	int offset = 0;
+@@ -205,6 +206,9 @@ int nft_rule_expr_match_snprintf_xml(char *buf, size_t len,
+ 	ret = snprintf(buf+offset, len, "</info>" );
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
++	ret = snprintf(buf+offset, len, "<expr_flags>%u</expr_flags>", e->flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
+ 	return offset;
+ }
+ 
+@@ -217,7 +221,7 @@ nft_rule_expr_match_snprintf(char *buf, size_t len, uint32_t type,
+ 
+ 	switch(type) {
+ 	case NFT_RULE_O_XML:
+-		return nft_rule_expr_match_snprintf_xml(buf, len, match);
++		return nft_rule_expr_match_snprintf_xml(buf, len, e);
+ 	case NFT_RULE_O_DEFAULT:
+ 		return snprintf(buf, len, "name=%s rev=%u ",
+ 				match->name, match->rev);
+diff --git a/src/expr/meta.c b/src/expr/meta.c
+index bfc1aa6..e342a6d 100644
+--- a/src/expr/meta.c
++++ b/src/expr/meta.c
+@@ -134,8 +134,9 @@ nft_rule_expr_meta_snprintf(char *buf, size_t len, uint32_t type,
+ 	switch(type) {
+ 	case NFT_RULE_O_XML:
+ 		return snprintf(buf, len, "<dreg>%u</dreg>"
+-					  "<key>%u</key>",
+-				meta->dreg, meta->key);
++					  "<key>%u</key>"
++					"<expr_flags>%u</expr_flags>",
++				meta->dreg, meta->key, e->flags);
+ 	case NFT_RULE_O_DEFAULT:
+ 		return snprintf(buf, len, "dreg=%u key=%u ",
+ 				meta->dreg, meta->key);
+diff --git a/src/expr/nat.c b/src/expr/nat.c
+index 56212a7..382862a 100644
+--- a/src/expr/nat.c
++++ b/src/expr/nat.c
+@@ -239,6 +239,10 @@ nft_rule_expr_nat_snprintf_xml(char *buf, size_t size,
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 	}
+ 
++	ret = snprintf(buf, len, "<expr_flags>%u</expr_flags>",
++		       e->flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
+ 	return offset;
+ }
+ 
+diff --git a/src/expr/payload.c b/src/expr/payload.c
+index 091078b..b72be96 100644
+--- a/src/expr/payload.c
++++ b/src/expr/payload.c
+@@ -174,9 +174,10 @@ nft_rule_expr_payload_snprintf(char *buf, size_t len, uint32_t type,
+ 	case NFT_RULE_O_XML:
+ 		return snprintf(buf, len, "<dreg>%u</dreg>"
+ 					  "<base>%u</base><offset>%u</offset>"
+-					  "<len>%u</len>",
++					  "<len>%u</len>"
++					  "<expr_flags>%u</expr_flags>",
+ 				payload->dreg, payload->base,
+-					payload->offset, payload->len);
++				payload->offset, payload->len, e->flags);
+ 
+ 	case NFT_RULE_O_DEFAULT:
+ 		return snprintf(buf, len, "dreg=%u base=%u offset=%u len=%u ",
+diff --git a/src/expr/target.c b/src/expr/target.c
+index b6cfd04..5ceecce 100644
+--- a/src/expr/target.c
++++ b/src/expr/target.c
+@@ -186,8 +186,9 @@ static int nft_rule_expr_target_parse(struct nft_rule_expr *e, struct nlattr *at
+ 
+ static
+ int nft_rule_exp_target_snprintf_xml(char *buf, size_t len,
+-				struct nft_expr_target *tg)
++				struct nft_rule_expr *e)
+ {
++	struct nft_expr_target *tg = (struct nft_expr_target *)e->data;
+ 	int ret, size=len;
+ 	int i;
+ 	int offset = 0;
+@@ -205,6 +206,10 @@ int nft_rule_exp_target_snprintf_xml(char *buf, size_t len,
+ 	ret = snprintf(buf+offset, len, "</info>" );
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
++	ret = snprintf(buf+offset, len, "<expr_flags>%u</expr_flags>",
++		       e->flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
+ 	return offset;
+ }
+ 
+@@ -216,7 +221,7 @@ nft_rule_expr_target_snprintf(char *buf, size_t len, uint32_t type,
+ 
+ 	switch(type) {
+ 	case NFT_RULE_O_XML:
+-		return nft_rule_exp_target_snprintf_xml(buf, len, target);
++		return nft_rule_exp_target_snprintf_xml(buf, len, e);
+ 	case NFT_RULE_O_DEFAULT:
+ 		return snprintf(buf, len, "name=%s rev=%u ",
+ 				target->name, target->rev);
 
